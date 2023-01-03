@@ -6,7 +6,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
-    <title>Affine Atoms &#8212; CVXPY 1.2 documentation</title>
+    <title>Affine Atoms &#8212; CVXPY 1.3 documentation</title>
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../_static/cvxpy_alabaster.css" />
     <script integrity="sha384-vtXRMe3mGCbOeY7l30aIg8H9p3GdeSe4IFlP6G8JMa7o7lXvnz3GFKzPxzJdPfGK" src="../_static/jquery.js"></script>
@@ -384,7 +384,7 @@ from the tensor product that defines expr.</p></li>
 <dl class="py class">
 <dt class="sig sig-object py" id="cvxpy.atoms.affine.wraps.psd_wrap">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">cvxpy.atoms.affine.wraps.</span></span><span class="sig-name descname"><span class="pre">psd_wrap</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">arg</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/atoms/affine/wraps.html#psd_wrap"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.atoms.affine.wraps.psd_wrap" title="Permalink to this definition">¶</a></dt>
-<dd><p>Asserts argument is PSD.</p>
+<dd><p>Asserts that a square matrix is PSD.</p>
 </dd></dl>
 
 </section>
@@ -529,11 +529,14 @@ For example, if</p>
 <span id="id21"></span><h2><a class="toc-backref" href="#id50" role="doc-backlink">vec</a><a class="headerlink" href="#vec" title="Permalink to this heading">¶</a></h2>
 <dl class="py function">
 <dt class="sig sig-object py" id="cvxpy.vec">
-<span class="sig-prename descclassname"><span class="pre">cvxpy.</span></span><span class="sig-name descname"><span class="pre">vec</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/atoms/affine/vec.html#vec"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.vec" title="Permalink to this definition">¶</a></dt>
-<dd><p>Flattens the matrix X into a vector in column-major order.</p>
+<span class="sig-prename descclassname"><span class="pre">cvxpy.</span></span><span class="sig-name descname"><span class="pre">vec</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">order</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'F'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/atoms/affine/vec.html#vec"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.vec" title="Permalink to this definition">¶</a></dt>
+<dd><p>Flattens the matrix X into a vector.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>X</strong> (<a class="reference internal" href="cvxpy.expressions.html#cvxpy.expressions.expression.Expression" title="cvxpy.expressions.expression.Expression"><em>Expression</em></a><em> or </em><em>numeric constant</em>) – The matrix to flatten.</p>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>X</strong> (<a class="reference internal" href="cvxpy.expressions.html#cvxpy.expressions.expression.Expression" title="cvxpy.expressions.expression.Expression"><em>Expression</em></a><em> or </em><em>numeric constant</em>) – The matrix to flatten.</p></li>
+<li><p><strong>order</strong> (<em>column-major</em><em> (</em><em>'F'</em><em>) or </em><em>row-major</em><em> (</em><em>'C'</em><em>) </em><em>order.</em>) – </p></li>
+</ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>An Expression representing the flattened matrix.</p>

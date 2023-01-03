@@ -5,7 +5,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>cvxpy.constraints.exponential &#8212; CVXPY 1.2 documentation</title>
+    <title>cvxpy.constraints.exponential &#8212; CVXPY 1.3 documentation</title>
     <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../../../_static/cvxpy_alabaster.css" />
     <script integrity="sha384-vtXRMe3mGCbOeY7l30aIg8H9p3GdeSe4IFlP6G8JMa7o7lXvnz3GFKzPxzJdPfGK" src="../../../_static/jquery.js"></script>
@@ -33,8 +33,7 @@
             
   <h1>Source code for cvxpy.constraints.exponential</h1><div class="highlight"><pre>
 <span></span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">Copyright 2013 Steven Diamond</span>
-
+<span class="sd">Copyright 2013 Steven Diamond, 2022 - the CVXPY Authors</span>
 
 <span class="sd">Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);</span>
 <span class="sd">you may not use this file except in compliance with the License.</span>
@@ -48,14 +47,18 @@
 <span class="sd">See the License for the specific language governing permissions and</span>
 <span class="sd">limitations under the License.</span>
 <span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">annotations</span>
 
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Tuple</span>
+<span class="kn">import</span> <span class="nn">warnings</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">TypeVar</span>
 
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 
 <span class="kn">from</span> <span class="nn">cvxpy.constraints.constraint</span> <span class="kn">import</span> <span class="n">Constraint</span>
 <span class="kn">from</span> <span class="nn">cvxpy.expressions</span> <span class="kn">import</span> <span class="n">cvxtypes</span>
 <span class="kn">from</span> <span class="nn">cvxpy.utilities</span> <span class="kn">import</span> <span class="n">scopes</span>
+
+<span class="n">Expression</span> <span class="o">=</span> <span class="n">TypeVar</span><span class="p">(</span><span class="s1">&#39;Expression&#39;</span><span class="p">)</span>
 
 
 <div class="viewcode-block" id="ExpCone"><a class="viewcode-back" href="../../../api_reference/cvxpy.constraints.html#cvxpy.constraints.exponential.ExpCone">[docs]</a><span class="k">class</span> <span class="nc">ExpCone</span><span class="p">(</span><span class="n">Constraint</span><span class="p">):</span>
@@ -79,15 +82,15 @@
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
-<span class="sd">    x : Variable</span>
+<span class="sd">    x : Expression</span>
 <span class="sd">        x in the exponential cone.</span>
-<span class="sd">    y : Variable</span>
+<span class="sd">    y : Expression</span>
 <span class="sd">        y in the exponential cone.</span>
-<span class="sd">    z : Variable</span>
+<span class="sd">    z : Expression</span>
 <span class="sd">        z in the exponential cone.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">,</span> <span class="n">constr_id</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">Expression</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="n">Expression</span><span class="p">,</span> <span class="n">z</span><span class="p">:</span> <span class="n">Expression</span><span class="p">,</span> <span class="n">constr_id</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">Expression</span> <span class="o">=</span> <span class="n">cvxtypes</span><span class="o">.</span><span class="n">expression</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">x</span> <span class="o">=</span> <span class="n">Expression</span><span class="o">.</span><span class="n">cast_to_const</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">y</span> <span class="o">=</span> <span class="n">Expression</span><span class="o">.</span><span class="n">cast_to_const</span><span class="p">(</span><span class="n">y</span><span class="p">)</span>
@@ -135,6 +138,9 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">x</span><span class="o">.</span><span class="n">size</span>
 
+    <span class="k">def</span> <span class="nf">as_quad_approx</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">m</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">k</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">RelEntrConeQuad</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">RelEntrConeQuad</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">y</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">z</span><span class="p">,</span> <span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">x</span><span class="p">,</span> <span class="n">m</span><span class="p">,</span> <span class="n">k</span><span class="p">)</span>
+
     <span class="k">def</span> <span class="nf">cone_sizes</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;The dimensions of the exponential cones.</span>
 
@@ -173,6 +179,243 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">dual_variables</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">save_value</span><span class="p">(</span><span class="n">dv0</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">dual_variables</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">save_value</span><span class="p">(</span><span class="n">dv1</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">dual_variables</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">save_value</span><span class="p">(</span><span class="n">dv2</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="RelEntrConeQuad"><a class="viewcode-back" href="../../../api_reference/cvxpy.constraints.html#cvxpy.constraints.exponential.RelEntrConeQuad">[docs]</a><span class="k">class</span> <span class="nc">RelEntrConeQuad</span><span class="p">(</span><span class="n">Constraint</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;An approximate construction of the scalar relative entropy cone</span>
+
+<span class="sd">    Definition:</span>
+
+<span class="sd">    .. math::</span>
+
+<span class="sd">        K_{re}=\\text{cl}\\{(x,y,z)\\in\\mathbb{R}_{++}\\times</span>
+<span class="sd">                \\mathbb{R}_{++}\\times\\mathbb{R}_{++}\\:x\\log(x/y)\\leq z\\}</span>
+
+<span class="sd">    Since the above definition is very similar to the ExpCone, we provide a conversion method.</span>
+
+<span class="sd">    More details on the approximation can be found in Theorem-3 on page-10 in the paper:</span>
+<span class="sd">    Semidefinite Approximations of the Matrix Logarithm.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    x : Expression</span>
+<span class="sd">        x in the (approximate) scalar relative entropy cone</span>
+<span class="sd">    y : Expression</span>
+<span class="sd">        y in the (approximate) scalar relative entropy cone</span>
+<span class="sd">    z : Expression</span>
+<span class="sd">        z in the (approximate) scalar relative entropy cone</span>
+<span class="sd">    m: Parameter directly related to the number of generated nodes for the quadrature</span>
+<span class="sd">    approximation used in the algorithm</span>
+<span class="sd">    k: Another parameter controlling the approximation</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">Expression</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="n">Expression</span><span class="p">,</span> <span class="n">z</span><span class="p">:</span> <span class="n">Expression</span><span class="p">,</span>
+                 <span class="n">m</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">k</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">constr_id</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">Expression</span> <span class="o">=</span> <span class="n">cvxtypes</span><span class="o">.</span><span class="n">expression</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">x</span> <span class="o">=</span> <span class="n">Expression</span><span class="o">.</span><span class="n">cast_to_const</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">y</span> <span class="o">=</span> <span class="n">Expression</span><span class="o">.</span><span class="n">cast_to_const</span><span class="p">(</span><span class="n">y</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">z</span> <span class="o">=</span> <span class="n">Expression</span><span class="o">.</span><span class="n">cast_to_const</span><span class="p">(</span><span class="n">z</span><span class="p">)</span>
+        <span class="n">args</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">x</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">y</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">z</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">args</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="n">val</span><span class="o">.</span><span class="n">is_affine</span><span class="p">()</span> <span class="ow">and</span> <span class="n">val</span><span class="o">.</span><span class="n">is_real</span><span class="p">()):</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;All Expression arguments must be affine and real.&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">m</span> <span class="o">=</span> <span class="n">m</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">k</span> <span class="o">=</span> <span class="n">k</span>
+        <span class="n">xs</span><span class="p">,</span> <span class="n">ys</span><span class="p">,</span> <span class="n">zs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">y</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">z</span><span class="o">.</span><span class="n">shape</span>
+        <span class="k">if</span> <span class="n">xs</span> <span class="o">!=</span> <span class="n">ys</span> <span class="ow">or</span> <span class="n">xs</span> <span class="o">!=</span> <span class="n">zs</span><span class="p">:</span>
+            <span class="n">msg</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;All arguments must have the same shapes. Provided arguments have&quot;</span>
+                   <span class="s2">&quot;shapes </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">((</span><span class="n">xs</span><span class="p">,</span> <span class="n">ys</span><span class="p">,</span> <span class="n">zs</span><span class="p">)))</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">RelEntrConeQuad</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">x</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">y</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">z</span><span class="p">],</span> <span class="n">constr_id</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">get_data</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">m</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">k</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">id</span><span class="p">]</span>
+
+    <span class="k">def</span> <span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="n">tup</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">x</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">y</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">z</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">m</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">k</span><span class="p">)</span>
+        <span class="k">return</span> <span class="s2">&quot;RelEntrConeQuad(</span><span class="si">%s</span><span class="s2">, </span><span class="si">%s</span><span class="s2">, </span><span class="si">%s</span><span class="s2">, </span><span class="si">%s</span><span class="s2">, </span><span class="si">%s</span><span class="s2">)&quot;</span> <span class="o">%</span> <span class="n">tup</span>
+
+    <span class="k">def</span> <span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="fm">__str__</span><span class="p">()</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">residual</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># TODO(akshayka): The projection should be implemented directly.</span>
+        <span class="kn">from</span> <span class="nn">cvxpy</span> <span class="kn">import</span> <span class="n">Minimize</span><span class="p">,</span> <span class="n">Problem</span><span class="p">,</span> <span class="n">Variable</span><span class="p">,</span> <span class="n">hstack</span><span class="p">,</span> <span class="n">norm2</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">x</span><span class="o">.</span><span class="n">value</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">y</span><span class="o">.</span><span class="n">value</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">z</span><span class="o">.</span><span class="n">value</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span>
+        <span class="n">cvxtypes</span><span class="o">.</span><span class="n">expression</span><span class="p">()</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">Variable</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+        <span class="n">y</span> <span class="o">=</span> <span class="n">Variable</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">y</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+        <span class="n">z</span> <span class="o">=</span> <span class="n">Variable</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">z</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+        <span class="n">constr</span> <span class="o">=</span> <span class="p">[</span><span class="n">RelEntrConeQuad</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">m</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">k</span><span class="p">)]</span>
+        <span class="n">obj</span> <span class="o">=</span> <span class="n">Minimize</span><span class="p">(</span><span class="n">norm2</span><span class="p">(</span><span class="n">hstack</span><span class="p">([</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">])</span> <span class="o">-</span>
+                             <span class="n">hstack</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">x</span><span class="o">.</span><span class="n">value</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">y</span><span class="o">.</span><span class="n">value</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">z</span><span class="o">.</span><span class="n">value</span><span class="p">])))</span>
+        <span class="n">problem</span> <span class="o">=</span> <span class="n">Problem</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">constr</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">problem</span><span class="o">.</span><span class="n">solve</span><span class="p">()</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">size</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;The number of entries in the combined cones.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="mi">3</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_cones</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">num_cones</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;The number of elementwise cones.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">x</span><span class="o">.</span><span class="n">size</span>
+
+    <span class="k">def</span> <span class="nf">cone_sizes</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;The dimensions of the exponential cones.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        list</span>
+<span class="sd">            A list of the sizes of the elementwise cones.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="p">[</span><span class="mi">3</span><span class="p">]</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">num_cones</span><span class="p">()</span>
+
+<div class="viewcode-block" id="RelEntrConeQuad.is_dcp"><a class="viewcode-back" href="../../../api_reference/cvxpy.constraints.html#cvxpy.constraints.exponential.RelEntrConeQuad.is_dcp">[docs]</a>    <span class="k">def</span> <span class="nf">is_dcp</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dpp</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;An exponential constraint is DCP if each argument is affine.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">dpp</span><span class="p">:</span>
+            <span class="k">with</span> <span class="n">scopes</span><span class="o">.</span><span class="n">dpp_scope</span><span class="p">():</span>
+                <span class="k">return</span> <span class="nb">all</span><span class="p">(</span><span class="n">arg</span><span class="o">.</span><span class="n">is_affine</span><span class="p">()</span> <span class="k">for</span> <span class="n">arg</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">)</span>
+        <span class="k">return</span> <span class="nb">all</span><span class="p">(</span><span class="n">arg</span><span class="o">.</span><span class="n">is_affine</span><span class="p">()</span> <span class="k">for</span> <span class="n">arg</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">)</span></div>
+
+    <span class="k">def</span> <span class="nf">is_dgp</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dpp</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">False</span>
+
+    <span class="k">def</span> <span class="nf">is_dqcp</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_dcp</span><span class="p">()</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">shape</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="o">...</span><span class="p">]:</span>
+        <span class="n">s</span> <span class="o">=</span> <span class="p">(</span><span class="mi">3</span><span class="p">,)</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">x</span><span class="o">.</span><span class="n">shape</span>
+        <span class="k">return</span> <span class="n">s</span>
+
+    <span class="k">def</span> <span class="nf">save_dual_value</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="c1"># TODO: implement me.</span>
+        <span class="k">pass</span></div>
+
+
+<div class="viewcode-block" id="OpRelEntrConeQuad"><a class="viewcode-back" href="../../../api_reference/cvxpy.constraints.html#cvxpy.constraints.exponential.OpRelEntrConeQuad">[docs]</a><span class="k">class</span> <span class="nc">OpRelEntrConeQuad</span><span class="p">(</span><span class="n">Constraint</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;An approximate construction of the operator relative entropy cone</span>
+
+<span class="sd">    Definition:</span>
+
+<span class="sd">    .. math::</span>
+
+<span class="sd">        K_{re}^n=\\text{cl}\\{(X,Y,T)\\in\\mathbb{H}^n_{++}\\times</span>
+<span class="sd">                \\mathbb{H}^n_{++}\\times\\mathbb{H}^n_{++}\\:D_{\\text{op}}\\succeq T\\}</span>
+
+<span class="sd">    More details on the approximation can be found in Theorem-3 on page-10 in the paper:</span>
+<span class="sd">    Semidefinite Approximations of the Matrix Logarithm.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    X : Expression</span>
+<span class="sd">        x in the (approximate) operator relative entropy cone</span>
+<span class="sd">    Y : Expression</span>
+<span class="sd">        y in the (approximate) operator relative entropy cone</span>
+<span class="sd">    Z : Expression</span>
+<span class="sd">        Z in the (approximate) operator relative entropy cone</span>
+<span class="sd">    m: int</span>
+<span class="sd">        Must be positive. Controls the number of quadrature nodes used in a local</span>
+<span class="sd">        approximation of the matrix logarithm. Increasing this value results in</span>
+<span class="sd">        better local approximations, but does not significantly expand the region</span>
+<span class="sd">        of inputs for which the approximation is effective.</span>
+<span class="sd">    k: int</span>
+<span class="sd">        Must be positive. Sets the number of scaling points about which the</span>
+<span class="sd">        quadrature approximation is performed. Increasing this value will</span>
+<span class="sd">        expand the region of inputs over which the approximation is effective.</span>
+
+<span class="sd">    This approximation uses :math:`m + k` semidefinite constraints.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">:</span> <span class="n">Expression</span><span class="p">,</span> <span class="n">Y</span><span class="p">:</span> <span class="n">Expression</span><span class="p">,</span> <span class="n">Z</span><span class="p">:</span> <span class="n">Expression</span><span class="p">,</span>
+                 <span class="n">m</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">k</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">constr_id</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">Expression</span> <span class="o">=</span> <span class="n">cvxtypes</span><span class="o">.</span><span class="n">expression</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">X</span> <span class="o">=</span> <span class="n">Expression</span><span class="o">.</span><span class="n">cast_to_const</span><span class="p">(</span><span class="n">X</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Y</span> <span class="o">=</span> <span class="n">Expression</span><span class="o">.</span><span class="n">cast_to_const</span><span class="p">(</span><span class="n">Y</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Z</span> <span class="o">=</span> <span class="n">Expression</span><span class="o">.</span><span class="n">cast_to_const</span><span class="p">(</span><span class="n">Z</span><span class="p">)</span>
+        <span class="k">if</span> <span class="p">(</span><span class="ow">not</span> <span class="n">X</span><span class="o">.</span><span class="n">is_hermitian</span><span class="p">())</span> <span class="ow">or</span> <span class="p">(</span><span class="ow">not</span> <span class="n">Y</span><span class="o">.</span><span class="n">is_hermitian</span><span class="p">())</span> <span class="ow">or</span> <span class="p">(</span><span class="ow">not</span> <span class="n">Z</span><span class="o">.</span><span class="n">is_hermitian</span><span class="p">()):</span>
+            <span class="n">msg</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;One of the input matrices has not explicitly been declared as symmetric or&quot;</span>
+                   <span class="s2">&quot;Hermitian. If the inputs are Variable objects, try declaring them with the&quot;</span>
+                   <span class="s2">&quot;symmetric=True or Hermitian=True properties. If the inputs are general &quot;</span>
+                   <span class="s2">&quot;Expression objects that are known to be symmetric or Hermitian, then you&quot;</span>
+                   <span class="s2">&quot;can wrap them with the symmetric_wrap and hermitian_wrap atoms. Failure to&quot;</span>
+                   <span class="s2">&quot;do one of these things will cause this function to impose a symmetry or&quot;</span>
+                   <span class="s2">&quot;conjugate-symmetry constraint internally, in a way that is very&quot;</span>
+                   <span class="s2">&quot;inefficient.&quot;</span><span class="p">)</span>
+            <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">m</span> <span class="o">=</span> <span class="n">m</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">k</span> <span class="o">=</span> <span class="n">k</span>
+        <span class="n">Xs</span><span class="p">,</span> <span class="n">Ys</span><span class="p">,</span> <span class="n">Zs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">X</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">Y</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">Z</span><span class="o">.</span><span class="n">shape</span>
+        <span class="k">if</span> <span class="n">Xs</span> <span class="o">!=</span> <span class="n">Ys</span> <span class="ow">or</span> <span class="n">Xs</span> <span class="o">!=</span> <span class="n">Zs</span><span class="p">:</span>
+            <span class="n">msg</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;All arguments must have the same shapes. Provided arguments have&quot;</span>
+                   <span class="s2">&quot;shapes </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">((</span><span class="n">Xs</span><span class="p">,</span> <span class="n">Ys</span><span class="p">,</span> <span class="n">Zs</span><span class="p">)))</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">OpRelEntrConeQuad</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">X</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">Y</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">Z</span><span class="p">],</span> <span class="n">constr_id</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">get_data</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">m</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">k</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">id</span><span class="p">]</span>
+
+    <span class="k">def</span> <span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="n">tup</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">X</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">Y</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">Z</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">m</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">k</span><span class="p">)</span>
+        <span class="k">return</span> <span class="s2">&quot;OpRelEntrConeQuad(</span><span class="si">%s</span><span class="s2">, </span><span class="si">%s</span><span class="s2">, </span><span class="si">%s</span><span class="s2">, </span><span class="si">%s</span><span class="s2">, </span><span class="si">%s</span><span class="s2">)&quot;</span> <span class="o">%</span> <span class="n">tup</span>
+
+    <span class="k">def</span> <span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="fm">__str__</span><span class="p">()</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">residual</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># TODO: implement me</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">()</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">size</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;The number of entries in the combined cones.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="mi">3</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_cones</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">num_cones</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;The number of elementwise cones.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">X</span><span class="o">.</span><span class="n">size</span>
+
+    <span class="k">def</span> <span class="nf">cone_sizes</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;The dimensions of the exponential cones.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        list</span>
+<span class="sd">            A list of the sizes of the elementwise cones.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="p">[</span><span class="mi">3</span><span class="p">]</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">num_cones</span><span class="p">()</span>
+
+<div class="viewcode-block" id="OpRelEntrConeQuad.is_dcp"><a class="viewcode-back" href="../../../api_reference/cvxpy.constraints.html#cvxpy.constraints.exponential.OpRelEntrConeQuad.is_dcp">[docs]</a>    <span class="k">def</span> <span class="nf">is_dcp</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dpp</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;An operator relative conic constraint is DCP when (A, b, C) is affine</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">dpp</span><span class="p">:</span>
+            <span class="k">with</span> <span class="n">scopes</span><span class="o">.</span><span class="n">dpp_scope</span><span class="p">():</span>
+                <span class="k">return</span> <span class="nb">all</span><span class="p">(</span><span class="n">arg</span><span class="o">.</span><span class="n">is_affine</span><span class="p">()</span> <span class="k">for</span> <span class="n">arg</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">)</span>
+        <span class="k">return</span> <span class="nb">all</span><span class="p">(</span><span class="n">arg</span><span class="o">.</span><span class="n">is_affine</span><span class="p">()</span> <span class="k">for</span> <span class="n">arg</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">)</span></div>
+
+    <span class="k">def</span> <span class="nf">is_dgp</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dpp</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">False</span>
+
+    <span class="k">def</span> <span class="nf">is_dqcp</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_dcp</span><span class="p">()</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">shape</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="o">...</span><span class="p">]:</span>
+        <span class="n">s</span> <span class="o">=</span> <span class="p">(</span><span class="mi">3</span><span class="p">,)</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">X</span><span class="o">.</span><span class="n">shape</span>
+        <span class="k">return</span> <span class="n">s</span>
+
+    <span class="k">def</span> <span class="nf">save_dual_value</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="c1"># TODO: implement me.</span>
+        <span class="k">pass</span></div>
 </pre></div>
 
           </div>

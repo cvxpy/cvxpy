@@ -5,7 +5,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>cvxpy.expressions.constants.constant &#8212; CVXPY 1.2 documentation</title>
+    <title>cvxpy.expressions.constants.constant &#8212; CVXPY 1.3 documentation</title>
     <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../../../../_static/cvxpy_alabaster.css" />
     <script integrity="sha384-vtXRMe3mGCbOeY7l30aIg8H9p3GdeSe4IFlP6G8JMa7o7lXvnz3GFKzPxzJdPfGK" src="../../../../_static/jquery.js"></script>
@@ -55,7 +55,7 @@
 
 <span class="kn">import</span> <span class="nn">cvxpy.interface</span> <span class="k">as</span> <span class="nn">intf</span>
 <span class="kn">import</span> <span class="nn">cvxpy.lin_ops.lin_utils</span> <span class="k">as</span> <span class="nn">lu</span>
-<span class="kn">import</span> <span class="nn">cvxpy.utilities.eigvals</span> <span class="k">as</span> <span class="nn">eig_util</span>
+<span class="kn">import</span> <span class="nn">cvxpy.utilities.linalg</span> <span class="k">as</span> <span class="nn">eig_util</span>
 <span class="kn">from</span> <span class="nn">cvxpy.expressions.leaf</span> <span class="kn">import</span> <span class="n">Leaf</span>
 <span class="kn">from</span> <span class="nn">cvxpy.settings</span> <span class="kn">import</span> <span class="n">EIGVAL_TOL</span>
 <span class="kn">from</span> <span class="nn">cvxpy.utilities</span> <span class="kn">import</span> <span class="n">performance_utils</span> <span class="k">as</span> <span class="n">perf</span>
@@ -89,6 +89,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_psd_test</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_nsd_test</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_cached_is_pos</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_skew_symm</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">Constant</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">intf</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">value</span><span class="p">))</span>
 
     <span class="k">def</span> <span class="nf">name</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
@@ -228,6 +229,11 @@
         <span class="n">is_symm</span><span class="p">,</span> <span class="n">is_herm</span> <span class="o">=</span> <span class="n">intf</span><span class="o">.</span><span class="n">is_hermitian</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_symm</span> <span class="o">=</span> <span class="n">is_symm</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_herm</span> <span class="o">=</span> <span class="n">is_herm</span>
+
+    <span class="k">def</span> <span class="nf">is_skew_symmetric</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_skew_symm</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_skew_symm</span> <span class="o">=</span> <span class="n">intf</span><span class="o">.</span><span class="n">is_skew_symmetric</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_skew_symm</span>
 
     <span class="nd">@perf</span><span class="o">.</span><span class="n">compute_once</span>
     <span class="k">def</span> <span class="nf">is_psd</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>

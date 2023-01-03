@@ -5,7 +5,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>cvxpy.reductions.complex2real.complex2real &#8212; CVXPY 1.2 documentation</title>
+    <title>cvxpy.reductions.complex2real.complex2real &#8212; CVXPY 1.3 documentation</title>
     <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../../../../_static/cvxpy_alabaster.css" />
     <script integrity="sha384-vtXRMe3mGCbOeY7l30aIg8H9p3GdeSe4IFlP6G8JMa7o7lXvnz3GFKzPxzJdPfGK" src="../../../../_static/jquery.js"></script>
@@ -50,13 +50,14 @@
 
 <span class="kn">from</span> <span class="nn">cvxpy</span> <span class="kn">import</span> <span class="n">problems</span>
 <span class="kn">from</span> <span class="nn">cvxpy</span> <span class="kn">import</span> <span class="n">settings</span> <span class="k">as</span> <span class="n">s</span>
+<span class="kn">from</span> <span class="nn">cvxpy.atoms.affine.upper_tri</span> <span class="kn">import</span> <span class="n">vec_to_upper_tri</span>
 <span class="kn">from</span> <span class="nn">cvxpy.constraints</span> <span class="kn">import</span> <span class="p">(</span><span class="n">PSD</span><span class="p">,</span> <span class="n">SOC</span><span class="p">,</span> <span class="n">Equality</span><span class="p">,</span> <span class="n">Inequality</span><span class="p">,</span> <span class="n">NonNeg</span><span class="p">,</span> <span class="n">NonPos</span><span class="p">,</span>
-                               <span class="n">Zero</span><span class="p">,)</span>
+                               <span class="n">OpRelEntrConeQuad</span><span class="p">,</span> <span class="n">Zero</span><span class="p">,)</span>
 <span class="kn">from</span> <span class="nn">cvxpy.constraints.constraint</span> <span class="kn">import</span> <span class="n">Constraint</span>
 <span class="kn">from</span> <span class="nn">cvxpy.expressions</span> <span class="kn">import</span> <span class="n">cvxtypes</span>
 <span class="kn">from</span> <span class="nn">cvxpy.lin_ops</span> <span class="kn">import</span> <span class="n">lin_utils</span> <span class="k">as</span> <span class="n">lu</span>
 <span class="kn">from</span> <span class="nn">cvxpy.reductions</span> <span class="kn">import</span> <span class="n">InverseData</span><span class="p">,</span> <span class="n">Solution</span>
-<span class="kn">from</span> <span class="nn">cvxpy.reductions.complex2real.atom_canonicalizers</span> <span class="kn">import</span> <span class="p">(</span>
+<span class="kn">from</span> <span class="nn">cvxpy.reductions.complex2real.canonicalizers</span> <span class="kn">import</span> <span class="p">(</span>
     <span class="n">CANON_METHODS</span> <span class="k">as</span> <span class="n">elim_cplx_methods</span><span class="p">,)</span>
 <span class="kn">from</span> <span class="nn">cvxpy.reductions.reduction</span> <span class="kn">import</span> <span class="n">Reduction</span>
 
@@ -69,7 +70,7 @@
 <div class="viewcode-block" id="Complex2Real"><a class="viewcode-back" href="../../../../api_reference/cvxpy.reductions.middle_end.html#cvxpy.reductions.complex2real.complex2real.Complex2Real">[docs]</a><span class="k">class</span> <span class="nc">Complex2Real</span><span class="p">(</span><span class="n">Reduction</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Lifts complex numbers to a real representation.&quot;&quot;&quot;</span>
 
-    <span class="n">UNIMPLEMENTED_COMPLEX_DUALS</span> <span class="o">=</span> <span class="p">(</span><span class="n">SOC</span><span class="p">,)</span>
+    <span class="n">UNIMPLEMENTED_COMPLEX_DUALS</span> <span class="o">=</span> <span class="p">(</span><span class="n">SOC</span><span class="p">,</span> <span class="n">OpRelEntrConeQuad</span><span class="p">)</span>
 
 <div class="viewcode-block" id="Complex2Real.accepts"><a class="viewcode-back" href="../../../../api_reference/cvxpy.reductions.middle_end.html#cvxpy.reductions.complex2real.complex2real.Complex2Real.accepts">[docs]</a>    <span class="k">def</span> <span class="nf">accepts</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">problem</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">accepts</span><span class="p">(</span><span class="n">problem</span><span class="p">)</span></div>
@@ -111,37 +112,43 @@
         <span class="n">pvars</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="n">dvars</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="k">if</span> <span class="n">solution</span><span class="o">.</span><span class="n">status</span> <span class="ow">in</span> <span class="n">s</span><span class="o">.</span><span class="n">SOLUTION_PRESENT</span><span class="p">:</span>
+            <span class="c1">#</span>
+            <span class="c1">#   Primal variables</span>
+            <span class="c1">#</span>
             <span class="k">for</span> <span class="n">vid</span><span class="p">,</span> <span class="n">var</span> <span class="ow">in</span> <span class="n">inverse_data</span><span class="o">.</span><span class="n">id2var</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
                 <span class="k">if</span> <span class="n">var</span><span class="o">.</span><span class="n">is_real</span><span class="p">():</span>
+                    <span class="c1"># Purely real variables</span>
                     <span class="n">pvars</span><span class="p">[</span><span class="n">vid</span><span class="p">]</span> <span class="o">=</span> <span class="n">solution</span><span class="o">.</span><span class="n">primal_vars</span><span class="p">[</span><span class="n">vid</span><span class="p">]</span>
                 <span class="k">elif</span> <span class="n">var</span><span class="o">.</span><span class="n">is_imag</span><span class="p">():</span>
+                    <span class="c1"># Purely imaginary variables</span>
                     <span class="n">imag_id</span> <span class="o">=</span> <span class="n">inverse_data</span><span class="o">.</span><span class="n">real2imag</span><span class="p">[</span><span class="n">vid</span><span class="p">]</span>
                     <span class="n">pvars</span><span class="p">[</span><span class="n">vid</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span><span class="n">j</span><span class="o">*</span><span class="n">solution</span><span class="o">.</span><span class="n">primal_vars</span><span class="p">[</span><span class="n">imag_id</span><span class="p">]</span>
                 <span class="k">elif</span> <span class="n">var</span><span class="o">.</span><span class="n">is_complex</span><span class="p">()</span> <span class="ow">and</span> <span class="n">var</span><span class="o">.</span><span class="n">is_hermitian</span><span class="p">():</span>
+                    <span class="c1"># Hermitian variables</span>
+                    <span class="n">pvars</span><span class="p">[</span><span class="n">vid</span><span class="p">]</span> <span class="o">=</span> <span class="n">solution</span><span class="o">.</span><span class="n">primal_vars</span><span class="p">[</span><span class="n">vid</span><span class="p">]</span>
                     <span class="n">imag_id</span> <span class="o">=</span> <span class="n">inverse_data</span><span class="o">.</span><span class="n">real2imag</span><span class="p">[</span><span class="n">vid</span><span class="p">]</span>
-                    <span class="c1"># Imaginary part may have been lost.</span>
                     <span class="k">if</span> <span class="n">imag_id</span> <span class="ow">in</span> <span class="n">solution</span><span class="o">.</span><span class="n">primal_vars</span><span class="p">:</span>
                         <span class="n">imag_val</span> <span class="o">=</span> <span class="n">solution</span><span class="o">.</span><span class="n">primal_vars</span><span class="p">[</span><span class="n">imag_id</span><span class="p">]</span>
-                        <span class="n">pvars</span><span class="p">[</span><span class="n">vid</span><span class="p">]</span> <span class="o">=</span> <span class="n">solution</span><span class="o">.</span><span class="n">primal_vars</span><span class="p">[</span><span class="n">vid</span><span class="p">]</span> <span class="o">+</span> \
-                            <span class="mi">1</span><span class="n">j</span><span class="o">*</span><span class="p">(</span><span class="n">imag_val</span> <span class="o">-</span> <span class="n">imag_val</span><span class="o">.</span><span class="n">T</span><span class="p">)</span><span class="o">/</span><span class="mi">2</span>
-                    <span class="k">else</span><span class="p">:</span>
-                        <span class="n">pvars</span><span class="p">[</span><span class="n">vid</span><span class="p">]</span> <span class="o">=</span> <span class="n">solution</span><span class="o">.</span><span class="n">primal_vars</span><span class="p">[</span><span class="n">vid</span><span class="p">]</span>
+                        <span class="n">imag_val</span> <span class="o">=</span> <span class="n">vec_to_upper_tri</span><span class="p">(</span><span class="n">imag_val</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span><span class="o">.</span><span class="n">value</span>
+                        <span class="n">imag_val</span> <span class="o">-=</span> <span class="n">imag_val</span><span class="o">.</span><span class="n">T</span>
+                        <span class="n">pvars</span><span class="p">[</span><span class="n">vid</span><span class="p">]</span> <span class="o">=</span> <span class="n">pvars</span><span class="p">[</span><span class="n">vid</span><span class="p">]</span> <span class="o">+</span> <span class="mi">1</span><span class="n">j</span><span class="o">*</span><span class="n">imag_val</span>
                 <span class="k">elif</span> <span class="n">var</span><span class="o">.</span><span class="n">is_complex</span><span class="p">():</span>
+                    <span class="c1"># General complex variables</span>
+                    <span class="n">pvars</span><span class="p">[</span><span class="n">vid</span><span class="p">]</span> <span class="o">=</span> <span class="n">solution</span><span class="o">.</span><span class="n">primal_vars</span><span class="p">[</span><span class="n">vid</span><span class="p">]</span>
                     <span class="n">imag_id</span> <span class="o">=</span> <span class="n">inverse_data</span><span class="o">.</span><span class="n">real2imag</span><span class="p">[</span><span class="n">vid</span><span class="p">]</span>
-                    <span class="c1"># Imaginary part may have been lost.</span>
                     <span class="k">if</span> <span class="n">imag_id</span> <span class="ow">in</span> <span class="n">solution</span><span class="o">.</span><span class="n">primal_vars</span><span class="p">:</span>
-                        <span class="n">pvars</span><span class="p">[</span><span class="n">vid</span><span class="p">]</span> <span class="o">=</span> <span class="n">solution</span><span class="o">.</span><span class="n">primal_vars</span><span class="p">[</span><span class="n">vid</span><span class="p">]</span> <span class="o">+</span> \
-                            <span class="mi">1</span><span class="n">j</span><span class="o">*</span><span class="n">solution</span><span class="o">.</span><span class="n">primal_vars</span><span class="p">[</span><span class="n">imag_id</span><span class="p">]</span>
-                    <span class="k">else</span><span class="p">:</span>
-                        <span class="n">pvars</span><span class="p">[</span><span class="n">vid</span><span class="p">]</span> <span class="o">=</span> <span class="n">solution</span><span class="o">.</span><span class="n">primal_vars</span><span class="p">[</span><span class="n">vid</span><span class="p">]</span>
+                        <span class="n">imag_val</span> <span class="o">=</span> <span class="n">solution</span><span class="o">.</span><span class="n">primal_vars</span><span class="p">[</span><span class="n">imag_id</span><span class="p">]</span>
+                        <span class="n">pvars</span><span class="p">[</span><span class="n">vid</span><span class="p">]</span> <span class="o">=</span> <span class="n">pvars</span><span class="p">[</span><span class="n">vid</span><span class="p">]</span> <span class="o">+</span> <span class="mi">1</span><span class="n">j</span><span class="o">*</span><span class="n">imag_val</span>
             <span class="k">if</span> <span class="n">solution</span><span class="o">.</span><span class="n">dual_vars</span><span class="p">:</span>
+                <span class="c1">#</span>
+                <span class="c1">#   Dual variables</span>
+                <span class="c1">#</span>
                 <span class="k">for</span> <span class="n">cid</span><span class="p">,</span> <span class="n">cons</span> <span class="ow">in</span> <span class="n">inverse_data</span><span class="o">.</span><span class="n">id2cons</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
                     <span class="k">if</span> <span class="n">cons</span><span class="o">.</span><span class="n">is_real</span><span class="p">():</span>
                         <span class="n">dvars</span><span class="p">[</span><span class="n">cid</span><span class="p">]</span> <span class="o">=</span> <span class="n">solution</span><span class="o">.</span><span class="n">dual_vars</span><span class="p">[</span><span class="n">cid</span><span class="p">]</span>
                     <span class="k">elif</span> <span class="n">cons</span><span class="o">.</span><span class="n">is_imag</span><span class="p">():</span>
                         <span class="n">imag_id</span> <span class="o">=</span> <span class="n">inverse_data</span><span class="o">.</span><span class="n">real2imag</span><span class="p">[</span><span class="n">cid</span><span class="p">]</span>
                         <span class="n">dvars</span><span class="p">[</span><span class="n">cid</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span><span class="n">j</span><span class="o">*</span><span class="n">solution</span><span class="o">.</span><span class="n">dual_vars</span><span class="p">[</span><span class="n">imag_id</span><span class="p">]</span>
-                    <span class="c1"># For equality and inequality constraints.</span>
                     <span class="c1"># All cases that follow are for complex-valued constraints:</span>
                     <span class="c1">#   1. check inequality / equality constraints.</span>
                     <span class="c1">#   2. check PSD constraints.</span>
@@ -154,8 +161,19 @@
                                 <span class="mi">1</span><span class="n">j</span><span class="o">*</span><span class="n">solution</span><span class="o">.</span><span class="n">dual_vars</span><span class="p">[</span><span class="n">imag_id</span><span class="p">]</span>
                         <span class="k">else</span><span class="p">:</span>
                             <span class="n">dvars</span><span class="p">[</span><span class="n">cid</span><span class="p">]</span> <span class="o">=</span> <span class="n">solution</span><span class="o">.</span><span class="n">dual_vars</span><span class="p">[</span><span class="n">cid</span><span class="p">]</span>
-                    <span class="c1"># For PSD constraints.</span>
                     <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">cons</span><span class="p">,</span> <span class="n">PSD</span><span class="p">):</span>
+                        <span class="c1"># Suppose we have a constraint con_x = X &gt;&gt; 0 where X is Hermitian.</span>
+                        <span class="c1">#</span>
+                        <span class="c1"># Define the matrix</span>
+                        <span class="c1">#     Y := [re(X) , im(X)]</span>
+                        <span class="c1">#          [-im(X), re(X)]</span>
+                        <span class="c1"># and the constraint con_y = Y &gt;&gt; 0.</span>
+                        <span class="c1">#</span>
+                        <span class="c1"># The real part the dual variable for con_x is the upper-left</span>
+                        <span class="c1"># block of the dual variable for con_y.</span>
+                        <span class="c1">#</span>
+                        <span class="c1"># The imaginary part of the dual variable for con_x is the</span>
+                        <span class="c1"># upper-right block of the dual variable for con_y.</span>
                         <span class="n">n</span> <span class="o">=</span> <span class="n">cons</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
                         <span class="n">dual</span> <span class="o">=</span> <span class="n">solution</span><span class="o">.</span><span class="n">dual_vars</span><span class="p">[</span><span class="n">cid</span><span class="p">]</span>
                         <span class="n">dvars</span><span class="p">[</span><span class="n">cid</span><span class="p">]</span> <span class="o">=</span> <span class="n">dual</span><span class="p">[:</span><span class="n">n</span><span class="p">,</span> <span class="p">:</span><span class="n">n</span><span class="p">]</span> <span class="o">+</span> <span class="mi">1</span><span class="n">j</span><span class="o">*</span><span class="n">dual</span><span class="p">[</span><span class="n">n</span><span class="p">:,</span> <span class="p">:</span><span class="n">n</span><span class="p">]</span>

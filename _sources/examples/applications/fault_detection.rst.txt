@@ -106,7 +106,7 @@ That is,
     sigma = np.sqrt(p*n/(snr**2))
     A = np.random.randn(m,n)
     
-    x_true = (np.random.rand(n) <= p).astype(np.int)
+    x_true = (np.random.rand(n) <= p).astype(int)
     v = sigma*np.random.randn(m)
     
     y = A.dot(x_true) + v

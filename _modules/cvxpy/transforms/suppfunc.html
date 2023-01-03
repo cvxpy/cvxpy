@@ -5,7 +5,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>cvxpy.transforms.suppfunc &#8212; CVXPY 1.2 documentation</title>
+    <title>cvxpy.transforms.suppfunc &#8212; CVXPY 1.3 documentation</title>
     <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../../../_static/cvxpy_alabaster.css" />
     <script integrity="sha384-vtXRMe3mGCbOeY7l30aIg8H9p3GdeSe4IFlP6G8JMa7o7lXvnz3GFKzPxzJdPfGK" src="../../../_static/jquery.js"></script>
@@ -205,7 +205,6 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_b</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_K_sels</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_compute_conic_repr_of_set</span><span class="p">()</span>
-        <span class="k">pass</span>
 
 <div class="viewcode-block" id="SuppFunc.__call__"><a class="viewcode-back" href="../../../api_reference/cvxpy.transforms.html#cvxpy.transforms.suppfunc.SuppFunc.__call__">[docs]</a>    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">SuppFuncAtom</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
@@ -229,7 +228,6 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_A</span> <span class="o">=</span> <span class="n">A</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_b</span> <span class="o">=</span> <span class="n">b</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_K_sels</span> <span class="o">=</span> <span class="n">K_sels</span>
-        <span class="k">pass</span>
 
     <span class="k">def</span> <span class="nf">conic_repr_of_set</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_A</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_b</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_K_sels</span></div>

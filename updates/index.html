@@ -6,7 +6,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
-    <title>Changes to CVXPY &#8212; CVXPY 1.2 documentation</title>
+    <title>Changes to CVXPY &#8212; CVXPY 1.3 documentation</title>
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../_static/cvxpy_alabaster.css" />
     <script integrity="sha384-vtXRMe3mGCbOeY7l30aIg8H9p3GdeSe4IFlP6G8JMa7o7lXvnz3GFKzPxzJdPfGK" src="../_static/jquery.js"></script>
@@ -38,7 +38,46 @@
   <section id="changes-to-cvxpy">
 <span id="updates"></span><h1>Changes to CVXPY<a class="headerlink" href="#changes-to-cvxpy" title="Permalink to this heading">¶</a></h1>
 <p>This page details changes made to CVXPY over time, in reverse chronological order.
-CVXPY’s project maintainers currently provide support for CVXPY 1.2 and 1.1.</p>
+CVXPY’s project maintainers currently provide support for CVXPY 1.3 and 1.2, with
+limited support for 1.1.</p>
+<section id="cvxpy-1-3">
+<h2>CVXPY 1.3<a class="headerlink" href="#cvxpy-1-3" title="Permalink to this heading">¶</a></h2>
+<p>CVXPY 1.3 brings many new features, bug fixes, and performance improvements. It introduces a new
+<a class="reference internal" href="../tutorial/advanced/index.html#canonicalization-backends"><span class="std std-ref">SciPy-based backend</span></a> and formalizes the public API of CVXPY as everything that is
+importable directly from the <code class="docutils literal notranslate"><span class="pre">cvxpy</span></code> namespace.
+We plan to introduce a <code class="docutils literal notranslate"><span class="pre">cvxpy.experimental</span></code> namespace for features in development where
+the API has not yet been fixed. It is explicitly not a part of our API whether atoms are implemented by functions
+or classes, e.g. we do not consider replacing <code class="docutils literal notranslate"><span class="pre">cvxpy.power</span></code>, which is currently a class, with a function to be a
+breaking change or replacing <code class="docutils literal notranslate"><span class="pre">cp.quad_form</span></code> which is a function to become a class to be a breaking change.
+Code of the form <code class="docutils literal notranslate"><span class="pre">cvxpy.power(a,</span> <span class="pre">b)</span></code> is guaranteed to remain working.</p>
+<section id="constraints-and-atoms">
+<h3>Constraints and atoms<a class="headerlink" href="#constraints-and-atoms" title="Permalink to this heading">¶</a></h3>
+<ul class="simple">
+<li><p><a class="reference internal" href="../api_reference/cvxpy.constraints.html#finite-set"><span class="std std-ref">FiniteSet</span></a></p></li>
+<li><p><a class="reference internal" href="../api_reference/cvxpy.constraints.html#rel-entr-cone-quad"><span class="std std-ref">RelEntrConeQuad</span></a></p></li>
+<li><p><a class="reference internal" href="../api_reference/cvxpy.constraints.html#op-rel-entr-cone-quad"><span class="std std-ref">OpRelEntrConeQuad</span></a></p></li>
+<li><p><a class="reference internal" href="../api_reference/cvxpy.atoms.other_atoms.html#dotsort"><span class="std std-ref">dotsort(X,W)</span></a></p></li>
+<li><p><a class="reference internal" href="../api_reference/cvxpy.atoms.other_atoms.html#tr-inv"><span class="std std-ref">tr_inv(X)</span></a></p></li>
+<li><p><a class="reference internal" href="../api_reference/cvxpy.atoms.other_atoms.html#von-neumann-entr"><span class="std std-ref">von_neumann_entr(X)</span></a></p></li>
+<li><p><a class="reference internal" href="../api_reference/cvxpy.atoms.other_atoms.html#perspective"><span class="std std-ref">perspective(f(x),s)</span></a></p></li>
+</ul>
+</section>
+<section id="solver-interfaces">
+<h3>Solver interfaces<a class="headerlink" href="#solver-interfaces" title="Permalink to this heading">¶</a></h3>
+<ul class="simple">
+<li><p><a class="reference internal" href="../tutorial/advanced/index.html#solvers"><span class="std std-ref">New interfaces</span></a>: COPT, SDPA, Clarabel, and proxqp</p></li>
+</ul>
+</section>
+<section id="general-system-improvements">
+<h3>General system improvements<a class="headerlink" href="#general-system-improvements" title="Permalink to this heading">¶</a></h3>
+<ul class="simple">
+<li><p>Support for native quadratic forms (<code class="docutils literal notranslate"><span class="pre">x.T</span> <span class="pre">&#64;</span> <span class="pre">P</span> <span class="pre">&#64;</span> <span class="pre">x</span></code>)</p></li>
+<li><p>The new OpRelEntrConeQuad constraint class is the first major piece of our effort to improve support for quantum
+information modeling (<a class="reference external" href="https://github.com/cvxpy/org/blob/main/GSoC2022/aryamanjeendgar/final_report.pdf">GSOC project</a>)</p></li>
+<li><p>Continuous performance benchmarking (<a class="reference external" href="https://github.com/cvxpy/org/blob/main/GSoC2022/parthb83/final_report.md">GSOC project</a>)</p></li>
+</ul>
+</section>
+</section>
 <section id="cvxpy-1-2">
 <h2>CVXPY 1.2<a class="headerlink" href="#cvxpy-1-2" title="Permalink to this heading">¶</a></h2>
 <p>We’re taking a big step toward <a class="reference external" href="https://semver.org/">semantic versioning</a>!
@@ -51,8 +90,8 @@ API-breaking changes will require incrementing the major version number (i.e., m
 Many new features were added <em>after</em> CVXPY 1.1.0 but <em>before</em> CVXPY 1.2.0.
 These features accumulated over the course of CVXPY 1.1.1 and 1.1.18.
 We review those features and the new features in CVXPY 1.2.0 below.</p>
-<section id="constraints-and-atoms">
-<h3>Constraints and atoms<a class="headerlink" href="#constraints-and-atoms" title="Permalink to this heading">¶</a></h3>
+<section id="id2">
+<h3>Constraints and atoms<a class="headerlink" href="#id2" title="Permalink to this heading">¶</a></h3>
 <blockquote>
 <div><ul class="simple">
 <li><p>1.2.0: added atoms for <a class="reference external" href="https://en.wikipedia.org/wiki/Partial_trace">partial trace</a> and partial transpose,
@@ -67,8 +106,8 @@ provided the other argument is constant. We previously required that <code class
 </ul>
 </div></blockquote>
 </section>
-<section id="solver-interfaces">
-<h3>Solver interfaces<a class="headerlink" href="#solver-interfaces" title="Permalink to this heading">¶</a></h3>
+<section id="id3">
+<h3>Solver interfaces<a class="headerlink" href="#id3" title="Permalink to this heading">¶</a></h3>
 <blockquote>
 <div><ul class="simple">
 <li><p>1.2.0: support PDLP and GLOP, via OR-Tools</p></li>
@@ -84,8 +123,8 @@ provided the other argument is constant. We previously required that <code class
 </ul>
 </div></blockquote>
 </section>
-<section id="general-system-improvements">
-<h3>General system improvements<a class="headerlink" href="#general-system-improvements" title="Permalink to this heading">¶</a></h3>
+<section id="id4">
+<h3>General system improvements<a class="headerlink" href="#id4" title="Permalink to this heading">¶</a></h3>
 <blockquote>
 <div><ul class="simple">
 <li><p>1.1.18: A problem status “infeasible or unbounded”, for use by specific solvers in rare situations</p></li>
@@ -323,10 +362,16 @@ the constraints hold and <span class="math notranslate nohighlight">\(\infty\)</
 </ul>
 <ul class="current">
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Changes to CVXPY</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#cvxpy-1-2">CVXPY 1.2</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#cvxpy-1-3">CVXPY 1.3</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#constraints-and-atoms">Constraints and atoms</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#solver-interfaces">Solver interfaces</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#general-system-improvements">General system improvements</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#cvxpy-1-2">CVXPY 1.2</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#id2">Constraints and atoms</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id3">Solver interfaces</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id4">General system improvements</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#cvxpy-1-1">CVXPY 1.1</a><ul>

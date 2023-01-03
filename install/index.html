@@ -6,7 +6,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
-    <title>Install &#8212; CVXPY 1.2 documentation</title>
+    <title>Install &#8212; CVXPY 1.3 documentation</title>
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../_static/cvxpy_alabaster.css" />
     <script integrity="sha384-vtXRMe3mGCbOeY7l30aIg8H9p3GdeSe4IFlP6G8JMa7o7lXvnz3GFKzPxzJdPfGK" src="../_static/jquery.js"></script>
@@ -17,7 +17,7 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="User Guide" href="../tutorial/index.html" />
-    <link rel="prev" title="Welcome to CVXPY 1.2" href="../index.html" />
+    <link rel="prev" title="Welcome to CVXPY 1.3" href="../index.html" />
    
   <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
   
@@ -50,6 +50,13 @@ or a conda environment.</p>
 <p>Install CVXPY using <a class="reference external" href="https://pip.pypa.io/">pip</a>:</p>
 <blockquote>
 <div><div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">pip</span> <span class="n">install</span> <span class="n">cvxpy</span>
+</pre></div>
+</div>
+</div></blockquote>
+<p>You can add solver names as “extras”; <cite>pip</cite> will then install the necessary
+additional Python packages.</p>
+<blockquote>
+<div><div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">pip</span> <span class="n">install</span> <span class="n">cvxpy</span><span class="p">[</span><span class="n">CBC</span><span class="p">,</span><span class="n">CVXOPT</span><span class="p">,</span><span class="n">GLOP</span><span class="p">,</span><span class="n">GLPK</span><span class="p">,</span><span class="n">GUROBI</span><span class="p">,</span><span class="n">MOSEK</span><span class="p">,</span><span class="n">PDLP</span><span class="p">,</span><span class="n">SCIP</span><span class="p">,</span><span class="n">XPRESS</span><span class="p">]</span>
 </pre></div>
 </div>
 </div></blockquote>
@@ -192,11 +199,23 @@ See the <a class="reference external" href="https://www.fico.com/fico-xpress-opt
 <p>CVXPY supports the <a class="reference external" href="https://github.com/coin-or/Cbc">Cbc</a> solver (which includes Clp and Cgl) with the help of <a class="reference external" href="https://github.com/coin-or/CyLP">cylp</a>.
 Simply install cylp and the corresponding prerequisites according to the <a class="reference external" href="https://github.com/coin-or/CyLP#cylp">instructions</a>, such you can import this library in Python.</p>
 </section>
+<section id="install-with-copt-support">
+<h2>Install with COPT support<a class="headerlink" href="#install-with-copt-support" title="Permalink to this heading">¶</a></h2>
+<p>CVXPY supports the COPT solver.
+Simply install COPT such that you can <code class="docutils literal notranslate"><span class="pre">import</span> <span class="pre">coptpy</span></code> in Python.
+See the <a class="reference external" href="https://github.com/COPT-Public/COPT-Release">COPT</a> release page for installation instructions.</p>
+</section>
 <section id="install-with-cplex-support">
 <h2>Install with CPLEX support<a class="headerlink" href="#install-with-cplex-support" title="Permalink to this heading">¶</a></h2>
 <p>CVXPY supports the CPLEX solver.
 Simply install CPLEX such that you can <code class="docutils literal notranslate"><span class="pre">import</span> <span class="pre">cplex</span></code> in Python.
 See the <a class="reference external" href="https://www.ibm.com/support/knowledgecenter/SSSA5P">CPLEX</a> website for installation instructions.</p>
+</section>
+<section id="install-with-sdpa-support">
+<h2>Install with SDPA support<a class="headerlink" href="#install-with-sdpa-support" title="Permalink to this heading">¶</a></h2>
+<p>CVXPY supports the SDPA solver.
+Simply install SDPA for Python such that you can <code class="docutils literal notranslate"><span class="pre">import</span> <span class="pre">sdpap</span></code> in Python.
+See the <a class="reference external" href="https://sdpa-python.github.io/docs/installation">SDPA for Python</a> website for installation instructions.</p>
 </section>
 <section id="install-with-sdpt3-support">
 <h2>Install with SDPT3 support<a class="headerlink" href="#install-with-sdpt3-support" title="Permalink to this heading">¶</a></h2>
@@ -223,8 +242,26 @@ See the <a class="reference external" href="https://github.com/SCIP-Interfaces/P
 </section>
 <section id="install-with-scipy-support">
 <h2>Install with SCIPY support<a class="headerlink" href="#install-with-scipy-support" title="Permalink to this heading">¶</a></h2>
-<p>CVXPY supports the SCIPY solver for LPs.
-This requires the <a class="reference external" href="https://www.scipy.org/">SciPy</a> package in Python which should already be installed as it is a requirement for CVXPY. <a class="reference external" href="https://www.scipy.org/">SciPy</a>’s “interior-point” and “revised-simplex” implementations are written in python and are always available however the main advantage of this solver, is its ability to use the <a class="reference external" href="https://www.maths.ed.ac.uk/hall/HiGHS/#guide">HiGHS</a> LP solvers (which are written in C++) that comes bundled with <a class="reference external" href="https://www.scipy.org/">SciPy</a> version 1.6.1 and higher.</p>
+<p>CVXPY supports the SCIPY solver for LPs and MIPs.
+This requires the <a class="reference external" href="https://www.scipy.org/">SciPy</a> package in Python, which should already be installed, as it is a requirement for CVXPY.
+<a class="reference external" href="https://www.scipy.org/">SciPy</a>’s “interior-point” and “revised-simplex” implementations are written in Python and are always available.
+However, the main advantage of this solver is its ability to use the <a class="reference external" href="https://www.maths.ed.ac.uk/hall/HiGHS/#guide">HiGHS</a> LP and MIP solvers (which are written in C++).
+<a class="reference external" href="https://www.maths.ed.ac.uk/hall/HiGHS/#guide">HiGHS</a> LP solvers come bundled with <a class="reference external" href="https://www.scipy.org/">SciPy</a> version 1.6.1 and higher.
+The <a class="reference external" href="https://www.maths.ed.ac.uk/hall/HiGHS/#guide">HiGHS</a> MIP solver comes bundled with version 1.9.0 and higher.</p>
+</section>
+<section id="install-with-clarabel-support">
+<h2>Install with CLARABEL support<a class="headerlink" href="#install-with-clarabel-support" title="Permalink to this heading">¶</a></h2>
+<p>CVXPY supports the CLARABEL solver.
+Simply install CLARABEL such that you can <code class="docutils literal notranslate"><span class="pre">import</span> <span class="pre">clarabel</span></code> in Python.
+See the <a class="reference external" href="https://oxfordcontrol.github.io/ClarabelDocs/stable/python/installation_py/">CLARABEL</a> website for installation instructions.</p>
+</section>
+<section id="install-with-proxqp-support">
+<h2>Install with PROXQP support<a class="headerlink" href="#install-with-proxqp-support" title="Permalink to this heading">¶</a></h2>
+<p>CVXPY supports the PROXQP solver.
+Simply install PROXQP such that you can <code class="docutils literal notranslate"><span class="pre">import</span> <span class="pre">proxsuite</span></code> in Python.
+See the <a class="reference external" href="https://github.com/simple-robotics/proxsuite#quick-install">proxsuite</a> github for installation instructions.
+Be aware that PROXQP by default uses dense matrices to represent problem data.
+You may achieve better performance by setting <code class="docutils literal notranslate"><span class="pre">backend</span> <span class="pre">=</span> <span class="pre">'sparse'</span></code> in your call to <code class="docutils literal notranslate"><span class="pre">problem.solve</span></code>.</p>
 </section>
 <section id="install-without-default-solvers">
 <h2>Install without default solvers<a class="headerlink" href="#install-without-default-solvers" title="Permalink to this heading">¶</a></h2>
@@ -284,12 +321,16 @@ This can be useful if the intention is to only use non-default solvers.</p>
 <li class="toctree-l2"><a class="reference internal" href="#install-with-mosek-support">Install with MOSEK support</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#install-with-xpress-support">Install with XPRESS support</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#install-with-cbc-clp-cgl-support">Install with Cbc (Clp, Cgl) support</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#install-with-copt-support">Install with COPT support</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#install-with-cplex-support">Install with CPLEX support</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#install-with-sdpa-support">Install with SDPA support</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#install-with-sdpt3-support">Install with SDPT3 support</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#install-with-nag-support">Install with NAG support</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#install-with-glop-and-pdlp-support">Install with GLOP and PDLP support</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#install-with-scip-support">Install with SCIP support</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#install-with-scipy-support">Install with SCIPY support</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#install-with-clarabel-support">Install with CLARABEL support</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#install-with-proxqp-support">Install with PROXQP support</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#install-without-default-solvers">Install without default solvers</a></li>
 </ul>
 </li>

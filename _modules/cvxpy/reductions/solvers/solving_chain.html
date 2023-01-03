@@ -5,7 +5,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>cvxpy.reductions.solvers.solving_chain &#8212; CVXPY 1.2 documentation</title>
+    <title>cvxpy.reductions.solvers.solving_chain &#8212; CVXPY 1.3 documentation</title>
     <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../../../../_static/cvxpy_alabaster.css" />
     <script integrity="sha384-vtXRMe3mGCbOeY7l30aIg8H9p3GdeSe4IFlP6G8JMa7o7lXvnz3GFKzPxzJdPfGK" src="../../../../_static/jquery.js"></script>
@@ -32,28 +32,35 @@
           <div class="body" role="main">
             
   <h1>Source code for cvxpy.reductions.solvers.solving_chain</h1><div class="highlight"><pre>
-<span></span><span class="kn">import</span> <span class="nn">warnings</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">List</span>
+<span></span><span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">annotations</span>
+
+<span class="kn">import</span> <span class="nn">warnings</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span>
 
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 
 <span class="kn">from</span> <span class="nn">cvxpy.atoms</span> <span class="kn">import</span> <span class="n">EXP_ATOMS</span><span class="p">,</span> <span class="n">NONPOS_ATOMS</span><span class="p">,</span> <span class="n">PSD_ATOMS</span><span class="p">,</span> <span class="n">SOC_ATOMS</span>
-<span class="kn">from</span> <span class="nn">cvxpy.constraints</span> <span class="kn">import</span> <span class="p">(</span><span class="n">PSD</span><span class="p">,</span> <span class="n">SOC</span><span class="p">,</span> <span class="n">Equality</span><span class="p">,</span> <span class="n">ExpCone</span><span class="p">,</span> <span class="n">Inequality</span><span class="p">,</span> <span class="n">NonNeg</span><span class="p">,</span>
-                               <span class="n">NonPos</span><span class="p">,</span> <span class="n">PowCone3D</span><span class="p">,</span> <span class="n">Zero</span><span class="p">,)</span>
+<span class="kn">from</span> <span class="nn">cvxpy.constraints</span> <span class="kn">import</span> <span class="p">(</span><span class="n">PSD</span><span class="p">,</span> <span class="n">SOC</span><span class="p">,</span> <span class="n">Equality</span><span class="p">,</span> <span class="n">ExpCone</span><span class="p">,</span> <span class="n">FiniteSet</span><span class="p">,</span>
+                               <span class="n">Inequality</span><span class="p">,</span> <span class="n">NonNeg</span><span class="p">,</span> <span class="n">NonPos</span><span class="p">,</span> <span class="n">PowCone3D</span><span class="p">,</span> <span class="n">Zero</span><span class="p">,)</span>
+<span class="kn">from</span> <span class="nn">cvxpy.constraints.exponential</span> <span class="kn">import</span> <span class="n">OpRelEntrConeQuad</span><span class="p">,</span> <span class="n">RelEntrConeQuad</span>
 <span class="kn">from</span> <span class="nn">cvxpy.error</span> <span class="kn">import</span> <span class="n">DCPError</span><span class="p">,</span> <span class="n">DGPError</span><span class="p">,</span> <span class="n">DPPError</span><span class="p">,</span> <span class="n">SolverError</span>
 <span class="kn">from</span> <span class="nn">cvxpy.problems.objective</span> <span class="kn">import</span> <span class="n">Maximize</span>
 <span class="kn">from</span> <span class="nn">cvxpy.reductions.chain</span> <span class="kn">import</span> <span class="n">Chain</span>
 <span class="kn">from</span> <span class="nn">cvxpy.reductions.complex2real</span> <span class="kn">import</span> <span class="n">complex2real</span>
+<span class="kn">from</span> <span class="nn">cvxpy.reductions.cone2cone.approximations</span> <span class="kn">import</span> <span class="n">APPROX_CONES</span><span class="p">,</span> <span class="n">QuadApprox</span>
 <span class="kn">from</span> <span class="nn">cvxpy.reductions.cone2cone.exotic2common</span> <span class="kn">import</span> <span class="p">(</span><span class="n">EXOTIC_CONES</span><span class="p">,</span>
                                                       <span class="n">Exotic2Common</span><span class="p">,)</span>
 <span class="kn">from</span> <span class="nn">cvxpy.reductions.cvx_attr2constr</span> <span class="kn">import</span> <span class="n">CvxAttr2Constr</span>
 <span class="kn">from</span> <span class="nn">cvxpy.reductions.dcp2cone.cone_matrix_stuffing</span> <span class="kn">import</span> <span class="n">ConeMatrixStuffing</span>
 <span class="kn">from</span> <span class="nn">cvxpy.reductions.dcp2cone.dcp2cone</span> <span class="kn">import</span> <span class="n">Dcp2Cone</span>
 <span class="kn">from</span> <span class="nn">cvxpy.reductions.dgp2dcp.dgp2dcp</span> <span class="kn">import</span> <span class="n">Dgp2Dcp</span>
+<span class="kn">from</span> <span class="nn">cvxpy.reductions.discrete2mixedint.valinvec2mixedint</span> <span class="kn">import</span> <span class="p">(</span>
+    <span class="n">Valinvec2mixedint</span><span class="p">,)</span>
 <span class="kn">from</span> <span class="nn">cvxpy.reductions.eval_params</span> <span class="kn">import</span> <span class="n">EvalParams</span>
 <span class="kn">from</span> <span class="nn">cvxpy.reductions.flip_objective</span> <span class="kn">import</span> <span class="n">FlipObjective</span>
 <span class="kn">from</span> <span class="nn">cvxpy.reductions.qp2quad_form</span> <span class="kn">import</span> <span class="n">qp2symbolic_qp</span>
 <span class="kn">from</span> <span class="nn">cvxpy.reductions.qp2quad_form.qp_matrix_stuffing</span> <span class="kn">import</span> <span class="n">QpMatrixStuffing</span>
+<span class="kn">from</span> <span class="nn">cvxpy.reductions.reduction</span> <span class="kn">import</span> <span class="n">Reduction</span>
 <span class="kn">from</span> <span class="nn">cvxpy.reductions.solvers</span> <span class="kn">import</span> <span class="n">defines</span> <span class="k">as</span> <span class="n">slv_def</span>
 <span class="kn">from</span> <span class="nn">cvxpy.reductions.solvers.constant_solver</span> <span class="kn">import</span> <span class="n">ConstantSolver</span>
 <span class="kn">from</span> <span class="nn">cvxpy.reductions.solvers.solver</span> <span class="kn">import</span> <span class="n">Solver</span>
@@ -83,7 +90,8 @@
     <span class="k">return</span> <span class="n">candidates</span><span class="p">[</span><span class="s1">&#39;qp_solvers&#39;</span><span class="p">]</span> <span class="ow">and</span> <span class="n">qp2symbolic_qp</span><span class="o">.</span><span class="n">accepts</span><span class="p">(</span><span class="n">problem</span><span class="p">)</span>
 
 
-<span class="k">def</span> <span class="nf">_reductions_for_problem_class</span><span class="p">(</span><span class="n">problem</span><span class="p">,</span> <span class="n">candidates</span><span class="p">,</span> <span class="n">gp</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Any</span><span class="p">]:</span>
+<span class="k">def</span> <span class="nf">_reductions_for_problem_class</span><span class="p">(</span><span class="n">problem</span><span class="p">,</span> <span class="n">candidates</span><span class="p">,</span> <span class="n">gp</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">solver_opts</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span> \
+        <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Reduction</span><span class="p">]:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Builds a chain that rewrites a problem into an intermediate</span>
 <span class="sd">    representation suitable for numeric reductions.</span>
@@ -141,7 +149,8 @@
     <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">problem</span><span class="o">.</span><span class="n">objective</span><span class="p">)</span> <span class="o">==</span> <span class="n">Maximize</span><span class="p">:</span>
         <span class="n">reductions</span> <span class="o">+=</span> <span class="p">[</span><span class="n">FlipObjective</span><span class="p">()]</span>
 
-    <span class="k">if</span> <span class="n">_solve_as_qp</span><span class="p">(</span><span class="n">problem</span><span class="p">,</span> <span class="n">candidates</span><span class="p">):</span>
+    <span class="n">use_quad</span> <span class="o">=</span> <span class="kc">True</span> <span class="k">if</span> <span class="n">solver_opts</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">solver_opts</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;use_quad_obj&#39;</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">_solve_as_qp</span><span class="p">(</span><span class="n">problem</span><span class="p">,</span> <span class="n">candidates</span><span class="p">)</span> <span class="ow">and</span> <span class="n">use_quad</span><span class="p">:</span>
         <span class="n">reductions</span> <span class="o">+=</span> <span class="p">[</span><span class="n">CvxAttr2Constr</span><span class="p">(),</span> <span class="n">qp2symbolic_qp</span><span class="o">.</span><span class="n">Qp2SymbolicQp</span><span class="p">()]</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="c1"># Canonicalize it to conic problem.</span>
@@ -149,15 +158,21 @@
             <span class="k">raise</span> <span class="n">SolverError</span><span class="p">(</span><span class="s2">&quot;Problem could not be reduced to a QP, and no &quot;</span>
                               <span class="s2">&quot;conic solvers exist among candidate solvers &quot;</span>
                               <span class="s2">&quot;(</span><span class="si">%s</span><span class="s2">).&quot;</span> <span class="o">%</span> <span class="n">candidates</span><span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">reductions</span> <span class="o">+=</span> <span class="p">[</span><span class="n">Dcp2Cone</span><span class="p">(),</span> <span class="n">CvxAttr2Constr</span><span class="p">()]</span>
+
+    <span class="n">constr_types</span> <span class="o">=</span> <span class="p">{</span><span class="nb">type</span><span class="p">(</span><span class="n">c</span><span class="p">)</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">problem</span><span class="o">.</span><span class="n">constraints</span><span class="p">}</span>
+    <span class="k">if</span> <span class="n">FiniteSet</span> <span class="ow">in</span> <span class="n">constr_types</span><span class="p">:</span>
+        <span class="n">reductions</span> <span class="o">+=</span> <span class="p">[</span><span class="n">Valinvec2mixedint</span><span class="p">()]</span>
+
     <span class="k">return</span> <span class="n">reductions</span>
 
 
 <span class="k">def</span> <span class="nf">construct_solving_chain</span><span class="p">(</span><span class="n">problem</span><span class="p">,</span> <span class="n">candidates</span><span class="p">,</span>
                             <span class="n">gp</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
                             <span class="n">enforce_dpp</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
-                            <span class="n">ignore_dpp</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;SolvingChain&quot;</span><span class="p">:</span>
+                            <span class="n">ignore_dpp</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+                            <span class="n">canon_backend</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+                            <span class="n">solver_opts</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">dict</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+                            <span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;SolvingChain&quot;</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Build a reduction chain from a problem to an installed solver.</span>
 
 <span class="sd">    Note that if the supplied problem has 0 variables, then the solver</span>
@@ -179,6 +194,13 @@
 <span class="sd">    ignore_dpp : bool, optional</span>
 <span class="sd">        When True, DPP problems will be treated as non-DPP,</span>
 <span class="sd">        which may speed up compilation. Defaults to False.</span>
+<span class="sd">    canon_backend : str, optional</span>
+<span class="sd">        &#39;CPP&#39; (default) | &#39;SCIPY&#39;</span>
+<span class="sd">        Specifies which backend to use for canonicalization, which can affect</span>
+<span class="sd">        compilation time. Defaults to None, i.e., selecting the default</span>
+<span class="sd">        backend.</span>
+<span class="sd">    solver_opts : dict, optional</span>
+<span class="sd">        Additional arguments to pass to the solver.</span>
 
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
@@ -193,17 +215,17 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">problem</span><span class="o">.</span><span class="n">variables</span><span class="p">())</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">SolvingChain</span><span class="p">(</span><span class="n">reductions</span><span class="o">=</span><span class="p">[</span><span class="n">ConstantSolver</span><span class="p">()])</span>
-    <span class="n">reductions</span> <span class="o">=</span> <span class="n">_reductions_for_problem_class</span><span class="p">(</span><span class="n">problem</span><span class="p">,</span> <span class="n">candidates</span><span class="p">,</span> <span class="n">gp</span><span class="p">)</span>
+    <span class="n">reductions</span> <span class="o">=</span> <span class="n">_reductions_for_problem_class</span><span class="p">(</span><span class="n">problem</span><span class="p">,</span> <span class="n">candidates</span><span class="p">,</span> <span class="n">gp</span><span class="p">,</span> <span class="n">solver_opts</span><span class="p">)</span>
 
     <span class="c1"># Process DPP status of the problem.</span>
     <span class="n">dpp_context</span> <span class="o">=</span> <span class="s1">&#39;dcp&#39;</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">gp</span> <span class="k">else</span> <span class="s1">&#39;dgp&#39;</span>
     <span class="n">dpp_error_msg</span> <span class="o">=</span> <span class="p">(</span>
-            <span class="s2">&quot;You are solving a parameterized problem that is not DPP. &quot;</span>
-            <span class="s2">&quot;Because the problem is not DPP, subsequent solves will not be &quot;</span>
-            <span class="s2">&quot;faster than the first one. For more information, see the &quot;</span>
-            <span class="s2">&quot;documentation on Discplined Parametrized Programming, at</span><span class="se">\n</span><span class="s2">&quot;</span>
-            <span class="s2">&quot;</span><span class="se">\t</span><span class="s2">https://www.cvxpy.org/tutorial/advanced/index.html#&quot;</span>
-            <span class="s2">&quot;disciplined-parametrized-programming&quot;</span><span class="p">)</span>
+        <span class="s2">&quot;You are solving a parameterized problem that is not DPP. &quot;</span>
+        <span class="s2">&quot;Because the problem is not DPP, subsequent solves will not be &quot;</span>
+        <span class="s2">&quot;faster than the first one. For more information, see the &quot;</span>
+        <span class="s2">&quot;documentation on Discplined Parametrized Programming, at</span><span class="se">\n</span><span class="s2">&quot;</span>
+        <span class="s2">&quot;</span><span class="se">\t</span><span class="s2">https://www.cvxpy.org/tutorial/advanced/index.html#&quot;</span>
+        <span class="s2">&quot;disciplined-parametrized-programming&quot;</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">ignore_dpp</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">problem</span><span class="o">.</span><span class="n">is_dpp</span><span class="p">(</span><span class="n">dpp_context</span><span class="p">):</span>
         <span class="c1"># No warning for ignore_dpp.</span>
         <span class="k">if</span> <span class="n">ignore_dpp</span><span class="p">:</span>
@@ -226,11 +248,12 @@
     <span class="c1"># Conclude with matrix stuffing; choose one of the following paths:</span>
     <span class="c1">#   (1) QpMatrixStuffing --&gt; [a QpSolver],</span>
     <span class="c1">#   (2) ConeMatrixStuffing --&gt; [a ConicSolver]</span>
-    <span class="k">if</span> <span class="n">_solve_as_qp</span><span class="p">(</span><span class="n">problem</span><span class="p">,</span> <span class="n">candidates</span><span class="p">):</span>
+    <span class="n">use_quad</span> <span class="o">=</span> <span class="kc">True</span> <span class="k">if</span> <span class="n">solver_opts</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">solver_opts</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;use_quad_obj&#39;</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">_solve_as_qp</span><span class="p">(</span><span class="n">problem</span><span class="p">,</span> <span class="n">candidates</span><span class="p">)</span> <span class="ow">and</span> <span class="n">use_quad</span><span class="p">:</span>
         <span class="c1"># Canonicalize as a QP</span>
         <span class="n">solver</span> <span class="o">=</span> <span class="n">candidates</span><span class="p">[</span><span class="s1">&#39;qp_solvers&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
         <span class="n">solver_instance</span> <span class="o">=</span> <span class="n">slv_def</span><span class="o">.</span><span class="n">SOLVER_MAP_QP</span><span class="p">[</span><span class="n">solver</span><span class="p">]</span>
-        <span class="n">reductions</span> <span class="o">+=</span> <span class="p">[</span><span class="n">QpMatrixStuffing</span><span class="p">(),</span>
+        <span class="n">reductions</span> <span class="o">+=</span> <span class="p">[</span><span class="n">QpMatrixStuffing</span><span class="p">(</span><span class="n">canon_backend</span><span class="o">=</span><span class="n">canon_backend</span><span class="p">),</span>
                        <span class="n">solver_instance</span><span class="p">]</span>
         <span class="k">return</span> <span class="n">SolvingChain</span><span class="p">(</span><span class="n">reductions</span><span class="o">=</span><span class="n">reductions</span><span class="p">)</span>
 
@@ -246,11 +269,17 @@
     <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">problem</span><span class="o">.</span><span class="n">constraints</span><span class="p">:</span>
         <span class="n">constr_types</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">c</span><span class="p">))</span>
     <span class="n">ex_cos</span> <span class="o">=</span> <span class="p">[</span><span class="n">ct</span> <span class="k">for</span> <span class="n">ct</span> <span class="ow">in</span> <span class="n">constr_types</span> <span class="k">if</span> <span class="n">ct</span> <span class="ow">in</span> <span class="n">EXOTIC_CONES</span><span class="p">]</span>
+    <span class="n">approx_cos</span> <span class="o">=</span> <span class="p">[</span><span class="n">ct</span> <span class="k">for</span> <span class="n">ct</span> <span class="ow">in</span> <span class="n">constr_types</span> <span class="k">if</span> <span class="n">ct</span> <span class="ow">in</span> <span class="n">APPROX_CONES</span><span class="p">]</span>
     <span class="c1"># ^ The way we populate &quot;ex_cos&quot; will need to change if and when</span>
     <span class="c1"># we have atoms that require exotic cones.</span>
     <span class="k">for</span> <span class="n">co</span> <span class="ow">in</span> <span class="n">ex_cos</span><span class="p">:</span>
         <span class="n">sim_cos</span> <span class="o">=</span> <span class="n">EXOTIC_CONES</span><span class="p">[</span><span class="n">co</span><span class="p">]</span>  <span class="c1"># get the set of required simple cones</span>
         <span class="n">constr_types</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">sim_cos</span><span class="p">)</span>
+        <span class="n">constr_types</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">co</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">co</span> <span class="ow">in</span> <span class="n">approx_cos</span><span class="p">:</span>
+        <span class="n">app_cos</span> <span class="o">=</span> <span class="n">APPROX_CONES</span><span class="p">[</span><span class="n">co</span><span class="p">]</span>
+        <span class="n">constr_types</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">app_cos</span><span class="p">)</span>
         <span class="n">constr_types</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">co</span><span class="p">)</span>
     <span class="c1"># We now go over individual elementary cones support by CVXPY (</span>
     <span class="c1"># SOC, ExpCone, NonNeg, Zero, PSD, PowCone3D) and check if</span>
@@ -283,11 +312,31 @@
 
     <span class="k">for</span> <span class="n">solver</span> <span class="ow">in</span> <span class="n">candidates</span><span class="p">[</span><span class="s1">&#39;conic_solvers&#39;</span><span class="p">]:</span>
         <span class="n">solver_instance</span> <span class="o">=</span> <span class="n">slv_def</span><span class="o">.</span><span class="n">SOLVER_MAP_CONIC</span><span class="p">[</span><span class="n">solver</span><span class="p">]</span>
-        <span class="k">if</span> <span class="p">(</span><span class="nb">all</span><span class="p">(</span><span class="n">c</span> <span class="ow">in</span> <span class="n">solver_instance</span><span class="o">.</span><span class="n">SUPPORTED_CONSTRAINTS</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">cones</span><span class="p">)</span>
+        <span class="c1"># Cones supported for MI problems may differ from non MI.</span>
+        <span class="k">if</span> <span class="n">problem</span><span class="o">.</span><span class="n">is_mixed_integer</span><span class="p">():</span>
+            <span class="n">supported_constraints</span> <span class="o">=</span> <span class="n">solver_instance</span><span class="o">.</span><span class="n">MI_SUPPORTED_CONSTRAINTS</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">supported_constraints</span> <span class="o">=</span> <span class="n">solver_instance</span><span class="o">.</span><span class="n">SUPPORTED_CONSTRAINTS</span>
+        <span class="k">if</span> <span class="p">(</span><span class="nb">all</span><span class="p">(</span><span class="n">c</span> <span class="ow">in</span> <span class="n">supported_constraints</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">cones</span><span class="p">)</span>
                 <span class="ow">and</span> <span class="p">(</span><span class="n">has_constr</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">solver_instance</span><span class="o">.</span><span class="n">REQUIRES_CONSTR</span><span class="p">)):</span>
             <span class="k">if</span> <span class="n">ex_cos</span><span class="p">:</span>
                 <span class="n">reductions</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">Exotic2Common</span><span class="p">())</span>
-            <span class="n">reductions</span> <span class="o">+=</span> <span class="p">[</span><span class="n">ConeMatrixStuffing</span><span class="p">(),</span> <span class="n">solver_instance</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">RelEntrConeQuad</span> <span class="ow">in</span> <span class="n">approx_cos</span> <span class="ow">or</span> <span class="n">OpRelEntrConeQuad</span> <span class="ow">in</span> <span class="n">approx_cos</span><span class="p">:</span>
+                <span class="n">reductions</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">QuadApprox</span><span class="p">())</span>
+
+            <span class="c1"># Should the objective be canonicalized to a quadratic?</span>
+            <span class="k">if</span> <span class="n">solver_opts</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">use_quad_obj</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">use_quad_obj</span> <span class="o">=</span> <span class="n">solver_opts</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;use_quad_obj&quot;</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
+            <span class="n">quad_obj</span> <span class="o">=</span> <span class="n">use_quad_obj</span> <span class="ow">and</span> <span class="n">solver_instance</span><span class="o">.</span><span class="n">supports_quad_obj</span><span class="p">()</span> <span class="ow">and</span> \
+                <span class="n">problem</span><span class="o">.</span><span class="n">objective</span><span class="o">.</span><span class="n">expr</span><span class="o">.</span><span class="n">has_quadratic_term</span><span class="p">()</span>
+            <span class="n">reductions</span> <span class="o">+=</span> <span class="p">[</span>
+                <span class="n">Dcp2Cone</span><span class="p">(</span><span class="n">quad_obj</span><span class="o">=</span><span class="n">quad_obj</span><span class="p">),</span>
+                <span class="n">CvxAttr2Constr</span><span class="p">(),</span>
+                <span class="n">ConeMatrixStuffing</span><span class="p">(</span><span class="n">quad_obj</span><span class="o">=</span><span class="n">quad_obj</span><span class="p">,</span> <span class="n">canon_backend</span><span class="o">=</span><span class="n">canon_backend</span><span class="p">),</span>
+                <span class="n">solver_instance</span>
+            <span class="p">]</span>
             <span class="k">return</span> <span class="n">SolvingChain</span><span class="p">(</span><span class="n">reductions</span><span class="o">=</span><span class="n">reductions</span><span class="p">)</span>
 
     <span class="k">raise</span> <span class="n">SolverError</span><span class="p">(</span><span class="s2">&quot;Either candidate conic solvers (</span><span class="si">%s</span><span class="s2">) do not support the &quot;</span>

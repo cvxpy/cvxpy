@@ -5,7 +5,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>cvxpy.problems.problem &#8212; CVXPY 1.2 documentation</title>
+    <title>cvxpy.problems.problem &#8212; CVXPY 1.3 documentation</title>
     <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../../../_static/cvxpy_alabaster.css" />
     <script integrity="sha384-vtXRMe3mGCbOeY7l30aIg8H9p3GdeSe4IFlP6G8JMa7o7lXvnz3GFKzPxzJdPfGK" src="../../../_static/jquery.js"></script>
@@ -47,6 +47,7 @@
 <span class="sd">See the License for the specific language governing permissions and</span>
 <span class="sd">limitations under the License.</span>
 <span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">annotations</span>
 
 <span class="kn">import</span> <span class="nn">time</span>
 <span class="kn">import</span> <span class="nn">warnings</span>
@@ -83,6 +84,7 @@
 <span class="kn">from</span> <span class="nn">cvxpy.reductions.solvers.solving_chain</span> <span class="kn">import</span> <span class="p">(</span><span class="n">SolvingChain</span><span class="p">,</span>
                                                     <span class="n">construct_solving_chain</span><span class="p">,)</span>
 <span class="kn">from</span> <span class="nn">cvxpy.settings</span> <span class="kn">import</span> <span class="n">SOLVERS</span>
+<span class="kn">from</span> <span class="nn">cvxpy.utilities</span> <span class="kn">import</span> <span class="n">debug_tools</span>
 <span class="kn">from</span> <span class="nn">cvxpy.utilities.deterministic</span> <span class="kn">import</span> <span class="n">unique_list</span>
 
 <span class="n">SolveResult</span> <span class="o">=</span> <span class="n">namedtuple</span><span class="p">(</span>
@@ -182,7 +184,17 @@
             <span class="k">raise</span> <span class="n">error</span><span class="o">.</span><span class="n">DCPError</span><span class="p">(</span><span class="s2">&quot;Problem objective must be Minimize or Maximize.&quot;</span><span class="p">)</span>
         <span class="c1"># Constraints and objective are immutable.</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_objective</span> <span class="o">=</span> <span class="n">objective</span>
+        <span class="c1"># Raise warning if objective has too many subexpressions.</span>
+        <span class="k">if</span> <span class="n">debug_tools</span><span class="o">.</span><span class="n">node_count</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_objective</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="n">debug_tools</span><span class="o">.</span><span class="n">MAX_NODES</span><span class="p">:</span>
+            <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;Objective contains too many subexpressions. &quot;</span>
+                          <span class="s2">&quot;Consider vectorizing your CVXPY code to speed up compilation.&quot;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_constraints</span> <span class="o">=</span> <span class="p">[</span><span class="n">_validate_constraint</span><span class="p">(</span><span class="n">c</span><span class="p">)</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">constraints</span><span class="p">]</span>
+        <span class="c1"># Raise warning if constraint has too many subexpressions.</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">constraint</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_constraints</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">debug_tools</span><span class="o">.</span><span class="n">node_count</span><span class="p">(</span><span class="n">constraint</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="n">debug_tools</span><span class="o">.</span><span class="n">MAX_NODES</span><span class="p">:</span>
+                <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Constraint #</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2"> contains too many subexpressions. &quot;</span>
+                              <span class="s2">&quot;Consider vectorizing your CVXPY code to speed up compilation.&quot;</span><span class="p">)</span>
+
         <span class="bp">self</span><span class="o">.</span><span class="n">_value</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_status</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_solution</span> <span class="o">=</span> <span class="kc">None</span>
@@ -533,7 +545,9 @@
         <span class="n">gp</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
         <span class="n">enforce_dpp</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
         <span class="n">ignore_dpp</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
-        <span class="n">verbose</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="n">verbose</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="n">canon_backend</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">solver_opts</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">dict</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns the problem data used in the call to the solver.</span>
 
@@ -611,8 +625,17 @@
 <span class="sd">        ignore_dpp : bool, optional</span>
 <span class="sd">            When True, DPP problems will be treated as non-DPP,</span>
 <span class="sd">            which may speed up compilation. Defaults to False.</span>
+<span class="sd">        canon_backend : str, optional</span>
+<span class="sd">            &#39;CPP&#39; (default) | &#39;SCIPY&#39;</span>
+<span class="sd">            Specifies which backend to use for canonicalization, which can affect</span>
+<span class="sd">            compilation time. Defaults to None, i.e., selecting the default</span>
+<span class="sd">            backend.</span>
 <span class="sd">        verbose : bool, optional</span>
 <span class="sd">            If True, print verbose output related to problem compilation.</span>
+<span class="sd">        solver_opts : dict, optional</span>
+<span class="sd">            A dict of options that will be passed to the specific solver.</span>
+<span class="sd">            In general, these options will override any default settings</span>
+<span class="sd">            imposed by cvxpy.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
@@ -628,6 +651,7 @@
 <span class="sd">        cvxpy.error.DPPError</span>
 <span class="sd">            Raised if DPP settings are invalid.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+
         <span class="c1"># Invalid DPP setting.</span>
         <span class="c1"># Must be checked here to avoid cache issues.</span>
         <span class="k">if</span> <span class="n">enforce_dpp</span> <span class="ow">and</span> <span class="n">ignore_dpp</span><span class="p">:</span>
@@ -641,7 +665,9 @@
             <span class="n">solving_chain</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_construct_chain</span><span class="p">(</span>
                 <span class="n">solver</span><span class="o">=</span><span class="n">solver</span><span class="p">,</span> <span class="n">gp</span><span class="o">=</span><span class="n">gp</span><span class="p">,</span>
                 <span class="n">enforce_dpp</span><span class="o">=</span><span class="n">enforce_dpp</span><span class="p">,</span>
-                <span class="n">ignore_dpp</span><span class="o">=</span><span class="n">ignore_dpp</span><span class="p">)</span>
+                <span class="n">ignore_dpp</span><span class="o">=</span><span class="n">ignore_dpp</span><span class="p">,</span>
+                <span class="n">canon_backend</span><span class="o">=</span><span class="n">canon_backend</span><span class="p">,</span>
+                <span class="n">solver_opts</span><span class="o">=</span><span class="n">solver_opts</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_cache</span><span class="o">.</span><span class="n">key</span> <span class="o">=</span> <span class="n">key</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_cache</span><span class="o">.</span><span class="n">solving_chain</span> <span class="o">=</span> <span class="n">solving_chain</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_solver_cache</span> <span class="o">=</span> <span class="p">{}</span>
@@ -845,8 +871,13 @@
         <span class="k">return</span> <span class="n">candidates</span>
 
     <span class="k">def</span> <span class="nf">_construct_chain</span><span class="p">(</span>
-        <span class="bp">self</span><span class="p">,</span> <span class="n">solver</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">gp</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
-        <span class="n">enforce_dpp</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">ignore_dpp</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
+            <span class="bp">self</span><span class="p">,</span>
+            <span class="n">solver</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="n">gp</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+            <span class="n">enforce_dpp</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+            <span class="n">ignore_dpp</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+            <span class="n">canon_backend</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="n">solver_opts</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">dict</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">SolvingChain</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Construct the chains required to reformulate and solve the problem.</span>
@@ -869,6 +900,13 @@
 <span class="sd">        ignore_dpp : bool, optional</span>
 <span class="sd">            When True, DPP problems will be treated as non-DPP,</span>
 <span class="sd">            which may speed up compilation. Defaults to False.</span>
+<span class="sd">        canon_backend : str, optional</span>
+<span class="sd">            &#39;CPP&#39; (default) | &#39;SCIPY&#39;</span>
+<span class="sd">            Specifies which backend to use for canonicalization, which can affect</span>
+<span class="sd">            compilation time. Defaults to None, i.e., selecting the default</span>
+<span class="sd">            backend.</span>
+<span class="sd">        solver_opts: dict, optional</span>
+<span class="sd">            Additional arguments to pass to the solver.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
@@ -878,7 +916,9 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_sort_candidate_solvers</span><span class="p">(</span><span class="n">candidate_solvers</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">construct_solving_chain</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">candidate_solvers</span><span class="p">,</span> <span class="n">gp</span><span class="o">=</span><span class="n">gp</span><span class="p">,</span>
                                        <span class="n">enforce_dpp</span><span class="o">=</span><span class="n">enforce_dpp</span><span class="p">,</span>
-                                       <span class="n">ignore_dpp</span><span class="o">=</span><span class="n">ignore_dpp</span><span class="p">)</span>
+                                       <span class="n">ignore_dpp</span><span class="o">=</span><span class="n">ignore_dpp</span><span class="p">,</span>
+                                       <span class="n">canon_backend</span><span class="o">=</span><span class="n">canon_backend</span><span class="p">,</span>
+                                       <span class="n">solver_opts</span><span class="o">=</span><span class="n">solver_opts</span><span class="p">)</span>
 
     <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">_sort_candidate_solvers</span><span class="p">(</span><span class="n">solvers</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
@@ -917,6 +957,7 @@
                <span class="n">requires_grad</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
                <span class="n">enforce_dpp</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
                <span class="n">ignore_dpp</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+               <span class="n">canon_backend</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
                <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Solves a DCP compliant optimization problem.</span>
 
@@ -947,6 +988,11 @@
 <span class="sd">        ignore_dpp : bool, optional</span>
 <span class="sd">            When True, DPP problems will be treated as non-DPP,</span>
 <span class="sd">            which may speed up compilation. Defaults to False.</span>
+<span class="sd">        canon_backend : str, optional</span>
+<span class="sd">            &#39;CPP&#39; (default) | &#39;SCIPY&#39;</span>
+<span class="sd">            Specifies which backend to use for canonicalization, which can affect</span>
+<span class="sd">            compilation time. Defaults to None, i.e., selecting the default</span>
+<span class="sd">            backend.</span>
 <span class="sd">        kwargs : dict, optional</span>
 <span class="sd">            A dict of options that will be passed to the specific solver.</span>
 <span class="sd">            In general, these options will override any default settings</span>
@@ -958,6 +1004,7 @@
 <span class="sd">            The optimal value for the problem, or a string indicating</span>
 <span class="sd">            why the problem could not be solved.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+
         <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
             <span class="nb">print</span><span class="p">(</span><span class="n">_HEADER</span><span class="p">)</span>
 
@@ -1039,7 +1086,8 @@
                 <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">value</span>
 
         <span class="n">data</span><span class="p">,</span> <span class="n">solving_chain</span><span class="p">,</span> <span class="n">inverse_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_problem_data</span><span class="p">(</span>
-            <span class="n">solver</span><span class="p">,</span> <span class="n">gp</span><span class="p">,</span> <span class="n">enforce_dpp</span><span class="p">,</span> <span class="n">ignore_dpp</span><span class="p">,</span> <span class="n">verbose</span><span class="p">)</span>
+            <span class="n">solver</span><span class="p">,</span> <span class="n">gp</span><span class="p">,</span> <span class="n">enforce_dpp</span><span class="p">,</span> <span class="n">ignore_dpp</span><span class="p">,</span> <span class="n">verbose</span><span class="p">,</span> <span class="n">canon_backend</span><span class="p">,</span> <span class="n">kwargs</span>
+        <span class="p">)</span>
 
         <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
             <span class="nb">print</span><span class="p">(</span><span class="n">_NUM_SOLVER_STR</span><span class="p">)</span>

@@ -5,7 +5,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>cvxpy.reductions.dcp2cone.dcp2cone &#8212; CVXPY 1.2 documentation</title>
+    <title>cvxpy.reductions.dcp2cone.dcp2cone &#8212; CVXPY 1.3 documentation</title>
     <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../../../../_static/cvxpy_alabaster.css" />
     <script integrity="sha384-vtXRMe3mGCbOeY7l30aIg8H9p3GdeSe4IFlP6G8JMa7o7lXvnz3GFKzPxzJdPfGK" src="../../../../_static/jquery.js"></script>
@@ -47,22 +47,33 @@
 <span class="sd">See the License for the specific language governing permissions and</span>
 <span class="sd">limitations under the License.</span>
 <span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Tuple</span>
+
+<span class="kn">from</span> <span class="nn">cvxpy</span> <span class="kn">import</span> <span class="n">problems</span>
+<span class="kn">from</span> <span class="nn">cvxpy.expressions</span> <span class="kn">import</span> <span class="n">cvxtypes</span>
+<span class="kn">from</span> <span class="nn">cvxpy.expressions.expression</span> <span class="kn">import</span> <span class="n">Expression</span>
 <span class="kn">from</span> <span class="nn">cvxpy.problems.objective</span> <span class="kn">import</span> <span class="n">Minimize</span>
 <span class="kn">from</span> <span class="nn">cvxpy.reductions.canonicalization</span> <span class="kn">import</span> <span class="n">Canonicalization</span>
 <span class="kn">from</span> <span class="nn">cvxpy.reductions.dcp2cone.atom_canonicalizers</span> <span class="kn">import</span> <span class="p">(</span>
     <span class="n">CANON_METHODS</span> <span class="k">as</span> <span class="n">cone_canon_methods</span><span class="p">,)</span>
+<span class="kn">from</span> <span class="nn">cvxpy.reductions.inverse_data</span> <span class="kn">import</span> <span class="n">InverseData</span>
+<span class="kn">from</span> <span class="nn">cvxpy.reductions.qp2quad_form.atom_canonicalizers</span> <span class="kn">import</span> <span class="p">(</span>
+    <span class="n">QUAD_CANON_METHODS</span> <span class="k">as</span> <span class="n">quad_canon_methods</span><span class="p">,)</span>
 
 
 <div class="viewcode-block" id="Dcp2Cone"><a class="viewcode-back" href="../../../../api_reference/cvxpy.reductions.dcp2cone.html#cvxpy.reductions.dcp2cone.dcp2cone.Dcp2Cone">[docs]</a><span class="k">class</span> <span class="nc">Dcp2Cone</span><span class="p">(</span><span class="n">Canonicalization</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Reduce DCP problems to a conic form.</span>
 
 <span class="sd">    This reduction takes as input (minimization) DCP problems and converts</span>
-<span class="sd">    them into problems with affine objectives and conic constraints whose</span>
-<span class="sd">    arguments are affine.</span>
+<span class="sd">    them into problems with affine or quadratic objectives and conic</span>
+<span class="sd">    constraints whose arguments are affine.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">problem</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="nb">super</span><span class="p">(</span><span class="n">Dcp2Cone</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
-          <span class="n">problem</span><span class="o">=</span><span class="n">problem</span><span class="p">,</span> <span class="n">canon_methods</span><span class="o">=</span><span class="n">cone_canon_methods</span><span class="p">)</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">problem</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">quad_obj</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">Canonicalization</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">problem</span><span class="o">=</span><span class="n">problem</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cone_canon_methods</span> <span class="o">=</span> <span class="n">cone_canon_methods</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">quad_canon_methods</span> <span class="o">=</span> <span class="n">quad_canon_methods</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">quad_obj</span> <span class="o">=</span> <span class="n">quad_obj</span>
 
 <div class="viewcode-block" id="Dcp2Cone.accepts"><a class="viewcode-back" href="../../../../api_reference/cvxpy.reductions.dcp2cone.html#cvxpy.reductions.dcp2cone.dcp2cone.Dcp2Cone.accepts">[docs]</a>    <span class="k">def</span> <span class="nf">accepts</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">problem</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;A problem is accepted if it is a minimization and is DCP.</span>
@@ -74,7 +85,80 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">accepts</span><span class="p">(</span><span class="n">problem</span><span class="p">):</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Cannot reduce problem to cone program&quot;</span><span class="p">)</span>
-        <span class="k">return</span> <span class="nb">super</span><span class="p">(</span><span class="n">Dcp2Cone</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="n">problem</span><span class="p">)</span></div></div>
+
+        <span class="n">inverse_data</span> <span class="o">=</span> <span class="n">InverseData</span><span class="p">(</span><span class="n">problem</span><span class="p">)</span>
+
+        <span class="n">canon_objective</span><span class="p">,</span> <span class="n">canon_constraints</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">canonicalize_tree</span><span class="p">(</span>
+            <span class="n">problem</span><span class="o">.</span><span class="n">objective</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">constraint</span> <span class="ow">in</span> <span class="n">problem</span><span class="o">.</span><span class="n">constraints</span><span class="p">:</span>
+            <span class="c1"># canon_constr is the constraint rexpressed in terms of</span>
+            <span class="c1"># its canonicalized arguments, and aux_constr are the constraints</span>
+            <span class="c1"># generated while canonicalizing the arguments of the original</span>
+            <span class="c1"># constraint</span>
+            <span class="n">canon_constr</span><span class="p">,</span> <span class="n">aux_constr</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">canonicalize_tree</span><span class="p">(</span>
+                <span class="n">constraint</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+            <span class="n">canon_constraints</span> <span class="o">+=</span> <span class="n">aux_constr</span> <span class="o">+</span> <span class="p">[</span><span class="n">canon_constr</span><span class="p">]</span>
+            <span class="n">inverse_data</span><span class="o">.</span><span class="n">cons_id_map</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="n">constraint</span><span class="o">.</span><span class="n">id</span><span class="p">:</span> <span class="n">canon_constr</span><span class="o">.</span><span class="n">id</span><span class="p">})</span>
+
+        <span class="n">new_problem</span> <span class="o">=</span> <span class="n">problems</span><span class="o">.</span><span class="n">problem</span><span class="o">.</span><span class="n">Problem</span><span class="p">(</span><span class="n">canon_objective</span><span class="p">,</span>
+                                               <span class="n">canon_constraints</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">new_problem</span><span class="p">,</span> <span class="n">inverse_data</span></div>
+
+<div class="viewcode-block" id="Dcp2Cone.canonicalize_tree"><a class="viewcode-back" href="../../../../api_reference/cvxpy.reductions.dcp2cone.html#cvxpy.reductions.dcp2cone.dcp2cone.Dcp2Cone.canonicalize_tree">[docs]</a>    <span class="k">def</span> <span class="nf">canonicalize_tree</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">expr</span><span class="p">,</span> <span class="n">affine_above</span><span class="p">:</span> <span class="nb">bool</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">Expression</span><span class="p">,</span> <span class="nb">list</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Recursively canonicalize an Expression.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        expr : The expression tree to canonicalize.</span>
+<span class="sd">        affine_above : The path up to the root node is all affine atoms.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        A tuple of the canonicalized expression and generated constraints.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># TODO don&#39;t copy affine expressions?</span>
+        <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">expr</span><span class="p">)</span> <span class="o">==</span> <span class="n">cvxtypes</span><span class="o">.</span><span class="n">partial_problem</span><span class="p">():</span>
+            <span class="n">canon_expr</span><span class="p">,</span> <span class="n">constrs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">canonicalize_tree</span><span class="p">(</span>
+              <span class="n">expr</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">objective</span><span class="o">.</span><span class="n">expr</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">constr</span> <span class="ow">in</span> <span class="n">expr</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">constraints</span><span class="p">:</span>
+                <span class="n">canon_constr</span><span class="p">,</span> <span class="n">aux_constr</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">canonicalize_tree</span><span class="p">(</span><span class="n">constr</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+                <span class="n">constrs</span> <span class="o">+=</span> <span class="p">[</span><span class="n">canon_constr</span><span class="p">]</span> <span class="o">+</span> <span class="n">aux_constr</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">affine_atom</span> <span class="o">=</span> <span class="nb">type</span><span class="p">(</span><span class="n">expr</span><span class="p">)</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">cone_canon_methods</span>
+            <span class="n">canon_args</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="n">constrs</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">arg</span> <span class="ow">in</span> <span class="n">expr</span><span class="o">.</span><span class="n">args</span><span class="p">:</span>
+                <span class="n">canon_arg</span><span class="p">,</span> <span class="n">c</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">canonicalize_tree</span><span class="p">(</span><span class="n">arg</span><span class="p">,</span> <span class="n">affine_atom</span> <span class="ow">and</span> <span class="n">affine_above</span><span class="p">)</span>
+                <span class="n">canon_args</span> <span class="o">+=</span> <span class="p">[</span><span class="n">canon_arg</span><span class="p">]</span>
+                <span class="n">constrs</span> <span class="o">+=</span> <span class="n">c</span>
+            <span class="n">canon_expr</span><span class="p">,</span> <span class="n">c</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">canonicalize_expr</span><span class="p">(</span><span class="n">expr</span><span class="p">,</span> <span class="n">canon_args</span><span class="p">,</span> <span class="n">affine_above</span><span class="p">)</span>
+            <span class="n">constrs</span> <span class="o">+=</span> <span class="n">c</span>
+        <span class="k">return</span> <span class="n">canon_expr</span><span class="p">,</span> <span class="n">constrs</span></div>
+
+<div class="viewcode-block" id="Dcp2Cone.canonicalize_expr"><a class="viewcode-back" href="../../../../api_reference/cvxpy.reductions.dcp2cone.html#cvxpy.reductions.dcp2cone.dcp2cone.Dcp2Cone.canonicalize_expr">[docs]</a>    <span class="k">def</span> <span class="nf">canonicalize_expr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">expr</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="n">affine_above</span><span class="p">:</span> <span class="nb">bool</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">Expression</span><span class="p">,</span> <span class="nb">list</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Canonicalize an expression, w.r.t. canonicalized arguments.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        expr : The expression tree to canonicalize.</span>
+<span class="sd">        args : The canonicalized arguments of expr.</span>
+<span class="sd">        affine_above : The path up to the root node is all affine atoms.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        A tuple of the canonicalized expression and generated constraints.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Constant trees are collapsed, but parameter trees are preserved.</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">expr</span><span class="p">,</span> <span class="n">Expression</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span>
+                <span class="n">expr</span><span class="o">.</span><span class="n">is_constant</span><span class="p">()</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">expr</span><span class="o">.</span><span class="n">parameters</span><span class="p">()):</span>
+            <span class="k">return</span> <span class="n">expr</span><span class="p">,</span> <span class="p">[]</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">quad_obj</span> <span class="ow">and</span> <span class="n">affine_above</span> <span class="ow">and</span> <span class="nb">type</span><span class="p">(</span><span class="n">expr</span><span class="p">)</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">quad_canon_methods</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">quad_canon_methods</span><span class="p">[</span><span class="nb">type</span><span class="p">(</span><span class="n">expr</span><span class="p">)](</span><span class="n">expr</span><span class="p">,</span> <span class="n">args</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="nb">type</span><span class="p">(</span><span class="n">expr</span><span class="p">)</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">cone_canon_methods</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">cone_canon_methods</span><span class="p">[</span><span class="nb">type</span><span class="p">(</span><span class="n">expr</span><span class="p">)](</span><span class="n">expr</span><span class="p">,</span> <span class="n">args</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">expr</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">args</span><span class="p">),</span> <span class="p">[]</span></div></div>
 </pre></div>
 
           </div>

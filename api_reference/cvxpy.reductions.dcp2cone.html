@@ -6,7 +6,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
-    <title>cvxpy.reductions.dcp2cone package &#8212; CVXPY 1.2 documentation</title>
+    <title>cvxpy.reductions.dcp2cone package &#8212; CVXPY 1.3 documentation</title>
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../_static/cvxpy_alabaster.css" />
     <script integrity="sha384-vtXRMe3mGCbOeY7l30aIg8H9p3GdeSe4IFlP6G8JMa7o7lXvnz3GFKzPxzJdPfGK" src="../_static/jquery.js"></script>
@@ -155,7 +155,7 @@ dimension of the PSD cone of k by k matrices is k.</p>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ConeMatrixStuffing">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">cvxpy.reductions.dcp2cone.cone_matrix_stuffing.</span></span><span class="sig-name descname"><span class="pre">ConeMatrixStuffing</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">problem</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/reductions/dcp2cone/cone_matrix_stuffing.html#ConeMatrixStuffing"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ConeMatrixStuffing" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">cvxpy.reductions.dcp2cone.cone_matrix_stuffing.</span></span><span class="sig-name descname"><span class="pre">ConeMatrixStuffing</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">quad_obj</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">canon_backend</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/reductions/dcp2cone/cone_matrix_stuffing.html#ConeMatrixStuffing"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ConeMatrixStuffing" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">MatrixStuffing</span></code></p>
 <p>Construct matrices for linear cone problems.</p>
 <p>Linear cone problems are assumed to have a linear objective and cone
@@ -219,10 +219,10 @@ the form A &#64; x + b.</p>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ParamConeProg">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">cvxpy.reductions.dcp2cone.cone_matrix_stuffing.</span></span><span class="sig-name descname"><span class="pre">ParamConeProg</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">c</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">A</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">variables</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">var_id_to_col</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">constraints</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parameters</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">param_id_to_col</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">formatted</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/reductions/dcp2cone/cone_matrix_stuffing.html#ParamConeProg"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ParamConeProg" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">cvxpy.reductions.dcp2cone.cone_matrix_stuffing.</span></span><span class="sig-name descname"><span class="pre">ParamConeProg</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">c</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">A</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">variables</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">var_id_to_col</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">constraints</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parameters</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">param_id_to_col</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">P</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">formatted</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/reductions/dcp2cone/cone_matrix_stuffing.html#ParamConeProg"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ParamConeProg" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">ParamProb</span></code></p>
 <p>Represents a parameterized cone program</p>
-<p>minimize   c’x  + d
+<p>minimize   c’x  + d + [(1/2)x’Px]
 subject to cone_constr1(A_1*x + b_1, …)</p>
 <blockquote>
 <div><p>…
@@ -243,16 +243,17 @@ cone_constrK(A_i*x + b_i, …)</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ParamConeProg.apply_parameters">
-<span class="sig-name descname"><span class="pre">apply_parameters</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">id_to_param_value</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">zero_offset</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">keep_zeros</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/reductions/dcp2cone/cone_matrix_stuffing.html#ParamConeProg.apply_parameters"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ParamConeProg.apply_parameters" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">apply_parameters</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">id_to_param_value</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">zero_offset</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">keep_zeros</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">quad_obj</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/reductions/dcp2cone/cone_matrix_stuffing.html#ParamConeProg.apply_parameters"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ParamConeProg.apply_parameters" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns A, b after applying parameters (and reshaping).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>id_to_param_value</strong> – (optional) dict mapping parameter ids to values</p></li>
+<li><p><strong>id_to_param_value</strong> – (optional) dict mapping parameter ids to values.</p></li>
 <li><p><strong>zero_offset</strong> – (optional) if True, zero out the constant offset in the
-parameter vector</p></li>
+parameter vector.</p></li>
 <li><p><strong>keep_zeros</strong> – (optional) if True, store explicit zeros in A where
-parameters are affected</p></li>
+parameters are affected.</p></li>
+<li><p><strong>quad_obj</strong> – (optional) if True, include quadratic objective term.</p></li>
 </ul>
 </dd>
 </dl>
@@ -295,12 +296,12 @@ See the License for the specific language governing permissions and
 limitations under the License.</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="cvxpy.reductions.dcp2cone.dcp2cone.Dcp2Cone">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">cvxpy.reductions.dcp2cone.dcp2cone.</span></span><span class="sig-name descname"><span class="pre">Dcp2Cone</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">problem</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/reductions/dcp2cone/dcp2cone.html#Dcp2Cone"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.reductions.dcp2cone.dcp2cone.Dcp2Cone" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">cvxpy.reductions.dcp2cone.dcp2cone.</span></span><span class="sig-name descname"><span class="pre">Dcp2Cone</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">problem</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">quad_obj</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/reductions/dcp2cone/dcp2cone.html#Dcp2Cone"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.reductions.dcp2cone.dcp2cone.Dcp2Cone" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Canonicalization</span></code></p>
 <p>Reduce DCP problems to a conic form.</p>
 <p>This reduction takes as input (minimization) DCP problems and converts
-them into problems with affine objectives and conic constraints whose
-arguments are affine.</p>
+them into problems with affine or quadratic objectives and conic
+constraints whose arguments are affine.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="cvxpy.reductions.dcp2cone.dcp2cone.Dcp2Cone.accepts">
 <span class="sig-name descname"><span class="pre">accepts</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">problem</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/reductions/dcp2cone/dcp2cone.html#Dcp2Cone.accepts"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.reductions.dcp2cone.dcp2cone.Dcp2Cone.accepts" title="Permalink to this definition">¶</a></dt>
@@ -311,6 +312,41 @@ arguments are affine.</p>
 <dt class="sig sig-object py" id="cvxpy.reductions.dcp2cone.dcp2cone.Dcp2Cone.apply">
 <span class="sig-name descname"><span class="pre">apply</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">problem</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/reductions/dcp2cone/dcp2cone.html#Dcp2Cone.apply"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.reductions.dcp2cone.dcp2cone.Dcp2Cone.apply" title="Permalink to this definition">¶</a></dt>
 <dd><p>Converts a DCP problem to a conic form.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="cvxpy.reductions.dcp2cone.dcp2cone.Dcp2Cone.canonicalize_expr">
+<span class="sig-name descname"><span class="pre">canonicalize_expr</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">expr</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">affine_above</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="cvxpy.expressions.html#cvxpy.expressions.expression.Expression" title="cvxpy.expressions.expression.Expression"><span class="pre">Expression</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/cvxpy/reductions/dcp2cone/dcp2cone.html#Dcp2Cone.canonicalize_expr"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.reductions.dcp2cone.dcp2cone.Dcp2Cone.canonicalize_expr" title="Permalink to this definition">¶</a></dt>
+<dd><p>Canonicalize an expression, w.r.t. canonicalized arguments.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>expr</strong> (<em>The expression tree to canonicalize.</em>) – </p></li>
+<li><p><strong>args</strong> (<em>The canonicalized arguments</em><em> of </em><em>expr.</em>) – </p></li>
+<li><p><strong>affine_above</strong> (<em>The path up to the root node is all affine atoms.</em>) – </p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>A tuple of the canonicalized expression and generated constraints.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="cvxpy.reductions.dcp2cone.dcp2cone.Dcp2Cone.canonicalize_tree">
+<span class="sig-name descname"><span class="pre">canonicalize_tree</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">expr</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">affine_above</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="cvxpy.expressions.html#cvxpy.expressions.expression.Expression" title="cvxpy.expressions.expression.Expression"><span class="pre">Expression</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/cvxpy/reductions/dcp2cone/dcp2cone.html#Dcp2Cone.canonicalize_tree"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.reductions.dcp2cone.dcp2cone.Dcp2Cone.canonicalize_tree" title="Permalink to this definition">¶</a></dt>
+<dd><p>Recursively canonicalize an Expression.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>expr</strong> (<em>The expression tree to canonicalize.</em>) – </p></li>
+<li><p><strong>affine_above</strong> (<em>The path up to the root node is all affine atoms.</em>) – </p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>A tuple of the canonicalized expression and generated constraints.</p>
+</dd>
+</dl>
 </dd></dl>
 
 </dd></dl>

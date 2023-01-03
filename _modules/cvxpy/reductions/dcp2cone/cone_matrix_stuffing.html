@@ -5,7 +5,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>cvxpy.reductions.dcp2cone.cone_matrix_stuffing &#8212; CVXPY 1.2 documentation</title>
+    <title>cvxpy.reductions.dcp2cone.cone_matrix_stuffing &#8212; CVXPY 1.3 documentation</title>
     <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../../../../_static/cvxpy_alabaster.css" />
     <script integrity="sha384-vtXRMe3mGCbOeY7l30aIg8H9p3GdeSe4IFlP6G8JMa7o7lXvnz3GFKzPxzJdPfGK" src="../../../../_static/jquery.js"></script>
@@ -47,6 +47,7 @@
 <span class="sd">See the License for the specific language governing permissions and</span>
 <span class="sd">limitations under the License.</span>
 <span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">annotations</span>
 
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">scipy.sparse</span> <span class="k">as</span> <span class="nn">sp</span>
@@ -60,9 +61,9 @@
 <span class="kn">from</span> <span class="nn">cvxpy.problems.param_prob</span> <span class="kn">import</span> <span class="n">ParamProb</span>
 <span class="kn">from</span> <span class="nn">cvxpy.reductions</span> <span class="kn">import</span> <span class="n">InverseData</span><span class="p">,</span> <span class="n">Solution</span><span class="p">,</span> <span class="n">cvx_attr2constr</span>
 <span class="kn">from</span> <span class="nn">cvxpy.reductions.matrix_stuffing</span> <span class="kn">import</span> <span class="n">MatrixStuffing</span><span class="p">,</span> <span class="n">extract_mip_idx</span>
-<span class="kn">from</span> <span class="nn">cvxpy.reductions.utilities</span> <span class="kn">import</span> <span class="p">(</span><span class="n">are_args_affine</span><span class="p">,</span> <span class="n">group_constraints</span><span class="p">,</span>
-                                        <span class="n">lower_equality</span><span class="p">,</span> <span class="n">lower_ineq_to_nonneg</span><span class="p">,</span>
-                                        <span class="n">nonpos2nonneg</span><span class="p">,)</span>
+<span class="kn">from</span> <span class="nn">cvxpy.reductions.utilities</span> <span class="kn">import</span> <span class="p">(</span><span class="n">ReducedMat</span><span class="p">,</span> <span class="n">are_args_affine</span><span class="p">,</span>
+                                        <span class="n">group_constraints</span><span class="p">,</span> <span class="n">lower_equality</span><span class="p">,</span>
+                                        <span class="n">lower_ineq_to_nonneg</span><span class="p">,</span> <span class="n">nonpos2nonneg</span><span class="p">,)</span>
 <span class="kn">from</span> <span class="nn">cvxpy.utilities.coeff_extractor</span> <span class="kn">import</span> <span class="n">CoeffExtractor</span>
 
 
@@ -142,7 +143,7 @@
 <div class="viewcode-block" id="ParamConeProg"><a class="viewcode-back" href="../../../../api_reference/cvxpy.reductions.dcp2cone.html#cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ParamConeProg">[docs]</a><span class="k">class</span> <span class="nc">ParamConeProg</span><span class="p">(</span><span class="n">ParamProb</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Represents a parameterized cone program</span>
 
-<span class="sd">    minimize   c&#39;x  + d</span>
+<span class="sd">    minimize   c&#39;x  + d + [(1/2)x&#39;Px]</span>
 <span class="sd">    subject to cone_constr1(A_1*x + b_1, ...)</span>
 <span class="sd">               ...</span>
 <span class="sd">               cone_constrK(A_i*x + b_i, ...)</span>
@@ -156,17 +157,20 @@
                  <span class="n">constraints</span><span class="p">,</span>
                  <span class="n">parameters</span><span class="p">,</span>
                  <span class="n">param_id_to_col</span><span class="p">,</span>
+                 <span class="n">P</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                  <span class="n">formatted</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="c1"># The problem data tensors; c is for the constraint, and A for</span>
         <span class="c1"># the problem data matrix</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">c</span> <span class="o">=</span> <span class="n">c</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">A</span> <span class="o">=</span> <span class="n">A</span>
-
+        <span class="bp">self</span><span class="o">.</span><span class="n">P</span> <span class="o">=</span> <span class="n">P</span>
         <span class="c1"># The variable</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">x</span> <span class="o">=</span> <span class="n">x</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">reduced_A</span> <span class="o">=</span> <span class="kc">None</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">problem_data_tensor</span> <span class="o">=</span> <span class="kc">None</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_A_mapping_nonzero</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="c1"># Form a reduced representation of A and P, for faster application</span>
+        <span class="c1"># of parameters.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">reduced_A</span> <span class="o">=</span> <span class="n">ReducedMat</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">A</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">x</span><span class="o">.</span><span class="n">size</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">reduced_P</span> <span class="o">=</span> <span class="n">ReducedMat</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">P</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">x</span><span class="o">.</span><span class="n">size</span><span class="p">,</span> <span class="n">quad_form</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">constraints</span> <span class="o">=</span> <span class="n">constraints</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">constr_size</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">([</span><span class="n">c</span><span class="o">.</span><span class="n">size</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">constraints</span><span class="p">])</span>
@@ -192,28 +196,18 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">x</span><span class="o">.</span><span class="n">attributes</span><span class="p">[</span><span class="s1">&#39;integer&#39;</span><span class="p">]</span></div>
 
 <div class="viewcode-block" id="ParamConeProg.apply_parameters"><a class="viewcode-back" href="../../../../api_reference/cvxpy.reductions.dcp2cone.html#cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ParamConeProg.apply_parameters">[docs]</a>    <span class="k">def</span> <span class="nf">apply_parameters</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">id_to_param_value</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">zero_offset</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
-                         <span class="n">keep_zeros</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
+                         <span class="n">keep_zeros</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">quad_obj</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns A, b after applying parameters (and reshaping).</span>
 
 <span class="sd">        Args:</span>
-<span class="sd">          id_to_param_value: (optional) dict mapping parameter ids to values</span>
+<span class="sd">          id_to_param_value: (optional) dict mapping parameter ids to values.</span>
 <span class="sd">          zero_offset: (optional) if True, zero out the constant offset in the</span>
-<span class="sd">                       parameter vector</span>
+<span class="sd">                       parameter vector.</span>
 <span class="sd">          keep_zeros: (optional) if True, store explicit zeros in A where</span>
-<span class="sd">                        parameters are affected</span>
+<span class="sd">                        parameters are affected.</span>
+<span class="sd">          quad_obj: (optional) if True, include quadratic objective term.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">reduced_A</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="c1"># Form a reduced representation of A, for faster application of</span>
-            <span class="c1"># parameters.</span>
-            <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">prod</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">A</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
-                <span class="n">reduced_A</span><span class="p">,</span> <span class="n">indices</span><span class="p">,</span> <span class="n">indptr</span><span class="p">,</span> <span class="n">shape</span> <span class="o">=</span> <span class="p">(</span>
-                    <span class="n">canonInterface</span><span class="o">.</span><span class="n">reduce_problem_data_tensor</span><span class="p">(</span>
-                        <span class="bp">self</span><span class="o">.</span><span class="n">A</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">x</span><span class="o">.</span><span class="n">size</span><span class="p">))</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">reduced_A</span> <span class="o">=</span> <span class="n">reduced_A</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">problem_data_index</span> <span class="o">=</span> <span class="p">(</span><span class="n">indices</span><span class="p">,</span> <span class="n">indptr</span><span class="p">,</span> <span class="n">shape</span><span class="p">)</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">reduced_A</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">A</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">problem_data_index</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">reduced_A</span><span class="o">.</span><span class="n">cache</span><span class="p">(</span><span class="n">keep_zeros</span><span class="p">)</span>
 
         <span class="k">def</span> <span class="nf">param_value</span><span class="p">(</span><span class="n">idx</span><span class="p">):</span>
             <span class="k">return</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">id_to_param</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span><span class="o">.</span><span class="n">value</span><span class="p">)</span> <span class="k">if</span> <span class="n">id_to_param_value</span>
@@ -228,14 +222,13 @@
         <span class="n">c</span><span class="p">,</span> <span class="n">d</span> <span class="o">=</span> <span class="n">canonInterface</span><span class="o">.</span><span class="n">get_matrix_from_tensor</span><span class="p">(</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">c</span><span class="p">,</span> <span class="n">param_vec</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">x</span><span class="o">.</span><span class="n">size</span><span class="p">,</span> <span class="n">with_offset</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
         <span class="n">c</span> <span class="o">=</span> <span class="n">c</span><span class="o">.</span><span class="n">toarray</span><span class="p">()</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
-        <span class="k">if</span> <span class="n">keep_zeros</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">_A_mapping_nonzero</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_A_mapping_nonzero</span> <span class="o">=</span> <span class="n">canonInterface</span><span class="o">.</span><span class="n">A_mapping_nonzero_rows</span><span class="p">(</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">A</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">x</span><span class="o">.</span><span class="n">size</span><span class="p">)</span>
-        <span class="n">A</span><span class="p">,</span> <span class="n">b</span> <span class="o">=</span> <span class="n">canonInterface</span><span class="o">.</span><span class="n">get_matrix_from_tensor</span><span class="p">(</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">reduced_A</span><span class="p">,</span> <span class="n">param_vec</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">x</span><span class="o">.</span><span class="n">size</span><span class="p">,</span>
-            <span class="n">nonzero_rows</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_A_mapping_nonzero</span><span class="p">,</span> <span class="n">with_offset</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-            <span class="n">problem_data_index</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">problem_data_index</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">c</span><span class="p">,</span> <span class="n">d</span><span class="p">,</span> <span class="n">A</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">atleast_1d</span><span class="p">(</span><span class="n">b</span><span class="p">)</span></div>
+        <span class="n">A</span><span class="p">,</span> <span class="n">b</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">reduced_A</span><span class="o">.</span><span class="n">get_matrix_from_tensor</span><span class="p">(</span><span class="n">param_vec</span><span class="p">,</span> <span class="n">with_offset</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">quad_obj</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">reduced_P</span><span class="o">.</span><span class="n">cache</span><span class="p">(</span><span class="n">keep_zeros</span><span class="p">)</span>
+            <span class="n">P</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">reduced_P</span><span class="o">.</span><span class="n">get_matrix_from_tensor</span><span class="p">(</span><span class="n">param_vec</span><span class="p">,</span> <span class="n">with_offset</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">P</span><span class="p">,</span> <span class="n">c</span><span class="p">,</span> <span class="n">d</span><span class="p">,</span> <span class="n">A</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">atleast_1d</span><span class="p">(</span><span class="n">b</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">c</span><span class="p">,</span> <span class="n">d</span><span class="p">,</span> <span class="n">A</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">atleast_1d</span><span class="p">(</span><span class="n">b</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="ParamConeProg.apply_param_jac"><a class="viewcode-back" href="../../../../api_reference/cvxpy.reductions.dcp2cone.html#cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ParamConeProg.apply_param_jac">[docs]</a>    <span class="k">def</span> <span class="nf">apply_param_jac</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">delc</span><span class="p">,</span> <span class="n">delA</span><span class="p">,</span> <span class="n">delb</span><span class="p">,</span> <span class="n">active_params</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Multiplies by Jacobian of parameter mapping.</span>
@@ -245,6 +238,9 @@
 <span class="sd">        Returns:</span>
 <span class="sd">            A dictionary param.id -&gt; dparam</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">P</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Can&#39;t apply Jacobian with a quadratic objective.&quot;</span><span class="p">)</span>
+
         <span class="k">if</span> <span class="n">active_params</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">active_params</span> <span class="o">=</span> <span class="p">{</span><span class="n">p</span><span class="o">.</span><span class="n">id</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="p">}</span>
 
@@ -322,27 +318,41 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">CONSTRAINTS</span> <span class="o">=</span> <span class="s1">&#39;ordered_constraints&#39;</span>
 
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">quad_obj</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">canon_backend</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+        <span class="c1"># Assume a quadratic objective?</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">quad_obj</span> <span class="o">=</span> <span class="n">quad_obj</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">canon_backend</span> <span class="o">=</span> <span class="n">canon_backend</span>
+
 <div class="viewcode-block" id="ConeMatrixStuffing.accepts"><a class="viewcode-back" href="../../../../api_reference/cvxpy.reductions.dcp2cone.html#cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ConeMatrixStuffing.accepts">[docs]</a>    <span class="k">def</span> <span class="nf">accepts</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">problem</span><span class="p">):</span>
+        <span class="n">valid_obj_curv</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">quad_obj</span> <span class="ow">and</span> <span class="n">problem</span><span class="o">.</span><span class="n">objective</span><span class="o">.</span><span class="n">expr</span><span class="o">.</span><span class="n">is_quadratic</span><span class="p">())</span> <span class="ow">or</span> \
+            <span class="n">problem</span><span class="o">.</span><span class="n">objective</span><span class="o">.</span><span class="n">expr</span><span class="o">.</span><span class="n">is_affine</span><span class="p">()</span>
         <span class="k">return</span> <span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">problem</span><span class="o">.</span><span class="n">objective</span><span class="p">)</span> <span class="o">==</span> <span class="n">Minimize</span>
-                <span class="ow">and</span> <span class="n">problem</span><span class="o">.</span><span class="n">objective</span><span class="o">.</span><span class="n">expr</span><span class="o">.</span><span class="n">is_affine</span><span class="p">()</span>
+                <span class="ow">and</span> <span class="n">valid_obj_curv</span>
                 <span class="ow">and</span> <span class="ow">not</span> <span class="n">cvx_attr2constr</span><span class="o">.</span><span class="n">convex_attributes</span><span class="p">(</span><span class="n">problem</span><span class="o">.</span><span class="n">variables</span><span class="p">())</span>
                 <span class="ow">and</span> <span class="n">are_args_affine</span><span class="p">(</span><span class="n">problem</span><span class="o">.</span><span class="n">constraints</span><span class="p">)</span>
                 <span class="ow">and</span> <span class="n">problem</span><span class="o">.</span><span class="n">is_dpp</span><span class="p">())</span></div>
 
 <div class="viewcode-block" id="ConeMatrixStuffing.stuffed_objective"><a class="viewcode-back" href="../../../../api_reference/cvxpy.reductions.dcp2cone.html#cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ConeMatrixStuffing.stuffed_objective">[docs]</a>    <span class="k">def</span> <span class="nf">stuffed_objective</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">problem</span><span class="p">,</span> <span class="n">extractor</span><span class="p">):</span>
-        <span class="c1"># Extract to c.T * x + r; c is represented by a ma</span>
-        <span class="n">c</span> <span class="o">=</span> <span class="n">extractor</span><span class="o">.</span><span class="n">affine</span><span class="p">(</span><span class="n">problem</span><span class="o">.</span><span class="n">objective</span><span class="o">.</span><span class="n">expr</span><span class="p">)</span>
-
+        <span class="c1"># concatenate all variables in one vector</span>
         <span class="n">boolean</span><span class="p">,</span> <span class="n">integer</span> <span class="o">=</span> <span class="n">extract_mip_idx</span><span class="p">(</span><span class="n">problem</span><span class="o">.</span><span class="n">variables</span><span class="p">())</span>
         <span class="n">x</span> <span class="o">=</span> <span class="n">Variable</span><span class="p">(</span><span class="n">extractor</span><span class="o">.</span><span class="n">x_length</span><span class="p">,</span> <span class="n">boolean</span><span class="o">=</span><span class="n">boolean</span><span class="p">,</span> <span class="n">integer</span><span class="o">=</span><span class="n">integer</span><span class="p">)</span>
-
-        <span class="k">return</span> <span class="n">c</span><span class="p">,</span> <span class="n">x</span></div>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">quad_obj</span><span class="p">:</span>
+            <span class="c1"># extract to 0.5 * x.T * P * x + q.T * x + r</span>
+            <span class="n">expr</span> <span class="o">=</span> <span class="n">problem</span><span class="o">.</span><span class="n">objective</span><span class="o">.</span><span class="n">expr</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+            <span class="n">params_to_P</span><span class="p">,</span> <span class="n">params_to_c</span> <span class="o">=</span> <span class="n">extractor</span><span class="o">.</span><span class="n">quad_form</span><span class="p">(</span><span class="n">expr</span><span class="p">)</span>
+            <span class="c1"># Handle 0.5 factor.</span>
+            <span class="n">params_to_P</span> <span class="o">=</span> <span class="mi">2</span><span class="o">*</span><span class="n">params_to_P</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># Extract to c.T * x + r; c is represented by a ma</span>
+            <span class="n">params_to_c</span> <span class="o">=</span> <span class="n">extractor</span><span class="o">.</span><span class="n">affine</span><span class="p">(</span><span class="n">problem</span><span class="o">.</span><span class="n">objective</span><span class="o">.</span><span class="n">expr</span><span class="p">)</span>
+            <span class="n">params_to_P</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">return</span> <span class="n">params_to_P</span><span class="p">,</span> <span class="n">params_to_c</span><span class="p">,</span> <span class="n">x</span></div>
 
 <div class="viewcode-block" id="ConeMatrixStuffing.apply"><a class="viewcode-back" href="../../../../api_reference/cvxpy.reductions.dcp2cone.html#cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ConeMatrixStuffing.apply">[docs]</a>    <span class="k">def</span> <span class="nf">apply</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">problem</span><span class="p">):</span>
         <span class="n">inverse_data</span> <span class="o">=</span> <span class="n">InverseData</span><span class="p">(</span><span class="n">problem</span><span class="p">)</span>
         <span class="c1"># Form the constraints</span>
-        <span class="n">extractor</span> <span class="o">=</span> <span class="n">CoeffExtractor</span><span class="p">(</span><span class="n">inverse_data</span><span class="p">)</span>
-        <span class="n">params_to_objective</span><span class="p">,</span> <span class="n">flattened_variable</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">stuffed_objective</span><span class="p">(</span>
+        <span class="n">extractor</span> <span class="o">=</span> <span class="n">CoeffExtractor</span><span class="p">(</span><span class="n">inverse_data</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">canon_backend</span><span class="p">)</span>
+        <span class="n">params_to_P</span><span class="p">,</span> <span class="n">params_to_c</span><span class="p">,</span> <span class="n">flattened_variable</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">stuffed_objective</span><span class="p">(</span>
             <span class="n">problem</span><span class="p">,</span> <span class="n">extractor</span><span class="p">)</span>
         <span class="c1"># Lower equality and inequality to Zero and NonNeg.</span>
         <span class="n">cons</span> <span class="o">=</span> <span class="p">[]</span>
@@ -378,14 +388,15 @@
         <span class="n">params_to_problem_data</span> <span class="o">=</span> <span class="n">extractor</span><span class="o">.</span><span class="n">affine</span><span class="p">(</span><span class="n">expr_list</span><span class="p">)</span>
 
         <span class="n">inverse_data</span><span class="o">.</span><span class="n">minimize</span> <span class="o">=</span> <span class="nb">type</span><span class="p">(</span><span class="n">problem</span><span class="o">.</span><span class="n">objective</span><span class="p">)</span> <span class="o">==</span> <span class="n">Minimize</span>
-        <span class="n">new_prob</span> <span class="o">=</span> <span class="n">ParamConeProg</span><span class="p">(</span><span class="n">params_to_objective</span><span class="p">,</span>
+        <span class="n">new_prob</span> <span class="o">=</span> <span class="n">ParamConeProg</span><span class="p">(</span><span class="n">params_to_c</span><span class="p">,</span>
                                  <span class="n">flattened_variable</span><span class="p">,</span>
                                  <span class="n">params_to_problem_data</span><span class="p">,</span>
                                  <span class="n">problem</span><span class="o">.</span><span class="n">variables</span><span class="p">(),</span>
                                  <span class="n">inverse_data</span><span class="o">.</span><span class="n">var_offsets</span><span class="p">,</span>
                                  <span class="n">ordered_cons</span><span class="p">,</span>
                                  <span class="n">problem</span><span class="o">.</span><span class="n">parameters</span><span class="p">(),</span>
-                                 <span class="n">inverse_data</span><span class="o">.</span><span class="n">param_id_map</span><span class="p">)</span>
+                                 <span class="n">inverse_data</span><span class="o">.</span><span class="n">param_id_map</span><span class="p">,</span>
+                                 <span class="n">P</span><span class="o">=</span><span class="n">params_to_P</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">new_prob</span><span class="p">,</span> <span class="n">inverse_data</span></div>
 
 <div class="viewcode-block" id="ConeMatrixStuffing.invert"><a class="viewcode-back" href="../../../../api_reference/cvxpy.reductions.dcp2cone.html#cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ConeMatrixStuffing.invert">[docs]</a>    <span class="k">def</span> <span class="nf">invert</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">solution</span><span class="p">,</span> <span class="n">inverse_data</span><span class="p">):</span>

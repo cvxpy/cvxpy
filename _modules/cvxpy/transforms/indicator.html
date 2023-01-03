@@ -5,7 +5,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>cvxpy.transforms.indicator &#8212; CVXPY 1.2 documentation</title>
+    <title>cvxpy.transforms.indicator &#8212; CVXPY 1.3 documentation</title>
     <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../../../_static/cvxpy_alabaster.css" />
     <script integrity="sha384-vtXRMe3mGCbOeY7l30aIg8H9p3GdeSe4IFlP6G8JMa7o7lXvnz3GFKzPxzJdPfGK" src="../../../_static/jquery.js"></script>
@@ -146,7 +146,7 @@
 <span class="sd">        Returns:</span>
 <span class="sd">            A numpy matrix or a scalar.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="nb">all</span><span class="p">(</span><span class="n">cons</span><span class="o">.</span><span class="n">value</span><span class="p">()</span> <span class="k">for</span> <span class="n">cons</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">all</span><span class="p">(</span><span class="n">cons</span><span class="o">.</span><span class="n">value</span><span class="p">(</span><span class="n">tolerance</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">err_tol</span><span class="p">)</span> <span class="k">for</span> <span class="n">cons</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">):</span>
             <span class="k">return</span> <span class="mf">0.0</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">infty</span>

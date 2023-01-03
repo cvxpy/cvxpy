@@ -5,7 +5,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>cvxpy.expressions.variable &#8212; CVXPY 1.2 documentation</title>
+    <title>cvxpy.expressions.variable &#8212; CVXPY 1.3 documentation</title>
     <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../../../_static/cvxpy_alabaster.css" />
     <script integrity="sha384-vtXRMe3mGCbOeY7l30aIg8H9p3GdeSe4IFlP6G8JMa7o7lXvnz3GFKzPxzJdPfGK" src="../../../_static/jquery.js"></script>
@@ -47,10 +47,9 @@
 <span class="sd">See the License for the specific language governing permissions and</span>
 <span class="sd">limitations under the License.</span>
 <span class="sd">&quot;&quot;&quot;</span>
-
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">annotations</span>
 
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Iterable</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Iterable</span>
 
 <span class="kn">import</span> <span class="nn">scipy.sparse</span> <span class="k">as</span> <span class="nn">sp</span>
 
@@ -59,7 +58,7 @@
 <span class="kn">from</span> <span class="nn">cvxpy.expressions.leaf</span> <span class="kn">import</span> <span class="n">Leaf</span>
 
 
-<span class="k">def</span> <span class="nf">upper_tri_to_full</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">upper_tri_to_full</span><span class="p">(</span><span class="n">n</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">sp</span><span class="o">.</span><span class="n">csc_matrix</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Returns a coefficient matrix to create a symmetric matrix.</span>
 
 <span class="sd">    Parameters</span>
@@ -116,7 +115,7 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Variable name </span><span class="si">%s</span><span class="s2"> must be a string.&quot;</span> <span class="o">%</span> <span class="n">name</span><span class="p">)</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">_variable_with_attributes</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="s2">&quot;Variable&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_variable_with_attributes</span><span class="p">:</span> <span class="n">Variable</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_value</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">delta</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">gradient</span> <span class="o">=</span> <span class="kc">None</span>
@@ -130,7 +129,7 @@
         <span class="k">return</span> <span class="kc">False</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">grad</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">grad</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="n">Variable</span><span class="p">,</span> <span class="n">sp</span><span class="o">.</span><span class="n">csc_matrix</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Gives the (sub/super)gradient of the expression w.r.t. each variable.</span>
 
 <span class="sd">        Matrix expressions are vectorized, so the gradient is a matrix.</span>
@@ -141,7 +140,7 @@
         <span class="c1"># TODO(akshayka): Do not assume shape is 2D.</span>
         <span class="k">return</span> <span class="p">{</span><span class="bp">self</span><span class="p">:</span> <span class="n">sp</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">size</span><span class="p">)</span><span class="o">.</span><span class="n">tocsc</span><span class="p">()}</span>
 
-    <span class="k">def</span> <span class="nf">variables</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="s2">&quot;Variable&quot;</span><span class="p">]:</span>
+    <span class="k">def</span> <span class="nf">variables</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">Variable</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns itself as a variable.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="p">[</span><span class="bp">self</span><span class="p">]</span>
@@ -160,11 +159,11 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_variable_with_attributes</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
 
-    <span class="k">def</span> <span class="nf">set_variable_of_provenance</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">variable</span><span class="p">:</span> <span class="s2">&quot;Variable&quot;</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">set_variable_of_provenance</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">variable</span><span class="p">:</span> <span class="n">Variable</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">assert</span> <span class="n">variable</span><span class="o">.</span><span class="n">attributes</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_variable_with_attributes</span> <span class="o">=</span> <span class="n">variable</span>
 
-    <span class="k">def</span> <span class="nf">variable_of_provenance</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">variable_of_provenance</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Variable</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns a variable with attributes from which this variable was generated.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_variable_with_attributes</span>
 

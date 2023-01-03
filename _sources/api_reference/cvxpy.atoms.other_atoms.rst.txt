@@ -21,6 +21,14 @@ diff_pos
 
 .. _eye-minus-inv:
 
+.. _dotsort:
+
+dotsort
+---------------------------------
+
+.. autoclass:: cvxpy.atoms.dotsort.dotsort
+    :show-inheritance:
+
 eye_minus_inv
 --------------
 
@@ -178,6 +186,14 @@ one_minus_pos
 .. autoclass:: cvxpy.atoms.one_minus_pos
     :show-inheritance:
 
+.. _perspective:
+
+perspective
+------------------------------
+
+.. autoclass:: cvxpy.atoms.perspective.perspective
+    :show-inheritance:
+
 .. _pf-eigenvalue:
 
 pf_eigenvalue
@@ -267,9 +283,24 @@ SuppFuncAtom
 
 .. autoclass:: cvxpy.atoms.suppfunc.SuppFuncAtom
 
+.. _tr_inv:
+
+tr_inv
+-------------------------------------
+
+.. autofunction:: cvxpy.atoms.tr_inv.tr_inv
+
 .. _tv:
 
 tv
 -------------------------------------
 
 .. autofunction:: cvxpy.atoms.total_variation.tv
+
+.. _von-neumann-entr:
+
+von_neumann_entr
+--------------------------------------
+
+.. autoclass:: cvxpy.von_neumann_entr
+    :show-inheritance:

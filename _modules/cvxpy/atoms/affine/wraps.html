@@ -5,7 +5,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>cvxpy.atoms.affine.wraps &#8212; CVXPY 1.2 documentation</title>
+    <title>cvxpy.atoms.affine.wraps &#8212; CVXPY 1.3 documentation</title>
     <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../../../../_static/cvxpy_alabaster.css" />
     <script integrity="sha384-vtXRMe3mGCbOeY7l30aIg8H9p3GdeSe4IFlP6G8JMa7o7lXvnz3GFKzPxzJdPfGK" src="../../../../_static/jquery.js"></script>
@@ -33,7 +33,7 @@
             
   <h1>Source code for cvxpy.atoms.affine.wraps</h1><div class="highlight"><pre>
 <span></span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">Copyright 2013 Steven Diamond</span>
+<span class="sd">Copyright 2013 Steven Diamond, 2022 the CVXPY authors.</span>
 
 <span class="sd">Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);</span>
 <span class="sd">you may not use this file except in compliance with the License.</span>
@@ -99,8 +99,16 @@
 
 
 <div class="viewcode-block" id="psd_wrap"><a class="viewcode-back" href="../../../../api_reference/cvxpy.atoms.affine.html#cvxpy.atoms.affine.wraps.psd_wrap">[docs]</a><span class="k">class</span> <span class="nc">psd_wrap</span><span class="p">(</span><span class="n">Wrap</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Asserts argument is PSD.</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Asserts that a square matrix is PSD.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">validate_arguments</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">arg</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">ndim_test</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">arg</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">ndim_test</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;The input must be a square matrix.&quot;</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">arg</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">!=</span> <span class="n">arg</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;The input must be a square matrix.&quot;</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">is_psd</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
         <span class="k">return</span> <span class="kc">True</span>
@@ -110,6 +118,57 @@
 
     <span class="k">def</span> <span class="nf">is_hermitian</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
         <span class="k">return</span> <span class="kc">True</span></div>
+
+
+<span class="k">class</span> <span class="nc">symmetric_wrap</span><span class="p">(</span><span class="n">Wrap</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Asserts that a real square matrix is symmetric</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">validate_arguments</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">validate_real_square</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+
+    <span class="k">def</span> <span class="nf">is_symmetric</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">True</span>
+
+    <span class="k">def</span> <span class="nf">is_hermitian</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">True</span>
+
+
+<span class="k">class</span> <span class="nc">hermitian_wrap</span><span class="p">(</span><span class="n">Wrap</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Asserts that a square matrix is Hermitian.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">validate_arguments</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">arg</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">ndim_test</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">arg</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">ndim_test</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;The input must be a square matrix.&quot;</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">arg</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">!=</span> <span class="n">arg</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;The input must be a square matrix.&quot;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">is_hermitian</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">True</span>
+
+
+<span class="k">class</span> <span class="nc">skew_symmetric_wrap</span><span class="p">(</span><span class="n">Wrap</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Asserts that X is a real square matrix, satisfying X + X.T == 0.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">validate_arguments</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">validate_real_square</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+
+    <span class="k">def</span> <span class="nf">is_skew_symmetric</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">True</span>
+
+
+<span class="k">def</span> <span class="nf">validate_real_square</span><span class="p">(</span><span class="n">arg</span><span class="p">):</span>
+    <span class="n">ndim_test</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">arg</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">ndim_test</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;The input must be a square matrix.&quot;</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">arg</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">!=</span> <span class="n">arg</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;The input must be a square matrix.&quot;</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="ow">not</span> <span class="n">arg</span><span class="o">.</span><span class="n">is_real</span><span class="p">():</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;The input must be a real matrix.&quot;</span><span class="p">)</span>
 </pre></div>
 
           </div>
