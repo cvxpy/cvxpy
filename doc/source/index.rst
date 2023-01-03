@@ -100,12 +100,6 @@ complementary code generation approach. Following the introduction of semantic v
 since the CVXPY 1.3 release, everything that can be imported from the `cvxpy` namespace is
 considered to be part of the public API.
 
-In early 2022 we started moving CVXPY to semantic versioning. Starting with CVXPY v1.2.0, we will
-assign version numbers following the specification at `semver.org <https://semver.org/>`_.
-This will result in us incrementing CVXPY's minor version number (the "x" in "CVXPY 1.x.y")
-much more often than before. Moving forward we will also make it a priority to differentiate
-between what is and is-not part of CVXPY's public API.
-
 
 .. _OSQP: https://osqp.org/
 .. _ECOS: http://github.com/ifa-ethz/ecos
