@@ -1,0 +1,242 @@
+
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
+
+    <title>Object Oriented Convex Optimization &#8212; CVXPY 1.3 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/cvxpy_alabaster.css" />
+    <script integrity="sha384-vtXRMe3mGCbOeY7l30aIg8H9p3GdeSe4IFlP6G8JMa7o7lXvnz3GFKzPxzJdPfGK" src="../../_static/jquery.js"></script>
+    <script integrity="sha384-lSZeSIVKp9myfKbDQ3GkN/KHjUc+mzg17VKDN4Y2kUeBSJioB9QSM639vM9fuY//" src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
+    <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+    <script src="../../_static/doctools.js"></script>
+    <script src="../../_static/sphinx_highlight.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+   
+  <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="object-oriented-convex-optimization">
+<h1>Object Oriented Convex Optimization<a class="headerlink" href="#object-oriented-convex-optimization" title="Permalink to this heading">¶</a></h1>
+<p>CVXPY enables an object-oriented approach to constructing optimization
+problems. An object-oriented approach is simpler and more flexible than
+the traditional method of constructing problems by embedding information
+in matrices.</p>
+<p>Consider the max-flow problem with <code class="docutils literal notranslate"><span class="pre">N</span></code> nodes and <code class="docutils literal notranslate"><span class="pre">E</span></code> edges. We can
+define the problem explicitly by constructing an <code class="docutils literal notranslate"><span class="pre">N</span></code> by <code class="docutils literal notranslate"><span class="pre">E</span></code>
+incidence matrix <code class="docutils literal notranslate"><span class="pre">A</span></code>. <code class="docutils literal notranslate"><span class="pre">A[i,</span> <span class="pre">j]</span></code> is +1 if edge <code class="docutils literal notranslate"><span class="pre">j</span></code> enters node
+<code class="docutils literal notranslate"><span class="pre">i</span></code>, -1 if edge <code class="docutils literal notranslate"><span class="pre">j</span></code> leaves node <code class="docutils literal notranslate"><span class="pre">i</span></code>, and 0 otherwise. The source
+and sink are the last two edges. The problem becomes</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># A is the incidence matrix.</span>
+<span class="c1"># c is a vector of edge capacities.</span>
+<span class="n">flows</span> <span class="o">=</span> <span class="n">Variable</span><span class="p">(</span><span class="n">E</span><span class="o">-</span><span class="mi">2</span><span class="p">)</span>
+<span class="n">source</span> <span class="o">=</span> <span class="n">Variable</span><span class="p">()</span>
+<span class="n">sink</span> <span class="o">=</span> <span class="n">Variable</span><span class="p">()</span>
+<span class="n">p</span> <span class="o">=</span> <span class="n">Problem</span><span class="p">(</span><span class="n">Maximize</span><span class="p">(</span><span class="n">source</span><span class="p">),</span>
+              <span class="p">[</span><span class="n">A</span><span class="o">*</span><span class="n">hstack</span><span class="p">([</span><span class="n">flows</span><span class="p">,</span><span class="n">source</span><span class="p">,</span><span class="n">sink</span><span class="p">])</span> <span class="o">==</span> <span class="mi">0</span><span class="p">,</span>
+               <span class="mi">0</span> <span class="o">&lt;=</span> <span class="n">flows</span><span class="p">,</span>
+               <span class="n">flows</span> <span class="o">&lt;=</span> <span class="n">c</span><span class="p">])</span>
+</pre></div>
+</div>
+<p>The more natural way to frame the max-flow problem is not in terms of
+incidence matrices, however, but in terms of the properties of edges and
+nodes. We can write an <code class="docutils literal notranslate"><span class="pre">Edge</span></code> class to capture these properties.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">Edge</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; An undirected, capacity limited edge. &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">capacity</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">capacity</span> <span class="o">=</span> <span class="n">capacity</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">flow</span> <span class="o">=</span> <span class="n">Variable</span><span class="p">()</span>
+
+    <span class="c1"># Connects two nodes via the edge.</span>
+    <span class="k">def</span> <span class="nf">connect</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">in_node</span><span class="p">,</span> <span class="n">out_node</span><span class="p">):</span>
+        <span class="n">in_node</span><span class="o">.</span><span class="n">edge_flows</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">flow</span><span class="p">)</span>
+        <span class="n">out_node</span><span class="o">.</span><span class="n">edge_flows</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">flow</span><span class="p">)</span>
+
+    <span class="c1"># Returns the edge&#39;s internal constraints.</span>
+    <span class="k">def</span> <span class="nf">constraints</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">[</span><span class="nb">abs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">flow</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">capacity</span><span class="p">]</span>
+</pre></div>
+</div>
+<p>The <code class="docutils literal notranslate"><span class="pre">Edge</span></code> class exposes the flow into and out of the edge. The
+capacity constraint is stored locally in the <code class="docutils literal notranslate"><span class="pre">Edge</span></code> object. The graph
+structure is also stored locally, by calling
+<code class="docutils literal notranslate"><span class="pre">edge.connect(node1,</span> <span class="pre">node2)</span></code> for each edge.</p>
+<p>We also define a <code class="docutils literal notranslate"><span class="pre">Node</span></code> class:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">Node</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; A node with accumulation. &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">accumulation</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">accumulation</span> <span class="o">=</span> <span class="n">accumulation</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">edge_flows</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="c1"># Returns the node&#39;s internal constraints.</span>
+    <span class="k">def</span> <span class="nf">constraints</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">[</span><span class="nb">sum</span><span class="p">(</span><span class="n">f</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">edge_flows</span><span class="p">)</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">accumulation</span><span class="p">]</span>
+</pre></div>
+</div>
+<p>Nodes have a target amount of flow to accumulate. Sources and sinks are
+Nodes with a variable as their accumulation target.</p>
+<p>Suppose <code class="docutils literal notranslate"><span class="pre">nodes</span></code> is a list of all the nodes, <code class="docutils literal notranslate"><span class="pre">edges</span></code> is a list of all
+the edges, and <code class="docutils literal notranslate"><span class="pre">sink</span></code> is the sink node. The problem becomes:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">constraints</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="k">for</span> <span class="n">obj</span> <span class="ow">in</span> <span class="n">nodes</span> <span class="o">+</span> <span class="n">edges</span><span class="p">:</span>
+    <span class="n">constraints</span> <span class="o">+=</span> <span class="n">obj</span><span class="o">.</span><span class="n">constraints</span><span class="p">()</span>
+<span class="n">prob</span> <span class="o">=</span> <span class="n">Problem</span><span class="p">(</span><span class="n">Maximize</span><span class="p">(</span><span class="n">sink</span><span class="o">.</span><span class="n">accumulation</span><span class="p">),</span> <span class="n">constraints</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Note that the problem has been reframed from maximizing the flow along
+the source edge to maximizing the accumulation at the sink node. We
+could easily extend the <code class="docutils literal notranslate"><span class="pre">Edge</span></code> and <code class="docutils literal notranslate"><span class="pre">Node</span></code> class to model an
+electrical grid. Sink nodes would be consumers. Source nodes would be
+power stations, which generate electricity at a cost. A node could be
+both a source and a sink, which would represent energy storage
+facilities or a consumer who contributes to the grid. We could add
+energy loss along edges to more accurately model transmission lines. The
+entire grid construct could be embedded in a time series model.</p>
+<p>To see the object-oriented approach applied to more complex flow
+problems, look in the <code class="docutils literal notranslate"><span class="pre">cvxpy/examples/flows/</span></code> directory.</p>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../index.html">CVXPY</a></h1>
+
+
+
+
+
+
+<p>
+<iframe src="https://ghbtns.com/github-btn.html?user=cvxpy&repo=cvxpy&type=star&count=true&size=large&v=2"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
+
+
+
+
+
+<h3>Navigation</h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../install/index.html">Install</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial/index.html">User Guide</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../index.html">Examples</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../api_reference/cvxpy.html">API Documentation</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../faq/index.html">FAQ</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../citing/index.html">Citing CVXPY</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../contributing/index.html">Contributing</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../related_projects/index.html">Related Projects</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../updates/index.html">Changes to CVXPY</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../short_course/index.html">CVXPY Short Course</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../license/index.html">License</a></li>
+</ul>
+
+
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script><div>
+    <h3>
+        Version selector
+    </h3>
+    <select id="dynamic_selector" name="versions" onchange="if (this.value) window.location.href=this.value">
+    </select>
+    <script>
+        obj = $.getJSON("https://raw.githubusercontent.com/cvxpy/cvxpy/gh-pages/versions.json")
+            .done(function (data) {
+                const base_url = "https://www.cvxpy.org/"
+                let html = "<option value='' selected>Choose version here</option>";
+                html += "<option value=" + base_url + ">latest" + ""
+                for (let i = 0; i < data.length; i++) {
+                    html += "<option value=" + base_url + "version/"  + data[i] + ">" + data[i] + ""
+                }
+                document.getElementById("dynamic_selector").innerHTML = html;
+            });
+    </script>
+</div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;The CVXPY authors.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 6.0.0</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="../../_sources/examples/applications/OOCO.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+    <a href="https://github.com/cvxpy/cvxpy" class="github">
+        <img style="position: absolute; top: 0; right: 0; border: 0;" src="https://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png" alt="Fork me on GitHub"  class="github"/>
+    </a>
+    
+
+    
+    <script type="text/javascript">
+
+      var _gaq = _gaq || [];
+      _gaq.push(['_setAccount', 'UA-50248335-1']);
+      _gaq.push(['_setDomainName', 'none']);
+      _gaq.push(['_setAllowLinker', true]);
+      _gaq.push(['_trackPageview']);
+
+      (function() {
+        var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+        ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+      })();
+
+    </script>
+    
+  </body>
+</html>

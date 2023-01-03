@@ -1,0 +1,730 @@
+
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
+
+    <title>Reductions &#8212; CVXPY 1.3 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/cvxpy_alabaster.css" />
+    <script integrity="sha384-vtXRMe3mGCbOeY7l30aIg8H9p3GdeSe4IFlP6G8JMa7o7lXvnz3GFKzPxzJdPfGK" src="../_static/jquery.js"></script>
+    <script integrity="sha384-lSZeSIVKp9myfKbDQ3GkN/KHjUc+mzg17VKDN4Y2kUeBSJioB9QSM639vM9fuY//" src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
+    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/sphinx_highlight.js"></script>
+    <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Middle-End Reductions" href="cvxpy.reductions.middle_end.html" />
+    <link rel="prev" title="Transforms" href="cvxpy.transforms.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="reductions">
+<span id="reductions-api"></span><h1>Reductions<a class="headerlink" href="#reductions" title="Permalink to this heading">¶</a></h1>
+<p>A <a class="reference internal" href="#cvxpy.reductions.reduction.Reduction" title="cvxpy.reductions.reduction.Reduction"><code class="xref py py-class docutils literal notranslate"><span class="pre">Reduction</span></code></a> is a transformation
+from one problem to an equivalent problem. Two problems are equivalent
+if a solution of one can be converted to a solution of the other with no
+more than a moderate amount of effort. CVXPY uses reductions to rewrite
+problems into forms that solvers will accept.</p>
+<section id="disclaimer">
+<span id="reductions-disclaimer"></span><h2>Disclaimer<a class="headerlink" href="#disclaimer" title="Permalink to this heading">¶</a></h2>
+<p>The majority of users do not need to know anything about CVXPY’s reduction system.
+Indeed, most users need not even know that reductions exist!</p>
+<p>In order to make sure that we have flexibility to improve CVXPY’s speed
+and capabilities while preserving backwards-compatibility, we have
+determined that the reduction system will not be considered part of CVXPY’s
+public API. As such, aspects of this system can change without notice in future releases.</p>
+<p>We provide this documentation for CVXPY contributors, for the curious, and for
+those who are okay with building on an API that may not be available in future
+versions of CVXPY.
+Please contact us if you have an interesting application which requires direct
+access to the Reduction system and if you care about forward compatibility with
+future versions of CVXPY.</p>
+</section>
+<section id="types-of-reductions">
+<h2>Types of Reductions<a class="headerlink" href="#types-of-reductions" title="Permalink to this heading">¶</a></h2>
+<p>Reductions allow CVXPY to support different problem classes such as convex
+and log-log convex programming. They also help CVXPY target different categories
+of solvers, such as quadratic programming solvers and conic solvers.</p>
+<p>Appropriating terminology from software compilers, we classify reductions as
+either middle-end reductions or back-end reductions. A reduction that simplifies
+a source problem without regard to the targeted solver is called a
+<a class="reference internal" href="cvxpy.reductions.middle_end.html"><span class="doc">middle-end reduction</span></a>, whereas a reduction
+that takes a source problem and converts it to a form acceptable to a category
+of solvers is called a <a class="reference internal" href="cvxpy.reductions.back_end.html"><span class="doc">back-end reduction</span></a>.
+Each solver (along with the mode in which it is invoked) is called a <em>back-end</em>
+or <em>target</em>.</p>
+<p>Here’s a breakdown of CVXPY’s reductions:</p>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="cvxpy.reductions.middle_end.html">Middle-End</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="cvxpy.reductions.middle_end.html#complex2real">Complex2Real</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="cvxpy.reductions.middle_end.html#cvxpy.reductions.complex2real.complex2real.Complex2Real"><code class="docutils literal notranslate"><span class="pre">Complex2Real</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="cvxpy.reductions.middle_end.html#cvxpy.reductions.complex2real.complex2real.Complex2Real.accepts"><code class="docutils literal notranslate"><span class="pre">Complex2Real.accepts()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="cvxpy.reductions.middle_end.html#cvxpy.reductions.complex2real.complex2real.Complex2Real.apply"><code class="docutils literal notranslate"><span class="pre">Complex2Real.apply()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="cvxpy.reductions.middle_end.html#cvxpy.reductions.complex2real.complex2real.Complex2Real.invert"><code class="docutils literal notranslate"><span class="pre">Complex2Real.invert()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="cvxpy.reductions.middle_end.html#cvxattr2constr">CvxAttr2Constr</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="cvxpy.reductions.middle_end.html#cvxpy.reductions.cvx_attr2constr.CvxAttr2Constr"><code class="docutils literal notranslate"><span class="pre">CvxAttr2Constr</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="cvxpy.reductions.middle_end.html#cvxpy.reductions.cvx_attr2constr.CvxAttr2Constr.accepts"><code class="docutils literal notranslate"><span class="pre">CvxAttr2Constr.accepts()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="cvxpy.reductions.middle_end.html#cvxpy.reductions.cvx_attr2constr.CvxAttr2Constr.apply"><code class="docutils literal notranslate"><span class="pre">CvxAttr2Constr.apply()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="cvxpy.reductions.middle_end.html#cvxpy.reductions.cvx_attr2constr.CvxAttr2Constr.invert"><code class="docutils literal notranslate"><span class="pre">CvxAttr2Constr.invert()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="cvxpy.reductions.middle_end.html#dgp2dcp">Dgp2Dcp</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="cvxpy.reductions.middle_end.html#cvxpy.reductions.dgp2dcp.dgp2dcp.Dgp2Dcp"><code class="docutils literal notranslate"><span class="pre">Dgp2Dcp</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="cvxpy.reductions.middle_end.html#cvxpy.reductions.dgp2dcp.dgp2dcp.Dgp2Dcp.accepts"><code class="docutils literal notranslate"><span class="pre">Dgp2Dcp.accepts()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="cvxpy.reductions.middle_end.html#cvxpy.reductions.dgp2dcp.dgp2dcp.Dgp2Dcp.apply"><code class="docutils literal notranslate"><span class="pre">Dgp2Dcp.apply()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="cvxpy.reductions.middle_end.html#cvxpy.reductions.dgp2dcp.dgp2dcp.Dgp2Dcp.canonicalize_expr"><code class="docutils literal notranslate"><span class="pre">Dgp2Dcp.canonicalize_expr()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="cvxpy.reductions.middle_end.html#cvxpy.reductions.dgp2dcp.dgp2dcp.Dgp2Dcp.invert"><code class="docutils literal notranslate"><span class="pre">Dgp2Dcp.invert()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="cvxpy.reductions.middle_end.html#evalparams">EvalParams</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="cvxpy.reductions.middle_end.html#cvxpy.reductions.eval_params.EvalParams"><code class="docutils literal notranslate"><span class="pre">EvalParams</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="cvxpy.reductions.middle_end.html#cvxpy.reductions.eval_params.EvalParams.accepts"><code class="docutils literal notranslate"><span class="pre">EvalParams.accepts()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="cvxpy.reductions.middle_end.html#cvxpy.reductions.eval_params.EvalParams.apply"><code class="docutils literal notranslate"><span class="pre">EvalParams.apply()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="cvxpy.reductions.middle_end.html#cvxpy.reductions.eval_params.EvalParams.invert"><code class="docutils literal notranslate"><span class="pre">EvalParams.invert()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="cvxpy.reductions.middle_end.html#flipobjective">FlipObjective</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="cvxpy.reductions.middle_end.html#cvxpy.reductions.flip_objective.FlipObjective"><code class="docutils literal notranslate"><span class="pre">FlipObjective</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="cvxpy.reductions.middle_end.html#cvxpy.reductions.flip_objective.FlipObjective.accepts"><code class="docutils literal notranslate"><span class="pre">FlipObjective.accepts()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="cvxpy.reductions.middle_end.html#cvxpy.reductions.flip_objective.FlipObjective.apply"><code class="docutils literal notranslate"><span class="pre">FlipObjective.apply()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="cvxpy.reductions.middle_end.html#cvxpy.reductions.flip_objective.FlipObjective.invert"><code class="docutils literal notranslate"><span class="pre">FlipObjective.invert()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="cvxpy.reductions.back_end.html">Back-End</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="cvxpy.reductions.back_end.html#dcp2cone">Dcp2Cone</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="cvxpy.reductions.back_end.html#cvxpy.reductions.dcp2cone.dcp2cone.Dcp2Cone"><code class="docutils literal notranslate"><span class="pre">Dcp2Cone</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="cvxpy.reductions.back_end.html#cvxpy.reductions.dcp2cone.dcp2cone.Dcp2Cone.accepts"><code class="docutils literal notranslate"><span class="pre">Dcp2Cone.accepts()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="cvxpy.reductions.back_end.html#cvxpy.reductions.dcp2cone.dcp2cone.Dcp2Cone.apply"><code class="docutils literal notranslate"><span class="pre">Dcp2Cone.apply()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="cvxpy.reductions.back_end.html#cvxpy.reductions.dcp2cone.dcp2cone.Dcp2Cone.canonicalize_expr"><code class="docutils literal notranslate"><span class="pre">Dcp2Cone.canonicalize_expr()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="cvxpy.reductions.back_end.html#cvxpy.reductions.dcp2cone.dcp2cone.Dcp2Cone.canonicalize_tree"><code class="docutils literal notranslate"><span class="pre">Dcp2Cone.canonicalize_tree()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="cvxpy.reductions.back_end.html#qp2symbolicqp">Qp2SymbolicQp</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="cvxpy.reductions.back_end.html#cvxpy.reductions.qp2quad_form.qp2symbolic_qp.Qp2SymbolicQp"><code class="docutils literal notranslate"><span class="pre">Qp2SymbolicQp</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="cvxpy.reductions.back_end.html#cvxpy.reductions.qp2quad_form.qp2symbolic_qp.Qp2SymbolicQp.accepts"><code class="docutils literal notranslate"><span class="pre">Qp2SymbolicQp.accepts()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="cvxpy.reductions.back_end.html#cvxpy.reductions.qp2quad_form.qp2symbolic_qp.Qp2SymbolicQp.apply"><code class="docutils literal notranslate"><span class="pre">Qp2SymbolicQp.apply()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="cvxpy.reductions.back_end.html#dualize">Dualize</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="cvxpy.reductions.back_end.html#cvxpy.reductions.cone2cone.affine2direct.Dualize"><code class="docutils literal notranslate"><span class="pre">Dualize</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="cvxpy.reductions.back_end.html#cvxpy.reductions.cone2cone.affine2direct.Dualize.invert"><code class="docutils literal notranslate"><span class="pre">Dualize.invert()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="cvxpy.reductions.back_end.html#slacks">Slacks</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="cvxpy.reductions.back_end.html#cvxpy.reductions.cone2cone.affine2direct.Slacks"><code class="docutils literal notranslate"><span class="pre">Slacks</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="cvxpy.reductions.back_end.html#cvxpy.reductions.cone2cone.affine2direct.Slacks.apply"><code class="docutils literal notranslate"><span class="pre">Slacks.apply()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</div>
+</section>
+<section id="core-classes">
+<h2>Core classes<a class="headerlink" href="#core-classes" title="Permalink to this heading">¶</a></h2>
+<p>Reductions exchange data and operate by way of the following classes.
+Other data structures can be used, such as dicts keyed by strings, but
+these are the main classes which define the Reduction system.</p>
+<section id="solution">
+<h3>Solution<a class="headerlink" href="#solution" title="Permalink to this heading">¶</a></h3>
+<dl class="py class">
+<dt class="sig sig-object py" id="cvxpy.reductions.solution.Solution">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">cvxpy.reductions.solution.</span></span><span class="sig-name descname"><span class="pre">Solution</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">status</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">opt_val</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">primal_vars</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dual_vars</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">attr</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/reductions/solution.html#Solution"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.reductions.solution.Solution" title="Permalink to this definition">¶</a></dt>
+<dd><p>A solution to an optimization problem.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="cvxpy.reductions.solution.Solution.status">
+<span class="sig-name descname"><span class="pre">status</span></span><a class="headerlink" href="#cvxpy.reductions.solution.Solution.status" title="Permalink to this definition">¶</a></dt>
+<dd><p>The status code.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="cvxpy.reductions.solution.Solution.opt_val">
+<span class="sig-name descname"><span class="pre">opt_val</span></span><a class="headerlink" href="#cvxpy.reductions.solution.Solution.opt_val" title="Permalink to this definition">¶</a></dt>
+<dd><p>The optimal value.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="cvxpy.reductions.solution.Solution.primal_vars">
+<span class="sig-name descname"><span class="pre">primal_vars</span></span><a class="headerlink" href="#cvxpy.reductions.solution.Solution.primal_vars" title="Permalink to this definition">¶</a></dt>
+<dd><p>A map from variable ids to optimal values.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>dict of id to NumPy ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="cvxpy.reductions.solution.Solution.dual_vars">
+<span class="sig-name descname"><span class="pre">dual_vars</span></span><a class="headerlink" href="#cvxpy.reductions.solution.Solution.dual_vars" title="Permalink to this definition">¶</a></dt>
+<dd><p>A map from constraint ids to dual values.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>dict of id to NumPy ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="cvxpy.reductions.solution.Solution.attr">
+<span class="sig-name descname"><span class="pre">attr</span></span><a class="headerlink" href="#cvxpy.reductions.solution.Solution.attr" title="Permalink to this definition">¶</a></dt>
+<dd><p>Miscelleneous information propagated up from a solver.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="reduction">
+<h3>Reduction<a class="headerlink" href="#reduction" title="Permalink to this heading">¶</a></h3>
+<dl class="py class">
+<dt class="sig sig-object py" id="cvxpy.reductions.reduction.Reduction">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">cvxpy.reductions.reduction.</span></span><span class="sig-name descname"><span class="pre">Reduction</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">problem</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/reductions/reduction.html#Reduction"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.reductions.reduction.Reduction" title="Permalink to this definition">¶</a></dt>
+<dd><p>Abstract base class for reductions.</p>
+<p>A reduction is an actor that transforms a problem into an
+equivalent problem. By equivalent we mean that there exists
+a mapping between solutions of either problem: if we reduce a problem
+<span class="math notranslate nohighlight">\(A\)</span> to another problem <span class="math notranslate nohighlight">\(B\)</span> and then proceed to find a solution
+to <span class="math notranslate nohighlight">\(B\)</span>, we can convert it to a solution of <span class="math notranslate nohighlight">\(A\)</span> with at most a
+moderate amount of effort.</p>
+<p>A reduction that is instantiated with a non-None problem offers
+two key methods: <cite>reduce</cite> and <cite>retrieve</cite>. The <cite>reduce()</cite> method converts
+the problem the reduction was instantiated with to an equivalent
+problem. The <cite>retrieve()</cite> method takes as an argument a Solution
+for the equivalent problem and returns a Solution for the problem
+owned by the reduction.</p>
+<p>Every reduction offers three low-level methods: accepts, apply, and invert.
+The accepts method of a particular reduction specifies the types of problems
+that it is applicable to; the apply method takes a problem and reduces
+it to an equivalent form, and the invert method maps solutions
+from reduced-to problems to their problems of provenance.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>problem</strong> (<a class="reference internal" href="cvxpy.problems.html#cvxpy.Problem" title="cvxpy.Problem"><em>Problem</em></a>) – A problem owned by this reduction; possibly None.</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="cvxpy.reductions.reduction.Reduction.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">problem</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../_modules/cvxpy/reductions/reduction.html#Reduction.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.reductions.reduction.Reduction.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Construct a reduction for reducing <cite>problem</cite>.</p>
+<p>If <cite>problem</cite> is not None, then a subsequent invocation of <cite>reduce()</cite>
+will reduce <cite>problem</cite> and return an equivalent one.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="cvxpy.reductions.reduction.Reduction.accepts">
+<span class="sig-name descname"><span class="pre">accepts</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">problem</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/reductions/reduction.html#Reduction.accepts"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.reductions.reduction.Reduction.accepts" title="Permalink to this definition">¶</a></dt>
+<dd><p>States whether the reduction accepts a problem.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>problem</strong> (<a class="reference internal" href="cvxpy.problems.html#cvxpy.Problem" title="cvxpy.Problem"><em>Problem</em></a>) – The problem to check.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>True if the reduction can be applied, False otherwise.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>bool</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="cvxpy.reductions.reduction.Reduction.apply">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">apply</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">problem</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/reductions/reduction.html#Reduction.apply"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.reductions.reduction.Reduction.apply" title="Permalink to this definition">¶</a></dt>
+<dd><p>Applies the reduction to a problem and returns an equivalent problem.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>problem</strong> (<a class="reference internal" href="cvxpy.problems.html#cvxpy.Problem" title="cvxpy.Problem"><em>Problem</em></a>) – The problem to which the reduction will be applied.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><em>Problem or dict</em> – An equivalent problem, encoded either as a Problem or a dict.</p></li>
+<li><p><em>InverseData, list or dict</em> – Data needed by the reduction in order to invert this particular
+application.</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="cvxpy.reductions.reduction.Reduction.invert">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">invert</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">solution</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">inverse_data</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/reductions/reduction.html#Reduction.invert"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.reductions.reduction.Reduction.invert" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a solution to the original problem given the inverse_data.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>solution</strong> (<a class="reference internal" href="#cvxpy.reductions.solution.Solution" title="cvxpy.reductions.solution.Solution"><em>Solution</em></a>) – A solution to a problem that generated the inverse_data.</p></li>
+<li><p><strong>inverse_data</strong> – The data encoding the original problem.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A solution to the original problem.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="#cvxpy.reductions.solution.Solution" title="cvxpy.reductions.solution.Solution">Solution</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="cvxpy.reductions.reduction.Reduction.reduce">
+<span class="sig-name descname"><span class="pre">reduce</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/reductions/reduction.html#Reduction.reduce"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.reductions.reduction.Reduction.reduce" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reduces the owned problem to an equivalent problem.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>An equivalent problem, encoded either as a Problem or a dict.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference internal" href="cvxpy.problems.html#cvxpy.Problem" title="cvxpy.Problem">Problem</a> or dict</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>ValueError</strong> – If this Reduction was constructed without a Problem.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="cvxpy.reductions.reduction.Reduction.retrieve">
+<span class="sig-name descname"><span class="pre">retrieve</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">solution</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/reductions/reduction.html#Reduction.retrieve"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.reductions.reduction.Reduction.retrieve" title="Permalink to this definition">¶</a></dt>
+<dd><p>Retrieves a solution to the owned problem.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>solution</strong> (<a class="reference internal" href="#cvxpy.reductions.solution.Solution" title="cvxpy.reductions.solution.Solution"><em>Solution</em></a>) – A solution to the problem emitted by <cite>reduce()</cite>.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A solution to the owned problem.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="#cvxpy.reductions.solution.Solution" title="cvxpy.reductions.solution.Solution">Solution</a></p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>ValueError</strong> – If <cite>self.problem</cite> is None, or if <cite>reduce()</cite> was not previously
+    called.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="chain">
+<h3>Chain<a class="headerlink" href="#chain" title="Permalink to this heading">¶</a></h3>
+<dl class="py class">
+<dt class="sig sig-object py" id="cvxpy.reductions.chain.Chain">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">cvxpy.reductions.chain.</span></span><span class="sig-name descname"><span class="pre">Chain</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">problem</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reductions</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/reductions/chain.html#Chain"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.reductions.chain.Chain" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#cvxpy.reductions.reduction.Reduction" title="cvxpy.reductions.reduction.Reduction"><code class="xref py py-class docutils literal notranslate"><span class="pre">Reduction</span></code></a></p>
+<p>A logical grouping of multiple reductions into a single reduction.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="cvxpy.reductions.chain.Chain.reductions">
+<span class="sig-name descname"><span class="pre">reductions</span></span><a class="headerlink" href="#cvxpy.reductions.chain.Chain.reductions" title="Permalink to this definition">¶</a></dt>
+<dd><p>A list of reductions.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>list[<a class="reference internal" href="#cvxpy.reductions.reduction.Reduction" title="cvxpy.reductions.reduction.Reduction">Reduction</a>]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="cvxpy.reductions.chain.Chain.accepts">
+<span class="sig-name descname"><span class="pre">accepts</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">problem</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="reference internal" href="../_modules/cvxpy/reductions/chain.html#Chain.accepts"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.reductions.chain.Chain.accepts" title="Permalink to this definition">¶</a></dt>
+<dd><p>A problem is accepted if the sequence of reductions is valid.</p>
+<p>In particular, the i-th reduction must accept the output of the i-1th
+reduction, with the first reduction (self.reductions[0])
+in the sequence taking as input the supplied problem.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>problem</strong> (<a class="reference internal" href="cvxpy.problems.html#cvxpy.Problem" title="cvxpy.Problem"><em>Problem</em></a>) – The problem to check.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>True if the chain can be applied, False otherwise.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>bool</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="cvxpy.reductions.chain.Chain.apply">
+<span class="sig-name descname"><span class="pre">apply</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">problem</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/reductions/chain.html#Chain.apply"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.reductions.chain.Chain.apply" title="Permalink to this definition">¶</a></dt>
+<dd><p>Applies the chain to a problem and returns an equivalent problem.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>problem</strong> (<a class="reference internal" href="cvxpy.problems.html#cvxpy.Problem" title="cvxpy.Problem"><em>Problem</em></a>) – The problem to which the chain will be applied.</p></li>
+<li><p><strong>verbose</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whehter to print verbose output.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><em>Problem or dict</em> – The problem yielded by applying the reductions in sequence,
+starting at self.reductions[0].</p></li>
+<li><p><em>list</em> – The inverse data yielded by each of the reductions.</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="cvxpy.reductions.chain.Chain.invert">
+<span class="sig-name descname"><span class="pre">invert</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">solution</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">inverse_data</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/reductions/chain.html#Chain.invert"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.reductions.chain.Chain.invert" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a solution to the original problem given the inverse_data.</p>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="solvingchain">
+<h3>SolvingChain<a class="headerlink" href="#solvingchain" title="Permalink to this heading">¶</a></h3>
+<dl class="py class">
+<dt class="sig sig-object py" id="cvxpy.reductions.solvers.solving_chain.SolvingChain">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">cvxpy.reductions.solvers.solving_chain.</span></span><span class="sig-name descname"><span class="pre">SolvingChain</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">problem</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reductions</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/reductions/solvers/solving_chain.html#SolvingChain"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.reductions.solvers.solving_chain.SolvingChain" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#cvxpy.reductions.chain.Chain" title="cvxpy.reductions.chain.Chain"><code class="xref py py-class docutils literal notranslate"><span class="pre">Chain</span></code></a></p>
+<p>A reduction chain that ends with a solver.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>reductions</strong> (<em>list</em><em>[</em><a class="reference internal" href="#cvxpy.reductions.reduction.Reduction" title="cvxpy.reductions.reduction.Reduction"><em>Reduction</em></a><em>]</em>) – A list of reductions. The last reduction in the list must be a solver
+instance.</p>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="cvxpy.reductions.solvers.solving_chain.SolvingChain.reductions">
+<span class="sig-name descname"><span class="pre">reductions</span></span><a class="headerlink" href="#cvxpy.reductions.solvers.solving_chain.SolvingChain.reductions" title="Permalink to this definition">¶</a></dt>
+<dd><p>A list of reductions.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>list[<a class="reference internal" href="#cvxpy.reductions.reduction.Reduction" title="cvxpy.reductions.reduction.Reduction">Reduction</a>]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="cvxpy.reductions.solvers.solving_chain.SolvingChain.solver">
+<span class="sig-name descname"><span class="pre">solver</span></span><a class="headerlink" href="#cvxpy.reductions.solvers.solving_chain.SolvingChain.solver" title="Permalink to this definition">¶</a></dt>
+<dd><p>The solver, i.e., reductions[-1].</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Solver</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="cvxpy.reductions.solvers.solving_chain.SolvingChain.prepend">
+<span class="sig-name descname"><span class="pre">prepend</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">chain</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#cvxpy.reductions.solvers.solving_chain.SolvingChain" title="cvxpy.reductions.solvers.solving_chain.SolvingChain"><span class="pre">SolvingChain</span></a></span></span><a class="reference internal" href="../_modules/cvxpy/reductions/solvers/solving_chain.html#SolvingChain.prepend"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.reductions.solvers.solving_chain.SolvingChain.prepend" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create and return a new SolvingChain by concatenating
+chain with this instance.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="cvxpy.reductions.solvers.solving_chain.SolvingChain.solve">
+<span class="sig-name descname"><span class="pre">solve</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">problem</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">warm_start</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">solver_opts</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/reductions/solvers/solving_chain.html#SolvingChain.solve"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.reductions.solvers.solving_chain.SolvingChain.solve" title="Permalink to this definition">¶</a></dt>
+<dd><p>Solves the problem by applying the chain.</p>
+<p>Applies each reduction in the chain to the problem, solves it,
+and then inverts the chain to return a solution of the supplied
+problem.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>problem</strong> (<a class="reference internal" href="cvxpy.problems.html#cvxpy.Problem" title="cvxpy.Problem"><em>Problem</em></a>) – The problem to solve.</p></li>
+<li><p><strong>warm_start</strong> (<em>bool</em>) – Whether to warm start the solver.</p></li>
+<li><p><strong>verbose</strong> (<em>bool</em>) – Whether to enable solver verbosity.</p></li>
+<li><p><strong>solver_opts</strong> (<em>dict</em>) – Solver specific options.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>solution</strong> – A solution to the problem.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="#cvxpy.reductions.solution.Solution" title="cvxpy.reductions.solution.Solution">Solution</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="cvxpy.reductions.solvers.solving_chain.SolvingChain.solve_via_data">
+<span class="sig-name descname"><span class="pre">solve_via_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">problem</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">warm_start</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">solver_opts</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/reductions/solvers/solving_chain.html#SolvingChain.solve_via_data"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.reductions.solvers.solving_chain.SolvingChain.solve_via_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>Solves the problem using the data output by the an apply invocation.</p>
+<p>The semantics are:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">data</span><span class="p">,</span> <span class="n">inverse_data</span> <span class="o">=</span> <span class="n">solving_chain</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="n">problem</span><span class="p">)</span>
+<span class="n">solution</span> <span class="o">=</span> <span class="n">solving_chain</span><span class="o">.</span><span class="n">invert</span><span class="p">(</span><span class="n">solver_chain</span><span class="o">.</span><span class="n">solve_via_data</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="o">...</span><span class="p">))</span>
+</pre></div>
+</div>
+<p>which is equivalent to writing</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">solution</span> <span class="o">=</span> <span class="n">solving_chain</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">problem</span><span class="p">,</span> <span class="o">...</span><span class="p">)</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>problem</strong> (<a class="reference internal" href="cvxpy.problems.html#cvxpy.Problem" title="cvxpy.Problem"><em>Problem</em></a>) – The problem to solve.</p></li>
+<li><p><strong>data</strong> (<em>map</em>) – Data for the solver.</p></li>
+<li><p><strong>warm_start</strong> (<em>bool</em>) – Whether to warm start the solver.</p></li>
+<li><p><strong>verbose</strong> (<em>bool</em>) – Whether to enable solver verbosity.</p></li>
+<li><p><strong>solver_opts</strong> (<em>dict</em>) – Solver specific options.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The information returned by the solver; this is not necessarily
+a Solution object.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>raw solver solution</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../index.html">CVXPY</a></h1>
+
+
+
+
+
+
+<p>
+<iframe src="https://ghbtns.com/github-btn.html?user=cvxpy&repo=cvxpy&type=star&count=true&size=large&v=2"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
+
+
+
+
+
+<h3>Navigation</h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../install/index.html">Install</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/index.html">User Guide</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../examples/index.html">Examples</a></li>
+</ul>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="cvxpy.html">API Documentation</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="cvxpy.atoms.html">Atoms</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cvxpy.constraints.html">Constraints</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cvxpy.expressions.html">Expressions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cvxpy.problems.html">Problems</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cvxpy.transforms.html">Transforms</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Reductions</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#disclaimer">Disclaimer</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#types-of-reductions">Types of Reductions</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="cvxpy.reductions.middle_end.html">Middle-End</a></li>
+<li class="toctree-l4"><a class="reference internal" href="cvxpy.reductions.back_end.html">Back-End</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#core-classes">Core classes</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#solution">Solution</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="#cvxpy.reductions.solution.Solution"><code class="docutils literal notranslate"><span class="pre">Solution</span></code></a><ul>
+<li class="toctree-l6"><a class="reference internal" href="#cvxpy.reductions.solution.Solution.status"><code class="docutils literal notranslate"><span class="pre">Solution.status</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#cvxpy.reductions.solution.Solution.opt_val"><code class="docutils literal notranslate"><span class="pre">Solution.opt_val</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#cvxpy.reductions.solution.Solution.primal_vars"><code class="docutils literal notranslate"><span class="pre">Solution.primal_vars</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#cvxpy.reductions.solution.Solution.dual_vars"><code class="docutils literal notranslate"><span class="pre">Solution.dual_vars</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#cvxpy.reductions.solution.Solution.attr"><code class="docutils literal notranslate"><span class="pre">Solution.attr</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="#reduction">Reduction</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="#cvxpy.reductions.reduction.Reduction"><code class="docutils literal notranslate"><span class="pre">Reduction</span></code></a><ul>
+<li class="toctree-l6"><a class="reference internal" href="#cvxpy.reductions.reduction.Reduction.__init__"><code class="docutils literal notranslate"><span class="pre">Reduction.__init__()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#cvxpy.reductions.reduction.Reduction.accepts"><code class="docutils literal notranslate"><span class="pre">Reduction.accepts()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#cvxpy.reductions.reduction.Reduction.apply"><code class="docutils literal notranslate"><span class="pre">Reduction.apply()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#cvxpy.reductions.reduction.Reduction.invert"><code class="docutils literal notranslate"><span class="pre">Reduction.invert()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#cvxpy.reductions.reduction.Reduction.reduce"><code class="docutils literal notranslate"><span class="pre">Reduction.reduce()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#cvxpy.reductions.reduction.Reduction.retrieve"><code class="docutils literal notranslate"><span class="pre">Reduction.retrieve()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="#chain">Chain</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="#cvxpy.reductions.chain.Chain"><code class="docutils literal notranslate"><span class="pre">Chain</span></code></a><ul>
+<li class="toctree-l6"><a class="reference internal" href="#cvxpy.reductions.chain.Chain.reductions"><code class="docutils literal notranslate"><span class="pre">Chain.reductions</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#cvxpy.reductions.chain.Chain.accepts"><code class="docutils literal notranslate"><span class="pre">Chain.accepts()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#cvxpy.reductions.chain.Chain.apply"><code class="docutils literal notranslate"><span class="pre">Chain.apply()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#cvxpy.reductions.chain.Chain.invert"><code class="docutils literal notranslate"><span class="pre">Chain.invert()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="#solvingchain">SolvingChain</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="#cvxpy.reductions.solvers.solving_chain.SolvingChain"><code class="docutils literal notranslate"><span class="pre">SolvingChain</span></code></a><ul>
+<li class="toctree-l6"><a class="reference internal" href="#cvxpy.reductions.solvers.solving_chain.SolvingChain.reductions"><code class="docutils literal notranslate"><span class="pre">SolvingChain.reductions</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#cvxpy.reductions.solvers.solving_chain.SolvingChain.solver"><code class="docutils literal notranslate"><span class="pre">SolvingChain.solver</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#cvxpy.reductions.solvers.solving_chain.SolvingChain.prepend"><code class="docutils literal notranslate"><span class="pre">SolvingChain.prepend()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#cvxpy.reductions.solvers.solving_chain.SolvingChain.solve"><code class="docutils literal notranslate"><span class="pre">SolvingChain.solve()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#cvxpy.reductions.solvers.solving_chain.SolvingChain.solve_via_data"><code class="docutils literal notranslate"><span class="pre">SolvingChain.solve_via_data()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../faq/index.html">FAQ</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../citing/index.html">Citing CVXPY</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../contributing/index.html">Contributing</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../related_projects/index.html">Related Projects</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../updates/index.html">Changes to CVXPY</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../short_course/index.html">CVXPY Short Course</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../license/index.html">License</a></li>
+</ul>
+
+
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script><div>
+    <h3>
+        Version selector
+    </h3>
+    <select id="dynamic_selector" name="versions" onchange="if (this.value) window.location.href=this.value">
+    </select>
+    <script>
+        obj = $.getJSON("https://raw.githubusercontent.com/cvxpy/cvxpy/gh-pages/versions.json")
+            .done(function (data) {
+                const base_url = "https://www.cvxpy.org/"
+                let html = "<option value='' selected>Choose version here</option>";
+                html += "<option value=" + base_url + ">latest" + ""
+                for (let i = 0; i < data.length; i++) {
+                    html += "<option value=" + base_url + "version/"  + data[i] + ">" + data[i] + ""
+                }
+                document.getElementById("dynamic_selector").innerHTML = html;
+            });
+    </script>
+</div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;The CVXPY authors.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 6.0.0</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="../_sources/api_reference/cvxpy.reductions.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+    <a href="https://github.com/cvxpy/cvxpy" class="github">
+        <img style="position: absolute; top: 0; right: 0; border: 0;" src="https://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png" alt="Fork me on GitHub"  class="github"/>
+    </a>
+    
+
+    
+    <script type="text/javascript">
+
+      var _gaq = _gaq || [];
+      _gaq.push(['_setAccount', 'UA-50248335-1']);
+      _gaq.push(['_setDomainName', 'none']);
+      _gaq.push(['_setAllowLinker', true]);
+      _gaq.push(['_trackPageview']);
+
+      (function() {
+        var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+        ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+      })();
+
+    </script>
+    
+  </body>
+</html>

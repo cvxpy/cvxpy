@@ -1,0 +1,359 @@
+
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>cvxpy.transforms.suppfunc &#8212; CVXPY 1.3 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/cvxpy_alabaster.css" />
+    <script integrity="sha384-vtXRMe3mGCbOeY7l30aIg8H9p3GdeSe4IFlP6G8JMa7o7lXvnz3GFKzPxzJdPfGK" src="../../../_static/jquery.js"></script>
+    <script integrity="sha384-lSZeSIVKp9myfKbDQ3GkN/KHjUc+mzg17VKDN4Y2kUeBSJioB9QSM639vM9fuY//" src="../../../_static/_sphinx_javascript_frameworks_compat.js"></script>
+    <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
+    <script src="../../../_static/doctools.js"></script>
+    <script src="../../../_static/sphinx_highlight.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+   
+  <link rel="stylesheet" href="../../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>Source code for cvxpy.transforms.suppfunc</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">scipy</span> <span class="kn">import</span> <span class="n">sparse</span>
+
+<span class="kn">from</span> <span class="nn">cvxpy.atoms.suppfunc</span> <span class="kn">import</span> <span class="n">SuppFuncAtom</span>
+<span class="kn">from</span> <span class="nn">cvxpy.expressions.variable</span> <span class="kn">import</span> <span class="n">Variable</span>
+<span class="kn">from</span> <span class="nn">cvxpy.reductions.cvx_attr2constr</span> <span class="kn">import</span> <span class="n">CONVEX_ATTRIBUTES</span>
+
+
+<span class="k">def</span> <span class="nf">scs_coniclift</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">constraints</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Return (A, b, K) so that</span>
+<span class="sd">        {x : x satisfies constraints}</span>
+<span class="sd">    can be written as</span>
+<span class="sd">        {x : exists y where A @ [x; y] + b in K}.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    x: cvxpy.Variable</span>
+<span class="sd">    constraints: list of cvxpy.constraints.constraint.Constraint</span>
+<span class="sd">        Each Constraint object must be DCP-compatible.</span>
+
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+<span class="sd">    This function DOES NOT work when ``x`` has attributes, like ``PSD=True``,</span>
+<span class="sd">    ``diag=True``, ``symmetric=True``, etc...</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">from</span> <span class="nn">cvxpy.atoms.affine.sum</span> <span class="kn">import</span> <span class="nb">sum</span>
+    <span class="kn">from</span> <span class="nn">cvxpy.problems.objective</span> <span class="kn">import</span> <span class="n">Minimize</span>
+    <span class="kn">from</span> <span class="nn">cvxpy.problems.problem</span> <span class="kn">import</span> <span class="n">Problem</span>
+    <span class="n">prob</span> <span class="o">=</span> <span class="n">Problem</span><span class="p">(</span><span class="n">Minimize</span><span class="p">(</span><span class="nb">sum</span><span class="p">(</span><span class="n">x</span><span class="p">)),</span> <span class="n">constraints</span><span class="p">)</span>
+    <span class="c1"># ^ The objective value is only used to make sure that &quot;x&quot;</span>
+    <span class="c1"># participates in the problem. So, if constraints is an</span>
+    <span class="c1"># empty list, then the support function is the standard</span>
+    <span class="c1"># support function for R^n.</span>
+    <span class="n">data</span><span class="p">,</span> <span class="n">chain</span><span class="p">,</span> <span class="n">invdata</span> <span class="o">=</span> <span class="n">prob</span><span class="o">.</span><span class="n">get_problem_data</span><span class="p">(</span><span class="n">solver</span><span class="o">=</span><span class="s1">&#39;SCS&#39;</span><span class="p">)</span>
+    <span class="n">inv</span> <span class="o">=</span> <span class="n">invdata</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">]</span>
+    <span class="n">x_offset</span> <span class="o">=</span> <span class="n">inv</span><span class="o">.</span><span class="n">var_offsets</span><span class="p">[</span><span class="n">x</span><span class="o">.</span><span class="n">id</span><span class="p">]</span>
+    <span class="n">x_indices</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">x_offset</span><span class="p">,</span> <span class="n">x_offset</span> <span class="o">+</span> <span class="n">x</span><span class="o">.</span><span class="n">size</span><span class="p">)</span>
+    <span class="n">A</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;A&#39;</span><span class="p">]</span>
+    <span class="n">x_selector</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="n">A</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">],),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">bool</span><span class="p">)</span>
+    <span class="n">x_selector</span><span class="p">[</span><span class="n">x_indices</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="n">A_x</span> <span class="o">=</span> <span class="n">A</span><span class="p">[:,</span> <span class="n">x_selector</span><span class="p">]</span>
+    <span class="n">A_other</span> <span class="o">=</span> <span class="n">A</span><span class="p">[:,</span> <span class="o">~</span><span class="n">x_selector</span><span class="p">]</span>
+    <span class="n">A</span> <span class="o">=</span> <span class="o">-</span><span class="n">sparse</span><span class="o">.</span><span class="n">hstack</span><span class="p">([</span><span class="n">A_x</span><span class="p">,</span> <span class="n">A_other</span><span class="p">])</span>
+    <span class="n">b</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;b&#39;</span><span class="p">]</span>
+    <span class="n">K</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;dims&#39;</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">A</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">K</span>
+
+
+<span class="k">def</span> <span class="nf">scs_cone_selectors</span><span class="p">(</span><span class="n">K</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Parse a ConeDims object, as returned from SCS&#39;s apply function.</span>
+
+<span class="sd">    Return a dictionary which gives row-wise information for the affine</span>
+<span class="sd">    operator returned from SCS&#39;s apply function.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    K : cvxpy.reductions.solvers.conic_solver.ConeDims</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    selectors : dict</span>
+<span class="sd">        Keyed by strings, which specify cone types. Values are numpy</span>
+<span class="sd">        arrays, or lists of numpy arrays. The numpy arrays give row indices</span>
+<span class="sd">        of the affine operator (A, b) returned by SCS&#39;s apply function.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">K</span><span class="o">.</span><span class="n">p3d</span><span class="p">:</span>
+        <span class="n">msg</span> <span class="o">=</span> <span class="s2">&quot;SuppFunc doesn&#39;t yet support feasible sets represented </span><span class="se">\n</span><span class="s2">&quot;</span>
+        <span class="n">msg</span> <span class="o">+=</span> <span class="s2">&quot;with power cone constraints.&quot;</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+        <span class="c1"># TODO: implement</span>
+    <span class="n">idx</span> <span class="o">=</span> <span class="n">K</span><span class="o">.</span><span class="n">zero</span>
+    <span class="n">nonneg_idxs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">idx</span><span class="p">,</span> <span class="n">idx</span> <span class="o">+</span> <span class="n">K</span><span class="o">.</span><span class="n">nonneg</span><span class="p">)</span>
+    <span class="n">idx</span> <span class="o">+=</span> <span class="n">K</span><span class="o">.</span><span class="n">nonneg</span>
+    <span class="n">soc_idxs</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">soc</span> <span class="ow">in</span> <span class="n">K</span><span class="o">.</span><span class="n">soc</span><span class="p">:</span>
+        <span class="n">idxs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">idx</span><span class="p">,</span> <span class="n">idx</span> <span class="o">+</span> <span class="n">soc</span><span class="p">)</span>
+        <span class="n">soc_idxs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">idxs</span><span class="p">)</span>
+        <span class="n">idx</span> <span class="o">+=</span> <span class="n">soc</span>
+    <span class="n">psd_idxs</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">psd</span> <span class="ow">in</span> <span class="n">K</span><span class="o">.</span><span class="n">psd</span><span class="p">:</span>
+        <span class="n">veclen</span> <span class="o">=</span> <span class="n">psd</span> <span class="o">*</span> <span class="p">(</span><span class="n">psd</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">//</span> <span class="mi">2</span>
+        <span class="n">psd_idxs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">idx</span><span class="p">,</span> <span class="n">idx</span> <span class="o">+</span> <span class="n">veclen</span><span class="p">))</span>
+        <span class="n">idx</span> <span class="o">+=</span> <span class="n">veclen</span>
+    <span class="n">expsize</span> <span class="o">=</span> <span class="mi">3</span> <span class="o">*</span> <span class="n">K</span><span class="o">.</span><span class="n">exp</span>
+    <span class="n">exp_idxs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">idx</span><span class="p">,</span> <span class="n">idx</span> <span class="o">+</span> <span class="n">expsize</span><span class="p">)</span>
+    <span class="n">selectors</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;nonneg&#39;</span><span class="p">:</span> <span class="n">nonneg_idxs</span><span class="p">,</span>
+        <span class="s1">&#39;exp&#39;</span><span class="p">:</span> <span class="n">exp_idxs</span><span class="p">,</span>
+        <span class="s1">&#39;soc&#39;</span><span class="p">:</span> <span class="n">soc_idxs</span><span class="p">,</span>
+        <span class="s1">&#39;psd&#39;</span><span class="p">:</span> <span class="n">psd_idxs</span>
+    <span class="p">}</span>
+    <span class="k">return</span> <span class="n">selectors</span>
+
+
+<span class="c1"># flake8: noqa: E501</span>
+<div class="viewcode-block" id="SuppFunc"><a class="viewcode-back" href="../../../api_reference/cvxpy.transforms.html#cvxpy.transforms.suppfunc.SuppFunc">[docs]</a><span class="k">class</span> <span class="nc">SuppFunc</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Given a list of CVXPY Constraint objects :math:`\\texttt{constraints}`</span>
+<span class="sd">    involving a real CVXPY Variable :math:`\\texttt{x}`, consider the convex set</span>
+
+<span class="sd">    .. math::</span>
+
+<span class="sd">        S = \\{ v : \\text{it&#39;s possible to satisfy all } \\texttt{constraints}</span>
+<span class="sd">                    \\text{ when } \\texttt{x.value} = v \\}.</span>
+
+<span class="sd">    This object represents the *support function* of :math:`S`.</span>
+<span class="sd">    This is the convex function</span>
+
+<span class="sd">    .. math::</span>
+
+<span class="sd">        y \\mapsto \\max\\{ \\langle y, v \\rangle : v \\in S \\}.</span>
+
+<span class="sd">    The support function is a fundamental object in convex analysis.</span>
+<span class="sd">    It&#39;s extremely useful for expressing dual problems using</span>
+<span class="sd">    `Fenchel duality &lt;https://en.wikipedia.org/wiki/Fenchel%27s_duality_theorem&gt;`_.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    x : Variable</span>
+<span class="sd">        This variable cannot have any attributes, such as PSD=True, nonneg=True,</span>
+<span class="sd">        symmetric=True, etc...</span>
+
+<span class="sd">    constraints : list[Constraint]</span>
+<span class="sd">        Usually, these are constraints over :math:`\\texttt{x}`, and some number of auxiliary</span>
+<span class="sd">        CVXPY Variables. It is valid to supply :math:`\\texttt{constraints = []}`.</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    If :math:`\\texttt{h = cp.SuppFunc(x, constraints)}`, then you can use</span>
+<span class="sd">    :math:`\\texttt{h}` just like any other scalar-valued atom in CVXPY.</span>
+<span class="sd">    For example, if :math:`\\texttt{x}` was a CVXPY Variable with</span>
+<span class="sd">    :math:`\\texttt{x.ndim == 1}`, you could do the following:</span>
+
+<span class="sd">    .. code::</span>
+
+<span class="sd">        z = cp.Variable(shape=(10,))</span>
+<span class="sd">        A = np.random.standard_normal((x.size, 10))</span>
+<span class="sd">        c = np.random.rand(10)</span>
+<span class="sd">        objective =  h(A @ z) - c @ z</span>
+<span class="sd">        prob = cp.Problem(cp.Minimize(objective), [])</span>
+<span class="sd">        prob.solve()</span>
+
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+<span class="sd">    You are allowed to use CVXPY Variables other than :math:`\\texttt{x}` to define</span>
+<span class="sd">    :math:`\\texttt{constraints}`, but the set :math:`S` only consists of objects</span>
+<span class="sd">    (vectors or matrices) with the same shape as :math:`\\texttt{x}`.</span>
+
+<span class="sd">    It&#39;s possible for the support function to take the value :math:`+\\infty`</span>
+<span class="sd">    for a fixed vector :math:`\\texttt{y}`. This is an important point, and</span>
+<span class="sd">    it&#39;s one reason why support functions are actually formally defined with</span>
+<span class="sd">    the supremum &quot;:math:`\\sup`&quot; rather than the maximum &quot;:math:`\\max`&quot;.</span>
+<span class="sd">    For more information on support functions, check out</span>
+<span class="sd">    `this Wikipedia page &lt;https://en.wikipedia.org/wiki/Support_function&gt;`_.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">constraints</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">Variable</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;The first argument must be an unmodified cvxpy Variable object.&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">attributes</span><span class="p">[</span><span class="n">attr</span><span class="p">]</span> <span class="k">for</span> <span class="n">attr</span> <span class="ow">in</span> <span class="n">CONVEX_ATTRIBUTES</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;The first argument cannot have any declared attributes.&#39;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">con</span> <span class="ow">in</span> <span class="n">constraints</span><span class="p">:</span>
+            <span class="n">con_params</span> <span class="o">=</span> <span class="n">con</span><span class="o">.</span><span class="n">parameters</span><span class="p">()</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">con_params</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Convex sets described with Parameter objects are not allowed.&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">x</span> <span class="o">=</span> <span class="n">x</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">constraints</span> <span class="o">=</span> <span class="n">constraints</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_A</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_b</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_K_sels</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_compute_conic_repr_of_set</span><span class="p">()</span>
+
+<div class="viewcode-block" id="SuppFunc.__call__"><a class="viewcode-back" href="../../../api_reference/cvxpy.transforms.html#cvxpy.transforms.suppfunc.SuppFunc.__call__">[docs]</a>    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">SuppFuncAtom</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return an atom representing</span>
+
+<span class="sd">            max{ cvxpy.vec(y) @ cvxpy.vec(x) : x in S }</span>
+
+<span class="sd">        where S is the convex set associated with this SuppFunc object.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">sigma_at_y</span> <span class="o">=</span> <span class="n">SuppFuncAtom</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">sigma_at_y</span></div>
+
+    <span class="k">def</span> <span class="nf">_compute_conic_repr_of_set</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">constraints</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">dummy</span> <span class="o">=</span> <span class="n">Variable</span><span class="p">()</span>
+            <span class="n">constrs</span> <span class="o">=</span> <span class="p">[</span><span class="n">dummy</span> <span class="o">==</span> <span class="mi">1</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">constrs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">constraints</span>
+        <span class="n">A</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">K</span> <span class="o">=</span> <span class="n">scs_coniclift</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">x</span><span class="p">,</span> <span class="n">constrs</span><span class="p">)</span>
+        <span class="n">K_sels</span> <span class="o">=</span> <span class="n">scs_cone_selectors</span><span class="p">(</span><span class="n">K</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_A</span> <span class="o">=</span> <span class="n">A</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_b</span> <span class="o">=</span> <span class="n">b</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_K_sels</span> <span class="o">=</span> <span class="n">K_sels</span>
+
+    <span class="k">def</span> <span class="nf">conic_repr_of_set</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_A</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_b</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_K_sels</span></div>
+</pre></div>
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../../index.html">CVXPY</a></h1>
+
+
+
+
+
+
+<p>
+<iframe src="https://ghbtns.com/github-btn.html?user=cvxpy&repo=cvxpy&type=star&count=true&size=large&v=2"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
+
+
+
+
+
+<h3>Navigation</h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../install/index.html">Install</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/index.html">User Guide</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../examples/index.html">Examples</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api_reference/cvxpy.html">API Documentation</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../faq/index.html">FAQ</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../citing/index.html">Citing CVXPY</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../contributing/index.html">Contributing</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../related_projects/index.html">Related Projects</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../updates/index.html">Changes to CVXPY</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../short_course/index.html">CVXPY Short Course</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../license/index.html">License</a></li>
+</ul>
+
+
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script><div>
+    <h3>
+        Version selector
+    </h3>
+    <select id="dynamic_selector" name="versions" onchange="if (this.value) window.location.href=this.value">
+    </select>
+    <script>
+        obj = $.getJSON("https://raw.githubusercontent.com/cvxpy/cvxpy/gh-pages/versions.json")
+            .done(function (data) {
+                const base_url = "https://www.cvxpy.org/"
+                let html = "<option value='' selected>Choose version here</option>";
+                html += "<option value=" + base_url + ">latest" + ""
+                for (let i = 0; i < data.length; i++) {
+                    html += "<option value=" + base_url + "version/"  + data[i] + ">" + data[i] + ""
+                }
+                document.getElementById("dynamic_selector").innerHTML = html;
+            });
+    </script>
+</div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;The CVXPY authors.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 6.0.0</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+    </div>
+
+    
+    <a href="https://github.com/cvxpy/cvxpy" class="github">
+        <img style="position: absolute; top: 0; right: 0; border: 0;" src="https://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png" alt="Fork me on GitHub"  class="github"/>
+    </a>
+    
+
+    
+    <script type="text/javascript">
+
+      var _gaq = _gaq || [];
+      _gaq.push(['_setAccount', 'UA-50248335-1']);
+      _gaq.push(['_setDomainName', 'none']);
+      _gaq.push(['_setAllowLinker', true]);
+      _gaq.push(['_trackPageview']);
+
+      (function() {
+        var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+        ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+      })();
+
+    </script>
+    
+  </body>
+</html>

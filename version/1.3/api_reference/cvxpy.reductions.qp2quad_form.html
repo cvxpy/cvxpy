@@ -1,0 +1,425 @@
+
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
+
+    <title>cvxpy.reductions.qp2quad_form package &#8212; CVXPY 1.3 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/cvxpy_alabaster.css" />
+    <script integrity="sha384-vtXRMe3mGCbOeY7l30aIg8H9p3GdeSe4IFlP6G8JMa7o7lXvnz3GFKzPxzJdPfGK" src="../_static/jquery.js"></script>
+    <script integrity="sha384-lSZeSIVKp9myfKbDQ3GkN/KHjUc+mzg17VKDN4Y2kUeBSJioB9QSM639vM9fuY//" src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
+    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/sphinx_highlight.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="cvxpy-reductions-qp2quad-form-package">
+<h1>cvxpy.reductions.qp2quad_form package<a class="headerlink" href="#cvxpy-reductions-qp2quad-form-package" title="Permalink to this heading">¶</a></h1>
+<p>Please see <a class="reference internal" href="cvxpy.reductions.html#reductions-disclaimer"><span class="std std-ref">our disclaimer</span></a> about the
+Reductions API before using these directly in your code.</p>
+<section id="subpackages">
+<h2>Subpackages<a class="headerlink" href="#subpackages" title="Permalink to this heading">¶</a></h2>
+<div class="toctree-wrapper compound">
+</div>
+</section>
+<section id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this heading">¶</a></h2>
+</section>
+<section id="module-cvxpy.reductions.qp2quad_form.qp2symbolic_qp">
+<span id="cvxpy-reductions-qp2quad-form-qp2symbolic-qp-module"></span><h2>cvxpy.reductions.qp2quad_form.qp2symbolic_qp module<a class="headerlink" href="#module-cvxpy.reductions.qp2quad_form.qp2symbolic_qp" title="Permalink to this heading">¶</a></h2>
+<p>Copyright 2017 Robin Verschueren</p>
+<p>Licensed under the Apache License, Version 2.0 (the “License”);
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at</p>
+<blockquote>
+<div><p><a class="reference external" href="http://www.apache.org/licenses/LICENSE-2.0">http://www.apache.org/licenses/LICENSE-2.0</a></p>
+</div></blockquote>
+<p>Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an “AS IS” BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="cvxpy.reductions.qp2quad_form.qp2symbolic_qp.Qp2SymbolicQp">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">cvxpy.reductions.qp2quad_form.qp2symbolic_qp.</span></span><span class="sig-name descname"><span class="pre">Qp2SymbolicQp</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">problem</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/reductions/qp2quad_form/qp2symbolic_qp.html#Qp2SymbolicQp"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.reductions.qp2quad_form.qp2symbolic_qp.Qp2SymbolicQp" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Canonicalization</span></code></p>
+<p>Reduces a quadratic problem to a problem that consists of affine
+expressions and symbolic quadratic forms.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="cvxpy.reductions.qp2quad_form.qp2symbolic_qp.Qp2SymbolicQp.accepts">
+<span class="sig-name descname"><span class="pre">accepts</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">problem</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/reductions/qp2quad_form/qp2symbolic_qp.html#Qp2SymbolicQp.accepts"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.reductions.qp2quad_form.qp2symbolic_qp.Qp2SymbolicQp.accepts" title="Permalink to this definition">¶</a></dt>
+<dd><p>Problems with quadratic, piecewise affine objectives,
+piecewise-linear constraints inequality constraints, and
+affine equality constraints are accepted.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="cvxpy.reductions.qp2quad_form.qp2symbolic_qp.Qp2SymbolicQp.apply">
+<span class="sig-name descname"><span class="pre">apply</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">problem</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/reductions/qp2quad_form/qp2symbolic_qp.html#Qp2SymbolicQp.apply"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.reductions.qp2quad_form.qp2symbolic_qp.Qp2SymbolicQp.apply" title="Permalink to this definition">¶</a></dt>
+<dd><p>Converts a QP to an even more symbolic form.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cvxpy.reductions.qp2quad_form.qp2symbolic_qp.accepts">
+<span class="sig-prename descclassname"><span class="pre">cvxpy.reductions.qp2quad_form.qp2symbolic_qp.</span></span><span class="sig-name descname"><span class="pre">accepts</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">problem</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/reductions/qp2quad_form/qp2symbolic_qp.html#accepts"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.reductions.qp2quad_form.qp2symbolic_qp.accepts" title="Permalink to this definition">¶</a></dt>
+<dd><p>Problems with quadratic, piecewise affine objectives,
+piecewise-linear constraints inequality constraints, and
+affine equality constraints are accepted by the reduction.</p>
+</dd></dl>
+
+</section>
+<section id="module-cvxpy.reductions.qp2quad_form.qp_matrix_stuffing">
+<span id="cvxpy-reductions-qp2quad-form-qp-matrix-stuffing-module"></span><h2>cvxpy.reductions.qp2quad_form.qp_matrix_stuffing module<a class="headerlink" href="#module-cvxpy.reductions.qp2quad_form.qp_matrix_stuffing" title="Permalink to this heading">¶</a></h2>
+<p>Copyright 2016 Jaehyun Park, 2017 Robin Verschueren</p>
+<p>Licensed under the Apache License, Version 2.0 (the “License”);
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at</p>
+<blockquote>
+<div><p><a class="reference external" href="http://www.apache.org/licenses/LICENSE-2.0">http://www.apache.org/licenses/LICENSE-2.0</a></p>
+</div></blockquote>
+<p>Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an “AS IS” BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="cvxpy.reductions.qp2quad_form.qp_matrix_stuffing.ConeDims">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">cvxpy.reductions.qp2quad_form.qp_matrix_stuffing.</span></span><span class="sig-name descname"><span class="pre">ConeDims</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">constr_map</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/reductions/qp2quad_form/qp_matrix_stuffing.html#ConeDims"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.reductions.qp2quad_form.qp_matrix_stuffing.ConeDims" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Summary of cone dimensions present in constraints.</p>
+<p>Constraints must be formatted as dictionary that maps from
+constraint type to a list of constraints of that type.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="cvxpy.reductions.qp2quad_form.qp_matrix_stuffing.ConeDims.zero">
+<span class="sig-name descname"><span class="pre">zero</span></span><a class="headerlink" href="#cvxpy.reductions.qp2quad_form.qp_matrix_stuffing.ConeDims.zero" title="Permalink to this definition">¶</a></dt>
+<dd><p>The dimension of the zero cone.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="cvxpy.reductions.qp2quad_form.qp_matrix_stuffing.ConeDims.nonpos">
+<span class="sig-name descname"><span class="pre">nonpos</span></span><a class="headerlink" href="#cvxpy.reductions.qp2quad_form.qp_matrix_stuffing.ConeDims.nonpos" title="Permalink to this definition">¶</a></dt>
+<dd><p>The dimension of the non-positive cone.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="cvxpy.reductions.qp2quad_form.qp_matrix_stuffing.ConeDims.exp">
+<span class="sig-name descname"><span class="pre">exp</span></span><a class="headerlink" href="#cvxpy.reductions.qp2quad_form.qp_matrix_stuffing.ConeDims.exp" title="Permalink to this definition">¶</a></dt>
+<dd><p>The number of 3-dimensional exponential cones</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="cvxpy.reductions.qp2quad_form.qp_matrix_stuffing.ConeDims.soc">
+<span class="sig-name descname"><span class="pre">soc</span></span><a class="headerlink" href="#cvxpy.reductions.qp2quad_form.qp_matrix_stuffing.ConeDims.soc" title="Permalink to this definition">¶</a></dt>
+<dd><p>A list of the second-order cone dimensions.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>list of int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="cvxpy.reductions.qp2quad_form.qp_matrix_stuffing.ConeDims.psd">
+<span class="sig-name descname"><span class="pre">psd</span></span><a class="headerlink" href="#cvxpy.reductions.qp2quad_form.qp_matrix_stuffing.ConeDims.psd" title="Permalink to this definition">¶</a></dt>
+<dd><p>A list of the positive semidefinite cone dimensions, where the
+dimension of the PSD cone of k by k matrices is k.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>list of int</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="cvxpy.reductions.qp2quad_form.qp_matrix_stuffing.ParamQuadProg">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">cvxpy.reductions.qp2quad_form.qp_matrix_stuffing.</span></span><span class="sig-name descname"><span class="pre">ParamQuadProg</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">P</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">q</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">A</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">variables</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">var_id_to_col</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">constraints</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parameters</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">param_id_to_col</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">formatted</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/reductions/qp2quad_form/qp_matrix_stuffing.html#ParamQuadProg"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.reductions.qp2quad_form.qp_matrix_stuffing.ParamQuadProg" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">ParamProb</span></code></p>
+<p>Represents a parameterized quadratic program.</p>
+<p>minimize   x’Px  + q^Tx + d
+subject to (in)equality_constr1(A_1*x + b_1, …)</p>
+<blockquote>
+<div><p>…
+(in)equality_constrK(A_i*x + b_i, …)</p>
+</div></blockquote>
+<p>The constant offsets d and b are the last column of c and A.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="cvxpy.reductions.qp2quad_form.qp_matrix_stuffing.ParamQuadProg.apply_param_jac">
+<span class="sig-name descname"><span class="pre">apply_param_jac</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">delP</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">delq</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">delA</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">delb</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">active_params</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/reductions/qp2quad_form/qp_matrix_stuffing.html#ParamQuadProg.apply_param_jac"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.reductions.qp2quad_form.qp_matrix_stuffing.ParamQuadProg.apply_param_jac" title="Permalink to this definition">¶</a></dt>
+<dd><p>Multiplies by Jacobian of parameter mapping.</p>
+<p>Assumes delA is sparse.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>A dictionary param.id -&gt; dparam</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="cvxpy.reductions.qp2quad_form.qp_matrix_stuffing.ParamQuadProg.apply_parameters">
+<span class="sig-name descname"><span class="pre">apply_parameters</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">id_to_param_value</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">zero_offset</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">keep_zeros</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/reductions/qp2quad_form/qp_matrix_stuffing.html#ParamQuadProg.apply_parameters"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.reductions.qp2quad_form.qp_matrix_stuffing.ParamQuadProg.apply_parameters" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns A, b after applying parameters (and reshaping).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>id_to_param_value</strong> – (optional) dict mapping parameter ids to values</p></li>
+<li><p><strong>zero_offset</strong> – (optional) if True, zero out the constant offset in the
+parameter vector</p></li>
+<li><p><strong>keep_zeros</strong> – (optional) if True, store explicit zeros in A where
+parameters are affected</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="cvxpy.reductions.qp2quad_form.qp_matrix_stuffing.ParamQuadProg.is_mixed_integer">
+<span class="sig-name descname"><span class="pre">is_mixed_integer</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="reference internal" href="../_modules/cvxpy/reductions/qp2quad_form/qp_matrix_stuffing.html#ParamQuadProg.is_mixed_integer"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.reductions.qp2quad_form.qp_matrix_stuffing.ParamQuadProg.is_mixed_integer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Is the problem mixed-integer?</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="cvxpy.reductions.qp2quad_form.qp_matrix_stuffing.ParamQuadProg.split_adjoint">
+<span class="sig-name descname"><span class="pre">split_adjoint</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">del_vars</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/reductions/qp2quad_form/qp_matrix_stuffing.html#ParamQuadProg.split_adjoint"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.reductions.qp2quad_form.qp_matrix_stuffing.ParamQuadProg.split_adjoint" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adjoint of split_solution.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="cvxpy.reductions.qp2quad_form.qp_matrix_stuffing.ParamQuadProg.split_solution">
+<span class="sig-name descname"><span class="pre">split_solution</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sltn</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">active_vars</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/reductions/qp2quad_form/qp_matrix_stuffing.html#ParamQuadProg.split_solution"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.reductions.qp2quad_form.qp_matrix_stuffing.ParamQuadProg.split_solution" title="Permalink to this definition">¶</a></dt>
+<dd><p>Splits the solution into individual variables.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="cvxpy.reductions.qp2quad_form.qp_matrix_stuffing.QpMatrixStuffing">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">cvxpy.reductions.qp2quad_form.qp_matrix_stuffing.</span></span><span class="sig-name descname"><span class="pre">QpMatrixStuffing</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">canon_backend</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/reductions/qp2quad_form/qp_matrix_stuffing.html#QpMatrixStuffing"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.reductions.qp2quad_form.qp_matrix_stuffing.QpMatrixStuffing" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">MatrixStuffing</span></code></p>
+<p>Fills in numeric values for this problem instance.</p>
+<p>Outputs a DCP-compliant minimization problem with an objective
+of the form</p>
+<blockquote>
+<div><p>QuadForm(x, p) + q.T * x</p>
+</div></blockquote>
+<p>and Zero/NonPos constraints, both of which exclusively carry
+affine arguments.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="cvxpy.reductions.qp2quad_form.qp_matrix_stuffing.QpMatrixStuffing.accepts">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">accepts</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">problem</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/reductions/qp2quad_form/qp_matrix_stuffing.html#QpMatrixStuffing.accepts"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.reductions.qp2quad_form.qp_matrix_stuffing.QpMatrixStuffing.accepts" title="Permalink to this definition">¶</a></dt>
+<dd><p>States whether the reduction accepts a problem.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>problem</strong> (<a class="reference internal" href="cvxpy.problems.html#cvxpy.Problem" title="cvxpy.Problem"><em>Problem</em></a>) – The problem to check.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>True if the reduction can be applied, False otherwise.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>bool</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="cvxpy.reductions.qp2quad_form.qp_matrix_stuffing.QpMatrixStuffing.apply">
+<span class="sig-name descname"><span class="pre">apply</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">problem</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/reductions/qp2quad_form/qp_matrix_stuffing.html#QpMatrixStuffing.apply"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.reductions.qp2quad_form.qp_matrix_stuffing.QpMatrixStuffing.apply" title="Permalink to this definition">¶</a></dt>
+<dd><p>See docstring for MatrixStuffing.apply</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="cvxpy.reductions.qp2quad_form.qp_matrix_stuffing.QpMatrixStuffing.invert">
+<span class="sig-name descname"><span class="pre">invert</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">solution</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">inverse_data</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/reductions/qp2quad_form/qp_matrix_stuffing.html#QpMatrixStuffing.invert"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.reductions.qp2quad_form.qp_matrix_stuffing.QpMatrixStuffing.invert" title="Permalink to this definition">¶</a></dt>
+<dd><p>Retrieves the solution to the original problem.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="cvxpy.reductions.qp2quad_form.qp_matrix_stuffing.QpMatrixStuffing.stuffed_objective">
+<span class="sig-name descname"><span class="pre">stuffed_objective</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">problem</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">extractor</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/reductions/qp2quad_form/qp_matrix_stuffing.html#QpMatrixStuffing.stuffed_objective"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.reductions.qp2quad_form.qp_matrix_stuffing.QpMatrixStuffing.stuffed_objective" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-cvxpy.reductions.qp2quad_form">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-cvxpy.reductions.qp2quad_form" title="Permalink to this heading">¶</a></h2>
+<p>Copyright 2013 Steven Diamond</p>
+<p>Licensed under the Apache License, Version 2.0 (the “License”);
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at</p>
+<blockquote>
+<div><p><a class="reference external" href="http://www.apache.org/licenses/LICENSE-2.0">http://www.apache.org/licenses/LICENSE-2.0</a></p>
+</div></blockquote>
+<p>Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an “AS IS” BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.</p>
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../index.html">CVXPY</a></h1>
+
+
+
+
+
+
+<p>
+<iframe src="https://ghbtns.com/github-btn.html?user=cvxpy&repo=cvxpy&type=star&count=true&size=large&v=2"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
+
+
+
+
+
+<h3>Navigation</h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../install/index.html">Install</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/index.html">User Guide</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../examples/index.html">Examples</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="cvxpy.html">API Documentation</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../faq/index.html">FAQ</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../citing/index.html">Citing CVXPY</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../contributing/index.html">Contributing</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../related_projects/index.html">Related Projects</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../updates/index.html">Changes to CVXPY</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../short_course/index.html">CVXPY Short Course</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../license/index.html">License</a></li>
+</ul>
+
+
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script><div>
+    <h3>
+        Version selector
+    </h3>
+    <select id="dynamic_selector" name="versions" onchange="if (this.value) window.location.href=this.value">
+    </select>
+    <script>
+        obj = $.getJSON("https://raw.githubusercontent.com/cvxpy/cvxpy/gh-pages/versions.json")
+            .done(function (data) {
+                const base_url = "https://www.cvxpy.org/"
+                let html = "<option value='' selected>Choose version here</option>";
+                html += "<option value=" + base_url + ">latest" + ""
+                for (let i = 0; i < data.length; i++) {
+                    html += "<option value=" + base_url + "version/"  + data[i] + ">" + data[i] + ""
+                }
+                document.getElementById("dynamic_selector").innerHTML = html;
+            });
+    </script>
+</div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;The CVXPY authors.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 6.0.0</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="../_sources/api_reference/cvxpy.reductions.qp2quad_form.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+    <a href="https://github.com/cvxpy/cvxpy" class="github">
+        <img style="position: absolute; top: 0; right: 0; border: 0;" src="https://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png" alt="Fork me on GitHub"  class="github"/>
+    </a>
+    
+
+    
+    <script type="text/javascript">
+
+      var _gaq = _gaq || [];
+      _gaq.push(['_setAccount', 'UA-50248335-1']);
+      _gaq.push(['_setDomainName', 'none']);
+      _gaq.push(['_setAllowLinker', true]);
+      _gaq.push(['_trackPageview']);
+
+      (function() {
+        var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+        ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+      })();
+
+    </script>
+    
+  </body>
+</html>

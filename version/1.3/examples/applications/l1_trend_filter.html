@@ -1,0 +1,286 @@
+
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
+
+    <title>\(\ell_1\) trend filtering &#8212; CVXPY 1.3 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/cvxpy_alabaster.css" />
+    <script integrity="sha384-vtXRMe3mGCbOeY7l30aIg8H9p3GdeSe4IFlP6G8JMa7o7lXvnz3GFKzPxzJdPfGK" src="../../_static/jquery.js"></script>
+    <script integrity="sha384-lSZeSIVKp9myfKbDQ3GkN/KHjUc+mzg17VKDN4Y2kUeBSJioB9QSM639vM9fuY//" src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
+    <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+    <script src="../../_static/doctools.js"></script>
+    <script src="../../_static/sphinx_highlight.js"></script>
+    <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+   
+  <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="ell-1-trend-filtering">
+<h1><span class="math notranslate nohighlight">\(\ell_1\)</span> trend filtering<a class="headerlink" href="#ell-1-trend-filtering" title="Permalink to this heading">¶</a></h1>
+<p>A derivative work by Judson Wilson, 5/28/2014. Adapted from the CVX
+example of the same name, by Kwangmoo Koh, 12/10/2007</p>
+<p>Topic Reference:</p>
+<ul class="simple">
+<li><p>S.-J. Kim, K. Koh, S. Boyd, and D. Gorinevsky, ``l_1 Trend
+Filtering’’ <a class="reference external" href="http://stanford.edu/~boyd/papers/l1_trend_filter.html">http://stanford.edu/~boyd/papers/l1_trend_filter.html</a></p></li>
+</ul>
+<section id="introduction">
+<h2>Introduction<a class="headerlink" href="#introduction" title="Permalink to this heading">¶</a></h2>
+<p>The problem of estimating underlying trends in time series data arises
+in a variety of disciplines. The <span class="math notranslate nohighlight">\(\ell_1\)</span> trend filtering method
+produces trend estimates <span class="math notranslate nohighlight">\(x\)</span> that are piecewise linear from the
+time series <span class="math notranslate nohighlight">\(y\)</span>.</p>
+<p>The <span class="math notranslate nohighlight">\(\ell_1\)</span> trend estimation problem can be formulated as</p>
+<div class="math notranslate nohighlight">
+\[\begin{array}{ll}
+    \mbox{minimize}   &amp;  (1/2)||y-x||_2^2 + \lambda ||Dx||_1,
+    \end{array}\]</div>
+<p>with variable <span class="math notranslate nohighlight">\(x\)</span> , and problem data <span class="math notranslate nohighlight">\(y\)</span> and
+<span class="math notranslate nohighlight">\(\lambda\)</span>, with <span class="math notranslate nohighlight">\(\lambda &gt;0\)</span>. <span class="math notranslate nohighlight">\(D\)</span> is the second
+difference matrix, with rows</p>
+<div class="math notranslate nohighlight">
+\[\begin{bmatrix}0 &amp; \cdots &amp; 0 &amp; -1 &amp; 2 &amp; -1 &amp; 0 &amp; \cdots &amp; 0 \end{bmatrix}.\]</div>
+<p>CVXPY is not optimized for the <span class="math notranslate nohighlight">\(\ell_1\)</span> trend filtering problem.
+For large problems, use l1_tf (<a class="reference external" href="https://www.stanford.edu/~boyd/l1_tf/">https://www.stanford.edu/~boyd/l1_tf/</a>).</p>
+</section>
+<section id="formulate-and-solve-problem">
+<h2>Formulate and solve problem<a class="headerlink" href="#formulate-and-solve-problem" title="Permalink to this heading">¶</a></h2>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">cvxpy</span> <span class="k">as</span> <span class="nn">cp</span>
+<span class="kn">import</span> <span class="nn">scipy</span> <span class="k">as</span> <span class="nn">scipy</span>
+<span class="kn">import</span> <span class="nn">cvxopt</span> <span class="k">as</span> <span class="nn">cvxopt</span>
+
+<span class="c1"># Load time series data: S&amp;P 500 price log.</span>
+<span class="n">y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">loadtxt</span><span class="p">(</span><span class="nb">open</span><span class="p">(</span><span class="s1">&#39;data/snp500.txt&#39;</span><span class="p">,</span> <span class="s1">&#39;rb&#39;</span><span class="p">),</span> <span class="n">delimiter</span><span class="o">=</span><span class="s2">&quot;,&quot;</span><span class="p">,</span> <span class="n">skiprows</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+<span class="n">n</span> <span class="o">=</span> <span class="n">y</span><span class="o">.</span><span class="n">size</span>
+
+<span class="c1"># Form second difference matrix.</span>
+<span class="n">e</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span> <span class="n">n</span><span class="p">))</span>
+<span class="n">D</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">sparse</span><span class="o">.</span><span class="n">spdiags</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">((</span><span class="n">e</span><span class="p">,</span> <span class="o">-</span><span class="mi">2</span><span class="o">*</span><span class="n">e</span><span class="p">,</span> <span class="n">e</span><span class="p">)),</span> <span class="nb">range</span><span class="p">(</span><span class="mi">3</span><span class="p">),</span> <span class="n">n</span><span class="o">-</span><span class="mi">2</span><span class="p">,</span> <span class="n">n</span><span class="p">)</span>
+
+<span class="c1"># Set regularization parameter.</span>
+<span class="n">vlambda</span> <span class="o">=</span> <span class="mi">50</span>
+
+<span class="c1"># Solve l1 trend filtering problem.</span>
+<span class="n">x</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="n">n</span><span class="p">)</span>
+<span class="n">obj</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Minimize</span><span class="p">(</span><span class="mf">0.5</span> <span class="o">*</span> <span class="n">cp</span><span class="o">.</span><span class="n">sum_squares</span><span class="p">(</span><span class="n">y</span> <span class="o">-</span> <span class="n">x</span><span class="p">)</span>
+                  <span class="o">+</span> <span class="n">vlambda</span> <span class="o">*</span> <span class="n">cp</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">D</span><span class="o">*</span><span class="n">x</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span> <span class="p">)</span>
+<span class="n">prob</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Problem</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
+
+<span class="c1"># ECOS and SCS solvers fail to converge before</span>
+<span class="c1"># the iteration limit. Use CVXOPT instead.</span>
+<span class="n">prob</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">solver</span><span class="o">=</span><span class="n">cp</span><span class="o">.</span><span class="n">CVXOPT</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Solver status: </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">prob</span><span class="o">.</span><span class="n">status</span><span class="p">))</span>
+
+<span class="c1"># Check for error.</span>
+<span class="k">if</span> <span class="n">prob</span><span class="o">.</span><span class="n">status</span> <span class="o">!=</span> <span class="n">cp</span><span class="o">.</span><span class="n">OPTIMAL</span><span class="p">:</span>
+    <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;Solver did not converge!&quot;</span><span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;optimal objective value: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">obj</span><span class="o">.</span><span class="n">value</span><span class="p">))</span>
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>     <span class="n">pcost</span>       <span class="n">dcost</span>       <span class="n">gap</span>    <span class="n">pres</span>   <span class="n">dres</span>   <span class="n">k</span><span class="o">/</span><span class="n">t</span>
+ <span class="mi">0</span><span class="p">:</span>  <span class="mf">0.0000e+00</span> <span class="o">-</span><span class="mf">1.0000e+00</span>  <span class="mf">1e+05</span>  <span class="mf">1e-01</span>  <span class="mf">4e-02</span>  <span class="mf">1e+00</span>
+ <span class="mi">1</span><span class="p">:</span>  <span class="mf">2.2350e-01</span>  <span class="mf">1.5374e-01</span>  <span class="mf">8e+03</span>  <span class="mf">8e-03</span>  <span class="mf">3e-03</span>  <span class="mf">7e-02</span>
+ <span class="mi">2</span><span class="p">:</span>  <span class="mf">1.9086e-01</span>  <span class="mf">2.3346e-01</span>  <span class="mf">1e+03</span>  <span class="mf">1e-03</span>  <span class="mf">4e-04</span>  <span class="mf">6e-02</span>
+ <span class="mi">3</span><span class="p">:</span>  <span class="mf">3.9403e-01</span>  <span class="mf">4.4110e-01</span>  <span class="mf">7e+02</span>  <span class="mf">7e-04</span>  <span class="mf">3e-04</span>  <span class="mf">6e-02</span>
+ <span class="mi">4</span><span class="p">:</span>  <span class="mf">3.5979e-01</span>  <span class="mf">4.1278e-01</span>  <span class="mf">3e+02</span>  <span class="mf">3e-04</span>  <span class="mf">1e-04</span>  <span class="mf">6e-02</span>
+ <span class="mi">5</span><span class="p">:</span>  <span class="mf">6.4154e-01</span>  <span class="mf">6.4522e-01</span>  <span class="mf">2e+01</span>  <span class="mf">2e-05</span>  <span class="mf">7e-06</span>  <span class="mf">4e-03</span>
+ <span class="mi">6</span><span class="p">:</span>  <span class="mf">9.0480e-01</span>  <span class="mf">9.0710e-01</span>  <span class="mf">1e+01</span>  <span class="mf">1e-05</span>  <span class="mf">4e-06</span>  <span class="mf">3e-03</span>
+ <span class="mi">7</span><span class="p">:</span>  <span class="mf">9.9603e-01</span>  <span class="mf">9.9825e-01</span>  <span class="mf">1e+01</span>  <span class="mf">1e-05</span>  <span class="mf">4e-06</span>  <span class="mf">2e-03</span>
+ <span class="mi">8</span><span class="p">:</span>  <span class="mf">1.0529e+00</span>  <span class="mf">1.0542e+00</span>  <span class="mf">6e+00</span>  <span class="mf">6e-06</span>  <span class="mf">2e-06</span>  <span class="mf">1e-03</span>
+ <span class="mi">9</span><span class="p">:</span>  <span class="mf">1.1994e+00</span>  <span class="mf">1.2004e+00</span>  <span class="mf">4e+00</span>  <span class="mf">4e-06</span>  <span class="mf">2e-06</span>  <span class="mf">1e-03</span>
+<span class="mi">10</span><span class="p">:</span>  <span class="mf">1.2689e+00</span>  <span class="mf">1.2693e+00</span>  <span class="mf">2e+00</span>  <span class="mf">2e-06</span>  <span class="mf">6e-07</span>  <span class="mf">4e-04</span>
+<span class="mi">11</span><span class="p">:</span>  <span class="mf">1.3728e+00</span>  <span class="mf">1.3729e+00</span>  <span class="mf">5e-01</span>  <span class="mf">5e-07</span>  <span class="mf">2e-07</span>  <span class="mf">1e-04</span>
+<span class="mi">12</span><span class="p">:</span>  <span class="mf">1.3802e+00</span>  <span class="mf">1.3803e+00</span>  <span class="mf">2e-01</span>  <span class="mf">2e-07</span>  <span class="mf">9e-08</span>  <span class="mf">6e-05</span>
+<span class="mi">13</span><span class="p">:</span>  <span class="mf">1.3965e+00</span>  <span class="mf">1.3965e+00</span>  <span class="mf">1e-01</span>  <span class="mf">1e-07</span>  <span class="mf">4e-08</span>  <span class="mf">3e-05</span>
+<span class="mi">14</span><span class="p">:</span>  <span class="mf">1.3998e+00</span>  <span class="mf">1.3998e+00</span>  <span class="mf">3e-02</span>  <span class="mf">3e-08</span>  <span class="mf">1e-08</span>  <span class="mf">8e-06</span>
+<span class="mi">15</span><span class="p">:</span>  <span class="mf">1.3999e+00</span>  <span class="mf">1.3999e+00</span>  <span class="mf">3e-02</span>  <span class="mf">3e-08</span>  <span class="mf">1e-08</span>  <span class="mf">7e-06</span>
+<span class="mi">16</span><span class="p">:</span>  <span class="mf">1.4011e+00</span>  <span class="mf">1.4011e+00</span>  <span class="mf">9e-03</span>  <span class="mf">9e-09</span>  <span class="mf">3e-09</span>  <span class="mf">2e-06</span>
+<span class="mi">17</span><span class="p">:</span>  <span class="mf">1.4013e+00</span>  <span class="mf">1.4013e+00</span>  <span class="mf">3e-03</span>  <span class="mf">3e-09</span>  <span class="mf">1e-09</span>  <span class="mf">8e-07</span>
+<span class="mi">18</span><span class="p">:</span>  <span class="mf">1.4014e+00</span>  <span class="mf">1.4014e+00</span>  <span class="mf">6e-04</span>  <span class="mf">6e-10</span>  <span class="mf">3e-10</span>  <span class="mf">2e-07</span>
+<span class="mi">19</span><span class="p">:</span>  <span class="mf">1.4014e+00</span>  <span class="mf">1.4014e+00</span>  <span class="mf">2e-04</span>  <span class="mf">2e-10</span>  <span class="mf">7e-11</span>  <span class="mf">4e-08</span>
+<span class="mi">20</span><span class="p">:</span>  <span class="mf">1.4014e+00</span>  <span class="mf">1.4017e+00</span>  <span class="mf">4e-05</span>  <span class="mf">4e-11</span>  <span class="mf">2e-08</span>  <span class="mf">1e-08</span>
+<span class="mi">21</span><span class="p">:</span>  <span class="mf">1.4014e+00</span>  <span class="mf">1.4015e+00</span>  <span class="mf">3e-06</span>  <span class="mf">4e-12</span>  <span class="mf">8e-08</span>  <span class="mf">7e-10</span>
+<span class="mi">22</span><span class="p">:</span>  <span class="mf">1.4014e+00</span>  <span class="mf">1.4013e+00</span>  <span class="mf">4e-08</span>  <span class="mf">4e-13</span>  <span class="mf">2e-08</span>  <span class="mf">9e-12</span>
+<span class="n">Optimal</span> <span class="n">solution</span> <span class="n">found</span><span class="o">.</span>
+<span class="n">Solver</span> <span class="n">status</span><span class="p">:</span> <span class="n">optimal</span>
+<span class="n">optimal</span> <span class="n">objective</span> <span class="n">value</span><span class="p">:</span> <span class="mf">1.4014300716775199</span>
+</pre></div>
+</div>
+</section>
+<section id="results-plot">
+<h2>Results plot<a class="headerlink" href="#results-plot" title="Permalink to this heading">¶</a></h2>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+
+<span class="c1"># Show plots inline in ipython.</span>
+<span class="o">%</span><span class="n">matplotlib</span> <span class="n">inline</span>
+
+<span class="c1"># Plot properties.</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">rc</span><span class="p">(</span><span class="s1">&#39;text&#39;</span><span class="p">,</span> <span class="n">usetex</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">rc</span><span class="p">(</span><span class="s1">&#39;font&#39;</span><span class="p">,</span> <span class="n">family</span><span class="o">=</span><span class="s1">&#39;serif&#39;</span><span class="p">)</span>
+<span class="n">font</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;weight&#39;</span> <span class="p">:</span> <span class="s1">&#39;normal&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;size&#39;</span>   <span class="p">:</span> <span class="mi">16</span><span class="p">}</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">rc</span><span class="p">(</span><span class="s1">&#39;font&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">font</span><span class="p">)</span>
+
+<span class="c1"># Plot estimated trend with original signal.</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">6</span><span class="p">,</span> <span class="mi">6</span><span class="p">))</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="n">n</span><span class="o">+</span><span class="mi">1</span><span class="p">),</span> <span class="n">y</span><span class="p">,</span> <span class="s1">&#39;k:&#39;</span><span class="p">,</span> <span class="n">linewidth</span><span class="o">=</span><span class="mf">1.0</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="n">n</span><span class="o">+</span><span class="mi">1</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">value</span><span class="p">),</span> <span class="s1">&#39;b-&#39;</span><span class="p">,</span> <span class="n">linewidth</span><span class="o">=</span><span class="mf">2.0</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s1">&#39;date&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s1">&#39;log price&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">Text</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="s1">&#39;log price&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<img alt="../../_images/l1_trend_filter_3_1.png" src="../../_images/l1_trend_filter_3_1.png" />
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../index.html">CVXPY</a></h1>
+
+
+
+
+
+
+<p>
+<iframe src="https://ghbtns.com/github-btn.html?user=cvxpy&repo=cvxpy&type=star&count=true&size=large&v=2"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
+
+
+
+
+
+<h3>Navigation</h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../install/index.html">Install</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial/index.html">User Guide</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../index.html">Examples</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../api_reference/cvxpy.html">API Documentation</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../faq/index.html">FAQ</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../citing/index.html">Citing CVXPY</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../contributing/index.html">Contributing</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../related_projects/index.html">Related Projects</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../updates/index.html">Changes to CVXPY</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../short_course/index.html">CVXPY Short Course</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../license/index.html">License</a></li>
+</ul>
+
+
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script><div>
+    <h3>
+        Version selector
+    </h3>
+    <select id="dynamic_selector" name="versions" onchange="if (this.value) window.location.href=this.value">
+    </select>
+    <script>
+        obj = $.getJSON("https://raw.githubusercontent.com/cvxpy/cvxpy/gh-pages/versions.json")
+            .done(function (data) {
+                const base_url = "https://www.cvxpy.org/"
+                let html = "<option value='' selected>Choose version here</option>";
+                html += "<option value=" + base_url + ">latest" + ""
+                for (let i = 0; i < data.length; i++) {
+                    html += "<option value=" + base_url + "version/"  + data[i] + ">" + data[i] + ""
+                }
+                document.getElementById("dynamic_selector").innerHTML = html;
+            });
+    </script>
+</div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;The CVXPY authors.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 6.0.0</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="../../_sources/examples/applications/l1_trend_filter.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+    <a href="https://github.com/cvxpy/cvxpy" class="github">
+        <img style="position: absolute; top: 0; right: 0; border: 0;" src="https://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png" alt="Fork me on GitHub"  class="github"/>
+    </a>
+    
+
+    
+    <script type="text/javascript">
+
+      var _gaq = _gaq || [];
+      _gaq.push(['_setAccount', 'UA-50248335-1']);
+      _gaq.push(['_setDomainName', 'none']);
+      _gaq.push(['_setAllowLinker', true]);
+      _gaq.push(['_trackPageview']);
+
+      (function() {
+        var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+        ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+      })();
+
+    </script>
+    
+  </body>
+</html>

@@ -1,0 +1,415 @@
+
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
+
+    <title>Nonnegative matrix factorization &#8212; CVXPY 1.3 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/cvxpy_alabaster.css" />
+    <script integrity="sha384-vtXRMe3mGCbOeY7l30aIg8H9p3GdeSe4IFlP6G8JMa7o7lXvnz3GFKzPxzJdPfGK" src="../../_static/jquery.js"></script>
+    <script integrity="sha384-lSZeSIVKp9myfKbDQ3GkN/KHjUc+mzg17VKDN4Y2kUeBSJioB9QSM639vM9fuY//" src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
+    <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+    <script src="../../_static/doctools.js"></script>
+    <script src="../../_static/sphinx_highlight.js"></script>
+    <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+   
+  <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="nonnegative-matrix-factorization">
+<h1>Nonnegative matrix factorization<a class="headerlink" href="#nonnegative-matrix-factorization" title="Permalink to this heading">¶</a></h1>
+<div class="line-block">
+<div class="line">A derivative work by Judson Wilson, 6/2/2014.</div>
+<div class="line">Adapted from the CVX example of the same name, by Argyris Zymnis,</div>
+</div>
+<p>Joelle Skaf and Stephen Boyd</p>
+<section id="introduction">
+<h2>Introduction<a class="headerlink" href="#introduction" title="Permalink to this heading">¶</a></h2>
+<p>We are given a matrix <span class="math notranslate nohighlight">\(A \in \mathbf{\mbox{R}}^{m \times n}\)</span> and
+are interested in solving the problem:</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}\begin{array}{ll}
+    \mbox{minimize}   &amp; \| A - YX \|_F \\
+    \mbox{subject to} &amp; Y \succeq 0 \\
+                      &amp; X \succeq 0,
+    \end{array}\end{split}\]</div>
+<p>where <span class="math notranslate nohighlight">\(Y \in \mathbf{\mbox{R}}^{m \times k}\)</span> and
+<span class="math notranslate nohighlight">\(X \in \mathbf{\mbox{R}}^{k \times n}\)</span>.</p>
+<p>This example generates a random matrix <span class="math notranslate nohighlight">\(A\)</span> and obtains an
+<em>approximate</em> solution to the above problem by first generating a random
+initial guess for <span class="math notranslate nohighlight">\(Y\)</span> and then alternatively minimizing over
+<span class="math notranslate nohighlight">\(X\)</span> and <span class="math notranslate nohighlight">\(Y\)</span> for a fixed number of iterations.</p>
+</section>
+<section id="generate-problem-data">
+<h2>Generate problem data<a class="headerlink" href="#generate-problem-data" title="Permalink to this heading">¶</a></h2>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">cvxpy</span> <span class="k">as</span> <span class="nn">cp</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+<span class="c1"># Ensure repeatably random problem data.</span>
+<span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+
+<span class="c1"># Generate random data matrix A.</span>
+<span class="n">m</span> <span class="o">=</span> <span class="mi">10</span>
+<span class="n">n</span> <span class="o">=</span> <span class="mi">10</span>
+<span class="n">k</span> <span class="o">=</span> <span class="mi">5</span>
+<span class="n">A</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">k</span><span class="p">)</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">n</span><span class="p">))</span>
+
+<span class="c1"># Initialize Y randomly.</span>
+<span class="n">Y_init</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">k</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="perform-alternating-minimization">
+<h2>Perform alternating minimization<a class="headerlink" href="#perform-alternating-minimization" title="Permalink to this heading">¶</a></h2>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Ensure same initial random Y, rather than generate new one</span>
+<span class="c1"># when executing this cell.</span>
+<span class="n">Y</span> <span class="o">=</span> <span class="n">Y_init</span>
+
+<span class="c1"># Perform alternating minimization.</span>
+<span class="n">MAX_ITERS</span> <span class="o">=</span> <span class="mi">30</span>
+<span class="n">residual</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">MAX_ITERS</span><span class="p">)</span>
+<span class="k">for</span> <span class="n">iter_num</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="o">+</span><span class="n">MAX_ITERS</span><span class="p">):</span>
+    <span class="c1"># At the beginning of an iteration, X and Y are NumPy</span>
+    <span class="c1"># array types, NOT CVXPY variables.</span>
+
+    <span class="c1"># For odd iterations, treat Y constant, optimize over X.</span>
+    <span class="k">if</span> <span class="n">iter_num</span> <span class="o">%</span> <span class="mi">2</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">X</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">n</span><span class="p">))</span>
+        <span class="n">constraint</span> <span class="o">=</span> <span class="p">[</span><span class="n">X</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">]</span>
+    <span class="c1"># For even iterations, treat X constant, optimize over Y.</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">Y</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">k</span><span class="p">))</span>
+        <span class="n">constraint</span> <span class="o">=</span> <span class="p">[</span><span class="n">Y</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">]</span>
+
+    <span class="c1"># Solve the problem.</span>
+    <span class="c1"># increase max iters otherwise, a few iterations are &quot;OPTIMAL_INACCURATE&quot;</span>
+    <span class="c1"># (eg a few of the entries in X or Y are negative beyond standard tolerances)</span>
+    <span class="n">obj</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Minimize</span><span class="p">(</span><span class="n">cp</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">A</span> <span class="o">-</span> <span class="n">Y</span><span class="o">*</span><span class="n">X</span><span class="p">,</span> <span class="s1">&#39;fro&#39;</span><span class="p">))</span>
+    <span class="n">prob</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Problem</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">constraint</span><span class="p">)</span>
+    <span class="n">prob</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">solver</span><span class="o">=</span><span class="n">cp</span><span class="o">.</span><span class="n">SCS</span><span class="p">,</span> <span class="n">max_iters</span><span class="o">=</span><span class="mi">10000</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">prob</span><span class="o">.</span><span class="n">status</span> <span class="o">!=</span> <span class="n">cp</span><span class="o">.</span><span class="n">OPTIMAL</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;Solver did not converge!&quot;</span><span class="p">)</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Iteration </span><span class="si">{}</span><span class="s1">, residual norm </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">iter_num</span><span class="p">,</span> <span class="n">prob</span><span class="o">.</span><span class="n">value</span><span class="p">))</span>
+    <span class="n">residual</span><span class="p">[</span><span class="n">iter_num</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">prob</span><span class="o">.</span><span class="n">value</span>
+
+    <span class="c1"># Convert variable to NumPy array constant for next iteration.</span>
+    <span class="k">if</span> <span class="n">iter_num</span> <span class="o">%</span> <span class="mi">2</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">X</span> <span class="o">=</span> <span class="n">X</span><span class="o">.</span><span class="n">value</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">Y</span> <span class="o">=</span> <span class="n">Y</span><span class="o">.</span><span class="n">value</span>
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">Iteration</span> <span class="mi">1</span><span class="p">,</span> <span class="n">residual</span> <span class="n">norm</span> <span class="mf">2.766300564135502</span>
+<span class="n">Iteration</span> <span class="mi">2</span><span class="p">,</span> <span class="n">residual</span> <span class="n">norm</span> <span class="mf">0.5840356930600721</span>
+<span class="n">Iteration</span> <span class="mi">3</span><span class="p">,</span> <span class="n">residual</span> <span class="n">norm</span> <span class="mf">0.3356679970549085</span>
+<span class="n">Iteration</span> <span class="mi">4</span><span class="p">,</span> <span class="n">residual</span> <span class="n">norm</span> <span class="mf">0.18670276027770083</span>
+<span class="n">Iteration</span> <span class="mi">5</span><span class="p">,</span> <span class="n">residual</span> <span class="n">norm</span> <span class="mf">0.12819921698143966</span>
+<span class="n">Iteration</span> <span class="mi">6</span><span class="p">,</span> <span class="n">residual</span> <span class="n">norm</span> <span class="mf">0.09295501592922492</span>
+<span class="n">Iteration</span> <span class="mi">7</span><span class="p">,</span> <span class="n">residual</span> <span class="n">norm</span> <span class="mf">0.06766021043574907</span>
+<span class="n">Iteration</span> <span class="mi">8</span><span class="p">,</span> <span class="n">residual</span> <span class="n">norm</span> <span class="mf">0.04958204907945361</span>
+<span class="n">Iteration</span> <span class="mi">9</span><span class="p">,</span> <span class="n">residual</span> <span class="n">norm</span> <span class="mf">0.03897402158866238</span>
+<span class="n">Iteration</span> <span class="mi">10</span><span class="p">,</span> <span class="n">residual</span> <span class="n">norm</span> <span class="mf">0.02979328283505179</span>
+<span class="n">Iteration</span> <span class="mi">11</span><span class="p">,</span> <span class="n">residual</span> <span class="n">norm</span> <span class="mf">0.022938564327729952</span>
+<span class="n">Iteration</span> <span class="mi">12</span><span class="p">,</span> <span class="n">residual</span> <span class="n">norm</span> <span class="mf">0.021943924920767337</span>
+<span class="n">Iteration</span> <span class="mi">13</span><span class="p">,</span> <span class="n">residual</span> <span class="n">norm</span> <span class="mf">0.01810297853945281</span>
+<span class="n">Iteration</span> <span class="mi">14</span><span class="p">,</span> <span class="n">residual</span> <span class="n">norm</span> <span class="mf">0.014551161988556204</span>
+<span class="n">Iteration</span> <span class="mi">15</span><span class="p">,</span> <span class="n">residual</span> <span class="n">norm</span> <span class="mf">0.014039687334395924</span>
+<span class="n">Iteration</span> <span class="mi">16</span><span class="p">,</span> <span class="n">residual</span> <span class="n">norm</span> <span class="mf">0.009354606824469416</span>
+<span class="n">Iteration</span> <span class="mi">17</span><span class="p">,</span> <span class="n">residual</span> <span class="n">norm</span> <span class="mf">0.008643141637584189</span>
+<span class="n">Iteration</span> <span class="mi">18</span><span class="p">,</span> <span class="n">residual</span> <span class="n">norm</span> <span class="mf">0.007278100007476402</span>
+<span class="n">Iteration</span> <span class="mi">19</span><span class="p">,</span> <span class="n">residual</span> <span class="n">norm</span> <span class="mf">0.008486679700021057</span>
+<span class="n">Iteration</span> <span class="mi">20</span><span class="p">,</span> <span class="n">residual</span> <span class="n">norm</span> <span class="mf">0.008827511916396866</span>
+<span class="n">Iteration</span> <span class="mi">21</span><span class="p">,</span> <span class="n">residual</span> <span class="n">norm</span> <span class="mf">0.008396764193205366</span>
+<span class="n">Iteration</span> <span class="mi">22</span><span class="p">,</span> <span class="n">residual</span> <span class="n">norm</span> <span class="mf">0.005265185332845983</span>
+<span class="n">Iteration</span> <span class="mi">23</span><span class="p">,</span> <span class="n">residual</span> <span class="n">norm</span> <span class="mf">0.006931929503816392</span>
+<span class="n">Iteration</span> <span class="mi">24</span><span class="p">,</span> <span class="n">residual</span> <span class="n">norm</span> <span class="mf">0.007356156596477946</span>
+<span class="n">Iteration</span> <span class="mi">25</span><span class="p">,</span> <span class="n">residual</span> <span class="n">norm</span> <span class="mf">0.0039053948996930054</span>
+<span class="n">Iteration</span> <span class="mi">26</span><span class="p">,</span> <span class="n">residual</span> <span class="n">norm</span> <span class="mf">0.003989885269615319</span>
+<span class="n">Iteration</span> <span class="mi">27</span><span class="p">,</span> <span class="n">residual</span> <span class="n">norm</span> <span class="mf">0.002920361405226024</span>
+<span class="n">Iteration</span> <span class="mi">28</span><span class="p">,</span> <span class="n">residual</span> <span class="n">norm</span> <span class="mf">0.007779246694466739</span>
+<span class="n">Iteration</span> <span class="mi">29</span><span class="p">,</span> <span class="n">residual</span> <span class="n">norm</span> <span class="mf">0.007339011292898449</span>
+<span class="n">Iteration</span> <span class="mi">30</span><span class="p">,</span> <span class="n">residual</span> <span class="n">norm</span> <span class="mf">0.005008539285258121</span>
+</pre></div>
+</div>
+</section>
+<section id="output-results">
+<h2>Output results<a class="headerlink" href="#output-results" title="Permalink to this heading">¶</a></h2>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1">#</span>
+<span class="c1"># Plot residuals.</span>
+<span class="c1">#</span>
+
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+
+<span class="c1"># Show plot inline in ipython.</span>
+<span class="o">%</span><span class="n">matplotlib</span> <span class="n">inline</span>
+
+<span class="c1"># Set plot properties.</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">rc</span><span class="p">(</span><span class="s1">&#39;text&#39;</span><span class="p">,</span> <span class="n">usetex</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">rc</span><span class="p">(</span><span class="s1">&#39;font&#39;</span><span class="p">,</span> <span class="n">family</span><span class="o">=</span><span class="s1">&#39;serif&#39;</span><span class="p">)</span>
+<span class="n">font</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;weight&#39;</span> <span class="p">:</span> <span class="s1">&#39;normal&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;size&#39;</span>   <span class="p">:</span> <span class="mi">16</span><span class="p">}</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">rc</span><span class="p">(</span><span class="s1">&#39;font&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">font</span><span class="p">)</span>
+
+<span class="c1"># Create the plot.</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">residual</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s1">&#39;Iteration Number&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s1">&#39;Residual Norm&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+
+<span class="c1">#</span>
+<span class="c1"># Print results.</span>
+<span class="c1">#</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Original matrix:&#39;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">A</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Left factor Y:&#39;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">Y</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Right factor X:&#39;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">X</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Residual A - Y * X:&#39;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">A</span> <span class="o">-</span> <span class="n">Y</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">X</span><span class="p">))</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Residual after </span><span class="si">{}</span><span class="s1"> iterations: </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">iter_num</span><span class="p">,</span> <span class="n">prob</span><span class="o">.</span><span class="n">value</span><span class="p">))</span>
+</pre></div>
+</div>
+<img alt="../../_images/nonneg_matrix_fact_5_0.png" src="../../_images/nonneg_matrix_fact_5_0.png" />
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">Original</span> <span class="n">matrix</span><span class="p">:</span>
+<span class="p">[[</span><span class="mf">1.323426</span>   <span class="mf">1.11061189</span> <span class="mf">1.69137835</span> <span class="mf">1.20020115</span> <span class="mf">1.13216889</span> <span class="mf">0.5980743</span>
+  <span class="mf">1.64965406</span> <span class="mf">0.340611</span>   <span class="mf">1.69871738</span> <span class="mf">0.78278448</span><span class="p">]</span>
+ <span class="p">[</span><span class="mf">1.73721109</span> <span class="mf">1.40464204</span> <span class="mf">1.90898877</span> <span class="mf">1.60774132</span> <span class="mf">1.53717253</span> <span class="mf">0.62647405</span>
+  <span class="mf">1.76242265</span> <span class="mf">0.41151492</span> <span class="mf">1.8048194</span>  <span class="mf">1.20313124</span><span class="p">]</span>
+ <span class="p">[</span><span class="mf">1.4071438</span>  <span class="mf">1.10269406</span> <span class="mf">1.75323063</span> <span class="mf">1.18928983</span> <span class="mf">1.23428169</span> <span class="mf">0.60364688</span>
+  <span class="mf">1.63792853</span> <span class="mf">0.40855006</span> <span class="mf">1.57257432</span> <span class="mf">1.17227344</span><span class="p">]</span>
+ <span class="p">[</span><span class="mf">1.3905141</span>  <span class="mf">1.33367163</span> <span class="mf">1.07723947</span> <span class="mf">1.67735654</span> <span class="mf">1.33039096</span> <span class="mf">0.42003169</span>
+  <span class="mf">1.22641711</span> <span class="mf">0.21470465</span> <span class="mf">1.47350799</span> <span class="mf">0.84931787</span><span class="p">]</span>
+ <span class="p">[</span><span class="mf">1.42153652</span> <span class="mf">1.13598552</span> <span class="mf">2.00816457</span> <span class="mf">1.11463462</span> <span class="mf">1.17914429</span> <span class="mf">0.69942578</span>
+  <span class="mf">1.90353699</span> <span class="mf">0.45664487</span> <span class="mf">1.81023916</span> <span class="mf">1.09668578</span><span class="p">]</span>
+ <span class="p">[</span><span class="mf">1.60813803</span> <span class="mf">1.23214532</span> <span class="mf">1.73741086</span> <span class="mf">1.3148874</span>  <span class="mf">1.27589039</span> <span class="mf">0.40755835</span>
+  <span class="mf">1.31904948</span> <span class="mf">0.3469129</span>  <span class="mf">1.34256526</span> <span class="mf">0.76924618</span><span class="p">]</span>
+ <span class="p">[</span><span class="mf">0.90607895</span> <span class="mf">0.6632877</span>  <span class="mf">1.25412229</span> <span class="mf">0.81696721</span> <span class="mf">0.87218892</span> <span class="mf">0.50032884</span>
+  <span class="mf">1.245879</span>   <span class="mf">0.25079329</span> <span class="mf">1.25017792</span> <span class="mf">0.72155621</span><span class="p">]</span>
+ <span class="p">[</span><span class="mf">1.5691922</span>  <span class="mf">1.47359672</span> <span class="mf">1.76518996</span> <span class="mf">1.66268312</span> <span class="mf">1.43746574</span> <span class="mf">0.72486628</span>
+  <span class="mf">1.97409333</span> <span class="mf">0.39239642</span> <span class="mf">2.09234807</span> <span class="mf">1.16325748</span><span class="p">]</span>
+ <span class="p">[</span><span class="mf">1.18723548</span> <span class="mf">1.00282008</span> <span class="mf">1.41532595</span> <span class="mf">1.03836298</span> <span class="mf">0.90382914</span> <span class="mf">0.38460446</span>
+  <span class="mf">1.213473</span>   <span class="mf">0.23641422</span> <span class="mf">1.32784402</span> <span class="mf">0.27179726</span><span class="p">]</span>
+ <span class="p">[</span><span class="mf">0.75789915</span> <span class="mf">0.75119989</span> <span class="mf">0.99502166</span> <span class="mf">0.65444815</span> <span class="mf">0.56073096</span> <span class="mf">0.341146</span>
+  <span class="mf">1.02555143</span> <span class="mf">0.24273668</span> <span class="mf">1.01035919</span> <span class="mf">0.49427978</span><span class="p">]]</span>
+<span class="n">Left</span> <span class="n">factor</span> <span class="n">Y</span><span class="p">:</span>
+<span class="p">[[</span> <span class="mf">7.56475742e-01</span>  <span class="mf">3.42102372e-01</span>  <span class="mf">8.40426641e-01</span>  <span class="mf">7.02845111e-01</span>
+   <span class="mf">4.38002833e-03</span><span class="p">]</span>
+ <span class="p">[</span> <span class="mf">6.36189366e-01</span>  <span class="mf">8.27831861e-01</span>  <span class="mf">5.28165827e-01</span>  <span class="mf">5.60609403e-01</span>
+   <span class="mf">3.34595403e-02</span><span class="p">]</span>
+ <span class="p">[</span> <span class="mf">5.54834858e-01</span>  <span class="mf">6.37954560e-01</span>  <span class="mf">8.01726231e-01</span>  <span class="mf">1.96879041e-01</span>
+   <span class="mf">3.74736667e-02</span><span class="p">]</span>
+ <span class="p">[</span> <span class="mf">2.72955779e-01</span>  <span class="mf">9.53749151e-01</span>  <span class="mf">6.14934798e-02</span>  <span class="mf">9.81276972e-01</span>
+  <span class="o">-</span><span class="mf">4.26647247e-05</span><span class="p">]</span>
+ <span class="p">[</span> <span class="mf">7.93952558e-01</span>  <span class="mf">3.50946872e-01</span>  <span class="mf">1.18853643e+00</span>  <span class="mf">3.85961318e-01</span>
+   <span class="mf">2.96701863e-02</span><span class="p">]</span>
+ <span class="p">[</span> <span class="mf">7.26183347e-01</span>  <span class="mf">4.41639937e-01</span>  <span class="mf">2.71711699e-03</span>  <span class="mf">7.33393633e-01</span>
+   <span class="mf">4.55176129e-02</span><span class="p">]</span>
+ <span class="p">[</span> <span class="mf">4.89263105e-01</span>  <span class="mf">4.20725095e-01</span>  <span class="mf">7.56036398e-01</span>  <span class="mf">6.24033457e-02</span>
+  <span class="o">-</span><span class="mf">5.38302416e-04</span><span class="p">]</span>
+ <span class="p">[</span> <span class="mf">6.09810836e-01</span>  <span class="mf">7.55780427e-01</span>  <span class="mf">1.03636918e+00</span>  <span class="mf">9.08549910e-01</span>
+   <span class="mf">1.91844947e-03</span><span class="p">]</span>
+ <span class="p">[</span> <span class="mf">8.31578328e-01</span>  <span class="mf">8.75528332e-05</span>  <span class="mf">2.93543168e-01</span>  <span class="mf">1.10037225e+00</span>
+  <span class="o">-</span><span class="mf">2.65884776e-04</span><span class="p">]</span>
+ <span class="p">[</span> <span class="mf">4.26650967e-01</span>  <span class="mf">5.53761974e-02</span>  <span class="mf">6.52855369e-01</span>  <span class="mf">6.43132832e-01</span>
+   <span class="mf">1.47569255e-02</span><span class="p">]]</span>
+<span class="n">Right</span> <span class="n">factor</span> <span class="n">X</span><span class="p">:</span>
+<span class="p">[[</span> <span class="mf">1.07015116e+00</span>  <span class="mf">4.25961964e-01</span>  <span class="mf">1.59511553e+00</span>  <span class="mf">6.26808607e-01</span>
+   <span class="mf">8.98124301e-01</span>  <span class="mf">3.62801718e-01</span>  <span class="mf">9.53757673e-01</span>  <span class="mf">1.88661317e-01</span>
+   <span class="mf">9.64559055e-01</span>  <span class="mf">1.43675625e-01</span><span class="p">]</span>
+ <span class="p">[</span> <span class="mf">8.72908811e-01</span>  <span class="mf">7.03553498e-01</span>  <span class="mf">6.45229205e-01</span>  <span class="mf">1.10121868e+00</span>
+   <span class="mf">9.93621271e-01</span>  <span class="mf">3.12383803e-01</span>  <span class="mf">7.45085312e-01</span>  <span class="mf">1.25155585e-01</span>
+   <span class="mf">8.84272390e-01</span>  <span class="mf">7.94988511e-01</span><span class="p">]</span>
+ <span class="p">[</span> <span class="mf">1.41086863e-04</span>  <span class="mf">1.70049131e-01</span>  <span class="mf">2.73427259e-01</span>  <span class="mf">2.50933223e-02</span>
+   <span class="mf">8.38007474e-03</span>  <span class="mf">2.51575697e-01</span>  <span class="mf">5.99473425e-01</span>  <span class="mf">1.39362252e-01</span>
+   <span class="mf">5.06840502e-01</span>  <span class="mf">4.22844259e-01</span><span class="p">]</span>
+ <span class="p">[</span> <span class="mf">2.70906925e-01</span>  <span class="mf">5.46340550e-01</span>  <span class="mf">1.04256418e-02</span>  <span class="mf">4.63290841e-01</span>
+   <span class="mf">1.39889787e-01</span>  <span class="mf">7.65220031e-03</span>  <span class="mf">2.22742919e-01</span>  <span class="mf">3.60875098e-02</span>
+   <span class="mf">3.41601146e-01</span>  <span class="mf">2.72448408e-02</span><span class="p">]</span>
+ <span class="p">[</span> <span class="mf">5.44108256e+00</span>  <span class="mf">4.62667224e+00</span>  <span class="mf">6.26354249e+00</span>  <span class="mf">7.23656013e-01</span>
+   <span class="mf">1.81220987e+00</span> <span class="o">-</span><span class="mf">2.57729003e-07</span>  <span class="mf">2.90739234e+00</span>  <span class="mf">2.81123997e+00</span>
+  <span class="o">-</span><span class="mf">2.15606388e-06</span>  <span class="mf">6.43189790e+00</span><span class="p">]]</span>
+<span class="n">Residual</span> <span class="n">A</span> <span class="o">-</span> <span class="n">Y</span> <span class="o">*</span> <span class="n">X</span><span class="p">:</span>
+<span class="p">[[</span> <span class="mf">9.02157264e-04</span>  <span class="mf">5.23117764e-04</span> <span class="o">-</span><span class="mf">5.79950842e-04</span> <span class="o">-</span><span class="mf">5.74317402e-04</span>
+  <span class="o">-</span><span class="mf">4.61768644e-04</span> <span class="o">-</span><span class="mf">5.28680186e-05</span>  <span class="mf">1.62394448e-04</span>  <span class="mf">2.76277321e-04</span>
+   <span class="mf">4.85227596e-04</span> <span class="o">-</span><span class="mf">5.60481823e-04</span><span class="p">]</span>
+ <span class="p">[</span><span class="o">-</span><span class="mf">2.33027425e-04</span>  <span class="mf">3.21455250e-04</span>  <span class="mf">2.17040399e-04</span>  <span class="mf">1.56606195e-04</span>
+  <span class="o">-</span><span class="mf">2.41256203e-04</span> <span class="o">-</span><span class="mf">1.01386736e-04</span>  <span class="mf">7.36342995e-05</span> <span class="o">-</span><span class="mf">1.73587325e-05</span>
+  <span class="o">-</span><span class="mf">5.22429324e-05</span> <span class="o">-</span><span class="mf">2.04432888e-04</span><span class="p">]</span>
+ <span class="p">[</span><span class="o">-</span><span class="mf">8.35846517e-04</span>  <span class="mf">2.46121871e-04</span>  <span class="mf">5.93720663e-04</span>  <span class="mf">5.38806481e-04</span>
+  <span class="o">-</span><span class="mf">8.42363429e-05</span> <span class="o">-</span><span class="mf">1.36215640e-04</span>  <span class="mf">2.31633730e-06</span> <span class="o">-</span><span class="mf">1.52108618e-04</span>
+  <span class="o">-</span><span class="mf">3.23620331e-04</span> <span class="o">-</span><span class="mf">5.42078084e-06</span><span class="p">]</span>
+ <span class="p">[</span> <span class="mf">2.62860853e-04</span>  <span class="mf">1.83780003e-05</span> <span class="o">-</span><span class="mf">3.20542830e-04</span> <span class="o">-</span><span class="mf">1.49712163e-04</span>
+  <span class="o">-</span><span class="mf">1.31334078e-04</span>  <span class="mf">8.78805144e-05</span>  <span class="mf">1.46798183e-04</span> <span class="o">-</span><span class="mf">2.03546983e-05</span>
+   <span class="mf">4.79256197e-04</span> <span class="o">-</span><span class="mf">5.81320754e-04</span><span class="p">]</span>
+ <span class="p">[</span><span class="o">-</span><span class="mf">6.22557723e-04</span>  <span class="mf">6.31892711e-04</span>  <span class="mf">4.34719938e-04</span>  <span class="mf">4.01388769e-04</span>
+  <span class="o">-</span><span class="mf">3.52745774e-04</span> <span class="o">-</span><span class="mf">2.12014739e-04</span>  <span class="mf">8.42548761e-05</span> <span class="o">-</span><span class="mf">4.17321003e-05</span>
+  <span class="o">-</span><span class="mf">1.50760383e-04</span> <span class="o">-</span><span class="mf">3.01455643e-04</span><span class="p">]</span>
+ <span class="p">[</span><span class="o">-</span><span class="mf">8.46202248e-04</span>  <span class="mf">3.61714835e-04</span>  <span class="mf">6.15005890e-04</span>  <span class="mf">5.85452470e-04</span>
+  <span class="o">-</span><span class="mf">2.39872783e-04</span> <span class="o">-</span><span class="mf">1.59000367e-04</span>  <span class="mf">6.24749082e-05</span> <span class="o">-</span><span class="mf">1.69461803e-04</span>
+  <span class="o">-</span><span class="mf">3.16622183e-04</span> <span class="o">-</span><span class="mf">8.20910778e-05</span><span class="p">]</span>
+ <span class="p">[</span> <span class="mf">1.15561552e-03</span> <span class="o">-</span><span class="mf">1.28864368e-03</span> <span class="o">-</span><span class="mf">1.77288000e-03</span> <span class="o">-</span><span class="mf">5.10264071e-04</span>
+   <span class="mf">6.38713553e-04</span>  <span class="mf">7.17730381e-04</span>  <span class="mf">2.05892579e-04</span> <span class="o">-</span><span class="mf">2.69449092e-04</span>
+   <span class="mf">1.71225020e-03</span> <span class="o">-</span><span class="mf">1.13410340e-03</span><span class="p">]</span>
+ <span class="p">[</span> <span class="mf">1.57913703e-04</span>  <span class="mf">6.21168134e-04</span> <span class="o">-</span><span class="mf">4.04695033e-05</span> <span class="o">-</span><span class="mf">1.48187018e-04</span>
+  <span class="o">-</span><span class="mf">4.38037868e-04</span> <span class="o">-</span><span class="mf">1.45409129e-04</span>  <span class="mf">1.34145488e-04</span>  <span class="mf">1.47289692e-04</span>
+   <span class="mf">1.98184939e-04</span> <span class="o">-</span><span class="mf">5.09549810e-04</span><span class="p">]</span>
+ <span class="p">[</span> <span class="mf">5.51365483e-04</span> <span class="o">-</span><span class="mf">1.32683206e-03</span> <span class="o">-</span><span class="mf">1.26345269e-03</span>  <span class="mf">6.01647636e-05</span>
+   <span class="mf">9.72529426e-04</span>  <span class="mf">6.10472383e-04</span> <span class="o">-</span><span class="mf">1.48674297e-05</span> <span class="o">-</span><span class="mf">3.54468161e-04</span>
+   <span class="mf">9.92202367e-04</span> <span class="o">-</span><span class="mf">1.42249517e-04</span><span class="p">]</span>
+ <span class="p">[</span><span class="o">-</span><span class="mf">1.63514531e-03</span> <span class="o">-</span><span class="mf">1.59800828e-04</span>  <span class="mf">1.08957766e-03</span>  <span class="mf">1.01954949e-03</span>
+   <span class="mf">3.41048252e-04</span> <span class="o">-</span><span class="mf">1.06257705e-04</span> <span class="o">-</span><span class="mf">1.57094132e-04</span> <span class="o">-</span><span class="mf">3.64204427e-04</span>
+  <span class="o">-</span><span class="mf">7.26930797e-04</span>  <span class="mf">4.63755883e-04</span><span class="p">]]</span>
+<span class="n">Residual</span> <span class="n">after</span> <span class="mi">30</span> <span class="n">iterations</span><span class="p">:</span> <span class="mf">0.005008539285258121</span>
+</pre></div>
+</div>
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../index.html">CVXPY</a></h1>
+
+
+
+
+
+
+<p>
+<iframe src="https://ghbtns.com/github-btn.html?user=cvxpy&repo=cvxpy&type=star&count=true&size=large&v=2"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
+
+
+
+
+
+<h3>Navigation</h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../install/index.html">Install</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial/index.html">User Guide</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../index.html">Examples</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../api_reference/cvxpy.html">API Documentation</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../faq/index.html">FAQ</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../citing/index.html">Citing CVXPY</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../contributing/index.html">Contributing</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../related_projects/index.html">Related Projects</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../updates/index.html">Changes to CVXPY</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../short_course/index.html">CVXPY Short Course</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../license/index.html">License</a></li>
+</ul>
+
+
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script><div>
+    <h3>
+        Version selector
+    </h3>
+    <select id="dynamic_selector" name="versions" onchange="if (this.value) window.location.href=this.value">
+    </select>
+    <script>
+        obj = $.getJSON("https://raw.githubusercontent.com/cvxpy/cvxpy/gh-pages/versions.json")
+            .done(function (data) {
+                const base_url = "https://www.cvxpy.org/"
+                let html = "<option value='' selected>Choose version here</option>";
+                html += "<option value=" + base_url + ">latest" + ""
+                for (let i = 0; i < data.length; i++) {
+                    html += "<option value=" + base_url + "version/"  + data[i] + ">" + data[i] + ""
+                }
+                document.getElementById("dynamic_selector").innerHTML = html;
+            });
+    </script>
+</div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;The CVXPY authors.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 6.0.0</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="../../_sources/examples/applications/nonneg_matrix_fact.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+    <a href="https://github.com/cvxpy/cvxpy" class="github">
+        <img style="position: absolute; top: 0; right: 0; border: 0;" src="https://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png" alt="Fork me on GitHub"  class="github"/>
+    </a>
+    
+
+    
+    <script type="text/javascript">
+
+      var _gaq = _gaq || [];
+      _gaq.push(['_setAccount', 'UA-50248335-1']);
+      _gaq.push(['_setDomainName', 'none']);
+      _gaq.push(['_setAllowLinker', true]);
+      _gaq.push(['_trackPageview']);
+
+      (function() {
+        var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+        ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+      })();
+
+    </script>
+    
+  </body>
+</html>
