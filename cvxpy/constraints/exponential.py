@@ -151,8 +151,10 @@ class RelEntrConeQuad(Constraint):
     """An approximate construction of the scalar relative entropy cone
 
     Definition:
+
     .. math::
-        K_{re}=\text{cl}\\{(x,y,z)\\in\\mathbb{R}_{++}\\times
+
+        K_{re}=\\text{cl}\\{(x,y,z)\\in\\mathbb{R}_{++}\\times
                 \\mathbb{R}_{++}\\times\\mathbb{R}_{++}\\:x\\log(x/y)\\leq z\\}
 
     Since the above definition is very similar to the ExpCone, we provide a conversion method.
@@ -267,8 +269,10 @@ class OpRelEntrConeQuad(Constraint):
     """An approximate construction of the operator relative entropy cone
 
     Definition:
+
     .. math::
-        K_{re}^n=\text{cl}\\{(X,Y,T)\\in\\mathbb{H}^n_{++}\\times
+
+        K_{re}^n=\\text{cl}\\{(X,Y,T)\\in\\mathbb{H}^n_{++}\\times
                 \\mathbb{H}^n_{++}\\times\\mathbb{H}^n_{++}\\:D_{\\text{op}}\\succeq T\\}
 
     More details on the approximation can be found in Theorem-3 on page-10 in the paper:
