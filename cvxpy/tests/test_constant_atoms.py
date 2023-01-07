@@ -58,8 +58,8 @@ def log_sum_exp_axis_1(x): return cp.log_sum_exp(x, axis=1)  # noqa E371
 
 
 # map from solver name to a list of strings for atoms that fail.
+#   old example: KNOWN_SOLVER_ERRORS[cp.MOSEK] = ['xexp']
 KNOWN_SOLVER_ERRORS = collections.defaultdict(list)
-KNOWN_SOLVER_ERRORS[cp.MOSEK] = ['xexp']
 
 atoms_minimize = [
     (cp.abs, (2, 2), [[[-5, 2], [-3, 1]]],
@@ -76,8 +76,8 @@ atoms_minimize = [
     (cp.diag, (2, 2), [[-5, 1]], Constant([[-5, 0], [0, 1]])),
     (cp.exp, (2, 2), [[[1, 0], [2, -1]]],
      Constant([[math.e, 1], [math.e**2, 1.0 / math.e]])),
-    (lambda x: cp.xexp(cp.pos(x)), (2, 2), [[[1, 0], [2, .5]]],
-     Constant([[math.e, 0], [2 * math.e**2, 0.5 * math.e**.5]])),
+    (lambda x: cp.xexp(cp.pos(x)), (2, 2), [[[1, 3], [2, .5]]],
+     Constant([[math.e, 3 * math.e**3], [2 * math.e**2, 0.5 * math.e**.5]])),
     (cp.huber, (2, 2), [[[0.5, -1.5], [4, 0]]],
      Constant([[0.25, 2], [7, 0]])),
     (lambda x: cp.huber(x, 2.5), (2, 2), [[[0.5, -1.5], [4, 0]]],
