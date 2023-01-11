@@ -1,5 +1,5 @@
 """
-Copyright 2018 Akshay Agrawal
+Copyright 2013 Steven Diamond
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -14,16 +14,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import numpy as np
-
-from cvxpy.expressions.constants.parameter import Parameter
+from cvxpy.reductions.dcp2cone.canonicalizers import log_canon
 
 
-def parameter_canon(expr, args):
-    del args
-    # NB: we do _not_ reuse the original parameter's id. This is important,
-    # because we want to distinguish between parameters in the DGP problem
-    # and parameters in the DCP problem (for differentiation)
-    param = Parameter(expr.shape, name=expr.name())
-    param.value = np.log(expr.value)
-    return param, []
+def log1p_canon(expr, args):
+    return log_canon(expr, [args[0] + 1])

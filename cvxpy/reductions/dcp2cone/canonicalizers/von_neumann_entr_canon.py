@@ -17,8 +17,8 @@ from cvxpy import Variable, lambda_sum_largest, trace
 from cvxpy.atoms.affine.sum import sum
 from cvxpy.constraints.nonpos import NonPos
 from cvxpy.constraints.zero import Zero
-from cvxpy.reductions.dcp2cone.atom_canonicalizers.entr_canon import entr_canon
-from cvxpy.reductions.dcp2cone.atom_canonicalizers.lambda_sum_largest_canon import (
+from cvxpy.reductions.dcp2cone.canonicalizers.entr_canon import entr_canon
+from cvxpy.reductions.dcp2cone.canonicalizers.lambda_sum_largest_canon import (
     lambda_sum_largest_canon,)
 
 

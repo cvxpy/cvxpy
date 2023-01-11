@@ -21,7 +21,7 @@ from cvxpy.atoms.affine.upper_tri import vec_to_upper_tri
 from cvxpy.atoms.elementwise.log import log
 from cvxpy.constraints.psd import PSD
 from cvxpy.expressions.variable import Variable
-from cvxpy.reductions.dcp2cone.atom_canonicalizers.log_canon import log_canon
+from cvxpy.reductions.dcp2cone.canonicalizers.log_canon import log_canon
 
 
 def log_det_canon(expr, args):

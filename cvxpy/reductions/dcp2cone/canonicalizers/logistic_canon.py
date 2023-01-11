@@ -14,19 +14,20 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from cvxpy.atoms.affine.sum import sum
+import numpy as np
+
+from cvxpy.expressions.constants import Constant
 from cvxpy.expressions.variable import Variable
+from cvxpy.reductions.dcp2cone.canonicalizers.exp_canon import exp_canon
 
 
-def sum_largest_canon(expr, args):
+def logistic_canon(expr, args):
     x = args[0]
-    k = expr.k
-
-    # min sum(t) + kq
-    # s.t. x <= t + q
-    #      0 <= t
-    t = Variable(x.shape)
-    q = Variable()
-    obj = sum(t) + k*q
-    constraints = [x <= t + q, t >= 0]
-    return obj, constraints
+    shape = expr.shape
+    # log(1 + exp(x)) <= t <=> exp(-t) + exp(x - t) <= 1
+    t0 = Variable(shape)
+    t1, constr1 = exp_canon(expr, [-t0])
+    t2, constr2 = exp_canon(expr, [x - t0])
+    ones = Constant(np.ones(shape))
+    constraints = constr1 + constr2 + [t1 + t2 <= ones]
+    return t0, constraints

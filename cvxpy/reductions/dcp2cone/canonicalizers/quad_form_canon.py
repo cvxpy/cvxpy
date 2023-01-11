@@ -17,7 +17,7 @@ limitations under the License.
 from cvxpy.atoms import sum_squares
 from cvxpy.atoms.quad_form import decomp_quad
 from cvxpy.expressions.constants import Constant
-from cvxpy.reductions.dcp2cone.atom_canonicalizers.quad_over_lin_canon import (
+from cvxpy.reductions.dcp2cone.canonicalizers.quad_over_lin_canon import (
     quad_over_lin_canon,)
 
 
