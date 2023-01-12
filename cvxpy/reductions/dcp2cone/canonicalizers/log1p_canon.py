@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from cvxpy.reductions.dcp2cone.canonicalizers import log_canon
+from cvxpy.reductions.dcp2cone.canonicalizers.log_canon import log_canon
 
 
 def log1p_canon(expr, args):
