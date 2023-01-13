@@ -3,7 +3,7 @@ import pytest
 
 import cvxpy
 import cvxpy.error as error
-import cvxpy.reductions.dgp2dcp.atom_canonicalizers as dgp_atom_canon
+import cvxpy.reductions.dgp2dcp.canonicalizers as dgp_atom_canon
 from cvxpy.atoms.affine.add_expr import AddExpression
 from cvxpy.reductions import solution
 from cvxpy.settings import SOLVER_ERROR

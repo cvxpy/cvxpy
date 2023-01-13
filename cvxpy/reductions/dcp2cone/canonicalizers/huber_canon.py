@@ -1,5 +1,5 @@
 """
-Copyright 2018 CVXPY.
+Copyright 2013 Steven Diamond
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -17,10 +17,8 @@ limitations under the License.
 from cvxpy.atoms.elementwise.abs import abs
 from cvxpy.atoms.elementwise.power import power
 from cvxpy.expressions.variable import Variable
-from cvxpy.reductions.eliminate_pwl.atom_canonicalizers.abs_canon import (
-    abs_canon,)
-from cvxpy.reductions.qp2quad_form.atom_canonicalizers.power_canon import (
-    power_canon,)
+from cvxpy.reductions.dcp2cone.canonicalizers.power_canon import power_canon
+from cvxpy.reductions.eliminate_pwl.canonicalizers.abs_canon import abs_canon
 
 
 def huber_canon(expr, args):
@@ -39,7 +37,7 @@ def huber_canon(expr, args):
     abs_s, constr_abs = abs_canon(abs_expr, abs_expr.args)
     obj = n2 + 2 * M * abs_s
 
+    # x == s + n
     constraints = constr_sq + constr_abs
     constraints.append(x == s + n)
-
     return obj, constraints

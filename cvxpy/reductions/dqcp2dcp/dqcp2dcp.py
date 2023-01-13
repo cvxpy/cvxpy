@@ -28,7 +28,7 @@ from cvxpy.expressions.constants.parameter import Parameter
 from cvxpy.expressions.variable import Variable
 from cvxpy.problems.objective import Minimize
 from cvxpy.reductions.canonicalization import Canonicalization
-from cvxpy.reductions.dcp2cone.atom_canonicalizers import CANON_METHODS
+from cvxpy.reductions.dcp2cone.canonicalizers import CANON_METHODS
 from cvxpy.reductions.dqcp2dcp import inverse, sets, tighten
 from cvxpy.reductions.inverse_data import InverseData
 from cvxpy.reductions.solution import Solution

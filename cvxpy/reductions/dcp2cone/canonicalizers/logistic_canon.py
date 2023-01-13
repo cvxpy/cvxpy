@@ -18,7 +18,7 @@ import numpy as np
 
 from cvxpy.expressions.constants import Constant
 from cvxpy.expressions.variable import Variable
-from cvxpy.reductions.dcp2cone.atom_canonicalizers.exp_canon import exp_canon
+from cvxpy.reductions.dcp2cone.canonicalizers.exp_canon import exp_canon
 
 
 def logistic_canon(expr, args):

@@ -15,7 +15,7 @@ limitations under the License.
 """
 
 from cvxpy.atoms.elementwise.maximum import maximum
-from cvxpy.reductions.eliminate_pwl.atom_canonicalizers.maximum_canon import (
+from cvxpy.reductions.eliminate_pwl.canonicalizers.maximum_canon import (
     maximum_canon,)
 
 

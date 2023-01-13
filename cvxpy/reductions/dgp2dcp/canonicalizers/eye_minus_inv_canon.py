@@ -2,9 +2,9 @@ from cvxpy.atoms.affine.binary_operators import matmul
 from cvxpy.atoms.affine.diag import diag
 from cvxpy.atoms.one_minus_pos import one_minus_pos
 from cvxpy.expressions.variable import Variable
-from cvxpy.reductions.dgp2dcp.atom_canonicalizers.mulexpression_canon import (
+from cvxpy.reductions.dgp2dcp.canonicalizers.mulexpression_canon import (
     mulexpression_canon,)
-from cvxpy.reductions.dgp2dcp.atom_canonicalizers.one_minus_pos_canon import (
+from cvxpy.reductions.dgp2dcp.canonicalizers.one_minus_pos_canon import (
     one_minus_pos_canon,)
 
 

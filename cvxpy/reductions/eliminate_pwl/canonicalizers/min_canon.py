@@ -15,8 +15,7 @@ limitations under the License.
 """
 
 from cvxpy.atoms.max import max
-from cvxpy.reductions.eliminate_pwl.atom_canonicalizers.max_canon import (
-    max_canon,)
+from cvxpy.reductions.eliminate_pwl.canonicalizers.max_canon import max_canon
 
 
 def min_canon(expr, args):

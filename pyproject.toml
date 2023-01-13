@@ -4,7 +4,7 @@ use_parentheses = true
 extend_skip = [
     "cvxpy/__init__.py",
     "cvxpy/reductions/__init__.py",
-    "cvxpy/reductions/dcp2cone/atom_canonicalizers/__init__.py"
+    "cvxpy/reductions/dcp2cone/canonicalizers/__init__.py"
 ]
 
 [tool.pytest.ini_options]

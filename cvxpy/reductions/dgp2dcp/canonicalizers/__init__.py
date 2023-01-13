@@ -27,43 +27,38 @@ from cvxpy.atoms.quad_over_lin import quad_over_lin
 from cvxpy.expressions.constants.constant import Constant
 from cvxpy.expressions.constants.parameter import Parameter
 from cvxpy.expressions.variable import Variable
-from cvxpy.reductions.dgp2dcp.atom_canonicalizers.add_canon import add_canon
-from cvxpy.reductions.dgp2dcp.atom_canonicalizers.constant_canon import (
+from cvxpy.reductions.dgp2dcp.canonicalizers.add_canon import add_canon
+from cvxpy.reductions.dgp2dcp.canonicalizers.constant_canon import (
     constant_canon,)
-from cvxpy.reductions.dgp2dcp.atom_canonicalizers.div_canon import div_canon
-from cvxpy.reductions.dgp2dcp.atom_canonicalizers.exp_canon import exp_canon
-from cvxpy.reductions.dgp2dcp.atom_canonicalizers.eye_minus_inv_canon import (
+from cvxpy.reductions.dgp2dcp.canonicalizers.div_canon import div_canon
+from cvxpy.reductions.dgp2dcp.canonicalizers.exp_canon import exp_canon
+from cvxpy.reductions.dgp2dcp.canonicalizers.eye_minus_inv_canon import (
     eye_minus_inv_canon,)
-from cvxpy.reductions.dgp2dcp.atom_canonicalizers.geo_mean_canon import (
+from cvxpy.reductions.dgp2dcp.canonicalizers.geo_mean_canon import (
     geo_mean_canon,)
-from cvxpy.reductions.dgp2dcp.atom_canonicalizers.gmatmul_canon import (
-    gmatmul_canon,)
-from cvxpy.reductions.dgp2dcp.atom_canonicalizers.log_canon import log_canon
-from cvxpy.reductions.dgp2dcp.atom_canonicalizers.mul_canon import mul_canon
-from cvxpy.reductions.dgp2dcp.atom_canonicalizers.mulexpression_canon import (
+from cvxpy.reductions.dgp2dcp.canonicalizers.gmatmul_canon import gmatmul_canon
+from cvxpy.reductions.dgp2dcp.canonicalizers.log_canon import log_canon
+from cvxpy.reductions.dgp2dcp.canonicalizers.mul_canon import mul_canon
+from cvxpy.reductions.dgp2dcp.canonicalizers.mulexpression_canon import (
     mulexpression_canon,)
-from cvxpy.reductions.dgp2dcp.atom_canonicalizers.norm1_canon import (
-    norm1_canon,)
-from cvxpy.reductions.dgp2dcp.atom_canonicalizers.norm_inf_canon import (
+from cvxpy.reductions.dgp2dcp.canonicalizers.norm1_canon import norm1_canon
+from cvxpy.reductions.dgp2dcp.canonicalizers.norm_inf_canon import (
     norm_inf_canon,)
-from cvxpy.reductions.dgp2dcp.atom_canonicalizers.one_minus_pos_canon import (
+from cvxpy.reductions.dgp2dcp.canonicalizers.one_minus_pos_canon import (
     one_minus_pos_canon,)
-from cvxpy.reductions.dgp2dcp.atom_canonicalizers.pf_eigenvalue_canon import (
+from cvxpy.reductions.dgp2dcp.canonicalizers.pf_eigenvalue_canon import (
     pf_eigenvalue_canon,)
-from cvxpy.reductions.dgp2dcp.atom_canonicalizers.pnorm_canon import (
-    pnorm_canon,)
-from cvxpy.reductions.dgp2dcp.atom_canonicalizers.power_canon import (
-    power_canon,)
-from cvxpy.reductions.dgp2dcp.atom_canonicalizers.prod_canon import prod_canon
-from cvxpy.reductions.dgp2dcp.atom_canonicalizers.quad_form_canon import (
+from cvxpy.reductions.dgp2dcp.canonicalizers.pnorm_canon import pnorm_canon
+from cvxpy.reductions.dgp2dcp.canonicalizers.power_canon import power_canon
+from cvxpy.reductions.dgp2dcp.canonicalizers.prod_canon import prod_canon
+from cvxpy.reductions.dgp2dcp.canonicalizers.quad_form_canon import (
     quad_form_canon,)
-from cvxpy.reductions.dgp2dcp.atom_canonicalizers.quad_over_lin_canon import (
+from cvxpy.reductions.dgp2dcp.canonicalizers.quad_over_lin_canon import (
     quad_over_lin_canon,)
-from cvxpy.reductions.dgp2dcp.atom_canonicalizers.sum_canon import sum_canon
-from cvxpy.reductions.dgp2dcp.atom_canonicalizers.trace_canon import (
-    trace_canon,)
-from cvxpy.reductions.dgp2dcp.atom_canonicalizers.xexp_canon import xexp_canon
-from cvxpy.reductions.eliminate_pwl.atom_canonicalizers import (
+from cvxpy.reductions.dgp2dcp.canonicalizers.sum_canon import sum_canon
+from cvxpy.reductions.dgp2dcp.canonicalizers.trace_canon import trace_canon
+from cvxpy.reductions.dgp2dcp.canonicalizers.xexp_canon import xexp_canon
+from cvxpy.reductions.eliminate_pwl.canonicalizers import (
     CANON_METHODS as PWL_METHODS,)
 
 CANON_METHODS = {

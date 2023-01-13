@@ -16,27 +16,24 @@ limitations under the License.
 
 from cvxpy.atoms import (abs, cummax, cumsum, dotsort, max, maximum, min,
                          minimum, norm1, norm_inf, sum_largest,)
-from cvxpy.reductions.eliminate_pwl.atom_canonicalizers.abs_canon import (
-    abs_canon,)
-from cvxpy.reductions.eliminate_pwl.atom_canonicalizers.cummax_canon import (
+from cvxpy.reductions.eliminate_pwl.canonicalizers.abs_canon import abs_canon
+from cvxpy.reductions.eliminate_pwl.canonicalizers.cummax_canon import (
     cummax_canon,)
-from cvxpy.reductions.eliminate_pwl.atom_canonicalizers.cumsum_canon import (
+from cvxpy.reductions.eliminate_pwl.canonicalizers.cumsum_canon import (
     cumsum_canon,)
-from cvxpy.reductions.eliminate_pwl.atom_canonicalizers.dotsort_canon import (
+from cvxpy.reductions.eliminate_pwl.canonicalizers.dotsort_canon import (
     dotsort_canon,)
-from cvxpy.reductions.eliminate_pwl.atom_canonicalizers.max_canon import (
-    max_canon,)
-from cvxpy.reductions.eliminate_pwl.atom_canonicalizers.maximum_canon import (
+from cvxpy.reductions.eliminate_pwl.canonicalizers.max_canon import max_canon
+from cvxpy.reductions.eliminate_pwl.canonicalizers.maximum_canon import (
     maximum_canon,)
-from cvxpy.reductions.eliminate_pwl.atom_canonicalizers.min_canon import (
-    min_canon,)
-from cvxpy.reductions.eliminate_pwl.atom_canonicalizers.minimum_canon import (
+from cvxpy.reductions.eliminate_pwl.canonicalizers.min_canon import min_canon
+from cvxpy.reductions.eliminate_pwl.canonicalizers.minimum_canon import (
     minimum_canon,)
-from cvxpy.reductions.eliminate_pwl.atom_canonicalizers.norm1_canon import (
+from cvxpy.reductions.eliminate_pwl.canonicalizers.norm1_canon import (
     norm1_canon,)
-from cvxpy.reductions.eliminate_pwl.atom_canonicalizers.norm_inf_canon import (
+from cvxpy.reductions.eliminate_pwl.canonicalizers.norm_inf_canon import (
     norm_inf_canon,)
-from cvxpy.reductions.eliminate_pwl.atom_canonicalizers.sum_largest_canon import (
+from cvxpy.reductions.eliminate_pwl.canonicalizers.sum_largest_canon import (
     sum_largest_canon,)
 
 CANON_METHODS = {

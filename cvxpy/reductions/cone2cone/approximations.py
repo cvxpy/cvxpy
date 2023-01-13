@@ -26,7 +26,7 @@ from cvxpy.constraints.exponential import (ExpCone, OpRelEntrConeQuad,
 from cvxpy.constraints.zero import Zero
 from cvxpy.expressions.variable import Variable
 from cvxpy.reductions.canonicalization import Canonicalization
-from cvxpy.reductions.dcp2cone.atom_canonicalizers.von_neumann_entr_canon import (
+from cvxpy.reductions.dcp2cone.canonicalizers.von_neumann_entr_canon import (
     von_neumann_entr_canon,)
 
 APPROX_CONES = {

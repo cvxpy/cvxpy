@@ -16,8 +16,7 @@ limitations under the License.
 
 from cvxpy.atoms.affine.sum import sum
 from cvxpy.atoms.elementwise.abs import abs
-from cvxpy.reductions.eliminate_pwl.atom_canonicalizers.abs_canon import (
-    abs_canon,)
+from cvxpy.reductions.eliminate_pwl.canonicalizers.abs_canon import abs_canon
 
 
 def norm1_canon(expr, args):

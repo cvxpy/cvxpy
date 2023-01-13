@@ -1,4 +1,4 @@
-from cvxpy.reductions.dgp2dcp.atom_canonicalizers.add_canon import add_canon
+from cvxpy.reductions.dgp2dcp.canonicalizers.add_canon import add_canon
 from cvxpy.reductions.dgp2dcp.util import explicit_sum
 
 

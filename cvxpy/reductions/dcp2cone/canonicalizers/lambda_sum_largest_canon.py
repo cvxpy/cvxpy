@@ -16,7 +16,7 @@ limitations under the License.
 
 from cvxpy.atoms import trace
 from cvxpy.expressions.variable import Variable
-from cvxpy.reductions.dcp2cone.atom_canonicalizers.lambda_max_canon import (
+from cvxpy.reductions.dcp2cone.canonicalizers.lambda_max_canon import (
     lambda_max_canon,)
 
 

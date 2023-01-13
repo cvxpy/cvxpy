@@ -1,5 +1,5 @@
 from cvxpy.atoms.affine.sum import sum
-from cvxpy.reductions.dgp2dcp.atom_canonicalizers.sum_canon import sum_canon
+from cvxpy.reductions.dgp2dcp.canonicalizers.sum_canon import sum_canon
 
 
 def norm1_canon(expr, args):
