@@ -4,6 +4,10 @@ import scipy.sparse as spar
 import scipy.sparse.linalg as sparla
 
 
+class CVXPYArpackNoConvergence(sparla.ArpackNoConvergence):
+    pass
+
+
 def orth(V, tol=1e-12):
     """Return a matrix whose columns are an orthonormal basis for range(V)"""
     Q, R, p = la.qr(V, mode='economic', pivoting=True)
@@ -79,12 +83,26 @@ def is_psd_within_tol(A, tol):
     ev = np.NaN
     try:
         ev = SA_eigsh(-tol)  # might return np.NaN, or raise exception
-    finally:
-        if np.isnan(ev).all():
-            # will be NaN if A has an eigenvalue which is exactly -tol
-            # (We might also hit this code block for other reasons.)
-            temp = tol - np.finfo(A.dtype).eps
-            ev = SA_eigsh(-temp)
+    except sparla.ArpackNoConvergence as e:
+        # This is a numerical issue. We can't certify that A is PSD.
+
+        message = """
+        CVXPY note: This failure was encountered while trying to certify
+        that a matrix is positive semidefinite. In rare cases, this method
+        fails for numerical reasons even when the matrix is positive semidefinite.
+        If you know that you're in that situation, you can replace the matrix A by
+        cvxpy.psd_wrap(A).
+        """
+
+        error_with_note = f"{str(e)}\n\n{message}"
+
+        raise sparla.ArpackNoConvergence(error_with_note, e.eigenvalues, e.eigenvectors)
+
+    if np.isnan(ev).all():
+        # will be NaN if A has an eigenvalue which is exactly -tol
+        # (We might also hit this code block for other reasons.)
+        temp = tol - np.finfo(A.dtype).eps
+        ev = SA_eigsh(-temp)
 
     return np.all(ev >= -tol)
 
