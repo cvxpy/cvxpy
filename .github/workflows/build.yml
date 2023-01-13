@@ -237,7 +237,7 @@ jobs:
         shell: bash
         if: ${{env.DEPLOY == 'True'}}
         run: |
-          twine upload --skip-existing --repository-url $PYPI_SERVER wheelhouse/* -u $PYPI_USER -p $PYPI_PASSWORD
+          twine upload --skip-existing --repository-url $PYPI_SERVER wheelhouse/* -u $PYPI_USER -p $PYPI_BASE_PASSWORD
 
       - name: Upload artifacts to github
         if: ${{github.event_name == 'push'}}
