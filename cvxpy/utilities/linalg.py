@@ -4,10 +4,6 @@ import scipy.sparse as spar
 import scipy.sparse.linalg as sparla
 
 
-class CVXPYArpackNoConvergence(sparla.ArpackNoConvergence):
-    pass
-
-
 def orth(V, tol=1e-12):
     """Return a matrix whose columns are an orthonormal basis for range(V)"""
     Q, R, p = la.qr(V, mode='economic', pivoting=True)
