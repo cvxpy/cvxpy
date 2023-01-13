@@ -9,7 +9,7 @@ on:
         tags:
           - '*'
 
-# https://docs.github.com/en/enterprise-cloud@latest/actions/using-jobs/using-concurrency#example-using-a-fallback-value
+# https://docs.github.com/en/actions/using-jobs/using-concurrency#example-using-a-fallback-value
 # Only cancels-in-progress on PRs (head_ref only defined in PR, fallback run_id always unique)
 concurrency:
   group: ${{ github.head_ref || github.run_id }}
