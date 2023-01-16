@@ -1,6 +1,35 @@
 import numpy as np
+import scipy.linalg as la
 import scipy.sparse as spar
 import scipy.sparse.linalg as sparla
+
+
+def orth(V, tol=1e-12):
+    """Return a matrix whose columns are an orthonormal basis for range(V)"""
+    Q, R, p = la.qr(V, mode='economic', pivoting=True)
+    # ^ V[:, p] == Q @ R.
+    rank = np.count_nonzero(np.sum(np.abs(R) > tol, axis=1))
+    Q = Q[:, :rank].reshape((V.shape[0], rank))  # ensure 2-dimensional
+    return Q
+
+
+def onb_for_orthogonal_complement(V):
+    """
+    Let U = the orthogonal complement of range(V).
+
+    This function returns an array Q whose columns are
+    an orthonormal basis for U. It requires that dim(U) > 0.
+    """
+    n = V.shape[0]
+    Q1 = orth(V)
+    rank = Q1.shape[1]
+    assert n > rank
+    if np.iscomplexobj(V):
+        P = np.eye(n) - Q1 @ Q1.conj().T
+    else:
+        P = np.eye(n) - Q1 @ Q1.T
+    Q2 = orth(P)
+    return Q2
 
 
 def is_psd_within_tol(A, tol):

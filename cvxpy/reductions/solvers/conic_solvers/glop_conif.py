@@ -51,6 +51,11 @@ class GLOP(ConicSolver):
         if Version(ortools.__version__) < Version('9.3.0'):
             raise RuntimeError(f'Version of ortools ({ortools.__version__}) '
                                f'is too old. Expected >= 9.3.0.')
+        if Version(ortools.__version__) >= Version('9.5.0'):
+            raise RuntimeError('Unrecognized new version of ortools '
+                               f'({ortools.__version__}). Expected < 9.5.0.'
+                               'Please open a feature request on cvxpy to '
+                               'enable support for this version.')
         ortools, google.protobuf  # For flake8
 
     def apply(self, problem: ParamConeProg) -> Tuple[Dict, Dict]:
@@ -152,7 +157,7 @@ class GLOP(ConicSolver):
             if not solver.SetSolverSpecificParametersAsString(proto_str):
                 return {"status": s.SOLVER_ERROR}
         if "time_limit_sec" in solver_opts:
-            solver.SetTimeLimit(1000 * float(solver_opts["time_limit_sec"]))
+            solver.SetTimeLimit(int(1000 * solver_opts["time_limit_sec"]))
         solver.Solve()
         solver.FillSolutionResponseProto(response)
 

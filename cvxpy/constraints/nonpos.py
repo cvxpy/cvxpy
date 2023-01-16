@@ -41,6 +41,8 @@ class NonPos(Constraint):
     """
     def __init__(self, expr, constr_id=None) -> None:
         super(NonPos, self).__init__([expr], constr_id)
+        if not self.args[0].is_real():
+            raise ValueError("Input to NonPos must be real.")
 
     def name(self) -> str:
         return "%s <= 0" % self.args[0]
@@ -100,6 +102,8 @@ class NonNeg(Constraint):
     """
     def __init__(self, expr, constr_id=None) -> None:
         super(NonNeg, self).__init__([expr], constr_id)
+        if not self.args[0].is_real():
+            raise ValueError("Input to NonNeg must be real.")
 
     def name(self) -> str:
         return "0 <= %s" % self.args[0]

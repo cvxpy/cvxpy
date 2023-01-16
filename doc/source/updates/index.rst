@@ -4,7 +4,41 @@ Changes to CVXPY
 ================
 
 This page details changes made to CVXPY over time, in reverse chronological order.
-CVXPY's project maintainers currently provide support for CVXPY 1.2 and 1.1.
+CVXPY's project maintainers currently provide support for CVXPY 1.3 and 1.2, with
+limited support for 1.1.
+
+CVXPY 1.3
+---------
+CVXPY 1.3 brings many new features, bug fixes, and performance improvements. It introduces a new
+:ref:`SciPy-based backend <canonicalization-backends>` and formalizes the public API of CVXPY as everything that is
+importable directly from the ``cvxpy`` namespace.
+We plan to introduce a ``cvxpy.experimental`` namespace for features in development where
+the API has not yet been fixed. It is explicitly not a part of our API whether atoms are implemented by functions
+or classes, e.g. we do not consider replacing ``cvxpy.power``, which is currently a class, with a function to be a
+breaking change or replacing ``cp.quad_form`` which is a function to become a class to be a breaking change.
+Code of the form ``cvxpy.power(a, b)`` is guaranteed to remain working.
+
+Constraints and atoms
+~~~~~~~~~~~~~~~~~~~~~
+- :ref:`FiniteSet <finite_set>`
+- :ref:`RelEntrConeQuad <rel_entr_cone_quad>`
+- :ref:`OpRelEntrConeQuad <op_rel_entr_cone_quad>`
+- :ref:`dotsort(X,W) <dotsort>`
+- :ref:`tr_inv(X) <tr_inv>`
+- :ref:`von_neumann_entr(X) <von-neumann-entr>`
+- :ref:`perspective(f(x),s) <perspective>`
+
+Solver interfaces
+~~~~~~~~~~~~~~~~~
+- :ref:`New interfaces <solvers>`: COPT, SDPA, Clarabel, and proxqp
+
+General system improvements
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+- Support for native quadratic forms (``x.T @ P @ x``)
+- The new OpRelEntrConeQuad constraint class is the first major piece of our effort to improve support for quantum
+  information modeling (`GSOC project <https://github.com/cvxpy/org/blob/main/GSoC2022/aryamanjeendgar/final_report.pdf>`_)
+- Continuous performance benchmarking (`GSOC project <https://github.com/cvxpy/org/blob/main/GSoC2022/parthb83/final_report.md>`_)
+
 
 CVXPY 1.2
 ---------

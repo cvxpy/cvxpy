@@ -24,10 +24,11 @@ import cvxpy.interface.matrix_utilities as intf
 import cvxpy.settings as s
 from cvxpy import Minimize, Problem
 from cvxpy.atoms.affine.add_expr import AddExpression
+from cvxpy.atoms.affine.wraps import psd_wrap
 from cvxpy.expressions.constants import Constant, Parameter
 from cvxpy.expressions.variable import Variable
 from cvxpy.tests.base_test import BaseTest
-from cvxpy.utilities.eigvals import gershgorin_psd_check
+from cvxpy.utilities.linalg import gershgorin_psd_check
 
 
 class TestExpressions(BaseTest):
@@ -62,6 +63,9 @@ class TestExpressions(BaseTest):
 
         self.assertEqual(repr(self.x), "Variable((2,))")
         self.assertEqual(repr(self.A), "Variable((2, 2))")
+
+        # Test shape provided as list instead of tuple
+        self.assertEqual(cp.Variable(shape=[2], integer=True).shape, (2,))
 
         # # Scalar variable
         # coeff = self.a.coefficients()
@@ -275,6 +279,59 @@ class TestExpressions(BaseTest):
         Q = -1.1*s.EIGVAL_TOL*P
         self.assertFalse(gershgorin_psd_check(Q.value, s.EIGVAL_TOL))
         self.assertFalse(Q.is_psd())
+
+    def test_constant_skew_symmetric(self) -> None:
+        # Define inputs
+        M1_false = np.eye(3)
+        M2_true = np.zeros((3, 3))
+        M3_true = np.array([[0, 1], [-1, 0]])
+        M4_true = np.array([[0, -1], [1, 0]])
+        M5_false = np.array([[0, 1], [1,  0]])
+        M6_false = np.array([[1, 1], [-1, 0]])
+        M7_false = np.array([[0, 1], [-1.1, 0]])
+
+        # Test dense constants
+        C = Constant(M1_false)
+        self.assertFalse(C.is_skew_symmetric())
+        C = Constant(M2_true)
+        self.assertTrue(C.is_skew_symmetric())
+        C = Constant(M3_true)
+        self.assertTrue(C.is_skew_symmetric())
+        C = Constant(M4_true)
+        self.assertTrue(C.is_skew_symmetric())
+        C = Constant(M5_false)
+        self.assertFalse(C.is_skew_symmetric())
+        C = Constant(M6_false)
+        self.assertFalse(C.is_skew_symmetric())
+        C = Constant(M7_false)
+        self.assertFalse(C.is_skew_symmetric())
+
+        # Test sparse constants
+        C = Constant(sp.csc_matrix(M1_false))
+        self.assertFalse(C.is_skew_symmetric())
+        C = Constant(sp.csc_matrix(M2_true))
+        self.assertTrue(C.is_skew_symmetric())
+        C = Constant(sp.csc_matrix(M4_true))
+        self.assertTrue(C.is_skew_symmetric())
+        C = Constant(sp.csc_matrix(M5_false))
+        self.assertFalse(C.is_skew_symmetric())
+        C = Constant(sp.csc_matrix(M6_false))
+        self.assertFalse(C.is_skew_symmetric())
+        C = Constant(sp.csc_matrix(M7_false))
+        self.assertFalse(C.is_skew_symmetric())
+
+        # Test complex inputs: never recognized as skew-symmetric.
+        C = Constant(1j * M2_true)
+        self.assertFalse(C.is_skew_symmetric())
+        #   ^ From a mathematical standpoint one can argue that this should
+        #     be true, but I don't think there's precedent for CVXPY
+        #     automatically converting complex expressions with zero imaginary-part
+        #     into equivalent real expressions. -- Riley
+        C = Constant(1j * M3_true)
+        self.assertFalse(C.is_skew_symmetric())
+        C = Constant(1j * M4_true)
+        self.assertFalse(C.is_skew_symmetric())
+        pass
 
     def test_1D_array(self) -> None:
         """Test NumPy 1D arrays as constants.
@@ -1282,3 +1339,93 @@ class TestExpressions(BaseTest):
 
         llcv = 1/(x*x*x + x)
         assert llcv.curvature == s.LOG_LOG_CONCAVE
+
+    def test_quad_form_matmul(self) -> None:
+        """Test conversion of native x.T @ A @ x into QuadForms.
+        """
+
+        # Trivial quad form
+        x = Variable(shape=(2,))
+        A = Constant([[1, 0], [0, -1]])
+        expr = x.T.__matmul__(A).__matmul__(x)
+        assert isinstance(expr, cp.QuadForm)
+
+        # QuadForm inside nested expr: 0.5 * (x.T @ A @ x) + x.T @ x
+        x = Variable(shape=(2,))
+        A = Constant([[1, 0], [0, -1]])
+        expr = (1 / 2) * (x.T.__matmul__(A).__matmul__(x)) + x.T.__matmul__(x)
+        assert isinstance(expr.args[0].args[1], cp.QuadForm)
+        assert expr.args[0].args[1].args[0] is x
+
+        # QuadForm inside nested expr: (0.5 * c.T @ c) * (x.T @ A @ x) + x.T @ x
+        x = Variable(shape=(2,))
+        A = Constant([[1, 0], [0, -1]])
+        c = Constant([2, -2])
+        expr = (1 / 2 * c.T.__matmul__(c)) * (x.T.__matmul__(A).__matmul__(x)) + x.T.__matmul__(x)
+        assert isinstance(expr.args[0].args[1], cp.QuadForm)
+        assert expr.args[0].args[1].args[0] is x
+
+        # QuadForm with sparse matrices
+        x = Variable(shape=(2,))
+        A = Constant(sp.eye(2))
+        expr = x.T.__matmul__(A).__matmul__(x)
+        assert isinstance(expr, cp.QuadForm)
+
+        # QuadForm with mismatched dimensions raises error
+        x = Variable(shape=(2,))
+        A = Constant(np.eye(3))
+        with self.assertRaises(Exception) as _:
+            x.T.__matmul__(A).__matmul__(x)
+
+        # QuadForm with PSD-wrapped matrix
+        x = cp.Variable(shape=(2,))
+        A = cp.Constant([[1, 0], [0, 1]])
+        expr = x.T.__matmul__(psd_wrap(A)).__matmul__(x)
+        assert isinstance(expr, cp.QuadForm)
+
+        # QuadForm with nested subexpr
+        x = cp.Variable(shape=(2,))
+        A = cp.Constant([[2, 0, 0], [0, 0, 1]])
+        M = cp.Constant([[2, 0, 0], [0, 2, 0], [0, 0, 2]])
+        b = cp.Constant([1, 2, 3])
+
+        y = A.__matmul__(x) - b
+        expr = y.T.__matmul__(M).__matmul__(y)
+        assert isinstance(expr, cp.QuadForm)
+        assert expr.args[0] is y
+        assert expr.args[1] is M
+
+        # QuadForm with parameters
+        x = Variable(shape=(2,))
+        A = Parameter(shape=(2, 2), symmetric=True)
+        expr = x.T.__matmul__(A).__matmul__(x)
+        assert isinstance(expr, cp.QuadForm)
+
+        # Expect error for asymmetric/nonhermitian matrices
+        x = Variable(shape=(2,))
+        A = Constant([[1, 0], [1, 1]])
+        with self.assertRaises(ValueError) as _:
+            x.T.__matmul__(A).__matmul__(x)
+
+        x = Variable(shape=(2,))
+        A = Constant([[1, 1j], [1j, 1]])
+        with self.assertRaises(ValueError) as _:
+            x.T.__matmul__(A).__matmul__(x)
+
+        # Not a quad_form because x.T @ A @ y where x, y not necessarily equal
+        x = Variable(shape=(2,))
+        y = Variable(shape=(2,))
+        A = Constant([[1, 0], [0, -1]])
+        expr = x.T.__matmul__(A).__matmul__(y)
+        assert not isinstance(expr, cp.QuadForm)
+
+        # Not a quad_form because M is variable
+        x = Variable(shape=(2,))
+        M = Variable(shape=(2, 2))
+        expr = x.T.__matmul__(M).__matmul__(x)
+        assert not isinstance(expr, cp.QuadForm)
+
+        x = Constant([1, 0])
+        M = Variable(shape=(2, 2))
+        expr = x.T.__matmul__(M).__matmul__(x)
+        assert not isinstance(expr, cp.QuadForm)

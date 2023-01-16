@@ -78,7 +78,7 @@ class TestConstraints(BaseTest):
         self.assertEqual(copy.args, constr.args)
         self.assertFalse(copy.args is constr.args)
         # Test copy with new args
-        copy = constr.copy(args=[self.A])
+        copy = constr.copy(args=[self.A, self.B])
         self.assertTrue(type(copy) is type(constr))
         self.assertTrue(copy.args[0] is self.A)
 
@@ -122,7 +122,7 @@ class TestConstraints(BaseTest):
         self.assertEqual(copy.args, constr.args)
         self.assertFalse(copy.args is constr.args)
         # Test copy with new args
-        copy = constr.copy(args=[self.A])
+        copy = constr.copy(args=[self.A, self.B])
         self.assertTrue(type(copy) is type(constr))
         self.assertTrue(copy.args[0] is self.A)
 
@@ -208,6 +208,69 @@ class TestConstraints(BaseTest):
         with self.assertRaises(Exception) as cm:
             SOC(Variable(1), Variable((1, 4)))
         self.assertEqual(str(cm.exception), error_str)
+
+        # Test residual.
+        # 1D
+        n = 5
+        x0 = np.arange(n)
+        t0 = 2
+        x = cp.Variable(n, value=x0)
+        t = cp.Variable(value=t0)
+        resid = SOC(t, x).residual
+        assert resid.ndim == 0
+        dist = cp.sum_squares(x - x0) + cp.square(t - t0)
+        prob = cp.Problem(cp.Minimize(dist), [SOC(t, x)])
+        prob.solve()
+        self.assertAlmostEqual(np.sqrt(dist.value), resid)
+
+        # 2D, axis = 0.
+        n = 5
+        k = 3
+        x0 = np.arange(n * k).reshape((n, k))
+        t0 = np.array([1, 2, 3])
+        x = cp.Variable((n, k), value=x0)
+        t = cp.Variable(k, value=t0)
+        resid = SOC(t, x, axis=0).residual
+        assert resid.shape == (k,)
+        for i in range(k):
+            dist = cp.sum_squares(x[:, i] - x0[:, i]) + cp.sum_squares(t[i] - t0[i])
+            prob = cp.Problem(cp.Minimize(dist), [SOC(t[i], x[:, i])])
+            prob.solve()
+            self.assertAlmostEqual(np.sqrt(dist.value), resid[i])
+
+        # 2D, axis = 1.
+        n = 5
+        k = 3
+        x0 = np.arange(n * k).reshape((k, n))
+        t0 = np.array([1, 2, 3])
+        x = cp.Variable((k, n), value=x0)
+        t = cp.Variable(k, value=t0)
+        resid = SOC(t, x, axis=1).residual
+        assert resid.shape == (k,)
+        for i in range(k):
+            dist = cp.sum_squares(x[i, :] - x0[i, :]) + cp.sum_squares(t[i] - t0[i])
+            prob = cp.Problem(cp.Minimize(dist), [SOC(t[i], x[i, :])])
+            prob.solve()
+            self.assertAlmostEqual(np.sqrt(dist.value), resid[i])
+
+        # Test all three cases:
+        # 1. t >= ||x||
+        # 2. -||x|| < t < ||x||
+        # 3. t <= -||x||
+
+        k, n = 3, 3
+        x0 = np.ones((k, n))
+        norms = np.linalg.norm(x0, ord=2)
+        t0 = np.array([2, 0.5, -2]) * norms
+        x = cp.Variable((k, n), value=x0)
+        t = cp.Variable(k, value=t0)
+        resid = SOC(t, x, axis=1).residual
+        assert resid.shape == (k,)
+        for i in range(k):
+            dist = cp.sum_squares(x[i, :] - x0[i, :]) + cp.sum_squares(t[i] - t0[i])
+            prob = cp.Problem(cp.Minimize(dist), [SOC(t[i], x[i, :])])
+            prob.solve()
+            self.assertAlmostEqual(np.sqrt(dist.value), resid[i], places=4)
 
     def test_pow3d_constraint(self) -> None:
         n = 3

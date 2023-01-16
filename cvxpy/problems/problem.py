@@ -13,6 +13,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+from __future__ import annotations
 
 import time
 import warnings
@@ -510,7 +511,9 @@ class Problem(u.Canonical):
         gp: bool = False,
         enforce_dpp: bool = False,
         ignore_dpp: bool = False,
-        verbose: bool = False
+        verbose: bool = False,
+        canon_backend: str | None = None,
+        solver_opts: Optional[dict] = None
     ):
         """Returns the problem data used in the call to the solver.
 
@@ -588,8 +591,17 @@ class Problem(u.Canonical):
         ignore_dpp : bool, optional
             When True, DPP problems will be treated as non-DPP,
             which may speed up compilation. Defaults to False.
+        canon_backend : str, optional
+            'CPP' (default) | 'SCIPY'
+            Specifies which backend to use for canonicalization, which can affect
+            compilation time. Defaults to None, i.e., selecting the default
+            backend.
         verbose : bool, optional
             If True, print verbose output related to problem compilation.
+        solver_opts : dict, optional
+            A dict of options that will be passed to the specific solver.
+            In general, these options will override any default settings
+            imposed by cvxpy.
 
         Returns
         -------
@@ -605,6 +617,7 @@ class Problem(u.Canonical):
         cvxpy.error.DPPError
             Raised if DPP settings are invalid.
         """
+
         # Invalid DPP setting.
         # Must be checked here to avoid cache issues.
         if enforce_dpp and ignore_dpp:
@@ -618,7 +631,9 @@ class Problem(u.Canonical):
             solving_chain = self._construct_chain(
                 solver=solver, gp=gp,
                 enforce_dpp=enforce_dpp,
-                ignore_dpp=ignore_dpp)
+                ignore_dpp=ignore_dpp,
+                canon_backend=canon_backend,
+                solver_opts=solver_opts)
             self._cache.key = key
             self._cache.solving_chain = solving_chain
             self._solver_cache = {}
@@ -809,7 +824,7 @@ class Problem(u.Canonical):
         """
         if custom_solver.name() in SOLVERS:
             message = "Custom solvers must have a different name than the officially supported ones"
-            raise(error.SolverError(message))
+            raise error.SolverError(message)
 
         candidates = {'qp_solvers': [], 'conic_solvers': []}
         if not self.is_mixed_integer() or custom_solver.MIP_CAPABLE:
@@ -822,8 +837,13 @@ class Problem(u.Canonical):
         return candidates
 
     def _construct_chain(
-        self, solver: Optional[str] = None, gp: bool = False,
-        enforce_dpp: bool = False, ignore_dpp: bool = False
+            self,
+            solver: Optional[str] = None,
+            gp: bool = False,
+            enforce_dpp: bool = False,
+            ignore_dpp: bool = False,
+            canon_backend: str | None = None,
+            solver_opts: Optional[dict] = None
     ) -> SolvingChain:
         """
         Construct the chains required to reformulate and solve the problem.
@@ -846,6 +866,13 @@ class Problem(u.Canonical):
         ignore_dpp : bool, optional
             When True, DPP problems will be treated as non-DPP,
             which may speed up compilation. Defaults to False.
+        canon_backend : str, optional
+            'CPP' (default) | 'SCIPY'
+            Specifies which backend to use for canonicalization, which can affect
+            compilation time. Defaults to None, i.e., selecting the default
+            backend.
+        solver_opts: dict, optional
+            Additional arguments to pass to the solver.
 
         Returns
         -------
@@ -855,7 +882,9 @@ class Problem(u.Canonical):
         self._sort_candidate_solvers(candidate_solvers)
         return construct_solving_chain(self, candidate_solvers, gp=gp,
                                        enforce_dpp=enforce_dpp,
-                                       ignore_dpp=ignore_dpp)
+                                       ignore_dpp=ignore_dpp,
+                                       canon_backend=canon_backend,
+                                       solver_opts=solver_opts)
 
     @staticmethod
     def _sort_candidate_solvers(solvers) -> None:
@@ -894,6 +923,7 @@ class Problem(u.Canonical):
                requires_grad: bool = False,
                enforce_dpp: bool = False,
                ignore_dpp: bool = False,
+               canon_backend: str | None = None,
                **kwargs):
         """Solves a DCP compliant optimization problem.
 
@@ -924,6 +954,11 @@ class Problem(u.Canonical):
         ignore_dpp : bool, optional
             When True, DPP problems will be treated as non-DPP,
             which may speed up compilation. Defaults to False.
+        canon_backend : str, optional
+            'CPP' (default) | 'SCIPY'
+            Specifies which backend to use for canonicalization, which can affect
+            compilation time. Defaults to None, i.e., selecting the default
+            backend.
         kwargs : dict, optional
             A dict of options that will be passed to the specific solver.
             In general, these options will override any default settings
@@ -935,6 +970,7 @@ class Problem(u.Canonical):
             The optimal value for the problem, or a string indicating
             why the problem could not be solved.
         """
+
         if verbose:
             print(_HEADER)
 
@@ -1016,7 +1052,8 @@ class Problem(u.Canonical):
                 return self.value
 
         data, solving_chain, inverse_data = self.get_problem_data(
-            solver, gp, enforce_dpp, ignore_dpp, verbose)
+            solver, gp, enforce_dpp, ignore_dpp, verbose, canon_backend, kwargs
+        )
 
         if verbose:
             print(_NUM_SOLVER_STR)

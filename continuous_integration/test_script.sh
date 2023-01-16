@@ -13,7 +13,8 @@ if [ $USE_OPENMP == "True" ] && [ $RUNNER_OS == "Linux" ]; then
     CFLAGS="-fopenmp" LDFLAGS="-lgomp" python setup.py install
     export OMP_NUM_THREADS=4
 else
-    python setup.py install
+    python -m pip list
+    python -m pip install .
 fi
 
 python -c "import cvxpy; print(cvxpy.installed_solvers())"

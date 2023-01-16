@@ -165,3 +165,8 @@ def vec():
 def vstack():
     from cvxpy.atoms.affine import vstack
     return vstack.vstack
+
+
+def quad_form():
+    from cvxpy.atoms.quad_form import QuadForm
+    return QuadForm

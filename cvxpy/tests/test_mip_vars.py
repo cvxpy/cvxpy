@@ -39,9 +39,11 @@ class TestMIPVariable(BaseTest):
     def test_all_solvers(self) -> None:
         for solver in self.solvers:
             self.bool_prob(solver)
-            self.int_prob(solver)
+            if solver != cp.SCIPY:
+                self.int_prob(solver)  # issue #1938
             if solver in [cp.CPLEX, cp.GUROBI, cp.MOSEK, cp.XPRESS]:
-                self.bool_socp(solver)
+                if solver != cp.XPRESS:  # issue #1815
+                    self.bool_socp(solver)
                 self.int_socp(solver)
 
     def bool_prob(self, solver) -> None:
@@ -107,7 +109,7 @@ class TestMIPVariable(BaseTest):
         self.assertAlmostEqual(self.y_int.value, 0)
 
     def bool_socp(self, solver) -> None:
-        # Int in objective.
+        # Bool in objective.
         t = cp.Variable()
         obj = cp.Minimize(t)
         p = cp.Problem(obj, [cp.square(self.x_bool - 0.2) <= t])

@@ -335,11 +335,26 @@ class Expression(u.Canonical):
         # Defaults to is constant.
         return self.is_constant()
 
+    def has_quadratic_term(self) -> bool:
+        """Does the affine head of the expression contain a quadratic term?
+
+        The affine head is all nodes with a path to the root node
+        that does not pass through any non-affine atom. If the root node
+        is non-affine, then the affine head is the root alone.
+        """
+        # Defaults to constant.
+        return self.is_constant()
+
     def is_symmetric(self) -> bool:
         """Is the expression symmetric?
         """
         # Defaults to false unless scalar.
         return self.is_scalar()
+
+    def is_skew_symmetric(self) -> bool:
+        """Is this Expression, X, a real matrix that satisfies X + X.T == 0?
+        """
+        return False
 
     def is_pwl(self) -> bool:
         """Is the expression piecewise linear?
@@ -468,7 +483,7 @@ class Expression(u.Canonical):
 
     @property
     def H(self):
-        """Expression : The transpose of the expression.
+        """Expression : The conjugate-transpose of the expression.
         """
         if self.is_real():
             return self.T
@@ -605,6 +620,15 @@ class Expression(u.Canonical):
         """
         if self.shape == () or other.shape == ():
             raise ValueError("Scalar operands are not allowed, use '*' instead")
+
+        if isinstance(self, cvxtypes.matmul_expr()):
+            # LHS is matrix multiplication expr, so candidate for QuadForm:
+            # Specifically, iff the matrix multiplication is of the form x.T @ A @ y
+            # such that x == y, A is constant matrix and x is a variable, then it is a QuadForm.
+            if self.args[0] is other and not other.is_constant() and self.args[1].is_constant():
+                from cvxpy.expressions.cvxtypes import quad_form
+                return quad_form()(other, self.args[1])
+
         return cvxtypes.matmul_expr()(self, other)
 
     @_cast_other

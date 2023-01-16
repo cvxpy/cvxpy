@@ -21,6 +21,7 @@ import pytest
 import scipy
 import scipy.sparse as sp
 import scipy.stats
+from numpy import linalg as LA
 
 import cvxpy as cp
 import cvxpy.settings as s
@@ -109,6 +110,15 @@ class TestAtoms(BaseTest):
         self.assertTrue(str(cm.exception) in (
             "The input must be a single CVXPY Expression, not a list. "
             "Combine Expressions using atoms such as bmat, hstack, and vstack."))
+
+    def test_norm_exceptions(self) -> None:
+        """Test that norm exceptions are raised as expected.
+        """
+        x = cp.Variable(2)
+        with self.assertRaises(Exception) as cm:
+            cp.norm(x, 'nuc')
+        self.assertTrue(str(cm.exception) in (
+            "Unsupported norm option nuc for non-matrix."))
 
     def test_quad_form(self) -> None:
         """Test quad_form atom.
@@ -646,6 +656,18 @@ class TestAtoms(BaseTest):
         self.assertEqual(str(cm.exception),
                          "Argument to trace must be a square matrix.")
 
+    def test_trace_sign_psd(self) -> None:
+        """Test sign of trace for psd/nsd inputs.
+        """
+        X_psd = cp.Variable((2, 2), PSD=True)
+        X_nsd = cp.Variable((2, 2), NSD=True)
+
+        psd_trace = cp.trace(X_psd)
+        nsd_trace = cp.trace(X_nsd)
+
+        assert psd_trace.is_nonneg()
+        assert nsd_trace.is_nonpos()
+
     def test_log1p(self) -> None:
         """Test the log1p atom.
         """
@@ -1118,6 +1140,19 @@ class TestAtoms(BaseTest):
         self.assertEqual(cp.diff(A, axis=1).shape,
                          np.diff(B, axis=1).shape)
 
+        # Issue #1834
+
+        x1 = np.array([[1, 2, 3, 4, 5]])
+        x2 = cp.Variable((1, 5), value=x1)
+
+        expr = cp.diff(x1, axis=1)
+        self.assertItemsAlmostEqual(expr.value, np.diff(x1, axis=1))
+        expr = cp.diff(x2, axis=1)
+        self.assertItemsAlmostEqual(expr.value, np.diff(x1, axis=1))
+
+        with pytest.raises(ValueError, match="< k elements"):
+            cp.diff(x1, axis=0).value
+
     def test_log_normcdf(self) -> None:
         self.assertEqual(cp.log_normcdf(self.x).sign, s.NONPOS)
         self.assertEqual(cp.log_normcdf(self.x).curvature, s.CONCAVE)
@@ -1368,6 +1403,51 @@ class TestAtoms(BaseTest):
         expr = cp.Constant(A).flatten()
         cp.Problem(cp.Minimize(0), [expr == A]).solve()
         self.assertItemsAlmostEqual(x.value, reshaped)
+
+    def test_tr_inv(self) -> None:
+        """Test tr_inv atom. """
+        T = 5
+        # Solves the following SDP problem:
+        #           minimize    trace(inv(X))
+        #               s.t.    X is PSD
+        #                       trace(X)==1
+
+        # Create a symmetric matrix variable.
+        X = cp.Variable((T, T), symmetric=True)
+
+        # Define and solve the CVXPY problem.
+        # X should be a PSD
+        constraints = [X >> 0]
+        constraints += [
+            cp.trace(X) == 1
+        ]
+        prob = cp.Problem(cp.Minimize(cp.tr_inv(X)), constraints)
+        prob.solve(verbose=True)
+        # Check result. The best value is T^2.
+        self.assertAlmostEqual(prob.value, T**2)
+        X_actual = X.value
+        X_expect = np.eye(T) / T
+        self.assertItemsAlmostEqual(X_actual, X_expect, places=4)
+        # Second SDP problem, given a row full-rank matrix M:
+        #           minimize    trace(inv(M * X * M.T))
+        #               s.t.    X is PSD
+        #                       -1 <= X[i][j] <= 1 for all i,j
+        constraints = [X >> 0]
+        # n should not be greater than T,
+        # because the input should be positive definite.
+        n = 4
+        M = np.random.randn(n, T)
+        constraints += [
+            X >= -1,
+            X <= 1,
+        ]
+        prob = cp.Problem(cp.Minimize(cp.tr_inv(M @ X @ M.T)), constraints)
+        MM = M @ M.T
+        naiveRes = np.sum(LA.eigvalsh(MM) ** -1)
+        prob.solve(verbose=True)
+        # The optimized result should be smaller than the naive result,
+        # where X of the naive result is I.
+        self.assertTrue(prob.value < naiveRes)
 
 
 class TestDotsort(BaseTest):

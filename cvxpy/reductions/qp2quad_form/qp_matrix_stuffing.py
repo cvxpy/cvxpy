@@ -13,6 +13,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+from __future__ import annotations
 
 import numpy as np
 
@@ -26,8 +27,9 @@ from cvxpy.problems.param_prob import ParamProb
 from cvxpy.reductions import InverseData, Solution
 from cvxpy.reductions.cvx_attr2constr import convex_attributes
 from cvxpy.reductions.matrix_stuffing import MatrixStuffing, extract_mip_idx
-from cvxpy.reductions.utilities import (are_args_affine, group_constraints,
-                                        lower_equality, lower_ineq_to_nonpos,)
+from cvxpy.reductions.utilities import (ReducedMat, are_args_affine,
+                                        group_constraints, lower_equality,
+                                        lower_ineq_to_nonpos,)
 from cvxpy.utilities.coeff_extractor import CoeffExtractor
 
 
@@ -110,31 +112,10 @@ class ParamQuadProg(ParamProb):
         self.x = x
         self.A = A
 
-        # Form a reduced representation of A, for faster application of
-        # parameters.
-        if np.prod(A.shape) != 0:
-            reduced_A, indices, indptr, shape = (
-                canonInterface.reduce_problem_data_tensor(A, self.x.size)
-            )
-            self.reduced_A = reduced_A
-            self.problem_data_index_A = (indices, indptr, shape)
-        else:
-            self.reduced_A = A
-            self.problem_data_index_A = None
-        self._A_mapping_nonzero = None
-
-        # Form a reduced representation of P, for faster application of
-        # parameters.
-        if np.prod(P.shape) != 0:
-            reduced_P, indices, indptr, shape = (
-                canonInterface.reduce_problem_data_tensor(P, self.x.size, quad_form=True)
-            )
-            self.reduced_P = reduced_P
-            self.problem_data_index_P = (indices, indptr, shape)
-        else:
-            self.reduced_P = P
-            self.problem_data_index_P = None
-        self._P_mapping_nonzero = None
+        # Form a reduced representation of A and P, for faster application
+        # of parameters.
+        self.reduced_A = ReducedMat(self.A, self.x.size)
+        self.reduced_P = ReducedMat(self.P, self.x.size, quad_form=True)
 
         self.constraints = constraints
         self.constr_size = sum([c.size for c in constraints])
@@ -176,26 +157,15 @@ class ParamQuadProg(ParamProb):
             param_value,
             zero_offset=zero_offset)
 
-        if keep_zeros and self._P_mapping_nonzero is None:
-            self._P_mapping_nonzero = canonInterface.A_mapping_nonzero_rows(
-                self.P, self.x.size)
-        P, _ = canonInterface.get_matrix_from_tensor(
-            self.reduced_P, param_vec, self.x.size,
-            nonzero_rows=self._P_mapping_nonzero,
-            with_offset=False,
-            problem_data_index=self.problem_data_index_P)
+        self.reduced_P.cache(keep_zeros)
+        P, _ = self.reduced_P.get_matrix_from_tensor(param_vec, with_offset=False)
 
         q, d = canonInterface.get_matrix_from_tensor(
             self.q, param_vec, self.x.size, with_offset=True)
         q = q.toarray().flatten()
-        if keep_zeros and self._A_mapping_nonzero is None:
-            self._A_mapping_nonzero = canonInterface.A_mapping_nonzero_rows(
-                self.A, self.x.size)
-        A, b = canonInterface.get_matrix_from_tensor(
-            self.reduced_A, param_vec, self.x.size,
-            nonzero_rows=self._A_mapping_nonzero,
-            with_offset=True,
-            problem_data_index=self.problem_data_index_A)
+
+        self.reduced_A.cache(keep_zeros)
+        A, b = self.reduced_A.get_matrix_from_tensor(param_vec, with_offset=True)
         return P, q, d, A, np.atleast_1d(b)
 
     def apply_param_jac(self, delP, delq, delA, delb, active_params=None):
@@ -229,6 +199,9 @@ class QpMatrixStuffing(MatrixStuffing):
        affine arguments.
     """
 
+    def __init__(self, canon_backend: str | None = None):
+        self.canon_backend = canon_backend
+
     @staticmethod
     def accepts(problem):
         return (type(problem.objective) == Minimize
@@ -257,7 +230,7 @@ class QpMatrixStuffing(MatrixStuffing):
         """See docstring for MatrixStuffing.apply"""
         inverse_data = InverseData(problem)
         # Form the constraints
-        extractor = CoeffExtractor(inverse_data)
+        extractor = CoeffExtractor(inverse_data, self.canon_backend)
         params_to_P, params_to_q, flattened_variable = self.stuffed_objective(
             problem, extractor)
         # Lower equality and inequality to Zero and NonPos.

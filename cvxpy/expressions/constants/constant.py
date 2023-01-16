@@ -21,7 +21,7 @@ import scipy.sparse as sp
 
 import cvxpy.interface as intf
 import cvxpy.lin_ops.lin_utils as lu
-import cvxpy.utilities.eigvals as eig_util
+import cvxpy.utilities.linalg as eig_util
 from cvxpy.expressions.leaf import Leaf
 from cvxpy.settings import EIGVAL_TOL
 from cvxpy.utilities import performance_utils as perf
@@ -55,6 +55,7 @@ class Constant(Leaf):
         self._psd_test: Optional[bool] = None
         self._nsd_test: Optional[bool] = None
         self._cached_is_pos = None
+        self._skew_symm = None
         super(Constant, self).__init__(intf.shape(self.value))
 
     def name(self) -> str:
@@ -194,6 +195,11 @@ class Constant(Leaf):
         is_symm, is_herm = intf.is_hermitian(self.value)
         self._symm = is_symm
         self._herm = is_herm
+
+    def is_skew_symmetric(self) -> bool:
+        if self._skew_symm is None:
+            self._skew_symm = intf.is_skew_symmetric(self.value)
+        return self._skew_symm
 
     @perf.compute_once
     def is_psd(self) -> bool:

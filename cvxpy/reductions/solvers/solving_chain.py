@@ -1,15 +1,19 @@
+from __future__ import annotations
+
 import warnings
-from typing import Any, List
+from typing import List, Optional
 
 import numpy as np
 
 from cvxpy.atoms import EXP_ATOMS, NONPOS_ATOMS, PSD_ATOMS, SOC_ATOMS
 from cvxpy.constraints import (PSD, SOC, Equality, ExpCone, FiniteSet,
                                Inequality, NonNeg, NonPos, PowCone3D, Zero,)
+from cvxpy.constraints.exponential import OpRelEntrConeQuad, RelEntrConeQuad
 from cvxpy.error import DCPError, DGPError, DPPError, SolverError
 from cvxpy.problems.objective import Maximize
 from cvxpy.reductions.chain import Chain
 from cvxpy.reductions.complex2real import complex2real
+from cvxpy.reductions.cone2cone.approximations import APPROX_CONES, QuadApprox
 from cvxpy.reductions.cone2cone.exotic2common import (EXOTIC_CONES,
                                                       Exotic2Common,)
 from cvxpy.reductions.cvx_attr2constr import CvxAttr2Constr
@@ -22,6 +26,7 @@ from cvxpy.reductions.eval_params import EvalParams
 from cvxpy.reductions.flip_objective import FlipObjective
 from cvxpy.reductions.qp2quad_form import qp2symbolic_qp
 from cvxpy.reductions.qp2quad_form.qp_matrix_stuffing import QpMatrixStuffing
+from cvxpy.reductions.reduction import Reduction
 from cvxpy.reductions.solvers import defines as slv_def
 from cvxpy.reductions.solvers.constant_solver import ConstantSolver
 from cvxpy.reductions.solvers.solver import Solver
@@ -51,7 +56,8 @@ def _solve_as_qp(problem, candidates):
     return candidates['qp_solvers'] and qp2symbolic_qp.accepts(problem)
 
 
-def _reductions_for_problem_class(problem, candidates, gp: bool = False) -> List[Any]:
+def _reductions_for_problem_class(problem, candidates, gp: bool = False, solver_opts=None) \
+        -> List[Reduction]:
     """
     Builds a chain that rewrites a problem into an intermediate
     representation suitable for numeric reductions.
@@ -109,7 +115,8 @@ def _reductions_for_problem_class(problem, candidates, gp: bool = False) -> List
     if type(problem.objective) == Maximize:
         reductions += [FlipObjective()]
 
-    if _solve_as_qp(problem, candidates):
+    use_quad = True if solver_opts is None else solver_opts.get('use_quad_obj', True)
+    if _solve_as_qp(problem, candidates) and use_quad:
         reductions += [CvxAttr2Constr(), qp2symbolic_qp.Qp2SymbolicQp()]
     else:
         # Canonicalize it to conic problem.
@@ -117,8 +124,6 @@ def _reductions_for_problem_class(problem, candidates, gp: bool = False) -> List
             raise SolverError("Problem could not be reduced to a QP, and no "
                               "conic solvers exist among candidate solvers "
                               "(%s)." % candidates)
-        else:
-            reductions += [Dcp2Cone(), CvxAttr2Constr()]
 
     constr_types = {type(c) for c in problem.constraints}
     if FiniteSet in constr_types:
@@ -130,7 +135,10 @@ def _reductions_for_problem_class(problem, candidates, gp: bool = False) -> List
 def construct_solving_chain(problem, candidates,
                             gp: bool = False,
                             enforce_dpp: bool = False,
-                            ignore_dpp: bool = False) -> "SolvingChain":
+                            ignore_dpp: bool = False,
+                            canon_backend: str | None = None,
+                            solver_opts: Optional[dict] = None
+                            ) -> "SolvingChain":
     """Build a reduction chain from a problem to an installed solver.
 
     Note that if the supplied problem has 0 variables, then the solver
@@ -152,6 +160,13 @@ def construct_solving_chain(problem, candidates,
     ignore_dpp : bool, optional
         When True, DPP problems will be treated as non-DPP,
         which may speed up compilation. Defaults to False.
+    canon_backend : str, optional
+        'CPP' (default) | 'SCIPY'
+        Specifies which backend to use for canonicalization, which can affect
+        compilation time. Defaults to None, i.e., selecting the default
+        backend.
+    solver_opts : dict, optional
+        Additional arguments to pass to the solver.
 
     Returns
     -------
@@ -166,17 +181,17 @@ def construct_solving_chain(problem, candidates,
     """
     if len(problem.variables()) == 0:
         return SolvingChain(reductions=[ConstantSolver()])
-    reductions = _reductions_for_problem_class(problem, candidates, gp)
+    reductions = _reductions_for_problem_class(problem, candidates, gp, solver_opts)
 
     # Process DPP status of the problem.
     dpp_context = 'dcp' if not gp else 'dgp'
     dpp_error_msg = (
-            "You are solving a parameterized problem that is not DPP. "
-            "Because the problem is not DPP, subsequent solves will not be "
-            "faster than the first one. For more information, see the "
-            "documentation on Discplined Parametrized Programming, at\n"
-            "\thttps://www.cvxpy.org/tutorial/advanced/index.html#"
-            "disciplined-parametrized-programming")
+        "You are solving a parameterized problem that is not DPP. "
+        "Because the problem is not DPP, subsequent solves will not be "
+        "faster than the first one. For more information, see the "
+        "documentation on Discplined Parametrized Programming, at\n"
+        "\thttps://www.cvxpy.org/tutorial/advanced/index.html#"
+        "disciplined-parametrized-programming")
     if ignore_dpp or not problem.is_dpp(dpp_context):
         # No warning for ignore_dpp.
         if ignore_dpp:
@@ -199,11 +214,12 @@ def construct_solving_chain(problem, candidates,
     # Conclude with matrix stuffing; choose one of the following paths:
     #   (1) QpMatrixStuffing --> [a QpSolver],
     #   (2) ConeMatrixStuffing --> [a ConicSolver]
-    if _solve_as_qp(problem, candidates):
+    use_quad = True if solver_opts is None else solver_opts.get('use_quad_obj', True)
+    if _solve_as_qp(problem, candidates) and use_quad:
         # Canonicalize as a QP
         solver = candidates['qp_solvers'][0]
         solver_instance = slv_def.SOLVER_MAP_QP[solver]
-        reductions += [QpMatrixStuffing(),
+        reductions += [QpMatrixStuffing(canon_backend=canon_backend),
                        solver_instance]
         return SolvingChain(reductions=reductions)
 
@@ -219,11 +235,17 @@ def construct_solving_chain(problem, candidates,
     for c in problem.constraints:
         constr_types.add(type(c))
     ex_cos = [ct for ct in constr_types if ct in EXOTIC_CONES]
+    approx_cos = [ct for ct in constr_types if ct in APPROX_CONES]
     # ^ The way we populate "ex_cos" will need to change if and when
     # we have atoms that require exotic cones.
     for co in ex_cos:
         sim_cos = EXOTIC_CONES[co]  # get the set of required simple cones
         constr_types.update(sim_cos)
+        constr_types.remove(co)
+
+    for co in approx_cos:
+        app_cos = APPROX_CONES[co]
+        constr_types.update(app_cos)
         constr_types.remove(co)
     # We now go over individual elementary cones support by CVXPY (
     # SOC, ExpCone, NonNeg, Zero, PSD, PowCone3D) and check if
@@ -265,7 +287,22 @@ def construct_solving_chain(problem, candidates,
                 and (has_constr or not solver_instance.REQUIRES_CONSTR)):
             if ex_cos:
                 reductions.append(Exotic2Common())
-            reductions += [ConeMatrixStuffing(), solver_instance]
+            if RelEntrConeQuad in approx_cos or OpRelEntrConeQuad in approx_cos:
+                reductions.append(QuadApprox())
+
+            # Should the objective be canonicalized to a quadratic?
+            if solver_opts is None:
+                use_quad_obj = True
+            else:
+                use_quad_obj = solver_opts.get("use_quad_obj", True)
+            quad_obj = use_quad_obj and solver_instance.supports_quad_obj() and \
+                problem.objective.expr.has_quadratic_term()
+            reductions += [
+                Dcp2Cone(quad_obj=quad_obj),
+                CvxAttr2Constr(),
+                ConeMatrixStuffing(quad_obj=quad_obj, canon_backend=canon_backend),
+                solver_instance
+            ]
             return SolvingChain(reductions=reductions)
 
     raise SolverError("Either candidate conic solvers (%s) do not support the "
