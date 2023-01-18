@@ -111,7 +111,7 @@ class Canonical:
         Called by copy.deepcopy()
         """
         return self.copy()
-        
+
     def get_data(self) -> None:
         """Returns info needed to reconstruct the object besides the args.
 
