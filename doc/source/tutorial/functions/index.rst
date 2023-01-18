@@ -388,7 +388,7 @@ and returns a scalar.
      - |convex| convex
      - None
 
-   * - :ref:`tv(x) <tv>`
+   * - :ref:`tv(X) <tv>`
      - :math:`\sum_{ij}\left\| \left[\begin{matrix} X_{i+1,j} - X_{ij} \\ X_{i,j+1} -X_{ij} \end{matrix}\right] \right\|_2`
      - :math:`X \in \mathbf{R}^{m \times n}`
      - |positive| positive
