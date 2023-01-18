@@ -110,9 +110,8 @@ class Canonical:
         """
         Called by copy.deepcopy()
         """
-        raise NotImplementedError('Creating a deepcopy of a CVXPY expression is not supported. '
-                                  'Use .copy() instead.')
-
+        return self.copy()
+        
     def get_data(self) -> None:
         """Returns info needed to reconstruct the object besides the args.
 
