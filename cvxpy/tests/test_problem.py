@@ -15,7 +15,6 @@ limitations under the License.
 """
 
 import builtins
-import copy
 import pickle
 import sys
 import warnings
@@ -25,7 +24,6 @@ from io import StringIO
 import ecos
 import numpy
 import numpy as np
-import pytest
 import scipy.sparse as sp
 # Solvers.
 import scs

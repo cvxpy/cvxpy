@@ -1,9 +1,10 @@
-from copy import deepcopy, copy
+from copy import copy, deepcopy
 from dataclasses import dataclass
 
-import pytest
-import cvxpy as cp
 import numpy as np
+import pytest
+
+import cvxpy as cp
 
 
 @dataclass
@@ -15,8 +16,8 @@ class MockMutableObject:
     P: list[list[int]]  # requires deepcopy
 
 
-
-def test_valid_deepcopy_example():
+@pytest.mark.parametrize("copy_func", [copy, deepcopy])
+def test_valid_deepcopy_example(copy_func):
     """
     Example where deepcopy is required.
     Even though for the CVXPY expression, deepcopy is not required, it is required for the
@@ -31,8 +32,8 @@ def test_valid_deepcopy_example():
     assert problem1.status == cp.OPTIMAL
     assert np.isclose(problem1.value, 2)
 
-    # Deepcopy should work.
-    obj_copy = deepcopy(obj)
+    # Deepcopy should work
+    obj_copy = copy_func(obj)
     obj_copy.P[0][0] = 2
 
     problem2 = cp.Problem(cp.Minimize(cp.quad_form(obj_copy.x, obj_copy.P)), [obj_copy.x == 1])
@@ -40,10 +41,15 @@ def test_valid_deepcopy_example():
     assert problem2.status == cp.OPTIMAL
     assert np.isclose(problem2.value, 3)
 
-    # Original problem should not be affected.
+    problem1 = cp.Problem(cp.Minimize(cp.quad_form(obj.x, obj.P)), [obj.x == 1])
     problem1.solve()
     assert problem1.status == cp.OPTIMAL
-    assert np.isclose(problem1.value, 2)
+    if copy_func == deepcopy:
+        # Original problem not affected by deepcopy
+        assert np.isclose(problem1.value, 2)
+    else:
+        # Original problem affected by shallow copy
+        assert np.isclose(problem1.value, 3)
 
 
 def test_deepcopy_same_identity():
@@ -58,7 +64,7 @@ def test_deepcopy_same_identity():
     constraints = [x >= y + 1]
 
     copied_constraint = deepcopy(constraints[0])
-    # Other expressions change their identity (id()), but their .id stays the same
+    # Constraints change their identity (id()), but their .id stays the same
     assert copied_constraint.id == constraints[0].id
     assert id(copied_constraint) != id(constraints[0])
 
