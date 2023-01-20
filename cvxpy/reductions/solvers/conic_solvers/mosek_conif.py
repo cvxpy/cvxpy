@@ -232,6 +232,7 @@ class MOSEK(ConicSolver):
             else:
                 env = mosek.Env()
                 task = env.Task(0, 0)
+                save_file = MOSEK.handle_options(env, task, verbose, solver_opts)
                 task = MOSEK._build_dualized_task(task, data)
         else:
             if len(data[s.C]) == 0:
@@ -240,10 +241,10 @@ class MOSEK(ConicSolver):
             else:
                 env = mosek.Env()
                 task = env.Task(0, 0)
+                save_file = MOSEK.handle_options(env, task, verbose, solver_opts)
                 task = MOSEK._build_slack_task(task, data)
 
-        # Set parameters, optimize the Mosek Task, and return the result.
-        save_file = MOSEK.handle_options(env, task, verbose, solver_opts)
+        # Optimize the Mosek Task, and return the result.
         if save_file:
             task.writedata(save_file)
         task.optimize()
