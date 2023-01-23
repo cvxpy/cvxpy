@@ -68,14 +68,14 @@ class Solver(Reduction):
             return False
 
     @abc.abstractmethod
-    def solve_via_data(self, data, warm_start: bool, verbose: bool, solver_opts, solver_cache=None):
+    def solve_via_data(self, data, warm_start: bool, verbose: bool,certified_soln: bool, solver_opts, solver_cache=None):
         """Solve a problem represented by data returned from apply.
         """
         raise NotImplementedError()
 
-    def solve(self, problem, warm_start: bool, verbose: bool, solver_opts):
+    def solve(self, problem, warm_start: bool, verbose: bool, certified_soln: bool, solver_opts):
         """Solve the problem and return a Solution object.
         """
         data, inv_data = self.apply(problem)
-        solution = self.solve_via_data(data, warm_start, verbose, solver_opts)
+        solution = self.solve_via_data(data, warm_start, verbose,certified_soln, solver_opts)
         return self.invert(solution, inv_data)

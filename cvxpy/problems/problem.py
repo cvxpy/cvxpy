@@ -1389,6 +1389,7 @@ class Problem(u.Canonical):
             )
         if solution.status == s.INFEASIBLE_OR_UNBOUNDED:
             warnings.warn(INF_OR_UNB_MESSAGE)
+
         if solution.status in s.ERROR:
             raise error.SolverError(
                     "Solver '%s' failed. " % chain.solver.name() +
