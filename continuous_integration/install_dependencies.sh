@@ -10,7 +10,10 @@ conda config --set remote_max_retries 10
 conda config --set remote_backoff_factor 2
 conda config --set remote_read_timeout_secs 120.0
 
-if [[ "$PYTHON_VERSION" == "3.7" ]] || [[ "$PYTHON_VERSION" == "3.8" ]]; then
+# Issue with installing setuptools > 65.5.1 through conda on mac with Python 3.7.
+if [[ "$PYTHON_VERSION" == "3.7" ]] && [[ "$RUNNER_OS" == "macos-11" ]]; then
+  conda install scipy=1.3 numpy=1.16 mkl pip pytest pytest-cov lapack ecos scs osqp cvxopt proxsuite setuptools
+elif [[ "$PYTHON_VERSION" == "3.7" ]] || [[ "$PYTHON_VERSION" == "3.8" ]]; then
   conda install scipy=1.3 numpy=1.16 mkl pip pytest pytest-cov lapack ecos scs osqp cvxopt proxsuite "setuptools>65.5.1"
 elif [[ "$PYTHON_VERSION" == "3.9" ]]; then
   # The earliest version of numpy that works is 1.19.
