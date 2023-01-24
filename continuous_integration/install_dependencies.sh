@@ -10,18 +10,19 @@ conda config --set remote_max_retries 10
 conda config --set remote_backoff_factor 2
 conda config --set remote_read_timeout_secs 120.0
 
-if [[ "$PYTHON_VERSION" == "3.7" ]] || [[ "$PYTHON_VERSION" == "3.8" ]]; then
-  conda install scipy=1.3 numpy=1.16 mkl pip pytest pytest-cov lapack ecos scs osqp cvxopt
-  python -m pip install cplex  # CPLEX is not available yet on 3.10
+# Issue with installing setuptools > 65.5.1 through conda on mac with Python 3.7.
+if [[ "$PYTHON_VERSION" == "3.7" ]] && [[ "$RUNNER_OS" == "macos-11" ]]; then
+  conda install scipy=1.3 numpy=1.16 mkl pip pytest pytest-cov lapack ecos scs osqp cvxopt setuptools
+elif [[ "$PYTHON_VERSION" == "3.7" ]] || [[ "$PYTHON_VERSION" == "3.8" ]]; then
+  conda install scipy=1.3 numpy=1.16 mkl pip pytest pytest-cov lapack ecos scs osqp cvxopt "setuptools>65.5.1"
 elif [[ "$PYTHON_VERSION" == "3.9" ]]; then
   # The earliest version of numpy that works is 1.19.
   # Given numpy 1.19, the earliest version of scipy we can use is 1.5.
-  conda install scipy=1.5 numpy=1.19 mkl pip pytest lapack ecos scs osqp cvxopt
-  python -m pip install cplex  # CPLEX is not available yet on 3.10
+  conda install scipy=1.5 numpy=1.19 mkl pip pytest lapack ecos scs osqp cvxopt "setuptools>65.5.1"
 elif [[ "$PYTHON_VERSION" == "3.10" ]]; then
     # The earliest version of numpy that works is 1.21.
     # Given numpy 1.21, the earliest version of scipy we can use is 1.7.
-    conda install scipy=1.7 numpy=1.21 mkl pip pytest lapack ecos scs osqp cvxopt
+    conda install scipy=1.7 numpy=1.21 mkl pip pytest lapack ecos scs osqp cvxopt "setuptools>65.5.1"
 fi
 
 python -m pip install "ortools<9.4"
@@ -46,7 +47,7 @@ if [[ "$PYTHON_VERSION" == "3.10" ]]; then
 elif [[ "$RUNNER_OS" == "Windows" ]] && [[ "$PYTHON_VERSION" == "3.8" ]]; then
   :
 else
-  python -m pip install diffcp gurobipy xpress
+  python -m pip install diffcp gurobipy xpress cplex
 fi
 
 # Only install Mosek if license is available (secret is not copied to forks)
