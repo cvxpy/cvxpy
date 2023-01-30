@@ -624,7 +624,8 @@ class TestDgp2Dcp(BaseTest):
 
     def test_pnorm(self) -> None:
         x = cvxpy.Variable(pos=True)
-        p = cvxpy.Problem(cvxpy.Minimize(cvxpy.norm(cvxpy.Constant([3, 4]), p=2) * x ** 2), [x >= 1])
+        p = cvxpy.Problem(cvxpy.Minimize(cvxpy.norm(cvxpy.Constant([3, 4]), p=2) * x ** 2),
+                          [x >= 1])
         self.assertAlmostEqual(p.solve(gp=True), 5)
         self.assertAlmostEqual(p.solution.opt_val, 5)
         self.assertAlmostEqual(x.value, 1.0)
@@ -648,4 +649,3 @@ class TestDgp2Dcp(BaseTest):
         self.assertAlmostEqual(p.solve(gp=True), l2_norm)
         self.assertAlmostEqual(p.solution.opt_val, l2_norm)
         self.assertAlmostEqual(x.value, 1.0)
-
