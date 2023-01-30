@@ -657,4 +657,3 @@ class TestDgp2Dcp(BaseTest):
         self.assertAlmostEqual(p.solve(gp=True), 5)
         self.assertAlmostEqual(p.solution.opt_val, 5)
         self.assertItemsAlmostEqual(x.value, c.value)
-        
