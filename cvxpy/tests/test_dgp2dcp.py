@@ -610,3 +610,39 @@ class TestDgp2Dcp(BaseTest):
         prob.solve(solver=SOLVER, gp=True)
         sltn = np.exp(np.linalg.solve(A, np.log(b)))
         self.assertItemsAlmostEqual(x.value, sltn)
+
+    def test_pnorm(self) -> None:
+        x = cvxpy.Variable(pos=True)
+        p = cvxpy.Problem(cvxpy.Minimize(cvxpy.norm(cvxpy.Constant([3, 4]), p=2) * x ** 2),
+                          [x >= 1])
+        self.assertAlmostEqual(p.solve(gp=True), 5)
+        self.assertAlmostEqual(p.solution.opt_val, 5)
+        self.assertAlmostEqual(x.value, 1.0)
+
+        # Test p = 3
+        x = cvxpy.Variable(pos=True)
+        arr = [1.5, 3, 2]
+        l3_norm = np.linalg.norm(arr, 3)
+        p = cvxpy.Problem(cvxpy.Minimize(cvxpy.norm(cvxpy.Constant(arr), p=3) * x ** 2),
+                          [x >= 1])
+        self.assertAlmostEqual(p.solve(gp=True), l3_norm)
+        self.assertAlmostEqual(p.solution.opt_val, l3_norm)
+        self.assertAlmostEqual(x.value, 1.0)
+
+        # Test fro norm
+        x = cvxpy.Variable(pos=True)
+        mat = [[1, 0.5], [2, 3]]
+        l2_norm = np.linalg.norm(mat, 'fro')
+        p = cvxpy.Problem(cvxpy.Minimize(cvxpy.norm(cvxpy.Constant(mat), p='fro') * x ** 2),
+                          [x >= 1])
+        self.assertAlmostEqual(p.solve(gp=True), l2_norm)
+        self.assertAlmostEqual(p.solution.opt_val, l2_norm)
+        self.assertAlmostEqual(x.value, 1.0)
+
+        # Test on a variable
+        x = cvxpy.Variable(2, pos=True)
+        c = cvxpy.Constant([3, 4])
+        p = cvxpy.Problem(cvxpy.Minimize(cvxpy.norm(c, p=2)), [x == c])
+        self.assertAlmostEqual(p.solve(gp=True), 5)
+        self.assertAlmostEqual(p.solution.opt_val, 5)
+        self.assertItemsAlmostEqual(x.value, c.value)

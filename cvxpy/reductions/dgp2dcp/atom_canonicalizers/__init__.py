@@ -19,7 +19,7 @@ from cvxpy.atoms.norm1 import norm1
 from cvxpy.atoms.norm_inf import norm_inf
 from cvxpy.atoms.one_minus_pos import one_minus_pos
 from cvxpy.atoms.pf_eigenvalue import pf_eigenvalue
-from cvxpy.atoms.pnorm import pnorm
+from cvxpy.atoms.pnorm import Pnorm
 from cvxpy.atoms.prod import Prod
 from cvxpy.atoms.quad_form import quad_form
 from cvxpy.atoms.quad_over_lin import quad_over_lin
@@ -79,7 +79,7 @@ CANON_METHODS = {
     norm_inf : norm_inf_canon,
     one_minus_pos : one_minus_pos_canon,
     pf_eigenvalue : pf_eigenvalue_canon,
-    pnorm : pnorm_canon,
+    Pnorm : pnorm_canon,
     power : power_canon, 
     Prod : prod_canon,
     quad_form : quad_form_canon,
