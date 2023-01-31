@@ -80,7 +80,8 @@ researchers and engineers.
 CVXPY is developed and maintained by
 `Steven Diamond <https://stevendiamond.me/>`_,
 `Akshay Agrawal <https://akshayagrawal.com>`_,
-`Riley Murray <https://rileyjmurray.wordpress.com/>`_, and
+`Riley Murray <https://rileyjmurray.wordpress.com/>`_,
+`Philipp Schiele <https://www.philippschiele.com/>`_, and
 `Bartolomeo Stellato <https://stellato.io/>`_ with many others contributing
 significantly. A non-exhaustive list of people who have shaped CVXPY over the
 years includes Stephen Boyd, Eric Chu, Robin Verschueren,
