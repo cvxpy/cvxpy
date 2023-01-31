@@ -6,7 +6,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
-    <title>Transforms &#8212; CVXPY 1.1.23.dev0+0.3536755 documentation</title>
+    <title>Transforms &#8212; CVXPY 1.1.23.dev0+0.1f39528 documentation</title>
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../_static/cvxpy_alabaster.css" />
     <script integrity="sha384-vtXRMe3mGCbOeY7l30aIg8H9p3GdeSe4IFlP6G8JMa7o7lXvnz3GFKzPxzJdPfGK" src="../_static/jquery.js"></script>
@@ -47,7 +47,7 @@ for example a weighted sum. All scalarizations are monotone in each objective, w
 Moreover, all points on the Pareto curve except for boundary points can be attained given some weighting of the objectives.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="cvxpy.transforms.scalarize.weighted_sum">
-<span class="sig-prename descclassname"><span class="pre">scalarize.</span></span><span class="sig-name descname"><span class="pre">weighted_sum</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">weights</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="cvxpy.problems.html#cvxpy.problems.objective.Minimize" title="cvxpy.problems.objective.Minimize"><span class="pre">Minimize</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="cvxpy.problems.html#cvxpy.problems.objective.Maximize" title="cvxpy.problems.objective.Maximize"><span class="pre">Maximize</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#cvxpy.transforms.scalarize.weighted_sum" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">scalarize.</span></span><span class="sig-name descname"><span class="pre">weighted_sum</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">weights</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="cvxpy.problems.html#cvxpy.problems.objective.Minimize" title="cvxpy.problems.objective.Minimize"><span class="pre">Minimize</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference internal" href="cvxpy.problems.html#cvxpy.problems.objective.Maximize" title="cvxpy.problems.objective.Maximize"><span class="pre">Maximize</span></a></span></span><a class="headerlink" href="#cvxpy.transforms.scalarize.weighted_sum" title="Permalink to this definition">¶</a></dt>
 <dd><p>Combines objectives as a weighted sum.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -105,7 +105,7 @@ log_sum_exp approaches max.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="cvxpy.transforms.scalarize.targets_and_priorities">
-<span class="sig-prename descclassname"><span class="pre">scalarize.</span></span><span class="sig-name descname"><span class="pre">targets_and_priorities</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">priorities</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">targets</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">limits</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">off_target</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1e-05</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="cvxpy.problems.html#cvxpy.problems.objective.Minimize" title="cvxpy.problems.objective.Minimize"><span class="pre">Minimize</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="cvxpy.problems.html#cvxpy.problems.objective.Maximize" title="cvxpy.problems.objective.Maximize"><span class="pre">Maximize</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#cvxpy.transforms.scalarize.targets_and_priorities" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">scalarize.</span></span><span class="sig-name descname"><span class="pre">targets_and_priorities</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">priorities</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">targets</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">limits</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">off_target</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1e-05</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="cvxpy.problems.html#cvxpy.problems.objective.Minimize" title="cvxpy.problems.objective.Minimize"><span class="pre">Minimize</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference internal" href="cvxpy.problems.html#cvxpy.problems.objective.Maximize" title="cvxpy.problems.objective.Maximize"><span class="pre">Maximize</span></a></span></span><a class="headerlink" href="#cvxpy.transforms.scalarize.targets_and_priorities" title="Permalink to this definition">¶</a></dt>
 <dd><p>Combines objectives with penalties within a range between target and limit.</p>
 <p>Each Minimize objective i has value</p>
 <blockquote>
@@ -316,8 +316,8 @@ limitations under the License.</p>
       &copy;The CVXPY authors.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 6.0.0</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 6.1.3</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.13</a>
       
       |
       <a href="../_sources/api_reference/cvxpy.transforms.rst.txt"
