@@ -562,9 +562,9 @@ class TestMosek(unittest.TestCase):
             problem = cp.Problem(objective, constraints)
 
             invalid_mosek_params = {
-                "dparam.basis_tol_x": "1e-8"
+                "MSK_IPAR_NUM_THREADS": "11.3"
             }
-            with self.assertRaises(ValueError):
+            with self.assertRaises(mosek.Error):
                 problem.solve(solver=cp.MOSEK, mosek_params=invalid_mosek_params)
 
             with self.assertRaises(ValueError):
@@ -572,7 +572,11 @@ class TestMosek(unittest.TestCase):
 
             mosek_params = {
                 mosek.dparam.basis_tol_x: 1e-8,
-                "MSK_IPAR_INTPNT_MAX_ITERATIONS": 20
+                "MSK_IPAR_INTPNT_MAX_ITERATIONS": 20,
+                "MSK_IPAR_NUM_THREADS": "17",
+                "MSK_IPAR_PRESOLVE_USE": "MSK_PRESOLVE_MODE_OFF",
+                "MSK_DPAR_INTPNT_CO_TOL_DFEAS": 1e-9,
+                "MSK_DPAR_INTPNT_CO_TOL_PFEAS": "1e-9"
             }
             problem.solve(solver=cp.MOSEK, mosek_params=mosek_params)
 
