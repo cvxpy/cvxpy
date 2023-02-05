@@ -14,9 +14,9 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+import warnings
 from collections import defaultdict
 
-import warnings
 import numpy as np
 import scipy as sp
 
@@ -28,12 +28,12 @@ from cvxpy.reductions.solution import Solution
 from cvxpy.reductions.solvers.conic_solvers.conic_solver import ConicSolver
 from cvxpy.reductions.solvers.utilities import expcone_permutor
 
-
 __MSK_ENUM_PARAM_DEPRECATION__ = """
 Using MOSEK constants to specify parameters is deprecated.
 Use generic string names instead.
 For example, replace mosek.iparam.num_threads with 'MSK_IPAR_NUM_THREADS'
 """
+
 
 def vectorized_lower_tri_to_mat(v, dim):
     """
