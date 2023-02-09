@@ -578,7 +578,8 @@ class TestMosek(unittest.TestCase):
                 "MSK_DPAR_INTPNT_CO_TOL_DFEAS": 1e-9,
                 "MSK_DPAR_INTPNT_CO_TOL_PFEAS": "1e-9"
             }
-            problem.solve(solver=cp.MOSEK, mosek_params=mosek_params)
+            with pytest.warns():
+                problem.solve(solver=cp.MOSEK, mosek_params=mosek_params)
 
 
 @unittest.skipUnless('CVXOPT' in INSTALLED_SOLVERS, 'CVXOPT is not installed.')
