@@ -14,6 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+import warnings
 from collections import defaultdict
 
 import numpy as np
@@ -26,6 +27,12 @@ from cvxpy.reductions.cone2cone.affine2direct import Dualize, Slacks
 from cvxpy.reductions.solution import Solution
 from cvxpy.reductions.solvers.conic_solvers.conic_solver import ConicSolver
 from cvxpy.reductions.solvers.utilities import expcone_permutor
+
+__MSK_ENUM_PARAM_DEPRECATION__ = """
+Using MOSEK constants to specify parameters is deprecated.
+Use generic string names instead.
+For example, replace mosek.iparam.num_threads with 'MSK_IPAR_NUM_THREADS'
+"""
 
 
 def vectorized_lower_tri_to_mat(v, dim):
@@ -540,7 +547,7 @@ class MOSEK(ConicSolver):
         if verbose:
 
             def streamprinter(text):
-                s.LOGGER.info(text.replace('\n', ''))
+                s.LOGGER.info(text.rstrip('\n'))
 
             print('\n')
             env.set_Stream(mosek.streamtype.log, streamprinter)
@@ -552,18 +559,34 @@ class MOSEK(ConicSolver):
         save_file = None
         bfs = False
         if 'mosek_params' in kwargs:
+            # Issue a warning if Mosek enums are used as parameter names / keys
+            if any(isinstance(param, mosek.iparam) or
+                   isinstance(param, mosek.dparam) or
+                   isinstance(param, mosek.sparam) for param in solver_opts['mosek_params'].keys()):
+                warnings.warn(__MSK_ENUM_PARAM_DEPRECATION__, DeprecationWarning)
+                warnings.warn(__MSK_ENUM_PARAM_DEPRECATION__, UserWarning)
+            # Now set parameters
             for param, value in solver_opts['mosek_params'].items():
                 if isinstance(param, str):
+                    # Parameters are set through generic string names (recommended)
                     param = param.strip()
-                    if param.startswith("MSK_DPAR_"):
-                        task.putnadouparam(param, value)
-                    elif param.startswith("MSK_IPAR_"):
-                        task.putnaintparam(param, value)
-                    elif param.startswith("MSK_SPAR_"):
-                        task.putnastrparam(param, value)
+                    if isinstance(value, str):
+                        # The value is also a string.
+                        # Examples: "MSK_IPAR_INTPNT_SOLVE_FORM": "MSK_SOLVE_DUAL"
+                        #           "MSK_DPAR_CO_TOL_PFEAS": "1.0e-9"
+                        task.putparam(param, value)
                     else:
-                        raise ValueError("Invalid MOSEK parameter '%s'." % param)
+                        # Otherwise we assume the value is of correct type
+                        if param.startswith("MSK_DPAR_"):
+                            task.putnadouparam(param, value)
+                        elif param.startswith("MSK_IPAR_"):
+                            task.putnaintparam(param, value)
+                        elif param.startswith("MSK_SPAR_"):
+                            task.putnastrparam(param, value)
+                        else:
+                            raise ValueError("Invalid MOSEK parameter '%s'." % param)
                 else:
+                    # Parameters are set through Mosek enums (deprecated)
                     if isinstance(param, mosek.dparam):
                         task.putdouparam(param, value)
                     elif isinstance(param, mosek.iparam):
