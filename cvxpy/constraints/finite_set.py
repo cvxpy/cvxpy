@@ -94,7 +94,11 @@ class FiniteSet(Constraint):
         # Not a parameter, so value is fixed.
         vec_val = self.vec.value
         # DGP if expr is monomial and all values in set are positive.
-        return self.expre.is_log_log_affine() and np.all(vec_val > 0)
+        if dpp:
+            with scopes.dpp_scope():
+                return self.expre.is_log_log_affine() and np.all(vec_val > 0)
+        else:
+            return self.expre.is_log_log_affine() and np.all(vec_val > 0)
 
     def is_dqcp(self) -> bool:
         return self.is_dcp()

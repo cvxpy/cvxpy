@@ -353,7 +353,13 @@ class TestFiniteSet:
         set_vals = {1, 2, 3}
         constraints = [FiniteSet(x*y, set_vals, ineq_form=ineq_form), x == 1]
         problem = cp.Problem(objective, constraints)
-        problem.solve(gp=True, solver=cp.GLPK_MI)
+        # Without DPP.
+        problem.solve(gp=True, solver=cp.GLPK_MI, ignore_dpp=True)
+        assert np.allclose(x.value, 1)
+        assert np.allclose(y.value, 3)
+
+        # With DPP.
+        problem.solve(gp=True, solver=cp.GLPK_MI, enforce_dpp=True)
         assert np.allclose(x.value, 1)
         assert np.allclose(y.value, 3)
 
@@ -374,8 +380,16 @@ class TestFiniteSet:
         set_vals = {-1, 1}
         constraints = [FiniteSet(x, set_vals, ineq_form=ineq_form), y <= 1]
         problem = cp.Problem(objective, constraints)
-        with pytest.raises(cp.error.DGPError, match="does not follow DGP"):
+        with pytest.raises(cp.error.DGPError, match="not DGP"):
             problem.solve(gp=True, solver=cp.GLPK_MI)
+
+        # Violates DPP.
+        set_vals = {0.5, 1}
+        param = cp.Parameter(pos=True, value=1)
+        constraints = [FiniteSet((x*param)**param, set_vals, ineq_form=ineq_form), y <= 1]
+        problem = cp.Problem(objective, constraints)
+        with pytest.raises(cp.error.DPPError, match="not DPP"):
+            problem.solve(gp=True, solver=cp.GLPK_MI, enforce_dpp=True)
 
         # TODO get parameters working.
         # Test with parameter.
