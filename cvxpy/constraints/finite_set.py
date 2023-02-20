@@ -60,9 +60,9 @@ class FiniteSet(Constraint):
         if isinstance(vec, set):
             vec = list(vec)
         vec = Expression.cast_to_const(vec).flatten()
-        if not expre.is_affine():
+        if not expre.is_affine() and not expre.is_log_log_affine():
             msg = """
-            Provided Expression must be affine, but had curvature %s.
+            Provided Expression must be affine or log-log affine, but had curvature %s.
             """ % expre.curvature
             raise ValueError(msg)
         # Note: we use the term "expre" rather than "expr" since
@@ -88,7 +88,13 @@ class FiniteSet(Constraint):
         return self.args[0].is_affine()
 
     def is_dgp(self, dpp: bool = False) -> bool:
-        return False
+        # TODO expand to parameterized sets.
+        if self.vec.parameters():
+            return False
+        # Not a parameter, so value is fixed.
+        vec_val = self.vec.value
+        # DGP if expr is monomial and all values in set are positive.
+        return self.expre.is_log_log_affine() and np.all(vec_val > 0)
 
     def is_dqcp(self) -> bool:
         return self.is_dcp()

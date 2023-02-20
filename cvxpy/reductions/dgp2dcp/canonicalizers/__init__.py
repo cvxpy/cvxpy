@@ -24,6 +24,7 @@ from cvxpy.atoms.pnorm import Pnorm
 from cvxpy.atoms.prod import Prod
 from cvxpy.atoms.quad_form import quad_form
 from cvxpy.atoms.quad_over_lin import quad_over_lin
+from cvxpy.constraints.finite_set import FiniteSet
 from cvxpy.expressions.constants.constant import Constant
 from cvxpy.expressions.constants.parameter import Parameter
 from cvxpy.expressions.variable import Variable
@@ -34,6 +35,8 @@ from cvxpy.reductions.dgp2dcp.canonicalizers.div_canon import div_canon
 from cvxpy.reductions.dgp2dcp.canonicalizers.exp_canon import exp_canon
 from cvxpy.reductions.dgp2dcp.canonicalizers.eye_minus_inv_canon import (
     eye_minus_inv_canon,)
+from cvxpy.reductions.dgp2dcp.canonicalizers.finite_set_canon import (
+    finite_set_canon,)
 from cvxpy.reductions.dgp2dcp.canonicalizers.geo_mean_canon import (
     geo_mean_canon,)
 from cvxpy.reductions.dgp2dcp.canonicalizers.gmatmul_canon import gmatmul_canon
@@ -67,6 +70,7 @@ CANON_METHODS = {
     DivExpression : div_canon,
     exp : exp_canon,
     eye_minus_inv : eye_minus_inv_canon,
+    FiniteSet : finite_set_canon,
     geo_mean : geo_mean_canon,
     gmatmul : gmatmul_canon,
     log : log_canon,
