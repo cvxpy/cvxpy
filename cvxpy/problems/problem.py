@@ -405,14 +405,13 @@ class Problem(u.Canonical):
         """:class:`~cvxpy.problems.problem.SolverStats` : Information returned by the solver.
         """
         return self._solver_stats
-    
+
     @property
     def compilation_time(self) -> float:
         """float : The number of seconds it took to compile the problem the
                    last time it was solved
         """
         return self._compilation_time
-
 
     def solve(self, *args, **kwargs):
         """Compiles and solves the problem using the specified method.
