@@ -1,5 +1,4 @@
 import numpy as np
-import pytest
 import scipy.sparse.linalg as sparla
 
 import cvxpy as cp
@@ -20,12 +19,22 @@ def test_is_psd() -> None:
     assert cp.Constant(nsd).is_nsd()
     assert not cp.Constant(nsd).is_psd()
 
-    np.random.seed(97)
+    # We simulate a scenario where a matrix is PSD but a ArpackNoConvergence is raised.
+    # With the current numpy random number generator, this happens with seed 97.
+    # We test a range of seeds to make sure that this scenario is not always triggered.
 
-    P = np.random.randn(n, n)
-    P = P.T @ P
+    failures = set()
+    for seed in range(95, 100):
+        np.random.seed(seed)
 
-    with pytest.raises(sparla.ArpackNoConvergence, match="CVXPY note"):
-        cp.Constant(P).is_psd()
+        P = np.random.randn(n, n)
+        P = P.T @ P
+
+        try:
+            cp.Constant(P).is_psd()
+        except sparla.ArpackNoConvergence as e:
+            assert "CVXPY note" in str(e)
+            failures.add(seed)
+    assert failures == {97}
 
     assert psd_wrap(cp.Constant(P)).is_psd()
