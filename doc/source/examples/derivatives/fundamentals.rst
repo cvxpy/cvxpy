@@ -4,7 +4,7 @@ Derivatives fundamentals
 
 This notebook will introduce you to the fundamentals of computing the
 derivative of the solution map to optimization problems. The derivative
-can be used for **sensitvity analysis**, to see how a solution would
+can be used for **sensitivity analysis**, to see how a solution would
 change given small changes to the parameters, and to compute
 **gradients** of scalar-valued functions of the solution.
 
