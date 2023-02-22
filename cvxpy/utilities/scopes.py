@@ -16,7 +16,6 @@ limitations under the License.
 import contextlib
 from typing import Generator
 
-
 _dpp_scope_active = False
 
 

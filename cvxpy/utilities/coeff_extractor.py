@@ -25,8 +25,10 @@ import scipy.sparse as sp
 from cvxpy.cvxcore.python import canonInterface
 from cvxpy.lin_ops.lin_op import NO_OP, LinOp
 from cvxpy.reductions.inverse_data import InverseData
-from cvxpy.utilities.replace_quad_forms import (replace_quad_forms,
-                                                restore_quad_forms,)
+from cvxpy.utilities.replace_quad_forms import (
+    replace_quad_forms,
+    restore_quad_forms,
+)
 
 
 # TODO find best format for sparse matrices: csr, csc, dok, lil, ...

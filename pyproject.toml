@@ -1,4 +1,5 @@
 [tool.ruff]
+select = ["E", "F", "I"]
 line-length = 100
 exclude = [
     "build",

@@ -168,7 +168,8 @@ class PDLP(ConicSolver):
         request.solver_specific_parameters = text_format.MessageToString(parameters)
         if Version(ortools.__version__) >= Version('9.4.0'):
             from ortools.model_builder.python import (
-                pywrap_model_builder_helper,)
+                pywrap_model_builder_helper,
+            )
             solver = pywrap_model_builder_helper.ModelSolverHelper("pdlp")
             response_str = solver.solve_serialized_request(request.SerializeToString())
             response = linear_solver_pb2.MPSolutionResponse.FromString(response_str)

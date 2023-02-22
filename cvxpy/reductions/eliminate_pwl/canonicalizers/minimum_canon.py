@@ -16,7 +16,8 @@ limitations under the License.
 
 from cvxpy.atoms.elementwise.maximum import maximum
 from cvxpy.reductions.eliminate_pwl.canonicalizers.maximum_canon import (
-    maximum_canon,)
+    maximum_canon,
+)
 
 
 def minimum_canon(expr, args):

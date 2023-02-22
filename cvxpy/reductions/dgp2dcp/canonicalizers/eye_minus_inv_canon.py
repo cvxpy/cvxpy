@@ -3,9 +3,11 @@ from cvxpy.atoms.affine.diag import diag
 from cvxpy.atoms.one_minus_pos import one_minus_pos
 from cvxpy.expressions.variable import Variable
 from cvxpy.reductions.dgp2dcp.canonicalizers.mulexpression_canon import (
-    mulexpression_canon,)
+    mulexpression_canon,
+)
 from cvxpy.reductions.dgp2dcp.canonicalizers.one_minus_pos_canon import (
-    one_minus_pos_canon,)
+    one_minus_pos_canon,
+)
 
 
 def eye_minus_inv_canon(expr, args):

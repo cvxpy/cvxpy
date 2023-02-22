@@ -25,7 +25,9 @@ from cvxpy.constraints import SOC
 from cvxpy.reductions.solution import Solution, failure_solution
 from cvxpy.reductions.solvers import utilities
 from cvxpy.reductions.solvers.conic_solvers.conic_solver import (
-    ConicSolver, dims_to_solver_dict,)
+    ConicSolver,
+    dims_to_solver_dict,
+)
 
 # Values used to distinguish between linear and quadratic constraints.
 _LIN, _QUAD = 0, 1

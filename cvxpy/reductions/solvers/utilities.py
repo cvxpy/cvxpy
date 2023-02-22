@@ -14,8 +14,9 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import numpy as np
 from typing import Any, Dict
+
+import numpy as np
 
 import cvxpy.interface as intf
 
