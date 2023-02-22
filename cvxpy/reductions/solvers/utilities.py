@@ -1,5 +1,3 @@
-from typing import Any, Dict
-
 """
 Copyright 2013 Steven Diamond
 
@@ -17,6 +15,7 @@ limitations under the License.
 """
 
 import numpy as np
+from typing import Any, Dict
 
 import cvxpy.interface as intf
 

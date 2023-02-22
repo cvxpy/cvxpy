@@ -1,5 +1,3 @@
-from typing import Generator
-
 """
 Copyright, the CVXPY authors
 
@@ -16,6 +14,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 import contextlib
+from typing import Generator
+
 
 _dpp_scope_active = False
 
