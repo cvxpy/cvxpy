@@ -39,6 +39,9 @@ class Atom(Expression):
     # args are the expressions passed into the Atom constructor.
 
     def __init__(self, *args) -> None:
+
+        UNUSED_VARIABLE = 0  # TODO: remove this
+
         self.id = lu.get_id()
         # Throws error if args is empty.
         if len(args) == 0:
