@@ -15,6 +15,7 @@ limitations under the License.
 """
 
 import numpy as np
+import pytest
 
 import cvxpy as cvx
 import cvxpy.problems.iterative as iterative
@@ -31,23 +32,34 @@ class TestConvolution(BaseTest):
         """
         n = 3
         x = cvx.Variable(n)
-        f = [1, 2, 3]
-        g = [0, 1, 0.5]
-        f_conv_g = [0., 1., 2.5,  4., 1.5]
+        f = np.array([1, 2, 3])
+        g = np.array([0, 1, 0.5])
+        f_conv_g = np.array([0., 1., 2.5,  4., 1.5])
         expr = cvx.conv(f, g)
         assert expr.is_constant()
-        self.assertEqual(expr.shape, (5, 1))
+        self.assertEqual(expr.shape, (5,))
+        self.assertEqual(expr.shape, expr.value.shape)
         self.assertItemsAlmostEqual(expr.value, f_conv_g)
 
         expr = cvx.conv(f, x)
         assert expr.is_affine()
-        self.assertEqual(expr.shape, (5, 1))
+        self.assertEqual(expr.shape, (5,))
         # Matrix stuffing.
         prob = cvx.Problem(cvx.Minimize(cvx.norm(expr, 1)),
                            [x == g])
         result = prob.solve(solver=cvx.SCS)
         self.assertAlmostEqual(result, sum(f_conv_g), places=3)
         self.assertItemsAlmostEqual(expr.value, f_conv_g)
+
+        # Doesn't work unless both inputs are 1D.
+        with pytest.raises(ValueError, match="must be 1D"):
+            cvx.conv(f, g[:, None])
+
+        with pytest.raises(ValueError, match="must be 1D"):
+            cvx.conv(f[:, None], g)
+
+        with pytest.raises(ValueError, match="must be 1D"):
+            cvx.conv(f[:, None], g[:, None])
 
         # # Expression trees.
         # prob = Problem(Minimize(norm(expr, 1)))
@@ -101,10 +113,9 @@ class TestConvolution(BaseTest):
     def test_conv_prob(self) -> None:
         """Test a problem with convolution.
         """
-        import numpy as np
         N = 5
-        y = np.random.randn(N, 1)
-        h = np.random.randn(2, 1)
+        y = np.random.randn(N,)
+        h = np.random.randn(2,)
         x = cvx.Variable(N)
         v = cvx.conv(h, x)
         obj = cvx.Minimize(cvx.sum(cvx.multiply(y, v[0:N])))
