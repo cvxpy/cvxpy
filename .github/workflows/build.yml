@@ -24,10 +24,7 @@ jobs:
       - uses: actions/setup-python@v2
         with:
           python-version: 3.8
-      - name: isort
-        uses: jamescurtin/isort-action@master
-      - name: flake8
-        uses: py-actions/flake8@v1
+      - uses: pre-commit/action@v3.0.0
 
   build:
     runs-on: ${{ matrix.os }}
