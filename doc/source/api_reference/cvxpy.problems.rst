@@ -44,8 +44,9 @@ Information about the size of a problem instance and statistics about the most
 recent solve invocation are captured by the
 :class:`~cvxpy.problems.problem.SizeMetrics` and
 :class:`~cvxpy.problems.problem.SolverStats` classes, respectively, and can be
-accessed via the :meth:`~cvxpy.problems.problem.Problem.size_metrics` and
-:meth:`~cvxpy.problems.problem.Problem.solver_stats` properties of the
+accessed via the :meth:`~cvxpy.problems.problem.Problem.size_metrics`, 
+:meth:`~cvxpy.problems.problem.Problem.solver_stats` and
+:meth:`~cvxpy.problems.problem.Problem.compilation_time` properties of the
 :class:`~cvxpy.problems.problem.Problem` class.
 
 .. contents:: :local:
@@ -69,7 +70,7 @@ Problem
 .. autoclass:: cvxpy.Problem
     :members: value, status, objective, constraints, is_dcp, is_dgp, is_dqcp,
               is_qp, is_dpp, variables, parameters, constants,
-              backward, derivative, atoms, size_metrics, solver_stats, solve,
+              backward, derivative, atoms, size_metrics, solver_stats, compilation_time, solve,
               register_solve, get_problem_data, unpack_results
     :undoc-members:
     :member-order: groupwise
