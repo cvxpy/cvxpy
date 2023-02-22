@@ -406,6 +406,13 @@ class Problem(u.Canonical):
         """
         return self._solver_stats
 
+    @property
+    def compilation_time(self) -> float | None:
+        """float : The number of seconds it took to compile the problem the
+                   last time it was compiled.
+        """
+        return self._compilation_time
+
     def solve(self, *args, **kwargs):
         """Compiles and solves the problem using the specified method.
 

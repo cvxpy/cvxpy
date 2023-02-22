@@ -213,6 +213,11 @@ class TestProblem(BaseTest):
         self.assertGreater(stats.num_iters, 0)
         self.assertTrue(hasattr(stats.extra_stats, 'info'))
 
+    def test_compilation_time(self) -> None:
+        prob = Problem(cp.Minimize(cp.norm(self.x)), [self.x == 0])
+        prob.solve()
+        assert isinstance(prob.compilation_time, float)
+
     def test_get_problem_data(self) -> None:
         """Test get_problem_data method.
         """
