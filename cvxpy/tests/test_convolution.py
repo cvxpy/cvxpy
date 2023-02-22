@@ -15,7 +15,6 @@ limitations under the License.
 """
 
 import numpy as np
-import pytest
 
 import cvxpy as cvx
 import cvxpy.problems.iterative as iterative
@@ -51,18 +50,31 @@ class TestConvolution(BaseTest):
         self.assertAlmostEqual(result, sum(f_conv_g), places=3)
         self.assertItemsAlmostEqual(expr.value, f_conv_g)
 
-        # Doesn't work unless both inputs are 1D.
-        with pytest.raises(ValueError, match="must be 1D"):
-            cvx.conv(2, g)
+        # Test other shape configurations.
+        expr = cvx.conv(2, g)
+        self.assertEqual(expr.shape, (3,))
+        self.assertEqual(expr.shape, expr.value.shape)
+        self.assertItemsAlmostEqual(expr.value, 2 * g)
 
-        with pytest.raises(ValueError, match="must be 1D"):
-            cvx.conv(f, g[:, None])
+        expr = cvx.conv(f, 2)
+        self.assertEqual(expr.shape, (3,))
+        self.assertEqual(expr.shape, expr.value.shape)
+        self.assertItemsAlmostEqual(expr.value, 2 * f)
 
-        with pytest.raises(ValueError, match="must be 1D"):
-            cvx.conv(f[:, None], g)
+        expr = cvx.conv(f, g[:, None])
+        self.assertEqual(expr.shape, (5, 1))
+        self.assertEqual(expr.shape, expr.value.shape)
+        self.assertItemsAlmostEqual(expr.value, f_conv_g)
 
-        with pytest.raises(ValueError, match="must be 1D"):
-            cvx.conv(f[:, None], g[:, None])
+        expr = cvx.conv(f[:, None], g)
+        self.assertEqual(expr.shape, (5, 1))
+        self.assertEqual(expr.shape, expr.value.shape)
+        self.assertItemsAlmostEqual(expr.value, f_conv_g)
+
+        expr = cvx.conv(f[:, None], g[:, None])
+        self.assertEqual(expr.shape, (5, 1))
+        self.assertEqual(expr.shape, expr.value.shape)
+        self.assertItemsAlmostEqual(expr.value, f_conv_g)
 
         # # Expression trees.
         # prob = Problem(Minimize(norm(expr, 1)))
@@ -117,9 +129,9 @@ class TestConvolution(BaseTest):
         """Test a problem with convolution.
         """
         N = 5
-        y = np.random.randn(N,)
-        h = np.random.randn(2,)
-        x = cvx.Variable(N)
+        y = np.random.randn(N, 1)
+        h = np.random.randn(2, 1)
+        x = cvx.Variable((N, 1))
         v = cvx.conv(h, x)
         obj = cvx.Minimize(cvx.sum(cvx.multiply(y, v[0:N])))
         print(cvx.Problem(obj, []).solve(solver=cvx.ECOS))
@@ -130,7 +142,7 @@ class TestConvolution(BaseTest):
         x = cvx.Variable((1,))  # or cvx.Variable((1,1))
         problem = cvx.Problem(
             cvx.Minimize(
-                cvx.max(cvx.conv([1.], cvx.multiply(1., x)))
+                cvx.max(cvx.conv(1., cvx.multiply(1., x)))
             ),
             [x >= 0]
         )

@@ -18,6 +18,7 @@ from typing import List, Tuple
 
 import numpy as np
 
+import cvxpy.interface as intf
 import cvxpy.lin_ops.lin_op as lo
 import cvxpy.lin_ops.lin_utils as lu
 import cvxpy.utilities as u
@@ -53,22 +54,31 @@ class conv(AffAtom):
     def numeric(self, values):
         """Convolve the two values.
         """
-        return np.convolve(values[0], values[1])
+        flat_values = list(map(intf.from_2D_to_1D, values))
+        output = np.convolve(flat_values[0], flat_values[1])
+        if values[0].ndim == 2 or values[1].ndim == 2:
+            return output[:, None]
+        else:
+            return output
 
     def validate_arguments(self) -> None:
         """Checks that both arguments are vectors, and the first is constant.
         """
-        if not self.args[0].ndim == 1 or not self.args[1].ndim == 1:
-            raise ValueError("The arguments to conv must be 1D.")
+        if not self.args[0].is_vector() or not self.args[1].is_vector():
+            raise ValueError("The arguments to conv must resolve to vectors.")
         if not self.args[0].is_constant():
             raise ValueError("The first argument to conv must be constant.")
 
     def shape_from_args(self) -> Tuple[int, int]:
         """The sum of the argument dimensions - 1.
         """
-        lh_length = self.args[0].shape[0]
-        rh_length = self.args[1].shape[0]
-        return (lh_length + rh_length - 1,)
+        lh_length = self.args[0].size
+        rh_length = self.args[1].size
+        output_length = lh_length + rh_length - 1
+        if self.args[0].ndim == 2 or self.args[1].ndim == 2:
+            return (output_length, 1)
+        else:
+            return (output_length,)
 
     def sign_from_args(self) -> Tuple[bool, bool]:
         """Same as times.

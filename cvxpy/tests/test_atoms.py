@@ -841,22 +841,22 @@ class TestAtoms(BaseTest):
     def test_conv(self) -> None:
         """Test the conv atom.
         """
-        a = np.ones((3,))
+        a = np.ones((3, 1))
         b = Parameter(2, nonneg=True)
         expr = cp.conv(a, b)
         assert expr.is_nonneg()
-        self.assertEqual(expr.shape, (4,))
+        self.assertEqual(expr.shape, (4, 1))
         b = Parameter(2, nonpos=True)
         expr = cp.conv(a, b)
         assert expr.is_nonpos()
         with self.assertRaises(Exception) as cm:
-            cp.conv(self.x, np.array([-1]))
+            cp.conv(self.x, -1)
         self.assertEqual(str(cm.exception),
                          "The first argument to conv must be constant.")
         with self.assertRaises(Exception) as cm:
             cp.conv([[0, 1], [0, 1]], self.x)
         self.assertEqual(str(cm.exception),
-                         "The arguments to conv must be 1D.")
+                         "The arguments to conv must resolve to vectors.")
 
     def test_kron_expr(self) -> None:
         """Test the kron atom.
