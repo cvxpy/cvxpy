@@ -409,7 +409,7 @@ class Problem(u.Canonical):
     @property
     def compilation_time(self) -> float | None:
         """float : The number of seconds it took to compile the problem the
-                   last time it was solved.
+                   last time it was compiled.
         """
         return self._compilation_time
 
