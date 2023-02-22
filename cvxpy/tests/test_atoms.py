@@ -843,6 +843,24 @@ class TestAtoms(BaseTest):
         self.assertEqual(str(cm.exception),
                          "The first argument to kron must be constant.")
 
+    def test_convolve(self) -> None:
+        """Test the convolve atom.
+        """
+        a = np.ones((3,))
+        b = Parameter(2, nonneg=True)
+        expr = cp.convolve(a, b)
+        assert expr.is_nonneg()
+        self.assertEqual(expr.shape, (4,))
+        b = Parameter(2, nonpos=True)
+        expr = cp.convolve(a, b)
+        assert expr.is_nonpos()
+        with self.assertRaises(Exception) as cm:
+            cp.convolve(self.x, -1)
+        self.assertEqual(str(cm.exception),
+                         "The first argument to conv must be constant.")
+        with pytest.raises(ValueError, match="scalar or 1D"):
+            cp.convolve([[0, 1], [0, 1]], self.x)
+
     def test_partial_optimize_dcp(self) -> None:
         """Test DCP properties of partial optimize.
         """

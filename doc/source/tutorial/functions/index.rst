@@ -706,7 +706,7 @@ and returns a vector or matrix.
      - |affine| affine
      - |incr| incr.
 
-   * - :ref:`conv(c, x) <conv>`
+   * - :ref:`convolve(c, x) <convolve>`
 
        :math:`c\in\mathbf{R}^m`
      - :math:`c*x`
@@ -797,8 +797,8 @@ The input to ``bmat`` is a list of lists of CVXPY expressions.
 It constructs a block matrix.
 The elements of each inner list are stacked horizontally and then the resulting block matrices are stacked vertically.
 
-The output :math:`y` of ``conv(c, x)`` has size :math:`n+m-1` and is defined as
-:math:`y[k]=\sum_{j=0}^k c[j]x[k-j]`.
+The output :math:`y = \mathbf{convolve}(c, x)` has size :math:`n+m-1` and is defined as
+:math:`y_k =\sum_{j=0}^{k} c[j]x[k-j]`.
 
 The output :math:`x'` of ``vec(X)`` is the matrix :math:`X` flattened in column-major order into a vector.
 Formally, :math:`x'_i = X_{i \bmod{m}, \left \lfloor{i/m}\right \rfloor }`.
