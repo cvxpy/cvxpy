@@ -18,7 +18,7 @@ from cvxpy.atoms.affine.binary_operators import (matmul, multiply,
                                                  scalar_product,)
 from cvxpy.atoms.affine.bmat import bmat
 from cvxpy.atoms.affine.conj import conj
-from cvxpy.atoms.affine.conv import conv
+from cvxpy.atoms.affine.conv import conv, convolve
 from cvxpy.atoms.affine.cumsum import cumsum
 from cvxpy.atoms.affine.diag import diag
 from cvxpy.atoms.affine.diff import diff
