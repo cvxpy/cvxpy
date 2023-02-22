@@ -18,7 +18,6 @@ from typing import List, Tuple
 
 import numpy as np
 
-import cvxpy.interface as intf
 import cvxpy.lin_ops.lin_op as lo
 import cvxpy.lin_ops.lin_utils as lu
 import cvxpy.utilities as u
@@ -54,8 +53,6 @@ class conv(AffAtom):
     def numeric(self, values):
         """Convolve the two values.
         """
-        # Convert values to 1D.
-        values = list(map(intf.from_2D_to_1D, values))
         return np.convolve(values[0], values[1])
 
     def validate_arguments(self) -> None:

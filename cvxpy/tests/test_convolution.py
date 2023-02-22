@@ -53,6 +53,9 @@ class TestConvolution(BaseTest):
 
         # Doesn't work unless both inputs are 1D.
         with pytest.raises(ValueError, match="must be 1D"):
+            cvx.conv(2, g)
+
+        with pytest.raises(ValueError, match="must be 1D"):
             cvx.conv(f, g[:, None])
 
         with pytest.raises(ValueError, match="must be 1D"):
