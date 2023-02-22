@@ -61,8 +61,8 @@ class conv(AffAtom):
     def validate_arguments(self) -> None:
         """Checks that both arguments are vectors, and the first is constant.
         """
-        if not self.args[0].ndim == 1 or not self.args[1].ndim == 1:
-            raise ValueError("The arguments to conv must be 1D.")
+        if not self.args[0].is_vector() or not self.args[1].is_vector():
+            raise ValueError("The arguments to conv must resolve to vectors.")
         if not self.args[0].is_constant():
             raise ValueError("The first argument to conv must be constant.")
 
@@ -71,7 +71,7 @@ class conv(AffAtom):
         """
         lh_length = self.args[0].shape[0]
         rh_length = self.args[1].shape[0]
-        return (lh_length + rh_length - 1,)
+        return (lh_length + rh_length - 1, 1)
 
     def sign_from_args(self) -> Tuple[bool, bool]:
         """Same as times.
