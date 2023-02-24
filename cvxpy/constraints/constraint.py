@@ -195,6 +195,10 @@ class Constraint(u.Canonical):
         """
         return self.constr_id
 
+    @id.setter
+    def id(self, value):
+        self.constr_id = value
+
     def get_data(self):
         """Data needed to copy.
         """

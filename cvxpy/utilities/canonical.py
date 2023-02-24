@@ -15,7 +15,9 @@ limitations under the License.
 """
 
 import abc
+import copy
 
+import cvxpy.lin_ops.lin_utils as lu
 from cvxpy.utilities import performance_utils as pu
 from cvxpy.utilities.deterministic import unique_list
 
@@ -110,8 +112,17 @@ class Canonical:
         """
         Called by copy.deepcopy()
         """
-        raise NotImplementedError('Creating a deepcopy of a CVXPY expression is not supported. '
-                                  'Use .copy() instead.')
+        cvxpy_id = getattr(self, 'id', None)
+        if cvxpy_id is not None and cvxpy_id in memo:
+            return memo[cvxpy_id]
+        else:
+            with DefaultDeepCopyContextManager(self):  # Avoid infinite recursion
+                new = copy.deepcopy(self, memo)
+            if getattr(self, 'id', None) is not None:
+                new_id = lu.get_id()
+                new.id = new_id
+            memo[cvxpy_id] = new
+            return new
 
     def get_data(self) -> None:
         """Returns info needed to reconstruct the object besides the args.
@@ -131,3 +142,26 @@ class Canonical:
         """
         # Remove duplicates.
         return unique_list(atom for arg in self.args for atom in arg.atoms())
+
+
+_MISSING = object()
+
+
+class DefaultDeepCopyContextManager:
+    """
+    override custom __deepcopy__ implementation and call copy.deepcopy's implementation instead
+    """
+
+    def __init__(self, item):
+        self.item = item
+        self.deepcopy = None
+
+    def __enter__(self):
+        self.deepcopy = getattr(self.item, '__deepcopy__', _MISSING)
+        if self.deepcopy is not _MISSING:
+            self.item.__deepcopy__ = None
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        if self.deepcopy is not _MISSING:
+            self.item.__deepcopy__ = self.deepcopy
+            self.deepcopy = _MISSING
