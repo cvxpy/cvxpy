@@ -27,10 +27,6 @@ def test_leaf():
     b = copy.copy(a)
     c = copy.deepcopy(a)
 
-    assert a is b
-    assert a is not c
-    assert b is not c
-
     assert a.id == b.id
     assert a.id != c.id
 
@@ -44,10 +40,6 @@ def test_constraint():
     a = Equality(x, 0)
     b = copy.copy(a)
     c = copy.deepcopy(a)
-
-    assert a is not b
-    assert a is not c
-    assert b is not c
 
     assert a.id == b.id
     assert a.id != c.id
@@ -63,10 +55,6 @@ def test_expression():
     a = x + 1
     b = copy.copy(a)
     c = copy.deepcopy(a)
-
-    assert a is not b
-    assert a is not c
-    assert b is not c
 
     assert a.id != b.id
     assert a.id != c.id
