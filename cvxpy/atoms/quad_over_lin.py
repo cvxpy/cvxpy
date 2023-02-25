@@ -22,6 +22,7 @@ import scipy.sparse as sp
 
 from cvxpy.atoms.atom import Atom
 from cvxpy.constraints.constraint import Constraint
+from cvxpy.utilities.shape import cvxpy_shape
 
 
 class quad_over_lin(Atom):
@@ -75,7 +76,7 @@ class quad_over_lin(Atom):
             DX = scipy.sparse.csc_matrix(DX)
             return [DX, Dy]
 
-    def shape_from_args(self) -> Tuple[int, ...]:
+    def shape_from_args(self) -> cvxpy_shape:
         """Returns the (row, col) shape of the expression.
         """
         return tuple()

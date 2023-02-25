@@ -19,6 +19,7 @@ import numpy as np
 import scipy.sparse as sp
 
 from cvxpy.interface.numpy_interface.ndarray_interface import NDArrayInterface
+from cvxpy.utilities.shape import cvxpy_shape
 
 
 class MatrixInterface(NDArrayInterface):
@@ -52,7 +53,7 @@ class MatrixInterface(NDArrayInterface):
         return np.asmatrix(np.eye(size))
 
     # A matrix with all entries equal to the given scalar value.
-    def scalar_matrix(self, value, shape: Tuple[int, ...]):
+    def scalar_matrix(self, value, shape: cvxpy_shape):
         mat = np.zeros(shape, dtype='float64') + value
         return np.asmatrix(mat)
 

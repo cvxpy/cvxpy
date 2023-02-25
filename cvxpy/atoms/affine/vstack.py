@@ -21,6 +21,7 @@ import cvxpy.lin_ops.lin_op as lo
 import cvxpy.lin_ops.lin_utils as lu
 from cvxpy.atoms.affine.affine_atom import AffAtom
 from cvxpy.constraints.constraint import Constraint
+from cvxpy.utilities.shape import cvxpy_shape
 
 
 def vstack(arg_list) -> "Vstack":
@@ -47,7 +48,7 @@ class Vstack(AffAtom):
         return np.vstack(values)
 
     # The shape is the common width and the sum of the heights.
-    def shape_from_args(self) -> Tuple[int, ...]:
+    def shape_from_args(self) -> cvxpy_shape:
         self.args[0].shape
         if self.args[0].ndim == 0:
             return (len(self.args), 1)
@@ -75,7 +76,7 @@ class Vstack(AffAtom):
                                   " for axis 0 must match exactly."))
 
     def graph_implementation(
-        self, arg_objs, shape: Tuple[int, ...], data=None
+        self, arg_objs, shape: cvxpy_shape, data=None
     ) -> Tuple[lo.LinOp, List[Constraint]]:
         """Stack the expressions vertically.
 

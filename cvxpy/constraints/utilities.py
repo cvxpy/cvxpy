@@ -95,7 +95,7 @@ def format_elemwise(vars_):
     return [lu.create_geq(lu.sum_expr(terms))]
 
 
-def get_spacing_matrix(shape: Tuple[int, ...], spacing, offset):
+def get_spacing_matrix(shape: cvxpy_shape, spacing, offset):
     """Returns a sparse matrix LinOp that spaces out an expression.
 
     Parameters

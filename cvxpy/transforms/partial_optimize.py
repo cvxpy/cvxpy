@@ -24,6 +24,7 @@ from cvxpy.expressions.expression import Expression
 from cvxpy.expressions.variable import Variable
 from cvxpy.problems.objective import Maximize, Minimize
 from cvxpy.problems.problem import Problem
+from cvxpy.utilities.shape import cvxpy_shape
 
 
 def partial_optimize(
@@ -183,7 +184,7 @@ class PartialProblem(Expression):
         return False
 
     @property
-    def shape(self) -> Tuple[int, ...]:
+    def shape(self) -> cvxpy_shape:
         """Returns the (row, col) dimensions of the expression.
         """
         return tuple()

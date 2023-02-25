@@ -21,6 +21,7 @@ import numpy as np
 from cvxpy.constraints.constraint import Constraint
 from cvxpy.expressions import cvxtypes
 from cvxpy.utilities import scopes
+from cvxpy.utilities.shape import cvxpy_shape
 
 
 class PowCone3D(Constraint):
@@ -114,7 +115,7 @@ class PowCone3D(Constraint):
         return self.is_dcp()
 
     @property
-    def shape(self) -> Tuple[int, ...]:
+    def shape(self) -> cvxpy_shape:
         s = (3,) + self.x.shape
         # Note: this can be a 3-tuple of x.ndim == 2.
         return s

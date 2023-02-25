@@ -23,13 +23,14 @@ import scipy.sparse as sp
 import cvxpy.lin_ops.lin_utils as lu
 import cvxpy.utilities as u
 from cvxpy.atoms.atom import Atom
+from cvxpy.utilities.shape import cvxpy_shape
 
 
 class Elementwise(Atom):
     """ Abstract base class for elementwise atoms. """
     __metaclass__ = abc.ABCMeta
 
-    def shape_from_args(self) -> Tuple[int, ...]:
+    def shape_from_args(self) -> cvxpy_shape:
         """Shape is the same as the sum of the arguments.
         """
         return u.shape.sum_shapes([arg.shape for arg in self.args])
@@ -63,7 +64,7 @@ class Elementwise(Atom):
         return sp.dia_matrix((np.atleast_1d(value), [0]), shape=(rows, cols)).tocsc()
 
     @staticmethod
-    def _promote(arg, shape: Tuple[int, ...]):
+    def _promote(arg, shape: cvxpy_shape):
         """Promotes the lin op if necessary.
 
         Parameters

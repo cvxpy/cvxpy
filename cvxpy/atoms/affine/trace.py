@@ -21,6 +21,7 @@ import cvxpy.lin_ops.lin_op as lo
 import cvxpy.lin_ops.lin_utils as lu
 from cvxpy.atoms.affine.affine_atom import AffAtom
 from cvxpy.constraints.constraint import Constraint
+from cvxpy.utilities.shape import cvxpy_shape
 
 
 class trace(AffAtom):
@@ -57,7 +58,7 @@ class trace(AffAtom):
         if self.args[0].ndim != 2 or shape[0] != shape[1]:
             raise ValueError("Argument to trace must be a square matrix.")
 
-    def shape_from_args(self) -> Tuple[int, ...]:
+    def shape_from_args(self) -> cvxpy_shape:
         """Always scalar.
         """
         return tuple()
@@ -73,7 +74,7 @@ class trace(AffAtom):
         return False
 
     def graph_implementation(
-        self, arg_objs, shape: Tuple[int, ...], data=None
+        self, arg_objs, shape: cvxpy_shape, data=None
     ) -> Tuple[lo.LinOp, List[Constraint]]:
         """Sum the diagonal entries of the linear expression.
 

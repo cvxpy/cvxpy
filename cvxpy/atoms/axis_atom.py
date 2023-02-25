@@ -21,6 +21,7 @@ import numpy as np
 import scipy.sparse as sp
 
 from cvxpy.atoms.atom import Atom
+from cvxpy.utilities.shape import cvxpy_shape
 
 
 class AxisAtom(Atom):
@@ -35,7 +36,7 @@ class AxisAtom(Atom):
         self.keepdims = keepdims
         super(AxisAtom, self).__init__(expr)
 
-    def shape_from_args(self) -> Tuple[int, ...]:
+    def shape_from_args(self) -> cvxpy_shape:
         """Depends on axis.
         """
         shape = list(self.args[0].shape)

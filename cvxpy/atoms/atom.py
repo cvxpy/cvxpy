@@ -16,6 +16,8 @@ limitations under the License.
 import abc
 from typing import TYPE_CHECKING, List, Tuple
 
+from cvxpy.utilities.shape import cvxpy_shape
+
 if TYPE_CHECKING:
     from cvxpy.constraints.constraint import Constraint
 
@@ -71,13 +73,13 @@ class Atom(Expression):
             )
 
     @abc.abstractmethod
-    def shape_from_args(self) -> Tuple[int, ...]:
+    def shape_from_args(self) -> cvxpy_shape:
         """Returns the shape of the expression.
         """
         raise NotImplementedError()
 
     @property
-    def shape(self) -> Tuple[int, ...]:
+    def shape(self) -> cvxpy_shape:
         return self._shape
 
     @abc.abstractmethod
@@ -330,7 +332,7 @@ class Atom(Expression):
             return graph_obj, constraints + graph_constr
 
     def graph_implementation(
-        self, arg_objs, shape: Tuple[int, ...], data=None
+        self, arg_objs, shape: cvxpy_shape, data=None
     ) -> Tuple[lo.LinOp, List['Constraint']]:
         """Reduces the atom to an affine expression and list of constraints.
 

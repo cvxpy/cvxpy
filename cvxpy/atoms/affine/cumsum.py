@@ -26,6 +26,7 @@ from cvxpy.atoms.axis_atom import AxisAtom
 from cvxpy.constraints.constraint import Constraint
 from cvxpy.expressions.expression import Expression
 from cvxpy.expressions.variable import Variable
+from cvxpy.utilities.shape import cvxpy_shape
 
 
 def get_diff_mat(dim: int, axis: int) -> sp.csc_matrix:
@@ -83,7 +84,7 @@ class cumsum(AffAtom, AxisAtom):
         """
         return np.cumsum(values[0], axis=self.axis)
 
-    def shape_from_args(self) -> Tuple[int, ...]:
+    def shape_from_args(self) -> cvxpy_shape:
         """The same as the input.
         """
         return self.args[0].shape
@@ -118,7 +119,7 @@ class cumsum(AffAtom, AxisAtom):
         return [self.axis]
 
     def graph_implementation(
-        self, arg_objs, shape: Tuple[int, ...], data=None
+        self, arg_objs, shape: cvxpy_shape, data=None
     ) -> Tuple[lo.LinOp, List[Constraint]]:
         """Cumulative sum via difference matrix.
 

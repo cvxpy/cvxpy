@@ -18,6 +18,7 @@ from typing import Tuple
 import numpy as np
 
 from cvxpy.atoms.affine.affine_atom import AffAtom
+from cvxpy.utilities.shape import cvxpy_shape
 
 
 class imag(AffAtom):
@@ -31,7 +32,7 @@ class imag(AffAtom):
         """
         return np.imag(values[0])
 
-    def shape_from_args(self) -> Tuple[int, ...]:
+    def shape_from_args(self) -> cvxpy_shape:
         """Returns the shape of the expression.
         """
         return self.args[0].shape

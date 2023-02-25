@@ -29,7 +29,7 @@ from cvxpy import error
 from cvxpy.constraints import PSD, Equality, Inequality
 from cvxpy.expressions import cvxtypes
 from cvxpy.utilities import scopes
-from cvxpy.utilities.shape import size_from_shape
+from cvxpy.utilities.shape import cvxpy_shape, size_from_shape
 
 
 def _cast_other(binary_op):
@@ -397,7 +397,7 @@ class Expression(u.Canonical):
         raise NotImplementedError()
 
     @abc.abstractproperty
-    def shape(self) -> Tuple[int, ...]:
+    def shape(self) -> cvxpy_shape:
         """tuple : The expression dimensions.
         """
         raise NotImplementedError()

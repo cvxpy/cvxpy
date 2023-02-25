@@ -128,7 +128,7 @@ class ExpCone(Constraint):
         return self.is_dcp()
 
     @property
-    def shape(self) -> Tuple[int, ...]:
+    def shape(self) -> cvxpy_shape:
         s = (3,) + self.x.shape
         return s
 
@@ -245,7 +245,7 @@ class RelEntrQuad(Constraint):
         return self.is_dcp()
 
     @property
-    def shape(self) -> Tuple[int, ...]:
+    def shape(self) -> cvxpy_shape:
         s = (3,) + self.x.shape
         return s
 
@@ -357,7 +357,7 @@ class OpRelConeQuad(Constraint):
         return self.is_dcp()
 
     @property
-    def shape(self) -> Tuple[int, ...]:
+    def shape(self) -> cvxpy_shape:
         s = (3,) + self.X.shape
         return s
 

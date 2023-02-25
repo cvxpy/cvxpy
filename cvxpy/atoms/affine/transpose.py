@@ -21,6 +21,7 @@ import cvxpy.lin_ops.lin_op as lo
 import cvxpy.lin_ops.lin_utils as lu
 from cvxpy.atoms.affine.affine_atom import AffAtom
 from cvxpy.constraints.constraint import Constraint
+from cvxpy.utilities.shape import cvxpy_shape
 
 
 class transpose(AffAtom):
@@ -60,7 +61,7 @@ class transpose(AffAtom):
         """
         return self.args[0].is_hermitian()
 
-    def shape_from_args(self) -> Tuple[int, ...]:
+    def shape_from_args(self) -> cvxpy_shape:
         """Returns the shape of the transpose expression.
         """
         return self.args[0].shape[::-1]
@@ -71,7 +72,7 @@ class transpose(AffAtom):
         return [self.axes]
 
     def graph_implementation(
-        self, arg_objs, shape: Tuple[int, ...], data=None
+        self, arg_objs, shape: cvxpy_shape, data=None
     ) -> Tuple[lo.LinOp, List[Constraint]]:
         """Create a new variable equal to the argument transposed.
 
