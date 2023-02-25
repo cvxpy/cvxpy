@@ -131,7 +131,7 @@ jobs:
           platforms: all
 
       - name: Build wheels
-        if: ${{github.event_name == 'push' && env.USE_OPENMP != 'True'}}
+        if: ${{env.USE_OPENMP != 'True'}}
         env:
           CIBW_BUILD: "cp3${{env.PYTHON_SUBVERSION}}-*"
           CIBW_SKIP: "*-win32 *-manylinux_i686 *-musllinux*"
@@ -140,12 +140,12 @@ jobs:
         uses: pypa/cibuildwheel@v2.12.0
 
       - name: Build source
-        if: ${{github.event_name == 'push' && env.SINGLE_ACTION_CONFIG == 'True'}}
+        if: ${{env.SINGLE_ACTION_CONFIG == 'True'}}
         run: |
           python setup.py sdist --dist-dir=wheelhouse
 
       - name: Check wheels
-        if: ${{github.event_name == 'push' &&  env.USE_OPENMP != 'True'}}
+        if: ${{env.USE_OPENMP != 'True'}}
         shell: bash
         run: |
           python -m pip install --upgrade twine
@@ -158,7 +158,7 @@ jobs:
           twine upload --skip-existing --repository-url $PYPI_SERVER wheelhouse/* -u $PYPI_USER -p $PYPI_PASSWORD
 
       - name: Upload artifacts to github
-        if: ${{github.event_name == 'push' && env.USE_OPENMP != 'True'}}
+        if: ${{env.USE_OPENMP != 'True'}}
         uses: actions/upload-artifact@v1
         with:
           name: wheels
@@ -227,7 +227,6 @@ jobs:
           platforms: all
 
       - name: Build wheels
-        if: ${{github.event_name == 'push'}}
         env:
           CIBW_BUILD: "cp3${{env.PYTHON_SUBVERSION}}-*"
           CIBW_SKIP: "*-win32 *-manylinux_i686 *-musllinux*"
@@ -236,13 +235,12 @@ jobs:
         uses: pypa/cibuildwheel@v2.12.0
 
       - name: Build source
-        if: ${{github.event_name == 'push' && env.SINGLE_ACTION_CONFIG == 'True'}}
+        if: ${{env.SINGLE_ACTION_CONFIG == 'True'}}
         run: |
           python setup.py sdist --dist-dir=wheelhouse
 
       - name: Check wheels
         shell: bash
-        if: ${{github.event_name == 'push'}}
         run: |
           python -m pip install --upgrade twine
           twine check wheelhouse/*
@@ -254,7 +252,6 @@ jobs:
           twine upload --skip-existing --repository-url $PYPI_SERVER wheelhouse/* -u $PYPI_USER -p $PYPI_BASE_PASSWORD
 
       - name: Upload artifacts to github
-        if: ${{github.event_name == 'push'}}
         uses: actions/upload-artifact@v1
         with:
           name: wheels-base
