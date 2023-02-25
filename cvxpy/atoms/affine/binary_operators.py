@@ -36,6 +36,7 @@ from cvxpy.constraints.constraint import Constraint
 from cvxpy.error import DCPError
 from cvxpy.expressions.constants.parameter import (is_param_affine,
                                                    is_param_free,)
+from cvxpy.utilities.shape import cvxpy_shape
 
 
 class BinaryOperator(AffAtom):
@@ -114,7 +115,7 @@ class MulExpression(BinaryOperator):
         else:
             return np.matmul(values[0], values[1])
 
-    def shape_from_args(self) -> Tuple[int, ...]:
+    def shape_from_args(self) -> cvxpy_shape:
         """Returns the (row, col) shape of the expression.
         """
         return u.shape.mul_shapes(self.args[0].shape, self.args[1].shape)
@@ -202,7 +203,7 @@ class MulExpression(BinaryOperator):
         return [DX, DY]
 
     def graph_implementation(
-        self, arg_objs, shape: Tuple[int, ...], data=None
+        self, arg_objs, shape: cvxpy_shape, data=None
     ) -> Tuple[lo.LinOp, List[Constraint]]:
         """Multiply the linear expressions.
 
@@ -272,7 +273,7 @@ class multiply(MulExpression):
         else:
             return np.multiply(values[0], values[1])
 
-    def shape_from_args(self) -> Tuple[int, ...]:
+    def shape_from_args(self) -> cvxpy_shape:
         """The sum of the argument dimensions - 1.
         """
         return u.shape.sum_shapes([arg.shape for arg in self.args])
@@ -290,7 +291,7 @@ class multiply(MulExpression):
                (self.args[0].is_nsd() and self.args[1].is_psd())
 
     def graph_implementation(
-        self, arg_objs, shape: Tuple[int, ...], data=None
+        self, arg_objs, shape: cvxpy_shape, data=None
     ) -> Tuple[lo.LinOp, List[Constraint]]:
         """Multiply the expressions elementwise.
 
@@ -351,7 +352,7 @@ class DivExpression(BinaryOperator):
     def is_qpwa(self) -> bool:
         return self.args[0].is_qpwa() and self.args[1].is_constant()
 
-    def shape_from_args(self) -> Tuple[int, ...]:
+    def shape_from_args(self) -> cvxpy_shape:
         """Returns the (row, col) shape of the expression.
         """
         return self.args[0].shape
@@ -398,7 +399,7 @@ class DivExpression(BinaryOperator):
             return self.args[0].is_nonneg()
 
     def graph_implementation(
-        self, arg_objs, shape: Tuple[int, ...], data=None
+        self, arg_objs, shape: cvxpy_shape, data=None
     ) -> Tuple[lo.LinOp, List[Constraint]]:
         """Multiply the linear expressions.
 

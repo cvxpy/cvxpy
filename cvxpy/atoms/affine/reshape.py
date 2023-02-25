@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 import numbers
-from typing import List, Tuple
+from typing import List, Tuple, Union
 
 import numpy as np
 
@@ -24,7 +24,7 @@ from cvxpy.atoms.affine.affine_atom import AffAtom
 from cvxpy.atoms.affine.hstack import hstack
 from cvxpy.constraints.constraint import Constraint
 from cvxpy.expressions.expression import Expression
-from cvxpy.utilities.shape import size_from_shape
+from cvxpy.utilities.shape import cvxpy_shape, size_from_shape
 
 
 class reshape(AffAtom):
@@ -43,7 +43,7 @@ class reshape(AffAtom):
     order : F(ortran) or C
     """
 
-    def __init__(self, expr, shape: Tuple[int, int], order: str = 'F') -> None:
+    def __init__(self, expr, shape: Union[int, cvxpy_shape], order: str = 'F') -> None:
         if isinstance(shape, numbers.Integral):
             shape = (int(shape),)
         if len(shape) > 2:
@@ -80,7 +80,7 @@ class reshape(AffAtom):
                 "Invalid reshape dimensions %s." % (self._shape,)
             )
 
-    def shape_from_args(self) -> Tuple[int, ...]:
+    def shape_from_args(self) -> cvxpy_shape:
         """Returns the shape from the rows, cols arguments.
         """
         return self._shape
@@ -91,7 +91,7 @@ class reshape(AffAtom):
         return [self._shape, self.order]
 
     def graph_implementation(
-        self, arg_objs, shape: Tuple[int, ...], data=None
+        self, arg_objs, shape: cvxpy_shape, data=None
     ) -> Tuple[lo.LinOp, List[Constraint]]:
         """Reshape
 

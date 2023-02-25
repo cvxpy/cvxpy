@@ -26,6 +26,7 @@ from cvxpy.atoms.affine.vec import vec
 from cvxpy.constraints.constraint import Constraint
 from cvxpy.expressions.expression import Expression
 from cvxpy.utilities import key_utils as ku
+from cvxpy.utilities.shape import cvxpy_shape
 
 
 class index(AffAtom):
@@ -74,7 +75,7 @@ class index(AffAtom):
         """
         return values[0][self._orig_key]
 
-    def shape_from_args(self) -> Tuple[int, ...]:
+    def shape_from_args(self) -> cvxpy_shape:
         """Returns the shape of the index expression.
         """
         return ku.shape(self.key, self._orig_key, self.args[0].shape)
@@ -85,7 +86,7 @@ class index(AffAtom):
         return [self.key, self._orig_key]
 
     def graph_implementation(
-        self, arg_objs, shape: Tuple[int, ...], data=None
+        self, arg_objs, shape: cvxpy_shape, data=None
     ) -> Tuple[lo.LinOp, List[Constraint]]:
         """Index/slice into the expression.
 
@@ -147,7 +148,7 @@ class special_index(AffAtom):
         """
         return values[0][self.key]
 
-    def shape_from_args(self) -> Tuple[int, ...]:
+    def shape_from_args(self) -> cvxpy_shape:
         """Returns the shape of the index expression.
         """
         return self._shape
@@ -175,7 +176,7 @@ class special_index(AffAtom):
         return lowered.grad
 
     def graph_implementation(
-        self, arg_objs, shape: Tuple[int, ...], data=None
+        self, arg_objs, shape: cvxpy_shape, data=None
     ) -> Tuple[lo.LinOp, List[Constraint]]:
         """Index/slice into the expression.
 

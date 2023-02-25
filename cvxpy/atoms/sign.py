@@ -16,6 +16,7 @@ limitations under the License.
 from typing import Tuple
 
 from cvxpy.atoms.atom import Atom
+from cvxpy.utilities.shape import cvxpy_shape
 
 
 class sign(Atom):
@@ -33,7 +34,7 @@ class sign(Atom):
         x[x <= 0] = -1.0
         return x
 
-    def shape_from_args(self) -> Tuple[int, ...]:
+    def shape_from_args(self) -> cvxpy_shape:
         """Returns the (row, col) shape of the expression.
         """
         return tuple()

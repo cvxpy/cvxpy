@@ -22,6 +22,7 @@ import cvxpy.lin_ops.lin_utils as lu
 import cvxpy.utilities as u
 from cvxpy.atoms.affine.affine_atom import AffAtom
 from cvxpy.constraints.constraint import Constraint
+from cvxpy.utilities.shape import cvxpy_shape
 
 
 class AddExpression(AffAtom):
@@ -36,7 +37,7 @@ class AddExpression(AffAtom):
         for group in arg_groups:
             self.args += self.expand_args(group)
 
-    def shape_from_args(self) -> Tuple[int, ...]:
+    def shape_from_args(self) -> cvxpy_shape:
         """Returns the (row, col) shape of the expression.
         """
         return u.shape.sum_shapes([arg.shape for arg in self.args])
@@ -103,7 +104,7 @@ class AddExpression(AffAtom):
         return copy
 
     def graph_implementation(
-        self, arg_objs, shape: Tuple[int, ...], data=None
+        self, arg_objs, shape: cvxpy_shape, data=None
     ) -> Tuple[lo.LinOp, List[Constraint]]:
         """Sum the linear expressions.
 

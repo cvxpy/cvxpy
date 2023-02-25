@@ -19,6 +19,7 @@ from scipy import linalg as LA
 
 from cvxpy.atoms.atom import Atom
 from cvxpy.constraints.constraint import Constraint
+from cvxpy.utilities.shape import cvxpy_shape
 
 
 class gen_lambda_max(Atom):
@@ -70,7 +71,7 @@ class gen_lambda_max(Atom):
                 "be square and have the same dimensions." % (
                  self.args[0].name(), self.args[1].name()))
 
-    def shape_from_args(self) -> Tuple[int, ...]:
+    def shape_from_args(self) -> cvxpy_shape:
         """Returns the (row, col) shape of the expression.
         """
         return tuple()

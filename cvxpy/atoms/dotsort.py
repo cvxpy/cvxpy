@@ -22,6 +22,7 @@ import scipy.sparse as sp
 import cvxpy.utilities as u
 from cvxpy.atoms.atom import Atom
 from cvxpy.expressions.constants.parameter import is_param_affine
+from cvxpy.utilities.shape import cvxpy_shape
 
 
 class dotsort(Atom):
@@ -82,7 +83,7 @@ class dotsort(Atom):
         sorted_w = np.sort(w_padded)
         return [sp.csc_matrix((sorted_w, (indices, np.zeros(n))), shape=(n, 1))]
 
-    def shape_from_args(self) -> Tuple[int, ...]:
+    def shape_from_args(self) -> cvxpy_shape:
         """Returns the (row, col) shape of the expression.
         """
         return tuple()

@@ -22,9 +22,10 @@ import cvxpy.lin_ops.lin_utils as lu
 from cvxpy.atoms.affine.affine_atom import AffAtom
 from cvxpy.constraints.constraint import Constraint
 from cvxpy.expressions.expression import Expression
+from cvxpy.utilities.shape import cvxpy_shape
 
 
-def promote(expr: Expression, shape: Tuple[int, ...]):
+def promote(expr: Expression, shape: cvxpy_shape):
     """ Promote a scalar expression to a vector/matrix.
 
     Parameters
@@ -60,7 +61,7 @@ class Promote(AffAtom):
         The shape to promote to.
     """
 
-    def __init__(self, expr, shape: Tuple[int, ...]) -> None:
+    def __init__(self, expr, shape: cvxpy_shape) -> None:
         self.promoted_shape = shape
         super(Promote, self).__init__(expr)
 
@@ -83,7 +84,7 @@ class Promote(AffAtom):
         """Is the atom log-log concave?"""
         return True
 
-    def shape_from_args(self) -> Tuple[int, ...]:
+    def shape_from_args(self) -> cvxpy_shape:
         """Returns the (row, col) shape of the expression.
         """
         return self.promoted_shape
@@ -94,7 +95,7 @@ class Promote(AffAtom):
         return [self.promoted_shape]
 
     def graph_implementation(
-        self, arg_objs, shape: Tuple[int, ...], data=None
+        self, arg_objs, shape: cvxpy_shape, data=None
     ) -> Tuple[lo.LinOp, List[Constraint]]:
         """Promote scalar to vector/matrix
 

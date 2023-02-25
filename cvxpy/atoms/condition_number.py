@@ -19,6 +19,7 @@ from scipy import linalg as LA
 
 from cvxpy.atoms.atom import Atom
 from cvxpy.constraints.constraint import Constraint
+from cvxpy.utilities.shape import cvxpy_shape
 
 
 class condition_number(Atom):
@@ -64,7 +65,7 @@ class condition_number(Atom):
                 f"The argument {self.args[0].name()} to condition_number must be a square matrix."
             )
 
-    def shape_from_args(self) -> Tuple[int, ...]:
+    def shape_from_args(self) -> cvxpy_shape:
         """Returns the (row, col) shape of the expression.
         """
         return tuple()

@@ -27,6 +27,7 @@ from cvxpy.atoms.affine.wraps import psd_wrap
 from cvxpy.atoms.atom import Atom
 from cvxpy.expressions.expression import Expression
 from cvxpy.interface.matrix_utilities import is_sparse
+from cvxpy.utilities.shape import cvxpy_shape
 
 
 class CvxPyDomainError(Exception):
@@ -121,7 +122,7 @@ class QuadForm(Atom):
         D = (P + np.conj(P.T)) @ x
         return [sp.csc_matrix(D.ravel(order="F")).T]
 
-    def shape_from_args(self) -> Tuple[int, ...]:
+    def shape_from_args(self) -> cvxpy_shape:
         return tuple() if self.args[0].ndim == 0 else (1, 1)
 
 
@@ -152,7 +153,7 @@ class SymbolicQuadForm(Atom):
     def is_incr(self, idx) -> bool:
         return self.original_expression.is_incr(idx)
 
-    def shape_from_args(self) -> Tuple[int, ...]:
+    def shape_from_args(self) -> cvxpy_shape:
         return self.original_expression.shape_from_args()
 
     def sign_from_args(self) -> Tuple[bool, bool]:

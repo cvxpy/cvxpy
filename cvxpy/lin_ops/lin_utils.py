@@ -23,6 +23,8 @@ import numpy as np
 import cvxpy.lin_ops.lin_op as lo
 import cvxpy.utilities as u
 from cvxpy.lin_ops.lin_constraints import LinEqConstr, LinLeqConstr
+from cvxpy.utilities.shape import cvxpy_shape
+
 
 # Utility functions for dealing with LinOp.
 
@@ -56,7 +58,7 @@ def get_id() -> int:
     return new_id
 
 
-def create_var(shape: Tuple[int, ...], var_id=None):
+def create_var(shape: cvxpy_shape, var_id=None):
     """Creates a new internal variable.
 
     Parameters
@@ -76,7 +78,7 @@ def create_var(shape: Tuple[int, ...], var_id=None):
     return lo.LinOp(lo.VARIABLE, shape, [], var_id)
 
 
-def create_param(shape: Tuple[int, ...], param_id=None):
+def create_param(shape: cvxpy_shape, param_id=None):
     """Wraps a parameter.
 
     Parameters
@@ -94,7 +96,7 @@ def create_param(shape: Tuple[int, ...], param_id=None):
     return lo.LinOp(lo.PARAM, shape, [], param_id)
 
 
-def create_const(value, shape: Tuple[int, ...], sparse: bool = False):
+def create_const(value, shape: cvxpy_shape, sparse: bool = False):
     """Wraps a constant.
 
     Parameters
@@ -235,7 +237,7 @@ def promote_lin_ops_for_mul(lh_op, rh_op):
     return lh_op, rh_op, shape
 
 
-def mul_expr(lh_op, rh_op, shape: Tuple[int, ...]):
+def mul_expr(lh_op, rh_op, shape: cvxpy_shape):
     """Multiply two linear operators, with the constant on the left.
 
     Parameters
@@ -253,7 +255,7 @@ def mul_expr(lh_op, rh_op, shape: Tuple[int, ...]):
     return lo.LinOp(lo.MUL, shape, [rh_op], lh_op)
 
 
-def rmul_expr(lh_op, rh_op, shape: Tuple[int, ...]):
+def rmul_expr(lh_op, rh_op, shape: cvxpy_shape):
     """Multiply two linear operators, with the constant on the right.
 
     Parameters
@@ -292,7 +294,7 @@ def multiply(lh_op, rh_op):
     return lo.LinOp(lo.MUL_ELEM, shape, [rh_op], lh_op)
 
 
-def kron_r(lh_op, rh_op, shape: Tuple[int, ...]):
+def kron_r(lh_op, rh_op, shape: cvxpy_shape):
     """Kronecker product of two matrices, where the right operand is a Variable
 
     Parameters
@@ -310,7 +312,7 @@ def kron_r(lh_op, rh_op, shape: Tuple[int, ...]):
     return lo.LinOp(lo.KRON_R, shape, [rh_op], lh_op)
 
 
-def kron_l(lh_op, rh_op, shape: Tuple[int, ...]):
+def kron_l(lh_op, rh_op, shape: cvxpy_shape):
     """Kronecker product of two matrices, where the left operand is a Variable
 
     Parameters
@@ -350,7 +352,7 @@ def div_expr(lh_op, rh_op):
     return lo.LinOp(lo.DIV, lh_op.shape, [lh_op], rh_op)
 
 
-def promote(operator, shape: Tuple[int, ...]):
+def promote(operator, shape: cvxpy_shape):
     """Promotes a scalar operator to the given shape.
 
     Parameters
@@ -368,7 +370,7 @@ def promote(operator, shape: Tuple[int, ...]):
     return lo.LinOp(lo.PROMOTE, shape, [operator], None)
 
 
-def sum_entries(operator, shape: Tuple[int, ...]):
+def sum_entries(operator, shape: cvxpy_shape):
     """Sum the entries of an operator.
 
     Parameters
@@ -402,7 +404,7 @@ def trace(operator):
     return lo.LinOp(lo.TRACE, (1, 1), [operator], None)
 
 
-def index(operator, shape: Tuple[int, ...], keys):
+def index(operator, shape: cvxpy_shape, keys):
     """Indexes/slices an operator.
 
     Parameters
@@ -422,7 +424,7 @@ def index(operator, shape: Tuple[int, ...], keys):
     return lo.LinOp(lo.INDEX, shape, [operator], keys)
 
 
-def conv(lh_op, rh_op, shape: Tuple[int, ...]):
+def conv(lh_op, rh_op, shape: cvxpy_shape):
     """1D discrete convolution of two vectors.
 
     Parameters
@@ -464,7 +466,7 @@ def transpose(operator):
         return lo.LinOp(lo.TRANSPOSE, shape, [operator], None)
 
 
-def reshape(operator, shape: Tuple[int, ...]):
+def reshape(operator, shape: cvxpy_shape):
     """Reshapes an operator.
 
     Parameters
@@ -534,7 +536,7 @@ def upper_tri(operator):
     return lo.LinOp(lo.UPPER_TRI, shape, [operator], None)
 
 
-def hstack(operators, shape: Tuple[int, ...]):
+def hstack(operators, shape: cvxpy_shape):
     """Concatenates operators horizontally.
 
     Parameters
@@ -552,7 +554,7 @@ def hstack(operators, shape: Tuple[int, ...]):
     return lo.LinOp(lo.HSTACK, shape, operators, None)
 
 
-def vstack(operators, shape: Tuple[int, ...]):
+def vstack(operators, shape: cvxpy_shape):
     """Concatenates operators vertically.
 
     Parameters

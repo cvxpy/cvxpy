@@ -183,7 +183,7 @@ class Leaf(expression.Expression):
         """
 
     @property
-    def shape(self) -> tuple[int, ...]:
+    def shape(self) -> cvxpy_shape:
         """ tuple : The dimensions of the expression.
         """
         return self._shape

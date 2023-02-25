@@ -24,6 +24,7 @@ from cvxpy.constraints.constraint import Constraint
 from cvxpy.expressions import cvxtypes
 from cvxpy.utilities.power_tools import (approx_error, decompose, fracify,
                                          lower_bound, over_bound, prettydict,)
+from cvxpy.utilities.shape import cvxpy_shape
 
 
 class geo_mean(Atom):
@@ -282,7 +283,7 @@ class geo_mean(Atom):
     def pretty_tree(self) -> None:
         print(prettydict(self.tree))
 
-    def shape_from_args(self) -> Tuple[int, ...]:
+    def shape_from_args(self) -> cvxpy_shape:
         """Returns the (row, col) shape of the expression.
         """
         return tuple()

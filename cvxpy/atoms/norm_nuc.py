@@ -20,6 +20,7 @@ import numpy as np
 import scipy.sparse as sp
 
 from cvxpy.atoms.atom import Atom
+from cvxpy.utilities.shape import cvxpy_shape
 
 
 class normNuc(Atom):
@@ -51,7 +52,7 @@ class normNuc(Atom):
         D = U.dot(V)
         return [sp.csc_matrix(D.ravel(order='F')).T]
 
-    def shape_from_args(self) -> Tuple[int, ...]:
+    def shape_from_args(self) -> cvxpy_shape:
         """Returns the (row, col) shape of the expression.
         """
         return tuple()
