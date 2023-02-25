@@ -1,6 +1,5 @@
 import numpy as np
 import scipy.sparse.linalg as sparla
-from numpy.random import PCG64, Generator
 
 import cvxpy as cp
 from cvxpy import psd_wrap
@@ -21,14 +20,14 @@ def test_is_psd() -> None:
     assert not cp.Constant(nsd).is_psd()
 
     # We simulate a scenario where a matrix is PSD but a ArpackNoConvergence is raised.
-    # With the numpy PCG64-based random number generator, this happens with seed 119.
+    # With the current numpy random number generator, this happens with seed 97.
     # We test a range of seeds to make sure that this scenario is not always triggered.
 
     failures = set()
-    for seed in range(115, 120):
-        rng = Generator(PCG64(seed))
+    for seed in range(95, 100):
+        np.random.seed(seed)
 
-        P = rng.standard_normal((n, n))
+        P = np.random.randn(n, n)
         P = P.T @ P
 
         try:
@@ -36,6 +35,6 @@ def test_is_psd() -> None:
         except sparla.ArpackNoConvergence as e:
             assert "CVXPY note" in str(e)
             failures.add(seed)
-    assert failures == {119}
+    assert failures == {97}
 
     assert psd_wrap(cp.Constant(P)).is_psd()
