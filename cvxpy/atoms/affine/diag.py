@@ -24,13 +24,25 @@ from cvxpy.atoms.affine.vec import vec
 from cvxpy.constraints.constraint import Constraint
 
 
-def diag(expr) -> Union["diag_mat", "diag_vec"]:
+def diag(expr, diag_offset=0) -> Union["diag_mat", "diag_vec"]:
     """Extracts the diagonal from a matrix or makes a vector a diagonal matrix.
 
     Parameters
     ----------
     expr : Expression or numeric constant
         A vector or square matrix.
+
+    diag_offset : int
+        An integer offset for the diagonal to extract into a
+        vector or diagonal to add the vector to. Zero is the
+        default (as if there was no offset). Positive integers
+        on matrices extracts vectors above the diagonal.
+        Negative integers on matrices extracts vectors below
+        the diagonal. Similarly, positive integers on vectors
+        creates a square matrix with the vector above the
+        diagonal. Negative integers on vectors creates a square
+        matrix with the vector below the diagonal.
+        TODO: assert that the offset is not out-of-bounds.
 
     Returns
     -------
@@ -39,9 +51,9 @@ def diag(expr) -> Union["diag_mat", "diag_vec"]:
     """
     expr = AffAtom.cast_to_const(expr)
     if expr.is_vector():
-        return diag_vec(vec(expr))
+        return diag_vec(vec(expr), diag_offset)
     elif expr.ndim == 2 and expr.shape[0] == expr.shape[1]:
-        return diag_mat(expr)
+        return diag_mat(expr, diag_offset)
     else:
         raise ValueError("Argument to diag must be a vector or square matrix.")
 
@@ -50,7 +62,8 @@ class diag_vec(AffAtom):
     """Converts a vector into a diagonal matrix.
     """
 
-    def __init__(self, expr) -> None:
+    def __init__(self, expr, diag_offset=0) -> None:
+        self.diag_offset = diag_offset
         super(diag_vec, self).__init__(expr)
 
     def is_atom_log_log_convex(self) -> bool:
@@ -66,18 +79,18 @@ class diag_vec(AffAtom):
     def numeric(self, values):
         """Convert the vector constant into a diagonal matrix.
         """
-        return np.diag(values[0])
+        return np.diag(values[0], k=self.diag_offset)
 
     def shape_from_args(self) -> Tuple[int, int]:
         """A square matrix.
         """
-        rows = self.args[0].shape[0]
+        rows = self.args[0].shape[0] + abs(self.diag_offset)
         return (rows, rows)
 
     def is_symmetric(self) -> bool:
         """Is the expression symmetric?
         """
-        return True
+        return self.diag_offset == 0
 
     def is_hermitian(self) -> bool:
         """Is the expression symmetric?
@@ -113,6 +126,7 @@ class diag_vec(AffAtom):
         tuple
             (LinOp for objective, list of constraints)
         """
+        assert self.diag_offset == 0, "non zero offsets not supported"
         return (lu.diag_vec(arg_objs[0]), [])
 
 
@@ -120,7 +134,8 @@ class diag_mat(AffAtom):
     """Extracts the diagonal from a square matrix.
     """
 
-    def __init__(self, expr) -> None:
+    def __init__(self, expr, diag_offset=0) -> None:
+        self.diag_offset = diag_offset
         super(diag_mat, self).__init__(expr)
 
     def is_atom_log_log_convex(self) -> bool:
@@ -138,12 +153,13 @@ class diag_mat(AffAtom):
         """Extract the diagonal from a square matrix constant.
         """
         # The return type in numpy versions < 1.10 was ndarray.
-        return np.diag(values[0])
+        return np.diag(values[0], k=self.diag_offset)
 
     def shape_from_args(self) -> Tuple[int]:
         """A column vector.
         """
         rows, _ = self.args[0].shape
+        rows -= abs(self.diag_offset)
         return (rows,)
 
     def is_nonneg(self) -> bool:
@@ -170,4 +186,5 @@ class diag_mat(AffAtom):
         tuple
             (LinOp for objective, list of constraints)
         """
+        assert self.diag_offset == 0, "non zero offsets not supported"
         return (lu.diag_mat(arg_objs[0]), [])
