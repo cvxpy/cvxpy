@@ -1425,49 +1425,31 @@ class TestProblem(BaseTest):
         result = prob.solve(solver=cp.SCS)
         self.assertAlmostEqual(result, 0.583151, places=2)
 
-    def test_diag_offset(self) -> None:
-        """Test matrix to vector on scalar matrices"""
-        A1 = np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
-        a1 = cp.diag(A1, 1)
-        a2 = cp.diag(A1, -1)
-        a3 = cp.diag(A1, 2)
-        self.assertEqual(a1.size, 2)
-        self.assertEqual(a2.size, 2)
-        self.assertEqual(a3.size, 1)
-        self.assertItemsAlmostEqual(a1.value, [2, 6])
-        self.assertItemsAlmostEqual(a2.value, [4, 8])
-        self.assertItemsAlmostEqual(a3.value, [3])
+    def test_diag_offset_problem(self) -> None:
 
-        """Test vector to matrix on scalar matrices"""
-        A1 = cp.diag(np.array([1, 2, 3]), 1)
-        A2 = cp.diag(np.array([1, 2, 3]), -1)
-        A3 = cp.diag(np.array([1, 2, 3]), 3)
-        B1 = np.array([
-            [0, 1, 0, 0],
-            [0, 0, 2, 0],
-            [0, 0, 0, 3],
-            [0, 0, 0, 0]])
-        B2 = np.array([
-            [0, 0, 0, 0],
-            [1, 0, 0, 0],
-            [0, 2, 0, 0],
-            [0, 0, 3, 0]])
-        B3 = np.array([
-            [0, 0, 0, 1, 0, 0],
-            [0, 0, 0, 0, 2, 0],
-            [0, 0, 0, 0, 0, 3],
-            [0, 0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 0, 0]])
-        self.assertEqual(A1.shape, (4, 4))
-        self.assertEqual(A2.shape, (4, 4))
-        self.assertEqual(A3.shape, (6, 6))
-        self.assertItemsAlmostEqual(A1.value, B1)
-        self.assertItemsAlmostEqual(A2.value, B2)
-        self.assertItemsAlmostEqual(A3.value, B3)
+        # Constants
+        n = 4
+        A = np.arange(int(n**2)).reshape((n, n))
 
-        X = cp.diag(Variable(5), 1)
-        self.assertEqual(X.size, 36)
+        for k in range(-n + 1, n):
+            # diag_vec
+            x = cp.Variable(n - abs(k))
+            obj = cp.Minimize(cp.sum(x))
+            constraints = [cp.diag(x, k) == np.diag(np.diag(A, k), k)]
+            prob = cp.Problem(obj, constraints)
+            result = prob.solve(solver=cp.SCS, canon_backend=cp.SCIPY_CANON_BACKEND, eps=1e-6)
+            self.assertAlmostEqual(result, np.sum(np.diag(A, k)))
+            assert np.allclose(x.value, np.diag(A, k), atol=1e-4)
+
+            # diag_mat
+            X = cp.Variable((n, n), nonneg=True)
+
+            obj = cp.Minimize(cp.sum(X))
+            constraints = [cp.diag(X, k) == np.diag(A, k)]
+            prob = cp.Problem(obj, constraints)
+            result = prob.solve(solver=cp.SCS, canon_backend=cp.SCIPY_CANON_BACKEND, eps=1e-6)
+            self.assertAlmostEqual(result, np.sum(np.diag(A, k)))
+            assert np.allclose(X.value, np.diag(np.diag(A, k), k), atol=1e-4)
 
     def test_presolve_parameters(self) -> None:
         """Test presolve with parameters.
