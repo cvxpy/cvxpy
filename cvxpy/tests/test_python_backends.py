@@ -374,7 +374,7 @@ class TestScipyBackend:
         view_A = sp.coo_matrix((view_A.data, (view_A.row, view_A.col)), shape=(4, 4)).toarray()
         assert np.all(view_A == np.eye(4))
 
-        diag_mat_lin_op = linOpHelper(shape=(2, 2))
+        diag_mat_lin_op = linOpHelper(shape=(2, 2), data=0)
         out_view = backend.diag_mat(diag_mat_lin_op, view)
         A = out_view.get_tensor_representation(0)
 
@@ -425,7 +425,7 @@ class TestScipyBackend:
         assert np.all(view_A == np.eye(4))
 
         k = 1
-        diag_mat_lin_op = linOpHelper(shape=(2, 2), data=k)
+        diag_mat_lin_op = linOpHelper(shape=(1, 1), data=k)
         out_view = backend.diag_mat(diag_mat_lin_op, view)
         A = out_view.get_tensor_representation(0)
 
@@ -473,7 +473,7 @@ class TestScipyBackend:
         view_A = sp.coo_matrix((view_A.data, (view_A.row, view_A.col)), shape=(2, 2)).toarray()
         assert np.all(view_A == np.eye(2))
 
-        diag_vec_lin_op = linOpHelper(shape=(2, 2))
+        diag_vec_lin_op = linOpHelper(shape=(2, 2), data=0)
         out_view = backend.diag_vec(diag_vec_lin_op, view)
         A = out_view.get_tensor_representation(0)
 
@@ -534,7 +534,7 @@ class TestScipyBackend:
         assert np.all(view_A == np.eye(2))
 
         k = 1
-        diag_vec_lin_op = linOpHelper(shape=(2, 2), data=k)
+        diag_vec_lin_op = linOpHelper(shape=(3, 3), data=k)
         out_view = backend.diag_vec(diag_vec_lin_op, view)
         A = out_view.get_tensor_representation(0)
 
