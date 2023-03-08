@@ -51,7 +51,7 @@ def is_psd_within_tol(A, tol):
 
     Parameters
     ----------
-    A : Union[np.ndarray, spar.spmatrx]
+    A : Union[np.ndarray, spar.spmatrix]
         Symmetric (or Hermitian) NumPy ndarray or SciPy sparse matrix.
 
     tol : float
@@ -76,15 +76,30 @@ def is_psd_within_tol(A, tol):
         # a negative eigenvalue of A. If A - sigma*I is PSD, then we obviously
         # have that the smallest eigenvalue of A is >= sigma.
 
-    ev = np.NaN
     try:
         ev = SA_eigsh(-tol)  # might return np.NaN, or raise exception
-    finally:
-        if np.isnan(ev).all():
-            # will be NaN if A has an eigenvalue which is exactly -tol
-            # (We might also hit this code block for other reasons.)
-            temp = tol - np.finfo(A.dtype).eps
-            ev = SA_eigsh(-temp)
+    except sparla.ArpackNoConvergence as e:
+        # This is a numerical issue. We can't certify that A is PSD.
+
+        message = """
+        CVXPY note: This failure was encountered while trying to certify
+        that a matrix is positive semi-definite (see [1] for a definition).
+        In rare cases, this method fails for numerical reasons even when the matrix is
+        positive semi-definite. If you know that you're in that situation, you can
+        replace the matrix A by cvxpy.psd_wrap(A).
+
+        [1] https://en.wikipedia.org/wiki/Definite_matrix
+        """
+
+        error_with_note = f"{str(e)}\n\n{message}"
+
+        raise sparla.ArpackNoConvergence(error_with_note, e.eigenvalues, e.eigenvectors)
+
+    if np.isnan(ev).any():
+        # will be NaN if A has an eigenvalue which is exactly -tol
+        # (We might also hit this code block for other reasons.)
+        temp = tol - np.finfo(A.dtype).eps
+        ev = SA_eigsh(-temp)
 
     return np.all(ev >= -tol)
 
@@ -101,7 +116,7 @@ def gershgorin_psd_check(A, tol):
 
     Parameters
     ----------
-    A : Union[np.ndarray, spar.spmatrx]
+    A : Union[np.ndarray, spar.spmatrix]
         Symmetric (or Hermitian) NumPy ndarray or SciPy sparse matrix.
 
     tol : float
