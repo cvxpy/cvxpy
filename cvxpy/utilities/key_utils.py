@@ -40,6 +40,8 @@ def validate_key(key, shape: Tuple[int, ...]):
         Error: Index/slice out of bounds.
     """
     key = to_tuple(key)
+    if any(isinstance(k, float) for k in key):
+        raise IndexError("float is an invalid index type.")
     if len(key) == 0:
         raise IndexError("An index cannot be empty.")
     # Change single indices for vectors into double indices.
