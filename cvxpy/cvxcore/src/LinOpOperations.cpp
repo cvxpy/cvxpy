@@ -376,7 +376,7 @@ Tensor get_kronl_mat(const LinOp &lin, int arg_idx) {
   //   and assume its storage order is CSC. Note that Eigen's
   //   default order is CSC-like, and when "compressed" the storage
   //   is actually CSC.
-  assert(!rh.IsRowMajor());
+  assert(!rh.IsRowMajor);
   int row_offset = 0;
   int kron_rows = lh_rows * rh_rows;
   int rh_nnz = rh.nonZeros();

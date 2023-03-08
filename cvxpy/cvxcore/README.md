@@ -36,6 +36,12 @@ If you use ``pre-commit`` as part of development then it will
 automatically fix those, but you'll need to add the modified
 file again before attempting to commit.
 
+Before you commit your changes, you should enable debugging for cvxcore by adding
+```
+undef_macros = [ "NDEBUG" ]
+```
+to the ``Extension`` object in ``setup.py``, and then rebuilding cvxcore.
+
 ## 2. Notes about Python files which interact with cvxcore
 
 The directory ``cvxcore/python`` contains ``cvxcore.py`` and ``canonInterface.py``.
