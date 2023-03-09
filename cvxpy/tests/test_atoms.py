@@ -588,6 +588,44 @@ class TestAtoms(BaseTest):
         self.assertItemsAlmostEqual(b_reshaped, X_reshaped.value)
         self.assertItemsAlmostEqual(b, X.value)
 
+    def test_reshape_negative_one(self) -> None:
+        """
+        Test the reshape class with -1 in the shape.
+        """
+        expr = cp.Variable((2, 3))
+        expr_reshaped = cp.reshape(expr, (-1, 1))
+        self.assertEqual(expr_reshaped.shape, (6, 1))
+
+        expr_reshaped = cp.reshape(expr, (1, -1))
+        self.assertEqual(expr_reshaped.shape, (1, 6))
+
+        expr_reshaped = cp.reshape(expr, (-1, 2))
+        self.assertEqual(expr_reshaped.shape, (3, 2))
+
+        expr_reshaped = cp.reshape(expr, -1)
+        self.assertEqual(expr_reshaped.shape, (6,))
+
+        expr_reshaped = cp.reshape(expr, -1)
+        self.assertEqual(expr_reshaped.shape, (6,))
+
+        with pytest.raises(ValueError, match="Cannot reshape expression"):
+            cp.reshape(expr, (8, -1))
+
+        with pytest.raises(AssertionError, match="Only one"):
+            cp.reshape(expr, (-1, -1))
+
+        with pytest.raises(ValueError, match="Invalid reshape dimensions"):
+            cp.reshape(expr, (-1, 0))
+
+        with pytest.raises(AssertionError, match="Specified dimension must be nonnegative"):
+            cp.reshape(expr, (-1, -2))
+
+        A = np.array([[1, 2, 3], [4, 5, 6]])
+        A_reshaped = cp.reshape(A, -1, order='C')
+        assert np.allclose(A_reshaped.value, A.reshape(-1, order='C'))
+        A_reshaped = cp.reshape(A, -1, order='F')
+        assert np.allclose(A_reshaped.value, A.reshape(-1, order='F'))
+
     def test_vec(self) -> None:
         """Test the vec atom.
         """
