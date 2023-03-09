@@ -605,7 +605,7 @@ class TestAtoms(BaseTest):
         expr_reshaped = cp.reshape(expr, -1)
         self.assertEqual(expr_reshaped.shape, (6,))
 
-        expr_reshaped = cp.reshape(expr, -1)
+        expr_reshaped = cp.reshape(expr, (-1,))
         self.assertEqual(expr_reshaped.shape, (6,))
 
         with pytest.raises(ValueError, match="Cannot reshape expression"):
