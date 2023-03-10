@@ -43,19 +43,19 @@ def vectorized_lower_tri_to_mat(v, dim):
     :return: Return the symmetric 2D array defined by taking "v" to
       specify its lower triangular entries.
     """
-    rows, cols, vals = vectorized_lower_tri_to_triples(sp.sparse.coo_array(v), dim)
+    rows, cols, vals = vectorized_lower_tri_to_triples(sp.sparse.coo_matrix(v), dim)
     A = sp.sparse.coo_matrix((vals, (rows, cols)), shape=(dim, dim)).toarray()
     d = np.diag(np.diag(A))
     A = A + A.T - d
     return A
 
 
-def vectorized_lower_tri_to_triples(A: sp.sparse.coo_array, dim: int) \
+def vectorized_lower_tri_to_triples(A: sp.sparse.coo_matrix, dim: int) \
         -> tuple[list[int], list[int], list[float]]:
     """
     Attributes
     ----------
-    A : scipy.sparse.coo_array
+    A : scipy.sparse.coo_matrix
         Contains the lower triangular entries of a symmetric matrix, flattened into a 1D array in
         column-major order.
     dim : int
@@ -215,7 +215,7 @@ class MOSEK(ConicSolver):
                 rows, cols, vals = vectorized_lower_tri_to_triples(A_row_coo, dim)
                 A_bar_data.append((i, j, (rows, cols, vals)))
 
-            c_block = sp.sparse.coo_array(c_psd[idx:idx + vec_len])
+            c_block = sp.sparse.coo_matrix(c_psd[idx:idx + vec_len])
             rows, cols, vals = vectorized_lower_tri_to_triples(c_block, dim)
             c_bar_data.append((j, (rows, cols, vals)))
             idx += vec_len
