@@ -592,21 +592,18 @@ class TestAtoms(BaseTest):
         """
         Test the reshape class with -1 in the shape.
         """
+
         expr = cp.Variable((2, 3))
-        expr_reshaped = cp.reshape(expr, (-1, 1))
-        self.assertEqual(expr_reshaped.shape, (6, 1))
+        numpy_expr = np.ones((2, 3))
+        shapes = [(-1, 1), (1, -1), (-1, 2), -1, (-1,)]
+        expected_shapes = [(6, 1), (1, 6), (3, 2), (6,), (6,)]
 
-        expr_reshaped = cp.reshape(expr, (1, -1))
-        self.assertEqual(expr_reshaped.shape, (1, 6))
+        for shape, expected_shape in zip(shapes, expected_shapes):
+            expr_reshaped = cp.reshape(expr, shape)
+            self.assertEqual(expr_reshaped.shape, expected_shape)
 
-        expr_reshaped = cp.reshape(expr, (-1, 2))
-        self.assertEqual(expr_reshaped.shape, (3, 2))
-
-        expr_reshaped = cp.reshape(expr, -1)
-        self.assertEqual(expr_reshaped.shape, (6,))
-
-        expr_reshaped = cp.reshape(expr, (-1,))
-        self.assertEqual(expr_reshaped.shape, (6,))
+            numpy_expr_reshaped = np.reshape(numpy_expr, shape)
+            self.assertEqual(numpy_expr_reshaped.shape, expected_shape)
 
         with pytest.raises(ValueError, match="Cannot reshape expression"):
             cp.reshape(expr, (8, -1))

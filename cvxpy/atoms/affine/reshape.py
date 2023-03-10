@@ -58,7 +58,7 @@ class reshape(AffAtom):
         super(reshape, self).__init__(expr)
 
     @staticmethod
-    def _infer_shape(shape: Tuple[int, ...], size: Expression) -> Tuple[int, ...]:
+    def _infer_shape(shape: Tuple[int, ...], size: int) -> Tuple[int, ...]:
         assert shape.count(-1) == 1, "Only one dimension can be -1."
         if len(shape) == 1:
             shape = (size,)
