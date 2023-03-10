@@ -13,6 +13,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+from __future__ import annotations
 
 import warnings
 from collections import defaultdict
@@ -49,11 +50,31 @@ def vectorized_lower_tri_to_mat(v, dim):
     return A
 
 
-def vectorized_lower_tri_to_triples(A: sp.sparse.coo_array, dim):
+def vectorized_lower_tri_to_triples(A: sp.sparse.coo_array, dim: int) \
+        -> tuple[list[int], list[int], list[float]]:
+    """
+    Attributes
+    ----------
+    A : scipy.sparse.coo_array
+        Contains the lower triangular entries of a symmetric matrix, flattened into a 1D array in
+        column-major order.
+    dim : int
+        The number of rows (equivalently, columns) in the original matrix.
+
+    Returns
+    -------
+    rows : list[int]
+        The row indices of the entries in the original matrix.
+    cols : list[int]
+        The column indices of the entries in the original matrix.
+    vals : list[float]
+        The values of the entries in the original matrix.
+    """
 
     vals = A.data
     flattened_cols = A.col
 
+    # Ensure that the columns are sorted.
     if not np.all(flattened_cols[:-1] < flattened_cols[1:]):
         sort_idx = np.argsort(flattened_cols)
         vals = vals[sort_idx]
