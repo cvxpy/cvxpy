@@ -42,21 +42,36 @@ def vectorized_lower_tri_to_mat(v, dim):
     :return: Return the symmetric 2D array defined by taking "v" to
       specify its lower triangular entries.
     """
-    rows, cols, vals = vectorized_lower_tri_to_triples(v, dim)
+    rows, cols, vals = vectorized_lower_tri_to_triples(sp.sparse.coo_array(v), dim)
     A = sp.sparse.coo_matrix((vals, (rows, cols)), shape=(dim, dim)).toarray()
     d = np.diag(np.diag(A))
     A = A + A.T - d
     return A
 
 
-def vectorized_lower_tri_to_triples(v, dim):
-    rows, cols, vals = [], [], []
-    running_idx = 0
-    for j in range(dim):
-        rows += [j + k for k in range(dim - j)]
-        cols += [j] * (dim - j)
-        vals.extend(v[running_idx:(running_idx + dim - j)])
-        running_idx += dim - j
+def vectorized_lower_tri_to_triples(A: sp.sparse.coo_array, dim):
+
+    vals = A.data
+    flattened_cols = A.col
+
+    if not np.all(flattened_cols[:-1] < flattened_cols[1:]):
+        sort_idx = np.argsort(flattened_cols)
+        vals = vals[sort_idx]
+        flattened_cols = flattened_cols[sort_idx]
+
+    cum_cols = np.cumsum(np.arange(dim, 0, -1))
+    rows, cols = [], []
+    current_col = 0
+    for v in flattened_cols:
+        for c in range(current_col, dim):
+            if v < cum_cols[c]:
+                cols.append(c)
+                prev_row = 0 if c == 0 else cum_cols[c - 1]
+                rows.append(v - prev_row + c)
+                break
+            else:
+                current_col += 1
+
     return rows, cols, vals
 
 
@@ -168,19 +183,18 @@ class MOSEK(ConicSolver):
             A_block = A_psd[:, idx:idx + vec_len]
             # ^ each row specifies a linear operator on PSD variable.
             for i in range(n):
+                # A_row defines a symmetric matrix by where the first "order" entries
+                #   gives the matrix's first column, the second "order-1" entries gives
+                #   the matrix's second column (diagonal and below), and so on.
                 A_row = A_block[i, :]
                 if A_row.nnz == 0:
                     continue
-                A_row = A_row.toarray().ravel()
-                # A_row defines a symmetric matrix by where the first "order" entries
-                #   gives the matrix's first column, the second "order-1" entries gives
-                #   the matrix's second column (diagonal and blow), and so on.
-                rows, cols, vals = vectorized_lower_tri_to_triples(A_row, dim)
-                # TODO: replace the above function with something that only reads the nonzero
-                #  entries. I.e. return *actual* sparse matrix data, rather than data for a dense
-                #  matrix stated in a sparse format.
+
+                A_row_coo = A_row.tocoo()
+                rows, cols, vals = vectorized_lower_tri_to_triples(A_row_coo, dim)
                 A_bar_data.append((i, j, (rows, cols, vals)))
-            c_block = c_psd[idx:idx + vec_len]
+
+            c_block = sp.sparse.coo_array(c_psd[idx:idx + vec_len])
             rows, cols, vals = vectorized_lower_tri_to_triples(c_block, dim)
             c_bar_data.append((j, (rows, cols, vals)))
             idx += vec_len
