@@ -105,12 +105,23 @@ class Canonical:
     def __copy__(self):
         """
         Called by copy.copy()
+        Creates a shallow copy of the object, that is, the copied object refers to the same
+        leaf nodes as the original object. Non-leaf nodes are recreated.
+        Constraints keep their .id attribute, as it is used to propagate dual variables.
+
+        Summary:
+        ========
+        Leafs:              Same object
+        Constraints:        New object with same .id
+        Other expressions:  New object with new .id
         """
         return self.copy()
 
     def __deepcopy__(self, memo):
         """
         Called by copy.deepcopy()
+        Creates an independent copy of the object while maintaining the relationship between the
+        nodes in the expression tree.
         """
         cvxpy_id = getattr(self, 'id', None)
         if cvxpy_id is not None and cvxpy_id in memo:
