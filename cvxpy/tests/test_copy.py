@@ -70,7 +70,7 @@ def test_problem():
     obj = cp.Minimize((x + y) ** 2)
     constraints = [x + y == 1]
     prob = cp.Problem(obj, constraints)
-    prob_copy = prob.copy()
+    prob_copy = copy.copy(prob)
     prob_deepcopy = copy.deepcopy(prob)
 
     assert id(prob) != id(prob_copy)
