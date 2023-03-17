@@ -351,6 +351,25 @@ class TestSCS(BaseTest):
             data = prob.get_problem_data(solver=cp.SCS)
             assert "P" not in data[0]
 
+    def test_quad_obj_with_power(self) -> None:
+        """Test a mixed quadratic/power objective.
+        """
+        # Only relevant for SCS >= 3.0.0.
+        import scs
+        if Version(scs.__version__) >= Version('3.0.0'):
+            # See https://github.com/cvxpy/cvxpy/issues/2059
+            x = cp.Variable()
+            prob = cp.Problem(cp.Minimize(x**1.6 + x**2), [x >= 1])
+            prob.solve(solver=cp.SCS, use_quad_obj=True)
+            self.assertAlmostEqual(prob.value, 2)
+            self.assertAlmostEqual(x.value, 1)
+
+            # Check problem data.
+            data = prob.get_problem_data(solver=cp.SCS, solver_opts={"use_quad_obj": True})
+            # Quadratic objective and SOC contraints.
+            assert "P" in data[0]
+            assert data[0]["dims"].soc
+
     def test_scs_lp_3(self) -> None:
         StandardTestLPs.test_lp_3(solver='SCS')
 
