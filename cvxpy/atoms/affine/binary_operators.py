@@ -36,6 +36,8 @@ from cvxpy.constraints.constraint import Constraint
 from cvxpy.error import DCPError
 from cvxpy.expressions.constants.parameter import (is_param_affine,
                                                    is_param_free,)
+from cvxpy.atoms.affine.reshape import reshape
+from cvxpy.expressions.expression import Expression
 
 
 class BinaryOperator(AffAtom):
@@ -449,3 +451,27 @@ def scalar_product(x, y):
     y = deep_flatten(y)
     prod = multiply(conj(x), y)
     return cvxpy_sum(prod)
+
+def outer_product(x, y):
+    """
+    Return the outer product of (x,y).
+
+    Parameters
+    ----------
+    x : Expression, int, float, NumPy ndarray, or nested list thereof.
+        The linear argument to the outer product.
+    y : Expression, int, float, NumPy ndarray, or nested list thereof.
+        The transposed-linear argument to the outer product.
+
+    Returns
+    -------
+    expr : Expression
+        The outer product of (x,y), linear in x and transposed-linear in y.
+    """
+    x = Expression.cast_to_const(x)
+    assert x.ndim == 1
+    y = Expression.cast_to_const(y)
+    assert y.ndim == 1
+    x = reshape(x, (x.size, 1))
+    y = reshape(y, (1, y.size))
+    return x @ y
