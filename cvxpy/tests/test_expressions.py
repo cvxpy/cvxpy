@@ -1062,7 +1062,8 @@ class TestExpressions(BaseTest):
 
         with self.assertRaises(IndexError) as cm:
             self.x[np.array([1.0, 2.0])]
-        self.assertEqual(str(cm.exception), "float is an invalid index type.")
+        self.assertEqual(str(cm.exception),
+                         "arrays used as indices must be of integer (or boolean) type")
 
     def test_neg_indices(self) -> None:
         """Test negative indices.
