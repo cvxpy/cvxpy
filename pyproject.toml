@@ -8,8 +8,8 @@ exclude = [
     "cvxpy/cvxcore/*",
     "*__init__.py"
 ]
-# Assume Python 3.8.
-target-version = "py38"
+# The minimum Python version that should be supported
+target-version = "py37"
 
 
 [tool.pytest.ini_options]
