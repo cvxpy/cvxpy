@@ -218,8 +218,7 @@ class CPLEX(ConicSolver):
 
     def import_solver(self) -> None:
         """Imports the solver."""
-        import cplex
-        cplex  # noqa F401
+        import cplex  # noqa F401
 
     def accepts(self, problem) -> bool:
         """Can CPLEX solve the problem?

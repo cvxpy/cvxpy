@@ -75,8 +75,7 @@ class COPT(ConicSolver):
         """
         Imports the solver.
         """
-        import coptpy
-        coptpy  # noqa F401
+        import coptpy  # noqa F401
 
     def accepts(self, problem):
         """

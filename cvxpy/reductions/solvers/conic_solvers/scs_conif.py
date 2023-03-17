@@ -158,8 +158,7 @@ class SCS(ConicSolver):
     def import_solver(self) -> None:
         """Imports the solver.
         """
-        import scs
-        scs  # noqa F401
+        import scs  # noqa F401
 
     def supports_quad_obj(self) -> bool:
         """SCS >= 3.0.0 supports a quadratic objective.

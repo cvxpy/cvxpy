@@ -51,8 +51,7 @@ class SCIPY(ConicSolver):
     def import_solver(self) -> None:
         """Imports the solver.
         """
-        from scipy import optimize as opt
-        opt  # noqa F401
+        from scipy import optimize as opt  # noqa F401
 
     def name(self):
         """The name of the solver.

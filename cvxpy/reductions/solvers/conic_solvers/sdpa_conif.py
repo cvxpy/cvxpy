@@ -61,8 +61,7 @@ class SDPA(ConicSolver):
     def import_solver(self) -> None:
         """Imports the solver.
         """
-        import sdpap
-        sdpap  # noqa F401
+        import sdpap  # noqa F401
 
     def accepts(self, problem) -> bool:
         """Can SDPA solve the problem?

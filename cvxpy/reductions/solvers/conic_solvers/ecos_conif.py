@@ -73,8 +73,7 @@ class ECOS(ConicSolver):
     def import_solver(self) -> None:
         """Imports the solver.
         """
-        import ecos
-        ecos  # noqa F401
+        import ecos  # noqa F401
 
     def name(self):
         """The name of the solver.

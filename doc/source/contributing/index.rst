@@ -159,6 +159,7 @@ style. Before sending us a pull request, navigate to the project root
 and run
 
   ::
+
     pip install ruff
     ruff check cvxpy
 
