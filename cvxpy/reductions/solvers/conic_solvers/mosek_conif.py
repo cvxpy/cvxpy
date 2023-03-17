@@ -43,19 +43,19 @@ def vectorized_lower_tri_to_mat(v, dim):
     :return: Return the symmetric 2D array defined by taking "v" to
       specify its lower triangular entries.
     """
-    rows, cols, vals = vectorized_lower_tri_to_triples(sp.sparse.coo_matrix(v), dim)
+    rows, cols, vals = vectorized_lower_tri_to_triples(v, dim)
     A = sp.sparse.coo_matrix((vals, (rows, cols)), shape=(dim, dim)).toarray()
     d = np.diag(np.diag(A))
     A = A + A.T - d
     return A
 
 
-def vectorized_lower_tri_to_triples(A: sp.sparse.coo_matrix, dim: int) \
+def vectorized_lower_tri_to_triples(A: sp.sparse.coo_matrix | list[float] | np.ndarray, dim: int) \
         -> tuple[list[int], list[int], list[float]]:
     """
     Attributes
     ----------
-    A : scipy.sparse.coo_matrix
+    A : scipy.sparse.coo_matrix | list[float] | np.ndarray
         Contains the lower triangular entries of a symmetric matrix, flattened into a 1D array in
         column-major order.
     dim : int
@@ -71,14 +71,23 @@ def vectorized_lower_tri_to_triples(A: sp.sparse.coo_matrix, dim: int) \
         The values of the entries in the original matrix.
     """
 
-    vals = A.data
-    flattened_cols = A.col
-
-    # Ensure that the columns are sorted.
-    if not np.all(flattened_cols[:-1] < flattened_cols[1:]):
-        sort_idx = np.argsort(flattened_cols)
-        vals = vals[sort_idx]
-        flattened_cols = flattened_cols[sort_idx]
+    if isinstance(A, sp.sparse.coo_matrix):
+        vals = A.data
+        flattened_cols = A.col
+        # Ensure that the columns are sorted.
+        if not np.all(flattened_cols[:-1] < flattened_cols[1:]):
+            sort_idx = np.argsort(flattened_cols)
+            vals = vals[sort_idx]
+            flattened_cols = flattened_cols[sort_idx]
+    elif isinstance(A, list):
+        vals = A
+        flattened_cols = np.arange(len(A))
+    elif isinstance(A, np.ndarray):
+        vals = list(A)
+        flattened_cols = np.arange(len(A))
+    else:
+        raise TypeError(f"Expected A to be a coo_matrix, list, or ndarray, "
+                        f"but got {type(A)} instead.")
 
     cum_cols = np.cumsum(np.arange(dim, 0, -1))
     rows, cols = [], []
@@ -215,7 +224,7 @@ class MOSEK(ConicSolver):
                 rows, cols, vals = vectorized_lower_tri_to_triples(A_row_coo, dim)
                 A_bar_data.append((i, j, (rows, cols, vals)))
 
-            c_block = sp.sparse.coo_matrix(c_psd[idx:idx + vec_len])
+            c_block = c_psd[idx:idx + vec_len]
             rows, cols, vals = vectorized_lower_tri_to_triples(c_block, dim)
             c_bar_data.append((j, (rows, cols, vals)))
             idx += vec_len
