@@ -1303,3 +1303,16 @@ class TestExpressions(BaseTest):
 
         llcv = 1/(x*x*x + x)
         assert llcv.curvature == s.LOG_LOG_CONCAVE
+
+    def test_matmul_scalars(self) -> None:
+        """Test evaluating a matmul that reduces one argument internally to a scalar.
+
+        See https://github.com/cvxpy/cvxpy/issues/2065
+        """
+        x = cp.Variable((2,))
+        quad = cp.quad_form(x, np.eye(2))
+        a = np.array([2])
+        # NOTE quad has dimensions (1, 1) which is a bug.
+        expr = a @ quad
+        x.value = np.array([1, 2])
+        self.assertAlmostEqual(expr.value, 10)
