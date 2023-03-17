@@ -1475,7 +1475,7 @@ class TestAtoms(BaseTest):
             cp.trace(X) == 1
         ]
         prob = cp.Problem(cp.Minimize(cp.tr_inv(X)), constraints)
-        prob.solve(verbose=True)
+        prob.solve()
         # Check result. The best value is T^2.
         self.assertAlmostEqual(prob.value, T**2)
         X_actual = X.value
