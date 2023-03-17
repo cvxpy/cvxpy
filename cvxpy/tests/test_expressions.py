@@ -1431,7 +1431,7 @@ class TestExpressions(BaseTest):
         assert not isinstance(expr, cp.QuadForm)
 
     def test_matmul_scalars(self) -> None:
-        """Test evaluating a matmul that reduces one argument inernally to a scalar.
+        """Test evaluating a matmul that reduces one argument internally to a scalar.
 
         See https://github.com/cvxpy/cvxpy/issues/2065
         """
