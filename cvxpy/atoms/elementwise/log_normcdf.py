@@ -20,8 +20,8 @@ from cvxpy.atoms.elementwise.maximum import maximum
 from cvxpy.expressions.expression import Expression
 
 
-# flake8: noqa: E501
-def log_normcdf(x):  # noqa: E501
+# ruff: noqa: E501
+def log_normcdf(x):
     """Elementwise log of the cumulative distribution function of a standard normal random variable.
 
     The implementation is a quadratic approximation with modest accuracy over [-4, 4].

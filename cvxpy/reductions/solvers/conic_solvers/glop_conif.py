@@ -56,7 +56,7 @@ class GLOP(ConicSolver):
                                f'({ortools.__version__}). Expected < 9.5.0.'
                                'Please open a feature request on cvxpy to '
                                'enable support for this version.')
-        ortools, google.protobuf  # For flake8
+        ortools, google.protobuf  # noqa F401
 
     def apply(self, problem: ParamConeProg) -> Tuple[Dict, Dict]:
         """Returns a new problem and data for inverting the new solution."""

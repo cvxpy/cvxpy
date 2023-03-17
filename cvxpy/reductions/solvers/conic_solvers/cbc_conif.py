@@ -62,7 +62,7 @@ class CBC(ConicSolver):
         """Imports the solver.
         """
         from cylp.cy import CyClpSimplex
-        CyClpSimplex  # For flake8
+        CyClpSimplex  # noqa F401
 
     def accepts(self, problem) -> bool:
         """Can Cbc solve the problem?

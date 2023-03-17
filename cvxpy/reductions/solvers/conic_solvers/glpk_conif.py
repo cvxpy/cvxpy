@@ -39,7 +39,7 @@ class GLPK(CVXOPT):
         """Imports the solver.
         """
         from cvxopt import glpk
-        glpk  # For flake8
+        glpk  # noqa F401
 
     def invert(self, solution, inverse_data):
         """Returns the solution to the original problem given the inverse_data.
