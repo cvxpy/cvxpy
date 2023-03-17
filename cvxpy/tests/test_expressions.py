@@ -993,6 +993,24 @@ class TestExpressions(BaseTest):
         exp = self.C[:, -199:-3]
         self.assertEqual(exp.shape, (3, 0))
 
+    def test_float_is_invalid_index(self) -> None:
+        with self.assertRaises(IndexError) as cm:
+            self.x[1.0]
+        self.assertEqual(str(cm.exception), "float is an invalid index type.")
+
+        with self.assertRaises(IndexError) as cm:
+            self.x[(1.0,)]
+        self.assertEqual(str(cm.exception), "float is an invalid index type.")
+
+        with self.assertRaises(IndexError) as cm:
+            self.C[: 2.:40]
+        self.assertEqual(str(cm.exception), "float is an invalid index type.")
+
+        with self.assertRaises(IndexError) as cm:
+            self.x[np.array([1.0, 2.0])]
+        self.assertEqual(str(cm.exception),
+                         "arrays used as indices must be of integer (or boolean) type")
+
     def test_neg_indices(self) -> None:
         """Test negative indices.
         """
