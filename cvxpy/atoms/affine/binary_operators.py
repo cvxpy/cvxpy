@@ -34,8 +34,10 @@ from cvxpy.atoms.affine.reshape import deep_flatten
 from cvxpy.atoms.affine.sum import sum as cvxpy_sum
 from cvxpy.constraints.constraint import Constraint
 from cvxpy.error import DCPError
-from cvxpy.expressions.constants.parameter import (is_param_affine,
-                                                   is_param_free,)
+from cvxpy.expressions.constants.parameter import (
+    is_param_affine,
+    is_param_free,
+)
 
 
 class BinaryOperator(AffAtom):

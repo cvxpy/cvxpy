@@ -31,8 +31,11 @@ import scipy.sparse as sp
 import cvxpy.interface as intf
 from cvxpy.constraints.constraint import Constraint
 from cvxpy.expressions import expression
-from cvxpy.settings import (GENERAL_PROJECTION_TOL, PSD_NSD_PROJECTION_TOL,
-                            SPARSE_PROJECTION_TOL,)
+from cvxpy.settings import (
+    GENERAL_PROJECTION_TOL,
+    PSD_NSD_PROJECTION_TOL,
+    SPARSE_PROJECTION_TOL,
+)
 
 
 class Leaf(expression.Expression):

@@ -154,15 +154,14 @@ Please add the following license to new files:
 
 Code style
 ~~~~~~~~~~~~~~~~~~~~~~~~~
-We use `flake8 <https://flake8.pycqa.org/en/latest/>`_ and
-`isort <https://pycqa.github.io/isort/>`_ to enforce our Python coding
+We use `ruff <https://beta.ruff.rs/docs/>`_ to enforce our Python coding
 style. Before sending us a pull request, navigate to the project root
 and run
 
   ::
 
-    flake8 cvxpy/
-    isort .
+    pip install ruff
+    ruff check cvxpy
 
 to make sure that your changes abide by our style conventions. Please fix any
 errors that are reported before sending the pull request.

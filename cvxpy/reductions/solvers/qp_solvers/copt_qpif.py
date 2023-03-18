@@ -40,8 +40,7 @@ class COPT(QpSolver):
         """
         Imports the solver.
         """
-        import coptpy
-        coptpy  # For flake8
+        import coptpy  # noqa F401
 
     def invert(self, solution, inverse_data):
         """

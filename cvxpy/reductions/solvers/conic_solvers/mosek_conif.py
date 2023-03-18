@@ -133,8 +133,8 @@ class MOSEK(ConicSolver):
     def import_solver(self) -> None:
         """Imports the solver (updates the set of supported constraints, if applicable).
         """
-        import mosek
-        mosek  # For flake8
+        import mosek  # noqa F401
+
         if hasattr(mosek.conetype, 'pexp') and ExpCone not in MOSEK.SUPPORTED_CONSTRAINTS:
             MOSEK.SUPPORTED_CONSTRAINTS.append(ExpCone)
             MOSEK.SUPPORTED_CONSTRAINTS.append(PowCone3D)

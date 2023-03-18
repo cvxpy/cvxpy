@@ -22,8 +22,14 @@ import scipy.sparse as sp
 from cvxpy.atoms.atom import Atom
 from cvxpy.constraints.constraint import Constraint
 from cvxpy.expressions import cvxtypes
-from cvxpy.utilities.power_tools import (approx_error, decompose, fracify,
-                                         lower_bound, over_bound, prettydict,)
+from cvxpy.utilities.power_tools import (
+    approx_error,
+    decompose,
+    fracify,
+    lower_bound,
+    over_bound,
+    prettydict,
+)
 
 
 class geo_mean(Atom):

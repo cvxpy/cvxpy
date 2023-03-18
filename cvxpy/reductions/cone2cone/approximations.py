@@ -21,13 +21,17 @@ import numpy as np
 import cvxpy as cp
 from cvxpy.atoms.affine.upper_tri import upper_tri
 from cvxpy.constraints.constraint import Constraint
-from cvxpy.constraints.exponential import (ExpCone, OpRelEntrConeQuad,
-                                           RelEntrConeQuad,)
+from cvxpy.constraints.exponential import (
+    ExpCone,
+    OpRelEntrConeQuad,
+    RelEntrConeQuad,
+)
 from cvxpy.constraints.zero import Zero
 from cvxpy.expressions.variable import Variable
 from cvxpy.reductions.canonicalization import Canonicalization
 from cvxpy.reductions.dcp2cone.atom_canonicalizers.von_neumann_entr_canon import (
-    von_neumann_entr_canon,)
+    von_neumann_entr_canon,
+)
 
 APPROX_CONES = {
     RelEntrConeQuad: {cp.SOC},

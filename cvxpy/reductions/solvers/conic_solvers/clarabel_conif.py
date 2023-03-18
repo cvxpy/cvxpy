@@ -87,8 +87,7 @@ class CLARABEL(ConicSolver):
     def import_solver(self) -> None:
         """Imports the solver.
         """
-        import clarabel
-        clarabel  # For flake8
+        import clarabel  # noqa F401
 
     def supports_quad_obj(self) -> bool:
         """Clarabel supports quadratic objective with any combination of conic constraints.

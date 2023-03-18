@@ -24,14 +24,20 @@ import scipy.stats as st
 
 import cvxpy as cp
 import cvxpy.tests.solver_test_helpers as sths
-from cvxpy.reductions.solvers.defines import (INSTALLED_MI_SOLVERS,
-                                              INSTALLED_SOLVERS,)
+from cvxpy.reductions.solvers.defines import (
+    INSTALLED_MI_SOLVERS,
+    INSTALLED_SOLVERS,
+)
 from cvxpy.tests.base_test import BaseTest
-from cvxpy.tests.solver_test_helpers import (StandardTestECPs, StandardTestLPs,
-                                             StandardTestMixedCPs,
-                                             StandardTestPCPs, StandardTestQPs,
-                                             StandardTestSDPs,
-                                             StandardTestSOCPs,)
+from cvxpy.tests.solver_test_helpers import (
+    StandardTestECPs,
+    StandardTestLPs,
+    StandardTestMixedCPs,
+    StandardTestPCPs,
+    StandardTestQPs,
+    StandardTestSDPs,
+    StandardTestSOCPs,
+)
 from cvxpy.utilities.versioning import Version
 
 
@@ -1826,9 +1832,11 @@ class TestAllSolvers(BaseTest):
     def test_installed_solvers(self) -> None:
         """Test the list of installed solvers.
         """
-        from cvxpy.reductions.solvers.defines import (INSTALLED_SOLVERS,
-                                                      SOLVER_MAP_CONIC,
-                                                      SOLVER_MAP_QP,)
+        from cvxpy.reductions.solvers.defines import (
+            INSTALLED_SOLVERS,
+            SOLVER_MAP_CONIC,
+            SOLVER_MAP_QP,
+        )
         prob = cp.Problem(cp.Minimize(cp.norm(self.x, 1) + 1.0), [self.x == 0])
         for solver in SOLVER_MAP_CONIC.keys():
             if solver in INSTALLED_SOLVERS:
