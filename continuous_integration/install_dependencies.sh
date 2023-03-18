@@ -10,20 +10,23 @@ conda config --set remote_max_retries 10
 conda config --set remote_backoff_factor 2
 conda config --set remote_read_timeout_secs 120.0
 
-if [[ "$PYTHON_VERSION" == "3.7" ]] || [[ "$PYTHON_VERSION" == "3.8" ]]; then
-  conda install scipy=1.3 numpy=1.16 mkl pip pytest pytest-cov lapack ecos scs osqp cvxopt proxsuite setuptools=63.4.2
+# Issue with installing setuptools > 65.5.1 through conda on mac with Python 3.7.
+if [[ "$PYTHON_VERSION" == "3.7" ]] && [[ "$RUNNER_OS" == "macos-11" ]]; then
+  conda install scipy=1.3 numpy=1.16 mkl pip pytest pytest-cov lapack ecos scs osqp cvxopt proxsuite setuptools
+elif [[ "$PYTHON_VERSION" == "3.7" ]] || [[ "$PYTHON_VERSION" == "3.8" ]]; then
+  conda install scipy=1.3 numpy=1.16 mkl pip pytest pytest-cov lapack ecos scs osqp cvxopt proxsuite "setuptools>65.5.1"
 elif [[ "$PYTHON_VERSION" == "3.9" ]]; then
   # The earliest version of numpy that works is 1.19.
   # Given numpy 1.19, the earliest version of scipy we can use is 1.5.
-  conda install scipy=1.5 numpy=1.19 mkl pip pytest lapack ecos scs osqp cvxopt proxsuite setuptools=64.0.2
+  conda install scipy=1.5 numpy=1.19 mkl pip pytest lapack ecos scs osqp cvxopt proxsuite "setuptools>65.5.1"
 elif [[ "$PYTHON_VERSION" == "3.10" ]]; then
     # The earliest version of numpy that works is 1.21.
     # Given numpy 1.21, the earliest version of scipy we can use is 1.7.
-    conda install scipy=1.7 numpy=1.21 mkl pip pytest lapack ecos scs osqp cvxopt proxsuite setuptools=64.0.2
+    conda install scipy=1.7 numpy=1.21 mkl pip pytest lapack ecos scs osqp cvxopt proxsuite "setuptools>65.5.1"
 elif [[ "$PYTHON_VERSION" == "3.11" ]]; then
     # The earliest version of numpy that works is 1.23.4.
     # Given numpy 1.23.4, the earliest version of scipy we can use is 1.9.3.
-    conda install scipy=1.9.3 numpy=1.23.4 mkl pip pytest lapack ecos scs cvxopt proxsuite "setuptools<65"
+    conda install scipy=1.9.3 numpy=1.23.4 mkl pip pytest lapack ecos scs cvxopt proxsuite "setuptools>65.5.1"
 fi
 
 
