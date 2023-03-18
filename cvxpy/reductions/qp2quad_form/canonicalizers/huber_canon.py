@@ -19,7 +19,8 @@ from cvxpy.atoms.elementwise.power import power
 from cvxpy.expressions.variable import Variable
 from cvxpy.reductions.eliminate_pwl.canonicalizers.abs_canon import abs_canon
 from cvxpy.reductions.qp2quad_form.canonicalizers.power_canon import (
-    power_canon,)
+    power_canon,
+)
 
 
 def huber_canon(expr, args):

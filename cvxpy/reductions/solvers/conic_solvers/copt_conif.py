@@ -9,7 +9,9 @@ from cvxpy.constraints import PSD, SOC
 from cvxpy.reductions.solution import Solution, failure_solution
 from cvxpy.reductions.solvers import utilities
 from cvxpy.reductions.solvers.conic_solvers.conic_solver import (
-    ConicSolver, dims_to_solver_dict,)
+    ConicSolver,
+    dims_to_solver_dict,
+)
 
 
 def tri_to_full(lower_tri, n):
@@ -73,8 +75,7 @@ class COPT(ConicSolver):
         """
         Imports the solver.
         """
-        import coptpy
-        coptpy  # For flake8
+        import coptpy  # noqa F401
 
     def accepts(self, problem):
         """

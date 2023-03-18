@@ -17,11 +17,26 @@ limitations under the License.
 import numpy as np
 import scipy.sparse as sp
 
-from cvxpy.lin_ops.lin_op import (DENSE_CONST, NEG, PARAM, SCALAR_CONST,
-                                  SPARSE_CONST, SUM_ENTRIES, VARIABLE,)
-from cvxpy.lin_ops.lin_utils import (create_const, create_eq, create_leq,
-                                     create_param, create_var, get_expr_vars,
-                                     neg_expr, sum_entries, sum_expr,)
+from cvxpy.lin_ops.lin_op import (
+    DENSE_CONST,
+    NEG,
+    PARAM,
+    SCALAR_CONST,
+    SPARSE_CONST,
+    SUM_ENTRIES,
+    VARIABLE,
+)
+from cvxpy.lin_ops.lin_utils import (
+    create_const,
+    create_eq,
+    create_leq,
+    create_param,
+    create_var,
+    get_expr_vars,
+    neg_expr,
+    sum_entries,
+    sum_expr,
+)
 from cvxpy.tests.base_test import BaseTest
 
 
