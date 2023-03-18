@@ -20,8 +20,17 @@ import scipy.sparse as sp
 from scipy.linalg import lstsq
 
 from cvxpy import Maximize, Minimize, Parameter, Problem
-from cvxpy.atoms import (QuadForm, abs, huber, matrix_frac, norm, power,
-                         quad_over_lin, sum, sum_squares,)
+from cvxpy.atoms import (
+    QuadForm,
+    abs,
+    huber,
+    matrix_frac,
+    norm,
+    power,
+    quad_over_lin,
+    sum,
+    sum_squares,
+)
 from cvxpy.expressions.variable import Variable
 from cvxpy.reductions.solvers.defines import INSTALLED_SOLVERS, QP_SOLVERS
 from cvxpy.tests.base_test import BaseTest

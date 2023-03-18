@@ -1,14 +1,7 @@
 repos:
-  # import sorting with isort
-  - repo: https://github.com/pycqa/isort
-    rev: 5.8.0
+  - repo: https://github.com/charliermarsh/ruff-pre-commit
+    # Ruff version.
+    rev: 'v0.0.251'
     hooks:
-      - id: isort
-
-  # linting and code analysis with flake8
-  - repo: https://github.com/pycqa/flake8
-    rev: 3.8.3
-    hooks:
-      - id: flake8
-        args: ['--config=setup.cfg']
-        files: ^(cvxpy|continuous_integration)/
+      - id: ruff
+        args: [--fix, --exit-non-zero-on-fix]

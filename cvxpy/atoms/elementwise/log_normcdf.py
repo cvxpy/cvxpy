@@ -20,6 +20,7 @@ from cvxpy.atoms.elementwise.maximum import maximum
 from cvxpy.expressions.expression import Expression
 
 
+# ruff: noqa: E501
 def log_normcdf(x):
     """Elementwise log of the cumulative distribution function of a standard normal random variable.
 

@@ -19,7 +19,9 @@ import numpy as np
 import cvxpy.settings as s
 from cvxpy.reductions.solution import Solution, failure_solution
 from cvxpy.reductions.solvers.conic_solvers.conic_solver import (
-    ConicSolver, dims_to_solver_dict,)
+    ConicSolver,
+    dims_to_solver_dict,
+)
 
 
 class CBC(ConicSolver):
@@ -59,8 +61,7 @@ class CBC(ConicSolver):
     def import_solver(self) -> None:
         """Imports the solver.
         """
-        from cylp.cy import CyClpSimplex
-        CyClpSimplex  # For flake8
+        from cylp.cy import CyClpSimplex  # noqa F401
 
     def accepts(self, problem) -> bool:
         """Can Cbc solve the problem?

@@ -16,7 +16,8 @@ limitations under the License.
 from cvxpy.problems.objective import Minimize
 from cvxpy.reductions.canonicalization import Canonicalization
 from cvxpy.reductions.dcp2cone.atom_canonicalizers import (
-    CANON_METHODS as cone_canon_methods,)
+    CANON_METHODS as cone_canon_methods,
+)
 
 
 class Dcp2Cone(Canonicalization):
