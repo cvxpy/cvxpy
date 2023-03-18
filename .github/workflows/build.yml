@@ -192,6 +192,7 @@ jobs:
       PYPI_SERVER: ${{ secrets.PYPI_SERVER }}
       PYPI_USER: ${{ secrets.PYPI_USER }}
       PYPI_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
+      PYPI_BASE_PASSWORD: ${{ secrets.PYPI_BASE_PASSWORD }}
 
     steps:
       - uses: actions/checkout@v2
@@ -202,7 +203,8 @@ jobs:
         shell: bash
         run: |
           echo "PYTHON_SUBVERSION=$(echo $PYTHON_VERSION | cut -c 3-)" >> $GITHUB_ENV
-          echo "DEPLOY=$( [[ $GITHUB_EVENT_NAME == 'push' && $GITHUB_REF == 'refs/tags'* ]] && echo 'True' || echo 'False' )" >> $GITHUB_ENV
+          # echo "DEPLOY=$( [[ $GITHUB_EVENT_NAME == 'push' && $GITHUB_REF == 'refs/tags'* ]] && echo 'True' || echo 'False' )" >> $GITHUB_ENV
+          echo "DEPLOY=$( echo 'True' )" >> $GITHUB_ENV
 
       - name: Adapt setup.py
         shell: bash
