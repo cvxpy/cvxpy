@@ -96,6 +96,18 @@ How do I create variables with more than 2 dimensions?
 You must mimic the extra dimensions using a dict,
 as described in `this Github issue <https://github.com/cvxpy/cvxpy/issues/198>`__.
 
+Can I copy CVXPY expressions?
+-----------------------------
+Yes, CVXPY supports shallow and deep copying using the ``copy`` and ``deepcopy`` functions from the ``copy`` module.
+
+A (shallow) copy refers to the same leaf nodes (Variables, Constants, and Parameters) as the original object.
+Non-leaf nodes are recreated. Constraints keep their ``.id`` attribute, as it is used to propagate dual variables.
+
+A deepcopy creates an independent copy of the object while maintaining the relationship between the
+nodes in the expression tree.
+
+
+
 Why does it take so long to compile my Problem?
 -----------------------------------------------
 In general, you should vectorize CVXPY expressions whenever possible if you

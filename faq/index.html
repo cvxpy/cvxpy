@@ -9,8 +9,8 @@
     <title>FAQ &#8212; CVXPY 1.3 documentation</title>
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../_static/cvxpy_alabaster.css" />
-    <script integrity="sha384-vtXRMe3mGCbOeY7l30aIg8H9p3GdeSe4IFlP6G8JMa7o7lXvnz3GFKzPxzJdPfGK" src="../_static/jquery.js"></script>
-    <script integrity="sha384-lSZeSIVKp9myfKbDQ3GkN/KHjUc+mzg17VKDN4Y2kUeBSJioB9QSM639vM9fuY//" src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
     <script src="../_static/doctools.js"></script>
     <script src="../_static/sphinx_highlight.js"></script>
@@ -53,8 +53,9 @@
 <li><p><a class="reference internal" href="#how-do-i-create-variables-with-special-properties-such-as-boolean-or-symmetric-variables" id="id15">How do I create variables with special properties, such as boolean or symmetric variables?</a></p></li>
 <li><p><a class="reference internal" href="#how-do-i-create-a-variable-that-has-multiple-special-properties-such-as-boolean-and-symmetric" id="id16">How do I create a variable that has multiple special properties, such as boolean and symmetric?</a></p></li>
 <li><p><a class="reference internal" href="#how-do-i-create-variables-with-more-than-2-dimensions" id="id17">How do I create variables with more than 2 dimensions?</a></p></li>
-<li><p><a class="reference internal" href="#why-does-it-take-so-long-to-compile-my-problem" id="id18">Why does it take so long to compile my Problem?</a></p></li>
-<li><p><a class="reference internal" href="#how-do-i-cite-cvxpy" id="id19">How do I cite CVXPY?</a></p></li>
+<li><p><a class="reference internal" href="#can-i-copy-cvxpy-expressions" id="id18">Can I copy CVXPY expressions?</a></p></li>
+<li><p><a class="reference internal" href="#why-does-it-take-so-long-to-compile-my-problem" id="id19">Why does it take so long to compile my Problem?</a></p></li>
+<li><p><a class="reference internal" href="#how-do-i-cite-cvxpy" id="id20">How do I cite CVXPY?</a></p></li>
 </ul>
 </nav>
 <section id="where-can-i-get-help-with-cvxpy">
@@ -144,6 +145,14 @@ it will probably fail in a confusing way.</p>
 <h2>How do I create variables with more than 2 dimensions?<a class="headerlink" href="#how-do-i-create-variables-with-more-than-2-dimensions" title="Permalink to this heading">¶</a></h2>
 <p>You must mimic the extra dimensions using a dict,
 as described in <a class="reference external" href="https://github.com/cvxpy/cvxpy/issues/198">this Github issue</a>.</p>
+</section>
+<section id="can-i-copy-cvxpy-expressions">
+<h2>Can I copy CVXPY expressions?<a class="headerlink" href="#can-i-copy-cvxpy-expressions" title="Permalink to this heading">¶</a></h2>
+<p>Yes, CVXPY supports shallow and deep copying using the <code class="docutils literal notranslate"><span class="pre">copy</span></code> and <code class="docutils literal notranslate"><span class="pre">deepcopy</span></code> functions from the <code class="docutils literal notranslate"><span class="pre">copy</span></code> module.</p>
+<p>A (shallow) copy refers to the same leaf nodes (Variables, Constants, and Parameters) as the original object.
+Non-leaf nodes are recreated. Constraints keep their <code class="docutils literal notranslate"><span class="pre">.id</span></code> attribute, as it is used to propagate dual variables.</p>
+<p>A deepcopy creates an independent copy of the object while maintaining the relationship between the
+nodes in the expression tree.</p>
 </section>
 <section id="why-does-it-take-so-long-to-compile-my-problem">
 <h2>Why does it take so long to compile my Problem?<a class="headerlink" href="#why-does-it-take-so-long-to-compile-my-problem" title="Permalink to this heading">¶</a></h2>
