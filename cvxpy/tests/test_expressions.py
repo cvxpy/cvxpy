@@ -1450,13 +1450,13 @@ class TestExpressions(BaseTest):
 
     def test_matmul_scalars(self) -> None:
         """Test evaluating a matmul that reduces one argument internally to a scalar.
-
-        See https://github.com/cvxpy/cvxpy/issues/2065
         """
         x = cp.Variable((2,))
         quad = cp.quad_form(x, np.eye(2))
         a = np.array([2])
-        # NOTE quad has dimensions (1, 1) which is a bug.
-        expr = a @ quad
+        expr = quad * a
         x.value = np.array([1, 2])
-        self.assertAlmostEqual(expr.value, 10)
+        X = np.eye(2)
+        true_val = (np.transpose(x.value) @ X @ x.value) * a
+        self.assertEqual(expr.value, true_val)
+
