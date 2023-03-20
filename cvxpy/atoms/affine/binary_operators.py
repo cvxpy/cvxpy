@@ -471,9 +471,11 @@ def outer_product(x, y):
         The outer product of (x,y), linear in x and transposed-linear in y.
     """
     x = Expression.cast_to_const(x)
-    assert x.ndim == 1
+    if x.ndim != 1:
+        raise ValueError("x must be a vector.")
     y = Expression.cast_to_const(y)
-    assert y.ndim == 1
+    if y.ndim != 1:
+        raise ValueError("y must be a vector.")
     x = reshape(x, (x.size, 1))
     y = reshape(y, (1, y.size))
     return x @ y
