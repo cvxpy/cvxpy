@@ -24,14 +24,20 @@ import scipy.stats as st
 
 import cvxpy as cp
 import cvxpy.tests.solver_test_helpers as sths
-from cvxpy.reductions.solvers.defines import (INSTALLED_MI_SOLVERS,
-                                              INSTALLED_SOLVERS,)
+from cvxpy.reductions.solvers.defines import (
+    INSTALLED_MI_SOLVERS,
+    INSTALLED_SOLVERS,
+)
 from cvxpy.tests.base_test import BaseTest
-from cvxpy.tests.solver_test_helpers import (StandardTestECPs, StandardTestLPs,
-                                             StandardTestMixedCPs,
-                                             StandardTestPCPs, StandardTestQPs,
-                                             StandardTestSDPs,
-                                             StandardTestSOCPs,)
+from cvxpy.tests.solver_test_helpers import (
+    StandardTestECPs,
+    StandardTestLPs,
+    StandardTestMixedCPs,
+    StandardTestPCPs,
+    StandardTestQPs,
+    StandardTestSDPs,
+    StandardTestSOCPs,
+)
 from cvxpy.utilities.versioning import Version
 
 
@@ -350,6 +356,25 @@ class TestSCS(BaseTest):
             prob = cp.Problem(cp.Minimize(expr), constr)
             data = prob.get_problem_data(solver=cp.SCS)
             assert "P" not in data[0]
+
+    def test_quad_obj_with_power(self) -> None:
+        """Test a mixed quadratic/power objective.
+        """
+        # Only relevant for SCS >= 3.0.0.
+        import scs
+        if Version(scs.__version__) >= Version('3.0.0'):
+            # See https://github.com/cvxpy/cvxpy/issues/2059
+            x = cp.Variable()
+            prob = cp.Problem(cp.Minimize(x**1.6 + x**2), [x >= 1])
+            prob.solve(solver=cp.SCS, use_quad_obj=True)
+            self.assertAlmostEqual(prob.value, 2)
+            self.assertAlmostEqual(x.value, 1)
+
+            # Check problem data.
+            data = prob.get_problem_data(solver=cp.SCS, solver_opts={"use_quad_obj": True})
+            # Quadratic objective and SOC contraints.
+            assert "P" in data[0]
+            assert data[0]["dims"].soc
 
     def test_scs_lp_3(self) -> None:
         StandardTestLPs.test_lp_3(solver='SCS')
@@ -1807,9 +1832,11 @@ class TestAllSolvers(BaseTest):
     def test_installed_solvers(self) -> None:
         """Test the list of installed solvers.
         """
-        from cvxpy.reductions.solvers.defines import (INSTALLED_SOLVERS,
-                                                      SOLVER_MAP_CONIC,
-                                                      SOLVER_MAP_QP,)
+        from cvxpy.reductions.solvers.defines import (
+            INSTALLED_SOLVERS,
+            SOLVER_MAP_CONIC,
+            SOLVER_MAP_QP,
+        )
         prob = cp.Problem(cp.Minimize(cp.norm(self.x, 1) + 1.0), [self.x == 0])
         for solver in SOLVER_MAP_CONIC.keys():
             if solver in INSTALLED_SOLVERS:

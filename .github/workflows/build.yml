@@ -24,10 +24,12 @@ jobs:
       - uses: actions/setup-python@v2
         with:
           python-version: 3.8
-      - name: isort
-        uses: jamescurtin/isort-action@master
-      - name: flake8
-        uses: py-actions/flake8@v1
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install ruff
+      - name: Run Ruff
+        run: ruff check --format=github .
 
   build:
     runs-on: ${{ matrix.os }}
@@ -191,7 +193,7 @@ jobs:
       PIP_INSTALL: "${{ matrix.pip_install == 'True' }}"
       PYPI_SERVER: ${{ secrets.PYPI_SERVER }}
       PYPI_USER: ${{ secrets.PYPI_USER }}
-      PYPI_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
+      PYPI_BASE_PASSWORD: ${{ secrets.PYPI_BASE_PASSWORD }}
 
     steps:
       - uses: actions/checkout@v2

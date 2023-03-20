@@ -30,13 +30,14 @@ import cvxpy.utilities as u
 from cvxpy.atoms.affine.add_expr import AddExpression
 from cvxpy.atoms.affine.affine_atom import AffAtom
 from cvxpy.atoms.affine.conj import conj
-from cvxpy.atoms.affine.reshape import deep_flatten
+from cvxpy.atoms.affine.reshape import deep_flatten, reshape
 from cvxpy.atoms.affine.sum import sum as cvxpy_sum
 from cvxpy.constraints.constraint import Constraint
 from cvxpy.error import DCPError
-from cvxpy.expressions.constants.parameter import (is_param_affine,
-                                                   is_param_free,)
-from cvxpy.atoms.affine.reshape import reshape
+from cvxpy.expressions.constants.parameter import (
+    is_param_affine,
+    is_param_free,
+)
 from cvxpy.expressions.expression import Expression
 
 
@@ -110,7 +111,7 @@ class MulExpression(BinaryOperator):
     def numeric(self, values):
         """Matrix multiplication.
         """
-        if self.args[0].shape == () or self.args[1].shape == () or \
+        if values[0].shape == () or values[1].shape == () or \
            intf.is_sparse(values[0]) or intf.is_sparse(values[1]):
             return values[0] * values[1]
         else:
@@ -451,6 +452,7 @@ def scalar_product(x, y):
     y = deep_flatten(y)
     prod = multiply(conj(x), y)
     return cvxpy_sum(prod)
+
 
 def outer_product(x, y):
     """

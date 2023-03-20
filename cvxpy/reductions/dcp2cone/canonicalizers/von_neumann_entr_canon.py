@@ -19,7 +19,8 @@ from cvxpy.constraints.nonpos import NonPos
 from cvxpy.constraints.zero import Zero
 from cvxpy.reductions.dcp2cone.canonicalizers.entr_canon import entr_canon
 from cvxpy.reductions.dcp2cone.canonicalizers.lambda_sum_largest_canon import (
-    lambda_sum_largest_canon,)
+    lambda_sum_largest_canon,
+)
 
 
 def von_neumann_entr_canon(expr, args):

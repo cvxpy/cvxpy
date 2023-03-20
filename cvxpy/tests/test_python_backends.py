@@ -9,7 +9,11 @@ import scipy.sparse as sp
 
 import cvxpy.settings as s
 from cvxpy.lin_ops.canon_backend import (
-    CanonBackend, ScipyCanonBackend, ScipyTensorView, TensorRepresentation,)
+    CanonBackend,
+    ScipyCanonBackend,
+    ScipyTensorView,
+    TensorRepresentation,
+)
 
 
 @dataclass

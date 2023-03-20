@@ -18,8 +18,15 @@ from typing import List, Optional, Union
 
 import numpy as np
 
-from cvxpy.atoms import (bmat, lambda_sum_largest, normNuc, reshape,
-                         symmetric_wrap, von_neumann_entr, vstack,)
+from cvxpy.atoms import (
+    bmat,
+    lambda_sum_largest,
+    normNuc,
+    reshape,
+    symmetric_wrap,
+    von_neumann_entr,
+    vstack,
+)
 from cvxpy.atoms.affine.wraps import psd_wrap
 from cvxpy.constraints.exponential import OpRelEntrConeQuad
 from cvxpy.expressions.constants.constant import Constant

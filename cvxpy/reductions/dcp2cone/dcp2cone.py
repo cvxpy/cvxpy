@@ -21,11 +21,9 @@ from cvxpy.expressions import cvxtypes
 from cvxpy.expressions.expression import Expression
 from cvxpy.problems.objective import Minimize
 from cvxpy.reductions.canonicalization import Canonicalization
-from cvxpy.reductions.dcp2cone.canonicalizers import (
-    CANON_METHODS as cone_canon_methods,)
+from cvxpy.reductions.dcp2cone.canonicalizers import CANON_METHODS as cone_canon_methods
 from cvxpy.reductions.inverse_data import InverseData
-from cvxpy.reductions.qp2quad_form.canonicalizers import (
-    QUAD_CANON_METHODS as quad_canon_methods,)
+from cvxpy.reductions.qp2quad_form.canonicalizers import QUAD_CANON_METHODS as quad_canon_methods
 
 
 class Dcp2Cone(Canonicalization):
@@ -119,9 +117,15 @@ class Dcp2Cone(Canonicalization):
         if isinstance(expr, Expression) and (
                 expr.is_constant() and not expr.parameters()):
             return expr, []
-        elif self.quad_obj and affine_above and type(expr) in self.quad_canon_methods:
-            return self.quad_canon_methods[type(expr)](expr, args)
-        elif type(expr) in self.cone_canon_methods:
+
+        if self.quad_obj and affine_above and type(expr) in self.quad_canon_methods:
+            # Special case for power.
+            if type(expr) == cvxtypes.power() and not expr._quadratic_power():
+                return self.cone_canon_methods[type(expr)](expr, args)
+            else:
+                return self.quad_canon_methods[type(expr)](expr, args)
+
+        if type(expr) in self.cone_canon_methods:
             return self.cone_canon_methods[type(expr)](expr, args)
-        else:
-            return expr.copy(args), []
+
+        return expr.copy(args), []
