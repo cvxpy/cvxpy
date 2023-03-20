@@ -28,7 +28,7 @@ An example of an SDP is to complete a covariance matrix
 
      
        \begin{array}{ll}
-       \mbox{minimize}   & 0 \\
+       \mbox{minimize}   & \mathbf{tr}(\Sigma) \\
        \mbox{subject to} & \Sigma_{ij} = \tilde \Sigma_{ij}, \quad (i,j) \notin M \\
                          & \Sigma \succeq 0,
        \end{array}
