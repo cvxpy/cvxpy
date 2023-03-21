@@ -1458,5 +1458,5 @@ class TestExpressions(BaseTest):
         x.value = np.array([1, 2])
         X = np.eye(2)
         true_val = (np.transpose(x.value) @ X @ x.value) * a
+        assert quad.shape == ()
         self.assertEqual(expr.value, true_val)
-
