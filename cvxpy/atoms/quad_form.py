@@ -122,7 +122,7 @@ class QuadForm(Atom):
         return [sp.csc_matrix(D.ravel(order="F")).T]
 
     def shape_from_args(self) -> Tuple[int, ...]:
-        return tuple() if self.args[0].ndim == 0 else ()
+        return tuple()
 
 
 class SymbolicQuadForm(Atom):
