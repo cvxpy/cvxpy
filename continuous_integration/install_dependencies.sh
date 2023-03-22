@@ -49,7 +49,7 @@ elif [[ "$RUNNER_OS" == "Windows" ]] && [[ "$PYTHON_VERSION" == "3.8" ]]; then
 elif [[ "$PYTHON_VERSION" == "3.6" ]]; then
   python -m pip install xpress
 else
-  python -m pip install diffcp gurobipy xpress
+  python -m pip install diffcp gurobipy xpress cplex
 fi
 
 # Only install Mosek if license is available (secret is not copied to forks)
