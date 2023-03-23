@@ -478,7 +478,7 @@ class TestMosek(unittest.TestCase):
                 "MSK_DPAR_INTPNT_CO_TOL_DFEAS": 1e-9,
                 "MSK_DPAR_INTPNT_CO_TOL_PFEAS": "1e-9"
             }
-            with pytest.warns():
+            with pytest.warns(DeprecationWarning):
                 problem.solve(solver=cp.MOSEK, mosek_params=mosek_params)
 
     def test_power_portfolio(self) -> None:
