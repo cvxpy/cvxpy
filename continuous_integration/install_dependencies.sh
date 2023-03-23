@@ -10,9 +10,9 @@ conda config --set remote_max_retries 10
 conda config --set remote_backoff_factor 2
 conda config --set remote_read_timeout_secs 120.0
 
+# Issue with installing setuptools > 65.5.1 through conda on mac with Python 3.7 and Python 3.6
 if [[ "$PYTHON_VERSION" == "3.6" ]]; then
-  conda install scipy=1.3 numpy=1.16 mkl pip=21.3.1 pytest pytest-cov lapack ecos scs osqp cvxopt "setuptools>65.5.1"
-# Issue with installing setuptools > 65.5.1 through conda on mac with Python 3.7.
+  conda install scipy=1.3 numpy=1.16 mkl pip=21.3.1 pytest pytest-cov lapack ecos scs osqp cvxopt setuptools
 elif [[ "$PYTHON_VERSION" == "3.7" ]] && [[ "$RUNNER_OS" == "macos-11" ]]; then
   conda install scipy=1.3 numpy=1.16 mkl pip pytest pytest-cov lapack ecos scs osqp cvxopt setuptools
 elif [[ "$PYTHON_VERSION" == "3.7" ]] || [[ "$PYTHON_VERSION" == "3.8" ]]; then
