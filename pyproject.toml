@@ -22,6 +22,6 @@ requires = [
     "numpy>=1.21,<1.22; python_version=='3.10' and (platform_machine!='arm64' or platform_system!='Darwin')",
     "numpy>=1.21.4,<1.22; python_version=='3.10' and (platform_machine=='arm64' and platform_system=='Darwin')",
     "scipy >= 1.1.0",
-    "setuptools>65.5.1",
+    "setuptools>=40.8.0",
     "wheel"
 ]
