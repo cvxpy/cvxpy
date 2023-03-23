@@ -108,7 +108,7 @@ class MulExpression(BinaryOperator):
     def numeric(self, values):
         """Matrix multiplication.
         """
-        if self.args[0].shape == () or self.args[1].shape == () or \
+        if values[0].shape == () or values[1].shape == () or \
            intf.is_sparse(values[0]) or intf.is_sparse(values[1]):
             return values[0] * values[1]
         else:
