@@ -2,7 +2,7 @@ import numpy as np
 import scipy.sparse.linalg as sparla
 
 import cvxpy as cp
-from cvxpy.atoms.affine.wraps import psd_wrap
+from cvxpy import psd_wrap
 
 
 def test_is_psd() -> None:
