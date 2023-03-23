@@ -770,11 +770,11 @@ For others see `OSQP documentation <https://osqp.org/docs/interfaces/solver_sett
 `MOSEK`_ options:
 
 ``'mosek_params'``
-    A dictionary of MOSEK parameters. Refer to MOSEK's Python or C API for
-    details. Note that if parameters are given as string-value pairs, parameter
-    names must be of the form ``'MSK_DPAR_BASIS_TOL_X'`` as in the C API.
-    Alternatively, Python enum options like ``'mosek.dparam.basis_tol_x'`` are
-    also supported.
+    A dictionary of MOSEK parameters in the form ``name: value``. Parameter names
+    should be strings, as in the MOSEK C API or command line, for example
+    ``'MSK_DPAR_BASIS_TOL_X'``, ``'MSK_IPAR_NUM_THREADS'`` etc. Values are strings,
+    integers or floats, depending on the parameter.
+    See `example <https://docs.mosek.com/latest/faq/faq.html#cvxpy>`_.
 
 ``'save_file'``
     The name of a file where MOSEK will save the problem just before optimization.
@@ -795,7 +795,7 @@ For others see `OSQP documentation <https://osqp.org/docs/interfaces/solver_sett
     MOSEK interface. If you notice MOSEK solve times are slower for some of your
     problems under CVXPY 1.1.6 or higher, be sure to use the MOSEK solver options
     to tell MOSEK that it should solve the dual; this can be accomplished by
-    adding the ``(key, value)`` pair ``(mosek.iparam.intpnt_solve_form, mosek.solveform.dual)``
+    adding the ``(key, value)`` pair ``('MSK_IPAR_INTPNT_SOLVE_FORM', 'MSK_SOLVE_DUAL')``
     to the ``mosek_params`` argument.
     
 `CVXOPT`_ options:
