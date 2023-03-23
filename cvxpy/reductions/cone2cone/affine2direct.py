@@ -197,6 +197,7 @@ class Dualize:
                 dv = direct_prims[DUAL_EXP][i:i + con.size]
                 dual_vars[con.id] = dv
                 i += con.size
+            i = 0
             for con in constr_map[PowCone_obj]:
                 dv = direct_prims[DUAL_POW3D][i:i + con.size]
                 dual_vars[con.id] = dv

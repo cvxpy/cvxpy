@@ -993,6 +993,24 @@ class TestExpressions(BaseTest):
         exp = self.C[:, -199:-3]
         self.assertEqual(exp.shape, (3, 0))
 
+    def test_float_is_invalid_index(self) -> None:
+        with self.assertRaises(IndexError) as cm:
+            self.x[1.0]
+        self.assertEqual(str(cm.exception), "float is an invalid index type.")
+
+        with self.assertRaises(IndexError) as cm:
+            self.x[(1.0,)]
+        self.assertEqual(str(cm.exception), "float is an invalid index type.")
+
+        with self.assertRaises(IndexError) as cm:
+            self.C[: 2.:40]
+        self.assertEqual(str(cm.exception), "float is an invalid index type.")
+
+        with self.assertRaises(IndexError) as cm:
+            self.x[np.array([1.0, 2.0])]
+        self.assertEqual(str(cm.exception),
+                         "arrays used as indices must be of integer (or boolean) type")
+
     def test_neg_indices(self) -> None:
         """Test negative indices.
         """
@@ -1285,3 +1303,16 @@ class TestExpressions(BaseTest):
 
         llcv = 1/(x*x*x + x)
         assert llcv.curvature == s.LOG_LOG_CONCAVE
+
+    def test_matmul_scalars(self) -> None:
+        """Test evaluating a matmul that reduces one argument internally to a scalar.
+
+        See https://github.com/cvxpy/cvxpy/issues/2065
+        """
+        x = cp.Variable((2,))
+        quad = cp.quad_form(x, np.eye(2))
+        a = np.array([2])
+        # NOTE quad has dimensions (1, 1) which is a bug.
+        expr = a @ quad
+        x.value = np.array([1, 2])
+        self.assertAlmostEqual(expr.value, 10)

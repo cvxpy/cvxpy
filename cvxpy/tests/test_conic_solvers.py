@@ -20,6 +20,7 @@ import unittest
 import numpy as np
 import pytest
 import scipy.linalg as la
+import scipy.stats as st
 
 import cvxpy as cp
 import cvxpy.tests.solver_test_helpers as sths
@@ -461,9 +462,9 @@ class TestMosek(unittest.TestCase):
             problem = cp.Problem(objective, constraints)
 
             invalid_mosek_params = {
-                "dparam.basis_tol_x": "1e-8"
+                "MSK_IPAR_NUM_THREADS": "11.3"
             }
-            with self.assertRaises(ValueError):
+            with self.assertRaises(mosek.Error):
                 problem.solve(solver=cp.MOSEK, mosek_params=invalid_mosek_params)
 
             with self.assertRaises(ValueError):
@@ -471,9 +472,63 @@ class TestMosek(unittest.TestCase):
 
             mosek_params = {
                 mosek.dparam.basis_tol_x: 1e-8,
-                "MSK_IPAR_INTPNT_MAX_ITERATIONS": 20
+                "MSK_IPAR_INTPNT_MAX_ITERATIONS": 20,
+                "MSK_IPAR_NUM_THREADS": "17",
+                "MSK_IPAR_PRESOLVE_USE": "MSK_PRESOLVE_MODE_OFF",
+                "MSK_DPAR_INTPNT_CO_TOL_DFEAS": 1e-9,
+                "MSK_DPAR_INTPNT_CO_TOL_PFEAS": "1e-9"
             }
-            problem.solve(solver=cp.MOSEK, mosek_params=mosek_params)
+            with pytest.warns():
+                problem.solve(solver=cp.MOSEK, mosek_params=mosek_params)
+
+    def test_power_portfolio(self) -> None:
+        """Test the portfolio problem in issue #2042"""
+        T, N = 200, 10
+
+        rs = np.random.RandomState(123)
+        mean = np.zeros(N) + 1/1000
+        cov = rs.rand(N, N) * 1.5 - 0.5
+        cov = cov @ cov.T/1000 + np.diag(rs.rand(N) * 0.7 + 0.3)/1000
+
+        Y = st.multivariate_normal.rvs(
+            mean=mean,
+            cov=cov,
+            size=T,
+            random_state=rs
+        )
+
+        w = cp.Variable((N, 1))
+        t = cp.Variable((1, 1))
+        z = cp.Variable((1, 1))
+        omega = cp.Variable((T, 1))
+        psi = cp.Variable((T, 1))
+        nu = cp.Variable((T, 1))
+        epsilon = cp.Variable((T, 1))
+        k = cp.Variable((1, 1))
+        b = np.ones((1, N))/N
+
+        X = Y @ w
+
+        h = 0.2
+        ones = np.ones((T, 1))
+        constraints = [
+            cp.constraints.power.PowCone3D(z * (1+h)/(2*h) * ones, psi * (1+h)/h, epsilon, 1/(1+h)),
+            cp.constraints.power.PowCone3D(omega/(1-h), nu/h, -z/(2*h) * ones, (1-h)),
+            -X - t + epsilon + omega <= 0,
+            w >= 0,
+            z >= 0,
+            ]
+
+        obj = t + z + cp.sum(psi + nu)
+
+        constraints += [cp.sum(w) == k,
+                        k >= 0,
+                        b @ cp.log(w) >= 1,
+                        ]
+        objective = cp.Minimize(obj)
+        prob = cp.Problem(objective, constraints)
+        prob.solve(solver=cp.MOSEK)
+        assert prob.status is cp.OPTIMAL
 
 
 @unittest.skipUnless('CVXOPT' in INSTALLED_SOLVERS, 'CVXOPT is not installed.')
