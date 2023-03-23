@@ -95,7 +95,15 @@ jobs:
       fail-fast: false
       matrix:
         os: [ ubuntu-18.04, macos-10.15, windows-2019 ]
-        python-version: [ 3.6, 3.7, 3.8, 3.9, "3.10" ]
+        python-version: [ 3.6, 3.7, 3.9, "3.10" ]
+        include:
+          - os: ubuntu-18.04
+            python-version: 3.8
+          - os: macos-10.15
+            python-version: 3.8
+            single_action_config: "True"
+          - os: windows-2019
+            python-version: 3.8
 
     env:
       RUNNER_OS: ${{ matrix.os }}
