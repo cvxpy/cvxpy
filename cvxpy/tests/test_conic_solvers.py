@@ -607,6 +607,35 @@ class TestMosek(unittest.TestCase):
             with pytest.warns():
                 problem.solve(solver=cp.MOSEK, mosek_params=mosek_params)
 
+    def test_mosek_iis(self) -> None:
+        """Test IIS feature in Mosek."""
+        # Simple infeasible problem.
+        n = 2
+        x = cp.Variable(n)
+        objective = cp.Minimize(cp.sum(x))
+        constraints = [x[0] >= 1, x[0] <= -1, x[1] >= 3]
+        problem = cp.Problem(objective, constraints)
+        problem.solve(solver=cp.MOSEK)
+        iis = problem.solver_stats.extra_stats["IIS"]
+        assert iis[constraints[0].id] > 0
+        assert iis[constraints[1].id] > 0
+        assert iis[constraints[2].id] == 0
+
+        # More complicated infeasible problem.
+        n = 3
+        m = 2
+        X = cp.Variable((m, n))
+        y = cp.Variable()
+        objective = cp.Minimize(cp.sum(X))
+        constraints = [y == 2, X >= 3, X[0] + y <= -5]
+        problem.solve(solver=cp.MOSEK)
+        iis = problem.solver_stats.extra_stats["IIS"]
+        assert iis[constraints[0].id] > 0
+        assert iis[constraints[1].id][0, 0] > 0
+        assert iis[constraints[1].id][1, 0] == 0
+        assert np.all(iis[constraints[2].id][1, :] == 0)
+        assert iis[constraints[2].id] > 0
+
     def test_power_portfolio(self) -> None:
         """Test the portfolio problem in issue #2042"""
         T, N = 200, 10
