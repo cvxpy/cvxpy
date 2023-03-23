@@ -106,8 +106,8 @@ jobs:
             python-version: 3.8
 
     env:
-      RUNNER_OS: ${{ matrix.os }}
       PYTHON_VERSION: ${{ matrix.python-version }}
+      SINGLE_ACTION_CONFIG: "${{ matrix.single_action_config == 'True' && 'True' || 'False' }}"
       PYPI_SERVER: ${{ secrets.PYPI_SERVER }}
       PYPI_USER: ${{ secrets.PYPI_USER }}
       PYPI_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
