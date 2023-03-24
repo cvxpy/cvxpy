@@ -221,3 +221,10 @@ vstack
 -----------------------------------
 
 .. autofunction:: cvxpy.vstack
+
+.. _outer_product:
+
+outer_product
+------------------------------------
+
+.. autofunction:: cvxpy.outer_product

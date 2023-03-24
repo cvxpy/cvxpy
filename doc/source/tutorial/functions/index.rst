@@ -866,6 +866,14 @@ Expression and a negative Expression) then the returned Expression will have unk
      - :math:`X \in \mathbf{R}^{p \times q}`
      - |affine| affine
      - depends on :math:`Y`
+     
+   * - :ref:`outer_product(x,y) <outer_product>`
+
+       constant :math:`y \in \mathbf{R}^m`
+     - :math:`x y^T`
+     - :math:`x \in \mathbf{R}^n`
+     - |affine| affine
+     - depends on :math:`y`
 
    * - :ref:`partial_trace(X, dims, axis=0) <ptrace>`
 
@@ -910,7 +918,6 @@ Expression and a negative Expression) then the returned Expression will have unk
      - :math:`X^{(i)} \in\mathbf{R}^{m_i \times n}`
      - |affine| affine
      - |incr| incr.
-
 
 Clarifications on vector and matrix functions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
