@@ -165,9 +165,7 @@ reshape
 scalar_product
 --------------
 
-.. autoclass:: cvxpy.scalar_product
-    :show-inheritance:
-
+.. autofunction:: cvxpy.scalar_product
 
 .. _sum:
 
