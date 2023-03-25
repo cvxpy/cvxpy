@@ -1248,21 +1248,21 @@ class TestAtoms(BaseTest):
         prob.solve(solver=cp.SCS)
         assert np.allclose(v.value, p.value)
 
-    def test_outer_product(self) -> None:
+    def test_outer(self) -> None:
         """Test the outer atom.
         """
         a = np.ones((3,))
         b = Variable((2,))
-        expr = cp.outer_product(a, b)
+        expr = cp.outer(a, b)
         self.assertEqual(expr.shape, (3, 2))
 
         # Test with parameter
         c = Parameter((2,))
-        expr = cp.outer_product(c, a)
+        expr = cp.outer(c, a)
         self.assertEqual(expr.shape, (2, 3))
 
         d = np.ones((4,))
-        expr = cp.outer_product(a, d)
+        expr = cp.outer(a, d)
         true_val = np.outer(a, d)
         assert np.allclose(expr.value, true_val, atol=1e-1)
 

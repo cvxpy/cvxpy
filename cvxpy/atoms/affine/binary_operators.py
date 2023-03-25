@@ -454,7 +454,7 @@ def scalar_product(x, y):
     return cvxpy_sum(prod)
 
 
-def outer_product(x, y):
+def outer(x, y):
     """
     Return the outer product of (x,y).
 
