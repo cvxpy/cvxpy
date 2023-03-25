@@ -222,9 +222,9 @@ vstack
 
 .. autofunction:: cvxpy.vstack
 
-.. _outer_product:
+.. _outer:
 
-outer_product
+outer
 ------------------------------------
 
-.. autofunction:: cvxpy.outer_product
+.. autofunction:: cvxpy.outer

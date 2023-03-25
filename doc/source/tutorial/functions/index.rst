@@ -867,7 +867,7 @@ Expression and a negative Expression) then the returned Expression will have unk
      - |affine| affine
      - depends on :math:`Y`
      
-   * - :ref:`outer_product(x,y) <outer_product>`
+   * - :ref:`outer(x, y) <outer>`
 
        constant :math:`y \in \mathbf{R}^m`
      - :math:`x y^T`
