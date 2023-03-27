@@ -42,7 +42,7 @@ class SCIPY(ConicSolver):
 
     # Map of SciPy linprog status
     STATUS_MAP = {0: s.OPTIMAL,  # Optimal
-                  1: s.SOLVER_ERROR,  # Iteration limit reached
+                  1: s.OPTIMAL_INACCURATE,  # Iteration limit reached
                   2: s.INFEASIBLE,  # Infeasible
                   3: s.UNBOUNDED,  # Unbounded
                   4: s.SOLVER_ERROR  # Numerical difficulties encountered
