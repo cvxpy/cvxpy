@@ -627,13 +627,15 @@ class TestMosek(unittest.TestCase):
         X = cp.Variable((m, n))
         y = cp.Variable()
         objective = cp.Minimize(cp.sum(X))
-        constraints = [y == 2, X >= 3, X[0] + y <= -5]
+        constraints = [y == 2, X >= 3, X[0, 0] + y <= -5]
+        problem = cp.Problem(objective, constraints)
         problem.solve(solver=cp.MOSEK)
         iis = problem.solver_stats.extra_stats["IIS"]
-        assert iis[constraints[0].id] > 0
-        assert iis[constraints[1].id][0, 0] > 0
-        assert iis[constraints[1].id][1, 0] == 0
-        assert np.all(iis[constraints[2].id][1, :] == 0)
+        assert abs(iis[constraints[0].id]) > 0
+        dual1 = np.reshape(iis[constraints[1].id], X.shape, order="C")
+        assert dual1[0, 0] > 0
+        assert dual1[0, 1] == 0
+        assert np.all(dual1[1, :] == 0)
         assert iis[constraints[2].id] > 0
 
     def test_power_portfolio(self) -> None:
