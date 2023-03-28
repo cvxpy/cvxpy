@@ -21,9 +21,11 @@ import numpy as np
 import pytest
 
 import cvxpy as cp
-from cvxpy.expressions.expression import (__ABS_ERROR__,
-                                          __BINARY_EXPRESSION_UFUNCS__,
-                                          __NUMPY_UFUNC_ERROR__)
+from cvxpy.expressions.expression import (
+    __ABS_ERROR__,
+    __BINARY_EXPRESSION_UFUNCS__,
+    __NUMPY_UFUNC_ERROR__,
+)
 from cvxpy.tests.base_test import BaseTest
 
 
