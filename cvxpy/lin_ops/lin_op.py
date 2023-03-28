@@ -75,10 +75,10 @@ RESHAPE = "reshape"
 # Data: None
 DIAG_VEC = "diag_vec"
 # Converts the diagonal of a matrix to a vector.
-# Data: None
+# Data: float
 DIAG_MAT = "diag_mat"
 # Vectorized upper triangular portion of a matrix.
-# Data: None
+# Data: float
 UPPER_TRI = "upper_tri"
 # The 1D discrete convolution of two vectors.
 # Data: LinOp evaluating to the left hand term.

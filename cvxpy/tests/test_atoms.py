@@ -645,44 +645,16 @@ class TestAtoms(BaseTest):
 
     def test_diag_offset(self) -> None:
         """Test matrix to vector on scalar matrices"""
-        A1 = np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
-        a1 = cp.diag(A1, 1)
-        a2 = cp.diag(A1, -1)
-        a3 = cp.diag(A1, 2)
-        self.assertEqual(a1.size, 2)
-        self.assertEqual(a2.size, 2)
-        self.assertEqual(a3.size, 1)
-        self.assertItemsAlmostEqual(a1.value, [2, 6])
-        self.assertItemsAlmostEqual(a2.value, [4, 8])
-        self.assertItemsAlmostEqual(a3.value, [3])
-
-        """Test vector to matrix on scalar matrices"""
-        A1 = cp.diag(np.array([1, 2, 3]), 1)
-        A2 = cp.diag(np.array([1, 2, 3]), -1)
-        A3 = cp.diag(np.array([1, 2, 3]), 3)
-        B1 = np.array([
-            [0, 1, 0, 0],
-            [0, 0, 2, 0],
-            [0, 0, 0, 3],
-            [0, 0, 0, 0]])
-        B2 = np.array([
-            [0, 0, 0, 0],
-            [1, 0, 0, 0],
-            [0, 2, 0, 0],
-            [0, 0, 3, 0]])
-        B3 = np.array([
-            [0, 0, 0, 1, 0, 0],
-            [0, 0, 0, 0, 2, 0],
-            [0, 0, 0, 0, 0, 3],
-            [0, 0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 0, 0]])
-        self.assertEqual(A1.shape, (4, 4))
-        self.assertEqual(A2.shape, (4, 4))
-        self.assertEqual(A3.shape, (6, 6))
-        self.assertItemsAlmostEqual(A1.value, B1)
-        self.assertItemsAlmostEqual(A2.value, B2)
-        self.assertItemsAlmostEqual(A3.value, B3)
+        test_matrix = np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
+        test_vector = np.array([1, 2, 3])
+        offsets = [0, 1, -1, 2]
+        for offset in offsets:
+            a_cp = cp.diag(test_matrix, k=offset)
+            a_np = np.diag(test_matrix, k=offset)
+            A_cp = cp.diag(test_vector, k=offset)
+            A_np = np.diag(test_vector, k=offset)
+            self.assertItemsAlmostEqual(a_cp.value, a_np)
+            self.assertItemsAlmostEqual(A_cp.value, A_np)
 
         X = cp.diag(Variable(5), 1)
         self.assertEqual(X.size, 36)
