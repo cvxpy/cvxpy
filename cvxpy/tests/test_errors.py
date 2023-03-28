@@ -68,7 +68,8 @@ class TestErrors(BaseTest):
                     ufunc is np.less or \
                     ufunc is np.greater:
                 continue
-            self.assertItemsAlmostEqual(ufunc(a, self.x).value, ufunc(a, self.x.value))
+            self.assertItemsAlmostEqual(
+                ufunc(a, self.x).value, ufunc(a, self.x.value))
 
         for ufunc in __BINARY_EXPRESSION_UFUNCS__:
             if ufunc is np.matmul:
@@ -91,7 +92,8 @@ class TestErrors(BaseTest):
                     ufunc is np.greater:
                 continue
 
-            self.assertItemsAlmostEqual(ufunc(b, self.x).value, ufunc(b, self.x.value))
+            self.assertItemsAlmostEqual(
+                ufunc(b, self.x).value, ufunc(b, self.x.value))
 
     def test_working_numpy_functions(self) -> None:
         hstack = np.hstack([self.x])
@@ -104,7 +106,7 @@ class TestErrors(BaseTest):
     def test_broken_numpy_functions(self) -> None:
         with pytest.raises(RuntimeError, match=__NUMPY_UFUNC_ERROR__):
             np.linalg.norm(self.x)
-    
+
     def test_abs_error(self) -> None:
         with pytest.raises(RuntimeError, match=__ABS_ERROR__):
             builtins.abs(self.x)
