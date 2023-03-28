@@ -109,5 +109,5 @@ class TestErrors(BaseTest):
             np.linalg.norm(self.x)
 
     def test_abs_error(self) -> None:
-        with pytest.raises(RuntimeError, match=__ABS_ERROR__):
+        with pytest.raises(TypeError, match=__ABS_ERROR__):
             builtins.abs(self.x)

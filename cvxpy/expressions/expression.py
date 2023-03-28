@@ -755,4 +755,4 @@ class Expression(u.Canonical):
         raise RuntimeError(__NUMPY_UFUNC_ERROR__)
 
     def __abs__(self):
-        raise RuntimeError(__ABS_ERROR__)
+        raise TypeError(__ABS_ERROR__)
