@@ -17,17 +17,21 @@ limitations under the License.
 
 import numpy as np
 import pytest
+import builtins
 
 import cvxpy as cp
 from cvxpy.expressions.expression import (
     __BINARY_EXPRESSION_UFUNCS__,
     __NUMPY_UFUNC_ERROR__,
+    __ABS_ERROR__,
 )
 from cvxpy.tests.base_test import BaseTest
 
 
-class TestNumpy(BaseTest):
-    """ Unit tests for using NumPy ufuncs on CVXPY objects should cause errors. """
+class TestErrors(BaseTest):
+    """
+    Unit tests for custom error messages to explain why code is broken
+    """
 
     def setUp(self) -> None:
 
@@ -100,3 +104,7 @@ class TestNumpy(BaseTest):
     def test_broken_numpy_functions(self) -> None:
         with pytest.raises(RuntimeError, match=__NUMPY_UFUNC_ERROR__):
             np.linalg.norm(self.x)
+    
+    def test_abs_error(self) -> None:
+        with pytest.raises(RuntimeError, match=__ABS_ERROR__):
+            builtins.abs(self.x)
