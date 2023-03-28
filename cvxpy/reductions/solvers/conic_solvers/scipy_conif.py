@@ -219,8 +219,8 @@ class SCIPY(ConicSolver):
         """
         status = self.STATUS_MAP[solution["status"]]
 
-        # Sometimes when the solver's time limit is reached, the solver doesn't return a solution. In these situations
-        # we correct the problem status from s.OPTIMAL_INACCURATE to s.SOLVER_ERROR
+        # Sometimes when the solver's time limit is reached, the solver doesn't return a solution.
+        # In these situations we correct the status from s.OPTIMAL_INACCURATE to s.SOLVER_ERROR
         if (status == s.OPTIMAL_INACCURATE) and (solution.x is None):
             status = s.SOLVER_ERROR
 
