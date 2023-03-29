@@ -46,8 +46,8 @@ class PDLP(ConicSolver):
 
     def import_solver(self) -> None:
         """Imports the solver."""
-        import google.protobuf
-        import ortools
+        import google.protobuf  # noqa F401
+        import ortools  # noqa F401
         if Version(ortools.__version__) < Version('9.3.0'):
             raise RuntimeError(f'Version of ortools ({ortools.__version__}) '
                                f'is too old. Expected >= 9.3.0.')

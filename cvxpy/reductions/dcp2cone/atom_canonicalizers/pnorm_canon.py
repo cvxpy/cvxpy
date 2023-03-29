@@ -25,7 +25,8 @@ from cvxpy.constraints.second_order import SOC
 from cvxpy.expressions.constants import Constant
 from cvxpy.expressions.variable import Variable
 from cvxpy.reductions.eliminate_pwl.atom_canonicalizers.abs_canon import (
-    abs_canon,)
+    abs_canon,
+)
 from cvxpy.utilities.power_tools import gm_constrs
 
 

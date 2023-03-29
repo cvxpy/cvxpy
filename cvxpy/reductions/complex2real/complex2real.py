@@ -16,14 +16,22 @@ limitations under the License.
 
 from cvxpy import problems
 from cvxpy import settings as s
-from cvxpy.constraints import (PSD, SOC, Equality, Inequality, NonNeg, NonPos,
-                               Zero,)
+from cvxpy.constraints import (
+    PSD,
+    SOC,
+    Equality,
+    Inequality,
+    NonNeg,
+    NonPos,
+    Zero,
+)
 from cvxpy.constraints.constraint import Constraint
 from cvxpy.expressions import cvxtypes
 from cvxpy.lin_ops import lin_utils as lu
 from cvxpy.reductions import InverseData, Solution
 from cvxpy.reductions.complex2real.atom_canonicalizers import (
-    CANON_METHODS as elim_cplx_methods,)
+    CANON_METHODS as elim_cplx_methods,
+)
 from cvxpy.reductions.reduction import Reduction
 
 

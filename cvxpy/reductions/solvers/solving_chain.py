@@ -4,14 +4,25 @@ from typing import Any, List
 import numpy as np
 
 from cvxpy.atoms import EXP_ATOMS, NONPOS_ATOMS, PSD_ATOMS, SOC_ATOMS
-from cvxpy.constraints import (PSD, SOC, Equality, ExpCone, Inequality, NonNeg,
-                               NonPos, PowCone3D, Zero,)
+from cvxpy.constraints import (
+    PSD,
+    SOC,
+    Equality,
+    ExpCone,
+    Inequality,
+    NonNeg,
+    NonPos,
+    PowCone3D,
+    Zero,
+)
 from cvxpy.error import DCPError, DGPError, DPPError, SolverError
 from cvxpy.problems.objective import Maximize
 from cvxpy.reductions.chain import Chain
 from cvxpy.reductions.complex2real import complex2real
-from cvxpy.reductions.cone2cone.exotic2common import (EXOTIC_CONES,
-                                                      Exotic2Common,)
+from cvxpy.reductions.cone2cone.exotic2common import (
+    EXOTIC_CONES,
+    Exotic2Common,
+)
 from cvxpy.reductions.cvx_attr2constr import CvxAttr2Constr
 from cvxpy.reductions.dcp2cone.cone_matrix_stuffing import ConeMatrixStuffing
 from cvxpy.reductions.dcp2cone.dcp2cone import Dcp2Cone

@@ -15,7 +15,8 @@ limitations under the License.
 """
 
 from cvxpy.reductions.complex2real.atom_canonicalizers.abs_canon import (
-    abs_canon,)
+    abs_canon,
+)
 
 
 def pnorm_canon(expr, real_args, imag_args, real2imag):
