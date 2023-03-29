@@ -24,6 +24,7 @@ import scipy.stats as st
 
 import cvxpy as cp
 import cvxpy.tests.solver_test_helpers as sths
+from cvxpy import error
 from cvxpy.reductions.solvers.defines import (
     INSTALLED_MI_SOLVERS,
     INSTALLED_SOLVERS,
@@ -1812,6 +1813,15 @@ class TestSCIP(unittest.TestCase):
             prob.solve(solver="SCIP", scip_params={"a": "what?"})
             exc = "One or more scip params in ['a'] are not valid: 'Not a valid parameter name'"
             assert ke.exception == exc
+
+    def test_scip_time_limit_no_solution(self) -> None:
+        sth = sths.mi_lp_6()
+
+        with pytest.raises(error.SolverError) as se:
+            sth.solve(solver="SCIP", scip_params={"limits/time": 0.01})
+            exc = "Solver 'SCIP' failed. " \
+                  "Try another solver, or solve with verbose=True for more information."
+            assert str(se.value) == exc
 
 
 class TestAllSolvers(BaseTest):
