@@ -351,6 +351,16 @@ class SCIP(ConicSolver):
         if solution["status"] == s.SOLVER_ERROR and model.getNCountedSols() > 0:
             solution["status"] = s.OPTIMAL_INACCURATE
 
+        if model.getStatus() == 'timelimit' \
+                and model.getNCountedSols() == 0 \
+                and model.getNSols() == 0:
+            solution["status"] = s.SOLVER_ERROR
+
+        if model.getStatus() == 'timelimit' \
+                and model.getNSols() > 0 \
+                and model.getNCountedSols() == 0:
+            solution["status"] = s.OPTIMAL_INACCURATE
+
         return solution
 
     def add_model_lin_constr(
