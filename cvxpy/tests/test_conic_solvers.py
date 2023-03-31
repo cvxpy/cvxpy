@@ -1817,7 +1817,7 @@ class TestSCIP(unittest.TestCase):
         sth = sths.mi_lp_7()
 
         # run without enough time to find optimum
-        sth.solve(solver="SCIP", scip_params={"limits/time": 0.01})
+        sth.solve(solver="SCIP", scip_params={"limits/time": 0.03})
         assert sth.prob.status == cp.OPTIMAL_INACCURATE
         assert all([v.value is not None for v in sth.prob.variables()])
 
