@@ -1813,11 +1813,17 @@ class TestSCIP(unittest.TestCase):
             exc = "One or more scip params in ['a'] are not valid: 'Not a valid parameter name'"
             assert ke.exception == exc
 
-    def test_scip_time_limit_no_solution(self) -> None:
-        sth = sths.mi_lp_6()
+    def test_scip_time_limit_reached(self) -> None:
+        sth = sths.mi_lp_7()
 
+        # run without enough time to find optimum
+        sth.solve(solver="SCIP", scip_params={"limits/time": 0.01})
+        assert sth.prob.status == cp.OPTIMAL_INACCURATE
+        assert all([v.value is not None for v in sth.prob.variables()])
+
+        # run without enough time to do anything
         with pytest.raises(cp.error.SolverError) as se:
-            sth.solve(solver="SCIP", scip_params={"limits/time": 0.01})
+            sth.solve(solver="SCIP", scip_params={"limits/time": 0.0})
             exc = "Solver 'SCIP' failed. " \
                   "Try another solver, or solve with verbose=True for more information."
             assert str(se.value) == exc
