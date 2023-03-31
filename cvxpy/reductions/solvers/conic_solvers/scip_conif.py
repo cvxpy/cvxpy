@@ -365,8 +365,8 @@ class SCIP(ConicSolver):
             solution["status"] = s.SOLVER_ERROR
 
         if model.getStatus() == 'timelimit' \
-                and model.getNSols() > 0 \
-                and model.getNCountedSols() == 0:
+                and (model.getNSols() > 0 \
+                or model.getNCountedSols() > 0):
             solution["status"] = s.OPTIMAL_INACCURATE
 
         return solution
