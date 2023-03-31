@@ -1267,16 +1267,17 @@ class TestAtoms(BaseTest):
         assert np.allclose(expr.value, true_val, atol=1e-1)
 
         # Test with scalars
-        assert np.allclose(np.outer(3,2), cp.outer(3,2).value)
-        assert np.allclose(np.outer(3,d), cp.outer(3,d).value)
+        assert np.allclose(np.outer(3, 2), cp.outer(3, 2).value)
+        assert np.allclose(np.outer(3, d), cp.outer(3, d).value)
 
         # Test with matrices
-        A = np.arange(4).reshape((2,2))
-        B = np.arange(4,8).reshape((2,2))
-        assert np.allclose(np.outer(A.flatten(order="F"),B.flatten(order="F")), cp.outer(A,B).value)
+        A = np.arange(4).reshape((2, 2))
+        B = np.arange(4, 8).reshape((2, 2))
+        assert np.allclose(np.outer(A.flatten(order="F"),
+                           B.flatten(order="F")), cp.outer(A, B).value)
 
         with pytest.raises(ValueError, match="dimension greater than 2"):
-            cp.outer(np.ones((1,2,3)),1)
+            cp.outer(np.ones((1, 2, 3)), 1)
 
 
     def test_conj(self) -> None:
