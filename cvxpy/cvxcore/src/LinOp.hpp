@@ -57,7 +57,7 @@ typedef operatortype OperatorType;
 /* LinOp Class mirrors the CVXPY linOp class. Data fields are determined
          by the TYPE of LinOp. No error checking is performed on the data
    fields,
-         and the semantics of SIZE, ARGS, and DATA depends on the linop TYPE. */
+         and the semantics of SIZE, ARGS, and DATA depends on the linOp TYPE. */
 class LinOp {
 public:
   LinOp(OperatorType type, const std::vector<int> &shape,
