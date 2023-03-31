@@ -1437,7 +1437,7 @@ class TestProblem(BaseTest):
             obj = cp.Minimize(cp.sum(x))
             constraints = [cp.diag(x, k) == np.diag(np.diag(A, k), k)]
             prob = cp.Problem(obj, constraints)
-            result = prob.solve(solver=cp.SCS, canon_backend=cp.CPP_CANON_BACKEND, eps=1e-6)
+            result = prob.solve(solver=cp.SCS, eps=1e-6)
             self.assertAlmostEqual(result, np.sum(np.diag(A, k)))
             assert np.allclose(x.value, np.diag(A, k), atol=1e-4)
 
@@ -1447,7 +1447,7 @@ class TestProblem(BaseTest):
             obj = cp.Minimize(cp.sum(X))
             constraints = [cp.diag(X, k) == np.diag(A, k)]
             prob = cp.Problem(obj, constraints)
-            result = prob.solve(solver=cp.SCS, canon_backend=cp.CPP_CANON_BACKEND, eps=1e-6)
+            result = prob.solve(solver=cp.SCS, eps=1e-6)
             self.assertAlmostEqual(result, np.sum(np.diag(A, k)))
             assert np.allclose(X.value, np.diag(np.diag(A, k), k), atol=1e-4)
 
