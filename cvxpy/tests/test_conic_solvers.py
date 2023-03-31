@@ -24,6 +24,7 @@ import scipy.stats as st
 
 import cvxpy as cp
 import cvxpy.tests.solver_test_helpers as sths
+from cvxpy import SolverError
 from cvxpy.reductions.solvers.defines import (
     INSTALLED_MI_SOLVERS,
     INSTALLED_SOLVERS,
@@ -1561,22 +1562,6 @@ class TestSCIP(unittest.TestCase):
             exc = "One or more scip params in ['a'] are not valid: 'Not a valid parameter name'"
             assert ke.exception == exc
 
-    def test_scip_time_limit_reached(self) -> None:
-        sth = sths.mi_lp_7()
-
-        # TODO doesn't work on windows.
-        # run without enough time to find optimum
-        # sth.solve(solver="SCIP", scip_params={"limits/time": 0.01})
-        # assert sth.prob.status == cp.OPTIMAL_INACCURATE
-        # assert all([v.value is not None for v in sth.prob.variables()])
-
-        # run without enough time to do anything
-        with pytest.raises(cp.error.SolverError) as se:
-            sth.solve(solver="SCIP", scip_params={"limits/time": 0.0})
-            exc = "Solver 'SCIP' failed. " \
-                  "Try another solver, or solve with verbose=True for more information."
-            assert str(se.value) == exc
-
 
 class TestAllSolvers(BaseTest):
 
@@ -1730,3 +1715,16 @@ class TestSCIPY(unittest.TestCase):
 
     def test_scipy_lp_5(self) -> None:
         StandardTestLPs.test_lp_5(solver='SCIPY', duals=self.d)
+
+    @unittest.skipUnless('SCIPY' in INSTALLED_MI_SOLVERS, 'SCIPY version cannot solve MILPs')
+    def test_scipy_mi_time_limit_reached(self) -> None:
+        sth = sths.mi_lp_7()
+
+        # run without enough time to find optimum
+        sth.solve(solver='SCIPY', scipy_options={"time_limit": 0.01})
+        assert sth.prob.status == cp.OPTIMAL_INACCURATE
+        assert sth.objective.value > 0
+
+        # run without enough time to do anything
+        with pytest.raises(SolverError):
+            sth.solve(solver='SCIPY', scipy_options={"time_limit": 0.})
