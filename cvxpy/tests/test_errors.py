@@ -15,19 +15,24 @@ limitations under the License.
 """
 
 
+import builtins
+
 import numpy as np
 import pytest
 
 import cvxpy as cp
 from cvxpy.expressions.expression import (
+    __ABS_ERROR__,
     __BINARY_EXPRESSION_UFUNCS__,
     __NUMPY_UFUNC_ERROR__,
 )
 from cvxpy.tests.base_test import BaseTest
 
 
-class TestNumpy(BaseTest):
-    """ Unit tests for using NumPy ufuncs on CVXPY objects should cause errors. """
+class TestErrors(BaseTest):
+    """
+    Unit tests for custom error messages to explain why code is broken
+    """
 
     def setUp(self) -> None:
 
@@ -64,7 +69,8 @@ class TestNumpy(BaseTest):
                     ufunc is np.less or \
                     ufunc is np.greater:
                 continue
-            self.assertItemsAlmostEqual(ufunc(a, self.x).value, ufunc(a, self.x.value))
+            self.assertItemsAlmostEqual(
+                ufunc(a, self.x).value, ufunc(a, self.x.value))
 
         for ufunc in __BINARY_EXPRESSION_UFUNCS__:
             if ufunc is np.matmul:
@@ -87,7 +93,8 @@ class TestNumpy(BaseTest):
                     ufunc is np.greater:
                 continue
 
-            self.assertItemsAlmostEqual(ufunc(b, self.x).value, ufunc(b, self.x.value))
+            self.assertItemsAlmostEqual(
+                ufunc(b, self.x).value, ufunc(b, self.x.value))
 
     def test_working_numpy_functions(self) -> None:
         hstack = np.hstack([self.x])
@@ -100,3 +107,7 @@ class TestNumpy(BaseTest):
     def test_broken_numpy_functions(self) -> None:
         with pytest.raises(RuntimeError, match=__NUMPY_UFUNC_ERROR__):
             np.linalg.norm(self.x)
+
+    def test_abs_error(self) -> None:
+        with pytest.raises(TypeError, match=__ABS_ERROR__):
+            builtins.abs(self.x)

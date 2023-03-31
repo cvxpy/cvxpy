@@ -67,6 +67,12 @@ You're calling a NumPy function on a CVXPY expression. This is prone to causing
 errors or code that doesn't behave as expected. Consider using one of the
 functions documented here: https://www.cvxpy.org/tutorial/functions/index.html
 """
+
+__ABS_ERROR__ = """
+You're calling the built-in abs function on a CVXPY expression. This is not
+supported. Consider using the abs function provided by CVXPY.
+"""
+
 __BINARY_EXPRESSION_UFUNCS__ = {
         np.add: lambda self, a: self.__radd__(a),
         np.subtract: lambda self, a: self.__rsub__(a),
@@ -747,3 +753,6 @@ class Expression(u.Canonical):
             pass
 
         raise RuntimeError(__NUMPY_UFUNC_ERROR__)
+
+    def __abs__(self):
+        raise TypeError(__ABS_ERROR__)
