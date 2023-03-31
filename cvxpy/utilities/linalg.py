@@ -62,7 +62,13 @@ def is_psd_within_tol(A, tol):
         return True
 
     def SA_eigsh(sigma):
-        return sparla.eigsh(A, k=1, sigma=sigma, which='SA', return_eigenvectors=False)
+
+        np.random.seed(123)
+        n = A.shape[0]
+        rand_v0 = np.random.rand(n)
+
+        return sparla.eigsh(A, k=1, sigma=sigma, which='SA', v0 = rand_v0,
+                            return_eigenvectors=False)
         # Returns the eigenvalue w[i] of A where 1/(w[i] - sigma) is minimized.
         #
         # If A - sigma*I is PSD, then w[i] should be equal to the largest
