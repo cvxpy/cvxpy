@@ -72,13 +72,13 @@ TRACE = "trace"
 # Data: None
 RESHAPE = "reshape"
 # Converts a vector to a diagonal matrix.
-# Data: None
+# Data: int, diagonal offset
 DIAG_VEC = "diag_vec"
 # Converts the diagonal of a matrix to a vector.
-# Data: float
+# Data: int, diagonal offset
 DIAG_MAT = "diag_mat"
 # Vectorized upper triangular portion of a matrix.
-# Data: float
+# Data: None
 UPPER_TRI = "upper_tri"
 # The 1D discrete convolution of two vectors.
 # Data: LinOp evaluating to the left hand term.
