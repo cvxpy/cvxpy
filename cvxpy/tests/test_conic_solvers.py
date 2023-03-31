@@ -24,7 +24,6 @@ import scipy.stats as st
 
 import cvxpy as cp
 import cvxpy.tests.solver_test_helpers as sths
-from cvxpy import error
 from cvxpy.reductions.solvers.defines import (
     INSTALLED_MI_SOLVERS,
     INSTALLED_SOLVERS,
@@ -1817,7 +1816,7 @@ class TestSCIP(unittest.TestCase):
     def test_scip_time_limit_no_solution(self) -> None:
         sth = sths.mi_lp_6()
 
-        with pytest.raises(error.SolverError) as se:
+        with pytest.raises(cp.error.SolverError) as se:
             sth.solve(solver="SCIP", scip_params={"limits/time": 0.01})
             exc = "Solver 'SCIP' failed. " \
                   "Try another solver, or solve with verbose=True for more information."
@@ -2003,6 +2002,19 @@ class TestSCIPY(unittest.TestCase):
     @unittest.skipUnless('SCIPY' in INSTALLED_MI_SOLVERS, 'SCIPY version cannot solve MILPs')
     def test_scipy_mi_lp_5(self) -> None:
         StandardTestLPs.test_mi_lp_5(solver='SCIPY')
+
+    @unittest.skipUnless('SCIPY' in INSTALLED_MI_SOLVERS, 'SCIPY version cannot solve MILPs')
+    def test_scipy_mi_time_limit_reached(self) -> None:
+        sth = sths.mi_lp_7()
+
+        # run without enough time to find optimum
+        sth.solve(solver='SCIPY', scipy_options={"time_limit": 0.01})
+        assert sth.prob.status == cp.OPTIMAL_INACCURATE
+        assert sth.objective.value > 0
+
+        # run without enough time to do anything
+        with pytest.raises(cp.error.SolverError):
+            sth.solve(solver='SCIPY', scipy_options={"time_limit": 0.})
 
 
 @unittest.skipUnless('COPT' in INSTALLED_SOLVERS, 'COPT is not installed.')
