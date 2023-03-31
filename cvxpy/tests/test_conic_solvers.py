@@ -25,6 +25,7 @@ import scipy.stats as st
 
 import cvxpy as cp
 import cvxpy.tests.solver_test_helpers as sths
+from cvxpy import SolverError
 from cvxpy.reductions.solvers.defines import (
     INSTALLED_MI_SOLVERS,
     INSTALLED_SOLVERS,
@@ -1593,3 +1594,16 @@ class TestSCIPY(unittest.TestCase):
 
     def test_scipy_lp_5(self) -> None:
         StandardTestLPs.test_lp_5(solver='SCIPY', duals=self.d)
+
+    @unittest.skipUnless('SCIPY' in INSTALLED_MI_SOLVERS, 'SCIPY version cannot solve MILPs')
+    def test_scipy_mi_time_limit_reached(self) -> None:
+        sth = sths.mi_lp_7()
+
+        # run without enough time to find optimum
+        sth.solve(solver='SCIPY', scipy_options={"time_limit": 0.01})
+        assert sth.prob.status == cp.OPTIMAL_INACCURATE
+        assert sth.objective.value > 0
+
+        # run without enough time to do anything
+        with pytest.raises(SolverError):
+            sth.solve(solver='SCIPY', scipy_options={"time_limit": 0.})
