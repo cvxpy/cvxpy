@@ -24,6 +24,7 @@ import scipy.stats as st
 
 import cvxpy as cp
 import cvxpy.tests.solver_test_helpers as sths
+from cvxpy import SolverError
 from cvxpy.reductions.solvers.defines import (
     INSTALLED_MI_SOLVERS,
     INSTALLED_SOLVERS,
@@ -2045,7 +2046,7 @@ class TestSCIPY(unittest.TestCase):
         assert sth.objective.value > 0
 
         # run without enough time to do anything
-        with pytest.raises(cp.error.SolverError):
+        with pytest.raises(SolverError):
             sth.solve(solver='SCIPY', scipy_options={"time_limit": 0.})
 
 
