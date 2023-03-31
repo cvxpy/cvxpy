@@ -17,7 +17,7 @@ limitations under the License.
 import logging
 from typing import Any, Dict, Generic, Iterator, List, Optional, Tuple, Union
 
-from numpy import array, ndarray
+import numpy as np
 from scipy.sparse import dok_matrix
 
 import cvxpy.settings as s
@@ -189,7 +189,7 @@ class SCIP(ConicSolver):
         dims = dims_to_solver_dict(data[s.DIMS])
         return A, b, c, dims
 
-    def _create_variables(self, model: ScipModel, data: Dict[str, Any], c: ndarray) -> List:
+    def _create_variables(self, model: ScipModel, data: Dict[str, Any], c: np.ndarray) -> List:
         """Create a list of variables."""
         variables = []
         for n, obj in enumerate(c):
@@ -210,7 +210,7 @@ class SCIP(ConicSolver):
             model: ScipModel,
             variables: List,
             A: dok_matrix,
-            b: ndarray,
+            b: np.ndarray,
             dims: Dict[str, Union[int, List]],
     ) -> List:
         """Create a list of constraints."""
@@ -323,9 +323,17 @@ class SCIP(ConicSolver):
         solution = {}
 
         if max(model.getNSols(), model.getNCountedSols()) > 0:
-            solution["value"] = model.getObjVal()
             sol = model.getBestSol()
-            solution["primal"] = array([sol[v] for v in variables])
+            solution["primal"] = np.array([sol[v] for v in variables])
+
+            # HACK can't get objective value directly if stopped due to time limit.
+            if model.getStatus() == 'timelimit':
+                # the solution value is not actually necessary
+                # since CVXPY calculates it by evaluating the objective
+                # at the solution.
+                solution["value"] = np.nan
+            else:
+                solution["value"] = model.getObjVal()
 
             is_mip = data[s.BOOL_IDX] or data[s.INT_IDX]
             has_soc_constr = len(dims[s.SOC_DIM]) > 1
@@ -341,13 +349,23 @@ class SCIP(ConicSolver):
                         dual = model.getDualsolLinear(lc)
                         vals.append(dual)
 
-                solution["y"] = -array(vals)
+                solution["y"] = -np.array(vals)
                 solution[s.EQ_DUAL] = solution["y"][0:dims[s.EQ_DIM]]
                 solution[s.INEQ_DUAL] = solution["y"][dims[s.EQ_DIM]:]
 
         solution[s.SOLVE_TIME] = model.getSolvingTime()
         solution["status"] = STATUS_MAP[model.getStatus()]
         if solution["status"] == s.SOLVER_ERROR and model.getNCountedSols() > 0:
+            solution["status"] = s.OPTIMAL_INACCURATE
+
+        if model.getStatus() == 'timelimit' \
+                and model.getNCountedSols() == 0 \
+                and model.getNSols() == 0:
+            solution["status"] = s.SOLVER_ERROR
+
+        if model.getStatus() == 'timelimit' \
+                and (model.getNSols() > 0 \
+                or model.getNCountedSols() > 0):
             solution["status"] = s.OPTIMAL_INACCURATE
 
         return solution
@@ -359,7 +377,7 @@ class SCIP(ConicSolver):
         rows: Iterator,
         ctype: str,
         A: dok_matrix,
-        b: ndarray,
+        b: np.ndarray,
     ) -> List:
         """Adds EQ/LEQ constraints to the model using the data from mat and vec.
 
@@ -397,7 +415,7 @@ class SCIP(ConicSolver):
         variables: List,
         rows: Iterator,
         A: dok_matrix,
-        b: ndarray,
+        b: np.ndarray,
     ) -> Tuple:
         """Adds SOC constraint to the model using the data from mat and vec.
 
