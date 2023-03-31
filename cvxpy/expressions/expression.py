@@ -69,7 +69,7 @@ functions documented here: https://www.cvxpy.org/tutorial/functions/index.html
 """
 
 __ABS_ERROR__ = """
-You're calling the builtin abs function on a CVXPY expression. This is not
+You're calling the built-in abs function on a CVXPY expression. This is not
 supported. Consider using the abs function provided by CVXPY.
 """
 
