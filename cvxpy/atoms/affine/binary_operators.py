@@ -464,9 +464,11 @@ def outer(x, y):
     x : Expression, int, float, NumPy ndarray, or nested list thereof.
         Input is flattened if not already a vector.
         The linear argument to the outer product.
+        Input is flattened in column-major order if not already 1-dimensional.
     y : Expression, int, float, NumPy ndarray, or nested list thereof.
         Input is flattened if not already a vector.
         The transposed-linear argument to the outer product.
+        Input is flattened in column-major order if not already 1-dimensional.
 
     Returns
     -------
@@ -474,11 +476,7 @@ def outer(x, y):
         The outer product of (x,y), linear in x and transposed-linear in y.
     """
     x = Expression.cast_to_const(x)
-    if x.ndim != 1:
-        x = vec(x)
     y = Expression.cast_to_const(y)
-    if y.ndim != 1:
-        y = vec(y)
     x = reshape(x, (x.size, 1))
     y = reshape(y, (1, y.size))
     return x @ y
