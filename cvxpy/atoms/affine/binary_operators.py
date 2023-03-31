@@ -32,7 +32,6 @@ from cvxpy.atoms.affine.affine_atom import AffAtom
 from cvxpy.atoms.affine.conj import conj
 from cvxpy.atoms.affine.reshape import deep_flatten, reshape
 from cvxpy.atoms.affine.sum import sum as cvxpy_sum
-from cvxpy.atoms.affine.vec import vec
 from cvxpy.constraints.constraint import Constraint
 from cvxpy.error import DCPError
 from cvxpy.expressions.constants.parameter import (
