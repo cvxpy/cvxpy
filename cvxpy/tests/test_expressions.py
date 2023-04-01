@@ -61,8 +61,8 @@ class TestExpressions(BaseTest):
         # self.assertEqual(x.canonical_form[0].shape, (2, 1))
         # self.assertEqual(x.canonical_form[1], [])
 
-        self.assertEqual(repr(self.x), "Variable((2,))")
-        self.assertEqual(repr(self.A), "Variable((2, 2))")
+        self.assertEqual(repr(self.x), "Variable((2,), x)")
+        self.assertEqual(repr(self.A), "Variable((2, 2), A)")
 
         # Test shape provided as list instead of tuple
         self.assertEqual(cp.Variable(shape=[2], integer=True).shape, (2,))
