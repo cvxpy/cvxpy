@@ -82,6 +82,12 @@ Perform the following steps to install CVXPY from source:
         pip install .
 
 
+Using Codespaces
+----------------
+We provide support for `GitHub Codespaces <https://github.com/features/codespaces>`_ with
+preconfigured environments for CVXPY development via `devcontainers <https://containers.dev/>`_.
+To get started, click the "Code" button on the CVXPY repository and select "Open with Codespaces".
+
 Apple M1 users
 ~~~~~~~~~~~~~~
 Apple M1 users have had trouble installing CVXPY using the commands above.

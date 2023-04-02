@@ -1,0 +1,16 @@
+{
+	"name": "Python 3",
+	"image": "mcr.microsoft.com/devcontainers/python:0-3.10",
+	"onCreateCommand": "bash .devcontainer/startup.sh",
+	"customizations": {
+		"vscode": {
+			"settings": {
+				"python.testing.pytestEnabled": true,
+				"python.testing.unittestEnabled": false,
+				"python.testing.pytestArgs": [
+					"cvxpy"
+				]
+			}
+		}
+	}
+}
