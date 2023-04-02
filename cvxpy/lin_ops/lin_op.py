@@ -72,10 +72,10 @@ TRACE = "trace"
 # Data: None
 RESHAPE = "reshape"
 # Converts a vector to a diagonal matrix.
-# Data: None
+# Data: int, diagonal offset
 DIAG_VEC = "diag_vec"
 # Converts the diagonal of a matrix to a vector.
-# Data: None
+# Data: int, diagonal offset
 DIAG_MAT = "diag_mat"
 # Vectorized upper triangular portion of a matrix.
 # Data: None

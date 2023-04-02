@@ -449,7 +449,14 @@ class PythonCanonBackend(CanonBackend):
         elements above the diagonal in the original expression.
         """
         rows = lin.shape[0]
-        diag_indices = np.arange(rows) * rows + np.arange(rows)
+        k = lin.data
+        original_rows = rows + abs(k)
+        if k == 0:
+            diag_indices = np.arange(rows) * (rows + 1)
+        elif k > 0:
+            diag_indices = np.arange(rows) * (original_rows + 1) + original_rows * k
+        else:
+            diag_indices = np.arange(rows) * (original_rows + 1) - k
         view.select_rows(diag_indices)
         return view
 
@@ -627,14 +634,20 @@ class ScipyCanonBackend(PythonCanonBackend):
     @staticmethod
     def diag_vec(lin: LinOp, view: ScipyTensorView) -> ScipyTensorView:
         assert lin.shape[0] == lin.shape[1]
+        k = lin.data
         rows = lin.shape[0]
-        total_rows = int(np.prod(lin.shape))
+        total_rows = int(lin.shape[0] ** 2)
 
         def func(x):
             shape = list(x.shape)
             shape[0] = total_rows
             x = x.tocoo()
-            new_rows = (x.row * rows + x.row).astype(int)
+            if k == 0:
+                new_rows = (x.row * (rows + 1)).astype(int)
+            elif k > 0:
+                new_rows = (x.row * (rows + 1) + rows * k).astype(int)
+            else:
+                new_rows = (x.row * (rows + 1) - k).astype(int)
             return sp.csr_matrix((x.data, (new_rows, x.col)), shape)
 
         view.apply_all(func)

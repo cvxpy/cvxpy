@@ -1431,6 +1431,32 @@ class TestProblem(BaseTest):
         result = prob.solve(solver=cp.SCS)
         self.assertAlmostEqual(result, 0.583151, places=2)
 
+    def test_diag_offset_problem(self) -> None:
+
+        # Constants
+        n = 4
+        A = np.arange(int(n**2)).reshape((n, n))
+
+        for k in range(-n + 1, n):
+            # diag_vec
+            x = cp.Variable(n - abs(k))
+            obj = cp.Minimize(cp.sum(x))
+            constraints = [cp.diag(x, k) == np.diag(np.diag(A, k), k)]
+            prob = cp.Problem(obj, constraints)
+            result = prob.solve(solver=cp.SCS, eps=1e-6)
+            self.assertAlmostEqual(result, np.sum(np.diag(A, k)))
+            assert np.allclose(x.value, np.diag(A, k), atol=1e-4)
+
+            # diag_mat
+            X = cp.Variable((n, n), nonneg=True)
+
+            obj = cp.Minimize(cp.sum(X))
+            constraints = [cp.diag(X, k) == np.diag(A, k)]
+            prob = cp.Problem(obj, constraints)
+            result = prob.solve(solver=cp.SCS, eps=1e-6)
+            self.assertAlmostEqual(result, np.sum(np.diag(A, k)))
+            assert np.allclose(X.value, np.diag(np.diag(A, k), k), atol=1e-4)
+
     def test_presolve_parameters(self) -> None:
         """Test presolve with parameters.
         """

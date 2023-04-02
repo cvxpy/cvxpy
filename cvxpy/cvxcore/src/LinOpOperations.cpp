@@ -582,16 +582,28 @@ Tensor get_upper_tri_mat(const LinOp &lin, int arg_idx) {
  */
 Tensor get_diag_matrix_mat(const LinOp &lin, int arg_idx) {
   assert(lin.get_type() == DIAG_MAT);
-  int rows = lin.get_shape()[0];
 
-  Matrix coeffs(rows, rows * rows);
+  int k = lin.get_dense_data()(0, 0);
+  int rows = lin.get_shape()[0];
+  int original_rows = rows + abs(k);
+
+  Matrix coeffs(rows, original_rows * original_rows);
   std::vector<Triplet> tripletList;
   tripletList.reserve(rows);
   for (int i = 0; i < rows; ++i) {
     // index in the extracted vector
     int row_idx = i;
     // index in the original matrix
-    int col_idx = i * rows + i;
+    int col_idx;
+
+    if (k == 0) {
+      col_idx = i + i * original_rows;
+    } else if (k > 0){
+      col_idx = i + i * original_rows + (original_rows * k);
+    } else {
+      col_idx = i + i * original_rows - k;
+    }
+
     tripletList.push_back(Triplet(row_idx, col_idx, 1.0));
   }
 
@@ -612,16 +624,27 @@ Tensor get_diag_matrix_mat(const LinOp &lin, int arg_idx) {
  */
 Tensor get_diag_vec_mat(const LinOp &lin, int arg_idx) {
   assert(lin.get_type() == DIAG_VEC);
-  int rows = lin.get_shape()[0];
 
-  Matrix coeffs(rows * rows, rows);
+  int k = lin.get_dense_data()(0, 0);
+  int rows = lin.get_shape()[0];
+  int original_rows = rows - abs(k);
+
+  Matrix coeffs(rows*rows, original_rows);
   std::vector<Triplet> tripletList;
-  tripletList.reserve(rows);
-  for (int i = 0; i < rows; ++i) {
+  tripletList.reserve(original_rows);
+  for (int i = 0; i < original_rows; ++i) {
     // index in the diagonal matrix
-    int row_idx = i * rows + i;
+    int row_idx;
     // index in the original vector
     int col_idx = i;
+
+    if (k == 0) {
+      row_idx = i + i * rows;
+    } else if (k > 0) {
+      row_idx = i + i * rows + rows * k;
+    } else {
+      row_idx = i + i * rows - k;
+    }
     tripletList.push_back(Triplet(row_idx, col_idx, 1.0));
   }
   coeffs.setFromTriplets(tripletList.begin(), tripletList.end());
