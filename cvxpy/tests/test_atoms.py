@@ -1272,12 +1272,15 @@ class TestAtoms(BaseTest):
 
         # Test with matrices
         A = np.arange(4).reshape((2, 2))
-        B = np.arange(4, 8).reshape((2, 2))
-        assert np.allclose(np.outer(A.flatten(order="F"),
-                           B.flatten(order="F")), cp.outer(A, B).value)
+        np.arange(4, 8).reshape((2, 2))
 
-        with pytest.raises(ValueError, match="dimension greater than 2"):
-            cp.outer(np.ones((1, 2, 3)), 1)
+        with pytest.raises(ValueError, match="x must be a vector"):
+            cp.outer(A, d)
+        with pytest.raises(ValueError, match="y must be a vector"):
+            cp.outer(d, A)
+
+        # allow 2D inputs once row-major flattening is the default
+        assert np.allclose(cp.vec(np.array([[1, 2], [3, 4]])).value, np.array([1, 3, 2, 4]))
 
 
     def test_conj(self) -> None:

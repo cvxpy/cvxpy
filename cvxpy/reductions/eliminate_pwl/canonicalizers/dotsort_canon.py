@@ -18,6 +18,7 @@ import numpy as np
 from cvxpy import Constant
 from cvxpy.atoms.affine.binary_operators import outer
 from cvxpy.atoms.affine.sum import sum
+from cvxpy.atoms.affine.vec import vec
 from cvxpy.expressions.variable import Variable
 
 
@@ -38,6 +39,6 @@ def dotsort_canon(expr, args):
     q = Variable((1, w_unique.size))
 
     obj = sum(t) + q @ w_counts
-    x_w_unique_outer_product = outer(x, w_unique)
+    x_w_unique_outer_product = outer(vec(x), vec(w_unique))
     constraints = [x_w_unique_outer_product <= t + q]
     return obj, constraints
