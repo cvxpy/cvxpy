@@ -133,11 +133,7 @@ class Expression(u.Canonical):
     def __str__(self) -> str:
         """Returns a string showing the mathematical expression.
         """
-        name = self.name()
-        if len(self.shape) == 2 and self.value is not None and "\n" in name:
-            name = np.array2string(self.value, edgeitems=2, threshold=5,
-                                   formatter={'float': lambda x: f'{x:.2f}'})
-        return name
+        return self.name()
 
     def __repr__(self) -> str:
         """Returns a string with information about the expression.

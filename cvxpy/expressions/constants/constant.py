@@ -61,6 +61,9 @@ class Constant(Leaf):
     def name(self) -> str:
         """The value as a string.
         """
+        if len(self.shape) == 2 and "\n" in str(self.value):
+            return np.array2string(self.value, edgeitems=2, threshold=5,
+                                    formatter={'float': lambda x: f'{x:.2f}'})
         return str(self.value)
 
     def constants(self) -> List["Constant"]:

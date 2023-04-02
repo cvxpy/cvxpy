@@ -140,4 +140,4 @@ class Variable(Leaf):
         if len(attr_str) > 0:
             return "Variable(%s%s)" % (self.shape, attr_str)
         else:
-            return "Variable(%s, %s)" % (self.shape, self.__str__())
+            return f"Variable({self.shape}, {self.__str__()})"
