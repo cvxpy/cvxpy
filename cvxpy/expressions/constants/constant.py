@@ -21,9 +21,9 @@ import scipy.sparse as sp
 
 import cvxpy.interface as intf
 import cvxpy.lin_ops.lin_utils as lu
+import cvxpy.settings as s
 import cvxpy.utilities.linalg as eig_util
 from cvxpy.expressions.leaf import Leaf
-from cvxpy.settings import EIGVAL_TOL
 from cvxpy.utilities import performance_utils as perf
 
 
@@ -62,8 +62,10 @@ class Constant(Leaf):
         """The value as a string.
         """
         if len(self.shape) == 2 and "\n" in str(self.value):
-            return np.array2string(self.value, edgeitems=2, threshold=5,
-                                    formatter={'float': lambda x: f'{x:.2f}'})
+            return np.array2string(self.value,
+                                   edgeitems=s.PRINT_EDGEITEMS,
+                                   threshold=s.PRINT_THRESHOLD,
+                                   formatter={'float': lambda x: f'{x:.2f}'})
         return str(self.value)
 
     def constants(self) -> List["Constant"]:
@@ -222,7 +224,7 @@ class Constant(Leaf):
 
         # Compute sign of bottom eigenvalue if absent.
         if self._psd_test is None:
-            self._psd_test = eig_util.is_psd_within_tol(self.value, EIGVAL_TOL)
+            self._psd_test = eig_util.is_psd_within_tol(self.value, s.EIGVAL_TOL)
 
         return self._psd_test
 
@@ -244,6 +246,6 @@ class Constant(Leaf):
 
         # Compute sign of top eigenvalue if absent.
         if self._nsd_test is None:
-            self._nsd_test = eig_util.is_psd_within_tol(-self.value, EIGVAL_TOL)
+            self._nsd_test = eig_util.is_psd_within_tol(-self.value, s.EIGVAL_TOL)
 
         return self._nsd_test

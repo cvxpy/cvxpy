@@ -63,6 +63,8 @@ class TestExpressions(BaseTest):
 
         self.assertEqual(repr(self.x), "Variable((2,), x)")
         self.assertEqual(repr(self.A), "Variable((2, 2), A)")
+        self.assertEqual(repr(cp.Variable(name='x', nonneg=True)), "Variable((), x, nonneg=True)")
+        self.assertTrue(repr(cp.Variable()).startswith("Variable((), var"))
 
         # Test shape provided as list instead of tuple
         self.assertEqual(cp.Variable(shape=[2], integer=True).shape, (2,))
