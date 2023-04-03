@@ -41,8 +41,6 @@ Please contact a project maintainer if you're interested in working on a project
 Small scope projects
  - `State required cone types for atoms <https://github.com/cvxpy/cvxpy/issues/574>`_.
  - `Specify a list of solvers sorted by priority rather than just a single solver <https://github.com/cvxpy/cvxpy/issues/1529>`_.
- - Add matrix condition number as a quasi-convex atom [`858 <https://github.com/cvxpy/cvxpy/issues/858>`_].
- - Add support for an "offset" argument to the ``diag`` atom [`808 <https://github.com/cvxpy/cvxpy/issues/808>`_]
 
 Medium scope projects
  - `Support integer variables in geometric programming <https://github.com/cvxpy/cvxpy/issues/1590>`_.
@@ -56,7 +54,6 @@ Large scope projects
  - Expand use of power cone constraints [`1222 <https://github.com/cvxpy/cvxpy/issues/1222>`_, `1223 <https://github.com/cvxpy/cvxpy/issues/1223>`_].
  - Problem serialization [`532 <https://github.com/cvxpy/cvxpy/issues/532>`_, `1333 <https://github.com/cvxpy/cvxpy/issues/1333>`_, `1438 <https://github.com/cvxpy/cvxpy/issues/1438>`_]
  - Pretty print method for summarizing a solution and its dual variables.
- - `Code generation for quadratic programs and cone programs <https://github.com/cvxpy/cvxpy/issues/1273>`_.
  - `Support for n-dimensional expressions, variables, parameters, etc <https://github.com/cvxpy/cvxpy/issues/198>`_.
  - `10x improvement in the speed and memory usage of cvxcore <https://github.com/cvxpy/cvxpy/issues/708>`_, `especially for DPP problems <https://github.com/cvxpy/cvxpy/issues/1332>`_.
  - Full compatibility with NumPy broadcasting rules. This will be a breaking change, and can only go in CVXPY 2.0.
