@@ -200,40 +200,13 @@ class SDPA(ConicSolver):
         x, y, sdpapinfo, timeinfo, sdpainfo = sdpap.solve(
             A, -matrix(b), matrix(c), K, J, solver_opts)
 
-        # This should be set according to the value of `#define REVERSE_PRIMAL_DUAL`
-        # in `sdpa` (not `sdpa-python`) source.
-        # By default it's enabled and hence, the primal problem in SDPA takes
-        # the LMI form (opposite that of SeDuMi).
-        # If, while building `sdpa` from source you disable it, you need to change this to `False`.
-        reverse_primal_dual = True
-        # By disabling `REVERSE_PRIMAL_DUAL`, the primal-dual pair
-        # in SDPA becomes similar to SeDuMi, i.e. the form we want (see long note in `apply` method)
-        # However, with `REVERSE_PRIMAL_DUAL` disabled, we have some
-        # accuracy related issues on unit tests using the default parameters.
-
-        REVERSE_PRIMAL_DUAL = {
-            "noINFO": "noINFO",
-            "pFEAS": "pFEAS",
-            "dFEAS": "dFEAS",
-            "pdFEAS": "pdFEAS",
-            "pdINF": "pdINF",
-            "pFEAS_dINF": "pINF_dFEAS",  # invert flip within sdpa
-            "pINF_dFEAS": "pFEAS_dINF",  # invert flip within sdpa
-            "pdOPT": "pdOPT",
-            "pUNBD": "dUNBD",  # invert flip within sdpa
-            "dUNBD": "pUNBD"  # invert flip within sdpa
-        }
-
-        if (reverse_primal_dual):
-            sdpainfo['phasevalue'] = REVERSE_PRIMAL_DUAL[sdpainfo['phasevalue']]
-
         solution = {}
-        solution[s.STATUS] = self.STATUS_MAP[sdpainfo['phasevalue']]
+        solution[s.STATUS] = self.STATUS_MAP[sdpapinfo['phasevalue']]
 
         if solution[s.STATUS] in s.SOLUTION_PRESENT:
             x = x.toarray()
             y = y.toarray()
-            solution[s.VALUE] = sdpainfo['primalObj']
+            solution[s.VALUE] = sdpapinfo['primalObj']
             solution[s.PRIMAL] = x
             solution[s.EQ_DUAL] = y[:dims['f']]
             solution[s.INEQ_DUAL] = y[dims['f']:]
