@@ -31,12 +31,12 @@ fi
 
 
 if [[ "$PYTHON_VERSION" == "3.11" ]]; then
-  python -m pip install gurobipy clarabel osqp
+  python -m pip install gurobipy clarabel osqp sdpa-python
 # Python 3.8 on Windows will uninstall NumPy 1.16 and install NumPy 1.24 without the exception.
 elif [[ "$RUNNER_OS" == "Windows" ]] && [[ "$PYTHON_VERSION" == "3.8" ]]; then
   python -m pip install gurobipy clarabel osqp
 else
-  python -m pip install "ortools>=9.3,<9.5" coptpy cplex sdpa-python diffcp gurobipy xpress clarabel sdpa-python
+  python -m pip install "ortools>=9.3,<9.5" coptpy cplex sdpa-python diffcp gurobipy xpress clarabel
 fi
 
 # cylp has wheels for all versions 3.7 - 3.10, except for 3.7 on Windows

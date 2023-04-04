@@ -769,11 +769,10 @@ class TestSDPA(BaseTest):
     def test_sdpa_lp_4(self) -> None:
         StandardTestLPs.test_lp_4(solver='SDPA')
 
-    @unittest.skip('Known limitation of SDPA for degenerate LPs.')
     def test_sdpa_lp_5(self) -> None:
         # this also tests the ability to pass solver options
         StandardTestLPs.test_lp_5(solver='SDPA',
-                                  gammaStar=0.86, epsilonDash=8.0E-6, betaStar=0.18, betaBar=0.15)
+                                  betaBar=0.1, gammaStar=0.8, epsilonDash=8.0E-6)
 
     def test_sdpa_sdp_1(self) -> None:
         # minimization
