@@ -1,0 +1,39 @@
+# Book settings
+# Learn more at https://jupyterbook.org/customize/config.html
+
+title: cvxpy
+author: cvxgrp
+only_build_toc_files: true
+
+execute:
+  execute_notebooks: force
+  timeout: 240
+
+#sphinx:
+#  config:
+#    html_js_files:
+#    - https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js
+
+parse:
+  myst_enable_extensions:
+    - substitution
+    - linkify
+    - dollarmath
+
+#######################################################################################
+# Launch button settings
+launch_buttons:
+  binderhub_url: "https://mybinder.org"
+
+# Information about where the book exists on the web
+repository:
+  url: https://github.com/cvxpy/cvxpy
+  path_to_book: book  # Optional path to your book, relative to the repository root
+  branch: main  # Which branch of the repository should be used when creating links (optional)
+
+# Add GitHub buttons to your book
+# See https://jupyterbook.org/customize/config.html#add-a-link-to-your-repository
+html:
+  use_issues_button: true
+  use_repository_button: true
+  extra_navbar: Powered by <a href="https://jupyterbook.org">Jupyter Book</a>
