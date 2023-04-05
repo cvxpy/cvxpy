@@ -1,1 +1,64 @@
+name: deploy-book
+
+on: [push]
+
+# Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+# This job installs dependencies, builds the book, and pushes it to `gh-pages`
+jobs:
+  deploy-book:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Set up Python '3.10'
+      uses: actions/setup-python@v4
+      with:
+          python-version: '3.10'
+
+    - name: Install Poetry
+      uses: snok/install-poetry@v1.3.3
+      with:
+          virtualenvs-create: true
+          virtualenvs-in-project: true
+              
+    - name: Install dependencies
+      run: | 
+            poetry --version
+            poetry install -vv
+            
+    - name: Install jupyterbook
+      run: |
+        poetry run pip install jupyter-book
+    
+    - name: Clean Font-Manager
+      run: |
+        sudo echo "ttf-mscorefonts-installer msttcorefonts/accepted-mscorefonts-eula select true" | sudo debconf-set-selections
+        sudo apt-get install -y ttf-mscorefonts-installer
+        sudo fc-cache -vr
+        rm ~/.cache/matplotlib -fr
+        fc list
+        fc-match Arial 
+    
+    - name: Install the kernel
+      run: |
+        poetry run ipython kernel install --name "cvxpy" --user
+        
+    # Build the book
+    - name: Build the book
+      run: |
+        poetry run jupyter-book clean book
+        poetry run jupyter-book build book
+        cp -r book/_build/html ./docs
+    
+    # Push the book's HTML to github-pages
+    - name: GitHub Pages action
+      uses: peaceiris/actions-gh-pages@v3.6.1
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        publish_dir: book/_build/html
 
