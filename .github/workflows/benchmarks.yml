@@ -4,17 +4,21 @@ on:
   push:
       branches:
           - master
+          
+# Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
+permissions:
+  contents: write
 
 jobs:
   benchmark:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/setup-python@v2
+      - uses: actions/setup-python@v4
         with:
           python-version: 3.8
 
       - name: Checkout benchmark
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           repository: cvxpy/benchmarks
           ref: main
@@ -25,7 +29,7 @@ jobs:
           pip install .
       
       - name: Checkout deployed branch
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           repository: cvxpy/benchmarks
           ref: gh-pages
@@ -51,7 +55,7 @@ jobs:
           mv docs pages/
       
       - name: Deploy HTML and Results Artifacts
-        uses: JamesIves/github-pages-deploy-action@v4.2.2
+        uses: JamesIves/github-pages-deploy-action@v4.4.1
         with:
           folder: pages/
           repository-name: cvxpy/benchmarks
