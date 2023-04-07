@@ -1,19 +1,9 @@
 name: benchmarks
 
 on:
-   pull_request:
-  #push:
-  #    branches:
-  #        - master
-          
-# Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
-# permissions:
-#    contents: write
-
-#on:
-#  push:
-#      branches:
-#          - master
+   push:
+      branches:
+          - master
 
 jobs:
   benchmark:
