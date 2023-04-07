@@ -1,6 +1,14 @@
 name: deploy-book
 
-on: [push]
+on:
+    pull_request:
+    push:
+        branches:
+            - master
+            - 'release/**'
+        tags:
+          - '*'
+          
 
 # Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
 permissions:
