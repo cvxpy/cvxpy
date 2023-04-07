@@ -10,16 +10,21 @@ on:
 permissions:
   contents: write
 
+#on:
+#  push:
+#      branches:
+#          - master
+
 jobs:
   benchmark:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/setup-python@v4
+      - uses: actions/setup-python@v2
         with:
           python-version: 3.8
 
       - name: Checkout benchmark
-        uses: actions/checkout@v3
+        uses: actions/checkout@v2
         with:
           repository: cvxpy/benchmarks
           ref: main
@@ -30,7 +35,7 @@ jobs:
           pip install .
       
       - name: Checkout deployed branch
-        uses: actions/checkout@v3
+        uses: actions/checkout@v2
         with:
           repository: cvxpy/benchmarks
           ref: gh-pages
@@ -56,7 +61,7 @@ jobs:
           mv docs pages/
       
       - name: Deploy HTML and Results Artifacts
-        uses: JamesIves/github-pages-deploy-action@v4.4.1
+        uses: JamesIves/github-pages-deploy-action@v4.2.2
         with:
           folder: pages/
           repository-name: cvxpy/benchmarks
