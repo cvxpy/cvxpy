@@ -17,8 +17,8 @@ parse:
 
 #######################################################################################
 # Launch button settings
-launch_buttons:
-  binderhub_url: "https://mybinder.org"
+# launch_buttons:
+#   binderhub_url: "https://mybinder.org"
 
 # Information about where the book exists on the web
 repository:
