@@ -30,7 +30,7 @@ jobs:
         run: |
           pip install .
           pip install jupyter-book
-          # ipython kernel install --name "cvxpy" --user
+          ipython kernel install --name "cvxpy" --user
         
       # Build the book
       - name: Build the book
