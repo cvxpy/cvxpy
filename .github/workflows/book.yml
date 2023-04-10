@@ -46,9 +46,3 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: book/_build/html
 
-      # Create container for Binder
-      # - name: cache binder build on mybinder.org
-      #  uses: jupyterhub/repo2docker-action@master
-      #  with:
-      #    NO_PUSH: true
-      #    MYBINDERORG_TAG: ${{ github.event.ref }}
