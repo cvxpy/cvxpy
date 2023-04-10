@@ -1,0 +1,10 @@
+# Ignore Everything
+**
+
+!setup.py
+
+!cvxpy
+!book
+
+**/__pycache__
+**/*.pyc
