@@ -212,12 +212,12 @@ notebook.
             pid2idx = []
     
         for i in range(N):
-            print '\nPartition {}'.format(i),
+            print('\nPartition {}'.format(i), end='')
             games_t, games_h = split_games(games, holdout)
             W, L = data_mats(games_t, team2idx, home, pid2idx)
             Wh, Lh = data_mats(games_h, team2idx, home, pid2idx)
             for gamma in gammas:
-                print '.',
+                print('.', end='')
                 x = fit(W,L,gamma)
                 v_t.append((gamma,percent_correct(W,L,x)))
                 v_h.append((gamma,percent_correct(Wh,Lh,x)))
@@ -324,7 +324,7 @@ row :math:`i` of :math:`W` (:math:`L`) corresponding to :math:`x^w_i`
         prob = cvx.Problem(objective)
         result = prob.solve(solver=cvx.ECOS, verbose=False)
         if prob.status != 'optimal':
-            print "ERROR!"
+            print("ERROR!")
         return np.array(w.value).flatten()
 
 Example
@@ -379,8 +379,8 @@ hold-out set.
     gamma = 0
     w = fit(W,L,gamma)
     
-    print "Training set %% correct: %f"%percent_correct(W,L,w)
-    print "Hold-out set %% correct: %f"%percent_correct(Wh,Lh,w)
+    print("Training set %% correct: %f"%percent_correct(W,L,w))
+    print("Hold-out set %% correct: %f"%percent_correct(Wh,Lh,w))
 
 
 .. parsed-literal::
@@ -399,8 +399,8 @@ set:
     gamma = .03
     w = fit(W,L,gamma)
     
-    print "Training set %% correct: %f"%percent_correct(W,L,w)
-    print "Hold-out set %% correct: %f"%percent_correct(Wh,Lh,w)
+    print("Training set %% correct: %f"%percent_correct(W,L,w))
+    print("Hold-out set %% correct: %f"%percent_correct(Wh,Lh,w))
 
 
 .. parsed-literal::
