@@ -27,7 +27,7 @@ run the following code snippet in the Python prompt:
 .. code:: python
 
   import cvxpy
-  print cvxpy.__version__
+  print(cvxpy.__version__)
 
 What do I do if I get a ``DCPError`` exception?
 -----------------------------------------------
