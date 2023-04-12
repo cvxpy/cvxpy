@@ -1,0 +1,24 @@
+name: docstr
+
+# Controls when the action will run. Triggers the workflow on push or pull request
+# events but only for the master branch
+on: push
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  # A workflow run is made up of one or more jobs that can run sequentially or in parallel
+  doc-str:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Set up Python 3.10
+        uses: actions/setup-python@v4
+        with:
+            python-version: '3.10'
+      
+      - name: install docstr
+        run: |
+          pip install docstr-coverage
+          docstr-coverage cvxpy
