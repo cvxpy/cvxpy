@@ -10,8 +10,9 @@ def test_is_psd() -> None:
     n = 50
 
     # trivial cases
-    psd = np.eye(n)
-    nsd = -np.eye(n)
+    diagonal = np.random.randint(low=10, high=100, size=n)
+    psd = np.diag(diagonal)
+    nsd = -psd
 
     assert cp.Constant(psd).is_psd()
     assert not cp.Constant(psd).is_nsd()
