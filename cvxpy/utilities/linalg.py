@@ -65,9 +65,9 @@ def is_psd_within_tol(A, tol):
 
         np.random.seed(123)
         n = A.shape[0]
-        rand_v0 = np.random.rand(n)
+        rand_v0 = np.random.normal(loc=0, scale=1, size=n)
 
-        return sparla.eigsh(A, k=1, sigma=sigma, which='SA', v0 = rand_v0,
+        return sparla.eigsh(A, k=1, sigma=sigma, which='SA', v0=rand_v0,
                             return_eigenvectors=False)
         # Returns the eigenvalue w[i] of A where 1/(w[i] - sigma) is minimized.
         #
