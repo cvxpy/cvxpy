@@ -117,6 +117,13 @@ multiply
 .. autoclass:: cvxpy.multiply
     :show-inheritance:
 
+.. _outer:
+
+outer
+------------------------------------
+
+.. autofunction:: cvxpy.outer
+
 .. _ptrace:
 
 partial_trace
