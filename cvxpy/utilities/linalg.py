@@ -32,6 +32,17 @@ def onb_for_orthogonal_complement(V):
     return Q2
 
 
+def is_diagonal(A):
+    if isinstance(A, spar.spmatrix):
+        off_diagonal_elements = A - spar.diags(A.diagonal())
+    elif isinstance(A, np.ndarray):
+        off_diagonal_elements = A - np.diag(np.diag(A))
+    else:
+        raise ValueError("Unsupported matrix type.")
+
+    return np.allclose(off_diagonal_elements, 0)
+
+
 def is_psd_within_tol(A, tol):
     """
     Return True if we can certify that A is PSD (up to tolerance "tol").
@@ -60,6 +71,10 @@ def is_psd_within_tol(A, tol):
 
     if gershgorin_psd_check(A, tol):
         return True
+
+    if is_diagonal(A):
+        min_diag_entry = np.min(np.diag(A))
+        return min_diag_entry >= 0
 
     def SA_eigsh(sigma):
 
