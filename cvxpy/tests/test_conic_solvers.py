@@ -2018,6 +2018,7 @@ class TestSCIPY(unittest.TestCase):
         sth.solve(solver='SCIPY', scipy_options={"time_limit": 0.01})
         assert sth.prob.status == cp.OPTIMAL_INACCURATE
         assert sth.objective.value > 0
+        assert sth.prob.solver_stats.extra_stats["mip_gap"] > 0
 
         # run without enough time to do anything
         with pytest.raises(cp.error.SolverError):

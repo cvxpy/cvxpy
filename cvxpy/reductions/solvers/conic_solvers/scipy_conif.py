@@ -245,7 +245,9 @@ class SCIPY(ConicSolver):
                     inverse_data[self.NEQ_CONSTR])
                 eq_dual.update(leq_dual)
                 dual_vars = eq_dual
-
-            return Solution(status, opt_val, primal_vars, dual_vars, {})
+            attr = {}
+            if inverse_data['is_mip']:
+                attr[s.EXTRA_STATS] = {"mip_gap": solution['mip_gap']}
+            return Solution(status, opt_val, primal_vars, dual_vars, attr)
         else:
             return failure_solution(status)
