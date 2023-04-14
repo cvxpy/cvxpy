@@ -246,7 +246,7 @@ class SCIPY(ConicSolver):
                 eq_dual.update(leq_dual)
                 dual_vars = eq_dual
             attr = {}
-            if inverse_data['is_mip']:
+            if "mip_gap" in solution:
                 attr[s.EXTRA_STATS] = {"mip_gap": solution['mip_gap']}
             return Solution(status, opt_val, primal_vars, dual_vars, attr)
         else:
