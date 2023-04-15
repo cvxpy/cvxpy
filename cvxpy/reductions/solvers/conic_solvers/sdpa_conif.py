@@ -84,52 +84,6 @@ class SDPA(ConicSolver):
         tuple
             (dict of arguments needed for the solver, inverse data)
         """
-
-        # CVXPY represents cone programs as
-        #     (P) min_x { c^T x : A x + b \in K } + d,
-        # or, using Dualize
-        #     (D) max_y { -b^T y : c - A^T y = 0, y \in K^* } + d.
-
-        # SDPAP takes a conic program in CLP form:
-        #     (P) min_x { c^T x : A x - b \in J, x \in K }
-        # or
-        #     (D) max_y { b^T y : y \in J^*, c - a^T y \in K^*}
-
-        # SDPA takes a conic program in SeDuMI form:
-        #     (P) min_x { c^T x : A x - b = 0, x \in K }
-        # or
-        #     (D) max_y { b^T y : c - A^T y \in K^*}
-
-        # SDPA always takes an input in SeDuMi form
-        # SDPAP therefore converts the problem from CLP form to SeDuMi form which
-        # involves getting rid of constraints involving cone J (and J^*) of the CLP form
-
-        # We have two ways to solve using SDPA
-
-        # 1. CVXPY (P) -> CLP (P), by
-        #       - flipping sign of b
-        #       - setting J of CLP (P) to K of CVXPY (P)
-        #       - setting K of CLP (P) to a free cone
-        #
-        #       (a) then CLP (P)-> SeDuMi (D) if user specifies `convMethod` option to `clp_toLMI`
-        #       (b) then CLP (P)-> SeDuMi (P) if user specifies `convMethod` option to `clp_toEQ`
-        #
-        # 2. CVXPY (P) -> CVXPY (D), by
-        #       - using Dualize
-        #       - then CVXPY (D) -> SeDuMi (P) by
-        #           - setting c of SeDuMi (P) to -b of CVXPY (D)
-        #           - setting b of SeDuMi (P) to c of CVXPY (D)
-        #           - setting x of SeDuMi (P) to y of CVXPY (D)
-        #           - setting K of SeDuMi (P) to K^* of CVXPY (D)
-        #           - transposing A
-
-        # 2 does not give a benefit over 1(a)
-        #   1 (a) and 2 both flip the primal and dual between CVXPY and SeDuMi
-        # 1 (b) does not flip primal and dual throughout, but requires `clp_toEQ` to be implemented
-        #   TODO: Implement `clp_toEQ` in `sdpa-python`
-        # Thereafter, 1 will allows user to choose between solving as primal or dual
-        # by specifying `convMethod` option in solver options
-
         data = {}
         inv_data = {self.VAR_ID: problem.x.id}
 
@@ -179,6 +133,28 @@ class SDPA(ConicSolver):
             return failure_solution(status)
 
     def solve_via_data(self, data, warm_start: bool, verbose: bool, solver_opts, solver_cache=None):
+        """
+        CVXPY represents cone programs as
+            (P) min_x { c^T x : A x + b \in K } + d
+
+        SDPA Python takes a conic program in CLP format:
+            (P) min_x { c^T x : A x - b \in J, x \in K }
+
+        CVXPY (P) -> CLP (P), by
+            - flipping sign of b
+            - setting J of CLP (P) to K of CVXPY (P)
+            - setting K of CLP (P) to a free cone
+
+        CLP format is a generalization of the SeDuMi format. Both formats are explained at
+        https://sdpa-python.github.io/docs/formats/
+
+        Internally, SDPA Python will reduce CLP form to SeDuMi dual form using `clp_toLMI`.
+        In SeDuMi format, the dual is in LMI form. In SDPA format, the primal is in LMI form.
+        The backend (i.e. `libsdpa.a` or `libsdpa_gmp.a`) uses the SDPA format.
+
+        For details on the reverse relationship between SDPA and SeDuMi formats, please see
+        https://sdpa-python.github.io/docs/formats/sdpa_sedumi.html
+        """
         import sdpap
         from scipy import matrix
 
