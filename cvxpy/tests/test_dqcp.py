@@ -17,6 +17,7 @@ import numpy as np
 
 import cvxpy as cp
 import cvxpy.settings as s
+from cvxpy.reductions.dqcp2dcp.dqcp2dcp import Dqcp2Dcp
 from cvxpy.reductions.solvers import bisection
 from cvxpy.tests import base_test
 
@@ -41,7 +42,7 @@ class TestDqcp(base_test.BaseTest):
         self.assertFalse(problem.is_dcp())
         self.assertFalse(problem.is_dgp())
 
-        red = cp.Dqcp2Dcp(problem)
+        red = Dqcp2Dcp(problem)
         reduced = red.reduce()
         self.assertTrue(reduced.is_dcp())
         self.assertEqual(len(reduced.parameters()), 1)
@@ -69,7 +70,7 @@ class TestDqcp(base_test.BaseTest):
         self.assertFalse(problem.is_dcp())
         self.assertFalse(problem.is_dgp())
 
-        red = cp.Dqcp2Dcp(problem)
+        red = Dqcp2Dcp(problem)
         reduced = red.reduce()
         self.assertTrue(reduced.is_dcp())
         self.assertEqual(len(reduced.parameters()), 1)
