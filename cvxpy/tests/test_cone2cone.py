@@ -30,6 +30,7 @@ from cvxpy.reductions.cone2cone import affine2direct as a2d
 from cvxpy.reductions.cvx_attr2constr import CvxAttr2Constr
 from cvxpy.reductions.dcp2cone.cone_matrix_stuffing import ConeMatrixStuffing
 from cvxpy.reductions.dcp2cone.dcp2cone import Dcp2Cone
+from cvxpy.reductions.solution import Solution
 from cvxpy.reductions.solvers.conic_solvers.conic_solver import ConicSolver
 from cvxpy.reductions.solvers.defines import INSTALLED_MI_SOLVERS as INSTALLED_MI
 from cvxpy.reductions.solvers.defines import MI_SOCP_SOLVERS as MI_SOCP
@@ -88,7 +89,7 @@ class TestDualize(BaseTest):
         if K_dir[a2d.DUAL_POW3D]:
             dual_prims[a2d.DUAL_POW3D] = dual_prims[a2d.DUAL_POW3D].value
         dual_duals = {s.EQ_DUAL: constraints[0].dual_value}
-        dual_sol = cp.Solution(dual_prob.status, dual_prob.value, dual_prims, dual_duals, dict())
+        dual_sol = Solution(dual_prob.status, dual_prob.value, dual_prims, dual_duals, dict())
         cone_sol = a2d.Dualize.invert(dual_sol, inv_data)
 
         # Pass the solution back up the solving chain.
@@ -217,7 +218,7 @@ class TestSlacks(BaseTest):
         slack_prob = cp.Problem(objective, constraints)
         slack_prob.solve(**solve_kwargs)
         slack_prims = {a2d.FREE: y[:cone_prog.x.size].value}  # nothing else need be populated.
-        slack_sol = cp.Solution(slack_prob.status, slack_prob.value, slack_prims, None, dict())
+        slack_sol = Solution(slack_prob.status, slack_prob.value, slack_prims, None, dict())
         cone_sol = a2d.Slacks.invert(slack_sol, inv_data)
 
         # pass solution up the solving chain
