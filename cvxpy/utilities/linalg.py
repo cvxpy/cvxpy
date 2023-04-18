@@ -2,6 +2,7 @@ import numpy as np
 import scipy.linalg as la
 import scipy.sparse as spar
 import scipy.sparse.linalg as sparla
+from scipy.sparse import csc_matrix
 
 
 def orth(V, tol=1e-12):
@@ -35,6 +36,7 @@ def onb_for_orthogonal_complement(V):
 def is_diagonal(A):
     if isinstance(A, spar.spmatrix):
         off_diagonal_elements = A - spar.diags(A.diagonal())
+        off_diagonal_elements = off_diagonal_elements.toarray()
     elif isinstance(A, np.ndarray):
         off_diagonal_elements = A - np.diag(np.diag(A))
     else:
@@ -73,8 +75,13 @@ def is_psd_within_tol(A, tol):
         return True
 
     if is_diagonal(A):
-        min_diag_entry = np.min(np.diag(A))
-        return min_diag_entry >= 0
+        if isinstance(A, csc_matrix):
+            A = A.toarray()
+            min_diag_entry = np.min(np.diag(A))
+        else:
+            min_diag_entry = np.min(np.diag(A))
+
+        return min_diag_entry >= -tol
 
     def SA_eigsh(sigma):
 
