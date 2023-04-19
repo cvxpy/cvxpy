@@ -593,7 +593,7 @@ Use the ``installed_solvers`` utility function to get a list of the solvers your
 
 .. code:: python
 
-    print installed_solvers()
+    print(installed_solvers())
 
 ::
 
@@ -609,7 +609,7 @@ All the solvers can print out information about their progress while solving the
 
     # Solve with ECOS and display output.
     prob.solve(solver=cp.ECOS, verbose=True)
-    print "optimal value with ECOS:", prob.value
+    print(f"optimal value with ECOS: {prob.value}")
 
 ::
 
@@ -706,7 +706,7 @@ For example, here we tell SCS to use an indirect method for solving linear equat
 
     # Solve with SCS, use sparse-indirect method.
     prob.solve(solver=cp.SCS, verbose=True, use_indirect=True)
-    print "optimal value with SCS:", prob.value
+    print(f"optimal value with SCS: {prob.value}")
 
 ::
 
