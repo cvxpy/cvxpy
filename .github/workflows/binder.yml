@@ -11,7 +11,7 @@ jobs:
 
     # cache for binder
     - name: cache binder build on mybinder.org
-      uses: tschm/repo2docker-action@master
+      uses: jupyterhub/repo2docker-action@master
       with:
         NO_PUSH: true
         MYBINDERORG_TAG: ${{ github.event.ref }}
