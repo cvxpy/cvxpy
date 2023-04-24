@@ -6,7 +6,7 @@ COPY . ${HOME}
 
 WORKDIR ${HOME}
 
-RUN pip install . && \
+RUN pip install --no-cache-dir . && \
     chown -R jovyan ${HOME}
 
 USER jovyan
