@@ -483,6 +483,12 @@ class TestClarabel(BaseTest):
     def test_clarabel_pcp_2(self) -> None:
         StandardTestSOCPs.test_socp_2(solver='CLARABEL')
 
+    def test_clarabel_sdp_1min(self) -> None:
+        StandardTestSDPs.test_sdp_1min(solver='CLARABEL')
+
+    def test_clarabel_sdp_2(self) -> None:
+        StandardTestSDPs.test_sdp_2(solver='CLARABEL')
+
 
 @unittest.skipUnless('MOSEK' in INSTALLED_SOLVERS, 'MOSEK is not installed.')
 class TestMosek(unittest.TestCase):
