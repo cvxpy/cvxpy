@@ -16,8 +16,8 @@ limitations under the License.
 
 This interface borrows heavily from the one in scs_conif.py
 """
-import scipy.sparse as sp
 import numpy as np
+import scipy.sparse as sp
 
 import cvxpy.settings as s
 from cvxpy.constraints import PSD, SOC, ExpCone, PowCone3D
