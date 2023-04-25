@@ -30,7 +30,7 @@ from cvxpy.utilities.versioning import Version
 
 def dims_to_solver_cones(cone_dims):
 
-    import clarabel
+    import clarabel 
     cones = []
 
     # assume that constraints are presented
@@ -130,14 +130,18 @@ class CLARABEL(ConicSolver):
     """An interface for the Clarabel solver.
     """
 
-    import clarabel
-
     # Solver capabilities.
     MIP_CAPABLE = False
     SUPPORTED_CONSTRAINTS = ConicSolver.SUPPORTED_CONSTRAINTS \
         + [SOC, ExpCone, PowCone3D, PSD]
-    if Version(clarabel.__version__) >= Version('0.5.0'):
-        SUPPORTED_CONSTRAINTS.append(PSD)
+    
+    try:
+        import clarabel
+        if Version(clarabel.__version__) >= Version('0.5.0'):
+            SUPPORTED_CONSTRAINTS.append(PSD)
+    except ModuleNotFoundError:
+        pass
+    
 
     STATUS_MAP = {
                     "Solved": s.OPTIMAL,
