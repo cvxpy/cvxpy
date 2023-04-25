@@ -17,7 +17,6 @@ from cvxpy.version import (
     version as __version__,)  # cvxpy/version.py is auto-generated
 import cvxpy.interface.scipy_wrapper
 from cvxpy.atoms import *
-from cvxpy.problems.objective import Objective
 from cvxpy.constraints import (Constraint, PSD, SOC, NonPos, NonNeg, Zero, 
                                PowCone3D, PowConeND, ExpCone, 
                                OpRelEntrConeQuad, RelEntrConeQuad, FiniteSet,)
@@ -26,7 +25,7 @@ from cvxpy.error import (DCPError, DGPError, DPPError, SolverError,
 from cvxpy.expressions.constants import CallbackParam, Constant, Parameter
 from cvxpy.expressions.expression import Expression
 from cvxpy.expressions.variable import Variable
-from cvxpy.problems.objective import Maximize, Minimize
+from cvxpy.problems.objective import Maximize, Minimize, Objective
 from cvxpy.problems.problem import Problem
 from cvxpy.transforms import linearize, partial_optimize, suppfunc
 from cvxpy.reductions.solvers.defines import installed_solvers
