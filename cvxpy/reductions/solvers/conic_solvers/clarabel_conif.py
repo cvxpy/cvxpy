@@ -133,7 +133,7 @@ class CLARABEL(ConicSolver):
     # Solver capabilities.
     MIP_CAPABLE = False
     SUPPORTED_CONSTRAINTS = ConicSolver.SUPPORTED_CONSTRAINTS \
-        + [SOC, ExpCone, PowCone3D, PSD]
+        + [SOC, ExpCone, PowCone3D]
     
     try:
         import clarabel
