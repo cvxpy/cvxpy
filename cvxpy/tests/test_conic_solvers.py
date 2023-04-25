@@ -487,7 +487,16 @@ class TestClarabel(BaseTest):
         StandardTestSDPs.test_sdp_1min(solver='CLARABEL')
 
     def test_clarabel_sdp_2(self) -> None:
-        StandardTestSDPs.test_sdp_2(solver='CLARABEL')
+        # produces a different optimizer than 
+        # the one expected by the standard test
+        places = 3
+        sth = sths.sdp_2()
+        sth.solve('CLARABEL')
+        sth.verify_objective(places)
+        sth.check_primal_feasibility(places)
+        # sth.verify_primal_values(places) # skip
+        sth.check_complementarity(places)
+        sth.check_dual_domains(places)
 
 
 @unittest.skipUnless('MOSEK' in INSTALLED_SOLVERS, 'MOSEK is not installed.')
