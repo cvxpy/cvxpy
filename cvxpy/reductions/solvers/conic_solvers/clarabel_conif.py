@@ -30,7 +30,7 @@ from cvxpy.utilities.versioning import Version
 
 def dims_to_solver_cones(cone_dims):
 
-    import clarabel 
+    import clarabel
     cones = []
 
     # assume that constraints are presented
