@@ -2015,7 +2015,7 @@ class TestSCIPY(unittest.TestCase):
         sth = sths.mi_lp_7()
 
         # run without enough time to find optimum
-        sth.solve(solver='SCIPY', scipy_options={"time_limit": 0.02})
+        sth.solve(solver='SCIPY', scipy_options={"time_limit": 0.01})
         assert sth.prob.status == cp.OPTIMAL_INACCURATE
         assert sth.objective.value > 0
         assert sth.prob.solver_stats.extra_stats["mip_gap"] > 0
