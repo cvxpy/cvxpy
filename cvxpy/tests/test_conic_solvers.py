@@ -775,6 +775,21 @@ class TestSDPA(BaseTest):
         StandardTestLPs.test_lp_5(solver='SDPA',
                                   gammaStar=0.86, epsilonDash=8.0E-6, betaStar=0.18, betaBar=0.15)
 
+    def test_sdpa_socp_0(self) -> None:
+        StandardTestSOCPs.test_socp_0(solver='SDPA')
+
+    def test_sdpa_socp_1(self) -> None:
+        StandardTestSOCPs.test_socp_1(solver='SDPA')
+
+    def test_sdpa_socp_2(self) -> None:
+        StandardTestSOCPs.test_socp_2(solver='SDPA')
+
+    def test_sdpa_socp_3(self) -> None:
+        # axis 0
+        StandardTestSOCPs.test_socp_3ax0(solver='SDPA')
+        # axis 1
+        StandardTestSOCPs.test_socp_3ax1(solver='SDPA')
+
     def test_sdpa_sdp_1(self) -> None:
         # minimization
         StandardTestSDPs.test_sdp_1min(solver='SDPA')
