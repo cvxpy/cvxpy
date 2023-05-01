@@ -469,6 +469,18 @@ class MOSEK(ConicSolver):
                       mosek.solsta.prim_feas: s.OPTIMAL_INACCURATE,    # for integer problems
                       mosek.solsta.prim_infeas_cer: s.INFEASIBLE,
                       mosek.solsta.dual_infeas_cer: s.UNBOUNDED}
+
+        solver_opts = solver_output['solver_options']
+        # man muss hier über
+        if 'accept_unknown' in solver_opts:
+            if solver_opts['accept_unknown']:
+                STATUS_MAP[mosek.solsta.unknown] = s.OPTIMAL_INACCURATE
+                STATUS_MAP[mosek.solsta.optimal] = s.OPTIMAL
+                STATUS_MAP[mosek.solsta.integer_optimal] = s.OPTIMAL
+                STATUS_MAP[mosek.solsta.prim_feas] = s.OPTIMAL_INACCURATE
+                STATUS_MAP[mosek.solsta.prim_infeas_cer] = s.INFEASIBLE
+                STATUS_MAP[mosek.solsta.dual_infeas_cer] = s.UNBOUNDED
+
         # "Near" statuses only up to Mosek 8.1
         if hasattr(mosek.solsta, 'near_optimal'):
             STATUS_MAP[mosek.solsta.near_optimal] = s.OPTIMAL_INACCURATE
@@ -479,7 +491,6 @@ class MOSEK(ConicSolver):
 
         env = solver_output['env']
         task = solver_output['task']
-        solver_opts = solver_output['solver_options']
 
         if task.getnumintvar() > 0:
             sol_type = mosek.soltype.itg
@@ -651,6 +662,9 @@ class MOSEK(ConicSolver):
         if 'bfs' in kwargs:
             bfs = solver_opts['bfs']
             kwargs.remove('bfs')
+        if 'accept_unknown' in kwargs:
+            solver_opts['accept_unknown']
+            kwargs.remove('accept_unknown')
         if kwargs:
             raise ValueError("Invalid keyword-argument '%s'" % kwargs[0])
 
