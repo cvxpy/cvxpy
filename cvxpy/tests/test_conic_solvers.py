@@ -656,6 +656,21 @@ class TestMosek(unittest.TestCase):
         prob.solve(solver=cp.MOSEK)
         assert prob.status is cp.OPTIMAL
 
+    def test_mosek_accept_unknown(self) -> None:
+        mosek_param = {
+            "MSK_DPAR_OPTIMIZER_MAX_TIME": 0
+        }
+        x = cp.Variable(shape=(3, 1))
+        cone_con = cp.constraints.ExpCone(x[2], x[1], x[0])
+        constraints = [cp.sum(x) <= 1.0,
+                       cp.sum(x) >= 0.1,
+                       x >= 0,
+                       cone_con]
+        obj = cp.Minimize(3 * x[0] + 2 * x[1] + x[2])
+        prob = cp.Problem(obj, constraints)
+        prob.solve(solver=cp.MOSEK, accept_unknown=True, mosek_params=mosek_param)
+        assert prob.status is cp.OPTIMAL_INACCURATE
+
 
 @unittest.skipUnless('CVXOPT' in INSTALLED_SOLVERS, 'CVXOPT is not installed.')
 class TestCVXOPT(BaseTest):
