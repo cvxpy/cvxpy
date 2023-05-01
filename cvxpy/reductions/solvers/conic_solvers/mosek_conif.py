@@ -472,14 +472,8 @@ class MOSEK(ConicSolver):
 
         solver_opts = solver_output['solver_options']
 
-        if 'accept_unknown' in solver_opts:
-            if solver_opts['accept_unknown']:
-                STATUS_MAP[mosek.solsta.unknown] = s.OPTIMAL_INACCURATE
-                STATUS_MAP[mosek.solsta.optimal] = s.OPTIMAL
-                STATUS_MAP[mosek.solsta.integer_optimal] = s.OPTIMAL
-                STATUS_MAP[mosek.solsta.prim_feas] = s.OPTIMAL_INACCURATE
-                STATUS_MAP[mosek.solsta.prim_infeas_cer] = s.INFEASIBLE
-                STATUS_MAP[mosek.solsta.dual_infeas_cer] = s.UNBOUNDED
+        if solver_opts.get('accept_unknown', False):
+            STATUS_MAP[mosek.solsta.unknown] = s.OPTIMAL_INACCURATE
 
         # "Near" statuses only up to Mosek 8.1
         if hasattr(mosek.solsta, 'near_optimal'):
