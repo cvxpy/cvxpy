@@ -471,7 +471,7 @@ class MOSEK(ConicSolver):
                       mosek.solsta.dual_infeas_cer: s.UNBOUNDED}
 
         solver_opts = solver_output['solver_options']
-        # man muss hier über
+
         if 'accept_unknown' in solver_opts:
             if solver_opts['accept_unknown']:
                 STATUS_MAP[mosek.solsta.unknown] = s.OPTIMAL_INACCURATE
