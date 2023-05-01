@@ -135,6 +135,7 @@ class CLARABEL(ConicSolver):
     SUPPORTED_CONSTRAINTS = ConicSolver.SUPPORTED_CONSTRAINTS \
         + [SOC, ExpCone, PowCone3D]
     
+    # TODO remove try-catch when minimum required version >= 0.5.0.
     try:
         import clarabel
         if Version(clarabel.__version__) >= Version('0.5.0'):
