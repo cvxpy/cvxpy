@@ -483,6 +483,21 @@ class TestClarabel(BaseTest):
     def test_clarabel_pcp_2(self) -> None:
         StandardTestSOCPs.test_socp_2(solver='CLARABEL')
 
+    def test_clarabel_sdp_1min(self) -> None:
+        StandardTestSDPs.test_sdp_1min(solver='CLARABEL')
+
+    def test_clarabel_sdp_2(self) -> None:
+        # produces a different optimizer than 
+        # the one expected by the standard test
+        places = 3
+        sth = sths.sdp_2()
+        sth.solve('CLARABEL')
+        sth.verify_objective(places)
+        sth.check_primal_feasibility(places)
+        # sth.verify_primal_values(places) # skip
+        sth.check_complementarity(places)
+        sth.check_dual_domains(places)
+
 
 @unittest.skipUnless('MOSEK' in INSTALLED_SOLVERS, 'MOSEK is not installed.')
 class TestMosek(unittest.TestCase):
