@@ -297,9 +297,9 @@ def construct_solving_chain(problem, candidates,
             supported_constraints = solver_instance.MI_SUPPORTED_CONSTRAINTS
         else:
             supported_constraints = solver_instance.SUPPORTED_CONSTRAINTS
-            unsupported_constraints = [
-                cone for cone in cones if cone not in supported_constraints
-            ]
+        unsupported_constraints = [
+            cone for cone in cones if cone not in supported_constraints
+        ]
         if has_constr or not solver_instance.REQUIRES_CONSTR:
             if ex_cos:
                 reductions.append(Exotic2Common())
@@ -323,7 +323,7 @@ def construct_solving_chain(problem, candidates,
                     solver_instance
                 ]
                 return SolvingChain(reductions=reductions)
-            elif all(c==SOC for c in unsupported_constraints):
+            elif all(c==SOC for c in unsupported_constraints) and PSD in supported_constraints:
                 reductions += [
                     SOC2PSD(),
                     ConeMatrixStuffing(quad_obj=quad_obj, canon_backend=canon_backend),
