@@ -670,6 +670,12 @@ class TestMosek(unittest.TestCase):
         prob = cp.Problem(obj, constraints)
         prob.solve(solver=cp.MOSEK, accept_unknown=True, mosek_params=mosek_param)
         assert prob.status is cp.OPTIMAL_INACCURATE
+        with pytest.raises(cp.error.SolverError) as se:
+            prob.solve(solver=cp.MOSEK, mosek_params=mosek_param)
+            exc = " Solver 'MOSEK' failed. " \
+                  "Try another solver, or solve with verbose=True " \
+                  "for more information."
+            assert str(se.value) == exc
 
 
 @unittest.skipUnless('CVXOPT' in INSTALLED_SOLVERS, 'CVXOPT is not installed.')
