@@ -481,6 +481,22 @@ class MOSEK(ConicSolver):
         task = solver_output['task']
         solver_opts = solver_output['solver_options']
 
+        if solver_opts.get('eps') is not None:
+            # Fixed list for optimality tolerance parameters from
+            # https://docs.mosek.com/7.0/toolbox/Parameters.html
+            tol_params = {"MSK_DPAR_INTPNT_CO_TOL_MU_RED", "MSK_DPAR_INTPNT_CO_TOL_NEAR_REL"}
+            if solver_opts.get('mosek_params') is not None:
+                for key in tol_params:
+                    # If tolerance parameter is already provided by the user, user choice is used
+                    if key not in solver_opts['mosek_params']:
+                        solver_opts['mosek_params'][key] = solver_opts.get('eps')
+            else:
+                mosek_params_tol_dict = {}
+                for key in tol_params:
+                    mosek_params_tol_dict[key] = solver_opts.get('eps')
+                mosek_params_dict = {'mosek_params': mosek_params_tol_dict}
+                solver_opts.update(mosek_params_dict)
+
         if task.getnumintvar() > 0:
             sol_type = mosek.soltype.itg
         elif 'bfs' in solver_opts and solver_opts['bfs'] and task.getnumcone() == 0:
@@ -651,6 +667,8 @@ class MOSEK(ConicSolver):
         if 'bfs' in kwargs:
             bfs = solver_opts['bfs']
             kwargs.remove('bfs')
+        if 'eps' in kwargs:
+            kwargs.remove('eps')
         if kwargs:
             raise ValueError("Invalid keyword-argument '%s'" % kwargs[0])
 
