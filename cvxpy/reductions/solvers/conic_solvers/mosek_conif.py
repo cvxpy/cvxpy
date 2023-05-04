@@ -657,7 +657,6 @@ class MOSEK(ConicSolver):
             bfs = solver_opts['bfs']
             kwargs.remove('bfs')
         if 'accept_unknown' in kwargs:
-            solver_opts['accept_unknown']
             kwargs.remove('accept_unknown')
         if kwargs:
             raise ValueError("Invalid keyword-argument '%s'" % kwargs[0])
