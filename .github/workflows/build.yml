@@ -258,7 +258,7 @@ jobs:
           twine upload --skip-existing --repository-url $PYPI_SERVER wheelhouse/* -u $PYPI_USER -p $PYPI_BASE_PASSWORD
 
       - name: Upload artifacts to github
-        if: ${{github.event_name == 'push'}}      
+        if: ${{github.event_name == 'push'}}
         uses: actions/upload-artifact@v1
         with:
           name: wheels-base
