@@ -142,7 +142,7 @@ jobs:
         uses: pypa/cibuildwheel@v2.12.0
 
       - name: Build source
-        if: ${{env.SINGLE_ACTION_CONFIG == 'True'}}
+        if: ${{github.event_name == 'push' && env.SINGLE_ACTION_CONFIG == 'True'}}
         run: |
           pip install build
           python -m build --sdist -o wheelhouse
@@ -161,7 +161,7 @@ jobs:
           twine upload --skip-existing --repository-url $PYPI_SERVER wheelhouse/* -u $PYPI_USER -p $PYPI_PASSWORD
 
       - name: Upload artifacts to github
-        if: ${{env.USE_OPENMP != 'True'}}
+        if: ${{github.event_name == 'push' && env.USE_OPENMP != 'True'}}
         uses: actions/upload-artifact@v1
         with:
           name: wheels
@@ -239,7 +239,7 @@ jobs:
         uses: pypa/cibuildwheel@v2.12.0
 
       - name: Build source
-        if: ${{env.SINGLE_ACTION_CONFIG == 'True'}}
+        if: ${{github.event_name == 'push' && env.SINGLE_ACTION_CONFIG == 'True'}}
         run: |
           pip install build
           python -m build --sdist -o wheelhouse
@@ -258,6 +258,7 @@ jobs:
           twine upload --skip-existing --repository-url $PYPI_SERVER wheelhouse/* -u $PYPI_USER -p $PYPI_BASE_PASSWORD
 
       - name: Upload artifacts to github
+        if: ${{github.event_name == 'push'}}      
         uses: actions/upload-artifact@v1
         with:
           name: wheels-base
