@@ -15,6 +15,7 @@ limitations under the License.
 """
 
 import numpy as np
+from scipy import sparse
 
 import cvxpy as cp
 from cvxpy import problems
@@ -72,16 +73,16 @@ class SOC2PSD(Reduction):
                 however, this one makes writing `invert` routine simple.
                 """
 
-                A = scalar_term * np.identity(1)
+                A = scalar_term * sparse.eye(1)
                 B = cp.reshape(X,[-1,1]).T
-                C = scalar_term * np.identity(vector_term_len)
+                C = scalar_term * sparse.eye(vector_term_len)
 
                 """
                 Another technique for reference
 
-                A = scalar_term * np.identity(vector_term_len)
+                A = scalar_term * sparse.eye(vector_term_len)
                 B = cp.reshape(X,[-1,1])
-                C = scalar_term * np.identity(1)
+                C = scalar_term * sparse.eye(1)
                 """
 
                 """
@@ -111,9 +112,9 @@ class SOC2PSD(Reduction):
                     scalar_term = t[subidx]
                     vector_term_len = X.shape[0]
 
-                    A = scalar_term * np.identity(1)
+                    A = scalar_term * sparse.eye(1)
                     B = X[:,subidx:subidx+1].T
-                    C = scalar_term * np.identity(vector_term_len)
+                    C = scalar_term * sparse.eye(vector_term_len)
 
                     M = cp.bmat([
                         [A, B],
