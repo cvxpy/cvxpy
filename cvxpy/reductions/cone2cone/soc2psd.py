@@ -94,15 +94,17 @@ class SOC2PSD(Reduction):
                 ])
 
                 """
-                Constrain M to the PSD cone. The `PSD` class constructor has the input parameter
-                `expr` and constrains `expr + expr.T` to the PSD cone.
+                Constrain M to the PSD cone. Since the `PSD` class has the input parameter
+                `expr` and constrains `expr + expr.T` to the PSD cone, this will cause a scaling
+                in the dual variables corresponding to these constraints.
 
-                Since M is symmetric, (M/2 + (M/2).T) is simply M which we want to constrain to
-                the PSD cone.
+                To this end, we can either constrain `M/2` to the PSD cone (since M is symmetric),
+                or we can multiply the corresponding dual variables by 2.
 
-                To this end, we set the input `expr` to M/2.
+                For efficiency, instead of dividing M by 2, we will multiply the coresponding
+                dual variables by 2 instead.
                 """
-                new_psd_constraint = PSD(M / 2)
+                new_psd_constraint = PSD(M)
                 soc_id_from_psd[new_psd_constraint.id] = constraint.id
                 psd_constraints.append(new_psd_constraint)
             else: # when `constraint` object has multiple packed constraints
@@ -121,7 +123,7 @@ class SOC2PSD(Reduction):
                         [B.T, C]
                     ])
 
-                    new_psd_constraint = PSD(M / 2)
+                    new_psd_constraint = PSD(M)
                     soc_id_from_psd[new_psd_constraint.id] = constraint.id
                     psd_constraints.append(new_psd_constraint)
 
@@ -166,7 +168,7 @@ class SOC2PSD(Reduction):
         # we pack their corresponding dual variables by stacking them.
         for var_id in inverted_dual_vars:
             if var_id in soc_constraint_ids:
-                inverted_dual_vars[var_id] = np.hstack(inverted_dual_vars[var_id])
+                inverted_dual_vars[var_id] = 2 * np.hstack(inverted_dual_vars[var_id])
 
         solution.dual_vars = inverted_dual_vars
         return solution
