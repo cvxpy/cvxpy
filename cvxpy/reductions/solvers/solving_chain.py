@@ -28,6 +28,7 @@ from cvxpy.reductions.cone2cone.exotic2common import (
     EXOTIC_CONES,
     Exotic2Common,
 )
+from cvxpy.reductions.cone2cone.soc2psd import SOC2PSD
 from cvxpy.reductions.cvx_attr2constr import CvxAttr2Constr
 from cvxpy.reductions.dcp2cone.cone_matrix_stuffing import ConeMatrixStuffing
 from cvxpy.reductions.dcp2cone.dcp2cone import Dcp2Cone
@@ -296,8 +297,10 @@ def construct_solving_chain(problem, candidates,
             supported_constraints = solver_instance.MI_SUPPORTED_CONSTRAINTS
         else:
             supported_constraints = solver_instance.SUPPORTED_CONSTRAINTS
-        if (all(c in supported_constraints for c in cones)
-                and (has_constr or not solver_instance.REQUIRES_CONSTR)):
+        unsupported_constraints = [
+            cone for cone in cones if cone not in supported_constraints
+        ]
+        if has_constr or not solver_instance.REQUIRES_CONSTR:
             if ex_cos:
                 reductions.append(Exotic2Common())
             if RelEntrConeQuad in approx_cos or OpRelEntrConeQuad in approx_cos:
@@ -313,10 +316,20 @@ def construct_solving_chain(problem, candidates,
             reductions += [
                 Dcp2Cone(quad_obj=quad_obj),
                 CvxAttr2Constr(),
-                ConeMatrixStuffing(quad_obj=quad_obj, canon_backend=canon_backend),
-                solver_instance
             ]
-            return SolvingChain(reductions=reductions)
+            if all(c in supported_constraints for c in cones):
+                reductions += [
+                    ConeMatrixStuffing(quad_obj=quad_obj, canon_backend=canon_backend),
+                    solver_instance
+                ]
+                return SolvingChain(reductions=reductions)
+            elif all(c==SOC for c in unsupported_constraints) and PSD in supported_constraints:
+                reductions += [
+                    SOC2PSD(),
+                    ConeMatrixStuffing(quad_obj=quad_obj, canon_backend=canon_backend),
+                    solver_instance
+                ]
+                return SolvingChain(reductions=reductions)
 
     raise SolverError("Either candidate conic solvers (%s) do not support the "
                       "cones output by the problem (%s), or there are not "

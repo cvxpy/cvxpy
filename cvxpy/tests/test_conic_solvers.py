@@ -483,6 +483,21 @@ class TestClarabel(BaseTest):
     def test_clarabel_pcp_2(self) -> None:
         StandardTestSOCPs.test_socp_2(solver='CLARABEL')
 
+    def test_clarabel_sdp_1min(self) -> None:
+        StandardTestSDPs.test_sdp_1min(solver='CLARABEL')
+
+    def test_clarabel_sdp_2(self) -> None:
+        # produces a different optimizer than 
+        # the one expected by the standard test
+        places = 3
+        sth = sths.sdp_2()
+        sth.solve('CLARABEL')
+        sth.verify_objective(places)
+        sth.check_primal_feasibility(places)
+        # sth.verify_primal_values(places) # skip
+        sth.check_complementarity(places)
+        sth.check_dual_domains(places)
+
 
 @unittest.skipUnless('MOSEK' in INSTALLED_SOLVERS, 'MOSEK is not installed.')
 class TestMosek(unittest.TestCase):
@@ -774,6 +789,21 @@ class TestSDPA(BaseTest):
         # this also tests the ability to pass solver options
         StandardTestLPs.test_lp_5(solver='SDPA',
                                   gammaStar=0.86, epsilonDash=8.0E-6, betaStar=0.18, betaBar=0.15)
+
+    def test_sdpa_socp_0(self) -> None:
+        StandardTestSOCPs.test_socp_0(solver='SDPA')
+
+    def test_sdpa_socp_1(self) -> None:
+        StandardTestSOCPs.test_socp_1(solver='SDPA')
+
+    def test_sdpa_socp_2(self) -> None:
+        StandardTestSOCPs.test_socp_2(solver='SDPA')
+
+    def test_sdpa_socp_3(self) -> None:
+        # axis 0
+        StandardTestSOCPs.test_socp_3ax0(solver='SDPA')
+        # axis 1
+        StandardTestSOCPs.test_socp_3ax1(solver='SDPA')
 
     def test_sdpa_sdp_1(self) -> None:
         # minimization
@@ -2018,6 +2048,7 @@ class TestSCIPY(unittest.TestCase):
         sth.solve(solver='SCIPY', scipy_options={"time_limit": 0.01})
         assert sth.prob.status == cp.OPTIMAL_INACCURATE
         assert sth.objective.value > 0
+        assert sth.prob.solver_stats.extra_stats["mip_gap"] > 0
 
         # run without enough time to do anything
         with pytest.raises(cp.error.SolverError):

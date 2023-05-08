@@ -17,6 +17,7 @@ limitations under the License.
 
 import warnings
 
+import numpy as np
 import scipy  # For version checks
 
 import cvxpy.settings as s
@@ -187,10 +188,23 @@ class SCIPY(ConicSolver):
                 self._log_scipy_method_warning(meth)
 
         if problem_is_a_mip:
-            solution = opt.linprog(data[s.C], A_ub=data[s.G], b_ub=data[s.H],
-                                   A_eq=data[s.A], b_eq=data[s.B], method=meth,
-                                   options=solver_opts['scipy_options'],
-                                   integrality=integrality, bounds=bounds)
+            constraints = []
+            G = data[s.G]
+            if G is not None:
+                ineq = scipy.optimize.LinearConstraint(G, ub=data[s.H])
+                constraints.append(ineq)
+            A = data[s.A]
+            if A is not None:
+                eq = scipy.optimize.LinearConstraint(A,data[s.B], data[s.B])
+                constraints.append(eq)
+            lb = [t[0] if t[0] is not None else -np.inf for t in bounds]
+            ub = [t[1] if t[1] is not None else np.inf for t in bounds]
+            bounds = scipy.optimize.Bounds(lb, ub)
+            solution = opt.milp(data[s.C], 
+                                constraints=constraints,
+                                options=solver_opts['scipy_options'],
+                                integrality=integrality,
+                                bounds=bounds)
         else:
             solution = opt.linprog(data[s.C], A_ub=data[s.G], b_ub=data[s.H],
                                    A_eq=data[s.A], b_eq=data[s.B], method=meth,
@@ -245,7 +259,9 @@ class SCIPY(ConicSolver):
                     inverse_data[self.NEQ_CONSTR])
                 eq_dual.update(leq_dual)
                 dual_vars = eq_dual
-
-            return Solution(status, opt_val, primal_vars, dual_vars, {})
+            attr = {}
+            if "mip_gap" in solution:
+                attr[s.EXTRA_STATS] = {"mip_gap": solution['mip_gap']}
+            return Solution(status, opt_val, primal_vars, dual_vars, attr)
         else:
             return failure_solution(status)
