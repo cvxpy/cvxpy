@@ -137,7 +137,4 @@ class Variable(Leaf):
         """String to recreate the object.
         """
         attr_str = self._get_attr_str()
-        if len(attr_str) > 0:
-            return "Variable(%s%s)" % (self.shape, attr_str)
-        else:
-            return "Variable(%s)" % (self.shape,)
+        return f"Variable({self.shape}, {self.__str__()}{attr_str})"
