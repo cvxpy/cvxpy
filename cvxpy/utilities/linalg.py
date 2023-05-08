@@ -76,12 +76,10 @@ def is_psd_within_tol(A, tol):
 
     if is_diagonal(A):
         if isinstance(A, csc_matrix):
-            A = A.toarray()
-            min_diag_entry = np.min(np.diag(A))
+            return np.all(A.data >= -tol)
         else:
             min_diag_entry = np.min(np.diag(A))
-
-        return min_diag_entry >= -tol
+            return min_diag_entry >= -tol
 
     def SA_eigsh(sigma):
 
