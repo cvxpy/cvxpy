@@ -144,7 +144,8 @@ jobs:
       - name: Build source
         if: ${{github.event_name == 'push' && env.SINGLE_ACTION_CONFIG == 'True'}}
         run: |
-          python setup.py sdist --dist-dir=wheelhouse
+          pip install build
+          python -m build --sdist -o wheelhouse
 
       - name: Check wheels
         if: ${{github.event_name == 'push' &&  env.USE_OPENMP != 'True'}}
@@ -240,7 +241,8 @@ jobs:
       - name: Build source
         if: ${{github.event_name == 'push' && env.SINGLE_ACTION_CONFIG == 'True'}}
         run: |
-          python setup.py sdist --dist-dir=wheelhouse
+          pip install build
+          python -m build --sdist -o wheelhouse
 
       - name: Check wheels
         shell: bash

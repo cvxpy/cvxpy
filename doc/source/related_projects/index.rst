@@ -48,6 +48,8 @@ Solvers
 
 - `PROXQP <https://github.com/simple-robotics/proxsuite>`_ is an open-source C++ library for solving convex quadratic programs.
 
+- `CLARABEL <https://github.com/oxfordcontrol/ClarabelDocs>`_ is an open-source Rust library for solving convex cone programs.
+
 - `GUROBI <https://www.gurobi.com/>`_ is a commercial solver for mixed integer second-order cone programs.
 
 - `MOSEK <https://www.mosek.com/>`_ is a commercial solver for mixed integer second-order cone programs and semidefinite programs.
