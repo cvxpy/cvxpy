@@ -94,15 +94,7 @@ class SOC2PSD(Reduction):
                 ])
 
                 """
-                Constrain M to the PSD cone. Since the `PSD` class has the input parameter
-                `expr` and constrains `expr + expr.T` to the PSD cone, this will cause a scaling
-                in the dual variables corresponding to these constraints.
-
-                To this end, we can either constrain `M/2` to the PSD cone (since M is symmetric),
-                or we can multiply the corresponding dual variables by 2.
-
-                For efficiency, instead of dividing M by 2, we will multiply the coresponding
-                dual variables by 2 instead.
+                Constrain M to the PSD cone.
                 """
                 new_psd_constraint = PSD(M)
                 soc_id_from_psd[new_psd_constraint.id] = constraint.id
@@ -168,6 +160,8 @@ class SOC2PSD(Reduction):
         # we pack their corresponding dual variables by stacking them.
         for var_id in inverted_dual_vars:
             if var_id in soc_constraint_ids:
+                # The PSD representation requires scaling the dual variables by 2
+                # to get the SOC dual variable.
                 inverted_dual_vars[var_id] = 2 * np.hstack(inverted_dual_vars[var_id])
 
         solution.dual_vars = inverted_dual_vars
