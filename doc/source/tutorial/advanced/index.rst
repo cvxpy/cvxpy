@@ -832,6 +832,11 @@ For others see `OSQP documentation <https://osqp.org/docs/interfaces/solver_sett
     instead of the interior-point solution. This assumes no specific MOSEK
     parameters were used which prevent computing the basic solution.
 
+``'accept_unknown'``
+    If ``accept_unknown=True``, an inaccurate solution will be returned, even if
+    it is arbitrarily bad, when the solver does not generate an optimal
+    point under the given conditions.
+
 .. note::
 
     In CVXPY 1.1.6 we did a complete rewrite of the MOSEK interface. The main
