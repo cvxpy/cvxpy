@@ -203,6 +203,24 @@ canon = Extension(
     extra_link_args=['-O3'],
 )
 
+sparsechol = Extension(
+    '_sparsecholesky',
+    sources=['cvxpy/cvxcore/src/sparsecholesky.cpp',
+             'cvxpy/cvxcore/python/sparsecholesky_wrap.cxx'],
+    include_dirs=['cvxpy/cvxcore/src',
+                  'cvxpy/cvxcore/python',
+                  'cvxpy/cvxcore/include'],
+    extra_compile_args=[
+        '-O3',
+        '-std=c++11',
+        '-Wall',
+        '-pedantic',
+        not_on_windows('-Wextra'),
+        not_on_windows('-Wno-unused-parameter'),
+    ],
+    extra_link_args=['-O3'],
+)
+
 setup(
     name='cvxpy',
     version=str(VERSION),
@@ -210,7 +228,7 @@ setup(
     author_email='stevend2@stanford.edu, akshayka@cs.stanford.edu, '
                  'echu508@stanford.edu, boyd@stanford.edu',
     cmdclass={'build_ext': build_ext_cvxpy},
-    ext_modules=[canon],
+    ext_modules=[canon, sparsechol],
     packages=find_packages(exclude=["doc*",
                                     "examples*",
                                     "cvxpy.performance_tests*"]),
