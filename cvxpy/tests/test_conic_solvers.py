@@ -675,19 +675,12 @@ class TestMosek(unittest.TestCase):
         mosek_param = {
             "MSK_DPAR_OPTIMIZER_MAX_TIME": 0
         }
-        x = cp.Variable(shape=(3, 1))
-        cone_con = cp.constraints.ExpCone(x[2], x[1], x[0])
-        constraints = [cp.sum(x) <= 1.0,
-                       cp.sum(x) >= 0.1,
-                       x >= 0,
-                       cone_con]
-        obj = cp.Minimize(3 * x[0] + 2 * x[1] + x[2])
-        prob = cp.Problem(obj, constraints)
-        prob.solve(solver=cp.MOSEK, accept_unknown=True, mosek_params=mosek_param)
-        assert prob.status == cp.OPTIMAL_INACCURATE, x.value
+        sth = sths.lp_5()
+        sth.solve(solver=cp.MOSEK, accept_unknown=True, mosek_params=mosek_param)
+        assert sth.prob.status == cp.OPTIMAL_INACCURATE
 
         with pytest.raises(cp.error.SolverError, match="Solver 'MOSEK' failed"):
-            prob.solve(solver=cp.MOSEK, mosek_params=mosek_param)
+            sth.solve(solver=cp.MOSEK, mosek_params=mosek_param)
 
 
 @unittest.skipUnless('CVXOPT' in INSTALLED_SOLVERS, 'CVXOPT is not installed.')
