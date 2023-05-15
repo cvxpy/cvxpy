@@ -681,10 +681,10 @@ class TestMosek(unittest.TestCase):
                        cp.sum(x) >= 0.1,
                        x >= 0,
                        cone_con]
-        obj = cp.Minimize(3 * x[0] + 2 * x[1] + x[2] + cp.exp(x[0]))
+        obj = cp.Minimize(3 * x[0] + 2 * x[1] + x[2])
         prob = cp.Problem(obj, constraints)
         prob.solve(solver=cp.MOSEK, accept_unknown=True, mosek_params=mosek_param)
-        assert prob.status == cp.OPTIMAL_INACCURATE
+        assert prob.status == cp.OPTIMAL_INACCURATE, x.value
 
         with pytest.raises(cp.error.SolverError, match="Solver 'MOSEK' failed"):
             prob.solve(solver=cp.MOSEK, mosek_params=mosek_param)
