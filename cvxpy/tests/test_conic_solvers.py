@@ -640,6 +640,33 @@ class TestMosek(unittest.TestCase):
             mosek_params={"MSK_IPAR_OPTIMIZER": "MSK_OPTIMIZER_DUAL_SIMPLEX"}
         )
 
+    def test_mosek_sdp_power(self) -> None:
+        """Test the problem in issue #2128"""
+        T, N = 10, 1000
+        
+        rs = np.random.RandomState(seed=123)
+        R = rs.randn(T, N)
+        Sigma = np.cov(R, rowvar=False)
+        
+        x = cp.Variable((N,1))
+        y = cp.Variable((N,1))
+        X = cp.Variable((N,N), PSD=True)
+        M1 = cp.vstack([X, x.T])
+        M2 = cp.vstack([x, np.ones((1, 1))])
+        M3 = cp.hstack([M1, M2])
+
+        constraints = [cp.sum(x) == 1,
+           x >= 0,
+           y >= 0.01,
+           M3 >> 0,
+           cp.PowCone3D(x, np.ones((N,1)), y, 0.9)
+          ]
+
+        obj =  cp.trace(Sigma @ X) + cp.norm(y, p=2)
+        objective = cp.Minimize(obj)
+        problem = cp.Problem(objective, constraints)
+        problem.solve(solver='MOSEK')
+        
     def test_power_portfolio(self) -> None:
         """Test the portfolio problem in issue #2042"""
         T, N = 200, 10
