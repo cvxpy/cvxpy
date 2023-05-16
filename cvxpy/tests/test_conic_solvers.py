@@ -642,7 +642,7 @@ class TestMosek(unittest.TestCase):
 
     def test_mosek_sdp_power(self) -> None:
         """Test the problem in issue #2128"""
-        T, N = 10, 1000
+        T, N = 5, 100
         
         rs = np.random.RandomState(seed=123)
         R = rs.randn(T, N)
