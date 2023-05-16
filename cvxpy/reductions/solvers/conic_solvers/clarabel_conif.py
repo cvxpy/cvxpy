@@ -140,7 +140,7 @@ class CLARABEL(ConicSolver):
         import clarabel
         if Version(clarabel.__version__) >= Version('0.5.0'):
             SUPPORTED_CONSTRAINTS.append(PSD)
-    except (ModuleNotFoundError, TypeError):
+    except ModuleNotFoundError:
         pass
     
 
