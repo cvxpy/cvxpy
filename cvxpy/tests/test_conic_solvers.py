@@ -624,6 +624,10 @@ class TestMosek(unittest.TestCase):
 
     def test_mosek_sdp_power(self) -> None:
         """Test the problem in issue #2128"""
+        mosek_param = {
+            "MSK_DPAR_OPTIMIZER_MAX_TIME": 0
+        }
+        
         T, N = 3, 10
         
         rs = np.random.RandomState(seed=123)
@@ -647,7 +651,7 @@ class TestMosek(unittest.TestCase):
         obj =  cp.trace(Sigma @ X) + cp.norm(y, p=2)
         objective = cp.Minimize(obj)
         problem = cp.Problem(objective, constraints)
-        problem.solve(solver='MOSEK')
+        problem.solve(solver=cp.MOSEK, mosek_param=mosek_param)
         
     def test_power_portfolio(self) -> None:
         """Test the portfolio problem in issue #2042"""
