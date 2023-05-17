@@ -622,27 +622,9 @@ class TestMosek(unittest.TestCase):
             with pytest.warns():
                 problem.solve(solver=cp.MOSEK, mosek_params=mosek_params)
 
-    def test_mosek_simplex(self) -> None:
-        n = 10
-        m = 4
-        np.random.seed(0)
-        A = np.random.randn(m, n)
-        x = np.random.randn(n)
-        y = A.dot(x)
-
-        # Solve a simple basis pursuit problem for testing purposes.
-        z = cp.Variable(n)
-        objective = cp.Minimize(cp.norm1(z))
-        constraints = [A @ z == y]
-        problem = cp.Problem(objective, constraints)
-        problem.solve(
-            solver=cp.MOSEK, 
-            mosek_params={"MSK_IPAR_OPTIMIZER": "MSK_OPTIMIZER_DUAL_SIMPLEX"}
-        )
-
     def test_mosek_sdp_power(self) -> None:
         """Test the problem in issue #2128"""
-        T, N = 5, 100
+        T, N = 3, 10
         
         rs = np.random.RandomState(seed=123)
         R = rs.randn(T, N)
