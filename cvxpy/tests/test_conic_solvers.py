@@ -406,7 +406,7 @@ class TestSCS(BaseTest):
     def test_scs_exp_soc_1(self) -> None:
         StandardTestMixedCPs.test_exp_soc_1(solver='SCS', eps=1e-5)
 
-    def test_scs_sdp_pcp_1():
+    def test_scs_sdp_pcp_1(self):
         StandardTestMixedCPs.test_sdp_pcp_1(solver='SCS')
         
     def test_scs_pcp_1(self) -> None:
