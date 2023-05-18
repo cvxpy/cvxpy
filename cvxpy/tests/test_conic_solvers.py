@@ -406,6 +406,9 @@ class TestSCS(BaseTest):
     def test_scs_exp_soc_1(self) -> None:
         StandardTestMixedCPs.test_exp_soc_1(solver='SCS', eps=1e-5)
 
+    def test_scs_sdp_pcp_1():
+        StandardTestMixedCPs.test_sdp_soc_1(solver='SCS')
+        
     def test_scs_pcp_1(self) -> None:
         StandardTestPCPs.test_pcp_1(solver='SCS')
 
@@ -624,34 +627,7 @@ class TestMosek(unittest.TestCase):
 
     def test_mosek_sdp_power(self) -> None:
         """Test the problem in issue #2128"""
-        mosek_param = {
-            "MSK_DPAR_OPTIMIZER_MAX_TIME": 0
-        }
-        
-        T, N = 3, 10
-        
-        rs = np.random.RandomState(seed=123)
-        R = rs.randn(T, N)
-        Sigma = np.cov(R, rowvar=False)
-        
-        x = cp.Variable((N,1))
-        y = cp.Variable((N,1))
-        X = cp.Variable((N,N), PSD=True)
-        M1 = cp.vstack([X, x.T])
-        M2 = cp.vstack([x, np.ones((1, 1))])
-        M3 = cp.hstack([M1, M2])
-
-        constraints = [cp.sum(x) == 1,
-           x >= 0,
-           y >= 0.01,
-           M3 >> 0,
-           cp.PowCone3D(x, np.ones((N,1)), y, 0.9)
-          ]
-
-        obj =  cp.trace(Sigma @ X) + cp.norm(y, p=2)
-        objective = cp.Minimize(obj)
-        problem = cp.Problem(objective, constraints)
-        problem.solve(solver=cp.MOSEK, mosek_param=mosek_param)
+        StandardTestMixedCPs.test_sdp_soc_1(solver='MOSEK')
         
     def test_power_portfolio(self) -> None:
         """Test the portfolio problem in issue #2042"""
