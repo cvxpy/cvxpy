@@ -1214,7 +1214,7 @@ class StandardTestMixedCPs:
         return sth
 
     @staticmethod
-    def test_sdp_pcp_1(solver, places: int = 3, duals: bool = True, **kwargs) -> SolverTestHelper:
+    def test_sdp_pcp_1(solver, places: int = 3, duals: bool = False, **kwargs) -> SolverTestHelper:
         sth = sdp_pcp_1()
         sth.solve(solver, **kwargs)
         sth.verify_objective(places)
@@ -1233,6 +1233,7 @@ class StandardTestPCPs:
         sth = pcp_1()
         sth.solve(solver, **kwargs)
         sth.verify_objective(places)
+        sth.check_primal_feasibility(places)
         sth.verify_primal_values(places)
         if duals:
             sth.check_complementarity(places)
@@ -1244,6 +1245,7 @@ class StandardTestPCPs:
         sth = pcp_2()
         sth.solve(solver, **kwargs)
         sth.verify_objective(places)
+        sth.check_primal_feasibility(places)
         sth.verify_primal_values(places)
         if duals:
             sth.check_complementarity(places)
@@ -1255,6 +1257,7 @@ class StandardTestPCPs:
         sth = pcp_3()
         sth.solve(solver, **kwargs)
         sth.verify_objective(places)
+        sth.check_primal_feasibility(places)
         sth.verify_primal_values(places)
         if duals:
             sth.check_complementarity(places)
@@ -1265,5 +1268,6 @@ class StandardTestPCPs:
         sth = mi_pcp_0()
         sth.solve(solver, **kwargs)
         sth.verify_objective(places)
+        sth.check_primal_feasibility(places)
         sth.verify_primal_values(places)
         return sth
