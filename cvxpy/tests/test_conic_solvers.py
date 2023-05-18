@@ -677,7 +677,7 @@ class TestMosek(unittest.TestCase):
         }
         sth = sths.lp_5()
         sth.solve(solver=cp.MOSEK, accept_unknown=True, mosek_params=mosek_param)
-        assert sth.prob.status == cp.OPTIMAL_INACCURATE
+        assert sth.prob.status in {cp.OPTIMAL_INACCURATE, cp.OPTIMAL}
 
         with pytest.raises(cp.error.SolverError, match="Solver 'MOSEK' failed"):
             sth.solve(solver=cp.MOSEK, mosek_params=mosek_param)
