@@ -116,7 +116,6 @@ SOC_ATOMS = [
 EXP_ATOMS = [
     log_sum_exp,
     log_det,
-    tr_inv,
     entr,
     exp,
     kl_div,
@@ -136,6 +135,7 @@ PSD_ATOMS = [
     MatrixFrac,
     normNuc,
     sigma_max,
+    tr_inv,
 ]
 
 NONPOS_ATOMS = [
