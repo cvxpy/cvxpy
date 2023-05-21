@@ -26,7 +26,7 @@ from setuptools.command.build_ext import build_ext
 
 MAJOR = 1
 MINOR = 3
-MICRO = 1
+MICRO = 2
 IS_RELEASED = False
 IS_RELEASE_BRANCH = True
 VERSION = '%d.%d.%d' % (MAJOR, MINOR, MICRO)
@@ -231,7 +231,7 @@ setup(
         "scs >= 1.1.6",
         "numpy >= 1.15",
         "scipy >= 1.1.0",
-        "setuptools <= 64.0.2",
+        "setuptools > 65.5.1",
     ],
     setup_requires=["numpy >= 1.15"],
 )

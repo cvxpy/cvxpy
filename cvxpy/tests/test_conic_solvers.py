@@ -20,6 +20,7 @@ import unittest
 import numpy as np
 import pytest
 import scipy.linalg as la
+import scipy.stats as st
 
 import cvxpy as cp
 import cvxpy.tests.solver_test_helpers as sths
@@ -350,6 +351,25 @@ class TestSCS(BaseTest):
             data = prob.get_problem_data(solver=cp.SCS)
             assert "P" not in data[0]
 
+    def test_quad_obj_with_power(self) -> None:
+        """Test a mixed quadratic/power objective.
+        """
+        # Only relevant for SCS >= 3.0.0.
+        import scs
+        if Version(scs.__version__) >= Version('3.0.0'):
+            # See https://github.com/cvxpy/cvxpy/issues/2059
+            x = cp.Variable()
+            prob = cp.Problem(cp.Minimize(x**1.6 + x**2), [x >= 1])
+            prob.solve(solver=cp.SCS, use_quad_obj=True)
+            self.assertAlmostEqual(prob.value, 2)
+            self.assertAlmostEqual(x.value, 1)
+
+            # Check problem data.
+            data = prob.get_problem_data(solver=cp.SCS, solver_opts={"use_quad_obj": True})
+            # Quadratic objective and SOC contraints.
+            assert "P" in data[0]
+            assert data[0]["dims"].soc
+
     def test_scs_lp_3(self) -> None:
         StandardTestLPs.test_lp_3(solver='SCS')
 
@@ -562,9 +582,9 @@ class TestMosek(unittest.TestCase):
             problem = cp.Problem(objective, constraints)
 
             invalid_mosek_params = {
-                "dparam.basis_tol_x": "1e-8"
+                "MSK_IPAR_NUM_THREADS": "11.3"
             }
-            with self.assertRaises(ValueError):
+            with self.assertRaises(mosek.Error):
                 problem.solve(solver=cp.MOSEK, mosek_params=invalid_mosek_params)
 
             with self.assertRaises(ValueError):
@@ -572,9 +592,63 @@ class TestMosek(unittest.TestCase):
 
             mosek_params = {
                 mosek.dparam.basis_tol_x: 1e-8,
-                "MSK_IPAR_INTPNT_MAX_ITERATIONS": 20
+                "MSK_IPAR_INTPNT_MAX_ITERATIONS": 20,
+                "MSK_IPAR_NUM_THREADS": "17",
+                "MSK_IPAR_PRESOLVE_USE": "MSK_PRESOLVE_MODE_OFF",
+                "MSK_DPAR_INTPNT_CO_TOL_DFEAS": 1e-9,
+                "MSK_DPAR_INTPNT_CO_TOL_PFEAS": "1e-9"
             }
-            problem.solve(solver=cp.MOSEK, mosek_params=mosek_params)
+            with pytest.warns():
+                problem.solve(solver=cp.MOSEK, mosek_params=mosek_params)
+
+    def test_power_portfolio(self) -> None:
+        """Test the portfolio problem in issue #2042"""
+        T, N = 200, 10
+
+        rs = np.random.RandomState(123)
+        mean = np.zeros(N) + 1/1000
+        cov = rs.rand(N, N) * 1.5 - 0.5
+        cov = cov @ cov.T/1000 + np.diag(rs.rand(N) * 0.7 + 0.3)/1000
+
+        Y = st.multivariate_normal.rvs(
+            mean=mean,
+            cov=cov,
+            size=T,
+            random_state=rs
+        )
+
+        w = cp.Variable((N, 1))
+        t = cp.Variable((1, 1))
+        z = cp.Variable((1, 1))
+        omega = cp.Variable((T, 1))
+        psi = cp.Variable((T, 1))
+        nu = cp.Variable((T, 1))
+        epsilon = cp.Variable((T, 1))
+        k = cp.Variable((1, 1))
+        b = np.ones((1, N))/N
+
+        X = Y @ w
+
+        h = 0.2
+        ones = np.ones((T, 1))
+        constraints = [
+            cp.constraints.power.PowCone3D(z * (1+h)/(2*h) * ones, psi * (1+h)/h, epsilon, 1/(1+h)),
+            cp.constraints.power.PowCone3D(omega/(1-h), nu/h, -z/(2*h) * ones, (1-h)),
+            -X - t + epsilon + omega <= 0,
+            w >= 0,
+            z >= 0,
+            ]
+
+        obj = t + z + cp.sum(psi + nu)
+
+        constraints += [cp.sum(w) == k,
+                        k >= 0,
+                        b @ cp.log(w) >= 1,
+                        ]
+        objective = cp.Minimize(obj)
+        prob = cp.Problem(objective, constraints)
+        prob.solve(solver=cp.MOSEK)
+        assert prob.status is cp.OPTIMAL
 
 
 @unittest.skipUnless('CVXOPT' in INSTALLED_SOLVERS, 'CVXOPT is not installed.')

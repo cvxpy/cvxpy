@@ -13,6 +13,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+import builtins
 from functools import wraps
 from typing import List, Optional, Tuple
 
@@ -109,6 +110,6 @@ def sum(expr, axis: Optional[int] = None, keepdims: bool = False):
     """Wrapper for Sum class.
     """
     if isinstance(expr, list):
-        return __builtins__['sum'](expr)
+        return builtins.sum(expr)
     else:
         return Sum(expr, axis, keepdims)

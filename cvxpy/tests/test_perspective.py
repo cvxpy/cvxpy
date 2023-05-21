@@ -18,9 +18,8 @@ import numpy as np
 import pytest
 
 import cvxpy as cp
+from cvxpy.atoms.perspective import perspective
 from cvxpy.constraints.exponential import ExpCone
-
-from ..atoms.perspective import perspective
 
 
 def test_monotonicity():

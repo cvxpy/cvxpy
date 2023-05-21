@@ -338,6 +338,11 @@ class power(Elementwise):
         else:
             return self.args[0].is_constant()
 
+    def _quadratic_power(self) -> bool:
+        """Utility function to check if power is 0, 1 or 2."""
+        p = self.p_rational
+        return p in [0, 1, 2]
+
     def _grad(self, values):
         """Gives the (sub/super)gradient of the atom w.r.t. each argument.
 
