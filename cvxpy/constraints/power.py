@@ -66,6 +66,7 @@ class PowCone3D(Constraint):
     def __str__(self) -> str:
         return "Pow3D(%s, %s, %s; %s)" % (self.x, self.y, self.z, self.alpha)
 
+    @property
     def residual(self):
         # TODO: The projection should be implemented directly.
         from cvxpy import Minimize, Problem, Variable, hstack, norm2
