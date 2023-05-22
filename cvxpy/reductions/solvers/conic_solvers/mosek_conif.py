@@ -245,7 +245,7 @@ class MOSEK(ConicSolver):
                 total_psd = sum([d * (d+1) // 2 for d in K[a2d.PSD]])
                 A_psd = A[:, idx:idx+total_psd]
                 c_psd = c[idx:idx+total_psd]
-                if K[a2d.DUAL_EXP] == 0:
+                if (K[a2d.DUAL_EXP] == 0) and (K[a2d.DUAL_POW3D] == 0):
                     data[s.A] = A[:, :idx]
                     data[s.C] = c[:idx]
                 else:

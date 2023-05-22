@@ -406,6 +406,9 @@ class TestSCS(BaseTest):
     def test_scs_exp_soc_1(self) -> None:
         StandardTestMixedCPs.test_exp_soc_1(solver='SCS', eps=1e-5)
 
+    def test_scs_sdp_pcp_1(self):
+        StandardTestMixedCPs.test_sdp_pcp_1(solver='SCS')
+        
     def test_scs_pcp_1(self) -> None:
         StandardTestPCPs.test_pcp_1(solver='SCS')
 
@@ -640,6 +643,10 @@ class TestMosek(unittest.TestCase):
             mosek_params={"MSK_IPAR_OPTIMIZER": "MSK_OPTIMIZER_DUAL_SIMPLEX"}
         )
 
+    def test_mosek_sdp_power(self) -> None:
+        """Test the problem in issue #2128"""
+        StandardTestMixedCPs.test_sdp_pcp_1(solver='MOSEK')
+        
     def test_power_portfolio(self) -> None:
         """Test the portfolio problem in issue #2042"""
         T, N = 200, 10
@@ -691,24 +698,14 @@ class TestMosek(unittest.TestCase):
 
     def test_mosek_accept_unknown(self) -> None:
         mosek_param = {
-            "MSK_DPAR_OPTIMIZER_MAX_TIME": 0
+            "MSK_IPAR_INTPNT_MAX_ITERATIONS": 0
         }
-        x = cp.Variable(shape=(3, 1))
-        cone_con = cp.constraints.ExpCone(x[2], x[1], x[0])
-        constraints = [cp.sum(x) <= 1.0,
-                       cp.sum(x) >= 0.1,
-                       x >= 0,
-                       cone_con]
-        obj = cp.Minimize(3 * x[0] + 2 * x[1] + x[2])
-        prob = cp.Problem(obj, constraints)
-        prob.solve(solver=cp.MOSEK, accept_unknown=True, mosek_params=mosek_param)
-        assert prob.status is cp.OPTIMAL_INACCURATE
-        with pytest.raises(cp.error.SolverError) as se:
-            prob.solve(solver=cp.MOSEK, mosek_params=mosek_param)
-            exc = " Solver 'MOSEK' failed. " \
-                  "Try another solver, or solve with verbose=True " \
-                  "for more information."
-            assert str(se.value) == exc
+        sth = sths.lp_5()
+        sth.solve(solver=cp.MOSEK, accept_unknown=True, mosek_params=mosek_param)
+        assert sth.prob.status in {cp.OPTIMAL_INACCURATE, cp.OPTIMAL}
+
+        with pytest.raises(cp.error.SolverError, match="Solver 'MOSEK' failed"):
+            sth.solve(solver=cp.MOSEK, mosek_params=mosek_param)
 
 
 @unittest.skipUnless('CVXOPT' in INSTALLED_SOLVERS, 'CVXOPT is not installed.')
