@@ -1,8 +1,8 @@
+import cvxpy.cvxcore.python.sparsecholesky as spchol
 import numpy as np
 import scipy.linalg as la
 import scipy.sparse as spar
 import scipy.sparse.linalg as sparla
-import cvxpy.cvxcore.python.sparsecholesky as spchol
 
 
 def orth(V, tol=1e-12):
