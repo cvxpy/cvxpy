@@ -66,6 +66,10 @@ void sparse_chol_from_vecs(
 
     // compute the sparse Cholesky decomposition
     Eigen::SimplicialLLT<Matrix> cholobj(mat);
+    auto status = cholobj.info();
+    if (status == Eigen::ComputationInfo::NumericalIssue) {
+        throw CholeskyFailure{"Cholesky decomposition failed."};
+    }
     Matrix L = cholobj.matrixL();
     Eigen::PermutationMatrix<Eigen::Dynamic> P = cholobj.permutationP();
     auto p = P.indices();

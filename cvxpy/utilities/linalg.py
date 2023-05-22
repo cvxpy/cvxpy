@@ -2,6 +2,7 @@ import numpy as np
 import scipy.linalg as la
 import scipy.sparse as spar
 import scipy.sparse.linalg as sparla
+import cvxpy.cvxcore.python.sparsecholesky as spchol
 
 
 def orth(V, tol=1e-12):
@@ -145,3 +146,52 @@ def gershgorin_psd_check(A, tol):
         return np.all(diag - radii >= -tol)
     else:
         raise ValueError()
+
+
+def sparse_cholesky(A, sym_tol=1e-12, permute_L=True):
+    """
+    The input A must be a symmetric positive definite SciPy sparse matrix.
+    We call Eigen's implementation of sparse Cholesky with AMD-ordering.
+
+    If Cholesky succeeds and permute_L=True, then we return a CSR-format
+    matrix Lp that satisfies Lp @ Lp.T == A within numerical precision.
+
+    If Cholesky succeeds and permute_L=False, then we return a lower-triangular
+    matrix L in CSR-format and a permutation vector p so that
+    (L[p, :]) @ (L[p, :]).T == A within numerical precision.
+
+    If Cholesky fails then we raise a ValueError.
+    """
+    if not isinstance(A, spar.spmatrix):
+        raise ValueError('Input must be a SciPy sparse matrix.')
+    symdiff = A - A.T
+    if la.norm(symdiff.data) > sym_tol:
+        raise ValueError('Input matrix is not symmetric to within provided tolerance.')
+    A_coo = spar.coo_matrix(A)
+    n = A.shape[0]
+
+    # Call our C++ extension
+    inrows = spchol.IntVector(A_coo.row.tolist())
+    incols = spchol.IntVector(A_coo.col.tolist())
+    invals = spchol.DoubleVector(A_coo.data.tolist())
+    outpivs = spchol.IntVector(0)
+    outrows = spchol.IntVector(0)
+    outcols = spchol.IntVector(0)
+    outvals = spchol.DoubleVector(0)
+    try:
+        spchol.sparse_chol_from_vecs(
+            n, inrows, incols, invals,
+            outpivs, outrows, outcols, outvals
+        )
+    except spchol.CholeskyFailure as e:
+        # convert to a ValueError
+        raise ValueError(str(e))
+
+    # error checking and return values
+    L = spar.csr_matrix((outvals, (outrows, outcols)), shape=(n, n))
+    outpivs = np.array(list(outpivs))
+    if permute_L:
+        Lp = L[outpivs, :]
+        return Lp
+    else:
+        return L, outpivs

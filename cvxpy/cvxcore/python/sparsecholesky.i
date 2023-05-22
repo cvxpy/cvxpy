@@ -21,11 +21,33 @@
 
 %include "numpy.i"
 %include "std_vector.i"
+%include "std_string.i"
+%include "exception.i"
 
 namespace std {
    %template(IntVector) vector<int>;
    %template(DoubleVector) vector<double>;
 }
+
+%exception {
+  try {
+    $action
+  } catch (const CholeskyFailure& e) {
+     PyErr_SetString(SWIG_Python_ExceptionType(SWIGTYPE_p_CholeskyFailure), e.what());
+     SWIG_fail;
+  } catch(const std::exception& e) {
+    SWIG_exception(SWIG_RuntimeError, e.what());
+  } catch(...) {
+    SWIG_exception(SWIG_UnknownError, "");
+  }
+}
+
+%exceptionclass CholeskyFailure;
+
+struct CholeskyFailure : public std::runtime_error {
+  CholeskyFailure(const std::string& msg) : std::runtime_error{msg} {}
+};
+
 
 void sparse_chol_from_vecs(
     int n,
@@ -37,3 +59,5 @@ void sparse_chol_from_vecs(
     std::vector<int> &out_cols,
     std::vector<double> &out_vals
 );
+
+

@@ -22,6 +22,10 @@
 // Matrix is Eigen::SparseMatrix<double>
 // Triplet is Eigen::Triplet<double>
 
+struct CholeskyFailure : public std::runtime_error {
+  CholeskyFailure(const std::string& msg) : std::runtime_error{msg} {}
+};
+
 Matrix sparse_from_vecs(
     int n_rows,
     int n_cols,

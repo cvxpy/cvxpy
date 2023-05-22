@@ -2,7 +2,9 @@
 # We'll delete this file before the PR is merged.
 import scipy.sparse as spar
 import numpy as np
+import scipy.linalg as la
 import cvxpy.cvxcore.python.sparsecholesky as spchol
+import cvxpy.utilities.linalg
 
 np.random.seed(0)
 
@@ -24,20 +26,9 @@ for i in range(n):
         incols.append(i-1)
         invals.append(0.1)
 
-inrows = spchol.IntVector(inrows)
-incols = spchol.IntVector(incols)
-invals = spchol.DoubleVector(invals)
-outpivs = spchol.IntVector(0)
-outrows = spchol.IntVector(0)
-outcols = spchol.IntVector(0)
-outvals = spchol.DoubleVector(0)
+G = spar.csr_matrix((invals, (inrows, incols)), shape=(n, n))
 
-spchol.sparse_chol_from_vecs(
-    n, inrows, incols, invals,
-    outpivs, outrows, outcols, outvals
-)
+Lp = cvxpy.utilities.linalg.sparse_cholesky(G)
+print(la.norm((Lp @ Lp.T - G).toarray()))
 
-outpivs = list(outpivs)
-L = spar.csc_matrix((outvals, (outrows, outcols)), shape=(n, n))
-print(outpivs)
-print(L.toarray())
+G = G - 1.95 * spar.eye(n)
