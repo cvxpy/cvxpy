@@ -673,7 +673,7 @@ class TestMosek(unittest.TestCase):
 
     def test_mosek_accept_unknown(self) -> None:
         mosek_param = {
-            "MSK_DPAR_OPTIMIZER_MAX_TIME": 0
+            "MSK_IPAR_INTPNT_MAX_ITERATIONS": 0
         }
         sth = sths.lp_5()
         sth.solve(solver=cp.MOSEK, accept_unknown=True, mosek_params=mosek_param)
