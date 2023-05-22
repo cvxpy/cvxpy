@@ -283,7 +283,13 @@ class CVXOPT(ConicSolver):
                 data[s.A] = None
                 data[s.B] = None
                 return s.OPTIMAL
-        eig = eigsh(gram, k=1, which='SM', return_eigenvectors=False)
+        if hasattr(np.random, 'default_rng'):
+            g = np.random.default_rng(123)
+        else:  # fallback to legacy RandomState
+            g = np.random.RandomState(123)
+        n = gram.shape[0]
+        rand_v0 = g.normal(loc=0.0, scale=1.0, size=n)
+        eig = eigsh(gram, k=1, which='SM', v0=rand_v0, return_eigenvectors=False)
         if eig > TOL:
             return s.OPTIMAL
         #
