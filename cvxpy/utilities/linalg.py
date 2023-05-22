@@ -1,4 +1,4 @@
-import cvxpy.cvxcore.python.sparsecholesky as spchol
+import cvxpy.cvxcore.python.sparsecholesky as spchol  # noqa: I001
 import numpy as np
 import scipy.linalg as la
 import scipy.sparse as spar
