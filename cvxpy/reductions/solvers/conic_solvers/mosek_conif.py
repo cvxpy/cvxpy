@@ -13,6 +13,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+from __future__ import annotations
 
 import warnings
 from collections import defaultdict
@@ -49,14 +50,58 @@ def vectorized_lower_tri_to_mat(v, dim):
     return A
 
 
-def vectorized_lower_tri_to_triples(v, dim):
-    rows, cols, vals = [], [], []
-    running_idx = 0
-    for j in range(dim):
-        rows += [j + k for k in range(dim - j)]
-        cols += [j] * (dim - j)
-        vals.extend(v[running_idx:(running_idx + dim - j)])
-        running_idx += dim - j
+def vectorized_lower_tri_to_triples(A: sp.sparse.coo_matrix | list[float] | np.ndarray, dim: int) \
+        -> tuple[list[int], list[int], list[float]]:
+    """
+    Attributes
+    ----------
+    A : scipy.sparse.coo_matrix | list[float] | np.ndarray
+        Contains the lower triangular entries of a symmetric matrix, flattened into a 1D array in
+        column-major order.
+    dim : int
+        The number of rows (equivalently, columns) in the original matrix.
+
+    Returns
+    -------
+    rows : list[int]
+        The row indices of the entries in the original matrix.
+    cols : list[int]
+        The column indices of the entries in the original matrix.
+    vals : list[float]
+        The values of the entries in the original matrix.
+    """
+
+    if isinstance(A, sp.sparse.coo_matrix):
+        vals = A.data
+        flattened_cols = A.col
+        # Ensure that the columns are sorted.
+        if not np.all(flattened_cols[:-1] < flattened_cols[1:]):
+            sort_idx = np.argsort(flattened_cols)
+            vals = vals[sort_idx]
+            flattened_cols = flattened_cols[sort_idx]
+    elif isinstance(A, list):
+        vals = A
+        flattened_cols = np.arange(len(A))
+    elif isinstance(A, np.ndarray):
+        vals = list(A)
+        flattened_cols = np.arange(len(A))
+    else:
+        raise TypeError(f"Expected A to be a coo_matrix, list, or ndarray, "
+                        f"but got {type(A)} instead.")
+
+    cum_cols = np.cumsum(np.arange(dim, 0, -1))
+    rows, cols = [], []
+    current_col = 0
+    for v in flattened_cols:
+        for c in range(current_col, dim):
+            if v < cum_cols[c]:
+                cols.append(c)
+                prev_row = 0 if c == 0 else cum_cols[c - 1]
+                rows.append(v - prev_row + c)
+                break
+            else:
+                current_col += 1
+
     return rows, cols, vals
 
 
@@ -68,6 +113,8 @@ class MOSEK(ConicSolver):
     SUPPORTED_CONSTRAINTS = ConicSolver.SUPPORTED_CONSTRAINTS + [SOC, PSD]
     EXP_CONE_ORDER = [2, 1, 0]
     DUAL_EXP_CONE_ORDER = [0, 1, 2]
+    # Does not support MISDP.
+    MI_SUPPORTED_CONSTRAINTS = ConicSolver.SUPPORTED_CONSTRAINTS + [SOC]
 
     """
     Note that MOSEK.SUPPORTED_CONSTRAINTS does not include the exponential cone
@@ -91,6 +138,8 @@ class MOSEK(ConicSolver):
         if hasattr(mosek.conetype, 'pexp') and ExpCone not in MOSEK.SUPPORTED_CONSTRAINTS:
             MOSEK.SUPPORTED_CONSTRAINTS.append(ExpCone)
             MOSEK.SUPPORTED_CONSTRAINTS.append(PowCone3D)
+            MOSEK.MI_SUPPORTED_CONSTRAINTS.append(ExpCone)
+            MOSEK.MI_SUPPORTED_CONSTRAINTS.append(PowCone3D)
 
     def name(self):
         """The name of the solver.
@@ -164,18 +213,17 @@ class MOSEK(ConicSolver):
             A_block = A_psd[:, idx:idx + vec_len]
             # ^ each row specifies a linear operator on PSD variable.
             for i in range(n):
+                # A_row defines a symmetric matrix by where the first "order" entries
+                #   gives the matrix's first column, the second "order-1" entries gives
+                #   the matrix's second column (diagonal and below), and so on.
                 A_row = A_block[i, :]
                 if A_row.nnz == 0:
                     continue
-                A_row = A_row.toarray().ravel()
-                # A_row defines a symmetric matrix by where the first "order" entries
-                #   gives the matrix's first column, the second "order-1" entries gives
-                #   the matrix's second column (diagonal and blow), and so on.
-                rows, cols, vals = vectorized_lower_tri_to_triples(A_row, dim)
-                # TODO: replace the above function with something that only reads the nonzero
-                #  entries. I.e. return *actual* sparse matrix data, rather than data for a dense
-                #  matrix stated in a sparse format.
+
+                A_row_coo = A_row.tocoo()
+                rows, cols, vals = vectorized_lower_tri_to_triples(A_row_coo, dim)
                 A_bar_data.append((i, j, (rows, cols, vals)))
+
             c_block = c_psd[idx:idx + vec_len]
             rows, cols, vals = vectorized_lower_tri_to_triples(c_block, dim)
             c_bar_data.append((j, (rows, cols, vals)))
@@ -197,7 +245,7 @@ class MOSEK(ConicSolver):
                 total_psd = sum([d * (d+1) // 2 for d in K[a2d.PSD]])
                 A_psd = A[:, idx:idx+total_psd]
                 c_psd = c[idx:idx+total_psd]
-                if K[a2d.DUAL_EXP] == 0:
+                if (K[a2d.DUAL_EXP] == 0) and (K[a2d.DUAL_POW3D] == 0):
                     data[s.A] = A[:, :idx]
                     data[s.C] = c[:idx]
                 else:
@@ -228,6 +276,7 @@ class MOSEK(ConicSolver):
             else:
                 env = mosek.Env()
                 task = env.Task(0, 0)
+                save_file = MOSEK.handle_options(env, task, verbose, solver_opts)
                 task = MOSEK._build_dualized_task(task, data)
         else:
             if len(data[s.C]) == 0:
@@ -236,10 +285,10 @@ class MOSEK(ConicSolver):
             else:
                 env = mosek.Env()
                 task = env.Task(0, 0)
+                save_file = MOSEK.handle_options(env, task, verbose, solver_opts)
                 task = MOSEK._build_slack_task(task, data)
 
-        # Set parameters, optimize the Mosek Task, and return the result.
-        save_file = MOSEK.handle_options(env, task, verbose, solver_opts)
+        # Optimize the Mosek Task, and return the result.
         if save_file:
             task.writedata(save_file)
         task.optimize()
@@ -420,6 +469,12 @@ class MOSEK(ConicSolver):
                       mosek.solsta.prim_feas: s.OPTIMAL_INACCURATE,    # for integer problems
                       mosek.solsta.prim_infeas_cer: s.INFEASIBLE,
                       mosek.solsta.dual_infeas_cer: s.UNBOUNDED}
+
+        solver_opts = solver_output['solver_options']
+
+        if solver_opts.get('accept_unknown', False):
+            STATUS_MAP[mosek.solsta.unknown] = s.OPTIMAL_INACCURATE
+
         # "Near" statuses only up to Mosek 8.1
         if hasattr(mosek.solsta, 'near_optimal'):
             STATUS_MAP[mosek.solsta.near_optimal] = s.OPTIMAL_INACCURATE
@@ -431,10 +486,16 @@ class MOSEK(ConicSolver):
         env = solver_output['env']
         task = solver_output['task']
         solver_opts = solver_output['solver_options']
+        simplex_algs = [
+            mosek.optimizertype.primal_simplex,
+            mosek.optimizertype.dual_simplex,
+        ]
+        current_optimizer = task.getintparam(mosek.iparam.optimizer)
+        bfs_active = "bfs" in solver_opts and solver_opts["bfs"] and task.getnumcone() == 0
 
         if task.getnumintvar() > 0:
             sol_type = mosek.soltype.itg
-        elif 'bfs' in solver_opts and solver_opts['bfs'] and task.getnumcone() == 0:
+        elif current_optimizer in simplex_algs or bfs_active:
             sol_type = mosek.soltype.bas  # the basic feasible solution
         else:
             sol_type = mosek.soltype.itr  # the solution found via interior point method
@@ -602,6 +663,8 @@ class MOSEK(ConicSolver):
         if 'bfs' in kwargs:
             bfs = solver_opts['bfs']
             kwargs.remove('bfs')
+        if 'accept_unknown' in kwargs:
+            kwargs.remove('accept_unknown')
         if kwargs:
             raise ValueError("Invalid keyword-argument '%s'" % kwargs[0])
 
