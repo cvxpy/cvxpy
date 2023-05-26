@@ -488,8 +488,29 @@ class MOSEK(ConicSolver):
 
         if solver_opts.get('eps') is not None:
             # Fixed list for optimality tolerance parameters from
-            # https://docs.mosek.com/7.0/toolbox/Parameters.html
-            tol_params = {"MSK_DPAR_INTPNT_CO_TOL_MU_RED", "MSK_DPAR_INTPNT_CO_TOL_NEAR_REL"}
+            # https://docs.mosek.com/9.3/pythonapi/param-groups.html
+            tol_params = {# Conic interior-point tolerances
+                          "MSK_DPAR_INTPNT_CO_TOL_DFEAS",
+                          "MSK_DPAR_INTPNT_CO_TOL_INFEAS",
+                          "MSK_DPAR_INTPNT_CO_TOL_MU_RED",
+                          "MSK_DPAR_INTPNT_CO_TOL_PFEAS",
+                          "MSK_DPAR_INTPNT_CO_TOL_REL_GAP",
+                          # Interior-point tolerances
+                          "MSK_DPAR_INTPNT_TOL_DFEAS",
+                          "MSK_DPAR_INTPNT_TOL_INFEAS",
+                          "MSK_DPAR_INTPNT_TOL_MU_RED",
+                          "MSK_DPAR_INTPNT_TOL_PFEAS",
+                          "MSK_DPAR_INTPNT_TOL_REL_GAP",
+                          # Simplex tolerances
+                          "MSK_DPAR_BASIS_REL_TOL_S",
+                          "MSK_DPAR_BASIS_TOL_S",
+                          "MSK_DPAR_BASIS_TOL_X",
+                          # MIO tolerances
+                          "MSK_DPAR_MIO_TOL_ABS_GAP",
+                          "MSK_DPAR_MIO_TOL_ABS_RELAX_INT",
+                          "MSK_DPAR_MIO_TOL_FEAS",
+                          "MSK_DPAR_MIO_TOL_REL_GAP"
+                          }
             if solver_opts.get('mosek_params') is not None:
                 for key in tol_params:
                     # If tolerance parameter is already provided by the user, user choice is used
