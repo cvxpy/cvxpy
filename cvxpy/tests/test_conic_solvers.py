@@ -406,6 +406,9 @@ class TestSCS(BaseTest):
     def test_scs_exp_soc_1(self) -> None:
         StandardTestMixedCPs.test_exp_soc_1(solver='SCS', eps=1e-5)
 
+    def test_scs_sdp_pcp_1(self):
+        StandardTestMixedCPs.test_sdp_pcp_1(solver='SCS')
+        
     def test_scs_pcp_1(self) -> None:
         StandardTestPCPs.test_pcp_1(solver='SCS')
 
@@ -622,6 +625,10 @@ class TestMosek(unittest.TestCase):
             with pytest.warns():
                 problem.solve(solver=cp.MOSEK, mosek_params=mosek_params)
 
+    def test_mosek_sdp_power(self) -> None:
+        """Test the problem in issue #2128"""
+        StandardTestMixedCPs.test_sdp_pcp_1(solver='MOSEK')
+        
     def test_power_portfolio(self) -> None:
         """Test the portfolio problem in issue #2042"""
         T, N = 200, 10
@@ -670,6 +677,17 @@ class TestMosek(unittest.TestCase):
         prob = cp.Problem(objective, constraints)
         prob.solve(solver=cp.MOSEK)
         assert prob.status is cp.OPTIMAL
+
+    def test_mosek_accept_unknown(self) -> None:
+        mosek_param = {
+            "MSK_IPAR_INTPNT_MAX_ITERATIONS": 0
+        }
+        sth = sths.lp_5()
+        sth.solve(solver=cp.MOSEK, accept_unknown=True, mosek_params=mosek_param)
+        assert sth.prob.status in {cp.OPTIMAL_INACCURATE, cp.OPTIMAL}
+
+        with pytest.raises(cp.error.SolverError, match="Solver 'MOSEK' failed"):
+            sth.solve(solver=cp.MOSEK, mosek_params=mosek_param)
 
 
 @unittest.skipUnless('CVXOPT' in INSTALLED_SOLVERS, 'CVXOPT is not installed.')
@@ -789,6 +807,21 @@ class TestSDPA(BaseTest):
         # this also tests the ability to pass solver options
         StandardTestLPs.test_lp_5(solver='SDPA',
                                   gammaStar=0.86, epsilonDash=8.0E-6, betaStar=0.18, betaBar=0.15)
+
+    def test_sdpa_socp_0(self) -> None:
+        StandardTestSOCPs.test_socp_0(solver='SDPA')
+
+    def test_sdpa_socp_1(self) -> None:
+        StandardTestSOCPs.test_socp_1(solver='SDPA')
+
+    def test_sdpa_socp_2(self) -> None:
+        StandardTestSOCPs.test_socp_2(solver='SDPA')
+
+    def test_sdpa_socp_3(self) -> None:
+        # axis 0
+        StandardTestSOCPs.test_socp_3ax0(solver='SDPA')
+        # axis 1
+        StandardTestSOCPs.test_socp_3ax1(solver='SDPA')
 
     def test_sdpa_sdp_1(self) -> None:
         # minimization

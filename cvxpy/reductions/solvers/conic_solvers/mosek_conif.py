@@ -245,7 +245,7 @@ class MOSEK(ConicSolver):
                 total_psd = sum([d * (d+1) // 2 for d in K[a2d.PSD]])
                 A_psd = A[:, idx:idx+total_psd]
                 c_psd = c[idx:idx+total_psd]
-                if K[a2d.DUAL_EXP] == 0:
+                if (K[a2d.DUAL_EXP] == 0) and (K[a2d.DUAL_POW3D] == 0):
                     data[s.A] = A[:, :idx]
                     data[s.C] = c[:idx]
                 else:
@@ -469,6 +469,12 @@ class MOSEK(ConicSolver):
                       mosek.solsta.prim_feas: s.OPTIMAL_INACCURATE,    # for integer problems
                       mosek.solsta.prim_infeas_cer: s.INFEASIBLE,
                       mosek.solsta.dual_infeas_cer: s.UNBOUNDED}
+
+        solver_opts = solver_output['solver_options']
+
+        if solver_opts.get('accept_unknown', False):
+            STATUS_MAP[mosek.solsta.unknown] = s.OPTIMAL_INACCURATE
+
         # "Near" statuses only up to Mosek 8.1
         if hasattr(mosek.solsta, 'near_optimal'):
             STATUS_MAP[mosek.solsta.near_optimal] = s.OPTIMAL_INACCURATE
@@ -479,7 +485,6 @@ class MOSEK(ConicSolver):
 
         env = solver_output['env']
         task = solver_output['task']
-        solver_opts = solver_output['solver_options']
 
         if solver_opts.get('eps') is not None:
             # Fixed list for optimality tolerance parameters from
@@ -669,6 +674,8 @@ class MOSEK(ConicSolver):
             kwargs.remove('bfs')
         if 'eps' in kwargs:
             kwargs.remove('eps')
+        if 'accept_unknown' in kwargs:
+            kwargs.remove('accept_unknown')
         if kwargs:
             raise ValueError("Invalid keyword-argument '%s'" % kwargs[0])
 

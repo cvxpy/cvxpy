@@ -460,7 +460,7 @@ The table below shows the types of problems the supported solvers can handle.
 +----------------+----+----+------+-----+-----+-----+-----+
 | `CVXOPT`_      | X  | X  | X    | X   |     |     |     |
 +----------------+----+----+------+-----+-----+-----+-----+
-| `SDPA`_        | X  |    |      | X   |     |     |     |
+| `SDPA`_        | X  | X  | X    | X   |     |     |     |
 +----------------+----+----+------+-----+-----+-----+-----+
 | `SCS`_         | X  | X  | X    | X   | X   | X   |     |
 +----------------+----+----+------+-----+-----+-----+-----+
@@ -831,6 +831,11 @@ For others see `OSQP documentation <https://osqp.org/docs/interfaces/solver_sett
     For a linear problem, if ``bfs=True``, then the basic solution will be retrieved
     instead of the interior-point solution. This assumes no specific MOSEK
     parameters were used which prevent computing the basic solution.
+
+``'accept_unknown'``
+    If ``accept_unknown=True``, an inaccurate solution will be returned, even if
+    it is arbitrarily bad, when the solver does not generate an optimal
+    point under the given conditions.
 
 .. note::
 
