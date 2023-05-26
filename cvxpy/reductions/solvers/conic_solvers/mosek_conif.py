@@ -431,10 +431,16 @@ class MOSEK(ConicSolver):
         env = solver_output['env']
         task = solver_output['task']
         solver_opts = solver_output['solver_options']
+        simplex_algs = [
+            mosek.optimizertype.primal_simplex,
+            mosek.optimizertype.dual_simplex,
+        ]
+        current_optimizer = task.getintparam(mosek.iparam.optimizer)
+        bfs_active = "bfs" in solver_opts and solver_opts["bfs"] and task.getnumcone() == 0
 
         if task.getnumintvar() > 0:
             sol_type = mosek.soltype.itg
-        elif 'bfs' in solver_opts and solver_opts['bfs'] and task.getnumcone() == 0:
+        elif current_optimizer in simplex_algs or bfs_active:
             sol_type = mosek.soltype.bas  # the basic feasible solution
         else:
             sol_type = mosek.soltype.itr  # the solution found via interior point method
