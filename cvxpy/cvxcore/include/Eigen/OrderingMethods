@@ -63,7 +63,10 @@
   * \endcode
   */
 
+#ifndef EIGEN_MPL2_ONLY
 #include "src/OrderingMethods/Amd.h"
+#endif
+
 #include "src/OrderingMethods/Ordering.h"
 #include "src/Core/util/ReenableStupidWarnings.h"
 

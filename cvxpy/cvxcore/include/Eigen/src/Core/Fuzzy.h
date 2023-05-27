@@ -100,7 +100,7 @@ struct isMuchSmallerThan_scalar_selector<Derived, true>
   */
 template<typename Derived>
 template<typename OtherDerived>
-EIGEN_DEVICE_FUNC bool DenseBase<Derived>::isApprox(
+bool DenseBase<Derived>::isApprox(
   const DenseBase<OtherDerived>& other,
   const RealScalar& prec
 ) const
@@ -122,7 +122,7 @@ EIGEN_DEVICE_FUNC bool DenseBase<Derived>::isApprox(
   * \sa isApprox(), isMuchSmallerThan(const DenseBase<OtherDerived>&, RealScalar) const
   */
 template<typename Derived>
-EIGEN_DEVICE_FUNC bool DenseBase<Derived>::isMuchSmallerThan(
+bool DenseBase<Derived>::isMuchSmallerThan(
   const typename NumTraits<Scalar>::Real& other,
   const RealScalar& prec
 ) const
@@ -142,7 +142,7 @@ EIGEN_DEVICE_FUNC bool DenseBase<Derived>::isMuchSmallerThan(
   */
 template<typename Derived>
 template<typename OtherDerived>
-EIGEN_DEVICE_FUNC bool DenseBase<Derived>::isMuchSmallerThan(
+bool DenseBase<Derived>::isMuchSmallerThan(
   const DenseBase<OtherDerived>& other,
   const RealScalar& prec
 ) const

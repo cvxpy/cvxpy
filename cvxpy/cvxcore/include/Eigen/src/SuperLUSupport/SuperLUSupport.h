@@ -217,12 +217,12 @@ struct SluMatrix : SuperMatrix
     res.setScalarType<typename MatrixType::Scalar>();
 
     // FIXME the following is not very accurate
-    if (int(MatrixType::Flags) & int(Upper))
+    if (MatrixType::Flags & Upper)
       res.Mtype = SLU_TRU;
-    if (int(MatrixType::Flags) & int(Lower))
+    if (MatrixType::Flags & Lower)
       res.Mtype = SLU_TRL;
 
-    eigen_assert(((int(MatrixType::Flags) & int(SelfAdjoint))==0) && "SelfAdjoint matrix shape not supported by SuperLU");
+    eigen_assert(((MatrixType::Flags & SelfAdjoint)==0) && "SelfAdjoint matrix shape not supported by SuperLU");
 
     return res;
   }
@@ -352,7 +352,7 @@ class SuperLUBase : public SparseSolverBase<Derived>
     
     /** \brief Reports whether previous computation was successful.
       *
-      * \returns \c Success if computation was successful,
+      * \returns \c Success if computation was succesful,
       *          \c NumericalIssue if the matrix.appears to be negative.
       */
     ComputationInfo info() const
@@ -650,8 +650,9 @@ void SuperLU<MatrixType>::_solve_impl(const MatrixBase<Rhs> &b, MatrixBase<Dest>
 {
   eigen_assert(m_factorizationIsOk && "The decomposition is not in a valid state for solving, you must first call either compute() or analyzePattern()/factorize()");
 
+  const Index size = m_matrix.rows();
   const Index rhsCols = b.cols();
-  eigen_assert(m_matrix.rows()==b.rows());
+  eigen_assert(size==b.rows());
 
   m_sluOptions.Trans = NOTRANS;
   m_sluOptions.Fact = FACTORED;
@@ -973,8 +974,9 @@ void SuperILU<MatrixType>::_solve_impl(const MatrixBase<Rhs> &b, MatrixBase<Dest
 {
   eigen_assert(m_factorizationIsOk && "The decomposition is not in a valid state for solving, you must first call either compute() or analyzePattern()/factorize()");
 
+  const int size = m_matrix.rows();
   const int rhsCols = b.cols();
-  eigen_assert(m_matrix.rows()==b.rows());
+  eigen_assert(size==b.rows());
 
   m_sluOptions.Trans = NOTRANS;
   m_sluOptions.Fact = FACTORED;

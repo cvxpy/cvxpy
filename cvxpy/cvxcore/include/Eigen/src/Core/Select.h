@@ -10,7 +10,7 @@
 #ifndef EIGEN_SELECT_H
 #define EIGEN_SELECT_H
 
-namespace Eigen {
+namespace Eigen { 
 
 /** \class Select
   * \ingroup Core_Module
@@ -67,10 +67,8 @@ class Select : public internal::dense_xpr_base< Select<ConditionMatrixType, Then
       eigen_assert(m_condition.cols() == m_then.cols() && m_condition.cols() == m_else.cols());
     }
 
-    inline EIGEN_DEVICE_FUNC EIGEN_CONSTEXPR
-    Index rows() const EIGEN_NOEXCEPT { return m_condition.rows(); }
-    inline EIGEN_DEVICE_FUNC EIGEN_CONSTEXPR
-    Index cols() const EIGEN_NOEXCEPT { return m_condition.cols(); }
+    inline EIGEN_DEVICE_FUNC Index rows() const { return m_condition.rows(); }
+    inline EIGEN_DEVICE_FUNC Index cols() const { return m_condition.cols(); }
 
     inline EIGEN_DEVICE_FUNC
     const Scalar coeff(Index i, Index j) const
@@ -122,7 +120,7 @@ class Select : public internal::dense_xpr_base< Select<ConditionMatrixType, Then
   */
 template<typename Derived>
 template<typename ThenDerived,typename ElseDerived>
-inline EIGEN_DEVICE_FUNC const Select<Derived,ThenDerived,ElseDerived>
+inline const Select<Derived,ThenDerived,ElseDerived>
 DenseBase<Derived>::select(const DenseBase<ThenDerived>& thenMatrix,
                             const DenseBase<ElseDerived>& elseMatrix) const
 {
@@ -136,7 +134,7 @@ DenseBase<Derived>::select(const DenseBase<ThenDerived>& thenMatrix,
   */
 template<typename Derived>
 template<typename ThenDerived>
-inline EIGEN_DEVICE_FUNC const Select<Derived,ThenDerived, typename ThenDerived::ConstantReturnType>
+inline const Select<Derived,ThenDerived, typename ThenDerived::ConstantReturnType>
 DenseBase<Derived>::select(const DenseBase<ThenDerived>& thenMatrix,
                            const typename ThenDerived::Scalar& elseScalar) const
 {
@@ -151,7 +149,7 @@ DenseBase<Derived>::select(const DenseBase<ThenDerived>& thenMatrix,
   */
 template<typename Derived>
 template<typename ElseDerived>
-inline EIGEN_DEVICE_FUNC const Select<Derived, typename ElseDerived::ConstantReturnType, ElseDerived >
+inline const Select<Derived, typename ElseDerived::ConstantReturnType, ElseDerived >
 DenseBase<Derived>::select(const typename ElseDerived::Scalar& thenScalar,
                            const DenseBase<ElseDerived>& elseMatrix) const
 {

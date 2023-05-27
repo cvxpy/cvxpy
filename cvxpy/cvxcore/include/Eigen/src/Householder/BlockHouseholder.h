@@ -63,15 +63,8 @@ void make_block_householder_triangular_factor(TriangularFactorType& triFactor, c
       triFactor.row(i).tail(rt).noalias() = -hCoeffs(i) * vectors.col(i).tail(rs).adjoint()
                                                         * vectors.bottomRightCorner(rs, rt).template triangularView<UnitLower>();
             
-      // FIXME use the following line with .noalias() once the triangular product can work inplace
-      // triFactor.row(i).tail(rt) = triFactor.row(i).tail(rt) * triFactor.bottomRightCorner(rt,rt).template triangularView<Upper>();
-      for(Index j=nbVecs-1; j>i; --j)
-      {
-        typename TriangularFactorType::Scalar z = triFactor(i,j);
-        triFactor(i,j) = z * triFactor(j,j);
-        if(nbVecs-j-1>0)
-          triFactor.row(i).tail(nbVecs-j-1) += z * triFactor.row(j).tail(nbVecs-j-1);
-      }
+      // FIXME add .noalias() once the triangular product can work inplace
+      triFactor.row(i).tail(rt) = triFactor.row(i).tail(rt) * triFactor.bottomRightCorner(rt,rt).template triangularView<Upper>();
       
     }
     triFactor(i,i) = hCoeffs(i);

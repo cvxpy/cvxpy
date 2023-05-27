@@ -11,7 +11,7 @@
 #ifndef EIGEN_TRANSPOSE_H
 #define EIGEN_TRANSPOSE_H
 
-namespace Eigen {
+namespace Eigen { 
 
 namespace internal {
 template<typename MatrixType>
@@ -61,27 +61,24 @@ template<typename MatrixType> class Transpose
     typedef typename internal::remove_all<MatrixType>::type NestedExpression;
 
     EIGEN_DEVICE_FUNC
-    explicit EIGEN_STRONG_INLINE Transpose(MatrixType& matrix) : m_matrix(matrix) {}
+    explicit inline Transpose(MatrixType& matrix) : m_matrix(matrix) {}
 
     EIGEN_INHERIT_ASSIGNMENT_OPERATORS(Transpose)
 
-    EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE EIGEN_CONSTEXPR
-    Index rows() const EIGEN_NOEXCEPT { return m_matrix.cols(); }
-    EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE EIGEN_CONSTEXPR
-    Index cols() const EIGEN_NOEXCEPT { return m_matrix.rows(); }
+    EIGEN_DEVICE_FUNC inline Index rows() const { return m_matrix.cols(); }
+    EIGEN_DEVICE_FUNC inline Index cols() const { return m_matrix.rows(); }
 
     /** \returns the nested expression */
-    EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
+    EIGEN_DEVICE_FUNC
     const typename internal::remove_all<MatrixTypeNested>::type&
     nestedExpression() const { return m_matrix; }
 
     /** \returns the nested expression */
-    EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
+    EIGEN_DEVICE_FUNC
     typename internal::remove_reference<MatrixTypeNested>::type&
     nestedExpression() { return m_matrix; }
 
     /** \internal */
-    EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
     void resize(Index nrows, Index ncols) {
       m_matrix.resize(ncols,nrows);
     }
@@ -125,10 +122,8 @@ template<typename MatrixType> class TransposeImpl<MatrixType,Dense>
     EIGEN_DENSE_PUBLIC_INTERFACE(Transpose<MatrixType>)
     EIGEN_INHERIT_ASSIGNMENT_OPERATORS(TransposeImpl)
 
-    EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
-    Index innerStride() const { return derived().nestedExpression().innerStride(); }
-    EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
-    Index outerStride() const { return derived().nestedExpression().outerStride(); }
+    EIGEN_DEVICE_FUNC inline Index innerStride() const { return derived().nestedExpression().innerStride(); }
+    EIGEN_DEVICE_FUNC inline Index outerStride() const { return derived().nestedExpression().outerStride(); }
 
     typedef typename internal::conditional<
                        internal::is_lvalue<MatrixType>::value,
@@ -136,20 +131,18 @@ template<typename MatrixType> class TransposeImpl<MatrixType,Dense>
                        const Scalar
                      >::type ScalarWithConstIfNotLvalue;
 
-    EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
-    ScalarWithConstIfNotLvalue* data() { return derived().nestedExpression().data(); }
-    EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
-    const Scalar* data() const { return derived().nestedExpression().data(); }
+    EIGEN_DEVICE_FUNC inline ScalarWithConstIfNotLvalue* data() { return derived().nestedExpression().data(); }
+    EIGEN_DEVICE_FUNC inline const Scalar* data() const { return derived().nestedExpression().data(); }
 
     // FIXME: shall we keep the const version of coeffRef?
-    EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
-    const Scalar& coeffRef(Index rowId, Index colId) const
+    EIGEN_DEVICE_FUNC
+    inline const Scalar& coeffRef(Index rowId, Index colId) const
     {
       return derived().nestedExpression().coeffRef(colId, rowId);
     }
 
-    EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
-    const Scalar& coeffRef(Index index) const
+    EIGEN_DEVICE_FUNC
+    inline const Scalar& coeffRef(Index index) const
     {
       return derived().nestedExpression().coeffRef(index);
     }
@@ -177,8 +170,7 @@ template<typename MatrixType> class TransposeImpl<MatrixType,Dense>
   *
   * \sa transposeInPlace(), adjoint() */
 template<typename Derived>
-EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
-Transpose<Derived>
+inline Transpose<Derived>
 DenseBase<Derived>::transpose()
 {
   return TransposeReturnType(derived());
@@ -190,8 +182,7 @@ DenseBase<Derived>::transpose()
   *
   * \sa transposeInPlace(), adjoint() */
 template<typename Derived>
-EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
-typename DenseBase<Derived>::ConstTransposeReturnType
+inline typename DenseBase<Derived>::ConstTransposeReturnType
 DenseBase<Derived>::transpose() const
 {
   return ConstTransposeReturnType(derived());
@@ -217,7 +208,7 @@ DenseBase<Derived>::transpose() const
   *
   * \sa adjointInPlace(), transpose(), conjugate(), class Transpose, class internal::scalar_conjugate_op */
 template<typename Derived>
-EIGEN_DEVICE_FUNC inline const typename MatrixBase<Derived>::AdjointReturnType
+inline const typename MatrixBase<Derived>::AdjointReturnType
 MatrixBase<Derived>::adjoint() const
 {
   return AdjointReturnType(this->transpose());
@@ -239,10 +230,11 @@ struct inplace_transpose_selector;
 template<typename MatrixType>
 struct inplace_transpose_selector<MatrixType,true,false> { // square matrix
   static void run(MatrixType& m) {
-    m.matrix().template triangularView<StrictlyUpper>().swap(m.matrix().transpose().template triangularView<StrictlyUpper>());
+    m.matrix().template triangularView<StrictlyUpper>().swap(m.matrix().transpose());
   }
 };
 
+// TODO: vectorized path is currently limited to LargestPacketSize x LargestPacketSize cases only.
 template<typename MatrixType>
 struct inplace_transpose_selector<MatrixType,true,true> { // PacketSize x PacketSize
   static void run(MatrixType& m) {
@@ -259,65 +251,15 @@ struct inplace_transpose_selector<MatrixType,true,true> { // PacketSize x Packet
   }
 };
 
-
-template <typename MatrixType, Index Alignment>
-void BlockedInPlaceTranspose(MatrixType& m) {
-  typedef typename MatrixType::Scalar Scalar;
-  typedef typename internal::packet_traits<typename MatrixType::Scalar>::type Packet;
-  const Index PacketSize = internal::packet_traits<Scalar>::size;
-  eigen_assert(m.rows() == m.cols());
-  int row_start = 0;
-  for (; row_start + PacketSize <= m.rows(); row_start += PacketSize) {
-    for (int col_start = row_start; col_start + PacketSize <= m.cols(); col_start += PacketSize) {
-      PacketBlock<Packet> A;
-      if (row_start == col_start) {
-        for (Index i=0; i<PacketSize; ++i)
-          A.packet[i] = m.template packetByOuterInner<Alignment>(row_start + i,col_start);
-        internal::ptranspose(A);
-        for (Index i=0; i<PacketSize; ++i)
-          m.template writePacket<Alignment>(m.rowIndexByOuterInner(row_start + i, col_start), m.colIndexByOuterInner(row_start + i,col_start), A.packet[i]);
-      } else {
-        PacketBlock<Packet> B;
-        for (Index i=0; i<PacketSize; ++i) {
-          A.packet[i] = m.template packetByOuterInner<Alignment>(row_start + i,col_start);
-          B.packet[i] = m.template packetByOuterInner<Alignment>(col_start + i, row_start);
-        }
-        internal::ptranspose(A);
-        internal::ptranspose(B);
-        for (Index i=0; i<PacketSize; ++i) {
-          m.template writePacket<Alignment>(m.rowIndexByOuterInner(row_start + i, col_start), m.colIndexByOuterInner(row_start + i,col_start), B.packet[i]);
-          m.template writePacket<Alignment>(m.rowIndexByOuterInner(col_start + i, row_start), m.colIndexByOuterInner(col_start + i,row_start), A.packet[i]);
-        }
-      }
-    }
-  }
-  for (Index row = row_start; row < m.rows(); ++row) {
-    m.matrix().row(row).head(row).swap(
-        m.matrix().col(row).head(row).transpose());
-  }
-}
-
 template<typename MatrixType,bool MatchPacketSize>
-struct inplace_transpose_selector<MatrixType,false,MatchPacketSize> { // non square or dynamic matrix
+struct inplace_transpose_selector<MatrixType,false,MatchPacketSize> { // non square matrix
   static void run(MatrixType& m) {
-    typedef typename MatrixType::Scalar Scalar;
-    if (m.rows() == m.cols()) {
-      const Index PacketSize = internal::packet_traits<Scalar>::size;
-      if (!NumTraits<Scalar>::IsComplex && m.rows() >= PacketSize) {
-        if ((m.rows() % PacketSize) == 0)
-          BlockedInPlaceTranspose<MatrixType,internal::evaluator<MatrixType>::Alignment>(m);
-        else
-          BlockedInPlaceTranspose<MatrixType,Unaligned>(m);
-      }
-      else {
-        m.matrix().template triangularView<StrictlyUpper>().swap(m.matrix().transpose().template triangularView<StrictlyUpper>());
-      }
-    } else {
+    if (m.rows()==m.cols())
+      m.matrix().template triangularView<StrictlyUpper>().swap(m.matrix().transpose());
+    else
       m = m.transpose().eval();
-    }
   }
 };
-
 
 } // end namespace internal
 
@@ -336,12 +278,12 @@ struct inplace_transpose_selector<MatrixType,false,MatchPacketSize> { // non squ
   * Notice however that this method is only useful if you want to replace a matrix by its own transpose.
   * If you just need the transpose of a matrix, use transpose().
   *
-  * \note if the matrix is not square, then \c *this must be a resizable matrix.
+  * \note if the matrix is not square, then \c *this must be a resizable matrix. 
   * This excludes (non-square) fixed-size matrices, block-expressions and maps.
   *
   * \sa transpose(), adjoint(), adjointInPlace() */
 template<typename Derived>
-EIGEN_DEVICE_FUNC inline void DenseBase<Derived>::transposeInPlace()
+inline void DenseBase<Derived>::transposeInPlace()
 {
   eigen_assert((rows() == cols() || (RowsAtCompileTime == Dynamic && ColsAtCompileTime == Dynamic))
                && "transposeInPlace() called on a non-square non-resizable matrix");
@@ -372,7 +314,7 @@ EIGEN_DEVICE_FUNC inline void DenseBase<Derived>::transposeInPlace()
   *
   * \sa transpose(), adjoint(), transposeInPlace() */
 template<typename Derived>
-EIGEN_DEVICE_FUNC inline void MatrixBase<Derived>::adjointInPlace()
+inline void MatrixBase<Derived>::adjointInPlace()
 {
   derived() = adjoint().eval();
 }
@@ -451,8 +393,7 @@ struct checkTransposeAliasing_impl<Derived, OtherDerived, false>
 template<typename Dst, typename Src>
 void check_for_aliasing(const Dst &dst, const Src &src)
 {
-  if((!Dst::IsVectorAtCompileTime) && dst.rows()>1 && dst.cols()>1)
-    internal::checkTransposeAliasing_impl<Dst, Src>::run(dst, src);
+  internal::checkTransposeAliasing_impl<Dst, Src>::run(dst, src);
 }
 
 } // end namespace internal

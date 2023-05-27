@@ -201,7 +201,7 @@ class Ref<const SparseMatrix<MatScalar,MatOptions,MatIndex>, Options, StrideType
 
     ~Ref() {
       if(m_hasCopy) {
-        TPlainObjectType* obj = reinterpret_cast<TPlainObjectType*>(&m_storage);
+        TPlainObjectType* obj = reinterpret_cast<TPlainObjectType*>(m_object_bytes);
         obj->~TPlainObjectType();
       }
     }
@@ -213,7 +213,7 @@ class Ref<const SparseMatrix<MatScalar,MatOptions,MatIndex>, Options, StrideType
     {
       if((Options & int(StandardCompressedFormat)) && (!expr.isCompressed()))
       {
-        TPlainObjectType* obj = reinterpret_cast<TPlainObjectType*>(&m_storage);
+        TPlainObjectType* obj = reinterpret_cast<TPlainObjectType*>(m_object_bytes);
         ::new (obj) TPlainObjectType(expr);
         m_hasCopy = true;
         Base::construct(*obj);
@@ -227,14 +227,14 @@ class Ref<const SparseMatrix<MatScalar,MatOptions,MatIndex>, Options, StrideType
     template<typename Expression>
     void construct(const Expression& expr, internal::false_type)
     {
-      TPlainObjectType* obj = reinterpret_cast<TPlainObjectType*>(&m_storage);
+      TPlainObjectType* obj = reinterpret_cast<TPlainObjectType*>(m_object_bytes);
       ::new (obj) TPlainObjectType(expr);
       m_hasCopy = true;
       Base::construct(*obj);
     }
 
   protected:
-    typename internal::aligned_storage<sizeof(TPlainObjectType), EIGEN_ALIGNOF(TPlainObjectType)>::type m_storage;
+    char m_object_bytes[sizeof(TPlainObjectType)];
     bool m_hasCopy;
 };
 
@@ -319,7 +319,7 @@ class Ref<const SparseVector<MatScalar,MatOptions,MatIndex>, Options, StrideType
 
     ~Ref() {
       if(m_hasCopy) {
-        TPlainObjectType* obj = reinterpret_cast<TPlainObjectType*>(&m_storage);
+        TPlainObjectType* obj = reinterpret_cast<TPlainObjectType*>(m_object_bytes);
         obj->~TPlainObjectType();
       }
     }
@@ -335,14 +335,14 @@ class Ref<const SparseVector<MatScalar,MatOptions,MatIndex>, Options, StrideType
     template<typename Expression>
     void construct(const Expression& expr, internal::false_type)
     {
-      TPlainObjectType* obj = reinterpret_cast<TPlainObjectType*>(&m_storage);
+      TPlainObjectType* obj = reinterpret_cast<TPlainObjectType*>(m_object_bytes);
       ::new (obj) TPlainObjectType(expr);
       m_hasCopy = true;
       Base::construct(*obj);
     }
 
   protected:
-    typename internal::aligned_storage<sizeof(TPlainObjectType), EIGEN_ALIGNOF(TPlainObjectType)>::type m_storage;
+    char m_object_bytes[sizeof(TPlainObjectType)];
     bool m_hasCopy;
 };
 

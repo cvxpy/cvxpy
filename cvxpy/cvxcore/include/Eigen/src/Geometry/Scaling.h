@@ -29,22 +29,6 @@ namespace Eigen {
   *
   * \sa Scaling(), class DiagonalMatrix, MatrixBase::asDiagonal(), class Translation, class Transform
   */
-
-namespace internal
-{
-  // This helper helps nvcc+MSVC to properly parse this file.
-  // See bug 1412.
-  template <typename Scalar, int Dim, int Mode>
-  struct uniformscaling_times_affine_returntype
-  {
-    enum
-    {
-      NewMode = int(Mode) == int(Isometry) ? Affine : Mode
-    };
-    typedef Transform <Scalar, Dim, NewMode> type;
-  };
-}
-
 template<typename _Scalar>
 class UniformScaling
 {
@@ -76,11 +60,9 @@ public:
 
   /** Concatenates a uniform scaling and an affine transformation */
   template<int Dim, int Mode, int Options>
-  inline typename
-	internal::uniformscaling_times_affine_returntype<Scalar,Dim,Mode>::type
-	operator* (const Transform<Scalar, Dim, Mode, Options>& t) const
+  inline Transform<Scalar,Dim,(int(Mode)==int(Isometry)?Affine:Mode)> operator* (const Transform<Scalar,Dim, Mode, Options>& t) const
   {
-    typename internal::uniformscaling_times_affine_returntype<Scalar,Dim,Mode>::type res = t;
+    Transform<Scalar,Dim,(int(Mode)==int(Isometry)?Affine:Mode)> res = t;
     res.prescale(factor());
     return res;
   }
@@ -88,7 +70,7 @@ public:
   /** Concatenates a uniform scaling and a linear transformation matrix */
   // TODO returns an expression
   template<typename Derived>
-  inline typename Eigen::internal::plain_matrix_type<Derived>::type operator* (const MatrixBase<Derived>& other) const
+  inline typename internal::plain_matrix_type<Derived>::type operator* (const MatrixBase<Derived>& other) const
   { return other * m_factor; }
 
   template<typename Derived,int Dim>
@@ -128,7 +110,7 @@ public:
 /** Concatenates a linear transformation matrix and a uniform scaling
   * \relates UniformScaling
   */
-// NOTE this operator is defined in MatrixBase and not as a friend function
+// NOTE this operator is defiend in MatrixBase and not as a friend function
 // of UniformScaling to fix an internal crash of Intel's ICC
 template<typename Derived,typename Scalar>
 EIGEN_EXPR_BINARYOP_SCALAR_RETURN_TYPE(Derived,Scalar,product)
