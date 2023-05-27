@@ -3,6 +3,7 @@ import numpy as np
 import scipy.linalg as la
 import scipy.sparse as spar
 import scipy.sparse.linalg as sparla
+from scipy.sparse import csc_matrix
 
 
 def orth(V, tol=1e-12):
