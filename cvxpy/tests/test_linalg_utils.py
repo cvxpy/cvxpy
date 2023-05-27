@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import numpy as np
+import numpy as np # noqa F403
 import scipy.sparse as spar
 from cvxpy.tests.base_test import BaseTest
 from cvxpy.utilities import linalg as lau
