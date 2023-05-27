@@ -196,7 +196,7 @@ def sparse_cholesky(A, sym_tol=1e-12, permute_L=True):
     if not isinstance(A, spar.spmatrix):
         raise ValueError('Input must be a SciPy sparse matrix.')
     symdiff = A - A.T
-    if la.norm(symdiff.data) > sym_tol:
+    if symdiff.data.size > 0 and la.norm(symdiff.data) > sym_tol:
         raise ValueError('Input matrix is not symmetric to within provided tolerance.')
     A_coo = spar.coo_matrix(A)
     n = A.shape[0]
