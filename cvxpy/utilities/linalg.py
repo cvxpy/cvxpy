@@ -188,8 +188,12 @@ def sparse_cholesky(A, sym_tol=1e-12, permute_L=True):
         raise ValueError('Cholesky failed. The input was not (numerically) positive definite.')
 
     # error checking and return values
+    outvals = list(outvals)
+    outrows = list(outrows)
+    outcols = list(outcols)
+    outpivs = list(outpivs)
     L = spar.csr_matrix((outvals, (outrows, outcols)), shape=(n, n))
-    outpivs = np.array(list(outpivs))
+    outpivs = np.array(outpivs)
     if permute_L:
         Lp = L[outpivs, :]
         return Lp
