@@ -221,7 +221,7 @@ def sparse_cholesky(A, sym_tol=1e-12, permute_L=True):
     # error checking and return values
     outvals = list(outvals)
     outrows = list(outrows)
-    outcols = list(outcols)
+    outcols = [outcols[i] for i in range(outcols.size())]
     outpivs = list(outpivs)
     L = spar.csr_matrix((outvals, (outrows, outcols)), shape=(n, n))
     outpivs = np.array(outpivs)
