@@ -33,6 +33,18 @@ def onb_for_orthogonal_complement(V):
     return Q2
 
 
+def is_diagonal(A):
+    if isinstance(A, spar.spmatrix):
+        off_diagonal_elements = A - spar.diags(A.diagonal())
+        off_diagonal_elements = off_diagonal_elements.toarray()
+    elif isinstance(A, np.ndarray):
+        off_diagonal_elements = A - np.diag(np.diag(A))
+    else:
+        raise ValueError("Unsupported matrix type.")
+
+    return np.allclose(off_diagonal_elements, 0)
+
+
 def is_psd_within_tol(A, tol):
     """
     Return True if we can certify that A is PSD (up to tolerance "tol").
@@ -62,8 +74,26 @@ def is_psd_within_tol(A, tol):
     if gershgorin_psd_check(A, tol):
         return True
 
+    if is_diagonal(A):
+        if isinstance(A, csc_matrix):
+            return np.all(A.data >= -tol)
+        else:
+            min_diag_entry = np.min(np.diag(A))
+            return min_diag_entry >= -tol
+
     def SA_eigsh(sigma):
-        return sparla.eigsh(A, k=1, sigma=sigma, which='SA', return_eigenvectors=False)
+
+        # Check for default_rng in np.random module (new API)
+        if hasattr(np.random, 'default_rng'):
+            g = np.random.default_rng(123)
+        else:  # fallback to legacy RandomState
+            g = np.random.RandomState(123)
+
+        n = A.shape[0]
+        v0 = g.normal(loc=0.0, scale=1.0, size=n)
+
+        return sparla.eigsh(A, k=1, sigma=sigma, which='SA', v0=v0,
+                            return_eigenvectors=False)
         # Returns the eigenvalue w[i] of A where 1/(w[i] - sigma) is minimized.
         #
         # If A - sigma*I is PSD, then w[i] should be equal to the largest
