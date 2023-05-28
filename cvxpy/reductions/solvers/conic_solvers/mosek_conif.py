@@ -509,9 +509,10 @@ class MOSEK(ConicSolver):
                 prim_vars = MOSEK.recover_primal_variables(task, sol_type, K)
                 dual_vars = MOSEK.recover_dual_variables(task, sol_type)
         attr = {s.SOLVE_TIME: task.getdouinf(mosek.dinfitem.optimizer_time),
-                s.NUM_ITERS: task.getdouinf(mosek.iinfitem.intpnt_iter) +
-                             task.getdouinf(mosek.liinfitem.simplex_iter) +
-                             task.getdouinf(mosek.liinfitem.mio_simplex_iter)
+                s.NUM_ITERS: task.getintinf(mosek.iinfitem.intpnt_iter) +
+                             task.getlintinf(mosek.liinfitem.simplex_iter) +
+                             task.getlintinf(mosek.liinfitem.mio_intpnt_iter) +
+                             task.getlintinf(mosek.liinfitem.mio_simplex_iter)
                 }
         raw_sol = Solution(status, prob_val, prim_vars, dual_vars, attr)
 
