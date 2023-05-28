@@ -590,40 +590,39 @@ class TestMosek(unittest.TestCase):
         StandardTestPCPs.test_mi_pcp_0(solver='MOSEK')
 
     def test_mosek_params(self) -> None:
-        if cp.MOSEK in INSTALLED_SOLVERS:
-            import mosek
-            n = 10
-            m = 4
-            np.random.seed(0)
-            A = np.random.randn(m, n)
-            x = np.random.randn(n)
-            y = A.dot(x)
+        import mosek
+        n = 10
+        m = 4
+        np.random.seed(0)
+        A = np.random.randn(m, n)
+        x = np.random.randn(n)
+        y = A.dot(x)
 
-            # Solve a simple basis pursuit problem for testing purposes.
-            z = cp.Variable(n)
-            objective = cp.Minimize(cp.norm1(z))
-            constraints = [A @ z == y]
-            problem = cp.Problem(objective, constraints)
+        # Solve a simple basis pursuit problem for testing purposes.
+        z = cp.Variable(n)
+        objective = cp.Minimize(cp.norm1(z))
+        constraints = [A @ z == y]
+        problem = cp.Problem(objective, constraints)
 
-            invalid_mosek_params = {
-                "MSK_IPAR_NUM_THREADS": "11.3"
-            }
-            with self.assertRaises(mosek.Error):
-                problem.solve(solver=cp.MOSEK, mosek_params=invalid_mosek_params)
+        invalid_mosek_params = {
+            "MSK_IPAR_NUM_THREADS": "11.3"
+        }
+        with self.assertRaises(mosek.Error):
+            problem.solve(solver=cp.MOSEK, mosek_params=invalid_mosek_params)
 
-            with self.assertRaises(ValueError):
-                problem.solve(solver=cp.MOSEK, invalid_kwarg=None)
+        with self.assertRaises(ValueError):
+            problem.solve(solver=cp.MOSEK, invalid_kwarg=None)
 
-            mosek_params = {
-                mosek.dparam.basis_tol_x: 1e-8,
-                "MSK_IPAR_INTPNT_MAX_ITERATIONS": 20,
-                "MSK_IPAR_NUM_THREADS": "17",
-                "MSK_IPAR_PRESOLVE_USE": "MSK_PRESOLVE_MODE_OFF",
-                "MSK_DPAR_INTPNT_CO_TOL_DFEAS": 1e-9,
-                "MSK_DPAR_INTPNT_CO_TOL_PFEAS": "1e-9"
-            }
-            with pytest.warns():
-                problem.solve(solver=cp.MOSEK, mosek_params=mosek_params)
+        mosek_params = {
+            mosek.dparam.basis_tol_x: 1e-8,
+            "MSK_IPAR_INTPNT_MAX_ITERATIONS": 20,
+            "MSK_IPAR_NUM_THREADS": "17",
+            "MSK_IPAR_PRESOLVE_USE": "MSK_PRESOLVE_MODE_OFF",
+            "MSK_DPAR_INTPNT_CO_TOL_DFEAS": 1e-9,
+            "MSK_DPAR_INTPNT_CO_TOL_PFEAS": "1e-9"
+        }
+        with pytest.warns():
+            problem.solve(solver=cp.MOSEK, mosek_params=mosek_params)
 
     def test_mosek_sdp_power(self) -> None:
         """Test the problem in issue #2128"""
@@ -688,6 +687,21 @@ class TestMosek(unittest.TestCase):
 
         with pytest.raises(cp.error.SolverError, match="Solver 'MOSEK' failed"):
             sth.solve(solver=cp.MOSEK, mosek_params=mosek_param)
+
+    def test_eps_keyword(self) -> None:
+        """Test that the eps keyword is accepted"""
+        x = cp.Variable()
+        prob = cp.Problem(cp.Minimize(x), [x >= 0])
+        # This should not raise an exception
+        prob.solve(solver=cp.MOSEK, eps=1e-8, mosek_params={'MSK_DPAR_INTPNT_CO_TOL_DFEAS': 1e-6})
+        assert prob.status is cp.OPTIMAL
+
+        # This exception being raised shows that the eps value is being passed to MOSEK
+        import mosek
+        with pytest.raises(mosek.Error, match="The parameter value 0.1 is too large"):
+            prob.solve(solver=cp.MOSEK,
+                       eps=1e-1,
+                       mosek_params={'MSK_DPAR_INTPNT_CO_TOL_DFEAS': 1e-6})
 
 
 @unittest.skipUnless('CVXOPT' in INSTALLED_SOLVERS, 'CVXOPT is not installed.')
