@@ -17,6 +17,7 @@ from __future__ import annotations
 
 import warnings
 from collections import defaultdict
+from enum import Enum
 
 import numpy as np
 import scipy as sp
@@ -680,6 +681,35 @@ class MOSEK(ConicSolver):
             task.putintparam(mosek.iparam.intpnt_basis, mosek.basindtype.never)
         return processed_opts
 
+class TolParams(Enum):
+    # Fixed list for optimality tolerance parameters from
+    # https://docs.mosek.com/9.3/pythonapi/param-groups.html
+
+    # Conic interior-point tolerances
+    INTPNT_CO_TOL_DFEAS = "MSK_DPAR_INTPNT_CO_TOL_DFEAS"
+    INTPNT_CO_TOL_INFEAS = "MSK_DPAR_INTPNT_CO_TOL_INFEAS"
+    INTPNT_CO_TOL_MU_RED = "MSK_DPAR_INTPNT_CO_TOL_MU_RED"
+    INTPNT_CO_TOL_PFEAS = "MSK_DPAR_INTPNT_CO_TOL_PFEAS"
+    INTPNT_CO_TOL_REL_GAP = "MSK_DPAR_INTPNT_CO_TOL_REL_GAP"
+
+    # Interior-point tolerances
+    INTPNT_TOL_DFEAS = "MSK_DPAR_INTPNT_TOL_DFEAS"
+    INTPNT_TOL_INFEAS = "MSK_DPAR_INTPNT_TOL_INFEAS"
+    INTPNT_TOL_MU_RED = "MSK_DPAR_INTPNT_TOL_MU_RED"
+    INTPNT_TOL_PFEAS = "MSK_DPAR_INTPNT_TOL_PFEAS"
+    INTPNT_TOL_REL_GAP = "MSK_DPAR_INTPNT_TOL_REL_GAP"
+
+    # Simplex tolerances
+    BASIS_REL_TOL_S = "MSK_DPAR_BASIS_REL_TOL_S"
+    BASIS_TOL_S = "MSK_DPAR_BASIS_TOL_S"
+    BASIS_TOL_X = "MSK_DPAR_BASIS_TOL_X"
+
+    # MIO tolerances
+    MIO_TOL_ABS_GAP = "MSK_DPAR_MIO_TOL_ABS_GAP"
+    MIO_TOL_ABS_RELAX_INT = "MSK_DPAR_MIO_TOL_ABS_RELAX_INT"
+    MIO_TOL_FEAS = "MSK_DPAR_MIO_TOL_FEAS"
+    MIO_TOL_REL_GAP = "MSK_DPAR_MIO_TOL_REL_GAP"
+
 
 def parse_eps_keyword(solver_opts: dict) -> dict:
     """
@@ -691,35 +721,11 @@ def parse_eps_keyword(solver_opts: dict) -> dict:
     if 'eps' not in solver_opts:
         return solver_opts
 
-    # Fixed list for optimality tolerance parameters from
-    # https://docs.mosek.com/9.3/pythonapi/param-groups.html
-    tol_params = {
-        # Conic interior-point tolerances
-        "MSK_DPAR_INTPNT_CO_TOL_DFEAS",
-        "MSK_DPAR_INTPNT_CO_TOL_INFEAS",
-        "MSK_DPAR_INTPNT_CO_TOL_MU_RED",
-        "MSK_DPAR_INTPNT_CO_TOL_PFEAS",
-        "MSK_DPAR_INTPNT_CO_TOL_REL_GAP",
-        # Interior-point tolerances
-        "MSK_DPAR_INTPNT_TOL_DFEAS",
-        "MSK_DPAR_INTPNT_TOL_INFEAS",
-        "MSK_DPAR_INTPNT_TOL_MU_RED",
-        "MSK_DPAR_INTPNT_TOL_PFEAS",
-        "MSK_DPAR_INTPNT_TOL_REL_GAP",
-        # Simplex tolerances
-        "MSK_DPAR_BASIS_REL_TOL_S",
-        "MSK_DPAR_BASIS_TOL_S",
-        "MSK_DPAR_BASIS_TOL_X",
-        # MIO tolerances
-        "MSK_DPAR_MIO_TOL_ABS_GAP",
-        "MSK_DPAR_MIO_TOL_ABS_RELAX_INT",
-        "MSK_DPAR_MIO_TOL_FEAS",
-        "MSK_DPAR_MIO_TOL_REL_GAP"
-    }
+    tol_params = TolParams
     mosek_params = solver_opts.get('mosek_params', dict())
     solver_opts['mosek_params'] = mosek_params
     eps = solver_opts.pop('eps')
-    for key in tol_params:
-        # If tolerance parameter is already provided by the user, user choice is used
-        solver_opts['mosek_params'][key] = solver_opts['mosek_params'].get(key, eps)
+    for tol_param in tol_params:
+        solver_opts['mosek_params'][tol_param.value] = \
+            solver_opts['mosek_params'].get(tol_param.value, eps)
     return solver_opts
