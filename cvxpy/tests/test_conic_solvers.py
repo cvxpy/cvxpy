@@ -689,6 +689,14 @@ class TestMosek(unittest.TestCase):
         with pytest.raises(cp.error.SolverError, match="Solver 'MOSEK' failed"):
             sth.solve(solver=cp.MOSEK, mosek_params=mosek_param)
 
+    def test_mosek_number_iters(self) -> None:
+        sth = sths.lp_5()
+        sth.solve(solver=cp.MOSEK)
+        assert sth.prob.solver_stats.num_iters is not None, \
+            "Number of iterations should not be None"
+        assert sth.prob.solver_stats.num_iters >= 0, \
+            "Number of iterations should be greater than or equal to 0"
+
 
 @unittest.skipUnless('CVXOPT' in INSTALLED_SOLVERS, 'CVXOPT is not installed.')
 class TestCVXOPT(BaseTest):
