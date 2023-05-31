@@ -701,7 +701,7 @@ class MOSEK(ConicSolver):
         if 'eps' not in solver_opts:
             return solver_opts
 
-        tol_params = MOSEK.optimality_params()
+        tol_params = MOSEK.tolerance_params()
         mosek_params = solver_opts.get('mosek_params', dict())
         assert not any(MOSEK.is_param(p) for p in mosek_params), \
             "The eps keyword is not compatible with (deprecated) Mosek enum parameters. \
@@ -714,8 +714,8 @@ class MOSEK(ConicSolver):
         return solver_opts
     
     @staticmethod
-    def optimality_params() -> tuple[str]:
-        # Optimality tolerance parameters from
+    def tolerance_params() -> tuple[str]:
+        # tolerance parameters from
         # https://docs.mosek.com/9.3/pythonapi/param-groups.html
         return (
             # Conic interior-point tolerances

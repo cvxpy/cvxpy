@@ -838,16 +838,12 @@ For others see `OSQP documentation <https://osqp.org/docs/interfaces/solver_sett
     point under the given conditions.
 
 ``'eps'``
-    If the parameter ``eps`` is set to a certain value, the following tolerances are
-    set to the value ``eps``: ``'MSK_DPAR_INTPNT_CO_TOL_DFEAS'``, ``'MSK_DPAR_INTPNT_CO_TOL_INFEAS'``,
-    ``'MSK_DPAR_INTPNT_CO_TOL_MU_RED'``, ``'MSK_DPAR_INTPNT_CO_TOL_PFEAS'``,
-    ``'MSK_DPAR_INTPNT_CO_TOL_REL_GAP'``, ``'MSK_DPAR_INTPNT_TOL_DFEAS'``,
-    `'MSK_DPAR_INTPNT_TOL_INFEAS'``, ``'MSK_DPAR_INTPNT_TOL_MU_RED'``,
-    ``'MSK_DPAR_INTPNT_TOL_PFEAS'``, ``'MSK_DPAR_INTPNT_TOL_REL_GAP'``,
-    ``'MSK_DPAR_BASIS_REL_TOL_S'``, ``'MSK_DPAR_BASIS_TOL_S'``,
-    ``'MSK_DPAR_BASIS_TOL_X'``, ``'MSK_DPAR_MIO_TOL_ABS_GAP'``, ``'MSK_DPAR_MIO_TOL_ABS_RELAX_INT'``,
-    ``'MSK_DPAR_MIO_TOL_FEAS'`` and ``'MSK_DPAR_MIO_TOL_REL_GAP'``. For more detailed information
-    concerning the tolerances, please check out: https://docs.mosek.com/latest/pythonapi/param-groups.html
+    Applies tolerance ``eps`` to termination parameters for (conic) interior-point, 
+    simplex, and MIO solvers. The full list of termination parameters is returned
+    by ``MOSEK.tolerance_params()`` in 
+    ``cvxpy.reductions.solvers.conic_solvers.mosek_conif``.
+    Explicitly defined parameters take precedence over ``eps``.
+
 
 .. note::
 
