@@ -721,6 +721,19 @@ class TestMosek(unittest.TestCase):
                        eps=1e-1,
                        mosek_params={'MSK_DPAR_INTPNT_CO_TOL_DFEAS': 1e-6})
 
+        
+        # If parameters are defined explicitly, eps will not overwrite -> no exception
+        from cvxpy.reductions.solvers.conic_solvers.mosek_conif import MOSEK
+        all_params = MOSEK.optimality_params()
+        prob.solve(solver=cp.MOSEK, eps=1e-1, mosek_params={p: 1e-6 for p in all_params})
+        assert prob.status is cp.OPTIMAL
+
+        # Fails when used with enums
+        with pytest.raises(AssertionError, match="not compatible"):
+            prob.solve(solver=cp.MOSEK,
+                       eps=1e-1,
+                       mosek_params={mosek.dparam.intpnt_co_tol_dfeas: 1e-6})
+
 
 @unittest.skipUnless('CVXOPT' in INSTALLED_SOLVERS, 'CVXOPT is not installed.')
 class TestCVXOPT(BaseTest):

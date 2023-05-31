@@ -17,7 +17,6 @@ from __future__ import annotations
 
 import warnings
 from collections import defaultdict
-from enum import Enum
 
 import numpy as np
 import scipy as sp
@@ -625,16 +624,14 @@ class MOSEK(ConicSolver):
             env.set_Stream(mosek.streamtype.log, streamprinter)
             task.set_Stream(mosek.streamtype.log, streamprinter)
 
-        solver_opts = parse_eps_keyword(solver_opts)
+        solver_opts = MOSEK.parse_eps_keyword(solver_opts)
 
         # Parse all user-specified parameters (override default logging
         # parameters if applicable).
 
         mosek_params = solver_opts.pop('mosek_params', dict())
         # Issue a warning if Mosek enums are used as parameter names / keys
-        if any(isinstance(param, mosek.iparam) or
-               isinstance(param, mosek.dparam) or
-               isinstance(param, mosek.sparam) for param in mosek_params):
+        if any(MOSEK.is_param(p) for p in mosek_params):
             warnings.warn(__MSK_ENUM_PARAM_DEPRECATION__, DeprecationWarning)
             warnings.warn(__MSK_ENUM_PARAM_DEPRECATION__, UserWarning)
         # Now set parameters
@@ -688,51 +685,59 @@ class MOSEK(ConicSolver):
             task.putintparam(mosek.iparam.intpnt_basis, mosek.basindtype.never)
         return processed_opts
 
-class TolParams(Enum):
-    # Fixed list for optimality tolerance parameters from
-    # https://docs.mosek.com/9.3/pythonapi/param-groups.html
+    @staticmethod
+    def is_param(param: str | "iparam" | "dparam" | "sparam") -> bool:  # noqa: F821
+        import mosek
+        return isinstance(param, (mosek.iparam, mosek.dparam,  mosek.sparam))
 
-    # Conic interior-point tolerances
-    INTPNT_CO_TOL_DFEAS = "MSK_DPAR_INTPNT_CO_TOL_DFEAS"
-    INTPNT_CO_TOL_INFEAS = "MSK_DPAR_INTPNT_CO_TOL_INFEAS"
-    INTPNT_CO_TOL_MU_RED = "MSK_DPAR_INTPNT_CO_TOL_MU_RED"
-    INTPNT_CO_TOL_PFEAS = "MSK_DPAR_INTPNT_CO_TOL_PFEAS"
-    INTPNT_CO_TOL_REL_GAP = "MSK_DPAR_INTPNT_CO_TOL_REL_GAP"
+    @staticmethod
+    def parse_eps_keyword(solver_opts: dict) -> dict:
+        """
+        Parse the eps keyword and update the corresponding MOSEK parameters.
+        If additional tolerances are specified explicitly, they take precedence over the
+        eps keyword.
+        """
 
-    # Interior-point tolerances
-    INTPNT_TOL_DFEAS = "MSK_DPAR_INTPNT_TOL_DFEAS"
-    INTPNT_TOL_INFEAS = "MSK_DPAR_INTPNT_TOL_INFEAS"
-    INTPNT_TOL_MU_RED = "MSK_DPAR_INTPNT_TOL_MU_RED"
-    INTPNT_TOL_PFEAS = "MSK_DPAR_INTPNT_TOL_PFEAS"
-    INTPNT_TOL_REL_GAP = "MSK_DPAR_INTPNT_TOL_REL_GAP"
+        if 'eps' not in solver_opts:
+            return solver_opts
 
-    # Simplex tolerances
-    BASIS_REL_TOL_S = "MSK_DPAR_BASIS_REL_TOL_S"
-    BASIS_TOL_S = "MSK_DPAR_BASIS_TOL_S"
-    BASIS_TOL_X = "MSK_DPAR_BASIS_TOL_X"
-
-    # MIO tolerances
-    MIO_TOL_ABS_GAP = "MSK_DPAR_MIO_TOL_ABS_GAP"
-    MIO_TOL_ABS_RELAX_INT = "MSK_DPAR_MIO_TOL_ABS_RELAX_INT"
-    MIO_TOL_FEAS = "MSK_DPAR_MIO_TOL_FEAS"
-    MIO_TOL_REL_GAP = "MSK_DPAR_MIO_TOL_REL_GAP"
-
-
-def parse_eps_keyword(solver_opts: dict) -> dict:
-    """
-    Parse the eps keyword and update the corresponding MOSEK parameters.
-    If additional tolerances are specified explicitly, they take precedence over the
-    eps keyword.
-    """
-
-    if 'eps' not in solver_opts:
+        tol_params = MOSEK.optimality_params()
+        mosek_params = solver_opts.get('mosek_params', dict())
+        assert not any(MOSEK.is_param(p) for p in mosek_params), \
+            "The eps keyword is not compatible with (deprecated) Mosek enum parameters. \
+            Use the string parameters instead."
+        solver_opts['mosek_params'] = mosek_params
+        eps = solver_opts.pop('eps')
+        for tol_param in tol_params:
+            solver_opts['mosek_params'][tol_param] = \
+                solver_opts['mosek_params'].get(tol_param, eps)
         return solver_opts
+    
+    @staticmethod
+    def optimality_params() -> tuple[str]:
+        # Optimality tolerance parameters from
+        # https://docs.mosek.com/9.3/pythonapi/param-groups.html
+        return (
+            # Conic interior-point tolerances
+            "MSK_DPAR_INTPNT_CO_TOL_DFEAS",
+            "MSK_DPAR_INTPNT_CO_TOL_INFEAS",
+            "MSK_DPAR_INTPNT_CO_TOL_MU_RED",
+            "MSK_DPAR_INTPNT_CO_TOL_PFEAS",
+            "MSK_DPAR_INTPNT_CO_TOL_REL_GAP",
+            # Interior-point tolerances
+            "MSK_DPAR_INTPNT_TOL_DFEAS",
+            "MSK_DPAR_INTPNT_TOL_INFEAS",
+            "MSK_DPAR_INTPNT_TOL_MU_RED",
+            "MSK_DPAR_INTPNT_TOL_PFEAS",
+            "MSK_DPAR_INTPNT_TOL_REL_GAP",
+            # Simplex tolerances
+            "MSK_DPAR_BASIS_REL_TOL_S",
+            "MSK_DPAR_BASIS_TOL_S",
+            "MSK_DPAR_BASIS_TOL_X",
+            # MIO tolerances
+            "MSK_DPAR_MIO_TOL_ABS_GAP",
+            "MSK_DPAR_MIO_TOL_ABS_RELAX_INT",
+            "MSK_DPAR_MIO_TOL_FEAS",
+            "MSK_DPAR_MIO_TOL_REL_GAP"
+        )
 
-    tol_params = TolParams
-    mosek_params = solver_opts.get('mosek_params', dict())
-    solver_opts['mosek_params'] = mosek_params
-    eps = solver_opts.pop('eps')
-    for tol_param in tol_params:
-        solver_opts['mosek_params'][tol_param.value] = \
-            solver_opts['mosek_params'].get(tol_param.value, eps)
-    return solver_opts
