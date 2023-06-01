@@ -457,3 +457,19 @@ def test_dpp():
     obj = cp.perspective(cp.log(a+x), s)
 
     assert not obj.is_dpp()
+
+def test_boolean_s():
+    # Problem where the optimal s is s = 0
+    # s also happens to be boolean (where this arises more)
+    x = cp.Variable(1)
+    s = cp.Variable(1, boolean=True)
+    f = x + 1
+    f_recession = x
+    obj = cp.perspective(f, s, f_recession=f_recession)
+    constr = [-cp.square(x) + 1 >= 0]
+    
+    prob = cp.Problem(cp.Minimize(obj), constr)
+    prob.solve(solver=cp.SCIP)
+
+    assert np.isclose(x.value, -1)
+    assert np.isclose(s.value, 0)
