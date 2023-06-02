@@ -276,7 +276,7 @@ class MOSEK(ConicSolver):
             else:
                 env = mosek.Env()
                 task = env.Task(0, 0)
-                save_file = MOSEK.handle_options(env, task, verbose, solver_opts)
+                solver_opts = MOSEK.handle_options(env, task, verbose, solver_opts)
                 task = MOSEK._build_dualized_task(task, data)
         else:
             if len(data[s.C]) == 0:
@@ -285,12 +285,15 @@ class MOSEK(ConicSolver):
             else:
                 env = mosek.Env()
                 task = env.Task(0, 0)
-                save_file = MOSEK.handle_options(env, task, verbose, solver_opts)
+                solver_opts = MOSEK.handle_options(env, task, verbose, solver_opts)
                 task = MOSEK._build_slack_task(task, data)
 
-        # Optimize the Mosek Task, and return the result.
+        # Save the task to a file if requested.
+        save_file = solver_opts['save_file']
         if save_file:
             task.writedata(save_file)
+
+        # Optimize the Mosek Task, and return the result.
         task.optimize()
 
         if verbose:
@@ -472,7 +475,7 @@ class MOSEK(ConicSolver):
 
         solver_opts = solver_output['solver_options']
 
-        if solver_opts.get('accept_unknown', False):
+        if solver_opts['accept_unknown']:
             STATUS_MAP[mosek.solsta.unknown] = s.OPTIMAL_INACCURATE
 
         # "Near" statuses only up to Mosek 8.1
@@ -601,7 +604,14 @@ class MOSEK(ConicSolver):
         return prim_vars
 
     @staticmethod
-    def handle_options(env, task, verbose: bool, solver_opts):
+    def handle_options(env, task, verbose: bool, solver_opts: dict) -> dict:
+        """
+        Handle user-specified solver options.
+
+        Options that have to be applied before the optimization are applied to the task here.
+        A new dictionary is returned with the processed options and default options applied.
+        """
+
         # If verbose, then set default logging parameters.
         import mosek
 
@@ -614,64 +624,120 @@ class MOSEK(ConicSolver):
             env.set_Stream(mosek.streamtype.log, streamprinter)
             task.set_Stream(mosek.streamtype.log, streamprinter)
 
+        solver_opts = MOSEK.parse_eps_keyword(solver_opts)
+
         # Parse all user-specified parameters (override default logging
         # parameters if applicable).
-        kwargs = sorted(solver_opts.keys())
-        save_file = None
-        bfs = False
-        if 'mosek_params' in kwargs:
-            # Issue a warning if Mosek enums are used as parameter names / keys
-            if any(isinstance(param, mosek.iparam) or
-                   isinstance(param, mosek.dparam) or
-                   isinstance(param, mosek.sparam) for param in solver_opts['mosek_params'].keys()):
-                warnings.warn(__MSK_ENUM_PARAM_DEPRECATION__, DeprecationWarning)
-                warnings.warn(__MSK_ENUM_PARAM_DEPRECATION__, UserWarning)
-            # Now set parameters
-            for param, value in solver_opts['mosek_params'].items():
-                if isinstance(param, str):
-                    # Parameters are set through generic string names (recommended)
-                    param = param.strip()
-                    if isinstance(value, str):
-                        # The value is also a string.
-                        # Examples: "MSK_IPAR_INTPNT_SOLVE_FORM": "MSK_SOLVE_DUAL"
-                        #           "MSK_DPAR_CO_TOL_PFEAS": "1.0e-9"
-                        task.putparam(param, value)
-                    else:
-                        # Otherwise we assume the value is of correct type
-                        if param.startswith("MSK_DPAR_"):
-                            task.putnadouparam(param, value)
-                        elif param.startswith("MSK_IPAR_"):
-                            task.putnaintparam(param, value)
-                        elif param.startswith("MSK_SPAR_"):
-                            task.putnastrparam(param, value)
-                        else:
-                            raise ValueError("Invalid MOSEK parameter '%s'." % param)
+
+        mosek_params = solver_opts.pop('mosek_params', dict())
+        # Issue a warning if Mosek enums are used as parameter names / keys
+        if any(MOSEK.is_param(p) for p in mosek_params):
+            warnings.warn(__MSK_ENUM_PARAM_DEPRECATION__, DeprecationWarning)
+            warnings.warn(__MSK_ENUM_PARAM_DEPRECATION__, UserWarning)
+        # Now set parameters
+        for param, value in mosek_params.items():
+            if isinstance(param, str):
+                # Parameters are set through generic string names (recommended)
+                param = param.strip()
+                if isinstance(value, str):
+                    # The value is also a string.
+                    # Examples: "MSK_IPAR_INTPNT_SOLVE_FORM": "MSK_SOLVE_DUAL"
+                    #           "MSK_DPAR_CO_TOL_PFEAS": "1.0e-9"
+                    task.putparam(param, value)
                 else:
-                    # Parameters are set through Mosek enums (deprecated)
-                    if isinstance(param, mosek.dparam):
-                        task.putdouparam(param, value)
-                    elif isinstance(param, mosek.iparam):
-                        task.putintparam(param, value)
-                    elif isinstance(param, mosek.sparam):
-                        task.putstrparam(param, value)
+                    # Otherwise we assume the value is of correct type
+                    if param.startswith("MSK_DPAR_"):
+                        task.putnadouparam(param, value)
+                    elif param.startswith("MSK_IPAR_"):
+                        task.putnaintparam(param, value)
+                    elif param.startswith("MSK_SPAR_"):
+                        task.putnastrparam(param, value)
                     else:
                         raise ValueError("Invalid MOSEK parameter '%s'." % param)
-            kwargs.remove('mosek_params')
-        if 'save_file' in kwargs:
-            save_file = solver_opts['save_file']
-            kwargs.remove('save_file')
-        if 'bfs' in kwargs:
-            bfs = solver_opts['bfs']
-            kwargs.remove('bfs')
-        if 'accept_unknown' in kwargs:
-            kwargs.remove('accept_unknown')
-        if kwargs:
-            raise ValueError("Invalid keyword-argument '%s'" % kwargs[0])
+            else:
+                # Parameters are set through Mosek enums (deprecated)
+                if isinstance(param, mosek.dparam):
+                    task.putdouparam(param, value)
+                elif isinstance(param, mosek.iparam):
+                    task.putintparam(param, value)
+                elif isinstance(param, mosek.sparam):
+                    task.putstrparam(param, value)
+                else:
+                    raise ValueError("Invalid MOSEK parameter '%s'." % param)
+
+        # The options as passed to the solver
+        processed_opts = dict()
+        processed_opts['mosek_params'] = mosek_params
+        processed_opts['save_file'] = solver_opts.pop('save_file', False)
+        processed_opts['bfs'] = solver_opts.pop('bfs', False)
+        processed_opts['accept_unknown'] = solver_opts.pop('accept_unknown', False)
+
+        # Check if any unknown options were passed
+        if solver_opts:
+            raise ValueError(f"Invalid keyword-argument(s) {solver_opts.keys()} passed "
+                             f"to MOSEK solver.")
 
         # Decide whether basis identification is needed for intpnt solver
         # This is only required if solve() was called with bfs=True
-        if bfs:
+        if processed_opts['bfs']:
             task.putintparam(mosek.iparam.intpnt_basis, mosek.basindtype.always)
         else:
             task.putintparam(mosek.iparam.intpnt_basis, mosek.basindtype.never)
-        return save_file
+        return processed_opts
+
+    @staticmethod
+    def is_param(param: str | "iparam" | "dparam" | "sparam") -> bool:  # noqa: F821
+        import mosek
+        return isinstance(param, (mosek.iparam, mosek.dparam,  mosek.sparam))
+
+    @staticmethod
+    def parse_eps_keyword(solver_opts: dict) -> dict:
+        """
+        Parse the eps keyword and update the corresponding MOSEK parameters.
+        If additional tolerances are specified explicitly, they take precedence over the
+        eps keyword.
+        """
+
+        if 'eps' not in solver_opts:
+            return solver_opts
+
+        tol_params = MOSEK.tolerance_params()
+        mosek_params = solver_opts.get('mosek_params', dict())
+        assert not any(MOSEK.is_param(p) for p in mosek_params), \
+            "The eps keyword is not compatible with (deprecated) Mosek enum parameters. \
+            Use the string parameters instead."
+        solver_opts['mosek_params'] = mosek_params
+        eps = solver_opts.pop('eps')
+        for tol_param in tol_params:
+            solver_opts['mosek_params'][tol_param] = \
+                solver_opts['mosek_params'].get(tol_param, eps)
+        return solver_opts
+    
+    @staticmethod
+    def tolerance_params() -> tuple[str]:
+        # tolerance parameters from
+        # https://docs.mosek.com/9.3/pythonapi/param-groups.html
+        return (
+            # Conic interior-point tolerances
+            "MSK_DPAR_INTPNT_CO_TOL_DFEAS",
+            "MSK_DPAR_INTPNT_CO_TOL_INFEAS",
+            "MSK_DPAR_INTPNT_CO_TOL_MU_RED",
+            "MSK_DPAR_INTPNT_CO_TOL_PFEAS",
+            "MSK_DPAR_INTPNT_CO_TOL_REL_GAP",
+            # Interior-point tolerances
+            "MSK_DPAR_INTPNT_TOL_DFEAS",
+            "MSK_DPAR_INTPNT_TOL_INFEAS",
+            "MSK_DPAR_INTPNT_TOL_MU_RED",
+            "MSK_DPAR_INTPNT_TOL_PFEAS",
+            "MSK_DPAR_INTPNT_TOL_REL_GAP",
+            # Simplex tolerances
+            "MSK_DPAR_BASIS_REL_TOL_S",
+            "MSK_DPAR_BASIS_TOL_S",
+            "MSK_DPAR_BASIS_TOL_X",
+            # MIO tolerances
+            "MSK_DPAR_MIO_TOL_ABS_GAP",
+            "MSK_DPAR_MIO_TOL_ABS_RELAX_INT",
+            "MSK_DPAR_MIO_TOL_FEAS",
+            "MSK_DPAR_MIO_TOL_REL_GAP"
+        )
+

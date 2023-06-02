@@ -837,6 +837,14 @@ For others see `OSQP documentation <https://osqp.org/docs/interfaces/solver_sett
     it is arbitrarily bad, when the solver does not generate an optimal
     point under the given conditions.
 
+``'eps'``
+    Applies tolerance ``eps`` to termination parameters for (conic) interior-point, 
+    simplex, and MIO solvers. The full list of termination parameters is returned
+    by ``MOSEK.tolerance_params()`` in 
+    ``cvxpy.reductions.solvers.conic_solvers.mosek_conif``.
+    Explicitly defined parameters take precedence over ``eps``.
+
+
 .. note::
 
     In CVXPY 1.1.6 we did a complete rewrite of the MOSEK interface. The main
