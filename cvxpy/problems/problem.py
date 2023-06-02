@@ -1517,10 +1517,10 @@ class SolverStats:
         """
         return cls(
             solver_name,
-            solve_time=attr.get('solve_time'),
-            setup_time=attr.get('setup_time'),
-            num_iters=attr.get('num_iters'),
-            extra_stats=attr.get('extra_stats'),
+            solve_time=attr.get(s.SOLVE_TIME),
+            setup_time=attr.get(s.SETUP_TIME),
+            num_iters=attr.get(s.NUM_ITERS),
+            extra_stats=attr.get(s.EXTRA_STATS),
         )
 
 class SizeMetrics:
