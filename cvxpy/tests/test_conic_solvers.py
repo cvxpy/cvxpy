@@ -774,6 +774,9 @@ class TestSDPA(BaseTest):
         StandardTestLPs.test_lp_5(solver='SDPA',
                                   betaBar=0.1, gammaStar=0.8, epsilonDash=8.0E-6)
 
+    def test_sdpa_lp_7(self) -> None:
+        StandardTestLPs.test_lp_7(solver='SDPA')
+
     def test_sdpa_sdp_1(self) -> None:
         # minimization
         StandardTestSDPs.test_sdp_1min(solver='SDPA')
