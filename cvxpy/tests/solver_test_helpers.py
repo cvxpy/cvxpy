@@ -997,7 +997,7 @@ class StandardTestLPs:
     def test_lp_7(solver, places: int = 4, duals: bool = True, **kwargs) -> SolverTestHelper:
         sth = lp_7()
         import sdpap
-        if sdpap.sdpacall.sdpacall.get_backend_info()["gmp"]
+        if sdpap.sdpacall.sdpacall.get_backend_info()["gmp"]:
             sth.solve(solver, **kwargs)
             sth.verify_objective(places)
         return sth
