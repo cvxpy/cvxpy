@@ -162,21 +162,23 @@ class CBC(ConicSolver):
         status = None
         clp_model_options = {"dualTolerance", "primalTolerance", "maxNumIteration", "logLevel", "automaticScaling", "scaling", "infeasibilityCost", "optimizationDirection"}
         clp_solve_options = {"presolve"}
-        non_cbc_options = clp_model_options | clp_solve_options
+        # all the above keys except logLevel apply only to models solved with CLP
+        non_cbc_options = (clp_model_options | clp_solve_options) - {"logLevel"}
         for key in solver_opts:
             if key in clp_model_options:
                 setattr(model, key, solver_opts[key])
         if data[s.BOOL_IDX] or data[s.INT_IDX]:
             # Convert model
             cbcModel = model.getCbcModel()
-            for key, value in solver_opts.items():
-                if key in non_cbc_options:
-                    continue
-                setattr(cbcModel, key, value)
 
             # Verbosity Cbc
             if not verbose:
                 cbcModel.logLevel = 0
+            # Other Solver options
+            for key, value in solver_opts.items():
+                if key in non_cbc_options:
+                    continue
+                setattr(cbcModel, key, value)
 
             # cylp: /cylp/cy/CyCbcModel.pyx#L134
             # Call CbcMain. Solve the problem using the same parameters used by
