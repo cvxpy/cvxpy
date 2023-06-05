@@ -996,14 +996,10 @@ class StandardTestLPs:
     @staticmethod
     def test_lp_7(solver, places: int = 4, duals: bool = True, **kwargs) -> SolverTestHelper:
         sth = lp_7()
-        sth.solve(solver, **kwargs)
-
         import sdpap
-        gmp = sdpap.sdpacall.sdpacall.get_backend_info()["gmp"]
-        if gmp==0:
-            sth.expect_val = None # essentially skips the `verify_objective` test
-
-        sth.verify_objective(places)
+        if sdpap.sdpacall.sdpacall.get_backend_info()["gmp"]
+            sth.solve(solver, **kwargs)
+            sth.verify_objective(places)
         return sth
 
     @staticmethod
