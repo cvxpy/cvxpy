@@ -15,7 +15,7 @@
       EIGEN_STATIC_ASSERT((int(internal::evaluator<Derived>::Flags) & LinearAccessBit) || Derived::IsVectorAtCompileTime, \
                           YOU_ARE_TRYING_TO_USE_AN_INDEX_BASED_ACCESSOR_ON_AN_EXPRESSION_THAT_DOES_NOT_SUPPORT_THAT)
 
-namespace Eigen { 
+namespace Eigen {
 
 /** \ingroup Core_Module
   *
@@ -87,9 +87,11 @@ template<typename Derived> class MapBase<Derived, ReadOnlyAccessors>
     typedef typename Base::CoeffReturnType CoeffReturnType;
 
     /** \copydoc DenseBase::rows() */
-    EIGEN_DEVICE_FUNC inline Index rows() const { return m_rows.value(); }
+    EIGEN_DEVICE_FUNC EIGEN_CONSTEXPR
+    inline Index rows() const EIGEN_NOEXCEPT { return m_rows.value(); }
     /** \copydoc DenseBase::cols() */
-    EIGEN_DEVICE_FUNC inline Index cols() const { return m_cols.value(); }
+    EIGEN_DEVICE_FUNC EIGEN_CONSTEXPR
+    inline Index cols() const EIGEN_NOEXCEPT { return m_cols.value(); }
 
     /** Returns a pointer to the first coefficient of the matrix or vector.
       *
