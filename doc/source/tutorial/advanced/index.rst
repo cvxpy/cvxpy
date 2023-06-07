@@ -432,7 +432,7 @@ The table below shows the types of problems the supported solvers can handle.
 +================+====+====+======+=====+=====+=====+=====+
 | `CBC`_         | X  |    |      |     |     |     | X   |
 +----------------+----+----+------+-----+-----+-----+-----+
-| `CLARABEL`_    | X  | X  | X    |     |  X  |  X  |     |
+| `CLARABEL`_    | X  | X  | X    |  X  |  X  |  X  |     |
 +----------------+----+----+------+-----+-----+-----+-----+
 | `COPT`_        | X  | X  | X    |  X  |     |     | X*  |
 +----------------+----+----+------+-----+-----+-----+-----+
@@ -460,7 +460,7 @@ The table below shows the types of problems the supported solvers can handle.
 +----------------+----+----+------+-----+-----+-----+-----+
 | `CVXOPT`_      | X  | X  | X    | X   |     |     |     |
 +----------------+----+----+------+-----+-----+-----+-----+
-| `SDPA`_ ***    | X  |    |      | X   |     |     |     |
+| `SDPA`_ ***    | X  | X  | X    | X   |     |     |     |
 +----------------+----+----+------+-----+-----+-----+-----+
 | `SCS`_         | X  | X  | X    | X   | X   | X   |     |
 +----------------+----+----+------+-----+-----+-----+-----+
@@ -595,7 +595,7 @@ Use the ``installed_solvers`` utility function to get a list of the solvers your
 
 .. code:: python
 
-    print installed_solvers()
+    print(installed_solvers())
 
 ::
 
@@ -611,7 +611,7 @@ All the solvers can print out information about their progress while solving the
 
     # Solve with ECOS and display output.
     prob.solve(solver=cp.ECOS, verbose=True)
-    print "optimal value with ECOS:", prob.value
+    print(f"optimal value with ECOS: {prob.value}")
 
 ::
 
@@ -708,7 +708,7 @@ For example, here we tell SCS to use an indirect method for solving linear equat
 
     # Solve with SCS, use sparse-indirect method.
     prob.solve(solver=cp.SCS, verbose=True, use_indirect=True)
-    print "optimal value with SCS:", prob.value
+    print(f"optimal value with SCS: {prob.value}")
 
 ::
 
@@ -833,6 +833,19 @@ For others see `OSQP documentation <https://osqp.org/docs/interfaces/solver_sett
     For a linear problem, if ``bfs=True``, then the basic solution will be retrieved
     instead of the interior-point solution. This assumes no specific MOSEK
     parameters were used which prevent computing the basic solution.
+
+``'accept_unknown'``
+    If ``accept_unknown=True``, an inaccurate solution will be returned, even if
+    it is arbitrarily bad, when the solver does not generate an optimal
+    point under the given conditions.
+
+``'eps'``
+    Applies tolerance ``eps`` to termination parameters for (conic) interior-point, 
+    simplex, and MIO solvers. The full list of termination parameters is returned
+    by ``MOSEK.tolerance_params()`` in 
+    ``cvxpy.reductions.solvers.conic_solvers.mosek_conif``.
+    Explicitly defined parameters take precedence over ``eps``.
+
 
 .. note::
 

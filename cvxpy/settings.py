@@ -195,6 +195,9 @@ PARAM_THRESHOLD = 1e4
 # environment variable)
 NUM_THREADS = -1
 
+PRINT_EDGEITEMS = 2
+PRINT_THRESHOLD = 5
+
 
 def set_num_threads(num_threads: int) -> None:
     global NUM_THREADS

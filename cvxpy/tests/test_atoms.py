@@ -1264,6 +1264,41 @@ class TestAtoms(BaseTest):
         prob.solve(solver=cp.SCS)
         assert np.allclose(v.value, p.value)
 
+    def test_outer(self) -> None:
+        """Test the outer atom.
+        """
+        a = np.ones((3,))
+        b = Variable((2,))
+        expr = cp.outer(a, b)
+        self.assertEqual(expr.shape, (3, 2))
+
+        # Test with parameter
+        c = Parameter((2,))
+        expr = cp.outer(c, a)
+        self.assertEqual(expr.shape, (2, 3))
+
+        d = np.ones((4,))
+        expr = cp.outer(a, d)
+        true_val = np.outer(a, d)
+        assert np.allclose(expr.value, true_val, atol=1e-1)
+
+        # Test with scalars
+        assert np.allclose(np.outer(3, 2), cp.outer(3, 2).value)
+        assert np.allclose(np.outer(3, d), cp.outer(3, d).value)
+
+        # Test with matrices
+        A = np.arange(4).reshape((2, 2))
+        np.arange(4, 8).reshape((2, 2))
+
+        with pytest.raises(ValueError, match="x must be a vector"):
+            cp.outer(A, d)
+        with pytest.raises(ValueError, match="y must be a vector"):
+            cp.outer(d, A)
+
+        # allow 2D inputs once row-major flattening is the default
+        assert np.allclose(cp.vec(np.array([[1, 2], [3, 4]])).value, np.array([1, 3, 2, 4]))
+
+
     def test_conj(self) -> None:
         """Test conj.
         """

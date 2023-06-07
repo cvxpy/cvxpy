@@ -213,6 +213,7 @@ class TestProblem(BaseTest):
         # into setup, solve, and polish; these are summed to obtain solve_time)
         self.assertGreater(stats.num_iters, 0)
         self.assertTrue(hasattr(stats.extra_stats, 'info'))
+        self.assertTrue(str(stats).startswith("SolverStats(solver_name="))
 
     def test_compilation_time(self) -> None:
         prob = Problem(cp.Minimize(cp.norm(self.x)), [self.x == 0])
