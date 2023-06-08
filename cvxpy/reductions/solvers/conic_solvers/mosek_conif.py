@@ -488,6 +488,40 @@ class MOSEK(ConicSolver):
 
         env = solver_output['env']
         task = solver_output['task']
+
+        if 'MSK_DPAR_OPTIMIZER_MAX_TIME' in solver_opts['mosek_params']:
+            time_limit_set = True
+        else:
+            time_limit_set = False
+
+        # Get status information about the solution
+        prosta = task.getprosta(mosek.soltype.itr)  # using the interior point solution type
+        solsta = task.getsolsta(mosek.soltype.itr)  # using the interior point solution type
+
+        # Determine status
+        if solsta == mosek.solsta.unknown and prosta == mosek.prosta.unknown and time_limit_set:
+            numvar = task.getnumvar()
+            numcon = task.getnumcon()
+
+            # Get primal solution
+            xx = [0.] * numvar
+            task.getxx(mosek.soltype.itr, xx)  # get the solution and store it in xx
+            prim_vars = xx
+
+            # Get dual solution
+            y = [0.] * numcon
+            task.gety(mosek.soltype.itr, y)  # get the dual values
+            dual_vars = y
+            if prim_vars is not None and dual_vars is not None:
+                # Print solution albeit not optimal
+                STATUS_MAP[mosek.solsta.unknown] = s.OPTIMAL_INACCURATE
+                print("Optimization terminated due to time limit. Solution may not be optimal.")
+                print("Primal Variables: ", prim_vars)
+                print("Dual Variables: ", dual_vars)
+            else:
+                # No solution was generated
+                print("Optimization terminated due to time limit. No solution was generated.")
+
         solver_opts = solver_output['solver_options']
         simplex_algs = [
             mosek.optimizertype.primal_simplex,
