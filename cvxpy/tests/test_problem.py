@@ -25,6 +25,7 @@ import ecos
 import numpy
 import numpy as np
 import scipy.sparse as sp
+
 # Solvers.
 import scs
 from numpy import linalg as LA
@@ -39,8 +40,10 @@ from cvxpy.expressions.variable import Variable
 from cvxpy.problems.problem import Problem
 from cvxpy.reductions.solvers.conic_solvers import ecos_conif, scs_conif
 from cvxpy.reductions.solvers.conic_solvers.conic_solver import ConicSolver
-from cvxpy.reductions.solvers.defines import (INSTALLED_SOLVERS,
-                                              SOLVER_MAP_CONIC,)
+from cvxpy.reductions.solvers.defines import (
+    INSTALLED_SOLVERS,
+    SOLVER_MAP_CONIC,
+)
 from cvxpy.tests.base_test import BaseTest
 
 
@@ -210,6 +213,12 @@ class TestProblem(BaseTest):
         # into setup, solve, and polish; these are summed to obtain solve_time)
         self.assertGreater(stats.num_iters, 0)
         self.assertTrue(hasattr(stats.extra_stats, 'info'))
+        self.assertTrue(str(stats).startswith("SolverStats(solver_name="))
+
+    def test_compilation_time(self) -> None:
+        prob = Problem(cp.Minimize(cp.norm(self.x)), [self.x == 0])
+        prob.solve()
+        assert isinstance(prob.compilation_time, float)
 
     def test_get_problem_data(self) -> None:
         """Test get_problem_data method.
@@ -273,7 +282,8 @@ class TestProblem(BaseTest):
             for verbose in [True, False]:
                 # Don't test GLPK because there's a race
                 # condition in setting CVXOPT solver options.
-                if solver in [cp.GLPK, cp.GLPK_MI, cp.MOSEK, cp.CBC, cp.SCIPY, cp.SDPA]:
+                if solver in [cp.GLPK, cp.GLPK_MI, cp.MOSEK, cp.CBC,
+                              cp.SCIPY, cp.SDPA, cp.COPT]:
                     continue
                 sys.stdout = StringIO()  # capture output
 
@@ -1421,6 +1431,32 @@ class TestProblem(BaseTest):
         prob = Problem(obj, constraints)
         result = prob.solve(solver=cp.SCS)
         self.assertAlmostEqual(result, 0.583151, places=2)
+
+    def test_diag_offset_problem(self) -> None:
+
+        # Constants
+        n = 4
+        A = np.arange(int(n**2)).reshape((n, n))
+
+        for k in range(-n + 1, n):
+            # diag_vec
+            x = cp.Variable(n - abs(k))
+            obj = cp.Minimize(cp.sum(x))
+            constraints = [cp.diag(x, k) == np.diag(np.diag(A, k), k)]
+            prob = cp.Problem(obj, constraints)
+            result = prob.solve(solver=cp.SCS, eps=1e-6)
+            self.assertAlmostEqual(result, np.sum(np.diag(A, k)))
+            assert np.allclose(x.value, np.diag(A, k), atol=1e-4)
+
+            # diag_mat
+            X = cp.Variable((n, n), nonneg=True)
+
+            obj = cp.Minimize(cp.sum(X))
+            constraints = [cp.diag(X, k) == np.diag(A, k)]
+            prob = cp.Problem(obj, constraints)
+            result = prob.solve(solver=cp.SCS, eps=1e-6)
+            self.assertAlmostEqual(result, np.sum(np.diag(A, k)))
+            assert np.allclose(X.value, np.diag(np.diag(A, k), k), atol=1e-4)
 
     def test_presolve_parameters(self) -> None:
         """Test presolve with parameters.

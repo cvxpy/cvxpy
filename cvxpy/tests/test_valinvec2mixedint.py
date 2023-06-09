@@ -322,6 +322,83 @@ class TestFiniteSet:
         problem.solve(solver=cp.GLPK_MI)
         assert np.allclose(x.value, np.array([[0, 1], [2, 2]]))
 
+    @staticmethod
+    def test_gp(ineq_form: bool):
+        """Test FiniteSet used in a GP."""
+        x = cp.Variable(pos=True)
+        y = cp.Variable(pos=True)
+        objective = cp.Maximize(x*y)
+        # Test with a single element
+        set_vals = {2}
+        constraints = [FiniteSet(x, set_vals, ineq_form=ineq_form), y <= 1]
+        problem = cp.Problem(objective, constraints)
+        problem.solve(gp=True, solver=cp.GLPK_MI)
+        assert np.allclose(x.value, 2)
+        assert np.allclose(y.value, 1)
+
+        # Test with multiple elements.
+        set_vals = {1, 2, 3}
+        constraints = [FiniteSet(x, set_vals, ineq_form=ineq_form), y <= 1]
+        problem = cp.Problem(objective, constraints)
+        problem.solve(gp=True, solver=cp.GLPK_MI)
+        assert np.allclose(x.value, 3)
+        assert np.allclose(y.value, 1)
+
+    @staticmethod
+    def test_monomial(ineq_form: bool):
+        """Test FiniteSet applied to a monomial."""
+        x = cp.Variable(pos=True)
+        y = cp.Variable(pos=True)
+        objective = cp.Maximize(x*y)
+        set_vals = {1, 2, 3}
+        constraints = [FiniteSet(x*y, set_vals, ineq_form=ineq_form), x == 1]
+        problem = cp.Problem(objective, constraints)
+        # Without DPP.
+        problem.solve(gp=True, solver=cp.GLPK_MI, ignore_dpp=True)
+        assert np.allclose(x.value, 1)
+        assert np.allclose(y.value, 3)
+
+        # With DPP.
+        problem.solve(gp=True, solver=cp.GLPK_MI, enforce_dpp=True)
+        assert np.allclose(x.value, 1)
+        assert np.allclose(y.value, 3)
+
+    @staticmethod
+    def test_invalid_gp(ineq_form: bool):
+        """Test FiniteSet used in a GP with invalid set."""
+        x = cp.Variable(pos=True)
+        y = cp.Variable(pos=True)
+        objective = cp.Maximize(x*y)
+        # Test with 0.
+        set_vals = {0, 1, 2, 3}
+        constraints = [FiniteSet(x, set_vals, ineq_form=ineq_form), y <= 1]
+        problem = cp.Problem(objective, constraints)
+        with pytest.raises(cp.error.DGPError, match="does not follow DGP"):
+            problem.solve(gp=True, solver=cp.GLPK_MI)
+
+        # Test with negative elements.
+        set_vals = {-1, 1}
+        constraints = [FiniteSet(x, set_vals, ineq_form=ineq_form), y <= 1]
+        problem = cp.Problem(objective, constraints)
+        with pytest.raises(cp.error.DGPError, match="not DGP"):
+            problem.solve(gp=True, solver=cp.GLPK_MI)
+
+        # Violates DPP.
+        set_vals = {0.5, 1}
+        param = cp.Parameter(pos=True, value=1)
+        constraints = [FiniteSet((x*param)**param, set_vals, ineq_form=ineq_form), y <= 1]
+        problem = cp.Problem(objective, constraints)
+        with pytest.raises(cp.error.DPPError, match="not DPP"):
+            problem.solve(gp=True, solver=cp.GLPK_MI, enforce_dpp=True)
+
+        # TODO get parameters working.
+        # Test with parameter.
+        set_vals = cp.Parameter(3, pos=True, value=[1, 2, 3])
+        constraints = [FiniteSet(x, set_vals, ineq_form=ineq_form), y <= 1]
+        problem = cp.Problem(objective, constraints)
+        with pytest.raises(cp.error.DGPError, match="does not follow DGP"):
+            problem.solve(gp=True, solver=cp.GLPK_MI)
+
 
 @solver_installed
 def test_default_argument():

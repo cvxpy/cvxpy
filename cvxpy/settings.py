@@ -81,6 +81,7 @@ SDPA = "SDPA"
 DIFFCP = "DIFFCP"
 GUROBI = "GUROBI"
 OSQP = "OSQP"
+PROXQP = "PROXQP"
 CPLEX = "CPLEX"
 MOSEK = "MOSEK"
 XPRESS = "XPRESS"
@@ -88,9 +89,10 @@ NAG = "NAG"
 PDLP = "PDLP"
 SCIP = "SCIP"
 SCIPY = "SCIPY"
-SOLVERS = [ECOS, CVXOPT, GLOP, GLPK, GLPK_MI,
+CLARABEL = "CLARABEL"
+SOLVERS = [CLARABEL, ECOS, CVXOPT, GLOP, GLPK, GLPK_MI,
            SCS, SDPA, GUROBI, OSQP, CPLEX,
-           MOSEK, CBC, COPT, XPRESS,
+           MOSEK, CBC, COPT, XPRESS, PROXQP,
            NAG, PDLP, SCIP, SCIPY]
 
 # Xpress-specific items
@@ -170,6 +172,13 @@ NONNEG = "NONNEGATIVE"
 NONPOS = "NONPOSITIVE"
 UNKNOWN = "UNKNOWN"
 
+# Canonicalization backends
+SCIPY_CANON_BACKEND = "SCIPY"
+RUST_CANON_BACKEND = "RUST"
+CPP_CANON_BACKEND = "CPP"
+
+DEFAULT_CANON_BACKEND = CPP_CANON_BACKEND
+
 # Numerical tolerances
 EIGVAL_TOL = 1e-10
 PSD_NSD_PROJECTION_TOL = 1e-8
@@ -185,6 +194,9 @@ PARAM_THRESHOLD = 1e4
 # -1 defaults to system default (configurable via the OMP_NUM_THREADS
 # environment variable)
 NUM_THREADS = -1
+
+PRINT_EDGEITEMS = 2
+PRINT_THRESHOLD = 5
 
 
 def set_num_threads(num_threads: int) -> None:

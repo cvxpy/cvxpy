@@ -17,7 +17,7 @@ import numpy as np
 
 from cvxpy import settings
 from cvxpy.reductions.canonicalization import Canonicalization
-from cvxpy.reductions.dgp2dcp.atom_canonicalizers import DgpCanonMethods
+from cvxpy.reductions.dgp2dcp.canonicalizers import DgpCanonMethods
 
 
 class Dgp2Dcp(Canonicalization):
@@ -47,7 +47,7 @@ class Dgp2Dcp(Canonicalization):
     >>> dcp_problem = gp2dcp.reduce()
     >>>
     >>> assert dcp2cone.accepts(dcp_problem)
-    >>> dcp_probem.solve()
+    >>> dcp_problem.solve()
     >>>
     >>> dgp_problem.unpack(gp2dcp.retrieve(dcp_problem.solution))
     >>> print(dgp_problem.value)

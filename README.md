@@ -3,7 +3,9 @@ CVXPY
 [![Build Status](http://github.com/cvxpy/cvxpy/workflows/build/badge.svg?event=push)](https://github.com/cvxpy/cvxpy/actions/workflows/build.yml)
 ![PyPI - downloads](https://img.shields.io/pypi/dm/cvxpy.svg?label=Pypi%20downloads)
 ![Conda - downloads](https://img.shields.io/conda/dn/conda-forge/cvxpy.svg?label=Conda%20downloads)
-
+[![Coverage](https://sonarcloud.io/api/project_badges/measure?project=cvxpy_cvxpy&metric=coverage)](https://sonarcloud.io/summary/new_code?id=cvxpy_cvxpy)
+[![Benchmarks](http://img.shields.io/badge/benchmarked%20by-asv-blue.svg?style=flat)](https://cvxpy.github.io/benchmarks/)
+[![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/cvxpy/cvxpy/badge)](https://api.securityscorecards.dev/projects/github.com/cvxpy/cvxpy)
 
 **The CVXPY documentation is at [cvxpy.org](http://www.cvxpy.org/).**
 
@@ -78,7 +80,7 @@ conda install -c conda-forge cvxpy
 
 CVXPY has the following dependencies:
 
-- Python >= 3.6
+- Python >= 3.7
 - OSQP >= 0.4.1
 - ECOS >= 2
 - SCS >= 1.1.6
@@ -137,11 +139,12 @@ researchers and engineers.
 
 CVXPY is developed and maintained by [Steven
 Diamond](https://stevendiamond.me/), [Akshay
-Agrawal](https://akshayagrawal.com), [Riley Murray](https://rileyjmurray.wordpress.com/), and [Bartolomeo Stellato](https://stellato.io/), with many others contributing
+Agrawal](https://akshayagrawal.com), [Riley Murray](https://rileyjmurray.wordpress.com/), 
+[Philipp Schiele](https://www.philippschiele.com/),
+and [Bartolomeo Stellato](https://stellato.io/), with many others contributing
 significantly. A non-exhaustive list of people who have shaped CVXPY over the
 years includes Stephen Boyd, Eric Chu, Robin Verschueren, Michael Sommerauer,
-Jaehyun Park, Enzo Busseti, AJ Friend, Judson Wilson, Chris
-Dembia, and Philipp Schiele.
+Jaehyun Park, Enzo Busseti, AJ Friend, Judson Wilson, and Chris Dembia.
 
 For more information about the team and our processes, see our [governance document](https://github.com/cvxpy/org/blob/main/governance.md).
 

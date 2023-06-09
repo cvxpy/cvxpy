@@ -137,6 +137,9 @@ For example, creating a variable ``x`` via ``x = Variable(nonpos=True)`` informs
 Creating the variable ``x`` via ``x = Variable()`` and adding the constraint ``x >= 0`` separately does not provide any information
 about the sign of ``x`` to the DCP analyzer.
 
+One downside of using attributes over explicit constraints is that dual variables will not be recorded. Dual variable values
+are only recorded for explicit constraints.
+
 .. _semidefinite:
 
 Semidefinite matrices
@@ -407,7 +410,7 @@ parses and solves the problem.
         a non-DPP problem (instead of just a warning). Only relevant for
         problems involving Parameters. Defaults to ``False``.
    :type enforce_dpp: bool, optional
-   :param ignore_dpp : When True, DPP problems will be treated as non-DPP,
+   :param ignore_dpp: When True, DPP problems will be treated as non-DPP,
         which may speed up compilation. Defaults to False.
    :type ignore_dpp: bool, optional
    :param kwargs: Additional keyword arguments specifying solver specific options.
@@ -429,7 +432,9 @@ The table below shows the types of problems the supported solvers can handle.
 +================+====+====+======+=====+=====+=====+=====+
 | `CBC`_         | X  |    |      |     |     |     | X   |
 +----------------+----+----+------+-----+-----+-----+-----+
-| `COPT`_        | X  | X  | X    |     |     |     | X*  |
+| `CLARABEL`_    | X  | X  | X    |  X  |  X  |  X  |     |
++----------------+----+----+------+-----+-----+-----+-----+
+| `COPT`_        | X  | X  | X    |  X  |     |     | X*  |
 +----------------+----+----+------+-----+-----+-----+-----+
 | `GLOP`_        | X  |    |      |     |     |     |     |
 +----------------+----+----+------+-----+-----+-----+-----+
@@ -438,6 +443,8 @@ The table below shows the types of problems the supported solvers can handle.
 | `GLPK_MI`_     | X  |    |      |     |     |     | X   |
 +----------------+----+----+------+-----+-----+-----+-----+
 | `OSQP`_        | X  | X  |      |     |     |     |     |
++----------------+----+----+------+-----+-----+-----+-----+
+| `PROXQP`_      | X  | X  |      |     |     |     |     |
 +----------------+----+----+------+-----+-----+-----+-----+
 | `PDLP`_        | X  |    |      |     |     |     |     |
 +----------------+----+----+------+-----+-----+-----+-----+
@@ -453,7 +460,7 @@ The table below shows the types of problems the supported solvers can handle.
 +----------------+----+----+------+-----+-----+-----+-----+
 | `CVXOPT`_      | X  | X  | X    | X   |     |     |     |
 +----------------+----+----+------+-----+-----+-----+-----+
-| `SDPA`_        | X  |    |      | X   |     |     |     |
+| `SDPA`_        | X  | X  | X    | X   |     |     |     |
 +----------------+----+----+------+-----+-----+-----+-----+
 | `SCS`_         | X  | X  | X    | X   | X   | X   |     |
 +----------------+----+----+------+-----+-----+-----+-----+
@@ -461,7 +468,7 @@ The table below shows the types of problems the supported solvers can handle.
 +----------------+----+----+------+-----+-----+-----+-----+
 | `XPRESS`_      | X  | X  | X    |     |     |     | X   |
 +----------------+----+----+------+-----+-----+-----+-----+
-| `SCIPY`_       | X  |    |      |     |     |     |     |
+| `SCIPY`_       | X  |    |      |     |     |     | X*  |
 +----------------+----+----+------+-----+-----+-----+-----+
 
 (*) Mixed-integer LP only.
@@ -536,6 +543,10 @@ You can change the solver called by CVXPY using the ``solver`` keyword argument.
     prob.solve(solver=cp.GLPK_MI)
     print("optimal value with GLPK_MI:", prob.value)
 
+    # Solve with CLARABEL.
+    prob.solve(solver=cp.CLARABEL)
+    print("optimal value with CLARABEL:", prob.value)
+
     # Solve with GUROBI.
     prob.solve(solver=cp.GUROBI)
     print("optimal value with GUROBI:", prob.value)
@@ -543,6 +554,10 @@ You can change the solver called by CVXPY using the ``solver`` keyword argument.
     # Solve with MOSEK.
     prob.solve(solver=cp.MOSEK)
     print("optimal value with MOSEK:", prob.value)
+
+    # Solve with PROXQP.
+    prob.solve(solver=cp.PROXQP)
+    print("optimal value with PROXQP:", prob.value)
 
     # Solve with CBC.
     prob.solve(solver=cp.CBC)
@@ -578,12 +593,12 @@ Use the ``installed_solvers`` utility function to get a list of the solvers your
 
 .. code:: python
 
-    print installed_solvers()
+    print(installed_solvers())
 
 ::
 
     ['CBC', 'CVXOPT', 'MOSEK', 'GLPK', 'GLPK_MI', 'ECOS', 'SCS', 'SDPA'
-     'SCIPY', 'GUROBI', 'OSQP', 'CPLEX', 'NAG', 'SCIP', 'XPRESS']
+     'SCIPY', 'GUROBI', 'OSQP', 'CPLEX', 'NAG', 'SCIP', 'XPRESS', 'PROXQP']
 
 Viewing solver output
 ^^^^^^^^^^^^^^^^^^^^^
@@ -594,7 +609,7 @@ All the solvers can print out information about their progress while solving the
 
     # Solve with ECOS and display output.
     prob.solve(solver=cp.ECOS, verbose=True)
-    print "optimal value with ECOS:", prob.value
+    print(f"optimal value with ECOS: {prob.value}")
 
 ::
 
@@ -673,12 +688,17 @@ The speed up in this case comes from caching the KKT matrix factorization.
 If ``A`` were a parameter, factorization caching would not be possible and the benefit of
 warm start would only be a good initial point.
 
+Warm start can also be used to provide an initial guess the first time a problem is solved.
+The initial guess is constructed from the ``value`` field of the problem variables.
+If the same problem is solved a second time, the initial guess is constructed from the
+cached previous solution as described above (rather than from the ``value`` field).
+
 .. _solveropts:
 
 Setting solver options
 ----------------------
 
-The `OSQP`_, `ECOS`_, `GLOP`_, `MOSEK`_, `CBC`_, `CVXOPT`_, `NAG`_, `PDLP`_, `GUROBI`_, and `SCS`_ Python interfaces allow you to set solver options such as the maximum number of iterations. You can pass these options along through CVXPY as keyword arguments.
+The `OSQP`_, `ECOS`_, `GLOP`_, `MOSEK`_, `CBC`_, `CVXOPT`_, `NAG`_, `PDLP`_, `GUROBI`_, `SCS`_ , `CLARABEL`_ and `PROXQP`_ Python interfaces allow you to set solver options such as the maximum number of iterations. You can pass these options along through CVXPY as keyword arguments.
 
 For example, here we tell SCS to use an indirect method for solving linear equations rather than a direct method.
 
@@ -686,7 +706,7 @@ For example, here we tell SCS to use an indirect method for solving linear equat
 
     # Solve with SCS, use sparse-indirect method.
     prob.solve(solver=cp.SCS, verbose=True, use_indirect=True)
-    print "optimal value with SCS:", prob.value
+    print(f"optimal value with SCS: {prob.value}")
 
 ::
 
@@ -736,6 +756,29 @@ Here is the complete list of solver options.
 
 For others see `OSQP documentation <https://osqp.org/docs/interfaces/solver_settings.html>`_.
 
+`PROXQP`_ options:
+
+``'backend'``
+    solver backend [dense, sparse] (default: dense).
+
+``'max_iter'``
+    maximum number of iterations (default: 10,000).
+
+``'eps_abs'``
+    absolute accuracy (default: 1e-8).
+
+``'eps_rel'``
+    relative accuracy (default: 0.0).
+
+``'rho'``
+    primal proximal parameter (default: 1e-6).
+
+``'mu_eq'``
+    dual equality constraint proximal parameter (default: 1e-3).
+
+``'mu_in'``
+    dual inequality constraint proximal parameter (default: 1e-1).
+
 `ECOS`_ options:
 
 ``'max_iters'``
@@ -773,11 +816,11 @@ For others see `OSQP documentation <https://osqp.org/docs/interfaces/solver_sett
 `MOSEK`_ options:
 
 ``'mosek_params'``
-    A dictionary of MOSEK parameters. Refer to MOSEK's Python or C API for
-    details. Note that if parameters are given as string-value pairs, parameter
-    names must be of the form ``'MSK_DPAR_BASIS_TOL_X'`` as in the C API.
-    Alternatively, Python enum options like ``'mosek.dparam.basis_tol_x'`` are
-    also supported.
+    A dictionary of MOSEK parameters in the form ``name: value``. Parameter names
+    should be strings, as in the MOSEK C API or command line, for example
+    ``'MSK_DPAR_BASIS_TOL_X'``, ``'MSK_IPAR_NUM_THREADS'`` etc. Values are strings,
+    integers or floats, depending on the parameter.
+    See `example <https://docs.mosek.com/latest/faq/faq.html#cvxpy>`_.
 
 ``'save_file'``
     The name of a file where MOSEK will save the problem just before optimization.
@@ -789,6 +832,19 @@ For others see `OSQP documentation <https://osqp.org/docs/interfaces/solver_sett
     instead of the interior-point solution. This assumes no specific MOSEK
     parameters were used which prevent computing the basic solution.
 
+``'accept_unknown'``
+    If ``accept_unknown=True``, an inaccurate solution will be returned, even if
+    it is arbitrarily bad, when the solver does not generate an optimal
+    point under the given conditions.
+
+``'eps'``
+    Applies tolerance ``eps`` to termination parameters for (conic) interior-point, 
+    simplex, and MIO solvers. The full list of termination parameters is returned
+    by ``MOSEK.tolerance_params()`` in 
+    ``cvxpy.reductions.solvers.conic_solvers.mosek_conif``.
+    Explicitly defined parameters take precedence over ``eps``.
+
+
 .. note::
 
     In CVXPY 1.1.6 we did a complete rewrite of the MOSEK interface. The main
@@ -798,7 +854,7 @@ For others see `OSQP documentation <https://osqp.org/docs/interfaces/solver_sett
     MOSEK interface. If you notice MOSEK solve times are slower for some of your
     problems under CVXPY 1.1.6 or higher, be sure to use the MOSEK solver options
     to tell MOSEK that it should solve the dual; this can be accomplished by
-    adding the ``(key, value)`` pair ``(mosek.iparam.intpnt_solve_form, mosek.solveform.dual)``
+    adding the ``(key, value)`` pair ``('MSK_IPAR_INTPNT_SOLVE_FORM', 'MSK_SOLVE_DUAL')``
     to the ``mosek_params`` argument.
     
 `CVXOPT`_ options:
@@ -925,6 +981,9 @@ For others see `OSQP documentation <https://osqp.org/docs/interfaces/solver_sett
 ``'use_indirect'``
     whether to use indirect solver for KKT sytem (instead of direct) (default: True).
 
+``'use_quad_obj'``
+    whether to use a quadratic objective or reduce it to SOC constraints (default: True).
+
 `CBC`_ options:
 
 Cut-generation through `CGL`_
@@ -990,11 +1049,11 @@ SCIP_ options:
 ``'scip_params'`` a dictionary of SCIP optional parameters, a full list of parameters with defaults is listed `here <https://www.scipopt.org/doc-5.0.1/html/PARAMETERS.php>`_.
 
 `SCIPY`_ options:
-``'scipy_options'`` a dictionary of SciPy optional parameters, a full list of parameters with defaults is listed `here <https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.linprog.html#scipy.optimize.linprog>`_. 
+``'scipy_options'`` a dictionary of SciPy optional parameters, a full list of parameters with defaults is listed `here <https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.linprog.html#scipy.optimize.linprog>`_.
 
-* **Please note**: All options should be listed as key-value pairs within the ``'scipy_options'`` dictionary and there should not be a nested dictionary called options. Some of the methods have different parameters so please check the parameters for the method you wish to use e.g. for method = 'highs-ipm'.
+* **Please note**: All options should be listed as key-value pairs within the ``'scipy_options'`` dictionary, and there should not be a nested dictionary called options. Some of the methods have different parameters, so please check the parameters for the method you wish to use, e.g., for method = 'highs-ipm'. Also, note that the 'integrality' and 'bounds' options should never be specified within ``'scipy_options'`` and should instead be specified using CVXPY.
 
-* The main advantage of this solver is its ability to use the `HiGHS`_ LP solvers which are coded in C++, however these require a version of SciPy larger than 1.6.1. To use the `HiGHS`_ solvers simply set the method parameter to 'highs-ds' (for dual-simplex), 'highs-ipm' (for interior-point method) or 'highs' (which will choose either 'highs-ds' or 'highs-ipm' for you). 
+* The main advantage of this solver is its ability to use the `HiGHS`_ LP and MIP solvers, which are coded in C++. However, these require versions of SciPy larger than 1.6.1 and 1.9.0, respectively. To use the `HiGHS`_ LP solvers, simply set the method parameter to 'highs-ds' (for dual-simplex), 'highs-ipm' (for interior-point method) or 'highs' (which will choose either 'highs-ds' or 'highs-ipm' for you). To use the `HiGHS`_ MIP solver, leave the method parameter unspecified or set it explicitly to 'highs'.
 
 `PDLP`_ options:
 
@@ -1020,6 +1079,36 @@ In addition to Gurobi's parameters, the following options are available:
     A boolean. This is only relevant for problems where GUROBI initially produces an "infeasible or unbounded" status.
     Its default value is False. If set to True, then if GUROBI produces an "infeasible or unbounded" status, its algorithm
     parameters are automatically changed and the problem is re-solved in order to determine its precise status.
+
+`CLARABEL`_ options:
+
+``'max_iter'``
+    maximum number of iterations (default: 50).
+
+``'time_limit'``
+    time limit in seconds (default: 0.0, giving no limit).
+
+For others see `CLARABEL documentation <https://oxfordcontrol.github.io/ClarabelDocs/stable/api_settings/>`_.
+
+
+`XPRESS`_ options:
+
+``'save_iis'``
+    Whether (and how many) Irreduceable Infeasible Subsystems
+    (IISs) should be saved in the event a problem is found to be
+    infeasible. If 0 (default), no IIS is saved; if negative, all
+    IISs are stored; if a positive ``'k>0'``, at most ``'k'`` IISs
+    are saved.
+
+``'write_mps'``
+    Filename (with extension ``'.mps'``) in which Xpress will save
+    the quadratic or conic problem.
+
+``'maxtime'``
+    Time limit in seconds (must be integer).
+
+All controls of the Xpress Optimizer can be specified within the ``'solve'``
+command. For all controls see `FICO Xpress Optimizer manual https://www.fico.com/fico-xpress-optimization/docs/dms2019-03/solver/optimizer/HTML/chapter7.html`_.
 
 Getting the standard form
 -------------------------
@@ -1521,6 +1610,8 @@ on derivatives.
 .. _XPRESS: https://www.fico.com/en/products/fico-xpress-optimization
 .. _SCIPY: https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.linprog.html#scipy.optimize.linprog
 .. _HiGHS: https://www.maths.ed.ac.uk/hall/HiGHS/#guide
+.. _CLARABEL: https://oxfordcontrol.github.io/ClarabelDocs/
+.. _PROXQP: https://github.com/simple-robotics/proxsuite
 
 Custom Solvers
 ------------------------------------
@@ -1558,3 +1649,17 @@ you should set the class variable ``MIP_CAPABLE`` to ``True``. If your solver is
 and a conic solver (as opposed to a QP solver), you should set the class variable ``MI_SUPPORTED_CONSTRAINTS`` 
 to the list of cones supported when solving mixed integer problems. Usually ``MI_SUPPORTED_CONSTRAINTS`` 
 will be the same as the class variable ``SUPPORTED_CONSTRAINTS``.
+
+.. _canonicalization-backends:
+
+Canonicalization backends
+------------------------------------
+Users can select from multiple canonicalization backends by adding the ``canon_backend``
+keyword argument to the ``.solve()`` call, e.g. ``problem.solve(canon_backend=cp.SCIPY_CANON_BACKEND)``
+(Introduced in CVXPY 1.3).
+This can speed up the canonicalization time significantly for some problems.
+Currently, the following canonicalization backends are supported:
+
+*  CPP (default): The original C++ implementation, also referred to as CVXCORE.
+*  | SCIPY: A pure Python implementation based on the SciPy sparse module.
+   | Generally fast for problems with few CVXPY ``Parameter`` s, especially when the problem is already vectorized.

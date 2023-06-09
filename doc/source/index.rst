@@ -80,7 +80,8 @@ researchers and engineers.
 CVXPY is developed and maintained by
 `Steven Diamond <https://stevendiamond.me/>`_,
 `Akshay Agrawal <https://akshayagrawal.com>`_,
-`Riley Murray <https://rileyjmurray.wordpress.com/>`_, and
+`Riley Murray <https://rileyjmurray.wordpress.com/>`_,
+`Philipp Schiele <https://www.philippschiele.com/>`_, and
 `Bartolomeo Stellato <https://stellato.io/>`_ with many others contributing
 significantly. A non-exhaustive list of people who have shaped CVXPY over the
 years includes Stephen Boyd, Eric Chu, Robin Verschueren,
@@ -92,11 +93,13 @@ guide </contributing/index>` and join us `on Discord <https://discord.gg/4urRQeG
 
 **News.**
 
-In early 2022 we started moving CVXPY to semantic versioning. Starting with CVXPY v1.2.0, we will
-assign version numbers following the specification at `semver.org <https://semver.org/>`_.
-This will result in us incrementing CVXPY's minor version number (the "x" in "CVXPY 1.x.y")
-much more often than before. Moving forward we will also make it a priority to differentiate
-between what is and is-not part of CVXPY's public API.
+CVXPY 1.3 introduced the option for users to specify different canonicalization backends,
+which can drastically reduce the canonicalization time. Initially, a second backend based on
+the SciPy sparse module was added. Read more about the new backends here: 
+:ref:`canonicalization-backends`. See `CVXPYgen <https://github.com/cvxgrp/cvxpygen>`_ for a
+complementary code generation approach. Following the introduction of semantic versioning,
+since the CVXPY 1.3 release, everything that can be imported from the `cvxpy` namespace is
+considered to be part of the public API.
 
 
 .. _OSQP: https://osqp.org/

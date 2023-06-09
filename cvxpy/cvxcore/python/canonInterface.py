@@ -13,14 +13,18 @@ Copyright 2017 Steven Diamond
    See the License for the specific language governing permissions and
    limitations under the License.
 """
+from __future__ import annotations
+
 import numbers
+import os
 
 import numpy as np
-import scipy.sparse
+import scipy.sparse as sp
 
 import cvxpy.cvxcore.python.cvxcore as cvxcore
 import cvxpy.settings as s
 from cvxpy.lin_ops import lin_op as lo
+from cvxpy.lin_ops.canon_backend import CanonBackend
 
 
 def get_parameter_vector(param_size,
@@ -89,7 +93,7 @@ def reduce_problem_data_tensor(A, var_length, quad_form: bool = False):
 
     and the problem data matrix can be constructed with
 
-        problem_data : = scipy.sparse.csc_matrix(
+        problem_data : = sp.csc_matrix(
             (data, indices, indptr), shape = shape)
 
     Parameters
@@ -114,7 +118,7 @@ def reduce_problem_data_tensor(A, var_length, quad_form: bool = False):
     reduced_A_shape = (unique_old_row.size, A_coo.shape[1])
 
     # remap the rows
-    reduced_A = scipy.sparse.coo_matrix(
+    reduced_A = sp.coo_matrix(
         (A_coo.data, (reduced_row, A_coo.col)), shape=reduced_A_shape)
 
     # convert reduced_A to csr
@@ -214,13 +218,13 @@ def get_matrix_from_tensor(problem_data_tensor, param_vec,
     elif problem_data_index is not None:
         flat_problem_data = problem_data_tensor @ param_vec
     else:
-        param_vec = scipy.sparse.csc_matrix(param_vec[:, None])
+        param_vec = sp.csc_matrix(param_vec[:, None])
         flat_problem_data = problem_data_tensor @ param_vec
 
 
     if problem_data_index is not None:
         indices, indptr, shape = problem_data_index
-        M = scipy.sparse.csc_matrix(
+        M = sp.csc_matrix(
             (flat_problem_data, indices, indptr), shape=shape)
     else:
         n_cols = var_length
@@ -241,7 +245,7 @@ def get_matrix_from_tensor(problem_data_tensor, param_vec,
         A_vals = np.append(A.data, np.zeros(nonzero_rows.size))
         A_rows = np.append(A_rows, nonzero_rows % A_nrows)
         A_cols = np.append(A_cols, nonzero_rows // A_nrows)
-        A = scipy.sparse.csc_matrix((A_vals, (A_rows, A_cols)),
+        A = sp.csc_matrix((A_vals, (A_rows, A_cols)),
                                     shape=A.shape)
 
     return (A, b)
@@ -270,12 +274,22 @@ def get_matrix_and_offset_from_unparameterized_tensor(problem_data_tensor,
         problem_data_tensor, None, var_length)
 
 
+def get_default_canon_backend() -> str:
+    """
+    Returns the default canonicalization backend, which can be set globally using an
+    environment variable.
+    """
+    return os.environ.get('CVXPY_DEFAULT_CANON_BACKEND', s.DEFAULT_CANON_BACKEND)
+
+
 def get_problem_matrix(linOps,
                        var_length,
                        id_to_col,
                        param_to_size,
                        param_to_col,
-                       constr_length):
+                       constr_length,
+                       canon_backend: str | None = None
+                       ):
     """
     Builds a sparse representation of the problem data.
 
@@ -287,6 +301,10 @@ def get_problem_matrix(linOps,
         param_to_size: A map from parameter id to parameter size.
         param_to_col: A map from parameter id to column in tensor.
         constr_length: Summed sizes of constraints input.
+        canon_backend :
+            'CPP' (default) | 'SCIPY'
+            Specifies which backend to use for canonicalization, which can affect
+            compilation time. Defaults to None, i.e., selecting the default backend.
 
     Returns
     -------
@@ -294,69 +312,93 @@ def get_problem_matrix(linOps,
         param_size + 1 columns (where param_size is the length of the
         parameter vector).
     """
-    lin_vec = cvxcore.ConstLinOpVector()
 
-    id_to_col_C = cvxcore.IntIntMap()
-    for id, col in id_to_col.items():
-        id_to_col_C[int(id)] = int(col)
+    # Allow to switch default backends through an environment variable for CI
+    default_canon_backend = get_default_canon_backend()
+    canon_backend = default_canon_backend if not canon_backend else canon_backend
 
-    param_to_size_C = cvxcore.IntIntMap()
-    for id, size in param_to_size.items():
-        param_to_size_C[int(id)] = int(size)
+    if canon_backend == s.CPP_CANON_BACKEND:
+        lin_vec = cvxcore.ConstLinOpVector()
 
-    # dict to memoize construction of C++ linOps, and to keep Python references
-    # to them to prevent their deletion
-    linPy_to_linC = {}
-    for lin in linOps:
-        build_lin_op_tree(lin, linPy_to_linC)
-        tree = linPy_to_linC[lin]
-        lin_vec.push_back(tree)
+        id_to_col_C = cvxcore.IntIntMap()
+        for id, col in id_to_col.items():
+            id_to_col_C[int(id)] = int(col)
 
-    problemData = cvxcore.build_matrix(lin_vec,
-                                       int(var_length),
-                                       id_to_col_C,
-                                       param_to_size_C,
-                                       s.get_num_threads())
+        param_to_size_C = cvxcore.IntIntMap()
+        for id, size in param_to_size.items():
+            param_to_size_C[int(id)] = int(size)
 
-    # Populate tensors with info from problemData.
-    tensor_V = {}
-    tensor_I = {}
-    tensor_J = {}
-    for param_id, size in param_to_size.items():
-        tensor_V[param_id] = []
-        tensor_I[param_id] = []
-        tensor_J[param_id] = []
-        problemData.param_id = param_id
-        for i in range(size):
-            problemData.vec_idx = i
-            prob_len = problemData.getLen()
-            tensor_V[param_id].append(problemData.getV(prob_len))
-            tensor_I[param_id].append(problemData.getI(prob_len))
-            tensor_J[param_id].append(problemData.getJ(prob_len))
+        # dict to memoize construction of C++ linOps, and to keep Python references
+        # to them to prevent their deletion
+        linPy_to_linC = {}
+        for lin in linOps:
+            build_lin_op_tree(lin, linPy_to_linC)
+            tree = linPy_to_linC[lin]
+            lin_vec.push_back(tree)
 
-    # Reduce tensors to a single sparse CSR matrix.
-    V = []
-    I = []
-    J = []
-    # one of the 'parameters' in param_to_col is a constant scalar offset,
-    # hence 'plus_one'
-    param_size_plus_one = 0
-    for param_id, col in param_to_col.items():
-        size = param_to_size[param_id]
-        param_size_plus_one += size
-        for i in range(size):
-            V.append(tensor_V[param_id][i])
-            I.append(tensor_I[param_id][i] +
-                     tensor_J[param_id][i]*constr_length)
-            J.append(tensor_J[param_id][i]*0 + (i + col))
-    V = np.concatenate(V)
-    I = np.concatenate(I)
-    J = np.concatenate(J)
-    A = scipy.sparse.csc_matrix(
-        (V, (I, J)),
-        shape=(np.int64(constr_length)*np.int64(var_length+1),
-               param_size_plus_one))
-    return A
+        problemData = cvxcore.build_matrix(lin_vec,
+                                           int(var_length),
+                                           id_to_col_C,
+                                           param_to_size_C,
+                                           s.get_num_threads())
+
+        # Populate tensors with info from problemData.
+        tensor_V = {}
+        tensor_I = {}
+        tensor_J = {}
+        for param_id, size in param_to_size.items():
+            tensor_V[param_id] = []
+            tensor_I[param_id] = []
+            tensor_J[param_id] = []
+            problemData.param_id = param_id
+            for i in range(size):
+                problemData.vec_idx = i
+                prob_len = problemData.getLen()
+                tensor_V[param_id].append(problemData.getV(prob_len))
+                tensor_I[param_id].append(problemData.getI(prob_len))
+                tensor_J[param_id].append(problemData.getJ(prob_len))
+
+        # Reduce tensors to a single sparse CSR matrix.
+        V = []
+        I = []
+        J = []
+        # one of the 'parameters' in param_to_col is a constant scalar offset,
+        # hence 'plus_one'
+        param_size_plus_one = 0
+        for param_id, col in param_to_col.items():
+            size = param_to_size[param_id]
+            param_size_plus_one += size
+            for i in range(size):
+                V.append(tensor_V[param_id][i])
+                I.append(tensor_I[param_id][i] +
+                         tensor_J[param_id][i]*constr_length)
+                J.append(tensor_J[param_id][i]*0 + (i + col))
+        V = np.concatenate(V)
+        I = np.concatenate(I)
+        J = np.concatenate(J)
+
+        output_shape = (np.int64(constr_length)*np.int64(var_length+1),
+                   param_size_plus_one)
+        A = sp.csc_matrix(
+            (V, (I, J)),
+            shape=output_shape)
+        return A
+
+    elif canon_backend in {s.SCIPY_CANON_BACKEND, s.RUST_CANON_BACKEND}:
+        param_size_plus_one = sum(param_to_size.values())
+        output_shape = (np.int64(constr_length)*np.int64(var_length+1),
+                   param_size_plus_one)
+        if len(linOps) > 0:
+            backend = CanonBackend.get_backend(canon_backend, id_to_col,
+                                                          param_to_size, param_to_col,
+                                                          param_size_plus_one, var_length)
+            A_py = backend.build_matrix(linOps)
+        else:
+            A_py = sp.csc_matrix(((), ((), ())), output_shape)
+        assert A_py.shape == output_shape
+        return A_py
+    else:
+        raise ValueError(f'Unknown backend: {canon_backend}')
 
 
 def format_matrix(matrix, shape=None, format='dense'):
@@ -368,9 +410,9 @@ def format_matrix(matrix, shape=None, format='dense'):
         elif len(shape) == 1:
             shape = shape + (1,)
         return np.reshape(matrix, shape, order='F')
-    elif(format == 'sparse'):
-        return scipy.sparse.coo_matrix(matrix)
-    elif(format == 'scalar'):
+    elif (format == 'sparse'):
+        return sp.coo_matrix(matrix)
+    elif (format == 'scalar'):
         return np.asfortranarray([[matrix]])
     else:
         raise NotImplementedError()

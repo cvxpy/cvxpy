@@ -13,22 +13,37 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+from __future__ import annotations
 
 import numpy as np
 import scipy.sparse as sp
 
 import cvxpy.settings as s
-from cvxpy.constraints import (PSD, SOC, Equality, ExpCone, Inequality, NonNeg,
-                               NonPos, PowCone3D, Zero,)
+from cvxpy.constraints import (
+    PSD,
+    SOC,
+    Equality,
+    ExpCone,
+    Inequality,
+    NonNeg,
+    NonPos,
+    PowCone3D,
+    Zero,
+)
 from cvxpy.cvxcore.python import canonInterface
 from cvxpy.expressions.variable import Variable
 from cvxpy.problems.objective import Minimize
 from cvxpy.problems.param_prob import ParamProb
 from cvxpy.reductions import InverseData, Solution, cvx_attr2constr
 from cvxpy.reductions.matrix_stuffing import MatrixStuffing, extract_mip_idx
-from cvxpy.reductions.utilities import (are_args_affine, group_constraints,
-                                        lower_equality, lower_ineq_to_nonneg,
-                                        nonpos2nonneg,)
+from cvxpy.reductions.utilities import (
+    ReducedMat,
+    are_args_affine,
+    group_constraints,
+    lower_equality,
+    lower_ineq_to_nonneg,
+    nonpos2nonneg,
+)
 from cvxpy.utilities.coeff_extractor import CoeffExtractor
 
 
@@ -108,7 +123,7 @@ class ConeDims:
 class ParamConeProg(ParamProb):
     """Represents a parameterized cone program
 
-    minimize   c'x  + d
+    minimize   c'x  + d + [(1/2)x'Px]
     subject to cone_constr1(A_1*x + b_1, ...)
                ...
                cone_constrK(A_i*x + b_i, ...)
@@ -122,17 +137,20 @@ class ParamConeProg(ParamProb):
                  constraints,
                  parameters,
                  param_id_to_col,
+                 P=None,
                  formatted: bool = False) -> None:
         # The problem data tensors; c is for the constraint, and A for
         # the problem data matrix
         self.c = c
         self.A = A
-
+        self.P = P
         # The variable
         self.x = x
-        self.reduced_A = None
-        self.problem_data_tensor = None
-        self._A_mapping_nonzero = None
+
+        # Form a reduced representation of A and P, for faster application
+        # of parameters.
+        self.reduced_A = ReducedMat(self.A, self.x.size)
+        self.reduced_P = ReducedMat(self.P, self.x.size, quad_form=True)
 
         self.constraints = constraints
         self.constr_size = sum([c.size for c in constraints])
@@ -158,28 +176,18 @@ class ParamConeProg(ParamProb):
             self.x.attributes['integer']
 
     def apply_parameters(self, id_to_param_value=None, zero_offset: bool = False,
-                         keep_zeros: bool = False):
+                         keep_zeros: bool = False, quad_obj: bool = False):
         """Returns A, b after applying parameters (and reshaping).
 
         Args:
-          id_to_param_value: (optional) dict mapping parameter ids to values
+          id_to_param_value: (optional) dict mapping parameter ids to values.
           zero_offset: (optional) if True, zero out the constant offset in the
-                       parameter vector
+                       parameter vector.
           keep_zeros: (optional) if True, store explicit zeros in A where
-                        parameters are affected
+                        parameters are affected.
+          quad_obj: (optional) if True, include quadratic objective term.
         """
-        if self.reduced_A is None:
-            # Form a reduced representation of A, for faster application of
-            # parameters.
-            if np.prod(self.A.shape) != 0:
-                reduced_A, indices, indptr, shape = (
-                    canonInterface.reduce_problem_data_tensor(
-                        self.A, self.x.size))
-                self.reduced_A = reduced_A
-                self.problem_data_index = (indices, indptr, shape)
-            else:
-                self.reduced_A = self.A
-                self.problem_data_index = None
+        self.reduced_A.cache(keep_zeros)
 
         def param_value(idx):
             return (np.array(self.id_to_param[idx].value) if id_to_param_value
@@ -194,14 +202,13 @@ class ParamConeProg(ParamProb):
         c, d = canonInterface.get_matrix_from_tensor(
             self.c, param_vec, self.x.size, with_offset=True)
         c = c.toarray().flatten()
-        if keep_zeros and self._A_mapping_nonzero is None:
-            self._A_mapping_nonzero = canonInterface.A_mapping_nonzero_rows(
-                self.A, self.x.size)
-        A, b = canonInterface.get_matrix_from_tensor(
-            self.reduced_A, param_vec, self.x.size,
-            nonzero_rows=self._A_mapping_nonzero, with_offset=True,
-            problem_data_index=self.problem_data_index)
-        return c, d, A, np.atleast_1d(b)
+        A, b = self.reduced_A.get_matrix_from_tensor(param_vec, with_offset=True)
+        if quad_obj:
+            self.reduced_P.cache(keep_zeros)
+            P, _ = self.reduced_P.get_matrix_from_tensor(param_vec, with_offset=False)
+            return P, c, d, A, np.atleast_1d(b)
+        else:
+            return c, d, A, np.atleast_1d(b)
 
     def apply_param_jac(self, delc, delA, delb, active_params=None):
         """Multiplies by Jacobian of parameter mapping.
@@ -211,6 +218,9 @@ class ParamConeProg(ParamProb):
         Returns:
             A dictionary param.id -> dparam
         """
+        if self.P is not None:
+            raise ValueError("Can't apply Jacobian with a quadratic objective.")
+
         if active_params is None:
             active_params = {p.id for p in self.parameters}
 
@@ -288,27 +298,41 @@ class ConeMatrixStuffing(MatrixStuffing):
     """
     CONSTRAINTS = 'ordered_constraints'
 
+    def __init__(self, quad_obj: bool = False, canon_backend: str | None = None):
+        # Assume a quadratic objective?
+        self.quad_obj = quad_obj
+        self.canon_backend = canon_backend
+
     def accepts(self, problem):
+        valid_obj_curv = (self.quad_obj and problem.objective.expr.is_quadratic()) or \
+            problem.objective.expr.is_affine()
         return (type(problem.objective) == Minimize
-                and problem.objective.expr.is_affine()
+                and valid_obj_curv
                 and not cvx_attr2constr.convex_attributes(problem.variables())
                 and are_args_affine(problem.constraints)
                 and problem.is_dpp())
 
     def stuffed_objective(self, problem, extractor):
-        # Extract to c.T * x + r; c is represented by a ma
-        c = extractor.affine(problem.objective.expr)
-
+        # concatenate all variables in one vector
         boolean, integer = extract_mip_idx(problem.variables())
         x = Variable(extractor.x_length, boolean=boolean, integer=integer)
-
-        return c, x
+        if self.quad_obj:
+            # extract to 0.5 * x.T * P * x + q.T * x + r
+            expr = problem.objective.expr.copy()
+            params_to_P, params_to_c = extractor.quad_form(expr)
+            # Handle 0.5 factor.
+            params_to_P = 2*params_to_P
+        else:
+            # Extract to c.T * x + r; c is represented by a ma
+            params_to_c = extractor.affine(problem.objective.expr)
+            params_to_P = None
+        return params_to_P, params_to_c, x
 
     def apply(self, problem):
         inverse_data = InverseData(problem)
         # Form the constraints
-        extractor = CoeffExtractor(inverse_data)
-        params_to_objective, flattened_variable = self.stuffed_objective(
+        extractor = CoeffExtractor(inverse_data, self.canon_backend)
+        params_to_P, params_to_c, flattened_variable = self.stuffed_objective(
             problem, extractor)
         # Lower equality and inequality to Zero and NonNeg.
         cons = []
@@ -344,14 +368,15 @@ class ConeMatrixStuffing(MatrixStuffing):
         params_to_problem_data = extractor.affine(expr_list)
 
         inverse_data.minimize = type(problem.objective) == Minimize
-        new_prob = ParamConeProg(params_to_objective,
+        new_prob = ParamConeProg(params_to_c,
                                  flattened_variable,
                                  params_to_problem_data,
                                  problem.variables(),
                                  inverse_data.var_offsets,
                                  ordered_cons,
                                  problem.parameters(),
-                                 inverse_data.param_id_map)
+                                 inverse_data.param_id_map,
+                                 P=params_to_P)
         return new_prob, inverse_data
 
     def invert(self, solution, inverse_data):

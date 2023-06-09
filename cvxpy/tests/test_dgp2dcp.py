@@ -1,8 +1,9 @@
 import numpy as np
+import pytest
 
 import cvxpy
 import cvxpy.error as error
-import cvxpy.reductions.dgp2dcp.atom_canonicalizers as dgp_atom_canon
+import cvxpy.reductions.dgp2dcp.canonicalizers as dgp_atom_canon
 from cvxpy.atoms.affine.add_expr import AddExpression
 from cvxpy.reductions import solution
 from cvxpy.settings import SOLVER_ERROR
@@ -316,9 +317,7 @@ class TestDgp2Dcp(BaseTest):
 
     def test_solving_non_dgp_problem_raises_error(self) -> None:
         problem = cvxpy.Problem(cvxpy.Minimize(-1.0 * cvxpy.Variable()), [])
-        with self.assertRaisesRegex(error.DGPError,
-                                    r"Problem does not follow DGP "
-                                    "rules(?s)*.*However, the problem does follow DCP rules.*"):
+        with pytest.raises(error.DGPError, match='However, the problem does follow DCP rules'):
             problem.solve(SOLVER, gp=True)
         problem.solve(SOLVER)
         self.assertEqual(problem.status, "unbounded")
@@ -328,9 +327,9 @@ class TestDgp2Dcp(BaseTest):
         problem = cvxpy.Problem(
           cvxpy.Minimize(cvxpy.Variable(pos=True) * cvxpy.Variable(pos=True)),
         )
-        with self.assertRaisesRegex(error.DCPError,
-                                    r"Problem does not follow DCP "
-                                    "rules(?s)*.*However, the problem does follow DGP rules.*"):
+        with pytest.raises(error.DCPError, match='However, the problem does follow DGP rules'):
+            problem.solve(SOLVER, gp=True)
+
             problem.solve(SOLVER)
         problem.solve(SOLVER, gp=True)
         self.assertEqual(problem.status, "unbounded")
@@ -622,3 +621,39 @@ class TestDgp2Dcp(BaseTest):
                              [x >= b])
         prob.solve(solver=SOLVER, gp=True)
         self.assertItemsAlmostEqual(expr.value, [np.e, 0.5 * np.e**.5])
+
+    def test_pnorm(self) -> None:
+        x = cvxpy.Variable(pos=True)
+        p = cvxpy.Problem(cvxpy.Minimize(cvxpy.norm(cvxpy.Constant([3, 4]), p=2) * x ** 2),
+                          [x >= 1])
+        self.assertAlmostEqual(p.solve(gp=True), 5)
+        self.assertAlmostEqual(p.solution.opt_val, 5)
+        self.assertAlmostEqual(x.value, 1.0)
+
+        # Test p = 3
+        x = cvxpy.Variable(pos=True)
+        arr = [1.5, 3, 2]
+        l3_norm = np.linalg.norm(arr, 3)
+        p = cvxpy.Problem(cvxpy.Minimize(cvxpy.norm(cvxpy.Constant(arr), p=3) * x ** 2),
+                          [x >= 1])
+        self.assertAlmostEqual(p.solve(gp=True), l3_norm)
+        self.assertAlmostEqual(p.solution.opt_val, l3_norm)
+        self.assertAlmostEqual(x.value, 1.0)
+
+        # Test fro norm
+        x = cvxpy.Variable(pos=True)
+        mat = [[1, 0.5], [2, 3]]
+        l2_norm = np.linalg.norm(mat, 'fro')
+        p = cvxpy.Problem(cvxpy.Minimize(cvxpy.norm(cvxpy.Constant(mat), p='fro') * x ** 2),
+                          [x >= 1])
+        self.assertAlmostEqual(p.solve(gp=True), l2_norm)
+        self.assertAlmostEqual(p.solution.opt_val, l2_norm)
+        self.assertAlmostEqual(x.value, 1.0)
+
+        # Test on a variable
+        x = cvxpy.Variable(2, pos=True)
+        c = cvxpy.Constant([3, 4])
+        p = cvxpy.Problem(cvxpy.Minimize(cvxpy.norm(c, p=2)), [x == c])
+        self.assertAlmostEqual(p.solve(gp=True), 5)
+        self.assertAlmostEqual(p.solution.opt_val, 5)
+        self.assertItemsAlmostEqual(x.value, c.value)

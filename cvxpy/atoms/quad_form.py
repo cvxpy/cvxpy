@@ -54,7 +54,7 @@ class QuadForm(Atom):
         if self.args[1].shape[1] != n or self.args[0].shape not in [(n, 1), (n,)]:
             raise ValueError("Invalid dimensions for arguments.")
         if not self.args[1].is_hermitian():
-            raise ValueError("P must be symmetric/Hermitian.")
+            raise ValueError("Quadratic form matrices must be symmetric/Hermitian.")
 
     def sign_from_args(self) -> Tuple[bool, bool]:
         """Returns sign (is positive, is negative) of the expression.
@@ -100,6 +100,11 @@ class QuadForm(Atom):
         """
         return True
 
+    def has_quadratic_term(self) -> bool:
+        """Always a quadratic term.
+        """
+        return True
+
     def is_pwl(self) -> bool:
         """Is the atom piecewise linear?
         """
@@ -113,11 +118,11 @@ class QuadForm(Atom):
     def _grad(self, values):
         x = np.array(values[0])
         P = np.array(values[1])
-        D = (P + np.conj(P.T)) @ x.T
-        return [sp.csc_matrix(D.ravel(order='F')).T]
+        D = (P + np.conj(P.T)) @ x
+        return [sp.csc_matrix(D.ravel(order="F")).T]
 
     def shape_from_args(self) -> Tuple[int, ...]:
-        return tuple() if self.args[0].ndim == 0 else (1, 1)
+        return tuple()
 
 
 class SymbolicQuadForm(Atom):

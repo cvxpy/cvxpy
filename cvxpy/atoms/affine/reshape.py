@@ -49,10 +49,30 @@ class reshape(AffAtom):
         if len(shape) > 2:
             raise ValueError("Expressions of dimension greater than 2 "
                              "are not supported.")
+        if any(d == -1 for d in shape):
+            shape = self._infer_shape(shape, expr.size)
+
         self._shape = tuple(shape)
         assert order in ['F', 'C']
         self.order = order
         super(reshape, self).__init__(expr)
+
+    @staticmethod
+    def _infer_shape(shape: Tuple[int, ...], size: int) -> Tuple[int, ...]:
+        assert shape.count(-1) == 1, "Only one dimension can be -1."
+        if len(shape) == 1:
+            shape = (size,)
+        else:
+            unspecified_index = shape.index(-1)
+            specified = shape[1 - unspecified_index]
+            assert specified >= 0, "Specified dimension must be nonnegative."
+            unspecified, remainder = divmod(size, shape[1 - unspecified_index])
+            if remainder != 0:
+                raise ValueError(
+                    f"Cannot reshape expression of size {size} into shape {shape}."
+                )
+            shape = tuple(unspecified if d == -1 else specified for d in shape)
+        return shape
 
     def is_atom_log_log_convex(self) -> bool:
         """Is the atom log-log convex?

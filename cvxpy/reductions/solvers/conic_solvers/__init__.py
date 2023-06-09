@@ -15,6 +15,7 @@ limitations under the License.
 """
 
 from .cbc_conif import CBC
+from .clarabel_conif import CLARABEL
 from .copt_conif import COPT
 from .cplex_conif import CPLEX
 from .cvxopt_conif import CVXOPT

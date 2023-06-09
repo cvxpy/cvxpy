@@ -305,6 +305,24 @@ class power(Elementwise):
         else:
             return self.args[0].is_constant()
 
+    def has_quadratic_term(self) -> bool:
+        """Does the affine head of the expression contain a quadratic term?
+
+        The affine head is all nodes with a path to the root node
+        that does not pass through any non-affine atom. If the root node
+        is non-affine, then the affine head is the root alone.
+        """
+        if not _is_const(self.p):
+            return False
+
+        p = self.p_rational
+        if p == 1:
+            return self.args[0].has_quadratic_term()
+        elif p == 2:
+            return True
+        else:
+            return False
+
     def is_qpwa(self) -> bool:
         if not _is_const(self.p):
             # disallow parameters
@@ -319,6 +337,11 @@ class power(Elementwise):
             return self.args[0].is_pwl()
         else:
             return self.args[0].is_constant()
+
+    def _quadratic_power(self) -> bool:
+        """Utility function to check if power is 0, 1 or 2."""
+        p = self.p_rational
+        return p in [0, 1, 2]
 
     def _grad(self, values):
         """Gives the (sub/super)gradient of the atom w.r.t. each argument.

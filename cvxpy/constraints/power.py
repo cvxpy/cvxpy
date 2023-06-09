@@ -66,6 +66,7 @@ class PowCone3D(Constraint):
     def __str__(self) -> str:
         return "Pow3D(%s, %s, %s; %s)" % (self.x, self.y, self.z, self.alpha)
 
+    @property
     def residual(self):
         # TODO: The projection should be implemented directly.
         from cvxpy import Minimize, Problem, Variable, hstack, norm2
@@ -81,7 +82,7 @@ class PowCone3D(Constraint):
         return problem.solve(solver='SCS', eps=1e-8)
 
     def get_data(self):
-        return [self.alpha]
+        return [self.alpha, self.id]
 
     def is_imag(self) -> bool:
         return False
@@ -202,7 +203,7 @@ class PowConeND(Constraint):
         return False
 
     def get_data(self):
-        return [self.alpha, self.axis]
+        return [self.alpha, self.axis, self.id]
 
     @property
     def residual(self):

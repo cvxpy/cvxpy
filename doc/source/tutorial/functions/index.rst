@@ -277,6 +277,18 @@ and returns a scalar.
      - |convex| convex
      - None
 
+   * - :ref:`perspective(f(x),s) <perspective>`
+
+     - :math:`sf(x/s)`
+     - :math:`x \in \mathop{\bf dom} f`
+
+       :math:`s \geq 0`
+     - same as f
+     - |convex| / |concave|
+
+       same as :math:`f`
+     - None
+
    * - :ref:`pnorm(X, p) <pnorm_func>`
 
        :math:`p \geq 1`
@@ -391,6 +403,14 @@ and returns a scalar.
      - |affine| affine
      - |incr| incr.
 
+   * - :ref:`tr_inv(X) <tr_inv>`
+
+     - :math:`\mathrm{tr}\left(X^{-1} \right)`
+     - :math:`X \in\mathbf{S}^n_{++}`
+     - |positive| positive
+     - |convex| convex
+     - None
+
    * - :ref:`tv(x) <tv>`
 
      - :math:`\sum_{i}|x_{i+1} - x_i|`
@@ -399,7 +419,7 @@ and returns a scalar.
      - |convex| convex
      - None
 
-   * - :ref:`tv(x) <tv>`
+   * - :ref:`tv(X) <tv>`
      - :math:`\sum_{ij}\left\| \left[\begin{matrix} X_{i+1,j} - X_{ij} \\ X_{i,j+1} -X_{ij} \end{matrix}\right] \right\|_2`
      - :math:`X \in \mathbf{R}^{m \times n}`
      - |positive| positive
@@ -788,7 +808,7 @@ Expression and a negative Expression) then the returned Expression will have unk
      - |affine| affine
      - |incr| incr.
 
-   * - :ref:`conv(c, x) <conv>`
+   * - :ref:`convolve(c, x) <convolve>`
 
        :math:`c\in\mathbf{R}^m`
      - :math:`c*x`
@@ -846,6 +866,14 @@ Expression and a negative Expression) then the returned Expression will have unk
      - :math:`X \in \mathbf{R}^{p \times q}`
      - |affine| affine
      - depends on :math:`Y`
+     
+   * - :ref:`outer(x, y) <outer>`
+
+       constant :math:`y \in \mathbf{R}^m`
+     - :math:`x y^T`
+     - :math:`x \in \mathbf{R}^n`
+     - |affine| affine
+     - depends on :math:`y`
 
    * - :ref:`partial_trace(X, dims, axis=0) <ptrace>`
 
@@ -891,14 +919,13 @@ Expression and a negative Expression) then the returned Expression will have unk
      - |affine| affine
      - |incr| incr.
 
-
 Clarifications on vector and matrix functions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 The input to :math:`\texttt{bmat}` is a list of lists of CVXPY expressions.
 It constructs a block matrix.
 The elements of each inner list are stacked horizontally and then the resulting block matrices are stacked vertically.
 
-The output :math:`y = \mathbf{conv}(c, x)` has size :math:`n+m-1` and is defined as
+The output :math:`y = \mathbf{convolve}(c, x)` has size :math:`n+m-1` and is defined as
 :math:`y_k =\sum_{j=0}^{k} c[j]x[k-j]`.
 
 The output :math:`y = \mathbf{vec}(X)` is the matrix :math:`X` flattened in column-major order into a vector.

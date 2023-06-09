@@ -17,6 +17,7 @@ import numpy as np
 
 import cvxpy as cp
 import cvxpy.settings as s
+from cvxpy.reductions.dqcp2dcp.dqcp2dcp import Dqcp2Dcp
 from cvxpy.reductions.solvers import bisection
 from cvxpy.tests import base_test
 
@@ -41,7 +42,7 @@ class TestDqcp(base_test.BaseTest):
         self.assertFalse(problem.is_dcp())
         self.assertFalse(problem.is_dgp())
 
-        red = cp.Dqcp2Dcp(problem)
+        red = Dqcp2Dcp(problem)
         reduced = red.reduce()
         self.assertTrue(reduced.is_dcp())
         self.assertEqual(len(reduced.parameters()), 1)
@@ -69,7 +70,7 @@ class TestDqcp(base_test.BaseTest):
         self.assertFalse(problem.is_dcp())
         self.assertFalse(problem.is_dgp())
 
-        red = cp.Dqcp2Dcp(problem)
+        red = Dqcp2Dcp(problem)
         reduced = red.reduce()
         self.assertTrue(reduced.is_dcp())
         self.assertEqual(len(reduced.parameters()), 1)
@@ -428,6 +429,14 @@ class TestDqcp(base_test.BaseTest):
         value = variable.value.copy()
         cp.sign(variable).value
         self.assertItemsAlmostEqual(value, variable.value)
+
+        # sign is only QCP for univariate input.
+        # See issue #1828
+        x = cp.Variable(2)
+        obj = cp.sum_squares(np.ones(2) - x)
+        constr = [cp.sum(cp.sign(x)) <= 1]
+        prob = cp.Problem(cp.Minimize(obj), constr)
+        assert not prob.is_dqcp()
 
     def test_dist_ratio(self) -> None:
         x = cp.Variable(2)

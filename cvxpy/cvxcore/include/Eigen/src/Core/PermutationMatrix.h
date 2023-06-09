@@ -88,13 +88,13 @@ class PermutationBase : public EigenBase<Derived>
     }
 
     /** \returns the number of rows */
-    inline Index rows() const { return Index(indices().size()); }
+    inline EIGEN_DEVICE_FUNC Index rows() const { return Index(indices().size()); }
 
     /** \returns the number of columns */
-    inline Index cols() const { return Index(indices().size()); }
+    inline EIGEN_DEVICE_FUNC Index cols() const { return Index(indices().size()); }
 
     /** \returns the size of a side of the respective square matrix, i.e., the number of indices */
-    inline Index size() const { return Index(indices().size()); }
+    inline EIGEN_DEVICE_FUNC Index size() const { return Index(indices().size()); }
 
     #ifndef EIGEN_PARSED_BY_DOXYGEN
     template<typename DenseDerived>

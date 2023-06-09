@@ -14,6 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+import collections
 import itertools
 import math
 
@@ -56,8 +57,9 @@ def log_sum_exp_axis_0(x): return cp.log_sum_exp(x, axis=0, keepdims=True)  # no
 def log_sum_exp_axis_1(x): return cp.log_sum_exp(x, axis=1)  # noqa E371
 
 
-# Atom, solver pairs known to fail.
-KNOWN_SOLVER_ERRORS = []
+# map from solver name to a list of strings for atoms that fail.
+#   old example: KNOWN_SOLVER_ERRORS[cp.MOSEK] = ['xexp']
+KNOWN_SOLVER_ERRORS = collections.defaultdict(list)
 
 atoms_minimize = [
     (cp.abs, (2, 2), [[[-5, 2], [-3, 1]]],
@@ -74,8 +76,8 @@ atoms_minimize = [
     (cp.diag, (2, 2), [[-5, 1]], Constant([[-5, 0], [0, 1]])),
     (cp.exp, (2, 2), [[[1, 0], [2, -1]]],
      Constant([[math.e, 1], [math.e**2, 1.0 / math.e]])),
-    (lambda x: cp.xexp(cp.pos(x)), (2, 2), [[[1, 0], [2, .5]]],
-     Constant([[math.e, 0], [2 * math.e**2, 0.5 * math.e**.5]])),
+    (lambda x: cp.xexp(cp.pos(x)), (2, 2), [[[1, 3], [2, .5]]],
+     Constant([[math.e, 3 * math.e**3], [2 * math.e**2, 0.5 * math.e**.5]])),
     (cp.huber, (2, 2), [[[0.5, -1.5], [4, 0]]],
      Constant([[0.25, 2], [7, 0]])),
     (lambda x: cp.huber(x, 2.5), (2, 2), [[[0.5, -1.5], [4, 0]]],
@@ -303,6 +305,10 @@ atoms_maximize = [
 def check_solver(prob, solver_name) -> bool:
     """Can the solver solve the problem?
     """
+    atom_str = str(prob.objective.args[0])
+    for bad_atom_name in KNOWN_SOLVER_ERRORS[solver_name]:
+        if bad_atom_name in atom_str:
+            return False
     try:
         if solver_name == ROBUST_CVXOPT:
             solver_name = CVXOPT
@@ -324,8 +330,7 @@ def run_atom(atom, problem, obj_val, solver, verbose: bool = False) -> None:
         print(problem.objective)
         print(problem.constraints)
         print("solver", solver)
-    if check_solver(problem, solver) and \
-            not (atom, solver) in KNOWN_SOLVER_ERRORS:
+    if check_solver(problem, solver):
         tolerance = SOLVER_TO_TOL[solver]
 
         try:

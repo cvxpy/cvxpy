@@ -17,7 +17,7 @@ limitations under the License.
 import logging
 from typing import Any, Dict, Generic, Iterator, List, Optional, Tuple, Union
 
-from numpy import array, ndarray
+import numpy as np
 from scipy.sparse import dok_matrix
 
 import cvxpy.settings as s
@@ -27,8 +27,9 @@ from cvxpy.reductions.dcp2cone.cone_matrix_stuffing import ParamConeProg
 from cvxpy.reductions.solution import Solution, failure_solution
 from cvxpy.reductions.solvers import utilities
 from cvxpy.reductions.solvers.conic_solvers.conic_solver import (
-    ConicSolver, dims_to_solver_dict,)
-from cvxpy.utilities.versioning import Version
+    ConicSolver,
+    dims_to_solver_dict,
+)
 
 log = logging.getLogger(__name__)
 
@@ -90,11 +91,7 @@ class SCIP(ConicSolver):
     def import_solver(self) -> None:
         """Imports the solver."""
         import pyscipopt
-        v = pyscipopt.__version__
-        if Version(v) >= Version('4.0.0'):
-            msg = 'PySCIPOpt (SCIP\'s Python wrapper) is installed and its ' \
-                  'version is %s. CVXPY only supports PySCIPOpt < 4.0.0.' % v
-            raise ModuleNotFoundError(msg)
+        pyscipopt
 
     def apply(self, problem: ParamConeProg) -> Tuple[Dict, Dict]:
         """Returns a new problem and data for inverting the new solution."""
@@ -178,7 +175,7 @@ class SCIP(ConicSolver):
         A, b, c, dims = self._define_data(data)
         variables = self._create_variables(model, data, c)
         constraints = self._add_constraints(model, variables, A, b, dims)
-        self._set_params(model, verbose, solver_opts)
+        self._set_params(model, verbose, solver_opts, data, dims)
         solution = self._solve(model, variables, constraints, data, dims)
 
         return solution
@@ -193,7 +190,7 @@ class SCIP(ConicSolver):
         dims = dims_to_solver_dict(data[s.DIMS])
         return A, b, c, dims
 
-    def _create_variables(self, model: ScipModel, data: Dict[str, Any], c: ndarray) -> List:
+    def _create_variables(self, model: ScipModel, data: Dict[str, Any], c: np.ndarray) -> List:
         """Create a list of variables."""
         variables = []
         for n, obj in enumerate(c):
@@ -214,7 +211,7 @@ class SCIP(ConicSolver):
             model: ScipModel,
             variables: List,
             A: dok_matrix,
-            b: ndarray,
+            b: np.ndarray,
             dims: Dict[str, Union[int, List]],
     ) -> List:
         """Create a list of constraints."""
@@ -265,16 +262,12 @@ class SCIP(ConicSolver):
             self,
             model: ScipModel,
             verbose: bool,
-            solver_opts: Optional[Dict] = None,
+            solver_opts: Optional[Dict],
+            data: Dict[str, Any],
+            dims: Dict[str, Union[int, List]],
     ) -> None:
         """Set model solve parameters."""
         from pyscipopt import SCIP_PARAMSETTING
-
-        # Default parameters:
-        # These settings are needed  to allow the dual to be calculated
-        model.setPresolve(SCIP_PARAMSETTING.OFF)
-        model.setHeuristics(SCIP_PARAMSETTING.OFF)
-        model.disablePropagation()
 
         # Set model verbosity
         hide_output = not verbose
@@ -305,6 +298,14 @@ class SCIP(ConicSolver):
                     )
                 )
 
+        is_mip = data[s.BOOL_IDX] or data[s.INT_IDX]
+        has_soc_constr = len(dims[s.SOC_DIM]) > 1
+        if not (is_mip or has_soc_constr):
+            # These settings are needed  to allow the dual to be calculated
+            model.setPresolve(SCIP_PARAMSETTING.OFF)
+            model.setHeuristics(SCIP_PARAMSETTING.OFF)
+            model.disablePropagation()
+
     def _solve(
             self,
             model: ScipModel,
@@ -323,11 +324,21 @@ class SCIP(ConicSolver):
         solution = {}
 
         if max(model.getNSols(), model.getNCountedSols()) > 0:
-            solution["value"] = model.getObjVal()
             sol = model.getBestSol()
-            solution["primal"] = array([sol[v] for v in variables])
+            solution["primal"] = np.array([sol[v] for v in variables])
 
-            if not (data[s.BOOL_IDX] or data[s.INT_IDX]):
+            # HACK can't get objective value directly if stopped due to time limit.
+            if model.getStatus() == 'timelimit':
+                # the solution value is not actually necessary
+                # since CVXPY calculates it by evaluating the objective
+                # at the solution.
+                solution["value"] = np.nan
+            else:
+                solution["value"] = model.getObjVal()
+
+            is_mip = data[s.BOOL_IDX] or data[s.INT_IDX]
+            has_soc_constr = len(dims[s.SOC_DIM]) > 1
+            if not (is_mip or has_soc_constr):
                 # Not the following code calculating the dual values does not
                 # always return the correct values, see tests `test_scip_lp_2`
                 # and `test_scip_socp_1`.
@@ -339,18 +350,23 @@ class SCIP(ConicSolver):
                         dual = model.getDualsolLinear(lc)
                         vals.append(dual)
 
-                # Get non-linear duals.
-                if len(dims[s.SOC_DIM]) > 1:
-                    for row in model.getNlRows():
-                        vals.append(row.getDualsol())
-
-                solution["y"] = -array(vals)
+                solution["y"] = -np.array(vals)
                 solution[s.EQ_DUAL] = solution["y"][0:dims[s.EQ_DIM]]
                 solution[s.INEQ_DUAL] = solution["y"][dims[s.EQ_DIM]:]
 
         solution[s.SOLVE_TIME] = model.getSolvingTime()
-        solution['status'] = STATUS_MAP[model.getStatus()]
+        solution["status"] = STATUS_MAP[model.getStatus()]
         if solution["status"] == s.SOLVER_ERROR and model.getNCountedSols() > 0:
+            solution["status"] = s.OPTIMAL_INACCURATE
+
+        if model.getStatus() == 'timelimit' \
+                and model.getNCountedSols() == 0 \
+                and model.getNSols() == 0:
+            solution["status"] = s.SOLVER_ERROR
+
+        if model.getStatus() == 'timelimit' \
+                and (model.getNSols() > 0 \
+                or model.getNCountedSols() > 0):
             solution["status"] = s.OPTIMAL_INACCURATE
 
         return solution
@@ -362,7 +378,7 @@ class SCIP(ConicSolver):
         rows: Iterator,
         ctype: str,
         A: dok_matrix,
-        b: ndarray,
+        b: np.ndarray,
     ) -> List:
         """Adds EQ/LEQ constraints to the model using the data from mat and vec.
 
@@ -400,7 +416,7 @@ class SCIP(ConicSolver):
         variables: List,
         rows: Iterator,
         A: dok_matrix,
-        b: ndarray,
+        b: np.ndarray,
     ) -> Tuple:
         """Adds SOC constraint to the model using the data from mat and vec.
 

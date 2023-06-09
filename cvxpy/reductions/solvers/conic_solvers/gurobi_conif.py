@@ -22,7 +22,9 @@ from cvxpy.constraints import SOC
 from cvxpy.reductions.solution import Solution, failure_solution
 from cvxpy.reductions.solvers import utilities
 from cvxpy.reductions.solvers.conic_solvers.conic_solver import (
-    ConicSolver, dims_to_solver_dict,)
+    ConicSolver,
+    dims_to_solver_dict,
+)
 
 
 class GUROBI(ConicSolver):
@@ -59,8 +61,7 @@ class GUROBI(ConicSolver):
     def import_solver(self) -> None:
         """Imports the solver.
         """
-        import gurobipy
-        gurobipy  # For flake8
+        import gurobipy  # noqa F401
 
     def accepts(self, problem) -> bool:
         """Can Gurobi solve the problem?
@@ -84,11 +85,15 @@ class GUROBI(ConicSolver):
         tuple
             (dict of arguments needed for the solver, inverse data)
         """
+        import gurobipy as grb
         data, inv_data = super(GUROBI, self).apply(problem)
         variables = problem.x
         data[s.BOOL_IDX] = [int(t[0]) for t in variables.boolean_idx]
         data[s.INT_IDX] = [int(t[0]) for t in variables.integer_idx]
         inv_data['is_mip'] = data[s.BOOL_IDX] or data[s.INT_IDX]
+
+        # Add initial guess.
+        data['init_value'] = utilities.stack_vals(problem.variables, grb.GRB.UNDEFINED)
 
         return data, inv_data
 
@@ -181,9 +186,33 @@ class GUROBI(ConicSolver):
             )
         model.update()
 
+        # Set the start value of Gurobi vars to user provided values.
+        x = model.getVars()
+        if warm_start and solver_cache is not None \
+                and self.name() in solver_cache:
+            old_model = solver_cache[self.name()]
+            old_status = self.STATUS_MAP.get(old_model.Status,
+                                             s.SOLVER_ERROR)
+            if (old_status in s.SOLUTION_PRESENT) or (old_model.solCount > 0):
+                old_x = old_model.getVars()
+                for idx in range(len(x)):
+                    x[idx].start = old_x[idx].X
+        elif warm_start:
+            for i in range(len(x)):
+                x[i].start = data['init_value'][i]
+
         leq_start = dims[s.EQ_DIM]
         leq_end = dims[s.EQ_DIM] + dims[s.LEQ_DIM]
-        if hasattr(model, 'addMConstrs'):
+        if hasattr(model, 'addMConstr'):
+            # Code path for Gurobi v10.0-
+            eq_constrs = model.addMConstr(
+                A[:leq_start, :], None, gurobipy.GRB.EQUAL, b[:leq_start]
+            ).tolist()
+            ineq_constrs = model.addMConstr(
+                A[leq_start:leq_end, :], None, gurobipy.GRB.LESS_EQUAL,
+                b[leq_start:leq_end]).tolist()
+        elif hasattr(model, 'addMConstrs'):
+            # Code path for Gurobi v9.0-v9.5
             eq_constrs = model.addMConstrs(
                 A[:leq_start, :], None, gurobipy.GRB.EQUAL, b[:leq_start])
             ineq_constrs = model.addMConstrs(
@@ -254,6 +283,10 @@ class GUROBI(ConicSolver):
         if solution["status"] == s.USER_LIMIT and not model.SolCount:
             solution["status"] = s.INFEASIBLE_INACCURATE
         solution["model"] = model
+
+        # Save model for warm start.
+        if solver_cache is not None:
+            solver_cache[self.name()] = model
 
         return solution
 

@@ -21,7 +21,9 @@ from cvxpy.constraints import SOC
 from cvxpy.reductions.solution import Solution
 from cvxpy.reductions.solvers import utilities
 from cvxpy.reductions.solvers.conic_solvers.conic_solver import (
-    ConicSolver, dims_to_solver_dict,)
+    ConicSolver,
+    dims_to_solver_dict,
+)
 
 
 def makeMstart(A, n, ifCol: int = 1):
@@ -308,7 +310,7 @@ class XPRESS(ConicSolver):
             if not (data[s.BOOL_IDX] or data[s.INT_IDX]):
                 results_dict['y'] = - np.array(self.prob_.getDual())
 
-        elif status == s.INFEASIBLE:
+        elif status == s.INFEASIBLE and 'save_iis' in solver_opts and solver_opts['save_iis'] != 0:
 
             # Retrieve all IIS. For LPs there can be more than one,
             # but for QCQPs there is only support for one IIS.
@@ -341,7 +343,8 @@ class XPRESS(ConicSolver):
                                            'isolrow':  isrows,
                                            'isolcol':  icols}]
 
-            while self.prob_.iisnext() == 0:
+            while self.prob_.iisnext() == 0 and (solver_opts['save_iis'] < 0 or
+                                                 iisIndex < solver_opts['save_iis']):
                 iisIndex += 1
                 self.prob_.getiisdata(iisIndex,
                                       row, col, rtype, btype, duals, rdcs, isrows, icols)

@@ -1,11 +1,16 @@
-[tool.isort]
-include_trailing_comma = true
-use_parentheses = true
-extend_skip = [
-    "cvxpy/__init__.py",
-    "cvxpy/reductions/__init__.py",
-    "cvxpy/reductions/dcp2cone/atom_canonicalizers/__init__.py"
+[tool.ruff]
+select = ["E", "F", "I"]
+line-length = 100
+exclude = [
+    "build",
+    "examples",
+    "doc",
+    "cvxpy/cvxcore/*",
+    "*__init__.py"
 ]
+# The minimum Python version that should be supported
+target-version = "py37"
+
 
 [tool.pytest.ini_options]
 testpaths = [
@@ -14,13 +19,17 @@ testpaths = [
 
 [build-system]
 requires = [
-    "numpy>=1.15,<1.16; python_version=='3.7'",
-    "numpy>=1.16,<1.17; python_version=='3.8'",
-    "numpy>=1.19,<1.20; python_version=='3.9' and (platform_machine!='arm64' or platform_system!='Darwin')",
+    "numpy>=1.15,<1.16; python_version=='3.7' and platform_machine!='aarch64'",
+    "numpy>=1.19.2,<1.20; python_version=='3.7' and platform_machine=='aarch64'",
+    "numpy>=1.17,<1.18; python_version=='3.8' and platform_machine!='aarch64'",
+    "numpy>=1.19.2,<1.20; python_version=='3.8' and platform_machine=='aarch64'",
+    "numpy>=1.19,<1.20; python_version=='3.9' and (platform_machine not in 'arm64|aarch64' or platform_system!='Darwin')",
+    "numpy>=1.19.2,<1.20; python_version=='3.9' and platform_machine=='aarch64'",
     "numpy>=1.21.4,<1.22; python_version=='3.9' and (platform_machine=='arm64' and platform_system=='Darwin')",
     "numpy>=1.21,<1.22; python_version=='3.10' and (platform_machine!='arm64' or platform_system!='Darwin')",
     "numpy>=1.21.4,<1.22; python_version=='3.10' and (platform_machine=='arm64' and platform_system=='Darwin')",
+    "numpy>=1.23.4,<1.24; python_version=='3.11'",
     "scipy >= 1.1.0",
-    "setuptools>=40.8.0",
+    "setuptools>65.5.1",
     "wheel"
 ]

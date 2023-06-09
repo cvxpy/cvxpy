@@ -77,11 +77,11 @@ def partial_optimize(
     # If opt_vars is not specified, it's the complement of dont_opt_vars.
     elif opt_vars is None:
         ids = [id(var) for var in dont_opt_vars]
-        opt_vars = [var for var in prob.variables() if not id(var) in ids]
+        opt_vars = [var for var in prob.variables() if id(var) not in ids]
     # If dont_opt_vars is not specified, it's the complement of opt_vars.
     elif dont_opt_vars is None:
         ids = [id(var) for var in opt_vars]
-        dont_opt_vars = [var for var in prob.variables() if not id(var) in ids]
+        dont_opt_vars = [var for var in prob.variables() if id(var) not in ids]
     elif opt_vars is not None and dont_opt_vars is not None:
         ids = [id(var) for var in opt_vars + dont_opt_vars]
         for var in prob.variables():

@@ -21,6 +21,7 @@ import pytest
 import scipy
 import scipy.sparse as sp
 import scipy.stats
+from numpy import linalg as LA
 
 import cvxpy as cp
 import cvxpy.settings as s
@@ -109,6 +110,15 @@ class TestAtoms(BaseTest):
         self.assertTrue(str(cm.exception) in (
             "The input must be a single CVXPY Expression, not a list. "
             "Combine Expressions using atoms such as bmat, hstack, and vstack."))
+
+    def test_norm_exceptions(self) -> None:
+        """Test that norm exceptions are raised as expected.
+        """
+        x = cp.Variable(2)
+        with self.assertRaises(Exception) as cm:
+            cp.norm(x, 'nuc')
+        self.assertTrue(str(cm.exception) in (
+            "Unsupported norm option nuc for non-matrix."))
 
     def test_quad_form(self) -> None:
         """Test quad_form atom.
@@ -578,6 +588,41 @@ class TestAtoms(BaseTest):
         self.assertItemsAlmostEqual(b_reshaped, X_reshaped.value)
         self.assertItemsAlmostEqual(b, X.value)
 
+    def test_reshape_negative_one(self) -> None:
+        """
+        Test the reshape class with -1 in the shape.
+        """
+
+        expr = cp.Variable((2, 3))
+        numpy_expr = np.ones((2, 3))
+        shapes = [(-1, 1), (1, -1), (-1, 2), -1, (-1,)]
+        expected_shapes = [(6, 1), (1, 6), (3, 2), (6,), (6,)]
+
+        for shape, expected_shape in zip(shapes, expected_shapes):
+            expr_reshaped = cp.reshape(expr, shape)
+            self.assertEqual(expr_reshaped.shape, expected_shape)
+
+            numpy_expr_reshaped = np.reshape(numpy_expr, shape)
+            self.assertEqual(numpy_expr_reshaped.shape, expected_shape)
+
+        with pytest.raises(ValueError, match="Cannot reshape expression"):
+            cp.reshape(expr, (8, -1))
+
+        with pytest.raises(AssertionError, match="Only one"):
+            cp.reshape(expr, (-1, -1))
+
+        with pytest.raises(ValueError, match="Invalid reshape dimensions"):
+            cp.reshape(expr, (-1, 0))
+
+        with pytest.raises(AssertionError, match="Specified dimension must be nonnegative"):
+            cp.reshape(expr, (-1, -2))
+
+        A = np.array([[1, 2, 3], [4, 5, 6]])
+        A_reshaped = cp.reshape(A, -1, order='C')
+        assert np.allclose(A_reshaped.value, A.reshape(-1, order='C'))
+        A_reshaped = cp.reshape(A, -1, order='F')
+        assert np.allclose(A_reshaped.value, A.reshape(-1, order='F'))
+
     def test_vec(self) -> None:
         """Test the vec atom.
         """
@@ -633,6 +678,22 @@ class TestAtoms(BaseTest):
         self.assertFalse(expr.is_psd())
         self.assertFalse(expr.is_nsd())
 
+    def test_diag_offset(self) -> None:
+        """Test matrix to vector on scalar matrices"""
+        test_matrix = np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
+        test_vector = np.array([1, 2, 3])
+        offsets = [0, 1, -1, 2]
+        for offset in offsets:
+            a_cp = cp.diag(test_matrix, k=offset)
+            a_np = np.diag(test_matrix, k=offset)
+            A_cp = cp.diag(test_vector, k=offset)
+            A_np = np.diag(test_vector, k=offset)
+            self.assertItemsAlmostEqual(a_cp.value, a_np)
+            self.assertItemsAlmostEqual(A_cp.value, A_np)
+
+        X = cp.diag(Variable(5), 1)
+        self.assertEqual(X.size, 36)
+
     def test_trace(self) -> None:
         """Test the trace atom.
         """
@@ -645,6 +706,18 @@ class TestAtoms(BaseTest):
             cp.trace(self.C)
         self.assertEqual(str(cm.exception),
                          "Argument to trace must be a square matrix.")
+
+    def test_trace_sign_psd(self) -> None:
+        """Test sign of trace for psd/nsd inputs.
+        """
+        X_psd = cp.Variable((2, 2), PSD=True)
+        X_nsd = cp.Variable((2, 2), NSD=True)
+
+        psd_trace = cp.trace(X_psd)
+        nsd_trace = cp.trace(X_nsd)
+
+        assert psd_trace.is_nonneg()
+        assert nsd_trace.is_nonpos()
 
     def test_log1p(self) -> None:
         """Test the log1p atom.
@@ -851,6 +924,24 @@ class TestAtoms(BaseTest):
             cp.kron(self.x, self.x)
         self.assertEqual(str(cm.exception),
                          "At least one argument to kron must be constant.")
+
+    def test_convolve(self) -> None:
+        """Test the convolve atom.
+        """
+        a = np.ones((3,))
+        b = Parameter(2, nonneg=True)
+        expr = cp.convolve(a, b)
+        assert expr.is_nonneg()
+        self.assertEqual(expr.shape, (4,))
+        b = Parameter(2, nonpos=True)
+        expr = cp.convolve(a, b)
+        assert expr.is_nonpos()
+        with self.assertRaises(Exception) as cm:
+            cp.convolve(self.x, -1)
+        self.assertEqual(str(cm.exception),
+                         "The first argument to conv must be constant.")
+        with pytest.raises(ValueError, match="scalar or 1D"):
+            cp.convolve([[0, 1], [0, 1]], self.x)
 
     def test_partial_optimize_dcp(self) -> None:
         """Test DCP properties of partial optimize.
@@ -1118,6 +1209,19 @@ class TestAtoms(BaseTest):
         self.assertEqual(cp.diff(A, axis=1).shape,
                          np.diff(B, axis=1).shape)
 
+        # Issue #1834
+
+        x1 = np.array([[1, 2, 3, 4, 5]])
+        x2 = cp.Variable((1, 5), value=x1)
+
+        expr = cp.diff(x1, axis=1)
+        self.assertItemsAlmostEqual(expr.value, np.diff(x1, axis=1))
+        expr = cp.diff(x2, axis=1)
+        self.assertItemsAlmostEqual(expr.value, np.diff(x1, axis=1))
+
+        with pytest.raises(ValueError, match="< k elements"):
+            cp.diff(x1, axis=0).value
+
     def test_log_normcdf(self) -> None:
         self.assertEqual(cp.log_normcdf(self.x).sign, s.NONPOS)
         self.assertEqual(cp.log_normcdf(self.x).curvature, s.CONCAVE)
@@ -1159,6 +1263,41 @@ class TestAtoms(BaseTest):
         prob = cp.Problem(obj, [v >= 1])
         prob.solve(solver=cp.SCS)
         assert np.allclose(v.value, p.value)
+
+    def test_outer(self) -> None:
+        """Test the outer atom.
+        """
+        a = np.ones((3,))
+        b = Variable((2,))
+        expr = cp.outer(a, b)
+        self.assertEqual(expr.shape, (3, 2))
+
+        # Test with parameter
+        c = Parameter((2,))
+        expr = cp.outer(c, a)
+        self.assertEqual(expr.shape, (2, 3))
+
+        d = np.ones((4,))
+        expr = cp.outer(a, d)
+        true_val = np.outer(a, d)
+        assert np.allclose(expr.value, true_val, atol=1e-1)
+
+        # Test with scalars
+        assert np.allclose(np.outer(3, 2), cp.outer(3, 2).value)
+        assert np.allclose(np.outer(3, d), cp.outer(3, d).value)
+
+        # Test with matrices
+        A = np.arange(4).reshape((2, 2))
+        np.arange(4, 8).reshape((2, 2))
+
+        with pytest.raises(ValueError, match="x must be a vector"):
+            cp.outer(A, d)
+        with pytest.raises(ValueError, match="y must be a vector"):
+            cp.outer(d, A)
+
+        # allow 2D inputs once row-major flattening is the default
+        assert np.allclose(cp.vec(np.array([[1, 2], [3, 4]])).value, np.array([1, 3, 2, 4]))
+
 
     def test_conj(self) -> None:
         """Test conj.
@@ -1320,6 +1459,99 @@ class TestAtoms(BaseTest):
         atom = cp.log_sum_exp(x)
         self.assertEqual(atom.curvature, s.CONVEX)
         self.assertEqual(atom.sign, s.UNKNOWN)
+
+    def test_flatten(self) -> None:
+        """Test flatten and vec."""
+        # Constant argument.
+        A = np.arange(10)
+        reshaped = np.reshape(A, (2, 5), order='F')
+        expr = cp.vec(reshaped, order='F')
+        self.assertItemsAlmostEqual(expr.value, A)
+        expr = cp.Constant(reshaped).flatten(order='F')
+        self.assertItemsAlmostEqual(expr.value, A)
+
+        reshaped = np.reshape(A, (2, 5), order='C')
+        expr = cp.vec(reshaped, order='C')
+        self.assertItemsAlmostEqual(expr.value, A)
+        expr = cp.Constant(reshaped).flatten(order='C')
+        self.assertItemsAlmostEqual(expr.value, A)
+
+        reshaped = np.reshape(A, (2, 5), order='F')
+        expr = cp.vec(reshaped, order='F')
+        self.assertItemsAlmostEqual(expr.value, A)
+        expr = cp.Constant(reshaped).flatten()
+        self.assertItemsAlmostEqual(expr.value, A)
+
+        # Variable argument.
+        x = Variable((2, 5))
+        reshaped = np.reshape(A, (2, 5), order='F')
+        expr = cp.vec(x, order='F')
+        cp.Problem(cp.Minimize(0), [expr == A]).solve()
+        self.assertItemsAlmostEqual(x.value, reshaped)
+        expr = cp.Constant(A).flatten(order='F')
+        cp.Problem(cp.Minimize(0), [expr == A]).solve()
+        self.assertItemsAlmostEqual(x.value, reshaped)
+
+        reshaped = np.reshape(A, (2, 5), order='C')
+        expr = cp.vec(x, order='C')
+        cp.Problem(cp.Minimize(0), [expr == A]).solve()
+        self.assertItemsAlmostEqual(x.value, reshaped)
+        expr = cp.Constant(A).flatten(order='C')
+        cp.Problem(cp.Minimize(0), [expr == A]).solve()
+        self.assertItemsAlmostEqual(x.value, reshaped)
+
+        reshaped = np.reshape(A, (2, 5), order='F')
+        expr = cp.vec(x)
+        cp.Problem(cp.Minimize(0), [expr == A]).solve()
+        self.assertItemsAlmostEqual(x.value, reshaped)
+        expr = cp.Constant(A).flatten()
+        cp.Problem(cp.Minimize(0), [expr == A]).solve()
+        self.assertItemsAlmostEqual(x.value, reshaped)
+
+    def test_tr_inv(self) -> None:
+        """Test tr_inv atom. """
+        T = 5
+        # Solves the following SDP problem:
+        #           minimize    trace(inv(X))
+        #               s.t.    X is PSD
+        #                       trace(X)==1
+
+        # Create a symmetric matrix variable.
+        X = cp.Variable((T, T), symmetric=True)
+
+        # Define and solve the CVXPY problem.
+        # X should be a PSD
+        constraints = [X >> 0]
+        constraints += [
+            cp.trace(X) == 1
+        ]
+        prob = cp.Problem(cp.Minimize(cp.tr_inv(X)), constraints)
+        prob.solve()
+        # Check result. The best value is T^2.
+        self.assertAlmostEqual(prob.value, T**2)
+        X_actual = X.value
+        X_expect = np.eye(T) / T
+        self.assertItemsAlmostEqual(X_actual, X_expect, places=4)
+        # Second SDP problem, given a row full-rank matrix M:
+        #           minimize    trace(inv(M * X * M.T))
+        #               s.t.    X is PSD
+        #                       -1 <= X[i][j] <= 1 for all i,j
+        constraints = [X >> 0]
+        # n should not be greater than T,
+        # because the input should be positive definite.
+        n = 4
+        M = np.random.randn(n, T)
+        constraints += [
+            X >= -1,
+            X <= 1,
+        ]
+        prob = cp.Problem(cp.Minimize(cp.tr_inv(M @ X @ M.T)), constraints)
+        MM = M @ M.T
+        naiveRes = np.sum(LA.eigvalsh(MM) ** -1)
+        prob.solve(verbose=True)
+        # The optimized result should be smaller than the naive result,
+        # where X of the naive result is I.
+        self.assertTrue(prob.value < naiveRes)
 
 
 class TestDotsort(BaseTest):

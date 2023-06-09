@@ -117,6 +117,13 @@ multiply
 .. autoclass:: cvxpy.multiply
     :show-inheritance:
 
+.. _outer:
+
+outer
+------------------------------------
+
+.. autofunction:: cvxpy.outer
+
 .. _ptrace:
 
 partial_trace
@@ -165,9 +172,7 @@ reshape
 scalar_product
 --------------
 
-.. autoclass:: cvxpy.scalar_product
-    :show-inheritance:
-
+.. autofunction:: cvxpy.scalar_product
 
 .. _sum:
 

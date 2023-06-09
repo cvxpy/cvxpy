@@ -25,7 +25,7 @@ from setuptools.command.build_ext import build_ext
 #
 
 MAJOR = 1
-MINOR = 3
+MINOR = 4
 MICRO = 0
 IS_RELEASED = False
 IS_RELEASE_BRANCH = False
@@ -230,7 +230,6 @@ setup(
         "ecos >= 2",
         "scs >= 1.1.6",
         "numpy >= 1.15",
-        "scipy >= 1.1.0"
+        "scipy >= 1.1.0",
     ],
-    setup_requires=["numpy >= 1.15"],
 )

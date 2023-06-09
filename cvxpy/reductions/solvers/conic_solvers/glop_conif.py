@@ -46,12 +46,16 @@ class GLOP(ConicSolver):
 
     def import_solver(self) -> None:
         """Imports the solver."""
-        import google.protobuf
-        import ortools
+        import google.protobuf  # noqa F401
+        import ortools  # noqa F401
         if Version(ortools.__version__) < Version('9.3.0'):
             raise RuntimeError(f'Version of ortools ({ortools.__version__}) '
                                f'is too old. Expected >= 9.3.0.')
-        ortools, google.protobuf  # For flake8
+        if Version(ortools.__version__) >= Version('9.5.0'):
+            raise RuntimeError('Unrecognized new version of ortools '
+                               f'({ortools.__version__}). Expected < 9.5.0.'
+                               'Please open a feature request on cvxpy to '
+                               'enable support for this version.')
 
     def apply(self, problem: ParamConeProg) -> Tuple[Dict, Dict]:
         """Returns a new problem and data for inverting the new solution."""
@@ -152,7 +156,7 @@ class GLOP(ConicSolver):
             if not solver.SetSolverSpecificParametersAsString(proto_str):
                 return {"status": s.SOLVER_ERROR}
         if "time_limit_sec" in solver_opts:
-            solver.SetTimeLimit(1000 * float(solver_opts["time_limit_sec"]))
+            solver.SetTimeLimit(int(1000 * solver_opts["time_limit_sec"]))
         solver.Solve()
         solver.FillSolutionResponseProto(response)
 
