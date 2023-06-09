@@ -160,7 +160,9 @@ class CBC(ConicSolver):
 
         # Build model & solve
         status = None
-        clp_model_options = {"dualTolerance", "primalTolerance", "maxNumIteration", "logLevel", "automaticScaling", "scaling", "infeasibilityCost", "optimizationDirection"}
+        clp_model_options = {"dualTolerance", "primalTolerance",
+                             "maxNumIteration", "logLevel", "automaticScaling",
+                             "scaling", "infeasibilityCost", "optimizationDirection"}
         clp_solve_options = {"presolve"}
         # all the above keys except logLevel apply only to models solved with CLP
         non_cbc_options = (clp_model_options | clp_solve_options) - {"logLevel"}
@@ -195,7 +197,6 @@ class CBC(ConicSolver):
                 if key in solver_opts:
                     solve_args[key] = solver_opts[key]
             status = model.initialSolve(**solve_args)
-
 
         solution = {}
         if data[s.BOOL_IDX] or data[s.INT_IDX]:

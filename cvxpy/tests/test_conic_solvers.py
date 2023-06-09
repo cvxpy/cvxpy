@@ -14,11 +14,9 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import contextlib
-import io
 import math
 import unittest
-from typing import Any, Callable
+from typing import Callable
 
 import numpy as np
 import pytest
@@ -614,17 +612,23 @@ class TestSDPA(BaseTest):
 @pytest.mark.parametrize(
     "opts,sth",
     [
-        pytest.param({"dualTolerance": 1.0}, StandardTestLPs.test_lp_3, id="dualTolerance"),
-        pytest.param({"primalTolerance": 1.0}, StandardTestLPs.test_lp_4, id="primalTolerance"),
-        pytest.param({"maxNumIteration": 1}, StandardTestLPs.test_lp_1, id="maxNumIteration"),
-        # pytest.param({"automaticScaling": True}, StandardTestLPs.test_lp_1, id="automaticScaling"),
+        pytest.param({"dualTolerance": 1.0}, StandardTestLPs.test_lp_3,
+                     id="dualTolerance"),
+        pytest.param({"primalTolerance": 1.0}, StandardTestLPs.test_lp_4,
+                     id="primalTolerance"),
+        pytest.param({"maxNumIteration": 1}, StandardTestLPs.test_lp_1,
+                     id="maxNumIteration"),
+        # pytest.param({"automaticScaling": True}, StandardTestLPs.test_lp_1,
+        #              id="automaticScaling"),
         # pytest.param({"scaling": 0}, StandardTestLPs.test_lp_2, id="scaling"),
-        # pytest.param({"infeasibilityCost": 1e-5}, StandardTestLPs.test_lp_1, id="infeasibilityCost"),
-        pytest.param({"optimizationDirection": "max"}, StandardTestLPs.test_lp_3, id="optimizationDirection"),
+        # pytest.param({"infeasibilityCost": 1e-5}, StandardTestLPs.test_lp_1,
+        #              id="infeasibilityCost"),
+        pytest.param({"optimizationDirection": "max"}, StandardTestLPs.test_lp_3,
+                     id="optimizationDirection"),
         # presolve option is easier to detect via changes to log messages
     ]
 )
-def test_cbc_lp_options(opts: dict, sth: Callable[[], sths.SolverTestHelper]) -> None:
+def test_cbc_lp_options(opts: dict, sth: Callable[..., sths.SolverTestHelper]) -> None:
     """
     Validate that cylp is actually using each option.
 
@@ -635,7 +639,9 @@ def test_cbc_lp_options(opts: dict, sth: Callable[[], sths.SolverTestHelper]) ->
 
     # revealtype(StandardTestLPs.test_lp_3)
     # some tests want `duals=False`
-    # TODO: this is mostly to make hacking around easier for me, and I intend to remove it and just put `duals=False` in the parameterization above before actually merging.
+    # TODO: this is mostly to make hacking around easier for me, and I intend to remove
+    #  it and just put `duals=False` in the parameterization above before actually
+    #  merging.
     if sth in [
         StandardTestLPs.test_lp_0,
         StandardTestLPs.test_lp_1,
@@ -652,14 +658,17 @@ def test_cbc_lp_options(opts: dict, sth: Callable[[], sths.SolverTestHelper]) ->
 
     # test that we get a working version without the option under test
     orig = sth(solver='CBC', **working_opts)
-    # adding the option under test should result in either a solver failure or a verification failure
+    # adding the option under test should result in either a solver failure or a
+    # verification failure
     try:
         new = sth(solver='CBC', **opts)
     except Exception:
-        # if the solver test helper fails solving or fails its checks, that's a behavior change caused by the config, so that's okay
+        # if the solver test helper fails solving or fails its checks, that's a
+        # behavior change caused by the config, so that's okay
         pass
     else:
-        # if we get passing output, we expect to see a difference in the output; most concretely in the ojbective function
+        # if we get passing output, we expect to see a difference in the output; most
+        # concretely in the ojbective function
         assert orig.prob.value != new.prob.value
 
 
@@ -672,21 +681,23 @@ def test_cbc_lp_options(opts: dict, sth: Callable[[], sths.SolverTestHelper]) ->
             {"dualTolerance": 1.0},
             {"primalTolerance": 1.0},
             {"maxNumIteration": 1},
-            #{"automaticScaling": True},  # Doesn't work
+            # {"automaticScaling": True},  # Doesn't work
             {"scaling": 0},
-            #{"infeasibilityCost": 0.000001},  # Doesn't work
+            # {"infeasibilityCost": 0.000001},  # Doesn't work
             {"optimizationDirection": "max"},
             {"presolve": "off"},
         ]
     ]
 )
-def test_cbc_lp_options_via_logs(opts: dict, capfd) -> None:
+def test_cbc_lp_options_via_logs(opts: dict, capfd: pytest.LogCaptureFixture) -> None:
     """
     Validate that cylp is actually using each option.
 
-    Tentative approach: run model with verbose output with or without the specified option; verbose output should be different each way.
+    Tentative approach: run model with verbose output with or without the specified
+    option; verbose output should be different each way.
     """
-    # BUG: for some reason capturing stdout from cbc doesn't work unless I've first dropped into pdb?!?
+    # BUG: for some reason capturing stdout from cbc doesn't work unless I've first
+    #      dropped into pdb?!?
     # if "dualTolerance" in opts:
     #     breakpoint()
     sth = sths.lp_4()
@@ -704,10 +715,11 @@ def test_cbc_lp_options_via_logs(opts: dict, capfd) -> None:
 
 
 @unittest.skipUnless('CBC' in INSTALLED_SOLVERS, 'CBC is not installed.')
-def test_cbc_lp_logging(capfd) -> None:
+def test_cbc_lp_logging(capfd: pytest.LogCaptureFixture) -> None:
     """Validate that logLevel parameter is passed to solver"""
     # for linear problems
-    # BUG: for some reason capturing stdout from cbc doesn't work unless I've first dropped into pdb?!?
+    # BUG: for some reason capturing stdout from cbc doesn't work unless I've first
+    #      dropped into pdb?!?
     # breakpoint()
     StandardTestLPs.test_lp_0(solver='CBC', duals=False, logLevel=0)
     quiet_output = capfd.readouterr()
@@ -721,7 +733,6 @@ def test_cbc_lp_logging(capfd) -> None:
     StandardTestLPs.test_mi_lp_0(solver='CBC', logLevel=5)
     verbose_output = capfd.readouterr()
     assert len(verbose_output.out) > len(quiet_output.out)
-
 
 
 @unittest.skipUnless('CBC' in INSTALLED_SOLVERS, 'CBC is not installed.')
