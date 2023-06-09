@@ -17,7 +17,7 @@ repos:
 
   # import sorting with isort
   - repo: https://github.com/pycqa/isort
-    rev: 5.8.0
+    rev: 5.12.0
     hooks:
       - id: isort
 
