@@ -1098,3 +1098,25 @@ class ScipyTensorView(TensorView):
         for key in keys_b - intersect:
             res[key] = b[key]
         return res
+
+
+class NumpyTensorView(TensorView):
+    @staticmethod
+    def combine_potentially_none(a: Any | None, b: Any | None) -> Any | None:
+        pass
+
+    @property
+    def rows(self) -> int:
+        pass
+
+    def get_tensor_representation(self, row_offset: int) -> TensorRepresentation:
+        pass
+
+    def select_rows(self, rows: np.ndarray) -> None:
+        pass
+
+    def apply_all(self, func: Callable) -> None:
+        pass
+
+    def create_new_tensor_view(self, variable_ids: set[int], tensor: Any, is_parameter_free: bool) -> TensorView:
+        pass
