@@ -403,12 +403,12 @@ class TestDqcp(base_test.BaseTest):
     def test_length_monototicity(self) -> None:
         n = 5
         x = cp.Variable(n)
-        self.assertTrue(cp.length(cp.exp(x)).is_incr(0))
-        self.assertFalse(cp.length(cp.exp(x)-1).is_incr(0))
-        self.assertTrue(cp.length(cp.exp(x)).is_dqcp())
-        self.assertFalse(cp.length(cp.exp(x)-1).is_dqcp())
-        self.assertTrue(cp.length(-cp.exp(x)).is_decr(0))
-        self.assertFalse(cp.length(-cp.exp(x)+1).is_decr(0))
+        self.assertTrue(cp.length(cp.abs(x)).is_incr(0))
+        self.assertFalse(cp.length(cp.abs(x)-1).is_incr(0))
+        self.assertTrue(cp.length(cp.abs(x)).is_dqcp())
+        self.assertFalse(cp.length(cp.abs(x)-1).is_dqcp())
+        self.assertTrue(cp.length(-cp.abs(x)).is_decr(0))
+        self.assertFalse(cp.length(-cp.abs(x)+1).is_decr(0))
 
     def test_infeasible(self) -> None:
         x = cp.Variable(2)
