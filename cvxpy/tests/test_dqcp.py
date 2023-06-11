@@ -410,8 +410,6 @@ class TestDqcp(base_test.BaseTest):
         self.assertTrue(cp.length(-cp.exp(x)).is_decr(0))
         self.assertFalse(cp.length(-cp.exp(x)+1).is_decr(0))
 
-
-
     def test_infeasible(self) -> None:
         x = cp.Variable(2)
         problem = cp.Problem(
