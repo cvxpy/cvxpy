@@ -79,15 +79,34 @@ class TestScipyBackend:
     var_length = 4
 
     @pytest.fixture
-    def backend(self):
+    def scipy_backend(self):
         return ScipyCanonBackend(self.id_to_col, self.param_to_size, self.param_to_col,
                                  self.param_size_plus_one, self.var_length)
 
     @pytest.fixture
-    def empty_view(self):
+    def numpy_backend(self):
+        return NumpyCanonBackend(self.id_to_col, self.param_to_size, self.param_to_col,
+                                 self.param_size_plus_one, self.var_length)
+
+    @pytest.fixture(params=['scipy_backend'])
+    def backend(self, request):
+        return request.getfixturevalue(request.param)
+
+    @pytest.fixture
+    def scipy_empty_view(self):
         return ScipyTensorView.get_empty_view(self.param_size_plus_one, self.id_to_col,
                                                     self.param_to_size, self.param_to_col,
                                                     self.var_length)
+
+    @pytest.fixture
+    def numpy_empty_view(self):
+        return NumpyTensorView.get_empty_view(self.param_size_plus_one, self.id_to_col,
+                                                    self.param_to_size, self.param_to_col,
+                                                    self.var_length)
+
+    @pytest.fixture(params=['scipy_empty_view'])
+    def empty_view(self, request):
+        return request.getfixturevalue(request.param)
 
     def test_mapping(self, backend):
         func = backend.get_func('sum')
