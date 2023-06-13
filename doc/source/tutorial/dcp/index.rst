@@ -307,8 +307,8 @@ non-DCP problems:
     prob4 = cp.Problem(cp.Minimize(cp.square(x)),
                         [cp.sqrt(x) <= 2])
 
-    print "prob4 is DCP:", prob4.is_dcp()
-    print "sqrt(x) <= 2 is DCP:", (cp.sqrt(x) <= 2).is_dcp()
+    print(f"prob4 is DCP: {prob4.is_dcp()}")
+    print(f"sqrt(x) <= 2 is DCP: {(cp.sqrt(x) <= 2).is_dcp()}")
 
 ::
 

@@ -69,6 +69,7 @@ template<typename Derived> class ArrayBase
     using Base::coeff;
     using Base::coeffRef;
     using Base::lazyAssign;
+    using Base::operator-;
     using Base::operator=;
     using Base::operator+=;
     using Base::operator-=;
@@ -88,7 +89,6 @@ template<typename Derived> class ArrayBase
 
 #define EIGEN_CURRENT_STORAGE_BASE_CLASS Eigen::ArrayBase
 #define EIGEN_DOC_UNARY_ADDONS(X,Y)
-#   include "../plugins/CommonCwiseUnaryOps.h"
 #   include "../plugins/MatrixCwiseUnaryOps.h"
 #   include "../plugins/ArrayCwiseUnaryOps.h"
 #   include "../plugins/CommonCwiseBinaryOps.h"

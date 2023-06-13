@@ -71,12 +71,12 @@ class length(Atom):
     def is_incr(self, idx) -> bool:
         """Is the composition non-decreasing in argument idx?
         """
-        return False
+        return self.args[idx].is_nonneg()
 
     def is_decr(self, idx) -> bool:
         """Is the composition non-increasing in argument idx?
         """
-        return False
+        return self.args[idx].is_nonpos()
 
     def _grad(self, values) -> None:
         return None

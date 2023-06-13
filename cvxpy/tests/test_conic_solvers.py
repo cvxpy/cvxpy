@@ -406,6 +406,9 @@ class TestSCS(BaseTest):
     def test_scs_exp_soc_1(self) -> None:
         StandardTestMixedCPs.test_exp_soc_1(solver='SCS', eps=1e-5)
 
+    def test_scs_sdp_pcp_1(self):
+        StandardTestMixedCPs.test_sdp_pcp_1(solver='SCS')
+        
     def test_scs_pcp_1(self) -> None:
         StandardTestPCPs.test_pcp_1(solver='SCS')
 
@@ -482,6 +485,21 @@ class TestClarabel(BaseTest):
 
     def test_clarabel_pcp_2(self) -> None:
         StandardTestSOCPs.test_socp_2(solver='CLARABEL')
+
+    def test_clarabel_sdp_1min(self) -> None:
+        StandardTestSDPs.test_sdp_1min(solver='CLARABEL')
+
+    def test_clarabel_sdp_2(self) -> None:
+        # produces a different optimizer than 
+        # the one expected by the standard test
+        places = 3
+        sth = sths.sdp_2()
+        sth.solve('CLARABEL')
+        sth.verify_objective(places)
+        sth.check_primal_feasibility(places)
+        # sth.verify_primal_values(places) # skip
+        sth.check_complementarity(places)
+        sth.check_dual_domains(places)
 
 
 @unittest.skipUnless('MOSEK' in INSTALLED_SOLVERS, 'MOSEK is not installed.')
@@ -572,41 +590,62 @@ class TestMosek(unittest.TestCase):
         StandardTestPCPs.test_mi_pcp_0(solver='MOSEK')
 
     def test_mosek_params(self) -> None:
-        if cp.MOSEK in INSTALLED_SOLVERS:
-            import mosek
-            n = 10
-            m = 4
-            np.random.seed(0)
-            A = np.random.randn(m, n)
-            x = np.random.randn(n)
-            y = A.dot(x)
+        import mosek
+        n = 10
+        m = 4
+        np.random.seed(0)
+        A = np.random.randn(m, n)
+        x = np.random.randn(n)
+        y = A.dot(x)
 
-            # Solve a simple basis pursuit problem for testing purposes.
-            z = cp.Variable(n)
-            objective = cp.Minimize(cp.norm1(z))
-            constraints = [A @ z == y]
-            problem = cp.Problem(objective, constraints)
+        # Solve a simple basis pursuit problem for testing purposes.
+        z = cp.Variable(n)
+        objective = cp.Minimize(cp.norm1(z))
+        constraints = [A @ z == y]
+        problem = cp.Problem(objective, constraints)
 
-            invalid_mosek_params = {
-                "MSK_IPAR_NUM_THREADS": "11.3"
-            }
-            with self.assertRaises(mosek.Error):
-                problem.solve(solver=cp.MOSEK, mosek_params=invalid_mosek_params)
+        invalid_mosek_params = {
+            "MSK_IPAR_NUM_THREADS": "11.3"
+        }
+        with self.assertRaises(mosek.Error):
+            problem.solve(solver=cp.MOSEK, mosek_params=invalid_mosek_params)
 
-            with self.assertRaises(ValueError):
-                problem.solve(solver=cp.MOSEK, invalid_kwarg=None)
+        with self.assertRaises(ValueError):
+            problem.solve(solver=cp.MOSEK, invalid_kwarg=None)
 
-            mosek_params = {
-                mosek.dparam.basis_tol_x: 1e-8,
-                "MSK_IPAR_INTPNT_MAX_ITERATIONS": 20,
-                "MSK_IPAR_NUM_THREADS": "17",
-                "MSK_IPAR_PRESOLVE_USE": "MSK_PRESOLVE_MODE_OFF",
-                "MSK_DPAR_INTPNT_CO_TOL_DFEAS": 1e-9,
-                "MSK_DPAR_INTPNT_CO_TOL_PFEAS": "1e-9"
-            }
-            with pytest.warns():
-                problem.solve(solver=cp.MOSEK, mosek_params=mosek_params)
+        mosek_params = {
+            mosek.dparam.basis_tol_x: 1e-8,
+            "MSK_IPAR_INTPNT_MAX_ITERATIONS": 20,
+            "MSK_IPAR_NUM_THREADS": "17",
+            "MSK_IPAR_PRESOLVE_USE": "MSK_PRESOLVE_MODE_OFF",
+            "MSK_DPAR_INTPNT_CO_TOL_DFEAS": 1e-9,
+            "MSK_DPAR_INTPNT_CO_TOL_PFEAS": "1e-9"
+        }
+        with pytest.warns():
+            problem.solve(solver=cp.MOSEK, mosek_params=mosek_params)
 
+    def test_mosek_simplex(self) -> None:
+        n = 10
+        m = 4
+        np.random.seed(0)
+        A = np.random.randn(m, n)
+        x = np.random.randn(n)
+        y = A.dot(x)
+
+        # Solve a simple basis pursuit problem for testing purposes.
+        z = cp.Variable(n)
+        objective = cp.Minimize(cp.norm1(z))
+        constraints = [A @ z == y]
+        problem = cp.Problem(objective, constraints)
+        problem.solve(
+            solver=cp.MOSEK, 
+            mosek_params={"MSK_IPAR_OPTIMIZER": "MSK_OPTIMIZER_DUAL_SIMPLEX"}
+        )
+
+    def test_mosek_sdp_power(self) -> None:
+        """Test the problem in issue #2128"""
+        StandardTestMixedCPs.test_sdp_pcp_1(solver='MOSEK')
+        
     def test_power_portfolio(self) -> None:
         """Test the portfolio problem in issue #2042"""
         T, N = 200, 10
@@ -655,6 +694,45 @@ class TestMosek(unittest.TestCase):
         prob = cp.Problem(objective, constraints)
         prob.solve(solver=cp.MOSEK)
         assert prob.status is cp.OPTIMAL
+
+    def test_mosek_accept_unknown(self) -> None:
+        mosek_param = {
+            "MSK_IPAR_INTPNT_MAX_ITERATIONS": 0
+        }
+        sth = sths.lp_5()
+        sth.solve(solver=cp.MOSEK, accept_unknown=True, mosek_params=mosek_param)
+        assert sth.prob.status in {cp.OPTIMAL_INACCURATE, cp.OPTIMAL}
+
+        with pytest.raises(cp.error.SolverError, match="Solver 'MOSEK' failed"):
+            sth.solve(solver=cp.MOSEK, mosek_params=mosek_param)
+
+    def test_eps_keyword(self) -> None:
+        """Test that the eps keyword is accepted"""
+        x = cp.Variable()
+        prob = cp.Problem(cp.Minimize(x), [x >= 0])
+        # This should not raise an exception
+        prob.solve(solver=cp.MOSEK, eps=1e-8, mosek_params={'MSK_DPAR_INTPNT_CO_TOL_DFEAS': 1e-6})
+        assert prob.status is cp.OPTIMAL
+
+        # This exception being raised shows that the eps value is being passed to MOSEK
+        import mosek
+        with pytest.raises(mosek.Error, match="The parameter value 0.1 is too large"):
+            prob.solve(solver=cp.MOSEK,
+                       eps=1e-1,
+                       mosek_params={'MSK_DPAR_INTPNT_CO_TOL_DFEAS': 1e-6})
+
+        
+        # If parameters are defined explicitly, eps will not overwrite -> no exception
+        from cvxpy.reductions.solvers.conic_solvers.mosek_conif import MOSEK
+        all_params = MOSEK.tolerance_params()
+        prob.solve(solver=cp.MOSEK, eps=1e-1, mosek_params={p: 1e-6 for p in all_params})
+        assert prob.status is cp.OPTIMAL
+
+        # Fails when used with enums
+        with pytest.raises(AssertionError, match="not compatible"):
+            prob.solve(solver=cp.MOSEK,
+                       eps=1e-1,
+                       mosek_params={mosek.dparam.intpnt_co_tol_dfeas: 1e-6})
 
 
 @unittest.skipUnless('CVXOPT' in INSTALLED_SOLVERS, 'CVXOPT is not installed.')
@@ -774,6 +852,21 @@ class TestSDPA(BaseTest):
         # this also tests the ability to pass solver options
         StandardTestLPs.test_lp_5(solver='SDPA',
                                   gammaStar=0.86, epsilonDash=8.0E-6, betaStar=0.18, betaBar=0.15)
+
+    def test_sdpa_socp_0(self) -> None:
+        StandardTestSOCPs.test_socp_0(solver='SDPA')
+
+    def test_sdpa_socp_1(self) -> None:
+        StandardTestSOCPs.test_socp_1(solver='SDPA')
+
+    def test_sdpa_socp_2(self) -> None:
+        StandardTestSOCPs.test_socp_2(solver='SDPA')
+
+    def test_sdpa_socp_3(self) -> None:
+        # axis 0
+        StandardTestSOCPs.test_socp_3ax0(solver='SDPA')
+        # axis 1
+        StandardTestSOCPs.test_socp_3ax1(solver='SDPA')
 
     def test_sdpa_sdp_1(self) -> None:
         # minimization
@@ -2018,6 +2111,7 @@ class TestSCIPY(unittest.TestCase):
         sth.solve(solver='SCIPY', scipy_options={"time_limit": 0.01})
         assert sth.prob.status == cp.OPTIMAL_INACCURATE
         assert sth.objective.value > 0
+        assert sth.prob.solver_stats.extra_stats["mip_gap"] > 0
 
         # run without enough time to do anything
         with pytest.raises(cp.error.SolverError):

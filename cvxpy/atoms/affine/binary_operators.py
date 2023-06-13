@@ -30,7 +30,7 @@ import cvxpy.utilities as u
 from cvxpy.atoms.affine.add_expr import AddExpression
 from cvxpy.atoms.affine.affine_atom import AffAtom
 from cvxpy.atoms.affine.conj import conj
-from cvxpy.atoms.affine.reshape import deep_flatten
+from cvxpy.atoms.affine.reshape import deep_flatten, reshape
 from cvxpy.atoms.affine.sum import sum as cvxpy_sum
 from cvxpy.constraints.constraint import Constraint
 from cvxpy.error import DCPError
@@ -38,6 +38,7 @@ from cvxpy.expressions.constants.parameter import (
     is_param_affine,
     is_param_free,
 )
+from cvxpy.expressions.expression import Expression
 
 
 class BinaryOperator(AffAtom):
@@ -451,3 +452,33 @@ def scalar_product(x, y):
     y = deep_flatten(y)
     prod = multiply(conj(x), y)
     return cvxpy_sum(prod)
+
+
+def outer(x, y):
+    """
+    Return the outer product of (x,y).
+
+    Parameters
+    ----------
+    x : Expression, int, float, NumPy ndarray, or nested list thereof.
+        Input is flattened if not already a vector.
+        The linear argument to the outer product.
+    y : Expression, int, float, NumPy ndarray, or nested list thereof.
+        Input is flattened if not already a vector.
+        The transposed-linear argument to the outer product.
+
+    Returns
+    -------
+    expr : Expression
+        The outer product of (x,y), linear in x and transposed-linear in y.
+    """
+    x = Expression.cast_to_const(x)
+    if x.ndim > 1:
+        raise ValueError("x must be a vector.")
+    y = Expression.cast_to_const(y)
+    if y.ndim > 1:
+        raise ValueError("y must be a vector.")
+    
+    x = reshape(x, (x.size, 1))
+    y = reshape(y, (1, y.size))
+    return x @ y
