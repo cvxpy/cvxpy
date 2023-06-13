@@ -514,13 +514,11 @@ class MOSEK(ConicSolver):
             dual_vars = y
             if prim_vars is not None and dual_vars is not None:
                 # Print solution albeit not optimal
-                STATUS_MAP[mosek.solsta.unknown] = s.OPTIMAL_INACCURATE
-                print("Optimization terminated due to time limit. Solution may not be optimal.")
-                print("Primal Variables: ", prim_vars)
-                print("Dual Variables: ", dual_vars)
+                STATUS_MAP[mosek.solsta.unknown] = s.USER_LIMIT
+                solver_output['sol'] = prim_vars
             else:
                 # No solution was generated
-                print("Optimization terminated due to time limit. No solution was generated.")
+                STATUS_MAP[mosek.solsta.unknown] = s.TIME_LIMIT_ERROR
 
         solver_opts = solver_output['solver_options']
         simplex_algs = [
