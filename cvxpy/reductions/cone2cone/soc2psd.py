@@ -132,6 +132,10 @@ class SOC2PSD(Reduction):
         The dual variables that we return in `solution` should correspond to the original
         SOC constraints, and not their PSD equivalents. To this end, inversion is required.
         """
+        if solution.dual_vars=={}:
+            # in case the solver fails
+            return solution
+
         soc_id_from_psd, soc_constraint_ids = inverse_data
         psd_constraint_ids = soc_id_from_psd.keys()
 
