@@ -947,7 +947,8 @@ def fflush() -> None:
     """
     C code in some solvers uses libc buffering; if we want to capture log output from
     those solvers to use in tests, we must flush the libc buffers before trying to read
-    the log contents from python
+    the log contents from python.
+    https://github.com/pytest-dev/pytest/issues/8753
     """
     import ctypes
     libc = ctypes.CDLL(None)
