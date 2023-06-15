@@ -943,6 +943,17 @@ def test_cbc_lp_options(opts: dict, sth: Callable[..., sths.SolverTestHelper]) -
         assert orig.prob.value != new.prob.value
 
 
+def fflush() -> None:
+    """
+    C code in some solvers uses libc buffering; if we want to capture log output from
+    those solvers to use in tests, we must flush the libc buffers before trying to read
+    the log contents from python
+    """
+    import ctypes
+    libc = ctypes.CDLL(None)
+    libc.fflush(None)
+
+
 @unittest.skipUnless('CBC' in INSTALLED_SOLVERS, 'CBC is not installed.')
 @pytest.mark.parametrize(
     "opts",
@@ -967,13 +978,15 @@ def test_cbc_lp_options_via_logs(opts: dict, capfd: pytest.LogCaptureFixture) ->
     Tentative approach: run model with verbose output with or without the specified
     option; verbose output should be different each way.
     """
-    # BUG: for some reason capturing stdout from cbc doesn't work unless I've first
-    #      dropped into pdb?!?
-    # if "dualTolerance" in opts:
-    #     breakpoint()
+    # start by making sure capture buffer is empty to ensure valid results
+    fflush()
+    capfd.readouterr()
+    # run the solver with verbose logging without this option and capture output
     sth = sths.lp_4()
     sth.solve(solver='CBC', logLevel=2)
+    fflush()
     base = capfd.readouterr()
+    # run the solver with verbose logging *with* the option under test
     try:
         sth.solve(solver='CBC', logLevel=2, **opts)
     except Exception:
@@ -981,6 +994,7 @@ def test_cbc_lp_options_via_logs(opts: dict, capfd: pytest.LogCaptureFixture) ->
         pass
     else:
         # if the case still passes, we at least look for change in the log outputs
+        fflush()
         with_opt = capfd.readouterr()
         assert base != with_opt
 
@@ -988,20 +1002,25 @@ def test_cbc_lp_options_via_logs(opts: dict, capfd: pytest.LogCaptureFixture) ->
 @unittest.skipUnless('CBC' in INSTALLED_SOLVERS, 'CBC is not installed.')
 def test_cbc_lp_logging(capfd: pytest.LogCaptureFixture) -> None:
     """Validate that logLevel parameter is passed to solver"""
+    # start by making sure capture buffer is empty to ensure valid results
+    fflush()
+    capfd.readouterr()
+
     # for linear problems
-    # BUG: for some reason capturing stdout from cbc doesn't work unless I've first
-    #      dropped into pdb?!?
-    # breakpoint()
     StandardTestLPs.test_lp_0(solver='CBC', duals=False, logLevel=0)
+    fflush()
     quiet_output = capfd.readouterr()
     StandardTestLPs.test_lp_0(solver='CBC', duals=False, logLevel=5)
+    fflush()
     verbose_output = capfd.readouterr()
     assert len(verbose_output.out) > len(quiet_output.out)
 
     # for mixed integer problems
     StandardTestLPs.test_mi_lp_0(solver='CBC', logLevel=0)
+    fflush()
     quiet_output = capfd.readouterr()
     StandardTestLPs.test_mi_lp_0(solver='CBC', logLevel=5)
+    fflush()
     verbose_output = capfd.readouterr()
     assert len(verbose_output.out) > len(quiet_output.out)
 
