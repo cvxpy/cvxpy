@@ -283,7 +283,7 @@ class TestProblem(BaseTest):
                 # Don't test GLPK because there's a race
                 # condition in setting CVXOPT solver options.
                 if solver in [cp.GLPK, cp.GLPK_MI, cp.MOSEK, cp.CBC,
-                              cp.SCIPY, cp.SDPA, cp.COPT]:
+                              cp.SCIPY, cp.COPT]:
                     continue
                 sys.stdout = StringIO()  # capture output
 
