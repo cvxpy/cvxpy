@@ -1,6 +1,6 @@
 # This is just a placeholder file to show how the prototype API works.
 # We'll delete this file before the PR is merged.
-import cvxpy.cvxcore.python.sparsecholesky as spchol
+import cvxpy.utilities.cpp.sparsechol.sparsecholesky as spchol
 import scipy.sparse as spar
 import numpy as np
 import scipy.linalg as la

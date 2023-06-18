@@ -205,10 +205,9 @@ canon = Extension(
 
 sparsechol = Extension(
     '_sparsecholesky',
-    sources=['cvxpy/cvxcore/src/sparsecholesky.cpp',
-             'cvxpy/cvxcore/python/sparsecholesky_wrap.cxx'],
-    include_dirs=['cvxpy/cvxcore/src',
-                  'cvxpy/cvxcore/python',
+    sources=['cvxpy/utilities/cpp/sparsechol/sparsecholesky.cpp',
+             'cvxpy/utilities/cpp/sparsechol/sparsecholesky_wrap.cxx'],
+    include_dirs=['cvxpy/utilities/cpp/sparsechol',
                   'cvxpy/cvxcore/include'],
     extra_compile_args=[
         '-O3',

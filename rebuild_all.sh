@@ -2,6 +2,7 @@
 
 cd cvxpy/cvxcore
 swig -py3 -Isrc -c++ -python python/cvxcore.i
-swig -py3 -Isrc -c++ -Wextra -python python/sparsecholesky.i
-cd ../..
+cd ../../cvxpy/utilities/cpp/sparsechol
+swig -py3 -Isrc -c++ -Wextra -python sparsecholesky.i
+cd ../../../../
 pip install -e .

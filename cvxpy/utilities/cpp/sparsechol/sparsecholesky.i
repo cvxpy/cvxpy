@@ -19,7 +19,6 @@
 	#include "sparsecholesky.hpp"
 %}
 
-%include "numpy.i"
 %include "std_vector.i"
 %include "std_string.i"
 %include "exception.i"

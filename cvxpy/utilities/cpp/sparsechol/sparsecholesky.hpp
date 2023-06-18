@@ -15,12 +15,22 @@
 #ifndef SPARSE_CHOLESKY_H
 #define SPARSE_CHOLESKY_H
 
-#include "Utils.hpp"
-#include "../include/Eigen/SparseCholesky"
+#include "../../cvxcore/include/Eigen/Core"
+#include "../../cvxcore/include/Eigen/Sparse"
+#include "../../cvxcore/include/Eigen/SparseCholesky"
 #include <vector>
+#include <string>
 
-// Matrix is Eigen::SparseMatrix<double>
-// Triplet is Eigen::Triplet<double>
+#define NULL_MATRIX Eigen::SparseMatrix<double>(0, 0)
+
+typedef Eigen::Matrix<int, Eigen::Dynamic, 1> Vector;
+typedef Eigen::SparseMatrix<double> Matrix;
+typedef std::map<int, Matrix> CoeffMap;
+typedef Eigen::Triplet<double> Triplet;
+typedef std::map<int, std::map<int, std::vector<Matrix> > > Tensor;
+typedef std::map<int, std::vector<Matrix> > DictMat;
+
+
 
 struct CholeskyFailure : public std::runtime_error {
   CholeskyFailure(const std::string& msg) : std::runtime_error{msg} {}

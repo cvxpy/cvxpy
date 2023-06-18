@@ -2815,13 +2815,6 @@ namespace swig {
 	#include "sparsecholesky.hpp"
 
 
-#ifndef SWIG_FILE_WITH_INIT
-#  define NO_IMPORT_ARRAY
-#endif
-#include "stdio.h"
-#include <numpy/arrayobject.h>
-
-
 #include <iostream>
 
 #if PY_VERSION_HEX >= 0x03020000
