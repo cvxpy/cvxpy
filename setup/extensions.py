@@ -15,8 +15,8 @@ limitations under the License.
 """
 import platform
 
-from setuptools import Extension
 from pybind11.setup_helpers import Pybind11Extension
+from setuptools import Extension
 
 
 def not_on_windows(s: str) -> str:
