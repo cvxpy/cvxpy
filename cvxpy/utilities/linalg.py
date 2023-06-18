@@ -209,14 +209,14 @@ def sparse_cholesky(A, sym_tol=1e-12, permute_L=True, assume_posdef=False):
         # check that we're symmetric
         symdiff = A - A.T
         if symdiff.data.size > 0 and la.norm(symdiff.data) > sym_tol:
-            raise ValueError('Input matrix is not symmetric to within provided tolerance.')
+            raise ValueError(SparseCholeskyMessages.ASYMMETRIC)
         # check a necessary condition for positive/negative definiteness; call this
         # function on -A if there's evidence for negative definiteness.
         d = A.diagonal()
         maybe_posdef = np.all(d > 0)
         maybe_negdef = np.all(d < 0)
         if not (maybe_posdef or maybe_negdef):
-            raise ValueError('Input matrix is neither positive nor negative definite.')
+            raise ValueError(SparseCholeskyMessages.INDEFINITE)
         if maybe_negdef:
             res = sparse_cholesky(-A, sym_tol, permute_L)
             return -1.0, *res[1:]
@@ -238,7 +238,10 @@ def sparse_cholesky(A, sym_tol=1e-12, permute_L=True, assume_posdef=False):
             outpivs, outrows, outcols, outvals
         )
     except RuntimeError as e:
-        raise ValueError(e.args)
+        if e.args[0] == SparseCholeskyMessages.EIGEN_FAIL:
+            raise ValueError(e.args)
+        else:
+            raise RuntimeError(e.args)
 
     # error checking and return values
     outvals = list(outvals)
