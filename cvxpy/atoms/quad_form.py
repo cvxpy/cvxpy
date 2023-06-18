@@ -27,7 +27,7 @@ from cvxpy.atoms.affine.wraps import psd_wrap
 from cvxpy.atoms.atom import Atom
 from cvxpy.expressions.expression import Expression
 from cvxpy.interface.matrix_utilities import is_sparse
-from cvxpy.utilities.linalg import sparse_cholesky, SparseCholeskyMessages
+from cvxpy.utilities.linalg import sparse_cholesky
 
 
 class CvxPyDomainError(Exception):
@@ -204,7 +204,7 @@ def decomp_quad(P, cond=None, rcond=None, lower=True, check_finite: bool = True)
                 return 1.0, Lp, None
             else:
                 return 1.0, None, Lp
-        except ValueError as e:
+        except ValueError:
             P = np.array(P.todense())  # make dense (needs to happen for eigh).
     w, V = LA.eigh(P, lower=lower, check_finite=check_finite)
 
