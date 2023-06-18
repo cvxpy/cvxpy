@@ -5,8 +5,7 @@ import platform
 import sys
 import sysconfig
 
-import setup.cvxcore as setup_cvxcore
-import setup.sparsecholesky as setup_sparsecholesky
+import setup.extensions as setup_extensions
 import setup.versioning as setup_versioning
 
 # BEFORE importing setuptools, remove MANIFEST. Otherwise it may not be
@@ -61,7 +60,7 @@ setup(
     author_email='stevend2@stanford.edu, akshayka@cs.stanford.edu, '
                  'echu508@stanford.edu, boyd@stanford.edu',
     cmdclass={'build_ext': build_ext_cvxpy},
-    ext_modules=[setup_cvxcore.cvxcore, setup_sparsecholesky.sparsecholesky],
+    ext_modules=[setup_extensions.cvxcore, setup_extensions.sparsecholesky],
     packages=find_packages(exclude=["doc*",
                                     "examples*",
                                     "cvxpy.performance_tests*"]),
@@ -82,5 +81,6 @@ setup(
         "scs >= 1.1.6",
         "numpy >= 1.15",
         "scipy >= 1.1.0",
+        "pybind11"
     ],
 )
