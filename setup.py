@@ -1,13 +1,13 @@
 import builtins
-import distutils.sysconfig
 import distutils.version
 import os
 import platform
 import sys
+import sysconfig
 
-import setup_helpers.cvxcore as setup_cvxcore
-import setup_helpers.sparsecholesky as setup_sparsecholesky
-import setup_helpers.versioning as setup_versioning
+import setup.cvxcore as setup_cvxcore
+import setup.sparsecholesky as setup_sparsecholesky
+import setup.versioning as setup_versioning
 
 # BEFORE importing setuptools, remove MANIFEST. Otherwise it may not be
 # properly updated when the contents of directories change (true for distutils,
@@ -47,7 +47,7 @@ if sys.platform == 'darwin':
     if 'MACOSX_DEPLOYMENT_TARGET' not in os.environ:
         current_system = distutils.version.LooseVersion(platform.mac_ver()[0])
         python_target = distutils.version.LooseVersion(
-            distutils.sysconfig.get_config_var('MACOSX_DEPLOYMENT_TARGET'))
+            sysconfig.get_config_var('MACOSX_DEPLOYMENT_TARGET'))
         if python_target < '10.9' and current_system >= '10.9':
             os.environ['MACOSX_DEPLOYMENT_TARGET'] = '10.9'
 
