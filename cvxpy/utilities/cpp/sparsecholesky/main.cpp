@@ -97,7 +97,7 @@ void sparse_chol_from_vecs(
 
 namespace py = pybind11;
 
-PYBIND11_MODULE(_sparsecholesky_swig, m) {
+PYBIND11_MODULE(_cvxpy_sparsecholesky, m) {
     py::bind_vector<std::vector<int>>(m, "IntVector");
     py::bind_vector<std::vector<double>>(m, "DoubleVector");
 

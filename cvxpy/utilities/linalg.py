@@ -1,4 +1,4 @@
-import cvxpy.utilities.cpp.sparsecholesky_pb as spchol  # noqa: I001
+import cvxpy.utilities.cpp.sparsecholesky as spchol  # noqa: I001
 import numpy as np
 import scipy.linalg as la
 import scipy.sparse as spar
@@ -214,9 +214,8 @@ def sparse_cholesky(A, sym_tol=1e-12, permute_L=True):
             n, inrows, incols, invals,
             outpivs, outrows, outcols, outvals
         )
-    except spchol.CholeskyFailure:
-        # convert to a ValueError
-        raise ValueError('Cholesky failed. The input was not (numerically) positive definite.')
+    except RuntimeError as e:
+        raise ValueError(e.args)
 
     # error checking and return values
     outvals = [outvals[i] for i in range(len(outvals))]

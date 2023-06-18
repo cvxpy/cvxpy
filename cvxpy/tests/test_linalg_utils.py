@@ -22,7 +22,7 @@ from cvxpy.utilities import linalg as lau
 
 class TestSparseCholesky(BaseTest):
 
-    EXCEPTION_STR = 'Cholesky failed. The input was not (numerically) positive definite.'
+    EXCEPTION_STR = 'Cholesky decomposition failed.'
 
     def check_gram(self, Lp, A, places=5):
         G = Lp @ Lp.T
