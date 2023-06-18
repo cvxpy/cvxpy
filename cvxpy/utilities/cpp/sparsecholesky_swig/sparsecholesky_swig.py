@@ -10,9 +10,9 @@ if _swig_python_version_info < (2, 7, 0):
 
 # Import the low-level C/C++ module
 if __package__ or "." in __name__:
-    from . import _sparsecholesky
+    from . import _sparsecholesky_swig
 else:
-    import _sparsecholesky
+    import _sparsecholesky_swig
 
 try:
     import builtins as __builtin__
@@ -67,286 +67,286 @@ class SwigPyIterator(object):
     def __init__(self, *args, **kwargs):
         raise AttributeError("No constructor defined - class is abstract")
     __repr__ = _swig_repr
-    __swig_destroy__ = _sparsecholesky.delete_SwigPyIterator
+    __swig_destroy__ = _sparsecholesky_swig.delete_SwigPyIterator
 
     def value(self) -> "PyObject *":
-        return _sparsecholesky.SwigPyIterator_value(self)
+        return _sparsecholesky_swig.SwigPyIterator_value(self)
 
     def incr(self, n: "size_t"=1) -> "swig::SwigPyIterator *":
-        return _sparsecholesky.SwigPyIterator_incr(self, n)
+        return _sparsecholesky_swig.SwigPyIterator_incr(self, n)
 
     def decr(self, n: "size_t"=1) -> "swig::SwigPyIterator *":
-        return _sparsecholesky.SwigPyIterator_decr(self, n)
+        return _sparsecholesky_swig.SwigPyIterator_decr(self, n)
 
     def distance(self, x: "SwigPyIterator") -> "ptrdiff_t":
-        return _sparsecholesky.SwigPyIterator_distance(self, x)
+        return _sparsecholesky_swig.SwigPyIterator_distance(self, x)
 
     def equal(self, x: "SwigPyIterator") -> "bool":
-        return _sparsecholesky.SwigPyIterator_equal(self, x)
+        return _sparsecholesky_swig.SwigPyIterator_equal(self, x)
 
     def copy(self) -> "swig::SwigPyIterator *":
-        return _sparsecholesky.SwigPyIterator_copy(self)
+        return _sparsecholesky_swig.SwigPyIterator_copy(self)
 
     def next(self) -> "PyObject *":
-        return _sparsecholesky.SwigPyIterator_next(self)
+        return _sparsecholesky_swig.SwigPyIterator_next(self)
 
     def __next__(self) -> "PyObject *":
-        return _sparsecholesky.SwigPyIterator___next__(self)
+        return _sparsecholesky_swig.SwigPyIterator___next__(self)
 
     def previous(self) -> "PyObject *":
-        return _sparsecholesky.SwigPyIterator_previous(self)
+        return _sparsecholesky_swig.SwigPyIterator_previous(self)
 
     def advance(self, n: "ptrdiff_t") -> "swig::SwigPyIterator *":
-        return _sparsecholesky.SwigPyIterator_advance(self, n)
+        return _sparsecholesky_swig.SwigPyIterator_advance(self, n)
 
     def __eq__(self, x: "SwigPyIterator") -> "bool":
-        return _sparsecholesky.SwigPyIterator___eq__(self, x)
+        return _sparsecholesky_swig.SwigPyIterator___eq__(self, x)
 
     def __ne__(self, x: "SwigPyIterator") -> "bool":
-        return _sparsecholesky.SwigPyIterator___ne__(self, x)
+        return _sparsecholesky_swig.SwigPyIterator___ne__(self, x)
 
     def __iadd__(self, n: "ptrdiff_t") -> "swig::SwigPyIterator &":
-        return _sparsecholesky.SwigPyIterator___iadd__(self, n)
+        return _sparsecholesky_swig.SwigPyIterator___iadd__(self, n)
 
     def __isub__(self, n: "ptrdiff_t") -> "swig::SwigPyIterator &":
-        return _sparsecholesky.SwigPyIterator___isub__(self, n)
+        return _sparsecholesky_swig.SwigPyIterator___isub__(self, n)
 
     def __add__(self, n: "ptrdiff_t") -> "swig::SwigPyIterator *":
-        return _sparsecholesky.SwigPyIterator___add__(self, n)
+        return _sparsecholesky_swig.SwigPyIterator___add__(self, n)
 
     def __sub__(self, *args) -> "ptrdiff_t":
-        return _sparsecholesky.SwigPyIterator___sub__(self, *args)
+        return _sparsecholesky_swig.SwigPyIterator___sub__(self, *args)
     def __iter__(self):
         return self
 
-# Register SwigPyIterator in _sparsecholesky:
-_sparsecholesky.SwigPyIterator_swigregister(SwigPyIterator)
+# Register SwigPyIterator in _sparsecholesky_swig:
+_sparsecholesky_swig.SwigPyIterator_swigregister(SwigPyIterator)
 
 class IntVector(object):
     thisown = property(lambda x: x.this.own(), lambda x, v: x.this.own(v), doc="The membership flag")
     __repr__ = _swig_repr
 
     def iterator(self) -> "swig::SwigPyIterator *":
-        return _sparsecholesky.IntVector_iterator(self)
+        return _sparsecholesky_swig.IntVector_iterator(self)
     def __iter__(self):
         return self.iterator()
 
     def __nonzero__(self) -> "bool":
-        return _sparsecholesky.IntVector___nonzero__(self)
+        return _sparsecholesky_swig.IntVector___nonzero__(self)
 
     def __bool__(self) -> "bool":
-        return _sparsecholesky.IntVector___bool__(self)
+        return _sparsecholesky_swig.IntVector___bool__(self)
 
     def __len__(self) -> "std::vector< int >::size_type":
-        return _sparsecholesky.IntVector___len__(self)
+        return _sparsecholesky_swig.IntVector___len__(self)
 
     def __getslice__(self, i: "std::vector< int >::difference_type", j: "std::vector< int >::difference_type") -> "std::vector< int,std::allocator< int > > *":
-        return _sparsecholesky.IntVector___getslice__(self, i, j)
+        return _sparsecholesky_swig.IntVector___getslice__(self, i, j)
 
     def __setslice__(self, *args) -> "void":
-        return _sparsecholesky.IntVector___setslice__(self, *args)
+        return _sparsecholesky_swig.IntVector___setslice__(self, *args)
 
     def __delslice__(self, i: "std::vector< int >::difference_type", j: "std::vector< int >::difference_type") -> "void":
-        return _sparsecholesky.IntVector___delslice__(self, i, j)
+        return _sparsecholesky_swig.IntVector___delslice__(self, i, j)
 
     def __delitem__(self, *args) -> "void":
-        return _sparsecholesky.IntVector___delitem__(self, *args)
+        return _sparsecholesky_swig.IntVector___delitem__(self, *args)
 
     def __getitem__(self, *args) -> "std::vector< int >::value_type const &":
-        return _sparsecholesky.IntVector___getitem__(self, *args)
+        return _sparsecholesky_swig.IntVector___getitem__(self, *args)
 
     def __setitem__(self, *args) -> "void":
-        return _sparsecholesky.IntVector___setitem__(self, *args)
+        return _sparsecholesky_swig.IntVector___setitem__(self, *args)
 
     def pop(self) -> "std::vector< int >::value_type":
-        return _sparsecholesky.IntVector_pop(self)
+        return _sparsecholesky_swig.IntVector_pop(self)
 
     def append(self, x: "std::vector< int >::value_type const &") -> "void":
-        return _sparsecholesky.IntVector_append(self, x)
+        return _sparsecholesky_swig.IntVector_append(self, x)
 
     def empty(self) -> "bool":
-        return _sparsecholesky.IntVector_empty(self)
+        return _sparsecholesky_swig.IntVector_empty(self)
 
     def size(self) -> "std::vector< int >::size_type":
-        return _sparsecholesky.IntVector_size(self)
+        return _sparsecholesky_swig.IntVector_size(self)
 
     def swap(self, v: "IntVector") -> "void":
-        return _sparsecholesky.IntVector_swap(self, v)
+        return _sparsecholesky_swig.IntVector_swap(self, v)
 
     def begin(self) -> "std::vector< int >::iterator":
-        return _sparsecholesky.IntVector_begin(self)
+        return _sparsecholesky_swig.IntVector_begin(self)
 
     def end(self) -> "std::vector< int >::iterator":
-        return _sparsecholesky.IntVector_end(self)
+        return _sparsecholesky_swig.IntVector_end(self)
 
     def rbegin(self) -> "std::vector< int >::reverse_iterator":
-        return _sparsecholesky.IntVector_rbegin(self)
+        return _sparsecholesky_swig.IntVector_rbegin(self)
 
     def rend(self) -> "std::vector< int >::reverse_iterator":
-        return _sparsecholesky.IntVector_rend(self)
+        return _sparsecholesky_swig.IntVector_rend(self)
 
     def clear(self) -> "void":
-        return _sparsecholesky.IntVector_clear(self)
+        return _sparsecholesky_swig.IntVector_clear(self)
 
     def get_allocator(self) -> "std::vector< int >::allocator_type":
-        return _sparsecholesky.IntVector_get_allocator(self)
+        return _sparsecholesky_swig.IntVector_get_allocator(self)
 
     def pop_back(self) -> "void":
-        return _sparsecholesky.IntVector_pop_back(self)
+        return _sparsecholesky_swig.IntVector_pop_back(self)
 
     def erase(self, *args) -> "std::vector< int >::iterator":
-        return _sparsecholesky.IntVector_erase(self, *args)
+        return _sparsecholesky_swig.IntVector_erase(self, *args)
 
     def __init__(self, *args):
-        _sparsecholesky.IntVector_swiginit(self, _sparsecholesky.new_IntVector(*args))
+        _sparsecholesky_swig.IntVector_swiginit(self, _sparsecholesky_swig.new_IntVector(*args))
 
     def push_back(self, x: "std::vector< int >::value_type const &") -> "void":
-        return _sparsecholesky.IntVector_push_back(self, x)
+        return _sparsecholesky_swig.IntVector_push_back(self, x)
 
     def front(self) -> "std::vector< int >::value_type const &":
-        return _sparsecholesky.IntVector_front(self)
+        return _sparsecholesky_swig.IntVector_front(self)
 
     def back(self) -> "std::vector< int >::value_type const &":
-        return _sparsecholesky.IntVector_back(self)
+        return _sparsecholesky_swig.IntVector_back(self)
 
     def assign(self, n: "std::vector< int >::size_type", x: "std::vector< int >::value_type const &") -> "void":
-        return _sparsecholesky.IntVector_assign(self, n, x)
+        return _sparsecholesky_swig.IntVector_assign(self, n, x)
 
     def resize(self, *args) -> "void":
-        return _sparsecholesky.IntVector_resize(self, *args)
+        return _sparsecholesky_swig.IntVector_resize(self, *args)
 
     def insert(self, *args) -> "void":
-        return _sparsecholesky.IntVector_insert(self, *args)
+        return _sparsecholesky_swig.IntVector_insert(self, *args)
 
     def reserve(self, n: "std::vector< int >::size_type") -> "void":
-        return _sparsecholesky.IntVector_reserve(self, n)
+        return _sparsecholesky_swig.IntVector_reserve(self, n)
 
     def capacity(self) -> "std::vector< int >::size_type":
-        return _sparsecholesky.IntVector_capacity(self)
-    __swig_destroy__ = _sparsecholesky.delete_IntVector
+        return _sparsecholesky_swig.IntVector_capacity(self)
+    __swig_destroy__ = _sparsecholesky_swig.delete_IntVector
 
-# Register IntVector in _sparsecholesky:
-_sparsecholesky.IntVector_swigregister(IntVector)
+# Register IntVector in _sparsecholesky_swig:
+_sparsecholesky_swig.IntVector_swigregister(IntVector)
 
 class DoubleVector(object):
     thisown = property(lambda x: x.this.own(), lambda x, v: x.this.own(v), doc="The membership flag")
     __repr__ = _swig_repr
 
     def iterator(self) -> "swig::SwigPyIterator *":
-        return _sparsecholesky.DoubleVector_iterator(self)
+        return _sparsecholesky_swig.DoubleVector_iterator(self)
     def __iter__(self):
         return self.iterator()
 
     def __nonzero__(self) -> "bool":
-        return _sparsecholesky.DoubleVector___nonzero__(self)
+        return _sparsecholesky_swig.DoubleVector___nonzero__(self)
 
     def __bool__(self) -> "bool":
-        return _sparsecholesky.DoubleVector___bool__(self)
+        return _sparsecholesky_swig.DoubleVector___bool__(self)
 
     def __len__(self) -> "std::vector< double >::size_type":
-        return _sparsecholesky.DoubleVector___len__(self)
+        return _sparsecholesky_swig.DoubleVector___len__(self)
 
     def __getslice__(self, i: "std::vector< double >::difference_type", j: "std::vector< double >::difference_type") -> "std::vector< double,std::allocator< double > > *":
-        return _sparsecholesky.DoubleVector___getslice__(self, i, j)
+        return _sparsecholesky_swig.DoubleVector___getslice__(self, i, j)
 
     def __setslice__(self, *args) -> "void":
-        return _sparsecholesky.DoubleVector___setslice__(self, *args)
+        return _sparsecholesky_swig.DoubleVector___setslice__(self, *args)
 
     def __delslice__(self, i: "std::vector< double >::difference_type", j: "std::vector< double >::difference_type") -> "void":
-        return _sparsecholesky.DoubleVector___delslice__(self, i, j)
+        return _sparsecholesky_swig.DoubleVector___delslice__(self, i, j)
 
     def __delitem__(self, *args) -> "void":
-        return _sparsecholesky.DoubleVector___delitem__(self, *args)
+        return _sparsecholesky_swig.DoubleVector___delitem__(self, *args)
 
     def __getitem__(self, *args) -> "std::vector< double >::value_type const &":
-        return _sparsecholesky.DoubleVector___getitem__(self, *args)
+        return _sparsecholesky_swig.DoubleVector___getitem__(self, *args)
 
     def __setitem__(self, *args) -> "void":
-        return _sparsecholesky.DoubleVector___setitem__(self, *args)
+        return _sparsecholesky_swig.DoubleVector___setitem__(self, *args)
 
     def pop(self) -> "std::vector< double >::value_type":
-        return _sparsecholesky.DoubleVector_pop(self)
+        return _sparsecholesky_swig.DoubleVector_pop(self)
 
     def append(self, x: "std::vector< double >::value_type const &") -> "void":
-        return _sparsecholesky.DoubleVector_append(self, x)
+        return _sparsecholesky_swig.DoubleVector_append(self, x)
 
     def empty(self) -> "bool":
-        return _sparsecholesky.DoubleVector_empty(self)
+        return _sparsecholesky_swig.DoubleVector_empty(self)
 
     def size(self) -> "std::vector< double >::size_type":
-        return _sparsecholesky.DoubleVector_size(self)
+        return _sparsecholesky_swig.DoubleVector_size(self)
 
     def swap(self, v: "DoubleVector") -> "void":
-        return _sparsecholesky.DoubleVector_swap(self, v)
+        return _sparsecholesky_swig.DoubleVector_swap(self, v)
 
     def begin(self) -> "std::vector< double >::iterator":
-        return _sparsecholesky.DoubleVector_begin(self)
+        return _sparsecholesky_swig.DoubleVector_begin(self)
 
     def end(self) -> "std::vector< double >::iterator":
-        return _sparsecholesky.DoubleVector_end(self)
+        return _sparsecholesky_swig.DoubleVector_end(self)
 
     def rbegin(self) -> "std::vector< double >::reverse_iterator":
-        return _sparsecholesky.DoubleVector_rbegin(self)
+        return _sparsecholesky_swig.DoubleVector_rbegin(self)
 
     def rend(self) -> "std::vector< double >::reverse_iterator":
-        return _sparsecholesky.DoubleVector_rend(self)
+        return _sparsecholesky_swig.DoubleVector_rend(self)
 
     def clear(self) -> "void":
-        return _sparsecholesky.DoubleVector_clear(self)
+        return _sparsecholesky_swig.DoubleVector_clear(self)
 
     def get_allocator(self) -> "std::vector< double >::allocator_type":
-        return _sparsecholesky.DoubleVector_get_allocator(self)
+        return _sparsecholesky_swig.DoubleVector_get_allocator(self)
 
     def pop_back(self) -> "void":
-        return _sparsecholesky.DoubleVector_pop_back(self)
+        return _sparsecholesky_swig.DoubleVector_pop_back(self)
 
     def erase(self, *args) -> "std::vector< double >::iterator":
-        return _sparsecholesky.DoubleVector_erase(self, *args)
+        return _sparsecholesky_swig.DoubleVector_erase(self, *args)
 
     def __init__(self, *args):
-        _sparsecholesky.DoubleVector_swiginit(self, _sparsecholesky.new_DoubleVector(*args))
+        _sparsecholesky_swig.DoubleVector_swiginit(self, _sparsecholesky_swig.new_DoubleVector(*args))
 
     def push_back(self, x: "std::vector< double >::value_type const &") -> "void":
-        return _sparsecholesky.DoubleVector_push_back(self, x)
+        return _sparsecholesky_swig.DoubleVector_push_back(self, x)
 
     def front(self) -> "std::vector< double >::value_type const &":
-        return _sparsecholesky.DoubleVector_front(self)
+        return _sparsecholesky_swig.DoubleVector_front(self)
 
     def back(self) -> "std::vector< double >::value_type const &":
-        return _sparsecholesky.DoubleVector_back(self)
+        return _sparsecholesky_swig.DoubleVector_back(self)
 
     def assign(self, n: "std::vector< double >::size_type", x: "std::vector< double >::value_type const &") -> "void":
-        return _sparsecholesky.DoubleVector_assign(self, n, x)
+        return _sparsecholesky_swig.DoubleVector_assign(self, n, x)
 
     def resize(self, *args) -> "void":
-        return _sparsecholesky.DoubleVector_resize(self, *args)
+        return _sparsecholesky_swig.DoubleVector_resize(self, *args)
 
     def insert(self, *args) -> "void":
-        return _sparsecholesky.DoubleVector_insert(self, *args)
+        return _sparsecholesky_swig.DoubleVector_insert(self, *args)
 
     def reserve(self, n: "std::vector< double >::size_type") -> "void":
-        return _sparsecholesky.DoubleVector_reserve(self, n)
+        return _sparsecholesky_swig.DoubleVector_reserve(self, n)
 
     def capacity(self) -> "std::vector< double >::size_type":
-        return _sparsecholesky.DoubleVector_capacity(self)
-    __swig_destroy__ = _sparsecholesky.delete_DoubleVector
+        return _sparsecholesky_swig.DoubleVector_capacity(self)
+    __swig_destroy__ = _sparsecholesky_swig.delete_DoubleVector
 
-# Register DoubleVector in _sparsecholesky:
-_sparsecholesky.DoubleVector_swigregister(DoubleVector)
+# Register DoubleVector in _sparsecholesky_swig:
+_sparsecholesky_swig.DoubleVector_swigregister(DoubleVector)
 
 class CholeskyFailure(Exception):
     thisown = property(lambda x: x.this.own(), lambda x, v: x.this.own(v), doc="The membership flag")
     __repr__ = _swig_repr
 
     def __init__(self, msg: "std::string const &"):
-        _sparsecholesky.CholeskyFailure_swiginit(self, _sparsecholesky.new_CholeskyFailure(msg))
-    __swig_destroy__ = _sparsecholesky.delete_CholeskyFailure
+        _sparsecholesky_swig.CholeskyFailure_swiginit(self, _sparsecholesky_swig.new_CholeskyFailure(msg))
+    __swig_destroy__ = _sparsecholesky_swig.delete_CholeskyFailure
 
-# Register CholeskyFailure in _sparsecholesky:
-_sparsecholesky.CholeskyFailure_swigregister(CholeskyFailure)
+# Register CholeskyFailure in _sparsecholesky_swig:
+_sparsecholesky_swig.CholeskyFailure_swigregister(CholeskyFailure)
 
 
 def sparse_chol_from_vecs(n: "int", in_rows: "IntVector", in_cols: "IntVector", in_vals: "DoubleVector", out_pivots: "IntVector", out_rows: "IntVector", out_cols: "IntVector", out_vals: "DoubleVector") -> "void":
-    return _sparsecholesky.sparse_chol_from_vecs(n, in_rows, in_cols, in_vals, out_pivots, out_rows, out_cols, out_vals)
+    return _sparsecholesky_swig.sparse_chol_from_vecs(n, in_rows, in_cols, in_vals, out_pivots, out_rows, out_cols, out_vals)
 
 

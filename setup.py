@@ -6,7 +6,7 @@ import platform
 import sys
 import setup_helpers.versioning as setup_versioning
 from setup_helpers.cvxcore import canon
-from setup_helpers.sparsecholesky import sparsechol
+from setup_helpers.sparsecholesky import sparsecholesky
 
 # BEFORE importing setuptools, remove MANIFEST. Otherwise it may not be
 # properly updated when the contents of directories change (true for distutils,
@@ -60,7 +60,7 @@ setup(
     author_email='stevend2@stanford.edu, akshayka@cs.stanford.edu, '
                  'echu508@stanford.edu, boyd@stanford.edu',
     cmdclass={'build_ext': build_ext_cvxpy},
-    ext_modules=[canon, sparsechol],
+    ext_modules=[canon, sparsecholesky],
     packages=find_packages(exclude=["doc*",
                                     "examples*",
                                     "cvxpy.performance_tests*"]),

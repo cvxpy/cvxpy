@@ -12,7 +12,7 @@
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
 
-#include "sparsecholesky.hpp"
+#include "sparsecholesky_swig.hpp"
 
 Matrix sparse_from_vecs(
     int n_rows,

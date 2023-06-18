@@ -2719,16 +2719,16 @@ static swig_module_info swig_module = {swig_types, 14, 0, 0, 0, 0};
 #define SWIG_TypeQuery SWIG_Python_TypeQuery
 
 /*-----------------------------------------------
-              @(target):= _sparsecholesky.so
+              @(target):= _sparsecholesky_swig.so
   ------------------------------------------------*/
 #if PY_VERSION_HEX >= 0x03000000
-#  define SWIG_init    PyInit__sparsecholesky
+#  define SWIG_init    PyInit__sparsecholesky_swig
 
 #else
-#  define SWIG_init    init_sparsecholesky
+#  define SWIG_init    init_sparsecholesky_swig
 
 #endif
-#define SWIG_name    "_sparsecholesky"
+#define SWIG_name    "_sparsecholesky_swig"
 
 #define SWIGVERSION 0x040002 
 #define SWIG_VERSION SWIGVERSION
@@ -2812,7 +2812,7 @@ namespace swig {
 
 
 	#define SWIG_FILE_WITH_INIT
-	#include "sparsecholesky.hpp"
+	#include "sparsecholesky_swig.hpp"
 
 
 #include <iostream>

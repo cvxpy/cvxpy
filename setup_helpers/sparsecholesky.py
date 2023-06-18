@@ -11,11 +11,12 @@ def not_on_windows(s: str) -> str:
 SWIG = True
 
 if SWIG:
-    sparsechol = Extension(
-        '_sparsecholesky',
-        sources=['cvxpy/utilities/cpp/sparsecholesky/sparsecholesky.cpp',
-                 'cvxpy/utilities/cpp/sparsecholesky/sparsecholesky_wrap.cxx'],
-        include_dirs=['cvxpy/utilities/cpp/sparsecholesky',
+    # directories below are interpreted from the perspective of cvxpy's setup.py file.
+    sparsecholesky = Extension(
+        '_sparsecholesky_swig',
+        sources=['cvxpy/utilities/cpp/sparsecholesky_swig/sparsecholesky_swig.cpp',
+                 'cvxpy/utilities/cpp/sparsecholesky_swig/sparsecholesky_swig_wrap.cxx'],
+        include_dirs=['cvxpy/utilities/cpp/sparsecholesky_swig',
                       'cvxpy/cvxcore/include'],
         extra_compile_args=[
             '-O3',

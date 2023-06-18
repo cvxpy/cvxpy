@@ -12,11 +12,11 @@
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
 
-%module sparsecholesky
+%module sparsecholesky_swig
 
 %{
 	#define SWIG_FILE_WITH_INIT
-	#include "sparsecholesky.hpp"
+	#include "sparsecholesky_swig.hpp"
 %}
 
 %include "std_vector.i"
