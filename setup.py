@@ -4,9 +4,10 @@ import distutils.version
 import os
 import platform
 import sys
+
+import setup_helpers.cvxcore as setup_cvxcore
 import setup_helpers.sparsecholesky as setup_sparsecholesky
 import setup_helpers.versioning as setup_versioning
-import setup_helpers.cvxcore as setup_cvxcore
 
 # BEFORE importing setuptools, remove MANIFEST. Otherwise it may not be
 # properly updated when the contents of directories change (true for distutils,

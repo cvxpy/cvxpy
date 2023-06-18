@@ -1,4 +1,5 @@
 import platform
+
 from setuptools import Extension
 
 
