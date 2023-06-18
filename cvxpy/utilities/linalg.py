@@ -1,4 +1,4 @@
-import cvxpy.utilities.cpp.sparsecholesky_swig.sparsecholesky_swig as spchol  # noqa: I001
+import cvxpy.utilities.cpp.sparsecholesky_pb as spchol  # noqa: I001
 import numpy as np
 import scipy.linalg as la
 import scipy.sparse as spar
@@ -205,10 +205,10 @@ def sparse_cholesky(A, sym_tol=1e-12, permute_L=True):
     inrows = spchol.IntVector(A_coo.row.tolist())
     incols = spchol.IntVector(A_coo.col.tolist())
     invals = spchol.DoubleVector(A_coo.data.tolist())
-    outpivs = spchol.IntVector(0)
-    outrows = spchol.IntVector(0)
-    outcols = spchol.IntVector(0)
-    outvals = spchol.DoubleVector(0)
+    outpivs = spchol.IntVector()
+    outrows = spchol.IntVector()
+    outcols = spchol.IntVector()
+    outvals = spchol.DoubleVector()
     try:
         spchol.sparse_chol_from_vecs(
             n, inrows, incols, invals,
@@ -219,10 +219,10 @@ def sparse_cholesky(A, sym_tol=1e-12, permute_L=True):
         raise ValueError('Cholesky failed. The input was not (numerically) positive definite.')
 
     # error checking and return values
-    outvals = [outvals[i] for i in range(outvals.size())]
-    outrows = [outrows[i] for i in range(outrows.size())]
-    outcols = [outcols[i] for i in range(outcols.size())]
-    outpivs = [outpivs[i] for i in range(outpivs.size())]
+    outvals = [outvals[i] for i in range(len(outvals))]
+    outrows = [outrows[i] for i in range(len(outrows))]
+    outcols = [outcols[i] for i in range(len(outcols))]
+    outpivs = [outpivs[i] for i in range(len(outpivs))]
     L = spar.csr_matrix((outvals, (outrows, outcols)), shape=(n, n))
     outpivs = np.array(outpivs)
     if permute_L:

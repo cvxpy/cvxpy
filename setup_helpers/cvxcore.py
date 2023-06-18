@@ -11,7 +11,7 @@ def not_on_windows(s: str) -> str:
 # CFLAGS="-fopenmp" LDFLAGS="-lgomp" python setup.py install
 #
 # TODO wheels should be compiled with openmp ...
-canon = Extension(
+cvxcore = Extension(
     '_cvxcore',
     sources=['cvxpy/cvxcore/src/cvxcore.cpp',
              'cvxpy/cvxcore/src/LinOpOperations.cpp',

@@ -4,9 +4,9 @@ import distutils.version
 import os
 import platform
 import sys
+import setup_helpers.sparsecholesky as setup_sparsecholesky
 import setup_helpers.versioning as setup_versioning
-from setup_helpers.cvxcore import canon
-from setup_helpers.sparsecholesky import sparsecholesky
+import setup_helpers.cvxcore as setup_cvxcore
 
 # BEFORE importing setuptools, remove MANIFEST. Otherwise it may not be
 # properly updated when the contents of directories change (true for distutils,
@@ -60,7 +60,7 @@ setup(
     author_email='stevend2@stanford.edu, akshayka@cs.stanford.edu, '
                  'echu508@stanford.edu, boyd@stanford.edu',
     cmdclass={'build_ext': build_ext_cvxpy},
-    ext_modules=[canon, sparsecholesky],
+    ext_modules=[setup_cvxcore.cvxcore, setup_sparsecholesky.sparsecholesky],
     packages=find_packages(exclude=["doc*",
                                     "examples*",
                                     "cvxpy.performance_tests*"]),
