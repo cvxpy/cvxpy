@@ -218,10 +218,10 @@ def sparse_cholesky(A, sym_tol=1e-12, permute_L=True):
         raise ValueError(e.args)
 
     # error checking and return values
-    outvals = [outvals[i] for i in range(len(outvals))]
-    outrows = [outrows[i] for i in range(len(outrows))]
-    outcols = [outcols[i] for i in range(len(outcols))]
-    outpivs = [outpivs[i] for i in range(len(outpivs))]
+    outvals = list(outvals)
+    outrows = list(outrows)
+    outcols = list(outcols)
+    outpivs = list(outpivs)
     L = spar.csr_matrix((outvals, (outrows, outcols)), shape=(n, n))
     outpivs = np.array(outpivs)
     if permute_L:
