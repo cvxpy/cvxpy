@@ -179,10 +179,18 @@ def gershgorin_psd_check(A, tol):
         raise ValueError()
 
 
-def sparse_cholesky(A, sym_tol=1e-12, permute_L=True):
+class SparseCholeskyMessages:
+
+    ASYMMETRIC = 'Input matrix is not symmetric to within provided tolerance.'
+    INDEFINITE = 'Input matrix is neither positive nor negative definite.'
+    EIGEN_FAIL = 'Cholesky decomposition failed.'
+
+
+def sparse_cholesky(A, sym_tol=1e-12, permute_L=True, assume_posdef=False):
     """
-    The input A must be a symmetric positive definite SciPy sparse matrix.
-    We call Eigen's implementation of sparse Cholesky with AMD-ordering.
+    The input matrix A must be symmetric. If A is positive definite then Eigen
+    will be used to compute its sparse Cholesky decomposition with AMD-ordering.
+    If A is negative definite, then the analogous operation will be applied to -A.
 
     If Cholesky succeeds and permute_L=True, then we return a CSR-format
     matrix Lp that satisfies Lp @ Lp.T == A within numerical precision.
@@ -191,13 +199,28 @@ def sparse_cholesky(A, sym_tol=1e-12, permute_L=True):
     matrix L in CSR-format and a permutation vector p so that
     (L[p, :]) @ (L[p, :]).T == A within numerical precision.
 
-    If Cholesky fails then we raise a ValueError.
+    We raise a ValueError if Eigen's Cholesky fails or if we certify indefiniteness
+    before calling Eigen.
     """
     if not isinstance(A, spar.spmatrix):
         raise ValueError('Input must be a SciPy sparse matrix.')
-    symdiff = A - A.T
-    if symdiff.data.size > 0 and la.norm(symdiff.data) > sym_tol:
-        raise ValueError('Input matrix is not symmetric to within provided tolerance.')
+
+    if not assume_posdef:
+        # check that we're symmetric
+        symdiff = A - A.T
+        if symdiff.data.size > 0 and la.norm(symdiff.data) > sym_tol:
+            raise ValueError('Input matrix is not symmetric to within provided tolerance.')
+        # check a necessary condition for positive/negative definiteness; call this
+        # function on -A if there's evidence for negative definiteness.
+        d = A.diagonal()
+        maybe_posdef = np.all(d > 0)
+        maybe_negdef = np.all(d < 0)
+        if not (maybe_posdef or maybe_negdef):
+            raise ValueError('Input matrix is neither positive nor negative definite.')
+        if maybe_negdef:
+            res = sparse_cholesky(-A, sym_tol, permute_L)
+            return -1.0, *res[1:]
+
     A_coo = spar.coo_matrix(A)
     n = A.shape[0]
 
@@ -226,6 +249,6 @@ def sparse_cholesky(A, sym_tol=1e-12, permute_L=True):
     outpivs = np.array(outpivs)
     if permute_L:
         Lp = L[outpivs, :]
-        return Lp
+        return 1.0, Lp
     else:
-        return L, outpivs
+        return 1.0, L, outpivs

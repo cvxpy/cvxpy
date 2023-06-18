@@ -22,8 +22,6 @@ from cvxpy.utilities import linalg as lau
 
 class TestSparseCholesky(BaseTest):
 
-    EXCEPTION_STR = 'Cholesky decomposition failed.'
-
     def check_gram(self, Lp, A, places=5):
         G = Lp @ Lp.T
         delta = (G - A).toarray().flatten()
@@ -38,7 +36,7 @@ class TestSparseCholesky(BaseTest):
     def test_diagonal(self):
         np.random.seed(0)
         A = spar.csc_matrix(np.diag(np.random.rand(4)))
-        L, p = lau.sparse_cholesky(A, 0.0, permute_L=False)
+        _, L, p = lau.sparse_cholesky(A, 0.0, permute_L=False)
         self.check_factor(L)
         self.check_gram(L[p, :], A)
 
@@ -48,7 +46,7 @@ class TestSparseCholesky(BaseTest):
         diag = np.random.rand(n) + 0.1
         offdiag = np.min(np.abs(diag)) * np.ones(n - 1) / 2
         A = spar.diags([offdiag, diag, offdiag], [-1, 0, 1])
-        L, p = lau.sparse_cholesky(A, 0.0, permute_L=False)
+        _, L, p = lau.sparse_cholesky(A, 0.0, permute_L=False)
         self.check_factor(L)
         self.check_gram(L[p, :], A)
 
@@ -56,7 +54,7 @@ class TestSparseCholesky(BaseTest):
         np.random.seed(0)
         B = np.random.randn(3, 3)
         A = spar.csc_matrix(B @ B.T)
-        L, p = lau.sparse_cholesky(A, permute_L=False)
+        _, L, p = lau.sparse_cholesky(A, permute_L=False)
         self.check_factor(L)
         self.check_gram(L[p, :], A)
 
@@ -65,7 +63,7 @@ class TestSparseCholesky(BaseTest):
         np.random.seed(0)
         B = np.random.randn(4, 2)
         A = B @ B.T
-        with self.assertRaises(ValueError, msg=TestSparseCholesky.EXCEPTION_STR):
+        with self.assertRaises(ValueError, msg=lau.SparseCholeskyMessages.EIGEN_FAIL):
             lau.sparse_cholesky(A)
 
     def test_nonsingular_indefinite(self):
@@ -75,5 +73,5 @@ class TestSparseCholesky(BaseTest):
         diag[n-1] = -1
         offdiag = np.min(np.abs(diag)) * np.ones(n - 1) / 2
         A = spar.diags([offdiag, diag, offdiag], [-1, 0, 1])
-        with self.assertRaises(ValueError, msg=TestSparseCholesky.EXCEPTION_STR):
+        with self.assertRaises(ValueError, msg=lau.SparseCholeskyMessages.INDEFINITE):
             lau.sparse_cholesky(A, 0.0, permute_L=False)
