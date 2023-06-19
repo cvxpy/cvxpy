@@ -184,26 +184,24 @@ class SparseCholeskyMessages:
     ASYMMETRIC = 'Input matrix is not symmetric to within provided tolerance.'
     INDEFINITE = 'Input matrix is neither positive nor negative definite.'
     EIGEN_FAIL = 'Cholesky decomposition failed.'
+    NOT_SPARSE = 'Input must be a SciPy sparse matrix.'
 
 
-def sparse_cholesky(A, sym_tol=1e-12, permute_L=True, assume_posdef=False):
+def sparse_cholesky(A, sym_tol=1e-12, assume_posdef=False):
     """
     The input matrix A must be symmetric. If A is positive definite then Eigen
     will be used to compute its sparse Cholesky decomposition with AMD-ordering.
     If A is negative definite, then the analogous operation will be applied to -A.
 
-    If Cholesky succeeds and permute_L=True, then we return a CSR-format
-    matrix Lp that satisfies Lp @ Lp.T == A within numerical precision.
-
-    If Cholesky succeeds and permute_L=False, then we return a lower-triangular
-    matrix L in CSR-format and a permutation vector p so that
-    (L[p, :]) @ (L[p, :]).T == A within numerical precision.
+    If Cholesky succeeds, then we return a lower-triangular matrix L in
+    CSR-format and a permutation vector p so (L[p, :]) @ (L[p, :]).T == A
+    within numerical precision.
 
     We raise a ValueError if Eigen's Cholesky fails or if we certify indefiniteness
     before calling Eigen.
     """
     if not isinstance(A, spar.spmatrix):
-        raise ValueError('Input must be a SciPy sparse matrix.')
+        raise ValueError(SparseCholeskyMessages.NOT_SPARSE)
 
     if not assume_posdef:
         # check that we're symmetric
@@ -218,16 +216,16 @@ def sparse_cholesky(A, sym_tol=1e-12, permute_L=True, assume_posdef=False):
         if not (maybe_posdef or maybe_negdef):
             raise ValueError(SparseCholeskyMessages.INDEFINITE)
         if maybe_negdef:
-            res = sparse_cholesky(-A, sym_tol, permute_L)
-            return -1.0, *res[1:]
+            _, L, p = sparse_cholesky(-A, sym_tol)
+            return -1.0, L, p
 
     A_coo = spar.coo_matrix(A)
     n = A.shape[0]
 
     # Call our C++ extension
-    inrows = spchol.IntVector(A_coo.row.tolist())
-    incols = spchol.IntVector(A_coo.col.tolist())
-    invals = spchol.DoubleVector(A_coo.data.tolist())
+    inrows = spchol.IntVector(A_coo.row)
+    incols = spchol.IntVector(A_coo.col)
+    invals = spchol.DoubleVector(A_coo.data)
     outpivs = spchol.IntVector()
     outrows = spchol.IntVector()
     outcols = spchol.IntVector()
@@ -243,15 +241,9 @@ def sparse_cholesky(A, sym_tol=1e-12, permute_L=True, assume_posdef=False):
         else:
             raise RuntimeError(e.args)
 
-    # error checking and return values
-    outvals = list(outvals)
-    outrows = list(outrows)
-    outcols = list(outcols)
-    outpivs = list(outpivs)
-    L = spar.csr_matrix((outvals, (outrows, outcols)), shape=(n, n))
+    outvals = np.array(outvals)
+    outrows = np.array(outrows)
+    outcols = np.array(outcols)
     outpivs = np.array(outpivs)
-    if permute_L:
-        Lp = L[outpivs, :]
-        return 1.0, Lp
-    else:
-        return 1.0, L, outpivs
+    L = spar.csr_matrix((outvals, (outrows, outcols)), shape=(n, n))
+    return 1.0, L, outpivs
