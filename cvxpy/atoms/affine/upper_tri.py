@@ -137,15 +137,9 @@ def vec_to_upper_tri(expr, strict: bool = False):
     # compute expr3 = reshape(expr2, shape=(n, n)).T
     #   expr3 is the matrix formed by reading length-n blocks of expr2,
     #   and letting each block form a row of expr3.
-    P_rows = []
-    P_row = 0
-    for mat_row in range(n):
-        entries_in_row = n - mat_row
-        if strict:
-            entries_in_row -= 1
-        P_row += n - entries_in_row  # these are zeros
-        P_rows.extend(range(P_row, P_row + entries_in_row))
-        P_row += entries_in_row
+    k = 1 if strict else 0
+    row_idx, col_idx = np.triu_indices(n, k=k)
+    P_rows = n*row_idx + col_idx
     P_cols = np.arange(ell)
     P_vals = np.ones(P_cols.size)
     P = csc_matrix((P_vals, (P_rows, P_cols)), shape=(n**2, ell))
