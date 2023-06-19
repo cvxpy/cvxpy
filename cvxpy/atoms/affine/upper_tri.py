@@ -26,7 +26,6 @@ from cvxpy.atoms.affine.vec import vec
 from cvxpy.constraints.constraint import Constraint
 from cvxpy.expressions.expression import Expression
 
-vec
 
 class upper_tri(AffAtom):
     """The vectorized strictly upper-triagonal entries.
