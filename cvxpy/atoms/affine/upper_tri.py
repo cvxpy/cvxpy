@@ -22,6 +22,7 @@ import cvxpy.lin_ops.lin_op as lo
 import cvxpy.lin_ops.lin_utils as lu
 from cvxpy.atoms.affine.affine_atom import AffAtom
 from cvxpy.atoms.affine.reshape import reshape
+from cvxpy.atoms.affine.vec import vec
 from cvxpy.constraints.constraint import Constraint
 from cvxpy.expressions.expression import Expression
 
@@ -111,6 +112,12 @@ class upper_tri(AffAtom):
 
 def vec_to_upper_tri(expr, strict: bool = False):
     expr = Expression.cast_to_const(expr)
+
+    if not expr.is_vector():
+        raise ValueError("The input must be a vector.")
+    if expr.ndim != 1:
+        expr = vec(expr)
+
     ell = expr.shape[0]
     if strict:
         # n * (n-1)/2 == ell
@@ -119,6 +126,9 @@ def vec_to_upper_tri(expr, strict: bool = False):
         # n * (n+1)/2 == ell
         n = ((8 * ell + 1) ** 0.5 - 1) // 2
     n = int(n)
+    if not (n * (n + 1) // 2 == ell or n * (n - 1) // 2 == ell):
+        raise ValueError("The size of the vector must be a triangular number.")
+
     # form a matrix P, of shape (n**2, ell).
     #       the i-th block of n rows of P gives the entries of the i-th row
     #       of the upper-triangular matrix associated with expr.
@@ -126,15 +136,9 @@ def vec_to_upper_tri(expr, strict: bool = False):
     # compute expr3 = reshape(expr2, shape=(n, n)).T
     #   expr3 is the matrix formed by reading length-n blocks of expr2,
     #   and letting each block form a row of expr3.
-    P_rows = []
-    P_row = 0
-    for mat_row in range(n):
-        entries_in_row = n - mat_row
-        if strict:
-            entries_in_row -= 1
-        P_row += n - entries_in_row  # these are zeros
-        P_rows.extend(range(P_row, P_row + entries_in_row))
-        P_row += entries_in_row
+    k = 1 if strict else 0
+    row_idx, col_idx = np.triu_indices(n, k=k)
+    P_rows = n*row_idx + col_idx
     P_cols = np.arange(ell)
     P_vals = np.ones(P_cols.size)
     P = csc_matrix((P_vals, (P_rows, P_cols)), shape=(n**2, ell))
