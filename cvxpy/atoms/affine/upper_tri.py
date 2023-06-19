@@ -22,9 +22,11 @@ import cvxpy.lin_ops.lin_op as lo
 import cvxpy.lin_ops.lin_utils as lu
 from cvxpy.atoms.affine.affine_atom import AffAtom
 from cvxpy.atoms.affine.reshape import reshape
+from cvxpy.atoms.affine.vec import vec
 from cvxpy.constraints.constraint import Constraint
 from cvxpy.expressions.expression import Expression
 
+vec
 
 class upper_tri(AffAtom):
     """The vectorized strictly upper-triagonal entries.
@@ -111,6 +113,12 @@ class upper_tri(AffAtom):
 
 def vec_to_upper_tri(expr, strict: bool = False):
     expr = Expression.cast_to_const(expr)
+
+    if not expr.is_vector():
+        raise ValueError("The input must be a vector.")
+    if expr.ndim != 1:
+        expr = vec(expr)
+
     ell = expr.shape[0]
     if strict:
         # n * (n-1)/2 == ell
@@ -119,6 +127,9 @@ def vec_to_upper_tri(expr, strict: bool = False):
         # n * (n+1)/2 == ell
         n = ((8 * ell + 1) ** 0.5 - 1) // 2
     n = int(n)
+    if not (n * (n + 1) // 2 == ell or n * (n - 1) // 2 == ell):
+        raise ValueError("The size of the vector must be a triangular number.")
+
     # form a matrix P, of shape (n**2, ell).
     #       the i-th block of n rows of P gives the entries of the i-th row
     #       of the upper-triangular matrix associated with expr.

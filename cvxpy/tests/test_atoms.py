@@ -757,6 +757,25 @@ class TestAtoms(BaseTest):
         A_actual = vec_to_upper_tri(a, strict=True).value
         assert np.allclose(A_actual, A_expect)
 
+        with pytest.raises(ValueError, match="must be a triangular number"):
+            vec_to_upper_tri(cp.Variable(shape=(4)))
+
+        with pytest.raises(ValueError, match="must be a triangular number"):
+            vec_to_upper_tri(cp.Variable(shape=(4)), strict=True)
+
+        with pytest.raises(ValueError, match="must be a vector"):
+            vec_to_upper_tri(cp.Variable(shape=(2, 2)))
+
+        # works with row vectors
+        assert np.allclose(
+            vec_to_upper_tri(np.arange(6)).value, 
+            vec_to_upper_tri(np.arange(6).reshape(1, 6)).value
+        )
+
+        # works with scalars
+        assert np.allclose(vec_to_upper_tri(1, strict=True).value, np.array([[0, 1], [0, 0]]))
+
+
     def test_huber(self) -> None:
         # Valid.
         cp.huber(self.x, 1)
