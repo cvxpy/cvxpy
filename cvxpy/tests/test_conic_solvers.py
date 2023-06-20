@@ -16,7 +16,6 @@ limitations under the License.
 
 import math
 import unittest
-from typing import Callable
 
 import numpy as np
 import pytest
@@ -974,69 +973,23 @@ class TestCBC(BaseTest):
 
 @unittest.skipUnless('CBC' in INSTALLED_SOLVERS, 'CBC is not installed.')
 class TestCBCOptions:
-
-    @pytest.mark.parametrize(
-        "opts,sth",
-        [
-            pytest.param({"dualTolerance": 1.0}, StandardTestLPs.test_lp_3,
-                         id="dualTolerance"),
-            pytest.param({"primalTolerance": 1.0}, StandardTestLPs.test_lp_4,
-                         id="primalTolerance"),
-            pytest.param({"maxNumIteration": 1, "duals": False},
-                         StandardTestLPs.test_lp_1,
-                         id="maxNumIteration"),
-            pytest.param({"optimizationDirection": "max"}, StandardTestLPs.test_lp_3,
-                         id="optimizationDirection"),
-            # didn't find useful cases for `automaticScaling`, `scaling`, or
-            # `infeasibilityCost` parameters; `presolve` option is easier to detect
-            # via changes to log messages
-        ]
-    )
-    def test_cbc_lp_options(self, opts: dict, sth: Callable[..., sths.SolverTestHelper]) -> None:
-        """
-        Validate that cylp is actually using each option.
-
-        We check that the specified test case passes without the option under test and that
-        we see a behavior change (i.e. solver or verification failure) when adding the
-        option under test.
-        """
-        # construct a version of "opts" that doesn't have the main key we want to test in it
-        working_opts = opts.copy()
-        first_key = next(iter(opts))
-        working_opts.pop(first_key)
-
-        # test that we get a working version without the option under test
-        orig = sth(solver='CBC', **working_opts)
-        # adding the option under test should result in either a solver failure or a
-        # verification failure
-        try:
-            new = sth(solver='CBC', **opts)
-        except Exception:
-            # if the solver test helper fails solving or fails its checks, that's a
-            # behavior change caused by the config, so that's okay
-            pass
-        else:
-            # if we get passing output, we expect to see a difference in the output; most
-            # concretely in the ojbective function
-            assert orig.prob.value != new.prob.value
-
     @pytest.mark.parametrize(
         "opts",
         [
             pytest.param(opts, id=next(iter(opts.keys())))
             for opts in [
-            {"dualTolerance": 1.0},
-            {"primalTolerance": 1.0},
-            {"maxNumIteration": 1},
-            {"scaling": 0},
-            # {"automaticScaling": True},  # Doesn't work
-            # {"infeasibilityCost": 0.000001},  # Doesn't work
-            {"optimizationDirection": "max"},
-            {"presolve": "off"},
-        ]
+                {"dualTolerance": 1.0},
+                {"primalTolerance": 1.0},
+                {"maxNumIteration": 1},
+                {"scaling": 0},
+                # {"automaticScaling": True},  # Doesn't work
+                # {"infeasibilityCost": 0.000001},  # Doesn't work
+                {"optimizationDirection": "max"},
+                {"presolve": "off"},
+            ]
         ]
     )
-    def test_cbc_lp_options_via_logs(self, opts: dict, capfd: pytest.LogCaptureFixture) -> None:
+    def test_cbc_lp_options(self, opts: dict, capfd: pytest.LogCaptureFixture) -> None:
         """
         Validate that cylp is actually using each option.
 
