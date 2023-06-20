@@ -1,4 +1,5 @@
 import cvxpy.utilities.cpp.sparsecholesky as spchol  # noqa: I001
+import cvxpy.settings as settings
 import numpy as np
 import scipy.linalg as la
 import scipy.sparse as spar
@@ -185,12 +186,13 @@ class SparseCholeskyMessages:
     INDEFINITE = 'Input matrix is neither positive nor negative definite.'
     EIGEN_FAIL = 'Cholesky decomposition failed.'
     NOT_SPARSE = 'Input must be a SciPy sparse matrix.'
+    NOT_REAL = 'Input matrix must be real.'
 
 
-def sparse_cholesky(A, sym_tol=1e-12, assume_posdef=False):
+def sparse_cholesky(A, sym_tol=settings.CHOL_SYM_TOL, assume_posdef=False):
     """
-    The input matrix A must be symmetric. If A is positive definite then Eigen
-    will be used to compute its sparse Cholesky decomposition with AMD-ordering.
+    The input matrix A must be real and symmetric. If A is positive definite then
+    Eigen will be used to compute its sparse Cholesky decomposition with AMD-ordering.
     If A is negative definite, then the analogous operation will be applied to -A.
 
     If Cholesky succeeds, then we return a lower-triangular matrix L in
@@ -198,15 +200,19 @@ def sparse_cholesky(A, sym_tol=1e-12, assume_posdef=False):
     within numerical precision.
 
     We raise a ValueError if Eigen's Cholesky fails or if we certify indefiniteness
-    before calling Eigen.
+    before calling Eigen. While checking for indefiniteness, we also check that
+     ||A - A'||_Fro / sqrt(n) <= sym_tol, where n is the order of the matrix.
     """
     if not isinstance(A, spar.spmatrix):
         raise ValueError(SparseCholeskyMessages.NOT_SPARSE)
+    if np.iscomplexobj(A):
+        raise ValueError(SparseCholeskyMessages.NOT_REAL)
 
     if not assume_posdef:
         # check that we're symmetric
         symdiff = A - A.T
-        if symdiff.data.size > 0 and la.norm(symdiff.data) > sym_tol:
+        sz = symdiff.data.size
+        if sz > 0 and la.norm(symdiff.data) > sym_tol * (sz**0.5):
             raise ValueError(SparseCholeskyMessages.ASYMMETRIC)
         # check a necessary condition for positive/negative definiteness; call this
         # function on -A if there's evidence for negative definiteness.
@@ -216,7 +222,7 @@ def sparse_cholesky(A, sym_tol=1e-12, assume_posdef=False):
         if not (maybe_posdef or maybe_negdef):
             raise ValueError(SparseCholeskyMessages.INDEFINITE)
         if maybe_negdef:
-            _, L, p = sparse_cholesky(-A, sym_tol)
+            _, L, p = sparse_cholesky(-A, sym_tol, assume_posdef=True)
             return -1.0, L, p
 
     A_coo = spar.coo_matrix(A)
