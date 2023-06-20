@@ -879,52 +879,6 @@ class TestSDPA(BaseTest):
         StandardTestSDPs.test_sdp_2(solver='SDPA')
 
 
-@unittest.skipUnless('CBC' in INSTALLED_SOLVERS, 'CBC is not installed.')
-@pytest.mark.parametrize(
-    "opts,sth",
-    [
-        pytest.param({"dualTolerance": 1.0}, StandardTestLPs.test_lp_3,
-                     id="dualTolerance"),
-        pytest.param({"primalTolerance": 1.0}, StandardTestLPs.test_lp_4,
-                     id="primalTolerance"),
-        pytest.param({"maxNumIteration": 1, "duals": False}, StandardTestLPs.test_lp_1,
-                     id="maxNumIteration"),
-        pytest.param({"optimizationDirection": "max"}, StandardTestLPs.test_lp_3,
-                     id="optimizationDirection"),
-        # didn't find useful cases for `automaticScaling`, `scaling`, or
-        # `infeasibilityCost` parameters; `presolve` option is easier to detect
-        # via changes to log messages
-    ]
-)
-def test_cbc_lp_options(opts: dict, sth: Callable[..., sths.SolverTestHelper]) -> None:
-    """
-    Validate that cylp is actually using each option.
-
-    We check that the specified test case passes without the option under test and that
-    we see a behavior change (i.e. solver or verification failure) when adding the
-    option under test.
-    """
-    # construct a version of "opts" that doesn't have the main key we want to test in it
-    working_opts = opts.copy()
-    first_key = next(iter(opts))
-    working_opts.pop(first_key)
-
-    # test that we get a working version without the option under test
-    orig = sth(solver='CBC', **working_opts)
-    # adding the option under test should result in either a solver failure or a
-    # verification failure
-    try:
-        new = sth(solver='CBC', **opts)
-    except Exception:
-        # if the solver test helper fails solving or fails its checks, that's a
-        # behavior change caused by the config, so that's okay
-        pass
-    else:
-        # if we get passing output, we expect to see a difference in the output; most
-        # concretely in the ojbective function
-        assert orig.prob.value != new.prob.value
-
-
 def fflush() -> None:
     """
     C code in some solvers uses libc buffering; if we want to capture log output from
@@ -935,77 +889,6 @@ def fflush() -> None:
     import ctypes
     libc = ctypes.CDLL(None)
     libc.fflush(None)
-
-
-@unittest.skipUnless('CBC' in INSTALLED_SOLVERS, 'CBC is not installed.')
-@pytest.mark.parametrize(
-    "opts",
-    [
-        pytest.param(opts, id=next(iter(opts.keys())))
-        for opts in [
-            {"dualTolerance": 1.0},
-            {"primalTolerance": 1.0},
-            {"maxNumIteration": 1},
-            {"scaling": 0},
-            # {"automaticScaling": True},  # Doesn't work
-            # {"infeasibilityCost": 0.000001},  # Doesn't work
-            {"optimizationDirection": "max"},
-            {"presolve": "off"},
-        ]
-    ]
-)
-def test_cbc_lp_options_via_logs(opts: dict, capfd: pytest.LogCaptureFixture) -> None:
-    """
-    Validate that cylp is actually using each option.
-
-    Tentative approach: run model with verbose output with or without the specified
-    option; verbose output should be different each way.
-    """
-    # start by making sure capture buffer is empty to ensure valid results
-    fflush()
-    capfd.readouterr()
-    # run the solver with verbose logging without this option and capture output
-    sth = sths.lp_4()
-    sth.solve(solver='CBC', logLevel=2)
-    fflush()
-    base = capfd.readouterr()
-    # run the solver with verbose logging *with* the option under test
-    try:
-        sth.solve(solver='CBC', logLevel=2, **opts)
-    except Exception:
-        # if setting the option caused the case to fail, that's a pass
-        pass
-    else:
-        # if the case still passes, we at least look for change in the log outputs
-        fflush()
-        with_opt = capfd.readouterr()
-        assert base != with_opt
-
-
-@unittest.skipUnless('CBC' in INSTALLED_SOLVERS, 'CBC is not installed.')
-def test_cbc_lp_logging(capfd: pytest.LogCaptureFixture) -> None:
-    """Validate that logLevel parameter is passed to solver"""
-    # start by making sure capture buffer is empty to ensure valid results
-    fflush()
-    capfd.readouterr()
-
-    # for linear problems
-    StandardTestLPs.test_lp_0(solver='CBC', duals=False, logLevel=0)
-    fflush()
-    quiet_output = capfd.readouterr()
-    StandardTestLPs.test_lp_0(solver='CBC', duals=False, logLevel=5)
-    fflush()
-    verbose_output = capfd.readouterr()
-    assert len(verbose_output.out) > len(quiet_output.out)
-
-    # for mixed integer problems
-    StandardTestLPs.test_mi_lp_0(solver='CBC', logLevel=0)
-    fflush()
-    quiet_output = capfd.readouterr()
-    StandardTestLPs.test_mi_lp_0(solver='CBC', logLevel=5)
-    fflush()
-    verbose_output = capfd.readouterr()
-    assert len(verbose_output.out) > len(quiet_output.out)
 
 
 @unittest.skipUnless('CBC' in INSTALLED_SOLVERS, 'CBC is not installed.')
@@ -1087,6 +970,122 @@ class TestCBC(BaseTest):
                          'CyLP <= 0.91.4 has no working integer infeasibility detection')
     def test_cbc_mi_lp_5(self) -> None:
         StandardTestLPs.test_mi_lp_5(solver='CBC')
+
+
+@unittest.skipUnless('CBC' in INSTALLED_SOLVERS, 'CBC is not installed.')
+class TestCBCOptions:
+
+    @pytest.mark.parametrize(
+        "opts,sth",
+        [
+            pytest.param({"dualTolerance": 1.0}, StandardTestLPs.test_lp_3,
+                         id="dualTolerance"),
+            pytest.param({"primalTolerance": 1.0}, StandardTestLPs.test_lp_4,
+                         id="primalTolerance"),
+            pytest.param({"maxNumIteration": 1, "duals": False},
+                         StandardTestLPs.test_lp_1,
+                         id="maxNumIteration"),
+            pytest.param({"optimizationDirection": "max"}, StandardTestLPs.test_lp_3,
+                         id="optimizationDirection"),
+            # didn't find useful cases for `automaticScaling`, `scaling`, or
+            # `infeasibilityCost` parameters; `presolve` option is easier to detect
+            # via changes to log messages
+        ]
+    )
+    def test_cbc_lp_options(self, opts: dict, sth: Callable[..., sths.SolverTestHelper]) -> None:
+        """
+        Validate that cylp is actually using each option.
+
+        We check that the specified test case passes without the option under test and that
+        we see a behavior change (i.e. solver or verification failure) when adding the
+        option under test.
+        """
+        # construct a version of "opts" that doesn't have the main key we want to test in it
+        working_opts = opts.copy()
+        first_key = next(iter(opts))
+        working_opts.pop(first_key)
+
+        # test that we get a working version without the option under test
+        orig = sth(solver='CBC', **working_opts)
+        # adding the option under test should result in either a solver failure or a
+        # verification failure
+        try:
+            new = sth(solver='CBC', **opts)
+        except Exception:
+            # if the solver test helper fails solving or fails its checks, that's a
+            # behavior change caused by the config, so that's okay
+            pass
+        else:
+            # if we get passing output, we expect to see a difference in the output; most
+            # concretely in the ojbective function
+            assert orig.prob.value != new.prob.value
+
+    @pytest.mark.parametrize(
+        "opts",
+        [
+            pytest.param(opts, id=next(iter(opts.keys())))
+            for opts in [
+            {"dualTolerance": 1.0},
+            {"primalTolerance": 1.0},
+            {"maxNumIteration": 1},
+            {"scaling": 0},
+            # {"automaticScaling": True},  # Doesn't work
+            # {"infeasibilityCost": 0.000001},  # Doesn't work
+            {"optimizationDirection": "max"},
+            {"presolve": "off"},
+        ]
+        ]
+    )
+    def test_cbc_lp_options_via_logs(self, opts: dict, capfd: pytest.LogCaptureFixture) -> None:
+        """
+        Validate that cylp is actually using each option.
+
+        Tentative approach: run model with verbose output with or without the specified
+        option; verbose output should be different each way.
+        """
+        # start by making sure capture buffer is empty to ensure valid results
+        fflush()
+        capfd.readouterr()
+        # run the solver with verbose logging without this option and capture output
+        sth = sths.lp_4()
+        sth.solve(solver='CBC', logLevel=2)
+        fflush()
+        base = capfd.readouterr()
+        # run the solver with verbose logging *with* the option under test
+        try:
+            sth.solve(solver='CBC', logLevel=2, **opts)
+        except Exception:
+            # if setting the option caused the case to fail, that's a pass
+            pass
+        else:
+            # if the case still passes, we at least look for change in the log outputs
+            fflush()
+            with_opt = capfd.readouterr()
+            assert base != with_opt
+
+    def test_cbc_lp_logging(self, capfd: pytest.LogCaptureFixture) -> None:
+        """Validate that logLevel parameter is passed to solver"""
+        # start by making sure capture buffer is empty to ensure valid results
+        fflush()
+        capfd.readouterr()
+
+        # for linear problems
+        StandardTestLPs.test_lp_0(solver='CBC', duals=False, logLevel=0)
+        fflush()
+        quiet_output = capfd.readouterr()
+        StandardTestLPs.test_lp_0(solver='CBC', duals=False, logLevel=5)
+        fflush()
+        verbose_output = capfd.readouterr()
+        assert len(verbose_output.out) > len(quiet_output.out)
+
+        # for mixed integer problems
+        StandardTestLPs.test_mi_lp_0(solver='CBC', logLevel=0)
+        fflush()
+        quiet_output = capfd.readouterr()
+        StandardTestLPs.test_mi_lp_0(solver='CBC', logLevel=5)
+        fflush()
+        verbose_output = capfd.readouterr()
+        assert len(verbose_output.out) > len(quiet_output.out)
 
 
 @unittest.skipUnless('GLPK' in INSTALLED_SOLVERS, 'GLPK is not installed.')
