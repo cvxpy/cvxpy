@@ -887,16 +887,13 @@ class TestSDPA(BaseTest):
                      id="dualTolerance"),
         pytest.param({"primalTolerance": 1.0}, StandardTestLPs.test_lp_4,
                      id="primalTolerance"),
-        pytest.param({"maxNumIteration": 1}, StandardTestLPs.test_lp_1,
+        pytest.param({"maxNumIteration": 1, "duals": False}, StandardTestLPs.test_lp_1,
                      id="maxNumIteration"),
-        # pytest.param({"automaticScaling": True}, StandardTestLPs.test_lp_1,
-        #              id="automaticScaling"),
-        # pytest.param({"scaling": 0}, StandardTestLPs.test_lp_2, id="scaling"),
-        # pytest.param({"infeasibilityCost": 1e-5}, StandardTestLPs.test_lp_1,
-        #              id="infeasibilityCost"),
         pytest.param({"optimizationDirection": "max"}, StandardTestLPs.test_lp_3,
                      id="optimizationDirection"),
-        # presolve option is easier to detect via changes to log messages
+        # didn't find useful cases for `automaticScaling`, `scaling`, or
+        # `infeasibilityCost` parameters; `presolve` option is easier to detect
+        # via changes to log messages
     ]
 )
 def test_cbc_lp_options(opts: dict, sth: Callable[..., sths.SolverTestHelper]) -> None:
@@ -907,21 +904,6 @@ def test_cbc_lp_options(opts: dict, sth: Callable[..., sths.SolverTestHelper]) -
     we see a behavior change (i.e. solver or verification failure) when adding the
     option under test.
     """
-
-    # revealtype(StandardTestLPs.test_lp_3)
-    # some tests want `duals=False`
-    # TODO: this is mostly to make hacking around easier for me, and I intend to remove
-    #  it and just put `duals=False` in the parameterization above before actually
-    #  merging.
-    if sth in [
-        StandardTestLPs.test_lp_0,
-        StandardTestLPs.test_lp_1,
-        StandardTestLPs.test_lp_2,
-        StandardTestLPs.test_lp_5,
-    ]:
-        opts = opts.copy()
-        opts["duals"] = False
-
     # construct a version of "opts" that doesn't have the main key we want to test in it
     working_opts = opts.copy()
     first_key = next(iter(opts))
@@ -964,8 +946,8 @@ def fflush() -> None:
             {"dualTolerance": 1.0},
             {"primalTolerance": 1.0},
             {"maxNumIteration": 1},
-            # {"automaticScaling": True},  # Doesn't work
             {"scaling": 0},
+            # {"automaticScaling": True},  # Doesn't work
             # {"infeasibilityCost": 0.000001},  # Doesn't work
             {"optimizationDirection": "max"},
             {"presolve": "off"},
