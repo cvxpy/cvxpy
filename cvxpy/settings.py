@@ -185,6 +185,7 @@ PSD_NSD_PROJECTION_TOL = 1e-8
 GENERAL_PROJECTION_TOL = 1e-10
 SPARSE_PROJECTION_TOL = 1e-10
 ATOM_EVAL_TOL = 1e-4
+CHOL_SYM_TOL = 1e-14
 
 # DPP is slow when total size of parameters
 # exceed this threshold.
