@@ -891,20 +891,7 @@ def fflush() -> None:
 
 
 @unittest.skipUnless('CBC' in INSTALLED_SOLVERS, 'CBC is not installed.')
-class TestCBC(BaseTest):
-
-    def setUp(self) -> None:
-        self.a = cp.Variable(name='a')
-        self.b = cp.Variable(name='b')
-        self.c = cp.Variable(name='c')
-
-        self.x = cp.Variable(2, name='x')
-        self.y = cp.Variable(3, name='y')
-        self.z = cp.Variable(2, name='z')
-
-        self.A = cp.Variable((2, 2), name='A')
-        self.B = cp.Variable((2, 2), name='B')
-        self.C = cp.Variable((3, 2), name='C')
+class TestCBC:
 
     def _cylp_checks_isProvenInfeasible():
         try:
@@ -913,27 +900,6 @@ class TestCBC(BaseTest):
             return problemStatus[0] == 'search completed'
         except ImportError:
             return False
-
-    def test_options(self) -> None:
-        """Test that all the cvx.CBC solver options work.
-        """
-        prob = cp.Problem(cp.Minimize(cp.norm(self.x, 1)),
-                          [self.x == cp.Variable(2, boolean=True)])
-        if cp.CBC in INSTALLED_SOLVERS:
-            for i in range(2):
-                # Some cut-generators seem to be buggy for now -> set to false
-                # prob.solve(solver=cvx.CBC, verbose=True, GomoryCuts=True, MIRCuts=True,
-                #            MIRCuts2=True, TwoMIRCuts=True, ResidualCapacityCuts=True,
-                #            KnapsackCuts=True, FlowCoverCuts=True, CliqueCuts=True,
-                #            LiftProjectCuts=True, AllDifferentCuts=False, OddHoleCuts=True,
-                #            RedSplitCuts=False, LandPCuts=False, PreProcessCuts=False,
-                #            ProbingCuts=True, SimpleRoundingCuts=True)
-                prob.solve(solver=cp.CBC, verbose=True, maximumSeconds=100)
-            self.assertItemsAlmostEqual(self.x.value, [0, 0])
-        else:
-            with self.assertRaises(Exception) as cm:
-                prob.solve(solver=cp.CBC)
-                self.assertEqual(str(cm.exception), "The solver %s is not installed." % cp.CBC)
 
     def test_cbc_lp_0(self) -> None:
         StandardTestLPs.test_lp_0(solver='CBC', duals=False)
@@ -970,9 +936,6 @@ class TestCBC(BaseTest):
     def test_cbc_mi_lp_5(self) -> None:
         StandardTestLPs.test_mi_lp_5(solver='CBC')
 
-
-@unittest.skipUnless('CBC' in INSTALLED_SOLVERS, 'CBC is not installed.')
-class TestCBCOptions:
     @pytest.mark.parametrize(
         "opts",
         [
