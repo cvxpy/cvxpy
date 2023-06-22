@@ -890,7 +890,9 @@ def fflush() -> None:
     libc.fflush(None)
 
 
-@unittest.skipUnless('CBC' in INSTALLED_SOLVERS, 'CBC is not installed.')
+# We can't inherit from unittest.TestCase since we access some advanced pytest features.
+# As a result, we use the pytest skipif decorator instead of unittest.skipUnless.
+@pytest.mark.skipif('CBC' not in INSTALLED_SOLVERS, reason='CBC is not installed.')
 class TestCBC:
 
     def _cylp_checks_isProvenInfeasible():
@@ -931,8 +933,8 @@ class TestCBC:
     def test_cbc_mi_lp_3(self) -> None:
         StandardTestLPs.test_mi_lp_3(solver='CBC')
 
-    @unittest.skipUnless(_cylp_checks_isProvenInfeasible(),
-                         'CyLP <= 0.91.4 has no working integer infeasibility detection')
+    @pytest.mark.skipif(not _cylp_checks_isProvenInfeasible(),
+                        reason='CyLP <= 0.91.4 has no working integer infeasibility detection')
     def test_cbc_mi_lp_5(self) -> None:
         StandardTestLPs.test_mi_lp_5(solver='CBC')
 
