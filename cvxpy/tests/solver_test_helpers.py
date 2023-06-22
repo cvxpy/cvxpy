@@ -131,6 +131,45 @@ class SolverTestHelper:
             else:
                 raise ValueError('Unknown constraint type %s.' % type(con))
             self.tester.assertAlmostEqual(comp, 0, places)
+            
+    def check_stationary_lagrangian(self, places, expect=True) -> None:
+        """Check if gradient of the Lagrangian is (near) zero at the current primal/dual variables."""
+        # step 1: take gradient of Lagrangian mimicking the "linearize" function in cvxgrp/dccp.
+        # step 2: compute it's Frobenius norm
+        # step 3: assert (fro_norm <= 10**(-places))
+        tt = BaseTest()
+        if expect == False:
+            tt.skipTest('The Lagrangian cannot be stationary for this problem')
+
+        L = self.prob.objective.expr
+        for con in self.constraints:
+            if isinstance(con, (cp.constraints.PSD,
+                                cp.constraints.Inequality,
+                                cp.constraints.Equality)):
+                dual_var_value = con.dual_value  # NumPy array
+                prim_var_expr = con.args[0]      # symbolic CVXPY Expression
+                L = L + cp.scalar_product(dual_var_value, prim_var_expr)
+                # Note : unsure about add vs subtract there.
+            elif isinstance(con, (cp.constraints.ExpCone,
+                                  cp.constraints.SOC,
+                                  cp.constraints.NonPos,
+                                  cp.constraints.Zero)):
+                dual_var_vals = con.dual_value  # array-like of numeric variables.
+                prim_var_expr = con.args        # symbolic CVXPY Expression
+                L = L - cp.scalar_product(dual_var_vals, prim_var_expr)
+            else:
+                raise NotImplementedError()
+        g = L.grad
+        # compute norm
+        fro_norms = []
+        for (k, v) in g.items():
+            # v : SciPy sparse matrix.
+            norm = np.linalg.norm(v.data) / np.sqrt(k.size)
+            fro_norms.append(norm)
+        total_fro_norm = np.linalg.norm(fro_norms)
+        # check if sufficiently small
+        self.tester.assertItemsAlmostEqual(total_fro_norm, 0, places)
+        pass 
 
     def verify_objective(self, places) -> None:
         actual = self.prob.value
