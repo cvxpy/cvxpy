@@ -69,7 +69,7 @@ class TestBackend:
             CanonBackend.get_backend('notabackend')
 
 
-class TestScipyBackend:
+class TestBackends:
     # Not used explicitly in most test cases.
     # Some tests specify other values as needed within the test case.
     param_size_plus_one = 2
@@ -77,6 +77,7 @@ class TestScipyBackend:
     param_to_size = {-1: 1, 3: 1}
     param_to_col = {3: 0, -1: 1}
     var_length = 4
+    const = "numpy"
 
     @pytest.fixture
     def scipy_backend(self):
@@ -88,7 +89,7 @@ class TestScipyBackend:
         return NumpyCanonBackend(self.id_to_col, self.param_to_size, self.param_to_col,
                                  self.param_size_plus_one, self.var_length)
 
-    @pytest.fixture(params=['scipy_backend'])
+    @pytest.fixture(params=[const+"_backend"])
     def backend(self, request):
         return request.getfixturevalue(request.param)
 
@@ -104,8 +105,8 @@ class TestScipyBackend:
                                                     self.param_to_size, self.param_to_col,
                                                     self.var_length)
 
-    @pytest.fixture(params=['scipy_empty_view'])
-    def empty_view(self, request):
+    @pytest.fixture(params=[const+"_empty_view"])
+    def default_empty_view(self, request):
         return request.getfixturevalue(request.param)
 
     def test_mapping(self, backend):

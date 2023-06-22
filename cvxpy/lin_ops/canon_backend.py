@@ -828,6 +828,15 @@ class ScipyCanonBackend(PythonCanonBackend):
 
 
 class NumpyCanonBackend(PythonCanonBackend):
+    """
+    Each tensor has 3 dimensions. The first one is the parameter axis, the second one is the rows
+    and the third one is the variable columns.
+
+    For example:
+    - A new variable of size n has shape (1, n, n)
+    - A new parameter of size n has shape (n, n, 1)
+    - A new constant of size n has shape (1, n, 1)
+    """
     @staticmethod
     def reshape_constant_data(constant_data: dict[int, sp.csr_matrix], new_shape: tuple[int, ...]) \
             -> dict[int, sp.csr_matrix]:
@@ -883,14 +892,22 @@ class NumpyCanonBackend(PythonCanonBackend):
     def kron_l(self, lin: LinOp, view: TensorView) -> TensorView:
         pass
 
-    def get_variable_tensor(self, shape: tuple[int, ...], variable_id: int) -> Any:
-        pass
+    def get_variable_tensor(self, shape: tuple[int, ...], variable_id: int) \
+            -> dict[int, dict[int, np.ndarray]]:
+        assert variable_id != Constant.ID
+        n = int(np.prod(shape))
+        return {variable_id: {Constant.ID.value: np.expand_dims(np.eye(n), axis=0)}}
 
-    def get_data_tensor(self, data: Any) -> Any:
-        pass
+    def get_data_tensor(self, data: np.ndarray) -> \
+            dict[int, dict[int, np.ndarray]]:
+        tensor = np.ndarray(data.reshape(-1, 1), order="F")
+        return {Constant.ID.value: {Constant.ID.value: np.expand_dims(tensor, axis=0)}}
 
-    def get_param_tensor(self, shape: tuple[int, ...], parameter_id: int) -> Any:
-        pass
+    def get_param_tensor(self, shape: tuple[int, ...], parameter_id: int) \
+            -> dict[int, dict[int, np.ndarray]]:
+        assert parameter_id != Constant.ID
+        n = int(np.prod(shape))
+        return {Constant.ID.value: {parameter_id: np.expand_dims(np.eye(n), axis=-1)}}
 
 
 class TensorView(ABC):
@@ -1110,13 +1127,39 @@ class NumpyTensorView(TensorView):
         pass
 
     def get_tensor_representation(self, row_offset: int) -> TensorRepresentation:
-        pass
+        """
+        CVXPY currently only supports usage of sparse matrices after the canonicalization.
+        Therefore, we must return tensor representations in a (data, (row,col)) format.
+        This could be changed once dense matrices are accepted.
+        """
+        assert self.tensor is not None
+        tensor_representations = []
+        for variable_id, variable_tensor in self.tensor.items():
+            for parameter_id, parameter_tensor in variable_tensor.items():
+                for param_slice_offset in range(parameter_tensor.shape[0]):
+                    matrix = parameter_tensor[param_slice_offset]
+                    tensor_representations.append(TensorRepresentation(
+                        matrix.flatten(order='F'),
+                        np.tile(np.arange(matrix.shape[0]), matrix.shape[1]) + row_offset,
+                        np.tile(np.arange(matrix.shape[1]), matrix.shape[0]) + self.id_to_col[variable_id],
+                        np.ones(matrix.size) * self.param_to_col[parameter_id] +
+                        param_slice_offset,
+                    ))
+        return TensorRepresentation.combine(tensor_representations)
 
     def select_rows(self, rows: np.ndarray) -> None:
-        pass
+
+        def func(x):
+            return x[:, rows, :]
+
+        self.apply_all(func)
 
     def apply_all(self, func: Callable) -> None:
-        pass
+        self.tensor = {var_id: {k: func(v)
+                                for k, v in parameter_repr.items()}
+                       for var_id, parameter_repr in self.tensor.items()}
 
-    def create_new_tensor_view(self, variable_ids: set[int], tensor: Any, is_parameter_free: bool) -> TensorView:
-        pass
+    def create_new_tensor_view(self, variable_ids: set[int], tensor: Any, is_parameter_free: bool) -> NumpyTensorView:
+        return NumpyTensorView(variable_ids, tensor, is_parameter_free, self.param_size_plus_one,
+                               self.id_to_col, self.param_to_size, self.param_to_col,
+                               self.var_length)
