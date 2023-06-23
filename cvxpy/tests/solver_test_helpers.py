@@ -144,18 +144,24 @@ class SolverTestHelper:
         L = self.prob.objective.expr
         for con in self.constraints:
             if isinstance(con, (cp.constraints.PSD,
-                                cp.constraints.Inequality,
                                 cp.constraints.Equality)):
                 dual_var_value = con.dual_value  # NumPy array
                 prim_var_expr = con.args[0]      # symbolic CVXPY Expression
                 L = L + cp.scalar_product(dual_var_value, prim_var_expr)
                 # Note : unsure about add vs subtract there.
+            elif isinstance(con, cp.constraints.Inequality):
+                dual_var_value = con.dual_value
+                prim_var_expr = con.expr
+                if isinstance(con.args[0], cp.Expression):
+                    L = L + cp.scalar_product(dual_var_value, prim_var_expr)
+                else:
+                    L = L - cp.scalar_product(dual_var_value, prim_var_expr)
             elif isinstance(con, (cp.constraints.ExpCone,
                                   cp.constraints.SOC,
                                   cp.constraints.NonPos,
                                   cp.constraints.Zero)):
                 dual_var_vals = con.dual_value  # array-like of numeric variables.
-                prim_var_expr = con.args        # symbolic CVXPY Expression
+                prim_var_expr = con.args
                 L = L - cp.scalar_product(dual_var_vals, prim_var_expr)
             else:
                 raise NotImplementedError()
