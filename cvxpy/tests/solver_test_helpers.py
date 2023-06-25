@@ -132,15 +132,11 @@ class SolverTestHelper:
                 raise ValueError('Unknown constraint type %s.' % type(con))
             self.tester.assertAlmostEqual(comp, 0, places)
             
-    def check_stationary_lagrangian(self, places, expect=True) -> None:
+    def check_stationary_lagrangian(self, places) -> None:
         """Check if gradient of the Lagrangian is (near) zero at the current primal/dual variables."""
         # step 1: take gradient of Lagrangian mimicking the "linearize" function in cvxgrp/dccp.
         # step 2: compute it's Frobenius norm
         # step 3: assert (fro_norm <= 10**(-places))
-        tt = BaseTest()
-        if expect == False:
-            tt.skipTest('The Lagrangian cannot be stationary for this problem')
-
         L = self.prob.objective.expr
         for con in self.constraints:
             if isinstance(con, (cp.constraints.PSD,
@@ -163,18 +159,28 @@ class SolverTestHelper:
                 dual_var_vals = con.dual_value  # array-like of numeric variables.
                 prim_var_expr = con.args
                 L = L - cp.scalar_product(dual_var_vals, prim_var_expr)
+            elif isinstance(con, cp.constraints.PowCone3D):
+                L = L - cp.scalar_product(con.args[:3], con.dual_value)
             else:
                 raise NotImplementedError()
         g = L.grad
         # compute norm
-        fro_norms = []
+        bad_fro_norms = []
         for (k, v) in g.items():
             # v : SciPy sparse matrix.
             norm = np.linalg.norm(v.data) / np.sqrt(k.size)
-            fro_norms.append(norm)
-        total_fro_norm = np.linalg.norm(fro_norms)
-        # check if sufficiently small
-        self.tester.assertItemsAlmostEqual(total_fro_norm, 0, places)
+            if norm > 10**(-places):
+                bad_fro_norms.append((norm, k.name()))
+        if len(bad_fro_norms):
+            msg = f"""\n
+        The gradient of Lagrangian with respect to the primal variables
+        is above the threshold of 10^{-places}. The names of the problematic
+        variables and the corresponding gradient norms are as follows:
+            """
+            for norm, varname in bad_fro_norms:
+                msg += f"\n\t\t\t{varname} : {norm}"
+            msg += '\n'
+            self.tester.fail(msg)
         pass 
 
     def verify_objective(self, places) -> None:
@@ -692,7 +698,7 @@ def pcp_3() -> SolverTestHelper:
     """
     p = 1/0.4
     T = D.shape[0]
-    t = cp.Variable()
+    t = cp.Variable(name='objective_epigraph')
     d = cp.Variable((T, 1))
     ones = np.ones((T, 1))
 
