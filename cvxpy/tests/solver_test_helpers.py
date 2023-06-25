@@ -139,15 +139,10 @@ class SolverTestHelper:
         # step 3: assert (fro_norm <= 10**(-places))
         L = self.prob.objective.expr
         for con in self.constraints:
-            if isinstance(con, (cp.constraints.Inequality, cp.NonPos)):
+            if isinstance(con, (cp.constraints.Inequality, cp.constraints.Equality)):
                 dual_var_value = con.dual_value
                 prim_var_expr = con.expr
                 L = L + cp.scalar_product(dual_var_value, prim_var_expr)
-            elif isinstance(con, cp.constraints.Equality):
-                # special case this, because con.args is two inputs
-                # but con.dual_value is one value. The corresponding
-                # zero-cone constraint doesn't need this special casing.
-                L = L - cp.scalar_product(con.expr, con.dual_value)
             elif isinstance(con, (cp.constraints.ExpCone,
                                   cp.constraints.SOC,
                                   cp.constraints.Zero,
