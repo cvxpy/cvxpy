@@ -100,7 +100,7 @@ class Equality(Constraint):
     """A constraint of the form :math:`x = y`.
     """
     def __init__(self, lhs, rhs, constr_id=None) -> None:
-        self._expr = lhs - rhs
+        self._expr = rhs - lhs
         super(Equality, self).__init__([lhs, rhs], constr_id)
 
     def __str__(self):
