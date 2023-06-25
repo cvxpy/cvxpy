@@ -139,28 +139,17 @@ class SolverTestHelper:
         # step 3: assert (fro_norm <= 10**(-places))
         L = self.prob.objective.expr
         for con in self.constraints:
-            if isinstance(con, (cp.constraints.PSD,
-                                cp.constraints.Equality)):
-                dual_var_value = con.dual_value  # NumPy array
-                prim_var_expr = con.args[0]      # symbolic CVXPY Expression
-                L = L + cp.scalar_product(dual_var_value, prim_var_expr)
-                # Note : unsure about add vs subtract there.
-            elif isinstance(con, cp.constraints.Inequality):
+            if isinstance(con, (cp.constraints.Equality, cp.constraints.Inequality, cp.NonPos)):
                 dual_var_value = con.dual_value
                 prim_var_expr = con.expr
-                if isinstance(con.args[0], cp.Expression):
-                    L = L + cp.scalar_product(dual_var_value, prim_var_expr)
-                else:
-                    L = L - cp.scalar_product(dual_var_value, prim_var_expr)
+                L = L + cp.scalar_product(dual_var_value, prim_var_expr)
             elif isinstance(con, (cp.constraints.ExpCone,
                                   cp.constraints.SOC,
-                                  cp.constraints.NonPos,
-                                  cp.constraints.Zero)):
-                dual_var_vals = con.dual_value  # array-like of numeric variables.
-                prim_var_expr = con.args
-                L = L - cp.scalar_product(dual_var_vals, prim_var_expr)
-            elif isinstance(con, cp.constraints.PowCone3D):
-                L = L - cp.scalar_product(con.args[:3], con.dual_value)
+                                  cp.constraints.Zero,
+                                  cp.constraints.NonNeg,
+                                  cp.constraints.PSD,
+                                  cp.constraints.PowCone3D)):
+                L = L - cp.scalar_product(con.args, con.dual_value)
             else:
                 raise NotImplementedError()
         g = L.grad
