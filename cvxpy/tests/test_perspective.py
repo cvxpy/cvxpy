@@ -418,7 +418,7 @@ def test_assert_s_nonzero():
     obj = perspective(x+1, s)
 
     prob = cp.Problem(cp.Minimize(obj), [x >= 3.14])
-    with pytest.raises(AssertionError, match="There are valid cases"):
+    with pytest.raises(AssertionError, match="To handle s = 0, pass in a recession function"):
         prob.solve()
 
 
