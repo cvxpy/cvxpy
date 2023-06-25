@@ -25,6 +25,7 @@ from cvxpy.constraints import (
     ExpCone,
     Inequality,
     NonNeg,
+    NonPos,
     Zero,
 )
 from cvxpy.cvxcore.python import canonInterface
@@ -34,6 +35,7 @@ from cvxpy.problems.param_prob import ParamProb
 from cvxpy.reductions import InverseData, Solution
 from cvxpy.reductions.cvx_attr2constr import convex_attributes
 from cvxpy.reductions.matrix_stuffing import MatrixStuffing, extract_mip_idx
+from cvxpy.reductions.dcp2cone.cone_matrix_stuffing import nonpos2nonneg
 from cvxpy.reductions.utilities import (
     ReducedMat,
     are_args_affine,
@@ -251,6 +253,8 @@ class QpMatrixStuffing(MatrixStuffing):
                 con = lower_equality(con)
             elif isinstance(con, Inequality):
                 con = lower_ineq_to_nonneg(con)
+            elif isinstance(con, NonPos):
+                con = nonpos2nonneg(con)
             cons.append(con)
 
         # Reorder constraints to Zero, NonNeg.
