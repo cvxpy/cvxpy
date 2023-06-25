@@ -353,7 +353,7 @@ class TestConstraints(BaseTest):
         self.assertItemsAlmostEqual(x.value, c)
 
         # Solve through QP path.
-        prob.solve(solver=cp.OSQP)
+        prob.solve(solver=cp.OSQP, verbose=True)
         self.assertItemsAlmostEqual(x.value, c)
 
     def test_nonpos_dual(self) -> None:

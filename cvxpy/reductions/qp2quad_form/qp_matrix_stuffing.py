@@ -24,7 +24,7 @@ from cvxpy.constraints import (
     Equality,
     ExpCone,
     Inequality,
-    NonPos,
+    NonNeg,
     Zero,
 )
 from cvxpy.cvxcore.python import canonInterface
@@ -39,7 +39,7 @@ from cvxpy.reductions.utilities import (
     are_args_affine,
     group_constraints,
     lower_equality,
-    lower_ineq_to_nonpos,
+    lower_ineq_to_nonneg
 )
 from cvxpy.utilities.coeff_extractor import CoeffExtractor
 
@@ -66,21 +66,21 @@ class ConeDims:
     """
     def __init__(self, constr_map) -> None:
         self.zero = int(sum(c.size for c in constr_map[Zero]))
-        self.nonpos = int(sum(c.size for c in constr_map[NonPos]))
+        self.nonneg = int(sum(c.size for c in constr_map[NonNeg]))
         self.exp = int(sum(c.num_cones() for c in constr_map[ExpCone]))
         self.soc = [int(dim) for c in constr_map[SOC] for dim in c.cone_sizes()]
         self.psd = [int(c.shape[0]) for c in constr_map[PSD]]
 
     def __repr__(self) -> str:
         return "(zero: {0}, nonpos: {1}, exp: {2}, soc: {3}, psd: {4})".format(
-            self.zero, self.nonpos, self.exp, self.soc, self.psd)
+            self.zero, self.nonneg, self.exp, self.soc, self.psd)
 
     def __str__(self) -> str:
         """String representation.
         """
         return ("%i equalities, %i inequalities, %i exponential cones, \n"
                 "SOC constraints: %s, PSD constraints: %s.") % (self.zero,
-                                                                self.nonpos,
+                                                                self.nonneg,
                                                                 self.exp,
                                                                 self.soc,
                                                                 self.psd)
@@ -89,7 +89,7 @@ class ConeDims:
         if key == s.EQ_DIM:
             return self.zero
         elif key == s.LEQ_DIM:
-            return self.nonpos
+            return self.nonneg
         elif key == s.EXP_DIM:
             return self.exp
         elif key == s.SOC_DIM:
@@ -206,7 +206,7 @@ class QpMatrixStuffing(MatrixStuffing):
        Outputs a DCP-compliant minimization problem with an objective
        of the form
            QuadForm(x, p) + q.T * x
-       and Zero/NonPos constraints, both of which exclusively carry
+       and Zero/NonNeg constraints, both of which exclusively carry
        affine arguments.
     """
 
@@ -219,7 +219,7 @@ class QpMatrixStuffing(MatrixStuffing):
                 and problem.objective.is_quadratic()
                 and problem.is_dcp()
                 and not convex_attributes(problem.variables())
-                and all(type(c) in [Zero, NonPos, Equality, Inequality]
+                and all(type(c) in [Zero, NonNeg, Equality, Inequality]
                         for c in problem.constraints)
                 and are_args_affine(problem.constraints)
                 and problem.is_dpp())
@@ -244,18 +244,18 @@ class QpMatrixStuffing(MatrixStuffing):
         extractor = CoeffExtractor(inverse_data, self.canon_backend)
         params_to_P, params_to_q, flattened_variable = self.stuffed_objective(
             problem, extractor)
-        # Lower equality and inequality to Zero and NonPos.
+        # Lower equality and inequality to Zero and NonNeg.
         cons = []
         for con in problem.constraints:
             if isinstance(con, Equality):
                 con = lower_equality(con)
             elif isinstance(con, Inequality):
-                con = lower_ineq_to_nonpos(con)
+                con = lower_ineq_to_nonneg(con)
             cons.append(con)
 
-        # Reorder constraints to Zero, NonPos.
+        # Reorder constraints to Zero, NonNeg.
         constr_map = group_constraints(cons)
-        ordered_cons = constr_map[Zero] + constr_map[NonPos]
+        ordered_cons = constr_map[Zero] + constr_map[NonNeg]
         inverse_data.cons_id_map = {con.id: con.id for con in ordered_cons}
 
         inverse_data.constraints = ordered_cons

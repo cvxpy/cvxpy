@@ -91,8 +91,6 @@ CANON_METHODS = {
     Constant: constant_canon,
     Parameter: param_canon,
     Inequality: inequality_canon,
-    NonPos: inequality_canon,
-    NonNeg: inequality_canon,
     PSD: psd_canon,
     SOC: soc_canon,
     Equality: equality_canon,
