@@ -33,7 +33,7 @@ from numpy import linalg as LA
 import cvxpy as cp
 import cvxpy.interface as intf
 import cvxpy.settings as s
-from cvxpy.constraints import PSD, ExpCone, NonPos, Zero
+from cvxpy.constraints import PSD, ExpCone, NonNeg, Zero
 from cvxpy.error import DCPError, ParameterError, SolverError
 from cvxpy.expressions.constants import Constant, Parameter
 from cvxpy.expressions.variable import Variable
@@ -76,11 +76,11 @@ class TestProblem(BaseTest):
 
         # Test str.
         result = (
-            "minimize %(name)s\nsubject to %(name)s == 0\n           %(name)s <= 0" % {
+            "minimize %(name)s\nsubject to %(name)s == 0\n           %(name)s >= 0" % {
                 "name": self.a.name()
             }
         )
-        prob = Problem(cp.Minimize(self.a), [Zero(self.a), NonPos(self.a)])
+        prob = Problem(cp.Minimize(self.a), [Zero(self.a), NonNeg(self.a)])
         self.assertEqual(str(prob), result)
 
     def test_variables(self) -> None:

@@ -45,10 +45,10 @@ class NonPos(Constraint):
     """
 
     DEPRECATION_MESSAGE = """
-    Explicitly invoking NonPos(expr) to a create a constraint is deprecated.
-    Please use operator overloading or NonNeg(-expr) instead.
+    Explicitly invoking "NonPos(expr)" to a create a constraint is deprecated.
+    Please use operator overloading or "NonNeg(-expr)" instead.
     
-    Sign conventions on dual variables associated with these constraints may
+    Sign conventions on dual variables associated with NonPos constraints may
     change in the future.
     """
 
@@ -118,7 +118,7 @@ class NonNeg(Constraint):
             raise ValueError("Input to NonNeg must be real.")
 
     def name(self) -> str:
-        return "0 <= %s" % self.args[0]
+        return "%s >= 0" % self.args[0]
 
     def is_dcp(self, dpp: bool = False) -> bool:
         """A non-negative constraint is DCP if its argument is concave."""

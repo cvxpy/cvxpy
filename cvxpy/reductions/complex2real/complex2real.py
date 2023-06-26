@@ -21,9 +21,6 @@ from cvxpy.constraints import (
     PSD,
     SOC,
     Equality,
-    Inequality,
-    NonNeg,
-    NonPos,
     OpRelEntrConeQuad,
     Zero,
 )
