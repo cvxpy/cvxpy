@@ -110,20 +110,16 @@ class SolverTestHelper:
         #   complementarity against the dual variable of the
         #   attribute constraint.
         for con in self.constraints:
-            if isinstance(con, cp.constraints.PSD):
-                dv = con.dual_value
-                pv = con.args[0].value
-                comp = cp.scalar_product(pv, dv).value
+            if isinstance(con, (cp.constraints.Inequality,
+                                cp.constraints.Equality)):
+                comp = cp.scalar_product(con.expr, con.dual_value).value
             elif isinstance(con, (cp.constraints.ExpCone,
                                   cp.constraints.SOC,
-                                  cp.constraints.NonPos,
-                                  cp.constraints.Zero)):
+                                  cp.constraints.NonNeg,
+                                  cp.constraints.Zero,
+                                  cp.constraints.PSD,
+                                  cp.constraints.PowCone3D)):
                 comp = cp.scalar_product(con.args, con.dual_value).value
-            elif isinstance(con, cp.constraints.PowCone3D):
-                comp = cp.scalar_product(con.args[:3], con.dual_value).value
-            elif isinstance(con, (cp.constraints.Inequality,
-                                  cp.constraints.Equality)):
-                comp = cp.scalar_product(con.expr, con.dual_value).value
             elif isinstance(con, cp.constraints.PowConeND):
                 msg = '\nPowConeND dual variables not implemented;' \
                        + '\nSkipping complementarity check.'
@@ -133,13 +129,10 @@ class SolverTestHelper:
             self.tester.assertAlmostEqual(comp, 0, places)
             
     def check_stationary_lagrangian(self, places) -> None:
-        """Check if gradient of the Lagrangian is (near) zero at the current primal/dual variables."""
-        # step 1: take gradient of Lagrangian mimicking the "linearize" function in cvxgrp/dccp.
-        # step 2: compute it's Frobenius norm
-        # step 3: assert (fro_norm <= 10**(-places))
         L = self.prob.objective.expr
         for con in self.constraints:
-            if isinstance(con, (cp.constraints.Inequality, cp.constraints.Equality)):
+            if isinstance(con, (cp.constraints.Inequality,
+                                cp.constraints.Equality)):
                 dual_var_value = con.dual_value
                 prim_var_expr = con.expr
                 L = L + cp.scalar_product(dual_var_value, prim_var_expr)
@@ -156,7 +149,7 @@ class SolverTestHelper:
         # compute norm
         bad_fro_norms = []
         for (k, v) in g.items():
-            # v : SciPy sparse matrix.
+            # (k, v) = (cvxpy Variable, SciPy sparse matrix)
             norm = np.linalg.norm(v.data) / np.sqrt(k.size)
             if norm > 10**(-places):
                 bad_fro_norms.append((norm, k.name()))
