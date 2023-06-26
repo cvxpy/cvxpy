@@ -14,12 +14,13 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+import warnings
+
 import numpy as np
 
 # Only need Variable from expressions, but that would create a circular import.
 from cvxpy.constraints.constraint import Constraint
 from cvxpy.utilities import scopes
-import warnings
 
 
 class NonPos(Constraint):
