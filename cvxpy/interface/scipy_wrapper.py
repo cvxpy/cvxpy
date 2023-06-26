@@ -24,7 +24,8 @@ SPARSE_MATRIX_CLASSES = [
     sparse.coo_matrix, 
     sparse.bsr_matrix, 
     sparse.lil_matrix, 
-    sparse.dia_matrix
+    sparse.dia_matrix,
+    sparse.dok_matrix,
 ]
 BIN_OPS = ["__div__", "__mul__", "__add__", "__sub__",
            "__le__", "__eq__", "__lt__", "__gt__"]
