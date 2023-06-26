@@ -150,7 +150,7 @@ html_sidebars = {
 html_theme_options = {
    'github_user': 'cvxpy',
    'github_repo': 'cvxpy',
-   'github_banner': True,
+   'github_banner': False,
    'github_type': 'star',
    'travis_button': False,
    'analytics_id': 'UA-50248335-1',
