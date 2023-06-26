@@ -54,7 +54,7 @@ class NonPos(Constraint):
     """
 
     def __init__(self, expr, constr_id=None) -> None:
-        warnings.warn(NonPos.DEPRECATION_MESSAGE)
+        warnings.warn(NonPos.DEPRECATION_MESSAGE, DeprecationWarning)
         super(NonPos, self).__init__([expr], constr_id)
         if not self.args[0].is_real():
             raise ValueError("Input to NonPos must be real.")
