@@ -680,7 +680,7 @@ def pcp_3() -> SolverTestHelper:
     """
     p = 1/0.4
     T = D.shape[0]
-    t = cp.Variable(name='objective_epigraph')
+    t = cp.Variable()
     d = cp.Variable((T, 1))
     ones = np.ones((T, 1))
 
