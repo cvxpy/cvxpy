@@ -46,8 +46,8 @@ class PDLP(ConicSolver):
 
     def import_solver(self) -> None:
         """Imports the solver."""
-        import google.protobuf
-        import ortools
+        import google.protobuf  # noqa F401
+        import ortools  # noqa F401
         if Version(ortools.__version__) < Version('9.3.0'):
             raise RuntimeError(f'Version of ortools ({ortools.__version__}) '
                                f'is too old. Expected >= 9.3.0.')
@@ -56,7 +56,6 @@ class PDLP(ConicSolver):
                                f'({ortools.__version__}). Expected < 9.5.0.'
                                'Please open a feature request on cvxpy to '
                                'enable support for this version.')
-        ortools, google.protobuf  # For flake8
 
     def apply(self, problem: ParamConeProg) -> Tuple[Dict, Dict]:
         """Returns a new problem and data for inverting the new solution."""
@@ -168,7 +167,8 @@ class PDLP(ConicSolver):
         request.solver_specific_parameters = text_format.MessageToString(parameters)
         if Version(ortools.__version__) >= Version('9.4.0'):
             from ortools.model_builder.python import (
-                pywrap_model_builder_helper,)
+                pywrap_model_builder_helper,
+            )
             solver = pywrap_model_builder_helper.ModelSolverHelper("pdlp")
             response_str = solver.solve_serialized_request(request.SerializeToString())
             response = linear_solver_pb2.MPSolutionResponse.FromString(response_str)

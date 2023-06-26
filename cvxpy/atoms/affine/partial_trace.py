@@ -54,7 +54,7 @@ def _term(expr, j: int, dims: Tuple[int], axis: Optional[int] = 0):
     return a @ expr @ b
 
 
-# flake8: noqa: E501
+# ruff: noqa: E501
 def partial_trace(expr, dims: Tuple[int], axis: Optional[int] = 0):
     """
     Assumes :math:`\\texttt{expr} = X_1 \\otimes \\cdots \\otimes X_n` is a 2D Kronecker

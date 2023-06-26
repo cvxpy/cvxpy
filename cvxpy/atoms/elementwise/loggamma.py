@@ -16,7 +16,7 @@ from cvxpy.atoms.elementwise.log import log
 from cvxpy.atoms.elementwise.maximum import maximum
 
 
-# flake8: noqa: E501
+# ruff: noqa: E501
 def loggamma(x):
     """Elementwise log of the gamma function.
 

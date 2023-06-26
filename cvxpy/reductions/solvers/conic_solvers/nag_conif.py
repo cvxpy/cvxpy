@@ -45,8 +45,7 @@ class NAG(ConicSolver):
     def import_solver(self) -> None:
         """Imports the solver.
         """
-        from naginterfaces.library import opt
-        opt  # For flake8
+        from naginterfaces.library import opt  # noqa F401
 
     def name(self):
         """The name of the solver.

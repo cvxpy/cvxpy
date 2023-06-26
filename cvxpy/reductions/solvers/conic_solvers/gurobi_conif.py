@@ -22,7 +22,9 @@ from cvxpy.constraints import SOC
 from cvxpy.reductions.solution import Solution, failure_solution
 from cvxpy.reductions.solvers import utilities
 from cvxpy.reductions.solvers.conic_solvers.conic_solver import (
-    ConicSolver, dims_to_solver_dict,)
+    ConicSolver,
+    dims_to_solver_dict,
+)
 
 
 class GUROBI(ConicSolver):
@@ -59,8 +61,7 @@ class GUROBI(ConicSolver):
     def import_solver(self) -> None:
         """Imports the solver.
         """
-        import gurobipy
-        gurobipy  # For flake8
+        import gurobipy  # noqa F401
 
     def accepts(self, problem) -> bool:
         """Can Gurobi solve the problem?

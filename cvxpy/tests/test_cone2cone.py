@@ -31,8 +31,7 @@ from cvxpy.reductions.cvx_attr2constr import CvxAttr2Constr
 from cvxpy.reductions.dcp2cone.cone_matrix_stuffing import ConeMatrixStuffing
 from cvxpy.reductions.dcp2cone.dcp2cone import Dcp2Cone
 from cvxpy.reductions.solvers.conic_solvers.conic_solver import ConicSolver
-from cvxpy.reductions.solvers.defines import (
-    INSTALLED_MI_SOLVERS as INSTALLED_MI,)
+from cvxpy.reductions.solvers.defines import INSTALLED_MI_SOLVERS as INSTALLED_MI
 from cvxpy.reductions.solvers.defines import MI_SOCP_SOLVERS as MI_SOCP
 from cvxpy.tests import solver_test_helpers as STH
 from cvxpy.tests.base_test import BaseTest

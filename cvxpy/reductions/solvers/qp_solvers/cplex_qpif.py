@@ -4,7 +4,10 @@ import cvxpy.interface as intf
 import cvxpy.settings as s
 from cvxpy.reductions.solution import Solution, failure_solution
 from cvxpy.reductions.solvers.conic_solvers.cplex_conif import (
-    get_status, hide_solver_output, set_parameters,)
+    get_status,
+    hide_solver_output,
+    set_parameters,
+)
 from cvxpy.reductions.solvers.qp_solvers.qp_solver import QpSolver
 
 

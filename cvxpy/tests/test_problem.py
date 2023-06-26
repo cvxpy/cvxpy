@@ -25,6 +25,7 @@ import ecos
 import numpy
 import numpy as np
 import scipy.sparse as sp
+
 # Solvers.
 import scs
 from numpy import linalg as LA
@@ -39,8 +40,10 @@ from cvxpy.expressions.variable import Variable
 from cvxpy.problems.problem import Problem
 from cvxpy.reductions.solvers.conic_solvers import ecos_conif, scs_conif
 from cvxpy.reductions.solvers.conic_solvers.conic_solver import ConicSolver
-from cvxpy.reductions.solvers.defines import (INSTALLED_SOLVERS,
-                                              SOLVER_MAP_CONIC,)
+from cvxpy.reductions.solvers.defines import (
+    INSTALLED_SOLVERS,
+    SOLVER_MAP_CONIC,
+)
 from cvxpy.tests.base_test import BaseTest
 
 

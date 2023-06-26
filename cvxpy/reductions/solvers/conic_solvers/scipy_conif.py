@@ -42,7 +42,7 @@ class SCIPY(ConicSolver):
 
     # Map of SciPy linprog status
     STATUS_MAP = {0: s.OPTIMAL,  # Optimal
-                  1: s.SOLVER_ERROR,  # Iteration limit reached
+                  1: s.OPTIMAL_INACCURATE,  # Iteration/time limit reached
                   2: s.INFEASIBLE,  # Infeasible
                   3: s.UNBOUNDED,  # Unbounded
                   4: s.SOLVER_ERROR  # Numerical difficulties encountered
@@ -51,8 +51,7 @@ class SCIPY(ConicSolver):
     def import_solver(self) -> None:
         """Imports the solver.
         """
-        from scipy import optimize as opt
-        opt  # For flake8
+        from scipy import optimize as opt  # noqa F401
 
     def name(self):
         """The name of the solver.
@@ -218,7 +217,12 @@ class SCIPY(ConicSolver):
     def invert(self, solution, inverse_data):
         """Returns the solution to the original problem given the inverse_data.
         """
-        status = self.STATUS_MAP[solution['status']]
+        status = self.STATUS_MAP[solution["status"]]
+
+        # Sometimes when the solver's time limit is reached, the solver doesn't return a solution.
+        # In these situations we correct the status from s.OPTIMAL_INACCURATE to s.SOLVER_ERROR
+        if (status == s.OPTIMAL_INACCURATE) and (solution.x is None):
+            status = s.SOLVER_ERROR
 
         primal_vars = None
         dual_vars = None

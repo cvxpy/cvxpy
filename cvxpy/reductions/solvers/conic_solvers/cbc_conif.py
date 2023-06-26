@@ -19,7 +19,9 @@ import numpy as np
 import cvxpy.settings as s
 from cvxpy.reductions.solution import Solution, failure_solution
 from cvxpy.reductions.solvers.conic_solvers.conic_solver import (
-    ConicSolver, dims_to_solver_dict,)
+    ConicSolver,
+    dims_to_solver_dict,
+)
 
 
 class CBC(ConicSolver):
@@ -59,8 +61,7 @@ class CBC(ConicSolver):
     def import_solver(self) -> None:
         """Imports the solver.
         """
-        from cylp.cy import CyClpSimplex
-        CyClpSimplex  # For flake8
+        from cylp.cy import CyClpSimplex  # noqa F401
 
     def accepts(self, problem) -> bool:
         """Can Cbc solve the problem?
@@ -160,15 +161,27 @@ class CBC(ConicSolver):
 
         # Build model & solve
         status = None
+        clp_model_options = {"dualTolerance", "primalTolerance",
+                             "maxNumIteration", "logLevel", "automaticScaling",
+                             "scaling", "infeasibilityCost", "optimizationDirection"}
+        clp_solve_options = {"presolve"}
+        # all the above keys except logLevel apply only to models solved with CLP
+        non_cbc_options = (clp_model_options | clp_solve_options) - {"logLevel"}
+        for key in solver_opts:
+            if key in clp_model_options:
+                setattr(model, key, solver_opts[key])
         if data[s.BOOL_IDX] or data[s.INT_IDX]:
             # Convert model
             cbcModel = model.getCbcModel()
-            for key, value in solver_opts.items():
-                setattr(cbcModel, key, value)
 
             # Verbosity Cbc
             if not verbose:
                 cbcModel.logLevel = 0
+            # Other Solver options
+            for key, value in solver_opts.items():
+                if key in non_cbc_options:
+                    continue
+                setattr(cbcModel, key, value)
 
             # cylp: /cylp/cy/CyCbcModel.pyx#L134
             # Call CbcMain. Solve the problem using the same parameters used by
@@ -180,7 +193,11 @@ class CBC(ConicSolver):
             # cylp: /cylp/cy/CyClpSimplex.pyx
             # Run CLP's initialSolve. It does a presolve and uses primal or dual
             # Simplex to solve a problem.
-            status = model.initialSolve()
+            solve_args = {}
+            for key in clp_solve_options:
+                if key in solver_opts:
+                    solve_args[key] = solver_opts[key]
+            status = model.initialSolve(**solve_args)
 
         solution = {}
         if data[s.BOOL_IDX] or data[s.INT_IDX]:

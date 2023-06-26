@@ -18,7 +18,7 @@ from cvxpy.atoms.affine.binary_operators import (matmul, multiply,
                                                  scalar_product,)
 from cvxpy.atoms.affine.bmat import bmat
 from cvxpy.atoms.affine.conj import conj
-from cvxpy.atoms.affine.conv import conv
+from cvxpy.atoms.affine.conv import conv, convolve
 from cvxpy.atoms.affine.cumsum import cumsum
 from cvxpy.atoms.affine.diag import diag
 from cvxpy.atoms.affine.diff import diff
@@ -116,7 +116,6 @@ SOC_ATOMS = [
 EXP_ATOMS = [
     log_sum_exp,
     log_det,
-    tr_inv,
     entr,
     exp,
     kl_div,
@@ -136,6 +135,7 @@ PSD_ATOMS = [
     MatrixFrac,
     normNuc,
     sigma_max,
+    tr_inv,
 ]
 
 NONPOS_ATOMS = [

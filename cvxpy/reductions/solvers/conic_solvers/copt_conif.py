@@ -9,7 +9,9 @@ from cvxpy.constraints import PSD, SOC
 from cvxpy.reductions.solution import Solution, failure_solution
 from cvxpy.reductions.solvers import utilities
 from cvxpy.reductions.solvers.conic_solvers.conic_solver import (
-    ConicSolver, dims_to_solver_dict,)
+    ConicSolver,
+    dims_to_solver_dict,
+)
 
 
 def tri_to_full(lower_tri, n):
@@ -51,16 +53,16 @@ class COPT(ConicSolver):
 
     # Map between COPT status and CVXPY status
     STATUS_MAP = {
-                  1: s.OPTIMAL,       # optimal
-                  2: s.INFEASIBLE,    # infeasible
-                  3: s.UNBOUNDED,     # unbounded
-                  4: s.INF_OR_UNB,    # infeasible or unbounded
-                  5: s.SOLVER_ERROR,  # numerical
-                  6: s.USER_LIMIT,    # node limit
-                  7: s.SOLVER_ERROR,  # error
-                  8: s.USER_LIMIT,    # time out
-                  9: s.SOLVER_ERROR,  # unfinished
-                  10: s.USER_LIMIT    # interrupted
+                  1: s.OPTIMAL,             # optimal
+                  2: s.INFEASIBLE,          # infeasible
+                  3: s.UNBOUNDED,           # unbounded
+                  4: s.INF_OR_UNB,          # infeasible or unbounded
+                  5: s.SOLVER_ERROR,        # numerical
+                  6: s.USER_LIMIT,          # node limit
+                  7: s.OPTIMAL_INACCURATE,  # imprecise
+                  8: s.USER_LIMIT,          # time out
+                  9: s.SOLVER_ERROR,        # unfinished
+                  10: s.USER_LIMIT          # interrupted
                  }
 
     def name(self):
@@ -73,8 +75,7 @@ class COPT(ConicSolver):
         """
         Imports the solver.
         """
-        import coptpy
-        coptpy  # For flake8
+        import coptpy  # noqa F401
 
     def accepts(self, problem):
         """
