@@ -32,7 +32,7 @@ from cvxpy.atoms.affine.unary_operators import NegExpression
 from cvxpy.atoms.affine.vstack import Vstack
 from cvxpy.atoms.affine.wraps import hermitian_wrap
 from cvxpy.atoms.norm_nuc import normNuc
-from cvxpy.constraints import (PSD, SOC, Equality, Inequality, NonNeg, NonPos,
+from cvxpy.constraints import (PSD, SOC, Equality, Inequality,
                                OpRelEntrConeQuad, Zero,)
 from cvxpy.expressions.constants import Constant, Parameter
 from cvxpy.expressions.variable import Variable
@@ -45,7 +45,7 @@ from cvxpy.reductions.complex2real.canonicalizers.constant_canon import (
 from cvxpy.reductions.complex2real.canonicalizers.equality_canon import (
     equality_canon, zero_canon,)
 from cvxpy.reductions.complex2real.canonicalizers.inequality_canon import (
-    inequality_canon, nonneg_canon, nonpos_canon,)
+    inequality_canon,)
 from cvxpy.reductions.complex2real.canonicalizers.matrix_canon import (
     hermitian_canon, lambda_sum_largest_canon, matrix_frac_canon,
     norm_nuc_canon, op_rel_entr_cone_canon, quad_canon, quad_over_lin_canon,
