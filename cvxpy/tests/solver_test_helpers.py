@@ -110,20 +110,16 @@ class SolverTestHelper:
         #   complementarity against the dual variable of the
         #   attribute constraint.
         for con in self.constraints:
-            if isinstance(con, cp.constraints.PSD):
-                dv = con.dual_value
-                pv = con.args[0].value
-                comp = cp.scalar_product(pv, dv).value
+            if isinstance(con, (cp.constraints.Inequality,
+                                cp.constraints.Equality)):
+                comp = cp.scalar_product(con.expr, con.dual_value).value
             elif isinstance(con, (cp.constraints.ExpCone,
                                   cp.constraints.SOC,
-                                  cp.constraints.NonPos,
-                                  cp.constraints.Zero)):
+                                  cp.constraints.NonNeg,
+                                  cp.constraints.Zero,
+                                  cp.constraints.PSD,
+                                  cp.constraints.PowCone3D)):
                 comp = cp.scalar_product(con.args, con.dual_value).value
-            elif isinstance(con, cp.constraints.PowCone3D):
-                comp = cp.scalar_product(con.args[:3], con.dual_value).value
-            elif isinstance(con, (cp.constraints.Inequality,
-                                  cp.constraints.Equality)):
-                comp = cp.scalar_product(con.expr, con.dual_value).value
             elif isinstance(con, cp.constraints.PowConeND):
                 msg = '\nPowConeND dual variables not implemented;' \
                        + '\nSkipping complementarity check.'
@@ -132,49 +128,41 @@ class SolverTestHelper:
                 raise ValueError('Unknown constraint type %s.' % type(con))
             self.tester.assertAlmostEqual(comp, 0, places)
             
-    def check_stationary_lagrangian(self, places, expect=True) -> None:
-        """Check if gradient of the Lagrangian is (near) zero at the current primal/dual variables."""
-        # step 1: take gradient of Lagrangian mimicking the "linearize" function in cvxgrp/dccp.
-        # step 2: compute it's Frobenius norm
-        # step 3: assert (fro_norm <= 10**(-places))
-        tt = BaseTest()
-        if expect == False:
-            tt.skipTest('The Lagrangian cannot be stationary for this problem')
-
+    def check_stationary_lagrangian(self, places) -> None:
         L = self.prob.objective.expr
         for con in self.constraints:
-            if isinstance(con, (cp.constraints.PSD,
+            if isinstance(con, (cp.constraints.Inequality,
                                 cp.constraints.Equality)):
-                dual_var_value = con.dual_value  # NumPy array
-                prim_var_expr = con.args[0]      # symbolic CVXPY Expression
-                L = L + cp.scalar_product(dual_var_value, prim_var_expr)
-                # Note : unsure about add vs subtract there.
-            elif isinstance(con, cp.constraints.Inequality):
                 dual_var_value = con.dual_value
                 prim_var_expr = con.expr
-                if isinstance(con.args[0], cp.Expression):
-                    L = L + cp.scalar_product(dual_var_value, prim_var_expr)
-                else:
-                    L = L - cp.scalar_product(dual_var_value, prim_var_expr)
+                L = L + cp.scalar_product(dual_var_value, prim_var_expr)
             elif isinstance(con, (cp.constraints.ExpCone,
                                   cp.constraints.SOC,
-                                  cp.constraints.NonPos,
-                                  cp.constraints.Zero)):
-                dual_var_vals = con.dual_value  # array-like of numeric variables.
-                prim_var_expr = con.args
-                L = L - cp.scalar_product(dual_var_vals, prim_var_expr)
+                                  cp.constraints.Zero,
+                                  cp.constraints.NonNeg,
+                                  cp.constraints.PSD,
+                                  cp.constraints.PowCone3D)):
+                L = L - cp.scalar_product(con.args, con.dual_value)
             else:
                 raise NotImplementedError()
         g = L.grad
         # compute norm
-        fro_norms = []
+        bad_fro_norms = []
         for (k, v) in g.items():
-            # v : SciPy sparse matrix.
+            # (k, v) = (cvxpy Variable, SciPy sparse matrix)
             norm = np.linalg.norm(v.data) / np.sqrt(k.size)
-            fro_norms.append(norm)
-        total_fro_norm = np.linalg.norm(fro_norms)
-        # check if sufficiently small
-        self.tester.assertItemsAlmostEqual(total_fro_norm, 0, places)
+            if norm > 10**(-places):
+                bad_fro_norms.append((norm, k.name()))
+        if len(bad_fro_norms):
+            msg = f"""\n
+        The gradient of Lagrangian with respect to the primal variables
+        is above the threshold of 10^{-places}. The names of the problematic
+        variables and the corresponding gradient norms are as follows:
+            """
+            for norm, varname in bad_fro_norms:
+                msg += f"\n\t\t\t{varname} : {norm}"
+            msg += '\n'
+            self.tester.fail(msg)
         pass 
 
     def verify_objective(self, places) -> None:

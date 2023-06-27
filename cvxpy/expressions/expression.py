@@ -735,7 +735,7 @@ class Expression(u.Canonical):
     def __ge__(self, other: "Expression"):
         """NonPos : Creates an inequality constraint.
         """
-        return other.__le__(self)
+        return Inequality(other, self)
 
     def __gt__(self, other: "Expression"):
         """Unsupported.

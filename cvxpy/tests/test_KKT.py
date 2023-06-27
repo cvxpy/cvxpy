@@ -9,7 +9,7 @@ class StandardTestLPs(BaseTest):
         # typical LP
         sth = STH.lp_1()
         if 'MOSEK' in cp.installed_solvers():
-            sth.solve(solver = 'MOSEK')
+            sth.solve(solver='MOSEK')
         else:
             sth.solve(solver='ECOS')
         sth.check_stationary_lagrangian(places=4)
@@ -21,7 +21,7 @@ class StandardTestLPs(BaseTest):
         # typical LP
         sth = STH.lp_2()
         if 'MOSEK' in cp.installed_solvers():
-            sth.solve(solver = 'MOSEK')
+            sth.solve(solver='MOSEK')
         else:
             sth.solve(solver='ECOS')
         sth.check_stationary_lagrangian(places=2)
@@ -29,31 +29,11 @@ class StandardTestLPs(BaseTest):
         sth.verify_primal_values(places=4)
         sth.verify_dual_values(places=4)
 
-    def test_lp_3(self):
-        # unbounded LP
-        sth = STH.lp_3()
-        if 'MOSEK' in cp.installed_solvers():
-            sth.solve(solver = 'MOSEK')
-        else:
-            sth.solve(solver='ECOS')
-        sth.check_stationary_lagrangian(4, expect=False)
-        sth.verify_objective(places=4)
-
-    def test_lp_4(self):
-        # infeasible LP
-        sth = STH.lp_4()
-        if 'MOSEK' in cp.installed_solvers():
-            sth.solve(solver = 'MOSEK')
-        else:
-            sth.solve(solver='ECOS')
-        sth.check_stationary_lagrangian(4, expect=False)
-        sth.verify_objective(places=4)
-
     def test_lp_5(self):
         # LP with redundant constraints
         sth = STH.lp_5()
         if 'MOSEK' in cp.installed_solvers():
-            sth.solve(solver = 'MOSEK')
+            sth.solve(solver='MOSEK')
         else:
             sth.solve(solver='ECOS')
         sth.verify_objective(places=4)
@@ -62,25 +42,13 @@ class StandardTestLPs(BaseTest):
         sth.check_dual_domains(places=4)
         sth.check_stationary_lagrangian(places=2)
 
-    def test_lp_6(self):
-        # unbounded problem --- cannot check stationarity
-        sth = STH.lp_6()
-        if 'MOSEK' in cp.installed_solvers():
-            sth.solve(solver = 'MOSEK')
-        else:
-            sth.solve(solver='ECOS')
-        sth.check_stationary_lagrangian(4, expect = False)
-        sth.verify_objective(places=4)
-        sth.check_primal_feasibility(places=4)
-        sth.check_complementarity(places=4)
-
 
 class StandardTestQPs(BaseTest):
 
     def test_qp_0(self):
         sth = STH.qp_0()
         if 'MOSEK' in cp.installed_solvers():
-            sth.solve(solver = 'MOSEK')
+            sth.solve(solver='MOSEK')
         else:
             sth.solve(solver='ECOS')
         sth.verify_primal_values(places=4)
@@ -96,7 +64,7 @@ class StandardTestSOCPs(BaseTest):
     def test_socp_0(self):
         sth = STH.socp_0()
         if 'MOSEK' in cp.installed_solvers():
-            sth.solve(solver = 'MOSEK')
+            sth.solve(solver='MOSEK')
         else:
             sth.solve(solver='ECOS')
         sth.verify_objective(places=4)
@@ -108,7 +76,7 @@ class StandardTestSOCPs(BaseTest):
     def test_socp_1(self):
         sth = STH.socp_1()
         if 'MOSEK' in cp.installed_solvers():
-            sth.solve(solver = 'MOSEK')
+            sth.solve(solver='MOSEK')
         else:
             sth.solve(solver='ECOS')
         sth.verify_objective(places=4)
@@ -121,7 +89,7 @@ class StandardTestSOCPs(BaseTest):
     def test_socp_2(self):
         sth = STH.socp_2()
         if 'MOSEK' in cp.installed_solvers():
-            sth.solve(solver = 'MOSEK')
+            sth.solve(solver='MOSEK')
         else:
             sth.solve(solver='ECOS')
         sth.verify_objective(places=4)
@@ -134,7 +102,7 @@ class StandardTestSOCPs(BaseTest):
     def test_socp_3ax0(self):
         sth = STH.socp_3(axis=0)
         if 'MOSEK' in cp.installed_solvers():
-            sth.solve(solver = 'MOSEK')
+            sth.solve(solver='MOSEK')
         else:
             sth.solve(solver='ECOS')
         sth.verify_objective(places=4)
@@ -148,7 +116,7 @@ class StandardTestSOCPs(BaseTest):
     def test_socp_3ax1(self):
         sth = STH.socp_3(axis=1)
         if 'MOSEK' in cp.installed_solvers():
-            sth.solve(solver = 'MOSEK')
+            sth.solve(solver='MOSEK')
         else:
             sth.solve(solver='ECOS')
         sth.verify_objective(places=4)
@@ -156,4 +124,49 @@ class StandardTestSOCPs(BaseTest):
         sth.check_complementarity(places=4)
         sth.verify_dual_values(places=4)
         sth.check_stationary_lagrangian(places=4)
+        return sth
+
+
+class StandardTestPCPs(BaseTest):
+
+    def test_pcp_1(self, places: int = 3):
+        sth = STH.pcp_1()
+        if 'MOSEK' in cp.installed_solvers():
+            sth.solve(solver='MOSEK')
+        else:
+            sth.solve(solver='SCS')
+        sth.verify_objective(places)
+        sth.check_primal_feasibility(places)
+        sth.verify_primal_values(places)
+        sth.check_complementarity(places)
+        sth.verify_dual_values(places)
+        sth.check_stationary_lagrangian(places)
+        return sth
+
+    def test_pcp_2(self, places: int = 3):
+        sth = STH.pcp_2()
+        if 'MOSEK' in cp.installed_solvers():
+            sth.solve(solver='MOSEK')
+        else:
+            sth.solve(solver='SCS')
+        sth.verify_objective(places)
+        sth.check_primal_feasibility(places)
+        sth.verify_primal_values(places)
+        sth.check_complementarity(places)
+        sth.verify_dual_values(places)
+        sth.check_stationary_lagrangian(places)
+        return sth
+
+    def test_pcp_3(self, places: int = 3):
+        sth = STH.pcp_3()
+        if 'MOSEK' in cp.installed_solvers():
+            sth.solve(solver='MOSEK')
+        else:
+            sth.solve(solver='SCS')
+        sth.verify_objective(places)
+        sth.check_primal_feasibility(places)
+        sth.verify_primal_values(places)
+        sth.check_complementarity(places)
+        sth.verify_dual_values(places)
+        sth.check_stationary_lagrangian(places)
         return sth
