@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 
 <html lang="en">
@@ -40,22 +39,35 @@
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 
 <span class="kn">from</span> <span class="nn">cvxpy.atoms</span> <span class="kn">import</span> <span class="n">EXP_ATOMS</span><span class="p">,</span> <span class="n">NONPOS_ATOMS</span><span class="p">,</span> <span class="n">PSD_ATOMS</span><span class="p">,</span> <span class="n">SOC_ATOMS</span>
-<span class="kn">from</span> <span class="nn">cvxpy.constraints</span> <span class="kn">import</span> <span class="p">(</span><span class="n">PSD</span><span class="p">,</span> <span class="n">SOC</span><span class="p">,</span> <span class="n">Equality</span><span class="p">,</span> <span class="n">ExpCone</span><span class="p">,</span> <span class="n">FiniteSet</span><span class="p">,</span>
-                               <span class="n">Inequality</span><span class="p">,</span> <span class="n">NonNeg</span><span class="p">,</span> <span class="n">NonPos</span><span class="p">,</span> <span class="n">PowCone3D</span><span class="p">,</span> <span class="n">Zero</span><span class="p">,)</span>
+<span class="kn">from</span> <span class="nn">cvxpy.constraints</span> <span class="kn">import</span> <span class="p">(</span>
+    <span class="n">PSD</span><span class="p">,</span>
+    <span class="n">SOC</span><span class="p">,</span>
+    <span class="n">Equality</span><span class="p">,</span>
+    <span class="n">ExpCone</span><span class="p">,</span>
+    <span class="n">FiniteSet</span><span class="p">,</span>
+    <span class="n">Inequality</span><span class="p">,</span>
+    <span class="n">NonNeg</span><span class="p">,</span>
+    <span class="n">NonPos</span><span class="p">,</span>
+    <span class="n">PowCone3D</span><span class="p">,</span>
+    <span class="n">Zero</span><span class="p">,</span>
+<span class="p">)</span>
 <span class="kn">from</span> <span class="nn">cvxpy.constraints.exponential</span> <span class="kn">import</span> <span class="n">OpRelEntrConeQuad</span><span class="p">,</span> <span class="n">RelEntrConeQuad</span>
 <span class="kn">from</span> <span class="nn">cvxpy.error</span> <span class="kn">import</span> <span class="n">DCPError</span><span class="p">,</span> <span class="n">DGPError</span><span class="p">,</span> <span class="n">DPPError</span><span class="p">,</span> <span class="n">SolverError</span>
 <span class="kn">from</span> <span class="nn">cvxpy.problems.objective</span> <span class="kn">import</span> <span class="n">Maximize</span>
 <span class="kn">from</span> <span class="nn">cvxpy.reductions.chain</span> <span class="kn">import</span> <span class="n">Chain</span>
 <span class="kn">from</span> <span class="nn">cvxpy.reductions.complex2real</span> <span class="kn">import</span> <span class="n">complex2real</span>
 <span class="kn">from</span> <span class="nn">cvxpy.reductions.cone2cone.approximations</span> <span class="kn">import</span> <span class="n">APPROX_CONES</span><span class="p">,</span> <span class="n">QuadApprox</span>
-<span class="kn">from</span> <span class="nn">cvxpy.reductions.cone2cone.exotic2common</span> <span class="kn">import</span> <span class="p">(</span><span class="n">EXOTIC_CONES</span><span class="p">,</span>
-                                                      <span class="n">Exotic2Common</span><span class="p">,)</span>
+<span class="kn">from</span> <span class="nn">cvxpy.reductions.cone2cone.exotic2common</span> <span class="kn">import</span> <span class="p">(</span>
+    <span class="n">EXOTIC_CONES</span><span class="p">,</span>
+    <span class="n">Exotic2Common</span><span class="p">,</span>
+<span class="p">)</span>
 <span class="kn">from</span> <span class="nn">cvxpy.reductions.cvx_attr2constr</span> <span class="kn">import</span> <span class="n">CvxAttr2Constr</span>
 <span class="kn">from</span> <span class="nn">cvxpy.reductions.dcp2cone.cone_matrix_stuffing</span> <span class="kn">import</span> <span class="n">ConeMatrixStuffing</span>
 <span class="kn">from</span> <span class="nn">cvxpy.reductions.dcp2cone.dcp2cone</span> <span class="kn">import</span> <span class="n">Dcp2Cone</span>
 <span class="kn">from</span> <span class="nn">cvxpy.reductions.dgp2dcp.dgp2dcp</span> <span class="kn">import</span> <span class="n">Dgp2Dcp</span>
 <span class="kn">from</span> <span class="nn">cvxpy.reductions.discrete2mixedint.valinvec2mixedint</span> <span class="kn">import</span> <span class="p">(</span>
-    <span class="n">Valinvec2mixedint</span><span class="p">,)</span>
+    <span class="n">Valinvec2mixedint</span><span class="p">,</span>
+<span class="p">)</span>
 <span class="kn">from</span> <span class="nn">cvxpy.reductions.eval_params</span> <span class="kn">import</span> <span class="n">EvalParams</span>
 <span class="kn">from</span> <span class="nn">cvxpy.reductions.flip_objective</span> <span class="kn">import</span> <span class="n">FlipObjective</span>
 <span class="kn">from</span> <span class="nn">cvxpy.reductions.qp2quad_form</span> <span class="kn">import</span> <span class="n">qp2symbolic_qp</span>
@@ -539,15 +551,11 @@
       &copy;The CVXPY authors.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 6.1.3</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 7.0.1</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.13</a>
       
     </div>
 
-    
-    <a href="https://github.com/cvxpy/cvxpy" class="github">
-        <img style="position: absolute; top: 0; right: 0; border: 0;" src="https://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png" alt="Fork me on GitHub"  class="github"/>
-    </a>
     
 
     
