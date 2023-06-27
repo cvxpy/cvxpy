@@ -62,6 +62,15 @@ class ScalarizeTest(BaseTest):
         prob.solve()
         self.assertItemsAlmostEqual(self.x.value, 0.5, places=4)
 
+        targets = [-1, 0]
+        priorities = [1, 1]
+        max_objectives = [cp.Maximize(-obj.args[0]) for obj in self.objectives]
+        scalarized = scalarize.targets_and_priorities(max_objectives, priorities, targets, 
+                                                      off_target=0)
+        prob = cp.Problem(scalarized)
+        prob.solve()
+        self.assertItemsAlmostEqual(self.x.value, 1, places=4)
+
     def test_max(self) -> None:
 
         weights = [1, 2]

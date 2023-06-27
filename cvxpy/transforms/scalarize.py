@@ -79,7 +79,7 @@ def targets_and_priorities(
                 expr += sign*indicator([obj.args[0] <= limits[i]])
             new_objs.append(expr)
         else:  # Maximize
-            expr = (priorities[i] - off_target)*atoms.min_elemwise(obj.args[0], targets[i])
+            expr = (priorities[i] - off_target)*atoms.neg(obj.args[0] - targets[i])
             expr += off_target*obj.args[0]
             if limits is not None:
                 expr += sign*indicator([obj.args[0] >= limits[i]])
