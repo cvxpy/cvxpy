@@ -106,7 +106,7 @@ class TestBackends:
                                                     self.var_length)
 
     @pytest.fixture(params=[const+"_empty_view"])
-    def default_empty_view(self, request):
+    def empty_view(self, request):
         return request.getfixturevalue(request.param)
 
     def test_mapping(self, backend):
@@ -115,8 +115,8 @@ class TestBackends:
         with pytest.raises(KeyError):
             backend.get_func('notafunc')
 
-    def test_gettensor(self, backend):
-        outer = backend.get_variable_tensor((2,), 1)
+    def test_gettensor(self, scipy_backend):
+        outer = scipy_backend.get_variable_tensor((2,), 1)
         assert outer.keys() == {1}, "Should only be in variable with ID 1"
         inner = outer[1]
         assert inner.keys() == {-1}, "Should only be in parameter slice -1, i.e. non parametrized."
@@ -126,8 +126,8 @@ class TestBackends:
         assert (tensors[0] != sp.eye(2, format='csr')).nnz == 0, "Should be eye(2)"
 
     @pytest.mark.parametrize('data', [np.array([[1, 2], [3, 4]]), sp.eye(2) * 4])
-    def test_get_data_tensor(self, backend, data):
-        outer = backend.get_data_tensor(data)
+    def test_get_data_tensor(self, scipy_backend, data):
+        outer = scipy_backend.get_data_tensor(data)
         assert outer.keys() == {-1}, "Should only be constant variable ID."
         inner = outer[-1]
         assert inner.keys() == {-1}, "Should only be in parameter slice -1, i.e. non parametrized."
@@ -137,10 +137,10 @@ class TestBackends:
         expected = sp.csr_matrix(data.reshape((-1, 1), order="F"))
         assert (tensors[0] != expected).nnz == 0
 
-    def test_get_param_tensor(self, backend):
+    def test_get_param_tensor(self, scipy_backend):
         shape = (2, 2)
         size = np.prod(shape)
-        outer = backend.get_param_tensor(shape, 3)
+        outer = scipy_backend.get_param_tensor(shape, 3)
         assert outer.keys() == {-1}, "Should only be constant variable ID."
         inner = outer[-1]
         assert inner.keys() == {3}, "Should only be the parameter slice of parameter with id 3."
@@ -663,7 +663,7 @@ class TestBackends:
 
         lin_op_x = linOpHelper((1,), type='variable', data=1)
         lin_op_y = linOpHelper((1,), type='variable', data=2)
-        empty_view = ScipyTensorView.get_empty_view(self.param_size_plus_one, {1: 0, 2: 1},
+        empty_view = NumpyTensorView.get_empty_view(self.param_size_plus_one, {1: 0, 2: 1},
                                                     self.param_to_size, self.param_to_col,
                                                     self.var_length)
 

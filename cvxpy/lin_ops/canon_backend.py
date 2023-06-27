@@ -837,6 +837,7 @@ class NumpyCanonBackend(PythonCanonBackend):
     - A new parameter of size n has shape (n, n, 1)
     - A new constant of size n has shape (1, n, 1)
     """
+
     @staticmethod
     def reshape_constant_data(constant_data: dict[int, sp.csr_matrix], new_shape: tuple[int, ...]) \
             -> dict[int, sp.csr_matrix]:
@@ -855,41 +856,80 @@ class NumpyCanonBackend(PythonCanonBackend):
         pass
 
     @staticmethod
-    def promote(lin: LinOp, view: TensorView) -> TensorView:
-        pass
+    def promote(lin: LinOp, view: NumpyTensorView) -> NumpyTensorView:
+        num_entries = int(np.prod(lin.shape))
 
-    def mul_elem(self, lin: LinOp, view: TensorView) -> TensorView:
+        def func(x):
+            # Fast way of repeating sparse matrix along axis 0
+            # See comment in https://stackoverflow.com/a/50759652
+            return x[:, np.zeros(num_entries, dtype=int), :]
+
+        view.apply_all(func)
+        return view
+
+    def mul_elem(self, lin: LinOp, view: NumpyTensorView) -> NumpyTensorView:
         pass
 
     @staticmethod
-    def sum_entries(_lin: LinOp, view: TensorView) -> TensorView:
-        pass
+    def sum_entries(_lin: LinOp, view: NumpyTensorView) -> NumpyTensorView:
+        def func(x):
+            return x.sum(axis=(0, 1), keepdims=True)
 
-    def div(self, lin: LinOp, view: TensorView) -> TensorView:
+        view.apply_all(func)
+        return view
+
+    def div(self, lin: LinOp, view: NumpyTensorView) -> NumpyTensorView:
         pass
 
     @staticmethod
-    def diag_vec(lin: LinOp, view: TensorView) -> TensorView:
-        pass
+    def diag_vec(lin: LinOp, view: NumpyTensorView) -> NumpyTensorView:
+        assert lin.shape[0] == lin.shape[1]
+        k = lin.data
+        rows = lin.shape[0]
+        total_rows = int(lin.shape[0] ** 2)
+
+        def func(x):
+            shape = list(x.shape)
+            shape[1] = total_rows
+            if k == 0:
+                new_rows = np.arange(rows) * rows + np.arange(rows)
+            elif k > 0:
+                new_rows = np.arange(rows) * rows + np.arange(rows) + rows * k
+            else:
+                new_rows = np.arange(rows) * rows + np.arange(rows) - k
+            new_rows = new_rows[:rows - k]
+            matrix = np.zeros(shape)
+            matrix[:, new_rows, :] = x
+            return matrix
+
+        view.apply_all(func)
+        return view
 
     @staticmethod
     def get_stack_func(total_rows: int, offset: int) -> Callable:
-        pass
+        def stack_func(tensor):
+            rows = tensor.shape[1]
+            new_rows = np.arange(rows) + offset
+            matrix = np.zeros(shape=(tensor.shape[0], int(total_rows), tensor.shape[2]))
+            matrix[:, new_rows, :] = tensor
+            return matrix
 
-    def rmul(self, lin: LinOp, view: TensorView) -> TensorView:
+        return stack_func
+
+    def rmul(self, lin: LinOp, view: NumpyTensorView) -> NumpyTensorView:
         pass
 
     @staticmethod
-    def trace(lin: LinOp, view: TensorView) -> TensorView:
+    def trace(lin: LinOp, view: NumpyTensorView) -> NumpyTensorView:
         pass
 
-    def conv(self, lin: LinOp, view: TensorView) -> TensorView:
+    def conv(self, lin: LinOp, view: NumpyTensorView) -> NumpyTensorView:
         pass
 
-    def kron_r(self, lin: LinOp, view: TensorView) -> TensorView:
+    def kron_r(self, lin: LinOp, view: NumpyTensorView) -> NumpyTensorView:
         pass
 
-    def kron_l(self, lin: LinOp, view: TensorView) -> TensorView:
+    def kron_l(self, lin: LinOp, view: NumpyTensorView) -> NumpyTensorView:
         pass
 
     def get_variable_tensor(self, shape: tuple[int, ...], variable_id: int) \
@@ -1120,7 +1160,14 @@ class ScipyTensorView(TensorView):
 class NumpyTensorView(TensorView):
     @staticmethod
     def combine_potentially_none(a: Any | None, b: Any | None) -> Any | None:
-        pass
+        if a is None and b is None:
+            return None
+        elif a is not None and b is None:
+            return a
+        elif a is None and b is not None:
+            return b
+        else:
+            return NumpyTensorView.add_dicts(a, b)
 
     @property
     def rows(self) -> int:
@@ -1139,7 +1186,7 @@ class NumpyTensorView(TensorView):
                 for param_slice_offset in range(parameter_tensor.shape[0]):
                     matrix = parameter_tensor[param_slice_offset]
                     tensor_representations.append(TensorRepresentation(
-                        matrix.flatten(order='F'),
+                        matrix.flatten(order='F').astype(int),
                         np.tile(np.arange(matrix.shape[0]), matrix.shape[1]) + row_offset,
                         np.tile(np.arange(matrix.shape[1]), matrix.shape[0]) + self.id_to_col[variable_id],
                         np.ones(matrix.size) * self.param_to_col[parameter_id] +
@@ -1163,3 +1210,26 @@ class NumpyTensorView(TensorView):
         return NumpyTensorView(variable_ids, tensor, is_parameter_free, self.param_size_plus_one,
                                self.id_to_col, self.param_to_size, self.param_to_col,
                                self.var_length)
+
+    @staticmethod
+    def add_dicts(a: dict, b: dict) -> dict:
+        """
+        Addition for dict-based tensors.
+        """
+        res = {}
+        keys_a = set(a.keys())
+        keys_b = set(b.keys())
+        intersect = keys_a & keys_b
+        for key in intersect:
+            if isinstance(a[key], dict) and isinstance(b[key], dict):
+                res[key] = ScipyTensorView.add_dicts(a[key], b[key])
+            elif isinstance(a[key], list) and isinstance(b[key], list):
+                assert len(a[key]) == len(b[key])
+                res[key] = [a + b for a, b in zip(a[key], b[key])]
+            else:
+                raise ValueError('Values must either be dicts or lists.')
+        for key in keys_a - intersect:
+            res[key] = a[key]
+        for key in keys_b - intersect:
+            res[key] = b[key]
+        return res
