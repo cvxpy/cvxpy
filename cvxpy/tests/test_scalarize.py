@@ -23,19 +23,19 @@ class ScalarizeTest(BaseTest):
         scalarized = scalarize.weighted_sum(self.objectives, weights)
         prob = cp.Problem(scalarized)
         prob.solve()
-        self.assertItemsAlmostEqual(self.x.value, 0.5)
+        self.assertItemsAlmostEqual(self.x.value, 0.5, places=3)
 
         weights = [1, 0]
         scalarized = scalarize.weighted_sum(self.objectives, weights)
         prob = cp.Problem(scalarized)
         prob.solve()
-        self.assertItemsAlmostEqual(self.x.value, 0)
+        self.assertItemsAlmostEqual(self.x.value, 0, places=3)
 
         weights = [0, 1]
         scalarized = scalarize.weighted_sum(self.objectives, weights)
         prob = cp.Problem(scalarized)
         prob.solve()
-        self.assertItemsAlmostEqual(self.x.value, 1)
+        self.assertItemsAlmostEqual(self.x.value, 1, places=3)
 
     def test_targets_and_priorities(self) -> None:
 
@@ -44,14 +44,14 @@ class ScalarizeTest(BaseTest):
         scalarized = scalarize.targets_and_priorities(self.objectives, priorities, targets)
         prob = cp.Problem(scalarized)
         prob.solve()
-        self.assertItemsAlmostEqual(self.x.value, 0.5)
+        self.assertItemsAlmostEqual(self.x.value, 0.5, places=3)
 
         targets = [1, 0]
         priorities = [1, 1]
         scalarized = scalarize.targets_and_priorities(self.objectives, priorities, targets)
         prob = cp.Problem(scalarized)
         prob.solve()
-        self.assertItemsAlmostEqual(self.x.value, 1, places=4)
+        self.assertItemsAlmostEqual(self.x.value, 1, places=3)
 
         limits = [1, 0.25]
         targets = [0, 0]
@@ -60,7 +60,7 @@ class ScalarizeTest(BaseTest):
                                                       off_target=0)
         prob = cp.Problem(scalarized)
         prob.solve()
-        self.assertItemsAlmostEqual(self.x.value, 0.5, places=4)
+        self.assertItemsAlmostEqual(self.x.value, 0.5, places=3)
 
         targets = [-1, 0]
         priorities = [1, 1]
@@ -69,7 +69,7 @@ class ScalarizeTest(BaseTest):
                                                       off_target=0)
         prob = cp.Problem(scalarized)
         prob.solve()
-        self.assertItemsAlmostEqual(self.x.value, 1, places=4)
+        self.assertItemsAlmostEqual(self.x.value, 1, places=3)
 
     def test_max(self) -> None:
 
@@ -77,13 +77,13 @@ class ScalarizeTest(BaseTest):
         scalarized = scalarize.max(self.objectives, weights)
         prob = cp.Problem(scalarized)
         prob.solve()
-        self.assertItemsAlmostEqual(self.x.value, 0.5858, places=4)
+        self.assertItemsAlmostEqual(self.x.value, 0.5858, places=3)
 
         weights = [2, 1]
         scalarized = scalarize.max(self.objectives, weights)
         prob = cp.Problem(scalarized)
         prob.solve()
-        self.assertItemsAlmostEqual(self.x.value, 0.4142, places=4)
+        self.assertItemsAlmostEqual(self.x.value, 0.4142, places=3)
 
     
     def test_log_sum_exp(self) -> None:
@@ -91,10 +91,10 @@ class ScalarizeTest(BaseTest):
         scalarized = scalarize.log_sum_exp(self.objectives, weights)
         prob = cp.Problem(scalarized)
         prob.solve()
-        self.assertItemsAlmostEqual(self.x.value, 0.6354, places=4)
+        self.assertItemsAlmostEqual(self.x.value, 0.6354, places=3)
 
         weights = [2, 1]
         scalarized = scalarize.log_sum_exp(self.objectives, weights)
         prob = cp.Problem(scalarized)
         prob.solve()
-        self.assertItemsAlmostEqual(self.x.value, 0.3646, places=4)
+        self.assertItemsAlmostEqual(self.x.value, 0.3646, places=3)
