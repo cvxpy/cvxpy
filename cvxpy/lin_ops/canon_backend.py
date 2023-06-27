@@ -1160,7 +1160,10 @@ class ScipyTensorView(TensorView):
 class NumpyTensorView(TensorView):
     @property
     def rows(self) -> int:
-        pass
+        if self.tensor is not None:
+            return next(iter(next(iter(self.tensor.values())).values())).shape[1]
+        else:
+            raise ValueError
 
     def get_tensor_representation(self, row_offset: int) -> TensorRepresentation:
         """
@@ -1200,6 +1203,31 @@ class NumpyTensorView(TensorView):
                                self.id_to_col, self.param_to_size, self.param_to_col,
                                self.var_length)
 
+    def accumulate_over_variables(self, func: Callable, is_param_free_function: bool) \
+            -> NumpyTensorView:
+        """
+        Apply 'func' to A and b.
+        If 'func' is a parameter free function, then we can apply it to all parameter slices
+        (including the slice that contains non-parameter constants).
+        If 'func' is not a parameter free function, we only need to consider the parameter slice
+        that contains the non-parameter constants, due to DPP rules.
+        """
+        for variable_id, tensor in self.tensor.items():
+            self.tensor[variable_id] = self.apply_to_parameters(func, tensor) if \
+                is_param_free_function else func(tensor[Constant.ID.value])
+
+        self.is_parameter_free = self.is_parameter_free and is_param_free_function
+        return self
+
+    @staticmethod
+    def apply_to_parameters(func: Callable,
+                            parameter_representation: dict[int, np.ndarray]) \
+            -> dict[int, np.ndarray]:
+        """
+        Apply 'func' to each slice of the parameter representation.
+        """
+        return {k: func(v) for k, v in parameter_representation.items()}
+
     @staticmethod
     def combine_potentially_none(a: Any | None, b: Any | None) -> Any | None:
         if a is None and b is None:
@@ -1222,7 +1250,7 @@ class NumpyTensorView(TensorView):
         intersect = keys_a & keys_b
         for key in intersect:
             if isinstance(a[key], dict) and isinstance(b[key], dict):
-                res[key] = ScipyTensorView.add_dicts(a[key], b[key])
+                res[key] = NumpyTensorView.add_dicts(a[key], b[key])
             elif isinstance(a[key], list) and isinstance(b[key], list):
                 assert len(a[key]) == len(b[key])
                 res[key] = [a + b for a, b in zip(a[key], b[key])]

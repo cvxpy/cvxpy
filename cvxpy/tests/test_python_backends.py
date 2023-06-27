@@ -89,24 +89,54 @@ class TestBackends:
         return NumpyCanonBackend(self.id_to_col, self.param_to_size, self.param_to_col,
                                  self.param_size_plus_one, self.var_length)
 
-    @pytest.fixture(params=[const+"_backend"])
+    @pytest.fixture(params=[const + "_backend"])
     def backend(self, request):
         return request.getfixturevalue(request.param)
 
     @pytest.fixture
     def scipy_empty_view(self):
         return ScipyTensorView.get_empty_view(self.param_size_plus_one, self.id_to_col,
-                                                    self.param_to_size, self.param_to_col,
-                                                    self.var_length)
+                                              self.param_to_size, self.param_to_col,
+                                              self.var_length)
 
     @pytest.fixture
     def numpy_empty_view(self):
         return NumpyTensorView.get_empty_view(self.param_size_plus_one, self.id_to_col,
-                                                    self.param_to_size, self.param_to_col,
-                                                    self.var_length)
+                                              self.param_to_size, self.param_to_col,
+                                              self.var_length)
 
-    @pytest.fixture(params=[const+"_empty_view"])
+    @pytest.fixture(params=[const + "_empty_view"])
     def empty_view(self, request):
+        return request.getfixturevalue(request.param)
+
+    @pytest.fixture()
+    def numpy_arg_view(self):
+        def numpy_view(param_size_plus_one=None, id_to_col=None,
+                       param_to_size=None, param_to_col=None,
+                       var_length=None):
+            return NumpyTensorView.get_empty_view(param_size_plus_one or self.param_size_plus_one,
+                                                  id_to_col or self.id_to_col,
+                                                  param_to_size or self.param_to_size,
+                                                  param_to_col or self.param_to_col,
+                                                  var_length or self.var_length)
+
+        return numpy_view
+
+    @pytest.fixture()
+    def scipy_arg_view(self):
+        def scipy_view(param_size_plus_one=None, id_to_col=None,
+                       param_to_size=None, param_to_col=None,
+                       var_length=None):
+            return ScipyTensorView.get_empty_view(param_size_plus_one or self.param_size_plus_one,
+                                                  id_to_col or self.id_to_col,
+                                                  param_to_size or self.param_to_size,
+                                                  param_to_col or self.param_to_col,
+                                                  var_length or self.var_length)
+
+        return scipy_view
+
+    @pytest.fixture(params=[const + "_arg_view"])
+    def arg_view(self, request):
         return request.getfixturevalue(request.param)
 
     def test_mapping(self, backend):
@@ -649,7 +679,7 @@ class TestBackends:
         # Note: view is edited in-place:
         assert out_view.get_tensor_representation(0) == view.get_tensor_representation(0)
 
-    def test_hstack(self, backend):
+    def test_hstack(self, backend, arg_view):
         """
         define x,y = Variable((1,)), Variable((1,))
 
@@ -663,12 +693,9 @@ class TestBackends:
 
         lin_op_x = linOpHelper((1,), type='variable', data=1)
         lin_op_y = linOpHelper((1,), type='variable', data=2)
-        empty_view = NumpyTensorView.get_empty_view(self.param_size_plus_one, {1: 0, 2: 1},
-                                                    self.param_to_size, self.param_to_col,
-                                                    self.var_length)
 
         hstack_lin_op = linOpHelper(args=[lin_op_x, lin_op_y])
-        out_view = backend.hstack(hstack_lin_op, empty_view)
+        out_view = backend.hstack(hstack_lin_op, arg_view(id_to_col={1: 0, 2: 1}))
         A = out_view.get_tensor_representation(0)
 
         # cast to numpy
@@ -676,7 +703,7 @@ class TestBackends:
         expected = np.eye(2)
         assert np.all(A == expected)
 
-    def test_vstack(self, backend):
+    def test_vstack(self, backend, arg_view):
         """
         define x,y = Variable((1,2)), Variable((1,2)) with
         [[x1, x2]]
@@ -699,12 +726,9 @@ class TestBackends:
 
         lin_op_x = linOpHelper((1, 2), type='variable', data=1)
         lin_op_y = linOpHelper((1, 2), type='variable', data=2)
-        empty_view = ScipyTensorView.get_empty_view(self.param_size_plus_one, {1: 0, 2: 2},
-                                                    self.param_to_size, self.param_to_col,
-                                                    self.var_length)
 
         vstack_lin_op = linOpHelper(args=[lin_op_x, lin_op_y])
-        out_view = backend.vstack(vstack_lin_op, empty_view)
+        out_view = backend.vstack(vstack_lin_op, arg_view(id_to_col={1: 0, 2: 2}))
         A = out_view.get_tensor_representation(0)
 
         # cast to numpy
@@ -766,7 +790,7 @@ class TestBackends:
         # Note: view is edited in-place:
         assert out_view.get_tensor_representation(0) == view.get_tensor_representation(0)
 
-    def test_parametrized_mul(self, backend):
+    def test_parametrized_mul(self, backend, arg_view):
         """
         Continuing the previous example when the lhs is a parameter, instead of multiplying with
         known values, the matrix is split up into four slices, each representing an element of the
@@ -811,9 +835,9 @@ class TestBackends:
         var_length = 4
 
         variable_lin_op = linOpHelper((2, 2), type='variable', data=1)
-        empty_view = ScipyTensorView.get_empty_view(param_size_plus_one, id_to_col,
-                                                    param_to_size, param_to_col,
-                                                    var_length)
+        empty_view = arg_view(param_size_plus_one, id_to_col,
+                              param_to_size, param_to_col,
+                              var_length)
 
         view = backend.process_constraint(variable_lin_op, empty_view)
 
@@ -915,7 +939,7 @@ class TestBackends:
         # Note: view is edited in-place:
         assert out_view.get_tensor_representation(0) == view.get_tensor_representation(0)
 
-    def test_parametrized_rmul(self, backend):
+    def test_parametrized_rmul(self, backend, arg_view):
         """
         Continuing the previous example when the rhs is a parameter, instead of multiplying with
         known values, the matrix is split up into two slices, each representing an element of the
@@ -944,9 +968,9 @@ class TestBackends:
         var_length = 4
 
         variable_lin_op = linOpHelper((2, 2), type='variable', data=1)
-        empty_view = ScipyTensorView.get_empty_view(param_size_plus_one, id_to_col,
-                                                    param_to_size, param_to_col,
-                                                    var_length)
+        empty_view = arg_view(param_size_plus_one, id_to_col,
+                              param_to_size, param_to_col,
+                              var_length)
 
         view = backend.process_constraint(variable_lin_op, empty_view)
 
@@ -1023,7 +1047,7 @@ class TestBackends:
         # Note: view is edited in-place:
         assert out_view.get_tensor_representation(0) == view.get_tensor_representation(0)
 
-    def test_mul_elementwise_parametrized(self, backend):
+    def test_mul_elementwise_parametrized(self, backend, arg_view):
         """
         Continuing the previous example when 'a' is a parameter, instead of multiplying with known
         values, the matrix is split up into two slices, each representing an element of the
@@ -1051,9 +1075,9 @@ class TestBackends:
         var_length = 2
 
         variable_lin_op = linOpHelper((2,), type='variable', data=1)
-        empty_view = ScipyTensorView.get_empty_view(param_size_plus_one, id_to_col,
-                                                    param_to_size, param_to_col,
-                                                    var_length)
+        empty_view = arg_view(param_size_plus_one, id_to_col,
+                              param_to_size, param_to_col,
+                              var_length)
 
         view = backend.process_constraint(variable_lin_op, empty_view)
 
@@ -1122,9 +1146,9 @@ class TestBackends:
         A = sp.coo_matrix((A.data, (A.row, A.col)), shape=(4, 4)).toarray()
         expected = np.array(
             [[1, 0, 0, 0],
-             [0, 1/3, 0, 0],
-             [0, 0, 1/2, 0],
-             [0, 0, 0, 1/4]]
+             [0, 1 / 3, 0, 0],
+             [0, 0, 1 / 2, 0],
+             [0, 0, 0, 1 / 4]]
         )
         assert np.all(A == expected)
 
