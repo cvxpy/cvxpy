@@ -116,7 +116,7 @@ class SolverTestHelper:
                 comp = cp.scalar_product(pv, dv).value
             elif isinstance(con, (cp.constraints.ExpCone,
                                   cp.constraints.SOC,
-                                  cp.constraints.NonPos,
+                                  cp.constraints.NonNeg,
                                   cp.constraints.Zero)):
                 comp = cp.scalar_product(con.args, con.dual_value).value
             elif isinstance(con, cp.constraints.PowCone3D):

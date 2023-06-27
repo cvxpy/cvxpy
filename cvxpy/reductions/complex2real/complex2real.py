@@ -21,9 +21,6 @@ from cvxpy.constraints import (
     PSD,
     SOC,
     Equality,
-    Inequality,
-    NonNeg,
-    NonPos,
     OpRelEntrConeQuad,
     Zero,
 )
@@ -123,11 +120,11 @@ class Complex2Real(Reduction):
                         imag_id = inverse_data.real2imag[cid]
                         dvars[cid] = 1j*solution.dual_vars[imag_id]
                     # All cases that follow are for complex-valued constraints:
-                    #   1. check inequality / equality constraints.
+                    #   1. check equality constraints.
                     #   2. check PSD constraints.
                     #   3. check if a constraint is known to lack a complex dual implementation
                     #   4. raise an error
-                    elif isinstance(cons, (Equality, Zero, Inequality, NonNeg, NonPos)):
+                    elif isinstance(cons, (Equality, Zero)):
                         imag_id = inverse_data.real2imag[cid]
                         if imag_id in solution.dual_vars:
                             dvars[cid] = solution.dual_vars[cid] + \
