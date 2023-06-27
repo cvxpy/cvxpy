@@ -1158,17 +1158,6 @@ class ScipyTensorView(TensorView):
 
 
 class NumpyTensorView(TensorView):
-    @staticmethod
-    def combine_potentially_none(a: Any | None, b: Any | None) -> Any | None:
-        if a is None and b is None:
-            return None
-        elif a is not None and b is None:
-            return a
-        elif a is None and b is not None:
-            return b
-        else:
-            return NumpyTensorView.add_dicts(a, b)
-
     @property
     def rows(self) -> int:
         pass
@@ -1188,7 +1177,7 @@ class NumpyTensorView(TensorView):
                     tensor_representations.append(TensorRepresentation(
                         matrix.flatten(order='F').astype(int),
                         np.tile(np.arange(matrix.shape[0]), matrix.shape[1]) + row_offset,
-                        np.tile(np.arange(matrix.shape[1]), matrix.shape[0]) + self.id_to_col[variable_id],
+                        np.repeat(np.arange(matrix.shape[1]), matrix.shape[0]) + self.id_to_col[variable_id],
                         np.ones(matrix.size) * self.param_to_col[parameter_id] +
                         param_slice_offset,
                     ))
@@ -1210,6 +1199,17 @@ class NumpyTensorView(TensorView):
         return NumpyTensorView(variable_ids, tensor, is_parameter_free, self.param_size_plus_one,
                                self.id_to_col, self.param_to_size, self.param_to_col,
                                self.var_length)
+
+    @staticmethod
+    def combine_potentially_none(a: Any | None, b: Any | None) -> Any | None:
+        if a is None and b is None:
+            return None
+        elif a is not None and b is None:
+            return a
+        elif a is None and b is not None:
+            return b
+        else:
+            return NumpyTensorView.add_dicts(a, b)
 
     @staticmethod
     def add_dicts(a: dict, b: dict) -> dict:
