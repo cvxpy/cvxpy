@@ -1,0 +1,17 @@
+name: binder
+
+on: [push]
+
+# This job installs dependencies, builds the book, and pushes it to `gh-pages`
+jobs:
+  Serve-binder-cache:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+
+    # cache for binder
+    - name: cache binder build on mybinder.org
+      uses: jupyterhub/repo2docker-action@master
+      with:
+        NO_PUSH: true
+        MYBINDERORG_TAG: ${{ github.event.ref }}

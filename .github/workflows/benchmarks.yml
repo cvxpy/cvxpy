@@ -1,7 +1,7 @@
 name: benchmarks
 
 on:
-  push:
+   push:
       branches:
           - master
 

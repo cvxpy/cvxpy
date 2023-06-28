@@ -1,0 +1,47 @@
+name: deploy-book
+
+on:
+    # pull_request:
+    push:
+        branches:
+            - master
+            - 'release/**'
+        tags:
+          - '*'
+          
+
+# Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+# This job installs dependencies, builds the book, and pushes it to `gh-pages`
+jobs:    
+  deploy-book:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+      
+      - uses: actions/checkout@v3
+      - name: Install cvxpy dependencies and jupyter-book, install the kernel
+        run: |
+          pip install .
+          pip install jupyter-book
+          ipython kernel install --name "cvxpy" --user
+        
+      # Build the book
+      - name: Build the book
+        run: |
+          jupyter-book clean book
+          jupyter-book build book
+
+      # Push the book's HTML to github-pages
+      - name: GitHub Pages action
+        uses: peaceiris/actions-gh-pages@v3.6.1
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: book/_build/html
+
