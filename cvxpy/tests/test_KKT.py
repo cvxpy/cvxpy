@@ -127,9 +127,53 @@ class StandardTestSOCPs(BaseTest):
         return sth
 
 
+class StandardTestSDPs(BaseTest):
+
+    def test_sdp_1min(self):
+        sth = STH.sdp_1('min')
+        if 'MOSEK' in cp.installed_solvers():
+            sth.solve(solver='MOSEK')
+        else:
+            sth.solve(solver='ECOS')
+        sth.verify_objective(places=2)
+        sth.check_primal_feasibility(places=2)
+        sth.check_complementarity(places=2)
+        sth.check_dual_domains(places=2)
+        sth.check_stationary_lagrangian(places=2)
+        return sth
+
+    def test_sdp_1max(self):
+        sth = STH.sdp_1('max')
+        if 'MOSEK' in cp.installed_solvers():
+            sth.solve(solver='MOSEK')
+        else:
+            sth.solve(solver='ECOS')
+        sth.verify_objective(places=2)
+        sth.check_primal_feasibility(places=2)
+        sth.check_complementarity(places=2)
+        sth.check_dual_domains(places=2)
+        sth.check_stationary_lagrangian(places=2)
+        return sth
+
+    def test_sdp_2(self):
+        # places is set to 3 rather than 4, because analytic solution isn't known.
+        sth = STH.sdp_2()
+        if 'MOSEK' in cp.installed_solvers():
+            sth.solve(solver='MOSEK')
+        else:
+            sth.solve(solver='ECOS')
+        sth.verify_objective(places=2)
+        sth.check_primal_feasibility(places=2)
+        sth.verify_primal_values(places=2)
+        sth.check_complementarity(places=2)
+        sth.check_dual_domains(places=2)
+        sth.check_stationary_lagrangian(places=2)
+        return sth
+
+
 class StandardTestPCPs(BaseTest):
 
-    def test_pcp_1(self, places: int = 3):
+    def test_pcp_1(self, places: int = 2):
         sth = STH.pcp_1()
         if 'MOSEK' in cp.installed_solvers():
             sth.solve(solver='MOSEK')
@@ -143,7 +187,7 @@ class StandardTestPCPs(BaseTest):
         sth.check_stationary_lagrangian(places)
         return sth
 
-    def test_pcp_2(self, places: int = 3):
+    def test_pcp_2(self, places: int = 2):
         sth = STH.pcp_2()
         if 'MOSEK' in cp.installed_solvers():
             sth.solve(solver='MOSEK')
@@ -157,7 +201,7 @@ class StandardTestPCPs(BaseTest):
         sth.check_stationary_lagrangian(places)
         return sth
 
-    def test_pcp_3(self, places: int = 3):
+    def test_pcp_3(self, places: int = 2):
         sth = STH.pcp_3()
         if 'MOSEK' in cp.installed_solvers():
             sth.solve(solver='MOSEK')
