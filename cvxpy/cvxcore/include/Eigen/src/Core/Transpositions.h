@@ -10,20 +10,22 @@
 #ifndef EIGEN_TRANSPOSITIONS_H
 #define EIGEN_TRANSPOSITIONS_H
 
-namespace Eigen { 
+namespace Eigen {
 
 template<typename Derived>
 class TranspositionsBase
 {
     typedef internal::traits<Derived> Traits;
-    
+
   public:
 
     typedef typename Traits::IndicesType IndicesType;
     typedef typename IndicesType::Scalar StorageIndex;
     typedef Eigen::Index Index; ///< \deprecated since Eigen 3.3
 
+    EIGEN_DEVICE_FUNC
     Derived& derived() { return *static_cast<Derived*>(this); }
+    EIGEN_DEVICE_FUNC
     const Derived& derived() const { return *static_cast<const Derived*>(this); }
 
     /** Copies the \a other transpositions into \c *this */
@@ -35,13 +37,17 @@ class TranspositionsBase
     }
 
     /** \returns the number of transpositions */
+    EIGEN_DEVICE_FUNC
     Index size() const { return indices().size(); }
     /** \returns the number of rows of the equivalent permutation matrix */
+    EIGEN_DEVICE_FUNC
     Index rows() const { return indices().size(); }
     /** \returns the number of columns of the equivalent permutation matrix */
+    EIGEN_DEVICE_FUNC
     Index cols() const { return indices().size(); }
 
     /** Direct access to the underlying index vector */
+    EIGEN_DEVICE_FUNC
     inline const StorageIndex& coeff(Index i) const { return indices().coeff(i); }
     /** Direct access to the underlying index vector */
     inline StorageIndex& coeffRef(Index i) { return indices().coeffRef(i); }
@@ -55,8 +61,10 @@ class TranspositionsBase
     inline StorageIndex& operator[](Index i) { return indices()(i); }
 
     /** const version of indices(). */
+    EIGEN_DEVICE_FUNC
     const IndicesType& indices() const { return derived().indices(); }
     /** \returns a reference to the stored array representing the transpositions. */
+    EIGEN_DEVICE_FUNC
     IndicesType& indices() { return derived().indices(); }
 
     /** Resizes to given size. */
@@ -73,7 +81,7 @@ class TranspositionsBase
     }
 
     // FIXME: do we want such methods ?
-    // might be usefull when the target matrix expression is complex, e.g.:
+    // might be useful when the target matrix expression is complex, e.g.:
     // object.matrix().block(..,..,..,..) = trans * object.matrix().block(..,..,..,..);
     /*
     template<typename MatrixType>
@@ -178,8 +186,10 @@ class Transpositions : public TranspositionsBase<Transpositions<SizeAtCompileTim
     {}
 
     /** const version of indices(). */
+    EIGEN_DEVICE_FUNC
     const IndicesType& indices() const { return m_indices; }
     /** \returns a reference to the stored array representing the transpositions. */
+    EIGEN_DEVICE_FUNC
     IndicesType& indices() { return m_indices; }
 
   protected:
@@ -237,9 +247,11 @@ class Map<Transpositions<SizeAtCompileTime,MaxSizeAtCompileTime,_StorageIndex>,P
     #endif
 
     /** const version of indices(). */
+    EIGEN_DEVICE_FUNC
     const IndicesType& indices() const { return m_indices; }
-    
+
     /** \returns a reference to the stored array representing the transpositions. */
+    EIGEN_DEVICE_FUNC
     IndicesType& indices() { return m_indices; }
 
   protected:
@@ -279,9 +291,11 @@ class TranspositionsWrapper
     }
 
     /** const version of indices(). */
+    EIGEN_DEVICE_FUNC
     const IndicesType& indices() const { return m_indices; }
 
     /** \returns a reference to the stored array representing the transpositions. */
+    EIGEN_DEVICE_FUNC
     IndicesType& indices() { return m_indices; }
 
   protected:
@@ -335,9 +349,12 @@ class Transpose<TranspositionsBase<TranspositionsDerived> >
 
     explicit Transpose(const TranspositionType& t) : m_transpositions(t) {}
 
-    Index size() const { return m_transpositions.size(); }
-    Index rows() const { return m_transpositions.size(); }
-    Index cols() const { return m_transpositions.size(); }
+    EIGEN_DEVICE_FUNC EIGEN_CONSTEXPR
+    Index size() const EIGEN_NOEXCEPT { return m_transpositions.size(); }
+    EIGEN_DEVICE_FUNC EIGEN_CONSTEXPR
+    Index rows() const EIGEN_NOEXCEPT { return m_transpositions.size(); }
+    EIGEN_DEVICE_FUNC EIGEN_CONSTEXPR
+    Index cols() const EIGEN_NOEXCEPT { return m_transpositions.size(); }
 
     /** \returns the \a matrix with the inverse transpositions applied to the columns.
       */
@@ -356,7 +373,8 @@ class Transpose<TranspositionsBase<TranspositionsDerived> >
     {
       return Product<Transpose, OtherDerived, AliasFreeProduct>(*this, matrix.derived());
     }
-    
+
+    EIGEN_DEVICE_FUNC
     const TranspositionType& nestedExpression() const { return m_transpositions; }
 
   protected:

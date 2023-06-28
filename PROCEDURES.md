@@ -7,7 +7,7 @@ web documentation.
 
 ## Defining a new release
 
-CVXPY's setup.py file defines the following *versioning data*
+CVXPY's `setup/versioning.py` file defines the following *versioning data*
    ```
    MAJOR : an int
    MINOR : an int
@@ -23,7 +23,7 @@ as one makes new minor and micro releases.
 Let's say we're releasing 1.2.0.
 
 1. Starting from ``master``, checkout a new branch called ``release/1.2.x``.
-2. The versioning data in setup.py should already be
+2. The versioning data in `setup/versioning.py` should already be
    ```
    MAJOR = 1
    MINOR = 2
@@ -48,7 +48,8 @@ Let's say we're releasing 1.2.0.
 
 Let's say we're releasing CVXPY 1.2.1
 
-1. Starting from ``release/1.2.x``, the versioning data in setup.py should already be
+1. Create a new branch `patch/1.2.1` from `release/1.2.x`. Go through all commits merged into the master branch since the previous release and use `git cherry-pick abc123`, where `abc123` is the commit into the master branch. Create a pull request against the `release/1.2.x` branch listing the commits contained in the patch.
+2. Starting from ``release/1.2.x``, the versioning data in `setup/versioning.py` (`setup.py` in earlier releases) should already be
    ```
    MAJOR = 1
    MINOR = 2
@@ -58,7 +59,7 @@ Let's say we're releasing CVXPY 1.2.1
    ```
    Change ``IS_RELEASED = True`` and commit that change with
    the tag ``v1.2.1``.
-2. Lay the groundwork for the next release on this branch.
+3. Lay the groundwork for the next release on this branch.
    Do this by setting ``MICRO = 2``, ``IS_RELEASED = False``, and 
    committing those changes.
    *Do not* tag the commit as a release.

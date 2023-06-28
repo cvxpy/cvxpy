@@ -406,6 +406,9 @@ class TestSCS(BaseTest):
     def test_scs_exp_soc_1(self) -> None:
         StandardTestMixedCPs.test_exp_soc_1(solver='SCS', eps=1e-5)
 
+    def test_scs_sdp_pcp_1(self):
+        StandardTestMixedCPs.test_sdp_pcp_1(solver='SCS')
+        
     def test_scs_pcp_1(self) -> None:
         StandardTestPCPs.test_pcp_1(solver='SCS')
 
@@ -482,6 +485,21 @@ class TestClarabel(BaseTest):
 
     def test_clarabel_pcp_2(self) -> None:
         StandardTestSOCPs.test_socp_2(solver='CLARABEL')
+
+    def test_clarabel_sdp_1min(self) -> None:
+        StandardTestSDPs.test_sdp_1min(solver='CLARABEL')
+
+    def test_clarabel_sdp_2(self) -> None:
+        # produces a different optimizer than 
+        # the one expected by the standard test
+        places = 3
+        sth = sths.sdp_2()
+        sth.solve('CLARABEL')
+        sth.verify_objective(places)
+        sth.check_primal_feasibility(places)
+        # sth.verify_primal_values(places) # skip
+        sth.check_complementarity(places)
+        sth.check_dual_domains(places)
 
 
 @unittest.skipUnless('MOSEK' in INSTALLED_SOLVERS, 'MOSEK is not installed.')
@@ -572,41 +590,62 @@ class TestMosek(unittest.TestCase):
         StandardTestPCPs.test_mi_pcp_0(solver='MOSEK')
 
     def test_mosek_params(self) -> None:
-        if cp.MOSEK in INSTALLED_SOLVERS:
-            import mosek
-            n = 10
-            m = 4
-            np.random.seed(0)
-            A = np.random.randn(m, n)
-            x = np.random.randn(n)
-            y = A.dot(x)
+        import mosek
+        n = 10
+        m = 4
+        np.random.seed(0)
+        A = np.random.randn(m, n)
+        x = np.random.randn(n)
+        y = A.dot(x)
 
-            # Solve a simple basis pursuit problem for testing purposes.
-            z = cp.Variable(n)
-            objective = cp.Minimize(cp.norm1(z))
-            constraints = [A @ z == y]
-            problem = cp.Problem(objective, constraints)
+        # Solve a simple basis pursuit problem for testing purposes.
+        z = cp.Variable(n)
+        objective = cp.Minimize(cp.norm1(z))
+        constraints = [A @ z == y]
+        problem = cp.Problem(objective, constraints)
 
-            invalid_mosek_params = {
-                "MSK_IPAR_NUM_THREADS": "11.3"
-            }
-            with self.assertRaises(mosek.Error):
-                problem.solve(solver=cp.MOSEK, mosek_params=invalid_mosek_params)
+        invalid_mosek_params = {
+            "MSK_IPAR_NUM_THREADS": "11.3"
+        }
+        with self.assertRaises(mosek.Error):
+            problem.solve(solver=cp.MOSEK, mosek_params=invalid_mosek_params)
 
-            with self.assertRaises(ValueError):
-                problem.solve(solver=cp.MOSEK, invalid_kwarg=None)
+        with self.assertRaises(ValueError):
+            problem.solve(solver=cp.MOSEK, invalid_kwarg=None)
 
-            mosek_params = {
-                mosek.dparam.basis_tol_x: 1e-8,
-                "MSK_IPAR_INTPNT_MAX_ITERATIONS": 20,
-                "MSK_IPAR_NUM_THREADS": "17",
-                "MSK_IPAR_PRESOLVE_USE": "MSK_PRESOLVE_MODE_OFF",
-                "MSK_DPAR_INTPNT_CO_TOL_DFEAS": 1e-9,
-                "MSK_DPAR_INTPNT_CO_TOL_PFEAS": "1e-9"
-            }
-            with pytest.warns():
-                problem.solve(solver=cp.MOSEK, mosek_params=mosek_params)
+        mosek_params = {
+            mosek.dparam.basis_tol_x: 1e-8,
+            "MSK_IPAR_INTPNT_MAX_ITERATIONS": 20,
+            "MSK_IPAR_NUM_THREADS": "17",
+            "MSK_IPAR_PRESOLVE_USE": "MSK_PRESOLVE_MODE_OFF",
+            "MSK_DPAR_INTPNT_CO_TOL_DFEAS": 1e-9,
+            "MSK_DPAR_INTPNT_CO_TOL_PFEAS": "1e-9"
+        }
+        with pytest.warns():
+            problem.solve(solver=cp.MOSEK, mosek_params=mosek_params)
 
+    def test_mosek_simplex(self) -> None:
+        n = 10
+        m = 4
+        np.random.seed(0)
+        A = np.random.randn(m, n)
+        x = np.random.randn(n)
+        y = A.dot(x)
+
+        # Solve a simple basis pursuit problem for testing purposes.
+        z = cp.Variable(n)
+        objective = cp.Minimize(cp.norm1(z))
+        constraints = [A @ z == y]
+        problem = cp.Problem(objective, constraints)
+        problem.solve(
+            solver=cp.MOSEK, 
+            mosek_params={"MSK_IPAR_OPTIMIZER": "MSK_OPTIMIZER_DUAL_SIMPLEX"}
+        )
+
+    def test_mosek_sdp_power(self) -> None:
+        """Test the problem in issue #2128"""
+        StandardTestMixedCPs.test_sdp_pcp_1(solver='MOSEK')
+        
     def test_power_portfolio(self) -> None:
         """Test the portfolio problem in issue #2042"""
         T, N = 200, 10
@@ -655,6 +694,45 @@ class TestMosek(unittest.TestCase):
         prob = cp.Problem(objective, constraints)
         prob.solve(solver=cp.MOSEK)
         assert prob.status is cp.OPTIMAL
+
+    def test_mosek_accept_unknown(self) -> None:
+        mosek_param = {
+            "MSK_IPAR_INTPNT_MAX_ITERATIONS": 0
+        }
+        sth = sths.lp_5()
+        sth.solve(solver=cp.MOSEK, accept_unknown=True, mosek_params=mosek_param)
+        assert sth.prob.status in {cp.OPTIMAL_INACCURATE, cp.OPTIMAL}
+
+        with pytest.raises(cp.error.SolverError, match="Solver 'MOSEK' failed"):
+            sth.solve(solver=cp.MOSEK, mosek_params=mosek_param)
+
+    def test_eps_keyword(self) -> None:
+        """Test that the eps keyword is accepted"""
+        x = cp.Variable()
+        prob = cp.Problem(cp.Minimize(x), [x >= 0])
+        # This should not raise an exception
+        prob.solve(solver=cp.MOSEK, eps=1e-8, mosek_params={'MSK_DPAR_INTPNT_CO_TOL_DFEAS': 1e-6})
+        assert prob.status is cp.OPTIMAL
+
+        # This exception being raised shows that the eps value is being passed to MOSEK
+        import mosek
+        with pytest.raises(mosek.Error, match="The parameter value 0.1 is too large"):
+            prob.solve(solver=cp.MOSEK,
+                       eps=1e-1,
+                       mosek_params={'MSK_DPAR_INTPNT_CO_TOL_DFEAS': 1e-6})
+
+        
+        # If parameters are defined explicitly, eps will not overwrite -> no exception
+        from cvxpy.reductions.solvers.conic_solvers.mosek_conif import MOSEK
+        all_params = MOSEK.tolerance_params()
+        prob.solve(solver=cp.MOSEK, eps=1e-1, mosek_params={p: 1e-6 for p in all_params})
+        assert prob.status is cp.OPTIMAL
+
+        # Fails when used with enums
+        with pytest.raises(AssertionError, match="not compatible"):
+            prob.solve(solver=cp.MOSEK,
+                       eps=1e-1,
+                       mosek_params={mosek.dparam.intpnt_co_tol_dfeas: 1e-6})
 
 
 @unittest.skipUnless('CVXOPT' in INSTALLED_SOLVERS, 'CVXOPT is not installed.')
@@ -769,11 +847,28 @@ class TestSDPA(BaseTest):
     def test_sdpa_lp_4(self) -> None:
         StandardTestLPs.test_lp_4(solver='SDPA')
 
-    @unittest.skip('Known limitation of SDPA for degenerate LPs.')
     def test_sdpa_lp_5(self) -> None:
         # this also tests the ability to pass solver options
         StandardTestLPs.test_lp_5(solver='SDPA',
-                                  gammaStar=0.86, epsilonDash=8.0E-6, betaStar=0.18, betaBar=0.15)
+                                  betaBar=0.1, gammaStar=0.8, epsilonDash=8.0E-6)
+
+    def test_sdpa_lp_7(self) -> None:
+        StandardTestLPs.test_lp_7(solver='SDPA')
+
+    def test_sdpa_socp_0(self) -> None:
+        StandardTestSOCPs.test_socp_0(solver='SDPA')
+
+    def test_sdpa_socp_1(self) -> None:
+        StandardTestSOCPs.test_socp_1(solver='SDPA')
+
+    def test_sdpa_socp_2(self) -> None:
+        StandardTestSOCPs.test_socp_2(solver='SDPA')
+
+    def test_sdpa_socp_3(self) -> None:
+        # axis 0
+        StandardTestSOCPs.test_socp_3ax0(solver='SDPA')
+        # axis 1
+        StandardTestSOCPs.test_socp_3ax1(solver='SDPA')
 
     def test_sdpa_sdp_1(self) -> None:
         # minimization
@@ -785,21 +880,22 @@ class TestSDPA(BaseTest):
         StandardTestSDPs.test_sdp_2(solver='SDPA')
 
 
-@unittest.skipUnless('CBC' in INSTALLED_SOLVERS, 'CBC is not installed.')
-class TestCBC(BaseTest):
+def fflush() -> None:
+    """
+    C code in some solvers uses libc buffering; if we want to capture log output from
+    those solvers to use in tests, we must flush the libc buffers before trying to read
+    the log contents from python.
+    https://github.com/pytest-dev/pytest/issues/8753
+    """
+    import ctypes
+    libc = ctypes.CDLL(None)
+    libc.fflush(None)
 
-    def setUp(self) -> None:
-        self.a = cp.Variable(name='a')
-        self.b = cp.Variable(name='b')
-        self.c = cp.Variable(name='c')
 
-        self.x = cp.Variable(2, name='x')
-        self.y = cp.Variable(3, name='y')
-        self.z = cp.Variable(2, name='z')
-
-        self.A = cp.Variable((2, 2), name='A')
-        self.B = cp.Variable((2, 2), name='B')
-        self.C = cp.Variable((3, 2), name='C')
+# We can't inherit from unittest.TestCase since we access some advanced pytest features.
+# As a result, we use the pytest skipif decorator instead of unittest.skipUnless.
+@pytest.mark.skipif('CBC' not in INSTALLED_SOLVERS, reason='CBC is not installed.')
+class TestCBC:
 
     def _cylp_checks_isProvenInfeasible():
         try:
@@ -808,27 +904,6 @@ class TestCBC(BaseTest):
             return problemStatus[0] == 'search completed'
         except ImportError:
             return False
-
-    def test_options(self) -> None:
-        """Test that all the cvx.CBC solver options work.
-        """
-        prob = cp.Problem(cp.Minimize(cp.norm(self.x, 1)),
-                          [self.x == cp.Variable(2, boolean=True)])
-        if cp.CBC in INSTALLED_SOLVERS:
-            for i in range(2):
-                # Some cut-generators seem to be buggy for now -> set to false
-                # prob.solve(solver=cvx.CBC, verbose=True, GomoryCuts=True, MIRCuts=True,
-                #            MIRCuts2=True, TwoMIRCuts=True, ResidualCapacityCuts=True,
-                #            KnapsackCuts=True, FlowCoverCuts=True, CliqueCuts=True,
-                #            LiftProjectCuts=True, AllDifferentCuts=False, OddHoleCuts=True,
-                #            RedSplitCuts=False, LandPCuts=False, PreProcessCuts=False,
-                #            ProbingCuts=True, SimpleRoundingCuts=True)
-                prob.solve(solver=cp.CBC, verbose=True, maximumSeconds=100)
-            self.assertItemsAlmostEqual(self.x.value, [0, 0])
-        else:
-            with self.assertRaises(Exception) as cm:
-                prob.solve(solver=cp.CBC)
-                self.assertEqual(str(cm.exception), "The solver %s is not installed." % cp.CBC)
 
     def test_cbc_lp_0(self) -> None:
         StandardTestLPs.test_lp_0(solver='CBC', duals=False)
@@ -860,10 +935,77 @@ class TestCBC(BaseTest):
     def test_cbc_mi_lp_3(self) -> None:
         StandardTestLPs.test_mi_lp_3(solver='CBC')
 
-    @unittest.skipUnless(_cylp_checks_isProvenInfeasible(),
-                         'CyLP <= 0.91.4 has no working integer infeasibility detection')
+    @pytest.mark.skipif(not _cylp_checks_isProvenInfeasible(),
+                        reason='CyLP <= 0.91.4 has no working integer infeasibility detection')
     def test_cbc_mi_lp_5(self) -> None:
         StandardTestLPs.test_mi_lp_5(solver='CBC')
+
+    @pytest.mark.parametrize(
+        "opts",
+        [
+            pytest.param(opts, id=next(iter(opts.keys())))
+            for opts in [
+                {"dualTolerance": 1.0},
+                {"primalTolerance": 1.0},
+                {"maxNumIteration": 1},
+                {"scaling": 0},
+                # {"automaticScaling": True},  # Doesn't work
+                # {"infeasibilityCost": 0.000001},  # Doesn't work
+                {"optimizationDirection": "max"},
+                {"presolve": "off"},
+            ]
+        ]
+    )
+    def test_cbc_lp_options(self, opts: dict, capfd: pytest.LogCaptureFixture) -> None:
+        """
+        Validate that cylp is actually using each option.
+
+        Tentative approach: run model with verbose output with or without the specified
+        option; verbose output should be different each way.
+        """
+        # start by making sure capture buffer is empty to ensure valid results
+        fflush()
+        capfd.readouterr()
+        # run the solver with verbose logging without this option and capture output
+        sth = sths.lp_4()
+        sth.solve(solver='CBC', logLevel=2)
+        fflush()
+        base = capfd.readouterr()
+        # run the solver with verbose logging *with* the option under test
+        try:
+            sth.solve(solver='CBC', logLevel=2, **opts)
+        except Exception:
+            # if setting the option caused the case to fail, that's a pass
+            pass
+        else:
+            # if the case still passes, we at least look for change in the log outputs
+            fflush()
+            with_opt = capfd.readouterr()
+            assert base != with_opt
+
+    def test_cbc_lp_logging(self, capfd: pytest.LogCaptureFixture) -> None:
+        """Validate that logLevel parameter is passed to solver"""
+        # start by making sure capture buffer is empty to ensure valid results
+        fflush()
+        capfd.readouterr()
+
+        # for linear problems
+        StandardTestLPs.test_lp_0(solver='CBC', duals=False, logLevel=0)
+        fflush()
+        quiet_output = capfd.readouterr()
+        StandardTestLPs.test_lp_0(solver='CBC', duals=False, logLevel=5)
+        fflush()
+        verbose_output = capfd.readouterr()
+        assert len(verbose_output.out) > len(quiet_output.out)
+
+        # for mixed integer problems
+        StandardTestLPs.test_mi_lp_0(solver='CBC', logLevel=0)
+        fflush()
+        quiet_output = capfd.readouterr()
+        StandardTestLPs.test_mi_lp_0(solver='CBC', logLevel=5)
+        fflush()
+        verbose_output = capfd.readouterr()
+        assert len(verbose_output.out) > len(quiet_output.out)
 
 
 @unittest.skipUnless('GLPK' in INSTALLED_SOLVERS, 'GLPK is not installed.')

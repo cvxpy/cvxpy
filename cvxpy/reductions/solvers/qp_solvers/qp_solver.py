@@ -18,7 +18,7 @@ import numpy as np
 import scipy.sparse as sp
 
 import cvxpy.settings as s
-from cvxpy.constraints import NonPos, Zero
+from cvxpy.constraints import NonNeg, Zero
 from cvxpy.reductions.cvx_attr2constr import convex_attributes
 from cvxpy.reductions.qp2quad_form.qp_matrix_stuffing import (
     ConeDims,
@@ -32,8 +32,8 @@ class QpSolver(Solver):
     """
     A QP solver interface.
     """
-    # Every QP solver supports Zero and NonPos constraints.
-    SUPPORTED_CONSTRAINTS = [Zero, NonPos]
+    # Every QP solver supports Zero and NonNeg constraints.
+    SUPPORTED_CONSTRAINTS = [Zero, NonNeg]
 
     # Some solvers cannot solve problems that do not have constraints.
     # For such solvers, REQUIRES_CONSTR should be set to True.
@@ -81,7 +81,7 @@ class QpSolver(Solver):
         # Get number of variables
         n = problem.x.size
         len_eq = data[QpSolver.DIMS].zero
-        len_leq = data[QpSolver.DIMS].nonpos
+        len_leq = data[QpSolver.DIMS].nonneg
 
         if len_eq > 0:
             A = AF[:len_eq, :]
@@ -90,8 +90,8 @@ class QpSolver(Solver):
             A, b = sp.csr_matrix((0, n)), -np.array([])
 
         if len_leq > 0:
-            F = AF[len_eq:, :]
-            g = -bg[len_eq:]
+            F = -AF[len_eq:, :]
+            g = bg[len_eq:]
         else:
             F, g = sp.csr_matrix((0, n)), -np.array([])
 
