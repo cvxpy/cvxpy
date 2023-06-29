@@ -93,22 +93,6 @@ class TestBackends:
     def backend(self, request):
         return request.getfixturevalue(request.param)
 
-    @pytest.fixture
-    def scipy_empty_view(self):
-        return ScipyTensorView.get_empty_view(self.param_size_plus_one, self.id_to_col,
-                                              self.param_to_size, self.param_to_col,
-                                              self.var_length)
-
-    @pytest.fixture
-    def numpy_empty_view(self):
-        return NumpyTensorView.get_empty_view(self.param_size_plus_one, self.id_to_col,
-                                              self.param_to_size, self.param_to_col,
-                                              self.var_length)
-
-    @pytest.fixture(params=[const + "_empty_view"])
-    def empty_view(self, request):
-        return request.getfixturevalue(request.param)
-
     @pytest.fixture()
     def numpy_arg_view(self):
         def numpy_view(param_size_plus_one=None, id_to_col=None,
@@ -180,7 +164,7 @@ class TestBackends:
         assert (sp.hstack(tensors) != sp.eye(size, format='csr')).nnz == 0, \
             'Should be eye(4) along axes 1 and 2'
 
-    def test_neg(self, backend, empty_view):
+    def test_neg(self, backend, arg_view):
         """
          define x = Variable((2,2)) with
          [[x11, x12],
@@ -208,7 +192,7 @@ class TestBackends:
          """
 
         variable_lin_op = linOpHelper((2, 2), type='variable', data=1)
-        view = backend.process_constraint(variable_lin_op, empty_view)
+        view = backend.process_constraint(variable_lin_op, arg_view())
 
         # cast to numpy
         view_A = view.get_tensor_representation(0)
@@ -226,7 +210,7 @@ class TestBackends:
         # Note: view is edited in-place:
         assert out_view.get_tensor_representation(0) == view.get_tensor_representation(0)
 
-    def test_transpose(self, backend, empty_view):
+    def test_transpose(self, backend, arg_view):
         """
         define x = Variable((2,2)) with
         [[x11, x12],
@@ -256,7 +240,7 @@ class TestBackends:
         """
 
         variable_lin_op = linOpHelper((2, 2), type='variable', data=1)
-        view = backend.process_constraint(variable_lin_op, empty_view)
+        view = backend.process_constraint(variable_lin_op, arg_view())
 
         # cast to numpy
         view_A = view.get_tensor_representation(0)
@@ -280,7 +264,7 @@ class TestBackends:
         # Note: view is edited in-place:
         assert out_view.get_tensor_representation(0) == view.get_tensor_representation(0)
 
-    def test_upper_tri(self, backend, empty_view):
+    def test_upper_tri(self, backend, arg_view):
         """
         define x = Variable((2,2)) with
         [[x11, x12],
@@ -305,7 +289,7 @@ class TestBackends:
         """
 
         variable_lin_op = linOpHelper((2, 2), type='variable', data=1)
-        view = backend.process_constraint(variable_lin_op, empty_view)
+        view = backend.process_constraint(variable_lin_op, arg_view())
 
         # cast to numpy
         view_A = view.get_tensor_representation(0)
@@ -326,7 +310,7 @@ class TestBackends:
         # Note: view is edited in-place:
         assert out_view.get_tensor_representation(0) == view.get_tensor_representation(0)
 
-    def test_index(self, backend, empty_view):
+    def test_index(self, backend, arg_view):
         """
         define x = Variable((2,2)) with
         [[x11, x12],
@@ -355,7 +339,7 @@ class TestBackends:
         """
 
         variable_lin_op = linOpHelper((2, 2), type='variable', data=1)
-        view = backend.process_constraint(variable_lin_op, empty_view)
+        view = backend.process_constraint(variable_lin_op, arg_view())
 
         # cast to numpy
         view_A = view.get_tensor_representation(0)
@@ -388,7 +372,7 @@ class TestBackends:
         # Note: view is edited in-place:
         assert out_view.get_tensor_representation(0) == view.get_tensor_representation(0)
 
-    def test_diag_mat(self, backend, empty_view):
+    def test_diag_mat(self, backend, arg_view):
         """
         define x = Variable((2,2)) with
         [[x11, x12],
@@ -414,7 +398,7 @@ class TestBackends:
         """
 
         variable_lin_op = linOpHelper((2, 2), type='variable', data=1)
-        view = backend.process_constraint(variable_lin_op, empty_view)
+        view = backend.process_constraint(variable_lin_op, arg_view())
 
         # cast to numpy
         view_A = view.get_tensor_representation(0)
@@ -436,7 +420,7 @@ class TestBackends:
         # Note: view is edited in-place:
         assert out_view.get_tensor_representation(0) == view.get_tensor_representation(0)
 
-    def test_diag_mat_with_offset(self, backend, empty_view):
+    def test_diag_mat_with_offset(self, backend, arg_view):
         """
         define x = Variable((2,2)) with
         [[x11, x12],
@@ -461,7 +445,7 @@ class TestBackends:
         """
 
         variable_lin_op = linOpHelper((2, 2), type='variable', data=1)
-        view = backend.process_constraint(variable_lin_op, empty_view)
+        view = backend.process_constraint(variable_lin_op, arg_view())
 
         # cast to numpy
         view_A = view.get_tensor_representation(0)
@@ -483,7 +467,7 @@ class TestBackends:
         # Note: view is edited in-place:
         assert out_view.get_tensor_representation(0) == view.get_tensor_representation(0)
 
-    def test_diag_vec(self, backend, empty_view):
+    def test_diag_vec(self, backend, arg_view):
         """
         define x = Variable((2,)) with
         [x1, x2]
@@ -507,7 +491,7 @@ class TestBackends:
         """
 
         variable_lin_op = linOpHelper((2,), type='variable', data=1)
-        view = backend.process_constraint(variable_lin_op, empty_view)
+        view = backend.process_constraint(variable_lin_op, arg_view())
 
         # cast to numpy
         view_A = view.get_tensor_representation(0)
@@ -531,7 +515,7 @@ class TestBackends:
         # Note: view is edited in-place:
         assert out_view.get_tensor_representation(0) == view.get_tensor_representation(0)
 
-    def test_diag_vec_with_offset(self, backend, empty_view):
+    def test_diag_vec_with_offset(self, backend, arg_view):
         """
         define x = Variable((2,)) with
         [x1, x2]
@@ -564,7 +548,7 @@ class TestBackends:
         """
 
         variable_lin_op = linOpHelper((2,), type='variable', data=1)
-        view = backend.process_constraint(variable_lin_op, empty_view)
+        view = backend.process_constraint(variable_lin_op, arg_view())
 
         # cast to numpy
         view_A = view.get_tensor_representation(0)
@@ -594,7 +578,7 @@ class TestBackends:
         # Note: view is edited in-place:
         assert out_view.get_tensor_representation(0) == view.get_tensor_representation(0)
 
-    def test_sum_entries(self, backend, empty_view):
+    def test_sum_entries(self, backend, arg_view):
         """
         define x = Variable((2,)) with
         [x1, x2]
@@ -614,7 +598,7 @@ class TestBackends:
         """
 
         variable_lin_op = linOpHelper((2,), type='variable', data=1)
-        view = backend.process_constraint(variable_lin_op, empty_view)
+        view = backend.process_constraint(variable_lin_op, arg_view())
 
         # cast to numpy
         view_A = view.get_tensor_representation(0)
@@ -635,7 +619,7 @@ class TestBackends:
         # Note: view is edited in-place:
         assert out_view.get_tensor_representation(0) == view.get_tensor_representation(0)
 
-    def test_promote(self, backend, empty_view):
+    def test_promote(self, backend, arg_view):
         """
         define x = Variable((1,)) with
         [x1,]
@@ -656,7 +640,7 @@ class TestBackends:
         """
 
         variable_lin_op = linOpHelper((1,), type='variable', data=1)
-        view = backend.process_constraint(variable_lin_op, empty_view)
+        view = backend.process_constraint(variable_lin_op, arg_view())
 
         # cast to numpy
         view_A = view.get_tensor_representation(0)
@@ -741,7 +725,7 @@ class TestBackends:
         )
         assert np.all(A == expected)
 
-    def test_mul(self, backend, empty_view):
+    def test_mul(self, backend, arg_view):
         """
         define x = Variable((2,2)) with
         [[x11, x12],
@@ -764,7 +748,7 @@ class TestBackends:
         """
 
         variable_lin_op = linOpHelper((2, 2), type='variable', data=1)
-        view = backend.process_constraint(variable_lin_op, empty_view)
+        view = backend.process_constraint(variable_lin_op, arg_view())
 
         # cast to numpy
         view_A = view.get_tensor_representation(0)
@@ -894,7 +878,7 @@ class TestBackends:
         # Note: view is edited in-place:
         assert out_view.get_tensor_representation(0) == view.get_tensor_representation(0)
 
-    def test_rmul(self, backend, empty_view):
+    def test_rmul(self, backend, arg_view):
         """
         define x = Variable((2,2)) with
         [[x11, x12],
@@ -915,7 +899,7 @@ class TestBackends:
         """
 
         variable_lin_op = linOpHelper((2, 2), type='variable', data=1)
-        view = backend.process_constraint(variable_lin_op, empty_view)
+        view = backend.process_constraint(variable_lin_op, arg_view())
 
         # cast to numpy
         view_A = view.get_tensor_representation(0)
@@ -1003,7 +987,7 @@ class TestBackends:
         # Note: view is edited in-place:
         assert out_view.get_tensor_representation(0) == view.get_tensor_representation(0)
 
-    def test_mul_elementwise(self, backend, empty_view):
+    def test_mul_elementwise(self, backend, arg_view):
         """
         define x = Variable((2,)) with
         [x1, x2]
@@ -1023,7 +1007,7 @@ class TestBackends:
         """
 
         variable_lin_op = linOpHelper((2,), type='variable', data=1)
-        view = backend.process_constraint(variable_lin_op, empty_view)
+        view = backend.process_constraint(variable_lin_op, arg_view())
 
         # cast to numpy
         view_A = view.get_tensor_representation(0)
@@ -1092,7 +1076,9 @@ class TestBackends:
         out_view = backend.mul_elem(mul_elementwise_lin_op, view)
 
         # indices are: variable 1, parameter 2, 0 index of the list
-        slice_idx_zero = out_view.tensor[1][2][0].toarray()
+        slice_idx_zero = out_view.tensor[1][2][0]
+        if not isinstance(slice_idx_zero, np.ndarray):
+            slice_idx_zero = slice_idx_zero.toarray()
         expected_idx_zero = np.array(
             [[1, 0],
              [0, 0]]
@@ -1100,7 +1086,9 @@ class TestBackends:
         assert np.all(slice_idx_zero == expected_idx_zero)
 
         # indices are: variable 1, parameter 2, 1 index of the list
-        slice_idx_one = out_view.tensor[1][2][1].toarray()
+        slice_idx_one = out_view.tensor[1][2][1]
+        if not isinstance(slice_idx_one, np.ndarray):
+            slice_idx_one = slice_idx_one.toarray()
         expected_idx_one = np.array(
             [[0, 0],
              [0, 1]]
@@ -1110,7 +1098,7 @@ class TestBackends:
         # Note: view is edited in-place:
         assert out_view.get_tensor_representation(0) == view.get_tensor_representation(0)
 
-    def test_div(self, backend, empty_view):
+    def test_div(self, backend, arg_view):
         """
         define x = Variable((2,2)) with
         [[x11, x12],
@@ -1129,7 +1117,7 @@ class TestBackends:
         """
 
         variable_lin_op = linOpHelper((2, 2), type='variable', data=1)
-        view = backend.process_constraint(variable_lin_op, empty_view)
+        view = backend.process_constraint(variable_lin_op, arg_view())
 
         # cast to numpy
         view_A = view.get_tensor_representation(0)
@@ -1155,7 +1143,7 @@ class TestBackends:
         # Note: view is edited in-place:
         assert out_view.get_tensor_representation(0) == view.get_tensor_representation(0)
 
-    def test_trace(self, backend, empty_view):
+    def test_trace(self, backend, arg_view):
         """
         define x = Variable((2,2)) with
         [[x11, x12],
@@ -1176,7 +1164,7 @@ class TestBackends:
         """
 
         variable_lin_op = linOpHelper((2, 2), type='variable', data=1)
-        view = backend.process_constraint(variable_lin_op, empty_view)
+        view = backend.process_constraint(variable_lin_op, arg_view())
 
         # cast to numpy
         view_A = view.get_tensor_representation(0)
@@ -1197,7 +1185,7 @@ class TestBackends:
         # Note: view is edited in-place:
         assert out_view.get_tensor_representation(0) == view.get_tensor_representation(0)
 
-    def test_conv(self, backend, empty_view):
+    def test_conv(self, backend, arg_view):
         """
         define x = Variable((3,)) with
         [x1, x2, x3]
@@ -1213,7 +1201,7 @@ class TestBackends:
         """
 
         variable_lin_op = linOpHelper((3,), type='variable', data=1)
-        view = backend.process_constraint(variable_lin_op, empty_view)
+        view = backend.process_constraint(variable_lin_op, arg_view())
 
         # cast to numpy
         view_A = view.get_tensor_representation(0)
@@ -1240,7 +1228,7 @@ class TestBackends:
         # Note: view is edited in-place:
         assert out_view.get_tensor_representation(0) == view.get_tensor_representation(0)
 
-    def test_kron_r(self, backend, empty_view):
+    def test_kron_r(self, backend, arg_view):
         """
         define x = Variable((2,2)) with
         [[x11, x12],
@@ -1267,7 +1255,7 @@ class TestBackends:
         """
 
         variable_lin_op = linOpHelper((2, 2), type='variable', data=1)
-        view = backend.process_constraint(variable_lin_op, empty_view)
+        view = backend.process_constraint(variable_lin_op, arg_view())
 
         # cast to numpy
         view_A = view.get_tensor_representation(0)
@@ -1297,7 +1285,7 @@ class TestBackends:
         # Note: view is edited in-place:
         assert out_view.get_tensor_representation(0) == view.get_tensor_representation(0)
 
-    def test_kron_l(self, backend, empty_view):
+    def test_kron_l(self, backend, arg_view):
         """
         define x = Variable((2,2)) with
         [[x11, x12],
@@ -1324,7 +1312,7 @@ class TestBackends:
         """
 
         variable_lin_op = linOpHelper((2, 2), type='variable', data=1)
-        view = backend.process_constraint(variable_lin_op, empty_view)
+        view = backend.process_constraint(variable_lin_op, arg_view())
 
         # cast to numpy
         view_A = view.get_tensor_representation(0)

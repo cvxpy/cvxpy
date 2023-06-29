@@ -60,10 +60,10 @@ class TensorRepresentation:
 
     def __eq__(self, other: TensorRepresentation) -> bool:
         return isinstance(other, TensorRepresentation) and \
-               np.all(self.data == other.data) and \
-               np.all(self.row == other.row) and \
-               np.all(self.col == other.col) and \
-               np.all(self.parameter_offset == other.parameter_offset)
+            np.all(self.data == other.data) and \
+            np.all(self.row == other.row) and \
+            np.all(self.col == other.col) and \
+            np.all(self.parameter_offset == other.parameter_offset)
 
 
 class CanonBackend(ABC):
@@ -839,21 +839,44 @@ class NumpyCanonBackend(PythonCanonBackend):
     """
 
     @staticmethod
-    def reshape_constant_data(constant_data: dict[int, sp.csr_matrix], new_shape: tuple[int, ...]) \
-            -> dict[int, sp.csr_matrix]:
-        pass  # noqa
+    def reshape_constant_data(constant_data: dict[int, np.ndarray], new_shape: tuple[int, ...]) \
+            -> dict[int, np.ndarray]:
+        return {k: v.reshape(new_shape[:-1], order="F") for k, v in constant_data.items()}
 
-    def concatenate_tensors(self, tensors: list[TensorRepresentation]) -> TensorView:
-        pass
+    def concatenate_tensors(self, tensors: list[TensorRepresentation]) \
+            -> TensorRepresentation:
+        return TensorRepresentation.combine(tensors)
 
     def reshape_tensors(self, tensor: TensorView, total_rows: int) -> sp.coo_matrix:
         pass
 
-    def get_empty_view(self) -> TensorView:
-        pass
+    def get_empty_view(self) -> NumpyTensorView:
+        return NumpyTensorView.get_empty_view(self.param_size_plus_one, self.id_to_col,
+                                              self.param_to_size, self.param_to_col,
+                                              self.var_length)
 
     def mul(self, lin: LinOp, view: TensorView) -> TensorView:
-        pass
+        lhs, is_param_free_lhs = self.get_constant_data(lin.data, view, column=False)
+
+        if isinstance(lhs, dict):
+            reps = view.rows // next(iter(lhs.values()))[0].shape[-1]
+            eye = sp.eye(reps, format="csr")
+            stacked_lhs = {k: [sp.kron(eye, v_i).tocsr() for v_i in v] for k, v in lhs.items()}
+
+            def parametrized_mul(x):
+                assert len(x) == 1
+                return {k: [(v_i @ x[0]).tocsr() for v_i in v] for k, v in stacked_lhs.items()}
+
+            func = parametrized_mul
+        else:
+            assert len(lhs) == 1
+            reps = view.rows // lhs[0].shape[-1]
+            stacked_lhs = (sp.kron(sp.eye(reps, format="csr"), lhs[0]))
+
+            def func(x):
+                return stacked_lhs.tocsr() @ x
+
+        return view.accumulate_over_variables(func, is_param_free_function=is_param_free_lhs)
 
     @staticmethod
     def promote(lin: LinOp, view: NumpyTensorView) -> NumpyTensorView:
@@ -868,7 +891,17 @@ class NumpyCanonBackend(PythonCanonBackend):
         return view
 
     def mul_elem(self, lin: LinOp, view: NumpyTensorView) -> NumpyTensorView:
-        pass
+        lhs, is_param_free_lhs = self.get_constant_data(lin.data, view, column=True)
+        if isinstance(lhs, dict):
+            def parametrized_mul(x):
+                assert len(x) == 1
+                return {k: v * x[0] for k, v in lhs.items()}
+
+            func = parametrized_mul
+        else:
+            def func(x):
+                return lhs[0] * x
+        return view.accumulate_over_variables(func, is_param_free_function=is_param_free_lhs)
 
     @staticmethod
     def sum_entries(_lin: LinOp, view: NumpyTensorView) -> NumpyTensorView:
@@ -879,7 +912,19 @@ class NumpyCanonBackend(PythonCanonBackend):
         return view
 
     def div(self, lin: LinOp, view: NumpyTensorView) -> NumpyTensorView:
-        pass
+        lhs, is_param_free_lhs = self.get_constant_data(lin.data, view, column=True)
+        assert is_param_free_lhs
+        assert lhs.shape[0] == 1
+        data = lhs.flatten(order='F')
+
+        # dtype is important here, will do integer division if data is of dtype "int" otherwise.
+        data = np.reciprocal(data, where=data != 0, dtype=float)
+        lhs = data.reshape(lhs.shape)
+
+        def div_func(x):
+            return lhs * x
+
+        return view.accumulate_over_variables(div_func, is_param_free_function=is_param_free_lhs)
 
     @staticmethod
     def diag_vec(lin: LinOp, view: NumpyTensorView) -> NumpyTensorView:
@@ -921,10 +966,44 @@ class NumpyCanonBackend(PythonCanonBackend):
 
     @staticmethod
     def trace(lin: LinOp, view: NumpyTensorView) -> NumpyTensorView:
-        pass
+        shape = lin.args[0].shape
+        indices = np.arange(shape[0]) * shape[0] + np.arange(shape[0])
+
+        data = np.ones(len(indices))
+        col = indices.astype(int)
+        lhs = np.zeros(shape=(1, 1, np.prod(shape)))
+        lhs[:, :, col] = data
+
+        def func(x):
+            return lhs @ x
+
+        return view.accumulate_over_variables(func, is_param_free_function=True)
 
     def conv(self, lin: LinOp, view: NumpyTensorView) -> NumpyTensorView:
-        pass
+        lhs, is_param_free_lhs = self.get_constant_data(lin.data, view, column=False)
+        assert is_param_free_lhs
+        assert len(lhs) == 1
+        lhs = lhs[0]
+        assert lhs.ndim == 2
+
+        if len(lin.data.shape) == 1:
+            lhs = lhs.T
+
+        rows = lin.shape[0]
+        cols = lin.args[0].shape[0]
+        nonzeros = lhs.shape[0]
+
+        lhs = lhs.tocoo()
+        row_idx = (np.tile(lhs.row, cols) + np.repeat(np.arange(cols), nonzeros)).astype(int)
+        col_idx = (np.tile(lhs.col, cols) + np.repeat(np.arange(cols), nonzeros)).astype(int)
+        data = np.tile(lhs.data, cols)
+
+        lhs = sp.csr_matrix((data, (row_idx, col_idx)), shape=(rows, cols))
+
+        def func(x):
+            return lhs @ x
+
+        return view.accumulate_over_variables(func, is_param_free_function=is_param_free_lhs)
 
     def kron_r(self, lin: LinOp, view: NumpyTensorView) -> NumpyTensorView:
         pass
@@ -940,7 +1019,7 @@ class NumpyCanonBackend(PythonCanonBackend):
 
     def get_data_tensor(self, data: np.ndarray) -> \
             dict[int, dict[int, np.ndarray]]:
-        tensor = np.ndarray(data.reshape(-1, 1), order="F")
+        tensor = data.reshape((-1, 1), order="F")
         return {Constant.ID.value: {Constant.ID.value: np.expand_dims(tensor, axis=0)}}
 
     def get_param_tensor(self, shape: tuple[int, ...], parameter_id: int) \
@@ -1178,7 +1257,7 @@ class NumpyTensorView(TensorView):
                 for param_slice_offset in range(parameter_tensor.shape[0]):
                     matrix = parameter_tensor[param_slice_offset]
                     tensor_representations.append(TensorRepresentation(
-                        matrix.flatten(order='F').astype(int),
+                        matrix.flatten(order='F'),
                         np.tile(np.arange(matrix.shape[0]), matrix.shape[1]) + row_offset,
                         np.repeat(np.arange(matrix.shape[1]), matrix.shape[0]) + self.id_to_col[variable_id],
                         np.ones(matrix.size) * self.param_to_col[parameter_id] +
@@ -1198,7 +1277,8 @@ class NumpyTensorView(TensorView):
                                 for k, v in parameter_repr.items()}
                        for var_id, parameter_repr in self.tensor.items()}
 
-    def create_new_tensor_view(self, variable_ids: set[int], tensor: Any, is_parameter_free: bool) -> NumpyTensorView:
+    def create_new_tensor_view(self, variable_ids: set[int], tensor: Any,
+                               is_parameter_free: bool) -> NumpyTensorView:
         return NumpyTensorView(variable_ids, tensor, is_parameter_free, self.param_size_plus_one,
                                self.id_to_col, self.param_to_size, self.param_to_col,
                                self.var_length)
