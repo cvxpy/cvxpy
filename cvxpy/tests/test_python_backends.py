@@ -836,7 +836,9 @@ class TestBackends:
         out_view = backend.mul(mul_lin_op, view)
 
         # indices are: variable 1, parameter 2, 0 index of the list
-        slice_idx_zero = out_view.tensor[1][2][0].toarray()
+        slice_idx_zero = out_view.tensor[1][2][0]
+        if not isinstance(slice_idx_zero, np.ndarray):
+            slice_idx_zero = slice_idx_zero.toarray()
         expected_idx_zero = np.array(
             [[1., 0., 0., 0.],
              [0., 0., 0., 0.],
@@ -846,7 +848,9 @@ class TestBackends:
         assert np.all(slice_idx_zero == expected_idx_zero)
 
         # indices are: variable 1, parameter 2, 1 index of the list
-        slice_idx_one = out_view.tensor[1][2][1].toarray()
+        slice_idx_one = out_view.tensor[1][2][1]
+        if not isinstance(slice_idx_one, np.ndarray):
+            slice_idx_one = slice_idx_one.toarray()
         expected_idx_one = np.array(
             [[0., 0., 0., 0.],
              [1., 0., 0., 0.],
@@ -856,7 +860,9 @@ class TestBackends:
         assert np.all(slice_idx_one == expected_idx_one)
 
         # indices are: variable 1, parameter 2, 2 index of the list
-        slice_idx_two = out_view.tensor[1][2][2].toarray()
+        slice_idx_two = out_view.tensor[1][2][2]
+        if not isinstance(slice_idx_two, np.ndarray):
+            slice_idx_two = slice_idx_two.toarray()
         expected_idx_two = np.array(
             [[0., 1., 0., 0.],
              [0., 0., 0., 0.],
@@ -866,7 +872,9 @@ class TestBackends:
         assert np.all(slice_idx_two == expected_idx_two)
 
         # indices are: variable 1, parameter 2, 3 index of the list
-        slice_idx_three = out_view.tensor[1][2][3].toarray()
+        slice_idx_three = out_view.tensor[1][2][3]
+        if not isinstance(slice_idx_three, np.ndarray):
+            slice_idx_three = slice_idx_three.toarray()
         expected_idx_three = np.array(
             [[0., 0., 0., 0.],
              [0., 1., 0., 0.],

@@ -841,7 +841,8 @@ class NumpyCanonBackend(PythonCanonBackend):
     @staticmethod
     def reshape_constant_data(constant_data: dict[int, np.ndarray], new_shape: tuple[int, ...]) \
             -> dict[int, np.ndarray]:
-        return {k: v.reshape(new_shape[:-1], order="F") for k, v in constant_data.items()}
+        return {k: np.stack([v_i.reshape(new_shape[:-1], order="F") for v_i in v], axis=0)
+                for k, v in constant_data.items()}
 
     def concatenate_tensors(self, tensors: list[TensorRepresentation]) \
             -> TensorRepresentation:
@@ -857,24 +858,22 @@ class NumpyCanonBackend(PythonCanonBackend):
 
     def mul(self, lin: LinOp, view: TensorView) -> TensorView:
         lhs, is_param_free_lhs = self.get_constant_data(lin.data, view, column=False)
-
         if isinstance(lhs, dict):
             reps = view.rows // next(iter(lhs.values()))[0].shape[-1]
-            eye = sp.eye(reps, format="csr")
-            stacked_lhs = {k: [sp.kron(eye, v_i).tocsr() for v_i in v] for k, v in lhs.items()}
+            stacked_lhs = {k: np.kron(np.eye(reps), v) for k, v in lhs.items()}
 
             def parametrized_mul(x):
                 assert len(x) == 1
-                return {k: [(v_i @ x[0]).tocsr() for v_i in v] for k, v in stacked_lhs.items()}
+                return {k: v @ x[0] for k, v in stacked_lhs.items()}
 
             func = parametrized_mul
         else:
             assert len(lhs) == 1
             reps = view.rows // lhs[0].shape[-1]
-            stacked_lhs = (sp.kron(sp.eye(reps, format="csr"), lhs[0]))
+            stacked_lhs = (np.kron(np.eye(reps), lhs[0]))
 
             def func(x):
-                return stacked_lhs.tocsr() @ x
+                return stacked_lhs @ x
 
         return view.accumulate_over_variables(func, is_param_free_function=is_param_free_lhs)
 
