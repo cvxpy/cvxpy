@@ -961,7 +961,41 @@ class NumpyCanonBackend(PythonCanonBackend):
         return stack_func
 
     def rmul(self, lin: LinOp, view: NumpyTensorView) -> NumpyTensorView:
-        pass
+        # Note that even though this is rmul, we still use "lhs", as is implemented via a
+        # multiplication from the left in this function.
+        lhs, is_param_free_lhs = self.get_constant_data(lin.data, view, column=False)
+        arg_cols = lin.args[0].shape[0] if len(lin.args[0].shape) == 1 else lin.args[0].shape[1]
+
+        if isinstance(lhs, dict):
+            lhs_shape = next(iter(lhs.values()))[0].shape
+
+            if len(lin.data.shape) == 1 and arg_cols != lhs_shape[0]:
+                # Example: (n,n) @ (n,), we need to interpret the rhs as a column vector,
+                # but it is a row vector by default, so we need to transpose
+                lhs = {k: np.stack([v_i.T for v_i in v]) for k, v in lhs.items()}
+                lhs_shape = next(iter(lhs.values()))[0].shape
+
+            eye = np.eye(view.rows // lhs_shape[0])
+            stacked_lhs = {k: np.stack([np.kron(v_i.T, eye) for v_i in v]) for k, v in lhs.items()}
+
+            def parametrized_mul(x):
+                assert len(x) == 1
+                return {k: v @ x[0] for k, v in stacked_lhs.items()}
+
+            func = parametrized_mul
+        else:
+            assert len(lhs) == 1
+            lhs = lhs[0]
+            if len(lin.data.shape) == 1 and arg_cols != lhs.shape[0]:
+                # Example: (n,n) @ (n,), we need to interpret the rhs as a column vector,
+                # but it is a row vector by default, so we need to transpose
+                lhs = lhs.T
+            reps = view.rows // lhs.shape[0]
+            stacked_lhs = np.kron(lhs.T, np.eye(reps))
+
+            def func(x):
+                return stacked_lhs @ x
+        return view.accumulate_over_variables(func, is_param_free_function=is_param_free_lhs)
 
     @staticmethod
     def trace(lin: LinOp, view: NumpyTensorView) -> NumpyTensorView:
@@ -992,12 +1026,11 @@ class NumpyCanonBackend(PythonCanonBackend):
         cols = lin.args[0].shape[0]
         nonzeros = lhs.shape[0]
 
-        lhs = lhs.tocoo()
-        row_idx = (np.tile(lhs.row, cols) + np.repeat(np.arange(cols), nonzeros)).astype(int)
-        col_idx = (np.tile(lhs.col, cols) + np.repeat(np.arange(cols), nonzeros)).astype(int)
-        data = np.tile(lhs.data, cols)
-
-        lhs = sp.csr_matrix((data, (row_idx, col_idx)), shape=(rows, cols))
+        row_idx = (np.tile(np.arange(nonzeros), cols) + np.repeat(np.arange(cols), nonzeros)).astype(int)
+        col_idx = (np.repeat(np.arange(cols), nonzeros)).astype(int)
+        data = np.tile(lhs.flatten(), cols)
+        lhs = np.zeros(shape=(1, rows, cols))
+        lhs[:, row_idx, col_idx] = data
 
         def func(x):
             return lhs @ x
@@ -1005,10 +1038,60 @@ class NumpyCanonBackend(PythonCanonBackend):
         return view.accumulate_over_variables(func, is_param_free_function=is_param_free_lhs)
 
     def kron_r(self, lin: LinOp, view: NumpyTensorView) -> NumpyTensorView:
-        pass
+        lhs, is_param_free_lhs = self.get_constant_data(lin.data, view, column=True)
+        assert is_param_free_lhs
+        assert len(lhs) == 1
+        lhs = lhs[0]
+        assert lhs.ndim == 2
+
+        assert len({arg.shape for arg in lin.args}) == 1
+        rhs_shape = lin.args[0].shape
+
+        lhs_ones = np.ones(lin.data.shape)
+        rhs_ones = np.ones(rhs_shape)
+
+        lhs_arange = np.arange(np.prod(lin.data.shape)).reshape(lin.data.shape, order="F")
+        rhs_arange = np.arange(np.prod(rhs_shape)).reshape(rhs_shape, order="F")
+
+        row_indices = (np.kron(lhs_ones, rhs_arange) +
+                       np.kron(lhs_arange, rhs_ones * np.prod(rhs_shape))) \
+            .flatten(order="F").astype(int)
+
+        def func(x: np.ndarray) -> np.ndarray:
+            assert x.ndim == 3
+            kron_res = np.kron(lhs, x)
+            kron_res = kron_res[:, row_indices, :]
+            return kron_res
+
+        return view.accumulate_over_variables(func, is_param_free_function=is_param_free_lhs)
 
     def kron_l(self, lin: LinOp, view: NumpyTensorView) -> NumpyTensorView:
-        pass
+        rhs, is_param_free_rhs = self.get_constant_data(lin.data, view, column=True)
+        assert is_param_free_rhs
+        assert len(rhs) == 1
+        rhs = rhs[0]
+        assert rhs.ndim == 2
+
+        assert len({arg.shape for arg in lin.args}) == 1
+        lhs_shape = lin.args[0].shape
+
+        rhs_ones = np.ones(lin.data.shape)
+        lhs_ones = np.ones(lhs_shape)
+
+        rhs_arange = np.arange(np.prod(lin.data.shape)).reshape(lin.data.shape, order="F")
+        lhs_arange = np.arange(np.prod(lhs_shape)).reshape(lhs_shape, order="F")
+
+        row_indices = (np.kron(lhs_ones, rhs_arange) +
+                       np.kron(lhs_arange, rhs_ones * np.prod(lin.data.shape))) \
+            .flatten(order="F").astype(int)
+
+        def func(x: np.ndarray) -> np.ndarray:
+            assert x.ndim == 3
+            kron_res = np.kron(x, rhs)
+            kron_res = kron_res[:, row_indices, :]
+            return kron_res
+
+        return view.accumulate_over_variables(func, is_param_free_function=is_param_free_rhs)
 
     def get_variable_tensor(self, shape: tuple[int, ...], variable_id: int) \
             -> dict[int, dict[int, np.ndarray]]:
