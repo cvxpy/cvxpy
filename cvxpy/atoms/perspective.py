@@ -48,8 +48,9 @@ class perspective(Atom):
     :math:`p(z,s) = sf(z/s)` is the perpective transform of :math:`f`.
     """
 
-    def __init__(self, f: Expression, s: Variable) -> None:
+    def __init__(self, f: Expression, s: Variable, f_recession: Expression = None) -> None:
         self.f = f
+        self.f_recession = f_recession
         super(perspective, self).__init__(s, *f.variables())
 
     def validate_arguments(self) -> None:
@@ -65,11 +66,19 @@ class perspective(Atom):
         """
 
         assert values[0] >= 0
-        assert not np.isclose(values[0], 0.0), \
-            "There are valid cases where s = 0, but we do not handle this yet, e.g., f(x) = x + 1."
-
         s_val = np.array(values[0])
+
+        # Normal scenario: compute the perspective transform of the given function f
         f = self.f
+        if np.isclose(values[0], 0.0):
+            # Handle s = 0 with the recession function by swapping f with f_recession
+            # Since we just swap the two functions, we end up with s * f_recession(x / s) 
+            # when we actually just want f_recession(x). Thus we set s=1 to ignore s.
+            assert self.f_recession is not None, (
+                "To handle s = 0, pass in a recession function f_recession"
+            )
+            f = self.f_recession
+            values[0] = 1 
 
         old_x_vals = [var.value for var in f.variables()]
 
