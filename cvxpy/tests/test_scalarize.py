@@ -94,14 +94,16 @@ class ScalarizeTest(BaseTest):
         priorities = [1, 1]
 
         with pytest.raises(ValueError, match="Scalarized objective is neither convex nor concave"):
-            scalarize.targets_and_priorities([obj_1, obj_2], priorities, targets)
+            scalarize.targets_and_priorities(objectives, priorities, targets)
 
         priorities = [1, -1]
-        scalarized = scalarize.targets_and_priorities(objectives, priorities, targets)
+        limits = [1, -1]
+        scalarized = scalarize.targets_and_priorities(objectives, priorities, targets, limits)
         assert scalarized.args[0].is_convex()
 
         priorities = [-1, 1]
-        scalarized = scalarize.targets_and_priorities(objectives, priorities, targets)
+        limits = [1, -1]
+        scalarized = scalarize.targets_and_priorities(objectives, priorities, targets, limits)
         assert scalarized.args[0].is_concave()
 
 
