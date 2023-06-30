@@ -58,15 +58,35 @@ def test_scipy_tensor_view_add_dicts():
         ScipyTensorView.add_dicts({"a": 1}, {"a": 2})
 
 
-class TestBackend:
+class TestBackendInstance:
 
     def test_get_backend(self):
         args = ({1: 0, 2: 2}, {-1: 1, 3: 1}, {3: 0, -1: 1}, 2, 4)
         backend = CanonBackend.get_backend(s.SCIPY_CANON_BACKEND, *args)
         assert isinstance(backend, ScipyCanonBackend)
 
+        backend = CanonBackend.get_backend(s.NUMPY_CANON_BACKEND, *args)
+        assert isinstance(backend, NumpyCanonBackend)
+
         with pytest.raises(KeyError):
             CanonBackend.get_backend('notabackend')
+
+
+backends = [
+    {
+        'backend': "scipy_backend",
+        'view': "scipy_arg_view",
+    }, {
+        'backend': "numpy_backend",
+        'view': "numpy_arg_view",
+    }
+]
+
+
+@pytest.fixture(params=backends)
+def setup(request):
+    return {'backend': request.param['backend'],
+            'arg_view': request.param['view']}
 
 
 class TestBackends:
@@ -77,7 +97,6 @@ class TestBackends:
     param_to_size = {-1: 1, 3: 1}
     param_to_col = {3: 0, -1: 1}
     var_length = 4
-    const = "numpy"
 
     @pytest.fixture
     def scipy_backend(self):
@@ -89,9 +108,9 @@ class TestBackends:
         return NumpyCanonBackend(self.id_to_col, self.param_to_size, self.param_to_col,
                                  self.param_size_plus_one, self.var_length)
 
-    @pytest.fixture(params=[const + "_backend"])
-    def backend(self, request):
-        return request.getfixturevalue(request.param)
+    @pytest.fixture()
+    def backend(self, setup, request):
+        return request.getfixturevalue(setup['backend'])
 
     @pytest.fixture()
     def numpy_arg_view(self):
@@ -119,9 +138,9 @@ class TestBackends:
 
         return scipy_view
 
-    @pytest.fixture(params=[const + "_arg_view"])
-    def arg_view(self, request):
-        return request.getfixturevalue(request.param)
+    @pytest.fixture()
+    def arg_view(self, setup, request):
+        return request.getfixturevalue(setup['arg_view'])
 
     def test_mapping(self, backend):
         func = backend.get_func('sum')
