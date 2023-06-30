@@ -109,7 +109,6 @@ class ScalarizeTest(BaseTest):
 
     def test_targets_and_priorities_exceptions(self) -> None:
         targets = [1, 1]
-        limits = [1, 1]
 
         # Test exceptions:
         priorities = [1]

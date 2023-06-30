@@ -60,9 +60,8 @@ def targets_and_priorities(
 
         -infinity when objectives[i] < limits[i]
 
-    A negative priority flips the objective sense, i.e., Minimize becomes Maximize
-    and vice versa, i.e., we use -objectives[i], -targets[i], and -limits[i] with
-    abs(priorities[i]).
+    A negative priority flips the objective sense, i.e., we 
+    use -objectives[i], -targets[i], and -limits[i] with abs(priorities[i]).
 
     Args:
       objectives: A list of Minimize/Maximize objectives.
