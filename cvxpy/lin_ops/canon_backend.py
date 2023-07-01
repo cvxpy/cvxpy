@@ -138,7 +138,8 @@ class PythonCanonBackend(CanonBackend):
     - A new parameter of size n has shape (n, n, 1)
     - A new constant of size n has shape (1, n, 1)
     """
-    def build_matrix(self, lin_ops: list[LinOp]) -> sp.coo_matrix:
+
+    def build_matrix(self, lin_ops: list[LinOp]) -> sp.csc_matrix:
         self.id_to_col[-1] = self.var_length
 
         constraint_res = []
@@ -239,7 +240,7 @@ class PythonCanonBackend(CanonBackend):
         pass  # noqa
 
     @abstractmethod
-    def reshape_tensors(self, tensor: TensorView, total_rows: int) -> sp.coo_matrix:
+    def reshape_tensors(self, tensor: TensorView, total_rows: int) -> sp.csc_matrix:
         """
         Reshape into 2D scipy coo-matrix in column-major order and transpose.
         """
@@ -847,8 +848,12 @@ class NumpyCanonBackend(PythonCanonBackend):
             -> TensorRepresentation:
         return TensorRepresentation.combine(tensors)
 
-    def reshape_tensors(self, tensor: TensorView, total_rows: int) -> sp.coo_matrix:
-        pass
+    def reshape_tensors(self, tensor: TensorView, total_rows: int) -> sp.csc_matrix:
+        # Windows uses int32 by default at time of writing, so we need to enforce int64 here
+        rows = (tensor.col.astype(np.int64) * np.int64(total_rows) + tensor.row.astype(np.int64))
+        cols = tensor.parameter_offset.astype(np.int64)
+        shape = (np.int64(total_rows) * np.int64(self.var_length + 1), self.param_size_plus_one)
+        return sp.csc_matrix((tensor.data, (rows, cols)), shape=shape)
 
     def get_empty_view(self) -> NumpyTensorView:
         return NumpyTensorView.get_empty_view(self.param_size_plus_one, self.id_to_col,
@@ -881,8 +886,6 @@ class NumpyCanonBackend(PythonCanonBackend):
         num_entries = int(np.prod(lin.shape))
 
         def func(x):
-            # Fast way of repeating sparse matrix along axis 0
-            # See comment in https://stackoverflow.com/a/50759652
             return x[:, np.zeros(num_entries, dtype=int), :]
 
         view.apply_all(func)
@@ -1211,7 +1214,64 @@ class TensorView(ABC):
         pass  # noqa
 
 
-class ScipyTensorView(TensorView):
+class DictTensorView(TensorView, ABC):
+    def accumulate_over_variables(self, func: Callable, is_param_free_function: bool) \
+            -> TensorView:
+        """
+        Apply 'func' to A and b.
+        If 'func' is a parameter free function, then we can apply it to all parameter slices
+        (including the slice that contains non-parameter constants).
+        If 'func' is not a parameter free function, we only need to consider the parameter slice
+        that contains the non-parameter constants, due to DPP rules.
+        """
+        for variable_id, tensor in self.tensor.items():
+            self.tensor[variable_id] = self.apply_to_parameters(func, tensor) if \
+                is_param_free_function else func(tensor[Constant.ID.value])
+
+        self.is_parameter_free = self.is_parameter_free and is_param_free_function
+        return self
+
+    @staticmethod
+    def combine_potentially_none(a: dict | None, b: dict | None) -> dict | None:
+        if a is None and b is None:
+            return None
+        elif a is not None and b is None:
+            return a
+        elif a is None and b is not None:
+            return b
+        else:
+            return TensorView.add_dicts(a, b)
+
+    @staticmethod
+    @abstractmethod
+    def add_tensors(a: Any | None, b: Any | None):
+        pass
+
+    @staticmethod
+    def add_dicts(self, a: dict, b: dict) -> dict:
+        """
+        Addition for dict-based tensors.
+        """
+        res = {}
+        keys_a = set(a.keys())
+        keys_b = set(b.keys())
+        intersect = keys_a & keys_b
+        for key in intersect:
+            if isinstance(a[key], dict) and isinstance(b[key], dict):
+                res[key] = NumpyTensorView.add_dicts(a[key], b[key])
+            elif isinstance(a[key], list | np.ndarray) and isinstance(b[key], list | np.ndarray):
+                assert len(a[key]) == len(b[key])
+                res[key] = self.add_tensors(a, b)
+            else:
+                raise ValueError('Values must either be dicts or lists/np.ndarray.')
+        for key in keys_a - intersect:
+            res[key] = a[key]
+        for key in keys_b - intersect:
+            res[key] = b[key]
+        return res
+
+
+class ScipyTensorView(DictTensorView):
 
     @property
     def rows(self) -> int:
@@ -1257,22 +1317,6 @@ class ScipyTensorView(TensorView):
                                self.id_to_col, self.param_to_size, self.param_to_col,
                                self.var_length)
 
-    def accumulate_over_variables(self, func: Callable, is_param_free_function: bool) \
-            -> ScipyTensorView:
-        """
-        Apply 'func' to A and b.
-        If 'func' is a parameter free function, then we can apply it to all parameter slices
-        (including the slice that contains non-parameter constants).
-        If 'func' is not a parameter free function, we only need to consider the parameter slice
-        that contains the non-parameter constants, due to DPP rules.
-        """
-        for variable_id, tensor in self.tensor.items():
-            self.tensor[variable_id] = self.apply_to_parameters(func, tensor) if \
-                is_param_free_function else func(tensor[Constant.ID.value])
-
-        self.is_parameter_free = self.is_parameter_free and is_param_free_function
-        return self
-
     @staticmethod
     def apply_to_parameters(func: Callable,
                             parameter_representation: dict[int, list[sp.csr_matrix]]) \
@@ -1283,41 +1327,12 @@ class ScipyTensorView(TensorView):
         return {k: [func(v_i).tocsr() for v_i in v] for k, v in parameter_representation.items()}
 
     @staticmethod
-    def combine_potentially_none(a: dict | None, b: dict | None) -> dict | None:
-        if a is None and b is None:
-            return None
-        elif a is not None and b is None:
-            return a
-        elif a is None and b is not None:
-            return b
-        else:
-            return ScipyTensorView.add_dicts(a, b)
-
-    @staticmethod
-    def add_dicts(a: dict, b: dict) -> dict:
-        """
-        Addition for dict-based tensors.
-        """
-        res = {}
-        keys_a = set(a.keys())
-        keys_b = set(b.keys())
-        intersect = keys_a & keys_b
-        for key in intersect:
-            if isinstance(a[key], dict) and isinstance(b[key], dict):
-                res[key] = ScipyTensorView.add_dicts(a[key], b[key])
-            elif isinstance(a[key], list) and isinstance(b[key], list):
-                assert len(a[key]) == len(b[key])
-                res[key] = [a + b for a, b in zip(a[key], b[key])]
-            else:
-                raise ValueError('Values must either be dicts or lists.')
-        for key in keys_a - intersect:
-            res[key] = a[key]
-        for key in keys_b - intersect:
-            res[key] = b[key]
-        return res
+    def add_tensors(a: Any | None, b: Any | None):
+        return [a + b for a, b in zip(a, b)]
 
 
-class NumpyTensorView(TensorView):
+class NumpyTensorView(DictTensorView):
+
     @property
     def rows(self) -> int:
         if self.tensor is not None:
@@ -1364,22 +1379,6 @@ class NumpyTensorView(TensorView):
                                self.id_to_col, self.param_to_size, self.param_to_col,
                                self.var_length)
 
-    def accumulate_over_variables(self, func: Callable, is_param_free_function: bool) \
-            -> NumpyTensorView:
-        """
-        Apply 'func' to A and b.
-        If 'func' is a parameter free function, then we can apply it to all parameter slices
-        (including the slice that contains non-parameter constants).
-        If 'func' is not a parameter free function, we only need to consider the parameter slice
-        that contains the non-parameter constants, due to DPP rules.
-        """
-        for variable_id, tensor in self.tensor.items():
-            self.tensor[variable_id] = self.apply_to_parameters(func, tensor) if \
-                is_param_free_function else func(tensor[Constant.ID.value])
-
-        self.is_parameter_free = self.is_parameter_free and is_param_free_function
-        return self
-
     @staticmethod
     def apply_to_parameters(func: Callable,
                             parameter_representation: dict[int, np.ndarray]) \
@@ -1390,35 +1389,5 @@ class NumpyTensorView(TensorView):
         return {k: func(v) for k, v in parameter_representation.items()}
 
     @staticmethod
-    def combine_potentially_none(a: Any | None, b: Any | None) -> Any | None:
-        if a is None and b is None:
-            return None
-        elif a is not None and b is None:
-            return a
-        elif a is None and b is not None:
-            return b
-        else:
-            return NumpyTensorView.add_dicts(a, b)
-
-    @staticmethod
-    def add_dicts(a: dict, b: dict) -> dict:
-        """
-        Addition for dict-based tensors.
-        """
-        res = {}
-        keys_a = set(a.keys())
-        keys_b = set(b.keys())
-        intersect = keys_a & keys_b
-        for key in intersect:
-            if isinstance(a[key], dict) and isinstance(b[key], dict):
-                res[key] = NumpyTensorView.add_dicts(a[key], b[key])
-            elif isinstance(a[key], list) and isinstance(b[key], list):
-                assert len(a[key]) == len(b[key])
-                res[key] = [a + b for a, b in zip(a[key], b[key])]
-            else:
-                raise ValueError('Values must either be dicts or lists.')
-        for key in keys_a - intersect:
-            res[key] = a[key]
-        for key in keys_b - intersect:
-            res[key] = b[key]
-        return res
+    def add_tensors(a: Any | None, b: Any | None):
+        return a + b
