@@ -24,7 +24,8 @@ import numpy as np
 import scipy.sparse as sp
 
 from cvxpy.lin_ops import LinOp
-from cvxpy.settings import RUST_CANON_BACKEND, SCIPY_CANON_BACKEND, NUMPY_CANON_BACKEND
+from cvxpy.settings import RUST_CANON_BACKEND, SCIPY_CANON_BACKEND, \
+                            NUMPY_CANON_BACKEND, STACKED_SLICES_CANON_BACKEND
 
 
 class Constant(Enum):
@@ -103,6 +104,7 @@ class CanonBackend(ABC):
         Initialized CanonBackend subclass.
         """
         backends = {
+            STACKED_SLICES_CANON_BACKEND: StackedSlicesBackend,
             NUMPY_CANON_BACKEND: NumpyCanonBackend,
             SCIPY_CANON_BACKEND: ScipyCanonBackend,
             RUST_CANON_BACKEND: RustCanonBackend
@@ -1111,6 +1113,72 @@ class NumpyCanonBackend(PythonCanonBackend):
         return {Constant.ID.value: {parameter_id: np.expand_dims(np.eye(n), axis=-1)}}
 
 
+class StackedSlicesBackend(PythonCanonBackend):
+
+    @staticmethod
+    def reshape_constant_data(constant_data: Any, new_shape: tuple[int, ...]) -> Any:
+        pass
+
+    def concatenate_tensors(self, tensors: list[TensorRepresentation]) -> TensorView:
+        pass
+
+    def reshape_tensors(self, tensor: TensorView, total_rows: int) -> sp.coo_matrix:
+        pass
+
+    def get_empty_view(self) -> TensorView:
+        pass
+
+    def mul(self, lin: LinOp, view: TensorView) -> TensorView:
+        pass
+
+    @staticmethod
+    def promote(lin: LinOp, view: TensorView) -> TensorView:
+        pass
+
+    def mul_elem(self, lin: LinOp, view: TensorView) -> TensorView:
+        pass
+
+    @staticmethod
+    def sum_entries(_lin: LinOp, view: TensorView) -> TensorView:
+        pass
+
+    def div(self, lin: LinOp, view: TensorView) -> TensorView:
+        pass
+
+    @staticmethod
+    def diag_vec(lin: LinOp, view: TensorView) -> TensorView:
+        pass
+
+    @staticmethod
+    def get_stack_func(total_rows: int, offset: int) -> Callable:
+        pass
+
+    def rmul(self, lin: LinOp, view: TensorView) -> TensorView:
+        pass
+
+    @staticmethod
+    def trace(lin: LinOp, view: TensorView) -> TensorView:
+        pass
+
+    def conv(self, lin: LinOp, view: TensorView) -> TensorView:
+        pass
+
+    def kron_r(self, lin: LinOp, view: TensorView) -> TensorView:
+        pass
+
+    def kron_l(self, lin: LinOp, view: TensorView) -> TensorView:
+        pass
+
+    def get_variable_tensor(self, shape: tuple[int, ...], variable_id: int) -> Any:
+        pass
+
+    def get_data_tensor(self, data: Any) -> Any:
+        pass
+
+    def get_param_tensor(self, shape: tuple[int, ...], parameter_id: int) -> Any:
+        pass
+
+
 class TensorView(ABC):
     """
     A TensorView represents the tensors for A and b, which are of shape
@@ -1423,3 +1491,25 @@ class NumpyTensorView(TensorView):
         for key in keys_b - intersect:
             res[key] = b[key]
         return res
+
+
+class StackedSlicesTensorView(TensorView):
+    @staticmethod
+    def combine_potentially_none(a: Any | None, b: Any | None) -> Any | None:
+        pass
+
+    @property
+    def rows(self) -> int:
+        pass
+
+    def get_tensor_representation(self, row_offset: int) -> TensorRepresentation:
+        pass
+
+    def select_rows(self, rows: np.ndarray) -> None:
+        pass
+
+    def apply_all(self, func: Callable) -> None:
+        pass
+
+    def create_new_tensor_view(self, variable_ids: set[int], tensor: Any, is_parameter_free: bool) -> TensorView:
+        pass

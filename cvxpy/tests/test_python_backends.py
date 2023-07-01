@@ -12,8 +12,10 @@ from cvxpy.lin_ops.canon_backend import (
     CanonBackend,
     ScipyCanonBackend,
     NumpyCanonBackend,
+    StackedSlicesBackend,
     ScipyTensorView,
     NumpyTensorView,
+    StackedSlicesTensorView,
     TensorRepresentation,
 )
 
@@ -79,6 +81,9 @@ backends = [
     }, {
         'backend': "numpy_backend",
         'view': "numpy_arg_view",
+    }, {
+        'backend': "stacked_slices_backend",
+        'view': "stacked_slices_arg_view",
     }
 ]
 
@@ -109,6 +114,11 @@ class TestBackends:
                                  self.param_size_plus_one, self.var_length)
 
     @pytest.fixture()
+    def stacked_slices_backend(self):
+        return StackedSlicesBackend(self.id_to_col, self.param_to_size, self.param_to_col,
+                                    self.param_size_plus_one, self.var_length)
+
+    @pytest.fixture()
     def backend(self, setup, request):
         return request.getfixturevalue(setup['backend'])
 
@@ -137,6 +147,19 @@ class TestBackends:
                                                   var_length or self.var_length)
 
         return scipy_view
+
+    @pytest.fixture()
+    def stacked_slices_arg_view(self):
+        def stacked_slices_view(param_size_plus_one=None, id_to_col=None,
+                                param_to_size=None, param_to_col=None,
+                                var_length=None):
+            return StackedSlicesTensorView.get_empty_view(param_size_plus_one or self.param_size_plus_one,
+                                                          id_to_col or self.id_to_col,
+                                                          param_to_size or self.param_to_size,
+                                                          param_to_col or self.param_to_col,
+                                                          var_length or self.var_length)
+
+        return stacked_slices_view
 
     @pytest.fixture()
     def arg_view(self, setup, request):
