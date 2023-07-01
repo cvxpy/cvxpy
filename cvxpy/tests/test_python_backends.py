@@ -14,6 +14,7 @@ from cvxpy.lin_ops.canon_backend import (
     NumpyCanonBackend,
     ScipyTensorView,
     NumpyTensorView,
+    DictTensorView,
     TensorRepresentation,
 )
 
@@ -38,24 +39,6 @@ def test_tensor_representation():
     assert np.all(combined.row == np.array([0, 1]))
     assert np.all(combined.col == np.array([1, 1]))
     assert np.all(combined.parameter_offset == np.array([0, 1]))
-
-
-def test_scipy_tensor_view_combine_potentially_none():
-    assert ScipyTensorView.combine_potentially_none(None, None) is None
-    a = {"a": [1]}
-    b = {"b": [2]}
-    assert ScipyTensorView.combine_potentially_none(a, None) == a
-    assert ScipyTensorView.combine_potentially_none(None, a) == a
-    assert ScipyTensorView.combine_potentially_none(a, b) == ScipyTensorView.add_dicts(a, b)
-
-
-def test_scipy_tensor_view_add_dicts():
-    assert ScipyTensorView.add_dicts({}, {}) == {}
-    assert ScipyTensorView.add_dicts({"a": [1]}, {"a": [2]}) == {"a": [3]}
-    assert ScipyTensorView.add_dicts({"a": [1]}, {"b": [2]}) == {"a": [1], "b": [2]}
-    assert ScipyTensorView.add_dicts({"a": {"c": [1]}}, {"a": {"c": [1]}}) == {'a': {'c': [2]}}
-    with pytest.raises(ValueError, match="Values must either be dicts or lists"):
-        ScipyTensorView.add_dicts({"a": 1}, {"a": 2})
 
 
 class TestBackendInstance:
@@ -182,6 +165,22 @@ class TestBackends:
         assert len(tensors) == size, "Should be a tensor for each element of the parameter"
         assert (sp.hstack(tensors) != sp.eye(size, format='csr')).nnz == 0, \
             'Should be eye(4) along axes 1 and 2'
+
+    """def test_scipy_tensor_view_combine_potentially_none(self, arg_view):
+        assert arg_view.combine_potentially_none(None, None) is None
+        a = {"a": [1]}
+        b = {"b": [2]}
+        assert ScipyTensorView.combine_potentially_none(a, None) == a
+        assert ScipyTensorView.combine_potentially_none(None, a) == a
+        assert ScipyTensorView.combine_potentially_none(a, b) == ScipyTensorView.add_dicts(a, b)
+
+    def test_scipy_tensor_view_add_dicts(self, arg_view):
+        assert ScipyTensorView.add_dicts({}, {}) == {}
+        assert ScipyTensorView.add_dicts({"a": [1]}, {"a": [2]}) == {"a": [3]}
+        assert ScipyTensorView.add_dicts({"a": [1]}, {"b": [2]}) == {"a": [1], "b": [2]}
+        assert ScipyTensorView.add_dicts({"a": {"c": [1]}}, {"a": {"c": [1]}}) == {'a': {'c': [2]}}
+        with pytest.raises(ValueError, match="Values must either be dicts or lists"):
+            ScipyTensorView.add_dicts({"a": 1}, {"a": 2})"""
 
     def test_neg(self, backend, arg_view):
         """

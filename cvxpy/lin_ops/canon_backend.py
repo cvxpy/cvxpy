@@ -874,7 +874,7 @@ class NumpyCanonBackend(PythonCanonBackend):
         else:
             assert len(lhs) == 1
             reps = view.rows // lhs[0].shape[-1]
-            stacked_lhs = (np.kron(np.eye(reps), lhs[0]))
+            stacked_lhs = np.kron(np.eye(reps), lhs[0])
 
             def func(x):
                 return stacked_lhs @ x
@@ -1231,8 +1231,7 @@ class DictTensorView(TensorView, ABC):
         self.is_parameter_free = self.is_parameter_free and is_param_free_function
         return self
 
-    @staticmethod
-    def combine_potentially_none(a: dict | None, b: dict | None) -> dict | None:
+    def combine_potentially_none(self, a: dict | None, b: dict | None) -> dict | None:
         if a is None and b is None:
             return None
         elif a is not None and b is None:
@@ -1240,14 +1239,18 @@ class DictTensorView(TensorView, ABC):
         elif a is None and b is not None:
             return b
         else:
-            return TensorView.add_dicts(a, b)
+            return self.add_dicts(a, b)
 
     @staticmethod
     @abstractmethod
     def add_tensors(a: Any | None, b: Any | None):
-        pass
+        pass # noqa
 
     @staticmethod
+    @abstractmethod
+    def tensor_type():
+        pass # noqa
+
     def add_dicts(self, a: dict, b: dict) -> dict:
         """
         Addition for dict-based tensors.
@@ -1258,10 +1261,10 @@ class DictTensorView(TensorView, ABC):
         intersect = keys_a & keys_b
         for key in intersect:
             if isinstance(a[key], dict) and isinstance(b[key], dict):
-                res[key] = NumpyTensorView.add_dicts(a[key], b[key])
-            elif isinstance(a[key], list | np.ndarray) and isinstance(b[key], list | np.ndarray):
+                res[key] = self.add_dicts(a[key], b[key])
+            elif isinstance(a[key], self.tensor_type()) and isinstance(b[key], self.tensor_type()):
                 assert len(a[key]) == len(b[key])
-                res[key] = self.add_tensors(a, b)
+                res[key] = self.add_tensors(a[key], b[key])
             else:
                 raise ValueError('Values must either be dicts or lists/np.ndarray.')
         for key in keys_a - intersect:
@@ -1330,6 +1333,9 @@ class ScipyTensorView(DictTensorView):
     def add_tensors(a: Any | None, b: Any | None):
         return [a + b for a, b in zip(a, b)]
 
+    def tensor_type(self):
+        return list
+
 
 class NumpyTensorView(DictTensorView):
 
@@ -1391,3 +1397,6 @@ class NumpyTensorView(DictTensorView):
     @staticmethod
     def add_tensors(a: Any | None, b: Any | None):
         return a + b
+
+    def tensor_type(self):
+        return np.ndarray
