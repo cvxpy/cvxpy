@@ -129,7 +129,15 @@ class CanonBackend(ABC):
 
 
 class PythonCanonBackend(CanonBackend):
+    """
+    Each tensor has 3 dimensions. The first one is the parameter axis, the second one is the rows
+    and the third one is the variable columns.
 
+    For example:
+    - A new variable of size n has shape (1, n, n)
+    - A new parameter of size n has shape (n, n, 1)
+    - A new constant of size n has shape (1, n, 1)
+    """
     def build_matrix(self, lin_ops: list[LinOp]) -> sp.coo_matrix:
         self.id_to_col[-1] = self.var_length
 
@@ -828,15 +836,6 @@ class ScipyCanonBackend(PythonCanonBackend):
 
 
 class NumpyCanonBackend(PythonCanonBackend):
-    """
-    Each tensor has 3 dimensions. The first one is the parameter axis, the second one is the rows
-    and the third one is the variable columns.
-
-    For example:
-    - A new variable of size n has shape (1, n, n)
-    - A new parameter of size n has shape (n, n, 1)
-    - A new constant of size n has shape (1, n, 1)
-    """
 
     @staticmethod
     def reshape_constant_data(constant_data: dict[int, np.ndarray], new_shape: tuple[int, ...]) \
