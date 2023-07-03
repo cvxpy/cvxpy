@@ -849,7 +849,6 @@ class NumpyCanonBackend(PythonCanonBackend):
         return TensorRepresentation.combine(tensors)
 
     def reshape_tensors(self, tensor: TensorView, total_rows: int) -> sp.csc_matrix:
-        # Windows uses int32 by default at time of writing, so we need to enforce int64 here
         rows = (tensor.col.astype(np.int64) * np.int64(total_rows) + tensor.row.astype(np.int64))
         cols = tensor.parameter_offset.astype(np.int64)
         shape = (np.int64(total_rows) * np.int64(self.var_length + 1), self.param_size_plus_one)
@@ -874,7 +873,9 @@ class NumpyCanonBackend(PythonCanonBackend):
         else:
             assert len(lhs) == 1
             reps = view.rows // lhs[0].shape[-1]
-            stacked_lhs = np.kron(np.eye(reps), lhs[0])
+            if isinstance(lhs[0], sp.coo_matrix):
+                lhs = lhs[0].toarray()
+            stacked_lhs = np.kron(np.eye(reps), lhs)
 
             def func(x):
                 return stacked_lhs @ x
@@ -901,6 +902,8 @@ class NumpyCanonBackend(PythonCanonBackend):
             func = parametrized_mul
         else:
             def func(x):
+                if not isinstance(lhs[0], np.ndarray):
+                    lhs[0] = lhs[0].toarray()
                 return lhs[0] * x
         return view.accumulate_over_variables(func, is_param_free_function=is_param_free_lhs)
 
@@ -941,9 +944,10 @@ class NumpyCanonBackend(PythonCanonBackend):
                 new_rows = np.arange(rows) * rows + np.arange(rows)
             elif k > 0:
                 new_rows = np.arange(rows) * rows + np.arange(rows) + rows * k
+                new_rows = new_rows[:rows - k]
             else:
                 new_rows = np.arange(rows) * rows + np.arange(rows) - k
-            new_rows = new_rows[:rows - k]
+                new_rows = new_rows[:rows + k]
             matrix = np.zeros(shape)
             matrix[:, new_rows, :] = x
             return matrix
@@ -955,7 +959,7 @@ class NumpyCanonBackend(PythonCanonBackend):
     def get_stack_func(total_rows: int, offset: int) -> Callable:
         def stack_func(tensor):
             rows = tensor.shape[1]
-            new_rows = np.arange(rows) + offset
+            new_rows = (np.arange(rows) + offset).astype(int)
             matrix = np.zeros(shape=(tensor.shape[0], int(total_rows), tensor.shape[2]))
             matrix[:, new_rows, :] = tensor
             return matrix
@@ -993,6 +997,8 @@ class NumpyCanonBackend(PythonCanonBackend):
                 # but it is a row vector by default, so we need to transpose
                 lhs = lhs.T
             reps = view.rows // lhs.shape[0]
+            if isinstance(lhs, sp.coo_matrix):
+                lhs = lhs.toarray()
             stacked_lhs = np.kron(lhs.T, np.eye(reps))
 
             def func(x):
