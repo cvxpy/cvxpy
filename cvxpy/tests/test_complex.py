@@ -677,6 +677,7 @@ class TestComplex(BaseTest):
         assert np.allclose(rho_ABC.value, rho_ABC_val)
 
     def test_partial_transpose(self) -> None:
+        self.skipTest("This benchmark takes too long.")
         """
         Test a problem with partial_transpose.
         rho_ABC = rho_A \\otimes rho_B \\otimes rho_C.

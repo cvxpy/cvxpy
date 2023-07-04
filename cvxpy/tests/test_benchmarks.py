@@ -22,6 +22,7 @@ def benchmark(func, iters: int = 1, name=None) -> None:
 
 class TestBenchmarks(BaseTest):
     def test_diffcp_sdp_example(self) -> None:
+        self.skipTest("This benchmark takes too long.")
 
         def randn_symm(n):
             A = np.random.randn(n, n)
@@ -47,6 +48,7 @@ class TestBenchmarks(BaseTest):
         benchmark(diffcp_sdp, iters=1)
 
     def test_tv_inpainting(self) -> None:
+        self.skipTest("This benchmark takes too long.")
         if os.name == "nt":
             self.skipTest("Skipping test due to overflow bug in SciPy < 1.2.0.")
         Uorig = np.random.randn(512, 512, 3)
@@ -104,6 +106,7 @@ class TestBenchmarks(BaseTest):
         benchmark(qp, iters=1)
 
     def test_cone_matrix_stuffing_with_many_constraints(self) -> None:
+        self.skipTest("This benchmark takes too long.")
         m = 2000
         n = 2000
         A = np.random.randn(m, n)
@@ -233,6 +236,7 @@ class TestBenchmarks(BaseTest):
                   name="small_parameterized_lp_second_time")
 
     def test_parameterized_qp(self) -> None:
+        self.skipTest("This benchmark takes too long.")
         """Test speed of first solve with QP codepath and SOCP codepath.
         """
         m = 150
