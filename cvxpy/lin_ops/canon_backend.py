@@ -24,7 +24,7 @@ import numpy as np
 import scipy.sparse as sp
 
 from cvxpy.lin_ops import LinOp
-from cvxpy.settings import RUST_CANON_BACKEND, SCIPY_CANON_BACKEND, NUMPY_CANON_BACKEND
+from cvxpy.settings import NUMPY_CANON_BACKEND, RUST_CANON_BACKEND, SCIPY_CANON_BACKEND
 
 
 class Constant(Enum):
@@ -1028,7 +1028,8 @@ class NumpyCanonBackend(PythonCanonBackend):
         cols = lin.args[0].shape[0]
         nonzeros = lhs.shape[0]
 
-        row_idx = (np.tile(np.arange(nonzeros), cols) + np.repeat(np.arange(cols), nonzeros)).astype(int)
+        row_idx = (np.tile(np.arange(nonzeros), cols) + np.repeat(np.arange(cols),
+                                                                  nonzeros)).astype(int)
         col_idx = (np.repeat(np.arange(cols), nonzeros)).astype(int)
         data = np.tile(lhs.flatten(), cols)
         lhs = np.zeros(shape=(1, rows, cols))
@@ -1253,7 +1254,7 @@ class DictTensorView(TensorView, ABC):
 
     @staticmethod
     @abstractmethod
-    def add_tensors(a: Any | None, b: Any | None):
+    def add_tensors(a: Any, b: Any) -> Any:
         pass # noqa
 
     @staticmethod
@@ -1276,7 +1277,7 @@ class DictTensorView(TensorView, ABC):
                 assert len(a[key]) == len(b[key])
                 res[key] = self.add_tensors(a[key], b[key])
             else:
-                raise ValueError('Values must either be dicts or lists/np.ndarray.')
+                raise ValueError(f'Values must either be dicts or {self.tensor_type()}.')
         for key in keys_a - intersect:
             res[key] = a[key]
         for key in keys_b - intersect:
@@ -1340,7 +1341,7 @@ class ScipyTensorView(DictTensorView):
         return {k: [func(v_i).tocsr() for v_i in v] for k, v in parameter_representation.items()}
 
     @staticmethod
-    def add_tensors(a: Any | None, b: Any | None):
+    def add_tensors(a: list[sp.csr_matrix], b: list[sp.csr_matrix]) -> list[sp.csr_matrix]:
         return [a + b for a, b in zip(a, b)]
 
     def tensor_type(self):
@@ -1366,15 +1367,14 @@ class NumpyTensorView(DictTensorView):
         tensor_representations = []
         for variable_id, variable_tensor in self.tensor.items():
             for parameter_id, parameter_tensor in variable_tensor.items():
-                for param_slice_offset in range(parameter_tensor.shape[0]):
-                    matrix = parameter_tensor[param_slice_offset]
-                    tensor_representations.append(TensorRepresentation(
-                        matrix.flatten(order='F'),
-                        np.tile(np.arange(matrix.shape[0]), matrix.shape[1]) + row_offset,
-                        np.repeat(np.arange(matrix.shape[1]), matrix.shape[0]) + self.id_to_col[variable_id],
-                        np.ones(matrix.size) * self.param_to_col[parameter_id] +
-                        param_slice_offset,
-                    ))
+                param_size, rows, cols = parameter_tensor.shape
+                tensor_representations.append(TensorRepresentation(
+                    parameter_tensor.flatten(order='F'),
+                    np.repeat(np.tile(np.arange(rows), cols), param_size) + row_offset,
+                    np.repeat(np.repeat(np.arange(cols), rows), param_size)
+                    + self.id_to_col[variable_id],
+                    np.tile(np.arange(param_size), rows * cols) + self.param_to_col[parameter_id],
+                ))
         return TensorRepresentation.combine(tensor_representations)
 
     def select_rows(self, rows: np.ndarray) -> None:
@@ -1405,7 +1405,7 @@ class NumpyTensorView(DictTensorView):
         return {k: func(v) for k, v in parameter_representation.items()}
 
     @staticmethod
-    def add_tensors(a: Any | None, b: Any | None):
+    def add_tensors(a: np.ndarray, b: np.ndarray) -> np.ndarray:
         return a + b
 
     def tensor_type(self):
