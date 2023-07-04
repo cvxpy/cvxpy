@@ -194,18 +194,18 @@ class SolverTestHelper:
                         try:
                             """Checking PSD-ness of the reshaped gradient via the
                             existence of the Cholesky decomposition"""
-                            np.linalg.cholesky(g_bad_mat.value)
+                            np.linalg.cholesky(g_bad_mat)
                         except np.linalg.LinAlgError:
                             pass
                         pass
                     elif opt_var.is_nonpos():
                         """The cone of matrices with all entries nonpos is self-dual"""
-                        if np.all(opt_var.toarray() <= 0):
+                        if np.all(opt_var.value <= 0):
                             pass
                         pass
                     elif opt_var.is_nonneg():
                         """The cone of matrices with all entries nonneg is self-dual"""
-                        if np.all(opt_var.toarray() >= 0):
+                        if np.all(opt_var.value >= 0):
                             pass
                         pass
 
