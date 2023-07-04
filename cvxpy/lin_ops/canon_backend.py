@@ -873,8 +873,6 @@ class NumpyCanonBackend(PythonCanonBackend):
         else:
             assert len(lhs) == 1
             reps = view.rows // lhs[0].shape[-1]
-            if isinstance(lhs[0], sp.coo_matrix):
-                lhs = lhs[0].toarray()
             stacked_lhs = np.kron(np.eye(reps), lhs)
 
             def func(x):
@@ -902,8 +900,6 @@ class NumpyCanonBackend(PythonCanonBackend):
             func = parametrized_mul
         else:
             def func(x):
-                if not isinstance(lhs[0], np.ndarray):
-                    lhs[0] = lhs[0].toarray()
                 return lhs[0] * x
         return view.accumulate_over_variables(func, is_param_free_function=is_param_free_lhs)
 
@@ -997,8 +993,6 @@ class NumpyCanonBackend(PythonCanonBackend):
                 # but it is a row vector by default, so we need to transpose
                 lhs = lhs.T
             reps = view.rows // lhs.shape[0]
-            if isinstance(lhs, sp.coo_matrix):
-                lhs = lhs.toarray()
             stacked_lhs = np.kron(lhs.T, np.eye(reps))
 
             def func(x):
@@ -1109,8 +1103,18 @@ class NumpyCanonBackend(PythonCanonBackend):
 
     def get_data_tensor(self, data: np.ndarray) -> \
             dict[int, dict[int, np.ndarray]]:
+        data = self._to_dense(data)
         tensor = data.reshape((-1, 1), order="F")
         return {Constant.ID.value: {Constant.ID.value: np.expand_dims(tensor, axis=0)}}
+
+    @staticmethod
+    def _to_dense(x):
+        try:
+            res = x.A
+        except AttributeError:
+            res = x
+        res = np.atleast_2d(res)
+        return res
 
     def get_param_tensor(self, shape: tuple[int, ...], parameter_id: int) \
             -> dict[int, dict[int, np.ndarray]]:
