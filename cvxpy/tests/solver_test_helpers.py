@@ -152,9 +152,8 @@ class SolverTestHelper:
             else:
                 raise NotImplementedError()
         g = L.grad
-
-        # compute norm
         bad_norms = []
+
         """The reason 'bad' norms could arise (outside of an error by CVXPY) would be if a
         constraint was introduced in a variable via a flag during it's declaration and not
         explicitly in the list of constraints passed to the problem --- thus making the above
@@ -182,9 +181,9 @@ class SolverTestHelper:
                         'Hollow' matrices i.e. matrices with diagonal entries zero"""
                     g_bad_mat = np.reshape(g[opt_var].toarray(), opt_var.shape)
                     diag_entries = np.diag(opt_var.value)
-                    if diag_entries < 10**(-places):
-                        pass
-                    pass
+                    corrected_bad_norm = np.linalg.norm(diag_entries) / np.sqrt(opt_var.size)
+                    if diag_entries > 10**(-places):
+                        bad_norms.append((corrected_bad_norm, opt_var))
                 elif opt_var.is_psd():
                     """The PSD cone is self-dual"""
                     g_bad_mat = cp.Constant(np.reshape(v.data, opt_var.shape))
