@@ -1110,7 +1110,7 @@ For others see `CLARABEL documentation <https://oxfordcontrol.github.io/Clarabel
     Time limit in seconds (must be integer).
 
 All controls of the Xpress Optimizer can be specified within the ``'solve'``
-command. For all controls see `FICO Xpress Optimizer manual https://www.fico.com/fico-xpress-optimization/docs/dms2019-03/solver/optimizer/HTML/chapter7.html`_.
+command. For all controls see `FICO Xpress Optimizer manual <https://www.fico.com/fico-xpress-optimization/docs/dms2019-03/solver/optimizer/HTML/chapter7.html>`_.
 
 Getting the standard form
 -------------------------
@@ -1604,7 +1604,7 @@ on derivatives.
 .. _MOSEK: https://www.mosek.com/
 .. _CBC: https://projects.coin-or.org/Cbc
 .. _CGL: https://projects.coin-or.org/Cgl
-.. _CPLEX: https://www-01.ibm.com/software/commerce/optimization/cplex-optimizer/
+.. _CPLEX: https://www.ibm.com/docs/en/icos
 .. _NAG: https://www.nag.co.uk/nag-library-python/
 .. _OSQP: https://osqp.org/
 .. _PDLP: https://developers.google.com/optimization
