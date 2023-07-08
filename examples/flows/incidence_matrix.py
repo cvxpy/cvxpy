@@ -31,7 +31,6 @@ f.close()
 node_count = data[g.NODE_COUNT_KEY]
 edges = data[g.EDGES_KEY]
 E = 2 * len(edges)
-
 A = Parameter((node_count, E + 2))
 A.value = np.zeros((node_count, E + 2))
 c = Parameter((E))
