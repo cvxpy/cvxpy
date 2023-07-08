@@ -18,7 +18,7 @@ import pickle
 
 from cvxpy import Maximize, Problem, Variable
 
-from .create_graph import EDGES_KEY, FILE, NODE_COUNT_KEY
+from create_graph import EDGES_KEY, FILE, NODE_COUNT_KEY
 
 
 # An object oriented max-flow problem.
