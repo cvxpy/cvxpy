@@ -17,6 +17,8 @@ limitations under the License.
 import pickle
 
 from cvxpy import Maximize, Problem, Variable
+from cvxpy.atoms.affine.sum import sum as sum_
+from cvxpy.atoms.elementwise.abs import abs as abs_
 
 from create_graph import EDGES_KEY, FILE, NODE_COUNT_KEY
 
@@ -24,6 +26,7 @@ from create_graph import EDGES_KEY, FILE, NODE_COUNT_KEY
 # An object oriented max-flow problem.
 class Edge:
     """ An undirected, capacity limited edge. """
+
     def __init__(self, capacity) -> None:
         self.capacity = capacity
         self.flow = Variable()
@@ -35,21 +38,24 @@ class Edge:
 
     # Returns the edge's internal constraints.
     def constraints(self):
-        return [abs(self.flow) <= self.capacity]
+        return [abs_(self.flow) <= self.capacity]
+
 
 class Node:
     """ A node with accumulation. """
+
     def __init__(self, accumulation: float = 0.0) -> None:
         self.accumulation = accumulation
         self.edge_flows = []
 
     # Returns the node's internal constraints.
     def constraints(self):
-        return [sum(f for f in self.edge_flows) == self.accumulation]
+        return [sum_([f for f in self.edge_flows]) == self.accumulation]
+
 
 if __name__ == "__main__":
     # Read a graph from a file.
-    f = open(FILE, 'r')
+    f = open(FILE, 'rb')
     data = pickle.load(f)
     f.close()
 
@@ -63,7 +69,7 @@ if __name__ == "__main__":
 
     # Construct edges.
     edges = []
-    for n1,n2,capacity in data[EDGES_KEY]:
+    for n1, n2, capacity in data[EDGES_KEY]:
         edges.append(Edge(capacity))
         edges[-1].connect(nodes[n1], nodes[n2])
     # Construct the problem.
