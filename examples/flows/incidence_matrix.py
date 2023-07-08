@@ -15,12 +15,12 @@ limitations under the License.
 """
 
 # Incidence matrix approach.
-import numpy as np
 import pickle
 
-import create_graph as g
-
+import numpy as np
 from cvxpy import Maximize, Parameter, Problem, Variable, vstack
+
+import create_graph as g
 
 # Read a graph from a file.
 f = open(g.FILE, 'rb')
