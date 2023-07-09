@@ -14,9 +14,9 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import pickle
 # Construct a random connected graph and stores it as tuples of
 # (start node #, end node #, capacity).
+import pickle
 from random import random, sample
 
 # Constants
