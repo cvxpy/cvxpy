@@ -16,13 +16,11 @@ limitations under the License.
 import pickle
 import random as r
 
+from create_graph import FILE, NODE_COUNT_KEY, EDGES_KEY
 import numpy as np
-from cvxpy import Maximize, Parameter, Problem, Variable
-from cvxpy.atoms.affine.sum import sum as sum_
-from cvxpy.atoms.elementwise.abs import abs as abs_
-
-import create_graph as g
 from max_flow import Edge, Node
+
+import cvxpy as cp
 
 # Multi-commodity flow.
 COMMODITIES = 5  # Number of commodities.
@@ -34,8 +32,8 @@ class MultiEdge(Edge):
 
     def __init__(self, capacity) -> None:
         self.capacity = capacity
-        self.in_flow = Variable(COMMODITIES)
-        self.out_flow = Variable(COMMODITIES)
+        self.in_flow = cp.Variable(COMMODITIES)
+        self.out_flow = cp.Variable(COMMODITIES)
 
     # Connects two nodes via the edge.
     def connect(self, in_node, out_node):
@@ -45,7 +43,7 @@ class MultiEdge(Edge):
     # Returns the edge's internal constraints.
     def constraints(self):
         return [self.in_flow + self.out_flow == 0,
-                sum_(abs_(self.in_flow)) <= self.capacity]
+                cp.sum(cp.abs(self.in_flow)) <= self.capacity]
 
 
 class MultiNode(Node):
@@ -57,20 +55,20 @@ class MultiNode(Node):
 
     # The total accumulation of flow.
     def accumulation(self):
-        return sum_([f for f in self.edge_flows])
+        return cp.sum([f for f in self.edge_flows])
 
     def constraints(self):
-        return [abs_(self.accumulation()) <= self.capacity.flatten()]
+        return [cp.abs(self.accumulation()) <= self.capacity.flatten()]
 
 
 if __name__ == "__main__":
     # Read a graph from a file.
-    f = open(g.FILE, 'rb')
+    f = open(FILE, 'rb')
     data = pickle.load(f)
     f.close()
 
     # Construct nodes.
-    node_count = data[g.NODE_COUNT_KEY]
+    node_count = data[NODE_COUNT_KEY]
     nodes = [MultiNode() for i in range(node_count)]
     # Add a source and sink for each commodity.
     sources = []
@@ -78,29 +76,29 @@ if __name__ == "__main__":
     for i in range(COMMODITIES):
         source, sink = r.sample(nodes, 2)
         # Only count accumulation of a single commodity.
-        commodity_vec = Parameter((COMMODITIES, 1))
+        commodity_vec = cp.Parameter((COMMODITIES, 1))
         commodity_vec.value = np.zeros((COMMODITIES, 1))
         commodity_vec.value[i] = 1
         # Initialize the source.
-        source.capacity = commodity_vec * Variable()
+        source.capacity = commodity_vec * cp.Variable()
         sources.append(source)
         # Initialize the sink.
-        sink.capacity = commodity_vec * Variable()
+        sink.capacity = commodity_vec * cp.Variable()
         sinks.append(sink)
 
     # Construct edges.
     edges = []
-    for n1, n2, capacity in data[g.EDGES_KEY]:
+    for n1, n2, capacity in data[EDGES_KEY]:
         edges.append(MultiEdge(capacity))
         edges[-1].connect(nodes[n1], nodes[n2])
 
     # Construct the problem.
-    objective = Maximize(sum(sum(s.accumulation() for s in sinks)))
+    objective = cp.Maximize(cp.sum(sum(s.accumulation() for s in sinks)))
     constraints = []
     for o in nodes + edges:
         constraints += o.constraints()
 
-    p = Problem(objective, constraints)
+    p = cp.Problem(objective, constraints)
     result = p.solve()
     print("Objective value = %s" % result)
     # Show how the flow for each commodity.

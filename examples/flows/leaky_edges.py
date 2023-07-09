@@ -16,10 +16,10 @@ limitations under the License.
 
 import pickle
 
-from cvxpy import Maximize, Problem, Variable
-
 from create_graph import EDGES_KEY, FILE, NODE_COUNT_KEY
 from max_flow import Edge, Node
+
+import cvxpy as cp
 
 
 # Max-flow with different kinds of edges.
@@ -69,9 +69,9 @@ if __name__ == "__main__":
     node_count = data[NODE_COUNT_KEY]
     nodes = [Node() for i in range(node_count)]
     # Add source.
-    nodes[0].accumulation = Variable()
+    nodes[0].accumulation = cp.Variable()
     # Add sink.
-    nodes[-1].accumulation = Variable()
+    nodes[-1].accumulation = cp.Variable()
 
     # Construct edges.
     edges = []
@@ -83,6 +83,6 @@ if __name__ == "__main__":
     constraints = []
     for o in nodes + edges:
         constraints += o.constraints()
-    p = Problem(Maximize(nodes[-1].accumulation), constraints)
+    p = cp.Problem(cp.Maximize(nodes[-1].accumulation), constraints)
     result = p.solve()
     print(result)

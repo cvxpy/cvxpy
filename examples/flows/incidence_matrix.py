@@ -17,23 +17,23 @@ limitations under the License.
 # Incidence matrix approach.
 import pickle
 
+from create_graph import FILE, NODE_COUNT_KEY, EDGES_KEY
 import numpy as np
-from cvxpy import Maximize, Parameter, Problem, Variable, vstack
 
-import create_graph as g
+import cvxpy as cp
 
 # Read a graph from a file.
-f = open(g.FILE, 'rb')
+f = open(FILE, 'rb')
 data = pickle.load(f)
 f.close()
 
 # Construct incidence matrix and capacities vector.
-node_count = data[g.NODE_COUNT_KEY]
-edges = data[g.EDGES_KEY]
+node_count = data[NODE_COUNT_KEY]
+edges = data[EDGES_KEY]
 E = 2 * len(edges)
-A = Parameter((node_count, E + 2))
+A = cp.Parameter((node_count, E + 2))
 A.value = np.zeros((node_count, E + 2))
-c = Parameter((E))
+c = cp.Parameter((E))
 c.value = np.full((E), 1000)
 for i, (n1, n2, capacity) in enumerate(edges):
     A.value[n1, 2 * i] = -1
@@ -47,12 +47,12 @@ A.value[0, E] = 1
 # Add sink.
 A.value[-1, E + 1] = -1
 # Construct the problem.
-flows = Variable(E)
-source = Variable()
-sink = Variable()
-p = Problem(Maximize(source),
-            [A @ vstack([f for f in flows] + [source, sink]) == 0,
-             0 <= flows,
-             flows <= c])
+flows = cp.Variable(E)
+source = cp.Variable()
+sink = cp.Variable()
+p = cp.Problem(cp.Maximize(source),
+               [A @ cp.vstack([f for f in flows] + [source, sink]) == 0,
+                0 <= flows,
+                flows <= c])
 result = p.solve()
 print(result)
