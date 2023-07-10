@@ -130,35 +130,36 @@ class SolverTestHelper:
             
     def check_stationary_lagrangian(self, places) -> None:
         L = self.prob.objective.expr
+        objective = self.prob.objective
+        if objective.NAME == 'minimize':
+            L = objective.expr
+        else:
+            L = -objective.expr
         for con in self.constraints:
             if isinstance(con, (cp.constraints.Inequality,
                                 cp.constraints.Equality)):
                 dual_var_value = con.dual_value
                 prim_var_expr = con.expr
-                if self.prob.objective.NAME == 'minimize':
-                    L = L + cp.scalar_product(dual_var_value, prim_var_expr)
-                else:
-                    L = L - cp.scalar_product(dual_var_value, prim_var_expr)
+                L = L + cp.scalar_product(dual_var_value, prim_var_expr)
             elif isinstance(con, (cp.constraints.ExpCone,
                                   cp.constraints.SOC,
                                   cp.constraints.Zero,
                                   cp.constraints.NonNeg,
                                   cp.constraints.PSD,
                                   cp.constraints.PowCone3D)):
-                if self.prob.objective.NAME == 'minimize':
-                    L = L - cp.scalar_product(con.args, con.dual_value)
-                else:
-                    L = L + cp.scalar_product(con.args, con.dual_value)
+                L = L - cp.scalar_product(con.args, con.dual_value)
             else:
                 raise NotImplementedError()
         g = L.grad
         bad_norms = []
 
-        """The reason 'bad' norms could arise (outside of an error by CVXPY) would be if a
-        constraint was introduced in a variable via a flag during it's declaration and not
-        explicitly in the list of constraints passed to the problem --- thus making the above
-        constructed lagrangian incorrect. In these cases instead of checking if the dLdX = 0
-        we check if dLdX \in K^{*} (i.e. the dual cone of the implicit constraint)"""
+        """The convention that we follow for construting the Lagrangian is: 1) Move all
+        explicitly passed constraints to the problem (via Problem.constraints) into the
+        Lagrangian --- dLdX == 0 for any such variables 2) Constraints that have
+        implicitly been imposed on variables at the time of declaration via specific
+        flags (e.g.: PSD/symmetric etc.), in such a case we check, `dLdX\in K^{*}`, where
+        `K` is the convex cone corresponding to the implicit constraint on `X`
+        """
         for (opt_var, v) in g.items():
             if all(not attr for attr in list(map(lambda x: x[1], opt_var.attributes.items()))):
                 """Case when the variable doesn't have any special attributes"""
@@ -173,45 +174,45 @@ class SolverTestHelper:
                     g[opt_var] is the problematic gradient in question"""
                     g_bad_mat = np.reshape(g[opt_var].toarray(), opt_var.shape)
                     mat = g_bad_mat + g_bad_mat.T
-                    corrected_bad_norm = np.linalg.norm(mat) / np.sqrt(opt_var.size)
-                    if corrected_bad_norm > 10**(-places):
-                        bad_norms.append((corrected_bad_norm, opt_var))
+                    dual_cone_violation = np.linalg.norm(mat) / np.sqrt(opt_var.size)
+                    if dual_cone_violation > 10**(-places):
+                        bad_norms.append((dual_cone_violation, opt_var))
                 elif opt_var.is_diag():
                     """The dual cone to the set of diagonal matrices is the set of
                         'Hollow' matrices i.e. matrices with diagonal entries zero"""
                     g_bad_mat = np.reshape(g[opt_var].toarray(), opt_var.shape)
                     diag_entries = np.diag(opt_var.value)
-                    corrected_bad_norm = np.linalg.norm(diag_entries) / np.sqrt(opt_var.size)
+                    dual_cone_violation = np.linalg.norm(diag_entries) / np.sqrt(opt_var.size)
                     if diag_entries > 10**(-places):
-                        bad_norms.append((corrected_bad_norm, opt_var))
+                        bad_norms.append((dual_cone_violation, opt_var))
                 elif opt_var.is_psd():
                     """The PSD cone is self-dual"""
                     g_bad_mat = cp.Constant(np.reshape(v.data, opt_var.shape))
                     tmp_con = g_bad_mat >> 0
-                    corrected_bad_norm = tmp_con.residual
-                    if corrected_bad_norm > 10**(-places):
-                        bad_norms.append((corrected_bad_norm, opt_var))
+                    dual_cone_violation = tmp_con.residual
+                    if dual_cone_violation > 10**(-places):
+                        bad_norms.append((dual_cone_violation, opt_var))
                 elif opt_var.is_nsd():
                     """The NSD cone is also self-dual"""
                     g_bad_mat = cp.Constant(np.reshape(v.data, opt_var.shape))
                     tmp_con = g_bad_mat << 0
-                    corrected_bad_norm = tmp_con.residual
-                    if corrected_bad_norm > 10**(-places):
-                        bad_norms.append((corrected_bad_norm, opt_var))
+                    dual_cone_violation = tmp_con.residual
+                    if dual_cone_violation > 10**(-places):
+                        bad_norms.append((dual_cone_violation, opt_var))
                 elif opt_var.is_nonpos():
                     """The cone of matrices with all entries nonpos is self-dual"""
                     g_bad_mat = cp.Constant(np.reshape(v.data, opt_var.shape))
                     tmp_con = g_bad_mat <= 0
-                    corrected_bad_norm = np.linalg.norm(g_bad_mat.residual) / np.sqrt(opt_var.size)
-                    if corrected_bad_norm > 10**(-places):
-                        bad_norms.append((corrected_bad_norm, opt_var))
+                    dual_cone_violation = np.linalg.norm(g_bad_mat.residual) / np.sqrt(opt_var.size)
+                    if dual_cone_violation > 10**(-places):
+                        bad_norms.append((dual_cone_violation, opt_var))
                 elif opt_var.is_nonneg():
                     """The cone of matrices with all entries nonneg is self-dual"""
                     g_bad_mat = cp.Constant(np.reshape(v.data, opt_var.shape))
                     tmp_con = g_bad_mat >= 0
-                    corrected_bad_norm = np.linalg.norm(g_bad_mat.residual) / np.sqrt(opt_var.size)
-                    if corrected_bad_norm > 10**(-places):
-                        bad_norms.append((corrected_bad_norm, opt_var))
+                    dual_cone_violation = np.linalg.norm(g_bad_mat.residual) / np.sqrt(opt_var.size)
+                    if dual_cone_violation > 10**(-places):
+                        bad_norms.append((dual_cone_violation, opt_var))
 
         if len(bad_norms):
             msg = f"""\n
