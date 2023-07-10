@@ -880,21 +880,22 @@ class TestSDPA(BaseTest):
         StandardTestSDPs.test_sdp_2(solver='SDPA')
 
 
-@unittest.skipUnless('CBC' in INSTALLED_SOLVERS, 'CBC is not installed.')
-class TestCBC(BaseTest):
+def fflush() -> None:
+    """
+    C code in some solvers uses libc buffering; if we want to capture log output from
+    those solvers to use in tests, we must flush the libc buffers before trying to read
+    the log contents from python.
+    https://github.com/pytest-dev/pytest/issues/8753
+    """
+    import ctypes
+    libc = ctypes.CDLL(None)
+    libc.fflush(None)
 
-    def setUp(self) -> None:
-        self.a = cp.Variable(name='a')
-        self.b = cp.Variable(name='b')
-        self.c = cp.Variable(name='c')
 
-        self.x = cp.Variable(2, name='x')
-        self.y = cp.Variable(3, name='y')
-        self.z = cp.Variable(2, name='z')
-
-        self.A = cp.Variable((2, 2), name='A')
-        self.B = cp.Variable((2, 2), name='B')
-        self.C = cp.Variable((3, 2), name='C')
+# We can't inherit from unittest.TestCase since we access some advanced pytest features.
+# As a result, we use the pytest skipif decorator instead of unittest.skipUnless.
+@pytest.mark.skipif('CBC' not in INSTALLED_SOLVERS, reason='CBC is not installed.')
+class TestCBC:
 
     def _cylp_checks_isProvenInfeasible():
         try:
@@ -903,27 +904,6 @@ class TestCBC(BaseTest):
             return problemStatus[0] == 'search completed'
         except ImportError:
             return False
-
-    def test_options(self) -> None:
-        """Test that all the cvx.CBC solver options work.
-        """
-        prob = cp.Problem(cp.Minimize(cp.norm(self.x, 1)),
-                          [self.x == cp.Variable(2, boolean=True)])
-        if cp.CBC in INSTALLED_SOLVERS:
-            for i in range(2):
-                # Some cut-generators seem to be buggy for now -> set to false
-                # prob.solve(solver=cvx.CBC, verbose=True, GomoryCuts=True, MIRCuts=True,
-                #            MIRCuts2=True, TwoMIRCuts=True, ResidualCapacityCuts=True,
-                #            KnapsackCuts=True, FlowCoverCuts=True, CliqueCuts=True,
-                #            LiftProjectCuts=True, AllDifferentCuts=False, OddHoleCuts=True,
-                #            RedSplitCuts=False, LandPCuts=False, PreProcessCuts=False,
-                #            ProbingCuts=True, SimpleRoundingCuts=True)
-                prob.solve(solver=cp.CBC, verbose=True, maximumSeconds=100)
-            self.assertItemsAlmostEqual(self.x.value, [0, 0])
-        else:
-            with self.assertRaises(Exception) as cm:
-                prob.solve(solver=cp.CBC)
-                self.assertEqual(str(cm.exception), "The solver %s is not installed." % cp.CBC)
 
     def test_cbc_lp_0(self) -> None:
         StandardTestLPs.test_lp_0(solver='CBC', duals=False)
@@ -955,10 +935,77 @@ class TestCBC(BaseTest):
     def test_cbc_mi_lp_3(self) -> None:
         StandardTestLPs.test_mi_lp_3(solver='CBC')
 
-    @unittest.skipUnless(_cylp_checks_isProvenInfeasible(),
-                         'CyLP <= 0.91.4 has no working integer infeasibility detection')
+    @pytest.mark.skipif(not _cylp_checks_isProvenInfeasible(),
+                        reason='CyLP <= 0.91.4 has no working integer infeasibility detection')
     def test_cbc_mi_lp_5(self) -> None:
         StandardTestLPs.test_mi_lp_5(solver='CBC')
+
+    @pytest.mark.parametrize(
+        "opts",
+        [
+            pytest.param(opts, id=next(iter(opts.keys())))
+            for opts in [
+                {"dualTolerance": 1.0},
+                {"primalTolerance": 1.0},
+                {"maxNumIteration": 1},
+                {"scaling": 0},
+                # {"automaticScaling": True},  # Doesn't work
+                # {"infeasibilityCost": 0.000001},  # Doesn't work
+                {"optimizationDirection": "max"},
+                {"presolve": "off"},
+            ]
+        ]
+    )
+    def test_cbc_lp_options(self, opts: dict, capfd: pytest.LogCaptureFixture) -> None:
+        """
+        Validate that cylp is actually using each option.
+
+        Tentative approach: run model with verbose output with or without the specified
+        option; verbose output should be different each way.
+        """
+        # start by making sure capture buffer is empty to ensure valid results
+        fflush()
+        capfd.readouterr()
+        # run the solver with verbose logging without this option and capture output
+        sth = sths.lp_4()
+        sth.solve(solver='CBC', logLevel=2)
+        fflush()
+        base = capfd.readouterr()
+        # run the solver with verbose logging *with* the option under test
+        try:
+            sth.solve(solver='CBC', logLevel=2, **opts)
+        except Exception:
+            # if setting the option caused the case to fail, that's a pass
+            pass
+        else:
+            # if the case still passes, we at least look for change in the log outputs
+            fflush()
+            with_opt = capfd.readouterr()
+            assert base != with_opt
+
+    def test_cbc_lp_logging(self, capfd: pytest.LogCaptureFixture) -> None:
+        """Validate that logLevel parameter is passed to solver"""
+        # start by making sure capture buffer is empty to ensure valid results
+        fflush()
+        capfd.readouterr()
+
+        # for linear problems
+        StandardTestLPs.test_lp_0(solver='CBC', duals=False, logLevel=0)
+        fflush()
+        quiet_output = capfd.readouterr()
+        StandardTestLPs.test_lp_0(solver='CBC', duals=False, logLevel=5)
+        fflush()
+        verbose_output = capfd.readouterr()
+        assert len(verbose_output.out) > len(quiet_output.out)
+
+        # for mixed integer problems
+        StandardTestLPs.test_mi_lp_0(solver='CBC', logLevel=0)
+        fflush()
+        quiet_output = capfd.readouterr()
+        StandardTestLPs.test_mi_lp_0(solver='CBC', logLevel=5)
+        fflush()
+        verbose_output = capfd.readouterr()
+        assert len(verbose_output.out) > len(quiet_output.out)
 
 
 @unittest.skipUnless('GLPK' in INSTALLED_SOLVERS, 'GLPK is not installed.')

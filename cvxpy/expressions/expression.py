@@ -727,8 +727,6 @@ class Expression(u.Canonical):
         return Inequality(self, other)
 
     def __lt__(self, other: "Expression"):
-        """Unsupported.
-        """
         raise NotImplementedError("Strict inequalities are not allowed.")
 
     @_cast_other
@@ -738,8 +736,6 @@ class Expression(u.Canonical):
         return Inequality(other, self)
 
     def __gt__(self, other: "Expression"):
-        """Unsupported.
-        """
         raise NotImplementedError("Strict inequalities are not allowed.")
 
     def __array_ufunc__(self, ufunc, method, *args, **kwargs):
