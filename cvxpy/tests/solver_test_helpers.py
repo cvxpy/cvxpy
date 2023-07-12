@@ -154,9 +154,9 @@ class SolverTestHelper:
             g = L.grad
         except TypeError as e:
             assert 'is not subscriptable' in str(e)
-            msg = f"""\n
-            CVXPY problems with `diag` variables are not supported for stationarity checks
-            as of now
+            msg = """\n
+            CVXPY problems with `diag` variables are not supported for
+            stationarity checks as of now
             """
             self.tester.fail(msg)
         bad_norms = []

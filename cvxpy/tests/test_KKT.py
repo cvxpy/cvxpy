@@ -1,4 +1,5 @@
 import numpy as np
+
 import cvxpy as cp
 from cvxpy.tests import solver_test_helpers as STH
 from cvxpy.tests.base_test import BaseTest
@@ -234,7 +235,8 @@ class StandardTestFlags(BaseTest):
         var_pairs = [(X, np.array([[1.19672119e-07, 4.00000000e+00, 1.19672119e-07, 1.19672119e-07],
                                    [8.81309115e-08, 1.19672119e-07, 8.81309115e-08, 8.81309115e-08],
                                    [8.81309115e-08, 1.19672119e-07, 8.81309115e-08, 8.81309115e-08],
-                                   [8.81309115e-08, 1.19672119e-07, 8.81309115e-08, 8.81309088e-08]]))]
+                                   [8.81309115e-08, 1.19672119e-07, 8.81309115e-08, 8.81309088e-08]]
+                                  ))]
         obj_pair = (obj, 4.242738008082711)
         sth = STH.SolverTestHelper(obj_pair, var_pairs, con_pairs)
         return sth
