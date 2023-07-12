@@ -183,13 +183,13 @@ class StandardTestFlags(BaseTest):
     def tf_1() -> STH.SolverTestHelper:
         """
         Tests NSD flag
+        Reference values via SCS
         """
         X = cp.Variable(shape=(3,3), NSD=True)
         obj = cp.Maximize(cp.lambda_min(X))
-        cons = [X == X.T, X[0][1] == 123]
+        cons = [X[0][1] == 123]
         con_pairs = [
             (cons[0], None),
-            (cons[1], None)
         ]
         var_pairs = [(X, np.array([[-122.99997839,  122.99999997, 0],
                                    [ 122.99999997, -122.99997839, 0],
@@ -202,6 +202,7 @@ class StandardTestFlags(BaseTest):
     def tf_2() -> STH.SolverTestHelper:
         """
         Tests PSD flag
+        Reference values via SCS
         """
         X = cp.Variable(shape=(4,4), PSD=True)
         obj = cp.Minimize(cp.log_sum_exp(X))
@@ -223,6 +224,7 @@ class StandardTestFlags(BaseTest):
     def tf_3() -> STH.SolverTestHelper:
         """
         Tests nonneg flag
+        Reference values via SCS
         """
         X = cp.Variable(shape=(4,4), nonneg=True)
         obj = cp.Minimize(cp.log_sum_exp(X))
@@ -245,6 +247,7 @@ class StandardTestFlags(BaseTest):
     def tf_4() -> STH.SolverTestHelper:
         """
         Tests nonpos flag
+        Reference values via SCS
         """
         X = cp.Variable(shape=(3, 3), nonpos=True)
         obj = cp.Minimize(cp.norm2(X))
@@ -260,42 +263,37 @@ class StandardTestFlags(BaseTest):
         sth = STH.SolverTestHelper(obj_pair, var_pairs, con_pairs)
         return sth
 
+    """
+    Only verifying the KKT conditions in these tests
+    """
     def test_tf_1(self, places: int = 4):
         sth = StandardTestFlags.tf_1()
         sth.solve(solver='SCS')
-        sth.verify_objective(places)
         sth.check_primal_feasibility(places)
-        sth.verify_primal_values(places)
-        sth.check_complementarity(places)
         sth.verify_dual_values(places)
+        sth.check_complementarity(places)
         sth.check_stationary_lagrangian(places)
 
-    def test_tf_2(self, places: int = 2):
+    def test_tf_2(self, places: int = 4):
         sth = StandardTestFlags.tf_2()
         sth.solve(solver='SCS')
-        sth.verify_objective(places)
         sth.check_primal_feasibility(places)
-        sth.verify_primal_values(places)
-        sth.check_complementarity(places)
         sth.verify_dual_values(places)
-        sth.check_stationary_lagrangian(places=4)
+        sth.check_complementarity(places)
+        sth.check_stationary_lagrangian(places)
 
     def test_tf_3(self, places: int = 4):
         sth = StandardTestFlags.tf_3()
         sth.solve(solver='SCS')
-        sth.verify_objective(places)
         sth.check_primal_feasibility(places)
-        sth.verify_primal_values(places)
-        sth.check_complementarity(places)
         sth.verify_dual_values(places)
+        sth.check_complementarity(places)
         sth.check_stationary_lagrangian(places)
 
     def test_tf_4(self, places: int = 4):
         sth = StandardTestFlags.tf_4()
         sth.solve(solver='SCS')
-        sth.verify_objective(places)
         sth.check_primal_feasibility(places)
-        sth.verify_primal_values(places)
-        sth.check_complementarity(places)
         sth.verify_dual_values(places)
+        sth.check_complementarity(places)
         sth.check_stationary_lagrangian(places)

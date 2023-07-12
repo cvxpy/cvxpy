@@ -731,8 +731,6 @@ class Expression(u.Canonical):
 
     @_cast_other
     def __ge__(self, other: "Expression"):
-        """NonPos : Creates an inequality constraint.
-        """
         return Inequality(other, self)
 
     def __gt__(self, other: "Expression"):
