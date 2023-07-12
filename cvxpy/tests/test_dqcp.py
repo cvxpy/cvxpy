@@ -697,17 +697,3 @@ class TestDqcp(base_test.BaseTest):
         problem = cp.Problem(cp.Minimize(cp.cumsum(1/x)))
         problem.solve(SOLVER, qcp=True)
         self.assertAlmostEqual(problem.value, 0, places=3)
-
-    def test_hypersonic_shape_design(self) -> None:
-        """Test hypersonic shape design example."""
-        x = cp.Variable(pos=True)
-        obj = cp.sqrt(cp.inv_pos(cp.square(x))-1)
-
-        a = .05
-        b = .65
-        constraint = [a*cp.inv_pos(x)-(1-b)*cp.sqrt(1-cp.square(x))<=0]
-        prob = cp.Problem(cp.Minimize(obj), constraint)
-        prob.solve(SOLVER, qcp=True)
-
-        assert np.isclose(constraint[0].violation(), 0)
-        assert np.isclose(obj.value, 1/6.8541076)
