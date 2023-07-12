@@ -150,7 +150,15 @@ class SolverTestHelper:
                 L = L - cp.scalar_product(con.args, con.dual_value)
             else:
                 raise NotImplementedError()
-        g = L.grad
+        try:
+            g = L.grad
+        except TypeError as e:
+            assert 'is not subscriptable' in str(e)
+            msg = f"""\n
+            CVXPY problems with `diag` variables are not supported for stationarity checks
+            as of now
+            """
+            self.tester.fail(msg)
         bad_norms = []
 
         """The convention that we follow for construting the Lagrangian is: 1) Move all
@@ -167,14 +175,18 @@ class SolverTestHelper:
                 if norm > 10**(-places):
                     bad_norms.append((norm, opt_var))
             else:
-                if opt_var.is_symmetric():
-                    """The dual cone to the set of symmetric matrices is the
-                    set of skew-symmetric matrices, so we check if dLdX \in
-                    set(skew-symmetric-matrices)
-                    g[opt_var] is the problematic gradient in question"""
-                    g_bad_mat = np.reshape(g[opt_var].toarray(), opt_var.shape)
-                    mat = g_bad_mat + g_bad_mat.T
-                    dual_cone_violation = np.linalg.norm(mat) / np.sqrt(opt_var.size)
+                if opt_var.is_psd():
+                    """The PSD cone is self-dual"""
+                    g_bad_mat = cp.Constant(np.reshape(g[opt_var].toarray(), opt_var.shape))
+                    tmp_con = g_bad_mat >> 0
+                    dual_cone_violation = tmp_con.residual
+                    if dual_cone_violation > 10**(-places):
+                        bad_norms.append((dual_cone_violation, opt_var))
+                elif opt_var.is_nsd():
+                    """The NSD cone is also self-dual"""
+                    g_bad_mat = cp.Constant(np.reshape(g[opt_var].toarray(), opt_var.shape))
+                    tmp_con = g_bad_mat << 0
+                    dual_cone_violation = tmp_con.residual
                     if dual_cone_violation > 10**(-places):
                         bad_norms.append((dual_cone_violation, opt_var))
                 elif opt_var.is_diag():
@@ -185,32 +197,28 @@ class SolverTestHelper:
                     dual_cone_violation = np.linalg.norm(diag_entries) / np.sqrt(opt_var.size)
                     if diag_entries > 10**(-places):
                         bad_norms.append((dual_cone_violation, opt_var))
-                elif opt_var.is_psd():
-                    """The PSD cone is self-dual"""
-                    g_bad_mat = cp.Constant(np.reshape(v.data, opt_var.shape))
-                    tmp_con = g_bad_mat >> 0
-                    dual_cone_violation = tmp_con.residual
-                    if dual_cone_violation > 10**(-places):
-                        bad_norms.append((dual_cone_violation, opt_var))
-                elif opt_var.is_nsd():
-                    """The NSD cone is also self-dual"""
-                    g_bad_mat = cp.Constant(np.reshape(v.data, opt_var.shape))
-                    tmp_con = g_bad_mat << 0
-                    dual_cone_violation = tmp_con.residual
+                elif opt_var.is_symmetric():
+                    """The dual cone to the set of symmetric matrices is the
+                    set of skew-symmetric matrices, so we check if dLdX \in
+                    set(skew-symmetric-matrices)
+                    g[opt_var] is the problematic gradient in question"""
+                    g_bad_mat = np.reshape(g[opt_var].toarray(), opt_var.shape)
+                    mat = g_bad_mat + g_bad_mat.T
+                    dual_cone_violation = np.linalg.norm(mat) / np.sqrt(opt_var.size)
                     if dual_cone_violation > 10**(-places):
                         bad_norms.append((dual_cone_violation, opt_var))
                 elif opt_var.is_nonpos():
                     """The cone of matrices with all entries nonpos is self-dual"""
-                    g_bad_mat = cp.Constant(np.reshape(v.data, opt_var.shape))
+                    g_bad_mat = cp.Constant(np.reshape(g[opt_var].toarray(), opt_var.shape))
                     tmp_con = g_bad_mat <= 0
-                    dual_cone_violation = np.linalg.norm(g_bad_mat.residual) / np.sqrt(opt_var.size)
+                    dual_cone_violation = np.linalg.norm(tmp_con.residual) / np.sqrt(opt_var.size)
                     if dual_cone_violation > 10**(-places):
                         bad_norms.append((dual_cone_violation, opt_var))
                 elif opt_var.is_nonneg():
                     """The cone of matrices with all entries nonneg is self-dual"""
-                    g_bad_mat = cp.Constant(np.reshape(v.data, opt_var.shape))
+                    g_bad_mat = cp.Constant(np.reshape(g[opt_var].toarray(), opt_var.shape))
                     tmp_con = g_bad_mat >= 0
-                    dual_cone_violation = np.linalg.norm(g_bad_mat.residual) / np.sqrt(opt_var.size)
+                    dual_cone_violation = np.linalg.norm(tmp_con.residual) / np.sqrt(opt_var.size)
                     if dual_cone_violation > 10**(-places):
                         bad_norms.append((dual_cone_violation, opt_var))
 
