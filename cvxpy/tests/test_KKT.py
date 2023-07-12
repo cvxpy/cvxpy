@@ -183,18 +183,19 @@ class StandardTestFlags(BaseTest):
     def tf_1() -> STH.SolverTestHelper:
         """
         Tests NSD flag
-        Reference values via SCS
+        Reference values via MOSEK
+        Version: 10.0.46
         """
         X = cp.Variable(shape=(3,3), NSD=True)
         obj = cp.Maximize(cp.lambda_min(X))
-        cons = [X[0][1] == 123]
+        cons = [X[0, 1] == 123]
         con_pairs = [
             (cons[0], None),
         ]
-        var_pairs = [(X, np.array([[-122.99997839,  122.99999997, 0],
-                                   [ 122.99999997, -122.99997839, 0],
-                                   [ 0, 0, -111.45713829]]))]
-        obj_pair = (obj, -245.99997835783373)
+        var_pairs = [(X, np.array([[-123.,  123.,    0.],
+                                   [ 123., -123.,    0.],
+                                   [   0.,    0., -123.]]))]
+        obj_pair = (obj, -246.0000000000658)
         sth = STH.SolverTestHelper(obj_pair, var_pairs, con_pairs)
         return sth
 
@@ -202,11 +203,12 @@ class StandardTestFlags(BaseTest):
     def tf_2() -> STH.SolverTestHelper:
         """
         Tests PSD flag
-        Reference values via SCS
+        Reference values via MOSEK
+        Version: 10.0.46
         """
         X = cp.Variable(shape=(4,4), PSD=True)
         obj = cp.Minimize(cp.log_sum_exp(X))
-        cons = [cp.norm2(X) <= 10, X[0][1] >= 4, X[0][1] <= 8]
+        cons = [cp.norm2(X) <= 10, X[0, 1] >= 4, X[0, 1] <= 8]
         con_pairs = [
             (cons[0], None),
             (cons[1], None),
@@ -224,11 +226,12 @@ class StandardTestFlags(BaseTest):
     def tf_3() -> STH.SolverTestHelper:
         """
         Tests nonneg flag
-        Reference values via SCS
+        Reference values via MOSEK
+        Version: 10.0.46
         """
         X = cp.Variable(shape=(4,4), nonneg=True)
         obj = cp.Minimize(cp.log_sum_exp(X))
-        cons = [cp.norm2(X) <= 10, X[0][1] >= 4, X[0][1] <= 8]
+        cons = [cp.norm2(X) <= 10, X[0, 1] >= 4, X[0, 1] <= 8]
         con_pairs = [
             (cons[0], None),
             (cons[1], None),
@@ -247,7 +250,8 @@ class StandardTestFlags(BaseTest):
     def tf_4() -> STH.SolverTestHelper:
         """
         Tests nonpos flag
-        Reference values via SCS
+        Reference values via MOSEK
+        Version: 10.0.46
         """
         X = cp.Variable(shape=(3, 3), nonpos=True)
         obj = cp.Minimize(cp.norm2(X))
@@ -256,10 +260,10 @@ class StandardTestFlags(BaseTest):
             (cons[0], None),
             (cons[1], None),
         ]
-        var_pairs = [(X, np.array([[-0.19722456, -0.19722456, -0.19722456],
-                                   [-0.19722456, -0.19722456, -0.19722456],
-                                   [-0.19722456, -0.19722456, -0.19722456]]))]
-        obj_pair = (obj, 0.5916736882031846)
+        var_pairs = [(X, np.array([[-0.19722458, -0.19722458, -0.19722457],
+                                   [-0.19722458, -0.19722458, -0.19722457],
+                                   [-0.19722457, -0.19722457, -0.19722459]]))]
+        obj_pair = (obj, 0.5916737242761841)
         sth = STH.SolverTestHelper(obj_pair, var_pairs, con_pairs)
         return sth
 
