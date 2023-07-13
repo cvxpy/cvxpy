@@ -238,6 +238,19 @@ class TestComplex(BaseTest):
         val = np.ones(2)*np.sqrt(2)
         self.assertItemsAlmostEqual(x.value, val + 1j*val)
 
+    def test_complex_ndarray(self) -> None:
+        """Test ndarray of type complex64 and complex128.
+        """
+        x = Variable()
+        z = np.full(1, 1j, dtype=np.complex64)
+        x.value = 0
+        expr = x + z
+        assert np.isclose(expr.value, z)
+
+        z = np.full(1, 1j, dtype=np.complex128)
+        expr = x + z
+        assert np.isclose(expr.value, z)
+
     def test_missing_imag(self) -> None:
         """Test problems where imaginary is missing.
         """

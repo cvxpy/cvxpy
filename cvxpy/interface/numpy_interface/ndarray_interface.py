@@ -22,6 +22,9 @@ import scipy.sparse
 
 from .. import base_matrix_interface as base
 
+# Possible types for complex data.
+COMPLEX_TYPES = [complex, numpy.complex64, numpy.complex128]
+
 
 class NDArrayInterface(base.BaseMatrixInterface):
     """
@@ -47,7 +50,7 @@ class NDArrayInterface(base.BaseMatrixInterface):
             result = numpy.asarray(value).T
         else:
             result = numpy.asarray(value)
-        if result.dtype in [complex, numpy.float64]:
+        if result.dtype in [numpy.float64] + COMPLEX_TYPES:
             return result
         else:
             return result.astype(numpy.float64)
