@@ -885,7 +885,7 @@ class NumpyCanonBackend(PythonCanonBackend):
         num_entries = int(np.prod(lin.shape))
 
         def func(x):
-            return x[:, np.zeros(num_entries, dtype=int), :]
+            return np.tile(x, (1, num_entries, 1))
 
         view.apply_all(func)
         return view
