@@ -506,19 +506,33 @@ class MOSEK(ConicSolver):
         prim_vars = None
         dual_vars = None
         problem_status = task.getprosta(sol_type)
+        attr = {s.SOLVE_TIME: task.getdouinf(mosek.dinfitem.optimizer_time)}
         if sol_type == mosek.soltype.itg and problem_status == mosek.prosta.prim_infeas:
             status = s.INFEASIBLE
             prob_val = np.inf
+        elif problem_status == mosek.prosta.dual_infeas:
+            status = s.UNBOUNDED
+            prob_val = -np.inf
+            # Use the dual variables (primal because dualized) to find the IIS.
+            K = inverse_data["K_dir"]
+            prim_vars = MOSEK.recover_primal_variables(task, sol_type, K)
+            dual_vars = MOSEK.recover_dual_variables(task, sol_type)
+            raw_iis_sol = Solution(s.OPTIMAL, prob_val, prim_vars, dual_vars, attr)
+            iis_sol = Dualize.invert(raw_iis_sol, inverse_data)
+            # IIS is a map of constraint id to a value of
+            # dimension equal to the contraint dual variable.
+            # That value has non-zero entries iff the constraint
+            # is in the IIS.
+            attr[s.EXTRA_STATS] = {"IIS": iis_sol.dual_vars}
         else:
             solsta = task.getsolsta(sol_type)
             status = STATUS_MAP[solsta]
             prob_val = np.NaN
             if status in s.SOLUTION_PRESENT:
                 prob_val = task.getprimalobj(sol_type)
-                K = inverse_data['K_dir']
+                K = inverse_data["K_dir"]
                 prim_vars = MOSEK.recover_primal_variables(task, sol_type, K)
                 dual_vars = MOSEK.recover_dual_variables(task, sol_type)
-        attr = {s.SOLVE_TIME: task.getdouinf(mosek.dinfitem.optimizer_time)}
         raw_sol = Solution(status, prob_val, prim_vars, dual_vars, attr)
 
         if task.getobjsense() == mosek.objsense.maximize:
