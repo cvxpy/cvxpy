@@ -905,7 +905,7 @@ class NumpyCanonBackend(PythonCanonBackend):
     @staticmethod
     def sum_entries(_lin: LinOp, view: NumpyTensorView) -> NumpyTensorView:
         def func(x):
-            return x.sum(axis=(0, 1), keepdims=True)
+            return x.sum(axis=1, keepdims=True)
         view.apply_all(func)
         return view
 

@@ -555,7 +555,7 @@ class TestBackends:
         [[1  0],
          [0  1]]
 
-        sum_entries(x) means we consider the entries in all rows, i.e., we sum along axis 0.
+        sum_entries(x) means we consider the entries in all rows, i.e., we sum along the row axis.
 
         Thus, when using the same columns as before, we now have
 
@@ -584,6 +584,61 @@ class TestBackends:
 
         # Note: view is edited in-place:
         assert out_view.get_tensor_representation(0) == view.get_tensor_representation(0)
+
+    def test_parametrized_sum_entries_(self, backend, arg_view):
+        """
+        starting with a parametrized expression
+        x1  x2
+        [[[1  0],
+         [0  0]],
+
+         [[0  0],
+         [0  1]]]
+
+        sum_entries(x) means we consider the entries in all rows, i.e., we sum along the row axis.
+
+        Thus, when using the same columns as before, we now have
+
+         x1  x2
+        [[[1  0]],
+
+         [[0  1]]]
+        """
+        param_size_plus_one = 3
+        id_to_col = {1: 0}
+        param_to_size = {-1: 1, 2: 2}
+        param_to_col = {2: 0, -1: 3}
+        var_length = 2
+
+        param_lin_op = linOpHelper((2,), type='param', data=2)
+        empty_view = arg_view(param_size_plus_one, id_to_col,
+                              param_to_size, param_to_col,
+                              var_length)
+
+        variable_lin_op = linOpHelper((2,), type='variable', data=1)
+        var_view = backend.process_constraint(variable_lin_op, empty_view)
+        mul_elem_lin_op = linOpHelper(data=param_lin_op)
+        param_var_view = backend.mul_elem(mul_elem_lin_op, var_view)
+
+        sum_entries_lin_op = linOpHelper()
+        out_view = backend.sum_entries(sum_entries_lin_op, param_var_view)
+
+        slice_idx_zero = out_view.tensor[1][2][0]
+        slice_idx_zero = NumpyCanonBackend._to_dense(slice_idx_zero)
+        expected_idx_zero = np.array(
+            [[1., 0.]]
+        )
+        assert np.all(slice_idx_zero == expected_idx_zero)
+
+        slice_idx_one = out_view.tensor[1][2][1]
+        slice_idx_one = NumpyCanonBackend._to_dense(slice_idx_one)
+        expected_idx_one = np.array(
+            [[0., 1.]]
+        )
+        assert np.all(slice_idx_one == expected_idx_one)
+
+        # Note: view is edited in-place:
+        assert out_view.get_tensor_representation(0) == param_var_view.get_tensor_representation(0)
 
     def test_promote(self, backend, arg_view):
         """
