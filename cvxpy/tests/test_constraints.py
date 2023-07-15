@@ -283,13 +283,13 @@ class TestConstraints(BaseTest):
         z0 = x0**alpha * y0**(1-alpha)
         z0[1] *= -1
         x.value, y.value, z.value = x0, y0, z0
-        viol = con.residual
+        viol = con.residual()
         self.assertLessEqual(viol, 1e-7)
         # check violation against infeasible values
         x1 = x0.copy()
         x1[0] *= -0.9
         x.value = x1
-        viol = con.residual
+        viol = con.residual()
         self.assertGreaterEqual(viol, 0.99*abs(x1[0]))
         # check invalid constraint data
         with self.assertRaises(ValueError):
