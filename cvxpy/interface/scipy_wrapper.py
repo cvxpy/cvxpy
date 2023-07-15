@@ -14,6 +14,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+import warnings
+
 from scipy import sparse
 
 from cvxpy.expressions import expression as exp
@@ -30,15 +32,25 @@ SPARSE_MATRIX_CLASSES = [
 BIN_OPS = ["__div__", "__mul__", "__add__", "__sub__",
            "__le__", "__eq__", "__lt__", "__gt__"]
 
+SCIPY_WRAPPER_DEPRECATION_MESSAGE = """
+Your CVXPY program is using a deprecated feature of our SciPy interface.
+
+We believed it was impossible to hit this warning; please inform us of how you
+reached this warning at https://github.com/cvxpy/cvxpy/discussions/XXX so we can
+ensure that we correct this issue without causing breakage.
+"""
 
 def wrap_bin_op(method):
     """Factory for wrapping binary operators.
     """
     def new_method(self, other):
-        if isinstance(other, exp.Expression):
+        output = method(self, other)
+        if isinstance(other, exp.Expression) and output is not NotImplemented:
+            warnings.warn(SCIPY_WRAPPER_DEPRECATION_MESSAGE,
+                          category=DeprecationWarning)
             return NotImplemented
         else:
-            return method(self, other)
+            return output
     return new_method
 
 for cls in SPARSE_MATRIX_CLASSES:
