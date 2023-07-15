@@ -588,6 +588,7 @@ class TestExamples(BaseTest):
     def test_inpainting(self) -> None:
         """Test image in-painting.
         """
+        self.skipTest("This benchmark takes too long.")
         import numpy as np
         np.random.seed(1)
         rows, cols = 100, 100

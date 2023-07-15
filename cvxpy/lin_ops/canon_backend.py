@@ -22,6 +22,7 @@ from typing import Any, Callable
 
 import numpy as np
 import scipy.sparse as sp
+from scipy.signal import convolve
 
 from cvxpy.lin_ops import LinOp
 from cvxpy.settings import NUMPY_CANON_BACKEND, RUST_CANON_BACKEND, SCIPY_CANON_BACKEND
@@ -927,16 +928,16 @@ class NumpyCanonBackend(PythonCanonBackend):
         total_rows = int(lin.shape[0] ** 2)
 
         def func(x):
+            x_rows = x.shape[1]
             shape = list(x.shape)
             shape[1] = total_rows
+
             if k == 0:
-                new_rows = np.arange(rows) * rows + np.arange(rows)
+                new_rows = np.arange(x_rows) * (rows + 1)
             elif k > 0:
-                new_rows = np.arange(rows) * rows + np.arange(rows) + rows * k
-                new_rows = new_rows[:rows - k]
+                new_rows = np.arange(x_rows) * (rows + 1) + rows * k
             else:
-                new_rows = np.arange(rows) * rows + np.arange(rows) - k
-                new_rows = new_rows[:rows + k]
+                new_rows = np.arange(x_rows) * (rows + 1) - k
             matrix = np.zeros(shape)
             matrix[:, new_rows, :] = x
             return matrix
@@ -961,34 +962,31 @@ class NumpyCanonBackend(PythonCanonBackend):
         lhs, is_param_free_lhs = self.get_constant_data(lin.data, view, column=False)
         arg_cols = lin.args[0].shape[0] if len(lin.args[0].shape) == 1 else lin.args[0].shape[1]
 
-        if isinstance(lhs, dict):
+        if is_param_free_lhs:
+            lhs_rows = lhs.shape[-2]
+            if len(lin.data.shape) == 1 and arg_cols != lhs_rows:
+                lhs = np.swapaxes(lhs, -2, -1)
+            lhs_rows = lhs.shape[-2]
+            reps = view.rows // lhs_rows
+            lhs_transposed = np.swapaxes(lhs, -2, -1)
+            stacked_lhs = np.kron(lhs_transposed, np.eye(reps))
+            func = lambda x: stacked_lhs @ x
+        else:
             lhs_shape = next(iter(lhs.values()))[0].shape
-
-            if len(lin.data.shape) == 1 and arg_cols != lhs_shape[0]:
-                # Example: (n,n) @ (n,), we need to interpret the rhs as a column vector,
-                # but it is a row vector by default, so we need to transpose
-                lhs = {k: np.stack([v_i.T for v_i in v]) for k, v in lhs.items()}
+            lhs_rows = lhs_shape[-2]
+            if len(lin.data.shape) == 1 and arg_cols != lhs_rows:
+                lhs = {k: np.swapaxes(v, -2, -1) for k, v in lhs.items()}
                 lhs_shape = next(iter(lhs.values()))[0].shape
-
-            eye = np.eye(view.rows // lhs_shape[0])
-            stacked_lhs = {k: np.stack([np.kron(v_i.T, eye) for v_i in v]) for k, v in lhs.items()}
+            lhs_rows = lhs_shape[-2]
+            reps = view.rows // lhs_rows
+            stacked_lhs = {k: np.kron(np.swapaxes(v, -2, -1), np.eye(reps)) for k, v in lhs.items()}
 
             def parametrized_mul(x):
                 assert len(x) == 1
                 return {k: v @ x for k, v in stacked_lhs.items()}
 
             func = parametrized_mul
-        else:
-            assert len(lhs) == 1
-            if len(lin.data.shape) == 1 and arg_cols != lhs.shape[0]:
-                # Example: (n,n) @ (n,), we need to interpret the rhs as a column vector,
-                # but it is a row vector by default, so we need to transpose
-                lhs = lhs.T
-            reps = view.rows // lhs.shape[0]
-            stacked_lhs = np.kron(lhs.T, np.eye(reps))
 
-            def func(x):
-                return stacked_lhs @ x
         return view.accumulate_over_variables(func, is_param_free_function=is_param_free_lhs)
 
     @staticmethod
@@ -996,39 +994,21 @@ class NumpyCanonBackend(PythonCanonBackend):
         shape = lin.args[0].shape
         indices = np.arange(shape[0]) * shape[0] + np.arange(shape[0])
 
-        data = np.ones(len(indices))
-        col = indices.astype(int)
-        lhs = np.zeros(shape=(1, 1, np.prod(shape)))
-        lhs[:, :, col] = data
-
-        def func(x):
-            return lhs @ x
+        lhs = np.zeros(shape=(1, np.prod(shape)))
+        lhs[0, indices] = 1
+        func = lambda x: lhs @ x
 
         return view.accumulate_over_variables(func, is_param_free_function=True)
 
     def conv(self, lin: LinOp, view: NumpyTensorView) -> NumpyTensorView:
         lhs, is_param_free_lhs = self.get_constant_data(lin.data, view, column=False)
         assert is_param_free_lhs
-        assert len(lhs) == 1
-        lhs = lhs[0]
-        assert lhs.ndim == 2
 
         if len(lin.data.shape) == 1:
-            lhs = lhs.T
-
-        rows = lin.shape[0]
-        cols = lin.args[0].shape[0]
-        nonzeros = lhs.shape[0]
-
-        row_idx = (np.tile(np.arange(nonzeros), cols) + np.repeat(np.arange(cols),
-                                                                  nonzeros)).astype(int)
-        col_idx = (np.repeat(np.arange(cols), nonzeros)).astype(int)
-        data = np.tile(lhs.flatten(), cols)
-        lhs = np.zeros(shape=(1, rows, cols))
-        lhs[:, row_idx, col_idx] = data
+            lhs = np.swapaxes(lhs, -2, -1)
 
         def func(x):
-            return lhs @ x
+            return convolve(lhs, x)
 
         return view.accumulate_over_variables(func, is_param_free_function=is_param_free_lhs)
 
@@ -1100,6 +1080,12 @@ class NumpyCanonBackend(PythonCanonBackend):
         tensor = data.reshape((-1, 1), order="F")
         return {Constant.ID.value: {Constant.ID.value: np.expand_dims(tensor, axis=0)}}
 
+    def get_param_tensor(self, shape: tuple[int, ...], parameter_id: int) \
+            -> dict[int, dict[int, np.ndarray]]:
+        assert parameter_id != Constant.ID
+        n = int(np.prod(shape))
+        return {Constant.ID.value: {parameter_id: np.expand_dims(np.eye(n), axis=-1)}}
+
     @staticmethod
     def _to_dense(x):
         try:
@@ -1108,12 +1094,6 @@ class NumpyCanonBackend(PythonCanonBackend):
             res = x
         res = np.atleast_2d(res)
         return res
-
-    def get_param_tensor(self, shape: tuple[int, ...], parameter_id: int) \
-            -> dict[int, dict[int, np.ndarray]]:
-        assert parameter_id != Constant.ID
-        n = int(np.prod(shape))
-        return {Constant.ID.value: {parameter_id: np.expand_dims(np.eye(n), axis=-1)}}
 
 
 class TensorView(ABC):
