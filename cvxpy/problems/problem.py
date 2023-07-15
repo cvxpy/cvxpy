@@ -18,6 +18,7 @@ from __future__ import annotations
 import time
 import warnings
 from collections import namedtuple
+from dataclasses import dataclass
 from typing import Dict, List, Optional, Union
 
 import numpy as np
@@ -1405,7 +1406,7 @@ class Problem(u.Canonical):
                     "information.")
 
         self.unpack(solution)
-        self._solver_stats = SolverStats(self._solution.attr,
+        self._solver_stats = SolverStats.from_dict(self._solution.attr,
                                          chain.solver.name())
 
     def __str__(self) -> str:
@@ -1470,6 +1471,7 @@ class Problem(u.Canonical):
     __truediv__ = __div__
 
 
+@dataclass
 class SolverStats:
     """Reports some of the miscellaneous information that is returned
     by the solver after solving but that is not captured directly by
@@ -1490,22 +1492,36 @@ class SolverStats:
         returned directly from the solver, without modification by CVXPY.
         This object may be a dict, or a custom Python object.
     """
-    def __init__(self, results_dict, solver_name: str) -> None:
-        self.solver_name = solver_name
-        self.solve_time = None
-        self.setup_time = None
-        self.num_iters = None
-        self.extra_stats = None
 
-        if s.SOLVE_TIME in results_dict:
-            self.solve_time = results_dict[s.SOLVE_TIME]
-        if s.SETUP_TIME in results_dict:
-            self.setup_time = results_dict[s.SETUP_TIME]
-        if s.NUM_ITERS in results_dict:
-            self.num_iters = results_dict[s.NUM_ITERS]
-        if s.EXTRA_STATS in results_dict:
-            self.extra_stats = results_dict[s.EXTRA_STATS]
+    solver_name: str
+    solve_time: Optional[float] = None
+    setup_time: Optional[float] = None
+    num_iters: Optional[int] = None
+    extra_stats: Optional[dict] = None
 
+    @classmethod
+    def from_dict(cls, attr: dict, solver_name: str) -> "SolverStats":
+        """Construct a SolverStats object from a dictionary of attributes.
+
+        Parameters
+        ----------
+        attr : dict
+            A dictionary of attributes returned by the solver.
+        solver_name : str
+            The name of the solver.
+
+        Returns
+        -------
+        SolverStats
+            A SolverStats object.
+        """
+        return cls(
+            solver_name,
+            solve_time=attr.get(s.SOLVE_TIME),
+            setup_time=attr.get(s.SETUP_TIME),
+            num_iters=attr.get(s.NUM_ITERS),
+            extra_stats=attr.get(s.EXTRA_STATS),
+        )
 
 class SizeMetrics:
     """Reports various metrics regarding the problem.

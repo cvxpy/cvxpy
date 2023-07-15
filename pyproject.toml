@@ -31,5 +31,6 @@ requires = [
     "numpy>=1.23.4,<1.24; python_version=='3.11'",
     "scipy >= 1.1.0",
     "setuptools>65.5.1",
-    "wheel"
+    "wheel",
+    "pybind11"
 ]

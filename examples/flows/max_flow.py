@@ -16,17 +16,18 @@ limitations under the License.
 
 import pickle
 
-from cvxpy import Maximize, Problem, Variable
+from create_graph import EDGES_KEY, FILE, NODE_COUNT_KEY
 
-from .create_graph import EDGES_KEY, FILE, NODE_COUNT_KEY
+import cvxpy as cp
 
 
 # An object oriented max-flow problem.
 class Edge:
     """ An undirected, capacity limited edge. """
+
     def __init__(self, capacity) -> None:
         self.capacity = capacity
-        self.flow = Variable()
+        self.flow = cp.Variable()
 
     # Connects two nodes via the edge.
     def connect(self, in_node, out_node):
@@ -35,21 +36,24 @@ class Edge:
 
     # Returns the edge's internal constraints.
     def constraints(self):
-        return [abs(self.flow) <= self.capacity]
+        return [cp.abs(self.flow) <= self.capacity]
+
 
 class Node:
     """ A node with accumulation. """
+
     def __init__(self, accumulation: float = 0.0) -> None:
         self.accumulation = accumulation
         self.edge_flows = []
 
     # Returns the node's internal constraints.
     def constraints(self):
-        return [sum(f for f in self.edge_flows) == self.accumulation]
+        return [cp.sum([f for f in self.edge_flows]) == self.accumulation]
+
 
 if __name__ == "__main__":
     # Read a graph from a file.
-    f = open(FILE, 'r')
+    f = open(FILE, 'rb')
     data = pickle.load(f)
     f.close()
 
@@ -57,19 +61,19 @@ if __name__ == "__main__":
     node_count = data[NODE_COUNT_KEY]
     nodes = [Node() for i in range(node_count)]
     # Add source.
-    nodes[0].accumulation = Variable()
+    nodes[0].accumulation = cp.Variable()
     # Add sink.
-    nodes[-1].accumulation = Variable()
+    nodes[-1].accumulation = cp.Variable()
 
     # Construct edges.
     edges = []
-    for n1,n2,capacity in data[EDGES_KEY]:
+    for n1, n2, capacity in data[EDGES_KEY]:
         edges.append(Edge(capacity))
         edges[-1].connect(nodes[n1], nodes[n2])
     # Construct the problem.
     constraints = []
     for o in nodes + edges:
         constraints += o.constraints()
-    p = Problem(Maximize(nodes[-1].accumulation), constraints)
+    p = cp.Problem(cp.Maximize(nodes[-1].accumulation), constraints)
     result = p.solve()
     print(result)

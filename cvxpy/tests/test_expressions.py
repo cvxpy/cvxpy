@@ -61,8 +61,10 @@ class TestExpressions(BaseTest):
         # self.assertEqual(x.canonical_form[0].shape, (2, 1))
         # self.assertEqual(x.canonical_form[1], [])
 
-        self.assertEqual(repr(self.x), "Variable((2,))")
-        self.assertEqual(repr(self.A), "Variable((2, 2))")
+        self.assertEqual(repr(self.x), "Variable((2,), x)")
+        self.assertEqual(repr(self.A), "Variable((2, 2), A)")
+        self.assertEqual(repr(cp.Variable(name='x', nonneg=True)), "Variable((), x, nonneg=True)")
+        self.assertTrue(repr(cp.Variable()).startswith("Variable((), var"))
 
         # Test shape provided as list instead of tuple
         self.assertEqual(cp.Variable(shape=[2], integer=True).shape, (2,))
@@ -1450,13 +1452,13 @@ class TestExpressions(BaseTest):
 
     def test_matmul_scalars(self) -> None:
         """Test evaluating a matmul that reduces one argument internally to a scalar.
-
-        See https://github.com/cvxpy/cvxpy/issues/2065
         """
         x = cp.Variable((2,))
         quad = cp.quad_form(x, np.eye(2))
         a = np.array([2])
-        # NOTE quad has dimensions (1, 1) which is a bug.
-        expr = a @ quad
+        expr = quad * a
         x.value = np.array([1, 2])
-        self.assertAlmostEqual(expr.value, 10)
+        P = np.eye(2)
+        true_val = (np.transpose(x.value) @ P @ x.value) * a
+        assert quad.shape == ()
+        self.assertEqual(expr.value, true_val)

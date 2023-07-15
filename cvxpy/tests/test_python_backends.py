@@ -378,7 +378,7 @@ class TestScipyBackend:
         view_A = sp.coo_matrix((view_A.data, (view_A.row, view_A.col)), shape=(4, 4)).toarray()
         assert np.all(view_A == np.eye(4))
 
-        diag_mat_lin_op = linOpHelper(shape=(2, 2))
+        diag_mat_lin_op = linOpHelper(shape=(2, 2), data=0)
         out_view = backend.diag_mat(diag_mat_lin_op, view)
         A = out_view.get_tensor_representation(0)
 
@@ -387,6 +387,56 @@ class TestScipyBackend:
         expected = np.array(
             [[1, 0, 0, 0],
              [0, 0, 0, 1]]
+        )
+        assert np.all(A == expected)
+
+        # Note: view is edited in-place:
+        assert out_view.get_tensor_representation(0) == view.get_tensor_representation(0)
+
+    def test_diag_mat_with_offset(self, backend):
+        """
+        define x = Variable((2,2)) with
+        [[x11, x12],
+         [x21, x22]]
+
+        x is represented as eye(4) in the A matrix (in column-major order), i.e.,
+
+         x11 x21 x12 x22
+        [[1   0   0   0],
+         [0   1   0   0],
+         [0   0   1   0],
+         [0   0   0   1]]
+
+        diag_mat(x, k=1) means we select only the 1-(super)diagonal, i.e., x12.
+
+        which, when using the same columns as before, now maps to
+
+         x11 x21 x12 x22
+        [[0   0   1   0]]
+
+        -> It reduces to selecting a subset of the rows of A.
+        """
+
+        variable_lin_op = linOpHelper((2, 2), type='variable', data=1)
+        empty_view = ScipyTensorView.get_empty_view(self.param_size_plus_one, self.id_to_col,
+                                                    self.param_to_size, self.param_to_col,
+                                                    self.var_length)
+        view = backend.process_constraint(variable_lin_op, empty_view)
+
+        # cast to numpy
+        view_A = view.get_tensor_representation(0)
+        view_A = sp.coo_matrix((view_A.data, (view_A.row, view_A.col)), shape=(4, 4)).toarray()
+        assert np.all(view_A == np.eye(4))
+
+        k = 1
+        diag_mat_lin_op = linOpHelper(shape=(1, 1), data=k)
+        out_view = backend.diag_mat(diag_mat_lin_op, view)
+        A = out_view.get_tensor_representation(0)
+
+        # cast to numpy
+        A = sp.coo_matrix((A.data, (A.row, A.col)), shape=(1, 4)).toarray()
+        expected = np.array(
+            [[0, 0, 1, 0]]
         )
         assert np.all(A == expected)
 
@@ -427,7 +477,7 @@ class TestScipyBackend:
         view_A = sp.coo_matrix((view_A.data, (view_A.row, view_A.col)), shape=(2, 2)).toarray()
         assert np.all(view_A == np.eye(2))
 
-        diag_vec_lin_op = linOpHelper(shape=(2, 2))
+        diag_vec_lin_op = linOpHelper(shape=(2, 2), data=0)
         out_view = backend.diag_vec(diag_vec_lin_op, view)
         A = out_view.get_tensor_representation(0)
 
@@ -438,6 +488,72 @@ class TestScipyBackend:
              [0, 0],
              [0, 0],
              [0, 1]]
+        )
+        assert np.all(A == expected)
+
+        # Note: view is edited in-place:
+        assert out_view.get_tensor_representation(0) == view.get_tensor_representation(0)
+
+    def test_diag_vec_with_offset(self, backend):
+        """
+        define x = Variable((2,)) with
+        [x1, x2]
+
+        x is represented as eye(2) in the A matrix, i.e.,
+
+         x1  x2
+        [[1  0],
+         [0  1]]
+
+        diag_vec(x, k) means we introduce zero rows as if the vector was the k-diagonal
+        of an n+|k| x n+|k| matrix, with n the length of x.
+
+        Thus, for k=1 and using the same columns as before, want to represent
+        [[0  x1 0],
+        [ 0  0  x2],
+        [[0  0  0]]
+        i.e., unrolled in column-major order:
+
+         x1  x2
+        [[0  0],
+        [0  0],
+        [0  0],
+        [1  0],
+        [0  0],
+        [0  0],
+        [0  0],
+        [0  1],
+        [0  0]]
+        """
+
+        variable_lin_op = linOpHelper((2,), type='variable', data=1)
+        empty_view = ScipyTensorView.get_empty_view(self.param_size_plus_one, self.id_to_col,
+                                                    self.param_to_size, self.param_to_col,
+                                                    self.var_length)
+        view = backend.process_constraint(variable_lin_op, empty_view)
+
+        # cast to numpy
+        view_A = view.get_tensor_representation(0)
+        view_A = sp.coo_matrix((view_A.data, (view_A.row, view_A.col)), shape=(2, 2)).toarray()
+        assert np.all(view_A == np.eye(2))
+
+        k = 1
+        diag_vec_lin_op = linOpHelper(shape=(3, 3), data=k)
+        out_view = backend.diag_vec(diag_vec_lin_op, view)
+        A = out_view.get_tensor_representation(0)
+
+        # cast to numpy
+        A = sp.coo_matrix((A.data, (A.row, A.col)), shape=(9, 2)).toarray()
+        expected = np.array(
+            [[0, 0],
+             [0, 0],
+             [0, 0],
+             [1, 0],
+             [0, 0],
+             [0, 0],
+             [0, 0],
+             [0, 1],
+             [0, 0]]
         )
         assert np.all(A == expected)
 

@@ -14,7 +14,7 @@
 
 #ifndef CVXCANON_H
 #define CVXCANON_H
-
+#define EIGEN_MPL2_ONLY
 #include "LinOp.hpp"
 #include "ProblemData.hpp"
 #include "Utils.hpp"

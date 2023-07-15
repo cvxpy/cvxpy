@@ -482,38 +482,43 @@ def reshape(operator, shape: Tuple[int, ...]):
     return lo.LinOp(lo.RESHAPE, shape, [operator], None)
 
 
-def diag_vec(operator):
+def diag_vec(operator, k: int = 0):
     """Converts a vector to a diagonal matrix.
 
     Parameters
     ----------
     operator : LinOp
         The operator to convert to a diagonal matrix.
+    k : int
+        The offset of the diagonal.
 
     Returns
     -------
     LinOp
        LinOp representing the diagonal matrix.
     """
-    shape = (operator.shape[0], operator.shape[0])
-    return lo.LinOp(lo.DIAG_VEC, shape, [operator], None)
+    rows = operator.shape[0] + abs(k)
+    shape = (rows, rows)
+    return lo.LinOp(lo.DIAG_VEC, shape, [operator], k)
 
 
-def diag_mat(operator):
+def diag_mat(operator, k: int = 0):
     """Converts the diagonal of a matrix to a vector.
 
     Parameters
     ----------
     operator : LinOp
         The operator to convert to a vector.
+    k : int
+        The offset of the diagonal.
 
     Returns
     -------
     LinOp
        LinOp representing the matrix diagonal.
     """
-    shape = (operator.shape[0], 1)
-    return lo.LinOp(lo.DIAG_MAT, shape, [operator], None)
+    shape = (operator.shape[0] - abs(k), 1)
+    return lo.LinOp(lo.DIAG_MAT, shape, [operator], k)
 
 
 def upper_tri(operator):

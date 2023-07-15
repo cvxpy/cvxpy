@@ -116,7 +116,7 @@ class SolverTestHelper:
                 comp = cp.scalar_product(pv, dv).value
             elif isinstance(con, (cp.constraints.ExpCone,
                                   cp.constraints.SOC,
-                                  cp.constraints.NonPos,
+                                  cp.constraints.NonNeg,
                                   cp.constraints.Zero)):
                 comp = cp.scalar_product(con.args, con.dual_value).value
             elif isinstance(con, cp.constraints.PowCone3D):
@@ -253,6 +253,31 @@ def lp_6() -> SolverTestHelper:
     obj_pair = (objective, np.inf)
     var_pairs = [(x, None)]
     sth = SolverTestHelper(obj_pair, var_pairs, [])
+    return sth
+
+
+def lp_7() -> SolverTestHelper:
+    """
+    An ill-posed problem to test multiprecision ability of solvers.
+
+    This test will not pass on CVXOPT (as of v1.3.1) and on SDPA without GMP support.
+    """
+    n = 50
+    a = cp.Variable((n+1))
+    delta = cp.Variable((n))
+    b = cp.Variable((n+1))
+    objective = cp.Minimize(cp.sum(cp.pos(delta)))
+    constraints = [
+        a[1:] - a[:-1] == delta,
+        a >= cp.pos(b),
+    ]
+    con_pairs = [(constraints[0], None),
+                 (constraints[1], None)]
+    var_pairs = [(a, None),
+                 (delta, None),
+                 (b, None)]
+    obj_pair = (objective, 0.)
+    sth = SolverTestHelper(obj_pair, var_pairs, con_pairs)
     return sth
 
 
@@ -482,6 +507,50 @@ def expcone_socp_1() -> SolverTestHelper:
                 np.array([1.30190, 1.38082, 2.67496])]
          )
     ]
+    sth = SolverTestHelper(obj_pair, var_pairs, con_pairs)
+    return sth
+
+
+def sdp_pcp_1() -> SolverTestHelper:
+    """
+    Example sdp and power cone.
+    """
+    Sigma = np.array([[ 0.4787481 , -0.96924914],
+                      [-0.96924914,  2.77788598]])
+
+    x = cp.Variable(shape=(2,1))
+    y = cp.Variable(shape=(2,1))
+    X = cp.Variable(shape=(2,2), symmetric=True)
+    M1 = cp.vstack([X, x.T])
+    M2 = cp.vstack([x, np.ones((1, 1))])
+    M3 = cp.hstack([M1, M2])
+
+    var_pairs = [
+        (x, np.array([[0.72128204],
+                      [0.27871796]])),
+        (y, np.array([[0.01],
+                      [0.01]])),
+        (X, np.array([[0.52024779, 0.20103426],
+                      [0.20103426, 0.0776837 ]])),        
+    ]
+    con_pairs = [
+        (cp.sum(x) == 1, -0.1503204799112807),
+        (x >= 0, np.array([[-0.],
+                           [-0.]])),
+        (y >= 0.01, np.array([[0.70705506],
+                               [0.70715844]])),
+        (M3 >> 0, np.array([[ 0.4787481 , -0.96924914, -0.07516024],
+                            [-0.96924914,  2.77788598, -0.07516024],
+                            [-0.07516024, -0.07516024,  0.07516094]])),
+        (cp.PowCone3D(x, np.ones((2,1)), y, 0.9), [np.array([[1.17878172e-09],
+                                                             [3.05162243e-09]]),
+                                                   np.array([[9.20157640e-10],
+                                                             [9.40823207e-10]]),
+                                                   np.array([[2.41053358e-10],
+                                                             [7.43432462e-10]])]),
+        ]
+    obj_expr = cp.Minimize(cp.trace(Sigma @ X) + cp.norm(y, p=2))
+    obj_pair = (obj_expr, 0.089301671322676)
     sth = SolverTestHelper(obj_pair, var_pairs, con_pairs)
     return sth
 
@@ -752,6 +821,74 @@ def mi_lp_5() -> SolverTestHelper:
     sth = SolverTestHelper(obj_pair, var_pairs, con_pairs)
     return sth
 
+def mi_lp_6() -> SolverTestHelper:
+    "Test MILP for timelimit and no feasible solution"
+    n = 70
+    m = 70
+    x = cp.Variable((n,), boolean=True, name="x")
+    y = cp.Variable((n,), name="y")
+    z = cp.Variable((m,), pos=True, name="z")
+    A = np.random.rand(m, n)
+    b = np.random.rand(m)
+    objective = cp.Maximize(cp.sum(y))
+    constraints = [
+        A @ y <= b,
+        y <= 1,
+        cp.sum(x) >= 10,
+        cp.sum(x) <= 20,
+        z[0] + z[1] + z[2] >= 10,
+        z[3] + z[4] + z[5] >= 5,
+        z[6] + z[7] + z[8] >= 7,
+        z[9] + z[10] >= 8,
+        z[11] + z[12] >= 6,
+        z[13] + z[14] >= 3,
+        z[15] + z[16] >= 2,
+        z[17] + z[18] >= 1,
+        z[19] >= 2,
+        z[20] >= 1,
+        z[21] >= 1,
+        z[22] >= 1,
+        z[23] >= 1,
+        z[24] >= 1,
+        z[25] >= 1,
+        z[26] >= 1,
+        z[27] >= 1,
+        z[28] >= 1,
+        z[29] >= 1,
+    ]
+    return SolverTestHelper(
+        (objective, None),
+        [(x, None), (y, None), (z, None)],
+        [(con, None) for con in constraints]
+    )
+
+
+
+def mi_lp_7() -> SolverTestHelper:
+    """Problem that takes significant time to solve - for testing time/iteration limits"""
+    np.random.seed(0)
+    n = 24 * 8
+    c = cp.Variable((n,), pos=True)
+    d = cp.Variable((n,), pos=True)
+    c_or_d = cp.Variable((n,), boolean=True)
+    big = 1e3
+    s = cp.cumsum(c * 0.9 - d)
+    p = np.random.random(n)
+    objective = cp.Maximize(p @ (d - c))
+    constraints = [
+        d <= 1,
+        c <= 1,
+        s >= 0,
+        s <= 1,
+        c <= c_or_d * big,
+        d <= (1 - c_or_d) * big,
+    ]
+    return SolverTestHelper(
+        (objective, None),
+        [(c, None,), (d, None), (c_or_d, None)],
+        [(con, None) for con in constraints]
+    )
+
 
 def mi_socp_1() -> SolverTestHelper:
     """
@@ -898,6 +1035,15 @@ class StandardTestLPs:
         if duals:
             sth.check_complementarity(places)
             sth.check_dual_domains(places)
+        return sth
+
+    @staticmethod
+    def test_lp_7(solver, places: int = 4, duals: bool = True, **kwargs) -> SolverTestHelper:
+        sth = lp_7()
+        import sdpap
+        if sdpap.sdpacall.sdpacall.get_backend_info()["gmp"]:
+            sth.solve(solver, **kwargs)
+            sth.verify_objective(places)
         return sth
 
     @staticmethod
@@ -1101,7 +1247,19 @@ class StandardTestMixedCPs:
             sth.verify_dual_values(places)
         return sth
 
+    @staticmethod
+    def test_sdp_pcp_1(solver, places: int = 3, duals: bool = False, **kwargs) -> SolverTestHelper:
+        sth = sdp_pcp_1()
+        sth.solve(solver, **kwargs)
+        sth.verify_objective(places)
+        sth.check_primal_feasibility(places)
+        sth.verify_primal_values(places)
+        if duals:
+            sth.check_complementarity(places)
+            sth.check_dual_domains(places)
+        return sth
 
+    
 class StandardTestPCPs:
 
     @staticmethod
@@ -1109,6 +1267,7 @@ class StandardTestPCPs:
         sth = pcp_1()
         sth.solve(solver, **kwargs)
         sth.verify_objective(places)
+        sth.check_primal_feasibility(places)
         sth.verify_primal_values(places)
         if duals:
             sth.check_complementarity(places)
@@ -1120,6 +1279,7 @@ class StandardTestPCPs:
         sth = pcp_2()
         sth.solve(solver, **kwargs)
         sth.verify_objective(places)
+        sth.check_primal_feasibility(places)
         sth.verify_primal_values(places)
         if duals:
             sth.check_complementarity(places)
@@ -1131,6 +1291,7 @@ class StandardTestPCPs:
         sth = pcp_3()
         sth.solve(solver, **kwargs)
         sth.verify_objective(places)
+        sth.check_primal_feasibility(places)
         sth.verify_primal_values(places)
         if duals:
             sth.check_complementarity(places)
@@ -1141,5 +1302,6 @@ class StandardTestPCPs:
         sth = mi_pcp_0()
         sth.solve(solver, **kwargs)
         sth.verify_objective(places)
+        sth.check_primal_feasibility(places)
         sth.verify_primal_values(places)
         return sth

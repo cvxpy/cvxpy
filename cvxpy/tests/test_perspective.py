@@ -413,12 +413,13 @@ def test_scalar_x():
 
 
 def test_assert_s_nonzero():
+    # If s=0 arises, make sure we ask for a recession function
     x = cp.Variable()
     s = cp.Variable(nonneg=True)
     obj = perspective(x+1, s)
 
     prob = cp.Problem(cp.Minimize(obj), [x >= 3.14])
-    with pytest.raises(AssertionError, match="There are valid cases"):
+    with pytest.raises(AssertionError, match="pass in a recession function"):
         prob.solve()
 
 
@@ -457,3 +458,19 @@ def test_dpp():
     obj = cp.perspective(cp.log(a+x), s)
 
     assert not obj.is_dpp()
+
+def test_s_eq_0():
+    # Problem where the optimal s is s = 0
+    # Proves that we can support integer / boolean s, where s=0 is more common
+    x = cp.Variable(1)
+    s = cp.Variable(1, nonneg=True)
+    f = x + 1
+    f_recession = x
+    obj = cp.perspective(f, s, f_recession=f_recession)
+    constr = [-cp.square(x) + 1 >= 0]
+    
+    prob = cp.Problem(cp.Minimize(obj), constr)
+    prob.solve()
+
+    assert np.isclose(x.value, -1)
+    assert np.isclose(s.value, 0)

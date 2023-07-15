@@ -185,6 +185,7 @@ PSD_NSD_PROJECTION_TOL = 1e-8
 GENERAL_PROJECTION_TOL = 1e-10
 SPARSE_PROJECTION_TOL = 1e-10
 ATOM_EVAL_TOL = 1e-4
+CHOL_SYM_TOL = 1e-14
 
 # DPP is slow when total size of parameters
 # exceed this threshold.
@@ -194,6 +195,9 @@ PARAM_THRESHOLD = 1e4
 # -1 defaults to system default (configurable via the OMP_NUM_THREADS
 # environment variable)
 NUM_THREADS = -1
+
+PRINT_EDGEITEMS = 2
+PRINT_THRESHOLD = 5
 
 
 def set_num_threads(num_threads: int) -> None:

@@ -678,6 +678,22 @@ class TestAtoms(BaseTest):
         self.assertFalse(expr.is_psd())
         self.assertFalse(expr.is_nsd())
 
+    def test_diag_offset(self) -> None:
+        """Test matrix to vector on scalar matrices"""
+        test_matrix = np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
+        test_vector = np.array([1, 2, 3])
+        offsets = [0, 1, -1, 2]
+        for offset in offsets:
+            a_cp = cp.diag(test_matrix, k=offset)
+            a_np = np.diag(test_matrix, k=offset)
+            A_cp = cp.diag(test_vector, k=offset)
+            A_np = np.diag(test_vector, k=offset)
+            self.assertItemsAlmostEqual(a_cp.value, a_np)
+            self.assertItemsAlmostEqual(A_cp.value, A_np)
+
+        X = cp.diag(Variable(5), 1)
+        self.assertEqual(X.size, 36)
+
     def test_trace(self) -> None:
         """Test the trace atom.
         """
@@ -1247,6 +1263,41 @@ class TestAtoms(BaseTest):
         prob = cp.Problem(obj, [v >= 1])
         prob.solve(solver=cp.SCS)
         assert np.allclose(v.value, p.value)
+
+    def test_outer(self) -> None:
+        """Test the outer atom.
+        """
+        a = np.ones((3,))
+        b = Variable((2,))
+        expr = cp.outer(a, b)
+        self.assertEqual(expr.shape, (3, 2))
+
+        # Test with parameter
+        c = Parameter((2,))
+        expr = cp.outer(c, a)
+        self.assertEqual(expr.shape, (2, 3))
+
+        d = np.ones((4,))
+        expr = cp.outer(a, d)
+        true_val = np.outer(a, d)
+        assert np.allclose(expr.value, true_val, atol=1e-1)
+
+        # Test with scalars
+        assert np.allclose(np.outer(3, 2), cp.outer(3, 2).value)
+        assert np.allclose(np.outer(3, d), cp.outer(3, d).value)
+
+        # Test with matrices
+        A = np.arange(4).reshape((2, 2))
+        np.arange(4, 8).reshape((2, 2))
+
+        with pytest.raises(ValueError, match="x must be a vector"):
+            cp.outer(A, d)
+        with pytest.raises(ValueError, match="y must be a vector"):
+            cp.outer(d, A)
+
+        # allow 2D inputs once row-major flattening is the default
+        assert np.allclose(cp.vec(np.array([[1, 2], [3, 4]])).value, np.array([1, 3, 2, 4]))
+
 
     def test_conj(self) -> None:
         """Test conj.

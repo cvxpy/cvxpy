@@ -17,6 +17,7 @@ limitations under the License.
 
 import warnings
 
+import numpy as np
 import scipy  # For version checks
 
 import cvxpy.settings as s
@@ -42,7 +43,7 @@ class SCIPY(ConicSolver):
 
     # Map of SciPy linprog status
     STATUS_MAP = {0: s.OPTIMAL,  # Optimal
-                  1: s.SOLVER_ERROR,  # Iteration limit reached
+                  1: s.OPTIMAL_INACCURATE,  # Iteration/time limit reached
                   2: s.INFEASIBLE,  # Infeasible
                   3: s.UNBOUNDED,  # Unbounded
                   4: s.SOLVER_ERROR  # Numerical difficulties encountered
@@ -187,10 +188,23 @@ class SCIPY(ConicSolver):
                 self._log_scipy_method_warning(meth)
 
         if problem_is_a_mip:
-            solution = opt.linprog(data[s.C], A_ub=data[s.G], b_ub=data[s.H],
-                                   A_eq=data[s.A], b_eq=data[s.B], method=meth,
-                                   options=solver_opts['scipy_options'],
-                                   integrality=integrality, bounds=bounds)
+            constraints = []
+            G = data[s.G]
+            if G is not None:
+                ineq = scipy.optimize.LinearConstraint(G, ub=data[s.H])
+                constraints.append(ineq)
+            A = data[s.A]
+            if A is not None:
+                eq = scipy.optimize.LinearConstraint(A,data[s.B], data[s.B])
+                constraints.append(eq)
+            lb = [t[0] if t[0] is not None else -np.inf for t in bounds]
+            ub = [t[1] if t[1] is not None else np.inf for t in bounds]
+            bounds = scipy.optimize.Bounds(lb, ub)
+            solution = opt.milp(data[s.C], 
+                                constraints=constraints,
+                                options=solver_opts['scipy_options'],
+                                integrality=integrality,
+                                bounds=bounds)
         else:
             solution = opt.linprog(data[s.C], A_ub=data[s.G], b_ub=data[s.H],
                                    A_eq=data[s.A], b_eq=data[s.B], method=meth,
@@ -217,7 +231,12 @@ class SCIPY(ConicSolver):
     def invert(self, solution, inverse_data):
         """Returns the solution to the original problem given the inverse_data.
         """
-        status = self.STATUS_MAP[solution['status']]
+        status = self.STATUS_MAP[solution["status"]]
+
+        # Sometimes when the solver's time limit is reached, the solver doesn't return a solution.
+        # In these situations we correct the status from s.OPTIMAL_INACCURATE to s.SOLVER_ERROR
+        if (status == s.OPTIMAL_INACCURATE) and (solution.x is None):
+            status = s.SOLVER_ERROR
 
         primal_vars = None
         dual_vars = None
@@ -240,7 +259,9 @@ class SCIPY(ConicSolver):
                     inverse_data[self.NEQ_CONSTR])
                 eq_dual.update(leq_dual)
                 dual_vars = eq_dual
-
-            return Solution(status, opt_val, primal_vars, dual_vars, {})
+            attr = {}
+            if "mip_gap" in solution:
+                attr[s.EXTRA_STATS] = {"mip_gap": solution['mip_gap']}
+            return Solution(status, opt_val, primal_vars, dual_vars, attr)
         else:
             return failure_solution(status)
