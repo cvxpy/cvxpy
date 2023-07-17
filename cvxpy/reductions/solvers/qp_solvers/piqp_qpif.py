@@ -34,13 +34,6 @@ class PIQP(QpSolver):
                   "PIQP_PRIMAL_INFEASIBLE": s.INFEASIBLE,
                   "PIQP_DUAL_INFEASIBLE": s.UNBOUNDED}
 
-    VAR_MAP = {"P": "P",
-               "q": "c",
-               "A": "A",
-               "b": "b",
-               "F": "G",
-               "G": "h"}
-
     def name(self):
         return s.PIQP
 
