@@ -1300,7 +1300,15 @@ class TestParametrizedBackends:
         assert out_view.get_tensor_representation(0) == view.get_tensor_representation(0)
 
 
-class TestScipyBackend(TestBackends):
+class TestScipyBackend:
+    @staticmethod
+    @pytest.fixture()
+    def scipy_backend():
+        args = ({1: 0}, {-1: 1, 2: 2}, {2: 0, -1: 2}, 3, 2)
+        backend = CanonBackend.get_backend(s.SCIPY_CANON_BACKEND, *args)
+        assert isinstance(backend, ScipyCanonBackend)
+        return backend
+
     def test_get_variable_tensor(self, scipy_backend):
         outer = scipy_backend.get_variable_tensor((2,), 1)
         assert outer.keys() == {1}, "Should only be in variable with ID 1"
@@ -1336,8 +1344,8 @@ class TestScipyBackend(TestBackends):
         assert (sp.hstack(tensor) != sp.eye(size, format='csr')).nnz == 0, \
             'Should be eye(4) along axes 1 and 2'
 
-    def test_tensor_view_add_dicts(self, scipy_arg_view):
-        view = scipy_arg_view()
+    def test_tensor_view_add_dicts(self, scipy_backend):
+        view = scipy_backend.get_empty_view()
         assert view.add_dicts({}, {}) == {}
         assert view.add_dicts({"a": [1]}, {"a": [2]}) == {"a": [3]}
         assert view.add_dicts({"a": [1]}, {"b": [2]}) == {"a": [1], "b": [2]}
@@ -1346,7 +1354,15 @@ class TestScipyBackend(TestBackends):
             view.add_dicts({"a": 1}, {"a": 2})
 
 
-class TestNumpyBackend(TestBackends):
+class TestNumpyBackend:
+    @staticmethod
+    @pytest.fixture()
+    def numpy_backend():
+        args = ({1: 0}, {-1: 1, 2: 2}, {2: 0, -1: 2}, 3, 2)
+        backend = CanonBackend.get_backend(s.NUMPY_CANON_BACKEND, *args)
+        assert isinstance(backend, NumpyCanonBackend)
+        return backend
+
     def test_get_variable_tensor(self, numpy_backend):
         outer = numpy_backend.get_variable_tensor((2,), 1)
         assert outer.keys() == {1}, "Should only be in variable with ID 1"
@@ -1383,8 +1399,8 @@ class TestNumpyBackend(TestBackends):
         assert tensor.shape == (4, 4, 1), "Should be a 4x4x1 tensor"
         assert np.all(tensor[:, :, 0] == np.eye(size)), 'Should be eye(4) along axes 1 and 2'
 
-    def test_tensor_view_add_dicts(self, numpy_arg_view):
-        view = numpy_arg_view()
+    def test_tensor_view_add_dicts(self, numpy_backend):
+        view = numpy_backend.get_empty_view()
 
         one = np.array([1])
         two = np.array([2])
