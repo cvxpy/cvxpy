@@ -970,7 +970,8 @@ class NumpyCanonBackend(PythonCanonBackend):
             reps = view.rows // lhs_rows
             lhs_transposed = np.swapaxes(lhs, -2, -1)
             stacked_lhs = np.kron(lhs_transposed, np.eye(reps))
-            func = lambda x: stacked_lhs @ x
+            def func(x):
+                return stacked_lhs @ x
         else:
             lhs_shape = next(iter(lhs.values()))[0].shape
             lhs_rows = lhs_shape[-2]
@@ -996,7 +997,8 @@ class NumpyCanonBackend(PythonCanonBackend):
 
         lhs = np.zeros(shape=(1, np.prod(shape)))
         lhs[0, indices] = 1
-        func = lambda x: lhs @ x
+        def func(x):
+            return lhs @ x
 
         return view.accumulate_over_variables(func, is_param_free_function=True)
 
