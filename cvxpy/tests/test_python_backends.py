@@ -1435,7 +1435,7 @@ class TestNumpyBackend(TestBackends):
         assert np.all(tensor[0] == np.eye(2)), "Should be eye(2)"
 
     @pytest.mark.parametrize('data',
-                             [np.array([[1, 2], [3, 4]]), sp.eye(2) * 4, sp.csc_array((4, 1))])
+                             [np.array([[1, 2], [3, 4]]), sp.eye(2) * 4, sp.csr_array((4, 1))])
     def test_get_data_tensor(self, numpy_backend, data):
         outer = numpy_backend.get_data_tensor(data)
         assert outer.keys() == {-1}, "Should only be constant variable ID."
