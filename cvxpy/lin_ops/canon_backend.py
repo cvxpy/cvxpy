@@ -548,7 +548,6 @@ class RustCanonBackend(CanonBackend):
 
 
 class ScipyCanonBackend(PythonCanonBackend):
-
     @staticmethod
     def reshape_constant_data(constant_data: dict[int, sp.csr_matrix],
                               lin_op_shape: tuple[int, int]) \
@@ -838,7 +837,6 @@ class ScipyCanonBackend(PythonCanonBackend):
 
 
 class NumpyCanonBackend(PythonCanonBackend):
-
     @staticmethod
     def reshape_constant_data(constant_data: dict[int, np.ndarray],
                               lin_op_shape: tuple[int, int]) \
@@ -870,6 +868,7 @@ class NumpyCanonBackend(PythonCanonBackend):
             def parametrized_mul(x):
                 assert len(x) == 1
                 return {k: v @ x for k, v in stacked_lhs.items()}
+
             func = parametrized_mul
         else:
             assert isinstance(lhs, np.ndarray)
@@ -897,6 +896,7 @@ class NumpyCanonBackend(PythonCanonBackend):
             def parametrized_mul(x):
                 assert len(x) == 1
                 return {k: v * x for k, v in lhs.items()}
+
             func = parametrized_mul
         else:
             def func(x):
@@ -907,6 +907,7 @@ class NumpyCanonBackend(PythonCanonBackend):
     def sum_entries(_lin: LinOp, view: NumpyTensorView) -> NumpyTensorView:
         def func(x):
             return x.sum(axis=1, keepdims=True)
+
         view.apply_all(func)
         return view
 
@@ -916,8 +917,10 @@ class NumpyCanonBackend(PythonCanonBackend):
         assert lhs.shape[0] == 1
         # dtype is important here, will do integer division if data is of dtype "int" otherwise.
         lhs = np.reciprocal(lhs, where=lhs != 0, dtype=float)
+
         def div_func(x):
             return lhs * x
+
         return view.accumulate_over_variables(div_func, is_param_free_function=is_param_free_lhs)
 
     @staticmethod
@@ -970,6 +973,7 @@ class NumpyCanonBackend(PythonCanonBackend):
             reps = view.rows // lhs_rows
             lhs_transposed = np.swapaxes(lhs, -2, -1)
             stacked_lhs = np.kron(lhs_transposed, np.eye(reps))
+
             def func(x):
                 return stacked_lhs @ x
         else:
@@ -997,6 +1001,7 @@ class NumpyCanonBackend(PythonCanonBackend):
 
         lhs = np.zeros(shape=(1, np.prod(shape)))
         lhs[0, indices] = 1
+
         def func(x):
             return lhs @ x
 
@@ -1200,6 +1205,13 @@ class TensorView(ABC):
 
 
 class DictTensorView(TensorView, ABC):
+    """
+    The DictTensorView abstract class handles the dictionary aspect of the tensor representation,
+    which is shared across all backends.
+    The tensor is contained in the following data structure: dict(dict(tensor)), and this class
+    effectively avoids redundant code by separating dictionary manipulations from tensor operations.
+    """
+
     def accumulate_over_variables(self, func: Callable, is_param_free_function: bool) \
             -> TensorView:
         """
@@ -1229,12 +1241,12 @@ class DictTensorView(TensorView, ABC):
     @staticmethod
     @abstractmethod
     def add_tensors(a: Any, b: Any) -> Any:
-        pass # noqa
+        pass  # noqa
 
     @staticmethod
     @abstractmethod
     def tensor_type():
-        pass # noqa
+        pass  # noqa
 
     def add_dicts(self, a: dict, b: dict) -> dict:
         """
