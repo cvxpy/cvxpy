@@ -1208,8 +1208,11 @@ class DictTensorView(TensorView, ABC):
     """
     The DictTensorView abstract class handles the dictionary aspect of the tensor representation,
     which is shared across multiple backends.
-    The tensor is contained in the following data structure: dict(dict(tensor)), and this class
-    effectively avoids redundant code by separating dictionary manipulations from tensor operations.
+    The tensor is contained in the following data structure: 
+    `Dict[variable_id, Dict[parameter_id, tensor]]`, with the outer dict handling
+    the variable offset, and the inner dict handling the parameter offset.
+    Subclasses have to implement the implementation of the tensor, as well
+    as the tensor operations.
     """
 
     def accumulate_over_variables(self, func: Callable, is_param_free_function: bool) \
