@@ -1207,7 +1207,7 @@ class TensorView(ABC):
 class DictTensorView(TensorView, ABC):
     """
     The DictTensorView abstract class handles the dictionary aspect of the tensor representation,
-    which is shared across all backends.
+    which is shared across multiple backends.
     The tensor is contained in the following data structure: dict(dict(tensor)), and this class
     effectively avoids redundant code by separating dictionary manipulations from tensor operations.
     """
