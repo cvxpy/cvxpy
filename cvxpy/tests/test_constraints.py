@@ -297,6 +297,29 @@ class TestConstraints(BaseTest):
         with self.assertRaises(ValueError):
             con = PowCone3D(x, y, z, -0.00001)
 
+    def test_pow3d_scalar_alpha_constraint(self) -> None:
+        """
+        Simple test case with scalar AND vector `alpha`
+        inputs to `PowCone3D`
+        """""
+        x = cp.Variable(shape=(3,))
+        y_square = cp.Variable()
+        epis = cp.Variable(shape=(3,))
+        cons = [PowCone3D(x[0], x[1], x[2], 0.25),
+                PowCone3D(np.ones(3), epis, x, cp.Constant([0.5, 0.5, 0.5])),
+                        cp.sum(epis) <= y_square,
+                        x[0] + x[1] + 3 * x[2] >= 1.0,
+                        y_square <= 25]
+        obj = cp.Minimize(3 * x[0] + 2 * x[1] + x[2])
+        prob = cp.Problem(obj, cons)
+        prob.solve(solver='MOSEK')
+        self.assertAlmostEqual(prob.value, 1.0179785846849545)
+        self.assertLessEqual(cons[0].residual, 1e-6)
+        self.assertLessEqual(cons[1].residual, 1e-6)
+        self.assertItemsAlmostEqual(cons[0].dual_value,
+                                    [np.array(1.98202141),
+                                     np.array(0.98202142), np.array(-2.05393575)])
+
     def test_pownd_constraint(self) -> None:
         n = 4
         W, z = Variable(n), Variable()
