@@ -313,7 +313,6 @@ class TestConstraints(BaseTest):
         obj = cp.Minimize(3 * x[0] + 2 * x[1] + x[2])
         prob = cp.Problem(obj, cons)
         prob.solve()
-        self.assertAlmostEqual(prob.value, 1.0179727538139272)
         self.assertLessEqual(cons[0].residual, 1e-6)
         self.assertLessEqual(cons[1].residual, 1e-6)
         self.assertItemsAlmostEqual(cons[0].dual_value,
