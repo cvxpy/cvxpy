@@ -17,19 +17,8 @@ concurrency:
 
 jobs:
 
-  linters:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-python@v2
-        with:
-          python-version: 3.8
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install ruff
-      - name: Run Ruff
-        run: ruff check --format=github .
+  actions-linting:
+    uses: cvxpy/actions/.github/workflows/linting.yml@main
 
   build:
     runs-on: ${{ matrix.os }}
