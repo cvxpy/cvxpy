@@ -14,6 +14,8 @@ if [ $USE_OPENMP == "True" ] && [ $RUNNER_OS == "Linux" ]; then
     export OMP_NUM_THREADS=4
 else
     python -m pip list
+    # Temp: recreate last working setup
+    python -m pip install "coptpy==6.5.5" "pip==23.2.0" "wheel==0.40.0" "xpress==9.1.2"
     python -m pip install .
 fi
 
