@@ -16,29 +16,34 @@ limitations under the License.
 
 import pickle
 
-from cvxpy import Maximize, Problem, Variable
+from create_graph import EDGES_KEY, FILE, NODE_COUNT_KEY
+from max_flow import Edge, Node
 
-from .create_graph import EDGES_KEY, FILE, NODE_COUNT_KEY
-from .max_flow import Edge, Node
+import cvxpy as cp
 
 
 # Max-flow with different kinds of edges.
 class Directed(Edge):
     """ A directed, capacity limited edge """
+
     # Returns the edge's internal constraints.
     def constraints(self):
         return [self.flow >= 0, self.flow <= self.capacity]
 
+
 class LeakyDirected(Directed):
     """ A directed edge that leaks flow. """
     EFFICIENCY = .95
+
     # Connects two nodes via the edge.
     def connect(self, in_node, out_node):
         in_node.edge_flows.append(-self.flow)
-        out_node.edge_flows.append(self.EFFICIENCY*self.flow)
+        out_node.edge_flows.append(self.EFFICIENCY * self.flow)
+
 
 class LeakyUndirected(Edge):
     """ An undirected edge that leaks flow. """
+
     # Model a leaky undirected edge as two leaky directed
     # edges pointing in opposite directions.
     def __init__(self, capacity) -> None:
@@ -53,9 +58,10 @@ class LeakyUndirected(Edge):
     def constraints(self):
         return self.forward.constraints() + self.backward.constraints()
 
+
 if __name__ == "__main__":
     # Read a graph from a file.
-    f = open(FILE, 'r')
+    f = open(FILE, 'rb')
     data = pickle.load(f)
     f.close()
 
@@ -63,13 +69,13 @@ if __name__ == "__main__":
     node_count = data[NODE_COUNT_KEY]
     nodes = [Node() for i in range(node_count)]
     # Add source.
-    nodes[0].accumulation = Variable()
+    nodes[0].accumulation = cp.Variable()
     # Add sink.
-    nodes[-1].accumulation = Variable()
+    nodes[-1].accumulation = cp.Variable()
 
     # Construct edges.
     edges = []
-    for n1,n2,capacity in data[EDGES_KEY]:
+    for n1, n2, capacity in data[EDGES_KEY]:
         edges.append(LeakyUndirected(capacity))
         edges[-1].connect(nodes[n1], nodes[n2])
 
@@ -77,6 +83,6 @@ if __name__ == "__main__":
     constraints = []
     for o in nodes + edges:
         constraints += o.constraints()
-    p = Problem(Maximize(nodes[-1].accumulation), constraints)
+    p = cp.Problem(cp.Maximize(nodes[-1].accumulation), constraints)
     result = p.solve()
     print(result)

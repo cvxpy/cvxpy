@@ -283,13 +283,13 @@ class TestConstraints(BaseTest):
         z0 = x0**alpha * y0**(1-alpha)
         z0[1] *= -1
         x.value, y.value, z.value = x0, y0, z0
-        viol = con.residual()
+        viol = con.residual
         self.assertLessEqual(viol, 1e-7)
         # check violation against infeasible values
         x1 = x0.copy()
         x1[0] *= -0.9
         x.value = x1
-        viol = con.residual()
+        viol = con.residual
         self.assertGreaterEqual(viol, 0.99*abs(x1[0]))
         # check invalid constraint data
         with self.assertRaises(ValueError):
@@ -340,38 +340,43 @@ class TestConstraints(BaseTest):
             (self.z <= self.x).__bool__()
         self.assertEqual(str(cm.exception), error_str)
 
-    def test_nonpos(self) -> None:
-        """Tests the NonPos constraint for correctness.
+    def test_nonneg(self) -> None:
+        """Solve a trivial NonNeg-constrained problem through
+        the conic and QP code paths.
         """
-        n = 3
-        x = cp.Variable(n)
-        c = np.arange(n)
-        prob = cp.Problem(cp.Maximize(cp.sum(x)),
-                          [cp.NonPos(x - c)])
-        # Solve through cone program path.
+        x = cp.Variable(3)
+        c = np.arange(3)
+        prob = cp.Problem(cp.Minimize(cp.sum(x)),
+                          [cp.NonNeg(x - c)])
         prob.solve(solver=cp.ECOS)
         self.assertItemsAlmostEqual(x.value, c)
-
-        # Solve through QP path.
         prob.solve(solver=cp.OSQP)
         self.assertItemsAlmostEqual(x.value, c)
 
-    def test_nonpos_dual(self) -> None:
-        """Test dual variables work for NonPos.
+    def test_nonpos(self) -> None:
+        """Tests the NonPos constraint for correctness with conic and
+        QP code paths.
         """
-        n = 3
-        x = cp.Variable(n)
-        c = np.arange(n)
-        prob = cp.Problem(cp.Maximize(cp.sum(x)),
-                          [(x - c) <= 0])
+        x = cp.Variable(3)
+        c = np.arange(3)
+        prob = cp.Problem(cp.Maximize(cp.sum(x)), [cp.NonPos(x - c)])
+        prob.solve(solver=cp.ECOS)
+        self.assertItemsAlmostEqual(x.value, c)
+        prob.solve(solver=cp.OSQP)
+        self.assertItemsAlmostEqual(x.value, c)
+
+    def test_nonneg_dual(self) -> None:
+        # Compute reference solution with an Inequality constraint.
+        x = cp.Variable(3)
+        c = np.arange(3)
+        objective = cp.Minimize(cp.sum(x))
+        prob = cp.Problem(objective, [c - x <= 0])
         prob.solve(solver=cp.ECOS)
         dual = prob.constraints[0].dual_value
-        prob = cp.Problem(cp.Maximize(cp.sum(x)),
-                          [cp.NonPos(x - c)])
-        # Solve through cone program path.
+        # reported dual variables are the same with NonNeg, even though
+        # the convention for how they add to the Lagrangian differs by sign.
+        prob = cp.Problem(objective, [cp.NonNeg(x - c)])
         prob.solve(solver=cp.ECOS)
         self.assertItemsAlmostEqual(prob.constraints[0].dual_value, dual)
-
-        # Solve through QP path.
         prob.solve(solver=cp.OSQP)
         self.assertItemsAlmostEqual(prob.constraints[0].dual_value, dual)

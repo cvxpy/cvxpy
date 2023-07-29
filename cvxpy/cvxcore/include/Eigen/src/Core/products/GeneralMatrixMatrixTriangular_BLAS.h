@@ -37,7 +37,7 @@ namespace Eigen {
 
 namespace internal {
 
-template <typename Index, typename Scalar, int AStorageOrder, bool ConjugateA, int ResStorageOrder, int  UpLo>
+template <typename Index, typename Scalar, int AStorageOrder, bool ConjugateA, int ResStorageOrder, int UpLo>
 struct general_matrix_matrix_rankupdate :
        general_matrix_matrix_triangular_product<
          Index,Scalar,AStorageOrder,ConjugateA,Scalar,AStorageOrder,ConjugateA,ResStorageOrder,1,UpLo,BuiltIn> {};

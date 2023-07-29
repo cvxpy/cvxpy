@@ -15,7 +15,7 @@ limitations under the License.
 """
 from cvxpy import Variable, lambda_sum_largest, trace
 from cvxpy.atoms.affine.sum import sum
-from cvxpy.constraints.nonpos import NonPos
+from cvxpy.constraints.nonpos import NonNeg
 from cvxpy.constraints.zero import Zero
 from cvxpy.reductions.dcp2cone.canonicalizers.entr_canon import entr_canon
 from cvxpy.reductions.dcp2cone.canonicalizers.lambda_sum_largest_canon import (
@@ -37,7 +37,7 @@ def von_neumann_entr_canon(expr, args):
         expr_r = lambda_sum_largest(N, r)
         epi, cons = lambda_sum_largest_canon(expr_r, expr_r.args)
         constrs.extend(cons)
-        con = NonPos(epi - sum(x[:r]))
+        con = NonNeg(sum(x[:r]) - epi)
         constrs.append(con)
 
     # trace(N) \leq sum(x)
@@ -50,7 +50,7 @@ def von_neumann_entr_canon(expr, args):
 
     # x[:(n-1)] >= x[1:]
     #   x[0] >= x[1],  x[1] >= x[2], ...
-    con = NonPos(x[1:] - x[:(n - 1)])
+    con = NonNeg(x[:(n - 1)] - x[1:])
     constrs.append(con)
 
     # END code that applies to all spectral functions #
@@ -58,7 +58,7 @@ def von_neumann_entr_canon(expr, args):
     # sum(entr(x)) >= t
     hypos, entr_cons = entr_canon(x, [x])
     constrs.extend(entr_cons)
-    con = NonPos(t - sum(hypos))
+    con = NonNeg(sum(hypos) - t)
     constrs.append(con)
 
     return t, constrs

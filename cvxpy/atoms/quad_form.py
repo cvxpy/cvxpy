@@ -27,6 +27,7 @@ from cvxpy.atoms.affine.wraps import psd_wrap
 from cvxpy.atoms.atom import Atom
 from cvxpy.expressions.expression import Expression
 from cvxpy.interface.matrix_utilities import is_sparse
+from cvxpy.utilities.linalg import sparse_cholesky
 
 
 class CvxPyDomainError(Exception):
@@ -197,7 +198,15 @@ def decomp_quad(P, cond=None, rcond=None, lower=True, check_finite: bool = True)
 
     """
     if is_sparse(P):
-        P = np.array(P.todense())  # make dense (needs to happen for eigh).
+        # TODO: consider using QDLDL instead, if available.
+        try:
+            sign, L, p = sparse_cholesky(P)
+            if sign > 0:
+                return 1.0, L[p, :], np.empty((0, 0))
+            else:
+                return 1.0, np.empty((0, 0)), L[:, p]
+        except ValueError:
+            P = np.array(P.todense())  # make dense (needs to happen for eigh).
     w, V = LA.eigh(P, lower=lower, check_finite=check_finite)
 
     if rcond is not None:

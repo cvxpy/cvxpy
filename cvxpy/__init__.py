@@ -32,7 +32,7 @@ from cvxpy.reductions.solvers.defines import installed_solvers
 from cvxpy.settings import (CBC, CLARABEL, COPT, CPLEX, CPP_CANON_BACKEND,
                             CVXOPT, DIFFCP, ECOS, ECOS_BB, GLOP, GLPK, GLPK_MI,
                             GUROBI, INFEASIBLE, INFEASIBLE_INACCURATE, MOSEK,
-                            NAG, OPTIMAL, OPTIMAL_INACCURATE, OSQP, PDLP,
+                            NAG, OPTIMAL, OPTIMAL_INACCURATE, OSQP, PDLP, PIQP,
                             PROXQP, ROBUST_KKTSOLVER, RUST_CANON_BACKEND, SCIP,
                             SCIPY, SCIPY_CANON_BACKEND, SCS, SDPA,
                             SOLVER_ERROR, UNBOUNDED, UNBOUNDED_INACCURATE,
