@@ -58,7 +58,7 @@ backends = [s.SCIPY_CANON_BACKEND, s.NUMPY_CANON_BACKEND]
 
 class TestBackends:
     @staticmethod
-    @pytest.fixture(autouse=True, params=backends)
+    @pytest.fixture(params=backends)
     def backend(request):
         # Not used explicitly in most test cases.
         # Some tests specify other values as needed within the test case.
@@ -1093,7 +1093,7 @@ class TestParametrizedBackends:
 
     def test_parametrized_mul(self, param_backend):
         """
-        Continuing the previous example when the lhs is a parameter, instead of multiplying with
+        Continuing non-parametrized example when the lhs is a parameter, instead of multiplying with
         known values, the matrix is split up into four slices, each representing an element of the
         parameter, i.e. instead of
          x11 x21 x12 x22
@@ -1194,9 +1194,9 @@ class TestParametrizedBackends:
 
     def test_parametrized_rmul(self, param_backend):
         """
-        Continuing the previous example when the rhs is a parameter, instead of multiplying with
-        known values, the matrix is split up into two slices, each representing an element of the
-        parameter, i.e. instead of
+        Continuing the non-parametrized example when the rhs is a parameter, instead of multiplying
+        with known values, the matrix is split up into two slices, each representing an element of
+        the parameter, i.e. instead of
          x11 x21 x12 x22
         [[1   0   2   0],
          [0   1   0   2]]
@@ -1251,9 +1251,9 @@ class TestParametrizedBackends:
 
     def test_mul_elementwise_parametrized(self, param_backend):
         """
-        Continuing the previous example when 'a' is a parameter, instead of multiplying with known
-        values, the matrix is split up into two slices, each representing an element of the
-        parameter, i.e. instead of
+        Continuing the non-parametrized example when 'a' is a parameter, instead of multiplying
+        with known values, the matrix is split up into two slices, each representing an element
+        of the parameter, i.e. instead of
          x1  x2
         [[2  0],
          [0  3]]
