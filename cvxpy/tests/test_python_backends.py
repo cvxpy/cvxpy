@@ -62,8 +62,15 @@ class TestBackends:
     def backend(request):
         # Not used explicitly in most test cases.
         # Some tests specify other values as needed within the test case.
-        args = ({1: 0, 2: 2}, {-1: 1, 3: 1}, {3: 0, -1: 1}, 2, 4)
-        backend = CanonBackend.get_backend(request.param, *args)
+        kwargs = {
+            "id_to_col": {1: 0, 2: 2},
+            "param_to_size": {-1: 1, 3: 1},
+            "param_to_col": {3: 0, -1: 1},
+            "param_size_plus_one": 2,
+            "var_length": 4
+        }
+
+        backend = CanonBackend.get_backend(request.param, **kwargs)
         assert isinstance(backend, PythonCanonBackend)
         return backend
 

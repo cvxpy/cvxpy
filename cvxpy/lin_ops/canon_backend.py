@@ -90,7 +90,7 @@ class CanonBackend(ABC):
         self.var_length = var_length
 
     @classmethod
-    def get_backend(cls, backend_name: str, *args) -> CanonBackend:
+    def get_backend(cls, backend_name: str, *args, **kwargs) -> CanonBackend:
         """
         Map the name of a subclass and its initializing arguments to an instance of the subclass.
 
@@ -108,7 +108,7 @@ class CanonBackend(ABC):
             SCIPY_CANON_BACKEND: ScipyCanonBackend,
             RUST_CANON_BACKEND: RustCanonBackend
         }
-        return backends[backend_name](*args)
+        return backends[backend_name](*args, **kwargs)
 
     @abstractmethod
     def build_matrix(self, lin_ops: list[LinOp]) -> sp.coo_matrix:
