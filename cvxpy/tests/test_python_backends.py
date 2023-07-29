@@ -11,11 +11,9 @@ import cvxpy.settings as s
 from cvxpy.lin_ops.canon_backend import (
     CanonBackend,
     NumpyCanonBackend,
-    NumpyTensorView,
-    ScipyCanonBackend,
-    ScipyTensorView,
-    TensorRepresentation,
     PythonCanonBackend,
+    ScipyCanonBackend,
+    TensorRepresentation,
 )
 
 
