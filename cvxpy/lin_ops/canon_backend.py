@@ -559,7 +559,7 @@ class ScipyCanonBackend(PythonCanonBackend):
             -> TensorRepresentation:
         return TensorRepresentation.combine(tensors)
 
-    def reshape_tensors(self, tensor: TensorRepresentation, total_rows: int) -> sp.csr_matrix:
+    def reshape_tensors(self, tensor: TensorRepresentation, total_rows: int) -> sp.csc_matrix:
         # Windows uses int32 by default at time of writing, so we need to enforce int64 here
         rows = (tensor.col.astype(np.int64) * np.int64(total_rows) + tensor.row.astype(np.int64))
         cols = tensor.parameter_offset.astype(np.int64)
@@ -866,7 +866,7 @@ class NumpyCanonBackend(PythonCanonBackend):
             stacked_lhs = {k: np.kron(np.eye(reps), v) for k, v in lhs.items()}
 
             def parametrized_mul(x):
-                assert len(x) == 1
+                assert x.shape[0] == 1
                 return {k: v @ x for k, v in stacked_lhs.items()}
 
             func = parametrized_mul
@@ -894,7 +894,7 @@ class NumpyCanonBackend(PythonCanonBackend):
         lhs, is_param_free_lhs = self.get_constant_data(lin.data, view, column=True)
         if isinstance(lhs, dict):
             def parametrized_mul(x):
-                assert len(x) == 1
+                assert x.shape[0] == 1
                 return {k: v * x for k, v in lhs.items()}
 
             func = parametrized_mul
@@ -987,7 +987,7 @@ class NumpyCanonBackend(PythonCanonBackend):
             stacked_lhs = {k: np.kron(np.swapaxes(v, -2, -1), np.eye(reps)) for k, v in lhs.items()}
 
             def parametrized_mul(x):
-                assert len(x) == 1
+                assert x.shape[0] == 1
                 return {k: v @ x for k, v in stacked_lhs.items()}
 
             func = parametrized_mul
@@ -1096,7 +1096,7 @@ class NumpyCanonBackend(PythonCanonBackend):
     @staticmethod
     def _to_dense(x):
         try:
-            res = x.A
+            res = x.toarray()
         except AttributeError:
             res = x
         res = np.atleast_2d(res)
