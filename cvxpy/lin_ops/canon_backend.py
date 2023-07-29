@@ -111,11 +111,11 @@ class CanonBackend(ABC):
         return backends[backend_name](*args, **kwargs)
 
     @abstractmethod
-    def build_matrix(self, lin_ops: list[LinOp]) -> sp.coo_matrix:
+    def build_matrix(self, lin_ops: list[LinOp]) -> sp.csc_matrix:
         """
         Main function called from canonInterface.
         Given a list of LinOp trees, each representing a constraint (or the objective), get the
-        [A b] Tensor for each, stack them and return the result reshaped as a 2D sp.coo_matrix
+        [A b] Tensor for each, stack them and return the result reshaped as a 2D sp.csc_matrix
         of shape (total_rows * (var_length + 1)), param_size_plus_one)
 
         Parameters
@@ -124,7 +124,7 @@ class CanonBackend(ABC):
 
         Returns
         -------
-        2D sp.coo_matrix representing the constraints (or the objective).
+        2D sp.csc_matrix representing the constraints (or the objective).
         """
         pass  # noqa
 
@@ -140,7 +140,7 @@ class PythonCanonBackend(CanonBackend):
     - A new constant of size n has shape (1, n, 1)
     """
 
-    def build_matrix(self, lin_ops: list[LinOp]) -> sp.csr_matrix:
+    def build_matrix(self, lin_ops: list[LinOp]) -> sp.csc_matrix:
         self.id_to_col[-1] = self.var_length
 
         constraint_res = []
@@ -240,9 +240,9 @@ class PythonCanonBackend(CanonBackend):
         pass  # noqa
 
     @abstractmethod
-    def reshape_tensors(self, tensor: TensorView, total_rows: int) -> sp.csr_matrix:
+    def reshape_tensors(self, tensor: TensorView, total_rows: int) -> sp.csc_matrix:
         """
-        Reshape into 2D scipy coo-matrix in column-major order and transpose.
+        Reshape into 2D scipy csc-matrix in column-major order and transpose.
         """
         pass  # noqa
 
@@ -534,7 +534,7 @@ class PythonCanonBackend(CanonBackend):
 
 
 class RustCanonBackend(CanonBackend):
-    def build_matrix(self, lin_ops: list[LinOp]) -> sp.coo_matrix:
+    def build_matrix(self, lin_ops: list[LinOp]) -> sp.csc_matrix:
         import cvxpy_rust
         self.id_to_col[-1] = self.var_length
         (data, (row, col), shape) = cvxpy_rust.build_matrix(lin_ops,
@@ -544,7 +544,7 @@ class RustCanonBackend(CanonBackend):
                                                             self.param_to_col,
                                                             self.var_length)
         self.id_to_col.pop(-1)
-        return sp.coo_matrix((data, (row, col)), shape)
+        return sp.csc_matrix((data, (row, col)), shape)
 
 
 class ScipyCanonBackend(PythonCanonBackend):
@@ -564,7 +564,7 @@ class ScipyCanonBackend(PythonCanonBackend):
         rows = (tensor.col.astype(np.int64) * np.int64(total_rows) + tensor.row.astype(np.int64))
         cols = tensor.parameter_offset.astype(np.int64)
         shape = (np.int64(total_rows) * np.int64(self.var_length + 1), self.param_size_plus_one)
-        return sp.csr_matrix((tensor.data, (rows, cols)), shape=shape)
+        return sp.csc_matrix((tensor.data, (rows, cols)), shape=shape)
 
     def get_empty_view(self) -> ScipyTensorView:
         return ScipyTensorView.get_empty_view(self.param_size_plus_one, self.id_to_col,
@@ -848,11 +848,11 @@ class NumpyCanonBackend(PythonCanonBackend):
             -> TensorRepresentation:
         return TensorRepresentation.combine(tensors)
 
-    def reshape_tensors(self, tensor: NumpyTensorView, total_rows: int) -> sp.csr_matrix:
+    def reshape_tensors(self, tensor: NumpyTensorView, total_rows: int) -> sp.csc_matrix:
         rows = (tensor.col.astype(np.int64) * np.int64(total_rows) + tensor.row.astype(np.int64))
         cols = tensor.parameter_offset.astype(np.int64)
         shape = (np.int64(total_rows) * np.int64(self.var_length + 1), self.param_size_plus_one)
-        return sp.csr_matrix((tensor.data, (rows, cols)), shape=shape)
+        return sp.csc_matrix((tensor.data, (rows, cols)), shape=shape)
 
     def get_empty_view(self) -> NumpyTensorView:
         return NumpyTensorView.get_empty_view(self.param_size_plus_one, self.id_to_col,
