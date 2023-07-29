@@ -1040,8 +1040,16 @@ class TestParametrizedBackends:
     @staticmethod
     @pytest.fixture(params=backends)
     def param_backend(request):
-        args = ({1: 0}, {-1: 1, 2: 2}, {2: 0, -1: 2}, 3, 2)
-        backend = CanonBackend.get_backend(request.param, *args)
+
+        kwargs = {
+            "id_to_col": {1: 0},
+            "param_to_size": {-1: 1, 2: 2},
+            "param_to_col": {2: 0, -1: 2},
+            "param_size_plus_one": 3,
+            "var_length": 2
+        }
+
+        backend = CanonBackend.get_backend(request.param, **kwargs)
         assert isinstance(backend, PythonCanonBackend)
         return backend
 
