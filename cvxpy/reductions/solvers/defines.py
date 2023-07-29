@@ -46,6 +46,7 @@ from cvxpy.reductions.solvers.qp_solvers.gurobi_qpif import GUROBI as GUROBI_qp
 
 # QP interfaces
 from cvxpy.reductions.solvers.qp_solvers.osqp_qpif import OSQP as OSQP_qp
+from cvxpy.reductions.solvers.qp_solvers.piqp_qpif import PIQP as PIQP_qp
 from cvxpy.reductions.solvers.qp_solvers.proxqp_qpif import PROXQP as PROXQP_qp
 from cvxpy.reductions.solvers.qp_solvers.xpress_qpif import XPRESS as XPRESS_qp
 from cvxpy.utilities.versioning import Version
@@ -61,6 +62,7 @@ solver_qp_intf = [OSQP_qp(),
                   CPLEX_qp(),
                   XPRESS_qp(),
                   COPT_qp(),
+                  PIQP_qp(),
                   PROXQP_qp()
                   ]
 
@@ -79,6 +81,7 @@ QP_SOLVERS = [s.OSQP,
               s.CPLEX,
               s.XPRESS,
               s.COPT,
+              s.PIQP,
               s.PROXQP]
 MI_SOLVERS = [s.GLPK_MI, s.MOSEK, s.GUROBI, s.CPLEX,
               s.XPRESS, s.CBC, s.SCIP, s.COPT, s.ECOS_BB]

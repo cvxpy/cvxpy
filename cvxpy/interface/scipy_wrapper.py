@@ -36,7 +36,7 @@ SCIPY_WRAPPER_DEPRECATION_MESSAGE = """
 Your CVXPY program is using a deprecated feature of our SciPy interface.
 
 We believed it was impossible to hit this warning; please inform us of how you
-reached this warning at https://github.com/cvxpy/cvxpy/discussions/XXX so we can
+reached this warning at https://github.com/cvxpy/cvxpy/discussions/2187 so we can
 ensure that we correct this issue without causing breakage.
 """
 
