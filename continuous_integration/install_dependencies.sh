@@ -26,12 +26,19 @@ elif [[ "$PYTHON_VERSION" == "3.10" ]]; then
 elif [[ "$PYTHON_VERSION" == "3.11" ]]; then
     # The earliest version of numpy that works is 1.23.4.
     # Given numpy 1.23.4, the earliest version of scipy we can use is 1.9.3.
-    conda install scipy=1.9.3 numpy=1.23.4 mkl pip pytest lapack ecos scs osqp cvxopt proxsuite "setuptools>65.5.1"
+    conda install scipy=1.9.3 numpy=1.23.4 mkl pip pytest lapack ecos scs cvxopt proxsuite "setuptools>65.5.1"
 fi
 
-
+if [[ "$PYTHON_VERSION" == "3.11" ]]; then
+  python -m pip install gurobipy clarabel osqp piqp
+  if [[ "$RUNNER_OS" == "Windows" ]]; then
+    # SDPA with OpenBLAS backend does not pass LP5 on Windows
+    python -m pip install sdpa-multiprecision
+  else
+    python -m pip install sdpa-python
+  fi
 # Python 3.8 on Windows and Linux will uninstall NumPy 1.16 and install NumPy 1.24 without the exception.
-if [[ "$PYTHON_VERSION" == "3.8" ]] && [[ "$RUNNER_OS" != "macos-11" ]]; then
+elif [[ "$PYTHON_VERSION" == "3.8" ]] && [[ "$RUNNER_OS" != "macos-11" ]]; then
   python -m pip install gurobipy clarabel piqp
 else
   python -m pip install "ortools>=9.3,<9.5" coptpy cplex diffcp gurobipy xpress clarabel piqp
