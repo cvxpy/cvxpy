@@ -25,7 +25,12 @@ import scipy.sparse as sp
 from scipy.signal import convolve
 
 from cvxpy.lin_ops import LinOp
-from cvxpy.settings import NUMPY_CANON_BACKEND, RUST_CANON_BACKEND, SCIPY_CANON_BACKEND
+from cvxpy.settings import (
+    NUMPY_CANON_BACKEND,
+    RUST_CANON_BACKEND,
+    SCIPY_CANON_BACKEND,
+    STACKED_SLICES_BACKEND,
+)
 
 
 class Constant(Enum):
@@ -106,6 +111,7 @@ class CanonBackend(ABC):
         backends = {
             NUMPY_CANON_BACKEND: NumpyCanonBackend,
             SCIPY_CANON_BACKEND: ScipyCanonBackend,
+            STACKED_SLICES_BACKEND: StackedSlicesBackend,
             RUST_CANON_BACKEND: RustCanonBackend
         }
         return backends[backend_name](*args, **kwargs)
@@ -325,7 +331,7 @@ class PythonCanonBackend(CanonBackend):
         Given (A, b) in view, return (-A, -b).
         """
 
-        def func(x):
+        def func(x, _p=1):
             return -x
 
         view.apply_all(func)
@@ -1103,6 +1109,230 @@ class NumpyCanonBackend(PythonCanonBackend):
         return res
 
 
+class StackedSlicesBackend(PythonCanonBackend):
+
+    def reshape_constant_data(self, constant_data: dict[int, sp.csr_matrix],
+                              new_shape: tuple[int, ...]) -> dict[int, sp.csr_matrix]:
+        res = {}
+        assert len(new_shape) == 2
+        (m, n) = new_shape
+
+        for param_id, param_vec in constant_data.items():
+            p = self.param_to_size[param_id]
+            param_vec = param_vec.tocoo(copy=False)
+
+            mod_mn = np.mod(param_vec.row, m * n)
+            row_in_slice = np.mod(mod_mn, m)
+            col_in_slice = np.floor_divide(mod_mn, m)
+
+            offset = np.floor_divide(param_vec.row, m*n)
+
+            arg = (param_vec.data, (row_in_slice+offset, col_in_slice))
+            res[param_id] = sp.csr_matrix(arg, shape=(m * p, n))
+        return res
+
+    @staticmethod
+    def _get_reshape_inds(p, m, n):
+        new_inds = np.arange(p * m * n)
+        new_inds = new_inds.reshape((p * n, m))
+        return np.vstack([new_inds[i::n, :] for i in range(n)]).flatten()
+
+    def concatenate_tensors(self, tensors: list[TensorRepresentation]) -> StackedSlicesTensorView:
+        pass
+
+    def reshape_tensors(self, tensor: TensorView, total_rows: int) -> sp.csc_matrix:
+        pass
+
+    def get_empty_view(self) -> TensorView:
+        return StackedSlicesTensorView.get_empty_view(self.param_size_plus_one, self.id_to_col,
+                                                      self.param_to_size, self.param_to_col,
+                                                      self.var_length)
+
+    def mul(self, lin: LinOp, view: StackedSlicesTensorView) -> StackedSlicesTensorView:
+        lhs, is_param_free_lhs = self.get_constant_data(lin.data, view, column=False)
+        if isinstance(lhs, dict):
+            reps = view.rows // next(iter(lhs.values())).shape[-1]
+            eye = sp.eye(reps, format="csr")
+
+            if reps > 1:
+                stacked_lhs = {}
+                for param_id, param_mat in lhs.items():
+                    inds = np.arange(param_mat.shape[0])
+                    sub_inds = np.split(inds, self.param_to_size[param_id])
+                    stacked_lhs[param_id] = sp.vstack([sp.kron(eye, param_mat[sub_ind],
+                                                               format='csr')
+                                                       for sub_ind in sub_inds], format='csr')
+            else:
+                stacked_lhs = lhs
+
+            def parametrized_mul(x):
+                return {k: v @ x for k, v in stacked_lhs.items()}
+
+            func = parametrized_mul
+        else:
+            reps = view.rows // lhs.shape[-1]
+            stacked_lhs = (sp.kron(sp.eye(reps, format="csr"), lhs))
+
+            def func(x, _p):
+                return stacked_lhs.tocsr() @ x
+
+        return view.accumulate_over_variables(func, is_param_free_function=is_param_free_lhs)
+
+    @staticmethod
+    def promote(lin: LinOp, view: StackedSlicesTensorView) -> StackedSlicesTensorView:
+        num_entries = int(np.prod(lin.shape))
+        rows = np.zeros(num_entries)
+        view.select_rows(rows)
+        return view
+
+    def mul_elem(self, lin: LinOp, view: StackedSlicesTensorView) -> StackedSlicesTensorView:
+        lhs, is_param_free_lhs = self.get_constant_data(lin.data, view, column=True)
+        if isinstance(lhs, dict):
+            reps = view.rows // next(iter(lhs.values())).shape[-1]
+
+            def parametrized_mul(x):
+                new_x = sp.vstack([x] * reps)
+                return {k: v.multiply(new_x) for k, v in lhs.items()}
+
+            func = parametrized_mul
+        else:
+            def func(x, _p):
+                return lhs.multiply(x)
+        return view.accumulate_over_variables(func, is_param_free_function=is_param_free_lhs)
+
+    @staticmethod
+    def sum_entries(_lin: LinOp, view: StackedSlicesTensorView) -> StackedSlicesTensorView:
+        def func(x, p):
+            if p == 1:
+                return sp.csr_matrix(x.sum(axis=0))
+            else:
+                m = x.shape[0] // p
+                ones = sp.csr_matrix((np.ones(m), (np.zeros(m), np.arange(m))), shape=(1, m))
+                return (sp.kron(sp.eye(p, format="csr"), ones) @ x).tocsr()
+
+        view.apply_all(func)
+        return view
+
+    def div(self, lin: LinOp, view: StackedSlicesTensorView) -> StackedSlicesTensorView:
+        lhs, is_param_free_lhs = self.get_constant_data(lin.data, view, column=True)
+        assert is_param_free_lhs
+        # dtype is important here, will do integer division if data is of dtype "int" otherwise.
+        lhs.data = np.reciprocal(lhs.data, dtype=float)
+
+        def div_func(x, _p):
+            return lhs.multiply(x)
+
+        return view.accumulate_over_variables(div_func, is_param_free_function=is_param_free_lhs)
+
+    @staticmethod
+    def diag_vec(lin: LinOp, view: StackedSlicesTensorView) -> StackedSlicesTensorView:
+        assert lin.shape[0] == lin.shape[1]
+        k = lin.data
+        rows = lin.shape[0]
+        total_rows = int(lin.shape[0] ** 2)
+
+        def func(x, _p):
+            shape = list(x.shape)
+            shape[0] = total_rows
+            x = x.tocoo()
+            if k == 0:
+                new_rows = (x.row * (rows + 1)).astype(int)
+            elif k > 0:
+                new_rows = (x.row * (rows + 1) + rows * k).astype(int)
+            else:
+                new_rows = (x.row * (rows + 1) - k).astype(int)
+            return sp.csr_matrix((x.data, (new_rows, x.col)), shape)
+
+        view.apply_all(func)
+        return view
+
+    @staticmethod
+    def get_stack_func(total_rows: int, offset: int) -> Callable:
+        def stack_func(tensor, _p):
+            coo_repr = tensor.tocoo()
+            new_rows = (coo_repr.row + offset).astype(int)
+            return sp.csr_matrix((coo_repr.data, (new_rows, coo_repr.col)),
+                                 shape=(int(total_rows), tensor.shape[1]))
+
+        return stack_func
+
+    def rmul(self, lin: LinOp, view: StackedSlicesTensorView) -> StackedSlicesTensorView:
+        # Note that even though this is rmul, we still use "lhs", as is implemented via a
+        # multiplication from the left in this function.
+        lhs, is_param_free_lhs = self.get_constant_data(lin.data, view, column=False)
+
+        arg_cols = lin.args[0].shape[0] if len(lin.args[0].shape) == 1 else lin.args[0].shape[1]
+
+        if isinstance(lhs, dict):
+
+            lhs_shape = next(iter(lhs.values()))[0].shape
+
+            if len(lin.data.shape) == 1 and arg_cols != lhs_shape[0]:
+                # Example: (n,n) @ (n,), we need to interpret the rhs as a column vector,
+                # but it is a row vector by default, so we need to transpose
+                lhs = {k: v.T for k, v in lhs.items()}
+                lhs_shape = next(iter(lhs.values())).shape
+
+            reps = view.rows // lhs_shape[0]
+            eye = sp.eye(reps, format="csr")
+
+            stacked_lhs = {k: sp.kron(v.T, eye) for k, v in lhs.items()}
+
+            def parametrized_mul(x):
+                return {k: v @ x for k, v in stacked_lhs.items()}
+
+            func = parametrized_mul
+        else:
+            if len(lin.data.shape) == 1 and arg_cols != lhs.shape[0]:
+                # Example: (n,n) @ (n,), we need to interpret the rhs as a column vector,
+                # but it is a row vector by default, so we need to transpose
+                lhs = lhs.T
+            reps = view.rows // lhs.shape[0]
+            stacked_lhs = sp.kron(lhs.T, sp.eye(reps, format="csr"))
+
+            def func(x, _p):
+                return stacked_lhs @ x
+        return view.accumulate_over_variables(func, is_param_free_function=is_param_free_lhs)
+
+    @staticmethod
+    def trace(lin: LinOp, view: StackedSlicesTensorView) -> StackedSlicesTensorView:
+        pass
+
+    def conv(self, lin: LinOp, view: StackedSlicesTensorView) -> StackedSlicesTensorView:
+        pass
+
+    def kron_r(self, lin: LinOp, view: StackedSlicesTensorView) -> StackedSlicesTensorView:
+        pass
+
+    def kron_l(self, lin: LinOp, view: StackedSlicesTensorView) -> StackedSlicesTensorView:
+        pass
+
+    def get_variable_tensor(self, shape: tuple[int, ...], variable_id: int) -> \
+            dict[int, dict[int, sp.csr_matrix]]:
+        assert variable_id != Constant.ID
+        n = int(np.prod(shape))
+        return {variable_id: {Constant.ID.value: sp.eye(n, format="csr")}}
+
+    def get_data_tensor(self, data: np.ndarray | sp.spmatrix) -> \
+            dict[int, dict[int, sp.csr_matrix]]:
+        if isinstance(data, np.ndarray):
+            # Slightly faster compared to reshaping after casting
+            tensor = sp.csr_matrix(data.reshape((-1, 1), order="F"))
+        else:
+            tensor = sp.coo_matrix(data).reshape((-1, 1), order="F").tocsr()
+        return {Constant.ID.value: {Constant.ID.value: tensor}}
+
+    def get_param_tensor(self, shape: tuple[int, ...], parameter_id: int) -> \
+            dict[int, dict[int, sp.csr_matrix]]:
+        assert parameter_id != Constant.ID
+        param_size = self.param_to_size[parameter_id]
+        shape = (int(np.prod(shape) * param_size), 1)
+        arg = np.ones(param_size), (np.arange(param_size) + np.arange(param_size) * param_size,
+                                    np.zeros(param_size))
+        param_vec = sp.csr_matrix(arg, shape)
+        return {Constant.ID.value: {parameter_id: param_vec}}
+
+
 class TensorView(ABC):
     """
     A TensorView represents the tensors for A and b, which are of shape
@@ -1208,7 +1438,7 @@ class DictTensorView(TensorView, ABC):
     """
     The DictTensorView abstract class handles the dictionary aspect of the tensor representation,
     which is shared across multiple backends.
-    The tensor is contained in the following data structure: 
+    The tensor is contained in the following data structure:
     `Dict[variable_id, Dict[parameter_id, tensor]]`, with the outer dict handling
     the variable offset, and the inner dict handling the parameter offset.
     Subclasses have to implement the implementation of the tensor, as well
@@ -1399,3 +1629,76 @@ class NumpyTensorView(DictTensorView):
 
     def tensor_type(self):
         return np.ndarray
+
+
+class StackedSlicesTensorView(DictTensorView):
+
+    @property
+    def rows(self) -> int:
+        if self.tensor is not None:
+            for var_id, param_dict in self.tensor.items():
+                for param_id, param_mat in param_dict.items():
+                    return param_mat.shape[0] // self.param_to_size[param_id]
+        else:
+            raise ValueError('Tensor cannot be None')
+
+    def get_tensor_representation(self, row_offset: int) -> TensorRepresentation:
+        """
+        Returns a TensorRepresentation of [A b] tensor.
+        """
+        assert self.tensor is not None
+        tensor_representations = []
+        for variable_id, variable_tensor in self.tensor.items():
+            for parameter_id, parameter_matrix in variable_tensor.items():
+                p = self.param_to_size[parameter_id]
+                m = parameter_matrix.shape[0] // p
+                coo_repr = parameter_matrix.tocoo(copy=False)
+                tensor_representations.append(TensorRepresentation(
+                    coo_repr.data,
+                    (coo_repr.row % m) + row_offset,
+                    coo_repr.col + self.id_to_col[variable_id],
+                    coo_repr.row // m,
+                ))
+        return TensorRepresentation.combine(tensor_representations)
+
+    def select_rows(self, rows: np.ndarray) -> None:
+        def func(x, p):
+            if p == 1:
+                return x[rows, :]
+            else:
+                m = x.shape[0] // p
+                return x[np.tile(rows, p) + np.repeat(np.arange(p) * m, p), :]
+
+        self.apply_all(func)
+
+    def apply_all(self, func: Callable) -> None:
+        self.tensor = {var_id: {k: func(v, self.param_to_size[k])
+                                for k, v in parameter_repr.items()}
+                       for var_id, parameter_repr in self.tensor.items()}
+
+    def create_new_tensor_view(self, variable_ids: set[int], tensor: Any,
+                               is_parameter_free: bool) -> StackedSlicesTensorView:
+        return StackedSlicesTensorView(variable_ids, tensor, is_parameter_free,
+                                       self.param_size_plus_one, self.id_to_col,
+                                       self.param_to_size, self.param_to_col,
+                                       self.var_length)
+
+    def apply_to_parameters(self, func: Callable,
+                            parameter_representation: dict[int, sp.spmatrix]) \
+            -> dict[int, sp.spmatrix]:
+        """
+        Apply 'func' to each slice of the parameter representation.
+        """
+        return {k: func(v, self.param_to_size[k]) for k, v in parameter_representation.items()}
+
+    @staticmethod
+    def add_tensors(a: sp.spmatrix, b: sp.spmatrix) -> sp.spmatrix:
+        return a + b
+
+    @staticmethod
+    def tensor_type():
+        """
+        The tensor representation of the stacked slices backend is one big
+        sparse matrix instead of smaller sparse matrices in a list.
+        """
+        return sp.spmatrix
