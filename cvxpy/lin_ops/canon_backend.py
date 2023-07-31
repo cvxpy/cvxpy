@@ -1092,23 +1092,28 @@ class NumpyCanonBackend(PythonCanonBackend):
 
 class StackedSlicesBackend(PythonCanonBackend):
 
-    def reshape_constant_data(self, constant_data: dict[int, sp.csc_matrix],
-                              new_shape: tuple[int, ...]) -> dict[int, sp.csc_matrix]:
-        assert len(new_shape) == 2
-        (m, n) = new_shape
-        res = {}
-        for param_id, param_vec in constant_data.items():
-            p = self.param_to_size[param_id]
-            old_shape = param_vec.shape
-            coo = param_vec.tocoo(copy=False)
-            data, stacked_rows, cols = coo.data, coo.row, coo.col
-            slice, rows = np.divmod(stacked_rows, old_shape[0])
+    @staticmethod
+    def reshape_constant_data(constant_data: Any, lin_op_shape: tuple[int, int]) \
+            -> dict[int, sp.csc_matrix]:
+        return {k: StackedSlicesBackend._reshape_single_constant_tensor(v, lin_op_shape)
+                for k, v in constant_data.items()}
 
-            element_position = cols * old_shape[0] + rows
-            new_rows, new_cols = np.divmod(element_position, m)
-            new_rows = slice * m + new_rows
-            res[param_id] = sp.csc_matrix((data, (new_rows, new_cols)), shape=(m * p, n))
-        return res
+    @staticmethod
+    def _reshape_single_constant_tensor(v: sp.csr_matrix, lin_op_shape: tuple[int, int]) \
+            -> sp.csc_matrix:
+        p = np.prod(v.shape) // np.prod(lin_op_shape)
+        old_shape = (v.shape[0] // p, v.shape[1])
+
+        coo = v.tocoo()
+        data, stacked_rows, cols = coo.data, coo.row, coo.col
+        slice, rows = np.divmod(stacked_rows, old_shape[0])
+
+        element_position = cols * old_shape[0] + rows
+        new_cols, new_rows = np.divmod(element_position, lin_op_shape[0])
+        new_rows = slice * lin_op_shape[0] + new_rows
+
+        new_stacked_shape = (p * lin_op_shape[0], lin_op_shape[1])
+        return sp.csc_matrix((data, (new_rows, new_cols)), shape=new_stacked_shape)
 
     def get_empty_view(self) -> TensorView:
         return StackedSlicesTensorView.get_empty_view(self.param_size_plus_one, self.id_to_col,
@@ -1249,7 +1254,8 @@ class StackedSlicesBackend(PythonCanonBackend):
             def func(x, _p):
                 return stacked_lhs @ x
         else:
-            lhs_shape = next(iter(lhs.values()))[0].shape
+            reps = view.rows // next(iter(lhs.values())).shape[-1]
+            lhs_shape = next(iter(lhs.values())).shape
 
             if len(lin.data.shape) == 1 and arg_cols != lhs_shape[0]:
                 # Example: (n,n) @ (n,), we need to interpret the rhs as a column vector,
@@ -1258,9 +1264,8 @@ class StackedSlicesBackend(PythonCanonBackend):
                 lhs_shape = next(iter(lhs.values())).shape
 
             reps = view.rows // lhs_shape[0]
-            eye = sp.eye(reps, format="csr")
-
-            stacked_lhs = {k: sp.kron(v.T, eye) for k, v in lhs.items()}
+            eye = sp.eye(reps, format="csc")
+            stacked_lhs = {k: sp.kron(v.T, eye).tocsc() for k, v in lhs.items()}
 
             def parametrized_mul(x):
                 return {k: v @ x for k, v in stacked_lhs.items()}
@@ -1270,16 +1275,93 @@ class StackedSlicesBackend(PythonCanonBackend):
 
     @staticmethod
     def trace(lin: LinOp, view: StackedSlicesTensorView) -> StackedSlicesTensorView:
-        pass
+        shape = lin.args[0].shape
+        indices = np.arange(shape[0]) * shape[0] + np.arange(shape[0])
+
+        data = np.ones(len(indices))
+        idx = (np.zeros(len(indices)), indices.astype(int))
+        lhs = sp.csc_matrix((data, idx), shape=(1, np.prod(shape)))
+
+        def func(x, _p):
+            return lhs @ x
+
+        return view.accumulate_over_variables(func, is_param_free_function=True)
 
     def conv(self, lin: LinOp, view: StackedSlicesTensorView) -> StackedSlicesTensorView:
-        pass
+        lhs, is_param_free_lhs = self.get_constant_data(lin.data, view, column=False)
+        assert is_param_free_lhs
+        assert lhs.ndim == 2
+
+        if len(lin.data.shape) == 1:
+            lhs = lhs.T
+
+        rows = lin.shape[0]
+        cols = lin.args[0].shape[0]
+        nonzeros = lhs.shape[0]
+
+        lhs = lhs.tocoo()
+        row_idx = (np.tile(lhs.row, cols) + np.repeat(np.arange(cols), nonzeros)).astype(int)
+        col_idx = (np.tile(lhs.col, cols) + np.repeat(np.arange(cols), nonzeros)).astype(int)
+        data = np.tile(lhs.data, cols)
+
+        lhs = sp.csc_matrix((data, (row_idx, col_idx)), shape=(rows, cols))
+
+        def func(x, _p):
+            return lhs @ x
+
+        return view.accumulate_over_variables(func, is_param_free_function=is_param_free_lhs)
 
     def kron_r(self, lin: LinOp, view: StackedSlicesTensorView) -> StackedSlicesTensorView:
-        pass
+        lhs, is_param_free_lhs = self.get_constant_data(lin.data, view, column=True)
+        assert is_param_free_lhs
+        assert lhs.ndim == 2
+
+        assert len({arg.shape for arg in lin.args}) == 1
+        rhs_shape = lin.args[0].shape
+
+        lhs_ones = np.ones(lin.data.shape)
+        rhs_ones = np.ones(rhs_shape)
+
+        lhs_arange = np.arange(np.prod(lin.data.shape)).reshape(lin.data.shape, order="F")
+        rhs_arange = np.arange(np.prod(rhs_shape)).reshape(rhs_shape, order="F")
+
+        row_indices = (np.kron(lhs_ones, rhs_arange) +
+                       np.kron(lhs_arange, rhs_ones * np.prod(rhs_shape))) \
+            .flatten(order="F").astype(int)
+
+        def func(x, _p):
+            assert x.ndim == 2
+            kron_res = sp.kron(lhs, x).tocsr()
+            kron_res = kron_res[row_indices, :]
+            return kron_res
+
+        return view.accumulate_over_variables(func, is_param_free_function=is_param_free_lhs)
 
     def kron_l(self, lin: LinOp, view: StackedSlicesTensorView) -> StackedSlicesTensorView:
-        pass
+        lhs, is_param_free_lhs = self.get_constant_data(lin.data, view, column=True)
+        assert is_param_free_lhs
+        assert lhs.ndim == 2
+
+        assert len({arg.shape for arg in lin.args}) == 1
+        rhs_shape = lin.args[0].shape
+
+        lhs_ones = np.ones(lin.data.shape)
+        rhs_ones = np.ones(rhs_shape)
+
+        lhs_arange = np.arange(np.prod(lin.data.shape)).reshape(lin.data.shape, order="F")
+        rhs_arange = np.arange(np.prod(rhs_shape)).reshape(rhs_shape, order="F")
+
+        row_indices = (np.kron(lhs_ones, rhs_arange) +
+                       np.kron(lhs_arange, rhs_ones * np.prod(rhs_shape))) \
+            .flatten(order="F").astype(int)
+
+        def func(x, _p):
+            assert x.ndim == 2
+            kron_res = sp.kron(lhs, x).tocsc()
+            kron_res = kron_res[row_indices, :]
+            return kron_res
+
+        return view.accumulate_over_variables(func, is_param_free_function=is_param_free_lhs)
 
     def get_variable_tensor(self, shape: tuple[int, ...], variable_id: int) -> \
             dict[int, dict[int, sp.csc_matrix]]:
@@ -1467,7 +1549,10 @@ class DictTensorView(TensorView, ABC):
             if isinstance(a[key], dict) and isinstance(b[key], dict):
                 res[key] = self.add_dicts(a[key], b[key])
             elif isinstance(a[key], self.tensor_type()) and isinstance(b[key], self.tensor_type()):
-                assert len(a[key]) == len(b[key])
+                if self.tensor_type() == sp.spmatrix:
+                    assert a[key].shape[0] == b[key].shape[0]
+                else:
+                    assert len(a[key]) == len(b[key])
                 res[key] = self.add_tensors(a[key], b[key])
             else:
                 raise ValueError(f'Values must either be dicts or {self.tensor_type()}.')
