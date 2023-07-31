@@ -1116,13 +1116,16 @@ class StackedSlicesBackend(PythonCanonBackend):
                                                       self.var_length)
 
     def mul(self, lin: LinOp, view: StackedSlicesTensorView) -> StackedSlicesTensorView:
+        """
+        Multiply view with constant data from the left.
+        """
         lhs, is_param_free_lhs = self.get_constant_data(lin.data, view, column=False)
         if is_param_free_lhs:
             reps = view.rows // lhs.shape[-1]
             stacked_lhs = (sp.kron(sp.eye(reps, format="csc"), lhs))
 
             def func(x, _p):
-                return stacked_lhs.tocsr() @ x
+                return stacked_lhs.tocsc() @ x
         else:
             reps = view.rows // next(iter(lhs.values())).shape[-1]
             eye = sp.eye(reps, format="csc")
@@ -1152,6 +1155,12 @@ class StackedSlicesBackend(PythonCanonBackend):
         return view
 
     def mul_elem(self, lin: LinOp, view: StackedSlicesTensorView) -> StackedSlicesTensorView:
+        """
+        Given (A, b) in view and constant data d, return (A*d, b*d).
+        When dealing with parametrized constant data, we need to repeat the variable tensor p times
+        and stack them vertically to ensure shape compatibility for elementwise multiplication
+        with the parametrized expression.
+        """
         lhs, is_param_free_lhs = self.get_constant_data(lin.data, view, column=True)
         if is_param_free_lhs:
             def func(x, _p):
@@ -1222,6 +1231,9 @@ class StackedSlicesBackend(PythonCanonBackend):
         return stack_func
 
     def rmul(self, lin: LinOp, view: StackedSlicesTensorView) -> StackedSlicesTensorView:
+        """
+        Multiply view with constant data from the right.
+        """
         # Note that even though this is rmul, we still use "lhs", as is implemented via a
         # multiplication from the left in this function.
         lhs, is_param_free_lhs = self.get_constant_data(lin.data, view, column=False)
@@ -1270,28 +1282,28 @@ class StackedSlicesBackend(PythonCanonBackend):
         pass
 
     def get_variable_tensor(self, shape: tuple[int, ...], variable_id: int) -> \
-            dict[int, dict[int, sp.csr_matrix]]:
+            dict[int, dict[int, sp.csc_matrix]]:
         assert variable_id != Constant.ID
         n = int(np.prod(shape))
-        return {variable_id: {Constant.ID.value: sp.eye(n, format="csr")}}
+        return {variable_id: {Constant.ID.value: sp.eye(n, format="csc")}}
 
     def get_data_tensor(self, data: np.ndarray | sp.spmatrix) -> \
-            dict[int, dict[int, sp.csr_matrix]]:
+            dict[int, dict[int, sp.csc_matrix]]:
         if isinstance(data, np.ndarray):
             # Slightly faster compared to reshaping after casting
-            tensor = sp.csr_matrix(data.reshape((-1, 1), order="F"))
+            tensor = sp.csc_matrix(data.reshape((-1, 1), order="F"))
         else:
-            tensor = sp.coo_matrix(data).reshape((-1, 1), order="F").tocsr()
+            tensor = sp.coo_matrix(data).reshape((-1, 1), order="F").tocsc()
         return {Constant.ID.value: {Constant.ID.value: tensor}}
 
     def get_param_tensor(self, shape: tuple[int, ...], parameter_id: int) -> \
-            dict[int, dict[int, sp.csr_matrix]]:
+            dict[int, dict[int, sp.csc_matrix]]:
         assert parameter_id != Constant.ID
         param_size = self.param_to_size[parameter_id]
         shape = (int(np.prod(shape) * param_size), 1)
         arg = np.ones(param_size), (np.arange(param_size) + np.arange(param_size) * param_size,
                                     np.zeros(param_size))
-        param_vec = sp.csr_matrix(arg, shape)
+        param_vec = sp.csc_matrix(arg, shape)
         return {Constant.ID.value: {parameter_id: param_vec}}
 
 
