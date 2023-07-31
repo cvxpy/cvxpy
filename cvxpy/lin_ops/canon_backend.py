@@ -238,19 +238,21 @@ class PythonCanonBackend(CanonBackend):
         """
         pass  # noqa
 
-    @abstractmethod
-    def concatenate_tensors(self, tensors: list[TensorRepresentation]) -> TensorView:
+    @staticmethod
+    def concatenate_tensors(tensors: list[TensorRepresentation]) -> TensorRepresentation:
         """
         Takes list of tensors and stacks them along axis 0 (rows).
         """
-        pass  # noqa
+        return TensorRepresentation.combine(tensors)
 
-    @abstractmethod
-    def reshape_tensors(self, tensor: TensorView, total_rows: int) -> sp.csc_matrix:
+    def reshape_tensors(self, tensor: TensorRepresentation, total_rows: int) -> sp.csc_matrix:
         """
-        Reshape into 2D scipy csc-matrix in column-major order and transpose.
+           Reshape into 2D scipy coo-matrix in column-major order and transpose.
         """
-        pass  # noqa
+        rows = (tensor.col.astype(np.int64) * np.int64(total_rows) + tensor.row.astype(np.int64))
+        cols = tensor.parameter_offset.astype(np.int64)
+        shape = (np.int64(total_rows) * np.int64(self.var_length + 1), self.param_size_plus_one)
+        return sp.csc_matrix((tensor.data, (rows, cols)), shape=shape)
 
     @abstractmethod
     def get_empty_view(self) -> TensorView:
@@ -561,17 +563,6 @@ class ScipyCanonBackend(PythonCanonBackend):
         return {k: [v_i.reshape(lin_op_shape, order="F").tocsr()
                     for v_i in v] for k, v in constant_data.items()}
 
-    def concatenate_tensors(self, tensors: list[TensorRepresentation]) \
-            -> TensorRepresentation:
-        return TensorRepresentation.combine(tensors)
-
-    def reshape_tensors(self, tensor: TensorRepresentation, total_rows: int) -> sp.csc_matrix:
-        # Windows uses int32 by default at time of writing, so we need to enforce int64 here
-        rows = (tensor.col.astype(np.int64) * np.int64(total_rows) + tensor.row.astype(np.int64))
-        cols = tensor.parameter_offset.astype(np.int64)
-        shape = (np.int64(total_rows) * np.int64(self.var_length + 1), self.param_size_plus_one)
-        return sp.csc_matrix((tensor.data, (rows, cols)), shape=shape)
-
     def get_empty_view(self) -> ScipyTensorView:
         return ScipyTensorView.get_empty_view(self.param_size_plus_one, self.id_to_col,
                                               self.param_to_size, self.param_to_col,
@@ -850,16 +841,6 @@ class NumpyCanonBackend(PythonCanonBackend):
         return {k: v.reshape((v.shape[0], *lin_op_shape), order="F")
                 for k, v in constant_data.items()}
 
-    def concatenate_tensors(self, tensors: list[TensorRepresentation]) \
-            -> TensorRepresentation:
-        return TensorRepresentation.combine(tensors)
-
-    def reshape_tensors(self, tensor: NumpyTensorView, total_rows: int) -> sp.csc_matrix:
-        rows = (tensor.col.astype(np.int64) * np.int64(total_rows) + tensor.row.astype(np.int64))
-        cols = tensor.parameter_offset.astype(np.int64)
-        shape = (np.int64(total_rows) * np.int64(self.var_length + 1), self.param_size_plus_one)
-        return sp.csc_matrix((tensor.data, (rows, cols)), shape=shape)
-
     def get_empty_view(self) -> NumpyTensorView:
         return NumpyTensorView.get_empty_view(self.param_size_plus_one, self.id_to_col,
                                               self.param_to_size, self.param_to_col,
@@ -1111,37 +1092,23 @@ class NumpyCanonBackend(PythonCanonBackend):
 
 class StackedSlicesBackend(PythonCanonBackend):
 
-    def reshape_constant_data(self, constant_data: dict[int, sp.csr_matrix],
-                              new_shape: tuple[int, ...]) -> dict[int, sp.csr_matrix]:
-        res = {}
+    def reshape_constant_data(self, constant_data: dict[int, sp.csc_matrix],
+                              new_shape: tuple[int, ...]) -> dict[int, sp.csc_matrix]:
         assert len(new_shape) == 2
         (m, n) = new_shape
-
+        res = {}
         for param_id, param_vec in constant_data.items():
             p = self.param_to_size[param_id]
-            param_vec = param_vec.tocoo(copy=False)
+            old_shape = param_vec.shape
+            coo = param_vec.tocoo(copy=False)
+            data, stacked_rows, cols = coo.data, coo.row, coo.col
+            slice, rows = np.divmod(stacked_rows, old_shape[0])
 
-            mod_mn = np.mod(param_vec.row, m * n)
-            row_in_slice = np.mod(mod_mn, m)
-            col_in_slice = np.floor_divide(mod_mn, m)
-
-            offset = np.floor_divide(param_vec.row, m*n)
-
-            arg = (param_vec.data, (row_in_slice+offset, col_in_slice))
-            res[param_id] = sp.csr_matrix(arg, shape=(m * p, n))
+            element_position = cols * old_shape[0] + rows
+            new_rows, new_cols = np.divmod(element_position, m)
+            new_rows = slice * m + new_rows
+            res[param_id] = sp.csc_matrix((data, (new_rows, new_cols)), shape=(m * p, n))
         return res
-
-    @staticmethod
-    def _get_reshape_inds(p, m, n):
-        new_inds = np.arange(p * m * n)
-        new_inds = new_inds.reshape((p * n, m))
-        return np.vstack([new_inds[i::n, :] for i in range(n)]).flatten()
-
-    def concatenate_tensors(self, tensors: list[TensorRepresentation]) -> StackedSlicesTensorView:
-        pass
-
-    def reshape_tensors(self, tensor: TensorView, total_rows: int) -> sp.csc_matrix:
-        pass
 
     def get_empty_view(self) -> TensorView:
         return StackedSlicesTensorView.get_empty_view(self.param_size_plus_one, self.id_to_col,
@@ -1150,9 +1117,15 @@ class StackedSlicesBackend(PythonCanonBackend):
 
     def mul(self, lin: LinOp, view: StackedSlicesTensorView) -> StackedSlicesTensorView:
         lhs, is_param_free_lhs = self.get_constant_data(lin.data, view, column=False)
-        if isinstance(lhs, dict):
+        if is_param_free_lhs:
+            reps = view.rows // lhs.shape[-1]
+            stacked_lhs = (sp.kron(sp.eye(reps, format="csc"), lhs))
+
+            def func(x, _p):
+                return stacked_lhs.tocsr() @ x
+        else:
             reps = view.rows // next(iter(lhs.values())).shape[-1]
-            eye = sp.eye(reps, format="csr")
+            eye = sp.eye(reps, format="csc")
 
             if reps > 1:
                 stacked_lhs = {}
@@ -1160,8 +1133,8 @@ class StackedSlicesBackend(PythonCanonBackend):
                     inds = np.arange(param_mat.shape[0])
                     sub_inds = np.split(inds, self.param_to_size[param_id])
                     stacked_lhs[param_id] = sp.vstack([sp.kron(eye, param_mat[sub_ind],
-                                                               format='csr')
-                                                       for sub_ind in sub_inds], format='csr')
+                                                               format='csc')
+                                                       for sub_ind in sub_inds], format='csc')
             else:
                 stacked_lhs = lhs
 
@@ -1169,13 +1142,6 @@ class StackedSlicesBackend(PythonCanonBackend):
                 return {k: v @ x for k, v in stacked_lhs.items()}
 
             func = parametrized_mul
-        else:
-            reps = view.rows // lhs.shape[-1]
-            stacked_lhs = (sp.kron(sp.eye(reps, format="csr"), lhs))
-
-            def func(x, _p):
-                return stacked_lhs.tocsr() @ x
-
         return view.accumulate_over_variables(func, is_param_free_function=is_param_free_lhs)
 
     @staticmethod
@@ -1187,7 +1153,10 @@ class StackedSlicesBackend(PythonCanonBackend):
 
     def mul_elem(self, lin: LinOp, view: StackedSlicesTensorView) -> StackedSlicesTensorView:
         lhs, is_param_free_lhs = self.get_constant_data(lin.data, view, column=True)
-        if isinstance(lhs, dict):
+        if is_param_free_lhs:
+            def func(x, _p):
+                return lhs.multiply(x)
+        else:
             reps = view.rows // next(iter(lhs.values())).shape[-1]
 
             def parametrized_mul(x):
@@ -1195,9 +1164,6 @@ class StackedSlicesBackend(PythonCanonBackend):
                 return {k: v.multiply(new_x) for k, v in lhs.items()}
 
             func = parametrized_mul
-        else:
-            def func(x, _p):
-                return lhs.multiply(x)
         return view.accumulate_over_variables(func, is_param_free_function=is_param_free_lhs)
 
     @staticmethod
@@ -1207,8 +1173,7 @@ class StackedSlicesBackend(PythonCanonBackend):
                 return sp.csr_matrix(x.sum(axis=0))
             else:
                 m = x.shape[0] // p
-                ones = sp.csr_matrix((np.ones(m), (np.zeros(m), np.arange(m))), shape=(1, m))
-                return (sp.kron(sp.eye(p, format="csr"), ones) @ x).tocsr()
+                return (sp.kron(sp.eye(p, format="csr"), np.ones(m)) @ x).tocsr()
 
         view.apply_all(func)
         return view
@@ -1263,8 +1228,15 @@ class StackedSlicesBackend(PythonCanonBackend):
 
         arg_cols = lin.args[0].shape[0] if len(lin.args[0].shape) == 1 else lin.args[0].shape[1]
 
-        if isinstance(lhs, dict):
+        if is_param_free_lhs:
+            if len(lin.data.shape) == 1 and arg_cols != lhs.shape[0]:
+                lhs = lhs.T
+            reps = view.rows // lhs.shape[0]
+            stacked_lhs = sp.kron(lhs.T, sp.eye(reps, format="csr"))
 
+            def func(x, _p):
+                return stacked_lhs @ x
+        else:
             lhs_shape = next(iter(lhs.values()))[0].shape
 
             if len(lin.data.shape) == 1 and arg_cols != lhs_shape[0]:
@@ -1282,16 +1254,6 @@ class StackedSlicesBackend(PythonCanonBackend):
                 return {k: v @ x for k, v in stacked_lhs.items()}
 
             func = parametrized_mul
-        else:
-            if len(lin.data.shape) == 1 and arg_cols != lhs.shape[0]:
-                # Example: (n,n) @ (n,), we need to interpret the rhs as a column vector,
-                # but it is a row vector by default, so we need to transpose
-                lhs = lhs.T
-            reps = view.rows // lhs.shape[0]
-            stacked_lhs = sp.kron(lhs.T, sp.eye(reps, format="csr"))
-
-            def func(x, _p):
-                return stacked_lhs @ x
         return view.accumulate_over_variables(func, is_param_free_function=is_param_free_lhs)
 
     @staticmethod
@@ -1632,6 +1594,14 @@ class NumpyTensorView(DictTensorView):
 
 
 class StackedSlicesTensorView(DictTensorView):
+    """
+    We need a way to be able to override the tensor indexing.
+    def __getitem__(self, indices):
+        if isinstance(indices, tuple):
+            i, j, k = indices
+            if self.tensor is not None:
+                return self.tensor[i][j][self.rows*k:self.rows*(k+1), :]
+    """
 
     @property
     def rows(self) -> int:
