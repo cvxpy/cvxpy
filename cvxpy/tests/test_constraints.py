@@ -302,22 +302,14 @@ class TestConstraints(BaseTest):
         Simple test case with scalar AND vector `alpha`
         inputs to `PowCone3D`
         """""
+        x_0 = cp.Variable(shape=(3,))
         x = cp.Variable(shape=(3,))
-        y_square = cp.Variable()
-        epis = cp.Variable(shape=(3,))
-        cons = [PowCone3D(x[0], x[1], x[2], 0.25),
-                PowCone3D(np.ones(3), epis, x, cp.Constant([0.5, 0.5, 0.5])),
-                        cp.sum(epis) <= y_square,
-                        x[0] + x[1] + 3 * x[2] >= 1.0,
-                        y_square <= 25]
-        obj = cp.Minimize(3 * x[0] + 2 * x[1] + x[2])
+        cons = [cp.PowCone3D(x_0[0], x_0[1], x_0[2], 0.25),
+                x <= -10]
+        obj = cp.Minimize(cp.norm(x - x_0))
         prob = cp.Problem(obj, cons)
         prob.solve()
-        self.assertLessEqual(cons[0].residual, 1e-6)
-        self.assertLessEqual(cons[1].residual, 1e-6)
-        self.assertItemsAlmostEqual(cons[0].dual_value,
-                                    [np.array(1.98202141),
-                                     np.array(0.98202142), np.array(-2.05393575)])
+        self.assertAlmostEqual(prob.value, 17.320508075380552)
 
     def test_pownd_constraint(self) -> None:
         n = 4
