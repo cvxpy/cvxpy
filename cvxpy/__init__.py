@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 import cvxpy.atoms
-import cvxpy.interface.scipy_wrapper
+import cvxpy.interface.scipy_wrapper as scipy_wrapper
 from cvxpy.atoms import *
 from cvxpy.constraints import (
     PSD,
@@ -88,7 +88,6 @@ from cvxpy.transforms import linearize, partial_optimize, suppfunc
 from cvxpy.version import version as __version__  # cvxpy/version.py is auto-generated
 
 __all__ = [
-    "__version__",
     "CallbackParam",
     "CBC",
     "CLARABEL",
@@ -98,25 +97,24 @@ __all__ = [
     "CPLEX",
     "CPP_CANON_BACKEND",
     "CVXOPT",
-    "cvxpy.interface.scipy_wrapper",
     "DCPError",
     "DGPError",
     "DIFFCP",
     "disable_warnings",
     "DPPError",
-    "ECOS",
     "ECOS_BB",
+    "ECOS",
     "enable_warnings",
     "ExpCone",
     "Expression",
     "FiniteSet",
     "get_num_threads",
     "GLOP",
-    "GLPK",
     "GLPK_MI",
+    "GLPK",
     "GUROBI",
-    "INFEASIBLE",
     "INFEASIBLE_INACCURATE",
+    "INFEASIBLE",
     "installed_solvers",
     "linearize",
     "Maximize",
@@ -127,8 +125,8 @@ __all__ = [
     "NonPos",
     "Objective",
     "OpRelEntrConeQuad",
-    "OPTIMAL",
     "OPTIMAL_INACCURATE",
+    "OPTIMAL",
     "OSQP",
     "Parameter",
     "partial_optimize",
@@ -143,8 +141,8 @@ __all__ = [
     "ROBUST_KKTSOLVER",
     "RUST_CANON_BACKEND",
     "SCIP",
-    "SCIPY",
     "SCIPY_CANON_BACKEND",
+    "SCIPY",
     "SCS",
     "SDPA",
     "set_num_threads",
@@ -152,8 +150,8 @@ __all__ = [
     "SOLVER_ERROR",
     "SolverError",
     "suppfunc",
-    "UNBOUNDED",
     "UNBOUNDED_INACCURATE",
+    "UNBOUNDED",
     "USER_LIMIT",
     "Variable",
     "warnings_enabled",
