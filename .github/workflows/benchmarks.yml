@@ -41,7 +41,7 @@ jobs:
       - name: Run benchmarks
         run: |
           asv machine --yes
-          asv run "master -n 2"
+          asv run "master -n 2" --strict
           asv publish
       
       - name: Make pages folder
