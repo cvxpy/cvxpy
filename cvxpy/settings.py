@@ -81,6 +81,7 @@ SDPA = "SDPA"
 DIFFCP = "DIFFCP"
 GUROBI = "GUROBI"
 OSQP = "OSQP"
+PIQP = "PIQP"
 PROXQP = "PROXQP"
 CPLEX = "CPLEX"
 MOSEK = "MOSEK"
@@ -92,7 +93,7 @@ SCIPY = "SCIPY"
 CLARABEL = "CLARABEL"
 SOLVERS = [CLARABEL, ECOS, CVXOPT, GLOP, GLPK, GLPK_MI,
            SCS, SDPA, GUROBI, OSQP, CPLEX,
-           MOSEK, CBC, COPT, XPRESS, PROXQP,
+           MOSEK, CBC, COPT, XPRESS, PIQP, PROXQP,
            NAG, PDLP, SCIP, SCIPY]
 
 # Xpress-specific items
@@ -185,6 +186,7 @@ PSD_NSD_PROJECTION_TOL = 1e-8
 GENERAL_PROJECTION_TOL = 1e-10
 SPARSE_PROJECTION_TOL = 1e-10
 ATOM_EVAL_TOL = 1e-4
+CHOL_SYM_TOL = 1e-14
 
 # DPP is slow when total size of parameters
 # exceed this threshold.

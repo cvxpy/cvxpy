@@ -110,6 +110,10 @@ Finance
 
 - `Kurtosis Portfolio Optimization <https://colab.research.google.com/github/cvxpy/cvxpy/blob/master/examples/notebooks/WWW/Kurtosis%20Portfolio.ipynb>`_
 
+- `Relativistic Value at Risk Portfolio Optimization <https://colab.research.google.com/github/cvxpy/cvxpy/blob/master/examples/notebooks/WWW/Relativistic%20Value%20at%20Risk%20Portfolio.ipynb>`_
+
+- `Approximate Kurtosis Portfolio Optimization <https://colab.research.google.com/github/cvxpy/cvxpy/blob/master/examples/notebooks/WWW/Approximate%20Kurtosis%20Portfolio.ipynb>`_
+
 .. _advanced-python:
 
 Advanced

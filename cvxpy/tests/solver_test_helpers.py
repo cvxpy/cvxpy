@@ -116,7 +116,7 @@ class SolverTestHelper:
                 comp = cp.scalar_product(pv, dv).value
             elif isinstance(con, (cp.constraints.ExpCone,
                                   cp.constraints.SOC,
-                                  cp.constraints.NonPos,
+                                  cp.constraints.NonNeg,
                                   cp.constraints.Zero)):
                 comp = cp.scalar_product(con.args, con.dual_value).value
             elif isinstance(con, cp.constraints.PowCone3D):
@@ -253,6 +253,31 @@ def lp_6() -> SolverTestHelper:
     obj_pair = (objective, np.inf)
     var_pairs = [(x, None)]
     sth = SolverTestHelper(obj_pair, var_pairs, [])
+    return sth
+
+
+def lp_7() -> SolverTestHelper:
+    """
+    An ill-posed problem to test multiprecision ability of solvers.
+
+    This test will not pass on CVXOPT (as of v1.3.1) and on SDPA without GMP support.
+    """
+    n = 50
+    a = cp.Variable((n+1))
+    delta = cp.Variable((n))
+    b = cp.Variable((n+1))
+    objective = cp.Minimize(cp.sum(cp.pos(delta)))
+    constraints = [
+        a[1:] - a[:-1] == delta,
+        a >= cp.pos(b),
+    ]
+    con_pairs = [(constraints[0], None),
+                 (constraints[1], None)]
+    var_pairs = [(a, None),
+                 (delta, None),
+                 (b, None)]
+    obj_pair = (objective, 0.)
+    sth = SolverTestHelper(obj_pair, var_pairs, con_pairs)
     return sth
 
 
@@ -1010,6 +1035,15 @@ class StandardTestLPs:
         if duals:
             sth.check_complementarity(places)
             sth.check_dual_domains(places)
+        return sth
+
+    @staticmethod
+    def test_lp_7(solver, places: int = 4, duals: bool = True, **kwargs) -> SolverTestHelper:
+        sth = lp_7()
+        import sdpap
+        if sdpap.sdpacall.sdpacall.get_backend_info()["gmp"]:
+            sth.solve(solver, **kwargs)
+            sth.verify_objective(places)
         return sth
 
     @staticmethod
