@@ -654,6 +654,13 @@ The solver statistics are accessed via the ``problem.solver_stats`` attribute,
 which returns a :class:`~cvxpy.problems.problem.SolverStats` object.
 For example, ``problem.solver_stats.solve_time`` gives the time it took the solver to solve the problem.
 
+.. note::
+
+    Information stored in ``problem.solver_stats`` differs in the solver used.
+    For example, if we use ``MOSEK``, ``problem.solver_stats.num_iters`` includes the following: ``iinfitem.intpnt_iter``, ``liinfitem.simplex_iter``
+    or ``iinfitem.mio_num_relax``. In addition, ``problem.solver_stats.extra_stats`` includes ``liinfitem.mio_intpnt_iter`` and ``liinfitem.mio_simplex_iter``.
+    For more information, please visit https://docs.mosek.com/latest/pythonapi/constants.html
+
 Warm start
 ----------
 
