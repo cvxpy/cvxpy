@@ -741,14 +741,9 @@ class TestMosek(unittest.TestCase):
     def test_mosek_number_iters(self) -> None:
         sth = sths.lp_5()
         sth.solve(solver=cp.MOSEK)
-        assert sth.prob.solver_stats.num_iters is not None, \
-            "Number of relaxations should not be None"
-        assert sth.prob.solver_stats.num_iters >= 0, \
-            "Number of relaxations should be greater than or equal to 0"
-        assert sth.prob.solver_stats.extra_stats is not None, \
-            "Number of iterations should not be None"
-        assert sth.prob.solver_stats.extra_stats >= 0, \
-            "Number of iterations should be greater than or equal to 0"
+        assert sth.prob.solver_stats.num_iters >= 0
+        assert sth.prob.solver_stats.extra_stats["mio_intpnt_iter"] == 0
+        assert sth.prob.solver_stats.extra_stats["mio_simplex_iter"] == 0
 
     def test_eps_keyword(self) -> None:
         """Test that the eps keyword is accepted"""
