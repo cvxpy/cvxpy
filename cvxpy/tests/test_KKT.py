@@ -124,9 +124,9 @@ class TestKKT_ECPs(BaseTest):
 
 class TestKKT_SDPs(BaseTest):
 
-    def test_sdp_1min(self, places=2):
+    def test_sdp_1min(self, places=4):
         sth = STH.sdp_1('min')
-        sth.solve(solver='SCS')
+        sth.solve(solver='SCS', eps=1e-6)
         sth.check_primal_feasibility(places)
         sth.check_complementarity(places)
         sth.check_dual_domains(places)
@@ -142,10 +142,9 @@ class TestKKT_SDPs(BaseTest):
         sth.check_stationary_lagrangian(places)
         return sth
 
-    def test_sdp_2(self, places=3):
-        # places is set to 3 rather than 4, because analytic solution isn't known.
+    def test_sdp_2(self, places=4):
         sth = STH.sdp_2()
-        sth.solve(solver='SCS')
+        sth.solve(solver='SCS', eps=1e-6)
         sth.check_primal_feasibility(places)
         sth.check_complementarity(places)
         sth.check_dual_domains(places)
@@ -199,7 +198,7 @@ class TestKKT_Flags(BaseTest):
     """
 
     @staticmethod
-    def tf_nsd() -> STH.SolverTestHelper:
+    def nsd_flag() -> STH.SolverTestHelper:
         """
         Tests NSD flag
         Reference values via MOSEK
@@ -219,7 +218,7 @@ class TestKKT_Flags(BaseTest):
         return sth
 
     @staticmethod
-    def tf_psd() -> STH.SolverTestHelper:
+    def psd_flag() -> STH.SolverTestHelper:
         """
         Tests PSD flag
         Reference values via MOSEK
@@ -242,7 +241,7 @@ class TestKKT_Flags(BaseTest):
         return sth
 
     @staticmethod
-    def tf_symmetric() -> STH.SolverTestHelper:
+    def symmetric_flag() -> STH.SolverTestHelper:
         """
         Tests symmetric flag
         Reference values via MOSEK
@@ -265,7 +264,7 @@ class TestKKT_Flags(BaseTest):
         return sth
 
     @staticmethod
-    def tf_nonneg() -> STH.SolverTestHelper:
+    def nonneg_flag() -> STH.SolverTestHelper:
         """
         Tests nonneg flag
         Reference values via MOSEK
@@ -289,7 +288,7 @@ class TestKKT_Flags(BaseTest):
         return sth
 
     @staticmethod
-    def tf_nonpos() -> STH.SolverTestHelper:
+    def nonpos_flag() -> STH.SolverTestHelper:
         """
         Tests nonpos flag
         Reference values via MOSEK
@@ -312,8 +311,8 @@ class TestKKT_Flags(BaseTest):
     """
     Only verifying the KKT conditions in these tests
     """
-    def test_tf_nsd(self, places=4):
-        sth = TestKKT_Flags.tf_nsd()
+    def test_kkt_nsd_var(self, places=4):
+        sth = TestKKT_Flags.nsd_flag()
         sth.solve(solver='SCS')
         sth.check_primal_feasibility(places)
         sth.check_complementarity(places)
@@ -321,8 +320,8 @@ class TestKKT_Flags(BaseTest):
         sth.check_stationary_lagrangian(places)
         return sth
 
-    def test_tf_psd(self, places=4):
-        sth = TestKKT_Flags.tf_psd()
+    def test_kkt_psd_var(self, places=4):
+        sth = TestKKT_Flags.psd_flag()
         sth.solve(solver='SCS')
         sth.check_primal_feasibility(places)
         sth.check_complementarity(places)
@@ -330,8 +329,8 @@ class TestKKT_Flags(BaseTest):
         sth.check_stationary_lagrangian(places)
         return sth
 
-    def test_tf_symmetric(self, places=4):
-        sth = TestKKT_Flags.tf_symmetric()
+    def test_kkt_symmetric_var(self, places=4):
+        sth = TestKKT_Flags.symmetric_flag()
         sth.solve(solver='SCS')
         sth.check_primal_feasibility(places)
         sth.check_complementarity(places)
@@ -339,8 +338,8 @@ class TestKKT_Flags(BaseTest):
         sth.check_stationary_lagrangian(places)
         return sth
 
-    def test_tf_nonneg(self, places=4):
-        sth = TestKKT_Flags.tf_nonneg()
+    def test_kkt_nonneg_var(self, places=4):
+        sth = TestKKT_Flags.nonneg_flag()
         sth.solve(solver='SCS')
         sth.check_primal_feasibility(places)
         sth.check_complementarity(places)
@@ -348,8 +347,8 @@ class TestKKT_Flags(BaseTest):
         sth.check_stationary_lagrangian(places)
         return sth
 
-    def test_tf_nonpos(self, places=4):
-        sth = TestKKT_Flags.tf_nonpos()
+    def test_kkt_nonpos_var(self, places=4):
+        sth = TestKKT_Flags.nonpos_flag()
         sth.solve(solver='SCS')
         sth.check_primal_feasibility(places)
         sth.check_complementarity(places)
