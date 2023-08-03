@@ -244,6 +244,29 @@ class TestKKT_Flags(BaseTest):
     @staticmethod
     def tf_3() -> STH.SolverTestHelper:
         """
+        Tests symmetric flag
+        Reference values via MOSEK
+        Version: 10.0.46
+        """
+        X = cp.Variable(shape=(4,4), symmetric=True)
+        obj = cp.Minimize(cp.log_sum_exp(X))
+        cons = [cp.norm2(X) <= 10, X[0, 1] >= 4, X[0, 1] <= 8]
+        con_pairs = [
+            (cons[0], None),
+            (cons[1], None),
+            (cons[2], None),
+        ]
+        var_pairs = [(X, np.array([[-3.74578525,  4.        , -3.30586268, -3.30586268],
+                                   [ 4.        , -3.74578525, -3.30586268, -3.30586268],
+                                   [-3.30586268, -3.30586268, -2.8684253 , -2.8684253 ],
+                                   [-3.30586268, -3.30586268, -2.8684253 , -2.86842529]]))]
+        obj_pair = (obj, 4.698332858812026)
+        sth = STH.SolverTestHelper(obj_pair, var_pairs, con_pairs)
+        return sth
+
+    @staticmethod
+    def tf_4() -> STH.SolverTestHelper:
+        """
         Tests nonneg flag
         Reference values via MOSEK
         Version: 10.0.46
@@ -266,7 +289,7 @@ class TestKKT_Flags(BaseTest):
         return sth
 
     @staticmethod
-    def tf_4() -> STH.SolverTestHelper:
+    def tf_5() -> STH.SolverTestHelper:
         """
         Tests nonpos flag
         Reference values via MOSEK
@@ -318,6 +341,15 @@ class TestKKT_Flags(BaseTest):
 
     def test_tf_4(self, places=4):
         sth = TestKKT_Flags.tf_4()
+        sth.solve(solver='SCS')
+        sth.check_primal_feasibility(places)
+        sth.check_complementarity(places)
+        sth.check_dual_domains(places)
+        sth.check_stationary_lagrangian(places)
+        return sth
+
+    def test_tf_5(self, places=4):
+        sth = TestKKT_Flags.tf_5()
         sth.solve(solver='SCS')
         sth.check_primal_feasibility(places)
         sth.check_complementarity(places)
