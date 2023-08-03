@@ -154,9 +154,9 @@ class TestKKT_SDPs(BaseTest):
 
 class TestKKT_PCPs(BaseTest):
 
-    def test_pcp_1(self, places: int = 2):
+    def test_pcp_1(self, places: int = 4):
         sth = STH.pcp_1()
-        sth.solve(solver='SCS')
+        sth.solve(solver='SCS', eps=1e-6)
         sth.check_primal_feasibility(places)
         sth.check_complementarity(places)
         try:
@@ -166,9 +166,9 @@ class TestKKT_PCPs(BaseTest):
         sth.check_stationary_lagrangian(places)
         return sth
 
-    def test_pcp_2(self, places: int = 2):
+    def test_pcp_2(self, places: int = 4):
         sth = STH.pcp_2()
-        sth.solve(solver='SCS')
+        sth.solve(solver='SCS', eps=1e-6)
         sth.check_primal_feasibility(places)
         sth.check_complementarity(places)
         try:
@@ -178,9 +178,9 @@ class TestKKT_PCPs(BaseTest):
         sth.check_stationary_lagrangian(places)
         return sth
 
-    def test_pcp_3(self, places: int = 2):
+    def test_pcp_3(self, places: int = 4):
         sth = STH.pcp_3()
-        sth.solve(solver='SCS')
+        sth.solve(solver='SCS', eps=1e-6)
         sth.check_primal_feasibility(places)
         sth.check_complementarity(places)
         try:
