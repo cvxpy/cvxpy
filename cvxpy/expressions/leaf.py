@@ -454,6 +454,11 @@ class Leaf(expression.Expression):
         """
         return self.attributes['NSD']
 
+    def is_diag(self) -> bool:
+        """Is the expression a diagonal matrix?
+        """
+        return self.attributes['diag']
+
     def is_quadratic(self) -> bool:
         """Leaf nodes are always quadratic.
         """
