@@ -199,7 +199,7 @@ class TestKKT_Flags(BaseTest):
     """
 
     @staticmethod
-    def tf_1() -> STH.SolverTestHelper:
+    def tf_nsd() -> STH.SolverTestHelper:
         """
         Tests NSD flag
         Reference values via MOSEK
@@ -219,7 +219,7 @@ class TestKKT_Flags(BaseTest):
         return sth
 
     @staticmethod
-    def tf_2() -> STH.SolverTestHelper:
+    def tf_psd() -> STH.SolverTestHelper:
         """
         Tests PSD flag
         Reference values via MOSEK
@@ -242,7 +242,7 @@ class TestKKT_Flags(BaseTest):
         return sth
 
     @staticmethod
-    def tf_3() -> STH.SolverTestHelper:
+    def tf_symmetric() -> STH.SolverTestHelper:
         """
         Tests symmetric flag
         Reference values via MOSEK
@@ -265,7 +265,7 @@ class TestKKT_Flags(BaseTest):
         return sth
 
     @staticmethod
-    def tf_4() -> STH.SolverTestHelper:
+    def tf_nonneg() -> STH.SolverTestHelper:
         """
         Tests nonneg flag
         Reference values via MOSEK
@@ -289,7 +289,7 @@ class TestKKT_Flags(BaseTest):
         return sth
 
     @staticmethod
-    def tf_5() -> STH.SolverTestHelper:
+    def tf_nonpos() -> STH.SolverTestHelper:
         """
         Tests nonpos flag
         Reference values via MOSEK
@@ -312,8 +312,8 @@ class TestKKT_Flags(BaseTest):
     """
     Only verifying the KKT conditions in these tests
     """
-    def test_tf_1(self, places=4):
-        sth = TestKKT_Flags.tf_1()
+    def test_tf_nsd(self, places=4):
+        sth = TestKKT_Flags.tf_nsd()
         sth.solve(solver='SCS')
         sth.check_primal_feasibility(places)
         sth.check_complementarity(places)
@@ -321,8 +321,8 @@ class TestKKT_Flags(BaseTest):
         sth.check_stationary_lagrangian(places)
         return sth
 
-    def test_tf_2(self, places=4):
-        sth = TestKKT_Flags.tf_2()
+    def test_tf_psd(self, places=4):
+        sth = TestKKT_Flags.tf_psd()
         sth.solve(solver='SCS')
         sth.check_primal_feasibility(places)
         sth.check_complementarity(places)
@@ -330,8 +330,8 @@ class TestKKT_Flags(BaseTest):
         sth.check_stationary_lagrangian(places)
         return sth
 
-    def test_tf_3(self, places=4):
-        sth = TestKKT_Flags.tf_3()
+    def test_tf_symmetric(self, places=4):
+        sth = TestKKT_Flags.tf_symmetric()
         sth.solve(solver='SCS')
         sth.check_primal_feasibility(places)
         sth.check_complementarity(places)
@@ -339,8 +339,8 @@ class TestKKT_Flags(BaseTest):
         sth.check_stationary_lagrangian(places)
         return sth
 
-    def test_tf_4(self, places=4):
-        sth = TestKKT_Flags.tf_4()
+    def test_tf_nonneg(self, places=4):
+        sth = TestKKT_Flags.tf_nonneg()
         sth.solve(solver='SCS')
         sth.check_primal_feasibility(places)
         sth.check_complementarity(places)
@@ -348,8 +348,8 @@ class TestKKT_Flags(BaseTest):
         sth.check_stationary_lagrangian(places)
         return sth
 
-    def test_tf_5(self, places=4):
-        sth = TestKKT_Flags.tf_5()
+    def test_tf_nonpos(self, places=4):
+        sth = TestKKT_Flags.tf_nonpos()
         sth.solve(solver='SCS')
         sth.check_primal_feasibility(places)
         sth.check_complementarity(places)
