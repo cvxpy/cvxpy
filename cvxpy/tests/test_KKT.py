@@ -63,10 +63,7 @@ class TestKKT_SOCPs(BaseTest):
         sth.solve(solver='ECOS')
         sth.check_primal_feasibility(places)
         sth.check_complementarity(places)
-        try:
-            sth.check_dual_domains(places)
-        except NotImplementedError:
-            pass
+        sth.check_dual_domains(places)
         sth.check_stationary_lagrangian(places)
         return sth
 
@@ -75,10 +72,7 @@ class TestKKT_SOCPs(BaseTest):
         sth.solve(solver='ECOS')
         sth.check_primal_feasibility(places)
         sth.check_complementarity(places)
-        try:
-            sth.check_dual_domains(places)
-        except NotImplementedError:
-            pass
+        sth.check_dual_domains(places)
         sth.check_stationary_lagrangian(places)
         return sth
 
@@ -87,10 +81,7 @@ class TestKKT_SOCPs(BaseTest):
         sth.solve(solver='ECOS')
         sth.check_primal_feasibility(places)
         sth.check_complementarity(places)
-        try:
-            sth.check_dual_domains(places)
-        except NotImplementedError:
-            pass
+        sth.check_dual_domains(places)
         sth.check_stationary_lagrangian(places)
         return sth
 
@@ -100,10 +91,7 @@ class TestKKT_SOCPs(BaseTest):
         sth.solve(solver='ECOS')
         sth.check_primal_feasibility(places)
         sth.check_complementarity(places)
-        try:
-            sth.check_dual_domains(places)
-        except NotImplementedError:
-            pass
+        sth.check_dual_domains(places)
         sth.check_stationary_lagrangian(places)
         return sth
 
@@ -115,10 +103,7 @@ class TestKKT_ECPs(BaseTest):
         sth.solve(solver='ECOS')
         sth.check_primal_feasibility(places)
         sth.check_complementarity(places)
-        try:
-            sth.check_dual_domains(places)
-        except NotImplementedError:
-            pass
+        sth.check_dual_domains(places)
         sth.check_stationary_lagrangian(places)
         return sth
 
@@ -159,10 +144,7 @@ class TestKKT_PCPs(BaseTest):
         sth.solve(solver='SCS', eps=1e-6)
         sth.check_primal_feasibility(places)
         sth.check_complementarity(places)
-        try:
-            sth.check_dual_domains(places)
-        except NotImplementedError:
-            pass
+        sth.check_dual_domains(places)
         sth.check_stationary_lagrangian(places)
         return sth
 
@@ -171,10 +153,7 @@ class TestKKT_PCPs(BaseTest):
         sth.solve(solver='SCS', eps=1e-6)
         sth.check_primal_feasibility(places)
         sth.check_complementarity(places)
-        try:
-            sth.check_dual_domains(places)
-        except NotImplementedError:
-            pass
+        sth.check_dual_domains(places)
         sth.check_stationary_lagrangian(places)
         return sth
 
@@ -183,10 +162,7 @@ class TestKKT_PCPs(BaseTest):
         sth.solve(solver='SCS', eps=1e-6)
         sth.check_primal_feasibility(places)
         sth.check_complementarity(places)
-        try:
-            sth.check_dual_domains(places)
-        except NotImplementedError:
-            pass
+        sth.check_dual_domains(places)
         sth.check_stationary_lagrangian(places)
         return sth
 

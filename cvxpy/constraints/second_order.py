@@ -165,3 +165,10 @@ class SOC(Constraint):
             X = X.T
         self.dual_variables[0].save_value(t)
         self.dual_variables[1].save_value(X)
+
+    @staticmethod
+    def dual_cone(t, X, axis=0):
+        return SOC(t, X, axis)
+
+    def dual_violation(self):
+        return SOC.dual_cone(*self.dual_variables, axis=self.axis).residual

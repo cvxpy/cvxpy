@@ -74,18 +74,14 @@ class SolverTestHelper:
         #   (e.g. X = Variable(shape=(n,n), PSD=True)), check
         #   domains for dual variables of the attribute constraint.
         for con in self.constraints:
-            if isinstance(con, cp.constraints.PSD):
-                # TODO: move this to PSD.dual_violation
-                dv = con.dual_value
-                eigs = np.linalg.eigvalsh(dv)
-                min_eig = np.min(eigs)
-                self.tester.assertGreaterEqual(min_eig, -(10**(-places)))
-            elif isinstance(con, cp.constraints.ExpCone):
-                # TODO: implement this (preferably with ExpCone.dual_violation)
-                raise NotImplementedError()
-            elif isinstance(con, cp.constraints.SOC):
-                # TODO: implement this (preferably with SOC.dual_violation)
-                raise NotImplementedError()
+            if isinstance(con, (cp.constraints.ExpCone,
+                                cp.constraints.PowCone3D,
+                                cp.constraints.PSD,
+                                cp.constraints.SOC)):
+                dual_violation = con.dual_violation()
+                if isinstance(con, cp.constraints.SOC):
+                    dual_violation = np.linalg.norm(dual_violation)
+                self.tester.assertLessEqual(dual_violation, 10**(-places))
             elif isinstance(con, cp.constraints.Inequality):
                 # TODO: move this to Inequality.dual_violation
                 dv = con.dual_value
@@ -99,8 +95,6 @@ class SolverTestHelper:
                     self.tester.assertEqual(contents, float)
                 else:
                     self.tester.assertIsInstance(dv, float)
-            elif isinstance(con, cp.constraints.PowCone3D):
-                raise NotImplementedError()
             else:
                 raise ValueError('Unknown constraint type %s.' % type(con))
 

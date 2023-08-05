@@ -83,3 +83,10 @@ class PSD(Constraint):
             return None
         min_eig = cvxtypes.lambda_min()(self.args[0] + self.args[0].T)/2
         return cvxtypes.neg()(min_eig).value
+
+    @staticmethod
+    def dual_cone(X):
+        return X >> 0
+
+    def dual_violation(self):
+        return PSD.dual_cone(*self.dual_variables).residual

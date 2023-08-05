@@ -146,6 +146,12 @@ class ExpCone(Constraint):
         self.dual_variables[1].save_value(dv1)
         self.dual_variables[2].save_value(dv2)
 
+    @staticmethod
+    def dual_cone(x, y, z):
+        return ExpCone(-y, -x, np.exp(1)*z)
+
+    def dual_violation(self):
+        return ExpCone.dual_cone(*self.dual_variables).residual
 
 class RelEntrConeQuad(Constraint):
     """An approximate construction of the scalar relative entropy cone

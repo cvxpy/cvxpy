@@ -71,7 +71,6 @@ class PowCone3D(Constraint):
             raise ValueError(msg)
         super(PowCone3D, self).__init__([self.x, self.y, self.z],
                                         constr_id)
-
     def __str__(self) -> str:
         return "Pow3D(%s, %s, %s; %s)" % (self.x, self.y, self.z, self.alpha)
 
@@ -139,6 +138,14 @@ class PowCone3D(Constraint):
         self.dual_variables[2].save_value(dv2)
         # TODO: figure out why the reshaping had to be done differently,
         #   relative to ExpCone constraints.
+
+    @staticmethod
+    def dual_cone(x, y, z, alpha: float):
+        return PowCone3D(x/alpha, y/(1-alpha), z, alpha)
+
+    def dual_violation(self):
+        return PowCone3D.dual_cone(*self.dual_variables,
+                                   self.alpha).residual
 
 
 class PowConeND(Constraint):
