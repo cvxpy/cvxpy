@@ -1123,6 +1123,7 @@ class StackedSlicesBackend(PythonCanonBackend):
     def mul(self, lin: LinOp, view: StackedSlicesTensorView) -> StackedSlicesTensorView:
         """
         Multiply view with constant data from the left.
+
         """
         lhs, is_param_free_lhs = self.get_constant_data(lin.data, view, column=False)
         if is_param_free_lhs:
@@ -1140,9 +1141,8 @@ class StackedSlicesBackend(PythonCanonBackend):
                 for param_id, param_mat in lhs.items():
                     inds = np.arange(param_mat.shape[0])
                     sub_inds = np.split(inds, self.param_to_size[param_id])
-                    stacked_lhs[param_id] = sp.vstack([sp.kron(eye, param_mat[sub_ind],
-                                                               format='csc')
-                                                       for sub_ind in sub_inds], format='csc')
+                    stacked_lhs[param_id] = sp.vstack([sp.kron(eye, param_mat[s], format='csc')
+                                                       for s in sub_inds], format='csc')
             else:
                 stacked_lhs = lhs
 
@@ -1168,8 +1168,11 @@ class StackedSlicesBackend(PythonCanonBackend):
         """
         lhs, is_param_free_lhs = self.get_constant_data(lin.data, view, column=True)
         if is_param_free_lhs:
-            def func(x, _p):
-                return lhs.multiply(x)
+            def func(x, p):
+                if p == 1:
+                    return lhs.multiply(x)
+                else:
+                    return lhs.multiply(sp.vstack(x) * p)
         else:
             reps = view.rows // next(iter(lhs.values())).shape[-1]
 
@@ -1254,18 +1257,28 @@ class StackedSlicesBackend(PythonCanonBackend):
             def func(x, _p):
                 return stacked_lhs @ x
         else:
-            reps = view.rows // next(iter(lhs.values())).shape[-1]
+            p = view.rows // next(iter(lhs.values())).shape[-1]
             lhs_shape = next(iter(lhs.values())).shape
-
+            lhs_shape = (lhs_shape[0] // p, lhs_shape[1])
             if len(lin.data.shape) == 1 and arg_cols != lhs_shape[0]:
                 # Example: (n,n) @ (n,), we need to interpret the rhs as a column vector,
                 # but it is a row vector by default, so we need to transpose
-                lhs = {k: v.T for k, v in lhs.items()}
                 lhs_shape = next(iter(lhs.values())).shape
+                lhs_shape = (lhs_shape[0], lhs_shape[1] // p)
+                for param_id, param_mat in lhs.items():
+                    inds = np.arange(param_mat.shape[1])
+                    sub_inds = np.split(inds, self.param_to_size[param_id])
+                    lhs[param_id] = sp.vstack([param_mat[sub_ind].T for sub_ind in sub_inds],
+                                              format='csc')
 
             reps = view.rows // lhs_shape[0]
             eye = sp.eye(reps, format="csc")
-            stacked_lhs = {k: sp.kron(v.T, eye).tocsc() for k, v in lhs.items()}
+            stacked_lhs = {}
+            for param_id, param_mat in lhs.items():
+                inds = np.arange(param_mat.shape[0])
+                sub_inds = np.split(inds, self.param_to_size[param_id])
+                stacked_lhs[param_id] = sp.vstack([sp.kron(param_mat[sub_ind].T, eye, format='csc')
+                                                   for sub_ind in sub_inds], format='csc')
 
             def parametrized_mul(x):
                 return {k: v @ x for k, v in stacked_lhs.items()}
@@ -1691,14 +1704,6 @@ class NumpyTensorView(DictTensorView):
 
 
 class StackedSlicesTensorView(DictTensorView):
-    """
-    We need a way to be able to override the tensor indexing.
-    def __getitem__(self, indices):
-        if isinstance(indices, tuple):
-            i, j, k = indices
-            if self.tensor is not None:
-                return self.tensor[i][j][self.rows*k:self.rows*(k+1), :]
-    """
 
     @property
     def rows(self) -> int:
@@ -1755,6 +1760,8 @@ class StackedSlicesTensorView(DictTensorView):
             -> dict[int, sp.spmatrix]:
         """
         Apply 'func' to each slice of the parameter representation.
+        For the stacked-slices backend, we must pass an additional parameter 'p'
+        which is the number of parameter slices.
         """
         return {k: func(v, self.param_to_size[k]) for k, v in parameter_representation.items()}
 
