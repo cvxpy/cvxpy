@@ -1172,7 +1172,8 @@ class StackedSlicesBackend(PythonCanonBackend):
                 if p == 1:
                     return lhs.multiply(x)
                 else:
-                    return lhs.multiply(sp.vstack(x) * p)
+                    new_lhs = sp.vstack([lhs] * p)
+                    return new_lhs.multiply(x)
         else:
             reps = view.rows // next(iter(lhs.values())).shape[-1]
 
