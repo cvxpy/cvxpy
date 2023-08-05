@@ -1345,37 +1345,37 @@ class StackedSlicesBackend(PythonCanonBackend):
 
         def func(x, _p):
             assert x.ndim == 2
-            kron_res = sp.kron(lhs, x).tocsr()
+            kron_res = sp.kron(lhs, x).tocsc()
             kron_res = kron_res[row_indices, :]
             return kron_res
 
         return view.accumulate_over_variables(func, is_param_free_function=is_param_free_lhs)
 
     def kron_l(self, lin: LinOp, view: StackedSlicesTensorView) -> StackedSlicesTensorView:
-        lhs, is_param_free_lhs = self.get_constant_data(lin.data, view, column=True)
-        assert is_param_free_lhs
-        assert lhs.ndim == 2
+        rhs, is_param_free_rhs = self.get_constant_data(lin.data, view, column=True)
+        assert is_param_free_rhs
+        assert rhs.ndim == 2
 
         assert len({arg.shape for arg in lin.args}) == 1
-        rhs_shape = lin.args[0].shape
+        lhs_shape = lin.args[0].shape
 
-        lhs_ones = np.ones(lin.data.shape)
-        rhs_ones = np.ones(rhs_shape)
+        rhs_ones = np.ones(lin.data.shape)
+        lhs_ones = np.ones(lhs_shape)
 
-        lhs_arange = np.arange(np.prod(lin.data.shape)).reshape(lin.data.shape, order="F")
-        rhs_arange = np.arange(np.prod(rhs_shape)).reshape(rhs_shape, order="F")
+        rhs_arange = np.arange(np.prod(lin.data.shape)).reshape(lin.data.shape, order="F")
+        lhs_arange = np.arange(np.prod(lhs_shape)).reshape(lhs_shape, order="F")
 
         row_indices = (np.kron(lhs_ones, rhs_arange) +
-                       np.kron(lhs_arange, rhs_ones * np.prod(rhs_shape))) \
+                       np.kron(lhs_arange, rhs_ones * np.prod(lin.data.shape))) \
             .flatten(order="F").astype(int)
 
         def func(x, _p):
             assert x.ndim == 2
-            kron_res = sp.kron(lhs, x).tocsc()
+            kron_res = sp.kron(x, rhs).tocsc()
             kron_res = kron_res[row_indices, :]
             return kron_res
 
-        return view.accumulate_over_variables(func, is_param_free_function=is_param_free_lhs)
+        return view.accumulate_over_variables(func, is_param_free_function=is_param_free_rhs)
 
     def get_variable_tensor(self, shape: tuple[int, ...], variable_id: int) -> \
             dict[int, dict[int, sp.csc_matrix]]:
