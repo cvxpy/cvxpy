@@ -1175,11 +1175,9 @@ class StackedSlicesBackend(PythonCanonBackend):
                     new_lhs = sp.vstack([lhs] * p)
                     return new_lhs.multiply(x)
         else:
-            reps = view.rows // next(iter(lhs.values())).shape[-1]
-
             def parametrized_mul(x):
-                new_x = sp.vstack([x] * reps)
-                return {k: v.multiply(new_x) for k, v in lhs.items()}
+                return {k: v.multiply(sp.vstack([x] * self.param_to_size[k]))
+                        for k, v in lhs.items()}
 
             func = parametrized_mul
         return view.accumulate_over_variables(func, is_param_free_function=is_param_free_lhs)
