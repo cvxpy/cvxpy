@@ -43,8 +43,8 @@ fi
 
 if [[ "$PYTHON_VERSION" == "3.10" ]]; then
   python -m pip install diffcp gurobipy
-# Python 3.8 on Windows will uninstall NumPy 1.16 and install NumPy 1.24 without the exception.
-elif [[ "$RUNNER_OS" == "Windows" ]] && [[ "$PYTHON_VERSION" == "3.8" ]]; then
+# Python 3.8 on Windows and Linux will uninstall NumPy 1.16 and install NumPy 1.24 without the exception.
+elif [[ "$PYTHON_VERSION" == "3.8" ]] && [[ "$RUNNER_OS" != "macos-11" ]]; then
   :
 else
   python -m pip install diffcp gurobipy xpress cplex
