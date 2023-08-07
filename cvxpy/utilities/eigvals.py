@@ -16,18 +16,6 @@ def is_diagonal(A):
     return np.allclose(off_diagonal_elements, 0)
 
 
-def is_diagonal(A):
-    if isinstance(A, spar.spmatrix):
-        off_diagonal_elements = A - spar.diags(A.diagonal())
-        off_diagonal_elements = off_diagonal_elements.toarray()
-    elif isinstance(A, np.ndarray):
-        off_diagonal_elements = A - np.diag(np.diag(A))
-    else:
-        raise ValueError("Unsupported matrix type.")
-
-    return np.allclose(off_diagonal_elements, 0)
-
-
 def is_psd_within_tol(A, tol):
     """
     Return True if we can certify that A is PSD (up to tolerance "tol").
