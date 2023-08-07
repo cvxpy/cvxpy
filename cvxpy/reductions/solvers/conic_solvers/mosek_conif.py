@@ -86,8 +86,8 @@ class MOSEK(ConicSolver):
     def import_solver(self) -> None:
         """Imports the solver (updates the set of supported constraints, if applicable).
         """
-        import mosek
-        mosek  # For flake8
+        import mosek  # noqa F401
+
         if hasattr(mosek.conetype, 'pexp') and ExpCone not in MOSEK.SUPPORTED_CONSTRAINTS:
             MOSEK.SUPPORTED_CONSTRAINTS.append(ExpCone)
             MOSEK.SUPPORTED_CONSTRAINTS.append(PowCone3D)
@@ -197,7 +197,7 @@ class MOSEK(ConicSolver):
                 total_psd = sum([d * (d+1) // 2 for d in K[a2d.PSD]])
                 A_psd = A[:, idx:idx+total_psd]
                 c_psd = c[idx:idx+total_psd]
-                if K[a2d.DUAL_EXP] == 0:
+                if (K[a2d.DUAL_EXP] == 0) and (K[a2d.DUAL_POW3D] == 0):
                     data[s.A] = A[:, :idx]
                     data[s.C] = c[:idx]
                 else:
@@ -431,10 +431,16 @@ class MOSEK(ConicSolver):
         env = solver_output['env']
         task = solver_output['task']
         solver_opts = solver_output['solver_options']
+        simplex_algs = [
+            mosek.optimizertype.primal_simplex,
+            mosek.optimizertype.dual_simplex,
+        ]
+        current_optimizer = task.getintparam(mosek.iparam.optimizer)
+        bfs_active = "bfs" in solver_opts and solver_opts["bfs"] and task.getnumcone() == 0
 
         if task.getnumintvar() > 0:
             sol_type = mosek.soltype.itg
-        elif 'bfs' in solver_opts and solver_opts['bfs'] and task.getnumcone() == 0:
+        elif current_optimizer in simplex_algs or bfs_active:
             sol_type = mosek.soltype.bas  # the basic feasible solution
         else:
             sol_type = mosek.soltype.itr  # the solution found via interior point method

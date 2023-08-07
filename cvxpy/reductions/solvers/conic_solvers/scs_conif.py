@@ -22,9 +22,12 @@ from cvxpy.constraints import PSD, SOC, ExpCone, PowCone3D
 from cvxpy.expressions.expression import Expression
 from cvxpy.reductions.solution import Solution, failure_solution
 from cvxpy.reductions.solvers import utilities
-from cvxpy.reductions.solvers.conic_solvers.conic_solver import ConicSolver
 from cvxpy.reductions.solvers.conic_solvers.conic_solver import (
-    dims_to_solver_dict as dims_to_solver_dict_default,)
+    ConicSolver,
+)
+from cvxpy.reductions.solvers.conic_solvers.conic_solver import (
+    dims_to_solver_dict as dims_to_solver_dict_default,
+)
 from cvxpy.utilities.versioning import Version
 
 
@@ -155,8 +158,7 @@ class SCS(ConicSolver):
     def import_solver(self) -> None:
         """Imports the solver.
         """
-        import scs
-        scs  # For flake8
+        import scs  # noqa F401
 
     @staticmethod
     def psd_format_mat(constr):

@@ -18,9 +18,11 @@ from cvxpy.atoms.elementwise.abs import abs
 from cvxpy.atoms.elementwise.power import power
 from cvxpy.expressions.variable import Variable
 from cvxpy.reductions.dcp2cone.atom_canonicalizers.power_canon import (
-    power_canon,)
+    power_canon,
+)
 from cvxpy.reductions.eliminate_pwl.atom_canonicalizers.abs_canon import (
-    abs_canon,)
+    abs_canon,
+)
 
 
 def huber_canon(expr, args):

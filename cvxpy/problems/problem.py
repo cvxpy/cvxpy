@@ -46,8 +46,10 @@ from cvxpy.reductions.solvers.conic_solvers.conic_solver import ConicSolver
 from cvxpy.reductions.solvers.defines import SOLVER_MAP_CONIC, SOLVER_MAP_QP
 from cvxpy.reductions.solvers.qp_solvers.qp_solver import QpSolver
 from cvxpy.reductions.solvers.solver import Solver
-from cvxpy.reductions.solvers.solving_chain import (SolvingChain,
-                                                    construct_solving_chain,)
+from cvxpy.reductions.solvers.solving_chain import (
+    SolvingChain,
+    construct_solving_chain,
+)
 from cvxpy.settings import SOLVERS
 from cvxpy.utilities.deterministic import unique_list
 

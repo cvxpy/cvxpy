@@ -94,7 +94,6 @@ def scs_cone_selectors(K):
     return selectors
 
 
-# flake8: noqa: E501
 class SuppFunc:
     """
     Given a list of CVXPY Constraint objects :math:`\\texttt{constraints}`
