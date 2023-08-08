@@ -1,19 +1,18 @@
-
 <!DOCTYPE html>
 
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
     <title>Middle-End Reductions &#8212; CVXPY 1.2 documentation</title>
-    <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
-    <link rel="stylesheet" type="text/css" href="../_static/cvxpy_alabaster.css" />
-    <script src="../_static/jquery.js"></script>
-    <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
-    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
-    <script src="../_static/doctools.js"></script>
-    <script src="../_static/sphinx_highlight.js"></script>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="../_static/cvxpy_alabaster.css?v=6c13f287" />
+    <script src="../_static/jquery.js?v=5d32c60e"></script>
+    <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js?v=148feb7c"></script>
+    <script src="../_static/doctools.js?v=888ff710"></script>
+    <script src="../_static/sphinx_highlight.js?v=4825356b"></script>
     <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
@@ -195,24 +194,24 @@ problem. Because every (generalized) geometric program is a DGP problem,
 this reduction can be used to convert geometric programs into convex form.</p>
 <p class="rubric">Example</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">cvxpy</span> <span class="k">as</span> <span class="nn">cp</span>
-<span class="go">&gt;&gt;&gt;</span>
+<span class="gp">&gt;&gt;&gt;</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">x1</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="n">pos</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">x2</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="n">pos</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">x3</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="n">pos</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-<span class="go">&gt;&gt;&gt;</span>
+<span class="gp">&gt;&gt;&gt;</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">monomial</span> <span class="o">=</span> <span class="mf">3.0</span> <span class="o">*</span> <span class="n">x_1</span><span class="o">**</span><span class="mf">0.4</span> <span class="o">*</span> <span class="n">x_2</span> <span class="o">**</span> <span class="mf">0.2</span> <span class="o">*</span> <span class="n">x_3</span> <span class="o">**</span> <span class="o">-</span><span class="mf">1.4</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">posynomial</span> <span class="o">=</span> <span class="n">monomial</span> <span class="o">+</span> <span class="mf">2.0</span> <span class="o">*</span> <span class="n">x_1</span> <span class="o">*</span> <span class="n">x_2</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">dgp_problem</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Problem</span><span class="p">(</span><span class="n">cp</span><span class="o">.</span><span class="n">Minimize</span><span class="p">(</span><span class="n">posynomial</span><span class="p">),</span> <span class="p">[</span><span class="n">monomial</span> <span class="o">==</span> <span class="mf">4.0</span><span class="p">])</span>
-<span class="go">&gt;&gt;&gt;</span>
+<span class="gp">&gt;&gt;&gt;</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">dcp2cone</span> <span class="o">=</span> <span class="n">cvxpy</span><span class="o">.</span><span class="n">reductions</span><span class="o">.</span><span class="n">Dcp2Cone</span><span class="p">()</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="ow">not</span> <span class="n">dcp2cone</span><span class="o">.</span><span class="n">accepts</span><span class="p">(</span><span class="n">dgp_problem</span><span class="p">)</span>
-<span class="go">&gt;&gt;&gt;</span>
+<span class="gp">&gt;&gt;&gt;</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">gp2dcp</span> <span class="o">=</span> <span class="n">cvxpy</span><span class="o">.</span><span class="n">reductions</span><span class="o">.</span><span class="n">Dgp2Dcp</span><span class="p">(</span><span class="n">dgp_problem</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">dcp_problem</span> <span class="o">=</span> <span class="n">gp2dcp</span><span class="o">.</span><span class="n">reduce</span><span class="p">()</span>
-<span class="go">&gt;&gt;&gt;</span>
+<span class="gp">&gt;&gt;&gt;</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">dcp2cone</span><span class="o">.</span><span class="n">accepts</span><span class="p">(</span><span class="n">dcp_problem</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">dcp_probem</span><span class="o">.</span><span class="n">solve</span><span class="p">()</span>
-<span class="go">&gt;&gt;&gt;</span>
+<span class="gp">&gt;&gt;&gt;</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">dgp_problem</span><span class="o">.</span><span class="n">unpack</span><span class="p">(</span><span class="n">gp2dcp</span><span class="o">.</span><span class="n">retrieve</span><span class="p">(</span><span class="n">dcp_problem</span><span class="o">.</span><span class="n">solution</span><span class="p">))</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">dgp_problem</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">dgp_problem</span><span class="o">.</span><span class="n">variables</span><span class="p">())</span>
@@ -540,7 +539,7 @@ this reduction can be used to convert geometric programs into convex form.</p>
       &copy;The CVXPY authors.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 6.1.3</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 7.1.2</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.13</a>
       
       |
@@ -548,10 +547,6 @@ this reduction can be used to convert geometric programs into convex form.</p>
           rel="nofollow">Page source</a>
     </div>
 
-    
-    <a href="https://github.com/cvxpy/cvxpy" class="github">
-        <img style="position: absolute; top: 0; right: 0; border: 0;" src="https://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png" alt="Fork me on GitHub"  class="github"/>
-    </a>
     
 
     
