@@ -141,7 +141,7 @@ Agrawal](https://akshayagrawal.com), [Riley Murray](https://rileyjmurray.wordpre
 [Philipp Schiele](https://www.philippschiele.com/),
 and [Bartolomeo Stellato](https://stellato.io/), with many others contributing
 significantly. A non-exhaustive list of people who have shaped CVXPY over the
-years includes Stephen Boyd, Eric Chu, Robin Verschueren, Philipp Schiele, Michael Sommerauer,
+years includes Stephen Boyd, Eric Chu, Robin Verschueren, Michael Sommerauer,
 Jaehyun Park, Enzo Busseti, AJ Friend, Judson Wilson, and Chris
 Dembia.
 
