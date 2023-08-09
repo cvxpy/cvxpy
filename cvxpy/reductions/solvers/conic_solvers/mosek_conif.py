@@ -506,7 +506,15 @@ class MOSEK(ConicSolver):
         prim_vars = None
         dual_vars = None
         problem_status = task.getprosta(sol_type)
-        attr = {s.SOLVE_TIME: task.getdouinf(mosek.dinfitem.optimizer_time)}
+        attr = {s.SOLVE_TIME: task.getdouinf(mosek.dinfitem.optimizer_time),
+                s.NUM_ITERS: task.getintinf(mosek.iinfitem.intpnt_iter) +
+                             task.getlintinf(mosek.liinfitem.simplex_iter) +
+                             task.getintinf(mosek.iinfitem.mio_num_relax),
+                s.EXTRA_STATS: {
+                    "mio_intpnt_iter": task.getlintinf(mosek.liinfitem.mio_intpnt_iter),
+                    "mio_simplex_iter": task.getlintinf(mosek.liinfitem.mio_simplex_iter)
+                }
+        }
         if sol_type == mosek.soltype.itg and problem_status == mosek.prosta.prim_infeas:
             status = s.INFEASIBLE
             prob_val = np.inf

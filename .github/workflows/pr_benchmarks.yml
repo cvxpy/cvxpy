@@ -36,7 +36,7 @@ jobs:
         run: |
           cd benchmark/
           asv machine --config asv_pr.conf.json --yes
-          asv continuous origin/${{github.base_ref}} HEAD --config asv_pr.conf.json --quick
+          asv continuous origin/${{github.base_ref}} HEAD --config asv_pr.conf.json --quick --strict
           asv compare origin/${{github.base_ref}} HEAD --config asv_pr.conf.json --split --sort ratio | tee -a asv_compare.log
           mkdir comment_log
           mv asv_compare.log comment_log/

@@ -638,7 +638,7 @@ class TestMosek(unittest.TestCase):
         constraints = [A @ z == y]
         problem = cp.Problem(objective, constraints)
         problem.solve(
-            solver=cp.MOSEK, 
+            solver=cp.MOSEK,
             mosek_params={"MSK_IPAR_OPTIMIZER": "MSK_OPTIMIZER_DUAL_SIMPLEX"}
         )
 
@@ -738,6 +738,13 @@ class TestMosek(unittest.TestCase):
         with pytest.raises(cp.error.SolverError, match="Solver 'MOSEK' failed"):
             sth.solve(solver=cp.MOSEK, mosek_params=mosek_param)
 
+    def test_mosek_number_iters(self) -> None:
+        sth = sths.lp_5()
+        sth.solve(solver=cp.MOSEK)
+        assert sth.prob.solver_stats.num_iters >= 0
+        assert sth.prob.solver_stats.extra_stats["mio_intpnt_iter"] == 0
+        assert sth.prob.solver_stats.extra_stats["mio_simplex_iter"] == 0
+
     def test_eps_keyword(self) -> None:
         """Test that the eps keyword is accepted"""
         x = cp.Variable()
@@ -753,7 +760,7 @@ class TestMosek(unittest.TestCase):
                        eps=1e-1,
                        mosek_params={'MSK_DPAR_INTPNT_CO_TOL_DFEAS': 1e-6})
 
-        
+
         # If parameters are defined explicitly, eps will not overwrite -> no exception
         from cvxpy.reductions.solvers.conic_solvers.mosek_conif import MOSEK
         all_params = MOSEK.tolerance_params()

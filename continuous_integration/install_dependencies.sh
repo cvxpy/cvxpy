@@ -29,7 +29,6 @@ elif [[ "$PYTHON_VERSION" == "3.11" ]]; then
     conda install scipy=1.9.3 numpy=1.23.4 mkl pip pytest lapack ecos scs cvxopt proxsuite "setuptools>65.5.1"
 fi
 
-
 if [[ "$PYTHON_VERSION" == "3.11" ]]; then
   python -m pip install gurobipy clarabel osqp piqp
   if [[ "$RUNNER_OS" == "Windows" ]]; then
@@ -38,9 +37,9 @@ if [[ "$PYTHON_VERSION" == "3.11" ]]; then
   else
     python -m pip install sdpa-python
   fi
-# Python 3.8 on Windows will uninstall NumPy 1.16 and install NumPy 1.24 without the exception.
-elif [[ "$RUNNER_OS" == "Windows" ]] && [[ "$PYTHON_VERSION" == "3.8" ]]; then
-  python -m pip install gurobipy clarabel osqp piqp
+# Python 3.8 on Windows and Linux will uninstall NumPy 1.16 and install NumPy 1.24 without the exception.
+elif [[ "$PYTHON_VERSION" == "3.8" ]] && [[ "$RUNNER_OS" != "macos-11" ]]; then
+  python -m pip install gurobipy clarabel piqp
 else
   python -m pip install "ortools>=9.3,<9.5" coptpy cplex diffcp gurobipy xpress clarabel piqp
   if [[ "$RUNNER_OS" == "Windows" ]]; then

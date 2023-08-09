@@ -50,12 +50,21 @@ class PowCone3D(Constraint):
                 raise ValueError('All arguments must be affine and real.')
         alpha = Expression.cast_to_const(alpha)
         if alpha.is_scalar():
-            alpha = cvxtypes.promote()(alpha, self.x.shape)
+            if self.x.shape:
+                alpha = cvxtypes.promote()(alpha, self.x.shape)
+            else:
+                # when `alpha` is a naked float, it has to be cast into a
+                # 1-D array to be compatible with downstream (vectorized)
+                # processing
+                alpha = cvxtypes.promote()(alpha, (1,))
         self.alpha = alpha
         if np.any(self.alpha.value <= 0) or np.any(self.alpha.value >= 1):
             msg = "Argument alpha must have entries in the open interval (0, 1)."
             raise ValueError(msg)
-        arg_shapes = [self.x.shape, self.y.shape, self.z.shape, self.alpha.shape]
+        if alpha.shape == (1,):
+            arg_shapes = [self.x.shape, self.y.shape, self.z.shape, ()]
+        else:
+            arg_shapes = [self.x.shape, self.y.shape, self.z.shape, self.alpha.shape]
         if any(arg_shapes[0] != s for s in arg_shapes[1:]):
             msg = ("All arguments must have the same shapes. Provided arguments have"
                    "shapes %s" % str(arg_shapes))

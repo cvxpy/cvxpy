@@ -247,7 +247,7 @@ class PythonCanonBackend(CanonBackend):
 
     def reshape_tensors(self, tensor: TensorRepresentation, total_rows: int) -> sp.csc_matrix:
         """
-           Reshape into 2D scipy coo-matrix in column-major order and transpose.
+        Reshape into 2D scipy csc-matrix in column-major order and transpose.
         """
         rows = (tensor.col.astype(np.int64) * np.int64(total_rows) + tensor.row.astype(np.int64))
         cols = tensor.parameter_offset.astype(np.int64)
