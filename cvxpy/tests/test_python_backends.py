@@ -1081,16 +1081,15 @@ class TestParametrizedBackends:
 
         sum_entries_lin_op = linOpHelper()
         out_view = param_backend.sum_entries(sum_entries_lin_op, param_var_view)
+        out_repr = out_view.get_tensor_representation(0)
 
-        slice_idx_zero = out_view.tensor[1][2][0]
-        slice_idx_zero = NumpyCanonBackend._to_dense(slice_idx_zero)
+        slice_idx_zero = out_repr.get_param_slice(0, (1,2)).toarray()
         expected_idx_zero = np.array(
             [[1., 0.]]
         )
         assert np.all(slice_idx_zero == expected_idx_zero)
 
-        slice_idx_one = out_view.tensor[1][2][1]
-        slice_idx_one = NumpyCanonBackend._to_dense(slice_idx_one)
+        slice_idx_one = out_repr.get_param_slice(1, (1,2)).toarray()
         expected_idx_one = np.array(
             [[0., 1.]]
         )
@@ -1152,10 +1151,10 @@ class TestParametrizedBackends:
 
         mul_lin_op = linOpHelper(data=lhs_parameter, args=[variable_lin_op])
         out_view = param_backend.mul(mul_lin_op, view)
+        out_repr = out_view.get_tensor_representation(0)
 
         # indices are: variable 1, parameter 2, 0 index of the list
-        slice_idx_zero = out_view.tensor[1][2][0]
-        slice_idx_zero = NumpyCanonBackend._to_dense(slice_idx_zero)
+        slice_idx_zero = out_repr.get_param_slice(0, (4,4)).toarray()
         expected_idx_zero = np.array(
             [[1., 0., 0., 0.],
              [0., 0., 0., 0.],
@@ -1165,8 +1164,7 @@ class TestParametrizedBackends:
         assert np.all(slice_idx_zero == expected_idx_zero)
 
         # indices are: variable 1, parameter 2, 1 index of the list
-        slice_idx_one = out_view.tensor[1][2][1]
-        slice_idx_one = NumpyCanonBackend._to_dense(slice_idx_one)
+        slice_idx_one = out_repr.get_param_slice(1, (4,4)).toarray()
         expected_idx_one = np.array(
             [[0., 0., 0., 0.],
              [1., 0., 0., 0.],
@@ -1176,8 +1174,7 @@ class TestParametrizedBackends:
         assert np.all(slice_idx_one == expected_idx_one)
 
         # indices are: variable 1, parameter 2, 2 index of the list
-        slice_idx_two = out_view.tensor[1][2][2]
-        slice_idx_two = NumpyCanonBackend._to_dense(slice_idx_two)
+        slice_idx_two = out_repr.get_param_slice(2, (4,4)).toarray()
         expected_idx_two = np.array(
             [[0., 1., 0., 0.],
              [0., 0., 0., 0.],
@@ -1187,8 +1184,7 @@ class TestParametrizedBackends:
         assert np.all(slice_idx_two == expected_idx_two)
 
         # indices are: variable 1, parameter 2, 3 index of the list
-        slice_idx_three = out_view.tensor[1][2][3]
-        slice_idx_three = NumpyCanonBackend._to_dense(slice_idx_three)
+        slice_idx_three = out_repr.get_param_slice(3, (4,4)).toarray()
         expected_idx_three = np.array(
             [[0., 0., 0., 0.],
              [0., 1., 0., 0.],
@@ -1235,10 +1231,10 @@ class TestParametrizedBackends:
 
         rmul_lin_op = linOpHelper(data=rhs_parameter, args=[variable_lin_op])
         out_view = param_backend.rmul(rmul_lin_op, view)
+        out_repr = out_view.get_tensor_representation(0)
 
         # indices are: variable 1, parameter 2, 0 index of the list
-        slice_idx_zero = out_view.tensor[1][2][0]
-        slice_idx_zero = NumpyCanonBackend._to_dense(slice_idx_zero)
+        slice_idx_zero = out_repr.get_param_slice(0, (2,4)).toarray()
         expected_idx_zero = np.array(
             [[1, 0, 0, 0],
              [0, 1, 0, 0]]
@@ -1246,8 +1242,7 @@ class TestParametrizedBackends:
         assert np.all(slice_idx_zero == expected_idx_zero)
 
         # indices are: variable 1, parameter 2, 1 index of the list
-        slice_idx_one = out_view.tensor[1][2][1]
-        slice_idx_one = NumpyCanonBackend._to_dense(slice_idx_one)
+        slice_idx_one = out_repr.get_param_slice(1, (2,4)).toarray()
         expected_idx_one = np.array(
             [[0, 0, 1, 0],
              [0, 0, 0, 1]]
