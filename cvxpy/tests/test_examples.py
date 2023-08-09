@@ -590,7 +590,7 @@ class TestExamples(BaseTest):
         """
         import numpy as np
         np.random.seed(1)
-        rows, cols = 100, 100
+        rows, cols = 20, 20
         # Load the images.
         # Convert to arrays.
         Uorig = np.random.randint(0, 255, size=(rows, cols))

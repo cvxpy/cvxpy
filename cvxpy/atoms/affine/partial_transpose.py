@@ -56,7 +56,7 @@ def _term(expr, i: int, j: int, dims: Tuple[int], axis: Optional[int] = 0):
     return a @ expr @ a
 
 
-def partial_transpose(expr, dims: Tuple[int], axis: Optional[int] = 0):
+def partial_transpose(expr, dims: Tuple[int, ...], axis: Optional[int] = 0):
     """
     Assumes :math:`\\texttt{expr} = X_1 \\otimes ... \\otimes X_n` is a 2D Kronecker
     product composed of :math:`n = \\texttt{len(dims)}` implicit subsystems.

@@ -1695,3 +1695,5 @@ Currently, the following canonicalization backends are supported:
 *  CPP (default): The original C++ implementation, also referred to as CVXCORE.
 *  | SCIPY: A pure Python implementation based on the SciPy sparse module.
    | Generally fast for problems with few CVXPY ``Parameter`` s, especially when the problem is already vectorized.
+*  NUMPY: Reference implementation in pure NumPy. Fast for some small or dense problems.
+
