@@ -333,7 +333,7 @@ class PythonCanonBackend(CanonBackend):
         Given (A, b) in view, return (-A, -b).
         """
 
-        def func(x, _p=1):
+        def func(x):
             return -x
 
         view.apply_all(func)
@@ -1093,7 +1093,7 @@ class NumpyCanonBackend(PythonCanonBackend):
 class StackedSlicesBackend(PythonCanonBackend):
 
     @staticmethod
-    def reshape_constant_data(constant_data: Any, lin_op_shape: tuple[int, int]) \
+    def reshape_constant_data(constant_data: dict[int, sp.csc_matrix], lin_op_shape: tuple[int, int]) \
             -> dict[int, sp.csc_matrix]:
         return {k: StackedSlicesBackend._reshape_single_constant_tensor(v, lin_op_shape)
                 for k, v in constant_data.items()}
@@ -1119,6 +1119,13 @@ class StackedSlicesBackend(PythonCanonBackend):
         return StackedSlicesTensorView.get_empty_view(self.param_size_plus_one, self.id_to_col,
                                                       self.param_to_size, self.param_to_col,
                                                       self.var_length)
+
+    def neg(self, lin: LinOp, view: StackedSlicesTensorView) -> StackedSlicesTensorView:
+        def func(x, _p):
+            return -x
+
+        view.apply_all(func)
+        return view
 
     def mul(self, lin: LinOp, view: StackedSlicesTensorView) -> StackedSlicesTensorView:
         """
@@ -1561,10 +1568,6 @@ class DictTensorView(TensorView, ABC):
             if isinstance(a[key], dict) and isinstance(b[key], dict):
                 res[key] = self.add_dicts(a[key], b[key])
             elif isinstance(a[key], self.tensor_type()) and isinstance(b[key], self.tensor_type()):
-                if self.tensor_type() == sp.spmatrix:
-                    assert a[key].shape[0] == b[key].shape[0]
-                else:
-                    assert len(a[key]) == len(b[key])
                 res[key] = self.add_tensors(a[key], b[key])
             else:
                 raise ValueError(f'Values must either be dicts or {self.tensor_type()}.')
@@ -1632,7 +1635,7 @@ class ScipyTensorView(DictTensorView):
 
     @staticmethod
     def add_tensors(a: list[sp.csr_matrix], b: list[sp.csr_matrix]) -> list[sp.csr_matrix]:
-        return [a + b for a, b in zip(a, b)]
+        return [a + b for a, b in zip(a, b, strict=True)]
 
     def tensor_type(self):
         return list
@@ -1707,7 +1710,7 @@ class StackedSlicesTensorView(DictTensorView):
     @property
     def rows(self) -> int:
         if self.tensor is not None:
-            for var_id, param_dict in self.tensor.items():
+            for param_dict in self.tensor.values():
                 for param_id, param_mat in param_dict.items():
                     return param_mat.shape[0] // self.param_to_size[param_id]
         else:
