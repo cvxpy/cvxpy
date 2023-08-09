@@ -1,19 +1,18 @@
-
 <!DOCTYPE html>
 
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Atomic Functions &#8212; CVXPY 1.1.23 documentation</title>
-    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
-    <link rel="stylesheet" type="text/css" href="../../_static/cvxpy_alabaster.css" />
-    <script src="../../_static/jquery.js"></script>
-    <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
-    <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
-    <script src="../../_static/doctools.js"></script>
-    <script src="../../_static/sphinx_highlight.js"></script>
+    <title>Atomic Functions &#8212; CVXPY 1.1.24 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="../../_static/cvxpy_alabaster.css?v=6c13f287" />
+    <script src="../../_static/jquery.js?v=5d32c60e"></script>
+    <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+    <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js?v=0cbc93b5"></script>
+    <script src="../../_static/doctools.js?v=888ff710"></script>
+    <script src="../../_static/sphinx_highlight.js?v=4825356b"></script>
     <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
@@ -682,7 +681,7 @@ and returns a vector or matrix.</p>
 <td><p><a class="reference internal" href="../../_images/affine.svg"><img alt="affine" height="15px" src="../../_images/affine.svg" width="15px" /></a> affine</p></td>
 <td><p><a class="reference internal" href="../../_images/increasing.svg"><img alt="incr" height="15px" src="../../_images/increasing.svg" width="15px" /></a> incr.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="../../api_reference/cvxpy.atoms.affine.html#conv"><span class="std std-ref">conv(c, x)</span></a></p>
+<tr class="row-odd"><td><p><span class="xref std std-ref">convolve(c, x)</span></p>
 <p><span class="math notranslate nohighlight">\(c\in\mathbf{R}^m\)</span></p>
 </td>
 <td><p><span class="math notranslate nohighlight">\(c*x\)</span></p></td>
@@ -767,8 +766,8 @@ and returns a vector or matrix.</p>
 <p>The input to <code class="docutils literal notranslate"><span class="pre">bmat</span></code> is a list of lists of CVXPY expressions.
 It constructs a block matrix.
 The elements of each inner list are stacked horizontally and then the resulting block matrices are stacked vertically.</p>
-<p>The output <span class="math notranslate nohighlight">\(y\)</span> of <code class="docutils literal notranslate"><span class="pre">conv(c,</span> <span class="pre">x)</span></code> has size <span class="math notranslate nohighlight">\(n+m-1\)</span> and is defined as
-<span class="math notranslate nohighlight">\(y[k]=\sum_{j=0}^k c[j]x[k-j]\)</span>.</p>
+<p>The output <span class="math notranslate nohighlight">\(y = \mathbf{convolve}(c, x)\)</span> has size <span class="math notranslate nohighlight">\(n+m-1\)</span> and is defined as
+<span class="math notranslate nohighlight">\(y_k =\sum_{j=0}^{k} c[j]x[k-j]\)</span>.</p>
 <p>The output <span class="math notranslate nohighlight">\(x'\)</span> of <code class="docutils literal notranslate"><span class="pre">vec(X)</span></code> is the matrix <span class="math notranslate nohighlight">\(X\)</span> flattened in column-major order into a vector.
 Formally, <span class="math notranslate nohighlight">\(x'_i = X_{i \bmod{m}, \left \lfloor{i/m}\right \rfloor }\)</span>.</p>
 <p>The output <span class="math notranslate nohighlight">\(X'\)</span> of <code class="docutils literal notranslate"><span class="pre">reshape(X,</span> <span class="pre">(m',</span> <span class="pre">n'))</span></code> is the matrix <span class="math notranslate nohighlight">\(X\)</span> cast into an <span class="math notranslate nohighlight">\(m' \times n'\)</span> matrix.
@@ -888,7 +887,7 @@ Formally, <span class="math notranslate nohighlight">\(X'_{ij} = \mathbf{vec}(X)
       &copy;The CVXPY authors.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 6.1.3</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 7.1.2</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.13</a>
       
       |
@@ -896,10 +895,6 @@ Formally, <span class="math notranslate nohighlight">\(X'_{ij} = \mathbf{vec}(X)
           rel="nofollow">Page source</a>
     </div>
 
-    
-    <a href="https://github.com/cvxpy/cvxpy" class="github">
-        <img style="position: absolute; top: 0; right: 0; border: 0;" src="https://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png" alt="Fork me on GitHub"  class="github"/>
-    </a>
     
 
     
