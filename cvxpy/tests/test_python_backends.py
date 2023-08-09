@@ -1290,10 +1290,10 @@ class TestParametrizedBackends:
 
         mul_elementwise_lin_op = linOpHelper(data=lhs_parameter)
         out_view = param_backend.mul_elem(mul_elementwise_lin_op, view)
+        out_repr = out_view.get_tensor_representation(0)
 
         # indices are: variable 1, parameter 2, 0 index of the list
-        slice_idx_zero = out_view.tensor[1][2][0]
-        slice_idx_zero = NumpyCanonBackend._to_dense(slice_idx_zero)
+        slice_idx_zero = out_repr.get_param_slice(0, (2,2)).toarray()
         expected_idx_zero = np.array(
             [[1, 0],
              [0, 0]]
@@ -1301,8 +1301,7 @@ class TestParametrizedBackends:
         assert np.all(slice_idx_zero == expected_idx_zero)
 
         # indices are: variable 1, parameter 2, 1 index of the list
-        slice_idx_one = out_view.tensor[1][2][1]
-        slice_idx_one = NumpyCanonBackend._to_dense(slice_idx_one)
+        slice_idx_one = out_repr.get_param_slice(1, (2,2)).toarray()
         expected_idx_one = np.array(
             [[0, 0],
              [0, 1]]

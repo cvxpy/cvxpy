@@ -71,6 +71,13 @@ class TensorRepresentation:
             np.all(self.col == other.col) and \
             np.all(self.parameter_offset == other.parameter_offset)
 
+    def get_param_slice(self, param_offset: int, shape: tuple[int, int]) -> sp.csc_matrix:
+        """
+        Returns a single slice of the tensor for a given parameter offset.
+        """
+        mask = self.parameter_offset == param_offset
+        return sp.csc_matrix((self.data[mask], (self.row[mask], self.col[mask])), shape)
+
 
 class CanonBackend(ABC):
     def __init__(self, id_to_col: dict[int, int], param_to_size: dict[int, int],
@@ -1093,7 +1100,8 @@ class NumpyCanonBackend(PythonCanonBackend):
 class StackedSlicesBackend(PythonCanonBackend):
 
     @staticmethod
-    def reshape_constant_data(constant_data: dict[int, sp.csc_matrix], lin_op_shape: tuple[int, int]) \
+    def reshape_constant_data(constant_data: dict[int, sp.csc_matrix], 
+                              lin_op_shape: tuple[int, int]) \
             -> dict[int, sp.csc_matrix]:
         return {k: StackedSlicesBackend._reshape_single_constant_tensor(v, lin_op_shape)
                 for k, v in constant_data.items()}
