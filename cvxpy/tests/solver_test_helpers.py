@@ -78,7 +78,7 @@ class SolverTestHelper:
                                 cp.constraints.PowCone3D,
                                 cp.constraints.PSD,
                                 cp.constraints.SOC)):
-                dual_violation = con.dual_violation()
+                dual_violation = con.dual_residual
                 if isinstance(con, cp.constraints.SOC):
                     dual_violation = np.linalg.norm(dual_violation)
                 self.tester.assertLessEqual(dual_violation, 10**(-places))

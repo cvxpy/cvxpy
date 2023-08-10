@@ -170,5 +170,6 @@ class SOC(Constraint):
     def dual_cone(t, X, axis=0):
         return SOC(t, X, axis)
 
-    def dual_violation(self):
+    @property
+    def dual_residual(self):
         return SOC.dual_cone(*self.dual_variables, axis=self.axis).residual

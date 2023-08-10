@@ -143,7 +143,8 @@ class PowCone3D(Constraint):
     def dual_cone(x, y, z, alpha: float):
         return PowCone3D(x/alpha, y/(1-alpha), z, alpha)
 
-    def dual_violation(self):
+    @property
+    def dual_residual(self):
         return PowCone3D.dual_cone(*self.dual_variables,
                                    self.alpha).residual
 

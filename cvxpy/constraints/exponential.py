@@ -150,7 +150,8 @@ class ExpCone(Constraint):
     def dual_cone(x, y, z):
         return ExpCone(-y, -x, np.exp(1)*z)
 
-    def dual_violation(self):
+    @property
+    def dual_residual(self):
         return ExpCone.dual_cone(*self.dual_variables).residual
 
 class RelEntrConeQuad(Constraint):

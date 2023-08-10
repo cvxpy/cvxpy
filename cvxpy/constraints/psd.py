@@ -88,5 +88,6 @@ class PSD(Constraint):
     def dual_cone(X):
         return X >> 0
 
-    def dual_violation(self):
+    @property
+    def dual_residual(self):
         return PSD.dual_cone(*self.dual_variables).residual
