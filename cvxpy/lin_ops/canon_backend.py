@@ -1143,11 +1143,17 @@ class StackedSlicesBackend(PythonCanonBackend):
         lhs, is_param_free_lhs = self.get_constant_data(lin.data, view, column=False)
         if is_param_free_lhs:
             reps = view.rows // lhs.shape[-1]
-            stacked_lhs = (sp.kron(sp.eye(reps, format="csc"), lhs))
+            if reps > 1:
+                stacked_lhs = (sp.kron(sp.eye(reps, format="csc"), lhs))
+            else:
+                stacked_lhs = lhs
 
             def func(x, p):
                 # TODO: add test for case p > 1 and reps > 1
-                return (sp.kron(sp.eye(p, format="csc"), stacked_lhs)).tocsc()@ x
+                if p == 1:
+                    return (stacked_lhs @ x).tocsc()
+                else:
+                    return ((sp.kron(sp.eye(p, format="csc"), stacked_lhs)) @ x).tocsc()
         else:
             reps = view.rows // next(iter(lhs.values())).shape[-1]
             if reps > 1:
