@@ -30,7 +30,7 @@ elif [[ "$PYTHON_VERSION" == "3.11" ]]; then
 fi
 
 if [[ "$PYTHON_VERSION" == "3.11" ]]; then
-  python -m pip install gurobipy clarabel osqp piqp
+  python -m pip install "ortools>=9.4,<9.7" gurobipy clarabel osqp piqp
   if [[ "$RUNNER_OS" == "Windows" ]]; then
     # SDPA with OpenBLAS backend does not pass LP5 on Windows
     python -m pip install sdpa-multiprecision
@@ -41,7 +41,7 @@ if [[ "$PYTHON_VERSION" == "3.11" ]]; then
 elif [[ "$PYTHON_VERSION" == "3.8" ]] && [[ "$RUNNER_OS" != "macos-11" ]]; then
   python -m pip install gurobipy clarabel piqp
 else
-  python -m pip install "ortools>=9.4,<9.7" coptpy cplex diffcp gurobipy xpress clarabel piqp
+  python -m pip install coptpy cplex diffcp gurobipy xpress clarabel piqp
   if [[ "$RUNNER_OS" == "Windows" ]]; then
     python -m pip install sdpa-multiprecision
   else
