@@ -1286,7 +1286,7 @@ class StackedSlicesBackend(PythonCanonBackend):
             stacked_lhs = sp.kron(lhs.T, sp.eye(reps, format="csr"))
 
             def func(x, _p):
-                return stacked_lhs @ x
+                return (stacked_lhs @ x).tocsc()
         else:
             p = view.rows // next(iter(lhs.values())).shape[-1]
             lhs_shape = next(iter(lhs.values())).shape
@@ -1312,7 +1312,7 @@ class StackedSlicesBackend(PythonCanonBackend):
                                                    for sub_ind in sub_inds], format='csc')
 
             def parametrized_mul(x):
-                return {k: v @ x for k, v in stacked_lhs.items()}
+                return {k: (v @ x).tocsc() for k, v in stacked_lhs.items()}
 
             func = parametrized_mul
         return view.accumulate_over_variables(func, is_param_free_function=is_param_free_lhs)
@@ -1762,11 +1762,14 @@ class StackedSlicesTensorView(DictTensorView):
 
     def select_rows(self, rows: np.ndarray) -> None:
         def func(x, p):
-            if p == 1:
-                return x[rows, :]
-            else:
-                m = x.shape[0] // p
-                return x[np.tile(rows, p) + np.repeat(np.arange(p) * m, len(rows)), :]
+            try:
+                if p == 1:
+                    return x[rows, :]
+                else:
+                    m = x.shape[0] // p
+                    return x[np.tile(rows, p) + np.repeat(np.arange(p) * m, len(rows)), :]
+            except Exception:
+                pass
 
         self.apply_all(func)
 
