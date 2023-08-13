@@ -1145,19 +1145,13 @@ class StackedSlicesBackend(PythonCanonBackend):
             reps = view.rows // lhs.shape[-1]
             stacked_lhs = (sp.kron(sp.eye(reps, format="csc"), lhs))
 
-            def func(x, _p):
-                return stacked_lhs.tocsc() @ x
+            def func(x, p):
+                # TODO: add test for case p > 1 and reps > 1
+                return (sp.kron(sp.eye(p, format="csc"), stacked_lhs)).tocsc()@ x
         else:
             reps = view.rows // next(iter(lhs.values())).shape[-1]
-            eye = sp.eye(reps, format="csc")
-
             if reps > 1:
-                stacked_lhs = {}
-                for param_id, param_mat in lhs.items():
-                    inds = np.arange(param_mat.shape[0])
-                    sub_inds = np.split(inds, self.param_to_size[param_id])
-                    stacked_lhs[param_id] = sp.vstack([sp.kron(eye, param_mat[s], format='csc')
-                                                       for s in sub_inds], format='csc')
+                stacked_lhs = self._repeat_parametrized_lhs(lhs, reps)
             else:
                 stacked_lhs = lhs
 
@@ -1166,6 +1160,26 @@ class StackedSlicesBackend(PythonCanonBackend):
 
             func = parametrized_mul
         return view.accumulate_over_variables(func, is_param_free_function=is_param_free_lhs)
+
+    def _repeat_parametrized_lhs(self, lhs: dict[int, list[sp.csc_matrix]], reps: int) \
+            -> sp.csc_matrix:
+        res = dict()
+        for param_id, v in lhs.items():
+            p = self.param_to_size[param_id]
+            old_shape = (v.shape[0] // p, v.shape[1])
+            coo = v.tocoo()
+            data, rows, cols = coo.data, coo.row, coo.col
+            new_rows = np.repeat(rows, reps) + np.tile(np.arange(reps) * old_shape[0], len(rows)) \
+                + np.repeat(rows // old_shape[0],
+                            reps) * (old_shape[0] * (reps - 1))
+            new_cols = np.repeat(
+                cols, reps) + np.tile(np.arange(reps) * old_shape[1], len(cols))
+            new_data = np.repeat(data, reps)
+            new_shape = (v.shape[0] * reps, v.shape[1] * reps)
+            res[param_id] = sp.csc_matrix(
+                (new_data, (new_rows, new_cols)), shape=new_shape)
+        return res
+
 
     @staticmethod
     def promote(lin: LinOp, view: StackedSlicesTensorView) -> StackedSlicesTensorView:
@@ -1244,11 +1258,14 @@ class StackedSlicesBackend(PythonCanonBackend):
 
     @staticmethod
     def get_stack_func(total_rows: int, offset: int) -> Callable:
-        def stack_func(tensor, _p):
+        def stack_func(tensor, p):
             coo_repr = tensor.tocoo()
-            new_rows = (coo_repr.row + offset).astype(int)
+            m = coo_repr.shape[0] // p
+            slices = coo_repr.row // m
+            new_rows = (coo_repr.row + (slices + 1) * offset)
+            new_rows = new_rows + slices * (total_rows - m - offset).astype(int)
             return sp.csr_matrix((coo_repr.data, (new_rows, coo_repr.col)),
-                                 shape=(int(total_rows), tensor.shape[1]))
+                                 shape=(int(total_rows * p), tensor.shape[1]))
 
         return stack_func
 
@@ -1739,7 +1756,7 @@ class StackedSlicesTensorView(DictTensorView):
                     coo_repr.data,
                     (coo_repr.row % m) + row_offset,
                     coo_repr.col + self.id_to_col[variable_id],
-                    coo_repr.row // m,
+                    coo_repr.row // m + np.ones(coo_repr.nnz) * self.param_to_col[parameter_id],
                 ))
         return TensorRepresentation.combine(tensor_representations)
 
@@ -1749,7 +1766,7 @@ class StackedSlicesTensorView(DictTensorView):
                 return x[rows, :]
             else:
                 m = x.shape[0] // p
-                return x[np.tile(rows, p) + np.repeat(np.arange(p) * m, p), :]
+                return x[np.tile(rows, p) + np.repeat(np.arange(p) * m, len(rows)), :]
 
         self.apply_all(func)
 
