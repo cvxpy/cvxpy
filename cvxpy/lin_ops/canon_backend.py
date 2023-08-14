@@ -1100,7 +1100,7 @@ class NumpyCanonBackend(PythonCanonBackend):
 class StackedSlicesBackend(PythonCanonBackend):
 
     @staticmethod
-    def reshape_constant_data(constant_data: dict[int, sp.csc_matrix], 
+    def reshape_constant_data(constant_data: dict[int, sp.csc_matrix],
                               lin_op_shape: tuple[int, int]) \
             -> dict[int, sp.csc_matrix]:
         return {k: StackedSlicesBackend._reshape_single_constant_tensor(v, lin_op_shape)
@@ -1176,8 +1176,8 @@ class StackedSlicesBackend(PythonCanonBackend):
             coo = v.tocoo()
             data, rows, cols = coo.data, coo.row, coo.col
             new_rows = np.repeat(rows, reps) + np.tile(np.arange(reps) * old_shape[0], len(rows)) \
-                + np.repeat(rows // old_shape[0],
-                            reps) * (old_shape[0] * (reps - 1))
+                       + np.repeat(rows // old_shape[0],
+                                   reps) * (old_shape[0] * (reps - 1))
             new_cols = np.repeat(
                 cols, reps) + np.tile(np.arange(reps) * old_shape[1], len(cols))
             new_data = np.repeat(data, reps)
@@ -1185,7 +1185,6 @@ class StackedSlicesBackend(PythonCanonBackend):
             res[param_id] = sp.csc_matrix(
                 (new_data, (new_rows, new_cols)), shape=new_shape)
         return res
-
 
     @staticmethod
     def promote(lin: LinOp, view: StackedSlicesTensorView) -> StackedSlicesTensorView:
@@ -1289,13 +1288,16 @@ class StackedSlicesBackend(PythonCanonBackend):
             if len(lin.data.shape) == 1 and arg_cols != lhs.shape[0]:
                 lhs = lhs.T
             reps = view.rows // lhs.shape[0]
-            stacked_lhs = sp.kron(lhs.T, sp.eye(reps, format="csr"))
+            if reps > 1:
+                stacked_lhs = sp.kron(lhs.T, sp.eye(reps, format="csc"))
+            else:
+                stacked_lhs = lhs.T.tocsc()
 
             def func(x, _p):
                 return (stacked_lhs @ x).tocsc()
         else:
-            p = view.rows // next(iter(lhs.values())).shape[-1]
             lhs_shape = next(iter(lhs.values())).shape
+            p = view.rows // lhs_shape[-1]
             lhs_shape = (lhs_shape[0] // p, lhs_shape[1])
             if len(lin.data.shape) == 1 and arg_cols != lhs_shape[0]:
                 # Example: (n,n) @ (n,), we need to interpret the rhs as a column vector,
@@ -1314,8 +1316,11 @@ class StackedSlicesBackend(PythonCanonBackend):
             for param_id, param_mat in lhs.items():
                 inds = np.arange(param_mat.shape[0])
                 sub_inds = np.split(inds, self.param_to_size[param_id])
-                stacked_lhs[param_id] = sp.vstack([sp.kron(param_mat[sub_ind].T, eye, format='csc')
-                                                   for sub_ind in sub_inds], format='csc')
+                if reps > 1:
+                    stacked_lhs[param_id] = sp.vstack([sp.kron(param_mat[s].T, eye, format='csc')
+                                                       for s in sub_inds], format='csc')
+                else:
+                    stacked_lhs[param_id] = sp.vstack([param_mat[s.T] for s in sub_inds], format='csc')
 
             def parametrized_mul(x):
                 return {k: (v @ x).tocsc() for k, v in stacked_lhs.items()}
