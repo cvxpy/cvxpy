@@ -1307,7 +1307,7 @@ class StackedSlicesBackend(PythonCanonBackend):
                 for param_id, param_mat in lhs.items():
                     inds = np.arange(param_mat.shape[1])
                     sub_inds = np.split(inds, self.param_to_size[param_id])
-                    lhs[param_id] = sp.vstack([param_mat[sub_ind].T for sub_ind in sub_inds],
+                    lhs[param_id] = sp.vstack([param_mat[s].T for s in sub_inds],
                                               format='csc')
 
             reps = view.rows // lhs_shape[0]
@@ -1320,7 +1320,8 @@ class StackedSlicesBackend(PythonCanonBackend):
                     stacked_lhs[param_id] = sp.vstack([sp.kron(param_mat[s].T, eye, format='csc')
                                                        for s in sub_inds], format='csc')
                 else:
-                    stacked_lhs[param_id] = sp.vstack([param_mat[s.T] for s in sub_inds], format='csc')
+                    stacked_lhs[param_id] = sp.vstack([param_mat[s].T
+                                                       for s in sub_inds], format='csc')
 
             def parametrized_mul(x):
                 return {k: (v @ x).tocsc() for k, v in stacked_lhs.items()}
