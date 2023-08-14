@@ -1286,12 +1286,14 @@ class StackedSlicesBackend(PythonCanonBackend):
 
         if is_param_free_lhs:
             if len(lin.data.shape) == 1 and arg_cols != lhs.shape[0]:
-                lhs = lhs.T
-            reps = view.rows // lhs.shape[0]
-            if reps > 1:
-                stacked_lhs = sp.kron(lhs.T, sp.eye(reps, format="csc"))
+                reps = view.rows // lhs.shape[1]
+                stacked_lhs = sp.kron(lhs, sp.eye(reps, format="csc"))
             else:
-                stacked_lhs = lhs.T.tocsc()
+                reps = view.rows // lhs.shape[0]
+                if reps > 1:
+                    stacked_lhs = sp.kron(lhs.T, sp.eye(reps, format="csc"))
+                else:
+                    stacked_lhs = lhs.T.tocsc()
 
             def func(x, _p):
                 return (stacked_lhs @ x).tocsc()
@@ -1299,29 +1301,29 @@ class StackedSlicesBackend(PythonCanonBackend):
             lhs_shape = next(iter(lhs.values())).shape
             p = view.rows // lhs_shape[-1]
             lhs_shape = (lhs_shape[0] // p, lhs_shape[1])
+            stacked_lhs = {}
             if len(lin.data.shape) == 1 and arg_cols != lhs_shape[0]:
                 # Example: (n,n) @ (n,), we need to interpret the rhs as a column vector,
                 # but it is a row vector by default, so we need to transpose
-                lhs_shape = next(iter(lhs.values())).shape
-                lhs_shape = (lhs_shape[0], lhs_shape[1] // p)
+                reps = view.rows // lhs_shape[1]
+                eye = sp.eye(reps, format="csc")
                 for param_id, param_mat in lhs.items():
                     inds = np.arange(param_mat.shape[1])
                     sub_inds = np.split(inds, self.param_to_size[param_id])
-                    lhs[param_id] = sp.vstack([param_mat[s].T for s in sub_inds],
-                                              format='csc')
-
-            reps = view.rows // lhs_shape[0]
-            eye = sp.eye(reps, format="csc")
-            stacked_lhs = {}
-            for param_id, param_mat in lhs.items():
-                inds = np.arange(param_mat.shape[0])
-                sub_inds = np.split(inds, self.param_to_size[param_id])
-                if reps > 1:
-                    stacked_lhs[param_id] = sp.vstack([sp.kron(param_mat[s].T, eye, format='csc')
+                    stacked_lhs[param_id] = sp.vstack([sp.kron(param_mat[s], eye, format='csc')
                                                        for s in sub_inds], format='csc')
-                else:
-                    stacked_lhs[param_id] = sp.vstack([param_mat[s].T
-                                                       for s in sub_inds], format='csc')
+            else:
+                reps = view.rows // lhs_shape[0]
+                eye = sp.eye(reps, format="csc")
+                for param_id, param_mat in lhs.items():
+                    inds = np.arange(param_mat.shape[0])
+                    sub_inds = np.split(inds, self.param_to_size[param_id])
+                    if reps > 1:
+                        stacked_lhs[param_id] = sp.vstack([sp.kron(param_mat[s].T, eye)
+                                                           for s in sub_inds], format='csc')
+                    else:
+                        stacked_lhs[param_id] = sp.vstack([param_mat[s].T
+                                                           for s in sub_inds], format='csc')
 
             def parametrized_mul(x):
                 return {k: (v @ x).tocsc() for k, v in stacked_lhs.items()}
