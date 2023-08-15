@@ -1089,6 +1089,9 @@ class NumpyCanonBackend(PythonCanonBackend):
 
     @staticmethod
     def _to_dense(x):
+        """
+        This is an internal function that converts a sparse input to a dense numpy array.
+        """
         try:
             res = x.toarray()
         except AttributeError:
@@ -1138,7 +1141,9 @@ class StackedSlicesBackend(PythonCanonBackend):
     def mul(self, lin: LinOp, view: StackedSlicesTensorView) -> StackedSlicesTensorView:
         """
         Multiply view with constant data from the left.
-
+        This method computes the traditional multiplication of constant/parametrized data with
+        the tensorview. The simple case is when the lhs is constant. In which case we calculate
+        the number of repetitions, stacking copies vertically along the diagonal using kron.
         """
         lhs, is_param_free_lhs = self.get_constant_data(lin.data, view, column=False)
         if is_param_free_lhs:
@@ -1169,6 +1174,9 @@ class StackedSlicesBackend(PythonCanonBackend):
 
     def _repeat_parametrized_lhs(self, lhs: dict[int, list[sp.csc_matrix]], reps: int) \
             -> sp.csc_matrix:
+        """
+
+        """
         res = dict()
         for param_id, v in lhs.items():
             p = self.param_to_size[param_id]

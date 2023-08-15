@@ -1100,9 +1100,9 @@ class TestParametrizedBackends:
 
     def test_parametrized_mul(self, param_backend):
         """
-        Continuing non-parametrized example when the lhs is a parameter, instead of multiplying with
-        known values, the matrix is split up into four slices, each representing an element of the
-        parameter, i.e. instead of
+        Continuing from the non-parametrized example when the lhs is a parameter,
+        instead of multiplying with known values, the matrix is split up into four slices,
+        each representing an element of the parameter, i.e. instead of
          x11 x21 x12 x22
         [[1   2   0   0],
          [3   4   0   0],
@@ -1198,9 +1198,9 @@ class TestParametrizedBackends:
 
     def test_parametrized_rmul(self, param_backend):
         """
-        Continuing the non-parametrized example when the rhs is a parameter, instead of multiplying
-        with known values, the matrix is split up into two slices, each representing an element of
-        the parameter, i.e. instead of
+        Continuing from the non-parametrized example when the rhs is a parameter,
+        instead of multiplying with known values, the matrix is split up into two slices,
+        each representing an element of the parameter, i.e. instead of
          x11 x21 x12 x22
         [[1   0   2   0],
          [0   1   0   2]]
