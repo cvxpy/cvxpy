@@ -1756,6 +1756,11 @@ class StackedSlicesTensorView(DictTensorView):
 
     @property
     def rows(self) -> int:
+        """
+        Number of rows of the TensorView.
+        This is calculated by dividing the totals rows of the tensor by the
+        number of parameter slices.
+        """
         if self.tensor is not None:
             for param_dict in self.tensor.values():
                 for param_id, param_mat in param_dict.items():
@@ -1766,6 +1771,11 @@ class StackedSlicesTensorView(DictTensorView):
     def get_tensor_representation(self, row_offset: int) -> TensorRepresentation:
         """
         Returns a TensorRepresentation of [A b] tensor.
+        This function iterates through all the tensor data and constructs their
+        respective representation in COO format. The row data is adjusted according
+        to the position of each element within a parameter slice. The parameter_offset
+        finds which slice the original row indices belong to before applying the column
+        offset.
         """
         assert self.tensor is not None
         tensor_representations = []
@@ -1783,7 +1793,16 @@ class StackedSlicesTensorView(DictTensorView):
         return TensorRepresentation.combine(tensor_representations)
 
     def select_rows(self, rows: np.ndarray) -> None:
+        """
+        Select 'rows' from tensor. If there are multiple parameters 'p',
+        we must select the same 'rows' from each parameter slice. This is done by
+        introducing an offset of size 'm' for every parameter.
+        """
         def func(x, p):
+            """
+            Note: the error handling is here in case the input 'rows' becomes
+            incompatible with the tensor's shape.
+            """
             try:
                 if p == 1:
                     return x[rows, :]
@@ -1796,12 +1815,21 @@ class StackedSlicesTensorView(DictTensorView):
         self.apply_all(func)
 
     def apply_all(self, func: Callable) -> None:
+        """
+        Apply 'func' across all variables and parameter slices.
+        For the stacked-slices backend, we must pass an additional parameter 'p'
+        which is the number of parameter slices.
+        """
         self.tensor = {var_id: {k: func(v, self.param_to_size[k])
                                 for k, v in parameter_repr.items()}
                        for var_id, parameter_repr in self.tensor.items()}
 
     def create_new_tensor_view(self, variable_ids: set[int], tensor: Any,
                                is_parameter_free: bool) -> StackedSlicesTensorView:
+        """
+        Create new StackedSlicesTensorView with same shape information as self,
+        but new tensor data.
+        """
         return StackedSlicesTensorView(variable_ids, tensor, is_parameter_free,
                                        self.param_size_plus_one, self.id_to_col,
                                        self.param_to_size, self.param_to_col,
@@ -1819,6 +1847,9 @@ class StackedSlicesTensorView(DictTensorView):
 
     @staticmethod
     def add_tensors(a: sp.spmatrix, b: sp.spmatrix) -> sp.spmatrix:
+        """
+        Apply element-wise summation on two sparse matrices.
+        """
         return a + b
 
     @staticmethod
