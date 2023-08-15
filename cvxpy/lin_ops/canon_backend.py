@@ -512,8 +512,8 @@ class PythonCanonBackend(CanonBackend):
     @abstractmethod
     def get_variable_tensor(self, shape: tuple[int, ...], variable_id: int) -> Any:
         """
-        Returns tensor of a variable node, i.e., eye(n) across axes 0 and 1, where n i the number of
-        entries of the variable.
+        Returns tensor of a variable node, i.e., eye(n) across axes 0 and 1, where n is
+        the number of entries of the variable.
         """
         pass  # noqa
 
@@ -527,8 +527,8 @@ class PythonCanonBackend(CanonBackend):
     @abstractmethod
     def get_param_tensor(self, shape: tuple[int, ...], parameter_id: int) -> Any:
         """
-        Returns tensor of a parameter node, i.e., eye(n) across axes 0 and 2, where n i the number
-        of entries of the parameter.
+        Returns tensor of a parameter node, i.e., eye(n) across axes 0 and 2, where n is
+        the number of entries of the parameter.
         """
         pass  # noqa
 
@@ -1316,6 +1316,10 @@ class ScipyTensorView(DictTensorView):
 
     def create_new_tensor_view(self, variable_ids: set[int], tensor: dict,
                                is_parameter_free: bool) -> ScipyTensorView:
+        """
+        Create new ScipyTensorView with same shape information as self,
+        but new tensor data.
+        """
         return ScipyTensorView(variable_ids, tensor, is_parameter_free, self.param_size_plus_one,
                                self.id_to_col, self.param_to_size, self.param_to_col,
                                self.var_length)
@@ -1334,6 +1338,9 @@ class ScipyTensorView(DictTensorView):
         return [a + b for a, b in zip(a, b)]
 
     def tensor_type(self):
+        """
+        The tensor is represented as a list of 2d sparse matrices.
+        """
         return list
 
 
@@ -1341,6 +1348,10 @@ class NumpyTensorView(DictTensorView):
 
     @property
     def rows(self) -> int:
+        """
+        Number of rows of the TensorView.
+        This is the second dimension of the 3d tensor.
+        """
         if self.tensor is not None:
             return next(iter(next(iter(self.tensor.values())).values())).shape[1]
         else:
@@ -1348,7 +1359,10 @@ class NumpyTensorView(DictTensorView):
 
     def get_tensor_representation(self, row_offset: int) -> TensorRepresentation:
         """
-        CVXPY currently only supports usage of sparse matrices after the canonicalization.
+        Returns a TensorRepresentation of [A b] tensor.
+        This function iterates through all the tensor data and constructs their
+        respective representation in COO format.
+        Note: CVXPY currently only supports usage of sparse matrices after the canonicalization.
         Therefore, we must return tensor representations in a (data, (row,col)) format.
         This could be changed once dense matrices are accepted.
         """
@@ -1367,19 +1381,32 @@ class NumpyTensorView(DictTensorView):
         return TensorRepresentation.combine(tensor_representations)
 
     def select_rows(self, rows: np.ndarray) -> None:
-
+        """
+        Select 'rows' from tensor.
+        The rows of the 3d tensor are in axis=1, this function selects a subset
+        of the original tensor.
+        """
         def func(x):
             return x[:, rows, :]
 
         self.apply_all(func)
 
     def apply_all(self, func: Callable) -> None:
+        """
+        Apply 'func' across all variables and parameter slices.
+        Given that the tensor processing functions in the NumpyBackend are all
+        processing 3d arrays, we can directly pass the tensor 'v' to 'func'.
+        """
         self.tensor = {var_id: {k: func(v)
                                 for k, v in parameter_repr.items()}
                        for var_id, parameter_repr in self.tensor.items()}
 
     def create_new_tensor_view(self, variable_ids: set[int], tensor: Any,
                                is_parameter_free: bool) -> NumpyTensorView:
+        """
+        Create new NumpyTensorView with same shape information as self,
+        but new tensor data.
+        """
         return NumpyTensorView(variable_ids, tensor, is_parameter_free, self.param_size_plus_one,
                                self.id_to_col, self.param_to_size, self.param_to_col,
                                self.var_length)
@@ -1390,12 +1417,20 @@ class NumpyTensorView(DictTensorView):
             -> dict[int, np.ndarray]:
         """
         Apply 'func' to each slice of the parameter representation.
+        Given that the tensor processing functions in the NumpyBackend are all
+        processing 3d arrays, we can directly pass the tensor 'v' to 'func'.
         """
         return {k: func(v) for k, v in parameter_representation.items()}
 
     @staticmethod
     def add_tensors(a: np.ndarray, b: np.ndarray) -> np.ndarray:
+        """
+        Apply element-wise addition on two dense numpy arrays
+        """
         return a + b
 
     def tensor_type(self):
+        """
+        The tensor is represented as a 3-dimensional dense numpy array
+        """
         return np.ndarray
