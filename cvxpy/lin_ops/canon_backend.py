@@ -534,6 +534,11 @@ class PythonCanonBackend(CanonBackend):
 
 
 class RustCanonBackend(CanonBackend):
+    """
+    The rust canonicalization backend is currently WIP and cannot be used.
+    For additional information, a proof of concept pull request can be found here:
+    https://github.com/phschiele/cvxpy/pull/31
+    """
     def build_matrix(self, lin_ops: list[LinOp]) -> sp.csc_matrix:
         import cvxpy_rust
         self.id_to_col[-1] = self.var_length
@@ -550,13 +555,20 @@ class RustCanonBackend(CanonBackend):
 class ScipyCanonBackend(PythonCanonBackend):
     @staticmethod
     def reshape_constant_data(constant_data: dict[int, sp.csr_matrix],
-                              lin_op_shape: tuple[int, int]) \
-            -> dict[int, sp.csr_matrix]:
+                              lin_op_shape: tuple[int, int]) -> dict[int, sp.csr_matrix]:
+        """
+        Reshape constant data from column format to the required shape for operations that
+        do not require column format. This function unpacks the constant data dict and reshapes
+        every slice of the tensor 'v' according to the lin_op_shape argument.
+        """
         return {k: [v_i.reshape(lin_op_shape, order="F").tocsr()
                     for v_i in v] for k, v in constant_data.items()}
 
     def concatenate_tensors(self, tensors: list[TensorRepresentation]) \
             -> TensorRepresentation:
+        """
+        Takes list of tensors and stacks them along axis 0 (rows).
+        """
         return TensorRepresentation.combine(tensors)
 
     def reshape_tensors(self, tensor: TensorRepresentation, total_rows: int) -> sp.csc_matrix:
@@ -567,11 +579,18 @@ class ScipyCanonBackend(PythonCanonBackend):
         return sp.csc_matrix((tensor.data, (rows, cols)), shape=shape)
 
     def get_empty_view(self) -> ScipyTensorView:
+        """
+        Returns an empty view of the corresponding ScipyTensorView subclass, coupling the
+        ScipyCanonBackend subclass with the ScipyTensorView subclass.
+        """
         return ScipyTensorView.get_empty_view(self.param_size_plus_one, self.id_to_col,
                                               self.param_to_size, self.param_to_col,
                                               self.var_length)
 
     def mul(self, lin: LinOp, view: ScipyTensorView) -> ScipyTensorView:
+        """
+
+        """
         lhs, is_param_free_lhs = self.get_constant_data(lin.data, view, column=False)
 
         if isinstance(lhs, dict):
@@ -596,6 +615,9 @@ class ScipyCanonBackend(PythonCanonBackend):
 
     @staticmethod
     def promote(lin: LinOp, view: ScipyTensorView) -> ScipyTensorView:
+        """
+        Promote view by repeating along axis 0 (rows).
+        """
         num_entries = int(np.prod(lin.shape))
 
         def func(x):
@@ -621,6 +643,9 @@ class ScipyCanonBackend(PythonCanonBackend):
 
     @staticmethod
     def sum_entries(_lin: LinOp, view: ScipyTensorView) -> ScipyTensorView:
+        """
+        Given (A, b) in view, return (sum(A,axis=0), sum(b, axis=0)).
+        """
         def func(x):
             return sp.csr_matrix(x.sum(axis=0))
 
@@ -839,13 +864,20 @@ class ScipyCanonBackend(PythonCanonBackend):
 class NumpyCanonBackend(PythonCanonBackend):
     @staticmethod
     def reshape_constant_data(constant_data: dict[int, np.ndarray],
-                              lin_op_shape: tuple[int, int]) \
-            -> dict[int, np.ndarray]:
+                              lin_op_shape: tuple[int, int]) -> dict[int, np.ndarray]:
+        """
+        Reshape constant data from column format to the required shape for operations that
+        do not require column format. This function unpacks the constant data dict and reshapes
+        dimensions 1 and 2 of the tensor 'v' according to the lin_op_shape argument.
+        """
         return {k: v.reshape((v.shape[0], *lin_op_shape), order="F")
                 for k, v in constant_data.items()}
 
     def concatenate_tensors(self, tensors: list[TensorRepresentation]) \
             -> TensorRepresentation:
+        """
+        Takes list of tensors and stacks them along axis 0 (rows).
+        """
         return TensorRepresentation.combine(tensors)
 
     def reshape_tensors(self, tensor: NumpyTensorView, total_rows: int) -> sp.csc_matrix:
@@ -855,6 +887,10 @@ class NumpyCanonBackend(PythonCanonBackend):
         return sp.csc_matrix((tensor.data, (rows, cols)), shape=shape)
 
     def get_empty_view(self) -> NumpyTensorView:
+        """
+        Returns an empty view of the corresponding NumpyTensorView subclass,
+        coupling the NumpyCanonBackend subclass with the NumpyTensorView subclass.
+        """
         return NumpyTensorView.get_empty_view(self.param_size_plus_one, self.id_to_col,
                                               self.param_to_size, self.param_to_col,
                                               self.var_length)
@@ -882,6 +918,9 @@ class NumpyCanonBackend(PythonCanonBackend):
 
     @staticmethod
     def promote(lin: LinOp, view: NumpyTensorView) -> NumpyTensorView:
+        """
+        Promote view by repeating along axis 1 (rows).
+        """
         num_entries = int(np.prod(lin.shape))
 
         def func(x):
@@ -905,6 +944,10 @@ class NumpyCanonBackend(PythonCanonBackend):
 
     @staticmethod
     def sum_entries(_lin: LinOp, view: NumpyTensorView) -> NumpyTensorView:
+        """
+        Given (A, b) in view, return the sum of the representation
+        on the row axis, ie: (sum(A,axis=1), sum(b, axis=1)).
+        """
         def func(x):
             return x.sum(axis=1, keepdims=True)
 
@@ -1089,6 +1132,11 @@ class NumpyCanonBackend(PythonCanonBackend):
 
     def get_param_tensor(self, shape: tuple[int, ...], parameter_id: int) \
             -> dict[int, dict[int, np.ndarray]]:
+        """
+        Returns tensor of a parameter node, i.e., eye(n) across axes 0 and 2, where n is
+        the number of entries of the parameter.
+        This function expands the dimension of an identity matrix of size n on the column axis.
+        """
         assert parameter_id != Constant.ID
         n = int(np.prod(shape))
         return {Constant.ID.value: {parameter_id: np.expand_dims(np.eye(n), axis=-1)}}
