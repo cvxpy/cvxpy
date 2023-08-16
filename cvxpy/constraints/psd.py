@@ -14,12 +14,12 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from cvxpy.constraints.constraint import Constraint
+from cvxpy.constraints.cones import Cone
 from cvxpy.expressions import cvxtypes
 from cvxpy.utilities import scopes
 
 
-class PSD(Constraint):
+class PSD(Cone):
     """A constraint of the form :math:`\\frac{1}{2}(X + X^T) \\succcurlyeq_{S_n^+} 0`
 
     Applying a ``PSD`` constraint to a two-dimensional expression ``X``
@@ -84,10 +84,5 @@ class PSD(Constraint):
         min_eig = cvxtypes.lambda_min()(self.args[0] + self.args[0].T)/2
         return cvxtypes.neg()(min_eig).value
 
-    @staticmethod
-    def dual_cone(X):
-        return X >> 0
-
-    @property
-    def dual_residual(self):
-        return PSD.dual_cone(*self.dual_variables).residual
+    def dual_cone(self):
+        return self.dual_variables[0] >> 0

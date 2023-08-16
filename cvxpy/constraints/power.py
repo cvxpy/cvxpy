@@ -18,12 +18,12 @@ from typing import List, Tuple
 
 import numpy as np
 
-from cvxpy.constraints.constraint import Constraint
+from cvxpy.constraints.cones import Cone
 from cvxpy.expressions import cvxtypes
 from cvxpy.utilities import scopes
 
 
-class PowCone3D(Constraint):
+class PowCone3D(Cone):
     """
     An object representing a collection of 3D power cone constraints
 
@@ -139,17 +139,11 @@ class PowCone3D(Constraint):
         # TODO: figure out why the reshaping had to be done differently,
         #   relative to ExpCone constraints.
 
-    @staticmethod
-    def dual_cone(x, y, z, alpha: float):
-        return PowCone3D(x/alpha, y/(1-alpha), z, alpha)
-
-    @property
-    def dual_residual(self):
-        return PowCone3D.dual_cone(*self.dual_variables,
-                                   self.alpha).residual
+    def dual_cone(self):
+        return PowCone3D(self.x/self.alpha, self.y/(1-self.alpha), self.z, self.alpha)
 
 
-class PowConeND(Constraint):
+class PowConeND(Cone):
     """
     Represents a collection of N-dimensional power cone constraints
     that is *mathematically* equivalent to the following code

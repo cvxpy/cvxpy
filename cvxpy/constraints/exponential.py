@@ -20,14 +20,14 @@ from typing import List, Tuple, TypeVar
 
 import numpy as np
 
-from cvxpy.constraints.constraint import Constraint
+from cvxpy.constraints.cones import Cone
 from cvxpy.expressions import cvxtypes
 from cvxpy.utilities import scopes
 
 Expression = TypeVar('Expression')
 
 
-class ExpCone(Constraint):
+class ExpCone(Cone):
     """A reformulated exponential cone constraint.
 
     Operates elementwise on :math:`x, y, z`.
@@ -146,15 +146,12 @@ class ExpCone(Constraint):
         self.dual_variables[1].save_value(dv1)
         self.dual_variables[2].save_value(dv2)
 
-    @staticmethod
-    def dual_cone(x, y, z):
-        return ExpCone(-y, -x, np.exp(1)*z)
+    def dual_cone(self):
+        return ExpCone(-self.dual_variables[1], -self.dual_variables[0],
+                       np.exp(1)*self.dual_variables[2])
 
-    @property
-    def dual_residual(self):
-        return ExpCone.dual_cone(*self.dual_variables).residual
 
-class RelEntrConeQuad(Constraint):
+class RelEntrConeQuad(Cone):
     """An approximate construction of the scalar relative entropy cone
 
     Definition:
@@ -272,7 +269,7 @@ class RelEntrConeQuad(Constraint):
         pass
 
 
-class OpRelEntrConeQuad(Constraint):
+class OpRelEntrConeQuad(Cone):
     """An approximate construction of the operator relative entropy cone
 
     Definition:

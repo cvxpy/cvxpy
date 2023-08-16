@@ -18,12 +18,12 @@ from typing import List, Optional
 
 import numpy as np
 
-from cvxpy.constraints.constraint import Constraint
+from cvxpy.constraints.cones import Cone
 from cvxpy.expressions import cvxtypes
 from cvxpy.utilities import scopes
 
 
-class SOC(Constraint):
+class SOC(Cone):
     """A second-order cone constraint for each row/column.
 
     Assumes ``t`` is a vector the same length as ``X``'s columns (rows) for
@@ -166,10 +166,5 @@ class SOC(Constraint):
         self.dual_variables[0].save_value(t)
         self.dual_variables[1].save_value(X)
 
-    @staticmethod
-    def dual_cone(t, X, axis=0):
-        return SOC(t, X, axis)
-
-    @property
-    def dual_residual(self):
-        return SOC.dual_cone(*self.dual_variables, axis=self.axis).residual
+    def dual_cone(self):
+        return SOC(self.dual_variables[0], self.dual_variables[1], self.axis)
