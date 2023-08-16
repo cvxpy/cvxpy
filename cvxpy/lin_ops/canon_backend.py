@@ -375,7 +375,7 @@ class PythonCanonBackend(CanonBackend):
     @abstractmethod
     def diag_vec(lin: LinOp, view: TensorView) -> TensorView:
         """
-        Diagonal vector to matrix. Given (A, b) in with n rows in view, add rows of zeros such that
+        Diagonal vector to matrix. Given (A, b) with n rows in view, add rows of zeros such that
         the original rows now correspond to the diagonal entries of the n x n expression
         """
         pass  # noqa
@@ -629,6 +629,12 @@ class ScipyCanonBackend(PythonCanonBackend):
         return view
 
     def mul_elem(self, lin: LinOp, view: ScipyTensorView) -> ScipyTensorView:
+        """
+        Given (A, b) in view and constant data d, return (A*d, b*d).
+        d is broadcasted along dimension 1 (columns).
+        When the lhs is parametrized, a dict unpacking must occur to apply
+        element-wise multiplication to every parameter slice of 'v'.
+        """
         lhs, is_param_free_lhs = self.get_constant_data(lin.data, view, column=True)
         if isinstance(lhs, dict):
             def parametrized_mul(x):
@@ -653,6 +659,13 @@ class ScipyCanonBackend(PythonCanonBackend):
         return view
 
     def div(self, lin: LinOp, view: ScipyTensorView) -> ScipyTensorView:
+        """
+        Given (A, b) in view and constant data d, return (A*(1/d), b*(1/d)).
+        d is broadcasted along dimension 1 (columns).
+        This function is semantically identical to mul_elem but the view x
+        is multiplied with the reciprocal of the lin_op data.
+        Note: div currently doesn't support parameters
+        """
         lhs, is_param_free_lhs = self.get_constant_data(lin.data, view, column=True)
         assert is_param_free_lhs
         assert len(lhs) == 1
@@ -668,6 +681,10 @@ class ScipyCanonBackend(PythonCanonBackend):
 
     @staticmethod
     def diag_vec(lin: LinOp, view: ScipyTensorView) -> ScipyTensorView:
+        """
+        Diagonal vector to matrix. Given (A, b) with n rows in view, add rows of zeros such that
+        the original rows now correspond to the diagonal entries of the n x n expression
+        """
         assert lin.shape[0] == lin.shape[1]
         k = lin.data
         rows = lin.shape[0]
@@ -690,6 +707,10 @@ class ScipyCanonBackend(PythonCanonBackend):
 
     @staticmethod
     def get_stack_func(total_rows: int, offset: int) -> Callable:
+        """
+        Returns a function that takes in a tensor, modifies the shape of the tensor by extending
+        it to total_rows, and then shifts the entries by offset along axis 0.
+        """
         def stack_func(tensor):
             coo_repr = tensor.tocoo()
             new_rows = (coo_repr.row + offset).astype(int)
@@ -930,6 +951,12 @@ class NumpyCanonBackend(PythonCanonBackend):
         return view
 
     def mul_elem(self, lin: LinOp, view: NumpyTensorView) -> NumpyTensorView:
+        """
+        Given (A, b) in view and constant data d, return (A*d, b*d).
+        d is broadcasted along dimension 1 (columns).
+        When the lhs is parametrized, a dict unpacking must occur to apply
+        element-wise multiplication to the tensor 'v'.
+        """
         lhs, is_param_free_lhs = self.get_constant_data(lin.data, view, column=True)
         if isinstance(lhs, dict):
             def parametrized_mul(x):
@@ -955,6 +982,13 @@ class NumpyCanonBackend(PythonCanonBackend):
         return view
 
     def div(self, lin: LinOp, view: NumpyTensorView) -> NumpyTensorView:
+        """
+        Given (A, b) in view and constant data d, return (A*(1/d), b*(1/d)).
+        d is broadcasted along dimension 1 (columns).
+        This function is semantically identical to mul_elem but the view x
+        is multiplied with the reciprocal of the lin_op data.
+        Note: div currently doesn't support parameters
+        """
         lhs, is_param_free_lhs = self.get_constant_data(lin.data, view, column=True)
         assert is_param_free_lhs
         assert lhs.shape[0] == 1
@@ -968,6 +1002,11 @@ class NumpyCanonBackend(PythonCanonBackend):
 
     @staticmethod
     def diag_vec(lin: LinOp, view: NumpyTensorView) -> NumpyTensorView:
+        """
+        Diagonal vector to matrix. Given (A, b) with n rows in view, add rows of zeros such that
+        the original rows now correspond to the diagonal entries of the n x n expression.
+
+        """
         assert lin.shape[0] == lin.shape[1]
         k = lin.data
         rows = lin.shape[0]
@@ -993,6 +1032,10 @@ class NumpyCanonBackend(PythonCanonBackend):
 
     @staticmethod
     def get_stack_func(total_rows: int, offset: int) -> Callable:
+        """
+        Returns a function that takes in a tensor, modifies the shape of the tensor by extending
+        it to total_rows, and then shifts the entries by offset along axis 1.
+        """
         def stack_func(tensor):
             rows = tensor.shape[1]
             new_rows = (np.arange(rows) + offset).astype(int)
@@ -1063,6 +1106,9 @@ class NumpyCanonBackend(PythonCanonBackend):
         return view.accumulate_over_variables(func, is_param_free_function=is_param_free_lhs)
 
     def kron_r(self, lin: LinOp, view: NumpyTensorView) -> NumpyTensorView:
+        """
+        Returns view corresponding to Kronecker product of data 'a' with view x, i.e., kron(a,x).
+        """
         lhs, is_param_free_lhs = self.get_constant_data(lin.data, view, column=True)
         assert is_param_free_lhs
         assert len(lhs) == 1
@@ -1091,6 +1137,10 @@ class NumpyCanonBackend(PythonCanonBackend):
         return view.accumulate_over_variables(func, is_param_free_function=is_param_free_lhs)
 
     def kron_l(self, lin: LinOp, view: NumpyTensorView) -> NumpyTensorView:
+        """
+        Returns view corresponding to Kronecker product of view x with data 'a', i.e., kron(x,a).
+
+        """
         rhs, is_param_free_rhs = self.get_constant_data(lin.data, view, column=True)
         assert is_param_free_rhs
         assert len(rhs) == 1
@@ -1120,12 +1170,20 @@ class NumpyCanonBackend(PythonCanonBackend):
 
     def get_variable_tensor(self, shape: tuple[int, ...], variable_id: int) \
             -> dict[int, dict[int, np.ndarray]]:
+        """
+        Returns tensor of a variable node, i.e., eye(n) across axes 0 and 1, where n is
+        the number of entries of the variable.
+        This function expands the dimension of an identity matrix of size n on the parameter axis.
+        """
         assert variable_id != Constant.ID
         n = int(np.prod(shape))
         return {variable_id: {Constant.ID.value: np.expand_dims(np.eye(n), axis=0)}}
 
-    def get_data_tensor(self, data: np.ndarray) -> \
-            dict[int, dict[int, np.ndarray]]:
+    def get_data_tensor(self, data: np.ndarray) -> dict[int, dict[int, np.ndarray]]:
+        """
+        Returns tensor of constant node as a column vector.
+        This function expands the dimension of the column vector on the parameter axis.
+        """
         data = self._to_dense(data)
         tensor = data.reshape((-1, 1), order="F")
         return {Constant.ID.value: {Constant.ID.value: np.expand_dims(tensor, axis=0)}}
