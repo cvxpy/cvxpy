@@ -139,8 +139,21 @@ class PowCone3D(Cone):
         # TODO: figure out why the reshaping had to be done differently,
         #   relative to ExpCone constraints.
 
-    def dual_cone(self):
-        return PowCone3D(self.x/self.alpha, self.y/(1-self.alpha), self.z, self.alpha)
+    def dual_cone(self, *args):
+        """Implements the dual cone of PowCone3D See Pg 85
+        of the MOSEK modelling cookbook for more information"""
+        if args is None:
+            PowCone3D(self.dual_variables[0]/self.alpha, self.dual_variables[1]/(1-self.alpha),
+                      self.dual_variables[2], self.alpha)
+        else:
+            # some assertions for verifying `args`
+            f = lambda x: x.shape
+            args_shapes = list(map(f, args))
+            instance_args_shapes = list(map(f, self.args))
+            assert len(args) == len(self.args)
+            assert args_shapes == instance_args_shapes
+            return PowCone3D(args[0]/self.alpha, args[1]/(1-self.alpha),
+                             args[2], self.alpha)
 
 
 class PowConeND(Cone):

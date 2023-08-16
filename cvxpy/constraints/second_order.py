@@ -166,5 +166,16 @@ class SOC(Cone):
         self.dual_variables[0].save_value(t)
         self.dual_variables[1].save_value(X)
 
-    def dual_cone(self):
-        return SOC(self.dual_variables[0], self.dual_variables[1], self.axis)
+    def dual_cone(self, *args):
+        """Implements the dual cone of the second-order cone
+        See Pg 85 of the MOSEK modelling cookbook for more information"""
+        if args is None:
+            return SOC(self.dual_variables[0], self.dual_variables[1], self.axis)
+        else:
+            # some assertions for verifying `args`
+            f = lambda x: x.shape
+            args_shapes = list(map(f, args))
+            instance_args_shapes = list(map(f, self.args))
+            assert len(args) == len(self.args)
+            assert args_shapes == instance_args_shapes
+            return SOC(args[0], args[1], self.axis)

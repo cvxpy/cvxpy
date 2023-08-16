@@ -146,9 +146,21 @@ class ExpCone(Cone):
         self.dual_variables[1].save_value(dv1)
         self.dual_variables[2].save_value(dv2)
 
-    def dual_cone(self):
-        return ExpCone(-self.dual_variables[1], -self.dual_variables[0],
-                       np.exp(1)*self.dual_variables[2])
+    def dual_cone(self, *args):
+        """Implements the dual cone of the exponential cone
+        See Pg 85 of the MOSEK modelling cookbook for more information"""
+        if args is ():
+            return ExpCone(-self.dual_variables[1], -self.dual_variables[0],
+                           np.exp(1) * self.dual_variables[2])
+        else:
+            # some assertions for verifying `args`
+            f = lambda x: x.shape
+            args_shapes = list(map(f, args))
+            instance_args_shapes = list(map(f, self.args))
+            assert len(args) == len(self.args)
+            assert args_shapes == instance_args_shapes
+            return ExpCone(-args[1], -args[0],
+                           np.exp(1)*args[2])
 
 
 class RelEntrConeQuad(Cone):

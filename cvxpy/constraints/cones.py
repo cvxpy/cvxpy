@@ -18,6 +18,7 @@ import abc
 import typing
 
 from cvxpy.constraints.constraint import Constraint
+import cvxpy as cp
 
 
 class Cone(Constraint):
@@ -46,9 +47,27 @@ class Cone(Constraint):
     def __init__(self, args, constr_id=None) -> None:
         super(Cone, self).__init__(args, constr_id)
 
-    def dual_cone(self) -> typing.Type['Cone']:
+    def dual_cone(self, args: list['cp.Expression'] | None = None) -> typing.Type['Cone']:
+    # def dual_cone(self, args) -> typing.Type['Cone']:
+        """Method for modelling problems with the dual cone of `Cone`
+
+        If the user simply calls the method without any arguments, then
+        the dual cone to the current instance of `Cone` will be returned, else,
+        the user can also choose to freely model with the dual cone of `Cone`
+        by constraining aribitrary expressions in the same.
+
+        Will typically not be used stand-alone, and would be
+        indirectly accessed via `dual_residual` which will return
+        the violation of CVXPY's computed dual variables w.r.t. `Cone`'s
+        dual-cone"""
         raise NotImplementedError
 
     @property
     def dual_residual(self) -> float:
-        return self.dual_cone().residual
+        """Computes the residual (see Constraint.violation for a
+        more formal definition) for the dual cone of the current instance
+        of `Cone` w.r.t. the recovered dual variables
+
+        Primarily intended to be used for full-fledged KKT checks
+        """
+        return self.dual_cone(*self.dual_variables).residual
