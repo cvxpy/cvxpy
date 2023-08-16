@@ -1095,6 +1095,9 @@ class NumpyCanonBackend(PythonCanonBackend):
 
     @staticmethod
     def _to_dense(x):
+        """
+        This is an internal function that converts a sparse input to a dense numpy array.
+        """
         try:
             res = x.toarray()
         except AttributeError:
@@ -1215,8 +1218,7 @@ class DictTensorView(TensorView, ABC):
     as the tensor operations.
     """
 
-    def accumulate_over_variables(self, func: Callable, is_param_free_function: bool) \
-            -> TensorView:
+    def accumulate_over_variables(self, func: Callable, is_param_free_function: bool) -> TensorView:
         """
         Apply 'func' to A and b.
         If 'func' is a parameter free function, then we can apply it to all parameter slices
@@ -1232,6 +1234,11 @@ class DictTensorView(TensorView, ABC):
         return self
 
     def combine_potentially_none(self, a: dict | None, b: dict | None) -> dict | None:
+        """
+        Adds the tensor a to b if they are both not none.
+        If a (b) is not None but b (a) is None, returns a (b).
+        Returns None if both a and b are None.
+        """
         if a is None and b is None:
             return None
         elif a is not None and b is None:
@@ -1244,11 +1251,17 @@ class DictTensorView(TensorView, ABC):
     @staticmethod
     @abstractmethod
     def add_tensors(a: Any, b: Any) -> Any:
+        """
+        Returns element-wise addition of two tensors of the same type.
+        """
         pass  # noqa
 
     @staticmethod
     @abstractmethod
     def tensor_type():
+        """
+        Returns the type of the underlying tensor
+        """
         pass  # noqa
 
     def add_dicts(self, a: dict, b: dict) -> dict:
@@ -1278,6 +1291,10 @@ class ScipyTensorView(DictTensorView):
 
     @property
     def rows(self) -> int:
+        """
+        Number of rows of the TensorView.
+        This is the first dimension of the first slice in the tensor list.
+        """
         if self.tensor is not None:
             return next(iter(next(iter(self.tensor.values())).values()))[0].shape[0]
         else:
@@ -1286,6 +1303,11 @@ class ScipyTensorView(DictTensorView):
     def get_tensor_representation(self, row_offset: int) -> TensorRepresentation:
         """
         Returns a TensorRepresentation of [A b] tensor.
+        This function iterates through all the tensor slices in the list
+        and constructs their respective representation in COO format. Each parameter
+        slice has its own tensor representation which will be combined with the others
+        in the return statement. The row_offset is applied to the row indices and
+        the variable_offset to the col indices.
         """
         assert self.tensor is not None
         tensor_representations = []
@@ -1303,13 +1325,21 @@ class ScipyTensorView(DictTensorView):
         return TensorRepresentation.combine(tensor_representations)
 
     def select_rows(self, rows: np.ndarray) -> None:
-
+        """
+        Select 'rows' from tensor.
+        This function returns a subset of the rows from the original tensor.
+        """
         def func(x):
             return x[rows, :]
 
         self.apply_all(func)
 
     def apply_all(self, func: Callable) -> None:
+        """
+        Apply 'func' across all variables and parameter slices.
+        The tensor functions in the ScipyBackend manipulate 2d sparse matrices.
+        Therefore, this function iterates 'v' and applies 'func' to every slice.
+        """
         self.tensor = {var_id: {k: [func(v_i).tocsr() for v_i in v]
                                 for k, v in parameter_repr.items()}
                        for var_id, parameter_repr in self.tensor.items()}
@@ -1335,6 +1365,10 @@ class ScipyTensorView(DictTensorView):
 
     @staticmethod
     def add_tensors(a: list[sp.csr_matrix], b: list[sp.csr_matrix]) -> list[sp.csr_matrix]:
+        """
+        Apply element-wise addition on every 2d sparse matrix in two lists
+        and return as a new list.
+        """
         return [a + b for a, b in zip(a, b)]
 
     def tensor_type(self):
@@ -1360,8 +1394,11 @@ class NumpyTensorView(DictTensorView):
     def get_tensor_representation(self, row_offset: int) -> TensorRepresentation:
         """
         Returns a TensorRepresentation of [A b] tensor.
-        This function iterates through all the tensor data and constructs their
-        respective representation in COO format.
+        This function iterates through all the tensor data and constructs the
+        respective representation in COO format. To obtain the data, the tensor must be
+        flattened as it is not in a sparse format. The row and column indices are obtained
+        with numpy tiling/repeating along with their respective offsets.
+
         Note: CVXPY currently only supports usage of sparse matrices after the canonicalization.
         Therefore, we must return tensor representations in a (data, (row,col)) format.
         This could be changed once dense matrices are accepted.
@@ -1394,8 +1431,8 @@ class NumpyTensorView(DictTensorView):
     def apply_all(self, func: Callable) -> None:
         """
         Apply 'func' across all variables and parameter slices.
-        Given that the tensor processing functions in the NumpyBackend are all
-        processing 3d arrays, we can directly pass the tensor 'v' to 'func'.
+        The tensor functions in the NumpyBackend manipulate 3d arrays.
+        Therefore, this function applies 'func' directly to the tensor 'v'.
         """
         self.tensor = {var_id: {k: func(v)
                                 for k, v in parameter_repr.items()}
@@ -1416,9 +1453,7 @@ class NumpyTensorView(DictTensorView):
                             parameter_representation: dict[int, np.ndarray]) \
             -> dict[int, np.ndarray]:
         """
-        Apply 'func' to each slice of the parameter representation.
-        Given that the tensor processing functions in the NumpyBackend are all
-        processing 3d arrays, we can directly pass the tensor 'v' to 'func'.
+        Apply 'func' to the entire tensor of the parameter representation.
         """
         return {k: func(v) for k, v in parameter_representation.items()}
 
