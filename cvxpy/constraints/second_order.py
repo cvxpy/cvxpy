@@ -173,7 +173,8 @@ class SOC(Cone):
             return SOC(self.dual_variables[0], self.dual_variables[1], self.axis)
         else:
             # some assertions for verifying `args`
-            f = lambda x: x.shape
+            def f(x):
+                return x.shape
             args_shapes = list(map(f, args))
             instance_args_shapes = list(map(f, self.args))
             assert len(args) == len(self.args)

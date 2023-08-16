@@ -17,8 +17,8 @@ limitations under the License.
 import abc
 import typing
 
-from cvxpy.constraints.constraint import Constraint
 import cvxpy as cp
+from cvxpy.constraints.constraint import Constraint
 
 
 class Cone(Constraint):
