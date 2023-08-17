@@ -509,6 +509,19 @@ class PythonCanonBackend(CanonBackend):
         """
         pass  # noqa
 
+    @staticmethod
+    def _get_kron_row_indices(lhs_shape, rhs_shape):
+        rhs_ones = np.ones(rhs_shape)
+        lhs_ones = np.ones(lhs_shape)
+
+        rhs_arange = np.arange(np.prod(rhs_shape)).reshape(rhs_shape, order="F")
+        lhs_arange = np.arange(np.prod(lhs_shape)).reshape(lhs_shape, order="F")
+
+        row_indices = (np.kron(lhs_ones, rhs_arange) +
+                       np.kron(lhs_arange, rhs_ones * np.prod(rhs_shape))) \
+            .flatten(order="F").astype(int)
+        return row_indices
+
     @abstractmethod
     def get_variable_tensor(self, shape: tuple[int, ...], variable_id: int) -> Any:
         """
@@ -589,7 +602,9 @@ class ScipyCanonBackend(PythonCanonBackend):
 
     def mul(self, lin: LinOp, view: ScipyTensorView) -> ScipyTensorView:
         """
-
+        Multiply view with constant data from the left.
+        This method computes the traditional multiplication of constant/parametrized data with
+        the tensorview. The simple case is when the lhs is constant.
         """
         lhs, is_param_free_lhs = self.get_constant_data(lin.data, view, column=False)
 
@@ -663,7 +678,7 @@ class ScipyCanonBackend(PythonCanonBackend):
         Given (A, b) in view and constant data d, return (A*(1/d), b*(1/d)).
         d is broadcasted along dimension 1 (columns).
         This function is semantically identical to mul_elem but the view x
-        is multiplied with the reciprocal of the lin_op data.
+        is multiplied with the reciprocal of the lin_op data instead.
         Note: div currently doesn't support parameters
         """
         lhs, is_param_free_lhs = self.get_constant_data(lin.data, view, column=True)
@@ -720,8 +735,11 @@ class ScipyCanonBackend(PythonCanonBackend):
         return stack_func
 
     def rmul(self, lin: LinOp, view: ScipyTensorView) -> ScipyTensorView:
-        # Note that even though this is rmul, we still use "lhs", as is implemented via a
-        # multiplication from the left in this function.
+        """
+        Multiply view with constant data from the right.
+        Note: Even though this is rmul, we still use "lhs", as is implemented via a
+        multiplication from the left in this function.
+        """
         lhs, is_param_free_lhs = self.get_constant_data(lin.data, view, column=False)
 
         arg_cols = lin.args[0].shape[0] if len(lin.args[0].shape) == 1 else lin.args[0].shape[1]
@@ -762,6 +780,10 @@ class ScipyCanonBackend(PythonCanonBackend):
 
     @staticmethod
     def trace(lin: LinOp, view: ScipyTensorView) -> ScipyTensorView:
+        """
+        Select the rows corresponding to the diagonal entries in the expression and sum along
+        axis 0.
+        """
         shape = lin.args[0].shape
         indices = np.arange(shape[0]) * shape[0] + np.arange(shape[0])
 
@@ -775,6 +797,13 @@ class ScipyCanonBackend(PythonCanonBackend):
         return view.accumulate_over_variables(func, is_param_free_function=True)
 
     def conv(self, lin: LinOp, view: ScipyTensorView) -> ScipyTensorView:
+        """
+        Returns view corresponding to a discrete convolution with data 'a', i.e., multiplying from
+        the left a repetition of the column vector of 'a' for each column in A, shifted down one row
+        after each column. If lin_data is a row vector, we must transform the lhs to become a column
+        vector before applying the convolution.
+        Note: conv currently doesn't support parameters
+        """
         lhs, is_param_free_lhs = self.get_constant_data(lin.data, view, column=False)
         assert is_param_free_lhs
         assert len(lhs) == 1
@@ -801,6 +830,10 @@ class ScipyCanonBackend(PythonCanonBackend):
         return view.accumulate_over_variables(func, is_param_free_function=is_param_free_lhs)
 
     def kron_r(self, lin: LinOp, view: ScipyTensorView) -> ScipyTensorView:
+        """
+        Returns view corresponding to Kronecker product of data 'a' with view x, i.e., kron(a,x).
+
+        """
         lhs, is_param_free_lhs = self.get_constant_data(lin.data, view, column=True)
         assert is_param_free_lhs
         assert len(lhs) == 1
@@ -810,25 +843,18 @@ class ScipyCanonBackend(PythonCanonBackend):
         assert len({arg.shape for arg in lin.args}) == 1
         rhs_shape = lin.args[0].shape
 
-        lhs_ones = np.ones(lin.data.shape)
-        rhs_ones = np.ones(rhs_shape)
-
-        lhs_arange = np.arange(np.prod(lin.data.shape)).reshape(lin.data.shape, order="F")
-        rhs_arange = np.arange(np.prod(rhs_shape)).reshape(rhs_shape, order="F")
-
-        row_indices = (np.kron(lhs_ones, rhs_arange) +
-                       np.kron(lhs_arange, rhs_ones * np.prod(rhs_shape))) \
-            .flatten(order="F").astype(int)
+        row_idx = self._get_kron_row_indices(lin.data.shape, rhs_shape)
 
         def func(x: np.ndarray) -> np.ndarray:
             assert x.ndim == 2
             kron_res = sp.kron(lhs, x).tocsr()
-            kron_res = kron_res[row_indices, :]
+            kron_res = kron_res[row_idx, :]
             return kron_res
 
         return view.accumulate_over_variables(func, is_param_free_function=is_param_free_lhs)
 
     def kron_l(self, lin: LinOp, view: ScipyTensorView) -> ScipyTensorView:
+        """"""
         rhs, is_param_free_rhs = self.get_constant_data(lin.data, view, column=True)
         assert is_param_free_rhs
         assert len(rhs) == 1
@@ -838,32 +864,26 @@ class ScipyCanonBackend(PythonCanonBackend):
         assert len({arg.shape for arg in lin.args}) == 1
         lhs_shape = lin.args[0].shape
 
-        rhs_ones = np.ones(lin.data.shape)
-        lhs_ones = np.ones(lhs_shape)
-
-        rhs_arange = np.arange(np.prod(lin.data.shape)).reshape(lin.data.shape, order="F")
-        lhs_arange = np.arange(np.prod(lhs_shape)).reshape(lhs_shape, order="F")
-
-        row_indices = (np.kron(lhs_ones, rhs_arange) +
-                       np.kron(lhs_arange, rhs_ones * np.prod(lin.data.shape))) \
-            .flatten(order="F").astype(int)
+        row_idx = self._get_kron_row_indices(lhs_shape, lin.data.shape)
 
         def func(x: np.ndarray) -> np.ndarray:
             assert x.ndim == 2
             kron_res = sp.kron(x, rhs).tocsr()
-            kron_res = kron_res[row_indices, :]
+            kron_res = kron_res[row_idx, :]
             return kron_res
 
         return view.accumulate_over_variables(func, is_param_free_function=is_param_free_rhs)
 
     def get_variable_tensor(self, shape: tuple[int, ...], variable_id: int) -> \
             dict[int, dict[int, list[sp.csr_matrix]]]:
+        """"""
         assert variable_id != Constant.ID
         n = int(np.prod(shape))
         return {variable_id: {Constant.ID.value: [sp.eye(n, format="csr")]}}
 
     def get_data_tensor(self, data: np.ndarray | sp.spmatrix) -> \
             dict[int, dict[int, list[sp.csr_matrix]]]:
+        """"""
         if isinstance(data, np.ndarray):
             # Slightly faster compared to reshaping after casting
             tensor = sp.csr_matrix(data.reshape((-1, 1), order="F"))
@@ -873,6 +893,7 @@ class ScipyCanonBackend(PythonCanonBackend):
 
     def get_param_tensor(self, shape: tuple[int, ...], parameter_id: int) \
             -> dict[int, dict[int, list[sp.csr_matrix]]]:
+        """"""
         assert parameter_id != Constant.ID
         shape = int(np.prod(shape))
         slices = []
@@ -1005,7 +1026,9 @@ class NumpyCanonBackend(PythonCanonBackend):
         """
         Diagonal vector to matrix. Given (A, b) with n rows in view, add rows of zeros such that
         the original rows now correspond to the diagonal entries of the n x n expression.
-
+        An optional offset parameter `k` can be specified to adjust the position of the
+        diagonal entries. For positive `k`, the diagonal is shifted downwards, and for
+        negative `k`, it's shifted upwards.
         """
         assert lin.shape[0] == lin.shape[1]
         k = lin.data
@@ -1046,8 +1069,11 @@ class NumpyCanonBackend(PythonCanonBackend):
         return stack_func
 
     def rmul(self, lin: LinOp, view: NumpyTensorView) -> NumpyTensorView:
-        # Note that even though this is rmul, we still use "lhs", as is implemented via a
-        # multiplication from the left in this function.
+        """
+        Multiply view with constant data from the right.
+        Note: Even though this is rmul, we still use "lhs", as is implemented via a
+        multiplication from the left in this function.
+        """
         lhs, is_param_free_lhs = self.get_constant_data(lin.data, view, column=False)
         arg_cols = lin.args[0].shape[0] if len(lin.args[0].shape) == 1 else lin.args[0].shape[1]
 
@@ -1082,6 +1108,10 @@ class NumpyCanonBackend(PythonCanonBackend):
 
     @staticmethod
     def trace(lin: LinOp, view: NumpyTensorView) -> NumpyTensorView:
+        """
+        Select the rows corresponding to the diagonal entries in the expression and sum along
+        axis 0.
+        """
         shape = lin.args[0].shape
         indices = np.arange(shape[0]) * shape[0] + np.arange(shape[0])
 
@@ -1094,6 +1124,13 @@ class NumpyCanonBackend(PythonCanonBackend):
         return view.accumulate_over_variables(func, is_param_free_function=True)
 
     def conv(self, lin: LinOp, view: NumpyTensorView) -> NumpyTensorView:
+        """
+        Returns view corresponding to a discrete convolution with data 'a', i.e., multiplying from
+        the left a repetition of the column vector of 'a' for each column in A, shifted down one row
+        after each column. If lin_data is a row vector, the function transforms the lhs to become a
+        column vector before applying the convolution.
+        Note: conv currently doesn't support parameters
+        """
         lhs, is_param_free_lhs = self.get_constant_data(lin.data, view, column=False)
         assert is_param_free_lhs
 
@@ -1108,6 +1145,7 @@ class NumpyCanonBackend(PythonCanonBackend):
     def kron_r(self, lin: LinOp, view: NumpyTensorView) -> NumpyTensorView:
         """
         Returns view corresponding to Kronecker product of data 'a' with view x, i.e., kron(a,x).
+        Note: kron_r currently doesn't support parameters
         """
         lhs, is_param_free_lhs = self.get_constant_data(lin.data, view, column=True)
         assert is_param_free_lhs
@@ -1118,20 +1156,12 @@ class NumpyCanonBackend(PythonCanonBackend):
         assert len({arg.shape for arg in lin.args}) == 1
         rhs_shape = lin.args[0].shape
 
-        lhs_ones = np.ones(lin.data.shape)
-        rhs_ones = np.ones(rhs_shape)
-
-        lhs_arange = np.arange(np.prod(lin.data.shape)).reshape(lin.data.shape, order="F")
-        rhs_arange = np.arange(np.prod(rhs_shape)).reshape(rhs_shape, order="F")
-
-        row_indices = (np.kron(lhs_ones, rhs_arange) +
-                       np.kron(lhs_arange, rhs_ones * np.prod(rhs_shape))) \
-            .flatten(order="F").astype(int)
+        row_idx = self._get_kron_row_indices(lin.data.shape, rhs_shape)
 
         def func(x: np.ndarray) -> np.ndarray:
             assert x.ndim == 3
             kron_res = np.kron(lhs, x)
-            kron_res = kron_res[:, row_indices, :]
+            kron_res = kron_res[:, row_idx, :]
             return kron_res
 
         return view.accumulate_over_variables(func, is_param_free_function=is_param_free_lhs)
@@ -1139,7 +1169,8 @@ class NumpyCanonBackend(PythonCanonBackend):
     def kron_l(self, lin: LinOp, view: NumpyTensorView) -> NumpyTensorView:
         """
         Returns view corresponding to Kronecker product of view x with data 'a', i.e., kron(x,a).
-
+        This function computes a reordering of the row indices and
+        Note: kron_l currently doesn't support parameters
         """
         rhs, is_param_free_rhs = self.get_constant_data(lin.data, view, column=True)
         assert is_param_free_rhs
@@ -1150,20 +1181,12 @@ class NumpyCanonBackend(PythonCanonBackend):
         assert len({arg.shape for arg in lin.args}) == 1
         lhs_shape = lin.args[0].shape
 
-        rhs_ones = np.ones(lin.data.shape)
-        lhs_ones = np.ones(lhs_shape)
-
-        rhs_arange = np.arange(np.prod(lin.data.shape)).reshape(lin.data.shape, order="F")
-        lhs_arange = np.arange(np.prod(lhs_shape)).reshape(lhs_shape, order="F")
-
-        row_indices = (np.kron(lhs_ones, rhs_arange) +
-                       np.kron(lhs_arange, rhs_ones * np.prod(lin.data.shape))) \
-            .flatten(order="F").astype(int)
+        row_idx = self._get_kron_row_indices(lhs_shape, lin.data.shape)
 
         def func(x: np.ndarray) -> np.ndarray:
             assert x.ndim == 3
             kron_res = np.kron(x, rhs)
-            kron_res = kron_res[:, row_indices, :]
+            kron_res = kron_res[:, row_idx, :]
             return kron_res
 
         return view.accumulate_over_variables(func, is_param_free_function=is_param_free_rhs)
@@ -1202,7 +1225,7 @@ class NumpyCanonBackend(PythonCanonBackend):
     @staticmethod
     def _to_dense(x):
         """
-        This is an internal function that converts a sparse input to a dense numpy array.
+        Internal function that converts a sparse input to a dense numpy array.
         """
         try:
             res = x.toarray()
