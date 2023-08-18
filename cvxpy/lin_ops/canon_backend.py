@@ -511,6 +511,10 @@ class PythonCanonBackend(CanonBackend):
 
     @staticmethod
     def _get_kron_row_indices(lhs_shape, rhs_shape):
+        """
+        Internal function that computes the row indices corresponding to the
+        kronecker product of two sparse tensors.
+        """
         rhs_ones = np.ones(rhs_shape)
         lhs_ones = np.ones(lhs_shape)
 
@@ -841,20 +845,20 @@ class ScipyCanonBackend(PythonCanonBackend):
         assert lhs.ndim == 2
 
         assert len({arg.shape for arg in lin.args}) == 1
-        rhs_shape = lin.args[0].shape
-
-        row_idx = self._get_kron_row_indices(lin.data.shape, rhs_shape)
+        lin.args[0].shape
 
         def func(x: np.ndarray) -> np.ndarray:
             assert x.ndim == 2
             kron_res = sp.kron(lhs, x).tocsr()
-            kron_res = kron_res[row_idx, :]
             return kron_res
 
         return view.accumulate_over_variables(func, is_param_free_function=is_param_free_lhs)
 
     def kron_l(self, lin: LinOp, view: ScipyTensorView) -> ScipyTensorView:
-        """"""
+        """
+        Returns view corresponding to Kronecker product of view x with data 'a', i.e., kron(x,a).
+
+        """
         rhs, is_param_free_rhs = self.get_constant_data(lin.data, view, column=True)
         assert is_param_free_rhs
         assert len(rhs) == 1
@@ -876,14 +880,23 @@ class ScipyCanonBackend(PythonCanonBackend):
 
     def get_variable_tensor(self, shape: tuple[int, ...], variable_id: int) -> \
             dict[int, dict[int, list[sp.csr_matrix]]]:
-        """"""
+        """
+        Returns tensor of a variable node, i.e., eye(n) across axes 0 and 1, where n is
+        the number of entries of the variable.
+        This function constructs the identity of size 'n' and is returned as a list to
+        add the parameter axis.
+        """
         assert variable_id != Constant.ID
         n = int(np.prod(shape))
         return {variable_id: {Constant.ID.value: [sp.eye(n, format="csr")]}}
 
     def get_data_tensor(self, data: np.ndarray | sp.spmatrix) -> \
             dict[int, dict[int, list[sp.csr_matrix]]]:
-        """"""
+        """
+        Returns tensor of constant node as a column vector.
+        This function reshapes the data and converts it to csr format.
+        The data tensor is returned as a list to add a parameter axis.
+        """
         if isinstance(data, np.ndarray):
             # Slightly faster compared to reshaping after casting
             tensor = sp.csr_matrix(data.reshape((-1, 1), order="F"))
@@ -893,7 +906,12 @@ class ScipyCanonBackend(PythonCanonBackend):
 
     def get_param_tensor(self, shape: tuple[int, ...], parameter_id: int) \
             -> dict[int, dict[int, list[sp.csr_matrix]]]:
-        """"""
+        """
+        Returns tensor of a parameter node, i.e., eye(n) across axes 0 and 2, where n is
+        the number of entries of the parameter.
+        This function appends 'n' single element sparse matrices stacked on the cols (axis 2)
+        to the 'slices' list (axis 0).
+        """
         assert parameter_id != Constant.ID
         shape = int(np.prod(shape))
         slices = []
@@ -1154,14 +1172,11 @@ class NumpyCanonBackend(PythonCanonBackend):
         assert lhs.ndim == 2
 
         assert len({arg.shape for arg in lin.args}) == 1
-        rhs_shape = lin.args[0].shape
-
-        row_idx = self._get_kron_row_indices(lin.data.shape, rhs_shape)
+        lin.args[0].shape
 
         def func(x: np.ndarray) -> np.ndarray:
             assert x.ndim == 3
             kron_res = np.kron(lhs, x)
-            kron_res = kron_res[:, row_idx, :]
             return kron_res
 
         return view.accumulate_over_variables(func, is_param_free_function=is_param_free_lhs)
@@ -1169,7 +1184,42 @@ class NumpyCanonBackend(PythonCanonBackend):
     def kron_l(self, lin: LinOp, view: NumpyTensorView) -> NumpyTensorView:
         """
         Returns view corresponding to Kronecker product of view x with data 'a', i.e., kron(x,a).
-        This function computes a reordering of the row indices and
+        This function computes the kron of x and 'a' and reorders the row indices afterwards.
+        Example:
+        x = Variable((2,2)) with
+        [[x11, x12],
+         [x21, x22]]
+
+        and data
+        a = [[1, 2]],
+
+        kron(x, a) means we have
+        [[x11, 2x11, x12, 2x12],
+         [x21, 2x21, x22, 2x22]]
+
+        i.e. as represented in the A matrix (again in column-major order)
+
+         x11 x21 x12 x22
+        [[[1   0   0   0],
+         [0   1   0   0],
+         [2   0   0   0],
+         [0   2   0   0],
+         [0   0   1   0],
+         [0   0   0   1],
+         [0   0   2   0],
+         [0   0   0   2]]]
+
+         However computing kron(x, a) directly gives us:
+        [[[1   0   0   0],
+         [2   0   0   0],
+         [0   1   0   0],
+         [0   2   0   0],
+         [0   0   1   0],
+         [0   0   2   0],
+         [0   0   0   1],
+         [0   0   0   2]]]
+        So we must swap the row indices of the kron matrix
+
         Note: kron_l currently doesn't support parameters
         """
         rhs, is_param_free_rhs = self.get_constant_data(lin.data, view, column=True)
