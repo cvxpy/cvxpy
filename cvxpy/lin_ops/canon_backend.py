@@ -235,7 +235,8 @@ class PythonCanonBackend(CanonBackend):
     @abstractmethod
     def concatenate_tensors(self, tensors: list[TensorRepresentation]) -> TensorView:
         """
-        Takes list of tensors and stacks them along axis 0 (rows).
+        Takes list of tensors which have already been offset along axis 0 (rows) and
+        combines them into a single tensor.
         """
         pass  # noqa
 
@@ -307,7 +308,10 @@ class PythonCanonBackend(CanonBackend):
     @abstractmethod
     def mul(self, lin: LinOp, view: TensorView) -> TensorView:
         """
-        Multiply view with constant data from the left
+        Multiply view with constant data from the left.
+        When the lhs is parametrized, multiply each slice of the tensor with the 
+        single, constant slice of the rhs. 
+        Otherwise, multiply the single slice of the tensor with each slice of the rhs.
         """
         pass  # noqa
 
@@ -335,7 +339,10 @@ class PythonCanonBackend(CanonBackend):
     def mul_elem(self, lin: LinOp, view: TensorView) -> TensorView:
         """
         Given (A, b) in view and constant data d, return (A*d, b*d).
-        d is broadcasted along dimension 1 (columns)
+        d is broadcasted along dimension 1 (columns).
+        When the lhs is parametrized, multiply elementwise each slice of the tensor with the 
+        single, constant slice of the rhs. 
+        Otherwise, multiply elementwise the single slice of the tensor with each slice of the rhs.
         """
         pass  # noqa
 
@@ -584,7 +591,8 @@ class ScipyCanonBackend(PythonCanonBackend):
     def concatenate_tensors(self, tensors: list[TensorRepresentation]) \
             -> TensorRepresentation:
         """
-        Takes list of tensors and stacks them along axis 0 (rows).
+        Takes list of tensors which have already been offset along axis 0 (rows) and
+        combines them into a single tensor.
         """
         return TensorRepresentation.combine(tensors)
 
@@ -607,8 +615,9 @@ class ScipyCanonBackend(PythonCanonBackend):
     def mul(self, lin: LinOp, view: ScipyTensorView) -> ScipyTensorView:
         """
         Multiply view with constant data from the left.
-        This method computes the traditional multiplication of constant/parametrized data with
-        the tensorview. The simple case is when the lhs is constant.
+        When the lhs is parametrized, multiply each slice of the tensor with the 
+        single, constant slice of the rhs. 
+        Otherwise, multiply the single slice of the tensor with each slice of the rhs.
         """
         lhs, is_param_free_lhs = self.get_constant_data(lin.data, view, column=False)
 
@@ -651,8 +660,9 @@ class ScipyCanonBackend(PythonCanonBackend):
         """
         Given (A, b) in view and constant data d, return (A*d, b*d).
         d is broadcasted along dimension 1 (columns).
-        When the lhs is parametrized, a dict unpacking must occur to apply
-        element-wise multiplication to every parameter slice of 'v'.
+        When the lhs is parametrized, multiply elementwise each slice of the tensor with the 
+        single, constant slice of the rhs. 
+        Otherwise, multiply elementwise the single slice of the tensor with each slice of the rhs.
         """
         lhs, is_param_free_lhs = self.get_constant_data(lin.data, view, column=True)
         if isinstance(lhs, dict):
@@ -940,7 +950,8 @@ class NumpyCanonBackend(PythonCanonBackend):
     def concatenate_tensors(self, tensors: list[TensorRepresentation]) \
             -> TensorRepresentation:
         """
-        Takes list of tensors and stacks them along axis 0 (rows).
+        Takes list of tensors which have already been offset along axis 0 (rows) and
+        combines them into a single tensor.
         """
         return TensorRepresentation.combine(tensors)
 
@@ -960,6 +971,12 @@ class NumpyCanonBackend(PythonCanonBackend):
                                               self.var_length)
 
     def mul(self, lin: LinOp, view: NumpyTensorView) -> NumpyTensorView:
+        """
+        Multiply view with constant data from the left.
+        When the lhs is parametrized, multiply each slice of the tensor with the 
+        single, constant slice of the rhs. 
+        Otherwise, multiply the single slice of the tensor with each slice of the rhs.
+        """
         lhs, is_param_free_lhs = self.get_constant_data(lin.data, view, column=False)
         if isinstance(lhs, dict):
             reps = view.rows // next(iter(lhs.values()))[0].shape[-1]
@@ -997,8 +1014,9 @@ class NumpyCanonBackend(PythonCanonBackend):
         """
         Given (A, b) in view and constant data d, return (A*d, b*d).
         d is broadcasted along dimension 1 (columns).
-        When the lhs is parametrized, a dict unpacking must occur to apply
-        element-wise multiplication to the tensor 'v'.
+        When the lhs is parametrized, multiply elementwise each slice of the tensor with the 
+        single, constant slice of the rhs. 
+        Otherwise, multiply elementwise the single slice of the tensor with each slice of the rhs.
         """
         lhs, is_param_free_lhs = self.get_constant_data(lin.data, view, column=True)
         if isinstance(lhs, dict):
