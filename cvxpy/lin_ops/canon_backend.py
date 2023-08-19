@@ -845,11 +845,15 @@ class ScipyCanonBackend(PythonCanonBackend):
         assert lhs.ndim == 2
 
         assert len({arg.shape for arg in lin.args}) == 1
-        lin.args[0].shape
+        rhs_shape = lin.args[0].shape
+
+        # TODO: add test to verify that reordering is necessary
+        row_idx = self._get_kron_row_indices(lin.data.shape, rhs_shape)
 
         def func(x: np.ndarray) -> np.ndarray:
             assert x.ndim == 2
             kron_res = sp.kron(lhs, x).tocsr()
+            kron_res = kron_res[row_idx, :]
             return kron_res
 
         return view.accumulate_over_variables(func, is_param_free_function=is_param_free_lhs)
@@ -1172,11 +1176,14 @@ class NumpyCanonBackend(PythonCanonBackend):
         assert lhs.ndim == 2
 
         assert len({arg.shape for arg in lin.args}) == 1
-        lin.args[0].shape
+        rhs_shape = lin.args[0].shape
+
+        row_idx = self._get_kron_row_indices(lin.data.shape, rhs_shape)
 
         def func(x: np.ndarray) -> np.ndarray:
             assert x.ndim == 3
             kron_res = np.kron(lhs, x)
+            kron_res = kron_res[:, row_idx, :]
             return kron_res
 
         return view.accumulate_over_variables(func, is_param_free_function=is_param_free_lhs)
