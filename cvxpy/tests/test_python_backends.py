@@ -992,6 +992,17 @@ class TestBackends:
          [0   0   0   1],
          [0   0   2   0],
          [0   0   0   2]]
+
+         However computing kron(x, a) directly gives us:
+        [[1   0   0   0],
+         [2   0   0   0],
+         [0   1   0   0],
+         [0   2   0   0],
+         [0   0   1   0],
+         [0   0   2   0],
+         [0   0   0   1],
+         [0   0   0   2]]
+        So we must swap the row indices of the kron matrix
         """
 
         variable_lin_op = linOpHelper((2, 2), type='variable', data=1)

@@ -751,6 +751,10 @@ class ScipyCanonBackend(PythonCanonBackend):
     def rmul(self, lin: LinOp, view: ScipyTensorView) -> ScipyTensorView:
         """
         Multiply view with constant data from the right.
+        When the rhs is parametrized, multiply each slice of the tensor with the
+        single, constant slice of the lhs.
+        Otherwise, multiply the single slice of the tensor with each slice of the lhs.
+
         Note: Even though this is rmul, we still use "lhs", as is implemented via a
         multiplication from the left in this function.
         """
@@ -846,7 +850,10 @@ class ScipyCanonBackend(PythonCanonBackend):
     def kron_r(self, lin: LinOp, view: ScipyTensorView) -> ScipyTensorView:
         """
         Returns view corresponding to Kronecker product of data 'a' with view x, i.e., kron(a,x).
+        This function computes the kron of 'a' and x on every slice of the tensor
+        and reorders the row indices afterwards.
 
+        Note: kron_r currently doesn't support parameters
         """
         lhs, is_param_free_lhs = self.get_constant_data(lin.data, view, column=True)
         assert is_param_free_lhs
@@ -871,7 +878,10 @@ class ScipyCanonBackend(PythonCanonBackend):
     def kron_l(self, lin: LinOp, view: ScipyTensorView) -> ScipyTensorView:
         """
         Returns view corresponding to Kronecker product of view x with data 'a', i.e., kron(x,a).
+        This function computes the kron of x and 'a' on every slice of the tensor
+        and reorders the row indices afterwards.
 
+        Note: kron_l currently doesn't support parameters
         """
         rhs, is_param_free_rhs = self.get_constant_data(lin.data, view, column=True)
         assert is_param_free_rhs
@@ -1111,6 +1121,10 @@ class NumpyCanonBackend(PythonCanonBackend):
     def rmul(self, lin: LinOp, view: NumpyTensorView) -> NumpyTensorView:
         """
         Multiply view with constant data from the right.
+        When the rhs is parametrized, multiply each slice of the tensor with the
+        single, constant slice of the lhs.
+        Otherwise, multiply the single slice of the tensor with each slice of the lhs.
+
         Note: Even though this is rmul, we still use "lhs", as is implemented via a
         multiplication from the left in this function.
         """
@@ -1185,6 +1199,8 @@ class NumpyCanonBackend(PythonCanonBackend):
     def kron_r(self, lin: LinOp, view: NumpyTensorView) -> NumpyTensorView:
         """
         Returns view corresponding to Kronecker product of data 'a' with view x, i.e., kron(a,x).
+        This function computes the kron of 'a' and x and reorders the row indices afterwards.
+
         Note: kron_r currently doesn't support parameters
         """
         lhs, is_param_free_lhs = self.get_constant_data(lin.data, view, column=True)
@@ -1210,40 +1226,6 @@ class NumpyCanonBackend(PythonCanonBackend):
         """
         Returns view corresponding to Kronecker product of view x with data 'a', i.e., kron(x,a).
         This function computes the kron of x and 'a' and reorders the row indices afterwards.
-        Example:
-        x = Variable((2,2)) with
-        [[x11, x12],
-         [x21, x22]]
-
-        and data
-        a = [[1, 2]],
-
-        kron(x, a) means we have
-        [[x11, 2x11, x12, 2x12],
-         [x21, 2x21, x22, 2x22]]
-
-        i.e. as represented in the A matrix (again in column-major order)
-
-         x11 x21 x12 x22
-        [[[1   0   0   0],
-         [0   1   0   0],
-         [2   0   0   0],
-         [0   2   0   0],
-         [0   0   1   0],
-         [0   0   0   1],
-         [0   0   2   0],
-         [0   0   0   2]]]
-
-         However computing kron(x, a) directly gives us:
-        [[[1   0   0   0],
-         [2   0   0   0],
-         [0   1   0   0],
-         [0   2   0   0],
-         [0   0   1   0],
-         [0   0   2   0],
-         [0   0   0   1],
-         [0   0   0   2]]]
-        So we must swap the row indices of the kron matrix
 
         Note: kron_l currently doesn't support parameters
         """
