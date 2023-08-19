@@ -530,7 +530,7 @@ class PythonCanonBackend(CanonBackend):
     def get_variable_tensor(self, shape: tuple[int, ...], variable_id: int) -> Any:
         """
         Returns tensor of a variable node, i.e., eye(n) across axes 0 and 1, where n is
-        the number of entries of the variable.
+        the size of the variable.
         """
         pass  # noqa
 
@@ -545,7 +545,7 @@ class PythonCanonBackend(CanonBackend):
     def get_param_tensor(self, shape: tuple[int, ...], parameter_id: int) -> Any:
         """
         Returns tensor of a parameter node, i.e., eye(n) across axes 0 and 2, where n is
-        the number of entries of the parameter.
+        the size of the parameter.
         """
         pass  # noqa
 
