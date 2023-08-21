@@ -597,7 +597,11 @@ class ScipyCanonBackend(PythonCanonBackend):
         return TensorRepresentation.combine(tensors)
 
     def reshape_tensors(self, tensor: TensorRepresentation, total_rows: int) -> sp.csc_matrix:
-        # Windows uses int32 by default at time of writing, so we need to enforce int64 here
+        """
+        Reshape into 2D scipy csc-matrix in column-major order and transpose.
+
+        Note: Windows uses int32 by default at time of writing, so we need to enforce int64 here
+        """
         rows = (tensor.col.astype(np.int64) * np.int64(total_rows) + tensor.row.astype(np.int64))
         cols = tensor.parameter_offset.astype(np.int64)
         shape = (np.int64(total_rows) * np.int64(self.var_length + 1), self.param_size_plus_one)
@@ -966,6 +970,11 @@ class NumpyCanonBackend(PythonCanonBackend):
         return TensorRepresentation.combine(tensors)
 
     def reshape_tensors(self, tensor: NumpyTensorView, total_rows: int) -> sp.csc_matrix:
+        """
+        Reshape into 2D scipy csc-matrix in column-major order and transpose.
+
+        Note: Windows uses int32 by default at time of writing, so we need to enforce int64 here
+        """
         rows = (tensor.col.astype(np.int64) * np.int64(total_rows) + tensor.row.astype(np.int64))
         cols = tensor.parameter_offset.astype(np.int64)
         shape = (np.int64(total_rows) * np.int64(self.var_length + 1), self.param_size_plus_one)
