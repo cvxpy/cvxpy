@@ -74,10 +74,7 @@ class SolverTestHelper:
         #   (e.g. X = Variable(shape=(n,n), PSD=True)), check
         #   domains for dual variables of the attribute constraint.
         for con in self.constraints:
-            if isinstance(con, (cp.constraints.ExpCone,
-                                cp.constraints.PowCone3D,
-                                cp.constraints.PSD,
-                                cp.constraints.SOC)):
+            if isinstance(con, cp.constraints.Cone):
                 dual_violation = con.dual_residual
                 if isinstance(con, cp.constraints.SOC):
                     dual_violation = np.linalg.norm(dual_violation)

@@ -146,7 +146,7 @@ class ExpCone(Cone):
         self.dual_variables[1].save_value(dv1)
         self.dual_variables[2].save_value(dv2)
 
-    def dual_cone(self, *args):
+    def _dual_cone(self, *args):
         """Implements the dual cone of the exponential cone
         See Pg 85 of the MOSEK modelling cookbook for more information"""
         if args == ():

@@ -47,8 +47,7 @@ class Cone(Constraint):
     def __init__(self, args, constr_id=None) -> None:
         super(Cone, self).__init__(args, constr_id)
 
-    def dual_cone(self, args: list['cp.Expression'] | None = None) -> typing.Type['Cone']:
-    # def dual_cone(self, args) -> typing.Type['Cone']:
+    def _dual_cone(self, args: list['cp.Expression'] | None = None) -> typing.Type['Cone']:
         """Method for modelling problems with the dual cone of `Cone`
 
         If the user simply calls the method without any arguments, then
@@ -68,6 +67,6 @@ class Cone(Constraint):
         more formal definition) for the dual cone of the current instance
         of `Cone` w.r.t. the recovered dual variables
 
-        Primarily intended to be used for full-fledged KKT checks
+        Primarily intended to be used for KKT checks
         """
-        return self.dual_cone(*self.dual_variables).residual
+        return self._dual_cone(*self.dual_variables).residual

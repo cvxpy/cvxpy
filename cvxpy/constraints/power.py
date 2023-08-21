@@ -139,7 +139,7 @@ class PowCone3D(Cone):
         # TODO: figure out why the reshaping had to be done differently,
         #   relative to ExpCone constraints.
 
-    def dual_cone(self, *args):
+    def _dual_cone(self, *args):
         """Implements the dual cone of PowCone3D See Pg 85
         of the MOSEK modelling cookbook for more information"""
         if args is None:

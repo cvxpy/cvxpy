@@ -84,9 +84,9 @@ class PSD(Cone):
         min_eig = cvxtypes.lambda_min()(self.args[0] + self.args[0].T)/2
         return cvxtypes.neg()(min_eig).value
 
-    def dual_cone(self, *args):
-        """Implements the dual cone of the exponential cone
-        See Pg 85 of the MOSEK modelling cookbook for more information"""
+    def _dual_cone(self, *args):
+        """Implements the dual cone of the PSD cone See Pg 85 of the
+        MOSEK modelling cookbook for more information"""
         if args is None:
             return self.dual_variables[0] >> 0
         else:
