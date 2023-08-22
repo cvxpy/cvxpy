@@ -27,6 +27,10 @@ from scipy.signal import convolve
 from cvxpy.lin_ops import LinOp
 from cvxpy.settings import NUMPY_CANON_BACKEND, RUST_CANON_BACKEND, SCIPY_CANON_BACKEND
 
+"""
+Note: this file is tested extensively with illustrative examples in test_python_backends.py,
+complementing the docstrings of the functions below.
+"""
 
 class Constant(Enum):
     ID = -1
@@ -359,6 +363,10 @@ class PythonCanonBackend(CanonBackend):
         """
         Given (A, b) in view and constant data d, return (A*(1/d), b*(1/d)).
         d is broadcasted along dimension 1 (columns)
+        This function is semantically identical to mul_elem but the view x
+        is multiplied with the reciprocal of the lin_op data instead.
+
+        Note: div currently doesn't support parameters.
         """
         pass  # noqa
 
@@ -384,6 +392,8 @@ class PythonCanonBackend(CanonBackend):
         """
         Diagonal vector to matrix. Given (A, b) with n rows in view, add rows of zeros such that
         the original rows now correspond to the diagonal entries of the n x n expression
+        An optional offset parameter `k` can be specified, with k>0 for diagonals above
+        the main diagonal, and k<0 for diagonals below the main diagonal.
         """
         pass  # noqa
 
@@ -463,7 +473,9 @@ class PythonCanonBackend(CanonBackend):
     def diag_mat(lin: LinOp, view: TensorView) -> TensorView:
         """
         Diagonal matrix to vector. Given (A, b) in view, select the rows corresponding to the
-        elements above the diagonal in the original expression.
+        elements on the diagonal in the original expression.
+        An optional offset parameter `k` can be specified, with k>0 for diagonals above
+        the main diagonal, and k<0 for diagonals below the main diagonal.
         """
         rows = lin.shape[0]
         k = lin.data
@@ -480,7 +492,10 @@ class PythonCanonBackend(CanonBackend):
     @abstractmethod
     def rmul(self, lin: LinOp, view: TensorView) -> TensorView:
         """
-        Multiply view with constant data from the right
+        Multiply view with constant data from the right.
+        When the rhs is parametrized, multiply each slice of the tensor with the
+        single, constant slice of the lhs.
+        Otherwise, multiply the single slice of the tensor with each slice of the lhs.
         """
         pass  # noqa
 
@@ -498,7 +513,11 @@ class PythonCanonBackend(CanonBackend):
         """
         Returns view corresponding to a discrete convolution with data 'a', i.e., multiplying from
         the left a repetition of the column vector of 'a' for each column in A, shifted down one row
-        after each column.
+        after each column, i.e., a Toeplitz matrix.
+        If lin_data is a row vector, we must transform the lhs to become a column vector before
+        applying the convolution.
+
+        Note: conv currently doesn't support parameters.
         """
         pass  # noqa
 
@@ -506,6 +525,8 @@ class PythonCanonBackend(CanonBackend):
     def kron_r(self, lin: LinOp, view: TensorView) -> TensorView:
         """
         Returns view corresponding to Kronecker product of data 'a' with view x, i.e., kron(a,x).
+
+        Note: kron_r currently doesn't support parameters.
         """
         pass  # noqa
 
@@ -513,6 +534,8 @@ class PythonCanonBackend(CanonBackend):
     def kron_l(self, lin: LinOp, view: TensorView) -> TensorView:
         """
         Returns view corresponding to Kronecker product of view x with data 'a', i.e., kron(x,a).
+
+        Note: kron_l currently doesn't support parameters.
         """
         pass  # noqa
 
@@ -697,7 +720,8 @@ class ScipyCanonBackend(PythonCanonBackend):
         d is broadcasted along dimension 1 (columns).
         This function is semantically identical to mul_elem but the view x
         is multiplied with the reciprocal of the lin_op data instead.
-        Note: div currently doesn't support parameters
+
+        Note: div currently doesn't support parameters.
         """
         lhs, is_param_free_lhs = self.get_constant_data(lin.data, view, column=True)
         assert is_param_free_lhs
@@ -717,6 +741,8 @@ class ScipyCanonBackend(PythonCanonBackend):
         """
         Diagonal vector to matrix. Given (A, b) with n rows in view, add rows of zeros such that
         the original rows now correspond to the diagonal entries of the n x n expression
+        An optional offset parameter `k` can be specified, with k>0 for diagonals above
+        the main diagonal, and k<0 for diagonals below the main diagonal.
         """
         assert lin.shape[0] == lin.shape[1]
         k = lin.data
@@ -822,9 +848,11 @@ class ScipyCanonBackend(PythonCanonBackend):
         """
         Returns view corresponding to a discrete convolution with data 'a', i.e., multiplying from
         the left a repetition of the column vector of 'a' for each column in A, shifted down one row
-        after each column. If lin_data is a row vector, we must transform the lhs to become a column
-        vector before applying the convolution.
-        Note: conv currently doesn't support parameters
+        after each column, i.e., a Toeplitz matrix.
+        If lin_data is a row vector, we must transform the lhs to become a column vector before
+        applying the convolution.
+
+        Note: conv currently doesn't support parameters.
         """
         lhs, is_param_free_lhs = self.get_constant_data(lin.data, view, column=False)
         assert is_param_free_lhs
@@ -854,10 +882,10 @@ class ScipyCanonBackend(PythonCanonBackend):
     def kron_r(self, lin: LinOp, view: ScipyTensorView) -> ScipyTensorView:
         """
         Returns view corresponding to Kronecker product of data 'a' with view x, i.e., kron(a,x).
-        This function computes the kron of 'a' and x on every slice of the tensor
-        and reorders the row indices afterwards.
+        This function reshapes 'a' into a column vector, computes the Kronecker product with the
+        view of x and reorders the row indices afterwards.
 
-        Note: kron_r currently doesn't support parameters
+        Note: kron_r currently doesn't support parameters.
         """
         lhs, is_param_free_lhs = self.get_constant_data(lin.data, view, column=True)
         assert is_param_free_lhs
@@ -882,10 +910,10 @@ class ScipyCanonBackend(PythonCanonBackend):
     def kron_l(self, lin: LinOp, view: ScipyTensorView) -> ScipyTensorView:
         """
         Returns view corresponding to Kronecker product of view x with data 'a', i.e., kron(x,a).
-        This function computes the kron of x and 'a' on every slice of the tensor
-        and reorders the row indices afterwards.
+        This function reshapes 'a' into a column vector, computes the Kronecker product with the
+        view of x and reorders the row indices afterwards.
 
-        Note: kron_l currently doesn't support parameters
+        Note: kron_l currently doesn't support parameters.
         """
         rhs, is_param_free_rhs = self.get_constant_data(lin.data, view, column=True)
         assert is_param_free_rhs
@@ -1067,7 +1095,8 @@ class NumpyCanonBackend(PythonCanonBackend):
         d is broadcasted along dimension 1 (columns).
         This function is semantically identical to mul_elem but the view x
         is multiplied with the reciprocal of the lin_op data.
-        Note: div currently doesn't support parameters
+
+        Note: div currently doesn't support parameters.
         """
         lhs, is_param_free_lhs = self.get_constant_data(lin.data, view, column=True)
         assert is_param_free_lhs
@@ -1085,9 +1114,8 @@ class NumpyCanonBackend(PythonCanonBackend):
         """
         Diagonal vector to matrix. Given (A, b) with n rows in view, add rows of zeros such that
         the original rows now correspond to the diagonal entries of the n x n expression.
-        An optional offset parameter `k` can be specified to adjust the position of the
-        diagonal entries. For positive `k`, the diagonal is shifted downwards, and for
-        negative `k`, it's shifted upwards.
+        An optional offset parameter `k` can be specified, with k>0 for diagonals above
+        the main diagonal, and k<0 for diagonals below the main diagonal.
         """
         assert lin.shape[0] == lin.shape[1]
         k = lin.data
@@ -1190,9 +1218,11 @@ class NumpyCanonBackend(PythonCanonBackend):
         """
         Returns view corresponding to a discrete convolution with data 'a', i.e., multiplying from
         the left a repetition of the column vector of 'a' for each column in A, shifted down one row
-        after each column. If lin_data is a row vector, the function transforms the lhs to become a
-        column vector before applying the convolution.
-        Note: conv currently doesn't support parameters
+        after each column, i.e., a Toeplitz matrix.
+        If lin_data is a row vector, we must transform the lhs to become a column vector before
+        applying the convolution.
+
+        Note: conv currently doesn't support parameters.
         """
         lhs, is_param_free_lhs = self.get_constant_data(lin.data, view, column=False)
         assert is_param_free_lhs
@@ -1208,9 +1238,10 @@ class NumpyCanonBackend(PythonCanonBackend):
     def kron_r(self, lin: LinOp, view: NumpyTensorView) -> NumpyTensorView:
         """
         Returns view corresponding to Kronecker product of data 'a' with view x, i.e., kron(a,x).
-        This function computes the kron of 'a' and x and reorders the row indices afterwards.
+        This function reshapes 'a' into a column vector, computes the Kronecker product with the
+        view of x and reorders the row indices afterwards.
 
-        Note: kron_r currently doesn't support parameters
+        Note: kron_r currently doesn't support parameters.
         """
         lhs, is_param_free_lhs = self.get_constant_data(lin.data, view, column=True)
         assert is_param_free_lhs
@@ -1234,9 +1265,10 @@ class NumpyCanonBackend(PythonCanonBackend):
     def kron_l(self, lin: LinOp, view: NumpyTensorView) -> NumpyTensorView:
         """
         Returns view corresponding to Kronecker product of view x with data 'a', i.e., kron(x,a).
-        This function computes the kron of x and 'a' and reorders the row indices afterwards.
+        This function reshapes 'a' into a column vector, computes the Kronecker product with the
+        view of x and reorders the row indices afterwards.
 
-        Note: kron_l currently doesn't support parameters
+        Note: kron_l currently doesn't support parameters.
         """
         rhs, is_param_free_rhs = self.get_constant_data(lin.data, view, column=True)
         assert is_param_free_rhs
