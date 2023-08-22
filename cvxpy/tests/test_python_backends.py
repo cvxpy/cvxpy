@@ -10,9 +10,9 @@ import scipy.sparse as sp
 import cvxpy.settings as s
 from cvxpy.lin_ops.canon_backend import (
     CanonBackend,
-    NumpyCanonBackend,
+    NumPyCanonBackend,
     PythonCanonBackend,
-    ScipyCanonBackend,
+    SciPyCanonBackend,
     TensorRepresentation,
 )
 
@@ -44,10 +44,10 @@ class TestBackendInstance:
     def test_get_backend(self):
         args = ({1: 0, 2: 2}, {-1: 1, 3: 1}, {3: 0, -1: 1}, 2, 4)
         backend = CanonBackend.get_backend(s.SCIPY_CANON_BACKEND, *args)
-        assert isinstance(backend, ScipyCanonBackend)
+        assert isinstance(backend, SciPyCanonBackend)
 
         backend = CanonBackend.get_backend(s.NUMPY_CANON_BACKEND, *args)
-        assert isinstance(backend, NumpyCanonBackend)
+        assert isinstance(backend, NumPyCanonBackend)
 
         with pytest.raises(KeyError):
             CanonBackend.get_backend('notabackend')
@@ -1110,14 +1110,14 @@ class TestParametrizedBackends:
         out_view = param_backend.sum_entries(sum_entries_lin_op, param_var_view)
 
         slice_idx_zero = out_view.tensor[1][2][0]
-        slice_idx_zero = NumpyCanonBackend._to_dense(slice_idx_zero)
+        slice_idx_zero = NumPyCanonBackend._to_dense(slice_idx_zero)
         expected_idx_zero = np.array(
             [[1., 0.]]
         )
         assert np.all(slice_idx_zero == expected_idx_zero)
 
         slice_idx_one = out_view.tensor[1][2][1]
-        slice_idx_one = NumpyCanonBackend._to_dense(slice_idx_one)
+        slice_idx_one = NumPyCanonBackend._to_dense(slice_idx_one)
         expected_idx_one = np.array(
             [[0., 1.]]
         )
@@ -1182,7 +1182,7 @@ class TestParametrizedBackends:
 
         # indices are: variable 1, parameter 2, 0 index of the list
         slice_idx_zero = out_view.tensor[1][2][0]
-        slice_idx_zero = NumpyCanonBackend._to_dense(slice_idx_zero)
+        slice_idx_zero = NumPyCanonBackend._to_dense(slice_idx_zero)
         expected_idx_zero = np.array(
             [[1., 0., 0., 0.],
              [0., 0., 0., 0.],
@@ -1193,7 +1193,7 @@ class TestParametrizedBackends:
 
         # indices are: variable 1, parameter 2, 1 index of the list
         slice_idx_one = out_view.tensor[1][2][1]
-        slice_idx_one = NumpyCanonBackend._to_dense(slice_idx_one)
+        slice_idx_one = NumPyCanonBackend._to_dense(slice_idx_one)
         expected_idx_one = np.array(
             [[0., 0., 0., 0.],
              [1., 0., 0., 0.],
@@ -1204,7 +1204,7 @@ class TestParametrizedBackends:
 
         # indices are: variable 1, parameter 2, 2 index of the list
         slice_idx_two = out_view.tensor[1][2][2]
-        slice_idx_two = NumpyCanonBackend._to_dense(slice_idx_two)
+        slice_idx_two = NumPyCanonBackend._to_dense(slice_idx_two)
         expected_idx_two = np.array(
             [[0., 1., 0., 0.],
              [0., 0., 0., 0.],
@@ -1215,7 +1215,7 @@ class TestParametrizedBackends:
 
         # indices are: variable 1, parameter 2, 3 index of the list
         slice_idx_three = out_view.tensor[1][2][3]
-        slice_idx_three = NumpyCanonBackend._to_dense(slice_idx_three)
+        slice_idx_three = NumPyCanonBackend._to_dense(slice_idx_three)
         expected_idx_three = np.array(
             [[0., 0., 0., 0.],
              [0., 1., 0., 0.],
@@ -1265,7 +1265,7 @@ class TestParametrizedBackends:
 
         # indices are: variable 1, parameter 2, 0 index of the list
         slice_idx_zero = out_view.tensor[1][2][0]
-        slice_idx_zero = NumpyCanonBackend._to_dense(slice_idx_zero)
+        slice_idx_zero = NumPyCanonBackend._to_dense(slice_idx_zero)
         expected_idx_zero = np.array(
             [[1, 0, 0, 0],
              [0, 1, 0, 0]]
@@ -1274,7 +1274,7 @@ class TestParametrizedBackends:
 
         # indices are: variable 1, parameter 2, 1 index of the list
         slice_idx_one = out_view.tensor[1][2][1]
-        slice_idx_one = NumpyCanonBackend._to_dense(slice_idx_one)
+        slice_idx_one = NumPyCanonBackend._to_dense(slice_idx_one)
         expected_idx_one = np.array(
             [[0, 0, 1, 0],
              [0, 0, 0, 1]]
@@ -1320,7 +1320,7 @@ class TestParametrizedBackends:
 
         # indices are: variable 1, parameter 2, 0 index of the list
         slice_idx_zero = out_view.tensor[1][2][0]
-        slice_idx_zero = NumpyCanonBackend._to_dense(slice_idx_zero)
+        slice_idx_zero = NumPyCanonBackend._to_dense(slice_idx_zero)
         expected_idx_zero = np.array(
             [[1, 0],
              [0, 0]]
@@ -1329,7 +1329,7 @@ class TestParametrizedBackends:
 
         # indices are: variable 1, parameter 2, 1 index of the list
         slice_idx_one = out_view.tensor[1][2][1]
-        slice_idx_one = NumpyCanonBackend._to_dense(slice_idx_one)
+        slice_idx_one = NumPyCanonBackend._to_dense(slice_idx_one)
         expected_idx_one = np.array(
             [[0, 0],
              [0, 1]]
@@ -1340,13 +1340,13 @@ class TestParametrizedBackends:
         assert out_view.get_tensor_representation(0) == view.get_tensor_representation(0)
 
 
-class TestScipyBackend:
+class TestSciPyBackend:
     @staticmethod
     @pytest.fixture()
     def scipy_backend():
         args = ({1: 0}, {-1: 1, 2: 2}, {2: 0, -1: 2}, 3, 2)
         backend = CanonBackend.get_backend(s.SCIPY_CANON_BACKEND, *args)
-        assert isinstance(backend, ScipyCanonBackend)
+        assert isinstance(backend, SciPyCanonBackend)
         return backend
 
     def test_get_variable_tensor(self, scipy_backend):
@@ -1394,13 +1394,13 @@ class TestScipyBackend:
             view.add_dicts({"a": 1}, {"a": 2})
 
 
-class TestNumpyBackend:
+class TestNumPyBackend:
     @staticmethod
     @pytest.fixture()
     def numpy_backend():
         args = ({1: 0}, {-1: 1, 2: 2}, {2: 0, -1: 2}, 3, 2)
         backend = CanonBackend.get_backend(s.NUMPY_CANON_BACKEND, *args)
-        assert isinstance(backend, NumpyCanonBackend)
+        assert isinstance(backend, NumPyCanonBackend)
         return backend
 
     def test_get_variable_tensor(self, numpy_backend):
