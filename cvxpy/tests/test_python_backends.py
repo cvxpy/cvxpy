@@ -10,9 +10,9 @@ import scipy.sparse as sp
 import cvxpy.settings as s
 from cvxpy.lin_ops.canon_backend import (
     CanonBackend,
-    NumpyCanonBackend,
+    NumPyCanonBackend,
     PythonCanonBackend,
-    ScipyCanonBackend,
+    SciPyCanonBackend,
     TensorRepresentation,
 )
 
@@ -44,10 +44,10 @@ class TestBackendInstance:
     def test_get_backend(self):
         args = ({1: 0, 2: 2}, {-1: 1, 3: 1}, {3: 0, -1: 1}, 2, 4)
         backend = CanonBackend.get_backend(s.SCIPY_CANON_BACKEND, *args)
-        assert isinstance(backend, ScipyCanonBackend)
+        assert isinstance(backend, SciPyCanonBackend)
 
         backend = CanonBackend.get_backend(s.NUMPY_CANON_BACKEND, *args)
-        assert isinstance(backend, NumpyCanonBackend)
+        assert isinstance(backend, NumPyCanonBackend)
 
         with pytest.raises(KeyError):
             CanonBackend.get_backend('notabackend')
@@ -918,23 +918,38 @@ class TestBackends:
          [x21, x22]]
 
         and
-        a = [[1, 2]],
+        a = [[1],
+             [2]],
 
         kron(a, x) means we have
-        [[x11, x12, 2x11, 2x12],
-         [x21, x22, 2x21, 2x22]]
+        [[x11, x12],
+         [x21, x22],
+         [2x11, 2x12],
+         [2x21, 2x22]]        
 
         i.e. as represented in the A matrix (again in column-major order)
 
          x11 x21 x12 x22
         [[1   0   0   0],
          [0   1   0   0],
-         [0   0   1   0],
-         [0   0   0   1],
          [2   0   0   0],
          [0   2   0   0],
+         [0   0   1   0],
+         [0   0   0   1],
          [0   0   2   0],
          [0   0   0   2]]
+
+        However computing kron(a, x) (where x is represented as eye(4))
+        directly gives us:
+        [[1   0   0   0],
+         [2   0   0   0],
+         [0   1   0   0],
+         [0   2   0   0],
+         [0   0   1   0],
+         [0   0   2   0],
+         [0   0   0   1],
+         [0   0   0   2]]
+        So we must swap the row indices of the resulting matrix.
         """
 
         variable_lin_op = linOpHelper((2, 2), type='variable', data=1)
@@ -945,7 +960,7 @@ class TestBackends:
         view_A = sp.coo_matrix((view_A.data, (view_A.row, view_A.col)), shape=(4, 4)).toarray()
         assert np.all(view_A == np.eye(4))
 
-        a = linOpHelper((1, 2), type='dense_const', data=np.array([[1, 2]]))
+        a = linOpHelper((2, 1), type='dense_const', data=np.array([[1], [2]]))
         kron_r_lin_op = linOpHelper(data=a, args=[variable_lin_op])
 
         out_view = backend.kron_r(kron_r_lin_op, view)
@@ -956,10 +971,10 @@ class TestBackends:
         expected = np.array(
             [[1., 0., 0., 0.],
              [0., 1., 0., 0.],
-             [0., 0., 1., 0.],
-             [0., 0., 0., 1.],
              [2., 0., 0., 0.],
              [0., 2., 0., 0.],
+             [0., 0., 1., 0.],
+             [0., 0., 0., 1.],
              [0., 0., 2., 0.],
              [0., 0., 0., 2.]]
         )
@@ -992,6 +1007,18 @@ class TestBackends:
          [0   0   0   1],
          [0   0   2   0],
          [0   0   0   2]]
+
+         However computing kron(x, a) (where a is reshaped into a column vector
+         and x is represented as eye(4)) directly gives us:
+        [[1   0   0   0],
+         [2   0   0   0],
+         [0   1   0   0],
+         [0   2   0   0],
+         [0   0   1   0],
+         [0   0   2   0],
+         [0   0   0   1],
+         [0   0   0   2]]
+        So we must swap the row indices of the resulting matrix.
         """
 
         variable_lin_op = linOpHelper((2, 2), type='variable', data=1)
@@ -1083,14 +1110,14 @@ class TestParametrizedBackends:
         out_view = param_backend.sum_entries(sum_entries_lin_op, param_var_view)
 
         slice_idx_zero = out_view.tensor[1][2][0]
-        slice_idx_zero = NumpyCanonBackend._to_dense(slice_idx_zero)
+        slice_idx_zero = NumPyCanonBackend._to_dense(slice_idx_zero)
         expected_idx_zero = np.array(
             [[1., 0.]]
         )
         assert np.all(slice_idx_zero == expected_idx_zero)
 
         slice_idx_one = out_view.tensor[1][2][1]
-        slice_idx_one = NumpyCanonBackend._to_dense(slice_idx_one)
+        slice_idx_one = NumPyCanonBackend._to_dense(slice_idx_one)
         expected_idx_one = np.array(
             [[0., 1.]]
         )
@@ -1155,7 +1182,7 @@ class TestParametrizedBackends:
 
         # indices are: variable 1, parameter 2, 0 index of the list
         slice_idx_zero = out_view.tensor[1][2][0]
-        slice_idx_zero = NumpyCanonBackend._to_dense(slice_idx_zero)
+        slice_idx_zero = NumPyCanonBackend._to_dense(slice_idx_zero)
         expected_idx_zero = np.array(
             [[1., 0., 0., 0.],
              [0., 0., 0., 0.],
@@ -1166,7 +1193,7 @@ class TestParametrizedBackends:
 
         # indices are: variable 1, parameter 2, 1 index of the list
         slice_idx_one = out_view.tensor[1][2][1]
-        slice_idx_one = NumpyCanonBackend._to_dense(slice_idx_one)
+        slice_idx_one = NumPyCanonBackend._to_dense(slice_idx_one)
         expected_idx_one = np.array(
             [[0., 0., 0., 0.],
              [1., 0., 0., 0.],
@@ -1177,7 +1204,7 @@ class TestParametrizedBackends:
 
         # indices are: variable 1, parameter 2, 2 index of the list
         slice_idx_two = out_view.tensor[1][2][2]
-        slice_idx_two = NumpyCanonBackend._to_dense(slice_idx_two)
+        slice_idx_two = NumPyCanonBackend._to_dense(slice_idx_two)
         expected_idx_two = np.array(
             [[0., 1., 0., 0.],
              [0., 0., 0., 0.],
@@ -1188,7 +1215,7 @@ class TestParametrizedBackends:
 
         # indices are: variable 1, parameter 2, 3 index of the list
         slice_idx_three = out_view.tensor[1][2][3]
-        slice_idx_three = NumpyCanonBackend._to_dense(slice_idx_three)
+        slice_idx_three = NumPyCanonBackend._to_dense(slice_idx_three)
         expected_idx_three = np.array(
             [[0., 0., 0., 0.],
              [0., 1., 0., 0.],
@@ -1238,7 +1265,7 @@ class TestParametrizedBackends:
 
         # indices are: variable 1, parameter 2, 0 index of the list
         slice_idx_zero = out_view.tensor[1][2][0]
-        slice_idx_zero = NumpyCanonBackend._to_dense(slice_idx_zero)
+        slice_idx_zero = NumPyCanonBackend._to_dense(slice_idx_zero)
         expected_idx_zero = np.array(
             [[1, 0, 0, 0],
              [0, 1, 0, 0]]
@@ -1247,7 +1274,7 @@ class TestParametrizedBackends:
 
         # indices are: variable 1, parameter 2, 1 index of the list
         slice_idx_one = out_view.tensor[1][2][1]
-        slice_idx_one = NumpyCanonBackend._to_dense(slice_idx_one)
+        slice_idx_one = NumPyCanonBackend._to_dense(slice_idx_one)
         expected_idx_one = np.array(
             [[0, 0, 1, 0],
              [0, 0, 0, 1]]
@@ -1293,7 +1320,7 @@ class TestParametrizedBackends:
 
         # indices are: variable 1, parameter 2, 0 index of the list
         slice_idx_zero = out_view.tensor[1][2][0]
-        slice_idx_zero = NumpyCanonBackend._to_dense(slice_idx_zero)
+        slice_idx_zero = NumPyCanonBackend._to_dense(slice_idx_zero)
         expected_idx_zero = np.array(
             [[1, 0],
              [0, 0]]
@@ -1302,7 +1329,7 @@ class TestParametrizedBackends:
 
         # indices are: variable 1, parameter 2, 1 index of the list
         slice_idx_one = out_view.tensor[1][2][1]
-        slice_idx_one = NumpyCanonBackend._to_dense(slice_idx_one)
+        slice_idx_one = NumPyCanonBackend._to_dense(slice_idx_one)
         expected_idx_one = np.array(
             [[0, 0],
              [0, 1]]
@@ -1313,13 +1340,13 @@ class TestParametrizedBackends:
         assert out_view.get_tensor_representation(0) == view.get_tensor_representation(0)
 
 
-class TestScipyBackend:
+class TestSciPyBackend:
     @staticmethod
     @pytest.fixture()
     def scipy_backend():
         args = ({1: 0}, {-1: 1, 2: 2}, {2: 0, -1: 2}, 3, 2)
         backend = CanonBackend.get_backend(s.SCIPY_CANON_BACKEND, *args)
-        assert isinstance(backend, ScipyCanonBackend)
+        assert isinstance(backend, SciPyCanonBackend)
         return backend
 
     def test_get_variable_tensor(self, scipy_backend):
@@ -1367,13 +1394,13 @@ class TestScipyBackend:
             view.add_dicts({"a": 1}, {"a": 2})
 
 
-class TestNumpyBackend:
+class TestNumPyBackend:
     @staticmethod
     @pytest.fixture()
     def numpy_backend():
         args = ({1: 0}, {-1: 1, 2: 2}, {2: 0, -1: 2}, 3, 2)
         backend = CanonBackend.get_backend(s.NUMPY_CANON_BACKEND, *args)
-        assert isinstance(backend, NumpyCanonBackend)
+        assert isinstance(backend, NumPyCanonBackend)
         return backend
 
     def test_get_variable_tensor(self, numpy_backend):
