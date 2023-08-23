@@ -1390,7 +1390,9 @@ class StackedSlicesBackend(PythonCanonBackend):
     def mul(self, lin: LinOp, view: StackedSlicesTensorView) -> StackedSlicesTensorView:
         """
         Multiply view with constant data from the left.
-
+        This method computes the traditional multiplication of constant/parametrized data with
+        the tensorview. The simple case is when the lhs is constant. In which case we calculate
+        the number of repetitions, stacking copies vertically along the diagonal using kron.
         """
         lhs, is_param_free_lhs = self.get_constant_data(lin.data, view, column=False)
         if is_param_free_lhs:
@@ -1421,6 +1423,9 @@ class StackedSlicesBackend(PythonCanonBackend):
 
     def _repeat_parametrized_lhs(self, lhs: dict[int, list[sp.csc_matrix]], reps: int) \
             -> sp.csc_matrix:
+        """
+
+        """
         res = dict()
         for param_id, v in lhs.items():
             p = self.param_to_size[param_id]
@@ -1538,12 +1543,14 @@ class StackedSlicesBackend(PythonCanonBackend):
 
         if is_param_free_lhs:
             if len(lin.data.shape) == 1 and arg_cols != lhs.shape[0]:
-                lhs = lhs.T
-            reps = view.rows // lhs.shape[0]
-            if reps > 1:
-                stacked_lhs = sp.kron(lhs.T, sp.eye(reps, format="csc"))
+                reps = view.rows // lhs.shape[1]
+                stacked_lhs = sp.kron(lhs, sp.eye(reps, format="csc"))
             else:
-                stacked_lhs = lhs.T.tocsc()
+                reps = view.rows // lhs.shape[0]
+                if reps > 1:
+                    stacked_lhs = sp.kron(lhs.T, sp.eye(reps, format="csc"))
+                else:
+                    stacked_lhs = lhs.T.tocsc()
 
             def func(x, _p):
                 return (stacked_lhs @ x).tocsc()
@@ -1551,29 +1558,29 @@ class StackedSlicesBackend(PythonCanonBackend):
             lhs_shape = next(iter(lhs.values())).shape
             p = view.rows // lhs_shape[-1]
             lhs_shape = (lhs_shape[0] // p, lhs_shape[1])
+            stacked_lhs = {}
             if len(lin.data.shape) == 1 and arg_cols != lhs_shape[0]:
                 # Example: (n,n) @ (n,), we need to interpret the rhs as a column vector,
                 # but it is a row vector by default, so we need to transpose
-                lhs_shape = next(iter(lhs.values())).shape
-                lhs_shape = (lhs_shape[0], lhs_shape[1] // p)
+                reps = view.rows // lhs_shape[1]
+                eye = sp.eye(reps, format="csc")
                 for param_id, param_mat in lhs.items():
                     inds = np.arange(param_mat.shape[1])
                     sub_inds = np.split(inds, self.param_to_size[param_id])
-                    lhs[param_id] = sp.vstack([param_mat[s].T for s in sub_inds],
-                                              format='csc')
-
-            reps = view.rows // lhs_shape[0]
-            eye = sp.eye(reps, format="csc")
-            stacked_lhs = {}
-            for param_id, param_mat in lhs.items():
-                inds = np.arange(param_mat.shape[0])
-                sub_inds = np.split(inds, self.param_to_size[param_id])
-                if reps > 1:
-                    stacked_lhs[param_id] = sp.vstack([sp.kron(param_mat[s].T, eye, format='csc')
+                    stacked_lhs[param_id] = sp.vstack([sp.kron(param_mat[s], eye, format='csc')
                                                        for s in sub_inds], format='csc')
-                else:
-                    stacked_lhs[param_id] = sp.vstack([param_mat[s].T
-                                                       for s in sub_inds], format='csc')
+            else:
+                reps = view.rows // lhs_shape[0]
+                eye = sp.eye(reps, format="csc")
+                for param_id, param_mat in lhs.items():
+                    inds = np.arange(param_mat.shape[0])
+                    sub_inds = np.split(inds, self.param_to_size[param_id])
+                    if reps > 1:
+                        stacked_lhs[param_id] = sp.vstack([sp.kron(param_mat[s].T, eye)
+                                                           for s in sub_inds], format='csc')
+                    else:
+                        stacked_lhs[param_id] = sp.vstack([param_mat[s].T
+                                                           for s in sub_inds], format='csc')
 
             def parametrized_mul(x):
                 return {k: (v @ x).tocsc() for k, v in stacked_lhs.items()}
@@ -2065,6 +2072,11 @@ class StackedSlicesTensorView(DictTensorView):
 
     @property
     def rows(self) -> int:
+        """
+        Number of rows of the TensorView.
+        This is calculated by dividing the totals rows of the tensor by the
+        number of parameter slices.
+        """
         if self.tensor is not None:
             for param_dict in self.tensor.values():
                 for param_id, param_mat in param_dict.items():
@@ -2075,6 +2087,11 @@ class StackedSlicesTensorView(DictTensorView):
     def get_tensor_representation(self, row_offset: int) -> TensorRepresentation:
         """
         Returns a TensorRepresentation of [A b] tensor.
+        This function iterates through all the tensor data and constructs their
+        respective representation in COO format. The row data is adjusted according
+        to the position of each element within a parameter slice. The parameter_offset
+        finds which slice the original row indices belong to before applying the column
+        offset.
         """
         assert self.tensor is not None
         tensor_representations = []
@@ -2092,7 +2109,16 @@ class StackedSlicesTensorView(DictTensorView):
         return TensorRepresentation.combine(tensor_representations)
 
     def select_rows(self, rows: np.ndarray) -> None:
+        """
+        Select 'rows' from tensor. If there are multiple parameters 'p',
+        we must select the same 'rows' from each parameter slice. This is done by
+        introducing an offset of size 'm' for every parameter.
+        """
         def func(x, p):
+            """
+            Note: the error handling is here in case the input 'rows' becomes
+            incompatible with the tensor's shape.
+            """
             try:
                 if p == 1:
                     return x[rows, :]
@@ -2105,12 +2131,21 @@ class StackedSlicesTensorView(DictTensorView):
         self.apply_all(func)
 
     def apply_all(self, func: Callable) -> None:
+        """
+        Apply 'func' across all variables and parameter slices.
+        For the stacked-slices backend, we must pass an additional parameter 'p'
+        which is the number of parameter slices.
+        """
         self.tensor = {var_id: {k: func(v, self.param_to_size[k])
                                 for k, v in parameter_repr.items()}
                        for var_id, parameter_repr in self.tensor.items()}
 
     def create_new_tensor_view(self, variable_ids: set[int], tensor: Any,
                                is_parameter_free: bool) -> StackedSlicesTensorView:
+        """
+        Create new StackedSlicesTensorView with same shape information as self,
+        but new tensor data.
+        """
         return StackedSlicesTensorView(variable_ids, tensor, is_parameter_free,
                                        self.param_size_plus_one, self.id_to_col,
                                        self.param_to_size, self.param_to_col,
@@ -2128,6 +2163,9 @@ class StackedSlicesTensorView(DictTensorView):
 
     @staticmethod
     def add_tensors(a: sp.spmatrix, b: sp.spmatrix) -> sp.spmatrix:
+        """
+        Apply element-wise summation on two sparse matrices.
+        """
         return a + b
 
     @staticmethod

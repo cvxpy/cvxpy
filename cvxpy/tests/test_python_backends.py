@@ -13,6 +13,7 @@ from cvxpy.lin_ops.canon_backend import (
     NumPyCanonBackend,
     PythonCanonBackend,
     SciPyCanonBackend,
+    StackedSlicesBackend,
     TensorRepresentation,
 )
 
@@ -1067,7 +1068,6 @@ class TestParametrizedBackends:
     @staticmethod
     @pytest.fixture(params=backends)
     def param_backend(request):
-
         kwargs = {
             "id_to_col": {1: 0},
             "param_to_size": {-1: 1, 2: 2},
@@ -1110,13 +1110,13 @@ class TestParametrizedBackends:
         out_view = param_backend.sum_entries(sum_entries_lin_op, param_var_view)
         out_repr = out_view.get_tensor_representation(0)
 
-        slice_idx_zero = out_repr.get_param_slice(0, (1,2)).toarray()
+        slice_idx_zero = out_repr.get_param_slice(0, (1, 2)).toarray()
         expected_idx_zero = np.array(
             [[1., 0.]]
         )
         assert np.all(slice_idx_zero == expected_idx_zero)
 
-        slice_idx_one = out_repr.get_param_slice(1, (1,2)).toarray()
+        slice_idx_one = out_repr.get_param_slice(1, (1, 2)).toarray()
         expected_idx_one = np.array(
             [[0., 1.]]
         )
@@ -1127,9 +1127,9 @@ class TestParametrizedBackends:
 
     def test_parametrized_mul(self, param_backend):
         """
-        Continuing non-parametrized example when the lhs is a parameter, instead of multiplying with
-        known values, the matrix is split up into four slices, each representing an element of the
-        parameter, i.e. instead of
+        Continuing from the non-parametrized example when the lhs is a parameter,
+        instead of multiplying with known values, the matrix is split up into four slices,
+        each representing an element of the parameter, i.e. instead of
          x11 x21 x12 x22
         [[1   2   0   0],
          [3   4   0   0],
@@ -1181,7 +1181,7 @@ class TestParametrizedBackends:
         out_repr = out_view.get_tensor_representation(0)
 
         # indices are: variable 1, parameter 2, 0 index of the list
-        slice_idx_zero = out_repr.get_param_slice(0, (4,4)).toarray()
+        slice_idx_zero = out_repr.get_param_slice(0, (4, 4)).toarray()
         expected_idx_zero = np.array(
             [[1., 0., 0., 0.],
              [0., 0., 0., 0.],
@@ -1191,7 +1191,7 @@ class TestParametrizedBackends:
         assert np.all(slice_idx_zero == expected_idx_zero)
 
         # indices are: variable 1, parameter 2, 1 index of the list
-        slice_idx_one = out_repr.get_param_slice(1, (4,4)).toarray()
+        slice_idx_one = out_repr.get_param_slice(1, (4, 4)).toarray()
         expected_idx_one = np.array(
             [[0., 0., 0., 0.],
              [1., 0., 0., 0.],
@@ -1201,7 +1201,7 @@ class TestParametrizedBackends:
         assert np.all(slice_idx_one == expected_idx_one)
 
         # indices are: variable 1, parameter 2, 2 index of the list
-        slice_idx_two = out_repr.get_param_slice(2, (4,4)).toarray()
+        slice_idx_two = out_repr.get_param_slice(2, (4, 4)).toarray()
         expected_idx_two = np.array(
             [[0., 1., 0., 0.],
              [0., 0., 0., 0.],
@@ -1211,7 +1211,7 @@ class TestParametrizedBackends:
         assert np.all(slice_idx_two == expected_idx_two)
 
         # indices are: variable 1, parameter 2, 3 index of the list
-        slice_idx_three = out_repr.get_param_slice(3, (4,4)).toarray()
+        slice_idx_three = out_repr.get_param_slice(3, (4, 4)).toarray()
         expected_idx_three = np.array(
             [[0., 0., 0., 0.],
              [0., 1., 0., 0.],
@@ -1225,9 +1225,9 @@ class TestParametrizedBackends:
 
     def test_parametrized_rmul(self, param_backend):
         """
-        Continuing the non-parametrized example when the rhs is a parameter, instead of multiplying
-        with known values, the matrix is split up into two slices, each representing an element of
-        the parameter, i.e. instead of
+        Continuing from the non-parametrized example when the rhs is a parameter,
+        instead of multiplying with known values, the matrix is split up into two slices,
+        each representing an element of the parameter, i.e. instead of
          x11 x21 x12 x22
         [[1   0   2   0],
          [0   1   0   2]]
@@ -1261,7 +1261,7 @@ class TestParametrizedBackends:
         out_repr = out_view.get_tensor_representation(0)
 
         # indices are: variable 1, parameter 2, 0 index of the list
-        slice_idx_zero = out_repr.get_param_slice(0, (2,4)).toarray()
+        slice_idx_zero = out_repr.get_param_slice(0, (2, 4)).toarray()
         expected_idx_zero = np.array(
             [[1, 0, 0, 0],
              [0, 1, 0, 0]]
@@ -1269,7 +1269,7 @@ class TestParametrizedBackends:
         assert np.all(slice_idx_zero == expected_idx_zero)
 
         # indices are: variable 1, parameter 2, 1 index of the list
-        slice_idx_one = out_repr.get_param_slice(1, (2,4)).toarray()
+        slice_idx_one = out_repr.get_param_slice(1, (2, 4)).toarray()
         expected_idx_one = np.array(
             [[0, 0, 1, 0],
              [0, 0, 0, 1]]
@@ -1315,7 +1315,7 @@ class TestParametrizedBackends:
         out_repr = out_view.get_tensor_representation(0)
 
         # indices are: variable 1, parameter 2, 0 index of the list
-        slice_idx_zero = out_repr.get_param_slice(0, (2,2)).toarray()
+        slice_idx_zero = out_repr.get_param_slice(0, (2, 2)).toarray()
         expected_idx_zero = np.array(
             [[1, 0],
              [0, 0]]
@@ -1323,7 +1323,7 @@ class TestParametrizedBackends:
         assert np.all(slice_idx_zero == expected_idx_zero)
 
         # indices are: variable 1, parameter 2, 1 index of the list
-        slice_idx_one = out_repr.get_param_slice(1, (2,2)).toarray()
+        slice_idx_one = out_repr.get_param_slice(1, (2, 2)).toarray()
         expected_idx_one = np.array(
             [[0, 0],
              [0, 1]]
@@ -1407,8 +1407,7 @@ class TestNumPyBackend:
         assert tensor.shape == (1, 2, 2), "Should be a 1x2x2 tensor"
         assert np.all(tensor[0] == np.eye(2)), "Should be eye(2)"
 
-    @pytest.mark.parametrize('data',
-                             [np.array([[1, 2], [3, 4]]), sp.eye(2) * 4])
+    @pytest.mark.parametrize('data', [np.array([[1, 2], [3, 4]]), sp.eye(2) * 4])
     def test_get_data_tensor(self, numpy_backend, data):
         outer = numpy_backend.get_data_tensor(data)
         assert outer.keys() == {-1}, "Should only be constant variable ID."
@@ -1417,7 +1416,7 @@ class TestNumPyBackend:
         tensor = inner[-1]
         assert isinstance(tensor, np.ndarray), "Should be a numpy array"
         assert isinstance(tensor[0], np.ndarray), "Inner matrix should also be a numpy array"
-        assert tensor.shape == (1, 4, 1), "Should be a 1x2x2 tensor"
+        assert tensor.shape == (1, 4, 1), "Should be a 1x4x1 tensor"
         expected = numpy_backend._to_dense(data).reshape((-1, 1), order="F")
         assert np.all(tensor[0] == expected)
 
@@ -1446,4 +1445,66 @@ class TestNumPyBackend:
         assert view.add_dicts({"a": {"c": one}}, {"a": {"c": one}}) == {'a': {'c': two}}
         with pytest.raises(ValueError,
                            match="Values must either be dicts or <class 'numpy.ndarray'>"):
+            view.add_dicts({"a": 1}, {"a": 2})
+
+
+class TestStackedBackend:
+    @staticmethod
+    @pytest.fixture()
+    def stacked_backend():
+        args = ({1: 0}, {-1: 1, 2: 2}, {2: 0, -1: 2}, 3, 2)
+        backend = CanonBackend.get_backend(s.STACKED_SLICES_BACKEND, *args)
+        assert isinstance(backend, StackedSlicesBackend)
+        return backend
+
+    def test_get_variable_tensor(self, stacked_backend):
+        outer = stacked_backend.get_variable_tensor((2,), 1)
+        assert outer.keys() == {1}, "Should only be in variable with ID 1"
+        inner = outer[1]
+        assert inner.keys() == {-1}, "Should only be in parameter slice -1, i.e. non parametrized."
+        tensor = inner[-1]
+        assert isinstance(tensor, sp.spmatrix), "Should be a scipy sparse matrix"
+        assert tensor.shape == (2, 2), "Should be a 1*2x2 tensor"
+        assert np.all(tensor == np.eye(2)), "Should be eye(2)"
+
+    @pytest.mark.parametrize('data', [np.array([[1, 2], [3, 4]]), sp.eye(2) * 4])
+    def test_get_data_tensor(self, stacked_backend, data):
+        outer = stacked_backend.get_data_tensor(data)
+        assert outer.keys() == {-1}, "Should only be constant variable ID."
+        inner = outer[-1]
+        assert inner.keys() == {-1}, "Should only be in parameter slice -1, i.e. non parametrized."
+        tensor = inner[-1]
+        assert isinstance(tensor, sp.spmatrix), "Should be a scipy sparse matrix"
+        assert tensor.shape == (4, 1), "Should be a 1*4x1 tensor"
+        expected = sp.csr_matrix(data.reshape((-1, 1), order="F"))
+        assert (tensor != expected).nnz == 0
+
+    def test_get_param_tensor(self, stacked_backend):
+        shape = (2, 2)
+        size = np.prod(shape)
+        stacked_backend.param_to_size = {-1: 1, 3: 4}
+        outer = stacked_backend.get_param_tensor(shape, 3)
+        assert outer.keys() == {-1}, "Should only be constant variable ID."
+        inner = outer[-1]
+        assert inner.keys() == {3}, "Should only be the parameter slice of parameter with id 3."
+        tensor = inner[3]
+        assert isinstance(tensor, sp.spmatrix), "Should be a scipy sparse matrix"
+        assert tensor.shape == (16, 1), "Should be a 4*4x1 tensor"
+        assert (tensor.reshape((size, size)) != sp.eye(size, format='csr')).nnz == 0, \
+            'Should be eye(4) when reshaping'
+
+    def test_tensor_view_add_dicts(self, stacked_backend):
+        view = stacked_backend.get_empty_view()
+
+        one = sp.eye(1)
+        two = sp.eye(1) * 2
+        three = sp.eye(1) * 3
+
+        assert view.add_dicts({}, {}) == {}
+        assert view.add_dicts({"a": one}, {"a": two}) == {"a": three}
+        assert view.add_dicts({"a": one}, {"b": two}) == {"a": one, "b": two}
+        assert view.add_dicts({"a": {"c": one}}, {"a": {"c": one}}) == {'a': {'c': two}}
+        with pytest.raises(ValueError,
+                           match="Values must either be dicts or "
+                                 "<class 'scipy.sparse.base.spmatrix'>"):
             view.add_dicts({"a": 1}, {"a": 2})
