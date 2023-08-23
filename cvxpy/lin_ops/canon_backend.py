@@ -32,6 +32,10 @@ from cvxpy.settings import (
     STACKED_SLICES_BACKEND,
 )
 
+"""
+Note: this file is tested extensively with illustrative examples in test_python_backends.py,
+complementing the docstrings of the functions below.
+"""
 
 class Constant(Enum):
     ID = -1
@@ -116,8 +120,8 @@ class CanonBackend(ABC):
         Initialized CanonBackend subclass.
         """
         backends = {
-            NUMPY_CANON_BACKEND: NumpyCanonBackend,
-            SCIPY_CANON_BACKEND: ScipyCanonBackend,
+            NUMPY_CANON_BACKEND: NumPyCanonBackend,
+            SCIPY_CANON_BACKEND: SciPyCanonBackend,
             STACKED_SLICES_BACKEND: StackedSlicesBackend,
             RUST_CANON_BACKEND: RustCanonBackend
         }
@@ -248,7 +252,8 @@ class PythonCanonBackend(CanonBackend):
     @staticmethod
     def concatenate_tensors(tensors: list[TensorRepresentation]) -> TensorRepresentation:
         """
-        Takes list of tensors and stacks them along axis 0 (rows).
+        Takes list of tensors which have already been offset along axis 0 (rows) and
+        combines them into a single tensor.
         """
         return TensorRepresentation.combine(tensors)
 
@@ -322,7 +327,10 @@ class PythonCanonBackend(CanonBackend):
     @abstractmethod
     def mul(self, lin: LinOp, view: TensorView) -> TensorView:
         """
-        Multiply view with constant data from the left
+        Multiply view with constant data from the left.
+        When the lhs is parametrized, multiply each slice of the tensor with the 
+        single, constant slice of the rhs. 
+        Otherwise, multiply the single slice of the tensor with each slice of the rhs.
         """
         pass  # noqa
 
@@ -350,7 +358,10 @@ class PythonCanonBackend(CanonBackend):
     def mul_elem(self, lin: LinOp, view: TensorView) -> TensorView:
         """
         Given (A, b) in view and constant data d, return (A*d, b*d).
-        d is broadcasted along dimension 1 (columns)
+        d is broadcasted along dimension 1 (columns).
+        When the lhs is parametrized, multiply elementwise each slice of the tensor with the 
+        single, constant slice of the rhs. 
+        Otherwise, multiply elementwise the single slice of the tensor with each slice of the rhs.
         """
         pass  # noqa
 
@@ -367,6 +378,10 @@ class PythonCanonBackend(CanonBackend):
         """
         Given (A, b) in view and constant data d, return (A*(1/d), b*(1/d)).
         d is broadcasted along dimension 1 (columns)
+        This function is semantically identical to mul_elem but the view x
+        is multiplied with the reciprocal of the lin_op data instead.
+
+        Note: div currently doesn't support parameters.
         """
         pass  # noqa
 
@@ -390,8 +405,10 @@ class PythonCanonBackend(CanonBackend):
     @abstractmethod
     def diag_vec(lin: LinOp, view: TensorView) -> TensorView:
         """
-        Diagonal vector to matrix. Given (A, b) in with n rows in view, add rows of zeros such that
+        Diagonal vector to matrix. Given (A, b) with n rows in view, add rows of zeros such that
         the original rows now correspond to the diagonal entries of the n x n expression
+        An optional offset parameter `k` can be specified, with k>0 for diagonals above
+        the main diagonal, and k<0 for diagonals below the main diagonal.
         """
         pass  # noqa
 
@@ -471,7 +488,9 @@ class PythonCanonBackend(CanonBackend):
     def diag_mat(lin: LinOp, view: TensorView) -> TensorView:
         """
         Diagonal matrix to vector. Given (A, b) in view, select the rows corresponding to the
-        elements above the diagonal in the original expression.
+        elements on the diagonal in the original expression.
+        An optional offset parameter `k` can be specified, with k>0 for diagonals above
+        the main diagonal, and k<0 for diagonals below the main diagonal.
         """
         rows = lin.shape[0]
         k = lin.data
@@ -488,7 +507,10 @@ class PythonCanonBackend(CanonBackend):
     @abstractmethod
     def rmul(self, lin: LinOp, view: TensorView) -> TensorView:
         """
-        Multiply view with constant data from the right
+        Multiply view with constant data from the right.
+        When the rhs is parametrized, multiply each slice of the tensor with the
+        single, constant slice of the lhs.
+        Otherwise, multiply the single slice of the tensor with each slice of the lhs.
         """
         pass  # noqa
 
@@ -506,7 +528,11 @@ class PythonCanonBackend(CanonBackend):
         """
         Returns view corresponding to a discrete convolution with data 'a', i.e., multiplying from
         the left a repetition of the column vector of 'a' for each column in A, shifted down one row
-        after each column.
+        after each column, i.e., a Toeplitz matrix.
+        If lin_data is a row vector, we must transform the lhs to become a column vector before
+        applying the convolution.
+
+        Note: conv currently doesn't support parameters.
         """
         pass  # noqa
 
@@ -514,6 +540,8 @@ class PythonCanonBackend(CanonBackend):
     def kron_r(self, lin: LinOp, view: TensorView) -> TensorView:
         """
         Returns view corresponding to Kronecker product of data 'a' with view x, i.e., kron(a,x).
+
+        Note: kron_r currently doesn't support parameters.
         """
         pass  # noqa
 
@@ -521,14 +549,33 @@ class PythonCanonBackend(CanonBackend):
     def kron_l(self, lin: LinOp, view: TensorView) -> TensorView:
         """
         Returns view corresponding to Kronecker product of view x with data 'a', i.e., kron(x,a).
+
+        Note: kron_l currently doesn't support parameters.
         """
         pass  # noqa
+
+    @staticmethod
+    def _get_kron_row_indices(lhs_shape, rhs_shape):
+        """
+        Internal function that computes the row indices corresponding to the
+        kronecker product of two sparse tensors.
+        """
+        rhs_ones = np.ones(rhs_shape)
+        lhs_ones = np.ones(lhs_shape)
+
+        rhs_arange = np.arange(np.prod(rhs_shape)).reshape(rhs_shape, order="F")
+        lhs_arange = np.arange(np.prod(lhs_shape)).reshape(lhs_shape, order="F")
+
+        row_indices = (np.kron(lhs_ones, rhs_arange) +
+                       np.kron(lhs_arange, rhs_ones * np.prod(rhs_shape))) \
+            .flatten(order="F").astype(int)
+        return row_indices
 
     @abstractmethod
     def get_variable_tensor(self, shape: tuple[int, ...], variable_id: int) -> Any:
         """
-        Returns tensor of a variable node, i.e., eye(n) across axes 0 and 1, where n i the number of
-        entries of the variable.
+        Returns tensor of a variable node, i.e., eye(n) across axes 0 and 1, where n is
+        the size of the variable.
         """
         pass  # noqa
 
@@ -542,13 +589,18 @@ class PythonCanonBackend(CanonBackend):
     @abstractmethod
     def get_param_tensor(self, shape: tuple[int, ...], parameter_id: int) -> Any:
         """
-        Returns tensor of a parameter node, i.e., eye(n) across axes 0 and 2, where n i the number
-        of entries of the parameter.
+        Returns tensor of a parameter node, i.e., eye(n) across axes 0 and 2, where n is
+        the size of the parameter.
         """
         pass  # noqa
 
 
 class RustCanonBackend(CanonBackend):
+    """
+    The rust canonicalization backend is currently WIP and cannot be used.
+    For additional information, a proof of concept pull request can be found here:
+    https://github.com/phschiele/cvxpy/pull/31
+    """
     def build_matrix(self, lin_ops: list[LinOp]) -> sp.csc_matrix:
         import cvxpy_rust
         self.id_to_col[-1] = self.var_length
@@ -562,20 +614,54 @@ class RustCanonBackend(CanonBackend):
         return sp.csc_matrix((data, (row, col)), shape)
 
 
-class ScipyCanonBackend(PythonCanonBackend):
+class SciPyCanonBackend(PythonCanonBackend):
     @staticmethod
     def reshape_constant_data(constant_data: dict[int, sp.csr_matrix],
-                              lin_op_shape: tuple[int, int]) \
-            -> dict[int, sp.csr_matrix]:
+                              lin_op_shape: tuple[int, int]) -> dict[int, sp.csr_matrix]:
+        """
+        Reshape constant data from column format to the required shape for operations that
+        do not require column format. This function unpacks the constant data dict and reshapes
+        every slice of the tensor 'v' according to the lin_op_shape argument.
+        """
         return {k: [v_i.reshape(lin_op_shape, order="F").tocsr()
                     for v_i in v] for k, v in constant_data.items()}
 
-    def get_empty_view(self) -> ScipyTensorView:
-        return ScipyTensorView.get_empty_view(self.param_size_plus_one, self.id_to_col,
+
+    def concatenate_tensors(self, tensors: list[TensorRepresentation]) \
+            -> TensorRepresentation:
+        """
+        Takes list of tensors which have already been offset along axis 0 (rows) and
+        combines them into a single tensor.
+        """
+        return TensorRepresentation.combine(tensors)
+
+    def reshape_tensors(self, tensor: TensorRepresentation, total_rows: int) -> sp.csc_matrix:
+        """
+        Reshape into 2D scipy csc-matrix in column-major order and transpose.
+
+        Note: Windows uses int32 by default at time of writing, so we need to enforce int64 here
+        """
+        rows = (tensor.col.astype(np.int64) * np.int64(total_rows) + tensor.row.astype(np.int64))
+        cols = tensor.parameter_offset.astype(np.int64)
+        shape = (np.int64(total_rows) * np.int64(self.var_length + 1), self.param_size_plus_one)
+        return sp.csc_matrix((tensor.data, (rows, cols)), shape=shape)
+
+    def get_empty_view(self) -> SciPyTensorView:
+        """
+        Returns an empty view of the corresponding SciPyTensorView subclass, coupling the
+        SciPyCanonBackend subclass with the SciPyTensorView subclass.
+        """
+        return SciPyTensorView.get_empty_view(self.param_size_plus_one, self.id_to_col,
                                               self.param_to_size, self.param_to_col,
                                               self.var_length)
 
-    def mul(self, lin: LinOp, view: ScipyTensorView) -> ScipyTensorView:
+    def mul(self, lin: LinOp, view: SciPyTensorView) -> SciPyTensorView:
+        """
+        Multiply view with constant data from the left.
+        When the lhs is parametrized, multiply each slice of the tensor with the 
+        single, constant slice of the rhs. 
+        Otherwise, multiply the single slice of the tensor with each slice of the rhs.
+        """
         lhs, is_param_free_lhs = self.get_constant_data(lin.data, view, column=False)
 
         if isinstance(lhs, dict):
@@ -599,7 +685,10 @@ class ScipyCanonBackend(PythonCanonBackend):
         return view.accumulate_over_variables(func, is_param_free_function=is_param_free_lhs)
 
     @staticmethod
-    def promote(lin: LinOp, view: ScipyTensorView) -> ScipyTensorView:
+    def promote(lin: LinOp, view: SciPyTensorView) -> SciPyTensorView:
+        """
+        Promote view by repeating along axis 0 (rows).
+        """
         num_entries = int(np.prod(lin.shape))
 
         def func(x):
@@ -610,7 +699,14 @@ class ScipyCanonBackend(PythonCanonBackend):
         view.apply_all(func)
         return view
 
-    def mul_elem(self, lin: LinOp, view: ScipyTensorView) -> ScipyTensorView:
+    def mul_elem(self, lin: LinOp, view: SciPyTensorView) -> SciPyTensorView:
+        """
+        Given (A, b) in view and constant data d, return (A*d, b*d).
+        d is broadcasted along dimension 1 (columns).
+        When the lhs is parametrized, multiply elementwise each slice of the tensor with the 
+        single, constant slice of the rhs. 
+        Otherwise, multiply elementwise the single slice of the tensor with each slice of the rhs.
+        """
         lhs, is_param_free_lhs = self.get_constant_data(lin.data, view, column=True)
         if isinstance(lhs, dict):
             def parametrized_mul(x):
@@ -624,14 +720,25 @@ class ScipyCanonBackend(PythonCanonBackend):
         return view.accumulate_over_variables(func, is_param_free_function=is_param_free_lhs)
 
     @staticmethod
-    def sum_entries(_lin: LinOp, view: ScipyTensorView) -> ScipyTensorView:
+    def sum_entries(_lin: LinOp, view: SciPyTensorView) -> SciPyTensorView:
+        """
+        Given (A, b) in view, return (sum(A,axis=0), sum(b, axis=0)).
+        """
         def func(x):
             return sp.csr_matrix(x.sum(axis=0))
 
         view.apply_all(func)
         return view
 
-    def div(self, lin: LinOp, view: ScipyTensorView) -> ScipyTensorView:
+    def div(self, lin: LinOp, view: SciPyTensorView) -> SciPyTensorView:
+        """
+        Given (A, b) in view and constant data d, return (A*(1/d), b*(1/d)).
+        d is broadcasted along dimension 1 (columns).
+        This function is semantically identical to mul_elem but the view x
+        is multiplied with the reciprocal of the lin_op data instead.
+
+        Note: div currently doesn't support parameters.
+        """
         lhs, is_param_free_lhs = self.get_constant_data(lin.data, view, column=True)
         assert is_param_free_lhs
         assert len(lhs) == 1
@@ -646,7 +753,13 @@ class ScipyCanonBackend(PythonCanonBackend):
         return view.accumulate_over_variables(div_func, is_param_free_function=is_param_free_lhs)
 
     @staticmethod
-    def diag_vec(lin: LinOp, view: ScipyTensorView) -> ScipyTensorView:
+    def diag_vec(lin: LinOp, view: SciPyTensorView) -> SciPyTensorView:
+        """
+        Diagonal vector to matrix. Given (A, b) with n rows in view, add rows of zeros such that
+        the original rows now correspond to the diagonal entries of the n x n expression
+        An optional offset parameter `k` can be specified, with k>0 for diagonals above
+        the main diagonal, and k<0 for diagonals below the main diagonal.
+        """
         assert lin.shape[0] == lin.shape[1]
         k = lin.data
         rows = lin.shape[0]
@@ -669,6 +782,10 @@ class ScipyCanonBackend(PythonCanonBackend):
 
     @staticmethod
     def get_stack_func(total_rows: int, offset: int) -> Callable:
+        """
+        Returns a function that takes in a tensor, modifies the shape of the tensor by extending
+        it to total_rows, and then shifts the entries by offset along axis 0.
+        """
         def stack_func(tensor):
             coo_repr = tensor.tocoo()
             new_rows = (coo_repr.row + offset).astype(int)
@@ -677,9 +794,16 @@ class ScipyCanonBackend(PythonCanonBackend):
 
         return stack_func
 
-    def rmul(self, lin: LinOp, view: ScipyTensorView) -> ScipyTensorView:
-        # Note that even though this is rmul, we still use "lhs", as is implemented via a
-        # multiplication from the left in this function.
+    def rmul(self, lin: LinOp, view: SciPyTensorView) -> SciPyTensorView:
+        """
+        Multiply view with constant data from the right.
+        When the rhs is parametrized, multiply each slice of the tensor with the
+        single, constant slice of the lhs.
+        Otherwise, multiply the single slice of the tensor with each slice of the lhs.
+
+        Note: Even though this is rmul, we still use "lhs", as is implemented via a
+        multiplication from the left in this function.
+        """
         lhs, is_param_free_lhs = self.get_constant_data(lin.data, view, column=False)
 
         arg_cols = lin.args[0].shape[0] if len(lin.args[0].shape) == 1 else lin.args[0].shape[1]
@@ -719,7 +843,11 @@ class ScipyCanonBackend(PythonCanonBackend):
         return view.accumulate_over_variables(func, is_param_free_function=is_param_free_lhs)
 
     @staticmethod
-    def trace(lin: LinOp, view: ScipyTensorView) -> ScipyTensorView:
+    def trace(lin: LinOp, view: SciPyTensorView) -> SciPyTensorView:
+        """
+        Select the rows corresponding to the diagonal entries in the expression and sum along
+        axis 0.
+        """
         shape = lin.args[0].shape
         indices = np.arange(shape[0]) * shape[0] + np.arange(shape[0])
 
@@ -732,7 +860,16 @@ class ScipyCanonBackend(PythonCanonBackend):
 
         return view.accumulate_over_variables(func, is_param_free_function=True)
 
-    def conv(self, lin: LinOp, view: ScipyTensorView) -> ScipyTensorView:
+    def conv(self, lin: LinOp, view: SciPyTensorView) -> SciPyTensorView:
+        """
+        Returns view corresponding to a discrete convolution with data 'a', i.e., multiplying from
+        the left a repetition of the column vector of 'a' for each column in A, shifted down one row
+        after each column, i.e., a Toeplitz matrix.
+        If lin_data is a row vector, we must transform the lhs to become a column vector before
+        applying the convolution.
+
+        Note: conv currently doesn't support parameters.
+        """
         lhs, is_param_free_lhs = self.get_constant_data(lin.data, view, column=False)
         assert is_param_free_lhs
         assert len(lhs) == 1
@@ -758,7 +895,14 @@ class ScipyCanonBackend(PythonCanonBackend):
 
         return view.accumulate_over_variables(func, is_param_free_function=is_param_free_lhs)
 
-    def kron_r(self, lin: LinOp, view: ScipyTensorView) -> ScipyTensorView:
+    def kron_r(self, lin: LinOp, view: SciPyTensorView) -> SciPyTensorView:
+        """
+        Returns view corresponding to Kronecker product of data 'a' with view x, i.e., kron(a,x).
+        This function reshapes 'a' into a column vector, computes the Kronecker product with the
+        view of x and reorders the row indices afterwards.
+
+        Note: kron_r currently doesn't support parameters.
+        """
         lhs, is_param_free_lhs = self.get_constant_data(lin.data, view, column=True)
         assert is_param_free_lhs
         assert len(lhs) == 1
@@ -768,25 +912,24 @@ class ScipyCanonBackend(PythonCanonBackend):
         assert len({arg.shape for arg in lin.args}) == 1
         rhs_shape = lin.args[0].shape
 
-        lhs_ones = np.ones(lin.data.shape)
-        rhs_ones = np.ones(rhs_shape)
-
-        lhs_arange = np.arange(np.prod(lin.data.shape)).reshape(lin.data.shape, order="F")
-        rhs_arange = np.arange(np.prod(rhs_shape)).reshape(rhs_shape, order="F")
-
-        row_indices = (np.kron(lhs_ones, rhs_arange) +
-                       np.kron(lhs_arange, rhs_ones * np.prod(rhs_shape))) \
-            .flatten(order="F").astype(int)
+        row_idx = self._get_kron_row_indices(lin.data.shape, rhs_shape)
 
         def func(x: np.ndarray) -> np.ndarray:
             assert x.ndim == 2
             kron_res = sp.kron(lhs, x).tocsr()
-            kron_res = kron_res[row_indices, :]
+            kron_res = kron_res[row_idx, :]
             return kron_res
 
         return view.accumulate_over_variables(func, is_param_free_function=is_param_free_lhs)
 
-    def kron_l(self, lin: LinOp, view: ScipyTensorView) -> ScipyTensorView:
+    def kron_l(self, lin: LinOp, view: SciPyTensorView) -> SciPyTensorView:
+        """
+        Returns view corresponding to Kronecker product of view x with data 'a', i.e., kron(x,a).
+        This function reshapes 'a' into a column vector, computes the Kronecker product with the
+        view of x and reorders the row indices afterwards.
+
+        Note: kron_l currently doesn't support parameters.
+        """
         rhs, is_param_free_rhs = self.get_constant_data(lin.data, view, column=True)
         assert is_param_free_rhs
         assert len(rhs) == 1
@@ -796,32 +939,35 @@ class ScipyCanonBackend(PythonCanonBackend):
         assert len({arg.shape for arg in lin.args}) == 1
         lhs_shape = lin.args[0].shape
 
-        rhs_ones = np.ones(lin.data.shape)
-        lhs_ones = np.ones(lhs_shape)
-
-        rhs_arange = np.arange(np.prod(lin.data.shape)).reshape(lin.data.shape, order="F")
-        lhs_arange = np.arange(np.prod(lhs_shape)).reshape(lhs_shape, order="F")
-
-        row_indices = (np.kron(lhs_ones, rhs_arange) +
-                       np.kron(lhs_arange, rhs_ones * np.prod(lin.data.shape))) \
-            .flatten(order="F").astype(int)
+        row_idx = self._get_kron_row_indices(lhs_shape, lin.data.shape)
 
         def func(x: np.ndarray) -> np.ndarray:
             assert x.ndim == 2
             kron_res = sp.kron(x, rhs).tocsr()
-            kron_res = kron_res[row_indices, :]
+            kron_res = kron_res[row_idx, :]
             return kron_res
 
         return view.accumulate_over_variables(func, is_param_free_function=is_param_free_rhs)
 
     def get_variable_tensor(self, shape: tuple[int, ...], variable_id: int) -> \
             dict[int, dict[int, list[sp.csr_matrix]]]:
+        """
+        Returns tensor of a variable node, i.e., eye(n) across axes 0 and 1, where n is
+        the number of entries of the variable.
+        This function constructs the identity of size 'n' and is returned as a list to
+        add the parameter axis.
+        """
         assert variable_id != Constant.ID
         n = int(np.prod(shape))
         return {variable_id: {Constant.ID.value: [sp.eye(n, format="csr")]}}
 
     def get_data_tensor(self, data: np.ndarray | sp.spmatrix) -> \
             dict[int, dict[int, list[sp.csr_matrix]]]:
+        """
+        Returns tensor of constant node as a column vector.
+        This function reshapes the data and converts it to csr format.
+        The data tensor is returned as a list to add a parameter axis.
+        """
         if isinstance(data, np.ndarray):
             # Slightly faster compared to reshaping after casting
             tensor = sp.csr_matrix(data.reshape((-1, 1), order="F"))
@@ -831,6 +977,12 @@ class ScipyCanonBackend(PythonCanonBackend):
 
     def get_param_tensor(self, shape: tuple[int, ...], parameter_id: int) \
             -> dict[int, dict[int, list[sp.csr_matrix]]]:
+        """
+        Returns tensor of a parameter node, i.e., eye(n) across axes 0 and 2, where n is
+        the number of entries of the parameter.
+        This function appends 'n' single element sparse matrices stacked on the cols (axis 2)
+        to the 'slices' list (axis 0).
+        """
         assert parameter_id != Constant.ID
         shape = int(np.prod(shape))
         slices = []
@@ -840,20 +992,54 @@ class ScipyCanonBackend(PythonCanonBackend):
         return {Constant.ID.value: {parameter_id: slices}}
 
 
-class NumpyCanonBackend(PythonCanonBackend):
+class NumPyCanonBackend(PythonCanonBackend):
     @staticmethod
     def reshape_constant_data(constant_data: dict[int, np.ndarray],
-                              lin_op_shape: tuple[int, int]) \
-            -> dict[int, np.ndarray]:
+                              lin_op_shape: tuple[int, int]) -> dict[int, np.ndarray]:
+        """
+        Reshape constant data from column format to the required shape for operations that
+        do not require column format. This function unpacks the constant data dict and reshapes
+        dimensions 1 and 2 of the tensor 'v' according to the lin_op_shape argument.
+        """
         return {k: v.reshape((v.shape[0], *lin_op_shape), order="F")
                 for k, v in constant_data.items()}
 
-    def get_empty_view(self) -> NumpyTensorView:
-        return NumpyTensorView.get_empty_view(self.param_size_plus_one, self.id_to_col,
+
+    def concatenate_tensors(self, tensors: list[TensorRepresentation]) \
+            -> TensorRepresentation:
+        """
+        Takes list of tensors which have already been offset along axis 0 (rows) and
+        combines them into a single tensor.
+        """
+        return TensorRepresentation.combine(tensors)
+
+    def reshape_tensors(self, tensor: NumPyTensorView, total_rows: int) -> sp.csc_matrix:
+        """
+        Reshape into 2D scipy csc-matrix in column-major order and transpose.
+
+        Note: Windows uses int32 by default at time of writing, so we need to enforce int64 here
+        """
+        rows = (tensor.col.astype(np.int64) * np.int64(total_rows) + tensor.row.astype(np.int64))
+        cols = tensor.parameter_offset.astype(np.int64)
+        shape = (np.int64(total_rows) * np.int64(self.var_length + 1), self.param_size_plus_one)
+        return sp.csc_matrix((tensor.data, (rows, cols)), shape=shape)
+
+    def get_empty_view(self) -> NumPyTensorView:
+        """
+        Returns an empty view of the corresponding NumPyTensorView subclass,
+        coupling the NumPyCanonBackend subclass with the NumPyTensorView subclass.
+        """
+        return NumPyTensorView.get_empty_view(self.param_size_plus_one, self.id_to_col,
                                               self.param_to_size, self.param_to_col,
                                               self.var_length)
 
-    def mul(self, lin: LinOp, view: NumpyTensorView) -> NumpyTensorView:
+    def mul(self, lin: LinOp, view: NumPyTensorView) -> NumPyTensorView:
+        """
+        Multiply view with constant data from the left.
+        When the lhs is parametrized, multiply each slice of the tensor with the 
+        single, constant slice of the rhs. 
+        Otherwise, multiply the single slice of the tensor with each slice of the rhs.
+        """
         lhs, is_param_free_lhs = self.get_constant_data(lin.data, view, column=False)
         if isinstance(lhs, dict):
             reps = view.rows // next(iter(lhs.values()))[0].shape[-1]
@@ -875,7 +1061,10 @@ class NumpyCanonBackend(PythonCanonBackend):
         return view.accumulate_over_variables(func, is_param_free_function=is_param_free_lhs)
 
     @staticmethod
-    def promote(lin: LinOp, view: NumpyTensorView) -> NumpyTensorView:
+    def promote(lin: LinOp, view: NumPyTensorView) -> NumPyTensorView:
+        """
+        Promote view by repeating along axis 1 (rows).
+        """
         num_entries = int(np.prod(lin.shape))
 
         def func(x):
@@ -884,7 +1073,14 @@ class NumpyCanonBackend(PythonCanonBackend):
         view.apply_all(func)
         return view
 
-    def mul_elem(self, lin: LinOp, view: NumpyTensorView) -> NumpyTensorView:
+    def mul_elem(self, lin: LinOp, view: NumPyTensorView) -> NumPyTensorView:
+        """
+        Given (A, b) in view and constant data d, return (A*d, b*d).
+        d is broadcasted along dimension 1 (columns).
+        When the lhs is parametrized, multiply elementwise each slice of the tensor with the 
+        single, constant slice of the rhs. 
+        Otherwise, multiply elementwise the single slice of the tensor with each slice of the rhs.
+        """
         lhs, is_param_free_lhs = self.get_constant_data(lin.data, view, column=True)
         if isinstance(lhs, dict):
             def parametrized_mul(x):
@@ -898,14 +1094,26 @@ class NumpyCanonBackend(PythonCanonBackend):
         return view.accumulate_over_variables(func, is_param_free_function=is_param_free_lhs)
 
     @staticmethod
-    def sum_entries(_lin: LinOp, view: NumpyTensorView) -> NumpyTensorView:
+    def sum_entries(_lin: LinOp, view: NumPyTensorView) -> NumPyTensorView:
+        """
+        Given (A, b) in view, return the sum of the representation
+        on the row axis, ie: (sum(A,axis=1), sum(b, axis=1)).
+        """
         def func(x):
             return x.sum(axis=1, keepdims=True)
 
         view.apply_all(func)
         return view
 
-    def div(self, lin: LinOp, view: NumpyTensorView) -> NumpyTensorView:
+    def div(self, lin: LinOp, view: NumPyTensorView) -> NumPyTensorView:
+        """
+        Given (A, b) in view and constant data d, return (A*(1/d), b*(1/d)).
+        d is broadcasted along dimension 1 (columns).
+        This function is semantically identical to mul_elem but the view x
+        is multiplied with the reciprocal of the lin_op data.
+
+        Note: div currently doesn't support parameters.
+        """
         lhs, is_param_free_lhs = self.get_constant_data(lin.data, view, column=True)
         assert is_param_free_lhs
         assert lhs.shape[0] == 1
@@ -918,7 +1126,13 @@ class NumpyCanonBackend(PythonCanonBackend):
         return view.accumulate_over_variables(div_func, is_param_free_function=is_param_free_lhs)
 
     @staticmethod
-    def diag_vec(lin: LinOp, view: NumpyTensorView) -> NumpyTensorView:
+    def diag_vec(lin: LinOp, view: NumPyTensorView) -> NumPyTensorView:
+        """
+        Diagonal vector to matrix. Given (A, b) with n rows in view, add rows of zeros such that
+        the original rows now correspond to the diagonal entries of the n x n expression.
+        An optional offset parameter `k` can be specified, with k>0 for diagonals above
+        the main diagonal, and k<0 for diagonals below the main diagonal.
+        """
         assert lin.shape[0] == lin.shape[1]
         k = lin.data
         rows = lin.shape[0]
@@ -944,6 +1158,10 @@ class NumpyCanonBackend(PythonCanonBackend):
 
     @staticmethod
     def get_stack_func(total_rows: int, offset: int) -> Callable:
+        """
+        Returns a function that takes in a tensor, modifies the shape of the tensor by extending
+        it to total_rows, and then shifts the entries by offset along axis 1.
+        """
         def stack_func(tensor):
             rows = tensor.shape[1]
             new_rows = (np.arange(rows) + offset).astype(int)
@@ -953,9 +1171,16 @@ class NumpyCanonBackend(PythonCanonBackend):
 
         return stack_func
 
-    def rmul(self, lin: LinOp, view: NumpyTensorView) -> NumpyTensorView:
-        # Note that even though this is rmul, we still use "lhs", as is implemented via a
-        # multiplication from the left in this function.
+    def rmul(self, lin: LinOp, view: NumPyTensorView) -> NumPyTensorView:
+        """
+        Multiply view with constant data from the right.
+        When the rhs is parametrized, multiply each slice of the tensor with the
+        single, constant slice of the lhs.
+        Otherwise, multiply the single slice of the tensor with each slice of the lhs.
+
+        Note: Even though this is rmul, we still use "lhs", as is implemented via a
+        multiplication from the left in this function.
+        """
         lhs, is_param_free_lhs = self.get_constant_data(lin.data, view, column=False)
         arg_cols = lin.args[0].shape[0] if len(lin.args[0].shape) == 1 else lin.args[0].shape[1]
 
@@ -989,7 +1214,11 @@ class NumpyCanonBackend(PythonCanonBackend):
         return view.accumulate_over_variables(func, is_param_free_function=is_param_free_lhs)
 
     @staticmethod
-    def trace(lin: LinOp, view: NumpyTensorView) -> NumpyTensorView:
+    def trace(lin: LinOp, view: NumPyTensorView) -> NumPyTensorView:
+        """
+        Select the rows corresponding to the diagonal entries in the expression and sum along
+        axis 0.
+        """
         shape = lin.args[0].shape
         indices = np.arange(shape[0]) * shape[0] + np.arange(shape[0])
 
@@ -1001,7 +1230,16 @@ class NumpyCanonBackend(PythonCanonBackend):
 
         return view.accumulate_over_variables(func, is_param_free_function=True)
 
-    def conv(self, lin: LinOp, view: NumpyTensorView) -> NumpyTensorView:
+    def conv(self, lin: LinOp, view: NumPyTensorView) -> NumPyTensorView:
+        """
+        Returns view corresponding to a discrete convolution with data 'a', i.e., multiplying from
+        the left a repetition of the column vector of 'a' for each column in A, shifted down one row
+        after each column, i.e., a Toeplitz matrix.
+        If lin_data is a row vector, we must transform the lhs to become a column vector before
+        applying the convolution.
+
+        Note: conv currently doesn't support parameters.
+        """
         lhs, is_param_free_lhs = self.get_constant_data(lin.data, view, column=False)
         assert is_param_free_lhs
 
@@ -1013,7 +1251,14 @@ class NumpyCanonBackend(PythonCanonBackend):
 
         return view.accumulate_over_variables(func, is_param_free_function=is_param_free_lhs)
 
-    def kron_r(self, lin: LinOp, view: NumpyTensorView) -> NumpyTensorView:
+    def kron_r(self, lin: LinOp, view: NumPyTensorView) -> NumPyTensorView:
+        """
+        Returns view corresponding to Kronecker product of data 'a' with view x, i.e., kron(a,x).
+        This function reshapes 'a' into a column vector, computes the Kronecker product with the
+        view of x and reorders the row indices afterwards.
+
+        Note: kron_r currently doesn't support parameters.
+        """
         lhs, is_param_free_lhs = self.get_constant_data(lin.data, view, column=True)
         assert is_param_free_lhs
         assert len(lhs) == 1
@@ -1023,25 +1268,24 @@ class NumpyCanonBackend(PythonCanonBackend):
         assert len({arg.shape for arg in lin.args}) == 1
         rhs_shape = lin.args[0].shape
 
-        lhs_ones = np.ones(lin.data.shape)
-        rhs_ones = np.ones(rhs_shape)
-
-        lhs_arange = np.arange(np.prod(lin.data.shape)).reshape(lin.data.shape, order="F")
-        rhs_arange = np.arange(np.prod(rhs_shape)).reshape(rhs_shape, order="F")
-
-        row_indices = (np.kron(lhs_ones, rhs_arange) +
-                       np.kron(lhs_arange, rhs_ones * np.prod(rhs_shape))) \
-            .flatten(order="F").astype(int)
+        row_idx = self._get_kron_row_indices(lin.data.shape, rhs_shape)
 
         def func(x: np.ndarray) -> np.ndarray:
             assert x.ndim == 3
             kron_res = np.kron(lhs, x)
-            kron_res = kron_res[:, row_indices, :]
+            kron_res = kron_res[:, row_idx, :]
             return kron_res
 
         return view.accumulate_over_variables(func, is_param_free_function=is_param_free_lhs)
 
-    def kron_l(self, lin: LinOp, view: NumpyTensorView) -> NumpyTensorView:
+    def kron_l(self, lin: LinOp, view: NumPyTensorView) -> NumPyTensorView:
+        """
+        Returns view corresponding to Kronecker product of view x with data 'a', i.e., kron(x,a).
+        This function reshapes 'a' into a column vector, computes the Kronecker product with the
+        view of x and reorders the row indices afterwards.
+
+        Note: kron_l currently doesn't support parameters.
+        """
         rhs, is_param_free_rhs = self.get_constant_data(lin.data, view, column=True)
         assert is_param_free_rhs
         assert len(rhs) == 1
@@ -1051,38 +1295,43 @@ class NumpyCanonBackend(PythonCanonBackend):
         assert len({arg.shape for arg in lin.args}) == 1
         lhs_shape = lin.args[0].shape
 
-        rhs_ones = np.ones(lin.data.shape)
-        lhs_ones = np.ones(lhs_shape)
-
-        rhs_arange = np.arange(np.prod(lin.data.shape)).reshape(lin.data.shape, order="F")
-        lhs_arange = np.arange(np.prod(lhs_shape)).reshape(lhs_shape, order="F")
-
-        row_indices = (np.kron(lhs_ones, rhs_arange) +
-                       np.kron(lhs_arange, rhs_ones * np.prod(lin.data.shape))) \
-            .flatten(order="F").astype(int)
+        row_idx = self._get_kron_row_indices(lhs_shape, lin.data.shape)
 
         def func(x: np.ndarray) -> np.ndarray:
             assert x.ndim == 3
             kron_res = np.kron(x, rhs)
-            kron_res = kron_res[:, row_indices, :]
+            kron_res = kron_res[:, row_idx, :]
             return kron_res
 
         return view.accumulate_over_variables(func, is_param_free_function=is_param_free_rhs)
 
     def get_variable_tensor(self, shape: tuple[int, ...], variable_id: int) \
             -> dict[int, dict[int, np.ndarray]]:
+        """
+        Returns tensor of a variable node, i.e., eye(n) across axes 0 and 1, where n is
+        the number of entries of the variable.
+        This function expands the dimension of an identity matrix of size n on the parameter axis.
+        """
         assert variable_id != Constant.ID
         n = int(np.prod(shape))
         return {variable_id: {Constant.ID.value: np.expand_dims(np.eye(n), axis=0)}}
 
-    def get_data_tensor(self, data: np.ndarray) -> \
-            dict[int, dict[int, np.ndarray]]:
+    def get_data_tensor(self, data: np.ndarray) -> dict[int, dict[int, np.ndarray]]:
+        """
+        Returns tensor of constant node as a column vector.
+        This function expands the dimension of the column vector on the parameter axis.
+        """
         data = self._to_dense(data)
         tensor = data.reshape((-1, 1), order="F")
         return {Constant.ID.value: {Constant.ID.value: np.expand_dims(tensor, axis=0)}}
 
     def get_param_tensor(self, shape: tuple[int, ...], parameter_id: int) \
             -> dict[int, dict[int, np.ndarray]]:
+        """
+        Returns tensor of a parameter node, i.e., eye(n) across axes 0 and 2, where n is
+        the number of entries of the parameter.
+        This function expands the dimension of an identity matrix of size n on the column axis.
+        """
         assert parameter_id != Constant.ID
         n = int(np.prod(shape))
         return {Constant.ID.value: {parameter_id: np.expand_dims(np.eye(n), axis=-1)}}
@@ -1090,7 +1339,7 @@ class NumpyCanonBackend(PythonCanonBackend):
     @staticmethod
     def _to_dense(x):
         """
-        This is an internal function that converts a sparse input to a dense numpy array.
+        Internal function that converts a sparse input to a dense numpy array.
         """
         try:
             res = x.toarray()
@@ -1567,8 +1816,7 @@ class DictTensorView(TensorView, ABC):
     as the tensor operations.
     """
 
-    def accumulate_over_variables(self, func: Callable, is_param_free_function: bool) \
-            -> TensorView:
+    def accumulate_over_variables(self, func: Callable, is_param_free_function: bool) -> TensorView:
         """
         Apply 'func' to A and b.
         If 'func' is a parameter free function, then we can apply it to all parameter slices
@@ -1584,6 +1832,11 @@ class DictTensorView(TensorView, ABC):
         return self
 
     def combine_potentially_none(self, a: dict | None, b: dict | None) -> dict | None:
+        """
+        Adds the tensor a to b if they are both not none.
+        If a (b) is not None but b (a) is None, returns a (b).
+        Returns None if both a and b are None.
+        """
         if a is None and b is None:
             return None
         elif a is not None and b is None:
@@ -1596,11 +1849,17 @@ class DictTensorView(TensorView, ABC):
     @staticmethod
     @abstractmethod
     def add_tensors(a: Any, b: Any) -> Any:
+        """
+        Returns element-wise addition of two tensors of the same type.
+        """
         pass  # noqa
 
     @staticmethod
     @abstractmethod
     def tensor_type():
+        """
+        Returns the type of the underlying tensor
+        """
         pass  # noqa
 
     def add_dicts(self, a: dict, b: dict) -> dict:
@@ -1625,10 +1884,14 @@ class DictTensorView(TensorView, ABC):
         return res
 
 
-class ScipyTensorView(DictTensorView):
+class SciPyTensorView(DictTensorView):
 
     @property
     def rows(self) -> int:
+        """
+        Number of rows of the TensorView.
+        This is the first dimension of the first slice in the tensor list.
+        """
         if self.tensor is not None:
             return next(iter(next(iter(self.tensor.values())).values()))[0].shape[0]
         else:
@@ -1637,6 +1900,11 @@ class ScipyTensorView(DictTensorView):
     def get_tensor_representation(self, row_offset: int) -> TensorRepresentation:
         """
         Returns a TensorRepresentation of [A b] tensor.
+        This function iterates through all the tensor slices in the list
+        and constructs their respective representation in COO format. Each parameter
+        slice has its own tensor representation which will be combined with the others
+        in the return statement. The row_offset is applied to the row indices and
+        the variable_offset to the col indices.
         """
         assert self.tensor is not None
         tensor_representations = []
@@ -1654,20 +1922,32 @@ class ScipyTensorView(DictTensorView):
         return TensorRepresentation.combine(tensor_representations)
 
     def select_rows(self, rows: np.ndarray) -> None:
-
+        """
+        Select 'rows' from tensor.
+        This function returns a subset of the rows from the original tensor.
+        """
         def func(x):
             return x[rows, :]
 
         self.apply_all(func)
 
     def apply_all(self, func: Callable) -> None:
+        """
+        Apply 'func' across all variables and parameter slices.
+        The tensor functions in the SciPyBackend manipulate 2d sparse matrices.
+        Therefore, this function iterates 'v' and applies 'func' to every slice.
+        """
         self.tensor = {var_id: {k: [func(v_i).tocsr() for v_i in v]
                                 for k, v in parameter_repr.items()}
                        for var_id, parameter_repr in self.tensor.items()}
 
     def create_new_tensor_view(self, variable_ids: set[int], tensor: dict,
-                               is_parameter_free: bool) -> ScipyTensorView:
-        return ScipyTensorView(variable_ids, tensor, is_parameter_free, self.param_size_plus_one,
+                               is_parameter_free: bool) -> SciPyTensorView:
+        """
+        Create new SciPyTensorView with same shape information as self,
+        but new tensor data.
+        """
+        return SciPyTensorView(variable_ids, tensor, is_parameter_free, self.param_size_plus_one,
                                self.id_to_col, self.param_to_size, self.param_to_col,
                                self.var_length)
 
@@ -1682,16 +1962,27 @@ class ScipyTensorView(DictTensorView):
 
     @staticmethod
     def add_tensors(a: list[sp.csr_matrix], b: list[sp.csr_matrix]) -> list[sp.csr_matrix]:
+        """
+        Apply element-wise addition on every 2d sparse matrix in two lists
+        and return as a new list.
+        """
         return [a + b for a, b in zip(a, b, strict=True)]
 
     def tensor_type(self):
+        """
+        The tensor is represented as a list of 2d sparse matrices.
+        """
         return list
 
 
-class NumpyTensorView(DictTensorView):
+class NumPyTensorView(DictTensorView):
 
     @property
     def rows(self) -> int:
+        """
+        Number of rows of the TensorView.
+        This is the second dimension of the 3d tensor.
+        """
         if self.tensor is not None:
             return next(iter(next(iter(self.tensor.values())).values())).shape[1]
         else:
@@ -1699,7 +1990,13 @@ class NumpyTensorView(DictTensorView):
 
     def get_tensor_representation(self, row_offset: int) -> TensorRepresentation:
         """
-        CVXPY currently only supports usage of sparse matrices after the canonicalization.
+        Returns a TensorRepresentation of [A b] tensor.
+        This function iterates through all the tensor data and constructs the
+        respective representation in COO format. To obtain the data, the tensor must be
+        flattened as it is not in a sparse format. The row and column indices are obtained
+        with numpy tiling/repeating along with their respective offsets.
+
+        Note: CVXPY currently only supports usage of sparse matrices after the canonicalization.
         Therefore, we must return tensor representations in a (data, (row,col)) format.
         This could be changed once dense matrices are accepted.
         """
@@ -1718,20 +2015,33 @@ class NumpyTensorView(DictTensorView):
         return TensorRepresentation.combine(tensor_representations)
 
     def select_rows(self, rows: np.ndarray) -> None:
-
+        """
+        Select 'rows' from tensor.
+        The rows of the 3d tensor are in axis=1, this function selects a subset
+        of the original tensor.
+        """
         def func(x):
             return x[:, rows, :]
 
         self.apply_all(func)
 
     def apply_all(self, func: Callable) -> None:
+        """
+        Apply 'func' across all variables and parameter slices.
+        The tensor functions in the NumPyBackend manipulate 3d arrays.
+        Therefore, this function applies 'func' directly to the tensor 'v'.
+        """
         self.tensor = {var_id: {k: func(v)
                                 for k, v in parameter_repr.items()}
                        for var_id, parameter_repr in self.tensor.items()}
 
     def create_new_tensor_view(self, variable_ids: set[int], tensor: Any,
-                               is_parameter_free: bool) -> NumpyTensorView:
-        return NumpyTensorView(variable_ids, tensor, is_parameter_free, self.param_size_plus_one,
+                               is_parameter_free: bool) -> NumPyTensorView:
+        """
+        Create new NumPyTensorView with same shape information as self,
+        but new tensor data.
+        """
+        return NumPyTensorView(variable_ids, tensor, is_parameter_free, self.param_size_plus_one,
                                self.id_to_col, self.param_to_size, self.param_to_col,
                                self.var_length)
 
@@ -1740,15 +2050,21 @@ class NumpyTensorView(DictTensorView):
                             parameter_representation: dict[int, np.ndarray]) \
             -> dict[int, np.ndarray]:
         """
-        Apply 'func' to each slice of the parameter representation.
+        Apply 'func' to the entire tensor of the parameter representation.
         """
         return {k: func(v) for k, v in parameter_representation.items()}
 
     @staticmethod
     def add_tensors(a: np.ndarray, b: np.ndarray) -> np.ndarray:
+        """
+        Apply element-wise addition on two dense numpy arrays
+        """
         return a + b
 
     def tensor_type(self):
+        """
+        The tensor is represented as a 3-dimensional dense numpy array
+        """
         return np.ndarray
 
 
