@@ -205,7 +205,7 @@ jobs:
           sed -i.bak '/ecos >= /d' setup.py
           sed -i.bak '/scs >= /d' setup.py
           rm -rf setup.py.bak
-          sed -i.bak '/setuptools>/d' pyproject.toml
+          sed -i.bak 's/setuptools>.*,/setuptools,/' pyproject.toml
           rm -rf pyproject.toml.bak
 
       - name: Verify that we can build by pip-install on each OS.
