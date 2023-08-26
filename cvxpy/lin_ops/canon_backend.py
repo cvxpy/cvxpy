@@ -855,8 +855,8 @@ class SciPyCanonBackend(PythonCanonBackend):
         idx = (np.zeros(len(indices)), indices.astype(int))
         lhs = sp.csr_matrix((data, idx), shape=(1, np.prod(shape)))
 
-        def func(x):
-            return lhs @ x
+        def func(x) -> sp.csr_matrix:
+            return (lhs @ x).tocsr()
 
         return view.accumulate_over_variables(func, is_param_free_function=True)
 
@@ -953,7 +953,7 @@ class SciPyCanonBackend(PythonCanonBackend):
             dict[int, dict[int, list[sp.csr_matrix]]]:
         """
         Returns tensor of a variable node, i.e., eye(n) across axes 0 and 1, where n is
-        the number of entries of the variable.
+        the size of the variable.
         This function constructs the identity of size 'n' and is returned as a list to
         add the parameter axis.
         """
@@ -979,7 +979,7 @@ class SciPyCanonBackend(PythonCanonBackend):
             -> dict[int, dict[int, list[sp.csr_matrix]]]:
         """
         Returns tensor of a parameter node, i.e., eye(n) across axes 0 and 2, where n is
-        the number of entries of the parameter.
+        the size of the parameter.
         This function appends 'n' single element sparse matrices stacked on the cols (axis 2)
         to the 'slices' list (axis 0).
         """
@@ -1309,7 +1309,7 @@ class NumPyCanonBackend(PythonCanonBackend):
             -> dict[int, dict[int, np.ndarray]]:
         """
         Returns tensor of a variable node, i.e., eye(n) across axes 0 and 1, where n is
-        the number of entries of the variable.
+        the size of the variable.
         This function expands the dimension of an identity matrix of size n on the parameter axis.
         """
         assert variable_id != Constant.ID
@@ -1329,7 +1329,7 @@ class NumPyCanonBackend(PythonCanonBackend):
             -> dict[int, dict[int, np.ndarray]]:
         """
         Returns tensor of a parameter node, i.e., eye(n) across axes 0 and 2, where n is
-        the number of entries of the parameter.
+        the size of the parameter.
         This function expands the dimension of an identity matrix of size n on the column axis.
         """
         assert parameter_id != Constant.ID
@@ -1590,6 +1590,11 @@ class StackedSlicesBackend(PythonCanonBackend):
 
     @staticmethod
     def trace(lin: LinOp, view: StackedSlicesTensorView) -> StackedSlicesTensorView:
+        """
+        Select the rows corresponding to the diagonal entries in the expression and sum along
+        axis 0.
+        Apply kron(eye(p), lhs) to deal with parametrized expressions.
+        """
         shape = lin.args[0].shape
         indices = np.arange(shape[0]) * shape[0] + np.arange(shape[0])
 
@@ -1597,14 +1602,27 @@ class StackedSlicesBackend(PythonCanonBackend):
         idx = (np.zeros(len(indices)), indices.astype(int))
         lhs = sp.csc_matrix((data, idx), shape=(1, np.prod(shape)))
 
-        def func(x, _p):
-            return lhs @ x
+        def func(x, p) -> sp.csc_matrix:
+            if p == 1:
+                return (lhs @ x).tocsc()
+            else:
+                return (sp.kron(sp.eye(p, format="csc"), lhs) @ x).tocsc()
 
         return view.accumulate_over_variables(func, is_param_free_function=True)
 
     def conv(self, lin: LinOp, view: StackedSlicesTensorView) -> StackedSlicesTensorView:
+        """
+        Returns view corresponding to a discrete convolution with data 'a', i.e., multiplying from
+        the left a repetition of the column vector of 'a' for each column in A, shifted down one row
+        after each column, i.e., a Toeplitz matrix.
+        If lin_data is a row vector, we must transform the lhs to become a column vector before
+        applying the convolution.
+
+        Note: conv currently doesn't support parameters.
+        """        
         lhs, is_param_free_lhs = self.get_constant_data(lin.data, view, column=False)
-        assert is_param_free_lhs
+        assert is_param_free_lhs, \
+            "StackedSlices backend does not support parametrized left operand for conv."
         assert lhs.ndim == 2
 
         if len(lin.data.shape) == 1:
@@ -1621,14 +1639,24 @@ class StackedSlicesBackend(PythonCanonBackend):
 
         lhs = sp.csc_matrix((data, (row_idx, col_idx)), shape=(rows, cols))
 
-        def func(x, _p):
+        def func(x, p):
+            assert p == 1, \
+                "StackedSlices backend does not support parametrized right operand for conv."
             return lhs @ x
 
         return view.accumulate_over_variables(func, is_param_free_function=is_param_free_lhs)
 
     def kron_r(self, lin: LinOp, view: StackedSlicesTensorView) -> StackedSlicesTensorView:
+        """
+        Returns view corresponding to Kronecker product of data 'a' with view x, i.e., kron(a,x).
+        This function reshapes 'a' into a column vector, computes the Kronecker product with the
+        view of x and reorders the row indices afterwards.
+
+        Note: kron_r currently doesn't support parameters.
+        """        
         lhs, is_param_free_lhs = self.get_constant_data(lin.data, view, column=True)
-        assert is_param_free_lhs
+        assert is_param_free_lhs, \
+            "StackedSlices backend does not support parametrized left operand for kron_r."
         assert lhs.ndim == 2
 
         assert len({arg.shape for arg in lin.args}) == 1
@@ -1644,7 +1672,9 @@ class StackedSlicesBackend(PythonCanonBackend):
                        np.kron(lhs_arange, rhs_ones * np.prod(rhs_shape))) \
             .flatten(order="F").astype(int)
 
-        def func(x, _p):
+        def func(x, p):
+            assert p == 1, \
+                "StackedSlices backend does not support parametrized right operand for kron_r."
             assert x.ndim == 2
             kron_res = sp.kron(lhs, x).tocsc()
             kron_res = kron_res[row_indices, :]
@@ -1653,8 +1683,16 @@ class StackedSlicesBackend(PythonCanonBackend):
         return view.accumulate_over_variables(func, is_param_free_function=is_param_free_lhs)
 
     def kron_l(self, lin: LinOp, view: StackedSlicesTensorView) -> StackedSlicesTensorView:
+        """
+        Returns view corresponding to Kronecker product of view x with data 'a', i.e., kron(x,a).
+        This function reshapes 'a' into a column vector, computes the Kronecker product with the
+        view of x and reorders the row indices afterwards.
+
+        Note: kron_l currently doesn't support parameters.
+        """        
         rhs, is_param_free_rhs = self.get_constant_data(lin.data, view, column=True)
-        assert is_param_free_rhs
+        assert is_param_free_rhs, \
+            "StackedSlices backend does not support parametrized right operand for kron_l."
         assert rhs.ndim == 2
 
         assert len({arg.shape for arg in lin.args}) == 1
@@ -1670,7 +1708,9 @@ class StackedSlicesBackend(PythonCanonBackend):
                        np.kron(lhs_arange, rhs_ones * np.prod(lin.data.shape))) \
             .flatten(order="F").astype(int)
 
-        def func(x, _p):
+        def func(x, p):
+            assert p == 1, \
+                "StackedSlices backend does not support parametrized left operand for kron_l."
             assert x.ndim == 2
             kron_res = sp.kron(x, rhs).tocsc()
             kron_res = kron_res[row_indices, :]
@@ -1680,12 +1720,21 @@ class StackedSlicesBackend(PythonCanonBackend):
 
     def get_variable_tensor(self, shape: tuple[int, ...], variable_id: int) -> \
             dict[int, dict[int, sp.csc_matrix]]:
+        """
+        Returns tensor of a variable node, i.e., eye(n) across axes 0 and 1, where n is
+        the size of the variable.
+        This function returns eye(n) in csc format.
+        """        
         assert variable_id != Constant.ID
         n = int(np.prod(shape))
         return {variable_id: {Constant.ID.value: sp.eye(n, format="csc")}}
 
     def get_data_tensor(self, data: np.ndarray | sp.spmatrix) -> \
             dict[int, dict[int, sp.csc_matrix]]:
+        """
+        Returns tensor of constant node as a column vector.
+        This function reshapes the data and converts it to csc format.
+        """
         if isinstance(data, np.ndarray):
             # Slightly faster compared to reshaping after casting
             tensor = sp.csc_matrix(data.reshape((-1, 1), order="F"))
@@ -1695,6 +1744,11 @@ class StackedSlicesBackend(PythonCanonBackend):
 
     def get_param_tensor(self, shape: tuple[int, ...], parameter_id: int) -> \
             dict[int, dict[int, sp.csc_matrix]]:
+        """
+        Returns tensor of a parameter node, i.e., eye(n) across axes 0 and 2, where n is
+        the size of the parameter.
+        This function returns eye(n).flatten() in csc format.
+        """        
         assert parameter_id != Constant.ID
         param_size = self.param_to_size[parameter_id]
         shape = (int(np.prod(shape) * param_size), 1)

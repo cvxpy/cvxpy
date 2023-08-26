@@ -1506,5 +1506,5 @@ class TestStackedBackend:
         assert view.add_dicts({"a": {"c": one}}, {"a": {"c": one}}) == {'a': {'c': two}}
         with pytest.raises(ValueError,
                            match="Values must either be dicts or "
-                                 "<class 'scipy.sparse.base.spmatrix'>"):
+                                 "<class 'scipy.sparse."):
             view.add_dicts({"a": 1}, {"a": 2})
