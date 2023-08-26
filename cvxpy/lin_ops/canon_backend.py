@@ -2020,9 +2020,12 @@ class SciPyTensorView(DictTensorView):
         Apply element-wise addition on every 2d sparse matrix in two lists
         and return as a new list.
         """
-        return [a + b for a, b in zip(a, b, strict=True)]
+        assert len(a) == len(b), "Tensors must have the same number of slices."
+        # Note: use zip(a,b,strict=True) for Python 3.10+
+        return [a + b for a, b in zip(a, b)]
 
-    def tensor_type(self):
+    @staticmethod
+    def tensor_type():
         """
         The tensor is represented as a list of 2d sparse matrices.
         """
@@ -2115,7 +2118,8 @@ class NumPyTensorView(DictTensorView):
         """
         return a + b
 
-    def tensor_type(self):
+    @staticmethod
+    def tensor_type():
         """
         The tensor is represented as a 3-dimensional dense numpy array
         """
