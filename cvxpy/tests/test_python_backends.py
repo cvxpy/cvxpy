@@ -1080,6 +1080,65 @@ class TestParametrizedBackends:
         assert isinstance(backend, PythonCanonBackend)
         return backend
 
+    def test_parametrized_diag_vec(self, param_backend):
+        """
+        starting with a parametrized expression
+        x1  x2
+        [[[1  0],
+         [0  0]],
+
+         [[0  0],
+         [0  1]]]
+
+        diag_vec(x) means we introduce zero rows as if the vector was the diagonal
+        of an n x n matrix, with n the length of x.
+
+        Thus, when using the same columns as before, we now have
+
+         x1  x2
+        [[[1  0],
+          [0  0],
+          [0  0],
+          [0  0]]
+
+         [[0  0],
+          [0  0],
+          [0  0],
+          [0  1]]]
+        """
+
+        param_lin_op = linOpHelper((2,), type='param', data=2)
+        param_backend.param_to_col = {2: 0, -1: 3}
+        variable_lin_op = linOpHelper((2,), type='variable', data=1)
+        var_view = param_backend.process_constraint(variable_lin_op, param_backend.get_empty_view())
+        mul_elem_lin_op = linOpHelper(data=param_lin_op)
+        param_var_view = param_backend.mul_elem(mul_elem_lin_op, var_view)
+
+        diag_vec_lin_op = linOpHelper(shape=(2, 2), data=0)
+        out_view = param_backend.diag_vec(diag_vec_lin_op, param_var_view)
+        out_repr = out_view.get_tensor_representation(0)
+
+        slice_idx_zero = out_repr.get_param_slice(0, (4, 2)).toarray()
+        expected_idx_zero = np.array(
+            [[1., 0.],
+             [0., 0.],
+             [0., 0.],
+             [0., 0.]]
+        )
+        assert np.all(slice_idx_zero == expected_idx_zero)
+
+        slice_idx_one = out_repr.get_param_slice(1, (4, 2)).toarray()
+        expected_idx_one = np.array(
+            [[0., 0.],
+             [0., 0.],
+             [0., 0.],
+             [0., 1.]]
+        )
+        assert np.all(slice_idx_one == expected_idx_one)
+
+        # Note: view is edited in-place:
+        assert out_view.get_tensor_representation(0) == param_var_view.get_tensor_representation(0)
+
     def test_parametrized_sum_entries(self, param_backend):
         """
         starting with a parametrized expression
@@ -1332,6 +1391,163 @@ class TestParametrizedBackends:
 
         # Note: view is edited in-place:
         assert out_view.get_tensor_representation(0) == view.get_tensor_representation(0)
+
+    def test_parametrized_div(self, param_backend):
+        """
+        Continuing from the non-parametrized example when the rhs is a parameter,
+        instead of dividing known values, the matrix is split up into four slices,
+        each representing an element of the parameter, i.e. instead of
+         x11 x21 x12 x22
+        [[1   0   0   0],
+         [0   1/3 0   0],
+         [0   0   1/2 0],
+         [0   0   0   1/4]]
+
+         we obtain the list of length four, where we have the quotients at the same entries
+         but they each map to a different parameter slice:
+
+            x11  x21  x12  x22
+        [
+            [[1   0   0   0],
+             [0   0   0   0],
+             [0   0   0   0],
+             [0   0   0   0]],
+
+            [[0   0   0   0],
+             [0   1/3 0   0],
+             [0   0   0   0],
+             [0   0   0   0]],
+
+            [[0   1   0   0],
+             [0   0   0   0],
+             [0   0   1/2 0],
+             [0   0   0   0]],
+
+            [[0   0   0   0],
+             [0   0   0   0],
+             [0   0   0   0],
+             [0   0   0   1/4]]
+        ]
+        """
+        param_lin_op = linOpHelper((2, 2), type='param', data=2)
+        param_backend.param_to_col = {2: 0, -1: 4}
+        param_backend.param_to_size = {-1: 1, 2: 4}
+        variable_lin_op = linOpHelper((2, 2), type='variable', data=1)
+        var_view = param_backend.process_constraint(variable_lin_op, param_backend.get_empty_view())
+        mul_elem_lin_op = linOpHelper(data=param_lin_op)
+        param_var_view = param_backend.mul_elem(mul_elem_lin_op, var_view)
+
+        lhs = linOpHelper((2, 2), type='dense_const', data=np.array([[1, 2], [3, 4]]))
+
+        div_lin_op = linOpHelper(data=lhs)
+        out_view = param_backend.div(div_lin_op, param_var_view)
+        out_repr = out_view.get_tensor_representation(0)
+
+        slice_idx_zero = out_repr.get_param_slice(0, (4, 4)).toarray()
+        expected_idx_zero = np.array(
+            [[1., 0., 0., 0.],
+             [0., 0., 0., 0.],
+             [0., 0., 0., 0.],
+             [0., 0., 0., 0.]]
+        )
+        assert np.all(slice_idx_zero == expected_idx_zero)
+
+        slice_idx_one = out_repr.get_param_slice(1, (4, 4)).toarray()
+        expected_idx_one = np.array(
+            [[0., 0., 0., 0.],
+             [0., 1/3, 0., 0.],
+             [0., 0., 0., 0.],
+             [0., 0., 0., 0.]]
+        )
+        assert np.all(slice_idx_one == expected_idx_one)
+
+        # indices are: variable 1, parameter 2, 2 index of the list
+        slice_idx_two = out_repr.get_param_slice(2, (4, 4)).toarray()
+        expected_idx_two = np.array(
+            [[0., 0., 0., 0.],
+             [0., 0., 0., 0.],
+             [0., 0., 1/2, 0.],
+             [0., 0., 0., 0.]]
+        )
+        assert np.all(slice_idx_two == expected_idx_two)
+
+        # indices are: variable 1, parameter 2, 3 index of the list
+        slice_idx_three = out_repr.get_param_slice(3, (4, 4)).toarray()
+        expected_idx_three = np.array(
+            [[0., 0., 0., 0.],
+             [0., 0., 0., 0.],
+             [0., 0., 0., 0.],
+             [0., 0., 0., 1/4]]
+        )
+        assert np.all(slice_idx_three == expected_idx_three)
+        # Note: view is edited in-place:
+        assert out_view.get_tensor_representation(0) == param_var_view.get_tensor_representation(0)
+
+    def test_parametrized_trace(self, param_backend):
+        """
+        Continuing from the non-parametrized example,
+        instead of taking the trace with known values, the matrix is split up into four slices,
+        each representing an element of the parameter, i.e. instead of
+         x11 x21 x12 x22
+        [[1   0   0   0],
+         [0   1   0   0],
+         [0   0   1   0],
+         [0   0   0   1]]
+
+         we obtain the list of length four, where we have ones at the entries where previously
+         we had the diagonal entries of the matrix:
+
+            x11  x21  x12  x22
+        [
+            [[1   0   0   0]],
+
+            [[0   0   0   0]],
+
+            [[0   0   0   0]],
+
+            [[0   0   0   1]]
+        ]
+        """
+        param_lin_op = linOpHelper((2, 2), type='param', data=2)
+        param_backend.param_to_col = {2: 0, -1: 4}
+        param_backend.param_to_size = {-1: 1, 2: 4}
+        variable_lin_op = linOpHelper((2, 2), type='variable', data=1)
+        var_view = param_backend.process_constraint(variable_lin_op, param_backend.get_empty_view())
+        mul_elem_lin_op = linOpHelper(data=param_lin_op)
+        param_var_view = param_backend.mul_elem(mul_elem_lin_op, var_view)
+
+        trace_lin_op = linOpHelper(args=[variable_lin_op])
+        out_view = param_backend.trace(trace_lin_op, param_var_view)
+        out_repr = out_view.get_tensor_representation(0)
+
+        slice_idx_zero = out_repr.get_param_slice(0, (1, 4)).toarray()
+        expected_idx_zero = np.array(
+            [[1., 0., 0., 0.]]
+        )
+        assert np.all(slice_idx_zero == expected_idx_zero)
+
+        slice_idx_one = out_repr.get_param_slice(1, (1, 4)).toarray()
+        expected_idx_one = np.array(
+            [[0., 0., 0., 0.]]
+        )
+        assert np.all(slice_idx_one == expected_idx_one)
+
+        # indices are: variable 1, parameter 2, 2 index of the list
+        slice_idx_two = out_repr.get_param_slice(2, (1, 4)).toarray()
+        expected_idx_two = np.array(
+            [[0., 0., 0., 0.]]
+        )
+        assert np.all(slice_idx_two == expected_idx_two)
+
+        # indices are: variable 1, parameter 2, 3 index of the list
+        slice_idx_three = out_repr.get_param_slice(3, (1, 4)).toarray()
+        expected_idx_three = np.array(
+            [[0., 0., 0., 1.]]
+        )
+        assert np.all(slice_idx_three == expected_idx_three)
+
+        # Note: view is edited in-place:
+        assert out_view.get_tensor_representation(0) == param_var_view.get_tensor_representation(0)
 
 
 class TestSciPyBackend:
