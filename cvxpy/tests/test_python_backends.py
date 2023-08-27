@@ -1080,6 +1080,65 @@ class TestParametrizedBackends:
         assert isinstance(backend, PythonCanonBackend)
         return backend
 
+    def test_parametrized_diag_vec(self, param_backend):
+        """
+        starting with a parametrized expression
+        x1  x2
+        [[[1  0],
+         [0  0]],
+
+         [[0  0],
+         [0  1]]]
+
+        diag_vec(x) means we introduce zero rows as if the vector was the diagonal
+        of an n x n matrix, with n the length of x.
+
+        Thus, when using the same columns as before, we now have
+
+         x1  x2
+        [[[1  0],
+          [0  0],
+          [0  0],
+          [0  0]]
+
+         [[0  0],
+          [0  0],
+          [0  0],
+          [0  1]]]
+        """
+
+        param_lin_op = linOpHelper((2,), type='param', data=2)
+        param_backend.param_to_col = {2: 0, -1: 3}
+        variable_lin_op = linOpHelper((2,), type='variable', data=1)
+        var_view = param_backend.process_constraint(variable_lin_op, param_backend.get_empty_view())
+        mul_elem_lin_op = linOpHelper(data=param_lin_op)
+        param_var_view = param_backend.mul_elem(mul_elem_lin_op, var_view)
+
+        diag_vec_lin_op = linOpHelper(shape=(2, 2), data=0)
+        out_view = param_backend.diag_vec(diag_vec_lin_op, param_var_view)
+        out_repr = out_view.get_tensor_representation(0)
+
+        slice_idx_zero = out_repr.get_param_slice(0, (4, 2)).toarray()
+        expected_idx_zero = np.array(
+            [[1., 0.],
+             [0., 0.],
+             [0., 0.],
+             [0., 0.]]
+        )
+        assert np.all(slice_idx_zero == expected_idx_zero)
+
+        slice_idx_one = out_repr.get_param_slice(1, (4, 2)).toarray()
+        expected_idx_one = np.array(
+            [[0., 0.],
+             [0., 0.],
+             [0., 0.],
+             [0., 1.]]
+        )
+        assert np.all(slice_idx_one == expected_idx_one)
+
+        # Note: view is edited in-place:
+        assert out_view.get_tensor_representation(0) == param_var_view.get_tensor_representation(0)
+
     def test_parametrized_sum_entries(self, param_backend):
         """
         starting with a parametrized expression
@@ -1332,6 +1391,50 @@ class TestParametrizedBackends:
 
         # Note: view is edited in-place:
         assert out_view.get_tensor_representation(0) == view.get_tensor_representation(0)
+
+    def test_parametrized_div(self, param_backend):
+        variable_lin_op = linOpHelper((2, 2), type='variable', data=1)
+        param_backend.param_to_size = {-1: 1, 2: 4}
+        param_backend.param_to_col = {2: 0, -1: 4}
+        param_backend.param_size_plus_one = 5
+        param_backend.var_length = 4
+        view = param_backend.process_constraint(variable_lin_op, param_backend.get_empty_view())
+
+        # cast to numpy
+        view_A = view.get_tensor_representation(0)
+        view_A = sp.coo_matrix((view_A.data, (view_A.row, view_A.col)), shape=(4, 4)).toarray()
+        assert np.all(view_A == np.eye(4))
+
+        lhs = linOpHelper((2, 2), type='dense_const', data=np.array([[1, 2], [3, 4]]))
+
+        div_lin_op = linOpHelper(data=lhs)
+        out_view = param_backend.div(div_lin_op, view)
+        A = out_view.get_tensor_representation(0)
+
+        # cast to numpy
+        A = sp.coo_matrix((A.data, (A.row, A.col)), shape=(4, 4)).toarray()
+        expected = np.array(
+            [[1, 0, 0, 0],
+             [0, 1 / 3, 0, 0],
+             [0, 0, 1 / 2, 0],
+             [0, 0, 0, 1 / 4]]
+        )
+        assert np.all(A == expected)
+
+        # Note: view is edited in-place:
+        assert out_view.get_tensor_representation(0) == view.get_tensor_representation(0)
+
+    def test_parametrized_trace(self, param_backend):
+        """
+        starting with a parametrized expression
+        x1  x2
+        [[[1  0],
+         [0  0]],
+
+         [[0  0],
+         [0  1]]]
+
+        """
 
 
 class TestSciPyBackend:
