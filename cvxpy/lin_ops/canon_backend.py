@@ -1476,7 +1476,7 @@ class StackedSlicesBackend(PythonCanonBackend):
         Promote view by repeating along axis 1 (rows).
         """        
         num_entries = int(np.prod(lin.shape))
-        rows = np.zeros(num_entries)
+        rows = np.zeros(num_entries).astype(int)
         view.select_rows(rows)
         return view
 
