@@ -1513,10 +1513,10 @@ class StackedSlicesBackend(PythonCanonBackend):
         """        
         def func(x, p):
             if p == 1:
-                return sp.csr_matrix(x.sum(axis=0))
+                return sp.csc_matrix(x.sum(axis=0))
             else:
                 m = x.shape[0] // p
-                return (sp.kron(sp.eye(p, format="csr"), np.ones(m)) @ x).tocsr()
+                return (sp.kron(sp.eye(p, format="csc"), np.ones(m)) @ x).tocsc()
 
         view.apply_all(func)
         return view
