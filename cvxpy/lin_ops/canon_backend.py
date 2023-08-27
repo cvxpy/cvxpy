@@ -1355,32 +1355,49 @@ class StackedSlicesBackend(PythonCanonBackend):
     def reshape_constant_data(constant_data: dict[int, sp.csc_matrix],
                               lin_op_shape: tuple[int, int]) \
             -> dict[int, sp.csc_matrix]:
+        """
+        Reshape constant data from column format to the required shape for operations that
+        do not require column format. This function unpacks the constant data dict and reshapes
+        the stacked slices of the tensor 'v' according to the lin_op_shape argument.
+        """        
         return {k: StackedSlicesBackend._reshape_single_constant_tensor(v, lin_op_shape)
                 for k, v in constant_data.items()}
 
     @staticmethod
-    def _reshape_single_constant_tensor(v: sp.csr_matrix, lin_op_shape: tuple[int, int]) \
+    def _reshape_single_constant_tensor(v: sp.csc_matrix, lin_op_shape: tuple[int, int]) \
             -> sp.csc_matrix:
+        """
+        Given v, which is a matrix of shape (p * lin_op_shape[0] * lin_op_shape[1], 1),
+        reshape v into a matrix of shape (p * lin_op_shape[0], lin_op_shape[1]).
+        """
         p = np.prod(v.shape) // np.prod(lin_op_shape)
         old_shape = (v.shape[0] // p, v.shape[1])
 
         coo = v.tocoo()
         data, stacked_rows, cols = coo.data, coo.row, coo.col
-        slice, rows = np.divmod(stacked_rows, old_shape[0])
+        slices, rows = np.divmod(stacked_rows, old_shape[0])
 
         element_position = cols * old_shape[0] + rows
         new_cols, new_rows = np.divmod(element_position, lin_op_shape[0])
-        new_rows = slice * lin_op_shape[0] + new_rows
+        new_rows = slices * lin_op_shape[0] + new_rows
 
         new_stacked_shape = (p * lin_op_shape[0], lin_op_shape[1])
         return sp.csc_matrix((data, (new_rows, new_cols)), shape=new_stacked_shape)
 
-    def get_empty_view(self) -> TensorView:
+    def get_empty_view(self) -> StackedSlicesTensorView:
+        """
+        Returns an empty view of the corresponding StackedSlicesTensorView subclass,
+        coupling the StackedSlicesBackend subclass with the StackedSlicesTensorView subclass.
+        """        
         return StackedSlicesTensorView.get_empty_view(self.param_size_plus_one, self.id_to_col,
                                                       self.param_to_size, self.param_to_col,
                                                       self.var_length)
 
-    def neg(self, lin: LinOp, view: StackedSlicesTensorView) -> StackedSlicesTensorView:
+    @staticmethod
+    def neg(_lin: LinOp, view: StackedSlicesTensorView) -> StackedSlicesTensorView:
+        """
+        Given (A, b) in view, return (-A, -b).
+        """
         def func(x, _p):
             return -x
 
@@ -1390,9 +1407,9 @@ class StackedSlicesBackend(PythonCanonBackend):
     def mul(self, lin: LinOp, view: StackedSlicesTensorView) -> StackedSlicesTensorView:
         """
         Multiply view with constant data from the left.
-        This method computes the traditional multiplication of constant/parametrized data with
-        the tensorview. The simple case is when the lhs is constant. In which case we calculate
-        the number of repetitions, stacking copies vertically along the diagonal using kron.
+        When the lhs is parametrized, multiply each slice of the tensor with the 
+        single, constant slice of the rhs. 
+        Otherwise, multiply the single slice of the tensor with each slice of the rhs.
         """
         lhs, is_param_free_lhs = self.get_constant_data(lin.data, view, column=False)
         if is_param_free_lhs:
@@ -1424,7 +1441,17 @@ class StackedSlicesBackend(PythonCanonBackend):
     def _repeat_parametrized_lhs(self, lhs: dict[int, list[sp.csc_matrix]], reps: int) \
             -> sp.csc_matrix:
         """
-
+        Given a stacked lhs
+        [[A_1],
+         [A_2],
+         ...
+        apply the Kronecker product with the identity matrix of size reps to each slice,
+        e.g., for reps = 2:
+        [[A_1, 0],
+         [0, A_1],
+         [A_2, 0],
+         [0, A_2],
+         ...
         """
         res = dict()
         for param_id, v in lhs.items():
@@ -1445,6 +1472,9 @@ class StackedSlicesBackend(PythonCanonBackend):
 
     @staticmethod
     def promote(lin: LinOp, view: StackedSlicesTensorView) -> StackedSlicesTensorView:
+        """
+        Promote view by repeating along axis 1 (rows).
+        """        
         num_entries = int(np.prod(lin.shape))
         rows = np.zeros(num_entries)
         view.select_rows(rows)
@@ -1475,6 +1505,12 @@ class StackedSlicesBackend(PythonCanonBackend):
 
     @staticmethod
     def sum_entries(_lin: LinOp, view: StackedSlicesTensorView) -> StackedSlicesTensorView:
+        """
+        Given (A, b) in view, return the sum of the representation
+        on the row axis, ie: (sum(A,axis=1), sum(b, axis=1)).
+        Here, since the slices are stacked, we sum over the rows corresponding
+        to the same slice.
+        """        
         def func(x, p):
             if p == 1:
                 return sp.csr_matrix(x.sum(axis=0))
@@ -1486,6 +1522,14 @@ class StackedSlicesBackend(PythonCanonBackend):
         return view
 
     def div(self, lin: LinOp, view: StackedSlicesTensorView) -> StackedSlicesTensorView:
+        """
+        Given (A, b) in view and constant data d, return (A*(1/d), b*(1/d)).
+        d is broadcasted along dimension 1 (columns).
+        This function is semantically identical to mul_elem but the view x
+        is multiplied with the reciprocal of the lin_op data.
+
+        Note: div currently doesn't support parameters.
+        """        
         lhs, is_param_free_lhs = self.get_constant_data(lin.data, view, column=True)
         assert is_param_free_lhs
         # dtype is important here, will do integer division if data is of dtype "int" otherwise.
@@ -1532,6 +1576,10 @@ class StackedSlicesBackend(PythonCanonBackend):
 
     @staticmethod
     def get_stack_func(total_rows: int, offset: int) -> Callable:
+        """
+        Returns a function that takes in a tensor, modifies the shape of the tensor by extending
+        it to total_rows, and then shifts the entries by offset along axis 1.
+        """        
         def stack_func(tensor, p):
             coo_repr = tensor.tocoo()
             m = coo_repr.shape[0] // p
@@ -1546,9 +1594,13 @@ class StackedSlicesBackend(PythonCanonBackend):
     def rmul(self, lin: LinOp, view: StackedSlicesTensorView) -> StackedSlicesTensorView:
         """
         Multiply view with constant data from the right.
+        When the rhs is parametrized, multiply each slice of the tensor with the
+        single, constant slice of the lhs.
+        Otherwise, multiply the single slice of the tensor with each slice of the lhs.
+
+        Note: Even though this is rmul, we still use "lhs", as is implemented via a
+        multiplication from the left in this function.
         """
-        # Note that even though this is rmul, we still use "lhs", as is implemented via a
-        # multiplication from the left in this function.
         lhs, is_param_free_lhs = self.get_constant_data(lin.data, view, column=False)
 
         arg_cols = lin.args[0].shape[0] if len(lin.args[0].shape) == 1 else lin.args[0].shape[1]
