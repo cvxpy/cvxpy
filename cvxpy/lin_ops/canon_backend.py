@@ -1370,15 +1370,15 @@ class StackedSlicesBackend(PythonCanonBackend):
         Given v, which is a matrix of shape (p * lin_op_shape[0] * lin_op_shape[1], 1),
         reshape v into a matrix of shape (p * lin_op_shape[0], lin_op_shape[1]).
         """
+        assert v.shape[1] == 1
         p = np.prod(v.shape) // np.prod(lin_op_shape)
         old_shape = (v.shape[0] // p, v.shape[1])
 
         coo = v.tocoo()
-        data, stacked_rows, cols = coo.data, coo.row, coo.col
+        data, stacked_rows = coo.data, coo.row
         slices, rows = np.divmod(stacked_rows, old_shape[0])
 
-        element_position = cols * old_shape[0] + rows
-        new_cols, new_rows = np.divmod(element_position, lin_op_shape[0])
+        new_cols, new_rows = np.divmod(rows, lin_op_shape[0])
         new_rows = slices * lin_op_shape[0] + new_rows
 
         new_stacked_shape = (p * lin_op_shape[0], lin_op_shape[1])

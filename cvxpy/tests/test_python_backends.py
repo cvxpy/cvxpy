@@ -1554,8 +1554,14 @@ class TestSciPyBackend:
     @staticmethod
     @pytest.fixture()
     def scipy_backend():
-        args = ({1: 0}, {-1: 1, 2: 2}, {2: 0, -1: 2}, 3, 2)
-        backend = CanonBackend.get_backend(s.SCIPY_CANON_BACKEND, *args)
+        kwargs = {
+            "id_to_col": {1: 0},
+            "param_to_size": {-1: 1, 2: 2},
+            "param_to_col": {2: 0, -1: 2},
+            "param_size_plus_one": 3,
+            "var_length": 2
+        }
+        backend = CanonBackend.get_backend(s.SCIPY_CANON_BACKEND, **kwargs)
         assert isinstance(backend, SciPyCanonBackend)
         return backend
 
@@ -1608,8 +1614,14 @@ class TestNumPyBackend:
     @staticmethod
     @pytest.fixture()
     def numpy_backend():
-        args = ({1: 0}, {-1: 1, 2: 2}, {2: 0, -1: 2}, 3, 2)
-        backend = CanonBackend.get_backend(s.NUMPY_CANON_BACKEND, *args)
+        kwargs = {
+            "id_to_col": {1: 0},
+            "param_to_size": {-1: 1, 2: 2},
+            "param_to_col": {2: 0, -1: 2},
+            "param_size_plus_one": 3,
+            "var_length": 2
+        }
+        backend = CanonBackend.get_backend(s.NUMPY_CANON_BACKEND, **kwargs)
         assert isinstance(backend, NumPyCanonBackend)
         return backend
 
@@ -1668,8 +1680,14 @@ class TestStackedBackend:
     @staticmethod
     @pytest.fixture()
     def stacked_backend():
-        args = ({1: 0}, {-1: 1, 2: 2}, {2: 0, -1: 2}, 3, 2)
-        backend = CanonBackend.get_backend(s.STACKED_SLICES_BACKEND, *args)
+        kwargs = {
+            "id_to_col": {1: 0},
+            "param_to_size": {-1: 1, 2: 2},
+            "param_to_col": {2: 0, -1: 2},
+            "param_size_plus_one": 3,
+            "var_length": 2
+        }
+        backend = CanonBackend.get_backend(s.STACKED_SLICES_BACKEND, **kwargs)
         assert isinstance(backend, StackedSlicesBackend)
         return backend
 
@@ -1724,3 +1742,26 @@ class TestStackedBackend:
                            match="Values must either be dicts or "
                                  "<class 'scipy.sparse."):
             view.add_dicts({"a": 1}, {"a": 2})
+
+    @staticmethod
+    @pytest.mark.parametrize('shape', [(1,1), (2,2), (3,3), (4,4)])
+    def test_repeat_parametrized_lhs(shape, stacked_backend):
+        p = 2
+        reps = 3
+        param_id = 2
+        rng = np.random.default_rng(seed=0)
+        matrices = [sp.random(*shape, random_state=rng, density=0.5) for _ in range(p)]
+        stacked = sp.vstack(matrices)
+        repeated = stacked_backend._repeat_parametrized_lhs({param_id: stacked}, reps)
+        repeated = repeated[param_id]
+        expected = sp.vstack([sp.kron(sp.eye(reps), m) for m in matrices])
+        assert (expected != repeated).nnz == 0
+
+    @staticmethod
+    def test_reshape_single_constant_tensor(stacked_backend):
+        a = sp.csc_matrix(np.tile(np.arange(6), 3).reshape((-1, 1)))
+        reshaped = stacked_backend._reshape_single_constant_tensor(a, (3, 2))
+        expected = np.arange(6).reshape((3, 2), order='F')
+        expected = sp.csc_matrix(np.tile(expected, (3,1)))
+        assert (reshaped != expected).nnz == 0
+
