@@ -1491,8 +1491,12 @@ class StackedSlicesBackend(PythonCanonBackend):
         # dtype is important here, will do integer division if data is of dtype "int" otherwise.
         lhs.data = np.reciprocal(lhs.data, dtype=float)
 
-        def div_func(x, _p):
-            return lhs.multiply(x)
+        def div_func(x, p):
+            if p == 1:
+                return lhs.multiply(x)
+            else:
+                new_lhs = sp.vstack([lhs] * p)
+                return new_lhs.multiply(x)
 
         return view.accumulate_over_variables(div_func, is_param_free_function=is_param_free_lhs)
 

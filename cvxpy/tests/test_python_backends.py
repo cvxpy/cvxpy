@@ -1393,40 +1393,99 @@ class TestParametrizedBackends:
         assert out_view.get_tensor_representation(0) == view.get_tensor_representation(0)
 
     def test_parametrized_div(self, param_backend):
-        variable_lin_op = linOpHelper((2, 2), type='variable', data=1)
-        param_backend.param_to_size = {-1: 1, 2: 4}
-        param_backend.param_to_col = {2: 0, -1: 4}
-        param_backend.param_size_plus_one = 5
-        param_backend.var_length = 4
-        view = param_backend.process_constraint(variable_lin_op, param_backend.get_empty_view())
+        """
+        Continuing from the non-parametrized example when the rhs is a parameter,
+        instead of dividing known values, the matrix is split up into four slices,
+        each representing an element of the parameter, i.e. instead of
+         x11 x21 x12 x22
+        [[1   0   0   0],
+         [0   1/3 0   0],
+         [0   0   1/2 0],
+         [0   0   0   1/4]]
 
-        # cast to numpy
-        view_A = view.get_tensor_representation(0)
-        view_A = sp.coo_matrix((view_A.data, (view_A.row, view_A.col)), shape=(4, 4)).toarray()
-        assert np.all(view_A == np.eye(4))
+         we obtain the list of length four, where we have the quotients at the same entries
+         but they each map to a different parameter slice:
+
+            x11  x21  x12  x22
+        [
+            [[1   0   0   0],
+             [0   0   0   0],
+             [0   0   0   0],
+             [0   0   0   0]],
+
+            [[0   0   0   0],
+             [0   1/3 0   0],
+             [0   0   0   0],
+             [0   0   0   0]],
+
+            [[0   1   0   0],
+             [0   0   0   0],
+             [0   0   1/2 0],
+             [0   0   0   0]],
+
+            [[0   0   0   0],
+             [0   0   0   0],
+             [0   0   0   0],
+             [0   0   0   1/4]]
+        ]
+        """
+        param_lin_op = linOpHelper((2, 2), type='param', data=2)
+        param_backend.param_to_col = {2: 0, -1: 4}
+        param_backend.param_to_size = {-1: 1, 2: 4}
+        variable_lin_op = linOpHelper((2, 2), type='variable', data=1)
+        var_view = param_backend.process_constraint(variable_lin_op, param_backend.get_empty_view())
+        mul_elem_lin_op = linOpHelper(data=param_lin_op)
+        param_var_view = param_backend.mul_elem(mul_elem_lin_op, var_view)
 
         lhs = linOpHelper((2, 2), type='dense_const', data=np.array([[1, 2], [3, 4]]))
 
         div_lin_op = linOpHelper(data=lhs)
-        out_view = param_backend.div(div_lin_op, view)
-        A = out_view.get_tensor_representation(0)
+        out_view = param_backend.div(div_lin_op, param_var_view)
+        out_repr = out_view.get_tensor_representation(0)
 
-        # cast to numpy
-        A = sp.coo_matrix((A.data, (A.row, A.col)), shape=(4, 4)).toarray()
-        expected = np.array(
-            [[1, 0, 0, 0],
-             [0, 1 / 3, 0, 0],
-             [0, 0, 1 / 2, 0],
-             [0, 0, 0, 1 / 4]]
+        slice_idx_zero = out_repr.get_param_slice(0, (4, 4)).toarray()
+        expected_idx_zero = np.array(
+            [[1., 0., 0., 0.],
+             [0., 0., 0., 0.],
+             [0., 0., 0., 0.],
+             [0., 0., 0., 0.]]
         )
-        assert np.all(A == expected)
+        assert np.all(slice_idx_zero == expected_idx_zero)
 
+        slice_idx_one = out_repr.get_param_slice(1, (4, 4)).toarray()
+        expected_idx_one = np.array(
+            [[0., 0., 0., 0.],
+             [0., 1/3, 0., 0.],
+             [0., 0., 0., 0.],
+             [0., 0., 0., 0.]]
+        )
+        assert np.all(slice_idx_one == expected_idx_one)
+
+        # indices are: variable 1, parameter 2, 2 index of the list
+        slice_idx_two = out_repr.get_param_slice(2, (4, 4)).toarray()
+        expected_idx_two = np.array(
+            [[0., 0., 0., 0.],
+             [0., 0., 0., 0.],
+             [0., 0., 1/2, 0.],
+             [0., 0., 0., 0.]]
+        )
+        assert np.all(slice_idx_two == expected_idx_two)
+
+        # indices are: variable 1, parameter 2, 3 index of the list
+        slice_idx_three = out_repr.get_param_slice(3, (4, 4)).toarray()
+        expected_idx_three = np.array(
+            [[0., 0., 0., 0.],
+             [0., 0., 0., 0.],
+             [0., 0., 0., 0.],
+             [0., 0., 0., 1/4]]
+        )
+        assert np.all(slice_idx_three == expected_idx_three)
         # Note: view is edited in-place:
-        assert out_view.get_tensor_representation(0) == view.get_tensor_representation(0)
+        assert out_view.get_tensor_representation(0) == param_var_view.get_tensor_representation(0)
 
     def test_parametrized_trace(self, param_backend):
         """
-        Continuing from the non-parametrized example when the lhs is a parameter,
+        Continuing from the non-parametrized example,
         instead of taking the trace with known values, the matrix is split up into four slices,
         each representing an element of the parameter, i.e. instead of
          x11 x21 x12 x22
