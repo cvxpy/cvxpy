@@ -2237,18 +2237,11 @@ class StackedSlicesTensorView(DictTensorView):
         introducing an offset of size 'm' for every parameter.
         """
         def func(x, p):
-            """
-            Note: the error handling is here in case the input 'rows' becomes
-            incompatible with the tensor's shape.
-            """
-            try:
-                if p == 1:
-                    return x[rows, :]
-                else:
-                    m = x.shape[0] // p
-                    return x[np.tile(rows, p) + np.repeat(np.arange(p) * m, len(rows)), :]
-            except Exception:
-                pass
+            if p == 1:
+                return x[rows, :]
+            else:
+                m = x.shape[0] // p
+                return x[np.tile(rows, p) + np.repeat(np.arange(p) * m, len(rows)), :]
 
         self.apply_all(func)
 
