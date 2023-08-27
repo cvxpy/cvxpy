@@ -1502,21 +1502,29 @@ class StackedSlicesBackend(PythonCanonBackend):
 
     @staticmethod
     def diag_vec(lin: LinOp, view: StackedSlicesTensorView) -> StackedSlicesTensorView:
+        """
+        Diagonal vector to matrix. Given (A, b) with n rows in view, add rows of zeros such that
+        the original rows now correspond to the diagonal entries of the n x n expression
+        An optional offset parameter `k` can be specified, with k>0 for diagonals above
+        the main diagonal, and k<0 for diagonals below the main diagonal.
+        """
         assert lin.shape[0] == lin.shape[1]
         k = lin.data
         rows = lin.shape[0]
         total_rows = int(lin.shape[0] ** 2)
 
-        def func(x, _p):
+        def func(x, p):
             shape = list(x.shape)
-            shape[0] = total_rows
+            shape[0] = int(total_rows * p)
             x = x.tocoo()
+            x_slice, x_row = np.divmod(x.row, x.shape[0] // p)
             if k == 0:
-                new_rows = (x.row * (rows + 1)).astype(int)
+                new_rows = x_row * (rows + 1)
             elif k > 0:
-                new_rows = (x.row * (rows + 1) + rows * k).astype(int)
+                new_rows = x.row * (rows + 1) + rows * k
             else:
-                new_rows = (x.row * (rows + 1) - k).astype(int)
+                new_rows = x_row * (rows + 1) - k
+            new_rows = (new_rows + x_slice * total_rows).astype(int)
             return sp.csr_matrix((x.data, (new_rows, x.col)), shape)
 
         view.apply_all(func)
