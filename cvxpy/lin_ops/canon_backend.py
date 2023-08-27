@@ -501,7 +501,7 @@ class PythonCanonBackend(CanonBackend):
             diag_indices = np.arange(rows) * (original_rows + 1) + original_rows * k
         else:
             diag_indices = np.arange(rows) * (original_rows + 1) - k
-        view.select_rows(diag_indices)
+        view.select_rows(diag_indices.astype(int))
         return view
 
     @abstractmethod
