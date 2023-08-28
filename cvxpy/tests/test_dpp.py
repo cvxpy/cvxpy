@@ -836,3 +836,25 @@ class TestDgp(BaseTest):
         expr = cp.gmatmul(A, x_par)
         self.assertFalse(expr.is_dgp(dpp=True))
         self.assertTrue(expr.is_dgp(dpp=False))
+
+
+class TestCallbackParam(BaseTest):
+    x = cp.Variable()
+    p = cp.Parameter()
+    q = cp.Parameter()
+
+    def test_callback_param(self) -> None:
+        callback_param = cp.CallbackParam(callback=lambda _ : self.p * self.q)
+        problem = cp.Problem(cp.Minimize(self.x), [self.x >= callback_param])
+        assert problem.is_dpp()
+        self.p.value = 1.0
+        self.q.value = 4.0
+        problem.solve()
+        self.assertAlmostEqual(self.x.value, 4.0)
+
+        self.p.value = 2.0
+        problem.solve()
+        self.assertAlmostEqual(self.x.value, 8.0)
+
+        with pytest.raises(NotImplementedError, match="Cannot set the value of a CallbackParam"):
+            callback_param.value = 1.0

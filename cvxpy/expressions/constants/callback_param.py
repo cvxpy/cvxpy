@@ -19,11 +19,24 @@ from cvxpy.expressions.constants.parameter import Parameter
 
 class CallbackParam(Parameter):
     """
-    A parameter whose value is obtained by evaluating a function.
+    A parameter whose value is derived from a callback function.
+
+    Enables writing replacing expression that would not be DPP
+    by a new parameter that automatically updates its value.
+    
+    Example:
+    With p and q parameters, p * q is not DPP, but
+    pq = CallbackParameter(callback=p * q) is DPP.
+    
+    This is useful when only p and q should be exposed
+    to the user, but pq is needed internally.
     """
-    PARAM_COUNT = 0
 
     def __init__(self, callback, shape=(), **kwargs) -> None:
+        """
+        callback: function that returns the value of the parameter.
+        """
+        
         self._callback = callback
         super(CallbackParam, self).__init__(shape, **kwargs)
 
@@ -32,3 +45,7 @@ class CallbackParam(Parameter):
         """Evaluate the callback to get the value.
         """
         return self._validate_value(self._callback())
+
+    @value.setter
+    def value(self, _val):
+        raise NotImplementedError("Cannot set the value of a CallbackParam.")
