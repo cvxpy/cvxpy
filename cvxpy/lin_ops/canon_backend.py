@@ -1616,8 +1616,11 @@ class StackedSlicesBackend(PythonCanonBackend):
                 else:
                     stacked_lhs = lhs.T.tocsc()
 
-            def func(x, _p):
-                return (stacked_lhs @ x).tocsc()
+            def func(x, p):
+                if p == 1:
+                    return (stacked_lhs @ x).tocsc()
+                else:
+                    return ((sp.kron(sp.eye(p, format="csc"), stacked_lhs)) @ x).tocsc()
         else:
             lhs_shape = next(iter(lhs.values())).shape
             p = view.rows // lhs_shape[-1]
