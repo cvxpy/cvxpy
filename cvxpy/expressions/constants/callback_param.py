@@ -29,7 +29,7 @@ class CallbackParam(Parameter):
 
     Example:
     With p and q parameters, p * q is not DPP, but
-    pq = CallbackParameter(callback=p * q) is DPP.
+    pq = CallbackParameter(callback=callback=lambda: p.value * q.value) is DPP.
 
     This is useful when only p and q should be exposed
     to the user, but pq is needed internally.
