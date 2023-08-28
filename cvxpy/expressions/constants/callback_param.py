@@ -13,6 +13,9 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+from __future__ import annotations
+
+from typing import Callable
 
 from cvxpy.expressions.constants.parameter import Parameter
 
@@ -23,20 +26,20 @@ class CallbackParam(Parameter):
 
     Enables writing replacing expression that would not be DPP
     by a new parameter that automatically updates its value.
-    
+
     Example:
     With p and q parameters, p * q is not DPP, but
     pq = CallbackParameter(callback=p * q) is DPP.
-    
+
     This is useful when only p and q should be exposed
     to the user, but pq is needed internally.
     """
 
-    def __init__(self, callback, shape=(), **kwargs) -> None:
+    def __init__(self, callback: Callable, shape: int | tuple[int, ...] = (), **kwargs) -> None:
         """
         callback: function that returns the value of the parameter.
         """
-        
+
         self._callback = callback
         super(CallbackParam, self).__init__(shape, **kwargs)
 

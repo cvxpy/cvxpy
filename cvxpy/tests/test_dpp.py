@@ -844,7 +844,7 @@ class TestCallbackParam(BaseTest):
     q = cp.Parameter()
 
     def test_callback_param(self) -> None:
-        callback_param = cp.CallbackParam(callback=lambda _ : self.p * self.q)
+        callback_param = cp.CallbackParam(callback=lambda: self.p.value * self.q.value)
         problem = cp.Problem(cp.Minimize(self.x), [self.x >= callback_param])
         assert problem.is_dpp()
         self.p.value = 1.0
