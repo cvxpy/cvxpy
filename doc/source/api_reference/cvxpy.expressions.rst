@@ -64,6 +64,6 @@ CallbackParam
 -----------------------------------
 
 .. autoclass:: cvxpy.expressions.constants.callback_param.CallbackParam
-    :members: callback, shape, size, ndim, T, value, project, project_and_assign, round
+    :members: shape, size, ndim, T, value, project, project_and_assign, round
     :undoc-members:
     :show-inheritance:
