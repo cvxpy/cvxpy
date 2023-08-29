@@ -1057,8 +1057,65 @@ class TestBackends:
         assert out_view.get_tensor_representation(0) == view.get_tensor_representation(0)
 
     def test_get_kron_row_indices(self, backend):
+        """
+        kron(l,r)
+        with 
+        l = [[x1, x3],  r = [[a],
+             [x2, x4]]       [b]]
+
+        yields
+        [[ax1, ax3],
+         [bx1, bx3],
+         [ax2, ax4],
+         [bx2, bx4]]
+        
+        Which is what we get when we compute kron(l,r) directly, 
+        as l is represented as eye(4) and r is reshaped into a column vector.
+        Thus, this function should return arange(8).
+        
+        So we have:
+        kron(l,r) = 
+        [[a, 0, 0, 0],
+         [b, 0, 0, 0],
+         [0, a, 0, 0],
+         [0, b, 0, 0],
+         [0, 0, a, 0],
+         [0, 0, b, 0],
+         [0, 0, 0, a],
+         [0, 0, 0, b]].            
+        """
         indices = backend._get_kron_row_indices((2, 2), (2, 1))
         assert np.all(indices == np.arange(8))
+
+        """
+        kron(l,r)
+        with 
+        l = [[x1],  r = [[a, c],
+             [x2]]       [b, d]]
+
+        yields
+        [[ax1, cx1],
+         [bx1, dx1],
+         [ax2, cx2],
+         [bx2, dx2]]
+        
+        Here, we have to swap the row indices of the resulting matrix.
+        Immediately applying kron(l,r) gives to eye(2) and r reshaped to 
+        a column vector gives.
+                 
+        So we have:
+        kron(l,r) = 
+        [[a, 0],
+         [b, 0],
+         [c, 0],
+         [d, 0],
+         [0, a],
+         [0, b]
+         [0, c],
+         [0, d]].
+
+        Thus, we need to to return [0, 1, 4, 5, 2, 3, 6, 7].
+        """
 
         indices = backend._get_kron_row_indices((2, 1), (2, 2))
         assert np.all(indices == [0, 1, 4, 5, 2, 3, 6, 7])
@@ -1068,6 +1125,10 @@ class TestBackends:
 
         indices = backend._get_kron_row_indices((3, 2), (1, 2))
         assert np.all(indices == [0, 2, 4, 1, 3, 5, 6, 8, 10, 7, 9, 11])
+
+        indices = backend._get_kron_row_indices((2, 2), (2, 2))
+        expected = [0, 1, 4, 5, 2, 3, 6, 7, 8, 9, 12, 13, 10, 11, 14, 15]
+        assert np.all(indices == expected)
 
     def test_tensor_view_combine_potentially_none(self, backend):
         view = backend.get_empty_view()
