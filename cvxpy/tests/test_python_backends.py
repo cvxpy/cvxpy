@@ -1446,12 +1446,14 @@ class TestParametrizedBackends:
 
     def test_parametrized_rhs_rmul(self, param_backend):
         """
-        Continuing from the non-parametrized example when the lhs is a parameter,
-        instead of multiplying known values, the matrix is split up into four slices,
+        Continuing from the parametrized rhs mul example, when the lhs is a parameter,
+        the matrix is again split up into four slices,
         each representing an element of the parameter, i.e. instead of
          x11 x21 x12 x22
-        [[1   0   2   0],
-         [0   1   0   2]]
+        [[1   0   3   0],
+         [0   1   0   3],
+         [2   0   4   0],
+         [0   2   0   4]]
 
          we obtain the list of length four, where we have the same entries as before
          but each variable maps to a different parameter slice:
@@ -1459,16 +1461,24 @@ class TestParametrizedBackends:
          x11  x21  x12  x22
         [
          [[1   0   0   0],
+          [0   0   0   0],
+          [2   0   0   0],
           [0   0   0   0]]
 
          [[0   0   0   0],
-          [0   1   0   0]]
+          [0   1   0   0],
+          [0   0   0   0],
+          [0   2   0   0]]
 
-         [[0   0   2   0],
+         [[0   0   3   0],
+          [0   0   0   0],
+          [0   0   4   0],
           [0   0   0   0]]
 
          [[0   0   0   0],
-          [0   0   0   2]]
+          [0   0   0   3],
+          [0   0   0   0],
+          [0   0   0   4]]
         ]
         """
         param_lin_op = linOpHelper((2, 2), type='param', data=2)
@@ -1480,37 +1490,45 @@ class TestParametrizedBackends:
         mul_elem_lin_op = linOpHelper(data=param_lin_op)
         param_var_view = param_backend.mul_elem(mul_elem_lin_op, var_view)
 
-        rhs = linOpHelper((2,), type='dense_const', data=np.array([1, 2]))
+        rhs = linOpHelper((2, 2), type='dense_const', data=np.array([[1, 2], [3, 4]]))
 
         rmul_lin_op = linOpHelper(data=rhs, args=[variable_lin_op])
         out_view = param_backend.rmul(rmul_lin_op, param_var_view)
         out_repr = out_view.get_tensor_representation(0)
 
-        slice_idx_zero = out_repr.get_param_slice(0, (2, 4)).toarray()
+        slice_idx_zero = out_repr.get_param_slice(0, (4, 4)).toarray()
         expected_idx_zero = np.array(
             [[1., 0., 0., 0.],
+             [0., 0., 0., 0.],
+             [2., 0., 0., 0.],
              [0., 0., 0., 0.]]
         )
         assert np.all(slice_idx_zero == expected_idx_zero)
 
-        slice_idx_one = out_repr.get_param_slice(1, (2, 4)).toarray()
+        slice_idx_one = out_repr.get_param_slice(1, (4, 4)).toarray()
         expected_idx_one = np.array(
             [[0., 0., 0., 0.],
-             [0., 1., 0., 0.]]
+             [0., 1., 0., 0.],
+             [0., 0., 0., 0.],
+             [0., 2., 0., 0.]]
         )
         assert np.all(slice_idx_one == expected_idx_one)
 
-        slice_idx_two = out_repr.get_param_slice(2, (2, 4)).toarray()
+        slice_idx_two = out_repr.get_param_slice(2, (4, 4)).toarray()
         expected_idx_two = np.array(
-            [[0., 0., 2., 0.],
+            [[0., 0., 3., 0.],
+             [0., 0., 0., 0.],
+             [0., 0., 4., 0.],
              [0., 0., 0., 0.]]
         )
         assert np.all(slice_idx_two == expected_idx_two)
 
-        slice_idx_three = out_repr.get_param_slice(3, (2, 4)).toarray()
+        slice_idx_three = out_repr.get_param_slice(3, (4, 4)).toarray()
         expected_idx_three = np.array(
             [[0., 0., 0., 0.],
-             [0., 0., 0., 2.]]
+             [0., 0., 0., 3.],
+             [0., 0., 0., 0.],
+             [0., 0., 0., 4.]]
         )
         assert np.all(slice_idx_three == expected_idx_three)
 
