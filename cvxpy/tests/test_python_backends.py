@@ -44,6 +44,9 @@ class TestBackendInstance:
 
     def test_get_backend(self):
         args = ({1: 0, 2: 2}, {-1: 1, 3: 1}, {3: 0, -1: 1}, 2, 4)
+        backend = CanonBackend.get_backend(s.STACKED_SLICES_BACKEND, *args)
+        assert isinstance(backend, StackedSlicesBackend)
+
         backend = CanonBackend.get_backend(s.SCIPY_CANON_BACKEND, *args)
         assert isinstance(backend, SciPyCanonBackend)
 
@@ -1053,6 +1056,19 @@ class TestBackends:
         # Note: view is edited in-place:
         assert out_view.get_tensor_representation(0) == view.get_tensor_representation(0)
 
+    def test_get_kron_row_indices(self, backend):
+        indices = backend._get_kron_row_indices((2, 2), (2, 1))
+        assert np.all(indices == np.arange(8))
+
+        indices = backend._get_kron_row_indices((2, 1), (2, 2))
+        assert np.all(indices == [0, 1, 4, 5, 2, 3, 6, 7])
+
+        indices = backend._get_kron_row_indices((1, 2), (3, 2))
+        assert np.all(indices == np.arange(12))
+
+        indices = backend._get_kron_row_indices((3, 2), (1, 2))
+        assert np.all(indices == [0, 2, 4, 1, 3, 5, 6, 8, 10, 7, 9, 11])
+
     def test_tensor_view_combine_potentially_none(self, backend):
         view = backend.get_empty_view()
         assert view.combine_potentially_none(None, None) is None
@@ -1903,7 +1919,7 @@ class TestStackedBackend:
             view.add_dicts({"a": 1}, {"a": 2})
 
     @staticmethod
-    @pytest.mark.parametrize('shape', [(1,1), (2,2), (3,3), (4,4)])
+    @pytest.mark.parametrize('shape', [(1, 1), (2, 2), (3, 3), (4, 4)])
     def test_repeat_parametrized_lhs(shape, stacked_backend):
         p = 2
         reps = 3
