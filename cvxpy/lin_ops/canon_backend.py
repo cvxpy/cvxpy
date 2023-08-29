@@ -37,6 +37,7 @@ Note: this file is tested extensively with illustrative examples in test_python_
 complementing the docstrings of the functions below.
 """
 
+
 class Constant(Enum):
     ID = -1
 
@@ -601,6 +602,7 @@ class RustCanonBackend(CanonBackend):
     For additional information, a proof of concept pull request can be found here:
     https://github.com/phschiele/cvxpy/pull/31
     """
+
     def build_matrix(self, lin_ops: list[LinOp]) -> sp.csc_matrix:
         import cvxpy_rust
         self.id_to_col[-1] = self.var_length
@@ -626,7 +628,6 @@ class SciPyCanonBackend(PythonCanonBackend):
         return {k: [v_i.reshape(lin_op_shape, order="F").tocsr()
                     for v_i in v] for k, v in constant_data.items()}
 
-
     def concatenate_tensors(self, tensors: list[TensorRepresentation]) \
             -> TensorRepresentation:
         """
@@ -634,17 +635,6 @@ class SciPyCanonBackend(PythonCanonBackend):
         combines them into a single tensor.
         """
         return TensorRepresentation.combine(tensors)
-
-    def reshape_tensors(self, tensor: TensorRepresentation, total_rows: int) -> sp.csc_matrix:
-        """
-        Reshape into 2D scipy csc-matrix in column-major order and transpose.
-
-        Note: Windows uses int32 by default at time of writing, so we need to enforce int64 here
-        """
-        rows = (tensor.col.astype(np.int64) * np.int64(total_rows) + tensor.row.astype(np.int64))
-        cols = tensor.parameter_offset.astype(np.int64)
-        shape = (np.int64(total_rows) * np.int64(self.var_length + 1), self.param_size_plus_one)
-        return sp.csc_matrix((tensor.data, (rows, cols)), shape=shape)
 
     def get_empty_view(self) -> SciPyTensorView:
         """
@@ -724,6 +714,7 @@ class SciPyCanonBackend(PythonCanonBackend):
         """
         Given (A, b) in view, return (sum(A,axis=0), sum(b, axis=0)).
         """
+
         def func(x):
             return sp.csr_matrix(x.sum(axis=0))
 
@@ -786,6 +777,7 @@ class SciPyCanonBackend(PythonCanonBackend):
         Returns a function that takes in a tensor, modifies the shape of the tensor by extending
         it to total_rows, and then shifts the entries by offset along axis 0.
         """
+
         def stack_func(tensor):
             coo_repr = tensor.tocoo()
             new_rows = (coo_repr.row + offset).astype(int)
@@ -1004,7 +996,6 @@ class NumPyCanonBackend(PythonCanonBackend):
         return {k: v.reshape((v.shape[0], *lin_op_shape), order="F")
                 for k, v in constant_data.items()}
 
-
     def concatenate_tensors(self, tensors: list[TensorRepresentation]) \
             -> TensorRepresentation:
         """
@@ -1012,17 +1003,6 @@ class NumPyCanonBackend(PythonCanonBackend):
         combines them into a single tensor.
         """
         return TensorRepresentation.combine(tensors)
-
-    def reshape_tensors(self, tensor: NumPyTensorView, total_rows: int) -> sp.csc_matrix:
-        """
-        Reshape into 2D scipy csc-matrix in column-major order and transpose.
-
-        Note: Windows uses int32 by default at time of writing, so we need to enforce int64 here
-        """
-        rows = (tensor.col.astype(np.int64) * np.int64(total_rows) + tensor.row.astype(np.int64))
-        cols = tensor.parameter_offset.astype(np.int64)
-        shape = (np.int64(total_rows) * np.int64(self.var_length + 1), self.param_size_plus_one)
-        return sp.csc_matrix((tensor.data, (rows, cols)), shape=shape)
 
     def get_empty_view(self) -> NumPyTensorView:
         """
@@ -1359,7 +1339,7 @@ class StackedSlicesBackend(PythonCanonBackend):
         Reshape constant data from column format to the required shape for operations that
         do not require column format. This function unpacks the constant data dict and reshapes
         the stacked slices of the tensor 'v' according to the lin_op_shape argument.
-        """        
+        """
         return {k: StackedSlicesBackend._reshape_single_constant_tensor(v, lin_op_shape)
                 for k, v in constant_data.items()}
 
@@ -1388,7 +1368,7 @@ class StackedSlicesBackend(PythonCanonBackend):
         """
         Returns an empty view of the corresponding StackedSlicesTensorView subclass,
         coupling the StackedSlicesBackend subclass with the StackedSlicesTensorView subclass.
-        """        
+        """
         return StackedSlicesTensorView.get_empty_view(self.param_size_plus_one, self.id_to_col,
                                                       self.param_to_size, self.param_to_col,
                                                       self.var_length)
@@ -1420,7 +1400,6 @@ class StackedSlicesBackend(PythonCanonBackend):
                 stacked_lhs = lhs
 
             def func(x, p):
-                # TODO: add test for case p > 1 and reps > 1
                 if p == 1:
                     return (stacked_lhs @ x).tocsc()
                 else:
@@ -1473,8 +1452,8 @@ class StackedSlicesBackend(PythonCanonBackend):
     @staticmethod
     def promote(lin: LinOp, view: StackedSlicesTensorView) -> StackedSlicesTensorView:
         """
-        Promote view by repeating along axis 1 (rows).
-        """        
+        Promote view by repeating along axis 0 (rows).
+        """
         num_entries = int(np.prod(lin.shape))
         rows = np.zeros(num_entries).astype(int)
         view.select_rows(rows)
@@ -1507,10 +1486,10 @@ class StackedSlicesBackend(PythonCanonBackend):
     def sum_entries(_lin: LinOp, view: StackedSlicesTensorView) -> StackedSlicesTensorView:
         """
         Given (A, b) in view, return the sum of the representation
-        on the row axis, ie: (sum(A,axis=1), sum(b, axis=1)).
+        on the row axis, ie: (sum(A,axis=0), sum(b, axis=0)).
         Here, since the slices are stacked, we sum over the rows corresponding
         to the same slice.
-        """        
+        """
         def func(x, p):
             if p == 1:
                 return sp.csc_matrix(x.sum(axis=0))
@@ -1529,7 +1508,7 @@ class StackedSlicesBackend(PythonCanonBackend):
         is multiplied with the reciprocal of the lin_op data.
 
         Note: div currently doesn't support parameters.
-        """        
+        """
         lhs, is_param_free_lhs = self.get_constant_data(lin.data, view, column=True)
         assert is_param_free_lhs
         # dtype is important here, will do integer division if data is of dtype "int" otherwise.
@@ -1578,8 +1557,8 @@ class StackedSlicesBackend(PythonCanonBackend):
     def get_stack_func(total_rows: int, offset: int) -> Callable:
         """
         Returns a function that takes in a tensor, modifies the shape of the tensor by extending
-        it to total_rows, and then shifts the entries by offset along axis 1.
-        """        
+        it to total_rows, and then shifts the entries by offset along axis 0.
+        """
         def stack_func(tensor, p):
             coo_repr = tensor.tocoo()
             m = coo_repr.shape[0] // p
@@ -1616,8 +1595,11 @@ class StackedSlicesBackend(PythonCanonBackend):
                 else:
                     stacked_lhs = lhs.T.tocsc()
 
-            def func(x, _p):
-                return (stacked_lhs @ x).tocsc()
+            def func(x, p):
+                if p == 1:
+                    return (stacked_lhs @ x).tocsc()
+                else:
+                    return ((sp.kron(sp.eye(p, format="csc"), stacked_lhs)) @ x).tocsc()
         else:
             lhs_shape = next(iter(lhs.values())).shape
             p = view.rows // lhs_shape[-1]
@@ -1683,7 +1665,7 @@ class StackedSlicesBackend(PythonCanonBackend):
         applying the convolution.
 
         Note: conv currently doesn't support parameters.
-        """        
+        """
         lhs, is_param_free_lhs = self.get_constant_data(lin.data, view, column=False)
         assert is_param_free_lhs, \
             "StackedSlices backend does not support parametrized left operand for conv."
@@ -1717,7 +1699,7 @@ class StackedSlicesBackend(PythonCanonBackend):
         view of x and reorders the row indices afterwards.
 
         Note: kron_r currently doesn't support parameters.
-        """        
+        """
         lhs, is_param_free_lhs = self.get_constant_data(lin.data, view, column=True)
         assert is_param_free_lhs, \
             "StackedSlices backend does not support parametrized left operand for kron_r."
@@ -1753,7 +1735,7 @@ class StackedSlicesBackend(PythonCanonBackend):
         view of x and reorders the row indices afterwards.
 
         Note: kron_l currently doesn't support parameters.
-        """        
+        """
         rhs, is_param_free_rhs = self.get_constant_data(lin.data, view, column=True)
         assert is_param_free_rhs, \
             "StackedSlices backend does not support parametrized right operand for kron_l."
@@ -1788,7 +1770,7 @@ class StackedSlicesBackend(PythonCanonBackend):
         Returns tensor of a variable node, i.e., eye(n) across axes 0 and 1, where n is
         the size of the variable.
         This function returns eye(n) in csc format.
-        """        
+        """
         assert variable_id != Constant.ID
         n = int(np.prod(shape))
         return {variable_id: {Constant.ID.value: sp.eye(n, format="csc")}}
@@ -1812,7 +1794,7 @@ class StackedSlicesBackend(PythonCanonBackend):
         Returns tensor of a parameter node, i.e., eye(n) across axes 0 and 2, where n is
         the size of the parameter.
         This function returns eye(n).flatten() in csc format.
-        """        
+        """
         assert parameter_id != Constant.ID
         param_size = self.param_to_size[parameter_id]
         shape = (int(np.prod(shape) * param_size), 1)
