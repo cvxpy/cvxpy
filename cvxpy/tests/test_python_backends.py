@@ -752,7 +752,7 @@ class TestBackends:
         [[1  0],
          [0  1]]
 
-         mul_elementwise(x, a) means 'a' is reshaped into a column vector and multiplied with A.
+         mul_elementwise(x, a) means 'a' is reshaped into a column vector and multiplied by A.
          E.g. for a = (2,3), we obtain
 
          x1  x2
@@ -1071,7 +1071,6 @@ class TestBackends:
         
         Which is what we get when we compute kron(l,r) directly, 
         as l is represented as eye(4) and r is reshaped into a column vector.
-        Thus, this function should return arange(8).
         
         So we have:
         kron(l,r) = 
@@ -1083,6 +1082,8 @@ class TestBackends:
          [0, 0, b, 0],
          [0, 0, 0, a],
          [0, 0, 0, b]].            
+
+        Thus, this function should return arange(8).
         """
         indices = backend._get_kron_row_indices((2, 2), (2, 1))
         assert np.all(indices == np.arange(8))
@@ -1159,7 +1160,7 @@ class TestParametrizedBackends:
 
     def test_parametrized_diag_vec(self, param_backend):
         """
-        starting with a parametrized expression
+        Starting with a parametrized expression
         x1  x2
         [[[1  0],
          [0  0]],
@@ -1361,9 +1362,9 @@ class TestParametrizedBackends:
 
     def test_parametrized_rhs_mul(self, param_backend):
         """
-        Continuing from the non-parametrized example when the rhs is a parameter,
-        instead of multiplying known values, the matrix is split up into four slices,
-        each representing an element of the parameter, i.e. instead of
+        Continuing from the non-parametrized example when the expression
+        that is multiplied by is parametrized. For a variable that 
+        was multiplied elementwise by a parameter, instead of
          x11 x21 x12 x22
         [[1   2   0   0],
          [3   4   0   0],
@@ -1507,9 +1508,10 @@ class TestParametrizedBackends:
 
     def test_parametrized_rhs_rmul(self, param_backend):
         """
-        Continuing from the parametrized rhs mul example, when the lhs is a parameter,
-        the matrix is again split up into four slices,
-        each representing an element of the parameter, i.e. instead of
+        Continuing from the non-parametrized example when the expression
+        that is multiplied by is parametrized. For a variable that 
+        was multiplied elementwise by a parameter, instead of
+
          x11 x21 x12 x22
         [[1   0   3   0],
          [0   1   0   3],
@@ -1652,9 +1654,9 @@ class TestParametrizedBackends:
 
     def test_parametrized_div(self, param_backend):
         """
-        Continuing from the non-parametrized example when the rhs is a parameter,
-        instead of dividing known values, the matrix is split up into four slices,
-        each representing an element of the parameter, i.e. instead of
+        Continuing from the non-parametrized example when the expression
+        that is divided by is parametrized. For a variable that 
+        was multiplied elementwise by a parameter, instead of
          x11 x21 x12 x22
         [[1   0   0   0],
          [0   1/3 0   0],
@@ -1741,17 +1743,10 @@ class TestParametrizedBackends:
 
     def test_parametrized_trace(self, param_backend):
         """
-        Continuing from the non-parametrized example,
-        instead of taking the trace with known values, the matrix is split up into four slices,
-        each representing an element of the parameter, i.e. instead of
-         x11 x21 x12 x22
-        [[1   0   0   0],
-         [0   1   0   0],
-         [0   0   1   0],
-         [0   0   0   1]]
+        Continuing from the non-parametrized example, instead of a pure variable
+        input, we take a variable that has been multiplied elementwise by a parameter.
 
-         we obtain the list of length four, where we have ones at the entries where previously
-         we had the diagonal entries of the matrix:
+        The trace of this expression is then given by
 
             x11  x21  x12  x22
         [
@@ -2003,8 +1998,7 @@ class TestStackedBackend:
         p = 2
         reps = 3
         param_id = 2
-        rng = np.random.default_rng(seed=0)
-        matrices = [sp.random(*shape, random_state=rng, density=0.5) for _ in range(p)]
+        matrices = [sp.random(*shape, random_state=i, density=0.5) for i in range(p)]
         stacked = sp.vstack(matrices)
         repeated = stacked_backend._repeat_parametrized_lhs({param_id: stacked}, reps)
         repeated = repeated[param_id]
