@@ -18,12 +18,12 @@ from typing import List, Optional
 
 import numpy as np
 
-from cvxpy.constraints.constraint import Constraint
+from cvxpy.constraints.cones import Cone
 from cvxpy.expressions import cvxtypes
 from cvxpy.utilities import scopes
 
 
-class SOC(Constraint):
+class SOC(Cone):
     """A second-order cone constraint for each row/column.
 
     Assumes ``t`` is a vector the same length as ``X``'s columns (rows) for
@@ -165,3 +165,18 @@ class SOC(Constraint):
             X = X.T
         self.dual_variables[0].save_value(t)
         self.dual_variables[1].save_value(X)
+
+    def _dual_cone(self, *args):
+        """Implements the dual cone of the second-order cone
+        See Pg 85 of the MOSEK modelling cookbook for more information"""
+        if args is None:
+            return SOC(self.dual_variables[0], self.dual_variables[1], self.axis)
+        else:
+            # some assertions for verifying `args`
+            def f(x):
+                return x.shape
+            args_shapes = list(map(f, args))
+            instance_args_shapes = list(map(f, self.args))
+            assert len(args) == len(self.args)
+            assert args_shapes == instance_args_shapes
+            return SOC(args[0], args[1], self.axis)
