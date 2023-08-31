@@ -1407,7 +1407,7 @@ class StackedSlicesBackend(PythonCanonBackend):
         else:
             reps = view.rows // next(iter(lhs.values())).shape[-1]
             if reps > 1:
-                stacked_lhs = self._repeat_parametrized_lhs(lhs, reps)
+                stacked_lhs = self._stacked_kron_r(lhs, reps)
             else:
                 stacked_lhs = lhs
 
@@ -1417,19 +1417,19 @@ class StackedSlicesBackend(PythonCanonBackend):
             func = parametrized_mul
         return view.accumulate_over_variables(func, is_param_free_function=is_param_free_lhs)
 
-    def _repeat_parametrized_lhs(self, lhs: dict[int, list[sp.csc_matrix]], reps: int) \
+    def _stacked_kron_r(self, lhs: dict[int, list[sp.csc_matrix]], reps: int) \
             -> sp.csc_matrix:
         """
         Given a stacked lhs
-        [[A_1],
-         [A_2],
+        [[A_0],
+         [A_1],
          ...
-        apply the Kronecker product with the identity matrix of size reps to each slice,
-        e.g., for reps = 2:
-        [[A_1, 0],
+        apply the Kronecker product with the identity matrix of size reps
+        (kron(eye(reps), lhs)) to each slice, e.g., for reps = 2:
+        [[A_0, 0],
+         [0, A_0],
+         [A_1, 0],
          [0, A_1],
-         [A_2, 0],
-         [0, A_2],
          ...
         """
         res = dict()
@@ -1585,15 +1585,14 @@ class StackedSlicesBackend(PythonCanonBackend):
         arg_cols = lin.args[0].shape[0] if len(lin.args[0].shape) == 1 else lin.args[0].shape[1]
 
         if is_param_free_lhs:
+            
             if len(lin.data.shape) == 1 and arg_cols != lhs.shape[0]:
-                reps = view.rows // lhs.shape[1]
-                stacked_lhs = sp.kron(lhs, sp.eye(reps, format="csc"))
+                lhs = lhs.T
+            reps = view.rows // lhs.shape[0]
+            if reps > 1:
+                stacked_lhs = (lhs.T, sp.kron(sp.eye(reps, format="csc")))
             else:
-                reps = view.rows // lhs.shape[0]
-                if reps > 1:
-                    stacked_lhs = sp.kron(lhs.T, sp.eye(reps, format="csc"))
-                else:
-                    stacked_lhs = lhs.T.tocsc()
+                stacked_lhs = lhs.T
 
             def func(x, p):
                 if p == 1:
@@ -1602,20 +1601,21 @@ class StackedSlicesBackend(PythonCanonBackend):
                     return ((sp.kron(sp.eye(p, format="csc"), stacked_lhs)) @ x).tocsc()
         else:
             k, v = next(iter(lhs.items()))
-            lhs_rows = v.shape[-2] // self.param_to_size[k]
+            lhs_rows = v.shape[0] // self.param_to_size[k]
 
             if len(lin.data.shape) == 1 and arg_cols != lhs_rows:
                 # Example: (n,n) @ (n,), we need to interpret the rhs as a column vector,
                 # but it is a row vector by default, so we need to transpose
                 lhs = {k: self._transpose_stacked(v) for k, v in lhs.items()}
-                lhs_rows = ...
+                k, v = next(iter(lhs.items()))
+                lhs_rows = v.shape[0] // self.param_to_size[k]
 
             reps = view.rows // lhs_rows
 
-            lhs = {k: self._transpose_stacked(v) for k, v in lhs.items()}
+            lhs = {k: self._transpose_stacked(v, k) for k, v in lhs.items()}
 
             if reps > 1:
-                stacked_lhs = self._repeat_parametrized_lhs(lhs, reps)
+                stacked_lhs = self._stacked_kron_l(lhs, reps)
             else:
                 stacked_lhs = lhs
 
@@ -1624,6 +1624,39 @@ class StackedSlicesBackend(PythonCanonBackend):
 
             func = parametrized_mul
         return view.accumulate_over_variables(func, is_param_free_function=is_param_free_lhs)
+
+    
+    def _transpose_stacked(self, v: sp.csc_matrix, param_id: int) -> sp.csc_matrix:
+        """
+        Given v, which is is a stacked matrix of shape (p * n, m), transpose each slice of v,
+        returning a stacked matrix of shape (p * m, n).
+        Example:
+        Input:      Output:
+        [[A_0],     [[A_0.T],
+         [A_1],      [A_1.T],
+          ...        ...
+        """
+        old_shape = (v.shape[0] // self.param_to_size[param_id], v.shape[1])
+        p = v.shape[0] // old_shape[0]
+        new_shape = (old_shape[1], old_shape[0])
+        new_stacked_shape = (p * new_shape[0], new_shape[1])
+
+        v = v.tocoo()
+        data, rows, cols = v.data, v.row, v.col
+        slices, rows = np.divmod(rows, old_shape[0])
+        
+        new_rows = cols + slices * new_shape[0]
+        new_cols = rows
+
+        return sp.csc_matrix((data, (new_rows, new_cols)), shape=new_stacked_shape)
+
+    def _stacked_kron_l(self, lhs: dict[int, list[sp.csc_matrix]], reps: int) \
+            -> sp.csc_matrix:
+        """
+        Apply the Kronecker product with the identity matrix of size reps
+        (kron(lhs, eye(reps))) to each slice, e.g., for reps = 2:
+        """
+        # TODO(Will)
 
     @staticmethod
     def trace(lin: LinOp, view: StackedSlicesTensorView) -> StackedSlicesTensorView:

@@ -1994,16 +1994,22 @@ class TestStackedBackend:
 
     @staticmethod
     @pytest.mark.parametrize('shape', [(1, 1), (2, 2), (3, 3), (4, 4)])
-    def test_repeat_parametrized_lhs(shape, stacked_backend):
+    def test_stacked_kron_r(shape, stacked_backend):
         p = 2
         reps = 3
         param_id = 2
         matrices = [sp.random(*shape, random_state=i, density=0.5) for i in range(p)]
         stacked = sp.vstack(matrices)
-        repeated = stacked_backend._repeat_parametrized_lhs({param_id: stacked}, reps)
+        repeated = stacked_backend._stacked_kron_r({param_id: stacked}, reps)
         repeated = repeated[param_id]
         expected = sp.vstack([sp.kron(sp.eye(reps), m) for m in matrices])
         assert (expected != repeated).nnz == 0
+
+    @staticmethod
+    @pytest.mark.parametrize('shape', [(1, 1), (2, 2), (3, 3), (4, 4)])
+    def test_stacked_kron_l(shape, stacked_backend):
+        # TODO(Will)
+
 
     @staticmethod
     def test_reshape_single_constant_tensor(stacked_backend):
@@ -2013,3 +2019,13 @@ class TestStackedBackend:
         expected = sp.csc_matrix(np.tile(expected, (3, 1)))
         assert (reshaped != expected).nnz == 0
 
+    @staticmethod
+    @pytest.mark.parametrize('shape', [(1, 1), (2, 2), (3, 2), (2, 3)])
+    def test_transpose_stacked(shape, stacked_backend):
+        p = 2
+        param_id = 2
+        matrices = [sp.random(*shape, random_state=i, density=0.5) for i in range(p)]
+        stacked = sp.vstack(matrices)
+        transposed = stacked_backend._transpose_stacked(stacked, param_id)
+        expected = sp.vstack([m.T for m in matrices])
+        assert (expected != transposed).nnz == 0
