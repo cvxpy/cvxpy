@@ -2008,8 +2008,15 @@ class TestStackedBackend:
     @staticmethod
     @pytest.mark.parametrize('shape', [(1, 1), (2, 2), (3, 3), (4, 4)])
     def test_stacked_kron_l(shape, stacked_backend):
-        # TODO(Will)
-
+        p = 2
+        reps = 3
+        param_id = 2
+        matrices = [sp.random(*shape, random_state=i, density=0.5) for i in range(p)]
+        stacked = sp.vstack(matrices)
+        repeated = stacked_backend._stacked_kron_l({param_id: stacked}, reps)
+        repeated = repeated[param_id]
+        expected = sp.vstack([sp.kron(m, sp.eye(reps)) for m in matrices])
+        assert (expected != repeated).nnz == 0
 
     @staticmethod
     def test_reshape_single_constant_tensor(stacked_backend):

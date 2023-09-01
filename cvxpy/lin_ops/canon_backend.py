@@ -1438,11 +1438,10 @@ class StackedSlicesBackend(PythonCanonBackend):
             old_shape = (v.shape[0] // p, v.shape[1])
             coo = v.tocoo()
             data, rows, cols = coo.data, coo.row, coo.col
-            new_rows = np.repeat(rows, reps) + np.tile(np.arange(reps) * old_shape[0], len(rows)) \
-                       + np.repeat(rows // old_shape[0],
-                                   reps) * (old_shape[0] * (reps - 1))
-            new_cols = np.repeat(
-                cols, reps) + np.tile(np.arange(reps) * old_shape[1], len(cols))
+            new_rows = np.repeat(rows // old_shape[0], reps) * (old_shape[0] * (reps - 1)) + \
+                       np.repeat(rows, reps) + np.tile(np.arange(reps) * old_shape[0], len(rows))
+            new_cols = np.tile(np.arange(reps) * old_shape[1], len(cols)) + \
+                       np.repeat(cols, reps)
             new_data = np.repeat(data, reps)
             new_shape = (v.shape[0] * reps, v.shape[1] * reps)
             res[param_id] = sp.csc_matrix(
@@ -1590,7 +1589,7 @@ class StackedSlicesBackend(PythonCanonBackend):
                 lhs = lhs.T
             reps = view.rows // lhs.shape[0]
             if reps > 1:
-                stacked_lhs = (lhs.T, sp.kron(sp.eye(reps, format="csc")))
+                stacked_lhs = sp.kron(lhs.T, sp.eye(reps, format="csc"))
             else:
                 stacked_lhs = lhs.T
 
@@ -1606,7 +1605,7 @@ class StackedSlicesBackend(PythonCanonBackend):
             if len(lin.data.shape) == 1 and arg_cols != lhs_rows:
                 # Example: (n,n) @ (n,), we need to interpret the rhs as a column vector,
                 # but it is a row vector by default, so we need to transpose
-                lhs = {k: self._transpose_stacked(v) for k, v in lhs.items()}
+                lhs = {k: self._transpose_stacked(v, k) for k, v in lhs.items()}
                 k, v = next(iter(lhs.items()))
                 lhs_rows = v.shape[0] // self.param_to_size[k]
 
@@ -1624,11 +1623,10 @@ class StackedSlicesBackend(PythonCanonBackend):
 
             func = parametrized_mul
         return view.accumulate_over_variables(func, is_param_free_function=is_param_free_lhs)
-
     
     def _transpose_stacked(self, v: sp.csc_matrix, param_id: int) -> sp.csc_matrix:
         """
-        Given v, which is is a stacked matrix of shape (p * n, m), transpose each slice of v,
+        Given v, which is a stacked matrix of shape (p * n, m), transpose each slice of v,
         returning a stacked matrix of shape (p * m, n).
         Example:
         Input:      Output:
@@ -1653,10 +1651,30 @@ class StackedSlicesBackend(PythonCanonBackend):
     def _stacked_kron_l(self, lhs: dict[int, list[sp.csc_matrix]], reps: int) \
             -> sp.csc_matrix:
         """
+        Given a stacked lhs with the following entries:
+        [[a11, a12],
+         [a21, a22],
+         ...
         Apply the Kronecker product with the identity matrix of size reps
         (kron(lhs, eye(reps))) to each slice, e.g., for reps = 2:
+        [[a11, 0, a12, 0],
+         [0, a11, 0, a12],
+         [a21, 0, a22, 0],
+         [0, a21, 0, a22],
+         ...
         """
-        # TODO(Will)
+        res = dict()
+        for param_id, v in lhs.items():
+            self.param_to_size[param_id]
+            coo = v.tocoo()
+            data, rows, cols = coo.data, coo.row, coo.col
+            new_rows = np.repeat(rows * reps, reps) + np.tile(np.arange(reps), len(rows))
+            new_cols = np.repeat(cols * reps, reps) + np.tile(np.arange(reps), len(cols))
+            new_data = np.repeat(data, reps)
+            new_shape = (v.shape[0] * reps, v.shape[1] * reps)
+            res[param_id] = sp.csc_matrix(
+                (new_data, (new_rows, new_cols)), shape=new_shape)
+        return res
 
     @staticmethod
     def trace(lin: LinOp, view: StackedSlicesTensorView) -> StackedSlicesTensorView:
@@ -1732,22 +1750,14 @@ class StackedSlicesBackend(PythonCanonBackend):
         assert len({arg.shape for arg in lin.args}) == 1
         rhs_shape = lin.args[0].shape
 
-        lhs_ones = np.ones(lin.data.shape)
-        rhs_ones = np.ones(rhs_shape)
-
-        lhs_arange = np.arange(np.prod(lin.data.shape)).reshape(lin.data.shape, order="F")
-        rhs_arange = np.arange(np.prod(rhs_shape)).reshape(rhs_shape, order="F")
-
-        row_indices = (np.kron(lhs_ones, rhs_arange) +
-                       np.kron(lhs_arange, rhs_ones * np.prod(rhs_shape))) \
-            .flatten(order="F").astype(int)
+        row_idx = self._get_kron_row_indices(lin.data.shape, rhs_shape)
 
         def func(x, p):
             assert p == 1, \
                 "StackedSlices backend does not support parametrized right operand for kron_r."
             assert x.ndim == 2
             kron_res = sp.kron(lhs, x).tocsc()
-            kron_res = kron_res[row_indices, :]
+            kron_res = kron_res[row_idx, :]
             return kron_res
 
         return view.accumulate_over_variables(func, is_param_free_function=is_param_free_lhs)
@@ -1768,22 +1778,14 @@ class StackedSlicesBackend(PythonCanonBackend):
         assert len({arg.shape for arg in lin.args}) == 1
         lhs_shape = lin.args[0].shape
 
-        rhs_ones = np.ones(lin.data.shape)
-        lhs_ones = np.ones(lhs_shape)
-
-        rhs_arange = np.arange(np.prod(lin.data.shape)).reshape(lin.data.shape, order="F")
-        lhs_arange = np.arange(np.prod(lhs_shape)).reshape(lhs_shape, order="F")
-
-        row_indices = (np.kron(lhs_ones, rhs_arange) +
-                       np.kron(lhs_arange, rhs_ones * np.prod(lin.data.shape))) \
-            .flatten(order="F").astype(int)
+        row_idx = self._get_kron_row_indices(lhs_shape, lin.data.shape)
 
         def func(x, p):
             assert p == 1, \
                 "StackedSlices backend does not support parametrized left operand for kron_l."
             assert x.ndim == 2
             kron_res = sp.kron(x, rhs).tocsc()
-            kron_res = kron_res[row_indices, :]
+            kron_res = kron_res[row_idx, :]
             return kron_res
 
         return view.accumulate_over_variables(func, is_param_free_function=is_param_free_rhs)
