@@ -1438,10 +1438,11 @@ class StackedSlicesBackend(PythonCanonBackend):
             old_shape = (v.shape[0] // p, v.shape[1])
             coo = v.tocoo()
             data, rows, cols = coo.data, coo.row, coo.col
-            new_rows = np.repeat(rows // old_shape[0], reps) * (old_shape[0] * (reps - 1)) + \
-                       np.repeat(rows, reps) + np.tile(np.arange(reps) * old_shape[0], len(rows))
-            new_cols = np.tile(np.arange(reps) * old_shape[1], len(cols)) + \
-                       np.repeat(cols, reps)
+            slices, rows = np.divmod(rows, old_shape[0])
+            new_rows = np.repeat(rows + slices * old_shape[0] * reps, reps) + \
+                np.tile(np.arange(reps) * old_shape[0], len(rows))
+            new_cols = np.repeat(cols, reps) + \
+                np.tile(np.arange(reps) * old_shape[1], len(cols))
             new_data = np.repeat(data, reps)
             new_shape = (v.shape[0] * reps, v.shape[1] * reps)
             res[param_id] = sp.csc_matrix(
