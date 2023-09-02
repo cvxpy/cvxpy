@@ -1543,7 +1543,7 @@ class StackedSlicesBackend(PythonCanonBackend):
             if k == 0:
                 new_rows = x_row * (rows + 1)
             elif k > 0:
-                new_rows = x.row * (rows + 1) + rows * k
+                new_rows = x_row * (rows + 1) + rows * k
             else:
                 new_rows = x_row * (rows + 1) - k
             new_rows = (new_rows + x_slice * total_rows).astype(int)
