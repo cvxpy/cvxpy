@@ -1222,31 +1222,31 @@ class TestParametrizedBackends:
         Starting with a parametrized expression
         x1  x2
         [[[1  0],
-         [0  0]],
+          [0  0]],
 
          [[0  0],
-         [0  1]]]
+          [0  1]]]
 
         diag_vec(x, k) means we introduce zero rows as if the vector was the k-diagonal
         of an n+|k| x n+|k| matrix, with n the length of x.
 
         Thus, for k=1 and using the same columns as before, want to represent
         [[0  x1 0],
-        [ 0  0  x2],
-        [[0  0  0]]
-        i.e., unrolled in column-major order:
+         [0  0  x2],
+         [0  0  0]]
+        parametrized across two slices, i.e., unrolled in column-major order:
 
         slice 0         slice 1
          x1  x2          x1  x2
         [[0  0],        [[0  0],
-        [0  0],         [0  0],
-        [0  0],         [0  0],
-        [1  0],         [0  0],
-        [0  0],         [0  0],
-        [0  0],         [0  0],
-        [0  0],         [0  0],
-        [0  0],         [0  1],
-        [0  0]]         [0  0]]
+         [0  0],         [0  0],
+         [0  0],         [0  0],
+         [1  0],         [0  0],
+         [0  0],         [0  0],
+         [0  0],         [0  0],
+         [0  0],         [0  0],
+         [0  0],         [0  1],
+         [0  0]]         [0  0]]
         """
 
         param_lin_op = linOpHelper((2,), type='param', data=2)
