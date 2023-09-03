@@ -13,6 +13,7 @@ from cvxpy.lin_ops.canon_backend import (
     NumPyCanonBackend,
     PythonCanonBackend,
     SciPyCanonBackend,
+    StackedSlicesBackend,
     TensorRepresentation,
 )
 
@@ -43,6 +44,9 @@ class TestBackendInstance:
 
     def test_get_backend(self):
         args = ({1: 0, 2: 2}, {-1: 1, 3: 1}, {3: 0, -1: 1}, 2, 4)
+        backend = CanonBackend.get_backend(s.STACKED_SLICES_BACKEND, *args)
+        assert isinstance(backend, StackedSlicesBackend)
+
         backend = CanonBackend.get_backend(s.SCIPY_CANON_BACKEND, *args)
         assert isinstance(backend, SciPyCanonBackend)
 
@@ -53,7 +57,7 @@ class TestBackendInstance:
             CanonBackend.get_backend('notabackend')
 
 
-backends = [s.SCIPY_CANON_BACKEND, s.NUMPY_CANON_BACKEND]
+backends = [s.STACKED_SLICES_BACKEND, s.SCIPY_CANON_BACKEND, s.NUMPY_CANON_BACKEND]
 
 
 class TestBackends:
@@ -748,7 +752,7 @@ class TestBackends:
         [[1  0],
          [0  1]]
 
-         mul_elementwise(x, a) means 'a' is reshaped into a column vector and multiplied with A.
+         mul_elementwise(x, a) means 'a' is reshaped into a column vector and multiplied by A.
          E.g. for a = (2,3), we obtain
 
          x1  x2
@@ -1052,6 +1056,81 @@ class TestBackends:
         # Note: view is edited in-place:
         assert out_view.get_tensor_representation(0) == view.get_tensor_representation(0)
 
+    def test_get_kron_row_indices(self, backend):
+        """
+        kron(l,r)
+        with 
+        l = [[x1, x3],  r = [[a],
+             [x2, x4]]       [b]]
+
+        yields
+        [[ax1, ax3],
+         [bx1, bx3],
+         [ax2, ax4],
+         [bx2, bx4]]
+        
+        Which is what we get when we compute kron(l,r) directly, 
+        as l is represented as eye(4) and r is reshaped into a column vector.
+        
+        So we have:
+        kron(l,r) = 
+        [[a, 0, 0, 0],
+         [b, 0, 0, 0],
+         [0, a, 0, 0],
+         [0, b, 0, 0],
+         [0, 0, a, 0],
+         [0, 0, b, 0],
+         [0, 0, 0, a],
+         [0, 0, 0, b]].            
+
+        Thus, this function should return arange(8).
+        """
+        indices = backend._get_kron_row_indices((2, 2), (2, 1))
+        assert np.all(indices == np.arange(8))
+
+        """
+        kron(l,r)
+        with 
+        l = [[x1],  r = [[a, c],
+             [x2]]       [b, d]]
+
+        yields
+        [[ax1, cx1],
+         [bx1, dx1],
+         [ax2, cx2],
+         [bx2, dx2]]
+        
+        Here, we have to swap the row indices of the resulting matrix.
+        Immediately applying kron(l,r) gives to eye(2) and r reshaped to 
+        a column vector gives.
+                 
+        So we have:
+        kron(l,r) = 
+        [[a, 0],
+         [b, 0],
+         [c, 0],
+         [d, 0],
+         [0, a],
+         [0, b]
+         [0, c],
+         [0, d]].
+
+        Thus, we need to to return [0, 1, 4, 5, 2, 3, 6, 7].
+        """
+
+        indices = backend._get_kron_row_indices((2, 1), (2, 2))
+        assert np.all(indices == [0, 1, 4, 5, 2, 3, 6, 7])
+
+        indices = backend._get_kron_row_indices((1, 2), (3, 2))
+        assert np.all(indices == np.arange(12))
+
+        indices = backend._get_kron_row_indices((3, 2), (1, 2))
+        assert np.all(indices == [0, 2, 4, 1, 3, 5, 6, 8, 10, 7, 9, 11])
+
+        indices = backend._get_kron_row_indices((2, 2), (2, 2))
+        expected = [0, 1, 4, 5, 2, 3, 6, 7, 8, 9, 12, 13, 10, 11, 14, 15]
+        assert np.all(indices == expected)
+
     def test_tensor_view_combine_potentially_none(self, backend):
         view = backend.get_empty_view()
         assert view.combine_potentially_none(None, None) is None
@@ -1067,7 +1146,6 @@ class TestParametrizedBackends:
     @staticmethod
     @pytest.fixture(params=backends)
     def param_backend(request):
-
         kwargs = {
             "id_to_col": {1: 0},
             "param_to_size": {-1: 1, 2: 2},
@@ -1079,6 +1157,140 @@ class TestParametrizedBackends:
         backend = CanonBackend.get_backend(request.param, **kwargs)
         assert isinstance(backend, PythonCanonBackend)
         return backend
+
+    def test_parametrized_diag_vec(self, param_backend):
+        """
+        Starting with a parametrized expression
+        x1  x2
+        [[[1  0],
+         [0  0]],
+
+         [[0  0],
+         [0  1]]]
+
+        diag_vec(x) means we introduce zero rows as if the vector was the diagonal
+        of an n x n matrix, with n the length of x.
+
+        Thus, when using the same columns as before, we now have
+
+         x1  x2
+        [[[1  0],
+          [0  0],
+          [0  0],
+          [0  0]]
+
+         [[0  0],
+          [0  0],
+          [0  0],
+          [0  1]]]
+        """
+
+        param_lin_op = linOpHelper((2,), type='param', data=2)
+        param_backend.param_to_col = {2: 0, -1: 3}
+        variable_lin_op = linOpHelper((2,), type='variable', data=1)
+        var_view = param_backend.process_constraint(variable_lin_op, param_backend.get_empty_view())
+        mul_elem_lin_op = linOpHelper(data=param_lin_op)
+        param_var_view = param_backend.mul_elem(mul_elem_lin_op, var_view)
+
+        diag_vec_lin_op = linOpHelper(shape=(2, 2), data=0)
+        out_view = param_backend.diag_vec(diag_vec_lin_op, param_var_view)
+        out_repr = out_view.get_tensor_representation(0)
+
+        slice_idx_zero = out_repr.get_param_slice(0, (4, 2)).toarray()
+        expected_idx_zero = np.array(
+            [[1., 0.],
+             [0., 0.],
+             [0., 0.],
+             [0., 0.]]
+        )
+        assert np.all(slice_idx_zero == expected_idx_zero)
+
+        slice_idx_one = out_repr.get_param_slice(1, (4, 2)).toarray()
+        expected_idx_one = np.array(
+            [[0., 0.],
+             [0., 0.],
+             [0., 0.],
+             [0., 1.]]
+        )
+        assert np.all(slice_idx_one == expected_idx_one)
+
+        # Note: view is edited in-place:
+        assert out_view.get_tensor_representation(0) == param_var_view.get_tensor_representation(0)
+
+    def test_parametrized_diag_vec_with_offset(self, param_backend):
+        """
+        Starting with a parametrized expression
+        x1  x2
+        [[[1  0],
+          [0  0]],
+
+         [[0  0],
+          [0  1]]]
+
+        diag_vec(x, k) means we introduce zero rows as if the vector was the k-diagonal
+        of an n+|k| x n+|k| matrix, with n the length of x.
+
+        Thus, for k=1 and using the same columns as before, want to represent
+        [[0  x1 0],
+         [0  0  x2],
+         [0  0  0]]
+        parametrized across two slices, i.e., unrolled in column-major order:
+
+        slice 0         slice 1
+         x1  x2          x1  x2
+        [[0  0],        [[0  0],
+         [0  0],         [0  0],
+         [0  0],         [0  0],
+         [1  0],         [0  0],
+         [0  0],         [0  0],
+         [0  0],         [0  0],
+         [0  0],         [0  0],
+         [0  0],         [0  1],
+         [0  0]]         [0  0]]
+        """
+
+        param_lin_op = linOpHelper((2,), type='param', data=2)
+        param_backend.param_to_col = {2: 0, -1: 3}
+        variable_lin_op = linOpHelper((2,), type='variable', data=1)
+        var_view = param_backend.process_constraint(variable_lin_op, param_backend.get_empty_view())
+        mul_elem_lin_op = linOpHelper(data=param_lin_op)
+        param_var_view = param_backend.mul_elem(mul_elem_lin_op, var_view)
+
+        k = 1
+        diag_vec_lin_op = linOpHelper(shape=(3, 3), data=k)
+        out_view = param_backend.diag_vec(diag_vec_lin_op, param_var_view)
+        out_repr = out_view.get_tensor_representation(0)
+
+        slice_idx_zero = out_repr.get_param_slice(0, (9, 2)).toarray()
+        expected_idx_zero = np.array(
+            [[0., 0.],
+             [0., 0.],
+             [0., 0.],
+             [1., 0.],
+             [0., 0.],
+             [0., 0.],
+             [0., 0.],
+             [0., 0.],
+             [0., 0.]]
+        )
+        assert np.all(slice_idx_zero == expected_idx_zero)
+
+        slice_idx_one = out_repr.get_param_slice(1, (9, 2)).toarray()
+        expected_idx_one = np.array(
+            [[0., 0.],
+             [0., 0.],
+             [0., 0.],
+             [0., 0.],
+             [0., 0.],
+             [0., 0.],
+             [0., 0.],
+             [0., 1.],
+             [0., 0.]]
+        )
+        assert np.all(slice_idx_one == expected_idx_one)
+
+        # Note: view is edited in-place:
+        assert out_view.get_tensor_representation(0) == param_var_view.get_tensor_representation(0)
 
     def test_parametrized_sum_entries(self, param_backend):
         """
@@ -1108,16 +1320,15 @@ class TestParametrizedBackends:
 
         sum_entries_lin_op = linOpHelper()
         out_view = param_backend.sum_entries(sum_entries_lin_op, param_var_view)
+        out_repr = out_view.get_tensor_representation(0)
 
-        slice_idx_zero = out_view.tensor[1][2][0]
-        slice_idx_zero = NumPyCanonBackend._to_dense(slice_idx_zero)
+        slice_idx_zero = out_repr.get_param_slice(0, (1, 2)).toarray()
         expected_idx_zero = np.array(
             [[1., 0.]]
         )
         assert np.all(slice_idx_zero == expected_idx_zero)
 
-        slice_idx_one = out_view.tensor[1][2][1]
-        slice_idx_one = NumPyCanonBackend._to_dense(slice_idx_one)
+        slice_idx_one = out_repr.get_param_slice(1, (1, 2)).toarray()
         expected_idx_one = np.array(
             [[0., 1.]]
         )
@@ -1128,9 +1339,9 @@ class TestParametrizedBackends:
 
     def test_parametrized_mul(self, param_backend):
         """
-        Continuing non-parametrized example when the lhs is a parameter, instead of multiplying with
-        known values, the matrix is split up into four slices, each representing an element of the
-        parameter, i.e. instead of
+        Continuing from the non-parametrized example when the lhs is a parameter,
+        instead of multiplying with known values, the matrix is split up into four slices,
+        each representing an element of the parameter, i.e. instead of
          x11 x21 x12 x22
         [[1   2   0   0],
          [3   4   0   0],
@@ -1179,10 +1390,10 @@ class TestParametrizedBackends:
 
         mul_lin_op = linOpHelper(data=lhs_parameter, args=[variable_lin_op])
         out_view = param_backend.mul(mul_lin_op, view)
+        out_repr = out_view.get_tensor_representation(0)
 
         # indices are: variable 1, parameter 2, 0 index of the list
-        slice_idx_zero = out_view.tensor[1][2][0]
-        slice_idx_zero = NumPyCanonBackend._to_dense(slice_idx_zero)
+        slice_idx_zero = out_repr.get_param_slice(0, (4, 4)).toarray()
         expected_idx_zero = np.array(
             [[1., 0., 0., 0.],
              [0., 0., 0., 0.],
@@ -1192,8 +1403,7 @@ class TestParametrizedBackends:
         assert np.all(slice_idx_zero == expected_idx_zero)
 
         # indices are: variable 1, parameter 2, 1 index of the list
-        slice_idx_one = out_view.tensor[1][2][1]
-        slice_idx_one = NumPyCanonBackend._to_dense(slice_idx_one)
+        slice_idx_one = out_repr.get_param_slice(1, (4, 4)).toarray()
         expected_idx_one = np.array(
             [[0., 0., 0., 0.],
              [1., 0., 0., 0.],
@@ -1203,8 +1413,7 @@ class TestParametrizedBackends:
         assert np.all(slice_idx_one == expected_idx_one)
 
         # indices are: variable 1, parameter 2, 2 index of the list
-        slice_idx_two = out_view.tensor[1][2][2]
-        slice_idx_two = NumPyCanonBackend._to_dense(slice_idx_two)
+        slice_idx_two = out_repr.get_param_slice(2, (4, 4)).toarray()
         expected_idx_two = np.array(
             [[0., 1., 0., 0.],
              [0., 0., 0., 0.],
@@ -1214,8 +1423,7 @@ class TestParametrizedBackends:
         assert np.all(slice_idx_two == expected_idx_two)
 
         # indices are: variable 1, parameter 2, 3 index of the list
-        slice_idx_three = out_view.tensor[1][2][3]
-        slice_idx_three = NumPyCanonBackend._to_dense(slice_idx_three)
+        slice_idx_three = out_repr.get_param_slice(3, (4, 4)).toarray()
         expected_idx_three = np.array(
             [[0., 0., 0., 0.],
              [0., 1., 0., 0.],
@@ -1227,11 +1435,101 @@ class TestParametrizedBackends:
         # Note: view is edited in-place:
         assert out_view.get_tensor_representation(0) == view.get_tensor_representation(0)
 
+    def test_parametrized_rhs_mul(self, param_backend):
+        """
+        Continuing from the non-parametrized example when the expression
+        that is multiplied by is parametrized. For a variable that 
+        was multiplied elementwise by a parameter, instead of
+         x11 x21 x12 x22
+        [[1   2   0   0],
+         [3   4   0   0],
+         [0   0   1   2],
+         [0   0   3   4]]
+
+         we obtain the list of length four, where we have the same entries as before
+         but each variable maps to a different parameter slice:
+
+            x11  x21  x12  x22
+        [
+            [[1   0   0   0],
+             [3   0   0   0],
+             [0   0   0   0],
+             [0   0   0   0]],
+
+            [[0   2   0   0],
+             [0   4   0   0],
+             [0   0   0   0],
+             [0   0   0   0]],
+
+            [[0   0   0   0],
+             [0   0   0   0],
+             [0   0   1   0],
+             [0   0   3   0]],
+
+            [[0   0   0   0],
+             [0   0   0   0],
+             [0   0   0   2],
+             [0   0   0   4]]
+        ]
+        """
+        param_lin_op = linOpHelper((2, 2), type='param', data=2)
+        param_backend.param_to_col = {2: 0, -1: 4}
+        param_backend.param_to_size = {-1: 1, 2: 4}
+        variable_lin_op = linOpHelper((2, 2), type='variable', data=1)
+        var_view = param_backend.process_constraint(variable_lin_op, param_backend.get_empty_view())
+        mul_elem_lin_op = linOpHelper(data=param_lin_op)
+        param_var_view = param_backend.mul_elem(mul_elem_lin_op, var_view)
+
+        lhs = linOpHelper((2, 2), type='dense_const', data=np.array([[1, 2], [3, 4]]))
+
+        mul_lin_op = linOpHelper(data=lhs, args=[variable_lin_op])
+        out_view = param_backend.mul(mul_lin_op, param_var_view)
+        out_repr = out_view.get_tensor_representation(0)
+
+        slice_idx_zero = out_repr.get_param_slice(0, (4, 4)).toarray()
+        expected_idx_zero = np.array(
+            [[1., 0., 0., 0.],
+             [3., 0., 0., 0.],
+             [0., 0., 0., 0.],
+             [0., 0., 0., 0.]]
+        )
+        assert np.all(slice_idx_zero == expected_idx_zero)
+
+        slice_idx_one = out_repr.get_param_slice(1, (4, 4)).toarray()
+        expected_idx_one = np.array(
+            [[0., 2., 0., 0.],
+             [0., 4., 0., 0.],
+             [0., 0., 0., 0.],
+             [0., 0., 0., 0.]]
+        )
+        assert np.all(slice_idx_one == expected_idx_one)
+
+        slice_idx_two = out_repr.get_param_slice(2, (4, 4)).toarray()
+        expected_idx_two = np.array(
+            [[0., 0., 0., 0.],
+             [0., 0., 0., 0.],
+             [0., 0., 1., 0.],
+             [0., 0., 3., 0.]]
+        )
+        assert np.all(slice_idx_two == expected_idx_two)
+
+        slice_idx_three = out_repr.get_param_slice(3, (4, 4)).toarray()
+        expected_idx_three = np.array(
+            [[0., 0., 0., 0.],
+             [0., 0., 0., 0.],
+             [0., 0., 0., 2.],
+             [0., 0., 0., 4.]]
+        )
+        assert np.all(slice_idx_three == expected_idx_three)
+
+        # Note: view is edited in-place:
+        assert out_view.get_tensor_representation(0) == param_var_view.get_tensor_representation(0)
+
     def test_parametrized_rmul(self, param_backend):
         """
-        Continuing the non-parametrized example when the rhs is a parameter, instead of multiplying
-        with known values, the matrix is split up into two slices, each representing an element of
-        the parameter, i.e. instead of
+        Continuing from the non-parametrized example when the rhs is a parameter,
+        instead of multiplying with known values, the matrix is split up into two slices,
+        each representing an element of the parameter, i.e. instead of
          x11 x21 x12 x22
         [[1   0   2   0],
          [0   1   0   2]]
@@ -1262,10 +1560,10 @@ class TestParametrizedBackends:
 
         rmul_lin_op = linOpHelper(data=rhs_parameter, args=[variable_lin_op])
         out_view = param_backend.rmul(rmul_lin_op, view)
+        out_repr = out_view.get_tensor_representation(0)
 
         # indices are: variable 1, parameter 2, 0 index of the list
-        slice_idx_zero = out_view.tensor[1][2][0]
-        slice_idx_zero = NumPyCanonBackend._to_dense(slice_idx_zero)
+        slice_idx_zero = out_repr.get_param_slice(0, (2, 4)).toarray()
         expected_idx_zero = np.array(
             [[1, 0, 0, 0],
              [0, 1, 0, 0]]
@@ -1273,8 +1571,7 @@ class TestParametrizedBackends:
         assert np.all(slice_idx_zero == expected_idx_zero)
 
         # indices are: variable 1, parameter 2, 1 index of the list
-        slice_idx_one = out_view.tensor[1][2][1]
-        slice_idx_one = NumPyCanonBackend._to_dense(slice_idx_one)
+        slice_idx_one = out_repr.get_param_slice(1, (2, 4)).toarray()
         expected_idx_one = np.array(
             [[0, 0, 1, 0],
              [0, 0, 0, 1]]
@@ -1283,6 +1580,98 @@ class TestParametrizedBackends:
 
         # Note: view is edited in-place:
         assert out_view.get_tensor_representation(0) == view.get_tensor_representation(0)
+
+    def test_parametrized_rhs_rmul(self, param_backend):
+        """
+        Continuing from the non-parametrized example when the expression
+        that is multiplied by is parametrized. For a variable that 
+        was multiplied elementwise by a parameter, instead of
+
+         x11 x21 x12 x22
+        [[1   0   3   0],
+         [0   1   0   3],
+         [2   0   4   0],
+         [0   2   0   4]]
+
+         we obtain the list of length four, where we have the same entries as before
+         but each variable maps to a different parameter slice:
+
+         x11  x21  x12  x22
+        [
+         [[1   0   0   0],
+          [0   0   0   0],
+          [2   0   0   0],
+          [0   0   0   0]]
+
+         [[0   0   0   0],
+          [0   1   0   0],
+          [0   0   0   0],
+          [0   2   0   0]]
+
+         [[0   0   3   0],
+          [0   0   0   0],
+          [0   0   4   0],
+          [0   0   0   0]]
+
+         [[0   0   0   0],
+          [0   0   0   3],
+          [0   0   0   0],
+          [0   0   0   4]]
+        ]
+        """
+        param_lin_op = linOpHelper((2, 2), type='param', data=2)
+        param_backend.param_to_col = {2: 0, -1: 4}
+        param_backend.param_to_size = {-1: 1, 2: 4}
+        param_backend.var_length = 4
+        variable_lin_op = linOpHelper((2, 2), type='variable', data=1)
+        var_view = param_backend.process_constraint(variable_lin_op, param_backend.get_empty_view())
+        mul_elem_lin_op = linOpHelper(data=param_lin_op)
+        param_var_view = param_backend.mul_elem(mul_elem_lin_op, var_view)
+
+        rhs = linOpHelper((2, 2), type='dense_const', data=np.array([[1, 2], [3, 4]]))
+
+        rmul_lin_op = linOpHelper(data=rhs, args=[variable_lin_op])
+        out_view = param_backend.rmul(rmul_lin_op, param_var_view)
+        out_repr = out_view.get_tensor_representation(0)
+
+        slice_idx_zero = out_repr.get_param_slice(0, (4, 4)).toarray()
+        expected_idx_zero = np.array(
+            [[1., 0., 0., 0.],
+             [0., 0., 0., 0.],
+             [2., 0., 0., 0.],
+             [0., 0., 0., 0.]]
+        )
+        assert np.all(slice_idx_zero == expected_idx_zero)
+
+        slice_idx_one = out_repr.get_param_slice(1, (4, 4)).toarray()
+        expected_idx_one = np.array(
+            [[0., 0., 0., 0.],
+             [0., 1., 0., 0.],
+             [0., 0., 0., 0.],
+             [0., 2., 0., 0.]]
+        )
+        assert np.all(slice_idx_one == expected_idx_one)
+
+        slice_idx_two = out_repr.get_param_slice(2, (4, 4)).toarray()
+        expected_idx_two = np.array(
+            [[0., 0., 3., 0.],
+             [0., 0., 0., 0.],
+             [0., 0., 4., 0.],
+             [0., 0., 0., 0.]]
+        )
+        assert np.all(slice_idx_two == expected_idx_two)
+
+        slice_idx_three = out_repr.get_param_slice(3, (4, 4)).toarray()
+        expected_idx_three = np.array(
+            [[0., 0., 0., 0.],
+             [0., 0., 0., 3.],
+             [0., 0., 0., 0.],
+             [0., 0., 0., 4.]]
+        )
+        assert np.all(slice_idx_three == expected_idx_three)
+
+        # Note: view is edited in-place:
+        assert out_view.get_tensor_representation(0) == param_var_view.get_tensor_representation(0)
 
     def test_mul_elementwise_parametrized(self, param_backend):
         """
@@ -1317,10 +1706,10 @@ class TestParametrizedBackends:
 
         mul_elementwise_lin_op = linOpHelper(data=lhs_parameter)
         out_view = param_backend.mul_elem(mul_elementwise_lin_op, view)
+        out_repr = out_view.get_tensor_representation(0)
 
         # indices are: variable 1, parameter 2, 0 index of the list
-        slice_idx_zero = out_view.tensor[1][2][0]
-        slice_idx_zero = NumPyCanonBackend._to_dense(slice_idx_zero)
+        slice_idx_zero = out_repr.get_param_slice(0, (2, 2)).toarray()
         expected_idx_zero = np.array(
             [[1, 0],
              [0, 0]]
@@ -1328,8 +1717,7 @@ class TestParametrizedBackends:
         assert np.all(slice_idx_zero == expected_idx_zero)
 
         # indices are: variable 1, parameter 2, 1 index of the list
-        slice_idx_one = out_view.tensor[1][2][1]
-        slice_idx_one = NumPyCanonBackend._to_dense(slice_idx_one)
+        slice_idx_one = out_repr.get_param_slice(1, (2, 2)).toarray()
         expected_idx_one = np.array(
             [[0, 0],
              [0, 1]]
@@ -1339,13 +1727,165 @@ class TestParametrizedBackends:
         # Note: view is edited in-place:
         assert out_view.get_tensor_representation(0) == view.get_tensor_representation(0)
 
+    def test_parametrized_div(self, param_backend):
+        """
+        Continuing from the non-parametrized example when the expression
+        that is divided by is parametrized. For a variable that 
+        was multiplied elementwise by a parameter, instead of
+         x11 x21 x12 x22
+        [[1   0   0   0],
+         [0   1/3 0   0],
+         [0   0   1/2 0],
+         [0   0   0   1/4]]
+
+         we obtain the list of length four, where we have the quotients at the same entries
+         but each variable maps to a different parameter slice:
+
+            x11  x21  x12  x22
+        [
+            [[1   0   0   0],
+             [0   0   0   0],
+             [0   0   0   0],
+             [0   0   0   0]],
+
+            [[0   0   0   0],
+             [0   1/3 0   0],
+             [0   0   0   0],
+             [0   0   0   0]],
+
+            [[0   0   0   0],
+             [0   0   0   0],
+             [0   0   1/2 0],
+             [0   0   0   0]],
+
+            [[0   0   0   0],
+             [0   0   0   0],
+             [0   0   0   0],
+             [0   0   0   1/4]]
+        ]
+        """
+        param_lin_op = linOpHelper((2, 2), type='param', data=2)
+        param_backend.param_to_col = {2: 0, -1: 4}
+        param_backend.param_to_size = {-1: 1, 2: 4}
+        variable_lin_op = linOpHelper((2, 2), type='variable', data=1)
+        var_view = param_backend.process_constraint(variable_lin_op, param_backend.get_empty_view())
+        mul_elem_lin_op = linOpHelper(data=param_lin_op)
+        param_var_view = param_backend.mul_elem(mul_elem_lin_op, var_view)
+
+        lhs = linOpHelper((2, 2), type='dense_const', data=np.array([[1, 2], [3, 4]]))
+
+        div_lin_op = linOpHelper(data=lhs)
+        out_view = param_backend.div(div_lin_op, param_var_view)
+        out_repr = out_view.get_tensor_representation(0)
+
+        slice_idx_zero = out_repr.get_param_slice(0, (4, 4)).toarray()
+        expected_idx_zero = np.array(
+            [[1., 0., 0., 0.],
+             [0., 0., 0., 0.],
+             [0., 0., 0., 0.],
+             [0., 0., 0., 0.]]
+        )
+        assert np.all(slice_idx_zero == expected_idx_zero)
+
+        slice_idx_one = out_repr.get_param_slice(1, (4, 4)).toarray()
+        expected_idx_one = np.array(
+            [[0., 0., 0., 0.],
+             [0., 1/3, 0., 0.],
+             [0., 0., 0., 0.],
+             [0., 0., 0., 0.]]
+        )
+        assert np.all(slice_idx_one == expected_idx_one)
+
+        slice_idx_two = out_repr.get_param_slice(2, (4, 4)).toarray()
+        expected_idx_two = np.array(
+            [[0., 0., 0., 0.],
+             [0., 0., 0., 0.],
+             [0., 0., 1/2, 0.],
+             [0., 0., 0., 0.]]
+        )
+        assert np.all(slice_idx_two == expected_idx_two)
+
+        slice_idx_three = out_repr.get_param_slice(3, (4, 4)).toarray()
+        expected_idx_three = np.array(
+            [[0., 0., 0., 0.],
+             [0., 0., 0., 0.],
+             [0., 0., 0., 0.],
+             [0., 0., 0., 1/4]]
+        )
+        assert np.all(slice_idx_three == expected_idx_three)
+        # Note: view is edited in-place:
+        assert out_view.get_tensor_representation(0) == param_var_view.get_tensor_representation(0)
+
+    def test_parametrized_trace(self, param_backend):
+        """
+        Continuing from the non-parametrized example, instead of a pure variable
+        input, we take a variable that has been multiplied elementwise by a parameter.
+
+        The trace of this expression is then given by
+
+            x11  x21  x12  x22
+        [
+            [[1   0   0   0]],
+
+            [[0   0   0   0]],
+
+            [[0   0   0   0]],
+
+            [[0   0   0   1]]
+        ]
+        """
+        param_lin_op = linOpHelper((2, 2), type='param', data=2)
+        param_backend.param_to_col = {2: 0, -1: 4}
+        param_backend.param_to_size = {-1: 1, 2: 4}
+        variable_lin_op = linOpHelper((2, 2), type='variable', data=1)
+        var_view = param_backend.process_constraint(variable_lin_op, param_backend.get_empty_view())
+        mul_elem_lin_op = linOpHelper(data=param_lin_op)
+        param_var_view = param_backend.mul_elem(mul_elem_lin_op, var_view)
+
+        trace_lin_op = linOpHelper(args=[variable_lin_op])
+        out_view = param_backend.trace(trace_lin_op, param_var_view)
+        out_repr = out_view.get_tensor_representation(0)
+
+        slice_idx_zero = out_repr.get_param_slice(0, (1, 4)).toarray()
+        expected_idx_zero = np.array(
+            [[1., 0., 0., 0.]]
+        )
+        assert np.all(slice_idx_zero == expected_idx_zero)
+
+        slice_idx_one = out_repr.get_param_slice(1, (1, 4)).toarray()
+        expected_idx_one = np.array(
+            [[0., 0., 0., 0.]]
+        )
+        assert np.all(slice_idx_one == expected_idx_one)
+
+        slice_idx_two = out_repr.get_param_slice(2, (1, 4)).toarray()
+        expected_idx_two = np.array(
+            [[0., 0., 0., 0.]]
+        )
+        assert np.all(slice_idx_two == expected_idx_two)
+
+        slice_idx_three = out_repr.get_param_slice(3, (1, 4)).toarray()
+        expected_idx_three = np.array(
+            [[0., 0., 0., 1.]]
+        )
+        assert np.all(slice_idx_three == expected_idx_three)
+
+        # Note: view is edited in-place:
+        assert out_view.get_tensor_representation(0) == param_var_view.get_tensor_representation(0)
+
 
 class TestSciPyBackend:
     @staticmethod
     @pytest.fixture()
     def scipy_backend():
-        args = ({1: 0}, {-1: 1, 2: 2}, {2: 0, -1: 2}, 3, 2)
-        backend = CanonBackend.get_backend(s.SCIPY_CANON_BACKEND, *args)
+        kwargs = {
+            "id_to_col": {1: 0},
+            "param_to_size": {-1: 1, 2: 2},
+            "param_to_col": {2: 0, -1: 2},
+            "param_size_plus_one": 3,
+            "var_length": 2
+        }
+        backend = CanonBackend.get_backend(s.SCIPY_CANON_BACKEND, **kwargs)
         assert isinstance(backend, SciPyCanonBackend)
         return backend
 
@@ -1398,8 +1938,14 @@ class TestNumPyBackend:
     @staticmethod
     @pytest.fixture()
     def numpy_backend():
-        args = ({1: 0}, {-1: 1, 2: 2}, {2: 0, -1: 2}, 3, 2)
-        backend = CanonBackend.get_backend(s.NUMPY_CANON_BACKEND, *args)
+        kwargs = {
+            "id_to_col": {1: 0},
+            "param_to_size": {-1: 1, 2: 2},
+            "param_to_col": {2: 0, -1: 2},
+            "param_size_plus_one": 3,
+            "var_length": 2
+        }
+        backend = CanonBackend.get_backend(s.NUMPY_CANON_BACKEND, **kwargs)
         assert isinstance(backend, NumPyCanonBackend)
         return backend
 
@@ -1413,8 +1959,7 @@ class TestNumPyBackend:
         assert tensor.shape == (1, 2, 2), "Should be a 1x2x2 tensor"
         assert np.all(tensor[0] == np.eye(2)), "Should be eye(2)"
 
-    @pytest.mark.parametrize('data',
-                             [np.array([[1, 2], [3, 4]]), sp.eye(2) * 4])
+    @pytest.mark.parametrize('data', [np.array([[1, 2], [3, 4]]), sp.eye(2) * 4])
     def test_get_data_tensor(self, numpy_backend, data):
         outer = numpy_backend.get_data_tensor(data)
         assert outer.keys() == {-1}, "Should only be constant variable ID."
@@ -1423,7 +1968,7 @@ class TestNumPyBackend:
         tensor = inner[-1]
         assert isinstance(tensor, np.ndarray), "Should be a numpy array"
         assert isinstance(tensor[0], np.ndarray), "Inner matrix should also be a numpy array"
-        assert tensor.shape == (1, 4, 1), "Should be a 1x2x2 tensor"
+        assert tensor.shape == (1, 4, 1), "Should be a 1x4x1 tensor"
         expected = numpy_backend._to_dense(data).reshape((-1, 1), order="F")
         assert np.all(tensor[0] == expected)
 
@@ -1453,3 +1998,116 @@ class TestNumPyBackend:
         with pytest.raises(ValueError,
                            match="Values must either be dicts or <class 'numpy.ndarray'>"):
             view.add_dicts({"a": 1}, {"a": 2})
+
+
+class TestStackedBackend:
+    @staticmethod
+    @pytest.fixture()
+    def stacked_backend():
+        kwargs = {
+            "id_to_col": {1: 0},
+            "param_to_size": {-1: 1, 2: 2},
+            "param_to_col": {2: 0, -1: 2},
+            "param_size_plus_one": 3,
+            "var_length": 2
+        }
+        backend = CanonBackend.get_backend(s.STACKED_SLICES_BACKEND, **kwargs)
+        assert isinstance(backend, StackedSlicesBackend)
+        return backend
+
+    def test_get_variable_tensor(self, stacked_backend):
+        outer = stacked_backend.get_variable_tensor((2,), 1)
+        assert outer.keys() == {1}, "Should only be in variable with ID 1"
+        inner = outer[1]
+        assert inner.keys() == {-1}, "Should only be in parameter slice -1, i.e. non parametrized."
+        tensor = inner[-1]
+        assert isinstance(tensor, sp.spmatrix), "Should be a scipy sparse matrix"
+        assert tensor.shape == (2, 2), "Should be a 1*2x2 tensor"
+        assert np.all(tensor == np.eye(2)), "Should be eye(2)"
+
+    @pytest.mark.parametrize('data', [np.array([[1, 2], [3, 4]]), sp.eye(2) * 4])
+    def test_get_data_tensor(self, stacked_backend, data):
+        outer = stacked_backend.get_data_tensor(data)
+        assert outer.keys() == {-1}, "Should only be constant variable ID."
+        inner = outer[-1]
+        assert inner.keys() == {-1}, "Should only be in parameter slice -1, i.e. non parametrized."
+        tensor = inner[-1]
+        assert isinstance(tensor, sp.spmatrix), "Should be a scipy sparse matrix"
+        assert tensor.shape == (4, 1), "Should be a 1*4x1 tensor"
+        expected = sp.csr_matrix(data.reshape((-1, 1), order="F"))
+        assert (tensor != expected).nnz == 0
+
+    def test_get_param_tensor(self, stacked_backend):
+        shape = (2, 2)
+        size = np.prod(shape)
+        stacked_backend.param_to_size = {-1: 1, 3: 4}
+        outer = stacked_backend.get_param_tensor(shape, 3)
+        assert outer.keys() == {-1}, "Should only be constant variable ID."
+        inner = outer[-1]
+        assert inner.keys() == {3}, "Should only be the parameter slice of parameter with id 3."
+        tensor = inner[3]
+        assert isinstance(tensor, sp.spmatrix), "Should be a scipy sparse matrix"
+        assert tensor.shape == (16, 1), "Should be a 4*4x1 tensor"
+        assert (tensor.reshape((size, size)) != sp.eye(size, format='csr')).nnz == 0, \
+            'Should be eye(4) when reshaping'
+
+    def test_tensor_view_add_dicts(self, stacked_backend):
+        view = stacked_backend.get_empty_view()
+
+        one = sp.eye(1)
+        two = sp.eye(1) * 2
+        three = sp.eye(1) * 3
+
+        assert view.add_dicts({}, {}) == {}
+        assert view.add_dicts({"a": one}, {"a": two}) == {"a": three}
+        assert view.add_dicts({"a": one}, {"b": two}) == {"a": one, "b": two}
+        assert view.add_dicts({"a": {"c": one}}, {"a": {"c": one}}) == {'a': {'c': two}}
+        with pytest.raises(ValueError,
+                           match="Values must either be dicts or "
+                                 "<class 'scipy.sparse."):
+            view.add_dicts({"a": 1}, {"a": 2})
+
+    @staticmethod
+    @pytest.mark.parametrize('shape', [(1, 1), (2, 2), (3, 3), (4, 4)])
+    def test_stacked_kron_r(shape, stacked_backend):
+        p = 2
+        reps = 3
+        param_id = 2
+        matrices = [sp.random(*shape, random_state=i, density=0.5) for i in range(p)]
+        stacked = sp.vstack(matrices)
+        repeated = stacked_backend._stacked_kron_r({param_id: stacked}, reps)
+        repeated = repeated[param_id]
+        expected = sp.vstack([sp.kron(sp.eye(reps), m) for m in matrices])
+        assert (expected != repeated).nnz == 0
+
+    @staticmethod
+    @pytest.mark.parametrize('shape', [(1, 1), (2, 2), (3, 3), (4, 4)])
+    def test_stacked_kron_l(shape, stacked_backend):
+        p = 2
+        reps = 3
+        param_id = 2
+        matrices = [sp.random(*shape, random_state=i, density=0.5) for i in range(p)]
+        stacked = sp.vstack(matrices)
+        repeated = stacked_backend._stacked_kron_l({param_id: stacked}, reps)
+        repeated = repeated[param_id]
+        expected = sp.vstack([sp.kron(m, sp.eye(reps)) for m in matrices])
+        assert (expected != repeated).nnz == 0
+
+    @staticmethod
+    def test_reshape_single_constant_tensor(stacked_backend):
+        a = sp.csc_matrix(np.tile(np.arange(6), 3).reshape((-1, 1)))
+        reshaped = stacked_backend._reshape_single_constant_tensor(a, (3, 2))
+        expected = np.arange(6).reshape((3, 2), order='F')
+        expected = sp.csc_matrix(np.tile(expected, (3, 1)))
+        assert (reshaped != expected).nnz == 0
+
+    @staticmethod
+    @pytest.mark.parametrize('shape', [(1, 1), (2, 2), (3, 2), (2, 3)])
+    def test_transpose_stacked(shape, stacked_backend):
+        p = 2
+        param_id = 2
+        matrices = [sp.random(*shape, random_state=i, density=0.5) for i in range(p)]
+        stacked = sp.vstack(matrices)
+        transposed = stacked_backend._transpose_stacked(stacked, param_id)
+        expected = sp.vstack([m.T for m in matrices])
+        assert (expected != transposed).nnz == 0
