@@ -8,3 +8,4 @@ on:
 jobs:
   benchmark:
     uses: cvxpy/actions/.github/workflows/benchmarks.yml@main
+    secrets: inherit
