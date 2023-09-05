@@ -18,12 +18,12 @@ from typing import List, Tuple
 
 import numpy as np
 
-from cvxpy.constraints.constraint import Constraint
+from cvxpy.constraints.cones import Cone
 from cvxpy.expressions import cvxtypes
 from cvxpy.utilities import scopes
 
 
-class PowCone3D(Constraint):
+class PowCone3D(Cone):
     """
     An object representing a collection of 3D power cone constraints
 
@@ -71,7 +71,6 @@ class PowCone3D(Constraint):
             raise ValueError(msg)
         super(PowCone3D, self).__init__([self.x, self.y, self.z],
                                         constr_id)
-
     def __str__(self) -> str:
         return "Pow3D(%s, %s, %s; %s)" % (self.x, self.y, self.z, self.alpha)
 
@@ -140,8 +139,25 @@ class PowCone3D(Constraint):
         # TODO: figure out why the reshaping had to be done differently,
         #   relative to ExpCone constraints.
 
+    def _dual_cone(self, *args):
+        """Implements the dual cone of PowCone3D See Pg 85
+        of the MOSEK modelling cookbook for more information"""
+        if args is None:
+            PowCone3D(self.dual_variables[0]/self.alpha, self.dual_variables[1]/(1-self.alpha),
+                      self.dual_variables[2], self.alpha)
+        else:
+            # some assertions for verifying `args`
+            def f(x):
+                return x.shape
+            args_shapes = list(map(f, args))
+            instance_args_shapes = list(map(f, self.args))
+            assert len(args) == len(self.args)
+            assert args_shapes == instance_args_shapes
+            return PowCone3D(args[0]/self.alpha, args[1]/(1-self.alpha),
+                             args[2], self.alpha)
 
-class PowConeND(Constraint):
+
+class PowConeND(Cone):
     """
     Represents a collection of N-dimensional power cone constraints
     that is *mathematically* equivalent to the following code

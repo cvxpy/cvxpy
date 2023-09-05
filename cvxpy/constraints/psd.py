@@ -14,12 +14,12 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from cvxpy.constraints.constraint import Constraint
+from cvxpy.constraints.cones import Cone
 from cvxpy.expressions import cvxtypes
 from cvxpy.utilities import scopes
 
 
-class PSD(Constraint):
+class PSD(Cone):
     """A constraint of the form :math:`\\frac{1}{2}(X + X^T) \\succcurlyeq_{S_n^+} 0`
 
     Applying a ``PSD`` constraint to a two-dimensional expression ``X``
@@ -83,3 +83,18 @@ class PSD(Constraint):
             return None
         min_eig = cvxtypes.lambda_min()(self.args[0] + self.args[0].T)/2
         return cvxtypes.neg()(min_eig).value
+
+    def _dual_cone(self, *args):
+        """Implements the dual cone of the PSD cone See Pg 85 of the
+        MOSEK modelling cookbook for more information"""
+        if args is None:
+            return self.dual_variables[0] >> 0
+        else:
+            # some assertions for verifying `args`
+            def f(x):
+                return x.shape
+            args_shapes = list(map(f, args))
+            instance_args_shapes = list(map(f, self.args))
+            assert len(args) == len(self.args)
+            assert args_shapes == instance_args_shapes
+            return args[0] >> 0

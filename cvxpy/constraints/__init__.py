@@ -15,6 +15,7 @@ limitations under the License.
 """
 
 from cvxpy.constraints.constraint import Constraint
+from cvxpy.constraints.cones import Cone
 from cvxpy.constraints.exponential import (ExpCone, OpRelEntrConeQuad,
                                            RelEntrConeQuad,)
 from cvxpy.constraints.finite_set import FiniteSet

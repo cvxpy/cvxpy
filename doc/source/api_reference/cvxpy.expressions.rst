@@ -59,3 +59,11 @@ Constant
     :members: shape, size, ndim, T, value
     :undoc-members:
     :show-inheritance:
+
+CallbackParam
+-----------------------------------
+
+.. autoclass:: cvxpy.expressions.constants.callback_param.CallbackParam
+    :members: shape, size, ndim, T, value, project, project_and_assign, round
+    :undoc-members:
+    :show-inheritance:
