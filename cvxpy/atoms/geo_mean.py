@@ -20,6 +20,7 @@ import numpy as np
 import scipy.sparse as sp
 
 from cvxpy.atoms.atom import Atom
+from cvxpy.atoms.errormsg import SECOND_ARG_SHOULD_NOT_BE_EXPRESSION_ERROR_MESSAGE
 from cvxpy.constraints.constraint import Constraint
 from cvxpy.expressions import cvxtypes
 from cvxpy.utilities.power_tools import (
@@ -206,10 +207,12 @@ class geo_mean(Atom):
             The number of second order cones used to form this geometric mean
 
         """
-        if p is not None and hasattr(p, '__getitem__'):
+        Expression = cvxtypes.expression()
+        if p is not None and isinstance(p, Expression):
+            raise TypeError(SECOND_ARG_SHOULD_NOT_BE_EXPRESSION_ERROR_MESSAGE)
+        elif p is not None and hasattr(p, '__getitem__'):
             p = np.array(p)
             idxs = p > 0
-            Expression = cvxtypes.expression()
             x = Expression.cast_to_const(x)[idxs]
             p = p[idxs]
         super(geo_mean, self).__init__(x)
