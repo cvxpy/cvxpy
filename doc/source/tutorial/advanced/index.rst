@@ -483,9 +483,11 @@ LP - Linear Programming refers to problems with a linear objective function and 
 
 QP - Quadratic Programming refers to problems with a quadratic objective function and linear constraints.
 
-SOCP - Second Order Cone Programming.
+SOCP - Second Order Cone Programming refers to problems with second-order cone constraints. The second order cone is defined as
 
-SDP - Semi-Definite Programming.
+    :math:`C_{n+1} = \{\begin{bmatrix} x \\ t \end{bmatrix} \mid x \in R^n , t \in R , \| x \|_2 \leq t\}`
+
+SDP - Semi-Definite Programming refers to problems with :ref:`semi-definite constraints <Semidefinite matrices>`.
 
 EXP - refers to problems with exponential cone constraints. The exponential cone is defined as
 
@@ -503,7 +505,7 @@ not have any atoms that take advantage of this constraint. If you want you want 
 type of constraint in your model, you will need to instantiate ``PowCone3D`` and/or ``PowConeND``
 objects manually.
 
-MIP - Mixed-Integer Programming refers to problems with
+MIP - :ref:`Mixed-Integer Programming <Mixed-integer programs>` refers to problems where some decision variables are constrained to be integer values.
 
 By default CVXPY calls the solver most specialized to the problem type. For example, `ECOS`_ is called for SOCPs.
 `SCS`_ can handle all problems (except mixed-integer programs). If the problem is a QP, CVXPY will use `OSQP`_.
