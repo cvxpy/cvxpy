@@ -26,6 +26,7 @@ from numpy import linalg as LA
 import cvxpy as cp
 import cvxpy.settings as s
 from cvxpy import Minimize, Problem
+from cvxpy.atoms.errormsg import SECOND_ARG_SHOULD_NOT_BE_EXPRESSION_ERROR_MESSAGE
 from cvxpy.expressions.constants import Constant, Parameter
 from cvxpy.expressions.variable import Variable
 from cvxpy.reductions.solvers.defines import INSTALLED_MI_SOLVERS
@@ -203,6 +204,13 @@ class TestAtoms(BaseTest):
         self.assertTrue(type(copy) is type(atom))
         self.assertTrue(copy.args[0] is self.y)
         self.assertEqual(copy.get_data(), atom.get_data())
+
+        # Error message when geo_mean used incorrectly.
+        with pytest.raises(
+                TypeError, 
+                match=SECOND_ARG_SHOULD_NOT_BE_EXPRESSION_ERROR_MESSAGE
+            ):
+            cp.geo_mean(self.x, self.y)
 
     # Test the harmonic_mean class.
     def test_harmonic_mean(self) -> None:
