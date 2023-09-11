@@ -479,13 +479,22 @@ The table below shows the types of problems the supported solvers can handle.
 
 (***) Multiprecision support is available on SDPA if the appropriate SDPA package is installed. With multiprecision support, SDPA can solve your problem with much smaller `epsilonDash` and/or `epsilonStar` parameters. These parameters must be manually adjusted to achieve the desired degree of precision. Please see the solver website for details. SDPA can also solve some ill-posed problems with multiprecision support.
 
-Here EXP refers to problems with exponential cone constraints. The exponential cone is defined as
+LP - Linear Programming refers to problems with a linear objective function and linear constraints.
+
+QP - Quadratic Programming refers to problems with a quadratic objective function and linear constraints.
+
+SOCP - Second Order Cone Programming.
+
+SDP - Semi-Definite Programming.
+
+EXP - refers to problems with exponential cone constraints. The exponential cone is defined as
 
     :math:`\{(x,y,z) \mid y > 0, y\exp(x/y) \leq z \} \cup \{ (x,y,z) \mid x \leq 0, y = 0, z \geq 0\}`.
 
 Most users will never specify cone constraints directly. Instead, cone constraints are added when CVXPY
-converts the problem into standard form. The POW column refers to problems with 3-dimensional power
-cone constraints. The 3D power cone is defined as
+converts the problem into standard form.
+
+POW - refers to problems with 3-dimensional power cone constraints. The 3D power cone is defined as
 
     :math:`\{(x,y,z) \mid x^{\alpha}y^{\alpha} \geq |z|, x \geq 0, y \geq 0 \}`.
 
@@ -493,6 +502,8 @@ Support for power cone constraints is a recent addition (v1.1.8), and CVXPY curr
 not have any atoms that take advantage of this constraint. If you want you want to use this
 type of constraint in your model, you will need to instantiate ``PowCone3D`` and/or ``PowConeND``
 objects manually.
+
+MIP - Mixed-Integer Programming refers to problems with
 
 By default CVXPY calls the solver most specialized to the problem type. For example, `ECOS`_ is called for SOCPs.
 `SCS`_ can handle all problems (except mixed-integer programs). If the problem is a QP, CVXPY will use `OSQP`_.
@@ -641,7 +652,7 @@ Solving disciplined geometric programs
 
 When the ``solve`` method is called with `gp=True`, the problem is parsed
 as a disciplined geometric program instead of a disciplined convex program.
-For more information, see the `DGP tutorial </tutorial/dgp/index>`.
+For more information, see the :doc:`DGP tutorial </tutorial/dgp/index>`.
 
 Solver stats
 ------------
@@ -1151,8 +1162,7 @@ low-level representation that is compatible with the targeted solver to a
 solver, which solves the problem. This method returns that low-level
 representation, along with a ``SolvingChain`` and metadata for unpacking
 a solution into the problem. This low-level representation closely resembles,
-but is not identitical to, the
-arguments supplied to the solver.
+but is not identical to, the arguments supplied to the solver.
 
 A solution to the equivalent low-level problem can be obtained via the
 data by invoking the ``solve_via_data`` method of the returned solving

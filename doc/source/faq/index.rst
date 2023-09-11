@@ -47,19 +47,19 @@ What do I do if I get a ``SolverError`` exception?
 Sometimes solvers encounter numerical issues and fail to solve a problem, in which case CVXPY raises a ``SolverError``.
 If this happens to you,
 try using different solvers on your problem,
-as discussed in the "Choosing a solver" section of :ref:`Advanced Features <advanced>`.
+as discussed in the :ref:`"Choosing a solver" <Choosing a solver>` section.
 If the solver CVXOPT fails, try using the solver option ``kktsolver=ROBUST_KKTSOLVER``.
 
 What solvers does CVXPY support?
 --------------------------------
-See the "Solve method options" section in :ref:`Advanced Features <advanced>` for a list of the solvers CVXPY supports.
+See the :ref:`"Solve method options" <Solve method options>` section for a list of the solvers CVXPY supports.
 If you would like to use a solver CVXPY does not support,
 make a feature request on the `CVXPY Github issue tracker <https://github.com/cvxpy/cvxpy/issues>`_.
 
 What are the differences between CVXPY's solvers?
 -------------------------------------------------
 The solvers support different classes of problems and occupy different points on the Pareto frontier of speed, accuracy, and open source vs. closed source.
-See the "Solve method options" section in :ref:`Advanced Features <advanced>` for details.
+For more details, please refer to the ":ref:`Solve method options <Solve method options>`" section.
 
 What do I do if I get "Exception: Cannot evaluate the truth value of a constraint"?
 -----------------------------------------------------------------------------------
