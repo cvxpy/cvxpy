@@ -94,11 +94,6 @@ class sum_largest(Atom):
         """
         return False
 
-    def is_pwl(self) -> bool:
-        """Is the atom piecewise linear?
-        """
-        return all(arg.is_pwl() for arg in self.args)
-
     def get_data(self):
         """Returns the parameter k.
         """
