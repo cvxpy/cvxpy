@@ -152,10 +152,17 @@ class CoeffExtractor:
                 # We multiply the columns of P, by c_part
                 # by operating directly on the data.
                 if var_size > 1:
+                    # TODO remove zeros from data.
                     data = P.data[:, None] * c_part[P.col]
+                    param_idxs = np.arange(c_part.shape[1])
                 else:
-                    data = P.data[:, None] * c_part
-                P_tup = (data, (P.row, P.col), P.shape)
+                    # Eliminate zeros from data by tracking
+                    # which indices of the global parameter vector are used.
+                    nonzero_idxs = c_part[0] != 0
+                    data = P.data[:, None] * c_part[0:, nonzero_idxs]
+                    param_idxs = np.arange(c_part.shape[1])[nonzero_idxs]
+                # TODO make P_tup a data structure.
+                P_tup = (data, (P.row, P.col), P.shape, param_idxs)
                 # Conceptually similar to
                 # P = P[:, :, None] * c_part[None, :, :]
                 if orig_id in coeffs:
@@ -164,11 +171,11 @@ class CoeffExtractor:
                         # COO matrix because repeated indices are summed.
                         # Conceptually equivalent to
                         # coeffs[orig_id]['P'] += P_tup
-                        acc_data, (acc_row, acc_col), _ = coeffs[orig_id]['P']
+                        acc_data, (acc_row, acc_col), _, _ = coeffs[orig_id]['P']
                         acc_data = np.concatenate([acc_data, data], axis=0)
                         acc_row = np.concatenate([acc_row, P.row], axis=0)
                         acc_col = np.concatenate([acc_col, P.col], axis=0)
-                        P_tup = (acc_data, (acc_row, acc_col), P.shape)
+                        P_tup = (acc_data, (acc_row, acc_col), P.shape, param_idxs)
                         coeffs[orig_id]['P'] = P_tup
                     else:
                         coeffs[orig_id]['P'] = P_tup
@@ -220,7 +227,7 @@ class CoeffExtractor:
                 P = coeffs[var_id]['P']
                 P_entries += P[0].size
             else:
-                P = ([], ([], []), (size, size))
+                P = ([], ([], []), (size, size), np.arange(num_params))
             if var_id in coeffs and 'q' in coeffs[var_id]:
                 q = coeffs[var_id]['q']
             else:
@@ -257,16 +264,16 @@ class CoeffExtractor:
             ```
             but done by constructing a COO matrix.
             """
-            P_vals, (P_rows, P_cols), P_shape = P
+            P_vals, (P_rows, P_cols), P_shape, param_idxs = P
             if len(P_vals) > 0:
                 vals[entry_offset:entry_offset + P_vals.size] = P_vals.flatten(
                     order='F'
                 )
                 P_cols_ext = P_cols.astype(np.int64) * np.int64(P_height)
                 base_rows = gap_above + acc_height + P_rows + P_cols_ext
-                full_rows = np.tile(base_rows, num_params)
+                full_rows = np.tile(base_rows, len(param_idxs))
                 rows[entry_offset:entry_offset + P_vals.size] = full_rows
-                full_cols = np.repeat(np.arange(num_params), P_cols.size)
+                full_cols = np.repeat(param_idxs, P_cols.size)
                 cols[entry_offset:entry_offset + P_vals.size] = full_cols
                 entry_offset += P_vals.size
             gap_above += P_shape[0]
