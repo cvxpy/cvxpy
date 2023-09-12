@@ -247,6 +247,12 @@ CVXPY supports the CLARABEL solver.
 Simply install CLARABEL such that you can ``import clarabel`` in Python.
 See the `CLARABEL <https://oxfordcontrol.github.io/ClarabelDocs/stable/python/installation_py/>`_ website for installation instructions.
 
+Install with PIQP support
+-------------------------
+
+CVXPY supports the PIQP solver.
+Simply install PIQP such that you can ``import piqp`` in Python.
+See the `PIQP <https://predict-epfl.github.io/piqp/interfaces/python/installation>`_ website for installation instructions.
 
 Install with PROXQP support
 -----------------------------

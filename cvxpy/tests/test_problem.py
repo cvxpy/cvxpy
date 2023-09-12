@@ -33,7 +33,7 @@ from numpy import linalg as LA
 import cvxpy as cp
 import cvxpy.interface as intf
 import cvxpy.settings as s
-from cvxpy.constraints import PSD, ExpCone, NonPos, Zero
+from cvxpy.constraints import PSD, ExpCone, NonNeg, Zero
 from cvxpy.error import DCPError, ParameterError, SolverError
 from cvxpy.expressions.constants import Constant, Parameter
 from cvxpy.expressions.variable import Variable
@@ -76,11 +76,11 @@ class TestProblem(BaseTest):
 
         # Test str.
         result = (
-            "minimize %(name)s\nsubject to %(name)s == 0\n           %(name)s <= 0" % {
+            "minimize %(name)s\nsubject to %(name)s == 0\n           %(name)s >= 0" % {
                 "name": self.a.name()
             }
         )
-        prob = Problem(cp.Minimize(self.a), [Zero(self.a), NonPos(self.a)])
+        prob = Problem(cp.Minimize(self.a), [Zero(self.a), NonNeg(self.a)])
         self.assertEqual(str(prob), result)
 
     def test_variables(self) -> None:
@@ -283,7 +283,7 @@ class TestProblem(BaseTest):
                 # Don't test GLPK because there's a race
                 # condition in setting CVXOPT solver options.
                 if solver in [cp.GLPK, cp.GLPK_MI, cp.MOSEK, cp.CBC,
-                              cp.SCIPY, cp.SDPA, cp.COPT]:
+                              cp.SCIPY, cp.COPT]:
                     continue
                 sys.stdout = StringIO()  # capture output
 
@@ -997,40 +997,51 @@ class TestProblem(BaseTest):
         y = Variable((3, 1), name='y')
 
         c = numpy.ones((1, 5))
-        p = Problem(cp.Minimize(c @ cp.vstack([x, y])),
+        problem = Problem(cp.Minimize(c @ cp.vstack([x, y])),
                     [x == [[1, 2]],
                      y == [[3, 4, 5]]])
-        result = p.solve(solver=cp.SCS, eps=1e-5)
+        result = problem.solve(solver=cp.SCS, eps=1e-5)
         self.assertAlmostEqual(result, 15)
 
         c = numpy.ones((1, 4))
-        p = Problem(cp.Minimize(c @ cp.vstack([x, x])),
+        problem = Problem(cp.Minimize(c @ cp.vstack([x, x])),
                     [x == [[1, 2]]])
-        result = p.solve(solver=cp.SCS, eps=1e-8)
+        result = problem.solve(solver=cp.SCS, eps=1e-8)
         self.assertAlmostEqual(result, 6)
 
         c = numpy.ones((2, 2))
-        p = Problem(cp.Minimize(cp.sum(cp.vstack([self.A, self.C]))),
+        problem = Problem(cp.Minimize(cp.sum(cp.vstack([self.A, self.C]))),
                     [self.A >= 2*c,
                      self.C == -2])
-        result = p.solve(solver=cp.SCS, eps=1e-8)
+        result = problem.solve(solver=cp.SCS, eps=1e-8)
         self.assertAlmostEqual(result, -4)
 
         c = numpy.ones((1, 2))
-        p = Problem(cp.Minimize(cp.sum(cp.vstack([c @ self.A, c @ self.B]))),
+        problem = Problem(cp.Minimize(cp.sum(cp.vstack([c @ self.A, c @ self.B]))),
                     [self.A >= 2,
                      self.B == -2])
-        result = p.solve(solver=cp.SCS, eps=1e-8)
+        result = problem.solve(solver=cp.SCS, eps=1e-8)
         self.assertAlmostEqual(result, 0)
 
         c = numpy.array([[1, -1]]).T
-        p = Problem(cp.Minimize(c.T @ cp.vstack([cp.square(a), cp.sqrt(b)])),
+        problem = Problem(cp.Minimize(c.T @ cp.vstack([cp.square(a), cp.sqrt(b)])),
                     [a == 2,
                      b == 16])
         with self.assertRaises(Exception) as cm:
-            p.solve(solver=cp.SCS, eps=1e-5)
+            problem.solve(solver=cp.SCS, eps=1e-5)
         self.assertTrue("Problem does not follow DCP rules."
                         in str(cm.exception))
+        
+        # Test parametrized vstack
+        p = Parameter((2, 1), value=np.array([[3], [3]]))
+        q = Parameter((2, 1), value=np.array([[-8], [-8]]))
+        vars_arg = cp.vstack(
+            [cp.vstack([a, a]), cp.vstack([b, b])])
+        problem = Problem(cp.Minimize(cp.vstack([p, q]).T @ vars_arg),
+                          [a == 1, b == 2])
+        problem.solve()
+        self.assertAlmostEqual(problem.value, -26)
+
 
     # Test the hstack atom.
     def test_hstack(self) -> None:
@@ -1041,41 +1052,50 @@ class TestProblem(BaseTest):
         y = Variable((3, 1), name='y')
 
         c = numpy.ones((1, 5))
-        p = Problem(cp.Minimize(c @ cp.hstack([x.T, y.T]).T),
+        problem = Problem(cp.Minimize(c @ cp.hstack([x.T, y.T]).T),
                     [x == [[1, 2]],
                      y == [[3, 4, 5]]])
-        result = p.solve(solver=cp.SCS, eps=1e-8)
+        result = problem.solve(solver=cp.SCS, eps=1e-8)
         self.assertAlmostEqual(result, 15)
 
         c = numpy.ones((1, 4))
-        p = Problem(cp.Minimize(c @ cp.hstack([x.T, x.T]).T),
+        problem = Problem(cp.Minimize(c @ cp.hstack([x.T, x.T]).T),
                     [x == [[1, 2]]])
-        result = p.solve(solver=cp.SCS, eps=1e-8)
+        result = problem.solve(solver=cp.SCS, eps=1e-8)
         self.assertAlmostEqual(result, 6)
 
         c = numpy.ones((2, 2))
-        p = Problem(cp.Minimize(cp.sum(cp.hstack([self.A.T, self.C.T]))),
+        problem = Problem(cp.Minimize(cp.sum(cp.hstack([self.A.T, self.C.T]))),
                     [self.A >= 2*c,
                      self.C == -2])
-        result = p.solve(solver=cp.SCS, eps=1e-8)
+        result = problem.solve(solver=cp.SCS, eps=1e-8)
         self.assertAlmostEqual(result, -4)
 
         D = Variable((3, 3))
         expr = cp.hstack([self.C, D])
-        p = Problem(cp.Minimize(expr[0, 1] + cp.sum(cp.hstack([expr, expr]))),
+        problem = Problem(cp.Minimize(expr[0, 1] + cp.sum(cp.hstack([expr, expr]))),
                     [self.C >= 0,
                      D >= 0, D[0, 0] == 2, self.C[0, 1] == 3])
-        result = p.solve(solver=cp.SCS, eps=1e-8)
+        result = problem.solve(solver=cp.SCS, eps=1e-8)
         self.assertAlmostEqual(result, 13)
 
         c = numpy.array([[1, -1]]).T
-        p = Problem(cp.Minimize(c.T @ cp.hstack([cp.square(a).T, cp.sqrt(b).T]).T),
+        problem = Problem(cp.Minimize(c.T @ cp.hstack([cp.square(a).T, cp.sqrt(b).T]).T),
                     [a == 2,
                      b == 16])
         with self.assertRaises(Exception) as cm:
-            p.solve(solver=cp.SCS, eps=1e-5)
+            problem.solve(solver=cp.SCS, eps=1e-5)
         self.assertTrue("Problem does not follow DCP rules."
                         in str(cm.exception))
+
+        # Test parametrized hstack
+        p, q = Parameter(2, value=[3, 3]), Parameter(2, value=[-8, -8])
+        vars_arg = cp.hstack(
+            [cp.hstack([a[0], a[0]]), cp.hstack([b[0], b[0]])])
+        problem = Problem(cp.Minimize(cp.hstack([p, q]).T @ vars_arg),
+                          [a == 1, b == 2])
+        problem.solve()
+        self.assertAlmostEqual(problem.value, -26)
 
     def test_bad_objective(self) -> None:
         """Test using a cvxpy expression as an objective.

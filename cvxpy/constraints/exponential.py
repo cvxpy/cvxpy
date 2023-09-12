@@ -20,14 +20,14 @@ from typing import List, Tuple, TypeVar
 
 import numpy as np
 
-from cvxpy.constraints.constraint import Constraint
+from cvxpy.constraints.cones import Cone
 from cvxpy.expressions import cvxtypes
 from cvxpy.utilities import scopes
 
 Expression = TypeVar('Expression')
 
 
-class ExpCone(Constraint):
+class ExpCone(Cone):
     """A reformulated exponential cone constraint.
 
     Operates elementwise on :math:`x, y, z`.
@@ -146,8 +146,25 @@ class ExpCone(Constraint):
         self.dual_variables[1].save_value(dv1)
         self.dual_variables[2].save_value(dv2)
 
+    def _dual_cone(self, *args):
+        """Implements the dual cone of the exponential cone
+        See Pg 85 of the MOSEK modelling cookbook for more information"""
+        if args == ():
+            return ExpCone(-self.dual_variables[1], -self.dual_variables[0],
+                           np.exp(1) * self.dual_variables[2])
+        else:
+            # some assertions for verifying `args`
+            def f(x):
+                return x.shape
+            args_shapes = list(map(f, args))
+            instance_args_shapes = list(map(f, self.args))
+            assert len(args) == len(self.args)
+            assert args_shapes == instance_args_shapes
+            return ExpCone(-args[1], -args[0],
+                           np.exp(1)*args[2])
 
-class RelEntrConeQuad(Constraint):
+
+class RelEntrConeQuad(Cone):
     """An approximate construction of the scalar relative entropy cone
 
     Definition:
@@ -265,7 +282,7 @@ class RelEntrConeQuad(Constraint):
         pass
 
 
-class OpRelEntrConeQuad(Constraint):
+class OpRelEntrConeQuad(Cone):
     """An approximate construction of the operator relative entropy cone
 
     Definition:

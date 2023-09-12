@@ -128,13 +128,13 @@ class Leaf(expression.Expression):
                            'integer':  integer, 'sparsity': sparsity}
 
         if boolean:
-            self.boolean_idx = boolean if not type(boolean) == bool else list(
+            self.boolean_idx = boolean if not isinstance(boolean, bool) else list(
                 np.ndindex(max(shape, (1,))))
         else:
             self.boolean_idx = []
 
         if integer:
-            self.integer_idx = integer if not type(integer) == bool else list(
+            self.integer_idx = integer if not isinstance(integer, bool) else list(
                 np.ndindex(max(shape, (1,))))
         else:
             self.integer_idx = []
@@ -453,6 +453,11 @@ class Leaf(expression.Expression):
         """Is the expression a negative semidefinite matrix?
         """
         return self.attributes['NSD']
+
+    def is_diag(self) -> bool:
+        """Is the expression a diagonal matrix?
+        """
+        return self.attributes['diag']
 
     def is_quadratic(self) -> bool:
         """Leaf nodes are always quadratic.

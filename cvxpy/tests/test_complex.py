@@ -238,6 +238,19 @@ class TestComplex(BaseTest):
         val = np.ones(2)*np.sqrt(2)
         self.assertItemsAlmostEqual(x.value, val + 1j*val)
 
+    def test_complex_ndarray(self) -> None:
+        """Test ndarray of type complex64 and complex128.
+        """
+        x = Variable()
+        z = np.full(1, 1j, dtype=np.complex64)
+        x.value = 0
+        expr = x + z
+        assert np.isclose(expr.value, z)
+
+        z = np.full(1, 1j, dtype=np.complex128)
+        expr = x + z
+        assert np.isclose(expr.value, z)
+
     def test_missing_imag(self) -> None:
         """Test problems where imaginary is missing.
         """
@@ -687,11 +700,11 @@ class TestComplex(BaseTest):
         np.random.seed(1)
 
         # Generate three test cases
-        rho_A = np.random.random((8, 8)) + 1j*np.random.random((8, 8))
+        rho_A = np.random.random((6, 6)) + 1j*np.random.random((6, 6))
         rho_A /= np.trace(rho_A)
-        rho_B = np.random.random((6, 6)) + 1j*np.random.random((6, 6))
+        rho_B = np.random.random((4, 4)) + 1j*np.random.random((4, 4))
         rho_B /= np.trace(rho_B)
-        rho_C = np.random.random((4, 4)) + 1j*np.random.random((4, 4))
+        rho_C = np.random.random((2, 2)) + 1j*np.random.random((2, 2))
         rho_C /= np.trace(rho_C)
 
         rho_TC = np.kron(np.kron(rho_A, rho_B), rho_C.T)
@@ -702,13 +715,12 @@ class TestComplex(BaseTest):
         rho_ABC = cp.Variable(shape=rho_ABC_val.shape, complex=True)
         cons = [
             rho_ABC_val == rho_ABC,
-            rho_TC == cp.partial_transpose(rho_ABC, [8, 6, 4], axis=2),
-            rho_TB == cp.partial_transpose(rho_ABC, [8, 6, 4], axis=1),
+            rho_TC == cp.partial_transpose(rho_ABC, (6, 4, 2), axis=2),
+            rho_TB == cp.partial_transpose(rho_ABC, (6, 4, 2), axis=1),
         ]
         prob = cp.Problem(cp.Minimize(0), cons)
         prob.solve()
 
-        print(rho_ABC_val)
         assert np.allclose(rho_ABC.value, rho_ABC_val)
 
     def test_duals(self) -> None:

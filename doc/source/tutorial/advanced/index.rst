@@ -444,6 +444,8 @@ The table below shows the types of problems the supported solvers can handle.
 +----------------+----+----+------+-----+-----+-----+-----+
 | `OSQP`_        | X  | X  |      |     |     |     |     |
 +----------------+----+----+------+-----+-----+-----+-----+
+| `PIQP`_        | X  | X  |      |     |     |     |     |
++----------------+----+----+------+-----+-----+-----+-----+
 | `PROXQP`_      | X  | X  |      |     |     |     |     |
 +----------------+----+----+------+-----+-----+-----+-----+
 | `PDLP`_        | X  |    |      |     |     |     |     |
@@ -460,7 +462,7 @@ The table below shows the types of problems the supported solvers can handle.
 +----------------+----+----+------+-----+-----+-----+-----+
 | `CVXOPT`_      | X  | X  | X    | X   |     |     |     |
 +----------------+----+----+------+-----+-----+-----+-----+
-| `SDPA`_        | X  | X  | X    | X   |     |     |     |
+| `SDPA`_ ***    | X  | X  | X    | X   |     |     |     |
 +----------------+----+----+------+-----+-----+-----+-----+
 | `SCS`_         | X  | X  | X    | X   | X   | X   |     |
 +----------------+----+----+------+-----+-----+-----+-----+
@@ -474,6 +476,8 @@ The table below shows the types of problems the supported solvers can handle.
 (*) Mixed-integer LP only.
 
 (**) Except mixed-integer SDP.
+
+(***) Multiprecision support is available on SDPA if the appropriate SDPA package is installed. With multiprecision support, SDPA can solve your problem with much smaller `epsilonDash` and/or `epsilonStar` parameters. These parameters must be manually adjusted to achieve the desired degree of precision. Please see the solver website for details. SDPA can also solve some ill-posed problems with multiprecision support.
 
 Here EXP refers to problems with exponential cone constraints. The exponential cone is defined as
 
@@ -554,6 +558,10 @@ You can change the solver called by CVXPY using the ``solver`` keyword argument.
     # Solve with MOSEK.
     prob.solve(solver=cp.MOSEK)
     print("optimal value with MOSEK:", prob.value)
+
+    # Solve with PIQP.
+    prob.solve(solver=cp.PIQP)
+    print("optimal value with PIQP:", prob.value)
 
     # Solve with PROXQP.
     prob.solve(solver=cp.PROXQP)
@@ -646,6 +654,13 @@ The solver statistics are accessed via the ``problem.solver_stats`` attribute,
 which returns a :class:`~cvxpy.problems.problem.SolverStats` object.
 For example, ``problem.solver_stats.solve_time`` gives the time it took the solver to solve the problem.
 
+.. note::
+
+    Information stored in ``problem.solver_stats`` differs in the solver used.
+    For example, if we use ``MOSEK``, ``problem.solver_stats.num_iters`` includes the following: ``iinfitem.intpnt_iter``, ``liinfitem.simplex_iter``
+    or ``iinfitem.mio_num_relax``. In addition, ``problem.solver_stats.extra_stats`` includes ``liinfitem.mio_intpnt_iter`` and ``liinfitem.mio_simplex_iter``.
+    For more information, please visit https://docs.mosek.com/latest/pythonapi/constants.html
+
 Warm start
 ----------
 
@@ -698,7 +713,7 @@ cached previous solution as described above (rather than from the ``value`` fiel
 Setting solver options
 ----------------------
 
-The `OSQP`_, `ECOS`_, `GLOP`_, `MOSEK`_, `CBC`_, `CVXOPT`_, `NAG`_, `PDLP`_, `GUROBI`_, `SCS`_ , `CLARABEL`_ and `PROXQP`_ Python interfaces allow you to set solver options such as the maximum number of iterations. You can pass these options along through CVXPY as keyword arguments.
+The `OSQP`_, `ECOS`_, `GLOP`_, `MOSEK`_, `CBC`_, `CVXOPT`_, `NAG`_, `PDLP`_, `GUROBI`_, `SCS`_ , `CLARABEL`_, `PIQP`_ and `PROXQP`_ Python interfaces allow you to set solver options such as the maximum number of iterations. You can pass these options along through CVXPY as keyword arguments.
 
 For example, here we tell SCS to use an indirect method for solving linear equations rather than a direct method.
 
@@ -1108,7 +1123,23 @@ For others see `CLARABEL documentation <https://oxfordcontrol.github.io/Clarabel
     Time limit in seconds (must be integer).
 
 All controls of the Xpress Optimizer can be specified within the ``'solve'``
-command. For all controls see `FICO Xpress Optimizer manual https://www.fico.com/fico-xpress-optimization/docs/dms2019-03/solver/optimizer/HTML/chapter7.html`_.
+command. For all controls see `FICO Xpress Optimizer manual <https://www.fico.com/fico-xpress-optimization/docs/dms2019-03/solver/optimizer/HTML/chapter7.html>`_.
+
+`PIQP`_ options:
+
+``'backend'``
+    solver backend [dense, sparse] (default: sparse).
+
+``'max_iter'``
+    maximum number of iterations (default: 250).
+
+``'eps_abs'``
+    absolute accuracy (default: 1e-8).
+
+``'eps_rel'``
+    relative accuracy (default: 1e-9).
+
+For others see `PIQP documentation <https://predict-epfl.github.io/piqp/interfaces/settings>`_.
 
 Getting the standard form
 -------------------------
@@ -1602,7 +1633,7 @@ on derivatives.
 .. _MOSEK: https://www.mosek.com/
 .. _CBC: https://projects.coin-or.org/Cbc
 .. _CGL: https://projects.coin-or.org/Cgl
-.. _CPLEX: https://www-01.ibm.com/software/commerce/optimization/cplex-optimizer/
+.. _CPLEX: https://www.ibm.com/docs/en/icos
 .. _NAG: https://www.nag.co.uk/nag-library-python/
 .. _OSQP: https://osqp.org/
 .. _PDLP: https://developers.google.com/optimization
@@ -1611,6 +1642,7 @@ on derivatives.
 .. _SCIPY: https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.linprog.html#scipy.optimize.linprog
 .. _HiGHS: https://www.maths.ed.ac.uk/hall/HiGHS/#guide
 .. _CLARABEL: https://oxfordcontrol.github.io/ClarabelDocs/
+.. _PIQP: https://predict-epfl.github.io/piqp/
 .. _PROXQP: https://github.com/simple-robotics/proxsuite
 
 Custom Solvers
@@ -1663,3 +1695,5 @@ Currently, the following canonicalization backends are supported:
 *  CPP (default): The original C++ implementation, also referred to as CVXCORE.
 *  | SCIPY: A pure Python implementation based on the SciPy sparse module.
    | Generally fast for problems with few CVXPY ``Parameter`` s, especially when the problem is already vectorized.
+*  NUMPY: Reference implementation in pure NumPy. Fast for some small or dense problems.
+

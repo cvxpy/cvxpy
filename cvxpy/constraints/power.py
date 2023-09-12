@@ -18,12 +18,12 @@ from typing import List, Tuple
 
 import numpy as np
 
-from cvxpy.constraints.constraint import Constraint
+from cvxpy.constraints.cones import Cone
 from cvxpy.expressions import cvxtypes
 from cvxpy.utilities import scopes
 
 
-class PowCone3D(Constraint):
+class PowCone3D(Cone):
     """
     An object representing a collection of 3D power cone constraints
 
@@ -50,19 +50,27 @@ class PowCone3D(Constraint):
                 raise ValueError('All arguments must be affine and real.')
         alpha = Expression.cast_to_const(alpha)
         if alpha.is_scalar():
-            alpha = cvxtypes.promote()(alpha, self.x.shape)
+            if self.x.shape:
+                alpha = cvxtypes.promote()(alpha, self.x.shape)
+            else:
+                # when `alpha` is a naked float, it has to be cast into a
+                # 1-D array to be compatible with downstream (vectorized)
+                # processing
+                alpha = cvxtypes.promote()(alpha, (1,))
         self.alpha = alpha
         if np.any(self.alpha.value <= 0) or np.any(self.alpha.value >= 1):
             msg = "Argument alpha must have entries in the open interval (0, 1)."
             raise ValueError(msg)
-        arg_shapes = [self.x.shape, self.y.shape, self.z.shape, self.alpha.shape]
+        if alpha.shape == (1,):
+            arg_shapes = [self.x.shape, self.y.shape, self.z.shape, ()]
+        else:
+            arg_shapes = [self.x.shape, self.y.shape, self.z.shape, self.alpha.shape]
         if any(arg_shapes[0] != s for s in arg_shapes[1:]):
             msg = ("All arguments must have the same shapes. Provided arguments have"
                    "shapes %s" % str(arg_shapes))
             raise ValueError(msg)
         super(PowCone3D, self).__init__([self.x, self.y, self.z],
                                         constr_id)
-
     def __str__(self) -> str:
         return "Pow3D(%s, %s, %s; %s)" % (self.x, self.y, self.z, self.alpha)
 
@@ -131,8 +139,25 @@ class PowCone3D(Constraint):
         # TODO: figure out why the reshaping had to be done differently,
         #   relative to ExpCone constraints.
 
+    def _dual_cone(self, *args):
+        """Implements the dual cone of PowCone3D See Pg 85
+        of the MOSEK modelling cookbook for more information"""
+        if args is None:
+            PowCone3D(self.dual_variables[0]/self.alpha, self.dual_variables[1]/(1-self.alpha),
+                      self.dual_variables[2], self.alpha)
+        else:
+            # some assertions for verifying `args`
+            def f(x):
+                return x.shape
+            args_shapes = list(map(f, args))
+            instance_args_shapes = list(map(f, self.args))
+            assert len(args) == len(self.args)
+            assert args_shapes == instance_args_shapes
+            return PowCone3D(args[0]/self.alpha, args[1]/(1-self.alpha),
+                             args[2], self.alpha)
 
-class PowConeND(Constraint):
+
+class PowConeND(Cone):
     """
     Represents a collection of N-dimensional power cone constraints
     that is *mathematically* equivalent to the following code

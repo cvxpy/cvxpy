@@ -74,18 +74,11 @@ class SolverTestHelper:
         #   (e.g. X = Variable(shape=(n,n), PSD=True)), check
         #   domains for dual variables of the attribute constraint.
         for con in self.constraints:
-            if isinstance(con, cp.constraints.PSD):
-                # TODO: move this to PSD.dual_violation
-                dv = con.dual_value
-                eigs = np.linalg.eigvalsh(dv)
-                min_eig = np.min(eigs)
-                self.tester.assertGreaterEqual(min_eig, -(10**(-places)))
-            elif isinstance(con, cp.constraints.ExpCone):
-                # TODO: implement this (preferably with ExpCone.dual_violation)
-                raise NotImplementedError()
-            elif isinstance(con, cp.constraints.SOC):
-                # TODO: implement this (preferably with SOC.dual_violation)
-                raise NotImplementedError()
+            if isinstance(con, cp.constraints.Cone):
+                dual_violation = con.dual_residual
+                if isinstance(con, cp.constraints.SOC):
+                    dual_violation = np.linalg.norm(dual_violation)
+                self.tester.assertLessEqual(dual_violation, 10**(-places))
             elif isinstance(con, cp.constraints.Inequality):
                 # TODO: move this to Inequality.dual_violation
                 dv = con.dual_value
@@ -99,8 +92,6 @@ class SolverTestHelper:
                     self.tester.assertEqual(contents, float)
                 else:
                     self.tester.assertIsInstance(dv, float)
-            elif isinstance(con, cp.constraints.PowCone3D):
-                raise NotImplementedError()
             else:
                 raise ValueError('Unknown constraint type %s.' % type(con))
 
@@ -110,20 +101,16 @@ class SolverTestHelper:
         #   complementarity against the dual variable of the
         #   attribute constraint.
         for con in self.constraints:
-            if isinstance(con, cp.constraints.PSD):
-                dv = con.dual_value
-                pv = con.args[0].value
-                comp = cp.scalar_product(pv, dv).value
+            if isinstance(con, (cp.constraints.Inequality,
+                                cp.constraints.Equality)):
+                comp = cp.scalar_product(con.expr, con.dual_value).value
             elif isinstance(con, (cp.constraints.ExpCone,
                                   cp.constraints.SOC,
-                                  cp.constraints.NonPos,
-                                  cp.constraints.Zero)):
+                                  cp.constraints.NonNeg,
+                                  cp.constraints.Zero,
+                                  cp.constraints.PSD,
+                                  cp.constraints.PowCone3D)):
                 comp = cp.scalar_product(con.args, con.dual_value).value
-            elif isinstance(con, cp.constraints.PowCone3D):
-                comp = cp.scalar_product(con.args[:3], con.dual_value).value
-            elif isinstance(con, (cp.constraints.Inequality,
-                                  cp.constraints.Equality)):
-                comp = cp.scalar_product(con.expr, con.dual_value).value
             elif isinstance(con, cp.constraints.PowConeND):
                 msg = '\nPowConeND dual variables not implemented;' \
                        + '\nSkipping complementarity check.'
@@ -131,6 +118,112 @@ class SolverTestHelper:
             else:
                 raise ValueError('Unknown constraint type %s.' % type(con))
             self.tester.assertAlmostEqual(comp, 0, places)
+            
+    def check_stationary_lagrangian(self, places) -> None:
+        L = self.prob.objective.expr
+        objective = self.prob.objective
+        if objective.NAME == 'minimize':
+            L = objective.expr
+        else:
+            L = -objective.expr
+        for con in self.constraints:
+            if isinstance(con, (cp.constraints.Inequality,
+                                cp.constraints.Equality)):
+                dual_var_value = con.dual_value
+                prim_var_expr = con.expr
+                L = L + cp.scalar_product(dual_var_value, prim_var_expr)
+            elif isinstance(con, (cp.constraints.ExpCone,
+                                  cp.constraints.SOC,
+                                  cp.constraints.Zero,
+                                  cp.constraints.NonNeg,
+                                  cp.constraints.PSD,
+                                  cp.constraints.PowCone3D)):
+                L = L - cp.scalar_product(con.args, con.dual_value)
+            else:
+                raise NotImplementedError()
+        try:
+            g = L.grad
+        except TypeError as e:
+            assert 'is not subscriptable' in str(e)
+            msg = """\n
+            CVXPY problems with `diag` variables are not supported for
+            stationarity checks as of now
+            """
+            self.tester.fail(msg)
+        bad_norms = []
+
+        """The convention that we follow for construting the Lagrangian is: 1) Move all
+        explicitly passed constraints to the problem (via Problem.constraints) into the
+        Lagrangian --- dLdX == 0 for any such variables 2) Constraints that have
+        implicitly been imposed on variables at the time of declaration via specific
+        flags (e.g.: PSD/symmetric etc.), in such a case we check, `dLdX\in K^{*}`, where
+        `K` is the convex cone corresponding to the implicit constraint on `X`
+        """
+        for (opt_var, v) in g.items():
+            if all(not attr for attr in list(map(lambda x: x[1], opt_var.attributes.items()))):
+                """Case when the variable doesn't have any special attributes"""
+                norm = np.linalg.norm(v.data) / np.sqrt(opt_var.size)
+                if norm > 10**(-places):
+                    bad_norms.append((norm, opt_var))
+            else:
+                if opt_var.is_psd():
+                    """The PSD cone is self-dual"""
+                    g_bad_mat = cp.Constant(np.reshape(g[opt_var].toarray(), opt_var.shape))
+                    tmp_con = g_bad_mat >> 0
+                    dual_cone_violation = tmp_con.residual
+                    if dual_cone_violation > 10**(-places):
+                        bad_norms.append((dual_cone_violation, opt_var))
+                elif opt_var.is_nsd():
+                    """The NSD cone is also self-dual"""
+                    g_bad_mat = cp.Constant(np.reshape(g[opt_var].toarray(), opt_var.shape))
+                    tmp_con = g_bad_mat << 0
+                    dual_cone_violation = tmp_con.residual
+                    if dual_cone_violation > 10**(-places):
+                        bad_norms.append((dual_cone_violation, opt_var))
+                elif opt_var.is_diag():
+                    """The dual cone to the set of diagonal matrices is the set of
+                        'Hollow' matrices i.e. matrices with diagonal entries zero"""
+                    g_bad_mat = np.reshape(g[opt_var].toarray(), opt_var.shape)
+                    diag_entries = np.diag(opt_var.value)
+                    dual_cone_violation = np.linalg.norm(diag_entries) / np.sqrt(opt_var.size)
+                    if diag_entries > 10**(-places):
+                        bad_norms.append((dual_cone_violation, opt_var))
+                elif opt_var.is_symmetric():
+                    """The dual cone to the set of symmetric matrices is the
+                    set of skew-symmetric matrices, so we check if dLdX \in
+                    set(skew-symmetric-matrices)
+                    g[opt_var] is the problematic gradient in question"""
+                    g_bad_mat = np.reshape(g[opt_var].toarray(), opt_var.shape)
+                    mat = g_bad_mat + g_bad_mat.T
+                    dual_cone_violation = np.linalg.norm(mat) / np.sqrt(opt_var.size)
+                    if dual_cone_violation > 10**(-places):
+                        bad_norms.append((dual_cone_violation, opt_var))
+                elif opt_var.is_nonpos():
+                    """The cone of matrices with all entries nonpos is self-dual"""
+                    g_bad_mat = cp.Constant(np.reshape(g[opt_var].toarray(), opt_var.shape))
+                    tmp_con = g_bad_mat <= 0
+                    dual_cone_violation = np.linalg.norm(tmp_con.residual) / np.sqrt(opt_var.size)
+                    if dual_cone_violation > 10**(-places):
+                        bad_norms.append((dual_cone_violation, opt_var))
+                elif opt_var.is_nonneg():
+                    """The cone of matrices with all entries nonneg is self-dual"""
+                    g_bad_mat = cp.Constant(np.reshape(g[opt_var].toarray(), opt_var.shape))
+                    tmp_con = g_bad_mat >= 0
+                    dual_cone_violation = np.linalg.norm(tmp_con.residual) / np.sqrt(opt_var.size)
+                    if dual_cone_violation > 10**(-places):
+                        bad_norms.append((dual_cone_violation, opt_var))
+
+        if len(bad_norms):
+            msg = f"""\n
+        The gradient of Lagrangian with respect to the primal variables
+        is above the threshold of 10^{-places}. The names of the problematic
+        variables and the corresponding gradient norms are as follows:
+            """
+            for norm, opt_var in bad_norms:
+                msg += f"\n\t\t\t{opt_var.name} : {norm}"
+            msg += '\n'
+            self.tester.fail(msg)
+        pass 
 
     def verify_objective(self, places) -> None:
         actual = self.prob.value
@@ -253,6 +346,31 @@ def lp_6() -> SolverTestHelper:
     obj_pair = (objective, np.inf)
     var_pairs = [(x, None)]
     sth = SolverTestHelper(obj_pair, var_pairs, [])
+    return sth
+
+
+def lp_7() -> SolverTestHelper:
+    """
+    An ill-posed problem to test multiprecision ability of solvers.
+
+    This test will not pass on CVXOPT (as of v1.3.1) and on SDPA without GMP support.
+    """
+    n = 50
+    a = cp.Variable((n+1))
+    delta = cp.Variable((n))
+    b = cp.Variable((n+1))
+    objective = cp.Minimize(cp.sum(cp.pos(delta)))
+    constraints = [
+        a[1:] - a[:-1] == delta,
+        a >= cp.pos(b),
+    ]
+    con_pairs = [(constraints[0], None),
+                 (constraints[1], None)]
+    var_pairs = [(a, None),
+                 (delta, None),
+                 (b, None)]
+    obj_pair = (objective, 0.)
+    sth = SolverTestHelper(obj_pair, var_pairs, con_pairs)
     return sth
 
 
@@ -1010,6 +1128,15 @@ class StandardTestLPs:
         if duals:
             sth.check_complementarity(places)
             sth.check_dual_domains(places)
+        return sth
+
+    @staticmethod
+    def test_lp_7(solver, places: int = 4, duals: bool = True, **kwargs) -> SolverTestHelper:
+        sth = lp_7()
+        import sdpap
+        if sdpap.sdpacall.sdpacall.get_backend_info()["gmp"]:
+            sth.solve(solver, **kwargs)
+            sth.verify_objective(places)
         return sth
 
     @staticmethod
