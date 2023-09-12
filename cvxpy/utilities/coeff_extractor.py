@@ -147,13 +147,14 @@ class CoeffExtractor:
                         P = P.tocoo()
                     else:
                         P = sp.coo_matrix(P)
-                    if var_size == 1:
-                        c_part = np.ones((P.shape[0], 1)) * c_part
                 else:
                     P = sp.eye(var_size, format='coo')
                 # We multiply the columns of P, by c_part
                 # by operating directly on the data.
-                data = P.data[:, None] * c_part[P.col]
+                if var_size > 1:
+                    data = P.data[:, None] * c_part[P.col]
+                else:
+                    data = P.data[:, None] * c_part
                 P_tup = (data, (P.row, P.col), P.shape)
                 # Conceptually similar to
                 # P = P[:, :, None] * c_part[None, :, :]
