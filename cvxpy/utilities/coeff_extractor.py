@@ -18,6 +18,7 @@ limitations under the License.
 from __future__ import annotations, division
 
 import operator
+from dataclasses import dataclass
 
 import numpy as np
 import scipy.sparse as sp
@@ -29,6 +30,18 @@ from cvxpy.utilities.replace_quad_forms import (
     replace_quad_forms,
     restore_quad_forms,
 )
+
+
+@dataclass
+class COOData:
+    """
+    Data for constructing a COO matrix.
+    """
+    data: np.ndarray
+    row: np.ndarray
+    col: np.ndarray
+    shape: tuple[int, int]
+    param_idxs: np.ndarray
 
 
 # TODO find best format for sparse matrices: csr, csc, dok, lil, ...
@@ -161,8 +174,7 @@ class CoeffExtractor:
                     nonzero_idxs = c_part[0] != 0
                     data = P.data[:, None] * c_part[0:, nonzero_idxs]
                     param_idxs = np.arange(c_part.shape[1])[nonzero_idxs]
-                # TODO make P_tup a data structure.
-                P_tup = (data, (P.row, P.col), P.shape, param_idxs)
+                P_tup = COOData(data, P.row, P.col, P.shape, param_idxs)
                 # Conceptually similar to
                 # P = P[:, :, None] * c_part[None, :, :]
                 if orig_id in coeffs:
@@ -171,11 +183,11 @@ class CoeffExtractor:
                         # COO matrix because repeated indices are summed.
                         # Conceptually equivalent to
                         # coeffs[orig_id]['P'] += P_tup
-                        acc_data, (acc_row, acc_col), _, _ = coeffs[orig_id]['P']
-                        acc_data = np.concatenate([acc_data, data], axis=0)
-                        acc_row = np.concatenate([acc_row, P.row], axis=0)
-                        acc_col = np.concatenate([acc_col, P.col], axis=0)
-                        P_tup = (acc_data, (acc_row, acc_col), P.shape, param_idxs)
+                        acc_P = coeffs[orig_id]['P']
+                        acc_data = np.concatenate([acc_P.data, data], axis=0)
+                        acc_row = np.concatenate([acc_P.row, P.row], axis=0)
+                        acc_col = np.concatenate([acc_P.col, P.col], axis=0)
+                        P_tup = COOData(acc_data, acc_row, acc_col, P.shape, param_idxs)
                         coeffs[orig_id]['P'] = P_tup
                     else:
                         coeffs[orig_id]['P'] = P_tup
@@ -225,9 +237,9 @@ class CoeffExtractor:
             size = np.prod(shape, dtype=int)
             if var_id in coeffs and 'P' in coeffs[var_id]:
                 P = coeffs[var_id]['P']
-                P_entries += P[0].size
+                P_entries += P.data.size
             else:
-                P = ([], ([], []), (size, size), np.arange(num_params))
+                P = COOData([], [], [], (size, size), np.arange(num_params))
             if var_id in coeffs and 'q' in coeffs[var_id]:
                 q = coeffs[var_id]['q']
             else:
@@ -264,20 +276,19 @@ class CoeffExtractor:
             ```
             but done by constructing a COO matrix.
             """
-            P_vals, (P_rows, P_cols), P_shape, param_idxs = P
-            if len(P_vals) > 0:
-                vals[entry_offset:entry_offset + P_vals.size] = P_vals.flatten(
+            if len(P.data) > 0:
+                vals[entry_offset:entry_offset + P.data.size] = P.data.flatten(
                     order='F'
                 )
-                P_cols_ext = P_cols.astype(np.int64) * np.int64(P_height)
-                base_rows = gap_above + acc_height + P_rows + P_cols_ext
-                full_rows = np.tile(base_rows, len(param_idxs))
-                rows[entry_offset:entry_offset + P_vals.size] = full_rows
-                full_cols = np.repeat(param_idxs, P_cols.size)
-                cols[entry_offset:entry_offset + P_vals.size] = full_cols
-                entry_offset += P_vals.size
-            gap_above += P_shape[0]
-            acc_height += P_height * np.int64(P_shape[1])
+                P_cols_ext = P.col.astype(np.int64) * np.int64(P_height)
+                base_rows = gap_above + acc_height + P.row + P_cols_ext
+                full_rows = np.tile(base_rows, len(P.param_idxs))
+                rows[entry_offset:entry_offset + P.data.size] = full_rows
+                full_cols = np.repeat(P.param_idxs, P.col.size)
+                cols[entry_offset:entry_offset + P.data.size] = full_cols
+                entry_offset += P.data.size
+            gap_above += P.shape[0]
+            acc_height += P_height * np.int64(P.shape[1])
 
         # Stitch together Ps and qs and constant.
         P = sp.coo_matrix((vals, (rows, cols)), shape=(acc_height, num_params))
