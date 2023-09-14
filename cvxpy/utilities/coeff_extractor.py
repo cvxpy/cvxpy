@@ -198,7 +198,7 @@ class CoeffExtractor:
                     coeffs[orig_id]['P'] = P_tup
                     shape = (P.shape[0], c.shape[1])
                     # Fast path for no parameters.
-                    if num_params <= 1:
+                    if num_params == 1:
                         coeffs[orig_id]['q'] = np.zeros(shape)
                     else:
                         coeffs[orig_id]['q'] = sp.coo_matrix(([], ([], [])), shape=shape) 
@@ -207,14 +207,14 @@ class CoeffExtractor:
                 var_size = np.prod(affine_var_shapes[var.id], dtype=int)
                 if var.id in coeffs:
                     # Fast path for no parameters.
-                    if num_params <= 1:
+                    if num_params == 1:
                         coeffs[var.id]['q'] += c[var_offset:var_offset+var_size, :]
                     else:
                         coeffs[var.id]['q'] += param_coeffs[var_offset:var_offset+var_size, :]
                 else:
                     coeffs[var.id] = dict()
                     # Fast path for no parameters.
-                    if num_params <= 1:
+                    if num_params == 1:
                         coeffs[var.id]['q'] = c[var_offset:var_offset+var_size, :]
                     else:
                         coeffs[var.id]['q'] = param_coeffs[var_offset:var_offset+var_size, :]
@@ -259,7 +259,7 @@ class CoeffExtractor:
                 q = coeffs[var_id]['q']
             else:
                 # Fast path for no parameters.
-                if num_params <= 1:
+                if num_params == 1:
                     q = np.zeros((size, num_params))
                 else:
                     q = sp.coo_matrix(([], ([], [])), (size, num_params))
@@ -345,7 +345,7 @@ class CoeffExtractor:
             A CSR sparse representation of the merged q matrix.
         """
         # Fast path for no parameters.
-        if num_params <= 1:
+        if num_params == 1:
             q = np.vstack(q_list)
             q = np.vstack([q, constant.A])
             return sp.csr_matrix(q)
