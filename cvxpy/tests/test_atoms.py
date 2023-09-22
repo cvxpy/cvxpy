@@ -850,6 +850,10 @@ class TestAtoms(BaseTest):
         copy = atom.copy()
         self.assertTrue(type(copy) is type(atom))
 
+        # Check that sum_largest is PWL so can be canonicalized as a QP.
+        atom = cp.sum_largest(self.x, 2)
+        assert atom.is_pwl()
+
     def test_sum_smallest(self) -> None:
         """Test the sum_smallest atom and related atoms.
         """
@@ -862,6 +866,10 @@ class TestAtoms(BaseTest):
             cp.lambda_sum_smallest(Variable((2, 2)), 2.4)
         self.assertEqual(str(cm.exception),
                          "Second argument must be a positive integer.")
+
+        # Check that sum_smallest is PWL so can be canonicalized as a QP.
+        atom = cp.sum_smallest(self.x, 2)
+        assert atom.is_pwl()
 
     def test_index(self) -> None:
         """Test the copy function for index.
