@@ -55,7 +55,6 @@ UNBOUNDED_INACCURATE = "unbounded_inaccurate"
 INFEASIBLE_OR_UNBOUNDED = "infeasible_or_unbounded"
 USER_LIMIT = "user_limit"
 SOLVER_ERROR = "solver_error"
-TIME_LIMIT_ERROR = "time_limit_error"
 # Statuses that indicate a solution was found.
 SOLUTION_PRESENT = [OPTIMAL, OPTIMAL_INACCURATE, USER_LIMIT]
 # Statuses that indicate the problem is infeasible or unbounded.
@@ -63,10 +62,7 @@ INF_OR_UNB = [INFEASIBLE, INFEASIBLE_INACCURATE,
               UNBOUNDED, UNBOUNDED_INACCURATE,
               INFEASIBLE_OR_UNBOUNDED]
 # Statuses that indicate an inaccurate solution.
-INACCURATE = [OPTIMAL_INACCURATE, INFEASIBLE_INACCURATE,
-              UNBOUNDED_INACCURATE]
-# Statuses that indicate an error.
-ERROR = [SOLVER_ERROR, TIME_LIMIT_ERROR]
+INACCURATE = [OPTIMAL_INACCURATE, INFEASIBLE_INACCURATE]
 
 # Solver names.
 CVXOPT = "CVXOPT"

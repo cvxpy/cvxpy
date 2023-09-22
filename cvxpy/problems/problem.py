@@ -1404,15 +1404,6 @@ class Problem(u.Canonical):
                     "Solver '%s' failed. " % chain.solver.name() +
                     "Try another solver, or solve with verbose=True for more "
                     "information.")
-        if solution.status == s.USER_LIMIT:
-            warnings.warn(
-                "Optimization terminated due to time limit. Solution may not be optimal."
-            )
-        if solution.status == s.TIME_LIMIT_ERROR:
-            warnings.warn(
-                "Optimization terminated due to time limit. "
-                "Solution could not be found in the time limit."
-            )
 
         self.unpack(solution)
         self._solver_stats = SolverStats.from_dict(self._solution.attr,
