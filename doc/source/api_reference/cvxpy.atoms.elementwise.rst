@@ -4,6 +4,21 @@ All of the atoms listed here operate elementwise on expressions. For example,
 :class:`~cvxpy.atoms.elementwise.exp.exp` exponentiates each entry of
 expressions that are supplied to it.
 
+.. _abs:
+
+abs
+-------------------------------------
+
+.. autoclass:: cvxpy.abs
+    :show-inheritance:
+
+.. _entr:
+
+entr
+--------------------------------------
+
+.. autoclass:: cvxpy.entr
+    :show-inheritance:
 
 .. _exp:
 
