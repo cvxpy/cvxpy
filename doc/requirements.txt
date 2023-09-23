@@ -1,5 +1,4 @@
 sphinx
-sphinxcontrib.jquery
 cloud_sptheme
 alabaster
 numpydoc
