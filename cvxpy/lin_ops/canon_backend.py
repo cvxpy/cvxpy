@@ -29,7 +29,6 @@ from cvxpy.settings import (
     NUMPY_CANON_BACKEND,
     RUST_CANON_BACKEND,
     SCIPY_CANON_BACKEND,
-    STACKED_SLICES_BACKEND,
 )
 
 """
@@ -123,7 +122,6 @@ class CanonBackend(ABC):
         backends = {
             NUMPY_CANON_BACKEND: NumPyCanonBackend,
             SCIPY_CANON_BACKEND: SciPyCanonBackend,
-            STACKED_SLICES_BACKEND: StackedSlicesBackend,
             RUST_CANON_BACKEND: RustCanonBackend
         }
         return backends[backend_name](*args, **kwargs)
@@ -616,374 +614,6 @@ class RustCanonBackend(CanonBackend):
         return sp.csc_matrix((data, (row, col)), shape)
 
 
-class SciPyCanonBackend(PythonCanonBackend):
-    @staticmethod
-    def reshape_constant_data(constant_data: dict[int, sp.csr_matrix],
-                              lin_op_shape: tuple[int, int]) -> dict[int, sp.csr_matrix]:
-        """
-        Reshape constant data from column format to the required shape for operations that
-        do not require column format. This function unpacks the constant data dict and reshapes
-        every slice of the tensor 'v' according to the lin_op_shape argument.
-        """
-        return {k: [v_i.reshape(lin_op_shape, order="F").tocsr()
-                    for v_i in v] for k, v in constant_data.items()}
-
-    def concatenate_tensors(self, tensors: list[TensorRepresentation]) \
-            -> TensorRepresentation:
-        """
-        Takes list of tensors which have already been offset along axis 0 (rows) and
-        combines them into a single tensor.
-        """
-        return TensorRepresentation.combine(tensors)
-
-    def get_empty_view(self) -> SciPyTensorView:
-        """
-        Returns an empty view of the corresponding SciPyTensorView subclass, coupling the
-        SciPyCanonBackend subclass with the SciPyTensorView subclass.
-        """
-        return SciPyTensorView.get_empty_view(self.param_size_plus_one, self.id_to_col,
-                                              self.param_to_size, self.param_to_col,
-                                              self.var_length)
-
-    def mul(self, lin: LinOp, view: SciPyTensorView) -> SciPyTensorView:
-        """
-        Multiply view with constant data from the left.
-        When the lhs is parametrized, multiply each slice of the tensor with the 
-        single, constant slice of the rhs. 
-        Otherwise, multiply the single slice of the tensor with each slice of the rhs.
-        """
-        lhs, is_param_free_lhs = self.get_constant_data(lin.data, view, column=False)
-
-        if isinstance(lhs, dict):
-            reps = view.rows // next(iter(lhs.values()))[0].shape[-1]
-            eye = sp.eye(reps, format="csr")
-            stacked_lhs = {k: [sp.kron(eye, v_i).tocsr() for v_i in v] for k, v in lhs.items()}
-
-            def parametrized_mul(x):
-                assert len(x) == 1
-                return {k: [(v_i @ x[0]).tocsr() for v_i in v] for k, v in stacked_lhs.items()}
-
-            func = parametrized_mul
-        else:
-            assert len(lhs) == 1
-            reps = view.rows // lhs[0].shape[-1]
-            stacked_lhs = (sp.kron(sp.eye(reps, format="csr"), lhs[0]))
-
-            def func(x):
-                return stacked_lhs.tocsr() @ x
-
-        return view.accumulate_over_variables(func, is_param_free_function=is_param_free_lhs)
-
-    @staticmethod
-    def promote(lin: LinOp, view: SciPyTensorView) -> SciPyTensorView:
-        """
-        Promote view by repeating along axis 0 (rows).
-        """
-        num_entries = int(np.prod(lin.shape))
-
-        def func(x):
-            # Fast way of repeating sparse matrix along axis 0
-            # See comment in https://stackoverflow.com/a/50759652
-            return x[np.zeros(num_entries, dtype=int), :]
-
-        view.apply_all(func)
-        return view
-
-    def mul_elem(self, lin: LinOp, view: SciPyTensorView) -> SciPyTensorView:
-        """
-        Given (A, b) in view and constant data d, return (A*d, b*d).
-        d is broadcasted along dimension 1 (columns).
-        When the lhs is parametrized, multiply elementwise each slice of the tensor with the 
-        single, constant slice of the rhs. 
-        Otherwise, multiply elementwise the single slice of the tensor with each slice of the rhs.
-        """
-        lhs, is_param_free_lhs = self.get_constant_data(lin.data, view, column=True)
-        if isinstance(lhs, dict):
-            def parametrized_mul(x):
-                assert len(x) == 1
-                return {k: [v_i.multiply(x[0]).tocsr() for v_i in v] for k, v in lhs.items()}
-
-            func = parametrized_mul
-        else:
-            def func(x):
-                return lhs[0].multiply(x)
-        return view.accumulate_over_variables(func, is_param_free_function=is_param_free_lhs)
-
-    @staticmethod
-    def sum_entries(_lin: LinOp, view: SciPyTensorView) -> SciPyTensorView:
-        """
-        Given (A, b) in view, return (sum(A,axis=0), sum(b, axis=0)).
-        """
-
-        def func(x):
-            return sp.csr_matrix(x.sum(axis=0))
-
-        view.apply_all(func)
-        return view
-
-    def div(self, lin: LinOp, view: SciPyTensorView) -> SciPyTensorView:
-        """
-        Given (A, b) in view and constant data d, return (A*(1/d), b*(1/d)).
-        d is broadcasted along dimension 1 (columns).
-        This function is semantically identical to mul_elem but the view x
-        is multiplied with the reciprocal of the lin_op data instead.
-
-        Note: div currently doesn't support parameters.
-        """
-        lhs, is_param_free_lhs = self.get_constant_data(lin.data, view, column=True)
-        assert is_param_free_lhs
-        assert len(lhs) == 1
-        lhs = lhs[0]
-
-        # dtype is important here, will do integer division if data is of dtype "int" otherwise.
-        lhs.data = np.reciprocal(lhs.data, dtype=float)
-
-        def div_func(x):
-            return lhs.multiply(x)
-
-        return view.accumulate_over_variables(div_func, is_param_free_function=is_param_free_lhs)
-
-    @staticmethod
-    def diag_vec(lin: LinOp, view: SciPyTensorView) -> SciPyTensorView:
-        """
-        Diagonal vector to matrix. Given (A, b) with n rows in view, add rows of zeros such that
-        the original rows now correspond to the diagonal entries of the n x n expression
-        An optional offset parameter `k` can be specified, with k>0 for diagonals above
-        the main diagonal, and k<0 for diagonals below the main diagonal.
-        """
-        assert lin.shape[0] == lin.shape[1]
-        k = lin.data
-        rows = lin.shape[0]
-        total_rows = int(lin.shape[0] ** 2)
-
-        def func(x):
-            shape = list(x.shape)
-            shape[0] = total_rows
-            x = x.tocoo()
-            if k == 0:
-                new_rows = (x.row * (rows + 1)).astype(int)
-            elif k > 0:
-                new_rows = (x.row * (rows + 1) + rows * k).astype(int)
-            else:
-                new_rows = (x.row * (rows + 1) - k).astype(int)
-            return sp.csr_matrix((x.data, (new_rows, x.col)), shape)
-
-        view.apply_all(func)
-        return view
-
-    @staticmethod
-    def get_stack_func(total_rows: int, offset: int) -> Callable:
-        """
-        Returns a function that takes in a tensor, modifies the shape of the tensor by extending
-        it to total_rows, and then shifts the entries by offset along axis 0.
-        """
-
-        def stack_func(tensor):
-            coo_repr = tensor.tocoo()
-            new_rows = (coo_repr.row + offset).astype(int)
-            return sp.csr_matrix((coo_repr.data, (new_rows, coo_repr.col)),
-                                 shape=(int(total_rows), tensor.shape[1]))
-
-        return stack_func
-
-    def rmul(self, lin: LinOp, view: SciPyTensorView) -> SciPyTensorView:
-        """
-        Multiply view with constant data from the right.
-        When the rhs is parametrized, multiply each slice of the tensor with the
-        single, constant slice of the lhs.
-        Otherwise, multiply the single slice of the tensor with each slice of the lhs.
-
-        Note: Even though this is rmul, we still use "lhs", as is implemented via a
-        multiplication from the left in this function.
-        """
-        lhs, is_param_free_lhs = self.get_constant_data(lin.data, view, column=False)
-
-        arg_cols = lin.args[0].shape[0] if len(lin.args[0].shape) == 1 else lin.args[0].shape[1]
-
-        if isinstance(lhs, dict):
-
-            lhs_shape = next(iter(lhs.values()))[0].shape
-
-            if len(lin.data.shape) == 1 and arg_cols != lhs_shape[0]:
-                # Example: (n,n) @ (n,), we need to interpret the rhs as a column vector,
-                # but it is a row vector by default, so we need to transpose
-                lhs = {k: [v_i.T for v_i in v] for k, v in lhs.items()}
-                lhs_shape = next(iter(lhs.values()))[0].shape
-
-            reps = view.rows // lhs_shape[0]
-            eye = sp.eye(reps, format="csr")
-
-            stacked_lhs = {k: [sp.kron(v_i.T, eye) for v_i in v] for k, v in lhs.items()}
-
-            def parametrized_mul(x):
-                assert len(x) == 1
-                return {k: [(v_i @ x[0]).tocsr() for v_i in v] for k, v in stacked_lhs.items()}
-
-            func = parametrized_mul
-        else:
-            assert len(lhs) == 1
-            lhs = lhs[0]
-            if len(lin.data.shape) == 1 and arg_cols != lhs.shape[0]:
-                # Example: (n,n) @ (n,), we need to interpret the rhs as a column vector,
-                # but it is a row vector by default, so we need to transpose
-                lhs = lhs.T
-            reps = view.rows // lhs.shape[0]
-            stacked_lhs = sp.kron(lhs.T, sp.eye(reps, format="csr"))
-
-            def func(x):
-                return stacked_lhs @ x
-        return view.accumulate_over_variables(func, is_param_free_function=is_param_free_lhs)
-
-    @staticmethod
-    def trace(lin: LinOp, view: SciPyTensorView) -> SciPyTensorView:
-        """
-        Select the rows corresponding to the diagonal entries in the expression and sum along
-        axis 0.
-        """
-        shape = lin.args[0].shape
-        indices = np.arange(shape[0]) * shape[0] + np.arange(shape[0])
-
-        data = np.ones(len(indices))
-        idx = (np.zeros(len(indices)), indices.astype(int))
-        lhs = sp.csr_matrix((data, idx), shape=(1, np.prod(shape)))
-
-        def func(x) -> sp.csr_matrix:
-            return (lhs @ x).tocsr()
-
-        return view.accumulate_over_variables(func, is_param_free_function=True)
-
-    def conv(self, lin: LinOp, view: SciPyTensorView) -> SciPyTensorView:
-        """
-        Returns view corresponding to a discrete convolution with data 'a', i.e., multiplying from
-        the left a repetition of the column vector of 'a' for each column in A, shifted down one row
-        after each column, i.e., a Toeplitz matrix.
-        If lin_data is a row vector, we must transform the lhs to become a column vector before
-        applying the convolution.
-
-        Note: conv currently doesn't support parameters.
-        """
-        lhs, is_param_free_lhs = self.get_constant_data(lin.data, view, column=False)
-        assert is_param_free_lhs
-        assert len(lhs) == 1
-        lhs = lhs[0]
-        assert lhs.ndim == 2
-
-        if len(lin.data.shape) == 1:
-            lhs = lhs.T
-
-        rows = lin.shape[0]
-        cols = lin.args[0].shape[0]
-        nonzeros = lhs.shape[0]
-
-        lhs = lhs.tocoo()
-        row_idx = (np.tile(lhs.row, cols) + np.repeat(np.arange(cols), nonzeros)).astype(int)
-        col_idx = (np.tile(lhs.col, cols) + np.repeat(np.arange(cols), nonzeros)).astype(int)
-        data = np.tile(lhs.data, cols)
-
-        lhs = sp.csr_matrix((data, (row_idx, col_idx)), shape=(rows, cols))
-
-        def func(x):
-            return lhs @ x
-
-        return view.accumulate_over_variables(func, is_param_free_function=is_param_free_lhs)
-
-    def kron_r(self, lin: LinOp, view: SciPyTensorView) -> SciPyTensorView:
-        """
-        Returns view corresponding to Kronecker product of data 'a' with view x, i.e., kron(a,x).
-        This function reshapes 'a' into a column vector, computes the Kronecker product with the
-        view of x and reorders the row indices afterwards.
-
-        Note: kron_r currently doesn't support parameters.
-        """
-        lhs, is_param_free_lhs = self.get_constant_data(lin.data, view, column=True)
-        assert is_param_free_lhs
-        assert len(lhs) == 1
-        lhs = lhs[0]
-        assert lhs.ndim == 2
-
-        assert len({arg.shape for arg in lin.args}) == 1
-        rhs_shape = lin.args[0].shape
-
-        row_idx = self._get_kron_row_indices(lin.data.shape, rhs_shape)
-
-        def func(x: np.ndarray) -> np.ndarray:
-            assert x.ndim == 2
-            kron_res = sp.kron(lhs, x).tocsr()
-            kron_res = kron_res[row_idx, :]
-            return kron_res
-
-        return view.accumulate_over_variables(func, is_param_free_function=is_param_free_lhs)
-
-    def kron_l(self, lin: LinOp, view: SciPyTensorView) -> SciPyTensorView:
-        """
-        Returns view corresponding to Kronecker product of view x with data 'a', i.e., kron(x,a).
-        This function reshapes 'a' into a column vector, computes the Kronecker product with the
-        view of x and reorders the row indices afterwards.
-
-        Note: kron_l currently doesn't support parameters.
-        """
-        rhs, is_param_free_rhs = self.get_constant_data(lin.data, view, column=True)
-        assert is_param_free_rhs
-        assert len(rhs) == 1
-        rhs = rhs[0]
-        assert rhs.ndim == 2
-
-        assert len({arg.shape for arg in lin.args}) == 1
-        lhs_shape = lin.args[0].shape
-
-        row_idx = self._get_kron_row_indices(lhs_shape, lin.data.shape)
-
-        def func(x: np.ndarray) -> np.ndarray:
-            assert x.ndim == 2
-            kron_res = sp.kron(x, rhs).tocsr()
-            kron_res = kron_res[row_idx, :]
-            return kron_res
-
-        return view.accumulate_over_variables(func, is_param_free_function=is_param_free_rhs)
-
-    def get_variable_tensor(self, shape: tuple[int, ...], variable_id: int) -> \
-            dict[int, dict[int, list[sp.csr_matrix]]]:
-        """
-        Returns tensor of a variable node, i.e., eye(n) across axes 0 and 1, where n is
-        the size of the variable.
-        This function constructs the identity of size 'n' and is returned as a list to
-        add the parameter axis.
-        """
-        assert variable_id != Constant.ID
-        n = int(np.prod(shape))
-        return {variable_id: {Constant.ID.value: [sp.eye(n, format="csr")]}}
-
-    def get_data_tensor(self, data: np.ndarray | sp.spmatrix) -> \
-            dict[int, dict[int, list[sp.csr_matrix]]]:
-        """
-        Returns tensor of constant node as a column vector.
-        This function reshapes the data and converts it to csr format.
-        The data tensor is returned as a list to add a parameter axis.
-        """
-        if isinstance(data, np.ndarray):
-            # Slightly faster compared to reshaping after casting
-            tensor = sp.csr_matrix(data.reshape((-1, 1), order="F"))
-        else:
-            tensor = sp.coo_matrix(data).reshape((-1, 1), order="F").tocsr()
-        return {Constant.ID.value: {Constant.ID.value: [tensor]}}
-
-    def get_param_tensor(self, shape: tuple[int, ...], parameter_id: int) \
-            -> dict[int, dict[int, list[sp.csr_matrix]]]:
-        """
-        Returns tensor of a parameter node, i.e., eye(n) across axes 0 and 2, where n is
-        the size of the parameter.
-        This function appends 'n' single element sparse matrices stacked on the cols (axis 2)
-        to the 'slices' list (axis 0).
-        """
-        assert parameter_id != Constant.ID
-        shape = int(np.prod(shape))
-        slices = []
-        for idx in np.arange(shape):
-            slices.append(sp.csr_matrix(((np.array([1.])), ((np.array([idx])),
-                                                            (np.array([0])))), shape=(shape, 1)))
-        return {Constant.ID.value: {parameter_id: slices}}
-
-
 class NumPyCanonBackend(PythonCanonBackend):
     @staticmethod
     def reshape_constant_data(constant_data: dict[int, np.ndarray],
@@ -1329,7 +959,7 @@ class NumPyCanonBackend(PythonCanonBackend):
         return res
 
 
-class StackedSlicesBackend(PythonCanonBackend):
+class SciPyCanonBackend(PythonCanonBackend):
 
     @staticmethod
     def reshape_constant_data(constant_data: dict[int, sp.csc_matrix],
@@ -1340,7 +970,7 @@ class StackedSlicesBackend(PythonCanonBackend):
         do not require column format. This function unpacks the constant data dict and reshapes
         the stacked slices of the tensor 'v' according to the lin_op_shape argument.
         """
-        return {k: StackedSlicesBackend._reshape_single_constant_tensor(v, lin_op_shape)
+        return {k: SciPyCanonBackend._reshape_single_constant_tensor(v, lin_op_shape)
                 for k, v in constant_data.items()}
 
     @staticmethod
@@ -1364,17 +994,17 @@ class StackedSlicesBackend(PythonCanonBackend):
         new_stacked_shape = (p * lin_op_shape[0], lin_op_shape[1])
         return sp.csc_matrix((data, (new_rows, new_cols)), shape=new_stacked_shape)
 
-    def get_empty_view(self) -> StackedSlicesTensorView:
+    def get_empty_view(self) -> SciPyTensorView:
         """
-        Returns an empty view of the corresponding StackedSlicesTensorView subclass,
-        coupling the StackedSlicesBackend subclass with the StackedSlicesTensorView subclass.
+        Returns an empty view of the corresponding SciPyTensorView subclass,
+        coupling the SciPyCanonBackend subclass with the SciPyTensorView subclass.
         """
-        return StackedSlicesTensorView.get_empty_view(self.param_size_plus_one, self.id_to_col,
+        return SciPyTensorView.get_empty_view(self.param_size_plus_one, self.id_to_col,
                                                       self.param_to_size, self.param_to_col,
                                                       self.var_length)
 
     @staticmethod
-    def neg(_lin: LinOp, view: StackedSlicesTensorView) -> StackedSlicesTensorView:
+    def neg(_lin: LinOp, view: SciPyTensorView) -> SciPyTensorView:
         """
         Given (A, b) in view, return (-A, -b).
         """
@@ -1384,7 +1014,7 @@ class StackedSlicesBackend(PythonCanonBackend):
         view.apply_all(func)
         return view
 
-    def mul(self, lin: LinOp, view: StackedSlicesTensorView) -> StackedSlicesTensorView:
+    def mul(self, lin: LinOp, view: SciPyTensorView) -> SciPyTensorView:
         """
         Multiply view with constant data from the left.
         When the lhs is parametrized, multiply each slice of the tensor with the 
@@ -1401,7 +1031,7 @@ class StackedSlicesBackend(PythonCanonBackend):
 
             def func(x, p):
                 if p == 1:
-                    return (stacked_lhs @ x).tocsc()
+                    return (stacked_lhs @ x).tocsr()
                 else:
                     return ((sp.kron(sp.eye(p, format="csc"), stacked_lhs)) @ x).tocsc()
         else:
@@ -1450,7 +1080,7 @@ class StackedSlicesBackend(PythonCanonBackend):
         return res
 
     @staticmethod
-    def promote(lin: LinOp, view: StackedSlicesTensorView) -> StackedSlicesTensorView:
+    def promote(lin: LinOp, view: SciPyTensorView) -> SciPyTensorView:
         """
         Promote view by repeating along axis 0 (rows).
         """
@@ -1459,7 +1089,7 @@ class StackedSlicesBackend(PythonCanonBackend):
         view.select_rows(rows)
         return view
 
-    def mul_elem(self, lin: LinOp, view: StackedSlicesTensorView) -> StackedSlicesTensorView:
+    def mul_elem(self, lin: LinOp, view: SciPyTensorView) -> SciPyTensorView:
         """
         Given (A, b) in view and constant data d, return (A*d, b*d).
         When dealing with parametrized constant data, we need to repeat the variable tensor p times
@@ -1483,7 +1113,7 @@ class StackedSlicesBackend(PythonCanonBackend):
         return view.accumulate_over_variables(func, is_param_free_function=is_param_free_lhs)
 
     @staticmethod
-    def sum_entries(_lin: LinOp, view: StackedSlicesTensorView) -> StackedSlicesTensorView:
+    def sum_entries(_lin: LinOp, view: SciPyTensorView) -> SciPyTensorView:
         """
         Given (A, b) in view, return the sum of the representation
         on the row axis, ie: (sum(A,axis=0), sum(b, axis=0)).
@@ -1500,7 +1130,7 @@ class StackedSlicesBackend(PythonCanonBackend):
         view.apply_all(func)
         return view
 
-    def div(self, lin: LinOp, view: StackedSlicesTensorView) -> StackedSlicesTensorView:
+    def div(self, lin: LinOp, view: SciPyTensorView) -> SciPyTensorView:
         """
         Given (A, b) in view and constant data d, return (A*(1/d), b*(1/d)).
         d is broadcasted along dimension 1 (columns).
@@ -1524,7 +1154,7 @@ class StackedSlicesBackend(PythonCanonBackend):
         return view.accumulate_over_variables(div_func, is_param_free_function=is_param_free_lhs)
 
     @staticmethod
-    def diag_vec(lin: LinOp, view: StackedSlicesTensorView) -> StackedSlicesTensorView:
+    def diag_vec(lin: LinOp, view: SciPyTensorView) -> SciPyTensorView:
         """
         Diagonal vector to matrix. Given (A, b) with n rows in view, add rows of zeros such that
         the original rows now correspond to the diagonal entries of the n x n expression
@@ -1570,7 +1200,7 @@ class StackedSlicesBackend(PythonCanonBackend):
 
         return stack_func
 
-    def rmul(self, lin: LinOp, view: StackedSlicesTensorView) -> StackedSlicesTensorView:
+    def rmul(self, lin: LinOp, view: SciPyTensorView) -> SciPyTensorView:
         """
         Multiply view with constant data from the right.
         When the rhs is parametrized, multiply each slice of the tensor with the
@@ -1596,7 +1226,7 @@ class StackedSlicesBackend(PythonCanonBackend):
 
             def func(x, p):
                 if p == 1:
-                    return (stacked_lhs @ x).tocsc()
+                    return (stacked_lhs @ x).tocsr()
                 else:
                     return ((sp.kron(sp.eye(p, format="csc"), stacked_lhs)) @ x).tocsc()
         else:
@@ -1678,7 +1308,7 @@ class StackedSlicesBackend(PythonCanonBackend):
         return res
 
     @staticmethod
-    def trace(lin: LinOp, view: StackedSlicesTensorView) -> StackedSlicesTensorView:
+    def trace(lin: LinOp, view: SciPyTensorView) -> SciPyTensorView:
         """
         Select the rows corresponding to the diagonal entries in the expression and sum along
         axis 0.
@@ -1699,7 +1329,7 @@ class StackedSlicesBackend(PythonCanonBackend):
 
         return view.accumulate_over_variables(func, is_param_free_function=True)
 
-    def conv(self, lin: LinOp, view: StackedSlicesTensorView) -> StackedSlicesTensorView:
+    def conv(self, lin: LinOp, view: SciPyTensorView) -> SciPyTensorView:
         """
         Returns view corresponding to a discrete convolution with data 'a', i.e., multiplying from
         the left a repetition of the column vector of 'a' for each column in A, shifted down one row
@@ -1735,7 +1365,7 @@ class StackedSlicesBackend(PythonCanonBackend):
 
         return view.accumulate_over_variables(func, is_param_free_function=is_param_free_lhs)
 
-    def kron_r(self, lin: LinOp, view: StackedSlicesTensorView) -> StackedSlicesTensorView:
+    def kron_r(self, lin: LinOp, view: SciPyTensorView) -> SciPyTensorView:
         """
         Returns view corresponding to Kronecker product of data 'a' with view x, i.e., kron(a,x).
         This function reshapes 'a' into a column vector, computes the Kronecker product with the
@@ -1757,13 +1387,13 @@ class StackedSlicesBackend(PythonCanonBackend):
             assert p == 1, \
                 "StackedSlices backend does not support parametrized right operand for kron_r."
             assert x.ndim == 2
-            kron_res = sp.kron(lhs, x).tocsc()
+            kron_res = sp.kron(lhs, x).tocsr()
             kron_res = kron_res[row_idx, :]
             return kron_res
 
         return view.accumulate_over_variables(func, is_param_free_function=is_param_free_lhs)
 
-    def kron_l(self, lin: LinOp, view: StackedSlicesTensorView) -> StackedSlicesTensorView:
+    def kron_l(self, lin: LinOp, view: SciPyTensorView) -> SciPyTensorView:
         """
         Returns view corresponding to Kronecker product of view x with data 'a', i.e., kron(x,a).
         This function reshapes 'a' into a column vector, computes the Kronecker product with the
@@ -1785,7 +1415,7 @@ class StackedSlicesBackend(PythonCanonBackend):
             assert p == 1, \
                 "StackedSlices backend does not support parametrized left operand for kron_l."
             assert x.ndim == 2
-            kron_res = sp.kron(x, rhs).tocsc()
+            kron_res = sp.kron(x, rhs).tocsr()
             kron_res = kron_res[row_idx, :]
             return kron_res
 
@@ -2011,100 +1641,6 @@ class DictTensorView(TensorView, ABC):
         return res
 
 
-class SciPyTensorView(DictTensorView):
-
-    @property
-    def rows(self) -> int:
-        """
-        Number of rows of the TensorView.
-        This is the first dimension of the first slice in the tensor list.
-        """
-        if self.tensor is not None:
-            return next(iter(next(iter(self.tensor.values())).values()))[0].shape[0]
-        else:
-            raise ValueError
-
-    def get_tensor_representation(self, row_offset: int) -> TensorRepresentation:
-        """
-        Returns a TensorRepresentation of [A b] tensor.
-        This function iterates through all the tensor slices in the list
-        and constructs their respective representation in COO format. Each parameter
-        slice has its own tensor representation which will be combined with the others
-        in the return statement. The row_offset is applied to the row indices and
-        the variable_offset to the col indices.
-        """
-        assert self.tensor is not None
-        tensor_representations = []
-        for variable_id, variable_tensor in self.tensor.items():
-            for parameter_id, parameter_tensor in variable_tensor.items():
-                for param_slice_offset, matrix in enumerate(parameter_tensor):
-                    coo_repr = matrix.tocoo(copy=False)
-                    tensor_representations.append(TensorRepresentation(
-                        coo_repr.data,
-                        coo_repr.row + row_offset,
-                        coo_repr.col + self.id_to_col[variable_id],
-                        np.ones(coo_repr.nnz) * self.param_to_col[parameter_id] +
-                        param_slice_offset,
-                    ))
-        return TensorRepresentation.combine(tensor_representations)
-
-    def select_rows(self, rows: np.ndarray) -> None:
-        """
-        Select 'rows' from tensor.
-        This function returns a subset of the rows from the original tensor.
-        """
-        def func(x):
-            return x[rows, :]
-
-        self.apply_all(func)
-
-    def apply_all(self, func: Callable) -> None:
-        """
-        Apply 'func' across all variables and parameter slices.
-        The tensor functions in the SciPyBackend manipulate 2d sparse matrices.
-        Therefore, this function iterates 'v' and applies 'func' to every slice.
-        """
-        self.tensor = {var_id: {k: [func(v_i).tocsr() for v_i in v]
-                                for k, v in parameter_repr.items()}
-                       for var_id, parameter_repr in self.tensor.items()}
-
-    def create_new_tensor_view(self, variable_ids: set[int], tensor: dict,
-                               is_parameter_free: bool) -> SciPyTensorView:
-        """
-        Create new SciPyTensorView with same shape information as self,
-        but new tensor data.
-        """
-        return SciPyTensorView(variable_ids, tensor, is_parameter_free, self.param_size_plus_one,
-                               self.id_to_col, self.param_to_size, self.param_to_col,
-                               self.var_length)
-
-    @staticmethod
-    def apply_to_parameters(func: Callable,
-                            parameter_representation: dict[int, list[sp.csr_matrix]]) \
-            -> dict[int, list[sp.csr_matrix]]:
-        """
-        Apply 'func' to each slice of the parameter representation.
-        """
-        return {k: [func(v_i).tocsr() for v_i in v] for k, v in parameter_representation.items()}
-
-    @staticmethod
-    def add_tensors(a: list[sp.csr_matrix], b: list[sp.csr_matrix]) -> list[sp.csr_matrix]:
-        """
-        Apply element-wise addition on every 2d sparse matrix in two lists
-        and return as a new list.
-        """
-        assert len(a) == len(b), "Tensors must have the same number of slices."
-        # Note: use zip(a,b,strict=True) for Python 3.10+
-        return [a + b for a, b in zip(a, b)]
-
-    @staticmethod
-    def tensor_type():
-        """
-        The tensor is represented as a list of 2d sparse matrices.
-        """
-        return list
-
-
 class NumPyTensorView(DictTensorView):
 
     @property
@@ -2199,7 +1735,7 @@ class NumPyTensorView(DictTensorView):
         return np.ndarray
 
 
-class StackedSlicesTensorView(DictTensorView):
+class SciPyTensorView(DictTensorView):
 
     @property
     def rows(self) -> int:
@@ -2265,12 +1801,12 @@ class StackedSlicesTensorView(DictTensorView):
                        for var_id, parameter_repr in self.tensor.items()}
 
     def create_new_tensor_view(self, variable_ids: set[int], tensor: Any,
-                               is_parameter_free: bool) -> StackedSlicesTensorView:
+                               is_parameter_free: bool) -> SciPyTensorView:
         """
-        Create new StackedSlicesTensorView with same shape information as self,
+        Create new SciPyTensorView with same shape information as self,
         but new tensor data.
         """
-        return StackedSlicesTensorView(variable_ids, tensor, is_parameter_free,
+        return SciPyTensorView(variable_ids, tensor, is_parameter_free,
                                        self.param_size_plus_one, self.id_to_col,
                                        self.param_to_size, self.param_to_col,
                                        self.var_length)
