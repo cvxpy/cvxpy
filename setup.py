@@ -78,6 +78,7 @@ setup(
     install_requires=[
         "osqp >= 0.4.1",
         "ecos >= 2",
+        "clarabel >= 0.5.0",
         "scs >= 1.1.6",
         "numpy >= 1.15",
         "scipy >= 1.1.0",
