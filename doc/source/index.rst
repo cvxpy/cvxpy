@@ -58,7 +58,7 @@ more, browse the :doc:`library of examples </examples/index>`. For
 background on convex optimization, see the book `Convex Optimization
 <https://www.stanford.edu/~boyd/cvxbook/>`_ by Boyd and Vandenberghe.
 
-CVXPY relies on the open source solvers `OSQP`_, `SCS`_, and `ECOS`_.
+CVXPY relies on the open source solvers `Clarabel`_, `OSQP`_, `SCS`_, and `ECOS`_.
 Additional solvers are supported, but must be installed separately.
 
 **Community.**
@@ -101,7 +101,7 @@ complementary code generation approach. Following the introduction of semantic v
 since the CVXPY 1.3 release, everything that can be imported from the `cvxpy` namespace is
 considered to be part of the public API.
 
-
+.. _Clarabel: https://github.com/oxfordcontrol/Clarabel.rs
 .. _OSQP: https://osqp.org/
 .. _ECOS: http://github.com/ifa-ethz/ecos
 .. _SCS: http://github.com/cvxgrp/scs
