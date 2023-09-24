@@ -52,14 +52,17 @@ DPP_ERROR_MSG = (
     "faster than the first one. For more information, see the "
     "documentation on Discplined Parametrized Programming, at\n"
     "\thttps://www.cvxpy.org/tutorial/advanced/index.html#"
-    "disciplined-parametrized-programming")
+    "disciplined-parametrized-programming"
+)
 
-ECOS_DEPRECATION_MSG = """
-Your problem is being solved with the ECOS solver by default. Starting in 
-CVXPY 1.5.0, Clarabel will be used as the default solver instead. To continue 
-using ECOS, specify the ECOS solver explicitly using the ``solver=cp.ECOS`` 
-argument to the ``problem.solve`` method.
-"""
+ECOS_DEPRECATION_MSG = (
+    """
+    Your problem is being solved with the ECOS solver by default. Starting in 
+    CVXPY 1.5.0, Clarabel will be used as the default solver instead. To continue 
+    using ECOS, specify the ECOS solver explicitly using the ``solver=cp.ECOS`` 
+    argument to the ``problem.solve`` method.
+    """
+)
 
 def _is_lp(self):
     """Is problem a linear program?
