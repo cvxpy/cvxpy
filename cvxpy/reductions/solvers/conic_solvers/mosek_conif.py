@@ -294,9 +294,9 @@ class MOSEK(ConicSolver):
             task.writedata(save_file)
 
         # Optimize the Mosek Task, and return the result.
-        task.optimize()
+        rescode = task.optimize()
 
-        if task.optimize() == mosek.rescode.trm_max_time:
+        if rescode == mosek.rescode.trm_max_time:
             warnings.warn(
                 "Optimization terminated by time limit; solution may be imprecise or absent.",
             )
