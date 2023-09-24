@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import warnings
-from typing import List, Optional
 
 import numpy as np
 
@@ -44,9 +43,23 @@ from cvxpy.reductions.reduction import Reduction
 from cvxpy.reductions.solvers import defines as slv_def
 from cvxpy.reductions.solvers.constant_solver import ConstantSolver
 from cvxpy.reductions.solvers.solver import Solver
-from cvxpy.settings import PARAM_THRESHOLD
+from cvxpy.settings import ECOS, PARAM_THRESHOLD
 from cvxpy.utilities.debug_tools import build_non_disciplined_error_msg
 
+DPP_ERROR_MSG = (
+    "You are solving a parameterized problem that is not DPP. "
+    "Because the problem is not DPP, subsequent solves will not be "
+    "faster than the first one. For more information, see the "
+    "documentation on Discplined Parametrized Programming, at\n"
+    "\thttps://www.cvxpy.org/tutorial/advanced/index.html#"
+    "disciplined-parametrized-programming")
+
+ECOS_DEPRECATION_MSG = """
+Your problem is being solved with the ECOS solver by default. Starting in 
+CVXPY 1.5.0, Clarabel will be used as the default solver instead. To continue 
+using ECOS, specify the ECOS solver explicitly using the ``solver=cp.ECOS`` 
+argument to the ``problem.solve`` method.
+"""
 
 def _is_lp(self):
     """Is problem a linear program?
@@ -71,7 +84,7 @@ def _solve_as_qp(problem, candidates):
 
 
 def _reductions_for_problem_class(problem, candidates, gp: bool = False, solver_opts=None) \
-        -> List[Reduction]:
+        -> list[Reduction]:
     """
     Builds a chain that rewrites a problem into an intermediate
     representation suitable for numeric reductions.
@@ -151,7 +164,8 @@ def construct_solving_chain(problem, candidates,
                             enforce_dpp: bool = False,
                             ignore_dpp: bool = False,
                             canon_backend: str | None = None,
-                            solver_opts: Optional[dict] = None
+                            solver_opts: dict | None = None,
+                            specified_solver: str | None = None,
                             ) -> "SolvingChain":
     """Build a reduction chain from a problem to an installed solver.
 
@@ -181,6 +195,8 @@ def construct_solving_chain(problem, candidates,
         backend.
     solver_opts : dict, optional
         Additional arguments to pass to the solver.
+    specified_solver: str, optional
+        A solver specified by the user.
 
     Returns
     -------
@@ -199,22 +215,15 @@ def construct_solving_chain(problem, candidates,
 
     # Process DPP status of the problem.
     dpp_context = 'dcp' if not gp else 'dgp'
-    dpp_error_msg = (
-        "You are solving a parameterized problem that is not DPP. "
-        "Because the problem is not DPP, subsequent solves will not be "
-        "faster than the first one. For more information, see the "
-        "documentation on Discplined Parametrized Programming, at\n"
-        "\thttps://www.cvxpy.org/tutorial/advanced/index.html#"
-        "disciplined-parametrized-programming")
     if ignore_dpp or not problem.is_dpp(dpp_context):
         # No warning for ignore_dpp.
         if ignore_dpp:
             reductions = [EvalParams()] + reductions
         elif not enforce_dpp:
-            warnings.warn(dpp_error_msg)
+            warnings.warn(DPP_ERROR_MSG)
             reductions = [EvalParams()] + reductions
         else:
-            raise DPPError(dpp_error_msg)
+            raise DPPError(DPP_ERROR_MSG)
     elif any(param.is_complex() for param in problem.parameters()):
         reductions = [EvalParams()] + reductions
     else:  # Compilation with DPP.
@@ -318,6 +327,11 @@ def construct_solving_chain(problem, candidates,
                 CvxAttr2Constr(),
             ]
             if all(c in supported_constraints for c in cones):
+                # Raise a warning if ECOS is used without being specified
+                # by the user.
+                if solver == ECOS and specified_solver is None:
+                    warnings.warn(ECOS_DEPRECATION_MSG, FutureWarning)
+                # Return the reduction chain.
                 reductions += [
                     ConeMatrixStuffing(quad_obj=quad_obj, canon_backend=canon_backend),
                     solver_instance
