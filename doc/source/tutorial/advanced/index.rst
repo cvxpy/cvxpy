@@ -485,7 +485,7 @@ QP - Quadratic Programming refers to problems with a quadratic objective functio
 
 SOCP - Second Order Cone Programming refers to problems with second-order cone constraints. The second order cone is defined as
 
-    :math:`C_{n+1} = \{\begin{bmatrix} x \\ t \end{bmatrix} \mid x \in R^n , t \in R , \| x \|_2 \leq t\}`
+    :math:`\mathcal{C}_{n+1} = \left\{\begin{bmatrix} x \\ t \end{bmatrix} \mid x \in \mathbb{R}^n , t \in \mathbb{R} , \| x \|_2 \leq t\right\}`
 
 SDP - Semi-Definite Programming refers to problems with :ref:`semi-definite constraints <Semidefinite matrices>`.
 
