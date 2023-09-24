@@ -1015,7 +1015,9 @@ class Problem(u.Canonical):
             s.LOGGER.info(
                     'CVXPY will first compile your problem; then, it will '
                     'invoke a numerical solver to obtain a solution.')
-
+            s.LOGGER.info(
+                    "Your problem is compiled with the %s canonicalization backend.",
+                    s.DEFAULT_CANON_BACKEND if canon_backend is None else canon_backend)
         if requires_grad:
             dpp_context = 'dgp' if gp else 'dcp'
             if qcp:
