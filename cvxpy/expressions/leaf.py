@@ -95,10 +95,10 @@ class Leaf(expression.Expression):
     __metaclass__ = abc.ABCMeta
 
     def __init__(
-        self, shape: int | Iterable[int, ...], value=None, nonneg: bool = False,
-        nonpos: bool = False, complex: bool = False, imag: bool = False,
-        symmetric: bool = False, diag: bool = False, PSD: bool = False,
-        NSD: bool = False, hermitian: bool = False,
+        self, shape: int | Iterable[int, ...], value=None, bounds=None,
+        nonneg: bool = False, nonpos: bool = False, complex: bool = False,
+        imag: bool = False, symmetric: bool = False, diag: bool = False,
+        PSD: bool = False, NSD: bool = False, hermitian: bool = False,
         boolean: bool = False, integer: bool = False,
         sparsity=None, pos: bool = False, neg: bool = False
     ) -> None:
@@ -125,7 +125,7 @@ class Leaf(expression.Expression):
                            'symmetric': symmetric, 'diag': diag,
                            'PSD': PSD, 'NSD': NSD,
                            'hermitian': hermitian, 'boolean': bool(boolean),
-                           'integer':  integer, 'sparsity': sparsity}
+                           'integer':  integer, 'sparsity': sparsity, 'bounds': bounds}
 
         if boolean:
             self.boolean_idx = boolean if not isinstance(boolean, bool) else list(
@@ -151,6 +151,8 @@ class Leaf(expression.Expression):
             self.value = value
 
         self.args = []
+
+        self.bounds = bounds if bounds is not None else [None, None]
 
     def _get_attr_str(self) -> str:
         """Get a string representing the attributes.
