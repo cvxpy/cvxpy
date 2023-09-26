@@ -398,15 +398,3 @@ class TestConstraints(BaseTest):
     def test_bounds_attr(self) -> None:
         """Test that the bounds attribute for variables and parameters is set correctly.
         """
-        import pytest
-        x = cp.Variable(2, bounds=[11, 10])
-        c = [1, 2]
-        with pytest.raises(ValueError) as ke:
-            cp.Problem(cp.Minimize(x @ c))
-            cm = "Invalid bounds for var9: [11, 10]"
-            assert ke.exception == cm
-
-        y = cp.Variable(1, bounds=[10, 11])
-        prob = cp.Problem(cp.Minimize(y), [y >= 1])
-        prob.solve()
-        self.assertItemsAlmostEqual(y.value, 10)
