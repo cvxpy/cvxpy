@@ -274,4 +274,14 @@ class PowConeND(Cone):
 
     def save_dual_value(self, value) -> None:
         # TODO: implement
-        pass
+        dw = []
+        dz = value.T[0][-1]
+        for i, col_dvars in enumerate(value.T):
+            if i == len(value.T) - 1:
+                dw += [col_dvars[1], col_dvars[2]]
+            else:
+                dw.append(col_dvars[0])
+        dw = np.array(dw)
+        self.dual_variables[0].save_value(dw)
+        self.dual_variables[1].save_value(dz)
+        # pass
