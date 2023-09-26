@@ -34,6 +34,7 @@ CONVEX_ATTRIBUTES = [
     'diag',
     'PSD',
     'NSD',
+    'bounds'
 ]
 
 # Attributes related to symmetry.
@@ -99,14 +100,27 @@ class CvxAttr2Constr(Reduction):
         id2old_var = {}
         constr = []
         for var in problem.variables():
+            bounds = var.bounds
+            if bounds is not None:
+                for idx, domain in enumerate(bounds):
+                    if domain is not None:
+                        lower_bound, upper_bound = domain
+                        if lower_bound is not None:
+                            constr.append(var[idx] >= lower_bound)
+                        if upper_bound is not None:
+                            constr.append(var[idx] <= upper_bound)
             if var.id not in id2new_var:
                 id2old_var[var.id] = var
                 new_var = False
                 new_attr = var.attributes.copy()
                 for key in CONVEX_ATTRIBUTES:
                     if new_attr[key]:
-                        new_var = True
-                        new_attr[key] = False
+                        if key == 'bounds':
+                            new_var = True
+                            new_attr[key] = None
+                        else:
+                            new_var = True
+                            new_attr[key] = False
 
                 if attributes_present([var], SYMMETRIC_ATTRIBUTES):
                     n = var.shape[0]
