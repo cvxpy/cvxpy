@@ -164,21 +164,6 @@ class Problem(u.Canonical):
                 warnings.warn(f"Constraint #{i} contains too many subexpressions. "
                               "Consider vectorizing your CVXPY code to speed up compilation.")
 
-        for expr in self.variables() + self.parameters():
-            lower_bound = expr.bounds[0]
-            upper_bound = expr.bounds[1]
-
-            if lower_bound is not None and upper_bound is not None:
-                if upper_bound < lower_bound:
-                    raise ValueError(f"Invalid bounds for {expr}: [{lower_bound}, {upper_bound}]")
-
-            if lower_bound is not None:
-                constraints.append(expr >= lower_bound)
-                self._constraints = constraints
-            if upper_bound is not None:
-                constraints.append(expr <= upper_bound)
-                self._constraints = constraints
-
         self._value = None
         self._status: Optional[str] = None
         self._solution = None
