@@ -137,7 +137,8 @@ class SolverTestHelper:
                                   cp.constraints.Zero,
                                   cp.constraints.NonNeg,
                                   cp.constraints.PSD,
-                                  cp.constraints.PowCone3D)):
+                                  cp.constraints.PowCone3D,
+                                  cp.constraints.PowConeND)):
                 L = L - cp.scalar_product(con.args, con.dual_value)
             else:
                 raise NotImplementedError()

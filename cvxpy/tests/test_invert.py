@@ -1,6 +1,7 @@
 import cvxpy as cp
 import numpy as np
 from cvxpy.reductions.cone2cone.exotic2common import pow_nd_canon
+from cvxpy.tests.solver_test_helpers import SolverTestHelper as STH
 
 
 
@@ -30,14 +31,17 @@ alpha = runif_in_simplex(dims - 1)
 pow_con = cp.PowConeND(x_power[:dims - 1], x_power[dims - 1], alpha)
 obj = cp.Minimize(cp.norm(x - x_power))
 canon_cons = pow_nd_canon(pow_con, pow_con.args[:2])[0]
-cons = [pow_con,
+cons = [canon_cons,
         cp.bmat([[87 * x[0], x[1], x[2] / 3],
                   [100.0, 4 * 1e2, x[3] * 78],
-                  [23 * x[4], 1e3, x[5]/144]]) >> 0]
+                  [23 * x[4], 1e3, x[5]/144]]) >> 0,
+        cp.ExpCone(x[0], x[3], x[5])]
 prob = cp.Problem(obj, cons)
 print(prob.solve(solver='MOSEK'))
 f = lambda x: x.value
 print(f"Dual vals: {pow_con.dual_value}")
+sth = STH((obj, None), [(x, None), (x_power, None)], [(con, None) for con in cons])
+sth.check_stationary_lagrangian(2)
 
 # print(f"Canonicalization cons: {list(map(f, canon_cons.args))}")
 # print(f"Dual vals: {np.vstack(canon_cons.dual_value)}")
