@@ -152,7 +152,7 @@ class Leaf(expression.Expression):
 
         self.args = []
 
-        self.bounds = bounds if bounds is not None else [None, None]
+        self.bounds = bounds if bounds is not None else None
 
     def _get_attr_str(self) -> str:
         """Get a string representing the attributes.
@@ -485,3 +485,34 @@ class Leaf(expression.Expression):
 
     def atoms(self) -> list[Atom]:
         return []
+
+    @property
+    def bounds(self):
+        # Assuming bounds is stored as a list of tuples
+        return self._bounds
+
+    @bounds.setter
+    def bounds(self, value):
+        # In case for a constant for instance
+        if value is None:
+            self._bounds = None
+            return
+
+        validated_bounds = []
+        for idx, bounds in enumerate(value):
+            if bounds is None:
+                validated_bounds.append(None)
+                continue
+
+            # Here I want to check if number of box constraints equals
+            # shape of the variable, under construction
+
+            lower_bound, upper_bound = bounds
+            if lower_bound is not None and upper_bound is not None:
+                if upper_bound < lower_bound:
+                    raise ValueError(f"Invalid bounds for domain "
+                                     f"constraint {idx}: [{lower_bound}, {upper_bound}]")
+
+            validated_bounds.append([lower_bound, upper_bound])
+
+        self._bounds = validated_bounds
