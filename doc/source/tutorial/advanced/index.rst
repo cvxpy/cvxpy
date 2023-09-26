@@ -483,18 +483,15 @@ LP - Linear Programming refers to problems with a linear objective function and 
 
 QP - Quadratic Programming refers to problems with a quadratic objective function and linear constraints.
 
-SOCP - Second Order Cone Programming refers to problems with second-order cone constraints. The second order cone is defined as
+SOCP - Second-Order Cone Programming refers to problems with second-order cone constraints. The second order cone is defined as
 
     :math:`\mathcal{C}_{n+1} = \left\{\begin{bmatrix} x \\ t \end{bmatrix} \mid x \in \mathbb{R}^n , t \in \mathbb{R} , \| x \|_2 \leq t\right\}`
 
-SDP - Semi-Definite Programming refers to problems with :ref:`semi-definite constraints <Semidefinite matrices>`.
+SDP - Semidefinite Programming refers to problems with :ref:`semidefinite matrix constraints <Semidefinite matrices>`.
 
 EXP - refers to problems with exponential cone constraints. The exponential cone is defined as
 
     :math:`\{(x,y,z) \mid y > 0, y\exp(x/y) \leq z \} \cup \{ (x,y,z) \mid x \leq 0, y = 0, z \geq 0\}`.
-
-Most users will never specify cone constraints directly. Instead, cone constraints are added when CVXPY
-converts the problem into standard form.
 
 POW - refers to problems with 3-dimensional power cone constraints. The 3D power cone is defined as
 
