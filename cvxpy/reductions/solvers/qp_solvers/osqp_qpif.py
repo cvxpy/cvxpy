@@ -85,6 +85,13 @@ class OSQP(QpSolver):
                 new_args['Ax'] = A.data
                 factorizing = True
 
+            # When scaling is non-zero, l and u are overwritten by OSQP.
+            if solver_opts.get("scaling", 10) != 0:
+                if "u" in new_args and "l" not in new_args:
+                    new_args["l"] = data["l"]
+                elif "l" in new_args and "u" not in new_args:
+                    new_args["u"] = data["u"]
+
             if new_args:
                 solver.update(**new_args)
             # Map OSQP statuses back to CVXPY statuses
