@@ -483,7 +483,7 @@ LP - Linear Programming refers to problems with a linear objective function and 
 
 QP - Quadratic Programming refers to problems with a quadratic objective function and linear constraints.
 
-SOCP - Second-Order Cone Programming refers to problems with second-order cone constraints. The second order cone is defined as
+SOCP - Second-Order Cone Programming refers to problems with second-order cone constraints. The second-order cone is defined as
 
     :math:`\mathcal{C}_{n+1} = \left\{\begin{bmatrix} x \\ t \end{bmatrix} \mid x \in \mathbb{R}^n , t \in \mathbb{R} , \| x \|_2 \leq t\right\}`
 
