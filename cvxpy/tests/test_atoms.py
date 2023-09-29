@@ -977,6 +977,73 @@ class TestAtoms(BaseTest):
         with pytest.raises(ValueError, match="scalar or 1D"):
             cp.convolve([[0, 1], [0, 1]], self.x)
 
+    def test_ptp(self) -> None:
+        """Test the ptp atom.
+        """
+        a = np.array([[10., -10., 3.0], [6., 0., -1.5]])
+        expr = cp.ptp(a)
+        assert expr.is_nonneg()
+        self.assertEqual(expr.shape, ())
+        self.assertClose(expr.value, 20.)
+
+        expr = cp.ptp(a, axis=0)
+        assert expr.is_nonneg()
+        self.assertEqual(expr.shape, (3,))
+        self.assertClose(expr.value, np.array([4, 10, 4.5]))
+
+        expr = cp.ptp(a, axis=1)
+        assert expr.is_nonneg()
+        self.assertEqual(expr.shape, (2,))
+        self.assertClose(expr.value, np.array([20., 7.5]))
+
+        expr = cp.ptp(a, 0, True)
+        assert expr.is_nonneg()
+        self.assertEqual(expr.shape, (1, 3))
+        self.assertClose(expr.value, np.array([[4, 10, 4.5]]))
+
+        expr = cp.ptp(a, 1, True)
+        assert expr.is_nonneg()
+        self.assertEqual(expr.shape, (2, 1))
+        self.assertClose(expr.value, np.array([[20.], [7.5]]))
+
+    def test_stats(self) -> None:
+        """Test the mean, std, var atoms.
+        """
+        a = np.array([[10., 10., 3.0], [6., 0., 1.5]])
+        cp.mean(a)
+        expr_var = cp.var(a)
+        expr_std = cp.std(a)
+        assert a.is_nonneg()
+        assert expr_var.is_nonneg()
+        assert expr_std.is_nonneg()
+
+        # Finish writing these tests
+        assert False
+        """
+        self.assertEqual(expr.shape, ())
+        self.assertClose(expr.value, 20.)
+
+        expr = cp.ptp(a, axis=0)
+        assert expr.is_nonneg()
+        self.assertEqual(expr.shape, (3,))
+        self.assertClose(expr.value, np.array([4, 10, 4.5]))
+
+        expr = cp.ptp(a, axis=1)
+        assert expr.is_nonneg()
+        self.assertEqual(expr.shape, (2,))
+        self.assertClose(expr.value, np.array([20., 7.5]))
+
+        expr = cp.ptp(a, 0, True)
+        assert expr.is_nonneg()
+        self.assertEqual(expr.shape, (1, 3))
+        self.assertClose(expr.value, np.array([[4, 10, 4.5]]))
+
+        expr = cp.ptp(a, 1, True)
+        assert expr.is_nonneg()
+        self.assertEqual(expr.shape, (2, 1))
+        self.assertClose(expr.value, np.array([[20.], [7.5]]))
+        """
+
     def test_partial_optimize_dcp(self) -> None:
         """Test DCP properties of partial optimize.
         """
