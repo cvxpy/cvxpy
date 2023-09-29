@@ -111,7 +111,10 @@ class upper_tri(AffAtom):
 
 
 def vec_to_upper_tri(expr, strict: bool = False):
-    """Reshapes a vector into an upper triangular matrix in XXX order
+    """Reshapes a vector into an upper triangular matrix in
+    row-major order.
+
+    Inverts cp.upper_tri.
     """
     expr = Expression.cast_to_const(expr)
 
