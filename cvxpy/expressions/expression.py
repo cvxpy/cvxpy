@@ -750,3 +750,96 @@ class Expression(u.Canonical):
 
     def __abs__(self):
         raise TypeError(__ABS_ERROR__)
+
+    def conj(self):
+        """
+        Equivalent to `cp.conj(self)`
+        """
+        from cvxpy import conj
+        return conj(self)
+
+    def conjugate(self):
+        """
+        Equivalent to `cp.conj(self)`
+        """
+        from cvxpy import conj
+        return conj(self)
+
+    def cumsum(self):
+        """
+        Equivalent to `cp.cumsum(self)`
+        """
+        from cvxpy import cumsum
+        return cumsum(self)
+
+    def max(self, axis=None, *, keepdims=False):
+        """
+        Equivalent to `cp.max(self, axis, keepdims)`
+        """
+        from cvxpy import max as max_
+        return max_(self, axis, keepdims)
+
+    def mean(self):
+        """
+        Returns the mean of the expression
+        """
+        from cvxpy import sum as sum_
+        return sum_(self) / self.size
+
+    def min(self, axis=None, *, keepdims=False):
+        """
+        Equivalent to `cp.min(self, axis, keepdims)`
+        """
+        from cvxpy import min as min_
+        return min_(self, axis, keepdims)
+
+    def prod(self, axis=None, *, keepdims=False):
+        """
+        Equivalent to `cp.prod(self, axis, keepdims)`
+        """
+        from cvxpy import prod
+        return prod(self, axis, keepdims)
+
+    def ptp(self, axis=None, *, keepdims=False):
+        """
+        Peak to peak (maximum - minimum) value along a given axis.
+        """
+        from cvxpy import max as max_
+        from cvxpy import min as min_
+        return max_(self, axis, keepdims) - min_(self, axis, keepdims)
+
+    def reshape(self, shape, order='F'):
+        """
+        Equivalent to `cp.reshape(self, shape, order)`
+        """
+        from cvxpy import reshape
+        return reshape(self, shape, order)
+
+    def std(self):
+        """
+        Returns the standard deviation of the expression
+        """
+        from cvxpy import norm
+        return norm(self - self.mean(), 2) / np.sqrt(self.size)
+ 
+    def sum(self, axis=None, *, keepdims=False):
+        """
+        Equivalent to `cp.sum(self, axis
+        """
+        from cvxpy import sum as sum_
+        return sum_(self, axis, keepdims)
+
+    def trace(self):
+        """
+        Equivalent to `cp.trace(self)`
+        """
+        from cvxpy import trace
+        return trace(self)
+
+    def var(self):
+        """
+        Returns the standard deviation of the expression
+        """
+        from cvxpy import sum_squares
+        return sum_squares(self - self.mean()) / self.size
+
