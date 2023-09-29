@@ -1017,32 +1017,30 @@ class TestAtoms(BaseTest):
         assert expr_var.is_nonneg()
         assert expr_std.is_nonneg()
 
-        # Finish writing these tests
-        assert False
-        """
-        self.assertEqual(expr.shape, ())
-        self.assertClose(expr.value, 20.)
+        assert np.isclose(a.mean(), expr_mean.value)
+        assert np.isclose(a.var(), expr_var.value)
+        assert np.isclose(a.std(), expr_std.value)
 
-        expr = cp.ptp(a, axis=0)
-        assert expr.is_nonneg()
-        self.assertEqual(expr.shape, (3,))
-        self.assertClose(expr.value, np.array([4, 10, 4.5]))
+        for ddof in [0, 1]:
+            expr_var = cp.var(a, ddof=ddof)
+            expr_std = cp.std(a, ddof=ddof)
 
-        expr = cp.ptp(a, axis=1)
-        assert expr.is_nonneg()
-        self.assertEqual(expr.shape, (2,))
-        self.assertClose(expr.value, np.array([20., 7.5]))
+            assert np.isclose(a.var(ddof=ddof), expr_var.value)
+            assert np.isclose(a.std(ddof=ddof), expr_std.value)
 
-        expr = cp.ptp(a, 0, True)
-        assert expr.is_nonneg()
-        self.assertEqual(expr.shape, (1, 3))
-        self.assertClose(expr.value, np.array([[4, 10, 4.5]]))
+        for axis in [0, 1]:
+            for keepdim in [True, False]:
+                expr_mean = cp.mean(a, axis=axis)
+                expr_var = cp.var(a, axis=axis)
+                expr_std = cp.std(a, axis=axis)
 
-        expr = cp.ptp(a, 1, True)
-        assert expr.is_nonneg()
-        self.assertEqual(expr.shape, (2, 1))
-        self.assertClose(expr.value, np.array([[20.], [7.5]]))
-        """
+                assert expr_mean.shape == a.mean(axis=axis, keepdim=keepdim).shape
+                assert expr_var.shape == a.var(axis=axis, keepdim=keepdim).shape
+                assert expr_std.shape == a.std(axis=axis, keepdim=keepdim).shape
+
+                assert np.allclose(a.mean(axis=axis, keepdim=keepdim), expr_mean.value)
+                assert np.allclose(a.var(axis=axis, keepdim=keepdim), expr_var.value)
+                assert np.allclose(a.std(axis=axis, keepdim=keepdim), expr_std.value)
 
     def test_partial_optimize_dcp(self) -> None:
         """Test DCP properties of partial optimize.
