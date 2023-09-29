@@ -64,6 +64,12 @@ class Wrap(AffAtom):
         return (arg_objs[0], [])
 
 
+class nonneg_wrap(Wrap):
+    """Asserts that an expression is nonnegative.
+    """
+    def is_nonneg(self):
+        return True
+
 class psd_wrap(Wrap):
     """Asserts that a square matrix is PSD.
     """
