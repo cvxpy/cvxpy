@@ -324,7 +324,7 @@ and returns a scalar.
      - :math:`\max_{ij} X_{ij} - \min_{ij} X_{ij}`
      - :math:`X \in \mathbf{R}^{m \times n}`
 
-     - |unknown| unknown
+     - |positive| positive
      - |convex| convex
      - None
 

@@ -15,6 +15,7 @@ limitations under the License.
 """
 
 
+from cvxpy.atoms.affine.warp import nonneg_wrap
 from cvxpy.atoms.max import max as cvxpy_max
 from cvxpy.atoms.min import min as cvxpy_min
 
@@ -25,4 +26,4 @@ def ptp(x, axis=None, keepdims=False):
 
     The name of the function comes from the acronym for ‘peak to peak’.
     """
-    return cvxpy_max(x, axis, keepdims) - cvxpy_min(x, axis, keepdims)
+    return nonneg_wrap(cvxpy_max(x, axis, keepdims) - cvxpy_min(x, axis, keepdims))
