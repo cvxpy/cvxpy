@@ -100,6 +100,8 @@ from cvxpy.atoms.sum_squares import sum_squares
 from cvxpy.atoms.total_variation import tv
 from cvxpy.atoms.tr_inv import tr_inv
 from cvxpy.atoms.von_neumann_entr import von_neumann_entr
+from cvxpy.atoms.stats import mean, std, var
+from cvxpy.atoms.ptp import ptp
 
 # TODO(akshayka): Perhaps couple this information with the atom classes
 # themselves.
@@ -111,6 +113,7 @@ SOC_ATOMS = [
     quad_over_lin,
     power,
     huber,
+    std,
 ]
 
 EXP_ATOMS = [
@@ -142,4 +145,5 @@ NONPOS_ATOMS = [
     norm1,
     abs,
     huber,
+    ptp
 ]
