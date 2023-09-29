@@ -1483,11 +1483,13 @@ class TestExpressions(BaseTest):
         U = cp.Variable((2, 2), complex=True)
         expr = psd_wrap(Z)
         assert expr.is_psd()
+        assert not expr.is_complex()
         assert expr.is_symmetric()
         assert expr.is_hermitian()
 
         expr = psd_wrap(U)
         assert expr.is_psd()
+        assert expr.is_complex()
         assert not expr.is_symmetric()
         assert expr.is_hermitian()
 

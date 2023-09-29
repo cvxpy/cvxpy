@@ -37,6 +37,9 @@ class Wrap(AffAtom):
         """
         return values[0]
 
+    def is_complex(self) -> bool:
+        return self.args[0].is_complex()
+
     def shape_from_args(self) -> Tuple[int, ...]:
         """Shape of input.
         """
@@ -95,9 +98,6 @@ class psd_wrap(Wrap):
 
     def is_nsd(self) -> bool:
         return False
-
-    def is_complex(self) -> bool:
-        return self.args[0].is_complex()
 
     def is_symmetric(self) -> bool:
         return not self.args[0].is_complex()
