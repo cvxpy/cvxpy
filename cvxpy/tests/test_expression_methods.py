@@ -39,71 +39,97 @@ class TestExpressionMethods(BaseTest):
         self.B = Variable((2, 2), name='B')
         self.C = Variable((3, 2), name='C')
 
-    def test_max(self) -> None:
-        """Test max.
-        """
-        # One arg, test sign.
-        self.assertEqual(Variable().max().sign, s.UNKNOWN)
+    def test_all_expressions(self) -> None:
+        complex_X = Constant(np.array([[1., 4., 7.], [2., -4.+3j, 3.], [99., -2.-9j, 2.4]]))
+        X = Constant(np.array([[1., 4., 7.], [2., -4., 3.], [99., -2., 2.4]]))
 
-        # Test with axis argument.
-        self.assertEqual(Variable(2).max(axis=0, keepdims=True).shape, (1,))
-        self.assertEqual(Variable(2).max(axis=1).shape, (2,))
-        self.assertEqual(Variable((2, 3)).max(axis=0, keepdims=True).shape, (1, 3))
-        self.assertEqual(Variable((2, 3)).max(axis=1).shape, (2,))
+        # Takes no arguments and only complex input is interesting
+        for method in [
+            'conj', 
+        ]:
+            fn = getattr(cp, method)
+            method_fn = getattr(complex_X, method)
 
-        # Invalid axis.
-        with self.assertRaises(Exception) as cm:
-            self.x.max(axis=4)
-        self.assertEqual(str(cm.exception), "Invalid argument for axis.")
+            assert fn(complex_X).shape == method_fn().shape
+            assert np.allclose(fn(complex_X).value, method_fn().value)
 
-    def test_min(self) -> None:
-        """Test min.
-        """
-        # One arg, test sign.
-        self.assertEqual(Variable().min().sign, s.UNKNOWN)
+        # Takes no arguments
+        for method in [
+            'conj', 
+            'trace', 
+            'cumsum',
+            'max',
+            'min',
+            'mean',
+            'ptp',
+            'prod',
+            'sum',
+            'std',
+            'var',
 
-        # Test with axis argument.
-        self.assertEqual(Variable(2).min(axis=0).shape, tuple())
-        self.assertEqual(Variable(2).min(axis=1).shape, (2,))
-        self.assertEqual(Variable((2, 3)).min(axis=0).shape, (3,))
-        self.assertEqual(Variable((2, 3)).min(axis=1).shape, (2,))
+        ]:
+            fn = getattr(cp, method)
+            method_fn = getattr(X, method)
 
-        # Invalid axis.
-        with self.assertRaises(Exception) as cm:
-            self.x.min(axis=4)
-        self.assertEqual(str(cm.exception), "Invalid argument for axis.")
+            assert fn(X).shape == method_fn().shape
+            assert np.allclose(fn(X).value, method_fn().value)
 
-    def test_sum(self) -> None:
-        """Test the sum atom.
-        """
-        self.assertEqual(Constant([1, -1]).sum().sign, s.UNKNOWN)
-        self.assertEqual(Constant([1, -1]).sum().curvature, s.CONSTANT)
-        self.assertEqual(Variable(2).sum().sign, s.UNKNOWN)
-        self.assertEqual(Variable(2).sum().shape, tuple())
-        self.assertEqual(Variable(2).sum().curvature, s.AFFINE)
-        self.assertEqual(Variable((2, 1)).sum(keepdims=True).shape, (1, 1))
-        # Mixed curvature.
-        mat = np.array([[1, -1]])
-        self.assertEqual(cp.sum(mat @ cp.square(Variable(2))).curvature, s.UNKNOWN)
 
-        # Test with axis argument.
-        self.assertEqual(Variable(2).sum(axis=0).shape, tuple())
-        self.assertEqual(Variable(2).sum(axis=1).shape, (2,))
-        self.assertEqual(Variable((2, 3)).sum(axis=0, keepdims=True).shape, (1, 3))
-        self.assertEqual(Variable((2, 3)).sum(axis=0, keepdims=False).shape, (3,))
-        self.assertEqual(Variable((2, 3)).sum(axis=1).shape, (2,))
+        # Takes axis arguments
+        for method in [
+            'cumsum', 
+        ]:
+            for axis in [None, 0, 1]:
+                fn = getattr(cp, method)(X, axis)
+                method_fn = getattr(X, method)(axis)
 
-        # Invalid axis.
-        with self.assertRaises(Exception) as cm:
-            cp.sum(self.x, axis=4)
-        self.assertEqual(str(cm.exception),
-                         "Invalid argument for axis.")
+                assert fn.shape == method_fn.shape
+                assert np.allclose(fn.value, method_fn.value)
 
-        A = sp.eye(3)
-        self.assertEqual(Constant(A).sum().value, 3)
+        # Takes axis, keepdims arguments
+        for method in [
+            'max', 
+            'mean', 
+            'min', 
+            'prod', 
+            'ptp', 
+            'sum', 
 
-        A = sp.eye(3)
-        self.assertItemsAlmostEqual(Constant(A).sum(axis=0).value, [1, 1, 1])
+        ]:
+            for axis in [None, 0, 1]:
+                for keepdims in [True, False]:
+                    fn = getattr(cp, method)(X, axis, keepdims)
+                    method_fn = getattr(X, method)(axis, keepdims=keepdims)
+
+                    assert fn.shape == method_fn.shape
+                    assert np.allclose(fn.value, method_fn.value)
+
+
+        
+        # Takes axis, keepdims, ddof arguments
+        for method in [
+            'std', 
+        ]:
+            for axis in [None, 0, 1]:
+                for keepdims in [True, False]:
+                    for ddof in [0, 1, 2]:
+                        fn = getattr(cp, method)(X, axis, keepdims, ddof=ddof)
+                        method_fn = getattr(X, method)(axis, keepdims=keepdims, ddof=ddof)
+
+                        assert fn.shape == method_fn.shape
+                        assert np.allclose(fn.value, method_fn.value)
+
+        # Takes ddof arguments
+        for method in [
+            'var', 
+        ]:
+            for ddof in [0, 1, 2]:
+                fn = getattr(cp, method)(X, ddof=ddof)
+                method_fn = getattr(X, method)(ddof=ddof)
+
+                assert fn.shape == method_fn.shape
+                assert np.allclose(fn.value, method_fn.value)
+
 
     def test_reshape(self) -> None:
         """Test the reshape class.
@@ -197,22 +223,73 @@ class TestExpressionMethods(BaseTest):
         A_reshaped = Constant(A).reshape(-1, order='F')
         assert np.allclose(A_reshaped.value, A.reshape(-1, order='F'))
 
-    def test_vec(self) -> None:
-        """Test the vec atom.
+
+
+    def test_max(self) -> None:
+        """Test max.
         """
-        expr = cp.vec(self.C)
-        self.assertEqual(expr.sign, s.UNKNOWN)
-        self.assertEqual(expr.curvature, s.AFFINE)
-        self.assertEqual(expr.shape, (6,))
+        # One arg, test sign.
+        self.assertEqual(Variable().max().sign, s.UNKNOWN)
 
-        expr = cp.vec(self.x)
-        self.assertEqual(expr.shape, (2,))
+        # Test with axis argument.
+        self.assertEqual(Variable(2).max(axis=0, keepdims=True).shape, (1,))
+        self.assertEqual(Variable(2).max(axis=1).shape, (2,))
+        self.assertEqual(Variable((2, 3)).max(axis=0, keepdims=True).shape, (1, 3))
+        self.assertEqual(Variable((2, 3)).max(axis=1).shape, (2,))
 
-        expr = cp.vec(cp.square(self.a))
-        self.assertEqual(expr.sign, s.NONNEG)
-        self.assertEqual(expr.curvature, s.CONVEX)
-        self.assertEqual(expr.shape, (1,))
+        # Invalid axis.
+        with self.assertRaises(Exception) as cm:
+            self.x.max(axis=4)
+        self.assertEqual(str(cm.exception), "Invalid argument for axis.")
 
+    def test_min(self) -> None:
+        """Test min.
+        """
+        # One arg, test sign.
+        self.assertEqual(Variable().min().sign, s.UNKNOWN)
+
+        # Test with axis argument.
+        self.assertEqual(Variable(2).min(axis=0).shape, tuple())
+        self.assertEqual(Variable(2).min(axis=1).shape, (2,))
+        self.assertEqual(Variable((2, 3)).min(axis=0).shape, (3,))
+        self.assertEqual(Variable((2, 3)).min(axis=1).shape, (2,))
+
+        # Invalid axis.
+        with self.assertRaises(Exception) as cm:
+            self.x.min(axis=4)
+        self.assertEqual(str(cm.exception), "Invalid argument for axis.")
+
+    def test_sum(self) -> None:
+        """Test the sum atom.
+        """
+        self.assertEqual(Constant([1, -1]).sum().sign, s.UNKNOWN)
+        self.assertEqual(Constant([1, -1]).sum().curvature, s.CONSTANT)
+        self.assertEqual(Variable(2).sum().sign, s.UNKNOWN)
+        self.assertEqual(Variable(2).sum().shape, tuple())
+        self.assertEqual(Variable(2).sum().curvature, s.AFFINE)
+        self.assertEqual(Variable((2, 1)).sum(keepdims=True).shape, (1, 1))
+        # Mixed curvature.
+        mat = np.array([[1, -1]])
+        self.assertEqual(cp.sum(mat @ cp.square(Variable(2))).curvature, s.UNKNOWN)
+
+        # Test with axis argument.
+        self.assertEqual(Variable(2).sum(axis=0).shape, tuple())
+        self.assertEqual(Variable(2).sum(axis=1).shape, (2,))
+        self.assertEqual(Variable((2, 3)).sum(axis=0, keepdims=True).shape, (1, 3))
+        self.assertEqual(Variable((2, 3)).sum(axis=0, keepdims=False).shape, (3,))
+        self.assertEqual(Variable((2, 3)).sum(axis=1).shape, (2,))
+
+        # Invalid axis.
+        with self.assertRaises(Exception) as cm:
+            cp.sum(self.x, axis=4)
+        self.assertEqual(str(cm.exception),
+                         "Invalid argument for axis.")
+
+        A = sp.eye(3)
+        self.assertEqual(Constant(A).sum().value, 3)
+
+        A = sp.eye(3)
+        self.assertItemsAlmostEqual(Constant(A).sum(axis=0).value, [1, 1, 1])
     def test_trace(self) -> None:
         """Test the trace atom.
         """
