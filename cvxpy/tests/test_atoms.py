@@ -237,6 +237,10 @@ class TestAtoms(BaseTest):
         self.assertEqual(atom.sign, s.NONNEG)
         expr = cp.norm(self.A, 2, axis=0)
         self.assertEqual(expr.shape, (2,))
+        expr = cp.norm(self.A, 2, axis=0, keepdims=True)
+        self.assertEqual(expr.shape, (1, 2))
+        expr = cp.norm(self.A, 2, axis=1, keepdims=True)
+        self.assertEqual(expr.shape, (2, 1))
 
         atom = cp.pnorm(self.x, p='inf')
         self.assertEqual(atom.shape, tuple())
