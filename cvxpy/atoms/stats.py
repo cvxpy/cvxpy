@@ -17,6 +17,7 @@ limitations under the License.
 import numpy as np
 
 from cvxpy.atoms.affine.sum import sum as cvxpy_sum
+from cvxpy.atoms.elementwise.square import square
 from cvxpy.atoms.norm import norm
 from cvxpy.atoms.sum_squares import sum_squares
 
@@ -52,7 +53,8 @@ def var(x, axis=None, keepdims=False, ddof=0):
     if axis is None:
         return sum_squares(x - mean(x)) / (x.size - ddof)
     elif axis in (0, 1):
-        return sum_squares(x - mean(x, axis, True), 2, axis=axis, keepdims=keepdims) \
+        # TODO switch to sum_squares when axis and keepdims are implemented.
+        return square(norm(x - mean(x, axis, True), 2, axis=axis, keepdims=keepdims)) \
                 / (x.shape[axis] - ddof)
     else:
         raise RuntimeError("Invalid axis value.")
