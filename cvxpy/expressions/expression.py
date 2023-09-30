@@ -765,12 +765,12 @@ class Expression(u.Canonical):
         from cvxpy import conj
         return conj(self)
 
-    def cumsum(self):
+    def cumsum(self, axis=0):
         """
-        Equivalent to `cp.cumsum(self)`
+        Equivalent to `cp.cumsum(self, axis)`
         """
         from cvxpy import cumsum
-        return cumsum(self)
+        return cumsum(self, axis)
 
     def max(self, axis=None, *, keepdims=False):
         """
@@ -779,12 +779,12 @@ class Expression(u.Canonical):
         from cvxpy import max as max_
         return max_(self, axis, keepdims)
 
-    def mean(self):
+    def mean(self, axis=0, *, keepdims=False):
         """
-        Returns the mean of the expression
+        Equivalent to `cp.mean(self, axis, keepdims)`
         """
-        from cvxpy import sum as sum_
-        return sum_(self) / self.size
+        from cvxpy import mean
+        return mean(self, axis, keepdims)
 
     def min(self, axis=None, *, keepdims=False):
         """
@@ -802,11 +802,10 @@ class Expression(u.Canonical):
 
     def ptp(self, axis=None, *, keepdims=False):
         """
-        Peak to peak (maximum - minimum) value along a given axis.
+        Equivalent to `cp.ptp(self, axis, keepdims)`
         """
-        from cvxpy import max as max_
-        from cvxpy import min as min_
-        return max_(self, axis, keepdims) - min_(self, axis, keepdims)
+        from cvxpy import ptp
+        return ptp(self, axis, keepdims)
 
     def reshape(self, shape, order='F'):
         """
@@ -815,16 +814,16 @@ class Expression(u.Canonical):
         from cvxpy import reshape
         return reshape(self, shape, order)
 
-    def std(self):
+    def std(self, axis=None, *, keepdims=False):
         """
-        Returns the standard deviation of the expression
+        Equivalent to `cp.std(self, axis, keepdims)`
         """
-        from cvxpy import norm
-        return norm(self - self.mean(), 2) / np.sqrt(self.size)
+        from cvxpy import std
+        return std(self, axis=axis, keepdims=keepdims)
  
     def sum(self, axis=None, *, keepdims=False):
         """
-        Equivalent to `cp.sum(self, axis
+        Equivalent to `cp.sum(self, axis, keepdims)`
         """
         from cvxpy import sum as sum_
         return sum_(self, axis, keepdims)
@@ -838,8 +837,8 @@ class Expression(u.Canonical):
 
     def var(self):
         """
-        Returns the standard deviation of the expression
+        Equivalent to `cp.var(self)`
         """
-        from cvxpy import sum_squares
-        return sum_squares(self - self.mean()) / self.size
+        from cvxpy import var
+        return var(self)
 
