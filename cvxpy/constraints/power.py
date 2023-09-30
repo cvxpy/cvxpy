@@ -273,12 +273,13 @@ class PowConeND(Cone):
         return self.is_dcp()
 
     def save_dual_value(self, value) -> None:
-        # TODO: implement
-        dw = value[:-1]
-        dz = value[-1]
-        self.dual_variables[0].save_value(dw)
+        dW = value[:, :-1]
+        dz = value[:, -1]
+        if self.axis == 0:
+            dW = dW.T
+            dz = dz.T
+        self.dual_variables[0].save_value(dW)
         self.dual_variables[1].save_value(dz)
-        # pass
 
     def _dual_cone(self, *args):
         """Implements the dual cone of PowConeND See Pg 85

@@ -113,12 +113,12 @@ class Exotic2Common(Canonicalization):
                     dv[idx].append([])
                     tmp_duals = dvars[idx][:, i * div_size: (i + 1) * div_size]
                     # tmp_duals = dvars[idx]
-                    for i, col_dvars in enumerate(tmp_duals.T):
-                        if i == len(tmp_duals.T) - 1:
-                            dv[idx][i] += [col_dvars[0], col_dvars[1]]
+                    for j, col_dvars in enumerate(tmp_duals.T):
+                        if j == len(tmp_duals.T) - 1:
+                            dv[idx][-1] += [col_dvars[0], col_dvars[1]]
                         else:
-                            dv[idx][i].append(col_dvars[0])
-                    dv[idx][i].append(tmp_duals.T[0][-1]) # dual value corresponding to `z`
+                            dv[idx][-1].append(col_dvars[0])
+                    dv[idx][-1].append(tmp_duals.T[0][-1]) # dual value corresponding to `z`
                 dvars[idx] = np.array(dv[idx])
 
         return Solution(solution.status, solution.opt_val, pvars, dvars,
