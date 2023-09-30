@@ -129,7 +129,7 @@ class TestExpressionMethods(BaseTest):
         # Test C-style reshape.
         a = np.arange(10)
         A_np = np.reshape(a, (5, 2), order='C')
-        A_cp = a.reshape((5, 2), order='C')
+        A_cp = Constant(a).reshape((5, 2), order='C')
         self.assertItemsAlmostEqual(A_np, A_cp.value)
 
         X = cp.Variable((5, 2))
@@ -194,7 +194,7 @@ class TestExpressionMethods(BaseTest):
         A = np.array([[1, 2, 3], [4, 5, 6]])
         A_reshaped = Constant(A).reshape(-1, order='C')
         assert np.allclose(A_reshaped.value, A.reshape(-1, order='C'))
-        A_reshaped = Constant(A).reshape(A, -1, order='F')
+        A_reshaped = Constant(A).reshape(-1, order='F')
         assert np.allclose(A_reshaped.value, A.reshape(-1, order='F'))
 
     def test_vec(self) -> None:
@@ -242,7 +242,7 @@ class TestExpressionMethods(BaseTest):
         """Test the ptp atom.
         """
         a = Constant(np.array([[10., -10., 3.0], [6., 0., -1.5]]))
-        expr = Constant(a).ptp()
+        expr = a.ptp()
         assert expr.is_nonneg()
         assert expr.shape == ()
         assert np.isclose(expr.value, 20.)
@@ -257,12 +257,12 @@ class TestExpressionMethods(BaseTest):
         expr.shape == (2,)
         assert np.allclose(expr.value, np.array([20., 7.5]))
 
-        expr = a.ptp(0, True)
+        expr = a.ptp(0, keepdims=True)
         assert expr.is_nonneg()
         assert expr.shape == (1, 3)
         assert np.allclose(expr.value, np.array([[4, 10, 4.5]]))
 
-        expr = a.ptp(1, True)
+        expr = a.ptp(1, keepdims=True)
         assert expr.is_nonneg()
         assert expr.shape == (2, 1)
         assert np.allclose(expr.value, np.array([[20.], [7.5]]))

@@ -779,7 +779,7 @@ class Expression(u.Canonical):
         from cvxpy import max as max_
         return max_(self, axis, keepdims)
 
-    def mean(self, axis=0, *, keepdims=False):
+    def mean(self, axis=None, *, keepdims=False):
         """
         Equivalent to `cp.mean(self, axis, keepdims)`
         """
@@ -814,12 +814,12 @@ class Expression(u.Canonical):
         from cvxpy import reshape
         return reshape(self, shape, order)
 
-    def std(self, axis=None, *, keepdims=False):
+    def std(self, axis=None, *, ddof=0, keepdims=False):
         """
         Equivalent to `cp.std(self, axis, keepdims)`
         """
         from cvxpy import std
-        return std(self, axis=axis, keepdims=keepdims)
+        return std(self, axis=axis, ddof=ddof, keepdims=keepdims)
  
     def sum(self, axis=None, *, keepdims=False):
         """
@@ -835,10 +835,10 @@ class Expression(u.Canonical):
         from cvxpy import trace
         return trace(self)
 
-    def var(self):
+    def var(self, *, ddof=0):
         """
         Equivalent to `cp.var(self)`
         """
         from cvxpy import var
-        return var(self)
+        return var(self, ddof=ddof)
 
