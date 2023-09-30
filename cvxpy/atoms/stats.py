@@ -57,7 +57,7 @@ def var(x, axis=None, keepdims=False, ddof=0):
             Use square(std(...)) instead.
             """
         )
-        # TODO switch to sum_squares when axis and keepdims are implemented.
+        # TODO when sum_squares implements axis and keepdims uncomment:
         # return sum_squares(x - mean(x, axis, True), 2, axis=axis, keepdims=keepdims) \
         #         / (x.shape[axis] - ddof)
     else:
