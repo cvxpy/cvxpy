@@ -26,12 +26,20 @@ def runif_in_simplex(n):
 # axis = 1
 dims = 6
 x = cp.Variable(shape=(dims,))
-x_power = cp.Variable(shape=(dims,))
-alpha = runif_in_simplex(dims - 1)
-pow_con = cp.PowConeND(x_power[:dims - 1], x_power[dims - 1], alpha)
-obj = cp.Minimize(cp.norm(x - x_power))
+x_power1 = cp.Variable(shape=(dims,))
+x_power2 = cp.Variable(shape=(dims,))
+alpha1 = runif_in_simplex(dims - 1)
+alpha2 = runif_in_simplex(dims - 1)
+alpha = np.vstack([alpha1, alpha2])
+# alpha = np.array([0.19255292, 0.39811507, 0.17199319, 0.02634437, 0.21099446])
+W = cp.vstack([x_power1[:dims - 1], x_power2[:dims - 1]])
+z = cp.hstack([x_power1[dims - 1], x_power2[dims - 1]])
+# pow_con = cp.PowConeND(x_power1[:dims - 1], x_power1[dims - 1], alpha1)
+pow_con = cp.PowConeND(W, z, alpha, axis=1)
+# obj = cp.Minimize(cp.norm(x - x_power1))
+obj = cp.Minimize(cp.norm(x - x_power1 - x_power2))
 canon_cons = pow_nd_canon(pow_con, pow_con.args[:2])[0]
-cons = [canon_cons,
+cons = [pow_con,
         cp.bmat([[87 * x[0], x[1], x[2] / 3],
                   [100.0, 4 * 1e2, x[3] * 78],
                   [23 * x[4], 1e3, x[5]/144]]) >> 0,
@@ -40,8 +48,10 @@ prob = cp.Problem(obj, cons)
 print(prob.solve(solver='MOSEK'))
 f = lambda x: x.value
 print(f"Dual vals: {pow_con.dual_value}")
-sth = STH((obj, None), [(x, None), (x_power, None)], [(con, None) for con in cons])
-sth.check_stationary_lagrangian(2)
+sth = STH((obj, None), [(x, None), (x_power1, None)], [(con, None) for con in cons])
+sth.check_stationary_lagrangian(4)
+
+print(pow_con.dual_residual)
 
 # print(f"Canonicalization cons: {list(map(f, canon_cons.args))}")
 # print(f"Dual vals: {np.vstack(canon_cons.dual_value)}")

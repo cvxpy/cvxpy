@@ -274,14 +274,24 @@ class PowConeND(Cone):
 
     def save_dual_value(self, value) -> None:
         # TODO: implement
-        dw = []
-        dz = value.T[0][-1]
-        for i, col_dvars in enumerate(value.T):
-            if i == len(value.T) - 1:
-                dw += [col_dvars[1], col_dvars[2]]
-            else:
-                dw.append(col_dvars[0])
-        dw = np.array(dw)
+        dw = value[:-1]
+        dz = value[-1]
         self.dual_variables[0].save_value(dw)
         self.dual_variables[1].save_value(dz)
         # pass
+
+    def _dual_cone(self, *args):
+        """Implements the dual cone of PowConeND See Pg 85
+        of the MOSEK modelling cookbook for more information"""
+        if args is None:
+            scaled_duals = self.dual_variables[0]/self.alpha
+            PowConeND(scaled_duals, self.dual_variables[1], self.alpha, axis=self.axis)
+        else:
+            # some assertions for verifying `args`
+            def f(x):
+                return x.shape
+            args_shapes = list(map(f, args))
+            instance_args_shapes = list(map(f, self.args))
+            assert len(args) == len(self.args)
+            assert args_shapes == instance_args_shapes
+            return PowConeND(args[0]/self.alpha, args[1], self.alpha, axis=self.axis)

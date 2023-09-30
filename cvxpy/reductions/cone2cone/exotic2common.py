@@ -94,31 +94,32 @@ class Exotic2Common(Canonicalization):
             problem=problem, canon_methods=Exotic2Common.CANON_METHODS)
 
     def invert(self, solution, inverse_data):
-        print('Am I getting called')
         pvars = {vid: solution.primal_vars[vid] for vid in inverse_data.id_map
                  if vid in solution.primal_vars}
         dvars = {orig_id: solution.dual_vars[vid]
                  for orig_id, vid in inverse_data.cons_id_map.items()
                  if vid in solution.dual_vars}
 
-        exotic_ids = [cons_id for cons_id, cons in inverse_data.id2cons.items()
-                              if isinstance(cons, PowConeND)]
-        # dv = {}
-        # for cons_id, cons in inverse_data.id2cons.items():
-        #     if isinstance(cons, PowConeND):
-        #         dv[f'{cons_id}'] = []
-        #         pow_3d_con = pow_nd_canon(cons, cons.args[:2])[0]
-        #         tmp_duals = np.vstack(pow_3d_con.dual_value)
-        #         tmp_duals = dvars[f'{cons_id}']
-        #         for i, col_dvars in enumerate(tmp_duals.T):
-        #             if i == len(tmp_duals.T) - 1:
-        #                 dv[f'{cons_id}'] += [col_dvars[1], col_dvars[2]]
-        #             else:
-        #                 dv[f'{cons_id}'].append(col_dvars[0])
-        #         dv[f'{cons_id}'].append(tmp_duals[0][-1]) # dual value corresponding to `z`
-
-        # for exotic_id in exotic_ids:
-        #     dvars[exotic_id]
+        dv = {}
+        for cons_id, cons in inverse_data.id2cons.items():
+            if isinstance(cons, PowConeND):
+                idx = int(f'{cons_id}')
+                div_size = int(dvars[idx].shape[1] / cons.args[1].shape[0])
+                dv[idx] = []
+                for i in range(cons.args[1].shape[0]):
+                    # Iterating over the vectorized constraints
+                    # idx = int(f'{cons_id}')
+                    # dv[idx] = []
+                    dv[idx].append([])
+                    tmp_duals = dvars[idx][:, i * div_size: (i + 1) * div_size]
+                    # tmp_duals = dvars[idx]
+                    for i, col_dvars in enumerate(tmp_duals.T):
+                        if i == len(tmp_duals.T) - 1:
+                            dv[idx][i] += [col_dvars[0], col_dvars[1]]
+                        else:
+                            dv[idx][i].append(col_dvars[0])
+                    dv[idx][i].append(tmp_duals.T[0][-1]) # dual value corresponding to `z`
+                dvars[idx] = np.array(dv[idx])
 
         return Solution(solution.status, solution.opt_val, pvars, dvars,
                         solution.attr)
