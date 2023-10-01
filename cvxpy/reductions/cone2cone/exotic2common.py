@@ -108,11 +108,8 @@ class Exotic2Common(Canonicalization):
                 dv[idx] = []
                 for i in range(cons.args[1].shape[0]):
                     # Iterating over the vectorized constraints
-                    # idx = int(f'{cons_id}')
-                    # dv[idx] = []
                     dv[idx].append([])
                     tmp_duals = dvars[idx][:, i * div_size: (i + 1) * div_size]
-                    # tmp_duals = dvars[idx]
                     for j, col_dvars in enumerate(tmp_duals.T):
                         if j == len(tmp_duals.T) - 1:
                             dv[idx][-1] += [col_dvars[0], col_dvars[1]]
