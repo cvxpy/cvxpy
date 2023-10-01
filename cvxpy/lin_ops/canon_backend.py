@@ -1341,7 +1341,7 @@ class SciPyCanonBackend(PythonCanonBackend):
         """
         lhs, is_param_free_lhs = self.get_constant_data(lin.data, view, column=False)
         assert is_param_free_lhs, \
-            "StackedSlices backend does not support parametrized left operand for conv."
+            "SciPy backend does not support parametrized left operand for conv."
         assert lhs.ndim == 2
 
         if len(lin.data.shape) == 1:
@@ -1360,7 +1360,7 @@ class SciPyCanonBackend(PythonCanonBackend):
 
         def func(x, p):
             assert p == 1, \
-                "StackedSlices backend does not support parametrized right operand for conv."
+                "SciPy backend does not support parametrized right operand for conv."
             return lhs @ x
 
         return view.accumulate_over_variables(func, is_param_free_function=is_param_free_lhs)
@@ -1375,7 +1375,7 @@ class SciPyCanonBackend(PythonCanonBackend):
         """
         lhs, is_param_free_lhs = self.get_constant_data(lin.data, view, column=True)
         assert is_param_free_lhs, \
-            "StackedSlices backend does not support parametrized left operand for kron_r."
+            "SciPy backend does not support parametrized left operand for kron_r."
         assert lhs.ndim == 2
 
         assert len({arg.shape for arg in lin.args}) == 1
@@ -1385,7 +1385,7 @@ class SciPyCanonBackend(PythonCanonBackend):
 
         def func(x, p):
             assert p == 1, \
-                "StackedSlices backend does not support parametrized right operand for kron_r."
+                "SciPy backend does not support parametrized right operand for kron_r."
             assert x.ndim == 2
             kron_res = sp.kron(lhs, x).tocsr()
             kron_res = kron_res[row_idx, :]
@@ -1403,7 +1403,7 @@ class SciPyCanonBackend(PythonCanonBackend):
         """
         rhs, is_param_free_rhs = self.get_constant_data(lin.data, view, column=True)
         assert is_param_free_rhs, \
-            "StackedSlices backend does not support parametrized right operand for kron_l."
+            "SciPy backend does not support parametrized right operand for kron_l."
         assert rhs.ndim == 2
 
         assert len({arg.shape for arg in lin.args}) == 1
@@ -1413,7 +1413,7 @@ class SciPyCanonBackend(PythonCanonBackend):
 
         def func(x, p):
             assert p == 1, \
-                "StackedSlices backend does not support parametrized left operand for kron_l."
+                "SciPy backend does not support parametrized left operand for kron_l."
             assert x.ndim == 2
             kron_res = sp.kron(x, rhs).tocsr()
             kron_res = kron_res[row_idx, :]
