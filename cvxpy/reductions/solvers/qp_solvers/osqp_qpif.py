@@ -85,7 +85,9 @@ class OSQP(QpSolver):
                 new_args['Ax'] = A.data
                 factorizing = True
 
-            # When scaling is non-zero, l and u are overwritten by OSQP.
+            # When scaling is enabled (non-zero), l and u are overwritten by OSQP.
+            # The default value of 10 is specified by OSQP here:
+            # https://osqp.org/docs/interfaces/solver_settings.html
             if "scaling" in solver_opts and solver_opts["scaling"] != 0:
                 if "u" in new_args and "l" not in new_args:
                     new_args["l"] = data["l"]
