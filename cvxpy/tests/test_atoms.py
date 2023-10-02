@@ -1010,6 +1010,10 @@ class TestAtoms(BaseTest):
         assert expr.shape == (2, 1)
         assert np.allclose(expr.value, np.array([[20.], [7.5]]))
 
+        x = cp.Variable(10)
+        expr = cp.ptp(x)
+        assert expr.curvature == 'CONVEX'
+
     def test_stats(self) -> None:
         """Test the mean, std, var atoms.
         """

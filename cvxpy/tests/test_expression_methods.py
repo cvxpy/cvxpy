@@ -104,8 +104,6 @@ class TestExpressionMethods(BaseTest):
                     assert fn.shape == method_fn.shape
                     assert np.allclose(fn.value, method_fn.value)
 
-
-        
         # Takes axis, keepdims, ddof arguments
         for method in [
             'std', 
@@ -187,6 +185,22 @@ class TestExpressionMethods(BaseTest):
         prob.solve(solver=cp.SCS)
         self.assertItemsAlmostEqual(b_reshaped, X_reshaped.value)
         self.assertItemsAlmostEqual(b, X.value)
+
+        # Test default is fortran
+        b = np.array([
+            [0, 1, 2],
+            [3, 4, 5],
+            [6, 7, 8],
+            [9, 10, 11],
+        ])
+        b_reshaped = b.reshape((2, 6), order='F')
+        X = cp.Variable(b.shape)
+        X_reshaped = X.reshape((2, 6))
+        prob = cp.Problem(cp.Minimize(0), [X_reshaped == b_reshaped])
+        prob.solve(solver=cp.SCS)
+        self.assertItemsAlmostEqual(b_reshaped, X_reshaped.value)
+        self.assertItemsAlmostEqual(b, X.value)
+
 
     def test_reshape_negative_one(self) -> None:
         """
