@@ -323,7 +323,6 @@ and returns a scalar.
 
      - :math:`\max_{ij} X_{ij} - \min_{ij} X_{ij}`
      - :math:`X \in \mathbf{R}^{m \times n}`
-
      - |positive| positive
      - |convex| convex
      - None
