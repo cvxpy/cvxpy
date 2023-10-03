@@ -151,7 +151,8 @@ class TestKKT_PCPs(BaseTest):
         u = cp.sum(cp.multiply(V, X), axis=1)
         alpha1 = np.array([0.4069713 , 0.10067042, 0.30507361, 0.18728467])
         alpha2 = np.array([0.13209105, 0.18918836, 0.36087677, 0.31784382])
-        cons = [cp.PowConeND(u, z[0], alpha1), cp.PowConeND(u, z[1], alpha2), X >= 0, cp.sum(X, axis=0) <= 1]
+        cons = [cp.PowConeND(u, z[0], alpha1), cp.PowConeND(u, z[1], alpha2),
+                X >= 0, cp.sum(X, axis=0) <= 1]
         obj = cp.Maximize(z[0] + z[1])
         obj_pair = (obj, 2.415600275720486)
         var_pairs = [(X, None),
@@ -171,7 +172,8 @@ class TestKKT_PCPs(BaseTest):
         u = cp.sum(cp.multiply(V, X), axis=1)
         alpha1 = np.array([0.02999541, 0.24340343, 0.03687151, 0.68972966])
         alpha2 = np.array([0.24041855, 0.1745123 , 0.10012628, 0.48494287])
-        cons = [cp.PowConeND(cp.vstack([u, u]), z, np.vstack([alpha1, alpha2]), axis=1), X >= 0, cp.sum(X, axis=0) <= 1]
+        cons = [cp.PowConeND(cp.vstack([u, u]), z, np.vstack([alpha1, alpha2]), axis=1),
+                X >= 0, cp.sum(X, axis=0) <= 1]
         obj = cp.Maximize(z[0] + z[1])
         prob = cp.Problem(obj, cons)
         prob.solve(solver='SCS')
