@@ -3,6 +3,7 @@ import numpy as np
 import cvxpy as cp
 from cvxpy.tests import solver_test_helpers as STH
 from cvxpy.tests.base_test import BaseTest
+from cvxpy.tests.test_cone2cone import TestPowND
 
 
 class TestKKT_LPs(BaseTest):
@@ -141,66 +142,44 @@ class TestKKT_PCPs(BaseTest):
 
     @staticmethod
     def non_vec_pow_nd() -> STH.SolverTestHelper:
-        # A contrived `PowConeND` projection problem, tests the dual value
-        # implementation for non-vectorized `PowConeND` constraints
-        dims = 6
-        x = cp.Variable(shape=(dims,))
-        x_power = cp.Variable(shape=(dims,))
-        alpha = np.array([0.19255292, 0.39811507, 0.17199319, 0.02634437, 0.21099446])
-        pow_con = cp.PowConeND(x_power[:dims - 1], x_power[dims - 1], alpha)
-        obj = cp.Minimize(cp.norm(x - x_power))
-        cons = [pow_con,
-                cp.bmat([[87 * x[0], x[1], x[2] / 3],
-                          [100.0, 4 * 1e2, x[3] * 78],
-                          [23 * x[4], 1e3, x[5]/144]]) >> 0,
-                cp.ExpCone(x[0], x[3], x[5])]
-        obj_pair = (obj, 67030.289)
-        con_pairs = [(con, None) for con in cons]
-        var_pairs = [(x, np.array([1.88001162e-02, -4.88454651e+01, 8.57595590e+05, 1.02810213e-03,
-                                    -1.24261412e+04, 9.00144344e+04])),
-                     (x_power, np.array([19633.20414201, 28205.58222152,
-                                         857996.79202862, 7261.49580318,
-                                         15256.79776484, 40114.03651347]))]
-        return STH.SolverTestHelper(obj_pair, var_pairs, con_pairs)
+        n_buyer = 4
+        n_items = 6
+        z = cp.Variable(shape=(2,))
+        np.random.seed(0)
+        V = np.random.rand(n_buyer, n_items)
+        X = cp.Variable(shape=(n_buyer, n_items), nonneg=True)
+        u = cp.sum(cp.multiply(V, X), axis=1)
+        alpha1 = np.array([0.4069713 , 0.10067042, 0.30507361, 0.18728467])
+        alpha2 = np.array([0.13209105, 0.18918836, 0.36087677, 0.31784382])
+        cons = [cp.PowConeND(u, z[0], alpha1), cp.PowConeND(u, z[1], alpha2), X >= 0, cp.sum(X, axis=0) <= 1]
+        obj = cp.Maximize(z[0] + z[1])
+        obj_pair = (obj, 2.415600275720486)
+        var_pairs = [(X, None),
+                     (u, None),
+                     (z, None)]
+        cons_pairs = [(con, None) for con in cons]
+        return STH.SolverTestHelper(obj_pair, var_pairs, cons_pairs)
 
     @staticmethod
     def vec_pow_nd() -> STH.SolverTestHelper:
-        # A contrived `PowConeND` projection problem, tests the dual value
-        # implementation for vectorized `PowConeND` constraints
-        axis = 1
-        dims = 6
-        x = cp.Variable(shape=(dims,))
-        x_power1 = cp.Variable(shape=(dims,))
-        x_power2 = cp.Variable(shape=(dims,))
-        x_power3 = cp.Variable(shape=(dims,))
-        alpha1 = np.array([0.16258832, 0.00095657, 0.39366008, 0.13756387, 0.30523115])
-        alpha2 = np.array([0.00652187, 0.2102224 , 0.46568224, 0.18612647, 0.13144702])
-        alpha3 = np.array([0.0707463 , 0.15574321, 0.03874102, 0.51298334, 0.22178612])
-        alpha = np.vstack([alpha1, alpha2, alpha3])
-        W = cp.vstack([x_power1[:dims - 1], x_power2[:dims - 1], x_power3[:dims - 1]])
-        z = cp.hstack([x_power1[dims - 1], x_power2[dims - 1], x_power3[dims-1]])
-        pow_con = cp.PowConeND(W, z, alpha, axis=axis)
-        obj = cp.Minimize(cp.norm(x - 10 * x_power1 - 2 * x_power2 - 15 * x_power3))
-        cons = [pow_con,
-                cp.bmat([[87 * x[0], x[1], x[2] / 3],
-                          [100.0, 4 * 1e2, x[3] * 78],
-                          [23 * x[4], 1e3, x[5]/144]]) >> 0,
-                cp.ExpCone(x[0], x[3], x[5])]
-        obj_pair = (obj, None)
-        con_pairs = [(con, None) for con in cons]
-        var_pairs = [(x, np.array([1.08377501e-01, 2.28254565e+01,
-                                   1.06350094e+06, 6.59645560e-03,
-                                   -1.54063784e+04, 9.00926375e+04])),
-                     (x_power1, np.array([1.07660729e-03, 2.62701672e-05,
-                                          1.62230262e-02, 2.12816300e-04,
-                                          2.19779775e-04, 1.25672222e-03])),
-                     (x_power2, np.array([1032.37388779, 5868.71051659,
-                                          531893.56084737, 5517.13267126,
-                                          2176.03757127, 41063.97799287])),
-                     (x_power3, np.array([1.22635012e-04, 3.44641582e-05,
-                                          9.74881635e-04, 1.16748278e-04,
-                                          3.40069711e-05, 1.16813104e-05]))]
-        return STH.SolverTestHelper(obj_pair, var_pairs, con_pairs)
+        n_buyer = 4
+        n_items = 6
+        z = cp.Variable(shape=(2,))
+        np.random.seed(1)
+        V = np.random.rand(n_buyer, n_items)
+        X = cp.Variable(shape=(n_buyer, n_items), nonneg=True)
+        u = cp.sum(cp.multiply(V, X), axis=1)
+        alpha1 = np.array([0.02999541, 0.24340343, 0.03687151, 0.68972966])
+        alpha2 = np.array([0.24041855, 0.1745123 , 0.10012628, 0.48494287])
+        cons = [cp.PowConeND(cp.vstack([u, u]), z, np.vstack([alpha1, alpha2]), axis=1), X >= 0, cp.sum(X, axis=0) <= 1]
+        obj = cp.Maximize(z[0] + z[1])
+        prob = cp.Problem(obj, cons)
+        prob.solve(solver='SCS')
+        obj_pair = (obj, 2.7003780870341516)
+        cons_pairs =[(con, None) for con in cons]
+        var_pairs = [(z, None), (X, None), (u, None)]
+        return STH.SolverTestHelper(obj_pair, var_pairs, cons_pairs)
+
 
     def test_pcp_1(self, places: int = 4):
         sth = STH.pcp_1()
@@ -244,6 +223,12 @@ class TestKKT_PCPs(BaseTest):
         sth.check_stationary_lagrangian(places)
         return sth
 
+    def test_pcp_6(self, places: int=3):
+        sth = TestPowND.pcp_4()
+        sth.solve(solver='SCS', eps=1e-6)
+        sth.check_dual_domains(places)
+        sth.check_stationary_lagrangian(places)
+        return sth
 
 class TestKKT_Flags(BaseTest):
     """
