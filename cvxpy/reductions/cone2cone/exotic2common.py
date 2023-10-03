@@ -109,20 +109,19 @@ class Exotic2Common(Canonicalization):
         dv = {}
         for cons_id, cons in inverse_data.id2cons.items():
             if isinstance(cons, PowConeND):
-                idx = int(f'{cons_id}')
-                div_size = int(dvars[idx].shape[1] / cons.args[1].shape[0])
-                dv[idx] = []
+                div_size = int(dvars[cons_id].shape[1] // cons.args[1].shape[0])
+                dv[cons_id] = []
                 for i in range(cons.args[1].shape[0]):
                     # Iterating over the vectorized constraints
-                    dv[idx].append([])
-                    tmp_duals = dvars[idx][:, i * div_size: (i + 1) * div_size]
+                    dv[cons_id].append([])
+                    tmp_duals = dvars[cons_id][:, i * div_size: (i + 1) * div_size]
                     for j, col_dvars in enumerate(tmp_duals.T):
                         if j == len(tmp_duals.T) - 1:
-                            dv[idx][-1] += [col_dvars[0], col_dvars[1]]
+                            dv[cons_id][-1] += [col_dvars[0], col_dvars[1]]
                         else:
-                            dv[idx][-1].append(col_dvars[0])
-                    dv[idx][-1].append(tmp_duals.T[0][-1]) # dual value corresponding to `z`
-                dvars[idx] = np.array(dv[idx])
+                            dv[cons_id][-1].append(col_dvars[0])
+                    dv[cons_id][-1].append(tmp_duals.T[0][-1]) # dual value corresponding to `z`
+                dvars[cons_id] = np.array(dv[cons_id])
 
         return Solution(solution.status, solution.opt_val, pvars, dvars,
                         solution.attr)
