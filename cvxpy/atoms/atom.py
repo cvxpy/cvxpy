@@ -15,11 +15,14 @@ limitations under the License.
 """
 import abc
 from typing import TYPE_CHECKING, List, Tuple
+from enum import Enum
+from functools import partial
 
 if TYPE_CHECKING:
     from cvxpy.constraints.constraint import Constraint
 
 import numpy as np
+import torch
 
 import cvxpy.lin_ops.lin_op as lo
 import cvxpy.lin_ops.lin_utils as lu
@@ -31,7 +34,22 @@ from cvxpy.expressions.constants import Constant
 from cvxpy.expressions.expression import Expression
 from cvxpy.utilities import performance_utils as perf
 from cvxpy.utilities.deterministic import unique_list
+from cvxpy.expressions.constants.constant import Constant
+from cvxpy.expressions.constants.parameter import Parameter
+from cvxpy.expressions.variable import Variable
 
+VAR_TYPE = Enum("VAR_TYPE", "VARIABLE_PARAMETER CONSTANT EXPRESSION")
+
+class VariablesDict():
+    """ Helper class that contains a dictionary from a non-constant leaf to an index in *args, with a safe add method. """
+    def __init__(self):
+        self.vars_dict = dict()
+    def add_var(self, var):
+        """
+        var is expected to be either a cp.Variable or a cp.Parameter, but is not enforced.
+        """
+        if var not in self.vars_dict:
+            self.vars_dict[var] = len(self.vars_dict)
 
 class Atom(Expression):
     """ Abstract base class for atoms. """
@@ -464,6 +482,7 @@ class Atom(Expression):
             result = numeric_func(self, values)
             return intf.DEFAULT_INTF.const_to_matrix(result)
         return new_numeric
+    
 
     def atoms(self) -> List['Atom']:
         """A list of the atom types present amongst this atom's arguments.
@@ -472,3 +491,39 @@ class Atom(Expression):
         for arg in self.args:
             atom_list += arg.atoms()
         return unique_list(atom_list + [type(self)])
+
+
+    def gen_torch_exp(self):
+        """ This function generates a torch expression.
+        The order of the arguments is as it appears in self.args (from left to right) 
+        """
+
+        def _gen_consts_vars(self, vars_dict):
+            """ This is a helper function that generates the index -> (value, type) dictionary. """
+            ind_to_value_type = dict() #Local dictionary
+            for i, arg in enumerate(self.args):
+                if isinstance(arg, Constant):
+                    ind_to_value_type[i] = (torch.tensor(arg.value), VAR_TYPE.CONSTANT)
+                elif isinstance(arg, Parameter) or isinstance(arg, Variable):
+                    ind_to_value_type[i] = (arg, VAR_TYPE.VARIABLE_PARAMETER)
+                    vars_dict.add_var(arg)
+                else:
+                    ind_to_value_type[i] = (arg, VAR_TYPE.EXPRESSION)
+                    _gen_consts_vars(arg, vars_dict)
+            return ind_to_value_type
+        
+        def wrapped_func(self, ind_to_value_type, vars_dict, *args):
+            res =  []
+            for ind in range(len(ind_to_value_type)): #Iterate over the range instead of the dictionary directly, as dictionaries have no order, but we must iterate in order
+                curr_arg = ind_to_value_type[ind]
+                if curr_arg[1]==VAR_TYPE.CONSTANT:
+                    res.append(curr_arg[0])
+                elif curr_arg[1]==VAR_TYPE.VARIABLE_PARAMETER:
+                    res.append(args[vars_dict.vars_dict[curr_arg[0]]])
+                else:
+                    rec_ind_to_value_type = _gen_consts_vars(curr_arg[0], vars_dict)
+                    res.append(wrapped_func(curr_arg[0], rec_ind_to_value_type, vars_dict, *args))
+            return self.numeric(res)
+        vars_dict = VariablesDict()
+        ind_to_value_type = _gen_consts_vars(self, vars_dict)
+        return partial(wrapped_func, self, ind_to_value_type, vars_dict)

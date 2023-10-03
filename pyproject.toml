@@ -29,6 +29,7 @@ requires = [
     "scipy >= 1.1.0",
     # 68.1.0 Promoted pyproject.toml's [tool.setuptools] out of beta.
     "setuptools >= 68.1.0",
+    "torch",
     "wheel",
     "pybind11"
 ]
