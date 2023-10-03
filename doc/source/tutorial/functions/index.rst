@@ -188,6 +188,14 @@ and returns a scalar.
      - |convex| convex
      - |incr| incr.
 
+   * - :ref:`mean(X) <mean>`
+
+     - :math:`\frac{1}{m n}\sum_{ij}\left\{ X_{ij}\right\}`
+     - :math:`X \in\mathbf{R}^{m \times n}`
+     - same as X
+     - |affine| affine
+     - |incr| incr.
+
    * - :ref:`min(X) <min>`
 
      - :math:`\min_{ij}\left\{ X_{ij}\right\}`
@@ -311,6 +319,13 @@ and returns a scalar.
      - |concave| concave
      - |incr| incr.
 
+   * - :ref:`ptp(X) <ptp>`
+
+     - :math:`\max_{ij} X_{ij} - \min_{ij} X_{ij}`
+     - :math:`X \in \mathbf{R}^{m \times n}`
+     - |positive| positive
+     - |convex| convex
+     - None
 
    * - :ref:`quad_form(x, P) <quad-form>`
 
@@ -358,6 +373,14 @@ and returns a scalar.
        |decr| for :math:`X_{ij} \leq 0`
 
        |decr| decr. in :math:`y`
+
+   * - :ref:`std(X) <std>`
+
+     - :math:`\sqrt{\frac{1}{mn} \sum_{ij}\left(X_{ij} - \frac{1}{mn}\sum_{k\ell} X_{k\ell}\right)^2}`
+     - :math:`X \in\mathbf{R}^{m \times n}`
+     - |positive| positive
+     - |convex| convex
+     - None
 
    * - :ref:`sum(X) <sum>`
 
@@ -433,6 +456,14 @@ and returns a scalar.
      - |convex| convex
      - None
 
+   * - :ref:`var(X) <var>`
+
+     - :math:`{\frac{1}{mn} \sum_{ij}\left(X_{ij} - \frac{1}{mn}\sum_{k\ell} X_{k\ell}\right)^2}`
+     - :math:`X \in\mathbf{R}^{m \times n}`
+     - |positive| positive
+     - |convex| convex
+     - None
+
    * - :ref:`von_neumann_entr(X) <von-neumann-entr>`
      - :math:`-\operatorname{tr}(X\operatorname{logm}(X))`
      - :math:`X \in \mathbf{S}^{n}_+`
@@ -463,8 +494,8 @@ The CVXPY function ``sum`` sums all the entries in a single expression. The buil
 Functions along an axis
 -----------------------
 
-The functions ``sum``, ``norm``, ``max``, and ``min`` can be
-applied along an axis.
+The functions ``sum``, ``norm``, ``max``, ``min``, ``mean``, ``std``, ``var``, and ``ptp`` can
+be applied along an axis.
 Given an ``m`` by ``n`` expression ``expr``, the syntax ``func(expr, axis=0, keepdims=True)``
 applies ``func`` to each column, returning a 1 by ``n`` expression.
 The syntax ``func(expr, axis=1, keepdims=True)`` applies ``func`` to each row,
@@ -909,6 +940,15 @@ Expression and a negative Expression) then the returned Expression will have unk
 
      - :math:`x' \in\mathbf{R}^{mn}`
      - :math:`X \in\mathbf{R}^{m \times n}`
+     - |affine| affine
+     - |incr| incr.
+
+   * - :ref:`vec_to_upper_tri(X, strict=False) <vec-to-upper-tri>`
+
+     - :math:`x' \in\mathbf{R}^{n(n-1)/2}` for ``strict=True``
+
+       :math:`x' \in\mathbf{R}^{n(n+1)/2}` for ``strict=False``
+     - :math:`X \in\mathbf{R}^{n \times n}`
      - |affine| affine
      - |incr| incr.
 

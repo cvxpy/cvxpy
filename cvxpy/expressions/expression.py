@@ -750,3 +750,95 @@ class Expression(u.Canonical):
 
     def __abs__(self):
         raise TypeError(__ABS_ERROR__)
+
+    def conj(self):
+        """
+        Equivalent to `cp.conj(self)`.
+        """
+        from cvxpy import conj
+        return conj(self)
+
+    def conjugate(self):
+        """
+        Equivalent to `cp.conj(self)`.
+        """
+        from cvxpy import conj
+        return conj(self)
+
+    def cumsum(self, axis=0):
+        """
+        Equivalent to `cp.cumsum(self, axis)`.
+        """
+        from cvxpy import cumsum
+        return cumsum(self, axis)
+
+    def max(self, axis=None, *, keepdims=False):
+        """
+        Equivalent to `cp.max(self, axis, keepdims)`.
+        """
+        from cvxpy import max as max_
+        return max_(self, axis, keepdims)
+
+    def mean(self, axis=None, *, keepdims=False):
+        """
+        Equivalent to `cp.mean(self, axis, keepdims)`.
+        """
+        from cvxpy import mean
+        return mean(self, axis, keepdims)
+
+    def min(self, axis=None, *, keepdims=False):
+        """
+        Equivalent to `cp.min(self, axis, keepdims)`.
+        """
+        from cvxpy import min as min_
+        return min_(self, axis, keepdims)
+
+    def prod(self, axis=None, *, keepdims=False):
+        """
+        Equivalent to `cp.prod(self, axis, keepdims)`.
+        """
+        from cvxpy import prod
+        return prod(self, axis, keepdims)
+
+    def ptp(self, axis=None, *, keepdims=False):
+        """
+        Equivalent to `cp.ptp(self, axis, keepdims)`.
+        """
+        from cvxpy import ptp
+        return ptp(self, axis, keepdims)
+
+    def reshape(self, shape, order='F'):
+        """
+        Equivalent to `cp.reshape(self, shape, order)`.
+        """
+        from cvxpy import reshape
+        return reshape(self, shape, order)
+
+    def std(self, axis=None, *, ddof=0, keepdims=False):
+        """
+        Equivalent to `cp.std(self, axis, keepdims)`.
+        """
+        from cvxpy import std
+        return std(self, axis=axis, ddof=ddof, keepdims=keepdims)
+ 
+    def sum(self, axis=None, *, keepdims=False):
+        """
+        Equivalent to `cp.sum(self, axis, keepdims)`.
+        """
+        from cvxpy import sum as sum_
+        return sum_(self, axis, keepdims)
+
+    def trace(self):
+        """
+        Equivalent to `cp.trace(self)`.
+        """
+        from cvxpy import trace
+        return trace(self)
+
+    def var(self, *, ddof=0):
+        """
+        Equivalent to `cp.var(self)`.
+        """
+        from cvxpy import var
+        return var(self, ddof=ddof)
+
