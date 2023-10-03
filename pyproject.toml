@@ -19,8 +19,6 @@ testpaths = [
 
 [build-system]
 requires = [
-    "numpy>=1.15,<1.16; python_version=='3.7' and platform_machine!='aarch64'",
-    "numpy>=1.19.2,<1.20; python_version=='3.7' and platform_machine=='aarch64'",
     "numpy>=1.17,<1.18; python_version=='3.8' and platform_machine!='aarch64'",
     "numpy>=1.19.2,<1.20; python_version=='3.8' and platform_machine=='aarch64'",
     "numpy>=1.19,<1.20; python_version=='3.9' and (platform_machine not in 'arm64|aarch64' or platform_system!='Darwin')",
