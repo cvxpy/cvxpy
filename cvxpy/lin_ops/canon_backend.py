@@ -220,11 +220,17 @@ class PythonCanonBackend(CanonBackend):
             return res
 
     def get_constant_data(self, lin_op: LinOp, view: TensorView, column: bool) \
-            -> tuple[sp.csr_matrix, bool]:
+            -> tuple[np.ndarray | sp.spmatrix, bool]:
         """
         Extract the constant data from a LinOp node. In most cases, lin_op will be of
         type "*_const" or "param", but can handle arbitrary types.
         """
+        # Fast path for constant data to prevent reshape into column vector.
+        constants = {"scalar_const", "dense_const", "sparse_const"}
+        if not column and lin_op.type in constants and len(lin_op.shape) == 2:
+            constant_data = self.get_constant_data_from_const(lin_op)
+            return constant_data, True
+
         constant_view = self.process_constraint(lin_op, view)
         assert constant_view.variable_ids == {Constant.ID.value}
         constant_data = constant_view.tensor[Constant.ID.value]
@@ -238,6 +244,14 @@ class PythonCanonBackend(CanonBackend):
         data_to_return = constant_data[Constant.ID.value] if constant_view.is_parameter_free \
             else constant_data
         return data_to_return, constant_view.is_parameter_free
+
+    @staticmethod
+    @abstractmethod
+    def get_constant_data_from_const(lin_op: LinOp) -> np.ndarray | sp.spmatrix:
+        """
+        Extract the constant data from a LinOp node of type "*_const".
+        """
+        pass  # noqa
 
     @staticmethod
     @abstractmethod
@@ -616,6 +630,15 @@ class RustCanonBackend(CanonBackend):
 
 class NumPyCanonBackend(PythonCanonBackend):
     @staticmethod
+    def get_constant_data_from_const(lin_op: LinOp) -> np.ndarray:
+        """
+        Extract the constant data from a LinOp node of type "*_const".
+        """
+        constant = NumPyCanonBackend._to_dense(lin_op.data)
+        assert constant.shape == lin_op.shape
+        return constant
+
+    @staticmethod
     def reshape_constant_data(constant_data: dict[int, np.ndarray],
                               lin_op_shape: tuple[int, int]) -> dict[int, np.ndarray]:
         """
@@ -960,6 +983,14 @@ class NumPyCanonBackend(PythonCanonBackend):
 
 
 class SciPyCanonBackend(PythonCanonBackend):
+    @staticmethod
+    def get_constant_data_from_const(lin_op: LinOp) -> sp.csr_matrix:
+        """
+        Extract the constant data from a LinOp node of type "*_const".
+        """
+        constant = sp.csr_matrix(lin_op.data)
+        assert constant.shape == lin_op.shape
+        return constant
 
     @staticmethod
     def reshape_constant_data(constant_data: dict[int, sp.csc_matrix],
