@@ -1153,7 +1153,7 @@ class SciPyCanonBackend(PythonCanonBackend):
         """
         def func(x, p):
             if p == 1:
-                return sp.csc_matrix(x.sum(axis=0))
+                return sp.csr_matrix(x.sum(axis=0))
             else:
                 m = x.shape[0] // p
                 return (sp.kron(sp.eye(p, format="csc"), np.ones(m)) @ x).tocsc()
@@ -1354,7 +1354,7 @@ class SciPyCanonBackend(PythonCanonBackend):
 
         def func(x, p) -> sp.csc_matrix:
             if p == 1:
-                return (lhs @ x).tocsc()
+                return (lhs @ x).tocsr()
             else:
                 return (sp.kron(sp.eye(p, format="csc"), lhs) @ x).tocsc()
 
@@ -1387,7 +1387,7 @@ class SciPyCanonBackend(PythonCanonBackend):
         col_idx = (np.tile(lhs.col, cols) + np.repeat(np.arange(cols), nonzeros)).astype(int)
         data = np.tile(lhs.data, cols)
 
-        lhs = sp.csc_matrix((data, (row_idx, col_idx)), shape=(rows, cols))
+        lhs = sp.csr_matrix((data, (row_idx, col_idx)), shape=(rows, cols))
 
         def func(x, p):
             assert p == 1, \
@@ -1464,16 +1464,16 @@ class SciPyCanonBackend(PythonCanonBackend):
         return {variable_id: {Constant.ID.value: sp.eye(n, format="csc")}}
 
     def get_data_tensor(self, data: np.ndarray | sp.spmatrix) -> \
-            dict[int, dict[int, sp.csc_matrix]]:
+            dict[int, dict[int, sp.csr_matrix]]:
         """
         Returns tensor of constant node as a column vector.
         This function reshapes the data and converts it to csc format.
         """
         if isinstance(data, np.ndarray):
             # Slightly faster compared to reshaping after casting
-            tensor = sp.csc_matrix(data.reshape((-1, 1), order="F"))
+            tensor = sp.csr_matrix(data.reshape((-1, 1), order="F"))
         else:
-            tensor = sp.coo_matrix(data).reshape((-1, 1), order="F").tocsc()
+            tensor = sp.coo_matrix(data).reshape((-1, 1), order="F").tocsr()
         return {Constant.ID.value: {Constant.ID.value: tensor}}
 
     def get_param_tensor(self, shape: tuple[int, ...], parameter_id: int) -> \
