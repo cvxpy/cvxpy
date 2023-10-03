@@ -214,6 +214,8 @@ class TestKKT_PCPs(BaseTest):
     def test_pcp_4(self, places: int=3):
         sth = self.non_vec_pow_nd()
         sth.solve(solver='SCS', eps=1e-6)
+        sth.check_primal_feasibility(places)
+        sth.check_complementarity(places)
         sth.check_dual_domains(places)
         sth.check_stationary_lagrangian(places)
         return sth
@@ -221,6 +223,8 @@ class TestKKT_PCPs(BaseTest):
     def test_pcp_5(self, places: int=3):
         sth = self.vec_pow_nd()
         sth.solve(solver='SCS', eps=1e-6)
+        sth.check_primal_feasibility(places)
+        sth.check_complementarity(places)
         sth.check_dual_domains(places)
         sth.check_stationary_lagrangian(places)
         return sth
