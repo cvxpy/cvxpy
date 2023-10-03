@@ -22,6 +22,7 @@ import scipy
 import scipy.sparse as sp
 import scipy.stats
 from numpy import linalg as LA
+import torch
 
 import cvxpy as cp
 import cvxpy.settings as s
@@ -1298,7 +1299,6 @@ class TestAtoms(BaseTest):
         # allow 2D inputs once row-major flattening is the default
         assert np.allclose(cp.vec(np.array([[1, 2], [3, 4]])).value, np.array([1, 3, 2, 4]))
 
-
     def test_conj(self) -> None:
         """Test conj.
         """
@@ -1553,6 +1553,39 @@ class TestAtoms(BaseTest):
         # where X of the naive result is I.
         self.assertTrue(prob.value < naiveRes)
 
+    def test_gen_torch_exp(self):
+        #Tests the functionality of gen_torch_exp
+        n = 3
+        x = cp.Variable(n)
+        w = cp.Parameter(n)
+        w.value=np.ones(n)
+        Q = np.array([[2,2,1],[1,-1,2],[-1,-1,1]]) #3x3
+        a = 3*np.ones(n)
+        t1 = np.random.randn(n)
+        t2 = np.random.randn(n)
+
+        exp1 = x+w+a+x+w
+        exp2 = x+w+a+x@w+x
+        exp3 = cp.norm(Q@x+w+a)
+        exp4 = x-w
+        exp5 = w-x
+
+        torch_exp1 = exp1.gen_torch_exp()
+        torch_exp2 = exp2.gen_torch_exp()
+        torch_exp3 = exp3.gen_torch_exp()
+        torch_exp4 = exp4.gen_torch_exp()
+        torch_exp5 = exp5.gen_torch_exp()
+
+        test1 = torch_exp1(5*torch.ones(n), torch.tensor([1,2,3]))
+        test2 = torch_exp2(1*torch.ones(n), torch.tensor([1,2,3]))
+        test3 = torch_exp3(2*torch.ones(n), torch.tensor([2,1,2]))
+        test4 = torch_exp4(t1, t2)
+        test5 = torch_exp5(t1, t2)
+
+        self.assertTrue(all(test1==torch.tensor([15., 17., 19.])))
+        self.assertTrue(all(test2==torch.tensor([12, 13, 14])))
+        self.assertTrue(np.isclose(test3, 17.2626))
+        self.assertTrue(all(np.isclose(test4, test5))) #Variables and parameters are treated similarly
 
 class TestDotsort(BaseTest):
     """ Unit tests for the dotsort atom. """
@@ -1791,3 +1824,4 @@ class TestDotsort(BaseTest):
         with self.assertRaises(Exception) as cm:
             cp.Problem(cp.Minimize(cp.dotsort(self.x, p_squared))).solve(enforce_dpp=True)
         assert "You are solving a parameterized problem that is not DPP" in str(cm.exception)
+
