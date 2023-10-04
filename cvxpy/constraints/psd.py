@@ -91,10 +91,8 @@ class PSD(Cone):
             return self.dual_variables[0] >> 0
         else:
             # some assertions for verifying `args`
-            def f(x):
-                return x.shape
-            args_shapes = list(map(f, args))
-            instance_args_shapes = list(map(f, self.args))
+            args_shapes = [arg.shape for arg in args]
+            instance_args_shapes = [arg.shape for arg in self.args]
             assert len(args) == len(self.args)
             assert args_shapes == instance_args_shapes
             return args[0] >> 0
