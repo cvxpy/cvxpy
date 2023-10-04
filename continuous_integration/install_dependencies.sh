@@ -47,7 +47,7 @@ else
 fi
 
 # cylp has no wheels for Windows
-if [ "$RUNNER_OS" != "Windows" ]]; then
+if [[ "$RUNNER_OS" != "Windows" ]]; then
   python -m pip install cylp
 fi
 
@@ -57,7 +57,7 @@ if [[ "$PYTHON_VERSION" == "3.9" ]] || [[ "$RUNNER_OS" == "Windows" ]]; then
 fi
 
 # Only install Mosek if license is available (secret is not copied to forks)
-if [[ -n "$MOSEK_CI_BASE64" ]] then
+if [[ -n "$MOSEK_CI_BASE64" ]]; then
     python -m pip install mosek
 fi
 
