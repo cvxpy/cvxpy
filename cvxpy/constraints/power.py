@@ -147,10 +147,8 @@ class PowCone3D(Cone):
                       self.dual_variables[2], self.alpha)
         else:
             # some assertions for verifying `args`
-            def f(x):
-                return x.shape
-            args_shapes = list(map(f, args))
-            instance_args_shapes = list(map(f, self.args))
+            args_shapes = [arg.shape for arg in args]
+            instance_args_shapes = [arg.shape for arg in self.args]
             assert len(args) == len(self.args)
             assert args_shapes == instance_args_shapes
             return PowCone3D(args[0]/self.alpha, args[1]/(1-self.alpha),
@@ -294,10 +292,8 @@ class PowConeND(Cone):
             return PowConeND(scaled_duals, self.dual_variables[1], self.alpha, axis=self.axis)
         else:
             # some assertions for verifying `args`
-            def f(x):
-                return x.shape
-            args_shapes = list(map(f, args))
-            instance_args_shapes = list(map(f, self.args))
+            args_shapes = [arg.shape for arg in args]
+            instance_args_shapes = [arg.shape for arg in self.args]
             assert len(args) == len(self.args)
             assert args_shapes == instance_args_shapes
             assert args[0].value.shape == self.alpha.value.shape
