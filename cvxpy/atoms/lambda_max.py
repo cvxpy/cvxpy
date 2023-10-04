@@ -21,7 +21,6 @@ from scipy import linalg as LA
 
 from cvxpy.atoms.atom import Atom
 from cvxpy.constraints.constraint import Constraint
-from cvxpy.utilities.shape import cvxpy_shape
 
 
 class lambda_max(Atom):
@@ -69,7 +68,7 @@ class lambda_max(Atom):
             raise ValueError("The argument '%s' to lambda_max must resolve to a square matrix."
                              % self.args[0].name())
 
-    def shape_from_args(self) -> cvxpy_shape:
+    def shape_from_args(self) -> Tuple[int, ...]:
         """Returns the (row, col) shape of the expression.
         """
         return tuple()

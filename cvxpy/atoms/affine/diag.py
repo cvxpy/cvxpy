@@ -22,7 +22,6 @@ import cvxpy.lin_ops.lin_utils as lu
 from cvxpy.atoms.affine.affine_atom import AffAtom
 from cvxpy.atoms.affine.vec import vec
 from cvxpy.constraints.constraint import Constraint
-from cvxpy.utilities.shape import cvxpy_shape
 
 
 def diag(expr) -> Union["diag_mat", "diag_vec"]:
@@ -96,7 +95,7 @@ class diag_vec(AffAtom):
         return self.is_nonpos()
 
     def graph_implementation(
-        self, arg_objs, shape: cvxpy_shape, data=None
+        self, arg_objs, shape: Tuple[int, ...], data=None
     ) -> Tuple[lo.LinOp, List[Constraint]]:
         """Convolve two vectors.
 
@@ -153,7 +152,7 @@ class diag_mat(AffAtom):
         return self.args[0].is_nonneg() or self.args[0].is_psd()
 
     def graph_implementation(
-        self, arg_objs, shape: cvxpy_shape, data=None
+        self, arg_objs, shape: Tuple[int, ...], data=None
     ) -> Tuple[lo.LinOp, List[Constraint]]:
         """Extracts the diagonal of a matrix.
 

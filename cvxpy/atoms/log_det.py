@@ -23,7 +23,6 @@ from numpy import linalg as LA
 import cvxpy.settings as s
 from cvxpy.atoms.atom import Atom
 from cvxpy.constraints.constraint import Constraint
-from cvxpy.utilities.shape import cvxpy_shape
 
 
 class log_det(Atom):
@@ -54,7 +53,7 @@ class log_det(Atom):
         if len(X.shape) == 1 or X.shape[0] != X.shape[1]:
             raise TypeError("The argument to log_det must be a square matrix.")
 
-    def shape_from_args(self) -> cvxpy_shape:
+    def shape_from_args(self) -> Tuple[int, ...]:
         """Returns the (row, col) shape of the expression.
         """
         return tuple()

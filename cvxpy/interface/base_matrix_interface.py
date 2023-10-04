@@ -19,7 +19,6 @@ from typing import Tuple
 import numpy as np
 
 import cvxpy.interface.matrix_utilities
-from cvxpy.utilities.shape import cvxpy_shape
 
 
 class BaseMatrixInterface:
@@ -72,16 +71,16 @@ class BaseMatrixInterface:
         raise NotImplementedError()
 
     # Return a matrix with all 0's.
-    def zeros(self, shape: cvxpy_shape):
+    def zeros(self, shape: Tuple[int, ...]):
         return self.scalar_matrix(0, shape)
 
     # Return a matrix with all 1's.
-    def ones(self, shape: cvxpy_shape):
+    def ones(self, shape: Tuple[int, ...]):
         return self.scalar_matrix(1, shape)
 
     # A matrix with all entries equal to the given scalar value.
     @abc.abstractmethod
-    def scalar_matrix(self, value, shape: cvxpy_shape):
+    def scalar_matrix(self, value, shape: Tuple[int, ...]):
         raise NotImplementedError()
 
     # Return the value at the given index in the matrix.
@@ -95,7 +94,7 @@ class BaseMatrixInterface:
 
     # Coerce the matrix into the given shape.
     @abc.abstractmethod
-    def reshape(self, matrix, shape: cvxpy_shape):
+    def reshape(self, matrix, shape: Tuple[int, ...]):
         raise NotImplementedError()
 
     def block_add(self, matrix, block, vert_offset, horiz_offset, rows, cols,

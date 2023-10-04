@@ -19,7 +19,6 @@ import numpy as np
 
 import cvxpy.settings as s
 from cvxpy.atoms.atom import Atom
-from cvxpy.utilities.shape import cvxpy_shape
 
 
 class length(Atom):
@@ -38,7 +37,7 @@ class length(Atom):
         outside_tol = np.abs(values[0]) > s.ATOM_EVAL_TOL
         return np.max(np.nonzero(outside_tol)) + 1
 
-    def shape_from_args(self) -> cvxpy_shape:
+    def shape_from_args(self) -> Tuple[int, ...]:
         """Returns the (row, col) shape of the expression.
         """
         return tuple()

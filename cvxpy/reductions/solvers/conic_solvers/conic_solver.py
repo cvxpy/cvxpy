@@ -25,8 +25,6 @@ from cvxpy.reductions.dcp2cone.cone_matrix_stuffing import ParamConeProg
 from cvxpy.reductions.solution import Solution, failure_solution
 from cvxpy.reductions.solvers import utilities
 from cvxpy.reductions.solvers.solver import Solver
-from cvxpy.utilities.shape import cvxpy_shape
-
 
 # NOTE(akshayka): Small changes to this file can lead to drastic
 # performance regressions. If you are making a change to this file,
@@ -36,7 +34,7 @@ from cvxpy.utilities.shape import cvxpy_shape
 
 class LinearOperator:
     """A wrapper for linear operators."""
-    def __init__(self, linear_op, shape: cvxpy_shape) -> None:
+    def __init__(self, linear_op, shape: Tuple[int, ...]) -> None:
         if sp.issparse(linear_op):
             self._matmul = lambda X: linear_op @ X
         else:
@@ -118,7 +116,7 @@ class ConicSolver(Solver):
                         problem.constraints))
 
     @staticmethod
-    def get_spacing_matrix(shape: cvxpy_shape, spacing, streak, num_blocks, offset):
+    def get_spacing_matrix(shape: Tuple[int, ...], spacing, streak, num_blocks, offset):
         """Returns a sparse matrix that spaces out an expression.
 
         Parameters

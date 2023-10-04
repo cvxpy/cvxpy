@@ -21,7 +21,6 @@ import numpy as np
 import cvxpy.utilities.performance_utils as perf
 from cvxpy.constraints.constraint import Constraint
 from cvxpy.expressions.expression import Expression
-from cvxpy.utilities.shape import cvxpy_shape
 
 
 class indicator(Expression):
@@ -90,7 +89,7 @@ class indicator(Expression):
         return [self.err_tol]
 
     @property
-    def shape(self) -> cvxpy_shape:
+    def shape(self) -> Tuple[int, ...]:
         """Returns the (row, col) dimensions of the expression.
         """
         return ()

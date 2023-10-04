@@ -24,7 +24,6 @@ from numpy import linalg as LA
 from cvxpy.atoms.atom import Atom
 from cvxpy.atoms.quad_form import QuadForm
 from cvxpy.constraints.constraint import Constraint
-from cvxpy.utilities.shape import cvxpy_shape
 
 
 class MatrixFrac(Atom):
@@ -99,7 +98,7 @@ class MatrixFrac(Atom):
                 "The arguments to matrix_frac have incompatible dimensions."
             )
 
-    def shape_from_args(self) -> cvxpy_shape:
+    def shape_from_args(self) -> Tuple[int, ...]:
         """Returns the (row, col) shape of the expression.
         """
         return tuple()

@@ -24,7 +24,6 @@ import cvxpy.interface.matrix_utilities as intf
 from cvxpy.constraints.constraint import Constraint
 from cvxpy.expressions.expression import Expression
 from cvxpy.expressions.variable import Variable
-from cvxpy.utilities.shape import cvxpy_shape
 
 PY35 = sys.version_info >= (3, 5)
 
@@ -32,7 +31,7 @@ PY35 = sys.version_info >= (3, 5)
 class TestMatrices(unittest.TestCase):
     """ Unit tests for testing different forms of matrices as constants. """
 
-    def assertExpression(self, expr, shape: cvxpy_shape) -> None:
+    def assertExpression(self, expr, shape: Tuple[int, ...]) -> None:
         """Asserts that expr is an Expression with dimension shape.
         """
         assert isinstance(expr, Expression) or isinstance(expr, Constraint)

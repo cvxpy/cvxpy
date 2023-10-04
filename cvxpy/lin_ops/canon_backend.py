@@ -215,7 +215,7 @@ class PythonCanonBackend(CanonBackend):
 
     @staticmethod
     @abstractmethod
-    def reshape_constant_data(constant_data: Any, new_shape: cvxpy_shape) -> Any:
+    def reshape_constant_data(constant_data: Any, new_shape: tuple[int, ...]) -> Any:
         """
         Reshape constant data from column format to the required shape for operations that
         do not require column format
@@ -493,7 +493,7 @@ class PythonCanonBackend(CanonBackend):
         pass  # noqa
 
     @abstractmethod
-    def get_variable_tensor(self, shape: cvxpy_shape, variable_id: int) -> Any:
+    def get_variable_tensor(self, shape: tuple[int, ...], variable_id: int) -> Any:
         """
         Returns tensor of a variable node, i.e., eye(n) across axes 0 and 1, where n i the number of
         entries of the variable.
@@ -508,7 +508,7 @@ class PythonCanonBackend(CanonBackend):
         pass  # noqa
 
     @abstractmethod
-    def get_param_tensor(self, shape: cvxpy_shape, parameter_id: int) -> Any:
+    def get_param_tensor(self, shape: tuple[int, ...], parameter_id: int) -> Any:
         """
         Returns tensor of a parameter node, i.e., eye(n) across axes 0 and 2, where n i the number
         of entries of the parameter.
@@ -533,7 +533,7 @@ class RustCanonBackend(CanonBackend):
 class ScipyCanonBackend(PythonCanonBackend):
 
     @staticmethod
-    def reshape_constant_data(constant_data: dict[int, sp.csr_matrix], new_shape: cvxpy_shape) \
+    def reshape_constant_data(constant_data: dict[int, sp.csr_matrix], new_shape: tuple[int, ...]) \
             -> dict[int, sp.csr_matrix]:
         return {k: [v_i.reshape(new_shape[:-1], order="F").tocsr()
                     for v_i in v] for k, v in constant_data.items()}
@@ -787,7 +787,7 @@ class ScipyCanonBackend(PythonCanonBackend):
 
         return view.accumulate_over_variables(func, is_param_free_function=is_param_free_rhs)
 
-    def get_variable_tensor(self, shape: cvxpy_shape, variable_id: int) -> \
+    def get_variable_tensor(self, shape: tuple[int, ...], variable_id: int) -> \
             dict[int, dict[int, list[sp.csr_matrix]]]:
         assert variable_id != Constant.ID
         n = int(np.prod(shape))
@@ -802,7 +802,7 @@ class ScipyCanonBackend(PythonCanonBackend):
             tensor = sp.coo_matrix(data).reshape((-1, 1), order="F").tocsr()
         return {Constant.ID.value: {Constant.ID.value: [tensor]}}
 
-    def get_param_tensor(self, shape: cvxpy_shape, parameter_id: int) \
+    def get_param_tensor(self, shape: tuple[int, ...], parameter_id: int) \
             -> dict[int, dict[int, list[sp.csr_matrix]]]:
         assert parameter_id != Constant.ID
         shape = int(np.prod(shape))

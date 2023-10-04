@@ -44,7 +44,7 @@ class Parameter(Leaf):
     PARAM_COUNT = 0
 
     def __init__(
-        self, shape: int | cvxpy_shape = (), name: str | None = None, value=None,
+        self, shape: int | tuple[int, ...] = (), name: str | None = None, value=None,
         id=None, **kwargs
     ) -> None:
         if id is None:

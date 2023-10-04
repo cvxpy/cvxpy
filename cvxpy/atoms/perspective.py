@@ -123,7 +123,7 @@ class perspective(Atom):
         """
         return False
 
-    def shape_from_args(self) -> cvxpy_shape:
+    def shape_from_args(self) -> Tuple[int, ...]:
         """Returns the (row, col) shape of the expression.
         """
         return self.f.shape

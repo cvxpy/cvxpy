@@ -21,7 +21,6 @@ import scipy.sparse as sp
 from numpy import linalg as LA
 
 from cvxpy.atoms.atom import Atom
-from cvxpy.utilities.shape import cvxpy_shape
 
 
 class sigma_max(Atom):
@@ -55,7 +54,7 @@ class sigma_max(Atom):
         D = U.dot(np.diag(ds)).dot(V)
         return [sp.csc_matrix(D.ravel(order='F')).T]
 
-    def shape_from_args(self) -> cvxpy_shape:
+    def shape_from_args(self) -> Tuple[int, ...]:
         """Returns the (row, col) shape of the expression.
         """
         return tuple()

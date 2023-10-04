@@ -18,7 +18,7 @@ class linOpHelper:
     Helper class that allows to access properties of linOps without
     needing to create a full linOps instance
     """
-    shape: None | cvxpy_shape = None
+    shape: None | tuple[int, ...] = None
     type: None | str = None
     data: None | int | np.ndarray | list[slice] = None
     args: None | list[linOpHelper] = None

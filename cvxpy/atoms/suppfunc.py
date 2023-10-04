@@ -6,7 +6,6 @@ import scipy.sparse as sp
 import cvxpy.lin_ops.lin_utils as lu
 from cvxpy.atoms.atom import Atom
 from cvxpy.expressions.variable import Variable
-from cvxpy.utilities.shape import cvxpy_shape
 
 
 class SuppFuncAtom(Atom):
@@ -25,7 +24,7 @@ class SuppFuncAtom(Atom):
         self.args = [Atom.cast_to_const(y)]
         self._parent = parent
         self._eta = None  # store for debugging purposes
-        self._shape: cvxpy_shape = tuple()
+        self._shape: Tuple[int, ...] = tuple()
         self.validate_arguments()
 
     def validate_arguments(self) -> None:
@@ -44,7 +43,7 @@ class SuppFuncAtom(Atom):
     def constants(self):
         return []
 
-    def shape_from_args(self) -> cvxpy_shape:
+    def shape_from_args(self) -> Tuple[int, ...]:
         return self._shape
 
     def sign_from_args(self) -> Tuple[bool, bool]:

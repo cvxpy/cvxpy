@@ -25,7 +25,6 @@ import cvxpy.utilities.eigvals as eig_util
 from cvxpy.expressions.leaf import Leaf
 from cvxpy.settings import EIGVAL_TOL
 from cvxpy.utilities import performance_utils as perf
-from cvxpy.utilities.shape import cvxpy_shape
 
 
 class Constant(Leaf):
@@ -101,7 +100,7 @@ class Constant(Leaf):
         return {}
 
     @property
-    def shape(self) -> cvxpy_shape:
+    def shape(self) -> Tuple[int, ...]:
         """Returns the (row, col) dimensions of the expression.
         """
         return self._shape

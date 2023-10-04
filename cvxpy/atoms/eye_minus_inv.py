@@ -19,7 +19,6 @@ from typing import Tuple
 import numpy as np
 
 from cvxpy.atoms.atom import Atom
-from cvxpy.utilities.shape import cvxpy_shape
 
 
 def resolvent(X, s: float):
@@ -79,7 +78,7 @@ class eye_minus_inv(Atom):
     def name(self) -> str:
         return "%s(%s)" % (self.__class__.__name__, self.args[0])
 
-    def shape_from_args(self) -> cvxpy_shape:
+    def shape_from_args(self) -> Tuple[int, ...]:
         """Returns the (row, col) shape of the expression.
         """
         return self.args[0].shape

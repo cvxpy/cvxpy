@@ -24,7 +24,6 @@ from cvxpy.atoms.affine.affine_atom import AffAtom
 from cvxpy.atoms.affine.reshape import reshape
 from cvxpy.constraints.constraint import Constraint
 from cvxpy.expressions.expression import Expression
-from cvxpy.utilities.shape import cvxpy_shape
 
 
 class upper_tri(AffAtom):
@@ -89,7 +88,7 @@ class upper_tri(AffAtom):
         return True
 
     def graph_implementation(
-        self, arg_objs, shape: cvxpy_shape, data=None
+        self, arg_objs, shape: Tuple[int, ...], data=None
     ) -> Tuple[lo.LinOp, List[Constraint]]:
         """Vectorized strictly upper triagonal entries.
 

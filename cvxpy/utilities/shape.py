@@ -15,15 +15,14 @@ limitations under the License.
 """
 from functools import reduce
 from operator import mul
-from typing import List, NewType, Tuple, Union
+from typing import List, Tuple
 
-cvxpy_shape = NewType("cvxpy_shape", Tuple[int, ...])
 
-def squeezed(shape: cvxpy_shape) -> cvxpy_shape:
+def squeezed(shape: Tuple[int, ...]) -> Tuple[int, ...]:
     return tuple(dim for dim in shape if dim != 1)
 
 
-def sum_shapes(shapes: List[cvxpy_shape]) -> cvxpy_shape:
+def sum_shapes(shapes: List[Tuple[int, ...]]) -> Tuple[int, ...]:
     """Give the shape resulting from summing a list of shapes.
 
     Summation semantics are exactly the same as NumPy's, including
@@ -69,8 +68,8 @@ def sum_shapes(shapes: List[cvxpy_shape]) -> cvxpy_shape:
 
 
 def mul_shapes_promote(
-    lh_shape: cvxpy_shape, rh_shape: cvxpy_shape
-) -> Tuple[cvxpy_shape, cvxpy_shape, cvxpy_shape]:
+    lh_shape: Tuple[int, ...], rh_shape: Tuple[int, ...]
+) -> Tuple[Tuple[int, ...], Tuple[int, ...], Tuple[int, ...]]:
     """Promotes shapes as necessary and returns promoted shape of product.
 
     If lh_shape is of length one, prepend a one to it.
@@ -117,7 +116,7 @@ def mul_shapes_promote(
             tuple(list(lh_shape[:-2]) + [lh_mat_shape[0]] + [rh_mat_shape[1]]))
 
 
-def mul_shapes(lh_shape: cvxpy_shape, rh_shape: cvxpy_shape) -> cvxpy_shape:
+def mul_shapes(lh_shape: Tuple[int, ...], rh_shape: Tuple[int, ...]) -> Tuple[int, ...]:
     """Give the shape resulting from multiplying two shapes.
 
     Adheres the semantics of np.matmul and additionally permits multiplication
@@ -167,5 +166,3 @@ def size_from_shape(shape) -> int:
         The size of an object corresponding to shape.
     """
     return reduce(mul, shape, 1)
-
-

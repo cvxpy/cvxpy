@@ -21,7 +21,6 @@ import numpy as np
 import cvxpy.utilities as u
 from cvxpy.atoms.atom import Atom
 from cvxpy.expressions import cvxtypes
-from cvxpy.utilities.shape import cvxpy_shape
 
 
 class gmatmul(Atom):
@@ -82,7 +81,7 @@ class gmatmul(Atom):
                 "gmatmul(A, X) requires that X be positive."
             )
 
-    def shape_from_args(self) -> cvxpy_shape:
+    def shape_from_args(self) -> Tuple[int, ...]:
         """Returns the (row, col) shape of the expression.
         """
         return u.shape.mul_shapes(self.A.shape, self.args[0].shape)

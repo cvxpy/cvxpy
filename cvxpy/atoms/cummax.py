@@ -19,7 +19,6 @@ import numpy as np
 
 from cvxpy.atoms.atom import Atom
 from cvxpy.atoms.axis_atom import AxisAtom
-from cvxpy.utilities.shape import cvxpy_shape
 
 
 class cummax(AxisAtom):
@@ -35,7 +34,7 @@ class cummax(AxisAtom):
         """
         return np.maximum.accumulate(values[0], axis=self.axis)
 
-    def shape_from_args(self) -> cvxpy_shape:
+    def shape_from_args(self) -> Tuple[int, ...]:
         """The same as the input.
         """
         return self.args[0].shape

@@ -23,7 +23,6 @@ import cvxpy.utilities as u
 from cvxpy.atoms.affine.affine_atom import AffAtom
 from cvxpy.constraints.constraint import Constraint
 from cvxpy.expressions.constants.parameter import is_param_free
-from cvxpy.utilities.shape import cvxpy_shape
 
 
 class kron(AffAtom):
@@ -104,7 +103,7 @@ class kron(AffAtom):
         return case1 or case2
 
     def graph_implementation(
-        self, arg_objs, shape: cvxpy_shape, data=None
+        self, arg_objs, shape: Tuple[int, ...], data=None
     ) -> Tuple[lo.LinOp, List[Constraint]]:
         """Kronecker product of two matrices.
 

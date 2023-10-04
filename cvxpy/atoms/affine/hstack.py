@@ -21,7 +21,6 @@ import cvxpy.lin_ops.lin_op as lo
 import cvxpy.lin_ops.lin_utils as lu
 from cvxpy.atoms.affine.affine_atom import AffAtom
 from cvxpy.constraints.constraint import Constraint
-from cvxpy.utilities.shape import cvxpy_shape
 
 
 def hstack(arg_list) -> "Hstack":
@@ -52,7 +51,7 @@ class Hstack(AffAtom):
         return np.hstack(values)
 
     # The shape is the common width and the sum of the heights.
-    def shape_from_args(self) -> cvxpy_shape:
+    def shape_from_args(self) -> Tuple[int, ...]:
         if self.args[0].ndim == 1:
             return (sum(arg.size for arg in self.args),)
         else:
@@ -73,7 +72,7 @@ class Hstack(AffAtom):
                         raise error
 
     def graph_implementation(
-        self, arg_objs, shape: cvxpy_shape, data=None
+        self, arg_objs, shape: Tuple[int, ...], data=None
     ) -> Tuple[lo.LinOp, List[Constraint]]:
         """Stack the expressions horizontally.
 

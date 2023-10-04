@@ -21,7 +21,6 @@ from scipy.special import entr
 
 from cvxpy.atoms.atom import Atom
 from cvxpy.constraints.constraint import Constraint
-from cvxpy.utilities.shape import cvxpy_shape
 
 
 class von_neumann_entr(Atom):
@@ -81,7 +80,7 @@ class von_neumann_entr(Atom):
         """
         return False
 
-    def shape_from_args(self) -> cvxpy_shape:
+    def shape_from_args(self) -> Tuple[int, ...]:
         """Returns the shape of the expression.
         """
         return tuple()

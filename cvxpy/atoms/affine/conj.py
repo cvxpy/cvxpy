@@ -21,7 +21,6 @@ import numpy as np
 import cvxpy.lin_ops.lin_op as lo
 from cvxpy.atoms.affine.affine_atom import AffAtom
 from cvxpy.constraints.constraint import Constraint
-from cvxpy.utilities.shape import cvxpy_shape
 
 
 class conj(AffAtom):
@@ -35,7 +34,7 @@ class conj(AffAtom):
         """
         return np.conj(values[0])
 
-    def shape_from_args(self) -> cvxpy_shape:
+    def shape_from_args(self) -> Tuple[int, ...]:
         """Returns the shape of the expression.
         """
         return self.args[0].shape
@@ -61,7 +60,7 @@ class conj(AffAtom):
         return self.args[0].is_hermitian()
 
     def graph_implementation(
-        self, arg_objs, shape: cvxpy_shape, data=None
+        self, arg_objs, shape: Tuple[int, ...], data=None
     ) -> Tuple[lo.LinOp, List[Constraint]]:
         """Multiply the linear expressions.
 

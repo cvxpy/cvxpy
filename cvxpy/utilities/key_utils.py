@@ -23,12 +23,10 @@ from typing import Optional, Tuple
 
 import numpy as np
 
-from cvxpy.utilities.shape import cvxpy_shape
-
 
 # TODO(akshayka): This module needs to be updated in order to handle
 # NumPy 0/1D arrays.
-def validate_key(key, shape: cvxpy_shape):
+def validate_key(key, shape: Tuple[int, ...]):
     """Check if the key is a valid index.
 
     Args:
@@ -171,7 +169,7 @@ def is_single_index(slc) -> bool:
         slc.start + step >= slc.stop
 
 
-def shape(key, orig_key, shape: cvxpy_shape) -> cvxpy_shape:
+def shape(key, orig_key, shape: Tuple[int, ...]) -> Tuple[int, ...]:
     """Finds the dimensions of a sliced expression.
 
     Args:
