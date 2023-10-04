@@ -13,7 +13,6 @@ from cvxpy.lin_ops.canon_backend import (
     NumPyCanonBackend,
     PythonCanonBackend,
     SciPyCanonBackend,
-    StackedSlicesBackend,
     TensorRepresentation,
 )
 
@@ -44,8 +43,6 @@ class TestBackendInstance:
 
     def test_get_backend(self):
         args = ({1: 0, 2: 2}, {-1: 1, 3: 1}, {3: 0, -1: 1}, 2, 4)
-        backend = CanonBackend.get_backend(s.STACKED_SLICES_BACKEND, *args)
-        assert isinstance(backend, StackedSlicesBackend)
 
         backend = CanonBackend.get_backend(s.SCIPY_CANON_BACKEND, *args)
         assert isinstance(backend, SciPyCanonBackend)
@@ -57,7 +54,7 @@ class TestBackendInstance:
             CanonBackend.get_backend('notabackend')
 
 
-backends = [s.STACKED_SLICES_BACKEND, s.SCIPY_CANON_BACKEND, s.NUMPY_CANON_BACKEND]
+backends = [s.SCIPY_CANON_BACKEND, s.NUMPY_CANON_BACKEND]
 
 
 class TestBackends:
@@ -1874,66 +1871,6 @@ class TestParametrizedBackends:
         assert out_view.get_tensor_representation(0) == param_var_view.get_tensor_representation(0)
 
 
-class TestSciPyBackend:
-    @staticmethod
-    @pytest.fixture()
-    def scipy_backend():
-        kwargs = {
-            "id_to_col": {1: 0},
-            "param_to_size": {-1: 1, 2: 2},
-            "param_to_col": {2: 0, -1: 2},
-            "param_size_plus_one": 3,
-            "var_length": 2
-        }
-        backend = CanonBackend.get_backend(s.SCIPY_CANON_BACKEND, **kwargs)
-        assert isinstance(backend, SciPyCanonBackend)
-        return backend
-
-    def test_get_variable_tensor(self, scipy_backend):
-        outer = scipy_backend.get_variable_tensor((2,), 1)
-        assert outer.keys() == {1}, "Should only be in variable with ID 1"
-        inner = outer[1]
-        assert inner.keys() == {-1}, "Should only be in parameter slice -1, i.e. non parametrized."
-        tensor = inner[-1]
-        assert isinstance(tensor, list), "Should be list of tensors"
-        assert len(tensor) == 1, "Should be a single slice"
-        assert (tensor[0] != sp.eye(2, format='csr')).nnz == 0, "Should be eye(2)"
-
-    @pytest.mark.parametrize('data', [np.array([[1, 2], [3, 4]]), sp.eye(2) * 4])
-    def test_get_data_tensor(self, scipy_backend, data):
-        outer = scipy_backend.get_data_tensor(data)
-        assert outer.keys() == {-1}, "Should only be constant variable ID."
-        inner = outer[-1]
-        assert inner.keys() == {-1}, "Should only be in parameter slice -1, i.e. non parametrized."
-        tensor = inner[-1]
-        assert isinstance(tensor, list), "Should be tensor as list"
-        assert len(tensor) == 1, "Should be a single slice"
-        expected = sp.csr_matrix(data.reshape((-1, 1), order="F"))
-        assert (tensor[0] != expected).nnz == 0
-
-    def test_get_param_tensor(self, scipy_backend):
-        shape = (2, 2)
-        size = np.prod(shape)
-        outer = scipy_backend.get_param_tensor(shape, 3)
-        assert outer.keys() == {-1}, "Should only be constant variable ID."
-        inner = outer[-1]
-        assert inner.keys() == {3}, "Should only be the parameter slice of parameter with id 3."
-        tensor = inner[3]
-        assert isinstance(tensor, list), "Should be tensor as list"
-        assert len(tensor) == size, "Should be a slice for each element of the parameter"
-        assert (sp.hstack(tensor) != sp.eye(size, format='csr')).nnz == 0, \
-            'Should be eye(4) along axes 1 and 2'
-
-    def test_tensor_view_add_dicts(self, scipy_backend):
-        view = scipy_backend.get_empty_view()
-        assert view.add_dicts({}, {}) == {}
-        assert view.add_dicts({"a": [1]}, {"a": [2]}) == {"a": [3]}
-        assert view.add_dicts({"a": [1]}, {"b": [2]}) == {"a": [1], "b": [2]}
-        assert view.add_dicts({"a": {"c": [1]}}, {"a": {"c": [1]}}) == {'a': {'c': [2]}}
-        with pytest.raises(ValueError, match="Values must either be dicts or <class 'list'>"):
-            view.add_dicts({"a": 1}, {"a": 2})
-
-
 class TestNumPyBackend:
     @staticmethod
     @pytest.fixture()
@@ -2000,10 +1937,10 @@ class TestNumPyBackend:
             view.add_dicts({"a": 1}, {"a": 2})
 
 
-class TestStackedBackend:
+class TestSciPyBackend:
     @staticmethod
     @pytest.fixture()
-    def stacked_backend():
+    def scipy_backend():
         kwargs = {
             "id_to_col": {1: 0},
             "param_to_size": {-1: 1, 2: 2},
@@ -2011,12 +1948,12 @@ class TestStackedBackend:
             "param_size_plus_one": 3,
             "var_length": 2
         }
-        backend = CanonBackend.get_backend(s.STACKED_SLICES_BACKEND, **kwargs)
-        assert isinstance(backend, StackedSlicesBackend)
+        backend = CanonBackend.get_backend(s.SCIPY_CANON_BACKEND, **kwargs)
+        assert isinstance(backend, SciPyCanonBackend)
         return backend
 
-    def test_get_variable_tensor(self, stacked_backend):
-        outer = stacked_backend.get_variable_tensor((2,), 1)
+    def test_get_variable_tensor(self, scipy_backend):
+        outer = scipy_backend.get_variable_tensor((2,), 1)
         assert outer.keys() == {1}, "Should only be in variable with ID 1"
         inner = outer[1]
         assert inner.keys() == {-1}, "Should only be in parameter slice -1, i.e. non parametrized."
@@ -2026,8 +1963,8 @@ class TestStackedBackend:
         assert np.all(tensor == np.eye(2)), "Should be eye(2)"
 
     @pytest.mark.parametrize('data', [np.array([[1, 2], [3, 4]]), sp.eye(2) * 4])
-    def test_get_data_tensor(self, stacked_backend, data):
-        outer = stacked_backend.get_data_tensor(data)
+    def test_get_data_tensor(self, scipy_backend, data):
+        outer = scipy_backend.get_data_tensor(data)
         assert outer.keys() == {-1}, "Should only be constant variable ID."
         inner = outer[-1]
         assert inner.keys() == {-1}, "Should only be in parameter slice -1, i.e. non parametrized."
@@ -2037,11 +1974,11 @@ class TestStackedBackend:
         expected = sp.csr_matrix(data.reshape((-1, 1), order="F"))
         assert (tensor != expected).nnz == 0
 
-    def test_get_param_tensor(self, stacked_backend):
+    def test_get_param_tensor(self, scipy_backend):
         shape = (2, 2)
         size = np.prod(shape)
-        stacked_backend.param_to_size = {-1: 1, 3: 4}
-        outer = stacked_backend.get_param_tensor(shape, 3)
+        scipy_backend.param_to_size = {-1: 1, 3: 4}
+        outer = scipy_backend.get_param_tensor(shape, 3)
         assert outer.keys() == {-1}, "Should only be constant variable ID."
         inner = outer[-1]
         assert inner.keys() == {3}, "Should only be the parameter slice of parameter with id 3."
@@ -2051,8 +1988,8 @@ class TestStackedBackend:
         assert (tensor.reshape((size, size)) != sp.eye(size, format='csr')).nnz == 0, \
             'Should be eye(4) when reshaping'
 
-    def test_tensor_view_add_dicts(self, stacked_backend):
-        view = stacked_backend.get_empty_view()
+    def test_tensor_view_add_dicts(self, scipy_backend):
+        view = scipy_backend.get_empty_view()
 
         one = sp.eye(1)
         two = sp.eye(1) * 2
@@ -2069,45 +2006,45 @@ class TestStackedBackend:
 
     @staticmethod
     @pytest.mark.parametrize('shape', [(1, 1), (2, 2), (3, 3), (4, 4)])
-    def test_stacked_kron_r(shape, stacked_backend):
+    def test_stacked_kron_r(shape, scipy_backend):
         p = 2
         reps = 3
         param_id = 2
         matrices = [sp.random(*shape, random_state=i, density=0.5) for i in range(p)]
         stacked = sp.vstack(matrices)
-        repeated = stacked_backend._stacked_kron_r({param_id: stacked}, reps)
+        repeated = scipy_backend._stacked_kron_r({param_id: stacked}, reps)
         repeated = repeated[param_id]
         expected = sp.vstack([sp.kron(sp.eye(reps), m) for m in matrices])
         assert (expected != repeated).nnz == 0
 
     @staticmethod
     @pytest.mark.parametrize('shape', [(1, 1), (2, 2), (3, 3), (4, 4)])
-    def test_stacked_kron_l(shape, stacked_backend):
+    def test_stacked_kron_l(shape, scipy_backend):
         p = 2
         reps = 3
         param_id = 2
         matrices = [sp.random(*shape, random_state=i, density=0.5) for i in range(p)]
         stacked = sp.vstack(matrices)
-        repeated = stacked_backend._stacked_kron_l({param_id: stacked}, reps)
+        repeated = scipy_backend._stacked_kron_l({param_id: stacked}, reps)
         repeated = repeated[param_id]
         expected = sp.vstack([sp.kron(m, sp.eye(reps)) for m in matrices])
         assert (expected != repeated).nnz == 0
 
     @staticmethod
-    def test_reshape_single_constant_tensor(stacked_backend):
+    def test_reshape_single_constant_tensor(scipy_backend):
         a = sp.csc_matrix(np.tile(np.arange(6), 3).reshape((-1, 1)))
-        reshaped = stacked_backend._reshape_single_constant_tensor(a, (3, 2))
+        reshaped = scipy_backend._reshape_single_constant_tensor(a, (3, 2))
         expected = np.arange(6).reshape((3, 2), order='F')
         expected = sp.csc_matrix(np.tile(expected, (3, 1)))
         assert (reshaped != expected).nnz == 0
 
     @staticmethod
     @pytest.mark.parametrize('shape', [(1, 1), (2, 2), (3, 2), (2, 3)])
-    def test_transpose_stacked(shape, stacked_backend):
+    def test_transpose_stacked(shape, scipy_backend):
         p = 2
         param_id = 2
         matrices = [sp.random(*shape, random_state=i, density=0.5) for i in range(p)]
         stacked = sp.vstack(matrices)
-        transposed = stacked_backend._transpose_stacked(stacked, param_id)
+        transposed = scipy_backend._transpose_stacked(stacked, param_id)
         expected = sp.vstack([m.T for m in matrices])
         assert (expected != transposed).nnz == 0
