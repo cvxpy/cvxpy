@@ -1056,7 +1056,7 @@ class SciPyCanonBackend(PythonCanonBackend):
         if is_param_free_lhs:
             reps = view.rows // lhs.shape[-1]
             if reps > 1:
-                stacked_lhs = (sp.kron(sp.eye(reps, format="csc"), lhs))
+                stacked_lhs = (sp.kron(sp.eye(reps, format="csr"), lhs))
             else:
                 stacked_lhs = lhs
 
@@ -1209,7 +1209,7 @@ class SciPyCanonBackend(PythonCanonBackend):
             else:
                 new_rows = x_row * (rows + 1) - k
             new_rows = (new_rows + x_slice * total_rows).astype(int)
-            return sp.csr_matrix((x.data, (new_rows, x.col)), shape)
+            return sp.csc_matrix((x.data, (new_rows, x.col)), shape)
 
         view.apply_all(func)
         return view
@@ -1226,7 +1226,7 @@ class SciPyCanonBackend(PythonCanonBackend):
             slices = coo_repr.row // m
             new_rows = (coo_repr.row + (slices + 1) * offset)
             new_rows = new_rows + slices * (total_rows - m - offset).astype(int)
-            return sp.csr_matrix((coo_repr.data, (new_rows, coo_repr.col)),
+            return sp.csc_matrix((coo_repr.data, (new_rows, coo_repr.col)),
                                  shape=(int(total_rows * p), tensor.shape[1]))
 
         return stack_func
@@ -1251,7 +1251,7 @@ class SciPyCanonBackend(PythonCanonBackend):
                 lhs = lhs.T
             reps = view.rows // lhs.shape[0]
             if reps > 1:
-                stacked_lhs = sp.kron(lhs.T, sp.eye(reps, format="csc"))
+                stacked_lhs = sp.kron(lhs.T, sp.eye(reps, format="csr"))
             else:
                 stacked_lhs = lhs.T
 
@@ -1350,7 +1350,7 @@ class SciPyCanonBackend(PythonCanonBackend):
 
         data = np.ones(len(indices))
         idx = (np.zeros(len(indices)), indices.astype(int))
-        lhs = sp.csc_matrix((data, idx), shape=(1, np.prod(shape)))
+        lhs = sp.csr_matrix((data, idx), shape=(1, np.prod(shape)))
 
         def func(x, p) -> sp.csc_matrix:
             if p == 1:
