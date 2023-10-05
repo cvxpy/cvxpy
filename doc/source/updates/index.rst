@@ -20,7 +20,7 @@ New features
 ~~~~~~~~~~~~
 -  New atom: :ref:`convolve <convolve>`
 -  New atom: :ref:`mean <mean>`
--  New atom: :ref:`outer <mean>`
+-  New atom: :ref:`outer <outer>`
 -  New atom: :ref:`ptp <ptp>`
 -  New atom: :ref:`std <std>`
 -  New atom: :ref:`var <var>`
