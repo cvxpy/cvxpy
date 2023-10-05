@@ -7,6 +7,73 @@ This page details changes made to CVXPY over time, in reverse chronological orde
 CVXPY's project maintainers currently provide support for CVXPY 1.3 and 1.2, with
 limited support for 1.1.
 
+CVXPY 1.4
+---------
+
+This release is consistent with our semantic versioning guarantee. It
+comes packed with many new features, bug fixes, and performance
+improvements. This version of CVXPY supports Python 3.8 through 3.12,
+and is our first release that supports Python 3.12. While working on the
+next release, we continue to officially support CVXPY 1.3 and 1.4.
+
+New features
+~~~~~~~~~~~~
+-  New atom: :ref:`convolve <convolve>`
+-  New atom: :ref:`mean <mean>`
+-  New atom: :ref:`outer <mean>`
+-  New atom: :ref:`ptp <ptp>`
+-  New atom: :ref:`std <std>`
+-  New atom: :ref:`var <var>`
+-  New atom: :ref:`vec_to_upper_tri <vec-to-upper-tri>`
+-  Adds methods to CVXPY expressions that are found on NumPy ndarrays
+  such as ``.sum()``, ``.max()``, and ``.mean()``
+-  New solver interface: ``PIQP``
+-  Adds SDP support to the Clarabel interface
+-  ``NDPowerCone`` now supports extracting its dual variables
+-  ``reshape`` now supports using ``-1`` as a dimension, with the same
+   meaning it has in NumPy
+-  Indexing CVXPY expressions with floats now raises an appropriate
+   error
+-  Clearer error messages for a number of common errors
+-  The :ref:`perspective <perspective>` atom now supports ``s=0``
+-  Performance improvements in the SCIPY backend
+-  Performance improvements in canonicalizing parameterized QPs 
+
+ECOS deprecation
+~~~~~~~~~~~~~~~~
+
+CVXPY has used ECOS as the default solver for many years; however, it
+has known issues with performance and numerical stability in edge cases.
+Recently, a new solver, Clarabel, that improves the algorithm and
+implementation of ECOS has been under development.
+
+CVXPY is planning to transition to using Clarabel instead of ECOS by
+default for some categories of problems in 1.5 and no longer install
+ECOS as a CVXPY dependency in 1.6.
+We have no plans to remove support for calling ECOS as a solver.
+As part of this transition we are raising a warning whenever ECOS is
+called by default in 1.4.
+We encourage you to try and use Clarabel instead, but if you're
+dependent on ECOS's exact behavior please explicitly specify it as a
+solver.
+
+
+``conv`` deprecation
+~~~~~~~~~~~~~~~~~~~~
+
+The CVXPY atom ``conv`` is inconsistent with NumPy's convolve functions.
+We are deprecating it, but have no plans to remove it in the short term.
+We encourage all users to use the CVXPY atom ``convolve`` instead.
+
+``NonPos`` deprecation
+~~~~~~~~~~~~~~~~~~~~~~
+
+The ``NonPos`` cone uses the opposite dual variable sign convention as
+the rest of the CVXPY cones and a constraint of ``NonPos(expr)`` is the
+same as a constraint on ``NonNeg(-expr)``. We are deprecating
+``NonPos``, but have no plans to remove it in the short term. We
+encourage users to switch to using ``NonNeg``.
+
 CVXPY 1.3
 ---------
 CVXPY 1.3 brings many new features, bug fixes, and performance improvements. It introduces a new
