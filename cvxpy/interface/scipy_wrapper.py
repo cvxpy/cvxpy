@@ -47,7 +47,7 @@ def wrap_bin_op(method):
         output = method(self, other)
         if isinstance(other, exp.Expression) and output is not NotImplemented:
             warnings.warn(SCIPY_WRAPPER_DEPRECATION_MESSAGE,
-                          category=DeprecationWarning)
+                          category=FutureWarning)
             return NotImplemented
         else:
             return output
