@@ -29,7 +29,7 @@ New features
   such as ``.sum()``, ``.max()``, and ``.mean()``
 -  New solver interface: ``PIQP``
 -  Adds SDP support to the Clarabel interface
--  ``NDPowerCone`` now supports extracting its dual variables
+-  ``PowerConeND`` now supports extracting its dual variables
 -  ``reshape`` now supports using ``-1`` as a dimension, with the same
    meaning it has in NumPy
 -  Indexing CVXPY expressions with floats now raises an appropriate
@@ -38,6 +38,8 @@ New features
 -  The :ref:`perspective <perspective>` atom now supports ``s=0``
 -  Performance improvements in the SCIPY backend
 -  Performance improvements in canonicalizing parameterized QPs 
+-  Performance improvements for quadratic forms with sparse matrices
+-  Greater support for static typing
 
 ECOS deprecation
 ~~~~~~~~~~~~~~~~
