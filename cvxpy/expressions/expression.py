@@ -92,6 +92,9 @@ __BINARY_EXPRESSION_UFUNCS__ = {
 }
 
 
+ExpressionLike = "Expression | np.typing.ArrayLike"
+
+
 class Expression(u.Canonical):
     """A mathematical expression in a convex optimization problem.
 
@@ -558,7 +561,7 @@ class Expression(u.Canonical):
         return lh_expr, rh_expr
 
     @_cast_other
-    def __add__(self, other: "Expression") -> "Expression":
+    def __add__(self, other: ExpressionLike) -> "Expression":
         """Expression : Sum two expressions.
         """
         if isinstance(other, cvxtypes.constant()) and other.is_zero():
@@ -567,7 +570,7 @@ class Expression(u.Canonical):
         return cvxtypes.add_expr()([self, other])
 
     @_cast_other
-    def __radd__(self, other: "Expression") -> "Expression":
+    def __radd__(self, other: ExpressionLike) -> "Expression":
         """Expression : Sum two expressions.
         """
         if isinstance(other, cvxtypes.constant()) and other.is_zero():
@@ -575,19 +578,19 @@ class Expression(u.Canonical):
         return other + self
 
     @_cast_other
-    def __sub__(self, other: "Expression") -> "Expression":
+    def __sub__(self, other: ExpressionLike) -> "Expression":
         """Expression : The difference of two expressions.
         """
         return self + -other
 
     @_cast_other
-    def __rsub__(self, other: "Expression") -> "Expression":
+    def __rsub__(self, other: ExpressionLike) -> "Expression":
         """Expression : The difference of two expressions.
         """
         return other - self
 
     @_cast_other
-    def __mul__(self, other: "Expression") -> "Expression":
+    def __mul__(self, other: ExpressionLike) -> "Expression":
         """Expression : The product of two expressions.
         """
         if self.shape == () or other.shape == ():
@@ -621,7 +624,7 @@ class Expression(u.Canonical):
             return cvxtypes.matmul_expr()(self, other)
 
     @_cast_other
-    def __matmul__(self, other: "Expression") -> "Expression":
+    def __matmul__(self, other: ExpressionLike) -> "Expression":
         """Expression : Matrix multiplication of two expressions.
         """
         if self.shape == () or other.shape == ():
@@ -638,13 +641,13 @@ class Expression(u.Canonical):
         return cvxtypes.matmul_expr()(self, other)
 
     @_cast_other
-    def __truediv__(self, other: "Expression") -> "Expression":
+    def __truediv__(self, other: ExpressionLike) -> "Expression":
         """Expression : One expression divided by another.
         """
         return self.__div__(other)
 
     @_cast_other
-    def __div__(self, other: "Expression") -> "Expression":
+    def __div__(self, other: ExpressionLike) -> "Expression":
         """Expression : One expression divided by another.
         """
         self, other = self.broadcast(self, other)
@@ -655,25 +658,25 @@ class Expression(u.Canonical):
                              self.shape, other.shape))
 
     @_cast_other
-    def __rdiv__(self, other: "Expression") -> "Expression":
+    def __rdiv__(self, other: ExpressionLike) -> "Expression":
         """Expression : Called for Number / Expression.
         """
         return other / self
 
     @_cast_other
-    def __rtruediv__(self, other: "Expression") -> "Expression":
+    def __rtruediv__(self, other: ExpressionLike) -> "Expression":
         """Expression : Called for Number / Expression.
         """
         return other / self
 
     @_cast_other
-    def __rmul__(self, other: "Expression") -> "Expression":
+    def __rmul__(self, other: ExpressionLike) -> "Expression":
         """Expression : Called for Number * Expression.
         """
         return other * self
 
     @_cast_other
-    def __rmatmul__(self, other: "Expression") -> "Expression":
+    def __rmatmul__(self, other: ExpressionLike) -> "Expression":
         """Expression : Called for matrix @ Expression.
         """
         if self.shape == () or other.shape == ():
@@ -686,25 +689,25 @@ class Expression(u.Canonical):
         return cvxtypes.neg_expr()(self)
 
     @_cast_other
-    def __rshift__(self, other: "Expression") -> PSD:
+    def __rshift__(self, other: ExpressionLike) -> PSD:
         """PSD : Creates a positive semidefinite inequality.
         """
         return PSD(self - other)
 
     @_cast_other
-    def __rrshift__(self, other: "Expression") -> PSD:
+    def __rrshift__(self, other: ExpressionLike) -> PSD:
         """PSD : Creates a positive semidefinite inequality.
         """
         return PSD(other - self)
 
     @_cast_other
-    def __lshift__(self, other: "Expression") -> PSD:
+    def __lshift__(self, other: ExpressionLike) -> PSD:
         """PSD : Creates a negative semidefinite inequality.
         """
         return PSD(other - self)
 
     @_cast_other
-    def __rlshift__(self, other: "Expression") -> PSD:
+    def __rlshift__(self, other: ExpressionLike) -> PSD:
         """PSD : Creates a negative semidefinite inequality.
         """
         return PSD(self - other)
@@ -715,25 +718,25 @@ class Expression(u.Canonical):
 
     # Comparison operators.
     @_cast_other
-    def __eq__(self, other: "Expression"):
+    def __eq__(self, other: ExpressionLike):
         """Equality : Creates a constraint ``self == other``.
         """
         return Equality(self, other)
 
     @_cast_other
-    def __le__(self, other: "Expression"):
+    def __le__(self, other: ExpressionLike):
         """Inequality : Creates an inequality constraint ``self <= other``.
         """
         return Inequality(self, other)
 
-    def __lt__(self, other: "Expression"):
+    def __lt__(self, other: ExpressionLike):
         raise NotImplementedError("Strict inequalities are not allowed.")
 
     @_cast_other
-    def __ge__(self, other: "Expression"):
+    def __ge__(self, other: ExpressionLike):
         return Inequality(other, self)
 
-    def __gt__(self, other: "Expression"):
+    def __gt__(self, other: ExpressionLike):
         raise NotImplementedError("Strict inequalities are not allowed.")
 
     def __array_ufunc__(self, ufunc, method, *args, **kwargs):
