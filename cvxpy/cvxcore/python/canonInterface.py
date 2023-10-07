@@ -385,7 +385,7 @@ def get_problem_matrix(linOps,
         return A
 
     elif canon_backend in {s.SCIPY_CANON_BACKEND, s.RUST_CANON_BACKEND,
-                           s.NUMPY_CANON_BACKEND}:
+                           s.NUMPY_CANON_BACKEND, s.GRAPHBLAS_CANON_BACKEND}:
         param_size_plus_one = sum(param_to_size.values())
         output_shape = (np.int64(constr_length)*np.int64(var_length+1),
                    param_size_plus_one)

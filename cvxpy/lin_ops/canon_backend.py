@@ -21,6 +21,7 @@ from enum import Enum
 from typing import Any, Callable
 
 import numpy as np
+import graphblas as gb
 import scipy.sparse as sp
 from scipy.signal import convolve
 
@@ -29,6 +30,7 @@ from cvxpy.settings import (
     NUMPY_CANON_BACKEND,
     RUST_CANON_BACKEND,
     SCIPY_CANON_BACKEND,
+    GRAPHBLAS_CANON_BACKEND,
 )
 
 """
@@ -122,6 +124,7 @@ class CanonBackend(ABC):
         backends = {
             NUMPY_CANON_BACKEND: NumPyCanonBackend,
             SCIPY_CANON_BACKEND: SciPyCanonBackend,
+            GRAPHBLAS_CANON_BACKEND: GraphBlasBackend,
             RUST_CANON_BACKEND: RustCanonBackend
         }
         return backends[backend_name](*args, **kwargs)
@@ -1493,6 +1496,14 @@ class SciPyCanonBackend(PythonCanonBackend):
 
 
 class GraphBlasBackend(PythonCanonBackend):
+    @staticmethod
+    def get_constant_data_from_const(lin_op: LinOp) -> gb.Matrix:
+        """
+        Extract the constant data from a LinOp node of type "*_const".
+        """
+        constant = gb.Matrix.from_dense(lin_op.data)
+        assert constant.shape == lin_op.shape
+        return constant
 
     @staticmethod
     def reshape_constant_data(constant_data: dict[int, gb.Matrix],
@@ -1544,7 +1555,6 @@ class GraphBlasBackend(PythonCanonBackend):
                 stacked_lhs = lhs
 
             def func(x, p):
-                # TODO: add test for case p > 1 and reps > 1
                 if p == 1:
                     return stacked_lhs @ x
                 else:
@@ -2295,3 +2305,87 @@ class SciPyTensorView(DictTensorView):
         sparse matrix instead of smaller sparse matrices in a list.
         """
         return sp.spmatrix
+
+
+class GraphBlasTensorView(DictTensorView):
+    @property
+    def rows(self) -> int:
+        if self.tensor is not None:
+            for param_dict in self.tensor.values():
+                for param_id, param_mat in param_dict.items():
+                    return param_mat.shape[0] // self.param_to_size[param_id]
+        else:
+            raise ValueError('Tensor cannot be None')
+
+    def get_tensor_representation(self, row_offset: int) -> TensorRepresentation:
+        assert self.tensor is not None
+        tensor_representations = []
+        for variable_id, variable_tensor in self.tensor.items():
+            for parameter_id, parameter_matrix in variable_tensor.items():
+                p = self.param_to_size[parameter_id]
+                m = parameter_matrix.shape[0] // p
+                parameter_matrix = self.ensure_new_matrix(parameter_matrix)
+                coo_repr = parameter_matrix.to_coo()
+                tensor_representations.append(TensorRepresentation(
+                    coo_repr[2],
+                    (coo_repr[0] % m) + row_offset,
+                    coo_repr[1] + self.id_to_col[variable_id],
+                    coo_repr[0] // m + np.ones(len(coo_repr[2])) * self.param_to_col[parameter_id],
+                ))
+        return TensorRepresentation.combine(tensor_representations)
+
+    def select_rows(self, rows: np.ndarray) -> None:
+        def func(x, p):
+            x = self.ensure_new_matrix(x)
+            if p == 1:
+                return x[rows, :]
+            else:
+                m = x.shape[0] // p
+                return x[np.tile(rows, p) + np.repeat(np.arange(p) * m, len(rows)), :]
+
+        self.apply_all(func)
+
+    def apply_all(self, func: Callable) -> None:
+        self.tensor = {var_id: {k: func(v, self.param_to_size[k])
+                                for k, v in parameter_repr.items()}
+                       for var_id, parameter_repr in self.tensor.items()}
+
+    def create_new_tensor_view(self, variable_ids: set[int], tensor: Any,
+                               is_parameter_free: bool) -> GraphBlasTensorView:
+        return GraphBlasTensorView(variable_ids, tensor, is_parameter_free,
+                                   self.param_size_plus_one, self.id_to_col,
+                                   self.param_to_size, self.param_to_col,
+                                   self.var_length)
+
+    def apply_to_parameters(self, func: Callable,
+                            parameter_representation: dict[int, gb.Matrix]) \
+            -> dict[int, gb.Matrix]:
+        return {k: func(v, self.param_to_size[k])
+                for k, v in parameter_representation.items()}
+
+    @staticmethod
+    def ensure_new_matrix(tensor: Any):
+        if not isinstance(tensor, GraphBlasTensorView.tensor_type()):
+            tensor = tensor.new()
+        if isinstance(tensor, gb.Vector):
+            tensor = tensor._as_matrix()
+        return tensor
+
+    @staticmethod
+    def ensure_new_vector(tensor: Any):
+        if not isinstance(tensor, GraphBlasTensorView.tensor_type()):
+            tensor = tensor.new()
+        if isinstance(tensor, gb.Matrix):
+            tensor = tensor._as_vector()
+        return tensor
+
+    @staticmethod
+    def add_tensors(a: gb.Matrix, b: gb.Matrix) -> gb.Matrix:
+        if isinstance(b, gb.Vector):
+            return b + a
+        else:
+            return a + b
+
+    @staticmethod
+    def tensor_type():
+        return gb.Matrix, gb.Vector
