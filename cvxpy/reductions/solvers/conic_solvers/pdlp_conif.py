@@ -131,7 +131,7 @@ class PDLP(ConicSolver):
         from ortools.pdlp.python import pdlp
 
         parameters = solvers_pb2.PrimalDualHybridGradientParams()
-        parameters.verbosity_level = 2 if verbose else 0
+        parameters.verbosity_level = 3 if verbose else 0
         # CVXPY reductions can leave a messy problem (e.g., no variable
         # bounds), so we turn on presolving by default.
         parameters.presolve_options.use_glop = True
