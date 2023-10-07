@@ -48,12 +48,12 @@ class PDLP(ConicSolver):
         """Imports the solver."""
         import google.protobuf  # noqa F401
         import ortools  # noqa F401
-        if Version(ortools.__version__) < Version('9.4.0'):
+        if Version(ortools.__version__) < Version('9.5.0'):
             raise RuntimeError(f'Version of ortools ({ortools.__version__}) '
-                               f'is too old. Expected >= 9.4.0.')
-        if Version(ortools.__version__) >= Version('9.7.0'):
+                               f'is too old. Expected >= 9.5.0.')
+        if Version(ortools.__version__) >= Version('9.8.0'):
             raise RuntimeError('Unrecognized new version of ortools '
-                               f'({ortools.__version__}). Expected < 9.7.0.'
+                               f'({ortools.__version__}). Expected < 9.8.0. '
                                'Please open a feature request on cvxpy to '
                                'enable support for this version.')
 
@@ -165,17 +165,14 @@ class PDLP(ConicSolver):
             request.solver_time_limit_seconds = float(solver_opts["time_limit_sec"])
 
         request.solver_specific_parameters = text_format.MessageToString(parameters)
-        if Version(ortools.__version__) < Version('9.5.0'):
-            # Version 9.4
-            from ortools.model_builder.python import (
-                pywrap_model_builder_helper,
+        if Version(ortools.__version__) < Version('9.7.0'):
+            from ortools.linear_solver.python import (
+                pywrap_model_builder_helper as model_builder_helper,
             )
         else:
-            # Version 9.5+
-            from ortools.linear_solver.python import (
-                pywrap_model_builder_helper,
-            )
-        solver = pywrap_model_builder_helper.ModelSolverHelper("pdlp")
+            from ortools.linear_solver.python import model_builder_helper
+
+        solver = model_builder_helper.ModelSolverHelper("pdlp")
         response_str = solver.solve_serialized_request(request.SerializeToString())
         response = linear_solver_pb2.MPSolutionResponse.FromString(response_str)
 
