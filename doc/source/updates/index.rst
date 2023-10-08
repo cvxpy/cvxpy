@@ -29,6 +29,8 @@ New features
   such as ``.sum()``, ``.max()``, and ``.mean()``
 -  New solver interface: ``PIQP``
 -  Adds SDP support to the Clarabel interface
+-  Addedd support for OR-Tools 9.7
+-  Removed support for OR-Tools 9.4
 -  ``PowerConeND`` now supports extracting its dual variables
 -  ``reshape`` now supports using ``-1`` as a dimension, with the same
    meaning it has in NumPy
@@ -49,16 +51,15 @@ has known issues with performance and numerical stability in edge cases.
 Recently, a new solver, Clarabel, that improves the algorithm and
 implementation of ECOS has been under development.
 
-CVXPY is planning to transition to using Clarabel instead of ECOS by
-default for some categories of problems in 1.5 and no longer install
-ECOS as a CVXPY dependency in 1.6.
+In 1.5, CVXPY plans to using Clarabel instead of ECOS by default for some
+categories of problems.
+In 1.6, we plan to no longer install ECOS as a CVXPY dependency.
 We have no plans to remove support for calling ECOS as a solver.
-As part of this transition we are raising a warning whenever ECOS is
-called by default in 1.4.
+As part of this transition, in 1.4 CVXPY will raise a warning whenever
+ECOS is called by default.
 We encourage you to try and use Clarabel instead, but if you're
 dependent on ECOS's exact behavior please explicitly specify it as a
 solver.
-
 
 ``conv`` deprecation
 ~~~~~~~~~~~~~~~~~~~~
