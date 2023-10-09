@@ -42,12 +42,12 @@ conj
 
 .. autoclass:: cvxpy.conj
 
-.. _conv:
+.. _convolve:
 
-conv
+convolve
 ---------------------------------
 
-.. autoclass:: cvxpy.conv
+.. autoclass:: cvxpy.convolve
     :show-inheritance:
 
 .. _cumsum:
@@ -108,6 +108,13 @@ matmul
 --------------------------------
 
 .. autofunction:: cvxpy.matmul
+
+.. mean:
+
+mean
+---------------------------------
+
+.. autofunction:: cvxpy.mean
 
 .. _multiply:
 
@@ -219,6 +226,13 @@ vec
 --------------------------------
 
 .. autofunction:: cvxpy.vec
+
+.. _vec_to_upper_tri:
+
+vec_to_upper_tri
+--------------------------------
+
+.. autofunction:: cvxpy.atoms.affine.upper_tri.vec_to_upper_tri
 
 .. _vstack:
 

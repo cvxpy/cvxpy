@@ -216,6 +216,13 @@ Pnorm
 
 .. autoclass:: cvxpy.atoms.pnorm.Pnorm
 
+.. _ptp:
+
+ptp
+--------------------------
+
+.. autofunction:: cvxpy.atoms.ptp.ptp
+
 .. _prod:
 
 prod
@@ -252,6 +259,13 @@ sigma_max
 
 .. autoclass:: cvxpy.atoms.sigma_max.sigma_max
     :show-inheritance:
+
+.. _std:
+
+std
+-------------------------------
+
+.. autofunction:: cvxpy.atoms.stats.std
 
 .. _sum-largest:
 
@@ -296,6 +310,14 @@ tv
 -------------------------------------
 
 .. autofunction:: cvxpy.atoms.total_variation.tv
+
+.. _var:
+
+var
+-------------------------------------
+
+.. autofunction:: cvxpy.atoms.stats.var
+
 
 .. _von-neumann-entr:
 
