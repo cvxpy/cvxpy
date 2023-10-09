@@ -4,8 +4,7 @@ Changes to CVXPY
 ================
 
 This page details changes made to CVXPY over time, in reverse chronological order.
-CVXPY's project maintainers currently provide support for CVXPY 1.3 and 1.2, with
-limited support for 1.1.
+CVXPY's project maintainers currently provide support for CVXPY 1.4 and 1.3.
 
 CVXPY 1.4
 ---------
@@ -51,7 +50,7 @@ has known issues with performance and numerical stability in edge cases.
 Recently, a new solver, Clarabel, that improves the algorithm and
 implementation of ECOS has been under development.
 
-In 1.5, CVXPY plans to using Clarabel instead of ECOS by default for some
+In 1.5, CVXPY plans to start using Clarabel instead of ECOS by default for some
 categories of problems.
 In 1.6, we plan to no longer install ECOS as a CVXPY dependency.
 We have no plans to remove support for calling ECOS as a solver.
