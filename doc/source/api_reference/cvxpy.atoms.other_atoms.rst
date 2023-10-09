@@ -12,14 +12,14 @@ cummax
 .. autoclass:: cvxpy.atoms.cummax.cummax
     :show-inheritance:
 
-.. _diff-pos:
+.. _diff_pos:
 
 diff_pos
 --------
 
-.. autofunction:: cvxpy.atoms.one_minus.diff_pos
+.. autofunction:: cvxpy.atoms.one_minus_pos.diff_pos
 
-.. _eye-minus-inv:
+.. _diff_pos:
 
 .. _dotsort:
 
@@ -160,7 +160,6 @@ norm2
 --------------------------
 
 .. autofunction:: cvxpy.atoms.norm.norm2
-    :show-inheritance:
 
 .. _norm-inf:
 
