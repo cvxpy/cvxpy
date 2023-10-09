@@ -109,12 +109,12 @@ matmul
 
 .. autofunction:: cvxpy.matmul
 
-.. mean:
+.. _mean:
 
 mean
 ---------------------------------
 
-.. autofunction:: cvxpy.mean
+.. autofunction:: cvxpy.atoms.stats.mean
 
 .. _multiply:
 
