@@ -5,14 +5,14 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Other Atoms &#8212; CVXPY 1.3 documentation</title>
-    <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
-    <link rel="stylesheet" type="text/css" href="../_static/cvxpy_alabaster.css" />
-    <script src="../_static/jquery.js"></script>
-    <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
-    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
-    <script src="../_static/doctools.js"></script>
-    <script src="../_static/sphinx_highlight.js"></script>
+    <title>Other Atoms &#8212; CVXPY 1.4 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="../_static/cvxpy_alabaster.css?v=6c13f287" />
+    <script src="../_static/jquery.js?v=5d32c60e"></script>
+    <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js?v=b308ce55"></script>
+    <script src="../_static/doctools.js?v=888ff710"></script>
+    <script src="../_static/sphinx_highlight.js?v=4825356b"></script>
     <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
@@ -39,50 +39,53 @@
 <p>The atoms listed here are neither affine nor elementwise.</p>
 <nav class="contents local" id="contents">
 <ul class="simple">
-<li><p><a class="reference internal" href="#cummax" id="id40">cummax</a></p></li>
-<li><p><a class="reference internal" href="#diff-pos" id="id41">diff_pos</a></p></li>
-<li><p><a class="reference internal" href="#dotsort" id="id42">dotsort</a></p></li>
-<li><p><a class="reference internal" href="#id4" id="id43">eye_minus_inv</a></p></li>
-<li><p><a class="reference internal" href="#geo-mean" id="id44">geo_mean</a></p></li>
-<li><p><a class="reference internal" href="#gmatmul" id="id45">gmatmul</a></p></li>
-<li><p><a class="reference internal" href="#harmonic-mean" id="id46">harmonic_mean</a></p></li>
-<li><p><a class="reference internal" href="#inv-prod" id="id47">inv_prod</a></p></li>
-<li><p><a class="reference internal" href="#lambda-max" id="id48">lambda_max</a></p></li>
-<li><p><a class="reference internal" href="#lambda-min" id="id49">lambda_min</a></p></li>
-<li><p><a class="reference internal" href="#lambda-sum-largest" id="id50">lambda_sum_largest</a></p></li>
-<li><p><a class="reference internal" href="#lambda-sum-smallest" id="id51">lambda_sum_smallest</a></p></li>
-<li><p><a class="reference internal" href="#log-det" id="id52">log_det</a></p></li>
-<li><p><a class="reference internal" href="#log-sum-exp" id="id53">log_sum_exp</a></p></li>
-<li><p><a class="reference internal" href="#matrix-frac" id="id54">matrix_frac</a></p></li>
-<li><p><a class="reference internal" href="#max" id="id55">max</a></p></li>
-<li><p><a class="reference internal" href="#min" id="id56">min</a></p></li>
-<li><p><a class="reference internal" href="#mixed-norm" id="id57">mixed_norm</a></p></li>
-<li><p><a class="reference internal" href="#norm" id="id58">norm</a></p></li>
-<li><p><a class="reference internal" href="#norm1" id="id59">norm1</a></p></li>
-<li><p><a class="reference internal" href="#norm2" id="id60">norm2</a></p></li>
-<li><p><a class="reference internal" href="#norm-inf" id="id61">norm_inf</a></p></li>
-<li><p><a class="reference internal" href="#normnuc" id="id62">normNuc</a></p></li>
-<li><p><a class="reference internal" href="#one-minus-pos" id="id63">one_minus_pos</a></p></li>
-<li><p><a class="reference internal" href="#perspective" id="id64">perspective</a></p></li>
-<li><p><a class="reference internal" href="#pf-eigenvalue" id="id65">pf_eigenvalue</a></p></li>
-<li><p><a class="reference internal" href="#pnorm" id="id66">pnorm</a></p></li>
-<li><p><a class="reference internal" href="#id26" id="id67">Pnorm</a></p></li>
-<li><p><a class="reference internal" href="#prod" id="id68">prod</a></p></li>
-<li><p><a class="reference internal" href="#quad-form" id="id69">quad_form</a></p></li>
-<li><p><a class="reference internal" href="#quad-over-lin" id="id70">quad_over_lin</a></p></li>
-<li><p><a class="reference internal" href="#resolvent" id="id71">resolvent</a></p></li>
-<li><p><a class="reference internal" href="#sigma-max" id="id72">sigma_max</a></p></li>
-<li><p><a class="reference internal" href="#sum-largest" id="id73">sum_largest</a></p></li>
-<li><p><a class="reference internal" href="#sum-smallest" id="id74">sum_smallest</a></p></li>
-<li><p><a class="reference internal" href="#sum-squares" id="id75">sum_squares</a></p></li>
-<li><p><a class="reference internal" href="#suppfuncatom" id="id76">SuppFuncAtom</a></p></li>
-<li><p><a class="reference internal" href="#tr-inv" id="id77">tr_inv</a></p></li>
-<li><p><a class="reference internal" href="#tv" id="id78">tv</a></p></li>
-<li><p><a class="reference internal" href="#von-neumann-entr" id="id79">von_neumann_entr</a></p></li>
+<li><p><a class="reference internal" href="#cummax" id="id43">cummax</a></p></li>
+<li><p><a class="reference internal" href="#diff-pos" id="id44">diff_pos</a></p></li>
+<li><p><a class="reference internal" href="#dotsort" id="id45">dotsort</a></p></li>
+<li><p><a class="reference internal" href="#eye-minus-inv" id="id46">eye_minus_inv</a></p></li>
+<li><p><a class="reference internal" href="#geo-mean" id="id47">geo_mean</a></p></li>
+<li><p><a class="reference internal" href="#gmatmul" id="id48">gmatmul</a></p></li>
+<li><p><a class="reference internal" href="#harmonic-mean" id="id49">harmonic_mean</a></p></li>
+<li><p><a class="reference internal" href="#inv-prod" id="id50">inv_prod</a></p></li>
+<li><p><a class="reference internal" href="#lambda-max" id="id51">lambda_max</a></p></li>
+<li><p><a class="reference internal" href="#lambda-min" id="id52">lambda_min</a></p></li>
+<li><p><a class="reference internal" href="#lambda-sum-largest" id="id53">lambda_sum_largest</a></p></li>
+<li><p><a class="reference internal" href="#lambda-sum-smallest" id="id54">lambda_sum_smallest</a></p></li>
+<li><p><a class="reference internal" href="#log-det" id="id55">log_det</a></p></li>
+<li><p><a class="reference internal" href="#log-sum-exp" id="id56">log_sum_exp</a></p></li>
+<li><p><a class="reference internal" href="#matrix-frac" id="id57">matrix_frac</a></p></li>
+<li><p><a class="reference internal" href="#max" id="id58">max</a></p></li>
+<li><p><a class="reference internal" href="#min" id="id59">min</a></p></li>
+<li><p><a class="reference internal" href="#mixed-norm" id="id60">mixed_norm</a></p></li>
+<li><p><a class="reference internal" href="#norm" id="id61">norm</a></p></li>
+<li><p><a class="reference internal" href="#norm1" id="id62">norm1</a></p></li>
+<li><p><a class="reference internal" href="#norm2" id="id63">norm2</a></p></li>
+<li><p><a class="reference internal" href="#norm-inf" id="id64">norm_inf</a></p></li>
+<li><p><a class="reference internal" href="#normnuc" id="id65">normNuc</a></p></li>
+<li><p><a class="reference internal" href="#one-minus-pos" id="id66">one_minus_pos</a></p></li>
+<li><p><a class="reference internal" href="#perspective" id="id67">perspective</a></p></li>
+<li><p><a class="reference internal" href="#pf-eigenvalue" id="id68">pf_eigenvalue</a></p></li>
+<li><p><a class="reference internal" href="#pnorm" id="id69">pnorm</a></p></li>
+<li><p><a class="reference internal" href="#id26" id="id70">Pnorm</a></p></li>
+<li><p><a class="reference internal" href="#ptp" id="id71">ptp</a></p></li>
+<li><p><a class="reference internal" href="#prod" id="id72">prod</a></p></li>
+<li><p><a class="reference internal" href="#quad-form" id="id73">quad_form</a></p></li>
+<li><p><a class="reference internal" href="#quad-over-lin" id="id74">quad_over_lin</a></p></li>
+<li><p><a class="reference internal" href="#resolvent" id="id75">resolvent</a></p></li>
+<li><p><a class="reference internal" href="#sigma-max" id="id76">sigma_max</a></p></li>
+<li><p><a class="reference internal" href="#std" id="id77">std</a></p></li>
+<li><p><a class="reference internal" href="#sum-largest" id="id78">sum_largest</a></p></li>
+<li><p><a class="reference internal" href="#sum-smallest" id="id79">sum_smallest</a></p></li>
+<li><p><a class="reference internal" href="#sum-squares" id="id80">sum_squares</a></p></li>
+<li><p><a class="reference internal" href="#suppfuncatom" id="id81">SuppFuncAtom</a></p></li>
+<li><p><a class="reference internal" href="#tr-inv" id="id82">tr_inv</a></p></li>
+<li><p><a class="reference internal" href="#tv" id="id83">tv</a></p></li>
+<li><p><a class="reference internal" href="#var" id="id84">var</a></p></li>
+<li><p><a class="reference internal" href="#von-neumann-entr" id="id85">von_neumann_entr</a></p></li>
 </ul>
 </nav>
 <section id="cummax">
-<span id="id1"></span><h2><a class="toc-backref" href="#id40" role="doc-backlink">cummax</a><a class="headerlink" href="#cummax" title="Permalink to this heading">¶</a></h2>
+<span id="id1"></span><h2><a class="toc-backref" href="#id43" role="doc-backlink">cummax</a><a class="headerlink" href="#cummax" title="Permalink to this heading">¶</a></h2>
 <dl class="py class">
 <dt class="sig sig-object py" id="cvxpy.atoms.cummax.cummax">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">cvxpy.atoms.cummax.</span></span><span class="sig-name descname"><span class="pre">cummax</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">axis</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/atoms/cummax.html#cummax"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.atoms.cummax.cummax" title="Permalink to this definition">¶</a></dt>
@@ -92,10 +95,25 @@
 
 </section>
 <section id="diff-pos">
-<span id="id2"></span><h2><a class="toc-backref" href="#id41" role="doc-backlink">diff_pos</a><a class="headerlink" href="#diff-pos" title="Permalink to this heading">¶</a></h2>
+<span id="id2"></span><h2><a class="toc-backref" href="#id44" role="doc-backlink">diff_pos</a><a class="headerlink" href="#diff-pos" title="Permalink to this heading">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="cvxpy.atoms.one_minus_pos.diff_pos">
+<span class="sig-prename descclassname"><span class="pre">cvxpy.atoms.one_minus_pos.</span></span><span class="sig-name descname"><span class="pre">diff_pos</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/atoms/one_minus_pos.html#diff_pos"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.atoms.one_minus_pos.diff_pos" title="Permalink to this definition">¶</a></dt>
+<dd><p>The difference <span class="math notranslate nohighlight">\(x - y\)</span> with domain <cite>{x, y : x &gt; y &gt; 0}</cite>.</p>
+<p>This atom is log-log concave.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>x</strong> (<a class="reference internal" href="cvxpy.expressions.html#cvxpy.expressions.expression.Expression" title="cvxpy.expressions.expression.Expression"><code class="xref py py-class docutils literal notranslate"><span class="pre">Expression</span></code></a>) – An Expression.</p></li>
+<li><p><strong>y</strong> (<a class="reference internal" href="cvxpy.expressions.html#cvxpy.expressions.expression.Expression" title="cvxpy.expressions.expression.Expression"><code class="xref py py-class docutils literal notranslate"><span class="pre">Expression</span></code></a>) – An Expression.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
 </section>
 <section id="dotsort">
-<span id="eye-minus-inv"></span><span id="id3"></span><h2><a class="toc-backref" href="#id42" role="doc-backlink">dotsort</a><a class="headerlink" href="#dotsort" title="Permalink to this heading">¶</a></h2>
+<span id="id3"></span><span id="id4"></span><h2><a class="toc-backref" href="#id45" role="doc-backlink">dotsort</a><a class="headerlink" href="#dotsort" title="Permalink to this heading">¶</a></h2>
 <dl class="py class">
 <dt class="sig sig-object py" id="cvxpy.atoms.dotsort.dotsort">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">cvxpy.atoms.dotsort.</span></span><span class="sig-name descname"><span class="pre">dotsort</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">W</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/atoms/dotsort.html#dotsort"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.atoms.dotsort.dotsort" title="Permalink to this definition">¶</a></dt>
@@ -120,8 +138,8 @@ assigned to the largest entry in <span class="math notranslate nohighlight">\(x\
 </dd></dl>
 
 </section>
-<section id="id4">
-<h2><a class="toc-backref" href="#id43" role="doc-backlink">eye_minus_inv</a><a class="headerlink" href="#id4" title="Permalink to this heading">¶</a></h2>
+<section id="eye-minus-inv">
+<h2><a class="toc-backref" href="#id46" role="doc-backlink">eye_minus_inv</a><a class="headerlink" href="#eye-minus-inv" title="Permalink to this heading">¶</a></h2>
 <dl class="py class">
 <dt class="sig sig-object py" id="cvxpy.atoms.eye_minus_inv.eye_minus_inv">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">cvxpy.atoms.eye_minus_inv.</span></span><span class="sig-name descname"><span class="pre">eye_minus_inv</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/atoms/eye_minus_inv.html#eye_minus_inv"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.atoms.eye_minus_inv.eye_minus_inv" title="Permalink to this definition">¶</a></dt>
@@ -142,7 +160,7 @@ is at most <span class="math notranslate nohighlight">\(1\)</span>.</p>
 
 </section>
 <section id="geo-mean">
-<span id="id5"></span><h2><a class="toc-backref" href="#id44" role="doc-backlink">geo_mean</a><a class="headerlink" href="#geo-mean" title="Permalink to this heading">¶</a></h2>
+<span id="id5"></span><h2><a class="toc-backref" href="#id47" role="doc-backlink">geo_mean</a><a class="headerlink" href="#geo-mean" title="Permalink to this heading">¶</a></h2>
 <dl class="py class">
 <dt class="sig sig-object py" id="cvxpy.atoms.geo_mean.geo_mean">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">cvxpy.atoms.geo_mean.</span></span><span class="sig-name descname"><span class="pre">geo_mean</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">p</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_denom</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1024</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/atoms/geo_mean.html#geo_mean"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.atoms.geo_mean.geo_mean" title="Permalink to this definition">¶</a></dt>
@@ -285,7 +303,7 @@ cost of requiring more convex inequalities to represent the geometric mean.</p><
 
 </section>
 <section id="gmatmul">
-<span id="id6"></span><h2><a class="toc-backref" href="#id45" role="doc-backlink">gmatmul</a><a class="headerlink" href="#gmatmul" title="Permalink to this heading">¶</a></h2>
+<span id="id6"></span><h2><a class="toc-backref" href="#id48" role="doc-backlink">gmatmul</a><a class="headerlink" href="#gmatmul" title="Permalink to this heading">¶</a></h2>
 <dl class="py class">
 <dt class="sig sig-object py" id="cvxpy.atoms.gmatmul.gmatmul">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">cvxpy.atoms.gmatmul.</span></span><span class="sig-name descname"><span class="pre">gmatmul</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">A</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">X</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/atoms/gmatmul.html#gmatmul"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.atoms.gmatmul.gmatmul" title="Permalink to this definition">¶</a></dt>
@@ -312,7 +330,7 @@ cost of requiring more convex inequalities to represent the geometric mean.</p><
 
 </section>
 <section id="harmonic-mean">
-<span id="id7"></span><h2><a class="toc-backref" href="#id46" role="doc-backlink">harmonic_mean</a><a class="headerlink" href="#harmonic-mean" title="Permalink to this heading">¶</a></h2>
+<span id="id7"></span><h2><a class="toc-backref" href="#id49" role="doc-backlink">harmonic_mean</a><a class="headerlink" href="#harmonic-mean" title="Permalink to this heading">¶</a></h2>
 <dl class="py function">
 <dt class="sig sig-object py" id="cvxpy.atoms.harmonic_mean.harmonic_mean">
 <span class="sig-prename descclassname"><span class="pre">cvxpy.atoms.harmonic_mean.</span></span><span class="sig-name descname"><span class="pre">harmonic_mean</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/atoms/harmonic_mean.html#harmonic_mean"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.atoms.harmonic_mean.harmonic_mean" title="Permalink to this definition">¶</a></dt>
@@ -336,7 +354,7 @@ positive entries.</p>
 
 </section>
 <section id="inv-prod">
-<span id="id8"></span><h2><a class="toc-backref" href="#id47" role="doc-backlink">inv_prod</a><a class="headerlink" href="#inv-prod" title="Permalink to this heading">¶</a></h2>
+<span id="id8"></span><h2><a class="toc-backref" href="#id50" role="doc-backlink">inv_prod</a><a class="headerlink" href="#inv-prod" title="Permalink to this heading">¶</a></h2>
 <dl class="py function">
 <dt class="sig sig-object py" id="cvxpy.atoms.inv_prod.inv_prod">
 <span class="sig-prename descclassname"><span class="pre">cvxpy.atoms.inv_prod.</span></span><span class="sig-name descname"><span class="pre">inv_prod</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/atoms/inv_prod.html#inv_prod"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.atoms.inv_prod.inv_prod" title="Permalink to this definition">¶</a></dt>
@@ -360,7 +378,7 @@ positive entries.</p>
 
 </section>
 <section id="lambda-max">
-<span id="id9"></span><h2><a class="toc-backref" href="#id48" role="doc-backlink">lambda_max</a><a class="headerlink" href="#lambda-max" title="Permalink to this heading">¶</a></h2>
+<span id="id9"></span><h2><a class="toc-backref" href="#id51" role="doc-backlink">lambda_max</a><a class="headerlink" href="#lambda-max" title="Permalink to this heading">¶</a></h2>
 <dl class="py class">
 <dt class="sig sig-object py" id="cvxpy.atoms.lambda_max.lambda_max">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">cvxpy.atoms.lambda_max.</span></span><span class="sig-name descname"><span class="pre">lambda_max</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">A</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/atoms/lambda_max.html#lambda_max"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.atoms.lambda_max.lambda_max" title="Permalink to this definition">¶</a></dt>
@@ -370,7 +388,7 @@ positive entries.</p>
 
 </section>
 <section id="lambda-min">
-<span id="id10"></span><h2><a class="toc-backref" href="#id49" role="doc-backlink">lambda_min</a><a class="headerlink" href="#lambda-min" title="Permalink to this heading">¶</a></h2>
+<span id="id10"></span><h2><a class="toc-backref" href="#id52" role="doc-backlink">lambda_min</a><a class="headerlink" href="#lambda-min" title="Permalink to this heading">¶</a></h2>
 <dl class="py function">
 <dt class="sig sig-object py" id="cvxpy.atoms.lambda_min.lambda_min">
 <span class="sig-prename descclassname"><span class="pre">cvxpy.atoms.lambda_min.</span></span><span class="sig-name descname"><span class="pre">lambda_min</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/atoms/lambda_min.html#lambda_min"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.atoms.lambda_min.lambda_min" title="Permalink to this definition">¶</a></dt>
@@ -379,7 +397,7 @@ positive entries.</p>
 
 </section>
 <section id="lambda-sum-largest">
-<span id="id11"></span><h2><a class="toc-backref" href="#id50" role="doc-backlink">lambda_sum_largest</a><a class="headerlink" href="#lambda-sum-largest" title="Permalink to this heading">¶</a></h2>
+<span id="id11"></span><h2><a class="toc-backref" href="#id53" role="doc-backlink">lambda_sum_largest</a><a class="headerlink" href="#lambda-sum-largest" title="Permalink to this heading">¶</a></h2>
 <dl class="py function">
 <dt class="sig sig-object py" id="cvxpy.atoms.lambda_sum_largest.lambda_sum_largest">
 <span class="sig-prename descclassname"><span class="pre">cvxpy.atoms.lambda_sum_largest.</span></span><span class="sig-name descname"><span class="pre">lambda_sum_largest</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">k</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../_modules/cvxpy/atoms/lambda_sum_largest.html#lambda_sum_largest"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.atoms.lambda_sum_largest.lambda_sum_largest" title="Permalink to this definition">¶</a></dt>
@@ -388,7 +406,7 @@ positive entries.</p>
 
 </section>
 <section id="lambda-sum-smallest">
-<span id="id12"></span><h2><a class="toc-backref" href="#id51" role="doc-backlink">lambda_sum_smallest</a><a class="headerlink" href="#lambda-sum-smallest" title="Permalink to this heading">¶</a></h2>
+<span id="id12"></span><h2><a class="toc-backref" href="#id54" role="doc-backlink">lambda_sum_smallest</a><a class="headerlink" href="#lambda-sum-smallest" title="Permalink to this heading">¶</a></h2>
 <dl class="py function">
 <dt class="sig sig-object py" id="cvxpy.atoms.lambda_sum_smallest.lambda_sum_smallest">
 <span class="sig-prename descclassname"><span class="pre">cvxpy.atoms.lambda_sum_smallest.</span></span><span class="sig-name descname"><span class="pre">lambda_sum_smallest</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">k</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/atoms/lambda_sum_smallest.html#lambda_sum_smallest"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.atoms.lambda_sum_smallest.lambda_sum_smallest" title="Permalink to this definition">¶</a></dt>
@@ -397,7 +415,7 @@ positive entries.</p>
 
 </section>
 <section id="log-det">
-<span id="id13"></span><h2><a class="toc-backref" href="#id52" role="doc-backlink">log_det</a><a class="headerlink" href="#log-det" title="Permalink to this heading">¶</a></h2>
+<span id="id13"></span><h2><a class="toc-backref" href="#id55" role="doc-backlink">log_det</a><a class="headerlink" href="#log-det" title="Permalink to this heading">¶</a></h2>
 <dl class="py class">
 <dt class="sig sig-object py" id="cvxpy.atoms.log_det.log_det">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">cvxpy.atoms.log_det.</span></span><span class="sig-name descname"><span class="pre">log_det</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">A</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/atoms/log_det.html#log_det"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.atoms.log_det.log_det" title="Permalink to this definition">¶</a></dt>
@@ -407,7 +425,7 @@ positive entries.</p>
 
 </section>
 <section id="log-sum-exp">
-<span id="id14"></span><h2><a class="toc-backref" href="#id53" role="doc-backlink">log_sum_exp</a><a class="headerlink" href="#log-sum-exp" title="Permalink to this heading">¶</a></h2>
+<span id="id14"></span><h2><a class="toc-backref" href="#id56" role="doc-backlink">log_sum_exp</a><a class="headerlink" href="#log-sum-exp" title="Permalink to this heading">¶</a></h2>
 <dl class="py class">
 <dt class="sig sig-object py" id="cvxpy.atoms.log_sum_exp.log_sum_exp">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">cvxpy.atoms.log_sum_exp.</span></span><span class="sig-name descname"><span class="pre">log_sum_exp</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">axis</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">keepdims</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/atoms/log_sum_exp.html#log_sum_exp"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.atoms.log_sum_exp.log_sum_exp" title="Permalink to this definition">¶</a></dt>
@@ -417,7 +435,7 @@ positive entries.</p>
 
 </section>
 <section id="matrix-frac">
-<span id="id15"></span><h2><a class="toc-backref" href="#id54" role="doc-backlink">matrix_frac</a><a class="headerlink" href="#matrix-frac" title="Permalink to this heading">¶</a></h2>
+<span id="id15"></span><h2><a class="toc-backref" href="#id57" role="doc-backlink">matrix_frac</a><a class="headerlink" href="#matrix-frac" title="Permalink to this heading">¶</a></h2>
 <dl class="py function">
 <dt class="sig sig-object py" id="cvxpy.atoms.matrix_frac.matrix_frac">
 <span class="sig-prename descclassname"><span class="pre">cvxpy.atoms.matrix_frac.</span></span><span class="sig-name descname"><span class="pre">matrix_frac</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">P</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../_modules/cvxpy/atoms/matrix_frac.html#matrix_frac"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.atoms.matrix_frac.matrix_frac" title="Permalink to this definition">¶</a></dt>
@@ -426,7 +444,7 @@ positive entries.</p>
 
 </section>
 <section id="max">
-<span id="id16"></span><h2><a class="toc-backref" href="#id55" role="doc-backlink">max</a><a class="headerlink" href="#max" title="Permalink to this heading">¶</a></h2>
+<span id="id16"></span><h2><a class="toc-backref" href="#id58" role="doc-backlink">max</a><a class="headerlink" href="#max" title="Permalink to this heading">¶</a></h2>
 <dl class="py class">
 <dt class="sig sig-object py" id="cvxpy.atoms.max.max">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">cvxpy.atoms.max.</span></span><span class="sig-name descname"><span class="pre">max</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">axis</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">keepdims</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/atoms/max.html#max"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.atoms.max.max" title="Permalink to this definition">¶</a></dt>
@@ -436,7 +454,7 @@ positive entries.</p>
 
 </section>
 <section id="min">
-<span id="id17"></span><h2><a class="toc-backref" href="#id56" role="doc-backlink">min</a><a class="headerlink" href="#min" title="Permalink to this heading">¶</a></h2>
+<span id="id17"></span><h2><a class="toc-backref" href="#id59" role="doc-backlink">min</a><a class="headerlink" href="#min" title="Permalink to this heading">¶</a></h2>
 <dl class="py function">
 <dt class="sig sig-object py" id="cvxpy.atoms.min.min">
 <span class="sig-prename descclassname"><span class="pre">cvxpy.atoms.min.</span></span><span class="sig-name descname"><span class="pre">min</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">axis</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">keepdims</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../_modules/cvxpy/atoms/min.html#min"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.atoms.min.min" title="Permalink to this definition">¶</a></dt>
@@ -445,7 +463,7 @@ positive entries.</p>
 
 </section>
 <section id="mixed-norm">
-<span id="id18"></span><h2><a class="toc-backref" href="#id57" role="doc-backlink">mixed_norm</a><a class="headerlink" href="#mixed-norm" title="Permalink to this heading">¶</a></h2>
+<span id="id18"></span><h2><a class="toc-backref" href="#id60" role="doc-backlink">mixed_norm</a><a class="headerlink" href="#mixed-norm" title="Permalink to this heading">¶</a></h2>
 <dl class="py function">
 <dt class="sig sig-object py" id="cvxpy.atoms.mixed_norm.mixed_norm">
 <span class="sig-prename descclassname"><span class="pre">cvxpy.atoms.mixed_norm.</span></span><span class="sig-name descname"><span class="pre">mixed_norm</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">p</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">q</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/atoms/mixed_norm.html#mixed_norm"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.atoms.mixed_norm.mixed_norm" title="Permalink to this definition">¶</a></dt>
@@ -469,10 +487,10 @@ positive entries.</p>
 
 </section>
 <section id="norm">
-<span id="id19"></span><h2><a class="toc-backref" href="#id58" role="doc-backlink">norm</a><a class="headerlink" href="#norm" title="Permalink to this heading">¶</a></h2>
+<span id="id19"></span><h2><a class="toc-backref" href="#id61" role="doc-backlink">norm</a><a class="headerlink" href="#norm" title="Permalink to this heading">¶</a></h2>
 <dl class="py function">
 <dt class="sig sig-object py" id="cvxpy.atoms.norm.norm">
-<span class="sig-prename descclassname"><span class="pre">cvxpy.atoms.norm.</span></span><span class="sig-name descname"><span class="pre">norm</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">p</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">axis</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/atoms/norm.html#norm"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.atoms.norm.norm" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">cvxpy.atoms.norm.</span></span><span class="sig-name descname"><span class="pre">norm</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">p</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">axis</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">keepdims</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/atoms/norm.html#norm"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.atoms.norm.norm" title="Permalink to this definition">¶</a></dt>
 <dd><p>Wrapper on the different norm atoms.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -483,6 +501,7 @@ this function constructs a matrix norm.</p></li>
 ‘fro’ (for frobenius), ‘nuc’ (sum of singular values), np.inf or
 ‘inf’ (infinity norm).</p></li>
 <li><p><strong>axis</strong> (<em>The axis along which to apply the norm</em><em>, </em><em>if any.</em>) – </p></li>
+<li><p><strong>keepdims</strong> (<em>If this is set to True</em><em>, </em><em>the axes which are reduced are left</em>) – in the result as dimensions with size one.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
@@ -496,7 +515,7 @@ this function constructs a matrix norm.</p></li>
 
 </section>
 <section id="norm1">
-<span id="id20"></span><h2><a class="toc-backref" href="#id59" role="doc-backlink">norm1</a><a class="headerlink" href="#norm1" title="Permalink to this heading">¶</a></h2>
+<span id="id20"></span><h2><a class="toc-backref" href="#id62" role="doc-backlink">norm1</a><a class="headerlink" href="#norm1" title="Permalink to this heading">¶</a></h2>
 <dl class="py class">
 <dt class="sig sig-object py" id="cvxpy.atoms.norm1.norm1">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">cvxpy.atoms.norm1.</span></span><span class="sig-name descname"><span class="pre">norm1</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">expr</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">axis</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">keepdims</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/atoms/norm1.html#norm1"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.atoms.norm1.norm1" title="Permalink to this definition">¶</a></dt>
@@ -505,10 +524,28 @@ this function constructs a matrix norm.</p></li>
 
 </section>
 <section id="norm2">
-<span id="id21"></span><h2><a class="toc-backref" href="#id60" role="doc-backlink">norm2</a><a class="headerlink" href="#norm2" title="Permalink to this heading">¶</a></h2>
+<span id="id21"></span><h2><a class="toc-backref" href="#id63" role="doc-backlink">norm2</a><a class="headerlink" href="#norm2" title="Permalink to this heading">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="cvxpy.atoms.norm.norm2">
+<span class="sig-prename descclassname"><span class="pre">cvxpy.atoms.norm.</span></span><span class="sig-name descname"><span class="pre">norm2</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">axis</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/atoms/norm.html#norm2"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.atoms.norm.norm2" title="Permalink to this definition">¶</a></dt>
+<dd><p>The 2-norm of x.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>x</strong> (<a class="reference internal" href="cvxpy.expressions.html#cvxpy.expressions.expression.Expression" title="cvxpy.expressions.expression.Expression"><em>Expression</em></a><em> or </em><em>numeric constant</em>) – The value to take the norm of.  If <cite>x</cite> is 2D and <cite>axis</cite> is None,
+this function constructs a matrix norm.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>An Expression representing the norm.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="cvxpy.expressions.html#cvxpy.expressions.expression.Expression" title="cvxpy.expressions.expression.Expression">Expression</a></p>
+</dd>
+</dl>
+</dd></dl>
+
 </section>
 <section id="norm-inf">
-<span id="id22"></span><h2><a class="toc-backref" href="#id61" role="doc-backlink">norm_inf</a><a class="headerlink" href="#norm-inf" title="Permalink to this heading">¶</a></h2>
+<span id="id22"></span><h2><a class="toc-backref" href="#id64" role="doc-backlink">norm_inf</a><a class="headerlink" href="#norm-inf" title="Permalink to this heading">¶</a></h2>
 <dl class="py class">
 <dt class="sig sig-object py" id="cvxpy.atoms.norm_inf">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">cvxpy.atoms.</span></span><span class="sig-name descname"><span class="pre">norm_inf</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">expr</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">axis</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">keepdims</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/atoms/norm_inf.html#norm_inf"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.atoms.norm_inf" title="Permalink to this definition">¶</a></dt>
@@ -517,7 +554,7 @@ this function constructs a matrix norm.</p></li>
 
 </section>
 <section id="normnuc">
-<span id="norm-nuc"></span><h2><a class="toc-backref" href="#id62" role="doc-backlink">normNuc</a><a class="headerlink" href="#normnuc" title="Permalink to this heading">¶</a></h2>
+<span id="norm-nuc"></span><h2><a class="toc-backref" href="#id65" role="doc-backlink">normNuc</a><a class="headerlink" href="#normnuc" title="Permalink to this heading">¶</a></h2>
 <dl class="py class">
 <dt class="sig sig-object py" id="cvxpy.atoms.norm_nuc.normNuc">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">cvxpy.atoms.norm_nuc.</span></span><span class="sig-name descname"><span class="pre">normNuc</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">A</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/atoms/norm_nuc.html#normNuc"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.atoms.norm_nuc.normNuc" title="Permalink to this definition">¶</a></dt>
@@ -527,7 +564,7 @@ this function constructs a matrix norm.</p></li>
 
 </section>
 <section id="one-minus-pos">
-<span id="id23"></span><h2><a class="toc-backref" href="#id63" role="doc-backlink">one_minus_pos</a><a class="headerlink" href="#one-minus-pos" title="Permalink to this heading">¶</a></h2>
+<span id="id23"></span><h2><a class="toc-backref" href="#id66" role="doc-backlink">one_minus_pos</a><a class="headerlink" href="#one-minus-pos" title="Permalink to this heading">¶</a></h2>
 <dl class="py class">
 <dt class="sig sig-object py" id="cvxpy.atoms.one_minus_pos">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">cvxpy.atoms.</span></span><span class="sig-name descname"><span class="pre">one_minus_pos</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/atoms/one_minus_pos.html#one_minus_pos"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.atoms.one_minus_pos" title="Permalink to this definition">¶</a></dt>
@@ -543,10 +580,10 @@ this function constructs a matrix norm.</p></li>
 
 </section>
 <section id="perspective">
-<span id="id24"></span><h2><a class="toc-backref" href="#id64" role="doc-backlink">perspective</a><a class="headerlink" href="#perspective" title="Permalink to this heading">¶</a></h2>
+<span id="id24"></span><h2><a class="toc-backref" href="#id67" role="doc-backlink">perspective</a><a class="headerlink" href="#perspective" title="Permalink to this heading">¶</a></h2>
 <dl class="py class">
 <dt class="sig sig-object py" id="cvxpy.atoms.perspective.perspective">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">cvxpy.atoms.perspective.</span></span><span class="sig-name descname"><span class="pre">perspective</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">f</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="cvxpy.expressions.html#cvxpy.expressions.expression.Expression" title="cvxpy.expressions.expression.Expression"><span class="pre">Expression</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">s</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="cvxpy.expressions.html#cvxpy.expressions.variable.Variable" title="cvxpy.expressions.variable.Variable"><span class="pre">Variable</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/atoms/perspective.html#perspective"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.atoms.perspective.perspective" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">cvxpy.atoms.perspective.</span></span><span class="sig-name descname"><span class="pre">perspective</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">f</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="cvxpy.expressions.html#cvxpy.expressions.expression.Expression" title="cvxpy.expressions.expression.Expression"><span class="pre">Expression</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">s</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="cvxpy.expressions.html#cvxpy.expressions.variable.Variable" title="cvxpy.expressions.variable.Variable"><span class="pre">Variable</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">f_recession</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="cvxpy.expressions.html#cvxpy.expressions.expression.Expression" title="cvxpy.expressions.expression.Expression"><span class="pre">Expression</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/atoms/perspective.html#perspective"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.atoms.perspective.perspective" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="cvxpy.atoms.html#cvxpy.atoms.atom.Atom" title="cvxpy.atoms.atom.Atom"><code class="xref py py-class docutils literal notranslate"><span class="pre">Atom</span></code></a></p>
 <p>Implements the perspective transform of a convex or concave scalar
 expression. Uses the fact that given a cone form for the epigraph of <span class="math notranslate nohighlight">\(f\)</span> via</p>
@@ -565,7 +602,7 @@ a <cite>Callable</cite>, so you cannot create compositions such as <span class="
 
 </section>
 <section id="pf-eigenvalue">
-<span id="id25"></span><h2><a class="toc-backref" href="#id65" role="doc-backlink">pf_eigenvalue</a><a class="headerlink" href="#pf-eigenvalue" title="Permalink to this heading">¶</a></h2>
+<span id="id25"></span><h2><a class="toc-backref" href="#id68" role="doc-backlink">pf_eigenvalue</a><a class="headerlink" href="#pf-eigenvalue" title="Permalink to this heading">¶</a></h2>
 <dl class="py class">
 <dt class="sig sig-object py" id="cvxpy.atoms.pf_eigenvalue.pf_eigenvalue">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">cvxpy.atoms.pf_eigenvalue.</span></span><span class="sig-name descname"><span class="pre">pf_eigenvalue</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/atoms/pf_eigenvalue.html#pf_eigenvalue"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.atoms.pf_eigenvalue.pf_eigenvalue" title="Permalink to this definition">¶</a></dt>
@@ -585,7 +622,7 @@ which is guaranteed to be positive.</p>
 
 </section>
 <section id="pnorm">
-<span id="pnorm-func"></span><h2><a class="toc-backref" href="#id66" role="doc-backlink">pnorm</a><a class="headerlink" href="#pnorm" title="Permalink to this heading">¶</a></h2>
+<span id="pnorm-func"></span><h2><a class="toc-backref" href="#id69" role="doc-backlink">pnorm</a><a class="headerlink" href="#pnorm" title="Permalink to this heading">¶</a></h2>
 <dl class="py function">
 <dt class="sig sig-object py" id="cvxpy.atoms.pnorm.pnorm">
 <span class="sig-prename descclassname"><span class="pre">cvxpy.atoms.pnorm.</span></span><span class="sig-name descname"><span class="pre">pnorm</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">p</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">axis</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">keepdims</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_denom</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1024</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/atoms/pnorm.html#pnorm"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.atoms.pnorm.pnorm" title="Permalink to this definition">¶</a></dt>
@@ -606,7 +643,7 @@ construct an infinity norm.</p>
 
 </section>
 <section id="id26">
-<span id="id27"></span><h2><a class="toc-backref" href="#id67" role="doc-backlink">Pnorm</a><a class="headerlink" href="#id26" title="Permalink to this heading">¶</a></h2>
+<span id="id27"></span><h2><a class="toc-backref" href="#id70" role="doc-backlink">Pnorm</a><a class="headerlink" href="#id26" title="Permalink to this heading">¶</a></h2>
 <dl class="py class">
 <dt class="sig sig-object py" id="cvxpy.atoms.pnorm.Pnorm">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">cvxpy.atoms.pnorm.</span></span><span class="sig-name descname"><span class="pre">Pnorm</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">p</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">axis</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">keepdims</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_denom</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1024</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/atoms/pnorm.html#Pnorm"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.atoms.pnorm.Pnorm" title="Permalink to this definition">¶</a></dt>
@@ -671,8 +708,18 @@ for <code class="docutils literal notranslate"><span class="pre">p</span></code>
 </dd></dl>
 
 </section>
+<section id="ptp">
+<span id="id28"></span><h2><a class="toc-backref" href="#id71" role="doc-backlink">ptp</a><a class="headerlink" href="#ptp" title="Permalink to this heading">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="cvxpy.atoms.ptp.ptp">
+<span class="sig-prename descclassname"><span class="pre">cvxpy.atoms.ptp.</span></span><span class="sig-name descname"><span class="pre">ptp</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">axis</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">keepdims</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/atoms/ptp.html#ptp"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.atoms.ptp.ptp" title="Permalink to this definition">¶</a></dt>
+<dd><p>Range of values (maximum - minimum) along an axis.</p>
+<p>The name of the function comes from the acronym for ‘peak to peak’.</p>
+</dd></dl>
+
+</section>
 <section id="prod">
-<span id="id28"></span><h2><a class="toc-backref" href="#id68" role="doc-backlink">prod</a><a class="headerlink" href="#prod" title="Permalink to this heading">¶</a></h2>
+<span id="id29"></span><h2><a class="toc-backref" href="#id72" role="doc-backlink">prod</a><a class="headerlink" href="#prod" title="Permalink to this heading">¶</a></h2>
 <dl class="py function">
 <dt class="sig sig-object py" id="cvxpy.atoms.prod.prod">
 <span class="sig-prename descclassname"><span class="pre">cvxpy.atoms.prod.</span></span><span class="sig-name descname"><span class="pre">prod</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">expr</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">axis</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">keepdims</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Prod</span></span></span><a class="reference internal" href="../_modules/cvxpy/atoms/prod.html#prod"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.atoms.prod.prod" title="Permalink to this definition">¶</a></dt>
@@ -694,7 +741,7 @@ is a list.</p></li>
 
 </section>
 <section id="quad-form">
-<span id="id29"></span><h2><a class="toc-backref" href="#id69" role="doc-backlink">quad_form</a><a class="headerlink" href="#quad-form" title="Permalink to this heading">¶</a></h2>
+<span id="id30"></span><h2><a class="toc-backref" href="#id73" role="doc-backlink">quad_form</a><a class="headerlink" href="#quad-form" title="Permalink to this heading">¶</a></h2>
 <dl class="py function">
 <dt class="sig sig-object py" id="cvxpy.atoms.quad_form.quad_form">
 <span class="sig-prename descclassname"><span class="pre">cvxpy.atoms.quad_form.</span></span><span class="sig-name descname"><span class="pre">quad_form</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">P</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">assume_PSD</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/atoms/quad_form.html#quad_form"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.atoms.quad_form.quad_form" title="Permalink to this definition">¶</a></dt>
@@ -712,7 +759,7 @@ is a list.</p></li>
 
 </section>
 <section id="quad-over-lin">
-<span id="id30"></span><h2><a class="toc-backref" href="#id70" role="doc-backlink">quad_over_lin</a><a class="headerlink" href="#quad-over-lin" title="Permalink to this heading">¶</a></h2>
+<span id="id31"></span><h2><a class="toc-backref" href="#id74" role="doc-backlink">quad_over_lin</a><a class="headerlink" href="#quad-over-lin" title="Permalink to this heading">¶</a></h2>
 <dl class="py class">
 <dt class="sig sig-object py" id="cvxpy.atoms.quad_over_lin.quad_over_lin">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">cvxpy.atoms.quad_over_lin.</span></span><span class="sig-name descname"><span class="pre">quad_over_lin</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/atoms/quad_over_lin.html#quad_over_lin"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.atoms.quad_over_lin.quad_over_lin" title="Permalink to this definition">¶</a></dt>
@@ -722,7 +769,7 @@ is a list.</p></li>
 
 </section>
 <section id="resolvent">
-<span id="id31"></span><h2><a class="toc-backref" href="#id71" role="doc-backlink">resolvent</a><a class="headerlink" href="#resolvent" title="Permalink to this heading">¶</a></h2>
+<span id="id32"></span><h2><a class="toc-backref" href="#id75" role="doc-backlink">resolvent</a><a class="headerlink" href="#resolvent" title="Permalink to this heading">¶</a></h2>
 <dl class="py function">
 <dt class="sig sig-object py" id="cvxpy.atoms.eye_minus_inv.resolvent">
 <span class="sig-prename descclassname"><span class="pre">cvxpy.atoms.eye_minus_inv.</span></span><span class="sig-name descname"><span class="pre">resolvent</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">s</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/atoms/eye_minus_inv.html#resolvent"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.atoms.eye_minus_inv.resolvent" title="Permalink to this definition">¶</a></dt>
@@ -746,7 +793,7 @@ is at most <span class="math notranslate nohighlight">\(1\)</span>.</p>
 
 </section>
 <section id="sigma-max">
-<span id="id32"></span><h2><a class="toc-backref" href="#id72" role="doc-backlink">sigma_max</a><a class="headerlink" href="#sigma-max" title="Permalink to this heading">¶</a></h2>
+<span id="id33"></span><h2><a class="toc-backref" href="#id76" role="doc-backlink">sigma_max</a><a class="headerlink" href="#sigma-max" title="Permalink to this heading">¶</a></h2>
 <dl class="py class">
 <dt class="sig sig-object py" id="cvxpy.atoms.sigma_max.sigma_max">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">cvxpy.atoms.sigma_max.</span></span><span class="sig-name descname"><span class="pre">sigma_max</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">A</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/atoms/sigma_max.html#sigma_max"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.atoms.sigma_max.sigma_max" title="Permalink to this definition">¶</a></dt>
@@ -755,8 +802,18 @@ is at most <span class="math notranslate nohighlight">\(1\)</span>.</p>
 </dd></dl>
 
 </section>
+<section id="std">
+<span id="id34"></span><h2><a class="toc-backref" href="#id77" role="doc-backlink">std</a><a class="headerlink" href="#std" title="Permalink to this heading">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="cvxpy.atoms.stats.std">
+<span class="sig-prename descclassname"><span class="pre">cvxpy.atoms.stats.</span></span><span class="sig-name descname"><span class="pre">std</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">axis</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">keepdims</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ddof</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/atoms/stats.html#std"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.atoms.stats.std" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the standard deviation of x.</p>
+<p><cite>ddof</cite> is the quantity to use in the Bessel correction.</p>
+</dd></dl>
+
+</section>
 <section id="sum-largest">
-<span id="id33"></span><h2><a class="toc-backref" href="#id73" role="doc-backlink">sum_largest</a><a class="headerlink" href="#sum-largest" title="Permalink to this heading">¶</a></h2>
+<span id="id35"></span><h2><a class="toc-backref" href="#id78" role="doc-backlink">sum_largest</a><a class="headerlink" href="#sum-largest" title="Permalink to this heading">¶</a></h2>
 <dl class="py class">
 <dt class="sig sig-object py" id="cvxpy.atoms.sum_largest.sum_largest">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">cvxpy.atoms.sum_largest.</span></span><span class="sig-name descname"><span class="pre">sum_largest</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">k</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/atoms/sum_largest.html#sum_largest"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.atoms.sum_largest.sum_largest" title="Permalink to this definition">¶</a></dt>
@@ -766,7 +823,7 @@ is at most <span class="math notranslate nohighlight">\(1\)</span>.</p>
 
 </section>
 <section id="sum-smallest">
-<span id="id34"></span><h2><a class="toc-backref" href="#id74" role="doc-backlink">sum_smallest</a><a class="headerlink" href="#sum-smallest" title="Permalink to this heading">¶</a></h2>
+<span id="id36"></span><h2><a class="toc-backref" href="#id79" role="doc-backlink">sum_smallest</a><a class="headerlink" href="#sum-smallest" title="Permalink to this heading">¶</a></h2>
 <dl class="py function">
 <dt class="sig sig-object py" id="cvxpy.atoms.sum_smallest.sum_smallest">
 <span class="sig-prename descclassname"><span class="pre">cvxpy.atoms.sum_smallest.</span></span><span class="sig-name descname"><span class="pre">sum_smallest</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">k</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/atoms/sum_smallest.html#sum_smallest"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.atoms.sum_smallest.sum_smallest" title="Permalink to this definition">¶</a></dt>
@@ -775,7 +832,7 @@ is at most <span class="math notranslate nohighlight">\(1\)</span>.</p>
 
 </section>
 <section id="sum-squares">
-<span id="id35"></span><h2><a class="toc-backref" href="#id75" role="doc-backlink">sum_squares</a><a class="headerlink" href="#sum-squares" title="Permalink to this heading">¶</a></h2>
+<span id="id37"></span><h2><a class="toc-backref" href="#id80" role="doc-backlink">sum_squares</a><a class="headerlink" href="#sum-squares" title="Permalink to this heading">¶</a></h2>
 <dl class="py function">
 <dt class="sig sig-object py" id="cvxpy.atoms.sum_squares.sum_squares">
 <span class="sig-prename descclassname"><span class="pre">cvxpy.atoms.sum_squares.</span></span><span class="sig-name descname"><span class="pre">sum_squares</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">expr</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/atoms/sum_squares.html#sum_squares"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.atoms.sum_squares.sum_squares" title="Permalink to this definition">¶</a></dt>
@@ -795,7 +852,7 @@ is at most <span class="math notranslate nohighlight">\(1\)</span>.</p>
 
 </section>
 <section id="suppfuncatom">
-<span id="id36"></span><h2><a class="toc-backref" href="#id76" role="doc-backlink">SuppFuncAtom</a><a class="headerlink" href="#suppfuncatom" title="Permalink to this heading">¶</a></h2>
+<span id="id38"></span><h2><a class="toc-backref" href="#id81" role="doc-backlink">SuppFuncAtom</a><a class="headerlink" href="#suppfuncatom" title="Permalink to this heading">¶</a></h2>
 <dl class="py class">
 <dt class="sig sig-object py" id="cvxpy.atoms.suppfunc.SuppFuncAtom">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">cvxpy.atoms.suppfunc.</span></span><span class="sig-name descname"><span class="pre">SuppFuncAtom</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parent</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/atoms/suppfunc.html#SuppFuncAtom"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.atoms.suppfunc.SuppFuncAtom" title="Permalink to this definition">¶</a></dt>
@@ -803,7 +860,7 @@ is at most <span class="math notranslate nohighlight">\(1\)</span>.</p>
 
 </section>
 <section id="tr-inv">
-<span id="id37"></span><h2><a class="toc-backref" href="#id77" role="doc-backlink">tr_inv</a><a class="headerlink" href="#tr-inv" title="Permalink to this heading">¶</a></h2>
+<span id="id39"></span><h2><a class="toc-backref" href="#id82" role="doc-backlink">tr_inv</a><a class="headerlink" href="#tr-inv" title="Permalink to this heading">¶</a></h2>
 <dl class="py function">
 <dt class="sig sig-object py" id="cvxpy.atoms.tr_inv.tr_inv">
 <span class="sig-prename descclassname"><span class="pre">cvxpy.atoms.tr_inv.</span></span><span class="sig-name descname"><span class="pre">tr_inv</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../_modules/cvxpy/atoms/tr_inv.html#tr_inv"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.atoms.tr_inv.tr_inv" title="Permalink to this definition">¶</a></dt>
@@ -813,7 +870,7 @@ where <span class="math notranslate nohighlight">\(X\)</span> is positive defini
 
 </section>
 <section id="tv">
-<span id="id38"></span><h2><a class="toc-backref" href="#id78" role="doc-backlink">tv</a><a class="headerlink" href="#tv" title="Permalink to this heading">¶</a></h2>
+<span id="id40"></span><h2><a class="toc-backref" href="#id83" role="doc-backlink">tv</a><a class="headerlink" href="#tv" title="Permalink to this heading">¶</a></h2>
 <dl class="py function">
 <dt class="sig sig-object py" id="cvxpy.atoms.total_variation.tv">
 <span class="sig-prename descclassname"><span class="pre">cvxpy.atoms.total_variation.</span></span><span class="sig-name descname"><span class="pre">tv</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/atoms/total_variation.html#tv"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.atoms.total_variation.tv" title="Permalink to this definition">¶</a></dt>
@@ -837,8 +894,18 @@ L2 norm of discrete gradients for matrices.</p>
 </dd></dl>
 
 </section>
+<section id="var">
+<span id="id41"></span><h2><a class="toc-backref" href="#id84" role="doc-backlink">var</a><a class="headerlink" href="#var" title="Permalink to this heading">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="cvxpy.atoms.stats.var">
+<span class="sig-prename descclassname"><span class="pre">cvxpy.atoms.stats.</span></span><span class="sig-name descname"><span class="pre">var</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">axis</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">keepdims</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ddof</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/atoms/stats.html#var"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.atoms.stats.var" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the variance of x.</p>
+<p><cite>ddof</cite> is the quantity to use in the Bessel correction.</p>
+</dd></dl>
+
+</section>
 <section id="von-neumann-entr">
-<span id="id39"></span><h2><a class="toc-backref" href="#id79" role="doc-backlink">von_neumann_entr</a><a class="headerlink" href="#von-neumann-entr" title="Permalink to this heading">¶</a></h2>
+<span id="id42"></span><h2><a class="toc-backref" href="#id85" role="doc-backlink">von_neumann_entr</a><a class="headerlink" href="#von-neumann-entr" title="Permalink to this heading">¶</a></h2>
 <dl class="py class">
 <dt class="sig sig-object py" id="cvxpy.von_neumann_entr">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">cvxpy.</span></span><span class="sig-name descname"><span class="pre">von_neumann_entr</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">quad_approx</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">()</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/atoms/von_neumann_entr.html#von_neumann_entr"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.von_neumann_entr" title="Permalink to this definition">¶</a></dt>
@@ -916,12 +983,15 @@ as is expected in applications from quantum mechanics.</p>
 <li class="toctree-l5"><a class="reference internal" href="#cvxpy.atoms.cummax.cummax"><code class="docutils literal notranslate"><span class="pre">cummax</span></code></a></li>
 </ul>
 </li>
-<li class="toctree-l4"><a class="reference internal" href="#diff-pos">diff_pos</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#diff-pos">diff_pos</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="#cvxpy.atoms.one_minus_pos.diff_pos"><code class="docutils literal notranslate"><span class="pre">diff_pos()</span></code></a></li>
+</ul>
+</li>
 <li class="toctree-l4"><a class="reference internal" href="#dotsort">dotsort</a><ul>
 <li class="toctree-l5"><a class="reference internal" href="#cvxpy.atoms.dotsort.dotsort"><code class="docutils literal notranslate"><span class="pre">dotsort</span></code></a></li>
 </ul>
 </li>
-<li class="toctree-l4"><a class="reference internal" href="#id4">eye_minus_inv</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#eye-minus-inv">eye_minus_inv</a><ul>
 <li class="toctree-l5"><a class="reference internal" href="#cvxpy.atoms.eye_minus_inv.eye_minus_inv"><code class="docutils literal notranslate"><span class="pre">eye_minus_inv</span></code></a></li>
 </ul>
 </li>
@@ -993,7 +1063,10 @@ as is expected in applications from quantum mechanics.</p>
 <li class="toctree-l5"><a class="reference internal" href="#cvxpy.atoms.norm1.norm1"><code class="docutils literal notranslate"><span class="pre">norm1</span></code></a></li>
 </ul>
 </li>
-<li class="toctree-l4"><a class="reference internal" href="#norm2">norm2</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#norm2">norm2</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="#cvxpy.atoms.norm.norm2"><code class="docutils literal notranslate"><span class="pre">norm2()</span></code></a></li>
+</ul>
+</li>
 <li class="toctree-l4"><a class="reference internal" href="#norm-inf">norm_inf</a><ul>
 <li class="toctree-l5"><a class="reference internal" href="#cvxpy.atoms.norm_inf"><code class="docutils literal notranslate"><span class="pre">norm_inf</span></code></a></li>
 </ul>
@@ -1022,6 +1095,10 @@ as is expected in applications from quantum mechanics.</p>
 <li class="toctree-l5"><a class="reference internal" href="#cvxpy.atoms.pnorm.Pnorm"><code class="docutils literal notranslate"><span class="pre">Pnorm</span></code></a></li>
 </ul>
 </li>
+<li class="toctree-l4"><a class="reference internal" href="#ptp">ptp</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="#cvxpy.atoms.ptp.ptp"><code class="docutils literal notranslate"><span class="pre">ptp()</span></code></a></li>
+</ul>
+</li>
 <li class="toctree-l4"><a class="reference internal" href="#prod">prod</a><ul>
 <li class="toctree-l5"><a class="reference internal" href="#cvxpy.atoms.prod.prod"><code class="docutils literal notranslate"><span class="pre">prod()</span></code></a></li>
 </ul>
@@ -1040,6 +1117,10 @@ as is expected in applications from quantum mechanics.</p>
 </li>
 <li class="toctree-l4"><a class="reference internal" href="#sigma-max">sigma_max</a><ul>
 <li class="toctree-l5"><a class="reference internal" href="#cvxpy.atoms.sigma_max.sigma_max"><code class="docutils literal notranslate"><span class="pre">sigma_max</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="#std">std</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="#cvxpy.atoms.stats.std"><code class="docutils literal notranslate"><span class="pre">std()</span></code></a></li>
 </ul>
 </li>
 <li class="toctree-l4"><a class="reference internal" href="#sum-largest">sum_largest</a><ul>
@@ -1064,6 +1145,10 @@ as is expected in applications from quantum mechanics.</p>
 </li>
 <li class="toctree-l4"><a class="reference internal" href="#tv">tv</a><ul>
 <li class="toctree-l5"><a class="reference internal" href="#cvxpy.atoms.total_variation.tv"><code class="docutils literal notranslate"><span class="pre">tv()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="#var">var</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="#cvxpy.atoms.stats.var"><code class="docutils literal notranslate"><span class="pre">var()</span></code></a></li>
 </ul>
 </li>
 <li class="toctree-l4"><a class="reference internal" href="#von-neumann-entr">von_neumann_entr</a><ul>
@@ -1143,7 +1228,7 @@ as is expected in applications from quantum mechanics.</p>
       &copy;The CVXPY authors.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 7.0.1</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 7.1.2</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.13</a>
       
       |

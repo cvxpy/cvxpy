@@ -5,14 +5,14 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Constraints &#8212; CVXPY 1.3 documentation</title>
-    <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
-    <link rel="stylesheet" type="text/css" href="../_static/cvxpy_alabaster.css" />
-    <script src="../_static/jquery.js"></script>
-    <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
-    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
-    <script src="../_static/doctools.js"></script>
-    <script src="../_static/sphinx_highlight.js"></script>
+    <title>Constraints &#8212; CVXPY 1.4 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="../_static/cvxpy_alabaster.css?v=6c13f287" />
+    <script src="../_static/jquery.js?v=5d32c60e"></script>
+    <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js?v=b308ce55"></script>
+    <script src="../_static/doctools.js?v=888ff710"></script>
+    <script src="../_static/sphinx_highlight.js?v=4825356b"></script>
     <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
@@ -148,14 +148,15 @@ constraint:</p>
 <dt class="sig sig-object py" id="cvxpy.constraints.nonpos.NonPos">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">cvxpy.constraints.nonpos.</span></span><span class="sig-name descname"><span class="pre">NonPos</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">expr</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">constr_id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/constraints/nonpos.html#NonPos"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.constraints.nonpos.NonPos" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#cvxpy.constraints.constraint.Constraint" title="cvxpy.constraints.constraint.Constraint"><code class="xref py py-class docutils literal notranslate"><span class="pre">Constraint</span></code></a></p>
-<p>A constraint of the form <span class="math notranslate nohighlight">\(x \leq 0\)</span>.</p>
-<p>The preferred way of creating a <code class="docutils literal notranslate"><span class="pre">NonPos</span></code> constraint is through
-operator overloading. To constrain an expression <code class="docutils literal notranslate"><span class="pre">x</span></code> to be non-positive,
-simply write <code class="docutils literal notranslate"><span class="pre">x</span> <span class="pre">&lt;=</span> <span class="pre">0</span></code>; to constrain <code class="docutils literal notranslate"><span class="pre">x</span></code> to be non-negative, write
-<code class="docutils literal notranslate"><span class="pre">x</span> <span class="pre">&gt;=</span> <span class="pre">0</span></code>. The former creates a <code class="docutils literal notranslate"><span class="pre">NonPos</span></code> constraint with <code class="docutils literal notranslate"><span class="pre">x</span></code>
-as its argument, while the latter creates one with <code class="docutils literal notranslate"><span class="pre">-x</span></code> as its argument.
-Strict inequalities are not supported, as they do not make sense in a
-numerical setting.</p>
+<p>An inequality constraint of the form <span class="math notranslate nohighlight">\(x \leq 0\)</span>.</p>
+<p>The preferred way of creating an inequality constraint is through
+operator overloading. To constrain an expression <code class="docutils literal notranslate"><span class="pre">x</span></code> to be nonpositive,
+write <code class="docutils literal notranslate"><span class="pre">x</span> <span class="pre">&lt;=</span> <span class="pre">0</span></code>; to constrain <code class="docutils literal notranslate"><span class="pre">x</span></code> to be nonnegative, write <code class="docutils literal notranslate"><span class="pre">x</span> <span class="pre">&gt;=</span> <span class="pre">0</span></code>.</p>
+<p>Dual variables associated with this constraint are nonnegative, rather
+than nonpositive. As such, dual variables to this constraint belong to the
+polar cone rather than the dual cone.</p>
+<p>Note: strict inequalities are not supported, as they do not make sense in
+a numerical setting.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -178,7 +179,7 @@ numerical setting.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="cvxpy.constraints.nonpos.NonPos.is_dcp">
 <span class="sig-name descname"><span class="pre">is_dcp</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dpp</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="reference internal" href="../_modules/cvxpy/constraints/nonpos.html#NonPos.is_dcp"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.constraints.nonpos.NonPos.is_dcp" title="Permalink to this definition">¶</a></dt>
-<dd><p>A non-positive constraint is DCP if its argument is convex.</p>
+<dd><p>A NonPos constraint is DCP if its argument is convex.</p>
 </dd></dl>
 
 <dl class="py property">
@@ -325,7 +326,7 @@ constraint:</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="cvxpy.constraints.psd.PSD">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">cvxpy.constraints.psd.</span></span><span class="sig-name descname"><span class="pre">PSD</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">expr</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">constr_id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/constraints/psd.html#PSD"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.constraints.psd.PSD" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#cvxpy.constraints.constraint.Constraint" title="cvxpy.constraints.constraint.Constraint"><code class="xref py py-class docutils literal notranslate"><span class="pre">Constraint</span></code></a></p>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Cone</span></code></p>
 <p>A constraint of the form <span class="math notranslate nohighlight">\(\frac{1}{2}(X + X^T) \succcurlyeq_{S_n^+} 0\)</span></p>
 <p>Applying a <code class="docutils literal notranslate"><span class="pre">PSD</span></code> constraint to a two-dimensional expression <code class="docutils literal notranslate"><span class="pre">X</span></code>
 constrains its symmetric part to be positive semidefinite: i.e.,
@@ -407,7 +408,7 @@ constraint:</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="cvxpy.constraints.second_order.SOC">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">cvxpy.constraints.second_order.</span></span><span class="sig-name descname"><span class="pre">SOC</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">t</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">X</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">axis</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">constr_id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/constraints/second_order.html#SOC"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.constraints.second_order.SOC" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#cvxpy.constraints.constraint.Constraint" title="cvxpy.constraints.constraint.Constraint"><code class="xref py py-class docutils literal notranslate"><span class="pre">Constraint</span></code></a></p>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Cone</span></code></p>
 <p>A second-order cone constraint for each row/column.</p>
 <p>Assumes <code class="docutils literal notranslate"><span class="pre">t</span></code> is a vector the same length as <code class="docutils literal notranslate"><span class="pre">X</span></code>’s columns (rows) for
 <code class="docutils literal notranslate"><span class="pre">axis</span> <span class="pre">==</span> <span class="pre">0</span></code> (<code class="docutils literal notranslate"><span class="pre">1</span></code>).</p>
@@ -490,7 +491,7 @@ constraint:</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="cvxpy.constraints.exponential.ExpCone">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">cvxpy.constraints.exponential.</span></span><span class="sig-name descname"><span class="pre">ExpCone</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Expression</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Expression</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">z</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Expression</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">constr_id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/constraints/exponential.html#ExpCone"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.constraints.exponential.ExpCone" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#cvxpy.constraints.constraint.Constraint" title="cvxpy.constraints.constraint.Constraint"><code class="xref py py-class docutils literal notranslate"><span class="pre">Constraint</span></code></a></p>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Cone</span></code></p>
 <p>A reformulated exponential cone constraint.</p>
 <p>Operates elementwise on <span class="math notranslate nohighlight">\(x, y, z\)</span>.</p>
 <p>Original cone:</p>
@@ -571,7 +572,7 @@ constraint:</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="cvxpy.constraints.exponential.RelEntrConeQuad">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">cvxpy.constraints.exponential.</span></span><span class="sig-name descname"><span class="pre">RelEntrConeQuad</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Expression</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Expression</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">z</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Expression</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">m</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">k</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">constr_id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/constraints/exponential.html#RelEntrConeQuad"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.constraints.exponential.RelEntrConeQuad" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#cvxpy.constraints.constraint.Constraint" title="cvxpy.constraints.constraint.Constraint"><code class="xref py py-class docutils literal notranslate"><span class="pre">Constraint</span></code></a></p>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Cone</span></code></p>
 <p>An approximate construction of the scalar relative entropy cone</p>
 <p>Definition:</p>
 <div class="math notranslate nohighlight">
@@ -628,7 +629,7 @@ otherwise.</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="cvxpy.constraints.power.PowCone3D">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">cvxpy.constraints.power.</span></span><span class="sig-name descname"><span class="pre">PowCone3D</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">z</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alpha</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">constr_id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/constraints/power.html#PowCone3D"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.constraints.power.PowCone3D" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#cvxpy.constraints.constraint.Constraint" title="cvxpy.constraints.constraint.Constraint"><code class="xref py py-class docutils literal notranslate"><span class="pre">Constraint</span></code></a></p>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Cone</span></code></p>
 <p>An object representing a collection of 3D power cone constraints</p>
 <blockquote>
 <div><p>x[i]**alpha[i] * y[i]**(1-alpha[i]) &gt;= <a href="#id6"><span class="problematic" id="id7">|z[i]|</span></a>  for all i
@@ -710,7 +711,7 @@ constraint:</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="cvxpy.constraints.power.PowConeND">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">cvxpy.constraints.power.</span></span><span class="sig-name descname"><span class="pre">PowConeND</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">W</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">z</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alpha</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">axis</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">constr_id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/constraints/power.html#PowConeND"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.constraints.power.PowConeND" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#cvxpy.constraints.constraint.Constraint" title="cvxpy.constraints.constraint.Constraint"><code class="xref py py-class docutils literal notranslate"><span class="pre">Constraint</span></code></a></p>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Cone</span></code></p>
 <p>Represents a collection of N-dimensional power cone constraints
 that is <em>mathematically</em> equivalent to the following code
 snippet (which makes incorrect use of numpy functions on cvxpy
@@ -884,7 +885,7 @@ constraint:</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="cvxpy.constraints.exponential.OpRelEntrConeQuad">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">cvxpy.constraints.exponential.</span></span><span class="sig-name descname"><span class="pre">OpRelEntrConeQuad</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Expression</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Y</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Expression</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Z</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Expression</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">m</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">k</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">constr_id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/constraints/exponential.html#OpRelEntrConeQuad"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.constraints.exponential.OpRelEntrConeQuad" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#cvxpy.constraints.constraint.Constraint" title="cvxpy.constraints.constraint.Constraint"><code class="xref py py-class docutils literal notranslate"><span class="pre">Constraint</span></code></a></p>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Cone</span></code></p>
 <p>An approximate construction of the operator relative entropy cone</p>
 <p>Definition:</p>
 <div class="math notranslate nohighlight">
@@ -1152,7 +1153,7 @@ otherwise.</p>
       &copy;The CVXPY authors.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 7.0.1</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 7.1.2</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.13</a>
       
       |

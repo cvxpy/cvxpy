@@ -4,14 +4,14 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>cvxpy.constraints.exponential &#8212; CVXPY 1.3 documentation</title>
-    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css" />
-    <link rel="stylesheet" type="text/css" href="../../../_static/cvxpy_alabaster.css" />
-    <script src="../../../_static/jquery.js"></script>
-    <script src="../../../_static/_sphinx_javascript_frameworks_compat.js"></script>
-    <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
-    <script src="../../../_static/doctools.js"></script>
-    <script src="../../../_static/sphinx_highlight.js"></script>
+    <title>cvxpy.constraints.exponential &#8212; CVXPY 1.4 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/cvxpy_alabaster.css?v=6c13f287" />
+    <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+    <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+    <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js?v=b308ce55"></script>
+    <script src="../../../_static/doctools.js?v=888ff710"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=4825356b"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" />
    
@@ -53,14 +53,14 @@
 
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 
-<span class="kn">from</span> <span class="nn">cvxpy.constraints.constraint</span> <span class="kn">import</span> <span class="n">Constraint</span>
+<span class="kn">from</span> <span class="nn">cvxpy.constraints.cones</span> <span class="kn">import</span> <span class="n">Cone</span>
 <span class="kn">from</span> <span class="nn">cvxpy.expressions</span> <span class="kn">import</span> <span class="n">cvxtypes</span>
 <span class="kn">from</span> <span class="nn">cvxpy.utilities</span> <span class="kn">import</span> <span class="n">scopes</span>
 
 <span class="n">Expression</span> <span class="o">=</span> <span class="n">TypeVar</span><span class="p">(</span><span class="s1">&#39;Expression&#39;</span><span class="p">)</span>
 
 
-<div class="viewcode-block" id="ExpCone"><a class="viewcode-back" href="../../../api_reference/cvxpy.constraints.html#cvxpy.constraints.exponential.ExpCone">[docs]</a><span class="k">class</span> <span class="nc">ExpCone</span><span class="p">(</span><span class="n">Constraint</span><span class="p">):</span>
+<div class="viewcode-block" id="ExpCone"><a class="viewcode-back" href="../../../api_reference/cvxpy.constraints.html#cvxpy.constraints.exponential.ExpCone">[docs]</a><span class="k">class</span> <span class="nc">ExpCone</span><span class="p">(</span><span class="n">Cone</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;A reformulated exponential cone constraint.</span>
 
 <span class="sd">    Operates elementwise on :math:`x, y, z`.</span>
@@ -177,10 +177,25 @@
         <span class="n">dv2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">value</span><span class="p">[:,</span> <span class="mi">2</span><span class="p">],</span> <span class="n">newshape</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">z</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">dual_variables</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">save_value</span><span class="p">(</span><span class="n">dv0</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">dual_variables</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">save_value</span><span class="p">(</span><span class="n">dv1</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">dual_variables</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">save_value</span><span class="p">(</span><span class="n">dv2</span><span class="p">)</span></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dual_variables</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">save_value</span><span class="p">(</span><span class="n">dv2</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_dual_cone</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Implements the dual cone of the exponential cone</span>
+<span class="sd">        See Pg 85 of the MOSEK modelling cookbook for more information&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">args</span> <span class="o">==</span> <span class="p">():</span>
+            <span class="k">return</span> <span class="n">ExpCone</span><span class="p">(</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">dual_variables</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">dual_variables</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+                           <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">dual_variables</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># some assertions for verifying `args`</span>
+            <span class="n">args_shapes</span> <span class="o">=</span> <span class="p">[</span><span class="n">arg</span><span class="o">.</span><span class="n">shape</span> <span class="k">for</span> <span class="n">arg</span> <span class="ow">in</span> <span class="n">args</span><span class="p">]</span>
+            <span class="n">instance_args_shapes</span> <span class="o">=</span> <span class="p">[</span><span class="n">arg</span><span class="o">.</span><span class="n">shape</span> <span class="k">for</span> <span class="n">arg</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">]</span>
+            <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">args</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">)</span>
+            <span class="k">assert</span> <span class="n">args_shapes</span> <span class="o">==</span> <span class="n">instance_args_shapes</span>
+            <span class="k">return</span> <span class="n">ExpCone</span><span class="p">(</span><span class="o">-</span><span class="n">args</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="o">-</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+                           <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span><span class="o">*</span><span class="n">args</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span></div>
 
 
-<div class="viewcode-block" id="RelEntrConeQuad"><a class="viewcode-back" href="../../../api_reference/cvxpy.constraints.html#cvxpy.constraints.exponential.RelEntrConeQuad">[docs]</a><span class="k">class</span> <span class="nc">RelEntrConeQuad</span><span class="p">(</span><span class="n">Constraint</span><span class="p">):</span>
+<div class="viewcode-block" id="RelEntrConeQuad"><a class="viewcode-back" href="../../../api_reference/cvxpy.constraints.html#cvxpy.constraints.exponential.RelEntrConeQuad">[docs]</a><span class="k">class</span> <span class="nc">RelEntrConeQuad</span><span class="p">(</span><span class="n">Cone</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;An approximate construction of the scalar relative entropy cone</span>
 
 <span class="sd">    Definition:</span>
@@ -298,7 +313,7 @@
         <span class="k">pass</span></div>
 
 
-<div class="viewcode-block" id="OpRelEntrConeQuad"><a class="viewcode-back" href="../../../api_reference/cvxpy.constraints.html#cvxpy.constraints.exponential.OpRelEntrConeQuad">[docs]</a><span class="k">class</span> <span class="nc">OpRelEntrConeQuad</span><span class="p">(</span><span class="n">Constraint</span><span class="p">):</span>
+<div class="viewcode-block" id="OpRelEntrConeQuad"><a class="viewcode-back" href="../../../api_reference/cvxpy.constraints.html#cvxpy.constraints.exponential.OpRelEntrConeQuad">[docs]</a><span class="k">class</span> <span class="nc">OpRelEntrConeQuad</span><span class="p">(</span><span class="n">Cone</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;An approximate construction of the operator relative entropy cone</span>
 
 <span class="sd">    Definition:</span>
@@ -511,7 +526,7 @@
       &copy;The CVXPY authors.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 7.0.1</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 7.1.2</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.13</a>
       
     </div>

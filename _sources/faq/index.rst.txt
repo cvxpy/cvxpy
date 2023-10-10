@@ -27,7 +27,7 @@ run the following code snippet in the Python prompt:
 .. code:: python
 
   import cvxpy
-  print cvxpy.__version__
+  print(cvxpy.__version__)
 
 What do I do if I get a ``DCPError`` exception?
 -----------------------------------------------
@@ -47,19 +47,19 @@ What do I do if I get a ``SolverError`` exception?
 Sometimes solvers encounter numerical issues and fail to solve a problem, in which case CVXPY raises a ``SolverError``.
 If this happens to you,
 try using different solvers on your problem,
-as discussed in the "Choosing a solver" section of :ref:`Advanced Features <advanced>`.
+as discussed in the :ref:`Choosing a solver <Choosing a solver>` section.
 If the solver CVXOPT fails, try using the solver option ``kktsolver=ROBUST_KKTSOLVER``.
 
 What solvers does CVXPY support?
 --------------------------------
-See the "Solve method options" section in :ref:`Advanced Features <advanced>` for a list of the solvers CVXPY supports.
+See the :ref:`Solve method options <Solve method options>` section for a list of the solvers CVXPY supports.
 If you would like to use a solver CVXPY does not support,
 make a feature request on the `CVXPY Github issue tracker <https://github.com/cvxpy/cvxpy/issues>`_.
 
 What are the differences between CVXPY's solvers?
 -------------------------------------------------
 The solvers support different classes of problems and occupy different points on the Pareto frontier of speed, accuracy, and open source vs. closed source.
-See the "Solve method options" section in :ref:`Advanced Features <advanced>` for details.
+For more details, please refer to the ":ref:`Solve method options <Solve method options>`" section.
 
 What do I do if I get "Exception: Cannot evaluate the truth value of a constraint"?
 -----------------------------------------------------------------------------------
@@ -81,11 +81,11 @@ Yes, they are fully supported.
 
 How do I constrain a CVXPY matrix expression to be positive semidefinite?
 -------------------------------------------------------------------------
-See :ref:`Advanced Features <advanced>`.
+Please refer to the :ref:`Semidefinite matrices <Semidefinite matrices>` section.
 
 How do I create variables with special properties, such as boolean or symmetric variables?
 ------------------------------------------------------------------------------------------
-See :ref:`Advanced Features <advanced>`.
+Please refer to the :ref:`Attributes <Attributes>` section.
 
 How do I create a variable that has multiple special properties, such as boolean and symmetric?
 -----------------------------------------------------------------------------------------------
@@ -105,8 +105,6 @@ Non-leaf nodes are recreated. Constraints keep their ``.id`` attribute, as it is
 
 A deepcopy creates an independent copy of the object while maintaining the relationship between the
 nodes in the expression tree.
-
-
 
 Why does it take so long to compile my Problem?
 -----------------------------------------------

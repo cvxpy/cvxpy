@@ -5,14 +5,14 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Changes to CVXPY &#8212; CVXPY 1.3 documentation</title>
-    <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
-    <link rel="stylesheet" type="text/css" href="../_static/cvxpy_alabaster.css" />
-    <script src="../_static/jquery.js"></script>
-    <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
-    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
-    <script src="../_static/doctools.js"></script>
-    <script src="../_static/sphinx_highlight.js"></script>
+    <title>Changes to CVXPY &#8212; CVXPY 1.4 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="../_static/cvxpy_alabaster.css?v=6c13f287" />
+    <script src="../_static/jquery.js?v=5d32c60e"></script>
+    <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js?v=b308ce55"></script>
+    <script src="../_static/doctools.js?v=888ff710"></script>
+    <script src="../_static/sphinx_highlight.js?v=4825356b"></script>
     <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
@@ -37,8 +37,78 @@
   <section id="changes-to-cvxpy">
 <span id="updates"></span><h1>Changes to CVXPY<a class="headerlink" href="#changes-to-cvxpy" title="Permalink to this heading">¶</a></h1>
 <p>This page details changes made to CVXPY over time, in reverse chronological order.
-CVXPY’s project maintainers currently provide support for CVXPY 1.3 and 1.2, with
-limited support for 1.1.</p>
+CVXPY’s project maintainers currently provide support for CVXPY 1.4 and 1.3.</p>
+<section id="cvxpy-1-4">
+<h2>CVXPY 1.4<a class="headerlink" href="#cvxpy-1-4" title="Permalink to this heading">¶</a></h2>
+<p>This release is consistent with our semantic versioning guarantee. It
+comes packed with many new features, bug fixes, and performance
+improvements. This version of CVXPY supports Python 3.8 through 3.12,
+and is our first release that supports Python 3.12. While working on the
+next release, we continue to officially support CVXPY 1.3 and 1.4.</p>
+<section id="new-features">
+<h3>New features<a class="headerlink" href="#new-features" title="Permalink to this heading">¶</a></h3>
+<ul class="simple">
+<li><p>New atom: <a class="reference internal" href="../api_reference/cvxpy.atoms.affine.html#convolve"><span class="std std-ref">convolve</span></a></p></li>
+<li><p>New atom: <a class="reference internal" href="../api_reference/cvxpy.atoms.affine.html#mean"><span class="std std-ref">mean</span></a></p></li>
+<li><p>New atom: <a class="reference internal" href="../api_reference/cvxpy.atoms.affine.html#outer"><span class="std std-ref">outer</span></a></p></li>
+<li><p>New atom: <a class="reference internal" href="../api_reference/cvxpy.atoms.other_atoms.html#ptp"><span class="std std-ref">ptp</span></a></p></li>
+<li><p>New atom: <a class="reference internal" href="../api_reference/cvxpy.atoms.other_atoms.html#std"><span class="std std-ref">std</span></a></p></li>
+<li><p>New atom: <a class="reference internal" href="../api_reference/cvxpy.atoms.other_atoms.html#var"><span class="std std-ref">var</span></a></p></li>
+<li><p>New atom: <span class="xref std std-ref">vec_to_upper_tri</span></p></li>
+<li><p>Adds methods to CVXPY expressions that are found on NumPy ndarrays</p></li>
+</ul>
+<blockquote>
+<div><p>such as <code class="docutils literal notranslate"><span class="pre">.sum()</span></code>, <code class="docutils literal notranslate"><span class="pre">.max()</span></code>, and <code class="docutils literal notranslate"><span class="pre">.mean()</span></code></p>
+</div></blockquote>
+<ul class="simple">
+<li><p>New solver interface: <code class="docutils literal notranslate"><span class="pre">PIQP</span></code></p></li>
+<li><p>Adds SDP support to the Clarabel interface</p></li>
+<li><p>Addedd support for OR-Tools 9.7</p></li>
+<li><p>Removed support for OR-Tools 9.4</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">PowerConeND</span></code> now supports extracting its dual variables</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">reshape</span></code> now supports using <code class="docutils literal notranslate"><span class="pre">-1</span></code> as a dimension, with the same
+meaning it has in NumPy</p></li>
+<li><p>Indexing CVXPY expressions with floats now raises an appropriate
+error</p></li>
+<li><p>Clearer error messages for a number of common errors</p></li>
+<li><p>The <a class="reference internal" href="../api_reference/cvxpy.atoms.other_atoms.html#perspective"><span class="std std-ref">perspective</span></a> atom now supports <code class="docutils literal notranslate"><span class="pre">s=0</span></code></p></li>
+<li><p>Performance improvements in the SCIPY backend</p></li>
+<li><p>Performance improvements in canonicalizing parameterized QPs</p></li>
+<li><p>Performance improvements for quadratic forms with sparse matrices</p></li>
+<li><p>Greater support for static typing</p></li>
+</ul>
+</section>
+<section id="ecos-deprecation">
+<h3>ECOS deprecation<a class="headerlink" href="#ecos-deprecation" title="Permalink to this heading">¶</a></h3>
+<p>CVXPY has used ECOS as the default solver for many years; however, it
+has known issues with performance and numerical stability in edge cases.
+Recently, a new solver, Clarabel, that improves the algorithm and
+implementation of ECOS has been under development.</p>
+<p>In 1.5, CVXPY plans to start using Clarabel instead of ECOS by default for some
+categories of problems.
+In 1.6, we plan to no longer install ECOS as a CVXPY dependency.
+We have no plans to remove support for calling ECOS as a solver.
+As part of this transition, in 1.4 CVXPY will raise a warning whenever
+ECOS is called by default.
+We encourage you to try and use Clarabel instead, but if you’re
+dependent on ECOS’s exact behavior please explicitly specify it as a
+solver.</p>
+</section>
+<section id="conv-deprecation">
+<h3><code class="docutils literal notranslate"><span class="pre">conv</span></code> deprecation<a class="headerlink" href="#conv-deprecation" title="Permalink to this heading">¶</a></h3>
+<p>The CVXPY atom <code class="docutils literal notranslate"><span class="pre">conv</span></code> is inconsistent with NumPy’s convolve functions.
+We are deprecating it, but have no plans to remove it in the short term.
+We encourage all users to use the CVXPY atom <code class="docutils literal notranslate"><span class="pre">convolve</span></code> instead.</p>
+</section>
+<section id="nonpos-deprecation">
+<h3><code class="docutils literal notranslate"><span class="pre">NonPos</span></code> deprecation<a class="headerlink" href="#nonpos-deprecation" title="Permalink to this heading">¶</a></h3>
+<p>The <code class="docutils literal notranslate"><span class="pre">NonPos</span></code> cone uses the opposite dual variable sign convention as
+the rest of the CVXPY cones and a constraint of <code class="docutils literal notranslate"><span class="pre">NonPos(expr)</span></code> is the
+same as a constraint on <code class="docutils literal notranslate"><span class="pre">NonNeg(-expr)</span></code>. We are deprecating
+<code class="docutils literal notranslate"><span class="pre">NonPos</span></code>, but have no plans to remove it in the short term. We
+encourage users to switch to using <code class="docutils literal notranslate"><span class="pre">NonNeg</span></code>.</p>
+</section>
+</section>
 <section id="cvxpy-1-3">
 <h2>CVXPY 1.3<a class="headerlink" href="#cvxpy-1-3" title="Permalink to this heading">¶</a></h2>
 <p>CVXPY 1.3 brings many new features, bug fixes, and performance improvements. It introduces a new
@@ -276,7 +346,7 @@ Concretely, write</p>
 <li><p><code class="docutils literal notranslate"><span class="pre">Parameter(shape,</span> <span class="pre">nonneg=True)</span></code> instead of <code class="docutils literal notranslate"><span class="pre">Parameter(shape,</span> <span class="pre">sign='positive')</span></code>.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">Parameter(shape,</span> <span class="pre">nonpos=True)</span></code> instead of <code class="docutils literal notranslate"><span class="pre">Parameter(shape,</span> <span class="pre">sign='negative')</span></code>.</p></li>
 </ul>
-<p>See <a class="reference internal" href="../tutorial/advanced/index.html#attributes"><span class="std std-ref">Attributes</span></a> for a complete list of supported attributes. More attributes will be added in the future.</p>
+<p>See <a class="reference internal" href="#attributes"><span class="std std-ref">Attributes</span></a> for a complete list of supported attributes. More attributes will be added in the future.</p>
 </section>
 <section id="numpy-compatibility">
 <h3>NumPy Compatibility<a class="headerlink" href="#numpy-compatibility" title="Permalink to this heading">¶</a></h3>
@@ -361,6 +431,13 @@ the constraints hold and <span class="math notranslate nohighlight">\(\infty\)</
 </ul>
 <ul class="current">
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Changes to CVXPY</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#cvxpy-1-4">CVXPY 1.4</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#new-features">New features</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#ecos-deprecation">ECOS deprecation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#conv-deprecation"><code class="docutils literal notranslate"><span class="pre">conv</span></code> deprecation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#nonpos-deprecation"><code class="docutils literal notranslate"><span class="pre">NonPos</span></code> deprecation</a></li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="#cvxpy-1-3">CVXPY 1.3</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#constraints-and-atoms">Constraints and atoms</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#solver-interfaces">Solver interfaces</a></li>
@@ -437,7 +514,7 @@ the constraints hold and <span class="math notranslate nohighlight">\(\infty\)</
       &copy;The CVXPY authors.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 7.0.1</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 7.1.2</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.13</a>
       
       |

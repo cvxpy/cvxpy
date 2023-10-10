@@ -432,7 +432,7 @@ The table below shows the types of problems the supported solvers can handle.
 +================+====+====+======+=====+=====+=====+=====+
 | `CBC`_         | X  |    |      |     |     |     | X   |
 +----------------+----+----+------+-----+-----+-----+-----+
-| `CLARABEL`_    | X  | X  | X    |     |  X  |  X  |     |
+| `CLARABEL`_    | X  | X  | X    |  X  |  X  |  X  |     |
 +----------------+----+----+------+-----+-----+-----+-----+
 | `COPT`_        | X  | X  | X    |  X  |     |     | X*  |
 +----------------+----+----+------+-----+-----+-----+-----+
@@ -443,6 +443,8 @@ The table below shows the types of problems the supported solvers can handle.
 | `GLPK_MI`_     | X  |    |      |     |     |     | X   |
 +----------------+----+----+------+-----+-----+-----+-----+
 | `OSQP`_        | X  | X  |      |     |     |     |     |
++----------------+----+----+------+-----+-----+-----+-----+
+| `PIQP`_        | X  | X  |      |     |     |     |     |
 +----------------+----+----+------+-----+-----+-----+-----+
 | `PROXQP`_      | X  | X  |      |     |     |     |     |
 +----------------+----+----+------+-----+-----+-----+-----+
@@ -460,7 +462,7 @@ The table below shows the types of problems the supported solvers can handle.
 +----------------+----+----+------+-----+-----+-----+-----+
 | `CVXOPT`_      | X  | X  | X    | X   |     |     |     |
 +----------------+----+----+------+-----+-----+-----+-----+
-| `SDPA`_        | X  |    |      | X   |     |     |     |
+| `SDPA`_ ***    | X  | X  | X    | X   |     |     |     |
 +----------------+----+----+------+-----+-----+-----+-----+
 | `SCS`_         | X  | X  | X    | X   | X   | X   |     |
 +----------------+----+----+------+-----+-----+-----+-----+
@@ -475,13 +477,23 @@ The table below shows the types of problems the supported solvers can handle.
 
 (**) Except mixed-integer SDP.
 
-Here EXP refers to problems with exponential cone constraints. The exponential cone is defined as
+(***) Multiprecision support is available on SDPA if the appropriate SDPA package is installed. With multiprecision support, SDPA can solve your problem with much smaller `epsilonDash` and/or `epsilonStar` parameters. These parameters must be manually adjusted to achieve the desired degree of precision. Please see the solver website for details. SDPA can also solve some ill-posed problems with multiprecision support.
+
+LP - Linear Programming refers to problems with a linear objective function and linear constraints.
+
+QP - Quadratic Programming refers to problems with a quadratic objective function and linear constraints.
+
+SOCP - Second-Order Cone Programming refers to problems with second-order cone constraints. The second-order cone is defined as
+
+    :math:`\mathcal{C}_{n+1} = \left\{\begin{bmatrix} x \\ t \end{bmatrix} \mid x \in \mathbb{R}^n , t \in \mathbb{R} , \| x \|_2 \leq t\right\}`
+
+SDP - Semidefinite Programming refers to problems with :ref:`semidefinite matrix constraints <Semidefinite matrices>`.
+
+EXP - refers to problems with exponential cone constraints. The exponential cone is defined as
 
     :math:`\{(x,y,z) \mid y > 0, y\exp(x/y) \leq z \} \cup \{ (x,y,z) \mid x \leq 0, y = 0, z \geq 0\}`.
 
-Most users will never specify cone constraints directly. Instead, cone constraints are added when CVXPY
-converts the problem into standard form. The POW column refers to problems with 3-dimensional power
-cone constraints. The 3D power cone is defined as
+POW - refers to problems with 3-dimensional power cone constraints. The 3D power cone is defined as
 
     :math:`\{(x,y,z) \mid x^{\alpha}y^{\alpha} \geq |z|, x \geq 0, y \geq 0 \}`.
 
@@ -489,6 +501,8 @@ Support for power cone constraints is a recent addition (v1.1.8), and CVXPY curr
 not have any atoms that take advantage of this constraint. If you want you want to use this
 type of constraint in your model, you will need to instantiate ``PowCone3D`` and/or ``PowConeND``
 objects manually.
+
+MIP - :ref:`Mixed-Integer Programming <Mixed-integer programs>` refers to problems where some decision variables are constrained to be integer values.
 
 By default CVXPY calls the solver most specialized to the problem type. For example, `ECOS`_ is called for SOCPs.
 `SCS`_ can handle all problems (except mixed-integer programs). If the problem is a QP, CVXPY will use `OSQP`_.
@@ -555,6 +569,10 @@ You can change the solver called by CVXPY using the ``solver`` keyword argument.
     prob.solve(solver=cp.MOSEK)
     print("optimal value with MOSEK:", prob.value)
 
+    # Solve with PIQP.
+    prob.solve(solver=cp.PIQP)
+    print("optimal value with PIQP:", prob.value)
+
     # Solve with PROXQP.
     prob.solve(solver=cp.PROXQP)
     print("optimal value with PROXQP:", prob.value)
@@ -593,7 +611,7 @@ Use the ``installed_solvers`` utility function to get a list of the solvers your
 
 .. code:: python
 
-    print installed_solvers()
+    print(installed_solvers())
 
 ::
 
@@ -609,7 +627,7 @@ All the solvers can print out information about their progress while solving the
 
     # Solve with ECOS and display output.
     prob.solve(solver=cp.ECOS, verbose=True)
-    print "optimal value with ECOS:", prob.value
+    print(f"optimal value with ECOS: {prob.value}")
 
 ::
 
@@ -633,7 +651,7 @@ Solving disciplined geometric programs
 
 When the ``solve`` method is called with `gp=True`, the problem is parsed
 as a disciplined geometric program instead of a disciplined convex program.
-For more information, see the `DGP tutorial </tutorial/dgp/index>`.
+For more information, see the :doc:`DGP tutorial </tutorial/dgp/index>`.
 
 Solver stats
 ------------
@@ -645,6 +663,13 @@ We have already discussed how to view the optimal value and variable values.
 The solver statistics are accessed via the ``problem.solver_stats`` attribute,
 which returns a :class:`~cvxpy.problems.problem.SolverStats` object.
 For example, ``problem.solver_stats.solve_time`` gives the time it took the solver to solve the problem.
+
+.. note::
+
+    Information stored in ``problem.solver_stats`` differs in the solver used.
+    For example, if we use ``MOSEK``, ``problem.solver_stats.num_iters`` includes the following: ``iinfitem.intpnt_iter``, ``liinfitem.simplex_iter``
+    or ``iinfitem.mio_num_relax``. In addition, ``problem.solver_stats.extra_stats`` includes ``liinfitem.mio_intpnt_iter`` and ``liinfitem.mio_simplex_iter``.
+    For more information, please visit https://docs.mosek.com/latest/pythonapi/constants.html
 
 Warm start
 ----------
@@ -698,7 +723,7 @@ cached previous solution as described above (rather than from the ``value`` fiel
 Setting solver options
 ----------------------
 
-The `OSQP`_, `ECOS`_, `GLOP`_, `MOSEK`_, `CBC`_, `CVXOPT`_, `NAG`_, `PDLP`_, `GUROBI`_, `SCS`_ , `CLARABEL`_ and `PROXQP`_ Python interfaces allow you to set solver options such as the maximum number of iterations. You can pass these options along through CVXPY as keyword arguments.
+The `OSQP`_, `ECOS`_, `GLOP`_, `MOSEK`_, `CBC`_, `CVXOPT`_, `NAG`_, `PDLP`_, `GUROBI`_, `SCS`_ , `CLARABEL`_, `PIQP`_ and `PROXQP`_ Python interfaces allow you to set solver options such as the maximum number of iterations. You can pass these options along through CVXPY as keyword arguments.
 
 For example, here we tell SCS to use an indirect method for solving linear equations rather than a direct method.
 
@@ -706,7 +731,7 @@ For example, here we tell SCS to use an indirect method for solving linear equat
 
     # Solve with SCS, use sparse-indirect method.
     prob.solve(solver=cp.SCS, verbose=True, use_indirect=True)
-    print "optimal value with SCS:", prob.value
+    print(f"optimal value with SCS: {prob.value}")
 
 ::
 
@@ -831,6 +856,19 @@ For others see `OSQP documentation <https://osqp.org/docs/interfaces/solver_sett
     For a linear problem, if ``bfs=True``, then the basic solution will be retrieved
     instead of the interior-point solution. This assumes no specific MOSEK
     parameters were used which prevent computing the basic solution.
+
+``'accept_unknown'``
+    If ``accept_unknown=True``, an inaccurate solution will be returned, even if
+    it is arbitrarily bad, when the solver does not generate an optimal
+    point under the given conditions.
+
+``'eps'``
+    Applies tolerance ``eps`` to termination parameters for (conic) interior-point, 
+    simplex, and MIO solvers. The full list of termination parameters is returned
+    by ``MOSEK.tolerance_params()`` in 
+    ``cvxpy.reductions.solvers.conic_solvers.mosek_conif``.
+    Explicitly defined parameters take precedence over ``eps``.
+
 
 .. note::
 
@@ -1038,7 +1076,7 @@ SCIP_ options:
 `SCIPY`_ options:
 ``'scipy_options'`` a dictionary of SciPy optional parameters, a full list of parameters with defaults is listed `here <https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.linprog.html#scipy.optimize.linprog>`_.
 
-* **Please note**: All options should be listed as key-value pairs within the ``'scipy_options'`` dictionary, and there should not be a nested dictionary called options. Some of the methods have different parameters, so please check the parameters for the method you wish to use, e.g., for method = 'highs-ipm'. Also, note that the 'integrality' option should never be specified.
+* **Please note**: All options should be listed as key-value pairs within the ``'scipy_options'`` dictionary, and there should not be a nested dictionary called options. Some of the methods have different parameters, so please check the parameters for the method you wish to use, e.g., for method = 'highs-ipm'. Also, note that the 'integrality' and 'bounds' options should never be specified within ``'scipy_options'`` and should instead be specified using CVXPY.
 
 * The main advantage of this solver is its ability to use the `HiGHS`_ LP and MIP solvers, which are coded in C++. However, these require versions of SciPy larger than 1.6.1 and 1.9.0, respectively. To use the `HiGHS`_ LP solvers, simply set the method parameter to 'highs-ds' (for dual-simplex), 'highs-ipm' (for interior-point method) or 'highs' (which will choose either 'highs-ds' or 'highs-ipm' for you). To use the `HiGHS`_ MIP solver, leave the method parameter unspecified or set it explicitly to 'highs'.
 
@@ -1095,7 +1133,23 @@ For others see `CLARABEL documentation <https://oxfordcontrol.github.io/Clarabel
     Time limit in seconds (must be integer).
 
 All controls of the Xpress Optimizer can be specified within the ``'solve'``
-command. For all controls see `FICO Xpress Optimizer manual https://www.fico.com/fico-xpress-optimization/docs/dms2019-03/solver/optimizer/HTML/chapter7.html`_.
+command. For all controls see `FICO Xpress Optimizer manual <https://www.fico.com/fico-xpress-optimization/docs/dms2019-03/solver/optimizer/HTML/chapter7.html>`_.
+
+`PIQP`_ options:
+
+``'backend'``
+    solver backend [dense, sparse] (default: sparse).
+
+``'max_iter'``
+    maximum number of iterations (default: 250).
+
+``'eps_abs'``
+    absolute accuracy (default: 1e-8).
+
+``'eps_rel'``
+    relative accuracy (default: 1e-9).
+
+For others see `PIQP documentation <https://predict-epfl.github.io/piqp/interfaces/settings>`_.
 
 Getting the standard form
 -------------------------
@@ -1107,8 +1161,7 @@ low-level representation that is compatible with the targeted solver to a
 solver, which solves the problem. This method returns that low-level
 representation, along with a ``SolvingChain`` and metadata for unpacking
 a solution into the problem. This low-level representation closely resembles,
-but is not identitical to, the
-arguments supplied to the solver.
+but is not identical to, the arguments supplied to the solver.
 
 A solution to the equivalent low-level problem can be obtained via the
 data by invoking the ``solve_via_data`` method of the returned solving
@@ -1589,7 +1642,7 @@ on derivatives.
 .. _MOSEK: https://www.mosek.com/
 .. _CBC: https://projects.coin-or.org/Cbc
 .. _CGL: https://projects.coin-or.org/Cgl
-.. _CPLEX: https://www-01.ibm.com/software/commerce/optimization/cplex-optimizer/
+.. _CPLEX: https://www.ibm.com/docs/en/icos
 .. _NAG: https://www.nag.co.uk/nag-library-python/
 .. _OSQP: https://osqp.org/
 .. _PDLP: https://developers.google.com/optimization
@@ -1598,6 +1651,7 @@ on derivatives.
 .. _SCIPY: https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.linprog.html#scipy.optimize.linprog
 .. _HiGHS: https://www.maths.ed.ac.uk/hall/HiGHS/#guide
 .. _CLARABEL: https://oxfordcontrol.github.io/ClarabelDocs/
+.. _PIQP: https://predict-epfl.github.io/piqp/
 .. _PROXQP: https://github.com/simple-robotics/proxsuite
 
 Custom Solvers
@@ -1649,4 +1703,6 @@ Currently, the following canonicalization backends are supported:
 
 *  CPP (default): The original C++ implementation, also referred to as CVXCORE.
 *  | SCIPY: A pure Python implementation based on the SciPy sparse module.
-   | Generally fast for problems with few CVXPY ``Parameter`` s, especially when the problem is already vectorized.
+   | Generally fast for problems that are already vectorized.
+*  NUMPY: Reference implementation in pure NumPy. Fast for some small or dense problems.
+

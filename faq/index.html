@@ -5,14 +5,14 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>FAQ &#8212; CVXPY 1.3 documentation</title>
-    <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
-    <link rel="stylesheet" type="text/css" href="../_static/cvxpy_alabaster.css" />
-    <script src="../_static/jquery.js"></script>
-    <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
-    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
-    <script src="../_static/doctools.js"></script>
-    <script src="../_static/sphinx_highlight.js"></script>
+    <title>FAQ &#8212; CVXPY 1.4 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="../_static/cvxpy_alabaster.css?v=6c13f287" />
+    <script src="../_static/jquery.js?v=5d32c60e"></script>
+    <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js?v=b308ce55"></script>
+    <script src="../_static/doctools.js?v=888ff710"></script>
+    <script src="../_static/sphinx_highlight.js?v=4825356b"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="Citing CVXPY" href="../citing/index.html" />
@@ -74,7 +74,7 @@ visit the <a class="reference external" href="http://dcp.stanford.edu/">DCP tuto
 <p>To check which version of CVXPY you have installed,
 run the following code snippet in the Python prompt:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">cvxpy</span>
-<span class="nb">print</span> <span class="n">cvxpy</span><span class="o">.</span><span class="n">__version__</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">cvxpy</span><span class="o">.</span><span class="n">__version__</span><span class="p">)</span>
 </pre></div>
 </div>
 </section>
@@ -96,19 +96,19 @@ there is a DCP error in that object.</p>
 <p>Sometimes solvers encounter numerical issues and fail to solve a problem, in which case CVXPY raises a <code class="docutils literal notranslate"><span class="pre">SolverError</span></code>.
 If this happens to you,
 try using different solvers on your problem,
-as discussed in the “Choosing a solver” section of <a class="reference internal" href="../tutorial/advanced/index.html#advanced"><span class="std std-ref">Advanced Features</span></a>.
+as discussed in the <a class="reference internal" href="../tutorial/advanced/index.html#choosing-a-solver"><span class="std std-ref">Choosing a solver</span></a> section.
 If the solver CVXOPT fails, try using the solver option <code class="docutils literal notranslate"><span class="pre">kktsolver=ROBUST_KKTSOLVER</span></code>.</p>
 </section>
 <section id="what-solvers-does-cvxpy-support">
 <h2>What solvers does CVXPY support?<a class="headerlink" href="#what-solvers-does-cvxpy-support" title="Permalink to this heading">¶</a></h2>
-<p>See the “Solve method options” section in <a class="reference internal" href="../tutorial/advanced/index.html#advanced"><span class="std std-ref">Advanced Features</span></a> for a list of the solvers CVXPY supports.
+<p>See the <a class="reference internal" href="../tutorial/advanced/index.html#solve-method-options"><span class="std std-ref">Solve method options</span></a> section for a list of the solvers CVXPY supports.
 If you would like to use a solver CVXPY does not support,
 make a feature request on the <a class="reference external" href="https://github.com/cvxpy/cvxpy/issues">CVXPY Github issue tracker</a>.</p>
 </section>
 <section id="what-are-the-differences-between-cvxpy-s-solvers">
 <h2>What are the differences between CVXPY’s solvers?<a class="headerlink" href="#what-are-the-differences-between-cvxpy-s-solvers" title="Permalink to this heading">¶</a></h2>
 <p>The solvers support different classes of problems and occupy different points on the Pareto frontier of speed, accuracy, and open source vs. closed source.
-See the “Solve method options” section in <a class="reference internal" href="../tutorial/advanced/index.html#advanced"><span class="std std-ref">Advanced Features</span></a> for details.</p>
+For more details, please refer to the “<a class="reference internal" href="../tutorial/advanced/index.html#solve-method-options"><span class="std std-ref">Solve method options</span></a>” section.</p>
 </section>
 <section id="what-do-i-do-if-i-get-exception-cannot-evaluate-the-truth-value-of-a-constraint">
 <h2>What do I do if I get “Exception: Cannot evaluate the truth value of a constraint”?<a class="headerlink" href="#what-do-i-do-if-i-get-exception-cannot-evaluate-the-truth-value-of-a-constraint" title="Permalink to this heading">¶</a></h2>
@@ -130,11 +130,11 @@ it will probably fail in a confusing way.</p>
 </section>
 <section id="how-do-i-constrain-a-cvxpy-matrix-expression-to-be-positive-semidefinite">
 <h2>How do I constrain a CVXPY matrix expression to be positive semidefinite?<a class="headerlink" href="#how-do-i-constrain-a-cvxpy-matrix-expression-to-be-positive-semidefinite" title="Permalink to this heading">¶</a></h2>
-<p>See <a class="reference internal" href="../tutorial/advanced/index.html#advanced"><span class="std std-ref">Advanced Features</span></a>.</p>
+<p>Please refer to the <a class="reference internal" href="../tutorial/advanced/index.html#semidefinite-matrices"><span class="std std-ref">Semidefinite matrices</span></a> section.</p>
 </section>
 <section id="how-do-i-create-variables-with-special-properties-such-as-boolean-or-symmetric-variables">
 <h2>How do I create variables with special properties, such as boolean or symmetric variables?<a class="headerlink" href="#how-do-i-create-variables-with-special-properties-such-as-boolean-or-symmetric-variables" title="Permalink to this heading">¶</a></h2>
-<p>See <a class="reference internal" href="../tutorial/advanced/index.html#advanced"><span class="std std-ref">Advanced Features</span></a>.</p>
+<p>Please refer to the <a class="reference internal" href="../updates/index.html#attributes"><span class="std std-ref">Attributes</span></a> section.</p>
 </section>
 <section id="how-do-i-create-a-variable-that-has-multiple-special-properties-such-as-boolean-and-symmetric">
 <h2>How do I create a variable that has multiple special properties, such as boolean and symmetric?<a class="headerlink" href="#how-do-i-create-a-variable-that-has-multiple-special-properties-such-as-boolean-and-symmetric" title="Permalink to this heading">¶</a></h2>
@@ -275,7 +275,7 @@ Use the following BibTeX citation:</p>
       &copy;The CVXPY authors.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 7.0.1</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 7.1.2</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.13</a>
       
       |

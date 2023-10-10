@@ -4,7 +4,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>cvxpy.atoms.elementwise.neg &#8212; CVXPY 1.4 documentation</title>
+    <title>cvxpy.expressions.constants.callback_param &#8212; CVXPY 1.4 documentation</title>
     <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=fa44fd50" />
     <link rel="stylesheet" type="text/css" href="../../../../_static/cvxpy_alabaster.css?v=6c13f287" />
     <script src="../../../../_static/jquery.js?v=5d32c60e"></script>
@@ -30,7 +30,7 @@
 
           <div class="body" role="main">
             
-  <h1>Source code for cvxpy.atoms.elementwise.neg</h1><div class="highlight"><pre>
+  <h1>Source code for cvxpy.expressions.constants.callback_param</h1><div class="highlight"><pre>
 <span></span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">Copyright 2013 Steven Diamond</span>
 
@@ -46,15 +46,45 @@
 <span class="sd">See the License for the specific language governing permissions and</span>
 <span class="sd">limitations under the License.</span>
 <span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">annotations</span>
 
-<span class="kn">from</span> <span class="nn">cvxpy.atoms.elementwise.minimum</span> <span class="kn">import</span> <span class="n">minimum</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Callable</span>
+
+<span class="kn">from</span> <span class="nn">cvxpy.expressions.constants.parameter</span> <span class="kn">import</span> <span class="n">Parameter</span>
 
 
-<div class="viewcode-block" id="neg"><a class="viewcode-back" href="../../../../api_reference/cvxpy.atoms.elementwise.html#cvxpy.neg">[docs]</a><span class="k">def</span> <span class="nf">neg</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot; Alias for -minimum{x, 0}.</span>
+<div class="viewcode-block" id="CallbackParam"><a class="viewcode-back" href="../../../../api_reference/cvxpy.expressions.html#cvxpy.expressions.constants.callback_param.CallbackParam">[docs]</a><span class="k">class</span> <span class="nc">CallbackParam</span><span class="p">(</span><span class="n">Parameter</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A parameter whose value is derived from a callback function.</span>
 
+<span class="sd">    Enables writing replacing expression that would not be DPP</span>
+<span class="sd">    by a new parameter that automatically updates its value.</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">    With p and q parameters, p * q is not DPP, but</span>
+<span class="sd">    pq = CallbackParameter(callback=lambda: p.value * q.value) is DPP.</span>
+
+<span class="sd">    This is useful when only p and q should be exposed</span>
+<span class="sd">    to the user, but pq is needed internally.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="o">-</span><span class="n">minimum</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span></div>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">callback</span><span class="p">:</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">shape</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="p">(),</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        callback: function that returns the value of the parameter.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_callback</span> <span class="o">=</span> <span class="n">callback</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">CallbackParam</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">shape</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">value</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Evaluate the callback to get the value.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_validate_value</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_callback</span><span class="p">())</span>
+
+    <span class="nd">@value</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">value</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">_val</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;Cannot set the value of a CallbackParam.&quot;</span><span class="p">)</span></div>
 </pre></div>
 
           </div>

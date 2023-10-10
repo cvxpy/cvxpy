@@ -5,14 +5,14 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Atomic Functions &#8212; CVXPY 1.3 documentation</title>
-    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
-    <link rel="stylesheet" type="text/css" href="../../_static/cvxpy_alabaster.css" />
-    <script src="../../_static/jquery.js"></script>
-    <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
-    <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
-    <script src="../../_static/doctools.js"></script>
-    <script src="../../_static/sphinx_highlight.js"></script>
+    <title>Atomic Functions &#8212; CVXPY 1.4 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="../../_static/cvxpy_alabaster.css?v=6c13f287" />
+    <script src="../../_static/jquery.js?v=5d32c60e"></script>
+    <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+    <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js?v=b308ce55"></script>
+    <script src="../../_static/doctools.js?v=888ff710"></script>
+    <script src="../../_static/sphinx_highlight.js?v=4825356b"></script>
     <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
@@ -201,21 +201,28 @@ and returns a scalar.</p>
 <td><p><a class="reference internal" href="../../_images/convex.svg"><img alt="convex" height="15px" src="../../_images/convex.svg" width="15px" /></a> convex</p></td>
 <td><p><a class="reference internal" href="../../_images/increasing.svg"><img alt="incr" height="15px" src="../../_images/increasing.svg" width="15px" /></a> incr.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="../../api_reference/cvxpy.atoms.other_atoms.html#min"><span class="std std-ref">min(X)</span></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="../../api_reference/cvxpy.atoms.affine.html#mean"><span class="std std-ref">mean(X)</span></a></p></td>
+<td><p><span class="math notranslate nohighlight">\(\frac{1}{m n}\sum_{ij}\left\{ X_{ij}\right\}\)</span></p></td>
+<td><p><span class="math notranslate nohighlight">\(X \in\mathbf{R}^{m \times n}\)</span></p></td>
+<td><p>same as X</p></td>
+<td><p><a class="reference internal" href="../../_images/affine.svg"><img alt="affine" height="15px" src="../../_images/affine.svg" width="15px" /></a> affine</p></td>
+<td><p><a class="reference internal" href="../../_images/increasing.svg"><img alt="incr" height="15px" src="../../_images/increasing.svg" width="15px" /></a> incr.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="../../api_reference/cvxpy.atoms.other_atoms.html#min"><span class="std std-ref">min(X)</span></a></p></td>
 <td><p><span class="math notranslate nohighlight">\(\min_{ij}\left\{ X_{ij}\right\}\)</span></p></td>
 <td><p><span class="math notranslate nohighlight">\(X \in\mathbf{R}^{m \times n}\)</span></p></td>
 <td><p>same as X</p></td>
 <td><p><a class="reference internal" href="../../_images/concave.svg"><img alt="concave" height="15px" src="../../_images/concave.svg" width="15px" /></a> concave</p></td>
 <td><p><a class="reference internal" href="../../_images/increasing.svg"><img alt="incr" height="15px" src="../../_images/increasing.svg" width="15px" /></a> incr.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="../../api_reference/cvxpy.atoms.other_atoms.html#mixed-norm"><span class="std std-ref">mixed_norm(X, p, q)</span></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="../../api_reference/cvxpy.atoms.other_atoms.html#mixed-norm"><span class="std std-ref">mixed_norm(X, p, q)</span></a></p></td>
 <td><p><span class="math notranslate nohighlight">\(\left(\sum_k\left(\sum_l\lvert x_{k,l}\rvert^p\right)^{q/p}\right)^{1/q}\)</span></p></td>
 <td><p><span class="math notranslate nohighlight">\(X \in\mathbf{R}^{n \times n}\)</span></p></td>
 <td><p><a class="reference internal" href="../../_images/positive.svg"><img alt="positive" height="15px" src="../../_images/positive.svg" width="15px" /></a> positive</p></td>
 <td><p><a class="reference internal" href="../../_images/convex.svg"><img alt="convex" height="15px" src="../../_images/convex.svg" width="15px" /></a> convex</p></td>
 <td><p>None</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="../../api_reference/cvxpy.atoms.other_atoms.html#norm"><span class="std std-ref">norm(x)</span></a></p>
+<tr class="row-odd"><td><p><a class="reference internal" href="../../api_reference/cvxpy.atoms.other_atoms.html#norm"><span class="std std-ref">norm(x)</span></a></p>
 <p>norm(x, 2)</p>
 </td>
 <td><p><span class="math notranslate nohighlight">\(\sqrt{\sum_{i} \lvert x_{i} \rvert^2 }\)</span></p></td>
@@ -226,7 +233,7 @@ and returns a scalar.</p>
 <p><a class="reference internal" href="../../_images/decreasing.svg"><img alt="decr" height="15px" src="../../_images/decreasing.svg" width="15px" /></a> for <span class="math notranslate nohighlight">\(x_{i} \leq 0\)</span></p>
 </td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="../../api_reference/cvxpy.atoms.other_atoms.html#norm"><span class="std std-ref">norm(x, 1)</span></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="../../api_reference/cvxpy.atoms.other_atoms.html#norm"><span class="std std-ref">norm(x, 1)</span></a></p></td>
 <td><p><span class="math notranslate nohighlight">\(\sum_{i}\lvert x_{i} \rvert\)</span></p></td>
 <td><p><span class="math notranslate nohighlight">\(x \in\mathbf{R}^{n}\)</span></p></td>
 <td><p><a class="reference internal" href="../../_images/positive.svg"><img alt="positive" height="15px" src="../../_images/positive.svg" width="15px" /></a> positive</p></td>
@@ -235,7 +242,7 @@ and returns a scalar.</p>
 <p><a class="reference internal" href="../../_images/decreasing.svg"><img alt="decr" height="15px" src="../../_images/decreasing.svg" width="15px" /></a> for <span class="math notranslate nohighlight">\(x_{i} \leq 0\)</span></p>
 </td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="../../api_reference/cvxpy.atoms.other_atoms.html#norm"><span class="std std-ref">norm(x, “inf”)</span></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="../../api_reference/cvxpy.atoms.other_atoms.html#norm"><span class="std std-ref">norm(x, “inf”)</span></a></p></td>
 <td><p><span class="math notranslate nohighlight">\(\max_{i} \{\lvert x_{i} \rvert\}\)</span></p></td>
 <td><p><span class="math notranslate nohighlight">\(x \in\mathbf{R}^{n}\)</span></p></td>
 <td><p><a class="reference internal" href="../../_images/positive.svg"><img alt="positive" height="15px" src="../../_images/positive.svg" width="15px" /></a> positive</p></td>
@@ -244,7 +251,7 @@ and returns a scalar.</p>
 <p><a class="reference internal" href="../../_images/decreasing.svg"><img alt="decr" height="15px" src="../../_images/decreasing.svg" width="15px" /></a> for <span class="math notranslate nohighlight">\(x_{i} \leq 0\)</span></p>
 </td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="../../api_reference/cvxpy.atoms.other_atoms.html#norm"><span class="std std-ref">norm(X, “fro”)</span></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="../../api_reference/cvxpy.atoms.other_atoms.html#norm"><span class="std std-ref">norm(X, “fro”)</span></a></p></td>
 <td><p><span class="math notranslate nohighlight">\(\sqrt{\sum_{ij}X_{ij}^2 }\)</span></p></td>
 <td><p><span class="math notranslate nohighlight">\(X \in\mathbf{R}^{m \times n}\)</span></p></td>
 <td><p><a class="reference internal" href="../../_images/positive.svg"><img alt="positive" height="15px" src="../../_images/positive.svg" width="15px" /></a> positive</p></td>
@@ -253,7 +260,7 @@ and returns a scalar.</p>
 <p><a class="reference internal" href="../../_images/decreasing.svg"><img alt="decr" height="15px" src="../../_images/decreasing.svg" width="15px" /></a> for <span class="math notranslate nohighlight">\(X_{ij} \leq 0\)</span></p>
 </td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="../../api_reference/cvxpy.atoms.other_atoms.html#norm"><span class="std std-ref">norm(X, 1)</span></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="../../api_reference/cvxpy.atoms.other_atoms.html#norm"><span class="std std-ref">norm(X, 1)</span></a></p></td>
 <td><p><span class="math notranslate nohighlight">\(\max_{j} \|X_{:,j}\|_1\)</span></p></td>
 <td><p><span class="math notranslate nohighlight">\(X \in\mathbf{R}^{m \times n}\)</span></p></td>
 <td><p><a class="reference internal" href="../../_images/positive.svg"><img alt="positive" height="15px" src="../../_images/positive.svg" width="15px" /></a> positive</p></td>
@@ -262,7 +269,7 @@ and returns a scalar.</p>
 <p><a class="reference internal" href="../../_images/decreasing.svg"><img alt="decr" height="15px" src="../../_images/decreasing.svg" width="15px" /></a> for <span class="math notranslate nohighlight">\(X_{ij} \leq 0\)</span></p>
 </td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="../../api_reference/cvxpy.atoms.other_atoms.html#norm"><span class="std std-ref">norm(X, “inf”)</span></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="../../api_reference/cvxpy.atoms.other_atoms.html#norm"><span class="std std-ref">norm(X, “inf”)</span></a></p></td>
 <td><p><span class="math notranslate nohighlight">\(\max_{i} \|X_{i,:}\|_1\)</span></p></td>
 <td><p><span class="math notranslate nohighlight">\(X \in\mathbf{R}^{m \times n}\)</span></p></td>
 <td><p><a class="reference internal" href="../../_images/positive.svg"><img alt="positive" height="15px" src="../../_images/positive.svg" width="15px" /></a> positive</p></td>
@@ -271,14 +278,14 @@ and returns a scalar.</p>
 <p><a class="reference internal" href="../../_images/decreasing.svg"><img alt="decr" height="15px" src="../../_images/decreasing.svg" width="15px" /></a> for <span class="math notranslate nohighlight">\(X_{ij} \leq 0\)</span></p>
 </td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="../../api_reference/cvxpy.atoms.other_atoms.html#norm"><span class="std std-ref">norm(X, “nuc”)</span></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="../../api_reference/cvxpy.atoms.other_atoms.html#norm"><span class="std std-ref">norm(X, “nuc”)</span></a></p></td>
 <td><p><span class="math notranslate nohighlight">\(\mathrm{tr}\left(\left(X^T X\right)^{1/2}\right)\)</span></p></td>
 <td><p><span class="math notranslate nohighlight">\(X \in\mathbf{R}^{m \times n}\)</span></p></td>
 <td><p><a class="reference internal" href="../../_images/positive.svg"><img alt="positive" height="15px" src="../../_images/positive.svg" width="15px" /></a> positive</p></td>
 <td><p><a class="reference internal" href="../../_images/convex.svg"><img alt="convex" height="15px" src="../../_images/convex.svg" width="15px" /></a> convex</p></td>
 <td><p>None</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="../../api_reference/cvxpy.atoms.other_atoms.html#norm"><span class="std std-ref">norm(X)</span></a></p>
+<tr class="row-even"><td><p><a class="reference internal" href="../../api_reference/cvxpy.atoms.other_atoms.html#norm"><span class="std std-ref">norm(X)</span></a></p>
 <p>norm(X, 2)</p>
 </td>
 <td><p><span class="math notranslate nohighlight">\(\sqrt{\lambda_{\max}\left(X^T X\right)}\)</span></p></td>
@@ -287,7 +294,7 @@ and returns a scalar.</p>
 <td><p><a class="reference internal" href="../../_images/convex.svg"><img alt="convex" height="15px" src="../../_images/convex.svg" width="15px" /></a> convex</p></td>
 <td><p>None</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="../../api_reference/cvxpy.atoms.other_atoms.html#perspective"><span class="std std-ref">perspective(f(x),s)</span></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="../../api_reference/cvxpy.atoms.other_atoms.html#perspective"><span class="std std-ref">perspective(f(x),s)</span></a></p></td>
 <td><p><span class="math notranslate nohighlight">\(sf(x/s)\)</span></p></td>
 <td><p><span class="math notranslate nohighlight">\(x \in \mathop{\bf dom} f\)</span></p>
 <p><span class="math notranslate nohighlight">\(s \geq 0\)</span></p>
@@ -298,7 +305,7 @@ and returns a scalar.</p>
 </td>
 <td><p>None</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="../../api_reference/cvxpy.atoms.other_atoms.html#pnorm-func"><span class="std std-ref">pnorm(X, p)</span></a></p>
+<tr class="row-even"><td><p><a class="reference internal" href="../../api_reference/cvxpy.atoms.other_atoms.html#pnorm-func"><span class="std std-ref">pnorm(X, p)</span></a></p>
 <p><span class="math notranslate nohighlight">\(p \geq 1\)</span></p>
 <p>or <code class="docutils literal notranslate"><span class="pre">p</span> <span class="pre">=</span> <span class="pre">'inf'</span></code></p>
 </td>
@@ -310,7 +317,7 @@ and returns a scalar.</p>
 <p><a class="reference internal" href="../../_images/decreasing.svg"><img alt="decr" height="15px" src="../../_images/decreasing.svg" width="15px" /></a> for <span class="math notranslate nohighlight">\(X_{ij} \leq 0\)</span></p>
 </td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="../../api_reference/cvxpy.atoms.other_atoms.html#pnorm-func"><span class="std std-ref">pnorm(X, p)</span></a></p>
+<tr class="row-odd"><td><p><a class="reference internal" href="../../api_reference/cvxpy.atoms.other_atoms.html#pnorm-func"><span class="std std-ref">pnorm(X, p)</span></a></p>
 <p><span class="math notranslate nohighlight">\(p &lt; 1\)</span>, <span class="math notranslate nohighlight">\(p \neq 0\)</span></p>
 </td>
 <td><p><span class="math notranslate nohighlight">\(\|X\|_p = \left(\sum_{ij} X_{ij}^p \right)^{1/p}\)</span></p></td>
@@ -318,6 +325,13 @@ and returns a scalar.</p>
 <td><p><a class="reference internal" href="../../_images/positive.svg"><img alt="positive" height="15px" src="../../_images/positive.svg" width="15px" /></a> positive</p></td>
 <td><p><a class="reference internal" href="../../_images/concave.svg"><img alt="concave" height="15px" src="../../_images/concave.svg" width="15px" /></a> concave</p></td>
 <td><p><a class="reference internal" href="../../_images/increasing.svg"><img alt="incr" height="15px" src="../../_images/increasing.svg" width="15px" /></a> incr.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="../../api_reference/cvxpy.atoms.other_atoms.html#ptp"><span class="std std-ref">ptp(X)</span></a></p></td>
+<td><p><span class="math notranslate nohighlight">\(\max_{ij} X_{ij} - \min_{ij} X_{ij}\)</span></p></td>
+<td><p><span class="math notranslate nohighlight">\(X \in \mathbf{R}^{m \times n}\)</span></p></td>
+<td><p><a class="reference internal" href="../../_images/positive.svg"><img alt="positive" height="15px" src="../../_images/positive.svg" width="15px" /></a> positive</p></td>
+<td><p><a class="reference internal" href="../../_images/convex.svg"><img alt="convex" height="15px" src="../../_images/convex.svg" width="15px" /></a> convex</p></td>
+<td><p>None</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="../../api_reference/cvxpy.atoms.other_atoms.html#quad-form"><span class="std std-ref">quad_form(x, P)</span></a></p>
 <p>constant <span class="math notranslate nohighlight">\(P \in \mathbf{S}^n_+\)</span></p>
@@ -362,14 +376,21 @@ and returns a scalar.</p>
 <p><a class="reference internal" href="../../_images/decreasing.svg"><img alt="decr" height="15px" src="../../_images/decreasing.svg" width="15px" /></a> decr. in <span class="math notranslate nohighlight">\(y\)</span></p>
 </td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="../../api_reference/cvxpy.atoms.affine.html#sum"><span class="std std-ref">sum(X)</span></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="../../api_reference/cvxpy.atoms.other_atoms.html#std"><span class="std std-ref">std(X)</span></a></p></td>
+<td><p><span class="math notranslate nohighlight">\(\sqrt{\frac{1}{mn} \sum_{ij}\left(X_{ij} - \frac{1}{mn}\sum_{k\ell} X_{k\ell}\right)^2}\)</span></p></td>
+<td><p><span class="math notranslate nohighlight">\(X \in\mathbf{R}^{m \times n}\)</span></p></td>
+<td><p><a class="reference internal" href="../../_images/positive.svg"><img alt="positive" height="15px" src="../../_images/positive.svg" width="15px" /></a> positive</p></td>
+<td><p><a class="reference internal" href="../../_images/convex.svg"><img alt="convex" height="15px" src="../../_images/convex.svg" width="15px" /></a> convex</p></td>
+<td><p>None</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="../../api_reference/cvxpy.atoms.affine.html#sum"><span class="std std-ref">sum(X)</span></a></p></td>
 <td><p><span class="math notranslate nohighlight">\(\sum_{ij}X_{ij}\)</span></p></td>
 <td><p><span class="math notranslate nohighlight">\(X \in\mathbf{R}^{m \times n}\)</span></p></td>
 <td><p>same as X</p></td>
 <td><p><a class="reference internal" href="../../_images/affine.svg"><img alt="affine" height="15px" src="../../_images/affine.svg" width="15px" /></a> affine</p></td>
 <td><p><a class="reference internal" href="../../_images/increasing.svg"><img alt="incr" height="15px" src="../../_images/increasing.svg" width="15px" /></a> incr.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="../../api_reference/cvxpy.atoms.other_atoms.html#sum-largest"><span class="std std-ref">sum_largest(X, k)</span></a></p>
+<tr class="row-odd"><td><p><a class="reference internal" href="../../api_reference/cvxpy.atoms.other_atoms.html#sum-largest"><span class="std std-ref">sum_largest(X, k)</span></a></p>
 <p><span class="math notranslate nohighlight">\(k = 1,2,\ldots\)</span></p>
 </td>
 <td><p><span class="math notranslate nohighlight">\(\text{sum of } k\text{ largest }X_{ij}\)</span></p></td>
@@ -378,7 +399,7 @@ and returns a scalar.</p>
 <td><p><a class="reference internal" href="../../_images/convex.svg"><img alt="convex" height="15px" src="../../_images/convex.svg" width="15px" /></a> convex</p></td>
 <td><p><a class="reference internal" href="../../_images/increasing.svg"><img alt="incr" height="15px" src="../../_images/increasing.svg" width="15px" /></a> incr.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="../../api_reference/cvxpy.atoms.other_atoms.html#sum-smallest"><span class="std std-ref">sum_smallest(X, k)</span></a></p>
+<tr class="row-even"><td><p><a class="reference internal" href="../../api_reference/cvxpy.atoms.other_atoms.html#sum-smallest"><span class="std std-ref">sum_smallest(X, k)</span></a></p>
 <p><span class="math notranslate nohighlight">\(k = 1,2,\ldots\)</span></p>
 </td>
 <td><p><span class="math notranslate nohighlight">\(\text{sum of } k\text{ smallest }X_{ij}\)</span></p></td>
@@ -387,7 +408,7 @@ and returns a scalar.</p>
 <td><p><a class="reference internal" href="../../_images/concave.svg"><img alt="concave" height="15px" src="../../_images/concave.svg" width="15px" /></a> concave</p></td>
 <td><p><a class="reference internal" href="../../_images/increasing.svg"><img alt="incr" height="15px" src="../../_images/increasing.svg" width="15px" /></a> incr.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="../../api_reference/cvxpy.atoms.other_atoms.html#sum-squares"><span class="std std-ref">sum_squares(X)</span></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="../../api_reference/cvxpy.atoms.other_atoms.html#sum-squares"><span class="std std-ref">sum_squares(X)</span></a></p></td>
 <td><p><span class="math notranslate nohighlight">\(\sum_{ij}X_{ij}^2\)</span></p></td>
 <td><p><span class="math notranslate nohighlight">\(X \in\mathbf{R}^{m \times n}\)</span></p></td>
 <td><p><a class="reference internal" href="../../_images/positive.svg"><img alt="positive" height="15px" src="../../_images/positive.svg" width="15px" /></a> positive</p></td>
@@ -396,37 +417,44 @@ and returns a scalar.</p>
 <p><a class="reference internal" href="../../_images/decreasing.svg"><img alt="decr" height="15px" src="../../_images/decreasing.svg" width="15px" /></a> for <span class="math notranslate nohighlight">\(X_{ij} \leq 0\)</span></p>
 </td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="../../api_reference/cvxpy.atoms.affine.html#trace"><span class="std std-ref">trace(X)</span></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="../../api_reference/cvxpy.atoms.affine.html#trace"><span class="std std-ref">trace(X)</span></a></p></td>
 <td><p><span class="math notranslate nohighlight">\(\mathrm{tr}\left(X \right)\)</span></p></td>
 <td><p><span class="math notranslate nohighlight">\(X \in\mathbf{R}^{n \times n}\)</span></p></td>
 <td><p>same as X</p></td>
 <td><p><a class="reference internal" href="../../_images/affine.svg"><img alt="affine" height="15px" src="../../_images/affine.svg" width="15px" /></a> affine</p></td>
 <td><p><a class="reference internal" href="../../_images/increasing.svg"><img alt="incr" height="15px" src="../../_images/increasing.svg" width="15px" /></a> incr.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="../../api_reference/cvxpy.atoms.other_atoms.html#tr-inv"><span class="std std-ref">tr_inv(X)</span></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="../../api_reference/cvxpy.atoms.other_atoms.html#tr-inv"><span class="std std-ref">tr_inv(X)</span></a></p></td>
 <td><p><span class="math notranslate nohighlight">\(\mathrm{tr}\left(X^{-1} \right)\)</span></p></td>
 <td><p><span class="math notranslate nohighlight">\(X \in\mathbf{S}^n_{++}\)</span></p></td>
 <td><p><a class="reference internal" href="../../_images/positive.svg"><img alt="positive" height="15px" src="../../_images/positive.svg" width="15px" /></a> positive</p></td>
 <td><p><a class="reference internal" href="../../_images/convex.svg"><img alt="convex" height="15px" src="../../_images/convex.svg" width="15px" /></a> convex</p></td>
 <td><p>None</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="../../api_reference/cvxpy.atoms.other_atoms.html#tv"><span class="std std-ref">tv(x)</span></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="../../api_reference/cvxpy.atoms.other_atoms.html#tv"><span class="std std-ref">tv(x)</span></a></p></td>
 <td><p><span class="math notranslate nohighlight">\(\sum_{i}|x_{i+1} - x_i|\)</span></p></td>
 <td><p><span class="math notranslate nohighlight">\(x \in \mathbf{R}^n\)</span></p></td>
 <td><p><a class="reference internal" href="../../_images/positive.svg"><img alt="positive" height="15px" src="../../_images/positive.svg" width="15px" /></a> positive</p></td>
 <td><p><a class="reference internal" href="../../_images/convex.svg"><img alt="convex" height="15px" src="../../_images/convex.svg" width="15px" /></a> convex</p></td>
 <td><p>None</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="../../api_reference/cvxpy.atoms.other_atoms.html#tv"><span class="std std-ref">tv(X)</span></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="../../api_reference/cvxpy.atoms.other_atoms.html#tv"><span class="std std-ref">tv(X)</span></a></p></td>
 <td><p><span class="math notranslate nohighlight">\(\sum_{ij}\left\| \left[\begin{matrix} X_{i+1,j} - X_{ij} \\ X_{i,j+1} -X_{ij} \end{matrix}\right] \right\|_2\)</span></p></td>
 <td><p><span class="math notranslate nohighlight">\(X \in \mathbf{R}^{m \times n}\)</span></p></td>
 <td><p><a class="reference internal" href="../../_images/positive.svg"><img alt="positive" height="15px" src="../../_images/positive.svg" width="15px" /></a> positive</p></td>
 <td><p><a class="reference internal" href="../../_images/convex.svg"><img alt="convex" height="15px" src="../../_images/convex.svg" width="15px" /></a> convex</p></td>
 <td><p>None</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="../../api_reference/cvxpy.atoms.other_atoms.html#tv"><span class="std std-ref">tv([X1,…,Xk])</span></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="../../api_reference/cvxpy.atoms.other_atoms.html#tv"><span class="std std-ref">tv([X1,…,Xk])</span></a></p></td>
 <td><p><span class="math notranslate nohighlight">\(\sum_{ij}\left\| \left[\begin{matrix} X_{i+1,j}^{(1)} - X_{ij}^{(1)} \\ X_{i,j+1}^{(1)} -X_{ij}^{(1)} \\ \vdots \\ X_{i+1,j}^{(k)} - X_{ij}^{(k)} \\ X_{i,j+1}^{(k)} -X_{ij}^{(k)}  \end{matrix}\right] \right\|_2\)</span></p></td>
 <td><p><span class="math notranslate nohighlight">\(X^{(i)} \in\mathbf{R}^{m \times n}\)</span></p></td>
+<td><p><a class="reference internal" href="../../_images/positive.svg"><img alt="positive" height="15px" src="../../_images/positive.svg" width="15px" /></a> positive</p></td>
+<td><p><a class="reference internal" href="../../_images/convex.svg"><img alt="convex" height="15px" src="../../_images/convex.svg" width="15px" /></a> convex</p></td>
+<td><p>None</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="../../api_reference/cvxpy.atoms.other_atoms.html#var"><span class="std std-ref">var(X)</span></a></p></td>
+<td><p><span class="math notranslate nohighlight">\({\frac{1}{mn} \sum_{ij}\left(X_{ij} - \frac{1}{mn}\sum_{k\ell} X_{k\ell}\right)^2}\)</span></p></td>
+<td><p><span class="math notranslate nohighlight">\(X \in\mathbf{R}^{m \times n}\)</span></p></td>
 <td><p><a class="reference internal" href="../../_images/positive.svg"><img alt="positive" height="15px" src="../../_images/positive.svg" width="15px" /></a> positive</p></td>
 <td><p><a class="reference internal" href="../../_images/convex.svg"><img alt="convex" height="15px" src="../../_images/convex.svg" width="15px" /></a> convex</p></td>
 <td><p>None</p></td>
@@ -456,8 +484,8 @@ and <code class="docutils literal notranslate"><span class="pre">norm(X,</span> 
 </section>
 <section id="functions-along-an-axis">
 <h2>Functions along an axis<a class="headerlink" href="#functions-along-an-axis" title="Permalink to this heading">¶</a></h2>
-<p>The functions <code class="docutils literal notranslate"><span class="pre">sum</span></code>, <code class="docutils literal notranslate"><span class="pre">norm</span></code>, <code class="docutils literal notranslate"><span class="pre">max</span></code>, and <code class="docutils literal notranslate"><span class="pre">min</span></code> can be
-applied along an axis.
+<p>The functions <code class="docutils literal notranslate"><span class="pre">sum</span></code>, <code class="docutils literal notranslate"><span class="pre">norm</span></code>, <code class="docutils literal notranslate"><span class="pre">max</span></code>, <code class="docutils literal notranslate"><span class="pre">min</span></code>, <code class="docutils literal notranslate"><span class="pre">mean</span></code>, <code class="docutils literal notranslate"><span class="pre">std</span></code>, <code class="docutils literal notranslate"><span class="pre">var</span></code>, and <code class="docutils literal notranslate"><span class="pre">ptp</span></code> can
+be applied along an axis.
 Given an <code class="docutils literal notranslate"><span class="pre">m</span></code> by <code class="docutils literal notranslate"><span class="pre">n</span></code> expression <code class="docutils literal notranslate"><span class="pre">expr</span></code>, the syntax <code class="docutils literal notranslate"><span class="pre">func(expr,</span> <span class="pre">axis=0,</span> <span class="pre">keepdims=True)</span></code>
 applies <code class="docutils literal notranslate"><span class="pre">func</span></code> to each column, returning a 1 by <code class="docutils literal notranslate"><span class="pre">n</span></code> expression.
 The syntax <code class="docutils literal notranslate"><span class="pre">func(expr,</span> <span class="pre">axis=1,</span> <span class="pre">keepdims=True)</span></code> applies <code class="docutils literal notranslate"><span class="pre">func</span></code> to each row,
@@ -627,21 +655,21 @@ scalars, which are promoted.</p>
 <td><p><a class="reference internal" href="../../_images/convex.svg"><img alt="convex" height="15px" src="../../_images/convex.svg" width="15px" /></a> convex</p></td>
 <td><p><a class="reference internal" href="../../_images/increasing.svg"><img alt="incr" height="15px" src="../../_images/increasing.svg" width="15px" /></a> incr.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="../../api_reference/cvxpy.atoms.elementwise.html#power"><span class="std std-ref">power(x, 0)</span></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#power"><span class="std std-ref">power(x, 0)</span></a></p></td>
 <td><p><span class="math notranslate nohighlight">\(1\)</span></p></td>
 <td><p><span class="math notranslate nohighlight">\(x \in \mathbf{R}\)</span></p></td>
 <td><p><a class="reference internal" href="../../_images/positive.svg"><img alt="positive" height="15px" src="../../_images/positive.svg" width="15px" /></a> positive</p></td>
 <td><p>constant</p></td>
 <td><p> </p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="../../api_reference/cvxpy.atoms.elementwise.html#power"><span class="std std-ref">power(x, 1)</span></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#power"><span class="std std-ref">power(x, 1)</span></a></p></td>
 <td><p><span class="math notranslate nohighlight">\(x\)</span></p></td>
 <td><p><span class="math notranslate nohighlight">\(x \in \mathbf{R}\)</span></p></td>
 <td><p>same as x</p></td>
 <td><p><a class="reference internal" href="../../_images/affine.svg"><img alt="affine" height="15px" src="../../_images/affine.svg" width="15px" /></a> affine</p></td>
 <td><p><a class="reference internal" href="../../_images/increasing.svg"><img alt="incr" height="15px" src="../../_images/increasing.svg" width="15px" /></a> incr.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="../../api_reference/cvxpy.atoms.elementwise.html#power"><span class="std std-ref">power(x, p)</span></a></p>
+<tr class="row-even"><td><p><a class="reference internal" href="#power"><span class="std std-ref">power(x, p)</span></a></p>
 <p><span class="math notranslate nohighlight">\(p = 2, 4, 8, \ldots\)</span></p>
 </td>
 <td><p><span class="math notranslate nohighlight">\(x^p\)</span></p></td>
@@ -652,7 +680,7 @@ scalars, which are promoted.</p>
 <p><a class="reference internal" href="../../_images/decreasing.svg"><img alt="decr" height="15px" src="../../_images/decreasing.svg" width="15px" /></a> for <span class="math notranslate nohighlight">\(x \leq 0\)</span></p>
 </td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="../../api_reference/cvxpy.atoms.elementwise.html#power"><span class="std std-ref">power(x, p)</span></a></p>
+<tr class="row-odd"><td><p><a class="reference internal" href="#power"><span class="std std-ref">power(x, p)</span></a></p>
 <p><span class="math notranslate nohighlight">\(p &lt; 0\)</span></p>
 </td>
 <td><p><span class="math notranslate nohighlight">\(x^p\)</span></p></td>
@@ -661,7 +689,7 @@ scalars, which are promoted.</p>
 <td><p><a class="reference internal" href="../../_images/convex.svg"><img alt="convex" height="15px" src="../../_images/convex.svg" width="15px" /></a> convex</p></td>
 <td><p><a class="reference internal" href="../../_images/decreasing.svg"><img alt="decr" height="15px" src="../../_images/decreasing.svg" width="15px" /></a> decr.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="../../api_reference/cvxpy.atoms.elementwise.html#power"><span class="std std-ref">power(x, p)</span></a></p>
+<tr class="row-even"><td><p><a class="reference internal" href="#power"><span class="std std-ref">power(x, p)</span></a></p>
 <p><span class="math notranslate nohighlight">\(0 &lt; p &lt; 1\)</span></p>
 </td>
 <td><p><span class="math notranslate nohighlight">\(x^p\)</span></p></td>
@@ -670,7 +698,7 @@ scalars, which are promoted.</p>
 <td><p><a class="reference internal" href="../../_images/concave.svg"><img alt="concave" height="15px" src="../../_images/concave.svg" width="15px" /></a> concave</p></td>
 <td><p><a class="reference internal" href="../../_images/increasing.svg"><img alt="incr" height="15px" src="../../_images/increasing.svg" width="15px" /></a> incr.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="../../api_reference/cvxpy.atoms.elementwise.html#power"><span class="std std-ref">power(x, p)</span></a></p>
+<tr class="row-odd"><td><p><a class="reference internal" href="#power"><span class="std std-ref">power(x, p)</span></a></p>
 <p><span class="math notranslate nohighlight">\(p &gt; 1,\ p \neq 2, 4, 8, \ldots\)</span></p>
 </td>
 <td><p><span class="math notranslate nohighlight">\(x^p\)</span></p></td>
@@ -771,7 +799,7 @@ Expression and a negative Expression) then the returned Expression will have unk
 <td><p><a class="reference internal" href="../../_images/affine.svg"><img alt="affine" height="15px" src="../../_images/affine.svg" width="15px" /></a> affine</p></td>
 <td><p><a class="reference internal" href="../../_images/increasing.svg"><img alt="incr" height="15px" src="../../_images/increasing.svg" width="15px" /></a> incr.</p></td>
 </tr>
-<tr class="row-odd"><td><p><span class="xref std std-ref">convolve(c, x)</span></p>
+<tr class="row-odd"><td><p><a class="reference internal" href="../../api_reference/cvxpy.atoms.affine.html#convolve"><span class="std std-ref">convolve(c, x)</span></a></p>
 <p><span class="math notranslate nohighlight">\(c\in\mathbf{R}^m\)</span></p>
 </td>
 <td><p><span class="math notranslate nohighlight">\(c*x\)</span></p></td>
@@ -827,19 +855,27 @@ Expression and a negative Expression) then the returned Expression will have unk
 <td><p><a class="reference internal" href="../../_images/affine.svg"><img alt="affine" height="15px" src="../../_images/affine.svg" width="15px" /></a> affine</p></td>
 <td><p>depends on <span class="math notranslate nohighlight">\(Y\)</span></p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="../../api_reference/cvxpy.atoms.affine.html#ptrace"><span class="std std-ref">partial_trace(X, dims, axis=0)</span></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="../../api_reference/cvxpy.atoms.affine.html#outer"><span class="std std-ref">outer(x, y)</span></a></p>
+<p>constant <span class="math notranslate nohighlight">\(y \in \mathbf{R}^m\)</span></p>
+</td>
+<td><p><span class="math notranslate nohighlight">\(x y^T\)</span></p></td>
+<td><p><span class="math notranslate nohighlight">\(x \in \mathbf{R}^n\)</span></p></td>
+<td><p><a class="reference internal" href="../../_images/affine.svg"><img alt="affine" height="15px" src="../../_images/affine.svg" width="15px" /></a> affine</p></td>
+<td><p>depends on <span class="math notranslate nohighlight">\(y\)</span></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="../../api_reference/cvxpy.atoms.affine.html#ptrace"><span class="std std-ref">partial_trace(X, dims, axis=0)</span></a></p></td>
 <td><p>partial trace</p></td>
 <td><p><span class="math notranslate nohighlight">\(X \in\mathbf{R}^{n \times n}\)</span></p></td>
 <td><p><a class="reference internal" href="../../_images/affine.svg"><img alt="affine" height="15px" src="../../_images/affine.svg" width="15px" /></a> affine</p></td>
 <td><p><a class="reference internal" href="../../_images/increasing.svg"><img alt="incr" height="15px" src="../../_images/increasing.svg" width="15px" /></a> incr.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="../../api_reference/cvxpy.atoms.affine.html#ptrans"><span class="std std-ref">partial_transpose(X, dims, axis=0)</span></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="../../api_reference/cvxpy.atoms.affine.html#ptrans"><span class="std std-ref">partial_transpose(X, dims, axis=0)</span></a></p></td>
 <td><p>partial transpose</p></td>
 <td><p><span class="math notranslate nohighlight">\(X \in\mathbf{R}^{n \times n}\)</span></p></td>
 <td><p><a class="reference internal" href="../../_images/affine.svg"><img alt="affine" height="15px" src="../../_images/affine.svg" width="15px" /></a> affine</p></td>
 <td><p><a class="reference internal" href="../../_images/increasing.svg"><img alt="incr" height="15px" src="../../_images/increasing.svg" width="15px" /></a> incr.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="../../api_reference/cvxpy.atoms.affine.html#reshape"><span class="std std-ref">reshape(X, (m’, n’), order=’F’)</span></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="../../api_reference/cvxpy.atoms.affine.html#reshape"><span class="std std-ref">reshape(X, (m’, n’), order=’F’)</span></a></p></td>
 <td><p><span class="math notranslate nohighlight">\(X' \in\mathbf{R}^{m' \times n'}\)</span></p></td>
 <td><p><span class="math notranslate nohighlight">\(X \in\mathbf{R}^{m \times n}\)</span></p>
 <p><span class="math notranslate nohighlight">\(m'n' = mn\)</span></p>
@@ -847,15 +883,23 @@ Expression and a negative Expression) then the returned Expression will have unk
 <td><p><a class="reference internal" href="../../_images/affine.svg"><img alt="affine" height="15px" src="../../_images/affine.svg" width="15px" /></a> affine</p></td>
 <td><p><a class="reference internal" href="../../_images/increasing.svg"><img alt="incr" height="15px" src="../../_images/increasing.svg" width="15px" /></a> incr.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="../../api_reference/cvxpy.atoms.affine.html#upper-tri"><span class="std std-ref">upper_tri(X)</span></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="../../api_reference/cvxpy.atoms.affine.html#upper-tri"><span class="std std-ref">upper_tri(X)</span></a></p></td>
 <td><p>flatten the strictly upper-triangular part of <span class="math notranslate nohighlight">\(X\)</span></p></td>
 <td><p><span class="math notranslate nohighlight">\(X \in \mathbf{R}^{n \times n}\)</span></p></td>
 <td><p><a class="reference internal" href="../../_images/affine.svg"><img alt="affine" height="15px" src="../../_images/affine.svg" width="15px" /></a> affine</p></td>
 <td><p><a class="reference internal" href="../../_images/increasing.svg"><img alt="incr" height="15px" src="../../_images/increasing.svg" width="15px" /></a> incr.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="../../api_reference/cvxpy.atoms.affine.html#vec"><span class="std std-ref">vec(X)</span></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="../../api_reference/cvxpy.atoms.affine.html#vec"><span class="std std-ref">vec(X)</span></a></p></td>
 <td><p><span class="math notranslate nohighlight">\(x' \in\mathbf{R}^{mn}\)</span></p></td>
 <td><p><span class="math notranslate nohighlight">\(X \in\mathbf{R}^{m \times n}\)</span></p></td>
+<td><p><a class="reference internal" href="../../_images/affine.svg"><img alt="affine" height="15px" src="../../_images/affine.svg" width="15px" /></a> affine</p></td>
+<td><p><a class="reference internal" href="../../_images/increasing.svg"><img alt="incr" height="15px" src="../../_images/increasing.svg" width="15px" /></a> incr.</p></td>
+</tr>
+<tr class="row-odd"><td><p><span class="xref std std-ref">vec_to_upper_tri(X, strict=False)</span></p></td>
+<td><p><span class="math notranslate nohighlight">\(x' \in\mathbf{R}^{n(n-1)/2}\)</span> for <code class="docutils literal notranslate"><span class="pre">strict=True</span></code></p>
+<p><span class="math notranslate nohighlight">\(x' \in\mathbf{R}^{n(n+1)/2}\)</span> for <code class="docutils literal notranslate"><span class="pre">strict=False</span></code></p>
+</td>
+<td><p><span class="math notranslate nohighlight">\(X \in\mathbf{R}^{n \times n}\)</span></p></td>
 <td><p><a class="reference internal" href="../../_images/affine.svg"><img alt="affine" height="15px" src="../../_images/affine.svg" width="15px" /></a> affine</p></td>
 <td><p><a class="reference internal" href="../../_images/increasing.svg"><img alt="incr" height="15px" src="../../_images/increasing.svg" width="15px" /></a> incr.</p></td>
 </tr>
@@ -996,7 +1040,7 @@ I.e., <span class="math notranslate nohighlight">\(y = (X[0,1{:}],\, X[1, 2{:}],
       &copy;The CVXPY authors.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 7.0.1</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 7.1.2</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.13</a>
       
       |

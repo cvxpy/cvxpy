@@ -4,14 +4,14 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>cvxpy.problems.problem &#8212; CVXPY 1.3 documentation</title>
-    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css" />
-    <link rel="stylesheet" type="text/css" href="../../../_static/cvxpy_alabaster.css" />
-    <script src="../../../_static/jquery.js"></script>
-    <script src="../../../_static/_sphinx_javascript_frameworks_compat.js"></script>
-    <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
-    <script src="../../../_static/doctools.js"></script>
-    <script src="../../../_static/sphinx_highlight.js"></script>
+    <title>cvxpy.problems.problem &#8212; CVXPY 1.4 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/cvxpy_alabaster.css?v=6c13f287" />
+    <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+    <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+    <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js?v=b308ce55"></script>
+    <script src="../../../_static/doctools.js?v=888ff710"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=4825356b"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" />
    
@@ -51,6 +51,7 @@
 <span class="kn">import</span> <span class="nn">time</span>
 <span class="kn">import</span> <span class="nn">warnings</span>
 <span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">namedtuple</span>
+<span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span>
 <span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Union</span>
 
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
@@ -440,6 +441,13 @@
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;:class:`~cvxpy.problems.problem.SolverStats` : Information returned by the solver.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_solver_stats</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">compilation_time</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;float : The number of seconds it took to compile the problem the</span>
+<span class="sd">                   last time it was compiled.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_compilation_time</span>
 
 <div class="viewcode-block" id="Problem.solve"><a class="viewcode-back" href="../../../api_reference/cvxpy.problems.html#cvxpy.Problem.solve">[docs]</a>    <span class="k">def</span> <span class="nf">solve</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Compiles and solves the problem using the specified method.</span>
@@ -919,7 +927,8 @@
                                        <span class="n">enforce_dpp</span><span class="o">=</span><span class="n">enforce_dpp</span><span class="p">,</span>
                                        <span class="n">ignore_dpp</span><span class="o">=</span><span class="n">ignore_dpp</span><span class="p">,</span>
                                        <span class="n">canon_backend</span><span class="o">=</span><span class="n">canon_backend</span><span class="p">,</span>
-                                       <span class="n">solver_opts</span><span class="o">=</span><span class="n">solver_opts</span><span class="p">)</span>
+                                       <span class="n">solver_opts</span><span class="o">=</span><span class="n">solver_opts</span><span class="p">,</span>
+                                       <span class="n">specified_solver</span><span class="o">=</span><span class="n">solver</span><span class="p">)</span>
 
     <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">_sort_candidate_solvers</span><span class="p">(</span><span class="n">solvers</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
@@ -1040,7 +1049,9 @@
             <span class="n">s</span><span class="o">.</span><span class="n">LOGGER</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
                     <span class="s1">&#39;CVXPY will first compile your problem; then, it will &#39;</span>
                     <span class="s1">&#39;invoke a numerical solver to obtain a solution.&#39;</span><span class="p">)</span>
-
+            <span class="n">s</span><span class="o">.</span><span class="n">LOGGER</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+                    <span class="s2">&quot;Your problem is compiled with the </span><span class="si">%s</span><span class="s2"> canonicalization backend.&quot;</span><span class="p">,</span>
+                    <span class="n">s</span><span class="o">.</span><span class="n">DEFAULT_CANON_BACKEND</span> <span class="k">if</span> <span class="n">canon_backend</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">canon_backend</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">requires_grad</span><span class="p">:</span>
             <span class="n">dpp_context</span> <span class="o">=</span> <span class="s1">&#39;dgp&#39;</span> <span class="k">if</span> <span class="n">gp</span> <span class="k">else</span> <span class="s1">&#39;dcp&#39;</span>
             <span class="k">if</span> <span class="n">qcp</span><span class="p">:</span>
@@ -1431,7 +1442,7 @@
                     <span class="s2">&quot;information.&quot;</span><span class="p">)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">unpack</span><span class="p">(</span><span class="n">solution</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_solver_stats</span> <span class="o">=</span> <span class="n">SolverStats</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_solution</span><span class="o">.</span><span class="n">attr</span><span class="p">,</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_solver_stats</span> <span class="o">=</span> <span class="n">SolverStats</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_solution</span><span class="o">.</span><span class="n">attr</span><span class="p">,</span>
                                          <span class="n">chain</span><span class="o">.</span><span class="n">solver</span><span class="o">.</span><span class="n">name</span><span class="p">())</span></div>
 
     <span class="k">def</span> <span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
@@ -1496,7 +1507,8 @@
     <span class="fm">__truediv__</span> <span class="o">=</span> <span class="n">__div__</span></div>
 
 
-<div class="viewcode-block" id="SolverStats"><a class="viewcode-back" href="../../../api_reference/cvxpy.problems.html#cvxpy.SolverStats">[docs]</a><span class="k">class</span> <span class="nc">SolverStats</span><span class="p">:</span>
+<div class="viewcode-block" id="SolverStats"><a class="viewcode-back" href="../../../api_reference/cvxpy.problems.html#cvxpy.SolverStats">[docs]</a><span class="nd">@dataclass</span>
+<span class="k">class</span> <span class="nc">SolverStats</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Reports some of the miscellaneous information that is returned</span>
 <span class="sd">    by the solver after solving but that is not captured directly by</span>
 <span class="sd">    the Problem instance.</span>
@@ -1516,22 +1528,36 @@
 <span class="sd">        returned directly from the solver, without modification by CVXPY.</span>
 <span class="sd">        This object may be a dict, or a custom Python object.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">results_dict</span><span class="p">,</span> <span class="n">solver_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">solver_name</span> <span class="o">=</span> <span class="n">solver_name</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">solve_time</span> <span class="o">=</span> <span class="kc">None</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">setup_time</span> <span class="o">=</span> <span class="kc">None</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">num_iters</span> <span class="o">=</span> <span class="kc">None</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">extra_stats</span> <span class="o">=</span> <span class="kc">None</span>
 
-        <span class="k">if</span> <span class="n">s</span><span class="o">.</span><span class="n">SOLVE_TIME</span> <span class="ow">in</span> <span class="n">results_dict</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">solve_time</span> <span class="o">=</span> <span class="n">results_dict</span><span class="p">[</span><span class="n">s</span><span class="o">.</span><span class="n">SOLVE_TIME</span><span class="p">]</span>
-        <span class="k">if</span> <span class="n">s</span><span class="o">.</span><span class="n">SETUP_TIME</span> <span class="ow">in</span> <span class="n">results_dict</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">setup_time</span> <span class="o">=</span> <span class="n">results_dict</span><span class="p">[</span><span class="n">s</span><span class="o">.</span><span class="n">SETUP_TIME</span><span class="p">]</span>
-        <span class="k">if</span> <span class="n">s</span><span class="o">.</span><span class="n">NUM_ITERS</span> <span class="ow">in</span> <span class="n">results_dict</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">num_iters</span> <span class="o">=</span> <span class="n">results_dict</span><span class="p">[</span><span class="n">s</span><span class="o">.</span><span class="n">NUM_ITERS</span><span class="p">]</span>
-        <span class="k">if</span> <span class="n">s</span><span class="o">.</span><span class="n">EXTRA_STATS</span> <span class="ow">in</span> <span class="n">results_dict</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">extra_stats</span> <span class="o">=</span> <span class="n">results_dict</span><span class="p">[</span><span class="n">s</span><span class="o">.</span><span class="n">EXTRA_STATS</span><span class="p">]</span></div>
+    <span class="n">solver_name</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">solve_time</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">setup_time</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">num_iters</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">extra_stats</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">dict</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
 
+<div class="viewcode-block" id="SolverStats.from_dict"><a class="viewcode-back" href="../../../api_reference/cvxpy.problems.html#cvxpy.SolverStats.from_dict">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">from_dict</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">attr</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">solver_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;SolverStats&quot;</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Construct a SolverStats object from a dictionary of attributes.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        attr : dict</span>
+<span class="sd">            A dictionary of attributes returned by the solver.</span>
+<span class="sd">        solver_name : str</span>
+<span class="sd">            The name of the solver.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        SolverStats</span>
+<span class="sd">            A SolverStats object.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span>
+            <span class="n">solver_name</span><span class="p">,</span>
+            <span class="n">solve_time</span><span class="o">=</span><span class="n">attr</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">SOLVE_TIME</span><span class="p">),</span>
+            <span class="n">setup_time</span><span class="o">=</span><span class="n">attr</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">SETUP_TIME</span><span class="p">),</span>
+            <span class="n">num_iters</span><span class="o">=</span><span class="n">attr</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">NUM_ITERS</span><span class="p">),</span>
+            <span class="n">extra_stats</span><span class="o">=</span><span class="n">attr</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">EXTRA_STATS</span><span class="p">),</span>
+        <span class="p">)</span></div></div>
 
 <div class="viewcode-block" id="SizeMetrics"><a class="viewcode-back" href="../../../api_reference/cvxpy.problems.html#cvxpy.SizeMetrics">[docs]</a><span class="k">class</span> <span class="nc">SizeMetrics</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Reports various metrics regarding the problem.</span>
@@ -1692,7 +1718,7 @@
       &copy;The CVXPY authors.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 7.0.1</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 7.1.2</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.13</a>
       
     </div>

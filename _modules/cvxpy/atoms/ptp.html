@@ -4,7 +4,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>cvxpy.atoms.mixed_norm &#8212; CVXPY 1.4 documentation</title>
+    <title>cvxpy.atoms.ptp &#8212; CVXPY 1.4 documentation</title>
     <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=fa44fd50" />
     <link rel="stylesheet" type="text/css" href="../../../_static/cvxpy_alabaster.css?v=6c13f287" />
     <script src="../../../_static/jquery.js?v=5d32c60e"></script>
@@ -30,15 +30,15 @@
 
           <div class="body" role="main">
             
-  <h1>Source code for cvxpy.atoms.mixed_norm</h1><div class="highlight"><pre>
+  <h1>Source code for cvxpy.atoms.ptp</h1><div class="highlight"><pre>
 <span></span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">Copyright 2013 Steven Diamond</span>
+<span class="sd">Copyright 2013 CVXPY Developers</span>
 
 <span class="sd">Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);</span>
 <span class="sd">you may not use this file except in compliance with the License.</span>
 <span class="sd">You may obtain a copy of the License at</span>
 
-<span class="sd">    http://www.apache.org/licenses/LICENSE-2.0</span>
+<span class="sd">http://www.apache.org/licenses/LICENSE-2.0</span>
 
 <span class="sd">Unless required by applicable law or agreed to in writing, software</span>
 <span class="sd">distributed under the License is distributed on an &quot;AS IS&quot; BASIS,</span>
@@ -47,35 +47,19 @@
 <span class="sd">limitations under the License.</span>
 <span class="sd">&quot;&quot;&quot;</span>
 
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Union</span>
 
-<span class="kn">from</span> <span class="nn">cvxpy.atoms.norm</span> <span class="kn">import</span> <span class="n">norm</span>
-<span class="kn">from</span> <span class="nn">cvxpy.expressions.expression</span> <span class="kn">import</span> <span class="n">Expression</span>
+<span class="kn">from</span> <span class="nn">cvxpy.atoms.affine.wraps</span> <span class="kn">import</span> <span class="n">nonneg_wrap</span>
+<span class="kn">from</span> <span class="nn">cvxpy.atoms.max</span> <span class="kn">import</span> <span class="nb">max</span> <span class="k">as</span> <span class="n">cvxpy_max</span>
+<span class="kn">from</span> <span class="nn">cvxpy.atoms.min</span> <span class="kn">import</span> <span class="nb">min</span> <span class="k">as</span> <span class="n">cvxpy_min</span>
 
 
-<div class="viewcode-block" id="mixed_norm"><a class="viewcode-back" href="../../../api_reference/cvxpy.atoms.other_atoms.html#cvxpy.atoms.mixed_norm.mixed_norm">[docs]</a><span class="k">def</span> <span class="nf">mixed_norm</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">p</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="mi">2</span><span class="p">,</span> <span class="n">q</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Lp,q norm; :math:`(\\sum_k (\\sum_l \\lvert x_{k,l} \\rvert^p)^{q/p})^{1/q}`.</span>
+<div class="viewcode-block" id="ptp"><a class="viewcode-back" href="../../../api_reference/cvxpy.atoms.other_atoms.html#cvxpy.atoms.ptp.ptp">[docs]</a><span class="k">def</span> <span class="nf">ptp</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">keepdims</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Range of values (maximum - minimum) along an axis.</span>
 
-<span class="sd">    Parameters</span>
-<span class="sd">    ----------</span>
-<span class="sd">    X : Expression or numeric constant</span>
-<span class="sd">        The matrix to take the l_{p,q} norm of.</span>
-<span class="sd">    p : int or str, optional</span>
-<span class="sd">        The type of inner norm.</span>
-<span class="sd">    q : int or str, optional</span>
-<span class="sd">        The type of outer norm.</span>
-
-<span class="sd">    Returns</span>
-<span class="sd">    -------</span>
-<span class="sd">    Expression</span>
-<span class="sd">        An Expression representing the mixed norm.</span>
+<span class="sd">    The name of the function comes from the acronym for ‘peak to peak’.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">X</span> <span class="o">=</span> <span class="n">Expression</span><span class="o">.</span><span class="n">cast_to_const</span><span class="p">(</span><span class="n">X</span><span class="p">)</span>
-
-    <span class="c1"># inner norms</span>
-    <span class="n">vecnorms</span> <span class="o">=</span> <span class="n">norm</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">p</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
-    <span class="c1"># outer norm</span>
-    <span class="k">return</span> <span class="n">norm</span><span class="p">(</span><span class="n">vecnorms</span><span class="p">,</span> <span class="n">q</span><span class="p">)</span></div>
+    <span class="k">return</span> <span class="n">nonneg_wrap</span><span class="p">(</span><span class="n">cvxpy_max</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">axis</span><span class="p">,</span> <span class="n">keepdims</span><span class="p">)</span> <span class="o">-</span> <span class="n">cvxpy_min</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">axis</span><span class="p">,</span> <span class="n">keepdims</span><span class="p">))</span></div>
 </pre></div>
 
           </div>
