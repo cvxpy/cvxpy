@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Entropy maximization &#8212; CVXPY 1.4 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="../../_static/cvxpy_alabaster.css?v=6c13f287" />
+    <script src="../../_static/jquery.js?v=5d32c60e"></script>
+    <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+    <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js?v=b308ce55"></script>
+    <script src="../../_static/doctools.js?v=888ff710"></script>
+    <script src="../../_static/sphinx_highlight.js?v=4825356b"></script>
+    <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+   
+  <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="entropy-maximization">
+<h1>Entropy maximization<a class="headerlink" href="#entropy-maximization" title="Permalink to this heading">¶</a></h1>
+<p>A derivative work by Judson Wilson, 6/2/2014. Adapted from the CVX
+example of the same name, by Joëlle Skaf, 4/24/2008.</p>
+<section id="introduction">
+<h2>Introduction<a class="headerlink" href="#introduction" title="Permalink to this heading">¶</a></h2>
+<p>Consider the linear inequality constrained entropy maximization problem:</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}\begin{array}{ll}
+    \mbox{maximize}   &amp; -\sum_{i=1}^n x_i \log(x_i) \\
+    \mbox{subject to} &amp; \sum_{i=1}^n x_i = 1 \\
+                      &amp; Fx \succeq g,
+    \end{array}\end{split}\]</div>
+<p>where the variable is <span class="math notranslate nohighlight">\(x \in \mathbf{{\mbox{R}}}^{n}\)</span>.</p>
+<p>This problem can be formulated in CVXPY using the <code class="docutils literal notranslate"><span class="pre">entr</span></code> atom.</p>
+</section>
+<section id="generate-problem-data">
+<h2>Generate problem data<a class="headerlink" href="#generate-problem-data" title="Permalink to this heading">¶</a></h2>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">cvxpy</span> <span class="k">as</span> <span class="nn">cp</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+<span class="c1"># Make random input repeatable.</span>
+<span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+
+<span class="c1"># Matrix size parameters.</span>
+<span class="n">n</span> <span class="o">=</span> <span class="mi">20</span>
+<span class="n">m</span> <span class="o">=</span> <span class="mi">10</span>
+<span class="n">p</span> <span class="o">=</span> <span class="mi">5</span>
+
+<span class="c1"># Generate random problem data.</span>
+<span class="n">tmp</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
+<span class="n">A</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">n</span><span class="p">)</span>
+<span class="n">b</span> <span class="o">=</span> <span class="n">A</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">tmp</span><span class="p">)</span>
+<span class="n">F</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">n</span><span class="p">)</span>
+<span class="n">g</span> <span class="o">=</span> <span class="n">F</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">tmp</span><span class="p">)</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="n">p</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="formulate-and-solve-problem">
+<h2>Formulate and solve problem<a class="headerlink" href="#formulate-and-solve-problem" title="Permalink to this heading">¶</a></h2>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Entropy maximization.</span>
+<span class="n">x</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="n">n</span><span class="p">)</span>
+<span class="n">obj</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Maximize</span><span class="p">(</span><span class="n">cp</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">cp</span><span class="o">.</span><span class="n">entr</span><span class="p">(</span><span class="n">x</span><span class="p">)))</span>
+<span class="n">constraints</span> <span class="o">=</span> <span class="p">[</span><span class="n">A</span><span class="o">*</span><span class="n">x</span> <span class="o">==</span> <span class="n">b</span><span class="p">,</span>
+               <span class="n">F</span><span class="o">*</span><span class="n">x</span> <span class="o">&lt;=</span> <span class="n">g</span> <span class="p">]</span>
+<span class="n">prob</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Problem</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">constraints</span><span class="p">)</span>
+<span class="n">prob</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">solver</span><span class="o">=</span><span class="n">cp</span><span class="o">.</span><span class="n">CVXOPT</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+<span class="c1"># Print result.</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">The optimal value is:&quot;</span><span class="p">,</span> <span class="n">prob</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">The optimal solution is:&#39;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>     <span class="n">pcost</span>       <span class="n">dcost</span>       <span class="n">gap</span>    <span class="n">pres</span>   <span class="n">dres</span>
+ <span class="mi">0</span><span class="p">:</span>  <span class="mf">0.0000e+00</span> <span class="o">-</span><span class="mf">2.8736e+00</span>  <span class="mf">2e+01</span>  <span class="mf">1e+00</span>  <span class="mf">1e+00</span>
+ <span class="mi">1</span><span class="p">:</span> <span class="o">-</span><span class="mf">6.0720e+00</span> <span class="o">-</span><span class="mf">5.9687e+00</span>  <span class="mf">2e+00</span>  <span class="mf">8e-02</span>  <span class="mf">2e-01</span>
+ <span class="mi">2</span><span class="p">:</span> <span class="o">-</span><span class="mf">5.4688e+00</span> <span class="o">-</span><span class="mf">5.5883e+00</span>  <span class="mf">4e-01</span>  <span class="mf">8e-03</span>  <span class="mf">4e-02</span>
+ <span class="mi">3</span><span class="p">:</span> <span class="o">-</span><span class="mf">5.4595e+00</span> <span class="o">-</span><span class="mf">5.4889e+00</span>  <span class="mf">5e-02</span>  <span class="mf">6e-04</span>  <span class="mf">1e-02</span>
+ <span class="mi">4</span><span class="p">:</span> <span class="o">-</span><span class="mf">5.4763e+00</span> <span class="o">-</span><span class="mf">5.4816e+00</span>  <span class="mf">1e-02</span>  <span class="mf">1e-04</span>  <span class="mf">5e-03</span>
+ <span class="mi">5</span><span class="p">:</span> <span class="o">-</span><span class="mf">5.4804e+00</span> <span class="o">-</span><span class="mf">5.4809e+00</span>  <span class="mf">1e-03</span>  <span class="mf">1e-05</span>  <span class="mf">2e-03</span>
+ <span class="mi">6</span><span class="p">:</span> <span class="o">-</span><span class="mf">5.4809e+00</span> <span class="o">-</span><span class="mf">5.4809e+00</span>  <span class="mf">3e-05</span>  <span class="mf">5e-07</span>  <span class="mf">3e-04</span>
+ <span class="mi">7</span><span class="p">:</span> <span class="o">-</span><span class="mf">5.4809e+00</span> <span class="o">-</span><span class="mf">5.4809e+00</span>  <span class="mf">4e-07</span>  <span class="mf">6e-09</span>  <span class="mf">1e-05</span>
+ <span class="mi">8</span><span class="p">:</span> <span class="o">-</span><span class="mf">5.4809e+00</span> <span class="o">-</span><span class="mf">5.4809e+00</span>  <span class="mf">4e-09</span>  <span class="mf">6e-11</span>  <span class="mf">3e-07</span>
+ <span class="mi">9</span><span class="p">:</span> <span class="o">-</span><span class="mf">5.4809e+00</span> <span class="o">-</span><span class="mf">5.4809e+00</span>  <span class="mf">4e-11</span>  <span class="mf">6e-13</span>  <span class="mf">4e-09</span>
+<span class="n">Optimal</span> <span class="n">solution</span> <span class="n">found</span><span class="o">.</span>
+
+<span class="n">The</span> <span class="n">optimal</span> <span class="n">value</span> <span class="ow">is</span><span class="p">:</span> <span class="mf">5.480901486350394</span>
+
+<span class="n">The</span> <span class="n">optimal</span> <span class="n">solution</span> <span class="ow">is</span><span class="p">:</span>
+<span class="p">[</span><span class="mf">0.43483319</span> <span class="mf">0.66111715</span> <span class="mf">0.49201039</span> <span class="mf">0.36030618</span> <span class="mf">0.38416629</span> <span class="mf">0.30283658</span>
+ <span class="mf">0.41730232</span> <span class="mf">0.79107794</span> <span class="mf">0.76667302</span> <span class="mf">0.38292365</span> <span class="mf">1.2479328</span>  <span class="mf">0.50416987</span>
+ <span class="mf">0.68053832</span> <span class="mf">0.67163958</span> <span class="mf">0.13877259</span> <span class="mf">0.5248668</span>  <span class="mf">0.08418897</span> <span class="mf">0.56927148</span>
+ <span class="mf">0.50000248</span> <span class="mf">0.78291311</span><span class="p">]</span>
+</pre></div>
+</div>
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../index.html">CVXPY</a></h1>
+
+
+
+
+
+
+<p>
+<iframe src="https://ghbtns.com/github-btn.html?user=cvxpy&repo=cvxpy&type=star&count=true&size=large&v=2"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
+
+
+
+
+
+<h3>Navigation</h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../install/index.html">Install</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial/index.html">User Guide</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../index.html">Examples</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../api_reference/cvxpy.html">API Documentation</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../faq/index.html">FAQ</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../citing/index.html">Citing CVXPY</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../contributing/index.html">Contributing</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../related_projects/index.html">Related Projects</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../updates/index.html">Changes to CVXPY</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../short_course/index.html">CVXPY Short Course</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../license/index.html">License</a></li>
+</ul>
+
+
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script><div>
+    <h3>
+        Version selector
+    </h3>
+    <select id="dynamic_selector" name="versions" onchange="if (this.value) window.location.href=this.value">
+    </select>
+    <script>
+        obj = $.getJSON("https://raw.githubusercontent.com/cvxpy/cvxpy/gh-pages/versions.json")
+            .done(function (data) {
+                const base_url = "https://www.cvxpy.org/"
+                let html = "<option value='' selected>Choose version here</option>";
+                html += "<option value=" + base_url + ">latest" + ""
+                for (let i = 0; i < data.length; i++) {
+                    html += "<option value=" + base_url + "version/"  + data[i] + ">" + data[i] + ""
+                }
+                document.getElementById("dynamic_selector").innerHTML = html;
+            });
+    </script>
+</div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;The CVXPY authors.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 7.1.2</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.13</a>
+      
+      |
+      <a href="../../_sources/examples/applications/max_entropy.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+    <script type="text/javascript">
+
+      var _gaq = _gaq || [];
+      _gaq.push(['_setAccount', 'UA-50248335-1']);
+      _gaq.push(['_setDomainName', 'none']);
+      _gaq.push(['_setAllowLinker', true]);
+      _gaq.push(['_trackPageview']);
+
+      (function() {
+        var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+        ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+      })();
+
+    </script>
+    
+  </body>
+</html>

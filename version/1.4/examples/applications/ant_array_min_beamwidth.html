@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Minimize beamwidth of an array with arbitrary 2-D geometry &#8212; CVXPY 1.4 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="../../_static/cvxpy_alabaster.css?v=6c13f287" />
+    <script src="../../_static/jquery.js?v=5d32c60e"></script>
+    <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+    <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js?v=b308ce55"></script>
+    <script src="../../_static/doctools.js?v=888ff710"></script>
+    <script src="../../_static/sphinx_highlight.js?v=4825356b"></script>
+    <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+   
+  <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="minimize-beamwidth-of-an-array-with-arbitrary-2-d-geometry">
+<h1>Minimize beamwidth of an array with arbitrary 2-D geometry<a class="headerlink" href="#minimize-beamwidth-of-an-array-with-arbitrary-2-d-geometry" title="Permalink to this heading">¶</a></h1>
+<p>A derivative work by Judson Wilson, 5/14/2014. Adapted (with significant
+changes) from the CVX example of the same name, by Almir Mutapcic,
+2/2/2006.</p>
+<p>Topic References:</p>
+<ul class="simple">
+<li><p>“Convex optimization examples” lecture notes (EE364) by S. Boyd</p></li>
+<li><p>“Antenna array pattern synthesis via convex optimization” by H.
+Lebret and S. Boyd</p></li>
+</ul>
+<section id="introduction">
+<h2>Introduction<a class="headerlink" href="#introduction" title="Permalink to this heading">¶</a></h2>
+<p>This algorithm designs an antenna array such that:</p>
+<ul class="simple">
+<li><p>it has unit sensitivity at some target direction</p></li>
+<li><p>it obeys a constraint on a minimum sidelobe level outside the beam</p></li>
+<li><p>it minimizes the beamwidth of the pattern.</p></li>
+</ul>
+<p>This is a quasiconvex problem. Define the target direction as
+<span class="math notranslate nohighlight">\(\theta_{\mbox{tar}}\)</span>, and a beamwidth of
+<span class="math notranslate nohighlight">\(\Delta \theta_{\mbox{bw}}\)</span>. The beam occupies the angular
+interval</p>
+<div class="math notranslate nohighlight">
+\[\Theta_b = \left(\theta_{\mbox{tar}}
+-\frac{1}{2}\Delta \theta_{\mbox{bw}},\; \theta_{\mbox{tar}}
++ \frac{1}{2}\Delta \theta_{\mbox{bw}}\right).\]</div>
+<p>Solving for the minimum beamwidth <span class="math notranslate nohighlight">\(\Delta \theta_{\mbox{bw}}\)</span> is
+performed by bisection, where the interval which contains the optimal
+value is bisected according to the result of the following feasibility
+problem:</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}\begin{array}{ll}
+\mbox{minimize}   &amp;  0 \\
+\mbox{subject to} &amp; y(\theta_{\mbox{tar}}) = 1 \\
+                  &amp;  \left|y(\theta)\right| \leq t_{\mbox{sb}}
+                         \quad \forall \theta \notin \Theta_b.
+\end{array}\end{split}\]</div>
+<p><span class="math notranslate nohighlight">\(y\)</span> is the antenna array gain pattern (a complex-valued function),
+<span class="math notranslate nohighlight">\(t_{\mbox{sb}}\)</span> is the maximum allowed sideband gain threshold,
+and the variables are <span class="math notranslate nohighlight">\(w\)</span> (antenna array weights or shading
+coefficients). The gain pattern is a linear function of <span class="math notranslate nohighlight">\(w\)</span>:
+<span class="math notranslate nohighlight">\(y(\theta) = w^T a(\theta)\)</span> for some <span class="math notranslate nohighlight">\(a(\theta)\)</span> describing
+the antenna array configuration and specs.</p>
+<p>Once the optimal beamwidth is found, the solution <span class="math notranslate nohighlight">\(w\)</span> is refined
+with the following optimization:</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}\begin{array}{ll}
+\mbox{minimize}   &amp;  \|w\| \\
+\mbox{subject to} &amp; y(\theta_{\mbox{tar}}) = 1 \\
+                  &amp; \left|y(\theta)\right|  \leq t_{\mbox{sb}}
+                          \quad \forall \theta \notin \Theta_b.
+\end{array}\end{split}\]</div>
+<p>The implementation below discretizes the angular quantities and their
+counterparts, such as <span class="math notranslate nohighlight">\(\theta\)</span>.</p>
+</section>
+<section id="problem-specification-and-data">
+<h2>Problem specification and data<a class="headerlink" href="#problem-specification-and-data" title="Permalink to this heading">¶</a></h2>
+<section id="antenna-array-selection">
+<h3>Antenna array selection<a class="headerlink" href="#antenna-array-selection" title="Permalink to this heading">¶</a></h3>
+<p>Choose either:</p>
+<ul class="simple">
+<li><p>A random 2D positioning of antennas.</p></li>
+<li><p>A uniform 1D positioning of antennas along a line.</p></li>
+<li><p>A uniform 2D positioning of antennas along a grid.</p></li>
+</ul>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">cvxpy</span> <span class="k">as</span> <span class="nn">cp</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+<span class="c1"># Select array geometry:</span>
+<span class="n">ARRAY_GEOMETRY</span> <span class="o">=</span> <span class="s1">&#39;2D_RANDOM&#39;</span>
+<span class="c1">#ARRAY_GEOMETRY = &#39;1D_UNIFORM_LINE&#39;</span>
+<span class="c1">#ARRAY_GEOMETRY = &#39;2D_UNIFORM_LATTICE&#39;</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="data-generation">
+<h2>Data generation<a class="headerlink" href="#data-generation" title="Permalink to this heading">¶</a></h2>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1">#</span>
+<span class="c1"># Problem specs.</span>
+<span class="c1">#</span>
+<span class="n">lambda_wl</span> <span class="o">=</span> <span class="mi">1</span>         <span class="c1"># wavelength</span>
+<span class="n">theta_tar</span> <span class="o">=</span> <span class="mi">60</span>        <span class="c1"># target direction</span>
+<span class="n">min_sidelobe</span> <span class="o">=</span> <span class="o">-</span><span class="mi">20</span>    <span class="c1"># maximum sidelobe level in dB</span>
+
+<span class="n">max_half_beam</span> <span class="o">=</span> <span class="mi">50</span>    <span class="c1"># starting half beamwidth (must be feasible)</span>
+
+<span class="c1">#</span>
+<span class="c1"># 2D_RANDOM:</span>
+<span class="c1">#     n randomly located elements in 2D.</span>
+<span class="c1">#</span>
+<span class="k">if</span> <span class="n">ARRAY_GEOMETRY</span> <span class="o">==</span> <span class="s1">&#39;2D_RANDOM&#39;</span><span class="p">:</span>
+    <span class="c1"># Set random seed for repeatable experiments.</span>
+    <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+    <span class="c1"># Uniformly distributed on [0,L]-by-[0,L] square.</span>
+    <span class="n">n</span> <span class="o">=</span> <span class="mi">36</span>
+    <span class="n">L</span> <span class="o">=</span> <span class="mi">5</span>
+    <span class="n">loc</span> <span class="o">=</span> <span class="n">L</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">random</span><span class="p">((</span><span class="n">n</span><span class="p">,</span><span class="mi">2</span><span class="p">))</span>
+
+<span class="c1">#</span>
+<span class="c1"># 1D_UNIFORM_LINE:</span>
+<span class="c1">#     Uniform 1D array with n elements with inter-element spacing d.</span>
+<span class="c1">#</span>
+<span class="k">elif</span> <span class="n">ARRAY_GEOMETRY</span> <span class="o">==</span> <span class="s1">&#39;1D_UNIFORM_LINE&#39;</span><span class="p">:</span>
+    <span class="n">n</span> <span class="o">=</span> <span class="mi">30</span>
+    <span class="n">d</span> <span class="o">=</span> <span class="mf">0.45</span><span class="o">*</span><span class="n">lambda_wl</span>
+    <span class="n">loc</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">((</span> <span class="n">d</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="n">n</span><span class="p">))</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> \
+                          <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">n</span><span class="p">,</span><span class="mi">1</span><span class="p">))</span> <span class="p">))</span>
+
+<span class="c1">#</span>
+<span class="c1"># 2D_UNIFORM_LATTICE:</span>
+<span class="c1">#     Uniform 2D array with m-by-m element with d spacing.</span>
+<span class="c1">#</span>
+<span class="k">elif</span> <span class="n">ARRAY_GEOMETRY</span> <span class="o">==</span> <span class="s1">&#39;2D_UNIFORM_LATTICE&#39;</span><span class="p">:</span>
+    <span class="n">m</span> <span class="o">=</span> <span class="mi">6</span>
+    <span class="n">n</span> <span class="o">=</span> <span class="n">m</span><span class="o">**</span><span class="mi">2</span>
+    <span class="n">d</span> <span class="o">=</span> <span class="mf">0.45</span><span class="o">*</span><span class="n">lambda_wl</span>
+
+    <span class="n">loc</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">n</span><span class="p">,</span> <span class="mi">2</span><span class="p">))</span>
+    <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">m</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">y</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">m</span><span class="p">):</span>
+            <span class="n">loc</span><span class="p">[</span><span class="n">m</span><span class="o">*</span><span class="n">y</span><span class="o">+</span><span class="n">x</span><span class="p">,:]</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">]</span>
+    <span class="n">loc</span> <span class="o">=</span> <span class="n">loc</span><span class="o">*</span><span class="n">d</span>
+
+<span class="k">else</span><span class="p">:</span>
+    <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s1">&#39;Undefined array geometry&#39;</span><span class="p">)</span>
+
+
+<span class="c1">#</span>
+<span class="c1"># Construct optimization data.</span>
+<span class="c1">#</span>
+
+<span class="c1"># Build matrix A that relates w and y(theta), ie, y = A*w.</span>
+<span class="n">theta</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">360</span><span class="o">+</span><span class="mi">1</span><span class="p">))</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+<span class="n">A</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">kron</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="o">*</span><span class="n">theta</span><span class="o">/</span><span class="mi">180</span><span class="p">),</span> <span class="n">loc</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">T</span><span class="p">)</span> \
+  <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">kron</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="o">*</span><span class="n">theta</span><span class="o">/</span><span class="mi">180</span><span class="p">),</span> <span class="n">loc</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>
+<span class="n">A</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="o">*</span><span class="mi">1</span><span class="n">j</span><span class="o">/</span><span class="n">lambda_wl</span><span class="o">*</span><span class="n">A</span><span class="p">)</span>
+
+<span class="c1"># Target constraint matrix.</span>
+<span class="n">ind_closest</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argmin</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">theta</span> <span class="o">-</span> <span class="n">theta_tar</span><span class="p">))</span>
+<span class="n">Atar</span> <span class="o">=</span> <span class="n">A</span><span class="p">[</span><span class="n">ind_closest</span><span class="p">,:]</span>
+</pre></div>
+</div>
+</section>
+<section id="solve-using-bisection-algorithm">
+<h2>Solve using bisection algorithm<a class="headerlink" href="#solve-using-bisection-algorithm" title="Permalink to this heading">¶</a></h2>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Bisection range limits. Reduce by half each step.</span>
+<span class="n">halfbeam_bot</span> <span class="o">=</span> <span class="mi">1</span>
+<span class="n">halfbeam_top</span> <span class="o">=</span> <span class="n">max_half_beam</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;We are only considering integer values of the half beam-width&#39;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;(since we are sampling the angle with 1 degree resolution).&#39;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+
+<span class="c1"># Iterate bisection until 1 angular degree of uncertainty.</span>
+<span class="k">while</span> <span class="n">halfbeam_top</span> <span class="o">-</span> <span class="n">halfbeam_bot</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+    <span class="c1"># Width in degrees of the current half-beam.</span>
+    <span class="n">halfbeam_cur</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ceil</span><span class="p">(</span> <span class="p">(</span><span class="n">halfbeam_top</span> <span class="o">+</span> <span class="n">halfbeam_bot</span><span class="p">)</span><span class="o">/</span><span class="mf">2.0</span> <span class="p">)</span>
+
+    <span class="c1"># Create optimization matrices for the stopband,</span>
+    <span class="c1"># i.e. only A values for the stopband angles.</span>
+    <span class="n">ind</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nonzero</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">squeeze</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">logical_or</span><span class="p">(</span> \
+               <span class="n">theta</span> <span class="o">&lt;=</span> <span class="p">(</span><span class="n">theta_tar</span><span class="o">-</span><span class="n">halfbeam_cur</span><span class="p">),</span> \
+               <span class="n">theta</span> <span class="o">&gt;=</span> <span class="p">(</span><span class="n">theta_tar</span><span class="o">+</span><span class="n">halfbeam_cur</span><span class="p">)</span> <span class="p">))))</span>
+    <span class="n">As</span> <span class="o">=</span> <span class="n">A</span><span class="p">[</span><span class="n">ind</span><span class="p">[</span><span class="mi">0</span><span class="p">],:]</span>
+
+    <span class="c1">#</span>
+    <span class="c1"># Formulate and solve the feasibility antenna array problem.</span>
+    <span class="c1">#</span>
+
+    <span class="c1"># As of this writing (2014/05/14) cvxpy does not do complex valued math,</span>
+    <span class="c1"># so the real and complex values must be stored separately as reals</span>
+    <span class="c1"># and operated on as follows:</span>
+    <span class="c1">#     Let any vector or matrix be represented as a+bj, or A+Bj.</span>
+    <span class="c1">#     Vectors are stored [a; b] and matrices as [A -B; B A]:</span>
+
+    <span class="c1"># Atar as [A -B; B A]</span>
+    <span class="n">Atar_R</span> <span class="o">=</span> <span class="n">Atar</span><span class="o">.</span><span class="n">real</span>
+    <span class="n">Atar_I</span> <span class="o">=</span> <span class="n">Atar</span><span class="o">.</span><span class="n">imag</span>
+    <span class="n">neg_Atar_I</span> <span class="o">=</span> <span class="o">-</span><span class="n">Atar_I</span>
+    <span class="n">Atar_RI</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">block</span><span class="p">([[</span><span class="n">Atar_R</span><span class="p">,</span> <span class="n">neg_Atar_I</span><span class="p">],</span> <span class="p">[</span><span class="n">Atar_I</span><span class="p">,</span> <span class="n">Atar_R</span><span class="p">]])</span>
+
+    <span class="c1"># As as [A -B; B A]</span>
+    <span class="n">As_R</span> <span class="o">=</span> <span class="n">As</span><span class="o">.</span><span class="n">real</span>
+    <span class="n">As_I</span> <span class="o">=</span> <span class="n">As</span><span class="o">.</span><span class="n">imag</span>
+    <span class="n">neg_As_I</span> <span class="o">=</span> <span class="o">-</span><span class="n">As_I</span>
+    <span class="n">As_RI</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">block</span><span class="p">([[</span><span class="n">As_R</span><span class="p">,</span> <span class="n">neg_As_I</span><span class="p">],</span> <span class="p">[</span><span class="n">As_I</span><span class="p">,</span> <span class="n">As_R</span><span class="p">]])</span>
+    <span class="n">As_RI_top</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">block</span><span class="p">([</span><span class="n">As_R</span><span class="p">,</span> <span class="n">neg_As_I</span><span class="p">])</span>
+    <span class="n">As_RI_bot</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">block</span><span class="p">([</span><span class="n">As_I</span><span class="p">,</span> <span class="n">As_R</span><span class="p">])</span>
+
+    <span class="c1"># 1-vector as [1, 0] since no imaginary part</span>
+    <span class="n">realones_ri</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">])</span>
+
+    <span class="c1"># Create cvxpy variables and constraints</span>
+    <span class="n">w_ri</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="n">n</span><span class="p">))</span>
+    <span class="n">constraints</span> <span class="o">=</span> <span class="p">[</span> <span class="n">Atar_RI</span><span class="o">*</span><span class="n">w_ri</span> <span class="o">==</span> <span class="n">realones_ri</span><span class="p">]</span>
+    <span class="c1"># Must add complex valued constraint</span>
+    <span class="c1"># abs(As*w &lt;= 10**(min_sidelobe/20)) row by row by hand.</span>
+    <span class="c1"># TODO: Future version use norms() or complex math</span>
+    <span class="c1"># when these features become available in cvxpy.</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">As</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]):</span>
+        <span class="c1">#Make a matrix whos product with w_ri is a 2-vector</span>
+        <span class="c1">#which is the real and imag component of a row of As*w</span>
+        <span class="n">As_ri_row</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">((</span><span class="n">As_RI_top</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="p">:],</span> <span class="n">As_RI_bot</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="p">:]))</span>
+        <span class="n">constraints</span><span class="o">.</span><span class="n">append</span><span class="p">(</span> \
+                <span class="n">cp</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">As_ri_row</span><span class="o">*</span><span class="n">w_ri</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="mi">10</span><span class="o">**</span><span class="p">(</span><span class="n">min_sidelobe</span><span class="o">/</span><span class="mi">20</span><span class="p">)</span> <span class="p">)</span>
+
+    <span class="c1"># Form and solve problem.</span>
+    <span class="n">obj</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Minimize</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+    <span class="n">prob</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Problem</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">constraints</span><span class="p">)</span>
+    <span class="n">prob</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">solver</span><span class="o">=</span><span class="n">cp</span><span class="o">.</span><span class="n">CVXOPT</span><span class="p">)</span>
+
+    <span class="c1"># Bisection (or fail).</span>
+    <span class="k">if</span> <span class="n">prob</span><span class="o">.</span><span class="n">status</span> <span class="o">==</span> <span class="n">cp</span><span class="o">.</span><span class="n">OPTIMAL</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Problem is feasible for half beam-width = </span><span class="si">{}</span><span class="s1">&#39;</span>
+              <span class="s1">&#39; degress&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">halfbeam_cur</span><span class="p">))</span>
+        <span class="n">halfbeam_top</span> <span class="o">=</span> <span class="n">halfbeam_cur</span>
+    <span class="k">elif</span> <span class="n">prob</span><span class="o">.</span><span class="n">status</span> <span class="o">==</span> <span class="n">cp</span><span class="o">.</span><span class="n">INFEASIBLE</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Problem is not feasible for half beam-width = </span><span class="si">{}</span><span class="s1">&#39;</span>
+              <span class="s1">&#39; degress&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">halfbeam_cur</span><span class="p">))</span>
+        <span class="n">halfbeam_bot</span> <span class="o">=</span> <span class="n">halfbeam_cur</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s1">&#39;CVXPY Error&#39;</span><span class="p">)</span>
+
+<span class="c1"># Optimal beamwidth.</span>
+<span class="n">halfbeam</span> <span class="o">=</span> <span class="n">halfbeam_top</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Optimum half beam-width for given specs is </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">halfbeam</span><span class="p">))</span>
+
+<span class="c1"># Compute the minimum noise design for the optimal beamwidth</span>
+<span class="n">ind</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nonzero</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">squeeze</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">logical_or</span><span class="p">(</span> \
+                <span class="n">theta</span> <span class="o">&lt;=</span> <span class="p">(</span><span class="n">theta_tar</span><span class="o">-</span><span class="n">halfbeam</span><span class="p">),</span> \
+                <span class="n">theta</span> <span class="o">&gt;=</span> <span class="p">(</span><span class="n">theta_tar</span><span class="o">+</span><span class="n">halfbeam</span><span class="p">)</span> <span class="p">))))</span>
+<span class="n">As</span> <span class="o">=</span> <span class="n">A</span><span class="p">[</span><span class="n">ind</span><span class="p">[</span><span class="mi">0</span><span class="p">],:]</span>
+
+<span class="c1"># As as [A -B; B A]</span>
+<span class="c1"># See earlier calculations for real/imaginary representation</span>
+<span class="n">As_R</span> <span class="o">=</span> <span class="n">As</span><span class="o">.</span><span class="n">real</span>
+<span class="n">As_I</span> <span class="o">=</span> <span class="n">As</span><span class="o">.</span><span class="n">imag</span>
+<span class="n">neg_As_I</span> <span class="o">=</span> <span class="o">-</span><span class="n">As_I</span>
+<span class="n">As_RI</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">block</span><span class="p">([[</span><span class="n">As_R</span><span class="p">,</span> <span class="n">neg_As_I</span><span class="p">],</span> <span class="p">[</span><span class="n">As_I</span><span class="p">,</span> <span class="n">As_R</span><span class="p">]])</span>
+<span class="n">As_RI_top</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">block</span><span class="p">([</span><span class="n">As_R</span><span class="p">,</span> <span class="n">neg_As_I</span><span class="p">])</span>
+<span class="n">As_RI_bot</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">block</span><span class="p">([</span><span class="n">As_I</span><span class="p">,</span> <span class="n">As_R</span><span class="p">])</span>
+
+<span class="n">constraints</span> <span class="o">=</span> <span class="p">[</span> <span class="n">Atar_RI</span><span class="o">*</span><span class="n">w_ri</span> <span class="o">==</span> <span class="n">realones_ri</span><span class="p">]</span>
+<span class="c1"># Same constraint as a above, on new As (hense different</span>
+<span class="c1"># actual number of constraints). See comments above.</span>
+<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">As</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]):</span>
+    <span class="n">As_ri_row</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">((</span><span class="n">As_RI_top</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="p">:],</span> <span class="n">As_RI_bot</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="p">:]))</span>
+    <span class="n">constraints</span><span class="o">.</span><span class="n">append</span><span class="p">(</span> \
+        <span class="n">cp</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">As_ri_row</span><span class="o">*</span><span class="n">w_ri</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="mi">10</span><span class="o">**</span><span class="p">(</span><span class="n">min_sidelobe</span><span class="o">/</span><span class="mi">20</span><span class="p">)</span> <span class="p">)</span>
+
+<span class="c1"># Form and solve problem.</span>
+<span class="c1"># Note the new objective!</span>
+<span class="n">obj</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Minimize</span><span class="p">(</span><span class="n">cp</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">w_ri</span><span class="p">))</span>
+<span class="n">prob</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Problem</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">constraints</span><span class="p">)</span>
+<span class="n">prob</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">solver</span><span class="o">=</span><span class="n">cp</span><span class="o">.</span><span class="n">SCS</span><span class="p">)</span>
+
+<span class="c1">#if prob.status != cp.OPTIMAL:</span>
+<span class="c1">#    raise Exception(&#39;CVXPY Error&#39;)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;final objective value: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">obj</span><span class="o">.</span><span class="n">value</span><span class="p">))</span>
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">We</span> <span class="n">are</span> <span class="n">only</span> <span class="n">considering</span> <span class="n">integer</span> <span class="n">values</span> <span class="n">of</span> <span class="n">the</span> <span class="n">half</span> <span class="n">beam</span><span class="o">-</span><span class="n">width</span>
+<span class="p">(</span><span class="n">since</span> <span class="n">we</span> <span class="n">are</span> <span class="n">sampling</span> <span class="n">the</span> <span class="n">angle</span> <span class="k">with</span> <span class="mi">1</span> <span class="n">degree</span> <span class="n">resolution</span><span class="p">)</span><span class="o">.</span>
+
+<span class="n">Problem</span> <span class="ow">is</span> <span class="n">feasible</span> <span class="k">for</span> <span class="n">half</span> <span class="n">beam</span><span class="o">-</span><span class="n">width</span> <span class="o">=</span> <span class="mf">26.0</span> <span class="n">degress</span>
+<span class="n">Problem</span> <span class="ow">is</span> <span class="n">feasible</span> <span class="k">for</span> <span class="n">half</span> <span class="n">beam</span><span class="o">-</span><span class="n">width</span> <span class="o">=</span> <span class="mf">14.0</span> <span class="n">degress</span>
+<span class="n">Problem</span> <span class="ow">is</span> <span class="ow">not</span> <span class="n">feasible</span> <span class="k">for</span> <span class="n">half</span> <span class="n">beam</span><span class="o">-</span><span class="n">width</span> <span class="o">=</span> <span class="mf">8.0</span> <span class="n">degress</span>
+<span class="n">Problem</span> <span class="ow">is</span> <span class="n">feasible</span> <span class="k">for</span> <span class="n">half</span> <span class="n">beam</span><span class="o">-</span><span class="n">width</span> <span class="o">=</span> <span class="mf">11.0</span> <span class="n">degress</span>
+<span class="n">Problem</span> <span class="ow">is</span> <span class="n">feasible</span> <span class="k">for</span> <span class="n">half</span> <span class="n">beam</span><span class="o">-</span><span class="n">width</span> <span class="o">=</span> <span class="mf">10.0</span> <span class="n">degress</span>
+<span class="n">Problem</span> <span class="ow">is</span> <span class="n">feasible</span> <span class="k">for</span> <span class="n">half</span> <span class="n">beam</span><span class="o">-</span><span class="n">width</span> <span class="o">=</span> <span class="mf">9.0</span> <span class="n">degress</span>
+<span class="n">Optimum</span> <span class="n">half</span> <span class="n">beam</span><span class="o">-</span><span class="n">width</span> <span class="k">for</span> <span class="n">given</span> <span class="n">specs</span> <span class="ow">is</span> <span class="mf">9.0</span>
+<span class="n">final</span> <span class="n">objective</span> <span class="n">value</span><span class="p">:</span> <span class="mf">1.6616084212553195</span>
+</pre></div>
+</div>
+</section>
+<section id="result-plots">
+<h2>Result plots<a class="headerlink" href="#result-plots" title="Permalink to this heading">¶</a></h2>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+
+<span class="c1"># Show plot inline in ipython.</span>
+<span class="o">%</span><span class="n">matplotlib</span> <span class="n">inline</span>
+
+<span class="c1"># Plot properties.</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">rc</span><span class="p">(</span><span class="s1">&#39;text&#39;</span><span class="p">,</span> <span class="n">usetex</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">rc</span><span class="p">(</span><span class="s1">&#39;font&#39;</span><span class="p">,</span> <span class="n">family</span><span class="o">=</span><span class="s1">&#39;serif&#39;</span><span class="p">)</span>
+
+<span class="c1">#</span>
+<span class="c1"># First Figure: Antenna Locations</span>
+<span class="c1">#</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">6</span><span class="p">,</span> <span class="mi">6</span><span class="p">))</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">loc</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">loc</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">],</span>
+            <span class="n">s</span><span class="o">=</span><span class="mi">30</span><span class="p">,</span> <span class="n">facecolors</span><span class="o">=</span><span class="s1">&#39;none&#39;</span><span class="p">,</span> <span class="n">edgecolors</span><span class="o">=</span><span class="s1">&#39;b&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="s1">&#39;Antenna Locations&#39;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">16</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+
+<span class="c1">#</span>
+<span class="c1"># Second Plot: Array Pattern</span>
+<span class="c1">#</span>
+
+<span class="c1"># Complex valued math to calculate y = A*w_im;</span>
+<span class="c1"># See comments in code above regarding complex representation as reals.</span>
+<span class="n">A_R</span> <span class="o">=</span> <span class="n">A</span><span class="o">.</span><span class="n">real</span>
+<span class="n">A_I</span> <span class="o">=</span> <span class="n">A</span><span class="o">.</span><span class="n">imag</span>
+<span class="n">neg_A_I</span> <span class="o">=</span> <span class="o">-</span><span class="n">A_I</span>
+<span class="n">A_RI</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">block</span><span class="p">([[</span><span class="n">A_R</span><span class="p">,</span> <span class="n">neg_A_I</span><span class="p">],</span> <span class="p">[</span><span class="n">A_I</span><span class="p">,</span> <span class="n">A_R</span><span class="p">]]);</span>
+
+<span class="n">y</span> <span class="o">=</span> <span class="n">A_RI</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">w_ri</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
+<span class="n">y</span> <span class="o">=</span> <span class="n">y</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="nb">int</span><span class="p">(</span><span class="n">y</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">/</span><span class="mi">2</span><span class="p">)]</span> <span class="o">+</span> <span class="mi">1</span><span class="n">j</span><span class="o">*</span><span class="n">y</span><span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">y</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">/</span><span class="mi">2</span><span class="p">):]</span> <span class="c1">#now native complex</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">6</span><span class="p">,</span><span class="mi">6</span><span class="p">))</span>
+<span class="n">ymin</span><span class="p">,</span> <span class="n">ymax</span> <span class="o">=</span> <span class="o">-</span><span class="mi">40</span><span class="p">,</span> <span class="mi">0</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">360</span><span class="p">)</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="mi">20</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">log10</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">y</span><span class="p">))))</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">([</span><span class="n">theta_tar</span><span class="p">,</span> <span class="n">theta_tar</span><span class="p">],</span> <span class="p">[</span><span class="n">ymin</span><span class="p">,</span> <span class="n">ymax</span><span class="p">],</span> <span class="s1">&#39;g--&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">([</span><span class="n">theta_tar</span><span class="o">+</span><span class="n">halfbeam</span><span class="p">,</span> <span class="n">theta_tar</span><span class="o">+</span><span class="n">halfbeam</span><span class="p">],</span> <span class="p">[</span><span class="n">ymin</span><span class="p">,</span> <span class="n">ymax</span><span class="p">],</span> <span class="s1">&#39;r--&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">([</span><span class="n">theta_tar</span><span class="o">-</span><span class="n">halfbeam</span><span class="p">,</span> <span class="n">theta_tar</span><span class="o">-</span><span class="n">halfbeam</span><span class="p">],</span> <span class="p">[</span><span class="n">ymin</span><span class="p">,</span> <span class="n">ymax</span><span class="p">],</span> <span class="s1">&#39;r--&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s1">&#39;look angle&#39;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">16</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;mag $y(\theta)$ in dB&#39;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">16</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">ylim</span><span class="p">(</span><span class="n">ymin</span><span class="p">,</span> <span class="n">ymax</span><span class="p">)</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+
+<span class="c1">#</span>
+<span class="c1"># Third Plot: Polar Pattern</span>
+<span class="c1">#</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">6</span><span class="p">,</span><span class="mi">6</span><span class="p">))</span>
+<span class="n">zerodB</span> <span class="o">=</span> <span class="mi">50</span>
+<span class="n">dBY</span> <span class="o">=</span> <span class="mi">20</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">log10</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">y</span><span class="p">))</span> <span class="o">+</span> <span class="n">zerodB</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">dBY</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="o">*</span><span class="n">theta</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span><span class="o">/</span><span class="mi">180</span><span class="p">),</span>
+         <span class="n">dBY</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="o">*</span><span class="n">theta</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span><span class="o">/</span><span class="mi">180</span><span class="p">))</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">xlim</span><span class="p">(</span><span class="o">-</span><span class="n">zerodB</span><span class="p">,</span> <span class="n">zerodB</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">ylim</span><span class="p">(</span><span class="o">-</span><span class="n">zerodB</span><span class="p">,</span> <span class="n">zerodB</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">axis</span><span class="p">(</span><span class="s1">&#39;off&#39;</span><span class="p">)</span>
+
+<span class="c1"># 0 dB level.</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">zerodB</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="o">*</span><span class="n">theta</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span><span class="o">/</span><span class="mi">180</span><span class="p">),</span>
+         <span class="n">zerodB</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="o">*</span><span class="n">theta</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span><span class="o">/</span><span class="mi">180</span><span class="p">),</span> <span class="s1">&#39;k:&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">text</span><span class="p">(</span><span class="o">-</span><span class="n">zerodB</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="s1">&#39;0 dB&#39;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">16</span><span class="p">)</span>
+<span class="c1"># Max sideband level.</span>
+<span class="n">m</span><span class="o">=</span><span class="n">min_sidelobe</span> <span class="o">+</span> <span class="n">zerodB</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">m</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="o">*</span><span class="n">theta</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span><span class="o">/</span><span class="mi">180</span><span class="p">),</span>
+         <span class="n">m</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="o">*</span><span class="n">theta</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span><span class="o">/</span><span class="mi">180</span><span class="p">),</span> <span class="s1">&#39;k:&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">text</span><span class="p">(</span><span class="o">-</span><span class="n">m</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="s1">&#39;</span><span class="si">{:.1f}</span><span class="s1"> dB&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">min_sidelobe</span><span class="p">),</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">16</span><span class="p">)</span>
+<span class="c1">#Lobe center and boundaries angles.</span>
+<span class="n">theta_1</span> <span class="o">=</span> <span class="n">theta_tar</span><span class="o">+</span><span class="n">halfbeam</span>
+<span class="n">theta_2</span> <span class="o">=</span> <span class="n">theta_tar</span><span class="o">-</span><span class="n">halfbeam</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">55</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">theta_tar</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="o">/</span><span class="mi">180</span><span class="p">)],</span> \
+         <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">55</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">theta_tar</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="o">/</span><span class="mi">180</span><span class="p">)],</span> <span class="s1">&#39;k:&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">55</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">theta_1</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="o">/</span><span class="mi">180</span><span class="p">)],</span> \
+         <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">55</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">theta_1</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="o">/</span><span class="mi">180</span><span class="p">)],</span> <span class="s1">&#39;k:&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">55</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">theta_2</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="o">/</span><span class="mi">180</span><span class="p">)],</span> \
+         <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">55</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">theta_2</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="o">/</span><span class="mi">180</span><span class="p">)],</span> <span class="s1">&#39;k:&#39;</span><span class="p">)</span>
+
+<span class="c1">#Show plot.</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+<img alt="../../_images/ant_array_min_beamwidth_7_0.png" src="../../_images/ant_array_min_beamwidth_7_0.png" />
+<img alt="../../_images/ant_array_min_beamwidth_7_1.png" src="../../_images/ant_array_min_beamwidth_7_1.png" />
+<img alt="../../_images/ant_array_min_beamwidth_7_2.png" src="../../_images/ant_array_min_beamwidth_7_2.png" />
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../index.html">CVXPY</a></h1>
+
+
+
+
+
+
+<p>
+<iframe src="https://ghbtns.com/github-btn.html?user=cvxpy&repo=cvxpy&type=star&count=true&size=large&v=2"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
+
+
+
+
+
+<h3>Navigation</h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../install/index.html">Install</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial/index.html">User Guide</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../index.html">Examples</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../api_reference/cvxpy.html">API Documentation</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../faq/index.html">FAQ</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../citing/index.html">Citing CVXPY</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../contributing/index.html">Contributing</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../related_projects/index.html">Related Projects</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../updates/index.html">Changes to CVXPY</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../short_course/index.html">CVXPY Short Course</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../license/index.html">License</a></li>
+</ul>
+
+
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script><div>
+    <h3>
+        Version selector
+    </h3>
+    <select id="dynamic_selector" name="versions" onchange="if (this.value) window.location.href=this.value">
+    </select>
+    <script>
+        obj = $.getJSON("https://raw.githubusercontent.com/cvxpy/cvxpy/gh-pages/versions.json")
+            .done(function (data) {
+                const base_url = "https://www.cvxpy.org/"
+                let html = "<option value='' selected>Choose version here</option>";
+                html += "<option value=" + base_url + ">latest" + ""
+                for (let i = 0; i < data.length; i++) {
+                    html += "<option value=" + base_url + "version/"  + data[i] + ">" + data[i] + ""
+                }
+                document.getElementById("dynamic_selector").innerHTML = html;
+            });
+    </script>
+</div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;The CVXPY authors.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 7.1.2</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.13</a>
+      
+      |
+      <a href="../../_sources/examples/applications/ant_array_min_beamwidth.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+    <script type="text/javascript">
+
+      var _gaq = _gaq || [];
+      _gaq.push(['_setAccount', 'UA-50248335-1']);
+      _gaq.push(['_setDomainName', 'none']);
+      _gaq.push(['_setAllowLinker', true]);
+      _gaq.push(['_trackPageview']);
+
+      (function() {
+        var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+        ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+      })();
+
+    </script>
+    
+  </body>
+</html>

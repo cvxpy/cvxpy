@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>FAQ &#8212; CVXPY 1.4 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="../_static/cvxpy_alabaster.css?v=6c13f287" />
+    <script src="../_static/jquery.js?v=5d32c60e"></script>
+    <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js?v=b308ce55"></script>
+    <script src="../_static/doctools.js?v=888ff710"></script>
+    <script src="../_static/sphinx_highlight.js?v=4825356b"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Citing CVXPY" href="../citing/index.html" />
+    <link rel="prev" title="Back-End Reductions" href="../api_reference/cvxpy.reductions.back_end.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="faq">
+<h1>FAQ<a class="headerlink" href="#faq" title="Permalink to this heading">¶</a></h1>
+<nav class="contents local" id="contents">
+<ul class="simple">
+<li><p><a class="reference internal" href="#where-can-i-get-help-with-cvxpy" id="id3">Where can I get help with CVXPY?</a></p></li>
+<li><p><a class="reference internal" href="#where-can-i-learn-more-about-convex-optimization" id="id4">Where can I learn more about convex optimization?</a></p></li>
+<li><p><a class="reference internal" href="#how-do-i-know-which-version-of-cvxpy-i-m-using" id="id5">How do I know which version of CVXPY I’m using?</a></p></li>
+<li><p><a class="reference internal" href="#what-do-i-do-if-i-get-a-dcperror-exception" id="id6">What do I do if I get a <code class="docutils literal notranslate"><span class="pre">DCPError</span></code> exception?</a></p></li>
+<li><p><a class="reference internal" href="#how-do-i-find-dcp-errors" id="id7">How do I find DCP errors?</a></p></li>
+<li><p><a class="reference internal" href="#what-do-i-do-if-i-get-a-solvererror-exception" id="id8">What do I do if I get a <code class="docutils literal notranslate"><span class="pre">SolverError</span></code> exception?</a></p></li>
+<li><p><a class="reference internal" href="#what-solvers-does-cvxpy-support" id="id9">What solvers does CVXPY support?</a></p></li>
+<li><p><a class="reference internal" href="#what-are-the-differences-between-cvxpy-s-solvers" id="id10">What are the differences between CVXPY’s solvers?</a></p></li>
+<li><p><a class="reference internal" href="#what-do-i-do-if-i-get-exception-cannot-evaluate-the-truth-value-of-a-constraint" id="id11">What do I do if I get “Exception: Cannot evaluate the truth value of a constraint”?</a></p></li>
+<li><p><a class="reference internal" href="#can-i-use-numpy-functions-on-cvxpy-objects" id="id12">Can I use NumPy functions on CVXPY objects?</a></p></li>
+<li><p><a class="reference internal" href="#can-i-use-scipy-sparse-matrices-with-cvxpy" id="id13">Can I use SciPy sparse matrices with CVXPY?</a></p></li>
+<li><p><a class="reference internal" href="#how-do-i-constrain-a-cvxpy-matrix-expression-to-be-positive-semidefinite" id="id14">How do I constrain a CVXPY matrix expression to be positive semidefinite?</a></p></li>
+<li><p><a class="reference internal" href="#how-do-i-create-variables-with-special-properties-such-as-boolean-or-symmetric-variables" id="id15">How do I create variables with special properties, such as boolean or symmetric variables?</a></p></li>
+<li><p><a class="reference internal" href="#how-do-i-create-a-variable-that-has-multiple-special-properties-such-as-boolean-and-symmetric" id="id16">How do I create a variable that has multiple special properties, such as boolean and symmetric?</a></p></li>
+<li><p><a class="reference internal" href="#how-do-i-create-variables-with-more-than-2-dimensions" id="id17">How do I create variables with more than 2 dimensions?</a></p></li>
+<li><p><a class="reference internal" href="#can-i-copy-cvxpy-expressions" id="id18">Can I copy CVXPY expressions?</a></p></li>
+<li><p><a class="reference internal" href="#why-does-it-take-so-long-to-compile-my-problem" id="id19">Why does it take so long to compile my Problem?</a></p></li>
+<li><p><a class="reference internal" href="#how-do-i-cite-cvxpy" id="id20">How do I cite CVXPY?</a></p></li>
+</ul>
+</nav>
+<section id="where-can-i-get-help-with-cvxpy">
+<h2>Where can I get help with CVXPY?<a class="headerlink" href="#where-can-i-get-help-with-cvxpy" title="Permalink to this heading">¶</a></h2>
+<p>You can post questions about how to use CVXPY on StackOverflow or on the <a class="reference external" href="https://groups.google.com/forum/#!forum/cvxpy">CVXPY mailing list</a>.
+If you’ve found a bug in CVXPY or have a feature request,
+create an issue on the <a class="reference external" href="https://github.com/cvxpy/cvxpy/issues">CVXPY Github issue tracker</a>.</p>
+</section>
+<section id="where-can-i-learn-more-about-convex-optimization">
+<h2>Where can I learn more about convex optimization?<a class="headerlink" href="#where-can-i-learn-more-about-convex-optimization" title="Permalink to this heading">¶</a></h2>
+<p>The book <a class="reference external" href="https://web.stanford.edu/~boyd/cvxbook/">Convex Optimization</a> by Boyd and Vandenberghe is available for free online and has extensive background on convex optimization.
+To learn more about disciplined convex programming,
+visit the <a class="reference external" href="http://dcp.stanford.edu/">DCP tutorial website</a>.</p>
+</section>
+<section id="how-do-i-know-which-version-of-cvxpy-i-m-using">
+<h2>How do I know which version of CVXPY I’m using?<a class="headerlink" href="#how-do-i-know-which-version-of-cvxpy-i-m-using" title="Permalink to this heading">¶</a></h2>
+<p>To check which version of CVXPY you have installed,
+run the following code snippet in the Python prompt:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">cvxpy</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">cvxpy</span><span class="o">.</span><span class="n">__version__</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="what-do-i-do-if-i-get-a-dcperror-exception">
+<h2>What do I do if I get a <code class="docutils literal notranslate"><span class="pre">DCPError</span></code> exception?<a class="headerlink" href="#what-do-i-do-if-i-get-a-dcperror-exception" title="Permalink to this heading">¶</a></h2>
+<p>The problems you solve in CVXPY must follow the rules of disciplined convex programming (DCP).
+DCP is like a type system for optimization problems.
+For more about DCP, see the <a class="reference internal" href="../tutorial/dcp/index.html#dcp"><span class="std std-ref">DCP tutorial section</span></a> or the <a class="reference external" href="http://dcp.stanford.edu/">DCP tutorial website</a>.</p>
+</section>
+<section id="how-do-i-find-dcp-errors">
+<h2>How do I find DCP errors?<a class="headerlink" href="#how-do-i-find-dcp-errors" title="Permalink to this heading">¶</a></h2>
+<p>You can test whether a problem, objective, constraint, or expression satisfies the DCP
+rules by calling <code class="docutils literal notranslate"><span class="pre">object.is_dcp()</span></code>.
+If the function returns <code class="docutils literal notranslate"><span class="pre">False</span></code>,
+there is a DCP error in that object.</p>
+</section>
+<section id="what-do-i-do-if-i-get-a-solvererror-exception">
+<h2>What do I do if I get a <code class="docutils literal notranslate"><span class="pre">SolverError</span></code> exception?<a class="headerlink" href="#what-do-i-do-if-i-get-a-solvererror-exception" title="Permalink to this heading">¶</a></h2>
+<p>Sometimes solvers encounter numerical issues and fail to solve a problem, in which case CVXPY raises a <code class="docutils literal notranslate"><span class="pre">SolverError</span></code>.
+If this happens to you,
+try using different solvers on your problem,
+as discussed in the <a class="reference internal" href="../tutorial/advanced/index.html#choosing-a-solver"><span class="std std-ref">Choosing a solver</span></a> section.
+If the solver CVXOPT fails, try using the solver option <code class="docutils literal notranslate"><span class="pre">kktsolver=ROBUST_KKTSOLVER</span></code>.</p>
+</section>
+<section id="what-solvers-does-cvxpy-support">
+<h2>What solvers does CVXPY support?<a class="headerlink" href="#what-solvers-does-cvxpy-support" title="Permalink to this heading">¶</a></h2>
+<p>See the <a class="reference internal" href="../tutorial/advanced/index.html#solve-method-options"><span class="std std-ref">Solve method options</span></a> section for a list of the solvers CVXPY supports.
+If you would like to use a solver CVXPY does not support,
+make a feature request on the <a class="reference external" href="https://github.com/cvxpy/cvxpy/issues">CVXPY Github issue tracker</a>.</p>
+</section>
+<section id="what-are-the-differences-between-cvxpy-s-solvers">
+<h2>What are the differences between CVXPY’s solvers?<a class="headerlink" href="#what-are-the-differences-between-cvxpy-s-solvers" title="Permalink to this heading">¶</a></h2>
+<p>The solvers support different classes of problems and occupy different points on the Pareto frontier of speed, accuracy, and open source vs. closed source.
+For more details, please refer to the “<a class="reference internal" href="../tutorial/advanced/index.html#solve-method-options"><span class="std std-ref">Solve method options</span></a>” section.</p>
+</section>
+<section id="what-do-i-do-if-i-get-exception-cannot-evaluate-the-truth-value-of-a-constraint">
+<h2>What do I do if I get “Exception: Cannot evaluate the truth value of a constraint”?<a class="headerlink" href="#what-do-i-do-if-i-get-exception-cannot-evaluate-the-truth-value-of-a-constraint" title="Permalink to this heading">¶</a></h2>
+<p>This error likely means you are chaining constraints (e.g., writing an
+expression like <code class="docutils literal notranslate"><span class="pre">0</span> <span class="pre">&lt;=</span> <span class="pre">x</span> <span class="pre">&lt;=</span> <span class="pre">1</span></code>) or using the built-in Python <code class="docutils literal notranslate"><span class="pre">max</span></code> and <code class="docutils literal notranslate"><span class="pre">min</span></code>
+functions on CVXPY expressions.
+It is not possible for CVXPY to correctly handle these use cases,
+so CVXPY throws an (admittedly cryptic) exception.</p>
+</section>
+<section id="can-i-use-numpy-functions-on-cvxpy-objects">
+<h2>Can I use NumPy functions on CVXPY objects?<a class="headerlink" href="#can-i-use-numpy-functions-on-cvxpy-objects" title="Permalink to this heading">¶</a></h2>
+<p>No, you can only use CVXPY functions on CVXPY objects.
+If you use a NumPy function on a CVXPY object,
+it will probably fail in a confusing way.</p>
+</section>
+<section id="can-i-use-scipy-sparse-matrices-with-cvxpy">
+<h2>Can I use SciPy sparse matrices with CVXPY?<a class="headerlink" href="#can-i-use-scipy-sparse-matrices-with-cvxpy" title="Permalink to this heading">¶</a></h2>
+<p>Yes, they are fully supported.</p>
+</section>
+<section id="how-do-i-constrain-a-cvxpy-matrix-expression-to-be-positive-semidefinite">
+<h2>How do I constrain a CVXPY matrix expression to be positive semidefinite?<a class="headerlink" href="#how-do-i-constrain-a-cvxpy-matrix-expression-to-be-positive-semidefinite" title="Permalink to this heading">¶</a></h2>
+<p>Please refer to the <a class="reference internal" href="../tutorial/advanced/index.html#semidefinite-matrices"><span class="std std-ref">Semidefinite matrices</span></a> section.</p>
+</section>
+<section id="how-do-i-create-variables-with-special-properties-such-as-boolean-or-symmetric-variables">
+<h2>How do I create variables with special properties, such as boolean or symmetric variables?<a class="headerlink" href="#how-do-i-create-variables-with-special-properties-such-as-boolean-or-symmetric-variables" title="Permalink to this heading">¶</a></h2>
+<p>Please refer to the <a class="reference internal" href="../updates/index.html#attributes"><span class="std std-ref">Attributes</span></a> section.</p>
+</section>
+<section id="how-do-i-create-a-variable-that-has-multiple-special-properties-such-as-boolean-and-symmetric">
+<h2>How do I create a variable that has multiple special properties, such as boolean and symmetric?<a class="headerlink" href="#how-do-i-create-a-variable-that-has-multiple-special-properties-such-as-boolean-and-symmetric" title="Permalink to this heading">¶</a></h2>
+<p>Create one variable with each desired property, and then set them all equal by adding equality constraints.</p>
+</section>
+<section id="how-do-i-create-variables-with-more-than-2-dimensions">
+<h2>How do I create variables with more than 2 dimensions?<a class="headerlink" href="#how-do-i-create-variables-with-more-than-2-dimensions" title="Permalink to this heading">¶</a></h2>
+<p>You must mimic the extra dimensions using a dict,
+as described in <a class="reference external" href="https://github.com/cvxpy/cvxpy/issues/198">this Github issue</a>.</p>
+</section>
+<section id="can-i-copy-cvxpy-expressions">
+<h2>Can I copy CVXPY expressions?<a class="headerlink" href="#can-i-copy-cvxpy-expressions" title="Permalink to this heading">¶</a></h2>
+<p>Yes, CVXPY supports shallow and deep copying using the <code class="docutils literal notranslate"><span class="pre">copy</span></code> and <code class="docutils literal notranslate"><span class="pre">deepcopy</span></code> functions from the <code class="docutils literal notranslate"><span class="pre">copy</span></code> module.</p>
+<p>A (shallow) copy refers to the same leaf nodes (Variables, Constants, and Parameters) as the original object.
+Non-leaf nodes are recreated. Constraints keep their <code class="docutils literal notranslate"><span class="pre">.id</span></code> attribute, as it is used to propagate dual variables.</p>
+<p>A deepcopy creates an independent copy of the object while maintaining the relationship between the
+nodes in the expression tree.</p>
+</section>
+<section id="why-does-it-take-so-long-to-compile-my-problem">
+<h2>Why does it take so long to compile my Problem?<a class="headerlink" href="#why-does-it-take-so-long-to-compile-my-problem" title="Permalink to this heading">¶</a></h2>
+<p>In general, you should vectorize CVXPY expressions whenever possible if you
+care about performance (e.g., write A * x == b instead of a_i  * x == b_i for
+every row a_i of A). Consult this <a class="reference external" href="https://github.com/cvxpy/cvxpy/blob/1.0/examples/notebooks/building_models_with_fast_compile_times.ipynb">IPython notebook</a> for details.</p>
+<section id="how-does-cvxpy-work">
+<h3>How does CVXPY work?<a class="headerlink" href="#how-does-cvxpy-work" title="Permalink to this heading">¶</a></h3>
+<p>The fundamental concepts behind CVXPY are discussed in <a class="reference external" href="https://web.stanford.edu/~boyd/papers/pdf/cvxpy_paper.pdf">this paper</a>.</p>
+</section>
+</section>
+<section id="how-do-i-cite-cvxpy">
+<h2>How do I cite CVXPY?<a class="headerlink" href="#how-do-i-cite-cvxpy" title="Permalink to this heading">¶</a></h2>
+<p>If you use CVXPY for published work, we encourage you to cite the software.
+Use the following BibTeX citation:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="nd">@article</span><span class="p">{</span><span class="n">cvxpy</span><span class="p">,</span>
+  <span class="n">author</span>       <span class="o">=</span> <span class="p">{</span><span class="n">Steven</span> <span class="n">Diamond</span> <span class="ow">and</span> <span class="n">Stephen</span> <span class="n">Boyd</span><span class="p">},</span>
+  <span class="n">title</span>        <span class="o">=</span> <span class="p">{{</span><span class="n">CVXPY</span><span class="p">}:</span> <span class="n">A</span> <span class="p">{</span><span class="n">P</span><span class="p">}</span><span class="n">ython</span><span class="o">-</span><span class="n">Embedded</span> <span class="n">Modeling</span> <span class="n">Language</span> <span class="k">for</span> <span class="n">Convex</span> <span class="n">Optimization</span><span class="p">},</span>
+  <span class="n">journal</span>      <span class="o">=</span> <span class="p">{</span><span class="n">Journal</span> <span class="n">of</span> <span class="n">Machine</span> <span class="n">Learning</span> <span class="n">Research</span><span class="p">},</span>
+  <span class="n">note</span>         <span class="o">=</span> <span class="p">{</span><span class="n">To</span> <span class="n">appear</span><span class="p">},</span>
+  <span class="n">url</span>          <span class="o">=</span> <span class="p">{</span><span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">stanford</span><span class="o">.</span><span class="n">edu</span><span class="o">/~</span><span class="n">boyd</span><span class="o">/</span><span class="n">papers</span><span class="o">/</span><span class="n">pdf</span><span class="o">/</span><span class="n">cvxpy_paper</span><span class="o">.</span><span class="n">pdf</span><span class="p">},</span>
+  <span class="n">year</span>         <span class="o">=</span> <span class="p">{</span><span class="mi">2016</span><span class="p">},</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../index.html">CVXPY</a></h1>
+
+
+
+
+
+
+<p>
+<iframe src="https://ghbtns.com/github-btn.html?user=cvxpy&repo=cvxpy&type=star&count=true&size=large&v=2"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
+
+
+
+
+
+<h3>Navigation</h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../install/index.html">Install</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/index.html">User Guide</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../examples/index.html">Examples</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../api_reference/cvxpy.html">API Documentation</a></li>
+</ul>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">FAQ</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../citing/index.html">Citing CVXPY</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../contributing/index.html">Contributing</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../related_projects/index.html">Related Projects</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../updates/index.html">Changes to CVXPY</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../short_course/index.html">CVXPY Short Course</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../license/index.html">License</a></li>
+</ul>
+
+
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script><div>
+    <h3>
+        Version selector
+    </h3>
+    <select id="dynamic_selector" name="versions" onchange="if (this.value) window.location.href=this.value">
+    </select>
+    <script>
+        obj = $.getJSON("https://raw.githubusercontent.com/cvxpy/cvxpy/gh-pages/versions.json")
+            .done(function (data) {
+                const base_url = "https://www.cvxpy.org/"
+                let html = "<option value='' selected>Choose version here</option>";
+                html += "<option value=" + base_url + ">latest" + ""
+                for (let i = 0; i < data.length; i++) {
+                    html += "<option value=" + base_url + "version/"  + data[i] + ">" + data[i] + ""
+                }
+                document.getElementById("dynamic_selector").innerHTML = html;
+            });
+    </script>
+</div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;The CVXPY authors.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 7.1.2</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.13</a>
+      
+      |
+      <a href="../_sources/faq/index.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+    <script type="text/javascript">
+
+      var _gaq = _gaq || [];
+      _gaq.push(['_setAccount', 'UA-50248335-1']);
+      _gaq.push(['_setDomainName', 'none']);
+      _gaq.push(['_setAllowLinker', true]);
+      _gaq.push(['_trackPageview']);
+
+      (function() {
+        var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+        ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+      })();
+
+    </script>
+    
+  </body>
+</html>

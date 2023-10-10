@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Machine Learning: Ridge Regression &#8212; CVXPY 1.4 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="../../_static/cvxpy_alabaster.css?v=6c13f287" />
+    <script src="../../_static/jquery.js?v=5d32c60e"></script>
+    <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+    <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js?v=b308ce55"></script>
+    <script src="../../_static/doctools.js?v=888ff710"></script>
+    <script src="../../_static/sphinx_highlight.js?v=4825356b"></script>
+    <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+   
+  <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="machine-learning-ridge-regression">
+<h1>Machine Learning: Ridge Regression<a class="headerlink" href="#machine-learning-ridge-regression" title="Permalink to this heading">¶</a></h1>
+<p>Ridge regression is a regression technique that is quite similar to
+unadorned least squares linear regression: simply adding an
+<span class="math notranslate nohighlight">\(\ell_2\)</span> <strong>penalty</strong> on the parameters <span class="math notranslate nohighlight">\(\beta\)</span> to the
+objective function for linear regression yields the objective function
+for ridge regression.</p>
+<p>Our goal is to find an assignment to <span class="math notranslate nohighlight">\(\beta\)</span> that minimizes the
+function</p>
+<div class="math notranslate nohighlight">
+\[f(\beta) = \|X\beta - Y\|_2^2 + \lambda \|\beta\|_2^2,\]</div>
+<p>where <span class="math notranslate nohighlight">\(\lambda\)</span> is a hyperparameter and, as usual, <span class="math notranslate nohighlight">\(X\)</span> is
+the training data and <span class="math notranslate nohighlight">\(Y\)</span> the observations. In practice, we tune
+<span class="math notranslate nohighlight">\(\lambda\)</span> until we find a model that generalizes well to the test
+data.</p>
+<p>Ridge regression is an example of a <strong>shrinkage method</strong>: compared to
+least squares, it shrinks the parameter estimates in the hopes of
+<strong>reducing variance, improving prediction accuracy, and aiding
+interpetation</strong>.</p>
+<p>In this notebook, we show how to fit a ridge regression model using
+CVXPY, how to evaluate the model, and how to tune the hyper-parameter
+<span class="math notranslate nohighlight">\(\lambda\)</span>.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">cvxpy</span> <span class="k">as</span> <span class="nn">cp</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+</pre></div>
+</div>
+<section id="writing-the-objective-function">
+<h2>Writing the objective function<a class="headerlink" href="#writing-the-objective-function" title="Permalink to this heading">¶</a></h2>
+<p>We can decompose the <strong>objective function</strong> as the sum of a <strong>least
+squares loss function</strong> and an <span class="math notranslate nohighlight">\(\ell_2\)</span> <strong>regularizer</strong>.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">loss_fn</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">Y</span><span class="p">,</span> <span class="n">beta</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">cp</span><span class="o">.</span><span class="n">pnorm</span><span class="p">(</span><span class="n">X</span> <span class="o">@</span> <span class="n">beta</span> <span class="o">-</span> <span class="n">Y</span><span class="p">,</span> <span class="n">p</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span>
+
+<span class="k">def</span> <span class="nf">regularizer</span><span class="p">(</span><span class="n">beta</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">cp</span><span class="o">.</span><span class="n">pnorm</span><span class="p">(</span><span class="n">beta</span><span class="p">,</span> <span class="n">p</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span>
+
+<span class="k">def</span> <span class="nf">objective_fn</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">Y</span><span class="p">,</span> <span class="n">beta</span><span class="p">,</span> <span class="n">lambd</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">loss_fn</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">Y</span><span class="p">,</span> <span class="n">beta</span><span class="p">)</span> <span class="o">+</span> <span class="n">lambd</span> <span class="o">*</span> <span class="n">regularizer</span><span class="p">(</span><span class="n">beta</span><span class="p">)</span>
+
+<span class="k">def</span> <span class="nf">mse</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">Y</span><span class="p">,</span> <span class="n">beta</span><span class="p">):</span>
+    <span class="k">return</span> <span class="p">(</span><span class="mf">1.0</span> <span class="o">/</span> <span class="n">X</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">*</span> <span class="n">loss_fn</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">Y</span><span class="p">,</span> <span class="n">beta</span><span class="p">)</span><span class="o">.</span><span class="n">value</span>
+</pre></div>
+</div>
+</section>
+<section id="generating-data">
+<h2>Generating data<a class="headerlink" href="#generating-data" title="Permalink to this heading">¶</a></h2>
+<p>Because ridge regression encourages the parameter estimates to be small,
+and as such tends to lead to models with <strong>less variance</strong> than those
+fit with vanilla linear regression. We generate a small dataset that
+will illustrate this.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">generate_data</span><span class="p">(</span><span class="n">m</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">sigma</span><span class="o">=</span><span class="mi">5</span><span class="p">):</span>
+    <span class="s2">&quot;Generates data matrix X and observations Y.&quot;</span>
+    <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">beta_star</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
+    <span class="c1"># Generate an ill-conditioned data matrix</span>
+    <span class="n">X</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">n</span><span class="p">)</span>
+    <span class="c1"># Corrupt the observations with additive Gaussian noise</span>
+    <span class="n">Y</span> <span class="o">=</span> <span class="n">X</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">beta_star</span><span class="p">)</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">sigma</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="n">m</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">X</span><span class="p">,</span> <span class="n">Y</span>
+
+<span class="n">m</span> <span class="o">=</span> <span class="mi">100</span>
+<span class="n">n</span> <span class="o">=</span> <span class="mi">20</span>
+<span class="n">sigma</span> <span class="o">=</span> <span class="mi">5</span>
+
+<span class="n">X</span><span class="p">,</span> <span class="n">Y</span> <span class="o">=</span> <span class="n">generate_data</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">sigma</span><span class="p">)</span>
+<span class="n">X_train</span> <span class="o">=</span> <span class="n">X</span><span class="p">[:</span><span class="mi">50</span><span class="p">,</span> <span class="p">:]</span>
+<span class="n">Y_train</span> <span class="o">=</span> <span class="n">Y</span><span class="p">[:</span><span class="mi">50</span><span class="p">]</span>
+<span class="n">X_test</span> <span class="o">=</span> <span class="n">X</span><span class="p">[</span><span class="mi">50</span><span class="p">:,</span> <span class="p">:]</span>
+<span class="n">Y_test</span> <span class="o">=</span> <span class="n">Y</span><span class="p">[</span><span class="mi">50</span><span class="p">:]</span>
+</pre></div>
+</div>
+</section>
+<section id="fitting-the-model">
+<h2>Fitting the model<a class="headerlink" href="#fitting-the-model" title="Permalink to this heading">¶</a></h2>
+<p>All we need to do to fit the model is create a CVXPY problem where the
+objective is to minimize the the objective function defined above. We
+make <span class="math notranslate nohighlight">\(\lambda\)</span> a CVXPY parameter, so that we can use a single
+CVXPY problem to obtain estimates for many values of <span class="math notranslate nohighlight">\(\lambda\)</span>.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">beta</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
+<span class="n">lambd</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Parameter</span><span class="p">(</span><span class="n">nonneg</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">problem</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Problem</span><span class="p">(</span><span class="n">cp</span><span class="o">.</span><span class="n">Minimize</span><span class="p">(</span><span class="n">objective_fn</span><span class="p">(</span><span class="n">X_train</span><span class="p">,</span> <span class="n">Y_train</span><span class="p">,</span> <span class="n">beta</span><span class="p">,</span> <span class="n">lambd</span><span class="p">)))</span>
+
+<span class="n">lambd_values</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">logspace</span><span class="p">(</span><span class="o">-</span><span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">50</span><span class="p">)</span>
+<span class="n">train_errors</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="n">test_errors</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="n">beta_values</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">lambd_values</span><span class="p">:</span>
+    <span class="n">lambd</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="n">v</span>
+    <span class="n">problem</span><span class="o">.</span><span class="n">solve</span><span class="p">()</span>
+    <span class="n">train_errors</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">mse</span><span class="p">(</span><span class="n">X_train</span><span class="p">,</span> <span class="n">Y_train</span><span class="p">,</span> <span class="n">beta</span><span class="p">))</span>
+    <span class="n">test_errors</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">mse</span><span class="p">(</span><span class="n">X_test</span><span class="p">,</span> <span class="n">Y_test</span><span class="p">,</span> <span class="n">beta</span><span class="p">))</span>
+    <span class="n">beta_values</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">beta</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="evaluating-the-model">
+<h2>Evaluating the model<a class="headerlink" href="#evaluating-the-model" title="Permalink to this heading">¶</a></h2>
+<p>Notice that, up to a point, penalizing the size of the parameters
+reduces test error at the cost of increasing the training error, trading
+off higher bias for lower variance; in other words, this indicates that,
+for our example, a properly tuned ridge regression <strong>generalizes
+better</strong> than a least squares linear regression.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="o">%</span><span class="n">matplotlib</span> <span class="n">inline</span>
+<span class="o">%</span><span class="n">config</span> <span class="n">InlineBackend</span><span class="o">.</span><span class="n">figure_format</span> <span class="o">=</span> <span class="s1">&#39;svg&#39;</span>
+
+<span class="k">def</span> <span class="nf">plot_train_test_errors</span><span class="p">(</span><span class="n">train_errors</span><span class="p">,</span> <span class="n">test_errors</span><span class="p">,</span> <span class="n">lambd_values</span><span class="p">):</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">lambd_values</span><span class="p">,</span> <span class="n">train_errors</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Train error&quot;</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">lambd_values</span><span class="p">,</span> <span class="n">test_errors</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Test error&quot;</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">xscale</span><span class="p">(</span><span class="s2">&quot;log&quot;</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">loc</span><span class="o">=</span><span class="s2">&quot;upper left&quot;</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;$\lambda$&quot;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">16</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="s2">&quot;Mean Squared Error (MSE)&quot;</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+
+<span class="n">plot_train_test_errors</span><span class="p">(</span><span class="n">train_errors</span><span class="p">,</span> <span class="n">test_errors</span><span class="p">,</span> <span class="n">lambd_values</span><span class="p">)</span>
+</pre></div>
+</div>
+<img alt="../../_images/ridge_regression_9_0.svg" src="../../_images/ridge_regression_9_0.svg" /></section>
+<section id="regularization-path">
+<h2>Regularization path<a class="headerlink" href="#regularization-path" title="Permalink to this heading">¶</a></h2>
+<p>As expected, increasing <span class="math notranslate nohighlight">\(\lambda\)</span> drives the parameters towards
+<span class="math notranslate nohighlight">\(0\)</span>. In a real-world example, those parameters that approach zero
+slower than others might correspond to the more <strong>informative</strong>
+features. It is in this sense that ridge regression can be considered
+<strong>model selection.</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">plot_regularization_path</span><span class="p">(</span><span class="n">lambd_values</span><span class="p">,</span> <span class="n">beta_values</span><span class="p">):</span>
+    <span class="n">num_coeffs</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">beta_values</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">num_coeffs</span><span class="p">):</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">lambd_values</span><span class="p">,</span> <span class="p">[</span><span class="n">wi</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">wi</span> <span class="ow">in</span> <span class="n">beta_values</span><span class="p">])</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;$\lambda$&quot;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">16</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">xscale</span><span class="p">(</span><span class="s2">&quot;log&quot;</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="s2">&quot;Regularization Path&quot;</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+
+<span class="n">plot_regularization_path</span><span class="p">(</span><span class="n">lambd_values</span><span class="p">,</span> <span class="n">beta_values</span><span class="p">)</span>
+</pre></div>
+</div>
+<img alt="../../_images/ridge_regression_11_0.svg" src="../../_images/ridge_regression_11_0.svg" /></section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../index.html">CVXPY</a></h1>
+
+
+
+
+
+
+<p>
+<iframe src="https://ghbtns.com/github-btn.html?user=cvxpy&repo=cvxpy&type=star&count=true&size=large&v=2"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
+
+
+
+
+
+<h3>Navigation</h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../install/index.html">Install</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial/index.html">User Guide</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../index.html">Examples</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../api_reference/cvxpy.html">API Documentation</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../faq/index.html">FAQ</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../citing/index.html">Citing CVXPY</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../contributing/index.html">Contributing</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../related_projects/index.html">Related Projects</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../updates/index.html">Changes to CVXPY</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../short_course/index.html">CVXPY Short Course</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../license/index.html">License</a></li>
+</ul>
+
+
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script><div>
+    <h3>
+        Version selector
+    </h3>
+    <select id="dynamic_selector" name="versions" onchange="if (this.value) window.location.href=this.value">
+    </select>
+    <script>
+        obj = $.getJSON("https://raw.githubusercontent.com/cvxpy/cvxpy/gh-pages/versions.json")
+            .done(function (data) {
+                const base_url = "https://www.cvxpy.org/"
+                let html = "<option value='' selected>Choose version here</option>";
+                html += "<option value=" + base_url + ">latest" + ""
+                for (let i = 0; i < data.length; i++) {
+                    html += "<option value=" + base_url + "version/"  + data[i] + ">" + data[i] + ""
+                }
+                document.getElementById("dynamic_selector").innerHTML = html;
+            });
+    </script>
+</div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;The CVXPY authors.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 7.1.2</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.13</a>
+      
+      |
+      <a href="../../_sources/examples/machine_learning/ridge_regression.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+    <script type="text/javascript">
+
+      var _gaq = _gaq || [];
+      _gaq.push(['_setAccount', 'UA-50248335-1']);
+      _gaq.push(['_setDomainName', 'none']);
+      _gaq.push(['_setAllowLinker', true]);
+      _gaq.push(['_trackPageview']);
+
+      (function() {
+        var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+        ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+      })();
+
+    </script>
+    
+  </body>
+</html>
