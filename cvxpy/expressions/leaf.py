@@ -493,26 +493,39 @@ class Leaf(expression.Expression):
 
     @bounds.setter
     def bounds(self, value):
-        # In case for a constant for instance
+        # In case for a constant or no bounds
         if value is None:
             self._bounds = None
             return
 
-        validated_bounds = []
-        for idx, bounds in enumerate(value):
-            if bounds is None:
-                validated_bounds.append(None)
-                continue
+        # Check that bounds is a list of two items.
+        if not isinstance(value, list) or len(value) != 2:
+            raise ValueError("Bounds should be a list of two items.")
 
-            # Here I want to check if number of box constraints equals
-            # shape of the variable, under construction
+        lower_bounds, upper_bounds = value
 
-            lower_bound, upper_bound = bounds
-            if lower_bound is not None and upper_bound is not None:
-                if upper_bound < lower_bound:
-                    raise ValueError(f"Invalid bounds for domain "
-                                     f"constraint {idx}: [{lower_bound}, {upper_bound}]")
+        # Check if lower bound is unbounded below
+        if np.any(lower_bounds == -np.inf):
+            raise ValueError("Lower bounds are unbounded from below.")
 
-            validated_bounds.append([lower_bound, upper_bound])
+        # Check if upper bound is unbounded above
+        if np.any(upper_bounds == np.inf):
+            raise ValueError("Upper bounds are unbounded from above.")
 
-        self._bounds = validated_bounds
+        # Check that bounds contains two scalars or two arrays with matching shapes.
+        if not ((np.isscalar(lower_bounds)
+                and np.isscalar(upper_bounds)
+                and self.shape == (1,))
+                or (isinstance(lower_bounds, np.ndarray)
+                and isinstance(upper_bounds, np.ndarray)
+                and lower_bounds.shape == self.shape
+                and upper_bounds.shape == self.shape)):
+            raise ValueError("Bounds should either contain "
+                             "two scalars or two ndarrays with matching shapes.")
+
+        # Check that upper_bound >= lower_bound
+        if np.any(upper_bounds < lower_bounds):
+            raise ValueError("Invalid bounds: some upper bounds are less "
+                             "than corresponding lower bounds.")
+
+        self._bounds = [lower_bounds, upper_bounds]
