@@ -398,3 +398,46 @@ class TestConstraints(BaseTest):
     def test_bounds_attr(self) -> None:
         """Test that the bounds attribute for variables and parameters is set correctly.
         """
+        import pytest
+        # Test if bounds attribute generates correct bounds
+        Q = np.array([[1, 0, 0], [0, 2, 0], [0, 0, 3]])
+        x = cp.Variable((3,), bounds=[np.array([1,2,3]), np.array([4,5,6])])
+        c = np.array([1,1,1])
+        cp.Problem(cp.Minimize(x@c)).solve()
+        self.assertItemsAlmostEqual(x.value,[1,2,3])
+        # Check if bounds attribute is compatible with quadratic objective
+        cp.Problem(cp.Minimize(cp.quad_form(x, Q) + c.T @ x)).solve()
+        self.assertItemsAlmostEqual(x.value,[1,2,3])
+
+        with pytest.raises(ValueError, match="Bounds should be a list of two items."):
+            cp.Variable((2,), bounds=[np.array([0, 1, 2])])
+
+        with pytest.raises(ValueError, match="Lower bounds are unbounded from below."):
+            cp.Variable((1,), bounds=[-np.inf,0])
+            cp.Variable((2,), bounds=[np.array([-np.inf,2]), np.array([3,4])])
+
+        with pytest.raises(ValueError, match="Upper bounds are unbounded from above."):
+            cp.Variable((1,), bounds=[0,np.inf])
+            cp.Variable((2,), bounds=[np.array([1,2]), np.array([3,np.inf])])
+
+        with pytest.raises(ValueError, match="Bounds should either contain two "
+                                             "scalars or two ndarrays with matching shapes."):
+            # Scalar bounds but shape mismatch
+            cp.Variable((2,), bounds=[1, 2])
+            # Mismatched upper bounds (for scalar case)
+            cp.Variable((1,), bounds=[1, np.array([2,3])])
+            # Shape mismatch for with bounds constraints
+            cp.Variable((3,), bounds=[np.array([1,2]), np.array([3,4])])
+            # Lower bounds correct shape but upper bound wrong shape
+            cp.Variable((3,), bounds=[np.array([1, 2, 3]), np.array([4, 5])])
+            # Upper bounds correct shape but lower bound wrong shape
+            cp.Variable((3,), bounds=[np.array([1, 2]), np.array([3, 4, 5])])
+
+        with pytest.raises(ValueError,match="Invalid bounds: some upper "
+                                            "bounds are less than corresponding lower bounds."):
+            # Lower bound bigger than upper bound
+            cp.Variable((2,), bounds=[np.array([2,3]), np.array([1,4])])
+
+
+
+
