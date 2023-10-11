@@ -100,15 +100,6 @@ class CvxAttr2Constr(Reduction):
         id2old_var = {}
         constr = []
         for var in problem.variables():
-            bounds = var.bounds
-            if bounds is not None:
-                for idx, domain in enumerate(bounds):
-                    if domain is not None:
-                        lower_bound, upper_bound = domain
-                        if lower_bound is not None:
-                            constr.append(var[idx] >= lower_bound)
-                        if upper_bound is not None:
-                            constr.append(var[idx] <= upper_bound)
             if var.id not in id2new_var:
                 id2old_var[var.id] = var
                 new_var = False
@@ -153,6 +144,25 @@ class CvxAttr2Constr(Reduction):
                     constr.append(obj >> 0)
                 elif var.attributes['NSD']:
                     constr.append(obj << 0)
+                elif var.attributes['bounds']:
+                    bounds = var.bounds
+                    lower_bounds, upper_bounds = bounds
+
+                    # If the bounds are scalars, we apply them directly to the entire variable.
+                    if np.isscalar(lower_bounds) and np.isscalar(upper_bounds):
+                        if lower_bounds is not None:
+                            constr.append(obj >= lower_bounds)
+                        if upper_bounds is not None:
+                            constr.append(obj <= upper_bounds)
+
+                    # If the bounds are arrays, we apply them element-wise.
+                    elif isinstance(lower_bounds, np.ndarray) \
+                            and isinstance(upper_bounds, np.ndarray):
+                        for idx in np.ndindex(obj.shape):
+                            if lower_bounds[idx] is not None:
+                                constr.append(obj[idx] >= lower_bounds[idx])
+                            if upper_bounds[idx] is not None:
+                                constr.append(obj[idx] <= upper_bounds[idx])
 
         # Create new problem.
         obj = problem.objective.tree_copy(id_objects=id2new_obj)
