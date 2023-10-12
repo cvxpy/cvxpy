@@ -237,6 +237,20 @@ class TestProblem(BaseTest):
         self.assertIsNone(data["A"])
         self.assertEqual(data["G"].shape, (3, 3))
 
+        # caching use_quad_obj
+        p = Problem(cp.Minimize(cp.sum_squares(self.x) + 2))
+        data, _, _ = p.get_problem_data(s.SCS, solver_opts={"use_quad_obj": False})
+        dims = data[ConicSolver.DIMS]
+        self.assertEqual(dims.soc, [4])
+        self.assertEqual(data["c"].shape, (3,))
+        self.assertEqual(data["A"].shape, (4, 3))
+        data, _, _ = p.get_problem_data(s.SCS, solver_opts={"use_quad_obj": True})
+        dims = data[ConicSolver.DIMS]
+        self.assertEqual(dims.soc, [])
+        self.assertEqual(data["P"].shape, (2, 2))
+        self.assertEqual(data["c"].shape, (2,))
+        self.assertEqual(data["A"].shape, (0, 2))
+
         if s.CVXOPT in INSTALLED_SOLVERS:
             data, _, _ = Problem(cp.Minimize(cp.norm(self.x) + 3)).get_problem_data(
                 s.CVXOPT)
