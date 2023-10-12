@@ -2196,7 +2196,7 @@ class TestSCIPY(unittest.TestCase):
         sth = sths.mi_lp_7()
 
         # We only check that the option does not raise an error.
-        sth.solve(solver='SCIPY', scipy_options={"time_limit": 0.1})
+        sth.solve(solver='SCIPY', scipy_options={"time_limit": 100.0})
 
 
 @unittest.skipUnless('COPT' in INSTALLED_SOLVERS, 'COPT is not installed.')
