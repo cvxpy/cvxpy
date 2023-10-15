@@ -22,6 +22,7 @@ from typing import Any, Callable
 
 import numpy as np
 import graphblas as gb
+from graphblas.core.utils import ensure_type
 import scipy.sparse as sp
 from scipy.signal import convolve
 
@@ -37,6 +38,7 @@ from cvxpy.settings import (
 Note: this file is tested extensively with illustrative examples in test_python_backends.py,
 complementing the docstrings of the functions below.
 """
+gb.config["autocompute"]
 
 
 class Constant(Enum):
@@ -735,6 +737,7 @@ class NumPyCanonBackend(PythonCanonBackend):
         Given (A, b) in view, return the sum of the representation
         on the row axis, ie: (sum(A,axis=1), sum(b, axis=1)).
         """
+
         def func(x):
             return x.sum(axis=1, keepdims=True)
 
@@ -798,6 +801,7 @@ class NumPyCanonBackend(PythonCanonBackend):
         Returns a function that takes in a tensor, modifies the shape of the tensor by extending
         it to total_rows, and then shifts the entries by offset along axis 1.
         """
+
         def stack_func(tensor):
             rows = tensor.shape[1]
             new_rows = (np.arange(rows) + offset).astype(int)
@@ -1034,14 +1038,15 @@ class SciPyCanonBackend(PythonCanonBackend):
         coupling the SciPyCanonBackend subclass with the SciPyTensorView subclass.
         """
         return SciPyTensorView.get_empty_view(self.param_size_plus_one, self.id_to_col,
-                                                      self.param_to_size, self.param_to_col,
-                                                      self.var_length)
+                                              self.param_to_size, self.param_to_col,
+                                              self.var_length)
 
     @staticmethod
     def neg(_lin: LinOp, view: SciPyTensorView) -> SciPyTensorView:
         """
         Given (A, b) in view, return (-A, -b).
         """
+
         def func(x, _p):
             return -x
 
@@ -1104,9 +1109,9 @@ class SciPyCanonBackend(PythonCanonBackend):
             data, rows, cols = coo.data, coo.row, coo.col
             slices, rows = np.divmod(rows, old_shape[0])
             new_rows = np.repeat(rows + slices * old_shape[0] * reps, reps) + \
-                np.tile(np.arange(reps) * old_shape[0], len(rows))
+                       np.tile(np.arange(reps) * old_shape[0], len(rows))
             new_cols = np.repeat(cols, reps) + \
-                np.tile(np.arange(reps) * old_shape[1], len(cols))
+                       np.tile(np.arange(reps) * old_shape[1], len(cols))
             new_data = np.repeat(data, reps)
             new_shape = (v.shape[0] * reps, v.shape[1] * reps)
             res[param_id] = sp.csc_matrix(
@@ -1154,6 +1159,7 @@ class SciPyCanonBackend(PythonCanonBackend):
         Here, since the slices are stacked, we sum over the rows corresponding
         to the same slice.
         """
+
         def func(x, p):
             if p == 1:
                 return sp.csr_matrix(x.sum(axis=0))
@@ -1223,6 +1229,7 @@ class SciPyCanonBackend(PythonCanonBackend):
         Returns a function that takes in a tensor, modifies the shape of the tensor by extending
         it to total_rows, and then shifts the entries by offset along axis 0.
         """
+
         def stack_func(tensor, p):
             coo_repr = tensor.tocoo()
             m = coo_repr.shape[0] // p
@@ -1249,7 +1256,7 @@ class SciPyCanonBackend(PythonCanonBackend):
         arg_cols = lin.args[0].shape[0] if len(lin.args[0].shape) == 1 else lin.args[0].shape[1]
 
         if is_param_free_lhs:
-            
+
             if len(lin.data.shape) == 1 and arg_cols != lhs.shape[0]:
                 lhs = lhs.T
             reps = view.rows // lhs.shape[0]
@@ -1288,7 +1295,7 @@ class SciPyCanonBackend(PythonCanonBackend):
 
             func = parametrized_mul
         return view.accumulate_over_variables(func, is_param_free_function=is_param_free_lhs)
-    
+
     def _transpose_stacked(self, v: sp.csc_matrix, param_id: int) -> sp.csc_matrix:
         """
         Given v, which is a stacked matrix of shape (p * n, m), transpose each slice of v,
@@ -1307,7 +1314,7 @@ class SciPyCanonBackend(PythonCanonBackend):
         v = v.tocoo()
         data, rows, cols = v.data, v.row, v.col
         slices, rows = np.divmod(rows, old_shape[0])
-        
+
         new_rows = cols + slices * new_shape[0]
         new_cols = rows
 
@@ -1501,7 +1508,14 @@ class GraphBlasBackend(PythonCanonBackend):
         """
         Extract the constant data from a LinOp node of type "*_const".
         """
-        constant = gb.Matrix.from_dense(lin_op.data)
+        if not isinstance(lin_op.data, (np.ndarray, np.float64)):
+            data = lin_op.data.toarray()
+        else:
+            data = lin_op.data
+        if data.shape == (1, 1) or data.shape == ():
+            constant = gb.Matrix.from_scalar(value=data, nrows=1, ncols=1, dtype=float)
+        else:
+            constant = gb.Matrix.from_dense(data, dtype=float)
         assert constant.shape == lin_op.shape
         return constant
 
@@ -1556,10 +1570,10 @@ class GraphBlasBackend(PythonCanonBackend):
 
             def func(x, p):
                 if p == 1:
-                    return stacked_lhs @ x
+                    return (stacked_lhs @ x).new()
                 else:
                     eye = gb.Vector.from_scalar(1, p).diag()
-                    return eye.kronecker(stacked_lhs) @ x
+                    return (eye.kronecker(stacked_lhs) @ x).new()
         else:
             reps = view.rows // next(iter(lhs.values())).shape[-1]
             if reps > 1:
@@ -1568,7 +1582,7 @@ class GraphBlasBackend(PythonCanonBackend):
                 stacked_lhs = lhs
 
             def parametrized_mul(x):
-                return {k: v @ x for k, v in stacked_lhs.items()}
+                return {k: (v @ x).new() for k, v in stacked_lhs.items()}
 
             func = parametrized_mul
         return view.accumulate_over_variables(func, is_param_free_function=is_param_free_lhs)
@@ -1617,14 +1631,14 @@ class GraphBlasBackend(PythonCanonBackend):
         if is_param_free_lhs:
             def func(x, p):
                 if p == 1:
-                    return lhs.ewise_mult(x)
+                    return (lhs.ewise_mult(x)).new()
                 else:
                     new_lhs = GraphBlasTensorView.ensure_new_vector(gb.ss.concat([[lhs]] * p))
-                    return new_lhs.ewise_mult(x)
+                    return (new_lhs.ewise_mult(x)).new()
         else:
             def parametrized_mul(x):
-                return {k: GraphBlasTensorView.ensure_new_vector(v).ewise_mult
-                        (gb.ss.concat([[x]] * self.param_to_size[k]))
+                return {k: (GraphBlasTensorView.ensure_new_vector(v).ewise_mult
+                            (gb.ss.concat([[x]] * self.param_to_size[k]))).new()
                         for k, v in lhs.items()}
 
             func = parametrized_mul
@@ -1634,11 +1648,11 @@ class GraphBlasBackend(PythonCanonBackend):
     def sum_entries(_lin: LinOp, view: GraphBlasTensorView) -> GraphBlasTensorView:
         def func(x, p):
             if p == 1:
-                return x.reduce_columnwise("sum")._as_matrix().T
+                return (x.reduce_columnwise("sum")._as_matrix().T).new()
             else:
                 m = x.shape[0] // p
                 eye = gb.Vector.from_scalar(1, p).diag()
-                return eye.kronecker(gb.Vector.from_scalar(1, m)._as_matrix().T, "times") @ x
+                return (eye.kronecker(gb.Vector.from_scalar(1, m)._as_matrix().T, "times") @ x).new()
 
         view.apply_all(func)
         return view
@@ -1651,10 +1665,10 @@ class GraphBlasBackend(PythonCanonBackend):
 
         def div_func(x, p):
             if p == 1:
-                return lhs.ewise_mult(x)
+                return (lhs.ewise_mult(x)).new()
             else:
                 new_lhs = GraphBlasTensorView.ensure_new_vector(gb.ss.concat([[lhs]] * p))
-                return new_lhs.ewise_mult(x)
+                return (new_lhs.ewise_mult(x)).new()
 
         return view.accumulate_over_variables(div_func, is_param_free_function=is_param_free_lhs)
 
@@ -1730,10 +1744,10 @@ class GraphBlasBackend(PythonCanonBackend):
 
             def func(x, p):
                 if p == 1:
-                    return stacked_lhs @ x
+                    return (stacked_lhs @ x).new()
                 else:
                     eye = gb.Vector.from_scalar(1, p).diag()
-                    return eye.kronecker(stacked_lhs) @ x
+                    return (eye.kronecker(stacked_lhs) @ x).new()
         else:
             k, v = next(iter(lhs.items()))
             lhs_rows = v.shape[0] // self.param_to_size[k]
@@ -1755,7 +1769,7 @@ class GraphBlasBackend(PythonCanonBackend):
                 stacked_lhs = lhs
 
             def parametrized_mul(x):
-                return {k: v @ x for k, v in stacked_lhs.items()}
+                return {k: (v @ x).new() for k, v in stacked_lhs.items()}
 
             func = parametrized_mul
         return view.accumulate_over_variables(func, is_param_free_function=is_param_free_lhs)
@@ -1820,10 +1834,10 @@ class GraphBlasBackend(PythonCanonBackend):
 
         def func(x, p):
             if p == 1:
-                return (lhs @ x)._as_matrix().T
+                return ((lhs @ x)._as_matrix().T).new()
             else:
                 eye = gb.Vector.from_scalar(1, p).diag()
-                return eye.kronecker(lhs._as_matrix().T) @ x
+                return (eye.kronecker(lhs._as_matrix().T) @ x).new()
 
         return view.accumulate_over_variables(func, is_param_free_function=True)
 
@@ -1850,7 +1864,7 @@ class GraphBlasBackend(PythonCanonBackend):
                                  ncols=cols)
 
         def func(x, _p):
-            return lhs @ x
+            return (lhs @ x).new()
 
         return view.accumulate_over_variables(func, is_param_free_function=is_param_free_lhs)
 
@@ -1875,7 +1889,7 @@ class GraphBlasBackend(PythonCanonBackend):
             assert x.ndim == 2
             kron_res = lhs._as_matrix().kronecker(x)
             kron_res = kron_res[row_indices, :]
-            return kron_res
+            return (kron_res).new()
 
         return view.accumulate_over_variables(func, is_param_free_function=is_param_free_lhs)
 
@@ -1900,7 +1914,7 @@ class GraphBlasBackend(PythonCanonBackend):
             assert x.ndim == 2
             kron_res = x.kronecker(rhs._as_matrix())
             kron_res = kron_res[row_indices, :]
-            return kron_res
+            return (kron_res).new()
 
         return view.accumulate_over_variables(func, is_param_free_function=is_param_free_rhs)
 
@@ -1925,6 +1939,8 @@ class GraphBlasBackend(PythonCanonBackend):
     def get_param_tensor(self, shape: tuple[int, ...], parameter_id: int) -> \
             dict[int, dict[int, gb.Vector]]:
         assert parameter_id != Constant.ID
+        # Change default sparse matrix format to column
+        gb.ss.config["format"] = "by_col"
         p = self.param_to_size[parameter_id]
         param_vec = gb.Vector.from_coo(indices=np.arange(p) + np.arange(p) * p,
                                        size=int(np.prod(shape) * p))
@@ -2103,7 +2119,12 @@ class DictTensorView(TensorView, ABC):
             elif isinstance(a[key], self.tensor_type()) and isinstance(b[key], self.tensor_type()):
                 res[key] = self.add_tensors(a[key], b[key])
             else:
-                raise ValueError(f'Values must either be dicts or {self.tensor_type()}.')
+                try:
+                    a[key] = ensure_type(a[key], self.tensor_type())
+                    b[key] = ensure_type(b[key], self.tensor_type())
+                    res[key] = self.add_tensors(a[key], b[key])
+                except:
+                    raise ValueError(f'Values must either be dicts or {self.tensor_type()}.')
         for key in keys_a - intersect:
             res[key] = a[key]
         for key in keys_b - intersect:
@@ -2156,6 +2177,7 @@ class NumPyTensorView(DictTensorView):
         The rows of the 3d tensor are in axis=1, this function selects a subset
         of the original tensor.
         """
+
         def func(x):
             return x[:, rows, :]
 
@@ -2251,6 +2273,7 @@ class SciPyTensorView(DictTensorView):
         we must select the same 'rows' from each parameter slice. This is done by
         introducing an offset of size 'm' for every parameter.
         """
+
         def func(x, p):
             if p == 1:
                 return x[rows, :]
@@ -2277,9 +2300,9 @@ class SciPyTensorView(DictTensorView):
         but new tensor data.
         """
         return SciPyTensorView(variable_ids, tensor, is_parameter_free,
-                                       self.param_size_plus_one, self.id_to_col,
-                                       self.param_to_size, self.param_to_col,
-                                       self.var_length)
+                               self.param_size_plus_one, self.id_to_col,
+                               self.param_to_size, self.param_to_col,
+                               self.var_length)
 
     def apply_to_parameters(self, func: Callable,
                             parameter_representation: dict[int, sp.spmatrix]) \
@@ -2338,10 +2361,10 @@ class GraphBlasTensorView(DictTensorView):
         def func(x, p):
             x = self.ensure_new_matrix(x)
             if p == 1:
-                return x[rows, :]
+                return (x[rows, :]).new()
             else:
                 m = x.shape[0] // p
-                return x[np.tile(rows, p) + np.repeat(np.arange(p) * m, len(rows)), :]
+                return (x[np.tile(rows, p) + np.repeat(np.arange(p) * m, len(rows)), :]).new()
 
         self.apply_all(func)
 
@@ -2382,9 +2405,9 @@ class GraphBlasTensorView(DictTensorView):
     @staticmethod
     def add_tensors(a: gb.Matrix, b: gb.Matrix) -> gb.Matrix:
         if isinstance(b, gb.Vector):
-            return b + a
+            return (b + a).new()
         else:
-            return a + b
+            return (a + b).new()
 
     @staticmethod
     def tensor_type():

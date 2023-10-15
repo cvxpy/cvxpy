@@ -6,13 +6,14 @@ from typing import Callable
 import numpy as np
 import pytest
 import scipy.sparse as sp
-
+import graphblas as gb
 import cvxpy.settings as s
 from cvxpy.lin_ops.canon_backend import (
     CanonBackend,
     NumPyCanonBackend,
     PythonCanonBackend,
     SciPyCanonBackend,
+    GraphBlasBackend,
     TensorRepresentation,
 )
 
