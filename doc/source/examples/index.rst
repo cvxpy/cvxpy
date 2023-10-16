@@ -37,13 +37,13 @@ Basic examples
 
 - `Control <https://colab.research.google.com/github/cvxgrp/cvx_short_course/blob/master/book/docs/intro/control.ipynb>`_
 
-- `Portfolio optimization <https://colab.research.google.com/github/cvxgrp/cvx_short_course/blob/master/book/docs/applications/portfolio_optimization.ipynb>`_
+- `Portfolio optimization <https://colab.research.google.com/github/cvxgrp/cvx_short_course/blob/master/book/docs/applications/notebooks/portfolio_optimization.ipynb>`_
 
-- `Worst-case risk analysis <https://colab.research.google.com/github/cvxgrp/cvx_short_course/blob/master/book/docs/applications/worst_case_analysis.ipynb>`_
+- `Worst-case risk analysis <https://colab.research.google.com/github/cvxgrp/cvx_short_course/blob/master/book/docs/applications/notebooks/worst_case_analysis.ipynb>`_
 
-- `Model fitting <https://colab.research.google.com/github/cvxgrp/cvx_short_course/blob/master/book/docs/applications/model_fitting.ipynb>`_
+- `Model fitting <https://colab.research.google.com/github/cvxgrp/cvx_short_course/blob/master/book/docs/applications/notebooks/model_fitting.ipynb>`_
 
-- `Optimal advertising <https://colab.research.google.com/github/cvxgrp/cvx_short_course/blob/master/book/docs/applications/optimal_ad.ipynb>`_
+- `Optimal advertising <https://colab.research.google.com/github/cvxgrp/cvx_short_course/blob/master/book/docs/applications/notebooks/optimal_ad.ipynb>`_
 
 - :doc:`Total variation in-painting <applications/tv_inpainting>` `[.ipynb] <https://colab.research.google.com/github/cvxpy/cvxpy/blob/master/examples/notebooks/WWW/tv_inpainting.ipynb>`_
 
