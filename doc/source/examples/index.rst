@@ -35,15 +35,15 @@ Basic examples
 
 - :doc:`Mixed-integer quadratic program <basic/mixed_integer_quadratic_program>` `[.ipynb] <https://colab.research.google.com/github/cvxpy/cvxpy/blob/master/examples/notebooks/WWW/mixed_integer_quadratic_program.ipynb>`_
 
-- `Control <https://colab.research.google.com/github/cvxgrp/cvx_short_course/blob/master/intro/control.ipynb>`_
+- `Control <https://colab.research.google.com/github/cvxgrp/cvx_short_course/blob/master/book/docs/intro/notebooks/control.ipynb>`_
 
-- `Portfolio optimization <https://colab.research.google.com/github/cvxgrp/cvx_short_course/blob/master/applications/portfolio_optimization.ipynb>`_
+- `Portfolio optimization <https://colab.research.google.com/github/cvxgrp/cvx_short_course/blob/master/book/docs/applications/notebooks/portfolio_optimization.ipynb>`_
 
-- `Worst-case risk analysis <https://colab.research.google.com/github/cvxgrp/cvx_short_course/blob/master/applications/worst_case_analysis.ipynb>`_
+- `Worst-case risk analysis <https://colab.research.google.com/github/cvxgrp/cvx_short_course/blob/master/book/docs/applications/notebooks/worst_case_analysis.ipynb>`_
 
-- `Model fitting <https://colab.research.google.com/github/cvxgrp/cvx_short_course/blob/master/applications/model_fitting.ipynb>`_
+- `Model fitting <https://colab.research.google.com/github/cvxgrp/cvx_short_course/blob/master/book/docs/applications/notebooks/model_fitting.ipynb>`_
 
-- `Optimal advertising <https://colab.research.google.com/github/cvxgrp/cvx_short_course/blob/master/applications/optimal_ad.ipynb>`_
+- `Optimal advertising <https://colab.research.google.com/github/cvxgrp/cvx_short_course/blob/master/book/docs/applications/notebooks/optimal_ad.ipynb>`_
 
 - :doc:`Total variation in-painting <applications/tv_inpainting>` `[.ipynb] <https://colab.research.google.com/github/cvxpy/cvxpy/blob/master/examples/notebooks/WWW/tv_inpainting.ipynb>`_
 
@@ -89,16 +89,16 @@ Machine learning
 
 - :doc:`SVM classifier <machine_learning/svm>` `\[.ipynb\] <https://colab.research.google.com/github/cvxpy/cvxpy/blob/master/examples/machine_learning/svm.ipynb>`_
 
-- `Huber regression <https://colab.research.google.com/github/cvxgrp/cvx_short_course/blob/master/applications/huber_regression.ipynb>`_
+- `Huber regression <https://colab.research.google.com/github/cvxgrp/cvx_short_course/blob/master/book/docs/applications/notebooks/huber_regression.ipynb>`_
 
-- `Quantile regression <https://colab.research.google.com/github/cvxgrp/cvx_short_course/blob/master/applications/quantile_regression.ipynb>`_
+- `Quantile regression <https://colab.research.google.com/github/cvxgrp/cvx_short_course/blob/master/book/docs/applications/notebooks/quantile_regression.ipynb>`_
 
 .. _finance
 
 Finance
 -------
 
-- `Portfolio optimization <https://colab.research.google.com/github/cvxgrp/cvx_short_course/blob/master/applications/portfolio_optimization.ipynb>`_
+- `Portfolio optimization <https://colab.research.google.com/github/cvxgrp/cvx_short_course/blob/master/book/docs/applications/notebooks/portfolio_optimization.ipynb>`_
 
 - `Cryptocurrency trading <https://nbviewer.org/github/rcroessmann/sharing_public/blob/master/arbitrage_identification.ipynb>`_
 
