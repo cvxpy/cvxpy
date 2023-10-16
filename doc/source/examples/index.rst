@@ -35,7 +35,7 @@ Basic examples
 
 - :doc:`Mixed-integer quadratic program <basic/mixed_integer_quadratic_program>` `[.ipynb] <https://colab.research.google.com/github/cvxpy/cvxpy/blob/master/examples/notebooks/WWW/mixed_integer_quadratic_program.ipynb>`_
 
-- `Control <https://colab.research.google.com/github/cvxgrp/cvx_short_course/blob/master/intro/control.ipynb>`_
+- `Control <https://colab.research.google.com/github/cvxgrp/cvx_short_course/blob/master/book/docs/intro/control.ipynb>`_
 
 - `Portfolio optimization <https://colab.research.google.com/github/cvxgrp/cvx_short_course/blob/master/book/docs/applications/portfolio_optimization.ipynb>`_
 
