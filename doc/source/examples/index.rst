@@ -89,16 +89,16 @@ Machine learning
 
 - :doc:`SVM classifier <machine_learning/svm>` `\[.ipynb\] <https://colab.research.google.com/github/cvxpy/cvxpy/blob/master/examples/machine_learning/svm.ipynb>`_
 
-- `Huber regression <https://colab.research.google.com/github/cvxgrp/cvx_short_course/blob/master/book/docs/applications/huber_regression.ipynb>`_
+- `Huber regression <https://colab.research.google.com/github/cvxgrp/cvx_short_course/blob/master/book/docs/applications/notebooks/huber_regression.ipynb>`_
 
-- `Quantile regression <https://colab.research.google.com/github/cvxgrp/cvx_short_course/blob/master/book/docs/applications/quantile_regression.ipynb>`_
+- `Quantile regression <https://colab.research.google.com/github/cvxgrp/cvx_short_course/blob/master/book/docs/applications/notebooks/quantile_regression.ipynb>`_
 
 .. _finance
 
 Finance
 -------
 
-- `Portfolio optimization <https://colab.research.google.com/github/cvxgrp/cvx_short_course/blob/master/book/docs/applications/portfolio_optimization.ipynb>`_
+- `Portfolio optimization <https://colab.research.google.com/github/cvxgrp/cvx_short_course/blob/master/book/docs/applications/notebooks/portfolio_optimization.ipynb>`_
 
 - `Cryptocurrency trading <https://nbviewer.org/github/rcroessmann/sharing_public/blob/master/arbitrage_identification.ipynb>`_
 
