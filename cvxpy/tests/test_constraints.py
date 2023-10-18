@@ -662,11 +662,11 @@ class TestConstraints(BaseTest):
         constraint4 = (w@x >= 1) # >=
         constraint5 = 5*cp.norm(A@x) <= 1 #Unary operation
 
-        exp1 = constraint1.gen_torch_exp()
-        exp2 = constraint2.gen_torch_exp()
-        exp3 = constraint3.gen_torch_exp()
-        exp4 = constraint4.gen_torch_exp()
-        exp5 = constraint5.gen_torch_exp()
+        exp1, _ = constraint1.gen_torch_exp()
+        exp2, _ = constraint2.gen_torch_exp()
+        exp3, _ = constraint3.gen_torch_exp()
+        exp4, _ = constraint4.gen_torch_exp()
+        exp5, _ = constraint5.gen_torch_exp()
 
         x_test = np.array([1,2,3])
         z_test = np.zeros(m)
