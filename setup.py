@@ -74,11 +74,12 @@ setup(
     },
     long_description=open('README.md').read(),
     long_description_content_type="text/markdown",
-    python_requires='>=3.7',
+    python_requires='>=3.8',
     install_requires=[
-        "osqp >= 0.4.1",
+        "osqp >= 0.6.2",
         "ecos >= 2",
-        "scs >= 1.1.6",
+        "clarabel >= 0.5.0",
+        "scs >= 3.0",
         "numpy >= 1.15",
         "scipy >= 1.1.0",
         "pybind11"

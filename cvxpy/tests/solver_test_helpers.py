@@ -109,10 +109,11 @@ class SolverTestHelper:
                                   cp.constraints.NonNeg,
                                   cp.constraints.Zero,
                                   cp.constraints.PSD,
-                                  cp.constraints.PowCone3D)):
+                                  cp.constraints.PowCone3D,
+                                  cp.constraints.PowConeND)):
                 comp = cp.scalar_product(con.args, con.dual_value).value
-            elif isinstance(con, cp.constraints.PowConeND):
-                msg = '\nPowConeND dual variables not implemented;' \
+            elif isinstance(con, cp.RelEntrConeQuad) or isinstance(con, cp.OpRelEntrConeQuad):
+                msg = '\nDual variables not implemented for quadrature based approximations;' \
                        + '\nSkipping complementarity check.'
                 warnings.warn(msg)
             else:
@@ -137,7 +138,8 @@ class SolverTestHelper:
                                   cp.constraints.Zero,
                                   cp.constraints.NonNeg,
                                   cp.constraints.PSD,
-                                  cp.constraints.PowCone3D)):
+                                  cp.constraints.PowCone3D,
+                                  cp.constraints.PowConeND)):
                 L = L - cp.scalar_product(con.args, con.dual_value)
             else:
                 raise NotImplementedError()

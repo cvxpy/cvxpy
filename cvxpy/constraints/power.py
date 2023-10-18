@@ -147,10 +147,8 @@ class PowCone3D(Cone):
                       self.dual_variables[2], self.alpha)
         else:
             # some assertions for verifying `args`
-            def f(x):
-                return x.shape
-            args_shapes = list(map(f, args))
-            instance_args_shapes = list(map(f, self.args))
+            args_shapes = [arg.shape for arg in args]
+            instance_args_shapes = [arg.shape for arg in self.args]
             assert len(args) == len(self.args)
             assert args_shapes == instance_args_shapes
             return PowCone3D(args[0]/self.alpha, args[1]/(1-self.alpha),
@@ -273,5 +271,30 @@ class PowConeND(Cone):
         return self.is_dcp()
 
     def save_dual_value(self, value) -> None:
-        # TODO: implement
-        pass
+        dW = value[:, :-1]
+        dz = value[:, -1]
+        if self.axis == 0:
+            dW = dW.T
+            dz = dz.T
+        if dW.shape[1] == 1:
+            #NOTE: Targetting problems where duals have the shape
+            # (n, 1) --- dropping the extra dimension is crucial for
+            # the `_dual_cone` and `dual_residual` methods to work properly
+            dW = np.squeeze(dW)
+        self.dual_variables[0].save_value(dW)
+        self.dual_variables[1].save_value(dz)
+
+    def _dual_cone(self, *args):
+        """Implements the dual cone of PowConeND See Pg 85
+        of the MOSEK modelling cookbook for more information"""
+        if args is None or args == ():
+            scaled_duals = self.dual_variables[0]/self.alpha
+            return PowConeND(scaled_duals, self.dual_variables[1], self.alpha, axis=self.axis)
+        else:
+            # some assertions for verifying `args`
+            args_shapes = [arg.shape for arg in args]
+            instance_args_shapes = [arg.shape for arg in self.args]
+            assert len(args) == len(self.args)
+            assert args_shapes == instance_args_shapes
+            assert args[0].value.shape == self.alpha.value.shape
+            return PowConeND(args[0]/self.alpha, args[1], self.alpha, axis=self.axis)

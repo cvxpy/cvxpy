@@ -154,10 +154,8 @@ class ExpCone(Cone):
                            np.exp(1) * self.dual_variables[2])
         else:
             # some assertions for verifying `args`
-            def f(x):
-                return x.shape
-            args_shapes = list(map(f, args))
-            instance_args_shapes = list(map(f, self.args))
+            args_shapes = [arg.shape for arg in args]
+            instance_args_shapes = [arg.shape for arg in self.args]
             assert len(args) == len(self.args)
             assert args_shapes == instance_args_shapes
             return ExpCone(-args[1], -args[0],
