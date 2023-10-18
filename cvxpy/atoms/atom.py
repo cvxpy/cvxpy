@@ -14,9 +14,9 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 import abc
-from typing import TYPE_CHECKING, List, Tuple
 from enum import Enum
 from functools import partial
+from typing import TYPE_CHECKING, List, Tuple
 
 if TYPE_CHECKING:
     from cvxpy.constraints.constraint import Constraint
@@ -30,17 +30,18 @@ from cvxpy import interface as intf
 from cvxpy import utilities as u
 from cvxpy.expressions import cvxtypes
 from cvxpy.expressions.constants import Constant
-from cvxpy.expressions.expression import Expression
-from cvxpy.utilities import performance_utils as perf
-from cvxpy.utilities.deterministic import unique_list
 from cvxpy.expressions.constants.constant import Constant
 from cvxpy.expressions.constants.parameter import Parameter
+from cvxpy.expressions.expression import Expression
 from cvxpy.expressions.variable import Variable
+from cvxpy.utilities import performance_utils as perf
+from cvxpy.utilities.deterministic import unique_list
 
 VAR_TYPE = Enum("VAR_TYPE", "VARIABLE_PARAMETER CONSTANT EXPRESSION")
 
 class VariablesDict():
-    """ Helper class that contains a dictionary from a non-constant leaf to an index in *args, with a safe add method. """
+    """ Helper class that contains a dictionary from a non-constant leaf to an index in *args,
+    with a safe add method."""
     def __init__(self):
         self.vars_dict = dict()
     def add_var(self, var):
@@ -494,7 +495,8 @@ class Atom(Expression):
 
     def gen_torch_exp(self):
         """ This function generates a torch expression.
-        The order of the arguments is as it appears in self.args (from left to right) 
+        The order of the arguments is as it appears in self.args (from left to right).
+        Also returns vars_dict to help keep track of the order of the variables.
         """
 
         def _gen_consts_vars(self, vars_dict):
@@ -513,7 +515,9 @@ class Atom(Expression):
         
         def wrapped_func(self, ind_to_value_type, vars_dict, *args):
             res =  []
-            for ind in range(len(ind_to_value_type)): #Iterate over the range instead of the dictionary directly, as dictionaries have no order, but we must iterate in order
+            #Iterate over the range instead of the dictionary directly:
+            #dictionaries have no order, but we must iterate in order
+            for ind in range(len(ind_to_value_type)): 
                 curr_arg = ind_to_value_type[ind]
                 if curr_arg[1]==VAR_TYPE.CONSTANT:
                     res.append(curr_arg[0])
@@ -525,4 +529,4 @@ class Atom(Expression):
             return self.numeric(res)
         vars_dict = VariablesDict()
         ind_to_value_type = _gen_consts_vars(self, vars_dict)
-        return partial(wrapped_func, self, ind_to_value_type, vars_dict)
+        return partial(wrapped_func, self, ind_to_value_type, vars_dict), vars_dict

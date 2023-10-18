@@ -257,4 +257,5 @@ class Constraint(u.Canonical):
         """
 
         exp = self.args[0]-self.args[1]
-        return exp.gen_torch_exp()
+        torch_exp, vars_dict = exp.gen_torch_exp()
+        return torch_exp, vars_dict
