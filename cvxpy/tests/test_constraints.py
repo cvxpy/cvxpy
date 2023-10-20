@@ -15,6 +15,7 @@ limitations under the License.
 """
 
 import numpy as np
+import pytest
 
 import cvxpy as cp
 from cvxpy.atoms.affine.reshape import reshape as reshape_atom
@@ -398,44 +399,64 @@ class TestConstraints(BaseTest):
     def test_bounds_attr(self) -> None:
         """Test that the bounds attribute for variables and parameters is set correctly.
         """
-        import pytest
         # Test if bounds attribute generates correct bounds
         Q = np.array([[1, 0, 0], [0, 2, 0], [0, 0, 3]])
-        x = cp.Variable((3,), bounds=[np.array([1,2,3]), np.array([4,5,6])])
-        c = np.array([1,1,1])
-        cp.Problem(cp.Minimize(x@c)).solve()
-        self.assertItemsAlmostEqual(x.value,[1,2,3])
-        # Check if bounds attribute is compatible with quadratic objective
-        cp.Problem(cp.Minimize(cp.quad_form(x, Q) + c.T @ x)).solve()
-        self.assertItemsAlmostEqual(x.value,[1,2,3])
+        x_1 = cp.Variable((3,), bounds=[np.array([1,2,3]), np.array([4,5,6])])
+        x_2 = cp.Variable((2,), bounds=[1,2])
+        x_3 = cp.Variable((2,), bounds=[np.array([4,5]), 6])
+        x_4 = cp.Variable((3,), bounds=[1, np.array([2,3,4])])
+        c_1 = np.array([1,1])
+        c_2 = np.array([1,1,1])
 
+        # Case 1: Check solution for lower and upper bound arrays
+        # Check if bounds attribute is compatible with linear objective
+        cp.Problem(cp.Minimize(x_1@c_2)).solve()
+        self.assertItemsAlmostEqual(x_1.value,[1,2,3])
+
+        # Check if bounds attribute is compatible with quadratic objective
+        cp.Problem(cp.Minimize(cp.quad_form(x_1, Q) + c_2.T @ x_1)).solve()
+        self.assertItemsAlmostEqual(x_1.value,[1,2,3])
+
+        # Case 2: Check solution for scalar lower and upper bounds
+        cp.Problem(cp.Minimize(x_2@c_1)).solve()
+        self.assertItemsAlmostEqual(x_2.value, [1, 1])
+
+        # Case 3: Check solution for lower bound array and scalar upper bound
+        cp.Problem(cp.Maximize(x_3@c_1)).solve()
+        self.assertItemsAlmostEqual(x_3.value, [6, 6])
+
+        # Case 4: Check solution for scalar lower bound and upper bound array
+        cp.Problem(cp.Maximize(x_4@c_2)).solve()
+        self.assertItemsAlmostEqual(x_4.value, [2, 3, 4])
+
+        # Check if bounds are a list of 2 items
         with pytest.raises(ValueError, match="Bounds should be a list of two items."):
             cp.Variable((2,), bounds=[np.array([0, 1, 2])])
 
-        with pytest.raises(ValueError, match="Lower bounds are unbounded from below."):
-            cp.Variable((1,), bounds=[-np.inf,0])
-            cp.Variable((2,), bounds=[np.array([-np.inf,2]), np.array([3,4])])
+        # Check if case does not occur that only one bound is passed and other is None
+        with pytest.raises(ValueError, match="If upper bounds are passed, "
+                                             "lower bounds should also be passed."):
+            cp.Variable((2,), bounds=[None, np.array([1,2])])
+        with pytest.raises(ValueError, match="If lower bounds are passed, "
+                                             "upper bounds should also be passed."):
+            cp.Variable((2,), bounds=[1, None])
 
-        with pytest.raises(ValueError, match="Upper bounds are unbounded from above."):
-            cp.Variable((1,), bounds=[0,np.inf])
-            cp.Variable((2,), bounds=[np.array([1,2]), np.array([3,np.inf])])
+        # Check for mismatch in dimensions of lower and upper bounds
+        with pytest.raises(ValueError, match="Bounds should contain scalars "
+                                             "and/or arrays with the same dimensions"):
+            cp.Variable((2,), bounds=[np.array([1,2]), np.array([1,2,3])])
+            cp.Variable((2,), bounds=[np.array([1,2,3,4]), 5])
 
-        with pytest.raises(ValueError, match="Bounds should either contain two "
-                                             "scalars or two ndarrays with matching shapes."):
-            # Scalar bounds but shape mismatch
-            cp.Variable((2,), bounds=[1, 2])
-            # Mismatched upper bounds (for scalar case)
-            cp.Variable((1,), bounds=[1, np.array([2,3])])
-            # Shape mismatch for with bounds constraints
-            cp.Variable((3,), bounds=[np.array([1,2]), np.array([3,4])])
-            # Lower bounds correct shape but upper bound wrong shape
-            cp.Variable((3,), bounds=[np.array([1, 2, 3]), np.array([4, 5])])
-            # Upper bounds correct shape but lower bound wrong shape
-            cp.Variable((3,), bounds=[np.array([1, 2]), np.array([3, 4, 5])])
+        # Check that bounds attribute handles -inf and inf correctly
+        x_5 = cp.Variable((2,), bounds=[-np.inf, np.array([1,2])])
+        x_6 = cp.Variable((3,), bounds=[3, np.inf])
+        cp.Problem(cp.Maximize(x_5@c_1)).solve()
+        self.assertItemsAlmostEqual(x_5.value, [1,2])
+        cp.Problem(cp.Minimize(x_6@c_2)).solve()
+        self.assertItemsAlmostEqual(x_6.value, [3,3,3])
 
         with pytest.raises(ValueError,match="Invalid bounds: some upper "
                                             "bounds are less than corresponding lower bounds."):
-            # Lower bound bigger than upper bound
             cp.Variable((2,), bounds=[np.array([2,3]), np.array([1,4])])
 
 
