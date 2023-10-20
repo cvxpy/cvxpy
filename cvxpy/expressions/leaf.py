@@ -95,12 +95,12 @@ class Leaf(expression.Expression):
     __metaclass__ = abc.ABCMeta
 
     def __init__(
-        self, shape: int | Iterable[int, ...], value=None, bounds=None,
-        nonneg: bool = False, nonpos: bool = False, complex: bool = False,
-        imag: bool = False, symmetric: bool = False, diag: bool = False,
-        PSD: bool = False, NSD: bool = False, hermitian: bool = False,
+        self, shape: int | Iterable[int, ...], value=None, nonneg: bool = False,
+        nonpos: bool = False, complex: bool = False, imag: bool = False,
+        symmetric: bool = False, diag: bool = False, PSD: bool = False,
+        NSD: bool = False, hermitian: bool = False,
         boolean: bool = False, integer: bool = False,
-        sparsity=None, pos: bool = False, neg: bool = False
+        sparsity=None, pos: bool = False, neg: bool = False, bounds=None
     ) -> None:
         if isinstance(shape, numbers.Integral):
             shape = (int(shape),)
@@ -152,7 +152,7 @@ class Leaf(expression.Expression):
 
         self.args = []
 
-        self.bounds = bounds if bounds is not None else None
+        self.bounds = bounds
 
     def _get_attr_str(self) -> str:
         """Get a string representing the attributes.
@@ -488,7 +488,6 @@ class Leaf(expression.Expression):
 
     @property
     def bounds(self):
-        # Assuming bounds is stored as a list of tuples
         return self._bounds
 
     @bounds.setter
@@ -498,30 +497,32 @@ class Leaf(expression.Expression):
             self._bounds = None
             return
 
-        # Check that bounds is a list of two items.
+        # Check that bounds is a list of two items
         if not isinstance(value, list) or len(value) != 2:
             raise ValueError("Bounds should be a list of two items.")
 
         lower_bounds, upper_bounds = value
 
-        # Check if lower bound is unbounded below
-        if np.any(lower_bounds == -np.inf):
-            raise ValueError("Lower bounds are unbounded from below.")
-
-        # Check if upper bound is unbounded above
-        if np.any(upper_bounds == np.inf):
-            raise ValueError("Upper bounds are unbounded from above.")
+        # Check if lower and upper bounds are always passed together
+        if (lower_bounds is None and upper_bounds is not None):
+            raise ValueError("If upper bounds are passed, lower bounds should also be passed.")
+        if (lower_bounds is not None and upper_bounds is None):
+            raise ValueError("If lower bounds are passed, upper bounds should also be passed.")
 
         # Check that bounds contains two scalars or two arrays with matching shapes.
-        if not ((np.isscalar(lower_bounds)
-                and np.isscalar(upper_bounds)
-                and self.shape == (1,))
-                or (isinstance(lower_bounds, np.ndarray)
-                and isinstance(upper_bounds, np.ndarray)
+        is_lower_scalar = np.isscalar(lower_bounds)
+        is_upper_scalar = np.isscalar(upper_bounds)
+        is_lower_array = isinstance(lower_bounds, np.ndarray)
+        is_upper_array = isinstance(upper_bounds, np.ndarray)
+        if not((is_lower_scalar and is_upper_scalar) or
+               (is_lower_scalar and is_upper_array
+                and upper_bounds.shape == self.shape) or
+               (is_upper_scalar and is_lower_array
+                and lower_bounds.shape == self.shape) or
+               (is_lower_array and is_upper_array
                 and lower_bounds.shape == self.shape
                 and upper_bounds.shape == self.shape)):
-            raise ValueError("Bounds should either contain "
-                             "two scalars or two ndarrays with matching shapes.")
+            raise ValueError("Bounds should contain scalars and/or arrays with the same dimensions")
 
         # Check that upper_bound >= lower_bound
         if np.any(upper_bounds < lower_bounds):
