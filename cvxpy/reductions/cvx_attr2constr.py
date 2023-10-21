@@ -148,62 +148,23 @@ class CvxAttr2Constr(Reduction):
                     bounds = var.bounds
                     lower_bounds, upper_bounds = bounds
 
-                    # Case 1: bounds are scalars
-                    if np.isscalar(lower_bounds) and np.isscalar(upper_bounds):
-                        if lower_bounds == -np.inf and upper_bounds == np.inf:
-                            pass
-                        elif lower_bounds == -np.inf:
-                            constr.append(obj <= upper_bounds)
-                        elif upper_bounds == np.inf:
-                            constr.append(obj >= lower_bounds)
-                        else:
-                            constr.append(obj >= lower_bounds)
-                            constr.append(obj <= upper_bounds)
+                    # Convert scalar bounds to arrays with same shape for uniform handling
+                    if np.isscalar(lower_bounds):
+                        lower_bounds = np.full(obj.shape, lower_bounds)
+                    if np.isscalar(upper_bounds):
+                        upper_bounds = np.full(obj.shape, upper_bounds)
 
-                    # Case 2: lower bounds are scalar, upper bounds are array
-                    elif isinstance(lower_bounds, np.ndarray) and np.isscalar(upper_bounds):
-                        for idx in np.ndindex(obj.shape):
-                            if lower_bounds[idx] == -np.inf and upper_bounds == np.inf:
-                                continue
-                            elif lower_bounds[idx] == -np.inf:
-                                constr.append(obj[idx] <= upper_bounds)
-                                continue
-                            elif upper_bounds == np.inf:
-                                constr.append(obj[idx] >= lower_bounds[idx])
-                                continue
+                    # Create masks if -inf or inf is present in the bounds
+                    lower_bound_mask = (lower_bounds != -np.inf)
+                    upper_bound_mask = (upper_bounds != np.inf)
 
+                    # Apply constraints based on the presence of a valid bound
+                    for idx in np.ndindex(obj.shape):
+                        if lower_bound_mask[idx]:
+                            # Apply lower bound constraint since it's not -inf
                             constr.append(obj[idx] >= lower_bounds[idx])
-                            constr.append(obj[idx] <= upper_bounds)
-
-                    # Case 3: lower bounds are array, upper bound are scalar
-                    elif np.isscalar(lower_bounds) and isinstance(upper_bounds, np.ndarray):
-                        for idx in np.ndindex(obj.shape):
-                            if lower_bounds == -np.inf and upper_bounds[idx] == np.inf:
-                                continue
-                            elif lower_bounds == -np.inf:
-                                constr.append(obj[idx] <= upper_bounds[idx])
-                                continue
-                            elif upper_bounds[idx] == np.inf:
-                                constr.append(obj[idx] >= lower_bounds)
-                                continue
-
-                            constr.append(obj[idx] >= lower_bounds)
-                            constr.append(obj[idx] <= upper_bounds[idx])
-
-                    # If the bounds are arrays, we apply them element-wise.
-                    elif isinstance(lower_bounds, np.ndarray) \
-                            and isinstance(upper_bounds, np.ndarray):
-                        for idx in np.ndindex(obj.shape):
-                            if lower_bounds[idx] == -np.inf and upper_bounds[idx] == np.inf:
-                                continue
-                            elif lower_bounds[idx] == -np.inf:
-                                constr.append(obj[idx] <= upper_bounds[idx])
-                                continue
-                            elif upper_bounds[idx] == np.inf:
-                                constr.append(obj[idx] >= lower_bounds[idx])
-                                continue
-
-                            constr.append(obj[idx] >= lower_bounds[idx])
+                        if upper_bound_mask[idx]:
+                            # Apply upper bound constraint since it's not inf
                             constr.append(obj[idx] <= upper_bounds[idx])
 
         # Create new problem.
