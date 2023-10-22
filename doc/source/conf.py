@@ -44,6 +44,7 @@ extensions = [
     'sphinxcontrib.jquery',
     'sphinx.ext.autosectionlabel',
     'sphinx_inline_tabs',
+    'sphinx_design',
 ]
 
 # To suppress autodoc/numpydoc warning.

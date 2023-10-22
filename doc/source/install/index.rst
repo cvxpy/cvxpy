@@ -8,83 +8,85 @@ pip or conda for installation. You may want to isolate
 your installation in a `virtualenv <https://virtualenv.pypa.io/en/stable/>`_,
 or a conda environment.
 
-.. tab:: pip
+.. card:: Instructions
 
-    (Windows only) `Download <https://visualstudio.microsoft.com/thank-you-downloading-visual-studio/?sku=BuildTools&rel=16>`_ the Visual Studio build tools for Python 3
-    (`instructions <https://docs.google.com/presentation/d/e/2PACX-1vT-p04simYhorAdKstO9F1RK-k6npuyrKWliJ8Wy9uuQoQq_TiFdJA-DK3Kz0irkCEUlmNEH4JScbkwUflXv9c/pub?start=false&loop=false&delayms=3000&resourcekey=0-HEezB2NFstz1GjKDkroJSQ&slide=id.p1>`_).
+    .. tab:: pip
 
-    (macOS only) Install the Xcode command line tools.
+        (Windows only) `Download <https://visualstudio.microsoft.com/thank-you-downloading-visual-studio/?sku=BuildTools&rel=16>`_ the Visual Studio build tools for Python 3
+        (`instructions <https://docs.google.com/presentation/d/e/2PACX-1vT-p04simYhorAdKstO9F1RK-k6npuyrKWliJ8Wy9uuQoQq_TiFdJA-DK3Kz0irkCEUlmNEH4JScbkwUflXv9c/pub?start=false&loop=false&delayms=3000&resourcekey=0-HEezB2NFstz1GjKDkroJSQ&slide=id.p1>`_).
 
-    (optional) Create and activate a virtual environment.
+        (macOS only) Install the Xcode command line tools.
 
-    Install CVXPY using `pip`_:
+        (optional) Create and activate a virtual environment.
 
-      ::
+        Install CVXPY using `pip`_:
 
-          pip install cvxpy
+          ::
 
-    You can add solver names as "extras"; `pip` will then install the necessary
-    additional Python packages.
+              pip install cvxpy
 
-      ::
+        You can add solver names as "extras"; `pip` will then install the necessary
+        additional Python packages.
 
-          pip install cvxpy[CBC,CVXOPT,GLOP,GLPK,GUROBI,MOSEK,PDLP,SCIP,XPRESS]
+          ::
 
-.. tab:: conda
+              pip install cvxpy[CBC,CVXOPT,GLOP,GLPK,GUROBI,MOSEK,PDLP,SCIP,XPRESS]
 
-    `conda`_ is a system for package and environment management.
+    .. tab:: conda
 
-    (Windows only) Download the `Visual Studio build tools for Python 3 <https://visualstudio.microsoft.com/thank-you-downloading-visual-studio/?sku=BuildTools&rel=16>`_.
+        `conda`_ is a system for package and environment management.
 
-    1. Install `conda`_.
+        (Windows only) Download the `Visual Studio build tools for Python 3 <https://visualstudio.microsoft.com/thank-you-downloading-visual-studio/?sku=BuildTools&rel=16>`_.
 
-    2. Create a new conda environment,
-      ::
+        1. Install `conda`_.
 
-          conda create --name cvxpy_env
-          conda activate cvxpy_env
+        2. Create a new conda environment,
+          ::
 
-     or activate an existing one
+              conda create --name cvxpy_env
+              conda activate cvxpy_env
 
-    3. Install ``cvxpy`` from `conda-forge <https://conda-forge.org/>`_
-       ::
+         or activate an existing one
 
-          conda install -c conda-forge cvxpy
+        3. Install ``cvxpy`` from `conda-forge <https://conda-forge.org/>`_
+           ::
 
-.. tab:: Install from source
+              conda install -c conda-forge cvxpy
 
-    We strongly recommend using a fresh virtual environment (virtualenv or conda) when installing CVXPY from source.
+    .. tab:: Install from source
 
-    CVXPY has the following dependencies:
+        We strongly recommend using a fresh virtual environment (virtualenv or conda) when installing CVXPY from source.
 
-     * Python >= 3.7
-     * `OSQP`_ >= 0.6.2
-     * `ECOS`_ >= 2
-     * `SCS`_ >= 3.0
-     * `NumPy`_ >= 1.15
-     * `SciPy`_ >= 1.1.0
+        CVXPY has the following dependencies:
 
-    All required packages are installed automatically alongside CVXPY.
+         * Python >= 3.7
+         * `OSQP`_ >= 0.6.2
+         * `ECOS`_ >= 2
+         * `SCS`_ >= 3.0
+         * `NumPy`_ >= 1.15
+         * `SciPy`_ >= 1.1.0
 
-    Perform the following steps to install CVXPY from source:
+        All required packages are installed automatically alongside CVXPY.
 
-     1. Clone the official `CVXPY git repository`_, or a newly minted fork of the CVXPY repository.
-     2. Navigate to the top-level of the cloned directory.
-     3. If you want to use CVXPY with editable source code, run
-        ::
+        Perform the following steps to install CVXPY from source:
 
-            pip install -e .
+         1. Clone the official `CVXPY git repository`_, or a newly minted fork of the CVXPY repository.
+         2. Navigate to the top-level of the cloned directory.
+         3. If you want to use CVXPY with editable source code, run
+            ::
 
-        otherwise, run
-        ::
+                pip install -e .
 
-            pip install .
+            otherwise, run
+            ::
 
-.. tab:: Using Codespaces
+                pip install .
 
-    We provide support for `GitHub Codespaces <https://github.com/features/codespaces>`_ with
-    preconfigured environments for CVXPY development via `devcontainers <https://containers.dev/>`_.
-    To get started, click the "Code" button on the CVXPY repository and select "Open with Codespaces".
+    .. tab:: Using Codespaces
+
+        We provide support for `GitHub Codespaces <https://github.com/features/codespaces>`_ with
+        preconfigured environments for CVXPY development via `devcontainers <https://containers.dev/>`_.
+        To get started, click the "Code" button on the CVXPY repository and select "Open with Codespaces".
 
 .. note::
     Apple M1 users have had trouble installing CVXPY using the commands above.
