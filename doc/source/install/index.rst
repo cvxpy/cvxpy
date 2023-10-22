@@ -120,7 +120,7 @@ To run the tests when CVXPY was not installed from source, use
 Install with Additional Solver Support
 ------------------------------------
 
-.. tab:: CVXOPT and GLPK
+.. dropdown:: CVXOPT and GLPK
 
     CVXPY supports the `CVXOPT`_ solver.
     Additionally, through CVXOPT, CVXPY supports the `GLPK`_ solver. On `most
@@ -148,74 +148,72 @@ Install with Additional Solver Support
 
     3. Follow the standard installation procedure to install CVXPY and its remaining dependencies.
 
-.. tab:: GUROBI
+.. dropdown:: GUROBI
 
     CVXPY supports the GUROBI solver.
     Install GUROBI version 7.5.2 or greater such that you can ``import gurobipy`` in Python.
     See the `GUROBI <https://www.gurobi.com/>`_ website for installation instructions.
 
-.. tab:: MOSEK
+.. dropdown:: MOSEK
 
     CVXPY supports the MOSEK solver.
     Simply install MOSEK such that you can ``import mosek`` in Python.
     See the `MOSEK <https://www.mosek.com/>`_ website for installation instructions.
 
-.. tab:: XPRESS
+.. dropdown:: XPRESS
 
     CVXPY supports the FICO Xpress solver.
     Simply install XPRESS such that you can ``import xpress`` in Python.
     See the `Xpress Python documentation <https://www.fico.com/fico-xpress-optimization/docs/latest/solver/optimizer/python/HTML/GUID-616C323F-05D8-3460-B0D7-80F77DA7D046.html>`_ pages for installation instructions.
 
-.. tab:: Cbc (Clp, Cgl)
+.. dropdown:: Cbc (Clp, Cgl)
 
     CVXPY supports the `Cbc <https://github.com/coin-or/Cbc>`_ solver (which includes Clp and Cgl) with the help of `cylp <https://github.com/coin-or/CyLP>`_.
     Simply install cylp and the corresponding prerequisites according to the `instructions <https://github.com/coin-or/CyLP#cylp>`_, such you can import this library in Python.
 
-.. tab:: COPT
-   :new-set:
+.. dropdown:: COPT
 
     CVXPY supports the COPT solver.
     Simply install COPT such that you can ``import coptpy`` in Python.
     See the `COPT <https://github.com/COPT-Public/COPT-Release>`_ release page for installation instructions.
 
-.. tab:: CPLEX
+.. dropdown:: CPLEX
 
     CVXPY supports the CPLEX solver.
     Simply install CPLEX such that you can ``import cplex`` in Python.
     See the `CPLEX <https://www.ibm.com/support/knowledgecenter/SSSA5P>`_ website for installation instructions.
 
-.. tab:: SDPA
+.. dropdown:: SDPA
 
     CVXPY supports the SDPA solver.
     Simply install SDPA for Python such that you can ``import sdpap`` in Python.
     See the `SDPA for Python <https://sdpa-python.github.io/docs/installation>`_ website for installation instructions.
 
-.. tab:: SDPT3
+.. dropdown:: SDPT3
 
     The `sdpt3glue package <https://github.com/TrishGillett/pysdpt3glue>`_ allows you to model problems with CVXPY and solve them with SDPT3.
 
-.. tab:: NAG
+.. dropdown:: NAG
 
     CVXPY supports the NAG solver.
     Simply install NAG such that you can ``import naginterfaces`` in Python.
     See the `NAG <https://www.nag.co.uk/nag-library-python>`_ website for installation instructions.
 
-.. tab:: GLOP and PDLP
+.. dropdown:: GLOP and PDLP
 
     CVXPY supports the GLOP and PDLP solvers. Both solvers are provided by
     the open source `OR-Tools <https://github.com/google/or-tools>`_ package.
     Install OR-Tools such that you can run ``import ortools`` in Python. OR-Tools
     version 9.3 or greater is required.
 
-.. tab:: SCIP
+.. dropdown:: SCIP
 
     CVXPY supports the SCIP solver through the ``pyscipopt`` Python package.
     See the `PySCIPOpt <https://github.com/SCIP-Interfaces/PySCIPOpt#installation>`_ github for installation instructions.
 
     CVXPY's SCIP interface does not reliably recover dual variables for constraints. If you require dual variables for a continuous problem, you will need to use another solver. We welcome additional contributions to the SCIP interface, to recover dual variables for constraints in continuous problems.
 
-.. tab:: SCIPY
-   :new-set:
+.. dropdown:: SCIPY
 
     CVXPY supports the SCIPY solver for LPs and MIPs.
     This requires the `SciPy`_ package in Python, which should already be installed, as it is a requirement for CVXPY.
@@ -224,19 +222,19 @@ Install with Additional Solver Support
     `HiGHS`_ LP solvers come bundled with `SciPy`_ version 1.6.1 and higher.
     The `HiGHS`_ MIP solver comes bundled with version 1.9.0 and higher.
 
-.. tab:: CLARABEL
+.. dropdown:: CLARABEL
 
     CVXPY supports the CLARABEL solver.
     Simply install CLARABEL such that you can ``import clarabel`` in Python.
     See the `CLARABEL <https://oxfordcontrol.github.io/ClarabelDocs/stable/python/installation_py/>`_ website for installation instructions.
 
-.. tab:: PIQP
+.. dropdown:: PIQP
 
     CVXPY supports the PIQP solver.
     Simply install PIQP such that you can ``import piqp`` in Python.
     See the `PIQP <https://predict-epfl.github.io/piqp/interfaces/python/installation>`_ website for installation instructions.
 
-.. tab:: PROXQP
+.. dropdown:: PROXQP
 
     CVXPY supports the PROXQP solver.
     Simply install PROXQP such that you can ``import proxsuite`` in Python.
@@ -244,7 +242,7 @@ Install with Additional Solver Support
     Be aware that PROXQP by default uses dense matrices to represent problem data.
     You may achieve better performance by setting ``backend = 'sparse'`` in your call to ``problem.solve``.
 
-.. tab:: Without default solvers
+.. dropdown:: Without default solvers
 
     CVXPY can also be installed without the default solver dependencies.
     This can be useful if the intention is to only use non-default solvers.
