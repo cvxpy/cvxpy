@@ -259,7 +259,17 @@ html_favicon = "_static/favicon.ico"
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
 html_static_path = ['_static']
-html_css_files = ['css/extra_css.css']
+
+html_css_files = [
+    'css/extra_css.css',
+    'https://cdn.datatables.net/1.10.23/css/jquery.dataTables.min.css',
+]
+
+html_js_files = [
+    'https://cdn.datatables.net/1.10.23/js/jquery.dataTables.min.js',
+    'main.js',
+]
+
 
 # If not '', a 'Last updated on:' timestamp is inserted at every page bottom,
 # using the given strftime format.
