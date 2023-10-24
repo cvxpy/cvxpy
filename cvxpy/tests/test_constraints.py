@@ -410,31 +410,44 @@ class TestConstraints(BaseTest):
         z = cp.Variable(m)
         w = cp.Parameter(n)
         w.value=np.ones(n)
+        X = cp.Variable((m,n))
+        Y = cp.Parameter((m,n))
 
         constraint1 = (A @ x + z <= b) #Arbitrary constraint
         constraint2 = (z==0) #Equality
         constraint3 = (w@x <= 1) # <=
         constraint4 = (w@x >= 1) # >=
         constraint5 = 5*cp.norm(A@x) <= 1 #Unary operation
+        constraint6 = X@Y.T >= 0
+        constraint7 = X@Y.T <= 0
+        tmp2kill = X@Y.T
 
         exp1, _ = constraint1.gen_torch_exp()
         exp2, _ = constraint2.gen_torch_exp()
         exp3, _ = constraint3.gen_torch_exp()
         exp4, _ = constraint4.gen_torch_exp()
         exp5, _ = constraint5.gen_torch_exp()
+        exp6, _ = constraint6.gen_torch_exp()
+        exp7, _ = constraint7.gen_torch_exp()
 
         x_test = np.array([1,2,3])
         z_test = np.zeros(m)
         w_test = np.array([-1,0,1])
+        T1 = np.ones((m,n))
+        T2 = np.ones((m,n))
 
         test1 = exp1(x_test, z_test)
         test2 = exp2(z_test)
         test3 = exp3(w_test, x_test)
         test4 = exp4(w_test, x_test)
         test5 = exp5(x_test)
+        test6 = exp6(T1, T2)
+        test7 = exp7(T1, T2)
 
         self.assertTrue(all(test1==torch.tensor([3, -3])))
         self.assertTrue(all(test2==np.array([0, 0])))
         self.assertTrue(all(test3==torch.tensor([1])))
         self.assertTrue(all(test4==torch.tensor([-1])))
         self.assertTrue(np.isclose(test5, 25.9258))
+        self.assertTrue((test6==-n*np.ones((m,m))).all())
+        self.assertTrue((test7==n*np.ones((m,m))).all())
