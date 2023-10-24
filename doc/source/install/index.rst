@@ -102,21 +102,6 @@ or a conda environment.
     for more information.
 
 
-Running the test suite
-------------------------------------
-CVXPY comes with an extensive test suite, which can be run after installing `pytest`_.
-If installed from source, navigate to the root of the repository and run
-
-  ::
-
-      pytest
-
-To run the tests when CVXPY was not installed from source, use
-
-  ::
-
-      pytest --pyargs cvxpy.tests
-
 Install with Additional Solver Support
 ------------------------------------
 
@@ -222,12 +207,6 @@ Install with Additional Solver Support
     `HiGHS`_ LP solvers come bundled with `SciPy`_ version 1.6.1 and higher.
     The `HiGHS`_ MIP solver comes bundled with version 1.9.0 and higher.
 
-.. dropdown:: CLARABEL
-
-    CVXPY supports the CLARABEL solver.
-    Simply install CLARABEL such that you can ``import clarabel`` in Python.
-    See the `CLARABEL <https://oxfordcontrol.github.io/ClarabelDocs/stable/python/installation_py/>`_ website for installation instructions.
-
 .. dropdown:: PIQP
 
     CVXPY supports the PIQP solver.
@@ -261,6 +240,21 @@ Install with Additional Solver Support
       ::
 
           conda install cvxpy-base
+
+Running the test suite
+------------------------------------
+CVXPY comes with an extensive test suite, which can be run after installing `pytest`_.
+If installed from source, navigate to the root of the repository and run
+
+  ::
+
+      pytest
+
+To run the tests when CVXPY was not installed from source, use
+
+  ::
+
+      pytest --pyargs cvxpy.tests
 
 .. _conda: https://docs.conda.io/en/latest/
 .. _CVXOPT: https://cvxopt.org/
