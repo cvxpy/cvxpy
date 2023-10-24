@@ -37,6 +37,7 @@ from cvxpy.expressions.expression import Expression
 from cvxpy.expressions.variable import Variable
 from cvxpy.utilities import performance_utils as perf
 from cvxpy.utilities.deterministic import unique_list
+#from cvxpy.atoms.affine.binary_operators import MulExpression
 
 VAR_TYPE = Enum("VAR_TYPE", "VARIABLE_PARAMETER CONSTANT EXPRESSION")
 
@@ -51,6 +52,16 @@ class VariablesDict():
         """
         if var not in self.vars_dict:
             self.vars_dict[var] = len(self.vars_dict)
+
+    def has_type_in_keys(self, look_type: type):
+        """
+        This function returns True if one of the keys of this variable is of a certain type,
+        and False otherwise
+        """
+        for var in self.vars_dict.keys():
+            if isinstance(var, look_type):
+                return True
+        return False
 
 class Atom(Expression):
     """ Abstract base class for atoms. """
@@ -515,6 +526,61 @@ class Atom(Expression):
             return ind_to_value_type
         
         def wrapped_func(self, ind_to_value_type, vars_dict, *args):
+            def transpose_if_matmul(self, res):
+                """
+                This function transposes the second element if the wrapped function is a dot product
+                between two vectors. While transposing a vector in CVXPY does nothing, this function
+                is important because it helps overloading this function to the case where the
+                one of the elements is a matrix, where each row is a vector to be multiplied with.
+                """
+
+                def is_matmul(self):
+                    """
+                    This function checks if self is a valid matrix multiplication
+                    """
+                    from cvxpy.atoms.affine.binary_operators import MulExpression
+                    if not isinstance(self, MulExpression):
+                        return False
+                    #Some subclasses of MulExpressions are not Matrix multiplications, so check
+                    #if the current object is a MulExpression but not a subclass
+                    if issubclass(type(self), MulExpression) and type(self) != MulExpression:
+                        return False
+                    return True
+
+                def is_valid_input(res):
+                    """
+                    This function checks if res is valid for transpose, and if it does, returns
+                    the ndims list.
+                    """
+                    ndims = None
+                    valid = False
+
+                    #######################
+                    #Check input validity
+                    #######################
+                    #Transpose only a dot product between two elements
+                    if len(res) != 2: return valid, ndims
+                    
+                    #Work only on objects with ndim (torch/numpy/cvxpy etc.) and ndim==1
+                    ndims = [0]*2
+                    for i, vec in enumerate(res):
+                        if not hasattr(vec, "ndim"): return valid, ndims
+                        if vec.ndim >2: return #Only deal with scalars, vectors, or matrices
+                        ndims[i] = vec.ndim
+
+                    if max(ndims)<2: return valid, ndims #No need to transpose scalars and vectors
+                    if min(ndims)==2: return valid, ndims#If both elements are matrices, do not transpose - we only make a vector-by-matrix compatible.
+                    valid = True
+                    return valid, ndims
+
+                if not is_matmul(self): return
+                valid, ndims = is_valid_input(res)
+                if not valid: return
+                matrix_ind = ndims.index(2)
+                vector_ind = 1-matrix_ind #Since ndims is a vector with 2 elements, 1-matrix_ind returns the other index
+                if res[vector_ind].shape[0] == res[matrix_ind].shape[matrix_ind]:
+                    res[matrix_ind] = res[matrix_ind].T
+
             res =  []
             #Iterate over the range instead of the dictionary directly:
             #dictionaries have no order, but we must iterate in order
@@ -527,6 +593,9 @@ class Atom(Expression):
                 else:
                     rec_ind_to_value_type = _gen_consts_vars(curr_arg[0], vars_dict)
                     res.append(wrapped_func(curr_arg[0], rec_ind_to_value_type, vars_dict, *args))
+            #If this is a matrix multiplicaiton operation between 2 elements, transpose the second.
+            #This helps with overloading this function to be used with matrices.
+            transpose_if_matmul(self, res)
             return self.numeric(res)
         vars_dict = VariablesDict()
         ind_to_value_type = _gen_consts_vars(self, vars_dict)

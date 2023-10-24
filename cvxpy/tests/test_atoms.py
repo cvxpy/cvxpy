@@ -1775,7 +1775,7 @@ class TestAtoms(BaseTest):
         T1 = np.ones((m,n)) #2x3
         T2 = np.ones((m,n)) #2x3
         X = cp.Variable((m,n))
-        Y = cp.Variable((m,n))
+        Y = cp.Parameter((m,n))
 
         exp1 = x+w+a+x+w
         exp2 = x+w+a+x@w+x
