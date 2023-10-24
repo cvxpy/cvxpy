@@ -450,10 +450,15 @@ class TestConstraints(BaseTest):
         # Check that bounds attribute handles -inf and inf correctly
         x_5 = cp.Variable((2,), bounds=[-np.inf, np.array([1,2])])
         x_6 = cp.Variable((3,), bounds=[3, np.inf])
+        x_7 = cp.Variable((2,),bounds=[-np.inf, np.inf])
         cp.Problem(cp.Maximize(x_5@c_1)).solve()
         self.assertItemsAlmostEqual(x_5.value, [1,2])
         cp.Problem(cp.Minimize(x_6@c_2)).solve()
         self.assertItemsAlmostEqual(x_6.value, [3,3,3])
+        # Check that adding constraints are handled correctly for unbounded domain
+        # (no error from solver)
+        cp.Problem(cp.Minimize(x_7 @ c_1)).solve()
+        self.assertIsNone(x_7.value)
 
         with pytest.raises(ValueError,match="Invalid bounds: some upper "
                                             "bounds are less than corresponding lower bounds."):

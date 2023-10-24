@@ -158,14 +158,14 @@ class CvxAttr2Constr(Reduction):
                     lower_bound_mask = (lower_bounds != -np.inf)
                     upper_bound_mask = (upper_bounds != np.inf)
 
-                    # Apply constraints based on the presence of a valid bound
-                    for idx in np.ndindex(obj.shape):
-                        if lower_bound_mask[idx]:
-                            # Apply lower bound constraint since it's not -inf
-                            constr.append(obj[idx] >= lower_bounds[idx])
-                        if upper_bound_mask[idx]:
-                            # Apply upper bound constraint since it's not inf
-                            constr.append(obj[idx] <= upper_bounds[idx])
+                    if np.any(lower_bound_mask):
+                        # At least one valid lower bound,
+                        # so we apply the constraint only to those entries
+                        constr.append(obj[lower_bound_mask] >= lower_bounds[lower_bound_mask])
+                    if np.any(upper_bound_mask):
+                        # At least one valid upper bound,
+                        # so we apply the constraint only to those entries
+                        constr.append(obj[upper_bound_mask] <= upper_bounds[upper_bound_mask])
 
         # Create new problem.
         obj = problem.objective.tree_copy(id_objects=id2new_obj)
