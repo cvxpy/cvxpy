@@ -1,2 +1,4 @@
 sphinx
 sphinxcontrib.jquery
+sphinx-inline-tabs
+sphinx-design
