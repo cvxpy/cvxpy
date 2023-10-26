@@ -36,33 +36,36 @@ $(document).ready(function() {
     });
   }
 
-  // Function to create and initialize DataTable for the convex view
-  function create_Scalar_DCP_Table() {
-    var newTable = $('table.scalar-dcp');
-    console.log(newTable)
-    const scalarDCP_data = $('table.atomic-functions').DataTable().data().toArray().filter(row => {
-      const curvatures = ['convex', 'concave', 'affine'];
-      const curvatureValue = $(row[4]).text().trim();
-      const typeValue = $(row[6]).text().trim();
-      console.log(typeValue)
-      return curvatures.includes(curvatureValue) && typeValue === "scalar";
-    });
-    console.log(scalarDCP_data)
-    newTable.DataTable({
-      data: scalarDCP_data,
-      columns: [
-        { title: "Function" },
-        { title: "Meaning" },
-        { title: "Domain" },
-        { title: "Sign" },
-        { title: "Curvature" },
-        { title: "Monotonicity" },
-      ]
-    });
+function createDCPTable(tableClass, typeValue) {
+  var newTable = $(`table.${tableClass}`);
+  const curvatures = ['convex', 'concave', 'affine'];
+  if (typeValue === "elementwise") {
+    curvatures.push('constant');
   }
+
+  const dcpData = $('table.atomic-functions').DataTable().data().toArray().filter(row => {
+    const curvatureValue = $(row[4]).text().trim();
+    const rowTypeValue = $(row[6]).text().trim();
+    return curvatures.includes(curvatureValue) && rowTypeValue === typeValue;
+  });
+
+  newTable.DataTable({
+    data: dcpData,
+    columns: [
+      { title: "Function" },
+      { title: "Meaning" },
+      { title: "Domain" },
+      { title: "Sign" },
+      { title: "Curvature" },
+      { title: "Monotonicity" },
+    ]
+  });
+}
 
   // Call the functions to execute the code
   createRadioButtons();
   initializeMainTable();
-  create_Scalar_DCP_Table();
+  createDCPTable("scalar-dcp", "scalar");
+  createDCPTable("element-dcp", "elementwise");
+
 });
