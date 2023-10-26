@@ -402,6 +402,292 @@
      - None
      - scalar
 
+   * - :ref:`abs(x) <abs>`
+
+     - :math:`\lvert x \rvert`
+     - :math:`x \in \mathbf{C}`
+     - |positive| positive
+     - |convex| convex
+     - |incr| for :math:`x \geq 0`
+     - elementwise
+
+   * - :ref:`conj(x) <conj>`
+
+     - complex conjugate
+     - :math:`x \in \mathbf{C}`
+     - |unknown| unknown
+     - |affine| affine
+     - None
+     - elementwise
+
+   * - :ref:`entr(x) <entr>`
+
+     - :math:`-x \log (x)`
+     - :math:`x > 0`
+     - |unknown| unknown
+     - |concave| concave
+     - None
+     - elementwise
+
+   * - :ref:`exp(x) <exp>`
+
+     - :math:`e^x`
+     - :math:`x \in \mathbf{R}`
+     - |positive| positive
+     - |convex| convex
+     - |incr| incr.
+     - elementwise
+
+   * - :ref:`huber(x, M=1) <huber>`
+
+       :math:`M \geq 0`
+     - :math:`\begin{cases}x^2 &|x| \leq M  \\2M|x| - M^2&|x| >M\end{cases}`
+     - :math:`x \in \mathbf{R}`
+     - |positive| positive
+     - |convex| convex
+     - |incr| for :math:`x \geq 0`
+       |decr| for :math:`x \leq 0`
+     - elementwise
+
+   * - :ref:`imag(x) <imag-atom>`
+
+     - imaginary part of a complex number
+     - :math:`x \in \mathbf{C}`
+     - |unknown| unknown
+     - |affine| affine
+     - none
+     - elementwise
+
+   * - :ref:`inv_pos(x) <inv-pos>`
+
+     - :math:`1/x`
+     - :math:`x > 0`
+     - |positive| positive
+     - |convex| convex
+     - |decr| decr.
+     - elementwise
+
+   * - :ref:`kl_div(x, y) <kl-div>`
+
+     - :math:`x \log(x/y) - x + y`
+     - :math:`x > 0`
+       :math:`y > 0`
+     - |positive| positive
+     - |convex| convex
+     - None
+     - elementwise
+
+   * - :ref:`log(x) <log>`
+
+     - :math:`\log(x)`
+     - :math:`x > 0`
+     - |unknown| unknown
+     - |concave| concave
+     - |incr| incr.
+     - elementwise
+
+   * - :ref:`log_normcdf(x) <log-normcdf>`
+
+     - :ref:`approximate <clarifyelementwise>` log of the standard normal CDF
+     - :math:`x \in \mathbf{R}`
+     - |negative| negative
+     - |concave| concave
+     - |incr| incr.
+     - elementwise
+
+   * - :ref:`log1p(x) <log1p>`
+
+     - :math:`\log(x+1)`
+     - :math:`x > -1`
+     - same as x
+     - |concave| concave
+     - |incr| incr.
+     - elementwise
+
+   * - :ref:`loggamma(x) <loggamma>`
+
+     - :ref:`approximate <clarifyelementwise>` `log of the Gamma function <https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.loggamma.html>`_
+     - :math:`x > 0`
+     - |unknown| unknown
+     - |convex| convex
+     - None
+     - elementwise
+
+   * - :ref:`logistic(x) <logistic>`
+
+     - :math:`\log(1 + e^{x})`
+     - :math:`x \in \mathbf{R}`
+     - |positive| positive
+     - |convex| convex
+     - |incr| incr.
+     - elementwise
+
+   * - :ref:`maximum(x, y) <maximum>`
+
+     - :math:`\max \left\{x, y\right\}`
+     - :math:`x,y \in \mathbf{R}`
+     - depends on x,y
+     - |convex| convex
+     - |incr| incr.
+     - elementwise
+
+   * - :ref:`minimum(x, y) <minimum>`
+     - :math:`\min \left\{x, y\right\}`
+     - :math:`x, y \in \mathbf{R}`
+     - depends |_| on |_| x,y
+     - |concave| concave
+     - |incr| incr.
+     - elementwise
+
+   * - :ref:`multiply(c, x) <multiply>`
+
+       :math:`c \in \mathbf{R}`
+     - c*x
+     - :math:`x \in\mathbf{R}`
+     - :math:`\mathrm{sign}(cx)`
+     - |affine| affine
+     - depends |_| on |_| c
+     - elementwise
+
+   * - :ref:`neg(x) <neg>`
+     - :math:`\max \left\{-x, 0 \right\}`
+     - :math:`x \in \mathbf{R}`
+     - |positive| positive
+     - |convex| convex
+     - |decr| decr.
+     - elementwise
+
+   * - :ref:`pos(x) <pos>`
+     - :math:`\max \left\{x, 0 \right\}`
+     - :math:`x \in \mathbf{R}`
+     - |positive| positive
+     - |convex| convex
+     - |incr| incr.
+     - elementwise
+
+   * - :ref:`power(x, 0) <power>`
+     - :math:`1`
+     - :math:`x \in \mathbf{R}`
+     - |positive| positive
+     - constant
+     - |_|
+     - elementwise
+
+   * - :ref:`power(x, 1) <power>`
+     - :math:`x`
+     - :math:`x \in \mathbf{R}`
+     - same as x
+     - |affine| affine
+     - |incr| incr.
+     - elementwise
+
+   * - :ref:`power(x, p) <power>`
+
+       :math:`p = 2, 4, 8, \ldots`
+     - :math:`x^p`
+     - :math:`x \in \mathbf{R}`
+     - |positive| positive
+     - |convex| convex
+     - |incr| for :math:`x \geq 0`
+       |decr| for :math:`x \leq 0`
+     - elementwise
+
+   * - :ref:`power(x, p) <power>`
+
+       :math:`p < 0`
+     - :math:`x^p`
+     - :math:`x > 0`
+     - |positive| positive
+     - |convex| convex
+     - |decr| decr.
+     - elementwise
+
+   * - :ref:`power(x, p) <power>`
+
+       :math:`0 < p < 1`
+     - :math:`x^p`
+     - :math:`x \geq 0`
+     - |positive| positive
+     - |concave| concave
+     - |incr| incr.
+     - elementwise
+
+   * - :ref:`power(x, p) <power>`
+
+       :math:`p > 1,\ p \neq 2, 4, 8, \ldots`
+
+     - :math:`x^p`
+     - :math:`x \geq 0`
+     - |positive| positive
+     - |convex| convex
+     - |incr| incr.
+     - elementwise
+
+   * - :ref:`real(x) <real-atom>`
+
+     - real part of a complex number
+     - :math:`x \in \mathbf{C}`
+     - |unknown| unknown
+     - |affine| affine
+     - |incr| incr.
+     - elementwise
+
+   * - :ref:`rel_entr(x, y) <rel-entr>`
+
+     - :math:`x \log(x/y)`
+     - :math:`x > 0`
+
+       :math:`y > 0`
+     - |unknown| unknown
+     - |convex| convex
+     - None in :math:`x`
+
+       |decr| in :math:`y`
+     - elementwise
+
+   * - :ref:`scalene(x, alpha, beta) <scalene>`
+
+       :math:`\text{alpha} \geq 0`
+
+       :math:`\text{beta} \geq 0`
+     - :math:`\alpha\mathrm{pos}(x)+ \beta\mathrm{neg}(x)`
+     - :math:`x \in \mathbf{R}`
+     - |positive| positive
+     - |convex| convex
+     - |incr| for :math:`x \geq 0`
+
+       |decr| for :math:`x \leq 0`
+     - elementwise
+
+   * - :ref:`sqrt(x) <sqrt>`
+
+     - :math:`\sqrt x`
+     - :math:`x \geq 0`
+     - |positive| positive
+     - |concave| concave
+     - |incr| incr.
+     - elementwise
+
+   * - :ref:`square(x) <square>`
+
+     - :math:`x^2`
+     - :math:`x \in \mathbf{R}`
+     - |positive| positive
+     - |convex| convex
+     - |incr| for :math:`x \geq 0`
+
+       |decr| for :math:`x \leq 0`
+     - elementwise
+
+   * - :ref:`xexp(x) <xexp>`
+
+     - :math:`x e^x`
+     - :math:`x \geq 0`
+     - |positive| positive
+     - |convex| convex
+     - |incr| incr.
+     - elementwise
+
 .. |positive| image:: functions_files/positive.svg
               :width: 15px
               :height: 15px
