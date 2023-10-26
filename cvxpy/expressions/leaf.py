@@ -529,4 +529,46 @@ class Leaf(expression.Expression):
             raise ValueError("Invalid bounds: some upper bounds are less "
                              "than corresponding lower bounds.")
 
+        if is_lower_scalar and is_upper_scalar:
+            if (lower_bounds == -np.inf
+                    and upper_bounds == -np.inf):
+                raise ValueError("-np.inf is not feasible as lower "
+                                 "and upper bound.")
+            if (lower_bounds == np.inf
+                    and upper_bounds == np.inf):
+                raise ValueError("np.inf is not feasible as lower "
+                                 "and upper bound.")
+            if (lower_bounds == np.nan
+                    or upper_bounds == np.nan):
+                raise ValueError("np.nan is not feasible as lower "
+                                 "or upper bound.")
+
+        if is_lower_scalar:
+            # Convert scalar lower bounds to array for -inf and inf conflict mask
+            lower_bounds = np.full(self.shape, lower_bounds)
+            if is_lower_scalar == np.nan or np.any(np.isnan(upper_bounds)):
+                raise ValueError("np.nan is not feasible as lower "
+                                 "or upper bound.")
+
+        if is_upper_scalar:
+            # Convert scalar upper bounds to array for -inf and inf conflict mask
+            upper_bounds = np.full(self.shape, upper_bounds)
+            if is_upper_scalar == np.nan or np.any(np.isnan(lower_bounds)):
+                raise ValueError("np.nan is not feasible as lower "
+                                 "or upper bound.")
+
+        if is_lower_array and is_upper_array:
+            if np.any(np.isnan(lower_bounds)) or np.any(np.isnan(upper_bounds)):
+                raise ValueError("np.nan is not feasible as lower "
+                                 "or upper bound.")
+
+        # Element-wise check for -np.inf and np.inf at the same positions
+        negative_inf_conflict_mask = (lower_bounds == -np.inf) & (upper_bounds == -np.inf)
+        positive_inf_conflict_mask = (lower_bounds == np.inf) & (upper_bounds == np.inf)
+
+        if np.any(negative_inf_conflict_mask):
+            raise ValueError("-np.inf is not feasible as lower and upper bound.")
+        if np.any(positive_inf_conflict_mask):
+            raise ValueError("np.inf is not feasible as lower and upper bound.")
+
         self._bounds = [lower_bounds, upper_bounds]
