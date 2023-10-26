@@ -445,6 +445,8 @@ class TestConstraints(BaseTest):
         with pytest.raises(ValueError, match="Bounds should contain scalars "
                                              "and/or arrays with the same dimensions"):
             cp.Variable((2,), bounds=[np.array([1,2]), np.array([1,2,3])])
+        with pytest.raises(ValueError, match="Bounds should contain scalars "
+                                             "and/or arrays with the same dimensions"):
             cp.Variable((2,), bounds=[np.array([1,2,3,4]), 5])
 
         # Check that bounds attribute handles -inf and inf correctly
@@ -463,6 +465,29 @@ class TestConstraints(BaseTest):
         with pytest.raises(ValueError,match="Invalid bounds: some upper "
                                             "bounds are less than corresponding lower bounds."):
             cp.Variable((2,), bounds=[np.array([2,3]), np.array([1,4])])
+
+        with pytest.raises(ValueError, match="-np.inf is not feasible as lower and upper bound."):
+            cp.Variable((2,), bounds=[-np.inf, -np.inf])
+        with pytest.raises(ValueError, match="-np.inf is not feasible as lower and upper bound."):
+            cp.Variable((2,), bounds=[-np.inf, np.array([1,-np.inf])])
+        with pytest.raises(ValueError, match="-np.inf is not feasible as lower and upper bound."):
+            cp.Variable((2,), bounds=[np.array([1, -np.inf]), np.array([2, -np.inf])])
+
+        with pytest.raises(ValueError, match="np.inf is not feasible as lower and upper bound."):
+            cp.Variable((2,), bounds=[np.inf, np.inf])
+        with pytest.raises(ValueError, match="np.inf is not feasible as lower and upper bound."):
+            cp.Variable((2,), bounds=[np.array([1,np.inf]), np.inf])
+        with pytest.raises(ValueError, match="np.inf is not feasible as lower and upper bound."):
+            cp.Variable((2,), bounds=[np.array([1, np.inf]), np.array([2, np.inf])])
+
+        with pytest.raises(ValueError, match="np.nan is not feasible as lower or upper bound."):
+            cp.Variable((2,), bounds=[np.nan, np.nan])
+        with pytest.raises(ValueError, match="np.nan is not feasible as lower or upper bound."):
+            cp.Variable((2,), bounds=[np.nan, np.array([1, np.nan])])
+        with pytest.raises(ValueError, match="np.nan is not feasible as lower or upper bound."):
+            cp.Variable((2,), bounds=[np.array([1, np.nan]), np.nan])
+        with pytest.raises(ValueError, match="np.nan is not feasible as lower or upper bound."):
+            cp.Variable((2,), bounds=[np.array([1, np.nan]), np.array([2, np.nan])])
 
 
 
