@@ -1,5 +1,4 @@
 $(document).ready(function() {
-  // Function to create and insert radio buttons
   function createRadioButtons() {
     var radioButtons = `
       <h3>Curvature Filter</h3>
@@ -23,7 +22,6 @@ $(document).ready(function() {
 
   }
 
-  // Function to initialize DataTable for the main table
   function initializeMainTable() {
     var table = $('table.atomic-functions').DataTable();
     $('input[name="filter"]').change(function() {
@@ -62,10 +60,33 @@ function createDCPTable(tableClass, typeValue) {
   });
 }
 
-  // Call the functions to execute the code
+function createMatrixDCPTable(tableClass, typeValue) {
+  var newTable = $(`table.${tableClass}`);
+  const curvatures = ['affine'];
+
+  const dcpData = $('table.atomic-functions').DataTable().data().toArray().filter(row => {
+    const curvatureValue = $(row[4]).text().trim();
+    const rowTypeValue = $(row[6]).text().trim();
+    return curvatures.includes(curvatureValue) && rowTypeValue === typeValue;
+  });
+
+  newTable.DataTable({
+    data: dcpData,
+    columns: [
+      { title: "Function" },
+      { title: "Meaning" },
+      { title: "Domain" },
+      { title: "Sign", visible: false },
+      { title: "Curvature" },
+      { title: "Monotonicity" },
+    ]
+  });
+}
+
   createRadioButtons();
   initializeMainTable();
   createDCPTable("scalar-dcp", "scalar");
   createDCPTable("element-dcp", "elementwise");
+  createMatrixDCPTable("matrix-dcp", "matrix");
 
 });
