@@ -305,12 +305,14 @@ tutorial <functions>` for more information.
    :trim:
 
 .. list-table::
+   :class: scalar-dgp
    :header-rows: 1
 
    * - Function
      - Meaning
      - Domain
-     - Log-log curvature |_|
+     - Sign
+     - Curvature |_|
      - Monotonicity
 
    * - :ref:`geo_mean(x) <geo-mean>`
@@ -324,123 +326,8 @@ tutorial <functions>` for more information.
 
        :math:`\left(x_1^{p_1} \cdots x_n^{p_n}\right)^{\frac{1}{\mathbf{1}^T p}}`
      - :math:`x \in \mathbf{R}^n_{+}`
+     - none
      - |affine| log-log affine
-     - |incr| incr.
-
-   * - :ref:`harmonic_mean(x) <harmonic-mean>`
-     - :math:`\frac{n}{\frac{1}{x_1} + \cdots + \frac{1}{x_n}}`
-     - :math:`x \in \mathbf{R}^n_{+}`
-     - |concave| log-log concave
-     - |incr| incr.
-
-   * - :ref:`max(X) <max>`
-
-     - :math:`\max_{ij}\left\{ X_{ij}\right\}`
-     - :math:`X \in\mathbf{R}^{m \times n}_{++}`
-     - |convex| log-log convex
-     - |incr| incr.
-
-   * - :ref:`min(X) <min>`
-
-     - :math:`\min_{ij}\left\{ X_{ij}\right\}`
-     - :math:`X \in\mathbf{R}^{m \times n}_{++}`
-     - |concave| log-log concave
-     - |incr| incr.
-
-   * - :ref:`norm(x) <norm>`
-
-       norm(x, 2)
-
-     - :math:`\sqrt{\sum_{i} \lvert x_{i} \rvert^2 }`
-     - :math:`X \in\mathbf{R}^{n}_{++}`
-     - |convex| log-log convex
-     - |incr| incr.
-
-   * - :ref:`norm(X, "fro") <norm>`
-     - :math:`\sqrt{\sum_{ij}X_{ij}^2 }`
-     - :math:`X \in\mathbf{R}^{m \times n}_{++}`
-     - |convex| log-log convex
-     - |incr| incr.
-
-   * - :ref:`norm(X, 1) <norm>`
-     - :math:`\sum_{ij}\lvert X_{ij} \rvert`
-     - :math:`X \in\mathbf{R}^{m \times n}_{++}`
-     - |convex| log-log convex
-     - |incr| incr.
-
-   * - :ref:`norm(X, "inf") <norm>`
-     - :math:`\max_{ij} \{\lvert X_{ij} \rvert\}`
-     - :math:`X \in\mathbf{R}^{m \times n}_{++}`
-     - |convex| log-log convex
-     - |incr| incr.
-
-   * - :ref:`pnorm(X, p) <pnorm_func>`
-
-       :math:`p \geq 1`
-
-       or ``p = 'inf'``
-     - :math:`\|X\|_p = \left(\sum_{ij} |X_{ij}|^p \right)^{1/p}`
-     - :math:`X \in \mathbf{R}^{m \times n}_{++}`
-     - |convex| log-log convex
-     - |incr| incr.
-
-   * - :ref:`pnorm(X, p) <pnorm_func>`
-
-       :math:`0 < p < 1`
-     - :math:`\|X\|_p = \left(\sum_{ij} X_{ij}^p \right)^{1/p}`
-     - :math:`X \in \mathbf{R}^{m \times n}_{++}`
-     - |convex| log-log convex
-     - |incr| incr.
-
-   * - :ref:`prod(X) <prod>`
-
-     - :math:`\prod_{ij}X_{ij}`
-     - :math:`X \in\mathbf{R}^{m \times n}_{++}`
-     - |affine| log-log affine
-     - |incr| incr.
-
-   * - :ref:`quad_form(x, P) <quad-form>`
-     - :math:`x^T P x`
-     - :math:`x \in \mathbf{R}^n`, :math:`P \in \mathbf{R}^{n \times n}_{++}`
-     - |convex| log-log convex
-     - |incr| incr.
-
-   * - :ref:`quad_over_lin(X, y) <quad-over-lin>`
-     - :math:`\left(\sum_{ij}X_{ij}^2\right)/y`
-     - :math:`x \in \mathbf{R}^n_{++}`
-
-       :math:`y > 0`
-     - |convex| log-log convex
-     - |incr| in :math:`X_{ij}`
-
-       |decr| decr. in :math:`y`
-
-   * - :ref:`sum(X) <sum>`
-
-     - :math:`\sum_{ij}X_{ij}`
-     - :math:`X \in\mathbf{R}^{m \times n}_{++}`
-     - |convex| log-log convex
-     - |incr| incr.
-
-   * - :ref:`sum_squares(X) <sum-squares>`
-
-     - :math:`\sum_{ij}X_{ij}^2`
-     - :math:`X \in\mathbf{R}^{m \times n}_{++}`
-     - |convex| log-log convex
-     - |incr| incr.
-
-   * - :ref:`trace(X) <trace>`
-
-     - :math:`\mathrm{tr}\left(X \right)`
-     - :math:`X \in\mathbf{R}^{n \times n}_{++}`
-     - |convex| log-log convex
-     - |incr| incr.
-
-   * - :ref:`pf_eigenvalue(X) <pf-eigenvalue>`
-
-     - spectral radius of :math:`X`
-     - :math:`X \in\mathbf{R}^{n \times n}_{++}`
-     - |convex| log-log convex
      - |incr| incr.
 
 Elementwise functions
@@ -458,103 +345,25 @@ Y)`` is a 3 by 3 matrix expression.  ``maximum(X, Y)[2, 0]`` is equivalent to
 dimensions or be scalars, which are promoted.
 
 .. list-table::
+   :class: element-dgp
    :header-rows: 1
 
    * - Function
      - Meaning
      - Domain
+     - Sign
      - Curvature |_|
      - Monotonicity
 
    * - :ref:`diff_pos(x, y) <diff-pos>`
      - :math:`x - y`
      - :math:`0 < y < x`
+     - none
      - |concave| log-log concave
      - |incr| incr.  in :math:`x`
 
        |decr| decr. in :math:`y`
 
-   * - :ref:`entr(x) <entr>`
-
-     - :math:`-x \log (x)`
-     - :math:`0 < x < 1`
-     - |concave| log-log concave
-     - None
-
-   * - :ref:`exp(x) <exp>`
-
-     - :math:`e^x`
-     - :math:`x > 0`
-     - |convex| log-log convex
-     - |incr| incr.
-
-   * - :ref:`log(x) <log>`
-
-     - :math:`\log(x)`
-     - :math:`x > 1`
-     - |concave| log-log concave
-     - |incr| incr.
-
-   * - :ref:`maximum(x, y) <maximum>`
-
-     - :math:`\max \left\{x, y\right\}`
-     - :math:`x,y > 0`
-     - |convex| log-log convex
-     - |incr| incr.
-
-   * - :ref:`minimum(x, y) <minimum>`
-     - :math:`\min \left\{x, y\right\}`
-     - :math:`x, y > 0`
-     - |concave| log-log concave
-     - |incr| incr.
-
-   * - :ref:`multiply(x, y) <multiply>`
-     - :math:`x*y`
-     - :math:`x, y > 0`
-     - |affine| log-log affine
-     - |incr| incr.
-
-   * - :ref:`one_minus_pos(x) <one-minus-pos>`
-     - :math:`1 - x`
-     - :math:`0 < x < 1`
-     - |concave| log-log concave
-     - |decr| decr.
-
-   * - :ref:`power(x, 0) <power>`
-     - :math:`1`
-     - :math:`x > 0`
-     - constant
-     - constant
-
-   * - :ref:`power(x, p) <power>`
-     - :math:`x`
-     - :math:`x > 0`
-     - |affine| log-log affine
-     - |incr| for :math:`p > 0`
-
-       |decr| for :math:`p < 0`
-
-   * - :ref:`sqrt(x) <sqrt>`
-
-
-     - :math:`\sqrt x`
-     - :math:`x > 0`
-     - |affine| log-log affine
-     - |incr| incr.
-
-   * - :ref:`square(x) <square>`
-
-     - :math:`x^2`
-     - :math:`x > 0`
-     - |affine| log-log affine
-     - |incr| incr.
-
-   * - :ref:`xexp(x) <xexp>`
-
-     - :math:`x e^x`
-     - :math:`x > 0`
-     - |convex| log-log convex
-     - |incr| incr.
 
 Vector/matrix functions
 ***********************
@@ -563,11 +372,13 @@ A vector/matrix function takes one or more scalars, vectors, or matrices as argu
 and returns a vector or matrix.
 
 .. list-table::
+   :class: matrix-dgp
    :header-rows: 1
 
    * - Function
      - Meaning
      - Domain
+     - Sign
      - Curvature |_|
      - Monotonicity
 
@@ -577,76 +388,7 @@ and returns a vector or matrix.
 
      - :math:`\left[\begin{matrix} X^{(1,1)} &  \cdots &  X^{(1,q)} \\ \vdots &   & \vdots \\ X^{(p,1)} & \cdots &   X^{(p,q)} \end{matrix}\right]`
      - :math:`X^{(i,j)} \in\mathbf{R}^{m_i \times n_j}_{++}`
-     - |affine| log-log affine
-     - |incr| incr.
-
-   * - :ref:`diag(x) <diag>`
-
-     - :math:`\left[\begin{matrix}x_1  & &  \\& \ddots & \\& & x_n\end{matrix}\right]`
-     - :math:`x \in\mathbf{R}^{n}_{++}`
-     - |affine| log-log affine
-     - |incr| incr.
-
-   * - :ref:`diag(X) <diag>`
-     - :math:`\left[\begin{matrix}X_{11}  \\\vdots \\X_{nn}\end{matrix}\right]`
-     - :math:`X \in\mathbf{R}^{n \times n}_{++}`
-     - |affine| log-log affine
-     - |incr| incr.
-
-   * - :ref:`eye_minus_inv(X) <eye-minus-inv>`
-     - :math:`(I - X)^{-1}`
-     - :math:`X \in\mathbf{R}^{n \times n}_{++}, \lambda_{\text{pf}}(X) < 1`
-     - |convex| log-log convex
-     - |incr| incr.
-
-   * - :ref:`gmatmul(A, x) <gmatmul>`
-
-       :math:`A \in \mathbf{R}^{m \times n}`
-     - :math:`\left[\begin{matrix}\prod_{j=1}^n x_j^{A_{1j}} \\\vdots \\\prod_{j=1}^n x_j^{A_{mj}}\end{matrix}\right]`
-     - :math:`x \in \mathbf{R}^n_{++}`
-     - |affine| log-log affine
-     - |incr| for :math:`A_{ij} \geq 0`
-
-       |decr| for :math:`A_{ij} \leq 0`
-
-   * - :ref:`hstack([X1, ..., Xk]) <hstack>`
-     - :math:`\left[\begin{matrix}X^{(1)}  \cdots    X^{(k)}\end{matrix}\right]`
-     - :math:`X^{(i)} \in\mathbf{R}^{m \times n_i}_{++}`
-     - |affine| log-log affine
-     - |incr| incr.
-
-   * - :ref:`matmul(X, Y) <matmul>`
-     - :math:`XY`
-     - :math:`X \in\mathbf{R}^{m \times n}_{++}, Y \in\mathbf{R}^{n \times p}_{++}``
-     - |convex| log-log convex
-     - |incr| incr.
-
-   * - :ref:`resolvent(X) <resolvent>`
-     - :math:`(sI - X)^{-1}`
-     - :math:`X \in\mathbf{R}^{n \times n}_{++}, \lambda_{\text{pf}}(X) < s`
-     - |convex| log-log convex
-     - |incr| incr.
-
-   * - :ref:`reshape(X, (m', n')) <reshape>`
-
-     - :math:`X' \in\mathbf{R}^{m' \times n'}`
-     - :math:`X \in\mathbf{R}^{m \times n}_{++}`
-
-       :math:`m'n' = mn`
-     - |affine| log-log affine
-     - |incr| incr.
-
-   * - :ref:`vec(X) <vec>`
-
-     - :math:`x' \in\mathbf{R}^{mn}`
-     - :math:`X \in\mathbf{R}^{m \times n}_{++}`
-     - |affine| log-log affine
-     - |incr| incr.
-
-   * - :ref:`vstack([X1, ..., Xk]) <vstack>`
-
-     - :math:`\left[\begin{matrix}X^{(1)}  \\ \vdots  \\X^{(k)}\end{matrix}\right]`
-     - :math:`X^{(i)} \in\mathbf{R}^{m_i \times n}_{++}`
+     - none
      - |affine| log-log affine
      - |incr| incr.
 
@@ -681,3 +423,13 @@ and returns a vector or matrix.
 .. |decr| image:: ../functions/functions_files/decreasing.svg
               :width: 15px
               :height: 15px
+
+.. include:: ../../functions/functions-table.rst
+.. raw:: html
+
+    <script type="text/javascript">
+        $(document).ready(function() {
+            $("table.atomic-functions").hide();
+            $("table.atomic-functions").closest('.dataTables_wrapper').hide();
+        });
+    </script>
