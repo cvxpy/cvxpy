@@ -189,11 +189,13 @@ would have different signs in different entries (for example, when stacking a po
 Expression and a negative Expression) then the returned Expression will have unknown sign.
 
 .. list-table::
+   :class: matrix-dcp
    :header-rows: 1
 
    * - Function
      - Meaning
      - Domain
+     - Sign
      - Curvature |_|
      - Monotonicity
 
@@ -203,128 +205,10 @@ Expression and a negative Expression) then the returned Expression will have unk
 
      - :math:`\left[\begin{matrix} X^{(1,1)} &  \cdots &  X^{(1,q)} \\ \vdots &   & \vdots \\ X^{(p,1)} & \cdots &   X^{(p,q)} \end{matrix}\right]`
      - :math:`X^{(i,j)} \in\mathbf{R}^{m_i \times n_j}`
+     - none
      - |affine| affine
      - |incr| incr.
 
-   * - :ref:`convolve(c, x) <convolve>`
-
-       :math:`c\in\mathbf{R}^m`
-     - :math:`c*x`
-     - :math:`x\in \mathbf{R}^n`
-     - |affine| affine
-     - depends |_| on |_| c
-
-   * - :ref:`cumsum(X, axis=0) <cumsum>`
-
-     - cumulative sum along given axis.
-     - :math:`X \in \mathbf{R}^{m \times n}`
-     - |affine| affine
-     - |incr| incr.
-
-   * - :ref:`diag(x) <diag>`
-
-     - :math:`\left[\begin{matrix}x_1  & &  \\& \ddots & \\& & x_n\end{matrix}\right]`
-     - :math:`x \in\mathbf{R}^{n}`
-     - |affine| affine
-     - |incr| incr.
-
-   * - :ref:`diag(X) <diag>`
-     - :math:`\left[\begin{matrix}X_{11}  \\\vdots \\X_{nn}\end{matrix}\right]`
-     - :math:`X \in\mathbf{R}^{n \times n}`
-     - |affine| affine
-     - |incr| incr.
-
-   * - :ref:`diff(X, k=1, axis=0) <diff>`
-
-       :math:`k \in 0,1,2,\ldots`
-     - kth order differences along given axis
-     - :math:`X \in\mathbf{R}^{m \times n}`
-     - |affine| affine
-     - |incr| incr.
-
-   * - :ref:`hstack([X1, ..., Xk]) <hstack>`
-
-     - :math:`\left[\begin{matrix}X^{(1)}  \cdots    X^{(k)}\end{matrix}\right]`
-     - :math:`X^{(i)} \in\mathbf{R}^{m \times n_i}`
-     - |affine| affine
-     - |incr| incr.
-
-   * - :ref:`kron(X, Y) <kron>`
-
-       constant :math:`X\in\mathbf{R}^{p \times q}`
-     - :math:`\left[\begin{matrix}X_{11}Y & \cdots & X_{1q}Y \\ \vdots  &        & \vdots \\ X_{p1}Y &  \cdots      & X_{pq}Y     \end{matrix}\right]`
-     - :math:`Y \in \mathbf{R}^{m \times n}`
-     - |affine| affine
-     - depends on :math:`X`
-
-   * - :ref:`kron(X, Y) <kron>`
-
-       constant :math:`Y\in\mathbf{R}^{m \times n}`
-     - :math:`\left[\begin{matrix}X_{11}Y & \cdots & X_{1q}Y \\ \vdots  &        & \vdots \\ X_{p1}Y &  \cdots      & X_{pq}Y     \end{matrix}\right]`
-     - :math:`X \in \mathbf{R}^{p \times q}`
-     - |affine| affine
-     - depends on :math:`Y`
-     
-   * - :ref:`outer(x, y) <outer>`
-
-       constant :math:`y \in \mathbf{R}^m`
-     - :math:`x y^T`
-     - :math:`x \in \mathbf{R}^n`
-     - |affine| affine
-     - depends on :math:`y`
-
-   * - :ref:`partial_trace(X, dims, axis=0) <ptrace>`
-
-     - partial trace
-     - :math:`X \in\mathbf{R}^{n \times n}`
-     - |affine| affine
-     - |incr| incr.
-
-   * - :ref:`partial_transpose(X, dims, axis=0) <ptrans>`
-
-     - partial transpose
-     - :math:`X \in\mathbf{R}^{n \times n}`
-     - |affine| affine
-     - |incr| incr.
-
-   * - :ref:`reshape(X, (m', n'), order='F') <reshape>`
-
-     - :math:`X' \in\mathbf{R}^{m' \times n'}`
-     - :math:`X \in\mathbf{R}^{m \times n}`
-
-       :math:`m'n' = mn`
-     - |affine| affine
-     - |incr| incr.
-
-   * - :ref:`upper_tri(X) <upper_tri>`
-
-     - flatten the strictly upper-triangular part of :math:`X`
-     - :math:`X \in \mathbf{R}^{n \times n}`
-     - |affine| affine
-     - |incr| incr.
-
-   * - :ref:`vec(X) <vec>`
-
-     - :math:`x' \in\mathbf{R}^{mn}`
-     - :math:`X \in\mathbf{R}^{m \times n}`
-     - |affine| affine
-     - |incr| incr.
-
-   * - :ref:`vec_to_upper_tri(X, strict=False) <vec-to-upper-tri>`
-
-     - :math:`x' \in\mathbf{R}^{n(n-1)/2}` for ``strict=True``
-
-       :math:`x' \in\mathbf{R}^{n(n+1)/2}` for ``strict=False``
-     - :math:`X \in\mathbf{R}^{n \times n}`
-     - |affine| affine
-     - |incr| incr.
-
-   * - :ref:`vstack([X1, ..., Xk]) <vstack>`
-
-     - :math:`\left[\begin{matrix}X^{(1)}  \\ \vdots  \\X^{(k)}\end{matrix}\right]`
-     - :math:`X^{(i)} \in\mathbf{R}^{m_i \times n}`
-     - |affine| affine
-     - |incr| incr.
 
 Clarifications on vector and matrix functions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -345,38 +229,6 @@ If order='C' then :math:`X` will be read in row-major order and :math:`Y` will b
 
 The output :math:`y = \mathbf{upper\_tri}(X)` is formed by concatenating partial rows of :math:`X`.
 I.e., :math:`y = (X[0,1{:}],\, X[1, 2{:}],\, \ldots, X[n-1, n])`.
-
-.. |positive| image:: functions_files/positive.svg
-              :width: 15px
-              :height: 15px
-
-.. |negative| image:: functions_files/negative.svg
-              :width: 15px
-              :height: 15px
-
-.. |unknown| image:: functions_files/unknown.svg
-              :width: 15px
-              :height: 15px
-
-.. |convex| image:: functions_files/convex.svg
-              :width: 15px
-              :height: 15px
-
-.. |concave| image:: functions_files/concave.svg
-              :width: 15px
-              :height: 15px
-
-.. |affine| image:: functions_files/affine.svg
-              :width: 15px
-              :height: 15px
-
-.. |incr| image:: functions_files/increasing.svg
-              :width: 15px
-              :height: 15px
-
-.. |decr| image:: functions_files/decreasing.svg
-              :width: 15px
-              :height: 15px
 
 .. include:: ../../functions/functions-table.rst
 .. raw:: html
