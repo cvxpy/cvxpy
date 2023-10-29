@@ -1232,34 +1232,34 @@
      - |incr| incr.
      - matrix
 
-.. |positive| image:: functions_files/positive.svg
+.. |positive| image:: /_static/functions_files/positive.svg
               :width: 15px
               :height: 15px
 
-.. |negative| image:: functions_files/negative.svg
+.. |negative| image:: /_static/functions_files/negative.svg
               :width: 15px
               :height: 15px
 
-.. |unknown| image:: functions_files/unknown.svg
+.. |unknown| image:: /_static/functions_files/unknown.svg
               :width: 15px
               :height: 15px
 
-.. |convex| image:: functions_files/convex.svg
+.. |convex| image:: /_static/functions_files/convex.svg
               :width: 15px
               :height: 15px
 
-.. |concave| image:: functions_files/concave.svg
+.. |concave| image:: /_static/functions_files/concave.svg
               :width: 15px
               :height: 15px
 
-.. |affine| image:: functions_files/affine.svg
+.. |affine| image:: /_static/functions_files/affine.svg
               :width: 15px
               :height: 15px
 
-.. |incr| image:: functions_files/increasing.svg
+.. |incr| image:: /_static/functions_files/increasing.svg
               :width: 15px
               :height: 15px
 
-.. |decr| image:: functions_files/decreasing.svg
+.. |decr| image:: /_static/functions_files/decreasing.svg
               :width: 15px
               :height: 15px
