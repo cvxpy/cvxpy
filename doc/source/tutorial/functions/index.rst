@@ -67,6 +67,24 @@ Scalar functions
 A scalar function takes one or more scalars, vectors, or matrices as arguments
 and returns a scalar.
 
+.. dropdown:: Clarifications
+
+    The domain :math:`\mathbf{S}^n` refers to the set of symmetric matrices. The domains :math:`\mathbf{S}^n_+` and :math:`\mathbf{S}^n_-` refer to the set of positive semi-definite and negative semi-definite matrices, respectively. Similarly, :math:`\mathbf{S}^n_{++}` and :math:`\mathbf{S}^n_{--}` refer to the set of positive definite and negative definite matrices, respectively.
+
+    For a vector expression ``x``, ``norm(x)`` and ``norm(x, 2)`` give the Euclidean norm. For a matrix expression ``X``, however, ``norm(X)`` and ``norm(X, 2)`` give the spectral norm.
+
+    The function ``norm(X, "fro")`` is called the `Frobenius norm <https://en.wikipedia.org/wiki/Matrix_norm#Frobenius_norm>`__
+    and ``norm(X, "nuc")`` the `nuclear norm <https://en.wikipedia.org/wiki/Matrix_norm#Schatten_norms>`__. The nuclear norm can also be defined as the sum of ``X``'s singular values.
+
+    The functions ``max`` and ``min`` give the largest and smallest entry, respectively, in a single expression. These functions should not be confused with ``maximum`` and ``minimum`` (see :ref:`elementwise`). Use ``maximum`` and ``minimum`` to find the max or min of a list of scalar expressions.
+
+    The CVXPY function ``sum`` sums all the entries in a single expression. The built-in Python ``sum`` should be used to add together a list of expressions. For example, the following code sums a list of three expressions:
+
+    .. code:: python
+
+        expr_list = [expr1, expr2, expr3]
+        expr_sum = sum(expr_list)
+
 .. list-table::
    :class: scalar-dcp
    :header-rows: 1
@@ -88,26 +106,6 @@ and returns a scalar.
      - |incr| for :math:`\min(W) \geq 0`
 
        |decr| for :math:`\max(W) \leq 0`
-
-Clarifications for scalar functions
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-The domain :math:`\mathbf{S}^n` refers to the set of symmetric matrices. The domains :math:`\mathbf{S}^n_+` and :math:`\mathbf{S}^n_-` refer to the set of positive semi-definite and negative semi-definite matrices, respectively. Similarly, :math:`\mathbf{S}^n_{++}` and :math:`\mathbf{S}^n_{--}` refer to the set of positive definite and negative definite matrices, respectively.
-
-For a vector expression ``x``, ``norm(x)`` and ``norm(x, 2)`` give the Euclidean norm. For a matrix expression ``X``, however, ``norm(X)`` and ``norm(X, 2)`` give the spectral norm.
-
-The function ``norm(X, "fro")`` is called the `Frobenius norm <https://en.wikipedia.org/wiki/Matrix_norm#Frobenius_norm>`__
-and ``norm(X, "nuc")`` the `nuclear norm <https://en.wikipedia.org/wiki/Matrix_norm#Schatten_norms>`__. The nuclear norm can also be defined as the sum of ``X``'s singular values.
-
-The functions ``max`` and ``min`` give the largest and smallest entry, respectively, in a single expression. These functions should not be confused with ``maximum`` and ``minimum`` (see :ref:`elementwise`). Use ``maximum`` and ``minimum`` to find the max or min of a list of scalar expressions.
-
-The CVXPY function ``sum`` sums all the entries in a single expression. The built-in Python ``sum`` should be used to add together a list of expressions. For example, the following code sums a list of three expressions:
-
-.. code:: python
-
-    expr_list = [expr1, expr2, expr3]
-    expr_sum = sum(expr_list)
-
 
 Functions along an axis
 -----------------------
@@ -143,6 +141,15 @@ For example, if ``X`` and ``Y`` are both 3 by 3 matrix variables, then ``maximum
 ``maximum(X, Y)[2, 0]`` is equivalent to ``maximum(X[2, 0], Y[2, 0])``. This means all arguments must have the same dimensions or be
 scalars, which are promoted.
 
+.. dropdown:: Clarifications
+
+    The functions ``log_normcdf`` and ``loggamma`` are defined via approximations. ``log_normcdf`` has highest accuracy
+    over the range -4 to 4, while ``loggamma`` has similar accuracy over all positive reals.
+    See `CVXPY GitHub PR #1224 <https://github.com/cvxpy/cvxpy/pull/1224#issue-793221374>`_
+    and `CVXPY GitHub Issue #228 <https://github.com/cvxpy/cvxpy/issues/228#issuecomment-544281906>`_
+    for details on the approximations.
+
+
 .. list-table::
    :class: element-dcp
    :header-rows: 1
@@ -166,15 +173,6 @@ scalars, which are promoted.
 
 .. _clarifyelementwise:
 
-Clarifications on elementwise functions
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-The functions ``log_normcdf`` and ``loggamma`` are defined via approximations. ``log_normcdf`` has highest accuracy
-over the range -4 to 4, while ``loggamma`` has similar accuracy over all positive reals.
-See `CVXPY GitHub PR #1224 <https://github.com/cvxpy/cvxpy/pull/1224#issue-793221374>`_
-and `CVXPY GitHub Issue #228 <https://github.com/cvxpy/cvxpy/issues/228#issuecomment-544281906>`_
-for details on the approximations.
-
 Vector/matrix functions
 -----------------------
 
@@ -187,6 +185,26 @@ has unknown sign, then the returned Expression will also have unknown sign.
 If all arguments have known sign but CVXPY can determine that the returned Expression
 would have different signs in different entries (for example, when stacking a positive
 Expression and a negative Expression) then the returned Expression will have unknown sign.
+
+.. dropdown:: Clarifications
+
+    The input to :math:`\texttt{bmat}` is a list of lists of CVXPY expressions.
+    It constructs a block matrix.
+    The elements of each inner list are stacked horizontally and then the resulting block matrices are stacked vertically.
+
+    The output :math:`y = \mathbf{convolve}(c, x)` has size :math:`n+m-1` and is defined as
+    :math:`y_k =\sum_{j=0}^{k} c[j]x[k-j]`.
+
+    The output :math:`y = \mathbf{vec}(X)` is the matrix :math:`X` flattened in column-major order into a vector.
+    Formally, :math:`y_i = X_{i \bmod{m}, \left \lfloor{i/m}\right \rfloor }`.
+
+    The output :math:`Y = \mathbf{reshape}(X, (m', n'), \text{order='F'})` is the matrix :math:`X` cast into an :math:`m' \times n'` matrix.
+    The entries are taken from :math:`X` in column-major order and stored in :math:`Y` in column-major order.
+    Formally, :math:`Y_{ij} = \mathbf{vec}(X)_{m'j + i}`.
+    If order='C' then :math:`X` will be read in row-major order and :math:`Y` will be written to in row-major order.
+
+    The output :math:`y = \mathbf{upper\_tri}(X)` is formed by concatenating partial rows of :math:`X`.
+    I.e., :math:`y = (X[0,1{:}],\, X[1, 2{:}],\, \ldots, X[n-1, n])`.
 
 .. list-table::
    :class: matrix-dcp
@@ -209,26 +227,6 @@ Expression and a negative Expression) then the returned Expression will have unk
      - |affine| affine
      - |incr| incr.
 
-
-Clarifications on vector and matrix functions
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-The input to :math:`\texttt{bmat}` is a list of lists of CVXPY expressions.
-It constructs a block matrix.
-The elements of each inner list are stacked horizontally and then the resulting block matrices are stacked vertically.
-
-The output :math:`y = \mathbf{convolve}(c, x)` has size :math:`n+m-1` and is defined as
-:math:`y_k =\sum_{j=0}^{k} c[j]x[k-j]`.
-
-The output :math:`y = \mathbf{vec}(X)` is the matrix :math:`X` flattened in column-major order into a vector.
-Formally, :math:`y_i = X_{i \bmod{m}, \left \lfloor{i/m}\right \rfloor }`.
-
-The output :math:`Y = \mathbf{reshape}(X, (m', n'), \text{order='F'})` is the matrix :math:`X` cast into an :math:`m' \times n'` matrix.
-The entries are taken from :math:`X` in column-major order and stored in :math:`Y` in column-major order.
-Formally, :math:`Y_{ij} = \mathbf{vec}(X)_{m'j + i}`.
-If order='C' then :math:`X` will be read in row-major order and :math:`Y` will be written to in row-major order.
-
-The output :math:`y = \mathbf{upper\_tri}(X)` is formed by concatenating partial rows of :math:`X`.
-I.e., :math:`y = (X[0,1{:}],\, X[1, 2{:}],\, \ldots, X[n-1, n])`.
 
 .. include:: ../../functions/functions-table.rst
 .. raw:: html
