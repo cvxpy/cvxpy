@@ -18,6 +18,7 @@ from __future__ import annotations
 from typing import List, Tuple, Union
 
 import numpy as np
+import torch
 
 import cvxpy.lin_ops.lin_op as lo
 import cvxpy.lin_ops.lin_utils as lu
@@ -79,6 +80,9 @@ class diag_vec(AffAtom):
         """Convert the vector constant into a diagonal matrix.
         """
         return np.diag(values[0], k=self.k)
+    
+    def torch_numeric(self, values):
+        return torch.diag(values[0], diagonal=self.k)
 
     def shape_from_args(self) -> Tuple[int, int]:
         """A square matrix.
@@ -155,6 +159,11 @@ class diag_mat(AffAtom):
         """
         # The return type in numpy versions < 1.10 was ndarray.
         return np.diag(values[0], k=self.k)
+    
+
+    def torch_numeric(self, values):
+        return torch.diag(values[0], diagonal=self.k)
+
 
     def shape_from_args(self) -> Tuple[int]:
         """A column vector.

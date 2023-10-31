@@ -29,13 +29,15 @@ import cvxpy.lin_ops.lin_utils as lu
 from cvxpy import interface as intf
 from cvxpy import utilities as u
 from cvxpy.expressions import cvxtypes
-from cvxpy.expressions.constants import Constant
+
+#from cvxpy.expressions.constants import Constant #TODO (Amit): This was in the original code
 from cvxpy.expressions.constants.constant import Constant
 from cvxpy.expressions.constants.parameter import Parameter
 from cvxpy.expressions.expression import Expression
 from cvxpy.expressions.variable import Variable
 from cvxpy.utilities import performance_utils as perf
 from cvxpy.utilities.deterministic import unique_list
+
 #from cvxpy.atoms.affine.binary_operators import MulExpression
 
 VAR_TYPE = Enum("VAR_TYPE", "VARIABLE_PARAMETER CONSTANT EXPRESSION")
@@ -486,12 +488,12 @@ class Atom(Expression):
            Ensures both inputs and outputs are the correct matrix types.
         """
 
-        def new_numeric(self, values):
-            interface = intf.DEFAULT_INTF
+        def new_numeric(self, values, interface=intf.DEFAULT_INTF):
+            #interface = intf.DEFAULT_INTF
             values = [interface.const_to_matrix(v, convert_scalars=True)
                       for v in values]
             result = numeric_func(self, values)
-            return intf.DEFAULT_INTF.const_to_matrix(result)
+            return interface.const_to_matrix(result)
         return new_numeric
     
 
@@ -502,6 +504,16 @@ class Atom(Expression):
         for arg in self.args:
             atom_list += arg.atoms()
         return unique_list(atom_list + [type(self)])
+
+    def apply_torch_numeric(self, values):
+        """
+        This function returns self.torch_numeric(values) if it exists,
+        and self.numeric(values) otherwise.
+        """
+        if hasattr(self, "torch_numeric"):
+            return self.torch_numeric(values)
+        else:
+            return self.numeric(values)
 
 
     def gen_torch_exp(self):
@@ -558,25 +570,36 @@ class Atom(Expression):
                     #Check input validity
                     #######################
                     #Transpose only a dot product between two elements
-                    if len(res) != 2: return valid, ndims
+                    if len(res) != 2:
+                        return valid, ndims
                     
                     #Work only on objects with ndim (torch/numpy/cvxpy etc.) and ndim==1
                     ndims = [0]*2
                     for i, vec in enumerate(res):
-                        if not hasattr(vec, "ndim"): return valid, ndims
-                        if vec.ndim >2: return #Only deal with scalars, vectors, or matrices
+                        if not hasattr(vec, "ndim"):
+                            return valid, ndims
+                        if vec.ndim >2:
+                            return #Only deal with scalars, vectors, or matrices
                         ndims[i] = vec.ndim
 
-                    if max(ndims)<2: return valid, ndims #No need to transpose scalars and vectors
-                    if min(ndims)==2: return valid, ndims#If both elements are matrices, do not transpose - we only make a vector-by-matrix compatible.
+                    if max(ndims)<2:
+                        #No need to transpose scalars and vectors
+                        #If both elements are matrices, do not transpose -
+                        # we only make a vector-by-matrix compatible.
+                        return valid, ndims 
+                    if min(ndims)==2:
+                        return valid, ndims
                     valid = True
                     return valid, ndims
 
-                if not is_matmul(self): return
+                if not is_matmul(self):
+                    return
                 valid, ndims = is_valid_input(res)
-                if not valid: return
+                if not valid:
+                    return
                 matrix_ind = ndims.index(2)
-                vector_ind = 1-matrix_ind #Since ndims is a vector with 2 elements, 1-matrix_ind returns the other index
+                #Since ndims is a vector with 2 elements, 1-matrix_ind returns the other index
+                vector_ind = 1-matrix_ind
                 if res[vector_ind].shape[0] == res[matrix_ind].shape[matrix_ind]:
                     res[matrix_ind] = res[matrix_ind].T
 
@@ -595,7 +618,7 @@ class Atom(Expression):
             #If this is a matrix multiplicaiton operation between 2 elements, transpose the second.
             #This helps with overloading this function to be used with matrices.
             transpose_if_matmul(self, res)
-            return self.numeric(res)
+            return self.apply_torch_numeric(res)
         vars_dict = VariablesDict()
         ind_to_value_type = _gen_consts_vars(self, vars_dict)
         return partial(wrapped_func, self, ind_to_value_type, vars_dict), vars_dict

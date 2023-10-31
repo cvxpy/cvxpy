@@ -18,6 +18,7 @@ from typing import List, Tuple
 
 import numpy as np
 import scipy.sparse as sp
+import torch
 from numpy import linalg as LA
 
 import cvxpy.settings as s
@@ -48,6 +49,17 @@ class tr_inv(Atom):
         if min(eigVal) <= 0:
             return np.inf
         return np.sum(eigVal**-1)
+    
+    def torch_numeric(self, values):
+        # if values[0] isn't Hermitian then return np.inf
+        if torch.any(torch.linalg.norm(values[0] - values[0].T.conj()) >= 1e-8).item():
+            return torch.inf
+        # take symmetric part of the input to enhance numerical stability
+        symm = (values[0] + values[0].T)/2
+        eigVal = LA.eigvalsh(symm)
+        if min(eigVal) <= 0:
+            return torch.inf
+        return torch.sum(eigVal**-1)
 
     # The shape of argument must be square.
     def validate_arguments(self) -> None:

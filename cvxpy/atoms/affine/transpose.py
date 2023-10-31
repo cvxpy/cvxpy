@@ -39,6 +39,9 @@ class transpose(AffAtom):
     @AffAtom.numpy_numeric
     def numeric(self, values):
         return np.transpose(values[0], axes=self.axes)
+    
+    def torch_numeric(self, values):
+        return values[0].T
 
     def is_atom_log_log_convex(self) -> bool:
         """Is the atom log-log convex?

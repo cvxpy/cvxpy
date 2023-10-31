@@ -16,6 +16,7 @@ limitations under the License.
 from typing import List, Tuple
 
 import numpy as np
+import torch
 
 import cvxpy.lin_ops.lin_op as lo
 import cvxpy.lin_ops.lin_utils as lu
@@ -69,6 +70,9 @@ class Promote(AffAtom):
         """Promotes the value.
         """
         return np.ones(self.promoted_shape) * values[0]
+    
+    def torch_numeric(self, values):
+        return torch.ones(self.promoted_shape) * values[0]
 
     def is_symmetric(self) -> bool:
         """Is the expression symmetric?

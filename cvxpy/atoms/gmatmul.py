@@ -17,6 +17,7 @@ limitations under the License.
 from typing import Tuple
 
 import numpy as np
+import torch
 
 import cvxpy.utilities as u
 from cvxpy.atoms.atom import Atom
@@ -58,6 +59,10 @@ class gmatmul(Atom):
         """
         logX = np.log(values[0])
         return np.exp(self.A.value @ logX)
+    
+    def torch_numeric(self, values):
+        logX = torch.log(values[0])
+        return torch.exp(torch.tensor(self.A.value) @ logX)
 
     def name(self) -> str:
         return "%s(%s, %s)" % (self.__class__.__name__,

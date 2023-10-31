@@ -16,6 +16,7 @@ limitations under the License.
 from typing import List, Tuple
 
 import numpy as np
+import torch
 from scipy.sparse import csc_matrix
 
 import cvxpy.lin_ops.lin_op as lo
@@ -55,6 +56,16 @@ class upper_tri(AffAtom):
         """Vectorize the upper triagonal entries.
         """
         value = np.zeros(self.shape[0])
+        count = 0
+        for i in range(values[0].shape[0]):
+            for j in range(values[0].shape[1]):
+                if i < j:
+                    value[count] = values[0][i, j]
+                    count += 1
+        return value
+    
+    def torch_numeric(self, values):
+        value = torch.zeros(self.shape[0])
         count = 0
         for i in range(values[0].shape[0]):
             for j in range(values[0].shape[1]):

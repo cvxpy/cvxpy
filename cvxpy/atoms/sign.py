@@ -15,6 +15,8 @@ limitations under the License.
 """
 from typing import Tuple
 
+import torch
+
 from cvxpy.atoms.atom import Atom
 
 
@@ -31,6 +33,12 @@ class sign(Atom):
         x = values[0].copy()
         x[x > 0] = 1.0
         x[x <= 0] = -1.0
+        return x
+    
+    def torch_numeric(self, values):
+        x = values[0]
+        x = torch.sign(x)
+        x[x==0] = -1.0
         return x
 
     def shape_from_args(self) -> Tuple[int, ...]:

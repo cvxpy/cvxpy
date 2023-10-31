@@ -17,6 +17,7 @@ import numbers
 from typing import List, Tuple
 
 import numpy as np
+import torch
 
 import cvxpy.lin_ops.lin_op as lo
 import cvxpy.lin_ops.lin_utils as lu
@@ -89,6 +90,9 @@ class reshape(AffAtom):
         """Reshape the value.
         """
         return np.reshape(values[0], self.shape, self.order)
+    
+    def torch_numeric(self, values):
+        return torch.reshape(values[0], self.shape)
 
     def validate_arguments(self) -> None:
         """Checks that the new shape has the same number of entries as the old.

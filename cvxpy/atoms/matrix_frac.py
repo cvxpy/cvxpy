@@ -19,6 +19,7 @@ from typing import List, Tuple
 
 import numpy as np
 import scipy.sparse as sp
+import torch
 from numpy import linalg as LA
 
 from cvxpy.atoms.atom import Atom
@@ -43,6 +44,15 @@ class MatrixFrac(Atom):
             product = np.conj(X).T.dot(LA.inv(P)).dot(X)
         else:
             product = X.T.dot(LA.inv(P)).dot(X)
+        return product.trace() if len(product.shape) == 2 else product
+    
+    def torch_numeric(self, values):
+        X = values[0]
+        P = values[1]
+        if self.args[0].is_complex():
+            product = (torch.conj(X)).T @ (torch.linalg.inv(P)) @ X
+        else:
+            product = (X.T) @ (torch.linalg.inv(P)) @ X
         return product.trace() if len(product.shape) == 2 else product
 
     def _domain(self) -> List[Constraint]:

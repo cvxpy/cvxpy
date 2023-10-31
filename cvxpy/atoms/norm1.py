@@ -17,6 +17,7 @@ from typing import List, Tuple
 
 import numpy as np
 import scipy.sparse as sp
+import torch
 
 from cvxpy.atoms.axis_atom import AxisAtom
 from cvxpy.constraints.constraint import Constraint
@@ -33,6 +34,12 @@ class norm1(AxisAtom):
         else:
             values = np.array(values[0])
         return np.linalg.norm(values, 1, axis=self.axis, keepdims=self.keepdims)
+    
+    def torch_numeric(self, values):
+        values = values[0]
+        if self.axis is None:
+            values = values.flatten()
+        return torch.norm(values, p=1)
 
     def sign_from_args(self) -> Tuple[bool, bool]:
         """Returns sign (is positive, is negative) of the expression.

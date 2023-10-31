@@ -17,6 +17,7 @@ limitations under the License.
 from typing import Tuple
 
 import numpy as np
+import torch
 
 from cvxpy.atoms.elementwise.elementwise import Elementwise
 
@@ -36,6 +37,9 @@ class logistic(Elementwise):
         """Evaluates e^x elementwise, adds 1, and takes the log.
         """
         return np.logaddexp(0, values[0])
+    
+    def torch_numeric(self, values):
+        return torch.logaddexp(torch.tensor(0), values[0])
 
     def sign_from_args(self) -> Tuple[bool, bool]:
         """Returns sign (is positive, is negative) of the expression.

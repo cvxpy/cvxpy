@@ -16,6 +16,7 @@ limitations under the License.
 from typing import Tuple
 
 import numpy as np
+import torch
 
 from cvxpy.atoms.affine.affine_atom import AffAtom
 
@@ -31,6 +32,9 @@ class real(AffAtom):
         """
         # Convert values to 1D.
         return np.real(values[0])
+    
+    def torch_numeric(self, values):
+        return torch.real(values[0])
 
     def shape_from_args(self) -> Tuple[int, ...]:
         """Returns the shape of the expression.
