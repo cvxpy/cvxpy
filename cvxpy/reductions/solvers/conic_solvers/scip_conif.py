@@ -47,6 +47,8 @@ STATUS_MAP = {
     "optimal": s.OPTIMAL,
     "timelimit": s.OPTIMAL_INACCURATE,
     "gaplimit": s.OPTIMAL_INACCURATE,
+    "nodelimit": s.OPTIMAL_INACCURATE,
+    "totalnodelimit": s.OPTIMAL_INACCURATE,
     "bestsollimit": s.USER_LIMIT,
     # INF_OR_UNB
     "infeasible": s.INFEASIBLE,
@@ -56,8 +58,6 @@ STATUS_MAP = {
     "userinterrupt": s.SOLVER_ERROR,
     "memlimit": s.SOLVER_ERROR,
     "sollimit": s.SOLVER_ERROR,
-    "nodelimit": s.SOLVER_ERROR,
-    "totalnodelimit": s.SOLVER_ERROR,
     "stallnodelimit": s.SOLVER_ERROR,
     "restartlimit": s.SOLVER_ERROR,
     "unknown": s.SOLVER_ERROR,
