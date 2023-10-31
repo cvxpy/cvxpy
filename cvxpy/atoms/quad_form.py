@@ -21,6 +21,7 @@ from typing import Tuple
 
 import numpy as np
 import scipy.sparse as sp
+import torch
 from scipy import linalg as LA
 
 from cvxpy.atoms.affine.wraps import psd_wrap
@@ -48,7 +49,22 @@ class QuadForm(Atom):
         else:
             quad = np.dot(np.transpose(values[0]), prod)
         return np.real(quad)
-
+    
+    def torch_numeric(self, values):
+        def multiply(x, prod):
+            """
+            This is an inner function that multiplies x by prod (scalar or tensor)
+            """
+            if prod.shape:
+                return x @ prod
+            return x*prod
+        prod = values[1] @ (values[0])
+        if self.args[0].is_complex():
+            quad = multiply(torch.conj(values[0]).T, prod)
+        else:
+            quad = multiply(values[0].T, prod)
+        return torch.real(quad)
+    
     def validate_arguments(self) -> None:
         super(QuadForm, self).validate_arguments()
         n = self.args[1].shape[0]

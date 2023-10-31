@@ -18,6 +18,7 @@ from functools import wraps
 from typing import List, Optional, Tuple
 
 import numpy as np
+import torch
 
 import cvxpy.interface as intf
 import cvxpy.lin_ops.lin_op as lo
@@ -62,6 +63,15 @@ class Sum(AxisAtom, AffAtom):
                 result = result.flatten()
         else:
             result = np.sum(values[0], axis=self.axis, keepdims=self.keepdims)
+        return result
+    
+    def torch_numeric(self, values):
+        if intf.is_sparse(values[0]):
+            result = torch.sum(values[0], axis=self.axis)
+            if not self.keepdims and self.axis is not None:
+                result = result.A.flatten()
+        else:
+            result = torch.sum(values[0], axis=self.axis, keepdims=self.keepdims)
         return result
 
     def graph_implementation(

@@ -665,7 +665,7 @@ class TestConstraints(BaseTest):
         constraint5 = 5*cp.norm(A@x) <= 1 #Unary operation
         constraint6 = X@Y.T >= 0
         constraint7 = X@Y.T <= 0
-        tmp2kill = X@Y.T
+        X@Y.T
 
         exp1, _ = constraint1.gen_torch_exp()
         exp2, _ = constraint2.gen_torch_exp()

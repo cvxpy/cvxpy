@@ -16,6 +16,7 @@ limitations under the License.
 from typing import Tuple
 
 import numpy as np
+import torch
 
 import cvxpy.settings as s
 from cvxpy.atoms.atom import Atom
@@ -36,6 +37,10 @@ class length(Atom):
         """
         outside_tol = np.abs(values[0]) > s.ATOM_EVAL_TOL
         return np.max(np.nonzero(outside_tol)) + 1
+    
+    def torch_numeric(self, values):
+        outside_tol = torch.abs(values[0]) > s.ATOM_EVAL_TOL
+        return torch.max(torch.nonzero(outside_tol)) + 1
 
     def shape_from_args(self) -> Tuple[int, ...]:
         """Returns the (row, col) shape of the expression.

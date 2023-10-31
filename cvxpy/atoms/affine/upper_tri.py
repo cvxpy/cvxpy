@@ -16,6 +16,7 @@ limitations under the License.
 from typing import List, Tuple
 
 import numpy as np
+import torch
 import scipy.sparse as sp
 
 import cvxpy.lin_ops.lin_op as lo
@@ -59,6 +60,16 @@ class upper_tri(AffAtom):
         """
         upper_idx = np.triu_indices(n=values[0].shape[0], k=1, m=values[0].shape[1])
         return values[0][upper_idx]
+    
+    def torch_numeric(self, values):
+        value = torch.zeros(self.shape[0])
+        count = 0
+        for i in range(values[0].shape[0]):
+            for j in range(values[0].shape[1]):
+                if i < j:
+                    value[count] = values[0][i, j]
+                    count += 1
+        return value
 
     def validate_arguments(self) -> None:
         """Checks that the argument is a square matrix.

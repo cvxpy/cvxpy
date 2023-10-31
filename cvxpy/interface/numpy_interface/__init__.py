@@ -18,3 +18,4 @@ from cvxpy.interface.numpy_interface.matrix_interface import MatrixInterface
 from cvxpy.interface.numpy_interface.ndarray_interface import NDArrayInterface
 from cvxpy.interface.numpy_interface.sparse_matrix_interface import (
     SparseMatrixInterface,)
+from cvxpy.interface.numpy_interface.tensor_interface import TensorInterface

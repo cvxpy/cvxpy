@@ -18,6 +18,7 @@ from typing import List, Tuple
 
 import numpy as np
 import scipy.sparse as sp
+import torch
 from numpy import linalg as LA
 
 import cvxpy.settings as s
@@ -46,6 +47,14 @@ class log_det(Atom):
             return logdet
         else:
             return -np.inf
+
+    def torch_numeric(self, values):
+        symm = (values[0] + torch.conj(values[0].T))/2
+        sign, logdet = torch.linalg.slogdet(symm)
+        if np.isclose(np.real(sign), 1): #This has to be np
+            return logdet
+        else:
+            return -torch.inf
 
     # Any argument shape is valid.
     def validate_arguments(self) -> None:

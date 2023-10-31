@@ -17,6 +17,7 @@ limitations under the License.
 from typing import Tuple
 
 import numpy as np
+import torch
 
 from .elementwise import Elementwise
 
@@ -32,6 +33,9 @@ class abs(Elementwise):
     @Elementwise.numpy_numeric
     def numeric(self, values):
         return np.absolute(values[0])
+    
+    def torch_numeric(self, values):
+        return torch.absolute(values[0])
 
     def sign_from_args(self) -> Tuple[bool, bool]:
         """Returns sign (is positive, is negative) of the expression.

@@ -18,6 +18,7 @@ from typing import Tuple
 
 import numpy as np
 import scipy.sparse as sp
+import torch
 
 from cvxpy.atoms.affine.binary_operators import multiply
 from cvxpy.atoms.atom import Atom
@@ -55,6 +56,9 @@ class one_minus_pos(Atom):
 
     def numeric(self, values):
         return self._ones - values[0]
+    
+    def torch_numeric(self, values):
+        return torch.ones(values[0].shape) - values[0]
 
     def _grad(self, values):
         del values

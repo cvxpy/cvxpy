@@ -16,6 +16,7 @@ limitations under the License.
 from typing import List, Tuple
 
 import numpy as np
+import torch
 
 import cvxpy.lin_ops.lin_op as lo
 import cvxpy.lin_ops.lin_utils as lu
@@ -49,6 +50,9 @@ class trace(AffAtom):
         """Sums the diagonal entries.
         """
         return np.trace(values[0])
+    
+    def torch_numeric(self, values):
+        return torch.trace(values[0])
 
     def validate_arguments(self) -> None:
         """Checks that the argument is a square matrix.

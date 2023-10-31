@@ -17,6 +17,7 @@ from typing import List, Tuple
 
 import numpy as np
 import scipy.sparse as sp
+import torch
 
 import cvxpy.lin_ops.lin_op as lo
 import cvxpy.lin_ops.lin_utils as lu
@@ -82,6 +83,9 @@ class cumsum(AffAtom, AxisAtom):
         """Convolve the two values.
         """
         return np.cumsum(values[0], axis=self.axis)
+    
+    def torch_numeric(self, values):
+        return torch.cumsum(values[0], axis=self.axis)
 
     def shape_from_args(self) -> Tuple[int, ...]:
         """The same as the input.

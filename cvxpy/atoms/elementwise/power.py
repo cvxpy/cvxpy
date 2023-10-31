@@ -16,6 +16,7 @@ from typing import List, Tuple
 
 import numpy as np
 import scipy.sparse as sp
+import torch
 
 import cvxpy.utilities as u
 from cvxpy.atoms.elementwise.elementwise import Elementwise
@@ -179,6 +180,9 @@ class power(Elementwise):
     @Elementwise.numpy_numeric
     def numeric(self, values):
         return np.power(values[0], float(self.p.value))
+    
+    def torch_numeric(self, values):
+        return torch.pow(values[0], float(self.p.value))
 
     def sign_from_args(self) -> Tuple[bool, bool]:
         """Returns sign (is positive, is negative) of the expression.

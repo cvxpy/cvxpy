@@ -18,10 +18,12 @@ from typing import List, Tuple
 
 import numpy as np
 import scipy.sparse as sp
+import torch
 
 import cvxpy.utilities as u
 from cvxpy.atoms.atom import Atom
 from cvxpy.expressions.constants.parameter import is_param_affine
+from cvxpy.utilities.torch_tools import select_module
 
 
 class dotsort(Atom):
@@ -62,6 +64,10 @@ class dotsort(Atom):
         """
         x, w_padded = self._get_args_from_values(values)
         return np.sort(x) @ np.sort(w_padded)
+    
+    def torch_numeric(self, values):
+        x, w_padded = self._get_args_from_values(values)
+        return torch.sort(x)[0] @ torch.sort(w_padded)[0]
 
     def _grad(self, values):
         """Gives the (sub/super)gradient of the atom w.r.t. each argument.
@@ -139,6 +145,7 @@ class dotsort(Atom):
         x = values[0].flatten()
         w = values[1].flatten()
 
-        w_padded = np.zeros_like(x)  # pad in case size(W) < size(X)
+        module = select_module(values)
+        w_padded = module.zeros_like(x)  # pad in case size(W) < size(X)
         w_padded[:len(w)] = w
         return x, w_padded
