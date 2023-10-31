@@ -1,38 +1,84 @@
 $(document).ready(function() {
   function createRadioButtons() {
     var radioButtons = `
-      <h3>Curvature Filter</h3>
-      <form id="filterForm">
+      <h5>Curvature</h5>
+      <form id="curvatureFilter">
+        <div></div>
         <label>
-          <input type="radio" name="filter" value="all" checked> All
+          <input type="radio" name="curvature" value="all" checked> All
         </label>
         <label>
-          <input type="radio" name="filter" value="convex"> Convex
+          <input type="radio" name="curvature" value="convex"> Convex
         </label>
         <label>
-          <input type="radio" name="filter" value="concave"> Concave
+          <input type="radio" name="curvature" value="concave"> Concave
         </label>
+        <label>
+          <input type="radio" name="curvature" value="affine"> Affine
+        </label>
+        </div>
+        <div>
+        <label>
+          <input type="radio" name="curvature" value="log-log convex"> Log-Log Convex
+        </label>
+        <label>
+          <input type="radio" name="curvature" value="log-log concave"> Log-Log Concave
+        </label>
+        <label>
+          <input type="radio" name="curvature" value="log-log affine"> Log-Log Affine
+        </label>
+        </div>
       </form>
+      <h5>Operation Type</h5>
+      <form id="operationTypeFilter">
+        <div></div>
+        <label>
+          <input type="radio" name="operationType" value="all" checked> All
+        </label>
+        <label>
+          <input type="radio" name="operationType" value="scalar"> Scalar
+        </label>
+        <label>
+          <input type="radio" name="operationType" value="elementwise"> Elementwise
+        </label>
+        <label>
+          <input type="radio" name="operationType" value="matrix"> Matrix/Vector
+        </label>
+        </div>
+      </form>
+      <button id="applyFilters">Submit</button>
+      <button id="resetFilters">Reset Filters</button>
     `;
     var dropdown = document.querySelector('.functions-filter .sd-card-text');
-
     if (dropdown) {
       dropdown.innerHTML = radioButtons;
     }
-
   }
 
   function initializeMainTable() {
     var table = $('table.atomic-functions').DataTable();
-    $('input[name="filter"]').change(function() {
-      var selectedValue = $(this).val();
-      if (selectedValue === "all") {
-        table.search('').columns().search('').draw();
-      } else {
-        table.column(4).search(selectedValue).draw();
+    $('#applyFilters').click(function() {
+      var curvatureValue = $('input[name="curvature"]:checked').val();
+      var operationTypeValue = $('input[name="operationType"]:checked').val();
+
+      // Apply filters based on selected values
+      if (curvatureValue !== "all" && operationTypeValue !== "all") {
+        table.column(4).search('^' + curvatureValue + '$', true, false)
+             .column(6).search('^' + operationTypeValue + '$', true, false).draw();
+      } else if (curvatureValue !== "all") {
+        table.column(4).search('^' + curvatureValue + '$', true, false).draw();
+      } else if (operationTypeValue !== "all") {
+        table.column(6).search('^' + operationTypeValue + '$', true, false).draw();
       }
     });
+
+     $('#resetFilters').click(function() {
+     $('input[name="curvature"][value="all"]').prop('checked', true);
+     $('input[name="operationType"][value="all"]').prop('checked', true);
+      table.search('').columns().search('').draw();
+    });
   }
+
 
 function createDCPTable(tableClass, typeValue) {
   var newTable = $(`table.${tableClass}`);
