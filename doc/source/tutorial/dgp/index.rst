@@ -392,38 +392,6 @@ and returns a vector or matrix.
      - |affine| log-log affine
      - |incr| incr.
 
-.. |positive| image:: ../functions/functions_files/positive.svg
-              :width: 15px
-              :height: 15px
-
-.. |negative| image:: ../functions/functions_files/negative.svg
-              :width: 15px
-              :height: 15px
-
-.. |unknown| image:: ../functions/functions_files/unknown.svg
-              :width: 15px
-              :height: 15px
-
-.. |convex| image:: ../functions/functions_files/convex.svg
-              :width: 15px
-              :height: 15px
-
-.. |concave| image:: ../functions/functions_files/concave.svg
-              :width: 15px
-              :height: 15px
-
-.. |affine| image:: ../functions/functions_files/affine.svg
-              :width: 15px
-              :height: 15px
-
-.. |incr| image:: ../functions/functions_files/increasing.svg
-              :width: 15px
-              :height: 15px
-
-.. |decr| image:: ../functions/functions_files/decreasing.svg
-              :width: 15px
-              :height: 15px
-
 .. include:: ../../functions/functions-table.rst
 .. raw:: html
 
