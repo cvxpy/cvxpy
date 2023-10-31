@@ -57,25 +57,31 @@ $(document).ready(function() {
 
   function initializeMainTable() {
     var table = $('table.atomic-functions').DataTable();
+    var originalData = table.data().toArray();
     $('#applyFilters').click(function() {
       var curvatureValue = $('input[name="curvature"]:checked').val();
       var operationTypeValue = $('input[name="operationType"]:checked').val();
+      var filteredData = originalData;
 
-      // Apply filters based on selected values
-      if (curvatureValue !== "all" && operationTypeValue !== "all") {
-        table.column(4).search('^' + curvatureValue + '$', true, false)
-             .column(6).search('^' + operationTypeValue + '$', true, false).draw();
-      } else if (curvatureValue !== "all") {
-        table.column(4).search('^' + curvatureValue + '$', true, false).draw();
-      } else if (operationTypeValue !== "all") {
-        table.column(6).search('^' + operationTypeValue + '$', true, false).draw();
+      if (curvatureValue !== "all") {
+        filteredData = filteredData.filter(row => {
+        const curv = $(row[4]).text().trim();
+        return curv === curvatureValue;
+        });
       }
+      if (operationTypeValue !== "all") {
+        filteredData = filteredData.filter(row => {
+        const type = $(row[6]).text().trim();
+        return type === operationTypeValue;
+        });
+      }
+      table.clear().rows.add(filteredData).draw();
     });
 
      $('#resetFilters').click(function() {
      $('input[name="curvature"][value="all"]').prop('checked', true);
      $('input[name="operationType"][value="all"]').prop('checked', true);
-      table.search('').columns().search('').draw();
+      table.clear().rows.add(originalData).draw();
     });
   }
 
