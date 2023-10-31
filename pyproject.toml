@@ -35,6 +35,11 @@ requires = [
     "pybind11"
 ]
 
+# We need access to the 'setup' package at build time.
+# Hence we declare a custom build backend.
+build-backend = "setup.build_meta"  # just re-exports setuptools.build_meta definitions
+backend-path = ["."]
+
 [project]
 name = "cvxpy"
 description = "A domain-specific language for modeling convex optimization problems in Python."
