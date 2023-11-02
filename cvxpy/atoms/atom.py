@@ -22,7 +22,6 @@ if TYPE_CHECKING:
     from cvxpy.constraints.constraint import Constraint
 
 import numpy as np
-import torch
 
 import cvxpy.lin_ops.lin_op as lo
 import cvxpy.lin_ops.lin_utils as lu
@@ -522,7 +521,7 @@ class Atom(Expression):
         The order of the arguments is as it appears in self.args (from left to right).
         Also returns vars_dict to help keep track of the order of the variables.
         """
-
+        import torch
         def _gen_consts_vars(self, vars_dict):
             """ This is a helper function that generates the index -> (value, type) dictionary. """
             ind_to_value_type = dict() #Local dictionary

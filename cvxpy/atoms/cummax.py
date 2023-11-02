@@ -16,7 +16,6 @@ limitations under the License.
 from typing import Tuple
 
 import numpy as np
-import torch
 
 from cvxpy.atoms.atom import Atom
 from cvxpy.atoms.axis_atom import AxisAtom
@@ -36,6 +35,7 @@ class cummax(AxisAtom):
         return np.maximum.accumulate(values[0], axis=self.axis)
     
     def torch_numeric(self, values):
+        import torch
         return torch.cummax(values[0], dim=self.axis)[0]
 
     def shape_from_args(self) -> Tuple[int, ...]:

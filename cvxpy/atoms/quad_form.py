@@ -21,7 +21,6 @@ from typing import Tuple
 
 import numpy as np
 import scipy.sparse as sp
-import torch
 from scipy import linalg as LA
 
 from cvxpy.atoms.affine.wraps import psd_wrap
@@ -51,6 +50,7 @@ class QuadForm(Atom):
         return np.real(quad)
     
     def torch_numeric(self, values):
+        import torch
         def multiply(x, prod):
             """
             This is an inner function that multiplies x by prod (scalar or tensor)

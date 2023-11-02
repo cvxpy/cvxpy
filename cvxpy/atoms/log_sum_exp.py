@@ -17,7 +17,6 @@ limitations under the License.
 from typing import Tuple
 
 import numpy as np
-import torch
 from scipy.special import logsumexp
 
 from cvxpy.atoms.atom import Atom
@@ -39,6 +38,7 @@ class log_sum_exp(AxisAtom):
         return logsumexp(values[0], axis=self.axis, keepdims=self.keepdims)
     
     def torch_numeric(self, values):
+        import torch
         if self.axis is None:
             return torch.special.logsumexp(values[0].flatten(), dim=0, keepdim=self.keepdims)
         return torch.special.logsumexp(values[0], dim=self.axis, keepdim=self.keepdims)

@@ -17,7 +17,6 @@ limitations under the License.
 from typing import Tuple
 
 import numpy as np
-import torch
 
 from .elementwise import Elementwise
 
@@ -35,6 +34,7 @@ class abs(Elementwise):
         return np.absolute(values[0])
     
     def torch_numeric(self, values):
+        import torch
         return torch.absolute(values[0])
 
     def sign_from_args(self) -> Tuple[bool, bool]:

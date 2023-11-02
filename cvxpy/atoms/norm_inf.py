@@ -17,7 +17,6 @@ from typing import List, Tuple
 
 import numpy as np
 import scipy.sparse as sp
-import torch
 
 from cvxpy.atoms.axis_atom import AxisAtom
 from cvxpy.constraints.constraint import Constraint
@@ -39,6 +38,7 @@ class norm_inf(AxisAtom):
         return np.linalg.norm(values, np.inf, axis=self.axis, keepdims=self.keepdims)
 
     def torch_numeric(self, values):
+        import torch
         if self.axis is None:
             if sp.issparse(values[0]):
                 values = values[0].todense().A.flatten()

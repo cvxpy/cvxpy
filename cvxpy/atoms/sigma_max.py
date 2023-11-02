@@ -18,7 +18,6 @@ from typing import Tuple
 
 import numpy as np
 import scipy.sparse as sp
-import torch
 from numpy import linalg as LA
 
 from cvxpy.atoms.atom import Atom
@@ -38,6 +37,7 @@ class sigma_max(Atom):
         return LA.norm(values[0], 2)
     
     def torch_numeric(self, values):
+        import torch
         return torch.linalg.norm(values[0], 2)
 
     def _grad(self, values):

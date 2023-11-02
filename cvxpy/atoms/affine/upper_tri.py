@@ -62,6 +62,7 @@ class upper_tri(AffAtom):
         return values[0][upper_idx]
     
     def torch_numeric(self, values):
+        import torch
         value = torch.zeros(self.shape[0])
         count = 0
         for i in range(values[0].shape[0]):

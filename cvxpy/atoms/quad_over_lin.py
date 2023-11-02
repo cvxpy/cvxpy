@@ -19,7 +19,6 @@ from typing import List, Tuple
 import numpy as np
 import scipy as scipy
 import scipy.sparse as sp
-import torch
 
 import cvxpy.utilities as u
 from cvxpy.atoms.atom import Atom
@@ -45,6 +44,7 @@ class quad_over_lin(Atom):
         return np.square(values[0]).sum()/values[1]
     
     def torch_numeric(self, values):
+        import torch
         if self.args[0].is_complex():
             return (torch.square(values[0].imag) + torch.square(values[0].real)).sum()/values[1]
         return torch.square(values[0]).sum()/values[1]

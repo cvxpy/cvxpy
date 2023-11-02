@@ -18,7 +18,6 @@ from __future__ import annotations
 from typing import List, Tuple, Union
 
 import numpy as np
-import torch
 
 import cvxpy.lin_ops.lin_op as lo
 import cvxpy.lin_ops.lin_utils as lu
@@ -82,6 +81,7 @@ class diag_vec(AffAtom):
         return np.diag(values[0], k=self.k)
     
     def torch_numeric(self, values):
+        import torch
         return torch.diag(values[0], diagonal=self.k)
 
     def shape_from_args(self) -> Tuple[int, int]:

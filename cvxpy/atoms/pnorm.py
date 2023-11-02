@@ -17,7 +17,6 @@ from typing import List, Tuple, Union
 
 import numpy as np
 import scipy.sparse as sp
-import torch
 
 from cvxpy.atoms.axis_atom import AxisAtom
 from cvxpy.atoms.norm1 import norm1
@@ -157,6 +156,7 @@ class Pnorm(AxisAtom):
                               keepdims=self.keepdims)
     
     def torch_numeric(self, values):
+        import torch
         values = values[0]
         if self.axis is None:
             values = values.flatten()

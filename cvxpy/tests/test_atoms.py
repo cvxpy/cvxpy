@@ -2163,7 +2163,7 @@ class TestTorchNumeric(BaseTest):
                                    (True, False, True), 2, torch.float64, (1,0), (1,2))
         self._assert_torch_numeric(affine.binary_operators.multiply(np.eye(3), np.eye(3)),
                                    repetitions=2)
-        self._assert_torch_numeric(affine.binary_operators.multiply(np.eye(3), np.eye(3)),
+        self._assert_torch_numeric(affine.binary_operators.DivExpression(np.eye(3), np.eye(3)),
                                    repetitions=2)
         self._assert_torch_numeric(affine.conj.conj(None))
         self._assert_torch_numeric(affine.cumsum.cumsum(None))

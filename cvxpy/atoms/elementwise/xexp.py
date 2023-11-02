@@ -17,7 +17,6 @@ limitations under the License.
 from typing import List, Tuple
 
 import numpy as np
-import torch
 
 from cvxpy.atoms.elementwise.elementwise import Elementwise
 from cvxpy.constraints.constraint import Constraint
@@ -36,6 +35,7 @@ class xexp(Elementwise):
         return values[0] * np.exp(values[0])
     
     def torch_numeric(self, values):
+        import torch
         return values[0] * torch.exp(values[0])
 
     def sign_from_args(self) -> Tuple[bool, bool]:

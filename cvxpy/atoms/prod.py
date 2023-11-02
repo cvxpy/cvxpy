@@ -17,7 +17,6 @@ limitations under the License.
 from typing import Tuple
 
 import numpy as np
-import torch
 
 import cvxpy.interface as intf
 from cvxpy.atoms.affine.hstack import hstack
@@ -107,6 +106,7 @@ class Prod(AxisAtom):
         return result
     
     def torch_numeric(self, values):
+        import torch
         if intf.is_sparse(values[0]):
             if self.axis is None:
                 result = torch.prod(values[0])

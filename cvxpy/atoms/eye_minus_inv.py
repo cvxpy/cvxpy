@@ -17,7 +17,6 @@ limitations under the License.
 from typing import Tuple
 
 import numpy as np
-import torch
 
 from cvxpy.atoms.atom import Atom
 
@@ -77,6 +76,7 @@ class eye_minus_inv(Atom):
         return np.linalg.inv(np.eye(self.args[0].shape[0]) - values[0])
     
     def torch_numeric(self, values):
+        import torch
         return torch.linalg.inv(torch.eye(self.args[0].shape[0]) - values[0])
 
     def name(self) -> str:

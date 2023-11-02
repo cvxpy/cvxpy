@@ -22,7 +22,6 @@ from typing import List, Tuple
 
 import numpy as np
 import scipy.sparse as sp
-import torch
 
 import cvxpy.interface as intf
 import cvxpy.lin_ops.lin_op as lo
@@ -119,6 +118,7 @@ class MulExpression(BinaryOperator):
             return np.matmul(values[0], values[1])
         
     def torch_numeric(self, values):
+        import torch
         if values[0].shape == () or values[1].shape == () or \
            intf.is_sparse(values[0]) or intf.is_sparse(values[1]):
             return values[0] * values[1]
@@ -284,6 +284,7 @@ class multiply(MulExpression):
             return np.multiply(values[0], values[1])
         
     def torch_numeric(self, values):
+        import torch
         if sp.issparse(values[0]):
             return values[0].multiply(values[1])
         elif sp.issparse(values[1]):
@@ -361,6 +362,7 @@ class DivExpression(BinaryOperator):
         return np.divide(values[0], values[1])
     
     def torch_numeric(self, values):
+        import torch
         for i in range(2):
             if sp.issparse(values[i]):
                 values[i] = values[i].todense().A

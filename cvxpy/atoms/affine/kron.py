@@ -16,7 +16,6 @@ limitations under the License.
 from typing import List, Tuple
 
 import numpy as np
-import torch
 
 import cvxpy.lin_ops.lin_op as lo
 import cvxpy.lin_ops.lin_utils as lu
@@ -41,6 +40,7 @@ class kron(AffAtom):
         return np.kron(values[0], values[1])
     
     def torch_numeric(self, values):
+        import torch
         return torch.kron(values[0], values[1])
 
     def validate_arguments(self) -> None:
