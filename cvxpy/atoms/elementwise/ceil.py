@@ -17,7 +17,6 @@ from typing import Tuple
 
 import numpy as np
 import scipy.sparse as sp
-import torch
 
 import cvxpy.settings as s
 from cvxpy.atoms.elementwise.elementwise import Elementwise
@@ -35,6 +34,7 @@ class ceil(Elementwise):
         return np.ceil(np.around(values[0], decimals=decimals))
     
     def torch_numeric(self, values):
+        import torch
         decimals = int(np.abs(np.log10(s.ATOM_EVAL_TOL))) #np by design
         return torch.ceil(torch.round(values[0], decimals=decimals))
 

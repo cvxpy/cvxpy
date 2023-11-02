@@ -18,7 +18,6 @@ from typing import Tuple
 
 import numpy as np
 import scipy.sparse as sp
-import torch
 
 from cvxpy.atoms.atom import Atom
 
@@ -37,6 +36,7 @@ class normNuc(Atom):
         return np.linalg.norm(values[0], 'nuc')
     
     def torch_numeric(self, values):
+        import torch
         return torch.linalg.norm(values[0], 'nuc')
 
     def _grad(self, values):

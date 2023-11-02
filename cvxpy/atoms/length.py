@@ -16,7 +16,6 @@ limitations under the License.
 from typing import Tuple
 
 import numpy as np
-import torch
 
 import cvxpy.settings as s
 from cvxpy.atoms.atom import Atom
@@ -39,6 +38,7 @@ class length(Atom):
         return np.max(np.nonzero(outside_tol)) + 1
     
     def torch_numeric(self, values):
+        import torch
         outside_tol = torch.abs(values[0]) > s.ATOM_EVAL_TOL
         return torch.max(torch.nonzero(outside_tol)) + 1
 

@@ -18,7 +18,6 @@ from typing import List, Tuple
 
 import numpy as np
 import scipy.sparse as sp
-import torch
 from numpy import linalg as LA
 
 import cvxpy.settings as s
@@ -51,6 +50,7 @@ class tr_inv(Atom):
         return np.sum(eigVal**-1)
     
     def torch_numeric(self, values):
+        import torch
         # if values[0] isn't Hermitian then return np.inf
         if torch.any(torch.linalg.norm(values[0] - values[0].T.conj()) >= 1e-8).item():
             return torch.inf

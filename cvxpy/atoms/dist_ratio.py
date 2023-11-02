@@ -16,7 +16,6 @@ limitations under the License.
 from typing import Tuple
 
 import numpy as np
-import torch
 
 from cvxpy.atoms.atom import Atom
 
@@ -42,6 +41,7 @@ class dist_ratio(Atom):
             values[0] - self.a) / np.linalg.norm(values[0] - self.b)
     
     def torch_numeric(self, values):
+        import torch
         return torch.linalg.norm(
             values[0] - self.a) / torch.linalg.norm(values[0] - self.b)
 

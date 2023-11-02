@@ -15,8 +15,6 @@ limitations under the License.
 """
 from typing import Tuple
 
-import torch
-
 from cvxpy.atoms.atom import Atom
 
 
@@ -36,6 +34,7 @@ class sign(Atom):
         return x
     
     def torch_numeric(self, values):
+        import torch
         x = values[0]
         x = torch.sign(x)
         x[x==0] = -1.0

@@ -16,7 +16,6 @@ limitations under the License.
 from typing import List, Tuple
 
 import numpy as np
-import torch
 
 import cvxpy.lin_ops.lin_op as lo
 import cvxpy.lin_ops.lin_utils as lu
@@ -52,6 +51,7 @@ class Hstack(AffAtom):
         return np.hstack(values)
     
     def torch_numeric(self, values):
+        import torch
         return torch.hstack(values)
 
     # The shape is the common width and the sum of the heights.

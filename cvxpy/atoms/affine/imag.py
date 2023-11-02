@@ -16,7 +16,6 @@ limitations under the License.
 from typing import Tuple
 
 import numpy as np
-import torch
 
 from cvxpy.atoms.affine.affine_atom import AffAtom
 
@@ -33,6 +32,7 @@ class imag(AffAtom):
         return np.imag(values[0])
     
     def torch_numeric(self, values):
+        import torch
         return torch.imag(values[0])
 
     def shape_from_args(self) -> Tuple[int, ...]:
