@@ -538,22 +538,22 @@ class Leaf(expression.Expression):
                     and upper_bounds == np.inf):
                 raise ValueError("np.inf is not feasible as lower "
                                  "and upper bound.")
-            if (np.isnan(lower_bounds) == np.nan
-                    or np.isnan(upper_bounds) == np.nan):
+            if (np.isnan(lower_bounds)
+                    or np.isnan(upper_bounds)):
                 raise ValueError("np.nan is not feasible as lower "
                                  "or upper bound.")
 
         if is_lower_scalar:
             # Convert scalar lower bounds to array for -inf and inf conflict mask
             lower_bounds = np.full(self.shape, lower_bounds)
-            if np.any(np.isnan(lower_bounds)) == np.nan or np.any(np.isnan(upper_bounds)):
+            if np.any(np.isnan(lower_bounds)) or np.any(np.isnan(upper_bounds)):
                 raise ValueError("np.nan is not feasible as lower "
                                  "or upper bound.")
 
         if is_upper_scalar:
             # Convert scalar upper bounds to array for -inf and inf conflict mask
             upper_bounds = np.full(self.shape, upper_bounds)
-            if np.any(np.isnan(upper_bounds)) == np.nan or np.any(np.isnan(lower_bounds)):
+            if np.any(np.isnan(upper_bounds)) or np.any(np.isnan(lower_bounds)):
                 raise ValueError("np.nan is not feasible as lower "
                                  "or upper bound.")
 
