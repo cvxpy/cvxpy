@@ -521,13 +521,15 @@ class Atom(Expression):
         The order of the arguments is as it appears in self.args (from left to right).
         Also returns vars_dict to help keep track of the order of the variables.
         """
+        #TODO (Amit): If matmul and both are vectors, transpose the second. will help broadcasting.
         import torch
         def _gen_consts_vars(self, vars_dict):
             """ This is a helper function that generates the index -> (value, type) dictionary. """
             ind_to_value_type = dict() #Local dictionary
             for i, arg in enumerate(self.args):
                 if isinstance(arg, Constant):
-                    ind_to_value_type[i] = (torch.tensor(arg.value), VAR_TYPE.CONSTANT)
+                    ind_to_value_type[i] = (torch.tensor(arg.value, dtype=torch.float64),
+                                            VAR_TYPE.CONSTANT)
                 elif isinstance(arg, Parameter) or isinstance(arg, Variable):
                     ind_to_value_type[i] = (arg, VAR_TYPE.VARIABLE_PARAMETER)
                     vars_dict.add_var(arg)
@@ -537,7 +539,7 @@ class Atom(Expression):
             return ind_to_value_type
         
         def wrapped_func(self, ind_to_value_type, vars_dict, *args):
-            def transpose_if_matmul(self, res):
+            def transpose_if_matmul(self, res, should_transpose):
                 """
                 This function transposes the second element if the wrapped function is a dot product
                 between two vectors. While transposing a vector in CVXPY does nothing, this function
@@ -558,6 +560,15 @@ class Atom(Expression):
                         return False
                     return True
 
+                def check_should_transpose(should_transpose):
+                    """
+                    This is a helper function that determines if transpose should happen, based
+                    on the CVXPY types.
+                    """
+                    if len(should_transpose) != 2: #Only support a dot product, hence two elements
+                        return False
+                    return all(should_transpose)
+                
                 def is_valid_input(res):
                     """
                     This function checks if res is valid for transpose, and if it does, returns
@@ -594,6 +605,8 @@ class Atom(Expression):
 
                 if not is_matmul(self):
                     return
+                if not check_should_transpose(should_transpose):
+                    return
                 valid, ndims = is_valid_input(res)
                 if not valid:
                     return
@@ -603,7 +616,23 @@ class Atom(Expression):
                 if res[vector_ind].shape[0] == res[matrix_ind].shape[matrix_ind]:
                     res[matrix_ind] = res[matrix_ind].T
 
+            def should_transpose(curr_arg):
+                """
+                This is a helper function that determines if an element should be transposed for
+                matrix multiplication (allows broadcasting vectors into matrices)
+                """
+                if curr_arg[1]==VAR_TYPE.CONSTANT:
+                    return False
+                return curr_arg[0].ndim==1
             res =  []
+            #In order to support dot products of vectors,
+            #where one vector is represented by a matrix, we need to see if:
+            #1. The operation is matmul
+            #2. between two vectors (variables/parameters with ndim==1)
+            #These checks should happen on the original variables/parameters,
+            #and NOT on the elements of args.
+            #So the transpose happens only if should_tranpose contains two Trues.
+            transposable_elements = []
             #Iterate over the range instead of the dictionary directly:
             #dictionaries have no order, but we must iterate in order
             for ind in range(len(ind_to_value_type)): 
@@ -615,9 +644,10 @@ class Atom(Expression):
                 else:
                     rec_ind_to_value_type = _gen_consts_vars(curr_arg[0], vars_dict)
                     res.append(wrapped_func(curr_arg[0], rec_ind_to_value_type, vars_dict, *args))
+                transposable_elements.append(should_transpose(curr_arg))
             #If this is a matrix multiplicaiton operation between 2 elements, transpose the second.
             #This helps with overloading this function to be used with matrices.
-            transpose_if_matmul(self, res)
+            transpose_if_matmul(self, res, transposable_elements)
             return self.apply_torch_numeric(res)
         vars_dict = VariablesDict()
         ind_to_value_type = _gen_consts_vars(self, vars_dict)
