@@ -162,6 +162,7 @@ class diag_mat(AffAtom):
     
 
     def torch_numeric(self, values):
+        import torch
         return torch.diag(values[0], diagonal=self.k)
 
 
