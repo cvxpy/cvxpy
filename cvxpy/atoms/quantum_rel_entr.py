@@ -17,7 +17,6 @@ from typing import List, Tuple
 
 import numpy as np
 from scipy import linalg as LA
-from scipy.special import entr
 
 from cvxpy.atoms.atom import Atom
 from cvxpy.constraints.constraint import Constraint
@@ -43,9 +42,12 @@ class quantum_rel_entr(Atom):
         if hasattr(X, 'value') and hasattr(Y, 'value'):
             X = X.value
             Y = Y.value
+        # Symmetrize A and B
+        X = (X + X.conj().T) / 2
+        Y = (Y + Y.conj().T) / 2
         w1, V = LA.eigh(X)
         w2, W = LA.eigh(Y)
-        u = w1.T @ np.abs(V.T @ W) ** 2
+        u = w1.T @ np.abs(V.conj().T @ W) ** 2
         r1 = np.sum(w1 * np.log(w1))
         r2 = u @ np.log(w2)
         return (r1 - r2)
