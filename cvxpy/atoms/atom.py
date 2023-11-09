@@ -521,7 +521,6 @@ class Atom(Expression):
         The order of the arguments is as it appears in self.args (from left to right).
         Also returns vars_dict to help keep track of the order of the variables.
         """
-        #TODO (Amit): If matmul and both are vectors, transpose the second. will help broadcasting.
         import torch
         def _gen_consts_vars(self, vars_dict):
             """ This is a helper function that generates the index -> (value, type) dictionary. """
