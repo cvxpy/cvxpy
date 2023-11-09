@@ -483,3 +483,12 @@ class Leaf(expression.Expression):
 
     def atoms(self) -> list[Atom]:
         return []
+
+    def gen_torch_exp(self):
+        """
+        This function generates a torch expression for a leaf.
+        Also returns a vars_dict with the leaf.
+        """
+        from cvxpy.atoms.affine.add_expr import AddExpression
+        tmp_aff_exp = AddExpression([self])
+        return tmp_aff_exp.gen_torch_exp()
