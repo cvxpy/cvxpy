@@ -425,7 +425,7 @@ We will discuss the optional arguments in detail below.
 Choosing a solver
 ^^^^^^^^^^^^^^^^^
 
-CVXPY is distributed with the open source solvers `ECOS`_, `OSQP`_, and `SCS`_.
+CVXPY is distributed with the open source solvers `CLARABEL`_, `OSQP`_, and `SCS`_.
 Many other solvers can be called by CVXPY if installed separately.
 The table below shows the types of problems the supported solvers can handle.
 
@@ -839,215 +839,214 @@ For others see `OSQP documentation <https://osqp.org/docs/interfaces/solver_sett
     For the definition of GlopParameters, see
     `here <https://github.com/google/or-tools/blob/2cb85b4eead4c38e1c54b48044f92087cf165bce/ortools/glop/parameters.proto#L26>`_.
 
+.. dropdown:: `MOSEK`_ options
 
-`MOSEK`_ options:
+    ``'mosek_params'``
+        A dictionary of MOSEK parameters in the form ``name: value``. Parameter names
+        should be strings, as in the MOSEK C API or command line, for example
+        ``'MSK_DPAR_BASIS_TOL_X'``, ``'MSK_IPAR_NUM_THREADS'`` etc. Values are strings,
+        integers or floats, depending on the parameter.
+        See `example <https://docs.mosek.com/latest/faq/faq.html#cvxpy>`_.
 
-``'mosek_params'``
-    A dictionary of MOSEK parameters in the form ``name: value``. Parameter names
-    should be strings, as in the MOSEK C API or command line, for example
-    ``'MSK_DPAR_BASIS_TOL_X'``, ``'MSK_IPAR_NUM_THREADS'`` etc. Values are strings,
-    integers or floats, depending on the parameter.
-    See `example <https://docs.mosek.com/latest/faq/faq.html#cvxpy>`_.
+    ``'save_file'``
+        The name of a file where MOSEK will save the problem just before optimization.
+        Refer to MOSEK documentation for a list of supported file formats. File format
+        is chosen based on the extension.
 
-``'save_file'``
-    The name of a file where MOSEK will save the problem just before optimization.
-    Refer to MOSEK documentation for a list of supported file formats. File format
-    is chosen based on the extension.
+    ``'bfs'``
+        For a linear problem, if ``bfs=True``, then the basic solution will be retrieved
+        instead of the interior-point solution. This assumes no specific MOSEK
+        parameters were used which prevent computing the basic solution.
 
-``'bfs'``
-    For a linear problem, if ``bfs=True``, then the basic solution will be retrieved
-    instead of the interior-point solution. This assumes no specific MOSEK
-    parameters were used which prevent computing the basic solution.
+    ``'accept_unknown'``
+        If ``accept_unknown=True``, an inaccurate solution will be returned, even if
+        it is arbitrarily bad, when the solver does not generate an optimal
+        point under the given conditions.
 
-``'accept_unknown'``
-    If ``accept_unknown=True``, an inaccurate solution will be returned, even if
-    it is arbitrarily bad, when the solver does not generate an optimal
-    point under the given conditions.
-
-``'eps'``
-    Applies tolerance ``eps`` to termination parameters for (conic) interior-point, 
-    simplex, and MIO solvers. The full list of termination parameters is returned
-    by ``MOSEK.tolerance_params()`` in 
-    ``cvxpy.reductions.solvers.conic_solvers.mosek_conif``.
-    Explicitly defined parameters take precedence over ``eps``.
-
-
-.. note::
-
-    In CVXPY 1.1.6 we did a complete rewrite of the MOSEK interface. The main
-    takeaway is that we now dualize all continuous problems. The dualization is
-    automatic because this eliminates the previous need for a large number of
-    slack variables, and never results in larger problems compared to our old
-    MOSEK interface. If you notice MOSEK solve times are slower for some of your
-    problems under CVXPY 1.1.6 or higher, be sure to use the MOSEK solver options
-    to tell MOSEK that it should solve the dual; this can be accomplished by
-    adding the ``(key, value)`` pair ``('MSK_IPAR_INTPNT_SOLVE_FORM', 'MSK_SOLVE_DUAL')``
-    to the ``mosek_params`` argument.
-    
-`CVXOPT`_ options:
-
-``'max_iters'``
-    maximum number of iterations (default: 100).
-
-``'abstol'``
-    absolute accuracy (default: 1e-7).
-
-``'reltol'``
-    relative accuracy (default: 1e-6).
-
-``'feastol'``
-    tolerance for feasibility conditions (default: 1e-7).
-
-``'refinement'``
-    number of iterative refinement steps after solving KKT system (default: 1).
-
-``'kktsolver'``
-    Controls the method used to solve systems of linear equations at each step of CVXOPT's
-    interior-point algorithm. This parameter can be a string (with one of several values),
-    or a function handle.
-
-    KKT solvers built-in to CVXOPT can be specified by strings  'ldl', 'ldl2', 'qr', 'chol',
-    and 'chol2'. If 'chol' is chosen, then CVXPY will perform an additional presolve
-    procedure to eliminate redundant constraints. You can also set ``kktsolver='robust'``.
-    The 'robust' solver is implemented in python, and is part of CVXPY source code; the
-    'robust' solver doesn't require a presolve phase to eliminate redundant constraints,
-    however it can be slower than 'chol'.
-
-    Finally, there is an option to pass a function handle for the ``kktsolver`` argument.
-    Passing a KKT solver based on a function handle allows you to take complete control of
-    solving the linear systems encountered in CVXOPT's interior-point algorithm. The API for
-    KKT solvers of this form is a small wrapper around CVXOPT's API for function-handle KKT
-    solvers. The precise API that CVXPY users are held to is described in the CVXPY source
-    code: `cvxpy/reductions/solvers/kktsolver.py <https://github.com/cvxpy/cvxpy/blob/master/cvxpy/reductions/solvers/kktsolver.py>`_.
-    
-`SDPA`_ options:
-
-``'maxIteration'``
-    The maximum number of iterations. (default: 100).
-
-``'epsilonStar'``
-    The accuracy of an approximate optimal solution for primal and dual SDP. (default: 1.0E-7).
-
-``'lambdaStar'``
-    An initial point. (default: 1.0E2).
-
-``'omegaStar'``
-    The search region for an optimal solution. (default: 2.0).
-
-``'lowerBound'``
-    Lower bound of the minimum objective value of the primal SDP. (default: -1.0E5).
-
-``'upperBound'``
-    Upper bound of the maximum objective value of the dual SDP. (default: 1.0E5).
-
-``'betaStar'``
-    The parameter for controlling the search direction if the current point is feasible. (default: 0.1).
-
-``'betaBar'``
-    The parameter for controlling the search direction if the current point is infeasible. (default: 0.2).
-
-``'gammaStar'``
-    A reduction factor for the primal and dual step lengths. (default: 0.9).
-
-``'epsilonDash'``
-    The relative accuracy of an approximate optimal solution between primal and dual SDP. (default: 1.0E-7).
-
-``'isSymmetric'``
-    Specify whether to check the symmetricity of input matrices. (default: False).
-
-``'isDimacs'``
-    Specify whether to compute DIMACS ERROR. (default: False).
-
-``'numThreads'``
-    numThreads (default: ``'multiprocessing.cpu_count()'``).
-
-``'domainMethod'``
-    Algorithm option for exploiting sparsity in the domain space. Can be ``'none'`` (exploiting no sparsity in the domain space) or ``'basis'`` (using basis representation) (default: ``'none'``).
-
-``'rangeMethod'``
-    Algorithm option for exploiting sparsity in the range space. Can be ``'none'`` (exploiting no sparsity in the range space) or ``'decomp'`` (using matrix decomposition) (default: ``'none'``).
-
-``'frvMethod'``
-    The method to eliminate free variables. Can be ``'split'`` or ``'elimination'`` (default: ``'split'``).
-
-``'rho'``
-    The parameter of range in split method or pivoting in elimination method. (default: 0.0).
-
-``'zeroPoint'``
-    The zero point of matrix operation, determine unboundness, or LU decomposition. (default: 1.0E-12).
-
-`SCS`_ options:
-
-``'max_iters'``
-    maximum number of iterations (default: 2500).
-
-``'eps'``
-    convergence tolerance (default: 1e-4).
-
-``'alpha'``
-    relaxation parameter (default: 1.8).
+    ``'eps'``
+        Applies tolerance ``eps`` to termination parameters for (conic) interior-point,
+        simplex, and MIO solvers. The full list of termination parameters is returned
+        by ``MOSEK.tolerance_params()`` in
+        ``cvxpy.reductions.solvers.conic_solvers.mosek_conif``.
+        Explicitly defined parameters take precedence over ``eps``.
 
 
-``'acceleration_lookback'``
-    Anderson Acceleration parameter for SCS 2.0 and higher. This can be any positive or negative integer;
-    its default value is 10. See `this page of the SCS documentation <https://www.cvxgrp.org/scs/algorithm/acceleration.html#in-scs>`_
-    for more information.
+    .. note::
 
-    .. warning::
-        The value of this parameter often effects whether or not SCS 2.X will converge to an accurate solution.
-        If you don't *explicitly* set ``acceleration_lookback`` and SCS 2.X fails to converge, then CVXPY
-        will raise a warning and try to re-solve the problem with ``acceleration_lookback=0``.
-        No attempt will be made to re-solve with problem if you have SCS version 3.0 or higher.
+        In CVXPY 1.1.6 we did a complete rewrite of the MOSEK interface. The main
+        takeaway is that we now dualize all continuous problems. The dualization is
+        automatic because this eliminates the previous need for a large number of
+        slack variables, and never results in larger problems compared to our old
+        MOSEK interface. If you notice MOSEK solve times are slower for some of your
+        problems under CVXPY 1.1.6 or higher, be sure to use the MOSEK solver options
+        to tell MOSEK that it should solve the dual; this can be accomplished by
+        adding the ``(key, value)`` pair ``('MSK_IPAR_INTPNT_SOLVE_FORM', 'MSK_SOLVE_DUAL')``
+        to the ``mosek_params`` argument.
 
-``'scale'``
-    balance between minimizing primal and dual residual (default: 5.0).
+.. dropdown:: `CVXOPT`_ options
 
-``'normalize'``
-    whether to precondition data matrices (default: True).
+    ``'max_iters'``
+        maximum number of iterations (default: 100).
 
-``'use_indirect'``
-    whether to use indirect solver for KKT sytem (instead of direct) (default: True).
+    ``'abstol'``
+        absolute accuracy (default: 1e-7).
 
-``'use_quad_obj'``
-    whether to use a quadratic objective or reduce it to SOC constraints (default: True).
+    ``'reltol'``
+        relative accuracy (default: 1e-6).
 
-`CBC`_ options:
+    ``'feastol'``
+        tolerance for feasibility conditions (default: 1e-7).
 
-Cut-generation through `CGL`_
+    ``'refinement'``
+        number of iterative refinement steps after solving KKT system (default: 1).
 
-General remarks:
-    - some of these cut-generators seem to be buggy (observed problems with AllDifferentCuts, RedSplitCuts, LandPCuts, PreProcessCuts)
-    - a few of these cut-generators will generate noisy output even if ``'verbose=False'``
+    ``'kktsolver'``
+        Controls the method used to solve systems of linear equations at each step of CVXOPT's
+        interior-point algorithm. This parameter can be a string (with one of several values),
+        or a function handle.
 
-The following cut-generators are available:
-    ``GomoryCuts``, ``MIRCuts``, ``MIRCuts2``, ``TwoMIRCuts``, ``ResidualCapacityCuts``, ``KnapsackCuts`` ``FlowCoverCuts``, ``CliqueCuts``, ``LiftProjectCuts``, ``AllDifferentCuts``, ``OddHoleCuts``, ``RedSplitCuts``, ``LandPCuts``, ``PreProcessCuts``, ``ProbingCuts``, ``SimpleRoundingCuts``.
+        KKT solvers built-in to CVXOPT can be specified by strings  'ldl', 'ldl2', 'qr', 'chol',
+        and 'chol2'. If 'chol' is chosen, then CVXPY will perform an additional presolve
+        procedure to eliminate redundant constraints. You can also set ``kktsolver='robust'``.
+        The 'robust' solver is implemented in python, and is part of CVXPY source code; the
+        'robust' solver doesn't require a presolve phase to eliminate redundant constraints,
+        however it can be slower than 'chol'.
 
-``'CutGenName'``
-    if cut-generator is activated (e.g. ``'GomoryCuts=True'``)
+        Finally, there is an option to pass a function handle for the ``kktsolver`` argument.
+        Passing a KKT solver based on a function handle allows you to take complete control of
+        solving the linear systems encountered in CVXOPT's interior-point algorithm. The API for
+        KKT solvers of this form is a small wrapper around CVXOPT's API for function-handle KKT
+        solvers. The precise API that CVXPY users are held to is described in the CVXPY source
+        code: `cvxpy/reductions/solvers/kktsolver.py <https://github.com/cvxpy/cvxpy/blob/master/cvxpy/reductions/solvers/kktsolver.py>`_.
 
-``'integerTolerance'``
-    an integer variable is deemed to be at an integral value if it is no further than this value (tolerance) away
+.. dropdown:: `SDPA`_ options
 
-``'maximumSeconds'``
-    stop after given amount of seconds
+    ``'maxIteration'``
+        The maximum number of iterations. (default: 100).
 
-``'maximumNodes'``
-    stop after given maximum number of nodes
+    ``'epsilonStar'``
+        The accuracy of an approximate optimal solution for primal and dual SDP. (default: 1.0E-7).
 
-``'maximumSolutions'``
-    stop after evalutation x number of solutions
+    ``'lambdaStar'``
+        An initial point. (default: 1.0E2).
 
-``'numberThreads'``
-    sets the number of threads
+    ``'omegaStar'``
+        The search region for an optimal solution. (default: 2.0).
 
-``'allowableGap'``
-    returns a solution if the gap between the best known solution and the best possible solution is less than this value.
+    ``'lowerBound'``
+        Lower bound of the minimum objective value of the primal SDP. (default: -1.0E5).
 
-``'allowableFractionGap'``
-    returns a solution if the gap between the best known solution and the best possible solution is less than this fraction.
+    ``'upperBound'``
+        Upper bound of the maximum objective value of the dual SDP. (default: 1.0E5).
 
-``'allowablePercentageGap'``
-    returns if the gap between the best known solution and the best possible solution is less than this percentage.
+    ``'betaStar'``
+        The parameter for controlling the search direction if the current point is feasible. (default: 0.1).
+
+    ``'betaBar'``
+        The parameter for controlling the search direction if the current point is infeasible. (default: 0.2).
+
+    ``'gammaStar'``
+        A reduction factor for the primal and dual step lengths. (default: 0.9).
+
+    ``'epsilonDash'``
+        The relative accuracy of an approximate optimal solution between primal and dual SDP. (default: 1.0E-7).
+
+    ``'isSymmetric'``
+        Specify whether to check the symmetricity of input matrices. (default: False).
+
+    ``'isDimacs'``
+        Specify whether to compute DIMACS ERROR. (default: False).
+
+    ``'numThreads'``
+        numThreads (default: ``'multiprocessing.cpu_count()'``).
+
+    ``'domainMethod'``
+        Algorithm option for exploiting sparsity in the domain space. Can be ``'none'`` (exploiting no sparsity in the domain space) or ``'basis'`` (using basis representation) (default: ``'none'``).
+
+    ``'rangeMethod'``
+        Algorithm option for exploiting sparsity in the range space. Can be ``'none'`` (exploiting no sparsity in the range space) or ``'decomp'`` (using matrix decomposition) (default: ``'none'``).
+
+    ``'frvMethod'``
+        The method to eliminate free variables. Can be ``'split'`` or ``'elimination'`` (default: ``'split'``).
+
+    ``'rho'``
+        The parameter of range in split method or pivoting in elimination method. (default: 0.0).
+
+    ``'zeroPoint'``
+        The zero point of matrix operation, determine unboundness, or LU decomposition. (default: 1.0E-12).
+
+.. dropdown:: `SCS`_ options
+
+    ``'max_iters'``
+        maximum number of iterations (default: 2500).
+
+    ``'eps'``
+        convergence tolerance (default: 1e-4).
+
+    ``'alpha'``
+        relaxation parameter (default: 1.8).
+
+
+    ``'acceleration_lookback'``
+        Anderson Acceleration parameter for SCS 2.0 and higher. This can be any positive or negative integer;
+        its default value is 10. See `this page of the SCS documentation <https://www.cvxgrp.org/scs/algorithm/acceleration.html#in-scs>`_
+        for more information.
+
+        .. warning::
+            The value of this parameter often effects whether or not SCS 2.X will converge to an accurate solution.
+            If you don't *explicitly* set ``acceleration_lookback`` and SCS 2.X fails to converge, then CVXPY
+            will raise a warning and try to re-solve the problem with ``acceleration_lookback=0``.
+            No attempt will be made to re-solve with problem if you have SCS version 3.0 or higher.
+
+    ``'scale'``
+        balance between minimizing primal and dual residual (default: 5.0).
+
+    ``'normalize'``
+        whether to precondition data matrices (default: True).
+
+    ``'use_indirect'``
+        whether to use indirect solver for KKT sytem (instead of direct) (default: True).
+
+    ``'use_quad_obj'``
+        whether to use a quadratic objective or reduce it to SOC constraints (default: True).
+
+.. dropdown:: `CBC`_ options
+
+    Cut-generation through `CGL`_
+
+    General remarks:
+        - some of these cut-generators seem to be buggy (observed problems with AllDifferentCuts, RedSplitCuts, LandPCuts, PreProcessCuts)
+        - a few of these cut-generators will generate noisy output even if ``'verbose=False'``
+
+    The following cut-generators are available:
+        ``GomoryCuts``, ``MIRCuts``, ``MIRCuts2``, ``TwoMIRCuts``, ``ResidualCapacityCuts``, ``KnapsackCuts`` ``FlowCoverCuts``, ``CliqueCuts``, ``LiftProjectCuts``, ``AllDifferentCuts``, ``OddHoleCuts``, ``RedSplitCuts``, ``LandPCuts``, ``PreProcessCuts``, ``ProbingCuts``, ``SimpleRoundingCuts``.
+
+    ``'CutGenName'``
+        if cut-generator is activated (e.g. ``'GomoryCuts=True'``)
+
+    ``'integerTolerance'``
+        an integer variable is deemed to be at an integral value if it is no further than this value (tolerance) away
+
+    ``'maximumSeconds'``
+        stop after given amount of seconds
+
+    ``'maximumNodes'``
+        stop after given maximum number of nodes
+
+    ``'maximumSolutions'``
+        stop after evalutation x number of solutions
+
+    ``'numberThreads'``
+        sets the number of threads
+
+    ``'allowableGap'``
+        returns a solution if the gap between the best known solution and the best possible solution is less than this value.
+
+    ``'allowableFractionGap'``
+        returns a solution if the gap between the best known solution and the best possible solution is less than this fraction.
+
+    ``'allowablePercentageGap'``
+        returns if the gap between the best known solution and the best possible solution is less than this percentage.
 
 `COPT`_ options:
 
@@ -1091,7 +1090,6 @@ SCIP_ options:
     A `ortools.pdlp.solvers_pb2.PrimalDualHybridGradientParams` protocol buffer message.
     For the definition of PrimalDualHybridGradientParams, see
     `here <https://github.com/google/or-tools/blob/a3ef28e824ee84a948796dffbb8254e67714cb56/ortools/pdlp/solvers.proto#L150>`_.
-
 
 `GUROBI`_ options:
 
