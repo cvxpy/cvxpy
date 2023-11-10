@@ -261,10 +261,7 @@ html_favicon = "_static/favicon.ico"
 html_static_path = ['_static']
 
 html_css_files = [
-<<<<<<< HEAD
     'css/extra_css.css',
-=======
->>>>>>> starting changes for atomic functions
     'https://cdn.datatables.net/1.10.23/css/jquery.dataTables.min.css',
 ]
 
