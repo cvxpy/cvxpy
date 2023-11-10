@@ -2,3 +2,4 @@ sphinx
 sphinxcontrib.jquery
 sphinx-inline-tabs
 sphinx-design
+sphinx-immaterial>=0.11.7

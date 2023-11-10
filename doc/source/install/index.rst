@@ -61,7 +61,7 @@ or a conda environment.
 
          * Python >= 3.7
          * `OSQP`_ >= 0.6.2
-         * `ECOS`_ >= 2
+         * `CLARABEL`_ >= 0.6.0
          * `SCS`_ >= 3.0
          * `NumPy`_ >= 1.15
          * `SciPy`_ >= 1.1.0
@@ -260,6 +260,7 @@ To run the tests when CVXPY was not installed from source, use
 .. _CVXOPT: https://cvxopt.org/
 .. _OSQP: https://osqp.org/
 .. _ECOS: https://github.com/ifa-ethz/ecos
+.. _CLARABEL: https://oxfordcontrol.github.io/ClarabelDocs/
 .. _SCS: https://github.com/cvxgrp/scs
 .. _NumPy: https://www.numpy.org/
 .. _SciPy: https://www.scipy.org/
