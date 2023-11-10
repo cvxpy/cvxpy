@@ -768,74 +768,74 @@ For example, here we tell SCS to use an indirect method for solving linear equat
 
 Here is the complete list of solver options.
 
-`OSQP`_ options:
+.. dropdown:: `OSQP`_ options:
 
-``'max_iter'``
-    maximum number of iterations (default: 10,000).
+    ``'max_iter'``
+        maximum number of iterations (default: 10,000).
 
-``'eps_abs'``
-    absolute accuracy (default: 1e-5).
+    ``'eps_abs'``
+        absolute accuracy (default: 1e-5).
 
-``'eps_rel'``
-    relative accuracy (default: 1e-5).
+    ``'eps_rel'``
+        relative accuracy (default: 1e-5).
 
-For others see `OSQP documentation <https://osqp.org/docs/interfaces/solver_settings.html>`_.
+    For others see `OSQP documentation <https://osqp.org/docs/interfaces/solver_settings.html>`_.
 
-`PROXQP`_ options:
+.. dropdown:: `PROXQP`_ options:
 
-``'backend'``
-    solver backend [dense, sparse] (default: dense).
+    ``'backend'``
+        solver backend [dense, sparse] (default: dense).
 
-``'max_iter'``
-    maximum number of iterations (default: 10,000).
+    ``'max_iter'``
+        maximum number of iterations (default: 10,000).
 
-``'eps_abs'``
-    absolute accuracy (default: 1e-8).
+    ``'eps_abs'``
+        absolute accuracy (default: 1e-8).
 
-``'eps_rel'``
-    relative accuracy (default: 0.0).
+    ``'eps_rel'``
+        relative accuracy (default: 0.0).
 
-``'rho'``
-    primal proximal parameter (default: 1e-6).
+    ``'rho'``
+        primal proximal parameter (default: 1e-6).
 
-``'mu_eq'``
-    dual equality constraint proximal parameter (default: 1e-3).
+    ``'mu_eq'``
+        dual equality constraint proximal parameter (default: 1e-3).
 
-``'mu_in'``
-    dual inequality constraint proximal parameter (default: 1e-1).
+    ``'mu_in'``
+        dual inequality constraint proximal parameter (default: 1e-1).
 
-`ECOS`_ options:
+.. dropdown:: `ECOS`_ options:
 
-``'max_iters'``
-    maximum number of iterations (default: 100).
+    ``'max_iters'``
+        maximum number of iterations (default: 100).
 
-``'abstol'``
-    absolute accuracy (default: 1e-8).
+    ``'abstol'``
+        absolute accuracy (default: 1e-8).
 
-``'reltol'``
-    relative accuracy (default: 1e-8).
+    ``'reltol'``
+        relative accuracy (default: 1e-8).
 
-``'feastol'``
-    tolerance for feasibility conditions (default: 1e-8).
+    ``'feastol'``
+        tolerance for feasibility conditions (default: 1e-8).
 
-``'abstol_inacc'``
-    absolute accuracy for inaccurate solution (default: 5e-5).
+    ``'abstol_inacc'``
+        absolute accuracy for inaccurate solution (default: 5e-5).
 
-``'reltol_inacc'``
-    relative accuracy for inaccurate solution (default: 5e-5).
+    ``'reltol_inacc'``
+        relative accuracy for inaccurate solution (default: 5e-5).
 
-``'feastol_inacc'``
-    tolerance for feasibility condition for inaccurate solution (default: 1e-4).
+    ``'feastol_inacc'``
+        tolerance for feasibility condition for inaccurate solution (default: 1e-4).
 
-`GLOP`_ options:
+.. dropdown:: `GLOP`_ options:
 
-``'time_limit_sec'``
-    Time limit for the solve, in seconds.
+    ``'time_limit_sec'``
+        Time limit for the solve, in seconds.
 
-``'parameters_proto'``
-    A `ortools.glop.parameters_pb2.GlopParameters` protocol buffer message.
-    For the definition of GlopParameters, see
-    `here <https://github.com/google/or-tools/blob/2cb85b4eead4c38e1c54b48044f92087cf165bce/ortools/glop/parameters.proto#L26>`_.
+    ``'parameters_proto'``
+        A `ortools.glop.parameters_pb2.GlopParameters` protocol buffer message.
+        For the definition of GlopParameters, see
+        `here <https://github.com/google/or-tools/blob/2cb85b4eead4c38e1c54b48044f92087cf165bce/ortools/glop/parameters.proto#L26>`_.
 
 .. dropdown:: `MOSEK`_ options
 
@@ -1046,108 +1046,108 @@ For others see `OSQP documentation <https://osqp.org/docs/interfaces/solver_sett
     ``'allowablePercentageGap'``
         returns if the gap between the best known solution and the best possible solution is less than this percentage.
 
-`COPT`_ options:
+.. dropdown:: `COPT`_ options:
 
-COPT solver options are specified in CVXPY as keyword arguments. The full list of COPT parameters with defaults is listed `here <https://guide.coap.online/copt/en-doc/index.html#parameters>`_.
+    COPT solver options are specified in CVXPY as keyword arguments. The full list of COPT parameters with defaults is listed `here <https://guide.coap.online/copt/en-doc/index.html#parameters>`_.
 
-`CPLEX`_ options:
+.. dropdown:: `CPLEX`_ options:
 
-``'cplex_params'``
-    a dictionary where the key-value pairs are composed of parameter names (as used in the CPLEX Python API) and parameter values. For example, to set the advance start switch parameter (i.e., CPX_PARAM_ADVIND), use "advance" for the parameter name. For the data consistency checking and modeling assistance parameter (i.e., CPX_PARAM_DATACHECK), use "read.datacheck" for the parameter name, and so on.
+    ``'cplex_params'``
+        a dictionary where the key-value pairs are composed of parameter names (as used in the CPLEX Python API) and parameter values. For example, to set the advance start switch parameter (i.e., CPX_PARAM_ADVIND), use "advance" for the parameter name. For the data consistency checking and modeling assistance parameter (i.e., CPX_PARAM_DATACHECK), use "read.datacheck" for the parameter name, and so on.
 
-``'cplex_filename'``
-    a string specifying the filename to which the problem will be written. For example, use "model.lp", "model.sav", or "model.mps" to export to the LP, SAV, and MPS formats, respectively.
+    ``'cplex_filename'``
+        a string specifying the filename to which the problem will be written. For example, use "model.lp", "model.sav", or "model.mps" to export to the LP, SAV, and MPS formats, respectively.
 
-``reoptimize``
-    A boolean. This is only relevant for problems where CPLEX initially produces an "infeasible or unbounded" status.
-    Its default value is False. If set to True, then if CPLEX produces an "infeasible or unbounded" status, its algorithm
-    parameters are automatically changed and the problem is re-solved in order to determine its precise status.
+    ``reoptimize``
+        A boolean. This is only relevant for problems where CPLEX initially produces an "infeasible or unbounded" status.
+        Its default value is False. If set to True, then if CPLEX produces an "infeasible or unbounded" status, its algorithm
+        parameters are automatically changed and the problem is re-solved in order to determine its precise status.
 
+.. dropdown:: `NAG`_ options:
 
-`NAG`_ options:
+    ``'nag_params'``
+        a dictionary of NAG option parameters. Refer to NAG's Python or Fortran API for details. For example, to set the maximum number of iterations for a linear programming problem to 20, use "LPIPM Iteration Limit" for the key name and 20 for its value .
 
-``'nag_params'``
-    a dictionary of NAG option parameters. Refer to NAG's Python or Fortran API for details. For example, to set the maximum number of iterations for a linear programming problem to 20, use "LPIPM Iteration Limit" for the key name and 20 for its value . 
+.. dropdown:: SCIP_ options:
 
-SCIP_ options:
-``'scip_params'`` a dictionary of SCIP optional parameters, a full list of parameters with defaults is listed `here <https://www.scipopt.org/doc-5.0.1/html/PARAMETERS.php>`_.
+    ``'scip_params'`` a dictionary of SCIP optional parameters, a full list of parameters with defaults is listed `here <https://www.scipopt.org/doc-5.0.1/html/PARAMETERS.php>`_.
 
-`SCIPY`_ options:
-``'scipy_options'`` a dictionary of SciPy optional parameters, a full list of parameters with defaults is listed `here <https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.linprog.html#scipy.optimize.linprog>`_.
+.. dropdown:: `SCIPY`_ options:
 
-* **Please note**: All options should be listed as key-value pairs within the ``'scipy_options'`` dictionary, and there should not be a nested dictionary called options. Some of the methods have different parameters, so please check the parameters for the method you wish to use, e.g., for method = 'highs-ipm'. Also, note that the 'integrality' and 'bounds' options should never be specified within ``'scipy_options'`` and should instead be specified using CVXPY.
+    ``'scipy_options'`` a dictionary of SciPy optional parameters, a full list of parameters with defaults is listed `here <https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.linprog.html#scipy.optimize.linprog>`_.
 
-* The main advantage of this solver is its ability to use the `HiGHS`_ LP and MIP solvers, which are coded in C++. However, these require versions of SciPy larger than 1.6.1 and 1.9.0, respectively. To use the `HiGHS`_ LP solvers, simply set the method parameter to 'highs-ds' (for dual-simplex), 'highs-ipm' (for interior-point method) or 'highs' (which will choose either 'highs-ds' or 'highs-ipm' for you). To use the `HiGHS`_ MIP solver, leave the method parameter unspecified or set it explicitly to 'highs'.
+    * **Please note**: All options should be listed as key-value pairs within the ``'scipy_options'`` dictionary, and there should not be a nested dictionary called options. Some of the methods have different parameters, so please check the parameters for the method you wish to use, e.g., for method = 'highs-ipm'. Also, note that the 'integrality' and 'bounds' options should never be specified within ``'scipy_options'`` and should instead be specified using CVXPY.
 
-`PDLP`_ options:
+    * The main advantage of this solver is its ability to use the `HiGHS`_ LP and MIP solvers, which are coded in C++. However, these require versions of SciPy larger than 1.6.1 and 1.9.0, respectively. To use the `HiGHS`_ LP solvers, simply set the method parameter to 'highs-ds' (for dual-simplex), 'highs-ipm' (for interior-point method) or 'highs' (which will choose either 'highs-ds' or 'highs-ipm' for you). To use the `HiGHS`_ MIP solver, leave the method parameter unspecified or set it explicitly to 'highs'.
 
-``'time_limit_sec'``
-    Time limit for the solve, in seconds.
+.. dropdown:: `PDLP`_ options:
 
-``'parameters_proto'``
-    A `ortools.pdlp.solvers_pb2.PrimalDualHybridGradientParams` protocol buffer message.
-    For the definition of PrimalDualHybridGradientParams, see
-    `here <https://github.com/google/or-tools/blob/a3ef28e824ee84a948796dffbb8254e67714cb56/ortools/pdlp/solvers.proto#L150>`_.
+    ``'time_limit_sec'``
+        Time limit for the solve, in seconds.
 
-`GUROBI`_ options:
+    ``'parameters_proto'``
+        A `ortools.pdlp.solvers_pb2.PrimalDualHybridGradientParams` protocol buffer message.
+        For the definition of PrimalDualHybridGradientParams, see
+        `here <https://github.com/google/or-tools/blob/a3ef28e824ee84a948796dffbb8254e67714cb56/ortools/pdlp/solvers.proto#L150>`_.
 
-Gurobi solver options are specified in CVXPY as keyword arguments. The full list of Gurobi parameters with defaults is listed `here <https://www.gurobi.com/documentation/9.1/refman/parameters.html>`_.
+.. dropdown:: `GUROBI`_ options:
 
-In addition to Gurobi's parameters, the following options are available:
+    Gurobi solver options are specified in CVXPY as keyword arguments. The full list of Gurobi parameters with defaults is listed `here <https://www.gurobi.com/documentation/9.1/refman/parameters.html>`_.
 
-``'env'``
-    Allows for the passage of a Gurobi Environment, which specifies parameters and license information.  Keyword arguments will override any settings in this environment.
+    In addition to Gurobi's parameters, the following options are available:
 
-``reoptimize``
-    A boolean. This is only relevant for problems where GUROBI initially produces an "infeasible or unbounded" status.
-    Its default value is False. If set to True, then if GUROBI produces an "infeasible or unbounded" status, its algorithm
-    parameters are automatically changed and the problem is re-solved in order to determine its precise status.
+    ``'env'``
+        Allows for the passage of a Gurobi Environment, which specifies parameters and license information.  Keyword arguments will override any settings in this environment.
 
-`CLARABEL`_ options:
+    ``reoptimize``
+        A boolean. This is only relevant for problems where GUROBI initially produces an "infeasible or unbounded" status.
+        Its default value is False. If set to True, then if GUROBI produces an "infeasible or unbounded" status, its algorithm
+        parameters are automatically changed and the problem is re-solved in order to determine its precise status.
 
-``'max_iter'``
-    maximum number of iterations (default: 50).
+.. dropdown:: `CLARABEL`_ options:
 
-``'time_limit'``
-    time limit in seconds (default: 0.0, giving no limit).
+    ``'max_iter'``
+        maximum number of iterations (default: 50).
 
-For others see `CLARABEL documentation <https://oxfordcontrol.github.io/ClarabelDocs/stable/api_settings/>`_.
+    ``'time_limit'``
+        time limit in seconds (default: 0.0, giving no limit).
 
+    For others see `CLARABEL documentation <https://oxfordcontrol.github.io/ClarabelDocs/stable/api_settings/>`_.
 
-`XPRESS`_ options:
+.. dropdown::  `XPRESS`_ options:
 
-``'save_iis'``
-    Whether (and how many) Irreduceable Infeasible Subsystems
-    (IISs) should be saved in the event a problem is found to be
-    infeasible. If 0 (default), no IIS is saved; if negative, all
-    IISs are stored; if a positive ``'k>0'``, at most ``'k'`` IISs
-    are saved.
+    ``'save_iis'``
+        Whether (and how many) Irreduceable Infeasible Subsystems
+        (IISs) should be saved in the event a problem is found to be
+        infeasible. If 0 (default), no IIS is saved; if negative, all
+        IISs are stored; if a positive ``'k>0'``, at most ``'k'`` IISs
+        are saved.
 
-``'write_mps'``
-    Filename (with extension ``'.mps'``) in which Xpress will save
-    the quadratic or conic problem.
+    ``'write_mps'``
+        Filename (with extension ``'.mps'``) in which Xpress will save
+        the quadratic or conic problem.
 
-``'maxtime'``
-    Time limit in seconds (must be integer).
+    ``'maxtime'``
+        Time limit in seconds (must be integer).
 
-All controls of the Xpress Optimizer can be specified within the ``'solve'``
-command. For all controls see `FICO Xpress Optimizer manual <https://www.fico.com/fico-xpress-optimization/docs/dms2019-03/solver/optimizer/HTML/chapter7.html>`_.
+    All controls of the Xpress Optimizer can be specified within the ``'solve'``
+    command. For all controls see `FICO Xpress Optimizer manual <https://www.fico.com/fico-xpress-optimization/docs/dms2019-03/solver/optimizer/HTML/chapter7.html>`_.
 
-`PIQP`_ options:
+.. dropdown:: `PIQP`_ options:
 
-``'backend'``
-    solver backend [dense, sparse] (default: sparse).
+    ``'backend'``
+        solver backend [dense, sparse] (default: sparse).
 
-``'max_iter'``
-    maximum number of iterations (default: 250).
+    ``'max_iter'``
+        maximum number of iterations (default: 250).
 
-``'eps_abs'``
-    absolute accuracy (default: 1e-8).
+    ``'eps_abs'``
+        absolute accuracy (default: 1e-8).
 
-``'eps_rel'``
-    relative accuracy (default: 1e-9).
+    ``'eps_rel'``
+        relative accuracy (default: 1e-9).
 
-For others see `PIQP documentation <https://predict-epfl.github.io/piqp/interfaces/settings>`_.
+    For others see `PIQP documentation <https://predict-epfl.github.io/piqp/interfaces/settings>`_.
 
 Getting the standard form
 -------------------------
