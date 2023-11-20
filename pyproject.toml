@@ -19,15 +19,7 @@ testpaths = [
 
 [build-system]
 requires = [
-    "numpy>=1.17,<1.18; python_version=='3.8' and platform_machine!='aarch64'",
-    "numpy>=1.19.2,<1.20; python_version=='3.8' and platform_machine=='aarch64'",
-    "numpy>=1.19,<1.20; python_version=='3.9' and (platform_machine not in 'arm64|aarch64' or platform_system!='Darwin')",
-    "numpy>=1.19.2,<1.20; python_version=='3.9' and platform_machine=='aarch64'",
-    "numpy>=1.21.4,<1.22; python_version=='3.9' and (platform_machine=='arm64' and platform_system=='Darwin')",
-    "numpy>=1.21,<1.22; python_version=='3.10' and (platform_machine!='arm64' or platform_system!='Darwin')",
-    "numpy>=1.21.4,<1.22; python_version=='3.10' and (platform_machine=='arm64' and platform_system=='Darwin')",
-    "numpy>=1.23.4,<1.24; python_version=='3.11'",
-    "numpy>=1.26.0,<1.27; python_version=='3.12'",
+    "oldest-supported-numpy",
     "scipy >= 1.1.0",
     # 68.1.0 Promoted pyproject.toml's [tool.setuptools] out of beta.
     "setuptools>=68.1.0",
@@ -47,7 +39,7 @@ dependencies = [
     "osqp >= 0.6.2",
     "ecos >= 2",
     "clarabel >= 0.5.0",
-    "scs >= 3.0",
+    "scs @ git+https://github.com/bodono/scs-python.git",
     "numpy >= 1.15",
     "scipy >= 1.1.0",
     "pybind11"
