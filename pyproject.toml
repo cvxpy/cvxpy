@@ -47,7 +47,7 @@ dependencies = [
     "osqp >= 0.6.2",
     "ecos >= 2",
     "clarabel >= 0.5.0",
-    "scs >= 3.0",
+    "scs @ git+https://github.com/bodono/scs-python.git",
     "numpy >= 1.15",
     "scipy >= 1.1.0",
     "pybind11"
