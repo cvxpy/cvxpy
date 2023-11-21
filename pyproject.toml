@@ -64,7 +64,7 @@ dynamic = ["version"]
 [project.optional-dependencies]
 # Solver names as in cvxpy.settings = pip-installable distribution providing it
 CBC = ["cylp>=0.91.5"]
-CLARABEL = ["clarabel"]
+CLARABEL = []
 CVXOPT = ["cvxopt"]
 DIFFCP = ["diffcp"]
 ECOS = []
