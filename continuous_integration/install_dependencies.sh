@@ -52,7 +52,8 @@ if [[ "$RUNNER_OS" != "Windows" ]]; then
 fi
 
 # SCIP only works with scipy >= 1.5 due to dependency conflicts when installing on Linux/macOS
-if [[ "$PYTHON_VERSION" == "3.9" ]] || [[ "$RUNNER_OS" == "Windows" ]]; then
+# TODO make work on linux and mac.
+if [[ "$PYTHON_VERSION" == "3.9" ]] && [[ "$RUNNER_OS" == "Windows" ]]; then
   conda install pyscipopt
 fi
 
