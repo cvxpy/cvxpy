@@ -122,7 +122,7 @@ jobs:
           platforms: all
 
       - name: Build wheels
-        if: ${{env.USE_OPENMP != 'True'}}
+        if: ${{github.event_name == 'push' && env.USE_OPENMP != 'True'}}
         env:
           CIBW_BUILD: "cp3${{env.PYTHON_SUBVERSION}}-*"
           CIBW_SKIP: "*-win32 *-manylinux_i686 *-musllinux*"
@@ -131,13 +131,13 @@ jobs:
         uses: pypa/cibuildwheel@v2.16.2
 
       - name: Build source
-        if: ${{env.SINGLE_ACTION_CONFIG == 'True'}}
+        if: ${{github.event_name == 'push' && env.SINGLE_ACTION_CONFIG == 'True'}}
         run: |
           pip install build
           python -m build --sdist -o wheelhouse
 
       - name: Check wheels
-        if: ${{env.USE_OPENMP != 'True'}}
+        if: ${{github.event_name == 'push' &&  env.USE_OPENMP != 'True'}}
         shell: bash
         run: |
           python -m pip install --upgrade twine
@@ -220,6 +220,7 @@ jobs:
           platforms: all
 
       - name: Build wheels
+        if: ${{github.event_name == 'push'}}
         env:
           CIBW_BUILD: "cp3${{env.PYTHON_SUBVERSION}}-*"
           CIBW_SKIP: "*-win32 *-manylinux_i686 *-musllinux*"
@@ -228,13 +229,14 @@ jobs:
         uses: pypa/cibuildwheel@v2.16.2
 
       - name: Build source
-        if: ${{ env.SINGLE_ACTION_CONFIG == 'True'}}
+        if: ${{github.event_name == 'push' && env.SINGLE_ACTION_CONFIG == 'True'}}
         run: |
           pip install build
           python -m build --sdist -o wheelhouse
 
       - name: Check wheels
         shell: bash
+        if: ${{github.event_name == 'push'}}
         run: |
           python -m pip install --upgrade twine
           twine check wheelhouse/*
