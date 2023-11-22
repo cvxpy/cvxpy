@@ -196,16 +196,6 @@ jobs:
           echo "PYTHON_SUBVERSION=$(echo $PYTHON_VERSION | cut -c 3-)" >> $GITHUB_ENV
           echo "DEPLOY=$( [[ $GITHUB_EVENT_NAME == 'push' && $GITHUB_REF == 'refs/tags'* ]] && echo 'True' || echo 'False' )" >> $GITHUB_ENV
 
-      - uses: conda-incubator/setup-miniconda@v2
-        with:
-          auto-update-conda: true
-          python-version: ${{ matrix.python-version }}
-          channels: conda-forge,anaconda
-
-      - name: Install openblas
-        shell: bash
-        run: conda install openblas
-
       - name: Adapt pyproject.toml
         shell: bash
         run: |
