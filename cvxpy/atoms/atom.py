@@ -14,8 +14,6 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 import abc
-from enum import Enum
-from functools import partial
 from typing import TYPE_CHECKING, List, Tuple
 
 if TYPE_CHECKING:
@@ -31,37 +29,11 @@ from cvxpy.expressions import cvxtypes
 
 #from cvxpy.expressions.constants import Constant #TODO (Amit): This was in the original code
 from cvxpy.expressions.constants.constant import Constant
-from cvxpy.expressions.constants.parameter import Parameter
 from cvxpy.expressions.expression import Expression
-from cvxpy.expressions.variable import Variable
 from cvxpy.utilities import performance_utils as perf
 from cvxpy.utilities.deterministic import unique_list
 
 #from cvxpy.atoms.affine.binary_operators import MulExpression
-
-VAR_TYPE = Enum("VAR_TYPE", "VARIABLE_PARAMETER CONSTANT EXPRESSION")
-
-class VariablesDict():
-    """ Helper class that contains a dictionary from a non-constant leaf to an index in *args,
-    with a safe add method."""
-    def __init__(self):
-        self.vars_dict = dict()
-    def add_var(self, var):
-        """
-        var is expected to be either a cp.Variable or a cp.Parameter, but is not enforced.
-        """
-        if var not in self.vars_dict:
-            self.vars_dict[var] = len(self.vars_dict)
-
-    def has_type_in_keys(self, look_type: type):
-        """
-        This function returns True if one of the keys of this variable is of a certain type,
-        and False otherwise
-        """
-        for var in self.vars_dict.keys():
-            if isinstance(var, look_type):
-                return True
-        return False
 
 class Atom(Expression):
     """ Abstract base class for atoms. """
@@ -503,150 +475,3 @@ class Atom(Expression):
         for arg in self.args:
             atom_list += arg.atoms()
         return unique_list(atom_list + [type(self)])
-
-    def apply_torch_numeric(self, values):
-        """
-        This function returns self.torch_numeric(values) if it exists,
-        and self.numeric(values) otherwise.
-        """
-        if hasattr(self, "torch_numeric"):
-            return self.torch_numeric(values)
-        else:
-            return self.numeric(values)
-
-
-    def gen_torch_exp(self):
-        """ This function generates a torch expression.
-        The order of the arguments is as it appears in self.args (from left to right).
-        Also returns vars_dict to help keep track of the order of the variables.
-        """
-        import torch
-        def _gen_consts_vars(self, vars_dict):
-            """ This is a helper function that generates the index -> (value, type) dictionary. """
-            ind_to_value_type = dict() #Local dictionary
-            for i, arg in enumerate(self.args):
-                if isinstance(arg, Constant):
-                    ind_to_value_type[i] = (torch.tensor(arg.value, dtype=torch.float64),
-                                            VAR_TYPE.CONSTANT)
-                elif isinstance(arg, Parameter) or isinstance(arg, Variable):
-                    ind_to_value_type[i] = (arg, VAR_TYPE.VARIABLE_PARAMETER)
-                    vars_dict.add_var(arg)
-                else:
-                    ind_to_value_type[i] = (arg, VAR_TYPE.EXPRESSION)
-                    _gen_consts_vars(arg, vars_dict)
-            return ind_to_value_type
-        
-        def wrapped_func(self, ind_to_value_type, vars_dict, *args):
-            def transpose_if_matmul(self, res, should_transpose):
-                """
-                This function transposes the second element if the wrapped function is a dot product
-                between two vectors. While transposing a vector in CVXPY does nothing, this function
-                is important because it helps overloading this function to the case where the
-                one of the elements is a matrix, where each row is a vector to be multiplied with.
-                """
-
-                def is_matmul(self):
-                    """
-                    This function checks if self is a valid matrix multiplication
-                    """
-                    from cvxpy.atoms.affine.binary_operators import MulExpression
-                    if not isinstance(self, MulExpression):
-                        return False
-                    #Some subclasses of MulExpressions are not Matrix multiplications, so check
-                    #if the current object is a MulExpression but not a subclass
-                    if issubclass(type(self), MulExpression) and type(self) != MulExpression:
-                        return False
-                    return True
-
-                def check_should_transpose(should_transpose):
-                    """
-                    This is a helper function that determines if transpose should happen, based
-                    on the CVXPY types.
-                    """
-                    if len(should_transpose) != 2: #Only support a dot product, hence two elements
-                        return False
-                    return all(should_transpose)
-                
-                def is_valid_input(res):
-                    """
-                    This function checks if res is valid for transpose, and if it does, returns
-                    the ndims list.
-                    """
-                    ndims = None
-                    valid = False
-
-                    #######################
-                    #Check input validity
-                    #######################
-                    #Transpose only a dot product between two elements
-                    if len(res) != 2:
-                        return valid, ndims
-                    
-                    #Work only on objects with ndim (torch/numpy/cvxpy etc.) and ndim==1
-                    ndims = [0]*2
-                    for i, vec in enumerate(res):
-                        if not hasattr(vec, "ndim"):
-                            return valid, ndims
-                        if vec.ndim >2:
-                            return #Only deal with scalars, vectors, or matrices
-                        ndims[i] = vec.ndim
-
-                    if max(ndims)<2:
-                        #No need to transpose scalars and vectors
-                        #If both elements are matrices, do not transpose -
-                        # we only make a vector-by-matrix compatible.
-                        return valid, ndims 
-                    if min(ndims)==2:
-                        return valid, ndims
-                    valid = True
-                    return valid, ndims
-
-                if not is_matmul(self):
-                    return
-                if not check_should_transpose(should_transpose):
-                    return
-                valid, ndims = is_valid_input(res)
-                if not valid:
-                    return
-                matrix_ind = ndims.index(2)
-                #Since ndims is a vector with 2 elements, 1-matrix_ind returns the other index
-                vector_ind = 1-matrix_ind
-                if res[vector_ind].shape[0] == res[matrix_ind].shape[matrix_ind]:
-                    res[matrix_ind] = res[matrix_ind].T
-
-            def should_transpose(curr_arg):
-                """
-                This is a helper function that determines if an element should be transposed for
-                matrix multiplication (allows broadcasting vectors into matrices)
-                """
-                if curr_arg[1]==VAR_TYPE.CONSTANT:
-                    return False
-                return curr_arg[0].ndim==1
-            res =  []
-            #In order to support dot products of vectors,
-            #where one vector is represented by a matrix, we need to see if:
-            #1. The operation is matmul
-            #2. between two vectors (variables/parameters with ndim==1)
-            #These checks should happen on the original variables/parameters,
-            #and NOT on the elements of args.
-            #So the transpose happens only if should_tranpose contains two Trues.
-            transposable_elements = []
-            #Iterate over the range instead of the dictionary directly:
-            #dictionaries have no order, but we must iterate in order
-            for ind in range(len(ind_to_value_type)): 
-                curr_arg = ind_to_value_type[ind]
-                if curr_arg[1]==VAR_TYPE.CONSTANT:
-                    res.append(curr_arg[0])
-                elif curr_arg[1]==VAR_TYPE.VARIABLE_PARAMETER:
-                    res.append(args[vars_dict.vars_dict[curr_arg[0]]])
-                else:
-                    rec_ind_to_value_type = _gen_consts_vars(curr_arg[0], vars_dict)
-                    res.append(wrapped_func(curr_arg[0], rec_ind_to_value_type, vars_dict, *args))
-                transposable_elements.append(should_transpose(curr_arg))
-            #If this is a matrix multiplicaiton operation between 2 elements, transpose the second.
-            #This helps with overloading this function to be used with matrices.
-            transpose_if_matmul(self, res, transposable_elements)
-            return self.apply_torch_numeric(res)
-        vars_dict = VariablesDict()
-        ind_to_value_type = _gen_consts_vars(self, vars_dict)
-        return partial(wrapped_func, self, ind_to_value_type, vars_dict), vars_dict
