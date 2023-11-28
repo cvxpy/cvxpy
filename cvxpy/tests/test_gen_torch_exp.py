@@ -38,24 +38,34 @@ class TestGenTorchExp(BaseTest):
             exp10 = self.c
             exp11 = self.x+2*self.w+3*self.c
 
-            torch_exp1, _ = exp1.gen_torch_exp()
-            torch_exp2, _ = exp2.gen_torch_exp()
-            torch_exp3, _ = exp3.gen_torch_exp()
-            torch_exp4, _ = exp4.gen_torch_exp()
-            torch_exp5, _ = exp5.gen_torch_exp()
-            torch_exp6, _ = exp6.gen_torch_exp()
-            torch_exp7, _ = exp7.gen_torch_exp()
+            torch_exp1,  _ = exp1.gen_torch_exp()
+            torch_exp2,  _ = exp2.gen_torch_exp()
+            torch_exp3,  _ = exp3.gen_torch_exp()
+            torch_exp4,  _ = exp4.gen_torch_exp()
+            torch_exp5,  _ = exp5.gen_torch_exp()
+            torch_exp6,  _ = exp6.gen_torch_exp()
+            torch_exp7,  _ = exp7.gen_torch_exp()
+            torch_exp8,  _ = exp8.gen_torch_exp()
+            torch_exp9,  _ = exp9.gen_torch_exp()
+            torch_exp10, _ = exp10.gen_torch_exp()
+            torch_exp11_unordered, _ = exp11.gen_torch_exp()
+            torch_exp11, _ = exp11.gen_torch_exp(provided_vars_list=[self.w, self.x])
 
-            test1 = torch_exp1(5*torch.ones(self.n, dtype=torch.float64),
+            test1  = torch_exp1(5*torch.ones(self.n, dtype=torch.float64),
                                torch.tensor([1.,2.,3.], dtype=torch.float64))
             test2  = torch_exp2(1*torch.ones(self.n, dtype=torch.float64),
                                torch.tensor([1.,2.,3.], dtype=torch.float64))
             test3  = torch_exp3(2*torch.ones(self.n, dtype=torch.float64),
                                torch.tensor([2.,1.,2.], dtype=torch.float64))
-            test4 = torch_exp4(self.t1, self.t2)
-            test5 = torch_exp5(self.t1, self.t2)
-            test6 = torch_exp6(self.T1, self.T2)
-            test7 = torch_exp7(torch.tensor(self.t1), torch.tensor(self.t2))
+            test4  = torch_exp4(self.t1, self.t2)
+            test5  = torch_exp5(self.t1, self.t2)
+            test6  = torch_exp6(self.T1, self.T2)
+            test7  = torch_exp7(torch.tensor(self.t1), torch.tensor(self.t2))
+            test8  = torch_exp8(self.t1)
+            test9  = torch_exp9(self.t1)
+            test10 = torch_exp10()
+            test11_unordered = torch_exp11_unordered(1,2)
+            test11 = torch_exp11(1, 2)
 
             self.assertTrue(all(test1==torch.tensor([15., 17., 19.])))
             self.assertTrue(all(test2==torch.tensor([12, 13, 14])))
@@ -64,47 +74,8 @@ class TestGenTorchExp(BaseTest):
             self.assertTrue(all(np.isclose(test4, test5))) 
             self.assertTrue((test6==self.n*torch.ones((self.m,self.m))).all())
             self.assertTrue(torch.all(test7==torch.tensor(self.t1)@(3*torch.tensor(self.t2))).item())
-
-    # def test_gen_torch_exp(self):
-    #         #Tests the functionality of gen_torch_exp
-    #         n = 3
-    #         m = 2
-    #         x = cp.Variable(n)
-    #         w = cp.Parameter(n)
-    #         w.value=np.ones(n)
-    #         Q = np.array([[2,2,1],[1,-1,2],[-1,-1,1]], dtype=np.float64) #3x3
-    #         a = 3*np.ones(n)
-    #         t1 = np.random.randn(n)
-    #         t2 = np.random.randn(n)
-    #         T1 = np.ones((m,n)) #2x3
-    #         T2 = np.ones((m,n)) #2x3
-    #         X = cp.Variable((m,n))
-    #         Y = cp.Parameter((m,n))
-
-    #         exp1 = x+w+a+x+w
-    #         exp2 = x+w+a+x@w+x
-    #         exp3 = cp.norm(Q@x+w+a)
-    #         exp4 = x-w
-    #         exp5 = w-x
-    #         exp6 = X@Y.T
-
-    #         torch_exp1, _ = exp1.gen_torch_exp()
-    #         torch_exp2, _ = exp2.gen_torch_exp()
-    #         torch_exp3, _ = exp3.gen_torch_exp()
-    #         torch_exp4, _ = exp4.gen_torch_exp()
-    #         torch_exp5, _ = exp5.gen_torch_exp()
-    #         torch_exp6, _ = exp6.gen_torch_exp()
-
-    #         test1 = torch_exp1(5*torch.ones(n), torch.tensor([1,2,3]))
-    #         test2 = torch_exp2(1*torch.ones(n), torch.tensor([1,2,3]))
-    #         test3 = torch_exp3(2*torch.ones(n), torch.tensor([2.,1.,2.]))
-    #         test4 = torch_exp4(t1, t2)
-    #         test5 = torch_exp5(t1, t2)
-    #         test6 = torch_exp6(T1, T2)
-
-    #         self.assertTrue(all(test1==torch.tensor([15., 17., 19.])))
-    #         self.assertTrue(all(test2==torch.tensor([12, 13, 14])))
-    #         self.assertTrue(np.isclose(test3, 17.2626))
-    #         #Variables and parameters are treated similarly
-    #         self.assertTrue(all(np.isclose(test4, test5))) 
-    #         self.assertTrue((test6==n*np.ones((m,m))).all())
+            self.assertTrue(np.all(self.t1==test8))
+            self.assertTrue(np.all(self.t1==test9))
+            self.assertTrue(torch.all(test10==self.n).item())
+            self.assertTrue(torch.all(test11_unordered==14*torch.ones(self.n)).item())
+            self.assertTrue(torch.all(test11==13*torch.ones(self.n)).item())
