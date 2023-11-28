@@ -11,28 +11,14 @@ def quantum_rel_entr_canon(expr, args):
     n = X.shape[0]
     Imat = np.eye(n)
     e = Imat.ravel().reshape(n ** 2, 1)
-    if (not X.is_real()) or (not Y.is_real()):
-        assert X.is_hermitian()
-        assert Y.is_hermitian()
-        first_arg = cp.atoms.affine.wraps.hermitian_wrap(kron(X, Imat))
-        second_arg = cp.atoms.affine.wraps.hermitian_wrap(kron(Imat, Y.conj()))
-        epi = Variable(shape=first_arg.shape, hermitian=True)
-        # TODO
-        #   1. appropriately canonicalize first_arg, second_arg, and epi
-        #      into real and imaginary parts.
-        #   2. call the op_rel_entr_cone_canon function from
-        #       cvxpy/reductions/complex2real/canonicalizers/matrix_canon.py
-        #   3. extract the equivalent real OpRelEntrConeQuad constraint.
-        raise NotImplementedError('Finish me!')
-    else:
-        assert X.is_symmetric()
-        assert Y.is_symmetric()
-        first_arg = cp.atoms.affine.wraps.symmetric_wrap(kron(X, Imat))
-        second_arg = cp.atoms.affine.wraps.symmetric_wrap(kron(Imat, Y))
-        epi = Variable(shape=first_arg.shape, symmetric=True)
-        orec_con = OpRelEntrConeQuad(first_arg, second_arg, epi,
-                                     expr.quad_approx[0], expr.quad_approx[1]
-        )
+    assert X.is_symmetric()
+    assert Y.is_symmetric()
+    first_arg = cp.atoms.affine.wraps.symmetric_wrap(kron(X, Imat))
+    second_arg = cp.atoms.affine.wraps.symmetric_wrap(kron(Imat, Y))
+    epi = Variable(shape=first_arg.shape, symmetric=True)
+    orec_con = OpRelEntrConeQuad(first_arg, second_arg, epi,
+                                 expr.quad_approx[0], expr.quad_approx[1]
+    )
     # at this point we can be certain that we're dealing with an OpRelEnterConeQuad
     # constraint with real inputs. Canonicalize it, and return the results!
     main_con, aux_cons = cp.reductions.cone2cone.approximations.OpRelEntrConeQuad_canon(
