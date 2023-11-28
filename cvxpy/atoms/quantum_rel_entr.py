@@ -68,7 +68,7 @@ class quantum_rel_entr(Atom):
     def is_atom_convex(self) -> bool:
         """Is the atom convex?
         """
-        return True
+        return False
 
     def shape_from_args(self) -> Tuple[int, ...]:
         """Returns the shape of the expression.
@@ -78,7 +78,7 @@ class quantum_rel_entr(Atom):
     def is_atom_concave(self) -> bool:
         """Is the atom concave?
         """
-        return False
+        return True
 
     def is_incr(self, idx) -> bool:
         """Is the composition non-decreasing in argument idx?
