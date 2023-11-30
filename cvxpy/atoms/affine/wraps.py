@@ -37,6 +37,9 @@ class Wrap(AffAtom):
         """
         return values[0]
 
+    def is_complex(self) -> bool:
+        return self.args[0].is_complex()
+
     def shape_from_args(self) -> Tuple[int, ...]:
         """Shape of input.
         """
@@ -64,6 +67,20 @@ class Wrap(AffAtom):
         return (arg_objs[0], [])
 
 
+class nonneg_wrap(Wrap):
+    """Asserts that the expression is nonnegative.
+    """
+    def is_nonneg(self) -> bool:
+        return True
+
+
+class nonpos_wrap(Wrap):
+    """Asserts that the expression is nonpositive.
+    """
+    def is_nonpos(self) -> bool:
+        return True
+
+
 class psd_wrap(Wrap):
     """Asserts that a square matrix is PSD.
     """
@@ -81,6 +98,9 @@ class psd_wrap(Wrap):
 
     def is_nsd(self) -> bool:
         return False
+
+    def is_symmetric(self) -> bool:
+        return not self.args[0].is_complex()
 
     def is_hermitian(self) -> bool:
         return True

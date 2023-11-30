@@ -29,7 +29,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ ubuntu-20.04, macos-11, windows-2022 ]
-        python-version: [ 3.7, 3.9, "3.10", "3.11"]
+        python-version: [ 3.9, "3.10", "3.11"]
         include:
           - os: ubuntu-20.04
             python-version: 3.8
@@ -85,7 +85,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ ubuntu-20.04, macos-11, windows-2022 ]
-        python-version: [ 3.7, 3.9, "3.10", "3.11" ]
+        python-version: [ 3.9, "3.10", "3.11" ]
         include:
           - os: ubuntu-20.04
             python-version: 3.8
@@ -104,8 +104,8 @@ jobs:
       PYPI_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
 
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-python@v2
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
         with:
           python-version: ${{ matrix.python-version }}
 
@@ -128,7 +128,7 @@ jobs:
           CIBW_SKIP: "*-win32 *-manylinux_i686 *-musllinux*"
           CIBW_ARCHS_MACOS: x86_64 universal2
           CIBW_ARCHS_LINUX: auto aarch64
-        uses: pypa/cibuildwheel@v2.12.0
+        uses: pypa/cibuildwheel@v2.16.2
 
       - name: Build source
         if: ${{github.event_name == 'push' && env.SINGLE_ACTION_CONFIG == 'True'}}
@@ -164,7 +164,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ ubuntu-20.04, macos-11, windows-2022 ]
-        python-version: [ 3.7, 3.9, "3.10", "3.11" ]
+        python-version: [ 3.9, "3.10", "3.11", "3.12" ]
         include:
           - os: ubuntu-20.04
             python-version: 3.8
@@ -186,8 +186,8 @@ jobs:
       PYPI_BASE_PASSWORD: ${{ secrets.PYPI_BASE_PASSWORD }}
 
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-python@v2
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
         with:
           python-version: ${{ matrix.python-version }}
       - name: Set Additional Envs
@@ -196,15 +196,16 @@ jobs:
           echo "PYTHON_SUBVERSION=$(echo $PYTHON_VERSION | cut -c 3-)" >> $GITHUB_ENV
           echo "DEPLOY=$( [[ $GITHUB_EVENT_NAME == 'push' && $GITHUB_REF == 'refs/tags'* ]] && echo 'True' || echo 'False' )" >> $GITHUB_ENV
 
-      - name: Adapt setup.py
+      - name: Adapt pyproject.toml
         shell: bash
         run: |
           # Mac has a different syntax for sed -i, this works across oses
-          sed -i.bak -e "s/name='cvxpy',/name='cvxpy-base',/g" setup.py
-          sed -i.bak '/osqp >= /d' setup.py
-          sed -i.bak '/ecos >= /d' setup.py
-          sed -i.bak '/scs >= /d' setup.py
-          rm -rf setup.py.bak
+          sed -i.bak -e "s/name='cvxpy',/name='cvxpy-base',/g" pyproject.toml
+          sed -i.bak '/clarabel >= /d' pyproject.toml
+          sed -i.bak '/osqp >= /d' pyproject.toml
+          sed -i.bak '/ecos >= /d' pyproject.toml
+          sed -i.bak '/scs >= /d' pyproject.toml
+          rm -rf pyproject.toml.bak
 
       - name: Verify that we can build by pip-install on each OS.
         if: ${{env.PIP_INSTALL == 'True'}}
@@ -225,7 +226,7 @@ jobs:
           CIBW_SKIP: "*-win32 *-manylinux_i686 *-musllinux*"
           CIBW_ARCHS_MACOS: x86_64 universal2
           CIBW_ARCHS_LINUX: auto aarch64
-        uses: pypa/cibuildwheel@v2.12.0
+        uses: pypa/cibuildwheel@v2.16.2
 
       - name: Build source
         if: ${{github.event_name == 'push' && env.SINGLE_ACTION_CONFIG == 'True'}}

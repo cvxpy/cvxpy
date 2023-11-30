@@ -44,4 +44,4 @@ Here we list other available transforms.
 
 .. automethod:: cvxpy.transforms.linearize
 
-.. automethod:: cvxpy.transforms.partial_optimize
+.. automethod:: cvxpy.transforms.partial_optimize.partial_optimize

@@ -93,6 +93,9 @@ __BINARY_EXPRESSION_UFUNCS__ = {
 }
 
 
+ExpressionLike = "Expression | np.typing.ArrayLike"
+
+
 class Expression(u.Canonical):
     """A mathematical expression in a convex optimization problem.
 
@@ -559,7 +562,7 @@ class Expression(u.Canonical):
         return lh_expr, rh_expr
 
     @_cast_other
-    def __add__(self, other: "Expression") -> "Expression":
+    def __add__(self, other: ExpressionLike) -> "Expression":
         """Expression : Sum two expressions.
         """
         if isinstance(other, cvxtypes.constant()) and other.is_zero():
@@ -568,7 +571,7 @@ class Expression(u.Canonical):
         return cvxtypes.add_expr()([self, other])
 
     @_cast_other
-    def __radd__(self, other: "Expression") -> "Expression":
+    def __radd__(self, other: ExpressionLike) -> "Expression":
         """Expression : Sum two expressions.
         """
         if isinstance(other, cvxtypes.constant()) and other.is_zero():
@@ -576,19 +579,19 @@ class Expression(u.Canonical):
         return other + self
 
     @_cast_other
-    def __sub__(self, other: "Expression") -> "Expression":
+    def __sub__(self, other: ExpressionLike) -> "Expression":
         """Expression : The difference of two expressions.
         """
         return self + -other
 
     @_cast_other
-    def __rsub__(self, other: "Expression") -> "Expression":
+    def __rsub__(self, other: ExpressionLike) -> "Expression":
         """Expression : The difference of two expressions.
         """
         return other - self
 
     @_cast_other
-    def __mul__(self, other: "Expression") -> "Expression":
+    def __mul__(self, other: ExpressionLike) -> "Expression":
         """Expression : The product of two expressions.
         """
         if self.shape == () or other.shape == ():
@@ -622,7 +625,7 @@ class Expression(u.Canonical):
             return cvxtypes.matmul_expr()(self, other)
 
     @_cast_other
-    def __matmul__(self, other: "Expression") -> "Expression":
+    def __matmul__(self, other: ExpressionLike) -> "Expression":
         """Expression : Matrix multiplication of two expressions.
         """
         if self.shape == () or other.shape == ():
@@ -639,13 +642,13 @@ class Expression(u.Canonical):
         return cvxtypes.matmul_expr()(self, other)
 
     @_cast_other
-    def __truediv__(self, other: "Expression") -> "Expression":
+    def __truediv__(self, other: ExpressionLike) -> "Expression":
         """Expression : One expression divided by another.
         """
         return self.__div__(other)
 
     @_cast_other
-    def __div__(self, other: "Expression") -> "Expression":
+    def __div__(self, other: ExpressionLike) -> "Expression":
         """Expression : One expression divided by another.
         """
         self, other = self.broadcast(self, other)
@@ -656,25 +659,25 @@ class Expression(u.Canonical):
                              self.shape, other.shape))
 
     @_cast_other
-    def __rdiv__(self, other: "Expression") -> "Expression":
+    def __rdiv__(self, other: ExpressionLike) -> "Expression":
         """Expression : Called for Number / Expression.
         """
         return other / self
 
     @_cast_other
-    def __rtruediv__(self, other: "Expression") -> "Expression":
+    def __rtruediv__(self, other: ExpressionLike) -> "Expression":
         """Expression : Called for Number / Expression.
         """
         return other / self
 
     @_cast_other
-    def __rmul__(self, other: "Expression") -> "Expression":
+    def __rmul__(self, other: ExpressionLike) -> "Expression":
         """Expression : Called for Number * Expression.
         """
         return other * self
 
     @_cast_other
-    def __rmatmul__(self, other: "Expression") -> "Expression":
+    def __rmatmul__(self, other: ExpressionLike) -> "Expression":
         """Expression : Called for matrix @ Expression.
         """
         if self.shape == () or other.shape == ():
@@ -687,25 +690,25 @@ class Expression(u.Canonical):
         return cvxtypes.neg_expr()(self)
 
     @_cast_other
-    def __rshift__(self, other: "Expression") -> PSD:
+    def __rshift__(self, other: ExpressionLike) -> PSD:
         """PSD : Creates a positive semidefinite inequality.
         """
         return PSD(self - other)
 
     @_cast_other
-    def __rrshift__(self, other: "Expression") -> PSD:
+    def __rrshift__(self, other: ExpressionLike) -> PSD:
         """PSD : Creates a positive semidefinite inequality.
         """
         return PSD(other - self)
 
     @_cast_other
-    def __lshift__(self, other: "Expression") -> PSD:
+    def __lshift__(self, other: ExpressionLike) -> PSD:
         """PSD : Creates a negative semidefinite inequality.
         """
         return PSD(other - self)
 
     @_cast_other
-    def __rlshift__(self, other: "Expression") -> PSD:
+    def __rlshift__(self, other: ExpressionLike) -> PSD:
         """PSD : Creates a negative semidefinite inequality.
         """
         return PSD(self - other)
@@ -716,25 +719,25 @@ class Expression(u.Canonical):
 
     # Comparison operators.
     @_cast_other
-    def __eq__(self, other: "Expression"):
+    def __eq__(self, other: ExpressionLike):
         """Equality : Creates a constraint ``self == other``.
         """
         return Equality(self, other)
 
     @_cast_other
-    def __le__(self, other: "Expression"):
+    def __le__(self, other: ExpressionLike):
         """Inequality : Creates an inequality constraint ``self <= other``.
         """
         return Inequality(self, other)
 
-    def __lt__(self, other: "Expression"):
+    def __lt__(self, other: ExpressionLike):
         raise NotImplementedError("Strict inequalities are not allowed.")
 
     @_cast_other
-    def __ge__(self, other: "Expression"):
+    def __ge__(self, other: ExpressionLike):
         return Inequality(other, self)
 
-    def __gt__(self, other: "Expression"):
+    def __gt__(self, other: ExpressionLike):
         raise NotImplementedError("Strict inequalities are not allowed.")
 
     def __array_ufunc__(self, ufunc, method, *args, **kwargs):
@@ -915,3 +918,94 @@ class Expression(u.Canonical):
         vars_dict = VariablesDict(provided_vars_list=provided_vars_list)
         ind_to_value_type = _gen_consts_vars(self, vars_dict)
         return partial(wrapped_func, self, ind_to_value_type, vars_dict), vars_dict
+      
+    def conj(self):
+        """
+        Equivalent to `cp.conj(self)`.
+        """
+        from cvxpy import conj
+        return conj(self)
+
+    def conjugate(self):
+        """
+        Equivalent to `cp.conj(self)`.
+        """
+        from cvxpy import conj
+        return conj(self)
+
+    def cumsum(self, axis=0):
+        """
+        Equivalent to `cp.cumsum(self, axis)`.
+        """
+        from cvxpy import cumsum
+        return cumsum(self, axis)
+
+    def max(self, axis=None, *, keepdims=False):
+        """
+        Equivalent to `cp.max(self, axis, keepdims)`.
+        """
+        from cvxpy import max as max_
+        return max_(self, axis, keepdims)
+
+    def mean(self, axis=None, *, keepdims=False):
+        """
+        Equivalent to `cp.mean(self, axis, keepdims)`.
+        """
+        from cvxpy import mean
+        return mean(self, axis, keepdims)
+
+    def min(self, axis=None, *, keepdims=False):
+        """
+        Equivalent to `cp.min(self, axis, keepdims)`.
+        """
+        from cvxpy import min as min_
+        return min_(self, axis, keepdims)
+
+    def prod(self, axis=None, *, keepdims=False):
+        """
+        Equivalent to `cp.prod(self, axis, keepdims)`.
+        """
+        from cvxpy import prod
+        return prod(self, axis, keepdims)
+
+    def ptp(self, axis=None, *, keepdims=False):
+        """
+        Equivalent to `cp.ptp(self, axis, keepdims)`.
+        """
+        from cvxpy import ptp
+        return ptp(self, axis, keepdims)
+
+    def reshape(self, shape, order='F'):
+        """
+        Equivalent to `cp.reshape(self, shape, order)`.
+        """
+        from cvxpy import reshape
+        return reshape(self, shape, order)
+
+    def std(self, axis=None, *, ddof=0, keepdims=False):
+        """
+        Equivalent to `cp.std(self, axis, keepdims)`.
+        """
+        from cvxpy import std
+        return std(self, axis=axis, ddof=ddof, keepdims=keepdims)
+ 
+    def sum(self, axis=None, *, keepdims=False):
+        """
+        Equivalent to `cp.sum(self, axis, keepdims)`.
+        """
+        from cvxpy import sum as sum_
+        return sum_(self, axis, keepdims)
+
+    def trace(self):
+        """
+        Equivalent to `cp.trace(self)`.
+        """
+        from cvxpy import trace
+        return trace(self)
+
+    def var(self, *, ddof=0):
+        """
+        Equivalent to `cp.var(self)`.
+        """
+        from cvxpy import var
+        return var(self, ddof=ddof)

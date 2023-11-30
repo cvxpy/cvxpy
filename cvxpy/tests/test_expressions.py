@@ -24,7 +24,14 @@ import cvxpy.interface.matrix_utilities as intf
 import cvxpy.settings as s
 from cvxpy import Minimize, Problem
 from cvxpy.atoms.affine.add_expr import AddExpression
-from cvxpy.atoms.affine.wraps import psd_wrap
+from cvxpy.atoms.affine.wraps import (
+    hermitian_wrap,
+    nonneg_wrap,
+    nonpos_wrap,
+    psd_wrap,
+    skew_symmetric_wrap,
+    symmetric_wrap,
+)
 from cvxpy.expressions.constants import Constant, Parameter
 from cvxpy.expressions.variable import Variable
 from cvxpy.tests.base_test import BaseTest
@@ -1462,3 +1469,37 @@ class TestExpressions(BaseTest):
         true_val = (np.transpose(x.value) @ P @ x.value) * a
         assert quad.shape == ()
         self.assertEqual(expr.value, true_val)
+
+    def test_wraps(self) -> None:
+        """Test wrap classes."""
+        x = cp.Variable(2)
+        expr = nonneg_wrap(x)
+        assert expr.is_nonneg()
+
+        expr = nonpos_wrap(x)
+        assert expr.is_nonpos()
+
+        Z = cp.Variable((2, 2))
+        U = cp.Variable((2, 2), complex=True)
+        expr = psd_wrap(Z)
+        assert expr.is_psd()
+        assert not expr.is_complex()
+        assert expr.is_symmetric()
+        assert expr.is_hermitian()
+
+        expr = psd_wrap(U)
+        assert expr.is_psd()
+        assert expr.is_complex()
+        assert not expr.is_symmetric()
+        assert expr.is_hermitian()
+
+        expr = symmetric_wrap(Z)
+        assert expr.is_symmetric()
+        assert expr.is_hermitian()
+
+        expr = skew_symmetric_wrap(Z)
+        assert expr.is_skew_symmetric()
+
+        expr = hermitian_wrap(U)
+        assert expr.is_hermitian()
+

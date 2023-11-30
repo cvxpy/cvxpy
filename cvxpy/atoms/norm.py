@@ -28,7 +28,7 @@ from cvxpy.atoms.sigma_max import sigma_max
 from cvxpy.expressions.expression import Expression
 
 
-def norm(x, p: Union[int, str] = 2, axis=None):
+def norm(x, p: Union[int, str] = 2, axis=None, keepdims: bool = False):
     """Wrapper on the different norm atoms.
 
     Parameters
@@ -41,6 +41,8 @@ def norm(x, p: Union[int, str] = 2, axis=None):
         'fro' (for frobenius), 'nuc' (sum of singular values), np.inf or
         'inf' (infinity norm).
     axis : The axis along which to apply the norm, if any.
+    keepdims: If this is set to True, the axes which are reduced are left 
+        in the result as dimensions with size one.
 
     Returns
     -------
@@ -66,15 +68,16 @@ def norm(x, p: Union[int, str] = 2, axis=None):
             raise RuntimeError('Unsupported matrix norm.')
     else:
         if p == 1 or x.is_scalar():
-            return norm1(x, axis=axis)
+            return norm1(x, axis=axis, keepdims=keepdims)
         elif str(p).lower() == "inf":
-            return norm_inf(x, axis)
+            return norm_inf(x, axis=axis, keepdims=keepdims)
         elif str(p).lower() == "fro":
+            # TODO should not work for vectors.
             return pnorm(vec(x), 2, axis)
         elif isinstance(p, str):
             raise RuntimeError(f'Unsupported norm option {p} for non-matrix.')
         else:
-            return pnorm(x, p, axis)
+            return pnorm(x, p, axis=axis, keepdims=keepdims)
 
 
 def norm2(x, axis=None):

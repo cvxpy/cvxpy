@@ -107,8 +107,8 @@ class Cache:
         self.param_prog = None
         self.inverse_data = None
 
-    def make_key(self, solver, gp, ignore_dpp):
-        return (solver, gp, ignore_dpp)
+    def make_key(self, solver, gp, ignore_dpp, use_quad_obj):
+        return (solver, gp, ignore_dpp, use_quad_obj)
 
     def gp(self):
         return self.key is not None and self.key[1]
@@ -634,8 +634,13 @@ class Problem(u.Canonical):
             raise DPPError("Cannot set enforce_dpp = True and ignore_dpp = True.")
 
         start = time.time()
-        # Cache includes ignore_dpp because it alters compilation.
-        key = self._cache.make_key(solver, gp, ignore_dpp)
+        # Cache includes ignore_dpp and solver_opts['use_quad_obj']
+        # because they alter compilation.
+        if solver_opts is None:
+            use_quad_obj = None
+        else:
+            use_quad_obj = solver_opts.get('use_quad_obj', None)
+        key = self._cache.make_key(solver, gp, ignore_dpp, use_quad_obj)
         if key != self._cache.key:
             self._cache.invalidate()
             solving_chain = self._construct_chain(
@@ -894,7 +899,8 @@ class Problem(u.Canonical):
                                        enforce_dpp=enforce_dpp,
                                        ignore_dpp=ignore_dpp,
                                        canon_backend=canon_backend,
-                                       solver_opts=solver_opts)
+                                       solver_opts=solver_opts,
+                                       specified_solver=solver)
 
     @staticmethod
     def _sort_candidate_solvers(solvers) -> None:
@@ -1015,7 +1021,9 @@ class Problem(u.Canonical):
             s.LOGGER.info(
                     'CVXPY will first compile your problem; then, it will '
                     'invoke a numerical solver to obtain a solution.')
-
+            s.LOGGER.info(
+                    "Your problem is compiled with the %s canonicalization backend.",
+                    s.DEFAULT_CANON_BACKEND if canon_backend is None else canon_backend)
         if requires_grad:
             dpp_context = 'dgp' if gp else 'dcp'
             if qcp:

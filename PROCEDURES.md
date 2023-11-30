@@ -43,6 +43,7 @@ Let's say we're releasing 1.2.0.
    from ``MINOR = 2`` to ``MINOR = 3`` and commit.
    The state of this branch is effectively a pre-release of
    CVXPY 1.3.0.
+5. Update `docs/source/index.rst` to say "Welcome to CVXPY 1.3"
 
 ### Incrementing the MICRO version number (a.k.a., releasing a patch)
 

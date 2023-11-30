@@ -26,6 +26,7 @@ from numpy import linalg as LA
 import cvxpy as cp
 import cvxpy.settings as s
 from cvxpy import Minimize, Problem
+from cvxpy.atoms.errormsg import SECOND_ARG_SHOULD_NOT_BE_EXPRESSION_ERROR_MESSAGE
 from cvxpy.expressions.constants import Constant, Parameter
 from cvxpy.expressions.variable import Variable
 from cvxpy.reductions.solvers.defines import INSTALLED_MI_SOLVERS
@@ -204,6 +205,13 @@ class TestAtoms(BaseTest):
         self.assertTrue(copy.args[0] is self.y)
         self.assertEqual(copy.get_data(), atom.get_data())
 
+        # Error message when geo_mean used incorrectly.
+        with pytest.raises(
+                TypeError, 
+                match=SECOND_ARG_SHOULD_NOT_BE_EXPRESSION_ERROR_MESSAGE
+            ):
+            cp.geo_mean(self.x, self.y)
+
     # Test the harmonic_mean class.
     def test_harmonic_mean(self) -> None:
         atom = cp.harmonic_mean(self.x)
@@ -229,6 +237,10 @@ class TestAtoms(BaseTest):
         self.assertEqual(atom.sign, s.NONNEG)
         expr = cp.norm(self.A, 2, axis=0)
         self.assertEqual(expr.shape, (2,))
+        expr = cp.norm(self.A, 2, axis=0, keepdims=True)
+        self.assertEqual(expr.shape, (1, 2))
+        expr = cp.norm(self.A, 2, axis=1, keepdims=True)
+        self.assertEqual(expr.shape, (2, 1))
 
         atom = cp.pnorm(self.x, p='inf')
         self.assertEqual(atom.shape, tuple())
@@ -736,16 +748,15 @@ class TestAtoms(BaseTest):
                          "Argument to upper_tri must be a square matrix.")
 
     def test_vec_to_upper_tri(self) -> None:
-        from cvxpy.atoms.affine.upper_tri import vec_to_upper_tri
         x = Variable(shape=(3,))
-        X = vec_to_upper_tri(x)
+        X = cp.vec_to_upper_tri(x)
         x.value = np.array([1, 2, 3])
         actual = X.value
         expect = np.array([[1, 2], [0, 3]])
         assert np.allclose(actual, expect)
         y = Variable(shape=(1,))
         y.value = np.array([4])
-        Y = vec_to_upper_tri(y, strict=True)
+        Y = cp.vec_to_upper_tri(y, strict=True)
         actual = Y.value
         expect = np.array([[0, 4], [0, 0]])
         assert np.allclose(actual, expect)
@@ -754,8 +765,27 @@ class TestAtoms(BaseTest):
                              [0, 0, 0, 21],
                              [0, 0, 0, 0]])
         a = np.array([11, 12, 13, 16, 17, 21])
-        A_actual = vec_to_upper_tri(a, strict=True).value
+        A_actual = cp.vec_to_upper_tri(a, strict=True).value
         assert np.allclose(A_actual, A_expect)
+
+        with pytest.raises(ValueError, match="must be a triangular number"):
+            cp.vec_to_upper_tri(cp.Variable(shape=(4)))
+
+        with pytest.raises(ValueError, match="must be a triangular number"):
+            cp.vec_to_upper_tri(cp.Variable(shape=(4)), strict=True)
+
+        with pytest.raises(ValueError, match="must be a vector"):
+            cp.vec_to_upper_tri(cp.Variable(shape=(2, 2)))
+
+        # works with row vectors
+        assert np.allclose(
+            cp.vec_to_upper_tri(np.arange(6)).value, 
+            cp.vec_to_upper_tri(np.arange(6).reshape(1, 6)).value
+        )
+
+        # works with scalars
+        assert np.allclose(cp.vec_to_upper_tri(1, strict=True).value, np.array([[0, 1], [0, 0]]))
+
 
     def test_huber(self) -> None:
         # Valid.
@@ -842,6 +872,10 @@ class TestAtoms(BaseTest):
         copy = atom.copy()
         self.assertTrue(type(copy) is type(atom))
 
+        # Check that sum_largest is PWL so can be canonicalized as a QP.
+        atom = cp.sum_largest(self.x, 2)
+        assert atom.is_pwl()
+
     def test_sum_smallest(self) -> None:
         """Test the sum_smallest atom and related atoms.
         """
@@ -854,6 +888,10 @@ class TestAtoms(BaseTest):
             cp.lambda_sum_smallest(Variable((2, 2)), 2.4)
         self.assertEqual(str(cm.exception),
                          "Second argument must be a positive integer.")
+
+        # Check that sum_smallest is PWL so can be canonicalized as a QP.
+        atom = cp.sum_smallest(self.x, 2)
+        assert atom.is_pwl()
 
     def test_index(self) -> None:
         """Test the copy function for index.
@@ -942,6 +980,75 @@ class TestAtoms(BaseTest):
                          "The first argument to conv must be constant.")
         with pytest.raises(ValueError, match="scalar or 1D"):
             cp.convolve([[0, 1], [0, 1]], self.x)
+
+    def test_ptp(self) -> None:
+        """Test the ptp atom.
+        """
+        a = np.array([[10., -10., 3.0], [6., 0., -1.5]])
+        expr = cp.ptp(a)
+        assert expr.is_nonneg()
+        assert expr.shape == ()
+        assert np.isclose(expr.value, 20.)
+
+        expr = cp.ptp(a, axis=0)
+        assert expr.is_nonneg()
+        assert expr.shape == (3,)
+        assert np.allclose(expr.value, np.array([4, 10, 4.5]))
+
+        expr = cp.ptp(a, axis=1)
+        assert expr.is_nonneg()
+        expr.shape == (2,)
+        assert np.allclose(expr.value, np.array([20., 7.5]))
+
+        expr = cp.ptp(a, 0, True)
+        assert expr.is_nonneg()
+        assert expr.shape == (1, 3)
+        assert np.allclose(expr.value, np.array([[4, 10, 4.5]]))
+
+        expr = cp.ptp(a, 1, True)
+        assert expr.is_nonneg()
+        assert expr.shape == (2, 1)
+        assert np.allclose(expr.value, np.array([[20.], [7.5]]))
+
+        x = cp.Variable(10)
+        expr = cp.ptp(x)
+        assert expr.curvature == 'CONVEX'
+
+    def test_stats(self) -> None:
+        """Test the mean, std, var atoms.
+        """
+        a = np.array([[10., 10., 3.0], [6., 0., 1.5]])
+        expr_mean = cp.mean(a)
+        expr_var = cp.var(a)
+        expr_std = cp.std(a)
+        assert expr_mean.is_nonneg()
+        assert expr_var.is_nonneg()
+        assert expr_std.is_nonneg()
+
+        assert np.isclose(a.mean(), expr_mean.value)
+        assert np.isclose(a.var(), expr_var.value)
+        assert np.isclose(a.std(), expr_std.value)
+
+        for ddof in [0, 1]:
+            expr_var = cp.var(a, ddof=ddof)
+            expr_std = cp.std(a, ddof=ddof)
+
+            assert np.isclose(a.var(ddof=ddof), expr_var.value)
+            assert np.isclose(a.std(ddof=ddof), expr_std.value)
+
+        for axis in [0, 1]:
+            for keepdims in [True, False]:
+                expr_mean = cp.mean(a, axis=axis, keepdims=keepdims)
+                # expr_var = cp.var(a, axis=axis, keepdims=keepdims)
+                expr_std = cp.std(a, axis=axis, keepdims=keepdims)
+
+                assert expr_mean.shape == a.mean(axis=axis, keepdims=keepdims).shape
+                # assert expr_var.shape == a.var(axis=axis, keepdims=keepdims).shape
+                assert expr_std.shape == a.std(axis=axis, keepdims=keepdims).shape
+
+                assert np.allclose(a.mean(axis=axis, keepdims=keepdims), expr_mean.value)
+                # assert np.allclose(a.var(axis=axis, keepdims=keepdims), expr_var.value)
+                assert np.allclose(a.std(axis=axis, keepdims=keepdims), expr_std.value)
 
     def test_partial_optimize_dcp(self) -> None:
         """Test DCP properties of partial optimize.
