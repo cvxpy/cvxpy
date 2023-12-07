@@ -1643,7 +1643,7 @@ on derivatives.
 .. _CBC: https://projects.coin-or.org/Cbc
 .. _CGL: https://projects.coin-or.org/Cgl
 .. _CPLEX: https://www.ibm.com/docs/en/icos
-.. _NAG: https://www.nag.co.uk/nag-library-python/
+.. _NAG: https://nag.com/nag-library/
 .. _OSQP: https://osqp.org/
 .. _PDLP: https://developers.google.com/optimization
 .. _SCIP: https://scip.zib.de/
