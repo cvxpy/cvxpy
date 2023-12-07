@@ -182,7 +182,7 @@ Install with Additional Solver Support
 
     CVXPY supports the NAG solver.
     Simply install NAG such that you can ``import naginterfaces`` in Python.
-    See the `NAG <https://www.nag.co.uk/nag-library-python>`_ website for installation instructions.
+    See the `NAG <https://support.nag.com/numeric/py/nagdoc_latest/readme.html>`_ website for installation instructions.
 
 .. dropdown:: GLOP and PDLP
 
