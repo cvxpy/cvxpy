@@ -74,6 +74,7 @@ from cvxpy.atoms.lambda_max import lambda_max
 from cvxpy.atoms.lambda_min import lambda_min
 from cvxpy.atoms.lambda_sum_largest import lambda_sum_largest
 from cvxpy.atoms.lambda_sum_smallest import lambda_sum_smallest
+from cvxpy.atoms.quantum_cond_entr import quantum_cond_entr
 from cvxpy.atoms.length import length
 from cvxpy.atoms.log_det import log_det
 from cvxpy.atoms.log_sum_exp import log_sum_exp

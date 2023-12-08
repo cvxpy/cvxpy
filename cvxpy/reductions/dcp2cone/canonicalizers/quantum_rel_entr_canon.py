@@ -11,8 +11,8 @@ def quantum_rel_entr_canon(expr, args):
     n = X.shape[0]
     Imat = np.eye(n)
     e = Imat.ravel().reshape(n ** 2, 1)
-    assert X.is_symmetric()
-    assert Y.is_symmetric()
+    # assert X.is_symmetric()
+    # assert Y.is_symmetric()
     first_arg = cp.atoms.affine.wraps.symmetric_wrap(kron(X, Imat))
     second_arg = cp.atoms.affine.wraps.symmetric_wrap(kron(Imat, Y))
     epi = Variable(shape=first_arg.shape, symmetric=True)
@@ -25,7 +25,7 @@ def quantum_rel_entr_canon(expr, args):
         orec_con, None
     )
     constrs = [main_con] + aux_cons
-    return -e.T @ epi @ e, constrs
+    return  e.T @ epi @ e, constrs
 
 
 ### Attempt at implementing smaller canonicalization of P(r_m)

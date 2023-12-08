@@ -20,6 +20,7 @@ from scipy import linalg as LA
 
 from cvxpy.atoms.atom import Atom
 from cvxpy.constraints.constraint import Constraint
+from scipy.stats import entropy
 
 
 class quantum_rel_entr(Atom):
@@ -48,7 +49,16 @@ class quantum_rel_entr(Atom):
         w1, V = LA.eigh(X)
         w2, W = LA.eigh(Y)
         u = w1.T @ np.abs(V.conj().T @ W) ** 2
-        r1 = np.sum(w1 * np.log(w1))
+        # r1 = np.sum(w1 * np.log(w1))
+        # de-normalizing the entropy calculation
+        def func(x):
+            assert np.all(x >= 0)
+            x_sum = x.sum()
+            val = -entropy(x)
+            un_normalized = (x_sum * val + np.log(x_sum)*x_sum)
+            return un_normalized
+        # r1 = func(w1)
+        r1 = -entropy(w1)
         r2 = u @ np.log(w2)
         return (r1 - r2)
 
@@ -68,7 +78,7 @@ class quantum_rel_entr(Atom):
     def is_atom_convex(self) -> bool:
         """Is the atom convex?
         """
-        return False
+        return True
 
     def shape_from_args(self) -> Tuple[int, ...]:
         """Returns the shape of the expression.
@@ -78,7 +88,7 @@ class quantum_rel_entr(Atom):
     def is_atom_concave(self) -> bool:
         """Is the atom concave?
         """
-        return True
+        return False
 
     def is_incr(self, idx) -> bool:
         """Is the composition non-decreasing in argument idx?
