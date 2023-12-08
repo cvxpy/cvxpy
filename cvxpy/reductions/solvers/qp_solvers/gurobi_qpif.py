@@ -27,6 +27,9 @@ class GUROBI(QpSolver):
 
     MIP_CAPABLE = True
 
+    # Keyword arguments for the CVXPY interface.
+    INTERFACE_ARGS = ["save_file", "reoptimize"]
+
     # Map of Gurobi status to CVXPY status.
     STATUS_MAP = {2: s.OPTIMAL,
                   3: s.INFEASIBLE,
@@ -241,7 +244,9 @@ class GUROBI(QpSolver):
         # Set parameters
         model.setParam("QCPDual", True)
         for key, value in solver_opts.items():
-            model.setParam(key, value)
+            # Ignore arguments unique to the CVXPY interface.
+            if key not in self.INTERFACE_ARGS:
+                model.setParam(key, value)
 
         # Update model
         model.update()
