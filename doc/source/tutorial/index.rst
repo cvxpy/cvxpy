@@ -8,6 +8,7 @@ User Guide
 
     intro/index
     dcp/index
+    dpp/index
     functions/index
     dgp/index
     dqcp/index
