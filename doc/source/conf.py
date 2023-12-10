@@ -153,8 +153,6 @@ html_sidebars = {
 # further.  For a list of options available for each theme, see the
 # documentation.
 html_theme_options = {
-    'navigation_depth': 4,
-    'style_external_links': True,
     "palette": {"scheme": "default"},
 
     "features": [
@@ -187,7 +185,6 @@ html_theme_options = {
     "site_url": "https://www.cvxpy.org/",
     "repo_url": "https://github.com/cvxpy/cvxpy/",
     "repo_name": "CVXPY",
-    "repo_type": "github",
     "icon": {
         "repo": "fontawesome/brands/github",
     },
