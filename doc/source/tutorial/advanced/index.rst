@@ -509,7 +509,7 @@ By default CVXPY calls the solver most specialized to the problem type. For exam
 
 You can change the solver called by CVXPY using the ``solver`` keyword argument. If the solver you choose cannot solve the problem, CVXPY will raise an exception. Here's example code solving the same problem with different solvers.
 
-.. code:: python
+.. code-block:: python
 
     # Solving a problem with different solvers.
     x = cp.Variable(2)
@@ -521,91 +521,16 @@ You can change the solver called by CVXPY using the ``solver`` keyword argument.
     prob.solve(solver=cp.OSQP)
     print("optimal value with OSQP:", prob.value)
 
-    # Solve with ECOS.
-    prob.solve(solver=cp.ECOS)
-    print("optimal value with ECOS:", prob.value)
-
-    # Solve with COPT.
-    prob.solve(solver=cp.COPT)
-    print("optimal value with COPT:", prob.value)
-
-    # Solve with CVXOPT.
-    prob.solve(solver=cp.CVXOPT)
-    print("optimal value with CVXOPT:", prob.value)
-
-    # Solve with SDPA.
-    prob.solve(solver=cp.SDPA)
-    print("optimal value with SDPA:", prob.value)
-
-    # Solve with SCS.
-    prob.solve(solver=cp.SCS)
-    print("optimal value with SCS:", prob.value)
-
-    # Solve with SciPy/HiGHS.
-    prob.solve(solver=cp.SCIPY, scipy_options={"method": "highs"})
-    print("optimal value with SciPy/HiGHS:", prob.value)
-
-    # Solve with GLOP.
-    prob.solve(solver=cp.GLOP)
-    print("optimal value with GLOP:", prob.value)
-
-    # Solve with GLPK.
-    prob.solve(solver=cp.GLPK)
-    print("optimal value with GLPK:", prob.value)
-
-    # Solve with GLPK_MI.
-    prob.solve(solver=cp.GLPK_MI)
-    print("optimal value with GLPK_MI:", prob.value)
-
-    # Solve with CLARABEL.
     prob.solve(solver=cp.CLARABEL)
     print("optimal value with CLARABEL:", prob.value)
 
-    # Solve with GUROBI.
-    prob.solve(solver=cp.GUROBI)
-    print("optimal value with GUROBI:", prob.value)
-
-    # Solve with MOSEK.
-    prob.solve(solver=cp.MOSEK)
-    print("optimal value with MOSEK:", prob.value)
-
-    # Solve with PIQP.
-    prob.solve(solver=cp.PIQP)
-    print("optimal value with PIQP:", prob.value)
-
-    # Solve with PROXQP.
-    prob.solve(solver=cp.PROXQP)
-    print("optimal value with PROXQP:", prob.value)
-
-    # Solve with CBC.
-    prob.solve(solver=cp.CBC)
-    print("optimal value with CBC:", prob.value)
-
-    # Solve with CPLEX.
-    prob.solve(solver=cp.CPLEX)
-    print("optimal value with CPLEX:", prob.value)
-
-    # Solve with NAG.
-    prob.solve(solver=cp.NAG)
-    print("optimal value with NAG:", prob.value)
-
-    # Solve with PDLP.
-    prob.solve(solver=cp.PDLP)
-    print("optimal value with PDLP:", prob.value)
-
-    # Solve with SCIP.
-    prob.solve(solver=cp.SCIP)
-    print("optimal value with SCIP:", prob.value)
-
-    # Solve with XPRESS.
-    prob.solve(solver=cp.XPRESS)
-    print("optimal value with XPRESS:", prob.value)
-
-::
+    # Solve with {solver_name}
+    prob.solve(solver=cp.{solver_name})
+    print("optimal value with {solver_name}:", prob.value)
 
     optimal value with OSQP: 6.0
     ...
-    optimal value with XPRESS: 6.0
+    optimal value with CLARABEL: 6.0
 
 Use the ``installed_solvers`` utility function to get a list of the solvers your installation of CVXPY supports.
 
@@ -1208,18 +1133,6 @@ For example:
 The structure of the data dict that CVXPY returns depends on the solver. For
 details, print the dictionary, or consult the solver interfaces in
 ``cvxpy/reductions/solvers``.
-
-Reductions
-----------
-
-CVXPY uses a system of **reductions** to rewrite problems from
-the form provided by the user into the standard form that a solver will accept.
-A reduction is a transformation from one problem to an equivalent problem.
-Two problems are equivalent if a solution of one can be converted efficiently
-to a solution of the other.
-Reductions take a CVXPY Problem as input and output a CVXPY Problem.
-The full set of reductions available is discussed in :ref:`reductions-api`.
-
 
 .. _dpp:
 
