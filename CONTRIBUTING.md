@@ -72,17 +72,14 @@ limitations under the License.
 ```
 
 ## Code style
-We use [flake8](https://flake8.pycqa.org/en/latest/) and [isort](https://pycqa.github.io/isort/) to enforce our Python coding
-style. Before sending us a pull request, navigate to the project root
-and run
+We use [ruff](https://docs.astral.sh/ruff/) to enforce our Python coding style. Before sending us a pull request, navigate to the project root and run
 
 ```
-flake8 cvxpy/
-isort .
+pip install ruff
+ruff check cvxpy
 ```
 
-to make sure that your changes abide by our style conventions. Please fix any
-errors that are reported before sending the pull request.
+to make sure that your changes abide by our style conventions. Please fix any errors that are reported before sending the pull request.
 
 Optionally, the package [pre-commit](https://pre-commit.com/) can be installed to check these conventions automatically before every commit.
 ```
