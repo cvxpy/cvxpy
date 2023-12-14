@@ -22,6 +22,7 @@ import cvxpy.lin_ops.lin_utils as lu
 import cvxpy.utilities as u
 from cvxpy.atoms.affine.affine_atom import AffAtom
 from cvxpy.constraints.constraint import Constraint
+from cvxpy.expressions.expression import Expression
 
 
 class AddExpression(AffAtom):
@@ -41,7 +42,7 @@ class AddExpression(AffAtom):
         """
         return u.shape.sum_shapes([arg.shape for arg in self.args])
 
-    def expand_args(self, expr: Any) -> List:
+    def expand_args(self, expr: Expression) -> List:
         """Helper function to extract the arguments from an AddExpression.
         """
         if isinstance(expr, AddExpression):
