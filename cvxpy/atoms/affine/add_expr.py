@@ -42,7 +42,7 @@ class AddExpression(AffAtom):
         """
         return u.shape.sum_shapes([arg.shape for arg in self.args])
 
-    def expand_args(self, expr: Expression) -> List:
+    def expand_args(self, expr: List[Expression]) -> List:
         """Helper function to extract the arguments from an AddExpression.
         """
         if isinstance(expr, AddExpression):
