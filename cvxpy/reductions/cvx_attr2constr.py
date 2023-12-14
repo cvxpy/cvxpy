@@ -147,13 +147,6 @@ class CvxAttr2Constr(Reduction):
                 elif var.attributes['bounds']:
                     bounds = var.bounds
                     lower_bounds, upper_bounds = bounds
-
-                    # Convert scalar bounds to arrays with same shape for uniform handling
-                    if np.isscalar(lower_bounds):
-                        lower_bounds = np.full(obj.shape, lower_bounds)
-                    if np.isscalar(upper_bounds):
-                        upper_bounds = np.full(obj.shape, upper_bounds)
-
                     # Create masks if -inf or inf is present in the bounds
                     lower_bound_mask = (lower_bounds != -np.inf)
                     upper_bound_mask = (upper_bounds != np.inf)

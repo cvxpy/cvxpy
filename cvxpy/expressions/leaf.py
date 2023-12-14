@@ -510,13 +510,16 @@ class Leaf(expression.Expression):
             valid_array = isinstance(val, np.ndarray) and val.shape == self.shape
             if not (np.isscalar(val) or valid_array):
                 raise ValueError(
-                    "Bounds should contain scalars and/or arrays with the "
+                    "Bounds should be None, scalars, or arrays with the "
                     "same dimensions as the variable/parameter."
                 )
 
         # Promote upper and lower bounds to arrays.
+        none_bounds = [-np.inf, np.inf]
         for idx, val in enumerate(value):
-            if np.isscalar(val):
+            if val is None:
+                value[idx] = np.full(none_bounds[idx], self.shape)
+            elif np.isscalar(val):
                 value[idx] = np.full(val, self.shape)
 
         # Check that upper_bound >= lower_bound
