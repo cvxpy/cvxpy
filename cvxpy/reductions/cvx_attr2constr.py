@@ -154,11 +154,17 @@ class CvxAttr2Constr(Reduction):
                     if np.any(lower_bound_mask):
                         # At least one valid lower bound,
                         # so we apply the constraint only to those entries
-                        constr.append(obj[lower_bound_mask] >= lower_bounds[lower_bound_mask])
+                        if var.ndim > 0:
+                            constr.append(obj[lower_bound_mask] >= lower_bounds[lower_bound_mask])
+                        else:
+                            constr.append(obj >= lower_bounds)
                     if np.any(upper_bound_mask):
                         # At least one valid upper bound,
                         # so we apply the constraint only to those entries
-                        constr.append(obj[upper_bound_mask] <= upper_bounds[upper_bound_mask])
+                        if var.ndim > 0:
+                            constr.append(obj[upper_bound_mask] <= upper_bounds[upper_bound_mask])
+                        else:
+                            constr.append(obj <= upper_bounds)
 
         # Create new problem.
         obj = problem.objective.tree_copy(id_objects=id2new_obj)

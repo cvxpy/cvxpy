@@ -461,6 +461,21 @@ class TestConstraints(BaseTest):
         cp.Problem(cp.Minimize(x_7 @ c_1)).solve()
         self.assertIsNone(x_7.value)
 
+        lower_bounds = [None, -np.inf, 1]
+        upper_bounds = [None, np.inf, 2]
+        for lower, upper in zip(lower_bounds, upper_bounds):
+            z = cp.Variable(bounds=[lower, upper])
+
+            min_z = cp.Problem(cp.Minimize(z)).solve()
+            if lower is None:
+                lower = -np.inf
+            assert np.isclose(min_z, lower)
+
+            max_z = cp.Problem(cp.Maximize(z)).solve()
+            if upper is None:
+                upper = np.inf
+            assert np.isclose(max_z, upper)
+
         with pytest.raises(ValueError,match="Invalid bounds: some upper "
                                             "bounds are less than corresponding lower bounds."):
             cp.Variable((2,), bounds=[np.array([2,3]), np.array([1,4])])
@@ -469,7 +484,7 @@ class TestConstraints(BaseTest):
             cp.Variable((2,), bounds=[None, -np.inf])
         with pytest.raises(ValueError, match="-np.inf is not feasible as an upper bound."):
             cp.Variable((2,), bounds=[-np.inf, np.array([1,-np.inf])])
-        with pytest.raises(ValueError, match="-np.inf is not feasible as an upper upper bound."):
+        with pytest.raises(ValueError, match="-np.inf is not feasible as an upper bound."):
             cp.Variable((2,), bounds=[np.array([1, -np.inf]), np.array([2, -np.inf])])
 
         with pytest.raises(ValueError, match="np.inf is not feasible as a lower bound."):

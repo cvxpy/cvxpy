@@ -100,7 +100,7 @@ class Leaf(expression.Expression):
         symmetric: bool = False, diag: bool = False, PSD: bool = False,
         NSD: bool = False, hermitian: bool = False,
         boolean: bool = False, integer: bool = False,
-        sparsity=None, pos: bool = False, neg: bool = False, bounds=None
+        sparsity=None, pos: bool = False, neg: bool = False, bounds: tuple | None=None
     ) -> None:
         if isinstance(shape, numbers.Integral):
             shape = (int(shape),)
@@ -501,6 +501,7 @@ class Leaf(expression.Expression):
             self._bounds = None
             return
 
+        value[:]
         # Check that bounds is a list of two items
         if not isinstance(value, list) or len(value) != 2:
             raise ValueError("Bounds should be a list of two items.")
@@ -508,7 +509,7 @@ class Leaf(expression.Expression):
         # Check that bounds contains two scalars or two arrays with matching shapes.
         for val in value:
             valid_array = isinstance(val, np.ndarray) and val.shape == self.shape
-            if not (np.isscalar(val) or valid_array):
+            if not (val is None or np.isscalar(val) or valid_array):
                 raise ValueError(
                     "Bounds should be None, scalars, or arrays with the "
                     "same dimensions as the variable/parameter."
@@ -518,12 +519,12 @@ class Leaf(expression.Expression):
         none_bounds = [-np.inf, np.inf]
         for idx, val in enumerate(value):
             if val is None:
-                value[idx] = np.full(none_bounds[idx], self.shape)
+                value[idx] = np.full(self.shape, none_bounds[idx])
             elif np.isscalar(val):
-                value[idx] = np.full(val, self.shape)
+                value[idx] = np.full(self.shape, val)
 
         # Check that upper_bound >= lower_bound
-        if np.any(value[0] < value[1]):
+        if np.any(value[0] > value[1]):
             raise ValueError("Invalid bounds: some upper bounds are less "
                              "than corresponding lower bounds.")
 
