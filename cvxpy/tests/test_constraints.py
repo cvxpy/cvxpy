@@ -411,7 +411,11 @@ class TestConstraints(BaseTest):
         # Case 1: Check solution for lower and upper bound arrays
         # Check if bounds attribute is compatible with linear objective
         cp.Problem(cp.Minimize(x_1@c_2)).solve()
-        self.assertItemsAlmostEqual(x_1.value,[1,2,3])
+        self.assertItemsAlmostEqual(x_1.value, [1, 2, 3])
+        # Check value validation and project.
+        self.assertItemsAlmostEqual(x_1.project([0, 0, 0]), [1, 2, 3])
+        with pytest.raises(ValueError, match="in bounds."):
+            x_1.value = [0, 0, 0]
 
         # Check if bounds attribute is compatible with quadratic objective
         cp.Problem(cp.Minimize(cp.quad_form(x_1, Q) + c_2.T @ x_1)).solve()
@@ -454,7 +458,12 @@ class TestConstraints(BaseTest):
         x_6 = cp.Variable((3,), bounds=[3, np.inf])
         x_7 = cp.Variable((2,),bounds=[-np.inf, np.inf])
         cp.Problem(cp.Maximize(x_5@c_1)).solve()
-        self.assertItemsAlmostEqual(x_5.value, [1,2])
+        self.assertItemsAlmostEqual(x_5.value, [1, 2])
+        # Check value validation and project.
+        self.assertItemsAlmostEqual(x_5.project([2, 1]), [1, 1])
+        x_5.value = [0, 0]
+        with pytest.raises(ValueError, match="in bounds."):
+            x_5.value = [2, 1]
         cp.Problem(cp.Minimize(x_6@c_2)).solve()
         self.assertItemsAlmostEqual(x_6.value, [3,3,3])
         # Check that adding constraints are handled correctly for unbounded domain
@@ -488,7 +497,3 @@ class TestConstraints(BaseTest):
             cp.Variable((2,), bounds=[np.array([1, np.nan]), np.nan])
         with pytest.raises(ValueError, match="np.nan is not feasible as lower or upper bound."):
             cp.Variable((2,), bounds=[np.array([1, np.nan]), np.array([2, np.nan])])
-
-
-
-

@@ -314,6 +314,8 @@ class Leaf(expression.Expression):
             return np.minimum(val, 0.)
         elif self.attributes['nonneg'] or self.attributes['pos']:
             return np.maximum(val, 0.)
+        elif self.attributes['bounds']:
+            return np.clip(val, self.bounds[0], self.bounds[1])
         elif self.attributes['imag']:
             return np.imag(val)*1j
         elif self.attributes['complex']:
@@ -439,6 +441,8 @@ class Leaf(expression.Expression):
                     attr_str = 'negative semidefinite'
                 elif self.attributes['imag']:
                     attr_str = 'imaginary'
+                elif self.attributes['bounds']:
+                    attr_str = 'in bounds'
                 else:
                     attr_str = ([k for (k, v) in self.attributes.items() if v] + ['real'])[0]
                 raise ValueError(
@@ -501,74 +505,34 @@ class Leaf(expression.Expression):
         if not isinstance(value, list) or len(value) != 2:
             raise ValueError("Bounds should be a list of two items.")
 
-        lower_bounds, upper_bounds = value
-
-        # Check if lower and upper bounds are always passed together
-        if (lower_bounds is None and upper_bounds is not None):
-            raise ValueError("If upper bounds are passed, lower bounds should also be passed.")
-        if (lower_bounds is not None and upper_bounds is None):
-            raise ValueError("If lower bounds are passed, upper bounds should also be passed.")
-
         # Check that bounds contains two scalars or two arrays with matching shapes.
-        is_lower_scalar = np.isscalar(lower_bounds)
-        is_upper_scalar = np.isscalar(upper_bounds)
-        is_lower_array = isinstance(lower_bounds, np.ndarray)
-        is_upper_array = isinstance(upper_bounds, np.ndarray)
-        if not((is_lower_scalar and is_upper_scalar) or
-               (is_lower_scalar and is_upper_array
-                and upper_bounds.shape == self.shape) or
-               (is_upper_scalar and is_lower_array
-                and lower_bounds.shape == self.shape) or
-               (is_lower_array and is_upper_array
-                and lower_bounds.shape == self.shape
-                and upper_bounds.shape == self.shape)):
-            raise ValueError("Bounds should contain scalars and/or arrays with the same dimensions")
+        for val in value:
+            valid_array = isinstance(val, np.ndarray) and val.shape == self.shape
+            if not (np.isscalar(val) or valid_array):
+                raise ValueError(
+                    "Bounds should contain scalars and/or arrays with the "
+                    "same dimensions as the variable/parameter."
+                )
+
+        # Promote upper and lower bounds to arrays.
+        for idx, val in enumerate(value):
+            if np.isscalar(val):
+                value[idx] = np.full(val, self.shape)
 
         # Check that upper_bound >= lower_bound
-        if np.any(upper_bounds < lower_bounds):
+        if np.any(value[0] < value[1]):
             raise ValueError("Invalid bounds: some upper bounds are less "
                              "than corresponding lower bounds.")
 
-        if is_lower_scalar and is_upper_scalar:
-            if (lower_bounds == -np.inf
-                    and upper_bounds == -np.inf):
-                raise ValueError("-np.inf is not feasible as lower "
-                                 "and upper bound.")
-            if (lower_bounds == np.inf
-                    and upper_bounds == np.inf):
-                raise ValueError("np.inf is not feasible as lower "
-                                 "and upper bound.")
-            if (np.isnan(lower_bounds)
-                    or np.isnan(upper_bounds)):
-                raise ValueError("np.nan is not feasible as lower "
-                                 "or upper bound.")
+        if np.any(np.isnan(value[0])) or np.any(np.isnan(value[1])):
+            raise ValueError("np.nan is not feasible as lower "
+                                "or upper bound.")
 
-        if is_lower_scalar:
-            # Convert scalar lower bounds to array for -inf and inf conflict mask
-            lower_bounds = np.full(self.shape, lower_bounds)
-            if np.any(np.isnan(lower_bounds)) or np.any(np.isnan(upper_bounds)):
-                raise ValueError("np.nan is not feasible as lower "
-                                 "or upper bound.")
+        # Upper bound cannot be -np.inf.
+        if np.any(value[1] == -np.inf):
+            raise ValueError("-np.inf is not feasible as an upper bound.")
+        # Lower bound cannot be np.inf.
+        if np.any(value[0] == np.inf):
+            raise ValueError("np.inf is not feasible as a lower bound.")
 
-        if is_upper_scalar:
-            # Convert scalar upper bounds to array for -inf and inf conflict mask
-            upper_bounds = np.full(self.shape, upper_bounds)
-            if np.any(np.isnan(upper_bounds)) or np.any(np.isnan(lower_bounds)):
-                raise ValueError("np.nan is not feasible as lower "
-                                 "or upper bound.")
-
-        if is_lower_array and is_upper_array:
-            if np.any(np.isnan(lower_bounds)) or np.any(np.isnan(upper_bounds)):
-                raise ValueError("np.nan is not feasible as lower "
-                                 "or upper bound.")
-
-        # Element-wise check for -np.inf and np.inf at the same positions
-        negative_inf_conflict_mask = (lower_bounds == -np.inf) & (upper_bounds == -np.inf)
-        positive_inf_conflict_mask = (lower_bounds == np.inf) & (upper_bounds == np.inf)
-
-        if np.any(negative_inf_conflict_mask):
-            raise ValueError("-np.inf is not feasible as lower and upper bound.")
-        if np.any(positive_inf_conflict_mask):
-            raise ValueError("np.inf is not feasible as lower and upper bound.")
-
-        self._bounds = [lower_bounds, upper_bounds]
+        self._bounds = value
