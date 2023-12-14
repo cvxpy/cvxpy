@@ -461,6 +461,7 @@ class TestConstraints(BaseTest):
         cp.Problem(cp.Minimize(x_7 @ c_1)).solve()
         self.assertIsNone(x_7.value)
 
+        # Test mix of lower and upper bounds.
         lower_bounds = [None, -np.inf, 1]
         upper_bounds = [None, np.inf, 2]
         for lower, upper in zip(lower_bounds, upper_bounds):
