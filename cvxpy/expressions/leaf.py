@@ -100,7 +100,7 @@ class Leaf(expression.Expression):
         symmetric: bool = False, diag: bool = False, PSD: bool = False,
         NSD: bool = False, hermitian: bool = False,
         boolean: bool = False, integer: bool = False,
-        sparsity=None, pos: bool = False, neg: bool = False, bounds: tuple | None=None
+        sparsity=None, pos: bool = False, neg: bool = False, bounds: Iterable | None=None
     ) -> None:
         if isinstance(shape, numbers.Integral):
             shape = (int(shape),)
@@ -501,9 +501,8 @@ class Leaf(expression.Expression):
             self._bounds = None
             return
 
-        value[:]
-        # Check that bounds is a list of two items
-        if not isinstance(value, list) or len(value) != 2:
+        # Check that bounds is an iterable of two items
+        if not isinstance(value, Iterable) or len(value) != 2:
             raise ValueError("Bounds should be a list of two items.")
 
         # Check that bounds contains two scalars or two arrays with matching shapes.
