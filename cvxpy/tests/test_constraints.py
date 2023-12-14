@@ -437,20 +437,10 @@ class TestConstraints(BaseTest):
         with pytest.raises(ValueError, match="Bounds should be a list of two items."):
             cp.Variable((2,), bounds=[np.array([0, 1, 2])])
 
-        # Check if case does not occur that only one bound is passed and other is None
-        with pytest.raises(ValueError, match="If upper bounds are passed, "
-                                             "lower bounds should also be passed."):
-            cp.Variable((2,), bounds=[None, np.array([1,2])])
-        with pytest.raises(ValueError, match="If lower bounds are passed, "
-                                             "upper bounds should also be passed."):
-            cp.Variable((2,), bounds=[1, None])
-
         # Check for mismatch in dimensions of lower and upper bounds
-        with pytest.raises(ValueError, match="Bounds should contain scalars "
-                                             "and/or arrays with the same dimensions"):
+        with pytest.raises(ValueError, match="with the same dimensions as the variable/parameter."):
             cp.Variable((2,), bounds=[np.array([1,2]), np.array([1,2,3])])
-        with pytest.raises(ValueError, match="Bounds should contain scalars "
-                                             "and/or arrays with the same dimensions"):
+        with pytest.raises(ValueError, match="with the same dimensions as the variable/parameter."):
             cp.Variable((2,), bounds=[np.array([1,2,3,4]), 5])
 
         # Check that bounds attribute handles -inf and inf correctly
