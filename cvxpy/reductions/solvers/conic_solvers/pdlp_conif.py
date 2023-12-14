@@ -37,8 +37,9 @@ class PDLP(ConicSolver):
 
     SUPPORTED_CONSTRAINTS = ConicSolver.SUPPORTED_CONSTRAINTS
 
-    # The key that maps to the MPModelProto in the data returned by apply().
-    MODEL_PROTO = "model_proto"
+    # The key that maps to the pdlp.QuadraticProgram in the data returned by
+    # apply().
+    PDLP_MODEL = "pdlp_model"
 
     def name(self) -> str:
         """The name of the solver."""
@@ -46,11 +47,10 @@ class PDLP(ConicSolver):
 
     def import_solver(self) -> None:
         """Imports the solver."""
-        import google.protobuf  # noqa F401
         import ortools  # noqa F401
-        if Version(ortools.__version__) < Version('9.5.0'):
+        if Version(ortools.__version__) < Version('9.7.0'):
             raise RuntimeError(f'Version of ortools ({ortools.__version__}) '
-                               f'is too old. Expected >= 9.5.0.')
+                               f'is too old. Expected >= 9.7.0.')
         if Version(ortools.__version__) >= Version('9.8.0'):
             raise RuntimeError('Unrecognized new version of ortools '
                                f'({ortools.__version__}). Expected < 9.8.0. '
@@ -59,7 +59,7 @@ class PDLP(ConicSolver):
 
     def apply(self, problem: ParamConeProg) -> Tuple[Dict, Dict]:
         """Returns a new problem and data for inverting the new solution."""
-        from ortools.linear_solver import linear_solver_pb2
+        from ortools.pdlp.python import pdlp
 
         # Create data and inv_data objects
         data = {}
@@ -77,36 +77,26 @@ class PDLP(ConicSolver):
         A = csr_matrix(A)
         data["num_constraints"], data["num_vars"] = A.shape
 
-        # TODO: Switch to a vectorized model-building interface when one is
-        # available in OR-Tools.
-        model = linear_solver_pb2.MPModelProto()
+        model = pdlp.QuadraticProgram()
         model.objective_offset = d.item() if isinstance(d, np.ndarray) else d
-        for var_index, obj_coef in enumerate(c):
-            var = linear_solver_pb2.MPVariableProto(
-                objective_coefficient=obj_coef,
-                name="x_%d" % var_index)
-            model.variable.append(var)
+        model.objective_vector = c
+        model.variable_lower_bounds = np.full_like(c, -np.inf)
+        model.variable_upper_bounds = np.full_like(c, np.inf)
 
-        for row_index in range(A.shape[0]):
-            constraint = linear_solver_pb2.MPConstraintProto(
-                name="constraint_%d" % row_index)
-            start = A.indptr[row_index]
-            end = A.indptr[row_index + 1]
-            for nz_index in range(start, end):
-                col_index = A.indices[nz_index]
-                coeff = A.data[nz_index]
-                constraint.var_index.append(col_index)
-                constraint.coefficient.append(coeff)
-            if row_index < problem.cone_dims.zero:
-                # a'x + b == 0
-                constraint.lower_bound = -b[row_index]
-                constraint.upper_bound = -b[row_index]
-            else:
-                # a'x + b >= 0
-                constraint.lower_bound = -b[row_index]
-            model.constraint.append(constraint)
+        model.constraint_matrix = A
+        constraint_lower_bounds = np.full_like(b, -np.inf)
+        constraint_upper_bounds = np.full_like(b, np.inf)
+        # Ax + b = 0
+        num_eq = problem.cone_dims.zero
+        constraint_lower_bounds[:num_eq] = -b[:num_eq]
+        constraint_upper_bounds[:num_eq] = -b[:num_eq]
+        # Ax + b >= 0
+        constraint_lower_bounds[num_eq:] = -b[num_eq:]
 
-        data[self.MODEL_PROTO] = model
+        model.constraint_lower_bounds = constraint_lower_bounds
+        model.constraint_upper_bounds = constraint_upper_bounds
+
+        data[self.PDLP_MODEL] = model
         return data, inv_data
 
     def invert(self, solution: Dict[str, Any],
@@ -137,23 +127,13 @@ class PDLP(ConicSolver):
             solver_cache: Dict = None,
     ) -> Solution:
         """Returns the result of the call to the solver."""
-        import ortools
-        from google.protobuf import text_format
-        from ortools.linear_solver import linear_solver_pb2
         from ortools.pdlp import solvers_pb2
+        from ortools.pdlp.python import pdlp
 
-        # TODO: Switch to a direct numpy interface to PDLP when available.
-        # model_builder_helper is known to be slow because of proto
-        # serialization.
-        pdlp_solver = linear_solver_pb2.MPModelRequest.PDLP_LINEAR_PROGRAMMING
-        request = linear_solver_pb2.MPModelRequest(
-            model=data[self.MODEL_PROTO],
-            enable_internal_solver_output=verbose,
-            solver_type=pdlp_solver
-        )
         parameters = solvers_pb2.PrimalDualHybridGradientParams()
-        # CVXPY reductions can leave a messy problem (e.g., no variable bounds),
-        # so we turn on presolving by default.
+        parameters.verbosity_level = 3 if verbose else 0
+        # CVXPY reductions can leave a messy problem (e.g., no variable
+        # bounds), so we turn on presolving by default.
         parameters.presolve_options.use_glop = True
         if "parameters_proto" in solver_opts:
             proto = solver_opts["parameters_proto"]
@@ -162,31 +142,36 @@ class PDLP(ConicSolver):
                 return {"status": s.SOLVER_ERROR}
             parameters.MergeFrom(proto)
         if "time_limit_sec" in solver_opts:
-            request.solver_time_limit_seconds = float(solver_opts["time_limit_sec"])
+            limit = float(solver_opts["time_limit_sec"])
+            parameters.termination_criteria.time_sec_limit = limit
 
-        request.solver_specific_parameters = text_format.MessageToString(parameters)
-        if Version(ortools.__version__) < Version('9.7.0'):
-            from ortools.linear_solver.python import (
-                pywrap_model_builder_helper as model_builder_helper,
-            )
-        else:
-            from ortools.linear_solver.python import model_builder_helper
-
-        solver = model_builder_helper.ModelSolverHelper("pdlp")
-        response_str = solver.solve_serialized_request(request.SerializeToString())
-        response = linear_solver_pb2.MPSolutionResponse.FromString(response_str)
-
+        result = pdlp.primal_dual_hybrid_gradient(data[self.PDLP_MODEL],
+                                                  parameters)
         solution = {}
-        solution["value"] = response.objective_value
-        solution["status"] = self._status_map(response)
-        solution["primal"] = np.array(response.variable_value)
-        solution["dual"] = np.array(response.dual_value)
+        solution["primal"] = result.primal_solution
+        solution["dual"] = result.dual_solution
+        solution["status"] = self._status_map(result.solve_log)
+
+        convergence_info = self._get_convergence_info(
+            result.solve_log.solution_stats,
+            result.solve_log.solution_type
+        )
+        if convergence_info is not None:
+            solution["value"] = convergence_info.primal_objective
+        else:
+            solution["value"] = -np.inf
 
         return solution
 
-    def _status_map(self, response):
+    @staticmethod
+    def _get_convergence_info(stats, candidate_type):
+        for convergence_info in stats.convergence_information:
+            if convergence_info.candidate_type == candidate_type:
+                return convergence_info
+        return None
+
+    def _status_map(self, solve_log):
         from ortools.pdlp import solve_log_pb2
-        solve_log = solve_log_pb2.SolveLog.FromString(response.solver_specific_info)
         TerminationReason = solve_log_pb2.TerminationReason
         status = solve_log.termination_reason
         if status == TerminationReason.TERMINATION_REASON_OPTIMAL:
