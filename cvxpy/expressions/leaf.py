@@ -91,7 +91,7 @@ class Leaf(expression.Expression):
     neg : bool
         Is the variable negative?
     bounds : Iterable
-        An iterable of length two specifying upper and lower bounds.
+        An iterable of length two specifying lower and upper bounds.
     """
 
     __metaclass__ = abc.ABCMeta
