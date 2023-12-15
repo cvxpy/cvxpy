@@ -425,7 +425,7 @@ We will discuss the optional arguments in detail below.
 Choosing a solver
 ^^^^^^^^^^^^^^^^^
 
-CVXPY is distributed with the open source solvers `ECOS`_, `OSQP`_, and `SCS`_.
+CVXPY is distributed with the open source solvers `CLARABEL`_, `OSQP`_, and `SCS`_.
 Many other solvers can be called by CVXPY if installed separately.
 The table below shows the types of problems the supported solvers can handle.
 
@@ -770,388 +770,386 @@ For example, here we tell SCS to use an indirect method for solving linear equat
 
 Here is the complete list of solver options.
 
-`OSQP`_ options:
+.. dropdown:: `OSQP`_ options:
 
-``'max_iter'``
-    maximum number of iterations (default: 10,000).
+    ``'max_iter'``
+        maximum number of iterations (default: 10,000).
 
-``'eps_abs'``
-    absolute accuracy (default: 1e-5).
+    ``'eps_abs'``
+        absolute accuracy (default: 1e-5).
 
-``'eps_rel'``
-    relative accuracy (default: 1e-5).
+    ``'eps_rel'``
+        relative accuracy (default: 1e-5).
 
-For others see `OSQP documentation <https://osqp.org/docs/interfaces/solver_settings.html>`_.
+    For others see `OSQP documentation <https://osqp.org/docs/interfaces/solver_settings.html>`_.
 
-`PROXQP`_ options:
+.. dropdown:: `PROXQP`_ options:
 
-``'backend'``
-    solver backend [dense, sparse] (default: dense).
+    ``'backend'``
+        solver backend [dense, sparse] (default: dense).
 
-``'max_iter'``
-    maximum number of iterations (default: 10,000).
+    ``'max_iter'``
+        maximum number of iterations (default: 10,000).
 
-``'eps_abs'``
-    absolute accuracy (default: 1e-8).
+    ``'eps_abs'``
+        absolute accuracy (default: 1e-8).
 
-``'eps_rel'``
-    relative accuracy (default: 0.0).
+    ``'eps_rel'``
+        relative accuracy (default: 0.0).
 
-``'rho'``
-    primal proximal parameter (default: 1e-6).
+    ``'rho'``
+        primal proximal parameter (default: 1e-6).
 
-``'mu_eq'``
-    dual equality constraint proximal parameter (default: 1e-3).
+    ``'mu_eq'``
+        dual equality constraint proximal parameter (default: 1e-3).
 
-``'mu_in'``
-    dual inequality constraint proximal parameter (default: 1e-1).
+    ``'mu_in'``
+        dual inequality constraint proximal parameter (default: 1e-1).
 
-`ECOS`_ options:
+.. dropdown:: `ECOS`_ options:
 
-``'max_iters'``
-    maximum number of iterations (default: 100).
+    ``'max_iters'``
+        maximum number of iterations (default: 100).
 
-``'abstol'``
-    absolute accuracy (default: 1e-8).
+    ``'abstol'``
+        absolute accuracy (default: 1e-8).
 
-``'reltol'``
-    relative accuracy (default: 1e-8).
+    ``'reltol'``
+        relative accuracy (default: 1e-8).
 
-``'feastol'``
-    tolerance for feasibility conditions (default: 1e-8).
+    ``'feastol'``
+        tolerance for feasibility conditions (default: 1e-8).
 
-``'abstol_inacc'``
-    absolute accuracy for inaccurate solution (default: 5e-5).
+    ``'abstol_inacc'``
+        absolute accuracy for inaccurate solution (default: 5e-5).
 
-``'reltol_inacc'``
-    relative accuracy for inaccurate solution (default: 5e-5).
+    ``'reltol_inacc'``
+        relative accuracy for inaccurate solution (default: 5e-5).
 
-``'feastol_inacc'``
-    tolerance for feasibility condition for inaccurate solution (default: 1e-4).
+    ``'feastol_inacc'``
+        tolerance for feasibility condition for inaccurate solution (default: 1e-4).
 
-`GLOP`_ options:
+.. dropdown:: `GLOP`_ options:
 
-``'time_limit_sec'``
-    Time limit for the solve, in seconds.
+    ``'time_limit_sec'``
+        Time limit for the solve, in seconds.
 
-``'parameters_proto'``
-    A `ortools.glop.parameters_pb2.GlopParameters` protocol buffer message.
-    For the definition of GlopParameters, see
-    `here <https://github.com/google/or-tools/blob/2cb85b4eead4c38e1c54b48044f92087cf165bce/ortools/glop/parameters.proto#L26>`_.
+    ``'parameters_proto'``
+        A `ortools.glop.parameters_pb2.GlopParameters` protocol buffer message.
+        For the definition of GlopParameters, see
+        `here <https://github.com/google/or-tools/blob/2cb85b4eead4c38e1c54b48044f92087cf165bce/ortools/glop/parameters.proto#L26>`_.
 
+.. dropdown:: `MOSEK`_ options
 
-`MOSEK`_ options:
+    ``'mosek_params'``
+        A dictionary of MOSEK parameters in the form ``name: value``. Parameter names
+        should be strings, as in the MOSEK C API or command line, for example
+        ``'MSK_DPAR_BASIS_TOL_X'``, ``'MSK_IPAR_NUM_THREADS'`` etc. Values are strings,
+        integers or floats, depending on the parameter.
+        See `example <https://docs.mosek.com/latest/faq/faq.html#cvxpy>`_.
 
-``'mosek_params'``
-    A dictionary of MOSEK parameters in the form ``name: value``. Parameter names
-    should be strings, as in the MOSEK C API or command line, for example
-    ``'MSK_DPAR_BASIS_TOL_X'``, ``'MSK_IPAR_NUM_THREADS'`` etc. Values are strings,
-    integers or floats, depending on the parameter.
-    See `example <https://docs.mosek.com/latest/faq/faq.html#cvxpy>`_.
+    ``'save_file'``
+        The name of a file where MOSEK will save the problem just before optimization.
+        Refer to MOSEK documentation for a list of supported file formats. File format
+        is chosen based on the extension.
 
-``'save_file'``
-    The name of a file where MOSEK will save the problem just before optimization.
-    Refer to MOSEK documentation for a list of supported file formats. File format
-    is chosen based on the extension.
+    ``'bfs'``
+        For a linear problem, if ``bfs=True``, then the basic solution will be retrieved
+        instead of the interior-point solution. This assumes no specific MOSEK
+        parameters were used which prevent computing the basic solution.
 
-``'bfs'``
-    For a linear problem, if ``bfs=True``, then the basic solution will be retrieved
-    instead of the interior-point solution. This assumes no specific MOSEK
-    parameters were used which prevent computing the basic solution.
+    ``'accept_unknown'``
+        If ``accept_unknown=True``, an inaccurate solution will be returned, even if
+        it is arbitrarily bad, when the solver does not generate an optimal
+        point under the given conditions.
 
-``'accept_unknown'``
-    If ``accept_unknown=True``, an inaccurate solution will be returned, even if
-    it is arbitrarily bad, when the solver does not generate an optimal
-    point under the given conditions.
+    ``'eps'``
+        Applies tolerance ``eps`` to termination parameters for (conic) interior-point,
+        simplex, and MIO solvers. The full list of termination parameters is returned
+        by ``MOSEK.tolerance_params()`` in
+        ``cvxpy.reductions.solvers.conic_solvers.mosek_conif``.
+        Explicitly defined parameters take precedence over ``eps``.
 
-``'eps'``
-    Applies tolerance ``eps`` to termination parameters for (conic) interior-point, 
-    simplex, and MIO solvers. The full list of termination parameters is returned
-    by ``MOSEK.tolerance_params()`` in 
-    ``cvxpy.reductions.solvers.conic_solvers.mosek_conif``.
-    Explicitly defined parameters take precedence over ``eps``.
 
+    .. note::
 
-.. note::
+        In CVXPY 1.1.6 we did a complete rewrite of the MOSEK interface. The main
+        takeaway is that we now dualize all continuous problems. The dualization is
+        automatic because this eliminates the previous need for a large number of
+        slack variables, and never results in larger problems compared to our old
+        MOSEK interface. If you notice MOSEK solve times are slower for some of your
+        problems under CVXPY 1.1.6 or higher, be sure to use the MOSEK solver options
+        to tell MOSEK that it should solve the dual; this can be accomplished by
+        adding the ``(key, value)`` pair ``('MSK_IPAR_INTPNT_SOLVE_FORM', 'MSK_SOLVE_DUAL')``
+        to the ``mosek_params`` argument.
 
-    In CVXPY 1.1.6 we did a complete rewrite of the MOSEK interface. The main
-    takeaway is that we now dualize all continuous problems. The dualization is
-    automatic because this eliminates the previous need for a large number of
-    slack variables, and never results in larger problems compared to our old
-    MOSEK interface. If you notice MOSEK solve times are slower for some of your
-    problems under CVXPY 1.1.6 or higher, be sure to use the MOSEK solver options
-    to tell MOSEK that it should solve the dual; this can be accomplished by
-    adding the ``(key, value)`` pair ``('MSK_IPAR_INTPNT_SOLVE_FORM', 'MSK_SOLVE_DUAL')``
-    to the ``mosek_params`` argument.
-    
-`CVXOPT`_ options:
+.. dropdown:: `CVXOPT`_ options
 
-``'max_iters'``
-    maximum number of iterations (default: 100).
+    ``'max_iters'``
+        maximum number of iterations (default: 100).
 
-``'abstol'``
-    absolute accuracy (default: 1e-7).
+    ``'abstol'``
+        absolute accuracy (default: 1e-7).
 
-``'reltol'``
-    relative accuracy (default: 1e-6).
+    ``'reltol'``
+        relative accuracy (default: 1e-6).
 
-``'feastol'``
-    tolerance for feasibility conditions (default: 1e-7).
+    ``'feastol'``
+        tolerance for feasibility conditions (default: 1e-7).
 
-``'refinement'``
-    number of iterative refinement steps after solving KKT system (default: 1).
+    ``'refinement'``
+        number of iterative refinement steps after solving KKT system (default: 1).
 
-``'kktsolver'``
-    Controls the method used to solve systems of linear equations at each step of CVXOPT's
-    interior-point algorithm. This parameter can be a string (with one of several values),
-    or a function handle.
+    ``'kktsolver'``
+        Controls the method used to solve systems of linear equations at each step of CVXOPT's
+        interior-point algorithm. This parameter can be a string (with one of several values),
+        or a function handle.
 
-    KKT solvers built-in to CVXOPT can be specified by strings  'ldl', 'ldl2', 'qr', 'chol',
-    and 'chol2'. If 'chol' is chosen, then CVXPY will perform an additional presolve
-    procedure to eliminate redundant constraints. You can also set ``kktsolver='robust'``.
-    The 'robust' solver is implemented in python, and is part of CVXPY source code; the
-    'robust' solver doesn't require a presolve phase to eliminate redundant constraints,
-    however it can be slower than 'chol'.
+        KKT solvers built-in to CVXOPT can be specified by strings  'ldl', 'ldl2', 'qr', 'chol',
+        and 'chol2'. If 'chol' is chosen, then CVXPY will perform an additional presolve
+        procedure to eliminate redundant constraints. You can also set ``kktsolver='robust'``.
+        The 'robust' solver is implemented in python, and is part of CVXPY source code; the
+        'robust' solver doesn't require a presolve phase to eliminate redundant constraints,
+        however it can be slower than 'chol'.
 
-    Finally, there is an option to pass a function handle for the ``kktsolver`` argument.
-    Passing a KKT solver based on a function handle allows you to take complete control of
-    solving the linear systems encountered in CVXOPT's interior-point algorithm. The API for
-    KKT solvers of this form is a small wrapper around CVXOPT's API for function-handle KKT
-    solvers. The precise API that CVXPY users are held to is described in the CVXPY source
-    code: `cvxpy/reductions/solvers/kktsolver.py <https://github.com/cvxpy/cvxpy/blob/master/cvxpy/reductions/solvers/kktsolver.py>`_.
-    
-`SDPA`_ options:
+        Finally, there is an option to pass a function handle for the ``kktsolver`` argument.
+        Passing a KKT solver based on a function handle allows you to take complete control of
+        solving the linear systems encountered in CVXOPT's interior-point algorithm. The API for
+        KKT solvers of this form is a small wrapper around CVXOPT's API for function-handle KKT
+        solvers. The precise API that CVXPY users are held to is described in the CVXPY source
+        code: `cvxpy/reductions/solvers/kktsolver.py <https://github.com/cvxpy/cvxpy/blob/master/cvxpy/reductions/solvers/kktsolver.py>`_.
 
-``'maxIteration'``
-    The maximum number of iterations. (default: 100).
+.. dropdown:: `SDPA`_ options
 
-``'epsilonStar'``
-    The accuracy of an approximate optimal solution for primal and dual SDP. (default: 1.0E-7).
+    ``'maxIteration'``
+        The maximum number of iterations. (default: 100).
 
-``'lambdaStar'``
-    An initial point. (default: 1.0E2).
+    ``'epsilonStar'``
+        The accuracy of an approximate optimal solution for primal and dual SDP. (default: 1.0E-7).
 
-``'omegaStar'``
-    The search region for an optimal solution. (default: 2.0).
+    ``'lambdaStar'``
+        An initial point. (default: 1.0E2).
 
-``'lowerBound'``
-    Lower bound of the minimum objective value of the primal SDP. (default: -1.0E5).
+    ``'omegaStar'``
+        The search region for an optimal solution. (default: 2.0).
 
-``'upperBound'``
-    Upper bound of the maximum objective value of the dual SDP. (default: 1.0E5).
+    ``'lowerBound'``
+        Lower bound of the minimum objective value of the primal SDP. (default: -1.0E5).
 
-``'betaStar'``
-    The parameter for controlling the search direction if the current point is feasible. (default: 0.1).
+    ``'upperBound'``
+        Upper bound of the maximum objective value of the dual SDP. (default: 1.0E5).
 
-``'betaBar'``
-    The parameter for controlling the search direction if the current point is infeasible. (default: 0.2).
+    ``'betaStar'``
+        The parameter for controlling the search direction if the current point is feasible. (default: 0.1).
 
-``'gammaStar'``
-    A reduction factor for the primal and dual step lengths. (default: 0.9).
+    ``'betaBar'``
+        The parameter for controlling the search direction if the current point is infeasible. (default: 0.2).
 
-``'epsilonDash'``
-    The relative accuracy of an approximate optimal solution between primal and dual SDP. (default: 1.0E-7).
+    ``'gammaStar'``
+        A reduction factor for the primal and dual step lengths. (default: 0.9).
 
-``'isSymmetric'``
-    Specify whether to check the symmetricity of input matrices. (default: False).
+    ``'epsilonDash'``
+        The relative accuracy of an approximate optimal solution between primal and dual SDP. (default: 1.0E-7).
 
-``'isDimacs'``
-    Specify whether to compute DIMACS ERROR. (default: False).
+    ``'isSymmetric'``
+        Specify whether to check the symmetricity of input matrices. (default: False).
 
-``'numThreads'``
-    numThreads (default: ``'multiprocessing.cpu_count()'``).
+    ``'isDimacs'``
+        Specify whether to compute DIMACS ERROR. (default: False).
 
-``'domainMethod'``
-    Algorithm option for exploiting sparsity in the domain space. Can be ``'none'`` (exploiting no sparsity in the domain space) or ``'basis'`` (using basis representation) (default: ``'none'``).
+    ``'numThreads'``
+        numThreads (default: ``'multiprocessing.cpu_count()'``).
 
-``'rangeMethod'``
-    Algorithm option for exploiting sparsity in the range space. Can be ``'none'`` (exploiting no sparsity in the range space) or ``'decomp'`` (using matrix decomposition) (default: ``'none'``).
+    ``'domainMethod'``
+        Algorithm option for exploiting sparsity in the domain space. Can be ``'none'`` (exploiting no sparsity in the domain space) or ``'basis'`` (using basis representation) (default: ``'none'``).
 
-``'frvMethod'``
-    The method to eliminate free variables. Can be ``'split'`` or ``'elimination'`` (default: ``'split'``).
+    ``'rangeMethod'``
+        Algorithm option for exploiting sparsity in the range space. Can be ``'none'`` (exploiting no sparsity in the range space) or ``'decomp'`` (using matrix decomposition) (default: ``'none'``).
 
-``'rho'``
-    The parameter of range in split method or pivoting in elimination method. (default: 0.0).
+    ``'frvMethod'``
+        The method to eliminate free variables. Can be ``'split'`` or ``'elimination'`` (default: ``'split'``).
 
-``'zeroPoint'``
-    The zero point of matrix operation, determine unboundness, or LU decomposition. (default: 1.0E-12).
+    ``'rho'``
+        The parameter of range in split method or pivoting in elimination method. (default: 0.0).
 
-`SCS`_ options:
+    ``'zeroPoint'``
+        The zero point of matrix operation, determine unboundness, or LU decomposition. (default: 1.0E-12).
 
-``'max_iters'``
-    maximum number of iterations (default: 2500).
+.. dropdown:: `SCS`_ options
 
-``'eps'``
-    convergence tolerance (default: 1e-4).
+    ``'max_iters'``
+        maximum number of iterations (default: 2500).
 
-``'alpha'``
-    relaxation parameter (default: 1.8).
+    ``'eps'``
+        convergence tolerance (default: 1e-4).
 
+    ``'alpha'``
+        relaxation parameter (default: 1.8).
 
-``'acceleration_lookback'``
-    Anderson Acceleration parameter for SCS 2.0 and higher. This can be any positive or negative integer;
-    its default value is 10. See `this page of the SCS documentation <https://www.cvxgrp.org/scs/algorithm/acceleration.html#in-scs>`_
-    for more information.
 
-    .. warning::
-        The value of this parameter often effects whether or not SCS 2.X will converge to an accurate solution.
-        If you don't *explicitly* set ``acceleration_lookback`` and SCS 2.X fails to converge, then CVXPY
-        will raise a warning and try to re-solve the problem with ``acceleration_lookback=0``.
-        No attempt will be made to re-solve with problem if you have SCS version 3.0 or higher.
+    ``'acceleration_lookback'``
+        Anderson Acceleration parameter for SCS 2.0 and higher. This can be any positive or negative integer;
+        its default value is 10. See `this page of the SCS documentation <https://www.cvxgrp.org/scs/algorithm/acceleration.html#in-scs>`_
+        for more information.
 
-``'scale'``
-    balance between minimizing primal and dual residual (default: 5.0).
+        .. warning::
+            The value of this parameter often effects whether or not SCS 2.X will converge to an accurate solution.
+            If you don't *explicitly* set ``acceleration_lookback`` and SCS 2.X fails to converge, then CVXPY
+            will raise a warning and try to re-solve the problem with ``acceleration_lookback=0``.
+            No attempt will be made to re-solve with problem if you have SCS version 3.0 or higher.
 
-``'normalize'``
-    whether to precondition data matrices (default: True).
+    ``'scale'``
+        balance between minimizing primal and dual residual (default: 5.0).
 
-``'use_indirect'``
-    whether to use indirect solver for KKT sytem (instead of direct) (default: True).
+    ``'normalize'``
+        whether to precondition data matrices (default: True).
 
-``'use_quad_obj'``
-    whether to use a quadratic objective or reduce it to SOC constraints (default: True).
+    ``'use_indirect'``
+        whether to use indirect solver for KKT sytem (instead of direct) (default: True).
 
-`CBC`_ options:
+    ``'use_quad_obj'``
+        whether to use a quadratic objective or reduce it to SOC constraints (default: True).
 
-Cut-generation through `CGL`_
+.. dropdown:: `CBC`_ options
 
-General remarks:
-    - some of these cut-generators seem to be buggy (observed problems with AllDifferentCuts, RedSplitCuts, LandPCuts, PreProcessCuts)
-    - a few of these cut-generators will generate noisy output even if ``'verbose=False'``
+    Cut-generation through `CGL`_
 
-The following cut-generators are available:
-    ``GomoryCuts``, ``MIRCuts``, ``MIRCuts2``, ``TwoMIRCuts``, ``ResidualCapacityCuts``, ``KnapsackCuts`` ``FlowCoverCuts``, ``CliqueCuts``, ``LiftProjectCuts``, ``AllDifferentCuts``, ``OddHoleCuts``, ``RedSplitCuts``, ``LandPCuts``, ``PreProcessCuts``, ``ProbingCuts``, ``SimpleRoundingCuts``.
+    General remarks:
+        - some of these cut-generators seem to be buggy (observed problems with AllDifferentCuts, RedSplitCuts, LandPCuts, PreProcessCuts)
+        - a few of these cut-generators will generate noisy output even if ``'verbose=False'``
 
-``'CutGenName'``
-    if cut-generator is activated (e.g. ``'GomoryCuts=True'``)
+    The following cut-generators are available:
+        ``GomoryCuts``, ``MIRCuts``, ``MIRCuts2``, ``TwoMIRCuts``, ``ResidualCapacityCuts``, ``KnapsackCuts`` ``FlowCoverCuts``, ``CliqueCuts``, ``LiftProjectCuts``, ``AllDifferentCuts``, ``OddHoleCuts``, ``RedSplitCuts``, ``LandPCuts``, ``PreProcessCuts``, ``ProbingCuts``, ``SimpleRoundingCuts``.
 
-``'integerTolerance'``
-    an integer variable is deemed to be at an integral value if it is no further than this value (tolerance) away
+    ``'CutGenName'``
+        if cut-generator is activated (e.g. ``'GomoryCuts=True'``)
 
-``'maximumSeconds'``
-    stop after given amount of seconds
+    ``'integerTolerance'``
+        an integer variable is deemed to be at an integral value if it is no further than this value (tolerance) away
 
-``'maximumNodes'``
-    stop after given maximum number of nodes
+    ``'maximumSeconds'``
+        stop after given amount of seconds
 
-``'maximumSolutions'``
-    stop after evalutation x number of solutions
+    ``'maximumNodes'``
+        stop after given maximum number of nodes
 
-``'numberThreads'``
-    sets the number of threads
+    ``'maximumSolutions'``
+        stop after evalutation x number of solutions
 
-``'allowableGap'``
-    returns a solution if the gap between the best known solution and the best possible solution is less than this value.
+    ``'numberThreads'``
+        sets the number of threads
 
-``'allowableFractionGap'``
-    returns a solution if the gap between the best known solution and the best possible solution is less than this fraction.
+    ``'allowableGap'``
+        returns a solution if the gap between the best known solution and the best possible solution is less than this value.
 
-``'allowablePercentageGap'``
-    returns if the gap between the best known solution and the best possible solution is less than this percentage.
+    ``'allowableFractionGap'``
+        returns a solution if the gap between the best known solution and the best possible solution is less than this fraction.
 
-`COPT`_ options:
+    ``'allowablePercentageGap'``
+        returns if the gap between the best known solution and the best possible solution is less than this percentage.
 
-COPT solver options are specified in CVXPY as keyword arguments. The full list of COPT parameters with defaults is listed `here <https://guide.coap.online/copt/en-doc/index.html#parameters>`_.
+.. dropdown:: `COPT`_ options:
 
-`CPLEX`_ options:
+    COPT solver options are specified in CVXPY as keyword arguments. The full list of COPT parameters with defaults is listed `here <https://guide.coap.online/copt/en-doc/index.html#parameters>`_.
 
-``'cplex_params'``
-    a dictionary where the key-value pairs are composed of parameter names (as used in the CPLEX Python API) and parameter values. For example, to set the advance start switch parameter (i.e., CPX_PARAM_ADVIND), use "advance" for the parameter name. For the data consistency checking and modeling assistance parameter (i.e., CPX_PARAM_DATACHECK), use "read.datacheck" for the parameter name, and so on.
+.. dropdown:: `CPLEX`_ options:
 
-``'cplex_filename'``
-    a string specifying the filename to which the problem will be written. For example, use "model.lp", "model.sav", or "model.mps" to export to the LP, SAV, and MPS formats, respectively.
+    ``'cplex_params'``
+        a dictionary where the key-value pairs are composed of parameter names (as used in the CPLEX Python API) and parameter values. For example, to set the advance start switch parameter (i.e., CPX_PARAM_ADVIND), use "advance" for the parameter name. For the data consistency checking and modeling assistance parameter (i.e., CPX_PARAM_DATACHECK), use "read.datacheck" for the parameter name, and so on.
 
-``reoptimize``
-    A boolean. This is only relevant for problems where CPLEX initially produces an "infeasible or unbounded" status.
-    Its default value is False. If set to True, then if CPLEX produces an "infeasible or unbounded" status, its algorithm
-    parameters are automatically changed and the problem is re-solved in order to determine its precise status.
+    ``'cplex_filename'``
+        a string specifying the filename to which the problem will be written. For example, use "model.lp", "model.sav", or "model.mps" to export to the LP, SAV, and MPS formats, respectively.
 
+    ``reoptimize``
+        A boolean. This is only relevant for problems where CPLEX initially produces an "infeasible or unbounded" status.
+        Its default value is False. If set to True, then if CPLEX produces an "infeasible or unbounded" status, its algorithm
+        parameters are automatically changed and the problem is re-solved in order to determine its precise status.
 
-`NAG`_ options:
+.. dropdown:: `NAG`_ options:
 
-``'nag_params'``
-    a dictionary of NAG option parameters. Refer to NAG's Python or Fortran API for details. For example, to set the maximum number of iterations for a linear programming problem to 20, use "LPIPM Iteration Limit" for the key name and 20 for its value . 
+    ``'nag_params'``
+        a dictionary of NAG option parameters. Refer to NAG's Python or Fortran API for details. For example, to set the maximum number of iterations for a linear programming problem to 20, use "LPIPM Iteration Limit" for the key name and 20 for its value .
 
-SCIP_ options:
-``'scip_params'`` a dictionary of SCIP optional parameters, a full list of parameters with defaults is listed `here <https://www.scipopt.org/doc-5.0.1/html/PARAMETERS.php>`_.
+.. dropdown:: SCIP_ options:
 
-`SCIPY`_ options:
-``'scipy_options'`` a dictionary of SciPy optional parameters, a full list of parameters with defaults is listed `here <https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.linprog.html#scipy.optimize.linprog>`_.
+    ``'scip_params'`` a dictionary of SCIP optional parameters, a full list of parameters with defaults is listed `here <https://www.scipopt.org/doc-5.0.1/html/PARAMETERS.php>`_.
 
-* **Please note**: All options should be listed as key-value pairs within the ``'scipy_options'`` dictionary, and there should not be a nested dictionary called options. Some of the methods have different parameters, so please check the parameters for the method you wish to use, e.g., for method = 'highs-ipm'. Also, note that the 'integrality' and 'bounds' options should never be specified within ``'scipy_options'`` and should instead be specified using CVXPY.
+.. dropdown:: `SCIPY`_ options:
 
-* The main advantage of this solver is its ability to use the `HiGHS`_ LP and MIP solvers, which are coded in C++. However, these require versions of SciPy larger than 1.6.1 and 1.9.0, respectively. To use the `HiGHS`_ LP solvers, simply set the method parameter to 'highs-ds' (for dual-simplex), 'highs-ipm' (for interior-point method) or 'highs' (which will choose either 'highs-ds' or 'highs-ipm' for you). To use the `HiGHS`_ MIP solver, leave the method parameter unspecified or set it explicitly to 'highs'.
+    ``'scipy_options'`` a dictionary of SciPy optional parameters, a full list of parameters with defaults is listed `here <https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.linprog.html#scipy.optimize.linprog>`_.
 
-`PDLP`_ options:
+    * **Please note**: All options should be listed as key-value pairs within the ``'scipy_options'`` dictionary, and there should not be a nested dictionary called options. Some of the methods have different parameters, so please check the parameters for the method you wish to use, e.g., for method = 'highs-ipm'. Also, note that the 'integrality' and 'bounds' options should never be specified within ``'scipy_options'`` and should instead be specified using CVXPY.
 
-``'time_limit_sec'``
-    Time limit for the solve, in seconds.
+    * The main advantage of this solver is its ability to use the `HiGHS`_ LP and MIP solvers, which are coded in C++. However, these require versions of SciPy larger than 1.6.1 and 1.9.0, respectively. To use the `HiGHS`_ LP solvers, simply set the method parameter to 'highs-ds' (for dual-simplex), 'highs-ipm' (for interior-point method) or 'highs' (which will choose either 'highs-ds' or 'highs-ipm' for you). To use the `HiGHS`_ MIP solver, leave the method parameter unspecified or set it explicitly to 'highs'.
 
-``'parameters_proto'``
-    A `ortools.pdlp.solvers_pb2.PrimalDualHybridGradientParams` protocol buffer message.
-    For the definition of PrimalDualHybridGradientParams, see
-    `here <https://github.com/google/or-tools/blob/a3ef28e824ee84a948796dffbb8254e67714cb56/ortools/pdlp/solvers.proto#L150>`_.
+.. dropdown:: `PDLP`_ options:
 
+    ``'time_limit_sec'``
+        Time limit for the solve, in seconds.
 
-`GUROBI`_ options:
+    ``'parameters_proto'``
+        A `ortools.pdlp.solvers_pb2.PrimalDualHybridGradientParams` protocol buffer message.
+        For the definition of PrimalDualHybridGradientParams, see
+        `here <https://github.com/google/or-tools/blob/a3ef28e824ee84a948796dffbb8254e67714cb56/ortools/pdlp/solvers.proto#L150>`_.
 
-Gurobi solver options are specified in CVXPY as keyword arguments. The full list of Gurobi parameters with defaults is listed `here <https://www.gurobi.com/documentation/9.1/refman/parameters.html>`_.
+.. dropdown:: `GUROBI`_ options:
 
-In addition to Gurobi's parameters, the following options are available:
+    Gurobi solver options are specified in CVXPY as keyword arguments. The full list of Gurobi parameters with defaults is listed `here <https://www.gurobi.com/documentation/9.1/refman/parameters.html>`_.
 
-``'env'``
-    Allows for the passage of a Gurobi Environment, which specifies parameters and license information.  Keyword arguments will override any settings in this environment.
+    In addition to Gurobi's parameters, the following options are available:
 
-``reoptimize``
-    A boolean. This is only relevant for problems where GUROBI initially produces an "infeasible or unbounded" status.
-    Its default value is False. If set to True, then if GUROBI produces an "infeasible or unbounded" status, its algorithm
-    parameters are automatically changed and the problem is re-solved in order to determine its precise status.
+    ``'env'``
+        Allows for the passage of a Gurobi Environment, which specifies parameters and license information.  Keyword arguments will override any settings in this environment.
 
-`CLARABEL`_ options:
+    ``reoptimize``
+        A boolean. This is only relevant for problems where GUROBI initially produces an "infeasible or unbounded" status.
+        Its default value is False. If set to True, then if GUROBI produces an "infeasible or unbounded" status, its algorithm
+        parameters are automatically changed and the problem is re-solved in order to determine its precise status.
 
-``'max_iter'``
-    maximum number of iterations (default: 50).
+.. dropdown:: `CLARABEL`_ options:
 
-``'time_limit'``
-    time limit in seconds (default: 0.0, giving no limit).
+    ``'max_iter'``
+        maximum number of iterations (default: 50).
 
-For others see `CLARABEL documentation <https://oxfordcontrol.github.io/ClarabelDocs/stable/api_settings/>`_.
+    ``'time_limit'``
+        time limit in seconds (default: 0.0, giving no limit).
 
+    For others see `CLARABEL documentation <https://oxfordcontrol.github.io/ClarabelDocs/stable/api_settings/>`_.
 
-`XPRESS`_ options:
+.. dropdown::  `XPRESS`_ options:
 
-``'save_iis'``
-    Whether (and how many) Irreduceable Infeasible Subsystems
-    (IISs) should be saved in the event a problem is found to be
-    infeasible. If 0 (default), no IIS is saved; if negative, all
-    IISs are stored; if a positive ``'k>0'``, at most ``'k'`` IISs
-    are saved.
+    ``'save_iis'``
+        Whether (and how many) Irreduceable Infeasible Subsystems
+        (IISs) should be saved in the event a problem is found to be
+        infeasible. If 0 (default), no IIS is saved; if negative, all
+        IISs are stored; if a positive ``'k>0'``, at most ``'k'`` IISs
+        are saved.
 
-``'write_mps'``
-    Filename (with extension ``'.mps'``) in which Xpress will save
-    the quadratic or conic problem.
+    ``'write_mps'``
+        Filename (with extension ``'.mps'``) in which Xpress will save
+        the quadratic or conic problem.
 
-``'maxtime'``
-    Time limit in seconds (must be integer).
+    ``'maxtime'``
+        Time limit in seconds (must be integer).
 
-All controls of the Xpress Optimizer can be specified within the ``'solve'``
-command. For all controls see `FICO Xpress Optimizer manual <https://www.fico.com/fico-xpress-optimization/docs/dms2019-03/solver/optimizer/HTML/chapter7.html>`_.
+    All controls of the Xpress Optimizer can be specified within the ``'solve'``
+    command. For all controls see `FICO Xpress Optimizer manual <https://www.fico.com/fico-xpress-optimization/docs/dms2019-03/solver/optimizer/HTML/chapter7.html>`_.
 
-`PIQP`_ options:
+.. dropdown:: `PIQP`_ options:
 
-``'backend'``
-    solver backend [dense, sparse] (default: sparse).
+    ``'backend'``
+        solver backend [dense, sparse] (default: sparse).
 
-``'max_iter'``
-    maximum number of iterations (default: 250).
+    ``'max_iter'``
+        maximum number of iterations (default: 250).
 
-``'eps_abs'``
-    absolute accuracy (default: 1e-8).
+    ``'eps_abs'``
+        absolute accuracy (default: 1e-8).
 
-``'eps_rel'``
-    relative accuracy (default: 1e-9).
+    ``'eps_rel'``
+        relative accuracy (default: 1e-9).
 
-For others see `PIQP documentation <https://predict-epfl.github.io/piqp/interfaces/settings>`_.
+    For others see `PIQP documentation <https://predict-epfl.github.io/piqp/interfaces/settings>`_.
 
 Getting the standard form
 -------------------------

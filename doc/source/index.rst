@@ -125,6 +125,11 @@ considered to be part of the public API.
 .. toctree::
    :hidden:
 
+   functions/index
+
+.. toctree::
+   :hidden:
+
    API Documentation <api_reference/cvxpy>
 
 .. toctree::
@@ -132,11 +137,6 @@ considered to be part of the public API.
    :hidden:
 
    faq/index
-
-.. toctree::
-   :hidden:
-
-   citing/index
 
 .. toctree::
    :hidden:
@@ -157,6 +157,11 @@ considered to be part of the public API.
    :hidden:
 
    short_course/index
+
+.. toctree::
+   :hidden:
+
+   citing/index
 
 .. toctree::
    :hidden:
