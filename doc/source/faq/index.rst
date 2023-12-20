@@ -2,11 +2,6 @@
 FAQ
 =====================================
 
-.. contents::
-  :local:
-  :backlinks: none
-  :depth: 1
-
 Where can I get help with CVXPY?
 --------------------------------
 You can post questions about how to use CVXPY on StackOverflow or on the `CVXPY mailing list <https://groups.google.com/forum/#!forum/cvxpy>`_.
