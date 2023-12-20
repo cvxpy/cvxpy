@@ -45,6 +45,7 @@ You can use CVXPY to find the optimal dual variables for a problem. When you cal
 The dual variable for ``x - y >= 1`` is 2. By complementarity this implies that ``x - y`` is 1, which we can see is true. The fact that the dual variable is non-zero also tells us that if we tighten ``x - y >= 1``, (i.e., increase the right-hand side), the optimal value of the problem will increase.
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 .. _attributes:
 
 Attributes
@@ -285,6 +286,8 @@ The following additional atoms are provided for working with complex expressions
 * ``conj(expr)`` gives the complex conjugate of ``expr``.
 * ``expr.H`` gives the Hermitian (conjugate) transpose of ``expr``.
 
+=======
+>>>>>>> c4aab172d2cb5c4a49d6a826dbd5bd50f5e02f0b
 Transforms
 ----------
 
