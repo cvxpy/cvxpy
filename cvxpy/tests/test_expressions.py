@@ -1355,8 +1355,7 @@ class TestExpressions(BaseTest):
         self.assertEqual(R.shape, (m, n))
 
     def test_curvatures(self) -> None:
-        """Test the curvatures property returns a list of valid curvatures
-        """
+        """Test the curvatures property returns a list of valid curvatures"""
         mat = np.array([[1, -1]])
         self.assertEqual(cp.sum(mat @ cp.square(Variable(2))).curvatures, [s.UNKNOWN])
 
@@ -1373,10 +1372,10 @@ class TestExpressions(BaseTest):
                                                s.LOG_LOG_CONVEX, s.LOG_LOG_CONCAVE])
 
         posynomial = x*x*x + x
-        self.assertEqual(posynomial.curvatures == [s.LOG_LOG_CONVEX])
+        self.assertEqual(posynomial.curvatures, [s.LOG_LOG_CONVEX])
 
         llcv = 1/(x*x*x + x)
-        self.assertEqual(llcv.curvatures == [s.LOG_LOG_CONCAVE])
+        self.assertEqual(llcv.curvatures, [s.LOG_LOG_CONCAVE])
 
     def test_log_log_curvature(self) -> None:
         """Test that the curvature string is populated for log-log expressions.
