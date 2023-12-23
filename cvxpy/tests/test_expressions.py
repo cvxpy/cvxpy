@@ -1364,17 +1364,19 @@ class TestExpressions(BaseTest):
         self.assertIn(s.CONSTANT, y.curvatures)
 
         x = cp.Variable(pos=True)
-        assert x.curvatures == [s.AFFINE, s.CONVEX, s.CONCAVE, s.LOG_LOG_AFFINE, s.LOG_LOG_CONVEX,
-                                s.LOG_LOG_CONCAVE, s.QUASILINEAR, s.QUASICONVEX, s.QUASICONCAVE]
+        self.assertEqual(x.curvatures, [s.AFFINE, s.CONVEX, s.CONCAVE,
+                                        s.LOG_LOG_AFFINE, s.LOG_LOG_CONVEX, s.LOG_LOG_CONCAVE,
+                                        s.QUASILINEAR, s.QUASICONVEX, s.QUASICONCAVE])
 
         monomial = x*x*x
-        assert monomial.curvatures == [s.LOG_LOG_AFFINE, s.LOG_LOG_CONVEX, s.LOG_LOG_CONCAVE]
+        self.assertEqual(monomial.curvatures, [s.LOG_LOG_AFFINE,
+                                               s.LOG_LOG_CONVEX, s.LOG_LOG_CONCAVE])
 
         posynomial = x*x*x + x
-        assert posynomial.curvatures == [s.LOG_LOG_CONVEX]
+        self.assertEqual(posynomial.curvatures == [s.LOG_LOG_CONVEX])
 
         llcv = 1/(x*x*x + x)
-        assert llcv.curvatures == [s.LOG_LOG_CONCAVE]
+        self.assertEqual(llcv.curvatures == [s.LOG_LOG_CONCAVE])
 
     def test_log_log_curvature(self) -> None:
         """Test that the curvature string is populated for log-log expressions.
