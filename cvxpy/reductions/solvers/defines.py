@@ -42,15 +42,14 @@ from cvxpy.reductions.solvers.conic_solvers.sdpa_conif import SDPA as SDPA_con
 from cvxpy.reductions.solvers.conic_solvers.xpress_conif import XPRESS as XPRESS_con
 from cvxpy.reductions.solvers.qp_solvers.copt_qpif import COPT as COPT_qp
 from cvxpy.reductions.solvers.qp_solvers.cplex_qpif import CPLEX as CPLEX_qp
-from cvxpy.reductions.solvers.qp_solvers.gurobi_qpif import GUROBI as GUROBI_qp
 
 # QP interfaces
+from cvxpy.reductions.solvers.qp_solvers.daqp_qpif import DAQP as DAQP_qp
+from cvxpy.reductions.solvers.qp_solvers.gurobi_qpif import GUROBI as GUROBI_qp
 from cvxpy.reductions.solvers.qp_solvers.osqp_qpif import OSQP as OSQP_qp
 from cvxpy.reductions.solvers.qp_solvers.piqp_qpif import PIQP as PIQP_qp
 from cvxpy.reductions.solvers.qp_solvers.proxqp_qpif import PROXQP as PROXQP_qp
 from cvxpy.reductions.solvers.qp_solvers.xpress_qpif import XPRESS as XPRESS_qp
-from cvxpy.reductions.solvers.qp_solvers.daqp_qpif import DAQP as DAQP_qp
-
 from cvxpy.utilities.versioning import Version
 
 solver_conic_intf = [DIFFCP_con(), ECOS_con(),
