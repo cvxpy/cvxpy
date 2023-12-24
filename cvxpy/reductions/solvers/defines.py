@@ -49,6 +49,8 @@ from cvxpy.reductions.solvers.qp_solvers.osqp_qpif import OSQP as OSQP_qp
 from cvxpy.reductions.solvers.qp_solvers.piqp_qpif import PIQP as PIQP_qp
 from cvxpy.reductions.solvers.qp_solvers.proxqp_qpif import PROXQP as PROXQP_qp
 from cvxpy.reductions.solvers.qp_solvers.xpress_qpif import XPRESS as XPRESS_qp
+from cvxpy.reductions.solvers.qp_solvers.daqp_qpif import DAQP as DAQP_qp
+
 from cvxpy.utilities.versioning import Version
 
 solver_conic_intf = [DIFFCP_con(), ECOS_con(),
@@ -63,7 +65,8 @@ solver_qp_intf = [OSQP_qp(),
                   XPRESS_qp(),
                   COPT_qp(),
                   PIQP_qp(),
-                  PROXQP_qp()
+                  PROXQP_qp(),
+                  DAQP_qp(),
                   ]
 
 SOLVER_MAP_CONIC = {solver.name(): solver for solver in solver_conic_intf}
@@ -82,7 +85,8 @@ QP_SOLVERS = [s.OSQP,
               s.XPRESS,
               s.COPT,
               s.PIQP,
-              s.PROXQP]
+              s.PROXQP,
+              s.DAQP]
 MI_SOLVERS = [s.GLPK_MI, s.MOSEK, s.GUROBI, s.CPLEX,
               s.XPRESS, s.CBC, s.SCIP, s.COPT, s.ECOS_BB]
 MI_SOCP_SOLVERS = [s.MOSEK, s.GUROBI, s.CPLEX, s.XPRESS,
