@@ -134,7 +134,8 @@ class DAQP(QpSolver):
         )
 
         # Overwrite defaults eps_prox=0.01
-        solver_opts['eps_prox'] = solver_opts.get('eps_prox', .01,)
+        solver_opts['eps_prox'] = solver_opts.get('eps_prox',
+            .01 if np.linalg.det(H) == 0. else 0)
         # This is chosen to pass tests, higher value causes failure b/c numerical errors.
         # Lower value (non-zero) makes DAQP slower.
         # Zero (which is default) makes DAQP unable to solve LPs.
