@@ -146,13 +146,11 @@ class DAQP(QpSolver):
             is_positive_definite = False # shouldn't be used
 
         # Overwrite defaults eps_prox
-        solver_opts['eps_prox'] = solver_opts.get('eps_prox', 0. if is_positive_definite else 0.01)
-        # This is chosen to pass tests, higher value causes failure b/c numerical errors.
-        # Lower value (non-zero) makes DAQP slower.
-        # Zero (which is default) makes DAQP unable to solve LPs.
-        # For context, see figure 4 of:
-        # http://cse.lab.imtlucca.it/~bemporad/publications/papers/ieeecsl_daqp_lp.pdf
-
+        solver_opts['eps_prox'] = solver_opts.get('eps_prox', 0. if is_positive_definite else 1e-5)
+        # This is chosen by benchmarking to a typical problem class
+        # https://gist.github.com/enzbus/3d0236c7ed93cff5f0ec3f8587bcd67e
+        # Zero (which is default) can't be used in most cases because Cvxpy's
+        # canonicalization may add variables that have no quadratic cost.
 
         used_solver_opts = {
             k:solver_opts[k] for k in solver_opts

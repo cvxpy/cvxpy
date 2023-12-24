@@ -865,10 +865,11 @@ some features of DAQP are currently unsupported in Cvxpy.
 
 ``'eps_prox'``
     Regularization parameter used for proximal-point iterations (0 means that
-    no proximal-point iterations are performed). If you know the problem has a
-    positive definite cost matrix setting this to 0 improves performance. If the
-    cost matrix has a zero eigenvalue, setting this to 0 makes DAQP fail.
-    (default: 1e-2 if there are 0 eigenvalues, else 0).
+    no proximal-point iterations are performed). If the
+    cost matrix has a null eigenvalue, setting this to 0 (upstream's default)
+    makes DAQP fail. Note that Cvxpy's canonicalization procedure may add extra
+    variables with 0 quadratic cost which cause the cost matrix to have null eigenvalues
+    (default: 1e-5 if there are null eigenvalues, else 0).
 
 ``'eta_prox'``
     Tolerance that determines if a fix-point has been reached during
