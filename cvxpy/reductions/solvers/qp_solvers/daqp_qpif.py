@@ -133,16 +133,26 @@ class DAQP(QpSolver):
             dtype=c_int
         )
 
-        # Overwrite defaults eps_prox=0.01
-        solver_opts['eps_prox'] = solver_opts.get('eps_prox',
-            .01 if np.linalg.det(H) == 0. else 0)
+        # according to https://stackoverflow.com/questions/16266720/find-out-if-a-matrix-is-positive-definite-with-numpy
+        # best way to check positive definiteness (since we already know it is symmetric)
+
+        if 'eps_prox' not in solver_opts:
+            try:
+                np.linalg.cholesky(H)
+                is_positive_definite = True
+            except np.linalg.LinAlgError:
+                is_positive_definite = False
+        else:
+            is_positive_definite = False # shouldn't be used
+
+        # Overwrite defaults eps_prox
+        solver_opts['eps_prox'] = solver_opts.get('eps_prox', 0. if is_positive_definite else 0.01)
         # This is chosen to pass tests, higher value causes failure b/c numerical errors.
         # Lower value (non-zero) makes DAQP slower.
         # Zero (which is default) makes DAQP unable to solve LPs.
         # For context, see figure 4 of:
         # http://cse.lab.imtlucca.it/~bemporad/publications/papers/ieeecsl_daqp_lp.pdf
-        # If you know your QP cost matrix is positive definite you get better
-        # perfomance with this set to 0.
+
 
         used_solver_opts = {
             k:solver_opts[k] for k in solver_opts
