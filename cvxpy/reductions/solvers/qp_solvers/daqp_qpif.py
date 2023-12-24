@@ -24,8 +24,7 @@ class DAQP(QpSolver):
 
     """
 
-    # TODO to be tested
-    # REQUIRES_CONSTR = False
+    REQUIRES_CONSTR = False
 
     # Map of DAQP exit flags to CVXPY status.
     STATUS_MAP = {1: s.OPTIMAL,
@@ -38,7 +37,8 @@ class DAQP(QpSolver):
                   # TODO to be tested
                   -4: s.USER_LIMIT, # iter limit reached, should it be error?
                   -5: s.SOLVER_ERROR, # non-convex problem, shouldn't happen
-                  -6: s.SOLVER_ERROR} # active set infeasible, shouldn't happen
+                  -6: s.INFEASIBLE} # provided active set (equality
+                                    # constraints) infeasible
 
     # these are solver options that can be passed; we drop any other - good idea?
     ALLOWED_SOLVER_OPTS = (
@@ -65,9 +65,7 @@ class DAQP(QpSolver):
     def invert(self, solution, inverse_data):
 
         (xstar,fval,exitflag,info) = solution
-
-        print((xstar,fval,exitflag,info))
-
+        
         attr = {s.SOLVE_TIME: info['solve_time'] + info['setup_time']}
         attr[s.EXTRA_STATS] = info
 
@@ -80,7 +78,9 @@ class DAQP(QpSolver):
                 DAQP.VAR_ID:
                 intf.DEFAULT_INTF.const_to_matrix(np.array(xstar))
             }
-            dual_vars = {DAQP.DUAL_VAR_ID: np.array(info['lam'])}
+            # need to skip unused variable bounds constraints
+            len_primal = len(xstar)
+            dual_vars = {DAQP.DUAL_VAR_ID: np.array(info['lam'][len_primal:])}
             attr[s.NUM_ITERS] = info['iterations']
             sol = Solution(status, opt_val, primal_vars, dual_vars, attr)
         else:
@@ -106,14 +106,9 @@ class DAQP(QpSolver):
         H = np.array(data[s.P].todense(), dtype=c_double)
         f = np.array(data[s.Q], dtype=c_double)
 
-        print('H.shape', H.shape)
-        print('f.shape', f.shape)
-
         # this can probably be made more efficient
         A = np.array(np.concatenate(
                 [data[s.A].todense(), data[s.F].todense()]), dtype=c_double)
-        
-        print('A.shape', A.shape)
 
         bupper = np.array(np.concatenate((
                 np.ones(len(f), dtype=c_double) * np.inf,
@@ -128,9 +123,6 @@ class DAQP(QpSolver):
                 -np.inf*np.ones(data[s.G].shape))),
             dtype=c_double)
 
-        print('bupper.shape', bupper.shape)
-        print('blower.shape', blower.shape)
-
         sense = np.array(
             np.concatenate((
                 # variable bounds, unused
@@ -142,12 +134,12 @@ class DAQP(QpSolver):
             dtype=c_int
         )
 
-        print('sense', sense)
-
-        # Overwrite defaults eps_abs=eps_rel=1e-3, max_iter=4000
-        # solver_opts['eps_abs'] = solver_opts.get('eps_abs', 1e-5)
-        # solver_opts['eps_rel'] = solver_opts.get('eps_rel', 1e-5)
-        # solver_opts['max_iter'] = solver_opts.get('max_iter', 10000)
+        # Overwrite defaults eps_prox=0.01
+        solver_opts['eps_prox'] = solver_opts.get('eps_prox', .01,)
+        # This is chosen to pass tests (higher value cause failure b/c numerical errors).
+        # Zero (which is default) makes DAQP unable to solve LPs.
+        # For context, see figure 4 of:
+        # http://cse.lab.imtlucca.it/~bemporad/publications/papers/ieeecsl_daqp_lp.pdf
 
         used_solver_opts = {
             k:solver_opts[k] for k in solver_opts
