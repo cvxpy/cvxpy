@@ -438,6 +438,8 @@ The table below shows the types of problems the supported solvers can handle.
 +----------------+----+----+------+-----+-----+-----+-----+
 | `COPT`_        | X  | X  | X    |  X  |     |     | X*  |
 +----------------+----+----+------+-----+-----+-----+-----+
+| `DAQP`_        | X  | X  |      |     |     |     |     |
++----------------+----+----+------+-----+-----+-----+-----+
 | `GLOP`_        | X  |    |      |     |     |     |     |
 +----------------+----+----+------+-----+-----+-----+-----+
 | `GLPK`_        | X  |    |      |     |     |     |     |
@@ -725,7 +727,7 @@ cached previous solution as described above (rather than from the ``value`` fiel
 Setting solver options
 ----------------------
 
-The `OSQP`_, `ECOS`_, `GLOP`_, `MOSEK`_, `CBC`_, `CVXOPT`_, `NAG`_, `PDLP`_, `GUROBI`_, `SCS`_ , `CLARABEL`_, `PIQP`_ and `PROXQP`_ Python interfaces allow you to set solver options such as the maximum number of iterations. You can pass these options along through CVXPY as keyword arguments.
+The `OSQP`_, `ECOS`_, `GLOP`_, `MOSEK`_, `CBC`_, `CVXOPT`_, `NAG`_, `PDLP`_, `GUROBI`_, `SCS`_ , `CLARABEL`_, `DAQP`_, `PIQP`_ and `PROXQP`_ Python interfaces allow you to set solver options such as the maximum number of iterations. You can pass these options along through CVXPY as keyword arguments.
 
 For example, here we tell SCS to use an indirect method for solving linear equations rather than a direct method.
 
@@ -828,6 +830,50 @@ For others see `OSQP documentation <https://osqp.org/docs/interfaces/solver_sett
 
 ``'feastol_inacc'``
     tolerance for feasibility condition for inaccurate solution (default: 1e-4).
+
+`DAQP`_ options:
+
+For more information `see the DAQP documentation <https://darnstrom.github.io/daqp/parameters/>`_,
+some features of DAQP are currently unsupported in Cvxpy.
+
+``'primal_tol'``
+    tolerance for primal infeasibility (default: 1e-6).
+
+``'dual_tol'``
+    olerance for dual infeasibility (default: 1e-12).
+
+``'zero_tol'``
+    values below are regarded as zero (default: 1e-11).
+
+``'pivot_tol'``
+    value used for determining if rows in the LDL factorization should be exchanged.
+    A higher value improves stability (default: 1e-6).
+
+``'progress_tol'``
+    minimum change in objective function to consider it progress (default: 1e-6).
+
+``'cycle_tol'``
+    allowed number of iterations without progress before terminating (default: 10).
+
+``'iter_limit'``
+    maximum number of iterations before terminating (default: 1000).
+
+``'fval_bound'``
+    Maximum allowed objective function value. The solver terminates if the dual
+    objective exceeds this value (since it is a lower bound of the optimal value,
+    default: 1e30).
+
+``'eps_prox'``
+    Regularization parameter used for proximal-point iterations (0 means that
+    no proximal-point iterations are performed). If you know the problem has a
+    positive definite cost matrix setting this to 0 improves performance. If the
+    cost matrix has a zero eigenvalue, setting this to 0 makes DAQP fail.
+    (default: 1e-2).
+
+``'eta_prox'``
+    Tolerance that determines if a fix-point has been reached during
+    proximal-point iterations (default: 1e-6).
+
 
 `GLOP`_ options:
 

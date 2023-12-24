@@ -75,6 +75,7 @@ SCIP = ["PySCIPOpt"]
 SCIPY = ["scipy"]
 SCS = ["setuptools>65.5.1"]
 XPRESS = ["xpress"]
+DAQP = ["daqp"]
 
 [project.readme]
 file = "README.md"

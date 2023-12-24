@@ -13,14 +13,15 @@ from cvxpy.reductions.solvers.qp_solvers.qp_solver import QpSolver
 class DAQP(QpSolver):
     """QP interface for the DAQP solver.
     
-    This is a simple implementation based on the official documentation.
+    This is a simple implementation based on the `official DAQP documentation
+    <https://darnstrom.github.io/daqp/>`_.
 
     .. note::
 
         DAQP allows for marking individual constraints as "soft", meaning that
         a small user-defined violation is allowed. We currently don't support
-        that option. DAQP also supports MIP-like problems, which we also don't
-        compile here.
+        that option. DAQP also supports MIP QPs, which can be compiled by
+        CVXPY and could be supported here as a future addition.
 
     """
 
@@ -65,7 +66,7 @@ class DAQP(QpSolver):
     def invert(self, solution, inverse_data):
 
         (xstar,fval,exitflag,info) = solution
-        
+
         attr = {s.SOLVE_TIME: info['solve_time'] + info['setup_time']}
         attr[s.EXTRA_STATS] = info
 
@@ -136,10 +137,13 @@ class DAQP(QpSolver):
 
         # Overwrite defaults eps_prox=0.01
         solver_opts['eps_prox'] = solver_opts.get('eps_prox', .01,)
-        # This is chosen to pass tests (higher value cause failure b/c numerical errors).
+        # This is chosen to pass tests, higher value causes failure b/c numerical errors.
+        # Lower value (non-zero) makes DAQP slower.
         # Zero (which is default) makes DAQP unable to solve LPs.
         # For context, see figure 4 of:
         # http://cse.lab.imtlucca.it/~bemporad/publications/papers/ieeecsl_daqp_lp.pdf
+        # If you know your QP cost matrix is positive definite you get better
+        # perfomance with this set to 0.
 
         used_solver_opts = {
             k:solver_opts[k] for k in solver_opts
