@@ -834,7 +834,7 @@ For others see `OSQP documentation <https://osqp.org/docs/interfaces/solver_sett
 `DAQP`_ options:
 
 For more information `see the DAQP documentation <https://darnstrom.github.io/daqp/parameters/>`_,
-some features of DAQP are currently unsupported in Cvxpy.
+some features of DAQP are currently unsupported in CVXPY.
 
 ``'primal_tol'``
     tolerance for primal infeasibility (default: 1e-6).
@@ -867,7 +867,7 @@ some features of DAQP are currently unsupported in Cvxpy.
     Regularization parameter used for proximal-point iterations (0 means that
     no proximal-point iterations are performed). If the
     cost matrix has a null eigenvalue, setting this to 0 (upstream's default)
-    makes DAQP fail. Note that Cvxpy's canonicalization procedure may add extra
+    makes DAQP fail. Note that CVXPY's canonicalization procedure may add extra
     variables with 0 quadratic cost which cause the cost matrix to have null eigenvalues
     (default: 1e-5 if there are null eigenvalues, else 0).
 
