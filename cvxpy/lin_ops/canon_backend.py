@@ -68,11 +68,13 @@ class TensorRepresentation:
         # Appending to numpy arrays vs. appending to lists and casting to array at the end was
         # faster for relevant dimensions in our testing.
         for i, t in enumerate(tensors):
+            mask = t.data != 0
+            print("Number of explicit 0s:", np.sum(t.data == 0))
             print("size of tensor no", i, ":", t.data.shape[0])
-            data = np.append(data, t.data)
-            row = np.append(row, t.row)
-            col = np.append(col, t.col)
-            parameter_offset = np.append(parameter_offset, t.parameter_offset)
+            data = np.append(data, t.data[mask])
+            row = np.append(row, t.row[mask])
+            col = np.append(col, t.col[mask])
+            parameter_offset = np.append(parameter_offset, t.parameter_offset[mask])
         end = time.time()
         print("time spent in tensor repr combine ", end-start)
         return cls(data, row, col, parameter_offset)
