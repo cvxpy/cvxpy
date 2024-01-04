@@ -63,20 +63,14 @@ class TensorRepresentation:
         Concatenates the row, col, parameter_offset, and data fields of a list of
         TensorRepresentations.
         """
-        start = time.time()
         data, row, col, parameter_offset = np.array([]), np.array([]), np.array([]), np.array([])
         # Appending to numpy arrays vs. appending to lists and casting to array at the end was
         # faster for relevant dimensions in our testing.
         for i, t in enumerate(tensors):
-            mask = t.data != 0
-            print("Number of explicit 0s:", np.sum(t.data == 0))
-            print("size of tensor no", i, ":", t.data.shape[0])
-            data = np.append(data, t.data[mask])
-            row = np.append(row, t.row[mask])
-            col = np.append(col, t.col[mask])
-            parameter_offset = np.append(parameter_offset, t.parameter_offset[mask])
-        end = time.time()
-        print("time spent in tensor repr combine ", end-start)
+            data = np.append(data, t.data)
+            row = np.append(row, t.row)
+            col = np.append(col, t.col)
+            parameter_offset = np.append(parameter_offset, t.parameter_offset)
         return cls(data, row, col, parameter_offset)
 
     def __eq__(self, other: TensorRepresentation) -> bool:
@@ -174,7 +168,7 @@ class PythonCanonBackend(CanonBackend):
         constraint_res = []
         row_offset = 0
         for lin_op in lin_ops:
-            lin_op_rows = np.prod(lin_op.shape)
+            lin_op_rows = np.prod(lin_op.shape, dtype=int)
             empty_view = self.get_empty_view()
             lin_op_tensor = self.process_constraint(lin_op, empty_view)
             constraint_res.append((lin_op_tensor.get_tensor_representation(row_offset)))
@@ -1522,7 +1516,7 @@ class GraphBlasBackend(PythonCanonBackend):
         if data.shape == (1, 1) or data.shape == ():
             constant = gb.Matrix.from_scalar(value=data, nrows=1, ncols=1, dtype=float)
         else:
-            constant = gb.Matrix.from_dense(data, dtype=float)
+            constant = gb.Matrix.from_dense(data, missing_value=0, dtype=float)
         assert constant.shape == lin_op.shape
         return constant
 
@@ -2265,7 +2259,6 @@ class SciPyTensorView(DictTensorView):
             for parameter_id, parameter_matrix in variable_tensor.items():
                 p = self.param_to_size[parameter_id]
                 m = parameter_matrix.shape[0] // p
-                coo_time = time.time()
                 coo_repr = parameter_matrix.tocoo(copy=False)
                 tensor_representations.append(TensorRepresentation(
                     coo_repr.data,
@@ -2273,8 +2266,6 @@ class SciPyTensorView(DictTensorView):
                     coo_repr.col + self.id_to_col[variable_id],
                     coo_repr.row // m + np.ones(coo_repr.nnz) * self.param_to_col[parameter_id],
                 ))
-                end = time.time()
-                print("time spent in tensor repr append ", end - coo_time)
         return TensorRepresentation.combine(tensor_representations)
 
     def select_rows(self, rows: np.ndarray) -> None:
@@ -2358,7 +2349,6 @@ class GraphBlasTensorView(DictTensorView):
                 p = self.param_to_size[parameter_id]
                 m = parameter_matrix.shape[0] // p
                 parameter_matrix = self.ensure_new_matrix(parameter_matrix)
-                coo_time = time.time()
                 coo_repr = parameter_matrix.to_coo()
                 tensor_representations.append(TensorRepresentation(
                     coo_repr[2],
@@ -2366,8 +2356,6 @@ class GraphBlasTensorView(DictTensorView):
                     coo_repr[1] + self.id_to_col[variable_id],
                     coo_repr[0] // m + np.ones(len(coo_repr[2])) * self.param_to_col[parameter_id],
                 ))
-                end = time.time()
-                print("time spent in GB tensor repr append ", end - coo_time)
         return TensorRepresentation.combine(tensor_representations)
 
     def select_rows(self, rows: np.ndarray) -> None:
