@@ -417,6 +417,11 @@ class TestConstraints(BaseTest):
         with pytest.raises(ValueError, match="in bounds."):
             x_1.value = [0, 0, 0]
 
+        # Try again using domain.
+        z = cp.Variable(shape=x_1.shape, var_id=x_1.id)
+        cp.Problem(cp.Minimize(z@c_2), x_1.domain).solve()
+        self.assertItemsAlmostEqual(z.value, [1, 2, 3])
+
         # Check if bounds attribute is compatible with quadratic objective
         cp.Problem(cp.Minimize(cp.quad_form(x_1, Q) + c_2.T @ x_1)).solve()
         self.assertItemsAlmostEqual(x_1.value,[1,2,3])
