@@ -138,7 +138,10 @@ class ParamConeProg(ParamProb):
                  parameters,
                  param_id_to_col,
                  P=None,
-                 formatted: bool = False) -> None:
+                 formatted: bool = False,
+                 lower_bounds: np.ndarray | None = None,
+                 upper_bounds: np.ndarray | None = None,
+                 ) -> None:
         # The problem data tensors; c is for the constraint, and A for
         # the problem data matrix
         self.c = c
@@ -146,6 +149,9 @@ class ParamConeProg(ParamProb):
         self.P = P
         # The variable
         self.x = x
+        # Lower and upper bounds for the variable, if present.
+        self.lower_bounds = lower_bounds
+        self.upper_bounds = upper_bounds
 
         # Form a reduced representation of A and P, for faster application
         # of parameters.
@@ -376,7 +382,9 @@ class ConeMatrixStuffing(MatrixStuffing):
                                  ordered_cons,
                                  problem.parameters(),
                                  inverse_data.param_id_map,
-                                 P=params_to_P)
+                                 P=params_to_P,
+                                 lower_bounds=None,
+                                 upper_bounds=None)
         return new_prob, inverse_data
 
     def invert(self, solution, inverse_data):

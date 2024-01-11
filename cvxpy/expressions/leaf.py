@@ -143,6 +143,7 @@ class Leaf(expression.Expression):
 
         # Only one attribute be True (except can be boolean and integer).
         true_attr = sum(1 for k, v in self.attributes.items() if v)
+        # HACK we should remove this feature or allow multiple attributes in general.
         if boolean and integer:
             true_attr -= 1
         if true_attr > 1:
@@ -273,6 +274,40 @@ class Leaf(expression.Expression):
         """
         return self.attributes['complex'] or self.is_imag() or self.attributes['hermitian']
 
+    def _bound_domain(self, term: expression.Expression, constraints: list[Constraint]) -> None:
+        """A utility function to append constraints from lower and upper bounds.
+
+        Parameters
+        ----------
+        term: The term to encode in the constraints.
+        constraints: An existing list of constraitns to append to.        
+        """
+        if self.attributes['nonneg'] or self.attributes['pos']:
+            constraints.append(term >= 0)
+        elif self.attributes['nonpos'] or self.attributes['neg']:
+            constraints.append(term <= 0)
+        elif self.attributes['bounds']:
+            bounds = self.bounds
+            lower_bounds, upper_bounds = bounds
+            # Create masks if -inf or inf is present in the bounds
+            lower_bound_mask = (lower_bounds != -np.inf)
+            upper_bound_mask = (upper_bounds != np.inf)
+
+            if np.any(lower_bound_mask):
+                # At least one valid lower bound,
+                # so we apply the constraint only to those entries
+                if self.ndim > 0:
+                    constraints.append(term[lower_bound_mask] >= lower_bounds[lower_bound_mask])
+                else:
+                    constraints.append(term >= lower_bounds)
+            if np.any(upper_bound_mask):
+                # At least one valid upper bound,
+                # so we apply the constraint only to those entries
+                if self.ndim > 0:
+                    constraints.append(term[upper_bound_mask] <= upper_bounds[upper_bound_mask])
+                else:
+                    constraints.append(term <= upper_bounds)
+
     @property
     def domain(self) -> list[Constraint]:
         """A list of constraints describing the closure of the region
@@ -280,11 +315,10 @@ class Leaf(expression.Expression):
         """
         # Default is full domain.
         domain = []
-        if self.attributes['nonneg'] or self.attributes['pos']:
-            domain.append(self >= 0)
-        elif self.attributes['nonpos'] or self.attributes['neg']:
-            domain.append(self <= 0)
-        elif self.attributes['PSD']:
+        # Add constraints from bounds.
+        self._bound_domain(self, domain)
+        # Add positive/negative semidefiniteness constraints.
+        if self.attributes['PSD']:
             domain.append(self >> 0)
         elif self.attributes['NSD']:
             domain.append(self << 0)

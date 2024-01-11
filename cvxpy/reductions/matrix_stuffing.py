@@ -16,14 +16,27 @@ limitations under the License.
 
 
 import abc
-from typing import List, Tuple
 
 import numpy as np
 
 from cvxpy.reductions.reduction import Reduction
 
 
-def extract_mip_idx(variables) -> Tuple[List[int], List[int]]:
+def extract_bounds(variables: list) -> tuple:
+    """Coalesces lower and upper bounds for the variables.
+
+    Parameters
+    ----------
+    variables: A list of the variables present in the problem.
+    """
+    # bound_present = False
+    var_size = 0
+    for var in variables:
+        var_size += var.size
+    return None, None
+
+
+def extract_mip_idx(variables) -> tuple[list[int], list[int]]:
     """Coalesces bool, int indices for variables.
 
        The indexing scheme assumes that the variables will be coalesced into

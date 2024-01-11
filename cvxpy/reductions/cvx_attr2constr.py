@@ -37,6 +37,15 @@ CONVEX_ATTRIBUTES = [
     'bounds'
 ]
 
+# Attributes that define lower and uppper bounds.
+BOUND_ATTRIBUTES = [
+    'nonneg',
+    'nonpos',
+    'pos',
+    'neg',
+    'bounds',
+]
+
 # Attributes related to symmetry.
 SYMMETRIC_ATTRIBUTES = [
     'symmetric',
@@ -87,12 +96,30 @@ def lower_value(variable, value):
 class CvxAttr2Constr(Reduction):
     """Expand convex variable attributes into constraints."""
 
+    def __init__(self, problem=None, ignore_bounds: bool = False) -> None:
+        """If ignore_bounds, do not reduce lower and upper bounds on variables.
+        """
+        self.ignore_bounds = ignore_bounds
+        super(CvxAttr2Constr, self).__init__(problem=problem)
+
+    def reduction_attributes(self) -> list[str]:
+        """Returns the attributes that will be reduced."""
+        if self.ignore_bounds:
+            return [
+                attr for attr in CONVEX_ATTRIBUTES if attr not in BOUND_ATTRIBUTES
+            ]
+        else:
+            return CONVEX_ATTRIBUTES
+
     def accepts(self, problem) -> bool:
         return True
 
     def apply(self, problem):
         if not attributes_present(problem.variables(), CONVEX_ATTRIBUTES):
             return problem, ()
+
+        # The attributes to be reduced.
+        reduction_attributes = self.reduction_attributes()
 
         # For each unique variable, add constraints.
         id2new_var = {}
@@ -104,7 +131,7 @@ class CvxAttr2Constr(Reduction):
                 id2old_var[var.id] = var
                 new_var = False
                 new_attr = var.attributes.copy()
-                for key in CONVEX_ATTRIBUTES:
+                for key in reduction_attributes:
                     if new_attr[key]:
                         if key == 'bounds':
                             new_var = True
@@ -136,35 +163,15 @@ class CvxAttr2Constr(Reduction):
                     id2new_var[var.id] = obj
 
                 id2new_obj[id(var)] = obj
-                if var.is_pos() or var.is_nonneg():
-                    constr.append(obj >= 0)
-                elif var.is_neg() or var.is_nonpos():
-                    constr.append(obj <= 0)
-                elif var.is_psd():
+                # Attributes related to positive and negative definiteness.
+                if var.is_psd():
                     constr.append(obj >> 0)
                 elif var.attributes['NSD']:
                     constr.append(obj << 0)
-                elif var.attributes['bounds']:
-                    bounds = var.bounds
-                    lower_bounds, upper_bounds = bounds
-                    # Create masks if -inf or inf is present in the bounds
-                    lower_bound_mask = (lower_bounds != -np.inf)
-                    upper_bound_mask = (upper_bounds != np.inf)
 
-                    if np.any(lower_bound_mask):
-                        # At least one valid lower bound,
-                        # so we apply the constraint only to those entries
-                        if var.ndim > 0:
-                            constr.append(obj[lower_bound_mask] >= lower_bounds[lower_bound_mask])
-                        else:
-                            constr.append(obj >= lower_bounds)
-                    if np.any(upper_bound_mask):
-                        # At least one valid upper bound,
-                        # so we apply the constraint only to those entries
-                        if var.ndim > 0:
-                            constr.append(obj[upper_bound_mask] <= upper_bounds[upper_bound_mask])
-                        else:
-                            constr.append(obj <= upper_bounds)
+                # Add in constraints from bounds.
+                if not self.ignore_bounds:
+                    var._bound_domain(obj, constr)
 
         # Create new problem.
         obj = problem.objective.tree_copy(id_objects=id2new_obj)
