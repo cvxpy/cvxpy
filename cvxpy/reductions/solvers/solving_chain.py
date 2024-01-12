@@ -246,7 +246,7 @@ def construct_solving_chain(problem, candidates,
         solver = candidates['qp_solvers'][0]
         solver_instance = slv_def.SOLVER_MAP_QP[solver]
         reductions += [
-            CvxAttr2Constr(ignore_bounds=solver_instance.BOUNDED_VARIABLES), 
+            CvxAttr2Constr(reduce_bounds=not solver_instance.BOUNDED_VARIABLES), 
             qp2symbolic_qp.Qp2SymbolicQp(),
             QpMatrixStuffing(canon_backend=canon_backend),
             solver_instance,
@@ -332,7 +332,7 @@ def construct_solving_chain(problem, candidates,
                 problem.objective.expr.has_quadratic_term()
             reductions += [
                 Dcp2Cone(quad_obj=quad_obj),
-                CvxAttr2Constr(ignore_bounds=solver_instance.BOUNDED_VARIABLES),
+                CvxAttr2Constr(reduce_bounds=not solver_instance.BOUNDED_VARIABLES),
             ]
             if all(c in supported_constraints for c in cones):
                 # Raise a warning if ECOS is used without being specified

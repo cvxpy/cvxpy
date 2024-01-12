@@ -99,20 +99,20 @@ def lower_value(variable, value):
 class CvxAttr2Constr(Reduction):
     """Expand convex variable attributes into constraints."""
 
-    def __init__(self, problem=None, ignore_bounds: bool = False) -> None:
-        """If ignore_bounds, do not reduce lower and upper bounds on variables.
+    def __init__(self, problem=None, reduce_bounds: bool = False) -> None:
+        """If reduce_bounds, reduce lower and upper bounds on variables.
         """
-        self.ignore_bounds = ignore_bounds
+        self.reduce_bounds = reduce_bounds
         super(CvxAttr2Constr, self).__init__(problem=problem)
 
     def reduction_attributes(self) -> List[str]:
         """Returns the attributes that will be reduced."""
-        if self.ignore_bounds:
+        if self.reduce_bounds:
+            return CONVEX_ATTRIBUTES
+        else:
             return [
                 attr for attr in CONVEX_ATTRIBUTES if attr not in BOUND_ATTRIBUTES
             ]
-        else:
-            return CONVEX_ATTRIBUTES
 
     def accepts(self, problem) -> bool:
         return True
@@ -173,7 +173,7 @@ class CvxAttr2Constr(Reduction):
                     constr.append(obj << 0)
 
                 # Add in constraints from bounds.
-                if not self.ignore_bounds:
+                if self.reduce_bounds:
                     var._bound_domain(obj, constr)
 
         # Create new problem.
