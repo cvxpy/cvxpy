@@ -16,7 +16,7 @@ limitations under the License.
 
 
 import abc
-from typing import Optional
+from typing import List, Optional, Tuple
 
 import numpy as np
 
@@ -77,7 +77,7 @@ def extract_upper_bounds(variables: list, var_size: int) -> Optional[np.ndarray]
     return upper_bounds
 
 
-def extract_mip_idx(variables) -> tuple[list[int], list[int]]:
+def extract_mip_idx(variables) -> Tuple[List[int], List[int]]:
     """Coalesces bool, int indices for variables.
 
        The indexing scheme assumes that the variables will be coalesced into
