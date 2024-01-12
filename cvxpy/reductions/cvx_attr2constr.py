@@ -14,6 +14,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+from typing import List
+
 import numpy as np
 import scipy.sparse as sp
 
@@ -103,7 +105,7 @@ class CvxAttr2Constr(Reduction):
         self.ignore_bounds = ignore_bounds
         super(CvxAttr2Constr, self).__init__(problem=problem)
 
-    def reduction_attributes(self) -> list[str]:
+    def reduction_attributes(self) -> List[str]:
         """Returns the attributes that will be reduced."""
         if self.ignore_bounds:
             return [
