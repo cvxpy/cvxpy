@@ -54,6 +54,7 @@ SYMMETRIC_ATTRIBUTES = [
 ]
 
 
+
 def convex_attributes(variables):
     """Returns a list of the (constraint-generating) convex attributes present
        among the variables.

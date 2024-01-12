@@ -396,6 +396,15 @@ class TestConstraints(BaseTest):
         prob.solve(solver=cp.OSQP)
         self.assertItemsAlmostEqual(prob.constraints[0].dual_value, dual)
 
+    def test_bound_properties(self) -> None:
+        """Test basic bound properties."""
+        assert cp.Variable(bounds=[1, None])._has_lower_bounds()
+        assert not cp.Variable(bounds=[1, None])._has_upper_bounds()
+        assert not cp.Variable(bounds=[None, 1])._has_lower_bounds()
+        assert cp.Variable(bounds=[None, 1])._has_upper_bounds()
+        assert cp.Variable(bounds=[1, 2])._has_lower_bounds()
+        assert cp.Variable(bounds=[1, 2])._has_upper_bounds()
+
     def test_bounds_attr(self) -> None:
         """Test that the bounds attribute for variables and parameters is set correctly.
         """

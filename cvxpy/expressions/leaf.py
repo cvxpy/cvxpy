@@ -274,6 +274,28 @@ class Leaf(expression.Expression):
         """
         return self.attributes['complex'] or self.is_imag() or self.attributes['hermitian']
 
+    def _has_lower_bounds(self) -> bool:
+        """Does the variable have lower bounds?"""
+        if self.is_nonneg():
+            return True
+        elif self.attributes['bounds'] is not None:
+            lower_bound = self.attributes['bounds'][0]
+            if np.isscalar(lower_bound):
+                return lower_bound != -np.inf
+            else:
+                return np.any(lower_bound != -np.inf)
+
+    def _has_upper_bounds(self) -> bool:
+        """Does the variable have upper bounds?"""
+        if self.is_nonpos():
+            return True
+        elif self.attributes['bounds'] is not None:
+            upper_bound = self.attributes['bounds'][1]
+            if np.isscalar(upper_bound):
+                return upper_bound != np.inf
+            else:
+                return np.any(upper_bound != np.inf)
+
     def _bound_domain(self, term: expression.Expression, constraints: list[Constraint]) -> None:
         """A utility function to append constraints from lower and upper bounds.
 

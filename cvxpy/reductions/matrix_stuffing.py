@@ -16,24 +16,65 @@ limitations under the License.
 
 
 import abc
+from typing import Optional
 
 import numpy as np
 
 from cvxpy.reductions.reduction import Reduction
 
 
-def extract_bounds(variables: list) -> tuple:
-    """Coalesces lower and upper bounds for the variables.
+def extract_lower_bounds(variables: list, var_size: int) -> Optional[np.ndarray]:
+    """Coalesces lower bounds for the variables.
 
     Parameters
     ----------
     variables: A list of the variables present in the problem.
+    var_size: Size of the coalesced variable.
     """
-    # bound_present = False
-    var_size = 0
-    for var in variables:
-        var_size += var.size
-    return None, None
+    # No bounds case.
+    bounds_present = any([var._has_lower_bounds() for var in variables])
+    if not bounds_present:
+        return None
+
+    lower_bounds = np.full(var_size, -np.inf)
+    vert_offset = 0
+    for x in variables:
+        if x.is_nonneg():
+            lower_bounds[vert_offset:vert_offset+x.size] = 0
+        elif x.attributes["bounds"] is not None:
+            # Store lower bound in Fortran order.
+            var_lower_bound = x.attributes['bounds'][0]
+            flattened = np.reshape(var_lower_bound, x.size, order="F")
+            lower_bounds[vert_offset:vert_offset+x.size] = flattened
+        vert_offset += x.size
+    return lower_bounds
+
+
+def extract_upper_bounds(variables: list, var_size: int) -> Optional[np.ndarray]:
+    """Coalesces upper bounds for the variables.
+
+    Parameters
+    ----------
+    variables: A list of the variables present in the problem.
+    var_size: Size of the coalesced variable.
+    """
+    # No bounds case.
+    bounds_present = any([var._has_upper_bounds() for var in variables])
+    if not bounds_present:
+        return None
+
+    upper_bounds = np.full(var_size, np.inf)
+    vert_offset = 0
+    for x in variables:
+        if x.is_nonpos():
+            upper_bounds[vert_offset:vert_offset+x.size] = 0
+        elif x.attributes["bounds"] is not None:
+            # Store upper bound in Fortran order.
+            var_upper_bound = x.attributes['bounds'][1]
+            flattened = np.reshape(var_upper_bound, x.size, order="F")
+            upper_bounds[vert_offset:vert_offset+x.size] = flattened
+        vert_offset += x.size
+    return upper_bounds
 
 
 def extract_mip_idx(variables) -> tuple[list[int], list[int]]:

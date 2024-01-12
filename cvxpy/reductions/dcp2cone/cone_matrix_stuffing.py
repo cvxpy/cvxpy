@@ -35,7 +35,12 @@ from cvxpy.expressions.variable import Variable
 from cvxpy.problems.objective import Minimize
 from cvxpy.problems.param_prob import ParamProb
 from cvxpy.reductions import InverseData, Solution, cvx_attr2constr
-from cvxpy.reductions.matrix_stuffing import MatrixStuffing, extract_mip_idx
+from cvxpy.reductions.matrix_stuffing import (
+    MatrixStuffing,
+    extract_lower_bounds,
+    extract_mip_idx,
+    extract_upper_bounds,
+)
 from cvxpy.reductions.utilities import (
     ReducedMat,
     are_args_affine,
@@ -374,17 +379,22 @@ class ConeMatrixStuffing(MatrixStuffing):
         params_to_problem_data = extractor.affine(expr_list)
 
         inverse_data.minimize = type(problem.objective) == Minimize
-        new_prob = ParamConeProg(params_to_c,
-                                 flattened_variable,
-                                 params_to_problem_data,
-                                 problem.variables(),
-                                 inverse_data.var_offsets,
-                                 ordered_cons,
-                                 problem.parameters(),
-                                 inverse_data.param_id_map,
-                                 P=params_to_P,
-                                 lower_bounds=None,
-                                 upper_bounds=None)
+        variables = problem.variables()
+        lower_bounds = extract_lower_bounds(variables, flattened_variable.size)
+        upper_bounds = extract_upper_bounds(variables, flattened_variable.size)
+        new_prob = ParamConeProg(
+            params_to_c,
+            flattened_variable,
+            params_to_problem_data,
+            variables,
+            inverse_data.var_offsets,
+            ordered_cons,
+            problem.parameters(),
+            inverse_data.param_id_map,
+            P=params_to_P,
+            lower_bounds=lower_bounds,
+            upper_bounds=upper_bounds,
+        )
         return new_prob, inverse_data
 
     def invert(self, solution, inverse_data):
