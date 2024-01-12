@@ -304,7 +304,8 @@ def construct_solving_chain(problem, candidates,
 
     # Here, we make use of the observation that canonicalization only
     # increases the number of constraints in our problem.
-    has_constr = len(cones) > 0 or len(problem.constraints) > 0
+    var_domains = sum([var.domain for var in problem.variables()], start = [])
+    has_constr = len(cones) > 0 or len(problem.constraints) > 0 or len(var_domains) > 0
 
     for solver in candidates['conic_solvers']:
         solver_instance = slv_def.SOLVER_MAP_CONIC[solver]
