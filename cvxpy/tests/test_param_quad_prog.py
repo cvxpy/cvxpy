@@ -17,6 +17,7 @@ import numpy as np
 
 import cvxpy as cp
 from cvxpy.reductions.solvers.defines import INSTALLED_SOLVERS, QP_SOLVERS
+from cvxpy.reductions.solvers.qp_solvers.osqp_qpif import OSQP
 from cvxpy.tests.base_test import BaseTest
 
 
@@ -107,3 +108,36 @@ class TestParamQuadProg(BaseTest):
             np.testing.assert_allclose(x_param, x_full, rtol=1e-2, atol=1e-02)
 
         # TODO: Add derivatives and adjoint tests
+
+    def test_var_bounds(self) -> None:
+        """Test that lower and upper bounds on variables are propagated."""
+        # Create a solver instance where bounded variables are disabled.
+        solver_instance = OSQP()
+        solver_instance.name = lambda: "Custom OSQP, no bounded variables"
+        solver_instance.BOUNDED_VARIABLES = False
+
+        lower_bounds = -10
+        upper_bounds = np.arange(6).reshape((3, 2))
+        x = cp.Variable((3, 2), bounds=[lower_bounds, upper_bounds])
+        problem = cp.Problem(cp.Minimize(cp.sum(x)))
+        data, _, _ = problem.get_problem_data(solver=solver_instance)
+        param_quad_prog = data[cp.settings.PARAM_PROB]
+
+        assert param_quad_prog.lower_bounds is None
+        assert param_quad_prog.upper_bounds is None
+
+        # Create a solver instance where bounded variables are enabled.
+        solver_instance = OSQP()
+        solver_instance.name = lambda: "Custom OSQP, bounded variables"
+        solver_instance.BOUNDED_VARIABLES = True
+
+        lower_bounds = -10
+        upper_bounds = np.arange(6).reshape((3, 2))
+        x = cp.Variable((3, 2), bounds=[lower_bounds, upper_bounds])
+        problem = cp.Problem(cp.Minimize(cp.sum(x)))
+        data, _, _ = problem.get_problem_data(solver=solver_instance)
+        param_quad_prog = data[cp.settings.PARAM_PROB]
+
+        assert np.all(param_quad_prog.lower_bounds == lower_bounds)
+        param_upper_bound = np.reshape(param_quad_prog.upper_bounds, (3, 2), order="F")
+        assert np.all(param_upper_bound == upper_bounds)
