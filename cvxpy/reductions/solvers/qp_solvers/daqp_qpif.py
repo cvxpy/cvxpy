@@ -78,7 +78,7 @@ class DAQP(QpSolver):
                 DAQP.VAR_ID:
                 intf.DEFAULT_INTF.const_to_matrix(np.array(xstar))
             }
-            # need to skip unused variable bounds constraints
+            # dual variables associated with var bounds (TODO)
             len_primal = len(xstar)
             dual_vars = {DAQP.DUAL_VAR_ID: np.array(info['lam'][len_primal:])}
             attr[s.NUM_ITERS] = info['iterations']
@@ -111,21 +111,23 @@ class DAQP(QpSolver):
                 [data[s.A].todense(), data[s.F].todense()]), dtype=c_double)
 
         bupper = np.array(np.concatenate((
-                np.ones(len(f), dtype=c_double) * np.inf,
+                np.ones(len(f), dtype=c_double) * np.inf
+                    if data[s.UPPER_BOUNDS] is None else data[s.UPPER_BOUNDS],
                 data[s.B], 
                 data[s.G])),
             dtype=c_double)
 
         blower = np.array(
             np.concatenate((
-                -np.inf * np.ones(len(f), dtype=c_double),
+                -np.inf * np.ones(len(f), dtype=c_double)
+                    if data[s.LOWER_BOUNDS] is None else data[s.LOWER_BOUNDS],
                 data[s.B], 
                 -np.inf*np.ones(data[s.G].shape))),
             dtype=c_double)
 
         sense = np.array(
             np.concatenate((
-                # variable bounds, unused
+                # variable bounds, maybe unused
                 np.zeros(len(f), dtype=c_int),
                 # equality constraints, always active and immutable
                 np.ones(len(data[s.B]), dtype=c_int)*5,
