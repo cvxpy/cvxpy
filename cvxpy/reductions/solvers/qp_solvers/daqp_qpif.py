@@ -66,7 +66,8 @@ class DAQP(QpSolver):
 
         (xstar,fval,exitflag,info) = solution
 
-        attr = {s.SOLVE_TIME: info['solve_time'] + info['setup_time']}
+        attr = {
+            s.SOLVE_TIME: info['solve_time'], s.SETUP_TIME: info['setup_time']}
         attr[s.EXTRA_STATS] = info
 
         # Map DAQP statuses back to CVXPY statuses
@@ -78,7 +79,7 @@ class DAQP(QpSolver):
                 DAQP.VAR_ID:
                 intf.DEFAULT_INTF.const_to_matrix(np.array(xstar))
             }
-            # dual variables associated with var bounds (TODO)
+            # dual variables associated with var bounds: TODO
             len_primal = len(xstar)
             dual_vars = {DAQP.DUAL_VAR_ID: np.array(info['lam'][len_primal:])}
             attr[s.NUM_ITERS] = info['iterations']
