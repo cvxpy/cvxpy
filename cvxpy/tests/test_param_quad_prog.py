@@ -144,6 +144,10 @@ class TestParamQuadProg(BaseTest):
 
     def test_daqp_var_bounds(self) -> None:
         """Testing variable bounds problem with DAQP."""
+        try:
+            import daqp
+        except ImportError:
+            return
         x1 = cp.Variable(bounds=[-1,1])
         x2 = cp.Variable(bounds=[-.5,1])
         x3 = cp.Variable()
