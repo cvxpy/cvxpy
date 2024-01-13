@@ -146,8 +146,10 @@ class TestParamQuadProg(BaseTest):
         """Testing variable bounds problem with DAQP."""
         x1 = cp.Variable(bounds=[-1,1])
         x2 = cp.Variable(bounds=[-.5,1])
-        objective = (x1**2 + x2**2)/2 + x1 + x2
-        constraints = [-3<=x1+x2, x1+x2<=3, -4<=x1-x2, x1-x2<=4]
+        x3 = cp.Variable()
+        objective = (x1**2 + x2**2)/2 + x1 + x2 + x3
+        constraints = [-3<=x1+x2, x1+x2<=3, -4<=x1-x2, x1-x2<=4, x3>=-2]
         cp.Problem(cp.Minimize(objective), constraints).solve(solver='DAQP')
-        assert x1.value == -1
-        assert x2.value == -.5
+        assert np.isclose(x1.value, -1)
+        assert np.isclose(x2.value, -.5)
+        assert np.isclose(x3.value, -2)
