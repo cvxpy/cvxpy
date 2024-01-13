@@ -13,6 +13,8 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+import importlib
+
 import numpy as np
 
 import cvxpy as cp
@@ -144,9 +146,7 @@ class TestParamQuadProg(BaseTest):
 
     def test_daqp_var_bounds(self) -> None:
         """Testing variable bounds problem with DAQP."""
-        try:
-            import daqp
-        except ImportError:
+        if importlib.util.find_spec('daqp') is None:
             return
         x1 = cp.Variable(bounds=[-1,1])
         x2 = cp.Variable(bounds=[-.5,1])
