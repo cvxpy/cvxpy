@@ -66,7 +66,10 @@ class DAQP(QpSolver):
 
         (xstar,fval,exitflag,info) = solution
 
-        attr = {s.SOLVE_TIME: info['solve_time'] + info['setup_time']}
+        attr = {
+            s.SOLVE_TIME: info['solve_time'], 
+            s.SETUP_TIME: info['setup_time'],
+        }
         attr[s.EXTRA_STATS] = info
 
         # Map DAQP statuses back to CVXPY statuses
@@ -78,7 +81,7 @@ class DAQP(QpSolver):
                 DAQP.VAR_ID:
                 intf.DEFAULT_INTF.const_to_matrix(np.array(xstar))
             }
-            # need to skip unused variable bounds constraints
+            # dual variables associated with var bounds: TODO
             len_primal = len(xstar)
             dual_vars = {DAQP.DUAL_VAR_ID: np.array(info['lam'][len_primal:])}
             attr[s.NUM_ITERS] = info['iterations']
@@ -110,22 +113,34 @@ class DAQP(QpSolver):
         A = np.array(np.concatenate(
                 [data[s.A].todense(), data[s.F].todense()]), dtype=c_double)
 
+        # Upper bounds on problem variable.
+        if data[s.UPPER_BOUNDS] is None:
+            var_upper_bounds = np.ones(len(f), dtype=c_double) * np.inf
+        else:
+            var_upper_bounds = data[s.UPPER_BOUNDS]
+                    
         bupper = np.array(np.concatenate((
-                np.ones(len(f), dtype=c_double) * np.inf,
+                var_upper_bounds,
                 data[s.B], 
                 data[s.G])),
             dtype=c_double)
 
+        # Lower bounds on problem variable.
+        if data[s.LOWER_BOUNDS] is None:
+            var_lower_bounds = np.ones(len(f), dtype=c_double) * -np.inf
+        else:
+            var_lower_bounds = data[s.LOWER_BOUNDS]
+
         blower = np.array(
             np.concatenate((
-                -np.inf * np.ones(len(f), dtype=c_double),
+                var_lower_bounds,
                 data[s.B], 
                 -np.inf*np.ones(data[s.G].shape))),
             dtype=c_double)
 
         sense = np.array(
             np.concatenate((
-                # variable bounds, unused
+                # variable bounds, maybe unused
                 np.zeros(len(f), dtype=c_int),
                 # equality constraints, always active and immutable
                 np.ones(len(data[s.B]), dtype=c_int)*5,
