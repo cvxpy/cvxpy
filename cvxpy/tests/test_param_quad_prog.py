@@ -141,3 +141,23 @@ class TestParamQuadProg(BaseTest):
         assert np.all(param_quad_prog.lower_bounds == lower_bounds)
         param_upper_bound = np.reshape(param_quad_prog.upper_bounds, (3, 2), order="F")
         assert np.all(param_upper_bound == upper_bounds)
+
+    def test_daqp_var_bounds(self) -> None:
+        """Testing variable bounds problem with DAQP."""
+        if cp.DAQP in INSTALLED_SOLVERS:
+            x1 = cp.Variable(bounds=[-1,1])
+            x2 = cp.Variable(bounds=[-.5,1])
+            x3 = cp.Variable()
+            objective = (x1**2 + x2**2)/2 + x1 + x2 + x3
+            constraints = [-3<=x1+x2, x1+x2<=3, -4<=x1-x2, x1-x2<=4, x3>=-2]
+            prob = cp.Problem(cp.Minimize(objective), constraints)
+            data, _, _ = prob.get_problem_data(solver=cp.DAQP)
+            param_quad_prog = data[cp.settings.PARAM_PROB]
+
+            assert np.all(param_quad_prog.lower_bounds == np.array([-1, -.5, -np.inf]))
+            assert np.all(param_quad_prog.upper_bounds == np.array([1, 1, np.inf]))
+
+            prob.solve(solver=cp.DAQP)
+            assert np.isclose(x1.value, -1)
+            assert np.isclose(x2.value, -.5)
+            assert np.isclose(x3.value, -2)
