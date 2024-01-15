@@ -164,7 +164,7 @@ def from_1D_to_2D(constant):
     """Convert 1D Numpy arrays to matrices.
     """
     if isinstance(constant, np.ndarray) and constant.ndim == 1:
-        return np.mat(constant).T
+        return np.asmatrix(constant).T
     else:
         return constant
 

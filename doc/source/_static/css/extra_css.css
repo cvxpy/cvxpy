@@ -1,0 +1,61 @@
+body{
+    font-weight: 300;
+}
+
+header.md-header{
+    background-color: #EEE;
+    color: #333;
+}
+
+header nav:first-of-type{
+    margin: 10px auto;
+}
+
+nav.md-tabs{
+    background-color: #3d2e88;
+    color: #FFF;
+    font-weight: 400;
+    opacity: 1;
+}
+nav.md-tabs li:hover{
+    background-color: #3f51b5;
+    font-size: 400 !important;
+}
+
+.md-search form input, .md-search form input:active, .md-search form input:focus{
+    background-color: #999;
+    color: #FFF;
+}
+
+.md-footer{
+    background: #666;
+}
+
+.search-result-objlabel{
+    border-radius: 25px;
+    float: right;
+    padding: 5px 10px;
+    background: #4da1d8;
+    font-size: 0.8em;
+    border: none;
+}
+
+.md-version button{
+    font-weight: 100 !important;
+}
+
+.md-logo img{
+    height: 1.7rem !important;
+}
+
+@media only screen and (max-width: 75em){
+    .md-nav__source{
+        background-color: #666;
+    }
+}
+@media only screen and (max-width: 75em){
+    .md-nav--primary .md-nav__title[for=__drawer]{
+        background-color: #7986cb;
+        min-height: unset;
+    }
+}

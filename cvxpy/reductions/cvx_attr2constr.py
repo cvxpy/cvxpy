@@ -34,6 +34,7 @@ CONVEX_ATTRIBUTES = [
     'diag',
     'PSD',
     'NSD',
+    'bounds'
 ]
 
 # Attributes related to symmetry.
@@ -105,8 +106,12 @@ class CvxAttr2Constr(Reduction):
                 new_attr = var.attributes.copy()
                 for key in CONVEX_ATTRIBUTES:
                     if new_attr[key]:
-                        new_var = True
-                        new_attr[key] = False
+                        if key == 'bounds':
+                            new_var = True
+                            new_attr[key] = None
+                        else:
+                            new_var = True
+                            new_attr[key] = False
 
                 if attributes_present([var], SYMMETRIC_ATTRIBUTES):
                     n = var.shape[0]
@@ -139,6 +144,27 @@ class CvxAttr2Constr(Reduction):
                     constr.append(obj >> 0)
                 elif var.attributes['NSD']:
                     constr.append(obj << 0)
+                elif var.attributes['bounds']:
+                    bounds = var.bounds
+                    lower_bounds, upper_bounds = bounds
+                    # Create masks if -inf or inf is present in the bounds
+                    lower_bound_mask = (lower_bounds != -np.inf)
+                    upper_bound_mask = (upper_bounds != np.inf)
+
+                    if np.any(lower_bound_mask):
+                        # At least one valid lower bound,
+                        # so we apply the constraint only to those entries
+                        if var.ndim > 0:
+                            constr.append(obj[lower_bound_mask] >= lower_bounds[lower_bound_mask])
+                        else:
+                            constr.append(obj >= lower_bounds)
+                    if np.any(upper_bound_mask):
+                        # At least one valid upper bound,
+                        # so we apply the constraint only to those entries
+                        if var.ndim > 0:
+                            constr.append(obj[upper_bound_mask] <= upper_bounds[upper_bound_mask])
+                        else:
+                            constr.append(obj <= upper_bounds)
 
         # Create new problem.
         obj = problem.objective.tree_copy(id_objects=id2new_obj)

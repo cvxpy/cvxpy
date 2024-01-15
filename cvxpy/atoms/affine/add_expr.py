@@ -15,13 +15,14 @@ limitations under the License.
 """
 import operator as op
 from functools import reduce
-from typing import List, Tuple
+from typing import Any, Iterable, List, Tuple
 
 import cvxpy.lin_ops.lin_op as lo
 import cvxpy.lin_ops.lin_utils as lu
 import cvxpy.utilities as u
 from cvxpy.atoms.affine.affine_atom import AffAtom
 from cvxpy.constraints.constraint import Constraint
+from cvxpy.expressions.expression import Expression
 
 
 class AddExpression(AffAtom):
@@ -41,7 +42,7 @@ class AddExpression(AffAtom):
         """
         return u.shape.sum_shapes([arg.shape for arg in self.args])
 
-    def expand_args(self, expr):
+    def expand_args(self, expr: Expression) -> List[Expression]:
         """Helper function to extract the arguments from an AddExpression.
         """
         if isinstance(expr, AddExpression):
@@ -55,7 +56,7 @@ class AddExpression(AffAtom):
             result += " + " + str(self.args[i])
         return result
 
-    def numeric(self, values):
+    def numeric(self, values: Iterable[Any]) -> Any:
         return reduce(op.add, values)
 
     def is_atom_log_log_convex(self) -> bool:
@@ -82,7 +83,7 @@ class AddExpression(AffAtom):
 
     # As __init__ takes in the arg_groups instead of args, we need a special
     # copy() function.
-    def copy(self, args=None, id_objects=None):
+    def copy(self, args=None, id_objects=None) -> 'AddExpression':
         """Returns a shallow copy of the AddExpression atom.
 
         Parameters
