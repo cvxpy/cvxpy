@@ -165,3 +165,5 @@ class TestTorchNumeric(BaseTest):
         self._assert_torch_numeric(elementwise.logistic.logistic(None))
         self._assert_torch_numeric(elementwise.power.power(None, 3))
         self._assert_torch_numeric(elementwise.xexp.xexp(None))
+        self._assert_torch_numeric(elementwise.maximum.maximum(None, None))
+        self._assert_torch_numeric(elementwise.minimum.minimum(None, None))

@@ -35,9 +35,13 @@ class minimum(Elementwise):
 
     @Elementwise.numpy_numeric
     def numeric(self, values):
-        """Returns the elementwise maximum.
+        """Returns the elementwise minimum.
         """
         return reduce(np.minimum, values)
+    
+    def torch_numeric(self, values):
+        import torch
+        return reduce(torch.minimum, values)
 
     def sign_from_args(self) -> Tuple[bool, bool]:
         """Returns sign (is positive, is negative) of the expression.

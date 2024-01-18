@@ -39,6 +39,10 @@ class maximum(Elementwise):
         """Returns the elementwise maximum.
         """
         return reduce(np.maximum, values)
+    
+    def torch_numeric(self, values):
+        import torch
+        return reduce(torch.maximum, values)
 
     def sign_from_args(self) -> Tuple[bool, bool]:
         """Returns sign (is positive, is negative) of the expression.
