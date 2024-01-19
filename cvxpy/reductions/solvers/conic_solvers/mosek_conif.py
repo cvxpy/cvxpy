@@ -541,7 +541,7 @@ class MOSEK(ConicSolver):
         else:
             solsta = task.getsolsta(sol_type)
             status = STATUS_MAP[solsta]
-            prob_val = np.NaN
+            prob_val = np.nan
             if status in s.SOLUTION_PRESENT:
                 prob_val = task.getprimalobj(sol_type)
                 K = inverse_data["K_dir"]
