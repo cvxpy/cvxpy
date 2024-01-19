@@ -12,9 +12,6 @@ python -c "import scipy; print('scipy %s' % scipy.__version__)"
 if [ $USE_OPENMP == "True" ] && [ $RUNNER_OS == "Linux" ]; then
     CFLAGS="-fopenmp" LDFLAGS="-lgomp" python setup.py install
     export OMP_NUM_THREADS=4
-elif [ $RUNNER_OS == "Linux"] && [[ "$PYTHON_VERSION" == "3.8" ]]; then
-    # Needed for the 1.3 build to pass.
-    python setup.py install
 else
     python -m pip list
     python -m pip install .
