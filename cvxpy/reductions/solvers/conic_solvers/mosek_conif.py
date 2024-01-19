@@ -513,7 +513,8 @@ class MOSEK(ConicSolver):
         problem_status = task.getprosta(sol_type)
         attr = {s.SOLVE_TIME: task.getdouinf(mosek.dinfitem.optimizer_time),
                 s.NUM_ITERS: task.getintinf(mosek.iinfitem.intpnt_iter) +
-                             task.getlintinf(mosek.liinfitem.simplex_iter) +
+                             task.getintinf(mosek.iinfitem.sim_primal_iter) +
+                             task.getintinf(mosek.iinfitem.sim_dual_iter) +
                              task.getintinf(mosek.iinfitem.mio_num_relax),
                 s.EXTRA_STATS: {
                     "mio_intpnt_iter": task.getlintinf(mosek.liinfitem.mio_intpnt_iter),
@@ -540,7 +541,7 @@ class MOSEK(ConicSolver):
         else:
             solsta = task.getsolsta(sol_type)
             status = STATUS_MAP[solsta]
-            prob_val = np.NaN
+            prob_val = np.nan
             if status in s.SOLUTION_PRESENT:
                 prob_val = task.getprimalobj(sol_type)
                 K = inverse_data["K_dir"]
