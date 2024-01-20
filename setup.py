@@ -229,7 +229,7 @@ setup(
         "osqp >= 0.4.1",
         "ecos >= 2",
         "scs >= 1.1.6",
-        "numpy >= 1.15, < 1.24",
+        "numpy >= 1.15",
         "scipy >= 1.1.0",
         "setuptools > 65.5.1",
     ],
