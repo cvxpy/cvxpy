@@ -8,11 +8,15 @@
     <title>Advanced Features &#8212; CVXPY 1.4 documentation</title>
     <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=fa44fd50" />
     <link rel="stylesheet" type="text/css" href="../../_static/cvxpy_alabaster.css?v=6c13f287" />
+    <link rel="stylesheet" type="text/css" href="../../_static/tabs.css?v=4c969af8" />
+    <link rel="stylesheet" type="text/css" href="../../_static/design-style.1e8bd061cd6da7fc9cf755528e8ffc24.min.css?v=0a3b3ea7" />
     <script src="../../_static/jquery.js?v=5d32c60e"></script>
     <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-    <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js?v=13449078"></script>
+    <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js?v=5aa9abad"></script>
     <script src="../../_static/doctools.js?v=888ff710"></script>
     <script src="../../_static/sphinx_highlight.js?v=4825356b"></script>
+    <script src="../../_static/tabs.js?v=3ee01567"></script>
+    <script src="../../_static/design-tabs.js?v=36754332"></script>
     <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
@@ -494,7 +498,7 @@ The table below shows the types of problems the supported solvers can handle.</p
 <td></td>
 <td><p>X</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference external" href="https://www.nag.co.uk/nag-library-python/">NAG</a></p></td>
+<tr class="row-odd"><td><p><a class="reference external" href="https://nag.com/nag-library/">NAG</a></p></td>
 <td><p>X</p></td>
 <td><p>X</p></td>
 <td><p>X</p></td>
@@ -810,7 +814,7 @@ cached previous solution as described above (rather than from the <code class="d
 </section>
 <section id="setting-solver-options">
 <span id="solveropts"></span><h2>Setting solver options<a class="headerlink" href="#setting-solver-options" title="Permalink to this heading">¶</a></h2>
-<p>The <a class="reference external" href="https://osqp.org/">OSQP</a>, <a class="reference external" href="https://www.embotech.com/ECOS">ECOS</a>, <a class="reference external" href="https://developers.google.com/optimization">GLOP</a>, <a class="reference external" href="https://www.mosek.com/">MOSEK</a>, <a class="reference external" href="https://projects.coin-or.org/Cbc">CBC</a>, <a class="reference external" href="http://cvxopt.org/">CVXOPT</a>, <a class="reference external" href="https://www.nag.co.uk/nag-library-python/">NAG</a>, <a class="reference external" href="https://developers.google.com/optimization">PDLP</a>, <a class="reference external" href="https://www.gurobi.com/">GUROBI</a>, <a class="reference external" href="http://github.com/cvxgrp/scs">SCS</a> , <a class="reference external" href="https://oxfordcontrol.github.io/ClarabelDocs/">CLARABEL</a>, <a class="reference external" href="https://predict-epfl.github.io/piqp/">PIQP</a> and <a class="reference external" href="https://github.com/simple-robotics/proxsuite">PROXQP</a> Python interfaces allow you to set solver options such as the maximum number of iterations. You can pass these options along through CVXPY as keyword arguments.</p>
+<p>The <a class="reference external" href="https://osqp.org/">OSQP</a>, <a class="reference external" href="https://www.embotech.com/ECOS">ECOS</a>, <a class="reference external" href="https://developers.google.com/optimization">GLOP</a>, <a class="reference external" href="https://www.mosek.com/">MOSEK</a>, <a class="reference external" href="https://projects.coin-or.org/Cbc">CBC</a>, <a class="reference external" href="http://cvxopt.org/">CVXOPT</a>, <a class="reference external" href="https://nag.com/nag-library/">NAG</a>, <a class="reference external" href="https://developers.google.com/optimization">PDLP</a>, <a class="reference external" href="https://www.gurobi.com/">GUROBI</a>, <a class="reference external" href="http://github.com/cvxgrp/scs">SCS</a> , <a class="reference external" href="https://oxfordcontrol.github.io/ClarabelDocs/">CLARABEL</a>, <a class="reference external" href="https://predict-epfl.github.io/piqp/">PIQP</a> and <a class="reference external" href="https://github.com/simple-robotics/proxsuite">PROXQP</a> Python interfaces allow you to set solver options such as the maximum number of iterations. You can pass these options along through CVXPY as keyword arguments.</p>
 <p>For example, here we tell SCS to use an indirect method for solving linear equations rather than a direct method.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Solve with SCS, use sparse-indirect method.</span>
 <span class="n">prob</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">solver</span><span class="o">=</span><span class="n">cp</span><span class="o">.</span><span class="n">SCS</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">use_indirect</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
@@ -1080,7 +1084,7 @@ Its default value is False. If set to True, then if CPLEX produces an “infeasi
 parameters are automatically changed and the problem is re-solved in order to determine its precise status.</p>
 </dd>
 </dl>
-<p><a class="reference external" href="https://www.nag.co.uk/nag-library-python/">NAG</a> options:</p>
+<p><a class="reference external" href="https://nag.com/nag-library/">NAG</a> options:</p>
 <dl class="simple">
 <dt><code class="docutils literal notranslate"><span class="pre">'nag_params'</span></code></dt><dd><p>a dictionary of NAG option parameters. Refer to NAG’s Python or Fortran API for details. For example, to set the maximum number of iterations for a linear programming problem to 20, use “LPIPM Iteration Limit” for the key name and 20 for its value .</p>
 </dd>
