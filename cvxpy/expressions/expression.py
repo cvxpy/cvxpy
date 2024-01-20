@@ -68,6 +68,14 @@ errors or code that doesn't behave as expected. Consider using one of the
 functions documented here: https://www.cvxpy.org/tutorial/functions/index.html
 """
 
+__INPLACE_MUTATION_ERROR__ = """
+You're trying to mutate a CVXPY expression inplace. This is prone to errors or
+code that doesn't behave as expected. Consider implementing replacing, for example:
+> x += 1
+with
+> x = x + 1
+"""
+
 __ABS_ERROR__ = """
 You're calling the built-in abs function on a CVXPY expression. This is not
 supported. Consider using the abs function provided by CVXPY.
@@ -767,6 +775,11 @@ class Expression(u.Canonical):
                     len(args) == 2 and \
                     args[1] is self:
                 return ufunc_handler(self, args[0])
+            elif kwargs.keys() == {'out'} and \
+                    len(args) == 2 and \
+                    args[1] is self:
+                raise RuntimeError(__INPLACE_MUTATION_ERROR__)
+                
         except KeyError:
             pass
 
@@ -774,6 +787,45 @@ class Expression(u.Canonical):
 
     def __abs__(self):
         raise TypeError(__ABS_ERROR__)
+
+    def __iadd__(self, other):
+        raise RuntimeError(__INPLACE_MUTATION_ERROR__)
+
+    def __isub__(self, other):
+        raise RuntimeError(__INPLACE_MUTATION_ERROR__)
+
+    def __imul__(self, other):
+        raise RuntimeError(__INPLACE_MUTATION_ERROR__)
+
+    def __imatmul__(self, other):
+        raise RuntimeError(__INPLACE_MUTATION_ERROR__)
+
+    def __itruediv__(self, other):
+        raise RuntimeError(__INPLACE_MUTATION_ERROR__)
+
+    def __ifloordiv__(self, other):
+        raise RuntimeError(__INPLACE_MUTATION_ERROR__)
+
+    def __imod__(self, other):
+        raise RuntimeError(__INPLACE_MUTATION_ERROR__)
+
+    def __ipow__(self, other, modulo):
+        raise RuntimeError(__INPLACE_MUTATION_ERROR__)
+
+    def __ilshift__(self, other):
+        raise RuntimeError(__INPLACE_MUTATION_ERROR__)
+
+    def __irshift__(self, other):
+        raise RuntimeError(__INPLACE_MUTATION_ERROR__)
+
+    def __iand__(self, other):
+        raise RuntimeError(__INPLACE_MUTATION_ERROR__)
+
+    def __ixor__(self, other):
+        raise RuntimeError(__INPLACE_MUTATION_ERROR__)
+
+    def __ior__(self, other):
+        raise RuntimeError(__INPLACE_MUTATION_ERROR__)
 
     def conj(self):
         """
