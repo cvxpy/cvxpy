@@ -2170,7 +2170,8 @@ class TestSCIPY(unittest.TestCase):
     def test_scipy_lp_solver_stats(self) -> None:
         sth = StandardTestLPs.test_lp_0(solver='SCIPY', duals=self.d)
 
-        self.assertTrue("nit" in sth.prob.solver_stats.extra_stats)
+        # Equal because presolve might directly find the solution in 0 iterations
+        self.assertGreaterEqual(sth.prob.solver_stats.num_iters, 0)
 
     @unittest.skipUnless('SCIPY' in INSTALLED_MI_SOLVERS, 'SCIPY version cannot solve MILPs')
     def test_scipy_mi_lp_0(self) -> None:
