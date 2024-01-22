@@ -259,9 +259,15 @@ class SCIPY(ConicSolver):
                     inverse_data[self.NEQ_CONSTR])
                 eq_dual.update(leq_dual)
                 dual_vars = eq_dual
+            
             attr = {}
-            if "mip_gap" in solution:
-                attr[s.EXTRA_STATS] = {"mip_gap": solution['mip_gap']}
+            if "nit" in solution: # Number of interior-point or simplex iterations
+                attr[s.EXTRA_STATS] = {"nit": solution['nit']}
+            if "mip_gap" in solution: # Add branch and bound statistics
+                attr[s.EXTRA_STATS] = {"mip_gap": solution['mip_gap'], 
+                                       "mip_node_count": solution['mip_node_count'], 
+                                       "mip_dual_bound": solution['mip_dual_bound']}
+
             return Solution(status, opt_val, primal_vars, dual_vars, attr)
         else:
             return failure_solution(status)
