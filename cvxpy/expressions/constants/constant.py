@@ -38,7 +38,7 @@ class Constant(Leaf):
     casting ``c`` to a Constant.
     """
 
-    def __init__(self, value) -> None:
+    def __init__(self, value, name: Optional[str] = None) -> None:
         # Keep sparse matrices sparse.
         if intf.is_sparse(value):
             self._value = intf.DEFAULT_SPARSE_INTF.const_to_matrix(
@@ -56,17 +56,21 @@ class Constant(Leaf):
         self._nsd_test: Optional[bool] = None
         self._cached_is_pos = None
         self._skew_symm = None
+        self._name = name
         super(Constant, self).__init__(intf.shape(self.value))
 
     def name(self) -> str:
         """The value as a string.
         """
-        if len(self.shape) == 2 and "\n" in str(self.value):
-            return np.array2string(self.value,
-                                   edgeitems=s.PRINT_EDGEITEMS,
-                                   threshold=s.PRINT_THRESHOLD,
-                                   formatter={'float': lambda x: f'{x:.2f}'})
-        return str(self.value)
+        if self._name is None:
+            if len(self.shape) == 2 and "\n" in str(self.value):
+                return np.array2string(self.value,
+                                    edgeitems=s.PRINT_EDGEITEMS,
+                                    threshold=s.PRINT_THRESHOLD,
+                                    formatter={'float': lambda x: f'{x:.2f}'})
+            return str(self.value)
+        else:
+            return self._name
 
     def constants(self) -> List["Constant"]:
         """Returns self as a constant.
