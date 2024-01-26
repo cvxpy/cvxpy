@@ -232,6 +232,7 @@ class TestExpressions(BaseTest):
         # Test name.
         c = Constant(1, name="test")
         self.assertEqual(str(c), "test")
+        self.assertEqual(c.name(), "test")
         self.assertEqual(repr(c), "Constant(CONSTANT, NONNEGATIVE, ())")
 
     def test_constant_psd_nsd(self):
