@@ -276,16 +276,20 @@ class ConicSolver(Solver):
                 problem.A.shape[1], order='F')
         else:
             restructured_A = problem.A
-        new_param_cone_prog = ParamConeProg(problem.c,
-                                            problem.x,
-                                            restructured_A,
-                                            problem.variables,
-                                            problem.var_id_to_col,
-                                            problem.constraints,
-                                            problem.parameters,
-                                            problem.param_id_to_col,
-                                            P=problem.P,
-                                            formatted=True)
+        new_param_cone_prog = ParamConeProg(
+            problem.c,
+            problem.x,
+            restructured_A,
+            problem.variables,
+            problem.var_id_to_col,
+            problem.constraints,
+            problem.parameters,
+            problem.param_id_to_col,
+            P=problem.P,
+            formatted=True,
+            lower_bounds=problem.lower_bounds,
+            upper_bounds=problem.upper_bounds,
+        )
         return new_param_cone_prog
 
     def invert(self, solution, inverse_data):

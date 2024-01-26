@@ -145,19 +145,19 @@ def _reductions_for_problem_class(problem, candidates, gp: bool = False, solver_
     if type(problem.objective) == Maximize:
         reductions += [FlipObjective()]
 
-    use_quad = True if solver_opts is None else solver_opts.get('use_quad_obj', True)
-    if _solve_as_qp(problem, candidates) and use_quad:
-        reductions += [CvxAttr2Constr(), qp2symbolic_qp.Qp2SymbolicQp()]
-    else:
-        # Canonicalize it to conic problem.
-        if not candidates['conic_solvers']:
-            raise SolverError("Problem could not be reduced to a QP, and no "
-                              "conic solvers exist among candidate solvers "
-                              "(%s)." % candidates)
-
+    # Special reduction for finite set constraint, 
+    # used by both QP and conic pathways.
     constr_types = {type(c) for c in problem.constraints}
     if FiniteSet in constr_types:
         reductions += [Valinvec2mixedint()]
+
+    use_quad = True if solver_opts is None else solver_opts.get('use_quad_obj', True)
+    valid_qp = _solve_as_qp(problem, candidates) and use_quad
+    valid_conic = len(candidates['conic_solvers']) > 0
+    if not valid_qp and not valid_conic:
+        raise SolverError("Problem could not be reduced to a QP, and no "
+                            "conic solvers exist among candidate solvers "
+                            "(%s)." % candidates)
 
     return reductions
 
@@ -245,8 +245,12 @@ def construct_solving_chain(problem, candidates,
         # Canonicalize as a QP
         solver = candidates['qp_solvers'][0]
         solver_instance = slv_def.SOLVER_MAP_QP[solver]
-        reductions += [QpMatrixStuffing(canon_backend=canon_backend),
-                       solver_instance]
+        reductions += [
+            CvxAttr2Constr(reduce_bounds=not solver_instance.BOUNDED_VARIABLES), 
+            qp2symbolic_qp.Qp2SymbolicQp(),
+            QpMatrixStuffing(canon_backend=canon_backend),
+            solver_instance,
+        ]
         return SolvingChain(reductions=reductions)
 
     # Canonicalize as a cone program
@@ -300,7 +304,8 @@ def construct_solving_chain(problem, candidates,
 
     # Here, we make use of the observation that canonicalization only
     # increases the number of constraints in our problem.
-    has_constr = len(cones) > 0 or len(problem.constraints) > 0
+    var_domains = sum([var.domain for var in problem.variables()], start = [])
+    has_constr = len(cones) > 0 or len(problem.constraints) > 0 or len(var_domains) > 0
 
     for solver in candidates['conic_solvers']:
         solver_instance = slv_def.SOLVER_MAP_CONIC[solver]
@@ -327,7 +332,7 @@ def construct_solving_chain(problem, candidates,
                 problem.objective.expr.has_quadratic_term()
             reductions += [
                 Dcp2Cone(quad_obj=quad_obj),
-                CvxAttr2Constr(),
+                CvxAttr2Constr(reduce_bounds=not solver_instance.BOUNDED_VARIABLES),
             ]
             if all(c in supported_constraints for c in cones):
                 # Raise a warning if ECOS is used without being specified
