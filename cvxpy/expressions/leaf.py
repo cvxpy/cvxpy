@@ -284,6 +284,8 @@ class Leaf(expression.Expression):
                 return lower_bound != -np.inf
             else:
                 return np.any(lower_bound != -np.inf)
+        else:
+            return False
 
     def _has_upper_bounds(self) -> bool:
         """Does the variable have upper bounds?"""
@@ -295,6 +297,8 @@ class Leaf(expression.Expression):
                 return upper_bound != np.inf
             else:
                 return np.any(upper_bound != np.inf)
+        else:
+            return False
 
     def _bound_domain(self, term: expression.Expression, constraints: list[Constraint]) -> None:
         """A utility function to append constraints from lower and upper bounds.
