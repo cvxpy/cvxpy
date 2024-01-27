@@ -55,6 +55,8 @@ of :py:class:`Variable <cvxpy.expressions.variable.Variable>` and
     :type pos: bool
     :param neg: Is the variable constrained to be negative?
     :type neg: bool
+    :param bounds: Is the variable bounded by above or below?
+    :type bounds: list of numeric type
 
 The ``value`` field of Variables and Parameters can be assigned a value after construction,
 but the assigned value must satisfy the object attributes.

@@ -1,6 +1,6 @@
-.. _other:
+.. _resources:
 
-Other
+Resources
 ================
 
 .. toctree::

@@ -145,5 +145,5 @@ considered to be part of the public API.
 .. toctree::
    :hidden:
 
-   other/index
+   resources/index
 
