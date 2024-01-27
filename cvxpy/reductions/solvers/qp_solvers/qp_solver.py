@@ -104,6 +104,8 @@ class QpSolver(Solver):
         data[s.G] = g
         data[s.BOOL_IDX] = [t[0] for t in problem.x.boolean_idx]
         data[s.INT_IDX] = [t[0] for t in problem.x.integer_idx]
+        data[s.LOWER_BOUNDS] = problem.lower_bounds
+        data[s.UPPER_BOUNDS] = problem.upper_bounds
         data['n_var'] = n
         data['n_eq'] = A.shape[0]
         data['n_ineq'] = F.shape[0]

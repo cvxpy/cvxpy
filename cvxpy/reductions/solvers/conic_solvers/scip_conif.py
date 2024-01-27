@@ -125,8 +125,10 @@ class SCIP(ConicSolver):
 
         # data, inv_data = super(SCIP, self).apply(problem)
         variables = problem.x
-        data[s.BOOL_IDX] = [int(t[0]) for t in variables.boolean_idx]
-        data[s.INT_IDX] = [int(t[0]) for t in variables.integer_idx]
+
+        # Use of sets here is minor lift to speed up get_variable_type(...) below.
+        data[s.BOOL_IDX] = set(int(t[0]) for t in variables.boolean_idx)
+        data[s.INT_IDX] = set(int(t[0]) for t in variables.integer_idx)
         inv_data['is_mip'] = data[s.BOOL_IDX] or data[s.INT_IDX]
 
         return data, inv_data

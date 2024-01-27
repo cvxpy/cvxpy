@@ -17,7 +17,7 @@ limitations under the License.
 import abc
 import warnings
 from functools import wraps
-from typing import Tuple
+from typing import List, Tuple
 
 import numpy as np
 
@@ -163,6 +163,27 @@ class Expression(u.Canonical):
         return self
 
     # Curvature properties.
+    @property
+    def curvatures(self) -> List[str]:
+        """List : Returns a list of the curvatures of the expression."""
+        curvatures = [
+            (self.is_constant, s.CONSTANT),
+            (self.is_affine, s.AFFINE),
+            (self.is_convex, s.CONVEX),
+            (self.is_concave, s.CONCAVE),
+            (self.is_log_log_constant, s.LOG_LOG_CONSTANT),
+            (self.is_log_log_affine, s.LOG_LOG_AFFINE),
+            (self.is_log_log_convex, s.LOG_LOG_CONVEX),
+            (self.is_log_log_concave, s.LOG_LOG_CONCAVE),
+            (self.is_quasilinear, s.QUASILINEAR),
+            (self.is_quasiconvex, s.QUASICONVEX),
+            (self.is_quasiconcave, s.QUASICONCAVE),
+        ]
+        curvatures = [curvature for condition, curvature in curvatures if condition()]
+        if not curvatures:
+            return [s.UNKNOWN]
+        return curvatures
+
     @property
     def curvature(self) -> str:
         """str : The curvature of the expression.
@@ -844,4 +865,3 @@ class Expression(u.Canonical):
         """
         from cvxpy import var
         return var(self, ddof=ddof)
-

@@ -91,10 +91,11 @@ PDLP = "PDLP"
 SCIP = "SCIP"
 SCIPY = "SCIPY"
 CLARABEL = "CLARABEL"
+DAQP = "DAQP"
 SOLVERS = [CLARABEL, ECOS, CVXOPT, GLOP, GLPK, GLPK_MI,
            SCS, SDPA, GUROBI, OSQP, CPLEX,
            MOSEK, CBC, COPT, XPRESS, PIQP, PROXQP,
-           NAG, PDLP, SCIP, SCIPY]
+           NAG, PDLP, SCIP, SCIPY, DAQP]
 
 # Xpress-specific items
 XPRESS_IIS = "XPRESS_IIS"
@@ -129,6 +130,8 @@ BOOL_IDS = "bool_ids"
 BOOL_IDX = "bool_idx"
 INT_IDS = "int_ids"
 INT_IDX = "int_idx"
+LOWER_BOUNDS = "lower_bounds"
+UPPER_BOUNDS = "upper_bounds"
 
 # Keys for results_dict.
 STATUS = "status"
