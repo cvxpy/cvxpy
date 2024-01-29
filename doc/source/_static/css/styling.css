@@ -31,6 +31,10 @@ nav.md-tabs li:hover{
     background: #666;
 }
 
+.md-nav__item.md-nav__item--active.md-nav__current-toc {
+    display: none;
+}
+
 .search-result-objlabel{
     border-radius: 25px;
     float: right;
