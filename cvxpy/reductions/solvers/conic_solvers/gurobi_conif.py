@@ -37,24 +37,25 @@ class GUROBI(ConicSolver):
     SUPPORTED_CONSTRAINTS = ConicSolver.SUPPORTED_CONSTRAINTS + [SOC]
     MI_SUPPORTED_CONSTRAINTS = SUPPORTED_CONSTRAINTS
 
-    # Keyword arguments for the CVXPY interface.
-    INTERFACE_ARGS = ["save_file", "reoptimize"]
-
     # Map of Gurobi status to CVXPY status.
     STATUS_MAP = {2: s.OPTIMAL,
                   3: s.INFEASIBLE,
                   4: s.INFEASIBLE_OR_UNBOUNDED,  # Triggers reoptimize.
                   5: s.UNBOUNDED,
                   6: s.SOLVER_ERROR,
-                  7: s.SOLVER_ERROR,
-                  8: s.SOLVER_ERROR,
+                  7: s.USER_LIMIT, # ITERATION_LIMIT
+                  8: s.USER_LIMIT, # NODE_LIMIT
                   # TODO could be anything.
                   # means time expired.
-                  9: s.USER_LIMIT,
-                  10: s.SOLVER_ERROR,
-                  11: s.SOLVER_ERROR,
-                  12: s.SOLVER_ERROR,
-                  13: s.SOLVER_ERROR}
+                  9: s.USER_LIMIT,  # TIME_LIMIT
+                  10: s.USER_LIMIT, # SOLUTION_LIMIT
+                  11: s.USER_LIMIT, # INTERRUPTED
+                  12: s.SOLVER_ERROR, # NUMERIC
+                  13: s.USER_LIMIT, # SUBOPTIMAL
+                  14: s.USER_LIMIT, # INPROGRESS
+                  15: s.USER_LIMIT, # USER_OBJ_LIMIT
+                  16: s.USER_LIMIT, # WORK_LIMIT
+                  17: s.USER_LIMIT} # MEM_LIMIT
 
     def name(self):
         """The name of the solver.
@@ -103,9 +104,15 @@ class GUROBI(ConicSolver):
     def invert(self, solution, inverse_data):
         """Returns the solution to the original problem given the inverse_data.
         """
+        print(f"Running invert within gurobi_confif.py ... ")
         status = solution['status']
+        print(f"solution status is: {status}")
         attr = {s.EXTRA_STATS: solution['model'],
                 s.SOLVE_TIME: solution[s.SOLVE_TIME]}
+
+        print(f"SOLUTION_PRESENT: {SOLUTION_PRESENT} is being redefined")
+        SOLUTION_PRESENT = [s.USER_LIMIT, s.OPTIMAL, s.OPTIMAL_INACCURATE]
+        print(f"SOLUTION_PRESENT: {SOLUTION_PRESENT}")
 
         primal_vars = None
         dual_vars = None
@@ -123,8 +130,10 @@ class GUROBI(ConicSolver):
                     inverse_data[GUROBI.NEQ_CONSTR])
                 eq_dual.update(leq_dual)
                 dual_vars = eq_dual
+            print(f"Success! Code {status}")
             return Solution(status, opt_val, primal_vars, dual_vars, attr)
         else:
+            print(f"Failure! Code {status}")
             return failure_solution(status, attr)
 
     def solve_via_data(self, data, warm_start: bool, verbose: bool, solver_opts, solver_cache=None):
@@ -253,9 +262,7 @@ class GUROBI(ConicSolver):
         # TODO user option to not compute duals.
         model.setParam("QCPDual", True)
         for key, value in solver_opts.items():
-            # Ignore arguments unique to the CVXPY interface.
-            if key not in self.INTERFACE_ARGS:
-                model.setParam(key, value)
+            model.setParam(key, value)
 
         solution = {}
         try:
@@ -281,6 +288,7 @@ class GUROBI(ConicSolver):
         except Exception:
             pass
         solution[s.SOLVE_TIME] = model.Runtime
+        print(f"Trying to parse status {model.Status}")
         solution["status"] = self.STATUS_MAP.get(model.Status,
                                                  s.SOLVER_ERROR)
         if solution["status"] == s.SOLVER_ERROR and model.SolCount:
@@ -391,3 +399,170 @@ class GUROBI(ConicSolver):
         return (model.addQConstr(x_term <= t_term),
                 new_lin_constrs,
                 soc_vars)
+
+
+'''
+from pathlib import Path
+import tempfile
+import re
+import logging
+from typing import List, Dict, Any
+from cvxpy.settings import GUROBI
+from cvxpy.expressions.variable import Variable
+import gurobipy
+
+
+class GurobiOriginPrinter:
+    @staticmethod
+    def log(conflict_equations_parts, constraint_origins):
+        parts_to_print = []
+        for conflict_equations_part in conflict_equations_parts:
+            constraint_name = conflict_equations_part["name"]
+            constr_origin = constraint_origins[constraint_name]
+            if isinstance(constr_origin, Variable):
+                parts_to_print.append(
+                    (f"{constraint_name} (var)", "", constr_origin.name(), "")
+                )
+            else:
+                file_path = Path(constr_origin.filename)
+                parts_to_print.append(
+                    (
+                        constraint_name,
+                        f"{file_path.name}:{constr_origin.lineno}",
+                        constr_origin.code_context[0].strip(),
+                        ", ".join(conflict_equations_part["variables"]),
+                    )
+                )
+
+        logging.info("Conflicting constraints and variables")
+        max_parts_length = [max(len(p[i]) for p in parts_to_print) for i in range(4)]
+        for part_to_print in parts_to_print:
+            line = ": ".join(
+                [p.rjust(l) for p, l in zip(part_to_print, max_parts_length)]
+            )
+            logging.info(line)
+
+
+def _refine_conflicts_if_infeasible(problem, soln) -> List[Dict[str, Any]]:
+    """Run Gurobis's conflict refiner if the solution is infeasible and log the results
+
+    If the model is infeasible this function calls Gurobi's method for computing
+    the Ireducible Inconsistent Sybsystem (IIS) for the infeasible model. The IIS
+    model is then parsed and information about all conflicting constraints is
+    returned
+
+    Return:
+        List[Dict[str, Any]]: A list of items with information about all
+            conflicting constraints. Each item in the list contains a dictionary
+            with the following items:
+                "name": CVXPY name of the conflicting constraint
+                "id": CVXPY ID of the conflicting constraint
+                "expression": expression defining the conflicting constraint in the
+                    .ilp file with the IIS
+                "variables": list of variables present in the conflicting constraint
+    """
+    conflict_equation_parts = []
+
+    print("_refine_conflicts_if_infeasible with problem.status = " + str(problem.status))
+    if not problem.status.startswith("infeasible"):
+        print("skipping conflict refiner because problem.status != infeasible")
+        return []
+    # if problem.status == "infeasible_inaccurate":
+    #    print("skipping conflict refiner because problem.status = infeasible_inaccurate")
+    #    return []
+
+    c = soln["model"]
+    c.write("infeasible.lp")
+    constraint_origins = soln["constraint_origins"]
+    constr_name_map = {**soln["constr_neq_name_map"], **soln["constr_eq_name_map"]}
+
+    logging.info("Starting solution refiner.")
+    try:
+        c.computeIIS()
+        c.write("infeasible.ilp")
+    except gurobipy.GurobiError as e:
+        logging.info("Failed to compute IIS with error: " + str(e))
+        return []
+    except:
+        logging.info("Failed to compute IIS.")
+        return []
+
+    with tempfile.TemporaryDirectory() as tmpdirname:
+        c.write(str(Path(tmpdirname) / "model.ilp"))
+
+        with open(Path(tmpdirname) / "model.ilp", "r") as f:
+            iis_output = f.read()
+
+            logging.debug("IIS model:")
+            logging.debug(iis_output)
+
+            constr_regex = re.compile(
+                r"(?P<constr>[_\w]+\[\d+\]):(?P<expr>[\s\d\.\w\[\]+\-\n]*<?=\s-?\d+.?\d*)"
+            )
+            var_regex = re.compile(r"(?P<name>[_\w]+)\[(?P<index>\d+)\]")
+
+            constr_list = {
+                m.group("constr"): m.group("expr")
+                for m in constr_regex.finditer(iis_output)
+            }
+
+            for name, expr in constr_list.items():
+                cvxpy_constr_name = constr_name_map[name]
+                cvxpy_constr_id = int(cvxpy_constr_name.split("_")[1])
+
+                variables = [
+                    f"{v.group('name')}[{v.group('index')}]"
+                    for v in var_regex.finditer(expr)
+                ]
+                conflict_equation_parts += [
+                    {
+                        "name": cvxpy_constr_name,
+                        "id": cvxpy_constr_id,
+                        "expression": expr,
+                        "variables": variables,
+                    }
+                ]
+
+    GurobiOriginPrinter.log(conflict_equation_parts, constraint_origins)
+
+    return conflict_equation_parts
+
+
+def solve_with_conflict_refiner(
+    problem,
+    warm_start=False,
+    verbose=False,
+    solver_opts={},
+    gp=False,
+    enforce_dpp=False,
+):
+    """
+    Solve the problem using GUROBI. If the solution is infeasible use the conflict
+    refiner and log the results. Here is an example:
+
+        problem = cp.Problem(objective, constraints.get())
+        cp.gurobi.solve_with_conflict_refiner(problem)
+
+    Arguments
+        ---------
+        warm_start : bool, optional
+            Value is passed through to the `chain.solve_via_data`.
+        verbose : bool, optional
+            Value is passed through to the `chain.solve_via_data`.
+        solver_opts : dict, optional
+            Value is passed through to the `chain.solve_via_data`.
+        gp : bool, optional
+            If True, then parses the problem as a disciplined geometric program
+            instead of a disciplined convex program.
+        enforce_dpp : bool, optional
+            When True, a DPPError will be thrown when trying to parse a non-DPP
+            problem (instead of just a warning). Defaults to False.
+    """
+    data, chain, inverse_data = problem.get_problem_data(
+        solver=GUROBI, gp=gp, enforce_dpp=enforce_dpp
+    )
+    soln = chain.solve_via_data(problem, data, warm_start, True, solver_opts)
+    problem.unpack_results(soln, chain, inverse_data)
+    soln["conflict_equation_parts"] = _refine_conflicts_if_infeasible(problem, soln)
+    return soln
+'''
