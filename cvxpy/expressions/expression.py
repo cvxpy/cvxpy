@@ -1038,12 +1038,11 @@ class Expression(u.Canonical):
                     """
                     This function checks if self is a valid matrix multiplication
                     """
-                    from cvxpy.atoms.affine.binary_operators import MulExpression
+                    from cvxpy.atoms.affine.binary_operators import MulExpression, multiply
                     if not isinstance(self, MulExpression):
                         return False
-                    #Some subclasses of MulExpressions are not Matrix multiplications, so check
-                    #if the current object is a MulExpression but not a subclass
-                    if issubclass(type(self), MulExpression) and type(self) != MulExpression:
+                    #Check if the current expression is not elementwise multiplication
+                    if isinstance(self, multiply):
                         return False
                     return True
 
@@ -1108,9 +1107,10 @@ class Expression(u.Canonical):
                 This is a helper function that determines if an element should be transposed for
                 matrix multiplication (allows broadcasting vectors into matrices)
                 """
-                if curr_arg[1]==VAR_TYPE.CONSTANT:
+                ndim = getattr(curr_arg[0], "ndim", False)
+                if curr_arg[1]==VAR_TYPE.CONSTANT and ndim != 1:
                     return False
-                return curr_arg[0].ndim==1
+                return ndim==1
             res =  []
             #In order to support dot products of vectors,
             #where one vector is represented by a matrix, we need to see if:
