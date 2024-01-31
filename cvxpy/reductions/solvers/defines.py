@@ -58,6 +58,7 @@ from cvxpy.reductions.solvers.qp_solvers.mpax_qpif import MPAX as MPAX_qp
 from cvxpy.reductions.solvers.qp_solvers.osqp_qpif import OSQP as OSQP_qp
 from cvxpy.reductions.solvers.qp_solvers.piqp_qpif import PIQP as PIQP_qp
 from cvxpy.reductions.solvers.qp_solvers.proxqp_qpif import PROXQP as PROXQP_qp
+from cvxpy.reductions.solvers.qp_solvers.qpalm_qpif import QPALM as QPALM_qp
 from cvxpy.reductions.solvers.qp_solvers.xpress_qpif import XPRESS as XPRESS_qp
 from cvxpy.utilities.versioning import Version
 
@@ -76,6 +77,7 @@ solver_qp_intf = [OSQP_qp(),
                   COPT_qp(),
                   PIQP_qp(),
                   PROXQP_qp(),
+                  QPALM_qp(),
                   DAQP_qp(),
                   HIGHS_qp(),
                   MPAX_qp(),
@@ -102,6 +104,7 @@ QP_SOLVERS = [s.OSQP,
               s.COPT,
               s.PIQP,
               s.PROXQP,
+              s.QPALM,
               s.DAQP,
               s.MPAX,
               s.KNITRO]
