@@ -51,6 +51,11 @@ class NAG(ConicSolver):
         """The name of the solver.
         """
         return s.NAG
+    
+    def supports_quad_obj(self) -> bool:
+        """NAG supports quadratic objective.
+        """
+        return True
 
     def accepts(self, problem) -> bool:
         """Can NAG solve the problem?
@@ -84,7 +89,12 @@ class NAG(ConicSolver):
         inv_data[self.DIMS] = problem.cone_dims
         constr_map = problem.constr_map
 
-        c, d, A, b = problem.apply_parameters()
+        if problem.P is None:
+            c, d, A, b = problem.apply_parameters()
+        else:
+            P, c, d, A, b = problem.apply_parameters(quad_obj=True)
+            data[s.P] = P 
+
         A = -A
         data[s.C] = c.ravel()
         data[s.OBJ_OFFSET] = float(d)
@@ -191,13 +201,25 @@ class NAG(ConicSolver):
         nleq = dims[s.LEQ_DIM]
         neq = dims[s.EQ_DIM]
         m = len(h)
-        # declare the NAG problem handle
+        # Declare the NAG problem handle
         handle = opt.handle_init(nvar)
 
-        # define the linear objective
         cvec = np.concatenate((c, np.zeros(soc_dim)))
-        opt.handle_set_linobj(handle, cvec)
-        # define linear constraints
+
+        # Define quadratic objective if it exists
+        if s.P in data:
+            P = data[s.P]
+            Put = sp.sparse.triu(P, format='csc')
+            Prows, Pcols, Pvals = sp.sparse.find(Put)
+            Prows = Prows + 1
+            Pcols = Pcols + 1
+            idxc = np.arange(1, len(cvec)+1)
+            opt.handle_set_quadobj(handle, idxc, cvec, Prows, Pcols, Pvals)
+        # Define linear objective
+        else:
+            opt.handle_set_linobj(handle, cvec)
+
+        # Define linear constraints
         rows, cols, vals = sp.sparse.find(G)
         lb = np.zeros(m)
         ub = np.zeros(m)
@@ -214,7 +236,7 @@ class NAG(ConicSolver):
         cols = cols + 1
         opt.handle_set_linconstr(handle, lb, ub, rows, cols, vals)
 
-        # define the cones
+        # Define the cones
         idx = len(c)
         size_cdvars = 0
         if soc_dim > 0:
@@ -225,7 +247,7 @@ class NAG(ConicSolver):
                 idx += size_cone
                 size_cdvars += size_cone
 
-        # deactivate printing by default
+        # Deactivate printing by default
         opt.handle_opt_set(handle, "Print File = -1")
         if verbose:
             opt.handle_opt_set(handle, "Monitoring File = 6")
@@ -254,7 +276,7 @@ class NAG(ConicSolver):
         u = np.zeros(2*m)
         uc = np.zeros(size_cdvars)
         try:
-            if soc_dim > 0:
+            if soc_dim > 0 or s.P in data:
                 sln = opt.handle_solve_socp_ipm(handle, x=x, u=u, uc=uc, io_manager=iom)
             elif soc_dim == 0:
                 sln = opt.handle_solve_lp_ipm(handle, x=x, u=u, io_manager=iom)
