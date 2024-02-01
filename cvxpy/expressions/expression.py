@@ -1076,7 +1076,7 @@ class Expression(u.Canonical):
                         if not hasattr(vec, "ndim"):
                             return valid, ndims
                         if vec.ndim >2:
-                            return #Only deal with scalars, vectors, or matrices
+                            return valid, ndims#Only deal with scalars, vectors, or matrices
                         ndims[i] = vec.ndim
 
                     if max(ndims)<2:
