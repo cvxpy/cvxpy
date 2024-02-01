@@ -253,6 +253,10 @@ class NAG(ConicSolver):
             opt.handle_opt_set(handle, "Monitoring File = 6")
             opt.handle_opt_set(handle, "Monitoring Level = 2")
 
+        
+        # use_quad_obj is only for canonicalization
+        if "use_quad_obj" in solver_opts: 
+            del solver_opts["use_quad_obj"]
         # Set the optional parameters
         kwargs = sorted(solver_opts.keys())
         if "nag_params" in kwargs:
