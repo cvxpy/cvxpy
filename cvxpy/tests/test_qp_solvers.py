@@ -351,10 +351,12 @@ class TestQp(BaseTest):
 
     def huber(self, solver) -> None:
         # Generate problem data
-        np.random.seed(2)
         n = 3
         m = 5
-        A = sp.random(m, n, density=0.8, format='csc')
+        data = [0.89, 0.39, 0.96, 0.34, 0.68, 0.18, 0.63 ,0.42, 0.51, 0.66, 0.43, 0.77]
+        indices = [0, 1, 2, 3, 4, 2, 3, 0, 1, 2, 3, 4]
+        indptr = [0, 5, 7, 12]
+        A = sp.csc_matrix((data, indices, indptr), shape=(m,n))
         x_true = np.random.randn(n) / np.sqrt(n)
         ind95 = (np.random.rand(m) < 0.95).astype(float)
         b = A.dot(x_true) + np.multiply(0.5*np.random.randn(m), ind95) \
@@ -367,9 +369,9 @@ class TestQp(BaseTest):
         # Solve problem with QP
         p = Problem(Minimize(objective))
         self.solve_QP(p, solver)
-        self.assertAlmostEqual(1.327429461061672, objective.value, places=3)
+        self.assertAlmostEqual(1.452797819667, objective.value, places=3)
         self.assertItemsAlmostEqual(x.value,
-                                    [-1.03751745, 0.86657204, -0.9649172],
+                                    [1.20524645, -0.85271489, -0.50838494],
                                     places=3)
 
     def equivalent_forms_1(self, solver) -> None:
