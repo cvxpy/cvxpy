@@ -4,7 +4,7 @@ select = [
     "F",
     "I",
     "NPY201",
-    "W605",  # Check for invalid escape sequences in docstrings (errors in py > 3.11)
+    "W605",  # Check for invalid escape sequences in docstrings (errors in py >= 3.11)
 ]
 line-length = 100
 exclude = [
