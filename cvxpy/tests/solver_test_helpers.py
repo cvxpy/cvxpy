@@ -154,7 +154,7 @@ class SolverTestHelper:
             self.tester.fail(msg)
         bad_norms = []
 
-        """The convention that we follow for construting the Lagrangian is: 1) Move all
+        r"""The convention that we follow for construting the Lagrangian is: 1) Move all
         explicitly passed constraints to the problem (via Problem.constraints) into the
         Lagrangian --- dLdX == 0 for any such variables 2) Constraints that have
         implicitly been imposed on variables at the time of declaration via specific
@@ -191,7 +191,7 @@ class SolverTestHelper:
                     if diag_entries > 10**(-places):
                         bad_norms.append((dual_cone_violation, opt_var))
                 elif opt_var.is_symmetric():
-                    """The dual cone to the set of symmetric matrices is the
+                    r"""The dual cone to the set of symmetric matrices is the
                     set of skew-symmetric matrices, so we check if dLdX \in
                     set(skew-symmetric-matrices)
                     g[opt_var] is the problematic gradient in question"""

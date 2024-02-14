@@ -46,8 +46,8 @@ class SOC2PSD(Reduction):
         soc_id_from_psd = {}
 
         for constraint in soc_constraints:
-            """
-            The SOC constraint :math:`\\lVert X \\rVert_2 \leq t` is modeled by `t` and `X`.
+            r"""
+            The SOC constraint :math:`\lVert X \rVert_2 \leq t` is modeled by `t` and `X`.
             We extract these `t` and `X` from the SOC constraint object.
             """
             t, X = constraint.args
