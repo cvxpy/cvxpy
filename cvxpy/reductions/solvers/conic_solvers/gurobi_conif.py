@@ -46,15 +46,17 @@ class GUROBI(ConicSolver):
                   4: s.INFEASIBLE_OR_UNBOUNDED,  # Triggers reoptimize.
                   5: s.UNBOUNDED,
                   6: s.SOLVER_ERROR,
-                  7: s.SOLVER_ERROR,
-                  8: s.SOLVER_ERROR,
-                  # TODO could be anything.
-                  # means time expired.
-                  9: s.USER_LIMIT,
-                  10: s.SOLVER_ERROR,
-                  11: s.SOLVER_ERROR,
-                  12: s.SOLVER_ERROR,
-                  13: s.SOLVER_ERROR}
+                  7: s.USER_LIMIT, # ITERATION_LIMIT
+                  8: s.USER_LIMIT, # NODE_LIMIT
+                  9: s.USER_LIMIT,  # TIME_LIMIT
+                  10: s.USER_LIMIT, # SOLUTION_LIMIT
+                  11: s.USER_LIMIT, # INTERRUPTED
+                  12: s.SOLVER_ERROR, # NUMERIC
+                  13: s.USER_LIMIT, # SUBOPTIMAL
+                  14: s.USER_LIMIT, # INPROGRESS
+                  15: s.USER_LIMIT, # USER_OBJ_LIMIT
+                  16: s.USER_LIMIT, # WORK_LIMIT
+                  17: s.USER_LIMIT} # MEM_LIMIT
 
     def name(self):
         """The name of the solver.
