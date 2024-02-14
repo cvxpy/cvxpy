@@ -37,6 +37,9 @@ class GUROBI(ConicSolver):
     SUPPORTED_CONSTRAINTS = ConicSolver.SUPPORTED_CONSTRAINTS + [SOC]
     MI_SUPPORTED_CONSTRAINTS = SUPPORTED_CONSTRAINTS
 
+    # Keyword arguments for the CVXPY interface.
+    INTERFACE_ARGS = ["save_file", "reoptimize"]
+
     # Map of Gurobi status to CVXPY status.
     STATUS_MAP = {2: s.OPTIMAL,
                   3: s.INFEASIBLE,
@@ -104,15 +107,9 @@ class GUROBI(ConicSolver):
     def invert(self, solution, inverse_data):
         """Returns the solution to the original problem given the inverse_data.
         """
-        print(f"Running invert within gurobi_confif.py ... ")
         status = solution['status']
-        print(f"solution status is: {status}")
         attr = {s.EXTRA_STATS: solution['model'],
                 s.SOLVE_TIME: solution[s.SOLVE_TIME]}
-
-        print(f"SOLUTION_PRESENT: {SOLUTION_PRESENT} is being redefined")
-        SOLUTION_PRESENT = [s.USER_LIMIT, s.OPTIMAL, s.OPTIMAL_INACCURATE]
-        print(f"SOLUTION_PRESENT: {SOLUTION_PRESENT}")
 
         primal_vars = None
         dual_vars = None
@@ -130,10 +127,8 @@ class GUROBI(ConicSolver):
                     inverse_data[GUROBI.NEQ_CONSTR])
                 eq_dual.update(leq_dual)
                 dual_vars = eq_dual
-            print(f"Success! Code {status}")
             return Solution(status, opt_val, primal_vars, dual_vars, attr)
         else:
-            print(f"Failure! Code {status}")
             return failure_solution(status, attr)
 
     def solve_via_data(self, data, warm_start: bool, verbose: bool, solver_opts, solver_cache=None):
@@ -262,7 +257,9 @@ class GUROBI(ConicSolver):
         # TODO user option to not compute duals.
         model.setParam("QCPDual", True)
         for key, value in solver_opts.items():
-            model.setParam(key, value)
+            # Ignore arguments unique to the CVXPY interface.
+            if key not in self.INTERFACE_ARGS:
+                model.setParam(key, value)
 
         solution = {}
         try:
@@ -288,7 +285,6 @@ class GUROBI(ConicSolver):
         except Exception:
             pass
         solution[s.SOLVE_TIME] = model.Runtime
-        print(f"Trying to parse status {model.Status}")
         solution["status"] = self.STATUS_MAP.get(model.Status,
                                                  s.SOLVER_ERROR)
         if solution["status"] == s.SOLVER_ERROR and model.SolCount:
