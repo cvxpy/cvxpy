@@ -48,8 +48,6 @@ class GUROBI(ConicSolver):
                   6: s.SOLVER_ERROR,
                   7: s.USER_LIMIT, # ITERATION_LIMIT
                   8: s.USER_LIMIT, # NODE_LIMIT
-                  # TODO could be anything.
-                  # means time expired.
                   9: s.USER_LIMIT,  # TIME_LIMIT
                   10: s.USER_LIMIT, # SOLUTION_LIMIT
                   11: s.USER_LIMIT, # INTERRUPTED
