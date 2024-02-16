@@ -777,9 +777,10 @@ class Expression(u.Canonical):
                 return ufunc_handler(self, args[0])
             elif kwargs.keys() == {'out'} and \
                     len(args) == 2 and \
-                    args[1] is self:
-                raise RuntimeError(__INPLACE_MUTATION_ERROR__)
-                
+                    args[1] is self and \
+                    args[0] is kwargs['out']:
+                return ufunc_handler(self, args[0])
+
         except KeyError:
             pass
 
@@ -787,45 +788,6 @@ class Expression(u.Canonical):
 
     def __abs__(self):
         raise TypeError(__ABS_ERROR__)
-
-    def __iadd__(self, other):
-        raise RuntimeError(__INPLACE_MUTATION_ERROR__)
-
-    def __isub__(self, other):
-        raise RuntimeError(__INPLACE_MUTATION_ERROR__)
-
-    def __imul__(self, other):
-        raise RuntimeError(__INPLACE_MUTATION_ERROR__)
-
-    def __imatmul__(self, other):
-        raise RuntimeError(__INPLACE_MUTATION_ERROR__)
-
-    def __itruediv__(self, other):
-        raise RuntimeError(__INPLACE_MUTATION_ERROR__)
-
-    def __ifloordiv__(self, other):
-        raise RuntimeError(__INPLACE_MUTATION_ERROR__)
-
-    def __imod__(self, other):
-        raise RuntimeError(__INPLACE_MUTATION_ERROR__)
-
-    def __ipow__(self, other, modulo):
-        raise RuntimeError(__INPLACE_MUTATION_ERROR__)
-
-    def __ilshift__(self, other):
-        raise RuntimeError(__INPLACE_MUTATION_ERROR__)
-
-    def __irshift__(self, other):
-        raise RuntimeError(__INPLACE_MUTATION_ERROR__)
-
-    def __iand__(self, other):
-        raise RuntimeError(__INPLACE_MUTATION_ERROR__)
-
-    def __ixor__(self, other):
-        raise RuntimeError(__INPLACE_MUTATION_ERROR__)
-
-    def __ior__(self, other):
-        raise RuntimeError(__INPLACE_MUTATION_ERROR__)
 
     def conj(self):
         """
