@@ -1081,6 +1081,8 @@ class Problem(u.Canonical):
                     solving_chain.reductions[-1].name())
         start = time.time()
         solver_verbose = kwargs.pop('solver_verbose', verbose)
+        if solver_verbose and (not verbose):
+            print(_NUM_SOLVER_STR)
         solution = solving_chain.solve_via_data(
             self, data, warm_start, solver_verbose, kwargs)
         end = time.time()
