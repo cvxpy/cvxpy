@@ -11,6 +11,17 @@ Welcome to CVXPY 1.5
                  Express your problem in a natural way that follows the math.
    :keywords: convex optimization, open source, software,
 
+.. raw:: html
+
+      <script type="application/ld+json">
+      {
+         "@context" : "https://schema.org",
+         "@type" : "WebSite",
+         "name" : "CVXPY",
+         "url" : "https://www.cvxpy.org/"
+      }
+      </script>
+
 **Convex optimization, for everyone.**
 
 *We are building a CVXPY community* `on Discord <https://discord.gg/4urRQeGBCr>`_. *Join the conversation!*
