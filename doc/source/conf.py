@@ -197,22 +197,27 @@ html_theme_options = {
     "version_dropdown": True,
     "version_info": [
         {
-            "version": "latest",
+            "version": "https://www.cvxpy.org",
             "title": "latest",
             "aliases": [],
         },
         {
-            "version": "https://www.cvxpy.org/version/1.3/",
+            "version": "https://www.cvxpy.org/version/1.4",
+            "title": "1.4",
+            "aliases": [],
+        },
+        {
+            "version": "https://www.cvxpy.org/version/1.3",
             "title": "1.3",
             "aliases": [],
         },
         {
-            "version": "https://www.cvxpy.org/version/1.2/",
+            "version": "https://www.cvxpy.org/version/1.2",
             "title": "1.2",
             "aliases": [],
         },
         {
-            "version": "https://www.cvxpy.org/version/1.1/",
+            "version": "https://www.cvxpy.org/version/1.1",
             "title": "1.1",
             "aliases": [],
         },
