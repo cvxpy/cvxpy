@@ -342,6 +342,11 @@ class TestProblem(BaseTest):
         ######
         for solver in INSTALLED_SOLVERS:
             for solver_verbose in [True, False]:
+                # Don't test GLPK because there's a race
+                # condition in setting CVXOPT solver options.
+                if solver in [cp.GLPK, cp.GLPK_MI, cp.MOSEK, cp.CBC,
+                              cp.SCIPY, cp.COPT]:
+                    continue
                 sys.stdout = StringIO()  # capture output
 
                 p = Problem(cp.Minimize(self.a + self.x[0]),
