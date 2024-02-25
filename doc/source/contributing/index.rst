@@ -44,10 +44,7 @@ Small scope projects
 
 Medium scope projects
  - `Support integer variables in geometric programming <https://github.com/cvxpy/cvxpy/issues/1590>`_.
- - Add an interface to `COSMO.jl <https://oxfordcontrol.github.io/COSMO.jl/stable/>`_ [`1161 <https://github.com/cvxpy/cvxpy/issues/1161>`_].
- - Support more open-source interior-point SDP solvers [`1093 <https://github.com/cvxpy/cvxpy/issues/1093>`_, `1419 <https://github.com/cvxpy/cvxpy/discussions/1419>`_].
  - `Post-solver feasibility checks <https://github.com/cvxpy/cvxpy/issues/434>`_.
- - `Citation generator <https://github.com/cvxpy/cvxpy/issues/1341>`_.
  - `Developer documentation for key reduction files <https://github.com/cvxpy/cvxpy/issues/582>`_.
 
 Large scope projects
@@ -55,7 +52,6 @@ Large scope projects
  - Problem serialization [`532 <https://github.com/cvxpy/cvxpy/issues/532>`_, `1333 <https://github.com/cvxpy/cvxpy/issues/1333>`_, `1438 <https://github.com/cvxpy/cvxpy/issues/1438>`_]
  - Pretty print method for summarizing a solution and its dual variables.
  - `Support for n-dimensional expressions, variables, parameters, etc <https://github.com/cvxpy/cvxpy/issues/198>`_.
- - `10x improvement in the speed and memory usage of cvxcore <https://github.com/cvxpy/cvxpy/issues/708>`_, `especially for DPP problems <https://github.com/cvxpy/cvxpy/issues/1332>`_.
  - Full compatibility with NumPy broadcasting rules. This will be a breaking change, and can only go in CVXPY 2.0.
 
 
@@ -219,16 +215,11 @@ to ``pytest``.
 
 Benchmarks
 ~~~~~~~~~~~~~~~~~~~~~~~~~
-CVXPY has a few benchmarks in ``cvxpy/tests/test_benchmarks.py``, which test
-the time to canonicalize problems. Please run
+CVXPY has performance `benchmarks <https://github.com/cvxpy/benchmarks>`_ which test the time to canonicalize problems.
+These problems are automatically benchmarked on every commit using `airspeed velocity <https://asv.readthedocs.io>`_ and github actions.
 
-  ::
-
-    pytest -s test_benchmarks.py
-
-with and without your change, to make sure no performance regressions are
-introduced. If you are making a code contribution, please include the output of
-the above command (with and without your change) in your pull request.
+Optionally, the package `act <https://github.com/nektos/act>`_ can be installed
+to run github actions locally.
 
 .. _contrib_solver:
 
