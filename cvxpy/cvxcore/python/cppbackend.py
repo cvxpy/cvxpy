@@ -19,6 +19,7 @@ import numpy as np
 import scipy.sparse as sp
 
 import cvxpy.lin_ops.lin_op as lo
+import cvxpy.settings as s
 
 try:
     import cvxpy.cvxcore.python.cvxcore as cvxcore
