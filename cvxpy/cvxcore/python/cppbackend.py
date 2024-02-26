@@ -24,8 +24,9 @@ import cvxpy.settings as s
 try:
     import cvxpy.cvxcore.python.cvxcore as cvxcore
 except ModuleNotFoundError:
-    # Allow to run without cvxcore, cannot use C++ backend
-    cvxcore = None
+    raise ModuleNotFoundError(
+        "Tried using the C++ backend, but the cvxcore module was not installed."
+    )
 
 
 def build_matrix(
