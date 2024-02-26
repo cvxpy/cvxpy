@@ -21,7 +21,6 @@ import os
 import numpy as np
 import scipy.sparse as sp
 
-import cvxpy.cvxcore.python.cvxcore as cvxcore
 import cvxpy.settings as s
 from cvxpy.lin_ops import lin_op as lo
 from cvxpy.lin_ops.canon_backend import CanonBackend
@@ -251,29 +250,6 @@ def get_matrix_from_tensor(problem_data_tensor, param_vec,
     return (A, b)
 
 
-def get_matrix_and_offset_from_unparameterized_tensor(problem_data_tensor,
-                                                      var_length):
-    """Converts unparameterized tensor to matrix offset representation
-
-    problem_data_tensor _must_ have been obtained from calling
-    get_problem_matrix on a problem with 0 parameters.
-
-    Parameters
-    ----------
-        problem_data_tensor: tensor returned from get_problem_matrix,
-            representing an affine map
-        var_length: the number of variables
-
-    Returns
-    -------
-        A tuple (A, b), where A is a matrix with `var_length` columns
-        and b is a flattened NumPy array representing the constant offset.
-    """
-    assert problem_data_tensor.shape[1] == 1
-    return get_matrix_and_offset_from_tensor(
-        problem_data_tensor, None, var_length)
-
-
 def get_default_canon_backend() -> str:
     """
     Returns the default canonicalization backend, which can be set globally using an
@@ -318,6 +294,12 @@ def get_problem_matrix(linOps,
     canon_backend = default_canon_backend if not canon_backend else canon_backend
 
     if canon_backend == s.CPP_CANON_BACKEND:
+        try:
+            import cvxpy.cvxcore.python.cvxcore as cvxcore
+        except ModuleNotFoundError:
+            raise ImportError("cvxcore is not installed. Please install cvxcore "
+                              "to use the C++ backend.")
+
         lin_vec = cvxcore.ConstLinOpVector()
 
         id_to_col_C = cvxcore.IntIntMap()
@@ -419,48 +401,60 @@ def format_matrix(matrix, shape=None, format='dense'):
         raise NotImplementedError()
 
 
-TYPE_MAP = {
-    "VARIABLE": cvxcore.VARIABLE,
-    "PARAM": cvxcore.PARAM,
-    "PROMOTE": cvxcore.PROMOTE,
-    "MUL": cvxcore.MUL,
-    "RMUL": cvxcore.RMUL,
-    "MUL_ELEM": cvxcore.MUL_ELEM,
-    "DIV": cvxcore.DIV,
-    "SUM": cvxcore.SUM,
-    "NEG": cvxcore.NEG,
-    "INDEX": cvxcore.INDEX,
-    "TRANSPOSE": cvxcore.TRANSPOSE,
-    "SUM_ENTRIES": cvxcore.SUM_ENTRIES,
-    "TRACE": cvxcore.TRACE,
-    "RESHAPE": cvxcore.RESHAPE,
-    "DIAG_VEC": cvxcore.DIAG_VEC,
-    "DIAG_MAT": cvxcore.DIAG_MAT,
-    "UPPER_TRI": cvxcore.UPPER_TRI,
-    "CONV": cvxcore.CONV,
-    "HSTACK": cvxcore.HSTACK,
-    "VSTACK": cvxcore.VSTACK,
-    "SCALAR_CONST": cvxcore.SCALAR_CONST,
-    "DENSE_CONST": cvxcore.DENSE_CONST,
-    "SPARSE_CONST": cvxcore.SPARSE_CONST,
-    "NO_OP": cvxcore.NO_OP,
-    "KRON_R": cvxcore.KRON_R,
-    "KRON_L": cvxcore.KRON_L
-}
+def get_type_map() -> dict:
+    """
+    Returns a map from string type to cvxcore type
+    """
+    import cvxpy.cvxcore.python.cvxcore as cvxcore
+    type_map = {
+        "VARIABLE": cvxcore.VARIABLE,
+        "PARAM": cvxcore.PARAM,
+        "PROMOTE": cvxcore.PROMOTE,
+        "MUL": cvxcore.MUL,
+        "RMUL": cvxcore.RMUL,
+        "MUL_ELEM": cvxcore.MUL_ELEM,
+        "DIV": cvxcore.DIV,
+        "SUM": cvxcore.SUM,
+        "NEG": cvxcore.NEG,
+        "INDEX": cvxcore.INDEX,
+        "TRANSPOSE": cvxcore.TRANSPOSE,
+        "SUM_ENTRIES": cvxcore.SUM_ENTRIES,
+        "TRACE": cvxcore.TRACE,
+        "RESHAPE": cvxcore.RESHAPE,
+        "DIAG_VEC": cvxcore.DIAG_VEC,
+        "DIAG_MAT": cvxcore.DIAG_MAT,
+        "UPPER_TRI": cvxcore.UPPER_TRI,
+        "CONV": cvxcore.CONV,
+        "HSTACK": cvxcore.HSTACK,
+        "VSTACK": cvxcore.VSTACK,
+        "SCALAR_CONST": cvxcore.SCALAR_CONST,
+        "DENSE_CONST": cvxcore.DENSE_CONST,
+        "SPARSE_CONST": cvxcore.SPARSE_CONST,
+        "NO_OP": cvxcore.NO_OP,
+        "KRON_R": cvxcore.KRON_R,
+        "KRON_L": cvxcore.KRON_L
+    }
+    return type_map
 
 
 def get_type(linPy):
+    """
+    Returns the cvxcore type corresponding to the type of linPy.
+    """
     ty = linPy.type.upper()
-    if ty in TYPE_MAP:
-        return TYPE_MAP[ty]
+    type_map = get_type_map()
+    if ty in type_map:
+        return type_map[ty]
     else:
-        raise NotImplementedError("Type %s is not supported." % ty)
+        raise NotImplementedError(f"Type {ty} is not supported.")
 
 
 def set_matrix_data(linC, linPy) -> None:
     """Calls the appropriate cvxcore function to set the matrix data field of
        our C++ linOp.
     """
+    import cvxpy.cvxcore.python.cvxcore as cvxcore
+
     if get_type(linPy) == cvxcore.SPARSE_CONST:
         coo = format_matrix(linPy.data, format='sparse')
         linC.set_sparse_data(coo.data, coo.row.astype(float),
@@ -478,6 +472,8 @@ def set_slice_data(linC, linPy) -> None:
     Python.  Note that the 'None' cases had to be handled at the wrapper level,
     since we must load integers into our vector.
     """
+    import cvxpy.cvxcore.python.cvxcore as cvxcore
+
     for i, sl in enumerate(linPy.data):
         slice_vec = cvxcore.IntVector()
         for var in [sl.start, sl.stop, sl.step]:
@@ -503,6 +499,8 @@ def make_linC_from_linPy(linPy, linPy_to_linC) -> None:
 
     Children of linPy are retrieved from linPy_to_linC.
     """
+    import cvxpy.cvxcore.python.cvxcore as cvxcore
+
     if linPy in linPy_to_linC:
         return
     typ = get_type(linPy)
