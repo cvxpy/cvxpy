@@ -294,7 +294,7 @@ def get_problem_matrix(linOps,
 
     if canon_backend == s.CPP_CANON_BACKEND:
         from cvxpy.cvxcore.python.cppbackend import build_matrix
-        build_matrix(id_to_col, param_to_size, param_to_col, var_length, linOps, constr_length)
+        build_matrix(id_to_col, param_to_size, param_to_col, var_length, constr_length, linOps)
 
     elif canon_backend in {s.SCIPY_CANON_BACKEND, s.RUST_CANON_BACKEND,
                            s.NUMPY_CANON_BACKEND}:
