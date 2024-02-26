@@ -15,6 +15,8 @@ limitations under the License.
 """
 
 import numbers
+from typing import List
+
 import numpy as np
 import scipy.sparse as sp
 
@@ -35,7 +37,7 @@ def build_matrix(
     param_to_col: dict,
     var_length: int,
     constr_length: int,
-    linOps: list[lo.LinOp],
+    linOps: List[lo.LinOp],
 ) -> sp.csc_matrix:
     lin_vec = cvxcore.ConstLinOpVector()
 
