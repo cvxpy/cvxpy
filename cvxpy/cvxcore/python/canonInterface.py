@@ -22,6 +22,11 @@ import numpy as np
 import scipy.sparse as sp
 
 import cvxpy.settings as s
+try:
+    import cvxpy.cvxcore.python.cvxcore as cvxcore
+except ModuleNotFoundError:
+    # Allow to run without cvxcore, cannot use C++ backend
+    cvxcore = None
 from cvxpy.lin_ops import lin_op as lo
 from cvxpy.lin_ops.canon_backend import CanonBackend
 
@@ -294,11 +299,6 @@ def get_problem_matrix(linOps,
     canon_backend = default_canon_backend if not canon_backend else canon_backend
 
     if canon_backend == s.CPP_CANON_BACKEND:
-        try:
-            import cvxpy.cvxcore.python.cvxcore as cvxcore
-        except ModuleNotFoundError:
-            raise ImportError("cvxcore is not installed. Please install cvxcore "
-                              "to use the C++ backend.")
 
         lin_vec = cvxcore.ConstLinOpVector()
 
@@ -405,7 +405,6 @@ def get_type_map() -> dict:
     """
     Returns a map from string type to cvxcore type
     """
-    import cvxpy.cvxcore.python.cvxcore as cvxcore
     type_map = {
         "VARIABLE": cvxcore.VARIABLE,
         "PARAM": cvxcore.PARAM,
@@ -453,7 +452,6 @@ def set_matrix_data(linC, linPy) -> None:
     """Calls the appropriate cvxcore function to set the matrix data field of
        our C++ linOp.
     """
-    import cvxpy.cvxcore.python.cvxcore as cvxcore
 
     if get_type(linPy) == cvxcore.SPARSE_CONST:
         coo = format_matrix(linPy.data, format='sparse')
@@ -472,7 +470,6 @@ def set_slice_data(linC, linPy) -> None:
     Python.  Note that the 'None' cases had to be handled at the wrapper level,
     since we must load integers into our vector.
     """
-    import cvxpy.cvxcore.python.cvxcore as cvxcore
 
     for i, sl in enumerate(linPy.data):
         slice_vec = cvxcore.IntVector()
@@ -499,7 +496,6 @@ def make_linC_from_linPy(linPy, linPy_to_linC) -> None:
 
     Children of linPy are retrieved from linPy_to_linC.
     """
-    import cvxpy.cvxcore.python.cvxcore as cvxcore
 
     if linPy in linPy_to_linC:
         return
