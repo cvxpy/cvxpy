@@ -1080,8 +1080,11 @@ class Problem(u.Canonical):
                     'Invoking solver %s  to obtain a solution.',
                     solving_chain.reductions[-1].name())
         start = time.time()
+        solver_verbose = kwargs.pop('solver_verbose', verbose)
+        if solver_verbose and (not verbose):
+            print(_NUM_SOLVER_STR)
         solution = solving_chain.solve_via_data(
-            self, data, warm_start, verbose, kwargs)
+            self, data, warm_start, solver_verbose, kwargs)
         end = time.time()
         self._solve_time = end - start
         self.unpack_results(solution, solving_chain, inverse_data)
