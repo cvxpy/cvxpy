@@ -175,7 +175,7 @@ Use the ``installed_solvers`` utility function to get a list of the solvers your
 Viewing solver output
 ^^^^^^^^^^^^^^^^^^^^^
 
-All the solvers can print out information about their progress while solving the problem. This information can be useful in debugging a solver error. To see the output from both cvxpy and the solvers, set ``verbose=True`` in the solve method. If you want to see the output from the solver only, set ``solver_verbose=True``.
+All the solvers can print out information about their progress while solving the problem. This information can be useful in debugging a solver error. To see the output from both CVXPY and the solvers, set ``verbose=True`` in the solve method. If you want to see the output from the solver only, set ``solver_verbose=True``.
 
 .. code:: python
 
