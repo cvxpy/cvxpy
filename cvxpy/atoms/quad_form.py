@@ -205,7 +205,7 @@ def decomp_quad(P, cond=None, rcond=None, lower=True, check_finite: bool = True)
                 return 1.0, L[p, :], np.empty((0, 0))
             else:
                 return 1.0, np.empty((0, 0)), L[:, p]
-        except ValueError:
+        except (ValueError, ModuleNotFoundError):
             P = np.array(P.todense())  # make dense (needs to happen for eigh).
     w, V = LA.eigh(P, lower=lower, check_finite=check_finite)
 
