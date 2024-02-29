@@ -11,6 +11,17 @@ Welcome to CVXPY 1.5
                  Express your problem in a natural way that follows the math.
    :keywords: convex optimization, open source, software,
 
+.. raw:: html
+
+      <script type="application/ld+json">
+      {
+         "@context" : "https://schema.org",
+         "@type" : "WebSite",
+         "name" : "CVXPY",
+         "url" : "https://www.cvxpy.org/"
+      }
+      </script>
+
 **Convex optimization, for everyone.**
 
 *We are building a CVXPY community* `on Discord <https://discord.gg/4urRQeGBCr>`_. *Join the conversation!*
@@ -112,10 +123,14 @@ considered to be part of the public API.
    install/index
 
 .. toctree::
-    :maxdepth: 3
     :hidden:
 
     User Guide <tutorial/index>
+
+.. toctree::
+   :hidden:
+
+   API Documentation <api_reference/cvxpy>
 
 .. toctree::
    :hidden:
@@ -125,7 +140,12 @@ considered to be part of the public API.
 .. toctree::
    :hidden:
 
-   API Documentation <api_reference/cvxpy>
+   contributing/index
+
+.. toctree::
+   :hidden:
+
+   Changelog <updates/index>
 
 .. toctree::
    :maxdepth: 1
@@ -136,29 +156,5 @@ considered to be part of the public API.
 .. toctree::
    :hidden:
 
-   citing/index
+   resources/index
 
-.. toctree::
-   :hidden:
-
-   contributing/index
-
-.. toctree::
-   :hidden:
-
-   related_projects/index
-
-.. toctree::
-   :hidden:
-
-   updates/index
-
-.. toctree::
-   :hidden:
-
-   short_course/index
-
-.. toctree::
-   :hidden:
-
-   license/index

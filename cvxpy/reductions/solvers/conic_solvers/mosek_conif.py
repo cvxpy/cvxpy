@@ -274,18 +274,16 @@ class MOSEK(ConicSolver):
                     sol = Solution(s.OPTIMAL, 0.0, dict(), {s.EQ_DUAL: data[s.B]}, dict())
                     return {'sol': sol}
             else:
-                env = mosek.Env()
-                task = env.Task(0, 0)
-                solver_opts = MOSEK.handle_options(env, task, verbose, solver_opts)
+                task = mosek.Task()
+                solver_opts = MOSEK.handle_options(task, verbose, solver_opts)
                 task = MOSEK._build_dualized_task(task, data)
         else:
             if len(data[s.C]) == 0:
                 sol = Solution(s.OPTIMAL, 0.0, dict(), dict(), dict())
                 return {'sol': sol}
             else:
-                env = mosek.Env()
-                task = env.Task(0, 0)
-                solver_opts = MOSEK.handle_options(env, task, verbose, solver_opts)
+                task = mosek.Task()
+                solver_opts = MOSEK.handle_options(task, verbose, solver_opts)
                 task = MOSEK._build_slack_task(task, data)
 
         # Save the task to a file if requested.
@@ -304,7 +302,7 @@ class MOSEK(ConicSolver):
         if verbose:
             task.solutionsummary(mosek.streamtype.msg)
 
-        return {'env': env, 'task': task, 'solver_options': solver_opts}
+        return {'task': task, 'solver_options': solver_opts}
 
     @staticmethod
     def _build_dualized_task(task, data):
@@ -483,15 +481,8 @@ class MOSEK(ConicSolver):
         if solver_opts['accept_unknown']:
             STATUS_MAP[mosek.solsta.unknown] = s.OPTIMAL_INACCURATE
 
-        # "Near" statuses only up to Mosek 8.1
-        if hasattr(mosek.solsta, 'near_optimal'):
-            STATUS_MAP[mosek.solsta.near_optimal] = s.OPTIMAL_INACCURATE
-            STATUS_MAP[mosek.solsta.near_integer_optimal] = s.OPTIMAL_INACCURATE
-            STATUS_MAP[mosek.solsta.near_prim_infeas_cer] = s.INFEASIBLE_INACCURATE
-            STATUS_MAP[mosek.solsta.near_dual_infeas_cer] = s.UNBOUNDED_INACCURATE
         STATUS_MAP = defaultdict(lambda: s.SOLVER_ERROR, STATUS_MAP)
 
-        env = solver_output['env']
         task = solver_output['task']
         solver_opts = solver_output['solver_options']
         simplex_algs = [
@@ -556,8 +547,7 @@ class MOSEK(ConicSolver):
 
         # Delete the mosek Task and Environment
         task.__exit__(None, None, None)
-        env.__exit__(None, None, None)
-
+ 
         return sol
 
     @staticmethod
@@ -632,7 +622,7 @@ class MOSEK(ConicSolver):
         return prim_vars
 
     @staticmethod
-    def handle_options(env, task, verbose: bool, solver_opts: dict) -> dict:
+    def handle_options(task, verbose: bool, solver_opts: dict) -> dict:
         """
         Handle user-specified solver options.
 
@@ -649,7 +639,7 @@ class MOSEK(ConicSolver):
                 s.LOGGER.info(text.rstrip('\n'))
 
             print('\n')
-            env.set_Stream(mosek.streamtype.log, streamprinter)
+
             task.set_Stream(mosek.streamtype.log, streamprinter)
 
         solver_opts = MOSEK.parse_eps_keyword(solver_opts)
@@ -744,7 +734,7 @@ class MOSEK(ConicSolver):
     @staticmethod
     def tolerance_params() -> tuple[str]:
         # tolerance parameters from
-        # https://docs.mosek.com/9.3/pythonapi/param-groups.html
+        # https://docs.mosek.com/latest/pythonapi/param-groups.html
         return (
             # Conic interior-point tolerances
             "MSK_DPAR_INTPNT_CO_TOL_DFEAS",

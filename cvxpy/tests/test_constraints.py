@@ -453,6 +453,15 @@ class TestConstraints(BaseTest):
         self.assertTrue((test6==-n*np.ones((m,m))).all())
         self.assertTrue((test7==n*np.ones((m,m))).all())
 
+    def test_bound_properties(self) -> None:
+        """Test basic bound properties."""
+        assert cp.Variable(bounds=[1, None])._has_lower_bounds()
+        assert not cp.Variable(bounds=[1, None])._has_upper_bounds()
+        assert not cp.Variable(bounds=[None, 1])._has_lower_bounds()
+        assert cp.Variable(bounds=[None, 1])._has_upper_bounds()
+        assert cp.Variable(bounds=[1, 2])._has_lower_bounds()
+        assert cp.Variable(bounds=[1, 2])._has_upper_bounds()
+
     def test_bounds_attr(self) -> None:
         """Test that the bounds attribute for variables and parameters is set correctly.
         """
@@ -473,6 +482,11 @@ class TestConstraints(BaseTest):
         self.assertItemsAlmostEqual(x_1.project([0, 0, 0]), [1, 2, 3])
         with pytest.raises(ValueError, match="in bounds."):
             x_1.value = [0, 0, 0]
+
+        # Try again using domain.
+        z = cp.Variable(shape=x_1.shape, var_id=x_1.id)
+        cp.Problem(cp.Minimize(z@c_2), x_1.domain).solve()
+        self.assertItemsAlmostEqual(z.value, [1, 2, 3])
 
         # Check if bounds attribute is compatible with quadratic objective
         cp.Problem(cp.Minimize(cp.quad_form(x_1, Q) + c_2.T @ x_1)).solve()

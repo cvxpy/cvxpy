@@ -130,6 +130,8 @@ BOOL_IDS = "bool_ids"
 BOOL_IDX = "bool_idx"
 INT_IDS = "int_ids"
 INT_IDX = "int_idx"
+LOWER_BOUNDS = "lower_bounds"
+UPPER_BOUNDS = "upper_bounds"
 
 # Keys for results_dict.
 STATUS = "status"

@@ -197,22 +197,27 @@ html_theme_options = {
     "version_dropdown": True,
     "version_info": [
         {
-            "version": "latest",
+            "version": "https://www.cvxpy.org",
             "title": "latest",
             "aliases": [],
         },
         {
-            "version": "https://www.cvxpy.org/version/1.3/",
+            "version": "https://www.cvxpy.org/version/1.4",
+            "title": "1.4",
+            "aliases": [],
+        },
+        {
+            "version": "https://www.cvxpy.org/version/1.3",
             "title": "1.3",
             "aliases": [],
         },
         {
-            "version": "https://www.cvxpy.org/version/1.2/",
+            "version": "https://www.cvxpy.org/version/1.2",
             "title": "1.2",
             "aliases": [],
         },
         {
-            "version": "https://www.cvxpy.org/version/1.1/",
+            "version": "https://www.cvxpy.org/version/1.1",
             "title": "1.1",
             "aliases": [],
         },
@@ -256,7 +261,7 @@ html_favicon = "_static/favicon.ico"
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
 html_static_path = ['_static']
-html_css_files = ['css/extra_css.css']
+html_css_files = ['css/styling.css']
 
 # If not '', a 'Last updated on:' timestamp is inserted at every page bottom,
 # using the given strftime format.
