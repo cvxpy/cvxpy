@@ -39,7 +39,7 @@ class norm1(AxisAtom):
         values = values[0]
         if self.axis is None:
             values = values.flatten()
-        return torch.norm(values, p=1)
+        return torch.norm(values, p=1, dim=self.axis)
 
     def sign_from_args(self) -> Tuple[bool, bool]:
         """Returns sign (is positive, is negative) of the expression.
