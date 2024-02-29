@@ -90,6 +90,8 @@ class Leaf(expression.Expression):
         Is the variable positive?
     neg : bool
         Is the variable negative?
+    bounds : Iterable
+        An iterable of length two specifying lower and upper bounds.
     """
 
     __metaclass__ = abc.ABCMeta
@@ -100,7 +102,7 @@ class Leaf(expression.Expression):
         symmetric: bool = False, diag: bool = False, PSD: bool = False,
         NSD: bool = False, hermitian: bool = False,
         boolean: bool = False, integer: bool = False,
-        sparsity=None, pos: bool = False, neg: bool = False
+        sparsity=None, pos: bool = False, neg: bool = False, bounds: Iterable | None=None
     ) -> None:
         if isinstance(shape, numbers.Integral):
             shape = (int(shape),)
@@ -125,7 +127,7 @@ class Leaf(expression.Expression):
                            'symmetric': symmetric, 'diag': diag,
                            'PSD': PSD, 'NSD': NSD,
                            'hermitian': hermitian, 'boolean': bool(boolean),
-                           'integer':  integer, 'sparsity': sparsity}
+                           'integer':  integer, 'sparsity': sparsity, 'bounds': bounds}
 
         if boolean:
             self.boolean_idx = boolean if not isinstance(boolean, bool) else list(
@@ -151,6 +153,8 @@ class Leaf(expression.Expression):
             self.value = value
 
         self.args = []
+
+        self.bounds = bounds
 
     def _get_attr_str(self) -> str:
         """Get a string representing the attributes.
@@ -312,6 +316,8 @@ class Leaf(expression.Expression):
             return np.minimum(val, 0.)
         elif self.attributes['nonneg'] or self.attributes['pos']:
             return np.maximum(val, 0.)
+        elif self.attributes['bounds']:
+            return np.clip(val, self.bounds[0], self.bounds[1])
         elif self.attributes['imag']:
             return np.imag(val)*1j
         elif self.attributes['complex']:
@@ -437,6 +443,8 @@ class Leaf(expression.Expression):
                     attr_str = 'negative semidefinite'
                 elif self.attributes['imag']:
                     attr_str = 'imaginary'
+                elif self.attributes['bounds']:
+                    attr_str = 'in bounds'
                 else:
                     attr_str = ([k for (k, v) in self.attributes.items() if v] + ['real'])[0]
                 raise ValueError(
@@ -492,3 +500,53 @@ class Leaf(expression.Expression):
         from cvxpy.atoms.affine.add_expr import AddExpression
         tmp_aff_exp = AddExpression([self])
         return tmp_aff_exp.gen_torch_exp()
+
+    @property
+    def bounds(self):
+        return self._bounds
+
+    @bounds.setter
+    def bounds(self, value):
+        # In case for a constant or no bounds
+        if value is None:
+            self._bounds = None
+            return
+
+        # Check that bounds is an iterable of two items
+        if not isinstance(value, Iterable) or len(value) != 2:
+            raise ValueError("Bounds should be a list of two items.")
+
+        # Check that bounds contains two scalars or two arrays with matching shapes.
+        for val in value:
+            valid_array = isinstance(val, np.ndarray) and val.shape == self.shape
+            if not (val is None or np.isscalar(val) or valid_array):
+                raise ValueError(
+                    "Bounds should be None, scalars, or arrays with the "
+                    "same dimensions as the variable/parameter."
+                )
+
+        # Promote upper and lower bounds to arrays.
+        none_bounds = [-np.inf, np.inf]
+        for idx, val in enumerate(value):
+            if val is None:
+                value[idx] = np.full(self.shape, none_bounds[idx])
+            elif np.isscalar(val):
+                value[idx] = np.full(self.shape, val)
+
+        # Check that upper_bound >= lower_bound
+        if np.any(value[0] > value[1]):
+            raise ValueError("Invalid bounds: some upper bounds are less "
+                             "than corresponding lower bounds.")
+
+        if np.any(np.isnan(value[0])) or np.any(np.isnan(value[1])):
+            raise ValueError("np.nan is not feasible as lower "
+                                "or upper bound.")
+
+        # Upper bound cannot be -np.inf.
+        if np.any(value[1] == -np.inf):
+            raise ValueError("-np.inf is not feasible as an upper bound.")
+        # Lower bound cannot be np.inf.
+        if np.any(value[0] == np.inf):
+            raise ValueError("np.inf is not feasible as a lower bound.")
+
+        self._bounds = value

@@ -82,6 +82,7 @@ from cvxpy.settings import (
     OPTIMAL as OPTIMAL,
     OPTIMAL_INACCURATE as OPTIMAL_INACCURATE,
     OSQP as OSQP,
+    DAQP as DAQP,
     PDLP as PDLP,
     PIQP as PIQP,
     PROXQP as PROXQP,

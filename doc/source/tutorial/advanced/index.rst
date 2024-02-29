@@ -98,6 +98,8 @@ of :py:class:`Variable <cvxpy.expressions.variable.Variable>` and
     :type pos: bool
     :param neg: Is the variable constrained to be negative?
     :type neg: bool
+    :param bounds: Lower and upper bounds.
+    :type bounds: An iterable of length two.
 
 The ``value`` field of Variables and Parameters can be assigned a value after construction,
 but the assigned value must satisfy the object attributes.
@@ -436,6 +438,8 @@ The table below shows the types of problems the supported solvers can handle.
 +----------------+----+----+------+-----+-----+-----+-----+
 | `COPT`_        | X  | X  | X    |  X  |     |     | X*  |
 +----------------+----+----+------+-----+-----+-----+-----+
+| `DAQP`_        | X  | X  |      |     |     |     |     |
++----------------+----+----+------+-----+-----+-----+-----+
 | `GLOP`_        | X  |    |      |     |     |     |     |
 +----------------+----+----+------+-----+-----+-----+-----+
 | `GLPK`_        | X  |    |      |     |     |     |     |
@@ -723,7 +727,7 @@ cached previous solution as described above (rather than from the ``value`` fiel
 Setting solver options
 ----------------------
 
-The `OSQP`_, `ECOS`_, `GLOP`_, `MOSEK`_, `CBC`_, `CVXOPT`_, `NAG`_, `PDLP`_, `GUROBI`_, `SCS`_ , `CLARABEL`_, `PIQP`_ and `PROXQP`_ Python interfaces allow you to set solver options such as the maximum number of iterations. You can pass these options along through CVXPY as keyword arguments.
+The `OSQP`_, `ECOS`_, `GLOP`_, `MOSEK`_, `CBC`_, `CVXOPT`_, `NAG`_, `PDLP`_, `GUROBI`_, `SCS`_ , `CLARABEL`_, `DAQP`_, `PIQP`_ and `PROXQP`_ Python interfaces allow you to set solver options such as the maximum number of iterations. You can pass these options along through CVXPY as keyword arguments.
 
 For example, here we tell SCS to use an indirect method for solving linear equations rather than a direct method.
 
@@ -826,6 +830,51 @@ For others see `OSQP documentation <https://osqp.org/docs/interfaces/solver_sett
 
 ``'feastol_inacc'``
     tolerance for feasibility condition for inaccurate solution (default: 1e-4).
+
+`DAQP`_ options:
+
+For more information `see the DAQP documentation <https://darnstrom.github.io/daqp/parameters/>`_,
+some features of DAQP are currently unsupported in CVXPY.
+
+``'primal_tol'``
+    tolerance for primal infeasibility (default: 1e-6).
+
+``'dual_tol'``
+    olerance for dual infeasibility (default: 1e-12).
+
+``'zero_tol'``
+    values below are regarded as zero (default: 1e-11).
+
+``'pivot_tol'``
+    value used for determining if rows in the LDL factorization should be exchanged.
+    A higher value improves stability (default: 1e-6).
+
+``'progress_tol'``
+    minimum change in objective function to consider it progress (default: 1e-6).
+
+``'cycle_tol'``
+    allowed number of iterations without progress before terminating (default: 10).
+
+``'iter_limit'``
+    maximum number of iterations before terminating (default: 1000).
+
+``'fval_bound'``
+    Maximum allowed objective function value. The solver terminates if the dual
+    objective exceeds this value (since it is a lower bound of the optimal value,
+    default: 1e30).
+
+``'eps_prox'``
+    Regularization parameter used for proximal-point iterations (0 means that
+    no proximal-point iterations are performed). If the
+    cost matrix has a null eigenvalue, setting this to 0 (upstream's default)
+    makes DAQP fail. Note that CVXPY's canonicalization procedure may add extra
+    variables with 0 quadratic cost which cause the cost matrix to have null eigenvalues
+    (default: 1e-5 if there are null eigenvalues, else 0).
+
+``'eta_prox'``
+    Tolerance that determines if a fix-point has been reached during
+    proximal-point iterations (default: 1e-6).
+
 
 `GLOP`_ options:
 
@@ -1643,7 +1692,7 @@ on derivatives.
 .. _CBC: https://projects.coin-or.org/Cbc
 .. _CGL: https://projects.coin-or.org/Cgl
 .. _CPLEX: https://www.ibm.com/docs/en/icos
-.. _NAG: https://www.nag.co.uk/nag-library-python/
+.. _NAG: https://nag.com/nag-library/
 .. _OSQP: https://osqp.org/
 .. _PDLP: https://developers.google.com/optimization
 .. _SCIP: https://scip.zib.de/

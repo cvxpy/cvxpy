@@ -999,11 +999,12 @@ class Problem(u.Canonical):
 
         if verbose:
             n_variables = sum(np.prod(v.shape) for v in self.variables())
+            n_constraints = sum(np.prod(c.shape) for c in self.constraints)
             n_parameters = sum(np.prod(p.shape) for p in self.parameters())
             s.LOGGER.info(
                     'Your problem has %d variables, '
                     '%d constraints, and ' '%d parameters.',
-                    n_variables, len(self.constraints), n_parameters)
+                    n_variables, n_constraints, n_parameters)
             curvatures = []
             if self.is_dcp():
                 curvatures.append('DCP')
@@ -1087,7 +1088,7 @@ class Problem(u.Canonical):
         if verbose:
             print(_FOOTER)
             s.LOGGER.info('Problem status: %s', self.status)
-            val = self.value if self.value is not None else np.NaN
+            val = self.value if self.value is not None else np.nan
             s.LOGGER.info('Optimal value: %.3e', val)
             s.LOGGER.info('Compilation took %.3e seconds', self._compilation_time)
             s.LOGGER.info(
