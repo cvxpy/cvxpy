@@ -41,16 +41,25 @@ Please contact a project maintainer if you're interested in working on a project
 Small scope projects
  - `State required cone types for atoms <https://github.com/cvxpy/cvxpy/issues/574>`_.
  - `Specify a list of solvers sorted by priority rather than just a single solver <https://github.com/cvxpy/cvxpy/issues/1529>`_.
+ - `Implement cp.vdot as replacement for cp.scalar_product <https://github.com/cvxpy/cvxpy/issues/2336>`_
+ - Introduce sparse variables in constraint formulation.
+ - Propagate variable bounds to solvers.
+ - Add QDLDL as another option for sparse Cholesky.
 
 Medium scope projects
  - `Support integer variables in geometric programming <https://github.com/cvxpy/cvxpy/issues/1590>`_.
  - `Post-solver feasibility checks <https://github.com/cvxpy/cvxpy/issues/434>`_.
  - `Developer documentation for key reduction files <https://github.com/cvxpy/cvxpy/issues/582>`_.
+ - Allow multiple types and attributes for variables and parameters.
+ - cp.trace(A @ B) transforms into cp.vdot(A, B).
+ - Sparse variables reduce problem dimension.
+ - IPOPT interface to introduce support for non-linear non-convex problems.
 
 Large scope projects
  - Expand use of power cone constraints [`1222 <https://github.com/cvxpy/cvxpy/issues/1222>`_, `1223 <https://github.com/cvxpy/cvxpy/issues/1223>`_].
  - Problem serialization [`532 <https://github.com/cvxpy/cvxpy/issues/532>`_, `1333 <https://github.com/cvxpy/cvxpy/issues/1333>`_, `1438 <https://github.com/cvxpy/cvxpy/issues/1438>`_]
  - Pretty print method for summarizing a solution and its dual variables.
+ - QCQP support.
  - `Support for n-dimensional expressions, variables, parameters, etc <https://github.com/cvxpy/cvxpy/issues/198>`_.
  - Full compatibility with NumPy broadcasting rules. This will be a breaking change, and can only go in CVXPY 2.0.
 
