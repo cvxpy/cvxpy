@@ -422,7 +422,7 @@ class DivExpression(BinaryOperator):
         return (lu.div_expr(arg_objs[0], arg_objs[1]), [])
 
 
-def scalar_product(x, y):
+def vdot(x, y):
     """
     Return the standard inner product (or "scalar product") of (x,y).
 
@@ -448,6 +448,13 @@ def scalar_product(x, y):
     real scalars), then this function returns an Expression representing
     ``a * c + b * d``.
     """
+    x = deep_flatten(x)
+    y = deep_flatten(y)
+    prod = multiply(conj(x), y)
+    return cvxpy_sum(prod)
+
+
+def scalar_product(x, y):
     x = deep_flatten(x)
     y = deep_flatten(y)
     prod = multiply(conj(x), y)
