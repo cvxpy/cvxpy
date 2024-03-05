@@ -34,9 +34,12 @@ Wishlist
 --------
 
 Here is a non-exhaustive list of opportunities to make prominent contributions to CVXPY.
+
 We've roughly categorized the opportunities as whether they amount to small-, medium-, or large-scope projects.
-New contributors are encouraged to focus on the projects with small or medium scope.
-Please contact a project maintainer if you're interested in working on a project with large scope.
+New contributors are encouraged to focus on small or medium projects.
+
+If you're interested in working on a large project, join the `Discord <https://discord.gg/4urRQeGBCr>`_ and let us know!
+We'll be happy to provide guidance and advice.
 
 Small scope projects
  - `State required cone types for atoms <https://github.com/cvxpy/cvxpy/issues/574>`_.
