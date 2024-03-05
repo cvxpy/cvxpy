@@ -54,11 +54,11 @@ Medium scope projects
  - `Support integer variables in geometric programming <https://github.com/cvxpy/cvxpy/issues/1590>`_.
  - `Post-solver feasibility checks <https://github.com/cvxpy/cvxpy/issues/434>`_.
  - `Developer documentation for key reduction files <https://github.com/cvxpy/cvxpy/issues/582>`_.
- - Allow multiple types and attributes for variables and parameters.
+ - `Allow multiple types and attributes for variables and parameters <https://github.com/cvxpy/cvxpy/issues/566>`_.
  - cp.trace(A @ B) transforms into cp.vdot(A, B).
  - Allow sparse variables to reduce problem dimension.
- - IPOPT interface to introduce support for non-linear non-convex problems.
- - Vectorize the quad_over_lin atom.
+ - `IPOPT interface to introduce support for non-linear non-convex problems <https://github.com/cvxpy/cvxpy/issues/1594>`_.
+ - `Vectorize the quad_over_lin atom <https://github.com/cvxpy/cvxpy/issues/1197>`_.
 
 Large scope projects
  - Expand use of power cone constraints [`1222 <https://github.com/cvxpy/cvxpy/issues/1222>`_, `1223 <https://github.com/cvxpy/cvxpy/issues/1223>`_].
