@@ -455,10 +455,10 @@ def vdot(x, y):
 
 
 def scalar_product(x, y):
-    x = deep_flatten(x)
-    y = deep_flatten(y)
-    prod = multiply(conj(x), y)
-    return cvxpy_sum(prod)
+    """
+    Alias for vdot.
+    """
+    return vdot(x, y)
 
 
 def outer(x, y):
