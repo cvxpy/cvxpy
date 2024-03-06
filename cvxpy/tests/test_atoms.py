@@ -1355,8 +1355,12 @@ class TestAtoms(BaseTest):
         p = np.ones((4,))
         v = cp.Variable((4,))
 
-        p = np.ones((4,))
         obj = cp.Minimize(cp.vdot(v, p))
+        prob = cp.Problem(obj, [v >= 1])
+        prob.solve(solver=cp.SCS)
+        assert np.allclose(v.value, p)
+
+        obj = cp.Minimize(cp.scalar_product(v, p))
         prob = cp.Problem(obj, [v >= 1])
         prob.solve(solver=cp.SCS)
         assert np.allclose(v.value, p)
@@ -1367,6 +1371,11 @@ class TestAtoms(BaseTest):
 
         p.value = np.ones((4,))
         obj = cp.Minimize(cp.vdot(v, p))
+        prob = cp.Problem(obj, [v >= 1])
+        prob.solve(solver=cp.SCS)
+        assert np.allclose(v.value, p.value)
+
+        obj = cp.Minimize(cp.scalar_product(v, p))
         prob = cp.Problem(obj, [v >= 1])
         prob.solve(solver=cp.SCS)
         assert np.allclose(v.value, p.value)

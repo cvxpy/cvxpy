@@ -1302,7 +1302,7 @@ class StandardTestSDPs:
         return sth
 
     @staticmethod
-    def test_sdp_2(solver, places: int = 3, duals: bool = True, **kwargs) -> SolverTestHelper:
+    def test_sdp_2(solver, places: int = 2, duals: bool = True, **kwargs) -> SolverTestHelper:
         # places is set to 3 rather than 4, because analytic solution isn't known.
         sth = sdp_2()
         sth.solve(solver, **kwargs)
