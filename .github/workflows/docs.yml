@@ -42,11 +42,6 @@ jobs:
           folder: doc/build/html # The folder the action should deploy.
           target-folder: ${{ env.VERSION_PATH }}
 
-      - name: Create version json
-        run: |
-          python continuous_integration/doc_write_versions.py
-          mv versions.json doc/build/html
-
       - name: Deploy to root if latest version
         if: ${{env.DEPLOY_LATEST == 'True'}}
         uses: JamesIves/github-pages-deploy-action@v4.2.2
