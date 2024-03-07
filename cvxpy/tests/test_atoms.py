@@ -1270,18 +1270,15 @@ class TestAtoms(BaseTest):
         """Test that norm1 and normInf match definition for matrices.
         """
         A = np.array([[1, 2], [3, 4]])
-        print(A)
         X = Variable((2, 2))
         obj = Minimize(cp.norm(X, 1))
         prob = cp.Problem(obj, [X == A])
         result = prob.solve(solver=cp.SCS)
-        print(result)
         self.assertAlmostEqual(result, cp.norm(A, 1).value, places=3)
 
         obj = Minimize(cp.norm(X, np.inf))
         prob = cp.Problem(obj, [X == A])
         result = prob.solve(solver=cp.SCS)
-        print(result)
         self.assertAlmostEqual(result, cp.norm(A, np.inf).value, places=3)
 
     def test_indicator(self) -> None:
