@@ -42,10 +42,6 @@ backend-path = ["."]
 name = "cvxpy"
 description = "A domain-specific language for modeling convex optimization problems in Python."
 dependencies = [
-    "osqp >= 0.6.2",
-    "ecos >= 2",
-    "clarabel >= 0.5.0",
-    "scs >= 3.2.4.post1",
     "numpy >= 1.15",
     "scipy >= 1.1.0",
 ]
