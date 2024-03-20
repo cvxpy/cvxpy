@@ -39,7 +39,7 @@ build-backend = "setup.build_meta"  # just re-exports setuptools.build_meta defi
 backend-path = ["."]
 
 [project]
-name = "cvxpy"
+name = "cvxpy-base"
 description = "A domain-specific language for modeling convex optimization problems in Python."
 dependencies = [
     "numpy >= 1.15",
