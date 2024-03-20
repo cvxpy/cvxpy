@@ -33,6 +33,10 @@ class xexp(Elementwise):
     @Elementwise.numpy_numeric
     def numeric(self, values):
         return values[0] * np.exp(values[0])
+    
+    def torch_numeric(self, values):
+        import torch
+        return values[0] * torch.exp(values[0])
 
     def sign_from_args(self) -> Tuple[bool, bool]:
         """Returns sign (is positive, is negative) of the expression.

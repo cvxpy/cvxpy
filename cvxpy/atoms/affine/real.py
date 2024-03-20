@@ -31,6 +31,10 @@ class real(AffAtom):
         """
         # Convert values to 1D.
         return np.real(values[0])
+    
+    def torch_numeric(self, values):
+        import torch
+        return torch.real(values[0])
 
     def shape_from_args(self) -> Tuple[int, ...]:
         """Returns the shape of the expression.

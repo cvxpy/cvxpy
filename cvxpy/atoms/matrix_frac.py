@@ -44,6 +44,16 @@ class MatrixFrac(Atom):
         else:
             product = X.T.dot(LA.inv(P)).dot(X)
         return product.trace() if len(product.shape) == 2 else product
+    
+    def torch_numeric(self, values):
+        import torch
+        X = values[0]
+        P = values[1]
+        if self.args[0].is_complex():
+            product = (torch.conj(X)).T @ (torch.linalg.inv(P)) @ X
+        else:
+            product = (X.T) @ (torch.linalg.inv(P)) @ X
+        return product.trace() if len(product.shape) == 2 else product
 
     def _domain(self) -> List[Constraint]:
         """Returns constraints describing the domain of the node.

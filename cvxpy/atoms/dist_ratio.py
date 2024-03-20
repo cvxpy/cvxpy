@@ -39,6 +39,11 @@ class dist_ratio(Atom):
         """
         return np.linalg.norm(
             values[0] - self.a) / np.linalg.norm(values[0] - self.b)
+    
+    def torch_numeric(self, values):
+        import torch
+        return torch.linalg.norm(
+            values[0] - self.a) / torch.linalg.norm(values[0] - self.b)
 
     def shape_from_args(self) -> Tuple[int, ...]:
         """Returns the (row, col) shape of the expression.

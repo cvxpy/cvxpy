@@ -18,6 +18,7 @@ import numbers
 
 import numpy as np
 import scipy.sparse as sp
+import torch
 
 from cvxpy.interface import numpy_interface as np_intf
 
@@ -25,6 +26,7 @@ from cvxpy.interface import numpy_interface as np_intf
 INTERFACES = {np.ndarray: np_intf.NDArrayInterface(),
               np.matrix: np_intf.MatrixInterface(),
               sp.csc_matrix: np_intf.SparseMatrixInterface(),
+              torch.Tensor: np_intf.TensorInterface()
               }
 # Default Numpy interface.
 DEFAULT_NP_INTF = INTERFACES[np.ndarray]

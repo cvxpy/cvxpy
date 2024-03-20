@@ -46,6 +46,10 @@ class max(AxisAtom):
         """Returns the largest entry in x.
         """
         return values[0].max(axis=self.axis, keepdims=self.keepdims)
+    
+    def torch_numeric(self, values):
+        value = values[0]
+        return value.max()
 
     def _grad(self, values):
         """Gives the (sub/super)gradient of the atom w.r.t. each argument.

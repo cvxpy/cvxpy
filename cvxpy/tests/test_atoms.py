@@ -1411,7 +1411,6 @@ class TestAtoms(BaseTest):
         # allow 2D inputs once row-major flattening is the default
         assert np.allclose(cp.vec(np.array([[1, 2], [3, 4]])).value, np.array([1, 3, 2, 4]))
 
-
     def test_conj(self) -> None:
         """Test conj.
         """
@@ -1665,7 +1664,6 @@ class TestAtoms(BaseTest):
         # The optimized result should be smaller than the naive result,
         # where X of the naive result is I.
         self.assertTrue(prob.value < naiveRes)
-
 
 class TestDotsort(BaseTest):
     """ Unit tests for the dotsort atom. """

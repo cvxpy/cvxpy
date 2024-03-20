@@ -63,6 +63,17 @@ class upper_tri(AffAtom):
                     value[count] = values[0][i, j]
                     count += 1
         return value
+    
+    def torch_numeric(self, values):
+        import torch
+        value = torch.zeros(self.shape[0])
+        count = 0
+        for i in range(values[0].shape[0]):
+            for j in range(values[0].shape[1]):
+                if i < j:
+                    value[count] = values[0][i, j]
+                    count += 1
+        return value
 
     def validate_arguments(self) -> None:
         """Checks that the argument is a square matrix.

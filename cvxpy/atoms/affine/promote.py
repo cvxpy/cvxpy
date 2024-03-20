@@ -69,6 +69,10 @@ class Promote(AffAtom):
         """Promotes the value.
         """
         return np.ones(self.promoted_shape) * values[0]
+    
+    def torch_numeric(self, values):
+        import torch
+        return torch.ones(self.promoted_shape) * values[0]
 
     def is_symmetric(self) -> bool:
         """Is the expression symmetric?

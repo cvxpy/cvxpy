@@ -49,6 +49,10 @@ class trace(AffAtom):
         """Sums the diagonal entries.
         """
         return np.trace(values[0])
+    
+    def torch_numeric(self, values):
+        import torch
+        return torch.trace(values[0])
 
     def validate_arguments(self) -> None:
         """Checks that the argument is a square matrix.

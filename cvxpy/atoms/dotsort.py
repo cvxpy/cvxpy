@@ -62,6 +62,11 @@ class dotsort(Atom):
         """
         x, w_padded = self._get_args_from_values(values)
         return np.sort(x) @ np.sort(w_padded)
+    
+    def torch_numeric(self, values):
+        import torch
+        x, w_padded = self._get_args_from_values(values, mod=torch)
+        return torch.sort(x)[0] @ torch.sort(w_padded)[0]
 
     def _grad(self, values):
         """Gives the (sub/super)gradient of the atom w.r.t. each argument.
@@ -134,11 +139,11 @@ class dotsort(Atom):
         return None
 
     @staticmethod
-    def _get_args_from_values(values: List[np.ndarray]) \
+    def _get_args_from_values(values: List[np.ndarray], mod=np) \
             -> Tuple[np.ndarray, np.ndarray]:
         x = values[0].flatten()
         w = values[1].flatten()
 
-        w_padded = np.zeros_like(x)  # pad in case size(W) < size(X)
+        w_padded = mod.zeros_like(x)  # pad in case size(W) < size(X)
         w_padded[:len(w)] = w
         return x, w_padded
