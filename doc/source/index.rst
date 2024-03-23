@@ -123,14 +123,10 @@ considered to be part of the public API.
    install/index
 
 .. toctree::
+    :maxdepth: 3
     :hidden:
 
     User Guide <tutorial/index>
-
-.. toctree::
-   :hidden:
-
-   API Documentation <api_reference/cvxpy>
 
 .. toctree::
    :hidden:
@@ -140,12 +136,7 @@ considered to be part of the public API.
 .. toctree::
    :hidden:
 
-   contributing/index
-
-.. toctree::
-   :hidden:
-
-   Changelog <updates/index>
+   API Documentation <api_reference/cvxpy>
 
 .. toctree::
    :maxdepth: 1
@@ -156,5 +147,29 @@ considered to be part of the public API.
 .. toctree::
    :hidden:
 
-   resources/index
+   citing/index
 
+.. toctree::
+   :hidden:
+
+   contributing/index
+
+.. toctree::
+   :hidden:
+
+   related_projects/index
+
+.. toctree::
+   :hidden:
+
+   updates/index
+
+.. toctree::
+   :hidden:
+
+   short_course/index
+
+.. toctree::
+   :hidden:
+
+   license/index
