@@ -43,7 +43,7 @@ from cvxpy.reductions.reduction import Reduction
 from cvxpy.reductions.solvers import defines as slv_def
 from cvxpy.reductions.solvers.constant_solver import ConstantSolver
 from cvxpy.reductions.solvers.solver import Solver
-from cvxpy.settings import ECOS, PARAM_THRESHOLD
+from cvxpy.settings import CLARABEL, ECOS, PARAM_THRESHOLD, SCS
 from cvxpy.utilities.debug_tools import build_non_disciplined_error_msg
 
 DPP_ERROR_MSG = (
@@ -53,6 +53,16 @@ DPP_ERROR_MSG = (
     "documentation on Discplined Parametrized Programming, at\n"
     "\thttps://www.cvxpy.org/tutorial/advanced/index.html#"
     "disciplined-parametrized-programming"
+)
+
+ECOS_DEP_DEPRECATION_MSG = (
+    """
+    You specified your problem should be solved by ECOS. Starting in
+    CXVPY 1.6.0, ECOS will no longer be installed by default with CVXPY.
+    Please either add an explicit dependency on ECOS or switch to our new
+    default solver, Clarabel by either not specifying a solver argument
+    or specifying solver``=cp.CLARABEL``.
+    """
 )
 
 ECOS_DEPRECATION_MSG = (
@@ -307,6 +317,14 @@ def construct_solving_chain(problem, candidates,
     var_domains = sum([var.domain for var in problem.variables()], start = [])
     has_constr = len(cones) > 0 or len(problem.constraints) > 0 or len(var_domains) > 0
 
+    is_sdp = PSD in cones
+    if is_sdp and slv_def.DISREGARD_CLARABEL_SDP_SUPPORT_FOR_DEFAULT_RESOLUTION:
+        conic_solvers = candidates['conic_solvers']
+        clarabel = conic_solvers.index(CLARABEL)
+        scs = conic_solvers.index(SCS)
+        conic_solvers[clarabel], conic_solvers[scs] = \
+                conic_solvers[scs], conic_solvers[clarabel]
+
     for solver in candidates['conic_solvers']:
         solver_instance = slv_def.SOLVER_MAP_CONIC[solver]
         # Cones supported for MI problems may differ from non MI.
@@ -317,6 +335,7 @@ def construct_solving_chain(problem, candidates,
         unsupported_constraints = [
             cone for cone in cones if cone not in supported_constraints
         ]
+
         if has_constr or not solver_instance.REQUIRES_CONSTR:
             if ex_cos:
                 reductions.append(Exotic2Common())
@@ -335,9 +354,9 @@ def construct_solving_chain(problem, candidates,
                 CvxAttr2Constr(reduce_bounds=not solver_instance.BOUNDED_VARIABLES),
             ]
             if all(c in supported_constraints for c in cones):
-                # Raise a warning if ECOS is used without being specified
-                # by the user.
-                if solver == ECOS and specified_solver is None:
+                if solver == ECOS and specified_solver == ECOS:
+                    warnings.warn(ECOS_DEP_DEPRECATION_MSG, FutureWarning)
+                elif solver == ECOS and specified_solver is None:
                     warnings.warn(ECOS_DEPRECATION_MSG, FutureWarning)
                 # Return the reduction chain.
                 reductions += [
