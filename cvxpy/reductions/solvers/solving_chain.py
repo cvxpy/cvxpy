@@ -43,7 +43,7 @@ from cvxpy.reductions.reduction import Reduction
 from cvxpy.reductions.solvers import defines as slv_def
 from cvxpy.reductions.solvers.constant_solver import ConstantSolver
 from cvxpy.reductions.solvers.solver import Solver
-from cvxpy.settings import CLARABEL, ECOS, PARAM_THRESHOLD, SCS
+from cvxpy.settings import CLARABEL, ECOS, PARAM_THRESHOLD
 from cvxpy.utilities.debug_tools import build_non_disciplined_error_msg
 
 DPP_ERROR_MSG = (
@@ -61,7 +61,7 @@ ECOS_DEP_DEPRECATION_MSG = (
     CXVPY 1.6.0, ECOS will no longer be installed by default with CVXPY.
     Please either add an explicit dependency on ECOS or switch to our new
     default solver, Clarabel by either not specifying a solver argument
-    or specifying solver``=cp.CLARABEL``.
+    or specifying ``solver=cp.CLARABEL``.
     """
 )
 
@@ -317,13 +317,10 @@ def construct_solving_chain(problem, candidates,
     var_domains = sum([var.domain for var in problem.variables()], start = [])
     has_constr = len(cones) > 0 or len(problem.constraints) > 0 or len(var_domains) > 0
 
-    is_sdp = PSD in cones
-    if is_sdp and slv_def.DISREGARD_CLARABEL_SDP_SUPPORT_FOR_DEFAULT_RESOLUTION:
-        conic_solvers = candidates['conic_solvers']
-        clarabel = conic_solvers.index(CLARABEL)
-        scs = conic_solvers.index(SCS)
-        conic_solvers[clarabel], conic_solvers[scs] = \
-                conic_solvers[scs], conic_solvers[clarabel]
+    if PSD in cones \
+            and slv_def.DISREGARD_CLARABEL_SDP_SUPPORT_FOR_DEFAULT_RESOLUTION \
+            and specified_solver is None:
+        candidates['conic_solvers'] = [s for s in candidates['conic_solvers'] if s != CLARABEL]
 
     for solver in candidates['conic_solvers']:
         solver_instance = slv_def.SOLVER_MAP_CONIC[solver]
