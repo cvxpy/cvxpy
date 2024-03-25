@@ -60,7 +60,7 @@ ECOS_DEP_DEPRECATION_MSG = (
     You specified your problem should be solved by ECOS. Starting in
     CXVPY 1.6.0, ECOS will no longer be installed by default with CVXPY.
     Please either add an explicit dependency on ECOS or switch to our new
-    default solver, Clarabel by either not specifying a solver argument
+    default solver, Clarabel, by either not specifying a solver argument
     or specifying ``solver=cp.CLARABEL``.
     """
 )
