@@ -33,7 +33,7 @@ impl<'a> View<'a> {
         }
     }
 
-    pub fn get_tensor_representation(&self, id: i64, row_offset: i64) -> TensorRepresentation {
+    pub fn get_tensor_representation(&self, row_offset: i64) -> TensorRepresentation {
         let mut tensor_representations = Vec::new();
 
         for (&variable_id, variable_tensor) in self.tensor.iter() {
@@ -41,7 +41,7 @@ impl<'a> View<'a> {
                 let p = self.context.param_to_size[&parameter_id];
                 let m = parameter_matrix.nrows() as i64 / p;
 
-                let (mut new_rows, mut new_cols, mut data, mut new_param_offset): (Vec<u64>, Vec<u64>, Vec<f64>, Vec<u64>) = to_triplets_iter(parameter_matrix)
+                let (new_rows, new_cols, data, new_param_offset): (Vec<u64>, Vec<u64>, Vec<f64>, Vec<u64>) = to_triplets_iter(parameter_matrix)
                 .map(|(i, j, d)| {
                     let row_index = (i as i64 % m + row_offset) as u64;
                     let col_index = (j as i64 + self.context.id_to_col[&variable_id]) as u64;
