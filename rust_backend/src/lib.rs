@@ -14,12 +14,13 @@ mod linop;
 mod view;
 mod tests;
 mod faer_ext;
+mod tensor_representation;
 
 type SparseMatrix = faer::sparse::SparseColMat<u64, f64>;
 
 type IdxMap = std::collections::HashMap<i64, i64>;
 
-fn get_variable_tensor(shape: CvxpyShape, id: i64) -> Tensor {
+fn get_variable_tensor(shape: &CvxpyShape, id: i64) -> Tensor {
     assert!(id > CONST_ID);
     let n = shape.numel();
     return [
@@ -30,7 +31,8 @@ fn get_variable_tensor(shape: CvxpyShape, id: i64) -> Tensor {
 
 pub(crate) fn process_constraints<'a>(linop: &Linop, view: View<'a>) -> View<'a> {
     match linop.kind {
-        LinopKind::Variable(id) => View::from_tensor(get_variable_tensor(linop.shape, id), view.context),
+        LinopKind::Variable(id) => View{
+            variables: [id].into(), tensor: get_variable_tensor(&linop.shape, id), is_parameter_free: true, context: view.context},
         _ => panic!(),
     }
 }

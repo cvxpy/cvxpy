@@ -3,6 +3,7 @@ use crate::view::ViewContext;
 use crate::linop::CvxpyShape;
 use crate::linop::LinopKind;
 use crate::linop::Linop;
+use crate::process_constraints;
 
 #[test]
 fn neg() {
@@ -19,5 +20,12 @@ fn neg() {
     };
     let empty_view = View::new(&context);
 
+    let view = process_constraints(&linop, empty_view);
+
+    
+
+    // view_A = view.get_tensor_representation(0)
+    // view_A = sp.coo_matrix((view_A.data, (view_A.row, view_A.col)), shape=(4, 4)).toarray()
+    // assert np.all(view_A == np.eye(4))
 
 }

@@ -1,6 +1,7 @@
 use pyo3::prelude::*;
-use crate::IdxMap;
+use crate::{faer_ext::{self, to_triplets_iter}, IdxMap};
 use std::collections::HashMap;
+use crate::tensor_representation::TensorRepresentation;
 
 #[derive(Default)]
 pub(crate) struct ViewContext {
@@ -24,14 +25,48 @@ pub(crate) struct View<'a> {
 
 impl<'a> View<'a> {
     pub fn new(context: &'a ViewContext) -> Self {
-        return View {
+        View {
             variables: Vec::new(),
             tensor: Tensor::new(),
-            is_parameter_free: false,
+            is_parameter_free: true,
             context,
         }
     }
 
-    pub fn from_tensor(t: Tensor) -> Self {
+    pub fn get_tensor_representation(&self, id: i64, row_offset: i64) -> TensorRepresentation {
+        let mut tensor_representations = Vec::new();
+
+        for (&variable_id, variable_tensor) in self.tensor.iter() {
+            for (&parameter_id, parameter_matrix) in variable_tensor.iter() {
+                let p = self.context.param_to_size[&parameter_id];
+                let m = parameter_matrix.nrows() as i64 / p;
+
+                let (mut new_rows, mut new_cols, mut data, mut new_param_offset): (Vec<u64>, Vec<u64>, Vec<f64>, Vec<u64>) = to_triplets_iter(parameter_matrix)
+                .map(|(i, j, d)| {
+                    let row_index = (i as i64 % m + row_offset) as u64;
+                    let col_index = (j as i64 + self.context.id_to_col[&variable_id]) as u64;
+                    let param_offset = (i as i64 / m + self.context.param_to_col[&parameter_id]) as u64;
+                    (row_index, col_index, d, param_offset)
+
+                })
+                .fold((Vec::new(), Vec::new(), Vec::new(), Vec::new()), |(mut rows, mut cols, mut data, mut param_offset), (row, col, d, param)| {
+                    rows.push(row);
+                    cols.push(col);
+                    data.push(d);
+                    param_offset.push(param);
+                    (rows, cols, data, param_offset)
+                });
+
+                // Add to tensor_representations
+                tensor_representations.push(TensorRepresentation {
+                    data: data,
+                    row: new_rows,
+                    col: new_cols,
+                    parameter_offset: new_param_offset,
+                });
+            }
+        }
+
+        TensorRepresentation::combine(tensor_representations)
     }
-}
+}   
