@@ -44,7 +44,6 @@ Let's say we're releasing 1.2.0.
    The state of this branch is effectively a pre-release of
    CVXPY 1.3.0.
 5. Update `docs/source/index.rst` to say "Welcome to CVXPY 1.3"
-6. Extend the ``version_info`` field in ``doc/source/conf.py``.
 
 ### Incrementing the MICRO version number (a.k.a., releasing a patch)
 
