@@ -1,12 +1,13 @@
+use pyo3::intern;
 use pyo3::prelude::*;
-
+use std::borrow::Borrow;
 
 // TinyVec for n-dimensional?
 pub(crate) enum CvxpyShape {
     D0,
     D1(u64),
     D2(u64, u64),
-} 
+}
 
 impl CvxpyShape {
     pub fn numel(&self) -> u64 {
@@ -30,22 +31,12 @@ pub(crate) struct Linop {
 }
 
 type NdArray = ();
-type SparseArray = ();
 
 pub(crate) enum LinopKind {
     Variable(i64),
-    Mul {
-        lhs: Box<Linop>,
-        rhs: Box<Linop>,
-    },
-    Rmul {
-        lhs: Box<Linop>,
-        rhs: Box<Linop>,
-    },
-    MulElem {
-        lhs: Box<Linop>,
-        rhs: Box<Linop>,
-    },
+    Mul { lhs: Box<Linop>, rhs: Box<Linop> },
+    Rmul { lhs: Box<Linop>, rhs: Box<Linop> },
+    MulElem { lhs: Box<Linop>, rhs: Box<Linop> },
     Sum,
     Neg,
     Transpose,
@@ -56,8 +47,16 @@ pub(crate) enum LinopKind {
     Param(i64),
 }
 
-impl<'s> FromPyObject<'s> for Linop {
-        fn extract(ob: &'s PyAny) -> PyResult<Self> {
-            todo!();
-        }
+impl<'py> FromPyObject<'py> for CvxpyShape {
+    fn extract_bound(ob: &Bound<'py, PyAny>) -> PyResult<Self> {
+        todo!();
+    }
+}
+
+impl<'py> FromPyObject<'py> for Linop {
+    fn extract_bound(ob: &Bound<'py, PyAny>) -> PyResult<Self> {
+        let pylinop = ob.borrow();
+        let shape: CvxpyShape = pylinop.getattr(intern!(ob.py(), "shape"))?.extract()?;
+        todo!();
+    }
 }

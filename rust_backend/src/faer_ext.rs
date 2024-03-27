@@ -34,9 +34,7 @@ pub fn eye(n: u64) -> SparseColMat<u64, f64> {
     )
 }
 
-pub fn to_triplets_iter<'a, I, E>(
-    A: &'a SparseColMat<I, E>,
-) -> impl Iterator<Item = (I, I, E)> + 'a
+pub fn to_triplets_iter<'a, I, E>(A: &'a SparseColMat<I, E>) -> impl Iterator<Item = (I, I, E)> + 'a
 where
     I: Index + TryFrom<usize> + Copy,
     E: SimpleEntity + Copy,
@@ -46,6 +44,6 @@ where
         let col_index = j.try_into().unwrap();
         A.row_indices_of_col(j)
             .zip(A.values_of_col(j))
-            .map(move |(i, &v)| (i.try_into().unwrap(), col_index, v)) 
+            .map(move |(i, &v)| (i.try_into().unwrap(), col_index, v))
     })
 }

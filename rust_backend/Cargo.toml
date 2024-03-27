@@ -9,5 +9,5 @@ name = "rust_backend"
 crate-type = ["cdylib"]
 
 [dependencies]
-pyo3 = "0.21.0-beta.0"
+pyo3 = "0.21.0"
 faer = "0.18"
