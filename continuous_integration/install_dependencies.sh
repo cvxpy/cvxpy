@@ -50,11 +50,7 @@ if [[ "$PYTHON_VERSION" != "3.8" ]]; then
   fi
 fi
 
-if [[ "$RUNNER_OS" != "macos-11" ]]; then
-  if [[ "$PYTHON_VERSION" != "3.12" ]]; then
-    python -m pip install xpress
-  fi
-elif [[ "$PYTHON_VERSION" == "3.11" ]]; then
+if [[ "$PYTHON_VERSION" == "3.11" ]]; then
   python -m pip install xpress
 fi
 
