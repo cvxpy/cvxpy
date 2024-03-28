@@ -27,7 +27,7 @@ elif [[ "$PYTHON_VERSION" == "3.11" ]]; then
 elif [[ "$PYTHON_VERSION" == "3.12" ]]; then
     # The earliest version of numpy that works is 1.27.0
     # Given numpy 1.27.0, the earliest version of scipy we can use is 1.9.3.
-    conda install scipy=1.11.3 numpy=1.27.0 mkl pip pytest openblas ecos scs cvxopt proxsuite daqp "setuptools>65.5.1"
+    conda install scipy=1.11.3 numpy mkl pip pytest openblas ecos scs cvxopt proxsuite daqp "setuptools>65.5.1"
 fi
 
 if [[ "$PYTHON_VERSION" == "3.12" ]]; then
