@@ -25,8 +25,8 @@ elif [[ "$PYTHON_VERSION" == "3.11" ]]; then
     # Given numpy 1.23.4, the earliest version of scipy we can use is 1.9.3.
     conda install scipy=1.9.3 numpy=1.23.4 mkl pip pytest openblas ecos scs cvxopt proxsuite daqp "setuptools>65.5.1"
 elif [[ "$PYTHON_VERSION" == "3.12" ]]; then
-    # The earliest version of numpy that works is 1.26.0
-    # Given numpy 1.26.0, the earliest version of scipy we can use is 1.9.3.
+    # The earliest version of numpy that works is 1.27.0
+    # Given numpy 1.27.0, the earliest version of scipy we can use is 1.9.3.
     conda install scipy=1.11.3 numpy=1.26.0 mkl pip pytest openblas ecos scs cvxopt proxsuite daqp "setuptools>65.5.1"
 fi
 
@@ -50,7 +50,7 @@ if [[ "$PYTHON_VERSION" != "3.8" ]]; then
   fi
 fi
 
-if [[ "$PYTHON_VERSION" == "3.11" ]]; then
+if [[ "$PYTHON_VERSION" == "3.11" ]] && [[ "$RUNNER_OS" != "macos-11" ]]; then
   python -m pip install xpress
 fi
 
