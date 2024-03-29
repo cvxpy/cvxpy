@@ -50,9 +50,8 @@ DPP_ERROR_MSG = (
     "You are solving a parameterized problem that is not DPP. "
     "Because the problem is not DPP, subsequent solves will not be "
     "faster than the first one. For more information, see the "
-    "documentation on Discplined Parametrized Programming, at\n"
-    "\thttps://www.cvxpy.org/tutorial/advanced/index.html#"
-    "disciplined-parametrized-programming"
+    "documentation on Disciplined Parametrized Programming, at "
+    "https://www.cvxpy.org/tutorial/dpp/index.html"
 )
 
 ECOS_DEP_DEPRECATION_MSG = (
