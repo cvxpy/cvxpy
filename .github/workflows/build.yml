@@ -29,7 +29,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ ubuntu-20.04, macos-11, windows-2022 ]
-        python-version: [ 3.9, "3.10", "3.11"]
+        python-version: [ 3.9, "3.10", "3.11", "3.12" ]
         include:
           - os: ubuntu-20.04
             python-version: 3.8
@@ -85,7 +85,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ ubuntu-20.04, macos-11, windows-2022 ]
-        python-version: [ 3.9, "3.10", "3.11" ]
+        python-version: [ 3.9, "3.10", "3.11", "3.12" ]
         include:
           - os: ubuntu-20.04
             python-version: 3.8
@@ -200,7 +200,6 @@ jobs:
         shell: bash
         run: |
           # Mac has a different syntax for sed -i, this works across oses
-          sed -i.bak -e "s/name='cvxpy',/name='cvxpy-base',/g" setup.py
           sed -i.bak '/clarabel >= /d' setup.py
           sed -i.bak '/osqp >= /d' setup.py
           sed -i.bak '/ecos >= /d' setup.py
