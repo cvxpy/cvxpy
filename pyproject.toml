@@ -25,7 +25,7 @@ testpaths = [
 
 [build-system]
 requires = [
-    "numpy >= 2.0.0b1",
+    "numpy >= 2.0.0rc1",
     "scipy >= 1.13.0rc1",
     # 68.1.0 Promoted pyproject.toml's [tool.setuptools] out of beta.
     "setuptools >= 68.1.0",
