@@ -25,12 +25,12 @@ testpaths = [
 
 [build-system]
 requires = [
-    "oldest-supported-numpy",
-    "scipy >= 1.1.0",
+    "numpy >= 2.0.0b1",
+    "scipy >= 1.13.0rc1",
     # 68.1.0 Promoted pyproject.toml's [tool.setuptools] out of beta.
-    "setuptools>=68.1.0",
+    "setuptools >= 68.1.0",
     "wheel",
-    "pybind11"
+    "pybind11 >= 2.12.0"
 ]
 
 # We need access to the 'setup' package at build time.
