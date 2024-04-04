@@ -2,7 +2,7 @@ use std::cmp::PartialEq;
 
 /// Sparse representation of a 3D Tensor, semantically similar to COO format,
 /// with one extra dimension. Here, 'row' is axis 0, 'col' axis 1, and 'parameter_offset' axis 2.
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub(crate) struct TensorRepresentation {
     pub(crate) data: Vec<f64>,
     pub(crate) row: Vec<u64>,

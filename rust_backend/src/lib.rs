@@ -35,8 +35,15 @@ pub(crate) fn process_constraints<'a>(linop: &Linop, view: View<'a>) -> View<'a>
             is_parameter_free: true,
             context: view.context,
         },
+        LinopKind::Neg => neg(linop, view),
         _ => panic!(),
     }
+}
+
+pub(crate) fn neg<'a>(_linop: &Linop, mut view: View<'a>) -> View<'a> {
+    // Second argument is not used for neg
+    view.apply_all(|x, _p| -x);
+    return view;
 }
 
 #[pyfunction]

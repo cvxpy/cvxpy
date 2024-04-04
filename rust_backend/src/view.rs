@@ -80,4 +80,23 @@ impl<'a> View<'a> {
 
         TensorRepresentation::combine(tensor_representations)
     }
+
+    pub fn apply_all<F>(&mut self, mut func: F)
+    where
+        F: FnMut(&crate::SparseMatrix, i64) -> crate::SparseMatrix,
+    {
+        self.tensor = self
+            .tensor
+            .iter()
+            .map(|(var_id, parameter_repr)| {
+                (
+                    *var_id,
+                    parameter_repr
+                        .iter()
+                        .map(|(k, v)| (*k, func(v, self.context.param_to_size[k])))
+                        .collect(),
+                )
+            })
+            .collect();
+    }
 }
