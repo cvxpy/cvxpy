@@ -71,7 +71,7 @@ jobs:
           source continuous_integration/test_script.sh
 
       - name: Upload coverage file
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         if: ${{env.SINGLE_ACTION_CONFIG == 'True'}}
         with:
           name: coverage
@@ -150,7 +150,7 @@ jobs:
 
       - name: Upload artifacts to github
         if: ${{github.event_name == 'push' && env.USE_OPENMP != 'True'}}
-        uses: actions/upload-artifact@v1
+        uses: actions/upload-artifact@v4
         with:
           name: wheels
           path: ./wheelhouse
@@ -247,7 +247,7 @@ jobs:
 
       - name: Upload artifacts to github
         if: ${{github.event_name == 'push'}}
-        uses: actions/upload-artifact@v1
+        uses: actions/upload-artifact@v4
         with:
           name: wheels-base
           path: ./wheelhouse
