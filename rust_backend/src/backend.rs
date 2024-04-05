@@ -22,6 +22,10 @@ pub(crate) fn process_constraints<'a>(linop: &Linop, view: View<'a>) -> View<'a>
             context: view.context,
         },
         LinopKind::Neg => neg(linop, view),
+        LinopKind::Transpose => transpose(linop, view),
+        LinopKind::Sum => view, // Sum (along axis 1) is implicit in Ax+b, so it is a NOOP.
+        LinopKind::Reshape => view, // Reshape is a NOOP.
+        LinopKind::Promote => promote(linop, view),
         _ => panic!(),
     }
 }
@@ -44,6 +48,12 @@ pub(crate) fn get_transpose_rows<'a>(shape: &CvxpyShape) -> Vec<u64> {
         .flat_map(|j| (0..m).map(move |i| i * n + j))
         .collect();
     rows
+}
+
+pub(crate) fn promote<'a>(linop: &Linop, mut view: View<'a>) -> View<'a> {
+    let rows = vec![0; linop.shape.numel() as usize];
+    view.select_rows(&rows);
+    view
 }
 
 #[cfg(test)]

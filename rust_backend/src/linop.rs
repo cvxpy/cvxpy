@@ -54,6 +54,8 @@ pub(crate) enum LinopKind {
     DenseConst(NdArray),
     SparseConst(crate::SparseMatrix),
     Param(i64),
+    Reshape,
+    Promote,
 }
 
 impl<'py> FromPyObject<'py> for CvxpyShape {
