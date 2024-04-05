@@ -48,21 +48,15 @@ where
     })
 }
 
-pub fn select_rows<'a, I, E>(A: SparseColMat<I, E>, rows: &[u64]) -> SparseColMat<I, E>
-where
-    I: Index + Copy + std::convert::From<u64> + std::convert::TryInto<usize>,
-    E: SimpleEntity + Copy + Conjugate + ComplexField,
-{
+pub fn select_rows(A: &SparseColMat<u64, f64>, rows: &[u64]) -> SparseColMat<u64, f64> {
     let csr = A.to_row_major().unwrap();
     let mut triplets = Vec::new();
 
     for &i in rows {
-        let row_index: I = i.try_into().unwrap(); // Assuming `I` can be constructed from `u64`
-        for (j, v) in csr
-            .col_indices_of_row(row_index as usize)
-            .zip(csr.values_of_row(row_index as usize))
-        {
-            triplets.push((row_index, j, *v)); // Ensure `j` and `v` types match `I` and `E`
+        for (j, &v) in csr
+            .col_indices_of_row(i as usize) 
+            .zip(csr.values_of_row(i as usize)) {
+            triplets.push((i, j as u64, v));
         }
     }
     SparseColMat::try_new_from_triplets(rows.len(), A.ncols(), &triplets).unwrap()

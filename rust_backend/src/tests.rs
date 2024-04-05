@@ -2,6 +2,7 @@ use faer::sparse::SparseColMat;
 use faer::zipped;
 
 use crate::backend::process_constraints;
+use crate::backend::transpose;
 use crate::faer_ext;
 use crate::linop::CvxpyShape;
 use crate::linop::Linop;
@@ -59,22 +60,25 @@ fn test_neg() {
     assert_eq!(view_A, -faer_ext::eye(4));
 }
 
-// fn test_transpose() {
-//     let context = ViewContext {
-//         id_to_col: [(1, 0), (2, 2)].into(),
-//         param_to_size: [(-1, 1), (3, 1)].into(),
-//         param_to_col: [(3, 0), (-1, 1)].into(),
-//         param_size_plus_one: 2,
-//         var_length: 4,
-//     };
-//     let linop = Linop {
-//         shape: CvxpyShape::D2(2, 2),
-//         kind: LinopKind::Variable(1),
-//     };
-//     let empty_view = View::new(&context);
+#[test]
+fn test_transpose() {
+    let context = ViewContext {
+        id_to_col: [(1, 0), (2, 2)].into(),
+        param_to_size: [(-1, 1), (3, 1)].into(),
+        param_to_col: [(3, 0), (-1, 1)].into(),
+        param_size_plus_one: 2,
+        var_length: 4,
+    };
+    let linop = Linop {
+        shape: CvxpyShape::D2(2, 2),
+        kind: LinopKind::Variable(1),
+    };
+    let empty_view = View::new(&context);
 
-//     let view = process_constraints(&linop, empty_view);
+    let view = process_constraints(&linop, empty_view);
 
-//     let transposed_view = transpose(&linop, view);
+    let transposed_view = transpose(&linop, view);
+    let A = transposed_view.get_tensor_representation(0);
+    println!("{:?}", A);
 
-// }
+}

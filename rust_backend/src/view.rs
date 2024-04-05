@@ -3,6 +3,7 @@ use crate::{
     faer_ext::{self, to_triplets_iter},
     IdxMap,
 };
+use faer::sparse::SparseColMat;
 use pyo3::prelude::*;
 use std::collections::HashMap;
 
@@ -99,20 +100,20 @@ impl<'a> View<'a> {
             })
             .collect();
     }
-
+    
     pub(crate) fn select_rows(&mut self, rows: &[u64]) {
-        let mut func = |x: &crate::SparseMatrix, p: i64| -> crate::SparseMatrix {
+
+        let func = |x: &SparseColMat<u64, f64>, p: i64| -> crate::SparseMatrix {
             if p == 1 {
                 faer_ext::select_rows(x, rows)
             } else {
-                let m = x.nrows() / p as usize;
+                let m = (x.nrows() / p as usize) as u64;
                 let mut new_rows = Vec::with_capacity(rows.len() * p as usize);
-                for &row in rows {
-                    for i in 0..m {
-                        new_rows.push(i % p as usize + i / p as usize * m);
+                for i in 0..p as u64{
+                    for &r in rows {
+                        new_rows.push(r + m * i);
                     }
                 }
-
                 faer_ext::select_rows(x, rows)
             }
         };

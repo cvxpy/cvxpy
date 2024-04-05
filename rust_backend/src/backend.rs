@@ -33,12 +33,12 @@ pub(crate) fn neg<'a>(_linop: &Linop, mut view: View<'a>) -> View<'a> {
 }
 
 pub(crate) fn transpose<'a>(linop: &Linop, mut view: View<'a>) -> View<'a> {
-    let rows = get_transpose_rows(linop.shape);
+    let rows = get_transpose_rows(&linop.shape);
     view.select_rows(&rows);
-    return view;
+    view
 }
 
-pub(crate) fn get_transpose_rows<'a>(shape: CvxpyShape) -> Vec<u64> {
+pub(crate) fn get_transpose_rows<'a>(shape: &CvxpyShape) -> Vec<u64> {
     let (m, n) = shape.broadcasted_shape();
     let rows: Vec<u64> = (0..n)
         .flat_map(|j| (0..m).map(move |i| i * n + j))
@@ -53,19 +53,19 @@ mod test_backend {
     #[test]
     fn test_get_transpose_rows() {
         let shape = CvxpyShape::D2(3, 2);
-        let rows = get_transpose_rows(shape);
+        let rows = get_transpose_rows(&shape);
         assert_eq!(rows, vec![0, 2, 4, 1, 3, 5]);
 
         let shape = CvxpyShape::D2(2, 3);
-        let rows = get_transpose_rows(shape);
+        let rows = get_transpose_rows(&shape);
         assert_eq!(rows, vec![0, 3, 1, 4, 2, 5]);
 
         let shape = CvxpyShape::D1(3);
-        let rows = get_transpose_rows(shape);
+        let rows = get_transpose_rows(&shape);
         assert_eq!(rows, vec![0, 1, 2]);
 
         let shape = CvxpyShape::D0;
-        let rows = get_transpose_rows(shape);
+        let rows = get_transpose_rows(&shape);
         assert_eq!(rows, vec![0]);
     }
 }

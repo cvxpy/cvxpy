@@ -1,5 +1,6 @@
 #![allow(non_snake_case)]
 #![allow(unused_imports)]
+#![allow(unused_variables)]
 
 use crate::view::ViewContext;
 use pyo3::prelude::*;
