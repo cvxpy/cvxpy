@@ -79,6 +79,28 @@ fn test_transpose() {
 
     let transposed_view = transpose(&linop, view);
     let A = transposed_view.get_tensor_representation(0);
-    println!("{:?}", A);
+    let mut triplets = Vec::new();
+    for (r, c, d) in A
+        .row
+        .iter()
+        .zip(&A.col)
+        .zip(&A.data)
+        .map(|((&r, &c), &d)| (r, c, d))
+    {
+        triplets.push((r, c, d));
+    }
+
+    let A = SparseColMat::try_new_from_triplets(4, 4, &triplets).unwrap();
+    let expected_A = SparseColMat::try_new_from_triplets(
+        4,
+        4,
+        &[
+            (0, 0, 1.0),
+            (1, 2, 1.0),
+            (2, 1, 1.0),
+            (3, 3, 1.0),
+        ],
+    ).unwrap();
+    assert_eq!(A, expected_A);
 
 }
