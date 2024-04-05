@@ -152,7 +152,7 @@ jobs:
         if: ${{github.event_name == 'push' && env.USE_OPENMP != 'True'}}
         uses: actions/upload-artifact@v4
         with:
-          name: wheels
+          name: wheels-${{ matrix.os }}-${{ matrix.python-version }}
           path: ./wheelhouse
 
   build_cvxpy-base:
@@ -249,7 +249,7 @@ jobs:
         if: ${{github.event_name == 'push'}}
         uses: actions/upload-artifact@v4
         with:
-          name: wheels-base
+          name: wheels-base-${{ matrix.os }}-${{ matrix.python-version }}
           path: ./wheelhouse
 
   sonarcloud:
