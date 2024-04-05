@@ -54,8 +54,9 @@ pub fn select_rows(A: &SparseColMat<u64, f64>, rows: &[u64]) -> SparseColMat<u64
 
     for (i, &r) in rows.iter().enumerate() {
         for (j, &v) in csr
-            .col_indices_of_row(r as usize) 
-            .zip(csr.values_of_row(r as usize)) {
+            .col_indices_of_row(r as usize)
+            .zip(csr.values_of_row(r as usize))
+        {
             triplets.push((i as u64, j as u64, v));
         }
     }

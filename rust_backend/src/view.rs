@@ -100,16 +100,15 @@ impl<'a> View<'a> {
             })
             .collect();
     }
-    
-    pub(crate) fn select_rows(&mut self, rows: &[u64]) {
 
+    pub(crate) fn select_rows(&mut self, rows: &[u64]) {
         let func = |x: &SparseColMat<u64, f64>, p: i64| -> crate::SparseMatrix {
             if p == 1 {
                 faer_ext::select_rows(x, rows)
             } else {
                 let m = (x.nrows() / p as usize) as u64;
                 let mut new_rows = Vec::with_capacity(rows.len() * p as usize);
-                for i in 0..p as u64{
+                for i in 0..p as u64 {
                     for &r in rows {
                         new_rows.push(r + m * i);
                     }

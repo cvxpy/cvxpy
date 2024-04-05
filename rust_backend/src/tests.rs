@@ -94,13 +94,8 @@ fn test_transpose() {
     let expected_A = SparseColMat::try_new_from_triplets(
         4,
         4,
-        &[
-            (0, 0, 1.0),
-            (1, 2, 1.0),
-            (2, 1, 1.0),
-            (3, 3, 1.0),
-        ],
-    ).unwrap();
+        &[(0, 0, 1.0), (1, 2, 1.0), (2, 1, 1.0), (3, 3, 1.0)],
+    )
+    .unwrap();
     assert_eq!(A, expected_A);
-
 }
