@@ -18,6 +18,15 @@ impl CvxpyShape {
             D2(m, n) => m * n,
         }
     }
+
+    pub fn broadcasted_shape(&self) -> (u64, u64) {
+        use CvxpyShape::*;
+        match *self {
+            D0 => (1, 1),
+            D1(n) => (1, n),
+            D2(m, n) => (m, n),
+        }
+    }
 }
 
 // shape: CvxpyShape
