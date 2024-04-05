@@ -99,9 +99,8 @@ impl<'a> View<'a> {
             })
             .collect();
     }
-    
-    pub(crate) fn select_rows(&mut self, rows: &[u64]) {
 
+    pub(crate) fn select_rows(&mut self, rows: &[u64]) {
         let mut func = |x: &crate::SparseMatrix, p: i64| -> crate::SparseMatrix {
             if p == 1 {
                 faer_ext::select_rows(x, rows)

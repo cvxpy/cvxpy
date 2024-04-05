@@ -76,5 +76,5 @@ fn test_neg() {
 //     let view = process_constraints(&linop, empty_view);
 
 //     let transposed_view = transpose(&linop, view);
-    
+
 // }

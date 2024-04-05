@@ -40,10 +40,11 @@ pub(crate) fn transpose<'a>(linop: &Linop, mut view: View<'a>) -> View<'a> {
 
 pub(crate) fn get_transpose_rows<'a>(shape: CvxpyShape) -> Vec<u64> {
     let (m, n) = shape.broadcasted_shape();
-    let rows: Vec<u64> = (0..n).flat_map(|j| (0..m).map(move |i| i * n + j)).collect();
+    let rows: Vec<u64> = (0..n)
+        .flat_map(|j| (0..m).map(move |i| i * n + j))
+        .collect();
     rows
 }
-
 
 #[cfg(test)]
 mod test_backend {

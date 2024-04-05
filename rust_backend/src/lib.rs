@@ -4,9 +4,9 @@
 use crate::view::ViewContext;
 use pyo3::prelude::*;
 
+mod backend;
 mod faer_ext;
 mod linop;
-mod backend;
 mod tensor_representation;
 mod tests;
 mod view;
@@ -14,7 +14,6 @@ mod view;
 type SparseMatrix = faer::sparse::SparseColMat<u64, f64>;
 
 type IdxMap = std::collections::HashMap<i64, i64>;
-
 
 #[pyfunction]
 fn build_matrix(
