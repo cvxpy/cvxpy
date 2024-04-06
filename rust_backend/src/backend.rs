@@ -1,3 +1,5 @@
+use faer::sparse::SparseColMat;
+
 use crate::faer_ext;
 use crate::linop::CvxpyShape;
 use crate::linop::Linop;
@@ -20,6 +22,39 @@ pub(crate) fn process_constraints<'a>(linop: &Linop, view: View<'a>) -> View<'a>
             tensor: get_variable_tensor(&linop.shape, id),
             is_parameter_free: true,
             context: view.context,
+        },
+        LinopKind::ScalarConst(c) => {
+            let mat = SparseColMat::try_new_from_triplets(1, 1, &[(0, 0, c)]).unwrap();
+            let tensor = [(CONST_ID, [(CONST_ID, mat)].into())].into();
+            View {
+                variables: [CONST_ID].into(),
+                tensor,
+                is_parameter_free: true,
+                context: view.context,
+            }
+        },
+        LinopKind::DenseConst(mat) => {
+            let mut triplets = Vec::with_capacity(mat.ncols() * mat.nrows());
+            for ((i, j), v) in mat.indexed_iter() {
+                triplets.push((i as u64, j as u64, *v));
+            }
+            let mat = SparseColMat::try_new_from_triplets(mat.nrows(), mat.ncols(), &triplets).unwrap();
+            let tensor = [(CONST_ID, [(CONST_ID, mat)].into())].into();
+            View {
+                variables: [CONST_ID].into(),
+                tensor,
+                is_parameter_free: true,
+                context: view.context,
+            }
+        },
+        LinopKind::SparseConst(mat) => {
+            let tensor = [(CONST_ID, [(CONST_ID, mat)].into())].into();
+            View {
+                variables: [CONST_ID].into(),
+                tensor,
+                is_parameter_free: true,
+                context: view.context,
+            }
         },
         LinopKind::Neg => neg(linop, view),
         LinopKind::Transpose => transpose(linop, view),

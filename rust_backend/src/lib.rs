@@ -13,6 +13,7 @@ mod tests;
 mod view;
 
 type SparseMatrix = faer::sparse::SparseColMat<u64, f64>;
+type NdArray = ndarray::Array2<f64>;
 
 type IdxMap = std::collections::HashMap<i64, i64>;
 

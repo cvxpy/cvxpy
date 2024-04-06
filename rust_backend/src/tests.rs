@@ -1,3 +1,4 @@
+use faer::scale;
 use faer::sparse::SparseColMat;
 use faer::zipped;
 
@@ -141,4 +142,35 @@ fn test_promote() {
         SparseColMat::try_new_from_triplets(3, 1, &[(0, 0, 1.0), (1, 0, 1.0), (2, 0, 1.0)])
             .unwrap();
     assert_eq!(A, expected_A);
+}
+
+#[test]
+fn test_constants() {
+    // Test ScalarConst
+    let linop = Linop {
+        shape: CvxpyShape::D0,
+        kind: LinopKind::ScalarConst(3.0),
+    };
+    let context = ViewContext {
+        id_to_col: [(1, 0), (2, 2)].into(),
+        param_to_size: [(-1, 1), (3, 1)].into(),
+        param_to_col: [(3, 0), (-1, 1)].into(),
+        param_size_plus_one: 2,
+        var_length: 4,
+    };
+    let empty_view = View::new(&context);
+    let view = process_constraints(&linop, empty_view);
+    let view_A = view.get_tensor_representation(0);
+    let mut triplets = Vec::new();
+    for (r, c, d) in view_A
+        .row
+        .iter()
+        .zip(&view_A.col)
+        .zip(&view_A.data)
+        .map(|((&r, &c), &d)| (r, c, d))
+    {
+        triplets.push((r, c, d));
+    }
+    let view_A = SparseColMat::try_new_from_triplets(1, 1, &triplets).unwrap();
+    assert_eq!(view_A, scale(3.0) * &faer_ext::eye(1))
 }

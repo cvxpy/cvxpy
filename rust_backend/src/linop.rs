@@ -2,6 +2,8 @@ use pyo3::intern;
 use pyo3::prelude::*;
 use std::borrow::Borrow;
 
+use crate::NdArray;
+
 // TinyVec for n-dimensional?
 pub(crate) enum CvxpyShape {
     D0,
@@ -38,8 +40,6 @@ pub(crate) struct Linop {
     pub(crate) shape: CvxpyShape,
     pub(crate) kind: LinopKind,
 }
-
-type NdArray = ();
 
 pub(crate) enum LinopKind {
     Variable(i64),
