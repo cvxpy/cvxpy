@@ -1,3 +1,4 @@
+use ndarray::ArrayView2;
 use pyo3::intern;
 use pyo3::prelude::*;
 use std::borrow::Borrow;
@@ -36,22 +37,23 @@ impl CvxpyShape {
 //      type: str
 //      data: None | int | ndarray | TinyVec[PySlice]
 //      args: Vec<Linop>
-pub(crate) struct Linop {
+
+pub(crate) struct Linop<'a> {
     pub(crate) shape: CvxpyShape,
-    pub(crate) kind: LinopKind,
+    pub(crate) kind: LinopKind<'a>,
 }
 
-pub(crate) enum LinopKind {
+pub(crate) enum LinopKind<'a> {
     Variable(i64),
-    Mul { lhs: Box<Linop>, rhs: Box<Linop> },
-    Rmul { lhs: Box<Linop>, rhs: Box<Linop> },
-    MulElem { lhs: Box<Linop>, rhs: Box<Linop> },
+    // Mul { lhs: Box<Linop>, rhs: Box<Linop> },
+    // Rmul { lhs: Box<Linop>, rhs: Box<Linop> },
+    // MulElem { lhs: Box<Linop>, rhs: Box<Linop> },
     Sum,
     Neg,
     Transpose,
     SumEntries,
     ScalarConst(f64),
-    DenseConst(NdArray),
+    DenseConst(ArrayView2<'a, f64>),
     SparseConst(crate::SparseMatrix),
     Param(i64),
     Reshape,
@@ -64,7 +66,7 @@ impl<'py> FromPyObject<'py> for CvxpyShape {
     }
 }
 
-impl<'py> FromPyObject<'py> for Linop {
+impl<'py> FromPyObject<'py> for Linop<'_> {
     fn extract_bound(ob: &Bound<'py, PyAny>) -> PyResult<Self> {
         let pylinop = ob.borrow();
         let shape: CvxpyShape = pylinop.getattr(intern!(ob.py(), "shape"))?.extract()?;

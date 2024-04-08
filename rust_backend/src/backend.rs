@@ -36,10 +36,10 @@ pub(crate) fn process_constraints<'a>(linop: &Linop, view: View<'a>) -> View<'a>
         LinopKind::DenseConst(mat) => {
             let mut triplets = Vec::with_capacity(mat.ncols() * mat.nrows());
             for ((i, j), v) in mat.indexed_iter() {
-                triplets.push((i as u64, j as u64, *v));
+                triplets.push((i as u64 + j as u64 * mat.nrows() as u64, 0_u64, *v));
             }
-            let mat =
-                SparseColMat::try_new_from_triplets(mat.nrows(), mat.ncols(), &triplets).unwrap();
+            let mat = SparseColMat::try_new_from_triplets(mat.nrows() * mat.ncols(), 1, &triplets)
+                .unwrap();
             let tensor = [(CONST_ID, [(CONST_ID, mat)].into())].into();
             View {
                 variables: [CONST_ID].into(),

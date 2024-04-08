@@ -178,7 +178,13 @@ fn test_scalar_constant() {
 #[test]
 fn test_dense_constant() {
     let mat = ndarray::arr2(&[[1.0, 2.0], [3.0, 4.0]]);
-    let mat_view = ArrayView2::from(&mat);
+
+    let mat_view = mat.view();
+
+    let linop = Linop {
+        shape: CvxpyShape::D2(2, 2),
+        kind: LinopKind::DenseConst(mat_view),
+    };
 
     let linop = Linop {
         shape: CvxpyShape::D2(2, 2),
@@ -204,13 +210,13 @@ fn test_dense_constant() {
     {
         triplets.push((r, c, d));
     }
-    let view_A = SparseColMat::try_new_from_triplets(1, 1, &triplets).unwrap();
+    let view_A = SparseColMat::try_new_from_triplets(4, 1, &triplets).unwrap();
     assert_eq!(
         view_A,
         SparseColMat::try_new_from_triplets(
-            2,
-            2,
-            &[(0, 0, 1.0), (0, 1, 2.0), (0, 2, 3.0), (0, 3, 4.0)]
+            4,
+            1,
+            &[(0, 0, 1.0), (1, 0, 3.0), (2, 0, 2.0), (3, 0, 4.0)]
         )
         .unwrap()
     )
