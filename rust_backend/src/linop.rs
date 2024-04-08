@@ -54,7 +54,7 @@ pub(crate) enum LinopKind<'a> {
     SumEntries,
     ScalarConst(f64),
     DenseConst(ArrayView2<'a, f64>),
-    SparseConst(crate::SparseMatrix),
+    SparseConst(&'a crate::SparseMatrix),
     Param(i64),
     Reshape,
     Promote,

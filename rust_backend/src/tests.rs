@@ -186,10 +186,6 @@ fn test_dense_constant() {
         kind: LinopKind::DenseConst(mat_view),
     };
 
-    let linop = Linop {
-        shape: CvxpyShape::D2(2, 2),
-        kind: LinopKind::DenseConst(mat_view),
-    };
     let context = ViewContext {
         id_to_col: [(-1, 0)].into(),
         param_to_size: [(-1, 1)].into(),
@@ -219,5 +215,46 @@ fn test_dense_constant() {
             &[(0, 0, 1.0), (1, 0, 3.0), (2, 0, 2.0), (3, 0, 4.0)]
         )
         .unwrap()
+    )
+}
+
+#[test]
+fn test_sparse_constant() {
+    let mat = faer::sparse::SparseColMat::try_new_from_triplets(
+        2,
+        2,
+        &[(0, 0, 1.0), (0, 1, 2.0), (1, 0, 3.0)],
+    )
+    .unwrap();
+
+    let linop = Linop {
+        shape: CvxpyShape::D2(2, 2),
+        kind: LinopKind::SparseConst(&mat),
+    };
+    let context = ViewContext {
+        id_to_col: [(-1, 0)].into(),
+        param_to_size: [(-1, 1)].into(),
+        param_to_col: [(-1, 0)].into(),
+        param_size_plus_one: 1,
+        var_length: 0,
+    };
+    let empty_view = View::new(&context);
+    let view = process_constraints(&linop, empty_view);
+    let view_A = view.get_tensor_representation(0);
+    let mut triplets = Vec::new();
+    for (r, c, d) in view_A
+        .row
+        .iter()
+        .zip(&view_A.col)
+        .zip(&view_A.data)
+        .map(|((&r, &c), &d)| (r, c, d))
+    {
+        triplets.push((r, c, d));
+    }
+    let view_A = SparseColMat::try_new_from_triplets(4, 1, &triplets).unwrap();
+    assert_eq!(
+        view_A,
+        SparseColMat::try_new_from_triplets(4, 1, &[(0, 0, 1.0), (1, 0, 3.0), (2, 0, 2.0)])
+            .unwrap()
     )
 }

@@ -48,15 +48,21 @@ pub(crate) fn process_constraints<'a>(linop: &Linop, view: View<'a>) -> View<'a>
                 context: view.context,
             }
         }
-        // LinopKind::SparseConst(mat) => {
-        //     let tensor = [(CONST_ID, [(CONST_ID, mat)].into())].into();
-        //     View {
-        //         variables: [CONST_ID].into(),
-        //         tensor,
-        //         is_parameter_free: true,
-        //         context: view.context,
-        //     }
-        // },
+        LinopKind::SparseConst(mat) => {
+            let mut triplets = Vec::with_capacity(mat.compute_nnz());
+            for (i, j, v) in faer_ext::to_triplets_iter(mat) {
+                triplets.push((i + j * mat.nrows() as u64, 0, v));
+            }
+            let mat = SparseColMat::try_new_from_triplets(mat.nrows() * mat.ncols(), 1, &triplets)
+                .unwrap();
+            let tensor = [(CONST_ID, [(CONST_ID, mat)].into())].into();
+            View {
+                variables: [CONST_ID].into(),
+                tensor,
+                is_parameter_free: true,
+                context: view.context,
+            }
+        }
         LinopKind::Neg => neg(linop, view),
         LinopKind::Transpose => transpose(linop, view),
         LinopKind::Sum => view, // Sum (along axis 1) is implicit in Ax+b, so it is a NOOP.
