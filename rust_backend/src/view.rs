@@ -44,7 +44,6 @@ impl<'a> View<'a> {
             for (&parameter_id, parameter_matrix) in variable_tensor.iter() {
                 let p = self.context.param_to_size[&parameter_id];
                 let m = parameter_matrix.nrows() as i64 / p;
-
                 let (new_rows, new_cols, data, new_param_offset): (
                     Vec<u64>,
                     Vec<u64>,
