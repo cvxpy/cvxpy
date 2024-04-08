@@ -46,7 +46,7 @@ class norm_inf(AxisAtom):
                 values = values[0].flatten()
         else:
             values = values[0]
-        return torch.linalg.norm(values, torch.inf)
+        return torch.linalg.norm(values, torch.inf, dim=self.axis)
 
     def sign_from_args(self) -> Tuple[bool, bool]:
         """Returns sign (is positive, is negative) of the expression.
