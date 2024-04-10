@@ -5,6 +5,8 @@ use faer::{
     ComplexField, Conjugate, Index, SimpleEntity,
 };
 
+use crate::SparseMatrix;
+
 /*
 pub fn reshape<I: Index, E: SimpleEntity>(A: SparseColMatRef<'_, I, E>,
                                                (m, n): (I, I)) -> SparseColMat<I, E> {
@@ -61,4 +63,105 @@ pub fn select_rows(A: &SparseColMat<u64, f64>, rows: &[u64]) -> SparseColMat<u64
         }
     }
     SparseColMat::try_new_from_triplets(rows.len(), A.ncols(), &triplets).unwrap()
+}
+
+pub(crate) fn identity_kron(reps: u64, lhs: SparseColMat<u64, f64>) -> SparseColMat<u64, f64> {
+    if reps == 1 {
+        lhs
+    } else {
+        let mut triplets = Vec::with_capacity(lhs.compute_nnz() * reps as usize);
+        for rep in 0..reps {
+            for (r, c, d) in to_triplets_iter(&lhs) {
+                triplets.push((
+                    r + rep * lhs.nrows() as u64,
+                    c + rep * lhs.ncols() as u64,
+                    d,
+                ));
+            }
+        }
+        SparseColMat::try_new_from_triplets(
+            reps as usize * lhs.nrows(),
+            reps as usize * lhs.ncols(),
+            &triplets,
+        )
+        .unwrap()
+    }
+}
+
+pub(crate) fn identity_kron2(reps: u64, A: SparseMatrix) -> SparseColMat<u64, f64> {
+    let capacity = A.compute_nnz() * reps as usize;
+    let mut row_indices = Vec::with_capacity(capacity);
+    let mut entries = Vec::with_capacity(capacity);
+    let mut col_ptrs = Vec::with_capacity(reps as usize * A.ncols() as usize + 1);
+    let mut entries_so_far = 0;
+    col_ptrs.push(entries_so_far);
+    for r in 0..reps {
+        for j in 0..A.ncols() {
+            for (i, value) in A.row_indices_of_col(j).zip(A.values_of_col(j)) {
+                row_indices.push(i as u64 + r * A.nrows() as u64);
+                entries.push(*value);
+                entries_so_far += 1;
+            }
+            col_ptrs.push(entries_so_far);
+        }
+    }
+    SparseColMat::new(
+        faer::sparse::SymbolicSparseColMat::new_checked(
+            reps as usize * A.nrows(),
+            reps as usize * A.ncols(),
+            col_ptrs,
+            None,
+            row_indices,
+        ),
+        entries,
+    )
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_identity_kron_p1() {
+        let mat =
+            SparseMatrix::try_new_from_triplets(2, 2, &[(0, 0, 1.0), (0, 1, 2.0), (1, 0, 3.0)])
+                .unwrap();
+
+        let result = identity_kron(1, mat);
+
+        assert_eq!(result.nrows(), 2);
+        assert_eq!(result.ncols(), 2);
+        assert_eq!(result.compute_nnz(), 4);
+        assert_eq!(
+            to_triplets_iter(&result).collect::<Vec<_>>(),
+            vec![(0, 0, 1.0), (0, 1, 2.0), (1, 0, 3.0),]
+        );
+    }
+
+    #[test]
+    fn test_identity_kron_p3() {
+        let mat =
+            SparseMatrix::try_new_from_triplets(2, 2, &[(0, 0, 1.0), (0, 1, 2.0), (1, 0, 3.0)])
+                .unwrap();
+
+        let result = identity_kron(3, mat);
+
+        assert_eq!(result.nrows(), 6);
+        assert_eq!(result.ncols(), 6);
+        assert_eq!(result.compute_nnz(), 9);
+        assert_eq!(
+            to_triplets_iter(&result).collect::<Vec<_>>(),
+            vec![
+                (0, 0, 1.0),
+                (0, 1, 2.0),
+                (1, 0, 3.0),
+                (3, 3, 1.0),
+                (3, 4, 2.0),
+                (4, 3, 3.0),
+                (6, 6, 1.0),
+                (6, 7, 2.0),
+                (7, 6, 3.0),
+            ]
+        );
+    }
 }

@@ -46,7 +46,7 @@ fn test_neg() {
     let view_A = SparseColMat::try_new_from_triplets(4, 4, &triplets).unwrap();
     assert_eq!(view_A, faer_ext::eye(4));
 
-    let negated_view = crate::backend::neg(&linop, view);
+    let negated_view = crate::backend::neg(view);
     let view_A = negated_view.get_tensor_representation(0);
     let mut triplets = Vec::new();
     for (r, c, d) in view_A

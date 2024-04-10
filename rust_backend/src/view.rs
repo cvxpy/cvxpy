@@ -1,3 +1,4 @@
+use crate::backend::CONST_ID;
 use crate::tensor_representation::TensorRepresentation;
 use crate::{
     faer_ext::{self, to_triplets_iter},
@@ -21,7 +22,7 @@ type ParamId = i64;
 pub(crate) type Tensor = HashMap<VarId, HashMap<ParamId, crate::SparseMatrix>>;
 
 pub(crate) struct View<'a> {
-    pub(crate) variables: Vec<i64>,
+    pub(crate) variables: Vec<i64>, // todo: turn into a set
     pub(crate) tensor: Tensor,
     pub(crate) is_parameter_free: bool,
     pub(crate) context: &'a ViewContext,
@@ -117,5 +118,41 @@ impl<'a> View<'a> {
         };
 
         self.apply_all(func);
+    }
+
+    pub(crate) fn rows(&self) -> u64 {
+        for (_, tensor) in &self.tensor {
+            for (param_id, param_mat) in tensor {
+                return param_mat.nrows() as u64 / self.context.param_to_size[&param_id] as u64;
+            }
+            panic!("No parameters in tensor");
+        }
+        panic!("No variables in tensor");
+    }
+
+    pub(crate) fn accumulate_over_variables(
+        mut self,
+        func: impl Fn(&SparseColMat<u64, f64>, u64) -> SparseColMat<u64, f64>,
+        is_parameter_free_function: bool,
+    ) -> View<'a> {
+        for (variable_id, tensor) in &self.tensor {
+            self.tensor[variable_id] = if is_parameter_free_function {
+                self.apply_to_parameters(func, tensor)
+            } else {
+                // func(&tensor[&CONST_ID], 1)
+                todo!("Implement accumulate_over_variables")
+            };
+        }
+
+        let is_parameter_free = self.is_parameter_free && is_parameter_free_function;
+        self
+    }
+
+    pub(crate) fn apply_to_parameters(
+        &self,
+        func: impl Fn(&SparseColMat<u64, f64>, u64) -> SparseColMat<u64, f64>,
+        tensor: &HashMap<i64, SparseColMat<u64, f64>>,
+    ) -> HashMap<i64, SparseColMat<u64, f64>> {
+        todo!("Implement apply_to_parameters")
     }
 }

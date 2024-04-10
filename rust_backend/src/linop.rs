@@ -45,9 +45,9 @@ pub(crate) struct Linop<'a> {
 
 pub(crate) enum LinopKind<'a> {
     Variable(i64),
-    Mul { lhs: Box<Linop<'a>>, rhs: Box<Linop<'a>> },
-    Rmul { lhs: Box<Linop<'a>>, rhs: Box<Linop<'a>> },
-    MulElem { lhs: Box<Linop<'a>>, rhs: Box<Linop<'a>> },
+    Mul { lhs: &'a Box<Linop<'a>> },
+    Rmul { rhs: &'a Box<Linop<'a>> },
+    MulElem { lhs: &'a Box<Linop<'a>> },
     Sum,
     Neg,
     Transpose,
