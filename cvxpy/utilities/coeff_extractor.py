@@ -17,7 +17,6 @@ limitations under the License.
 
 from __future__ import annotations, division
 
-from collections import defaultdict
 import operator
 from dataclasses import dataclass
 from typing import List
@@ -58,10 +57,16 @@ class COOData:
         col = np.concatenate([self.col, other.col], axis=0)
         param_idxs = np.concatenate([self.param_idxs, other.param_idxs], axis=0)
         return COOData(data, row, col, self.shape, param_idxs)
-    
+
     @classmethod
     def empty_with_shape(cls, shape: tuple[int, int]) -> COOData:
-        return COOData(np.array([]), np.array([], dtype=int), np.array([], dtype=int), shape, np.array([], dtype=int))
+        return COOData(
+            np.array([]),
+            np.array([], dtype=int),
+            np.array([], dtype=int),
+            shape,
+            np.array([], dtype=int),
+        )
 
 # TODO find best format for sparse matrices: csr, csc, dok, lil, ...
 class CoeffExtractor:
@@ -178,7 +183,9 @@ class CoeffExtractor:
 
                 # Convert to sparse matrix.
                 P = quad_forms[var_id][2].P
-                assert P.value is not None, "P matrix must be instantiated before calling extract_quadratic_coeffs."
+                assert (
+                    P.value is not None
+                ), "P matrix must be instantiated before calling extract_quadratic_coeffs."
                 if sp.issparse(P) and not isinstance(P, sp.coo_matrix):
                     P = P.value.tocoo()
                 else:

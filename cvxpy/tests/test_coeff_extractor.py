@@ -5,7 +5,7 @@ import pytest
 
 import cvxpy as cp
 from cvxpy.atoms.quad_form import SymbolicQuadForm
-from cvxpy.utilities.coeff_extractor import COOData, CoeffExtractor
+from cvxpy.utilities.coeff_extractor import CoeffExtractor, COOData
 
 
 @dataclass
