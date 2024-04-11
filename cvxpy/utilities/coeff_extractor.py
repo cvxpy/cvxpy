@@ -174,7 +174,6 @@ class CoeffExtractor:
                     # Eliminate zeros from data by tracking
                     # which indices of the global parameter vector are used.
                     nonzero_idxs = c_part[0] != 0
-                    # nonzero_idxs = np.arange(c_part.shape[1])
                     data = P.data[:, None] * c_part[:, nonzero_idxs]
                     param_idxs = np.arange(c_part.shape[1])[nonzero_idxs]
                 P_tup = COOData(data, P.row, P.col, P.shape, param_idxs)
