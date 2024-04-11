@@ -17,8 +17,10 @@ limitations under the License.
 
 from __future__ import annotations, division
 
+from collections import defaultdict
 import operator
 from dataclasses import dataclass
+from typing import List
 
 import numpy as np
 import scipy.sparse as sp
@@ -35,7 +37,9 @@ from cvxpy.utilities.replace_quad_forms import (
 @dataclass
 class COOData:
     """
-    Data for constructing a COO matrix.
+    Data for constructing a COO matrix representing a 3d tensor.
+    Unlike a in a 2d COO matrix, data is a 2d matrix, with the columns
+    representing the parameter slices given by param_idxs.
     """
     data: np.ndarray
     row: np.ndarray
@@ -43,6 +47,21 @@ class COOData:
     shape: tuple[int, int]
     param_idxs: np.ndarray
 
+    def __add__(self, other: COOData) -> COOData:
+        # Concatenation becomes addition when constructing
+        # COO matrix because repeated indices are summed.
+
+        if self.shape != other.shape:
+            raise ValueError("Shapes must match for addition.")
+        data = np.concatenate([self.data, other.data], axis=1)
+        row = np.concatenate([self.row, other.row], axis=0)
+        col = np.concatenate([self.col, other.col], axis=0)
+        param_idxs = np.concatenate([self.param_idxs, other.param_idxs], axis=0)
+        return COOData(data, row, col, self.shape, param_idxs)
+    
+    @classmethod
+    def empty_with_shape(cls, shape: tuple[int, int]) -> COOData:
+        return COOData(np.array([]), np.array([], dtype=int), np.array([], dtype=int), shape, np.array([], dtype=int))
 
 # TODO find best format for sparse matrices: csr, csc, dok, lil, ...
 class CoeffExtractor:
@@ -134,7 +153,7 @@ class CoeffExtractor:
         # and [q1, q2, ...]
         constant = param_coeffs[-1, :]
         # TODO keep sparse.
-        c = param_coeffs[:-1, :].A
+        c = param_coeffs[:-1, :].toarray()
         num_params = param_coeffs.shape[1]
 
         # coeffs stores the P and q for each quad_form,
@@ -150,71 +169,66 @@ class CoeffExtractor:
             #                      argument index of quad form,
             #                      quad form atom)
             if var.id in quad_forms:
+                # This was a dummy variable
                 var_id = var.id
                 orig_id = quad_forms[var_id][2].args[0].id
                 var_offset = affine_id_map[var_id][0]
                 var_size = affine_id_map[var_id][1]
                 c_part = c[var_offset:var_offset+var_size, :]
-                if quad_forms[var_id][2].P.value is not None:
-                    # Convert to sparse matrix.
-                    P = quad_forms[var_id][2].P.value
-                    if sp.issparse(P) and not isinstance(P, sp.coo_matrix):
-                        P = P.tocoo()
-                    else:
-                        P = sp.coo_matrix(P)
+
+                # Convert to sparse matrix.
+                P = quad_forms[var_id][2].P
+                assert P.value is not None, "P matrix must be instantiated before calling extract_quadratic_coeffs."
+                if sp.issparse(P) and not isinstance(P, sp.coo_matrix):
+                    P = P.value.tocoo()
                 else:
-                    P = sp.eye(var_size, format='coo')
+                    P = sp.coo_matrix(P.value)
+
                 # We multiply the columns of P, by c_part
                 # by operating directly on the data.
                 if var_size > 1:
+                    # Multiple quad forms in the same expression, sharing P
                     # TODO remove zeros from data.
                     data = P.data[:, None] * c_part[P.col]
-                    param_idxs = np.arange(c_part.shape[1])
+                    param_idxs = np.arange(num_params)
                 else:
                     # Eliminate zeros from data by tracking
                     # which indices of the global parameter vector are used.
+
                     nonzero_idxs = c_part[0] != 0
                     data = P.data[:, None] * c_part[:, nonzero_idxs]
-                    param_idxs = np.arange(c_part.shape[1])[nonzero_idxs]
+                    param_idxs = np.arange(num_params)[nonzero_idxs]
                 P_tup = COOData(data, P.row, P.col, P.shape, param_idxs)
                 # Conceptually similar to
                 # P = P[:, :, None] * c_part[None, :, :]
                 if orig_id in coeffs:
                     if 'P' in coeffs[orig_id]:
-                        # Concatenation becomes addition when constructing
-                        # COO matrix because repeated indices are summed.
-                        # Conceptually equivalent to
-                        # coeffs[orig_id]['P'] += P_tup
-                        acc_P = coeffs[orig_id]['P']
-                        acc_data = np.concatenate([acc_P.data, data], axis=0)
-                        acc_row = np.concatenate([acc_P.row, P.row], axis=0)
-                        acc_col = np.concatenate([acc_P.col, P.col], axis=0)
-                        param_idxs = np.concatenate([acc_P.param_idxs, param_idxs], axis=0)
-                        P_tup = COOData(acc_data, acc_row, acc_col, P.shape, param_idxs)
-                        coeffs[orig_id]['P'] = P_tup
+                        coeffs[orig_id]['P'] =  coeffs[orig_id]['P'] + P_tup
                     else:
                         coeffs[orig_id]['P'] = P_tup
                 else:
+                    # No q for dummy variables.
                     coeffs[orig_id] = dict()
                     coeffs[orig_id]['P'] = P_tup
                     shape = (P.shape[0], c.shape[1])
-                    # Fast path for no parameters.
                     if num_params == 1:
+                        # Fast path for no parameters, keep q dense.
                         coeffs[orig_id]['q'] = np.zeros(shape)
                     else:
                         coeffs[orig_id]['q'] = sp.coo_matrix(([], ([], [])), shape=shape) 
             else:
+                # This was a true variable, so it can only have a q term.
                 var_offset = affine_id_map[var.id][0]
                 var_size = np.prod(affine_var_shapes[var.id], dtype=int)
                 if var.id in coeffs:
-                    # Fast path for no parameters.
+                    # Fast path for no parameters, q is dense and so is c.
                     if num_params == 1:
                         coeffs[var.id]['q'] += c[var_offset:var_offset+var_size, :]
                     else:
                         coeffs[var.id]['q'] += param_coeffs[var_offset:var_offset+var_size, :]
                 else:
                     coeffs[var.id] = dict()
-                    # Fast path for no parameters.
+                    # Fast path for no parameters, q is dense and so is c.
                     if num_params == 1:
                         coeffs[var.id]['q'] = c[var_offset:var_offset+var_size, :]
                     else:
@@ -248,14 +262,14 @@ class CoeffExtractor:
         q_list = []
         P_height = 0
         P_entries = 0
-        for var_id, offset in offsets:
+        for var_id, _ in offsets:
             shape = self.var_shapes[var_id]
             size = np.prod(shape, dtype=int)
             if var_id in coeffs and 'P' in coeffs[var_id]:
                 P = coeffs[var_id]['P']
                 P_entries += P.data.size
             else:
-                P = COOData([], [], [], (size, size), np.arange(num_params))
+                P = COOData.empty_with_shape((size, size))
             if var_id in coeffs and 'q' in coeffs[var_id]:
                 q = coeffs[var_id]['q']
             else:
@@ -280,7 +294,7 @@ class CoeffExtractor:
 
     def merge_P_list(
             self, 
-            P_list: list, 
+            P_list: List[COOData],
             P_entries: int, 
             P_height: int, 
             num_params: int,
@@ -318,15 +332,15 @@ class CoeffExtractor:
             ```
             but done by constructing a COO matrix.
             """
-            if len(P.data) > 0:
+            if P.data.size > 0:
                 vals[entry_offset:entry_offset + P.data.size] = P.data.flatten(
                     order='F'
                 )
                 P_cols_ext = P.col.astype(np.int64) * np.int64(P_height)
                 base_rows = gap_above + acc_height + P.row + P_cols_ext
-                full_rows = np.tile(base_rows, P.data.size//len(base_rows))
+                full_rows = np.tile(base_rows, P.data.size // P.row.size)
                 rows[entry_offset:entry_offset + P.data.size] = full_rows
-                full_cols = np.repeat(P.param_idxs, P.data.size//len(P.param_idxs))
+                full_cols = np.repeat(P.param_idxs, P.data.size // P.param_idxs.size)
                 cols[entry_offset:entry_offset + P.data.size] = full_cols
                 entry_offset += P.data.size
             gap_above += P.shape[0]
@@ -334,14 +348,19 @@ class CoeffExtractor:
 
         return sp.coo_matrix((vals, (rows, cols)), shape=(acc_height, num_params))
 
-    def merge_q_list(self, q_list: list, constant: sp.csc_matrix, num_params: int) -> sp.csr_matrix:
+    def merge_q_list(
+        self,
+        q_list: List[sp.spmatrix | np.ndarray],
+        constant: sp.csc_matrix,
+        num_params: int,
+    ) -> sp.csr_matrix:
         """Stack q with constant offset as last row.
 
         Args:
-            q_list: list of q submatrices as COOData objects.
+            q_list: list of q submatrices as scipy sparse matrices or numpy arrays.
             constant: The constant offset as a CSC sparse matrix.
             num_params: number of parameters in the problem.
-        
+
         Returns:
             A CSR sparse representation of the merged q matrix.
         """
