@@ -5,7 +5,7 @@ import pytest
 
 import cvxpy as cp
 from cvxpy.atoms.quad_form import SymbolicQuadForm
-from cvxpy.utilities.coeff_extractor import CoeffExtractor
+from cvxpy.utilities.coeff_extractor import COOData, CoeffExtractor
 
 
 @dataclass
@@ -78,12 +78,12 @@ def test_coeff_extractor(coeff_extractor):
     coeffs, constant = coeff_extractor.extract_quadratic_coeffs(affine_expr, quad_forms)
     
     assert len(coeffs) == 1
-    assert np.allclose(coeffs[1]["q"], np.zeros((2, 3)))
+    assert np.allclose(coeffs[1]["q"].toarray(), np.zeros((2, 3)))
     P = coeffs[1]["P"]
-    assert len(P) == 3
-    assert np.allclose(P[0], np.array([[1, 0, 0], [1, 0, 0], [0, 1, 0], [0, 1, 0]]))
-    assert len(P[1]) == 2
-    assert np.allclose(P[1][0], np.array([0, 1, 0, 1]))
-    assert np.allclose(P[1][1], np.array([0, 1, 0, 1]))
-    assert P[2] == (2, 2)
+    assert isinstance(P, COOData)
+    assert np.allclose(P.data, np.ones((4)))
+    assert np.allclose(P.row, np.array([0, 1, 0, 1]))
+    assert np.allclose(P.col, np.array([0, 1, 0, 1]))
+    assert P.shape == (2, 2)
+    assert np.allclose(P.param_idxs, np.array([0,1]))
     assert np.allclose(constant.toarray(), np.zeros((3)))
