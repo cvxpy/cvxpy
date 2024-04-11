@@ -174,7 +174,8 @@ class CoeffExtractor:
                     # Eliminate zeros from data by tracking
                     # which indices of the global parameter vector are used.
                     nonzero_idxs = c_part[0] != 0
-                    data = P.data[:, None] * c_part[0:, nonzero_idxs]
+                    # nonzero_idxs = np.arange(c_part.shape[1])
+                    data = P.data[:, None] * c_part[:, nonzero_idxs]
                     param_idxs = np.arange(c_part.shape[1])[nonzero_idxs]
                 P_tup = COOData(data, P.row, P.col, P.shape, param_idxs)
                 # Conceptually similar to
@@ -189,6 +190,7 @@ class CoeffExtractor:
                         acc_data = np.concatenate([acc_P.data, data], axis=0)
                         acc_row = np.concatenate([acc_P.row, P.row], axis=0)
                         acc_col = np.concatenate([acc_P.col, P.col], axis=0)
+                        param_idxs = np.concatenate([acc_P.param_idxs, param_idxs], axis=0)
                         P_tup = COOData(acc_data, acc_row, acc_col, P.shape, param_idxs)
                         coeffs[orig_id]['P'] = P_tup
                     else:
@@ -323,9 +325,9 @@ class CoeffExtractor:
                 )
                 P_cols_ext = P.col.astype(np.int64) * np.int64(P_height)
                 base_rows = gap_above + acc_height + P.row + P_cols_ext
-                full_rows = np.tile(base_rows, len(P.param_idxs))
+                full_rows = np.tile(base_rows, P.data.size//len(base_rows))
                 rows[entry_offset:entry_offset + P.data.size] = full_rows
-                full_cols = np.repeat(P.param_idxs, P.col.size)
+                full_cols = np.repeat(P.param_idxs, P.data.size//len(P.param_idxs))
                 cols[entry_offset:entry_offset + P.data.size] = full_cols
                 entry_offset += P.data.size
             gap_above += P.shape[0]
