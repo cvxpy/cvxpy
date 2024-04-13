@@ -15,10 +15,17 @@ limitations under the License.
 """
 
 from cvxpy.expressions.variable import Variable
+from cvxpy.atoms.affine.wraps import nonneg_wrap, nonpos_wrap
 
 
 def maximum_canon(expr, args):
     shape = expr.shape
     t = Variable(shape)
+    
+    if expr.is_nonneg():
+    	t = nonneg_wrap(t)
+    if expr.is_nonpos():
+    	t = nonpos_wrap(t)
+    
     constraints = [t >= elem for elem in args]
     return t, constraints
