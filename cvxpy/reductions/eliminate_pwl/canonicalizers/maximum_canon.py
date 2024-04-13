@@ -14,8 +14,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from cvxpy.expressions.variable import Variable
 from cvxpy.atoms.affine.wraps import nonneg_wrap, nonpos_wrap
+from cvxpy.expressions.variable import Variable
 
 
 def maximum_canon(expr, args):
@@ -23,9 +23,9 @@ def maximum_canon(expr, args):
     t = Variable(shape)
     
     if expr.is_nonneg():
-    	t = nonneg_wrap(t)
+        t = nonneg_wrap(t)
     if expr.is_nonpos():
-    	t = nonpos_wrap(t)
+        t = nonpos_wrap(t)
     
     constraints = [t >= elem for elem in args]
     return t, constraints
