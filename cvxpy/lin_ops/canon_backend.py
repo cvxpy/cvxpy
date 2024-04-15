@@ -51,6 +51,10 @@ class TensorRepresentation:
     row: np.ndarray
     col: np.ndarray
     parameter_offset: np.ndarray
+    shape: tuple[int, int]  # (rows, cols)
+
+    def __post_init__(self):
+        assert self.data.shape == self.row.shape == self.col.shape == self.parameter_offset.shape
 
     @classmethod
     def combine(cls, tensors: list[TensorRepresentation]) -> TensorRepresentation:
@@ -66,21 +70,53 @@ class TensorRepresentation:
             row = np.append(row, t.row)
             col = np.append(col, t.col)
             parameter_offset = np.append(parameter_offset, t.parameter_offset)
-        return cls(data, row, col, parameter_offset)
+        assert all(t.shape == tensors[0].shape for t in tensors)
+        return cls(data, row, col, parameter_offset, tensors[0].shape)
 
     def __eq__(self, other: TensorRepresentation) -> bool:
         return isinstance(other, TensorRepresentation) and \
             np.all(self.data == other.data) and \
             np.all(self.row == other.row) and \
             np.all(self.col == other.col) and \
-            np.all(self.parameter_offset == other.parameter_offset)
+            np.all(self.parameter_offset == other.parameter_offset) and \
+            self.shape == other.shape
+    
+    def __add__(self, other: TensorRepresentation) -> TensorRepresentation:
+        if self.shape != other.shape:
+            raise ValueError("Shapes must match for addition.")
+        return TensorRepresentation(
+            np.concatenate([self.data, other.data]),
+            np.concatenate([self.row, other.row]),
+            np.concatenate([self.col, other.col]),
+            np.concatenate([self.parameter_offset, other.parameter_offset]),
+            self.shape
+        )
 
-    def get_param_slice(self, param_offset: int, shape: tuple[int, int]) -> sp.csc_matrix:
+    @classmethod
+    def empty_with_shape(cls, shape: tuple[int, int]) -> TensorRepresentation:
+        return cls(
+            np.array([], dtype=float),
+            np.array([], dtype=int),
+            np.array([], dtype=int),
+            np.array([], dtype=int),
+            shape,
+        )
+
+    def flatten_tensor(self, num_param_slices: int) -> sp.csc_matrix:
+        """
+        Flatten into 2D scipy csc-matrix in column-major order and transpose.
+        """
+        rows = (self.col.astype(np.int64) * np.int64(self.shape[0]) + self.row.astype(np.int64))
+        cols = self.parameter_offset.astype(np.int64)
+        shape = (np.int64(np.prod(self.shape)), num_param_slices)
+        return sp.csc_matrix((self.data, (rows, cols)), shape=shape)
+
+    def get_param_slice(self, param_offset: int) -> sp.csc_matrix:
         """
         Returns a single slice of the tensor for a given parameter offset.
         """
         mask = self.parameter_offset == param_offset
-        return sp.csc_matrix((self.data[mask], (self.row[mask], self.col[mask])), shape)
+        return sp.csc_matrix((self.data[mask], (self.row[mask], self.col[mask])), self.shape)
 
 
 class CanonBackend(ABC):
@@ -160,17 +196,18 @@ class PythonCanonBackend(CanonBackend):
         self.id_to_col[-1] = self.var_length
 
         constraint_res = []
+        total_rows = sum(np.prod(lin_op.shape) for lin_op in lin_ops)
         row_offset = 0
         for lin_op in lin_ops:
             lin_op_rows = np.prod(lin_op.shape)
             empty_view = self.get_empty_view()
             lin_op_tensor = self.process_constraint(lin_op, empty_view)
-            constraint_res.append((lin_op_tensor.get_tensor_representation(row_offset)))
+            constraint_res.append(lin_op_tensor.get_tensor_representation(row_offset, total_rows))
             row_offset += lin_op_rows
         tensor_res = self.concatenate_tensors(constraint_res)
 
         self.id_to_col.pop(-1)
-        return self.reshape_tensors(tensor_res, row_offset)
+        return tensor_res.flatten_tensor(self.param_size_plus_one)
 
     def process_constraint(self, lin_op: LinOp, empty_view: TensorView) -> TensorView:
         """
@@ -269,15 +306,6 @@ class PythonCanonBackend(CanonBackend):
         combines them into a single tensor.
         """
         return TensorRepresentation.combine(tensors)
-
-    def reshape_tensors(self, tensor: TensorRepresentation, total_rows: int) -> sp.csc_matrix:
-        """
-        Reshape into 2D scipy csc-matrix in column-major order and transpose.
-        """
-        rows = (tensor.col.astype(np.int64) * np.int64(total_rows) + tensor.row.astype(np.int64))
-        cols = tensor.parameter_offset.astype(np.int64)
-        shape = (np.int64(total_rows) * np.int64(self.var_length + 1), self.param_size_plus_one)
-        return sp.csc_matrix((tensor.data, (rows, cols)), shape=shape)
 
     @abstractmethod
     def get_empty_view(self) -> TensorView:
@@ -1564,7 +1592,7 @@ class TensorView(ABC):
         pass  # noqa
 
     @abstractmethod
-    def get_tensor_representation(self, row_offset: int) -> TensorRepresentation:
+    def get_tensor_representation(self, row_offset: int, total_rows: int) -> TensorRepresentation:
         """
         Returns [A b].
         """
@@ -1685,7 +1713,7 @@ class NumPyTensorView(DictTensorView):
         else:
             raise ValueError
 
-    def get_tensor_representation(self, row_offset: int) -> TensorRepresentation:
+    def get_tensor_representation(self, row_offset: int, total_rows: int) -> TensorRepresentation:
         """
         Returns a TensorRepresentation of [A b] tensor.
         This function iterates through all the tensor data and constructs the
@@ -1698,6 +1726,7 @@ class NumPyTensorView(DictTensorView):
         This could be changed once dense matrices are accepted.
         """
         assert self.tensor is not None
+        shape = (total_rows, self.var_length + 1)
         tensor_representations = []
         for variable_id, variable_tensor in self.tensor.items():
             for parameter_id, parameter_tensor in variable_tensor.items():
@@ -1708,6 +1737,7 @@ class NumPyTensorView(DictTensorView):
                     np.repeat(np.repeat(np.arange(cols), rows), param_size)
                     + self.id_to_col[variable_id],
                     np.tile(np.arange(param_size), rows * cols) + self.param_to_col[parameter_id],
+                    shape=shape
                 ))
         return TensorRepresentation.combine(tensor_representations)
 
@@ -1782,7 +1812,7 @@ class SciPyTensorView(DictTensorView):
         else:
             raise ValueError('Tensor cannot be None')
 
-    def get_tensor_representation(self, row_offset: int) -> TensorRepresentation:
+    def get_tensor_representation(self, row_offset: int, total_rows: int) -> TensorRepresentation:
         """
         Returns a TensorRepresentation of [A b] tensor.
         This function iterates through all the tensor data and constructs their
@@ -1792,6 +1822,7 @@ class SciPyTensorView(DictTensorView):
         offset.
         """
         assert self.tensor is not None
+        shape = (total_rows, self.var_length + 1)
         tensor_representations = []
         for variable_id, variable_tensor in self.tensor.items():
             for parameter_id, parameter_matrix in variable_tensor.items():
@@ -1803,6 +1834,7 @@ class SciPyTensorView(DictTensorView):
                     (coo_repr.row % m) + row_offset,
                     coo_repr.col + self.id_to_col[variable_id],
                     coo_repr.row // m + np.ones(coo_repr.nnz) * self.param_to_col[parameter_id],
+                    shape=shape
                 ))
         return TensorRepresentation.combine(tensor_representations)
 
