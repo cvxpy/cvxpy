@@ -33,7 +33,7 @@ def coeff_extractor():
     return CoeffExtractor(inverset_data, backend)
 
 
-def test_issue_2402_scalar():
+def test_issue_2402_scalar_parameter():
     """
     This is the problem reported in #2402, failing to solve when two parameters
     are used on quadratic forms with the same variable.
@@ -59,6 +59,35 @@ def test_issue_2402_scalar():
     
     assert prob.value is not None
     assert w.value is not None
+
+
+def test_issue_2402_scalar_constant():
+    """
+    This slight modification uses a constant instead of a parameter,
+    which was a separate issue in the same problem.
+    """
+
+    r =  np.array([-0.48,  0.11,  0.09, -0.39,  0.03])
+    Sigma = np.array([
+        [2.4e-04, 1.3e-04, 2.0e-04, 1.6e-04, 2.0e-04],
+        [1.3e-04, 2.8e-04, 2.1e-04, 1.7e-04, 1.5e-04],
+        [2.0e-04, 2.1e-04, 5.8e-04, 3.3e-04, 2.3e-04],
+        [1.6e-04, 1.7e-04, 3.3e-04, 6.9e-04, 2.1e-04],
+        [2.0e-04, 1.5e-04, 2.3e-04, 2.1e-04, 3.6e-04]])
+
+    w = cp.Variable(5)
+    risk_aversion = cp.Parameter(value=1., nonneg=True)
+    ridge_coef = 0
+    
+    obj_func = r @ w - risk_aversion * cp.quad_form(w, Sigma) -  ridge_coef * cp.sum_squares(w)
+    objective = cp.Maximize(obj_func)
+    constraints = [cp.sum(w) == 1]
+    prob = cp.Problem(objective, constraints)
+    prob.solve()
+    
+    assert prob.value is not None
+    assert w.value is not None
+
 
 def test_issue_2402_vector():
     """
