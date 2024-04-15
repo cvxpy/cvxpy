@@ -53,12 +53,16 @@ def test_issue_2402_scalar_parameter():
     
     obj_func = r @ w - risk_aversion * cp.quad_form(w, Sigma) -  ridge_coef * cp.sum_squares(w)
     objective = cp.Maximize(obj_func)
-    constraints = [cp.sum(w) == 1]
+    fixed_w = np.array([10, 11, 12, 13, 14])
+    constraints = [w == fixed_w]
     prob = cp.Problem(objective, constraints)
     prob.solve()
     
-    assert prob.value is not None
-    assert w.value is not None
+    expected_value = r @ fixed_w - risk_aversion.value * np.dot(fixed_w, np.dot(Sigma, fixed_w)) - \
+        ridge_coef.value * np.sum(np.square(fixed_w))
+    
+    assert np.isclose(prob.value, expected_value)
+    assert np.allclose(w.value, fixed_w)
 
 
 def test_issue_2402_scalar_constant():
@@ -81,12 +85,16 @@ def test_issue_2402_scalar_constant():
     
     obj_func = r @ w - risk_aversion * cp.quad_form(w, Sigma) -  ridge_coef * cp.sum_squares(w)
     objective = cp.Maximize(obj_func)
-    constraints = [cp.sum(w) == 1]
+    fixed_w = np.array([10, 11, 12, 13, 14])
+    constraints = [w == fixed_w]
     prob = cp.Problem(objective, constraints)
     prob.solve()
     
-    assert prob.value is not None
-    assert w.value is not None
+    expected_value = r @ fixed_w - risk_aversion.value * np.dot(fixed_w, np.dot(Sigma, fixed_w)) - \
+        ridge_coef * np.sum(np.square(fixed_w))
+    
+    assert np.isclose(prob.value, expected_value)
+    assert np.allclose(w.value, fixed_w)
 
 
 def test_issue_2402_vector():
@@ -105,18 +113,23 @@ def test_issue_2402_vector():
     ])
 
     w = cp.Variable(5)
-    risk_aversion = cp.Parameter(value=1., nonneg=True)
+    risk_aversion = cp.Parameter(value=2., nonneg=True)
     ridge_coef = cp.Parameter((5), value=np.arange(5), nonneg=True)
 
     obj_func = r @ w - risk_aversion * cp.quad_form(w, Sigma) - \
-        cp.sum(cp.multiply(ridge_coef, cp.square(w)))
+        cp.sum(cp.multiply(cp.multiply(ridge_coef, np.array([5,6,7,8,9])), cp.square(w)))
+
     objective = cp.Maximize(obj_func)
-    constraints = [cp.sum(w) == 1]
+    fixed_w = np.array([10, 11, 12, 13, 14])
+    constraints = [w == fixed_w]
     prob = cp.Problem(objective, constraints)
     prob.solve()
     
-    assert prob.value is not None
-    assert w.value is not None
+    expected_value = r @ fixed_w - risk_aversion.value * np.dot(fixed_w, np.dot(Sigma, fixed_w)) - \
+        np.sum(ridge_coef.value * np.array([5,6,7,8,9]) * np.square(fixed_w))
+
+    assert np.isclose(prob.value, expected_value)
+    assert np.allclose(w.value, fixed_w)
 
 
 def test_problem_end_to_end():

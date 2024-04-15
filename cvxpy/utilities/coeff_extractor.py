@@ -140,29 +140,39 @@ class CoeffExtractor:
                 else:
                     P = sp.coo_matrix(P.value)
 
-                # We multiply the columns of P, by c_part
-                # by operating directly on the data.
-                if var_size > 1:
-                    # Multiple quad forms in the same expression, sharing P
-                    # TODO remove zeros from data.
-                    data = P.data[:, None] * c_part[P.col]
-                    param_idxs = np.arange(num_params)
-                else:
-                    # Eliminate zeros from data by tracking
-                    # which indices of the global parameter vector are used.
+                # We multiply P by the parameter coefficients.
+                if var_size == 1:
+                    # Single quad form in the expression, i.e., we multiply
+                    # the full P matrix by the non-zero entries of c_part.
 
                     nonzero_idxs = c_part[0] != 0
                     data = P.data[:, None] * c_part[:, nonzero_idxs]
                     param_idxs = np.arange(num_params)[nonzero_idxs]
-                P_tup = TensorRepresentation(
-                    data.flatten(order="F"),
-                    np.tile(P.row, len(param_idxs)),
-                    np.tile(P.col, len(param_idxs)),
-                    np.repeat(param_idxs, len(P.data)),
-                    P.shape
-                )
-                # Conceptually similar to
-                # P = P[:, :, None] * c_part[None, :, :]
+                    P_tup = TensorRepresentation(
+                        data.flatten(order="F"),
+                        np.tile(P.row, len(param_idxs)),
+                        np.tile(P.col, len(param_idxs)),
+                        np.repeat(param_idxs, len(P.data)),
+                        P.shape
+                    )
+                else:
+                    # Multiple quad forms in the one expression, i.e., c_part
+                    # is now a matrix where each row corresponds to a different
+                    # variable.
+                    assert (P.col == P.row).all(), \
+                        "Only diagonal P matrices are supported for multiple quad forms."
+                    
+                    scaled_c_part = P @ c_part
+                    paramx_idx_row, param_idx_col = np.nonzero(scaled_c_part)
+                    c_vals = c_part[paramx_idx_row, param_idx_col]
+                    P_tup = TensorRepresentation(
+                        c_vals,
+                        paramx_idx_row,
+                        paramx_idx_row,
+                        param_idx_col,
+                        P.shape
+                    )
+
                 if orig_id in coeffs:
                     if 'P' in coeffs[orig_id]:
                         coeffs[orig_id]['P'] =  coeffs[orig_id]['P'] + P_tup
