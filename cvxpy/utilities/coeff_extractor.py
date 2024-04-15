@@ -1,6 +1,5 @@
 """
-
-Copyright 2016 Jaehyun Park, 2017 Robin Verschueren, 2017 Akshay Agrawal
+Copyright, the CVXPY authors
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -18,13 +17,13 @@ limitations under the License.
 from __future__ import annotations, division
 
 import operator
-from dataclasses import dataclass
 from typing import List
 
 import numpy as np
 import scipy.sparse as sp
 
 from cvxpy.cvxcore.python import canonInterface
+from cvxpy.lin_ops.canon_backend import TensorRepresentation
 from cvxpy.lin_ops.lin_op import NO_OP, LinOp
 from cvxpy.reductions.inverse_data import InverseData
 from cvxpy.utilities.replace_quad_forms import (
@@ -32,41 +31,6 @@ from cvxpy.utilities.replace_quad_forms import (
     restore_quad_forms,
 )
 
-
-@dataclass
-class COOData:
-    """
-    Data for constructing a COO matrix representing a 3d tensor.
-    Unlike a in a 2d COO matrix, data is a 2d matrix, with the columns
-    representing the parameter slices given by param_idxs.
-    """
-    data: np.ndarray
-    row: np.ndarray
-    col: np.ndarray
-    shape: tuple[int, int]
-    param_idxs: np.ndarray
-
-    def __add__(self, other: COOData) -> COOData:
-        # Concatenation becomes addition when constructing
-        # COO matrix because repeated indices are summed.
-
-        if self.shape != other.shape:
-            raise ValueError("Shapes must match for addition.")
-        data = np.concatenate([self.data, other.data], axis=1)
-        row = np.concatenate([self.row, other.row], axis=0)
-        col = np.concatenate([self.col, other.col], axis=0)
-        param_idxs = np.concatenate([self.param_idxs, other.param_idxs], axis=0)
-        return COOData(data, row, col, self.shape, param_idxs)
-
-    @classmethod
-    def empty_with_shape(cls, shape: tuple[int, int]) -> COOData:
-        return COOData(
-            np.array([]),
-            np.array([], dtype=int),
-            np.array([], dtype=int),
-            shape,
-            np.array([], dtype=int),
-        )
 
 # TODO find best format for sparse matrices: csr, csc, dok, lil, ...
 class CoeffExtractor:
@@ -205,7 +169,13 @@ class CoeffExtractor:
                     nonzero_idxs = c_part[0] != 0
                     data = P.data[:, None] * c_part[:, nonzero_idxs]
                     param_idxs = np.arange(num_params)[nonzero_idxs]
-                P_tup = COOData(data, P.row, P.col, P.shape, param_idxs)
+                P_tup = TensorRepresentation(
+                    data.flatten(order="F"),
+                    np.tile(P.row, len(param_idxs)),
+                    np.tile(P.col, len(param_idxs)),
+                    np.repeat(param_idxs, len(P.data)),
+                    P.shape
+                )
                 # Conceptually similar to
                 # P = P[:, :, None] * c_part[None, :, :]
                 if orig_id in coeffs:
@@ -233,7 +203,7 @@ class CoeffExtractor:
                         coeffs[var.id]['q'] += c[var_offset:var_offset+var_size, :]
                     else:
                         coeffs[var.id]['q'] += param_coeffs[var_offset:var_offset+var_size, :]
-                else:
+                else:   
                     coeffs[var.id] = dict()
                     # Fast path for no parameters, q is dense and so is c.
                     if num_params == 1:
@@ -276,7 +246,7 @@ class CoeffExtractor:
                 P = coeffs[var_id]['P']
                 P_entries += P.data.size
             else:
-                P = COOData.empty_with_shape((size, size))
+                P = TensorRepresentation.empty_with_shape((size, size))
             if var_id in coeffs and 'q' in coeffs[var_id]:
                 q = coeffs[var_id]['q']
             else:
@@ -291,18 +261,17 @@ class CoeffExtractor:
             P_height += size
 
         if P_height != self.x_length:
-            raise RuntimeError("Resulting quadratic form does not have "
+            raise ValueError("Resulting quadratic form does not have "
                                "appropriate dimensions")
 
         # Stitch together Ps and qs and constant.
-        P = self.merge_P_list(P_list, P_entries, P_height, num_params)
+        P = self.merge_P_list(P_list, P_height, num_params)
         q = self.merge_q_list(q_list, constant, num_params)
         return P, q
 
     def merge_P_list(
             self, 
-            P_list: List[COOData],
-            P_entries: int, 
+            P_list: List[TensorRepresentation],
             P_height: int, 
             num_params: int,
         ) -> sp.coo_matrix:
@@ -313,7 +282,7 @@ class CoeffExtractor:
            We do this by extending each P with zero blocks above and below.
 
         Args:
-            P_list: list of P submatrices as COOData objects.
+            P_list: list of P submatrices as TensorRepresentation objects.
             P_entries: number of entries in the merged P matrix.
             P_height: number of rows in the merged P matrix.
             num_params: number of parameters in the problem.
@@ -321,39 +290,22 @@ class CoeffExtractor:
         Returns:
             A COO sparse representation of the merged P matrix.
         """
-        gap_above = np.int64(0)
-        acc_height = np.int64(0)
-        rows = np.zeros(P_entries, dtype=np.int64)
-        cols = np.zeros(P_entries, dtype=np.int64)
-        vals = np.zeros(P_entries)
-        entry_offset = 0
-        for P in P_list:
-            """Conceptually, the code is equivalent to
-            ```
-            above = np.zeros((gap_above, P.shape[1], num_params))
-            below = np.zeros((gap_below, P.shape[1], num_params))
-            padded_P = np.concatenate([above, P, below], axis=0)
-            padded_P = np.reshape(padded_P, (P_height*P.shape[1], num_params),
-                                  order='F')
-            padded_P_list.append(padded_P)
-            ```
-            but done by constructing a COO matrix.
-            """
-            if P.data.size > 0:
-                vals[entry_offset:entry_offset + P.data.size] = P.data.flatten(
-                    order='F'
-                )
-                P_cols_ext = P.col.astype(np.int64) * np.int64(P_height)
-                base_rows = gap_above + acc_height + P.row + P_cols_ext
-                full_rows = np.tile(base_rows, P.data.size // P.row.size)
-                rows[entry_offset:entry_offset + P.data.size] = full_rows
-                full_cols = np.repeat(P.param_idxs, P.data.size // P.param_idxs.size)
-                cols[entry_offset:entry_offset + P.data.size] = full_cols
-                entry_offset += P.data.size
-            gap_above += P.shape[0]
-            acc_height += P_height * np.int64(P.shape[1])
 
-        return sp.coo_matrix((vals, (rows, cols)), shape=(acc_height, num_params))
+        offset = 0
+        for P in P_list:
+            m, n = P.shape
+            assert m == n
+    
+            # Translate local to global indices within the block diagonal matrix.
+            P.row += offset
+            P.col += offset
+            P.shape = (P_height, P_height)
+    
+            offset += m
+
+        combined = TensorRepresentation.combine(P_list)
+
+        return combined.flatten_tensor(num_params).tocoo()  # todo: check if csc works
 
     def merge_q_list(
         self,

@@ -5,7 +5,8 @@ import pytest
 
 import cvxpy as cp
 from cvxpy.atoms.quad_form import SymbolicQuadForm
-from cvxpy.utilities.coeff_extractor import CoeffExtractor, COOData
+from cvxpy.lin_ops.canon_backend import TensorRepresentation
+from cvxpy.utilities.coeff_extractor import CoeffExtractor
 
 
 @dataclass
@@ -30,6 +31,63 @@ def coeff_extractor():
     )
     backend = cp.CPP_CANON_BACKEND
     return CoeffExtractor(inverset_data, backend)
+
+
+def test_issue_2402_scalar():
+    """
+    This is the problem reported in #2402, failing to solve when two parameters
+    are used on quadratic forms with the same variable.
+    """
+
+    r =  np.array([-0.48,  0.11,  0.09, -0.39,  0.03])
+    Sigma = np.array([
+        [2.4e-04, 1.3e-04, 2.0e-04, 1.6e-04, 2.0e-04],
+        [1.3e-04, 2.8e-04, 2.1e-04, 1.7e-04, 1.5e-04],
+        [2.0e-04, 2.1e-04, 5.8e-04, 3.3e-04, 2.3e-04],
+        [1.6e-04, 1.7e-04, 3.3e-04, 6.9e-04, 2.1e-04],
+        [2.0e-04, 1.5e-04, 2.3e-04, 2.1e-04, 3.6e-04]])
+
+    w = cp.Variable(5)
+    risk_aversion = cp.Parameter(value=1., nonneg=True)
+    ridge_coef = cp.Parameter(value=0., nonneg=True)
+    
+    obj_func = r @ w - risk_aversion * cp.quad_form(w, Sigma) -  ridge_coef * cp.sum_squares(w)
+    objective = cp.Maximize(obj_func)
+    constraints = [cp.sum(w) == 1]
+    prob = cp.Problem(objective, constraints)
+    prob.solve()
+    
+    assert prob.value is not None
+    assert w.value is not None
+
+def test_issue_2402_vector():
+    """
+    This slight modification with the ridge_coef as a vector also failed
+    with a different error due to a dimension mismatch.
+    """
+
+    r =  np.array([-0.48,  0.11,  0.09, -0.39,  0.03])
+    Sigma = np.array([
+        [2.4e-04, 1.3e-04, 2.0e-04, 1.6e-04, 2.0e-04],
+        [1.3e-04, 2.8e-04, 2.1e-04, 1.7e-04, 1.5e-04],
+        [2.0e-04, 2.1e-04, 5.8e-04, 3.3e-04, 2.3e-04],
+        [1.6e-04, 1.7e-04, 3.3e-04, 6.9e-04, 2.1e-04],
+        [2.0e-04, 1.5e-04, 2.3e-04, 2.1e-04, 3.6e-04]
+    ])
+
+    w = cp.Variable(5)
+    risk_aversion = cp.Parameter(value=1., nonneg=True)
+    ridge_coef = cp.Parameter((5), value=np.arange(5), nonneg=True)
+
+    obj_func = r @ w - risk_aversion * cp.quad_form(w, Sigma) - \
+        cp.sum(cp.multiply(ridge_coef, cp.square(w)))
+    objective = cp.Maximize(obj_func)
+    constraints = [cp.sum(w) == 1]
+    prob = cp.Problem(objective, constraints)
+    prob.solve()
+    
+    assert prob.value is not None
+    assert w.value is not None
 
 
 def test_problem_end_to_end():
@@ -80,10 +138,10 @@ def test_coeff_extractor(coeff_extractor):
     assert len(coeffs) == 1
     assert np.allclose(coeffs[1]["q"].toarray(), np.zeros((2, 3)))
     P = coeffs[1]["P"]
-    assert isinstance(P, COOData)
-    assert np.allclose(P.data, np.ones((2,2)))
+    assert isinstance(P, TensorRepresentation)
+    assert np.allclose(P.data, np.ones((4)))
     assert np.allclose(P.row, np.array([0, 1, 0, 1]))
     assert np.allclose(P.col, np.array([0, 1, 0, 1]))
     assert P.shape == (2, 2)
-    assert np.allclose(P.param_idxs, np.array([0,1]))
+    assert np.allclose(P.parameter_offset, np.array([0, 0, 1, 1]))
     assert np.allclose(constant.toarray(), np.zeros((3)))
