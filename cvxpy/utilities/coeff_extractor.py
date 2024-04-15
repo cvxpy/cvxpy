@@ -269,7 +269,7 @@ class CoeffExtractor:
             P_list: List[TensorRepresentation],
             P_height: int, 
             num_params: int,
-        ) -> sp.coo_matrix:
+        ) -> sp.csc_matrix:
         """Conceptually we build a block diagonal matrix
            out of all the Ps, then flatten the first two dimensions.
            eg P1
@@ -283,7 +283,7 @@ class CoeffExtractor:
             num_params: number of parameters in the problem.
         
         Returns:
-            A COO sparse representation of the merged P matrix.
+            A CSC sparse representation of the merged P matrix.
         """
 
         offset = 0
@@ -300,7 +300,7 @@ class CoeffExtractor:
 
         combined = TensorRepresentation.combine(P_list)
 
-        return combined.flatten_tensor(num_params).tocoo()  # todo: check if csc works
+        return combined.flatten_tensor(num_params)
 
     def merge_q_list(
         self,
