@@ -44,21 +44,6 @@ class CoeffExtractor:
         self.param_id_map = inverse_data.param_id_map
         self.canon_backend = canon_backend
 
-    def get_coeffs(self, expr):
-        if expr.is_constant():
-            return self.constant(expr)
-        elif expr.is_affine():
-            return self.affine(expr)
-        elif expr.is_quadratic():
-            return self.quad_form(expr)
-        else:
-            raise Exception("Unknown expression type %s." % type(expr))
-
-    def constant(self, expr):
-        size = expr.size
-        return sp.csr_matrix((size, self.N)), np.reshape(expr.value, (size,),
-                                                         order='F')
-
     def affine(self, expr):
         """Extract problem data tensor from an expression that is reducible to
         A*x + b.
@@ -316,7 +301,7 @@ class CoeffExtractor:
         """Stack q with constant offset as last row.
 
         Args:
-            q_list: list of q submatrices as scipy sparse matrices or numpy arrays.
+            q_list: list of q submatrices as SciPy sparse matrices or NumPy arrays.
             constant: The constant offset as a CSC sparse matrix.
             num_params: number of parameters in the problem.
 
