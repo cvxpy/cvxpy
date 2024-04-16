@@ -111,7 +111,7 @@ because it ignores and tramples over the required build dependencies as conda-fo
 If this file has changed between versions, the old patch will fail to apply and will need to be rebased.
 
 ## Creating a release on GitHub
-Go to the [Releases](https://github.com/cvxpy/cvxpy/releases) tab and click "Draft a new release". Select the previously created tag and write release notes. For minor releases, this includes a summary of new features and deprecations. Additionally, we mention the PRs contained in the release and their contributors. Take care to select the "set as the latest release" only for minor releases or patches ot the most recent major release.
+Go to the [Releases](https://github.com/cvxpy/cvxpy/releases) tab and click "Draft a new release". Select the previously created tag and write release notes. For minor releases, this includes a summary of new features and deprecations. Additionally, we mention the PRs contained in the release and their contributors. Take care to select the "set as the latest release" only for minor releases or patches to the most recent major release.
 
 ## Deploying updated documentation to gh-pages
 
