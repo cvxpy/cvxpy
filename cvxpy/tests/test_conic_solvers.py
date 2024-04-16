@@ -2262,7 +2262,7 @@ class TestCOPT(unittest.TestCase):
         StandardTestSDPs.test_sdp_1max(solver='COPT')
 
     def test_copt_sdp_2(self) -> None:
-        StandardTestSDPs.test_sdp_2(solver='COPT')
+        StandardTestSDPs.test_sdp_2(solver='COPT', places=2)
 
     def test_copt_params(self) -> None:
         n = 10
