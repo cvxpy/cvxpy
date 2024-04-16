@@ -133,7 +133,7 @@ class SDPA(ConicSolver):
             return failure_solution(status)
 
     def solve_via_data(self, data, warm_start: bool, verbose: bool, solver_opts, solver_cache=None):
-        """
+        r"""
         CVXPY represents cone programs as
             (P) min_x { c^T x : A x + b \in K } + d
 
