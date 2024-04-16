@@ -200,6 +200,7 @@ jobs:
         shell: bash
         run: |
           # Mac has a different syntax for sed -i, this works across oses
+          sed -i.bak -e "s/name='cvxpy',/name='cvxpy-base',/g" setup.py
           sed -i.bak '/clarabel >= /d' setup.py
           sed -i.bak '/osqp >= /d' setup.py
           sed -i.bak '/ecos >= /d' setup.py
