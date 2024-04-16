@@ -84,9 +84,9 @@ class Prod(AxisAtom):
         """Takes the product of the entries of value.
         """
         if intf.is_sparse(values[0]):
-            result = np.prod(values[0], axis=self.axis)
+            result = np.prod(values[0].toarray(), axis=self.axis)
             if not self.keepdims and self.axis is not None:
-                result = result.A.flatten()
+                result = result.flatten()
         else:
             result = np.prod(values[0], axis=self.axis, keepdims=self.keepdims)
         return result
