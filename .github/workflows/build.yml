@@ -194,12 +194,13 @@ jobs:
         shell: bash
         run: |
           echo "PYTHON_SUBVERSION=$(echo $PYTHON_VERSION | cut -c 3-)" >> $GITHUB_ENV
-          echo "DEPLOY=$( [[ $GITHUB_EVENT_NAME == 'push' && $GITHUB_REF == 'refs/tags'* ]] && echo 'True' || echo 'False' )" >> $GITHUB_ENV
+          echo "DEPLOY=$( [[ $GITHUB_EVENT_NAME == 'push' ]] && echo 'True' || echo 'False' )" >> $GITHUB_ENV
 
       - name: Adapt setup.py
         shell: bash
         run: |
           # Mac has a different syntax for sed -i, this works across oses
+          sed -i.bak -e "s/name='cvxpy',/name='cvxpy-base',/g" setup.py
           sed -i.bak '/clarabel >= /d' setup.py
           sed -i.bak '/osqp >= /d' setup.py
           sed -i.bak '/ecos >= /d' setup.py
