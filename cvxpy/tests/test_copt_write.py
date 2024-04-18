@@ -32,6 +32,7 @@ class TestCOPTWrite(BaseTest):
 
         tmpdir = py.path.local()
         tmpfile = tmpdir.mkdir("outfiles").join("copt_model.bin")
+        tmpname = str(tmpfile)
 
         m = 20
         n = 15
@@ -44,6 +45,6 @@ class TestCOPTWrite(BaseTest):
         prob = cp.Problem(cp.Minimize(cost))
         prob.solve(solver=cp.COPT,
                    verbose=True,
-                   save_file=tmpfile)
+                   save_file=tmpname)
 
-        assert os.path.exists(tmpfile)
+        assert os.path.exists(tmpname)
