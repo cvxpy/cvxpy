@@ -20,8 +20,9 @@ from cvxpy.reductions.eliminate_pwl.canonicalizers.max_canon import max_canon
 
 def min_canon(expr, args):
     axis = expr.axis
+    keepdims = expr.keepdims
     del expr
     assert len(args) == 1
-    tmp = max(-args[0], axis=axis)
+    tmp = max(-args[0], axis=axis, keepdims=keepdims)
     canon, constr = max_canon(tmp, tmp.args)
     return -canon, constr
