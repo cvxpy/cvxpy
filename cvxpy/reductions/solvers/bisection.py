@@ -33,7 +33,7 @@ def _solve(problem, solver) -> None:
     with warnings.catch_warnings():
         # TODO(akshayka): Try to emit DPP problems in Dqcp2Dcp
         warnings.filterwarnings('ignore', message=r'.*DPP.*')
-        problem.solve(solver=solver)
+        problem.solve(solver=solver, ignore_dpp=True)
 
 
 def _infeasible(problem) -> bool:
