@@ -14,14 +14,14 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import cvxpy as cp
+from typing import Iterable
+
 import numpy as np
-from cvxpy.tests.base_test import BaseTest
+
+import cvxpy as cp
 from cvxpy.reductions.eliminate_pwl.canonicalizers.maximum_canon import maximum_canon
 from cvxpy.reductions.eliminate_pwl.canonicalizers.minimum_canon import minimum_canon
-
-
-from typing import Iterable
+from cvxpy.tests.base_test import BaseTest
 
 
 class TestCanonSign(BaseTest):
@@ -43,13 +43,13 @@ class TestCanonSign(BaseTest):
         """Iterate over test expressions,
         check that sign is preserved for composition of all with maximum_canon"""
         for expr in self.exprs():
-            tmp = cp.maximum(expr, -np.Inf)
+            tmp = cp.maximum(expr, -np.inf)
             canon_expr, canon_cons = maximum_canon(tmp, tmp.args)
             self.expr_sign_assertions(tmp, canon_expr)
 
     def test_minimum_sign(self):
         """cf. test_maximum_sign"""
         for expr in self.exprs():
-            tmp = cp.minimum(expr, np.Inf)
+            tmp = cp.minimum(expr, np.inf)
             canon_expr, canon_cons = minimum_canon(tmp, tmp.args)
             self.expr_sign_assertions(tmp, canon_expr)
