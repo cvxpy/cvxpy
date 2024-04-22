@@ -1,4 +1,5 @@
 import numpy as np
+import scipy.sparse as sp
 import scipy.sparse.linalg as sparla
 
 import cvxpy as cp
@@ -52,3 +53,23 @@ def test_print():
     assert str(
         B) == '[[1.00 1.00]\n [1.00 1.00]\n [1.00 1.00]\n [1.00 1.00]\n [1.00 1.00]]'
     s.PRINT_EDGEITEMS = default
+
+
+def test_prod():
+    rows = np.concatenate([np.arange(100), np.zeros(100)[1:]])
+    cols = np.concatenate([np.zeros(100), np.arange(100)[1:]])
+    values = np.ones(199)
+    A = sp.coo_matrix((values, (rows, cols)), shape=(100, 100))
+
+    assert np.allclose(cp.prod(A).value, 0.0)
+    assert np.allclose(cp.prod(A, axis=0).value, [1] + [0] * 99)
+    assert cp.prod(A, axis=0).shape == (100,)
+    assert np.allclose(cp.prod(A, axis=1).value, [1] + [0] * 99)
+    assert cp.prod(A, axis=1).shape == (100,)
+    assert np.allclose(cp.prod(A, axis=0, keepdims=True).value, [[1] + [0] * 99])
+    assert cp.prod(A, axis=0, keepdims=True).shape == (1, 100)
+    assert np.allclose(cp.prod(A, axis=1, keepdims=True).value, [[1]] + [[0]] * 99)
+    assert cp.prod(A, axis=1, keepdims=True).shape == (100, 1)
+
+    B = np.arange(4).reshape(2, 2) + 1
+    assert np.allclose(cp.prod(sp.coo_matrix(B)).value, 24)
