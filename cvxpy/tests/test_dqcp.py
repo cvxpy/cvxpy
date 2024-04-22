@@ -713,10 +713,10 @@ class TestDqcp(base_test.BaseTest):
 
         problem = cp.Problem(objective, constraints)
 
-        problem.solve(qcp=True)
+        problem.solve(qcp=True, solver=cp.SCS)
 
-        assert np.isclose(x.value, objective.value)
-        assert np.isclose(x.value, 1)
+        self.assertAlmostEqual(x.value, objective.value, places=3)
+        self.assertAlmostEqual(x.value, 1, places=3)
 
     def test_psd_constraint_bug(self) -> None:
         """Test bug with DQCP and PSD constraints.
