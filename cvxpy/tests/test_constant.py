@@ -1,4 +1,5 @@
 import numpy as np
+import pytest
 import scipy.sparse as sp
 import scipy.sparse.linalg as sparla
 
@@ -73,3 +74,17 @@ def test_prod():
 
     B = np.arange(4).reshape(2, 2) + 1
     assert np.allclose(cp.prod(sp.coo_matrix(B)).value, 24)
+
+
+def test_nested_lists():
+
+    A = [[1, 2], [3, 4], [5, 6]]
+
+    numpy_array = np.array(A)
+    constant_from_numpy = cp.Constant(numpy_array)
+
+    with pytest.warns(match="nested list is undefined behavior"):
+        constant_from_lists = cp.Constant(A)
+
+    assert np.allclose(constant_from_numpy.value, numpy_array)
+    assert np.allclose(constant_from_lists.value.T, numpy_array)
