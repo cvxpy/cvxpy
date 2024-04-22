@@ -321,7 +321,7 @@ class CoeffExtractor:
         # Fast path for no parameters.
         if num_params == 1:
             q = np.vstack(q_list)
-            q = np.vstack([q, constant.A])
+            q = np.vstack([q, constant.toarray()])
             return sp.csr_matrix(q)
         else:
             q = sp.vstack(q_list + [constant])
