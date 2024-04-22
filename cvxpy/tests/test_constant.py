@@ -87,4 +87,7 @@ def test_nested_lists():
         constant_from_lists = cp.Constant(A)
 
     assert np.allclose(constant_from_numpy.value, numpy_array)
+
+    # CVXPY behaviour currenlty is different from NumPy for nested lists,
+    # with the order being reversed.
     assert np.allclose(constant_from_lists.value.T, numpy_array)
