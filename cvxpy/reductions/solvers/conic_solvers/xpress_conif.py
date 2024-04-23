@@ -24,6 +24,7 @@ from cvxpy.reductions.solvers.conic_solvers.conic_solver import (
     ConicSolver,
     dims_to_solver_dict,
 )
+from cvxpy.utilities.versioning import Version
 
 
 def makeMstart(A, n, ifCol: int = 1):
@@ -218,11 +219,16 @@ class XPRESS(ConicSolver):
             currow += k
 
             # Create new (cone) variables and add them to the problem
-            conevar = np.array([xp.var(name='cX{0:d}_{1:d}'.format(iCone, i),
-                                       lb=-xp.infinity if i > 0 else 0)
-                                for i in range(k)])
+            if Version(xp.__version__) >= Version('9.4.0'):
+                conevar = [self.prob_.addVariable(name='cX{0:d}_{1:d}'.format(iCone, i),
+                                                  lb=-xp.infinity if i > 0 else 0)
+                                                  for i in range(k)]
+            else:
+                conevar = np.array([xp.var(name='cX{0:d}_{1:d}'.format(iCone, i),
+                            lb=-xp.infinity if i > 0 else 0)
+                    for i in range(k)])
+                self.prob_.addVariable(conevar)
 
-            self.prob_.addVariable(conevar)
 
             initrow = self.prob_.attributes.rows
 
