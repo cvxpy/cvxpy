@@ -894,15 +894,16 @@ class TestGrad(BaseTest):
         # Failed for rectangular inputs.
         # https://github.com/cvxpy/cvxpy/issues/2364
         n = 10
-        m = 20 
-        z = cp.Variable((n, m))
-        np.random.seed(1)
-        z.value = np.random.randn(n, m)
-        objective = cp.Minimize(cp.norm(z, "nuc"))
+        # Test both square and rectangular.
+        for m in [10, 20]:
+            z = cp.Variable((n, m))
+            np.random.seed(1)
+            z.value = np.random.randn(n, m)
+            objective = cp.Minimize(cp.norm(z, "nuc"))
 
-        arg_values = []
-        for arg in objective.expr.args:
-            arg_values.append(arg.value)
-            
-        # Does not crash.
-        objective.expr._grad(arg_values)
+            arg_values = []
+            for arg in objective.expr.args:
+                arg_values.append(arg.value)
+                
+            # Does not crash.
+            objective.expr._grad(arg_values)
