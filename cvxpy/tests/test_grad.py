@@ -887,3 +887,22 @@ class TestGrad(BaseTest):
         self.x.value = [1, 2]
         val = np.eye(2)
         self.assertItemsAlmostEqual(expr.grad[self.x].toarray(), val)
+
+    def test_nuclear_norm(self) -> None:
+        """Test the gradient of the nuclear norm.
+        """
+        # Failed for rectangular inputs.
+        # https://github.com/cvxpy/cvxpy/issues/2364
+        n = 10
+        m = 20 
+        z = cp.Variable((n, m))
+        np.random.seed(1)
+        z.value = np.random.randn(n, m)
+        objective = cp.Minimize(cp.norm(z, "nuc"))
+
+        arg_values = []
+        for arg in objective.expr.args:
+            arg_values.append(arg.value)
+            
+        # Does not crash.
+        objective.expr._grad(arg_values)
