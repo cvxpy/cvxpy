@@ -14,6 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+
 import os
 import unittest
 
@@ -23,12 +24,12 @@ import cvxpy as cp
 from cvxpy.reductions.solvers.defines import INSTALLED_SOLVERS
 
 
-@unittest.skipUnless('GUROBI' in INSTALLED_SOLVERS, 'GUROBI is not installed.')
+@unittest.skipUnless('COPT' in INSTALLED_SOLVERS, 'COPT is not installed.')
 def test_write(tmpdir):
-    """Test the Gurobi model.write().
+    """Test the COPT model.write().
     """
 
-    filename = "gurobi_model.lp"
+    filename = "copt_model.bin"
     path = os.path.join(tmpdir, filename)
 
     m = 20
@@ -40,7 +41,7 @@ def test_write(tmpdir):
     x = cp.Variable(n)
     cost = cp.sum_squares(A @ x - b)
     prob = cp.Problem(cp.Minimize(cost))
-    prob.solve(solver=cp.GUROBI,
+    prob.solve(solver=cp.COPT,
                 verbose=True,
                 save_file=path)
 

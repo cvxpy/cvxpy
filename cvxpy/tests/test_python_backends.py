@@ -23,6 +23,7 @@ class linOpHelper:
     Helper class that allows to access properties of linOps without
     needing to create a full linOps instance
     """
+
     shape: None | tuple[int, ...] = None
     type: None | str = None
     data: None | int | np.ndarray | list[slice] = None
@@ -30,17 +31,23 @@ class linOpHelper:
 
 
 def test_tensor_representation():
-    A = TensorRepresentation(np.array([10]), np.array([0]), np.array([1]), np.array([0]))
-    B = TensorRepresentation(np.array([20]), np.array([1]), np.array([1]), np.array([1]))
+    A = TensorRepresentation(
+        np.array([10]), np.array([0]), np.array([1]), np.array([0]), shape=(2, 2)
+    )
+    B = TensorRepresentation(
+        np.array([20]), np.array([1]), np.array([1]), np.array([1]), shape=(2, 2)
+    )
     combined = TensorRepresentation.combine([A, B])
     assert np.all(combined.data == np.array([10, 20]))
     assert np.all(combined.row == np.array([0, 1]))
     assert np.all(combined.col == np.array([1, 1]))
     assert np.all(combined.parameter_offset == np.array([0, 1]))
+    assert combined.shape == (2, 2)
+    flattened = combined.flatten_tensor(2)
+    assert np.all(flattened.toarray() == np.array([[0, 0], [0, 0], [10, 0], [0, 20]]))
 
 
 class TestBackendInstance:
-
     def test_get_backend(self):
         args = ({1: 0, 2: 2}, {-1: 1, 3: 1}, {3: 0, -1: 1}, 2, 4)
 
@@ -51,7 +58,7 @@ class TestBackendInstance:
         assert isinstance(backend, NumPyCanonBackend)
 
         with pytest.raises(KeyError):
-            CanonBackend.get_backend('notabackend')
+            CanonBackend.get_backend("notabackend")
 
 
 backends = [s.SCIPY_CANON_BACKEND, s.NUMPY_CANON_BACKEND]
@@ -68,7 +75,7 @@ class TestBackends:
             "param_to_size": {-1: 1, 3: 1},
             "param_to_col": {3: 0, -1: 1},
             "param_size_plus_one": 2,
-            "var_length": 4
+            "var_length": 4,
         }
 
         backend = CanonBackend.get_backend(request.param, **kwargs)
@@ -76,56 +83,56 @@ class TestBackends:
         return backend
 
     def test_mapping(self, backend):
-        func = backend.get_func('sum')
+        func = backend.get_func("sum")
         assert isinstance(func, Callable)
         with pytest.raises(KeyError):
-            backend.get_func('notafunc')
+            backend.get_func("notafunc")
 
     def test_neg(self, backend):
         """
-         define x = Variable((2,2)) with
-         [[x11, x12],
-          [x21, x22]]
+        define x = Variable((2,2)) with
+        [[x11, x12],
+         [x21, x22]]
 
-         x is represented as eye(4) in the A matrix (in column-major order), i.e.,
+        x is represented as eye(4) in the A matrix (in column-major order), i.e.,
 
-          x11 x21 x12 x22
-         [[1   0   0   0],
-          [0   1   0   0],
-          [0   0   1   0],
-          [0   0   0   1]]
+         x11 x21 x12 x22
+        [[1   0   0   0],
+         [0   1   0   0],
+         [0   0   1   0],
+         [0   0   0   1]]
 
-         neg(x) means we now have
-          [[-x11, -x21],
-           [-x12, -x22]],
+        neg(x) means we now have
+         [[-x11, -x21],
+          [-x12, -x22]],
 
-          i.e.,
+         i.e.,
 
-          x11 x21 x12 x22
-         [[-1  0   0   0],
-          [0  -1   0   0],
-          [0   0  -1   0],
-          [0   0   0  -1]]
-         """
+         x11 x21 x12 x22
+        [[-1  0   0   0],
+         [0  -1   0   0],
+         [0   0  -1   0],
+         [0   0   0  -1]]
+        """
         empty_view = backend.get_empty_view()
-        variable_lin_op = linOpHelper((2, 2), type='variable', data=1)
+        variable_lin_op = linOpHelper((2, 2), type="variable", data=1)
         view = backend.process_constraint(variable_lin_op, empty_view)
 
         # cast to numpy
-        view_A = view.get_tensor_representation(0)
+        view_A = view.get_tensor_representation(0, 4)
         view_A = sp.coo_matrix((view_A.data, (view_A.row, view_A.col)), shape=(4, 4)).toarray()
         assert np.all(view_A == np.eye(4))
 
         neg_lin_op = linOpHelper()
         out_view = backend.neg(neg_lin_op, view)
-        A = out_view.get_tensor_representation(0)
+        A = out_view.get_tensor_representation(0, 4)
 
         # cast to numpy
         A = sp.coo_matrix((A.data, (A.row, A.col)), shape=(4, 4)).toarray()
         assert np.all(A == -np.eye(4))
 
         # Note: view is edited in-place:
-        assert out_view.get_tensor_representation(0) == view.get_tensor_representation(0)
+        assert out_view.get_tensor_representation(0, 4) == view.get_tensor_representation(0, 4)
 
     def test_transpose(self, backend):
         """
@@ -156,30 +163,25 @@ class TestBackends:
         -> It reduces to reordering the rows of A.
         """
 
-        variable_lin_op = linOpHelper((2, 2), type='variable', data=1)
+        variable_lin_op = linOpHelper((2, 2), type="variable", data=1)
         view = backend.process_constraint(variable_lin_op, backend.get_empty_view())
 
         # cast to numpy
-        view_A = view.get_tensor_representation(0)
+        view_A = view.get_tensor_representation(0, 4)
         view_A = sp.coo_matrix((view_A.data, (view_A.row, view_A.col)), shape=(4, 4)).toarray()
         assert np.all(view_A == np.eye(4))
 
         transpose_lin_op = linOpHelper((2, 2))
         out_view = backend.transpose(transpose_lin_op, view)
-        A = out_view.get_tensor_representation(0)
+        A = out_view.get_tensor_representation(0, 4)
 
         # cast to numpy
         A = sp.coo_matrix((A.data, (A.row, A.col)), shape=(4, 4)).toarray()
-        expected = np.array(
-            [[1, 0, 0, 0],
-             [0, 0, 1, 0],
-             [0, 1, 0, 0],
-             [0, 0, 0, 1]]
-        )
+        expected = np.array([[1, 0, 0, 0], [0, 0, 1, 0], [0, 1, 0, 0], [0, 0, 0, 1]])
         assert np.all(A == expected)
 
         # Note: view is edited in-place:
-        assert out_view.get_tensor_representation(0) == view.get_tensor_representation(0)
+        assert out_view.get_tensor_representation(0, 4) == view.get_tensor_representation(0, 4)
 
     def test_upper_tri(self, backend):
         """
@@ -205,27 +207,25 @@ class TestBackends:
         -> It reduces to selecting a subset of the rows of A.
         """
 
-        variable_lin_op = linOpHelper((2, 2), type='variable', data=1)
+        variable_lin_op = linOpHelper((2, 2), type="variable", data=1)
         view = backend.process_constraint(variable_lin_op, backend.get_empty_view())
 
         # cast to numpy
-        view_A = view.get_tensor_representation(0)
+        view_A = view.get_tensor_representation(0, 4)
         view_A = sp.coo_matrix((view_A.data, (view_A.row, view_A.col)), shape=(4, 4)).toarray()
         assert np.all(view_A == np.eye(4))
 
         upper_tri_lin_op = linOpHelper(args=[linOpHelper((2, 2))])
         out_view = backend.upper_tri(upper_tri_lin_op, view)
-        A = out_view.get_tensor_representation(0)
+        A = out_view.get_tensor_representation(0, 1)
 
         # cast to numpy
         A = sp.coo_matrix((A.data, (A.row, A.col)), shape=(1, 4)).toarray()
-        expected = np.array(
-            [[0, 0, 1, 0]]
-        )
+        expected = np.array([[0, 0, 1, 0]])
         assert np.all(A == expected)
 
         # Note: view is edited in-place:
-        assert out_view.get_tensor_representation(0) == view.get_tensor_representation(0)
+        assert out_view.get_tensor_representation(0, 1) == view.get_tensor_representation(0, 1)
 
     def test_index(self, backend):
         """
@@ -255,39 +255,34 @@ class TestBackends:
          -> It reduces to selecting a subset of the rows of A.
         """
 
-        variable_lin_op = linOpHelper((2, 2), type='variable', data=1)
+        variable_lin_op = linOpHelper((2, 2), type="variable", data=1)
         view = backend.process_constraint(variable_lin_op, backend.get_empty_view())
 
         # cast to numpy
-        view_A = view.get_tensor_representation(0)
+        view_A = view.get_tensor_representation(0, 4)
         view_A = sp.coo_matrix((view_A.data, (view_A.row, view_A.col)), shape=(4, 4)).toarray()
         assert np.all(view_A == np.eye(4))
 
         index_2d_lin_op = linOpHelper(data=[slice(0, 2, 1), slice(0, 1, 1)], args=[variable_lin_op])
         out_view = backend.index(index_2d_lin_op, view)
-        A = out_view.get_tensor_representation(0)
+        A = out_view.get_tensor_representation(0, 2)
 
         # cast to numpy
         A = sp.coo_matrix((A.data, (A.row, A.col)), shape=(2, 4)).toarray()
-        expected = np.array(
-            [[1, 0, 0, 0],
-             [0, 1, 0, 0]]
-        )
+        expected = np.array([[1, 0, 0, 0], [0, 1, 0, 0]])
         assert np.all(A == expected)
 
         index_1d_lin_op = linOpHelper(data=[slice(0, 1, 1)], args=[variable_lin_op])
         out_view = backend.index(index_1d_lin_op, view)
-        A = out_view.get_tensor_representation(0)
+        A = out_view.get_tensor_representation(0, 1)
 
         # cast to numpy
         A = sp.coo_matrix((A.data, (A.row, A.col)), shape=(1, 4)).toarray()
-        expected = np.array(
-            [[1, 0, 0, 0]]
-        )
+        expected = np.array([[1, 0, 0, 0]])
         assert np.all(A == expected)
 
         # Note: view is edited in-place:
-        assert out_view.get_tensor_representation(0) == view.get_tensor_representation(0)
+        assert out_view.get_tensor_representation(0, 1) == view.get_tensor_representation(0, 1)
 
     def test_diag_mat(self, backend):
         """
@@ -314,28 +309,25 @@ class TestBackends:
         -> It reduces to selecting a subset of the rows of A.
         """
 
-        variable_lin_op = linOpHelper((2, 2), type='variable', data=1)
+        variable_lin_op = linOpHelper((2, 2), type="variable", data=1)
         view = backend.process_constraint(variable_lin_op, backend.get_empty_view())
 
         # cast to numpy
-        view_A = view.get_tensor_representation(0)
+        view_A = view.get_tensor_representation(0, 4)
         view_A = sp.coo_matrix((view_A.data, (view_A.row, view_A.col)), shape=(4, 4)).toarray()
         assert np.all(view_A == np.eye(4))
 
         diag_mat_lin_op = linOpHelper(shape=(2, 2), data=0)
         out_view = backend.diag_mat(diag_mat_lin_op, view)
-        A = out_view.get_tensor_representation(0)
+        A = out_view.get_tensor_representation(0, 2)
 
         # cast to numpy
         A = sp.coo_matrix((A.data, (A.row, A.col)), shape=(2, 4)).toarray()
-        expected = np.array(
-            [[1, 0, 0, 0],
-             [0, 0, 0, 1]]
-        )
+        expected = np.array([[1, 0, 0, 0], [0, 0, 0, 1]])
         assert np.all(A == expected)
 
         # Note: view is edited in-place:
-        assert out_view.get_tensor_representation(0) == view.get_tensor_representation(0)
+        assert out_view.get_tensor_representation(0, 4) == view.get_tensor_representation(0, 4)
 
     def test_diag_mat_with_offset(self, backend):
         """
@@ -361,28 +353,26 @@ class TestBackends:
         -> It reduces to selecting a subset of the rows of A.
         """
 
-        variable_lin_op = linOpHelper((2, 2), type='variable', data=1)
+        variable_lin_op = linOpHelper((2, 2), type="variable", data=1)
         view = backend.process_constraint(variable_lin_op, backend.get_empty_view())
 
         # cast to numpy
-        view_A = view.get_tensor_representation(0)
+        view_A = view.get_tensor_representation(0, 4)
         view_A = sp.coo_matrix((view_A.data, (view_A.row, view_A.col)), shape=(4, 4)).toarray()
         assert np.all(view_A == np.eye(4))
 
         k = 1
         diag_mat_lin_op = linOpHelper(shape=(1, 1), data=k)
         out_view = backend.diag_mat(diag_mat_lin_op, view)
-        A = out_view.get_tensor_representation(0)
+        A = out_view.get_tensor_representation(0, 1)
 
         # cast to numpy
         A = sp.coo_matrix((A.data, (A.row, A.col)), shape=(1, 4)).toarray()
-        expected = np.array(
-            [[0, 0, 1, 0]]
-        )
+        expected = np.array([[0, 0, 1, 0]])
         assert np.all(A == expected)
 
         # Note: view is edited in-place:
-        assert out_view.get_tensor_representation(0) == view.get_tensor_representation(0)
+        assert out_view.get_tensor_representation(0, 1) == view.get_tensor_representation(0, 1)
 
     def test_diag_vec(self, backend):
         """
@@ -407,30 +397,25 @@ class TestBackends:
          [0  1]]
         """
 
-        variable_lin_op = linOpHelper((2,), type='variable', data=1)
+        variable_lin_op = linOpHelper((2,), type="variable", data=1)
         view = backend.process_constraint(variable_lin_op, backend.get_empty_view())
 
         # cast to numpy
-        view_A = view.get_tensor_representation(0)
+        view_A = view.get_tensor_representation(0, 2)
         view_A = sp.coo_matrix((view_A.data, (view_A.row, view_A.col)), shape=(2, 2)).toarray()
         assert np.all(view_A == np.eye(2))
 
         diag_vec_lin_op = linOpHelper(shape=(2, 2), data=0)
         out_view = backend.diag_vec(diag_vec_lin_op, view)
-        A = out_view.get_tensor_representation(0)
+        A = out_view.get_tensor_representation(0, 4)
 
         # cast to numpy
         A = sp.coo_matrix((A.data, (A.row, A.col)), shape=(4, 2)).toarray()
-        expected = np.array(
-            [[1, 0],
-             [0, 0],
-             [0, 0],
-             [0, 1]]
-        )
+        expected = np.array([[1, 0], [0, 0], [0, 0], [0, 1]])
         assert np.all(A == expected)
 
         # Note: view is edited in-place:
-        assert out_view.get_tensor_representation(0) == view.get_tensor_representation(0)
+        assert out_view.get_tensor_representation(0, 4) == view.get_tensor_representation(0, 4)
 
     def test_diag_vec_with_offset(self, backend):
         """
@@ -464,36 +449,28 @@ class TestBackends:
         [0  0]]
         """
 
-        variable_lin_op = linOpHelper((2,), type='variable', data=1)
+        variable_lin_op = linOpHelper((2,), type="variable", data=1)
         view = backend.process_constraint(variable_lin_op, backend.get_empty_view())
 
         # cast to numpy
-        view_A = view.get_tensor_representation(0)
+        view_A = view.get_tensor_representation(0, 2)
         view_A = sp.coo_matrix((view_A.data, (view_A.row, view_A.col)), shape=(2, 2)).toarray()
         assert np.all(view_A == np.eye(2))
 
         k = 1
         diag_vec_lin_op = linOpHelper(shape=(3, 3), data=k)
         out_view = backend.diag_vec(diag_vec_lin_op, view)
-        A = out_view.get_tensor_representation(0)
+        A = out_view.get_tensor_representation(0, 9)
 
         # cast to numpy
         A = sp.coo_matrix((A.data, (A.row, A.col)), shape=(9, 2)).toarray()
         expected = np.array(
-            [[0, 0],
-             [0, 0],
-             [0, 0],
-             [1, 0],
-             [0, 0],
-             [0, 0],
-             [0, 0],
-             [0, 1],
-             [0, 0]]
+            [[0, 0], [0, 0], [0, 0], [1, 0], [0, 0], [0, 0], [0, 0], [0, 1], [0, 0]]
         )
         assert np.all(A == expected)
 
         # Note: view is edited in-place:
-        assert out_view.get_tensor_representation(0) == view.get_tensor_representation(0)
+        assert out_view.get_tensor_representation(0, 9) == view.get_tensor_representation(0, 9)
 
     def test_sum_entries(self, backend):
         """
@@ -514,27 +491,25 @@ class TestBackends:
         [[1  1]]
         """
 
-        variable_lin_op = linOpHelper((2,), type='variable', data=1)
+        variable_lin_op = linOpHelper((2,), type="variable", data=1)
         view = backend.process_constraint(variable_lin_op, backend.get_empty_view())
 
         # cast to numpy
-        view_A = view.get_tensor_representation(0)
+        view_A = view.get_tensor_representation(0, 2)
         view_A = sp.coo_matrix((view_A.data, (view_A.row, view_A.col)), shape=(2, 2)).toarray()
         assert np.all(view_A == np.eye(2))
 
         sum_entries_lin_op = linOpHelper()
         out_view = backend.sum_entries(sum_entries_lin_op, view)
-        A = out_view.get_tensor_representation(0)
+        A = out_view.get_tensor_representation(0, 1)
 
         # cast to numpy
         A = sp.coo_matrix((A.data, (A.row, A.col)), shape=(1, 2)).toarray()
-        expected = np.array(
-            [[1, 1]]
-        )
+        expected = np.array([[1, 1]])
         assert np.all(A == expected)
 
         # Note: view is edited in-place:
-        assert out_view.get_tensor_representation(0) == view.get_tensor_representation(0)
+        assert out_view.get_tensor_representation(0, 1) == view.get_tensor_representation(0, 1)
 
     def test_promote(self, backend):
         """
@@ -556,29 +531,25 @@ class TestBackends:
          [1]]
         """
 
-        variable_lin_op = linOpHelper((1,), type='variable', data=1)
+        variable_lin_op = linOpHelper((1,), type="variable", data=1)
         view = backend.process_constraint(variable_lin_op, backend.get_empty_view())
 
         # cast to numpy
-        view_A = view.get_tensor_representation(0)
+        view_A = view.get_tensor_representation(0, 1)
         view_A = sp.coo_matrix((view_A.data, (view_A.row, view_A.col)), shape=(1, 1)).toarray()
         assert np.all(view_A == np.eye(1))
 
         promote_lin_op = linOpHelper((3,))
         out_view = backend.promote(promote_lin_op, view)
-        A = out_view.get_tensor_representation(0)
+        A = out_view.get_tensor_representation(0, 1)
 
         # cast to numpy
         A = sp.coo_matrix((A.data, (A.row, A.col)), shape=(3, 1)).toarray()
-        expected = np.array(
-            [[1],
-             [1],
-             [1]]
-        )
+        expected = np.array([[1], [1], [1]])
         assert np.all(A == expected)
 
         # Note: view is edited in-place:
-        assert out_view.get_tensor_representation(0) == view.get_tensor_representation(0)
+        assert out_view.get_tensor_representation(0, 1) == view.get_tensor_representation(0, 1)
 
     def test_hstack(self, backend):
         """
@@ -592,13 +563,13 @@ class TestBackends:
          [0  1]]
         """
 
-        lin_op_x = linOpHelper((1,), type='variable', data=1)
-        lin_op_y = linOpHelper((1,), type='variable', data=2)
+        lin_op_x = linOpHelper((1,), type="variable", data=1)
+        lin_op_y = linOpHelper((1,), type="variable", data=2)
 
         hstack_lin_op = linOpHelper(args=[lin_op_x, lin_op_y])
         backend.id_to_col = {1: 0, 2: 1}
         out_view = backend.hstack(hstack_lin_op, backend.get_empty_view())
-        A = out_view.get_tensor_representation(0)
+        A = out_view.get_tensor_representation(0, 2)
 
         # cast to numpy
         A = sp.coo_matrix((A.data, (A.row, A.col)), shape=(2, 2)).toarray()
@@ -626,22 +597,17 @@ class TestBackends:
          [0   0   0   1]]
         """
 
-        lin_op_x = linOpHelper((1, 2), type='variable', data=1)
-        lin_op_y = linOpHelper((1, 2), type='variable', data=2)
+        lin_op_x = linOpHelper((1, 2), type="variable", data=1)
+        lin_op_y = linOpHelper((1, 2), type="variable", data=2)
 
         vstack_lin_op = linOpHelper(args=[lin_op_x, lin_op_y])
         backend.id_to_col = {1: 0, 2: 2}
         out_view = backend.vstack(vstack_lin_op, backend.get_empty_view())
-        A = out_view.get_tensor_representation(0)
+        A = out_view.get_tensor_representation(0, 4)
 
         # cast to numpy
         A = sp.coo_matrix((A.data, (A.row, A.col)), shape=(4, 4)).toarray()
-        expected = np.array(
-            [[1, 0, 0, 0],
-             [0, 0, 1, 0],
-             [0, 1, 0, 0],
-             [0, 0, 0, 1]]
-        )
+        expected = np.array([[1, 0, 0, 0], [0, 0, 1, 0], [0, 1, 0, 0], [0, 0, 0, 1]])
         assert np.all(A == expected)
 
     def test_mul(self, backend):
@@ -666,32 +632,27 @@ class TestBackends:
          [0   0   3   4]]
         """
 
-        variable_lin_op = linOpHelper((2, 2), type='variable', data=1)
+        variable_lin_op = linOpHelper((2, 2), type="variable", data=1)
         view = backend.process_constraint(variable_lin_op, backend.get_empty_view())
 
         # cast to numpy
-        view_A = view.get_tensor_representation(0)
+        view_A = view.get_tensor_representation(0, 4)
         view_A = sp.coo_matrix((view_A.data, (view_A.row, view_A.col)), shape=(4, 4)).toarray()
         assert np.all(view_A == np.eye(4))
 
-        lhs = linOpHelper((2, 2), type='dense_const', data=np.array([[1, 2], [3, 4]]))
+        lhs = linOpHelper((2, 2), type="dense_const", data=np.array([[1, 2], [3, 4]]))
 
         mul_lin_op = linOpHelper(data=lhs, args=[variable_lin_op])
         out_view = backend.mul(mul_lin_op, view)
-        A = out_view.get_tensor_representation(0)
+        A = out_view.get_tensor_representation(0, 4)
 
         # cast to numpy
         A = sp.coo_matrix((A.data, (A.row, A.col)), shape=(4, 4)).toarray()
-        expected = np.array(
-            [[1, 2, 0, 0],
-             [3, 4, 0, 0],
-             [0, 0, 1, 2],
-             [0, 0, 3, 4]]
-        )
+        expected = np.array([[1, 2, 0, 0], [3, 4, 0, 0], [0, 0, 1, 2], [0, 0, 3, 4]])
         assert np.all(A == expected)
 
         # Note: view is edited in-place:
-        assert out_view.get_tensor_representation(0) == view.get_tensor_representation(0)
+        assert out_view.get_tensor_representation(0, 4) == view.get_tensor_representation(0, 4)
 
     def test_rmul(self, backend):
         """
@@ -713,30 +674,27 @@ class TestBackends:
          [0   1   0   2]]
         """
 
-        variable_lin_op = linOpHelper((2, 2), type='variable', data=1)
+        variable_lin_op = linOpHelper((2, 2), type="variable", data=1)
         view = backend.process_constraint(variable_lin_op, backend.get_empty_view())
 
         # cast to numpy
-        view_A = view.get_tensor_representation(0)
+        view_A = view.get_tensor_representation(0, 4)
         view_A = sp.coo_matrix((view_A.data, (view_A.row, view_A.col)), shape=(4, 4)).toarray()
         assert np.all(view_A == np.eye(4))
 
-        rhs = linOpHelper((2,), type='dense_const', data=np.array([1, 2]))
+        rhs = linOpHelper((2,), type="dense_const", data=np.array([1, 2]))
 
         rmul_lin_op = linOpHelper(data=rhs, args=[variable_lin_op])
         out_view = backend.rmul(rmul_lin_op, view)
-        A = out_view.get_tensor_representation(0)
+        A = out_view.get_tensor_representation(0, 2)
 
         # cast to numpy
         A = sp.coo_matrix((A.data, (A.row, A.col)), shape=(2, 4)).toarray()
-        expected = np.array(
-            [[1, 0, 2, 0],
-             [0, 1, 0, 2]]
-        )
+        expected = np.array([[1, 0, 2, 0], [0, 1, 0, 2]])
         assert np.all(A == expected)
 
         # Note: view is edited in-place:
-        assert out_view.get_tensor_representation(0) == view.get_tensor_representation(0)
+        assert out_view.get_tensor_representation(0, 2) == view.get_tensor_representation(0, 2)
 
     def test_mul_elementwise(self, backend):
         """
@@ -757,30 +715,27 @@ class TestBackends:
          [0  3]]
         """
 
-        variable_lin_op = linOpHelper((2,), type='variable', data=1)
+        variable_lin_op = linOpHelper((2,), type="variable", data=1)
         view = backend.process_constraint(variable_lin_op, backend.get_empty_view())
 
         # cast to numpy
-        view_A = view.get_tensor_representation(0)
+        view_A = view.get_tensor_representation(0, 2)
         view_A = sp.coo_matrix((view_A.data, (view_A.row, view_A.col)), shape=(2, 2)).toarray()
         assert np.all(view_A == np.eye(2))
 
-        lhs = linOpHelper((2,), type='dense_const', data=np.array([2, 3]))
+        lhs = linOpHelper((2,), type="dense_const", data=np.array([2, 3]))
 
         mul_elementwise_lin_op = linOpHelper(data=lhs)
         out_view = backend.mul_elem(mul_elementwise_lin_op, view)
-        A = out_view.get_tensor_representation(0)
+        A = out_view.get_tensor_representation(0, 2)
 
         # cast to numpy
         A = sp.coo_matrix((A.data, (A.row, A.col)), shape=(2, 2)).toarray()
-        expected = np.array(
-            [[2, 0],
-             [0, 3]]
-        )
+        expected = np.array([[2, 0], [0, 3]])
         assert np.all(A == expected)
 
         # Note: view is edited in-place:
-        assert out_view.get_tensor_representation(0) == view.get_tensor_representation(0)
+        assert out_view.get_tensor_representation(0, 2) == view.get_tensor_representation(0, 2)
 
     def test_div(self, backend):
         """
@@ -800,32 +755,27 @@ class TestBackends:
          [0   0   0   1/4]]
         """
 
-        variable_lin_op = linOpHelper((2, 2), type='variable', data=1)
+        variable_lin_op = linOpHelper((2, 2), type="variable", data=1)
         view = backend.process_constraint(variable_lin_op, backend.get_empty_view())
 
         # cast to numpy
-        view_A = view.get_tensor_representation(0)
+        view_A = view.get_tensor_representation(0, 4)
         view_A = sp.coo_matrix((view_A.data, (view_A.row, view_A.col)), shape=(4, 4)).toarray()
         assert np.all(view_A == np.eye(4))
 
-        lhs = linOpHelper((2, 2), type='dense_const', data=np.array([[1, 2], [3, 4]]))
+        lhs = linOpHelper((2, 2), type="dense_const", data=np.array([[1, 2], [3, 4]]))
 
         div_lin_op = linOpHelper(data=lhs)
         out_view = backend.div(div_lin_op, view)
-        A = out_view.get_tensor_representation(0)
+        A = out_view.get_tensor_representation(0, 4)
 
         # cast to numpy
         A = sp.coo_matrix((A.data, (A.row, A.col)), shape=(4, 4)).toarray()
-        expected = np.array(
-            [[1, 0, 0, 0],
-             [0, 1 / 3, 0, 0],
-             [0, 0, 1 / 2, 0],
-             [0, 0, 0, 1 / 4]]
-        )
+        expected = np.array([[1, 0, 0, 0], [0, 1 / 3, 0, 0], [0, 0, 1 / 2, 0], [0, 0, 0, 1 / 4]])
         assert np.all(A == expected)
 
         # Note: view is edited in-place:
-        assert out_view.get_tensor_representation(0) == view.get_tensor_representation(0)
+        assert out_view.get_tensor_representation(0, 4) == view.get_tensor_representation(0, 4)
 
     def test_trace(self, backend):
         """
@@ -847,27 +797,25 @@ class TestBackends:
         [[1   0   0   1]]
         """
 
-        variable_lin_op = linOpHelper((2, 2), type='variable', data=1)
+        variable_lin_op = linOpHelper((2, 2), type="variable", data=1)
         view = backend.process_constraint(variable_lin_op, backend.get_empty_view())
 
         # cast to numpy
-        view_A = view.get_tensor_representation(0)
+        view_A = view.get_tensor_representation(0, 4)
         view_A = sp.coo_matrix((view_A.data, (view_A.row, view_A.col)), shape=(4, 4)).toarray()
         assert np.all(view_A == np.eye(4))
 
         trace_lin_op = linOpHelper(args=[variable_lin_op])
         out_view = backend.trace(trace_lin_op, view)
-        A = out_view.get_tensor_representation(0)
+        A = out_view.get_tensor_representation(0, 1)
 
         # cast to numpy
         A = sp.coo_matrix((A.data, (A.row, A.col)), shape=(1, 4)).toarray()
-        expected = np.array(
-            [[1, 0, 0, 1]]
-        )
+        expected = np.array([[1, 0, 0, 1]])
         assert np.all(A == expected)
 
         # Note: view is edited in-place:
-        assert out_view.get_tensor_representation(0) == view.get_tensor_representation(0)
+        assert out_view.get_tensor_representation(0, 1) == view.get_tensor_representation(0, 1)
 
     def test_conv(self, backend):
         """
@@ -884,33 +832,29 @@ class TestBackends:
          [0  0  3]]
         """
 
-        variable_lin_op = linOpHelper((3,), type='variable', data=1)
+        variable_lin_op = linOpHelper((3,), type="variable", data=1)
         view = backend.process_constraint(variable_lin_op, backend.get_empty_view())
 
         # cast to numpy
-        view_A = view.get_tensor_representation(0)
+        view_A = view.get_tensor_representation(0, 3)
         view_A = sp.coo_matrix((view_A.data, (view_A.row, view_A.col)), shape=(3, 3)).toarray()
         assert np.all(view_A == np.eye(3))
 
-        f = linOpHelper((3,), type='dense_const', data=np.array([1, 2, 3]))
+        f = linOpHelper((3,), type="dense_const", data=np.array([1, 2, 3]))
         conv_lin_op = linOpHelper(data=f, shape=(5, 1), args=[variable_lin_op])
 
         out_view = backend.conv(conv_lin_op, view)
-        A = out_view.get_tensor_representation(0)
+        A = out_view.get_tensor_representation(0, 5)
 
         # cast to numpy
         A = sp.coo_matrix((A.data, (A.row, A.col)), shape=(5, 3)).toarray()
         expected = np.array(
-            [[1., 0., 0.],
-             [2., 1., 0.],
-             [3., 2., 1.],
-             [0., 3., 2.],
-             [0., 0., 3.]]
+            [[1.0, 0.0, 0.0], [2.0, 1.0, 0.0], [3.0, 2.0, 1.0], [0.0, 3.0, 2.0], [0.0, 0.0, 3.0]]
         )
         assert np.all(A == expected)
 
         # Note: view is edited in-place:
-        assert out_view.get_tensor_representation(0) == view.get_tensor_representation(0)
+        assert out_view.get_tensor_representation(0, 5) == view.get_tensor_representation(0, 5)
 
     def test_kron_r(self, backend):
         """
@@ -926,7 +870,7 @@ class TestBackends:
         [[x11, x12],
          [x21, x22],
          [2x11, 2x12],
-         [2x21, 2x22]]        
+         [2x21, 2x22]]
 
         i.e. as represented in the A matrix (again in column-major order)
 
@@ -953,36 +897,38 @@ class TestBackends:
         So we must swap the row indices of the resulting matrix.
         """
 
-        variable_lin_op = linOpHelper((2, 2), type='variable', data=1)
+        variable_lin_op = linOpHelper((2, 2), type="variable", data=1)
         view = backend.process_constraint(variable_lin_op, backend.get_empty_view())
 
         # cast to numpy
-        view_A = view.get_tensor_representation(0)
+        view_A = view.get_tensor_representation(0, 4)
         view_A = sp.coo_matrix((view_A.data, (view_A.row, view_A.col)), shape=(4, 4)).toarray()
         assert np.all(view_A == np.eye(4))
 
-        a = linOpHelper((2, 1), type='dense_const', data=np.array([[1], [2]]))
+        a = linOpHelper((2, 1), type="dense_const", data=np.array([[1], [2]]))
         kron_r_lin_op = linOpHelper(data=a, args=[variable_lin_op])
 
         out_view = backend.kron_r(kron_r_lin_op, view)
-        A = out_view.get_tensor_representation(0)
+        A = out_view.get_tensor_representation(0, 8)
 
         # cast to numpy
         A = sp.coo_matrix((A.data, (A.row, A.col)), shape=(8, 4)).toarray()
         expected = np.array(
-            [[1., 0., 0., 0.],
-             [0., 1., 0., 0.],
-             [2., 0., 0., 0.],
-             [0., 2., 0., 0.],
-             [0., 0., 1., 0.],
-             [0., 0., 0., 1.],
-             [0., 0., 2., 0.],
-             [0., 0., 0., 2.]]
+            [
+                [1.0, 0.0, 0.0, 0.0],
+                [0.0, 1.0, 0.0, 0.0],
+                [2.0, 0.0, 0.0, 0.0],
+                [0.0, 2.0, 0.0, 0.0],
+                [0.0, 0.0, 1.0, 0.0],
+                [0.0, 0.0, 0.0, 1.0],
+                [0.0, 0.0, 2.0, 0.0],
+                [0.0, 0.0, 0.0, 2.0],
+            ]
         )
         assert np.all(A == expected)
 
         # Note: view is edited in-place:
-        assert out_view.get_tensor_representation(0) == view.get_tensor_representation(0)
+        assert out_view.get_tensor_representation(0, 8) == view.get_tensor_representation(0, 8)
 
     def test_kron_l(self, backend):
         """
@@ -1022,41 +968,43 @@ class TestBackends:
         So we must swap the row indices of the resulting matrix.
         """
 
-        variable_lin_op = linOpHelper((2, 2), type='variable', data=1)
+        variable_lin_op = linOpHelper((2, 2), type="variable", data=1)
         view = backend.process_constraint(variable_lin_op, backend.get_empty_view())
 
         # cast to numpy
-        view_A = view.get_tensor_representation(0)
+        view_A = view.get_tensor_representation(0, 4)
         view_A = sp.coo_matrix((view_A.data, (view_A.row, view_A.col)), shape=(4, 4)).toarray()
         assert np.all(view_A == np.eye(4))
 
-        a = linOpHelper((1, 2), type='dense_const', data=np.array([[1, 2]]))
+        a = linOpHelper((1, 2), type="dense_const", data=np.array([[1, 2]]))
         kron_l_lin_op = linOpHelper(data=a, args=[variable_lin_op])
 
         out_view = backend.kron_l(kron_l_lin_op, view)
-        A = out_view.get_tensor_representation(0)
+        A = out_view.get_tensor_representation(0, 8)
 
         # cast to numpy
         A = sp.coo_matrix((A.data, (A.row, A.col)), shape=(8, 4)).toarray()
         expected = np.array(
-            [[1., 0., 0., 0.],
-             [0., 1., 0., 0.],
-             [2., 0., 0., 0.],
-             [0., 2., 0., 0.],
-             [0., 0., 1., 0.],
-             [0., 0., 0., 1.],
-             [0., 0., 2., 0.],
-             [0., 0., 0., 2.]]
+            [
+                [1.0, 0.0, 0.0, 0.0],
+                [0.0, 1.0, 0.0, 0.0],
+                [2.0, 0.0, 0.0, 0.0],
+                [0.0, 2.0, 0.0, 0.0],
+                [0.0, 0.0, 1.0, 0.0],
+                [0.0, 0.0, 0.0, 1.0],
+                [0.0, 0.0, 2.0, 0.0],
+                [0.0, 0.0, 0.0, 2.0],
+            ]
         )
         assert np.all(A == expected)
 
         # Note: view is edited in-place:
-        assert out_view.get_tensor_representation(0) == view.get_tensor_representation(0)
+        assert out_view.get_tensor_representation(0, 8) == view.get_tensor_representation(0, 8)
 
     def test_get_kron_row_indices(self, backend):
         """
         kron(l,r)
-        with 
+        with
         l = [[x1, x3],  r = [[a],
              [x2, x4]]       [b]]
 
@@ -1065,12 +1013,12 @@ class TestBackends:
          [bx1, bx3],
          [ax2, ax4],
          [bx2, bx4]]
-        
-        Which is what we get when we compute kron(l,r) directly, 
+
+        Which is what we get when we compute kron(l,r) directly,
         as l is represented as eye(4) and r is reshaped into a column vector.
-        
+
         So we have:
-        kron(l,r) = 
+        kron(l,r) =
         [[a, 0, 0, 0],
          [b, 0, 0, 0],
          [0, a, 0, 0],
@@ -1078,7 +1026,7 @@ class TestBackends:
          [0, 0, a, 0],
          [0, 0, b, 0],
          [0, 0, 0, a],
-         [0, 0, 0, b]].            
+         [0, 0, 0, b]].
 
         Thus, this function should return arange(8).
         """
@@ -1139,7 +1087,6 @@ class TestBackends:
 
 
 class TestParametrizedBackends:
-
     @staticmethod
     @pytest.fixture(params=backends)
     def param_backend(request):
@@ -1148,7 +1095,7 @@ class TestParametrizedBackends:
             "param_to_size": {-1: 1, 2: 2},
             "param_to_col": {2: 0, -1: 2},
             "param_size_plus_one": 3,
-            "var_length": 2
+            "var_length": 2,
         }
 
         backend = CanonBackend.get_backend(request.param, **kwargs)
@@ -1182,37 +1129,29 @@ class TestParametrizedBackends:
           [0  1]]]
         """
 
-        param_lin_op = linOpHelper((2,), type='param', data=2)
+        param_lin_op = linOpHelper((2,), type="param", data=2)
         param_backend.param_to_col = {2: 0, -1: 3}
-        variable_lin_op = linOpHelper((2,), type='variable', data=1)
+        variable_lin_op = linOpHelper((2,), type="variable", data=1)
         var_view = param_backend.process_constraint(variable_lin_op, param_backend.get_empty_view())
         mul_elem_lin_op = linOpHelper(data=param_lin_op)
         param_var_view = param_backend.mul_elem(mul_elem_lin_op, var_view)
 
         diag_vec_lin_op = linOpHelper(shape=(2, 2), data=0)
         out_view = param_backend.diag_vec(diag_vec_lin_op, param_var_view)
-        out_repr = out_view.get_tensor_representation(0)
+        out_repr = out_view.get_tensor_representation(0, 4)
 
-        slice_idx_zero = out_repr.get_param_slice(0, (4, 2)).toarray()
-        expected_idx_zero = np.array(
-            [[1., 0.],
-             [0., 0.],
-             [0., 0.],
-             [0., 0.]]
-        )
+        slice_idx_zero = out_repr.get_param_slice(0).toarray()[:, :-1]
+        expected_idx_zero = np.array([[1.0, 0.0], [0.0, 0.0], [0.0, 0.0], [0.0, 0.0]])
         assert np.all(slice_idx_zero == expected_idx_zero)
 
-        slice_idx_one = out_repr.get_param_slice(1, (4, 2)).toarray()
-        expected_idx_one = np.array(
-            [[0., 0.],
-             [0., 0.],
-             [0., 0.],
-             [0., 1.]]
-        )
+        slice_idx_one = out_repr.get_param_slice(1).toarray()[:, :-1]
+        expected_idx_one = np.array([[0.0, 0.0], [0.0, 0.0], [0.0, 0.0], [0.0, 1.0]])
         assert np.all(slice_idx_one == expected_idx_one)
 
         # Note: view is edited in-place:
-        assert out_view.get_tensor_representation(0) == param_var_view.get_tensor_representation(0)
+        assert out_view.get_tensor_representation(0, 4) == param_var_view.get_tensor_representation(
+            0, 4
+        )
 
     def test_parametrized_diag_vec_with_offset(self, param_backend):
         """
@@ -1246,9 +1185,9 @@ class TestParametrizedBackends:
          [0  0]]         [0  0]]
         """
 
-        param_lin_op = linOpHelper((2,), type='param', data=2)
+        param_lin_op = linOpHelper((2,), type="param", data=2)
         param_backend.param_to_col = {2: 0, -1: 3}
-        variable_lin_op = linOpHelper((2,), type='variable', data=1)
+        variable_lin_op = linOpHelper((2,), type="variable", data=1)
         var_view = param_backend.process_constraint(variable_lin_op, param_backend.get_empty_view())
         mul_elem_lin_op = linOpHelper(data=param_lin_op)
         param_var_view = param_backend.mul_elem(mul_elem_lin_op, var_view)
@@ -1256,38 +1195,44 @@ class TestParametrizedBackends:
         k = 1
         diag_vec_lin_op = linOpHelper(shape=(3, 3), data=k)
         out_view = param_backend.diag_vec(diag_vec_lin_op, param_var_view)
-        out_repr = out_view.get_tensor_representation(0)
+        out_repr = out_view.get_tensor_representation(0, 9)
 
-        slice_idx_zero = out_repr.get_param_slice(0, (9, 2)).toarray()
+        slice_idx_zero = out_repr.get_param_slice(0).toarray()[:, :-1]
         expected_idx_zero = np.array(
-            [[0., 0.],
-             [0., 0.],
-             [0., 0.],
-             [1., 0.],
-             [0., 0.],
-             [0., 0.],
-             [0., 0.],
-             [0., 0.],
-             [0., 0.]]
+            [
+                [0.0, 0.0],
+                [0.0, 0.0],
+                [0.0, 0.0],
+                [1.0, 0.0],
+                [0.0, 0.0],
+                [0.0, 0.0],
+                [0.0, 0.0],
+                [0.0, 0.0],
+                [0.0, 0.0],
+            ]
         )
         assert np.all(slice_idx_zero == expected_idx_zero)
 
-        slice_idx_one = out_repr.get_param_slice(1, (9, 2)).toarray()
+        slice_idx_one = out_repr.get_param_slice(1).toarray()[:, :-1]
         expected_idx_one = np.array(
-            [[0., 0.],
-             [0., 0.],
-             [0., 0.],
-             [0., 0.],
-             [0., 0.],
-             [0., 0.],
-             [0., 0.],
-             [0., 1.],
-             [0., 0.]]
+            [
+                [0.0, 0.0],
+                [0.0, 0.0],
+                [0.0, 0.0],
+                [0.0, 0.0],
+                [0.0, 0.0],
+                [0.0, 0.0],
+                [0.0, 0.0],
+                [0.0, 1.0],
+                [0.0, 0.0],
+            ]
         )
         assert np.all(slice_idx_one == expected_idx_one)
 
         # Note: view is edited in-place:
-        assert out_view.get_tensor_representation(0) == param_var_view.get_tensor_representation(0)
+        assert out_view.get_tensor_representation(0, 9) == param_var_view.get_tensor_representation(
+            0, 9
+        )
 
     def test_parametrized_sum_entries(self, param_backend):
         """
@@ -1308,31 +1253,29 @@ class TestParametrizedBackends:
 
          [[0  1]]]
         """
-        param_lin_op = linOpHelper((2,), type='param', data=2)
+        param_lin_op = linOpHelper((2,), type="param", data=2)
         param_backend.param_to_col = {2: 0, -1: 3}
-        variable_lin_op = linOpHelper((2,), type='variable', data=1)
+        variable_lin_op = linOpHelper((2,), type="variable", data=1)
         var_view = param_backend.process_constraint(variable_lin_op, param_backend.get_empty_view())
         mul_elem_lin_op = linOpHelper(data=param_lin_op)
         param_var_view = param_backend.mul_elem(mul_elem_lin_op, var_view)
 
         sum_entries_lin_op = linOpHelper()
         out_view = param_backend.sum_entries(sum_entries_lin_op, param_var_view)
-        out_repr = out_view.get_tensor_representation(0)
+        out_repr = out_view.get_tensor_representation(0, 1)
 
-        slice_idx_zero = out_repr.get_param_slice(0, (1, 2)).toarray()
-        expected_idx_zero = np.array(
-            [[1., 0.]]
-        )
+        slice_idx_zero = out_repr.get_param_slice(0).toarray()[:, :-1]
+        expected_idx_zero = np.array([[1.0, 0.0]])
         assert np.all(slice_idx_zero == expected_idx_zero)
 
-        slice_idx_one = out_repr.get_param_slice(1, (1, 2)).toarray()
-        expected_idx_one = np.array(
-            [[0., 1.]]
-        )
+        slice_idx_one = out_repr.get_param_slice(1).toarray()[:, :-1]
+        expected_idx_one = np.array([[0.0, 1.0]])
         assert np.all(slice_idx_one == expected_idx_one)
 
         # Note: view is edited in-place:
-        assert out_view.get_tensor_representation(0) == param_var_view.get_tensor_representation(0)
+        assert out_view.get_tensor_representation(0, 1) == param_var_view.get_tensor_representation(
+            0, 1
+        )
 
     def test_parametrized_mul(self, param_backend):
         """
@@ -1371,7 +1314,7 @@ class TestParametrizedBackends:
              [0   0   0   1]]
         ]
         """
-        variable_lin_op = linOpHelper((2, 2), type='variable', data=1)
+        variable_lin_op = linOpHelper((2, 2), type="variable", data=1)
         param_backend.param_to_size = {-1: 1, 2: 4}
         param_backend.param_to_col = {2: 0, -1: 4}
         param_backend.param_size_plus_one = 5
@@ -1379,63 +1322,51 @@ class TestParametrizedBackends:
         view = param_backend.process_constraint(variable_lin_op, param_backend.get_empty_view())
 
         # cast to numpy
-        view_A = view.get_tensor_representation(0)
+        view_A = view.get_tensor_representation(0, 4)
         view_A = sp.coo_matrix((view_A.data, (view_A.row, view_A.col)), shape=(4, 4)).toarray()
         assert np.all(view_A == np.eye(4))
 
-        lhs_parameter = linOpHelper((2, 2), type='param', data=2)
+        lhs_parameter = linOpHelper((2, 2), type="param", data=2)
 
         mul_lin_op = linOpHelper(data=lhs_parameter, args=[variable_lin_op])
         out_view = param_backend.mul(mul_lin_op, view)
-        out_repr = out_view.get_tensor_representation(0)
+        out_repr = out_view.get_tensor_representation(0, 4)
 
         # indices are: variable 1, parameter 2, 0 index of the list
-        slice_idx_zero = out_repr.get_param_slice(0, (4, 4)).toarray()
+        slice_idx_zero = out_repr.get_param_slice(0).toarray()[:, :-1]
         expected_idx_zero = np.array(
-            [[1., 0., 0., 0.],
-             [0., 0., 0., 0.],
-             [0., 0., 1., 0.],
-             [0., 0., 0., 0.]]
+            [[1.0, 0.0, 0.0, 0.0], [0.0, 0.0, 0.0, 0.0], [0.0, 0.0, 1.0, 0.0], [0.0, 0.0, 0.0, 0.0]]
         )
         assert np.all(slice_idx_zero == expected_idx_zero)
 
         # indices are: variable 1, parameter 2, 1 index of the list
-        slice_idx_one = out_repr.get_param_slice(1, (4, 4)).toarray()
+        slice_idx_one = out_repr.get_param_slice(1).toarray()[:, :-1]
         expected_idx_one = np.array(
-            [[0., 0., 0., 0.],
-             [1., 0., 0., 0.],
-             [0., 0., 0., 0.],
-             [0., 0., 1., 0.]]
+            [[0.0, 0.0, 0.0, 0.0], [1.0, 0.0, 0.0, 0.0], [0.0, 0.0, 0.0, 0.0], [0.0, 0.0, 1.0, 0.0]]
         )
         assert np.all(slice_idx_one == expected_idx_one)
 
         # indices are: variable 1, parameter 2, 2 index of the list
-        slice_idx_two = out_repr.get_param_slice(2, (4, 4)).toarray()
+        slice_idx_two = out_repr.get_param_slice(2).toarray()[:, :-1]
         expected_idx_two = np.array(
-            [[0., 1., 0., 0.],
-             [0., 0., 0., 0.],
-             [0., 0., 0., 1.],
-             [0., 0., 0., 0.]]
+            [[0.0, 1.0, 0.0, 0.0], [0.0, 0.0, 0.0, 0.0], [0.0, 0.0, 0.0, 1.0], [0.0, 0.0, 0.0, 0.0]]
         )
         assert np.all(slice_idx_two == expected_idx_two)
 
         # indices are: variable 1, parameter 2, 3 index of the list
-        slice_idx_three = out_repr.get_param_slice(3, (4, 4)).toarray()
+        slice_idx_three = out_repr.get_param_slice(3).toarray()[:, :-1]
         expected_idx_three = np.array(
-            [[0., 0., 0., 0.],
-             [0., 1., 0., 0.],
-             [0., 0., 0., 0.],
-             [0., 0., 0., 1.]]
+            [[0.0, 0.0, 0.0, 0.0], [0.0, 1.0, 0.0, 0.0], [0.0, 0.0, 0.0, 0.0], [0.0, 0.0, 0.0, 1.0]]
         )
         assert np.all(slice_idx_three == expected_idx_three)
 
         # Note: view is edited in-place:
-        assert out_view.get_tensor_representation(0) == view.get_tensor_representation(0)
+        assert out_view.get_tensor_representation(0, 4) == view.get_tensor_representation(0, 4)
 
     def test_parametrized_rhs_mul(self, param_backend):
         """
         Continuing from the non-parametrized example when the expression
-        that is multiplied by is parametrized. For a variable that 
+        that is multiplied by is parametrized. For a variable that
         was multiplied elementwise by a parameter, instead of
          x11 x21 x12 x22
         [[1   2   0   0],
@@ -1469,58 +1400,49 @@ class TestParametrizedBackends:
              [0   0   0   4]]
         ]
         """
-        param_lin_op = linOpHelper((2, 2), type='param', data=2)
+        param_lin_op = linOpHelper((2, 2), type="param", data=2)
         param_backend.param_to_col = {2: 0, -1: 4}
         param_backend.param_to_size = {-1: 1, 2: 4}
-        variable_lin_op = linOpHelper((2, 2), type='variable', data=1)
+        param_backend.var_length = 4
+        variable_lin_op = linOpHelper((2, 2), type="variable", data=1)
         var_view = param_backend.process_constraint(variable_lin_op, param_backend.get_empty_view())
         mul_elem_lin_op = linOpHelper(data=param_lin_op)
         param_var_view = param_backend.mul_elem(mul_elem_lin_op, var_view)
 
-        lhs = linOpHelper((2, 2), type='dense_const', data=np.array([[1, 2], [3, 4]]))
+        lhs = linOpHelper((2, 2), type="dense_const", data=np.array([[1, 2], [3, 4]]))
 
         mul_lin_op = linOpHelper(data=lhs, args=[variable_lin_op])
         out_view = param_backend.mul(mul_lin_op, param_var_view)
-        out_repr = out_view.get_tensor_representation(0)
+        out_repr = out_view.get_tensor_representation(0, 4)
 
-        slice_idx_zero = out_repr.get_param_slice(0, (4, 4)).toarray()
+        slice_idx_zero = out_repr.get_param_slice(0).toarray()[:, :-1]
         expected_idx_zero = np.array(
-            [[1., 0., 0., 0.],
-             [3., 0., 0., 0.],
-             [0., 0., 0., 0.],
-             [0., 0., 0., 0.]]
+            [[1.0, 0.0, 0.0, 0.0], [3.0, 0.0, 0.0, 0.0], [0.0, 0.0, 0.0, 0.0], [0.0, 0.0, 0.0, 0.0]]
         )
         assert np.all(slice_idx_zero == expected_idx_zero)
 
-        slice_idx_one = out_repr.get_param_slice(1, (4, 4)).toarray()
+        slice_idx_one = out_repr.get_param_slice(1).toarray()[:, :-1]
         expected_idx_one = np.array(
-            [[0., 2., 0., 0.],
-             [0., 4., 0., 0.],
-             [0., 0., 0., 0.],
-             [0., 0., 0., 0.]]
+            [[0.0, 2.0, 0.0, 0.0], [0.0, 4.0, 0.0, 0.0], [0.0, 0.0, 0.0, 0.0], [0.0, 0.0, 0.0, 0.0]]
         )
         assert np.all(slice_idx_one == expected_idx_one)
 
-        slice_idx_two = out_repr.get_param_slice(2, (4, 4)).toarray()
+        slice_idx_two = out_repr.get_param_slice(2).toarray()[:, :-1]
         expected_idx_two = np.array(
-            [[0., 0., 0., 0.],
-             [0., 0., 0., 0.],
-             [0., 0., 1., 0.],
-             [0., 0., 3., 0.]]
+            [[0.0, 0.0, 0.0, 0.0], [0.0, 0.0, 0.0, 0.0], [0.0, 0.0, 1.0, 0.0], [0.0, 0.0, 3.0, 0.0]]
         )
         assert np.all(slice_idx_two == expected_idx_two)
 
-        slice_idx_three = out_repr.get_param_slice(3, (4, 4)).toarray()
+        slice_idx_three = out_repr.get_param_slice(3).toarray()[:, :-1]
         expected_idx_three = np.array(
-            [[0., 0., 0., 0.],
-             [0., 0., 0., 0.],
-             [0., 0., 0., 2.],
-             [0., 0., 0., 4.]]
+            [[0.0, 0.0, 0.0, 0.0], [0.0, 0.0, 0.0, 0.0], [0.0, 0.0, 0.0, 2.0], [0.0, 0.0, 0.0, 4.0]]
         )
         assert np.all(slice_idx_three == expected_idx_three)
 
         # Note: view is edited in-place:
-        assert out_view.get_tensor_representation(0) == param_var_view.get_tensor_representation(0)
+        assert out_view.get_tensor_representation(0, 4) == param_var_view.get_tensor_representation(
+            0, 4
+        )
 
     def test_parametrized_rmul(self, param_backend):
         """
@@ -1544,44 +1466,38 @@ class TestParametrizedBackends:
         ]
         """
 
-        variable_lin_op = linOpHelper((2, 2), type='variable', data=1)
+        variable_lin_op = linOpHelper((2, 2), type="variable", data=1)
         param_backend.var_length = 4
         view = param_backend.process_constraint(variable_lin_op, param_backend.get_empty_view())
 
         # cast to numpy
-        view_A = view.get_tensor_representation(0)
+        view_A = view.get_tensor_representation(0, 4)
         view_A = sp.coo_matrix((view_A.data, (view_A.row, view_A.col)), shape=(4, 4)).toarray()
         assert np.all(view_A == np.eye(4))
 
-        rhs_parameter = linOpHelper((2,), type='param', data=2)
+        rhs_parameter = linOpHelper((2,), type="param", data=2)
 
         rmul_lin_op = linOpHelper(data=rhs_parameter, args=[variable_lin_op])
         out_view = param_backend.rmul(rmul_lin_op, view)
-        out_repr = out_view.get_tensor_representation(0)
+        out_repr = out_view.get_tensor_representation(0, 2)
 
         # indices are: variable 1, parameter 2, 0 index of the list
-        slice_idx_zero = out_repr.get_param_slice(0, (2, 4)).toarray()
-        expected_idx_zero = np.array(
-            [[1, 0, 0, 0],
-             [0, 1, 0, 0]]
-        )
+        slice_idx_zero = out_repr.get_param_slice(0).toarray()[:, :-1]
+        expected_idx_zero = np.array([[1, 0, 0, 0], [0, 1, 0, 0]])
         assert np.all(slice_idx_zero == expected_idx_zero)
 
         # indices are: variable 1, parameter 2, 1 index of the list
-        slice_idx_one = out_repr.get_param_slice(1, (2, 4)).toarray()
-        expected_idx_one = np.array(
-            [[0, 0, 1, 0],
-             [0, 0, 0, 1]]
-        )
+        slice_idx_one = out_repr.get_param_slice(1).toarray()[:, :-1]
+        expected_idx_one = np.array([[0, 0, 1, 0], [0, 0, 0, 1]])
         assert np.all(slice_idx_one == expected_idx_one)
 
         # Note: view is edited in-place:
-        assert out_view.get_tensor_representation(0) == view.get_tensor_representation(0)
+        assert out_view.get_tensor_representation(0, 2) == view.get_tensor_representation(0, 2)
 
     def test_parametrized_rhs_rmul(self, param_backend):
         """
         Continuing from the non-parametrized example when the expression
-        that is multiplied by is parametrized. For a variable that 
+        that is multiplied by is parametrized. For a variable that
         was multiplied elementwise by a parameter, instead of
 
          x11 x21 x12 x22
@@ -1616,59 +1532,49 @@ class TestParametrizedBackends:
           [0   0   0   4]]
         ]
         """
-        param_lin_op = linOpHelper((2, 2), type='param', data=2)
+        param_lin_op = linOpHelper((2, 2), type="param", data=2)
         param_backend.param_to_col = {2: 0, -1: 4}
         param_backend.param_to_size = {-1: 1, 2: 4}
         param_backend.var_length = 4
-        variable_lin_op = linOpHelper((2, 2), type='variable', data=1)
+        variable_lin_op = linOpHelper((2, 2), type="variable", data=1)
         var_view = param_backend.process_constraint(variable_lin_op, param_backend.get_empty_view())
         mul_elem_lin_op = linOpHelper(data=param_lin_op)
         param_var_view = param_backend.mul_elem(mul_elem_lin_op, var_view)
 
-        rhs = linOpHelper((2, 2), type='dense_const', data=np.array([[1, 2], [3, 4]]))
+        rhs = linOpHelper((2, 2), type="dense_const", data=np.array([[1, 2], [3, 4]]))
 
         rmul_lin_op = linOpHelper(data=rhs, args=[variable_lin_op])
         out_view = param_backend.rmul(rmul_lin_op, param_var_view)
-        out_repr = out_view.get_tensor_representation(0)
+        out_repr = out_view.get_tensor_representation(0, 4)
 
-        slice_idx_zero = out_repr.get_param_slice(0, (4, 4)).toarray()
+        slice_idx_zero = out_repr.get_param_slice(0).toarray()[:, :-1]
         expected_idx_zero = np.array(
-            [[1., 0., 0., 0.],
-             [0., 0., 0., 0.],
-             [2., 0., 0., 0.],
-             [0., 0., 0., 0.]]
+            [[1.0, 0.0, 0.0, 0.0], [0.0, 0.0, 0.0, 0.0], [2.0, 0.0, 0.0, 0.0], [0.0, 0.0, 0.0, 0.0]]
         )
         assert np.all(slice_idx_zero == expected_idx_zero)
 
-        slice_idx_one = out_repr.get_param_slice(1, (4, 4)).toarray()
+        slice_idx_one = out_repr.get_param_slice(1).toarray()[:, :-1]
         expected_idx_one = np.array(
-            [[0., 0., 0., 0.],
-             [0., 1., 0., 0.],
-             [0., 0., 0., 0.],
-             [0., 2., 0., 0.]]
+            [[0.0, 0.0, 0.0, 0.0], [0.0, 1.0, 0.0, 0.0], [0.0, 0.0, 0.0, 0.0], [0.0, 2.0, 0.0, 0.0]]
         )
         assert np.all(slice_idx_one == expected_idx_one)
 
-        slice_idx_two = out_repr.get_param_slice(2, (4, 4)).toarray()
+        slice_idx_two = out_repr.get_param_slice(2).toarray()[:, :-1]
         expected_idx_two = np.array(
-            [[0., 0., 3., 0.],
-             [0., 0., 0., 0.],
-             [0., 0., 4., 0.],
-             [0., 0., 0., 0.]]
+            [[0.0, 0.0, 3.0, 0.0], [0.0, 0.0, 0.0, 0.0], [0.0, 0.0, 4.0, 0.0], [0.0, 0.0, 0.0, 0.0]]
         )
         assert np.all(slice_idx_two == expected_idx_two)
 
-        slice_idx_three = out_repr.get_param_slice(3, (4, 4)).toarray()
+        slice_idx_three = out_repr.get_param_slice(3).toarray()[:, :-1]
         expected_idx_three = np.array(
-            [[0., 0., 0., 0.],
-             [0., 0., 0., 3.],
-             [0., 0., 0., 0.],
-             [0., 0., 0., 4.]]
+            [[0.0, 0.0, 0.0, 0.0], [0.0, 0.0, 0.0, 3.0], [0.0, 0.0, 0.0, 0.0], [0.0, 0.0, 0.0, 4.0]]
         )
         assert np.all(slice_idx_three == expected_idx_three)
 
         # Note: view is edited in-place:
-        assert out_view.get_tensor_representation(0) == param_var_view.get_tensor_representation(0)
+        assert out_view.get_tensor_representation(0, 4) == param_var_view.get_tensor_representation(
+            0, 4
+        )
 
     def test_mul_elementwise_parametrized(self, param_backend):
         """
@@ -1691,43 +1597,37 @@ class TestParametrizedBackends:
         ]
         """
 
-        variable_lin_op = linOpHelper((2,), type='variable', data=1)
+        variable_lin_op = linOpHelper((2,), type="variable", data=1)
         view = param_backend.process_constraint(variable_lin_op, param_backend.get_empty_view())
 
         # cast to numpy
-        view_A = view.get_tensor_representation(0)
+        view_A = view.get_tensor_representation(0, 2)
         view_A = sp.coo_matrix((view_A.data, (view_A.row, view_A.col)), shape=(2, 2)).toarray()
         assert np.all(view_A == np.eye(2))
 
-        lhs_parameter = linOpHelper((2,), type='param', data=2)
+        lhs_parameter = linOpHelper((2,), type="param", data=2)
 
         mul_elementwise_lin_op = linOpHelper(data=lhs_parameter)
         out_view = param_backend.mul_elem(mul_elementwise_lin_op, view)
-        out_repr = out_view.get_tensor_representation(0)
+        out_repr = out_view.get_tensor_representation(0, 2)
 
         # indices are: variable 1, parameter 2, 0 index of the list
-        slice_idx_zero = out_repr.get_param_slice(0, (2, 2)).toarray()
-        expected_idx_zero = np.array(
-            [[1, 0],
-             [0, 0]]
-        )
+        slice_idx_zero = out_repr.get_param_slice(0).toarray()[:, :-1]
+        expected_idx_zero = np.array([[1, 0], [0, 0]])
         assert np.all(slice_idx_zero == expected_idx_zero)
 
         # indices are: variable 1, parameter 2, 1 index of the list
-        slice_idx_one = out_repr.get_param_slice(1, (2, 2)).toarray()
-        expected_idx_one = np.array(
-            [[0, 0],
-             [0, 1]]
-        )
+        slice_idx_one = out_repr.get_param_slice(1).toarray()[:, :-1]
+        expected_idx_one = np.array([[0, 0], [0, 1]])
         assert np.all(slice_idx_one == expected_idx_one)
 
         # Note: view is edited in-place:
-        assert out_view.get_tensor_representation(0) == view.get_tensor_representation(0)
+        assert out_view.get_tensor_representation(0, 2) == view.get_tensor_representation(0, 2)
 
     def test_parametrized_div(self, param_backend):
         """
         Continuing from the non-parametrized example when the expression
-        that is divided by is parametrized. For a variable that 
+        that is divided by is parametrized. For a variable that
         was multiplied elementwise by a parameter, instead of
          x11 x21 x12 x22
         [[1   0   0   0],
@@ -1761,57 +1661,63 @@ class TestParametrizedBackends:
              [0   0   0   1/4]]
         ]
         """
-        param_lin_op = linOpHelper((2, 2), type='param', data=2)
+        param_lin_op = linOpHelper((2, 2), type="param", data=2)
         param_backend.param_to_col = {2: 0, -1: 4}
         param_backend.param_to_size = {-1: 1, 2: 4}
-        variable_lin_op = linOpHelper((2, 2), type='variable', data=1)
+        param_backend.var_length = 4
+        variable_lin_op = linOpHelper((2, 2), type="variable", data=1)
         var_view = param_backend.process_constraint(variable_lin_op, param_backend.get_empty_view())
         mul_elem_lin_op = linOpHelper(data=param_lin_op)
         param_var_view = param_backend.mul_elem(mul_elem_lin_op, var_view)
 
-        lhs = linOpHelper((2, 2), type='dense_const', data=np.array([[1, 2], [3, 4]]))
+        lhs = linOpHelper((2, 2), type="dense_const", data=np.array([[1, 2], [3, 4]]))
 
         div_lin_op = linOpHelper(data=lhs)
         out_view = param_backend.div(div_lin_op, param_var_view)
-        out_repr = out_view.get_tensor_representation(0)
+        out_repr = out_view.get_tensor_representation(0, 4)
 
-        slice_idx_zero = out_repr.get_param_slice(0, (4, 4)).toarray()
+        slice_idx_zero = out_repr.get_param_slice(0).toarray()[:, :-1]
         expected_idx_zero = np.array(
-            [[1., 0., 0., 0.],
-             [0., 0., 0., 0.],
-             [0., 0., 0., 0.],
-             [0., 0., 0., 0.]]
+            [[1.0, 0.0, 0.0, 0.0], [0.0, 0.0, 0.0, 0.0], [0.0, 0.0, 0.0, 0.0], [0.0, 0.0, 0.0, 0.0]]
         )
         assert np.all(slice_idx_zero == expected_idx_zero)
 
-        slice_idx_one = out_repr.get_param_slice(1, (4, 4)).toarray()
+        slice_idx_one = out_repr.get_param_slice(1).toarray()[:, :-1]
         expected_idx_one = np.array(
-            [[0., 0., 0., 0.],
-             [0., 1/3, 0., 0.],
-             [0., 0., 0., 0.],
-             [0., 0., 0., 0.]]
+            [
+                [0.0, 0.0, 0.0, 0.0],
+                [0.0, 1 / 3, 0.0, 0.0],
+                [0.0, 0.0, 0.0, 0.0],
+                [0.0, 0.0, 0.0, 0.0],
+            ]
         )
         assert np.all(slice_idx_one == expected_idx_one)
 
-        slice_idx_two = out_repr.get_param_slice(2, (4, 4)).toarray()
+        slice_idx_two = out_repr.get_param_slice(2).toarray()[:, :-1]
         expected_idx_two = np.array(
-            [[0., 0., 0., 0.],
-             [0., 0., 0., 0.],
-             [0., 0., 1/2, 0.],
-             [0., 0., 0., 0.]]
+            [
+                [0.0, 0.0, 0.0, 0.0],
+                [0.0, 0.0, 0.0, 0.0],
+                [0.0, 0.0, 1 / 2, 0.0],
+                [0.0, 0.0, 0.0, 0.0],
+            ]
         )
         assert np.all(slice_idx_two == expected_idx_two)
 
-        slice_idx_three = out_repr.get_param_slice(3, (4, 4)).toarray()
+        slice_idx_three = out_repr.get_param_slice(3).toarray()[:, :-1]
         expected_idx_three = np.array(
-            [[0., 0., 0., 0.],
-             [0., 0., 0., 0.],
-             [0., 0., 0., 0.],
-             [0., 0., 0., 1/4]]
+            [
+                [0.0, 0.0, 0.0, 0.0],
+                [0.0, 0.0, 0.0, 0.0],
+                [0.0, 0.0, 0.0, 0.0],
+                [0.0, 0.0, 0.0, 1 / 4],
+            ]
         )
         assert np.all(slice_idx_three == expected_idx_three)
         # Note: view is edited in-place:
-        assert out_view.get_tensor_representation(0) == param_var_view.get_tensor_representation(0)
+        assert out_view.get_tensor_representation(0, 4) == param_var_view.get_tensor_representation(
+            0, 4
+        )
 
     def test_parametrized_trace(self, param_backend):
         """
@@ -1831,44 +1737,39 @@ class TestParametrizedBackends:
             [[0   0   0   1]]
         ]
         """
-        param_lin_op = linOpHelper((2, 2), type='param', data=2)
+        param_lin_op = linOpHelper((2, 2), type="param", data=2)
         param_backend.param_to_col = {2: 0, -1: 4}
         param_backend.param_to_size = {-1: 1, 2: 4}
-        variable_lin_op = linOpHelper((2, 2), type='variable', data=1)
+        param_backend.var_length = 4
+        variable_lin_op = linOpHelper((2, 2), type="variable", data=1)
         var_view = param_backend.process_constraint(variable_lin_op, param_backend.get_empty_view())
         mul_elem_lin_op = linOpHelper(data=param_lin_op)
         param_var_view = param_backend.mul_elem(mul_elem_lin_op, var_view)
 
         trace_lin_op = linOpHelper(args=[variable_lin_op])
         out_view = param_backend.trace(trace_lin_op, param_var_view)
-        out_repr = out_view.get_tensor_representation(0)
+        out_repr = out_view.get_tensor_representation(0, 1)
 
-        slice_idx_zero = out_repr.get_param_slice(0, (1, 4)).toarray()
-        expected_idx_zero = np.array(
-            [[1., 0., 0., 0.]]
-        )
+        slice_idx_zero = out_repr.get_param_slice(0).toarray()[:, :-1]
+        expected_idx_zero = np.array([[1.0, 0.0, 0.0, 0.0]])
         assert np.all(slice_idx_zero == expected_idx_zero)
 
-        slice_idx_one = out_repr.get_param_slice(1, (1, 4)).toarray()
-        expected_idx_one = np.array(
-            [[0., 0., 0., 0.]]
-        )
+        slice_idx_one = out_repr.get_param_slice(1).toarray()[:, :-1]
+        expected_idx_one = np.array([[0.0, 0.0, 0.0, 0.0]])
         assert np.all(slice_idx_one == expected_idx_one)
 
-        slice_idx_two = out_repr.get_param_slice(2, (1, 4)).toarray()
-        expected_idx_two = np.array(
-            [[0., 0., 0., 0.]]
-        )
+        slice_idx_two = out_repr.get_param_slice(2).toarray()[:, :-1]
+        expected_idx_two = np.array([[0.0, 0.0, 0.0, 0.0]])
         assert np.all(slice_idx_two == expected_idx_two)
 
-        slice_idx_three = out_repr.get_param_slice(3, (1, 4)).toarray()
-        expected_idx_three = np.array(
-            [[0., 0., 0., 1.]]
-        )
+        slice_idx_three = out_repr.get_param_slice(3).toarray()[:, :-1]
+        expected_idx_three = np.array([[0.0, 0.0, 0.0, 1.0]])
         assert np.all(slice_idx_three == expected_idx_three)
 
         # Note: view is edited in-place:
-        assert out_view.get_tensor_representation(0) == param_var_view.get_tensor_representation(0)
+        assert out_view.get_tensor_representation(0, 1) == param_var_view.get_tensor_representation(
+            0, 1
+        )
 
 
 class TestNumPyBackend:
@@ -1880,7 +1781,7 @@ class TestNumPyBackend:
             "param_to_size": {-1: 1, 2: 2},
             "param_to_col": {2: 0, -1: 2},
             "param_size_plus_one": 3,
-            "var_length": 2
+            "var_length": 2,
         }
         backend = CanonBackend.get_backend(s.NUMPY_CANON_BACKEND, **kwargs)
         assert isinstance(backend, NumPyCanonBackend)
@@ -1896,7 +1797,7 @@ class TestNumPyBackend:
         assert tensor.shape == (1, 2, 2), "Should be a 1x2x2 tensor"
         assert np.all(tensor[0] == np.eye(2)), "Should be eye(2)"
 
-    @pytest.mark.parametrize('data', [np.array([[1, 2], [3, 4]]), sp.eye(2) * 4])
+    @pytest.mark.parametrize("data", [np.array([[1, 2], [3, 4]]), sp.eye(2) * 4])
     def test_get_data_tensor(self, numpy_backend, data):
         outer = numpy_backend.get_data_tensor(data)
         assert outer.keys() == {-1}, "Should only be constant variable ID."
@@ -1919,7 +1820,7 @@ class TestNumPyBackend:
         tensor = inner[3]
         assert isinstance(tensor, np.ndarray), "Should be a numpy array"
         assert tensor.shape == (4, 4, 1), "Should be a 4x4x1 tensor"
-        assert np.all(tensor[:, :, 0] == np.eye(size)), 'Should be eye(4) along axes 1 and 2'
+        assert np.all(tensor[:, :, 0] == np.eye(size)), "Should be eye(4) along axes 1 and 2"
 
     def test_tensor_view_add_dicts(self, numpy_backend):
         view = numpy_backend.get_empty_view()
@@ -1931,9 +1832,10 @@ class TestNumPyBackend:
         assert view.add_dicts({}, {}) == {}
         assert view.add_dicts({"a": one}, {"a": two}) == {"a": three}
         assert view.add_dicts({"a": one}, {"b": two}) == {"a": one, "b": two}
-        assert view.add_dicts({"a": {"c": one}}, {"a": {"c": one}}) == {'a': {'c': two}}
-        with pytest.raises(ValueError,
-                           match="Values must either be dicts or <class 'numpy.ndarray'>"):
+        assert view.add_dicts({"a": {"c": one}}, {"a": {"c": one}}) == {"a": {"c": two}}
+        with pytest.raises(
+            ValueError, match="Values must either be dicts or <class 'numpy.ndarray'>"
+        ):
             view.add_dicts({"a": 1}, {"a": 2})
 
 
@@ -1946,7 +1848,7 @@ class TestSciPyBackend:
             "param_to_size": {-1: 1, 2: 2},
             "param_to_col": {2: 0, -1: 2},
             "param_size_plus_one": 3,
-            "var_length": 2
+            "var_length": 2,
         }
         backend = CanonBackend.get_backend(s.SCIPY_CANON_BACKEND, **kwargs)
         assert isinstance(backend, SciPyCanonBackend)
@@ -1962,7 +1864,7 @@ class TestSciPyBackend:
         assert tensor.shape == (2, 2), "Should be a 1*2x2 tensor"
         assert np.all(tensor == np.eye(2)), "Should be eye(2)"
 
-    @pytest.mark.parametrize('data', [np.array([[1, 2], [3, 4]]), sp.eye(2) * 4])
+    @pytest.mark.parametrize("data", [np.array([[1, 2], [3, 4]]), sp.eye(2) * 4])
     def test_get_data_tensor(self, scipy_backend, data):
         outer = scipy_backend.get_data_tensor(data)
         assert outer.keys() == {-1}, "Should only be constant variable ID."
@@ -1985,8 +1887,9 @@ class TestSciPyBackend:
         tensor = inner[3]
         assert isinstance(tensor, sp.spmatrix), "Should be a scipy sparse matrix"
         assert tensor.shape == (16, 1), "Should be a 4*4x1 tensor"
-        assert (tensor.reshape((size, size)) != sp.eye(size, format='csr')).nnz == 0, \
-            'Should be eye(4) when reshaping'
+        assert (
+            tensor.reshape((size, size)) != sp.eye(size, format="csr")
+        ).nnz == 0, "Should be eye(4) when reshaping"
 
     def test_tensor_view_add_dicts(self, scipy_backend):
         view = scipy_backend.get_empty_view()
@@ -1998,14 +1901,14 @@ class TestSciPyBackend:
         assert view.add_dicts({}, {}) == {}
         assert view.add_dicts({"a": one}, {"a": two}) == {"a": three}
         assert view.add_dicts({"a": one}, {"b": two}) == {"a": one, "b": two}
-        assert view.add_dicts({"a": {"c": one}}, {"a": {"c": one}}) == {'a': {'c': two}}
-        with pytest.raises(ValueError,
-                           match="Values must either be dicts or "
-                                 "<class 'scipy.sparse."):
+        assert view.add_dicts({"a": {"c": one}}, {"a": {"c": one}}) == {"a": {"c": two}}
+        with pytest.raises(
+            ValueError, match="Values must either be dicts or " "<class 'scipy.sparse."
+        ):
             view.add_dicts({"a": 1}, {"a": 2})
 
     @staticmethod
-    @pytest.mark.parametrize('shape', [(1, 1), (2, 2), (3, 3), (4, 4)])
+    @pytest.mark.parametrize("shape", [(1, 1), (2, 2), (3, 3), (4, 4)])
     def test_stacked_kron_r(shape, scipy_backend):
         p = 2
         reps = 3
@@ -2018,7 +1921,7 @@ class TestSciPyBackend:
         assert (expected != repeated).nnz == 0
 
     @staticmethod
-    @pytest.mark.parametrize('shape', [(1, 1), (2, 2), (3, 3), (4, 4)])
+    @pytest.mark.parametrize("shape", [(1, 1), (2, 2), (3, 3), (4, 4)])
     def test_stacked_kron_l(shape, scipy_backend):
         p = 2
         reps = 3
@@ -2034,12 +1937,12 @@ class TestSciPyBackend:
     def test_reshape_single_constant_tensor(scipy_backend):
         a = sp.csc_matrix(np.tile(np.arange(6), 3).reshape((-1, 1)))
         reshaped = scipy_backend._reshape_single_constant_tensor(a, (3, 2))
-        expected = np.arange(6).reshape((3, 2), order='F')
+        expected = np.arange(6).reshape((3, 2), order="F")
         expected = sp.csc_matrix(np.tile(expected, (3, 1)))
         assert (reshaped != expected).nnz == 0
 
     @staticmethod
-    @pytest.mark.parametrize('shape', [(1, 1), (2, 2), (3, 2), (2, 3)])
+    @pytest.mark.parametrize("shape", [(1, 1), (2, 2), (3, 2), (2, 3)])
     def test_transpose_stacked(shape, scipy_backend):
         p = 2
         param_id = 2

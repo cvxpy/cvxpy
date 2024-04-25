@@ -16,6 +16,9 @@ class COPT(QpSolver):
     # Solve capabilities
     MIP_CAPABLE = True
 
+    # Keyword arguments for the CVXPY interface.
+    INTERFACE_ARGS = ["save_file", "reoptimize"]
+
     # Map between COPT status and CVXPY status
     STATUS_MAP = {
                   1: s.OPTIMAL,             # optimal
@@ -150,7 +153,12 @@ class COPT(QpSolver):
 
         # Set parameters
         for key, value in solver_opts.items():
-            model.setParam(key, value)
+            # Ignore arguments unique to the CVXPY interface.
+            if key not in self.INTERFACE_ARGS:
+                model.setParam(key, value)
+
+        if 'save_file' in solver_opts:
+            model.write(solver_opts['save_file'])
 
         # Solve problem
         solution = {}

@@ -110,6 +110,9 @@ An import note: cvxpy's conda-forge feedstock includes a patch to remove ``pypro
 because it ignores and tramples over the required build dependencies as conda-forge sets them up.
 If this file has changed between versions, the old patch will fail to apply and will need to be rebased.
 
+## Creating a release on GitHub
+Go to the [Releases](https://github.com/cvxpy/cvxpy/releases) tab and click "Draft a new release". Select the previously created tag and write release notes. For minor releases, this includes a summary of new features and deprecations. Additionally, we mention the PRs contained in the release and their contributors. Take care to select the "set as the latest release" only for minor releases or patches to the most recent major release.
+
 ## Deploying updated documentation to gh-pages
 
 The web documentation is built and deployed using a GitHub action that can be found [here](https://github.com/cvxpy/cvxpy/blob/master/.github/workflows/docs.yml).

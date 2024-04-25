@@ -14,6 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+import warnings
 from typing import List, Optional, Tuple
 
 import numpy as np
@@ -25,6 +26,9 @@ import cvxpy.settings as s
 import cvxpy.utilities.linalg as eig_util
 from cvxpy.expressions.leaf import Leaf
 from cvxpy.utilities import performance_utils as perf
+
+NESTED_LIST_WARNING =  "Initializing a Constant with a nested list is " \
+    "undefined behavior. Consider using a numpy array instead."
 
 
 class Constant(Leaf):
@@ -45,6 +49,9 @@ class Constant(Leaf):
                 value, convert_scalars=True)
             self._sparse = True
         else:
+            if isinstance(value, list) and any(isinstance(i, list) for i in value):
+                warnings.warn(NESTED_LIST_WARNING)
+
             self._value = intf.DEFAULT_INTF.const_to_matrix(value)
             self._sparse = False
         self._imag: Optional[bool] = None
