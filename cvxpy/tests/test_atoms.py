@@ -947,6 +947,17 @@ class TestAtoms(BaseTest):
         self.assertEqual(str(cm.exception),
                          "The arguments to conv must resolve to vectors.")
 
+        # Test with parameter input.
+        # https://github.com/cvxpy/cvxpy/issues/2218
+        x = cp.Variable()
+        p = cp.Parameter()
+        problem = cp.Problem(cp.Minimize(cp.conv(p, x)), [0 <= x, x <= 1])
+
+        p.value = -1.0
+        result = problem.solve(canon_backend=cp.CPP_CANON_BACKEND)
+        self.assertAlmostEqual(result, -1)
+        self.assertAlmostEqual(x.value, 1)
+
     def test_kron_expr(self) -> None:
         """Test the kron atom.
         """
@@ -980,6 +991,17 @@ class TestAtoms(BaseTest):
                          "The first argument to conv must be constant.")
         with pytest.raises(ValueError, match="scalar or 1D"):
             cp.convolve([[0, 1], [0, 1]], self.x)
+
+        # Test with parameter input.
+        # https://github.com/cvxpy/cvxpy/issues/2218
+        x = cp.Variable()
+        p = cp.Parameter()
+        problem = cp.Problem(cp.Minimize(cp.convolve(p, x)), [0 <= x, x <= 1])
+
+        p.value = -1.0
+        result = problem.solve(canon_backend=cp.CPP_CANON_BACKEND)
+        self.assertAlmostEqual(result, -1)
+        self.assertAlmostEqual(x.value, 1)
 
     def test_ptp(self) -> None:
         """Test the ptp atom.
