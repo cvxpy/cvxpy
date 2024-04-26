@@ -1407,7 +1407,8 @@ class SciPyCanonBackend(PythonCanonBackend):
             lhs = lhs.T
 
         rows = lin.shape[0]
-        cols = lin.args[0].shape[0]
+        # lin.args[0] can have shape (), ie, scalar, or (n,), ie, vector
+        cols = lin.args[0].shape[0] if len(lin.args[0].shape) > 0 else 1
         nonzeros = lhs.shape[0]
 
         lhs = lhs.tocoo()

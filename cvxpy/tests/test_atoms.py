@@ -954,12 +954,13 @@ class TestAtoms(BaseTest):
         problem = cp.Problem(cp.Minimize(cp.conv(p, x)), [0 <= x, x <= 1])
 
         p.value = -1.0
-        result = problem.solve(canon_backend=cp.CPP_CANON_BACKEND)
+        result = problem.solve()
         self.assertAlmostEqual(result, -1)
         self.assertAlmostEqual(x.value, 1)
 
+        problem = cp.Problem(cp.Minimize(cp.conv(p, x)), [0 <= x, x <= 1])
         with pytest.raises(cp.DPPError):
-            problem.solve(canon_backend=cp.CPP_CANON_BACKEND, enforce_dpp=True)
+            problem.solve(enforce_dpp=True)
 
     def test_kron_expr(self) -> None:
         """Test the kron atom.
@@ -1005,6 +1006,10 @@ class TestAtoms(BaseTest):
         result = problem.solve(canon_backend=cp.CPP_CANON_BACKEND)
         self.assertAlmostEqual(result, -1)
         self.assertAlmostEqual(x.value, 1)
+
+        problem = cp.Problem(cp.Minimize(cp.convolve(p, x)), [0 <= x, x <= 1])
+        with pytest.raises(cp.DPPError):
+            problem.solve(enforce_dpp=True)
 
     def test_ptp(self) -> None:
         """Test the ptp atom.
