@@ -193,6 +193,12 @@ class TestGrad(BaseTest):
         self.A.value = [[10, 4], [4, 30]]
         self.assertItemsAlmostEqual(expr.grad[self.A].toarray(), [1, 0, 0, 1])
 
+        # Failed for rectangular inputs.
+        # https://github.com/cvxpy/cvxpy/issues/2364
+        expr = cp.normNuc(self.C)
+        self.C.value = np.array([[1, 0], [0, 0], [0, 2]])
+        self.assertItemsAlmostEqual(expr.grad[self.C].toarray(), [1, 0, 0, 0, 0, 1])
+
     def test_log_det(self) -> None:
         """Test gradient for log_det
         """
@@ -887,23 +893,3 @@ class TestGrad(BaseTest):
         self.x.value = [1, 2]
         val = np.eye(2)
         self.assertItemsAlmostEqual(expr.grad[self.x].toarray(), val)
-
-    def test_nuclear_norm(self) -> None:
-        """Test the gradient of the nuclear norm.
-        """
-        # Failed for rectangular inputs.
-        # https://github.com/cvxpy/cvxpy/issues/2364
-        n = 10
-        # Test both square and rectangular.
-        for m in [10, 20]:
-            z = cp.Variable((n, m))
-            np.random.seed(1)
-            z.value = np.random.randn(n, m)
-            objective = cp.Minimize(cp.norm(z, "nuc"))
-
-            arg_values = []
-            for arg in objective.expr.args:
-                arg_values.append(arg.value)
-                
-            # Does not crash.
-            objective.expr._grad(arg_values)
