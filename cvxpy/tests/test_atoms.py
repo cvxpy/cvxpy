@@ -958,6 +958,9 @@ class TestAtoms(BaseTest):
         self.assertAlmostEqual(result, -1)
         self.assertAlmostEqual(x.value, 1)
 
+        with pytest.raises(cp.DPPError):
+            problem.solve(canon_backend=cp.CPP_CANON_BACKEND, enforce_dpp=True)
+
     def test_kron_expr(self) -> None:
         """Test the kron atom.
         """
