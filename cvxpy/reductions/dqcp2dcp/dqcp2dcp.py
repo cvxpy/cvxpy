@@ -121,7 +121,7 @@ class Dqcp2Dcp(Canonicalization):
 
     def _canonicalize_tree(self, expr):
         canon_args, constrs = self._canon_args(expr)
-        canon_expr, c = self.canonicalize_expr(expr, canon_args)
+        canon_expr, c = self.canonicalize_expr(expr, canon_args, canonicalize_params=False)
         constrs += c
         return canon_expr, constrs
 
@@ -163,6 +163,10 @@ class Dqcp2Dcp(Canonicalization):
         replacing it with its sublevel (superlevel) set. The DCP
         expressions are canonicalized via graph implementations.
         """
+        if constr.is_dcp():
+            canon_constr, aux_constr = self.canonicalize_tree(constr, canonicalize_params=False)
+            return [canon_constr] + aux_constr
+
         lhs = constr.args[0]
         rhs = constr.args[1]
 
@@ -176,10 +180,6 @@ class Dqcp2Dcp(Canonicalization):
             elif np.any(lhs_val == np.inf) or np.any(rhs_val == -np.inf):
                 # constraint is infeasible
                 return [False]
-
-        if constr.is_dcp():
-            canon_constr, aux_constr = self.canonicalize_tree(constr)
-            return [canon_constr] + aux_constr
 
         # canonicalize lhs <= rhs
         # either lhs or rhs is quasiconvex (and not convex)
