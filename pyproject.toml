@@ -1,5 +1,11 @@
 [tool.ruff]
-select = ["E", "F", "I"]
+select = [
+    "E",
+    "F",
+    "I",
+    "NPY201",
+    "W605",  # Check for invalid escape sequences in docstrings (errors in py >= 3.11)
+]
 line-length = 100
 exclude = [
     "build",
@@ -42,7 +48,6 @@ dependencies = [
     "scs >= 3.2.4.post1",
     "numpy >= 1.15",
     "scipy >= 1.1.0",
-    "pybind11"
 ]
 requires-python = ">=3.8"
 urls = {Homepage = "https://github.com/cvxpy/cvxpy"}
@@ -75,6 +80,7 @@ SCIP = ["PySCIPOpt"]
 SCIPY = ["scipy"]
 SCS = ["setuptools>65.5.1"]
 XPRESS = ["xpress"]
+DAQP = ["daqp"]
 
 [project.readme]
 file = "README.md"

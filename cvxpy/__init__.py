@@ -16,7 +16,6 @@ limitations under the License.
 from cvxpy.version import (
     version as __version__,
 )  # cvxpy/version.py is auto-generated
-import cvxpy.interface.scipy_wrapper
 from cvxpy.atoms import *
 from cvxpy.constraints import (
     Constraint as Constraint,
@@ -82,6 +81,7 @@ from cvxpy.settings import (
     OPTIMAL as OPTIMAL,
     OPTIMAL_INACCURATE as OPTIMAL_INACCURATE,
     OSQP as OSQP,
+    DAQP as DAQP,
     PDLP as PDLP,
     PIQP as PIQP,
     PROXQP as PROXQP,

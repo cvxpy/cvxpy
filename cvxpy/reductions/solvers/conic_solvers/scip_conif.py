@@ -174,6 +174,7 @@ class SCIP(ConicSolver):
         from pyscipopt.scip import Model
 
         model = Model()
+        model.redirectOutput()
         A, b, c, dims = self._define_data(data)
         variables = self._create_variables(model, data, c)
         constraints = self._add_constraints(model, variables, A, b, dims)

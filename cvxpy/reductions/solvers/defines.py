@@ -42,9 +42,10 @@ from cvxpy.reductions.solvers.conic_solvers.sdpa_conif import SDPA as SDPA_con
 from cvxpy.reductions.solvers.conic_solvers.xpress_conif import XPRESS as XPRESS_con
 from cvxpy.reductions.solvers.qp_solvers.copt_qpif import COPT as COPT_qp
 from cvxpy.reductions.solvers.qp_solvers.cplex_qpif import CPLEX as CPLEX_qp
-from cvxpy.reductions.solvers.qp_solvers.gurobi_qpif import GUROBI as GUROBI_qp
 
 # QP interfaces
+from cvxpy.reductions.solvers.qp_solvers.daqp_qpif import DAQP as DAQP_qp
+from cvxpy.reductions.solvers.qp_solvers.gurobi_qpif import GUROBI as GUROBI_qp
 from cvxpy.reductions.solvers.qp_solvers.osqp_qpif import OSQP as OSQP_qp
 from cvxpy.reductions.solvers.qp_solvers.piqp_qpif import PIQP as PIQP_qp
 from cvxpy.reductions.solvers.qp_solvers.proxqp_qpif import PROXQP as PROXQP_qp
@@ -63,7 +64,8 @@ solver_qp_intf = [OSQP_qp(),
                   XPRESS_qp(),
                   COPT_qp(),
                   PIQP_qp(),
-                  PROXQP_qp()
+                  PROXQP_qp(),
+                  DAQP_qp(),
                   ]
 
 SOLVER_MAP_CONIC = {solver.name(): solver for solver in solver_conic_intf}
@@ -72,7 +74,7 @@ SOLVER_MAP_QP = {solver.name(): solver for solver in solver_qp_intf}
 # CONIC_SOLVERS and QP_SOLVERS are sorted in order of decreasing solver
 # preference. QP_SOLVERS are those for which we have written interfaces
 # and are supported by QpSolver.
-CONIC_SOLVERS = [s.MOSEK, s.ECOS, s.SCS, s.CLARABEL, s.SDPA,
+CONIC_SOLVERS = [s.MOSEK, s.CLARABEL, s.SCS, s.ECOS, s.SDPA,
                  s.CPLEX, s.GUROBI, s.COPT, s.GLPK, s.NAG,
                  s.GLPK_MI, s.CBC, s.CVXOPT, s.XPRESS, s.DIFFCP,
                  s.SCIP, s.SCIPY, s.GLOP, s.PDLP, s.ECOS_BB]
@@ -82,7 +84,9 @@ QP_SOLVERS = [s.OSQP,
               s.XPRESS,
               s.COPT,
               s.PIQP,
-              s.PROXQP]
+              s.PROXQP,
+              s.DAQP]
+DISREGARD_CLARABEL_SDP_SUPPORT_FOR_DEFAULT_RESOLUTION = True
 MI_SOLVERS = [s.GLPK_MI, s.MOSEK, s.GUROBI, s.CPLEX,
               s.XPRESS, s.CBC, s.SCIP, s.COPT, s.ECOS_BB]
 MI_SOCP_SOLVERS = [s.MOSEK, s.GUROBI, s.CPLEX, s.XPRESS,

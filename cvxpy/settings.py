@@ -91,10 +91,11 @@ PDLP = "PDLP"
 SCIP = "SCIP"
 SCIPY = "SCIPY"
 CLARABEL = "CLARABEL"
+DAQP = "DAQP"
 SOLVERS = [CLARABEL, ECOS, CVXOPT, GLOP, GLPK, GLPK_MI,
            SCS, SDPA, GUROBI, OSQP, CPLEX,
            MOSEK, CBC, COPT, XPRESS, PIQP, PROXQP,
-           NAG, PDLP, SCIP, SCIPY]
+           NAG, PDLP, SCIP, SCIPY, DAQP]
 
 # Xpress-specific items
 XPRESS_IIS = "XPRESS_IIS"
@@ -129,6 +130,8 @@ BOOL_IDS = "bool_ids"
 BOOL_IDX = "bool_idx"
 INT_IDS = "int_ids"
 INT_IDX = "int_idx"
+LOWER_BOUNDS = "lower_bounds"
+UPPER_BOUNDS = "upper_bounds"
 
 # Keys for results_dict.
 STATUS = "status"
@@ -179,7 +182,8 @@ SCIPY_CANON_BACKEND = "SCIPY"
 RUST_CANON_BACKEND = "RUST"
 CPP_CANON_BACKEND = "CPP"
 
-DEFAULT_CANON_BACKEND = CPP_CANON_BACKEND
+# Default canonicalization backend, pyodide uses SciPy
+DEFAULT_CANON_BACKEND = CPP_CANON_BACKEND if sys.platform != "emscripten" else SCIPY_CANON_BACKEND
 
 # Numerical tolerances
 EIGVAL_TOL = 1e-10

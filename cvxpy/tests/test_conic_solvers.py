@@ -1855,7 +1855,7 @@ class TestXPRESS(BaseTest):
 
 
 @unittest.skipUnless('NAG' in INSTALLED_SOLVERS, 'NAG is not installed.')
-class TestNAG(unittest.TestCase):
+class TestNAG(BaseTest):
 
     def test_nag_lp_0(self) -> None:
         StandardTestLPs.test_lp_0(solver='NAG')
@@ -1889,6 +1889,33 @@ class TestNAG(unittest.TestCase):
         StandardTestSOCPs.test_socp_3ax0(solver='NAG')
         # axis 1
         StandardTestSOCPs.test_socp_3ax1(solver='NAG')
+
+    def test_nag_quad_obj(self) -> None:
+        """Test NAG canonicalization with a quadratic objective.
+        """    
+        x = cp.Variable(2)
+        expr = cp.sum_squares(x)
+        constr = [x >= 1]
+        prob = cp.Problem(cp.Minimize(expr), constr)
+        data = prob.get_problem_data(solver='NAG')
+        self.assertItemsAlmostEqual(data[0]["P"].A, 2*np.eye(2))
+        solution1 = prob.solve(solver='NAG')
+
+        # When use_quad_obj = False, the quadratic objective is
+        # canonicalized to a SOC constraint.
+        prob = cp.Problem(cp.Minimize(expr), constr)
+        solver_opts = {"use_quad_obj": False}
+        data = prob.get_problem_data(solver='NAG', solver_opts=solver_opts)
+        assert "P" not in data[0]
+        solution2 = prob.solve(solver='NAG', **solver_opts)
+
+        assert np.isclose(solution1, solution2)
+
+        # Check that there is no P for non-quadratic objectives.
+        expr = cp.norm(x, 1)
+        prob = cp.Problem(cp.Minimize(expr), constr)
+        data = prob.get_problem_data(solver='NAG')
+        assert "P" not in data[0]
 
 
 @unittest.skipUnless("SCIP" in INSTALLED_SOLVERS, "SCIP is not installed.")
@@ -2167,6 +2194,12 @@ class TestSCIPY(unittest.TestCase):
     def test_scipy_lp_5(self) -> None:
         StandardTestLPs.test_lp_5(solver='SCIPY', duals=self.d)
 
+    def test_scipy_lp_solver_stats(self) -> None:
+        sth = StandardTestLPs.test_lp_0(solver='SCIPY', duals=self.d)
+
+        # Equal because presolve might directly find the solution in 0 iterations
+        self.assertGreaterEqual(sth.prob.solver_stats.num_iters, 0)
+
     @unittest.skipUnless('SCIPY' in INSTALLED_MI_SOLVERS, 'SCIPY version cannot solve MILPs')
     def test_scipy_mi_lp_0(self) -> None:
         StandardTestLPs.test_mi_lp_0(solver='SCIPY')
@@ -2198,6 +2231,14 @@ class TestSCIPY(unittest.TestCase):
         # We only check that the option does not raise an error.
         sth.solve(solver='SCIPY', scipy_options={"time_limit": 0.1})
 
+    @unittest.skipUnless('SCIPY' in INSTALLED_MI_SOLVERS, 'SCIPY version cannot solve MILPs')
+    def test_scipy_mi_solver_stats(self) -> None:
+        sth = sths.mi_lp_7()
+        sth.solve(solver='SCIPY')
+
+        self.assertTrue("mip_gap" in sth.prob.solver_stats.extra_stats)
+        self.assertTrue("mip_node_count" in sth.prob.solver_stats.extra_stats)
+        self.assertTrue("mip_dual_bound" in sth.prob.solver_stats.extra_stats)
 
 @unittest.skipUnless('COPT' in INSTALLED_SOLVERS, 'COPT is not installed.')
 class TestCOPT(unittest.TestCase):

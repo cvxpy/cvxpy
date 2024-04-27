@@ -229,6 +229,12 @@ class TestExpressions(BaseTest):
         # Test repr.
         self.assertEqual(repr(c), "Constant(CONSTANT, NONNEGATIVE, (2,))")
 
+        # Test name.
+        c = Constant(1, name="test")
+        self.assertEqual(str(c), "test")
+        self.assertEqual(c.name(), "test")
+        self.assertEqual(repr(c), "Constant(CONSTANT, NONNEGATIVE, ())")
+
     def test_constant_psd_nsd(self):
         n = 5
         np.random.randn(0)

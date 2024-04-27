@@ -17,7 +17,7 @@ limitations under the License.
 import numpy as np
 import pytest
 
-import cvxpy as cvx
+import cvxpy as cp
 import cvxpy.problems.iterative as iterative
 import cvxpy.settings as s
 from cvxpy.lin_ops.tree_mat import prune_constants
@@ -31,101 +31,86 @@ class TestConvolution(BaseTest):
         """Test 1D convolution.
         """
         n = 3
-        x = cvx.Variable(n)
+        x = cp.Variable(n)
         f = np.array([1, 2, 3])
         g = np.array([0, 1, 0.5])
         f_conv_g = np.array([0., 1., 2.5,  4., 1.5])
         with pytest.warns(DeprecationWarning, match="Use convolve"):
-            expr = cvx.conv(f, g)
+            expr = cp.conv(f, g)
         assert expr.is_constant()
         self.assertEqual(expr.shape, (5,))
         self.assertEqual(expr.shape, expr.value.shape)
         self.assertItemsAlmostEqual(expr.value, f_conv_g)
 
-        expr = cvx.conv(f, x)
+        expr = cp.convolve(f, x)
         assert expr.is_affine()
         self.assertEqual(expr.shape, (5,))
         # Matrix stuffing.
-        prob = cvx.Problem(cvx.Minimize(cvx.norm(expr, 1)),
+        prob = cp.Problem(cp.Minimize(cp.norm(expr, 1)),
                            [x == g])
-        result = prob.solve(solver=cvx.SCS)
+        result = prob.solve(solver=cp.SCS)
         self.assertAlmostEqual(result, sum(f_conv_g), places=3)
         self.assertItemsAlmostEqual(expr.value, f_conv_g)
 
         # Test other shape configurations.
-        expr = cvx.conv(2, g)
+        expr = cp.convolve(2, g)
         self.assertEqual(expr.shape, (3,))
         self.assertEqual(expr.shape, expr.value.shape)
         self.assertItemsAlmostEqual(expr.value, 2 * g)
 
-        expr = cvx.conv(f, 2)
+        expr = cp.convolve(f, 2)
         self.assertEqual(expr.shape, (3,))
         self.assertEqual(expr.shape, expr.value.shape)
         self.assertItemsAlmostEqual(expr.value, 2 * f)
-
-        expr = cvx.conv(f, g[:, None])
-        self.assertEqual(expr.shape, (5, 1))
-        self.assertEqual(expr.shape, expr.value.shape)
-        self.assertItemsAlmostEqual(expr.value, f_conv_g)
-
-        expr = cvx.conv(f[:, None], g)
-        self.assertEqual(expr.shape, (5, 1))
-        self.assertEqual(expr.shape, expr.value.shape)
-        self.assertItemsAlmostEqual(expr.value, f_conv_g)
-
-        expr = cvx.conv(f[:, None], g[:, None])
-        self.assertEqual(expr.shape, (5, 1))
-        self.assertEqual(expr.shape, expr.value.shape)
-        self.assertItemsAlmostEqual(expr.value, f_conv_g)
 
     def test_convolve(self) -> None:
         """Test convolve.
         """
         n = 3
-        x = cvx.Variable(n)
+        x = cp.Variable(n)
         f = np.array([1, 2, 3])
         g = np.array([0, 1, 0.5])
         f_conv_g = np.array([0., 1., 2.5,  4., 1.5])
-        expr = cvx.convolve(f, g)
+        expr = cp.convolve(f, g)
         assert expr.is_constant()
         self.assertEqual(expr.shape, (5,))
         self.assertEqual(expr.shape, expr.value.shape)
         self.assertItemsAlmostEqual(expr.value, f_conv_g)
 
-        expr = cvx.convolve(f, x)
+        expr = cp.convolve(f, x)
         assert expr.is_affine()
         self.assertEqual(expr.shape, (5,))
         # Matrix stuffing.
-        prob = cvx.Problem(cvx.Minimize(cvx.norm(expr, 1)),
+        prob = cp.Problem(cp.Minimize(cp.norm(expr, 1)),
                            [x == g])
-        result = prob.solve(solver=cvx.SCS)
+        result = prob.solve(solver=cp.SCS)
         self.assertAlmostEqual(result, sum(f_conv_g), places=3)
         self.assertItemsAlmostEqual(expr.value, f_conv_g)
 
         # Test other shape configurations.
-        expr = cvx.convolve(2, g)
+        expr = cp.convolve(2, g)
         self.assertEqual(expr.shape, (3,))
         self.assertEqual(expr.shape, expr.value.shape)
         self.assertItemsAlmostEqual(expr.value, 2 * g)
 
-        expr = cvx.convolve(f, 2)
+        expr = cp.convolve(f, 2)
         self.assertEqual(expr.shape, (3,))
         self.assertEqual(expr.shape, expr.value.shape)
         self.assertItemsAlmostEqual(expr.value, 2 * f)
 
         with pytest.raises(ValueError, match="must be scalar or 1D"):
-            expr = cvx.convolve(f, g[:, None])
+            expr = cp.convolve(f, g[:, None])
 
         with pytest.raises(ValueError, match="must be scalar or 1D"):
-            expr = cvx.convolve(f[:, None], g)
+            expr = cp.convolve(f[:, None], g)
 
         with pytest.raises(ValueError, match="must be scalar or 1D"):
-            expr = cvx.convolve(f[:, None], g[:, None])
+            expr = cp.convolve(f[:, None], g[:, None])
 
     def prob_mat_vs_mul_funcs(self, prob) -> None:
-        data, dims = prob.get_problem_data(solver=cvx.SCS)
+        data, dims = prob.get_problem_data(solver=cp.SCS)
         A = data["A"]
-        objective, constr_map, dims, solver = prob.canonicalize(cvx.SCS)
+        objective, constr_map, dims, solver = prob.canonicalize(cp.SCS)
 
         all_ineq = constr_map[s.EQ] + constr_map[s.LEQ]
         var_offsets, var_sizes, x_length = prob._get_var_offsets(objective,
@@ -172,33 +157,33 @@ class TestConvolution(BaseTest):
         # Test conv.
         y = np.random.randn(N, 1)
         h = np.random.randn(2, 1)
-        x = cvx.Variable((N, 1))
-        v = cvx.conv(h, x)
-        obj = cvx.Minimize(cvx.sum(cvx.multiply(y, v[0:N])))
-        prob = cvx.Problem(obj, [])
-        prob.solve(solver=cvx.ECOS)
-        assert prob.status is cvx.UNBOUNDED
+        x = cp.Variable((N, 1))
+        v = cp.conv(h, x)
+        obj = cp.Minimize(cp.sum(cp.multiply(y, v[0:N])))
+        prob = cp.Problem(obj, [])
+        prob.solve(solver=cp.CLARABEL)
+        assert prob.status is cp.UNBOUNDED
 
         # Test convolve.
         y = np.random.randn(N)
         h = np.random.randn(2)
-        x = cvx.Variable((N))
-        v = cvx.convolve(h, x)
-        obj = cvx.Minimize(cvx.sum(cvx.multiply(y, v[0:N])))
-        prob = cvx.Problem(obj, [])
-        prob.solve(solver=cvx.ECOS)
-        assert prob.status is cvx.UNBOUNDED
+        x = cp.Variable(N)
+        v = cp.convolve(h, x)
+        obj = cp.Minimize(cp.sum(cp.multiply(y, v[0:N])))
+        prob = cp.Problem(obj, [])
+        prob.solve(solver=cp.CLARABEL)
+        assert prob.status is cp.UNBOUNDED
 
     def test_0D_conv(self) -> None:
         """Convolution with 0D input.
         """
-        for func in [cvx.conv, cvx.convolve]:
-            x = cvx.Variable((1,))  # or cvx.Variable((1,1))
-            problem = cvx.Problem(
-                cvx.Minimize(
-                    cvx.max(func(1., cvx.multiply(1., x)))
+        for func in [cp.conv, cp.convolve]:
+            x = cp.Variable((1,))  # or cp.Variable((1,1))
+            problem = cp.Problem(
+                cp.Minimize(
+                    cp.max(func(1., cp.multiply(1., x)))
                 ),
                 [x >= 0]
             )
-            problem.solve(cvx.ECOS)
-            assert problem.status == cvx.OPTIMAL
+            problem.solve(solver=cp.CLARABEL)
+            assert problem.status == cp.OPTIMAL
