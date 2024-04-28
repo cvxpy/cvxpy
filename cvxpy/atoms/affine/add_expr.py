@@ -94,8 +94,7 @@ class AddExpression(AffAtom):
         AddExpression atom
         """
         if args is None:
-            # arg_groups are stored as the args attribute.
-            args = self.args
+            args = [self]
         copy = type(self).__new__(type(self))
         copy.__init__(args)
         return copy
