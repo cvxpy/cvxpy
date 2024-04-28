@@ -46,6 +46,7 @@ class AddExpression(AffAtom):
         """Helper function to extract the arguments from an AddExpression.
         """
         if isinstance(expr, AddExpression):
+            # Remove the _arg_groups attribute to avoid copying it.
             expr._arg_groups = None
             return expr.args
         else:
@@ -97,6 +98,8 @@ class AddExpression(AffAtom):
         AddExpression atom
         """
         if args is None:
+            if self._arg_groups is None:
+                raise ValueError("Cannot copy AddExpression without arg_groups.")
             args = self._arg_groups
         # Takes advantage of _arg_groups if present for efficiency.
         copy = type(self).__new__(type(self))
