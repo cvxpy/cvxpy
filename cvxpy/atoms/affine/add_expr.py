@@ -33,9 +33,12 @@ class AddExpression(AffAtom):
         # For efficiency group args as sums.
         self._arg_groups = arg_groups
         super(AddExpression, self).__init__(*arg_groups)
-        self.args = []
+        self.args = None
         for group in arg_groups:
-            self.args += self.expand_args(group)
+            if self.args is None:
+                self.args = self.expand_args(group)
+            else:
+                self.args += self.expand_args(group)
 
     def shape_from_args(self) -> Tuple[int, ...]:
         """Returns the (row, col) shape of the expression.
