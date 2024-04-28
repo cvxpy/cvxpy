@@ -29,14 +29,12 @@ class AddExpression(AffAtom):
     """The sum of any number of expressions.
     """
 
-    def __init__(self, arg_groups) -> None:
+    def __init__(self, arg_groups: Iterable[Expression]) -> None:
         # For efficiency group args as sums.
         self._arg_groups = arg_groups
         super(AddExpression, self).__init__(*arg_groups)
-        
-        # arg_groups has at least one element, checked in Atom
-        self.args = self.expand_args(arg_groups[0])
-        for group in arg_groups[1:]:
+        self.args = []
+        for group in arg_groups:
             self.args += self.expand_args(group)
 
     def shape_from_args(self) -> Tuple[int, ...]:
@@ -48,10 +46,10 @@ class AddExpression(AffAtom):
         """Helper function to extract the arguments from an AddExpression.
         """
         if isinstance(expr, AddExpression):
+            expr._arg_groups = None
             return expr.args
         else:
             return [expr]
-
     def name(self) -> str:
         result = str(self.args[0])
         for i in range(1, len(self.args)):
