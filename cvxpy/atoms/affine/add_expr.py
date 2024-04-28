@@ -30,8 +30,6 @@ class AddExpression(AffAtom):
     """
 
     def __init__(self, arg_groups: Iterable[Expression]) -> None:
-        # For efficiency group args as sums.
-        self._arg_groups = arg_groups
         super(AddExpression, self).__init__(*arg_groups)
         self.args = []
         for group in arg_groups:
@@ -46,8 +44,6 @@ class AddExpression(AffAtom):
         """Helper function to extract the arguments from an AddExpression.
         """
         if isinstance(expr, AddExpression):
-            # Remove the _arg_groups attribute to avoid copying it.
-            expr._arg_groups = None
             return expr.args
         else:
             return [expr]
@@ -98,10 +94,8 @@ class AddExpression(AffAtom):
         AddExpression atom
         """
         if args is None:
-            if self._arg_groups is None:
-                raise ValueError("Cannot copy AddExpression without arg_groups.")
-            args = self._arg_groups
-        # Takes advantage of _arg_groups if present for efficiency.
+            # arg_groups are stored as the args attribute.
+            args = self.args
         copy = type(self).__new__(type(self))
         copy.__init__(args)
         return copy

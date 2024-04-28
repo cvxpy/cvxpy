@@ -32,7 +32,6 @@ from cvxpy.expressions.variable import Variable
 from cvxpy.reductions.solvers.defines import INSTALLED_MI_SOLVERS
 from cvxpy.tests.base_test import BaseTest
 from cvxpy.transforms.partial_optimize import partial_optimize
-from cvxpy.atoms.affine.add_expr import AddExpression
 
 
 class TestAtoms(BaseTest):
@@ -65,24 +64,6 @@ class TestAtoms(BaseTest):
         self.assertTrue(copy.args[0] is self.A)
         self.assertTrue(copy.args[1] is self.B)
         self.assertEqual(copy.get_data(), atom.get_data())
-
-    def test_add_expr_arg_groups(self) -> None:
-        """Test the arg_groups attribute for AddExpression class.
-        """
-        x, y, z = Variable(), Variable(), Variable()
-
-
-        first_sum = AddExpression([x, y])
-        assert all(i is j for i, j in zip(first_sum._arg_groups, [x, y]))
-
-        assert isinstance(first_sum.copy(), AddExpression)
-
-        second_sum = AddExpression([first_sum, z])
-        assert all(i is j for i, j in zip(second_sum._arg_groups, [first_sum, z]))
-
-        # Fails because creating second_sum removes the _arg_groups attribute from first_sum.
-        first_sum.copy()
-
 
     def test_norm_inf(self) -> None:
         """Test the norm_inf class.
