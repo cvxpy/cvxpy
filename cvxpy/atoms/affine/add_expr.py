@@ -94,7 +94,11 @@ class AddExpression(AffAtom):
         AddExpression atom
         """
         if args is None:
-            args = [self]
+            # The __init__ method of AddExpression recreates the args,
+            # but passes *arg_groups to the super class for checks.
+            # Since these checks are already done for self, we pass [self], i.e., 
+            # a single [AddExpression], before the args are recreated.
+            args = [self]  
         copy = type(self).__new__(type(self))
         copy.__init__(args)
         return copy
