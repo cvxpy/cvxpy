@@ -1153,7 +1153,6 @@ class TestGLOP(unittest.TestCase):
     def test_glop_lp_6(self) -> None:
         StandardTestLPs.test_lp_6(solver='GLOP')
 
-    @unittest.skip('Can cause segfaults in the test suite, see #2431.')
     def test_glop_bad_parameters(self) -> None:
         x = cp.Variable(1)
         prob = cp.Problem(cp.Maximize(x), [x <= 1])
