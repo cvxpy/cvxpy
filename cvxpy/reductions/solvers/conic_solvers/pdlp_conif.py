@@ -51,9 +51,9 @@ class PDLP(ConicSolver):
         if Version(ortools.__version__) < Version('9.7.0'):
             raise RuntimeError(f'Version of ortools ({ortools.__version__}) '
                                f'is too old. Expected >= 9.7.0.')
-        if Version(ortools.__version__) >= Version('9.8.0'):
+        if Version(ortools.__version__) >= Version('9.10.0'):
             raise RuntimeError('Unrecognized new version of ortools '
-                               f'({ortools.__version__}). Expected < 9.8.0. '
+                               f'({ortools.__version__}). Expected < 9.10.0. '
                                'Please open a feature request on cvxpy to '
                                'enable support for this version.')
 
