@@ -400,6 +400,16 @@ class TestAtoms(BaseTest):
             cp.min(self.x, self.x)  # a common erroneous use-case
         self.assertEqual(str(cm.exception), cp.min.__EXPR_AXIS_ERROR__)
 
+        # Test canonicalization with keepdims=True
+        # https://github.com/cvxpy/cvxpy/pull/2419
+        X = cp.Variable((2, 3))
+        X_val = np.arange(6).reshape((2, 3))
+        c = np.ones((1, 3))
+        expr = cp.min(X, axis=0, keepdims=True)
+        obj = cp.Maximize(cp.sum(expr + c))
+        prob = cp.Problem(obj, [X == X_val])
+        prob.solve()
+
     # Test sign logic for maximum.
     def test_maximum_sign(self) -> None:
         # Two args.
