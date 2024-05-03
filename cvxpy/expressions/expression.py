@@ -1012,11 +1012,17 @@ class Expression(u.Canonical):
 
         def _gen_consts_vars(self, vars_dict: VariablesDict) -> dict:
             """ This is a helper function that generates the index -> (value, type) dictionary. """
+            from scipy.sparse import csc_matrix
             ind_to_value_type = dict() #Local dictionary
             for i, arg in enumerate(self.args):
                 var_type = _gen_var_type(arg)
                 if isinstance(arg, Constant):
-                    ind_to_value_type[i] = (torch.tensor(arg.value, dtype=torch.float64), var_type)
+                    #TODO: work with sparse matrices. Densifying for now. 
+                    if isinstance(arg.value, csc_matrix):
+                        val = arg.value.toarray()
+                    else:
+                        val = arg.value
+                    ind_to_value_type[i] = (torch.tensor(val, dtype=torch.float64), var_type)
                 elif isinstance(arg, Parameter) or isinstance(arg, Variable):
                     ind_to_value_type[i] = (arg, var_type)
                     vars_dict.add_var(arg)
