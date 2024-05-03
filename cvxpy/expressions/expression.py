@@ -815,8 +815,7 @@ class Expression(u.Canonical):
             for i, arg in enumerate(self.args):
                 var_type = _gen_var_type(arg)
                 if isinstance(arg, Constant):
-                    ind_to_value_type[i] = (torch.tensor(gen_tensor(arg.value, dtype=torch.float64),
-                                                          dtype=torch.float64), var_type)
+                    ind_to_value_type[i] = (gen_tensor(arg.value, dtype=torch.float64), var_type)
                 elif isinstance(arg, Parameter) or isinstance(arg, Variable):
                     ind_to_value_type[i] = (arg, var_type)
                     vars_dict.add_var(arg)
