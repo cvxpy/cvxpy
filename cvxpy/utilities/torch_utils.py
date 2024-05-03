@@ -16,6 +16,10 @@ limitations under the License.
 
 from enum import Enum
 
+import numpy as np
+import torch
+from scipy.sparse import coo_matrix, issparse
+
 VAR_TYPE = Enum("VAR_TYPE", "VARIABLE_PARAMETER CONSTANT EXPRESSION")
 
 class VariablesDict():
@@ -43,3 +47,15 @@ class VariablesDict():
             if isinstance(var, look_type):
                 return True
         return False
+
+def gen_tensor(value, dtype=torch.float64) -> torch.Tensor:
+    """This function generates a tensor from an np.array or a sparse matrix.
+    If the input is a sparse matrix, a sparse tensor is generated."""
+    if not issparse(value):
+        return torch.tensor(value, dtype=dtype)
+    value_coo = coo_matrix(value)
+    vals = value_coo.data
+    inds = np.vstack((value_coo.row, value_coo.col))
+    i = torch.LongTensor(inds)
+    v = torch.FloatTensor(vals)
+    return torch.sparse.FloatTensor(i, v, torch.Size(value_coo.shape))
