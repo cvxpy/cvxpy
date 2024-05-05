@@ -16,10 +16,10 @@ limitations under the License.
 
 
 import builtins
+import re
 
 import numpy as np
 import pytest
-import re
 
 import cvxpy as cp
 from cvxpy.expressions.expression import (
