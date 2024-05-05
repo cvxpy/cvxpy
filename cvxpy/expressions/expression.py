@@ -71,9 +71,9 @@ functions documented here: https://www.cvxpy.org/tutorial/functions/index.html
 __INPLACE_MUTATION_ERROR__ = """
 You're trying to mutate a CVXPY expression inplace. This is prone to errors or
 code that doesn't behave as expected. Consider alternatives. For example, replace
-> x += 1
+    x += 1
 with
-> x = x + 1
+    x = x + 1
 """
 
 __ABS_ERROR__ = """
@@ -778,7 +778,9 @@ class Expression(u.Canonical):
             elif kwargs.keys() == {'out'} and \
                     len(args) == 2 and \
                     args[1] is self and \
-                    args[0] is kwargs['out']:
+                    isinstance(kwargs['out'], tuple) and \
+                    len(kwargs['out']) == 1 and \
+                    args[0] is kwargs['out'][0]:
                 raise RuntimeError(__INPLACE_MUTATION_ERROR__)
 
         except KeyError:

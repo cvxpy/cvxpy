@@ -68,7 +68,7 @@ class TestErrors(BaseTest):
                 continue  # We don't implement __rpow__ yet.
             with pytest.raises(RuntimeError, match=__NUMPY_UFUNC_ERROR__):
                 ufunc(self.x, a)
-            with pytest.raises(RuntimeError, match=__NUMPY_UFUNC_ERROR__):
+            with pytest.raises(RuntimeError, match=__INPLACE_MUTATION_ERROR__):
                 ufunc(a, self.x, out=a)
 
             if ufunc is np.left_shift or \
