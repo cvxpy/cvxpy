@@ -92,7 +92,7 @@ class TestErrors(BaseTest):
             with pytest.raises(RuntimeError, match=__NUMPY_UFUNC_ERROR__):
                 ufunc(self.x, b)
 
-            with pytest.raises(RuntimeError, match=__NUMPY_UFUNC_ERROR__):
+            with pytest.raises(RuntimeError, match=re.escape(__INPLACE_MUTATION_ERROR__)):
                 ufunc(b, self.x, out=b)
 
             if ufunc is np.left_shift or \
