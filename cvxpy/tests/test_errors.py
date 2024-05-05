@@ -19,6 +19,7 @@ import builtins
 
 import numpy as np
 import pytest
+import re
 
 import cvxpy as cp
 from cvxpy.expressions.expression import (
@@ -50,10 +51,10 @@ class TestErrors(BaseTest):
 
     def test_inplace_mutation_errors(self) -> None:
         a = np.array([1, 2, 3])
-        with pytest.raises(RuntimeError, match=__INPLACE_MUTATION_ERROR__):
+        with pytest.raises(RuntimeError, match=re.escape(__INPLACE_MUTATION_ERROR__)):
             a += self.x
 
-        with pytest.raises(RuntimeError, match=__INPLACE_MUTATION_ERROR__):
+        with pytest.raises(RuntimeError, match=re.escape(__INPLACE_MUTATION_ERROR__)):
             np.add(a, self.x, out=a)
 
 
@@ -68,7 +69,7 @@ class TestErrors(BaseTest):
                 continue  # We don't implement __rpow__ yet.
             with pytest.raises(RuntimeError, match=__NUMPY_UFUNC_ERROR__):
                 ufunc(self.x, a)
-            with pytest.raises(RuntimeError, match=__INPLACE_MUTATION_ERROR__):
+            with pytest.raises(RuntimeError, match=re.escape(__INPLACE_MUTATION_ERROR__)):
                 ufunc(a, self.x, out=a)
 
             if ufunc is np.left_shift or \
