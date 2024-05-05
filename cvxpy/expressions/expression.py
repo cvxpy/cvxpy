@@ -70,7 +70,7 @@ functions documented here: https://www.cvxpy.org/tutorial/functions/index.html
 
 __INPLACE_MUTATION_ERROR__ = """
 You're trying to mutate a CVXPY expression inplace. This is prone to errors or
-code that doesn't behave as expected. Consider implementing replacing, for example:
+code that doesn't behave as expected. Consider alternatives. For example, replace
 > x += 1
 with
 > x = x + 1
@@ -779,7 +779,7 @@ class Expression(u.Canonical):
                     len(args) == 2 and \
                     args[1] is self and \
                     args[0] is kwargs['out']:
-                return ufunc_handler(self, args[0])
+                raise RuntimeError(__INPLACE_MUTATION_ERROR__)
 
         except KeyError:
             pass
