@@ -421,7 +421,10 @@ class TestConstraints(BaseTest):
         constraint5 = 5*cp.norm(A@x) <= 1 #Unary operation
         constraint6 = X@Y.T >= 0
         constraint7 = X@Y.T <= 0
-        X@Y.T
+        constraint8 = cp.Zero(z)
+        constraint9 = cp.NonPos(z)
+        constraint10 = cp.NonPos(z)
+        
 
         exp1, _ = constraint1.gen_torch_exp()
         exp2, _ = constraint2.gen_torch_exp()
@@ -430,6 +433,9 @@ class TestConstraints(BaseTest):
         exp5, _ = constraint5.gen_torch_exp()
         exp6, _ = constraint6.gen_torch_exp()
         exp7, _ = constraint7.gen_torch_exp()
+        exp8, _ = constraint8.gen_torch_exp()
+        exp9, _ = constraint9.gen_torch_exp()
+        exp10, _ = constraint9.gen_torch_exp()
 
         x_test = torch.tensor([1., 2. ,3.], dtype=torch.float64)
         z_test = torch.zeros(m, dtype=torch.float64)
@@ -444,6 +450,9 @@ class TestConstraints(BaseTest):
         test5 = exp5(x_test)
         test6 = exp6(T1, T2)
         test7 = exp7(T1, T2)
+        test8 = exp8(z_test)
+        test9 = exp9(z_test)
+        test10 = exp10(z_test)
 
         self.assertTrue(all(test1==torch.tensor([3, -3])))
         self.assertTrue(all(test2==torch.tensor([0, 0])))
@@ -452,6 +461,9 @@ class TestConstraints(BaseTest):
         self.assertTrue(np.isclose(test5, 25.9258))
         self.assertTrue((test6==-n*torch.ones((m,m))).all())
         self.assertTrue((test7==n*torch.ones((m,m))).all())
+        self.assertTrue((test8==torch.zeros(m)).all())
+        self.assertTrue((test9==torch.zeros(m)).all())
+        self.assertTrue((test10==torch.zeros(m)).all())
 
     def test_bound_properties(self) -> None:
         """Test basic bound properties."""

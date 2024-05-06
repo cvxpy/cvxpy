@@ -95,6 +95,11 @@ class NonPos(Constraint):
         viol = np.linalg.norm(res, ord=2)
         return viol
 
+    def gen_torch_exp(self):
+        exp = self.args[0]<=0
+        return exp.gen_torch_exp()
+        # return super().gen_torch_exp()
+
 
 class NonNeg(Constraint):
     """A constraint of the form :math:`x \\geq 0`.
@@ -153,6 +158,11 @@ class NonNeg(Constraint):
                              "whose expression is None-valued.")
         viol = np.linalg.norm(res, ord=2)
         return viol
+
+    def gen_torch_exp(self):
+        exp = self.args[0]>=0
+        return exp.gen_torch_exp()
+        # return super().gen_torch_exp()
 
 
 class Inequality(Constraint):
@@ -244,6 +254,3 @@ class Inequality(Constraint):
         if self.expr.value is None:
             return None
         return np.maximum(self.expr.value, 0)
-
-    def gen_torch_exp(self):
-        return super().gen_torch_exp()
