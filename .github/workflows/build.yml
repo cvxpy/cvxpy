@@ -29,7 +29,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ ubuntu-20.04, macos-11, windows-2022 ]
-        python-version: [ 3.9, "3.10", "3.11"]
+        python-version: [ 3.9, "3.10", "3.11", "3.12" ]
         include:
           - os: ubuntu-20.04
             python-version: 3.8
@@ -50,13 +50,13 @@ jobs:
       MOSEK_CI_BASE64: ${{ secrets.MOSEK_CI_BASE64 }}
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
       - name: Set Additional Envs
         run: |
           echo "PYTHON_SUBVERSION=$(echo $PYTHON_VERSION | cut -c 3-)" >> $GITHUB_ENV
           echo $MOSEK_CI_BASE64 | base64 -d > mosek.lic
           echo "MOSEKLM_LICENSE_FILE=$( [[ $RUNNER_OS == 'macOS' ]] && echo $(pwd)/mosek.lic || echo $(realpath mosek.lic) )" >> $GITHUB_ENV
-      - uses: conda-incubator/setup-miniconda@v2
+      - uses: conda-incubator/setup-miniconda@v3
         with:
           auto-update-conda: true
           python-version: ${{ matrix.python-version }}
@@ -71,7 +71,7 @@ jobs:
           source continuous_integration/test_script.sh
 
       - name: Upload coverage file
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         if: ${{env.SINGLE_ACTION_CONFIG == 'True'}}
         with:
           name: coverage
@@ -85,7 +85,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ ubuntu-20.04, macos-11, windows-2022 ]
-        python-version: [ 3.9, "3.10", "3.11" ]
+        python-version: [ 3.9, "3.10", "3.11", "3.12" ]
         include:
           - os: ubuntu-20.04
             python-version: 3.8
@@ -104,8 +104,8 @@ jobs:
       PYPI_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
 
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-python@v4
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
 
@@ -117,7 +117,7 @@ jobs:
 
       - name: Set up QEMU  # For aarch64, see https://cibuildwheel.readthedocs.io/en/stable/faq/#emulation
         if: runner.os == 'Linux'
-        uses: docker/setup-qemu-action@v2
+        uses: docker/setup-qemu-action@v3
         with:
           platforms: all
 
@@ -128,7 +128,7 @@ jobs:
           CIBW_SKIP: "*-win32 *-manylinux_i686 *-musllinux*"
           CIBW_ARCHS_MACOS: x86_64 universal2
           CIBW_ARCHS_LINUX: auto aarch64
-        uses: pypa/cibuildwheel@v2.16.5
+        uses: pypa/cibuildwheel@v2.17.0
 
       - name: Build source
         if: ${{github.event_name == 'push' && env.SINGLE_ACTION_CONFIG == 'True'}}
@@ -151,9 +151,9 @@ jobs:
 
       - name: Upload artifacts to github
         if: ${{github.event_name == 'push' && env.USE_OPENMP != 'True'}}
-        uses: actions/upload-artifact@v1
+        uses: actions/upload-artifact@v4
         with:
-          name: wheels
+          name: wheels-${{ matrix.os }}-${{ matrix.python-version }}
           path: ./wheelhouse
 
   build_cvxpy-base:
@@ -186,8 +186,8 @@ jobs:
       PYPI_BASE_PASSWORD: ${{ secrets.PYPI_BASE_PASSWORD }}
 
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-python@v4
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
       - name: Set Additional Envs
@@ -200,7 +200,6 @@ jobs:
         shell: bash
         run: |
           # Mac has a different syntax for sed -i, this works across oses
-          sed -i.bak -e "s/name='cvxpy',/name='cvxpy-base',/g" pyproject.toml
           sed -i.bak '/clarabel >= /d' pyproject.toml
           sed -i.bak '/osqp >= /d' pyproject.toml
           sed -i.bak '/ecos >= /d' pyproject.toml
@@ -215,7 +214,7 @@ jobs:
 
       - name: Set up QEMU  # For aarch64, see https://cibuildwheel.readthedocs.io/en/stable/faq/#emulation
         if: runner.os == 'Linux'
-        uses: docker/setup-qemu-action@v2
+        uses: docker/setup-qemu-action@v3
         with:
           platforms: all
 
@@ -226,7 +225,7 @@ jobs:
           CIBW_SKIP: "*-win32 *-manylinux_i686 *-musllinux*"
           CIBW_ARCHS_MACOS: x86_64 universal2
           CIBW_ARCHS_LINUX: auto aarch64
-        uses: pypa/cibuildwheel@v2.16.5
+        uses: pypa/cibuildwheel@v2.17.0
 
       - name: Build source
         if: ${{github.event_name == 'push' && env.SINGLE_ACTION_CONFIG == 'True'}}
@@ -249,9 +248,9 @@ jobs:
 
       - name: Upload artifacts to github
         if: ${{github.event_name == 'push'}}
-        uses: actions/upload-artifact@v1
+        uses: actions/upload-artifact@v4
         with:
-          name: wheels-base
+          name: wheels-base-${{ matrix.os }}-${{ matrix.python-version }}
           path: ./wheelhouse
 
   sonarcloud:
@@ -261,10 +260,10 @@ jobs:
     env:
       SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
-      - uses: actions/download-artifact@v2
+      - uses: actions/download-artifact@v4
         with:
           name: coverage
       - name: Check if environment variable exists

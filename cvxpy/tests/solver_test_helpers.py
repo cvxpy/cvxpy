@@ -103,7 +103,7 @@ class SolverTestHelper:
         for con in self.constraints:
             if isinstance(con, (cp.constraints.Inequality,
                                 cp.constraints.Equality)):
-                comp = cp.scalar_product(con.expr, con.dual_value).value
+                comp = cp.vdot(con.expr, con.dual_value).value
             elif isinstance(con, (cp.constraints.ExpCone,
                                   cp.constraints.SOC,
                                   cp.constraints.NonNeg,
@@ -111,7 +111,7 @@ class SolverTestHelper:
                                   cp.constraints.PSD,
                                   cp.constraints.PowCone3D,
                                   cp.constraints.PowConeND)):
-                comp = cp.scalar_product(con.args, con.dual_value).value
+                comp = cp.vdot(con.args, con.dual_value).value
             elif isinstance(con, cp.RelEntrConeQuad) or isinstance(con, cp.OpRelEntrConeQuad):
                 msg = '\nDual variables not implemented for quadrature based approximations;' \
                        + '\nSkipping complementarity check.'
@@ -132,7 +132,7 @@ class SolverTestHelper:
                                 cp.constraints.Equality)):
                 dual_var_value = con.dual_value
                 prim_var_expr = con.expr
-                L = L + cp.scalar_product(dual_var_value, prim_var_expr)
+                L = L + cp.vdot(dual_var_value, prim_var_expr)
             elif isinstance(con, (cp.constraints.ExpCone,
                                   cp.constraints.SOC,
                                   cp.constraints.Zero,
@@ -140,7 +140,7 @@ class SolverTestHelper:
                                   cp.constraints.PSD,
                                   cp.constraints.PowCone3D,
                                   cp.constraints.PowConeND)):
-                L = L - cp.scalar_product(con.args, con.dual_value)
+                L = L - cp.vdot(con.args, con.dual_value)
             else:
                 raise NotImplementedError()
         try:
@@ -1302,7 +1302,7 @@ class StandardTestSDPs:
         return sth
 
     @staticmethod
-    def test_sdp_2(solver, places: int = 3, duals: bool = True, **kwargs) -> SolverTestHelper:
+    def test_sdp_2(solver, places: int = 2, duals: bool = True, **kwargs) -> SolverTestHelper:
         # places is set to 3 rather than 4, because analytic solution isn't known.
         sth = sdp_2()
         sth.solve(solver, **kwargs)

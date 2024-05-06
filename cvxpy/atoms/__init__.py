@@ -15,7 +15,7 @@ limitations under the License.
 """
 
 from cvxpy.atoms.affine.binary_operators import (matmul, multiply,
-                                                 scalar_product, outer,)
+                                                 vdot, scalar_product, outer,)
 from cvxpy.atoms.affine.bmat import bmat
 from cvxpy.atoms.affine.conj import conj
 from cvxpy.atoms.affine.conv import conv, convolve

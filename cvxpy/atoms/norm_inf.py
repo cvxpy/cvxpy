@@ -30,7 +30,7 @@ class norm_inf(AxisAtom):
         """
         if self.axis is None:
             if sp.issparse(values[0]):
-                values = values[0].todense().A.flatten()
+                values = values[0].toarray().flatten()
             else:
                 values = np.array(values[0]).flatten()
         else:

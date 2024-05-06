@@ -52,11 +52,12 @@ if sys.platform == 'darwin':
 
 setup_versioning.write_version_py()
 VERSION = setup_versioning.VERSION
+extensions = [setup_extensions.cvxcore, setup_extensions.sparsecholesky]
 
 setup(
     version=str(VERSION),
     cmdclass={'build_ext': build_ext_cvxpy},
-    ext_modules=[setup_extensions.cvxcore, setup_extensions.sparsecholesky],
+    ext_modules=extensions if "PYODIDE" not in os.environ else [],
     packages=find_packages(exclude=["doc*",
                                     "examples*",
                                     "cvxpy.performance_tests*"]),

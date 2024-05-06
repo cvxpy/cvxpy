@@ -51,7 +51,7 @@ class normNuc(Atom):
             A list of SciPy CSC sparse matrices or None.
         """
         # Grad UV^T
-        U, _, V = np.linalg.svd(values[0])
+        U, _, V = np.linalg.svd(values[0], full_matrices=False)
         D = U.dot(V)
         return [sp.csc_matrix(D.ravel(order='F')).T]
 

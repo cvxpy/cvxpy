@@ -400,6 +400,16 @@ class TestAtoms(BaseTest):
             cp.min(self.x, self.x)  # a common erroneous use-case
         self.assertEqual(str(cm.exception), cp.min.__EXPR_AXIS_ERROR__)
 
+        # Test canonicalization with keepdims=True
+        # https://github.com/cvxpy/cvxpy/pull/2419
+        X = cp.Variable((2, 3))
+        X_val = np.arange(6).reshape((2, 3))
+        c = np.ones((1, 3))
+        expr = cp.min(X, axis=0, keepdims=True)
+        obj = cp.Maximize(cp.sum(expr + c))
+        prob = cp.Problem(obj, [X == X_val])
+        prob.solve()
+
     # Test sign logic for maximum.
     def test_maximum_sign(self) -> None:
         # Two args.
@@ -947,6 +957,21 @@ class TestAtoms(BaseTest):
         self.assertEqual(str(cm.exception),
                          "The arguments to conv must resolve to vectors.")
 
+        # Test with parameter input.
+        # https://github.com/cvxpy/cvxpy/issues/2218
+        x = cp.Variable()
+        p = cp.Parameter()
+        problem = cp.Problem(cp.Minimize(cp.conv(p, x)), [0 <= x, x <= 1])
+
+        p.value = -1.0
+        result = problem.solve()
+        self.assertAlmostEqual(result, -1)
+        self.assertAlmostEqual(x.value, 1)
+
+        problem = cp.Problem(cp.Minimize(cp.conv(p, x)), [0 <= x, x <= 1])
+        with pytest.raises(cp.DPPError):
+            problem.solve(enforce_dpp=True)
+
     def test_kron_expr(self) -> None:
         """Test the kron atom.
         """
@@ -980,6 +1005,21 @@ class TestAtoms(BaseTest):
                          "The first argument to conv must be constant.")
         with pytest.raises(ValueError, match="scalar or 1D"):
             cp.convolve([[0, 1], [0, 1]], self.x)
+
+        # Test with parameter input.
+        # https://github.com/cvxpy/cvxpy/issues/2218
+        x = cp.Variable()
+        p = cp.Parameter()
+        problem = cp.Problem(cp.Minimize(cp.convolve(p, x)), [0 <= x, x <= 1])
+
+        p.value = -1.0
+        result = problem.solve(canon_backend=cp.CPP_CANON_BACKEND)
+        self.assertAlmostEqual(result, -1)
+        self.assertAlmostEqual(x.value, 1)
+
+        problem = cp.Problem(cp.Minimize(cp.convolve(p, x)), [0 <= x, x <= 1])
+        with pytest.raises(cp.DPPError):
+            problem.solve(enforce_dpp=True)
 
     def test_ptp(self) -> None:
         """Test the ptp atom.
@@ -1270,18 +1310,15 @@ class TestAtoms(BaseTest):
         """Test that norm1 and normInf match definition for matrices.
         """
         A = np.array([[1, 2], [3, 4]])
-        print(A)
         X = Variable((2, 2))
         obj = Minimize(cp.norm(X, 1))
         prob = cp.Problem(obj, [X == A])
         result = prob.solve(solver=cp.SCS)
-        print(result)
         self.assertAlmostEqual(result, cp.norm(A, 1).value, places=3)
 
         obj = Minimize(cp.norm(X, np.inf))
         prob = cp.Problem(obj, [X == A])
         result = prob.solve(solver=cp.SCS)
-        print(result)
         self.assertAlmostEqual(result, cp.norm(A, np.inf).value, places=3)
 
     def test_indicator(self) -> None:
@@ -1349,13 +1386,17 @@ class TestAtoms(BaseTest):
             -result, 4 * np.log(scipy.stats.norm.cdf(2)), places=None, delta=1e-2
         )
 
-    def test_scalar_product(self) -> None:
+    def test_vdot(self) -> None:
         """Test scalar product.
         """
         p = np.ones((4,))
         v = cp.Variable((4,))
 
-        p = np.ones((4,))
+        obj = cp.Minimize(cp.vdot(v, p))
+        prob = cp.Problem(obj, [v >= 1])
+        prob.solve(solver=cp.SCS)
+        assert np.allclose(v.value, p)
+
         obj = cp.Minimize(cp.scalar_product(v, p))
         prob = cp.Problem(obj, [v >= 1])
         prob.solve(solver=cp.SCS)
@@ -1366,6 +1407,11 @@ class TestAtoms(BaseTest):
         v = cp.Variable((4,))
 
         p.value = np.ones((4,))
+        obj = cp.Minimize(cp.vdot(v, p))
+        prob = cp.Problem(obj, [v >= 1])
+        prob.solve(solver=cp.SCS)
+        assert np.allclose(v.value, p.value)
+
         obj = cp.Minimize(cp.scalar_product(v, p))
         prob = cp.Problem(obj, [v >= 1])
         prob.solve(solver=cp.SCS)
