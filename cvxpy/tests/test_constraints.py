@@ -431,11 +431,11 @@ class TestConstraints(BaseTest):
         exp6, _ = constraint6.gen_torch_exp()
         exp7, _ = constraint7.gen_torch_exp()
 
-        x_test = np.array([1,2,3])
-        z_test = np.zeros(m)
-        w_test = np.array([-1,0,1])
-        T1 = np.ones((m,n))
-        T2 = np.ones((m,n))
+        x_test = torch.tensor([1., 2. ,3.], dtype=torch.float64)
+        z_test = torch.zeros(m, dtype=torch.float64)
+        w_test = torch.tensor([-1,0,1], dtype=torch.float64)
+        T1 = torch.ones((m,n), dtype=torch.float64)
+        T2 = torch.ones((m,n), dtype=torch.float64)
 
         test1 = exp1(x_test, z_test)
         test2 = exp2(z_test)
@@ -446,12 +446,12 @@ class TestConstraints(BaseTest):
         test7 = exp7(T1, T2)
 
         self.assertTrue(all(test1==torch.tensor([3, -3])))
-        self.assertTrue(all(test2==np.array([0, 0])))
+        self.assertTrue(all(test2==torch.tensor([0, 0])))
         self.assertTrue(all(test3==torch.tensor([1])))
         self.assertTrue(all(test4==torch.tensor([-1])))
         self.assertTrue(np.isclose(test5, 25.9258))
-        self.assertTrue((test6==-n*np.ones((m,m))).all())
-        self.assertTrue((test7==n*np.ones((m,m))).all())
+        self.assertTrue((test6==-n*torch.ones((m,m))).all())
+        self.assertTrue((test7==n*torch.ones((m,m))).all())
 
     def test_bound_properties(self) -> None:
         """Test basic bound properties."""

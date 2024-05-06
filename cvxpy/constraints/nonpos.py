@@ -244,3 +244,6 @@ class Inequality(Constraint):
         if self.expr.value is None:
             return None
         return np.maximum(self.expr.value, 0)
+
+    def gen_torch_exp(self):
+        return super().gen_torch_exp()
