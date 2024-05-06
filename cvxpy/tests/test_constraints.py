@@ -397,127 +397,62 @@ class TestConstraints(BaseTest):
         prob.solve(solver=cp.OSQP)
         self.assertItemsAlmostEqual(prob.constraints[0].dual_value, dual)
 
-    def test_bound_properties(self) -> None:
-        """Test basic bound properties."""
-        assert cp.Variable(bounds=[1, None])._has_lower_bounds()
-        assert not cp.Variable(bounds=[1, None])._has_upper_bounds()
-        assert not cp.Variable(bounds=[None, 1])._has_lower_bounds()
-        assert cp.Variable(bounds=[None, 1])._has_upper_bounds()
-        assert cp.Variable(bounds=[1, 2])._has_lower_bounds()
-        assert cp.Variable(bounds=[1, 2])._has_upper_bounds()
+    def test_constraint_torch_exp(self) -> None:
+        #Tests generating a torch expression from a constraint
+        import torch
+        m = 2
+        n = 3
+        s0 = np.array([-3, 2])
+        s0 = np.maximum(s0, 0)
+        x0 = np.ones(n)
+        A = np.array([[1, -1, 2], [3, 1, -1]]) #2x3
+        b = A @ x0 + s0 #[2,5]
 
-    def test_bounds_attr(self) -> None:
-        """Test that the bounds attribute for variables and parameters is set correctly.
-        """
-        # Test if bounds attribute generates correct bounds
-        Q = np.array([[1, 0, 0], [0, 2, 0], [0, 0, 3]])
-        x_1 = cp.Variable((3,), bounds=[np.array([1,2,3]), np.array([4,5,6])])
-        x_2 = cp.Variable((2,), bounds=[1,2])
-        x_3 = cp.Variable((2,), bounds=[np.array([4,5]), 6])
-        x_4 = cp.Variable((3,), bounds=[1, np.array([2,3,4])])
-        c_1 = np.array([1,1])
-        c_2 = np.array([1,1,1])
+        x = cp.Variable(n)
+        z = cp.Variable(m)
+        w = cp.Parameter(n)
+        w.value=np.ones(n)
+        X = cp.Variable((m,n))
+        Y = cp.Parameter((m,n))
 
-        # Case 1: Check solution for lower and upper bound arrays
-        # Check if bounds attribute is compatible with linear objective
-        cp.Problem(cp.Minimize(x_1@c_2)).solve()
-        self.assertItemsAlmostEqual(x_1.value, [1, 2, 3])
-        # Check value validation and project.
-        self.assertItemsAlmostEqual(x_1.project([0, 0, 0]), [1, 2, 3])
-        with pytest.raises(ValueError, match="in bounds."):
-            x_1.value = [0, 0, 0]
+        constraint1 = (A @ x + z <= b) #Arbitrary constraint
+        constraint2 = (z==0) #Equality
+        constraint3 = (w@x <= 1) # <=
+        constraint4 = (w@x >= 1) # >=
+        constraint5 = 5*cp.norm(A@x) <= 1 #Unary operation
+        constraint6 = X@Y.T >= 0
+        constraint7 = X@Y.T <= 0
+        X@Y.T
 
-        # Try again using domain.
-        z = cp.Variable(shape=x_1.shape, var_id=x_1.id)
-        cp.Problem(cp.Minimize(z@c_2), x_1.domain).solve()
-        self.assertItemsAlmostEqual(z.value, [1, 2, 3])
+        exp1, _ = constraint1.gen_torch_exp()
+        exp2, _ = constraint2.gen_torch_exp()
+        exp3, _ = constraint3.gen_torch_exp()
+        exp4, _ = constraint4.gen_torch_exp()
+        exp5, _ = constraint5.gen_torch_exp()
+        exp6, _ = constraint6.gen_torch_exp()
+        exp7, _ = constraint7.gen_torch_exp()
 
-        # Check if bounds attribute is compatible with quadratic objective
-        cp.Problem(cp.Minimize(cp.quad_form(x_1, Q) + c_2.T @ x_1)).solve()
-        self.assertItemsAlmostEqual(x_1.value,[1,2,3])
+        x_test = torch.tensor([1., 2. ,3.], dtype=torch.float64)
+        z_test = torch.zeros(m, dtype=torch.float64)
+        w_test = torch.tensor([-1,0,1], dtype=torch.float64)
+        T1 = torch.ones((m,n), dtype=torch.float64)
+        T2 = torch.ones((m,n), dtype=torch.float64)
 
-        # Case 2: Check solution for scalar lower and upper bounds
-        cp.Problem(cp.Minimize(x_2@c_1)).solve()
-        self.assertItemsAlmostEqual(x_2.value, [1, 1])
+        test1 = exp1(x_test, z_test)
+        test2 = exp2(z_test)
+        test3 = exp3(w_test, x_test)
+        test4 = exp4(w_test, x_test)
+        test5 = exp5(x_test)
+        test6 = exp6(T1, T2)
+        test7 = exp7(T1, T2)
 
-        # Case 3: Check solution for lower bound array and scalar upper bound
-        cp.Problem(cp.Maximize(x_3@c_1)).solve()
-        self.assertItemsAlmostEqual(x_3.value, [6, 6])
-
-        # Case 4: Check solution for scalar lower bound and upper bound array
-        cp.Problem(cp.Maximize(x_4@c_2)).solve()
-        self.assertItemsAlmostEqual(x_4.value, [2, 3, 4])
-
-        # Check if bounds are a list of 2 items
-        with pytest.raises(ValueError, match="Bounds should be a list of two items."):
-            cp.Variable((2,), bounds=[np.array([0, 1, 2])])
-
-        # Check for mismatch in dimensions of lower and upper bounds
-        with pytest.raises(ValueError, match="with the same dimensions as the variable/parameter."):
-            cp.Variable((2,), bounds=[np.array([1,2]), np.array([1,2,3])])
-        with pytest.raises(ValueError, match="with the same dimensions as the variable/parameter."):
-            cp.Variable((2,), bounds=[np.array([1,2,3,4]), 5])
-
-        # Check that bounds attribute handles -inf and inf correctly
-        x_5 = cp.Variable((2,), bounds=[-np.inf, np.array([1,2])])
-        x_6 = cp.Variable((3,), bounds=[3, np.inf])
-        x_7 = cp.Variable((2,),bounds=[-np.inf, np.inf])
-        cp.Problem(cp.Maximize(x_5@c_1)).solve()
-        self.assertItemsAlmostEqual(x_5.value, [1, 2])
-        # Check value validation and project.
-        self.assertItemsAlmostEqual(x_5.project([2, 1]), [1, 1])
-        x_5.value = [0, 0]
-        with pytest.raises(ValueError, match="in bounds."):
-            x_5.value = [2, 1]
-        cp.Problem(cp.Minimize(x_6@c_2)).solve()
-        self.assertItemsAlmostEqual(x_6.value, [3,3,3])
-        # Check that adding constraints are handled correctly for unbounded domain
-        # (no error from solver)
-        cp.Problem(cp.Minimize(x_7 @ c_1)).solve()
-        self.assertIsNone(x_7.value)
-
-        # Test mix of lower and upper bounds.
-        lower_bounds = [None, -np.inf, 1]
-        upper_bounds = [None, np.inf, 2]
-        for lower, upper in zip(lower_bounds, upper_bounds):
-            z = cp.Variable(bounds=[lower, upper])
-
-            min_z = cp.Problem(cp.Minimize(z)).solve()
-            if lower is None:
-                lower = -np.inf
-            assert np.isclose(min_z, lower)
-
-            max_z = cp.Problem(cp.Maximize(z)).solve()
-            if upper is None:
-                upper = np.inf
-            assert np.isclose(max_z, upper)
-
-        with pytest.raises(ValueError,match="Invalid bounds: some upper "
-                                            "bounds are less than corresponding lower bounds."):
-            cp.Variable((2,), bounds=[np.array([2,3]), np.array([1,4])])
-
-        with pytest.raises(ValueError, match="-np.inf is not feasible as an upper bound."):
-            cp.Variable((2,), bounds=[None, -np.inf])
-        with pytest.raises(ValueError, match="-np.inf is not feasible as an upper bound."):
-            cp.Variable((2,), bounds=[-np.inf, np.array([1,-np.inf])])
-        with pytest.raises(ValueError, match="-np.inf is not feasible as an upper bound."):
-            cp.Variable((2,), bounds=[np.array([1, -np.inf]), np.array([2, -np.inf])])
-
-        with pytest.raises(ValueError, match="np.inf is not feasible as a lower bound."):
-            cp.Variable((2,), bounds=[np.inf, np.inf])
-        with pytest.raises(ValueError, match="np.inf is not feasible as a lower bound."):
-            cp.Variable((2,), bounds=[np.array([1,np.inf]), np.inf])
-        with pytest.raises(ValueError, match="np.inf is not feasible as a lower bound."):
-            cp.Variable((2,), bounds=[np.array([1, np.inf]), np.array([2, np.inf])])
-
-        with pytest.raises(ValueError, match="np.nan is not feasible as lower or upper bound."):
-            cp.Variable((2,), bounds=[np.nan, np.nan])
-        with pytest.raises(ValueError, match="np.nan is not feasible as lower or upper bound."):
-            cp.Variable((2,), bounds=[np.nan, np.array([1, np.nan])])
-        with pytest.raises(ValueError, match="np.nan is not feasible as lower or upper bound."):
-            cp.Variable((2,), bounds=[np.array([1, np.nan]), np.nan])
-        with pytest.raises(ValueError, match="np.nan is not feasible as lower or upper bound."):
-            cp.Variable((2,), bounds=[np.array([1, np.nan]), np.array([2, np.nan])])
+        self.assertTrue(all(test1==torch.tensor([3, -3])))
+        self.assertTrue(all(test2==torch.tensor([0, 0])))
+        self.assertTrue(all(test3==torch.tensor([1])))
+        self.assertTrue(all(test4==torch.tensor([-1])))
+        self.assertTrue(np.isclose(test5, 25.9258))
+        self.assertTrue((test6==-n*torch.ones((m,m))).all())
+        self.assertTrue((test7==n*torch.ones((m,m))).all())
 
     def test_bound_properties(self) -> None:
         """Test basic bound properties."""
