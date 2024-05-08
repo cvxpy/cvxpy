@@ -41,6 +41,9 @@ jobs:
           branch: gh-pages # The branch the action should deploy to.
           folder: doc/build/html # The folder the action should deploy.
           target-folder: ${{ env.VERSION_PATH }}
+        run: |
+          python continuous_integration/doc_write_versions.py
+          mv versions.json doc/build/html
 
       - name: Deploy to root if latest version
         if: ${{env.DEPLOY_LATEST == 'True'}}
