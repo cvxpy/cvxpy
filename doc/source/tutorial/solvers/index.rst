@@ -322,8 +322,7 @@ For example, here we tell SCS to use an indirect method for solving linear equat
 
 Here is the complete list of solver options.
 
-.. info:: `OSQP`_ options:
-   :collapsible: open
+`OSQP`_ options:
 
     ``'max_iter'``
         maximum number of iterations (default: 10,000).
@@ -336,8 +335,7 @@ Here is the complete list of solver options.
 
     For others see `OSQP documentation <https://osqp.org/docs/interfaces/solver_settings.html>`_.
 
-.. info:: `PROXQP`_ options:
-   :collapsible:
+`PROXQP`_ options:
 
     ``'backend'``
         solver backend [dense, sparse] (default: dense).
@@ -360,8 +358,7 @@ Here is the complete list of solver options.
     ``'mu_in'``
         dual inequality constraint proximal parameter (default: 1e-1).
 
-.. info:: `ECOS`_ options:
-   :collapsible:
+`ECOS`_ options:
 
     ``'max_iters'``
         maximum number of iterations (default: 100).
@@ -384,8 +381,7 @@ Here is the complete list of solver options.
     ``'feastol_inacc'``
         tolerance for feasibility condition for inaccurate solution (default: 1e-4).
 
-.. info:: `DAQP`_ options:
-   :collapsible:
+`DAQP`_ options:
 
     For more information `see the DAQP documentation <https://darnstrom.github.io/daqp/parameters/>`_,
     some features of DAQP are currently unsupported in CVXPY.
@@ -420,8 +416,7 @@ Here is the complete list of solver options.
         Tolerance that determines if a fix-point has been reached during
         proximal-point iterations (default: 1e-6).
 
-.. info:: `GLOP`_ options:
-   :collapsible:
+`GLOP`_ options:
 
     ``'time_limit_sec'``
         Time limit for the solve, in seconds.
@@ -431,8 +426,7 @@ Here is the complete list of solver options.
         For the definition of GlopParameters, see
         `here <https://github.com/google/or-tools/blob/2cb85b4eead4c38e1c54b48044f92087cf165bce/ortools/glop/parameters.proto#L26>`_.
 
-.. info:: `MOSEK`_ options
-   :collapsible:
+`MOSEK`_ options:
 
     ``'mosek_params'``
         A dictionary of MOSEK parameters in the form ``name: value``. Parameter names
@@ -476,8 +470,7 @@ Here is the complete list of solver options.
         adding the ``(key, value)`` pair ``('MSK_IPAR_INTPNT_SOLVE_FORM', 'MSK_SOLVE_DUAL')``
         to the ``mosek_params`` argument.
 
-.. info:: `CVXOPT`_ options
-   :collapsible:
+`CVXOPT`_ options:
 
     ``'max_iters'``
         maximum number of iterations (default: 100).
@@ -513,8 +506,7 @@ Here is the complete list of solver options.
         solvers. The precise API that CVXPY users are held to is described in the CVXPY source
         code: `cvxpy/reductions/solvers/kktsolver.py <https://github.com/cvxpy/cvxpy/blob/master/cvxpy/reductions/solvers/kktsolver.py>`_.
 
-.. info:: `SDPA`_ options
-   :collapsible:
+`SDPA`_ options:
 
     ``'maxIteration'``
         The maximum number of iterations. (default: 100).
@@ -570,8 +562,7 @@ Here is the complete list of solver options.
     ``'zeroPoint'``
         The zero point of matrix operation, determine unboundness, or LU decomposition. (default: 1.0E-12).
 
-.. info:: `SCS`_ options
-   :collapsible:
+`SCS`_ options:
 
     ``'max_iters'``
         maximum number of iterations (default: 2500).
@@ -606,8 +597,7 @@ Here is the complete list of solver options.
     ``'use_quad_obj'``
         whether to use a quadratic objective or reduce it to SOC constraints (default: True).
 
-.. info:: `CBC`_ options
-   :collapsible:
+`CBC`_ options:
 
     Cut-generation through `CGL`_
 
@@ -645,13 +635,11 @@ Here is the complete list of solver options.
     ``'allowablePercentageGap'``
         returns if the gap between the best known solution and the best possible solution is less than this percentage.
 
-.. info:: `COPT`_ options:
-   :collapsible:
+`COPT`_ options:
 
     COPT solver options are specified in CVXPY as keyword arguments. The full list of COPT parameters with defaults is listed `here <https://guide.coap.online/copt/en-doc/index.html#parameters>`_.
 
-.. info:: `CPLEX`_ options:
-   :collapsible:
+`CPLEX`_ options:
 
     ``'cplex_params'``
         a dictionary where the key-value pairs are composed of parameter names (as used in the CPLEX Python API) and parameter values. For example, to set the advance start switch parameter (i.e., CPX_PARAM_ADVIND), use "advance" for the parameter name. For the data consistency checking and modeling assistance parameter (i.e., CPX_PARAM_DATACHECK), use "read.datacheck" for the parameter name, and so on.
@@ -664,19 +652,16 @@ Here is the complete list of solver options.
         Its default value is False. If set to True, then if CPLEX produces an "infeasible or unbounded" status, its algorithm
         parameters are automatically changed and the problem is re-solved in order to determine its precise status.
 
-.. info:: `NAG`_ options:
-   :collapsible:
+`NAG`_ options:
 
     ``'nag_params'``
         a dictionary of NAG option parameters. Refer to NAG's Python or Fortran API for details. For example, to set the maximum number of iterations for a linear programming problem to 20, use "LPIPM Iteration Limit" for the key name and 20 for its value .
 
-.. info:: SCIP_ options:
-   :collapsible:
+SCIP_ options:
 
     ``'scip_params'`` a dictionary of SCIP optional parameters, a full list of parameters with defaults is listed `here <https://www.scipopt.org/doc-5.0.1/html/PARAMETERS.php>`_.
 
-.. info:: `SCIPY`_ options:
-   :collapsible:
+`SCIPY`_ options:
 
     ``'scipy_options'`` a dictionary of SciPy optional parameters, a full list of parameters with defaults is listed `here <https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.linprog.html#scipy.optimize.linprog>`_.
 
@@ -684,8 +669,7 @@ Here is the complete list of solver options.
 
     * The main advantage of this solver is its ability to use the `HiGHS`_ LP and MIP solvers, which are coded in C++. However, these require versions of SciPy larger than 1.6.1 and 1.9.0, respectively. To use the `HiGHS`_ LP solvers, simply set the method parameter to 'highs-ds' (for dual-simplex), 'highs-ipm' (for interior-point method) or 'highs' (which will choose either 'highs-ds' or 'highs-ipm' for you). To use the `HiGHS`_ MIP solver, leave the method parameter unspecified or set it explicitly to 'highs'.
 
-.. info:: `PDLP`_ options:
-   :collapsible:
+`PDLP`_ options:
 
     ``'time_limit_sec'``
         Time limit for the solve, in seconds.
@@ -695,8 +679,7 @@ Here is the complete list of solver options.
         For the definition of PrimalDualHybridGradientParams, see
         `here <https://github.com/google/or-tools/blob/a3ef28e824ee84a948796dffbb8254e67714cb56/ortools/pdlp/solvers.proto#L150>`_.
 
-.. info:: `GUROBI`_ options:
-   :collapsible:
+`GUROBI`_ options:
 
     Gurobi solver options are specified in CVXPY as keyword arguments. The full list of Gurobi parameters with defaults is listed `here <https://www.gurobi.com/documentation/9.1/refman/parameters.html>`_.
 
@@ -710,8 +693,7 @@ Here is the complete list of solver options.
         Its default value is False. If set to True, then if GUROBI produces an "infeasible or unbounded" status, its algorithm
         parameters are automatically changed and the problem is re-solved in order to determine its precise status.
 
-.. info:: `CLARABEL`_ options:
-   :collapsible:
+`CLARABEL`_ options:
 
     ``'max_iter'``
         maximum number of iterations (default: 50).
@@ -721,8 +703,7 @@ Here is the complete list of solver options.
 
     For others see `CLARABEL documentation <https://oxfordcontrol.github.io/ClarabelDocs/stable/api_settings/>`_.
 
-.. info::  `XPRESS`_ options:
-   :collapsible:
+`XPRESS`_ options:
 
     ``'save_iis'``
         Whether (and how many) Irreduceable Infeasible Subsystems
@@ -741,8 +722,7 @@ Here is the complete list of solver options.
     All controls of the Xpress Optimizer can be specified within the ``'solve'``
     command. For all controls see `FICO Xpress Optimizer manual <https://www.fico.com/fico-xpress-optimization/docs/dms2019-03/solver/optimizer/HTML/chapter7.html>`_.
 
-.. info:: `PIQP`_ options:
-   :collapsible:
+`PIQP`_ options:
 
     ``'backend'``
         solver backend [dense, sparse] (default: sparse).
