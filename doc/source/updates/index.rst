@@ -34,15 +34,19 @@ We have no plans to remove support for calling ECOS as a solver.
 
 We encourage you to try and use Clarabel instead, but if you're
 dependent on ECOS's exact behavior please explicitly specify it as a
-solver.
+solver and as a dependency for your project.
 
 New features
 ~~~~~~~~~~~~
 
-- Added .curvatures containing all curvatures your expression is compatible with
-- Variable bounds can be specified with cp.Variable(bound=(lower, upper)) and are directly passed to the solver when helpful. lower and upper can be either a NumPy array or floating point number.
-- Constants can be named by writing cp.Constant(name='...')
-- Added a new atom, vdot, that has the same behavior as scalar_product
+- Major updates to the documentation, adding a number of new sections to the 
+  User Guide and breaking up the monolithic Advanced features page
+- Added `.curvatures` containing all curvatures an expression is compatible with
+- Variable bounds can be specified with `cp.Variable(bound=(lower, upper))`
+  and are directly passed to the solver when helpful. `lower` and `upper` can
+  be either a NumPy array or floating point number.
+- Constants can be named by writing `cp.Constant(name='...')`
+- Added a new atom, `vdot`, that has the same behavior as `scalar_product`
 - CVXPY runs in the next PyOdide release via wasm
 - Added or-tools 9.9 support
 - Major rewrite to the PDLP interface
