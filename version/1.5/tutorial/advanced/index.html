@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Advanced Features &#8212; CVXPY 1.5 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="../../_static/cvxpy_alabaster.css?v=6c13f287" />
+    <link rel="stylesheet" type="text/css" href="../../_static/tabs.css?v=4c969af8" />
+    <link rel="stylesheet" type="text/css" href="../../_static/design-style.1e8bd061cd6da7fc9cf755528e8ffc24.min.css?v=0a3b3ea7" />
+    <script src="../../_static/jquery.js?v=5d32c60e"></script>
+    <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+    <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js?v=8f967033"></script>
+    <script src="../../_static/doctools.js?v=888ff710"></script>
+    <script src="../../_static/sphinx_highlight.js?v=4825356b"></script>
+    <script src="../../_static/tabs.js?v=3ee01567"></script>
+    <script src="../../_static/design-tabs.js?v=36754332"></script>
+    <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <link rel="icon" href="../../_static/favicon.ico"/>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="Solver Features" href="../solvers/index.html" />
+    <link rel="prev" title="Advanced Constraints" href="../constraints/index.html" />
+   
+  <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="advanced-features">
+<span id="advanced"></span><h1>Advanced Features<a class="headerlink" href="#advanced-features" title="Permalink to this heading">¶</a></h1>
+<p>This section of the tutorial covers features of CVXPY intended for users with advanced knowledge of convex optimization. We recommend <a class="reference external" href="https://www.stanford.edu/~boyd/cvxbook/">Convex Optimization</a> by Boyd and Vandenberghe as a reference for any terms you are unfamiliar with.</p>
+<section id="dual-variables">
+<h2>Dual variables<a class="headerlink" href="#dual-variables" title="Permalink to this heading">¶</a></h2>
+<p>You can use CVXPY to find the optimal dual variables for a problem. When you call <code class="docutils literal notranslate"><span class="pre">prob.solve()</span></code> each dual variable in the solution is stored in the <code class="docutils literal notranslate"><span class="pre">dual_value</span></code> field of the constraint it corresponds to.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">cvxpy</span> <span class="k">as</span> <span class="nn">cp</span>
+
+<span class="c1"># Create two scalar optimization variables.</span>
+<span class="n">x</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Variable</span><span class="p">()</span>
+<span class="n">y</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Variable</span><span class="p">()</span>
+
+<span class="c1"># Create two constraints.</span>
+<span class="n">constraints</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span> <span class="o">+</span> <span class="n">y</span> <span class="o">==</span> <span class="mi">1</span><span class="p">,</span>
+               <span class="n">x</span> <span class="o">-</span> <span class="n">y</span> <span class="o">&gt;=</span> <span class="mi">1</span><span class="p">]</span>
+
+<span class="c1"># Form objective.</span>
+<span class="n">obj</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Minimize</span><span class="p">((</span><span class="n">x</span> <span class="o">-</span> <span class="n">y</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
+
+<span class="c1"># Form and solve problem.</span>
+<span class="n">prob</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Problem</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">constraints</span><span class="p">)</span>
+<span class="n">prob</span><span class="o">.</span><span class="n">solve</span><span class="p">()</span>
+
+<span class="c1"># The optimal dual variable (Lagrange multiplier) for</span>
+<span class="c1"># a constraint is stored in constraint.dual_value.</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;optimal (x + y == 1) dual variable&quot;</span><span class="p">,</span> <span class="n">constraints</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">dual_value</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;optimal (x - y &gt;= 1) dual variable&quot;</span><span class="p">,</span> <span class="n">constraints</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">dual_value</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;x - y value:&quot;</span><span class="p">,</span> <span class="p">(</span><span class="n">x</span> <span class="o">-</span> <span class="n">y</span><span class="p">)</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">optimal</span> <span class="p">(</span><span class="n">x</span> <span class="o">+</span> <span class="n">y</span> <span class="o">==</span> <span class="mi">1</span><span class="p">)</span> <span class="n">dual</span> <span class="n">variable</span> <span class="mf">6.47610300459e-18</span>
+<span class="n">optimal</span> <span class="p">(</span><span class="n">x</span> <span class="o">-</span> <span class="n">y</span> <span class="o">&gt;=</span> <span class="mi">1</span><span class="p">)</span> <span class="n">dual</span> <span class="n">variable</span> <span class="mf">2.00025244976</span>
+<span class="n">x</span> <span class="o">-</span> <span class="n">y</span> <span class="n">value</span><span class="p">:</span> <span class="mf">0.999999986374</span>
+</pre></div>
+</div>
+<p>The dual variable for <code class="docutils literal notranslate"><span class="pre">x</span> <span class="pre">-</span> <span class="pre">y</span> <span class="pre">&gt;=</span> <span class="pre">1</span></code> is 2. By complementarity this implies that <code class="docutils literal notranslate"><span class="pre">x</span> <span class="pre">-</span> <span class="pre">y</span></code> is 1, which we can see is true. The fact that the dual variable is non-zero also tells us that if we tighten <code class="docutils literal notranslate"><span class="pre">x</span> <span class="pre">-</span> <span class="pre">y</span> <span class="pre">&gt;=</span> <span class="pre">1</span></code>, (i.e., increase the right-hand side), the optimal value of the problem will increase.</p>
+</section>
+<section id="transforms">
+<h2>Transforms<a class="headerlink" href="#transforms" title="Permalink to this heading">¶</a></h2>
+<p>Transforms provide additional ways of manipulating CVXPY objects
+beyond the atomic functions.  For example, the <a class="reference internal" href="../../api_reference/cvxpy.transforms.html#cvxpy.transforms.indicator" title="cvxpy.transforms.indicator"><code class="xref py py-class docutils literal notranslate"><span class="pre">indicator</span></code></a> transform converts a list of constraints into an
+expression representing the convex function that takes value 0 when the
+constraints hold and <span class="math notranslate nohighlight">\(\infty\)</span> when they are violated.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">x</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Variable</span><span class="p">()</span>
+<span class="n">constraints</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span> <span class="o">&lt;=</span> <span class="n">x</span><span class="p">,</span> <span class="n">x</span> <span class="o">&lt;=</span> <span class="mi">1</span><span class="p">]</span>
+<span class="n">expr</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">transforms</span><span class="o">.</span><span class="n">indicator</span><span class="p">(</span><span class="n">constraints</span><span class="p">)</span>
+<span class="n">x</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="mf">.5</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;expr.value = &quot;</span><span class="p">,</span> <span class="n">expr</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
+<span class="n">x</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="mi">2</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;expr.value = &quot;</span><span class="p">,</span> <span class="n">expr</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">expr</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="mf">0.0</span>
+<span class="n">expr</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="n">inf</span>
+</pre></div>
+</div>
+<p>The full set of transforms available is discussed in <a class="reference internal" href="../../api_reference/cvxpy.transforms.html#transforms-api"><span class="std std-ref">Transforms</span></a>.</p>
+</section>
+<section id="problem-arithmetic">
+<h2>Problem arithmetic<a class="headerlink" href="#problem-arithmetic" title="Permalink to this heading">¶</a></h2>
+<p>For convenience, arithmetic operations have been overloaded for
+problems and objectives.
+Problem arithmetic is useful because it allows you to write a problem as a
+sum of smaller problems.
+The rules for adding, subtracting, and multiplying objectives are given below.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Addition and subtraction.</span>
+
+<span class="n">Minimize</span><span class="p">(</span><span class="n">expr1</span><span class="p">)</span> <span class="o">+</span> <span class="n">Minimize</span><span class="p">(</span><span class="n">expr2</span><span class="p">)</span> <span class="o">==</span> <span class="n">Minimize</span><span class="p">(</span><span class="n">expr1</span> <span class="o">+</span> <span class="n">expr2</span><span class="p">)</span>
+
+<span class="n">Maximize</span><span class="p">(</span><span class="n">expr1</span><span class="p">)</span> <span class="o">+</span> <span class="n">Maximize</span><span class="p">(</span><span class="n">expr2</span><span class="p">)</span> <span class="o">==</span> <span class="n">Maximize</span><span class="p">(</span><span class="n">expr1</span> <span class="o">+</span> <span class="n">expr2</span><span class="p">)</span>
+
+<span class="n">Minimize</span><span class="p">(</span><span class="n">expr1</span><span class="p">)</span> <span class="o">+</span> <span class="n">Maximize</span><span class="p">(</span><span class="n">expr2</span><span class="p">)</span> <span class="c1"># Not allowed.</span>
+
+<span class="n">Minimize</span><span class="p">(</span><span class="n">expr1</span><span class="p">)</span> <span class="o">-</span> <span class="n">Maximize</span><span class="p">(</span><span class="n">expr2</span><span class="p">)</span> <span class="o">==</span> <span class="n">Minimize</span><span class="p">(</span><span class="n">expr1</span> <span class="o">-</span> <span class="n">expr2</span><span class="p">)</span>
+
+<span class="c1"># Multiplication (alpha is a positive scalar).</span>
+
+<span class="n">alpha</span><span class="o">*</span><span class="n">Minimize</span><span class="p">(</span><span class="n">expr</span><span class="p">)</span> <span class="o">==</span> <span class="n">Minimize</span><span class="p">(</span><span class="n">alpha</span><span class="o">*</span><span class="n">expr</span><span class="p">)</span>
+
+<span class="n">alpha</span><span class="o">*</span><span class="n">Maximize</span><span class="p">(</span><span class="n">expr</span><span class="p">)</span> <span class="o">==</span> <span class="n">Maximize</span><span class="p">(</span><span class="n">alpha</span><span class="o">*</span><span class="n">expr</span><span class="p">)</span>
+
+<span class="o">-</span><span class="n">alpha</span><span class="o">*</span><span class="n">Minimize</span><span class="p">(</span><span class="n">expr</span><span class="p">)</span> <span class="o">==</span> <span class="n">Maximize</span><span class="p">(</span><span class="o">-</span><span class="n">alpha</span><span class="o">*</span><span class="n">expr</span><span class="p">)</span>
+
+<span class="o">-</span><span class="n">alpha</span><span class="o">*</span><span class="n">Maximize</span><span class="p">(</span><span class="n">expr</span><span class="p">)</span> <span class="o">==</span> <span class="n">Minimize</span><span class="p">(</span><span class="o">-</span><span class="n">alpha</span><span class="o">*</span><span class="n">expr</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The rules for adding and multiplying problems are equally straightforward:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Addition and subtraction.</span>
+
+<span class="n">prob1</span> <span class="o">+</span> <span class="n">prob2</span> <span class="o">==</span> <span class="n">Problem</span><span class="p">(</span><span class="n">prob1</span><span class="o">.</span><span class="n">objective</span> <span class="o">+</span> <span class="n">prob2</span><span class="o">.</span><span class="n">objective</span><span class="p">,</span>
+                         <span class="n">prob1</span><span class="o">.</span><span class="n">constraints</span> <span class="o">+</span> <span class="n">prob2</span><span class="o">.</span><span class="n">constraints</span><span class="p">)</span>
+
+<span class="n">prob1</span> <span class="o">-</span> <span class="n">prob2</span> <span class="o">==</span> <span class="n">Problem</span><span class="p">(</span><span class="n">prob1</span><span class="o">.</span><span class="n">objective</span> <span class="o">-</span> <span class="n">prob2</span><span class="o">.</span><span class="n">objective</span><span class="p">,</span>
+                         <span class="n">prob1</span><span class="o">.</span><span class="n">constraints</span> <span class="o">+</span> <span class="n">prob2</span><span class="o">.</span><span class="n">constraints</span><span class="p">)</span>
+
+<span class="c1"># Multiplication (alpha is any scalar).</span>
+
+<span class="n">alpha</span><span class="o">*</span><span class="n">prob</span> <span class="o">==</span> <span class="n">Problem</span><span class="p">(</span><span class="n">alpha</span><span class="o">*</span><span class="n">prob</span><span class="o">.</span><span class="n">objective</span><span class="p">,</span> <span class="n">prob</span><span class="o">.</span><span class="n">constraints</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Note that the <code class="docutils literal notranslate"><span class="pre">+</span></code> operator concatenates lists of constraints,
+since this is the default behavior for Python lists.
+The in-place operators <code class="docutils literal notranslate"><span class="pre">+=</span></code>, <code class="docutils literal notranslate"><span class="pre">-=</span></code>, and <code class="docutils literal notranslate"><span class="pre">*=</span></code> are also supported for
+objectives and problems and follow the same rules as above.</p>
+</section>
+<section id="getting-the-standard-form">
+<h2>Getting the standard form<a class="headerlink" href="#getting-the-standard-form" title="Permalink to this heading">¶</a></h2>
+<p>If you are interested in getting the standard form that CVXPY produces for a
+problem, you can use the <code class="docutils literal notranslate"><span class="pre">get_problem_data</span></code> method. When a problem is solved,
+a <a class="reference internal" href="../../api_reference/cvxpy.reductions.html#cvxpy.reductions.solvers.solving_chain.SolvingChain" title="cvxpy.reductions.solvers.solving_chain.SolvingChain"><code class="xref py py-class docutils literal notranslate"><span class="pre">SolvingChain</span></code></a> passes a
+low-level representation that is compatible with the targeted solver to a
+solver, which solves the problem. This method returns that low-level
+representation, along with a <code class="docutils literal notranslate"><span class="pre">SolvingChain</span></code> and metadata for unpacking
+a solution into the problem. This low-level representation closely resembles,
+but is not identical to, the arguments supplied to the solver.</p>
+<p>A solution to the equivalent low-level problem can be obtained via the
+data by invoking the <code class="docutils literal notranslate"><span class="pre">solve_via_data</span></code> method of the returned solving
+chain, a thin wrapper around the code external to CVXPY that further
+processes and solves the problem. Invoke the <code class="docutils literal notranslate"><span class="pre">unpack_results</span></code> method
+to recover a solution to the original problem.</p>
+<p>For example:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">problem</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Problem</span><span class="p">(</span><span class="n">objective</span><span class="p">,</span> <span class="n">constraints</span><span class="p">)</span>
+<span class="n">data</span><span class="p">,</span> <span class="n">chain</span><span class="p">,</span> <span class="n">inverse_data</span> <span class="o">=</span> <span class="n">problem</span><span class="o">.</span><span class="n">get_problem_data</span><span class="p">(</span><span class="n">cp</span><span class="o">.</span><span class="n">SCS</span><span class="p">)</span>
+<span class="c1"># calls SCS using `data`</span>
+<span class="n">soln</span> <span class="o">=</span> <span class="n">chain</span><span class="o">.</span><span class="n">solve_via_data</span><span class="p">(</span><span class="n">problem</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span>
+<span class="c1"># unpacks the solution returned by SCS into `problem`</span>
+<span class="n">problem</span><span class="o">.</span><span class="n">unpack_results</span><span class="p">(</span><span class="n">soln</span><span class="p">,</span> <span class="n">chain</span><span class="p">,</span> <span class="n">inverse_data</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Alternatively, the <code class="docutils literal notranslate"><span class="pre">data</span></code> dictionary returned by this method
+contains enough information to bypass CVXPY and call the solver
+directly.</p>
+<p>For example:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">problem</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Problem</span><span class="p">(</span><span class="n">objective</span><span class="p">,</span> <span class="n">constraints</span><span class="p">)</span>
+<span class="n">probdata</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">problem</span><span class="o">.</span><span class="n">get_problem_data</span><span class="p">(</span><span class="n">cp</span><span class="o">.</span><span class="n">SCS</span><span class="p">)</span>
+
+<span class="kn">import</span> <span class="nn">scs</span>
+<span class="n">data</span> <span class="o">=</span> <span class="p">{</span>
+  <span class="s1">&#39;A&#39;</span><span class="p">:</span> <span class="n">probdata</span><span class="p">[</span><span class="s1">&#39;A&#39;</span><span class="p">],</span>
+  <span class="s1">&#39;b&#39;</span><span class="p">:</span> <span class="n">probdata</span><span class="p">[</span><span class="s1">&#39;b&#39;</span><span class="p">],</span>
+  <span class="s1">&#39;c&#39;</span><span class="p">:</span> <span class="n">probdata</span><span class="p">[</span><span class="s1">&#39;c&#39;</span><span class="p">],</span>
+<span class="p">}</span>
+<span class="n">cone_dims</span> <span class="o">=</span> <span class="n">probdata</span><span class="p">[</span><span class="s1">&#39;dims&#39;</span><span class="p">]</span>
+<span class="n">cones</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">&quot;f&quot;</span><span class="p">:</span> <span class="n">cone_dims</span><span class="o">.</span><span class="n">zero</span><span class="p">,</span>
+    <span class="s2">&quot;l&quot;</span><span class="p">:</span> <span class="n">cone_dims</span><span class="o">.</span><span class="n">nonpos</span><span class="p">,</span>
+    <span class="s2">&quot;q&quot;</span><span class="p">:</span> <span class="n">cone_dims</span><span class="o">.</span><span class="n">soc</span><span class="p">,</span>
+    <span class="s2">&quot;ep&quot;</span><span class="p">:</span> <span class="n">cone_dims</span><span class="o">.</span><span class="n">exp</span><span class="p">,</span>
+    <span class="s2">&quot;s&quot;</span><span class="p">:</span> <span class="n">cone_dims</span><span class="o">.</span><span class="n">psd</span><span class="p">,</span>
+<span class="p">}</span>
+<span class="n">soln</span> <span class="o">=</span> <span class="n">scs</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">cones</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The structure of the data dict that CVXPY returns depends on the solver. For
+details, print the dictionary, or consult the solver interfaces in
+<code class="docutils literal notranslate"><span class="pre">cvxpy/reductions/solvers</span></code>.</p>
+</section>
+<section id="canonicalization-backends">
+<span id="id1"></span><h2>Canonicalization backends<a class="headerlink" href="#canonicalization-backends" title="Permalink to this heading">¶</a></h2>
+<p>Users can select from multiple canonicalization backends by adding the <code class="docutils literal notranslate"><span class="pre">canon_backend</span></code>
+keyword argument to the <code class="docutils literal notranslate"><span class="pre">.solve()</span></code> call, e.g. <code class="docutils literal notranslate"><span class="pre">problem.solve(canon_backend=cp.SCIPY_CANON_BACKEND)</span></code>
+(Introduced in CVXPY 1.3).
+This can speed up the canonicalization time significantly for some problems.
+Currently, the following canonicalization backends are supported:</p>
+<ul>
+<li><p>CPP (default): The original C++ implementation, also referred to as CVXCORE.</p></li>
+<li><div class="line-block">
+<div class="line">SCIPY: A pure Python implementation based on the SciPy sparse module.</div>
+<div class="line">Generally fast for problems that are already vectorized.</div>
+</div>
+</li>
+<li><p>NUMPY: Reference implementation in pure NumPy. Fast for some small or dense problems.</p></li>
+</ul>
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../index.html">CVXPY</a></h1>
+
+
+
+
+
+
+<p>
+<iframe src="https://ghbtns.com/github-btn.html?user=cvxpy&repo=cvxpy&type=star&count=true&size=large&v=2"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
+
+
+
+
+
+<h3>Navigation</h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../install/index.html">Install</a></li>
+</ul>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="../index.html">User Guide</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../intro/index.html">What is CVXPY?</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../functions/index.html">Atomic Functions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../dcp/index.html">Disciplined Convex Programming</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../dgp/index.html">Disciplined Geometric Programming</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../dpp/index.html">Disciplined Parametrized Programming</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../dqcp/index.html">Disciplined Quasiconvex Programming</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../constraints/index.html">Advanced Constraints</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Advanced Features</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#dual-variables">Dual variables</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#transforms">Transforms</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#problem-arithmetic">Problem arithmetic</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#getting-the-standard-form">Getting the standard form</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#canonicalization-backends">Canonicalization backends</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../solvers/index.html">Solver Features</a></li>
+</ul>
+</li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../api_reference/cvxpy.html">API Documentation</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../examples/index.html">Examples</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../contributing/index.html">Contributing</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../updates/index.html">Changelog</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../faq/index.html">FAQ</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../resources/index.html">Resources</a></li>
+</ul>
+
+
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script><div>
+    <h3>
+        Version selector
+    </h3>
+    <select id="dynamic_selector" name="versions" onchange="if (this.value) window.location.href=this.value">
+    </select>
+    <script>
+        obj = $.getJSON("https://raw.githubusercontent.com/cvxpy/cvxpy/gh-pages/versions.json")
+            .done(function (data) {
+                const base_url = "https://www.cvxpy.org/"
+                let html = "<option value='' selected>Choose version here</option>";
+                html += "<option value=" + base_url + ">latest" + ""
+                for (let i = 0; i < data.length; i++) {
+                    html += "<option value=" + base_url + "version/"  + data[i] + ">" + data[i] + ""
+                }
+                document.getElementById("dynamic_selector").innerHTML = html;
+            });
+    </script>
+</div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;The CVXPY authors.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 7.1.2</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.13</a>
+      
+      |
+      <a href="../../_sources/tutorial/advanced/index.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+    <script type="text/javascript">
+
+      var _gaq = _gaq || [];
+      _gaq.push(['_setAccount', 'UA-50248335-1']);
+      _gaq.push(['_setDomainName', 'none']);
+      _gaq.push(['_setAllowLinker', true]);
+      _gaq.push(['_trackPageview']);
+
+      (function() {
+        var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+        ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+      })();
+
+    </script>
+    
+  </body>
+</html>

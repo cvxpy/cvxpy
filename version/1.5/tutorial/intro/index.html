@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>What is CVXPY? &#8212; CVXPY 1.5 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="../../_static/cvxpy_alabaster.css?v=6c13f287" />
+    <link rel="stylesheet" type="text/css" href="../../_static/tabs.css?v=4c969af8" />
+    <link rel="stylesheet" type="text/css" href="../../_static/design-style.1e8bd061cd6da7fc9cf755528e8ffc24.min.css?v=0a3b3ea7" />
+    <script src="../../_static/jquery.js?v=5d32c60e"></script>
+    <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+    <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js?v=8f967033"></script>
+    <script src="../../_static/doctools.js?v=888ff710"></script>
+    <script src="../../_static/sphinx_highlight.js?v=4825356b"></script>
+    <script src="../../_static/tabs.js?v=3ee01567"></script>
+    <script src="../../_static/design-tabs.js?v=36754332"></script>
+    <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <link rel="icon" href="../../_static/favicon.ico"/>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="Atomic Functions" href="../functions/index.html" />
+    <link rel="prev" title="User Guide" href="../index.html" />
+   
+  <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="what-is-cvxpy">
+<span id="intro"></span><h1>What is CVXPY?<a class="headerlink" href="#what-is-cvxpy" title="Permalink to this heading">¶</a></h1>
+<p>CVXPY is a Python-embedded modeling language for convex optimization
+problems. It
+automatically transforms the problem into standard form, calls a solver,
+and unpacks the results.</p>
+<p>The code below solves a simple optimization problem in CVXPY:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">cvxpy</span> <span class="k">as</span> <span class="nn">cp</span>
+
+<span class="c1"># Create two scalar optimization variables.</span>
+<span class="n">x</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Variable</span><span class="p">()</span>
+<span class="n">y</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Variable</span><span class="p">()</span>
+
+<span class="c1"># Create two constraints.</span>
+<span class="n">constraints</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span> <span class="o">+</span> <span class="n">y</span> <span class="o">==</span> <span class="mi">1</span><span class="p">,</span>
+               <span class="n">x</span> <span class="o">-</span> <span class="n">y</span> <span class="o">&gt;=</span> <span class="mi">1</span><span class="p">]</span>
+
+<span class="c1"># Form objective.</span>
+<span class="n">obj</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Minimize</span><span class="p">((</span><span class="n">x</span> <span class="o">-</span> <span class="n">y</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
+
+<span class="c1"># Form and solve problem.</span>
+<span class="n">prob</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Problem</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">constraints</span><span class="p">)</span>
+<span class="n">prob</span><span class="o">.</span><span class="n">solve</span><span class="p">()</span>  <span class="c1"># Returns the optimal value.</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;status:&quot;</span><span class="p">,</span> <span class="n">prob</span><span class="o">.</span><span class="n">status</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;optimal value&quot;</span><span class="p">,</span> <span class="n">prob</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;optimal var&quot;</span><span class="p">,</span> <span class="n">x</span><span class="o">.</span><span class="n">value</span><span class="p">,</span> <span class="n">y</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">status</span><span class="p">:</span> <span class="n">optimal</span>
+<span class="n">optimal</span> <span class="n">value</span> <span class="mf">0.999999999761</span>
+<span class="n">optimal</span> <span class="n">var</span> <span class="mf">1.00000000001</span> <span class="o">-</span><span class="mf">1.19961841702e-11</span>
+</pre></div>
+</div>
+<p>The status, which was assigned a value “optimal” by the solve method,
+tells us the problem was solved successfully. The optimal value
+(basically 1 here) is the minimum value of the objective over all
+choices of variables that satisfy the constraints. The last thing
+printed gives values of x and y (basically 1 and 0 respectively) that
+achieve the optimal objective.</p>
+<p><code class="docutils literal notranslate"><span class="pre">prob.solve()</span></code> returns the optimal value and updates <code class="docutils literal notranslate"><span class="pre">prob.status</span></code>,
+<code class="docutils literal notranslate"><span class="pre">prob.value</span></code>, and the <code class="docutils literal notranslate"><span class="pre">value</span></code> field of all the variables in the
+problem.</p>
+<section id="changing-the-problem">
+<h2>Changing the problem<a class="headerlink" href="#changing-the-problem" title="Permalink to this heading">¶</a></h2>
+<p><a class="reference internal" href="../../api_reference/cvxpy.problems.html#cvxpy.Problem" title="cvxpy.problems.problem.Problem"><code class="xref py py-class docutils literal notranslate"><span class="pre">Problems</span></code></a> are immutable, meaning they
+cannot be changed after they are created.  To change the objective or
+constraints, create a new problem.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Replace the objective.</span>
+<span class="n">prob2</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Problem</span><span class="p">(</span><span class="n">cp</span><span class="o">.</span><span class="n">Maximize</span><span class="p">(</span><span class="n">x</span> <span class="o">+</span> <span class="n">y</span><span class="p">),</span> <span class="n">prob</span><span class="o">.</span><span class="n">constraints</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;optimal value&quot;</span><span class="p">,</span> <span class="n">prob2</span><span class="o">.</span><span class="n">solve</span><span class="p">())</span>
+
+<span class="c1"># Replace the constraint (x + y == 1).</span>
+<span class="n">constraints</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span> <span class="o">+</span> <span class="n">y</span> <span class="o">&lt;=</span> <span class="mi">3</span><span class="p">]</span> <span class="o">+</span> <span class="n">prob2</span><span class="o">.</span><span class="n">constraints</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span>
+<span class="n">prob3</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Problem</span><span class="p">(</span><span class="n">prob2</span><span class="o">.</span><span class="n">objective</span><span class="p">,</span> <span class="n">constraints</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;optimal value&quot;</span><span class="p">,</span> <span class="n">prob3</span><span class="o">.</span><span class="n">solve</span><span class="p">())</span>
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">optimal</span> <span class="n">value</span> <span class="mf">1.0</span>
+<span class="n">optimal</span> <span class="n">value</span> <span class="mf">3.00000000006</span>
+</pre></div>
+</div>
+</section>
+<section id="infeasible-and-unbounded-problems">
+<h2>Infeasible and unbounded problems<a class="headerlink" href="#infeasible-and-unbounded-problems" title="Permalink to this heading">¶</a></h2>
+<p>If a problem is infeasible or unbounded, the status field will be set to
+“infeasible” or “unbounded”, respectively. The value fields of the
+problem variables are not updated.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">cvxpy</span> <span class="k">as</span> <span class="nn">cp</span>
+
+<span class="n">x</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Variable</span><span class="p">()</span>
+
+<span class="c1"># An infeasible problem.</span>
+<span class="n">prob</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Problem</span><span class="p">(</span><span class="n">cp</span><span class="o">.</span><span class="n">Minimize</span><span class="p">(</span><span class="n">x</span><span class="p">),</span> <span class="p">[</span><span class="n">x</span> <span class="o">&gt;=</span> <span class="mi">1</span><span class="p">,</span> <span class="n">x</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">])</span>
+<span class="n">prob</span><span class="o">.</span><span class="n">solve</span><span class="p">()</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;status:&quot;</span><span class="p">,</span> <span class="n">prob</span><span class="o">.</span><span class="n">status</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;optimal value&quot;</span><span class="p">,</span> <span class="n">prob</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
+
+<span class="c1"># An unbounded problem.</span>
+<span class="n">prob</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Problem</span><span class="p">(</span><span class="n">cp</span><span class="o">.</span><span class="n">Minimize</span><span class="p">(</span><span class="n">x</span><span class="p">))</span>
+<span class="n">prob</span><span class="o">.</span><span class="n">solve</span><span class="p">()</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;status:&quot;</span><span class="p">,</span> <span class="n">prob</span><span class="o">.</span><span class="n">status</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;optimal value&quot;</span><span class="p">,</span> <span class="n">prob</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">status</span><span class="p">:</span> <span class="n">infeasible</span>
+<span class="n">optimal</span> <span class="n">value</span> <span class="n">inf</span>
+<span class="n">status</span><span class="p">:</span> <span class="n">unbounded</span>
+<span class="n">optimal</span> <span class="n">value</span> <span class="o">-</span><span class="n">inf</span>
+</pre></div>
+</div>
+<p>Notice that for a minimization problem the optimal value is <code class="docutils literal notranslate"><span class="pre">inf</span></code> if
+infeasible and <code class="docutils literal notranslate"><span class="pre">-inf</span></code> if unbounded. For maximization problems the
+opposite is true.</p>
+</section>
+<section id="other-problem-statuses">
+<h2>Other problem statuses<a class="headerlink" href="#other-problem-statuses" title="Permalink to this heading">¶</a></h2>
+<p>If the solver called by CVXPY solves the problem but to a lower accuracy than desired, the
+problem status indicates the lower accuracy achieved. The
+statuses indicating lower accuracy are</p>
+<ul class="simple">
+<li><p>“optimal_inaccurate”</p></li>
+<li><p>“unbounded_inaccurate”</p></li>
+<li><p>“infeasible_inaccurate”</p></li>
+</ul>
+<p>The problem variables are updated as usual for the type of solution
+found (i.e., optimal, unbounded, or infeasible).</p>
+<p>If the solver completely fails to solve the problem, CVXPY throws a <code class="docutils literal notranslate"><span class="pre">SolverError</span></code> exception.
+If this happens you should try using other solvers. See
+the discussion of <a class="reference internal" href="../../resources/related_projects/index.html#solvers"><span class="std std-ref">Solvers</span></a> for details.</p>
+<p>CVXPY provides the following constants as aliases for the different status strings:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">OPTIMAL</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">INFEASIBLE</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">UNBOUNDED</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">OPTIMAL_INACCURATE</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">INFEASIBLE_INACCURATE</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">UNBOUNDED_INACCURATE</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">INFEASIBLE_OR_UNBOUNDED</span></code></p></li>
+</ul>
+<p>To test if a problem was solved successfully, you would use</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">prob</span><span class="o">.</span><span class="n">status</span> <span class="o">==</span> <span class="n">OPTIMAL</span>
+</pre></div>
+</div>
+<p>The status <code class="docutils literal notranslate"><span class="pre">INFEASIBLE_OR_UNBOUNDED</span></code> is rare. It’s used when a solver was able to
+determine that the problem was either infeasible or unbounded, but could not tell which.
+You can determine the precise status by re-solving the problem where you
+set the objective function to a constant (e.g., <code class="docutils literal notranslate"><span class="pre">objective</span> <span class="pre">=</span> <span class="pre">cp.Minimize(0)</span></code>).
+If the new problem is solved with status code <code class="docutils literal notranslate"><span class="pre">INFEASIBLE_OR_UNBOUNDED</span></code> then the
+original problem was infeasible. If the new problem is solved with status <code class="docutils literal notranslate"><span class="pre">OPTIMAL</span></code>
+then the original problem was unbounded.</p>
+</section>
+<section id="vectors-and-matrices">
+<h2>Vectors and matrices<a class="headerlink" href="#vectors-and-matrices" title="Permalink to this heading">¶</a></h2>
+<p><a class="reference internal" href="../../api_reference/cvxpy.expressions.html#cvxpy.expressions.variable.Variable" title="cvxpy.expressions.variable.Variable"><code class="xref py py-class docutils literal notranslate"><span class="pre">Variables</span></code></a> can be scalars,
+vectors, or matrices, meaning they are 0, 1, or 2 dimensional.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># A scalar variable.</span>
+<span class="n">a</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Variable</span><span class="p">()</span>
+
+<span class="c1"># Vector variable with shape (5,).</span>
+<span class="n">x</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="mi">5</span><span class="p">)</span>
+
+<span class="c1"># Matrix variable with shape (5, 1).</span>
+<span class="n">x</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Variable</span><span class="p">((</span><span class="mi">5</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
+
+<span class="c1"># Matrix variable with shape (4, 7).</span>
+<span class="n">A</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Variable</span><span class="p">((</span><span class="mi">4</span><span class="p">,</span> <span class="mi">7</span><span class="p">))</span>
+</pre></div>
+</div>
+<p>You can use your numeric library of choice to construct matrix and
+vector constants. For instance, if <code class="docutils literal notranslate"><span class="pre">x</span></code> is a CVXPY Variable in the
+expression <code class="docutils literal notranslate"><span class="pre">A</span> <span class="pre">&#64;</span> <span class="pre">x</span> <span class="pre">+</span> <span class="pre">b</span></code>, <code class="docutils literal notranslate"><span class="pre">A</span></code> and <code class="docutils literal notranslate"><span class="pre">b</span></code> could be Numpy ndarrays, SciPy
+sparse matrices, etc. <code class="docutils literal notranslate"><span class="pre">A</span></code> and <code class="docutils literal notranslate"><span class="pre">b</span></code> could even be different types.</p>
+<p>Currently the following types may be used as constants:</p>
+<ul class="simple">
+<li><p>NumPy ndarrays</p></li>
+<li><p>NumPy matrices</p></li>
+<li><p>SciPy sparse matrices</p></li>
+</ul>
+<p>Here’s an example of a CVXPY problem with vectors and matrices:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Solves a bounded least-squares problem.</span>
+
+<span class="kn">import</span> <span class="nn">cvxpy</span> <span class="k">as</span> <span class="nn">cp</span>
+<span class="kn">import</span> <span class="nn">numpy</span>
+
+<span class="c1"># Problem data.</span>
+<span class="n">m</span> <span class="o">=</span> <span class="mi">10</span>
+<span class="n">n</span> <span class="o">=</span> <span class="mi">5</span>
+<span class="n">numpy</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+<span class="n">A</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">n</span><span class="p">)</span>
+<span class="n">b</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="n">m</span><span class="p">)</span>
+
+<span class="c1"># Construct the problem.</span>
+<span class="n">x</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
+<span class="n">objective</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Minimize</span><span class="p">(</span><span class="n">cp</span><span class="o">.</span><span class="n">sum_squares</span><span class="p">(</span><span class="n">A</span> <span class="o">@</span> <span class="n">x</span> <span class="o">-</span> <span class="n">b</span><span class="p">))</span>
+<span class="n">constraints</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span> <span class="o">&lt;=</span> <span class="n">x</span><span class="p">,</span> <span class="n">x</span> <span class="o">&lt;=</span> <span class="mi">1</span><span class="p">]</span>
+<span class="n">prob</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Problem</span><span class="p">(</span><span class="n">objective</span><span class="p">,</span> <span class="n">constraints</span><span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Optimal value&quot;</span><span class="p">,</span> <span class="n">prob</span><span class="o">.</span><span class="n">solve</span><span class="p">())</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Optimal var&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">value</span><span class="p">)</span> <span class="c1"># A numpy ndarray.</span>
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>  <span class="n">Optimal</span> <span class="n">value</span> <span class="mf">4.14133859146</span>
+  <span class="n">Optimal</span> <span class="n">var</span>
+  <span class="p">[</span> <span class="o">-</span><span class="mf">5.11480673e-21</span>   <span class="mf">6.30625742e-21</span>   <span class="mf">1.34643668e-01</span>   <span class="mf">1.24976681e-01</span>
+<span class="o">-</span><span class="mf">4.79039542e-21</span><span class="p">]</span>
+</pre></div>
+</div>
+</section>
+<section id="constraints">
+<h2>Constraints<a class="headerlink" href="#constraints" title="Permalink to this heading">¶</a></h2>
+<p>As shown in the example code, you can use <code class="docutils literal notranslate"><span class="pre">==</span></code>, <code class="docutils literal notranslate"><span class="pre">&lt;=</span></code>, and <code class="docutils literal notranslate"><span class="pre">&gt;=</span></code> to construct constraints in CVXPY. Equality and inequality constraints are elementwise, whether they involve scalars, vectors, or matrices. For example, together the constraints <code class="docutils literal notranslate"><span class="pre">0</span> <span class="pre">&lt;=</span> <span class="pre">x</span></code> and <code class="docutils literal notranslate"><span class="pre">x</span> <span class="pre">&lt;=</span> <span class="pre">1</span></code> mean that every entry of <code class="docutils literal notranslate"><span class="pre">x</span></code> is between 0 and 1.</p>
+<p>If you want matrix inequalities that represent semi-definite cone constraints, see <a class="reference internal" href="../constraints/index.html#semidefinite"><span class="std std-ref">Semidefinite matrices</span></a>. The section explains how to express a semi-definite cone inequality.</p>
+<p>You cannot construct inequalities with <code class="docutils literal notranslate"><span class="pre">&lt;</span></code> and <code class="docutils literal notranslate"><span class="pre">&gt;</span></code>. Strict inequalities don’t make sense in a real world setting. Also, you cannot chain constraints together, e.g., <code class="docutils literal notranslate"><span class="pre">0</span> <span class="pre">&lt;=</span> <span class="pre">x</span> <span class="pre">&lt;=</span> <span class="pre">1</span></code> or <code class="docutils literal notranslate"><span class="pre">x</span> <span class="pre">==</span> <span class="pre">y</span> <span class="pre">==</span> <span class="pre">2</span></code>. The Python interpreter treats chained constraints in such a way that CVXPY cannot capture them. CVXPY will raise an exception if you write a chained constraint.</p>
+</section>
+<section id="parameters">
+<h2>Parameters<a class="headerlink" href="#parameters" title="Permalink to this heading">¶</a></h2>
+<p><a class="reference internal" href="../../api_reference/cvxpy.expressions.html#cvxpy.expressions.constants.parameter.Parameter" title="cvxpy.expressions.constants.parameter.Parameter"><code class="xref py py-class docutils literal notranslate"><span class="pre">Parameters</span></code></a> are symbolic
+representations of constants. The purpose of parameters is to change the value
+of a constant in a problem without reconstructing the entire problem. In many
+cases, solving a parametrized program multiple times can be
+substantially faster than repeatedly solving a new problem: after reading
+this section, be sure to read the tutorial on <a class="reference internal" href="../dpp/index.html#dpp"><span class="std std-ref">Disciplined Parametrized Programming</span></a> (DPP).</p>
+<p>Parameters can be vectors or matrices, just like variables. When you
+create a parameter you have the option of specifying attributes such as the
+sign of the parameter’s entries, whether the parameter is symmetric, etc.
+These attributes are used in <a class="reference internal" href="../dcp/index.html#dcp"><span class="std std-ref">Disciplined Convex Programming</span></a> and are unknown unless specified.
+Parameters can be assigned a constant value any time after they are created.
+The constant value must have the same dimensions and attributes
+as those specified when the parameter was created.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Positive scalar parameter.</span>
+<span class="n">m</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Parameter</span><span class="p">(</span><span class="n">nonneg</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+<span class="c1"># Column vector parameter with unknown sign (by default).</span>
+<span class="n">c</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Parameter</span><span class="p">(</span><span class="mi">5</span><span class="p">)</span>
+
+<span class="c1"># Matrix parameter with negative entries.</span>
+<span class="n">G</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Parameter</span><span class="p">((</span><span class="mi">4</span><span class="p">,</span> <span class="mi">7</span><span class="p">),</span> <span class="n">nonpos</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+<span class="c1"># Assigns a constant value to G.</span>
+<span class="n">G</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="o">-</span><span class="n">numpy</span><span class="o">.</span><span class="n">ones</span><span class="p">((</span><span class="mi">4</span><span class="p">,</span> <span class="mi">7</span><span class="p">))</span>
+</pre></div>
+</div>
+<p>You can initialize a parameter with a value. The following code segments are equivalent:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Create parameter, then assign value.</span>
+<span class="n">rho</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Parameter</span><span class="p">(</span><span class="n">nonneg</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">rho</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="mi">2</span>
+
+<span class="c1"># Initialize parameter with a value.</span>
+<span class="n">rho</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Parameter</span><span class="p">(</span><span class="n">nonneg</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Computing trade-off curves is a common use of parameters. The example below
+computes a trade-off curve for a LASSO problem.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">cvxpy</span> <span class="k">as</span> <span class="nn">cp</span>
+<span class="kn">import</span> <span class="nn">numpy</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+
+<span class="c1"># Problem data.</span>
+<span class="n">n</span> <span class="o">=</span> <span class="mi">15</span>
+<span class="n">m</span> <span class="o">=</span> <span class="mi">10</span>
+<span class="n">numpy</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+<span class="n">A</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">m</span><span class="p">)</span>
+<span class="n">b</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
+<span class="c1"># gamma must be nonnegative due to DCP rules.</span>
+<span class="n">gamma</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Parameter</span><span class="p">(</span><span class="n">nonneg</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+<span class="c1"># Construct the problem.</span>
+<span class="n">x</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="n">m</span><span class="p">)</span>
+<span class="n">error</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">sum_squares</span><span class="p">(</span><span class="n">A</span> <span class="o">@</span> <span class="n">x</span> <span class="o">-</span> <span class="n">b</span><span class="p">)</span>
+<span class="n">obj</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Minimize</span><span class="p">(</span><span class="n">error</span> <span class="o">+</span> <span class="n">gamma</span><span class="o">*</span><span class="n">cp</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
+<span class="n">prob</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Problem</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
+
+<span class="c1"># Construct a trade-off curve of ||Ax-b||^2 vs. ||x||_1</span>
+<span class="n">sq_penalty</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="n">l1_penalty</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="n">x_values</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="n">gamma_vals</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">logspace</span><span class="p">(</span><span class="o">-</span><span class="mi">4</span><span class="p">,</span> <span class="mi">6</span><span class="p">)</span>
+<span class="k">for</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">gamma_vals</span><span class="p">:</span>
+    <span class="n">gamma</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="n">val</span>
+    <span class="n">prob</span><span class="o">.</span><span class="n">solve</span><span class="p">()</span>
+    <span class="c1"># Use expr.value to get the numerical value of</span>
+    <span class="c1"># an expression in the problem.</span>
+    <span class="n">sq_penalty</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">error</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
+    <span class="n">l1_penalty</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">cp</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
+    <span class="n">x_values</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">rc</span><span class="p">(</span><span class="s1">&#39;text&#39;</span><span class="p">,</span> <span class="n">usetex</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">rc</span><span class="p">(</span><span class="s1">&#39;font&#39;</span><span class="p">,</span> <span class="n">family</span><span class="o">=</span><span class="s1">&#39;serif&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">6</span><span class="p">,</span><span class="mi">10</span><span class="p">))</span>
+
+<span class="c1"># Plot trade-off curve.</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">subplot</span><span class="p">(</span><span class="mi">211</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">l1_penalty</span><span class="p">,</span> <span class="n">sq_penalty</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;\|x\|_1&#39;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">16</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;\|Ax-b\|^2&#39;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">16</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="s1">&#39;Trade-Off Curve for LASSO&#39;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">16</span><span class="p">)</span>
+
+<span class="c1"># Plot entries of x vs. gamma.</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">subplot</span><span class="p">(</span><span class="mi">212</span><span class="p">)</span>
+<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">m</span><span class="p">):</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">gamma_vals</span><span class="p">,</span> <span class="p">[</span><span class="n">xi</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">xi</span> <span class="ow">in</span> <span class="n">x_values</span><span class="p">])</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;\gamma&#39;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">16</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;x_</span><span class="si">{i}</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">16</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">xscale</span><span class="p">(</span><span class="s1">&#39;log&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;\text{Entries of x vs. }\gamma&#39;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">16</span><span class="p">)</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+<img alt="../../_images/tutorial_20_0.png" src="../../_images/tutorial_20_0.png" />
+<p>Trade-off curves can easily be computed in parallel. The code below
+computes in parallel the optimal x for each <span class="math notranslate nohighlight">\(\gamma\)</span> in the LASSO
+problem above.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">multiprocessing</span> <span class="kn">import</span> <span class="n">Pool</span>
+
+<span class="c1"># Assign a value to gamma and find the optimal x.</span>
+<span class="k">def</span> <span class="nf">get_x</span><span class="p">(</span><span class="n">gamma_value</span><span class="p">):</span>
+    <span class="n">gamma</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="n">gamma_value</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="n">prob</span><span class="o">.</span><span class="n">solve</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">x</span><span class="o">.</span><span class="n">value</span>
+
+<span class="c1"># Parallel computation (set to 1 process here).</span>
+<span class="n">pool</span> <span class="o">=</span> <span class="n">Pool</span><span class="p">(</span><span class="n">processes</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)</span>
+<span class="n">x_values</span> <span class="o">=</span> <span class="n">pool</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="n">get_x</span><span class="p">,</span> <span class="n">gamma_vals</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../index.html">CVXPY</a></h1>
+
+
+
+
+
+
+<p>
+<iframe src="https://ghbtns.com/github-btn.html?user=cvxpy&repo=cvxpy&type=star&count=true&size=large&v=2"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
+
+
+
+
+
+<h3>Navigation</h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../install/index.html">Install</a></li>
+</ul>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="../index.html">User Guide</a><ul class="current">
+<li class="toctree-l2 current"><a class="current reference internal" href="#">What is CVXPY?</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#changing-the-problem">Changing the problem</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#infeasible-and-unbounded-problems">Infeasible and unbounded problems</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#other-problem-statuses">Other problem statuses</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#vectors-and-matrices">Vectors and matrices</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#constraints">Constraints</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#parameters">Parameters</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../functions/index.html">Atomic Functions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../dcp/index.html">Disciplined Convex Programming</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../dgp/index.html">Disciplined Geometric Programming</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../dpp/index.html">Disciplined Parametrized Programming</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../dqcp/index.html">Disciplined Quasiconvex Programming</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../constraints/index.html">Advanced Constraints</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../advanced/index.html">Advanced Features</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../solvers/index.html">Solver Features</a></li>
+</ul>
+</li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../api_reference/cvxpy.html">API Documentation</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../examples/index.html">Examples</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../contributing/index.html">Contributing</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../updates/index.html">Changelog</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../faq/index.html">FAQ</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../resources/index.html">Resources</a></li>
+</ul>
+
+
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script><div>
+    <h3>
+        Version selector
+    </h3>
+    <select id="dynamic_selector" name="versions" onchange="if (this.value) window.location.href=this.value">
+    </select>
+    <script>
+        obj = $.getJSON("https://raw.githubusercontent.com/cvxpy/cvxpy/gh-pages/versions.json")
+            .done(function (data) {
+                const base_url = "https://www.cvxpy.org/"
+                let html = "<option value='' selected>Choose version here</option>";
+                html += "<option value=" + base_url + ">latest" + ""
+                for (let i = 0; i < data.length; i++) {
+                    html += "<option value=" + base_url + "version/"  + data[i] + ">" + data[i] + ""
+                }
+                document.getElementById("dynamic_selector").innerHTML = html;
+            });
+    </script>
+</div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;The CVXPY authors.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 7.1.2</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.13</a>
+      
+      |
+      <a href="../../_sources/tutorial/intro/index.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+    <script type="text/javascript">
+
+      var _gaq = _gaq || [];
+      _gaq.push(['_setAccount', 'UA-50248335-1']);
+      _gaq.push(['_setDomainName', 'none']);
+      _gaq.push(['_setAllowLinker', true]);
+      _gaq.push(['_trackPageview']);
+
+      (function() {
+        var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+        ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+      })();
+
+    </script>
+    
+  </body>
+</html>

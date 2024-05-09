@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Fitting censored data &#8212; CVXPY 1.5 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="../../_static/cvxpy_alabaster.css?v=6c13f287" />
+    <link rel="stylesheet" type="text/css" href="../../_static/tabs.css?v=4c969af8" />
+    <link rel="stylesheet" type="text/css" href="../../_static/design-style.1e8bd061cd6da7fc9cf755528e8ffc24.min.css?v=0a3b3ea7" />
+    <script src="../../_static/jquery.js?v=5d32c60e"></script>
+    <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+    <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js?v=8f967033"></script>
+    <script src="../../_static/doctools.js?v=888ff710"></script>
+    <script src="../../_static/sphinx_highlight.js?v=4825356b"></script>
+    <script src="../../_static/tabs.js?v=3ee01567"></script>
+    <script src="../../_static/design-tabs.js?v=36754332"></script>
+    <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <link rel="icon" href="../../_static/favicon.ico"/>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+   
+  <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="fitting-censored-data">
+<h1>Fitting censored data<a class="headerlink" href="#fitting-censored-data" title="Permalink to this heading">¶</a></h1>
+<p>Experimental measurements are sometimes censored such that we only know
+partial information about a particular data point. For example, in
+measuring the lifespan of mice, a portion of them might live through the
+duration of the study, in which case we only know the lower bound.</p>
+<p>One of the ways we can deal with this is to use Maximum Likelihood
+Estimation (<a class="reference external" href="http://en.wikipedia.org/wiki/Maximum_likelihood">MLE</a>).
+However, censoring often make analytical solutions difficult even for
+well known distributions.</p>
+<p>We can overcome this challenge by converting the MLE into a convex
+optimization problem and solving it using
+<a class="reference external" href="https://www.cvxpy.org/en/latest/">CVXPY</a>.</p>
+<p>This example is adapted from a homework problem from Boyd’s <a class="reference external" href="https://class.stanford.edu/courses/Engineering/CVX101/Winter2014/info">CVX 101:
+Convex Optimization
+Course</a>.</p>
+<section id="setup">
+<h2>Setup<a class="headerlink" href="#setup" title="Permalink to this heading">¶</a></h2>
+<p>We will use similar notation here. Suppose we have a linear model:</p>
+<div class="math notranslate nohighlight">
+\[y^{(i)} = c^Tx^{(i)} +\epsilon^{(i)}\]</div>
+<p>where <span class="math notranslate nohighlight">\(y^{(i)} \in \mathbf{R}\)</span>, <span class="math notranslate nohighlight">\(c \in \mathbf{R}^n\)</span>,
+<span class="math notranslate nohighlight">\(k^{(i)} \in \mathbf{R}^n\)</span>, and <span class="math notranslate nohighlight">\(\epsilon^{(i)}\)</span> is the
+error and has a normal distribution <span class="math notranslate nohighlight">\(N(0, \sigma^2)\)</span> for $ i =
+1,,K$.</p>
+<p>Then the MLE estimator <span class="math notranslate nohighlight">\(c\)</span> is the vector that minimizes the sum of
+squares of the errors <span class="math notranslate nohighlight">\(\epsilon^{(i)}\)</span>, namely:</p>
+<div class="math notranslate nohighlight">
+\[\begin{array}{ll}
+  \underset{c}{\mbox{minimize}} &amp; \sum_{i=1}^K (y^{(i)} - c^T x^{(i)})^2
+\end{array}\]</div>
+<p>In the case of right censored data, only <span class="math notranslate nohighlight">\(M\)</span> observations are
+fully observed and all that is known for the remaining observations is
+that <span class="math notranslate nohighlight">\(y^{(i)} \geq D\)</span> for <span class="math notranslate nohighlight">\(i=\mbox{M+1},\ldots,K\)</span> and some
+constant <span class="math notranslate nohighlight">\(D\)</span>.</p>
+<p>Now let’s see how this would work in practice.</p>
+</section>
+<section id="data-generation">
+<h2>Data Generation<a class="headerlink" href="#data-generation" title="Permalink to this heading">¶</a></h2>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="n">n</span> <span class="o">=</span> <span class="mi">30</span> <span class="c1"># number of variables</span>
+<span class="n">M</span> <span class="o">=</span> <span class="mi">50</span> <span class="c1"># number of censored observations</span>
+<span class="n">K</span> <span class="o">=</span> <span class="mi">200</span> <span class="c1"># total number of observations</span>
+
+<span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="n">n</span><span class="o">*</span><span class="n">M</span><span class="o">*</span><span class="n">K</span><span class="p">)</span>
+<span class="n">X</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="n">K</span><span class="o">*</span><span class="n">n</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">K</span><span class="p">,</span> <span class="n">n</span><span class="p">)</span>
+<span class="n">c_true</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
+
+<span class="c1"># generating the y variable</span>
+<span class="n">y</span> <span class="o">=</span> <span class="n">X</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">c_true</span><span class="p">)</span> <span class="o">+</span> <span class="mf">.3</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">n</span><span class="p">)</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="n">K</span><span class="p">)</span>
+
+<span class="c1"># ordering them based on y</span>
+<span class="n">order</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argsort</span><span class="p">(</span><span class="n">y</span><span class="p">)</span>
+<span class="n">y_ordered</span> <span class="o">=</span> <span class="n">y</span><span class="p">[</span><span class="n">order</span><span class="p">]</span>
+<span class="n">X_ordered</span> <span class="o">=</span> <span class="n">X</span><span class="p">[</span><span class="n">order</span><span class="p">,:]</span>
+
+<span class="c1">#finding boundary</span>
+<span class="n">D</span> <span class="o">=</span> <span class="p">(</span><span class="n">y_ordered</span><span class="p">[</span><span class="n">M</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">y_ordered</span><span class="p">[</span><span class="n">M</span><span class="p">])</span><span class="o">/</span><span class="mf">2.</span>
+
+<span class="c1"># applying censoring</span>
+<span class="n">y_censored</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">((</span><span class="n">y_ordered</span><span class="p">[:</span><span class="n">M</span><span class="p">],</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">K</span><span class="o">-</span><span class="n">M</span><span class="p">)</span><span class="o">*</span><span class="n">D</span><span class="p">))</span>
+
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+
+<span class="c1"># Show plot inline in ipython.</span>
+<span class="o">%</span><span class="n">matplotlib</span> <span class="n">inline</span>
+
+<span class="k">def</span> <span class="nf">plot_fit</span><span class="p">(</span><span class="n">fit</span><span class="p">,</span> <span class="n">fit_label</span><span class="p">):</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span><span class="mi">6</span><span class="p">))</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">grid</span><span class="p">()</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">y_censored</span><span class="p">,</span> <span class="s1">&#39;bo&#39;</span><span class="p">,</span> <span class="n">label</span> <span class="o">=</span> <span class="s1">&#39;censored data&#39;</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">y_ordered</span><span class="p">,</span> <span class="s1">&#39;co&#39;</span><span class="p">,</span> <span class="n">label</span> <span class="o">=</span> <span class="s1">&#39;uncensored data&#39;</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">fit</span><span class="p">,</span> <span class="s1">&#39;ro&#39;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="n">fit_label</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s1">&#39;y&#39;</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">loc</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s1">&#39;observations&#39;</span><span class="p">);</span>
+</pre></div>
+</div>
+</section>
+<section id="regular-ols">
+<h2>Regular OLS<a class="headerlink" href="#regular-ols" title="Permalink to this heading">¶</a></h2>
+<p>Let’s see what the OLS result looks like. We’ll use the
+<code class="docutils literal notranslate"><span class="pre">np.linalg.lstsq</span></code> function to solve for our coefficients.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">c_ols</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">lstsq</span><span class="p">(</span><span class="n">X_ordered</span><span class="p">,</span> <span class="n">y_censored</span><span class="p">,</span> <span class="n">rcond</span><span class="o">=</span><span class="kc">None</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+<span class="n">fit_ols</span> <span class="o">=</span> <span class="n">X_ordered</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">c_ols</span><span class="p">)</span>
+<span class="n">plot_fit</span><span class="p">(</span><span class="n">fit_ols</span><span class="p">,</span> <span class="s1">&#39;OLS fit&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<img alt="../../_images/censored_data_4_0.png" src="../../_images/censored_data_4_0.png" />
+<p>We can see that we are systematically overestimating low values of
+<span class="math notranslate nohighlight">\(y\)</span> and vice versa (red vs. cyan). This is caused by our use of
+censored (blue) observations, which are exerting a lot of leverage and
+pulling down the trendline to reduce the error between the red and blue
+points.</p>
+</section>
+<section id="ols-using-uncensored-data">
+<h2>OLS using uncensored data<a class="headerlink" href="#ols-using-uncensored-data" title="Permalink to this heading">¶</a></h2>
+<p>A simple way to deal with this while maintaining analytical tractability
+is to simply ignore all censored observations.</p>
+<div class="math notranslate nohighlight">
+\[\begin{array}{ll}
+  \underset{c}{\mbox{minimize}} &amp; \sum_{i=1}^M (y^{(i)} - c^T x^{(i)})^2
+\end{array}\]</div>
+<p>Give that our <span class="math notranslate nohighlight">\(M\)</span> is much smaller than <span class="math notranslate nohighlight">\(K\)</span>, we are throwing
+away the majority of the dataset in order to accomplish this, let’s see
+how this new regression does.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">c_ols_uncensored</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">lstsq</span><span class="p">(</span><span class="n">X_ordered</span><span class="p">[:</span><span class="n">M</span><span class="p">],</span> <span class="n">y_censored</span><span class="p">[:</span><span class="n">M</span><span class="p">],</span> <span class="n">rcond</span><span class="o">=</span><span class="kc">None</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+<span class="n">fit_ols_uncensored</span> <span class="o">=</span> <span class="n">X_ordered</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">c_ols_uncensored</span><span class="p">)</span>
+<span class="n">plot_fit</span><span class="p">(</span><span class="n">fit_ols_uncensored</span><span class="p">,</span> <span class="s1">&#39;OLS fit with uncensored data only&#39;</span><span class="p">)</span>
+
+<span class="n">bad_predictions</span> <span class="o">=</span> <span class="p">(</span><span class="n">fit_ols_uncensored</span><span class="o">&lt;=</span><span class="n">D</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">K</span><span class="p">)</span><span class="o">&gt;=</span><span class="n">M</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">K</span><span class="p">)[</span><span class="n">bad_predictions</span><span class="p">],</span> <span class="n">fit_ols_uncensored</span><span class="p">[</span><span class="n">bad_predictions</span><span class="p">],</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;orange&#39;</span><span class="p">,</span> <span class="n">marker</span><span class="o">=</span><span class="s1">&#39;o&#39;</span><span class="p">,</span> <span class="n">lw</span><span class="o">=</span><span class="mi">0</span><span class="p">);</span>
+</pre></div>
+</div>
+<img alt="../../_images/censored_data_6_0.png" src="../../_images/censored_data_6_0.png" />
+<p>We can see that the fit for the uncensored portion is now vastly
+improved. Even the fit for the censored data is now relatively unbiased
+i.e. the fitted values (red points) are now centered around the
+uncensored observations (cyan points).</p>
+<p>The one glaring issue with this arrangement is that we are now
+predicting many observations to be <em>below</em> <span class="math notranslate nohighlight">\(D\)</span> (orange) even
+though we are well aware that this is not the case. Let’s try to fix
+this.</p>
+</section>
+<section id="using-constraints-to-take-into-account-of-censored-data">
+<h2>Using constraints to take into account of censored data<a class="headerlink" href="#using-constraints-to-take-into-account-of-censored-data" title="Permalink to this heading">¶</a></h2>
+<p>Instead of throwing away all censored observations, lets leverage these
+observations to enforce the additional information that we know, namely
+that <span class="math notranslate nohighlight">\(y\)</span> is bounded from below. We can do this by setting
+additional constraints:</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}\begin{array}{ll}
+  \underset{c}{\mbox{minimize}} &amp; \sum_{i=1}^M (y^{(i)} - c^T x^{(i)})^2 \\
+  \mbox{subject to} &amp; c^T x^{(i)} \geq D\\
+  &amp; \mbox{for } i=\mbox{M+1},\ldots,K
+\end{array}\end{split}\]</div>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">cvxpy</span> <span class="k">as</span> <span class="nn">cp</span>
+<span class="n">X_uncensored</span> <span class="o">=</span> <span class="n">X_ordered</span><span class="p">[:</span><span class="n">M</span><span class="p">,</span> <span class="p">:]</span>
+<span class="n">c</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="n">n</span><span class="p">)</span>
+<span class="n">objective</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Minimize</span><span class="p">(</span><span class="n">cp</span><span class="o">.</span><span class="n">sum_squares</span><span class="p">(</span><span class="n">X_uncensored</span><span class="o">*</span><span class="n">c</span> <span class="o">-</span> <span class="n">y_ordered</span><span class="p">[:</span><span class="n">M</span><span class="p">]))</span>
+<span class="n">constraints</span> <span class="o">=</span> <span class="p">[</span> <span class="n">X_ordered</span><span class="p">[</span><span class="n">M</span><span class="p">:,:]</span><span class="o">*</span><span class="n">c</span> <span class="o">&gt;=</span> <span class="n">D</span><span class="p">]</span>
+<span class="n">prob</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Problem</span><span class="p">(</span><span class="n">objective</span><span class="p">,</span> <span class="n">constraints</span><span class="p">)</span>
+<span class="n">result</span> <span class="o">=</span> <span class="n">prob</span><span class="o">.</span><span class="n">solve</span><span class="p">()</span>
+
+<span class="n">c_cvx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">c</span><span class="o">.</span><span class="n">value</span><span class="p">)</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
+<span class="n">fit_cvx</span> <span class="o">=</span> <span class="n">X_ordered</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">c_cvx</span><span class="p">)</span>
+<span class="n">plot_fit</span><span class="p">(</span><span class="n">fit_cvx</span><span class="p">,</span> <span class="s1">&#39;CVX fit&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<img alt="../../_images/censored_data_9_0.png" src="../../_images/censored_data_9_0.png" />
+<p>Qualitatively, this already looks better than before as it no longer
+predicts inconsistent values with respect to the censored portion of the
+data. But does it do a good job of actually finding coefficients
+<span class="math notranslate nohighlight">\(c\)</span> that are close to our original data?</p>
+<p>We’ll use a simple Euclidean distance <span class="math notranslate nohighlight">\(\|c_\mbox{true} - c\|_2\)</span> to
+compare:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nb">print</span><span class="p">(</span><span class="s2">&quot;norm(c_true - c_cvx): </span><span class="si">{:.2f}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">((</span><span class="n">c_true</span> <span class="o">-</span> <span class="n">c_cvx</span><span class="p">))))</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;norm(c_true - c_ols_uncensored): </span><span class="si">{:.2f}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">((</span><span class="n">c_true</span> <span class="o">-</span> <span class="n">c_ols_uncensored</span><span class="p">))))</span>
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">norm</span><span class="p">(</span><span class="n">c_true</span> <span class="o">-</span> <span class="n">c_cvx</span><span class="p">):</span> <span class="mf">1.49</span>
+<span class="n">norm</span><span class="p">(</span><span class="n">c_true</span> <span class="o">-</span> <span class="n">c_ols_uncensored</span><span class="p">):</span> <span class="mf">2.23</span>
+</pre></div>
+</div>
+</section>
+<section id="conclusion">
+<h2>Conclusion<a class="headerlink" href="#conclusion" title="Permalink to this heading">¶</a></h2>
+<p>Fitting censored data to a parametric distribution can be challenging as
+the MLE solution is often not analytically tractable. However, many MLEs
+can be converted into a convex optimization problems as show above. With
+the advent of simple-to-use and robust numerical packages, we can now
+solve these problems easily while taking into account the entirety of
+our information set by enforcing consistency conditions on various
+portions of the data.</p>
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../index.html">CVXPY</a></h1>
+
+
+
+
+
+
+<p>
+<iframe src="https://ghbtns.com/github-btn.html?user=cvxpy&repo=cvxpy&type=star&count=true&size=large&v=2"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
+
+
+
+
+
+<h3>Navigation</h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../install/index.html">Install</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial/index.html">User Guide</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../api_reference/cvxpy.html">API Documentation</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../index.html">Examples</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../contributing/index.html">Contributing</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../updates/index.html">Changelog</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../faq/index.html">FAQ</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../resources/index.html">Resources</a></li>
+</ul>
+
+
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script><div>
+    <h3>
+        Version selector
+    </h3>
+    <select id="dynamic_selector" name="versions" onchange="if (this.value) window.location.href=this.value">
+    </select>
+    <script>
+        obj = $.getJSON("https://raw.githubusercontent.com/cvxpy/cvxpy/gh-pages/versions.json")
+            .done(function (data) {
+                const base_url = "https://www.cvxpy.org/"
+                let html = "<option value='' selected>Choose version here</option>";
+                html += "<option value=" + base_url + ">latest" + ""
+                for (let i = 0; i < data.length; i++) {
+                    html += "<option value=" + base_url + "version/"  + data[i] + ">" + data[i] + ""
+                }
+                document.getElementById("dynamic_selector").innerHTML = html;
+            });
+    </script>
+</div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;The CVXPY authors.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 7.1.2</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.13</a>
+      
+      |
+      <a href="../../_sources/examples/applications/censored_data.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+    <script type="text/javascript">
+
+      var _gaq = _gaq || [];
+      _gaq.push(['_setAccount', 'UA-50248335-1']);
+      _gaq.push(['_setDomainName', 'none']);
+      _gaq.push(['_setAllowLinker', true]);
+      _gaq.push(['_trackPageview']);
+
+      (function() {
+        var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+        ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+      })();
+
+    </script>
+    
+  </body>
+</html>

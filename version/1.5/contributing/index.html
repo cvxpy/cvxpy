@@ -1,0 +1,689 @@
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Contributing &#8212; CVXPY 1.5 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="../_static/cvxpy_alabaster.css?v=6c13f287" />
+    <link rel="stylesheet" type="text/css" href="../_static/tabs.css?v=4c969af8" />
+    <link rel="stylesheet" type="text/css" href="../_static/design-style.1e8bd061cd6da7fc9cf755528e8ffc24.min.css?v=0a3b3ea7" />
+    <script src="../_static/jquery.js?v=5d32c60e"></script>
+    <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js?v=8f967033"></script>
+    <script src="../_static/doctools.js?v=888ff710"></script>
+    <script src="../_static/sphinx_highlight.js?v=4825356b"></script>
+    <script src="../_static/tabs.js?v=3ee01567"></script>
+    <script src="../_static/design-tabs.js?v=36754332"></script>
+    <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <link rel="icon" href="../_static/favicon.ico"/>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Changes to CVXPY" href="../updates/index.html" />
+    <link rel="prev" title="Examples" href="../examples/index.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="contributing">
+<span id="id1"></span><h1>Contributing<a class="headerlink" href="#contributing" title="Permalink to this heading">¶</a></h1>
+<p>We welcome all contributors to CVXPY. You don’t need to be an expert in convex
+optimization to help out. Here are simple ways to start contributing immediately:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>Help answer questions on the <a class="reference external" href="https://discord.gg/4urRQeGBCr">CVXPY discord</a>,
+<a class="reference external" href="https://github.com/cvxpy/cvxpy/discussions">Github discussions</a>,
+or <a class="reference external" href="https://stackoverflow.com/questions/tagged/cvxpy">StackOverflow</a></p></li>
+<li><p>Read the CVXPY source code and improve the documentation, or address TODOs</p></li>
+<li><p>Fix typos or otherwise enhance the <a class="reference external" href="https://github.com/cvxpy/cvxpy/tree/master/doc">website documentation</a></p></li>
+<li><p>Browse the <a class="reference external" href="https://github.com/cvxpy/cvxpy/issues">issue tracker</a>, and work on unassigned bugs or feature requests</p></li>
+<li><p>Polish the <a class="reference external" href="https://github.com/cvxpy/cvxpy/tree/master/examples">example library</a></p></li>
+</ul>
+</div></blockquote>
+<p>If you’d like to add a new example to our library, or implement a new feature,
+please get in touch with us first by opening a GitHub issue to make sure that your
+priorities align with ours.
+We’ve identified some specific development opportunities in the next section.</p>
+<p>CVXPY contributors must follow <a class="reference external" href="https://github.com/cvxpy/cvxpy/blob/master/CODE_OF_CONDUCT.md">our code of conduct</a>.
+Overall development is guided by <a class="reference external" href="https://github.com/cvxpy/org/blob/main/governance.md">our governance structure</a>.</p>
+<p>The rest of this page goes into more detail on how to contribute to CVXPY.</p>
+<section id="wishlist">
+<span id="contrib-roadmap"></span><h2>Wishlist<a class="headerlink" href="#wishlist" title="Permalink to this heading">¶</a></h2>
+<p>Here is a non-exhaustive list of opportunities to make prominent contributions to CVXPY.</p>
+<p>We’ve roughly categorized the opportunities as whether they amount to small-, medium-, or large-scope projects.
+New contributors are encouraged to focus on small or medium projects.</p>
+<p>If you’re interested in working on a large project, join the <a class="reference external" href="https://discord.gg/4urRQeGBCr">Discord</a> and let us know!
+We’ll be happy to provide guidance and advice.</p>
+<dl class="simple">
+<dt>Small scope projects</dt><dd><ul class="simple">
+<li><p><a class="reference external" href="https://github.com/cvxpy/cvxpy/issues/574">State required cone types for atoms</a>.</p></li>
+<li><p><a class="reference external" href="https://github.com/cvxpy/cvxpy/issues/1529">Specify a list of solvers sorted by priority rather than just a single solver</a>.</p></li>
+<li><p>GraphBLAS Canonicalization Backend for small performance improvements compared to SciPy sparse.</p></li>
+<li><p><a class="reference external" href="https://github.com/cvxpy/cvxpy/issues/2336">Implement cp.vdot as replacement for cp.scalar_product</a></p></li>
+<li><p>Introduce sparse variables in constraint formulation.</p></li>
+<li><p>Propagate variable bounds to solvers.</p></li>
+<li><p>Add QDLDL as another option for sparse Cholesky.</p></li>
+</ul>
+</dd>
+<dt>Medium scope projects</dt><dd><ul class="simple">
+<li><p><a class="reference external" href="https://github.com/cvxpy/cvxpy/issues/1590">Support integer variables in geometric programming</a>.</p></li>
+<li><p><a class="reference external" href="https://github.com/cvxpy/cvxpy/issues/434">Post-solver feasibility checks</a>.</p></li>
+<li><p><a class="reference external" href="https://github.com/cvxpy/cvxpy/issues/582">Developer documentation for key reduction files</a>.</p></li>
+<li><p><a class="reference external" href="https://github.com/cvxpy/cvxpy/issues/566">Allow multiple types and attributes for variables and parameters</a>.</p></li>
+<li><p>cp.trace(A &#64; B) transforms into cp.vdot(A, B).</p></li>
+<li><p>Allow sparse variables to reduce problem dimension.</p></li>
+<li><p><a class="reference external" href="https://github.com/cvxpy/cvxpy/issues/1594">IPOPT interface to introduce support for non-linear non-convex problems</a>.</p></li>
+<li><p><a class="reference external" href="https://github.com/cvxpy/cvxpy/issues/1197">Vectorize the quad_over_lin atom</a>.</p></li>
+</ul>
+</dd>
+<dt>Large scope projects</dt><dd><ul class="simple">
+<li><p>Expand use of power cone constraints [<a class="reference external" href="https://github.com/cvxpy/cvxpy/issues/1222">1222</a>, <a class="reference external" href="https://github.com/cvxpy/cvxpy/issues/1223">1223</a>].</p></li>
+<li><p>Problem serialization [<a class="reference external" href="https://github.com/cvxpy/cvxpy/issues/532">532</a>, <a class="reference external" href="https://github.com/cvxpy/cvxpy/issues/1333">1333</a>, <a class="reference external" href="https://github.com/cvxpy/cvxpy/issues/1438">1438</a>].</p></li>
+<li><p>Quadratically Constrained QP support.</p></li>
+<li><p>Rust Canonicalization Backend to potentially replace cvxcore.</p></li>
+<li><p><a class="reference external" href="https://github.com/cvxpy/cvxpy/issues/198">Support for n-dimensional expressions, variables, parameters, etc</a>.</p></li>
+<li><p>Full compatibility with NumPy broadcasting rules. This will be a breaking change, and can only go in CVXPY 2.0.</p></li>
+</ul>
+</dd>
+</dl>
+</section>
+<section id="general-principles">
+<h2>General principles<a class="headerlink" href="#general-principles" title="Permalink to this heading">¶</a></h2>
+<section id="development-environment">
+<h3>Development environment<a class="headerlink" href="#development-environment" title="Permalink to this heading">¶</a></h3>
+<p>Start by forking the CVXPY repository and installing CVXPY
+<span class="xref std std-ref">from source</span>.
+You should configure git on your local machine before changing any code.
+Here’s one way CVXPY contributors might configure git:</p>
+<blockquote>
+<div><ol class="arabic simple">
+<li><p>Tell git about the existence of the official CVXPY repo:</p></li>
+</ol>
+<blockquote>
+<div><div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">git</span> <span class="n">remote</span> <span class="n">add</span> <span class="n">upstream</span> <span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">github</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">cvxpy</span><span class="o">/</span><span class="n">cvxpy</span><span class="o">.</span><span class="n">git</span>
+</pre></div>
+</div>
+</div></blockquote>
+<ol class="arabic" start="2">
+<li><p>Fetch a copy of the official master branch:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">git</span> <span class="n">fetch</span> <span class="n">upstream</span> <span class="n">master</span>
+</pre></div>
+</div>
+</li>
+<li><p>Create a local branch which will track the official master branch:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">git</span> <span class="n">branch</span> <span class="o">--</span><span class="n">track</span> <span class="n">official_master</span> <span class="n">upstream</span><span class="o">/</span><span class="n">master</span>
+</pre></div>
+</div>
+</li>
+</ol>
+<blockquote>
+<div><p>The <em>only</em> command you should use on the <code class="docutils literal notranslate"><span class="pre">official_master</span></code> branch is <code class="docutils literal notranslate"><span class="pre">git</span> <span class="pre">pull</span></code>.
+The purpose of this tracking branch is to allow you to easily sync with the main
+CVXPY repository. Such an ability can be a huge help in resolving any merge conflicts
+encountered in a pull request. For simple contributions, you might never use this branch.</p>
+</div></blockquote>
+<ol class="arabic" start="4">
+<li><p>Switch back to your forked master branch:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">git</span> <span class="n">checkout</span> <span class="n">master</span>
+</pre></div>
+</div>
+</li>
+<li><p>Resume work as usual!</p></li>
+</ol>
+</div></blockquote>
+</section>
+<section id="contribution-checklist">
+<h3>Contribution checklist<a class="headerlink" href="#contribution-checklist" title="Permalink to this heading">¶</a></h3>
+<p>Contributions are made through
+<a class="reference external" href="https://help.github.com/articles/using-pull-requests/">pull requests</a>.
+Before sending a pull request, make sure you do the following:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>Add our <a class="reference internal" href="#contrib-license"><span class="std std-ref">license</span></a> to new files</p></li>
+<li><p>Check that your code adheres to our <a class="reference internal" href="#contrib-style"><span class="std std-ref">coding style</span></a>.</p></li>
+<li><p><a class="reference internal" href="#contrib-unittests"><span class="std std-ref">Write</span></a> unittests.</p></li>
+<li><p><a class="reference internal" href="#contrib-run-tests"><span class="std std-ref">Run</span></a> the unittests and check that they’re passing.</p></li>
+<li><p><a class="reference internal" href="#contrib-run-benchmarks"><span class="std std-ref">Run the benchmarks</span></a> to make sure your change doesn’t introduce a regression</p></li>
+</ul>
+</div></blockquote>
+<p>Once you’ve made your pull request, a member of the CVXPY development team
+will assign themselves to review it. You might have a few back-and-forths
+with your reviewer before it is accepted, which is completely normal. Your
+pull request will trigger continuous integration tests for many different
+Python versions and different platforms. If these tests start failing, please
+fix your code and send another commit, which will re-trigger the tests.</p>
+</section>
+<section id="license">
+<span id="contrib-license"></span><h3>License<a class="headerlink" href="#license" title="Permalink to this heading">¶</a></h3>
+<p>Please add the following license to new files:</p>
+<blockquote>
+<div><div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Copyright, the CVXPY authors</span>
+
+<span class="sd">Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);</span>
+<span class="sd">you may not use this file except in compliance with the License.</span>
+<span class="sd">You may obtain a copy of the License at</span>
+
+<span class="sd">    http://www.apache.org/licenses/LICENSE-2.0</span>
+
+<span class="sd">Unless required by applicable law or agreed to in writing, software</span>
+<span class="sd">distributed under the License is distributed on an &quot;AS IS&quot; BASIS,</span>
+<span class="sd">WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.</span>
+<span class="sd">See the License for the specific language governing permissions and</span>
+<span class="sd">limitations under the License.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+</pre></div>
+</div>
+</div></blockquote>
+</section>
+<section id="code-style">
+<span id="contrib-style"></span><h3>Code style<a class="headerlink" href="#code-style" title="Permalink to this heading">¶</a></h3>
+<p>We use <a class="reference external" href="https://beta.ruff.rs/docs/">ruff</a> to enforce our Python coding
+style. Before sending us a pull request, navigate to the project root
+and run</p>
+<blockquote>
+<div><div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">pip</span> <span class="n">install</span> <span class="n">ruff</span>
+<span class="n">ruff</span> <span class="n">check</span> <span class="n">cvxpy</span>
+</pre></div>
+</div>
+</div></blockquote>
+<p>to make sure that your changes abide by our style conventions. Please fix any
+errors that are reported before sending the pull request.</p>
+<p>Optionally, the package <a class="reference external" href="https://pre-commit.com/">pre-commit</a> can be installed
+to check these conventions automatically before every commit.</p>
+<blockquote>
+<div><div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">pip</span> <span class="n">install</span> <span class="n">pre</span><span class="o">-</span><span class="n">commit</span>
+<span class="n">pre</span><span class="o">-</span><span class="n">commit</span> <span class="n">install</span>
+</pre></div>
+</div>
+</div></blockquote>
+</section>
+<section id="writing-unit-tests">
+<span id="contrib-unittests"></span><h3>Writing unit tests<a class="headerlink" href="#writing-unit-tests" title="Permalink to this heading">¶</a></h3>
+<p>Most code changes will require new unit tests. (Even bug fixes require unit tests,
+since the presence of bugs usually indicates insufficient tests.) CVXPY tests
+live in the directory <cite>cvxpy/tests</cite>, which contains many files, each of which
+contains many unit tests. When adding tests, try to find a file in which your
+tests should belong; if you’re testing a new feature, you might want to create
+a new test file.</p>
+<p>We use the standard Python <a class="reference external" href="https://docs.python.org/3/library/unittest.html">unittest</a>
+framework for our tests. Tests are organized into classes, which inherit from
+<code class="docutils literal notranslate"><span class="pre">BaseTest</span></code> (see <code class="docutils literal notranslate"><span class="pre">cvxpy/tests/base_test.py</span></code>). Every method beginning with <code class="docutils literal notranslate"><span class="pre">test_</span></code> is a unit
+test.</p>
+</section>
+<section id="running-unit-tests">
+<span id="contrib-run-tests"></span><h3>Running unit tests<a class="headerlink" href="#running-unit-tests" title="Permalink to this heading">¶</a></h3>
+<p>We use <code class="docutils literal notranslate"><span class="pre">pytest</span></code> to run our unit tests, which you can install with <code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">pytest</span></code>.
+To run all unit tests, <code class="docutils literal notranslate"><span class="pre">cd</span></code> into <code class="docutils literal notranslate"><span class="pre">cvxpy/tests</span></code> and run the following command:</p>
+<blockquote>
+<div><div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">pytest</span>
+</pre></div>
+</div>
+</div></blockquote>
+<p>To run tests in a specific file (e.g., <code class="docutils literal notranslate"><span class="pre">test_dgp.py</span></code>), use</p>
+<blockquote>
+<div><div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">pytest</span> <span class="n">test_dgp</span><span class="o">.</span><span class="n">py</span>
+</pre></div>
+</div>
+</div></blockquote>
+<p>To run a specific test method (e.g., <code class="docutils literal notranslate"><span class="pre">TestDgp.test_product</span></code>), use</p>
+<blockquote>
+<div><div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">pytest</span> <span class="n">test_dgp</span><span class="o">.</span><span class="n">py</span><span class="p">::</span><span class="n">TestDgp</span><span class="p">::</span><span class="n">test_product</span>
+</pre></div>
+</div>
+</div></blockquote>
+<p>Please make sure that your change doesn’t cause any of the unit tests to fail.</p>
+<p><code class="docutils literal notranslate"><span class="pre">pytest</span></code> suppresses stdout by default. To see stdout, pass the <code class="docutils literal notranslate"><span class="pre">-s</span></code> flag
+to <code class="docutils literal notranslate"><span class="pre">pytest</span></code>.</p>
+</section>
+<section id="benchmarks">
+<span id="contrib-run-benchmarks"></span><h3>Benchmarks<a class="headerlink" href="#benchmarks" title="Permalink to this heading">¶</a></h3>
+<p>CVXPY has performance <a class="reference external" href="https://github.com/cvxpy/benchmarks">benchmarks</a> which test the time to canonicalize problems.
+These problems are automatically benchmarked on every commit using <a class="reference external" href="https://asv.readthedocs.io">airspeed velocity</a> and github actions.</p>
+<p>Optionally, the package <a class="reference external" href="https://github.com/nektos/act">act</a> can be installed
+to run github actions locally.</p>
+</section>
+</section>
+<section id="solver-interfaces">
+<span id="contrib-solver"></span><h2>Solver interfaces<a class="headerlink" href="#solver-interfaces" title="Permalink to this heading">¶</a></h2>
+<p>Third-party numerical optimization solvers are the lifeblood of CVXPY.
+We are very grateful to anyone who would be willing to volunteer their time to
+improve our existing solver interfaces, or create interfaces to new solvers.
+Improving an existing interface can usually be handled like fixing a bug.
+Creating a new interface requires much more work, and warrants coordination
+with CVXPY principal developers before writing any code.</p>
+<p>This section of the contributing guide outlines considerations when adding new solver interfaces.
+For the time being, we only have documentation for conic solver interfaces.
+Additional documentation for QP solver interfaces is forthcoming.</p>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>This documentation is far from complete! It only tries to cover the absolutely
+essential parts of writing a solver interface. It also might not do that in
+a spectacular way – we welcome all feedback on this part of the documentation.</p>
+</div>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>The developers try to keep this documentation up to date, however at any given time
+it might contain inaccurate information! It’s very important that you contact the
+CVXPY developers before writing a solver interface, if for no other reason than to
+prompt us to double-check the accuracy of this guide.</p>
+</div>
+<section id="conic-solvers">
+<h3>Conic solvers<a class="headerlink" href="#conic-solvers" title="Permalink to this heading">¶</a></h3>
+<p>Conic solvers require that the objective is a linear function of the
+optimization variable; constraints must be expressed using convex cones and
+affine functions of the optimization variable.
+The codepath for conic solvers begins with
+<a class="reference external" href="https://github.com/cvxpy/cvxpy/tree/master/cvxpy/reductions/solvers/conic_solvers">reductions/solvers/conic_solvers</a>
+and in particular with the class <code class="docutils literal notranslate"><span class="pre">ConicSolver</span></code> in
+<a class="reference external" href="https://github.com/cvxpy/cvxpy/blob/master/cvxpy/reductions/solvers/conic_solvers/conic_solver.py">conic_solver.py</a>.</p>
+<p>Let’s say you’re writing a CVXPY interface for the “<em>Awesome</em>” conic solver,
+and that there’s an existing package <code class="docutils literal notranslate"><span class="pre">AwesomePy</span></code> for calling <em>Awesome</em> from python.
+In this case you need to create a file called <code class="docutils literal notranslate"><span class="pre">awesome_conif.py</span></code> in the same folder as <code class="docutils literal notranslate"><span class="pre">conic_solver.py</span></code>.
+Within <code class="docutils literal notranslate"><span class="pre">awesome_conif.py</span></code> you will define a class <code class="docutils literal notranslate"><span class="pre">Awesome(ConicSolver)</span></code>.
+The <code class="docutils literal notranslate"><span class="pre">Awesome(ConicSolver)</span></code> class will manage all interaction between CVXPY and the
+existing <code class="docutils literal notranslate"><span class="pre">AwesomePy</span></code> python package. It will need to implement six functions:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>import_solver,</p></li>
+<li><p>name,</p></li>
+<li><p>accepts,</p></li>
+<li><p>apply,</p></li>
+<li><p>solve_via_data, and</p></li>
+<li><p>invert.</p></li>
+</ul>
+</div></blockquote>
+<p>The first three functions are very easy (often trivial) to write.
+The remaining functions are called in order: <code class="docutils literal notranslate"><span class="pre">apply</span></code> stages data for <code class="docutils literal notranslate"><span class="pre">solve_via_data</span></code>,
+<code class="docutils literal notranslate"><span class="pre">solve_via_data</span></code> calls the <em>Awesome</em> solver by way of the existing third-party
+<code class="docutils literal notranslate"><span class="pre">AwesomePy</span></code> package, and <code class="docutils literal notranslate"><span class="pre">invert</span></code> transforms the output from <code class="docutils literal notranslate"><span class="pre">AwesomePy</span></code> into
+the format that CVXPY expects.</p>
+<p>Key goals in this process are that the output of <code class="docutils literal notranslate"><span class="pre">apply</span></code> should be as close as possible
+to the <em>Awesome</em>’s standard form, and that <code class="docutils literal notranslate"><span class="pre">solve_via_data</span></code> should be kept short.
+The complexity of <code class="docutils literal notranslate"><span class="pre">Awesome(ConicSolver).solve_via_data</span></code> will depend on <code class="docutils literal notranslate"><span class="pre">AwesomePy</span></code>.
+If <code class="docutils literal notranslate"><span class="pre">AwesomePy</span></code> allows very low level input– passed by one or two matrices,
+and a handful of numeric vectors –then you’ll be in a situation like ECOS or GLPK.
+If the <code class="docutils literal notranslate"><span class="pre">AwesomePy</span></code> package requires that you build an object-oriented model,
+then you’re looking at something closer to the MOSEK, GUROBI, or NAG interfaces.
+Writing the <code class="docutils literal notranslate"><span class="pre">invert</span></code> function may require nontrivial effort to properly recover dual variables.</p>
+</section>
+<section id="cvxpy-s-conic-form">
+<h3>CVXPY’s conic form<a class="headerlink" href="#cvxpy-s-conic-form" title="Permalink to this heading">¶</a></h3>
+<p>CVXPY converts an optimization problem to an explicit form at the last possible moment.
+When CVXPY presents a problem in a concrete form, it’s over a single vectorized
+optimization variable, and a flattened representation of the feasible set.
+The abstraction for the standard form is</p>
+<div class="math notranslate nohighlight">
+\[(P) \quad \min\{ c^T x + d \,:\, x \in \mathbb{R}^{n},\, A x + b \in K \}\]</div>
+<p>where <span class="math notranslate nohighlight">\(K\)</span> is a product of elementary convex cones. The design of CVXPY allows
+for any cone supported by a target solver, but the current elementary convex cones are</p>
+<blockquote>
+<div><ol class="arabic">
+<li><p>The zero cone <span class="math notranslate nohighlight">\(y = 0 \in \mathbb{R}^m\)</span>.</p></li>
+<li><p>The nonnegative cone <span class="math notranslate nohighlight">\(y \geq 0 \in \mathbb{R}^m\)</span>.</p></li>
+<li><p>The second order cone</p>
+<div class="math notranslate nohighlight">
+\[(u,v) \in K_{\mathrm{soc}}^n \doteq \{ (t,x) \,:\, t \geq \|x\|_2  \} \subset \mathbb{R} \times \mathbb{R}^n.\]</div>
+</li>
+<li><p>One of several vectorized versions of the positive semidefinite cone.</p></li>
+<li><p>The exponential cone</p></li>
+</ol>
+<blockquote>
+<div><div class="math notranslate nohighlight">
+\[(u,v,w) \in K_e \doteq \mathrm{cl}\{(x,y,z) |  z \geq y \exp(x/y), y&gt;0\}.\]</div>
+</div></blockquote>
+<ol class="arabic" start="6">
+<li><p>The 3-dimensional power cone, parameterized by a number <span class="math notranslate nohighlight">\(\alpha\in (0, 1)\)</span>:</p>
+<div class="math notranslate nohighlight">
+\[(u,v) \in K_{\mathrm{pow}}^{\alpha} \doteq \{ (x,y,z) \,:\, x^{\alpha}y^{1-\alpha} \geq |z|, (x,y) \geq 0 \}.\]</div>
+</li>
+</ol>
+</div></blockquote>
+<p>We address the vectorization options for the semidefinite cones later.
+For now it’s useful to say that the <code class="docutils literal notranslate"><span class="pre">Awesome(ConicSolver)</span></code> class will access an
+explicit representation for problem <span class="math notranslate nohighlight">\((P)\)</span> in in <code class="docutils literal notranslate"><span class="pre">apply</span></code>, with a code snippet like</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># from cvxpy.constraints import Zero, NonNeg, SOC, PSD, ExpCone, PowCone3D</span>
+<span class="c1">#  ...</span>
+<span class="k">if</span> <span class="ow">not</span> <span class="n">problem</span><span class="o">.</span><span class="n">formatted</span><span class="p">:</span>
+    <span class="n">problem</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">format_constraints</span><span class="p">(</span><span class="n">problem</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">EXP_CONE_ORDER</span><span class="p">)</span>
+<span class="n">constr_map</span> <span class="o">=</span> <span class="n">problem</span><span class="o">.</span><span class="n">constr_map</span>
+<span class="n">cone_dims</span> <span class="o">=</span> <span class="n">problem</span><span class="o">.</span><span class="n">cone_dims</span>
+<span class="n">c</span><span class="p">,</span> <span class="n">d</span><span class="p">,</span> <span class="n">A</span><span class="p">,</span> <span class="n">b</span> <span class="o">=</span> <span class="n">problem</span><span class="o">.</span><span class="n">apply_parameters</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>The variable <code class="docutils literal notranslate"><span class="pre">constr_map</span></code> is is a dict of lists of CVXPY Constraint objects.
+The dict is keyed by the references to CVXPY’s Zero, NonNeg, SOC, PSD, ExpCone,
+and PowCone3D classes. You will need to interact with these constraint classes during
+dual variable recovery.
+For the other variables in that code snippet …</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">c,</span> <span class="pre">d</span></code> define the objective function <code class="docutils literal notranslate"><span class="pre">c</span> <span class="pre">&#64;</span> <span class="pre">x</span> <span class="pre">+</span> <span class="pre">d</span></code>, and</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">A,</span> <span class="pre">b,</span> <span class="pre">cone_dims</span></code> define the abstractions <span class="math notranslate nohighlight">\(A\)</span>, <span class="math notranslate nohighlight">\(b\)</span>,
+<span class="math notranslate nohighlight">\(K\)</span> in problem  <span class="math notranslate nohighlight">\((P)\)</span>.</p></li>
+</ul>
+</div></blockquote>
+<p>The first step in writing a solver interface is to understand the exact
+meanings of <code class="docutils literal notranslate"><span class="pre">A,</span> <span class="pre">b,</span> <span class="pre">cone_dims</span></code>, so that you can correctly build a primal
+problem using the third-party <code class="docutils literal notranslate"><span class="pre">AwesomePy</span></code> interface to the <em>Awesome</em> solver.
+The <code class="docutils literal notranslate"><span class="pre">cone_dims</span></code> object is an instance of the ConeDims class, as defined in
+<a class="reference external" href="https://github.com/cvxpy/cvxpy/blob/master/cvxpy/reductions/dcp2cone/cone_matrix_stuffing.py">cone_matrix_stuffing.py</a>;
+<code class="docutils literal notranslate"><span class="pre">A</span></code> is a SciPy sparse matrix, and <code class="docutils literal notranslate"><span class="pre">b</span></code> is a numpy ndarray with <code class="docutils literal notranslate"><span class="pre">b.ndim</span> <span class="pre">==</span> <span class="pre">1</span></code>.
+The rows of <code class="docutils literal notranslate"><span class="pre">A</span></code> and entries of <code class="docutils literal notranslate"><span class="pre">b</span></code> are given in a very specific order, as described below.</p>
+<blockquote>
+<div><ul>
+<li><p>Equality constraints are found in the first <code class="docutils literal notranslate"><span class="pre">cone_dims.zero</span></code> rows of <code class="docutils literal notranslate"><span class="pre">A</span></code> and entries of <code class="docutils literal notranslate"><span class="pre">b</span></code>.
+Letting <code class="docutils literal notranslate"><span class="pre">eq</span> <span class="pre">=</span> <span class="pre">cone_dims.zero</span></code>, the constraint is</p>
+<blockquote>
+<div><div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">A</span><span class="p">[:</span><span class="n">eq</span><span class="p">,</span> <span class="p">:]</span> <span class="o">@</span> <span class="n">x</span> <span class="o">+</span> <span class="n">b</span><span class="p">[:</span><span class="n">eq</span><span class="p">]</span> <span class="o">==</span> <span class="mf">0.</span>
+</pre></div>
+</div>
+</div></blockquote>
+</li>
+<li><p>Inequality constraints occur immediately after the equations.
+If for example <code class="docutils literal notranslate"><span class="pre">ineq</span> <span class="pre">=</span> <span class="pre">cone_dims.nonneg</span></code> then the feasible
+set has the constraint</p>
+<blockquote>
+<div><div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">A</span><span class="p">[</span><span class="n">eq</span><span class="p">:</span><span class="n">eq</span> <span class="o">+</span> <span class="n">ineq</span><span class="p">,</span> <span class="p">:]</span> <span class="o">@</span> <span class="n">x</span> <span class="o">+</span> <span class="n">b</span><span class="p">[</span><span class="n">eq</span><span class="p">:</span><span class="n">eq</span> <span class="o">+</span> <span class="n">ineq</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="mf">0.</span>
+</pre></div>
+</div>
+</div></blockquote>
+</li>
+<li><p>Second order cone (SOC) constraints are handled after inequalities.
+Here, <code class="docutils literal notranslate"><span class="pre">cone_dims.soc</span></code> is a <em>list of integers</em> rather than a single integer.
+Supposing <code class="docutils literal notranslate"><span class="pre">cone_dims.soc[0]</span> <span class="pre">==</span> <span class="pre">10</span></code>, the first second order cone constraint appearing
+in this optimization problem would involve 10 rows of <code class="docutils literal notranslate"><span class="pre">A</span></code> and 10 entries of <code class="docutils literal notranslate"><span class="pre">b</span></code>.
+The SOC vectorization we use is given by <span class="math notranslate nohighlight">\(K_{\mathrm{soc}}^n\)</span> as defined above.</p></li>
+<li><p>PSD constraints follow SOC constraints.
+For most solver interfaces it is a good idea to make a deliberate decision about how to
+handle the vectorization, which amounts to implementing <code class="docutils literal notranslate"><span class="pre">Awesome(ConicSolver).psd_format_mat</span></code>.
+If you do nothing, then the vectorization will behave as in <code class="docutils literal notranslate"><span class="pre">ConicSolver.psd_format_mat</span></code>,
+which takes a PSD constraint of order <span class="math notranslate nohighlight">\(n\)</span> and maps it to <span class="math notranslate nohighlight">\(n^2\)</span> rows of <span class="math notranslate nohighlight">\(A\)</span> and
+entries of <span class="math notranslate nohighlight">\(b\)</span>.
+You can also borrow from <code class="docutils literal notranslate"><span class="pre">SCS.psd_format_mat</span></code> which maps an order <span class="math notranslate nohighlight">\(n\)</span> PSD constraint
+to <span class="math notranslate nohighlight">\(n(n+1)/2\)</span> suitably scaled rows of <span class="math notranslate nohighlight">\(A\)</span> and entries of <span class="math notranslate nohighlight">\(b\)</span>, or
+<code class="docutils literal notranslate"><span class="pre">MOSEK.psd_format_mat</span></code> which behaves identically to SCS except for the scaling.</p></li>
+<li><p>The next block of <code class="docutils literal notranslate"><span class="pre">3</span> <span class="pre">*</span> <span class="pre">cone_dims.exp</span></code> rows in <code class="docutils literal notranslate"><span class="pre">A,</span> <span class="pre">b</span></code> correspond to consecutive
+three-dimensional exponential cones, as defined by <span class="math notranslate nohighlight">\(K_e\)</span> above.</p></li>
+<li><p>The final block of <code class="docutils literal notranslate"><span class="pre">3</span> <span class="pre">*</span> <span class="pre">len(cone_dims.p3d)</span></code> rows in <code class="docutils literal notranslate"><span class="pre">A,</span> <span class="pre">b</span></code> correspond to
+three-dimensional power cones defined by <span class="math notranslate nohighlight">\(K_{\mathrm{pow}}^{\alpha}\)</span>, where the
+i-th triple of rows has <code class="docutils literal notranslate"><span class="pre">alpha</span> <span class="pre">=</span> <span class="pre">cone_dims.p3d[i]</span></code>.</p></li>
+</ul>
+</div></blockquote>
+<p>If <em>Awesome</em> supports nonlinear constraints like SOC, ExpCone, PSD, or PowCone3D, then
+it’s possible that you will need to transform data <code class="docutils literal notranslate"><span class="pre">A,</span> <span class="pre">b</span></code> in order to write these constraints in
+the form expected by <code class="docutils literal notranslate"><span class="pre">AwesomePy</span></code>.
+The most common situations are when <code class="docutils literal notranslate"><span class="pre">AwesomePy</span></code> parametrizes the second-order cone
+as <span class="math notranslate nohighlight">\(K = \{ (x,t) \,:\, \|x\|\leq t \} \subset \mathbb{R}^n \times \mathbb{R}\)</span>,
+or when it parametrizes <span class="math notranslate nohighlight">\(K_e \subset \mathbb{R}^3\)</span> as some permutation of
+what we defined earlier.</p>
+</section>
+<section id="an-alternative-conic-form">
+<h3>An alternative conic form<a class="headerlink" href="#an-alternative-conic-form" title="Permalink to this heading">¶</a></h3>
+<p>Some conic solvers do not natively support problem formats like (P) described in
+the previous section. Instead, the solver requires problem statements like</p>
+<div class="math notranslate nohighlight">
+\[(Dir) \quad \min\{ f^T z  \,:\, z \in K,\, G z = h \}.\]</div>
+<p>Problem (Dir) uses so-called “direct” conic constraints <span class="math notranslate nohighlight">\(z \in K\)</span>. If you are
+writing an interface for a solver which works this way, you should use the
+<code class="docutils literal notranslate"><span class="pre">Dualize</span></code> reduction on the standard CVXPY problem data given in (P).
+Using the Dualize reduction will avoid introduction unnecessary slack variables
+for continuous problems, but it is not applicable for problems with integer constraints.
+Therefore if your solver supports integer constraints, make sure to also use the
+<code class="docutils literal notranslate"><span class="pre">Slacks</span></code> reduction for that code path.</p>
+<p>The MOSEK interface uses both of the reductions mentioned above.</p>
+</section>
+<section id="dual-variables">
+<h3>Dual variables<a class="headerlink" href="#dual-variables" title="Permalink to this heading">¶</a></h3>
+<p>Dual variable extraction should be handled in <code class="docutils literal notranslate"><span class="pre">Awesome(ConicSolver).invert</span></code>.
+To perform this step correctly, it’s necessary to consider how CVXPY forms
+a Lagrangian for the primal problem <span class="math notranslate nohighlight">\((P)\)</span>.
+Let’s say that the affine map <span class="math notranslate nohighlight">\(Ax + b\)</span> in the feasible set
+<span class="math notranslate nohighlight">\(Ax + b \in K \subset \mathbb{R}^m\)</span> is broken up into six blocks of sizes
+<span class="math notranslate nohighlight">\(m_1,\ldots,m_6\)</span> where the blocks correspond (in order) to zero-cone, nonnegative cone,
+second-order cone, vectorized PSD cone, exponential cone, and 3D power cone constraints.
+Then CVXPY defines the dual to <span class="math notranslate nohighlight">\((P)\)</span> by forming a Lagrangian</p>
+<div class="math notranslate nohighlight">
+\[\mathcal{L}(x,\mu_1,\ldots,\mu_6) = c^T x - \sum_{i=i}^6 \mu_i^T (A_i x + b_i)\]</div>
+<p>in dual variables <span class="math notranslate nohighlight">\(\mu_1 \in \mathbb{R}^{m_1}\)</span>, <span class="math notranslate nohighlight">\(\mu_2 \in \mathbb{R}^{m_2}_+\)</span>,
+and <span class="math notranslate nohighlight">\(\mu_i \in K_i^* \subset \mathbb{R}^{m_i}\)</span> for <span class="math notranslate nohighlight">\(i \in \{3,4,5,6\}\)</span>.
+Here, <span class="math notranslate nohighlight">\(K_i^*\)</span> denotes the dual cone to <span class="math notranslate nohighlight">\(K_i\)</span> under the standard inner product.</p>
+<p>More remarks on dual variables (particularly SOC dual variables) can be found in
+<a class="reference external" href="https://github.com/cvxpy/cvxpy/issues/948#issuecomment-592781675">this comment on a GitHub thread</a>.</p>
+<p>Most concrete implementations of the ConicSolver class use a common set of helper
+functions for dual variable recovery, found in
+<a class="reference external" href="https://github.com/cvxpy/cvxpy/blob/master/cvxpy/reductions/solvers/utilities.py">reductions/solvers/utilities.py</a>.</p>
+</section>
+<section id="registering-a-solver">
+<h3>Registering a solver<a class="headerlink" href="#registering-a-solver" title="Permalink to this heading">¶</a></h3>
+<p>Correctly implementing <code class="docutils literal notranslate"><span class="pre">Awesome(ConicSolver)</span></code> isn’t enough to call <em>Awesome</em> from CVXPY.
+You need to make edits in a handful of other places, namely</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><a class="reference external" href="https://github.com/cvxpy/cvxpy/blob/master/cvxpy/reductions/solvers/conic_solvers/__init__.py">conic_solvers/__init__.py</a>,</p></li>
+<li><p><a class="reference external" href="https://github.com/cvxpy/cvxpy/blob/master/cvxpy/reductions/solvers/defines.py">solvers/defines.py</a>, and</p></li>
+<li><p><a class="reference external" href="https://github.com/cvxpy/cvxpy/blob/master/cvxpy/__init__.py">cvxpy/__init__.py</a>.</p></li>
+</ul>
+</div></blockquote>
+<p>The existing content of those files should make it clear what’s needed
+to add <em>Awesome</em> to CVXPY.</p>
+</section>
+<section id="writing-tests">
+<h3>Writing tests<a class="headerlink" href="#writing-tests" title="Permalink to this heading">¶</a></h3>
+<p>Tests for  <code class="docutils literal notranslate"><span class="pre">Awesome(ConicSolver)</span></code> should be placed in <a class="reference external" href="https://github.com/cvxpy/cvxpy/blob/master/cvxpy/tests/test_conic_solvers.py">cvxpy/tests/test_conic_solvers.py</a>.
+The overwhelming majority of tests in that file only take a single line, because
+we make consistent use of a general testing framework defined in
+<a class="reference external" href="https://github.com/cvxpy/cvxpy/blob/master/cvxpy/tests/solver_test_helpers.py">solver_test_helpers.py</a>.
+Here are examples of helper functions we invoke in <code class="docutils literal notranslate"><span class="pre">test_conic_solvers.py</span></code>,</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">StandardTestSDPs</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">test_sdp_1min</span><span class="p">(</span><span class="n">solver</span><span class="p">,</span> <span class="n">places</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="n">sth</span> <span class="o">=</span> <span class="n">sdp_1</span><span class="p">(</span><span class="s1">&#39;min&#39;</span><span class="p">)</span>
+        <span class="n">sth</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">solver</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="n">sth</span><span class="o">.</span><span class="n">verify_objective</span><span class="p">(</span><span class="n">places</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>  <span class="c1"># only 2 digits recorded.</span>
+        <span class="n">sth</span><span class="o">.</span><span class="n">check_primal_feasibility</span><span class="p">(</span><span class="n">places</span><span class="p">)</span>
+        <span class="n">sth</span><span class="o">.</span><span class="n">check_complementarity</span><span class="p">(</span><span class="n">places</span><span class="p">)</span>
+        <span class="n">sth</span><span class="o">.</span><span class="n">check_dual_domains</span><span class="p">(</span><span class="n">places</span><span class="p">)</span>  <span class="c1"># check dual variables are PSD.</span>
+
+<span class="o">...</span>
+
+<span class="k">class</span> <span class="nc">StandardTestSOCPs</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">test_socp_0</span><span class="p">(</span><span class="n">solver</span><span class="p">,</span> <span class="n">places</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="n">sth</span> <span class="o">=</span> <span class="n">socp_0</span><span class="p">()</span>
+        <span class="n">sth</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">solver</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="n">sth</span><span class="o">.</span><span class="n">verify_objective</span><span class="p">(</span><span class="n">places</span><span class="p">)</span>
+        <span class="n">sth</span><span class="o">.</span><span class="n">verify_primal_values</span><span class="p">(</span><span class="n">places</span><span class="p">)</span>
+        <span class="n">sth</span><span class="o">.</span><span class="n">check_complementarity</span><span class="p">(</span><span class="n">places</span><span class="p">)</span>
+
+<span class="o">...</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">test_mi_socp_1</span><span class="p">(</span><span class="n">solver</span><span class="p">,</span> <span class="n">places</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="n">sth</span> <span class="o">=</span> <span class="n">mi_socp_1</span><span class="p">()</span>
+        <span class="n">sth</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">solver</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="c1"># mixed integer problems don&#39;t have dual variables,</span>
+        <span class="c1">#   so we only check the optimal objective and primal variables.</span>
+        <span class="n">sth</span><span class="o">.</span><span class="n">verify_objective</span><span class="p">(</span><span class="n">places</span><span class="p">)</span>
+        <span class="n">sth</span><span class="o">.</span><span class="n">verify_primal_values</span><span class="p">(</span><span class="n">places</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Notice the comments in the predefined functions.
+In <code class="docutils literal notranslate"><span class="pre">test_sdp_1min</span></code>, we override a user-supplied value for <code class="docutils literal notranslate"><span class="pre">places</span></code> with
+<code class="docutils literal notranslate"><span class="pre">places=2</span></code> when checking the optimal objective function value.
+We also go through extra effort to check that the dual variables are PSD
+matrices.
+In <code class="docutils literal notranslate"><span class="pre">test_mi_socp_1</span></code> we’re working with a mixed-integer problem, so
+there are no dual variables at all.
+You should use these predefined functions partly because they automatically check
+what’s most appropriate for the problem at hand.</p>
+<p>Each of these predefined functions first constructs a SolverTestHelper object <code class="docutils literal notranslate"><span class="pre">sth</span></code>
+which contains appropriate test data. The <code class="docutils literal notranslate"><span class="pre">.solve</span></code> function for the
+SolverTestHelper class is a simple wrapper around <code class="docutils literal notranslate"><span class="pre">prob.solve</span></code> where
+<code class="docutils literal notranslate"><span class="pre">prob</span></code> is a CVXPY Problem. In particular, any keyword arguments
+passed to <code class="docutils literal notranslate"><span class="pre">sth.solve</span></code> will be passed to <code class="docutils literal notranslate"><span class="pre">prob.solve</span></code>. This allows you to
+call modified versions of a test with different solver parameters, for example</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">test_mosek_lp_1</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="c1"># default settings</span>
+    <span class="n">StandardTestLPs</span><span class="o">.</span><span class="n">test_lp_1</span><span class="p">(</span><span class="n">solver</span><span class="o">=</span><span class="s1">&#39;MOSEK&#39;</span><span class="p">)</span>  <span class="c1"># 4 places</span>
+    <span class="c1"># require a basic feasible solution</span>
+    <span class="n">StandardTestLPs</span><span class="o">.</span><span class="n">test_lp_1</span><span class="p">(</span><span class="n">solver</span><span class="o">=</span><span class="s1">&#39;MOSEK&#39;</span><span class="p">,</span> <span class="n">places</span><span class="o">=</span><span class="mi">6</span><span class="p">,</span> <span class="n">bfs</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../index.html">CVXPY</a></h1>
+
+
+
+
+
+
+<p>
+<iframe src="https://ghbtns.com/github-btn.html?user=cvxpy&repo=cvxpy&type=star&count=true&size=large&v=2"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
+
+
+
+
+
+<h3>Navigation</h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../install/index.html">Install</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/index.html">User Guide</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../api_reference/cvxpy.html">API Documentation</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../examples/index.html">Examples</a></li>
+</ul>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Contributing</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#wishlist">Wishlist</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#general-principles">General principles</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#development-environment">Development environment</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#contribution-checklist">Contribution checklist</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#license">License</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#code-style">Code style</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#writing-unit-tests">Writing unit tests</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#running-unit-tests">Running unit tests</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#benchmarks">Benchmarks</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#solver-interfaces">Solver interfaces</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#conic-solvers">Conic solvers</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#cvxpy-s-conic-form">CVXPY’s conic form</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#an-alternative-conic-form">An alternative conic form</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#dual-variables">Dual variables</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#registering-a-solver">Registering a solver</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#writing-tests">Writing tests</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../updates/index.html">Changelog</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../faq/index.html">FAQ</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../resources/index.html">Resources</a></li>
+</ul>
+
+
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script><div>
+    <h3>
+        Version selector
+    </h3>
+    <select id="dynamic_selector" name="versions" onchange="if (this.value) window.location.href=this.value">
+    </select>
+    <script>
+        obj = $.getJSON("https://raw.githubusercontent.com/cvxpy/cvxpy/gh-pages/versions.json")
+            .done(function (data) {
+                const base_url = "https://www.cvxpy.org/"
+                let html = "<option value='' selected>Choose version here</option>";
+                html += "<option value=" + base_url + ">latest" + ""
+                for (let i = 0; i < data.length; i++) {
+                    html += "<option value=" + base_url + "version/"  + data[i] + ">" + data[i] + ""
+                }
+                document.getElementById("dynamic_selector").innerHTML = html;
+            });
+    </script>
+</div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;The CVXPY authors.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 7.1.2</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.13</a>
+      
+      |
+      <a href="../_sources/contributing/index.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+    <script type="text/javascript">
+
+      var _gaq = _gaq || [];
+      _gaq.push(['_setAccount', 'UA-50248335-1']);
+      _gaq.push(['_setDomainName', 'none']);
+      _gaq.push(['_setAllowLinker', true]);
+      _gaq.push(['_trackPageview']);
+
+      (function() {
+        var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+        ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+      })();
+
+    </script>
+    
+  </body>
+</html>

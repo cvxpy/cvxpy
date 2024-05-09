@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>cvxpy.reductions.cvx_attr2constr &#8212; CVXPY 1.5 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/cvxpy_alabaster.css?v=6c13f287" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/tabs.css?v=4c969af8" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/design-style.1e8bd061cd6da7fc9cf755528e8ffc24.min.css?v=0a3b3ea7" />
+    <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+    <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+    <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js?v=8f967033"></script>
+    <script src="../../../_static/doctools.js?v=888ff710"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=4825356b"></script>
+    <script src="../../../_static/tabs.js?v=3ee01567"></script>
+    <script src="../../../_static/design-tabs.js?v=36754332"></script>
+    <link rel="icon" href="../../../_static/favicon.ico"/>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+   
+  <link rel="stylesheet" href="../../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>Source code for cvxpy.reductions.cvx_attr2constr</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Copyright 2017 Steven Diamond</span>
+
+<span class="sd">Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);</span>
+<span class="sd">you may not use this file except in compliance with the License.</span>
+<span class="sd">You may obtain a copy of the License at</span>
+
+<span class="sd">    http://www.apache.org/licenses/LICENSE-2.0</span>
+
+<span class="sd">Unless required by applicable law or agreed to in writing, software</span>
+<span class="sd">distributed under the License is distributed on an &quot;AS IS&quot; BASIS,</span>
+<span class="sd">WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.</span>
+<span class="sd">See the License for the specific language governing permissions and</span>
+<span class="sd">limitations under the License.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">scipy.sparse</span> <span class="k">as</span> <span class="nn">sp</span>
+
+<span class="kn">from</span> <span class="nn">cvxpy.atoms</span> <span class="kn">import</span> <span class="n">diag</span><span class="p">,</span> <span class="n">reshape</span>
+<span class="kn">from</span> <span class="nn">cvxpy.expressions</span> <span class="kn">import</span> <span class="n">cvxtypes</span>
+<span class="kn">from</span> <span class="nn">cvxpy.expressions.constants</span> <span class="kn">import</span> <span class="n">Constant</span>
+<span class="kn">from</span> <span class="nn">cvxpy.expressions.variable</span> <span class="kn">import</span> <span class="n">Variable</span><span class="p">,</span> <span class="n">upper_tri_to_full</span>
+<span class="kn">from</span> <span class="nn">cvxpy.reductions.reduction</span> <span class="kn">import</span> <span class="n">Reduction</span>
+<span class="kn">from</span> <span class="nn">cvxpy.reductions.solution</span> <span class="kn">import</span> <span class="n">Solution</span>
+
+<span class="c1"># Convex attributes that generate constraints.</span>
+<span class="n">CONVEX_ATTRIBUTES</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="s1">&#39;nonneg&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;nonpos&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;pos&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;neg&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;symmetric&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;diag&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;PSD&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;NSD&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;bounds&#39;</span>
+<span class="p">]</span>
+
+<span class="c1"># Attributes that define lower and uppper bounds.</span>
+<span class="n">BOUND_ATTRIBUTES</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="s1">&#39;nonneg&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;nonpos&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;pos&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;neg&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;bounds&#39;</span><span class="p">,</span>
+<span class="p">]</span>
+
+<span class="c1"># Attributes related to symmetry.</span>
+<span class="n">SYMMETRIC_ATTRIBUTES</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="s1">&#39;symmetric&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;PSD&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;NSD&#39;</span><span class="p">,</span>
+<span class="p">]</span>
+
+
+
+<span class="k">def</span> <span class="nf">convex_attributes</span><span class="p">(</span><span class="n">variables</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Returns a list of the (constraint-generating) convex attributes present</span>
+<span class="sd">       among the variables.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">attributes_present</span><span class="p">(</span><span class="n">variables</span><span class="p">,</span> <span class="n">CONVEX_ATTRIBUTES</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">attributes_present</span><span class="p">(</span><span class="n">variables</span><span class="p">,</span> <span class="n">attr_map</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Returns a list of the relevant attributes present</span>
+<span class="sd">       among the variables.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="p">[</span><span class="n">attr</span> <span class="k">for</span> <span class="n">attr</span> <span class="ow">in</span> <span class="n">attr_map</span> <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="n">v</span><span class="o">.</span><span class="n">attributes</span><span class="p">[</span><span class="n">attr</span><span class="p">]</span> <span class="k">for</span> <span class="n">v</span>
+                                             <span class="ow">in</span> <span class="n">variables</span><span class="p">)]</span>
+
+
+<span class="k">def</span> <span class="nf">recover_value_for_variable</span><span class="p">(</span><span class="n">variable</span><span class="p">,</span> <span class="n">lowered_value</span><span class="p">,</span> <span class="n">project</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">variable</span><span class="o">.</span><span class="n">attributes</span><span class="p">[</span><span class="s1">&#39;diag&#39;</span><span class="p">]:</span>
+        <span class="k">return</span> <span class="n">sp</span><span class="o">.</span><span class="n">diags</span><span class="p">(</span><span class="n">lowered_value</span><span class="o">.</span><span class="n">flatten</span><span class="p">())</span>
+    <span class="k">elif</span> <span class="n">attributes_present</span><span class="p">([</span><span class="n">variable</span><span class="p">],</span> <span class="n">SYMMETRIC_ATTRIBUTES</span><span class="p">):</span>
+        <span class="n">n</span> <span class="o">=</span> <span class="n">variable</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">variable</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+        <span class="n">idxs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">triu_indices</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
+        <span class="n">value</span><span class="p">[</span><span class="n">idxs</span><span class="p">]</span> <span class="o">=</span> <span class="n">lowered_value</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">value</span> <span class="o">+</span> <span class="n">value</span><span class="o">.</span><span class="n">T</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">diag</span><span class="p">(</span><span class="n">value</span><span class="o">.</span><span class="n">diagonal</span><span class="p">())</span>
+    <span class="k">elif</span> <span class="n">project</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">variable</span><span class="o">.</span><span class="n">project</span><span class="p">(</span><span class="n">lowered_value</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">lowered_value</span>
+
+
+<span class="k">def</span> <span class="nf">lower_value</span><span class="p">(</span><span class="n">variable</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">attributes_present</span><span class="p">([</span><span class="n">variable</span><span class="p">],</span> <span class="n">SYMMETRIC_ATTRIBUTES</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">value</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">triu_indices</span><span class="p">(</span><span class="n">variable</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])]</span>
+    <span class="k">elif</span> <span class="n">variable</span><span class="o">.</span><span class="n">attributes</span><span class="p">[</span><span class="s1">&#39;diag&#39;</span><span class="p">]:</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">diag</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">value</span>
+
+
+<div class="viewcode-block" id="CvxAttr2Constr"><a class="viewcode-back" href="../../../api_reference/cvxpy.reductions.middle_end.html#cvxpy.reductions.cvx_attr2constr.CvxAttr2Constr">[docs]</a><span class="k">class</span> <span class="nc">CvxAttr2Constr</span><span class="p">(</span><span class="n">Reduction</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Expand convex variable attributes into constraints.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">problem</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">reduce_bounds</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;If reduce_bounds, reduce lower and upper bounds on variables.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">reduce_bounds</span> <span class="o">=</span> <span class="n">reduce_bounds</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">CvxAttr2Constr</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">problem</span><span class="o">=</span><span class="n">problem</span><span class="p">)</span>
+
+<div class="viewcode-block" id="CvxAttr2Constr.reduction_attributes"><a class="viewcode-back" href="../../../api_reference/cvxpy.reductions.middle_end.html#cvxpy.reductions.cvx_attr2constr.CvxAttr2Constr.reduction_attributes">[docs]</a>    <span class="k">def</span> <span class="nf">reduction_attributes</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns the attributes that will be reduced.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">reduce_bounds</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">CONVEX_ATTRIBUTES</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">[</span>
+                <span class="n">attr</span> <span class="k">for</span> <span class="n">attr</span> <span class="ow">in</span> <span class="n">CONVEX_ATTRIBUTES</span> <span class="k">if</span> <span class="n">attr</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">BOUND_ATTRIBUTES</span>
+            <span class="p">]</span></div>
+
+<div class="viewcode-block" id="CvxAttr2Constr.accepts"><a class="viewcode-back" href="../../../api_reference/cvxpy.reductions.middle_end.html#cvxpy.reductions.cvx_attr2constr.CvxAttr2Constr.accepts">[docs]</a>    <span class="k">def</span> <span class="nf">accepts</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">problem</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">True</span></div>
+
+<div class="viewcode-block" id="CvxAttr2Constr.apply"><a class="viewcode-back" href="../../../api_reference/cvxpy.reductions.middle_end.html#cvxpy.reductions.cvx_attr2constr.CvxAttr2Constr.apply">[docs]</a>    <span class="k">def</span> <span class="nf">apply</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">problem</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">attributes_present</span><span class="p">(</span><span class="n">problem</span><span class="o">.</span><span class="n">variables</span><span class="p">(),</span> <span class="n">CONVEX_ATTRIBUTES</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">problem</span><span class="p">,</span> <span class="p">()</span>
+
+        <span class="c1"># The attributes to be reduced.</span>
+        <span class="n">reduction_attributes</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">reduction_attributes</span><span class="p">()</span>
+
+        <span class="c1"># For each unique variable, add constraints.</span>
+        <span class="n">id2new_var</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">id2new_obj</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">id2old_var</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">constr</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">var</span> <span class="ow">in</span> <span class="n">problem</span><span class="o">.</span><span class="n">variables</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">var</span><span class="o">.</span><span class="n">id</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">id2new_var</span><span class="p">:</span>
+                <span class="n">id2old_var</span><span class="p">[</span><span class="n">var</span><span class="o">.</span><span class="n">id</span><span class="p">]</span> <span class="o">=</span> <span class="n">var</span>
+                <span class="n">new_var</span> <span class="o">=</span> <span class="kc">False</span>
+                <span class="n">new_attr</span> <span class="o">=</span> <span class="n">var</span><span class="o">.</span><span class="n">attributes</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+                <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">reduction_attributes</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">new_attr</span><span class="p">[</span><span class="n">key</span><span class="p">]:</span>
+                        <span class="k">if</span> <span class="n">key</span> <span class="o">==</span> <span class="s1">&#39;bounds&#39;</span><span class="p">:</span>
+                            <span class="n">new_var</span> <span class="o">=</span> <span class="kc">True</span>
+                            <span class="n">new_attr</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+                        <span class="k">else</span><span class="p">:</span>
+                            <span class="n">new_var</span> <span class="o">=</span> <span class="kc">True</span>
+                            <span class="n">new_attr</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span>
+
+                <span class="k">if</span> <span class="n">attributes_present</span><span class="p">([</span><span class="n">var</span><span class="p">],</span> <span class="n">SYMMETRIC_ATTRIBUTES</span><span class="p">):</span>
+                    <span class="n">n</span> <span class="o">=</span> <span class="n">var</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+                    <span class="n">shape</span> <span class="o">=</span> <span class="p">(</span><span class="n">n</span><span class="o">*</span><span class="p">(</span><span class="n">n</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span><span class="o">//</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+                    <span class="n">upper_tri</span> <span class="o">=</span> <span class="n">Variable</span><span class="p">(</span><span class="n">shape</span><span class="p">,</span> <span class="n">var_id</span><span class="o">=</span><span class="n">var</span><span class="o">.</span><span class="n">id</span><span class="p">,</span> <span class="o">**</span><span class="n">new_attr</span><span class="p">)</span>
+                    <span class="n">upper_tri</span><span class="o">.</span><span class="n">set_variable_of_provenance</span><span class="p">(</span><span class="n">var</span><span class="p">)</span>
+                    <span class="n">id2new_var</span><span class="p">[</span><span class="n">var</span><span class="o">.</span><span class="n">id</span><span class="p">]</span> <span class="o">=</span> <span class="n">upper_tri</span>
+                    <span class="n">fill_coeff</span> <span class="o">=</span> <span class="n">Constant</span><span class="p">(</span><span class="n">upper_tri_to_full</span><span class="p">(</span><span class="n">n</span><span class="p">))</span>
+                    <span class="n">full_mat</span> <span class="o">=</span> <span class="n">fill_coeff</span> <span class="o">@</span> <span class="n">upper_tri</span>
+                    <span class="n">obj</span> <span class="o">=</span> <span class="n">reshape</span><span class="p">(</span><span class="n">full_mat</span><span class="p">,</span> <span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">n</span><span class="p">))</span>
+                <span class="k">elif</span> <span class="n">var</span><span class="o">.</span><span class="n">attributes</span><span class="p">[</span><span class="s1">&#39;diag&#39;</span><span class="p">]:</span>
+                    <span class="n">diag_var</span> <span class="o">=</span> <span class="n">Variable</span><span class="p">(</span><span class="n">var</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">var_id</span><span class="o">=</span><span class="n">var</span><span class="o">.</span><span class="n">id</span><span class="p">,</span> <span class="o">**</span><span class="n">new_attr</span><span class="p">)</span>
+                    <span class="n">diag_var</span><span class="o">.</span><span class="n">set_variable_of_provenance</span><span class="p">(</span><span class="n">var</span><span class="p">)</span>
+                    <span class="n">id2new_var</span><span class="p">[</span><span class="n">var</span><span class="o">.</span><span class="n">id</span><span class="p">]</span> <span class="o">=</span> <span class="n">diag_var</span>
+                    <span class="n">obj</span> <span class="o">=</span> <span class="n">diag</span><span class="p">(</span><span class="n">diag_var</span><span class="p">)</span>
+                <span class="k">elif</span> <span class="n">new_var</span><span class="p">:</span>
+                    <span class="n">obj</span> <span class="o">=</span> <span class="n">Variable</span><span class="p">(</span><span class="n">var</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">var_id</span><span class="o">=</span><span class="n">var</span><span class="o">.</span><span class="n">id</span><span class="p">,</span> <span class="o">**</span><span class="n">new_attr</span><span class="p">)</span>
+                    <span class="n">obj</span><span class="o">.</span><span class="n">set_variable_of_provenance</span><span class="p">(</span><span class="n">var</span><span class="p">)</span>
+                    <span class="n">id2new_var</span><span class="p">[</span><span class="n">var</span><span class="o">.</span><span class="n">id</span><span class="p">]</span> <span class="o">=</span> <span class="n">obj</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">obj</span> <span class="o">=</span> <span class="n">var</span>
+                    <span class="n">id2new_var</span><span class="p">[</span><span class="n">var</span><span class="o">.</span><span class="n">id</span><span class="p">]</span> <span class="o">=</span> <span class="n">obj</span>
+
+                <span class="n">id2new_obj</span><span class="p">[</span><span class="nb">id</span><span class="p">(</span><span class="n">var</span><span class="p">)]</span> <span class="o">=</span> <span class="n">obj</span>
+                <span class="c1"># Attributes related to positive and negative definiteness.</span>
+                <span class="k">if</span> <span class="n">var</span><span class="o">.</span><span class="n">is_psd</span><span class="p">():</span>
+                    <span class="n">constr</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">obj</span> <span class="o">&gt;&gt;</span> <span class="mi">0</span><span class="p">)</span>
+                <span class="k">elif</span> <span class="n">var</span><span class="o">.</span><span class="n">attributes</span><span class="p">[</span><span class="s1">&#39;NSD&#39;</span><span class="p">]:</span>
+                    <span class="n">constr</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">obj</span> <span class="o">&lt;&lt;</span> <span class="mi">0</span><span class="p">)</span>
+
+                <span class="c1"># Add in constraints from bounds.</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">reduce_bounds</span><span class="p">:</span>
+                    <span class="n">var</span><span class="o">.</span><span class="n">_bound_domain</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">constr</span><span class="p">)</span>
+
+        <span class="c1"># Create new problem.</span>
+        <span class="n">obj</span> <span class="o">=</span> <span class="n">problem</span><span class="o">.</span><span class="n">objective</span><span class="o">.</span><span class="n">tree_copy</span><span class="p">(</span><span class="n">id_objects</span><span class="o">=</span><span class="n">id2new_obj</span><span class="p">)</span>
+        <span class="n">cons_id_map</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">cons</span> <span class="ow">in</span> <span class="n">problem</span><span class="o">.</span><span class="n">constraints</span><span class="p">:</span>
+            <span class="n">constr</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">cons</span><span class="o">.</span><span class="n">tree_copy</span><span class="p">(</span><span class="n">id_objects</span><span class="o">=</span><span class="n">id2new_obj</span><span class="p">))</span>
+            <span class="n">cons_id_map</span><span class="p">[</span><span class="n">cons</span><span class="o">.</span><span class="n">id</span><span class="p">]</span> <span class="o">=</span> <span class="n">constr</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">id</span>
+        <span class="n">inverse_data</span> <span class="o">=</span> <span class="p">(</span><span class="n">id2new_var</span><span class="p">,</span> <span class="n">id2old_var</span><span class="p">,</span> <span class="n">cons_id_map</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">cvxtypes</span><span class="o">.</span><span class="n">problem</span><span class="p">()(</span><span class="n">obj</span><span class="p">,</span> <span class="n">constr</span><span class="p">),</span> <span class="n">inverse_data</span></div>
+
+<div class="viewcode-block" id="CvxAttr2Constr.invert"><a class="viewcode-back" href="../../../api_reference/cvxpy.reductions.middle_end.html#cvxpy.reductions.cvx_attr2constr.CvxAttr2Constr.invert">[docs]</a>    <span class="k">def</span> <span class="nf">invert</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">solution</span><span class="p">,</span> <span class="n">inverse_data</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">inverse_data</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">solution</span>
+
+        <span class="n">id2new_var</span><span class="p">,</span> <span class="n">id2old_var</span><span class="p">,</span> <span class="n">cons_id_map</span> <span class="o">=</span> <span class="n">inverse_data</span>
+        <span class="n">pvars</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="nb">id</span><span class="p">,</span> <span class="n">var</span> <span class="ow">in</span> <span class="n">id2old_var</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">new_var</span> <span class="o">=</span> <span class="n">id2new_var</span><span class="p">[</span><span class="nb">id</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">new_var</span><span class="o">.</span><span class="n">id</span> <span class="ow">in</span> <span class="n">solution</span><span class="o">.</span><span class="n">primal_vars</span><span class="p">:</span>
+                <span class="n">pvars</span><span class="p">[</span><span class="nb">id</span><span class="p">]</span> <span class="o">=</span> <span class="n">recover_value_for_variable</span><span class="p">(</span>
+                    <span class="n">var</span><span class="p">,</span> <span class="n">solution</span><span class="o">.</span><span class="n">primal_vars</span><span class="p">[</span><span class="n">new_var</span><span class="o">.</span><span class="n">id</span><span class="p">])</span>
+
+        <span class="n">dvars</span> <span class="o">=</span> <span class="p">{</span><span class="n">orig_id</span><span class="p">:</span> <span class="n">solution</span><span class="o">.</span><span class="n">dual_vars</span><span class="p">[</span><span class="n">vid</span><span class="p">]</span>
+                 <span class="k">for</span> <span class="n">orig_id</span><span class="p">,</span> <span class="n">vid</span> <span class="ow">in</span> <span class="n">cons_id_map</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
+                 <span class="k">if</span> <span class="n">vid</span> <span class="ow">in</span> <span class="n">solution</span><span class="o">.</span><span class="n">dual_vars</span><span class="p">}</span>
+        <span class="k">return</span> <span class="n">Solution</span><span class="p">(</span><span class="n">solution</span><span class="o">.</span><span class="n">status</span><span class="p">,</span> <span class="n">solution</span><span class="o">.</span><span class="n">opt_val</span><span class="p">,</span> <span class="n">pvars</span><span class="p">,</span> <span class="n">dvars</span><span class="p">,</span>
+                        <span class="n">solution</span><span class="o">.</span><span class="n">attr</span><span class="p">)</span></div></div>
+</pre></div>
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../../index.html">CVXPY</a></h1>
+
+
+
+
+
+
+<p>
+<iframe src="https://ghbtns.com/github-btn.html?user=cvxpy&repo=cvxpy&type=star&count=true&size=large&v=2"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
+
+
+
+
+
+<h3>Navigation</h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../install/index.html">Install</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/index.html">User Guide</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api_reference/cvxpy.html">API Documentation</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../examples/index.html">Examples</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../contributing/index.html">Contributing</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../updates/index.html">Changelog</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../faq/index.html">FAQ</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../resources/index.html">Resources</a></li>
+</ul>
+
+
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script><div>
+    <h3>
+        Version selector
+    </h3>
+    <select id="dynamic_selector" name="versions" onchange="if (this.value) window.location.href=this.value">
+    </select>
+    <script>
+        obj = $.getJSON("https://raw.githubusercontent.com/cvxpy/cvxpy/gh-pages/versions.json")
+            .done(function (data) {
+                const base_url = "https://www.cvxpy.org/"
+                let html = "<option value='' selected>Choose version here</option>";
+                html += "<option value=" + base_url + ">latest" + ""
+                for (let i = 0; i < data.length; i++) {
+                    html += "<option value=" + base_url + "version/"  + data[i] + ">" + data[i] + ""
+                }
+                document.getElementById("dynamic_selector").innerHTML = html;
+            });
+    </script>
+</div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;The CVXPY authors.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 7.1.2</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.13</a>
+      
+    </div>
+
+    
+
+    
+    <script type="text/javascript">
+
+      var _gaq = _gaq || [];
+      _gaq.push(['_setAccount', 'UA-50248335-1']);
+      _gaq.push(['_setDomainName', 'none']);
+      _gaq.push(['_setAllowLinker', true]);
+      _gaq.push(['_trackPageview']);
+
+      (function() {
+        var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+        ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+      })();
+
+    </script>
+    
+  </body>
+</html>
