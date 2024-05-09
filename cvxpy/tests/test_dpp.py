@@ -326,6 +326,10 @@ class TestDcp(BaseTest):
         assert not np.isclose(sol1, sol2)
         assert np.isclose(sol1, sol3)
 
+        # TODO this should fail.
+        with pytest.raises(error.DPPError):
+            prob.solve(cp.OSQP, enforce_dpp=True)
+
 
 class TestDgp(BaseTest):
     def test_basic_equality_constraint(self) -> None:
