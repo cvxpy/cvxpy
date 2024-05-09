@@ -4,7 +4,53 @@ Changes to CVXPY
 ================
 
 This page details changes made to CVXPY over time, in reverse chronological order.
-CVXPY's project maintainers currently provide support for CVXPY 1.4 and 1.3.
+CVXPY's project maintainers currently provide support for CVXPY 1.5 and 1.4.
+
+CVXPY 1.5
+---------
+
+This release is consistent with our semantic versioning guarantee. It
+comes packed with many new features, bug fixes, and performance
+improvements. This version of CVXPY supports Python 3.8 through 3.12,
+While working on the next release, we continue to officially support
+CVXPY 1.5 and 1.4.
+
+This release may **not** be compatible with NumPy 2.0.
+
+
+ECOS deprecation
+~~~~~~~~~~~~~~~~
+
+CVXPY has used ECOS as the default solver for many years; however, it
+has known issues with performance and numerical stability in edge cases.
+Recently, a new solver, Clarabel, that improves the algorithm and
+implementation of ECOS has been under development.
+
+In this release, CVXPY uses Clarabel instead of ECOS for all
+categories of problems where ECOS was previously the default.
+
+In 1.6, we plan to no longer install ECOS as a CVXPY dependency.
+We have no plans to remove support for calling ECOS as a solver.
+
+We encourage you to try and use Clarabel instead, but if you're
+dependent on ECOS's exact behavior please explicitly specify it as a
+solver and as a dependency for your project.
+
+New features
+~~~~~~~~~~~~
+
+- Major updates to the documentation, adding a number of new sections to the 
+  User Guide and breaking up the monolithic Advanced features page
+- Added `.curvatures` containing all curvatures an expression is compatible with
+- Variable bounds can be specified with `cp.Variable(bound=(lower, upper))`
+  and are directly passed to the solver when helpful. `lower` and `upper` can
+  be either a NumPy array or floating point number.
+- Constants can be named by writing `cp.Constant(name='...')`
+- Added a new atom, `vdot`, that has the same behavior as `scalar_product`
+- CVXPY runs in the next PyOdide release via wasm
+- Added or-tools 9.9 support
+- Major rewrite to the PDLP interface
+- Dropped MOSEK <= 9 support and upgraded the MOSEK integration code
 
 CVXPY 1.4
 ---------

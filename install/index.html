@@ -5,22 +5,23 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Install &#8212; CVXPY 1.4 documentation</title>
+    <title>Install &#8212; CVXPY 1.5 documentation</title>
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=fa44fd50" />
     <link rel="stylesheet" type="text/css" href="../_static/cvxpy_alabaster.css?v=6c13f287" />
     <link rel="stylesheet" type="text/css" href="../_static/tabs.css?v=4c969af8" />
     <link rel="stylesheet" type="text/css" href="../_static/design-style.1e8bd061cd6da7fc9cf755528e8ffc24.min.css?v=0a3b3ea7" />
     <script src="../_static/jquery.js?v=5d32c60e"></script>
     <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js?v=84f0443f"></script>
+    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js?v=8f967033"></script>
     <script src="../_static/doctools.js?v=888ff710"></script>
     <script src="../_static/sphinx_highlight.js?v=4825356b"></script>
     <script src="../_static/tabs.js?v=3ee01567"></script>
     <script src="../_static/design-tabs.js?v=36754332"></script>
+    <link rel="icon" href="../_static/favicon.ico"/>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="User Guide" href="../tutorial/index.html" />
-    <link rel="prev" title="Welcome to CVXPY 1.4" href="../index.html" />
+    <link rel="prev" title="Welcome to CVXPY 1.5" href="../index.html" />
    
   <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
   
@@ -98,7 +99,7 @@ additional Python packages.</p>
 <div><ul class="simple">
 <li><p class="sd-card-text">Python &gt;= 3.7</p></li>
 <li><p class="sd-card-text"><a class="reference external" href="https://osqp.org/">OSQP</a> &gt;= 0.6.2</p></li>
-<li><p class="sd-card-text"><a class="reference external" href="https://github.com/ifa-ethz/ecos">ECOS</a> &gt;= 2</p></li>
+<li><p class="sd-card-text"><a class="reference external" href="https://oxfordcontrol.github.io/ClarabelDocs/">CLARABEL</a> &gt;= 0.6.0</p></li>
 <li><p class="sd-card-text"><a class="reference external" href="https://github.com/cvxgrp/scs">SCS</a> &gt;= 3.0</p></li>
 <li><p class="sd-card-text"><a class="reference external" href="https://www.numpy.org/">NumPy</a> &gt;= 1.15</p></li>
 <li><p class="sd-card-text"><a class="reference external" href="https://www.scipy.org/">SciPy</a> &gt;= 1.1.0</p></li>
@@ -130,8 +131,8 @@ To get started, click the “Code” button on the CVXPY repository and select �
 </div>
 </div>
 </div>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
 <p>Apple M1 users have had trouble installing CVXPY using the commands above.
 That trouble stemmed partly from a configuration error in CVXPY’s
 <code class="docutils literal notranslate"><span class="pre">pyproject.toml</span></code>, which has been fixed in CVXPY 1.1.19 and 1.2.0.
@@ -146,235 +147,18 @@ for more information.</p>
 </div>
 <section id="install-with-additional-solver-support">
 <h2>Install with Additional Solver Support<a class="headerlink" href="#install-with-additional-solver-support" title="Permalink to this heading">¶</a></h2>
-<details class="sd-sphinx-override sd-dropdown sd-card sd-mb-3">
-<summary class="sd-summary-title sd-card-header">
-CVXOPT and GLPK<div class="sd-summary-down docutils">
-<svg version="1.1" width="1.5em" height="1.5em" class="sd-octicon sd-octicon-chevron-down" viewBox="0 0 24 24" aria-hidden="true"><path fill-rule="evenodd" d="M5.22 8.72a.75.75 0 000 1.06l6.25 6.25a.75.75 0 001.06 0l6.25-6.25a.75.75 0 00-1.06-1.06L12 14.44 6.28 8.72a.75.75 0 00-1.06 0z"></path></svg></div>
-<div class="sd-summary-up docutils">
-<svg version="1.1" width="1.5em" height="1.5em" class="sd-octicon sd-octicon-chevron-up" viewBox="0 0 24 24" aria-hidden="true"><path fill-rule="evenodd" d="M18.78 15.28a.75.75 0 000-1.06l-6.25-6.25a.75.75 0 00-1.06 0l-6.25 6.25a.75.75 0 101.06 1.06L12 9.56l5.72 5.72a.75.75 0 001.06 0z"></path></svg></div>
-</summary><div class="sd-summary-content sd-card-body docutils">
-<p class="sd-card-text">CVXPY supports the <a class="reference external" href="https://cvxopt.org/">CVXOPT</a> solver.
-Additionally, through CVXOPT, CVXPY supports the <a class="reference external" href="https://www.gnu.org/software/glpk/">GLPK</a> solver. On <a class="reference external" href="https://cvxopt.org/install/index.html#installing-a-pre-built-package">most
-platforms</a>,
-<a class="reference external" href="https://cvxopt.org/">CVXOPT</a> comes with GLPK bundled. On such platforms, installing CVXOPT with</p>
-<blockquote>
-<div><div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">pip</span> <span class="n">install</span> <span class="n">cvxopt</span>
-</pre></div>
-</div>
-</div></blockquote>
-<p class="sd-card-text">should suffice to get support for both CVXOPT and GLPK.</p>
-<p class="sd-card-text">On other platforms, to install CVXPY and its dependencies with GLPK support, follow these instructions:</p>
-<ol class="arabic">
-<li><p class="sd-card-text">Install <a class="reference external" href="https://www.gnu.org/software/glpk/">GLPK</a>. We recommend either installing the latest GLPK from source or using a package manager such as apt-get on Ubuntu and homebrew on OS X.</p></li>
-<li><p class="sd-card-text">Install <a class="reference external" href="https://cvxopt.org/">CVXOPT</a> with GLPK bindings.</p>
-<blockquote>
-<div><div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">CVXOPT_BUILD_GLPK</span><span class="o">=</span><span class="mi">1</span>
-<span class="n">CVXOPT_GLPK_LIB_DIR</span><span class="o">=/</span><span class="n">path</span><span class="o">/</span><span class="n">to</span><span class="o">/</span><span class="n">glpk</span><span class="o">-</span><span class="n">X</span><span class="o">.</span><span class="n">X</span><span class="o">/</span><span class="n">lib</span>
-<span class="n">CVXOPT_GLPK_INC_DIR</span><span class="o">=/</span><span class="n">path</span><span class="o">/</span><span class="n">to</span><span class="o">/</span><span class="n">glpk</span><span class="o">-</span><span class="n">X</span><span class="o">.</span><span class="n">X</span><span class="o">/</span><span class="n">include</span>
-<span class="n">pip</span> <span class="n">install</span> <span class="n">cvxopt</span>
-</pre></div>
-</div>
-</div></blockquote>
-</li>
-<li><p class="sd-card-text">Follow the standard installation procedure to install CVXPY and its remaining dependencies.</p></li>
-</ol>
-</div>
-</details><details class="sd-sphinx-override sd-dropdown sd-card sd-mb-3">
-<summary class="sd-summary-title sd-card-header">
-GUROBI<div class="sd-summary-down docutils">
-<svg version="1.1" width="1.5em" height="1.5em" class="sd-octicon sd-octicon-chevron-down" viewBox="0 0 24 24" aria-hidden="true"><path fill-rule="evenodd" d="M5.22 8.72a.75.75 0 000 1.06l6.25 6.25a.75.75 0 001.06 0l6.25-6.25a.75.75 0 00-1.06-1.06L12 14.44 6.28 8.72a.75.75 0 00-1.06 0z"></path></svg></div>
-<div class="sd-summary-up docutils">
-<svg version="1.1" width="1.5em" height="1.5em" class="sd-octicon sd-octicon-chevron-up" viewBox="0 0 24 24" aria-hidden="true"><path fill-rule="evenodd" d="M18.78 15.28a.75.75 0 000-1.06l-6.25-6.25a.75.75 0 00-1.06 0l-6.25 6.25a.75.75 0 101.06 1.06L12 9.56l5.72 5.72a.75.75 0 001.06 0z"></path></svg></div>
-</summary><div class="sd-summary-content sd-card-body docutils">
-<p class="sd-card-text">CVXPY supports the GUROBI solver.
-Install GUROBI version 7.5.2 or greater such that you can <code class="docutils literal notranslate"><span class="pre">import</span> <span class="pre">gurobipy</span></code> in Python.
-See the <a class="reference external" href="https://www.gurobi.com/">GUROBI</a> website for installation instructions.</p>
-</div>
-</details><details class="sd-sphinx-override sd-dropdown sd-card sd-mb-3">
-<summary class="sd-summary-title sd-card-header">
-MOSEK<div class="sd-summary-down docutils">
-<svg version="1.1" width="1.5em" height="1.5em" class="sd-octicon sd-octicon-chevron-down" viewBox="0 0 24 24" aria-hidden="true"><path fill-rule="evenodd" d="M5.22 8.72a.75.75 0 000 1.06l6.25 6.25a.75.75 0 001.06 0l6.25-6.25a.75.75 0 00-1.06-1.06L12 14.44 6.28 8.72a.75.75 0 00-1.06 0z"></path></svg></div>
-<div class="sd-summary-up docutils">
-<svg version="1.1" width="1.5em" height="1.5em" class="sd-octicon sd-octicon-chevron-up" viewBox="0 0 24 24" aria-hidden="true"><path fill-rule="evenodd" d="M18.78 15.28a.75.75 0 000-1.06l-6.25-6.25a.75.75 0 00-1.06 0l-6.25 6.25a.75.75 0 101.06 1.06L12 9.56l5.72 5.72a.75.75 0 001.06 0z"></path></svg></div>
-</summary><div class="sd-summary-content sd-card-body docutils">
-<p class="sd-card-text">CVXPY supports the MOSEK solver.
-Simply install MOSEK such that you can <code class="docutils literal notranslate"><span class="pre">import</span> <span class="pre">mosek</span></code> in Python.
-See the <a class="reference external" href="https://www.mosek.com/">MOSEK</a> website for installation instructions.</p>
-</div>
-</details><details class="sd-sphinx-override sd-dropdown sd-card sd-mb-3">
-<summary class="sd-summary-title sd-card-header">
-XPRESS<div class="sd-summary-down docutils">
-<svg version="1.1" width="1.5em" height="1.5em" class="sd-octicon sd-octicon-chevron-down" viewBox="0 0 24 24" aria-hidden="true"><path fill-rule="evenodd" d="M5.22 8.72a.75.75 0 000 1.06l6.25 6.25a.75.75 0 001.06 0l6.25-6.25a.75.75 0 00-1.06-1.06L12 14.44 6.28 8.72a.75.75 0 00-1.06 0z"></path></svg></div>
-<div class="sd-summary-up docutils">
-<svg version="1.1" width="1.5em" height="1.5em" class="sd-octicon sd-octicon-chevron-up" viewBox="0 0 24 24" aria-hidden="true"><path fill-rule="evenodd" d="M18.78 15.28a.75.75 0 000-1.06l-6.25-6.25a.75.75 0 00-1.06 0l-6.25 6.25a.75.75 0 101.06 1.06L12 9.56l5.72 5.72a.75.75 0 001.06 0z"></path></svg></div>
-</summary><div class="sd-summary-content sd-card-body docutils">
-<p class="sd-card-text">CVXPY supports the FICO Xpress solver.
-Simply install XPRESS such that you can <code class="docutils literal notranslate"><span class="pre">import</span> <span class="pre">xpress</span></code> in Python.
-See the <a class="reference external" href="https://www.fico.com/fico-xpress-optimization/docs/latest/solver/optimizer/python/HTML/GUID-616C323F-05D8-3460-B0D7-80F77DA7D046.html">Xpress Python documentation</a> pages for installation instructions.</p>
-</div>
-</details><details class="sd-sphinx-override sd-dropdown sd-card sd-mb-3">
-<summary class="sd-summary-title sd-card-header">
-Cbc (Clp, Cgl)<div class="sd-summary-down docutils">
-<svg version="1.1" width="1.5em" height="1.5em" class="sd-octicon sd-octicon-chevron-down" viewBox="0 0 24 24" aria-hidden="true"><path fill-rule="evenodd" d="M5.22 8.72a.75.75 0 000 1.06l6.25 6.25a.75.75 0 001.06 0l6.25-6.25a.75.75 0 00-1.06-1.06L12 14.44 6.28 8.72a.75.75 0 00-1.06 0z"></path></svg></div>
-<div class="sd-summary-up docutils">
-<svg version="1.1" width="1.5em" height="1.5em" class="sd-octicon sd-octicon-chevron-up" viewBox="0 0 24 24" aria-hidden="true"><path fill-rule="evenodd" d="M18.78 15.28a.75.75 0 000-1.06l-6.25-6.25a.75.75 0 00-1.06 0l-6.25 6.25a.75.75 0 101.06 1.06L12 9.56l5.72 5.72a.75.75 0 001.06 0z"></path></svg></div>
-</summary><div class="sd-summary-content sd-card-body docutils">
-<p class="sd-card-text">CVXPY supports the <a class="reference external" href="https://github.com/coin-or/Cbc">Cbc</a> solver (which includes Clp and Cgl) with the help of <a class="reference external" href="https://github.com/coin-or/CyLP">cylp</a>.
-Simply install cylp and the corresponding prerequisites according to the <a class="reference external" href="https://github.com/coin-or/CyLP#cylp">instructions</a>, such you can import this library in Python.</p>
-</div>
-</details><details class="sd-sphinx-override sd-dropdown sd-card sd-mb-3">
-<summary class="sd-summary-title sd-card-header">
-COPT<div class="sd-summary-down docutils">
-<svg version="1.1" width="1.5em" height="1.5em" class="sd-octicon sd-octicon-chevron-down" viewBox="0 0 24 24" aria-hidden="true"><path fill-rule="evenodd" d="M5.22 8.72a.75.75 0 000 1.06l6.25 6.25a.75.75 0 001.06 0l6.25-6.25a.75.75 0 00-1.06-1.06L12 14.44 6.28 8.72a.75.75 0 00-1.06 0z"></path></svg></div>
-<div class="sd-summary-up docutils">
-<svg version="1.1" width="1.5em" height="1.5em" class="sd-octicon sd-octicon-chevron-up" viewBox="0 0 24 24" aria-hidden="true"><path fill-rule="evenodd" d="M18.78 15.28a.75.75 0 000-1.06l-6.25-6.25a.75.75 0 00-1.06 0l-6.25 6.25a.75.75 0 101.06 1.06L12 9.56l5.72 5.72a.75.75 0 001.06 0z"></path></svg></div>
-</summary><div class="sd-summary-content sd-card-body docutils">
-<p class="sd-card-text">CVXPY supports the COPT solver.
-Simply install COPT such that you can <code class="docutils literal notranslate"><span class="pre">import</span> <span class="pre">coptpy</span></code> in Python.
-See the <a class="reference external" href="https://github.com/COPT-Public/COPT-Release">COPT</a> release page for installation instructions.</p>
-</div>
-</details><details class="sd-sphinx-override sd-dropdown sd-card sd-mb-3">
-<summary class="sd-summary-title sd-card-header">
-CPLEX<div class="sd-summary-down docutils">
-<svg version="1.1" width="1.5em" height="1.5em" class="sd-octicon sd-octicon-chevron-down" viewBox="0 0 24 24" aria-hidden="true"><path fill-rule="evenodd" d="M5.22 8.72a.75.75 0 000 1.06l6.25 6.25a.75.75 0 001.06 0l6.25-6.25a.75.75 0 00-1.06-1.06L12 14.44 6.28 8.72a.75.75 0 00-1.06 0z"></path></svg></div>
-<div class="sd-summary-up docutils">
-<svg version="1.1" width="1.5em" height="1.5em" class="sd-octicon sd-octicon-chevron-up" viewBox="0 0 24 24" aria-hidden="true"><path fill-rule="evenodd" d="M18.78 15.28a.75.75 0 000-1.06l-6.25-6.25a.75.75 0 00-1.06 0l-6.25 6.25a.75.75 0 101.06 1.06L12 9.56l5.72 5.72a.75.75 0 001.06 0z"></path></svg></div>
-</summary><div class="sd-summary-content sd-card-body docutils">
-<p class="sd-card-text">CVXPY supports the CPLEX solver.
-Simply install CPLEX such that you can <code class="docutils literal notranslate"><span class="pre">import</span> <span class="pre">cplex</span></code> in Python.
-See the <a class="reference external" href="https://www.ibm.com/support/knowledgecenter/SSSA5P">CPLEX</a> website for installation instructions.</p>
-</div>
-</details><details class="sd-sphinx-override sd-dropdown sd-card sd-mb-3">
-<summary class="sd-summary-title sd-card-header">
-SDPA<div class="sd-summary-down docutils">
-<svg version="1.1" width="1.5em" height="1.5em" class="sd-octicon sd-octicon-chevron-down" viewBox="0 0 24 24" aria-hidden="true"><path fill-rule="evenodd" d="M5.22 8.72a.75.75 0 000 1.06l6.25 6.25a.75.75 0 001.06 0l6.25-6.25a.75.75 0 00-1.06-1.06L12 14.44 6.28 8.72a.75.75 0 00-1.06 0z"></path></svg></div>
-<div class="sd-summary-up docutils">
-<svg version="1.1" width="1.5em" height="1.5em" class="sd-octicon sd-octicon-chevron-up" viewBox="0 0 24 24" aria-hidden="true"><path fill-rule="evenodd" d="M18.78 15.28a.75.75 0 000-1.06l-6.25-6.25a.75.75 0 00-1.06 0l-6.25 6.25a.75.75 0 101.06 1.06L12 9.56l5.72 5.72a.75.75 0 001.06 0z"></path></svg></div>
-</summary><div class="sd-summary-content sd-card-body docutils">
-<p class="sd-card-text">CVXPY supports the SDPA solver.
-Simply install SDPA for Python such that you can <code class="docutils literal notranslate"><span class="pre">import</span> <span class="pre">sdpap</span></code> in Python.
-See the <a class="reference external" href="https://sdpa-python.github.io/docs/installation">SDPA for Python</a> website for installation instructions.</p>
-</div>
-</details><details class="sd-sphinx-override sd-dropdown sd-card sd-mb-3">
-<summary class="sd-summary-title sd-card-header">
-SDPT3<div class="sd-summary-down docutils">
-<svg version="1.1" width="1.5em" height="1.5em" class="sd-octicon sd-octicon-chevron-down" viewBox="0 0 24 24" aria-hidden="true"><path fill-rule="evenodd" d="M5.22 8.72a.75.75 0 000 1.06l6.25 6.25a.75.75 0 001.06 0l6.25-6.25a.75.75 0 00-1.06-1.06L12 14.44 6.28 8.72a.75.75 0 00-1.06 0z"></path></svg></div>
-<div class="sd-summary-up docutils">
-<svg version="1.1" width="1.5em" height="1.5em" class="sd-octicon sd-octicon-chevron-up" viewBox="0 0 24 24" aria-hidden="true"><path fill-rule="evenodd" d="M18.78 15.28a.75.75 0 000-1.06l-6.25-6.25a.75.75 0 00-1.06 0l-6.25 6.25a.75.75 0 101.06 1.06L12 9.56l5.72 5.72a.75.75 0 001.06 0z"></path></svg></div>
-</summary><div class="sd-summary-content sd-card-body docutils">
-<p class="sd-card-text">The <a class="reference external" href="https://github.com/TrishGillett/pysdpt3glue">sdpt3glue package</a> allows you to model problems with CVXPY and solve them with SDPT3.</p>
-</div>
-</details><details class="sd-sphinx-override sd-dropdown sd-card sd-mb-3">
-<summary class="sd-summary-title sd-card-header">
-NAG<div class="sd-summary-down docutils">
-<svg version="1.1" width="1.5em" height="1.5em" class="sd-octicon sd-octicon-chevron-down" viewBox="0 0 24 24" aria-hidden="true"><path fill-rule="evenodd" d="M5.22 8.72a.75.75 0 000 1.06l6.25 6.25a.75.75 0 001.06 0l6.25-6.25a.75.75 0 00-1.06-1.06L12 14.44 6.28 8.72a.75.75 0 00-1.06 0z"></path></svg></div>
-<div class="sd-summary-up docutils">
-<svg version="1.1" width="1.5em" height="1.5em" class="sd-octicon sd-octicon-chevron-up" viewBox="0 0 24 24" aria-hidden="true"><path fill-rule="evenodd" d="M18.78 15.28a.75.75 0 000-1.06l-6.25-6.25a.75.75 0 00-1.06 0l-6.25 6.25a.75.75 0 101.06 1.06L12 9.56l5.72 5.72a.75.75 0 001.06 0z"></path></svg></div>
-</summary><div class="sd-summary-content sd-card-body docutils">
-<p class="sd-card-text">CVXPY supports the NAG solver.
-Simply install NAG such that you can <code class="docutils literal notranslate"><span class="pre">import</span> <span class="pre">naginterfaces</span></code> in Python.
-See the <a class="reference external" href="https://support.nag.com/numeric/py/nagdoc_latest/readme.html">NAG</a> website for installation instructions.</p>
-</div>
-</details><details class="sd-sphinx-override sd-dropdown sd-card sd-mb-3">
-<summary class="sd-summary-title sd-card-header">
-GLOP and PDLP<div class="sd-summary-down docutils">
-<svg version="1.1" width="1.5em" height="1.5em" class="sd-octicon sd-octicon-chevron-down" viewBox="0 0 24 24" aria-hidden="true"><path fill-rule="evenodd" d="M5.22 8.72a.75.75 0 000 1.06l6.25 6.25a.75.75 0 001.06 0l6.25-6.25a.75.75 0 00-1.06-1.06L12 14.44 6.28 8.72a.75.75 0 00-1.06 0z"></path></svg></div>
-<div class="sd-summary-up docutils">
-<svg version="1.1" width="1.5em" height="1.5em" class="sd-octicon sd-octicon-chevron-up" viewBox="0 0 24 24" aria-hidden="true"><path fill-rule="evenodd" d="M18.78 15.28a.75.75 0 000-1.06l-6.25-6.25a.75.75 0 00-1.06 0l-6.25 6.25a.75.75 0 101.06 1.06L12 9.56l5.72 5.72a.75.75 0 001.06 0z"></path></svg></div>
-</summary><div class="sd-summary-content sd-card-body docutils">
-<p class="sd-card-text">CVXPY supports the GLOP and PDLP solvers. Both solvers are provided by
-the open source <a class="reference external" href="https://github.com/google/or-tools">OR-Tools</a> package.
-Install OR-Tools such that you can run <code class="docutils literal notranslate"><span class="pre">import</span> <span class="pre">ortools</span></code> in Python. OR-Tools
-version 9.3 or greater is required.</p>
-</div>
-</details><details class="sd-sphinx-override sd-dropdown sd-card sd-mb-3">
-<summary class="sd-summary-title sd-card-header">
-SCIP<div class="sd-summary-down docutils">
-<svg version="1.1" width="1.5em" height="1.5em" class="sd-octicon sd-octicon-chevron-down" viewBox="0 0 24 24" aria-hidden="true"><path fill-rule="evenodd" d="M5.22 8.72a.75.75 0 000 1.06l6.25 6.25a.75.75 0 001.06 0l6.25-6.25a.75.75 0 00-1.06-1.06L12 14.44 6.28 8.72a.75.75 0 00-1.06 0z"></path></svg></div>
-<div class="sd-summary-up docutils">
-<svg version="1.1" width="1.5em" height="1.5em" class="sd-octicon sd-octicon-chevron-up" viewBox="0 0 24 24" aria-hidden="true"><path fill-rule="evenodd" d="M18.78 15.28a.75.75 0 000-1.06l-6.25-6.25a.75.75 0 00-1.06 0l-6.25 6.25a.75.75 0 101.06 1.06L12 9.56l5.72 5.72a.75.75 0 001.06 0z"></path></svg></div>
-</summary><div class="sd-summary-content sd-card-body docutils">
-<p class="sd-card-text">CVXPY supports the SCIP solver through the <code class="docutils literal notranslate"><span class="pre">pyscipopt</span></code> Python package.
-See the <a class="reference external" href="https://github.com/SCIP-Interfaces/PySCIPOpt#installation">PySCIPOpt</a> github for installation instructions.</p>
-<p class="sd-card-text">CVXPY’s SCIP interface does not reliably recover dual variables for constraints. If you require dual variables for a continuous problem, you will need to use another solver. We welcome additional contributions to the SCIP interface, to recover dual variables for constraints in continuous problems.</p>
-</div>
-</details><details class="sd-sphinx-override sd-dropdown sd-card sd-mb-3">
-<summary class="sd-summary-title sd-card-header">
-SCIPY<div class="sd-summary-down docutils">
-<svg version="1.1" width="1.5em" height="1.5em" class="sd-octicon sd-octicon-chevron-down" viewBox="0 0 24 24" aria-hidden="true"><path fill-rule="evenodd" d="M5.22 8.72a.75.75 0 000 1.06l6.25 6.25a.75.75 0 001.06 0l6.25-6.25a.75.75 0 00-1.06-1.06L12 14.44 6.28 8.72a.75.75 0 00-1.06 0z"></path></svg></div>
-<div class="sd-summary-up docutils">
-<svg version="1.1" width="1.5em" height="1.5em" class="sd-octicon sd-octicon-chevron-up" viewBox="0 0 24 24" aria-hidden="true"><path fill-rule="evenodd" d="M18.78 15.28a.75.75 0 000-1.06l-6.25-6.25a.75.75 0 00-1.06 0l-6.25 6.25a.75.75 0 101.06 1.06L12 9.56l5.72 5.72a.75.75 0 001.06 0z"></path></svg></div>
-</summary><div class="sd-summary-content sd-card-body docutils">
-<p class="sd-card-text">CVXPY supports the SCIPY solver for LPs and MIPs.
-This requires the <a class="reference external" href="https://www.scipy.org/">SciPy</a> package in Python, which should already be installed, as it is a requirement for CVXPY.
-<a class="reference external" href="https://www.scipy.org/">SciPy</a>’s “interior-point” and “revised-simplex” implementations are written in Python and are always available.
-However, the main advantage of this solver is its ability to use the <a class="reference external" href="https://www.maths.ed.ac.uk/hall/HiGHS/#guide">HiGHS</a> LP and MIP solvers (which are written in C++).
-<a class="reference external" href="https://www.maths.ed.ac.uk/hall/HiGHS/#guide">HiGHS</a> LP solvers come bundled with <a class="reference external" href="https://www.scipy.org/">SciPy</a> version 1.6.1 and higher.
-The <a class="reference external" href="https://www.maths.ed.ac.uk/hall/HiGHS/#guide">HiGHS</a> MIP solver comes bundled with version 1.9.0 and higher.</p>
-</div>
-</details><details class="sd-sphinx-override sd-dropdown sd-card sd-mb-3">
-<summary class="sd-summary-title sd-card-header">
-PIQP<div class="sd-summary-down docutils">
-<svg version="1.1" width="1.5em" height="1.5em" class="sd-octicon sd-octicon-chevron-down" viewBox="0 0 24 24" aria-hidden="true"><path fill-rule="evenodd" d="M5.22 8.72a.75.75 0 000 1.06l6.25 6.25a.75.75 0 001.06 0l6.25-6.25a.75.75 0 00-1.06-1.06L12 14.44 6.28 8.72a.75.75 0 00-1.06 0z"></path></svg></div>
-<div class="sd-summary-up docutils">
-<svg version="1.1" width="1.5em" height="1.5em" class="sd-octicon sd-octicon-chevron-up" viewBox="0 0 24 24" aria-hidden="true"><path fill-rule="evenodd" d="M18.78 15.28a.75.75 0 000-1.06l-6.25-6.25a.75.75 0 00-1.06 0l-6.25 6.25a.75.75 0 101.06 1.06L12 9.56l5.72 5.72a.75.75 0 001.06 0z"></path></svg></div>
-</summary><div class="sd-summary-content sd-card-body docutils">
-<p class="sd-card-text">CVXPY supports the PIQP solver.
-Simply install PIQP such that you can <code class="docutils literal notranslate"><span class="pre">import</span> <span class="pre">piqp</span></code> in Python.
-See the <a class="reference external" href="https://predict-epfl.github.io/piqp/interfaces/python/installation">PIQP</a> website for installation instructions.</p>
-</div>
-</details><details class="sd-sphinx-override sd-dropdown sd-card sd-mb-3">
-<summary class="sd-summary-title sd-card-header">
-PROXQP<div class="sd-summary-down docutils">
-<svg version="1.1" width="1.5em" height="1.5em" class="sd-octicon sd-octicon-chevron-down" viewBox="0 0 24 24" aria-hidden="true"><path fill-rule="evenodd" d="M5.22 8.72a.75.75 0 000 1.06l6.25 6.25a.75.75 0 001.06 0l6.25-6.25a.75.75 0 00-1.06-1.06L12 14.44 6.28 8.72a.75.75 0 00-1.06 0z"></path></svg></div>
-<div class="sd-summary-up docutils">
-<svg version="1.1" width="1.5em" height="1.5em" class="sd-octicon sd-octicon-chevron-up" viewBox="0 0 24 24" aria-hidden="true"><path fill-rule="evenodd" d="M18.78 15.28a.75.75 0 000-1.06l-6.25-6.25a.75.75 0 00-1.06 0l-6.25 6.25a.75.75 0 101.06 1.06L12 9.56l5.72 5.72a.75.75 0 001.06 0z"></path></svg></div>
-</summary><div class="sd-summary-content sd-card-body docutils">
-<p class="sd-card-text">CVXPY supports the PROXQP solver.
-Simply install PROXQP such that you can <code class="docutils literal notranslate"><span class="pre">import</span> <span class="pre">proxsuite</span></code> in Python.
-See the <a class="reference external" href="https://github.com/simple-robotics/proxsuite#quick-install">proxsuite</a> github for installation instructions.
-Be aware that PROXQP by default uses dense matrices to represent problem data.
-You may achieve better performance by setting <code class="docutils literal notranslate"><span class="pre">backend</span> <span class="pre">=</span> <span class="pre">'sparse'</span></code> in your call to <code class="docutils literal notranslate"><span class="pre">problem.solve</span></code>.</p>
-</div>
-</details><details class="sd-sphinx-override sd-dropdown sd-card sd-mb-3">
-<summary class="sd-summary-title sd-card-header">
-Without default solvers<div class="sd-summary-down docutils">
-<svg version="1.1" width="1.5em" height="1.5em" class="sd-octicon sd-octicon-chevron-down" viewBox="0 0 24 24" aria-hidden="true"><path fill-rule="evenodd" d="M5.22 8.72a.75.75 0 000 1.06l6.25 6.25a.75.75 0 001.06 0l6.25-6.25a.75.75 0 00-1.06-1.06L12 14.44 6.28 8.72a.75.75 0 00-1.06 0z"></path></svg></div>
-<div class="sd-summary-up docutils">
-<svg version="1.1" width="1.5em" height="1.5em" class="sd-octicon sd-octicon-chevron-up" viewBox="0 0 24 24" aria-hidden="true"><path fill-rule="evenodd" d="M18.78 15.28a.75.75 0 000-1.06l-6.25-6.25a.75.75 0 00-1.06 0l-6.25 6.25a.75.75 0 101.06 1.06L12 9.56l5.72 5.72a.75.75 0 001.06 0z"></path></svg></div>
-</summary><div class="sd-summary-content sd-card-body docutils">
-<p class="sd-card-text">CVXPY can also be installed without the default solver dependencies.
-This can be useful if the intention is to only use non-default solvers.</p>
-<p class="sd-card-text">The solver-less installation, <code class="docutils literal notranslate"><span class="pre">cvxpy-base</span></code>, can currently be installed through pip and conda.</p>
-<p class="sd-card-text">Installing using pip:</p>
-<blockquote>
-<div><div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">pip</span> <span class="n">install</span> <span class="n">cvxpy</span><span class="o">-</span><span class="n">base</span>
-</pre></div>
-</div>
-</div></blockquote>
-<p class="sd-card-text">Installing using conda:</p>
-<blockquote>
-<div><div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">conda</span> <span class="n">install</span> <span class="n">cvxpy</span><span class="o">-</span><span class="n">base</span>
-</pre></div>
-</div>
-</div></blockquote>
-</div>
-</details></section>
+</section>
 <section id="running-the-test-suite">
 <h2>Running the test suite<a class="headerlink" href="#running-the-test-suite" title="Permalink to this heading">¶</a></h2>
 <p>CVXPY comes with an extensive test suite, which can be run after installing <a class="reference external" href="https://docs.pytest.org/en/latest/">pytest</a>.
 If installed from source, navigate to the root of the repository and run</p>
-<blockquote>
-<div><div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">pytest</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">pytest</span>
 </pre></div>
 </div>
-</div></blockquote>
 <p>To run the tests when CVXPY was not installed from source, use</p>
-<blockquote>
-<div><div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">pytest</span> <span class="o">--</span><span class="n">pyargs</span> <span class="n">cvxpy</span><span class="o">.</span><span class="n">tests</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">pytest</span> <span class="o">--</span><span class="n">pyargs</span> <span class="n">cvxpy</span><span class="o">.</span><span class="n">tests</span>
 </pre></div>
 </div>
-</div></blockquote>
 </section>
 </section>
 
@@ -413,31 +197,22 @@ If installed from source, navigate to the root of the repository and run</p>
 <li class="toctree-l1"><a class="reference internal" href="../tutorial/index.html">User Guide</a></li>
 </ul>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../examples/index.html">Examples</a></li>
-</ul>
-<ul>
 <li class="toctree-l1"><a class="reference internal" href="../api_reference/cvxpy.html">API Documentation</a></li>
 </ul>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../faq/index.html">FAQ</a></li>
-</ul>
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="../citing/index.html">Citing CVXPY</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../examples/index.html">Examples</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../contributing/index.html">Contributing</a></li>
 </ul>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../related_projects/index.html">Related Projects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../updates/index.html">Changelog</a></li>
 </ul>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../updates/index.html">Changes to CVXPY</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../faq/index.html">FAQ</a></li>
 </ul>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../short_course/index.html">CVXPY Short Course</a></li>
-</ul>
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="../license/index.html">License</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../resources/index.html">Resources</a></li>
 </ul>
 
 

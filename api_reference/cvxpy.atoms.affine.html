@@ -5,19 +5,20 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Affine Atoms &#8212; CVXPY 1.4 documentation</title>
+    <title>Affine Atoms &#8212; CVXPY 1.5 documentation</title>
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=fa44fd50" />
     <link rel="stylesheet" type="text/css" href="../_static/cvxpy_alabaster.css?v=6c13f287" />
     <link rel="stylesheet" type="text/css" href="../_static/tabs.css?v=4c969af8" />
     <link rel="stylesheet" type="text/css" href="../_static/design-style.1e8bd061cd6da7fc9cf755528e8ffc24.min.css?v=0a3b3ea7" />
     <script src="../_static/jquery.js?v=5d32c60e"></script>
     <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js?v=84f0443f"></script>
+    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js?v=8f967033"></script>
     <script src="../_static/doctools.js?v=888ff710"></script>
     <script src="../_static/sphinx_highlight.js?v=4825356b"></script>
     <script src="../_static/tabs.js?v=3ee01567"></script>
     <script src="../_static/design-tabs.js?v=36754332"></script>
     <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <link rel="icon" href="../_static/favicon.ico"/>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="cvxpy.atoms.elementwise package" href="cvxpy.atoms.elementwise.html" />
@@ -66,7 +67,7 @@
 <li><p><a class="reference internal" href="#psd-wrap" id="id46">psd_wrap</a></p></li>
 <li><p><a class="reference internal" href="#real" id="id47">real</a></p></li>
 <li><p><a class="reference internal" href="#reshape" id="id48">reshape</a></p></li>
-<li><p><a class="reference internal" href="#scalar-product" id="id49">scalar_product</a></p></li>
+<li><p><a class="reference internal" href="#vdot" id="id49">vdot</a></p></li>
 <li><p><a class="reference internal" href="#sum" id="id50">sum</a></p></li>
 <li><p><a class="reference internal" href="#trace" id="id51">trace</a></p></li>
 <li><p><a class="reference internal" href="#transpose" id="id52">transpose</a></p></li>
@@ -81,7 +82,7 @@
 <span id="add-expression"></span><h2><a class="toc-backref" href="#id26" role="doc-backlink">AddExpression</a><a class="headerlink" href="#addexpression" title="Permalink to this heading">¶</a></h2>
 <dl class="py class">
 <dt class="sig sig-object py" id="cvxpy.atoms.affine.add_expr.AddExpression">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">cvxpy.atoms.affine.add_expr.</span></span><span class="sig-name descname"><span class="pre">AddExpression</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">arg_groups</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/atoms/affine/add_expr.html#AddExpression"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.atoms.affine.add_expr.AddExpression" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">cvxpy.atoms.affine.add_expr.</span></span><span class="sig-name descname"><span class="pre">AddExpression</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">arg_groups</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Iterable</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="cvxpy.expressions.html#cvxpy.expressions.expression.Expression" title="cvxpy.expressions.expression.Expression"><span class="pre">Expression</span></a><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/atoms/affine/add_expr.html#AddExpression"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.atoms.affine.add_expr.AddExpression" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">AffAtom</span></code></p>
 <p>The sum of any number of expressions.</p>
 </dd></dl>
@@ -465,11 +466,11 @@ as Fortran order.</p>
 </dd></dl>
 
 </section>
-<section id="scalar-product">
-<span id="id17"></span><h2><a class="toc-backref" href="#id49" role="doc-backlink">scalar_product</a><a class="headerlink" href="#scalar-product" title="Permalink to this heading">¶</a></h2>
+<section id="vdot">
+<span id="id17"></span><h2><a class="toc-backref" href="#id49" role="doc-backlink">vdot</a><a class="headerlink" href="#vdot" title="Permalink to this heading">¶</a></h2>
 <dl class="py function">
-<dt class="sig sig-object py" id="cvxpy.scalar_product">
-<span class="sig-prename descclassname"><span class="pre">cvxpy.</span></span><span class="sig-name descname"><span class="pre">scalar_product</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/atoms/affine/binary_operators.html#scalar_product"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.scalar_product" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="cvxpy.vdot">
+<span class="sig-prename descclassname"><span class="pre">cvxpy.</span></span><span class="sig-name descname"><span class="pre">vdot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/atoms/affine/binary_operators.html#vdot"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.vdot" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return the standard inner product (or “scalar product”) of (x,y).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -646,9 +647,6 @@ Inverts cp.upper_tri.</p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../tutorial/index.html">User Guide</a></li>
 </ul>
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="../examples/index.html">Examples</a></li>
-</ul>
 <ul class="current">
 <li class="toctree-l1 current"><a class="reference internal" href="cvxpy.html">API Documentation</a><ul class="current">
 <li class="toctree-l2 current"><a class="reference internal" href="cvxpy.atoms.html">Atoms</a><ul class="current">
@@ -749,8 +747,8 @@ Inverts cp.upper_tri.</p>
 <li class="toctree-l5"><a class="reference internal" href="#cvxpy.reshape"><code class="docutils literal notranslate"><span class="pre">reshape</span></code></a></li>
 </ul>
 </li>
-<li class="toctree-l4"><a class="reference internal" href="#scalar-product">scalar_product</a><ul>
-<li class="toctree-l5"><a class="reference internal" href="#cvxpy.scalar_product"><code class="docutils literal notranslate"><span class="pre">scalar_product()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#vdot">vdot</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="#cvxpy.vdot"><code class="docutils literal notranslate"><span class="pre">vdot()</span></code></a></li>
 </ul>
 </li>
 <li class="toctree-l4"><a class="reference internal" href="#sum">sum</a><ul>
@@ -802,25 +800,19 @@ Inverts cp.upper_tri.</p>
 </li>
 </ul>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../faq/index.html">FAQ</a></li>
-</ul>
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="../citing/index.html">Citing CVXPY</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../examples/index.html">Examples</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../contributing/index.html">Contributing</a></li>
 </ul>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../related_projects/index.html">Related Projects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../updates/index.html">Changelog</a></li>
 </ul>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../updates/index.html">Changes to CVXPY</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../faq/index.html">FAQ</a></li>
 </ul>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../short_course/index.html">CVXPY Short Course</a></li>
-</ul>
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="../license/index.html">License</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../resources/index.html">Resources</a></li>
 </ul>
 
 

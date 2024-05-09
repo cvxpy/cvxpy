@@ -4,18 +4,19 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>cvxpy.expressions.expression &#8212; CVXPY 1.4 documentation</title>
+    <title>cvxpy.expressions.expression &#8212; CVXPY 1.5 documentation</title>
     <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=fa44fd50" />
     <link rel="stylesheet" type="text/css" href="../../../_static/cvxpy_alabaster.css?v=6c13f287" />
     <link rel="stylesheet" type="text/css" href="../../../_static/tabs.css?v=4c969af8" />
     <link rel="stylesheet" type="text/css" href="../../../_static/design-style.1e8bd061cd6da7fc9cf755528e8ffc24.min.css?v=0a3b3ea7" />
     <script src="../../../_static/jquery.js?v=5d32c60e"></script>
     <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-    <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js?v=84f0443f"></script>
+    <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js?v=8f967033"></script>
     <script src="../../../_static/doctools.js?v=888ff710"></script>
     <script src="../../../_static/sphinx_highlight.js?v=4825356b"></script>
     <script src="../../../_static/tabs.js?v=3ee01567"></script>
     <script src="../../../_static/design-tabs.js?v=36754332"></script>
+    <link rel="icon" href="../../../_static/favicon.ico"/>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" />
    
@@ -54,7 +55,7 @@
 <span class="kn">import</span> <span class="nn">abc</span>
 <span class="kn">import</span> <span class="nn">warnings</span>
 <span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">wraps</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Tuple</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Tuple</span>
 
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 
@@ -103,6 +104,14 @@
 <span class="s2">You&#39;re calling a NumPy function on a CVXPY expression. This is prone to causing</span>
 <span class="s2">errors or code that doesn&#39;t behave as expected. Consider using one of the</span>
 <span class="s2">functions documented here: https://www.cvxpy.org/tutorial/functions/index.html</span>
+<span class="s2">&quot;&quot;&quot;</span>
+
+<span class="n">__INPLACE_MUTATION_ERROR__</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">You&#39;re trying to mutate a CVXPY expression inplace. This is prone to errors or</span>
+<span class="s2">code that doesn&#39;t behave as expected. Consider alternatives. For example, replace</span>
+<span class="s2">    x += 1</span>
+<span class="s2">with</span>
+<span class="s2">    x = x + 1</span>
 <span class="s2">&quot;&quot;&quot;</span>
 
 <span class="n">__ABS_ERROR__</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span>
@@ -200,6 +209,27 @@
         <span class="k">return</span> <span class="bp">self</span>
 
     <span class="c1"># Curvature properties.</span>
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">curvatures</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;List : Returns a list of the curvatures of the expression.&quot;&quot;&quot;</span>
+        <span class="n">curvatures</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">is_constant</span><span class="p">,</span> <span class="n">s</span><span class="o">.</span><span class="n">CONSTANT</span><span class="p">),</span>
+            <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">is_affine</span><span class="p">,</span> <span class="n">s</span><span class="o">.</span><span class="n">AFFINE</span><span class="p">),</span>
+            <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">is_convex</span><span class="p">,</span> <span class="n">s</span><span class="o">.</span><span class="n">CONVEX</span><span class="p">),</span>
+            <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">is_concave</span><span class="p">,</span> <span class="n">s</span><span class="o">.</span><span class="n">CONCAVE</span><span class="p">),</span>
+            <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">is_log_log_constant</span><span class="p">,</span> <span class="n">s</span><span class="o">.</span><span class="n">LOG_LOG_CONSTANT</span><span class="p">),</span>
+            <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">is_log_log_affine</span><span class="p">,</span> <span class="n">s</span><span class="o">.</span><span class="n">LOG_LOG_AFFINE</span><span class="p">),</span>
+            <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">is_log_log_convex</span><span class="p">,</span> <span class="n">s</span><span class="o">.</span><span class="n">LOG_LOG_CONVEX</span><span class="p">),</span>
+            <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">is_log_log_concave</span><span class="p">,</span> <span class="n">s</span><span class="o">.</span><span class="n">LOG_LOG_CONCAVE</span><span class="p">),</span>
+            <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">is_quasilinear</span><span class="p">,</span> <span class="n">s</span><span class="o">.</span><span class="n">QUASILINEAR</span><span class="p">),</span>
+            <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">is_quasiconvex</span><span class="p">,</span> <span class="n">s</span><span class="o">.</span><span class="n">QUASICONVEX</span><span class="p">),</span>
+            <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">is_quasiconcave</span><span class="p">,</span> <span class="n">s</span><span class="o">.</span><span class="n">QUASICONCAVE</span><span class="p">),</span>
+        <span class="p">]</span>
+        <span class="n">curvatures</span> <span class="o">=</span> <span class="p">[</span><span class="n">curvature</span> <span class="k">for</span> <span class="n">condition</span><span class="p">,</span> <span class="n">curvature</span> <span class="ow">in</span> <span class="n">curvatures</span> <span class="k">if</span> <span class="n">condition</span><span class="p">()]</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">curvatures</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">[</span><span class="n">s</span><span class="o">.</span><span class="n">UNKNOWN</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">curvatures</span>
+
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">curvature</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;str : The curvature of the expression.</span>
@@ -783,6 +813,14 @@
                     <span class="nb">len</span><span class="p">(</span><span class="n">args</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span> <span class="ow">and</span> \
                     <span class="n">args</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="ow">is</span> <span class="bp">self</span><span class="p">:</span>
                 <span class="k">return</span> <span class="n">ufunc_handler</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+            <span class="k">elif</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span> <span class="o">==</span> <span class="p">{</span><span class="s1">&#39;out&#39;</span><span class="p">}</span> <span class="ow">and</span> \
+                    <span class="nb">len</span><span class="p">(</span><span class="n">args</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span> <span class="ow">and</span> \
+                    <span class="n">args</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="ow">is</span> <span class="bp">self</span> <span class="ow">and</span> \
+                    <span class="nb">isinstance</span><span class="p">(</span><span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;out&#39;</span><span class="p">],</span> <span class="nb">tuple</span><span class="p">)</span> <span class="ow">and</span> \
+                    <span class="nb">len</span><span class="p">(</span><span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;out&#39;</span><span class="p">])</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">and</span> \
+                    <span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">is</span> <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;out&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">]:</span>
+                <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="n">__INPLACE_MUTATION_ERROR__</span><span class="p">)</span>
+
         <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
             <span class="k">pass</span>
 
@@ -881,7 +919,6 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="kn">from</span> <span class="nn">cvxpy</span> <span class="kn">import</span> <span class="n">var</span>
         <span class="k">return</span> <span class="n">var</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ddof</span><span class="o">=</span><span class="n">ddof</span><span class="p">)</span></div>
-
 </pre></div>
 
           </div>
@@ -914,31 +951,22 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../tutorial/index.html">User Guide</a></li>
 </ul>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../../../examples/index.html">Examples</a></li>
-</ul>
-<ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../api_reference/cvxpy.html">API Documentation</a></li>
 </ul>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../../../faq/index.html">FAQ</a></li>
-</ul>
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="../../../citing/index.html">Citing CVXPY</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../examples/index.html">Examples</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../contributing/index.html">Contributing</a></li>
 </ul>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../../../related_projects/index.html">Related Projects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../updates/index.html">Changelog</a></li>
 </ul>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../../../updates/index.html">Changes to CVXPY</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../faq/index.html">FAQ</a></li>
 </ul>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../../../short_course/index.html">CVXPY Short Course</a></li>
-</ul>
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="../../../license/index.html">License</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../resources/index.html">Resources</a></li>
 </ul>
 
 

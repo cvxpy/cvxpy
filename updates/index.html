@@ -5,23 +5,24 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Changes to CVXPY &#8212; CVXPY 1.4 documentation</title>
+    <title>Changes to CVXPY &#8212; CVXPY 1.5 documentation</title>
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=fa44fd50" />
     <link rel="stylesheet" type="text/css" href="../_static/cvxpy_alabaster.css?v=6c13f287" />
     <link rel="stylesheet" type="text/css" href="../_static/tabs.css?v=4c969af8" />
     <link rel="stylesheet" type="text/css" href="../_static/design-style.1e8bd061cd6da7fc9cf755528e8ffc24.min.css?v=0a3b3ea7" />
     <script src="../_static/jquery.js?v=5d32c60e"></script>
     <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js?v=84f0443f"></script>
+    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js?v=8f967033"></script>
     <script src="../_static/doctools.js?v=888ff710"></script>
     <script src="../_static/sphinx_highlight.js?v=4825356b"></script>
     <script src="../_static/tabs.js?v=3ee01567"></script>
     <script src="../_static/design-tabs.js?v=36754332"></script>
     <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <link rel="icon" href="../_static/favicon.ico"/>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="CVXPY Short Course" href="../short_course/index.html" />
-    <link rel="prev" title="Related Projects" href="../related_projects/index.html" />
+    <link rel="next" title="FAQ" href="../faq/index.html" />
+    <link rel="prev" title="Contributing" href="../contributing/index.html" />
    
   <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
   
@@ -41,7 +42,47 @@
   <section id="changes-to-cvxpy">
 <span id="updates"></span><h1>Changes to CVXPY<a class="headerlink" href="#changes-to-cvxpy" title="Permalink to this heading">¶</a></h1>
 <p>This page details changes made to CVXPY over time, in reverse chronological order.
-CVXPY’s project maintainers currently provide support for CVXPY 1.4 and 1.3.</p>
+CVXPY’s project maintainers currently provide support for CVXPY 1.5 and 1.4.</p>
+<section id="cvxpy-1-5">
+<h2>CVXPY 1.5<a class="headerlink" href="#cvxpy-1-5" title="Permalink to this heading">¶</a></h2>
+<p>This release is consistent with our semantic versioning guarantee. It
+comes packed with many new features, bug fixes, and performance
+improvements. This version of CVXPY supports Python 3.8 through 3.12,
+While working on the next release, we continue to officially support
+CVXPY 1.5 and 1.4.</p>
+<p>This release may <strong>not</strong> be compatible with NumPy 2.0.</p>
+<section id="ecos-deprecation">
+<h3>ECOS deprecation<a class="headerlink" href="#ecos-deprecation" title="Permalink to this heading">¶</a></h3>
+<p>CVXPY has used ECOS as the default solver for many years; however, it
+has known issues with performance and numerical stability in edge cases.
+Recently, a new solver, Clarabel, that improves the algorithm and
+implementation of ECOS has been under development.</p>
+<p>In this release, CVXPY uses Clarabel instead of ECOS for all
+categories of problems where ECOS was previously the default.</p>
+<p>In 1.6, we plan to no longer install ECOS as a CVXPY dependency.
+We have no plans to remove support for calling ECOS as a solver.</p>
+<p>We encourage you to try and use Clarabel instead, but if you’re
+dependent on ECOS’s exact behavior please explicitly specify it as a
+solver and as a dependency for your project.</p>
+</section>
+<section id="new-features">
+<h3>New features<a class="headerlink" href="#new-features" title="Permalink to this heading">¶</a></h3>
+<ul class="simple">
+<li><p>Major updates to the documentation, adding a number of new sections to the
+User Guide and breaking up the monolithic Advanced features page</p></li>
+<li><p>Added <cite>.curvatures</cite> containing all curvatures an expression is compatible with</p></li>
+<li><p>Variable bounds can be specified with <cite>cp.Variable(bound=(lower, upper))</cite>
+and are directly passed to the solver when helpful. <cite>lower</cite> and <cite>upper</cite> can
+be either a NumPy array or floating point number.</p></li>
+<li><p>Constants can be named by writing <cite>cp.Constant(name=’…’)</cite></p></li>
+<li><p>Added a new atom, <cite>vdot</cite>, that has the same behavior as <cite>scalar_product</cite></p></li>
+<li><p>CVXPY runs in the next PyOdide release via wasm</p></li>
+<li><p>Added or-tools 9.9 support</p></li>
+<li><p>Major rewrite to the PDLP interface</p></li>
+<li><p>Dropped MOSEK &lt;= 9 support and upgraded the MOSEK integration code</p></li>
+</ul>
+</section>
+</section>
 <section id="cvxpy-1-4">
 <h2>CVXPY 1.4<a class="headerlink" href="#cvxpy-1-4" title="Permalink to this heading">¶</a></h2>
 <p>This release is consistent with our semantic versioning guarantee. It
@@ -49,8 +90,8 @@ comes packed with many new features, bug fixes, and performance
 improvements. This version of CVXPY supports Python 3.8 through 3.12,
 and is our first release that supports Python 3.12. While working on the
 next release, we continue to officially support CVXPY 1.3 and 1.4.</p>
-<section id="new-features">
-<h3>New features<a class="headerlink" href="#new-features" title="Permalink to this heading">¶</a></h3>
+<section id="id1">
+<h3>New features<a class="headerlink" href="#id1" title="Permalink to this heading">¶</a></h3>
 <ul class="simple">
 <li><p>New atom: <a class="reference internal" href="../api_reference/cvxpy.atoms.affine.html#convolve"><span class="std std-ref">convolve</span></a></p></li>
 <li><p>New atom: <a class="reference internal" href="../api_reference/cvxpy.atoms.affine.html#mean"><span class="std std-ref">mean</span></a></p></li>
@@ -82,8 +123,8 @@ error</p></li>
 <li><p>Greater support for static typing</p></li>
 </ul>
 </section>
-<section id="ecos-deprecation">
-<h3>ECOS deprecation<a class="headerlink" href="#ecos-deprecation" title="Permalink to this heading">¶</a></h3>
+<section id="id2">
+<h3>ECOS deprecation<a class="headerlink" href="#id2" title="Permalink to this heading">¶</a></h3>
 <p>CVXPY has used ECOS as the default solver for many years; however, it
 has known issues with performance and numerical stability in edge cases.
 Recently, a new solver, Clarabel, that improves the algorithm and
@@ -138,7 +179,7 @@ Code of the form <code class="docutils literal notranslate"><span class="pre">cv
 <section id="solver-interfaces">
 <h3>Solver interfaces<a class="headerlink" href="#solver-interfaces" title="Permalink to this heading">¶</a></h3>
 <ul class="simple">
-<li><p><a class="reference internal" href="../tutorial/advanced/index.html#solvers"><span class="std std-ref">New interfaces</span></a>: COPT, SDPA, Clarabel, and proxqp</p></li>
+<li><p><a class="reference internal" href="../resources/related_projects/index.html#solvers"><span class="std std-ref">New interfaces</span></a>: COPT, SDPA, Clarabel, and proxqp</p></li>
 </ul>
 </section>
 <section id="general-system-improvements">
@@ -163,8 +204,8 @@ API-breaking changes will require incrementing the major version number (i.e., m
 Many new features were added <em>after</em> CVXPY 1.1.0 but <em>before</em> CVXPY 1.2.0.
 These features accumulated over the course of CVXPY 1.1.1 and 1.1.18.
 We review those features and the new features in CVXPY 1.2.0 below.</p>
-<section id="id2">
-<h3>Constraints and atoms<a class="headerlink" href="#id2" title="Permalink to this heading">¶</a></h3>
+<section id="id4">
+<h3>Constraints and atoms<a class="headerlink" href="#id4" title="Permalink to this heading">¶</a></h3>
 <blockquote>
 <div><ul class="simple">
 <li><p>1.2.0: added atoms for <a class="reference external" href="https://en.wikipedia.org/wiki/Partial_trace">partial trace</a> and partial transpose,
@@ -179,8 +220,8 @@ provided the other argument is constant. We previously required that <code class
 </ul>
 </div></blockquote>
 </section>
-<section id="id3">
-<h3>Solver interfaces<a class="headerlink" href="#id3" title="Permalink to this heading">¶</a></h3>
+<section id="id5">
+<h3>Solver interfaces<a class="headerlink" href="#id5" title="Permalink to this heading">¶</a></h3>
 <blockquote>
 <div><ul class="simple">
 <li><p>1.2.0: support PDLP and GLOP, via OR-Tools</p></li>
@@ -196,8 +237,8 @@ provided the other argument is constant. We previously required that <code class
 </ul>
 </div></blockquote>
 </section>
-<section id="id4">
-<h3>General system improvements<a class="headerlink" href="#id4" title="Permalink to this heading">¶</a></h3>
+<section id="id6">
+<h3>General system improvements<a class="headerlink" href="#id6" title="Permalink to this heading">¶</a></h3>
 <blockquote>
 <div><ul class="simple">
 <li><p>1.1.18: A problem status “infeasible or unbounded”, for use by specific solvers in rare situations</p></li>
@@ -214,7 +255,7 @@ canonicalization to take advantage of multithreading.</p></li>
 <h2>CVXPY 1.1<a class="headerlink" href="#cvxpy-1-1" title="Permalink to this heading">¶</a></h2>
 <section id="highlights">
 <h3>Highlights<a class="headerlink" href="#highlights" title="Permalink to this heading">¶</a></h3>
-<p><a class="reference internal" href="../tutorial/advanced/index.html#dpp"><span class="std std-ref">Disciplined parametrized programming</span></a> or “DPP” is a ruleset for constructing parametrized problems in
+<p><a class="reference internal" href="../tutorial/dpp/index.html#dpp"><span class="std std-ref">Disciplined parametrized programming</span></a> or “DPP” is a ruleset for constructing parametrized problems in
 CVXPY. Taking advantage of DPP can decrease the time it takes CVXPY to repeatedly canonicalize a parametrized problem.
 DPP also provides the basis for differentiating the map from parameters to the solution of an optimization problem.</p>
 <p>CVXPY provides an API where certain solvers can differentiate the map from the parameters of an
@@ -222,7 +263,7 @@ optimization problem to the optimal solution of that problem. The differentiatio
 only available when SCS is used as the solver.
 This feature allows for more general sensitivity analysis than is possible when using dual variables alone. It also
 provides the basis for <a class="reference external" href="https://github.com/cvxgrp/cvxpylayers">cvxpylayers</a>.
-See the <a class="reference internal" href="../tutorial/advanced/index.html#derivatives"><span class="std std-ref">tutorial on derivatives</span></a>
+See the <a class="reference internal" href="../tutorial/dpp/index.html#derivatives"><span class="std std-ref">tutorial on derivatives</span></a>
 and the <a class="reference external" href="https://web.stanford.edu/~boyd/papers/diff_cvxpy.html">accompanying</a>
 <a class="reference external" href="https://web.stanford.edu/~boyd/papers/diff_dgp.html">papers</a></p>
 <p>Since version 0.4, CVXPY has used <code class="docutils literal notranslate"><span class="pre">*</span></code> to perform matrix multiplication. As of version 1.1,
@@ -301,8 +342,8 @@ standard before).</p></li>
 <dt>Version 1.1.6</dt><dd><ul class="simple">
 <li><p>The ECOS_BB solver (removed in 1.1.0) has been added back as an option. However ECOS_BB will not
 be called automatically; you must explicitly call <code class="docutils literal notranslate"><span class="pre">prob.solve(solver='ECOS_BB')</span></code> if you want to
-use this solver. Refer to our documentation on <a class="reference internal" href="../tutorial/advanced/index.html#mip"><span class="std std-ref">mixed-integer models</span></a> for more information.</p></li>
-<li><p>The MOSEK interface has been rewritten and now dualizes all continuous problems. Refer to <a class="reference internal" href="../tutorial/advanced/index.html#solveropts"><span class="std std-ref">solver
+use this solver. Refer to our documentation on <a class="reference internal" href="../tutorial/constraints/index.html#mip"><span class="std std-ref">mixed-integer models</span></a> for more information.</p></li>
+<li><p>The MOSEK interface has been rewritten and now dualizes all continuous problems. Refer to <a class="reference internal" href="../tutorial/solvers/index.html#solveropts"><span class="std std-ref">solver
 documentation</span></a> for technical reasons of why we do this, and how to manage MOSEK solver
 options in the off chance that this change made your solve times increase.</p></li>
 </ul>
@@ -416,28 +457,24 @@ the constraints hold and <span class="math notranslate nohighlight">\(\infty\)</
 <li class="toctree-l1"><a class="reference internal" href="../tutorial/index.html">User Guide</a></li>
 </ul>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../examples/index.html">Examples</a></li>
-</ul>
-<ul>
 <li class="toctree-l1"><a class="reference internal" href="../api_reference/cvxpy.html">API Documentation</a></li>
 </ul>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../faq/index.html">FAQ</a></li>
-</ul>
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="../citing/index.html">Citing CVXPY</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../examples/index.html">Examples</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../contributing/index.html">Contributing</a></li>
 </ul>
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="../related_projects/index.html">Related Projects</a></li>
-</ul>
 <ul class="current">
-<li class="toctree-l1 current"><a class="current reference internal" href="#">Changes to CVXPY</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#cvxpy-1-4">CVXPY 1.4</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#new-features">New features</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Changelog</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#cvxpy-1-5">CVXPY 1.5</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#ecos-deprecation">ECOS deprecation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#new-features">New features</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#cvxpy-1-4">CVXPY 1.4</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#id1">New features</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id2">ECOS deprecation</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#conv-deprecation"><code class="docutils literal notranslate"><span class="pre">conv</span></code> deprecation</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#nonpos-deprecation"><code class="docutils literal notranslate"><span class="pre">NonPos</span></code> deprecation</a></li>
 </ul>
@@ -449,9 +486,9 @@ the constraints hold and <span class="math notranslate nohighlight">\(\infty\)</
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#cvxpy-1-2">CVXPY 1.2</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#id2">Constraints and atoms</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#id3">Solver interfaces</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#id4">General system improvements</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id4">Constraints and atoms</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id5">Solver interfaces</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id6">General system improvements</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#cvxpy-1-1">CVXPY 1.1</a><ul>
@@ -475,10 +512,10 @@ the constraints hold and <span class="math notranslate nohighlight">\(\infty\)</
 </li>
 </ul>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../short_course/index.html">CVXPY Short Course</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../faq/index.html">FAQ</a></li>
 </ul>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../license/index.html">License</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../resources/index.html">Resources</a></li>
 </ul>
 
 

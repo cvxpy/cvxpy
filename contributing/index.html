@@ -5,23 +5,24 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Contributing &#8212; CVXPY 1.4 documentation</title>
+    <title>Contributing &#8212; CVXPY 1.5 documentation</title>
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=fa44fd50" />
     <link rel="stylesheet" type="text/css" href="../_static/cvxpy_alabaster.css?v=6c13f287" />
     <link rel="stylesheet" type="text/css" href="../_static/tabs.css?v=4c969af8" />
     <link rel="stylesheet" type="text/css" href="../_static/design-style.1e8bd061cd6da7fc9cf755528e8ffc24.min.css?v=0a3b3ea7" />
     <script src="../_static/jquery.js?v=5d32c60e"></script>
     <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js?v=84f0443f"></script>
+    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js?v=8f967033"></script>
     <script src="../_static/doctools.js?v=888ff710"></script>
     <script src="../_static/sphinx_highlight.js?v=4825356b"></script>
     <script src="../_static/tabs.js?v=3ee01567"></script>
     <script src="../_static/design-tabs.js?v=36754332"></script>
     <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <link rel="icon" href="../_static/favicon.ico"/>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="Related Projects" href="../related_projects/index.html" />
-    <link rel="prev" title="Citing CVXPY" href="../citing/index.html" />
+    <link rel="next" title="Changes to CVXPY" href="../updates/index.html" />
+    <link rel="prev" title="Examples" href="../examples/index.html" />
    
   <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
   
@@ -62,31 +63,39 @@ Overall development is guided by <a class="reference external" href="https://git
 <p>The rest of this page goes into more detail on how to contribute to CVXPY.</p>
 <section id="wishlist">
 <span id="contrib-roadmap"></span><h2>Wishlist<a class="headerlink" href="#wishlist" title="Permalink to this heading">¶</a></h2>
-<p>Here is a non-exhaustive list of opportunities to make prominent contributions to CVXPY.
-We’ve roughly categorized the opportunities as whether they amount to small-, medium-, or large-scope projects.
-New contributors are encouraged to focus on the projects with small or medium scope.
-Please contact a project maintainer if you’re interested in working on a project with large scope.</p>
+<p>Here is a non-exhaustive list of opportunities to make prominent contributions to CVXPY.</p>
+<p>We’ve roughly categorized the opportunities as whether they amount to small-, medium-, or large-scope projects.
+New contributors are encouraged to focus on small or medium projects.</p>
+<p>If you’re interested in working on a large project, join the <a class="reference external" href="https://discord.gg/4urRQeGBCr">Discord</a> and let us know!
+We’ll be happy to provide guidance and advice.</p>
 <dl class="simple">
 <dt>Small scope projects</dt><dd><ul class="simple">
 <li><p><a class="reference external" href="https://github.com/cvxpy/cvxpy/issues/574">State required cone types for atoms</a>.</p></li>
 <li><p><a class="reference external" href="https://github.com/cvxpy/cvxpy/issues/1529">Specify a list of solvers sorted by priority rather than just a single solver</a>.</p></li>
+<li><p>GraphBLAS Canonicalization Backend for small performance improvements compared to SciPy sparse.</p></li>
+<li><p><a class="reference external" href="https://github.com/cvxpy/cvxpy/issues/2336">Implement cp.vdot as replacement for cp.scalar_product</a></p></li>
+<li><p>Introduce sparse variables in constraint formulation.</p></li>
+<li><p>Propagate variable bounds to solvers.</p></li>
+<li><p>Add QDLDL as another option for sparse Cholesky.</p></li>
 </ul>
 </dd>
 <dt>Medium scope projects</dt><dd><ul class="simple">
 <li><p><a class="reference external" href="https://github.com/cvxpy/cvxpy/issues/1590">Support integer variables in geometric programming</a>.</p></li>
-<li><p>Add an interface to <a class="reference external" href="https://oxfordcontrol.github.io/COSMO.jl/stable/">COSMO.jl</a> [<a class="reference external" href="https://github.com/cvxpy/cvxpy/issues/1161">1161</a>].</p></li>
-<li><p>Support more open-source interior-point SDP solvers [<a class="reference external" href="https://github.com/cvxpy/cvxpy/issues/1093">1093</a>, <a class="reference external" href="https://github.com/cvxpy/cvxpy/discussions/1419">1419</a>].</p></li>
 <li><p><a class="reference external" href="https://github.com/cvxpy/cvxpy/issues/434">Post-solver feasibility checks</a>.</p></li>
-<li><p><a class="reference external" href="https://github.com/cvxpy/cvxpy/issues/1341">Citation generator</a>.</p></li>
 <li><p><a class="reference external" href="https://github.com/cvxpy/cvxpy/issues/582">Developer documentation for key reduction files</a>.</p></li>
+<li><p><a class="reference external" href="https://github.com/cvxpy/cvxpy/issues/566">Allow multiple types and attributes for variables and parameters</a>.</p></li>
+<li><p>cp.trace(A &#64; B) transforms into cp.vdot(A, B).</p></li>
+<li><p>Allow sparse variables to reduce problem dimension.</p></li>
+<li><p><a class="reference external" href="https://github.com/cvxpy/cvxpy/issues/1594">IPOPT interface to introduce support for non-linear non-convex problems</a>.</p></li>
+<li><p><a class="reference external" href="https://github.com/cvxpy/cvxpy/issues/1197">Vectorize the quad_over_lin atom</a>.</p></li>
 </ul>
 </dd>
 <dt>Large scope projects</dt><dd><ul class="simple">
 <li><p>Expand use of power cone constraints [<a class="reference external" href="https://github.com/cvxpy/cvxpy/issues/1222">1222</a>, <a class="reference external" href="https://github.com/cvxpy/cvxpy/issues/1223">1223</a>].</p></li>
-<li><p>Problem serialization [<a class="reference external" href="https://github.com/cvxpy/cvxpy/issues/532">532</a>, <a class="reference external" href="https://github.com/cvxpy/cvxpy/issues/1333">1333</a>, <a class="reference external" href="https://github.com/cvxpy/cvxpy/issues/1438">1438</a>]</p></li>
-<li><p>Pretty print method for summarizing a solution and its dual variables.</p></li>
+<li><p>Problem serialization [<a class="reference external" href="https://github.com/cvxpy/cvxpy/issues/532">532</a>, <a class="reference external" href="https://github.com/cvxpy/cvxpy/issues/1333">1333</a>, <a class="reference external" href="https://github.com/cvxpy/cvxpy/issues/1438">1438</a>].</p></li>
+<li><p>Quadratically Constrained QP support.</p></li>
+<li><p>Rust Canonicalization Backend to potentially replace cvxcore.</p></li>
 <li><p><a class="reference external" href="https://github.com/cvxpy/cvxpy/issues/198">Support for n-dimensional expressions, variables, parameters, etc</a>.</p></li>
-<li><p><a class="reference external" href="https://github.com/cvxpy/cvxpy/issues/708">10x improvement in the speed and memory usage of cvxcore</a>, <a class="reference external" href="https://github.com/cvxpy/cvxpy/issues/1332">especially for DPP problems</a>.</p></li>
 <li><p>Full compatibility with NumPy broadcasting rules. This will be a breaking change, and can only go in CVXPY 2.0.</p></li>
 </ul>
 </dd>
@@ -243,16 +252,10 @@ to <code class="docutils literal notranslate"><span class="pre">pytest</span></c
 </section>
 <section id="benchmarks">
 <span id="contrib-run-benchmarks"></span><h3>Benchmarks<a class="headerlink" href="#benchmarks" title="Permalink to this heading">¶</a></h3>
-<p>CVXPY has a few benchmarks in <code class="docutils literal notranslate"><span class="pre">cvxpy/tests/test_benchmarks.py</span></code>, which test
-the time to canonicalize problems. Please run</p>
-<blockquote>
-<div><div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">pytest</span> <span class="o">-</span><span class="n">s</span> <span class="n">test_benchmarks</span><span class="o">.</span><span class="n">py</span>
-</pre></div>
-</div>
-</div></blockquote>
-<p>with and without your change, to make sure no performance regressions are
-introduced. If you are making a code contribution, please include the output of
-the above command (with and without your change) in your pull request.</p>
+<p>CVXPY has performance <a class="reference external" href="https://github.com/cvxpy/benchmarks">benchmarks</a> which test the time to canonicalize problems.
+These problems are automatically benchmarked on every commit using <a class="reference external" href="https://asv.readthedocs.io">airspeed velocity</a> and github actions.</p>
+<p>Optionally, the package <a class="reference external" href="https://github.com/nektos/act">act</a> can be installed
+to run github actions locally.</p>
 </section>
 </section>
 <section id="solver-interfaces">
@@ -578,16 +581,10 @@ call modified versions of a test with different solver parameters, for example</
 <li class="toctree-l1"><a class="reference internal" href="../tutorial/index.html">User Guide</a></li>
 </ul>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../examples/index.html">Examples</a></li>
-</ul>
-<ul>
 <li class="toctree-l1"><a class="reference internal" href="../api_reference/cvxpy.html">API Documentation</a></li>
 </ul>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../faq/index.html">FAQ</a></li>
-</ul>
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="../citing/index.html">Citing CVXPY</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../examples/index.html">Examples</a></li>
 </ul>
 <ul class="current">
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Contributing</a><ul>
@@ -615,16 +612,13 @@ call modified versions of a test with different solver parameters, for example</
 </li>
 </ul>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../related_projects/index.html">Related Projects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../updates/index.html">Changelog</a></li>
 </ul>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../updates/index.html">Changes to CVXPY</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../faq/index.html">FAQ</a></li>
 </ul>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../short_course/index.html">CVXPY Short Course</a></li>
-</ul>
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="../license/index.html">License</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../resources/index.html">Resources</a></li>
 </ul>
 
 

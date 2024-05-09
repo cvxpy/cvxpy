@@ -4,18 +4,19 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>cvxpy.expressions.leaf &#8212; CVXPY 1.4 documentation</title>
+    <title>cvxpy.expressions.leaf &#8212; CVXPY 1.5 documentation</title>
     <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=fa44fd50" />
     <link rel="stylesheet" type="text/css" href="../../../_static/cvxpy_alabaster.css?v=6c13f287" />
     <link rel="stylesheet" type="text/css" href="../../../_static/tabs.css?v=4c969af8" />
     <link rel="stylesheet" type="text/css" href="../../../_static/design-style.1e8bd061cd6da7fc9cf755528e8ffc24.min.css?v=0a3b3ea7" />
     <script src="../../../_static/jquery.js?v=5d32c60e"></script>
     <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-    <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js?v=84f0443f"></script>
+    <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js?v=8f967033"></script>
     <script src="../../../_static/doctools.js?v=888ff710"></script>
     <script src="../../../_static/sphinx_highlight.js?v=4825356b"></script>
     <script src="../../../_static/tabs.js?v=3ee01567"></script>
     <script src="../../../_static/design-tabs.js?v=36754332"></script>
+    <link rel="icon" href="../../../_static/favicon.ico"/>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" />
    
@@ -127,6 +128,8 @@
 <span class="sd">        Is the variable positive?</span>
 <span class="sd">    neg : bool</span>
 <span class="sd">        Is the variable negative?</span>
+<span class="sd">    bounds : Iterable</span>
+<span class="sd">        An iterable of length two specifying lower and upper bounds.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="n">__metaclass__</span> <span class="o">=</span> <span class="n">abc</span><span class="o">.</span><span class="n">ABCMeta</span>
@@ -137,7 +140,7 @@
         <span class="n">symmetric</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">diag</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">PSD</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
         <span class="n">NSD</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">hermitian</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
         <span class="n">boolean</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">integer</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
-        <span class="n">sparsity</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">pos</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">neg</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="n">sparsity</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">pos</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">neg</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">bounds</span><span class="p">:</span> <span class="n">Iterable</span> <span class="o">|</span> <span class="kc">None</span><span class="o">=</span><span class="kc">None</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">shape</span><span class="p">,</span> <span class="n">numbers</span><span class="o">.</span><span class="n">Integral</span><span class="p">):</span>
             <span class="n">shape</span> <span class="o">=</span> <span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">shape</span><span class="p">),)</span>
@@ -162,7 +165,7 @@
                            <span class="s1">&#39;symmetric&#39;</span><span class="p">:</span> <span class="n">symmetric</span><span class="p">,</span> <span class="s1">&#39;diag&#39;</span><span class="p">:</span> <span class="n">diag</span><span class="p">,</span>
                            <span class="s1">&#39;PSD&#39;</span><span class="p">:</span> <span class="n">PSD</span><span class="p">,</span> <span class="s1">&#39;NSD&#39;</span><span class="p">:</span> <span class="n">NSD</span><span class="p">,</span>
                            <span class="s1">&#39;hermitian&#39;</span><span class="p">:</span> <span class="n">hermitian</span><span class="p">,</span> <span class="s1">&#39;boolean&#39;</span><span class="p">:</span> <span class="nb">bool</span><span class="p">(</span><span class="n">boolean</span><span class="p">),</span>
-                           <span class="s1">&#39;integer&#39;</span><span class="p">:</span>  <span class="n">integer</span><span class="p">,</span> <span class="s1">&#39;sparsity&#39;</span><span class="p">:</span> <span class="n">sparsity</span><span class="p">}</span>
+                           <span class="s1">&#39;integer&#39;</span><span class="p">:</span>  <span class="n">integer</span><span class="p">,</span> <span class="s1">&#39;sparsity&#39;</span><span class="p">:</span> <span class="n">sparsity</span><span class="p">,</span> <span class="s1">&#39;bounds&#39;</span><span class="p">:</span> <span class="n">bounds</span><span class="p">}</span>
 
         <span class="k">if</span> <span class="n">boolean</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">boolean_idx</span> <span class="o">=</span> <span class="n">boolean</span> <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">boolean</span><span class="p">,</span> <span class="nb">bool</span><span class="p">)</span> <span class="k">else</span> <span class="nb">list</span><span class="p">(</span>
@@ -178,6 +181,7 @@
 
         <span class="c1"># Only one attribute be True (except can be boolean and integer).</span>
         <span class="n">true_attr</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="mi">1</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">attributes</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">v</span><span class="p">)</span>
+        <span class="c1"># HACK we should remove this feature or allow multiple attributes in general.</span>
         <span class="k">if</span> <span class="n">boolean</span> <span class="ow">and</span> <span class="n">integer</span><span class="p">:</span>
             <span class="n">true_attr</span> <span class="o">-=</span> <span class="mi">1</span>
         <span class="k">if</span> <span class="n">true_attr</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
@@ -188,6 +192,8 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="n">value</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">args</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">bounds</span> <span class="o">=</span> <span class="n">bounds</span>
 
     <span class="k">def</span> <span class="nf">_get_attr_str</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Get a string representing the attributes.</span>
@@ -306,6 +312,66 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">attributes</span><span class="p">[</span><span class="s1">&#39;complex&#39;</span><span class="p">]</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_imag</span><span class="p">()</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">attributes</span><span class="p">[</span><span class="s1">&#39;hermitian&#39;</span><span class="p">]</span>
 
+    <span class="k">def</span> <span class="nf">_has_lower_bounds</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Does the variable have lower bounds?&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_nonneg</span><span class="p">():</span>
+            <span class="k">return</span> <span class="kc">True</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">attributes</span><span class="p">[</span><span class="s1">&#39;bounds&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">lower_bound</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">attributes</span><span class="p">[</span><span class="s1">&#39;bounds&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">isscalar</span><span class="p">(</span><span class="n">lower_bound</span><span class="p">):</span>
+                <span class="k">return</span> <span class="n">lower_bound</span> <span class="o">!=</span> <span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">inf</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">lower_bound</span> <span class="o">!=</span> <span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">False</span>
+
+    <span class="k">def</span> <span class="nf">_has_upper_bounds</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Does the variable have upper bounds?&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_nonpos</span><span class="p">():</span>
+            <span class="k">return</span> <span class="kc">True</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">attributes</span><span class="p">[</span><span class="s1">&#39;bounds&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">upper_bound</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">attributes</span><span class="p">[</span><span class="s1">&#39;bounds&#39;</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">isscalar</span><span class="p">(</span><span class="n">upper_bound</span><span class="p">):</span>
+                <span class="k">return</span> <span class="n">upper_bound</span> <span class="o">!=</span> <span class="n">np</span><span class="o">.</span><span class="n">inf</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">upper_bound</span> <span class="o">!=</span> <span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">False</span>
+
+    <span class="k">def</span> <span class="nf">_bound_domain</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">term</span><span class="p">:</span> <span class="n">expression</span><span class="o">.</span><span class="n">Expression</span><span class="p">,</span> <span class="n">constraints</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Constraint</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;A utility function to append constraints from lower and upper bounds.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        term: The term to encode in the constraints.</span>
+<span class="sd">        constraints: An existing list of constraitns to append to.        </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">attributes</span><span class="p">[</span><span class="s1">&#39;nonneg&#39;</span><span class="p">]</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">attributes</span><span class="p">[</span><span class="s1">&#39;pos&#39;</span><span class="p">]:</span>
+            <span class="n">constraints</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">term</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">attributes</span><span class="p">[</span><span class="s1">&#39;nonpos&#39;</span><span class="p">]</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">attributes</span><span class="p">[</span><span class="s1">&#39;neg&#39;</span><span class="p">]:</span>
+            <span class="n">constraints</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">term</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">attributes</span><span class="p">[</span><span class="s1">&#39;bounds&#39;</span><span class="p">]:</span>
+            <span class="n">bounds</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">bounds</span>
+            <span class="n">lower_bounds</span><span class="p">,</span> <span class="n">upper_bounds</span> <span class="o">=</span> <span class="n">bounds</span>
+            <span class="c1"># Create masks if -inf or inf is present in the bounds</span>
+            <span class="n">lower_bound_mask</span> <span class="o">=</span> <span class="p">(</span><span class="n">lower_bounds</span> <span class="o">!=</span> <span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">)</span>
+            <span class="n">upper_bound_mask</span> <span class="o">=</span> <span class="p">(</span><span class="n">upper_bounds</span> <span class="o">!=</span> <span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">lower_bound_mask</span><span class="p">):</span>
+                <span class="c1"># At least one valid lower bound,</span>
+                <span class="c1"># so we apply the constraint only to those entries</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">ndim</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="n">constraints</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">term</span><span class="p">[</span><span class="n">lower_bound_mask</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="n">lower_bounds</span><span class="p">[</span><span class="n">lower_bound_mask</span><span class="p">])</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">constraints</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">term</span> <span class="o">&gt;=</span> <span class="n">lower_bounds</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">upper_bound_mask</span><span class="p">):</span>
+                <span class="c1"># At least one valid upper bound,</span>
+                <span class="c1"># so we apply the constraint only to those entries</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">ndim</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="n">constraints</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">term</span><span class="p">[</span><span class="n">upper_bound_mask</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="n">upper_bounds</span><span class="p">[</span><span class="n">upper_bound_mask</span><span class="p">])</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">constraints</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">term</span> <span class="o">&lt;=</span> <span class="n">upper_bounds</span><span class="p">)</span>
+
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">domain</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">Constraint</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;A list of constraints describing the closure of the region</span>
@@ -313,11 +379,10 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># Default is full domain.</span>
         <span class="n">domain</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">attributes</span><span class="p">[</span><span class="s1">&#39;nonneg&#39;</span><span class="p">]</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">attributes</span><span class="p">[</span><span class="s1">&#39;pos&#39;</span><span class="p">]:</span>
-            <span class="n">domain</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">)</span>
-        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">attributes</span><span class="p">[</span><span class="s1">&#39;nonpos&#39;</span><span class="p">]</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">attributes</span><span class="p">[</span><span class="s1">&#39;neg&#39;</span><span class="p">]:</span>
-            <span class="n">domain</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">)</span>
-        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">attributes</span><span class="p">[</span><span class="s1">&#39;PSD&#39;</span><span class="p">]:</span>
+        <span class="c1"># Add constraints from bounds.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_bound_domain</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">domain</span><span class="p">)</span>
+        <span class="c1"># Add positive/negative semidefiniteness constraints.</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">attributes</span><span class="p">[</span><span class="s1">&#39;PSD&#39;</span><span class="p">]:</span>
             <span class="n">domain</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span> <span class="o">&gt;&gt;</span> <span class="mi">0</span><span class="p">)</span>
         <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">attributes</span><span class="p">[</span><span class="s1">&#39;NSD&#39;</span><span class="p">]:</span>
             <span class="n">domain</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span> <span class="o">&lt;&lt;</span> <span class="mi">0</span><span class="p">)</span>
@@ -349,6 +414,8 @@
             <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">minimum</span><span class="p">(</span><span class="n">val</span><span class="p">,</span> <span class="mf">0.</span><span class="p">)</span>
         <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">attributes</span><span class="p">[</span><span class="s1">&#39;nonneg&#39;</span><span class="p">]</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">attributes</span><span class="p">[</span><span class="s1">&#39;pos&#39;</span><span class="p">]:</span>
             <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">maximum</span><span class="p">(</span><span class="n">val</span><span class="p">,</span> <span class="mf">0.</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">attributes</span><span class="p">[</span><span class="s1">&#39;bounds&#39;</span><span class="p">]:</span>
+            <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">val</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">bounds</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">bounds</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
         <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">attributes</span><span class="p">[</span><span class="s1">&#39;imag&#39;</span><span class="p">]:</span>
             <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">imag</span><span class="p">(</span><span class="n">val</span><span class="p">)</span><span class="o">*</span><span class="mi">1</span><span class="n">j</span>
         <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">attributes</span><span class="p">[</span><span class="s1">&#39;complex&#39;</span><span class="p">]:</span>
@@ -474,6 +541,8 @@
                     <span class="n">attr_str</span> <span class="o">=</span> <span class="s1">&#39;negative semidefinite&#39;</span>
                 <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">attributes</span><span class="p">[</span><span class="s1">&#39;imag&#39;</span><span class="p">]:</span>
                     <span class="n">attr_str</span> <span class="o">=</span> <span class="s1">&#39;imaginary&#39;</span>
+                <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">attributes</span><span class="p">[</span><span class="s1">&#39;bounds&#39;</span><span class="p">]:</span>
+                    <span class="n">attr_str</span> <span class="o">=</span> <span class="s1">&#39;in bounds&#39;</span>
                 <span class="k">else</span><span class="p">:</span>
                     <span class="n">attr_str</span> <span class="o">=</span> <span class="p">([</span><span class="n">k</span> <span class="k">for</span> <span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">v</span><span class="p">)</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">attributes</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">v</span><span class="p">]</span> <span class="o">+</span> <span class="p">[</span><span class="s1">&#39;real&#39;</span><span class="p">])[</span><span class="mi">0</span><span class="p">]</span>
                 <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
@@ -519,7 +588,57 @@
         <span class="k">return</span> <span class="kc">True</span>
 
     <span class="k">def</span> <span class="nf">atoms</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">Atom</span><span class="p">]:</span>
-        <span class="k">return</span> <span class="p">[]</span></div>
+        <span class="k">return</span> <span class="p">[]</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">bounds</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_bounds</span>
+
+    <span class="nd">@bounds</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">bounds</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="c1"># In case for a constant or no bounds</span>
+        <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_bounds</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="k">return</span>
+
+        <span class="c1"># Check that bounds is an iterable of two items</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">Iterable</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">value</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Bounds should be a list of two items.&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Check that bounds contains two scalars or two arrays with matching shapes.</span>
+        <span class="k">for</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">value</span><span class="p">:</span>
+            <span class="n">valid_array</span> <span class="o">=</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">val</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="ow">and</span> <span class="n">val</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">shape</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="n">val</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">np</span><span class="o">.</span><span class="n">isscalar</span><span class="p">(</span><span class="n">val</span><span class="p">)</span> <span class="ow">or</span> <span class="n">valid_array</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                    <span class="s2">&quot;Bounds should be None, scalars, or arrays with the &quot;</span>
+                    <span class="s2">&quot;same dimensions as the variable/parameter.&quot;</span>
+                <span class="p">)</span>
+
+        <span class="c1"># Promote upper and lower bounds to arrays.</span>
+        <span class="n">none_bounds</span> <span class="o">=</span> <span class="p">[</span><span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">value</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">val</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">value</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">full</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">none_bounds</span><span class="p">[</span><span class="n">idx</span><span class="p">])</span>
+            <span class="k">elif</span> <span class="n">np</span><span class="o">.</span><span class="n">isscalar</span><span class="p">(</span><span class="n">val</span><span class="p">):</span>
+                <span class="n">value</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">full</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">val</span><span class="p">)</span>
+
+        <span class="c1"># Check that upper_bound &gt;= lower_bound</span>
+        <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">value</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">value</span><span class="p">[</span><span class="mi">1</span><span class="p">]):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Invalid bounds: some upper bounds are less &quot;</span>
+                             <span class="s2">&quot;than corresponding lower bounds.&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">value</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span> <span class="ow">or</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">value</span><span class="p">[</span><span class="mi">1</span><span class="p">])):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;np.nan is not feasible as lower &quot;</span>
+                                <span class="s2">&quot;or upper bound.&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Upper bound cannot be -np.inf.</span>
+        <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">value</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;-np.inf is not feasible as an upper bound.&quot;</span><span class="p">)</span>
+        <span class="c1"># Lower bound cannot be np.inf.</span>
+        <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">value</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;np.inf is not feasible as a lower bound.&quot;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_bounds</span> <span class="o">=</span> <span class="n">value</span></div>
 </pre></div>
 
           </div>
@@ -552,31 +671,22 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../tutorial/index.html">User Guide</a></li>
 </ul>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../../../examples/index.html">Examples</a></li>
-</ul>
-<ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../api_reference/cvxpy.html">API Documentation</a></li>
 </ul>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../../../faq/index.html">FAQ</a></li>
-</ul>
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="../../../citing/index.html">Citing CVXPY</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../examples/index.html">Examples</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../contributing/index.html">Contributing</a></li>
 </ul>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../../../related_projects/index.html">Related Projects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../updates/index.html">Changelog</a></li>
 </ul>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../../../updates/index.html">Changes to CVXPY</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../faq/index.html">FAQ</a></li>
 </ul>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../../../short_course/index.html">CVXPY Short Course</a></li>
-</ul>
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="../../../license/index.html">License</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../resources/index.html">Resources</a></li>
 </ul>
 
 
