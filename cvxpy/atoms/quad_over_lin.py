@@ -20,8 +20,10 @@ import numpy as np
 import scipy as scipy
 import scipy.sparse as sp
 
+import cvxpy.utilities as u
 from cvxpy.atoms.atom import Atom
 from cvxpy.constraints.constraint import Constraint
+from cvxpy.expressions.constants.parameter import is_param_free
 
 
 class quad_over_lin(Atom):
@@ -128,14 +130,25 @@ class quad_over_lin(Atom):
     def is_quadratic(self) -> bool:
         """Quadratic if x is affine and y is constant.
         """
-        return self.args[0].is_affine() and self.args[1].is_constant()
+        if u.scopes.dpp_scope_active():
+            const_no_params = self.args[1].is_constant() and is_param_free(self.args[1])
+            return self.args[0].is_affine() and const_no_params
+        else:
+            return self.args[0].is_affine() and self.args[1].is_constant()
 
     def has_quadratic_term(self) -> bool:
         """A quadratic term if y is constant.
         """
-        return self.args[1].is_constant()
+        if u.scopes.dpp_scope_active():
+            return self.args[1].is_constant() and is_param_free(self.args[1])
+        else:
+            return self.args[1].is_constant()
 
     def is_qpwa(self) -> bool:
         """Quadratic of piecewise affine if x is PWL and y is constant.
         """
-        return self.args[0].is_pwl() and self.args[1].is_constant()
+        if u.scopes.dpp_scope_active():
+            const_no_params = self.args[1].is_constant() and is_param_free(self.args[1])
+            return self.args[0].is_pwl() and const_no_params
+        else:
+            return self.args[0].is_pwl() and self.args[1].is_constant()

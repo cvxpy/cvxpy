@@ -45,6 +45,7 @@ from cvxpy.reductions.solvers.constant_solver import ConstantSolver
 from cvxpy.reductions.solvers.solver import Solver
 from cvxpy.settings import CLARABEL, ECOS, PARAM_THRESHOLD
 from cvxpy.utilities.debug_tools import build_non_disciplined_error_msg
+from cvxpy.utilities.scopes import dpp_scope
 
 DPP_ERROR_MSG = (
     "You are solving a parameterized problem that is not DPP. "
@@ -343,8 +344,11 @@ def construct_solving_chain(problem, candidates,
                 use_quad_obj = True
             else:
                 use_quad_obj = solver_opts.get("use_quad_obj", True)
-            quad_obj = use_quad_obj and solver_instance.supports_quad_obj() and \
-                problem.objective.expr.has_quadratic_term()
+            # Need to make sure that the problem is DPP if the objective is canonicalized
+            # as a quadratic.
+            with dpp_scope():
+                quad_obj = use_quad_obj and solver_instance.supports_quad_obj() and \
+                    problem.objective.expr.has_quadratic_term()
             reductions += [
                 Dcp2Cone(quad_obj=quad_obj),
                 CvxAttr2Constr(reduce_bounds=not solver_instance.BOUNDED_VARIABLES),
