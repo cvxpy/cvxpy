@@ -130,6 +130,9 @@ class quad_over_lin(Atom):
     def is_quadratic(self) -> bool:
         """Quadratic if x is affine and y is constant.
         """
+        # quad_over_lin is not DPP if the second argument is parameterized
+        # and it is being canonicalized as a quadratic term (rather 
+        # than with SOC constraints).
         if u.scopes.dpp_scope_active():
             const_no_params = self.args[1].is_constant() and is_param_free(self.args[1])
             return self.args[0].is_affine() and const_no_params
@@ -139,6 +142,9 @@ class quad_over_lin(Atom):
     def has_quadratic_term(self) -> bool:
         """A quadratic term if y is constant.
         """
+        # quad_over_lin is not DPP if the second argument is parameterized
+        # and it is being canonicalized as a quadratic term (rather 
+        # than with SOC constraints).
         if u.scopes.dpp_scope_active():
             return self.args[1].is_constant() and is_param_free(self.args[1])
         else:
@@ -147,6 +153,9 @@ class quad_over_lin(Atom):
     def is_qpwa(self) -> bool:
         """Quadratic of piecewise affine if x is PWL and y is constant.
         """
+        # quad_over_lin is not DPP if the second argument is parameterized
+        # and it is being canonicalized as a quadratic term (rather 
+        # than with SOC constraints).
         if u.scopes.dpp_scope_active():
             const_no_params = self.args[1].is_constant() and is_param_free(self.args[1])
             return self.args[0].is_pwl() and const_no_params
