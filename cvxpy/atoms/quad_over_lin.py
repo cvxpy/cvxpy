@@ -20,8 +20,10 @@ import numpy as np
 import scipy as scipy
 import scipy.sparse as sp
 
+import cvxpy.utilities as u
 from cvxpy.atoms.atom import Atom
 from cvxpy.constraints.constraint import Constraint
+from cvxpy.expressions.constants.parameter import is_param_free
 
 
 class quad_over_lin(Atom):
@@ -89,7 +91,11 @@ class quad_over_lin(Atom):
     def is_atom_convex(self) -> bool:
         """Is the atom convex?
         """
-        return True
+        # Disable DPP when the second argument is a parameter.
+        if u.scopes.dpp_scope_active():
+            return is_param_free(self.args[1])
+        else:
+            return True
 
     def is_atom_concave(self) -> bool:
         """Is the atom concave?
