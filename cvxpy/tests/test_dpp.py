@@ -313,9 +313,9 @@ class TestDcp(BaseTest):
         prob = cp.Problem(
             cp.Minimize(loss),
         )
+        assert not prob.is_dpp(context="dcp")
 
         with warnings.catch_warnings():
-            # TODO(akshayka): Try to emit DPP problems in Dqcp2Dcp
             warnings.filterwarnings('ignore', message=r'.*DPP.*')
             p.value = 1
             prob.solve(solver=cp.CLARABEL)
@@ -869,6 +869,29 @@ class TestDgp(BaseTest):
         expr = cp.gmatmul(A, x_par)
         self.assertFalse(expr.is_dgp(dpp=True))
         self.assertTrue(expr.is_dgp(dpp=False))
+
+    def test_quad_over_lin(self) -> None:
+        """Test case with parameter in quad_over_lin."""
+        x = cp.Variable()
+        p = cp.Parameter()
+
+        loss = cp.quad_over_lin(x,p) + x
+        prob = cp.Problem(
+            cp.Minimize(loss),
+        )
+        assert not prob.is_dpp(context="dgp")
+
+        p.value = 1
+        prob.solve(solver=cp.CLARABEL)
+        sol1 = x.value.copy()
+        p.value = 1000
+        prob.solve(solver=cp.CLARABEL)
+        sol2 = x.value.copy()
+        p.value = 1
+        prob.solve(solver=cp.CLARABEL)
+        sol3 = x.value.copy()
+        assert not np.isclose(sol1, sol2)
+        assert np.isclose(sol1, sol3)
 
 
 class TestCallbackParam(BaseTest):
