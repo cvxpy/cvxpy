@@ -300,6 +300,39 @@ class TestDcp(BaseTest):
         with pytest.raises(error.DPPError):
             problem.solve(cp.SCS, enforce_dpp=True, ignore_dpp=True)
 
+    def test_quad_over_lin(self) -> None:
+        """Test case with parameter in quad_over_lin."""
+        # Bug where the second argument to quad_over_lin
+        # was a parameter and the problem was solved
+        # as a cone program with a quadratic objective:
+        # https://github.com/cvxpy/cvxpy/issues/2433
+        x = cp.Variable()
+        p = cp.Parameter()
+
+        loss = cp.quad_over_lin(x,p) + x
+        prob = cp.Problem(
+            cp.Minimize(loss),
+        )
+
+        with warnings.catch_warnings():
+            # TODO(akshayka): Try to emit DPP problems in Dqcp2Dcp
+            warnings.filterwarnings('ignore', message=r'.*DPP.*')
+            p.value = 1
+            prob.solve(solver=cp.CLARABEL)
+            sol1 = x.value.copy()
+            p.value = 1000
+            prob.solve(solver=cp.CLARABEL)
+            sol2 = x.value.copy()
+            p.value = 1
+            prob.solve(solver=cp.CLARABEL)
+            sol3 = x.value.copy()
+            assert not np.isclose(sol1, sol2)
+            assert np.isclose(sol1, sol3)
+
+        # Cannot solve as a QP with DPP.
+        with pytest.raises(error.DPPError):
+            prob.solve(cp.OSQP, enforce_dpp=True)
+
 
 class TestDgp(BaseTest):
     def test_basic_equality_constraint(self) -> None:
