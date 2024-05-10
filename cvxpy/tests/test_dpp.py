@@ -333,6 +333,25 @@ class TestDcp(BaseTest):
         with pytest.raises(error.DPPError):
             prob.solve(cp.OSQP, enforce_dpp=True)
 
+        # works for DPP + DGP
+        x = cp.Variable(2, pos = True)
+        y = cp.Parameter(pos = True, value = 1)
+        constraints = [x >= 1]
+
+        objective = cp.quad_over_lin(x,y)
+
+        prob = cp.Problem(cp.Minimize(objective), constraints)
+        sol1 = prob.solve(gp=True)
+        y.value = 2
+        sol2 = prob.solve(gp=True)
+        y.value = 1
+        sol3 = prob.solve(gp=True)
+        assert np.isclose(sol1, 2)
+        assert np.isclose(sol2, 1)
+        assert np.isclose(sol3, 2)
+
+
+
 
 class TestDgp(BaseTest):
     def test_basic_equality_constraint(self) -> None:
