@@ -105,11 +105,7 @@ class quad_over_lin(Atom):
     def is_atom_log_log_convex(self) -> bool:
         """Is the atom log-log convex?
         """
-        # Disable DPP when the second argument is a parameter.
-        if u.scopes.dpp_scope_active():
-            return is_param_free(self.args[1])
-        else:
-            return True
+        return True
 
     def is_atom_log_log_concave(self) -> bool:
         """Is the atom log-log concave?
