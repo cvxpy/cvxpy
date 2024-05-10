@@ -168,7 +168,7 @@ class CoeffExtractor:
                     P_tup = TensorRepresentation(
                         c_vals,
                         paramx_idx_row,
-                        paramx_idx_row,
+                        paramx_idx_row.copy(),
                         param_idx_col,
                         P.shape
                     )
@@ -290,7 +290,8 @@ class CoeffExtractor:
         for P in P_list:
             m, n = P.shape
             assert m == n
-    
+            assert P.row is not P.col
+
             # Translate local to global indices within the block diagonal matrix.
             P.row += offset
             P.col += offset
@@ -321,7 +322,7 @@ class CoeffExtractor:
         # Fast path for no parameters.
         if num_params == 1:
             q = np.vstack(q_list)
-            q = np.vstack([q, constant.A])
+            q = np.vstack([q, constant.toarray()])
             return sp.csr_matrix(q)
         else:
             q = sp.vstack(q_list + [constant])

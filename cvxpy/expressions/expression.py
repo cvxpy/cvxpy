@@ -68,6 +68,14 @@ errors or code that doesn't behave as expected. Consider using one of the
 functions documented here: https://www.cvxpy.org/tutorial/functions/index.html
 """
 
+__INPLACE_MUTATION_ERROR__ = """
+You're trying to mutate a CVXPY expression inplace. This is prone to errors or
+code that doesn't behave as expected. Consider alternatives. For example, replace
+    x += 1
+with
+    x = x + 1
+"""
+
 __ABS_ERROR__ = """
 You're calling the built-in abs function on a CVXPY expression. This is not
 supported. Consider using the abs function provided by CVXPY.
@@ -746,6 +754,14 @@ class Expression(u.Canonical):
                     len(args) == 2 and \
                     args[1] is self:
                 return ufunc_handler(self, args[0])
+            elif kwargs.keys() == {'out'} and \
+                    len(args) == 2 and \
+                    args[1] is self and \
+                    isinstance(kwargs['out'], tuple) and \
+                    len(kwargs['out']) == 1 and \
+                    args[0] is kwargs['out'][0]:
+                raise RuntimeError(__INPLACE_MUTATION_ERROR__)
+
         except KeyError:
             pass
 

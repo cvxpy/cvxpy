@@ -400,6 +400,16 @@ class TestAtoms(BaseTest):
             cp.min(self.x, self.x)  # a common erroneous use-case
         self.assertEqual(str(cm.exception), cp.min.__EXPR_AXIS_ERROR__)
 
+        # Test canonicalization with keepdims=True
+        # https://github.com/cvxpy/cvxpy/pull/2419
+        X = cp.Variable((2, 3))
+        X_val = np.arange(6).reshape((2, 3))
+        c = np.ones((1, 3))
+        expr = cp.min(X, axis=0, keepdims=True)
+        obj = cp.Maximize(cp.sum(expr + c))
+        prob = cp.Problem(obj, [X == X_val])
+        prob.solve()
+
     # Test sign logic for maximum.
     def test_maximum_sign(self) -> None:
         # Two args.
@@ -947,6 +957,21 @@ class TestAtoms(BaseTest):
         self.assertEqual(str(cm.exception),
                          "The arguments to conv must resolve to vectors.")
 
+        # Test with parameter input.
+        # https://github.com/cvxpy/cvxpy/issues/2218
+        x = cp.Variable()
+        p = cp.Parameter()
+        problem = cp.Problem(cp.Minimize(cp.conv(p, x)), [0 <= x, x <= 1])
+
+        p.value = -1.0
+        result = problem.solve()
+        self.assertAlmostEqual(result, -1)
+        self.assertAlmostEqual(x.value, 1)
+
+        problem = cp.Problem(cp.Minimize(cp.conv(p, x)), [0 <= x, x <= 1])
+        with pytest.raises(cp.DPPError):
+            problem.solve(enforce_dpp=True)
+
     def test_kron_expr(self) -> None:
         """Test the kron atom.
         """
@@ -980,6 +1005,21 @@ class TestAtoms(BaseTest):
                          "The first argument to conv must be constant.")
         with pytest.raises(ValueError, match="scalar or 1D"):
             cp.convolve([[0, 1], [0, 1]], self.x)
+
+        # Test with parameter input.
+        # https://github.com/cvxpy/cvxpy/issues/2218
+        x = cp.Variable()
+        p = cp.Parameter()
+        problem = cp.Problem(cp.Minimize(cp.convolve(p, x)), [0 <= x, x <= 1])
+
+        p.value = -1.0
+        result = problem.solve(canon_backend=cp.CPP_CANON_BACKEND)
+        self.assertAlmostEqual(result, -1)
+        self.assertAlmostEqual(x.value, 1)
+
+        problem = cp.Problem(cp.Minimize(cp.convolve(p, x)), [0 <= x, x <= 1])
+        with pytest.raises(cp.DPPError):
+            problem.solve(enforce_dpp=True)
 
     def test_ptp(self) -> None:
         """Test the ptp atom.

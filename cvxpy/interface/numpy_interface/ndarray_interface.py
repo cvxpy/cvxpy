@@ -43,9 +43,9 @@ class NDArrayInterface(base.BaseMatrixInterface):
             A matrix of type self.target_matrix or a scalar.
         """
         if scipy.sparse.issparse(value):
-            result = value.A
+            result = value.toarray()
         elif isinstance(value, numpy.matrix):
-            result = value.A
+            result = numpy.asarray(value)
         elif isinstance(value, list):
             result = numpy.asarray(value).T
         else:

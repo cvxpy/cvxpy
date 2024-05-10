@@ -16,6 +16,7 @@ limitations under the License.
 import numpy as np
 
 from cvxpy import settings
+from cvxpy.expressions.expression import Expression
 from cvxpy.reductions.canonicalization import Canonicalization
 from cvxpy.reductions.dgp2dcp.canonicalizers import DgpCanonMethods
 
@@ -75,7 +76,23 @@ class Dgp2Dcp(Canonicalization):
         inverse_data._problem = problem
         return equiv_problem, inverse_data
 
-    def canonicalize_expr(self, expr, args):
+    def canonicalize_expr(
+            self, 
+            expr: Expression, 
+            args: list, 
+            canonicalize_params: bool = True
+        ):
+        """Canonicalize an expression, w.r.t. canonicalized arguments.
+        
+        Args:
+            expr: Expression to canonicalize.
+            args: Arguments to the expression.
+            canonicalize_params: Should constant subtrees 
+                containing parameters be canonicalized?
+        
+        Returns:
+            canonicalized expression, constraints
+        """
         if type(expr) in self.canon_methods:
             return self.canon_methods[type(expr)](expr, args)
         else:

@@ -341,7 +341,7 @@ class DivExpression(BinaryOperator):
         """
         for i in range(2):
             if sp.issparse(values[i]):
-                values[i] = values[i].todense().A
+                values[i] = values[i].toarray()
         return np.divide(values[0], values[1])
 
     def is_quadratic(self) -> bool:
