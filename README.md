@@ -60,7 +60,7 @@ With CVXPY, you can model
 CVXPY is not a solver. It relies upon the open source solvers
 [ECOS](http://github.com/ifa-ethz/ecos), [SCS](https://github.com/bodono/scs-python),
 and [OSQP](https://github.com/oxfordcontrol/osqp). Additional solvers are
-[available](https://www.cvxpy.org/tutorial/advanced/index.html#choosing-a-solver),
+[available](https://www.cvxpy.org/tutorial/solvers/index.html#choosing-a-solver),
 but must be installed separately.
 
 CVXPY began as a Stanford University research project. It is now developed by
