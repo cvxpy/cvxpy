@@ -11,7 +11,7 @@
     <link rel="stylesheet" type="text/css" href="../../../_static/design-style.1e8bd061cd6da7fc9cf755528e8ffc24.min.css?v=0a3b3ea7" />
     <script src="../../../_static/jquery.js?v=5d32c60e"></script>
     <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-    <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js?v=84f0443f"></script>
+    <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js?v=4f79d4f2"></script>
     <script src="../../../_static/doctools.js?v=888ff710"></script>
     <script src="../../../_static/sphinx_highlight.js?v=4825356b"></script>
     <script src="../../../_static/tabs.js?v=3ee01567"></script>
@@ -103,6 +103,14 @@
 <span class="s2">You&#39;re calling a NumPy function on a CVXPY expression. This is prone to causing</span>
 <span class="s2">errors or code that doesn&#39;t behave as expected. Consider using one of the</span>
 <span class="s2">functions documented here: https://www.cvxpy.org/tutorial/functions/index.html</span>
+<span class="s2">&quot;&quot;&quot;</span>
+
+<span class="n">__INPLACE_MUTATION_ERROR__</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">You&#39;re trying to mutate a CVXPY expression inplace. This is prone to errors or</span>
+<span class="s2">code that doesn&#39;t behave as expected. Consider alternatives. For example, replace</span>
+<span class="s2">    x += 1</span>
+<span class="s2">with</span>
+<span class="s2">    x = x + 1</span>
 <span class="s2">&quot;&quot;&quot;</span>
 
 <span class="n">__ABS_ERROR__</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span>
@@ -783,6 +791,14 @@
                     <span class="nb">len</span><span class="p">(</span><span class="n">args</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span> <span class="ow">and</span> \
                     <span class="n">args</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="ow">is</span> <span class="bp">self</span><span class="p">:</span>
                 <span class="k">return</span> <span class="n">ufunc_handler</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+            <span class="k">elif</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span> <span class="o">==</span> <span class="p">{</span><span class="s1">&#39;out&#39;</span><span class="p">}</span> <span class="ow">and</span> \
+                    <span class="nb">len</span><span class="p">(</span><span class="n">args</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span> <span class="ow">and</span> \
+                    <span class="n">args</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="ow">is</span> <span class="bp">self</span> <span class="ow">and</span> \
+                    <span class="nb">isinstance</span><span class="p">(</span><span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;out&#39;</span><span class="p">],</span> <span class="nb">tuple</span><span class="p">)</span> <span class="ow">and</span> \
+                    <span class="nb">len</span><span class="p">(</span><span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;out&#39;</span><span class="p">])</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">and</span> \
+                    <span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">is</span> <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;out&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">]:</span>
+                <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="n">__INPLACE_MUTATION_ERROR__</span><span class="p">)</span>
+
         <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
             <span class="k">pass</span>
 
