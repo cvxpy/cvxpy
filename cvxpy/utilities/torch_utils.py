@@ -58,4 +58,4 @@ def gen_tensor(value, dtype=torch.float64) -> torch.Tensor:
     inds = np.vstack((value_coo.row, value_coo.col))
     i = torch.LongTensor(inds)
     v = torch.FloatTensor(vals)
-    return torch.sparse.FloatTensor(i, v, torch.Size(value_coo.shape))
+    return torch.sparse.FloatTensor(i, v, torch.Size(value_coo.shape)).to(dtype)
