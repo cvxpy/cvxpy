@@ -416,6 +416,36 @@ class Problem(u.Canonical):
         """
         return self._compilation_time
 
+    def solve_multiple_solvers(self, solvers:list[tuple[str, dict] | tuple[str] | str] = None):
+        """
+        Arguments
+        ---------
+        solvers : list of: (str, dict) tuples / (str) tuple / str. optional
+        The solvers to use. For example, ['SCS', ('ECOS'), ('OSQP', {'max_iter':10000})]
+
+        """            
+        if solvers:
+            for solver in solvers:
+                try:
+                    s.LOGGER.info("Solver: %s", solver)
+                    if isinstance(solver, str):
+                        solver_name = solver
+                        solution = self.solve(solver=solver)
+                    elif isinstance(solver, tuple) and len(solver)==2:
+                        solver_name, kwargs = solver
+                        if isinstance(solver_name, str) and isinstance(kwargs, dict):
+                            solution = self.solve(solver=solver_name,**kwargs)
+                        else:
+                            raise error.ParameterError()
+                    else:
+                        raise error.ParameterError()
+                    s.LOGGER.info("Solver %s succeeds",solver_name)
+                    return solution
+                except error.SolverError:
+                    continue
+            raise error.SolverError(f"All solvers failed: {solvers}")
+        return self.solve()
+    
     def solve(self, *args, **kwargs):
         """Compiles and solves the problem using the specified method.
 
