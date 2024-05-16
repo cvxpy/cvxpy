@@ -416,13 +416,13 @@ class Problem(u.Canonical):
         """
         return self._compilation_time
 
-    def solve_multiple_solvers(self, solvers:list[tuple[str, dict] | tuple[str] | str] = None):
+    def solve_multiple_solvers(self, solvers:list[tuple[str, dict] | tuple[str] | str]):
         """
         Solve a problem using multiple solvers.
 
         Arguments
         ---------
-        solvers : list of (str, dict) tuples, (str) tuples, or strings. optional
+        solvers : list of (str, dict) tuples, (str) tuples, or strings.
             The solvers to use. For example, ['SCS', ('ECOS'), ('OSQP', {'max_iter':10000})]
 
         Returns
@@ -434,31 +434,31 @@ class Problem(u.Canonical):
         ------
         SolverError
             If all solvers fail to find a solution.
-        ParameterError
+        ValueError
             If the input solvers format is incorrect.
         """
             
-        if solvers:
-            for solver in solvers:
-                try:
-                    if isinstance(solver, str):
-                        solver_name = solver
-                        solution = self.solve(solver=solver)
-                    elif isinstance(solver, tuple) and len(solver) == 2:
-                        solver_name, kwargs = solver
-                        if isinstance(solver_name, str) and isinstance(kwargs, dict):
-                            solution = self.solve(solver=solver_name, **kwargs)
-                        else:
-                            raise error.ParameterError("Solver tuple input must be (str, dict)")
+        if not solvers:
+            raise ValueError("Solvers list must contain at least one solver.")
+        for solver in solvers:
+            try:
+                if isinstance(solver, str):
+                    solver_name = solver
+                    solution = self.solve(solver=solver)
+                elif isinstance(solver, tuple) and len(solver) == 2:
+                    solver_name, kwargs = solver
+                    if isinstance(solver_name, str) and isinstance(kwargs, dict):
+                        solution = self.solve(solver=solver_name, **kwargs)
                     else:
-                        raise error.ParameterError("Solver input must be one of the following:\
-                                                    (str, dict) tuple, (str) tuple, or str")
-                    s.LOGGER.info("Solver %s succeeds", solver_name)
-                    return solution
-                except error.SolverError as e:
-                    s.LOGGER.info("Solver %s failed: %s", solver_name, e)
-            raise error.SolverError(f"All solvers failed: {solvers}")
-        return self.solve()
+                        raise ValueError("Solver tuple input must be (str, dict).")
+                else:
+                    raise ValueError("Solver input must be one of the following:\
+                                                (str, dict) tuple, (str) tuple, or str.")
+                s.LOGGER.info("Solver %s succeeds", solver_name)
+                return solution
+            except error.SolverError as e:
+                s.LOGGER.info("Solver %s failed: %s", solver_name, e)
+        raise error.SolverError(f"All solvers failed: {solvers}")
     
     def solve(self, *args, **kwargs):
         """Compiles and solves the problem using the specified method.

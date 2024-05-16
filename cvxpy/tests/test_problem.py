@@ -1422,7 +1422,7 @@ class TestProblem(BaseTest):
         
         1. Verifies that a SolverError is raised when all solvers fail.
         2. Validates that a solution is returned when any of the solvers succeeds.
-        3. Ensures that a ParameterError is raised when the inner inputs of the solvers are invalid.
+        3. Ensures that a ValueError is raised when the inner inputs of the solvers are invalid.
         
         """
 
@@ -1433,9 +1433,8 @@ class TestProblem(BaseTest):
         solvers_with_str=[(s.OSQP, {'max_iter':1}), s.CLARABEL]
         solvers_no_dict=[(s.OSQP, {'max_iter':1}), (s.CLARABEL)]
         solvers_empty_dict=[(s.OSQP, {'max_iter':1}), (s.CLARABEL, {})]
-        solvers_empty_list = []
 
-        for solvers in [solvers_with_str,solvers_no_dict,solvers_empty_dict, solvers_empty_list]:
+        for solvers in [solvers_with_str,solvers_no_dict,solvers_empty_dict]:
             self.assertIsNotNone(Problem(cp.Minimize(
                 cp.sum_squares(cp.matmul(A, cp.Variable(40)) - b))).solve_multiple_solvers(
                 solvers=solvers))
@@ -1449,13 +1448,14 @@ class TestProblem(BaseTest):
                 solvers=solvers)
                 
         # invalid input, raise ParameterError
-        solvers_invalid_inner_input = [[1], [()], [(1)], [(1,{})],[(s.OSQP,[])]]
+        solvers_invalid_inner_input = [[], [1], [()], [(1)], [(1,{})],[(s.OSQP,[])]]
 
         for solvers in solvers_invalid_inner_input:
             with self.assertRaises(ParameterError):
                 Problem(cp.Minimize(
                     cp.sum_squares(cp.matmul(A, cp.Variable(40)) - b))).solve_multiple_solvers(
                     solvers=solvers)
+        
 
     def test_reshape(self) -> None:
         """Tests problems with reshape.
