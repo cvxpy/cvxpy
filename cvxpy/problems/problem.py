@@ -451,7 +451,8 @@ class Problem(u.Canonical):
                         else:
                             raise error.ParameterError("Solver tuple input must be (str, dict)")
                     else:
-                        raise error.ParameterError("Solver input must be one of the following: (str, dict) tuple, (str) tuple, or str")
+                        raise error.ParameterError("Solver input must be one of the following:\
+                                                    (str, dict) tuple, (str) tuple, or str")
                     s.LOGGER.info("Solver %s succeeds", solver_name)
                     return solution
                 except error.SolverError as e:
