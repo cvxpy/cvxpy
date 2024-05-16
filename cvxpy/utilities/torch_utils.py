@@ -59,3 +59,10 @@ def gen_tensor(value, dtype=torch.float64) -> torch.Tensor:
     i = torch.LongTensor(inds)
     v = torch.FloatTensor(vals)
     return torch.sparse.FloatTensor(i, v, torch.Size(value_coo.shape)).to(dtype)
+
+def tensor_reshape_fortran(value: torch.Tensor, shape: tuple) -> torch.Tensor:
+    """This function reshapes a tensor in Fortran order (similar to numpy.reshape with order="F").
+    This functionality is not included in Pytorch."""
+    reverse_shape = list(shape)
+    reverse_shape.reverse() #reverse a list in place
+    return torch.reshape(value.reshape(reverse_shape).t(), shape=shape)
