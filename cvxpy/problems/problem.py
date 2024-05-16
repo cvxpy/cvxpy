@@ -418,31 +418,44 @@ class Problem(u.Canonical):
 
     def solve_multiple_solvers(self, solvers:list[tuple[str, dict] | tuple[str] | str] = None):
         """
+        Solve a problem using multiple solvers.
+
         Arguments
         ---------
-        solvers : list of: (str, dict) tuples / (str) tuple / str. optional
-        The solvers to use. For example, ['SCS', ('ECOS'), ('OSQP', {'max_iter':10000})]
+        solvers : list of (str, dict) tuples, (str) tuples, or strings. optional
+            The solvers to use. For example, ['SCS', ('ECOS'), ('OSQP', {'max_iter':10000})]
 
-        """            
+        Returns
+        -------
+        solution : Solution
+            The solution of the first solver that succeeds.
+
+        Raises
+        ------
+        SolverError
+            If all solvers fail to find a solution.
+        ParameterError
+            If the input solvers format is incorrect.
+        """
+            
         if solvers:
             for solver in solvers:
                 try:
-                    s.LOGGER.info("Solver: %s", solver)
                     if isinstance(solver, str):
                         solver_name = solver
                         solution = self.solve(solver=solver)
-                    elif isinstance(solver, tuple) and len(solver)==2:
+                    elif isinstance(solver, tuple) and len(solver) == 2:
                         solver_name, kwargs = solver
                         if isinstance(solver_name, str) and isinstance(kwargs, dict):
-                            solution = self.solve(solver=solver_name,**kwargs)
+                            solution = self.solve(solver=solver_name, **kwargs)
                         else:
-                            raise error.ParameterError()
+                            raise error.ParameterError("Solver tuple input must be (str, dict)")
                     else:
-                        raise error.ParameterError()
-                    s.LOGGER.info("Solver %s succeeds",solver_name)
+                        raise error.ParameterError("Solver input must be one of the following: (str, dict) tuple, (str) tuple, or str")
+                    s.LOGGER.info("Solver %s succeeds", solver_name)
                     return solution
-                except error.SolverError:
-                    continue
+                except error.SolverError as e:
+                    s.LOGGER.info("Solver %s failed: %s", solver_name, e)
             raise error.SolverError(f"All solvers failed: {solvers}")
         return self.solve()
     
