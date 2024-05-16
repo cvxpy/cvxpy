@@ -423,7 +423,7 @@ class Problem(u.Canonical):
         Arguments
         ---------
         solvers : list of (str, dict) tuples, (str) tuples, or strings.
-            The solvers to use. For example, ['SCS', ('ECOS'), ('OSQP', {'max_iter':10000})]
+            The solvers to use. For example, ['SCS', ('CLARABEL',), ('OSQP', {'max_iter':10000})]
 
         Returns
         -------
