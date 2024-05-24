@@ -65,13 +65,13 @@ pub fn select_rows(A: &SparseColMat<u64, f64>, rows: &[u64]) -> SparseColMat<u64
     SparseColMat::try_new_from_triplets(rows.len(), A.ncols(), &triplets).unwrap()
 }
 
-pub(crate) fn identity_kron(reps: u64, lhs: SparseColMat<u64, f64>) -> SparseColMat<u64, f64> {
+pub(crate) fn identity_kron(reps: u64, lhs: &SparseColMat<u64, f64>) -> SparseColMat<u64, f64> {
     if reps == 1 {
         lhs
     } else {
         let mut triplets = Vec::with_capacity(lhs.compute_nnz() * reps as usize);
         for rep in 0..reps {
-            for (r, c, d) in to_triplets_iter(&lhs) {
+            for (r, c, d) in to_triplets_iter(lhs) {
                 triplets.push((
                     r + rep * lhs.nrows() as u64,
                     c + rep * lhs.ncols() as u64,

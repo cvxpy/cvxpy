@@ -27,6 +27,7 @@ type ParamId = i64;
 
 pub(crate) type Tensor = HashMap<VarId, HashMap<ParamId, crate::SparseMatrix>>;
 
+#[derive(Clone)]
 pub(crate) struct View<'a> {
     pub(crate) variables: Vec<i64>, // todo: turn into a set
     pub(crate) tensor: Tensor,
@@ -138,7 +139,7 @@ impl<'a> View<'a> {
 
     pub(crate) fn accumulate_over_variables(
         mut self,
-        func: impl Fn(&SparseColMat<u64, f64>, u64) -> SparseColMat<u64, f64>,
+        func: &impl Fn(&SparseColMat<u64, f64>, u64) -> SparseColMat<u64, f64>,
         is_parameter_free_function: bool,
     ) -> Self {
         for (variable_id, tensor) in &self.tensor {
