@@ -142,9 +142,10 @@ impl<'a> View<'a> {
         func: &impl Fn(&SparseColMat<u64, f64>, u64) -> SparseColMat<u64, f64>,
         is_parameter_free_function: bool,
     ) -> Self {
-        for (variable_id, tensor) in &self.tensor {
-            self.tensor[variable_id] = if is_parameter_free_function {
-                self.apply_to_parameters(func, tensor)
+        for (variable_id, tensor) in self.tensor.iter_mut() {
+
+            *tensor = if is_parameter_free_function {
+                View::apply_to_parameters(func, tensor)
             } else {
                 // func(&tensor[&CONST_ID], 1)
                 todo!("Implement accumulate_over_variables")
@@ -156,7 +157,6 @@ impl<'a> View<'a> {
     }
 
     pub(crate) fn apply_to_parameters(
-        &self,
         func: impl Fn(&SparseColMat<u64, f64>, u64) -> SparseColMat<u64, f64>,
         tensor: &HashMap<i64, SparseColMat<u64, f64>>,
     ) -> HashMap<i64, SparseColMat<u64, f64>> {

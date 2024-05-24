@@ -78,7 +78,7 @@ pub(crate) fn process_constraints<'a>(linop: &Linop<'a>, view: View<'a>) -> View
 }
 
 pub(crate) fn mul<'a>(lhs: &Linop<'a>, view: View<'a>) -> View<'a> {
-    let lhs = get_constant_data(lhs, view, false);
+    let lhs = get_constant_data(lhs, &view, false);
 
     let is_parameter_free;
     let func;
@@ -91,7 +91,7 @@ pub(crate) fn mul<'a>(lhs: &Linop<'a>, view: View<'a>) -> View<'a> {
             let stacked_lhs = faer_ext::identity_kron(reps, lhs);
             func = |x: &SparseMatrix, p: u64| -> SparseMatrix {
                 faer::sparse::linalg::matmul::sparse_sparse_matmul(
-                    faer_ext::identity_kron(p, x.to_owned().unwrap()).as_ref(),
+                    faer_ext::identity_kron(p, x).as_ref(),
                     x.as_ref(),
                     1.0,
                     faer::Parallelism::None,
@@ -111,9 +111,9 @@ pub(crate) fn get_constant_data<'a>(
 ) -> HashMap<i64, SparseMatrix> {
     // TODO: Add fast path for when linop is a constant
 
-    let constant_view = process_constraints(linop, view.clone());
+    let mut constant_view = process_constraints(linop, view.clone());
     assert!(constant_view.variables == &[CONST_ID]);
-    let constant_data = &constant_view.tensor[&CONST_ID];
+    let constant_data = constant_view.tensor.remove(&CONST_ID).unwrap();
 
     if !column {
         match linop.shape {

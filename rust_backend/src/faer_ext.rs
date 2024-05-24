@@ -67,7 +67,7 @@ pub fn select_rows(A: &SparseColMat<u64, f64>, rows: &[u64]) -> SparseColMat<u64
 
 pub(crate) fn identity_kron(reps: u64, lhs: &SparseColMat<u64, f64>) -> SparseColMat<u64, f64> {
     if reps == 1 {
-        lhs
+        lhs.clone()
     } else {
         let mut triplets = Vec::with_capacity(lhs.compute_nnz() * reps as usize);
         for rep in 0..reps {
@@ -127,7 +127,7 @@ mod tests {
             SparseMatrix::try_new_from_triplets(2, 2, &[(0, 0, 1.0), (0, 1, 2.0), (1, 0, 3.0)])
                 .unwrap();
 
-        let result = identity_kron(1, mat);
+        let result = identity_kron(1, &mat);
 
         assert_eq!(result.nrows(), 2);
         assert_eq!(result.ncols(), 2);
@@ -144,7 +144,7 @@ mod tests {
             SparseMatrix::try_new_from_triplets(2, 2, &[(0, 0, 1.0), (0, 1, 2.0), (1, 0, 3.0)])
                 .unwrap();
 
-        let result = identity_kron(3, mat);
+        let result = identity_kron(3, &mat);
 
         assert_eq!(result.nrows(), 6);
         assert_eq!(result.ncols(), 6);
