@@ -10,5 +10,5 @@ crate-type = ["cdylib"]
 
 [dependencies]
 pyo3 = "0.21.0"
-ndarray = "0.15"
+numpy = "0.21.0"
 faer = { git = "https://github.com/PTNobel/faer-rs.git" }

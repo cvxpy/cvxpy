@@ -1,4 +1,4 @@
-use ndarray::ArrayView2;
+use numpy::{PyReadonlyArray2, ndarray::Array2};
 use pyo3::intern;
 use pyo3::prelude::*;
 use std::borrow::Borrow;
@@ -45,7 +45,7 @@ pub(crate) struct Linop<'a> {
 
 pub(crate) enum LinopKind<'a> {
     Variable(i64),
-    Mul { lhs: &'a Box<Linop<'a>> },
+    Mul { lhs: Box<Linop<'a>> },
     Rmul { rhs: &'a Box<Linop<'a>> },
     MulElem { lhs: &'a Box<Linop<'a>> },
     Sum,
@@ -53,7 +53,7 @@ pub(crate) enum LinopKind<'a> {
     Transpose,
     SumEntries,
     ScalarConst(f64),
-    DenseConst(ArrayView2<'a, f64>),
+    DenseConst(Array2<f64>),
     SparseConst(&'a crate::SparseMatrix),
     Param(i64),
     Reshape,
@@ -62,14 +62,47 @@ pub(crate) enum LinopKind<'a> {
 
 impl<'py> FromPyObject<'py> for CvxpyShape {
     fn extract_bound(ob: &Bound<'py, PyAny>) -> PyResult<Self> {
-        todo!();
+        let v = <Vec<u64> as FromPyObject>::extract_bound(ob)?;
+        Ok(match *v {
+            [] => CvxpyShape::D0,
+            [n] => CvxpyShape::D1(n),
+            [m, n] => CvxpyShape::D2(m, n),
+            _ => panic!("Only support 2D expressions"),
+        })
     }
 }
 
-impl<'py> FromPyObject<'py> for Linop<'_> {
+impl<'py> FromPyObject<'py> for Linop<'py> {
     fn extract_bound(ob: &Bound<'py, PyAny>) -> PyResult<Self> {
-        let pylinop = ob.borrow();
-        let shape: CvxpyShape = pylinop.getattr(intern!(ob.py(), "shape"))?.extract()?;
-        todo!();
+        let shape: CvxpyShape = ob.getattr(intern!(ob.py(), "shape"))?.extract()?;
+        let type_string = ob.getattr(intern!(ob.py(), "type"))?;
+        let kind: LinopKind<'py> = match type_string.extract()? {
+            "sum" => LinopKind::Sum,
+            "mul" => {
+                let lhs = Linop::extract_bound(&ob.getattr(intern!(ob.py(), "data"))?)?;
+                LinopKind::Mul { lhs: Box::new(lhs) }
+            }
+            "neg" => LinopKind::Neg,
+            "promote" => LinopKind::Promote,
+            "transpose" => LinopKind::Transpose,
+            "reshape" => LinopKind::Reshape,
+            "variable" => LinopKind::Variable(i64::extract_bound(&ob.getattr(intern!(ob.py(), "data"))?)?),
+            "sparse_const" => {
+                todo!()
+            }
+            "dense_const" => {
+                let array = PyReadonlyArray2::extract_bound(&ob.getattr(intern!(ob.py(), "data"))?)?;
+                LinopKind::DenseConst(array.as_array().to_owned())
+            }
+            "scalar_const" => {
+                let f = f64::extract_bound(&ob.getattr(intern!(ob.py(), "data"))?)?;
+                LinopKind::ScalarConst(f)
+            }
+            _ => { todo!() }
+        };
+        Ok(Linop {
+            shape,
+            kind
+        })
     }
 }

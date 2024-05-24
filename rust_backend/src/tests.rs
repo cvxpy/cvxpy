@@ -1,7 +1,7 @@
 use faer::scale;
 use faer::sparse::SparseColMat;
 use faer::zipped;
-use ndarray::ArrayView2;
+use numpy::ndarray::ArrayView2;
 
 use crate::backend::process_constraints;
 use crate::backend::promote;
@@ -177,7 +177,7 @@ fn test_scalar_constant() {
 
 #[test]
 fn test_dense_constant() {
-    let mat = ndarray::arr2(&[[1.0, 2.0], [3.0, 4.0]]);
+    let mat = numpy::ndarray::arr2(&[[1.0, 2.0], [3.0, 4.0]]);
 
     let mat_view = mat.view();
 
@@ -277,7 +277,7 @@ fn test_mul() {
 
     let variable_view = process_constraints(&linop, empty_view.clone());
 
-    let mat = ndarray::arr2(&[[1.0, 2.0], [3.0, 4.0]]);
+    let mat = numpy::ndarray::arr2(&[[1.0, 2.0], [3.0, 4.0]]);
     let mat_view = mat.view();
 
     let lhs_linopt = Linop {

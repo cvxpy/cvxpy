@@ -37,7 +37,7 @@ pub(crate) fn process_constraints<'a>(linop: &Linop<'a>, view: View<'a>) -> View
                 context: view.context,
             }
         }
-        LinopKind::DenseConst(mat) => {
+        LinopKind::DenseConst(ref mat) => {
             let mut triplets = Vec::with_capacity(mat.ncols() * mat.nrows());
             for ((i, j), v) in mat.indexed_iter() {
                 triplets.push((i as u64 + j as u64 * mat.nrows() as u64, 0_u64, *v));
@@ -72,7 +72,7 @@ pub(crate) fn process_constraints<'a>(linop: &Linop<'a>, view: View<'a>) -> View
         LinopKind::Sum => view, // Sum (along axis 1) is implicit in Ax+b, so it is a NOOP.
         LinopKind::Reshape => view, // Reshape is a NOOP.
         LinopKind::Promote => promote(linop, view),
-        LinopKind::Mul { lhs } => mul(lhs, view),
+        LinopKind::Mul { ref lhs } => mul(lhs, view),
         _ => panic!(),
     }
 }
