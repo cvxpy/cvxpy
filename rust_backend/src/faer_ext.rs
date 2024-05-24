@@ -88,7 +88,7 @@ pub(crate) fn identity_kron(reps: u64, lhs: &SparseColMat<u64, f64>) -> SparseCo
     }
 }
 
-pub(crate) fn identity_kron2(reps: u64, A: SparseMatrix) -> SparseColMat<u64, f64> {
+pub(crate) fn identity_kron2(reps: u64, A: &SparseMatrix) -> SparseColMat<u64, f64> {
     let capacity = A.compute_nnz() * reps as usize;
     let mut row_indices = Vec::with_capacity(capacity);
     let mut entries = Vec::with_capacity(capacity);
@@ -131,10 +131,10 @@ mod tests {
 
         assert_eq!(result.nrows(), 2);
         assert_eq!(result.ncols(), 2);
-        assert_eq!(result.compute_nnz(), 4);
+        assert_eq!(result.compute_nnz(), 3);
         assert_eq!(
             to_triplets_iter(&result).collect::<Vec<_>>(),
-            vec![(0, 0, 1.0), (0, 1, 2.0), (1, 0, 3.0),]
+            vec![(0, 0, 1.0), (1, 0, 3.0), (0, 1, 2.0)]
         );
     }
 
@@ -153,14 +153,14 @@ mod tests {
             to_triplets_iter(&result).collect::<Vec<_>>(),
             vec![
                 (0, 0, 1.0),
-                (0, 1, 2.0),
                 (1, 0, 3.0),
-                (3, 3, 1.0),
-                (3, 4, 2.0),
-                (4, 3, 3.0),
-                (6, 6, 1.0),
-                (6, 7, 2.0),
-                (7, 6, 3.0),
+                (0, 1, 2.0),
+                (2, 2, 1.0),
+                (3, 2, 3.0),
+                (2, 3, 2.0),
+                (4, 4, 1.0),
+                (5, 4, 3.0),
+                (4, 5, 2.0)
             ]
         );
     }
