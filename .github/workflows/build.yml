@@ -204,8 +204,9 @@ jobs:
           sed -i.bak '/clarabel >= /d' pyproject.toml
           sed -i.bak '/osqp >= /d' pyproject.toml
           sed -i.bak '/ecos >= /d' pyproject.toml
-          sed -i.bak '/scs >= /d' pyproject.toml
-          rm -rf pyproject.toml.bak
+          sed -i.bak '/scs >= /d' pyproject.toml          
+          sed -i.bak -e 's/name="cvxpy",/name="cvxpy-base",/g' setup.py
+          rm -rf pyproject.toml.bak setup.py.bak
 
       - name: Verify that we can build by pip-install on each OS.
         if: ${{env.PIP_INSTALL == 'True'}}
