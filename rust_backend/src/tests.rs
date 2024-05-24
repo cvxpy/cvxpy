@@ -258,3 +258,69 @@ fn test_sparse_constant() {
             .unwrap()
     )
 }
+
+
+#[test]
+fn test_mul() {
+    let context = ViewContext {
+        id_to_col: [(1, 0)].into(),
+        param_to_size: [(-1, 1)].into(),
+        param_to_col: [(-1, 0)].into(),
+        param_size_plus_one: 1,
+        var_length: 4,
+    };
+    let linop = Linop {
+        shape: CvxpyShape::D2(2, 2),
+        kind: LinopKind::Variable(1),
+    };
+    let empty_view = View::new(&context);
+
+    let variable_view = process_constraints(&linop, empty_view.clone());
+
+    let mat = ndarray::arr2(&[[1.0, 2.0], [3.0, 4.0]]);
+    let mat_view = mat.view();
+
+    let mul_linop = Linop {
+        shape: CvxpyShape::D2(2, 2),
+        kind: LinopKind::DenseConst(mat_view),
+    };
+    let out_view = process_constraints(&mul_linop, empty_view);
+
+    let view_A = out_view.get_tensor_representation(0);
+    let mut triplets = Vec::new();
+    for (r, c, d) in view_A
+        .row
+        .iter()
+        .zip(&view_A.col)
+        .zip(&view_A.data)
+        .map(|((&r, &c), &d)| (r, c, d))
+    {
+        triplets.push((r, c, d));
+    }
+    let view_A = SparseColMat::try_new_from_triplets(4, 4, &triplets).unwrap();
+
+    // expected = np.array(
+    //     [[1, 2, 0, 0],
+    //      [3, 4, 0, 0],
+    //      [0, 0, 1, 2],
+    //      [0, 0, 3, 4]]
+    // )
+
+    let expected_A = SparseColMat::try_new_from_triplets(
+        4,
+        4,
+        &[
+            (0, 0, 1.0),
+            (1, 0, 3.0),
+            (0, 1, 2.0),
+            (1, 1, 4.0),
+            (2, 2, 1.0),
+            (3, 2, 3.0),
+            (2, 3, 2.0),
+            (3, 3, 4.0),
+        ],
+    ).unwrap();
+    assert_eq!(view_A, expected_A);
+
+
+}
