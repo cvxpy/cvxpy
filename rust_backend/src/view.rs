@@ -10,11 +10,12 @@ use std::collections::HashMap;
 
 #[derive(Default)]
 pub(crate) struct ViewContext {
-    pub(crate) id_to_col: IdxMap,
-    pub(crate) param_to_size: IdxMap,
-    pub(crate) param_to_col: IdxMap,
-    pub(crate) param_size_plus_one: i64,
-    pub(crate) var_length: i64,
+    pub(crate) id_to_col: IdxMap, /// Maps variable id to first column associated with its entries
+    pub(crate) param_to_size: IdxMap, /// Maps parameter id to number of entries in parameter
+    pub(crate) param_to_col: IdxMap, /// Maps parameter id to first matrix/slice (column in a 3D
+                                     /// sense) associated with its entries
+    pub(crate) param_size_plus_one: i64, /// Total number of parameter entries + 1
+    pub(crate) var_length: i64, /// Total number of variables in problem
 }
 type VarId = i64;
 type ParamId = i64;
