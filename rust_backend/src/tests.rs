@@ -280,11 +280,17 @@ fn test_mul() {
     let mat = ndarray::arr2(&[[1.0, 2.0], [3.0, 4.0]]);
     let mat_view = mat.view();
 
-    let mul_linop = Linop {
+    let lhs_linopt = Linop {
         shape: CvxpyShape::D2(2, 2),
         kind: LinopKind::DenseConst(mat_view),
     };
-    let out_view = process_constraints(&mul_linop, empty_view);
+
+    let mul_linop = Linop {
+        shape: CvxpyShape::D2(2, 2),
+        kind: LinopKind::Mul{lhs: &Box::new(lhs_linopt)},
+    };
+
+    let out_view = process_constraints(&mul_linop, variable_view);
 
     let view_A = out_view.get_tensor_representation(0);
     let mut triplets = Vec::new();

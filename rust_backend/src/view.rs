@@ -8,7 +8,7 @@ use faer::sparse::SparseColMat;
 use pyo3::prelude::*;
 use std::collections::HashMap;
 
-#[derive(Default)]
+#[derive(Default, Debug)]
 pub(crate) struct ViewContext {
     /// Maps variable id to first column associated with its entries
     pub(crate) id_to_col: IdxMap, 
@@ -27,7 +27,7 @@ type ParamId = i64;
 
 pub(crate) type Tensor = HashMap<VarId, HashMap<ParamId, crate::SparseMatrix>>;
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub(crate) struct View<'a> {
     pub(crate) variables: Vec<i64>, // todo: turn into a set
     pub(crate) tensor: Tensor,
@@ -160,6 +160,9 @@ impl<'a> View<'a> {
         func: impl Fn(&SparseColMat<u64, f64>, u64) -> SparseColMat<u64, f64>,
         tensor: &HashMap<i64, SparseColMat<u64, f64>>,
     ) -> HashMap<i64, SparseColMat<u64, f64>> {
-        todo!("Implement apply_to_parameters")
+        tensor
+            .iter()
+            .map(|(k, v)| (*k, func(v, 1)))
+            .collect()
     }
 }

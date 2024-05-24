@@ -89,9 +89,9 @@ pub(crate) fn mul<'a>(lhs: &Linop<'a>, view: View<'a>) -> View<'a> {
             is_parameter_free = true;
             let reps = view.rows() / lhs.ncols() as u64;
             let stacked_lhs = faer_ext::identity_kron(reps, lhs);
-            func = |x: &SparseMatrix, p: u64| -> SparseMatrix {
+            func = move |x: &SparseMatrix, p: u64| -> SparseMatrix {
                 faer::sparse::linalg::matmul::sparse_sparse_matmul(
-                    faer_ext::identity_kron(p, x).as_ref(),
+                    faer_ext::identity_kron(p, &stacked_lhs).as_ref(),
                     x.as_ref(),
                     1.0,
                     faer::Parallelism::None,
