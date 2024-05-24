@@ -37,18 +37,24 @@ fn build_matrix(
         var_length,
     };
 
-    let mut offset = 0;
+    let mut offset = 0i64;
     let tensor = TensorRepresentation::combine(linops.into_iter().map(|linop| {
         let view = View::new(&ctx);
         let lin_op_tensor = process_constraints(&linop, view);
         let tensor_rep = lin_op_tensor.get_tensor_representation(offset);
-        offset += linop.size();
+        offset += i64::try_from(linop.shape.numel()).unwrap();
         tensor_rep
     }).collect());
 
-    let tensor = transform_tensor_to_mat(ctx, tensor, offset);
+    Ok(transform_tensor_to_mat(&ctx, tensor, offset.try_into().unwrap()))
 
-    Ok((tensor.data, (tensor.row, tensor.col), tensor.shape()))
+}
+
+fn transform_tensor_to_mat(ctx: &ViewContext, tensor: TensorRepresentation, offset: u64) -> (Vec<f64>, (Vec<u64>, Vec<u64>), (u64, u64)) {
+    let rows = tensor.col.into_iter().zip(tensor.row.into_iter()).map(|(c, r)| c * offset + r).collect();
+    let shape = (offset * u64::try_from(ctx.var_length + 1).unwrap(), ctx.param_size_plus_one.try_into().unwrap());
+
+    (tensor.data, (rows, tensor.parameter_offset), shape)
 }
 
 /// A Python module implemented in Rust.
