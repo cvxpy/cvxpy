@@ -58,6 +58,9 @@ class TestBackendInstance:
         backend = CanonBackend.get_backend(s.NUMPY_CANON_BACKEND, *args)
         assert isinstance(backend, NumPyCanonBackend)
 
+        backend = CanonBackend.get_backend(s.GRAPHBLAS_CANON_BACKEND, *args)
+        assert isinstance(backend, GraphBlasBackend)
+
         with pytest.raises(KeyError):
             CanonBackend.get_backend("notabackend")
 
