@@ -22,7 +22,6 @@ from typing import Any, Callable
 
 import numpy as np
 import graphblas as gb
-import time
 from graphblas.core.utils import ensure_type
 import scipy.sparse as sp
 from scipy.signal import convolve
@@ -66,7 +65,7 @@ class TensorRepresentation:
         data, row, col, parameter_offset = np.array([]), np.array([]), np.array([]), np.array([])
         # Appending to numpy arrays vs. appending to lists and casting to array at the end was
         # faster for relevant dimensions in our testing.
-        for i, t in enumerate(tensors):
+        for t in tensors:
             data = np.append(data, t.data)
             row = np.append(row, t.row)
             col = np.append(col, t.col)
