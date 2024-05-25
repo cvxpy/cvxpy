@@ -55,10 +55,10 @@ def mul(lin_op, val_dict, is_abs: bool = False):
                 return val_dict[lin_op.data]
         # Defaults to zero if no value given.
         else:
-            return np.mat(np.zeros(lin_op.shape))
+            return np.asmatrix(np.zeros(lin_op.shape))
     # Return all zeros for NO_OP.
     elif lin_op.type is lo.NO_OP:
-        return np.mat(np.zeros(lin_op.shape))
+        return np.asmatrix(np.zeros(lin_op.shape))
     else:
         eval_args = []
         for arg in lin_op.args:
@@ -243,10 +243,10 @@ def op_tmul(lin_op, value):
         divisor = mul(lin_op.data, {})
         result = value/divisor
     elif lin_op.type is lo.SUM_ENTRIES:
-        result = np.mat(np.ones(lin_op.args[0].shape))*value
+        result = np.asmatrix(np.ones(lin_op.args[0].shape))*value
     elif lin_op.type is lo.INDEX:
         row_slc, col_slc = lin_op.data
-        result = np.mat(np.zeros(lin_op.args[0].shape))
+        result = np.asmatrix(np.zeros(lin_op.args[0].shape))
         result[row_slc, col_slc] = value
     elif lin_op.type is lo.TRANSPOSE:
         result = value.T
@@ -256,7 +256,7 @@ def op_tmul(lin_op, value):
         # The return type in numpy versions < 1.10 was ndarray.
         result = np.diag(value)
         if isinstance(result, np.matrix):
-            result = result.A[0]
+            result = np.asarray(result)[0]
     elif lin_op.type is lo.CONV:
         result = conv_mul(lin_op, value, transpose=True)
     else:

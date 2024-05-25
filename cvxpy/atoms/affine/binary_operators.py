@@ -341,7 +341,7 @@ class DivExpression(BinaryOperator):
         """
         for i in range(2):
             if sp.issparse(values[i]):
-                values[i] = values[i].todense().A
+                values[i] = values[i].toarray()
         return np.divide(values[0], values[1])
 
     def is_quadratic(self) -> bool:
@@ -422,7 +422,7 @@ class DivExpression(BinaryOperator):
         return (lu.div_expr(arg_objs[0], arg_objs[1]), [])
 
 
-def scalar_product(x, y):
+def vdot(x, y):
     """
     Return the standard inner product (or "scalar product") of (x,y).
 
@@ -452,6 +452,13 @@ def scalar_product(x, y):
     y = deep_flatten(y)
     prod = multiply(conj(x), y)
     return cvxpy_sum(prod)
+
+
+def scalar_product(x, y):
+    """
+    Alias for vdot.
+    """
+    return vdot(x, y)
 
 
 def outer(x, y):

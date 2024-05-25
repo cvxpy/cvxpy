@@ -43,6 +43,9 @@ extensions = [
     'sphinx.ext.napoleon',
     'sphinxcontrib.jquery',
     'sphinx.ext.autosectionlabel',
+    'sphinx_inline_tabs',
+    'sphinx_design',
+    'sphinx_immaterial',
 ]
 
 # To suppress autodoc/numpydoc warning.
@@ -137,7 +140,7 @@ table_styling_embed_css = False
 
 html_theme_path = [alabaster.get_path(), "../themes"]
 extensions += ['alabaster']
-html_theme = 'cvxpy_alabaster'
+html_theme = 'sphinx_immaterial'
 # Note: the version selector could be omitted for local builds.
 # See https://github.com/cvxpy/cvxpy/pull/1624#discussion_r795207339 for a discussion on the topic
 html_sidebars = {
@@ -150,12 +153,88 @@ html_sidebars = {
 # further.  For a list of options available for each theme, see the
 # documentation.
 html_theme_options = {
-   'github_user': 'cvxpy',
-   'github_repo': 'cvxpy',
-   'github_banner': False,
-   'github_type': 'star',
-   'travis_button': False,
-   'analytics_id': 'UA-50248335-1',
+    "palette": {"scheme": "default"},
+
+    "features": [
+        "header.autohide",
+        # "toc.integrate",  # enable/disable right sidebar
+        "toc.follow",
+        # "toc.sticky",
+        "navigation.path",  # breadcrumbs, not yet available.
+        # "navigation.sections",  # top-level sections are rendered as groups in the sidebar for viewports above 1220px; not compatible with tabs below.
+        "navigation.instant",
+        # clicks on all internal links will be intercepted and dispatched via XHR without fully reloading the page
+        "navigation.top",
+        # back-to-top button can be shown when the user, after scrolling down, starts to scroll up again. It's rendered centered and just below the header; not yet available.
+        "navigation.tabs",
+        # top-level sections are rendered in a menu layer below the header for viewports above 1220px, but remain as-is on mobile
+        "navigation.tabs.sticky",
+        # navigation tabs will lock below the header and always remain visible when scrolling down
+        "navigation.tracking",  # the URL in the address bar is automatically updated with the active anchor
+        "navigation.expand",
+        # the left sidebar will expand all collapsible subsections by default, so the user doesn't have to open subsections manually
+        "search.highlight",
+        # a user clicks on a search result, Material for MkDocs will highlight all occurrences after following the link
+        "search.share",
+        # a  share button is rendered next to the reset button, which allows to deep link to the current search query and result
+        "content.tabs.link",
+        "announce.dismiss",
+    ],
+
+    "toc_title": "On this page",
+    "site_url": "https://www.cvxpy.org/",
+    "repo_url": "https://github.com/cvxpy/cvxpy/",
+    "repo_name": "CVXPY",
+    "icon": {
+        "repo": "fontawesome/brands/github",
+    },
+    "analytics": {
+        "provider": "google",
+        "property": "UA-50248335-1",
+    },
+
+    # version_dropdown
+    "version_dropdown": True,
+    "version_info": [
+        {
+            "version": "https://www.cvxpy.org",
+            "title": "latest",
+            "aliases": [],
+        },
+        {
+            "version": "https://www.cvxpy.org/version/1.4",
+            "title": "1.4",
+            "aliases": [],
+        },
+        {
+            "version": "https://www.cvxpy.org/version/1.3",
+            "title": "1.3",
+            "aliases": [],
+        },
+        {
+            "version": "https://www.cvxpy.org/version/1.2",
+            "title": "1.2",
+            "aliases": [],
+        },
+        {
+            "version": "https://www.cvxpy.org/version/1.1",
+            "title": "1.1",
+            "aliases": [],
+        },
+    ],
+
+    # social icons
+    "social": [
+        {
+            "icon": "fontawesome/brands/github",
+            "link": "https://github.com/cvxpy/cvxpy",
+            "name": "Source on github.com",
+        },
+        {
+            "icon": "fontawesome/brands/python",
+            "link": "https://pypi.org/project/cvxpy/",
+        },
+    ],
 }
 
 # Add any paths that contain custom themes here, relative to this directory.
@@ -163,24 +242,26 @@ html_theme_options = {
 
 # The name for this set of Sphinx documents.  If None, it defaults to
 # "<project> v<release> documentation".
-html_title = f'CVXPY {version} documentation'
+# html_title = f'CVXPY {version} documentation'
+html_title = ""  # we are using a logo.
 
 # A shorter title for the navigation bar.  Default is the same as html_title.
 #html_short_title = None
 
 # The name of an image file (relative to this directory) to place at the top
 # of the sidebar.
-#html_logo = None
+html_logo = "_static/cvxpy-wordmark-light.png"
 
 # The name of an image file (within the static path) to use as favicon of the
 # docs.  This file should be a Windows icon file (.ico) being 16x16 or 32x32
 # pixels large.
-#html_favicon = None
+html_favicon = "_static/favicon.ico"
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
-html_static_path = []
+html_static_path = ['_static']
+html_css_files = ['css/styling.css']
 
 # If not '', a 'Last updated on:' timestamp is inserted at every page bottom,
 # using the given strftime format.

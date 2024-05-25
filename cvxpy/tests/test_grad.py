@@ -193,6 +193,12 @@ class TestGrad(BaseTest):
         self.A.value = [[10, 4], [4, 30]]
         self.assertItemsAlmostEqual(expr.grad[self.A].toarray(), [1, 0, 0, 1])
 
+        # Failed for rectangular inputs.
+        # https://github.com/cvxpy/cvxpy/issues/2364
+        expr = cp.normNuc(self.C)
+        self.C.value = np.array([[1, 0], [0, 0], [0, 2]])
+        self.assertItemsAlmostEqual(expr.grad[self.C].toarray(), [1, 0, 0, 0, 0, 1])
+
     def test_log_det(self) -> None:
         """Test gradient for log_det
         """

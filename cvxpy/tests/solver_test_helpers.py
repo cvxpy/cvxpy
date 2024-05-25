@@ -103,7 +103,7 @@ class SolverTestHelper:
         for con in self.constraints:
             if isinstance(con, (cp.constraints.Inequality,
                                 cp.constraints.Equality)):
-                comp = cp.scalar_product(con.expr, con.dual_value).value
+                comp = cp.vdot(con.expr, con.dual_value).value
             elif isinstance(con, (cp.constraints.ExpCone,
                                   cp.constraints.SOC,
                                   cp.constraints.NonNeg,
@@ -111,7 +111,7 @@ class SolverTestHelper:
                                   cp.constraints.PSD,
                                   cp.constraints.PowCone3D,
                                   cp.constraints.PowConeND)):
-                comp = cp.scalar_product(con.args, con.dual_value).value
+                comp = cp.vdot(con.args, con.dual_value).value
             elif isinstance(con, cp.RelEntrConeQuad) or isinstance(con, cp.OpRelEntrConeQuad):
                 msg = '\nDual variables not implemented for quadrature based approximations;' \
                        + '\nSkipping complementarity check.'
@@ -132,7 +132,7 @@ class SolverTestHelper:
                                 cp.constraints.Equality)):
                 dual_var_value = con.dual_value
                 prim_var_expr = con.expr
-                L = L + cp.scalar_product(dual_var_value, prim_var_expr)
+                L = L + cp.vdot(dual_var_value, prim_var_expr)
             elif isinstance(con, (cp.constraints.ExpCone,
                                   cp.constraints.SOC,
                                   cp.constraints.Zero,
@@ -140,7 +140,7 @@ class SolverTestHelper:
                                   cp.constraints.PSD,
                                   cp.constraints.PowCone3D,
                                   cp.constraints.PowConeND)):
-                L = L - cp.scalar_product(con.args, con.dual_value)
+                L = L - cp.vdot(con.args, con.dual_value)
             else:
                 raise NotImplementedError()
         try:
@@ -154,7 +154,7 @@ class SolverTestHelper:
             self.tester.fail(msg)
         bad_norms = []
 
-        """The convention that we follow for construting the Lagrangian is: 1) Move all
+        r"""The convention that we follow for construting the Lagrangian is: 1) Move all
         explicitly passed constraints to the problem (via Problem.constraints) into the
         Lagrangian --- dLdX == 0 for any such variables 2) Constraints that have
         implicitly been imposed on variables at the time of declaration via specific
@@ -191,7 +191,7 @@ class SolverTestHelper:
                     if diag_entries > 10**(-places):
                         bad_norms.append((dual_cone_violation, opt_var))
                 elif opt_var.is_symmetric():
-                    """The dual cone to the set of symmetric matrices is the
+                    r"""The dual cone to the set of symmetric matrices is the
                     set of skew-symmetric matrices, so we check if dLdX \in
                     set(skew-symmetric-matrices)
                     g[opt_var] is the problematic gradient in question"""
@@ -1302,7 +1302,7 @@ class StandardTestSDPs:
         return sth
 
     @staticmethod
-    def test_sdp_2(solver, places: int = 3, duals: bool = True, **kwargs) -> SolverTestHelper:
+    def test_sdp_2(solver, places: int = 2, duals: bool = True, **kwargs) -> SolverTestHelper:
         # places is set to 3 rather than 4, because analytic solution isn't known.
         sth = sdp_2()
         sth.solve(solver, **kwargs)

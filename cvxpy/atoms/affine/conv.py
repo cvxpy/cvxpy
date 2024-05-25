@@ -25,6 +25,7 @@ import cvxpy.lin_ops.lin_utils as lu
 import cvxpy.utilities as u
 from cvxpy.atoms.affine.affine_atom import AffAtom
 from cvxpy.constraints.constraint import Constraint
+from cvxpy.expressions.constants.parameter import is_param_free
 
 
 class conv(AffAtom):
@@ -68,6 +69,22 @@ class conv(AffAtom):
             raise ValueError("The arguments to conv must resolve to vectors.")
         if not self.args[0].is_constant():
             raise ValueError("The first argument to conv must be constant.")
+
+    def is_atom_convex(self) -> bool:
+        """Is the atom convex?
+        """
+        # TODO support a non-constant first argument.
+        if u.scopes.dpp_scope_active():
+            # conv is not DPP if any parameters are present.
+            c = self.args[0]
+            return c.is_constant() and is_param_free(c)
+        else:
+            return self.args[0].is_constant()
+
+    def is_atom_concave(self) -> bool:
+        """Is the atom concave?
+        """
+        return self.is_atom_convex()
 
     def shape_from_args(self) -> Tuple[int, int]:
         """The sum of the argument dimensions - 1.
@@ -153,6 +170,22 @@ class convolve(AffAtom):
             raise ValueError("The arguments to conv must be scalar or 1D.")
         if not self.args[0].is_constant():
             raise ValueError("The first argument to conv must be constant.")
+
+    def is_atom_convex(self) -> bool:
+        """Is the atom convex?
+        """
+        # TODO support a non-constant first argument.
+        if u.scopes.dpp_scope_active():
+            # conv is not DPP if any parameters are present.
+            c = self.args[0]
+            return c.is_constant() and is_param_free(c)
+        else:
+            return self.args[0].is_constant()
+
+    def is_atom_concave(self) -> bool:
+        """Is the atom concave?
+        """
+        return self.is_atom_convex()
 
     def shape_from_args(self) -> Tuple[int, int]:
         """The sum of the argument dimensions - 1.

@@ -34,6 +34,7 @@ class Solver(Reduction):
 
     # Solver capabilities.
     MIP_CAPABLE = False
+    BOUNDED_VARIABLES = False
 
     # Keys for inverse data.
     VAR_ID = 'var_id'

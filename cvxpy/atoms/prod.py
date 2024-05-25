@@ -84,9 +84,23 @@ class Prod(AxisAtom):
         """Takes the product of the entries of value.
         """
         if intf.is_sparse(values[0]):
-            result = np.prod(values[0], axis=self.axis)
-            if not self.keepdims and self.axis is not None:
-                result = result.A.flatten()
+            sp_mat = values[0]
+            if self.axis is None:
+                if sp_mat.nnz == sp_mat.shape[0] * sp_mat.shape[1]:
+                    data = sp_mat.data
+                else:
+                    data = np.zeros(1, dtype=sp_mat.dtype)
+                result = np.prod(data)
+            else:
+                assert self.axis in [0, 1]
+                # The following snippet is taken from stackoverflow.
+                # https://stackoverflow.com/questions/44320865/
+                mask = sp_mat.getnnz(axis=self.axis) == sp_mat.shape[self.axis]
+                result = np.zeros(sp_mat.shape[1-self.axis], dtype=sp_mat.dtype)
+                data = sp_mat[:, mask] if self.axis == 0 else sp_mat[mask, :]
+                result[mask] = np.prod(data.toarray(), axis=self.axis)
+                if self.keepdims:
+                    result = np.expand_dims(result, self.axis)
         else:
             result = np.prod(values[0], axis=self.axis, keepdims=self.keepdims)
         return result

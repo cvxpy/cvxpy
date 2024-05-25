@@ -237,6 +237,20 @@ class TestProblem(BaseTest):
         self.assertIsNone(data["A"])
         self.assertEqual(data["G"].shape, (3, 3))
 
+        # caching use_quad_obj
+        p = Problem(cp.Minimize(cp.sum_squares(self.x) + 2))
+        data, _, _ = p.get_problem_data(s.SCS, solver_opts={"use_quad_obj": False})
+        dims = data[ConicSolver.DIMS]
+        self.assertEqual(dims.soc, [4])
+        self.assertEqual(data["c"].shape, (3,))
+        self.assertEqual(data["A"].shape, (4, 3))
+        data, _, _ = p.get_problem_data(s.SCS, solver_opts={"use_quad_obj": True})
+        dims = data[ConicSolver.DIMS]
+        self.assertEqual(dims.soc, [])
+        self.assertEqual(data["P"].shape, (2, 2))
+        self.assertEqual(data["c"].shape, (2,))
+        self.assertEqual(data["A"].shape, (0, 2))
+
         if s.CVXOPT in INSTALLED_SOLVERS:
             data, _, _ = Problem(cp.Minimize(cp.norm(self.x) + 3)).get_problem_data(
                 s.CVXOPT)
@@ -311,6 +325,53 @@ class TestProblem(BaseTest):
                 sys.stdout = backup  # restore original stdout
 
                 outputs[verbose].append((out, solver))
+
+        for output, solver in outputs[True]:
+            print(solver)
+            assert len(output) > 0
+        for output, solver in outputs[False]:
+            print(solver)
+            assert len(output) == 0
+
+    def test_solver_verbose(self) -> None:
+        """Test silencing and enabling solver-only messages.
+        """
+        # setup the environment
+        outputs = {True: [], False: []}
+        backup = sys.stdout
+        ######
+        for solver in INSTALLED_SOLVERS:
+            for solver_verbose in [True, False]:
+                # Don't test GLPK because there's a race
+                # condition in setting CVXOPT solver options.
+                if solver in [cp.GLPK, cp.GLPK_MI, cp.MOSEK, cp.CBC,
+                              cp.SCIPY, cp.COPT]:
+                    continue
+                sys.stdout = StringIO()  # capture output
+
+                p = Problem(cp.Minimize(self.a + self.x[0]),
+                            [self.a >= 2, self.x >= 2])
+                p.solve(solver_verbose=solver_verbose, solver=solver)
+
+                if solver in SOLVER_MAP_CONIC:
+                    if SOLVER_MAP_CONIC[solver].MIP_CAPABLE:
+                        p.constraints.append(Variable(boolean=True) == 0)
+                        p.solve(solver_verbose=solver_verbose, solver=solver)
+
+                    if ExpCone in SOLVER_MAP_CONIC[solver].SUPPORTED_CONSTRAINTS:
+                        p = Problem(cp.Minimize(self.a), [cp.log(self.a) >= 2])
+                        p.solve(solver_verbose=solver_verbose, solver=solver)
+
+                    if PSD in SOLVER_MAP_CONIC[solver].SUPPORTED_CONSTRAINTS:
+                        a_mat = cp.reshape(self.a, shape=(1, 1))
+                        p = Problem(cp.Minimize(self.a), [cp.lambda_min(a_mat) >= 2])
+                        p.solve(solver_verbose=solver_verbose, solver=solver)
+
+                out = sys.stdout.getvalue()  # release output
+                sys.stdout.close()  # close the stream
+                sys.stdout = backup  # restore original stdout
+
+                outputs[solver_verbose].append((out, solver))
 
         for output, solver in outputs[True]:
             print(solver)

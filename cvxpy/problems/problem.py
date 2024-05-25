@@ -107,8 +107,8 @@ class Cache:
         self.param_prog = None
         self.inverse_data = None
 
-    def make_key(self, solver, gp, ignore_dpp):
-        return (solver, gp, ignore_dpp)
+    def make_key(self, solver, gp, ignore_dpp, use_quad_obj):
+        return (solver, gp, ignore_dpp, use_quad_obj)
 
     def gp(self):
         return self.key is not None and self.key[1]
@@ -634,8 +634,13 @@ class Problem(u.Canonical):
             raise DPPError("Cannot set enforce_dpp = True and ignore_dpp = True.")
 
         start = time.time()
-        # Cache includes ignore_dpp because it alters compilation.
-        key = self._cache.make_key(solver, gp, ignore_dpp)
+        # Cache includes ignore_dpp and solver_opts['use_quad_obj']
+        # because they alter compilation.
+        if solver_opts is None:
+            use_quad_obj = None
+        else:
+            use_quad_obj = solver_opts.get('use_quad_obj', None)
+        key = self._cache.make_key(solver, gp, ignore_dpp, use_quad_obj)
         if key != self._cache.key:
             self._cache.invalidate()
             solving_chain = self._construct_chain(
@@ -994,11 +999,12 @@ class Problem(u.Canonical):
 
         if verbose:
             n_variables = sum(np.prod(v.shape) for v in self.variables())
+            n_constraints = sum(np.prod(c.shape) for c in self.constraints)
             n_parameters = sum(np.prod(p.shape) for p in self.parameters())
             s.LOGGER.info(
                     'Your problem has %d variables, '
                     '%d constraints, and ' '%d parameters.',
-                    n_variables, len(self.constraints), n_parameters)
+                    n_variables, n_constraints, n_parameters)
             curvatures = []
             if self.is_dcp():
                 curvatures.append('DCP')
@@ -1074,15 +1080,18 @@ class Problem(u.Canonical):
                     'Invoking solver %s  to obtain a solution.',
                     solving_chain.reductions[-1].name())
         start = time.time()
+        solver_verbose = kwargs.pop('solver_verbose', verbose)
+        if solver_verbose and (not verbose):
+            print(_NUM_SOLVER_STR)
         solution = solving_chain.solve_via_data(
-            self, data, warm_start, verbose, kwargs)
+            self, data, warm_start, solver_verbose, kwargs)
         end = time.time()
         self._solve_time = end - start
         self.unpack_results(solution, solving_chain, inverse_data)
         if verbose:
             print(_FOOTER)
             s.LOGGER.info('Problem status: %s', self.status)
-            val = self.value if self.value is not None else np.NaN
+            val = self.value if self.value is not None else np.nan
             s.LOGGER.info('Optimal value: %.3e', val)
             s.LOGGER.info('Compilation took %.3e seconds', self._compilation_time)
             s.LOGGER.info(

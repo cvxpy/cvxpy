@@ -44,6 +44,19 @@ class LinearOperator:
     def __call__(self, X):
         return self._matmul(X)
 
+class IdentityOperator(LinearOperator):
+    """A wrapper for the identity operator."""
+    def __init__(self, n):
+        self.shape = (n,n)
+    def __call__(self, X):
+        return X
+
+class NegativeIdentityOperator(LinearOperator):
+    """A wrapper for the negative identity operator."""
+    def __init__(self, n):
+        self.shape = (n,n)
+    def __call__(self, X):
+        return -X
 
 def as_linear_operator(linear_op):
     if isinstance(linear_op, LinearOperator):
@@ -187,9 +200,9 @@ class ConicSolver(Solver):
         for constr in problem.constraints:
             total_height = sum([arg.size for arg in constr.args])
             if type(constr) == Zero:
-                restruct_mat.append(-sp.eye(constr.size, format='csr'))
+                restruct_mat.append(NegativeIdentityOperator(constr.size))
             elif type(constr) == NonNeg:
-                restruct_mat.append(sp.eye(constr.size, format='csr'))
+                restruct_mat.append(IdentityOperator(constr.size))
             elif type(constr) == SOC:
                 # Group each t row with appropriate X rows.
                 assert constr.axis == 0, 'SOC must be lowered to axis == 0'
@@ -263,16 +276,20 @@ class ConicSolver(Solver):
                 problem.A.shape[1], order='F')
         else:
             restructured_A = problem.A
-        new_param_cone_prog = ParamConeProg(problem.c,
-                                            problem.x,
-                                            restructured_A,
-                                            problem.variables,
-                                            problem.var_id_to_col,
-                                            problem.constraints,
-                                            problem.parameters,
-                                            problem.param_id_to_col,
-                                            P=problem.P,
-                                            formatted=True)
+        new_param_cone_prog = ParamConeProg(
+            problem.c,
+            problem.x,
+            restructured_A,
+            problem.variables,
+            problem.var_id_to_col,
+            problem.constraints,
+            problem.parameters,
+            problem.param_id_to_col,
+            P=problem.P,
+            formatted=True,
+            lower_bounds=problem.lower_bounds,
+            upper_bounds=problem.upper_bounds,
+        )
         return new_param_cone_prog
 
     def invert(self, solution, inverse_data):

@@ -229,6 +229,12 @@ class TestExpressions(BaseTest):
         # Test repr.
         self.assertEqual(repr(c), "Constant(CONSTANT, NONNEGATIVE, (2,))")
 
+        # Test name.
+        c = Constant(1, name="test")
+        self.assertEqual(str(c), "test")
+        self.assertEqual(c.name(), "test")
+        self.assertEqual(repr(c), "Constant(CONSTANT, NONNEGATIVE, ())")
+
     def test_constant_psd_nsd(self):
         n = 5
         np.random.randn(0)
@@ -1353,6 +1359,29 @@ class TestExpressions(BaseTest):
         row_scale = Variable([m, 1])
         R = A + row_scale
         self.assertEqual(R.shape, (m, n))
+
+    def test_curvatures(self) -> None:
+        """Test the curvatures property returns a list of valid curvatures"""
+        mat = np.array([[1, -1]])
+        self.assertEqual(cp.sum(mat @ cp.square(Variable(2))).curvatures, [s.UNKNOWN])
+
+        y = cp.Constant(42)
+        self.assertIn(s.CONSTANT, y.curvatures)
+
+        x = cp.Variable(pos=True)
+        self.assertEqual(x.curvatures, [s.AFFINE, s.CONVEX, s.CONCAVE,
+                                        s.LOG_LOG_AFFINE, s.LOG_LOG_CONVEX, s.LOG_LOG_CONCAVE,
+                                        s.QUASILINEAR, s.QUASICONVEX, s.QUASICONCAVE])
+
+        monomial = x*x*x
+        self.assertEqual(monomial.curvatures, [s.LOG_LOG_AFFINE,
+                                               s.LOG_LOG_CONVEX, s.LOG_LOG_CONCAVE])
+
+        posynomial = x*x*x + x
+        self.assertEqual(posynomial.curvatures, [s.LOG_LOG_CONVEX])
+
+        llcv = 1/(x*x*x + x)
+        self.assertEqual(llcv.curvatures, [s.LOG_LOG_CONCAVE])
 
     def test_log_log_curvature(self) -> None:
         """Test that the curvature string is populated for log-log expressions.

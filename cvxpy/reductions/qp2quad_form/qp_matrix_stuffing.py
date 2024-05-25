@@ -35,7 +35,12 @@ from cvxpy.problems.param_prob import ParamProb
 from cvxpy.reductions import InverseData, Solution
 from cvxpy.reductions.cvx_attr2constr import convex_attributes
 from cvxpy.reductions.dcp2cone.cone_matrix_stuffing import nonpos2nonneg
-from cvxpy.reductions.matrix_stuffing import MatrixStuffing, extract_mip_idx
+from cvxpy.reductions.matrix_stuffing import (
+    MatrixStuffing,
+    extract_lower_bounds,
+    extract_mip_idx,
+    extract_upper_bounds,
+)
 from cvxpy.reductions.utilities import (
     ReducedMat,
     are_args_affine,
@@ -119,11 +124,17 @@ class ParamQuadProg(ParamProb):
                  constraints,
                  parameters,
                  param_id_to_col,
-                 formatted: bool = False) -> None:
+                 formatted: bool = False,
+                 lower_bounds: np.ndarray | None = None,
+                 upper_bounds: np.ndarray | None = None,
+                 ) -> None:
         self.P = P
         self.q = q
         self.x = x
         self.A = A
+        # Lower and upper bounds for the variable, if present.
+        self.lower_bounds = lower_bounds
+        self.upper_bounds = upper_bounds
 
         # Form a reduced representation of A and P, for faster application
         # of parameters.
@@ -268,15 +279,22 @@ class QpMatrixStuffing(MatrixStuffing):
         params_to_Ab = extractor.affine(expr_list)
 
         inverse_data.minimize = type(problem.objective) == Minimize
-        new_prob = ParamQuadProg(params_to_P,
-                                 params_to_q,
-                                 flattened_variable,
-                                 params_to_Ab,
-                                 problem.variables(),
-                                 inverse_data.var_offsets,
-                                 ordered_cons,
-                                 problem.parameters(),
-                                 inverse_data.param_id_map)
+        variables = problem.variables()
+        lower_bounds = extract_lower_bounds(variables, flattened_variable.size)
+        upper_bounds = extract_upper_bounds(variables, flattened_variable.size)
+        new_prob = ParamQuadProg(
+            params_to_P,
+            params_to_q,
+            flattened_variable,
+            params_to_Ab,
+            variables,
+            inverse_data.var_offsets,
+            ordered_cons,
+            problem.parameters(),
+            inverse_data.param_id_map,
+            lower_bounds=lower_bounds,
+            upper_bounds=upper_bounds,
+        )
         return new_prob, inverse_data
 
     def invert(self, solution, inverse_data):

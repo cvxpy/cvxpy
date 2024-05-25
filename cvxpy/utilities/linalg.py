@@ -1,10 +1,10 @@
-import cvxpy.utilities.cpp.sparsecholesky as spchol  # noqa: I001
-import cvxpy.settings as settings
 import numpy as np
 import scipy.linalg as la
 import scipy.sparse as spar
 import scipy.sparse.linalg as sparla
 from scipy.sparse import csc_matrix
+
+import cvxpy.settings as settings
 
 
 def orth(V, tol=1e-12):
@@ -203,6 +203,8 @@ def sparse_cholesky(A, sym_tol=settings.CHOL_SYM_TOL, assume_posdef=False):
     before calling Eigen. While checking for indefiniteness, we also check that
      ||A - A'||_Fro / sqrt(n) <= sym_tol, where n is the order of the matrix.
     """
+    import cvxpy.utilities.cpp.sparsecholesky as spchol  # noqa: I001
+
     if not isinstance(A, spar.spmatrix):
         raise ValueError(SparseCholeskyMessages.NOT_SPARSE)
     if np.iscomplexobj(A):
