@@ -14,6 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 import numpy as np
+import pytest
 
 import cvxpy as cp
 import cvxpy.settings as s
@@ -697,3 +698,49 @@ class TestDqcp(base_test.BaseTest):
         problem = cp.Problem(cp.Minimize(cp.cumsum(1/x)))
         problem.solve(SOLVER, qcp=True)
         self.assertAlmostEqual(problem.value, 0, places=3)
+
+    def test_parameter_bug(self) -> None:
+        """Test bug with parameters arising from interaction of
+        DQCP and DPP.
+
+        https://github.com/cvxpy/cvxpy/issues/2386
+        """
+        x = cp.Variable()
+
+        objective = cp.Minimize(cp.sqrt(x))
+
+        constraints = [x <= 2, x >= 1]
+
+        problem = cp.Problem(objective, constraints)
+
+        problem.solve(qcp=True, solver=cp.SCS)
+
+        self.assertAlmostEqual(x.value, objective.value, places=3)
+        self.assertAlmostEqual(x.value, 1, places=3)
+
+    def test_psd_constraint_bug(self) -> None:
+        """Test bug with DQCP and PSD constraints.
+        
+        https://github.com/cvxpy/cvxpy/issues/2373
+        """
+        A = cp.Variable((2,2),symmetric=True)
+
+        x = A[0,1]
+        y = A[1,1]
+
+        # assertions and constraints
+        x = cp.atoms.affine.wraps.nonneg_wrap(x)
+        y = cp.atoms.affine.wraps.nonneg_wrap(y)
+        constraints = [A >> 0]
+
+        # function
+        f = x*y
+
+        # create the problem
+        problem = cp.Problem(cp.Maximize(f), constraints)
+
+        # solve
+        assert problem.is_dqcp()
+        with pytest.raises(cp.SolverError, 
+                           match="Max iters hit during bisection."):
+            problem.solve(qcp=True, solver=cp.SCS, max_iters=1)

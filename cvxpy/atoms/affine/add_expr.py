@@ -15,22 +15,21 @@ limitations under the License.
 """
 import operator as op
 from functools import reduce
-from typing import List, Tuple
+from typing import Any, Iterable, List, Tuple
 
 import cvxpy.lin_ops.lin_op as lo
 import cvxpy.lin_ops.lin_utils as lu
 import cvxpy.utilities as u
 from cvxpy.atoms.affine.affine_atom import AffAtom
 from cvxpy.constraints.constraint import Constraint
+from cvxpy.expressions.expression import Expression
 
 
 class AddExpression(AffAtom):
     """The sum of any number of expressions.
     """
 
-    def __init__(self, arg_groups) -> None:
-        # For efficiency group args as sums.
-        self._arg_groups = arg_groups
+    def __init__(self, arg_groups: Iterable[Expression]) -> None:
         super(AddExpression, self).__init__(*arg_groups)
         self.args = []
         for group in arg_groups:
@@ -41,21 +40,20 @@ class AddExpression(AffAtom):
         """
         return u.shape.sum_shapes([arg.shape for arg in self.args])
 
-    def expand_args(self, expr):
+    def expand_args(self, expr: Expression) -> List[Expression]:
         """Helper function to extract the arguments from an AddExpression.
         """
         if isinstance(expr, AddExpression):
             return expr.args
         else:
             return [expr]
-
     def name(self) -> str:
         result = str(self.args[0])
         for i in range(1, len(self.args)):
             result += " + " + str(self.args[i])
         return result
 
-    def numeric(self, values):
+    def numeric(self, values: Iterable[Any]) -> Any:
         return reduce(op.add, values)
 
     def is_atom_log_log_convex(self) -> bool:
@@ -82,7 +80,7 @@ class AddExpression(AffAtom):
 
     # As __init__ takes in the arg_groups instead of args, we need a special
     # copy() function.
-    def copy(self, args=None, id_objects=None):
+    def copy(self, args=None, id_objects=None) -> 'AddExpression':
         """Returns a shallow copy of the AddExpression atom.
 
         Parameters
@@ -96,8 +94,11 @@ class AddExpression(AffAtom):
         AddExpression atom
         """
         if args is None:
-            args = self._arg_groups
-        # Takes advantage of _arg_groups if present for efficiency.
+            # The __init__ method of AddExpression recreates the args,
+            # but passes *arg_groups to the super class for checks.
+            # Since these checks are already done for self, we pass [self], i.e., 
+            # a single [AddExpression], before the args are recreated.
+            args = [self]  
         copy = type(self).__new__(type(self))
         copy.__init__(args)
         return copy

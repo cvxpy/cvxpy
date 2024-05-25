@@ -1,5 +1,3 @@
-.. _related_projects:
-
 Related Projects
 ================
 

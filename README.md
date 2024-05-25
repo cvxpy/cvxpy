@@ -7,7 +7,7 @@ CVXPY
 [![Benchmarks](http://img.shields.io/badge/benchmarked%20by-asv-blue.svg?style=flat)](https://cvxpy.github.io/benchmarks/)
 [![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/cvxpy/cvxpy/badge)](https://api.securityscorecards.dev/projects/github.com/cvxpy/cvxpy)
 
-**The CVXPY documentation is at [cvxpy.org](http://www.cvxpy.org/).**
+**The CVXPY documentation is at [cvxpy.org](https://www.cvxpy.org/).**
 
 *We are building a CVXPY community on [Discord](https://discord.gg/4urRQeGBCr). Join the conversation! For issues and long-form discussions, use [Github Issues](https://github.com/cvxpy/cvxpy/issues) and [Github Discussions](https://github.com/cvxpy/cvxpy/discussions).*
 
@@ -57,8 +57,9 @@ With CVXPY, you can model
 * geometric programs, and
 * quasiconvex programs.
 
-CVXPY is not a solver. It relies upon the open source solvers
-[ECOS](http://github.com/ifa-ethz/ecos), [SCS](https://github.com/bodono/scs-python),
+CVXPY is not a solver. It relies upon the open source solvers 
+[Clarabel](https://github.com/oxfordcontrol/Clarabel.rs), 
+[ECOS](https://github.com/embotech/ecos), [SCS](https://github.com/bodono/scs-python),
 and [OSQP](https://github.com/oxfordcontrol/osqp). Additional solvers are
 [available](https://www.cvxpy.org/tutorial/advanced/index.html#choosing-a-solver),
 but must be installed separately.
@@ -84,7 +85,7 @@ CVXPY has the following dependencies:
 - Clarabel >= 0.5.0
 - OSQP >= 0.6.2
 - ECOS >= 2
-- SCS >= 3.0
+- SCS >= 3.2.4.post1
 - NumPy >= 1.15
 - SciPy >= 1.1.0
 

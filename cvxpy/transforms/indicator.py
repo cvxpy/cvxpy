@@ -115,7 +115,7 @@ class indicator(Expression):
         if all(cons.value(tolerance=self.err_tol) for cons in self.args):
             return 0.0
         else:
-            return np.infty
+            return np.inf
 
     @property
     def grad(self):
