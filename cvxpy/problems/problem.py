@@ -416,14 +416,16 @@ class Problem(u.Canonical):
         """
         return self._compilation_time
 
-    def solve_multiple_solvers(self, solvers:list[tuple[str, dict] | tuple[str] | str], *args, **kwargs):
-        """
-        Solve a problem using multiple solvers.
+    def solve_multiple_solvers(self, solvers:list[tuple[str, dict] | tuple[str] | str],
+                                *args, **kwargs):
+        """Solve a problem using multiple solvers.
 
         Arguments
         ---------
         solvers : list of (str, dict) tuples, (str) tuples, or strings.
             The solvers to use. For example, ['SCS', ('CLARABEL',), ('OSQP', {'max_iter':10000})]
+        kwargs : keywords, optional
+            Additional solver specific arguments.
 
         Returns
         -------
@@ -444,13 +446,18 @@ class Problem(u.Canonical):
             try:
                 if isinstance(solver, str):
                     solver_name = solver
-                    solution = self.solve(*args, solver=solver, **kwargs)
-                elif isinstance(solver, tuple) and len(solver) == 2:
-                    solver_name, solver_kwargs = solver
-                    if isinstance(solver_name, str) and isinstance(kwargs, dict):
+                    solution = self.solve(*args, solver=solver_name, **kwargs)
+                elif isinstance(solver, tuple):
+                    if len(solver) == 1:
+                        solver_name, = solver
+                        solution = self.solve(*args, solver=solver_name, **kwargs)
+                    elif len(solver) == 2:
+                        solver_name, solver_kwargs = solver
+                        if not isinstance(solver_name, str) or not isinstance(solver_kwargs, dict):
+                            raise ValueError("Solver tuple input must be (str, dict).")
                         solution = self.solve(*args, solver=solver_name, **solver_kwargs, **kwargs)
                     else:
-                        raise ValueError("Solver tuple input must be (str, dict).")
+                        raise ValueError("Solver tuple input must be (str, dict) or (str)")
                 else:
                     raise ValueError("Solver input must be one of the following:\
                                                 (str, dict) tuple, (str) tuple, or str.")
