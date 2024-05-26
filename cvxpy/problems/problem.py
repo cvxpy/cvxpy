@@ -416,7 +416,7 @@ class Problem(u.Canonical):
         """
         return self._compilation_time
 
-    def solve_multiple_solvers(self, solvers:list[tuple[str, dict] | tuple[str] | str]):
+    def solve_multiple_solvers(self, solvers:list[tuple[str, dict] | tuple[str] | str], *args, **kwargs):
         """
         Solve a problem using multiple solvers.
 
@@ -444,11 +444,11 @@ class Problem(u.Canonical):
             try:
                 if isinstance(solver, str):
                     solver_name = solver
-                    solution = self.solve(solver=solver)
+                    solution = self.solve(*args, solver=solver, **kwargs)
                 elif isinstance(solver, tuple) and len(solver) == 2:
-                    solver_name, kwargs = solver
+                    solver_name, solver_kwargs = solver
                     if isinstance(solver_name, str) and isinstance(kwargs, dict):
-                        solution = self.solve(solver=solver_name, **kwargs)
+                        solution = self.solve(*args, solver=solver_name, **solver_kwargs, **kwargs)
                     else:
                         raise ValueError("Solver tuple input must be (str, dict).")
                 else:
