@@ -1431,7 +1431,7 @@ class TestProblem(BaseTest):
         
         # valid input, return solution
         solvers_with_str=[(s.OSQP, {'max_iter':1}), s.CLARABEL]
-        solvers_no_dict=[(s.OSQP, {'max_iter':1}), (s.CLARABEL)]
+        solvers_no_dict=[(s.OSQP, {'max_iter':1}), (s.CLARABEL,)]
         solvers_empty_dict=[(s.OSQP, {'max_iter':1}), (s.CLARABEL, {})]
 
         for solvers in [solvers_with_str,solvers_no_dict,solvers_empty_dict]:
