@@ -61,7 +61,7 @@ CVXPY is not a solver. It relies upon the open source solvers
 [Clarabel](https://github.com/oxfordcontrol/Clarabel.rs), 
 [ECOS](https://github.com/embotech/ecos), [SCS](https://github.com/bodono/scs-python),
 and [OSQP](https://github.com/oxfordcontrol/osqp). Additional solvers are
-[available](https://www.cvxpy.org/tutorial/advanced/index.html#choosing-a-solver),
+[available](https://www.cvxpy.org/tutorial/solvers/index.html#choosing-a-solver),
 but must be installed separately.
 
 CVXPY began as a Stanford University research project. It is now developed by
@@ -144,9 +144,11 @@ Diamond](https://stevendiamond.me/), [Akshay
 Agrawal](https://akshayagrawal.com), [Riley Murray](https://rileyjmurray.wordpress.com/), 
 [Philipp Schiele](https://www.philippschiele.com/),
 and [Bartolomeo Stellato](https://stellato.io/), with many others contributing
-significantly. A non-exhaustive list of people who have shaped CVXPY over the
-years includes Stephen Boyd, Eric Chu, Robin Verschueren, Michael Sommerauer,
-Jaehyun Park, Enzo Busseti, AJ Friend, Judson Wilson, and Chris Dembia.
+significantly.
+A non-exhaustive list of people who have shaped CVXPY over the
+years includes Stephen Boyd, Eric Chu, Robin Verschueren,
+Jaehyun Park, Enzo Busseti, AJ Friend, Judson Wilson, Chris Dembia, and
+Parth Nobel.
 
 For more information about the team and our processes, see our [governance document](https://github.com/cvxpy/org/blob/main/governance.md).
 
