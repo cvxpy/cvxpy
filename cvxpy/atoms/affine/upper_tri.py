@@ -28,7 +28,8 @@ from cvxpy.expressions.expression import Expression
 
 
 class upper_tri(AffAtom):
-    """The vectorized strictly upper-triagonal entries.
+    """
+    The vectorized strictly upper-triangular entries.
 
     The vectorization is performed by concatenating (partial) rows.
     For example, if
@@ -53,16 +54,11 @@ class upper_tri(AffAtom):
 
     @AffAtom.numpy_numeric
     def numeric(self, values):
-        """Vectorize the upper triagonal entries.
         """
-        value = np.zeros(self.shape[0])
-        count = 0
-        for i in range(values[0].shape[0]):
-            for j in range(values[0].shape[1]):
-                if i < j:
-                    value[count] = values[0][i, j]
-                    count += 1
-        return value
+        Vectorize the strictly upper triangular entries.
+        """
+        upper_idx = np.triu_indices(n=values[0].shape[0], k=1, m=values[0].shape[1])
+        return values[0][upper_idx]
 
     def validate_arguments(self) -> None:
         """Checks that the argument is a square matrix.
@@ -91,7 +87,7 @@ class upper_tri(AffAtom):
     def graph_implementation(
         self, arg_objs, shape: Tuple[int, ...], data=None
     ) -> Tuple[lo.LinOp, List[Constraint]]:
-        """Vectorized strictly upper triagonal entries.
+        """Vectorized strictly upper triangular entries.
 
         Parameters
         ----------

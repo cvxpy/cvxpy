@@ -39,7 +39,7 @@ CONVEX_ATTRIBUTES = [
     'bounds'
 ]
 
-# Attributes that define lower and uppper bounds.
+# Attributes that define lower and upper bounds.
 BOUND_ATTRIBUTES = [
     'nonneg',
     'nonpos',
