@@ -66,7 +66,7 @@ fn transform_tensor_to_mat(
     let rows = tensor
         .col
         .into_iter()
-        .zip(tensor.row.into_iter())
+        .zip(tensor.row)
         .map(|(c, r)| c * offset + r)
         .collect();
     let shape = (

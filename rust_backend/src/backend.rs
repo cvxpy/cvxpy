@@ -16,7 +16,7 @@ pub(crate) const CONST_ID: i64 = -1;
 fn get_variable_tensor(shape: &CvxpyShape, id: i64) -> Tensor {
     assert!(id > CONST_ID);
     let n = shape.numel();
-    return [(id, [(CONST_ID, faer_ext::eye(n))].into())].into();
+    [(id, [(CONST_ID, faer_ext::eye(n))].into())].into()
 }
 
 pub(crate) fn process_constraints<'a>(linop: &Linop<'a>, view: View<'a>) -> View<'a> {
@@ -83,7 +83,7 @@ pub(crate) fn mul<'a>(lhs: &Linop<'a>, view: View<'a>) -> View<'a> {
     let is_parameter_free;
     let func;
 
-    match lhs.keys().map(|v| *v).collect::<Vec<_>>().as_slice() {
+    match lhs.keys().copied().collect::<Vec<_>>().as_slice() {
         [CONST_ID] => {
             let lhs = &lhs[&CONST_ID];
             is_parameter_free = true;
@@ -112,7 +112,7 @@ pub(crate) fn get_constant_data<'a>(
     // TODO: Add fast path for when linop is a constant
 
     let mut constant_view = process_constraints(linop, view.clone());
-    assert!(constant_view.variables == &[CONST_ID]);
+    assert!(constant_view.variables == [CONST_ID]);
     let constant_data = constant_view.tensor.remove(&CONST_ID).unwrap();
 
     if !column {
@@ -157,10 +157,10 @@ pub(crate) fn reshape_single_constant_tensor(v: SparseMatrix, (m, n): (u64, u64)
     SparseColMat::try_new_from_triplets((p * m) as usize, n as usize, &triplets).unwrap()
 }
 
-pub(crate) fn neg<'a>(mut view: View<'a>) -> View<'a> {
+pub(crate) fn neg(mut view: View<'_>) -> View<'_> {
     // Second argument is not used for neg
     view.apply_all(|x, _p| -x);
-    return view;
+    view
 }
 
 pub(crate) fn transpose<'a>(linop: &Linop, mut view: View<'a>) -> View<'a> {
@@ -169,7 +169,7 @@ pub(crate) fn transpose<'a>(linop: &Linop, mut view: View<'a>) -> View<'a> {
     view
 }
 
-pub(crate) fn get_transpose_rows<'a>(shape: &CvxpyShape) -> Vec<u64> {
+pub(crate) fn get_transpose_rows(shape: &CvxpyShape) -> Vec<u64> {
     let (m, n) = shape.broadcasted_shape();
     let rows: Vec<u64> = (0..n)
         .flat_map(|j| (0..m).map(move |i| i * n + j))

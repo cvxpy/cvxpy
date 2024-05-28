@@ -128,9 +128,9 @@ impl<'a> View<'a> {
     }
 
     pub(crate) fn rows(&self) -> u64 {
-        for (_, tensor) in &self.tensor {
+        for tensor in self.tensor.values() {
             for (param_id, param_mat) in tensor {
-                return param_mat.nrows() as u64 / self.context.param_to_size[&param_id] as u64;
+                return param_mat.nrows() as u64 / self.context.param_to_size[param_id] as u64;
             }
             panic!("No parameters in tensor");
         }
