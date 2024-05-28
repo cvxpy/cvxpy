@@ -1,4 +1,4 @@
-use numpy::{PyReadonlyArray2, ndarray::Array2};
+use numpy::{PyReadonlyArray0, PyReadonlyArray2, ndarray::Array2};
 use pyo3::intern;
 use pyo3::prelude::*;
 use std::borrow::Borrow;
@@ -91,8 +91,19 @@ impl<'py> FromPyObject<'py> for Linop<'py> {
                 todo!()
             }
             "dense_const" => {
-                let array = PyReadonlyArray2::extract_bound(&ob.getattr(intern!(ob.py(), "data"))?)?;
-                LinopKind::DenseConst(array.as_array().to_owned())
+                let data = ob.getattr(intern!(ob.py(), "data"))?;
+                match shape {
+                    CvxpyShape::D2(_, _) => {
+                        let array = PyReadonlyArray2::extract_bound(&data)?;
+                        LinopKind::DenseConst(array.as_array().to_owned())
+                    }
+                    CvxpyShape::D1(_) => panic!("Should be no 1D arrays"),
+                    CvxpyShape::D0 => {
+                        let array = PyReadonlyArray0::extract_bound(&data)?;
+                        let f = *array.get(()).unwrap();
+                        LinopKind::ScalarConst(f)
+                    }
+                }
             }
             "scalar_const" => {
                 let f = f64::extract_bound(&ob.getattr(intern!(ob.py(), "data"))?)?;
