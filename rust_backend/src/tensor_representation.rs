@@ -32,12 +32,4 @@ impl TensorRepresentation {
             parameter_offset,
         }
     }
-
-    /// Returns true if the given TensorRepresentation is equal to self.
-    fn eq(&self, other: &TensorRepresentation) -> bool {
-        self.data == other.data
-            && self.row == other.row
-            && self.col == other.col
-            && self.parameter_offset == other.parameter_offset
-    }
 }
