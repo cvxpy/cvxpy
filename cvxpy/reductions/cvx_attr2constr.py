@@ -22,7 +22,7 @@ import scipy.sparse as sp
 from cvxpy.atoms import diag, reshape
 from cvxpy.expressions import cvxtypes
 from cvxpy.expressions.constants import Constant
-from cvxpy.expressions.variable import Variable, upper_tri_to_full
+from cvxpy.expressions.variable import Variable
 from cvxpy.reductions.reduction import Reduction
 from cvxpy.reductions.solution import Solution
 
@@ -55,6 +55,35 @@ SYMMETRIC_ATTRIBUTES = [
     'NSD',
 ]
 
+
+def upper_tri_to_full(n: int) -> sp.csc_matrix:
+    """
+    Returns a coefficient matrix to create a symmetric matrix.
+
+    Parameters
+    ----------
+    n : int
+        The width/height of the matrix.
+
+    Returns
+    -------
+    SciPy CSC matrix
+        The coefficient matrix.
+    """
+    entries = n*(n+1)//2
+
+    # Initialize row and col indices from upper triangular matrix
+    rows, cols = np.triu_indices(n)
+
+    # Mask for the symmetric part when i != j
+    mask = rows != cols
+
+    row_idx = np.concatenate([rows * n + cols, cols[mask] * n + rows[mask]])
+    col_idx = np.concatenate([np.arange(entries), np.arange(entries)[mask]])
+    values = np.ones(len(row_idx), dtype=float)
+
+    # Construct and return the sparse matrix
+    return sp.csc_matrix((values, (row_idx, col_idx)), shape=(n * n, entries))
 
 
 def convex_attributes(variables):
