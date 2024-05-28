@@ -179,7 +179,6 @@ fn test_scalar_constant() {
 fn test_dense_constant() {
     let mat = numpy::ndarray::arr2(&[[1.0, 2.0], [3.0, 4.0]]);
 
-
     let linop = Linop {
         shape: CvxpyShape::D2(2, 2),
         kind: LinopKind::DenseConst(mat),
@@ -258,7 +257,6 @@ fn test_sparse_constant() {
     )
 }
 
-
 #[test]
 fn test_mul() {
     let context = ViewContext {
@@ -285,7 +283,9 @@ fn test_mul() {
 
     let mul_linop = Linop {
         shape: CvxpyShape::D2(2, 2),
-        kind: LinopKind::Mul{lhs: Box::new(lhs_linopt)},
+        kind: LinopKind::Mul {
+            lhs: Box::new(lhs_linopt),
+        },
     };
 
     let out_view = process_constraints(&mul_linop, variable_view);
@@ -323,8 +323,7 @@ fn test_mul() {
             (2, 3, 2.0),
             (3, 3, 4.0),
         ],
-    ).unwrap();
+    )
+    .unwrap();
     assert_eq!(view_A, expected_A);
-
-
 }

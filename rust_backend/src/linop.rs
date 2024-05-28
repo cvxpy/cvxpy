@@ -1,4 +1,4 @@
-use numpy::{PyReadonlyArray0, PyReadonlyArray2, ndarray::Array2};
+use numpy::{ndarray::Array2, PyReadonlyArray0, PyReadonlyArray2};
 use pyo3::intern;
 use pyo3::prelude::*;
 use std::borrow::Borrow;
@@ -86,7 +86,9 @@ impl<'py> FromPyObject<'py> for Linop<'py> {
             "promote" => LinopKind::Promote,
             "transpose" => LinopKind::Transpose,
             "reshape" => LinopKind::Reshape,
-            "variable" => LinopKind::Variable(i64::extract_bound(&ob.getattr(intern!(ob.py(), "data"))?)?),
+            "variable" => {
+                LinopKind::Variable(i64::extract_bound(&ob.getattr(intern!(ob.py(), "data"))?)?)
+            }
             "sparse_const" => {
                 todo!()
             }
@@ -109,11 +111,10 @@ impl<'py> FromPyObject<'py> for Linop<'py> {
                 let f = f64::extract_bound(&ob.getattr(intern!(ob.py(), "data"))?)?;
                 LinopKind::ScalarConst(f)
             }
-            _ => { todo!() }
+            _ => {
+                todo!()
+            }
         };
-        Ok(Linop {
-            shape,
-            kind
-        })
+        Ok(Linop { shape, kind })
     }
 }
