@@ -11,7 +11,9 @@ when we want to change cvxcore.
 ## 1. Making changes in cvxcore visible from CVXPY
 
 You will need an appropriately configured SWIG installation to make changes to cvxcore and actually see them in CVXPY.
-To get started, run ``conda install -c anaconda swig -y`` (note that swig is not a Python package, so you shouldn't try to get it from PyPI).
+
+To get started, install a tarball from the swig GitHub [releases](https://github.com/swig/swig/tags) and follow the installation instructions.
+(note that swig is not a Python package, so you shouldn't try to get it from PyPI).
 
 Changes you make to cvxcore will most likely be confined to files in ``cvxpy/cvxcore/src/``.
 Once you make your desired changes, change directory so that ``src`` is in your working directory, and run
