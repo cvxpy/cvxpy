@@ -16,7 +16,7 @@ To get started, run ``conda install -c anaconda swig -y`` (note that swig is not
 Changes you make to cvxcore will most likely be confined to files in ``cvxpy/cvxcore/src/``.
 Once you make your desired changes, change directory so that ``src`` is in your working directory, and run
 ```
-swig -py3 -Isrc -c++ -python python/cvxcore.i
+swig -Isrc -c++ -python python/cvxcore.i
 ```
 That step can succeed even if your new code leads to compiler errors (e.g., missing semicolons).
 The next step is to rebuild all of CVXPY -- including cvxcore -- by first changing directory so you
