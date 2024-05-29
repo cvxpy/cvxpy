@@ -104,6 +104,22 @@ class Prod(AxisAtom):
         else:
             result = np.prod(values[0], axis=self.axis, keepdims=self.keepdims)
         return result
+    
+    def torch_numeric(self, values):
+        import torch
+        if intf.is_sparse(values[0]):
+            if self.axis is None:
+                result = torch.prod(values[0])
+            else:
+                result = torch.prod(values[0], axis=self.axis)
+            if not self.keepdims and self.axis is not None:
+                result = result.A.flatten()
+        else:
+            if self.axis is None:
+                result = torch.prod(values[0])
+            else:
+                result = torch.prod(values[0], axis=self.axis, keepdims=self.keepdims)
+        return result
 
     def _column_grad(self, value):
         """Gives the (sub/super)gradient of the atom w.r.t. a column argument.

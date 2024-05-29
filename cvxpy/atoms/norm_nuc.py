@@ -34,6 +34,10 @@ class normNuc(Atom):
         """Returns the nuclear norm (i.e. the sum of the singular values) of A.
         """
         return np.linalg.norm(values[0], 'nuc')
+    
+    def torch_numeric(self, values):
+        import torch
+        return torch.linalg.norm(values[0], 'nuc')
 
     def _grad(self, values):
         """Gives the (sub/super)gradient of the atom w.r.t. each argument.

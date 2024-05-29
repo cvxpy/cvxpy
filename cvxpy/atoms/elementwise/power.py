@@ -179,6 +179,10 @@ class power(Elementwise):
     @Elementwise.numpy_numeric
     def numeric(self, values):
         return np.power(values[0], float(self.p.value))
+    
+    def torch_numeric(self, values):
+        import torch
+        return torch.pow(values[0], float(self.p.value))
 
     def sign_from_args(self) -> Tuple[bool, bool]:
         """Returns sign (is positive, is negative) of the expression.

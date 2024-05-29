@@ -33,6 +33,10 @@ class cummax(AxisAtom):
         """Returns the largest entry in x.
         """
         return np.maximum.accumulate(values[0], axis=self.axis)
+    
+    def torch_numeric(self, values):
+        import torch
+        return torch.cummax(values[0], dim=self.axis)[0]
 
     def shape_from_args(self) -> Tuple[int, ...]:
         """The same as the input.

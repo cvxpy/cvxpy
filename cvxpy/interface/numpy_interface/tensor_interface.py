@@ -1,0 +1,102 @@
+"""
+Copyright 2013 Steven Diamond
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+"""
+
+
+from typing import Tuple
+
+import numpy as np
+import scipy.sparse
+import torch
+
+from .. import base_matrix_interface as base
+
+
+class TensorInterface(base.BaseMatrixInterface):
+    """
+    An interface to convert constant values to torch tensor class.
+    """
+    TARGET_MATRIX = torch.Tensor
+
+    def const_to_matrix(self, value, convert_scalars: bool = False):
+        """
+        This function converts an arbitrary value into a matrix of type self.target_matrix.
+
+        Args:
+            value:
+                The constant to be converted.
+            convert_scalars:
+                Should scalars be converted? (placeholder, this is not used).
+        
+        Returns:
+            A matrix of type self.target_matrix or a scalar.
+        """
+
+        result = value
+        if type(value)==torch.Tensor: #If the input is a tensor, do nothing
+            return result
+        elif isinstance(value, np.matrix) or scipy.sparse.issparse(value):
+            result = value.A
+        elif isinstance(value, list):
+            result = torch.asarray(value)
+        return result.astype(torch.float64)
+    
+    def identity(self, size):
+        """
+        This function returns an identity tensor.
+        """
+        return torch.eye(size)
+    
+    def size(self, matrix):
+        """
+        This function returns the number of elements in the matrix.
+        """
+        return np.prod(matrix.shape)
+    
+    def shape(self, matrix) -> Tuple[int, ...]:
+        """
+        This function returns the dimensions of the matrix.
+        """
+        return tuple(int(d) for d in matrix.shape)
+    
+    def scalar_value(self, matrix):
+        """
+        This function gets the value of the passed matrix, interpreted as a scalar.
+        """
+        return matrix.item()
+    
+    def zeros(self, shape: Tuple[int, ...]):
+        """
+        This function returns a matrix with all 0's.
+        """
+        return torch.zeros(shape, dtype=torch.float64)
+    
+    def ones(self, shape: Tuple[int, ...]):
+        """
+        This function returns a matrix with all 1's.
+        """
+        return torch.ones(shape, dtype=torch.float64)
+    
+    def scalar_matrix(self, value, shape: Tuple[int, ...]):
+        """
+        This function returns a matrix with all entrix equal to a given scalar value.
+        """
+        return torch.zeros(shape, dtype=torch.float64) + value
+    
+    def reshape(self, matrix, size):
+        """
+        This function coerces the matrix into a given shape.
+        """
+        return torch.reshape(matrix, size)

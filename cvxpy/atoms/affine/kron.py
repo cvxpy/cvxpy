@@ -38,6 +38,10 @@ class kron(AffAtom):
         """Kronecker product of the two values.
         """
         return np.kron(values[0], values[1])
+    
+    def torch_numeric(self, values):
+        import torch
+        return torch.kron(values[0], values[1])
 
     def validate_arguments(self) -> None:
         """Checks that both arguments are vectors, and the first is constant.

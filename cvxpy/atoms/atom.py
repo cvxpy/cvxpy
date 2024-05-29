@@ -26,11 +26,14 @@ import cvxpy.lin_ops.lin_utils as lu
 from cvxpy import interface as intf
 from cvxpy import utilities as u
 from cvxpy.expressions import cvxtypes
-from cvxpy.expressions.constants import Constant
+
+#from cvxpy.expressions.constants import Constant #TODO (Amit): This was in the original code
+from cvxpy.expressions.constants.constant import Constant
 from cvxpy.expressions.expression import Expression
 from cvxpy.utilities import performance_utils as perf
 from cvxpy.utilities.deterministic import unique_list
 
+#from cvxpy.atoms.affine.binary_operators import MulExpression
 
 class Atom(Expression):
     """ Abstract base class for atoms. """
@@ -456,13 +459,14 @@ class Atom(Expression):
            Ensures both inputs and outputs are the correct matrix types.
         """
 
-        def new_numeric(self, values):
-            interface = intf.DEFAULT_INTF
+        def new_numeric(self, values, interface=intf.DEFAULT_INTF):
+            #interface = intf.DEFAULT_INTF
             values = [interface.const_to_matrix(v, convert_scalars=True)
                       for v in values]
             result = numeric_func(self, values)
-            return intf.DEFAULT_INTF.const_to_matrix(result)
+            return interface.const_to_matrix(result)
         return new_numeric
+    
 
     def atoms(self) -> List['Atom']:
         """A list of the atom types present amongst this atom's arguments.

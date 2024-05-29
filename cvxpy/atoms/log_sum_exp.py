@@ -36,6 +36,13 @@ class log_sum_exp(AxisAtom):
         """Evaluates e^x elementwise, sums, and takes the log.
         """
         return logsumexp(values[0], axis=self.axis, keepdims=self.keepdims)
+    
+    def torch_numeric(self, values):
+        import torch
+        if self.axis is None:
+            return torch.special.logsumexp(values[0].flatten(), dim=0, keepdim=self.keepdims)
+        return torch.special.logsumexp(values[0], dim=self.axis, keepdim=self.keepdims)
+
 
     def _grad(self, values):
         """Gives the (sub/super)gradient of the atom w.r.t. each argument.

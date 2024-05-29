@@ -154,6 +154,20 @@ class Pnorm(AxisAtom):
 
         return np.linalg.norm(values, float(self.p), axis=self.axis,
                               keepdims=self.keepdims)
+    
+    def torch_numeric(self, values):
+        import torch
+        values = values[0]
+        if self.axis is None:
+            values = values.flatten()
+
+        if self.p < 1 and torch.any(values<0).item():
+            return -np.inf
+        if self.p < 0 and torch.any(values==0).item():
+            return 0.0
+
+        return torch.linalg.norm(values, float(self.p), axis=self.axis,
+                              keepdims=self.keepdims)
 
     def validate_arguments(self) -> None:
         super(Pnorm, self).validate_arguments()

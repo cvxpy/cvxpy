@@ -55,6 +55,10 @@ class one_minus_pos(Atom):
 
     def numeric(self, values):
         return self._ones - values[0]
+    
+    def torch_numeric(self, values):
+        import torch
+        return torch.ones(values[0].shape) - values[0]
 
     def _grad(self, values):
         del values

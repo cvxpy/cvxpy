@@ -49,6 +49,10 @@ class Hstack(AffAtom):
     # Returns the hstack of the values.
     def numeric(self, values):
         return np.hstack(values)
+    
+    def torch_numeric(self, values):
+        import torch
+        return torch.hstack(values)
 
     # The shape is the common width and the sum of the heights.
     def shape_from_args(self) -> Tuple[int, ...]:

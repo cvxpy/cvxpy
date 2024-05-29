@@ -46,6 +46,10 @@ class min(AxisAtom):
         """Returns the smallest entry in x.
         """
         return values[0].min(axis=self.axis, keepdims=self.keepdims)
+    
+    def torch_numeric(self, values):
+        value = values[0]
+        return value.min()
 
     def _grad(self, values):
         """Gives the (sub/super)gradient of the atom w.r.t. each argument.
