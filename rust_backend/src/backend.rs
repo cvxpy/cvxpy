@@ -67,15 +67,40 @@ pub(crate) fn process_constraints<'a>(linop: &Linop<'a>, view: View<'a>) -> View
                 context: view.context,
             }
         }
-        LinopKind::Neg => neg(view),
-        LinopKind::Transpose => transpose(linop, view),
-        LinopKind::Sum => view, // Sum (along axis 1) is implicit in Ax+b, so it is a NOOP.
-        LinopKind::Reshape => view, // Reshape is a NOOP.
-        LinopKind::Promote => promote(linop, view),
-        LinopKind::Mul { ref lhs } => mul(lhs, view),
+        // LinOpKind::Hstack => hstack(linop, view),
+        // LinOpKind::Vstack => vstack(linop, view),  
         _ => panic!(),
     }
 }
+
+
+
+
+pub(crate) fn parse_args<'a>(linop: &Linop<'a>, view: View<'a>) -> View<'a> {
+
+    let mut res: Option<View> = None;
+    for arg in linop.args.iter() {
+        let arg_coeff = process_constraints(arg, view.clone());
+        let arg_res = match arg.kind {
+            LinopKind::Neg => neg(view),
+            LinopKind::Transpose => transpose(linop, view),
+            LinopKind::Sum => view, // Sum (along axis 1) is implicit in Ax+b, so it is a NOOP.
+            LinopKind::Reshape => view, // Reshape is a NOOP.
+            LinopKind::Promote => promote(linop, view),
+            LinopKind::Mul { ref lhs } => mul(lhs, view), 
+            _ => panic!(),
+        };
+        res = if let Some(res) = res {
+            res.add_inplace(&arg_res);
+            Some(res)
+        } else {
+            Some(arg_res)
+        }
+    }
+    res.unwrap()
+}
+
+    
 
 pub(crate) fn mul<'a>(lhs: &Linop<'a>, view: View<'a>) -> View<'a> {
     let lhs = get_constant_data(lhs, &view, false);
@@ -112,7 +137,7 @@ pub(crate) fn get_constant_data<'a>(
     // TODO: Add fast path for when linop is a constant
 
     let mut constant_view = process_constraints(linop, view.clone());
-    assert!(constant_view.variables == &[CONST_ID]);
+    assert!(constant_view.variables == [CONST_ID].into());
     let constant_data = constant_view.tensor.remove(&CONST_ID).unwrap();
 
     if !column {

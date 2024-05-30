@@ -26,6 +26,7 @@ fn test_neg() {
     let linop = Linop {
         shape: CvxpyShape::D2(2, 2),
         kind: LinopKind::Variable(1),
+        args: Vec::new(),
     };
     let empty_view = View::new(&context);
 
@@ -75,6 +76,7 @@ fn test_transpose() {
     let linop = Linop {
         shape: CvxpyShape::D2(2, 2),
         kind: LinopKind::Variable(1),
+        args: Vec::new(),
     };
     let empty_view = View::new(&context);
 
@@ -115,6 +117,7 @@ fn test_promote() {
     let variable_linop = Linop {
         shape: CvxpyShape::D1(1),
         kind: LinopKind::Variable(1),
+        args: Vec::new(),
     };
     let empty_view = View::new(&context);
 
@@ -123,6 +126,7 @@ fn test_promote() {
     let promote_linop = Linop {
         shape: CvxpyShape::D1(3),
         kind: LinopKind::Promote,
+        args: Vec::new(),
     };
 
     let promoted_view = promote(&promote_linop, view);
@@ -150,6 +154,7 @@ fn test_scalar_constant() {
     let linop = Linop {
         shape: CvxpyShape::D0,
         kind: LinopKind::ScalarConst(3.0),
+        args: Vec::new(),
     };
     let context = ViewContext {
         id_to_col: [(-1, 0)].into(),
@@ -183,6 +188,7 @@ fn test_dense_constant() {
     let linop = Linop {
         shape: CvxpyShape::D2(2, 2),
         kind: LinopKind::DenseConst(mat),
+        args: Vec::new(),
     };
 
     let context = ViewContext {
@@ -229,6 +235,7 @@ fn test_sparse_constant() {
     let linop = Linop {
         shape: CvxpyShape::D2(2, 2),
         kind: LinopKind::SparseConst(&mat),
+        args: Vec::new(),
     };
     let context = ViewContext {
         id_to_col: [(-1, 0)].into(),
@@ -271,6 +278,7 @@ fn test_mul() {
     let linop = Linop {
         shape: CvxpyShape::D2(2, 2),
         kind: LinopKind::Variable(1),
+        args: Vec::new(),
     };
     let empty_view = View::new(&context);
 
@@ -281,11 +289,13 @@ fn test_mul() {
     let lhs_linopt = Linop {
         shape: CvxpyShape::D2(2, 2),
         kind: LinopKind::DenseConst(mat),
+        args: Vec::new(),
     };
 
     let mul_linop = Linop {
         shape: CvxpyShape::D2(2, 2),
         kind: LinopKind::Mul{lhs: Box::new(lhs_linopt)},
+        args: Vec::new(),
     };
 
     let out_view = process_constraints(&mul_linop, variable_view);

@@ -6,7 +6,7 @@ use crate::{
 };
 use faer::sparse::SparseColMat;
 use pyo3::prelude::*;
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 
 #[derive(Default, Debug)]
 pub(crate) struct ViewContext {
@@ -29,7 +29,7 @@ pub(crate) type Tensor = HashMap<VarId, HashMap<ParamId, crate::SparseMatrix>>;
 
 #[derive(Clone, Debug)]
 pub(crate) struct View<'a> {
-    pub(crate) variables: Vec<i64>, // todo: turn into a set
+    pub(crate) variables: HashSet<i64>,
     pub(crate) tensor: Tensor,
     pub(crate) is_parameter_free: bool,
     pub(crate) context: &'a ViewContext,
@@ -38,7 +38,7 @@ pub(crate) struct View<'a> {
 impl<'a> View<'a> {
     pub fn new(context: &'a ViewContext) -> Self {
         View {
-            variables: Vec::new(),
+            variables: HashSet::new(),
             tensor: Tensor::new(),
             is_parameter_free: true,
             context,
@@ -164,5 +164,55 @@ impl<'a> View<'a> {
             .iter()
             .map(|(k, v)| (*k, func(v, 1)))
             .collect()
+    }
+    
+    pub(crate) fn add_inplace(&self, arg_res: &View) -> () {
+        self.variables.extend(&arg_res.variables);
+        self.is_parameter_free = self.is_parameter_free && arg_res.is_parameter_free;
+        extend_tensor_outer(&mut self.tensor, &arg_res.tensor);
+    }
+}
+
+fn extend_tensor_outer(tensor_1: &mut Tensor, tensor_2: &Tensor) -> () {
+
+    let keys_a: HashSet<i64> = tensor_1.keys().cloned().collect();
+    let keys_b: HashSet<i64> = tensor_2.keys().cloned().collect();
+    let intersect: HashSet<i64> = keys_a.intersection(&keys_b).cloned().collect();
+    let union: HashSet<i64> = keys_a.union(&keys_b).cloned().collect();
+
+    for key in union {
+        if intersect.contains(&key) {
+            let mut tensor_1_val = tensor_1.get(&key).unwrap();
+            let tensor_2_val = tensor_2.get(&key).unwrap();
+            extend_tensor_inner(&mut tensor_1_val, tensor_2_val);
+        } else if keys_a.contains(&key) {
+            let tensor_1_val = tensor_1.get(&key).unwrap();
+            tensor_1.insert(key, tensor_1_val.clone());
+        } else {
+            let tensor_2_val = tensor_2.get(&key).unwrap();
+            tensor_1.insert(key, tensor_2_val.clone());
+        }
+    }
+}
+
+fn extend_tensor_inner(tensor_1: &mut HashMap<i64, SparseColMat<u64, f64>>, tensor_2: &HashMap<i64, SparseColMat<u64, f64>>) -> () {
+    let keys_a: HashSet<i64> = tensor_1.keys().cloned().collect();
+    let keys_b: HashSet<i64> = tensor_2.keys().cloned().collect();
+    let intersect: HashSet<i64> = keys_a.intersection(&keys_b).cloned().collect();
+    let union: HashSet<i64> = keys_a.union(&keys_b).cloned().collect();
+
+    for key in union {
+        if intersect.contains(&key) {
+            let mut tensor_1_val = tensor_1.get(&key).unwrap();
+            let tensor_2_val = tensor_2.get(&key).unwrap();
+            let new_tensor = tensor_1_val + tensor_2_val;
+            tensor_1.insert(key, new_tensor);
+        } else if keys_a.contains(&key) {
+            let tensor_1_val = tensor_1.get(&key).unwrap();
+            tensor_1.insert(key, tensor_1_val.clone());
+        } else {
+            let tensor_2_val = tensor_2.get(&key).unwrap();
+            tensor_1.insert(key, tensor_2_val.clone());
+        }
     }
 }

@@ -21,14 +21,13 @@ type IdxMap = std::collections::HashMap<i64, i64>;
 
 #[pyfunction]
 fn build_matrix(
-    mut id_to_col: IdxMap,
+    id_to_col: IdxMap,
     param_to_size: IdxMap,
     param_to_col: IdxMap,
     param_size_plus_one: i64,
     var_length: i64,
     linops: Vec<linop::Linop>,
 ) -> PyResult<(Vec<f64>, (Vec<u64>, Vec<u64>), (u64, u64))> {
-    id_to_col.insert(-1, var_length); // May do this in Python to remove mut
     let ctx = ViewContext {
         id_to_col,
         param_to_size,

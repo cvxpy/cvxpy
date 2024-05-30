@@ -41,6 +41,7 @@ impl CvxpyShape {
 pub(crate) struct Linop<'a> {
     pub(crate) shape: CvxpyShape,
     pub(crate) kind: LinopKind<'a>,
+    pub(crate) args: Vec<Linop<'a>>,
 }
 
 pub(crate) enum LinopKind<'a> {
@@ -100,9 +101,11 @@ impl<'py> FromPyObject<'py> for Linop<'py> {
             }
             _ => { todo!() }
         };
+        let args = Vec::extract_bound(&ob.getattr(intern!(ob.py(), "args"))?)?;
         Ok(Linop {
             shape,
-            kind
+            kind,
+            args
         })
     }
 }

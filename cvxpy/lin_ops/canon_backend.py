@@ -616,14 +616,15 @@ class RustCanonBackend(CanonBackend):
     """
 
     def build_matrix(self, lin_ops: list[LinOp]) -> sp.csc_matrix:
-        import cvxpy_rust
+        import rust_backend
         self.id_to_col[-1] = self.var_length
-        (data, (row, col), shape) = cvxpy_rust.build_matrix(lin_ops,
-                                                            self.param_size_plus_one,
+        (data, (row, col), shape) = rust_backend.build_matrix(
                                                             self.id_to_col,
                                                             self.param_to_size,
                                                             self.param_to_col,
-                                                            self.var_length)
+                                                            self.param_size_plus_one,
+                                                            self.var_length,
+                                                            lin_ops)
         self.id_to_col.pop(-1)
         return sp.csc_matrix((data, (row, col)), shape)
 
