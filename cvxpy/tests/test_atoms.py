@@ -796,6 +796,13 @@ class TestAtoms(BaseTest):
         # works with scalars
         assert np.allclose(cp.vec_to_upper_tri(1, strict=True).value, np.array([[0, 1], [0, 0]]))
 
+    def test_upper_tri_to_full(self) -> None:
+        from cvxpy.reductions.cvx_attr2constr import upper_tri_to_full
+        for n in range(3, 8):
+            A = upper_tri_to_full(n)
+            v = np.arange(n * (n+1) // 2)
+            M = (A @ v).reshape((n, n))
+            assert np.allclose(M, M.T)
 
     def test_huber(self) -> None:
         # Valid.
@@ -1450,7 +1457,6 @@ class TestAtoms(BaseTest):
 
         # allow 2D inputs once row-major flattening is the default
         assert np.allclose(cp.vec(np.array([[1, 2], [3, 4]])).value, np.array([1, 3, 2, 4]))
-
 
     def test_conj(self) -> None:
         """Test conj.
