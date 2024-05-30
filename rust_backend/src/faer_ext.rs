@@ -36,7 +36,7 @@ pub fn eye(n: u64) -> SparseColMat<u64, f64> {
     )
 }
 
-pub fn to_triplets_iter<'a, I, E>(A: &'a SparseColMat<I, E>) -> impl Iterator<Item = (I, I, E)> + 'a
+pub fn to_triplets_iter<I, E>(A: &SparseColMat<I, E>) -> impl Iterator<Item = (I, I, E)> + '_
 where
     I: Index + TryFrom<usize> + Copy,
     E: SimpleEntity + Copy,
@@ -92,7 +92,7 @@ pub(crate) fn identity_kron2(reps: u64, A: &SparseMatrix) -> SparseColMat<u64, f
     let capacity = A.compute_nnz() * reps as usize;
     let mut row_indices = Vec::with_capacity(capacity);
     let mut entries = Vec::with_capacity(capacity);
-    let mut col_ptrs = Vec::with_capacity(reps as usize * A.ncols() as usize + 1);
+    let mut col_ptrs = Vec::with_capacity(reps as usize * A.ncols() + 1);
     let mut entries_so_far = 0;
     col_ptrs.push(entries_so_far);
     for r in 0..reps {

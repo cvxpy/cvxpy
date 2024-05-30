@@ -1,4 +1,4 @@
-use numpy::{PyReadonlyArray2, ndarray::Array2};
+use numpy::{ndarray::Array2, PyReadonlyArray0, PyReadonlyArray2};
 use pyo3::intern;
 use pyo3::prelude::*;
 use std::borrow::Borrow;
@@ -47,8 +47,8 @@ pub(crate) struct Linop<'a> {
 pub(crate) enum LinopKind<'a> {
     Variable(i64),
     Mul { lhs: Box<Linop<'a>> },
-    Rmul { rhs: &'a Box<Linop<'a>> },
-    MulElem { lhs: &'a Box<Linop<'a>> },
+    Rmul { rhs: Box<Linop<'a>> },
+    MulElem { lhs: Box<Linop<'a>> },
     Sum,
     Neg,
     Transpose,
@@ -87,25 +87,36 @@ impl<'py> FromPyObject<'py> for Linop<'py> {
             "promote" => LinopKind::Promote,
             "transpose" => LinopKind::Transpose,
             "reshape" => LinopKind::Reshape,
-            "variable" => LinopKind::Variable(i64::extract_bound(&ob.getattr(intern!(ob.py(), "data"))?)?),
+            "variable" => {
+                LinopKind::Variable(i64::extract_bound(&ob.getattr(intern!(ob.py(), "data"))?)?)
+            }
             "sparse_const" => {
                 todo!()
             }
             "dense_const" => {
-                let array = PyReadonlyArray2::extract_bound(&ob.getattr(intern!(ob.py(), "data"))?)?;
-                LinopKind::DenseConst(array.as_array().to_owned())
+                let data = ob.getattr(intern!(ob.py(), "data"))?;
+                match shape {
+                    CvxpyShape::D2(_, _) => {
+                        let array = PyReadonlyArray2::extract_bound(&data)?;
+                        LinopKind::DenseConst(array.as_array().to_owned())
+                    }
+                    CvxpyShape::D1(_) => panic!("Should be no 1D arrays"),
+                    CvxpyShape::D0 => {
+                        let array = PyReadonlyArray0::extract_bound(&data)?;
+                        let f = *array.get(()).unwrap();
+                        LinopKind::ScalarConst(f)
+                    }
+                }
             }
             "scalar_const" => {
                 let f = f64::extract_bound(&ob.getattr(intern!(ob.py(), "data"))?)?;
                 LinopKind::ScalarConst(f)
             }
-            _ => { todo!() }
+            _ => {
+                todo!()
+            }
         };
         let args = Vec::extract_bound(&ob.getattr(intern!(ob.py(), "args"))?)?;
-        Ok(Linop {
-            shape,
-            kind,
-            args
-        })
+        Ok(Linop { shape, kind, args })
     }
 }

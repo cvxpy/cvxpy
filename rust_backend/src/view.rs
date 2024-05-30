@@ -11,16 +11,16 @@ use std::collections::{HashMap, HashSet};
 #[derive(Default, Debug)]
 pub(crate) struct ViewContext {
     /// Maps variable id to first column associated with its entries
-    pub(crate) id_to_col: IdxMap, 
+    pub(crate) id_to_col: IdxMap,
     /// Maps parameter id to number of entries in parameter
-    pub(crate) param_to_size: IdxMap, 
+    pub(crate) param_to_size: IdxMap,
     /// Maps parameter id to first matrix/slice (column in a 3D
     /// sense) associated with its entries
     pub(crate) param_to_col: IdxMap,
     /// Total number of parameter entries + 1
     pub(crate) param_size_plus_one: i64,
     /// Total number of variables in problem
-    pub(crate) var_length: i64, 
+    pub(crate) var_length: i64,
 }
 type VarId = i64;
 type ParamId = i64;
@@ -128,9 +128,9 @@ impl<'a> View<'a> {
     }
 
     pub(crate) fn rows(&self) -> u64 {
-        for (_, tensor) in &self.tensor {
+        for tensor in self.tensor.values() {
             for (param_id, param_mat) in tensor {
-                return param_mat.nrows() as u64 / self.context.param_to_size[&param_id] as u64;
+                return param_mat.nrows() as u64 / self.context.param_to_size[param_id] as u64;
             }
             panic!("No parameters in tensor");
         }
@@ -143,7 +143,6 @@ impl<'a> View<'a> {
         is_parameter_free_function: bool,
     ) -> Self {
         for (variable_id, tensor) in self.tensor.iter_mut() {
-
             *tensor = if is_parameter_free_function {
                 View::apply_to_parameters(func, tensor)
             } else {
@@ -160,12 +159,9 @@ impl<'a> View<'a> {
         func: impl Fn(&SparseColMat<u64, f64>, u64) -> SparseColMat<u64, f64>,
         tensor: &HashMap<i64, SparseColMat<u64, f64>>,
     ) -> HashMap<i64, SparseColMat<u64, f64>> {
-        tensor
-            .iter()
-            .map(|(k, v)| (*k, func(v, 1)))
-            .collect()
+        tensor.iter().map(|(k, v)| (*k, func(v, 1))).collect()
     }
-    
+
     pub(crate) fn add_inplace(&self, arg_res: &View) -> () {
         self.variables.extend(&arg_res.variables);
         self.is_parameter_free = self.is_parameter_free && arg_res.is_parameter_free;
@@ -174,7 +170,6 @@ impl<'a> View<'a> {
 }
 
 fn extend_tensor_outer(tensor_1: &mut Tensor, tensor_2: &Tensor) -> () {
-
     let keys_a: HashSet<i64> = tensor_1.keys().cloned().collect();
     let keys_b: HashSet<i64> = tensor_2.keys().cloned().collect();
     let intersect: HashSet<i64> = keys_a.intersection(&keys_b).cloned().collect();
@@ -195,7 +190,10 @@ fn extend_tensor_outer(tensor_1: &mut Tensor, tensor_2: &Tensor) -> () {
     }
 }
 
-fn extend_tensor_inner(tensor_1: &mut HashMap<i64, SparseColMat<u64, f64>>, tensor_2: &HashMap<i64, SparseColMat<u64, f64>>) -> () {
+fn extend_tensor_inner(
+    tensor_1: &mut HashMap<i64, SparseColMat<u64, f64>>,
+    tensor_2: &HashMap<i64, SparseColMat<u64, f64>>,
+) -> () {
     let keys_a: HashSet<i64> = tensor_1.keys().cloned().collect();
     let keys_b: HashSet<i64> = tensor_2.keys().cloned().collect();
     let intersect: HashSet<i64> = keys_a.intersection(&keys_b).cloned().collect();
