@@ -58,16 +58,18 @@ SYMMETRIC_ATTRIBUTES = [
 
 def upper_tri_to_full(n: int) -> sp.csc_matrix:
     """
-    Returns a coefficient matrix to create a symmetric matrix.
+    Returns a coefficient matrix A that creates a symmetric matrix when
+    multiplied with a variable vector v.
+    That is, (A @ v).reshape((n, n)) is a symmetric matrix.
 
     Parameters
     ----------
     n : int
-        The width/height of the matrix.
+        The length of the matrix.
 
     Returns
     -------
-    SciPy CSC matrix
+    sp.csc_matrix
         The coefficient matrix.
     """
     entries = n*(n+1)//2
@@ -80,7 +82,7 @@ def upper_tri_to_full(n: int) -> sp.csc_matrix:
 
     row_idx = np.concatenate([rows * n + cols, cols[mask] * n + rows[mask]])
     col_idx = np.concatenate([np.arange(entries), np.arange(entries)[mask]])
-    values = np.ones(len(row_idx), dtype=float)
+    values = np.ones(col_idx.size, dtype=float)
 
     # Construct and return the sparse matrix
     return sp.csc_matrix((values, (row_idx, col_idx)), shape=(n * n, entries))

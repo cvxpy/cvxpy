@@ -130,19 +130,15 @@ def vec_to_upper_tri(expr, strict: bool = False):
     if not (n * (n + 1) // 2 == ell or n * (n - 1) // 2 == ell):
         raise ValueError("The size of the vector must be a triangular number.")
 
-    # form a matrix P, of shape (n**2, ell).
-    #       the i-th block of n rows of P gives the entries of the i-th row
-    #       of the upper-triangular matrix associated with expr.
-    # compute expr2 = P @ expr
-    # compute expr3 = reshape(expr2, shape=(n, n)).T
-    #   expr3 is the matrix formed by reading length-n blocks of expr2,
-    #   and letting each block form a row of expr3.
+    """
+    Initialize a coefficient matrix P that creates an upper triangular matrix when 
+    multiplied with a variable vector expr.
+    That is, (P @ expr).reshape((n, n)) is an upper triangular matrix.
+    """
     k = 1 if strict else 0
     row_idx, col_idx = np.triu_indices(n, k=k)
-    P_rows = n*row_idx + col_idx
+    P_rows = n * row_idx + col_idx
     P_cols = np.arange(ell)
     P_vals = np.ones(P_cols.size)
-    P = csc_matrix((P_vals, (P_rows, P_cols)), shape=(n**2, ell))
-    expr2 = P @ expr
-    expr3 = reshape(expr2, (n, n)).T
-    return expr3
+    P = csc_matrix((P_vals, (P_rows, P_cols)), shape=(n * n, ell))
+    return reshape(P @ expr, (n, n)).T
