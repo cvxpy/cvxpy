@@ -63,7 +63,7 @@ pub(crate) enum LinopKind<'a> {
         rhs: Box<Linop<'a>>,
     },
     Sum(Vec<Linop<'a>>),
-    Neg,
+    Neg(Box<Linop<'a>>),
     Transpose(Box<Linop<'a>>),
     SumEntries(Box<Linop<'a>>),
     ScalarConst(f64),
@@ -106,7 +106,11 @@ impl<'py> FromPyObject<'py> for Linop<'py> {
                     rhs: Box::new(rhs),
                 }
             }
-            "neg" => LinopKind::Neg,
+            "neg" => {
+                let args = Vec::extract_bound(&ob.getattr(intern!(ob.py(), "args"))?)?;
+                let arg = args.first().ok_or(PyValueError::new_err("Empty args list"))?;
+                LinopKind::Neg(Box::new(Linop::extract_bound(arg)?))
+            }
             "promote" => {
                 let args = Vec::extract_bound(&ob.getattr(intern!(ob.py(), "args"))?)?;
                 let arg = args.first().ok_or(PyValueError::new_err("Empty args list"))?;

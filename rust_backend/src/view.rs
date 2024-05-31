@@ -6,6 +6,7 @@ use crate::{
 };
 use faer::sparse::SparseColMat;
 use pyo3::prelude::*;
+use core::panic;
 use std::collections::{HashMap, HashSet};
 
 #[derive(Default, Debug)]
@@ -197,7 +198,7 @@ fn extend_tensor_inner(
     let b_only: HashSet<i64> = keys_b.difference(&keys_a).cloned().collect();
 
     for key in intersect {
-        let mut tensor_1_val = tensor_1.get(&key).unwrap();
+        let tensor_1_val = tensor_1.remove(&key).unwrap();
         let tensor_2_val = tensor_2.remove(&key).unwrap();
         let new_tensor = tensor_1_val + tensor_2_val;
         tensor_1.insert(key, new_tensor);

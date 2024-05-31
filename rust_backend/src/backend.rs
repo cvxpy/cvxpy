@@ -78,7 +78,7 @@ pub(crate) fn parse_args<'a>(linop: &Linop<'a>, view: View<'a>) -> View<'a> {
         // Single arg linops
         LinopKind::Mul { ref lhs, ref rhs } => mul(lhs, process_constraints(rhs, view)),
         // LinopKind::RMul { ref lhs, ref rhs } => mul(rhs, process_constraints(lhs, view)),
-        LinopKind::Neg => neg(view),
+        LinopKind::Neg(ref arg) => neg(process_constraints(arg, view)),
         LinopKind::Transpose(ref arg) => transpose(linop, process_constraints(arg, view)),
         LinopKind::Promote(ref arg) => promote(linop, process_constraints(arg, view)),
         LinopKind::Reshape(ref arg) => process_constraints(arg, view),

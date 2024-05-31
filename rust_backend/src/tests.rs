@@ -23,35 +23,18 @@ fn test_neg() {
         param_size_plus_one: 2,
         var_length: 4,
     };
-    let linop = Linop {
+    let variable_linop = Linop {
         shape: CvxpyShape::D2(2, 2),
         kind: LinopKind::Variable(1),
     };
     let empty_view = View::new(&context);
 
-    let view = process_constraints(&linop, empty_view);
-
-    let view_A = view.get_tensor_representation(0);
-    let mut triplets = Vec::new();
-    for (r, c, d) in view_A
-        .row
-        .iter()
-        .zip(&view_A.col)
-        .zip(&view_A.data)
-        .map(|((&r, &c), &d)| (r, c, d))
-    {
-        triplets.push((r, c, d));
-    }
-
-    let view_A = SparseColMat::try_new_from_triplets(4, 4, &triplets).unwrap();
-    assert_eq!(view_A, faer_ext::eye(4));
-
     let neg_linop = Linop {
         shape: CvxpyShape::D2(2, 2),
-        kind: LinopKind::Neg,
+        kind: LinopKind::Neg(Box::new(variable_linop)),
     };
 
-    let negated_view = process_constraints(&neg_linop, view);
+    let negated_view = process_constraints(&neg_linop, empty_view);
     let view_A = negated_view.get_tensor_representation(0);
     let mut triplets = Vec::new();
     for (r, c, d) in view_A
