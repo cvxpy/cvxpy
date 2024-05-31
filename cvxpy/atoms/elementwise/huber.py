@@ -22,7 +22,6 @@ import scipy.special
 from cvxpy.atoms.elementwise.elementwise import Elementwise
 from cvxpy.expressions.constants.parameter import Parameter
 
-
 # TODO(akshayka): DGP support.
 
 
@@ -59,57 +58,45 @@ class huber(Elementwise):
 
     @Elementwise.numpy_numeric
     def numeric(self, values) -> float:
-        """Returns the huber function applied elementwise to x.
-        """
-        return 2*scipy.special.huber(self.M.value, values[0])
+        """Returns the huber function applied elementwise to x."""
+        return 2 * scipy.special.huber(self.M.value, values[0])
 
     def sign_from_args(self) -> Tuple[bool, bool]:
-        """Returns sign (is positive, is negative) of the expression.
-        """
+        """Returns sign (is positive, is negative) of the expression."""
         # Always positive.
         return (True, False)
 
     def is_atom_convex(self) -> bool:
-        """Is the atom convex?
-        """
+        """Is the atom convex?"""
         return True
 
     def is_atom_concave(self) -> bool:
-        """Is the atom concave?
-        """
+        """Is the atom concave?"""
         return False
 
     def is_incr(self, idx) -> bool:
-        """Is the composition non-decreasing in argument idx?
-        """
+        """Is the composition non-decreasing in argument idx?"""
         return self.args[idx].is_nonneg()
 
     def is_decr(self, idx) -> bool:
-        """Is the composition non-increasing in argument idx?
-        """
+        """Is the composition non-increasing in argument idx?"""
         return self.args[idx].is_nonpos()
 
     def is_quadratic(self) -> bool:
-        """Quadratic if x is affine.
-        """
+        """Quadratic if x is affine."""
         return self.args[0].is_affine()
 
     def has_quadratic_term(self) -> bool:
-        """Always generates a quadratic term.
-        """
+        """Always generates a quadratic term."""
         return True
 
     def get_data(self):
-        """Returns the parameter M.
-        """
+        """Returns the parameter M."""
         return [self.M]
 
     def validate_arguments(self) -> None:
-        """Checks that M >= 0 and is a constant or Parameter.
-        """
-        if not (self.M.is_nonneg() and
-                self.M.is_scalar() and
-                self.M.is_constant()):
+        """Checks that M >= 0 and is a constant or Parameter."""
+        if not (self.M.is_nonneg() and self.M.is_scalar() and self.M.is_constant()):
             raise ValueError("M must be a non-negative scalar constant or Parameter.")
         super(huber, self).validate_arguments()
 
@@ -127,5 +114,5 @@ class huber(Elementwise):
         rows = self.args[0].size
         cols = self.size
         min_val = np.minimum(np.abs(values[0]), self.M.value)
-        grad_vals = 2*np.multiply(np.sign(values[0]), min_val)
+        grad_vals = 2 * np.multiply(np.sign(values[0]), min_val)
         return [huber.elemwise_grad_to_diag(grad_vals, rows, cols)]
