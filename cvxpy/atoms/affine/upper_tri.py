@@ -16,7 +16,7 @@ limitations under the License.
 from typing import List, Tuple
 
 import numpy as np
-from scipy.sparse import csc_matrix
+import scipy.sparse as sp
 
 import cvxpy.lin_ops.lin_op as lo
 import cvxpy.lin_ops.lin_utils as lu
@@ -140,5 +140,37 @@ def vec_to_upper_tri(expr, strict: bool = False):
     P_rows = n * row_idx + col_idx
     P_cols = np.arange(ell)
     P_vals = np.ones(P_cols.size)
-    P = csc_matrix((P_vals, (P_rows, P_cols)), shape=(n * n, ell))
+    P = sp.csc_matrix((P_vals, (P_rows, P_cols)), shape=(n * n, ell))
     return reshape(P @ expr, (n, n)).T
+
+
+def upper_tri_to_full(n: int) -> sp.csc_matrix:
+    """
+    Returns a coefficient matrix A that creates a symmetric matrix when
+    multiplied with a variable vector v.
+    That is, (A @ v).reshape((n, n)) is a symmetric matrix.
+
+    Parameters
+    ----------
+    n : int
+        The length of the matrix.
+
+    Returns
+    -------
+    sp.csc_matrix
+        The coefficient matrix.
+    """
+    entries = n*(n+1)//2
+
+    # Initialize row and col indices from upper triangular matrix
+    rows, cols = np.triu_indices(n)
+
+    # Mask for the symmetric part when i != j
+    mask = rows != cols
+
+    row_idx = np.concatenate([rows * n + cols, cols[mask] * n + rows[mask]])
+    col_idx = np.concatenate([np.arange(entries), np.arange(entries)[mask]])
+    values = np.ones(col_idx.size, dtype=float)
+
+    # Construct and return the sparse matrix
+    return sp.csc_matrix((values, (row_idx, col_idx)), shape=(n * n, entries))

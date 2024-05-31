@@ -25,6 +25,7 @@ from cvxpy.expressions.constants import Constant
 from cvxpy.expressions.variable import Variable
 from cvxpy.reductions.reduction import Reduction
 from cvxpy.reductions.solution import Solution
+from cvxpy.atoms.affine.upper_tri import upper_tri_to_full
 
 # Convex attributes that generate constraints.
 CONVEX_ATTRIBUTES = [
@@ -54,38 +55,6 @@ SYMMETRIC_ATTRIBUTES = [
     'PSD',
     'NSD',
 ]
-
-
-def upper_tri_to_full(n: int) -> sp.csc_matrix:
-    """
-    Returns a coefficient matrix A that creates a symmetric matrix when
-    multiplied with a variable vector v.
-    That is, (A @ v).reshape((n, n)) is a symmetric matrix.
-
-    Parameters
-    ----------
-    n : int
-        The length of the matrix.
-
-    Returns
-    -------
-    sp.csc_matrix
-        The coefficient matrix.
-    """
-    entries = n*(n+1)//2
-
-    # Initialize row and col indices from upper triangular matrix
-    rows, cols = np.triu_indices(n)
-
-    # Mask for the symmetric part when i != j
-    mask = rows != cols
-
-    row_idx = np.concatenate([rows * n + cols, cols[mask] * n + rows[mask]])
-    col_idx = np.concatenate([np.arange(entries), np.arange(entries)[mask]])
-    values = np.ones(col_idx.size, dtype=float)
-
-    # Construct and return the sparse matrix
-    return sp.csc_matrix((values, (row_idx, col_idx)), shape=(n * n, entries))
 
 
 def convex_attributes(variables):

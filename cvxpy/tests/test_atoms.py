@@ -32,6 +32,7 @@ from cvxpy.expressions.variable import Variable
 from cvxpy.reductions.solvers.defines import INSTALLED_MI_SOLVERS
 from cvxpy.tests.base_test import BaseTest
 from cvxpy.transforms.partial_optimize import partial_optimize
+from cvxpy.atoms.affine.upper_tri import upper_tri_to_full
 
 
 class TestAtoms(BaseTest):
@@ -797,7 +798,6 @@ class TestAtoms(BaseTest):
         assert np.allclose(cp.vec_to_upper_tri(1, strict=True).value, np.array([[0, 1], [0, 0]]))
 
     def test_upper_tri_to_full(self) -> None:
-        from cvxpy.reductions.cvx_attr2constr import upper_tri_to_full
         for n in range(3, 8):
             A = upper_tri_to_full(n)
             v = np.arange(n * (n+1) // 2)
