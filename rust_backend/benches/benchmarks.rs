@@ -6,7 +6,7 @@ use rust_backend::{build_matrix, IdxMap};
 fn generate_problem<'a>(m: i64) -> (IdxMap, IdxMap, IdxMap, i64, i64) {
     let n = m / 10;
 
-    let id_to_col = [(60, 0), (41, n), (-1, m + n)].into();
+    let id_to_col = [(1, 0), (2, n), (-1, m + n)].into();
     let param_to_size = [(-1, 1)].into();
     let param_to_col = [(-1, 0)].into();
     let param_size_plus_one = 1;
@@ -43,7 +43,7 @@ fn get_linops(m: i64) -> Vec<Linop<'static>> {
                         }),
                         rhs: Box::new(Linop {
                             shape: CvxpyShape::D2(n as u64, 1),
-                            kind: LinopKind::Variable(41),
+                            kind: LinopKind::Variable(2),
                         }),
                     },
                 },
@@ -55,7 +55,7 @@ fn get_linops(m: i64) -> Vec<Linop<'static>> {
                     shape: CvxpyShape::D2(m as u64, 1),
                     kind: LinopKind::Neg(Box::new(Linop {
                         shape: CvxpyShape::D2(m as u64, 1),
-                        kind: LinopKind::Variable(60),
+                        kind: LinopKind::Variable(1),
                     })),
                 },
             ]),
@@ -69,7 +69,7 @@ fn get_linops(m: i64) -> Vec<Linop<'static>> {
                 },
                 Linop {
                     shape: CvxpyShape::D2(n as u64, 1),
-                    kind: LinopKind::Variable(41),
+                    kind: LinopKind::Variable(2),
                 },
             ]),
         },
@@ -84,7 +84,7 @@ fn get_linops(m: i64) -> Vec<Linop<'static>> {
                     shape: CvxpyShape::D2(n as u64, 1),
                     kind: LinopKind::Neg(Box::new(Linop {
                         shape: CvxpyShape::D2(n as u64, 1),
-                        kind: LinopKind::Variable(41),
+                        kind: LinopKind::Variable(2),
                     })),
                 },
             ]),
