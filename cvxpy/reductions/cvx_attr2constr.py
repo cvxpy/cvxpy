@@ -20,9 +20,10 @@ import numpy as np
 import scipy.sparse as sp
 
 from cvxpy.atoms import diag, reshape
+from cvxpy.atoms.affine.upper_tri import upper_tri_to_full
 from cvxpy.expressions import cvxtypes
 from cvxpy.expressions.constants import Constant
-from cvxpy.expressions.variable import Variable, upper_tri_to_full
+from cvxpy.expressions.variable import Variable
 from cvxpy.reductions.reduction import Reduction
 from cvxpy.reductions.solution import Solution
 
@@ -39,7 +40,7 @@ CONVEX_ATTRIBUTES = [
     'bounds'
 ]
 
-# Attributes that define lower and uppper bounds.
+# Attributes that define lower and upper bounds.
 BOUND_ATTRIBUTES = [
     'nonneg',
     'nonpos',
@@ -54,7 +55,6 @@ SYMMETRIC_ATTRIBUTES = [
     'PSD',
     'NSD',
 ]
-
 
 
 def convex_attributes(variables):
