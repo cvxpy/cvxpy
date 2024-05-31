@@ -41,24 +41,25 @@ impl CvxpyShape {
 pub(crate) struct Linop<'a> {
     pub(crate) shape: CvxpyShape,
     pub(crate) kind: LinopKind<'a>,
-    pub(crate) args: Vec<Linop<'a>>,
 }
 
 pub(crate) enum LinopKind<'a> {
     Variable(i64),
-    Mul { lhs: Box<Linop<'a>> },
-    Rmul { rhs: Box<Linop<'a>> },
-    MulElem { lhs: Box<Linop<'a>> },
-    Sum,
-    Neg,
-    Transpose,
-    SumEntries,
+    Mul { lhs: Box<Linop<'a>>, rhs: Box<Linop<'a>> },
+    RMul { lhs: Box<Linop<'a>>, rhs: Box<Linop<'a>> },
+    MulElem { lhs: Box<Linop<'a>>, rhs: Box<Linop<'a>> },
+    Sum(Vec<Linop<'a>>),
+    Neg(Box<Linop<'a>>),
+    Transpose(Box<Linop<'a>>),
+    SumEntries(Box<Linop<'a>>),
     ScalarConst(f64),
     DenseConst(Array2<f64>),
     SparseConst(&'a crate::SparseMatrix),
     Param(i64),
-    Reshape,
-    Promote,
+    Reshape(Box<Linop<'a>>),
+    Promote(Box<Linop<'a>>),
+    // Hstack(Vec<Linop<'a>>),
+    // Vstack(Vec<Linop<'a>>),
 }
 
 impl<'py> FromPyObject<'py> for CvxpyShape {
@@ -78,15 +79,16 @@ impl<'py> FromPyObject<'py> for Linop<'py> {
         let shape: CvxpyShape = ob.getattr(intern!(ob.py(), "shape"))?.extract()?;
         let type_string = ob.getattr(intern!(ob.py(), "type"))?;
         let kind: LinopKind<'py> = match type_string.extract()? {
-            "sum" => LinopKind::Sum,
+            "sum" => LinopKind::Sum(Vec::extract_bound(&ob.getattr(intern!(ob.py(), "args"))?)?),
             "mul" => {
                 let lhs = Linop::extract_bound(&ob.getattr(intern!(ob.py(), "data"))?)?;
-                LinopKind::Mul { lhs: Box::new(lhs) }
+                let rhs = Linop::extract_bound(&ob.getattr(intern!(ob.py(), "args"))?)?;
+                LinopKind::Mul { lhs: Box::new(lhs), rhs: Box::new(rhs) }
             }
-            "neg" => LinopKind::Neg,
-            "promote" => LinopKind::Promote,
-            "transpose" => LinopKind::Transpose,
-            "reshape" => LinopKind::Reshape,
+            "neg" => LinopKind::Neg(Box::new(Linop::extract_bound(&ob.getattr(intern!(ob.py(), "args"))?)?)),
+            "promote" => LinopKind::Promote(Box::new(Linop::extract_bound(&ob.getattr(intern!(ob.py(), "args"))?)?),
+            "transpose" => LinopKind::Transpose(Box::new(Linop::extract_bound(&ob.getattr(intern!(ob.py(), "args"))?)?),
+            "reshape" => LinopKind::Reshape(Box::new(Linop::extract_bound(&ob.getattr(intern!(ob.py(), "args"))?)?),
             "variable" => {
                 LinopKind::Variable(i64::extract_bound(&ob.getattr(intern!(ob.py(), "data"))?)?)
             }
@@ -116,7 +118,7 @@ impl<'py> FromPyObject<'py> for Linop<'py> {
                 todo!()
             }
         };
-        let args = Vec::extract_bound(&ob.getattr(intern!(ob.py(), "args"))?)?;
+        let args = 
         Ok(Linop { shape, kind, args })
     }
 }

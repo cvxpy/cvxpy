@@ -76,7 +76,8 @@ pub(crate) fn process_constraints<'a>(linop: &Linop<'a>, view: View<'a>) -> View
 pub(crate) fn parse_args<'a>(linop: &Linop<'a>, view: View<'a>) -> View<'a> {
     let mut res: Option<View> = None;
     for arg in linop.args.iter() {
-        let arg_coeff = process_constraints(arg, view.clone());
+        // let arg_coeff = process_constraints(arg, view.clone());
+        let view = view.clone();
         let arg_res = match arg.kind {
             LinopKind::Neg => neg(view),
             LinopKind::Transpose => transpose(linop, view),
