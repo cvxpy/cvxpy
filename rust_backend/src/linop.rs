@@ -46,9 +46,18 @@ pub(crate) struct Linop<'a> {
 
 pub(crate) enum LinopKind<'a> {
     Variable(i64),
-    Mul { lhs: Box<Linop<'a>>, rhs: Box<Linop<'a>> },
-    RMul { lhs: Box<Linop<'a>>, rhs: Box<Linop<'a>> },
-    MulElem { lhs: Box<Linop<'a>>, rhs: Box<Linop<'a>> },
+    Mul {
+        lhs: Box<Linop<'a>>,
+        rhs: Box<Linop<'a>>,
+    },
+    RMul {
+        lhs: Box<Linop<'a>>,
+        rhs: Box<Linop<'a>>,
+    },
+    MulElem {
+        lhs: Box<Linop<'a>>,
+        rhs: Box<Linop<'a>>,
+    },
     Sum(Vec<Linop<'a>>),
     Neg,
     Transpose(Box<Linop<'a>>),
@@ -84,12 +93,21 @@ impl<'py> FromPyObject<'py> for Linop<'py> {
             "mul" => {
                 let lhs = Linop::extract_bound(&ob.getattr(intern!(ob.py(), "data"))?)?;
                 let rhs = Linop::extract_bound(&ob.getattr(intern!(ob.py(), "args[0]"))?)?;
-                LinopKind::Mul { lhs: Box::new(lhs), rhs: Box::new(rhs) }
+                LinopKind::Mul {
+                    lhs: Box::new(lhs),
+                    rhs: Box::new(rhs),
+                }
             }
             "neg" => LinopKind::Neg,
-            "promote" => LinopKind::Promote(Box::new(Linop::extract_bound(&ob.getattr(intern!(ob.py(), "args[0]"))?)?)),
-            "transpose" => LinopKind::Transpose(Box::new(Linop::extract_bound(&ob.getattr(intern!(ob.py(), "args[0]"))?)?)),
-            "reshape" => LinopKind::Reshape(Box::new(Linop::extract_bound(&ob.getattr(intern!(ob.py(), "args[0]"))?)?)),
+            "promote" => LinopKind::Promote(Box::new(Linop::extract_bound(
+                &ob.getattr(intern!(ob.py(), "args[0]"))?,
+            )?)),
+            "transpose" => LinopKind::Transpose(Box::new(Linop::extract_bound(
+                &ob.getattr(intern!(ob.py(), "args[0]"))?,
+            )?)),
+            "reshape" => LinopKind::Reshape(Box::new(Linop::extract_bound(
+                &ob.getattr(intern!(ob.py(), "args[0]"))?,
+            )?)),
             "variable" => {
                 LinopKind::Variable(i64::extract_bound(&ob.getattr(intern!(ob.py(), "data"))?)?)
             }
