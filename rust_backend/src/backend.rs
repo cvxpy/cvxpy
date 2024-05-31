@@ -81,6 +81,7 @@ pub(crate) fn parse_args<'a>(linop: &Linop<'a>, view: View<'a>) -> View<'a> {
         LinopKind::Neg => neg(view),
         LinopKind::Transpose(ref arg) => transpose(linop, process_constraints(arg, view)),
         LinopKind::Promote(ref arg) => promote(linop, process_constraints(arg, view)),
+        LinopKind::Reshape(ref arg) => process_constraints(arg, view),
         // Multi arg linops
         LinopKind::Sum(ref args) => {
             // call process_constraints(arg, view.clone()) on the first arg, then add in place the rest
@@ -89,8 +90,8 @@ pub(crate) fn parse_args<'a>(linop: &Linop<'a>, view: View<'a>) -> View<'a> {
                 res.add_inplace(process_constraints(arg, view.clone()));
             }
             res
-        }
-        _ => panic!(),
+        },
+        _ => panic!("Unsupported linop: {:?}", linop.kind),
     };
     res
 }

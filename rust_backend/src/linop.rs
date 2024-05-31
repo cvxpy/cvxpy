@@ -1,4 +1,5 @@
 use numpy::{ndarray::Array2, PyReadonlyArray0, PyReadonlyArray2};
+use pyo3::exceptions::PyValueError;
 use pyo3::intern;
 use pyo3::prelude::*;
 use std::borrow::Borrow;
@@ -7,6 +8,7 @@ use crate::view::View;
 use crate::NdArray;
 
 // TinyVec for n-dimensional?
+#[derive(Debug)]
 pub(crate) enum CvxpyShape {
     D0,
     D1(u64),
@@ -39,11 +41,13 @@ impl CvxpyShape {
 //      data: None | int | ndarray | TinyVec[PySlice]
 //      args: Vec<Linop>
 
+#[derive(Debug)]
 pub(crate) struct Linop<'a> {
     pub(crate) shape: CvxpyShape,
     pub(crate) kind: LinopKind<'a>,
 }
 
+#[derive(Debug)]
 pub(crate) enum LinopKind<'a> {
     Variable(i64),
     Mul {
@@ -92,22 +96,32 @@ impl<'py> FromPyObject<'py> for Linop<'py> {
             "sum" => LinopKind::Sum(Vec::extract_bound(&ob.getattr(intern!(ob.py(), "args"))?)?),
             "mul" => {
                 let lhs = Linop::extract_bound(&ob.getattr(intern!(ob.py(), "data"))?)?;
-                let rhs = Linop::extract_bound(&ob.getattr(intern!(ob.py(), "args[0]"))?)?;
+                let rhs = {
+                    let args = Vec::extract_bound(&ob.getattr(intern!(ob.py(), "args"))?)?;
+                    let arg = args.first().ok_or(PyValueError::new_err("Empty args list"))?;
+                    Linop::extract_bound(arg)?
+                };
                 LinopKind::Mul {
                     lhs: Box::new(lhs),
                     rhs: Box::new(rhs),
                 }
             }
             "neg" => LinopKind::Neg,
-            "promote" => LinopKind::Promote(Box::new(Linop::extract_bound(
-                &ob.getattr(intern!(ob.py(), "args[0]"))?,
-            )?)),
-            "transpose" => LinopKind::Transpose(Box::new(Linop::extract_bound(
-                &ob.getattr(intern!(ob.py(), "args[0]"))?,
-            )?)),
-            "reshape" => LinopKind::Reshape(Box::new(Linop::extract_bound(
-                &ob.getattr(intern!(ob.py(), "args[0]"))?,
-            )?)),
+            "promote" => {
+                let args = Vec::extract_bound(&ob.getattr(intern!(ob.py(), "args"))?)?;
+                let arg = args.first().ok_or(PyValueError::new_err("Empty args list"))?;
+                LinopKind::Promote(Box::new(Linop::extract_bound(arg)?))
+            },
+            "transpose" => {
+                let args = Vec::extract_bound(&ob.getattr(intern!(ob.py(), "args"))?)?;
+                let arg = args.first().ok_or(PyValueError::new_err("Empty args list"))?;
+                LinopKind::Transpose(Box::new(Linop::extract_bound(arg)?))
+            },
+            "reshape" => {
+                let args = Vec::extract_bound(&ob.getattr(intern!(ob.py(), "args"))?)?;
+                let arg = args.first().ok_or(PyValueError::new_err("Empty args list"))?;
+                LinopKind::Reshape(Box::new(Linop::extract_bound(arg)?))
+            },
             "variable" => {
                 LinopKind::Variable(i64::extract_bound(&ob.getattr(intern!(ob.py(), "data"))?)?)
             }
