@@ -6,9 +6,17 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 [lib]
 name = "rust_backend"
-crate-type = ["cdylib"]
+# create cdylib and rlib
+crate-type = ["cdylib", "rlib"]
 
 [dependencies]
 pyo3 = "0.21.0"
 numpy = "0.21.0"
 faer = "0.19.0"
+
+[dev-dependencies]
+criterion = { version = "0.4", features = ["html_reports"] }
+
+[[bench]]
+name = "benchmarks"
+harness = false

@@ -9,7 +9,7 @@ use crate::NdArray;
 
 // TinyVec for n-dimensional?
 #[derive(Debug)]
-pub(crate) enum CvxpyShape {
+pub enum CvxpyShape {
     D0,
     D1(u64),
     D2(u64, u64),
@@ -42,13 +42,13 @@ impl CvxpyShape {
 //      args: Vec<Linop>
 
 #[derive(Debug)]
-pub(crate) struct Linop<'a> {
-    pub(crate) shape: CvxpyShape,
-    pub(crate) kind: LinopKind<'a>,
+pub struct Linop<'a> {
+    pub shape: CvxpyShape,
+    pub kind: LinopKind<'a>,
 }
 
 #[derive(Debug)]
-pub(crate) enum LinopKind<'a> {
+pub enum LinopKind<'a> {
     Variable(i64),
     Mul {
         lhs: Box<Linop<'a>>,
