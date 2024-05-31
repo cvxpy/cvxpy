@@ -69,32 +69,30 @@ pub(crate) fn process_constraints<'a>(linop: &Linop<'a>, view: View<'a>) -> View
         }
         // LinOpKind::Hstack => hstack(linop, view),
         // LinOpKind::Vstack => vstack(linop, view),
-        _ => panic!(),
+        _ => parse_args(linop, view),
     }
 }
 
 pub(crate) fn parse_args<'a>(linop: &Linop<'a>, view: View<'a>) -> View<'a> {
-    let mut res: Option<View> = None;
-    for arg in linop.args.iter() {
-        // let arg_coeff = process_constraints(arg, view.clone());
-        let view = view.clone();
-        let arg_res = match arg.kind {
-            LinopKind::Neg => neg(view),
-            LinopKind::Transpose => transpose(linop, view),
-            LinopKind::Sum => view, // Sum (along axis 1) is implicit in Ax+b, so it is a NOOP.
-            LinopKind::Reshape => view, // Reshape is a NOOP.
-            LinopKind::Promote => promote(linop, view),
-            LinopKind::Mul { ref lhs } => mul(lhs, view),
-            _ => panic!(),
-        };
-        res = if let Some(res) = res {
-            res.add_inplace(&arg_res);
-            Some(res)
-        } else {
-            Some(arg_res)
+    let res = match linop.kind {
+        // Single arg linops
+        LinopKind::Mul { ref lhs, ref rhs } => mul(lhs, process_constraints(rhs, view)),
+        // LinopKind::RMul { ref lhs, ref rhs } => mul(rhs, process_constraints(lhs, view)),
+        LinopKind::Neg => neg(view),
+        LinopKind::Transpose(ref arg) => transpose(linop, process_constraints(arg, view)),
+        LinopKind::Promote(ref arg) => promote(linop, process_constraints(arg, view)),
+        // Multi arg linops
+        LinopKind::Sum(ref args) => {
+            // call process_constraints(arg, view.clone()) on the first arg, then add in place the rest
+            let mut res = process_constraints(&args[0], view.clone());
+            for arg in args.iter().skip(1) {
+                res.add_inplace(process_constraints(arg, view.clone()));
+            }
+            res
         }
-    }
-    res.unwrap()
+        _ => panic!(),
+    };
+    res
 }
 
 pub(crate) fn mul<'a>(lhs: &Linop<'a>, view: View<'a>) -> View<'a> {

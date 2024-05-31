@@ -26,7 +26,6 @@ fn test_neg() {
     let linop = Linop {
         shape: CvxpyShape::D2(2, 2),
         kind: LinopKind::Variable(1),
-        args: Vec::new(),
     };
     let empty_view = View::new(&context);
 
@@ -47,7 +46,12 @@ fn test_neg() {
     let view_A = SparseColMat::try_new_from_triplets(4, 4, &triplets).unwrap();
     assert_eq!(view_A, faer_ext::eye(4));
 
-    let negated_view = crate::backend::neg(view);
+    let neg_linop = Linop {
+        shape: CvxpyShape::D2(2, 2),
+        kind: LinopKind::Neg,
+    };
+
+    let negated_view = process_constraints(&neg_linop, view);
     let view_A = negated_view.get_tensor_representation(0);
     let mut triplets = Vec::new();
     for (r, c, d) in view_A
@@ -76,13 +80,17 @@ fn test_transpose() {
     let linop = Linop {
         shape: CvxpyShape::D2(2, 2),
         kind: LinopKind::Variable(1),
-        args: Vec::new(),
     };
     let empty_view = View::new(&context);
 
     let view = process_constraints(&linop, empty_view);
 
-    let transposed_view = transpose(&linop, view);
+    let transpose_linop = Linop {
+        shape: CvxpyShape::D2(2, 2),
+        kind: LinopKind::Transpose(Box::new(linop)),
+    };
+
+    let transposed_view = process_constraints(&transpose_linop, view);
     let A = transposed_view.get_tensor_representation(0);
     let mut triplets = Vec::new();
     for (r, c, d) in A
@@ -117,19 +125,15 @@ fn test_promote() {
     let variable_linop = Linop {
         shape: CvxpyShape::D1(1),
         kind: LinopKind::Variable(1),
-        args: Vec::new(),
     };
     let empty_view = View::new(&context);
 
-    let view = process_constraints(&variable_linop, empty_view);
-
     let promote_linop = Linop {
         shape: CvxpyShape::D1(3),
-        kind: LinopKind::Promote,
-        args: Vec::new(),
+        kind: LinopKind::Promote(Box::new(variable_linop)),
     };
 
-    let promoted_view = promote(&promote_linop, view);
+    let promoted_view = process_constraints(&promote_linop, empty_view);
     let A = promoted_view.get_tensor_representation(0);
     let mut triplets = Vec::new();
     for (r, c, d) in A
@@ -154,7 +158,6 @@ fn test_scalar_constant() {
     let linop = Linop {
         shape: CvxpyShape::D0,
         kind: LinopKind::ScalarConst(3.0),
-        args: Vec::new(),
     };
     let context = ViewContext {
         id_to_col: [(-1, 0)].into(),
@@ -187,7 +190,6 @@ fn test_dense_constant() {
     let linop = Linop {
         shape: CvxpyShape::D2(2, 2),
         kind: LinopKind::DenseConst(mat),
-        args: Vec::new(),
     };
 
     let context = ViewContext {
@@ -234,7 +236,6 @@ fn test_sparse_constant() {
     let linop = Linop {
         shape: CvxpyShape::D2(2, 2),
         kind: LinopKind::SparseConst(&mat),
-        args: Vec::new(),
     };
     let context = ViewContext {
         id_to_col: [(-1, 0)].into(),
@@ -273,32 +274,27 @@ fn test_mul() {
         param_size_plus_one: 1,
         var_length: 4,
     };
-    let linop = Linop {
+    let variable_linop = Linop {
         shape: CvxpyShape::D2(2, 2),
         kind: LinopKind::Variable(1),
-        args: Vec::new(),
     };
     let empty_view = View::new(&context);
 
-    let variable_view = process_constraints(&linop, empty_view.clone());
-
     let mat = numpy::ndarray::arr2(&[[1.0, 2.0], [3.0, 4.0]]);
-
-    let lhs_linopt = Linop {
+    let lhs_linop = Linop {
         shape: CvxpyShape::D2(2, 2),
         kind: LinopKind::DenseConst(mat),
-        args: Vec::new(),
     };
 
     let mul_linop = Linop {
         shape: CvxpyShape::D2(2, 2),
         kind: LinopKind::Mul {
-            lhs: Box::new(lhs_linopt),
+            lhs: Box::new(lhs_linop),
+            rhs: Box::new(variable_linop),
         },
-        args: Vec::new(),
     };
 
-    let out_view = process_constraints(&mul_linop, variable_view);
+    let out_view = process_constraints(&mul_linop, empty_view);
 
     let view_A = out_view.get_tensor_representation(0);
     let mut triplets = Vec::new();

@@ -3,6 +3,7 @@ use pyo3::intern;
 use pyo3::prelude::*;
 use std::borrow::Borrow;
 
+use crate::view::View;
 use crate::NdArray;
 
 // TinyVec for n-dimensional?
@@ -49,7 +50,7 @@ pub(crate) enum LinopKind<'a> {
     RMul { lhs: Box<Linop<'a>>, rhs: Box<Linop<'a>> },
     MulElem { lhs: Box<Linop<'a>>, rhs: Box<Linop<'a>> },
     Sum(Vec<Linop<'a>>),
-    Neg(Box<Linop<'a>>),
+    Neg,
     Transpose(Box<Linop<'a>>),
     SumEntries(Box<Linop<'a>>),
     ScalarConst(f64),
@@ -82,13 +83,13 @@ impl<'py> FromPyObject<'py> for Linop<'py> {
             "sum" => LinopKind::Sum(Vec::extract_bound(&ob.getattr(intern!(ob.py(), "args"))?)?),
             "mul" => {
                 let lhs = Linop::extract_bound(&ob.getattr(intern!(ob.py(), "data"))?)?;
-                let rhs = Linop::extract_bound(&ob.getattr(intern!(ob.py(), "args"))?)?;
+                let rhs = Linop::extract_bound(&ob.getattr(intern!(ob.py(), "args[0]"))?)?;
                 LinopKind::Mul { lhs: Box::new(lhs), rhs: Box::new(rhs) }
             }
-            "neg" => LinopKind::Neg(Box::new(Linop::extract_bound(&ob.getattr(intern!(ob.py(), "args"))?)?)),
-            "promote" => LinopKind::Promote(Box::new(Linop::extract_bound(&ob.getattr(intern!(ob.py(), "args"))?)?),
-            "transpose" => LinopKind::Transpose(Box::new(Linop::extract_bound(&ob.getattr(intern!(ob.py(), "args"))?)?),
-            "reshape" => LinopKind::Reshape(Box::new(Linop::extract_bound(&ob.getattr(intern!(ob.py(), "args"))?)?),
+            "neg" => LinopKind::Neg,
+            "promote" => LinopKind::Promote(Box::new(Linop::extract_bound(&ob.getattr(intern!(ob.py(), "args[0]"))?)?)),
+            "transpose" => LinopKind::Transpose(Box::new(Linop::extract_bound(&ob.getattr(intern!(ob.py(), "args[0]"))?)?)),
+            "reshape" => LinopKind::Reshape(Box::new(Linop::extract_bound(&ob.getattr(intern!(ob.py(), "args[0]"))?)?)),
             "variable" => {
                 LinopKind::Variable(i64::extract_bound(&ob.getattr(intern!(ob.py(), "data"))?)?)
             }
@@ -118,7 +119,6 @@ impl<'py> FromPyObject<'py> for Linop<'py> {
                 todo!()
             }
         };
-        let args = 
-        Ok(Linop { shape, kind, args })
+        Ok(Linop { shape, kind })
     }
 }

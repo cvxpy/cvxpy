@@ -162,55 +162,49 @@ impl<'a> View<'a> {
         tensor.iter().map(|(k, v)| (*k, func(v, 1))).collect()
     }
 
-    pub(crate) fn add_inplace(&self, arg_res: &View) -> () {
+    pub(crate) fn add_inplace(&mut self, arg_res: View) -> () {
         self.variables.extend(&arg_res.variables);
         self.is_parameter_free = self.is_parameter_free && arg_res.is_parameter_free;
-        extend_tensor_outer(&mut self.tensor, &arg_res.tensor);
+        extend_tensor_outer(&mut self.tensor, arg_res.tensor);
     }
 }
 
-fn extend_tensor_outer(tensor_1: &mut Tensor, tensor_2: &Tensor) -> () {
+fn extend_tensor_outer(tensor_1: &mut Tensor, mut tensor_2: Tensor) -> () {
     let keys_a: HashSet<i64> = tensor_1.keys().cloned().collect();
     let keys_b: HashSet<i64> = tensor_2.keys().cloned().collect();
     let intersect: HashSet<i64> = keys_a.intersection(&keys_b).cloned().collect();
-    let union: HashSet<i64> = keys_a.union(&keys_b).cloned().collect();
+    let b_only: HashSet<i64> = keys_b.difference(&keys_a).cloned().collect();
 
-    for key in union {
-        if intersect.contains(&key) {
-            let mut tensor_1_val = tensor_1.get(&key).unwrap();
-            let tensor_2_val = tensor_2.get(&key).unwrap();
-            extend_tensor_inner(&mut tensor_1_val, tensor_2_val);
-        } else if keys_a.contains(&key) {
-            let tensor_1_val = tensor_1.get(&key).unwrap();
-            tensor_1.insert(key, tensor_1_val.clone());
-        } else {
-            let tensor_2_val = tensor_2.get(&key).unwrap();
-            tensor_1.insert(key, tensor_2_val.clone());
-        }
+    for key in intersect {
+        let tensor_1_val = tensor_1.get_mut(&key).unwrap();
+        let tensor_2_val = tensor_2.remove(&key).unwrap();
+        extend_tensor_inner(tensor_1_val, tensor_2_val);
+    }
+
+    for key in b_only {
+        let tensor_2_val = tensor_2.remove(&key).unwrap();
+        tensor_1.insert(key, tensor_2_val);
     }
 }
 
 fn extend_tensor_inner(
     tensor_1: &mut HashMap<i64, SparseColMat<u64, f64>>,
-    tensor_2: &HashMap<i64, SparseColMat<u64, f64>>,
+    mut tensor_2: HashMap<i64, SparseColMat<u64, f64>>,
 ) -> () {
     let keys_a: HashSet<i64> = tensor_1.keys().cloned().collect();
     let keys_b: HashSet<i64> = tensor_2.keys().cloned().collect();
     let intersect: HashSet<i64> = keys_a.intersection(&keys_b).cloned().collect();
-    let union: HashSet<i64> = keys_a.union(&keys_b).cloned().collect();
+    let b_only: HashSet<i64> = keys_b.difference(&keys_a).cloned().collect();
 
-    for key in union {
-        if intersect.contains(&key) {
-            let mut tensor_1_val = tensor_1.get(&key).unwrap();
-            let tensor_2_val = tensor_2.get(&key).unwrap();
-            let new_tensor = tensor_1_val + tensor_2_val;
-            tensor_1.insert(key, new_tensor);
-        } else if keys_a.contains(&key) {
-            let tensor_1_val = tensor_1.get(&key).unwrap();
-            tensor_1.insert(key, tensor_1_val.clone());
-        } else {
-            let tensor_2_val = tensor_2.get(&key).unwrap();
-            tensor_1.insert(key, tensor_2_val.clone());
-        }
+    for key in intersect {
+        let mut tensor_1_val = tensor_1.get(&key).unwrap();
+        let tensor_2_val = tensor_2.remove(&key).unwrap();
+        let new_tensor = tensor_1_val + tensor_2_val;
+        tensor_1.insert(key, new_tensor);
+    }
+
+    for key in b_only {
+        let tensor_2_val = tensor_2.remove(&key).unwrap();
+        tensor_1.insert(key, tensor_2_val);
     }
 }
