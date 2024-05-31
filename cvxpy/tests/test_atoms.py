@@ -804,12 +804,12 @@ class TestAtoms(BaseTest):
         with self.assertRaises(Exception) as cm:
             cp.huber(self.x, -1)
         self.assertEqual(str(cm.exception),
-                         "M must be a non-negative scalar constant.")
+                         "M must be a non-negative scalar constant or Parameter.")
 
         with self.assertRaises(Exception) as cm:
             cp.huber(self.x, [1, 1])
         self.assertEqual(str(cm.exception),
-                         "M must be a non-negative scalar constant.")
+                         "M must be a non-negative scalar constant or Parameter.")
 
         # M parameter.
         M = Parameter(nonneg=True)
@@ -822,7 +822,7 @@ class TestAtoms(BaseTest):
         with self.assertRaises(Exception) as cm:
             cp.huber(self.x, M)
         self.assertEqual(str(cm.exception),
-                         "M must be a non-negative scalar constant.")
+                         "M must be a non-negative scalar constant or Parameter.")
 
         # Test copy with args=None
         atom = cp.huber(self.x, 2)
@@ -839,6 +839,19 @@ class TestAtoms(BaseTest):
         self.assertTrue(type(copy) is type(atom))
         self.assertTrue(copy.args[0] is self.y)
         self.assertEqual(copy.get_data()[0].value, atom.get_data()[0].value)
+
+        # Test usage of M as parameter
+        M = Parameter(nonneg=True)
+        expr = cp.huber(1.0, M)
+        M.value = 1
+        self.assertAlmostEqual(expr.value, 1.0)
+        M.value = 0.5
+        self.assertAlmostEqual(expr.value, 0.75)
+        M.value = 0.25
+        self.assertAlmostEqual(expr.value, 0.4375)
+        M.value = 1
+        self.assertAlmostEqual(expr.value, 1.0)
+
 
     def test_sum_largest(self) -> None:
         """Test the sum_largest atom and related atoms.

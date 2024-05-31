@@ -20,6 +20,8 @@ import numpy as np
 import scipy.special
 
 from cvxpy.atoms.elementwise.elementwise import Elementwise
+from cvxpy.expressions.constants.parameter import Parameter
+
 
 # TODO(akshayka): DGP support.
 
@@ -41,13 +43,19 @@ class huber(Elementwise):
     ----------
     x : Expression
         The expression to which the huber function will be applied.
-    M : Constant
+    M : Constant or Parameter
         A scalar constant.
     """
 
     def __init__(self, x, M: int = 1) -> None:
-        self.M = self.cast_to_const(M)
+        self.M = M if isinstance(M, Parameter) else self.cast_to_const(M)
         super(huber, self).__init__(x)
+
+    def parameters(self):
+        """If M is a Parameter, include it in the list of Parameters"""
+        if isinstance(self.M, Parameter):
+            return super().parameters() + [self.M]
+        return super().parameters()
 
     @Elementwise.numpy_numeric
     def numeric(self, values) -> float:
@@ -97,12 +105,12 @@ class huber(Elementwise):
         return [self.M]
 
     def validate_arguments(self) -> None:
-        """Checks that M >= 0 and is constant.
+        """Checks that M >= 0 and is a constant or Parameter.
         """
         if not (self.M.is_nonneg() and
                 self.M.is_scalar() and
                 self.M.is_constant()):
-            raise ValueError("M must be a non-negative scalar constant.")
+            raise ValueError("M must be a non-negative scalar constant or Parameter.")
         super(huber, self).validate_arguments()
 
     def _grad(self, values):
