@@ -6,6 +6,11 @@ use rust_backend::{build_matrix, IdxMap};
 fn generate_problem<'a>(m: i64) -> (IdxMap, IdxMap, IdxMap, i64, i64) {
     let n = m / 10;
 
+    // Constraints for:
+    // x = cp.Variable((n, 1))
+    // objective = cp.Minimize(cp.sum_squares(cp.reshape(A @ x, (m, 1)) - b))
+    // constraints = [0 <= x, x <= 1]
+
     let id_to_col = [(1, 0), (2, n), (-1, m + n)].into();
     let param_to_size = [(-1, 1)].into();
     let param_to_col = [(-1, 0)].into();
