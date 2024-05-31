@@ -90,7 +90,7 @@ pub(crate) fn parse_args<'a>(linop: &Linop<'a>, view: View<'a>) -> View<'a> {
                 res.add_inplace(process_constraints(arg, view.clone()));
             }
             res
-        },
+        }
         _ => panic!("Unsupported linop: {:?}", linop.kind),
     };
     res

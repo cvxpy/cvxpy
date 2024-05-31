@@ -4,9 +4,9 @@ use crate::{
     faer_ext::{self, to_triplets_iter},
     IdxMap,
 };
+use core::panic;
 use faer::sparse::SparseColMat;
 use pyo3::prelude::*;
-use core::panic;
 use std::collections::{HashMap, HashSet};
 
 #[derive(Default, Debug)]
