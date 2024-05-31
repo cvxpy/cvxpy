@@ -108,7 +108,7 @@ class TensorRepresentation:
         """
         rows = (self.col.astype(np.int64) * np.int64(self.shape[0]) + self.row.astype(np.int64))
         cols = self.parameter_offset.astype(np.int64)
-        shape = (np.int64(np.prod(self.shape)), num_param_slices)
+        shape = (np.prod(self.shape, dtype=np.int64), num_param_slices)
         return sp.csc_matrix((self.data, (rows, cols)), shape=shape)
 
     def get_param_slice(self, param_offset: int) -> sp.csc_matrix:
