@@ -852,6 +852,14 @@ class TestAtoms(BaseTest):
         M.value = 1
         self.assertAlmostEqual(expr.value, 1.0)
 
+        # Test M as affine expression of parameter
+        expr = cp.huber(1.0, 0.25 * M + 0.25)
+        M.value = 1
+        self.assertAlmostEqual(expr.value, 0.75)
+        M.value = 0.5
+        self.assertAlmostEqual(expr.value, 0.609375)
+        M.value = 1
+        self.assertAlmostEqual(expr.value, 0.75)
 
     def test_sum_largest(self) -> None:
         """Test the sum_largest atom and related atoms.

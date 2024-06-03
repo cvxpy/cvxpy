@@ -47,13 +47,13 @@ class huber(Elementwise):
     """
 
     def __init__(self, x, M: int = 1) -> None:
-        self.M = M if isinstance(M, Parameter) else self.cast_to_const(M)
+        self.M = self.cast_to_const(M)
         super(huber, self).__init__(x)
 
     def parameters(self):
         """If M is a Parameter, include it in the list of Parameters"""
         if isinstance(self.M, Parameter):
-            return super().parameters() + [self.M]
+            return super().parameters() + self.M.parameters()
         return super().parameters()
 
     @Elementwise.numpy_numeric
