@@ -56,7 +56,6 @@ class Leaf(expression.Expression):
     shape : Iterable of ints or int
         The leaf dimensions. Either an integer n for a 1D shape, or an
         iterable where the semantics are the same as NumPy ndarray shapes.
-        **Shapes cannot be more than 2D**.
     value : numeric type
         A value to assign to the leaf.
     nonneg : bool
@@ -106,9 +105,11 @@ class Leaf(expression.Expression):
     ) -> None:
         if isinstance(shape, numbers.Integral):
             shape = (int(shape),)
+        """
         elif len(shape) > 2:
             raise ValueError("Expressions of dimension greater than 2 "
                              "are not supported.")
+        """
         for d in shape:
             if not isinstance(d, numbers.Integral) or d <= 0:
                 raise ValueError("Invalid dimensions %s." % (shape,))

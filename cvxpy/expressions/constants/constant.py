@@ -35,11 +35,10 @@ class Constant(Leaf):
     """
     A constant value.
 
-    Raw numerical constants (Python primite types, NumPy ndarrays,
-    and NumPy matrices) are implicitly cast to constants via Expression
-    operator overloading. For example, if ``x`` is an expression and
-    ``c`` is a raw constant, then ``x + c`` creates an expression by
-    casting ``c`` to a Constant.
+    Raw numerical constants such as Python primitive types or NumPy ndarrays
+    are implicitly cast to constants via Expression operator overloading.
+    For example, if ``x`` is an expression and``c`` is a raw constant,
+    then ``x + c`` creates an expression by casting ``c`` to a Constant.
     """
 
     def __init__(self, value, name: Optional[str] = None) -> None:
