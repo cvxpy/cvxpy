@@ -31,10 +31,13 @@ def main():
         t2 = time.time()
         prob.get_problem_data(cp.SCS, canon_backend=cp.SCIPY_CANON_BACKEND)
         t3 = time.time()
+        prob.get_problem_data(cp.SCS, canon_backend=cp.CPP_CANON_BACKEND)
+        t4 = time.time()
 
         timings[m] = {
             "Rust": t2 - t1,
             "SciPy": t3 - t2,
+            "C++": t4 - t3
         }
         print(timings[m])
 
