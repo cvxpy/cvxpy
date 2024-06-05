@@ -38,12 +38,7 @@ pub(crate) fn process_constraints<'a>(linop: &Linop<'a>, view: View<'a>) -> View
             }
         }
         LinopKind::DenseConst(ref mat) => {
-            let mut triplets = Vec::with_capacity(mat.ncols() * mat.nrows());
-            for ((i, j), v) in mat.indexed_iter() {
-                triplets.push((i as u64 + j as u64 * mat.nrows() as u64, 0_u64, *v));
-            }
-            let mat = SparseColMat::try_new_from_triplets(mat.nrows() * mat.ncols(), 1, &triplets)
-                .unwrap();
+            let mat = faer_ext::dense_to_sparse(mat);
             let tensor = [(CONST_ID, [(CONST_ID, mat)].into())].into();
             View {
                 variables: [CONST_ID].into(),

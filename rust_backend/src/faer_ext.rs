@@ -7,6 +7,20 @@ use faer::{
 
 use crate::SparseMatrix;
 
+pub fn dense_to_sparse(A: &numpy::ndarray::Array2<f64>) -> SparseMatrix {
+    let numel_usize = A.nrows() * A.ncols();
+    let numel = u64::try_from(numel_usize).unwrap();
+    let col_ptr = vec![0, numel];
+    let row_idx = (0..numel).collect();
+    let row_val = A.iter().map(|f| *f).collect();
+    // Safety: by construction
+    let symbolic = unsafe {
+        SymbolicSparseColMat::new_unchecked(numel_usize, 1, col_ptr, Some(vec![numel]), row_idx)
+    };
+
+    SparseColMat::new(symbolic, row_val)
+}
+
 /*
 pub fn reshape<I: Index, E: SimpleEntity>(A: SparseColMatRef<'_, I, E>,
                                                (m, n): (I, I)) -> SparseColMat<I, E> {
@@ -65,7 +79,7 @@ pub fn select_rows(A: &SparseColMat<u64, f64>, rows: &[u64]) -> SparseColMat<u64
     SparseColMat::try_new_from_triplets(rows.len(), A.ncols(), &triplets).unwrap()
 }
 
-pub(crate) fn identity_kron(reps: u64, lhs: &SparseColMat<u64, f64>) -> SparseColMat<u64, f64> {
+/* pub(crate) fn identity_kron(reps: u64, lhs: &SparseColMat<u64, f64>) -> SparseColMat<u64, f64> {
     if reps == 1 {
         lhs.clone()
     } else {
@@ -86,35 +100,42 @@ pub(crate) fn identity_kron(reps: u64, lhs: &SparseColMat<u64, f64>) -> SparseCo
         )
         .unwrap()
     }
-}
+} */
 
-pub(crate) fn identity_kron2(reps: u64, A: &SparseMatrix) -> SparseColMat<u64, f64> {
-    let capacity = A.compute_nnz() * reps as usize;
-    let mut row_indices = Vec::with_capacity(capacity);
-    let mut entries = Vec::with_capacity(capacity);
-    let mut col_ptrs = Vec::with_capacity(reps as usize * A.ncols() + 1);
-    let mut entries_so_far = 0;
-    col_ptrs.push(entries_so_far);
-    for r in 0..reps {
-        for j in 0..A.ncols() {
-            for (i, value) in A.row_indices_of_col(j).zip(A.values_of_col(j)) {
-                row_indices.push(i as u64 + r * A.nrows() as u64);
-                entries.push(*value);
-                entries_so_far += 1;
+pub(crate) fn identity_kron(reps: u64, A: &SparseMatrix) -> SparseColMat<u64, f64> {
+    if reps == 1 {
+        A.clone()
+    } else {
+        let capacity = A.compute_nnz() * reps as usize;
+        let mut row_indices = Vec::with_capacity(capacity + 1);
+        let mut entries = Vec::with_capacity(capacity + 1);
+        let mut col_ptrs = Vec::with_capacity(reps as usize * A.ncols() + 2);
+        let mut entries_so_far = 0;
+        col_ptrs.push(entries_so_far);
+        for r in 0..reps {
+            for j in 0..A.ncols() {
+                for (i, value) in A.row_indices_of_col(j).zip(A.values_of_col(j)) {
+                    row_indices.push(i as u64 + r * A.nrows() as u64);
+                    entries.push(*value);
+                    entries_so_far += 1;
+                }
+                col_ptrs.push(entries_so_far);
             }
-            col_ptrs.push(entries_so_far);
         }
+        SparseColMat::new(
+            // SAFETY: By construction
+            unsafe {
+                SymbolicSparseColMat::new_unchecked(
+                    reps as usize * A.nrows(),
+                    reps as usize * A.ncols(),
+                    col_ptrs,
+                    None,
+                    row_indices,
+                )
+            },
+            entries,
+        )
     }
-    SparseColMat::new(
-        faer::sparse::SymbolicSparseColMat::new_checked(
-            reps as usize * A.nrows(),
-            reps as usize * A.ncols(),
-            col_ptrs,
-            None,
-            row_indices,
-        ),
-        entries,
-    )
 }
 
 #[cfg(test)]

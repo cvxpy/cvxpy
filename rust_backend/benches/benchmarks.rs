@@ -11,9 +11,9 @@ fn generate_problem<'a>(m: i64) -> (IdxMap, IdxMap, IdxMap, i64, i64) {
     // objective = cp.Minimize(cp.sum_squares(cp.reshape(A @ x, (m, 1)) - b))
     // constraints = [0 <= x, x <= 1]
 
-    let id_to_col = [(1, 0), (2, n), (-1, m + n)].into();
-    let param_to_size = [(-1, 1)].into();
-    let param_to_col = [(-1, 0)].into();
+    let id_to_col = [(1i64, 0i64), (2i64, n), (-1i64, m + n)].into();
+    let param_to_size = [(-1i64, 1i64)].into();
+    let param_to_col = [(-1i64, 0i64)].into();
     let param_size_plus_one = 1;
     let var_length = m + n;
     (

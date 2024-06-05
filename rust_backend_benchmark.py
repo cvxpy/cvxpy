@@ -9,7 +9,7 @@ def main():
     np.random.seed(1)
 
     timings = {}
-    for m in np.logspace(1, 5, 5):
+    for m in np.logspace(1, 4, 4):
         m = int(m)
         print(m)
         n = int(m/10)
@@ -27,11 +27,11 @@ def main():
 
         timings = {}
         t1 = time.time()
-        prob.get_problem_data(cp.SCS, canon_backend=cp.RUST_CANON_BACKEND)
+        _F = prob.get_problem_data(cp.SCS, canon_backend=cp.RUST_CANON_BACKEND)
         t2 = time.time()
-        prob.get_problem_data(cp.SCS, canon_backend=cp.SCIPY_CANON_BACKEND)
+        _G = prob.get_problem_data(cp.SCS, canon_backend=cp.SCIPY_CANON_BACKEND)
         t3 = time.time()
-        prob.get_problem_data(cp.SCS, canon_backend=cp.CPP_CANON_BACKEND)
+        _H = prob.get_problem_data(cp.SCS, canon_backend=cp.CPP_CANON_BACKEND)
         t4 = time.time()
 
         timings[m] = {
