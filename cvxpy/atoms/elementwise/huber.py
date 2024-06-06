@@ -20,7 +20,6 @@ import numpy as np
 import scipy.special
 
 from cvxpy.atoms.elementwise.elementwise import Elementwise
-from cvxpy.expressions.constants.parameter import Parameter
 
 # TODO(akshayka): DGP support.
 
