@@ -12,7 +12,8 @@ pub fn dense_to_sparse(A: &numpy::ndarray::Array2<f64>) -> SparseMatrix {
     let numel = u64::try_from(numel_usize).unwrap();
     let col_ptr = vec![0, numel];
     let row_idx = (0..numel).collect();
-    let row_val = A.iter().map(|f| *f).collect();
+
+    let row_val = A.columns().into_iter().flat_map(|column| column.into_iter().copied()).collect();
     // Safety: by construction
     let symbolic = unsafe {
         SymbolicSparseColMat::new_unchecked(numel_usize, 1, col_ptr, Some(vec![numel]), row_idx)
