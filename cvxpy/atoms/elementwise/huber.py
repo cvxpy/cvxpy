@@ -52,9 +52,7 @@ class huber(Elementwise):
 
     def parameters(self):
         """If M is a Parameter, include it in the list of Parameters"""
-        if isinstance(self.M, Parameter):
-            return super().parameters() + self.M.parameters()
-        return super().parameters()
+        return super().parameters() + self.M.parameters()
 
     @Elementwise.numpy_numeric
     def numeric(self, values) -> float:
