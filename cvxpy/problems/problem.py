@@ -415,8 +415,8 @@ class Problem(u.Canonical):
                    last time it was compiled.
         """
         return self._compilation_time
-
-    def solve_multiple_solvers(self, solvers:list[tuple[str, dict] | tuple[str] | str],
+    
+    def _solve_solver_path(self, solve_func, solvers:list[tuple[str, dict] | tuple[str] | str],
                                 *args, **kwargs):
         """Solve a problem using multiple solvers.
 
@@ -446,16 +446,17 @@ class Problem(u.Canonical):
             try:
                 if isinstance(solver, str):
                     solver_name = solver
-                    solution = self.solve(*args, solver=solver_name, **kwargs)
+                    solution = solve_func(self, *args, solver=solver_name, **kwargs)
                 elif isinstance(solver, tuple):
                     if len(solver) == 1:
                         solver_name, = solver
-                        solution = self.solve(*args, solver=solver_name, **kwargs)
+                        solution = solve_func(self, *args, solver=solver_name, **kwargs)
                     elif len(solver) == 2:
                         solver_name, solver_kwargs = solver
                         if not isinstance(solver_name, str) or not isinstance(solver_kwargs, dict):
                             raise ValueError("Solver tuple input must be (str, dict).")
-                        solution = self.solve(*args, solver=solver_name, **solver_kwargs, **kwargs)
+                        solution = solve_func(
+                            self, *args, solver=solver_name, **solver_kwargs, **kwargs)
                     else:
                         raise ValueError("Solver tuple input must be (str, dict) or (str)")
                 else:
@@ -466,7 +467,7 @@ class Problem(u.Canonical):
             except error.SolverError as e:
                 s.LOGGER.info("Solver %s failed: %s", solver_name, e)
         raise error.SolverError(f"All solvers failed: {solvers}")
-    
+
     def solve(self, *args, **kwargs):
         """Compiles and solves the problem using the specified method.
 
@@ -551,6 +552,13 @@ class Problem(u.Canonical):
             solve_func = Problem.REGISTERED_SOLVE_METHODS[func_name]
         else:
             solve_func = Problem._solve
+        solver_path = kwargs.pop("solver_path", None)
+        if solver_path is not None:
+            solver = kwargs.get("solver", None)
+            if solver is not None:
+                raise ValueError(
+                    "Cannot specify both 'solver' and 'solver_path'. Please choose one.")
+            return self._solve_solver_path(solve_func,solver_path,*args,**kwargs)
         return solve_func(self, *args, **kwargs)
 
     @classmethod
