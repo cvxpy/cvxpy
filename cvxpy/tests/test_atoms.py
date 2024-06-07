@@ -863,19 +863,19 @@ class TestAtoms(BaseTest):
         # Test with DPP
         x = cp.Variable()
         M = cp.Parameter(nonneg=True)
-        problem = cp.Problem(cp.Minimize(x**2 + cp.huber(3*x-5, M)), [x >= 0.5])
+        problem = cp.Problem(cp.Minimize(x**2 + cp.huber(3*x-5, 2 * M + 0.15)), [x >= 0.5])
 
-        M.value = 1.0
+        M.value = 0.425
         result = problem.solve()
         self.assertAlmostEqual(result, 2.5)
         self.assertAlmostEqual(x.value, 1.5)
 
-        M.value = 0.15
+        M.value = 0.0
         result = problem.solve()
         self.assertAlmostEqual(result, 1.2775)
         self.assertAlmostEqual(x.value, 0.5)
 
-        M.value = 1.0
+        M.value = 0.425
         result = problem.solve()
         self.assertAlmostEqual(result, 2.5)
         self.assertAlmostEqual(x.value, 1.5)
