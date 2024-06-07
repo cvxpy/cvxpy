@@ -860,6 +860,25 @@ class TestAtoms(BaseTest):
         self.assertAlmostEqual(expr.value, 0.609375)
         M.value = 1
         self.assertAlmostEqual(expr.value, 0.75)
+        # Test with DPP
+        x = cp.Variable()
+        M = cp.Parameter(nonneg=True)
+        problem = cp.Problem(cp.Minimize(x**2 + cp.huber(3*x-5, M)), [x >= 0.5])
+
+        M.value = 1.0
+        result = problem.solve()
+        self.assertAlmostEqual(result, 2.5)
+        self.assertAlmostEqual(x.value, 1.5)
+
+        M.value = 0.15
+        result = problem.solve()
+        self.assertAlmostEqual(result, 1.2775)
+        self.assertAlmostEqual(x.value, 0.5)
+
+        M.value = 1.0
+        result = problem.solve()
+        self.assertAlmostEqual(result, 2.5)
+        self.assertAlmostEqual(x.value, 1.5)
 
     def test_sum_largest(self) -> None:
         """Test the sum_largest atom and related atoms.
