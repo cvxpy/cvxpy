@@ -15,7 +15,7 @@ limitations under the License.
 """
 
 import warnings
-from typing import List, Optional, Tuple
+from typing import Any, List, Optional, Tuple
 
 import numpy as np
 import scipy.sparse as sp
@@ -27,8 +27,8 @@ import cvxpy.utilities.linalg as eig_util
 from cvxpy.expressions.leaf import Leaf
 from cvxpy.utilities import performance_utils as perf
 
-NESTED_LIST_WARNING =  "Initializing a Constant with a nested list is " \
-    "undefined behavior. Consider using a numpy array instead."
+NESTED_LIST_WARNING = "Initializing a Constant with a nested list is " \
+                      "undefined behavior. Consider using a numpy array instead."
 
 
 class Constant(Leaf):
@@ -66,14 +66,15 @@ class Constant(Leaf):
         super(Constant, self).__init__(intf.shape(self.value))
 
     def name(self) -> str:
-        """The value as a string.
+        """
+        The value of the constant as a string.
         """
         if self._name is None:
             if len(self.shape) == 2 and "\n" in str(self.value):
                 return np.array2string(self.value,
-                                    edgeitems=s.PRINT_EDGEITEMS,
-                                    threshold=s.PRINT_THRESHOLD,
-                                    formatter={'float': lambda x: f'{x:.2f}'})
+                                       edgeitems=s.PRINT_EDGEITEMS,
+                                       threshold=s.PRINT_THRESHOLD,
+                                       formatter={'float': lambda x: f'{x:.2f}'})
             return str(self.value)
         else:
             return self._name
@@ -87,7 +88,7 @@ class Constant(Leaf):
         return True
 
     @property
-    def value(self):
+    def value(self) -> np.ndarray | None:
         """NumPy.ndarray or None: The numeric value of the constant.
         """
         return self._value
@@ -116,7 +117,7 @@ class Constant(Leaf):
         return {}
 
     @property
-    def shape(self) -> Tuple[int, ...]:
+    def shape(self) -> int | Tuple[int, Any]:
         """Returns the (row, col) dimensions of the expression.
         """
         return self._shape
