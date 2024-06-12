@@ -226,7 +226,7 @@ class PythonCanonBackend(CanonBackend):
         # Leaf nodes
         if lin_op.type == "variable":
             assert isinstance(lin_op.data, int)
-            assert len(lin_op.shape) in {0, 1, 2}
+            # assert len(lin_op.shape) in {0, 1, 2}
             variable_tensor = self.get_variable_tensor(lin_op.shape, lin_op.data)
             return empty_view.create_new_tensor_view({lin_op.data}, variable_tensor,
                                                      is_parameter_free=True)
@@ -760,8 +760,12 @@ class NumPyCanonBackend(PythonCanonBackend):
         Given (A, b) in view, return the sum of the representation
         on the row axis, ie: (sum(A,axis=1), sum(b, axis=1)).
         """
+        axis, keepdims = _lin.data
+        n = np.prod(_lin.shape)
+        d = _lin.shape[axis]
         def func(x):
-            return x.sum(axis=1, keepdims=True)
+            idx = np.arange(n).reshape((n//d, d), order='F')
+            return x[idx].sum(axis=axis-1).reshape(1,n//d,n)
 
         view.apply_all(func)
         return view

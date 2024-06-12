@@ -499,7 +499,7 @@ class TestBackends:
         view_A = sp.coo_matrix((view_A.data, (view_A.row, view_A.col)), shape=(2, 2)).toarray()
         assert np.all(view_A == np.eye(2))
 
-        sum_entries_lin_op = linOpHelper()
+        sum_entries_lin_op = linOpHelper(data = [1, True])
         out_view = backend.sum_entries(sum_entries_lin_op, view)
         A = out_view.get_tensor_representation(0, 1)
 
@@ -1084,6 +1084,77 @@ class TestBackends:
         assert view.combine_potentially_none(a, None) == a
         assert view.combine_potentially_none(None, a) == a
         assert view.combine_potentially_none(a, b) == view.add_dicts(a, b)
+
+    def test_sum(self, backend):
+        """
+        define x = Variable((2,2,2)) with
+        [[[x1, x5],
+        [x3, x7]],
+
+        [[x2, x6],
+        [x4, x8]]]
+
+        x is represented as eye(8) in the A matrix (in column-major order), i.e.,
+
+         x1  x3  x5  x7  x2  x4  x6  x8
+        [[1   0   0   0   0   0   0   0],
+         [0   1   0   0   0   0   0   0],
+         [0   0   1   0   0   0   0   0],
+         [0   0   0   1   0   0   0   0],
+         [0   0   0   0   1   0   0   0],
+         [0   0   0   0   0   1   0   0],
+         [0   0   0   0   0   0   1   0],
+         [0   0   0   0   0   0   0   1]]
+
+        sum(x, axis = 0, keepdims = True) means we only consider entries in a given axis (axes)
+
+        which, when using the same columns as before, now maps to
+
+         x1  x3  x5  x7  x2  x4  x6  x8
+        [[1   0   0   0   1   0   0   0],
+         [0   1   0   0   0   1   0   0],
+         [0   0   1   0   0   0   1   0],
+         [0   0   0   1   0   0   0   1]]
+
+        sum(x, axis = 1, keepdims = True)
+         x1  x3  x5  x7  x2  x4  x6  x8
+        [[1   1   0   0   0   0   0   0],
+         [0   0   1   1   0   0   0   0],
+         [0   0   0   0   1   1   0   0],
+         [0   0   0   0   0   0   1   1]]
+
+        sum(x, axis = 2, keepdims = True)
+         x1  x3  x5  x7  x2  x4  x6  x8
+        [[1   0   1   0   0   0   0   0],
+         [0   1   0   1   0   0   0   0],
+         [0   0   0   0   1   0   1   0],
+         [0   0   0   0   0   1   0   1]]
+
+        -> It reduces to summing subsets of the rows of A.
+        """
+
+        variable_lin_op = linOpHelper((2, 2, 2), type="variable", data=1)
+        view = backend.process_constraint(variable_lin_op, backend.get_empty_view())
+
+        # cast to numpy
+        view_A = view.get_tensor_representation(0, 8)
+        view_A = sp.coo_matrix((view_A.data, (view_A.row, view_A.col)), shape=(8, 8)).toarray()
+        assert np.all(view_A == np.eye(8))
+
+        sum_lin_op = linOpHelper(shape=(2, 2, 2), data=[2, True])
+        out_view = backend.sum_entries(sum_lin_op, view)
+        A = out_view.get_tensor_representation(0, 4)
+
+        # cast to numpy
+        A = sp.coo_matrix((A.data, (A.row, A.col)), shape=(4, 8)).toarray()
+        expected = np.array([[1, 0, 0, 0, 1, 0, 0, 0],
+                             [0, 1, 0, 0, 0, 1, 0, 0],
+                             [0, 0, 1, 0, 0, 0, 1, 0],
+                             [0, 0, 0, 1, 0, 0, 0, 1]])
+        assert np.all(A == expected)
+
+        # Note: view is edited in-place:
+        assert out_view.get_tensor_representation(0, 4) == view.get_tensor_representation(0, 4)
 
 
 class TestParametrizedBackends:

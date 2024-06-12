@@ -86,7 +86,7 @@ class Sum(AxisAtom, AffAtom):
         axis = data[0]
         keepdims = data[1]
         if axis is None:
-            obj = lu.sum_entries(arg_objs[0], shape=shape)
+            obj = lu.sum_entries(arg_objs[0], shape=shape, axis=axis, keepdims=keepdims)
         elif axis == 1:
             if keepdims:
                 const_shape = (arg_objs[0].shape[1], 1)
@@ -101,7 +101,7 @@ class Sum(AxisAtom, AffAtom):
                 const_shape = (arg_objs[0].shape[0],)
             ones = lu.create_const(np.ones(const_shape), const_shape)
             obj = lu.mul_expr(ones, arg_objs[0], shape)
-
+        obj = lu.sum_entries(arg_objs[0], shape=shape, axis=axis, keepdims=keepdims)
         return (obj, [])
 
 
