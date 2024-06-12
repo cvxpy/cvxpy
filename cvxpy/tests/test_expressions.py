@@ -1537,16 +1537,22 @@ class TestND_Expressions(BaseTest):
     
     def test_nd_variable(self) -> None:
         x = Variable((2, 2, 2))
-        y = np.arange(8).reshape(2,2,2)
+        y = (np.arange(8) + 1).reshape(2,2,2)
         obj = cp.Minimize(0)
         prob = cp.Problem(obj, [x == y])
         prob.solve(canon_backend=cp.SCIPY_CANON_BACKEND)
         assert np.allclose(x.value, y)
 
         x = Variable((2, 2, 2))
-        expr = x.sum(axis=1)
-        target = y.sum(axis=1)
-        obj = cp.Minimize(0)
+        expr = cp.multiply(x, 3)
+        target = y
+        prob = cp.Problem(obj, [expr == target])
+        prob.solve(canon_backend=cp.SCIPY_CANON_BACKEND)
+        assert np.allclose(expr.value, target)
+
+        x = Variable((2, 2, 2))
+        expr = x / y
+        target = y
         prob = cp.Problem(obj, [expr == target])
         prob.solve(canon_backend=cp.SCIPY_CANON_BACKEND)
         assert np.allclose(expr.value, target)

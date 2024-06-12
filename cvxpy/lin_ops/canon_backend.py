@@ -765,7 +765,7 @@ class NumPyCanonBackend(PythonCanonBackend):
         d = _lin.shape[axis]
         def func(x):
             idx = np.arange(n).reshape((n//d, d), order='F')
-            return x[idx].sum(axis=axis-1).reshape(1,n//d,n)
+            return x[0][idx].sum(axis=axis-1).reshape(1,n//d,n)
 
         view.apply_all(func)
         return view
