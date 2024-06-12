@@ -1537,22 +1537,42 @@ class TestND_Expressions(BaseTest):
     
     def test_nd_variable(self) -> None:
         x = Variable((2, 2, 2))
-        y = (np.arange(8) + 1).reshape(2,2,2)
+        target = (np.arange(8) + 1).reshape(2,2,2)
         obj = cp.Minimize(0)
-        prob = cp.Problem(obj, [x == y])
+        prob = cp.Problem(obj, [x == target])
         prob.solve(canon_backend=cp.SCIPY_CANON_BACKEND)
-        assert np.allclose(x.value, y)
+        assert np.allclose(x.value, target)
 
         x = Variable((2, 2, 2))
         expr = cp.multiply(x, 3)
-        target = y
         prob = cp.Problem(obj, [expr == target])
         prob.solve(canon_backend=cp.SCIPY_CANON_BACKEND)
         assert np.allclose(expr.value, target)
 
         x = Variable((2, 2, 2))
-        expr = x / y
-        target = y
+        expr = x / target
+        prob = cp.Problem(obj, [expr == target])
+        prob.solve(canon_backend=cp.SCIPY_CANON_BACKEND)
+        assert np.allclose(expr.value, target)
+
+        x = Variable((1, 2, 2))
+        z = Variable((1, 2, 2))
+        expr = cp.vstack([x,z])
+        prob = cp.Problem(obj, [expr == target])
+        prob.solve(canon_backend=cp.SCIPY_CANON_BACKEND)
+        assert np.allclose(expr.value, target)
+
+        """
+        x = Variable((2, 1, 2))
+        z = Variable((2, 1, 2))
+        expr = cp.hstack([x,z])
+        prob = cp.Problem(obj, [expr == target])
+        prob.solve(canon_backend=cp.SCIPY_CANON_BACKEND)
+        assert np.allclose(expr.value, target)
+        """
+
+        x = [cp.Variable((2,2,2)) for i in range(10)]
+        expr = sum(x)
         prob = cp.Problem(obj, [expr == target])
         prob.solve(canon_backend=cp.SCIPY_CANON_BACKEND)
         assert np.allclose(expr.value, target)

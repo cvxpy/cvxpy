@@ -1085,18 +1085,18 @@ class TestBackends:
         assert view.combine_potentially_none(None, a) == a
         assert view.combine_potentially_none(a, b) == view.add_dicts(a, b)
 
-    def test_sum(self, backend):
+    def test_nd_sum_entries(self, backend):
         """
         define x = Variable((2,2,2)) with
-        [[[x1, x5],
-        [x3, x7]],
+        [[[x111, x112],
+        [x121, x122]],
 
-        [[x2, x6],
-        [x4, x8]]]
+        [[x211, x212],
+        [x221, x222]]]
 
         x is represented as eye(8) in the A matrix (in column-major order), i.e.,
 
-         x1  x3  x5  x7  x2  x4  x6  x8
+        x111 x211 x121 x221 x112 x212 x122 x222
         [[1   0   0   0   0   0   0   0],
          [0   1   0   0   0   0   0   0],
          [0   0   1   0   0   0   0   0],
@@ -1106,31 +1106,46 @@ class TestBackends:
          [0   0   0   0   0   0   1   0],
          [0   0   0   0   0   0   0   1]]
 
-        sum(x, axis = 0, keepdims = True) means we only consider entries in a given axis (axes)
+        sum(x, axis = 0) means we only consider entries in a given axis (axes)
 
         which, when using the same columns as before, now maps to
-
-         x1  x3  x5  x7  x2  x4  x6  x8
-        [[1   0   0   0   1   0   0   0],
-         [0   1   0   0   0   1   0   0],
-         [0   0   1   0   0   0   1   0],
-         [0   0   0   1   0   0   0   1]]
-
-        sum(x, axis = 1, keepdims = True)
-         x1  x3  x5  x7  x2  x4  x6  x8
+        
+        sum(x, axis = 0)
+        x111 x211 x121 x221 x112 x212 x122 x222
         [[1   1   0   0   0   0   0   0],
          [0   0   1   1   0   0   0   0],
          [0   0   0   0   1   1   0   0],
          [0   0   0   0   0   0   1   1]]
 
-        sum(x, axis = 2, keepdims = True)
-         x1  x3  x5  x7  x2  x4  x6  x8
+        sum(x, axis = 1)
+        x111 x211 x121 x221 x112 x212 x122 x222
         [[1   0   1   0   0   0   0   0],
          [0   1   0   1   0   0   0   0],
          [0   0   0   0   1   0   1   0],
          [0   0   0   0   0   1   0   1]]
 
-        -> It reduces to summing subsets of the rows of A.
+        sum(x, axis = 2)
+        x111 x211 x121 x221 x112 x212 x122 x222
+        [[1   0   0   0   1   0   0   0],
+         [0   1   0   0   0   1   0   0],
+         [0   0   1   0   0   0   1   0],
+         [0   0   0   1   0   0   0   1]]
+        
+        sum(x, axis = (0,1))
+        x111 x211 x121 x221 x112 x212 x122 x222
+        [[1   1   1   1   0   0   0   0],
+         [0   0   0   0   1   1   1   1]]
+
+        sum(x, axis = (0,2))
+        x111 x211 x121 x221 x112 x212 x122 x222
+        [[1   1   0   0   1   1   0   0],
+         [0   0   1   1   0   0   1   1]]
+
+        To reproduce the outputs above, eliminate the given axis (axes)
+        and put ones where the remaining axes (axis) match. 
+
+        Note: sum(x, keepdims=True) is equivalent to sum(x, keepdims=False)
+        with a reshape, which is NO-OP in the backend.
         """
 
         variable_lin_op = linOpHelper((2, 2, 2), type="variable", data=1)
