@@ -760,12 +760,20 @@ class NumPyCanonBackend(PythonCanonBackend):
         Given (A, b) in view, return the sum of the representation
         on the row axis, ie: (sum(A,axis=1), sum(b, axis=1)).
         """
-        axis, keepdims = _lin.data
-        n = np.prod(_lin.shape)
-        d = _lin.shape[axis]
+        axis, _ = _lin.data
+        shape = _lin.shape
+        n = np.prod(shape, dtype=int)
+        if axis is None:
+            d = n
+            axis = tuple(np.arange(len(shape)))
+        else:
+            d = _lin.shape[axis]
         def func(x):
-            idx = np.arange(n).reshape((n//d, d), order='F')
-            return x[0][idx].sum(axis=axis-1).reshape(1,n//d,n)
+            if _lin.shape == ():
+                return x.sum(axis=1, keepdims=True)
+            p = x.shape[0]
+            x = x.reshape((p,)+(shape)+(n,), order='F').sum(axis=tuple(x+1 for x in axis))
+            return x.reshape((p, n//d, n), order='F')
 
         view.apply_all(func)
         return view

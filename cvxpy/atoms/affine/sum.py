@@ -83,24 +83,7 @@ class Sum(AxisAtom, AffAtom):
         tuple
             (LinOp for objective, list of constraints)
         """
-        axis = data[0]
-        keepdims = data[1]
-        if axis is None:
-            obj = lu.sum_entries(arg_objs[0], shape=shape)
-        elif axis == 1:
-            if keepdims:
-                const_shape = (arg_objs[0].shape[1], 1)
-            else:
-                const_shape = (arg_objs[0].shape[1],)
-            ones = lu.create_const(np.ones(const_shape), const_shape)
-            obj = lu.rmul_expr(arg_objs[0], ones, shape)
-        else:  # axis == 0
-            if keepdims:
-                const_shape = (1, arg_objs[0].shape[0])
-            else:
-                const_shape = (arg_objs[0].shape[0],)
-            ones = lu.create_const(np.ones(const_shape), const_shape)
-            obj = lu.mul_expr(ones, arg_objs[0], shape)
+        axis, keepdims = data
         obj = lu.sum_entries(arg_objs[0], shape=shape, axis=axis, keepdims=keepdims)
         return (obj, [])
 

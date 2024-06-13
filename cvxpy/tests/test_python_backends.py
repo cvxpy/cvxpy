@@ -499,7 +499,7 @@ class TestBackends:
         view_A = sp.coo_matrix((view_A.data, (view_A.row, view_A.col)), shape=(2, 2)).toarray()
         assert np.all(view_A == np.eye(2))
 
-        sum_entries_lin_op = linOpHelper(data = [1, True])
+        sum_entries_lin_op = linOpHelper(shape = (2,), data = [None, True])
         out_view = backend.sum_entries(sum_entries_lin_op, view)
         A = out_view.get_tensor_representation(0, 1)
 
@@ -1141,6 +1141,11 @@ class TestBackends:
         [[1   1   0   0   1   1   0   0],
          [0   0   1   1   0   0   1   1]]
 
+        sum(x, axis = (1,2))
+        x111 x211 x121 x221 x112 x212 x122 x222
+        [[1   0   1   0   1   0   1   0],
+         [0   1   0   1   0   1   0   1]]
+
         To reproduce the outputs above, eliminate the given axis (axes)
         and put ones where the remaining axes (axis) match. 
 
@@ -1346,7 +1351,7 @@ class TestParametrizedBackends:
         mul_elem_lin_op = linOpHelper(data=param_lin_op)
         param_var_view = param_backend.mul_elem(mul_elem_lin_op, var_view)
 
-        sum_entries_lin_op = linOpHelper()
+        sum_entries_lin_op = linOpHelper(shape=(2,), data=[None, True])
         out_view = param_backend.sum_entries(sum_entries_lin_op, param_var_view)
         out_repr = out_view.get_tensor_representation(0, 1)
 
