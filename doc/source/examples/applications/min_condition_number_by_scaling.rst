@@ -1,7 +1,7 @@
 Minimizing Condition Number by Scaling
 ======================================
 
-This notebook provides and example of how to minimize the condition
+This notebook provides an example of how to minimize the condition
 number of a matrix by scaling, taken from
 https://web.stanford.edu/~boyd/lmibook/. The problem is formulated in
 CVXPY as a generalized eigenvalue problem (GEVP) and utilizes the
