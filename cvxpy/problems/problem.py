@@ -417,7 +417,7 @@ class Problem(u.Canonical):
         return self._compilation_time
     
     def _solve_solver_path(self, solve_func, solvers:list[tuple[str, dict] | tuple[str] | str],
-                                *args, **kwargs):
+                                args, kwargs):
         """Solve a problem using multiple solvers.
 
         Arguments
@@ -441,7 +441,7 @@ class Problem(u.Canonical):
         """
             
         if not solvers:
-            raise ValueError("Solvers list must contain at least one solver.")
+            raise ValueError("Solver path must contain at least one solver.")
         for solver in solvers:
             try:
                 if isinstance(solver, str):
@@ -558,7 +558,7 @@ class Problem(u.Canonical):
             if solver is not None:
                 raise ValueError(
                     "Cannot specify both 'solver' and 'solver_path'. Please choose one.")
-            return self._solve_solver_path(solve_func,solver_path,*args,**kwargs)
+            return self._solve_solver_path(solve_func,solver_path, args, kwargs)
         return solve_func(self, *args, **kwargs)
 
     @classmethod

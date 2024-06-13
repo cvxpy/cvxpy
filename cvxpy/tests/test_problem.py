@@ -1456,7 +1456,7 @@ class TestProblem(BaseTest):
                     cp.sum_squares(cp.matmul(A, cp.Variable(40)) - b))).solve(
                     solver_path=solvers)
 
-        ## solver_path ans solver arguments
+        ## Specify both solver_path and solver as arguments
         with self.assertRaises(ValueError):
                 Problem(cp.Minimize(
                     cp.sum_squares(cp.matmul(A, cp.Variable(40)) - b))).solve(
