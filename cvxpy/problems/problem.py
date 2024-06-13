@@ -439,9 +439,10 @@ class Problem(u.Canonical):
         ValueError
             If the input solvers format is incorrect.
         """
-            
+
         if not solvers:
             raise ValueError("Solver path must contain at least one solver.")
+        ENTRY_ERROR_MSG ="Solver path entry must be str, tuple[str] or tuple[str, dict[str, Any]]"
         for solver in solvers:
             try:
                 if isinstance(solver, str):
@@ -454,14 +455,13 @@ class Problem(u.Canonical):
                     elif len(solver) == 2:
                         solver_name, solver_kwargs = solver
                         if not isinstance(solver_name, str) or not isinstance(solver_kwargs, dict):
-                            raise ValueError("Solver tuple input must be (str, dict).")
+                            raise ValueError(ENTRY_ERROR_MSG)
                         solution = solve_func(
                             self, *args, solver=solver_name, **solver_kwargs, **kwargs)
                     else:
-                        raise ValueError("Solver tuple input must be (str, dict) or (str)")
+                        raise ValueError(ENTRY_ERROR_MSG)
                 else:
-                    raise ValueError("Solver input must be one of the following:\
-                                                (str, dict) tuple, (str) tuple, or str.")
+                    raise ValueError(ENTRY_ERROR_MSG)
                 s.LOGGER.info("Solver %s succeeds", solver_name)
                 return solution
             except error.SolverError as e:
