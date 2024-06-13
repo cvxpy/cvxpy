@@ -149,3 +149,4 @@ Advanced Applications
 - :doc:`Sparse covariance estimation for Gaussian variables <applications/sparse_covariance_est>` `[.ipynb] <https://colab.research.google.com/github/cvxpy/cvxpy/blob/master/examples/notebooks/WWW/sparse_covariance_est.ipynb>`_
 - :doc:`Water filling <applications/water_filling_BVex5.2>` `[.ipynb] <https://colab.research.google.com/github/cvxpy/cvxpy/blob/master/examples/notebooks/WWW/water_filling_BVex5.2.ipynb>`_
 - `Multiple Traveling Salesman Problem <https://colab.research.google.com/github/cvxpy/cvxpy/blob/master/examples/notebooks/WWW/mTSP_en.ipynb>`_
+- :doc:`Minimize Condition Number by Scaling <applications/min_condition_number_by_scaling>` `[.ipynb] <https://colab.research.google.com/github/cvxpy/cvxpy/blob/master/examples/notebooks/WWW/min_condition_number_by_scaling.ipynb>`_
