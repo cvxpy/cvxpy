@@ -15,7 +15,7 @@ limitations under the License.
 """
 
 import warnings
-from typing import Any, List, Optional, Tuple
+from typing import List, Optional, Tuple
 
 import numpy as np
 import scipy.sparse as sp
@@ -88,7 +88,7 @@ class Constant(Leaf):
         return True
 
     @property
-    def value(self) -> np.ndarray | None:
+    def value(self):
         """NumPy.ndarray or None: The numeric value of the constant.
         """
         return self._value
@@ -117,7 +117,7 @@ class Constant(Leaf):
         return {}
 
     @property
-    def shape(self) -> int | Tuple[int, Any]:
+    def shape(self) -> Tuple[int, ...]:
         """Returns the (row, col) dimensions of the expression.
         """
         return self._shape
