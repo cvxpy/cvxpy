@@ -18,6 +18,10 @@ parses and solves the problem.
 
    :param solver: The solver to use.
    :type solver: str, optional
+   :param solver_path:  The solvers to use with optional arguments.
+            The function tries the solvers in the given order and
+            returns the first solver's solution that succeeds.
+   :type solver_path: list of (str, dict) tuples, (str) tuples, or strings, optional   
    :param verbose:  Overrides the default of hiding solver output.
    :type verbose: bool, optional
    :param gp:  If ``True``, parses the problem as a disciplined geometric program instead of a disciplined convex program.

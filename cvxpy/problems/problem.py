@@ -478,6 +478,11 @@ class Problem(u.Canonical):
         ---------
         solver : str, optional
             The solver to use. For example, 'ECOS', 'SCS', or 'OSQP'.
+        solver_path : list of (str, dict) tuples, (str) tuples, or strings, optional
+            The solvers to use with optional arguments.
+            The function tries the solvers in the given order and
+            returns the first solver's solution that succeeds.
+            For example, ['SCS', ('CLARABEL',), ('OSQP', {'max_iter':10000})]
         verbose : bool, optional
             Overrides the default of hiding solver output, and prints
             logging information describing CVXPY's compilation process.
