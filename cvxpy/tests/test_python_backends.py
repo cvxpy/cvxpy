@@ -1161,7 +1161,7 @@ class TestBackends:
         view_A = sp.coo_matrix((view_A.data, (view_A.row, view_A.col)), shape=(8, 8)).toarray()
         assert np.all(view_A == np.eye(8))
 
-        sum_lin_op = linOpHelper(shape=(2, 2, 2), data=[2, True])
+        sum_lin_op = linOpHelper(shape=(2, 2, 2), data=[2, True], args=[variable_lin_op])
         out_view = backend.sum_entries(sum_lin_op, view)
         A = out_view.get_tensor_representation(0, 4)
 
