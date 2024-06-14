@@ -1190,7 +1190,15 @@ class SciPyCanonBackend(PythonCanonBackend):
         """
         def func(x, p):
             if p == 1:
-                return sp.csr_matrix(x.sum(axis=0))
+                axis, _ = _lin.data
+                if axis is None:
+                    return sp.csr_matrix(x.sum(axis=0))
+                else:
+                    shape = _lin.args[0].shape
+                    n = np.prod(shape, dtype=int)
+                    d = shape[axis]
+                    x = x.toarray().reshape((shape)+(n,), order='F').sum(axis=axis)
+                    return sp.csr_matrix(x.reshape((n//d, n), order='F'))
             else:
                 m = x.shape[0] // p
                 return (sp.kron(sp.eye(p, format="csc"), np.ones(m)) @ x).tocsc()
