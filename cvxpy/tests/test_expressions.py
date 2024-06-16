@@ -1576,3 +1576,11 @@ class TestND_Expressions(BaseTest):
         prob = cp.Problem(obj, [expr == target])
         prob.solve(canon_backend=cp.SCIPY_CANON_BACKEND)
         assert np.allclose(expr.value, target)
+
+        """
+        x = Variable((2, 2, 2))
+        expr = cp.sum(x, axis=2, keepdims=True)
+        prob = cp.Problem(obj, [expr == target.sum(axis=2, keepdims=True)])
+        prob.solve(canon_backend=cp.SCIPY_CANON_BACKEND)
+        assert np.allclose(expr.value, target)
+        """

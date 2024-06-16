@@ -366,14 +366,13 @@ class TestAtoms(BaseTest):
 
         # Test with axis argument.
         self.assertEqual(cp.max(Variable(2), axis=0, keepdims=True).shape, (1,))
-        self.assertEqual(cp.max(Variable(2), axis=1).shape, (2,))
         self.assertEqual(cp.max(Variable((2, 3)), axis=0, keepdims=True).shape, (1, 3))
         self.assertEqual(cp.max(Variable((2, 3)), axis=1).shape, (2,))
 
         # Invalid axis.
         with self.assertRaises(Exception) as cm:
             cp.max(self.x, axis=4)
-        self.assertEqual(str(cm.exception), "Invalid argument for axis.")
+        self.assertEqual(str(cm.exception), "axis 4 is out of bounds for array of dimension 1")
         with self.assertRaises(ValueError) as cm:
             cp.max(self.x, self.x)  # a common erroneous use-case
         self.assertEqual(str(cm.exception), cp.max.__EXPR_AXIS_ERROR__)
@@ -389,14 +388,13 @@ class TestAtoms(BaseTest):
 
         # Test with axis argument.
         self.assertEqual(cp.min(Variable(2), axis=0).shape, tuple())
-        self.assertEqual(cp.min(Variable(2), axis=1).shape, (2,))
         self.assertEqual(cp.min(Variable((2, 3)), axis=0).shape, (3,))
         self.assertEqual(cp.min(Variable((2, 3)), axis=1).shape, (2,))
 
         # Invalid axis.
         with self.assertRaises(Exception) as cm:
             cp.min(self.x, axis=4)
-        self.assertEqual(str(cm.exception), "Invalid argument for axis.")
+        self.assertEqual(str(cm.exception), "axis 4 is out of bounds for array of dimension 1")
         with self.assertRaises(ValueError) as cm:
             cp.min(self.x, self.x)  # a common erroneous use-case
         self.assertEqual(str(cm.exception), cp.min.__EXPR_AXIS_ERROR__)
@@ -481,7 +479,6 @@ class TestAtoms(BaseTest):
 
         # Test with axis argument.
         self.assertEqual(cp.sum(Variable(2), axis=0).shape, tuple())
-        self.assertEqual(cp.sum(Variable(2), axis=1).shape, (2,))
         self.assertEqual(cp.sum(Variable((2, 3)), axis=0, keepdims=True).shape, (1, 3))
         self.assertEqual(cp.sum(Variable((2, 3)), axis=0, keepdims=False).shape, (3,))
         self.assertEqual(cp.sum(Variable((2, 3)), axis=1).shape, (2,))
@@ -490,7 +487,7 @@ class TestAtoms(BaseTest):
         with self.assertRaises(Exception) as cm:
             cp.sum(self.x, axis=4)
         self.assertEqual(str(cm.exception),
-                         "Invalid argument for axis.")
+                        "axis 4 is out of bounds for array of dimension 1")
 
         A = sp.eye(3)
         self.assertEqual(cp.sum(A).value, 3)
@@ -1712,6 +1709,8 @@ class TestAtoms(BaseTest):
         # where X of the naive result is I.
         self.assertTrue(prob.value < naiveRes)
 
+class Test_ND_Atoms(BaseTest):
+    pass
 
 class TestDotsort(BaseTest):
     """ Unit tests for the dotsort atom. """

@@ -107,3 +107,6 @@ class TestShape(unittest.TestCase):
 
         d = reshape(b, (n, n))
         self.assertEqual((a + d).shape, (n, n))
+
+class TestAxisAtom(unittest.TestCase):
+    pass
