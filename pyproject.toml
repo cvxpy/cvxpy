@@ -15,7 +15,7 @@ exclude = [
     "*__init__.py"
 ]
 # The minimum Python version that should be supported
-target-version = "py37"
+target-version = "py38"
 
 
 [tool.pytest.ini_options]
@@ -25,10 +25,11 @@ testpaths = [
 
 [build-system]
 requires = [
-    "oldest-supported-numpy",
+    "numpy >= 2.0.0; python_version > '3.8'",
+    "oldest-supported-numpy; python_version <= '3.8'",
     "scipy >= 1.1.0",
     # 68.1.0 Promoted pyproject.toml's [tool.setuptools] out of beta.
-    "setuptools>=68.1.0",
+    "setuptools >= 68.1.0",
     "wheel",
     "pybind11"
 ]
