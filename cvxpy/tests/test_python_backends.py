@@ -1085,6 +1085,7 @@ class TestBackends:
         assert view.combine_potentially_none(None, a) == a
         assert view.combine_potentially_none(a, b) == view.add_dicts(a, b)
 
+
 class TestParametrizedBackends:
     @staticmethod
     @pytest.fixture(params=backends)
@@ -1770,6 +1771,7 @@ class TestParametrizedBackends:
             0, 1
         )
 
+
 class TestND_Backends:
     @staticmethod
     @pytest.fixture(params=backends)
@@ -1835,22 +1837,7 @@ class TestND_Backends:
          [0   0   1   0   0   0   1   0],
          [0   0   0   1   0   0   0   1]]
         
-        sum(x, axis = (0,1))
-        x111 x211 x121 x221 x112 x212 x122 x222
-        [[1   1   1   1   0   0   0   0],
-         [0   0   0   0   1   1   1   1]]
-
-        sum(x, axis = (0,2))
-        x111 x211 x121 x221 x112 x212 x122 x222
-        [[1   1   0   0   1   1   0   0],
-         [0   0   1   1   0   0   1   1]]
-
-        sum(x, axis = (1,2))
-        x111 x211 x121 x221 x112 x212 x122 x222
-        [[1   0   1   0   1   0   1   0],
-         [0   1   0   1   0   1   0   1]]
-
-        To reproduce the outputs above, eliminate the given axis (axes)
+        To reproduce the outputs above, eliminate the given axis
         and put ones where the remaining axes (axis) match. 
 
         Note: sum(x, keepdims=True) is equivalent to sum(x, keepdims=False)
@@ -1876,6 +1863,74 @@ class TestND_Backends:
                              [0, 0, 1, 0, 0, 0, 1, 0],
                              [0, 0, 0, 1, 0, 0, 0, 1]])
         assert np.all(A == expected)
+
+        # Note: view is edited in-place:
+        assert out_view.get_tensor_representation(0, 4) == view.get_tensor_representation(0, 4)
+
+    @pytest.mark.parametrize("axes, expected", [((0,1),
+                                                [[1, 1, 1, 1, 0, 0, 0, 0],
+                                                [0, 0, 0, 0, 1, 1, 1, 1]]),
+                                                ((0,2),
+                                                [[1, 1, 0, 0, 1, 1, 0, 0],
+                                                [0, 0, 1, 1, 0, 0, 1, 1]]),
+                                                ((2,1),
+                                                [[1, 0, 1, 0, 1, 0, 1, 0],
+                                                [0, 1, 0, 1, 0, 1, 0, 1]])])
+    def test_nd_sum_entries_multiple_axes(self, backend, axes, expected):
+        """
+        define x = Variable((2,2,2)) with
+        [[[x111, x112],
+        [x121, x122]],
+
+        [[x211, x212],
+        [x221, x222]]]
+
+        x is represented as eye(8) in the A matrix (in column-major order), i.e.,
+
+        x111 x211 x121 x221 x112 x212 x122 x222
+        [[1   0   0   0   0   0   0   0],
+         [0   1   0   0   0   0   0   0],
+         [0   0   1   0   0   0   0   0],
+         [0   0   0   1   0   0   0   0],
+         [0   0   0   0   1   0   0   0],
+         [0   0   0   0   0   1   0   0],
+         [0   0   0   0   0   0   1   0],
+         [0   0   0   0   0   0   0   1]]
+
+        sum(x, axis = (0,1))
+        x111 x211 x121 x221 x112 x212 x122 x222
+        [[1   1   1   1   0   0   0   0],
+         [0   0   0   0   1   1   1   1]]
+
+        sum(x, axis = (0,2))
+        x111 x211 x121 x221 x112 x212 x122 x222
+        [[1   1   0   0   1   1   0   0],
+         [0   0   1   1   0   0   1   1]]
+
+        sum(x, axis = (1,2))
+        x111 x211 x121 x221 x112 x212 x122 x222
+        [[1   0   1   0   1   0   1   0],
+         [0   1   0   1   0   1   0   1]]
+
+        To reproduce the outputs above, eliminate the given axes
+        and put ones where the remaining axes match.
+        """
+
+        variable_lin_op = linOpHelper((2, 2, 2), type="variable", data=1)
+        view = backend.process_constraint(variable_lin_op, backend.get_empty_view())
+
+        # cast to numpy
+        view_A = view.get_tensor_representation(0, 8)
+        view_A = sp.coo_matrix((view_A.data, (view_A.row, view_A.col)), shape=(8, 8)).toarray()
+        assert np.all(view_A == np.eye(8))
+
+        sum_lin_op = linOpHelper(shape=(2, 2, 2), data=[axes, True], args=[variable_lin_op])
+        out_view = backend.sum_entries(sum_lin_op, view)
+        A = out_view.get_tensor_representation(0, 4)
+
+        # cast to numpy
+        A = sp.coo_matrix((A.data, (A.row, A.col)), shape=(2, 8)).toarray()
+        assert np.all(A == np.array(expected))
 
         # Note: view is edited in-place:
         assert out_view.get_tensor_representation(0, 4) == view.get_tensor_representation(0, 4)

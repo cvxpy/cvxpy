@@ -767,9 +767,14 @@ class NumPyCanonBackend(PythonCanonBackend):
             else:
                 shape = _lin.args[0].shape
                 n = np.prod(shape, dtype=int)
-                d = shape[axis]
                 p = x.shape[0]
-                x = x.reshape((p,)+(shape)+(n,), order='F').sum(axis=axis + 1)
+                if isinstance(axis, tuple):
+                    d = np.prod([shape[i] for i in axis], dtype=int)
+                    axis = tuple([a + 1 for a in axis])
+                else:
+                    d = shape[axis]
+                    axis += 1
+                x = x.reshape((p,)+(shape)+(n,), order='F').sum(axis=axis)
                 return x.reshape((p, n//d, n), order='F')
 
         view.apply_all(func)
@@ -1196,7 +1201,10 @@ class SciPyCanonBackend(PythonCanonBackend):
                 else:
                     shape = _lin.args[0].shape
                     n = np.prod(shape, dtype=int)
-                    d = shape[axis]
+                    if isinstance(axis, tuple):
+                        d = np.prod([shape[i] for i in axis], dtype=int)
+                    else:
+                        d = shape[axis]
                     x = x.toarray().reshape((shape)+(n,), order='F').sum(axis=axis)
                     return sp.csr_matrix(x.reshape((n//d, n), order='F'))
             else:
