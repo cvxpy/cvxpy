@@ -253,7 +253,7 @@ class TestBenchmarks(BaseTest):
         start = time.time()
         A.value = np.random.randn(m, n)
         b.value = np.random.randn(m)
-        prob.solve(solver=cp.ECOS)
+        prob.solve(solver=cp.CLARABEL)
         end = time.time()
 
         print('Conic canonicalization')
@@ -298,7 +298,7 @@ class TestBenchmarks(BaseTest):
         problem = cp.Problem(objective)
 
         start = time.time()
-        problem.get_problem_data(cp.ECOS, verbose=True)
+        problem.get_problem_data(cp.CLARABEL, verbose=True)
         end = time.time()
 
         print("Issue #1668 regression test")

@@ -325,7 +325,7 @@ class TestBackward(BaseTest):
         with self.assertRaisesRegex(ValueError,
                                     "When requires_grad is True, the "
                                     "only supported solver is SCS.*"):
-            problem.solve(cp.ECOS, requires_grad=True)
+            problem.solve(cp.CLARABEL, requires_grad=True)
 
     def test_zero_in_problem_data(self) -> None:
         x = cp.Variable()
