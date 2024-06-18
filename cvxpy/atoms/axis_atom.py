@@ -71,7 +71,7 @@ class AxisAtom(Atom):
             for axis in axes:
                 if axis < 0:
                     axis += dim
-                if axis >= dim or axis < 0:
+                if axis > dim or axis < 0:
                     raise ValueError(f"axis {axis} is out of bounds for array of dimension {dim}")
         super(AxisAtom, self).validate_arguments()
 

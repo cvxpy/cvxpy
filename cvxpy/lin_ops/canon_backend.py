@@ -766,7 +766,7 @@ class NumPyCanonBackend(PythonCanonBackend):
                 return x.sum(axis=1, keepdims=True)
             else:
                 shape = _lin.args[0].shape
-                n = np.prod(shape, dtype=int)
+                n = x.shape[-1]
                 p = x.shape[0]
                 if isinstance(axis, tuple):
                     d = np.prod([shape[i] for i in axis], dtype=int)
@@ -1200,7 +1200,7 @@ class SciPyCanonBackend(PythonCanonBackend):
                     return sp.csr_matrix(x.sum(axis=0))
                 else:
                     shape = _lin.args[0].shape
-                    n = np.prod(shape, dtype=int)
+                    n = x.shape[-1]
                     if isinstance(axis, tuple):
                         d = np.prod([shape[i] for i in axis], dtype=int)
                     else:
