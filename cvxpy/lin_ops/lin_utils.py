@@ -384,7 +384,7 @@ def sum_entries(operator, shape: Tuple[int, ...], axis=None, keepdims=None):
     LinOp
         An operator representing the sum.
     """
-    data = [axis, keepdims] if s.DEFAULT_CANON_BACKEND == "SCIPY" else None
+    data = None if s.DEFAULT_CANON_BACKEND == "CPP" else [axis, keepdims]
     return lo.LinOp(lo.SUM_ENTRIES, shape, [operator], data=data)
 
 
