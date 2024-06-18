@@ -35,7 +35,7 @@ if [[ "$PYTHON_VERSION" == "3.12" ]]; then
 elif [[ "$PYTHON_VERSION" == "3.11" ]]; then
   python -m pip install coptpy gurobipy cplex piqp osqp diffcp "ortools>=9.7,<9.10" clarabel
 # Python 3.8 on Windows and Linux will uninstall NumPy 1.16 and install NumPy 1.24 without the exception.
-elif [[ "$PYTHON_VERSION" == "3.8" ]] && [[ "$RUNNER_OS" != "macos-11" ]]; then
+elif [[ "$PYTHON_VERSION" == "3.8" ]] && [[ "$RUNNER_OS" != "macos-12" ]]; then
   python -m pip install gurobipy clarabel piqp
 else
   python -m pip install coptpy gurobipy cplex diffcp piqp clarabel
