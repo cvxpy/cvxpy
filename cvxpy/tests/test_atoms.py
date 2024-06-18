@@ -373,6 +373,9 @@ class TestAtoms(BaseTest):
         with self.assertRaises(Exception) as cm:
             cp.max(self.x, axis=4)
         self.assertEqual(str(cm.exception), "axis 4 is out of bounds for array of dimension 1")
+        with self.assertRaises(Exception) as cm:
+            cp.max(Variable(2), axis=1).shape
+        self.assertEqual(str(cm.exception), "axis 1 is out of bounds for array of dimension 1")
         with self.assertRaises(ValueError) as cm:
             cp.max(self.x, self.x)  # a common erroneous use-case
         self.assertEqual(str(cm.exception), cp.max.__EXPR_AXIS_ERROR__)
@@ -395,6 +398,9 @@ class TestAtoms(BaseTest):
         with self.assertRaises(Exception) as cm:
             cp.min(self.x, axis=4)
         self.assertEqual(str(cm.exception), "axis 4 is out of bounds for array of dimension 1")
+        with self.assertRaises(Exception) as cm:
+            cp.min(Variable(2), axis=1).shape
+        self.assertEqual(str(cm.exception), "axis 1 is out of bounds for array of dimension 1")
         with self.assertRaises(ValueError) as cm:
             cp.min(self.x, self.x)  # a common erroneous use-case
         self.assertEqual(str(cm.exception), cp.min.__EXPR_AXIS_ERROR__)
@@ -488,6 +494,9 @@ class TestAtoms(BaseTest):
             cp.sum(self.x, axis=4)
         self.assertEqual(str(cm.exception),
                         "axis 4 is out of bounds for array of dimension 1")
+        with self.assertRaises(Exception) as cm:
+            cp.sum(Variable(2), axis=1).shape
+        self.assertEqual(str(cm.exception), "axis 1 is out of bounds for array of dimension 1")
 
         A = sp.eye(3)
         self.assertEqual(cp.sum(A).value, 3)
