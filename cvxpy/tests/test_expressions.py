@@ -17,6 +17,7 @@ limitations under the License.
 import warnings
 
 import numpy as np
+import pytest
 import scipy.sparse as sp
 
 import cvxpy as cp
@@ -75,25 +76,6 @@ class TestExpressions(BaseTest):
 
         # Test shape provided as list instead of tuple
         self.assertEqual(cp.Variable(shape=[2], integer=True).shape, (2,))
-
-        # # Scalar variable
-        # coeff = self.a.coefficients()
-        # self.assertEqual(coeff[self.a.id], [1])
-
-        # # Vector variable.
-        # coeffs = x.coefficients()
-        # self.assertItemsEqual(coeffs.keys(), [x.id])
-        # vec = coeffs[x.id][0]
-        # self.assertEqual(vec.shape, (2,2))
-        # self.assertEqual(vec[0,0], 1)
-
-        # # Matrix variable.
-        # coeffs = self.A.coefficients()
-        # self.assertItemsEqual(coeffs.keys(), [self.A.id])
-        # self.assertEqual(len(coeffs[self.A.id]), 2) or 0 in self.shape
-        # mat = coeffs[self.A.id][1]
-        # self.assertEqual(mat.shape, (2,4))
-        # self.assertEqual(mat[0,2], 1)
 
         with self.assertRaises(Exception) as cm:
             Variable((2, 2), diag=True, symmetric=True)
@@ -1533,54 +1515,50 @@ class TestExpressions(BaseTest):
         assert expr.is_hermitian()
 
 
-class TestND_Expressions(BaseTest):
+class TestND_Expressions():
+
+    @pytest.fixture(autouse=True)
+    def setup(self) -> None:
+        self.x = Variable((2,2,2), name='x')
+        self.target = (1+np.arange(8)).reshape(2,2,2)
+        self.obj = cp.Minimize(0)
     
     def test_nd_variable(self) -> None:
-        x = Variable((2, 2, 2))
-        target = (np.arange(8) + 1).reshape(2,2,2)
-        obj = cp.Minimize(0)
-        prob = cp.Problem(obj, [x == target])
+        prob = cp.Problem(self.obj, [self.x == self.target])
         prob.solve(canon_backend=cp.SCIPY_CANON_BACKEND)
-        assert np.allclose(x.value, target)
+        assert np.allclose(self.x.value, self.target)
 
-        x = Variable((2, 2, 2))
-        expr = cp.multiply(x, 3)
-        prob = cp.Problem(obj, [expr == target])
+    def test_nd_mul_elem(self) -> None:
+        expr = cp.multiply(self.x, 3)
+        prob = cp.Problem(self.obj, [expr == self.target])
         prob.solve(canon_backend=cp.SCIPY_CANON_BACKEND)
-        assert np.allclose(expr.value, target)
+        assert np.allclose(expr.value, self.target)
 
-        x = Variable((2, 2, 2))
-        expr = x / target
-        prob = cp.Problem(obj, [expr == target])
+    def test_nd_div(self) -> None:
+        expr = self.x / self.target
+        prob = cp.Problem(self.obj, [expr == self.target])
         prob.solve(canon_backend=cp.SCIPY_CANON_BACKEND)
-        assert np.allclose(expr.value, target)
+        assert np.allclose(expr.value, self.target)
 
+    def test_nd_vstack(self) -> None:
         x = Variable((1, 2, 2))
         z = Variable((1, 2, 2))
         expr = cp.vstack([x,z])
-        prob = cp.Problem(obj, [expr == target])
+        prob = cp.Problem(self.obj, [expr == self.target])
         prob.solve(canon_backend=cp.SCIPY_CANON_BACKEND)
-        assert np.allclose(expr.value, target)
+        assert np.allclose(expr.value, self.target)
 
-        """
-        x = Variable((2, 1, 2))
-        z = Variable((2, 1, 2))
-        expr = cp.hstack([x,z])
-        prob = cp.Problem(obj, [expr == target])
-        prob.solve(canon_backend=cp.SCIPY_CANON_BACKEND)
-        assert np.allclose(expr.value, target)
-        """
-
-        x = [cp.Variable((2,2,2)) for i in range(10)]
+    def test_nd_sum_expr(self) -> None:
+        x = [cp.Variable((2,2,2)) for _ in range(10)]
         expr = sum(x)
-        prob = cp.Problem(obj, [expr == target])
+        prob = cp.Problem(self.obj, [expr == self.target])
         prob.solve(canon_backend=cp.SCIPY_CANON_BACKEND)
-        assert np.allclose(expr.value, target)
+        assert np.allclose(expr.value, self.target)
 
-        """
-        x = Variable((2, 2, 2))
-        expr = cp.sum(x, axis=2, keepdims=True)
-        prob = cp.Problem(obj, [expr == target.sum(axis=2, keepdims=True)])
+    @pytest.mark.parametrize("axis", [(0),(1),(2),((0,1)),((0,2)),((2,1))])
+    def test_nd_sum(self, axis) -> None:
+        expr = cp.sum(self.x, axis=axis, keepdims=True)
+        y = self.target.sum(axis=axis, keepdims=True)
+        prob = cp.Problem(self.obj, [expr == y])
         prob.solve(canon_backend=cp.SCIPY_CANON_BACKEND)
-        assert np.allclose(expr.value, target)
-        """
+        assert np.allclose(expr.value, y)
