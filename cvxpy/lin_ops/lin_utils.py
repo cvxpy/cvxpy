@@ -21,6 +21,7 @@ from typing import Tuple
 import numpy as np
 
 import cvxpy.lin_ops.lin_op as lo
+import cvxpy.settings as s
 import cvxpy.utilities as u
 from cvxpy.lin_ops.lin_constraints import LinEqConstr, LinLeqConstr
 
@@ -383,7 +384,8 @@ def sum_entries(operator, shape: Tuple[int, ...], axis=None, keepdims=None):
     LinOp
         An operator representing the sum.
     """
-    return lo.LinOp(lo.SUM_ENTRIES, shape, [operator], [axis, keepdims])
+    data = [axis, keepdims] if s.DEFAULT_CANON_BACKEND == "SCIPY" else None
+    return lo.LinOp(lo.SUM_ENTRIES, shape, [operator], data=data)
 
 
 def trace(operator):
