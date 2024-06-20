@@ -1418,7 +1418,7 @@ class TestProblem(BaseTest):
 
     def test_solve_solver_path(self) -> None:
         """
-        Tests the solve_multiple_solvers method under various conditions:
+        Tests the solve_solver_path method under various conditions:
         
         1. Verifies that a SolverError is raised when all solvers fail.
         2. Validates that a solution is returned when any of the solvers succeeds.
@@ -1431,10 +1431,9 @@ class TestProblem(BaseTest):
         
         # valid input, return solution
         solvers_with_str=[(s.OSQP, {'max_iter':1}), s.CLARABEL]
-        solvers_no_dict=[(s.OSQP, {'max_iter':1}), (s.CLARABEL,)]
         solvers_empty_dict=[(s.OSQP, {'max_iter':1}), (s.CLARABEL, {})]
 
-        for solvers in [solvers_with_str,solvers_no_dict,solvers_empty_dict]:
+        for solvers in [solvers_with_str, solvers_empty_dict]:
             self.assertIsNotNone(Problem(cp.Minimize(
                 cp.sum_squares(cp.matmul(A, cp.Variable(40)) - b))).solve(
                 solver_path=solvers))
@@ -1448,7 +1447,8 @@ class TestProblem(BaseTest):
                 solver_path=solvers)
                 
         # invalid input, raise ValueError
-        solvers_invalid_inner_input = [[], [1], [()], [(1)], [(1,{})],[(s.OSQP,[])]]
+        solvers_invalid_inner_input = [{'str':{}}, 'str', [], [1], [()], [(1)], [(1,{})],
+                                        [(s.OSQP,[])], [(s.OSQP,)]]
 
         for solvers in solvers_invalid_inner_input:
             with self.assertRaises(ValueError):
