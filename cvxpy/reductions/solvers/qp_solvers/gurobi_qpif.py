@@ -181,7 +181,7 @@ class GUROBI(QpSolver):
                 x_grb[idx].start = data['init_value'][idx]
         model.update()
 
-        x = np.array(model.getVars(), copy=False)
+        x = np.asarray(model.getVars())
 
         if A.shape[0] > 0:
             if hasattr(model, 'addMConstr'):
