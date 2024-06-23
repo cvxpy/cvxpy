@@ -117,7 +117,7 @@ def test_exp():
 
     # reference problem
     ref_x = cp.Variable()
-    ref_s = cp.Variable()
+    ref_s = cp.Variable(nonneg=True)
     ref_z = cp.Variable()
 
     obj = ref_z
