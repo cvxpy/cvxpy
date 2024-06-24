@@ -223,6 +223,7 @@ def construct_solving_chain(problem, candidates,
         Raised if no suitable solver exists among the installed solvers, or
         if the target solver is not installed.
     """
+    canon_backend = _get_canon_backend(problem, canon_backend)
     if len(problem.variables()) == 0:
         return SolvingChain(reductions=[ConstantSolver()])
     reductions = _reductions_for_problem_class(problem, candidates, gp, solver_opts)
@@ -375,6 +376,43 @@ def construct_solving_chain(problem, candidates,
                       "enough constraints in the problem." % (
                           candidates['conic_solvers'],
                           ", ".join([cone.__name__ for cone in cones])))
+
+
+def _get_canon_backend(problem, canon_backend):
+    """
+    This function checks if the problem has expressions of dimension greater
+    than 2, then raises a warning if the default backend is not specified or 
+    raises an error if the backend is specified as 'CPP'.
+
+    TODO: The correct way to do this in the future is to check all nodes of
+    the expression tree to find the largest dimension.
+
+    Parameters
+    ----------
+    problem : Problem
+        The problem for which to build a chain. 
+    canon_backend : str
+        'CPP' (default) | 'SCIPY'
+        Specifies which backend to use for canonicalization, which can affect
+        compilation time. Defaults to None, i.e., selecting the default
+        backend.
+    Returns
+    -------
+    canon_backend : str
+        The canonicalization backend to use.
+    """
+    max_var_dim = max([p.ndim for p in problem.variables()] or [0])
+    max_param_dim = max([p.ndim for p in problem.parameters()] or [0])
+    if max(max_var_dim, max_param_dim) > 2:
+        if canon_backend is None:
+            warnings.warn(UserWarning(
+                "The problem has an expression with dimension greater than 2. "
+                "Defaulting to the 'SCIPY' backend for canonicalization."))
+            return "SCIPY"
+        elif canon_backend == "CPP":
+            raise ValueError("Only the 'SCIPY' and 'NUMPY' backends are supported for "
+                             "problems with expressions of dimension greater than 2.")
+    return canon_backend
 
 
 class SolvingChain(Chain):

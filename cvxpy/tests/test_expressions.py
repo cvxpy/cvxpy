@@ -1528,6 +1528,20 @@ class TestND_Expressions():
         prob.solve(canon_backend=cp.SCIPY_CANON_BACKEND)
         assert np.allclose(self.x.value, self.target)
 
+    def test_nd_variable_warning(self) -> None:
+        prob = cp.Problem(self.obj, [self.x == self.target])
+        warning_str = "The problem has an expression with dimension greater than 2. " \
+                    "Defaulting to the 'SCIPY' backend for canonicalization."
+        with pytest.warns(UserWarning, match=warning_str):
+            prob.solve()
+
+    def test_nd_variable_value_error(self) -> None:
+        prob = cp.Problem(self.obj, [self.x == self.target])
+        error_str = "Only the 'SCIPY' and 'NUMPY' backends are supported " \
+                    "for problems with expressions of dimension greater than 2."
+        with pytest.raises(ValueError, match=error_str):
+            prob.solve(canon_backend=cp.CPP_CANON_BACKEND)
+
     def test_nd_mul_elem(self) -> None:
         expr = cp.multiply(self.x, 3)
         prob = cp.Problem(self.obj, [expr == self.target])

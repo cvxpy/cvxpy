@@ -770,6 +770,7 @@ class NumPyCanonBackend(PythonCanonBackend):
                 p = x.shape[0]
                 if isinstance(axis, tuple):
                     d = np.prod([shape[i] for i in axis], dtype=int)
+                    # adding offset of 1 to every axis because of param axis.
                     axis = tuple([a + 1 for a in axis])
                 else:
                     d = shape[axis]
