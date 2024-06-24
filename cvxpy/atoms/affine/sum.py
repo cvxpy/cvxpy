@@ -22,7 +22,6 @@ import numpy as np
 import cvxpy.interface as intf
 import cvxpy.lin_ops.lin_op as lo
 import cvxpy.lin_ops.lin_utils as lu
-import cvxpy.settings as s
 from cvxpy.atoms.affine.affine_atom import AffAtom
 from cvxpy.atoms.axis_atom import AxisAtom
 from cvxpy.constraints.constraint import Constraint
@@ -84,9 +83,10 @@ class Sum(AxisAtom, AffAtom):
         tuple
             (LinOp for objective, list of constraints)
         """
-        if s.DEFAULT_CANON_BACKEND == 'CPP':
-            axis = data[0]
-            keepdims = data[1]
+        axis, keepdims = data
+        if len(arg_objs[0].shape) > 2 or axis not in {None, 0, 1}:
+            obj = lu.sum_entries(arg_objs[0], shape=shape, axis=axis, keepdims=keepdims)
+        else:
             if axis is None:
                 obj = lu.sum_entries(arg_objs[0], shape=shape)
             elif axis == 1:
@@ -103,9 +103,6 @@ class Sum(AxisAtom, AffAtom):
                     const_shape = (arg_objs[0].shape[0],)
                 ones = lu.create_const(np.ones(const_shape), const_shape)
                 obj = lu.mul_expr(ones, arg_objs[0], shape)
-        else:
-            axis, keepdims = data
-            obj = lu.sum_entries(arg_objs[0], shape=shape, axis=axis, keepdims=keepdims)
         return (obj, [])
 
 
