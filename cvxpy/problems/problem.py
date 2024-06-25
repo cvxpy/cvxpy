@@ -258,6 +258,16 @@ class Problem(u.Canonical):
           expr.is_dcp(dpp) for expr in self.constraints + [self.objective])
 
     @perf.compute_once
+    def _max_ndim(self) -> int:
+        """
+        Returns the maximum number of dimensions of any argument in the problem.
+        """
+        prob_max_ndim = self.objective.expr._max_ndim()
+        for con in self.constraints:
+            prob_max_ndim = max([prob_max_ndim] + [arg._max_ndim() for arg in con.args])
+        return prob_max_ndim
+
+    @perf.compute_once
     def is_dgp(self, dpp: bool = False) -> bool:
         """Does the problem satisfy DGP rules?
 

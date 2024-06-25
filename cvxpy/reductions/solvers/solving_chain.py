@@ -401,9 +401,7 @@ def _get_canon_backend(problem, canon_backend):
     canon_backend : str
         The canonicalization backend to use.
     """
-    max_var_dim = max([p.ndim for p in problem.variables()] or [0])
-    max_param_dim = max([p.ndim for p in problem.parameters()] or [0])
-    if max(max_var_dim, max_param_dim) > 2:
+    if problem._max_ndim() > 2:
         if canon_backend is None:
             warnings.warn(UserWarning(
                 "The problem has an expression with dimension greater than 2. "
