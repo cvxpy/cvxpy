@@ -43,7 +43,14 @@ from cvxpy.reductions.reduction import Reduction
 from cvxpy.reductions.solvers import defines as slv_def
 from cvxpy.reductions.solvers.constant_solver import ConstantSolver
 from cvxpy.reductions.solvers.solver import Solver
-from cvxpy.settings import CLARABEL, ECOS, PARAM_THRESHOLD
+from cvxpy.settings import (
+    CLARABEL,
+    CPP_CANON_BACKEND,
+    ECOS,
+    NUMPY_CANON_BACKEND,
+    PARAM_THRESHOLD,
+    SCIPY_CANON_BACKEND,
+)
 from cvxpy.utilities.debug_tools import build_non_disciplined_error_msg
 
 DPP_ERROR_MSG = (
@@ -404,12 +411,13 @@ def _get_canon_backend(problem, canon_backend):
     if problem._max_ndim() > 2:
         if canon_backend is None:
             warnings.warn(UserWarning(
-                "The problem has an expression with dimension greater than 2. "
-                "Defaulting to the 'SCIPY' backend for canonicalization."))
-            return "SCIPY"
-        elif canon_backend == "CPP":
-            raise ValueError("Only the 'SCIPY' and 'NUMPY' backends are supported for "
-                             "problems with expressions of dimension greater than 2.")
+                f"The problem has an expression with dimension greater than 2. "
+                f"Defaulting to the {SCIPY_CANON_BACKEND} backend for canonicalization."))
+            return SCIPY_CANON_BACKEND
+        elif canon_backend == CPP_CANON_BACKEND:
+            raise ValueError(f"Only the {SCIPY_CANON_BACKEND} and {NUMPY_CANON_BACKEND} "
+                             f"backends are supported for problems with expressions of "
+                             f"dimension greater than 2.")
     return canon_backend
 
 
