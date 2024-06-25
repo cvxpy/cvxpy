@@ -1718,9 +1718,6 @@ class TestAtoms(BaseTest):
         # where X of the naive result is I.
         self.assertTrue(prob.value < naiveRes)
 
-class Test_ND_Atoms(BaseTest):
-    pass
-
 class TestDotsort(BaseTest):
     """ Unit tests for the dotsort atom. """
 
