@@ -695,6 +695,7 @@ class TestDqcp(base_test.BaseTest):
         problem.solve(SOLVER, qcp=True)
         self.assertAlmostEqual(problem.value, 0, places=3)
 
+        # TODO: Make this test pass. Need to add a special case for scalar sums.
         with self.assertRaises(Exception) as cm:
             problem = cp.Problem(cp.Minimize(cp.cumsum(1/x)))
             problem.solve(SOLVER, qcp=True)

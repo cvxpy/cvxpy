@@ -15,7 +15,7 @@ limitations under the License.
 """
 import builtins
 from functools import wraps
-from typing import List, Optional, Tuple
+from typing import Iterable, List, Optional, Tuple
 
 import numpy as np
 
@@ -40,7 +40,7 @@ class Sum(AxisAtom, AffAtom):
         Whether to drop dimensions after summing.
     """
 
-    def __init__(self, expr, axis: Optional[int] = None, keepdims: bool = False) -> None:
+    def __init__(self, expr, axis: Optional[int | Iterable] = None, keepdims: bool = False) -> None:
         super(Sum, self).__init__(expr, axis=axis, keepdims=keepdims)
 
     def is_atom_log_log_convex(self) -> bool:
@@ -67,7 +67,8 @@ class Sum(AxisAtom, AffAtom):
     def graph_implementation(
         self, arg_objs, shape: Tuple[int, ...], data=None
     ) -> Tuple[lo.LinOp, List[Constraint]]:
-        """Sum the linear expression's entries.
+        """
+        Sum the linear expression's entries.
 
         Parameters
         ----------
@@ -75,8 +76,8 @@ class Sum(AxisAtom, AffAtom):
             LinExpr for each argument.
         shape : tuple
             The shape of the resulting expression.
-        data :
-            Additional data required by the atom.
+        data : [axis, keepdims]
+            The axis and keepdims parameters of the sum expression.
 
         Returns
         -------
@@ -84,6 +85,8 @@ class Sum(AxisAtom, AffAtom):
             (LinOp for objective, list of constraints)
         """
         axis, keepdims = data
+        # Note: added new case for summing with n-dimensional shapes and 
+        # multiple axes. Previous behavior is kept in the else statement.
         if len(arg_objs[0].shape) > 2 or axis not in {None, 0, 1}:
             obj = lu.sum_entries(arg_objs[0], shape=shape, axis=axis, keepdims=keepdims)
         else:
@@ -107,8 +110,9 @@ class Sum(AxisAtom, AffAtom):
 
 
 @wraps(Sum)
-def sum(expr, axis: Optional[int] = None, keepdims: bool = False):
-    """Wrapper for Sum class.
+def sum(expr, axis: Optional[int | Iterable] = None, keepdims: bool = False):
+    """
+    Wrapper for Sum class.
     """
     if isinstance(expr, list):
         return builtins.sum(expr)
