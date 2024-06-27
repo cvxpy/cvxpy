@@ -15,7 +15,7 @@ limitations under the License.
 """
 import builtins
 from functools import wraps
-from typing import Iterable, List, Optional, Tuple
+from typing import List, Optional, Tuple
 
 import numpy as np
 
@@ -40,7 +40,7 @@ class Sum(AxisAtom, AffAtom):
         Whether to drop dimensions after summing.
     """
 
-    def __init__(self, expr, axis: Optional[int | Iterable] = None, keepdims: bool = False) -> None:
+    def __init__(self, expr, axis: Optional[int] = None, keepdims: bool = False) -> None:
         super(Sum, self).__init__(expr, axis=axis, keepdims=keepdims)
 
     def is_atom_log_log_convex(self) -> bool:
@@ -110,7 +110,7 @@ class Sum(AxisAtom, AffAtom):
 
 
 @wraps(Sum)
-def sum(expr, axis: Optional[int | Iterable] = None, keepdims: bool = False):
+def sum(expr, axis: Optional[int] = None, keepdims: bool = False):
     """
     Wrapper for Sum class.
     """
