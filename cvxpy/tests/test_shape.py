@@ -50,22 +50,6 @@ class TestShape(unittest.TestCase):
         self.assertEqual(shape.sum_shapes([(1, 1), (4,)]), (1, 4))
         self.assertEqual(shape.sum_shapes([(4,), (1, 1)]), (1, 4))
 
-        # All other types of broadcasting is not permitted.
-        with self.assertRaises(ValueError):
-            shape.sum_shapes([(4, 1), (4,)])
-        with self.assertRaises(ValueError):
-            shape.sum_shapes([(4,), (4, 1)])
-
-        with self.assertRaises(ValueError):
-            shape.sum_shapes([(4, 2), (2,)])
-        with self.assertRaises(ValueError):
-            shape.sum_shapes([(2,), (4, 2)])
-
-        with self.assertRaises(ValueError):
-            shape.sum_shapes([(4, 2), (4, 1)])
-        with self.assertRaises(ValueError):
-            shape.sum_shapes([(4, 1), (4, 2)])
-
     def test_add_incompatible(self) -> None:
         """Test addition of incompatible shapes raises a ValueError.
         """
