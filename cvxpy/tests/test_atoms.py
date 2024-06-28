@@ -26,6 +26,7 @@ from numpy import linalg as LA
 import cvxpy as cp
 import cvxpy.settings as s
 from cvxpy import Minimize, Problem
+from cvxpy.atoms.affine.upper_tri import upper_tri_to_full
 from cvxpy.atoms.errormsg import SECOND_ARG_SHOULD_NOT_BE_EXPRESSION_ERROR_MESSAGE
 from cvxpy.expressions.constants import Constant, Parameter
 from cvxpy.expressions.variable import Variable
@@ -796,6 +797,12 @@ class TestAtoms(BaseTest):
         # works with scalars
         assert np.allclose(cp.vec_to_upper_tri(1, strict=True).value, np.array([[0, 1], [0, 0]]))
 
+    def test_upper_tri_to_full(self) -> None:
+        for n in range(3, 8):
+            A = upper_tri_to_full(n)
+            v = np.arange(n * (n+1) // 2)
+            M = (A @ v).reshape((n, n))
+            assert np.allclose(M, M.T)
 
     def test_huber(self) -> None:
         # Valid.
@@ -804,12 +811,12 @@ class TestAtoms(BaseTest):
         with self.assertRaises(Exception) as cm:
             cp.huber(self.x, -1)
         self.assertEqual(str(cm.exception),
-                         "M must be a non-negative scalar constant.")
+                         "M must be a non-negative scalar constant or Parameter.")
 
         with self.assertRaises(Exception) as cm:
             cp.huber(self.x, [1, 1])
         self.assertEqual(str(cm.exception),
-                         "M must be a non-negative scalar constant.")
+                         "M must be a non-negative scalar constant or Parameter.")
 
         # M parameter.
         M = Parameter(nonneg=True)
@@ -822,7 +829,7 @@ class TestAtoms(BaseTest):
         with self.assertRaises(Exception) as cm:
             cp.huber(self.x, M)
         self.assertEqual(str(cm.exception),
-                         "M must be a non-negative scalar constant.")
+                         "M must be a non-negative scalar constant or Parameter.")
 
         # Test copy with args=None
         atom = cp.huber(self.x, 2)
@@ -839,6 +846,46 @@ class TestAtoms(BaseTest):
         self.assertTrue(type(copy) is type(atom))
         self.assertTrue(copy.args[0] is self.y)
         self.assertEqual(copy.get_data()[0].value, atom.get_data()[0].value)
+
+        # Test usage of M as parameter
+        M = Parameter(nonneg=True)
+        expr = cp.huber(1.0, M)
+        M.value = 1
+        self.assertAlmostEqual(expr.value, 1.0)
+        M.value = 0.5
+        self.assertAlmostEqual(expr.value, 0.75)
+        M.value = 0.25
+        self.assertAlmostEqual(expr.value, 0.4375)
+        M.value = 1
+        self.assertAlmostEqual(expr.value, 1.0)
+
+        # Test M as affine expression of parameter
+        expr = cp.huber(1.0, 0.25 * M + 0.25)
+        M.value = 1
+        self.assertAlmostEqual(expr.value, 0.75)
+        M.value = 0.5
+        self.assertAlmostEqual(expr.value, 0.609375)
+        M.value = 1
+        self.assertAlmostEqual(expr.value, 0.75)
+        # Test with DPP
+        x = cp.Variable()
+        M = cp.Parameter(nonneg=True)
+        problem = cp.Problem(cp.Minimize(x**2 + cp.huber(3*x-5, 2 * M + 0.15)), [x >= 0.5])
+
+        M.value = 0.425
+        result = problem.solve()
+        self.assertAlmostEqual(result, 2.5)
+        self.assertAlmostEqual(x.value, 1.5)
+
+        M.value = 0.0
+        result = problem.solve()
+        self.assertAlmostEqual(result, 1.2775)
+        self.assertAlmostEqual(x.value, 0.5)
+
+        M.value = 0.425
+        result = problem.solve()
+        self.assertAlmostEqual(result, 2.5)
+        self.assertAlmostEqual(x.value, 1.5)
 
     def test_sum_largest(self) -> None:
         """Test the sum_largest atom and related atoms.
@@ -1450,7 +1497,6 @@ class TestAtoms(BaseTest):
 
         # allow 2D inputs once row-major flattening is the default
         assert np.allclose(cp.vec(np.array([[1, 2], [3, 4]])).value, np.array([1, 3, 2, 4]))
-
 
     def test_conj(self) -> None:
         """Test conj.

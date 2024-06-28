@@ -16,7 +16,7 @@ limitations under the License.
 from typing import List, Tuple
 
 import numpy as np
-from scipy.sparse import csc_matrix
+import scipy.sparse as sp
 
 import cvxpy.lin_ops.lin_op as lo
 import cvxpy.lin_ops.lin_utils as lu
@@ -28,7 +28,8 @@ from cvxpy.expressions.expression import Expression
 
 
 class upper_tri(AffAtom):
-    """The vectorized strictly upper-triagonal entries.
+    """
+    The vectorized strictly upper-triangular entries.
 
     The vectorization is performed by concatenating (partial) rows.
     For example, if
@@ -53,16 +54,11 @@ class upper_tri(AffAtom):
 
     @AffAtom.numpy_numeric
     def numeric(self, values):
-        """Vectorize the upper triagonal entries.
         """
-        value = np.zeros(self.shape[0])
-        count = 0
-        for i in range(values[0].shape[0]):
-            for j in range(values[0].shape[1]):
-                if i < j:
-                    value[count] = values[0][i, j]
-                    count += 1
-        return value
+        Vectorize the strictly upper triangular entries.
+        """
+        upper_idx = np.triu_indices(n=values[0].shape[0], k=1, m=values[0].shape[1])
+        return values[0][upper_idx]
 
     def validate_arguments(self) -> None:
         """Checks that the argument is a square matrix.
@@ -91,7 +87,7 @@ class upper_tri(AffAtom):
     def graph_implementation(
         self, arg_objs, shape: Tuple[int, ...], data=None
     ) -> Tuple[lo.LinOp, List[Constraint]]:
-        """Vectorized strictly upper triagonal entries.
+        """Vectorized strictly upper triangular entries.
 
         Parameters
         ----------
@@ -134,19 +130,47 @@ def vec_to_upper_tri(expr, strict: bool = False):
     if not (n * (n + 1) // 2 == ell or n * (n - 1) // 2 == ell):
         raise ValueError("The size of the vector must be a triangular number.")
 
-    # form a matrix P, of shape (n**2, ell).
-    #       the i-th block of n rows of P gives the entries of the i-th row
-    #       of the upper-triangular matrix associated with expr.
-    # compute expr2 = P @ expr
-    # compute expr3 = reshape(expr2, shape=(n, n)).T
-    #   expr3 is the matrix formed by reading length-n blocks of expr2,
-    #   and letting each block form a row of expr3.
+    """
+    Initialize a coefficient matrix P that creates an upper triangular matrix when 
+    multiplied with a variable vector expr.
+    That is, (P @ expr).reshape((n, n)) is an upper triangular matrix.
+    """
     k = 1 if strict else 0
     row_idx, col_idx = np.triu_indices(n, k=k)
-    P_rows = n*row_idx + col_idx
+    P_rows = n * row_idx + col_idx
     P_cols = np.arange(ell)
     P_vals = np.ones(P_cols.size)
-    P = csc_matrix((P_vals, (P_rows, P_cols)), shape=(n**2, ell))
-    expr2 = P @ expr
-    expr3 = reshape(expr2, (n, n)).T
-    return expr3
+    P = sp.csc_matrix((P_vals, (P_rows, P_cols)), shape=(n * n, ell))
+    return reshape(P @ expr, (n, n)).T
+
+
+def upper_tri_to_full(n: int) -> sp.csc_matrix:
+    """
+    Returns a coefficient matrix A that creates a symmetric matrix when
+    multiplied with a variable vector v.
+    That is, (A @ v).reshape((n, n)) is a symmetric matrix.
+
+    Parameters
+    ----------
+    n : int
+        The length of the matrix.
+
+    Returns
+    -------
+    sp.csc_matrix
+        The coefficient matrix.
+    """
+    entries = n*(n+1)//2
+
+    # Initialize row and col indices from upper triangular matrix
+    rows, cols = np.triu_indices(n)
+
+    # Mask for the symmetric part when i != j
+    mask = rows != cols
+
+    row_idx = np.concatenate([rows * n + cols, cols[mask] * n + rows[mask]])
+    col_idx = np.concatenate([np.arange(entries), np.arange(entries)[mask]])
+    values = np.ones(col_idx.size, dtype=float)
+
+    # Construct and return the sparse matrix
+    return sp.csc_matrix((values, (row_idx, col_idx)), shape=(n * n, entries))
