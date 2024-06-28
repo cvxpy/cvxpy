@@ -14,80 +14,49 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import unittest
+import numpy as np
+import pytest
+from hypothesis import given
+from hypothesis.extra.numpy import mutually_broadcastable_shapes
 
 from cvxpy.atoms.affine.reshape import reshape
 from cvxpy.expressions.variable import Variable
 from cvxpy.utilities import shape
 
 
-class TestShape(unittest.TestCase):
-    """ Unit tests for the expressions/shape module. """
+class TestShape():
+    @given(s=mutually_broadcastable_shapes(num_shapes=7))
+    def test_add_broadcasting(self, s) -> None:
+        assert shape.sum_shapes(s.input_shapes) == s.result_shape
 
-    def setUp(self) -> None:
-        pass
-
-    # Test adding two shapes.
-    def test_add_matching(self) -> None:
-        """Test addition of matching shapes.
-        """
-        self.assertEqual(shape.sum_shapes([(3, 4), (3, 4)]), (3, 4))
-        self.assertEqual(shape.sum_shapes([(3, 4)] * 5), (3, 4))
-
-    def test_add_broadcasting(self) -> None:
-        """Test broadcasting of shapes during addition.
-        """
-        # Broadcasting with scalars is permitted.
-        self.assertEqual(shape.sum_shapes([(3, 4), (1, 1)]), (3, 4))
-        self.assertEqual(shape.sum_shapes([(1, 1), (3, 4)]), (3, 4))
-
-        self.assertEqual(shape.sum_shapes([(1,), (3, 4)]), (3, 4))
-        self.assertEqual(shape.sum_shapes([(3, 4), (1,)]), (3, 4))
-
-        self.assertEqual(shape.sum_shapes([tuple(), (3, 4)]), (3, 4))
-        self.assertEqual(shape.sum_shapes([(3, 4), tuple()]), (3, 4))
-
-        self.assertEqual(shape.sum_shapes([(1, 1), (4,)]), (1, 4))
-        self.assertEqual(shape.sum_shapes([(4,), (1, 1)]), (1, 4))
+    @given(s=mutually_broadcastable_shapes(signature=np.matmul.signature))
+    def test_mul_broadcasting(self, s) -> None:
+        x, y = s.input_shapes
+        assert shape.mul_shapes(x, y) == s.result_shape
 
     def test_add_incompatible(self) -> None:
-        """Test addition of incompatible shapes raises a ValueError.
         """
-        with self.assertRaises(ValueError):
+        Test addition of incompatible shapes raises a ValueError.
+        """
+        with pytest.raises(ValueError):
             shape.sum_shapes([(4, 2), (4,)])
 
     def test_mul_scalars(self) -> None:
-        """Test multiplication by scalars raises a ValueError.
         """
-        with self.assertRaises(ValueError):
+        Test multiplication by scalars raises a ValueError.
+        """
+        with pytest.raises(ValueError):
             shape.mul_shapes(tuple(), (5, 9))
-        with self.assertRaises(ValueError):
+        with pytest.raises(ValueError):
             shape.mul_shapes((5, 9), tuple())
-        with self.assertRaises(ValueError):
+        with pytest.raises(ValueError):
             shape.mul_shapes(tuple(), tuple())
-
-    def test_mul_2d(self) -> None:
-        """Test multiplication where at least one of the shapes is >= 2D.
-        """
-        self.assertEqual(shape.mul_shapes((5, 9), (9, 2)), (5, 2))
-        self.assertEqual(shape.mul_shapes((3, 5, 9), (3, 9, 2)), (3, 5, 2))
-
-        with self.assertRaises(Exception) as cm:
-            shape.mul_shapes((5, 3), (9, 2))
-        self.assertEqual(str(cm.exception),
-                         "Incompatible dimensions (5, 3) (9, 2)")
-
-        with self.assertRaises(Exception) as cm:
-            shape.mul_shapes((3, 5, 9), (4, 9, 2))
-        self.assertEqual(str(cm.exception),
-                         "Incompatible dimensions (3, 5, 9) (4, 9, 2)")
 
     def test_reshape_with_lists(self) -> None:
         n = 2
         a = Variable([n, n])
         b = Variable(n**2)
         c = reshape(b, [n, n])
-        self.assertEqual((a + c).shape, (n, n))
-
+        assert (a + c).shape == (n, n)
         d = reshape(b, (n, n))
-        self.assertEqual((a + d).shape, (n, n))
+        assert (a + d).shape == (n, n)

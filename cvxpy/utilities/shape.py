@@ -83,22 +83,20 @@ def mul_shapes_promote(
     if not lh_shape or not rh_shape:
         raise ValueError("Multiplication by scalars is not permitted.")
 
-    if len(lh_shape) == 1:
-        lh_shape = (1,) + lh_shape
-    if len(rh_shape) == 1:
-        rh_shape = rh_shape + (1,)
+    # Promote 1D shapes to 2D
+    lh_shape = (1,) + lh_shape if len(lh_shape) == 1 else lh_shape
+    rh_shape = rh_shape + (1,) if len(rh_shape) == 1 else rh_shape
 
     if lh_shape[-1] != rh_shape[-2]:
-        raise ValueError("Incompatible dimensions %s %s" % (
-            lh_shape, rh_shape))
+        raise ValueError("Incompatible dimensions %s %s" % (lh_shape, rh_shape))
+    
     # Calculate resulting shape for higher-dimensional arrays
     if len(lh_shape) > 2 or len(rh_shape) > 2:
         try:
-            broadcast_outer_dims = np.broadcast_shapes(lh_shape[:-2], rh_shape[:-2])
+            outer_dims = np.broadcast_shapes(lh_shape[:-2], rh_shape[:-2])
         except ValueError:
-            raise ValueError("Incompatible dimensions %s %s" % (
-                lh_shape, rh_shape))
-        shape = broadcast_outer_dims + (lh_shape[-2], rh_shape[-1])
+            raise ValueError("Incompatible dimensions %s %s" % (lh_shape, rh_shape))
+        shape = outer_dims + (lh_shape[-2], rh_shape[-1])
     else:
         shape = (lh_shape[-2], rh_shape[-1])
     return (lh_shape, rh_shape, shape)
@@ -131,7 +129,7 @@ def mul_shapes(lh_shape: Tuple[int, ...], rh_shape: Tuple[int, ...]) -> Tuple[in
     lh_old, rh_old = lh_shape, rh_shape
     lh_shape, rh_shape, shape = mul_shapes_promote(lh_shape, rh_shape)
     if lh_shape != lh_old:
-        shape = shape[1:]
+        shape = shape[:-2] + (shape[-1],)
     if rh_shape != rh_old:
         shape = shape[:-1]
     return shape
