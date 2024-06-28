@@ -2276,6 +2276,12 @@ class TestCOPT(unittest.TestCase):
         # axis 1
         StandardTestSOCPs.test_socp_3ax1(solver='COPT')
 
+    def test_copt_expcone_1(self) -> None:
+        StandardTestECPs.test_expcone_1(solver='COPT')
+
+    def test_copt_exp_soc_1(self) -> None:
+        StandardTestMixedCPs.test_exp_soc_1(solver='COPT')
+
     def test_copt_mi_lp_0(self) -> None:
         StandardTestLPs.test_mi_lp_0(solver='COPT')
 
@@ -2292,9 +2298,10 @@ class TestCOPT(unittest.TestCase):
         StandardTestLPs.test_mi_lp_5(solver='COPT')
 
     def test_copt_mi_socp_1(self) -> None:
-        # COPT does not support MISOCP.
-        with pytest.raises(cp.error.SolverError, match="do not support"):
-            StandardTestSOCPs.test_mi_socp_1(solver='COPT')
+        StandardTestSOCPs.test_mi_socp_1(solver='COPT')
+
+    def test_copt_mi_socp_2(self) -> None:
+        StandardTestSOCPs.test_mi_socp_2(solver='COPT')
 
     def test_copt_sdp_1min(self) -> None:
         StandardTestSDPs.test_sdp_1min(solver='COPT')
