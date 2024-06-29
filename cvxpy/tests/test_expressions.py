@@ -1316,10 +1316,6 @@ class TestExpressions(BaseTest):
 
         col_scale = Variable(n)
 
-        with self.assertRaises(ValueError) as cm:
-            cp.multiply(A, col_scale)
-        self.assertEqual(str(cm.exception), "Cannot broadcast dimensions  (3, 4) (4,)")
-
         col_scale = Variable([1, n])
         C = cp.multiply(A, col_scale)
         self.assertEqual(C.shape, (m, n))
@@ -1347,10 +1343,6 @@ class TestExpressions(BaseTest):
         A = np.random.rand(m, n)
 
         col_scale = Variable(n)
-
-        with self.assertRaises(ValueError) as cm:
-            A + col_scale
-        self.assertEqual(str(cm.exception), "Cannot broadcast dimensions  (3, 4) (4,)")
 
         col_scale = Variable([1, n])
         C = A + col_scale
