@@ -153,4 +153,4 @@ Parth Nobel.
 For more information about the team and our processes, see our [governance document](https://github.com/cvxpy/org/blob/main/governance.md).
 
 ## Citing
-If you use CVXPY for academic work, we encourage you to [cite our papers](https://www.cvxpy.org/citing/index.html). If you use CVXPY in industry, we'd love to hear from you as well, on Discord or over email.
+If you use CVXPY for academic work, we encourage you to [cite our papers](https://www.cvxpy.org/resources/citing/index.html). If you use CVXPY in industry, we'd love to hear from you as well, on Discord or over email.
