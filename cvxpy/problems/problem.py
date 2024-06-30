@@ -415,6 +415,54 @@ class Problem(u.Canonical):
                    last time it was compiled.
         """
         return self._compilation_time
+    
+    def _solve_solver_path(self, solve_func, solvers:List[tuple[str, Dict] | str],
+                                args, kwargs):
+        """Solve a problem using multiple solvers.
+
+        Arguments
+        ---------
+        solvers : list of (str, dict) tuples or strings.
+            The solvers to use. For example, ['SCS', ('OSQP', {'max_iter':10000})]
+        kwargs : keywords, optional
+            Additional solver specific arguments.
+
+        Returns
+        -------
+        solution : Solution
+            The solution of the first solver that succeeds.
+
+        Raises
+        ------
+        SolverError
+            If all solvers fail to find a solution.
+        ValueError
+            If the input solvers format is incorrect.
+        """
+
+        ENTRY_ERROR_MSG ="Solver path entry must be list of str or tuple[str, dict[str, Any]]"
+        if not isinstance(solvers, list):
+            raise ValueError(ENTRY_ERROR_MSG)
+        if not solvers:
+            raise ValueError("Solver path must contain at least one solver.")
+        for solver in solvers:
+            try:
+                if isinstance(solver, str):
+                    solver_name = solver
+                    solution = solve_func(self, *args, solver=solver_name, **kwargs)
+                elif isinstance(solver, tuple) and len(solver) == 2:
+                        solver_name, solver_kwargs = solver
+                        if not isinstance(solver_name, str) or not isinstance(solver_kwargs, dict):
+                            raise ValueError(ENTRY_ERROR_MSG)
+                        solution = solve_func(
+                            self, *args, solver=solver_name, **solver_kwargs, **kwargs)
+                else:
+                    raise ValueError(ENTRY_ERROR_MSG)
+                s.LOGGER.info("Solver %s succeeds", solver_name)
+                return solution
+            except error.SolverError as e:
+                s.LOGGER.info("Solver %s failed: %s", solver_name, e)
+        raise error.SolverError(f"All solvers failed: {solvers}")
 
     def solve(self, *args, **kwargs):
         """Compiles and solves the problem using the specified method.
@@ -426,6 +474,11 @@ class Problem(u.Canonical):
         ---------
         solver : str, optional
             The solver to use. For example, 'ECOS', 'SCS', or 'OSQP'.
+        solver_path : list of (str, dict) tuples or strings, optional
+            The solvers to use with optional arguments.
+            The function tries the solvers in the given order and
+            returns the first solver's solution that succeeds.
+            For example, ['SCS', ('OSQP', {'max_iter':10000})]
         verbose : bool, optional
             Overrides the default of hiding solver output, and prints
             logging information describing CVXPY's compilation process.
@@ -500,6 +553,13 @@ class Problem(u.Canonical):
             solve_func = Problem.REGISTERED_SOLVE_METHODS[func_name]
         else:
             solve_func = Problem._solve
+        solver_path = kwargs.pop("solver_path", None)
+        if solver_path is not None:
+            solver = kwargs.get("solver", None)
+            if solver is not None:
+                raise ValueError(
+                    "Cannot specify both 'solver' and 'solver_path'. Please choose one.")
+            return self._solve_solver_path(solve_func,solver_path, args, kwargs)
         return solve_func(self, *args, **kwargs)
 
     @classmethod

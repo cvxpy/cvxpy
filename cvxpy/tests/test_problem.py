@@ -1416,6 +1416,52 @@ class TestProblem(BaseTest):
                 cp.sum_squares(cp.matmul(A, cp.Variable(40)) - b))).solve(
                 solver=s.OSQP, max_iter=1)
 
+    def test_solve_solver_path(self) -> None:
+        """
+        Tests the solve_solver_path method under various conditions:
+        
+        1. Verifies that a SolverError is raised when all solvers fail.
+        2. Validates that a solution is returned when any of the solvers succeeds.
+        3. Ensures that a ValueError is raised when the inner inputs of the solvers are invalid.
+        
+        """
+
+        A = numpy.random.randn(40, 40)
+        b = cp.matmul(A, numpy.random.randn(40))
+        
+        # valid input, return solution
+        solvers_with_str=[(s.OSQP, {'max_iter':1}), s.CLARABEL]
+        solvers_empty_dict=[(s.OSQP, {'max_iter':1}), (s.CLARABEL, {})]
+
+        for solvers in [solvers_with_str, solvers_empty_dict]:
+            self.assertIsNotNone(Problem(cp.Minimize(
+                cp.sum_squares(cp.matmul(A, cp.Variable(40)) - b))).solve(
+                solver_path=solvers))
+
+        # valid input, raise SolverError
+        solvers = [(s.OSQP, {'max_iter':1})]
+        
+        with self.assertRaises(SolverError):
+            Problem(cp.Minimize(
+                cp.sum_squares(cp.matmul(A, cp.Variable(40)) - b))).solve(
+                solver_path=solvers)
+                
+        # invalid input, raise ValueError
+        solvers_invalid_inner_input = [{'str':{}}, 'str', [], [1], [()], [(1)], [(1,{})],
+                                        [(s.OSQP,[])], [(s.OSQP,)]]
+
+        for solvers in solvers_invalid_inner_input:
+            with self.assertRaises(ValueError):
+                Problem(cp.Minimize(
+                    cp.sum_squares(cp.matmul(A, cp.Variable(40)) - b))).solve(
+                    solver_path=solvers)
+
+        ## Specify both solver_path and solver as arguments
+        with self.assertRaises(ValueError):
+                Problem(cp.Minimize(
+                    cp.sum_squares(cp.matmul(A, cp.Variable(40)) - b))).solve(
+                    solver_path=[s.OSQP], solver=s.OSQP)
+
     def test_reshape(self) -> None:
         """Tests problems with reshape.
         """
