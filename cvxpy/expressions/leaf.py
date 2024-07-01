@@ -29,6 +29,7 @@ import numpy.linalg as LA
 import scipy.sparse as sp
 
 import cvxpy.interface as intf
+import cvxpy.settings as s
 from cvxpy.constraints.constraint import Constraint
 from cvxpy.expressions import expression
 from cvxpy.settings import (
@@ -56,6 +57,7 @@ class Leaf(expression.Expression):
     shape : Iterable of ints or int
         The leaf dimensions. Either an integer n for a 1D shape, or an
         iterable where the semantics are the same as NumPy ndarray shapes.
+        **Shapes cannot be more than 2D**.
     value : numeric type
         A value to assign to the leaf.
     nonneg : bool
@@ -96,7 +98,7 @@ class Leaf(expression.Expression):
     __metaclass__ = abc.ABCMeta
 
     def __init__(
-        self, shape: int | Iterable, value=None, nonneg: bool = False,
+        self, shape: int | tuple[int, ...], value=None, nonneg: bool = False,
         nonpos: bool = False, complex: bool = False, imag: bool = False,
         symmetric: bool = False, diag: bool = False, PSD: bool = False,
         NSD: bool = False, hermitian: bool = False,
@@ -105,6 +107,9 @@ class Leaf(expression.Expression):
     ) -> None:
         if isinstance(shape, numbers.Integral):
             shape = (int(shape),)
+        elif not s.ALLOW_ND_EXPR and len(shape) > 2:
+            raise ValueError("Expressions of dimension greater than 2 "
+                             "are not supported.")
         for d in shape:
             if not isinstance(d, numbers.Integral) or d <= 0:
                 raise ValueError("Invalid dimensions %s." % (shape,))

@@ -24,6 +24,7 @@ import numpy as np
 import scipy.sparse as sp
 from scipy.signal import convolve
 
+import cvxpy.settings as s
 from cvxpy.lin_ops import LinOp
 from cvxpy.settings import (
     NUMPY_CANON_BACKEND,
@@ -226,6 +227,8 @@ class PythonCanonBackend(CanonBackend):
         # Leaf nodes
         if lin_op.type == "variable":
             assert isinstance(lin_op.data, int)
+            if not s.ALLOW_ND_EXPR:
+                 assert len(lin_op.shape) in {0, 1, 2}
             variable_tensor = self.get_variable_tensor(lin_op.shape, lin_op.data)
             return empty_view.create_new_tensor_view({lin_op.data}, variable_tensor,
                                                      is_parameter_free=True)
