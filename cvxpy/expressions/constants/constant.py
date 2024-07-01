@@ -67,7 +67,7 @@ class Constant(Leaf):
 
     def name(self) -> str:
         """
-        The value of the constant as a string.
+         The value of the constant as a string.
         """
         if self._name is None:
             if len(self.shape) == 2 and "\n" in str(self.value):
