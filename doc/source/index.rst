@@ -130,6 +130,11 @@ considered to be part of the public API.
 .. toctree::
    :hidden:
 
+   functions/index
+
+.. toctree::
+   :hidden:
+
    API Documentation <api_reference/cvxpy>
 
 .. toctree::
