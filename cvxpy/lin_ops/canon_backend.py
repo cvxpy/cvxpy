@@ -788,7 +788,7 @@ class NumPyCanonBackend(PythonCanonBackend):
                 else:
                     d = shape[axis]
                     axis += 1
-                x = x.reshape((p,)+(shape)+(n,), order='F').sum(axis=axis)
+                x = x.reshape((p,)+shape+(n,), order='F').sum(axis=axis)
                 return x.reshape((p, n//d, n), order='F')
 
         view.apply_all(func)
@@ -1230,7 +1230,8 @@ class SciPyCanonBackend(PythonCanonBackend):
                         d = np.prod([shape[i] for i in axis], dtype=int)
                     else:
                         d = shape[axis]
-                    x = x.toarray().reshape((shape)+(n,), order='F').sum(axis=axis)
+                    #TODO avoid changing x to dense
+                    x = x.toarray().reshape(shape+(n,), order='F').sum(axis=axis)
                     return sp.csr_matrix(x.reshape((n//d, n), order='F'))
             else:
                 m = x.shape[0] // p

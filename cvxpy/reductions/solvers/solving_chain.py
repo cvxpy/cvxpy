@@ -391,9 +391,6 @@ def _get_canon_backend(problem, canon_backend):
     than 2, then raises a warning if the default backend is not specified or 
     raises an error if the backend is specified as 'CPP'.
 
-    TODO: The correct way to do this in the future is to check all nodes of
-    the expression tree to find the largest dimension.
-
     Parameters
     ----------
     problem : Problem

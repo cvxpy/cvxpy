@@ -264,7 +264,7 @@ class Problem(u.Canonical):
         """
         prob_max_ndim = self.objective.expr._max_ndim()
         for con in self.constraints:
-            prob_max_ndim = max([prob_max_ndim] + [arg._max_ndim() for arg in con.args])
+            prob_max_ndim = max(prob_max_ndim, max(arg._max_ndim() for arg in con.args))
         return prob_max_ndim
 
     @perf.compute_once
