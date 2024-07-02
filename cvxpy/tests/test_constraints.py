@@ -363,7 +363,7 @@ class TestConstraints(BaseTest):
         c = np.arange(3)
         prob = cp.Problem(cp.Minimize(cp.sum(x)),
                           [cp.NonNeg(x - c)])
-        prob.solve(solver=cp.ECOS)
+        prob.solve(solver=cp.CLARABEL)
         self.assertItemsAlmostEqual(x.value, c)
         prob.solve(solver=cp.OSQP)
         self.assertItemsAlmostEqual(x.value, c)
@@ -375,7 +375,7 @@ class TestConstraints(BaseTest):
         x = cp.Variable(3)
         c = np.arange(3)
         prob = cp.Problem(cp.Maximize(cp.sum(x)), [cp.NonPos(x - c)])
-        prob.solve(solver=cp.ECOS)
+        prob.solve(solver=cp.CLARABEL)
         self.assertItemsAlmostEqual(x.value, c)
         prob.solve(solver=cp.OSQP)
         self.assertItemsAlmostEqual(x.value, c)
@@ -386,12 +386,12 @@ class TestConstraints(BaseTest):
         c = np.arange(3)
         objective = cp.Minimize(cp.sum(x))
         prob = cp.Problem(objective, [c - x <= 0])
-        prob.solve(solver=cp.ECOS)
+        prob.solve(solver=cp.CLARABEL)
         dual = prob.constraints[0].dual_value
         # reported dual variables are the same with NonNeg, even though
         # the convention for how they add to the Lagrangian differs by sign.
         prob = cp.Problem(objective, [cp.NonNeg(x - c)])
-        prob.solve(solver=cp.ECOS)
+        prob.solve(solver=cp.CLARABEL)
         self.assertItemsAlmostEqual(prob.constraints[0].dual_value, dual)
         prob.solve(solver=cp.OSQP)
         self.assertItemsAlmostEqual(prob.constraints[0].dual_value, dual)

@@ -22,7 +22,7 @@ from cvxpy.reductions.dqcp2dcp.dqcp2dcp import Dqcp2Dcp
 from cvxpy.reductions.solvers import bisection
 from cvxpy.tests import base_test
 
-SOLVER = cp.ECOS
+SOLVER = cp.CLARABEL
 
 
 class TestDqcp(base_test.BaseTest):

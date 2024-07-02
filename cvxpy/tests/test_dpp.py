@@ -7,7 +7,7 @@ import cvxpy as cp
 import cvxpy.error as error
 from cvxpy.tests.base_test import BaseTest
 
-SOLVER = cp.ECOS
+SOLVER = cp.CLARABEL
 
 
 class TestDcp(BaseTest):

@@ -581,19 +581,22 @@ class TestProblem(BaseTest):
         combo1 = prob1 + 2 * prob2
         combo1_ref = Problem(cp.Minimize(self.a + 4 * self.b),
                              [self.a >= self.b, self.a >= 1, self.b >= 2])
-        self.assertAlmostEqual(combo1.solve(solver=cp.ECOS), combo1_ref.solve(solver=cp.ECOS))
+        self.assertAlmostEqual(combo1.solve(solver=cp.CLARABEL), 
+                               combo1_ref.solve(solver=cp.CLARABEL))
 
         # division and subtraction
         combo2 = prob1 - prob3/2
         combo2_ref = Problem(cp.Minimize(self.a + pow(self.b + self.a, 2)/2),
                              [self.b >= 3, self.a >= self.b])
-        self.assertAlmostEqual(combo2.solve(solver=cp.ECOS), combo2_ref.solve(solver=cp.ECOS))
+        self.assertAlmostEqual(combo2.solve(solver=cp.CLARABEL), 
+                               combo2_ref.solve(solver=cp.CLARABEL))
 
         # multiplication with 0 (prob2's constraints should still hold)
         combo3 = prob1 + 0 * prob2 - 3 * prob3
         combo3_ref = Problem(cp.Minimize(self.a + 3 * pow(self.b + self.a, 2)),
                              [self.a >= self.b, self.a >= 1, self.b >= 3])
-        self.assertAlmostEqual(combo3.solve(solver=cp.ECOS), combo3_ref.solve(solver=cp.ECOS))
+        self.assertAlmostEqual(combo3.solve(solver=cp.CLARABEL), 
+                               combo3_ref.solve(solver=cp.CLARABEL))
 
     # Test scalar LP problems.
     def test_scalar_lp(self) -> None:
@@ -708,7 +711,7 @@ class TestProblem(BaseTest):
         T = Constant(numpy.ones((2, 3))*2).value
         p = Problem(cp.Minimize(1), [self.A >= T @ self.C,
                                      self.A == self.B, self.C == T.T])
-        result = p.solve(solver=cp.ECOS)
+        result = p.solve(solver=cp.CLARABEL)
         self.assertAlmostEqual(result, 1)
         self.assertItemsAlmostEqual(self.A.value, self.B.value)
         self.assertItemsAlmostEqual(self.C.value, T)
@@ -720,7 +723,7 @@ class TestProblem(BaseTest):
     # Test variable promotion.
     def test_variable_promotion(self) -> None:
         p = Problem(cp.Minimize(self.a), [self.x <= self.a, self.x == [1, 2]])
-        result = p.solve(solver=cp.ECOS)
+        result = p.solve(solver=cp.CLARABEL)
         self.assertAlmostEqual(result, 2)
         self.assertAlmostEqual(self.a.value, 2)
 
@@ -728,14 +731,14 @@ class TestProblem(BaseTest):
                     [self.A <= self.a,
                      self.A == [[1, 2], [3, 4]]
                      ])
-        result = p.solve(solver=cp.ECOS)
+        result = p.solve(solver=cp.CLARABEL)
         self.assertAlmostEqual(result, 4)
         self.assertAlmostEqual(self.a.value, 4)
 
         # Promotion must happen before the multiplication.
         p = Problem(cp.Minimize([[1], [1]] @ (self.x + self.a + 1)),
                     [self.a + self.x >= [1, 2]])
-        result = p.solve(solver=cp.ECOS)
+        result = p.solve(solver=cp.CLARABEL)
         self.assertAlmostEqual(result, 5)
 
     # Test parameter promotion.
@@ -791,7 +794,7 @@ class TestProblem(BaseTest):
         # Vector arguments.
         p = Problem(cp.Minimize(cp.norm_inf(self.x - self.z) + 5),
                     [self.x >= [2, 3], self.z <= [-1, -4]])
-        result = p.solve(solver=cp.ECOS)
+        result = p.solve(solver=cp.CLARABEL)
         self.assertAlmostEqual(float(result), 12)
         self.assertAlmostEqual(float(list(self.x.value)[1] - list(self.z.value)[1]), 7)
 
@@ -1320,7 +1323,7 @@ class TestProblem(BaseTest):
         self.assertEqual(exp.value, 0)
         obj = cp.Minimize(exp)
         p = Problem(obj)
-        result = p.solve(solver=cp.ECOS)
+        result = p.solve(solver=cp.CLARABEL)
         self.assertAlmostEqual(result, 0)
         assert self.a.value is not None
 
@@ -1329,14 +1332,14 @@ class TestProblem(BaseTest):
         """
         obj = cp.Minimize(cp.norm_inf(self.A/5))
         p = Problem(obj, [self.A >= 5])
-        result = p.solve(solver=cp.ECOS)
+        result = p.solve(solver=cp.CLARABEL)
         self.assertAlmostEqual(result, 1)
 
         c = cp.Constant([[1., -1], [2, -2]])
         expr = self.A/(1./c)
         obj = cp.Minimize(cp.norm_inf(expr))
         p = Problem(obj, [self.A == 5])
-        result = p.solve(solver=cp.ECOS)
+        result = p.solve(solver=cp.CLARABEL)
         self.assertAlmostEqual(result, 10)
         self.assertItemsAlmostEqual(expr.value, [5, -5] + [10, -10])
 
@@ -1348,7 +1351,7 @@ class TestProblem(BaseTest):
         expr = self.x[:, None]/(1/c)
         obj = cp.Minimize(cp.norm_inf(expr))
         p = Problem(obj, [self.x == 5])
-        result = p.solve(solver=cp.ECOS)
+        result = p.solve(solver=cp.CLARABEL)
         self.assertAlmostEqual(result, 10)
         self.assertItemsAlmostEqual(expr.value, [5, 10])
 
@@ -1358,7 +1361,7 @@ class TestProblem(BaseTest):
         expr = self.a/(1/c)
         obj = cp.Minimize(cp.norm_inf(expr))
         p = Problem(obj, [self.a == 5])
-        result = p.solve(solver=cp.ECOS)
+        result = p.solve(solver=cp.CLARABEL)
         self.assertAlmostEqual(result, 10)
         self.assertItemsAlmostEqual(expr.value, [5, -5] + [10, -10])
 
@@ -1369,7 +1372,7 @@ class TestProblem(BaseTest):
         expr = cp.multiply(c, self.A)
         obj = cp.Minimize(cp.norm_inf(expr))
         p = Problem(obj, [self.A == 5])
-        result = p.solve(solver=cp.ECOS)
+        result = p.solve(solver=cp.CLARABEL)
         self.assertAlmostEqual(result, 10)
         self.assertItemsAlmostEqual(expr.value, [5, -5] + [10, -10])
 
@@ -1380,7 +1383,7 @@ class TestProblem(BaseTest):
         expr = cp.multiply(c, self.x[:, None])
         obj = cp.Minimize(cp.norm_inf(expr))
         p = Problem(obj, [self.x == 5])
-        result = p.solve(solver=cp.ECOS)
+        result = p.solve(solver=cp.CLARABEL)
         self.assertAlmostEqual(result, 10)
         self.assertItemsAlmostEqual(expr.value.toarray(), [5, 10])
 
@@ -1769,7 +1772,7 @@ class TestProblem(BaseTest):
 
         for p in (1, 1.6, 1.3, 2, 1.99, 3, 3.7, np.inf):
             prob = Problem(cp.Minimize(cp.pnorm(x, p=p)), [x.T @ a >= 1])
-            prob.solve(solver=cp.ECOS, verbose=True)
+            prob.solve(solver=cp.CLARABEL, verbose=True)
 
             # formula is true for any a >= 0 with p > 1
             if p == np.inf:
@@ -1794,14 +1797,14 @@ class TestProblem(BaseTest):
         a = np.array([-1.0, 2, 3])
         for p in (-1, .5, .3, -2.3):
             prob = Problem(cp.Minimize(cp.sum(cp.abs(x-a))), [cp.pnorm(x, p) >= 0])
-            prob.solve(solver=cp.ECOS)
+            prob.solve(solver=cp.CLARABEL)
 
             self.assertTrue(np.allclose(prob.value, 1))
 
         a = np.array([1.0, 2, 3])
         for p in (-1, .5, .3, -2.3):
             prob = Problem(cp.Minimize(cp.sum(cp.abs(x-a))), [cp.pnorm(x, p) >= 0])
-            prob.solve(solver=cp.ECOS)
+            prob.solve(solver=cp.CLARABEL)
 
             self.assertAlmostEqual(prob.value, 0, places=6)
 
@@ -1866,7 +1869,7 @@ class TestProblem(BaseTest):
         con = [expr <= 0]
         obj = cp.Maximize(cp.sum(X))
         prob = cp.Problem(obj, con)
-        prob.solve(solver=cp.ECOS)
+        prob.solve(solver=cp.CLARABEL)
         self.assertItemsAlmostEqual(expr.value, numpy.zeros(2))
 
         b = numpy.arange(10)
@@ -1875,7 +1878,7 @@ class TestProblem(BaseTest):
         con = [expr <= 0]
         obj = cp.Maximize(cp.sum(X))
         prob = cp.Problem(obj, con)
-        prob.solve(solver=cp.ECOS)
+        prob.solve(solver=cp.CLARABEL)
         self.assertItemsAlmostEqual(expr.value, numpy.zeros(10))
 
     def test_bool_constr(self) -> None:
@@ -1883,41 +1886,41 @@ class TestProblem(BaseTest):
         """
         x = cp.Variable(pos=True)
         prob = cp.Problem(cp.Minimize(x), [True])
-        prob.solve(solver=cp.ECOS)
+        prob.solve(solver=cp.CLARABEL)
         self.assertAlmostEqual(x.value, 0)
 
         x = cp.Variable(pos=True)
         prob = cp.Problem(cp.Minimize(x), [True]*10)
-        prob.solve(solver=cp.ECOS)
+        prob.solve(solver=cp.CLARABEL)
         self.assertAlmostEqual(x.value, 0)
 
         prob = cp.Problem(cp.Minimize(x), [42 <= x] + [True]*10)
-        prob.solve(solver=cp.ECOS)
+        prob.solve(solver=cp.CLARABEL)
         self.assertAlmostEqual(x.value, 42)
 
         prob = cp.Problem(cp.Minimize(x), [True] + [42 <= x] + [True] * 10)
-        prob.solve(solver=cp.ECOS)
+        prob.solve(solver=cp.CLARABEL)
         self.assertAlmostEqual(x.value, 42)
 
         prob = cp.Problem(cp.Minimize(x), [False])
-        prob.solve(solver=cp.ECOS)
+        prob.solve(solver=cp.CLARABEL)
         self.assertEqual(prob.status, s.INFEASIBLE)
 
         prob = cp.Problem(cp.Minimize(x), [False]*10)
-        prob.solve(solver=cp.ECOS)
+        prob.solve(solver=cp.CLARABEL)
         self.assertEqual(prob.status, s.INFEASIBLE)
 
         prob = cp.Problem(cp.Minimize(x), [True]*10 + [False] + [True]*10)
-        prob.solve(solver=cp.ECOS)
+        prob.solve(solver=cp.CLARABEL)
         self.assertEqual(prob.status, s.INFEASIBLE)
 
         prob = cp.Problem(cp.Minimize(x), [42 <= x] + [True]*10 + [False])
-        prob.solve(solver=cp.ECOS)
+        prob.solve(solver=cp.CLARABEL)
         self.assertEqual(prob.status, s.INFEASIBLE)
 
         # only Trues, but infeasible solution since x must be non-negative.
         prob = cp.Problem(cp.Minimize(x), [True] + [x <= -42] + [True]*10)
-        prob.solve(solver=cp.ECOS)
+        prob.solve(solver=cp.CLARABEL)
         self.assertEqual(prob.status, s.INFEASIBLE)
 
     def test_invalid_constr(self) -> None:
@@ -1933,12 +1936,12 @@ class TestProblem(BaseTest):
         """
         x = cp.Variable(pos=True)
         prob = cp.Problem(cp.Minimize(x))
-        prob.solve(solver=cp.ECOS)
+        prob.solve(solver=cp.CLARABEL)
         self.assertAlmostEqual(x.value, 0)
 
         x = cp.Variable(neg=True)
         prob = cp.Problem(cp.Maximize(x))
-        prob.solve(solver=cp.ECOS)
+        prob.solve(solver=cp.CLARABEL)
         self.assertAlmostEqual(x.value, 0)
 
     def test_pickle(self) -> None:
