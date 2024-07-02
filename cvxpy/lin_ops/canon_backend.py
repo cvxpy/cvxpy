@@ -227,8 +227,7 @@ class PythonCanonBackend(CanonBackend):
         # Leaf nodes
         if lin_op.type == "variable":
             assert isinstance(lin_op.data, int)
-            if not s.ALLOW_ND_EXPR:
-             assert s.ALLOW_ND_ARRAY or len(lin_op.shape) in {0, 1, 2}
+            assert s.ALLOW_ND_EXPR or len(lin_op.shape) in {0, 1, 2}
             variable_tensor = self.get_variable_tensor(lin_op.shape, lin_op.data)
             return empty_view.create_new_tensor_view({lin_op.data}, variable_tensor,
                                                      is_parameter_free=True)
@@ -1230,7 +1229,7 @@ class SciPyCanonBackend(PythonCanonBackend):
                         d = np.prod([shape[i] for i in axis], dtype=int)
                     else:
                         d = shape[axis]
-                    #TODO avoid changing x to dense
+                    # TODO avoid changing x to dense
                     x = x.toarray().reshape(shape+(n,), order='F').sum(axis=axis)
                     return sp.csr_matrix(x.reshape((n//d, n), order='F'))
             else:
