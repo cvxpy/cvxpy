@@ -154,6 +154,13 @@ class Canonical:
         # Remove duplicates.
         return unique_list(atom for arg in self.args for atom in arg.atoms())
 
+    @pu.compute_once
+    def _max_ndim(self) -> int:
+        """
+        The maximum number of dimensions of the sub-expression.
+        """
+        return max([self.ndim] + [arg._max_ndim() for arg in self.args])
+
 
 _MISSING = object()
 

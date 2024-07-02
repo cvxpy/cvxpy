@@ -115,7 +115,8 @@ class Expression(u.Canonical):
     # Handles arithmetic operator overloading with Numpy.
     __array_priority__ = 100
 
-    @abc.abstractproperty
+    @property
+    @abc.abstractmethod
     def value(self):
         """NumPy.ndarray or None : The numeric value of the expression.
         """
@@ -126,7 +127,8 @@ class Expression(u.Canonical):
         """
         return self.value
 
-    @abc.abstractproperty
+    @property
+    @abc.abstractmethod
     def grad(self):
         """Gives the (sub/super)gradient of the expression w.r.t. each variable.
 
@@ -140,7 +142,8 @@ class Expression(u.Canonical):
         """
         raise NotImplementedError()
 
-    @abc.abstractproperty
+    @property
+    @abc.abstractmethod
     def domain(self):
         """list : The constraints describing the closure of the region
            where the expression is finite.

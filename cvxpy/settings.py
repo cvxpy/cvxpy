@@ -202,6 +202,9 @@ PARAM_THRESHOLD = 1e4
 # environment variable)
 NUM_THREADS = -1
 
+# Flag to allow ND expressions.
+ALLOW_ND_EXPR = True
+
 PRINT_EDGEITEMS = 2
 PRINT_THRESHOLD = 5
 

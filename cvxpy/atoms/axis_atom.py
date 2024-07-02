@@ -36,33 +36,48 @@ class AxisAtom(Atom):
         super(AxisAtom, self).__init__(expr)
 
     def shape_from_args(self) -> Tuple[int, ...]:
-        """Depends on axis.
+        """
+        Returns the shape of the atom after applying a function along an axis.
         """
         shape = list(self.args[0].shape)
-        if self.keepdims and self.axis is None:
-            shape = [1]*len(shape)
-        elif self.keepdims and self.axis is not None:
-            shape[self.axis] = 1
-        elif not self.keepdims and self.axis is None:
-            shape = []
+        if self.axis is None:
+            return (1,) * len(shape) if self.keepdims else ()
+        elif isinstance(self.axis, int):
+            if self.keepdims:
+                shape[self.axis] = 1
+            else:
+                shape = shape[:self.axis] + shape[self.axis+1:]
         else:
-            shape = shape[:self.axis] + shape[self.axis+1:]
+            if self.keepdims:
+                for axis in self.axis:
+                    shape[axis] = 1
+            else:
+                shape[:] = [shape[i] for i in range(len(shape)) if i not in self.axis]
         return tuple(shape)
 
     def get_data(self):
-        """Returns the axis being summed.
+        """
+        Returns the axes and the keepdims parameter.
         """
         return [self.axis, self.keepdims]
 
     def validate_arguments(self) -> None:
-        """Checks that the new shape has the same number of entries as the old.
         """
-        if self.axis is not None and self.axis > self.args[0].ndim:
-            raise ValueError("Invalid argument for axis.")
+        Checks that each axis is within the valid range.
+        """
+        if self.axis is not None:
+            axes = [self.axis] if isinstance(self.axis, int) else self.axis
+            dim = self.args[0].ndim
+            for axis in axes:
+                if axis < 0:
+                    axis += dim
+                if axis >= dim or axis < 0:
+                    raise ValueError(f"axis {axis} is out of bounds for array of dimension {dim}")
         super(AxisAtom, self).validate_arguments()
 
     def _axis_grad(self, values) -> Optional[List[sp.csc_matrix]]:
-        """Gives the (sub/super)gradient of the atom w.r.t. each argument.
+        """
+        Gives the (sub/super)gradient of the atom w.r.t. each argument.
 
         Matrix expressions are vectorized, so the gradient is a matrix.
         Takes axis into account.
@@ -108,7 +123,8 @@ class AxisAtom(Atom):
         return [D]
 
     def _column_grad(self, value):
-        """Gives the (sub/super)gradient of the atom w.r.t. a column argument.
+        """
+        Gives the (sub/super)gradient of the atom w.r.t. a column argument.
 
         Matrix expressions are vectorized, so the gradient is a matrix.
 
