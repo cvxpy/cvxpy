@@ -228,7 +228,7 @@ class PythonCanonBackend(CanonBackend):
         if lin_op.type == "variable":
             assert isinstance(lin_op.data, int)
             if not s.ALLOW_ND_EXPR:
-                 assert len(lin_op.shape) in {0, 1, 2}
+             assert s.ALLOW_ND_ARRAY or len(lin_op.shape) in {0, 1, 2}
             variable_tensor = self.get_variable_tensor(lin_op.shape, lin_op.data)
             return empty_view.create_new_tensor_view({lin_op.data}, variable_tensor,
                                                      is_parameter_free=True)
