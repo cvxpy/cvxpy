@@ -43,7 +43,14 @@ from cvxpy.reductions.reduction import Reduction
 from cvxpy.reductions.solvers import defines as slv_def
 from cvxpy.reductions.solvers.constant_solver import ConstantSolver
 from cvxpy.reductions.solvers.solver import Solver
-from cvxpy.settings import CLARABEL, ECOS, PARAM_THRESHOLD
+from cvxpy.settings import (
+    CLARABEL,
+    CPP_CANON_BACKEND,
+    ECOS,
+    NUMPY_CANON_BACKEND,
+    PARAM_THRESHOLD,
+    SCIPY_CANON_BACKEND,
+)
 from cvxpy.utilities.debug_tools import build_non_disciplined_error_msg
 
 DPP_ERROR_MSG = (
@@ -223,6 +230,7 @@ def construct_solving_chain(problem, candidates,
         Raised if no suitable solver exists among the installed solvers, or
         if the target solver is not installed.
     """
+    canon_backend = _get_canon_backend(problem, canon_backend)
     if len(problem.variables()) == 0:
         return SolvingChain(reductions=[ConstantSolver()])
     reductions = _reductions_for_problem_class(problem, candidates, gp, solver_opts)
@@ -375,6 +383,39 @@ def construct_solving_chain(problem, candidates,
                       "enough constraints in the problem." % (
                           candidates['conic_solvers'],
                           ", ".join([cone.__name__ for cone in cones])))
+
+
+def _get_canon_backend(problem, canon_backend):
+    """
+    This function checks if the problem has expressions of dimension greater
+    than 2, then raises a warning if the default backend is not specified or 
+    raises an error if the backend is specified as 'CPP'.
+
+    Parameters
+    ----------
+    problem : Problem
+        The problem for which to build a chain. 
+    canon_backend : str
+        'CPP' (default) | 'SCIPY'
+        Specifies which backend to use for canonicalization, which can affect
+        compilation time. Defaults to None, i.e., selecting the default
+        backend.
+    Returns
+    -------
+    canon_backend : str
+        The canonicalization backend to use.
+    """
+    if problem._max_ndim() > 2:
+        if canon_backend is None:
+            warnings.warn(UserWarning(
+                f"The problem has an expression with dimension greater than 2. "
+                f"Defaulting to the {SCIPY_CANON_BACKEND} backend for canonicalization."))
+            return SCIPY_CANON_BACKEND
+        elif canon_backend == CPP_CANON_BACKEND:
+            raise ValueError(f"Only the {SCIPY_CANON_BACKEND} and {NUMPY_CANON_BACKEND} "
+                             f"backends are supported for problems with expressions of "
+                             f"dimension greater than 2.")
+    return canon_backend
 
 
 class SolvingChain(Chain):
