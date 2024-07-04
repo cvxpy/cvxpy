@@ -10,9 +10,7 @@ conda config --set remote_max_retries 10
 conda config --set remote_backoff_factor 2
 conda config --set remote_read_timeout_secs 120.0
 
-if [[ "$PYTHON_VERSION" == "3.8" ]]; then
-  conda install scipy=1.3 numpy=1.16 mkl pip pytest pytest-cov hypothesis openblas ecos scs osqp cvxopt proxsuite daqp "setuptools>65.5.1"
-elif [[ "$PYTHON_VERSION" == "3.9" ]]; then
+if [[ "$PYTHON_VERSION" == "3.9" ]]; then
   # The earliest version of numpy that works is 1.19.
   # Given numpy 1.19, the earliest version of scipy we can use is 1.5.
   conda install scipy=1.5 numpy=1.19 mkl pip pytest hypothesis openblas ecos scs osqp cvxopt proxsuite daqp "setuptools>65.5.1"
@@ -34,20 +32,15 @@ if [[ "$PYTHON_VERSION" == "3.12" ]]; then
   python -m pip install coptpy gurobipy piqp osqp clarabel
 elif [[ "$PYTHON_VERSION" == "3.11" ]]; then
   python -m pip install coptpy gurobipy cplex piqp osqp diffcp "ortools>=9.7,<9.10" clarabel
-# Python 3.8 on Windows and Linux will uninstall NumPy 1.16 and install NumPy 1.24 without the exception.
-elif [[ "$PYTHON_VERSION" == "3.8" ]]; then
-  python -m pip install gurobipy clarabel piqp
 else
   python -m pip install coptpy gurobipy cplex diffcp piqp clarabel
 fi
 
-if [[ "$PYTHON_VERSION" != "3.8" ]]; then
-  if [[ "$RUNNER_OS" == "Windows" ]]; then
-    # SDPA with OpenBLAS backend does not pass LP5 on Windows
-    python -m pip install sdpa-multiprecision
-  else
-    python -m pip install sdpa-python
-  fi
+if [[ "$RUNNER_OS" == "Windows" ]]; then
+  # SDPA with OpenBLAS backend does not pass LP5 on Windows
+  python -m pip install sdpa-multiprecision
+else
+  python -m pip install sdpa-python
 fi
 
 if [[ "$PYTHON_VERSION" == "3.11" ]] && [[ "$RUNNER_OS" != "macOS" ]]; then
