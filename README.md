@@ -87,7 +87,7 @@ CVXPY has the following dependencies:
 - ECOS >= 2
 - SCS >= 3.2.4.post1
 - NumPy >= 1.20.0
-- SciPy >= 1.1.0
+- SciPy >= 1.6.0
 
 For detailed instructions, see the [installation
 guide](https://www.cvxpy.org/install/index.html).
