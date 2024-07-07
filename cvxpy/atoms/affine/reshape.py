@@ -22,6 +22,7 @@ import numpy as np
 
 import cvxpy.lin_ops.lin_op as lo
 import cvxpy.lin_ops.lin_utils as lu
+import cvxpy.settings as s
 from cvxpy.atoms.affine.affine_atom import AffAtom
 from cvxpy.atoms.affine.hstack import hstack
 from cvxpy.constraints.constraint import Constraint
@@ -30,7 +31,8 @@ from cvxpy.utilities.shape import size_from_shape
 
 
 class reshape(AffAtom):
-    """Reshapes the expression.
+    """
+    Reshapes the expression.
 
     Vectorizes the expression then unvectorizes it into the new shape.
     The entries are reshaped and stored in column-major order, also known
@@ -48,7 +50,7 @@ class reshape(AffAtom):
     def __init__(self, expr, shape: int | Tuple[int, ...], order: str = 'F') -> None:
         if isinstance(shape, numbers.Integral):
             shape = (int(shape),)
-        if len(shape) > 2:
+        if not s.ALLOW_ND_EXPR and len(shape) > 2:
             raise ValueError("Expressions of dimension greater than 2 "
                              "are not supported.")
         if any(d == -1 for d in shape):

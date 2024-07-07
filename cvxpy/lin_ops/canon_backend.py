@@ -432,14 +432,16 @@ class PythonCanonBackend(CanonBackend):
         """
         Given (A, b) in view, select the rows corresponding to the elements of the expression being
         indexed.
-        """
+        """        
         indices = [np.arange(s.start, s.stop, s.step) for s in lin.data]
-        if len(indices) == 1:
-            rows = indices[0]
-        elif len(indices) == 2:
-            rows = np.add.outer(indices[0], indices[1] * lin.args[0].shape[0]).flatten(order="F")
-        else:
-            raise ValueError
+        rows = indices[0]
+        cum_prod = np.cumprod([lin.args[0].shape])
+        # For each additional dimension, calculate the offset and add it to the rows
+        for i in range(1, len(indices)): 
+            size_product = cum_prod[i - 1]
+            offset = np.add.outer(rows, indices[i] * size_product).flatten(order="F")
+            rows = offset
+
         view.select_rows(rows)
         return view
 
