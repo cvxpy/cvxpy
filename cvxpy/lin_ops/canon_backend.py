@@ -431,15 +431,15 @@ class PythonCanonBackend(CanonBackend):
     def index(lin: LinOp, view: TensorView) -> TensorView:
         """
         Given (A, b) in view, select the rows corresponding to the elements of the expression being
-        indexed.
-        """        
+        indexed. Supports arbitrary number of dimensions.
+        """    
         indices = [np.arange(s.start, s.stop, s.step) for s in lin.data]
         rows = indices[0]
         cum_prod = np.cumprod([lin.args[0].shape])
-        # For each additional dimension, calculate the offset and add it to the rows
+        # For each new dimension, calculate the cumulative offset and add it to the rows
         for i in range(1, len(indices)): 
-            size_product = cum_prod[i - 1]
-            offset = np.add.outer(rows, indices[i] * size_product).flatten(order="F")
+            product_size = cum_prod[i - 1]
+            offset = np.add.outer(rows, indices[i] * product_size).flatten(order="F")
             rows = offset
 
         view.select_rows(rows)

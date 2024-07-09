@@ -1935,58 +1935,67 @@ class TestND_Backends:
         # Note: view is edited in-place:
         assert out_view.get_tensor_representation(0, 4) == view.get_tensor_representation(0, 4)
 
-    def test_index(self, backend):
+    def test_nd_index(self, backend):
         """
-        define x = Variable((2,2)) with
-        [[x11, x12],
-         [x21, x22]]
+        define x = Variable((2,2,2)) with
+        [[[x111, x112],
+        [x121, x122]],
 
-        x is represented as eye(4) in the A matrix (in column-major order), i.e.,
+        [[x211, x212],
+        [x221, x222]]]
 
-         x11 x21 x12 x22
-        [[1   0   0   0],
-         [0   1   0   0],
-         [0   0   1   0],
-         [0   0   0   1]]
+        x is represented as eye(8) in the A matrix (in column-major order), i.e.,
 
+        x111 x211 x121 x221 x112 x212 x122 x222
+        [[1   0   0   0   0   0   0   0],
+         [0   1   0   0   0   0   0   0],
+         [0   0   1   0   0   0   0   0],
+         [0   0   0   1   0   0   0   0],
+         [0   0   0   0   1   0   0   0],
+         [0   0   0   0   0   1   0   0],
+         [0   0   0   0   0   0   1   0],
+         [0   0   0   0   0   0   0   1]]
+        
         index() returns the subset of rows corresponding to the slicing of variables.
 
-        e.g. x[0:2,0] yields
-         x11 x21 x12 x22
-        [[1   0   0   0],
-         [0   1   0   0]]
-
-         Passing a single slice only returns the corresponding row of A.
-         Note: Passing a single slice does not happen when slicing e.g. x[0], which is expanded to
-         the 2d case.
+        e.g. x[0:2, 0, 0:2] yields
+        x111 x211 x121 x221 x112 x212 x122 x222
+        [[1   0   0   0   0   0   0   0],
+         [0   1   0   0   0   0   0   0],
+         [0   0   0   0   1   0   0   0],
+         [0   0   0   0   0   1   0   0]]
 
          -> It reduces to selecting a subset of the rows of A.
         """
 
-        variable_lin_op = linOpHelper((2, 2), type="variable", data=1)
+        variable_lin_op = linOpHelper((2, 2, 2), type="variable", data=1)
         view = backend.process_constraint(variable_lin_op, backend.get_empty_view())
 
         # cast to numpy
-        view_A = view.get_tensor_representation(0, 4)
-        view_A = sp.coo_matrix((view_A.data, (view_A.row, view_A.col)), shape=(4, 4)).toarray()
-        assert np.all(view_A == np.eye(4))
+        view_A = view.get_tensor_representation(0, 8)
+        view_A = sp.coo_matrix((view_A.data, (view_A.row, view_A.col)), shape=(8, 8)).toarray()
+        assert np.all(view_A == np.eye(8))
 
-        index_2d_lin_op = linOpHelper(data=[slice(0, 2, 1), slice(0, 1, 1)], args=[variable_lin_op])
+        index_2d_lin_op = linOpHelper(data=[slice(0, 2, 1), slice(0, 1, 1), slice(0, 2, 1)],
+                                      args=[variable_lin_op])
         out_view = backend.index(index_2d_lin_op, view)
-        A = out_view.get_tensor_representation(0, 2)
+        A = out_view.get_tensor_representation(0, 4)
 
         # cast to numpy
-        A = sp.coo_matrix((A.data, (A.row, A.col)), shape=(2, 4)).toarray()
-        expected = np.array([[1, 0, 0, 0], [0, 1, 0, 0]])
+        A = sp.coo_matrix((A.data, (A.row, A.col)), shape=(4, 8)).toarray()
+        expected = np.array([[1, 0, 0, 0, 0, 0, 0, 0],
+                             [0, 1, 0, 0, 0, 0, 0, 0],
+                             [0, 0, 0, 0, 1, 0, 0, 0],
+                             [0, 0, 0, 0, 0, 1, 0, 0]])
         assert np.all(A == expected)
 
-        index_1d_lin_op = linOpHelper(data=[slice(0, 1, 1)], args=[variable_lin_op])
+        index_1d_lin_op = linOpHelper(data=[slice(1, 2, 1)], args=[variable_lin_op])
         out_view = backend.index(index_1d_lin_op, view)
         A = out_view.get_tensor_representation(0, 1)
 
         # cast to numpy
-        A = sp.coo_matrix((A.data, (A.row, A.col)), shape=(1, 4)).toarray()
-        expected = np.array([[1, 0, 0, 0]])
+        A = sp.coo_matrix((A.data, (A.row, A.col)), shape=(1, 8)).toarray()
+        expected = np.array([[0, 1, 0, 0, 0, 0, 0, 0]])
         assert np.all(A == expected)
 
         # Note: view is edited in-place:
