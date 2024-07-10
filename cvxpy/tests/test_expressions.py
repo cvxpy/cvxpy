@@ -20,7 +20,7 @@ import numpy as np
 import pytest
 import scipy.sparse as sp
 from hypothesis import assume, given
-from hypothesis.extra.numpy import basic_indices, integer_array_indices
+from hypothesis.extra.numpy import arrays, basic_indices, integer_array_indices
 
 import cvxpy as cp
 import cvxpy.interface.matrix_utilities as intf
@@ -1605,6 +1605,18 @@ class TestND_Expressions():
         in_shape = (6,5,4,3,2,1)
         expr = cp.Variable(shape=in_shape)[axis]
         y = np.ones(in_shape)[axis]
+        prob = cp.Problem(self.obj, [expr == y])
+        prob.solve(canon_backend=cp.SCIPY_CANON_BACKEND)
+        assert np.allclose(expr.value, y)
+
+    @given(axis=arrays(shape=(2,2,2), dtype=bool))
+    def test_nd_bool_index(self, axis) -> None:
+        def is_zero_dim_output(axis):
+            return 0 in self.target[axis].shape
+        
+        assume(is_zero_dim_output(axis) is False)
+        expr = self.x[axis]
+        y = self.target[axis]
         prob = cp.Problem(self.obj, [expr == y])
         prob.solve(canon_backend=cp.SCIPY_CANON_BACKEND)
         assert np.allclose(expr.value, y)
