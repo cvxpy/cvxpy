@@ -437,7 +437,7 @@ class PythonCanonBackend(CanonBackend):
         if len(indices) == 1:
             rows = indices[0]
         elif len(indices) == 2:
-             rows = np.add.outer(indices[0], indices[1] * lin.args[0].shape[0]).flatten(order="F")
+            rows = np.add.outer(indices[0], indices[1] * lin.args[0].shape[0]).flatten(order="F")
         else:
             rows = indices[0]
             cum_prod = np.cumprod([lin.args[0].shape])
