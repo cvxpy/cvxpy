@@ -1218,6 +1218,24 @@ class SciPyCanonBackend(PythonCanonBackend):
         out = x.reshape(2,2,2,8).sum(axis=axis).reshape(n // prod(shape[axis]),8)
         """
         def func(x, p):
+            def get_sum_row_indices(arr_shape, axis=None):
+                # Generate all indices for the array shape
+                idx = np.indices(arr_shape)
+                
+                if axis is not None:
+                    if not isinstance(axis, tuple):
+                        axis = (axis,)
+                    # Create a mask with True for axes to keep and False for axes to sum over
+                    keep_axes = np.ones(len(arr_shape), dtype=bool)
+                    keep_axes[list(axis)] = False
+                    # Generate target indices for summation simulation
+                    target_indices = tuple(idx[ax] for ax in range(len(arr_shape)) if keep_axes[ax])
+                    if len(target_indices) == 1:
+                        target_indices = target_indices[0]
+                    else:
+                        dims = [arr_shape[i] for i in range(len(arr_shape)) if keep_axes[i]]
+                        target_indices = np.ravel_multi_index(target_indices, dims=dims, order='F')
+                return target_indices.flatten(order='F')
             if p == 1:
                 axis, _ = _lin.data
                 if axis is None:
@@ -1229,16 +1247,16 @@ class SciPyCanonBackend(PythonCanonBackend):
                         d = np.prod([shape[i] for i in axis], dtype=int)
                     else:
                         d = shape[axis]
-                    # TODO avoid changing x to dense
-                    x = x.toarray().reshape(shape+(n,), order='F').sum(axis=axis)
-                    return sp.csr_matrix(x.reshape((n//d, n), order='F'))
+                    row_idx = get_sum_row_indices(shape, axis)
+                    col_idx = np.arange(x.shape[1]).reshape(shape, order='F').flatten(order='F')
+                    return sp.csr_matrix((x.data, (row_idx, col_idx)), shape=(n//d, n))
             else:
                 m = x.shape[0] // p
                 return (sp.kron(sp.eye(p, format="csc"), np.ones(m)) @ x).tocsc()
 
         view.apply_all(func)
         return view
-
+    
     def div(self, lin: LinOp, view: SciPyTensorView) -> SciPyTensorView:
         """
         Given (A, b) in view and constant data d, return (A*(1/d), b*(1/d)).
