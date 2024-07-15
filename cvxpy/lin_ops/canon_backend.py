@@ -1210,11 +1210,6 @@ class SciPyCanonBackend(PythonCanonBackend):
         remaining dimensions in the original shape of the expression. The sum is then
         performed along the axis parameter. Finally, the tensor is reshaped back to the
         desired output shape. 
-
-        Example:
-        # Suppose we want to sum a Variable(2,2,2)
-        x = np.eye(8)
-        out = x.reshape(2,2,2,8).sum(axis=axis).reshape(n // prod(shape[axis]),8)
         """
         row_idx_func = self._get_sum_row_indices
         def func(x, p):
@@ -1237,17 +1232,20 @@ class SciPyCanonBackend(PythonCanonBackend):
         view.apply_all(func)
         return view
 
-    def _get_sum_row_indices(self, shape, axis):
+    def _get_sum_row_indices(self, shape: tuple, axis: tuple) -> np.ndarray:
+        """
+        Internal function that computes the row indices corresponding to the sum
+        along the specified axis.
+        
+        Example:
+        
+        """
         idx = np.indices(shape)
-        keep_axes = np.array([i not in axis for i in range(len(shape))], dtype=bool)
-        # Generate target indices for summation simulation
-        target_indices = tuple(idx[ax] for ax in range(len(shape)) if keep_axes[ax])
-        if len(target_indices) == 1:
-            target_indices = target_indices[0]
-        else:
-            dims = [shape[i] for i in range(len(shape)) if keep_axes[i]]
-            target_indices = np.ravel_multi_index(target_indices, dims=dims, order='F')
-        return target_indices.flatten(order='F')
+        out_axes = np.isin(range(len(shape)), axis, invert=True)
+        out_idx = idx[out_axes]
+        out_dims = np.array(shape)[out_axes]
+        row_idx = np.ravel_multi_index(out_idx, dims=out_dims, order='F')
+        return row_idx.flatten(order='F')
     
     def div(self, lin: LinOp, view: SciPyTensorView) -> SciPyTensorView:
         """
