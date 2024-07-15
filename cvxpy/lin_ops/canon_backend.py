@@ -1198,8 +1198,7 @@ class SciPyCanonBackend(PythonCanonBackend):
             func = parametrized_mul
         return view.accumulate_over_variables(func, is_param_free_function=is_param_free_lhs)
 
-    @staticmethod
-    def sum_entries(_lin: LinOp, view: SciPyTensorView) -> SciPyTensorView:
+    def sum_entries(self, _lin: LinOp, view: SciPyTensorView) -> SciPyTensorView:
         """
         Given (A, b) in view, return the sum of the representation
         on the row axis, ie: (sum(A,axis=axis), sum(b, axis=axis)).
@@ -1217,38 +1216,19 @@ class SciPyCanonBackend(PythonCanonBackend):
         x = np.eye(8)
         out = x.reshape(2,2,2,8).sum(axis=axis).reshape(n // prod(shape[axis]),8)
         """
+        row_idx_func = self._get_sum_row_indices
         def func(x, p):
-            def get_sum_row_indices(arr_shape, axis=None):
-                # Generate all indices for the array shape
-                idx = np.indices(arr_shape)
-                
-                if axis is not None:
-                    if not isinstance(axis, tuple):
-                        axis = (axis,)
-                    # Create a mask with True for axes to keep and False for axes to sum over
-                    keep_axes = np.ones(len(arr_shape), dtype=bool)
-                    keep_axes[list(axis)] = False
-                    # Generate target indices for summation simulation
-                    target_indices = tuple(idx[ax] for ax in range(len(arr_shape)) if keep_axes[ax])
-                    if len(target_indices) == 1:
-                        target_indices = target_indices[0]
-                    else:
-                        dims = [arr_shape[i] for i in range(len(arr_shape)) if keep_axes[i]]
-                        target_indices = np.ravel_multi_index(target_indices, dims=dims, order='F')
-                return target_indices.flatten(order='F')
             if p == 1:
                 axis, _ = _lin.data
                 if axis is None:
                     return sp.csr_matrix(x.sum(axis=0))
                 else:
-                    shape = _lin.args[0].shape
+                    shape = tuple(_lin.args[0].shape)
+                    axis = axis if isinstance(axis, tuple) else (axis,)
                     n = x.shape[-1]
-                    if isinstance(axis, tuple):
-                        d = np.prod([shape[i] for i in axis], dtype=int)
-                    else:
-                        d = shape[axis]
-                    row_idx = get_sum_row_indices(shape, axis)
-                    col_idx = np.arange(x.shape[1]).reshape(shape, order='F').flatten(order='F')
+                    d = np.prod([shape[i] for i in axis], dtype=int)
+                    row_idx = row_idx_func(shape=shape, axis=axis)
+                    col_idx = np.arange(n).reshape(shape, order='F').flatten(order='F')
                     return sp.csr_matrix((x.data, (row_idx, col_idx)), shape=(n//d, n))
             else:
                 m = x.shape[0] // p
@@ -1256,6 +1236,18 @@ class SciPyCanonBackend(PythonCanonBackend):
 
         view.apply_all(func)
         return view
+
+    def _get_sum_row_indices(self, shape, axis):
+        idx = np.indices(shape)
+        keep_axes = np.array([i not in axis for i in range(len(shape))], dtype=bool)
+        # Generate target indices for summation simulation
+        target_indices = tuple(idx[ax] for ax in range(len(shape)) if keep_axes[ax])
+        if len(target_indices) == 1:
+            target_indices = target_indices[0]
+        else:
+            dims = [shape[i] for i in range(len(shape)) if keep_axes[i]]
+            target_indices = np.ravel_multi_index(target_indices, dims=dims, order='F')
+        return target_indices.flatten(order='F')
     
     def div(self, lin: LinOp, view: SciPyTensorView) -> SciPyTensorView:
         """
