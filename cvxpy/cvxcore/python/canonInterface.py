@@ -127,7 +127,7 @@ def reduce_problem_data_tensor(A, var_length, quad_form: bool = False):
     # add one more column for the offset if not quad_form
     if not quad_form:
         n_cols += 1
-    n_constr = np.divide(A.shape[0], n_cols, dtype=np.int64)
+    n_constr = np.divide(A.shape[0], int(n_cols), dtype=np.int64)
     shape = (n_constr, n_cols)
     indices = nonzero_rows % (n_constr)
 
