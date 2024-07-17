@@ -759,7 +759,7 @@ class NumPyCanonBackend(PythonCanonBackend):
     def sum_entries(_lin: LinOp, view: NumPyTensorView) -> NumPyTensorView:
         """
         Given (A, b) in view, return the sum of the representation
-        on the row axis, ie: (sum(A,axis=axis), sum(b, axis=axis)).
+        on the row axis, ie: (sum(A, axis=axis), sum(b, axis=axis)).
 
         Note for new n-dimensional version: We now pass an axis parameter to the sum.
         The new implementation keeps the columns of the tensor fixed and reshapes the
@@ -1201,15 +1201,11 @@ class SciPyCanonBackend(PythonCanonBackend):
     def sum_entries(self, _lin: LinOp, view: SciPyTensorView) -> SciPyTensorView:
         """
         Given (A, b) in view, return the sum of the representation
-        on the row axis, ie: (sum(A,axis=axis), sum(b, axis=axis)).
+        on the row axis, ie: (sum(A, axis=axis), sum(b, axis=axis)).
         Here, since the slices are stacked, we sum over the rows corresponding
         to the same slice.
 
-        Note for new n-dimensional version: We now pass an axis parameter to the sum.
-        The new implementation keeps the columns of the tensor fixed and reshapes the
-        remaining dimensions in the original shape of the expression. The sum is then
-        performed along the axis parameter. Finally, the tensor is reshaped back to the
-        desired output shape. 
+        Note for sparse nd version: we compute the row indices using _get_sum_row_indices
         """
         row_idx_func = self._get_sum_row_indices
         def func(x, p):
@@ -1235,14 +1231,17 @@ class SciPyCanonBackend(PythonCanonBackend):
     def _get_sum_row_indices(self, shape: tuple, axis: tuple) -> np.ndarray:
         """
         Internal function that computes the row indices corresponding to the sum
-        along the specified axis.
+        along a specified axis.
         
         Example:
-        
+        shape = (2,2) and axis = (1)
+        out_axes = [True, False]
+        out_idx = np.indices(shape)[out_axes]
+        out_dims = [2]
+        row_idx = np.indices(shape)[out_axes]
         """
-        idx = np.indices(shape)
         out_axes = np.isin(range(len(shape)), axis, invert=True)
-        out_idx = idx[out_axes]
+        out_idx = np.indices(shape)[out_axes]
         out_dims = np.array(shape)[out_axes]
         row_idx = np.ravel_multi_index(out_idx, dims=out_dims, order='F')
         return row_idx.flatten(order='F')
