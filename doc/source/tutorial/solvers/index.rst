@@ -61,7 +61,7 @@ The table below shows the types of problems the supported solvers can handle.
 +----------------+----+----+------+-----+-----+-----+-----+
 | `CLARABEL`_    | X  | X  | X    |  X  |  X  |  X  |     |
 +----------------+----+----+------+-----+-----+-----+-----+
-| `COPT`_        | X  | X  | X    |  X  |     |     | X*  |
+| `COPT`_        | X  | X  | X    |  X  |  X  |     | X** |
 +----------------+----+----+------+-----+-----+-----+-----+
 | `DAQP`_        | X  | X  |      |     |     |     |     |
 +----------------+----+----+------+-----+-----+-----+-----+
@@ -104,7 +104,7 @@ The table below shows the types of problems the supported solvers can handle.
 
 (*) Mixed-integer LP only.
 
-(**) Except mixed-integer SDP.
+(**) Except mixed-integer SDP. For COPT, mixed-integer EXP also not supported so far.
 
 (\*\*\*) Multiprecision support is available on SDPA if the appropriate SDPA package is installed. With multiprecision support, SDPA can solve your problem with much smaller ``epsilonDash`` and/or ``epsilonStar`` parameters. These parameters must be manually adjusted to achieve the desired degree of precision. Please see the solver website for details. SDPA can also solve some ill-posed problems with multiprecision support.
 
