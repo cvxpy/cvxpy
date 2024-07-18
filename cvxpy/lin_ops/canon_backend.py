@@ -434,6 +434,7 @@ class PythonCanonBackend(CanonBackend):
         indexed. Supports an arbitrary number of dimensions.
         """
         indices = [np.arange(s.start, s.stop, s.step) for s in lin.data]
+        assert len(indices) > 0
         if len(indices) == 1:
             rows = indices[0]
         elif len(indices) == 2:
