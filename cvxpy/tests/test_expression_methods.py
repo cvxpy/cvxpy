@@ -240,41 +240,42 @@ class TestExpressionMethods(BaseTest):
 
 
     def test_max(self) -> None:
-        """Test max.
+        """
+        Test max.
         """
         # One arg, test sign.
         self.assertEqual(Variable().max().sign, s.UNKNOWN)
 
         # Test with axis argument.
         self.assertEqual(Variable(2).max(axis=0, keepdims=True).shape, (1,))
-        self.assertEqual(Variable(2).max(axis=1).shape, (2,))
         self.assertEqual(Variable((2, 3)).max(axis=0, keepdims=True).shape, (1, 3))
         self.assertEqual(Variable((2, 3)).max(axis=1).shape, (2,))
 
         # Invalid axis.
         with self.assertRaises(Exception) as cm:
             self.x.max(axis=4)
-        self.assertEqual(str(cm.exception), "Invalid argument for axis.")
+        self.assertEqual(str(cm.exception), "axis 4 is out of bounds for array of dimension 1")
 
     def test_min(self) -> None:
-        """Test min.
+        """
+        Test min.
         """
         # One arg, test sign.
         self.assertEqual(Variable().min().sign, s.UNKNOWN)
 
         # Test with axis argument.
         self.assertEqual(Variable(2).min(axis=0).shape, tuple())
-        self.assertEqual(Variable(2).min(axis=1).shape, (2,))
         self.assertEqual(Variable((2, 3)).min(axis=0).shape, (3,))
         self.assertEqual(Variable((2, 3)).min(axis=1).shape, (2,))
 
         # Invalid axis.
         with self.assertRaises(Exception) as cm:
             self.x.min(axis=4)
-        self.assertEqual(str(cm.exception), "Invalid argument for axis.")
+        self.assertEqual(str(cm.exception), "axis 4 is out of bounds for array of dimension 1")
 
     def test_sum(self) -> None:
-        """Test the sum atom.
+        """
+        Test the sum atom.
         """
         self.assertEqual(Constant([1, -1]).sum().sign, s.UNKNOWN)
         self.assertEqual(Constant([1, -1]).sum().curvature, s.CONSTANT)
@@ -288,7 +289,6 @@ class TestExpressionMethods(BaseTest):
 
         # Test with axis argument.
         self.assertEqual(Variable(2).sum(axis=0).shape, tuple())
-        self.assertEqual(Variable(2).sum(axis=1).shape, (2,))
         self.assertEqual(Variable((2, 3)).sum(axis=0, keepdims=True).shape, (1, 3))
         self.assertEqual(Variable((2, 3)).sum(axis=0, keepdims=False).shape, (3,))
         self.assertEqual(Variable((2, 3)).sum(axis=1).shape, (2,))
@@ -297,7 +297,7 @@ class TestExpressionMethods(BaseTest):
         with self.assertRaises(Exception) as cm:
             cp.sum(self.x, axis=4)
         self.assertEqual(str(cm.exception),
-                         "Invalid argument for axis.")
+                        "axis 4 is out of bounds for array of dimension 1")
 
         A = sp.eye(3)
         self.assertEqual(Constant(A).sum().value, 3)
