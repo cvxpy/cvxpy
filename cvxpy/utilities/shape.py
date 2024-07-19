@@ -19,21 +19,24 @@ from typing import List, Tuple
 
 import numpy as np
 
+import numpy as np
+
 
 def squeezed(shape: Tuple[int, ...]) -> Tuple[int, ...]:
     return tuple(dim for dim in shape if dim != 1)
 
 
 def sum_shapes(shapes: List[Tuple[int, ...]]) -> Tuple[int, ...]:
-    """Give the shape resulting from summing a list of shapes.
+    """
+    Give the shape resulting from summing a list of shapes.
 
     Summation semantics are exactly the same as NumPy's, including
     broadcasting.
 
     Parameters
     ----------
-    shapes : list of tuple
-        The shapes to sum.
+    shapes : list of tuples
+        The shapes of the summands
 
     Returns
     -------
@@ -46,16 +49,19 @@ def sum_shapes(shapes: List[Tuple[int, ...]]) -> Tuple[int, ...]:
         If the shapes are not compatible.
     """
     return np.broadcast_shapes(*shapes)
+    return np.broadcast_shapes(*shapes)
 
 
 def mul_shapes_promote(
     lh_shape: Tuple[int, ...], rh_shape: Tuple[int, ...]
 ) -> Tuple[Tuple[int, ...], Tuple[int, ...], Tuple[int, ...]]:
-    """Promotes shapes as necessary and returns promoted shape of product.
+    """
+    Promotes shapes as necessary and returns promoted shape of product.
 
     If lh_shape is of length one, prepend a one to it.
     If rh_shape is of length one, append a one to it.
-
+    If either shape is greater than 2, apply broadcasting rules on
+    the outer dimensions.
     Parameters
     ----------
     lh_shape : tuple
@@ -75,17 +81,18 @@ def mul_shapes_promote(
     Raises
     ------
     ValueError
-        If either of the shapes are 0D.
+        If either of the shapes are scalars, or if the shapes are incompatible.
     """
+    if not lh_shape or not rh_shape:
+        raise ValueError("Multiplication by scalars is not permitted.")
+
     # Promote 1D shapes to 2D
     lh_shape = (1,) + lh_shape if len(lh_shape) == 1 else lh_shape
     rh_shape = rh_shape + (1,) if len(rh_shape) == 1 else rh_shape
-    try:
-        if lh_shape[-1] != rh_shape[-2]:
-            raise ValueError("Incompatible dimensions %s %s" % (lh_shape, rh_shape))
-    except IndexError:
-        raise ValueError("Incompatible dimensions %s %s" % (lh_shape, rh_shape))
 
+    if lh_shape[-1] != rh_shape[-2]:
+        raise ValueError("Incompatible dimensions %s %s" % (lh_shape, rh_shape))
+    
     # Calculate resulting shape for higher-dimensional arrays
     if len(lh_shape) > 2 or len(rh_shape) > 2:
         try:
@@ -97,11 +104,13 @@ def mul_shapes_promote(
         shape = (lh_shape[-2], rh_shape[-1])
     return (lh_shape, rh_shape, shape)
 
+
 def mul_shapes(lh_shape: Tuple[int, ...], rh_shape: Tuple[int, ...]) -> Tuple[int, ...]:
-    """Give the shape resulting from multiplying two shapes.
+    """
+    Give the shape resulting from multiplying two shapes.
 
     Adheres the semantics of np.matmul and additionally permits multiplication
-    by scalars.
+    by scalars. The broadcasting rules are the same as NumPy's.
 
     Parameters
     ----------
@@ -121,8 +130,10 @@ def mul_shapes(lh_shape: Tuple[int, ...], rh_shape: Tuple[int, ...]) -> Tuple[in
         If either of the shapes are scalar.
     """
     lh_old, rh_old = lh_shape, rh_shape
+    lh_old, rh_old = lh_shape, rh_shape
     lh_shape, rh_shape, shape = mul_shapes_promote(lh_shape, rh_shape)
     if lh_shape != lh_old:
+        shape = shape[:-2] + (shape[-1],)
         shape = shape[:-2] + (shape[-1],)
     if rh_shape != rh_old:
         shape = shape[:-1]
@@ -130,7 +141,8 @@ def mul_shapes(lh_shape: Tuple[int, ...], rh_shape: Tuple[int, ...]) -> Tuple[in
 
 
 def size_from_shape(shape) -> int:
-    """ Compute the size of a given shape by multiplying the sizes of each axis.
+    """
+    Compute the size of a given shape by multiplying the sizes of each axis.
 
     This is a replacement for np.prod(shape, dtype=int) which is much slower for
     small arrays than the implementation below.
