@@ -10,7 +10,6 @@ conda config --set remote_max_retries 10
 conda config --set remote_backoff_factor 2
 conda config --set remote_read_timeout_secs 120.0
 
-
 if [[ "$PYTHON_VERSION" == "3.9" ]]; then
   # The earliest version of numpy that works is 1.20.
   # Given numpy 1.20, the earliest version of scipy we can use is 1.6.
