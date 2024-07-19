@@ -439,6 +439,7 @@ class PythonCanonBackend(CanonBackend):
         cum_prod = np.cumprod([lin.args[0].shape])
         for i in range(1, len(indices)):
             product_size = cum_prod[i - 1]
+            # add new indices to rows and apply offset to all previous indices
             offset = np.add.outer(rows, indices[i] * product_size).flatten(order="F")
             rows = offset
         view.select_rows(rows)
