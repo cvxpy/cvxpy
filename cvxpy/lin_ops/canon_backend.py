@@ -1205,7 +1205,8 @@ class SciPyCanonBackend(PythonCanonBackend):
         Here, since the slices are stacked, we sum over the rows corresponding
         to the same slice.
 
-        Note for sparse nd version: we compute the row indices using _get_sum_row_indices
+        Note: we form the sparse output directly using _get_sum_row_indices and 
+        column indices in column-major order.
         """
         row_idx_func = self._get_sum_row_indices
         def func(x, p):
@@ -1236,9 +1237,10 @@ class SciPyCanonBackend(PythonCanonBackend):
         Example:
         shape = (2,2) and axis = (1)
         out_axes = [True, False]
-        out_idx = np.indices(shape)[out_axes]
+        out_idx = [[[0, 0],
+                    [1, 1]]]
         out_dims = [2]
-        row_idx = np.indices(shape)[out_axes]
+        row_idx.flatten(order='F') = [0, 1, 0, 1]
         """
         out_axes = np.isin(range(len(shape)), axis, invert=True)
         out_idx = np.indices(shape)[out_axes]
