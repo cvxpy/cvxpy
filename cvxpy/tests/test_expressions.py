@@ -1620,3 +1620,19 @@ class TestND_Expressions():
         prob = cp.Problem(self.obj, [expr == y])
         prob.solve(canon_backend=cp.SCIPY_CANON_BACKEND)
         assert np.allclose(expr.value, y)
+
+    def test_nd_mul(self) -> None:
+        A = np.arange(6).reshape(2,3)
+        expr = A @ cp.Variable((2,3,1))
+        target = A @ np.arange(6).reshape(2,3,1)
+        prob = cp.Problem(self.obj, [expr == target])
+        prob.solve(canon_backend=s.NUMPY_CANON_BACKEND)
+        assert np.allclose(expr.value, target)
+
+    def test_nd_mul2(self) -> None:
+        A = np.arange(4).reshape(2,2)
+        expr = A @ cp.Variable((2,2,2))
+        target = A @ np.arange(8).reshape(2,2,2)
+        prob = cp.Problem(self.obj, [expr == target])
+        prob.solve(canon_backend=s.NUMPY_CANON_BACKEND)
+        assert np.allclose(expr.value, target)
