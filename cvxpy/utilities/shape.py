@@ -19,8 +19,6 @@ from typing import List, Tuple
 
 import numpy as np
 
-import numpy as np
-
 
 def squeezed(shape: Tuple[int, ...]) -> Tuple[int, ...]:
     return tuple(dim for dim in shape if dim != 1)
@@ -129,10 +127,6 @@ def mul_shapes(lh_shape: Tuple[int, ...], rh_shape: Tuple[int, ...]) -> Tuple[in
         If either of the shapes are scalar.
     """
     lh_old, rh_old = lh_shape, rh_shape
-    lh_shape, rh_shape, shape = mul_shapes_promote(lh_shape, rh_shape)
-    if lh_shape != lh_old:
-        shape = shape[:-2] + (shape[-1],)
-        shape = shape[:-2] + (shape[-1],)
     lh_shape, rh_shape, shape = mul_shapes_promote(lh_shape, rh_shape)
     if lh_shape != lh_old:
         shape = shape[:-2] + (shape[-1],)
