@@ -25,49 +25,15 @@ from cvxpy.utilities import shape
 
 
 class TestShape():
-    """ Unit tests for the expressions/shape module. """
+    
+    @given(s=mutually_broadcastable_shapes(num_shapes=7))
+    def test_add_broadcasting(self, s) -> None:
+        assert shape.sum_shapes(s.input_shapes) == s.result_shape
 
-    def setUp(self) -> None:
-        pass
-
-    # Test adding two shapes.
-    def test_add_matching(self) -> None:
-        """Test addition of matching shapes.
-        """
-        self.assertEqual(shape.sum_shapes([(3, 4), (3, 4)]), (3, 4))
-        self.assertEqual(shape.sum_shapes([(3, 4)] * 5), (3, 4))
-
-    def test_add_broadcasting(self) -> None:
-        """Test broadcasting of shapes during addition.
-        """
-        # Broadcasting with scalars is permitted.
-        self.assertEqual(shape.sum_shapes([(3, 4), (1, 1)]), (3, 4))
-        self.assertEqual(shape.sum_shapes([(1, 1), (3, 4)]), (3, 4))
-
-        self.assertEqual(shape.sum_shapes([(1,), (3, 4)]), (3, 4))
-        self.assertEqual(shape.sum_shapes([(3, 4), (1,)]), (3, 4))
-
-        self.assertEqual(shape.sum_shapes([tuple(), (3, 4)]), (3, 4))
-        self.assertEqual(shape.sum_shapes([(3, 4), tuple()]), (3, 4))
-
-        self.assertEqual(shape.sum_shapes([(1, 1), (4,)]), (1, 4))
-        self.assertEqual(shape.sum_shapes([(4,), (1, 1)]), (1, 4))
-
-        # All other types of broadcasting is not permitted.
-        with self.assertRaises(ValueError):
-            shape.sum_shapes([(4, 1), (4,)])
-        with self.assertRaises(ValueError):
-            shape.sum_shapes([(4,), (4, 1)])
-
-        with self.assertRaises(ValueError):
-            shape.sum_shapes([(4, 2), (2,)])
-        with self.assertRaises(ValueError):
-            shape.sum_shapes([(2,), (4, 2)])
-
-        with self.assertRaises(ValueError):
-            shape.sum_shapes([(4, 2), (4, 1)])
-        with self.assertRaises(ValueError):
-            shape.sum_shapes([(4, 1), (4, 2)])
+    @given(s=mutually_broadcastable_shapes(signature=np.matmul.signature))
+    def test_mul_broadcasting(self, s) -> None:
+        x, y = s.input_shapes
+        assert shape.mul_shapes(x, y) == s.result_shape
 
     def test_add_incompatible(self) -> None:
         """
