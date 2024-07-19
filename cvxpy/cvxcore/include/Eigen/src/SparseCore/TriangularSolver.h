@@ -270,17 +270,16 @@ struct sparse_solve_triangular_sparse_selector<Lhs,Rhs,Mode,UpLo,ColMajor>
       }
 
 
-      // Index count = 0;
+      //       Index count = 0;
       // FIXME compute a reference value to filter zeros
-      for (typename AmbiVector<Scalar,StorageIndex>::Iterator it(tempVector/*,1e-12*/); it; ++it)
-      {
-        // ++ count;
-//         std::cerr << "fill " << it.index() << ", " << col << "\n";
-//         std::cout << it.value() << "  ";
+      for (typename AmbiVector<Scalar, StorageIndex>::Iterator it(tempVector /*,1e-12*/); it; ++it) {
+        //         ++ count;
+        //         std::cerr << "fill " << it.index() << ", " << col << "\n";
+        //         std::cout << it.value() << "  ";
         // FIXME use insertBack
         res.insert(it.index(), col) = it.value();
       }
-//       std::cout << "tempVector.nonZeros() == " << int(count) << " / " << (other.rows()) << "\n";
+      //       std::cout << "tempVector.nonZeros() == " << int(count) << " / " << (other.rows()) << "\n";
     }
     res.finalize();
     other = res.markAsRValue();
