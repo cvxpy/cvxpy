@@ -20,7 +20,12 @@ import numpy as np
 import pytest
 import scipy.sparse as sp
 from hypothesis import assume, given
-from hypothesis.extra.numpy import arrays, basic_indices, integer_array_indices
+from hypothesis.extra.numpy import (
+    arrays,
+    basic_indices,
+    integer_array_indices,
+    mutually_broadcastable_shapes,
+)
 
 import cvxpy as cp
 import cvxpy.interface.matrix_utilities as intf
@@ -1614,9 +1619,9 @@ class TestND_Expressions():
         assert np.allclose(expr.value, y)
 
     def test_nd_mul(self) -> None:
-        A = np.arange(6).reshape(2,3)
-        expr = A @ cp.Variable((2,3,1))
-        target = A @ np.arange(6).reshape(2,3,1)
+        A = np.arange(12).reshape(4,3)
+        expr = A @ cp.Variable((2,3,15))
+        target = A @ np.arange(90).reshape(2,3,15)
         prob = cp.Problem(self.obj, [expr == target])
         prob.solve(canon_backend=s.NUMPY_CANON_BACKEND)
         assert np.allclose(expr.value, target)
@@ -1628,3 +1633,17 @@ class TestND_Expressions():
         prob = cp.Problem(self.obj, [expr == target])
         prob.solve(canon_backend=s.NUMPY_CANON_BACKEND)
         assert np.allclose(expr.value, target)
+
+    @given(shapes=mutually_broadcastable_shapes(signature=np.matmul.signature, max_dims=3))
+    def test_nd_mul_general(self, shapes) -> None:
+        
+        if len(shapes.input_shapes[0]) == 2 and len(shapes.input_shapes[1]) == 3:
+            A_shape, expr_shape = shapes.input_shapes
+            A = np.random.rand(*A_shape)
+            expr = A @ cp.Variable(expr_shape)
+            target = A @ np.random.rand(*expr_shape)
+            prob = cp.Problem(self.obj, [expr == target])
+            prob.solve(canon_backend=s.NUMPY_CANON_BACKEND)
+            assert np.allclose(expr.value, target)
+        else:
+            assert True
