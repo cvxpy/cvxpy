@@ -19,6 +19,8 @@ import warnings
 import numpy as np
 import pytest
 import scipy.sparse as sp
+from hypothesis import assume, given
+from hypothesis.extra.numpy import arrays, basic_indices, integer_array_indices
 
 import cvxpy as cp
 import cvxpy.interface.matrix_utilities as intf
@@ -1298,10 +1300,6 @@ class TestExpressions(BaseTest):
 
         col_scale = Variable(n)
 
-        with self.assertRaises(ValueError) as cm:
-            cp.multiply(A, col_scale)
-        self.assertEqual(str(cm.exception), "Cannot broadcast dimensions  (3, 4) (4,)")
-
         col_scale = Variable([1, n])
         C = cp.multiply(A, col_scale)
         self.assertEqual(C.shape, (m, n))
@@ -1329,10 +1327,6 @@ class TestExpressions(BaseTest):
         A = np.random.rand(m, n)
 
         col_scale = Variable(n)
-
-        with self.assertRaises(ValueError) as cm:
-            A + col_scale
-        self.assertEqual(str(cm.exception), "Cannot broadcast dimensions  (3, 4) (4,)")
 
         col_scale = Variable([1, n])
         C = A + col_scale
@@ -1582,6 +1576,48 @@ class TestND_Expressions():
         in_shape = (6,5,4,3,2,1)
         expr = cp.Variable(shape=in_shape).sum(axis=axis, keepdims=True)
         y = np.ones(in_shape).sum(axis=axis, keepdims=True)
+        prob = cp.Problem(self.obj, [expr == y])
+        prob.solve(canon_backend=cp.SCIPY_CANON_BACKEND)
+        assert np.allclose(expr.value, y)
+    
+    @given(integer_array_indices(shape=(2,2,2)))
+    def test_nd_integer_index(self, s) -> None:
+        expr = self.x[s]
+        y = self.target[s]
+        prob = cp.Problem(self.obj, [expr == y])
+        prob.solve(canon_backend=cp.SCIPY_CANON_BACKEND)
+        assert np.allclose(expr.value, y)
+
+    @given(axis=basic_indices(shape=(2,2,2), allow_newaxis=True))
+    def test_nd__basic_index(self, axis) -> None:
+        # Skip examples with 0-d output. TODO allow 0-d expressions in cvxpy.
+        def is_zero_dim_output(axis):
+            return 0 in self.target[axis].shape
+        
+        assume(is_zero_dim_output(axis) is False)
+        expr = self.x[axis]
+        y = self.target[axis]
+        prob = cp.Problem(self.obj, [expr == y])
+        prob.solve(canon_backend=cp.SCIPY_CANON_BACKEND)
+        assert np.allclose(expr.value, y)
+
+    @given(axis=integer_array_indices(shape=(6,5,4,3,2,1)))
+    def test_nd_big_index(self, axis) -> None:
+        in_shape = (6,5,4,3,2,1)
+        expr = cp.Variable(shape=in_shape)[axis]
+        y = np.ones(in_shape)[axis]
+        prob = cp.Problem(self.obj, [expr == y])
+        prob.solve(canon_backend=cp.SCIPY_CANON_BACKEND)
+        assert np.allclose(expr.value, y)
+
+    @given(axis=arrays(shape=(2,2,2), dtype=bool))
+    def test_nd_bool_index(self, axis) -> None:
+        def is_zero_dim_output(axis):
+            return 0 in self.target[axis].shape
+        
+        assume(is_zero_dim_output(axis) is False)
+        expr = self.x[axis]
+        y = self.target[axis]
         prob = cp.Problem(self.obj, [expr == y])
         prob.solve(canon_backend=cp.SCIPY_CANON_BACKEND)
         assert np.allclose(expr.value, y)
