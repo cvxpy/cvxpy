@@ -48,6 +48,7 @@ cvxcore = Extension(
                   'cvxpy/cvxcore/include/'],
     extra_compile_args=compiler_args,
     extra_link_args=['-O3'],
+    undef_macros = [ "NDEBUG" ],
 )
 
 sparsecholesky = Pybind11Extension(

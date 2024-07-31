@@ -233,11 +233,11 @@ class ProblemData(object):
     def getLen(self):
         return _cvxcore.ProblemData_getLen(self)
 
-    def getV(self, values):
-        return _cvxcore.ProblemData_getV(self, values)
+    def getV(self, values, num_values):
+        return _cvxcore.ProblemData_getV(self, values, num_values)
 
-    def getI(self, values):
-        return _cvxcore.ProblemData_getI(self, values)
+    def getI(self, values, num_values):
+        return _cvxcore.ProblemData_getI(self, values, num_values)
 
     def getJ(self, values):
         return _cvxcore.ProblemData_getJ(self, values)

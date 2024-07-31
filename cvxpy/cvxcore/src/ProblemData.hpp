@@ -77,7 +77,7 @@ public:
   /**
    * Returns the data vector V as a contiguous 1D numpy array.
    */
-  void getV(double *values, int num_values) {
+  void getV(int *values, int num_values) {
     std::vector<double> V = TensorV[param_id][vec_idx];
     for (int i = 0; i < num_values; i++) {
       values[i] = V[i];
@@ -87,7 +87,7 @@ public:
   /**
    * Returns the row index vector I as a contiguous 1D numpy array.
    */
-  void getI(double *values, int num_values) {
+  void getI(int *values, int num_values) {
     std::vector<int> I = TensorI[param_id][vec_idx];
     for (int i = 0; i < num_values; i++) {
       values[i] = I[i];
