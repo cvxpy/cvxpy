@@ -37,7 +37,7 @@ class gen_lambda_max(Atom):
         return LA.eigh(a=values[0],
                        b=values[1],
                        eigvals_only=True,
-                       subset_by_index=(lo, hi))[0]
+                       eigvals=(lo, hi))[0]
 
     def _domain(self) -> List[Constraint]:
         """Returns constraints describing the domain of the node.

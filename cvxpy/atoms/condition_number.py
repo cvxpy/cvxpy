@@ -34,8 +34,8 @@ class condition_number(Atom):
         Requires that A be a Positive Semidefinite Matrix.
         """
         lo = hi = self.args[0].shape[0]-1
-        max_eigen = LA.eigvalsh(values[0], subset_by_index=(lo, hi))[0]
-        min_eigen = -LA.eigvalsh(-values[0], subset_by_index=(lo, hi))[0]
+        max_eigen = LA.eigvalsh(values[0], eigvals=(lo, hi))[0]
+        min_eigen = -LA.eigvalsh(-values[0], eigvals=(lo, hi))[0]
         return max_eigen / min_eigen
 
     def _domain(self) -> List[Constraint]:

@@ -338,7 +338,7 @@ class TestSCS(BaseTest):
             constr = [x >= 1]
             prob = cp.Problem(cp.Minimize(expr), constr)
             data = prob.get_problem_data(solver=cp.SCS)
-            self.assertItemsAlmostEqual(data[0]["P"].toarray(), 2*np.eye(2))
+            self.assertItemsAlmostEqual(data[0]["P"].A, 2*np.eye(2))
             solution1 = prob.solve(solver=cp.SCS)
 
             # When use_quad_obj = False, the quadratic objective is
