@@ -87,20 +87,20 @@ public:
   /**
    * Returns the row index vector I as a contiguous 1D numpy array.
    */
-  void getI(int *values, int num_values) {
+  void getI(unsigned int *values, int num_values) {
     std::vector<int> I = TensorI[param_id][vec_idx];
     for (int i = 0; i < num_values; i++) {
-      values[i] = I[i];
+      values[i] = (unsigned int) I[i];
     }
   }
 
   /**
    * Returns the column index vector J as a contiguous 1D numpy array.
    */
-  void getJ(int *values, int num_values) {
+  void getJ(unsigned int *values, int num_values) {
     std::vector<int> J = TensorJ[param_id][vec_idx];
     for (int i = 0; i < num_values; i++) {
-      values[i] = J[i];
+      values[i] = (unsigned int) J[i];
     }
   }
 };

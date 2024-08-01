@@ -3168,34 +3168,34 @@ SWIG_Python_NonDynamicSetAttr(PyObject *obj, PyObject *name, PyObject *value) {
 #define SWIGTYPE_p_char swig_types[7]
 #define SWIGTYPE_p_difference_type swig_types[8]
 #define SWIGTYPE_p_double swig_types[9]
-#define SWIGTYPE_p_int swig_types[10]
-#define SWIGTYPE_p_key_type swig_types[11]
-#define SWIGTYPE_p_mapped_type swig_types[12]
-#define SWIGTYPE_p_operatortype swig_types[13]
-#define SWIGTYPE_p_p_PyObject swig_types[14]
-#define SWIGTYPE_p_size_type swig_types[15]
-#define SWIGTYPE_p_std__allocatorT_LinOp_const_p_t swig_types[16]
-#define SWIGTYPE_p_std__allocatorT_LinOp_p_t swig_types[17]
-#define SWIGTYPE_p_std__allocatorT_double_t swig_types[18]
-#define SWIGTYPE_p_std__allocatorT_int_t swig_types[19]
-#define SWIGTYPE_p_std__allocatorT_std__pairT_int_const_int_t_t swig_types[20]
-#define SWIGTYPE_p_std__allocatorT_std__vectorT_double_t_t swig_types[21]
-#define SWIGTYPE_p_std__allocatorT_std__vectorT_int_t_t swig_types[22]
-#define SWIGTYPE_p_std__invalid_argument swig_types[23]
-#define SWIGTYPE_p_std__lessT_int_t swig_types[24]
-#define SWIGTYPE_p_std__mapT_int_Eigen__SparseMatrixT_double_t_std__lessT_int_t_std__allocatorT_std__pairT_int_const_Eigen__SparseMatrixT_double_t_t_t_t swig_types[25]
-#define SWIGTYPE_p_std__mapT_int_int_t swig_types[26]
-#define SWIGTYPE_p_std__mapT_int_std__mapT_int_std__vectorT_Eigen__SparseMatrixT_double_t_std__allocatorT_Eigen__SparseMatrixT_double_t_t_t_std__lessT_int_t_std__allocatorT_std__pairT_int_const_std__vectorT_Eigen__SparseMatrixT_double_t_std__allocatorT_Eigen__SparseMatrixT_double_t_t_t_t_t_t_std__lessT_int_t_std__allocatorT_std__pairT_int_const_std__mapT_int_std__vectorT_Eigen__SparseMatrixT_double_t_std__allocatorT_Eigen__SparseMatrixT_double_t_t_t_std__lessT_int_t_std__allocatorT_std__pairT_int_const_std__vectorT_Eigen__SparseMatrixT_double_t_std__allocatorT_Eigen__SparseMatrixT_double_t_t_t_t_t_t_t_t_t swig_types[27]
-#define SWIGTYPE_p_std__mapT_int_std__vectorT_Eigen__SparseMatrixT_double_t_std__allocatorT_Eigen__SparseMatrixT_double_t_t_t_std__lessT_int_t_std__allocatorT_std__pairT_int_const_std__vectorT_Eigen__SparseMatrixT_double_t_std__allocatorT_Eigen__SparseMatrixT_double_t_t_t_t_t_t swig_types[28]
-#define SWIGTYPE_p_std__mapT_int_std__vectorT_std__vectorT_double_t_t_std__lessT_int_t_std__allocatorT_std__pairT_int_const_std__vectorT_std__vectorT_double_t_t_t_t_t swig_types[29]
-#define SWIGTYPE_p_std__mapT_int_std__vectorT_std__vectorT_int_t_t_std__lessT_int_t_std__allocatorT_std__pairT_int_const_std__vectorT_std__vectorT_int_t_t_t_t_t swig_types[30]
-#define SWIGTYPE_p_std__vectorT_LinOp_const_p_t swig_types[31]
-#define SWIGTYPE_p_std__vectorT_LinOp_p_t swig_types[32]
-#define SWIGTYPE_p_std__vectorT_double_t swig_types[33]
-#define SWIGTYPE_p_std__vectorT_int_t swig_types[34]
-#define SWIGTYPE_p_std__vectorT_std__vectorT_double_t_t swig_types[35]
-#define SWIGTYPE_p_std__vectorT_std__vectorT_int_t_t swig_types[36]
-#define SWIGTYPE_p_swig__SwigPyIterator swig_types[37]
+#define SWIGTYPE_p_key_type swig_types[10]
+#define SWIGTYPE_p_mapped_type swig_types[11]
+#define SWIGTYPE_p_operatortype swig_types[12]
+#define SWIGTYPE_p_p_PyObject swig_types[13]
+#define SWIGTYPE_p_size_type swig_types[14]
+#define SWIGTYPE_p_std__allocatorT_LinOp_const_p_t swig_types[15]
+#define SWIGTYPE_p_std__allocatorT_LinOp_p_t swig_types[16]
+#define SWIGTYPE_p_std__allocatorT_double_t swig_types[17]
+#define SWIGTYPE_p_std__allocatorT_int_t swig_types[18]
+#define SWIGTYPE_p_std__allocatorT_std__pairT_int_const_int_t_t swig_types[19]
+#define SWIGTYPE_p_std__allocatorT_std__vectorT_double_t_t swig_types[20]
+#define SWIGTYPE_p_std__allocatorT_std__vectorT_int_t_t swig_types[21]
+#define SWIGTYPE_p_std__invalid_argument swig_types[22]
+#define SWIGTYPE_p_std__lessT_int_t swig_types[23]
+#define SWIGTYPE_p_std__mapT_int_Eigen__SparseMatrixT_double_t_std__lessT_int_t_std__allocatorT_std__pairT_int_const_Eigen__SparseMatrixT_double_t_t_t_t swig_types[24]
+#define SWIGTYPE_p_std__mapT_int_int_t swig_types[25]
+#define SWIGTYPE_p_std__mapT_int_std__mapT_int_std__vectorT_Eigen__SparseMatrixT_double_t_std__allocatorT_Eigen__SparseMatrixT_double_t_t_t_std__lessT_int_t_std__allocatorT_std__pairT_int_const_std__vectorT_Eigen__SparseMatrixT_double_t_std__allocatorT_Eigen__SparseMatrixT_double_t_t_t_t_t_t_std__lessT_int_t_std__allocatorT_std__pairT_int_const_std__mapT_int_std__vectorT_Eigen__SparseMatrixT_double_t_std__allocatorT_Eigen__SparseMatrixT_double_t_t_t_std__lessT_int_t_std__allocatorT_std__pairT_int_const_std__vectorT_Eigen__SparseMatrixT_double_t_std__allocatorT_Eigen__SparseMatrixT_double_t_t_t_t_t_t_t_t_t swig_types[26]
+#define SWIGTYPE_p_std__mapT_int_std__vectorT_Eigen__SparseMatrixT_double_t_std__allocatorT_Eigen__SparseMatrixT_double_t_t_t_std__lessT_int_t_std__allocatorT_std__pairT_int_const_std__vectorT_Eigen__SparseMatrixT_double_t_std__allocatorT_Eigen__SparseMatrixT_double_t_t_t_t_t_t swig_types[27]
+#define SWIGTYPE_p_std__mapT_int_std__vectorT_std__vectorT_double_t_t_std__lessT_int_t_std__allocatorT_std__pairT_int_const_std__vectorT_std__vectorT_double_t_t_t_t_t swig_types[28]
+#define SWIGTYPE_p_std__mapT_int_std__vectorT_std__vectorT_int_t_t_std__lessT_int_t_std__allocatorT_std__pairT_int_const_std__vectorT_std__vectorT_int_t_t_t_t_t swig_types[29]
+#define SWIGTYPE_p_std__vectorT_LinOp_const_p_t swig_types[30]
+#define SWIGTYPE_p_std__vectorT_LinOp_p_t swig_types[31]
+#define SWIGTYPE_p_std__vectorT_double_t swig_types[32]
+#define SWIGTYPE_p_std__vectorT_int_t swig_types[33]
+#define SWIGTYPE_p_std__vectorT_std__vectorT_double_t_t swig_types[34]
+#define SWIGTYPE_p_std__vectorT_std__vectorT_int_t_t swig_types[35]
+#define SWIGTYPE_p_swig__SwigPyIterator swig_types[36]
+#define SWIGTYPE_p_unsigned_int swig_types[37]
 #define SWIGTYPE_p_value_type swig_types[38]
 static swig_type_info *swig_types[40];
 static swig_module_info swig_module = {swig_types, 39, 0, 0, 0, 0};
@@ -8464,7 +8464,7 @@ fail:
 SWIGINTERN PyObject *_wrap_ProblemData_getI(PyObject *self, PyObject *args) {
   PyObject *resultobj = 0;
   ProblemData *arg1 = (ProblemData *) 0 ;
-  int *arg2 = (int *) 0 ;
+  unsigned int *arg2 = (unsigned int *) 0 ;
   int arg3 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
@@ -8491,9 +8491,9 @@ SWIGINTERN PyObject *_wrap_ProblemData_getI(PyObject *self, PyObject *args) {
     arg3 = (int) PyLong_AsSsize_t(swig_obj[1]);
     if (arg3 == -1 && PyErr_Occurred()) SWIG_fail;
     dims[0] = (npy_intp) arg3;
-    array2 = PyArray_SimpleNew(1, dims, NPY_INT);
+    array2 = PyArray_SimpleNew(1, dims, NPY_UINT);
     if (!array2) SWIG_fail;
-    arg2 = (int*) array_data(array2);
+    arg2 = (unsigned int*) array_data(array2);
   }
   (arg1)->getI(arg2,arg3);
   resultobj = SWIG_Py_Void();
@@ -8509,7 +8509,7 @@ fail:
 SWIGINTERN PyObject *_wrap_ProblemData_getJ(PyObject *self, PyObject *args) {
   PyObject *resultobj = 0;
   ProblemData *arg1 = (ProblemData *) 0 ;
-  int *arg2 = (int *) 0 ;
+  unsigned int *arg2 = (unsigned int *) 0 ;
   int arg3 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
@@ -8536,9 +8536,9 @@ SWIGINTERN PyObject *_wrap_ProblemData_getJ(PyObject *self, PyObject *args) {
     arg3 = (int) PyLong_AsSsize_t(swig_obj[1]);
     if (arg3 == -1 && PyErr_Occurred()) SWIG_fail;
     dims[0] = (npy_intp) arg3;
-    array2 = PyArray_SimpleNew(1, dims, NPY_INT);
+    array2 = PyArray_SimpleNew(1, dims, NPY_UINT);
     if (!array2) SWIG_fail;
-    arg2 = (int*) array_data(array2);
+    arg2 = (unsigned int*) array_data(array2);
   }
   (arg1)->getJ(arg2,arg3);
   resultobj = SWIG_Py_Void();
@@ -21532,7 +21532,6 @@ static swig_type_info _swigt__p_allocator_type = {"_p_allocator_type", "allocato
 static swig_type_info _swigt__p_char = {"_p_char", "char *", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_difference_type = {"_p_difference_type", "difference_type *", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_double = {"_p_double", "double *", 0, 0, (void*)0, 0};
-static swig_type_info _swigt__p_int = {"_p_int", "int *", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_key_type = {"_p_key_type", "key_type *", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_mapped_type = {"_p_mapped_type", "mapped_type *", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_operatortype = {"_p_operatortype", "OperatorType *|enum operatortype *", 0, 0, (void*)0, 0};
@@ -21560,6 +21559,7 @@ static swig_type_info _swigt__p_std__vectorT_int_t = {"_p_std__vectorT_int_t", "
 static swig_type_info _swigt__p_std__vectorT_std__vectorT_double_t_t = {"_p_std__vectorT_std__vectorT_double_t_t", "std::vector< std::vector< double,std::allocator< double > > > *|std::vector< std::vector< double,std::allocator< double > >,std::allocator< std::vector< double,std::allocator< double > > > > *|std::vector< std::vector< double > > *", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_std__vectorT_std__vectorT_int_t_t = {"_p_std__vectorT_std__vectorT_int_t_t", "std::vector< std::vector< int,std::allocator< int > > > *|std::vector< std::vector< int,std::allocator< int > >,std::allocator< std::vector< int,std::allocator< int > > > > *|std::vector< std::vector< int > > *", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_swig__SwigPyIterator = {"_p_swig__SwigPyIterator", "swig::SwigPyIterator *", 0, 0, (void*)0, 0};
+static swig_type_info _swigt__p_unsigned_int = {"_p_unsigned_int", "unsigned int *", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_value_type = {"_p_value_type", "value_type *", 0, 0, (void*)0, 0};
 
 static swig_type_info *swig_type_initial[] = {
@@ -21573,7 +21573,6 @@ static swig_type_info *swig_type_initial[] = {
   &_swigt__p_char,
   &_swigt__p_difference_type,
   &_swigt__p_double,
-  &_swigt__p_int,
   &_swigt__p_key_type,
   &_swigt__p_mapped_type,
   &_swigt__p_operatortype,
@@ -21601,6 +21600,7 @@ static swig_type_info *swig_type_initial[] = {
   &_swigt__p_std__vectorT_std__vectorT_double_t_t,
   &_swigt__p_std__vectorT_std__vectorT_int_t_t,
   &_swigt__p_swig__SwigPyIterator,
+  &_swigt__p_unsigned_int,
   &_swigt__p_value_type,
 };
 
@@ -21614,7 +21614,6 @@ static swig_cast_info _swigc__p_allocator_type[] = {  {&_swigt__p_allocator_type
 static swig_cast_info _swigc__p_char[] = {  {&_swigt__p_char, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_difference_type[] = {  {&_swigt__p_difference_type, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_double[] = {  {&_swigt__p_double, 0, 0, 0},{0, 0, 0, 0}};
-static swig_cast_info _swigc__p_int[] = {  {&_swigt__p_int, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_key_type[] = {  {&_swigt__p_key_type, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_mapped_type[] = {  {&_swigt__p_mapped_type, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_operatortype[] = {  {&_swigt__p_operatortype, 0, 0, 0},{0, 0, 0, 0}};
@@ -21642,6 +21641,7 @@ static swig_cast_info _swigc__p_std__vectorT_int_t[] = {  {&_swigt__p_std__vecto
 static swig_cast_info _swigc__p_std__vectorT_std__vectorT_double_t_t[] = {  {&_swigt__p_std__vectorT_std__vectorT_double_t_t, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_std__vectorT_std__vectorT_int_t_t[] = {  {&_swigt__p_std__vectorT_std__vectorT_int_t_t, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_swig__SwigPyIterator[] = {  {&_swigt__p_swig__SwigPyIterator, 0, 0, 0},{0, 0, 0, 0}};
+static swig_cast_info _swigc__p_unsigned_int[] = {  {&_swigt__p_unsigned_int, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_value_type[] = {  {&_swigt__p_value_type, 0, 0, 0},{0, 0, 0, 0}};
 
 static swig_cast_info *swig_cast_initial[] = {
@@ -21655,7 +21655,6 @@ static swig_cast_info *swig_cast_initial[] = {
   _swigc__p_char,
   _swigc__p_difference_type,
   _swigc__p_double,
-  _swigc__p_int,
   _swigc__p_key_type,
   _swigc__p_mapped_type,
   _swigc__p_operatortype,
@@ -21683,6 +21682,7 @@ static swig_cast_info *swig_cast_initial[] = {
   _swigc__p_std__vectorT_std__vectorT_double_t_t,
   _swigc__p_std__vectorT_std__vectorT_int_t_t,
   _swigc__p_swig__SwigPyIterator,
+  _swigc__p_unsigned_int,
   _swigc__p_value_type,
 };
 
