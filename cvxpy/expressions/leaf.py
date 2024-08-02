@@ -131,17 +131,19 @@ class Leaf(expression.Expression):
                            'integer':  integer, 'sparsity': sparsity, 'bounds': bounds}
 
         if boolean:
-            self.boolean_idx = boolean if not isinstance(boolean, bool) else list(
+            self.boolean_idx = boolean if not isinstance(boolean, bool) else set(
                 np.ndindex(max(shape, (1,))))
         else:
-            self.boolean_idx = []
-
+            self.boolean_idx = {}
         if integer:
-            self.integer_idx = integer if not isinstance(integer, bool) else list(
+            self.integer_idx = integer if not isinstance(integer, bool) else set(
                 np.ndindex(max(shape, (1,))))
         else:
-            self.integer_idx = []
-
+            self.integer_idx = {}
+        if sparsity:
+            self.sparse_idx = tuple(zip(*sparsity))
+        else:
+            self.sparse_idx = {}
         # Only one attribute be True (except can be boolean and integer).
         true_attr = sum(1 for k, v in self.attributes.items() if v)
         # HACK we should remove this feature or allow multiple attributes in general.
@@ -419,6 +421,8 @@ class Leaf(expression.Expression):
                     return val
                 w[bad] = 0
             return (V * w).dot(V.T)
+        elif self.attributes['sparsity']:
+            return np.where(val[self.sparse_idx], val, 0)
         else:
             return val
 
