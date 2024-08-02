@@ -1237,12 +1237,22 @@ class SciPyCanonBackend(PythonCanonBackend):
         along a specified axis.
         
         Example:
-        shape = (2,2) and axis = (1)
-        out_axes = [True, False]
-        out_idx = [[[0, 0],
-                    [1, 1]]]
-        out_dims = [2]
-        row_idx.flatten(order='F') = [0, 1, 0, 1]
+        shape = (2,2,2) and axis = (1)
+        out_axes = [True, False, True]
+        out_idx[0] = [[[0, 0],
+                       [0, 0]],
+                      [[1, 1],
+                       [1, 1]]]
+        out_idx[1] = [[[0, 1],
+                       [0, 1]],
+                      [[0, 1],
+                       [0, 1]]]
+        out_dims = [2, 2]
+        row_idx = [[[0, 2],
+                    [0, 2]],
+                   [[1, 3],
+                    [1, 3]]]
+        row_idx.flatten(order='F') = [0, 1, 0, 1, 2, 3, 2, 3]
         """
         out_axes = np.isin(range(len(shape)), axis, invert=True)
         out_idx = np.indices(shape)[out_axes]
