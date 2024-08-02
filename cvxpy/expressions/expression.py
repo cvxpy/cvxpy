@@ -864,10 +864,13 @@ class Expression(u.Canonical):
         from cvxpy import ptp
         return ptp(self, axis, keepdims)
 
-    def reshape(self, shape, order='F'):
+    def reshape(self, shape, order = None):
         """
         Equivalent to `cp.reshape(self, shape, order)`.
         """
+        if order is None:
+            warnings.warn(DEFAULT_ORDER_DEPRECATION_MSG, FutureWarning)
+            order = 'F'
         from cvxpy import reshape
         return reshape(self, shape, order)
 

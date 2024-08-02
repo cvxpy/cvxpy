@@ -129,47 +129,51 @@ class TestExpressionMethods(BaseTest):
                 assert np.allclose(fn.value, method_fn.value)
 
 
-    def test_reshape(self) -> None:
-        """Test the reshape class.
-        """
-        expr = self.A.reshape((4, 1))
-        self.assertEqual(expr.sign, s.UNKNOWN)
-        self.assertEqual(expr.curvature, s.AFFINE)
-        self.assertEqual(expr.shape, (4, 1))
+    def test_reshape(self):
+        """Test the reshape class."""
+        a = Variable(name='a')
+
+        x = Variable(2, name='x')
+
+        A = Variable((2, 2), name='A')
+        C = Variable((3, 2), name='C')
+
+        expr = A.reshape((4, 1))
+        assert expr.sign == s.UNKNOWN
+        assert expr.curvature == s.AFFINE
+        assert expr.shape == (4, 1)
 
         expr = expr.reshape((2, 2))
-        self.assertEqual(expr.shape, (2, 2))
+        assert expr.shape == (2, 2)
 
-        expr = cp.square(self.x).reshape((1, 2))
-        self.assertEqual(expr.sign, s.NONNEG)
-        self.assertEqual(expr.curvature, s.CONVEX)
-        self.assertEqual(expr.shape, (1, 2))
+        expr = cp.square(x).reshape((1, 2))
+        assert expr.sign == s.NONNEG
+        assert expr.curvature == s.CONVEX
+        assert expr.shape == (1, 2)
 
-        with self.assertRaises(Exception) as cm:
-            self.C.reshape((5, 4))
-        self.assertEqual(str(cm.exception),
-                         "Invalid reshape dimensions (5, 4).")
+        with pytest.raises(Exception) as cm:
+            C.reshape((5, 4))
+        assert str(cm.value) == "Invalid reshape dimensions (5, 4)."
 
         # Test C-style reshape.
         a = np.arange(10)
         A_np = np.reshape(a, (5, 2), order='C')
         A_cp = Constant(a).reshape((5, 2), order='C')
-        self.assertItemsAlmostEqual(A_np, A_cp.value)
+        np.allclose(A_np, A_cp.value)
 
         X = cp.Variable((5, 2))
         prob = cp.Problem(cp.Minimize(0), [X == A_cp])
         prob.solve(solver=cp.SCS)
-        self.assertItemsAlmostEqual(A_np, X.value)
+        np.allclose(A_np, X.value)
 
         a_np = np.reshape(A_np, 10, order='C')
         a_cp = A_cp.reshape(10, order='C')
-
-        self.assertItemsAlmostEqual(a_np, a_cp.value)
+        np.allclose(a_np, a_cp.value)
 
         x = cp.Variable(10)
         prob = cp.Problem(cp.Minimize(0), [x == a_cp])
         prob.solve(solver=cp.SCS)
-        self.assertItemsAlmostEqual(a_np, x.value)
+        np.allclose(a_np, x.value)
 
         # Test more complex C-style reshape: matrix to another matrix
         b = np.array([
@@ -183,8 +187,8 @@ class TestExpressionMethods(BaseTest):
         X_reshaped = X.reshape((2, 6), order='C')
         prob = cp.Problem(cp.Minimize(0), [X_reshaped == b_reshaped])
         prob.solve(solver=cp.SCS)
-        self.assertItemsAlmostEqual(b_reshaped, X_reshaped.value)
-        self.assertItemsAlmostEqual(b, X.value)
+        np.allclose(b_reshaped, X_reshaped.value)
+        np.allclose(b, X.value)
 
         # Test default is fortran
         b = np.array([
@@ -195,12 +199,12 @@ class TestExpressionMethods(BaseTest):
         ])
         b_reshaped = b.reshape((2, 6), order='F')
         X = cp.Variable(b.shape)
-        X_reshaped = X.reshape((2, 6))
+        with pytest.warns(FutureWarning):
+            X_reshaped = X.reshape((2, 6))
         prob = cp.Problem(cp.Minimize(0), [X_reshaped == b_reshaped])
         prob.solve(solver=cp.SCS)
-        self.assertItemsAlmostEqual(b_reshaped, X_reshaped.value)
-        self.assertItemsAlmostEqual(b, X.value)
-
+        np.allclose(b_reshaped, X_reshaped.value)
+        np.allclose(b, X.value)
 
     def test_reshape_negative_one(self) -> None:
         """
@@ -236,8 +240,6 @@ class TestExpressionMethods(BaseTest):
         assert np.allclose(A_reshaped.value, A.reshape(-1, order='C'))
         A_reshaped = Constant(A).reshape(-1, order='F')
         assert np.allclose(A_reshaped.value, A.reshape(-1, order='F'))
-
-
 
     def test_max(self) -> None:
         """
@@ -304,6 +306,7 @@ class TestExpressionMethods(BaseTest):
 
         A = sp.eye(3)
         self.assertItemsAlmostEqual(Constant(A).sum(axis=0).value, [1, 1, 1])
+
     def test_trace(self) -> None:
         """Test the trace atom.
         """
