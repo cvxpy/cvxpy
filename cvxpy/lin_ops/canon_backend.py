@@ -761,7 +761,7 @@ class NumPyCanonBackend(PythonCanonBackend):
     def sum_entries(_lin: LinOp, view: NumPyTensorView) -> NumPyTensorView:
         """
         Given (A, b) in view, return the sum of the representation
-        on the row axis, ie: (sum(A,axis=axis), sum(b, axis=axis)).
+        on the row axis, ie: (sum(A, axis=axis), sum(b, axis=axis)).
 
         Note for new n-dimensional version: We now pass an axis parameter to the sum.
         The new implementation keeps the columns of the tensor fixed and reshapes the
@@ -1200,40 +1200,30 @@ class SciPyCanonBackend(PythonCanonBackend):
             func = parametrized_mul
         return view.accumulate_over_variables(func, is_param_free_function=is_param_free_lhs)
 
-    @staticmethod
-    def sum_entries(_lin: LinOp, view: SciPyTensorView) -> SciPyTensorView:
+    def sum_entries(self, _lin: LinOp, view: SciPyTensorView) -> SciPyTensorView:
         """
         Given (A, b) in view, return the sum of the representation
-        on the row axis, ie: (sum(A,axis=axis), sum(b, axis=axis)).
+        on the row axis, ie: (sum(A, axis=axis), sum(b, axis=axis)).
         Here, since the slices are stacked, we sum over the rows corresponding
         to the same slice.
 
-        Note for new n-dimensional version: We now pass an axis parameter to the sum.
-        The new implementation keeps the columns of the tensor fixed and reshapes the
-        remaining dimensions in the original shape of the expression. The sum is then
-        performed along the axis parameter. Finally, the tensor is reshaped back to the
-        desired output shape. 
-
-        Example:
-        # Suppose we want to sum a Variable(2,2,2)
-        x = np.eye(8)
-        out = x.reshape(2,2,2,8).sum(axis=axis).reshape(n // prod(shape[axis]),8)
+        Note: we form the sparse output directly using _get_sum_row_indices and 
+        column indices in column-major order.
         """
+        row_idx_func = self._get_sum_row_indices
         def func(x, p):
             if p == 1:
                 axis, _ = _lin.data
                 if axis is None:
                     return sp.csr_matrix(x.sum(axis=0))
                 else:
-                    shape = _lin.args[0].shape
+                    shape = tuple(_lin.args[0].shape)
+                    axis = axis if isinstance(axis, tuple) else (axis,)
                     n = x.shape[-1]
-                    if isinstance(axis, tuple):
-                        d = np.prod([shape[i] for i in axis], dtype=int)
-                    else:
-                        d = shape[axis]
-                    # TODO avoid changing x to dense
-                    x = x.toarray().reshape(shape+(n,), order='F').sum(axis=axis)
-                    return sp.csr_matrix(x.reshape((n//d, n), order='F'))
+                    d = np.prod([shape[i] for i in axis], dtype=int)
+                    row_idx = row_idx_func(shape=shape, axis=axis)
+                    col_idx = np.arange(n).reshape(shape, order='F').flatten(order='F')
+                    return sp.csr_matrix((x.data, (row_idx, col_idx)), shape=(n//d, n))
             else:
                 m = x.shape[0] // p
                 return (sp.kron(sp.eye(p, format="csc"), np.ones(m)) @ x).tocsc()
@@ -1241,6 +1231,35 @@ class SciPyCanonBackend(PythonCanonBackend):
         view.apply_all(func)
         return view
 
+    def _get_sum_row_indices(self, shape: tuple, axis: tuple) -> np.ndarray:
+        """
+        Internal function that computes the row indices corresponding to the sum
+        along a specified axis.
+        
+        Example:
+        shape = (2,2,2) and axis = (1)
+        out_axes = [True, False, True]
+        out_idx[0] = [[[0, 0],
+                       [0, 0]],
+                      [[1, 1],
+                       [1, 1]]]
+        out_idx[1] = [[[0, 1],
+                       [0, 1]],
+                      [[0, 1],
+                       [0, 1]]]
+        out_dims = [2, 2]
+        row_idx = [[[0, 2],
+                    [0, 2]],
+                   [[1, 3],
+                    [1, 3]]]
+        row_idx.flatten(order='F') = [0, 1, 0, 1, 2, 3, 2, 3]
+        """
+        out_axes = np.isin(range(len(shape)), axis, invert=True)
+        out_idx = np.indices(shape)[out_axes]
+        out_dims = np.array(shape)[out_axes]
+        row_idx = np.ravel_multi_index(out_idx, dims=out_dims, order='F')
+        return row_idx.flatten(order='F')
+    
     def div(self, lin: LinOp, view: SciPyTensorView) -> SciPyTensorView:
         """
         Given (A, b) in view and constant data d, return (A*(1/d), b*(1/d)).
