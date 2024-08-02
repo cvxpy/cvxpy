@@ -15,12 +15,13 @@ limitations under the License.
 """
 
 import warnings
+from typing import Optional
 
 from cvxpy.atoms.affine.reshape import reshape
 from cvxpy.expressions.expression import DEFAULT_ORDER_DEPRECATION_MSG, Expression
 
 
-def vec(X, order: str | None = None):
+def vec(X, order: Optional[str] = None):
     """Flattens the matrix X into a vector.
 
     Parameters
