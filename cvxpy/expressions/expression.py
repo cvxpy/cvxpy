@@ -81,6 +81,15 @@ You're calling the built-in abs function on a CVXPY expression. This is not
 supported. Consider using the abs function provided by CVXPY.
 """
 
+DEFAULT_ORDER_DEPRECATION_MSG = (
+    """
+    You didn't specify the order of the reshaped expression. The default order
+    used in CVXPY is Fortran ('F') order. This default will change to match NumPy's
+    default order ('C') in a future version.
+    To suppress this warning, specify the order explicitly.
+    """
+)
+
 __BINARY_EXPRESSION_UFUNCS__ = {
         np.add: lambda self, a: self.__radd__(a),
         np.subtract: lambda self, a: self.__rsub__(a),
@@ -442,7 +451,8 @@ class Expression(u.Canonical):
         """
         raise NotImplementedError()
 
-    @abc.abstractproperty
+    @property
+    @abc.abstractmethod
     def shape(self) -> Tuple[int, ...]:
         """tuple : The expression dimensions.
         """
@@ -453,7 +463,8 @@ class Expression(u.Canonical):
         """
         return not self.is_complex()
 
-    @abc.abstractproperty
+    @property
+    @abc.abstractmethod
     def is_imag(self) -> bool:
         """Is the Leaf imaginary?
         """
@@ -477,11 +488,14 @@ class Expression(u.Canonical):
         """
         return len(self.shape)
 
-    def flatten(self, order: str = 'F'):
+    def flatten(self, order = None):
         """Vectorizes the expression.
 
         order: column-major ('F') or row-major ('C') order.
         """
+        if order is None:
+            warnings.warn(DEFAULT_ORDER_DEPRECATION_MSG, FutureWarning)
+            order = 'F'
         assert order in ['F', 'C']
         return cvxtypes.vec()(self, order)
 

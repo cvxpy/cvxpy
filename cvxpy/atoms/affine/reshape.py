@@ -16,6 +16,7 @@ limitations under the License.
 from __future__ import annotations
 
 import numbers
+import warnings
 from typing import List, Tuple
 
 import numpy as np
@@ -26,7 +27,7 @@ import cvxpy.settings as s
 from cvxpy.atoms.affine.affine_atom import AffAtom
 from cvxpy.atoms.affine.hstack import hstack
 from cvxpy.constraints.constraint import Constraint
-from cvxpy.expressions.expression import Expression
+from cvxpy.expressions.expression import DEFAULT_ORDER_DEPRECATION_MSG, Expression
 from cvxpy.utilities.shape import size_from_shape
 
 
@@ -47,7 +48,7 @@ class reshape(AffAtom):
     order : F(ortran) or C
     """
 
-    def __init__(self, expr, shape: int | Tuple[int, ...], order: str = 'F') -> None:
+    def __init__(self, expr, shape: int | Tuple[int, ...], order = None) -> None:
         if isinstance(shape, numbers.Integral):
             shape = (int(shape),)
         if not s.ALLOW_ND_EXPR and len(shape) > 2:
@@ -57,6 +58,9 @@ class reshape(AffAtom):
             shape = self._infer_shape(shape, expr.size)
 
         self._shape = tuple(shape)
+        if order is None:
+            warnings.warn(DEFAULT_ORDER_DEPRECATION_MSG, FutureWarning)
+            order = 'F'
         assert order in ['F', 'C']
         self.order = order
         super(reshape, self).__init__(expr)
