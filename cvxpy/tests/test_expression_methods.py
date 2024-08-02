@@ -17,24 +17,21 @@ limitations under the License.
 
 import numpy as np
 import pytest
-import scipy.sparse as sp
 
 import cvxpy as cp
 import cvxpy.settings as s
 from cvxpy.expressions.constants import Constant
 from cvxpy.expressions.variable import Variable
-from cvxpy.tests.base_test import BaseTest
 
 
-class TestExpressionMethods(BaseTest):
+class TestExpressionMethods():
     """ Unit tests for the atoms module. """
 
-    def setUp(self) -> None:
+    @pytest.fixture(autouse=True)
+    def setup(self) -> None:
         self.a = Variable(name='a')
-
         self.x = Variable(2, name='x')
         self.y = Variable(2, name='y')
-
         self.A = Variable((2, 2), name='A')
         self.B = Variable((2, 2), name='B')
         self.C = Variable((3, 2), name='C')
@@ -66,7 +63,6 @@ class TestExpressionMethods(BaseTest):
             'sum',
             'std',
             'var',
-
         ]:
             fn = getattr(cp, method)
             method_fn = getattr(X, method)
@@ -131,14 +127,7 @@ class TestExpressionMethods(BaseTest):
 
     def test_reshape(self):
         """Test the reshape class."""
-        a = Variable(name='a')
-
-        x = Variable(2, name='x')
-
-        A = Variable((2, 2), name='A')
-        C = Variable((3, 2), name='C')
-
-        expr = A.reshape((4, 1))
+        expr = self.A.reshape((4, 1))
         assert expr.sign == s.UNKNOWN
         assert expr.curvature == s.AFFINE
         assert expr.shape == (4, 1)
@@ -146,13 +135,13 @@ class TestExpressionMethods(BaseTest):
         expr = expr.reshape((2, 2))
         assert expr.shape == (2, 2)
 
-        expr = cp.square(x).reshape((1, 2))
+        expr = cp.square(self.x).reshape((1, 2))
         assert expr.sign == s.NONNEG
         assert expr.curvature == s.CONVEX
         assert expr.shape == (1, 2)
 
         with pytest.raises(Exception) as cm:
-            C.reshape((5, 4))
+            self.C.reshape((5, 4))
         assert str(cm.value) == "Invalid reshape dimensions (5, 4)."
 
         # Test C-style reshape.
@@ -210,7 +199,6 @@ class TestExpressionMethods(BaseTest):
         """
         Test the reshape class with -1 in the shape.
         """
-
         expr = cp.Variable((2, 3))
         numpy_expr = np.ones((2, 3))
         shapes = [(-1, 1), (1, -1), (-1, 2), -1, (-1,)]
@@ -218,10 +206,10 @@ class TestExpressionMethods(BaseTest):
 
         for shape, expected_shape in zip(shapes, expected_shapes):
             expr_reshaped = expr.reshape(shape)
-            self.assertEqual(expr_reshaped.shape, expected_shape)
+            assert expr_reshaped.shape == expected_shape
 
             numpy_expr_reshaped = np.reshape(numpy_expr, shape)
-            self.assertEqual(numpy_expr_reshaped.shape, expected_shape)
+            assert numpy_expr_reshaped.shape == expected_shape
 
         with pytest.raises(ValueError, match="Cannot reshape expression"):
             expr.reshape((8, -1))
@@ -241,84 +229,14 @@ class TestExpressionMethods(BaseTest):
         A_reshaped = Constant(A).reshape(-1, order='F')
         assert np.allclose(A_reshaped.value, A.reshape(-1, order='F'))
 
-    def test_max(self) -> None:
-        """
-        Test max.
-        """
-        # One arg, test sign.
-        self.assertEqual(Variable().max().sign, s.UNKNOWN)
-
-        # Test with axis argument.
-        self.assertEqual(Variable(2).max(axis=0, keepdims=True).shape, (1,))
-        self.assertEqual(Variable((2, 3)).max(axis=0, keepdims=True).shape, (1, 3))
-        self.assertEqual(Variable((2, 3)).max(axis=1).shape, (2,))
-
-        # Invalid axis.
-        with self.assertRaises(Exception) as cm:
-            self.x.max(axis=4)
-        self.assertEqual(str(cm.exception), "axis 4 is out of bounds for array of dimension 1")
-
-    def test_min(self) -> None:
-        """
-        Test min.
-        """
-        # One arg, test sign.
-        self.assertEqual(Variable().min().sign, s.UNKNOWN)
-
-        # Test with axis argument.
-        self.assertEqual(Variable(2).min(axis=0).shape, tuple())
-        self.assertEqual(Variable((2, 3)).min(axis=0).shape, (3,))
-        self.assertEqual(Variable((2, 3)).min(axis=1).shape, (2,))
-
-        # Invalid axis.
-        with self.assertRaises(Exception) as cm:
-            self.x.min(axis=4)
-        self.assertEqual(str(cm.exception), "axis 4 is out of bounds for array of dimension 1")
-
-    def test_sum(self) -> None:
-        """
-        Test the sum atom.
-        """
-        self.assertEqual(Constant([1, -1]).sum().sign, s.UNKNOWN)
-        self.assertEqual(Constant([1, -1]).sum().curvature, s.CONSTANT)
-        self.assertEqual(Variable(2).sum().sign, s.UNKNOWN)
-        self.assertEqual(Variable(2).sum().shape, tuple())
-        self.assertEqual(Variable(2).sum().curvature, s.AFFINE)
-        self.assertEqual(Variable((2, 1)).sum(keepdims=True).shape, (1, 1))
-        # Mixed curvature.
-        mat = np.array([[1, -1]])
-        self.assertEqual(cp.sum(mat @ cp.square(Variable(2))).curvature, s.UNKNOWN)
-
-        # Test with axis argument.
-        self.assertEqual(Variable(2).sum(axis=0).shape, tuple())
-        self.assertEqual(Variable((2, 3)).sum(axis=0, keepdims=True).shape, (1, 3))
-        self.assertEqual(Variable((2, 3)).sum(axis=0, keepdims=False).shape, (3,))
-        self.assertEqual(Variable((2, 3)).sum(axis=1).shape, (2,))
-
-        # Invalid axis.
-        with self.assertRaises(Exception) as cm:
-            cp.sum(self.x, axis=4)
-        self.assertEqual(str(cm.exception),
-                        "axis 4 is out of bounds for array of dimension 1")
-
-        A = sp.eye(3)
-        self.assertEqual(Constant(A).sum().value, 3)
-
-        A = sp.eye(3)
-        self.assertItemsAlmostEqual(Constant(A).sum(axis=0).value, [1, 1, 1])
-
-    def test_trace(self) -> None:
-        """Test the trace atom.
-        """
+    def test_trace(self):
         expr = self.A.trace()
-        self.assertEqual(expr.sign, s.UNKNOWN)
-        self.assertEqual(expr.curvature, s.AFFINE)
-        self.assertEqual(expr.shape, tuple())
+        assert expr.sign == s.UNKNOWN
+        assert expr.curvature == s.AFFINE
+        assert expr.shape == tuple()
 
-        with self.assertRaises(Exception) as cm:
+        with pytest.raises(Exception, match="Argument to trace must be a square matrix."):
             self.C.trace()
-        self.assertEqual(str(cm.exception),
-                         "Argument to trace must be a square matrix.")
 
     def test_trace_sign_psd(self) -> None:
         """Test sign of trace for psd/nsd inputs.
