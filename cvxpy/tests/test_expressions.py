@@ -1570,6 +1570,15 @@ class TestND_Expressions():
         prob = cp.Problem(self.obj, [expr == y])
         prob.solve(canon_backend=cp.SCIPY_CANON_BACKEND)
         assert np.allclose(expr.value, y)
+
+    @pytest.mark.parametrize("axis", [(0,2,4,5),((4,5)),((0,2,3,1)),((5,3,1)), ((0,1,2,5))])
+    def test_nd_big_sum(self, axis) -> None:
+        in_shape = (6,5,4,3,2,1)
+        expr = cp.Variable(shape=in_shape).sum(axis=axis, keepdims=True)
+        y = np.ones(in_shape).sum(axis=axis, keepdims=True)
+        prob = cp.Problem(self.obj, [expr == y])
+        prob.solve(canon_backend=cp.SCIPY_CANON_BACKEND)
+        assert np.allclose(expr.value, y)
     
     @given(integer_array_indices(shape=(2,2,2)))
     def test_nd_integer_index(self, s) -> None:
