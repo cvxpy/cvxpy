@@ -20,7 +20,7 @@ from cvxpy.atoms.affine.reshape import reshape
 from cvxpy.expressions.expression import DEFAULT_ORDER_DEPRECATION_MSG, Expression
 
 
-def vec(X, order = None):
+def vec(X, order: str | None = None):
     """Flattens the matrix X into a vector.
 
     Parameters

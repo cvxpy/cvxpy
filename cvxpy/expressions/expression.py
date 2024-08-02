@@ -488,7 +488,7 @@ class Expression(u.Canonical):
         """
         return len(self.shape)
 
-    def flatten(self, order = None):
+    def flatten(self, order: str | None = None):
         """Vectorizes the expression.
 
         order: column-major ('F') or row-major ('C') order.
@@ -864,7 +864,7 @@ class Expression(u.Canonical):
         from cvxpy import ptp
         return ptp(self, axis, keepdims)
 
-    def reshape(self, shape, order = None):
+    def reshape(self, shape, order: str | None = None):
         """
         Equivalent to `cp.reshape(self, shape, order)`.
         """
