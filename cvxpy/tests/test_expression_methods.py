@@ -25,7 +25,7 @@ from cvxpy.expressions.variable import Variable
 
 
 class TestExpressionMethods():
-    """ Unit tests for the atoms module. """
+    """Unit tests for expression methods."""
 
     @pytest.fixture(autouse=True)
     def setup(self) -> None:
@@ -179,26 +179,23 @@ class TestExpressionMethods():
         np.allclose(b_reshaped, X_reshaped.value)
         np.allclose(b, X.value)
 
-        # Test default is fortran
-        b = np.array([
-            [0, 1, 2],
-            [3, 4, 5],
-            [6, 7, 8],
-            [9, 10, 11],
-        ])
         b_reshaped = b.reshape((2, 6), order='F')
         X = cp.Variable(b.shape)
         with pytest.warns(FutureWarning):
             X_reshaped = X.reshape((2, 6))
+        with pytest.warns(FutureWarning):
+            X.flatten()
+        with pytest.warns(FutureWarning):
+            cp.vec(X)
+        with pytest.warns(FutureWarning):
+            cp.reshape(X, (2, 6))
         prob = cp.Problem(cp.Minimize(0), [X_reshaped == b_reshaped])
         prob.solve(solver=cp.SCS)
         np.allclose(b_reshaped, X_reshaped.value)
         np.allclose(b, X.value)
 
     def test_reshape_negative_one(self) -> None:
-        """
-        Test the reshape class with -1 in the shape.
-        """
+        """Test the reshape class with -1 in the shape."""
         expr = cp.Variable((2, 3))
         numpy_expr = np.ones((2, 3))
         shapes = [(-1, 1), (1, -1), (-1, 2), -1, (-1,)]
@@ -230,6 +227,7 @@ class TestExpressionMethods():
         assert np.allclose(A_reshaped.value, A.reshape(-1, order='F'))
 
     def test_trace(self):
+        """Test the trace atom."""
         expr = self.A.trace()
         assert expr.sign == s.UNKNOWN
         assert expr.curvature == s.AFFINE
@@ -239,8 +237,7 @@ class TestExpressionMethods():
             self.C.trace()
 
     def test_trace_sign_psd(self) -> None:
-        """Test sign of trace for psd/nsd inputs.
-        """
+        """Test sign of trace for psd/nsd inputs."""
         X_psd = cp.Variable((2, 2), PSD=True)
         X_nsd = cp.Variable((2, 2), NSD=True)
 
@@ -251,8 +248,7 @@ class TestExpressionMethods():
         assert nsd_trace.is_nonpos()
     
     def test_ptp(self) -> None:
-        """Test the ptp atom.
-        """
+        """Test the ptp atom."""
         a = Constant(np.array([[10., -10., 3.0], [6., 0., -1.5]]))
         expr = a.ptp()
         assert expr.is_nonneg()
@@ -280,8 +276,7 @@ class TestExpressionMethods():
         assert np.allclose(expr.value, np.array([[20.], [7.5]]))
 
     def test_stats(self) -> None:
-        """Test the mean, std, var atoms.
-        """
+        """Test the mean, std, var atoms."""
         a_np = np.array([[10., 10., 3.0], [6., 0., 1.5]])
         a = Constant(a_np)
         expr_mean = a.mean()
@@ -305,31 +300,22 @@ class TestExpressionMethods():
         for axis in [0, 1]:
             for keepdims in [True, False]:
                 expr_mean = a.mean(axis=axis, keepdims=keepdims)
-                # expr_var = cp.var(a, axis=axis, keepdims=keepdims)
                 expr_std = a.std(axis=axis, keepdims=keepdims)
 
                 assert expr_mean.shape == a_np.mean(axis=axis, keepdims=keepdims).shape
-                # assert expr_var.shape == a.var(axis=axis, keepdims=keepdims).shape
                 assert expr_std.shape == a_np.std(axis=axis, keepdims=keepdims).shape
 
                 assert np.allclose(a_np.mean(axis=axis, keepdims=keepdims), expr_mean.value)
-                # assert np.allclose(a.var(axis=axis, keepdims=keepdims), expr_var.value)
                 assert np.allclose(a_np.std(axis=axis, keepdims=keepdims), expr_std.value)
 
-    def test_conj(self) -> None:
-        """Test conj.
-        """
-        v = cp.Variable((4,))
-        obj = cp.Minimize(cp.sum(v))
-        prob = cp.Problem(obj, [v.conj() >= 1])
-        prob.solve(solver=cp.SCS)
-        assert np.allclose(v.value, np.ones((4,)))
-
     def test_conjugate(self) -> None:
-        """Test conj.
-        """
+        """Test conj."""
         v = cp.Variable((4,))
         obj = cp.Minimize(cp.sum(v))
         prob = cp.Problem(obj, [v.conjugate() >= 1])
+        prob.solve(solver=cp.SCS)
+        assert np.allclose(v.value, np.ones((4,)))
+
+        prob = cp.Problem(obj, [v.conj() >= 1])
         prob.solve(solver=cp.SCS)
         assert np.allclose(v.value, np.ones((4,)))
