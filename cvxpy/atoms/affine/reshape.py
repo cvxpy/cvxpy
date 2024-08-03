@@ -59,7 +59,8 @@ class reshape(AffAtom):
 
         self._shape = tuple(shape)
         if order is None:
-            warnings.warn(DEFAULT_ORDER_DEPRECATION_MSG, FutureWarning)
+            reshape_order_warning = DEFAULT_ORDER_DEPRECATION_MSG.replace("FUNC_NAME", "reshape")
+            warnings.warn(reshape_order_warning, FutureWarning)
             order = 'F'
         assert order in ['F', 'C']
         self.order = order

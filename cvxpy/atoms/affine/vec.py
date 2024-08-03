@@ -36,7 +36,8 @@ def vec(X, order: Optional[str] = None):
         An Expression representing the flattened matrix.
     """
     if order is None:
-        warnings.warn(DEFAULT_ORDER_DEPRECATION_MSG, FutureWarning)
+        vec_order_warning = DEFAULT_ORDER_DEPRECATION_MSG.replace("FUNC_NAME", "vec")
+        warnings.warn(vec_order_warning, FutureWarning)
         order = 'F'
     assert order in ['F', 'C']
     X = Expression.cast_to_const(X)

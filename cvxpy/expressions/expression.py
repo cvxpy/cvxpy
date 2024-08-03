@@ -83,7 +83,7 @@ supported. Consider using the abs function provided by CVXPY.
 
 DEFAULT_ORDER_DEPRECATION_MSG = (
     """
-    You didn't specify the order of the reshaped expression. The default order
+    You didn't specify the order of the FUNC_NAME expression. The default order
     used in CVXPY is Fortran ('F') order. This default will change to match NumPy's
     default order ('C') in a future version.
     To suppress this warning, specify the order explicitly.
@@ -494,7 +494,8 @@ class Expression(u.Canonical):
         order: column-major ('F') or row-major ('C') order.
         """
         if order is None:
-            warnings.warn(DEFAULT_ORDER_DEPRECATION_MSG, FutureWarning)
+            flatten_order_warning = DEFAULT_ORDER_DEPRECATION_MSG.replace("FUNC_NAME", "flatten")
+            warnings.warn(flatten_order_warning, FutureWarning)
             order = 'F'
         assert order in ['F', 'C']
         return cvxtypes.vec()(self, order)
@@ -869,7 +870,8 @@ class Expression(u.Canonical):
         Equivalent to `cp.reshape(self, shape, order)`.
         """
         if order is None:
-            warnings.warn(DEFAULT_ORDER_DEPRECATION_MSG, FutureWarning)
+            reshape_order_warning = DEFAULT_ORDER_DEPRECATION_MSG.replace("FUNC_NAME", "reshape")
+            warnings.warn(reshape_order_warning, FutureWarning)
             order = 'F'
         from cvxpy import reshape
         return reshape(self, shape, order)
