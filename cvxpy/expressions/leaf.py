@@ -39,7 +39,7 @@ from cvxpy.settings import (
 )
 
 
-class Leaf(expression.Expression):
+class Leaf(expression.Expression, metaclass=abc.ABCMeta):
     """
     A leaf node of an expression tree; i.e., a Variable, Constant, or Parameter.
 
@@ -94,8 +94,6 @@ class Leaf(expression.Expression):
     bounds : Iterable
         An iterable of length two specifying lower and upper bounds.
     """
-
-    __metaclass__ = abc.ABCMeta
 
     def __init__(
         self, shape: int | tuple[int, ...], value=None, nonneg: bool = False,

@@ -25,9 +25,8 @@ import cvxpy.utilities as u
 from cvxpy.atoms.atom import Atom
 
 
-class Elementwise(Atom):
+class Elementwise(Atom, metaclass=abc.ABCMeta):
     """ Abstract base class for elementwise atoms. """
-    __metaclass__ = abc.ABCMeta
 
     def shape_from_args(self) -> Tuple[int, ...]:
         """Shape is the same as the sum of the arguments.

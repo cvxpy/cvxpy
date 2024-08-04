@@ -18,8 +18,6 @@ THIS FILE IS DEPRECATED AND MAY BE REMOVED WITHOUT WARNING!
 DO NOT CALL THESE FUNCTIONS IN YOUR CODE!
 """
 
-from __future__ import print_function
-
 import time
 import unittest
 

@@ -20,7 +20,7 @@ from cvxpy import settings as s
 from cvxpy.reductions.reduction import Reduction
 
 
-class Solver(Reduction):
+class Solver(Reduction, metaclass=abc.ABCMeta):
     """Generic interface for a solver that uses reduction semantics
     """
 
@@ -29,8 +29,6 @@ class Solver(Reduction):
     #
     #   There are separate ConeDims classes for cone programs vs QPs.
     #   See cone_matrix_stuffing.py and qp_matrix_stuffing.py for details.
-
-    __metaclass__ = abc.ABCMeta
 
     # Solver capabilities.
     MIP_CAPABLE = False

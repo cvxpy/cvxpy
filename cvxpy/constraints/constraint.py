@@ -23,7 +23,7 @@ import cvxpy.utilities as u
 from cvxpy.expressions import cvxtypes
 
 
-class Constraint(u.Canonical):
+class Constraint(u.Canonical, metaclass=abc.ABCMeta):
     """The base class for constraints.
 
     A constraint is an equality, inequality, or more generally a generalized
@@ -37,8 +37,6 @@ class Constraint(u.Canonical):
     constr_id : int
         A unique id for the constraint.
     """
-
-    __metaclass__ = abc.ABCMeta
 
     def __init__(self, args, constr_id=None) -> None:
         # TODO cast constants.
@@ -212,16 +210,6 @@ class Constraint(u.Canonical):
         """Data needed to copy.
         """
         return [self.id]
-
-    def __nonzero__(self):
-        """Raises an exception when called.
-
-        Python 2 version.
-
-        Called when evaluating the truth value of the constraint.
-        Raising an error here prevents writing chained constraints.
-        """
-        return self._chain_constraints()
 
     def _chain_constraints(self):
         """Raises an error due to chained constraints.

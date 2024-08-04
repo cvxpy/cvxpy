@@ -19,7 +19,7 @@ import abc
 from cvxpy.constraints.constraint import Constraint
 
 
-class Cone(Constraint):
+class Cone(Constraint, metaclass=abc.ABCMeta):
     """A base class for all conic constraints in CVXPY
 
     These are special constraints imposing set membership in convex cones
@@ -39,8 +39,6 @@ class Cone(Constraint):
     constr_id : int
         A unique id for the constraint.
     """
-
-    __metaclass__ = abc.ABCMeta
 
     def __init__(self, args, constr_id=None) -> None:
         super(Cone, self).__init__(args, constr_id)
