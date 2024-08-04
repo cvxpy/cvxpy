@@ -23,7 +23,7 @@ import cvxpy.utilities as u
 from cvxpy.expressions import cvxtypes
 
 
-class Constraint(u.Canonical, metaclass=abc.ABCMeta):
+class Constraint(u.Canonical):
     """The base class for constraints.
 
     A constraint is an equality, inequality, or more generally a generalized
@@ -127,7 +127,8 @@ class Constraint(u.Canonical, metaclass=abc.ABCMeta):
         else:
             raise ValueError("Unsupported context ", context)
 
-    @abc.abstractproperty
+    @property
+    @abc.abstractmethod
     def residual(self):
         """The residual of the constraint.
 

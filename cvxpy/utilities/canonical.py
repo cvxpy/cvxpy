@@ -159,6 +159,10 @@ class Canonical(metaclass=abc.ABCMeta):
         """
         return max([self.ndim] + [arg._max_ndim() for arg in self.args])
 
+    @abc.abstractmethod
+    def __str__(self) -> str:
+        raise NotImplementedError()
+
 
 _MISSING = object()
 

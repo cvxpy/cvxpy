@@ -15,7 +15,6 @@ limitations under the License.
 """
 from __future__ import annotations
 
-import abc
 from typing import TYPE_CHECKING, Iterable
 
 if TYPE_CHECKING:
@@ -39,7 +38,7 @@ from cvxpy.settings import (
 )
 
 
-class Leaf(expression.Expression, metaclass=abc.ABCMeta):
+class Leaf(expression.Expression):
     """
     A leaf node of an expression tree; i.e., a Variable, Constant, or Parameter.
 
