@@ -85,8 +85,8 @@ DEFAULT_ORDER_DEPRECATION_MSG = (
     """
     You didn't specify the order of the FUNC_NAME expression. The default order
     used in CVXPY is Fortran ('F') order. This default will change to match NumPy's
-    default order ('C') in a future version.
-    To suppress this warning, specify the order explicitly.
+    default order ('C') in a future version of CVXPY.
+    To suppress this warning, please specify the order explicitly.
     """
 )
 
