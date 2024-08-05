@@ -14,12 +14,12 @@ jobs:
     steps:
       - uses: actions/setup-python@v5
         with:
-          python-version: 3.8
+          python-version: 3.9
       - uses: actions/checkout@v4
       - name: Install cvxpy dependencies
         run: |
           pip install .
-          pip install pytest
+          pip install pytest hypothesis
       - name: Run tests for each non-default backend
         run : |
           export CVXPY_DEFAULT_CANON_BACKEND="SCIPY"

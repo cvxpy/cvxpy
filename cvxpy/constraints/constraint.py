@@ -67,8 +67,17 @@ class Constraint(u.Canonical):
 
     @property
     def shape(self):
-        """int : The shape of the constrained expression."""
+        """
+        int : The shape of the constrained expression.
+        """
         return self.args[0].shape
+
+    @property
+    def ndim(self) -> int:
+        """
+        int : The maximum number of dimensions of the constrained expression.
+        """
+        return len(self.args[0].shape)
 
     @property
     def size(self):

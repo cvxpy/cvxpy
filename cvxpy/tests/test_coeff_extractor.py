@@ -176,7 +176,7 @@ def test_coeff_extractor(coeff_extractor):
         ),
     }
     coeffs, constant = coeff_extractor.extract_quadratic_coeffs(affine_expr, quad_forms)
-    
+
     assert len(coeffs) == 1
     assert np.allclose(coeffs[1]["q"].toarray(), np.zeros((2, 3)))
     P = coeffs[1]["P"]
@@ -187,3 +187,28 @@ def test_coeff_extractor(coeff_extractor):
     assert P.shape == (2, 2)
     assert np.allclose(P.parameter_offset, np.array([0, 0, 1, 1]))
     assert np.allclose(constant.toarray(), np.zeros((3)))
+
+
+def test_issue_2437():
+    """
+    This is a MWE / regression test for the issue reported in #2437.
+    """
+
+    N = 3
+
+    t_cost = np.array([0.01, 0.02, 0.03])
+    alpha = np.array([0.04, 0.05, 0.06])
+    ivol = np.array([0.07, 0.08, 0.09])
+
+    w = cp.Variable(N, name="w")
+
+    risk = (cp.multiply(w, ivol) ** 2).sum()
+    U = w @ alpha - risk - cp.abs(w) @ t_cost
+    problem = cp.Problem(cp.Maximize(U), [])
+
+    assert np.isclose(
+        problem.solve(solver=cp.CLARABEL, use_quad_obj=True),
+        problem.solve(solver=cp.CLARABEL, use_quad_obj=False),
+        rtol=0,
+        atol=1e-3,
+    )

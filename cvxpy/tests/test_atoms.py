@@ -26,6 +26,7 @@ from numpy import linalg as LA
 import cvxpy as cp
 import cvxpy.settings as s
 from cvxpy import Minimize, Problem
+from cvxpy.atoms.affine.upper_tri import upper_tri_to_full
 from cvxpy.atoms.errormsg import SECOND_ARG_SHOULD_NOT_BE_EXPRESSION_ERROR_MESSAGE
 from cvxpy.expressions.constants import Constant, Parameter
 from cvxpy.expressions.variable import Variable
@@ -365,14 +366,16 @@ class TestAtoms(BaseTest):
 
         # Test with axis argument.
         self.assertEqual(cp.max(Variable(2), axis=0, keepdims=True).shape, (1,))
-        self.assertEqual(cp.max(Variable(2), axis=1).shape, (2,))
         self.assertEqual(cp.max(Variable((2, 3)), axis=0, keepdims=True).shape, (1, 3))
         self.assertEqual(cp.max(Variable((2, 3)), axis=1).shape, (2,))
 
         # Invalid axis.
         with self.assertRaises(Exception) as cm:
             cp.max(self.x, axis=4)
-        self.assertEqual(str(cm.exception), "Invalid argument for axis.")
+        self.assertEqual(str(cm.exception), "axis 4 is out of bounds for array of dimension 1")
+        with self.assertRaises(Exception) as cm:
+            cp.max(Variable(2), axis=1).shape
+        self.assertEqual(str(cm.exception), "axis 1 is out of bounds for array of dimension 1")
         with self.assertRaises(ValueError) as cm:
             cp.max(self.x, self.x)  # a common erroneous use-case
         self.assertEqual(str(cm.exception), cp.max.__EXPR_AXIS_ERROR__)
@@ -388,14 +391,16 @@ class TestAtoms(BaseTest):
 
         # Test with axis argument.
         self.assertEqual(cp.min(Variable(2), axis=0).shape, tuple())
-        self.assertEqual(cp.min(Variable(2), axis=1).shape, (2,))
         self.assertEqual(cp.min(Variable((2, 3)), axis=0).shape, (3,))
         self.assertEqual(cp.min(Variable((2, 3)), axis=1).shape, (2,))
 
         # Invalid axis.
         with self.assertRaises(Exception) as cm:
             cp.min(self.x, axis=4)
-        self.assertEqual(str(cm.exception), "Invalid argument for axis.")
+        self.assertEqual(str(cm.exception), "axis 4 is out of bounds for array of dimension 1")
+        with self.assertRaises(Exception) as cm:
+            cp.min(Variable(2), axis=1).shape
+        self.assertEqual(str(cm.exception), "axis 1 is out of bounds for array of dimension 1")
         with self.assertRaises(ValueError) as cm:
             cp.min(self.x, self.x)  # a common erroneous use-case
         self.assertEqual(str(cm.exception), cp.min.__EXPR_AXIS_ERROR__)
@@ -480,7 +485,6 @@ class TestAtoms(BaseTest):
 
         # Test with axis argument.
         self.assertEqual(cp.sum(Variable(2), axis=0).shape, tuple())
-        self.assertEqual(cp.sum(Variable(2), axis=1).shape, (2,))
         self.assertEqual(cp.sum(Variable((2, 3)), axis=0, keepdims=True).shape, (1, 3))
         self.assertEqual(cp.sum(Variable((2, 3)), axis=0, keepdims=False).shape, (3,))
         self.assertEqual(cp.sum(Variable((2, 3)), axis=1).shape, (2,))
@@ -489,7 +493,10 @@ class TestAtoms(BaseTest):
         with self.assertRaises(Exception) as cm:
             cp.sum(self.x, axis=4)
         self.assertEqual(str(cm.exception),
-                         "Invalid argument for axis.")
+                        "axis 4 is out of bounds for array of dimension 1")
+        with self.assertRaises(Exception) as cm:
+            cp.sum(Variable(2), axis=1).shape
+        self.assertEqual(str(cm.exception), "axis 1 is out of bounds for array of dimension 1")
 
         A = sp.eye(3)
         self.assertEqual(cp.sum(A).value, 3)
@@ -796,6 +803,12 @@ class TestAtoms(BaseTest):
         # works with scalars
         assert np.allclose(cp.vec_to_upper_tri(1, strict=True).value, np.array([[0, 1], [0, 0]]))
 
+    def test_upper_tri_to_full(self) -> None:
+        for n in range(3, 8):
+            A = upper_tri_to_full(n)
+            v = np.arange(n * (n+1) // 2)
+            M = (A @ v).reshape((n, n))
+            assert np.allclose(M, M.T)
 
     def test_huber(self) -> None:
         # Valid.
@@ -804,12 +817,12 @@ class TestAtoms(BaseTest):
         with self.assertRaises(Exception) as cm:
             cp.huber(self.x, -1)
         self.assertEqual(str(cm.exception),
-                         "M must be a non-negative scalar constant.")
+                         "M must be a non-negative scalar constant or Parameter.")
 
         with self.assertRaises(Exception) as cm:
             cp.huber(self.x, [1, 1])
         self.assertEqual(str(cm.exception),
-                         "M must be a non-negative scalar constant.")
+                         "M must be a non-negative scalar constant or Parameter.")
 
         # M parameter.
         M = Parameter(nonneg=True)
@@ -822,7 +835,7 @@ class TestAtoms(BaseTest):
         with self.assertRaises(Exception) as cm:
             cp.huber(self.x, M)
         self.assertEqual(str(cm.exception),
-                         "M must be a non-negative scalar constant.")
+                         "M must be a non-negative scalar constant or Parameter.")
 
         # Test copy with args=None
         atom = cp.huber(self.x, 2)
@@ -839,6 +852,46 @@ class TestAtoms(BaseTest):
         self.assertTrue(type(copy) is type(atom))
         self.assertTrue(copy.args[0] is self.y)
         self.assertEqual(copy.get_data()[0].value, atom.get_data()[0].value)
+
+        # Test usage of M as parameter
+        M = Parameter(nonneg=True)
+        expr = cp.huber(1.0, M)
+        M.value = 1
+        self.assertAlmostEqual(expr.value, 1.0)
+        M.value = 0.5
+        self.assertAlmostEqual(expr.value, 0.75)
+        M.value = 0.25
+        self.assertAlmostEqual(expr.value, 0.4375)
+        M.value = 1
+        self.assertAlmostEqual(expr.value, 1.0)
+
+        # Test M as affine expression of parameter
+        expr = cp.huber(1.0, 0.25 * M + 0.25)
+        M.value = 1
+        self.assertAlmostEqual(expr.value, 0.75)
+        M.value = 0.5
+        self.assertAlmostEqual(expr.value, 0.609375)
+        M.value = 1
+        self.assertAlmostEqual(expr.value, 0.75)
+        # Test with DPP
+        x = cp.Variable()
+        M = cp.Parameter(nonneg=True)
+        problem = cp.Problem(cp.Minimize(x**2 + cp.huber(3*x-5, 2 * M + 0.15)), [x >= 0.5])
+
+        M.value = 0.425
+        result = problem.solve()
+        self.assertAlmostEqual(result, 2.5)
+        self.assertAlmostEqual(x.value, 1.5)
+
+        M.value = 0.0
+        result = problem.solve()
+        self.assertAlmostEqual(result, 1.2775)
+        self.assertAlmostEqual(x.value, 0.5)
+
+        M.value = 0.425
+        result = problem.solve()
+        self.assertAlmostEqual(result, 2.5)
+        self.assertAlmostEqual(x.value, 1.5)
 
     def test_sum_largest(self) -> None:
         """Test the sum_largest atom and related atoms.
@@ -1704,6 +1757,50 @@ class TestAtoms(BaseTest):
         # The optimized result should be smaller than the naive result,
         # where X of the naive result is I.
         self.assertTrue(prob.value < naiveRes)
+
+    def test_gen_torch_exp(self):
+        #Tests the functionality of gen_torch_exp
+        n = 3
+        m = 2
+        x = cp.Variable(n)
+        w = cp.Parameter(n)
+        w.value=np.ones(n)
+        Q = np.array([[2,2,1],[1,-1,2],[-1,-1,1]]) #3x3
+        a = 3*np.ones(n)
+        t1 = np.random.randn(n)
+        t2 = np.random.randn(n)
+        T1 = np.ones((m,n)) #2x3
+        T2 = np.ones((m,n)) #2x3
+        X = cp.Variable((m,n))
+        Y = cp.Parameter((m,n))
+
+        exp1 = x+w+a+x+w
+        exp2 = x+w+a+x@w+x
+        exp3 = cp.norm(Q@x+w+a)
+        exp4 = x-w
+        exp5 = w-x
+        exp6 = X@Y.T
+
+        torch_exp1, _ = exp1.gen_torch_exp()
+        torch_exp2, _ = exp2.gen_torch_exp()
+        torch_exp3, _ = exp3.gen_torch_exp()
+        torch_exp4, _ = exp4.gen_torch_exp()
+        torch_exp5, _ = exp5.gen_torch_exp()
+        torch_exp6, _ = exp6.gen_torch_exp()
+
+        test1 = torch_exp1(5*torch.ones(n), torch.tensor([1,2,3]))
+        test2 = torch_exp2(1*torch.ones(n), torch.tensor([1,2,3]))
+        test3 = torch_exp3(2*torch.ones(n), torch.tensor([2,1,2]))
+        test4 = torch_exp4(t1, t2)
+        test5 = torch_exp5(t1, t2)
+        test6 = torch_exp6(T1, T2)
+
+        self.assertTrue(all(test1==torch.tensor([15., 17., 19.])))
+        self.assertTrue(all(test2==torch.tensor([12, 13, 14])))
+        self.assertTrue(np.isclose(test3, 17.2626))
+        #Variables and parameters are treated similarly
+        self.assertTrue(all(np.isclose(test4, test5))) 
+        self.assertTrue((test6==n*np.ones((m,m))).all())
 
 class TestDotsort(BaseTest):
     """ Unit tests for the dotsort atom. """

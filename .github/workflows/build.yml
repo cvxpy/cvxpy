@@ -28,19 +28,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ ubuntu-20.04, macos-11, windows-2022 ]
+        os: [ ubuntu-20.04, macos-12, windows-2022 ]
         python-version: [ 3.9, "3.10", "3.11", "3.12" ]
-        include:
-          - os: ubuntu-20.04
-            python-version: 3.8
-            openmp: "True"
-          - os: ubuntu-20.04
-            python-version: 3.8
-          - os: macos-11
-            python-version: 3.8
-            single_action_config: "True"
-          - os: windows-2022
-            python-version: 3.8
 
     env:
       RUNNER_OS: ${{ matrix.os }}
@@ -84,16 +73,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ ubuntu-20.04, macos-11, windows-2022 ]
+        os: [ ubuntu-20.04, macos-12, windows-2022 ]
         python-version: [ 3.9, "3.10", "3.11", "3.12" ]
-        include:
-          - os: ubuntu-20.04
-            python-version: 3.8
-          - os: macos-11
-            python-version: 3.8
-            single_action_config: "True"
-          - os: windows-2022
-            python-version: 3.8
 
     env:
       RUNNER_OS: ${{ matrix.os }}
@@ -128,7 +109,7 @@ jobs:
           CIBW_SKIP: "*-win32 *-manylinux_i686 *-musllinux*"
           CIBW_ARCHS_MACOS: x86_64 universal2
           CIBW_ARCHS_LINUX: auto aarch64
-        uses: pypa/cibuildwheel@v2.17.0
+        uses: pypa/cibuildwheel@v2.19.1
 
       - name: Build source
         if: ${{github.event_name == 'push' && env.SINGLE_ACTION_CONFIG == 'True'}}
@@ -163,19 +144,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ ubuntu-20.04, macos-11, windows-2022 ]
+        os: [ ubuntu-20.04, macos-12, windows-2022 ]
         python-version: [ 3.9, "3.10", "3.11", "3.12" ]
-        include:
-          - os: ubuntu-20.04
-            python-version: 3.8
-            pip_intall: "True"
-          - os: macos-11
-            python-version: 3.8
-            pip_install: "True"
-            single_action_config: "True"
-          - os: windows-2022
-            python-version: 3.8
-            pip_install: "True"
 
     env:
       PYTHON_VERSION: ${{ matrix.python-version }}
@@ -200,11 +170,13 @@ jobs:
         shell: bash
         run: |
           # Mac has a different syntax for sed -i, this works across oses
+          sed -i.bak -e 's/name = "cvxpy"/name = "cvxpy-base"/g' pyproject.toml
           sed -i.bak '/clarabel >= /d' pyproject.toml
           sed -i.bak '/osqp >= /d' pyproject.toml
           sed -i.bak '/ecos >= /d' pyproject.toml
           sed -i.bak '/scs >= /d' pyproject.toml
-          rm -rf pyproject.toml.bak
+          sed -i.bak -e 's/name="cvxpy",/name="cvxpy-base",/g' setup.py
+          rm -rf pyproject.toml.bak setup.py.bak
 
       - name: Verify that we can build by pip-install on each OS.
         if: ${{env.PIP_INSTALL == 'True'}}
@@ -225,7 +197,7 @@ jobs:
           CIBW_SKIP: "*-win32 *-manylinux_i686 *-musllinux*"
           CIBW_ARCHS_MACOS: x86_64 universal2
           CIBW_ARCHS_LINUX: auto aarch64
-        uses: pypa/cibuildwheel@v2.17.0
+        uses: pypa/cibuildwheel@v2.19.1
 
       - name: Build source
         if: ${{github.event_name == 'push' && env.SINGLE_ACTION_CONFIG == 'True'}}
@@ -252,26 +224,3 @@ jobs:
         with:
           name: wheels-base-${{ matrix.os }}-${{ matrix.python-version }}
           path: ./wheelhouse
-
-  sonarcloud:
-    needs: build
-    name: SonarCloud
-    runs-on: ubuntu-latest
-    env:
-      SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
-      - uses: actions/download-artifact@v4
-        with:
-          name: coverage
-      - name: Check if environment variable exists
-        run: |
-          echo "RUN_SONAR=$( [[ -n "$SONAR_TOKEN" ]] && echo 'True' || echo 'False' )" >> $GITHUB_ENV
-      - name: SonarCloud Scan
-        if: ${{env.RUN_SONAR == 'True'}}
-        uses: SonarSource/sonarcloud-github-action@master
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Needed to get PR information, if any
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}

@@ -15,7 +15,7 @@ exclude = [
     "*__init__.py"
 ]
 # The minimum Python version that should be supported
-target-version = "py37"
+target-version = "py39"
 
 
 [tool.pytest.ini_options]
@@ -25,10 +25,11 @@ testpaths = [
 
 [build-system]
 requires = [
-    "oldest-supported-numpy",
+    "numpy >= 2.0.0",
     "scipy >= 1.1.0",
     # 68.1.0 Promoted pyproject.toml's [tool.setuptools] out of beta.
-    "setuptools>=68.1.0",
+    "setuptools >= 68.1.0",
+    "torch",
     "wheel",
     "pybind11"
 ]
@@ -46,10 +47,10 @@ dependencies = [
     "ecos >= 2",
     "clarabel >= 0.5.0",
     "scs >= 3.2.4.post1",
-    "numpy >= 1.15",
+    "numpy >= 1.20",
     "scipy >= 1.1.0",
 ]
-requires-python = ">=3.8"
+requires-python = ">=3.9"
 urls = {Homepage = "https://github.com/cvxpy/cvxpy"}
 license = {text = "Apache License, Version 2.0"}
 authors = [{name = "Steven Diamond", email = "stevend2@stanford.edu"},
@@ -81,6 +82,12 @@ SCIPY = ["scipy"]
 SCS = ["setuptools>65.5.1"]
 XPRESS = ["xpress"]
 DAQP = ["daqp"]
+testing = ["pytest", "hypothesis"]
+doc = ["sphinx",
+       "sphinxcontrib.jquery",
+       "sphinx-inline-tabs",
+       "sphinx-design",
+       "sphinx-immaterial>=0.11.7"]
 
 [project.readme]
 file = "README.md"

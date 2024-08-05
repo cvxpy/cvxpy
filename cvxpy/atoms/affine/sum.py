@@ -77,7 +77,8 @@ class Sum(AxisAtom, AffAtom):
     def graph_implementation(
         self, arg_objs, shape: Tuple[int, ...], data=None
     ) -> Tuple[lo.LinOp, List[Constraint]]:
-        """Sum the linear expression's entries.
+        """
+        Sum the linear expression's entries.
 
         Parameters
         ----------
@@ -85,39 +86,43 @@ class Sum(AxisAtom, AffAtom):
             LinExpr for each argument.
         shape : tuple
             The shape of the resulting expression.
-        data :
-            Additional data required by the atom.
+        data : [axis, keepdims]
+            The axis and keepdims parameters of the sum expression.
 
         Returns
         -------
         tuple
             (LinOp for objective, list of constraints)
         """
-        axis = data[0]
-        keepdims = data[1]
-        if axis is None:
-            obj = lu.sum_entries(arg_objs[0], shape=shape)
-        elif axis == 1:
-            if keepdims:
-                const_shape = (arg_objs[0].shape[1], 1)
-            else:
-                const_shape = (arg_objs[0].shape[1],)
-            ones = lu.create_const(np.ones(const_shape), const_shape)
-            obj = lu.rmul_expr(arg_objs[0], ones, shape)
-        else:  # axis == 0
-            if keepdims:
-                const_shape = (1, arg_objs[0].shape[0])
-            else:
-                const_shape = (arg_objs[0].shape[0],)
-            ones = lu.create_const(np.ones(const_shape), const_shape)
-            obj = lu.mul_expr(ones, arg_objs[0], shape)
-
+        axis, keepdims = data
+        # Note: added new case for summing with n-dimensional shapes and 
+        # multiple axes. Previous behavior is kept in the else statement.
+        if len(arg_objs[0].shape) > 2 or axis not in {None, 0, 1}:
+            obj = lu.sum_entries(arg_objs[0], shape=shape, axis=axis, keepdims=keepdims)
+        else:
+            if axis is None:
+                obj = lu.sum_entries(arg_objs[0], shape=shape)
+            elif axis == 1:
+                if keepdims:
+                    const_shape = (arg_objs[0].shape[1], 1)
+                else:
+                    const_shape = (arg_objs[0].shape[1],)
+                ones = lu.create_const(np.ones(const_shape), const_shape)
+                obj = lu.rmul_expr(arg_objs[0], ones, shape)
+            else:  # axis == 0
+                if keepdims:
+                    const_shape = (1, arg_objs[0].shape[0])
+                else:
+                    const_shape = (arg_objs[0].shape[0],)
+                ones = lu.create_const(np.ones(const_shape), const_shape)
+                obj = lu.mul_expr(ones, arg_objs[0], shape)
         return (obj, [])
 
 
 @wraps(Sum)
 def sum(expr, axis: Optional[int] = None, keepdims: bool = False):
-    """Wrapper for Sum class.
+    """
+    Wrapper for Sum class.
     """
     if isinstance(expr, list):
         return builtins.sum(expr)
