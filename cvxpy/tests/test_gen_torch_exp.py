@@ -17,8 +17,8 @@ class TestGenTorchExp(BaseTest):
         self.w.value=np.ones(self.n)
         self.Q = np.array([[2,2,1],[1,-1,2],[-1,-1,1]]) #3x3
         self.a = 3*np.ones(self.n)
-        self.t1 = np.random.randn(self.n)
-        self.t2 = np.random.randn(self.n)
+        self.t1 = torch.randn(self.n)
+        self.t2 = torch.randn(self.n)
         self.T1 = torch.ones((self.m,self.n), dtype=torch.float64) #2x3
         self.T2 = torch.ones((self.m,self.n), dtype=torch.float64) #2x3
         self.X = cp.Variable((self.m,self.n))
@@ -74,8 +74,8 @@ class TestGenTorchExp(BaseTest):
             self.assertTrue(all(np.isclose(test4, test5))) 
             self.assertTrue((test6==self.n*torch.ones((self.m,self.m))).all())
             self.assertTrue(torch.all(test7==torch.tensor(self.t1)@(3*torch.tensor(self.t2))).item())
-            self.assertTrue(np.all(self.t1==test8))
-            self.assertTrue(np.all(self.t1==test9))
+            self.assertTrue(torch.all(self.t1==test8))
+            self.assertTrue(torch.all(self.t1==test9))
             self.assertTrue(torch.all(test10==self.n).item())
             self.assertTrue(torch.all(test11_unordered==14*torch.ones(self.n)).item())
             self.assertTrue(torch.all(test11==13*torch.ones(self.n)).item())

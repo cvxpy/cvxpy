@@ -17,6 +17,7 @@ limitations under the License.
 import numpy as np
 import torch
 
+from cvxpy.expressions.variable import Variable
 import cvxpy.atoms as atoms
 import cvxpy.atoms.affine as affine
 import cvxpy.atoms.elementwise as elementwise
@@ -106,7 +107,8 @@ class TestTorchNumeric(BaseTest):
             }
 
     def test_atoms(self):
-        self._assert_torch_numeric(atoms.cummax(None))
+        dummy = Variable((7,7)) #Arbitrary dimensions
+        self._assert_torch_numeric(atoms.cummax(dummy))
         self._assert_torch_numeric(atoms.dist_ratio(None, 10, 5))
         self._assert_torch_numeric(atoms.dotsort(None, 4), repetitions=2)
         self._assert_torch_numeric(atoms.eye_minus_inv(np.eye(3)), (True, False, True))
@@ -134,6 +136,7 @@ class TestTorchNumeric(BaseTest):
         self._assert_torch_numeric(atoms.tr_inv(np.eye(3)), (False, False, True))
 
     def test_affine_atoms(self):
+        dummy = Variable((7,7)) #Arbitrary dimensions
         self._assert_torch_numeric(affine.binary_operators.MulExpression(np.eye(3), np.eye(3)),
                                    (True, False, True), 2, torch.float64, (1,0), (1,2))
         self._assert_torch_numeric(affine.binary_operators.multiply(np.eye(3), np.eye(3)),
@@ -141,7 +144,7 @@ class TestTorchNumeric(BaseTest):
         self._assert_torch_numeric(affine.binary_operators.DivExpression(np.eye(3), np.eye(3)),
                                    repetitions=2)
         self._assert_torch_numeric(affine.conj.conj(None))
-        self._assert_torch_numeric(affine.cumsum.cumsum(None))
+        self._assert_torch_numeric(affine.cumsum.cumsum(dummy))
         self._assert_torch_numeric(affine.diag.diag(None))
         self._assert_torch_numeric(affine.hstack.Hstack(np.ones(3), np.ones(3)), repetitions=2)
         self._assert_torch_numeric(affine.imag.imag(None), (True, True, True), 1, torch.cfloat,

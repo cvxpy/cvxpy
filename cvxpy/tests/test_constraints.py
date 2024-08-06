@@ -622,11 +622,11 @@ class TestConstraints(BaseTest):
         exp6, _ = constraint6.gen_torch_exp()
         exp7, _ = constraint7.gen_torch_exp()
 
-        x_test = np.array([1,2,3])
-        z_test = np.zeros(m)
-        w_test = np.array([-1,0,1])
-        T1 = np.ones((m,n))
-        T2 = np.ones((m,n))
+        x_test = torch.tensor([1,2,3], dtype=float)
+        z_test = torch.zeros(m, dtype=float)
+        w_test = torch.tensor([-1,0,1], dtype=float)
+        T1 = torch.ones((m,n), dtype=float)
+        T2 = torch.ones((m,n), dtype=float)
 
         test1 = exp1(x_test, z_test)
         test2 = exp2(z_test)

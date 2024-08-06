@@ -1759,6 +1759,7 @@ class TestAtoms(BaseTest):
         self.assertTrue(prob.value < naiveRes)
 
     def test_gen_torch_exp(self):
+        import torch
         #Tests the functionality of gen_torch_exp
         n = 3
         m = 2
@@ -1767,10 +1768,10 @@ class TestAtoms(BaseTest):
         w.value=np.ones(n)
         Q = np.array([[2,2,1],[1,-1,2],[-1,-1,1]]) #3x3
         a = 3*np.ones(n)
-        t1 = np.random.randn(n)
-        t2 = np.random.randn(n)
-        T1 = np.ones((m,n)) #2x3
-        T2 = np.ones((m,n)) #2x3
+        t1 = torch.randn(n)
+        t2 = torch.randn(n)
+        T1 = torch.ones((m,n)) #2x3
+        T2 = torch.ones((m,n)) #2x3
         X = cp.Variable((m,n))
         Y = cp.Parameter((m,n))
 
@@ -1788,9 +1789,9 @@ class TestAtoms(BaseTest):
         torch_exp5, _ = exp5.gen_torch_exp()
         torch_exp6, _ = exp6.gen_torch_exp()
 
-        test1 = torch_exp1(5*torch.ones(n), torch.tensor([1,2,3]))
-        test2 = torch_exp2(1*torch.ones(n), torch.tensor([1,2,3]))
-        test3 = torch_exp3(2*torch.ones(n), torch.tensor([2,1,2]))
+        test1 = torch_exp1(5*torch.ones(n), torch.tensor([1.,2.,3.]))
+        test2 = torch_exp2(1*torch.ones(n), torch.tensor([1.,2.,3.]))
+        test3 = torch_exp3(2*torch.ones(n, dtype=float), torch.tensor([2.,1.,2.]))
         test4 = torch_exp4(t1, t2)
         test5 = torch_exp5(t1, t2)
         test6 = torch_exp6(T1, T2)
