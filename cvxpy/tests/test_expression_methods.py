@@ -148,21 +148,21 @@ class TestExpressionMethods():
         a = np.arange(10)
         A_np = np.reshape(a, (5, 2), order='C')
         A_cp = Constant(a).reshape((5, 2), order='C')
-        np.allclose(A_np, A_cp.value)
+        assert np.allclose(A_np, A_cp.value)
 
         X = cp.Variable((5, 2))
         prob = cp.Problem(cp.Minimize(0), [X == A_cp])
         prob.solve(solver=cp.SCS)
-        np.allclose(A_np, X.value)
+        assert np.allclose(A_np, X.value)
 
         a_np = np.reshape(A_np, 10, order='C')
         a_cp = A_cp.reshape(10, order='C')
-        np.allclose(a_np, a_cp.value)
+        assert np.allclose(a_np, a_cp.value)
 
         x = cp.Variable(10)
         prob = cp.Problem(cp.Minimize(0), [x == a_cp])
         prob.solve(solver=cp.SCS)
-        np.allclose(a_np, x.value)
+        assert np.allclose(a_np, x.value)
 
         # Test more complex C-style reshape: matrix to another matrix
         b = np.array([
@@ -176,8 +176,8 @@ class TestExpressionMethods():
         X_reshaped = X.reshape((2, 6), order='C')
         prob = cp.Problem(cp.Minimize(0), [X_reshaped == b_reshaped])
         prob.solve(solver=cp.SCS)
-        np.allclose(b_reshaped, X_reshaped.value)
-        np.allclose(b, X.value)
+        assert np.allclose(b_reshaped, X_reshaped.value)
+        assert np.allclose(b, X.value)
 
         b_reshaped = b.reshape((2, 6), order='F')
         X = cp.Variable(b.shape)
@@ -191,8 +191,8 @@ class TestExpressionMethods():
             cp.reshape(X, (2, 6))
         prob = cp.Problem(cp.Minimize(0), [X_reshaped == b_reshaped])
         prob.solve(solver=cp.SCS)
-        np.allclose(b_reshaped, X_reshaped.value)
-        np.allclose(b, X.value)
+        assert np.allclose(b_reshaped, X_reshaped.value)
+        assert np.allclose(b, X.value)
 
     def test_reshape_negative_one(self) -> None:
         """Test the reshape class with -1 in the shape."""
