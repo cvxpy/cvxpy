@@ -20,7 +20,7 @@ from cvxpy import settings as s
 from cvxpy.reductions.reduction import Reduction
 
 
-class Solver(Reduction, metaclass=abc.ABCMeta):
+class Solver(Reduction):
     """Generic interface for a solver that uses reduction semantics
     """
 

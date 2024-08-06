@@ -27,7 +27,7 @@ from cvxpy.expressions.constants import Constant
 from cvxpy.utilities import performance_utils as perf
 
 
-class AffAtom(Atom, metaclass=abc.ABCMeta):
+class AffAtom(Atom):
     """ Abstract base class for affine atoms. """
     _allow_complex = True
 

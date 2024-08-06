@@ -23,7 +23,7 @@ import scipy.sparse as sp
 from cvxpy.atoms.atom import Atom
 
 
-class AxisAtom(Atom, metaclass=abc.ABCMeta):
+class AxisAtom(Atom):
     """
     An abstract base class for atoms that can be applied along an axis.
     """

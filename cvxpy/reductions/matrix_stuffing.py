@@ -103,7 +103,7 @@ def extract_mip_idx(variables) -> Tuple[List[int], List[int]]:
     return boolean_idx, integer_idx
 
 
-class MatrixStuffing(Reduction, metaclass=abc.ABCMeta):
+class MatrixStuffing(Reduction):
     """Stuffs a problem into a standard form for a family of solvers."""
 
     def apply(self, problem) -> None:

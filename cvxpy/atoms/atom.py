@@ -33,7 +33,7 @@ from cvxpy.utilities import performance_utils as perf
 from cvxpy.utilities.deterministic import unique_list
 
 
-class Atom(Expression, metaclass=abc.ABCMeta):
+class Atom(Expression):
     """ Abstract base class for atoms. """
     _allow_complex = False
     # args are the expressions passed into the Atom constructor.
