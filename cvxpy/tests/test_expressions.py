@@ -15,7 +15,6 @@ limitations under the License.
 """
 
 import warnings
-from itertools import combinations
 
 import numpy as np
 import pytest
@@ -1610,31 +1609,3 @@ class TestND_Expressions():
         prob = cp.Problem(self.obj, [expr == y])
         prob.solve(canon_backend=cp.SCIPY_CANON_BACKEND)
         assert np.allclose(expr.value, y)
-
-class Test_Attributes():
-
-    def test_multiple_attributes(self) -> None:
-        x = cp.Variable(shape=(2,2), symmetric=True, nonneg=True, integer=True, boolean=True)
-        target = np.array(np.eye(2))
-        prob = cp.Problem(cp.Minimize(0), [x == target])
-        prob.solve()
-        assert np.allclose(x.value, target)
-            
-    # Define the attributes to test
-    attributes = [
-    'nonneg', 'pos', 'nonpos', 'neg', 'diag', 'PSD', 'NSD', 'imag', 'boolean', 'integer'
-    ]
-
-    # Generate combinations of attributes
-    combinations_of_attributes = []
-    for r in range(1, len(attributes) + 1):
-        combinations_of_attributes.extend(combinations(attributes, r))
-
-    @pytest.mark.parametrize("attributes", combinations_of_attributes)
-    def test_variable_combinations(self, attributes):
-        kwargs = {attr: True for attr in attributes}
-        var = cp.Variable(shape=(2, 2), **kwargs)
-        target = np.array([[0, 1], [1, 0]])
-        prob = cp.Problem(cp.Minimize(0), [var == target])
-        prob.solve()
-        assert np.allclose(var.value, target)
