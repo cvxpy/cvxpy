@@ -233,7 +233,7 @@ class XPRESS(QpSolver):
             try:
                 results_dict[s.PRIMAL] = np.array(self.prob_.getSolution())
             except xp.SolverError:
-                results_dict[s.PRIMAL] = np.zeros(self.prob_.attributes.ncol)
+                results_dict[s.PRIMAL] = np.zeros(self.prob_.attributes.cols)
 
             status_map_lp, status_map_mip = get_status_maps()
 

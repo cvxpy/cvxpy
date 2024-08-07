@@ -68,7 +68,7 @@ class reshape(AffAtom):
             unspecified_index = shape.index(-1)
             specified = shape[1 - unspecified_index]
             assert specified >= 0, "Specified dimension must be nonnegative."
-            unspecified, remainder = divmod(size, shape[1 - unspecified_index])
+            unspecified, remainder = np.divmod(size, shape[1 - unspecified_index])
             if remainder != 0:
                 raise ValueError(
                     f"Cannot reshape expression of size {size} into shape {shape}."

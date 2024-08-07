@@ -261,9 +261,8 @@ class ConicSolver(Solver):
             # this is equivalent to but _much_ faster than:
             #    restruct_mat_rep = sp.block_diag([restruct_mat]*(problem.x.size + 1))
             #    restruct_A = restruct_mat_rep * problem.A
-            unspecified, remainder = divmod(problem.A.shape[0] *
-                                            problem.A.shape[1],
-                                            restruct_mat.shape[1])
+            unspecified, _ = np.divmod(problem.A.shape[0] * problem.A.shape[1],
+                                        restruct_mat.shape[1], dtype=np.int64)
             reshaped_A = problem.A.reshape(restruct_mat.shape[1],
                                            unspecified, order='F').tocsr()
             restructured_A = restruct_mat(reshaped_A).tocoo()
