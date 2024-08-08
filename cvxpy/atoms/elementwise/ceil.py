@@ -32,6 +32,11 @@ class ceil(Elementwise):
     def numeric(self, values):
         decimals = int(np.abs(np.log10(s.ATOM_EVAL_TOL)))
         return np.ceil(np.around(values[0], decimals=decimals))
+    
+    def torch_numeric(self, values):
+        import torch
+        decimals = int(np.abs(np.log10(s.ATOM_EVAL_TOL))) #np by design
+        return torch.ceil(torch.round(values[0], decimals=decimals))
 
     def sign_from_args(self) -> Tuple[bool, bool]:
         """Returns sign (is positive, is negative) of the expression.

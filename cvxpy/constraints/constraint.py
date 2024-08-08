@@ -259,3 +259,12 @@ class Constraint(u.Canonical):
             value: The value of the dual variable.
         """
         self.dual_variables[0].save_value(value)
+
+    def gen_torch_exp(self):
+        """ This function generates a torch expression (args[0]-args[1]). 
+            The order of the arguments is as it appears in args[0]-args[1] (from left to right)
+        """
+
+        exp = self.args[0]-self.args[1]
+        torch_exp, vars_dict = exp.gen_torch_exp()
+        return torch_exp, vars_dict

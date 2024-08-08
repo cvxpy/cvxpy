@@ -82,6 +82,10 @@ class cumsum(AffAtom, AxisAtom):
         """Convolve the two values.
         """
         return np.cumsum(values[0], axis=self.axis)
+    
+    def torch_numeric(self, values):
+        import torch
+        return torch.cumsum(values[0], axis=self.axis)
 
     def shape_from_args(self) -> Tuple[int, ...]:
         """The same as the input.

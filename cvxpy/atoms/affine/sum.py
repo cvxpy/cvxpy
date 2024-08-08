@@ -63,6 +63,16 @@ class Sum(AxisAtom, AffAtom):
         else:
             result = np.sum(values[0], axis=self.axis, keepdims=self.keepdims)
         return result
+    
+    def torch_numeric(self, values):
+        import torch
+        if intf.is_sparse(values[0]):
+            result = torch.sum(values[0], axis=self.axis)
+            if not self.keepdims and self.axis is not None:
+                result = result.A.flatten()
+        else:
+            result = torch.sum(values[0], axis=self.axis, keepdims=self.keepdims)
+        return result
 
     def graph_implementation(
         self, arg_objs, shape: Tuple[int, ...], data=None

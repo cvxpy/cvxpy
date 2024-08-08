@@ -35,6 +35,10 @@ class sigma_max(Atom):
         """Returns the largest singular value of A.
         """
         return LA.norm(values[0], 2)
+    
+    def torch_numeric(self, values):
+        import torch
+        return torch.linalg.norm(values[0], 2)
 
     def _grad(self, values):
         """Gives the (sub/super)gradient of the atom w.r.t. each argument.

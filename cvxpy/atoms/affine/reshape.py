@@ -93,6 +93,14 @@ class reshape(AffAtom):
         """Reshape the value.
         """
         return np.reshape(values[0], self.shape, self.order)
+    
+    def torch_numeric(self, values):
+        import torch
+        from cvxpy.utilities.torch_utils import tensor_reshape_fortran
+
+        if self.order == "F":
+            return tensor_reshape_fortran(values[0], self.shape)
+        return torch.reshape(values[0], self.shape) #order="C" reshaping
 
     def validate_arguments(self) -> None:
         """Checks that the new shape has the same number of entries as the old.

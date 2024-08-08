@@ -45,6 +45,10 @@ class pf_eigenvalue(Atom):
 
     def numeric(self, values):
         return np.max(np.abs(np.linalg.eig(values[0])[0]))
+    
+    def torch_numeric(self, values):
+        import torch
+        return torch.max(torch.abs(torch.linalg.eig(values[0])[0]))
 
     def name(self) -> str:
         return "%s(%s)" % (self.__class__.__name__, self.args[0])

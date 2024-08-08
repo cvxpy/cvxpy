@@ -32,6 +32,13 @@ class sign(Atom):
         x[x > 0] = 1.0
         x[x <= 0] = -1.0
         return x
+    
+    def torch_numeric(self, values):
+        import torch
+        x = values[0]
+        x = torch.sign(x)
+        x[x==0] = -1.0
+        return x
 
     def shape_from_args(self) -> Tuple[int, ...]:
         """Returns the (row, col) shape of the expression.

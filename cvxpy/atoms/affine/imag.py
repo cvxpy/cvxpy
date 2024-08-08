@@ -30,6 +30,10 @@ class imag(AffAtom):
         """Convert the vector constant into a diagonal matrix.
         """
         return np.imag(values[0])
+    
+    def torch_numeric(self, values):
+        import torch
+        return torch.imag(values[0])
 
     def shape_from_args(self) -> Tuple[int, ...]:
         """Returns the shape of the expression.

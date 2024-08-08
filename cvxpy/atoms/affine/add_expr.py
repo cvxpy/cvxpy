@@ -56,6 +56,10 @@ class AddExpression(AffAtom):
     def numeric(self, values: Iterable[Any]) -> Any:
         return reduce(op.add, values)
 
+    def torch_numeric(self, values):
+        import torch
+        return reduce(torch.add, values)
+
     def is_atom_log_log_convex(self) -> bool:
         """Is the atom log-log convex?
         """

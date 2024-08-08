@@ -33,6 +33,10 @@ class log(Elementwise):
         """Returns the elementwise natural log of x.
         """
         return np.log(values[0])
+    
+    def torch_numeric(self, values):
+        import torch
+        return torch.log(values[0])
 
     def sign_from_args(self) -> Tuple[bool, bool]:
         """Returns sign (is positive, is negative) of the expression.

@@ -58,6 +58,11 @@ class gmatmul(Atom):
         """
         logX = np.log(values[0])
         return np.exp(self.A.value @ logX)
+    
+    def torch_numeric(self, values):
+        import torch
+        logX = torch.log(values[0])
+        return torch.exp(torch.tensor(self.A.value) @ logX)
 
     def name(self) -> str:
         return "%s(%s, %s)" % (self.__class__.__name__,
