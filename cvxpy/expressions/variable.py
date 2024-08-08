@@ -29,7 +29,7 @@ class Variable(Leaf):
     """
 
     def __init__(
-        self, shape: int | Iterable[int, ...] = (), name: str | None = None,
+        self, shape: int | Iterable[int] = (), name: str | None = None,
         var_id: int | None = None, **kwargs: Any
     ):
         if var_id is None:

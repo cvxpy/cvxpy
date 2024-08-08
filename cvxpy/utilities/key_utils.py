@@ -16,8 +16,6 @@ limitations under the License.
 
 # Utility functions to handle indexing/slicing into an expression.
 
-from __future__ import division
-
 import numbers
 from typing import Optional, Tuple
 

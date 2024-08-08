@@ -165,7 +165,8 @@ class ConicSolver(Solver):
         # Default is identity.
         return sp.eye(constr.size, format='csc')
 
-    def format_constraints(self, problem, exp_cone_order):
+    @classmethod
+    def format_constraints(cls, problem, exp_cone_order):
         """
         Returns a ParamConeProg whose problem data tensors will yield the
         coefficient "A" and offset "b" for the constraint in the following
@@ -249,7 +250,7 @@ class ConicSolver(Solver):
                     arg_mats.append(space_mat)
                 restruct_mat.append(sp.hstack(arg_mats))
             elif type(constr) == PSD:
-                restruct_mat.append(self.psd_format_mat(constr))
+                restruct_mat.append(cls.psd_format_mat(constr))
             else:
                 raise ValueError("Unsupported constraint type.")
 

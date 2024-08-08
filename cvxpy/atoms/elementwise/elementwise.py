@@ -14,7 +14,6 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import abc
 from typing import Tuple
 
 import numpy as np
@@ -27,7 +26,6 @@ from cvxpy.atoms.atom import Atom
 
 class Elementwise(Atom):
     """ Abstract base class for elementwise atoms. """
-    __metaclass__ = abc.ABCMeta
 
     def shape_from_args(self) -> Tuple[int, ...]:
         """Shape is the same as the sum of the arguments.

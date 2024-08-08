@@ -94,6 +94,11 @@ class indicator(Expression):
         """
         return ()
 
+    def is_dpp(self, context: str = 'dcp') -> bool:
+        """The expression is a disciplined parameterized expression.
+        """
+        return False
+
     def name(self) -> str:
         """Returns the string representation of the expression.
         """

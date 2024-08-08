@@ -49,7 +49,7 @@ class TestDualize(BaseTest):
 
         # Dualize the problem, reconstruct a high-level cvxpy problem for the dual.
         # Solve the problem, invert the dualize reduction.
-        cone_prog = ConicSolver().format_constraints(cone_prog, exp_cone_order=[0, 1, 2])
+        cone_prog = ConicSolver.format_constraints(cone_prog, exp_cone_order=[0, 1, 2])
         data, inv_data = a2d.Dualize.apply(cone_prog)
         A, b, c, K_dir = data[s.A], data[s.B], data[s.C], data['K_dir']
         y = cp.Variable(shape=(A.shape[1],))
@@ -205,7 +205,7 @@ class TestSlacks(BaseTest):
 
         # apply the Slacks reduction, reconstruct a high-level problem,
         # solve the problem, invert the reduction.
-        cone_prog = ConicSolver().format_constraints(cone_prog, exp_cone_order=[0, 1, 2])
+        cone_prog = ConicSolver.format_constraints(cone_prog, exp_cone_order=[0, 1, 2])
         data, inv_data = a2d.Slacks.apply(cone_prog, affine)
         G, h, f, K_dir, K_aff = data[s.A], data[s.B], data[s.C], data['K_dir'], data['K_aff']
         G = sp.sparse.csc_matrix(G)

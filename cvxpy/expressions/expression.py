@@ -110,8 +110,6 @@ class Expression(u.Canonical):
     expressions (e.g., the sum of two expressions) and constraints.
     """
 
-    __metaclass__ = abc.ABCMeta
-
     # Handles arithmetic operator overloading with Numpy.
     __array_priority__ = 100
 
@@ -442,7 +440,8 @@ class Expression(u.Canonical):
         """
         raise NotImplementedError()
 
-    @abc.abstractproperty
+    @property
+    @abc.abstractmethod
     def shape(self) -> Tuple[int, ...]:
         """tuple : The expression dimensions.
         """
@@ -453,7 +452,8 @@ class Expression(u.Canonical):
         """
         return not self.is_complex()
 
-    @abc.abstractproperty
+    @property
+    @abc.abstractmethod
     def is_imag(self) -> bool:
         """Is the Leaf imaginary?
         """

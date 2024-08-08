@@ -13,7 +13,6 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
-import abc
 from typing import Any, List, Tuple
 
 import scipy.sparse as sp
@@ -29,7 +28,6 @@ from cvxpy.utilities import performance_utils as perf
 
 class AffAtom(Atom):
     """ Abstract base class for affine atoms. """
-    __metaclass__ = abc.ABCMeta
     _allow_complex = True
 
     def sign_from_args(self) -> Tuple[bool, bool]:
