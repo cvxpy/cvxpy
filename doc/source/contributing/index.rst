@@ -43,12 +43,11 @@ We'll be happy to provide guidance and advice.
 
 Small scope projects
  - `State required cone types for atoms <https://github.com/cvxpy/cvxpy/issues/574>`_.
- - `Specify a list of solvers sorted by priority rather than just a single solver <https://github.com/cvxpy/cvxpy/issues/1529>`_.
- - GraphBLAS Canonicalization Backend for small performance improvements compared to SciPy sparse.
- - `Implement cp.vdot as replacement for cp.scalar_product <https://github.com/cvxpy/cvxpy/issues/2336>`_
+ - CuPy Canonicalization Backend for performance improvements over SciPy. (requires CUDA)
  - Introduce sparse variables in constraint formulation.
  - Propagate variable bounds to solvers.
  - Add QDLDL as another option for sparse Cholesky.
+ - Add search and filter functionality for the atoms table.
 
 Medium scope projects
  - `Support integer variables in geometric programming <https://github.com/cvxpy/cvxpy/issues/1590>`_.
@@ -64,9 +63,7 @@ Large scope projects
  - Expand use of power cone constraints [`1222 <https://github.com/cvxpy/cvxpy/issues/1222>`_, `1223 <https://github.com/cvxpy/cvxpy/issues/1223>`_].
  - Problem serialization [`532 <https://github.com/cvxpy/cvxpy/issues/532>`_, `1333 <https://github.com/cvxpy/cvxpy/issues/1333>`_, `1438 <https://github.com/cvxpy/cvxpy/issues/1438>`_].
  - Quadratically Constrained QP support.
- - Rust Canonicalization Backend to potentially replace cvxcore.
- - `Support for n-dimensional expressions, variables, parameters, etc <https://github.com/cvxpy/cvxpy/issues/198>`_.
- - Full compatibility with NumPy broadcasting rules. This will be a breaking change, and can only go in CVXPY 2.0.
+ - Replace cvxcore (Cython or Rust Backend).
 
 
 General principles
