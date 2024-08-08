@@ -101,8 +101,7 @@ class CvxAttr2Constr(Reduction):
     """Expand convex variable attributes into constraints."""
 
     def __init__(self, problem=None, reduce_bounds: bool = False) -> None:
-        """If reduce_bounds, reduce lower and upper bounds on variables.
-        """
+        """If reduce_bounds, reduce lower and upper bounds on variables."""
         self.reduce_bounds = reduce_bounds
         super(CvxAttr2Constr, self).__init__(problem=problem)
 
@@ -138,10 +137,7 @@ class CvxAttr2Constr(Reduction):
                 for key in reduction_attributes:
                     if new_attr[key]:
                         new_var = True
-                        if key == 'bounds':
-                            new_attr[key] = None
-                        else:
-                            new_attr[key] = False
+                        new_attr[key] = None if key == 'bounds' else False
 
                 if attributes_present([var], SYMMETRIC_ATTRIBUTES):
                     n = var.shape[0]
@@ -152,6 +148,16 @@ class CvxAttr2Constr(Reduction):
                     fill_coeff = Constant(upper_tri_to_full(n))
                     full_mat = fill_coeff @ upper_tri
                     obj = reshape(full_mat, (n, n))
+                elif var.attributes['sparsity']:
+                    n = len(var.sparse_idx[0])
+                    sparse_var = Variable(n, var_id=var.id, **new_attr)
+                    sparse_var.set_variable_of_provenance(var)
+                    id2new_var[var.id] = sparse_var
+                    row_idx = np.ravel_multi_index(var.sparse_idx, var.shape)
+                    col_idx = np.arange(n)
+                    matrix = Constant(sp.csc_matrix((np.ones(n), (row_idx, col_idx)),
+                                                    shape=(np.prod(var.shape, dtype=int), n)))
+                    obj = reshape(matrix @ sparse_var, var.shape)
                 elif var.attributes['diag']:
                     diag_var = Variable(var.shape[0], var_id=var.id, **new_attr)
                     diag_var.set_variable_of_provenance(var)
@@ -171,7 +177,6 @@ class CvxAttr2Constr(Reduction):
                     constr.append(obj >> 0)
                 elif var.attributes['NSD']:
                     constr.append(obj << 0)
-
                 # Add in constraints from bounds.
                 if self.reduce_bounds:
                     var._bound_domain(obj, constr)

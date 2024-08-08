@@ -194,7 +194,7 @@ class TestDomain(BaseTest):
 class TestAttributes():
     def test_sparsity_pattern(self):
         X = cp.Variable((3, 3), sparsity=[(0, 0), (1, 1), (2, 2)])
-        assert X.sparse_idx == {(0, 0), (1, 1), (2, 2)}
+        assert X.sparse_idx == ((0, 1, 2), (0, 1, 2))
         prob = cp.Problem(cp.Minimize(cp.norm(X, 'fro')))
         assert prob.solve(verbose=True) == 0
         assert X.value is not None
