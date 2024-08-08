@@ -37,7 +37,8 @@ CONVEX_ATTRIBUTES = [
     'diag',
     'PSD',
     'NSD',
-    'bounds'
+    'bounds',
+    'sparsity'
 ]
 
 # Attributes that define lower and upper bounds.
@@ -57,14 +58,14 @@ SYMMETRIC_ATTRIBUTES = [
 ]
 
 
-def convex_attributes(variables):
+def convex_attributes(variables) -> List[str]:
     """Returns a list of the (constraint-generating) convex attributes present
        among the variables.
     """
     return attributes_present(variables, CONVEX_ATTRIBUTES)
 
 
-def attributes_present(variables, attr_map):
+def attributes_present(variables, attr_map) -> List[str]:
     """Returns a list of the relevant attributes present
        among the variables.
     """
@@ -87,7 +88,7 @@ def recover_value_for_variable(variable, lowered_value, project: bool = True):
         return lowered_value
 
 
-def lower_value(variable, value):
+def lower_value(variable, value) -> np.ndarray:
     if attributes_present([variable], SYMMETRIC_ATTRIBUTES):
         return value[np.triu_indices(variable.shape[0])]
     elif variable.attributes['diag']:
@@ -136,11 +137,10 @@ class CvxAttr2Constr(Reduction):
                 new_attr = var.attributes.copy()
                 for key in reduction_attributes:
                     if new_attr[key]:
+                        new_var = True
                         if key == 'bounds':
-                            new_var = True
                             new_attr[key] = None
                         else:
-                            new_var = True
                             new_attr[key] = False
 
                 if attributes_present([var], SYMMETRIC_ATTRIBUTES):
@@ -185,7 +185,7 @@ class CvxAttr2Constr(Reduction):
         inverse_data = (id2new_var, id2old_var, cons_id_map)
         return cvxtypes.problem()(obj, constr), inverse_data
 
-    def invert(self, solution, inverse_data):
+    def invert(self, solution, inverse_data) -> Solution:
         if not inverse_data:
             return solution
 
