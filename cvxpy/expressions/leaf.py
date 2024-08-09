@@ -422,7 +422,9 @@ class Leaf(expression.Expression):
                 w[bad] = 0
             return (V * w).dot(V.T)
         elif self.attributes['sparsity']:
-            return np.where(val[self.sparse_idx], val, 0)
+            new_val = np.zeros(self.shape)
+            new_val[self.sparse_idx] = val
+            return new_val
         else:
             return val
 
