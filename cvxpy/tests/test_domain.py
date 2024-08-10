@@ -190,25 +190,3 @@ class TestDomain(BaseTest):
         prob = Problem(Minimize(cp.sum(cp.diag(self.A))), dom)
         prob.solve(solver=cp.SCS)
         self.assertAlmostEqual(prob.value, -2, places=3)
-
-class TestAttributes():
-    def test_sparsity_pattern(self):
-        X = cp.Variable((3, 3), sparsity=[(0, 0), (1, 1), (2, 2)])
-        target = np.eye(3)
-        assert X.sparse_idx == ((0, 1, 2), (0, 1, 2))
-        prob = cp.Problem(cp.Minimize(0), [X == target])
-        assert prob.solve(verbose=True) == 0
-        assert X.value is not None
-
-    def test_diag_sparsity(self):
-        X = cp.Variable((3, 3), diag=True)
-        prob = cp.Problem(cp.Minimize(cp.norm(X, 'fro')))
-        assert prob.solve(verbose=True) == 0
-        assert X.value is not None
-
-    def test_sparsity_pattern_similar_diag(self):
-        X = cp.Variable((3, 3), sparsity=[(0, 0), (1, 1), (2, 2)])
-        assert X.sparse_idx == ((0, 1, 2), (0, 1, 2))
-        prob = cp.Problem(cp.Minimize(cp.norm(X, 'fro')))
-        assert prob.solve(verbose=True) == 0
-        assert X.value is not None

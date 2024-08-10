@@ -141,7 +141,11 @@ class Leaf(expression.Expression):
         else:
             self.integer_idx = {}
         if sparsity:
-            self.sparse_idx = tuple(zip(*sparsity))
+            if len(sparsity) != len(self._shape):
+                raise ValueError("Length of sparsity must match the length of shape.")
+            if not all(len(i) == len(sparsity[0]) for i in sparsity):
+                raise ValueError("All elements in sparsity must have the same length.")
+            self.sparse_idx = sparsity
         else:
             self.sparse_idx = {}
         # Only one attribute be True (except can be boolean and integer).

@@ -82,6 +82,7 @@ def recover_value_for_variable(variable, lowered_value, project: bool = True):
         idxs = np.triu_indices(n)
         value[idxs] = lowered_value.flatten()
         return value + value.T - np.diag(value.diagonal())
+    #TODO add case for sparsity
     elif project:
         return variable.project(lowered_value)
     else:
