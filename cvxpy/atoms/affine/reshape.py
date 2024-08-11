@@ -17,7 +17,7 @@ from __future__ import annotations
 
 import numbers
 import warnings
-from typing import List, Optional, Tuple
+from typing import List, Literal, Tuple
 
 import numpy as np
 
@@ -48,7 +48,12 @@ class reshape(AffAtom):
     order : F(ortran) or C
     """
 
-    def __init__(self, expr, shape: int | Tuple[int, ...], order: Optional[str] = None) -> None:
+    def __init__(
+        self,
+        expr,
+        shape: int | Tuple[int, ...],
+        order: Literal["F", "C", None] = None
+    ) -> None:
         if isinstance(shape, numbers.Integral):
             shape = (int(shape),)
         if not s.ALLOW_ND_EXPR and len(shape) > 2:

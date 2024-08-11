@@ -486,6 +486,6 @@ def outer(x, y):
     if y.ndim > 1:
         raise ValueError("y must be a vector.")
     
-    x = reshape(x, (x.size, 1))
-    y = reshape(y, (1, y.size))
+    x = reshape(x, (x.size, 1), order='F')
+    y = reshape(y, (1, y.size), order='F')
     return x @ y

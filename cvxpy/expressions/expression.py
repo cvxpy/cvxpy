@@ -17,7 +17,7 @@ limitations under the License.
 import abc
 import warnings
 from functools import wraps
-from typing import List, Optional, Tuple
+from typing import List, Literal, Tuple
 
 import numpy as np
 
@@ -488,8 +488,9 @@ class Expression(u.Canonical):
         """
         return len(self.shape)
 
-    def flatten(self, order: Optional[str] = None):
-        """Vectorizes the expression.
+    def flatten(self, order: Literal["F", "C", None] = None):
+        """
+        Vectorizes the expression.
 
         order: column-major ('F') or row-major ('C') order.
         """
@@ -865,7 +866,7 @@ class Expression(u.Canonical):
         from cvxpy import ptp
         return ptp(self, axis, keepdims)
 
-    def reshape(self, shape, order: Optional[str] = None):
+    def reshape(self, shape, order: Literal["F", "C", None] = None):
         """
         Equivalent to `cp.reshape(self, shape, order)`.
         """

@@ -141,7 +141,7 @@ def vec_to_upper_tri(expr, strict: bool = False):
     P_cols = np.arange(ell)
     P_vals = np.ones(P_cols.size)
     P = sp.csc_matrix((P_vals, (P_rows, P_cols)), shape=(n * n, ell))
-    return reshape(P @ expr, (n, n)).T
+    return reshape(P @ expr, (n, n), order='F').T
 
 
 def upper_tri_to_full(n: int) -> sp.csc_matrix:
