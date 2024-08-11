@@ -326,7 +326,7 @@ class TestConstraints(BaseTest):
             con = PowConeND(W, z, alpha.reshape((n, 1)))
         with self.assertRaises(ValueError):
             # wrong axis
-            con = PowConeND(reshape_atom(W, (n, 1)), z,
+            con = PowConeND(reshape_atom(W, (n, 1), order='F'), z,
                             alpha.reshape((n, 1)),
                             axis=1)
         # Compute a violation

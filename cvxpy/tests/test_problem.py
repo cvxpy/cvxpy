@@ -316,7 +316,7 @@ class TestProblem(BaseTest):
                         p.solve(verbose=verbose, solver=solver)
 
                     if PSD in SOLVER_MAP_CONIC[solver].SUPPORTED_CONSTRAINTS:
-                        a_mat = cp.reshape(self.a, shape=(1, 1))
+                        a_mat = cp.reshape(self.a, shape=(1, 1), order='F')
                         p = Problem(cp.Minimize(self.a), [cp.lambda_min(a_mat) >= 2])
                         p.solve(verbose=verbose, solver=solver)
 
@@ -363,7 +363,7 @@ class TestProblem(BaseTest):
                         p.solve(solver_verbose=solver_verbose, solver=solver)
 
                     if PSD in SOLVER_MAP_CONIC[solver].SUPPORTED_CONSTRAINTS:
-                        a_mat = cp.reshape(self.a, shape=(1, 1))
+                        a_mat = cp.reshape(self.a, shape=(1, 1), order='F')
                         p = Problem(cp.Minimize(self.a), [cp.lambda_min(a_mat) >= 2])
                         p.solve(solver_verbose=solver_verbose, solver=solver)
 
@@ -1466,14 +1466,14 @@ class TestProblem(BaseTest):
         """Tests problems with reshape.
         """
         # Test on scalars.
-        self.assertEqual(cp.reshape(1, (1, 1)).value, 1)
+        self.assertEqual(cp.reshape(1, (1, 1), order='F').value, 1)
 
         # Test vector to matrix.
         x = Variable(4)
         mat = numpy.array([[1, -1], [2, -2]]).T
         vec = numpy.array([[1, 2, 3, 4]]).T
         vec_mat = numpy.array([[1, 2], [3, 4]]).T
-        expr = cp.reshape(x, (2, 2))
+        expr = cp.reshape(x, (2, 2), order='F')
         obj = cp.Minimize(cp.sum(mat @ expr))
         prob = Problem(obj, [x[:, None] == vec])
         result = prob.solve(solver=cp.SCS)
@@ -1481,17 +1481,17 @@ class TestProblem(BaseTest):
 
         # Test on matrix to vector.
         c = [1, 2, 3, 4]
-        expr = cp.reshape(self.A, (4, 1))
+        expr = cp.reshape(self.A, (4, 1), order='F')
         obj = cp.Minimize(expr.T @ c)
         constraints = [self.A == [[-1, -2], [3, 4]]]
         prob = Problem(obj, constraints)
         result = prob.solve(solver=cp.SCS)
         self.assertAlmostEqual(result, 20)
         self.assertItemsAlmostEqual(expr.value, [-1, -2, 3, 4])
-        self.assertItemsAlmostEqual(cp.reshape(expr, (2, 2)).value, [-1, -2, 3, 4])
+        self.assertItemsAlmostEqual(cp.reshape(expr, (2, 2), order='F').value, [-1, -2, 3, 4])
 
         # Test matrix to matrix.
-        expr = cp.reshape(self.C, (2, 3))
+        expr = cp.reshape(self.C, (2, 3), order='F')
         mat = numpy.array([[1, -1], [2, -2]])
         C_mat = numpy.array([[1, 4], [2, 5], [3, 6]])
         obj = cp.Minimize(cp.sum(mat @ expr))
@@ -1503,14 +1503,14 @@ class TestProblem(BaseTest):
 
         # Test promoted expressions.
         c = numpy.array([[1, -1], [2, -2]]).T
-        expr = cp.reshape(c * self.a, (1, 4))
+        expr = cp.reshape(c * self.a, (1, 4), order='F')
         obj = cp.Minimize(expr @ [1, 2, 3, 4])
         prob = Problem(obj, [self.a == 2])
         result = prob.solve(solver=cp.SCS)
         self.assertAlmostEqual(result, -6)
         self.assertItemsAlmostEqual(expr.value, 2*c)
 
-        expr = cp.reshape(c * self.a, (4, 1))
+        expr = cp.reshape(c * self.a, (4, 1), order='F')
         obj = cp.Minimize(expr.T @ [1, 2, 3, 4])
         prob = Problem(obj, [self.a == 2])
         result = prob.solve(solver=cp.SCS)
@@ -2102,7 +2102,7 @@ class TestProblem(BaseTest):
 
         stacked_flattened = cp.vstack([cp.vec(x), cp.vec(y)])  # (2, 10)
         minimum = cp.min(stacked_flattened, axis=0)  # (10,)
-        reshaped_minimum = cp.reshape(minimum, (5, 2))  # (5, 2)
+        reshaped_minimum = cp.reshape(minimum, (5, 2), order='F')  # (5, 2)
 
         obj = cp.sum(reshaped_minimum)
         problem = cp.Problem(cp.Maximize(obj), [x == 1, y == 2])
