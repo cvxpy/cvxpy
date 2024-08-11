@@ -655,15 +655,15 @@ class TestAtoms(BaseTest):
     def test_vec(self) -> None:
         """Test the vec atom.
         """
-        expr = cp.vec(self.C)
+        expr = cp.vec(self.C, order='F')
         self.assertEqual(expr.sign, s.UNKNOWN)
         self.assertEqual(expr.curvature, s.AFFINE)
         self.assertEqual(expr.shape, (6,))
 
-        expr = cp.vec(self.x)
+        expr = cp.vec(self.x, order='F')
         self.assertEqual(expr.shape, (2,))
 
-        expr = cp.vec(cp.square(self.a))
+        expr = cp.vec(cp.square(self.a), order='F')
         self.assertEqual(expr.sign, s.NONNEG)
         self.assertEqual(expr.curvature, s.CONVEX)
         self.assertEqual(expr.shape, (1,))
@@ -1501,7 +1501,8 @@ class TestAtoms(BaseTest):
             cp.outer(d, A)
 
         # allow 2D inputs once row-major flattening is the default
-        assert np.allclose(cp.vec(np.array([[1, 2], [3, 4]])).value, np.array([1, 3, 2, 4]))
+        assert np.allclose(cp.vec(np.array([[1, 2], [3, 4]]), order='F').value, 
+                           np.array([1, 3, 2, 4]))
 
     def test_conj(self) -> None:
         """Test conj.
@@ -1705,7 +1706,7 @@ class TestAtoms(BaseTest):
         self.assertItemsAlmostEqual(x.value, reshaped)
 
         reshaped = np.reshape(A, (2, 5), order='F')
-        expr = cp.vec(x)
+        expr = cp.vec(x, order='F')
         cp.Problem(cp.Minimize(0), [expr == A]).solve()
         self.assertItemsAlmostEqual(x.value, reshaped)
         expr = cp.Constant(A).flatten()

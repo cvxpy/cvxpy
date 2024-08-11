@@ -1539,7 +1539,7 @@ class TestProblem(BaseTest):
         """Tests problems with vec.
         """
         c = [1, 2, 3, 4]
-        expr = cp.vec(self.A)
+        expr = cp.vec(self.A, order='F')
         obj = cp.Minimize(expr.T @ c)
         constraints = [self.A == [[-1, -2], [3, 4]]]
         prob = Problem(obj, constraints)
@@ -2100,7 +2100,7 @@ class TestProblem(BaseTest):
         x = cp.Variable((5, 2))
         y = cp.Variable((5, 2))
 
-        stacked_flattened = cp.vstack([cp.vec(x), cp.vec(y)])  # (2, 10)
+        stacked_flattened = cp.vstack([cp.vec(x, order='F'), cp.vec(y, order='F')])  # (2, 10)
         minimum = cp.min(stacked_flattened, axis=0)  # (10,)
         reshaped_minimum = cp.reshape(minimum, (5, 2), order='F')  # (5, 2)
 

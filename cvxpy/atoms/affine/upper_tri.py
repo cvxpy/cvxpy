@@ -117,7 +117,7 @@ def vec_to_upper_tri(expr, strict: bool = False):
     if not expr.is_vector():
         raise ValueError("The input must be a vector.")
     if expr.ndim != 1:
-        expr = vec(expr)
+        expr = vec(expr, order='F')
 
     ell = expr.shape[0]
     if strict:

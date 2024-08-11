@@ -56,7 +56,7 @@ def special_index_canon(expr, args):
     # Select the chosen entries from expr.
     arg = args[0]
     identity = sp.eye(arg.size).tocsc()
-    lowered = reshape(identity[select_vec] @ vec(arg), final_shape, order='F')
+    lowered = reshape(identity[select_vec] @ vec(arg, order='F'), final_shape, order='F')
     return lowered, []
 
 
