@@ -24,8 +24,8 @@ def abs_canon(expr, real_args, imag_args, real2imag):
     elif imag_args[0] is None:  # Real
         output = abs(real_args[0])
     else:  # Complex.
-        real = real_args[0].flatten()
-        imag = imag_args[0].flatten()
+        real = real_args[0].flatten(order='F')
+        imag = imag_args[0].flatten(order='F')
         norms = pnorm(vstack([real, imag]), p=2, axis=0)
         output = reshape(norms, real_args[0].shape, order='F')
     return output, None

@@ -74,12 +74,12 @@ def attributes_present(variables, attr_map):
 
 def recover_value_for_variable(variable, lowered_value, project: bool = True):
     if variable.attributes['diag']:
-        return sp.diags(lowered_value.flatten())
+        return sp.diags(lowered_value.flatten(order='F'))
     elif attributes_present([variable], SYMMETRIC_ATTRIBUTES):
         n = variable.shape[0]
         value = np.zeros(variable.shape)
         idxs = np.triu_indices(n)
-        value[idxs] = lowered_value.flatten()
+        value[idxs] = lowered_value.flatten(order='F')
         return value + value.T - np.diag(value.diagonal())
     elif project:
         return variable.project(lowered_value)

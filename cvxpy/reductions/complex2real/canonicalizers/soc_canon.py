@@ -29,8 +29,8 @@ def soc_canon(expr, real_args, imag_args, real2imag):
                       axis=expr.axis, constr_id=expr.id)]
     else:  # Complex.
         orig_shape = real_args[1].shape
-        real = real_args[1].flatten()
-        imag = imag_args[1].flatten()
+        real = real_args[1].flatten(order='F')
+        imag = imag_args[1].flatten(order='F')
         flat_X = Variable(real.shape)
         inner_SOC = SOC(flat_X,
                         vstack([real, imag]),

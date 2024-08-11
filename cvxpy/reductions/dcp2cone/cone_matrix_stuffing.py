@@ -360,11 +360,14 @@ class ConeMatrixStuffing(MatrixStuffing):
             elif isinstance(con, PowCone3D) and con.args[0].ndim > 1:
                 x, y, z = con.args
                 alpha = con.alpha
-                con = PowCone3D(x.flatten(), y.flatten(), z.flatten(), alpha.flatten(),
+                con = PowCone3D(x.flatten(order='F'),
+                                y.flatten(order='F'),
+                                z.flatten(order='F'),
+                                alpha.flatten(order='F'),
                                 constr_id=con.constr_id)
             elif isinstance(con, ExpCone) and con.args[0].ndim > 1:
                 x, y, z = con.args
-                con = ExpCone(x.flatten(), y.flatten(), z.flatten(),
+                con = ExpCone(x.flatten(order='F'), y.flatten(order='F'), z.flatten(order='F'),
                               constr_id=con.constr_id)
             cons.append(con)
         # Reorder constraints to Zero, NonNeg, SOC, PSD, EXP, PowCone3D

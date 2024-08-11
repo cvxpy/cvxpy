@@ -161,10 +161,10 @@ def deep_flatten(x):
         if len(x.shape) == 1:
             return x
         else:
-            return x.flatten()
+            return x.flatten(order='F')
     elif isinstance(x, np.ndarray) or isinstance(x, (int, float)):
         x = Expression.cast_to_const(x)
-        return x.flatten()
+        return x.flatten(order='F')
     # recursion
     if isinstance(x, list):
         y = []

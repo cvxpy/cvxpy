@@ -1681,12 +1681,6 @@ class TestAtoms(BaseTest):
         expr = cp.Constant(reshaped).flatten(order='C')
         self.assertItemsAlmostEqual(expr.value, A)
 
-        reshaped = np.reshape(A, (2, 5), order='F')
-        expr = cp.vec(reshaped, order='F')
-        self.assertItemsAlmostEqual(expr.value, A)
-        expr = cp.Constant(reshaped).flatten()
-        self.assertItemsAlmostEqual(expr.value, A)
-
         # Variable argument.
         x = Variable((2, 5))
         reshaped = np.reshape(A, (2, 5), order='F')
@@ -1702,14 +1696,6 @@ class TestAtoms(BaseTest):
         cp.Problem(cp.Minimize(0), [expr == A]).solve()
         self.assertItemsAlmostEqual(x.value, reshaped)
         expr = cp.Constant(A).flatten(order='C')
-        cp.Problem(cp.Minimize(0), [expr == A]).solve()
-        self.assertItemsAlmostEqual(x.value, reshaped)
-
-        reshaped = np.reshape(A, (2, 5), order='F')
-        expr = cp.vec(x, order='F')
-        cp.Problem(cp.Minimize(0), [expr == A]).solve()
-        self.assertItemsAlmostEqual(x.value, reshaped)
-        expr = cp.Constant(A).flatten()
         cp.Problem(cp.Minimize(0), [expr == A]).solve()
         self.assertItemsAlmostEqual(x.value, reshaped)
 

@@ -92,13 +92,13 @@ class SCIPY(ConicSolver):
         data[s.A] = -A[:len_eq]
         if data[s.A].shape[0] == 0:
             data[s.A] = None
-        data[s.B] = b[:len_eq].flatten()
+        data[s.B] = b[:len_eq].flatten(order='F')
         if data[s.B].shape[0] == 0:
             data[s.B] = None
         data[s.G] = -A[len_eq:]
         if 0 in data[s.G].shape:
             data[s.G] = None
-        data[s.H] = b[len_eq:].flatten()
+        data[s.H] = b[len_eq:].flatten(order='F')
         if 0 in data[s.H].shape:
             data[s.H] = None
         return data, inv_data
