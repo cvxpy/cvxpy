@@ -49,7 +49,7 @@ def pow_nd_canon(con, args):
         W = W.T
         alpha = alpha.T
     if W.ndim == 1:
-        W = reshape(W, (W.size, 1))
+        W = reshape(W, (W.size, 1), order='F')
         alpha = np.reshape(alpha, (W.size, 1))
     n, k = W.shape
     if n == 2:

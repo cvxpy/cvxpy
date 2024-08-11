@@ -35,7 +35,7 @@ def soc_canon(expr, real_args, imag_args, real2imag):
         inner_SOC = SOC(flat_X,
                         vstack([real, imag]),
                         axis=0)
-        real_X = reshape(flat_X, orig_shape)
+        real_X = reshape(flat_X, orig_shape, order='F')
         outer_SOC = SOC(real_args[0], real_X,
                         axis=expr.axis, constr_id=expr.id)
         output = [inner_SOC, outer_SOC]

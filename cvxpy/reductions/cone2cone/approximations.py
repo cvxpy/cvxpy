@@ -67,7 +67,7 @@ def rotated_quad_cone(X: cp.Expression, y: cp.Expression, z: cp.Expression):
     assert z.size == m
     assert X.shape[0] == m
     if len(X.shape) < 2:
-        X = cp.reshape(X, (m, 1))
+        X = cp.reshape(X, (m, 1), order='F')
     #####################################
     # Comments from quad_over_lin_canon:
     #   quad_over_lin := sum_{i} x^2_{i} / y
@@ -75,7 +75,7 @@ def rotated_quad_cone(X: cp.Expression, y: cp.Expression, z: cp.Expression):
     #   Becomes a constraint
     #   SOC(t=y + t, X=[y - t, 2*x])
     ####################################
-    soc_X_col0 = cp.reshape(y - z, (m, 1))
+    soc_X_col0 = cp.reshape(y - z, (m, 1), order='F')
     soc_X = cp.hstack((soc_X_col0, 2*X))
     soc_t = y + z
     con = cp.SOC(t=soc_t, X=soc_X, axis=1)

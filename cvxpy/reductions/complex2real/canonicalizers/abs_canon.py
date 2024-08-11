@@ -27,5 +27,5 @@ def abs_canon(expr, real_args, imag_args, real2imag):
         real = real_args[0].flatten()
         imag = imag_args[0].flatten()
         norms = pnorm(vstack([real, imag]), p=2, axis=0)
-        output = reshape(norms, real_args[0].shape)
+        output = reshape(norms, real_args[0].shape, order='F')
     return output, None
