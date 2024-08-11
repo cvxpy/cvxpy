@@ -212,3 +212,43 @@ Currently, the following canonicalization backends are supported:
 *  | SCIPY: A pure Python implementation based on the SciPy sparse module.
    | Generally fast for problems that are already vectorized.
 *  NUMPY: Reference implementation in pure NumPy. Fast for some small or dense problems.
+
+.. _torch-expressions:
+
+Torch expressions
+-------------------------
+
+CVXPY now supports generating Pytorch expressions from CVXPY expressions and constraints.
+A Pytorch expression is a function that evaluates similarly to a CVXPY's ``numeric`` function.
+The function ``gen_torch_exp`` returns an expression's or a constraint's torch expression and
+a mapping from CVXPY atoms to their indices in the torch expression.
+
+For example:
+
+.. code:: python
+
+  import cvxpy as cp
+  import torch
+
+  n = 5
+  x = cp.Variable(n, name="x")
+  y = cp.Parameter(n, name="y")
+  z = 3
+  exp = x-y+2*z
+
+  tch_x = torch.arange(1, n+1)
+  tch_y = torch.arange(0, n)
+
+  tch_exp, _ = exp.gen_torch_exp() #tch_exp implements x-y+2*z, where x and y are torch.Tensor.
+  tch_res = tch_exp(tch_x, tch_y) #Contains a torch.Tensor [7.0]*n
+
+The user can determine the order in which arguments are passed to the generated torch expression.
+For example, to pass ``y`` before ``x`` in the previous example:
+
+.. code:: python
+  tch_exp, _ = exp.gen_torch_exp(provided_vars_list=[y,x]) #tch_exp implements x-y+2*z, where x and y are torch.Tensor.
+  tch_res = tch_exp(tch_x, tch_y) #Contains a torch.Tensor [5.0]*n
+
+The first returned argument is the torch expression.
+The second returned argument is a :class:`~cvxpy.utilities.torch_utils.VariablesDict` element.
+It contains a mapping from CVXPY atoms to their indices in the generated torch expression.
