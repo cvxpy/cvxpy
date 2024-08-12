@@ -6,14 +6,15 @@ import cvxpy as cp
 
 
 class TestAttributes():
-    def test_sparsity_pattern(self):
-        X = cp.Variable((3, 3), sparsity=[(0, 1), (0, 2)])
+    @pytest.mark.parametrize("sparsity", [[np.array([0, 0]), np.array([0, 1])], [(0, 1), (0, 2)]])
+    def test_sparsity_pattern(self, sparsity):
+        X = cp.Variable((3, 3), sparsity=sparsity)
         prob = cp.Problem(cp.Minimize(cp.sum(X)), [X >= -1, X <= 1])
         prob.solve()
         z = np.zeros((3, 3))
         z[X.sparse_idx] = -1
         assert np.allclose(X.value, z)
-    
+
     def test_sparsity_invalid_input(self):
         with pytest.raises(ValueError, match="Sparsity should have 2 dimensions."):
             cp.Variable((3, 3), sparsity=[(0, 1), (0, 1), (0, 1)])
@@ -28,8 +29,7 @@ class TestAttributes():
         with pytest.raises(
             ValueError, match="Sparsity is out of bounds for expression with shape \\(3, 3\\)."
         ):
-            sparsity = [(0, 1, 2), (3, 4, 5)]
-            cp.Variable((3, 3), sparsity=sparsity)
+            cp.Variable((3, 3), sparsity=[(0, 1, 2), (3, 4, 5)])
 
     def test_sparsity_reduces_num_var(self):
         X = cp.Variable((3, 3), sparsity=[(0, 1), (0, 2)])
@@ -45,5 +45,5 @@ class TestAttributes():
         prob = cp.Problem(cp.Minimize(cp.sum(X)), [X >= -1, X <= 1])
         prob.solve()
         z = -np.eye(3)
-        assert type(X.value) is sp._dia.dia_matrix
+        assert type(X.value) is sp.dia_matrix
         assert np.allclose(X.value.toarray(), z)
