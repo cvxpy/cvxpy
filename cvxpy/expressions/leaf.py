@@ -16,7 +16,7 @@ limitations under the License.
 from __future__ import annotations
 
 import abc
-from typing import TYPE_CHECKING, Iterable
+from typing import TYPE_CHECKING, Iterable, List
 
 if TYPE_CHECKING:
     from cvxpy import Constant, Parameter, Variable
@@ -160,13 +160,12 @@ class Leaf(expression.Expression):
 
         self.bounds = bounds
 
-    def _validate_sparsity(self, indices) -> None:
+    def _validate_sparsity(self, indices: List[tuple | np.ndarray]) -> None:
         """
         Validate the sparsity pattern for a leaf node.
     
         Parameters:
-        indices (list of tuples or np.ndarray): List of index tuples or a NumPy array indicating
-        the positions of non-zero elements.
+        indices: List of indices indicating the positions of non-zero elements.
         """
         if not all(len(idx) == len(indices[0]) for idx in indices):
             raise ValueError("All index tuples in sparsity must have the same length.")
