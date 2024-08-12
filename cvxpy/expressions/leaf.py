@@ -168,13 +168,13 @@ class Leaf(expression.Expression):
         indices (list of tuples or np.ndarray): List of index tuples or a NumPy array indicating
         the positions of non-zero elements.
         """
-        if isinstance(indices, list):
-            indices = np.array(indices)
-        
         if not all(len(idx) == len(indices[0]) for idx in indices):
             raise ValueError("All index tuples in sparsity must have the same length.")
         
-        if indices.shape[1] != len(self._shape):
+        if isinstance(indices, list):
+            indices = np.array(indices)
+
+        if indices.shape[0] != len(self._shape):
             raise ValueError(f"Sparsity should have {len(self._shape)} dimensions.")
         
         # Check if all indices are within bounds
