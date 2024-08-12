@@ -1,4 +1,5 @@
 import numpy as np
+import pytest
 import scipy.sparse as sp
 
 import cvxpy as cp
@@ -6,7 +7,7 @@ import cvxpy as cp
 
 class TestAttributes():
     def test_sparsity_pattern(self):
-        X = cp.Variable((3, 3), sparsity=((0, 1), (0, 2)))
+        X = cp.Variable((3, 3), sparsity=[(0, 1), (0, 2)])
         prob = cp.Problem(cp.Minimize(cp.sum(X)), [X >= -1, X <= 1])
         prob.solve()
         z = np.zeros((3, 3))
@@ -14,22 +15,34 @@ class TestAttributes():
         assert np.allclose(X.value, z)
     
     def test_sparsity_input(self):
-        pass
-
+        with pytest.raises(ValueError):
+            # This should raise a ValueError because the sparsity pattern
+            # does not match the variable dimensions
+            cp.Variable((3, 3), sparsity=((0, 1), (0, 1, 2)))
+    
     def test_sparsity_incorrect_dim(self):
-        pass
+        sparsity = np.array([[0, 3],
+                            [1, 4],
+                            [2, 5]])
+        cp.Variable((6, 6), sparsity=sparsity)
 
     def test_sparsity_out_of_bounds(self):
-        pass
+        sparsity = np.array([[0, 3],
+                            [1, 4],
+                            [2, 5]])
+        cp.Variable((3, 3), sparsity=sparsity)
 
-    def test_sparsity_reduces_problem_dim(self):
-        X = cp.Variable((3, 3), sparsity=((0, 1), (0, 2)))
+    def test_sparsity_reduces_num_var(self):
+        X = cp.Variable((3, 3), sparsity=[(0, 1), (0, 2)])
         prob = cp.Problem(cp.Minimize(cp.sum(X)), [X >= -1, X <= 1])
         assert prob.get_problem_data(cp.CLARABEL) == 0
         
+    def test_sparsity_reduces_num_constraints(self):
+        X = cp.Variable((3, 3), sparsity=((0, 1), (0, 2)))
+        prob = cp.Problem(cp.Minimize(cp.sum(X)), [X >= -1, X <= 1])
+        assert prob.get_problem_data(cp.CLARABEL) == 0
 
-
-    def test_diag_value(self):
+    def test_diag_value_sparse(self):
         X = cp.Variable((3, 3), diag=True)
         prob = cp.Problem(cp.Minimize(cp.sum(X)), [X >= -1, X <= 1])
         prob.solve(verbose=True)

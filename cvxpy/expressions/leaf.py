@@ -140,12 +140,8 @@ class Leaf(expression.Expression):
                 np.ndindex(max(shape, (1,))))
         else:
             self.integer_idx = {}
-        if sparsity:
-            if len(sparsity) != len(self._shape):
-                raise ValueError("Length of sparsity must match the length of shape.")
-            if not all(len(i) == len(sparsity[0]) for i in sparsity):
-                raise ValueError("All elements in sparsity must have the same length.")
-            self.sparse_idx = sparsity
+        if isinstance(sparsity, np.ndarray) or sparsity:
+            self._validate_sparsity(sparsity)
         else:
             self.sparse_idx = {}
         # Only one attribute be True (except can be boolean and integer).
@@ -164,6 +160,30 @@ class Leaf(expression.Expression):
 
         self.bounds = bounds
 
+    def _validate_sparsity(self, indices) -> None:
+        """
+        Validate the sparsity pattern for a leaf node.
+    
+        Parameters:
+        indices (list of tuples or np.ndarray): List of index tuples or a NumPy array indicating
+        the positions of non-zero elements.
+        """
+        if isinstance(indices, list):
+            indices = np.array(indices)
+        
+        if not all(len(idx) == len(indices[0]) for idx in indices):
+            raise ValueError("All index tuples in sparsity must have the same length.")
+        
+        if indices.shape[1] != len(self._shape):
+            raise ValueError(f"Sparsity should have {len(self._shape)} dimensions.")
+        
+        # Check if all indices are within bounds
+        for dim in range(len(self._shape)):
+            if np.any(indices[:, dim] < 0) or np.any(indices[:, dim] >= self._shape[dim]):
+                raise ValueError(
+                    f"Sparsity is out of bounds for expression with shape {self._shape}.")
+        self.sparse_idx = tuple(indices)
+    
     def _get_attr_str(self) -> str:
         """Get a string representing the attributes.
         """
