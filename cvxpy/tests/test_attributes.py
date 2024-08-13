@@ -31,6 +31,28 @@ class TestAttributes():
         ):
             cp.Variable((3, 3), sparsity=[(0, 1, 2), (3, 4, 5)])
 
+    def test_sparsity_0D_variable(self):
+        with pytest.raises(ValueError, match="Sparsity should have 0 dimensions."):
+            cp.Variable(sparsity=[(0, 1)])
+
+    def test_parameter_sparsity(self):
+        """
+        sparsity = [(0, 1), (1, 2)]
+        X = cp.Parameter((3, 3), sparsity=sparsity)
+        values = np.array([1, 1])
+        X.value = values
+        
+        # Define an optimization problem
+        Y = cp.Variable((3, 3))
+        objective = cp.Minimize(cp.sum_squares(Y - X))
+        constraints = [Y >= -1, Y <= 1]
+        prob = cp.Problem(objective, constraints)
+        prob.solve()
+        z = np.zeros((3, 3))
+        z[X.sparse_idx] = 1
+        assert np.allclose(X.value, z)
+        """
+
     def test_sparsity_reduces_num_var(self):
         X = cp.Variable((3, 3), sparsity=[(0, 1), (0, 2)])
         prob = cp.Problem(cp.Minimize(cp.sum(X)), [X >= -1, X <= 1])
