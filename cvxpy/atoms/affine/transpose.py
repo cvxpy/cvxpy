@@ -41,7 +41,9 @@ class transpose(AffAtom):
         return np.transpose(values[0], axes=self.axes)
     
     def torch_numeric(self, values):
-        return values[0].T
+        if self.axes is None:
+            return values[0].T
+        return values[0].permute(self.axes)
 
     def is_atom_log_log_convex(self) -> bool:
         """Is the atom log-log convex?
