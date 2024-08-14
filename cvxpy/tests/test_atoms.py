@@ -1801,7 +1801,7 @@ class TestAtoms(BaseTest):
         self.assertTrue(np.isclose(test3, 17.2626))
         #Variables and parameters are treated similarly
         self.assertTrue(all(np.isclose(test4, test5))) 
-        self.assertTrue((test6==n*np.ones((m,m))).all())
+        self.assertTrue((test6==n*torch.ones((m,m))).all())
 
 class TestDotsort(BaseTest):
     """ Unit tests for the dotsort atom. """
