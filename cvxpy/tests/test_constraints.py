@@ -637,9 +637,9 @@ class TestConstraints(BaseTest):
         test7 = exp7(T1, T2)
 
         self.assertTrue(all(test1==torch.tensor([3, -3])))
-        self.assertTrue(all(test2==np.array([0, 0])))
+        self.assertTrue(all(test2==torch.tensor([0, 0])))
         self.assertTrue(all(test3==torch.tensor([1])))
         self.assertTrue(all(test4==torch.tensor([-1])))
         self.assertTrue(np.isclose(test5, 25.9258))
-        self.assertTrue((test6==-n*np.ones((m,m))).all())
-        self.assertTrue((test7==n*np.ones((m,m))).all())
+        self.assertTrue((test6==-n*torch.ones((m,m))).all())
+        self.assertTrue((test7==n*torch.ones((m,m))).all())
