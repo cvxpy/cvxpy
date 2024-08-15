@@ -141,7 +141,7 @@ class Leaf(expression.Expression):
         else:
             self.integer_idx = {}
         if isinstance(sparsity, np.ndarray) or sparsity:
-            self._validate_sparsity(sparsity)
+            self.sparse_idx = sparsity
         else:
             self.sparse_idx = {}
 
