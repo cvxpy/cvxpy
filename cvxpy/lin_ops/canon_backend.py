@@ -1222,7 +1222,10 @@ class SciPyCanonBackend(PythonCanonBackend):
                     n = x.shape[-1]
                     d = np.prod([shape[i] for i in axis], dtype=int)
                     row_idx = row_idx_func(shape=shape, axis=axis)
-                    col_idx = np.arange(n).reshape(shape, order='F').flatten(order='F')
+                    try:
+                        col_idx = np.arange(n).reshape(shape, order='F').flatten(order='F')
+                    except ValueError:
+                        print(f"x shape: {x.shape}, n, {n}, d {d}, len(row_idx): {len(row_idx)}")
                     return sp.csr_matrix((x.data, (row_idx, col_idx)), shape=(n//d, n))
             else:
                 m = x.shape[0] // p
