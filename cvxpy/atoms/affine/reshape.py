@@ -13,6 +13,15 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+
+from __future__ import annotations
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    import torch
+try:
+    import torch
+except ImportError:
+    pass
 from __future__ import annotations
 
 import numbers
@@ -93,6 +102,13 @@ class reshape(AffAtom):
         """Reshape the value.
         """
         return np.reshape(values[0], self.shape, self.order)
+    
+    def torch_numeric(self, values: list[torch.Tensor]) -> torch.Tensor:
+        from cvxpy.utilities.torch_utils import tensor_reshape_fortran
+
+        if self.order == "F":
+            return tensor_reshape_fortran(values[0], self.shape)
+        return torch.reshape(values[0], self.shape) #order="C" reshaping
 
     def validate_arguments(self) -> None:
         """Checks that the new shape has the same number of entries as the old.

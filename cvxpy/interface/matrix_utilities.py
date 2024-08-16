@@ -14,6 +14,15 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+from __future__ import annotations
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    import torch
+try:
+    import torch
+except ImportError:
+    pass
+
 import numbers
 
 import numpy as np
@@ -25,6 +34,7 @@ from cvxpy.interface import numpy_interface as np_intf
 INTERFACES = {np.ndarray: np_intf.NDArrayInterface(),
               np.matrix: np_intf.MatrixInterface(),
               sp.csc_matrix: np_intf.SparseMatrixInterface(),
+              torch.Tensor: np_intf.TensorInterface()
               }
 # Default Numpy interface.
 DEFAULT_NP_INTF = INTERFACES[np.ndarray]

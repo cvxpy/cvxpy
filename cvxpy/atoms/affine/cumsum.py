@@ -13,6 +13,15 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+
+from __future__ import annotations
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    import torch
+try:
+    import torch
+except ImportError:
+    pass
 from typing import List, Tuple
 
 import numpy as np
@@ -82,6 +91,9 @@ class cumsum(AffAtom, AxisAtom):
         """Convolve the two values.
         """
         return np.cumsum(values[0], axis=self.axis)
+    
+    def torch_numeric(self, values: list[torch.Tensor]) -> torch.Tensor:
+        return torch.cumsum(values[0], axis=self.axis)
 
     def shape_from_args(self) -> Tuple[int, ...]:
         """The same as the input.

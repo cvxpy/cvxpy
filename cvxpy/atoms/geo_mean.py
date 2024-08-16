@@ -14,10 +14,19 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+from __future__ import annotations
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    import torch
+try:
+    import torch
+except ImportError:
+    pass
 from typing import List, Optional, Tuple
 
 import numpy as np
 import scipy.sparse as sp
+from scipy.stats.mstats import gmean
 
 from cvxpy.atoms.atom import Atom
 from cvxpy.atoms.errormsg import SECOND_ARG_SHOULD_NOT_BE_EXPRESSION_ERROR_MESSAGE
@@ -250,10 +259,22 @@ class geo_mean(Atom):
     # Returns the (weighted) geometric mean of the elements of x.
     def numeric(self, values) -> float:
         values = np.array(values[0]).flatten()
-        val = 1.0
-        for x, p in zip(values, self.w):
-            val *= x**float(p)
-        return val
+        # val = 1.0
+        # for x, p in zip(values, self.w):
+        #     val *= x**float(p)
+        # return val
+        return gmean(values, weights=self.w)
+    
+    def torch_numeric(self, values: list[torch.Tensor]) -> torch.Tensor:
+        values = values[0]
+        values = values.flatten()
+        # val = 1.0
+        # for x, p in zip(values, self.w):
+        #     val *= x**float(p)
+        # return val
+        log_tensor = torch.log(values)
+        mean_log = torch.mean(log_tensor)
+        return torch.exp(mean_log)
 
     def _domain(self) -> List[Constraint]:
         """Returns constraints describing the domain of the node.

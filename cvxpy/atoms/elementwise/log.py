@@ -13,6 +13,15 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+
+from __future__ import annotations
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    import torch
+try:
+    import torch
+except ImportError:
+    pass
 from typing import List, Tuple
 
 import numpy as np
@@ -33,6 +42,9 @@ class log(Elementwise):
         """Returns the elementwise natural log of x.
         """
         return np.log(values[0])
+    
+    def torch_numeric(self, values: list[torch.Tensor]) -> torch.Tensor:
+        return torch.log(values[0])
 
     def sign_from_args(self) -> Tuple[bool, bool]:
         """Returns sign (is positive, is negative) of the expression.

@@ -13,6 +13,15 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+
+from __future__ import annotations
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    import torch
+try:
+    import torch
+except ImportError:
+    pass
 from typing import List, Tuple
 
 import numpy as np
@@ -59,6 +68,19 @@ class upper_tri(AffAtom):
         """
         upper_idx = np.triu_indices(n=values[0].shape[0], k=1, m=values[0].shape[1])
         return values[0][upper_idx]
+    
+    def torch_numeric(self, values: list[torch.Tensor]) -> torch.Tensor:
+        # import torch
+        # value = torch.zeros(self.shape[0])
+        # count = 0
+        # for i in range(values[0].shape[0]):
+        #     for j in range(values[0].shape[1]):
+        #         if i < j:
+        #             value[count] = values[0][i, j]
+        #             count += 1
+        # return value
+        inds = torch.triu_indices(row=values[0].shape[0], col=values[0].shape[1], offset=1)
+        return values[0][*inds]
 
     def validate_arguments(self) -> None:
         """Checks that the argument is a square matrix.

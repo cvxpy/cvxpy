@@ -14,6 +14,15 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+from __future__ import annotations
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    import torch
+try:
+    import torch
+except ImportError:
+    pass
+
 from typing import Tuple
 
 import numpy as np
@@ -35,6 +44,9 @@ class sigma_max(Atom):
         """Returns the largest singular value of A.
         """
         return LA.norm(values[0], 2)
+    
+    def torch_numeric(self, values: list[torch.Tensor]) -> torch.Tensor:
+        return torch.linalg.norm(values[0], 2)
 
     def _grad(self, values):
         """Gives the (sub/super)gradient of the atom w.r.t. each argument.

@@ -14,6 +14,14 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+from __future__ import annotations
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    import torch
+try:
+    import torch
+except ImportError:
+    pass
 from typing import Tuple
 
 import numpy as np
@@ -36,6 +44,12 @@ class log_sum_exp(AxisAtom):
         """Evaluates e^x elementwise, sums, and takes the log.
         """
         return logsumexp(values[0], axis=self.axis, keepdims=self.keepdims)
+    
+    def torch_numeric(self, values: list[torch.Tensor]) -> torch.Tensor:
+        if self.axis is None:
+            return torch.special.logsumexp(values[0].flatten(), dim=0, keepdim=self.keepdims)
+        return torch.special.logsumexp(values[0], dim=self.axis, keepdim=self.keepdims)
+
 
     def _grad(self, values):
         """Gives the (sub/super)gradient of the atom w.r.t. each argument.

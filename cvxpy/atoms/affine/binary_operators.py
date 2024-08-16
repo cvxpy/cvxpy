@@ -14,6 +14,15 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+from __future__ import annotations
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    import torch
+try:
+    import torch
+except ImportError:
+    pass
+
 from __future__ import division
 
 import operator as op
@@ -116,6 +125,13 @@ class MulExpression(BinaryOperator):
             return values[0] * values[1]
         else:
             return np.matmul(values[0], values[1])
+        
+    def torch_numeric(self, values: list[torch.Tensor]) -> torch.Tensor:
+        if values[0].shape == () or values[1].shape == () or \
+           intf.is_sparse(values[0]) or intf.is_sparse(values[1]):
+            return values[0] * values[1]
+        else:
+            return torch.matmul(values[0], values[1])
 
     def shape_from_args(self) -> Tuple[int, ...]:
         """Returns the (row, col) shape of the expression.
@@ -274,6 +290,14 @@ class multiply(MulExpression):
             return values[1].multiply(values[0])
         else:
             return np.multiply(values[0], values[1])
+        
+    def torch_numeric(self, values: list[torch.Tensor]) -> torch.Tensor:
+        if values[0].is_sparse:
+            return values[0].multiply(values[1])
+        elif values[1].is_sparse:
+            return values[1].multiply(values[0])
+        else:
+            return torch.multiply(values[0], values[1])
 
     def shape_from_args(self) -> Tuple[int, ...]:
         """The sum of the argument dimensions - 1.
@@ -343,6 +367,12 @@ class DivExpression(BinaryOperator):
             if sp.issparse(values[i]):
                 values[i] = values[i].toarray()
         return np.divide(values[0], values[1])
+    
+    def torch_numeric(self, values: list[torch.Tensor]) -> torch.Tensor:
+        for i in range(2):
+            if values[i].is_sparse:
+                values[i] = values[i].todense().A
+        return torch.divide(values[0], values[1])
 
     def is_quadratic(self) -> bool:
         return self.args[0].is_quadratic() and self.args[1].is_constant()

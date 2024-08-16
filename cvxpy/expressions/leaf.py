@@ -602,3 +602,62 @@ class Leaf(expression.Expression):
             raise ValueError("np.inf is not feasible as a lower bound.")
 
         self._bounds = value
+
+    @property
+    def bounds(self):
+        return self._bounds
+
+    @bounds.setter
+    def bounds(self, value):
+        # In case for a constant or no bounds
+        if value is None:
+            self._bounds = None
+            return
+
+        # Check that bounds is an iterable of two items
+        if not isinstance(value, Iterable) or len(value) != 2:
+            raise ValueError("Bounds should be a list of two items.")
+
+        # Check that bounds contains two scalars or two arrays with matching shapes.
+        for val in value:
+            valid_array = isinstance(val, np.ndarray) and val.shape == self.shape
+            if not (val is None or np.isscalar(val) or valid_array):
+                raise ValueError(
+                    "Bounds should be None, scalars, or arrays with the "
+                    "same dimensions as the variable/parameter."
+                )
+
+        # Promote upper and lower bounds to arrays.
+        none_bounds = [-np.inf, np.inf]
+        for idx, val in enumerate(value):
+            if val is None:
+                value[idx] = np.full(self.shape, none_bounds[idx])
+            elif np.isscalar(val):
+                value[idx] = np.full(self.shape, val)
+
+        # Check that upper_bound >= lower_bound
+        if np.any(value[0] > value[1]):
+            raise ValueError("Invalid bounds: some upper bounds are less "
+                             "than corresponding lower bounds.")
+
+        if np.any(np.isnan(value[0])) or np.any(np.isnan(value[1])):
+            raise ValueError("np.nan is not feasible as lower "
+                                "or upper bound.")
+
+        # Upper bound cannot be -np.inf.
+        if np.any(value[1] == -np.inf):
+            raise ValueError("-np.inf is not feasible as an upper bound.")
+        # Lower bound cannot be np.inf.
+        if np.any(value[0] == np.inf):
+            raise ValueError("np.inf is not feasible as a lower bound.")
+
+        self._bounds = value
+
+    def gen_torch_exp(self):
+        """
+        This function generates a torch expression for a leaf.
+        Also returns a vars_dict with the leaf.
+        """
+        from cvxpy.atoms.affine.add_expr import AddExpression
+        tmp_aff_exp = AddExpression([self])
+        return tmp_aff_exp.gen_torch_exp()

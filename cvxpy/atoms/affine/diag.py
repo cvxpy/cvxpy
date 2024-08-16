@@ -13,6 +13,15 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+
+from __future__ import annotations
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    import torch
+try:
+    import torch
+except ImportError:
+    pass
 from __future__ import annotations
 
 from typing import List, Tuple, Union
@@ -79,6 +88,9 @@ class diag_vec(AffAtom):
         """Convert the vector constant into a diagonal matrix.
         """
         return np.diag(values[0], k=self.k)
+    
+    def torch_numeric(self, values: list[torch.Tensor]) -> torch.Tensor:
+        return torch.diag(values[0], diagonal=self.k)
 
     def shape_from_args(self) -> Tuple[int, int]:
         """A square matrix.
@@ -155,6 +167,11 @@ class diag_mat(AffAtom):
         """
         # The return type in numpy versions < 1.10 was ndarray.
         return np.diag(values[0], k=self.k)
+    
+
+    def torch_numeric(self, values: list[torch.Tensor]) -> torch.Tensor:
+        return torch.diag(values[0], diagonal=self.k)
+
 
     def shape_from_args(self) -> Tuple[int]:
         """A column vector.
