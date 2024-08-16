@@ -12,6 +12,15 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+
+from __future__ import annotations
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    import torch
+try:
+    import torch
+except ImportError:
+    pass
 from typing import List, Tuple
 
 import numpy as np
@@ -180,8 +189,7 @@ class power(Elementwise):
     def numeric(self, values):
         return np.power(values[0], float(self.p.value))
     
-    def torch_numeric(self, values):
-        import torch
+    def torch_numeric(self, values: list[torch.Tensor]) -> torch.Tensor:
         return torch.pow(values[0], float(self.p.value))
 
     def sign_from_args(self) -> Tuple[bool, bool]:

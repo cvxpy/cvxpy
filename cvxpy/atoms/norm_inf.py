@@ -13,6 +13,15 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+
+from __future__ import annotations
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    import torch
+try:
+    import torch
+except ImportError:
+    pass
 from typing import List, Tuple
 
 import numpy as np
@@ -37,8 +46,7 @@ class norm_inf(AxisAtom):
             values = np.array(values[0])
         return np.linalg.norm(values, np.inf, axis=self.axis, keepdims=self.keepdims)
 
-    def torch_numeric(self, values):
-        import torch
+    def torch_numeric(self, values: list[torch.Tensor]) -> torch.Tensor:
         if self.axis is None:
             if sp.issparse(values[0]):
                 values = values[0].todense().A.flatten()

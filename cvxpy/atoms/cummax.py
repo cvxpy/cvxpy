@@ -13,13 +13,20 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+from __future__ import annotations
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    import torch
+try:
+    import torch
+except ImportError:
+    pass
 from typing import Tuple
 
 import numpy as np
 
 from cvxpy.atoms.atom import Atom
 from cvxpy.atoms.axis_atom import AxisAtom
-
 
 class cummax(AxisAtom):
     """Cumulative maximum.
@@ -34,8 +41,7 @@ class cummax(AxisAtom):
         """
         return np.maximum.accumulate(values[0], axis=self.axis)
     
-    def torch_numeric(self, values):
-        import torch
+    def torch_numeric(self, values: list[torch.Tensor]) -> torch.Tensor:
         return torch.cummax(values[0], dim=self.axis)[0]
 
     def shape_from_args(self) -> Tuple[int, ...]:

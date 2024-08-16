@@ -13,6 +13,15 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+
+from __future__ import annotations
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    import torch
+try:
+    import torch
+except ImportError:
+    pass
 from typing import Tuple
 
 import numpy as np
@@ -37,8 +46,7 @@ class length(Atom):
         outside_tol = np.abs(values[0]) > s.ATOM_EVAL_TOL
         return np.max(np.nonzero(outside_tol)) + 1
     
-    def torch_numeric(self, values):
-        import torch
+    def torch_numeric(self, values: list[torch.Tensor]) -> torch.Tensor:
         outside_tol = torch.abs(values[0]) > s.ATOM_EVAL_TOL
         return torch.max(torch.nonzero(outside_tol)) + 1
 

@@ -14,6 +14,14 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+from __future__ import annotations
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    import torch
+try:
+    import torch
+except ImportError:
+    pass
 from functools import wraps
 from typing import List, Tuple
 
@@ -45,8 +53,7 @@ class MatrixFrac(Atom):
             product = X.T.dot(LA.inv(P)).dot(X)
         return product.trace() if len(product.shape) == 2 else product
     
-    def torch_numeric(self, values):
-        import torch
+    def torch_numeric(self, values: list[torch.Tensor]) -> torch.Tensor:
         X = values[0]
         P = values[1]
         if self.args[0].is_complex():

@@ -14,6 +14,15 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+from __future__ import annotations
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    import torch
+try:
+    import torch
+except ImportError:
+    pass
+
 import unittest
 
 import numpy as np
@@ -1759,7 +1768,6 @@ class TestAtoms(BaseTest):
         self.assertTrue(prob.value < naiveRes)
 
     def test_gen_torch_exp(self):
-        import torch
         #Tests the functionality of gen_torch_exp
         n = 3
         m = 2

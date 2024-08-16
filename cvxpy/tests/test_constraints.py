@@ -14,9 +14,17 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+from __future__ import annotations
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    import torch
+try:
+    import torch
+except ImportError:
+    pass
+
 import numpy as np
 import pytest
-import torch
 
 import cvxpy as cp
 from cvxpy.atoms.affine.reshape import reshape as reshape_atom

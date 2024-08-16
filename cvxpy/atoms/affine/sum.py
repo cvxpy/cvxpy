@@ -13,6 +13,15 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+
+from __future__ import annotations
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    import torch
+try:
+    import torch
+except ImportError:
+    pass
 import builtins
 from functools import wraps
 from typing import List, Optional, Tuple
@@ -64,8 +73,7 @@ class Sum(AxisAtom, AffAtom):
             result = np.sum(values[0], axis=self.axis, keepdims=self.keepdims)
         return result
     
-    def torch_numeric(self, values):
-        import torch
+    def torch_numeric(self, values: list[torch.Tensor]) -> torch.Tensor:
         if intf.is_sparse(values[0]):
             result = torch.sum(values[0], axis=self.axis)
             if not self.keepdims and self.axis is not None:

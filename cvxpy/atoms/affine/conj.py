@@ -14,6 +14,15 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+from __future__ import annotations
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    import torch
+try:
+    import torch
+except ImportError:
+    pass
+
 from typing import List, Tuple
 
 import numpy as np
@@ -34,8 +43,7 @@ class conj(AffAtom):
         """
         return np.conj(values[0])
     
-    def torch_numeric(self, values):
-        import torch
+    def torch_numeric(self, values: list[torch.Tensor]) -> torch.Tensor:
         return torch.conj(values[0])
 
     def shape_from_args(self) -> Tuple[int, ...]:

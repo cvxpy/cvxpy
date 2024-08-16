@@ -13,6 +13,15 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+
+from __future__ import annotations
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    import torch
+try:
+    import torch
+except ImportError:
+    pass
 from typing import List, Tuple
 
 import numpy as np
@@ -39,8 +48,7 @@ class kron(AffAtom):
         """
         return np.kron(values[0], values[1])
     
-    def torch_numeric(self, values):
-        import torch
+    def torch_numeric(self, values: list[torch.Tensor]) -> torch.Tensor:
         return torch.kron(values[0], values[1])
 
     def validate_arguments(self) -> None:

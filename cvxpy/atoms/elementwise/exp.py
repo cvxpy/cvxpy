@@ -14,6 +14,15 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+from __future__ import annotations
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    import torch
+try:
+    import torch
+except ImportError:
+    pass
+
 from typing import Tuple
 
 import numpy as np
@@ -33,8 +42,7 @@ class exp(Elementwise):
     def numeric(self, values):
         return np.exp(values[0])
     
-    def torch_numeric(self, values):
-        import torch
+    def torch_numeric(self, values: list[torch.Tensor]) -> torch.Tensor:
         return torch.exp(values[0])
 
     def sign_from_args(self) -> Tuple[bool, bool]:

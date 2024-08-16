@@ -14,6 +14,15 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+from __future__ import annotations
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    import torch
+try:
+    import torch
+except ImportError:
+    pass
+
 from __future__ import division
 
 import operator as op
@@ -117,8 +126,7 @@ class MulExpression(BinaryOperator):
         else:
             return np.matmul(values[0], values[1])
         
-    def torch_numeric(self, values):
-        import torch
+    def torch_numeric(self, values: list[torch.Tensor]) -> torch.Tensor:
         if values[0].shape == () or values[1].shape == () or \
            intf.is_sparse(values[0]) or intf.is_sparse(values[1]):
             return values[0] * values[1]
@@ -283,8 +291,7 @@ class multiply(MulExpression):
         else:
             return np.multiply(values[0], values[1])
         
-    def torch_numeric(self, values):
-        import torch
+    def torch_numeric(self, values: list[torch.Tensor]) -> torch.Tensor:
         if sp.issparse(values[0]):
             return values[0].multiply(values[1])
         elif sp.issparse(values[1]):
@@ -361,8 +368,7 @@ class DivExpression(BinaryOperator):
                 values[i] = values[i].toarray()
         return np.divide(values[0], values[1])
     
-    def torch_numeric(self, values):
-        import torch
+    def torch_numeric(self, values: list[torch.Tensor]) -> torch.Tensor:
         for i in range(2):
             if sp.issparse(values[i]):
                 values[i] = values[i].todense().A

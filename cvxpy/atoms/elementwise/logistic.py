@@ -14,6 +14,15 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+from __future__ import annotations
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    import torch
+try:
+    import torch
+except ImportError:
+    pass
+
 from typing import Tuple
 
 import numpy as np
@@ -37,8 +46,7 @@ class logistic(Elementwise):
         """
         return np.logaddexp(0, values[0])
     
-    def torch_numeric(self, values):
-        import torch
+    def torch_numeric(self, values: list[torch.Tensor]):
         #values.new(1) creates a new 0 tensor on the same device as values[0].
         return torch.logaddexp(values[0].new(1), values[0])
 

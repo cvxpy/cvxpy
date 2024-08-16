@@ -14,6 +14,14 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+from __future__ import annotations
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    import torch
+try:
+    import torch
+except ImportError:
+    pass
 from typing import Tuple
 
 import numpy as np
@@ -59,8 +67,7 @@ class gmatmul(Atom):
         logX = np.log(values[0])
         return np.exp(self.A.value @ logX)
     
-    def torch_numeric(self, values):
-        import torch
+    def torch_numeric(self, values: list[torch.Tensor]) -> torch.Tensor:
         logX = torch.log(values[0])
         return torch.exp(torch.tensor(self.A.value) @ logX)
 

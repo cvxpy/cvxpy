@@ -14,6 +14,15 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+from __future__ import annotations
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    import torch
+try:
+    import torch
+except ImportError:
+    pass
+
 from typing import Tuple
 
 import numpy as np
@@ -105,8 +114,7 @@ class Prod(AxisAtom):
             result = np.prod(values[0], axis=self.axis, keepdims=self.keepdims)
         return result
     
-    def torch_numeric(self, values):
-        import torch
+    def torch_numeric(self, values: list[torch.Tensor]) -> torch.Tensor:
         if intf.is_sparse(values[0]):
             if self.axis is None:
                 result = torch.prod(values[0])

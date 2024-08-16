@@ -13,6 +13,15 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+
+from __future__ import annotations
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    import torch
+try:
+    import torch
+except ImportError:
+    pass
 import operator as op
 from functools import reduce
 from typing import Any, Iterable, List, Tuple
@@ -56,8 +65,7 @@ class AddExpression(AffAtom):
     def numeric(self, values: Iterable[Any]) -> Any:
         return reduce(op.add, values)
 
-    def torch_numeric(self, values):
-        import torch
+    def torch_numeric(self, values: list[torch.Tensor]) -> torch.Tensor:
         return reduce(torch.add, values)
 
     def is_atom_log_log_convex(self) -> bool:

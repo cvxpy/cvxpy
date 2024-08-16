@@ -14,6 +14,15 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+from __future__ import annotations
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    import torch
+try:
+    import torch
+except ImportError:
+    pass
+
 from __future__ import division
 
 import warnings
@@ -49,8 +58,7 @@ class QuadForm(Atom):
             quad = np.dot(np.transpose(values[0]), prod)
         return np.real(quad)
     
-    def torch_numeric(self, values):
-        import torch
+    def torch_numeric(self, values: list[torch.Tensor]) -> torch.Tensor:
         def multiply(x, prod):
             """
             This is an inner function that multiplies x by prod (scalar or tensor)

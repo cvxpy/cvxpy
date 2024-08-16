@@ -14,6 +14,15 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+from __future__ import annotations
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    import torch
+try:
+    import torch
+except ImportError:
+    pass
+
 import sys
 from typing import Any, List, Tuple
 
@@ -40,8 +49,7 @@ class maximum(Elementwise):
         """
         return reduce(np.maximum, values)
     
-    def torch_numeric(self, values):
-        import torch
+    def torch_numeric(self, values: list[torch.Tensor]) -> torch.Tensor:
         return reduce(torch.maximum, values)
 
     def sign_from_args(self) -> Tuple[bool, bool]:

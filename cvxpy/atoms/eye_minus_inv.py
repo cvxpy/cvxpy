@@ -14,6 +14,14 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+from __future__ import annotations
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    import torch
+try:
+    import torch
+except ImportError:
+    pass
 from typing import Tuple
 
 import numpy as np
@@ -75,8 +83,7 @@ class eye_minus_inv(Atom):
     def numeric(self, values):
         return np.linalg.inv(np.eye(self.args[0].shape[0]) - values[0])
     
-    def torch_numeric(self, values):
-        import torch
+    def torch_numeric(self, values: list[torch.Tensor]) -> torch.Tensor:
         return torch.linalg.inv(torch.eye(self.args[0].shape[0]) - values[0])
 
     def name(self) -> str:

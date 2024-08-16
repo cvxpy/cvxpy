@@ -14,6 +14,15 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+from __future__ import annotations
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    import torch
+try:
+    import torch
+except ImportError:
+    pass
+
 from typing import Tuple
 
 import numpy as np
@@ -56,8 +65,7 @@ class one_minus_pos(Atom):
     def numeric(self, values):
         return self._ones - values[0]
     
-    def torch_numeric(self, values):
-        import torch
+    def torch_numeric(self, values: list[torch.Tensor]) -> torch.Tensor:
         # return torch.ones(values[0].shape) - values[0]
         # 1+values[0].new(values[0].shape) creates a ones tensor in the same device as values[0]
         return 1+values[0].new(values[0].shape)-values[0]

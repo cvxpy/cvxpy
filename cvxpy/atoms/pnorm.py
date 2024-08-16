@@ -13,6 +13,15 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+
+from __future__ import annotations
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    import torch
+try:
+    import torch
+except ImportError:
+    pass
 from typing import List, Tuple, Union
 
 import numpy as np
@@ -155,8 +164,7 @@ class Pnorm(AxisAtom):
         return np.linalg.norm(values, float(self.p), axis=self.axis,
                               keepdims=self.keepdims)
     
-    def torch_numeric(self, values):
-        import torch
+    def torch_numeric(self, values: list[torch.Tensor]) -> torch.Tensor:
         values = values[0]
         if self.axis is None:
             values = values.flatten()

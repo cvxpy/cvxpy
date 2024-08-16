@@ -14,8 +14,16 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+from __future__ import annotations
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    import torch
+try:
+    import torch
+except ImportError:
+    pass
+
 import numpy as np
-import torch
 
 from cvxpy.expressions.variable import Variable
 import cvxpy.atoms as atoms

@@ -13,12 +13,18 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
-from typing import Tuple
+from __future__ import annotations
+from typing import Tuple, TYPE_CHECKING
+if TYPE_CHECKING:
+    import torch
+try:
+    import torch
+except ImportError:
+    pass
 
 import numpy as np
 
 from cvxpy.atoms.atom import Atom
-
 
 class dist_ratio(Atom):
     """norm(x - a)_2 / norm(x - b)_2, with norm(x - a)_2 <= norm(x - b).
@@ -40,8 +46,7 @@ class dist_ratio(Atom):
         return np.linalg.norm(
             values[0] - self.a) / np.linalg.norm(values[0] - self.b)
     
-    def torch_numeric(self, values):
-        import torch
+    def torch_numeric(self, values: list[torch.Tensor]) -> torch.Tensor:
         return torch.linalg.norm(
             values[0] - self.a) / torch.linalg.norm(values[0] - self.b)
 

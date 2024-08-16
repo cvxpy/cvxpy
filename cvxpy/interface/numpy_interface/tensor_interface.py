@@ -14,12 +14,20 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+from __future__ import annotations
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    import torch
+try:
+    import torch
+except ImportError:
+    pass
+
 
 from typing import Tuple
 
 import numpy as np
 import scipy.sparse
-import torch
 
 from .. import base_matrix_interface as base
 

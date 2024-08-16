@@ -13,6 +13,15 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+
+from __future__ import annotations
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    import torch
+try:
+    import torch
+except ImportError:
+    pass
 from typing import Tuple
 
 import numpy as np
@@ -33,8 +42,7 @@ class ceil(Elementwise):
         decimals = int(np.abs(np.log10(s.ATOM_EVAL_TOL)))
         return np.ceil(np.around(values[0], decimals=decimals))
     
-    def torch_numeric(self, values):
-        import torch
+    def torch_numeric(self, values: list[torch.Tensor]) -> torch.Tensor:
         decimals = int(np.abs(np.log10(s.ATOM_EVAL_TOL))) #np by design
         return torch.ceil(torch.round(values[0], decimals=decimals))
 
