@@ -292,9 +292,9 @@ class multiply(MulExpression):
             return np.multiply(values[0], values[1])
         
     def torch_numeric(self, values: list[torch.Tensor]) -> torch.Tensor:
-        if sp.issparse(values[0]):
+        if values[0].is_sparse:
             return values[0].multiply(values[1])
-        elif sp.issparse(values[1]):
+        elif values[1].is_sparse:
             return values[1].multiply(values[0])
         else:
             return torch.multiply(values[0], values[1])
@@ -370,7 +370,7 @@ class DivExpression(BinaryOperator):
     
     def torch_numeric(self, values: list[torch.Tensor]) -> torch.Tensor:
         for i in range(2):
-            if sp.issparse(values[i]):
+            if values[i].is_sparse:
                 values[i] = values[i].todense().A
         return torch.divide(values[0], values[1])
 
