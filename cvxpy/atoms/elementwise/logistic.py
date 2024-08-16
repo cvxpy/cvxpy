@@ -39,7 +39,8 @@ class logistic(Elementwise):
     
     def torch_numeric(self, values):
         import torch
-        return torch.logaddexp(torch.tensor(0), values[0])
+        #values.new(1) creates a new 0 tensor on the same device as values[0].
+        return torch.logaddexp(values[0].new(1), values[0])
 
     def sign_from_args(self) -> Tuple[bool, bool]:
         """Returns sign (is positive, is negative) of the expression.
