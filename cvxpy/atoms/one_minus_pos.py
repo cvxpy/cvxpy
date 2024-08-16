@@ -58,7 +58,9 @@ class one_minus_pos(Atom):
     
     def torch_numeric(self, values):
         import torch
-        return torch.ones(values[0].shape) - values[0]
+        # return torch.ones(values[0].shape) - values[0]
+        # 1+values[0].new(values[0].shape) creates a ones tensor in the same device as values[0]
+        return 1+values[0].new(values[0].shape)-values[0]
 
     def _grad(self, values):
         del values
