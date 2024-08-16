@@ -1152,10 +1152,40 @@ class Expression(u.Canonical):
             return self.numeric(values)
 
     def gen_torch_exp(self, provided_vars_list:list = []) -> tuple[callable, VariablesDict]:
-        """ This function generates a torch expression.
-        Also returns vars_dict to help keep track of the order of the variables.
-        If no vars_dict is provided, this function will generate one automatically.
-        The order of the arguments is the same as in self.args (left to right).
+        """
+        This function generates a torch expression from the args of this expression.
+        A torch expression is a function that implements a torch function that evaluates the same
+        mathematical expression as the CVXPY expression.
+
+        For example, if the expression is a subtraction expression between two variables,
+        then the generated torch expression is a function that subtracts two tensors.
+
+        .. code:: python
+            import torch
+            import cvxpy as cp
+            x = cp.Variable()
+            y = cp.Variable()
+            exp = x-y
+            tch_exp, _ = exp.gen_torch_exp() # This implements x-y
+            tch_exp(torch.tensor(5), torch.tensor(3)) # This returns a torch.Tensor(2).
+
+        The order of the arguments in the torch expression is the same order as in args of this
+        expression by default, or can be passed by the user.
+
+        Arguments:
+            provided_vars_list (list): default=[]
+                A list of CVXPY atoms. This list determines the argument positions of the generated
+                torch expression.
+                If an empty list is passed (default), then the order of arguments is the same as
+                in args of this expression (from left to right).
+        
+        Returns:
+            tch_exp (callable):
+                The generated torch expression.
+            
+            vars_dict (cvxpy.utilities.torch_utils.VariablesDict):
+                An object that maps from CVXPY atoms to their indices in the generated torch
+                expression.
         """
         import torch
 
