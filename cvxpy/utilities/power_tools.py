@@ -28,8 +28,11 @@ from cvxpy.expressions.variable import Variable
 
 def gm(t, x, y):
     length = t.size
-    return SOC(t=reshape(x+y, (length,)),
-               X=vstack([reshape(x-y, (1, length)), reshape(2*t, (1, length))]),
+    return SOC(t=reshape(x+y, (length,), order='F'),
+               X=vstack([
+                   reshape(x-y, (1, length), order='F'),
+                   reshape(2*t, (1, length), order='F')
+               ]),
                axis=0)
 
 

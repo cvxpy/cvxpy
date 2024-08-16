@@ -38,9 +38,9 @@ def pnorm_canon(expr, args):
     if p == 2:
         if axis is None:
             assert shape == tuple()
-            return t, [SOC(t, vec(x))]
+            return t, [SOC(t, vec(x, order='F'))]
         else:
-            return t, [SOC(vec(t), x, axis)]
+            return t, [SOC(vec(t, order='F'), x, axis)]
 
     # we need an absolute value constraint for the symmetric convex branches
     # (p > 1)

@@ -147,8 +147,7 @@ class TestQp(BaseTest):
         p = Problem(Minimize(sum_squares(A @ self.x - b)))
         self.solve_QP(p, solver)
         for var in p.variables():
-            self.assertItemsAlmostEqual(lstsq(A, b)[0].flatten(),
-                                        var.value,
+            self.assertItemsAlmostEqual(lstsq(A, b)[0].flatten(order='F'), var.value,
                                         places=1)
 
     def quad_form(self, solver) -> None:
@@ -202,7 +201,7 @@ class TestQp(BaseTest):
         p = Problem(Minimize(norm(A @ self.w - b, 2)))
         self.solve_QP(p, solver)
         for var in p.variables():
-            self.assertItemsAlmostEqual(lstsq(A, b)[0].flatten(), var.value,
+            self.assertItemsAlmostEqual(lstsq(A, b)[0].flatten(order='F'), var.value,
                                         places=1)
 
     def mat_norm_2(self, solver) -> None:

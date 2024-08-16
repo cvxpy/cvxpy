@@ -89,7 +89,7 @@ class TestSupportFunctions(BaseTest):
         sigma = cp.suppfunc(x, [x[:, 0] == 0])
         y = cp.Variable(shape=(rows, cols))
         cons = [sigma(y - a) <= 0]
-        objective = cp.Minimize(cp.sum_squares(y.flatten()))
+        objective = cp.Minimize(cp.sum_squares(y.flatten(order='F')))
         prob = cp.Problem(objective, cons)
         prob.solve(solver='ECOS')
         expect = np.hstack([np.zeros(shape=(rows, 1)), a[:, [1]]])
@@ -105,7 +105,7 @@ class TestSupportFunctions(BaseTest):
         sigma = cp.suppfunc(X, [X >> 0])
         A = np.random.randn(n, n)
         Y = cp.Variable(shape=(n, n))
-        objective = cp.Minimize(cp.norm(A.ravel(order='F') + Y.flatten()))
+        objective = cp.Minimize(cp.norm(A.ravel(order='F') + Y.flatten(order='F')))
         cons = [sigma(Y) <= 0]  # Y is negative definite.
         prob = cp.Problem(objective, cons)
         prob.solve(solver='SCS', eps=1e-8)

@@ -24,7 +24,7 @@ def matrix_frac_canon(expr, args):
     P = args[1]  # n by n matrix.
 
     if len(X.shape) == 1:
-        X = reshape(X, (X.shape[0], 1))
+        X = reshape(X, (X.shape[0], 1), order='F')
     n, m = X.shape
     T = Variable((m, m), symmetric=True)
     M = bmat([[P, X],

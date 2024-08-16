@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 """
 Copyright, the CVXPY authors
 

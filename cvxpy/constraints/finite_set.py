@@ -59,7 +59,7 @@ class FiniteSet(Constraint):
         Expression = cvxtypes.expression()
         if isinstance(vec, set):
             vec = list(vec)
-        vec = Expression.cast_to_const(vec).flatten()
+        vec = Expression.cast_to_const(vec).flatten(order='F')
         if not expre.is_affine() and not expre.is_log_log_affine():
             msg = """
             Provided Expression must be affine or log-log affine, but had curvature %s.
@@ -128,7 +128,7 @@ class FiniteSet(Constraint):
         -------
         float
         """
-        expr_val = np.array(self.expre.value).flatten()
+        expr_val = np.array(self.expre.value).flatten(order='F')
         vec_val = self.vec.value
         resids = [np.min(np.abs(val - vec_val)) for val in expr_val]
         res = max(resids)
