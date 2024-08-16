@@ -43,6 +43,7 @@ class TestTorchNumeric(BaseTest):
                     1               : self.mat_np
                     2               : self.sqr_np
                     3               : self.cmp_np (not included in the standard tests)
+                    4               : self.pos_np (not included in the standard tests)
             repetitions
                 How many times to duplicate the input
             dtype
@@ -98,12 +99,14 @@ class TestTorchNumeric(BaseTest):
         self.mat_np = np.array([[1,-1,0],[0,1,2]])
         self.sqr_np = np.random.randn(3,3)
         self.cmp_np = np.array([[2+3.j, 5+8.j, 0-2.j],[8+0.j, 1-3.j, 2+2.j]])
+        self.pos_np = np.array([[1,2,3],[4,5,6]])
 
         self.test_dict = {
             0: self.arr_np,
             1: self.mat_np,
             2: self.sqr_np,
             3: self.cmp_np,
+            4: self.pos_np,
             }
 
     def test_atoms(self):
@@ -112,7 +115,8 @@ class TestTorchNumeric(BaseTest):
         self._assert_torch_numeric(atoms.dist_ratio(None, 10, 5))
         self._assert_torch_numeric(atoms.dotsort(None, 4), repetitions=2)
         self._assert_torch_numeric(atoms.eye_minus_inv(np.eye(3)), (True, False, True))
-        self._assert_torch_numeric(atoms.geo_mean([1]*6), (False, True, False))
+        self._assert_torch_numeric(atoms.geo_mean([1]*6), (False, True, False), 1, torch.float,
+                                   (4,))
         self._assert_torch_numeric(atoms.gmatmul(np.ones(3),np.ones(3)), (True, False, True))
         self._assert_torch_numeric(atoms.length(np.ones(3)))
         self._assert_torch_numeric(atoms.log_det(np.eye(3)), (False, False, True))
