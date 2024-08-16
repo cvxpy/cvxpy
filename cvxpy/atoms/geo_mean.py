@@ -258,12 +258,16 @@ class geo_mean(Atom):
         return gmean(values, weights=self.w)
     
     def torch_numeric(self, values):
+        import torch
         values = values[0]
         values = values.flatten()
-        val = 1.0
-        for x, p in zip(values, self.w):
-            val *= x**float(p)
-        return val
+        # val = 1.0
+        # for x, p in zip(values, self.w):
+        #     val *= x**float(p)
+        # return val
+        log_tensor = torch.log(values)
+        mean_log = torch.mean(log_tensor)
+        return torch.exp(mean_log)
 
     def _domain(self) -> List[Constraint]:
         """Returns constraints describing the domain of the node.
