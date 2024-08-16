@@ -40,7 +40,7 @@ class TestTorchNumeric(BaseTest):
                     If i is True    : Test on this
                     ===============================
                     0               : self.arr_np
-                    1               : self.arr_np
+                    1               : self.mat_np
                     2               : self.sqr_np
                     3               : self.cmp_np (not included in the standard tests)
             repetitions
@@ -112,7 +112,7 @@ class TestTorchNumeric(BaseTest):
         self._assert_torch_numeric(atoms.dist_ratio(None, 10, 5))
         self._assert_torch_numeric(atoms.dotsort(None, 4), repetitions=2)
         self._assert_torch_numeric(atoms.eye_minus_inv(np.eye(3)), (True, False, True))
-        self._assert_torch_numeric(atoms.geo_mean(None))
+        self._assert_torch_numeric(atoms.geo_mean([1]*6), (False, True, False))
         self._assert_torch_numeric(atoms.gmatmul(np.ones(3),np.ones(3)), (True, False, True))
         self._assert_torch_numeric(atoms.length(np.ones(3)))
         self._assert_torch_numeric(atoms.log_det(np.eye(3)), (False, False, True))
