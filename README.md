@@ -81,13 +81,13 @@ conda install -c conda-forge cvxpy
 
 CVXPY has the following dependencies:
 
-- Python >= 3.8
+- Python >= 3.9
 - Clarabel >= 0.5.0
 - OSQP >= 0.6.2
 - ECOS >= 2
 - SCS >= 3.2.4.post1
-- NumPy >= 1.15
-- SciPy >= 1.1.0
+- NumPy >= 1.20.0
+- SciPy >= 1.6.0
 
 For detailed instructions, see the [installation
 guide](https://www.cvxpy.org/install/index.html).

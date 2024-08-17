@@ -112,7 +112,7 @@ class Leaf(expression.Expression):
         for d in shape:
             if not isinstance(d, numbers.Integral) or d <= 0:
                 raise ValueError("Invalid dimensions %s." % (shape,))
-        shape = tuple(np.int32(d) for d in shape)
+        shape = tuple(shape)
         self._shape = shape
 
         if (PSD or NSD or symmetric or diag or hermitian) and (len(shape) != 2
