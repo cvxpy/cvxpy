@@ -15,7 +15,7 @@ exclude = [
     "*__init__.py"
 ]
 # The minimum Python version that should be supported
-target-version = "py39"
+target-version = "py38"
 
 
 [tool.pytest.ini_options]
@@ -46,10 +46,10 @@ dependencies = [
     "ecos >= 2",
     "clarabel >= 0.5.0",
     "scs >= 3.2.4.post1",
-    "numpy >= 1.20",
+    "numpy >= 1.15",
     "scipy >= 1.1.0",
 ]
-requires-python = ">=3.9"
+requires-python = ">=3.8"
 urls = {Homepage = "https://github.com/cvxpy/cvxpy"}
 license = {text = "Apache License, Version 2.0"}
 authors = [{name = "Steven Diamond", email = "stevend2@stanford.edu"},

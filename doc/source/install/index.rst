@@ -59,7 +59,7 @@ or a conda environment.
 
         CVXPY has the following dependencies:
 
-         * Python >= 3.9
+         * Python >= 3.8
          * `OSQP`_ >= 0.6.2
          * `CLARABEL`_ >= 0.6.0
          * `SCS`_ >= 3.0
