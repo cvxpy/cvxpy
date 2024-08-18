@@ -25,7 +25,6 @@ from cvxpy.expressions.expression import Expression
 from cvxpy.reductions.solution import Solution, failure_solution
 from cvxpy.reductions.solvers import utilities
 from cvxpy.reductions.solvers.conic_solvers.conic_solver import ConicSolver
-from cvxpy.utilities.versioning import Version
 
 
 def dims_to_solver_cones(cone_dims):
@@ -133,16 +132,7 @@ class CLARABEL(ConicSolver):
     # Solver capabilities.
     MIP_CAPABLE = False
     SUPPORTED_CONSTRAINTS = ConicSolver.SUPPORTED_CONSTRAINTS \
-        + [SOC, ExpCone, PowCone3D]
-    
-    # TODO remove try-catch when minimum required version >= 0.5.0.
-    try:
-        import clarabel
-        if Version(clarabel.__version__) >= Version('0.5.0'):
-            SUPPORTED_CONSTRAINTS.append(PSD)
-    except (ModuleNotFoundError, TypeError):
-        pass
-    
+        + [SOC, ExpCone, PowCone3D, PSD]
 
     STATUS_MAP = {
                     "Solved": s.OPTIMAL,
