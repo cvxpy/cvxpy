@@ -46,7 +46,7 @@ def diag(expr, k: int = 0) -> Union["diag_mat", "diag_vec"]:
     """
     expr = AffAtom.cast_to_const(expr)
     if expr.is_vector():
-        return diag_vec(vec(expr), k)
+        return diag_vec(vec(expr, order='F'), k)
     elif expr.ndim == 2 and expr.shape[0] == expr.shape[1]:
         assert abs(k) < expr.shape[0], "Offset out of bounds."
         return diag_mat(expr, k)

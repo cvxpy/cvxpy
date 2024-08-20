@@ -563,21 +563,21 @@ class TestAtoms(BaseTest):
     def test_reshape(self) -> None:
         """Test the reshape class.
         """
-        expr = cp.reshape(self.A, (4, 1))
+        expr = cp.reshape(self.A, (4, 1), order='F')
         self.assertEqual(expr.sign, s.UNKNOWN)
         self.assertEqual(expr.curvature, s.AFFINE)
         self.assertEqual(expr.shape, (4, 1))
 
-        expr = cp.reshape(expr, (2, 2))
+        expr = cp.reshape(expr, (2, 2), order='F')
         self.assertEqual(expr.shape, (2, 2))
 
-        expr = cp.reshape(cp.square(self.x), (1, 2))
+        expr = cp.reshape(cp.square(self.x), (1, 2), order='F')
         self.assertEqual(expr.sign, s.NONNEG)
         self.assertEqual(expr.curvature, s.CONVEX)
         self.assertEqual(expr.shape, (1, 2))
 
         with self.assertRaises(Exception) as cm:
-            cp.reshape(self.C, (5, 4))
+            cp.reshape(self.C, (5, 4), order='F')
         self.assertEqual(str(cm.exception),
                          "Invalid reshape dimensions (5, 4).")
 
@@ -628,23 +628,23 @@ class TestAtoms(BaseTest):
         expected_shapes = [(6, 1), (1, 6), (3, 2), (6,), (6,)]
 
         for shape, expected_shape in zip(shapes, expected_shapes):
-            expr_reshaped = cp.reshape(expr, shape)
+            expr_reshaped = cp.reshape(expr, shape, order='F')
             self.assertEqual(expr_reshaped.shape, expected_shape)
 
             numpy_expr_reshaped = np.reshape(numpy_expr, shape)
             self.assertEqual(numpy_expr_reshaped.shape, expected_shape)
 
         with pytest.raises(ValueError, match="Cannot reshape expression"):
-            cp.reshape(expr, (8, -1))
+            cp.reshape(expr, (8, -1), order='F')
 
         with pytest.raises(AssertionError, match="Only one"):
-            cp.reshape(expr, (-1, -1))
+            cp.reshape(expr, (-1, -1), order='F')
 
         with pytest.raises(ValueError, match="Invalid reshape dimensions"):
-            cp.reshape(expr, (-1, 0))
+            cp.reshape(expr, (-1, 0), order='F')
 
         with pytest.raises(AssertionError, match="Specified dimension must be nonnegative"):
-            cp.reshape(expr, (-1, -2))
+            cp.reshape(expr, (-1, -2), order='F')
 
         A = np.array([[1, 2, 3], [4, 5, 6]])
         A_reshaped = cp.reshape(A, -1, order='C')
@@ -655,15 +655,15 @@ class TestAtoms(BaseTest):
     def test_vec(self) -> None:
         """Test the vec atom.
         """
-        expr = cp.vec(self.C)
+        expr = cp.vec(self.C, order='F')
         self.assertEqual(expr.sign, s.UNKNOWN)
         self.assertEqual(expr.curvature, s.AFFINE)
         self.assertEqual(expr.shape, (6,))
 
-        expr = cp.vec(self.x)
+        expr = cp.vec(self.x, order='F')
         self.assertEqual(expr.shape, (2,))
 
-        expr = cp.vec(cp.square(self.a))
+        expr = cp.vec(cp.square(self.a), order='F')
         self.assertEqual(expr.sign, s.NONNEG)
         self.assertEqual(expr.curvature, s.CONVEX)
         self.assertEqual(expr.shape, (1,))
@@ -807,7 +807,7 @@ class TestAtoms(BaseTest):
         for n in range(3, 8):
             A = upper_tri_to_full(n)
             v = np.arange(n * (n+1) // 2)
-            M = (A @ v).reshape((n, n))
+            M = (A @ v).reshape((n, n), order='F')
             assert np.allclose(M, M.T)
 
     def test_huber(self) -> None:
@@ -1494,7 +1494,6 @@ class TestAtoms(BaseTest):
 
         # Test with matrices
         A = np.arange(4).reshape((2, 2))
-        np.arange(4, 8).reshape((2, 2))
 
         with pytest.raises(ValueError, match="x must be a vector"):
             cp.outer(A, d)
@@ -1502,7 +1501,8 @@ class TestAtoms(BaseTest):
             cp.outer(d, A)
 
         # allow 2D inputs once row-major flattening is the default
-        assert np.allclose(cp.vec(np.array([[1, 2], [3, 4]])).value, np.array([1, 3, 2, 4]))
+        assert np.allclose(cp.vec(np.array([[1, 2], [3, 4]]), order='F').value, 
+                           np.array([1, 3, 2, 4]))
 
     def test_conj(self) -> None:
         """Test conj.
@@ -1681,12 +1681,6 @@ class TestAtoms(BaseTest):
         expr = cp.Constant(reshaped).flatten(order='C')
         self.assertItemsAlmostEqual(expr.value, A)
 
-        reshaped = np.reshape(A, (2, 5), order='F')
-        expr = cp.vec(reshaped, order='F')
-        self.assertItemsAlmostEqual(expr.value, A)
-        expr = cp.Constant(reshaped).flatten()
-        self.assertItemsAlmostEqual(expr.value, A)
-
         # Variable argument.
         x = Variable((2, 5))
         reshaped = np.reshape(A, (2, 5), order='F')
@@ -1702,14 +1696,6 @@ class TestAtoms(BaseTest):
         cp.Problem(cp.Minimize(0), [expr == A]).solve()
         self.assertItemsAlmostEqual(x.value, reshaped)
         expr = cp.Constant(A).flatten(order='C')
-        cp.Problem(cp.Minimize(0), [expr == A]).solve()
-        self.assertItemsAlmostEqual(x.value, reshaped)
-
-        reshaped = np.reshape(A, (2, 5), order='F')
-        expr = cp.vec(x)
-        cp.Problem(cp.Minimize(0), [expr == A]).solve()
-        self.assertItemsAlmostEqual(x.value, reshaped)
-        expr = cp.Constant(A).flatten()
         cp.Problem(cp.Minimize(0), [expr == A]).solve()
         self.assertItemsAlmostEqual(x.value, reshaped)
 

@@ -49,7 +49,7 @@ class SOC(Cone):
             )
         self.axis = axis
         if len(t.shape) == 0:
-            t = t.flatten()
+            t = t.flatten(order='F')
         super(SOC, self).__init__([t, X], constr_id)
 
     def __str__(self) -> str:

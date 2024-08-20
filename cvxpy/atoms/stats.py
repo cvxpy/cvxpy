@@ -40,7 +40,7 @@ def std(x, axis=None, keepdims=False, ddof=0):
     `ddof` is the quantity to use in the Bessel correction.
     """
     if axis is None:
-        return norm((x - mean(x)).flatten(), 2) / np.sqrt(x.size - ddof)
+        return norm((x - mean(x)).flatten(order='F'), 2) / np.sqrt(x.size - ddof)
     elif axis in (0, 1):
         return norm(x - mean(x, axis, True), 2, axis=axis, keepdims=keepdims) \
                 / np.sqrt(x.shape[axis] - ddof)

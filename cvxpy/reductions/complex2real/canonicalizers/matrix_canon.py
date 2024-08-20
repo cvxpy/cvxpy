@@ -150,7 +150,7 @@ def at_least_2D(expr: Expression):
     """Upcast 0D and 1D to 2D.
     """
     if expr.ndim < 2:
-        return reshape(expr, (expr.size, 1))
+        return reshape(expr, (expr.size, 1), order='F')
     else:
         return expr
 

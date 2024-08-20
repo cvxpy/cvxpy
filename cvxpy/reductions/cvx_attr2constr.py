@@ -74,12 +74,12 @@ def attributes_present(variables, attr_map):
 
 def recover_value_for_variable(variable, lowered_value, project: bool = True):
     if variable.attributes['diag']:
-        return sp.diags(lowered_value.flatten())
+        return sp.diags(lowered_value.flatten(order='F'))
     elif attributes_present([variable], SYMMETRIC_ATTRIBUTES):
         n = variable.shape[0]
         value = np.zeros(variable.shape)
         idxs = np.triu_indices(n)
-        value[idxs] = lowered_value.flatten()
+        value[idxs] = lowered_value.flatten(order='F')
         return value + value.T - np.diag(value.diagonal())
     elif project:
         return variable.project(lowered_value)
@@ -151,7 +151,7 @@ class CvxAttr2Constr(Reduction):
                     id2new_var[var.id] = upper_tri
                     fill_coeff = Constant(upper_tri_to_full(n))
                     full_mat = fill_coeff @ upper_tri
-                    obj = reshape(full_mat, (n, n))
+                    obj = reshape(full_mat, (n, n), order='F')
                 elif var.attributes['diag']:
                     diag_var = Variable(var.shape[0], var_id=var.id, **new_attr)
                     diag_var.set_variable_of_provenance(var)
