@@ -158,7 +158,7 @@ class SOC(Cone):
 
     def save_dual_value(self, value) -> None:
         cone_size = 1 + self.args[1].shape[self.axis]
-        value = np.reshape(value, shape=(-1, cone_size))
+        value = np.reshape(value, (-1, cone_size))
         t = value[:, 0]
         X = value[:, 1:]
         if self.axis == 0:
