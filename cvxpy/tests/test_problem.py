@@ -1497,7 +1497,7 @@ class TestProblem(BaseTest):
         obj = cp.Minimize(cp.sum(mat @ expr))
         prob = Problem(obj, [self.C == C_mat])
         result = prob.solve(solver=cp.SCS)
-        reshaped = numpy.reshape(C_mat, (2, 3), 'F')
+        reshaped = numpy.reshape(C_mat, (2, 3), order='F')
         self.assertAlmostEqual(result, (mat.dot(reshaped)).sum())
         self.assertItemsAlmostEqual(expr.value, C_mat)
 
