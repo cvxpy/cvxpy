@@ -1219,12 +1219,12 @@ class SciPyCanonBackend(PythonCanonBackend):
                 else:
                     shape = tuple(_lin.args[0].shape)
                     axis = axis if isinstance(axis, tuple) else (axis,)
-                    n = x.shape[-1]
+                    n = x.shape[0]
                     d = np.prod([shape[i] for i in axis], dtype=int)
                     row_idx = row_idx_func(shape=shape, axis=axis)
-                    print(f"x shape: {x.shape}, n, {n}, d {d}, len(row_idx): {len(row_idx)}")
-                    col_idx = np.arange(n).reshape(shape, order='F').flatten(order='F')
-                    return sp.csr_matrix((x.data, (row_idx, col_idx)), shape=(n//d, n))
+                    col_idx = np.arange(n)
+                    A = sp.csr_matrix((np.ones(n), (row_idx, col_idx)), shape=(n//d, n))
+                    return A @ x
             else:
                 m = x.shape[0] // p
                 return (sp.kron(sp.eye(p, format="csc"), np.ones(m)) @ x).tocsc()

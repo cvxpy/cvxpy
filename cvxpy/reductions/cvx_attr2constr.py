@@ -75,12 +75,12 @@ def attributes_present(variables, attr_map) -> List[str]:
 
 def recover_value_for_variable(variable, lowered_value, project: bool = True):
     if variable.attributes['diag']:
-        return sp.diags(lowered_value.flatten())
+        return sp.diags(lowered_value.flatten(order='F'))
     elif attributes_present([variable], SYMMETRIC_ATTRIBUTES):
         n = variable.shape[0]
         value = np.zeros(variable.shape)
         idxs = np.triu_indices(n)
-        value[idxs] = lowered_value.flatten()
+        value[idxs] = lowered_value.flatten(order='F')
         return value + value.T - np.diag(value.diagonal())
     #TODO add case for sparsity
     elif project:
@@ -154,11 +154,11 @@ class CvxAttr2Constr(Reduction):
                     sparse_var = Variable(n, var_id=var.id, **new_attr)
                     sparse_var.set_variable_of_provenance(var)
                     id2new_var[var.id] = sparse_var
-                    row_idx = np.ravel_multi_index(var.sparse_idx, var.shape)
+                    row_idx = np.ravel_multi_index(var.sparse_idx, var.shape, order='F')
                     col_idx = np.arange(n)
                     coeff_matrix = Constant(sp.csc_matrix((np.ones(n), (row_idx, col_idx)),
                                                     shape=(np.prod(var.shape, dtype=int), n)))
-                    obj = reshape(coeff_matrix @ sparse_var, var.shape)
+                    obj = reshape(coeff_matrix @ sparse_var, var.shape, order='F')
                 elif var.attributes['diag']:
                     diag_var = Variable(var.shape[0], var_id=var.id, **new_attr)
                     diag_var.set_variable_of_provenance(var)

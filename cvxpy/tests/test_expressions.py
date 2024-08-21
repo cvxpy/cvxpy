@@ -1621,3 +1621,10 @@ class TestND_Expressions():
         prob = cp.Problem(self.obj, [expr == y])
         prob.solve(canon_backend=cp.SCIPY_CANON_BACKEND)
         assert np.allclose(expr.value, y)
+
+    def test_nd_index_sum(self) -> None:
+        expr = self.x[:,:,0].sum(axis=0)
+        y = self.target[:,:,0].sum(axis=0)
+        prob = cp.Problem(self.obj, [expr == y])
+        prob.solve(canon_backend=cp.SCIPY_CANON_BACKEND)
+        assert np.allclose(expr.value, y)

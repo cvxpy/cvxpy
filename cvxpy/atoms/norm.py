@@ -57,7 +57,7 @@ def norm(x, p: Union[int, str] = 2, axis=None, keepdims: bool = False):
             return cvxpy.atoms.max(norm1(x, axis=0))
         # Frobenius norm
         elif p == 'fro' or (p == 2 and num_nontrivial_idxs == 1):
-            return pnorm(vec(x), 2)
+            return pnorm(vec(x, order='F'), 2)
         elif p == 2:  # matrix 2-norm is largest singular value
             return sigma_max(x)
         elif p == 'nuc':  # the nuclear norm (sum of singular values)
@@ -73,7 +73,7 @@ def norm(x, p: Union[int, str] = 2, axis=None, keepdims: bool = False):
             return norm_inf(x, axis=axis, keepdims=keepdims)
         elif str(p).lower() == "fro":
             # TODO should not work for vectors.
-            return pnorm(vec(x), 2, axis)
+            return pnorm(vec(x, order='F'), 2, axis)
         elif isinstance(p, str):
             raise RuntimeError(f'Unsupported norm option {p} for non-matrix.')
         else:

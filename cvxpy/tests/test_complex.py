@@ -526,7 +526,7 @@ class TestComplex(BaseTest):
         constraints = [f >> 0]
         for k in range(1, n):
             indices = [(i * n) + i - (n - k) for i in range(n - k, n)]
-            constraints += [cp.sum(cp.vec(f)[indices]) == c[n - k]]
+            constraints += [cp.sum(cp.vec(f, order='F')[indices]) == c[n - k]]
         # Form objective.
         obj = cp.Maximize(c[0] - cp.real(cp.trace(f)))
         # Form and solve problem.

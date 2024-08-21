@@ -74,14 +74,14 @@ class SOC2PSD(Reduction):
                 """
 
                 A = scalar_term * sparse.eye(1)
-                B = cp.reshape(X,[-1,1]).T
+                B = cp.reshape(X,[-1,1], order='F').T
                 C = scalar_term * sparse.eye(vector_term_len)
 
                 """
                 Another technique for reference
 
                 A = scalar_term * sparse.eye(vector_term_len)
-                B = cp.reshape(X,[-1,1])
+                B = cp.reshape(X,[-1,1], order='F')
                 C = scalar_term * sparse.eye(1)
                 """
 

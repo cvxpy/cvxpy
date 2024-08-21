@@ -117,7 +117,7 @@ def vec_to_upper_tri(expr, strict: bool = False):
     if not expr.is_vector():
         raise ValueError("The input must be a vector.")
     if expr.ndim != 1:
-        expr = vec(expr)
+        expr = vec(expr, order='F')
 
     ell = expr.shape[0]
     if strict:
@@ -141,7 +141,7 @@ def vec_to_upper_tri(expr, strict: bool = False):
     P_cols = np.arange(ell)
     P_vals = np.ones(P_cols.size)
     P = sp.csc_matrix((P_vals, (P_rows, P_cols)), shape=(n * n, ell))
-    return reshape(P @ expr, (n, n)).T
+    return reshape(P @ expr, (n, n), order='F').T
 
 
 def upper_tri_to_full(n: int) -> sp.csc_matrix:
