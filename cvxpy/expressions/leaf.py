@@ -103,7 +103,7 @@ class Leaf(expression.Expression):
         symmetric: bool = False, diag: bool = False, PSD: bool = False,
         NSD: bool = False, hermitian: bool = False,
         boolean: bool = False, integer: bool = False,
-        sparsity=None, pos: bool = False, neg: bool = False, bounds: Iterable | None=None
+        sparsity = False, pos: bool = False, neg: bool = False, bounds: Iterable | None=None
     ) -> None:
         if isinstance(shape, numbers.Integral):
             shape = (int(shape),)
@@ -127,9 +127,9 @@ class Leaf(expression.Expression):
                            'complex': complex, 'imag': imag,
                            'symmetric': symmetric, 'diag': diag,
                            'PSD': PSD, 'NSD': NSD,
-                           'hermitian': hermitian, 'boolean': bool(boolean),
+                           'hermitian': hermitian, 'boolean': boolean,
                            'integer':  integer, 'sparsity': sparsity, 'bounds': bounds}
-
+        # Process attributes with indices.
         if boolean:
             self.boolean_idx = boolean if not isinstance(boolean, bool) else set(
                 np.ndindex(max(shape, (1,))))
@@ -140,16 +140,23 @@ class Leaf(expression.Expression):
                 np.ndindex(max(shape, (1,))))
         else:
             self.integer_idx = {}
-        if isinstance(sparsity, np.ndarray) or sparsity:
-            self.sparse_idx = sparsity
+        if sparsity:
+            self._validate_sparsity(sparsity)
         else:
             self.sparse_idx = {}
 
+        # Only one attribute can be True (except can be boolean and integer).
+        true_attr = sum(1 for v in self.attributes.values() if v)
+        # HACK we should remove this feature or allow multiple attributes in general.
+        if boolean and integer:
+            true_attr -= 1
+        if true_attr > 1:
+            raise ValueError("Cannot set more than one special attribute in %s."
+                             % self.__class__.__name__)
         if value is not None:
             self.value = value
 
         self.args = []
-
         self.bounds = bounds
 
     def _validate_sparsity(self, indices: List[tuple | np.ndarray]) -> None:
@@ -449,9 +456,13 @@ class Leaf(expression.Expression):
 
     @property
     def value(self):
-        """NumPy.ndarray or None: The numeric value of the parameter.
-        """
+        """np.ndarray or None: The numeric value of the expression."""
         return self._value
+
+    @property
+    def sparse_value(self):
+        """np.ndarray or None: The sparse numeric value of the expression."""
+        return self._sparse_value
 
     @value.setter
     def value(self, val) -> None:

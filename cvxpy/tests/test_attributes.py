@@ -62,6 +62,21 @@ class TestAttributes():
         prob = cp.Problem(cp.Minimize(cp.sum(X)), [X >= -1, X <= 1])
         assert prob.get_problem_data(cp.CLARABEL)[0]['A'].shape[1] == 9
 
+    def test_sparsity_sparse_value(self):
+        pass
+
+    def test_non_sparse_value(self):
+        pass
+
+    def test_parameter_sparse_value(self):
+        pass
+    
+    def test_boolean_indices(self):
+        pass
+
+    def test_integer_indices(self):
+        pass
+
     def test_diag_value_sparse(self):
         X = cp.Variable((3, 3), diag=True)
         prob = cp.Problem(cp.Minimize(cp.sum(X)), [X >= -1, X <= 1])
