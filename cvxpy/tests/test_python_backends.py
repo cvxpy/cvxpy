@@ -499,7 +499,7 @@ class TestBackends:
         view_A = sp.coo_matrix((view_A.data, (view_A.row, view_A.col)), shape=(2, 2)).toarray()
         assert np.all(view_A == np.eye(2))
 
-        sum_entries_lin_op = linOpHelper(shape = (2,), data = [None, True])
+        sum_entries_lin_op = linOpHelper(shape = (2,), data = [None, True], args=[variable_lin_op])
         out_view = backend.sum_entries(sum_entries_lin_op, view)
         A = out_view.get_tensor_representation(0, 1)
 
@@ -1260,7 +1260,7 @@ class TestParametrizedBackends:
         mul_elem_lin_op = linOpHelper(data=param_lin_op)
         param_var_view = param_backend.mul_elem(mul_elem_lin_op, var_view)
 
-        sum_entries_lin_op = linOpHelper(shape=(2,), data=[None, True])
+        sum_entries_lin_op = linOpHelper(shape=(2,), data=[None, True], args=[variable_lin_op])
         out_view = param_backend.sum_entries(sum_entries_lin_op, param_var_view)
         out_repr = out_view.get_tensor_representation(0, 1)
 
@@ -2000,6 +2000,93 @@ class TestND_Backends:
 
         # Note: view is edited in-place:
         assert out_view.get_tensor_representation(0, 1) == view.get_tensor_representation(0, 1)
+
+
+class TestParametrizedND_Backends:
+    @staticmethod
+    @pytest.fixture(params=backends)
+    def param_backend(request):
+        kwargs = {
+            "id_to_col": {1: 0},
+            "param_to_size": {-1: 1, 2: 8},
+            "param_to_col": {2: 0, -1: 8},
+            "param_size_plus_one": 9,
+            "var_length": 8,
+        }
+
+        backend = CanonBackend.get_backend(request.param, **kwargs)
+        assert isinstance(backend, PythonCanonBackend)
+        return backend
+        
+    def test_parametrized_nd_sum_entries(self, param_backend):
+        """
+        starting with a (2,2,2) parametrized expression
+        x111 x211 x121 x221 x112 x212 x122 x222
+        slice(0)
+        [[1   0   0   0   0   0   0   0],
+         [0   0   0   0   0   0   0   0],
+         ...
+         [0   0   0   0   0   0   0   0],
+         [0   0   0   0   0   0   0   0]]
+        slice(1)
+        [[0   0   0   0   0   0   0   0],
+         [0   1   0   0   0   0   0   0],
+         ...
+         [0   0   0   0   0   0   0   0],
+         [0   0   0   0   0   0   0   0]]
+        ...
+        slice(7)
+        [[0   0   0   0   0   0   0   0],
+         [0   0   0   0   0   0   0   0],
+         ...
+         [0   0   0   0   0   0   0   0],
+         [0   0   0   0   0   0   0   1]]
+
+        sum(x, axis = (0,2)) means we only consider entries in a given axis (axes)
+
+        Thus, when using the same columns as before, we now perform the sum operation
+        over each slice individually:
+
+        x111 x211 x121 x221 x112 x212 x122 x222
+        slice(0)
+        [[1   0   0   0   0   0   0   0],
+         [0   0   0   0   0   0   0   0]]
+        slice(2)
+        [[0   1   0   0   0   0   0   0],
+         [0   0   0   0   0   0   0   0]]
+        slice(7)
+        [[0   0   0   0   0   0   0   0],
+         [0   0   0   0   0   0   0   1]]
+        """
+        param_lin_op = linOpHelper((2,2,2), type="param", data=2)
+        variable_lin_op = linOpHelper((2,2,2), type="variable", data=1)
+        var_view = param_backend.process_constraint(variable_lin_op, param_backend.get_empty_view())
+        mul_elem_lin_op = linOpHelper(data=param_lin_op)
+        param_var_view = param_backend.mul_elem(mul_elem_lin_op, var_view)
+
+        sum_entries_lin_op = linOpHelper(shape=(2,2,2), data=[(0,2), True], args=[variable_lin_op])
+        out_view = param_backend.sum_entries(sum_entries_lin_op, param_var_view)
+        out_repr = out_view.get_tensor_representation(0, 2)
+
+        slice_idx_zero = out_repr.get_param_slice(0).toarray()[:, :-1]
+        expected_idx_zero = np.array([[1., 0., 0., 0., 0., 0., 0., 0.],
+                                    [0., 0., 0., 0., 0., 0., 0., 0.]])
+        assert np.all(slice_idx_zero == expected_idx_zero)
+
+        slice_idx_one = out_repr.get_param_slice(1).toarray()[:, :-1]
+        expected_idx_one = np.array([[0., 1., 0., 0., 0., 0., 0., 0.],
+                                    [0., 0., 0., 0., 0., 0., 0., 0.]])
+        assert np.all(slice_idx_one == expected_idx_one)
+
+        slice_idx_seven = out_repr.get_param_slice(7).toarray()[:, :-1]
+        expected_idx_seven = np.array([[0., 0., 0., 0., 0., 0., 0., 0.],
+                                    [0., 0., 0., 0., 0., 0., 0., 1.]])
+        assert np.all(slice_idx_seven == expected_idx_seven)
+
+        # Note: view is edited in-place:
+        assert out_view.get_tensor_representation(0, 4) == param_var_view.get_tensor_representation(
+            0, 4
+        )
 
 
 class TestNumPyBackend:
