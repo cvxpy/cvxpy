@@ -1574,7 +1574,7 @@ class TestND_Expressions():
     @pytest.mark.parametrize("axis", [(0),(1),(2),((0,1)),((0,2)),((2,1))])
     def test_nd_parametrized_sum(self, axis) -> None:
         param = cp.Parameter((2,2,2))
-        param.value = np.ones((2,2,2))
+        param.value = np.arange(8).reshape(2,2,2)
         expr = cp.multiply(self.x, param).sum(axis=axis)
         target = self.target.sum(axis=axis)
         prob = cp.Problem(self.obj, [expr == target])
