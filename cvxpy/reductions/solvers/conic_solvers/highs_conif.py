@@ -150,12 +150,25 @@ class HIGHS(ConicSolver):
         self.prob_.addVars(nvars, [-inf]*nvars, [inf]*nvars)
         if data[s.BOOL_IDX] != []:
             nbinaryvars = len(data[s.BOOL_IDX])
-            self.prob_.changeColsBounds(nbinaryvars, data[s.BOOL_IDX], [0.0] * nbinaryvars, [1.0] * nbinaryvars)
-            self.prob_.changeColsIntegrality(nbinaryvars, data[s.BOOL_IDX], [hp.HighsVarType.kInteger] * nbinaryvars)
+            self.prob_.changeColsBounds(
+                nbinaryvars,
+                data[s.BOOL_IDX],
+                [0.0] * nbinaryvars,
+                [1.0] * nbinaryvars
+            )
+            self.prob_.changeColsIntegrality(
+                nbinaryvars,
+                data[s.BOOL_IDX],
+                [hp.HighsVarType.kInteger] * nbinaryvars
+            )
 
         if data[s.INT_IDX] != []:
             nintvars = len(data[s.INT_IDX])
-            self.prob_.changeColsIntegrality(nintvars, data[s.INT_IDX], [hp.HighsVarType.kInteger] * nintvars)
+            self.prob_.changeColsIntegrality(
+                nintvars,
+                data[s.INT_IDX],
+                [hp.HighsVarType.kInteger] * nintvars
+            )
         self.prob_.changeColsCost(nvars, np.array(range(nvars)), c)
 
         leq_start = dims[s.EQ_DIM]
