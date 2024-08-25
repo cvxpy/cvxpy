@@ -15,7 +15,6 @@ limitations under the License.
 """
 from __future__ import annotations
 
-import abc
 from typing import TYPE_CHECKING, Iterable
 
 if TYPE_CHECKING:
@@ -94,8 +93,6 @@ class Leaf(expression.Expression):
     bounds : Iterable
         An iterable of length two specifying lower and upper bounds.
     """
-
-    __metaclass__ = abc.ABCMeta
 
     def __init__(
         self, shape: int | tuple[int, ...], value=None, nonneg: bool = False,

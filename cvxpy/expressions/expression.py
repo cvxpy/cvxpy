@@ -119,8 +119,6 @@ class Expression(u.Canonical):
     expressions (e.g., the sum of two expressions) and constraints.
     """
 
-    __metaclass__ = abc.ABCMeta
-
     # Handles arithmetic operator overloading with Numpy.
     __array_priority__ = 100
 

@@ -14,8 +14,6 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import abc
-
 from cvxpy.constraints.constraint import Constraint
 
 
@@ -39,8 +37,6 @@ class Cone(Constraint):
     constr_id : int
         A unique id for the constraint.
     """
-
-    __metaclass__ = abc.ABCMeta
 
     def __init__(self, args, constr_id=None) -> None:
         super(Cone, self).__init__(args, constr_id)
