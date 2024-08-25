@@ -15,7 +15,6 @@ limitations under the License.
 """
 
 
-import abc
 from typing import List, Optional, Tuple
 
 import numpy as np
@@ -105,8 +104,6 @@ def extract_mip_idx(variables) -> Tuple[List[int], List[int]]:
 
 class MatrixStuffing(Reduction):
     """Stuffs a problem into a standard form for a family of solvers."""
-
-    __metaclass__ = abc.ABCMeta
 
     def apply(self, problem) -> None:
         """Returns a stuffed problem.

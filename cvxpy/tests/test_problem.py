@@ -985,13 +985,8 @@ class TestProblem(BaseTest):
     def test_non_python_int_index(self) -> None:
         """Test problems that have special types as indices.
         """
-        import sys
-        if sys.version_info > (3,):
-            my_long = int
-        else:
-            my_long = long  # noqa: F821
-        # Test with long indices.
-        cost = self.x[0:my_long(2)][0]
+        # Test with int indices.
+        cost = self.x[0:int(2)][0]
         p = Problem(cp.Minimize(cost), [self.x == 1])
         result = p.solve(solver=cp.SCS)
         self.assertAlmostEqual(result, 1)
@@ -1497,7 +1492,7 @@ class TestProblem(BaseTest):
         obj = cp.Minimize(cp.sum(mat @ expr))
         prob = Problem(obj, [self.C == C_mat])
         result = prob.solve(solver=cp.SCS)
-        reshaped = numpy.reshape(C_mat, (2, 3), 'F')
+        reshaped = numpy.reshape(C_mat, (2, 3), order='F')
         self.assertAlmostEqual(result, (mat.dot(reshaped)).sum())
         self.assertItemsAlmostEqual(expr.value, C_mat)
 

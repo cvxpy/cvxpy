@@ -14,7 +14,6 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import abc
 from typing import List, Optional, Tuple
 
 import numpy as np
@@ -27,8 +26,6 @@ class AxisAtom(Atom):
     """
     An abstract base class for atoms that can be applied along an axis.
     """
-
-    __metaclass__ = abc.ABCMeta
 
     def __init__(self, expr, axis: Optional[int] = None, keepdims: bool = False) -> None:
         self.axis = axis
