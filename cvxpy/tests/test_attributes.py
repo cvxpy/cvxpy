@@ -16,23 +16,23 @@ class TestAttributes():
         assert np.allclose(X.value, z)
 
     def test_sparsity_invalid_input(self):
-        with pytest.raises(ValueError, match="Sparsity should have 2 dimensions."):
+        with pytest.raises(ValueError, match="Indices should have 2 dimensions."):
             cp.Variable((3, 3), sparsity=[(0, 1), (0, 1), (0, 1)])
     
     def test_sparsity_incorrect_dim(self):
         with pytest.raises(
-            ValueError, match="All index tuples in sparsity must have the same length."
+            ValueError, match="All index tuples in indices must have the same length."
         ):
             cp.Variable((3, 3), sparsity=[(0, 1), (0, 1, 2)])
 
     def test_sparsity_out_of_bounds(self):
         with pytest.raises(
-            ValueError, match="Sparsity is out of bounds for expression with shape \\(3, 3\\)."
+            ValueError, match="Indices is out of bounds for expression with shape \\(3, 3\\)."
         ):
             cp.Variable((3, 3), sparsity=[(0, 1, 2), (3, 4, 5)])
 
     def test_sparsity_0D_variable(self):
-        with pytest.raises(ValueError, match="Sparsity should have 0 dimensions."):
+        with pytest.raises(ValueError, match="Indices should have 0 dimensions."):
             cp.Variable(sparsity=[(0, 1)])
 
     def test_parameter_sparsity(self):
@@ -71,8 +71,11 @@ class TestAttributes():
     def test_parameter_sparse_value(self):
         pass
     
-    def test_boolean_indices(self):
-        pass
+    def test_invalid_boolean_indices(self):
+        with pytest.raises(
+            ValueError, match="All index tuples in indices must have the same length."
+        ):
+            cp.Variable((3, 3), boolean=[(0, 1), (0, 2, 3)])
 
     def test_integer_indices(self):
         pass

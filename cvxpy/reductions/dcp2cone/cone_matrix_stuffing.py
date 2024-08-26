@@ -326,7 +326,9 @@ class ConeMatrixStuffing(MatrixStuffing):
     def stuffed_objective(self, problem, extractor):
         # concatenate all variables in one vector
         boolean, integer = extract_mip_idx(problem.variables())
-        x = Variable(extractor.x_length, boolean=boolean, integer=integer)
+        x = Variable(extractor.x_length)
+        x.boolean_idx = boolean
+        x.integer_idx = integer
         if self.quad_obj:
             # extract to 0.5 * x.T * P * x + q.T * x + r
             expr = problem.objective.expr.copy()

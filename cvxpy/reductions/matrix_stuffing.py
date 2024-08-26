@@ -94,11 +94,9 @@ def extract_mip_idx(variables) -> Tuple[List[int], List[int]]:
     vert_offset = 0
     for x in variables:
         if x.boolean_idx:
-            multi_index = list(zip(*x.boolean_idx))
-            boolean_idx += ravel_multi_index(multi_index, x, vert_offset)
+            boolean_idx.extend(ravel_multi_index(x.boolean_idx, x, vert_offset))
         if x.integer_idx:
-            multi_index = list(zip(*x.integer_idx))
-            integer_idx += ravel_multi_index(multi_index, x, vert_offset)
+            integer_idx.extend(ravel_multi_index(x.integer_idx, x, vert_offset))
         vert_offset += x.size
     return boolean_idx, integer_idx
 

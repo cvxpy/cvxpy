@@ -98,12 +98,13 @@ class Leaf(expression.Expression):
     __metaclass__ = abc.ABCMeta
 
     def __init__(
-        self, shape: int | tuple[int, ...], value=None, nonneg: bool = False,
+        self, shape: int | tuple[int, ...], value = None, nonneg: bool = False,
         nonpos: bool = False, complex: bool = False, imag: bool = False,
         symmetric: bool = False, diag: bool = False, PSD: bool = False,
         NSD: bool = False, hermitian: bool = False,
-        boolean: bool = False, integer: bool = False,
-        sparsity = False, pos: bool = False, neg: bool = False, bounds: Iterable | None=None
+        boolean: Iterable | bool = False, integer: Iterable | bool = False,
+        sparsity: bool = False, pos: bool = False, neg: bool = False,
+        bounds: Iterable | None = None
     ) -> None:
         if isinstance(shape, numbers.Integral):
             shape = (int(shape),)
@@ -130,21 +131,27 @@ class Leaf(expression.Expression):
                            'hermitian': hermitian, 'boolean': boolean,
                            'integer':  integer, 'sparsity': sparsity, 'bounds': bounds}
         # Process attributes with indices.
-        if boolean:
-            self.boolean_idx = boolean if not isinstance(boolean, bool) else set(
-                np.ndindex(max(shape, (1,))))
-        else:
+        if boolean is True:
+            shape = max(shape, (1,))
+            flat_idx = np.arange(np.prod(shape))
+            self.boolean_idx = np.unravel_index(flat_idx, shape, order='F')
+        elif boolean is False:
             self.boolean_idx = {}
-        if integer:
-            self.integer_idx = integer if not isinstance(integer, bool) else set(
-                np.ndindex(max(shape, (1,))))
         else:
+            self.boolean_idx = self._validate_indices(boolean)
+        if integer is True:
+            shape = max(shape, (1,))
+            flat_idx = np.arange(np.prod(shape))
+            self.integer_idx = np.unravel_index(flat_idx, shape, order='F')
+        elif integer is False:
             self.integer_idx = {}
-        if sparsity:
-            self._validate_sparsity(sparsity)
         else:
+            self.integer_idx = integer
+        if sparsity is False:
             self.sparse_idx = {}
-
+        else:
+            self.sparse_idx = self._validate_indices(sparsity)
+        
         # Only one attribute can be True (except can be boolean and integer).
         true_attr = sum(1 for v in self.attributes.values() if v)
         # HACK we should remove this feature or allow multiple attributes in general.
@@ -159,28 +166,30 @@ class Leaf(expression.Expression):
         self.args = []
         self.bounds = bounds
 
-    def _validate_sparsity(self, indices: List[tuple | np.ndarray]) -> None:
+    def _validate_indices(self, indices: List[tuple | np.ndarray]) -> None:
         """
         Validate the sparsity pattern for a leaf node.
     
         Parameters:
         indices: List of indices indicating the positions of non-zero elements.
         """
+        if len(indices) == 0:
+            return {}
         if not all(len(idx) == len(indices[0]) for idx in indices):
-            raise ValueError("All index tuples in sparsity must have the same length.")
+            raise ValueError("All index tuples in indices must have the same length.")
         
         if isinstance(indices, list):
             indices = np.array(indices)
 
         if indices.shape[0] != len(self._shape):
-            raise ValueError(f"Sparsity should have {len(self._shape)} dimensions.")
+            raise ValueError(f"Indices should have {len(self._shape)} dimensions.")
         
         # Check if all indices are within bounds
         for dim in range(len(self._shape)):
             if np.any(indices[:, dim] < 0) or np.any(indices[:, dim] >= self._shape[dim]):
                 raise ValueError(
-                    f"Sparsity is out of bounds for expression with shape {self._shape}.")
-        self.sparse_idx = tuple(indices)
+                    f"Indices is out of bounds for expression with shape {self._shape}.")
+        return tuple(indices)
     
     def _get_attr_str(self) -> str:
         """Get a string representing the attributes.
