@@ -124,20 +124,24 @@ class Leaf(expression.Expression):
                            'complex': complex, 'imag': imag,
                            'symmetric': symmetric, 'diag': diag,
                            'PSD': PSD, 'NSD': NSD,
-                           'hermitian': hermitian, 'boolean': bool(boolean),
+                           'hermitian': hermitian, 'boolean': boolean,
                            'integer':  integer, 'sparsity': sparsity, 'bounds': bounds}
-
-        if boolean:
-            self.boolean_idx = boolean if not isinstance(boolean, bool) else list(
-                np.ndindex(max(shape, (1,))))
-        else:
+        if boolean is True:
+            shape = max(shape, (1,))
+            flat_idx = np.arange(np.prod(shape))
+            self.boolean_idx = np.unravel_index(flat_idx, shape, order='F')
+        elif boolean is False:
             self.boolean_idx = []
-
-        if integer:
-            self.integer_idx = integer if not isinstance(integer, bool) else list(
-                np.ndindex(max(shape, (1,))))
         else:
+            self.boolean_idx = boolean
+        if integer is True:
+            shape = max(shape, (1,))
+            flat_idx = np.arange(np.prod(shape))
+            self.integer_idx = np.unravel_index(flat_idx, shape, order='F')
+        elif integer is False:
             self.integer_idx = []
+        else:
+            self.integer_idx = integer
 
         # Only one attribute be True (except can be boolean and integer).
         true_attr = sum(1 for k, v in self.attributes.items() if v)

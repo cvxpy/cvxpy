@@ -77,28 +77,22 @@ def extract_upper_bounds(variables: list, var_size: int) -> Optional[np.ndarray]
 
 
 def extract_mip_idx(variables) -> Tuple[List[int], List[int]]:
-    """Coalesces bool, int indices for variables.
-
-       The indexing scheme assumes that the variables will be coalesced into
-       a single one-dimensional variable, with each variable being reshaped
-       in Fortran order.
     """
-    def ravel_multi_index(multi_index, x, vert_offset):
-        """Ravel a multi-index and add a vertical offset to it.
-        """
-        ravel_idx = np.ravel_multi_index(multi_index, max(x.shape, (1,)), order='F')
-        return [(vert_offset + idx,) for idx in ravel_idx]
-    boolean_idx = []
-    integer_idx = []
-    vert_offset = 0
+    Coalesces bool, int indices for variables.
+    The indexing scheme assumes that the variables will be coalesced into
+    a single one-dimensional variable, with each variable being reshaped
+    in Fortran order.
+    """
+    boolean_idx, integer_idx, offset = [], [], 0
     for x in variables:
+        ravel_shape = max(x.shape, (1,))
         if x.boolean_idx:
-            multi_index = list(zip(*x.boolean_idx))
-            boolean_idx += ravel_multi_index(multi_index, x, vert_offset)
+            ravel_idx = np.ravel_multi_index(x.boolean_idx, ravel_shape, order='F')
+            boolean_idx += [(idx + offset,) for idx in ravel_idx]
         if x.integer_idx:
-            multi_index = list(zip(*x.integer_idx))
-            integer_idx += ravel_multi_index(multi_index, x, vert_offset)
-        vert_offset += x.size
+            ravel_idx = np.ravel_multi_index(x.integer_idx, ravel_shape, order='F')
+            integer_idx += [(idx + offset,) for idx in ravel_idx]
+        offset += x.size
     return boolean_idx, integer_idx
 
 
