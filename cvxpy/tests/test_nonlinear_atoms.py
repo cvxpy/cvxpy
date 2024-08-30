@@ -90,9 +90,9 @@ class TestNonlinearAtoms(BaseTest):
         constrs = [cp.sum(v_prob) == 1]
         klprob = cp.Problem(cp.Minimize(objkl), constrs)
         p_refProb.value = npSPriors
-        klprob.solve(solver=cp.SCS, verbose=True)
+        klprob.solve(solver=cp.SCS)
         self.assertItemsAlmostEqual(v_prob.value, npSPriors, places=3)
-        klprob.solve(solver=cp.CLARABEL, verbose=True)
+        klprob.solve(solver=cp.ECOS)
         self.assertItemsAlmostEqual(v_prob.value, npSPriors)
 
     def test_rel_entr(self) -> None:
@@ -115,9 +115,9 @@ class TestNonlinearAtoms(BaseTest):
         constrs = [cp.sum(v_prob) == 1]
         rel_entr_prob = cp.Problem(cp.Minimize(obj_rel_entr), constrs)
         p_refProb.value = npSPriors
-        rel_entr_prob.solve(solver=cp.SCS, verbose=True)
+        rel_entr_prob.solve(solver=cp.SCS)
         self.assertItemsAlmostEqual(v_prob.value, npSPriors, places=3)
-        rel_entr_prob.solve(solver=cp.CLARABEL, verbose=True)
+        rel_entr_prob.solve(solver=cp.CLARABEL)
         self.assertItemsAlmostEqual(v_prob.value, npSPriors)
 
     def test_difference_kl_div_rel_entr(self) -> None:
@@ -150,9 +150,9 @@ class TestNonlinearAtoms(BaseTest):
             x = cp.Variable(n)
             obj = cp.Maximize(cp.sum(cp.entr(x)))
             p = cp.Problem(obj, [cp.sum(x) == 1])
-            p.solve(solver=cp.CLARABEL, verbose=True)
+            p.solve(solver=cp.ECOS)
             self.assertItemsAlmostEqual(x.value, n*[1./n])
-            p.solve(solver=cp.SCS, verbose=True)
+            p.solve(solver=cp.SCS)
             self.assertItemsAlmostEqual(x.value, n*[1./n], places=3)
 
     def test_exp(self) -> None:
@@ -163,9 +163,9 @@ class TestNonlinearAtoms(BaseTest):
             x = cp.Variable(n)
             obj = cp.Minimize(cp.sum(cp.exp(x)))
             p = cp.Problem(obj, [cp.sum(x) == 1])
-            p.solve(solver=cp.SCS, verbose=True)
+            p.solve(solver=cp.SCS)
             self.assertItemsAlmostEqual(x.value, n*[1./n], places=3)
-            p.solve(solver=cp.CLARABEL, verbose=True)
+            p.solve(solver=cp.CLARABEL)
             self.assertItemsAlmostEqual(x.value, n*[1./n])
 
     def test_log(self) -> None:
@@ -176,7 +176,7 @@ class TestNonlinearAtoms(BaseTest):
             x = cp.Variable(n)
             obj = cp.Maximize(cp.sum(cp.log(x)))
             p = cp.Problem(obj, [cp.sum(x) == 1])
-            p.solve(solver=cp.CLARABEL, verbose=True)
+            p.solve(solver=cp.CLARABEL)
             self.assertItemsAlmostEqual(x.value, n*[1./n])
-            p.solve(solver=cp.SCS, verbose=True)
+            p.solve(solver=cp.SCS)
             self.assertItemsAlmostEqual(x.value, n*[1./n], places=2)
