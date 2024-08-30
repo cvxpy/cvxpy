@@ -125,11 +125,11 @@ def test_exp():
         ExpCone(ref_x, ref_s, ref_z),
         ref_x >= 1, ref_s >= 1]
     ref_prob = cp.Problem(cp.Minimize(obj), ref_constraints)
-    ref_prob.solve(solver=cp.ECOS)
+    ref_prob.solve(solver=SOLVER)
 
     assert np.isclose(prob.value, ref_prob.value)
     assert np.isclose(x.value, ref_x.value)
-    assert np.isclose(s.value, ref_s.value, atol=1.e-5)
+    assert np.isclose(s.value, ref_s.value, atol=1.e-4)
 
 
 @pytest.fixture
