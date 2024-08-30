@@ -249,7 +249,7 @@ class ParamConeProg(ParamProb):
             # slow path.
             # TODO: make this faster by intelligently operating on the
             # sparse matrix data / making use of reduced_A
-            del_param_vec += np.squeeze((delAb.T @ self.A).A)
+            del_param_vec += np.squeeze((delAb.T @ self.A).toarray())
         del_param_vec = np.squeeze(del_param_vec)
 
         param_id_to_delta_param = {}
