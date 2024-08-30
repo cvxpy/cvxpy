@@ -113,7 +113,7 @@ def test_exp():
     obj = cp.perspective(f, s)
     constraints = [s >= 1, 1 <= x]
     prob = cp.Problem(cp.Minimize(obj), constraints)
-    prob.solve(solver=cp.ECOS)
+    prob.solve(solver=SOLVER)
 
     # reference problem
     ref_x = cp.Variable()
@@ -125,7 +125,7 @@ def test_exp():
         ExpCone(ref_x, ref_s, ref_z),
         ref_x >= 1, ref_s >= 1]
     ref_prob = cp.Problem(cp.Minimize(obj), ref_constraints)
-    ref_prob.solve(solver=cp.ECOS)
+    ref_prob.solve(solver=SOLVER)
 
     assert np.isclose(prob.value, ref_prob.value)
     assert np.isclose(x.value, ref_x.value)
