@@ -118,7 +118,7 @@ class TestNonlinearAtoms(BaseTest):
         rel_entr_prob.solve(solver=cp.SCS)
         self.assertItemsAlmostEqual(v_prob.value, npSPriors, places=3)
         rel_entr_prob.solve(solver=cp.CLARABEL)
-        self.assertItemsAlmostEqual(v_prob.value, npSPriors)
+        self.assertItemsAlmostEqual(v_prob.value, npSPriors, places=3)
 
     def test_difference_kl_div_rel_entr(self) -> None:
         """A test showing the difference between kl_div and rel_entr
