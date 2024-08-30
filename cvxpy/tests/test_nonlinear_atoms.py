@@ -127,7 +127,7 @@ class TestNonlinearAtoms(BaseTest):
         y = cp.Variable()
 
         kl_div_prob = cp.Problem(cp.Minimize(cp.kl_div(x, y)), constraints=[x + y <= 1])
-        kl_div_prob.solve(solver=cp.CLARABEL)
+        kl_div_prob.solve(solver=cp.ECOS)
         self.assertItemsAlmostEqual(x.value, y.value)
         self.assertItemsAlmostEqual(kl_div_prob.value, 0)
 
