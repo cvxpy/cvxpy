@@ -15,6 +15,8 @@ limitations under the License.
 """
 
 from __future__ import annotations
+from __future__ import division
+
 from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     import torch
@@ -23,7 +25,6 @@ try:
 except ImportError:
     pass
 
-from __future__ import division
 
 import warnings
 from typing import Tuple

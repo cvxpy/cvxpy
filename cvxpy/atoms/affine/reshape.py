@@ -15,6 +15,7 @@ limitations under the License.
 """
 
 from __future__ import annotations
+
 from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     import torch
@@ -22,7 +23,6 @@ try:
     import torch
 except ImportError:
     pass
-from __future__ import annotations
 
 import numbers
 from typing import List, Tuple
