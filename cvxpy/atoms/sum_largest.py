@@ -24,10 +24,11 @@ from cvxpy.atoms.atom import Atom
 
 
 class sum_largest(Atom):
-    """Sum of the largest k values in the matrix X.
+    """
+    Sum of the largest k values in the expression X
     """
 
-    def __init__(self, x, k) -> None:
+    def __init__(self, x, k: int) -> None:
         self.k = k
         super(sum_largest, self).__init__(x)
 
@@ -39,10 +40,12 @@ class sum_largest(Atom):
         super(sum_largest, self).validate_arguments()
 
     def numeric(self, values):
-        """Returns the sum of the k largest entries of the matrix.
+        """
+        Returns the sum of the k largest entries of the matrix.
         """
         value = values[0].flatten()
-        indices = np.argsort(-value)[:int(self.k)]
+        k = int(self.k)
+        indices = np.argpartition(-value, kth=k)[:k]
         return value[indices].sum()
 
     def _grad(self, values):
@@ -58,7 +61,8 @@ class sum_largest(Atom):
         """
         # Grad: 1 for each of k largest indices.
         value = intf.from_2D_to_1D(values[0].flatten().T)
-        indices = np.argsort(-value)[:int(self.k)]
+        k = int(self.k)
+        indices = np.argpartition(-value, kth=k)[:k]
         D = np.zeros((self.args[0].shape[0]*self.args[0].shape[1], 1))
         D[indices] = 1
         return [sp.csc_matrix(D)]

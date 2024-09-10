@@ -939,6 +939,14 @@ class TestAtoms(BaseTest):
         atom = cp.sum_largest(self.x, 2)
         assert atom.is_pwl()
 
+        # New in 1.6.0: sum_largest now uses np.argpartition instead of np.argsort
+        v = np.random.randn(10000)
+        x = Constant(v)
+        for i in [5, 50, 100, 250, 500, 1000]:
+            expr = cp.sum_largest(x, i)
+            prev_idx = np.argsort(-v)[:i]
+            self.assertAlmostEqual(expr.value, v[prev_idx].sum())
+
     def test_sum_smallest(self) -> None:
         """Test the sum_smallest atom and related atoms.
         """
