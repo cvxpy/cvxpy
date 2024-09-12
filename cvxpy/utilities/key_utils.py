@@ -209,3 +209,23 @@ def is_special_slice(key) -> bool:
             return True
 
     return False
+
+
+def special_key_to_str(key):
+    """Converts a special key to a string representation."""
+    key_strs = []
+    for k in key:
+        if isinstance(k, (np.ndarray, list)):
+            key_strs.append(str(pprint_sequence(k)))
+        elif isinstance(k, slice):
+            key_strs.append(slice_to_str(k))
+        else:
+            key_strs.append(str(k))
+    return ", ".join(key_strs)
+
+
+def pprint_sequence(seq, max_elems=6):
+    """Shorten the sequence (array or list) for pretty-printing."""
+    if len(seq) > max_elems:
+        return list(seq[:3]) + ['...'] + list(seq[-3:])
+    return seq
