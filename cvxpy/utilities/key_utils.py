@@ -216,7 +216,7 @@ def special_key_to_str(key):
     key_strs = []
     for k in key:
         if isinstance(k, (np.ndarray, list)):
-            key_strs.append(str(pprint_sequence(k)))
+            key_strs.append(pprint_sequence(k))
         elif isinstance(k, slice):
             key_strs.append(slice_to_str(k))
         else:
@@ -227,5 +227,6 @@ def special_key_to_str(key):
 def pprint_sequence(seq, max_elems=6):
     """Shorten the sequence (array or list) for pretty-printing."""
     if len(seq) > max_elems:
-        return list(seq[:3]) + ['...'] + list(seq[-3:])
+        half = max_elems // 2
+        return str(seq[:half])[:-1] + ', ..., ' + str(seq[-half:])[1:]
     return seq
