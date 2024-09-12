@@ -1011,6 +1011,10 @@ class TestExpressions(BaseTest):
         exp = cp.Variable((200, 10), name="exp")[idx, 6]
         self.assertEqual("exp[[0, 1, 2, ..., 175, 176, 177], 6]", str(exp))
 
+        idx = [i for i in range(5)]
+        exp = cp.Variable((10, 10), name="exp")[idx, 2:5]
+        self.assertEqual("exp[[0, 1, 2, 3, 4], 2:5]", str(exp))
+
     def test_none_idx(self) -> None:
         """Test None as index.
         """

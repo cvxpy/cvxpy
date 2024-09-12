@@ -229,4 +229,4 @@ def pprint_sequence(seq, max_elems=6):
     if len(seq) > max_elems:
         half = max_elems // 2
         return str(seq[:half])[:-1] + ', ..., ' + str(seq[-half:])[1:]
-    return seq
+    return str(seq)
