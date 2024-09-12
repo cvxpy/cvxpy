@@ -1007,7 +1007,7 @@ class TestExpressions(BaseTest):
         self.assertEqual(exp.shape, (1,))
 
     def test_special_idx_str_repr(self) -> None:
-        idx = np.arange(178)
+        idx = np.arange(178, dtype=int)
         exp = cp.Variable((200, 10), name="exp")[idx, 6]
         self.assertEqual("exp[[0, 1, 2, '...', 175, 176, 177], 6]", str(exp))
 
