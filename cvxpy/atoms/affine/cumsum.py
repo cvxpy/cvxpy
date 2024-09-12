@@ -43,25 +43,10 @@ def get_diff_mat(dim: int, axis: int) -> sp.csc_matrix:
     SciPy CSC matrix
         A square matrix representing first order difference.
     """
-    # Construct a sparse matrix representation.
-    val_arr = []
-    row_arr = []
-    col_arr = []
-    for i in range(dim):
-        val_arr.append(1.)
-        row_arr.append(i)
-        col_arr.append(i)
-        if i > 0:
-            val_arr.append(-1.)
-            row_arr.append(i)
-            col_arr.append(i-1)
-
-    mat = sp.csc_matrix((val_arr, (row_arr, col_arr)),
-                        (dim, dim))
-    if axis == 0:
-        return mat
-    else:
-        return mat.T
+    mat = sp.diags([np.ones(dim), -np.ones(dim - 1)], [0, -1], 
+                   shape=(dim, dim), 
+                   format='csc')
+    return mat if axis == 0 else mat.T
 
 
 class cumsum(AffAtom, AxisAtom):
