@@ -63,14 +63,13 @@ class index(AffAtom):
         """
         return True
 
-    # The string representation of the atom.
     def name(self):
-        # TODO string should be orig_key
+        """String representation of the index expression."""
         inner_str = "[%s" + ", %s"*(len(self.key)-1) + "]"
         return self.args[0].name() + inner_str % ku.to_str(self.key)
 
     def numeric(self, values):
-        """ Returns the index/slice into the given value.
+        """Returns the index/slice into the given value.
         """
         return values[0][self._orig_key]
 
@@ -138,12 +137,13 @@ class special_index(AffAtom):
         """
         return True
 
-    # The string representation of the atom.
     def name(self):
-        return self.args[0].name() + str(self.key)
+        """String representation of the special index expression."""
+        key_str = ku.special_key_to_str(self.key)
+        return f"{self.args[0].name()}[{key_str}]"
 
     def numeric(self, values):
-        """ Returns the index/slice into the given value.
+        """Returns the index/slice into the given value.
         """
         return values[0][self.key]
 
