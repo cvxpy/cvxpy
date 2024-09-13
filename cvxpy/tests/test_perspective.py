@@ -21,6 +21,8 @@ import cvxpy as cp
 from cvxpy.atoms.perspective import perspective
 from cvxpy.constraints.exponential import ExpCone
 
+SOLVER = cp.CLARABEL
+
 
 def test_monotonicity():
     x = cp.Variable(nonneg=True)
@@ -49,7 +51,7 @@ def quad_example(request):
     obj = cp.quad_over_lin(x, s) + r*x - 4*s
     constraints = [x >= 2, s <= .5]
     prob_ref = cp.Problem(cp.Minimize(obj), constraints)
-    prob_ref.solve(solver=cp.ECOS)
+    prob_ref.solve(solver=SOLVER)
 
     return prob_ref.value, s.value, x.value, r
 
@@ -62,7 +64,7 @@ def test_p_norms(p):
     obj = cp.perspective(f, s)
     constraints = [1 == s, x >= [1, 2, 3]]
     prob = cp.Problem(cp.Minimize(obj), constraints)
-    prob.solve(solver=cp.ECOS)
+    prob.solve(solver=SOLVER)
 
     # reference problem
     ref_x = cp.Variable(3, pos=True)
@@ -88,7 +90,7 @@ def test_rel_entr(cvx):
     obj = cp.perspective(f, s)
     constraints = [1 <= s, s <= 2, 1 <= x, x <= 2]
     prob = cp.Problem(cp.Minimize(obj) if cvx else cp.Maximize(obj), constraints)
-    prob.solve(solver=cp.ECOS)
+    prob.solve(solver=SOLVER)
 
     # reference problem
     ref_x = cp.Variable()
@@ -97,7 +99,7 @@ def test_rel_entr(cvx):
 
     ref_constraints = [1 <= ref_x, ref_x <= 2, 1 <= ref_s, ref_s <= 2]
     ref_prob = cp.Problem(cp.Minimize(obj) if cvx else cp.Maximize(obj), ref_constraints)
-    ref_prob.solve(solver=cp.ECOS)
+    ref_prob.solve(solver=SOLVER)
 
     assert np.isclose(prob.value, ref_prob.value)
     assert np.allclose(x.value, ref_x.value)
@@ -111,11 +113,11 @@ def test_exp():
     obj = cp.perspective(f, s)
     constraints = [s >= 1, 1 <= x]
     prob = cp.Problem(cp.Minimize(obj), constraints)
-    prob.solve(solver=cp.ECOS)
+    prob.solve(solver=SOLVER)
 
     # reference problem
     ref_x = cp.Variable()
-    ref_s = cp.Variable()
+    ref_s = cp.Variable(nonneg=True)
     ref_z = cp.Variable()
 
     obj = ref_z
@@ -123,11 +125,11 @@ def test_exp():
         ExpCone(ref_x, ref_s, ref_z),
         ref_x >= 1, ref_s >= 1]
     ref_prob = cp.Problem(cp.Minimize(obj), ref_constraints)
-    ref_prob.solve(solver=cp.ECOS)
+    ref_prob.solve(solver=SOLVER)
 
     assert np.isclose(prob.value, ref_prob.value)
     assert np.isclose(x.value, ref_x.value)
-    assert np.isclose(s.value, ref_s.value)
+    assert np.isclose(s.value, ref_s.value, atol=1.e-4)
 
 
 @pytest.fixture
@@ -143,7 +145,7 @@ def lse_example():
         [1, 2, 3] <= ref_x, 1 <= ref_s, ref_s <= 2]
     ref_constraints += [ExpCone(ref_x[i]-ref_t, ref_s, ref_z[i]) for i in range(3)]
     ref_prob = cp.Problem(cp.Minimize(ref_t), ref_constraints)
-    ref_prob.solve(solver=cp.ECOS)
+    ref_prob.solve(solver=SOLVER)
 
     return ref_prob.value, ref_x.value, ref_s.value
 
@@ -156,7 +158,7 @@ def test_lse(lse_example):
     obj = cp.perspective(f, s)
     constraints = [1 <= s, s <= 2, [1, 2, 3] <= x]
     prob = cp.Problem(cp.Minimize(obj), constraints)
-    prob.solve(solver=cp.ECOS)
+    prob.solve(solver=SOLVER)
 
     ref_prob, ref_x, ref_s = lse_example
 
@@ -173,7 +175,7 @@ def test_lse_atom(lse_example):
     obj = cp.perspective(f_exp, s)
     constraints = [1 <= s, s <= 2, [1, 2, 3] <= x]
     prob = cp.Problem(cp.Minimize(obj), constraints)
-    prob.solve(solver=cp.ECOS)
+    prob.solve(solver=SOLVER)
 
     # reference problem
     ref_prob, ref_x, ref_s = lse_example
@@ -255,7 +257,7 @@ def test_quad_quad():
     constraints = [ref_x >= 5, ref_s <= 3]
     ref_prob = cp.Problem(cp.Minimize(obj), constraints)
 
-    ref_prob.solve(solver=cp.ECOS)
+    ref_prob.solve(solver=SOLVER)
 
     # perspective problem
     x = cp.Variable()
@@ -266,7 +268,7 @@ def test_quad_quad():
     constraints = [x >= 5, s <= 3]
 
     prob = cp.Problem(cp.Minimize(obj), constraints)
-    prob.solve(solver=cp.ECOS)
+    prob.solve(solver=SOLVER)
 
     assert np.isclose(prob.value, ref_prob.value)
     assert np.isclose(x.value, ref_x.value)
@@ -295,7 +297,7 @@ def test_power(n):
     constraints = [x >= 1, s <= .5]
 
     prob = cp.Problem(cp.Minimize(obj), constraints)
-    prob.solve(solver=cp.ECOS)
+    prob.solve(solver=SOLVER)
 
     assert np.isclose(prob.value, ref_prob.value)
     assert np.isclose(x.value, ref_x.value)

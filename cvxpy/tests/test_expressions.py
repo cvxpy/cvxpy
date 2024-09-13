@@ -1006,6 +1006,11 @@ class TestExpressions(BaseTest):
         self.assertEqual(exp.curvature, s.AFFINE)
         self.assertEqual(exp.shape, (1,))
 
+    def test_special_idx_str_repr(self) -> None:
+        idx = [i for i in range(178)]
+        exp = cp.Variable((200, 10), name="exp")[idx, 6]
+        self.assertEqual("exp[[0, 1, 2, '...', 175, 176, 177], 6]", str(exp))
+
     def test_none_idx(self) -> None:
         """Test None as index.
         """
