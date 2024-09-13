@@ -32,7 +32,6 @@ from cvxpy.reductions.solvers.conic_solvers.glop_conif import GLOP as GLOP_con
 from cvxpy.reductions.solvers.conic_solvers.glpk_conif import GLPK as GLPK_con
 from cvxpy.reductions.solvers.conic_solvers.glpk_mi_conif import GLPK_MI as GLPK_MI_con
 from cvxpy.reductions.solvers.conic_solvers.gurobi_conif import GUROBI as GUROBI_con
-from cvxpy.reductions.solvers.conic_solvers.highs_conif import HIGHS as HIGHS_con
 from cvxpy.reductions.solvers.conic_solvers.mosek_conif import MOSEK as MOSEK_con
 from cvxpy.reductions.solvers.conic_solvers.nag_conif import NAG as NAG_con
 from cvxpy.reductions.solvers.conic_solvers.pdlp_conif import PDLP as PDLP_con
@@ -51,6 +50,7 @@ from cvxpy.reductions.solvers.qp_solvers.osqp_qpif import OSQP as OSQP_qp
 from cvxpy.reductions.solvers.qp_solvers.piqp_qpif import PIQP as PIQP_qp
 from cvxpy.reductions.solvers.qp_solvers.proxqp_qpif import PROXQP as PROXQP_qp
 from cvxpy.reductions.solvers.qp_solvers.xpress_qpif import XPRESS as XPRESS_qp
+from cvxpy.reductions.solvers.qp_solvers.highs_qpif import HIGHS as HIGHS_qp
 from cvxpy.utilities.versioning import Version
 
 solver_conic_intf = [DIFFCP_con(), ECOS_con(),
@@ -58,7 +58,7 @@ solver_conic_intf = [DIFFCP_con(), ECOS_con(),
                      GLPK_MI_con(), CBC_con(), CLARABEL_con(), SCS_con(), SDPA_con(),
                      GUROBI_con(), MOSEK_con(), CPLEX_con(), NAG_con(), XPRESS_con(),
                      SCIP_con(), SCIPY_con(), GLOP_con(), PDLP_con(),
-                     ECOS_BB_con(), HIGHS_con()]
+                     ECOS_BB_con(),]
 solver_qp_intf = [OSQP_qp(),
                   GUROBI_qp(),
                   CPLEX_qp(),
@@ -67,6 +67,7 @@ solver_qp_intf = [OSQP_qp(),
                   PIQP_qp(),
                   PROXQP_qp(),
                   DAQP_qp(),
+                  HIGHS_qp(),
                   ]
 
 SOLVER_MAP_CONIC = {solver.name(): solver for solver in solver_conic_intf}
@@ -78,7 +79,7 @@ SOLVER_MAP_QP = {solver.name(): solver for solver in solver_qp_intf}
 CONIC_SOLVERS = [s.MOSEK, s.CLARABEL, s.SCS, s.ECOS, s.SDPA,
                  s.CPLEX, s.GUROBI, s.COPT, s.GLPK, s.NAG,
                  s.GLPK_MI, s.CBC, s.CVXOPT, s.XPRESS, s.DIFFCP,
-                 s.SCIP, s.SCIPY, s.GLOP, s.PDLP, s.ECOS_BB, s.HIGHS]
+                 s.SCIP, s.SCIPY, s.GLOP, s.PDLP, s.ECOS_BB]
 QP_SOLVERS = [s.OSQP,
               s.GUROBI,
               s.CPLEX,
@@ -86,7 +87,8 @@ QP_SOLVERS = [s.OSQP,
               s.COPT,
               s.PIQP,
               s.PROXQP,
-              s.DAQP]
+              s.DAQP,
+              s.HIGHS]
 DISREGARD_CLARABEL_SDP_SUPPORT_FOR_DEFAULT_RESOLUTION = True
 MI_SOLVERS = [s.GLPK_MI, s.MOSEK, s.GUROBI, s.CPLEX,
               s.XPRESS, s.CBC, s.SCIP, s.COPT, s.ECOS_BB, s.HIGHS]
