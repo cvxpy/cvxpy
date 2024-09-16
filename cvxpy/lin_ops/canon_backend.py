@@ -718,6 +718,8 @@ class NumPyCanonBackend(PythonCanonBackend):
             assert isinstance(lhs, np.ndarray)
             reps = view.rows // lhs.shape[-1]
             stacked_lhs = np.kron(np.eye(reps), lhs)
+            if lin.shape and len(lin.shape) > 2:
+                stacked_lhs = np.kron(np.kron(np.eye(lin.shape[-1]), lhs), np.eye(lin.shape[0]))
 
             def func(x):
                 return stacked_lhs @ x
