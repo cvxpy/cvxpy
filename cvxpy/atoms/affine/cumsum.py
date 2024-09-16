@@ -40,7 +40,7 @@ def get_diff_mat(dim: int, axis: int) -> sp.csc_matrix:
 
     Returns
     -------
-    SciPy CSC matrix
+    sp.csc_matrix
         A square matrix representing first order difference.
     """
     mat = sp.diags([np.ones(dim), -np.ones(dim - 1)], [0, -1], 
@@ -50,7 +50,8 @@ def get_diff_mat(dim: int, axis: int) -> sp.csc_matrix:
 
 
 class cumsum(AffAtom, AxisAtom):
-    """Cumulative sum.
+    """
+    Cumulative sum of the elements of an expression.
 
     Attributes
     ----------
@@ -64,13 +65,13 @@ class cumsum(AffAtom, AxisAtom):
 
     @AffAtom.numpy_numeric
     def numeric(self, values):
-        """Convolve the two values.
+        """
+        Returns the cumulative product of elements of an expression over an axis.
         """
         return np.cumsum(values[0], axis=self.axis)
 
     def shape_from_args(self) -> Tuple[int, ...]:
-        """The same as the input.
-        """
+        """The same as the input."""
         return self.args[0].shape
 
     def _grad(self, values):
@@ -84,12 +85,8 @@ class cumsum(AffAtom, AxisAtom):
         Returns:
             A list of SciPy CSC sparse matrices or None.
         """
-        # TODO inefficient
         dim = values[0].shape[self.axis]
-        mat = np.zeros((dim, dim))
-        for i in range(dim):
-            for j in range(i+1):
-                mat[i, j] = 1
+        mat = sp.tril(np.ones((dim, dim)))
         var = Variable(self.args[0].shape)
         if self.axis == 0:
             grad = MulExpression(mat, var)._grad(values)[1]
@@ -98,8 +95,7 @@ class cumsum(AffAtom, AxisAtom):
         return [grad]
 
     def get_data(self):
-        """Returns the axis being summed.
-        """
+        """Returns the axis being summed."""
         return [self.axis]
 
     def graph_implementation(

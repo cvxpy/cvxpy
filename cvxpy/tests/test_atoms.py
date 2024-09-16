@@ -1025,6 +1025,9 @@ class TestAtoms(BaseTest):
         with pytest.raises(cp.DPPError):
             problem.solve(enforce_dpp=True)
 
+    def test_cumsum(self) -> None:
+        pass
+    
     def test_kron_expr(self) -> None:
         """Test the kron atom.
         """
