@@ -965,20 +965,21 @@ class TestAtoms(BaseTest):
         # Generate problem data
         m = 100  # Size of random vector
         x = np.random.randn(m)  # Random vector
-        beta = 0.9  # Probability level
+        betas = [0.1, 0.5, 0.9, 0.95, 0.99] # Probability levels
         
-        # Evaluate using cvar atom
-        cvar_atom = cp.cvar(x, beta)
-        cvar_value = cvar_atom.value
-        
-        # Evaluate using alternative optimization problem
-        alpha = cp.Variable()
-        objective = alpha + 1/((1-beta)*m) * cp.sum(cp.pos(x - alpha))
-        prob_alt = cp.Problem(cp.Minimize(objective))
-        cvar_alt_value = prob_alt.solve()
-        
-        # Check that the results are equal (within numerical tolerance)
-        self.assertAlmostEqual(cvar_value, cvar_alt_value)
+        for beta in betas:
+            # Evaluate using cvar atom
+            cvar_atom = cp.cvar(x, beta)
+            cvar_value = cvar_atom.value
+            
+            # Evaluate using alternative optimization problem
+            alpha = cp.Variable()
+            objective = alpha + 1/((1-beta)*m) * cp.sum(cp.pos(x - alpha))
+            prob_alt = cp.Problem(cp.Minimize(objective))
+            cvar_alt_value = prob_alt.solve()
+            
+            # Check that the results are equal (within numerical tolerance)
+            self.assertAlmostEqual(cvar_value, cvar_alt_value)
         
     def test_index(self) -> None:
         """Test the copy function for index.
