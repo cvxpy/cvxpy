@@ -955,7 +955,31 @@ class TestAtoms(BaseTest):
         # Check that sum_smallest is PWL so can be canonicalized as a QP.
         atom = cp.sum_smallest(self.x, 2)
         assert atom.is_pwl()
+    
+    def test_cvar(self) -> None:
+        """Test the cvar atom.
+        """
+        # Set random seed for reproducibility
+        np.random.seed(1)
 
+        # Generate problem data
+        m = 100  # Size of random vector
+        x = np.random.randn(m)  # Random vector
+        beta = 0.9  # Probability level
+        
+        # Evaluate using cvar atom
+        cvar_atom = cp.cvar(x, beta)
+        cvar_value = cvar_atom.value
+        
+        # Evaluate using alternative optimization problem
+        alpha = cp.Variable()
+        objective = alpha + 1/((1-beta)*m) * cp.sum(cp.pos(x - alpha))
+        prob_alt = cp.Problem(cp.Minimize(objective))
+        cvar_alt_value = prob_alt.solve()
+        
+        # Check that the results are equal (within numerical tolerance)
+        self.assertAlmostEqual(cvar_value, cvar_alt_value)
+        
     def test_index(self) -> None:
         """Test the copy function for index.
         """
