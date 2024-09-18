@@ -1026,7 +1026,16 @@ class TestAtoms(BaseTest):
             problem.solve(enforce_dpp=True)
 
     def test_cumsum(self) -> None:
-        pass
+        for axis in [0, 1]:
+            x = cp.Variable((4, 3))
+            expr = cp.cumsum(x, axis=axis)
+            x_val = np.arange(12).reshape((4, 3))
+            target = np.cumsum(x_val, axis=axis)
+            
+            prob = cp.Problem(cp.Minimize(0), [x == x_val])
+            prob.solve()
+            
+            assert np.allclose(expr.value, target)
     
     def test_kron_expr(self) -> None:
         """Test the kron atom.
