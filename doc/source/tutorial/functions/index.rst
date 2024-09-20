@@ -213,8 +213,8 @@ and returns a scalar.
 
    * - :ref:`mixed_norm(X, p, q) <mixed-norm>`
 
-       :math:`\text{inner} = \left(\sum_l\lvert x_{k,l}\rvert^p\right)`
-     - :math:`\left(\sum_k \text{inner}^{q/p}\right)^{1/q}`
+       :math:`Y = \left(\sum_l\lvert x_{k,l}\rvert^p\right)`
+     - :math:`\left(\sum_k Y^{q/p}\right)^{1/q}`
      - :math:`X \in\mathbf{R}^{n \times n}`
      - |positive| positive
      - |convex| convex
