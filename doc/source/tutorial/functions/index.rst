@@ -83,7 +83,9 @@ and returns a scalar.
    * - :ref:`dotsort(X,W) <dotsort>`
 
        constant :math:`W \in \mathbf{R}^{o \times p}`
-     - :math:`\langle sort\left(vec(X)\right), sort\left(vec(W)\right) \rangle`
+     - :math:`\text{dot product of}`
+       :math:`\operatorname{sort}\operatorname{vec}(X) \text{ and}`
+       :math:`\operatorname{sort}\operatorname{vec}(W)`
      - :math:`X \in \mathbf{R}^{m \times n}`
      - sign depends on 
      
@@ -142,7 +144,8 @@ and returns a scalar.
    * - :ref:`lambda_sum_largest(X,k) <lambda-sum-largest>`
 
        :math:`k = 1,\ldots, n`
-     - :math:`\text{sum of $k$ largest}\\ \text{eigenvalues of $X$}`
+     - :math:`\text{sum of $k$ largest}`
+       :math:`\text{eigenvalues of $X$}`
      - :math:`X \in\mathbf{S}^{n}`
      - |unknown| unknown sign
      - |convex| convex
@@ -150,7 +153,8 @@ and returns a scalar.
    * - :ref:`lambda_sum_smallest(X,k) <lambda-sum-smallest>`
 
        :math:`k = 1,\ldots, n`
-     - :math:`\text{sum of $k$ smallest}\\ \text{eigenvalues of $X$}`
+     - :math:`\text{sum of $k$ smallest}`
+       :math:`\text{eigenvalues of $X$}`
      - :math:`X \in\mathbf{S}^{n}`
      - |unknown| unknown sign
      - |concave| concave
@@ -307,7 +311,7 @@ and returns a scalar.
        :math:`p \geq 1`
 
        or ``p = 'inf'``
-     - :math:`\|X\|_p = \left(\sum_{ij} |X_{ij}|^p \right)^{1/p}`
+     - :math:`\left(\sum_{ij} |X_{ij}|^p \right)^{1/p}`
      - :math:`X \in \mathbf{R}^{m \times n}`
      - |positive| positive
        
@@ -319,7 +323,7 @@ and returns a scalar.
    * - :ref:`pnorm(X, p) <pnorm_func>`
 
        :math:`p < 1`, :math:`p \neq 0`
-     - :math:`\|X\|_p = \left(\sum_{ij} X_{ij}^p \right)^{1/p}`
+     - :math:`\left(\sum_{ij} X_{ij}^p \right)^{1/p}`
      - :math:`X \in \mathbf{R}^{m \times n}_+`
      - |positive| positive
 
@@ -384,7 +388,7 @@ and returns a scalar.
 
    * - :ref:`std(X) <std>`
 
-     - :math:`\sqrt{\frac{1}{mn} \sum_{ij}\left(X_{ij} - \frac{1}{mn}\sum_{k\ell} X_{k\ell}\right)^2}`
+     - analog to `numpy.std <https://numpy.org/doc/stable/reference/generated/numpy.std.html#numpy-std>`_
      - :math:`X \in\mathbf{R}^{m \times n}`
      - |positive| positive
      - |convex| convex
@@ -453,20 +457,22 @@ and returns a scalar.
      - |convex| convex
 
    * - :ref:`tv(X) <tv>`
-     - :math:`\sum_{ij}\left\| \left[\begin{matrix} X_{i+1,j} - X_{ij} \\ X_{i,j+1} -X_{ij} \end{matrix}\right] \right\|_2`
+       :math:`Y = \left[\begin{matrix} X_{i+1,j} - X_{ij} \\ X_{i,j+1} -X_{ij} \end{matrix}\right]`
+     - :math:`\sum_{ij}\left\| Y \right\|_2`
      - :math:`X \in \mathbf{R}^{m \times n}`
      - |positive| positive
      - |convex| convex
 
    * - :ref:`tv([X1,...,Xk]) <tv>`
-     - :math:`\sum_{ij}\left\| \left[\begin{matrix} X_{i+1,j}^{(1)} - X_{ij}^{(1)} \\ X_{i,j+1}^{(1)} -X_{ij}^{(1)} \\ \vdots \\ X_{i+1,j}^{(k)} - X_{ij}^{(k)} \\ X_{i,j+1}^{(k)} -X_{ij}^{(k)}  \end{matrix}\right] \right\|_2`
+       :math:`Y = \left[\begin{matrix} X_{i+1,j}^{(1)} - X_{ij}^{(1)} \\ X_{i,j+1}^{(1)} -X_{ij}^{(1)} \\ \vdots \\ X_{i+1,j}^{(k)} - X_{ij}^{(k)} \\ X_{i,j+1}^{(k)} -X_{ij}^{(k)}  \end{matrix}\right]`
+     - :math:`\sum_{ij}\left\| Y \right\|_2`
      - :math:`X^{(i)} \in\mathbf{R}^{m \times n}`
      - |positive| positive
      - |convex| convex
 
    * - :ref:`var(X) <var>`
 
-     - :math:`{\frac{1}{mn} \sum_{ij}\left(X_{ij} - \frac{1}{mn}\sum_{k\ell} X_{k\ell}\right)^2}`
+     - analog to `numpy.var <https://numpy.org/doc/stable/reference/generated/numpy.var.html#numpy-var>`_
      - :math:`X \in\mathbf{R}^{m \times n}`
      - |positive| positive
      - |convex| convex
