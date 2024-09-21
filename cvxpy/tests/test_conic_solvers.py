@@ -2240,6 +2240,43 @@ class TestSCIPY(unittest.TestCase):
         self.assertTrue("mip_node_count" in sth.prob.solver_stats.extra_stats)
         self.assertTrue("mip_dual_bound" in sth.prob.solver_stats.extra_stats)
 
+@unittest.skipUnless('HIGHS' in INSTALLED_SOLVERS, 'HIGHS is not installed.')
+class TestHIGHS(unittest.TestCase):
+
+    def test_HIGHS_lp_0(self) -> None:
+        StandardTestLPs.test_lp_0(solver='HIGHS')
+
+    def test_HIGHS_lp_1(self) -> None:
+        StandardTestLPs.test_lp_1(solver='HIGHS')
+
+    def test_HIGHS_lp_2(self) -> None:
+        StandardTestLPs.test_lp_2(solver='HIGHS')
+
+    def test_HIGHS_lp_3(self) -> None:
+        StandardTestLPs.test_lp_3(solver='HIGHS')
+
+    def test_HIGHS_lp_4(self) -> None:
+        StandardTestLPs.test_lp_4(solver='HIGHS')
+
+    def test_HIGHS_lp_5(self) -> None:
+        StandardTestLPs.test_lp_5(solver='HIGHS')
+
+    def test_HIGHS_mi_lp_0(self) -> None:
+        StandardTestLPs.test_mi_lp_0(solver='HIGHS')
+
+    def test_HIGHS_mi_lp_1(self) -> None:
+        StandardTestLPs.test_mi_lp_1(solver='HIGHS')
+
+    def test_HIGHS_mi_lp_2(self) -> None:
+        StandardTestLPs.test_mi_lp_2(solver='HIGHS')
+
+    def test_HIGHS_mi_lp_3(self) -> None:
+        StandardTestLPs.test_mi_lp_3(solver='HIGHS')
+
+    def test_HIGHS_mi_lp_5(self) -> None:
+        StandardTestLPs.test_mi_lp_5(solver='HIGHS')
+
+
 @unittest.skipUnless('COPT' in INSTALLED_SOLVERS, 'COPT is not installed.')
 class TestCOPT(unittest.TestCase):
 

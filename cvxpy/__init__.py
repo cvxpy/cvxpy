@@ -74,6 +74,7 @@ from cvxpy.settings import (
     GLPK as GLPK,
     GLPK_MI as GLPK_MI,
     GUROBI as GUROBI,
+    HIGHS as HIGHS,
     INFEASIBLE as INFEASIBLE,
     INFEASIBLE_INACCURATE as INFEASIBLE_INACCURATE,
     MOSEK as MOSEK,

@@ -25,6 +25,7 @@ from .glop_conif import GLOP
 from .glpk_conif import GLPK
 from .glpk_mi_conif import GLPK_MI
 from .gurobi_conif import GUROBI
+from .highs_conif import HIGHS
 from .mosek_conif import MOSEK
 from .nag_conif import NAG
 from .pdlp_conif import PDLP
