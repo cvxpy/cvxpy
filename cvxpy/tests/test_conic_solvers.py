@@ -2243,37 +2243,43 @@ class TestSCIPY(unittest.TestCase):
 @unittest.skipUnless('HIGHS' in INSTALLED_SOLVERS, 'HIGHS is not installed.')
 class TestHIGHS(unittest.TestCase):
 
-    def test_HIGHS_lp_0(self) -> None:
+    def test_highs_lp_0(self) -> None:
         StandardTestLPs.test_lp_0(solver='HIGHS')
 
-    def test_HIGHS_lp_1(self) -> None:
+    def test_highs_lp_1(self) -> None:
         StandardTestLPs.test_lp_1(solver='HIGHS')
 
-    def test_HIGHS_lp_2(self) -> None:
+    def test_highs_lp_2(self) -> None:
         StandardTestLPs.test_lp_2(solver='HIGHS')
 
-    def test_HIGHS_lp_3(self) -> None:
+    def test_highs_lp_3(self) -> None:
         StandardTestLPs.test_lp_3(solver='HIGHS')
 
-    def test_HIGHS_lp_4(self) -> None:
+    def test_highs_lp_4(self) -> None:
         StandardTestLPs.test_lp_4(solver='HIGHS')
 
-    def test_HIGHS_lp_5(self) -> None:
+    def test_highs_lp_5(self) -> None:
         StandardTestLPs.test_lp_5(solver='HIGHS')
 
-    def test_HIGHS_mi_lp_0(self) -> None:
+    def test_highs_qp_0(self) -> None:
+        StandardTestQPs.test_qp_0(solver='HIGHS')
+
+    def test_highs_qp_0_linear_obj(self) -> None:
+        StandardTestQPs.test_qp_0(solver='HIGHS', use_quad_obj=False)
+
+    def test_highs_mi_lp_0(self) -> None:
         StandardTestLPs.test_mi_lp_0(solver='HIGHS')
 
-    def test_HIGHS_mi_lp_1(self) -> None:
+    def test_highs_mi_lp_1(self) -> None:
         StandardTestLPs.test_mi_lp_1(solver='HIGHS')
 
-    def test_HIGHS_mi_lp_2(self) -> None:
+    def test_highs_mi_lp_2(self) -> None:
         StandardTestLPs.test_mi_lp_2(solver='HIGHS')
 
-    def test_HIGHS_mi_lp_3(self) -> None:
+    def test_highs_mi_lp_3(self) -> None:
         StandardTestLPs.test_mi_lp_3(solver='HIGHS')
 
-    def test_HIGHS_mi_lp_5(self) -> None:
+    def test_highs_mi_lp_5(self) -> None:
         StandardTestLPs.test_mi_lp_5(solver='HIGHS')
 
 
