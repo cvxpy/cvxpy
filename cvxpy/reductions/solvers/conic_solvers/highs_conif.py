@@ -14,6 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+import numpy as np
 
 import cvxpy.settings as s
 from cvxpy.constraints.nonpos import NonNeg
@@ -36,6 +37,7 @@ class HIGHS(ConicSolver):
                   3: s.UNBOUNDED,  # Unbounded
                   4: s.SOLVER_ERROR  # Numerical difficulties encountered
                   }
+    
     def name(self):
         """The name of the solver."""
         return 'HIGHS'
@@ -102,7 +104,54 @@ class HIGHS(ConicSolver):
         return data, inv_data
 
     def solve_via_data(self, data, warm_start: bool, verbose: bool, solver_opts, solver_cache=None):
-        pass
+        import highspy
+
+        # Check if the problem is a MIP.
+        problem_is_a_mip = data[s.BOOL_IDX] or data[s.INT_IDX]
+
+        # Track variable integrality options. An entry of zero implies that
+        # the variable is continuous. An entry of one implies that the
+        # variable is either binary or an integer with bounds.
+        if problem_is_a_mip:
+            integrality = [0] * data[s.C].shape[0]
+
+            for index in data[s.BOOL_IDX] + data[s.INT_IDX]:
+                integrality[index] = 1
+
+            bounds = [(None, None)] * data[s.C].shape[0]
+
+            for index in data[s.BOOL_IDX]:
+                bounds[index] = (0, 1)
+        else:
+            integrality = None
+            bounds = (None, None)
+
+        if problem_is_a_mip:
+            constraints = []
+            G = data[s.G]
+            if G is not None:
+                ineq = highspy.LinearConstraint(G, ub=data[s.H])
+                constraints.append(ineq)
+            A = data[s.A]
+            if A is not None:
+                eq = highspy.LinearConstraint(A,data[s.B], data[s.B])
+                constraints.append(eq)
+            lb = [t[0] if t[0] is not None else -np.inf for t in bounds]
+            ub = [t[1] if t[1] is not None else np.inf for t in bounds]
+            bounds = highspy.Bounds(lb, ub)
+            solution = highspy.milp(data[s.C], 
+                                constraints=constraints,
+                                integrality=integrality,
+                                bounds=bounds)
+        else:
+            solution = highspy.linprog(data[s.C], A_ub=data[s.G], b_ub=data[s.H],
+                                   A_eq=data[s.A], b_eq=data[s.B],
+                                   bounds=bounds)
+
+        if verbose is True:
+            print("Solver terminated with message: " + solution.message)
+
+        return solution
 
     def invert(self, solution, inverse_data):
         """Returns the solution to the original problem given the inverse_data."""
