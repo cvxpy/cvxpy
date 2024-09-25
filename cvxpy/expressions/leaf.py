@@ -161,7 +161,7 @@ class Leaf(expression.Expression):
         self.args = []
         self.bounds = bounds
 
-    def _validate_indices(self, indices: List[tuple] | tuple[np.ndarray]) -> None:
+    def _validate_indices(self, indices: list[tuple[int]] | tuple[np.ndarray]) -> None:
         """
         Validate the sparsity pattern for a leaf node.
     

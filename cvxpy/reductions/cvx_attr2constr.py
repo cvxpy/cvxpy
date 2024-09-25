@@ -58,14 +58,14 @@ SYMMETRIC_ATTRIBUTES = [
 ]
 
 
-def convex_attributes(variables) -> List[str]:
+def convex_attributes(variables) -> list[str]:
     """Returns a list of the (constraint-generating) convex attributes present
        among the variables.
     """
     return attributes_present(variables, CONVEX_ATTRIBUTES)
 
 
-def attributes_present(variables, attr_map) -> List[str]:
+def attributes_present(variables, attr_map) -> list[str]:
     """Returns a list of the relevant attributes present
        among the variables.
     """
