@@ -15,7 +15,7 @@ limitations under the License.
 """
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Iterable, List, Optional
+from typing import TYPE_CHECKING, Iterable, Optional
 
 if TYPE_CHECKING:
     from cvxpy import Constant, Parameter, Variable
