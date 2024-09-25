@@ -161,7 +161,7 @@ class Leaf(expression.Expression):
         self.args = []
         self.bounds = bounds
 
-    def _validate_indices(self, indices: List[tuple | np.ndarray]) -> None:
+    def _validate_indices(self, indices: List[tuple] | tuple[np.ndarray]) -> None:
         """
         Validate the sparsity pattern for a leaf node.
     
@@ -179,11 +179,9 @@ class Leaf(expression.Expression):
         if indices.shape[0] != len(self._shape):
             raise ValueError(f"Indices should have {len(self._shape)} dimensions.")
         
-        # Check if all indices are within bounds
-        for dim in range(len(self._shape)):
-            if np.any(indices[:, dim] < 0) or np.any(indices[:, dim] >= self._shape[dim]):
-                raise ValueError(
-                    f"Indices is out of bounds for expression with shape {self._shape}.")
+        if np.any(indices < 0) or np.any(indices >= np.array(self._shape).reshape(-1, 1)):
+            raise ValueError(
+                f"Indices are out of bounds for expression with shape {self._shape}.")
         return tuple(indices)
     
     def _get_attr_str(self) -> str:
