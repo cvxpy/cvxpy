@@ -100,7 +100,7 @@ class Leaf(expression.Expression):
         symmetric: bool = False, diag: bool = False, PSD: bool = False,
         NSD: bool = False, hermitian: bool = False,
         boolean: Iterable | bool = False, integer: Iterable | bool = False,
-        sparsity: bool = False, pos: bool = False, neg: bool = False,
+        sparsity: Iterable | bool = False, pos: bool = False, neg: bool = False,
         bounds: Iterable | None = None
     ) -> None:
         if isinstance(shape, numbers.Integral):
@@ -144,7 +144,7 @@ class Leaf(expression.Expression):
         else:
             self.integer_idx = integer
         if sparsity:
-            self.sparse_idx = sparsity
+            self.sparse_idx = self._validate_indices(sparsity)
         else:
             self.sparse_idx = []
         # Only one attribute be True (except can be boolean and integer).

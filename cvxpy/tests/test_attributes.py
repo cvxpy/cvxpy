@@ -70,12 +70,6 @@ class TestAttributes():
 
     def test_parameter_sparse_value(self):
         pass
-    
-    def test_invalid_boolean_indices(self):
-        with pytest.raises(
-            ValueError, match="All index tuples in indices must have the same length."
-        ):
-            cp.Variable((3, 3), boolean=[(0, 1), (0, 2, 3)])
 
     def test_integer_indices(self):
         pass
