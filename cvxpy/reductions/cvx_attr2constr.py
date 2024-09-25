@@ -38,7 +38,7 @@ CONVEX_ATTRIBUTES = [
     'PSD',
     'NSD',
     'bounds',
-    'sparsity'
+    'sparsity',
 ]
 
 # Attributes that define lower and upper bounds.
@@ -148,7 +148,7 @@ class CvxAttr2Constr(Reduction):
                     id2new_var[var.id] = upper_tri
                     fill_coeff = Constant(upper_tri_to_full(n))
                     full_mat = fill_coeff @ upper_tri
-                    obj = reshape(full_mat, (n, n))
+                    obj = reshape(full_mat, (n, n), order='F')
                 elif var.attributes['sparsity']:
                     n = len(var.sparse_idx[0])
                     sparse_var = Variable(n, var_id=var.id, **new_attr)

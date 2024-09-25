@@ -15,7 +15,7 @@ limitations under the License.
 """
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Iterable, List
+from typing import TYPE_CHECKING, Iterable, List, Optional
 
 if TYPE_CHECKING:
     from cvxpy import Constant, Parameter, Variable
@@ -459,14 +459,9 @@ class Leaf(expression.Expression):
         self._value = val
 
     @property
-    def value(self):
-        """np.ndarray or None: The numeric value of the expression."""
+    def value(self) -> Optional[np.ndarray]:
+        """The numeric value of the expression."""
         return self._value
-
-    @property
-    def sparse_value(self):
-        """np.ndarray or None: The sparse numeric value of the expression."""
-        return self._sparse_value
 
     @value.setter
     def value(self, val) -> None:
