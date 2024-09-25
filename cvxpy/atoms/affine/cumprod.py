@@ -31,9 +31,9 @@ class cumprod(AffAtom, AxisAtom):
     Attributes
     ----------
     expr : CVXPY expression
-        The expression being summed.
+        The expression being multiplied.
     axis : int
-        The axis to sum across if 2D.
+        The axis to multiply across.
     """
     def __init__(self, expr: Expression, axis: int = 0) -> None:
         super(cumprod, self).__init__(expr, axis)
