@@ -15,6 +15,16 @@ class TestAttributes():
         z[X.sparse_idx] = -1
         assert np.allclose(X.value, z)
 
+    def test_sparsity_condition(self):
+        data = np.arange(8).reshape((2,2,2))
+        mask = np.where(data % 2 == 0)
+        X = cp.Variable((2,2,2), sparsity=mask)
+        prob = cp.Problem(cp.Minimize(cp.sum(X)), [X >= -1, X <= 1])
+        prob.solve()
+        z = np.zeros((2,2,2))
+        z[mask] = -1
+        assert np.allclose(X.value, z)
+
     def test_sparsity_invalid_input(self):
         with pytest.raises(ValueError, match="Indices should have 2 dimensions."):
             cp.Variable((3, 3), sparsity=[(0, 1), (0, 1), (0, 1)])

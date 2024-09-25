@@ -166,27 +166,24 @@ class Leaf(expression.Expression):
         Validate the sparsity pattern for a leaf node.
     
         Parameters:
-        indices: List of indices indicating the positions of non-zero elements.
+        indices: List or tuple of indices indicating the positions of non-zero elements.
         """
-        if len(indices) == 0:
-            return {}
         if not all(len(idx) == len(indices[0]) for idx in indices):
             raise ValueError("All index tuples in indices must have the same length.")
         
-        if isinstance(indices, list):
-            indices = np.array(indices)
-
-        if indices.shape[0] != len(self._shape):
+        if len(indices) != len(self._shape):
             raise ValueError(f"Indices should have {len(self._shape)} dimensions.")
         
+        # convert list/tuple to array to validate indices within bounds
+        indices = np.array(indices)
+
         if np.any(indices < 0) or np.any(indices >= np.array(self._shape).reshape(-1, 1)):
             raise ValueError(
                 f"Indices are out of bounds for expression with shape {self._shape}.")
         return tuple(indices)
     
     def _get_attr_str(self) -> str:
-        """Get a string representing the attributes.
-        """
+        """Get a string representing the attributes."""
         attr_str = ""
         for attr, val in self.attributes.items():
             if attr != 'real' and val:
@@ -214,13 +211,11 @@ class Leaf(expression.Expression):
         return self  # Leaves are not deep copied.
 
     def get_data(self) -> None:
-        """Leaves are not copied.
-        """
+        """Leaves are not copied."""
 
     @property
     def shape(self) -> tuple[int, ...]:
-        """ tuple : The dimensions of the expression.
-        """
+        """The dimensions of the expression."""
         return self._shape
 
     def variables(self) -> list[Variable]:

@@ -157,7 +157,8 @@ class CvxAttr2Constr(Reduction):
                     row_idx = np.ravel_multi_index(var.sparse_idx, var.shape, order='F')
                     col_idx = np.arange(n)
                     coeff_matrix = Constant(sp.csc_matrix((np.ones(n), (row_idx, col_idx)),
-                                                    shape=(np.prod(var.shape, dtype=int), n)))
+                                                    shape=(np.prod(var.shape, dtype=int), n)),
+                                                    name="sparse_coeff")
                     obj = reshape(coeff_matrix @ sparse_var, var.shape, order='F')
                 elif var.attributes['diag']:
                     diag_var = Variable(var.shape[0], var_id=var.id, **new_attr)
