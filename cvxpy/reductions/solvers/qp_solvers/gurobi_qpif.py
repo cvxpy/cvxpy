@@ -179,70 +179,21 @@ class GUROBI(QpSolver):
             # Set the start value of Gurobi vars to user provided values.
             for idx in range(len(x_grb)):
                 x_grb[idx].start = data['init_value'][idx]
-        model.update()
-
-        x = np.asarray(model.getVars())
 
         if A.shape[0] > 0:
-            if hasattr(model, 'addMConstr'):
-                # We can pass all of A @ x == b at once, use stable API
-                # introduced with Gurobi v9.5
-                model.addMConstr(A, None, grb.GRB.EQUAL, b)
-            elif hasattr(model, 'addMConstrs'):
-                # We can pass all of A @ x == b at once, use (now) deprecated
-                # API introduced with Gurobi v9.0
-                model.addMConstrs(A, None, grb.GRB.EQUAL, b)
-            else:
-                # Add equality constraints: iterate over the rows of A
-                # adding each row into the model
-                for i in range(A.shape[0]):
-                    start = A.indptr[i]
-                    end = A.indptr[i+1]
-                    variables = x[A.indices[start:end]]
-                    coeff = A.data[start:end]
-                    expr = grb.LinExpr(coeff, variables)
-                    model.addConstr(expr, grb.GRB.EQUAL, b[i])
-        model.update()
+            # We can pass all of A @ x == b at once, use stable API
+            # introduced with Gurobi v9.5
+            model.addMConstr(A, None, grb.GRB.EQUAL, b)
 
         if F.shape[0] > 0:
-            if hasattr(model, 'addMConstr'):
-                # We can pass all of A @ x == b at once, use stable API
-                # introduced with Gurobi v9.5
-                model.addMConstr(F, None, grb.GRB.LESS_EQUAL, g)
-            elif hasattr(model, 'addMConstrs'):
-                # We can pass all of A @ x == b at once, use (now) deprecated
-                # API introduced with Gurobi v9.0
-                model.addMConstrs(F, None, grb.GRB.LESS_EQUAL, g)
-            else:
-                # Add inequality constraints: iterate over the rows of F
-                # adding each row into the model
-                for i in range(F.shape[0]):
-                    start = F.indptr[i]
-                    end = F.indptr[i+1]
-                    variables = x[F.indices[start:end]]
-                    coeff = F.data[start:end]
-                    expr = grb.LinExpr(coeff, variables)
-                    model.addConstr(expr, grb.GRB.LESS_EQUAL, g[i])
-        model.update()
+            # We can pass all of A @ x == b at once, use stable API
+            # introduced with Gurobi v9.5
+            model.addMConstr(F, None, grb.GRB.LESS_EQUAL, g)
 
         # Define objective
-        if hasattr(model, 'setMObjective'):
-            # Use stable API starting in Gurobi v9
-            P = P.tocoo()
-            model.setMObjective(0.5 * P, q, 0.0)
-        elif hasattr(model, '_v811_setMObjective'):
-            # Use temporary API for Gurobi v811 only
-            P = P.tocoo()
-            model._v811_setMObjective(0.5 * P, q)
-        else:
-            obj = grb.QuadExpr()
-            if P.count_nonzero():  # If there are any nonzero elms in P
-                P = P.tocoo()
-                obj.addTerms(0.5*P.data, vars=list(x[P.row]),
-                             vars2=list(x[P.col]))
-            obj.add(grb.LinExpr(q, x))  # Add linear part
-            model.setObjective(obj)  # Set objective
-        model.update()
+        # Use stable API starting in Gurobi v9
+        P = P.tocoo()
+        model.setMObjective(0.5 * P, q, 0.0)
 
         # Set parameters
         model.setParam("QCPDual", True)
@@ -250,9 +201,6 @@ class GUROBI(QpSolver):
             # Ignore arguments unique to the CVXPY interface.
             if key not in self.INTERFACE_ARGS:
                 model.setParam(key, value)
-
-        # Update model
-        model.update()
 
         if 'save_file' in solver_opts:
             model.write(solver_opts['save_file'])

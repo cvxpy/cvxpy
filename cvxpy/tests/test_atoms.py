@@ -939,6 +939,14 @@ class TestAtoms(BaseTest):
         atom = cp.sum_largest(self.x, 2)
         assert atom.is_pwl()
 
+        # New in 1.6.0: sum_largest now uses np.argpartition instead of np.argsort
+        v = np.random.randn(10000)
+        x = Constant(v)
+        for i in [5, 50, 100, 250, 500, 1000]:
+            expr = cp.sum_largest(x, i)
+            prev_idx = np.argsort(-v)[:i]
+            self.assertAlmostEqual(expr.value, v[prev_idx].sum())
+
     def test_sum_smallest(self) -> None:
         """Test the sum_smallest atom and related atoms.
         """
@@ -1025,6 +1033,18 @@ class TestAtoms(BaseTest):
         with pytest.raises(cp.DPPError):
             problem.solve(enforce_dpp=True)
 
+    def test_cumsum(self) -> None:
+        for axis in [0, 1]:
+            x = cp.Variable((4, 3))
+            expr = cp.cumsum(x, axis=axis)
+            x_val = np.arange(12).reshape((4, 3))
+            target = np.cumsum(x_val, axis=axis)
+            
+            prob = cp.Problem(cp.Minimize(0), [x == x_val])
+            prob.solve()
+            
+            assert np.allclose(expr.value, target)
+    
     def test_kron_expr(self) -> None:
         """Test the kron atom.
         """
@@ -1233,13 +1253,13 @@ class TestAtoms(BaseTest):
         # Solve the (simple) two-stage problem by "combining" the two stages
         # (i.e., by solving a single linear program)
         p1 = Problem(Minimize(x+y), [x+y >= 3, y >= 4, x >= 5])
-        p1.solve(solver=cp.ECOS)
+        p1.solve(solver=cp.CLARABEL)
 
         # Solve the two-stage problem via partial_optimize
         p2 = Problem(Minimize(y), [x+y >= 3, y >= 4])
         g = partial_optimize(p2, [y], [x], solver='ECOS')
         p3 = Problem(Minimize(x+g), [x >= 5])
-        p3.solve(solver=cp.ECOS)
+        p3.solve(solver=cp.CLARABEL)
         self.assertAlmostEqual(p1.value, p3.value)
 
     @unittest.skipUnless(len(INSTALLED_MI_SOLVERS) > 0, 'No mixed-integer solver is installed.')
@@ -1434,7 +1454,7 @@ class TestAtoms(BaseTest):
         y = Variable((2, 2))
         obj = Minimize(cp.sum(-cp.log_normcdf(y)))
         prob = Problem(obj, [y == 2])
-        result = prob.solve(solver=cp.ECOS)
+        result = prob.solve(solver=cp.CLARABEL)
         self.assertAlmostEqual(
             -result, 4 * np.log(scipy.stats.norm.cdf(2)), places=None, delta=1e-2
         )

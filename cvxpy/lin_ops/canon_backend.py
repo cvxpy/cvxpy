@@ -1210,24 +1210,23 @@ class SciPyCanonBackend(PythonCanonBackend):
         Note: we form the sparse output directly using _get_sum_row_indices and 
         column indices in column-major order.
         """
-        row_idx_func = self._get_sum_row_indices
+        sum_coeff_matrix = self._get_sum_coeff_matrix
         def func(x, p):
+            shape = tuple(_lin.args[0].shape)
+            axis, _ = _lin.data
             if p == 1:
-                axis, _ = _lin.data
                 if axis is None:
                     return sp.csr_matrix(x.sum(axis=0))
                 else:
-                    shape = tuple(_lin.args[0].shape)
-                    axis = axis if isinstance(axis, tuple) else (axis,)
-                    n = x.shape[0]
-                    d = np.prod([shape[i] for i in axis], dtype=int)
-                    row_idx = row_idx_func(shape=shape, axis=axis)
-                    col_idx = np.arange(n)
-                    A = sp.csr_matrix((np.ones(n), (row_idx, col_idx)), shape=(n//d, n))
+                    A = sum_coeff_matrix(shape=shape, axis=axis)
                     return A @ x
             else:
                 m = x.shape[0] // p
-                return (sp.kron(sp.eye(p, format="csc"), np.ones(m)) @ x).tocsc()
+                if axis is None:
+                    return (sp.kron(sp.eye(p, format="csc"), np.ones(m)) @ x).tocsc()
+                else:
+                    A = sum_coeff_matrix(shape=shape, axis=axis)
+                    return (sp.kron(sp.eye(p, format="csc"), A) @ x).tocsc()
 
         view.apply_all(func)
         return view
@@ -1261,6 +1260,18 @@ class SciPyCanonBackend(PythonCanonBackend):
         row_idx = np.ravel_multi_index(out_idx, dims=out_dims, order='F')
         return row_idx.flatten(order='F')
     
+    def _get_sum_coeff_matrix(self, shape: tuple, axis: tuple) -> sp.csr_matrix:
+        """
+        Internal function that computes the sum coefficient matrix for a given shape and axis.
+        """
+        axis = axis if isinstance(axis, tuple) else (axis,)
+        n = np.prod(shape, dtype=int)
+        d = np.prod([shape[i] for i in axis], dtype=int)
+        row_idx = self._get_sum_row_indices(shape, axis)
+        col_idx = np.arange(n)
+        A = sp.csr_matrix((np.ones(n), (row_idx, col_idx)), shape=(n//d, n))
+        return A
+
     def div(self, lin: LinOp, view: SciPyTensorView) -> SciPyTensorView:
         """
         Given (A, b) in view and constant data d, return (A*(1/d), b*(1/d)).

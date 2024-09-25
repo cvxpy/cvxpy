@@ -35,8 +35,7 @@ class Ground(Node):
     def constraints(self):
         return [self.voltage == 0] + super(Ground, self).constraints()
 
-class Device:
-    __metaclass__ = abc.ABCMeta
+class Device(metaclass=abc.ABCMeta):
     """ A device on a circuit. """
     def __init__(self, pos_node, neg_node) -> None:
         self.pos_node = pos_node

@@ -1006,6 +1006,15 @@ class TestExpressions(BaseTest):
         self.assertEqual(exp.curvature, s.AFFINE)
         self.assertEqual(exp.shape, (1,))
 
+    def test_special_idx_str_repr(self) -> None:
+        idx = [i for i in range(178)]
+        exp = cp.Variable((200, 10), name="exp")[idx, 6]
+        self.assertEqual("exp[[0, 1, 2, ..., 175, 176, 177], 6]", str(exp))
+
+        idx = [i for i in range(5)]
+        exp = cp.Variable((10, 10), name="exp")[idx, 2:5]
+        self.assertEqual("exp[[0, 1, 2, 3, 4], 2:5]", str(exp))
+
     def test_none_idx(self) -> None:
         """Test None as index.
         """
@@ -1570,6 +1579,16 @@ class TestND_Expressions():
         prob = cp.Problem(self.obj, [expr == y])
         prob.solve(canon_backend=cp.SCIPY_CANON_BACKEND)
         assert np.allclose(expr.value, y)
+
+    @pytest.mark.parametrize("axis", [(0),(1),(2),((0,1)),((0,2)),((2,1))])
+    def test_nd_parametrized_sum(self, axis) -> None:
+        param = cp.Parameter((2,2,2))
+        param.value = np.arange(8).reshape(2,2,2)
+        expr = cp.multiply(self.x, param).sum(axis=axis)
+        target = self.target.sum(axis=axis)
+        prob = cp.Problem(self.obj, [expr == target])
+        prob.solve(canon_backend=cp.SCIPY_CANON_BACKEND)
+        assert np.allclose(expr.value, target)
 
     @pytest.mark.parametrize("axis", [(0,2,4,5),((4,5)),((0,2,3,1)),((5,3,1)), ((0,1,2,5))])
     def test_nd_big_sum(self, axis) -> None:

@@ -9,7 +9,7 @@ Solve method options
 The ``solve`` method takes optional arguments that let you change how CVXPY
 parses and solves the problem.
 
-.. function:: solve(solver=None, verbose=False, gp=False, qcp=False, requries_grad=False, enforce_dpp=False, **kwargs)
+.. function:: solve(solver=None, verbose=False, gp=False, qcp=False, requires_grad=False, enforce_dpp=False, ignore_dpp=False, **kwargs)
 
    Solves the problem using the specified method.
 
@@ -42,7 +42,7 @@ parses and solves the problem.
         problems involving Parameters. Defaults to ``False``.
    :type enforce_dpp: bool, optional
    :param ignore_dpp: When True, DPP problems will be treated as non-DPP,
-        which may speed up compilation. Defaults to False.
+        which may speed up compilation. Defaults to ``False``.
    :type ignore_dpp: bool, optional
    :param kwargs: Additional keyword arguments specifying solver specific options.
    :return: The optimal value for the problem, or a string indicating why the problem could not be solved.

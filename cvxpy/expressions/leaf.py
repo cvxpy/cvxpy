@@ -15,8 +15,8 @@ limitations under the License.
 """
 from __future__ import annotations
 
-import abc
 from typing import TYPE_CHECKING, Iterable, List
+from typing import TYPE_CHECKING, Iterable
 
 if TYPE_CHECKING:
     from cvxpy import Constant, Parameter, Variable
@@ -95,8 +95,6 @@ class Leaf(expression.Expression):
         An iterable of length two specifying lower and upper bounds.
     """
 
-    __metaclass__ = abc.ABCMeta
-
     def __init__(
         self, shape: int | tuple[int, ...], value = None, nonneg: bool = False,
         nonpos: bool = False, complex: bool = False, imag: bool = False,
@@ -130,7 +128,7 @@ class Leaf(expression.Expression):
                            'PSD': PSD, 'NSD': NSD,
                            'hermitian': hermitian, 'boolean': boolean,
                            'integer':  integer, 'sparsity': sparsity, 'bounds': bounds}
-        # Process attributes with indices.
+
         if boolean is True:
             shape = max(shape, (1,))
             flat_idx = np.arange(np.prod(shape))
@@ -154,6 +152,20 @@ class Leaf(expression.Expression):
         
         # Only one attribute can be True (except can be boolean and integer).
         true_attr = sum(1 for v in self.attributes.values() if v)
+            self.boolean_idx = []
+        else:
+            self.boolean_idx = boolean
+        if integer is True:
+            shape = max(shape, (1,))
+            flat_idx = np.arange(np.prod(shape))
+            self.integer_idx = np.unravel_index(flat_idx, shape, order='F')
+        elif integer is False:
+            self.integer_idx = []
+        else:
+            self.integer_idx = integer
+
+        # Only one attribute be True (except can be boolean and integer).
+        true_attr = sum(1 for k, v in self.attributes.items() if v)
         # HACK we should remove this feature or allow multiple attributes in general.
         if boolean and integer:
             true_attr -= 1

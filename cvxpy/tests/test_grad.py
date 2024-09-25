@@ -14,8 +14,6 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from __future__ import division
-
 import numpy as np
 
 import cvxpy as cp
@@ -801,7 +799,7 @@ class TestGrad(BaseTest):
         for obj in [Minimize((self.a)**-1), Maximize(cp.entr(self.a))]:
             prob = Problem(obj, [self.x + self.a >= [5, 8]])
             # Optimize over nothing.
-            expr = partial_optimize(prob, dont_opt_vars=[self.x, self.a], solver=cp.ECOS)
+            expr = partial_optimize(prob, dont_opt_vars=[self.x, self.a], solver=cp.CLARABEL)
             self.a.value = None
             self.x.value = None
             grad = expr.grad
@@ -821,22 +819,22 @@ class TestGrad(BaseTest):
             self.assertItemsAlmostEqual(grad[self.x].toarray(), [0, 0, 0, 0])
 
             # Optimize over x.
-            expr = partial_optimize(prob, opt_vars=[self.x], solver=cp.ECOS)
+            expr = partial_optimize(prob, opt_vars=[self.x], solver=cp.CLARABEL)
             self.a.value = 1
             grad = expr.grad
             self.assertAlmostEqual(grad[self.a], obj.args[0].grad[self.a] + 0)
 
             # Optimize over a.
             fix_prob = Problem(obj, [self.x + self.a >= [5, 8], self.x == 0])
-            fix_prob.solve(solver=cp.ECOS)
+            fix_prob.solve(solver=cp.CLARABEL)
             dual_val = fix_prob.constraints[0].dual_variables[0].value
-            expr = partial_optimize(prob, opt_vars=[self.a], solver=cp.ECOS)
+            expr = partial_optimize(prob, opt_vars=[self.a], solver=cp.CLARABEL)
             self.x.value = [0, 0]
             grad = expr.grad
             self.assertItemsAlmostEqual(grad[self.x].toarray(), dual_val)
 
             # Optimize over x and a.
-            expr = partial_optimize(prob, opt_vars=[self.x, self.a], solver=cp.ECOS)
+            expr = partial_optimize(prob, opt_vars=[self.x, self.a], solver=cp.CLARABEL)
             grad = expr.grad
             self.assertAlmostEqual(grad, {})
 
