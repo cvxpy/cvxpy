@@ -63,3 +63,7 @@ nav.md-tabs li:hover{
         min-height: unset;
     }
 }
+
+.md-typeset table.data:not(.plain) th {
+    min-width: 4.2rem;
+}
