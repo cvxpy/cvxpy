@@ -16,7 +16,6 @@ limitations under the License.
 from __future__ import annotations
 
 from typing import TYPE_CHECKING, Iterable, List
-from typing import TYPE_CHECKING, Iterable
 
 if TYPE_CHECKING:
     from cvxpy import Constant, Parameter, Variable
@@ -128,30 +127,11 @@ class Leaf(expression.Expression):
                            'PSD': PSD, 'NSD': NSD,
                            'hermitian': hermitian, 'boolean': boolean,
                            'integer':  integer, 'sparsity': sparsity, 'bounds': bounds}
-
         if boolean is True:
             shape = max(shape, (1,))
             flat_idx = np.arange(np.prod(shape))
             self.boolean_idx = np.unravel_index(flat_idx, shape, order='F')
         elif boolean is False:
-            self.boolean_idx = {}
-        else:
-            self.boolean_idx = self._validate_indices(boolean)
-        if integer is True:
-            shape = max(shape, (1,))
-            flat_idx = np.arange(np.prod(shape))
-            self.integer_idx = np.unravel_index(flat_idx, shape, order='F')
-        elif integer is False:
-            self.integer_idx = {}
-        else:
-            self.integer_idx = integer
-        if sparsity is False:
-            self.sparse_idx = {}
-        else:
-            self.sparse_idx = self._validate_indices(sparsity)
-        
-        # Only one attribute can be True (except can be boolean and integer).
-        true_attr = sum(1 for v in self.attributes.values() if v)
             self.boolean_idx = []
         else:
             self.boolean_idx = boolean
@@ -163,7 +143,10 @@ class Leaf(expression.Expression):
             self.integer_idx = []
         else:
             self.integer_idx = integer
-
+        if sparsity:
+            self.sparse_idx = sparsity
+        else:
+            self.sparse_idx = []
         # Only one attribute be True (except can be boolean and integer).
         true_attr = sum(1 for k, v in self.attributes.items() if v)
         # HACK we should remove this feature or allow multiple attributes in general.
