@@ -1044,6 +1044,18 @@ class TestAtoms(BaseTest):
             prob.solve()
             
             assert np.allclose(expr.value, target)
+
+    def test_cumprod(self) -> None:
+        for axis in [0, 1]:
+            x = cp.Variable((4, 3))
+            expr = cp.cumprod(x, axis=axis)
+            x_val = np.arange(12).reshape((4, 3))
+            target = np.cumprod(x_val, axis=axis)
+            
+            prob = cp.Problem(cp.Minimize(0), [x == x_val])
+            prob.solve()
+            
+            assert np.allclose(expr.value, target)
     
     def test_kron_expr(self) -> None:
         """Test the kron atom.
