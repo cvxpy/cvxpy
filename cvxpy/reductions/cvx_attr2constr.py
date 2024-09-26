@@ -82,7 +82,11 @@ def recover_value_for_variable(variable, lowered_value, project: bool = True):
         idxs = np.triu_indices(n)
         value[idxs] = lowered_value.flatten(order='F')
         return value + value.T - np.diag(value.diagonal())
-    #TODO add case for sparsity
+    #TODO keep sparse / return coo_tensor
+    elif variable.attributes['sparsity']:
+        value = np.zeros(variable.shape)
+        value[variable.sparse_idx] = lowered_value
+        return value
     elif project:
         return variable.project(lowered_value)
     else:
