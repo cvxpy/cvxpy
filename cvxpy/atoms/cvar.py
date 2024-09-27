@@ -49,8 +49,8 @@ def cvar(x, beta):
     if not 0 <= beta < 1:
         raise ValueError(f"The probability level beta must be in the range [0, 1), got {beta}")
 
-    if len(x.shape) > 1 and x.shape[1] != 1:
-        raise ValueError(f"Input must be a vector, got shape {x.shape}")
+    if len(x.shape) != 1:
+        raise ValueError(f"Input must be a vector (1D array), got shape {x.shape}")
     
     k = (1 - beta) * x.shape[0]
     w = np.append(np.ones(int(k)), k - int(k))
