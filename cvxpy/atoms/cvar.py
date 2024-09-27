@@ -16,7 +16,6 @@ limitations under the License.
 
 import numpy as np
 
-import cvxpy as cp
 from cvxpy.atoms.dotsort import dotsort
 
 
@@ -37,21 +36,18 @@ def cvar(x, beta):
 
     Parameters
     ----------
-    x : cvxpy.Expression
+    x : Expression or numeric constant.
         The vector of samples.
     beta : float
         The probability level, must be in the range :math:`[0, 1)`.
 
     Returns
     -------
-    cvxpy.Expression
+    Expression
         The CVaR of :math:`x` at probability level :math:`\beta`.
     """
     if not 0 <= beta < 1:
         raise ValueError(f"The probability level beta must be in the range [0, 1), got {beta}")
-
-    if not isinstance(x, cp.Expression):
-        raise TypeError("Input must be a CVXPY expression")
 
     if len(x.shape) > 1 and x.shape[1] != 1:
         raise ValueError(f"Input must be a vector, got shape {x.shape}")
