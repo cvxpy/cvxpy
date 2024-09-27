@@ -20,35 +20,31 @@ from cvxpy.atoms.dotsort import dotsort
 
 
 def cvar(x, beta):
-    r"""The Conditional Value at Risk (CVaR) of a discrete random variable.
-
-    CVaR at level beta is a risk measure that captures the expected value over 
-    the worst (1-beta) fraction of outcomes of a real-valued random variable. 
-    For a random variable X representing losses, CVaR at level beta is defined as:
-
-    .. math::
-        \phi_\beta(X) = \mathbb{E}[X | X \geq \psi_\beta(X)]
-
-    where psi_beta(X) is the Value at Risk (VaR) at level beta.
-
-    For a discrete distribution represented by samples z_1, ..., z_m, 
-    CVaR can be computed as:
+    r"""Conditional value at risk (CVaR) at probability level :math:`\beta` of a vector :math:`x`.
+    
+    It represents the average of the :math:`(1-\beta)` fraction of largest values in :math:`x`. 
+    If a probability distribution is represented by a finite set of samples 
+    :math:`x_1, \ldots, x_m \in \mathbb{R}`, the CVaR at level :math:`\beta`, denoted as 
+    :math:`\phi_\beta(x): \mathbb{R}^m \rightarrow \mathbb{R}`, can be computed as: 
 
     .. math::
-        \phi_\beta(z) = \inf_{\alpha \in \mathbb{R}} \left\{ \alpha + 
-        \frac{1}{(1-\beta)m}\sum_{i=1}^m(z_i-\alpha)_+ \right\}
+        \phi_\beta(x) = \inf_{\alpha \in \mathbb{R}} \left\{ \alpha + 
+        \frac{1}{(1-\beta)m}\sum_{i=1}^m(x_i-\alpha)_+ \right\}
 
-    where (z-alpha)_+ = max(z-alpha, 0) is the positive part of z-alpha.
+    where :math:`(x-\alpha)_+ = \max(x-\alpha, 0)` is the positive part of :math:`x-\alpha`.
 
-    This function is a wrapper around the dotsort atom, providing an efficient 
-    computation of CVaR for discrete distributions.
 
     Parameters
     ----------
     x : cvxpy.Expression
-        The vector of sample losses.
+        The vector of samples.
     beta : float
-        The probability level, between 0 and 1.
+        The probability level, must be in the range :math:`(0, 1)`.
+
+    Returns
+    -------
+    cvxpy.Expression
+        The CVaR of :math:`x` at probability level :math:`\beta`.
     """
     k = (1 - beta) * x.shape[0]
     w = np.append(np.ones(int(k)), k - int(k))
