@@ -83,10 +83,12 @@ and returns a scalar.
 
    * - :ref:`cvar(x, beta) <cvar>`
      - average of the :math:`(1-\beta)`
-      
-       fraction of largest
        
-       losses in :math:`x`
+       fraction of largest values
+       
+       in :math:`x`, where :math:`x`
+       
+       is a vector of losses
      - :math:`x \in \mathbf{R}^m`
       
        :math:`\beta \in (0,1)`
