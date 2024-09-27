@@ -84,16 +84,16 @@ and returns a scalar.
    * - :ref:`cvar(x, beta) <cvar>`
      - average of the :math:`(1-\beta)`
       
-       fraction of worst
+       fraction of largest
        
-       outcomes in :math:`x`
+       losses in :math:`x`
      - :math:`x \in \mathbf{R}^m`
       
        :math:`\beta \in (0,1)`
      - depends on :math:`x`
      - |convex| convex
      - |incr| incr.
-     
+
    * - :ref:`dotsort(X,W) <dotsort>`
 
        constant :math:`W \in \mathbf{R}^{o \times p}`
