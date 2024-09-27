@@ -86,9 +86,7 @@ and returns a scalar.
        
        fraction of largest values
        
-       in :math:`x`, where :math:`x`
-       
-       is a vector of losses
+       in :math:`x`
      - :math:`x \in \mathbf{R}^m`
       
        :math:`\beta \in (0,1)`
