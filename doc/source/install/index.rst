@@ -136,67 +136,67 @@ Install with Additional Solver Support
     3. Follow the standard installation procedure to install CVXPY and its remaining dependencies.
 
 .. info:: GUROBI
-   :collapsible:
+    :collapsible:
 
     CVXPY supports the GUROBI solver.
     Install GUROBI version 7.5.2 or greater such that you can ``import gurobipy`` in Python.
     See the `GUROBI <https://www.gurobi.com/>`_ website for installation instructions.
 
 .. info:: MOSEK
-   :collapsible:
+    :collapsible:
 
     CVXPY supports the MOSEK solver.
     Simply install MOSEK such that you can ``import mosek`` in Python.
     See the `MOSEK <https://www.mosek.com/>`_ website for installation instructions.
 
 .. info:: XPRESS
-   :collapsible:
+    :collapsible:
 
     CVXPY supports the FICO Xpress solver.
     Simply install XPRESS such that you can ``import xpress`` in Python.
     See the `Xpress Python documentation <https://www.fico.com/fico-xpress-optimization/docs/latest/solver/optimizer/python/HTML/GUID-616C323F-05D8-3460-B0D7-80F77DA7D046.html>`_ pages for installation instructions.
 
 .. info:: Cbc (Clp, Cgl)
-   :collapsible:
+    :collapsible:
 
     CVXPY supports the `Cbc <https://github.com/coin-or/Cbc>`_ solver (which includes Clp and Cgl) with the help of `cylp <https://github.com/coin-or/CyLP>`_.
     Simply install cylp and the corresponding prerequisites according to the `instructions <https://github.com/coin-or/CyLP#cylp>`_, such you can import this library in Python.
 
 .. info:: COPT
-   :collapsible:
+    :collapsible:
 
     CVXPY supports the COPT solver.
     Simply install COPT such that you can ``import coptpy`` in Python.
     See the `COPT <https://github.com/COPT-Public/COPT-Release>`_ release page for installation instructions.
 
 .. info:: CPLEX
-   :collapsible:
+    :collapsible:
 
     CVXPY supports the CPLEX solver.
     Simply install CPLEX such that you can ``import cplex`` in Python.
     See the `CPLEX <https://www.ibm.com/support/knowledgecenter/SSSA5P>`_ website for installation instructions.
 
 .. info:: SDPA
-   :collapsible:
+    :collapsible:
 
     CVXPY supports the SDPA solver.
     Simply install SDPA for Python such that you can ``import sdpap`` in Python.
     See the `SDPA for Python <https://sdpa-python.github.io/docs/installation>`_ website for installation instructions.
 
 .. info:: SDPT3
-   :collapsible:
+    :collapsible:
 
     The `sdpt3glue package <https://github.com/TrishGillett/pysdpt3glue>`_ allows you to model problems with CVXPY and solve them with SDPT3.
 
 .. info:: NAG
-   :collapsible:
+    :collapsible:
 
     CVXPY supports the NAG solver.
     Simply install NAG such that you can ``import naginterfaces`` in Python.
     See the `NAG <https://support.nag.com/numeric/py/nagdoc_latest/readme.html>`_ website for installation instructions.
 
 .. info:: GLOP and PDLP
-   :collapsible:
+    :collapsible:
 
     CVXPY supports the GLOP and PDLP solvers. Both solvers are provided by
     the open source `OR-Tools <https://github.com/google/or-tools>`_ package.
@@ -204,7 +204,7 @@ Install with Additional Solver Support
     version 9.3 or greater is required.
 
 .. info:: SCIP
-   :collapsible:
+    :collapsible:
 
     CVXPY supports the SCIP solver through the ``pyscipopt`` Python package.
     See the `PySCIPOpt <https://github.com/SCIP-Interfaces/PySCIPOpt#installation>`_ github for installation instructions.
@@ -212,7 +212,7 @@ Install with Additional Solver Support
     CVXPY's SCIP interface does not reliably recover dual variables for constraints. If you require dual variables for a continuous problem, you will need to use another solver. We welcome additional contributions to the SCIP interface, to recover dual variables for constraints in continuous problems.
 
 .. info:: SCIPY
-   :collapsible:
+    :collapsible:
 
     CVXPY supports the SCIPY solver for LPs and MIPs.
     This requires the `SciPy`_ package in Python, which should already be installed, as it is a requirement for CVXPY.
@@ -222,14 +222,14 @@ Install with Additional Solver Support
     The `HiGHS`_ MIP solver comes bundled with version 1.9.0 and higher.
 
 .. info:: PIQP
-   :collapsible:
+    :collapsible:
 
     CVXPY supports the PIQP solver.
     Simply install PIQP such that you can ``import piqp`` in Python.
     See the `PIQP <https://predict-epfl.github.io/piqp/interfaces/python/installation>`_ website for installation instructions.
 
 .. info:: PROXQP
-   :collapsible:
+    :collapsible:
 
     CVXPY supports the PROXQP solver.
     Simply install PROXQP such that you can ``import proxsuite`` in Python.
@@ -238,7 +238,7 @@ Install with Additional Solver Support
     You may achieve better performance by setting ``backend = 'sparse'`` in your call to ``problem.solve``.
 
 .. info:: Without default solvers
-   :collapsible:
+    :collapsible:
 
     CVXPY can also be installed without the default solver dependencies.
     This can be useful if the intention is to only use non-default solvers.
