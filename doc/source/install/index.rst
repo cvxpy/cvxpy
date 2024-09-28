@@ -21,16 +21,16 @@ or a conda environment.
 
         Install CVXPY using `pip`_:
 
-          ::
+        ::
 
-              pip install cvxpy
+            pip install cvxpy
 
         You can add solver names as "extras"; `pip` will then install the necessary
         additional Python packages.
 
-          ::
+        ::
 
-              pip install cvxpy[CBC,CVXOPT,GLOP,GLPK,GUROBI,MOSEK,PDLP,SCIP,XPRESS]
+            pip install cvxpy[CBC,CVXOPT,GLOP,GLPK,GUROBI,MOSEK,PDLP,SCIP,XPRESS]
 
     .. tab:: conda
 
@@ -41,17 +41,17 @@ or a conda environment.
         1. Install `conda`_.
 
         2. Create a new conda environment,
-          ::
+        ::
 
-              conda create --name cvxpy_env
-              conda activate cvxpy_env
+            conda create --name cvxpy_env
+            conda activate cvxpy_env
 
-         or activate an existing one
+        or activate an existing one
 
         3. Install ``cvxpy`` from `conda-forge <https://conda-forge.org/>`_
-           ::
+        ::
 
-              conda install -c conda-forge cvxpy
+            conda install -c conda-forge cvxpy
 
     .. tab:: Install from source
 
@@ -59,28 +59,29 @@ or a conda environment.
 
         CVXPY has the following dependencies:
 
-         * Python >= 3.9
-         * `OSQP`_ >= 0.6.2
-         * `CLARABEL`_ >= 0.6.0
-         * `SCS`_ >= 3.0
-         * `NumPy`_ >= 1.20.0
-         * `SciPy`_ >= 1.6.0
+        * Python >= 3.9
+        * `OSQP`_ >= 0.6.2
+        * `CLARABEL`_ >= 0.6.0
+        * `SCS`_ >= 3.0
+        * `NumPy`_ >= 1.20.0
+        * `SciPy`_ >= 1.6.0
 
         All required packages are installed automatically alongside CVXPY.
 
         Perform the following steps to install CVXPY from source:
 
-         1. Clone the official `CVXPY git repository`_, or a newly minted fork of the CVXPY repository.
-         2. Navigate to the top-level of the cloned directory.
-         3. If you want to use CVXPY with editable source code, run
-            ::
+        1. Clone the official `CVXPY git repository`_, or a newly minted fork of the CVXPY repository.
+        2. Navigate to the top-level of the cloned directory.
+        3. If you want to use CVXPY with editable source code, run
+        ::
 
-                pip install -e .
+            pip install -e .
 
-            otherwise, run
-            ::
+        otherwise, run
+        
+        ::
 
-                pip install .
+            pip install .
 
     .. tab:: Using Codespaces
 
@@ -113,9 +114,9 @@ Install with Additional Solver Support
     platforms <https://cvxopt.org/install/index.html#installing-a-pre-built-package>`_,
     `CVXOPT`_ comes with GLPK bundled. On such platforms, installing CVXOPT with
 
-      ::
+    ::
 
-          pip install cvxopt
+        pip install cvxopt
 
     should suffice to get support for both CVXOPT and GLPK.
 
@@ -125,12 +126,12 @@ Install with Additional Solver Support
 
     2. Install `CVXOPT`_ with GLPK bindings.
 
-        ::
+    ::
 
-          CVXOPT_BUILD_GLPK=1
-          CVXOPT_GLPK_LIB_DIR=/path/to/glpk-X.X/lib
-          CVXOPT_GLPK_INC_DIR=/path/to/glpk-X.X/include
-          pip install cvxopt
+        CVXOPT_BUILD_GLPK=1
+        CVXOPT_GLPK_LIB_DIR=/path/to/glpk-X.X/lib
+        CVXOPT_GLPK_INC_DIR=/path/to/glpk-X.X/include
+        pip install cvxopt
 
     3. Follow the standard installation procedure to install CVXPY and its remaining dependencies.
 
