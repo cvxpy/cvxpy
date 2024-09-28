@@ -141,6 +141,17 @@ Install with Additional Solver Support
     Install GUROBI version 7.5.2 or greater such that you can ``import gurobipy`` in Python.
     See the `GUROBI <https://www.gurobi.com/>`_ website for installation instructions.
 
+.. info:: HiGHS
+   :collapsible:
+
+   CVXPY supports the HiGHS solver. Run the following command to install the HiGHS python interface.
+
+   .. code-block:: python
+
+    pip install highspy
+   
+   See the `HiGHS <https://ergo-code.github.io/HiGHS/dev/interfaces/python/>`_ documentation for additional instructions.
+
 .. info:: MOSEK
    :collapsible:
 
