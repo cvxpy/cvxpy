@@ -22,13 +22,13 @@ elif [[ "$PYTHON_VERSION" == "3.11" ]]; then
     # The earliest version of numpy that works is 1.23.4.
     # Given numpy 1.23.4, the earliest version of scipy we can use is 1.9.3.
     conda install scipy=1.9.3 numpy=1.23.4 mkl pip pytest hypothesis openblas ecos scs cvxopt proxsuite daqp "setuptools>65.5.1"
-elif [[ "$PYTHON_VERSION" == "3.12" ]]; then
+elif [[ "$PYTHON_VERSION" >= "3.12" ]]; then
     # The earliest version of numpy that works is 1.26.4
     # Given numpy 1.26.4, the earliest version of scipy we can use is 1.11.3.
     conda install scipy=1.11.3 numpy=1.26.4 mkl pip pytest hypothesis openblas ecos scs cvxopt proxsuite daqp "setuptools>65.5.1"
 fi
 
-if [[ "$PYTHON_VERSION" == "3.12" ]]; then
+if [[ "$PYTHON_VERSION" >= "3.12" ]]; then
   python -m pip install coptpy gurobipy piqp osqp clarabel
 elif [[ "$PYTHON_VERSION" == "3.11" ]]; then
   python -m pip install coptpy gurobipy cplex piqp osqp diffcp "ortools>=9.7,<9.10" clarabel
