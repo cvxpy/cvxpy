@@ -168,7 +168,7 @@ class HIGHS(QpSolver):
         col_upper = inf * np.ones(shape=lp.num_col_, dtype=q.dtype)
         # update col_lower and col_upper to account for boolean variables,
         # also set integrality_ for boolean or integers variables
-        if self.IS_MIP:
+        if data[s.BOOL_IDX] or data[s.INT_IDX]:
             # note that integrality_ can only be assigned a list
             integrality = [hp.HighsVarType.kContinuous] * lp.num_col_
             if data[s.BOOL_IDX]:
@@ -187,7 +187,7 @@ class HIGHS(QpSolver):
         # parameter values could make the problem linear
         # (i.e., P.count_nonzero() <= P.nnz)
         if P.count_nonzero():
-            if self.IS_MIP:
+            if data[s.BOOL_IDX] or data[s.INT_IDX]:
                 raise SolverError(
                     f"HiGHS does not support MIQP problems!"
                 )
@@ -208,6 +208,14 @@ class HIGHS(QpSolver):
         solver = hp.Highs()
         solver.passModel(model)
         solver.passOptions(options)
+
+        if warm_start and solver_cache is not None \
+                and self.name() in solver_cache:
+            old_solver, old_data, old_result = solver_cache[self.name()]
+            old_status = self.STATUS_MAP.get(old_result["model_status"], s.SOLVER_ERROR)
+            
+            if old_status in s.SOLUTION_PRESENT:
+                solver.setSolution(old_result["solution"])
 
         # initialize and solve problem
         try:
