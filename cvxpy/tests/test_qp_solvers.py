@@ -486,8 +486,6 @@ class TestQp(BaseTest):
         """Test warm start.
         """
         if cp.HIGHS in INSTALLED_SOLVERS:
-            import highspy
-            
             m = 200
             n = 100
             np.random.seed(1)

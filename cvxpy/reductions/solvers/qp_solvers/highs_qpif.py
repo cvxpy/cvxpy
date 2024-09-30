@@ -22,7 +22,6 @@ from cvxpy.error import SolverError
 from cvxpy.reductions.solution import Solution, failure_solution
 from cvxpy.reductions.solvers.qp_solvers.qp_solver import QpSolver
 
-
 # TODO:
 #  - solver cache + warm start
 
@@ -189,7 +188,7 @@ class HIGHS(QpSolver):
         if P.count_nonzero():
             if data[s.BOOL_IDX] or data[s.INT_IDX]:
                 raise SolverError(
-                    f"HiGHS does not support MIQP problems!"
+                    "HiGHS does not support MIQP problems!"
                 )
             hessian = model.hessian_
             hessian.dim_ = model.lp_.num_col_
