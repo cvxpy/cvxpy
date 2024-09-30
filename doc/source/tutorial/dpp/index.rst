@@ -267,7 +267,7 @@ solves of a DPP-compliant DCP problem.
     plt.ylabel(r'time (s)', fontsize=16)
     plt.legend()
 
-.. image:: advanced_files/resolving_dpp.png
+.. image:: re_solving_dpp.png
 
 Similar speed-ups can be obtained for DGP problems.
 

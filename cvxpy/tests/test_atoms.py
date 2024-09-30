@@ -963,7 +963,67 @@ class TestAtoms(BaseTest):
         # Check that sum_smallest is PWL so can be canonicalized as a QP.
         atom = cp.sum_smallest(self.x, 2)
         assert atom.is_pwl()
+    
+    def test_cvar(self) -> None:
+        """Test the cvar atom and its use in a linear program."""
+        # Check that CVaR is correctly computed
+        np.random.seed(1)
 
+        # Generate problem data
+        m = 100  # Size of random vector
+        x = np.random.randn(m)  # Random vector
+        betas = [0.1, 0.5, 0.9, 0.95, 0.99] # Probability levels
+        
+        for beta in betas:
+            # Evaluate using cvar atom
+            cvar_atom = cp.cvar(x, beta)
+            cvar_value = cvar_atom.value
+            
+            # Evaluate CVaR using alternative formulation
+            alpha = cp.Variable()
+            objective = alpha + 1/((1-beta)*m) * cp.sum(cp.pos(x - alpha))
+            prob_alt = cp.Problem(cp.Minimize(objective))
+            cvar_alt_value = prob_alt.solve()
+            
+            # Check that the results are equal (within numerical tolerance)
+            self.assertAlmostEqual(cvar_value, cvar_alt_value)
+
+        # Check LP with CVaR constraint
+        # Problem parameters
+        n = 5  # Number of decision variables
+        m = 100  # Number of scenarios
+        beta = 0.9  # CVaR probability level
+
+        # Generate random problem data
+        c = np.random.randn(n)  # Cost coefficients
+        A = np.random.randn(m, n)  # Scenario matrix
+        kappa = 1.0  # CVaR constraint right-hand side
+
+        # Define decision variables
+        x = cp.Variable(n)
+
+        # Define objective
+        objective = cp.Minimize(c @ x)
+
+        # Define constraints
+        constraints = [
+            x >= 0,  # Non-negativity constraint
+            cp.cvar(A @ x, beta) <= kappa  # CVaR constraint
+        ]
+
+        # Create and solve the problem
+        prob = cp.Problem(objective, constraints)
+        optimal_value = prob.solve()
+
+        # Check that the problem solved successfully
+        self.assertEqual(prob.status, cp.OPTIMAL)
+
+        # Check that the optimal value is finite
+        self.assertTrue(np.isfinite(optimal_value))
+
+        # Check that the CVaR constraint is satisfied
+        cvar_value = cp.cvar(A @ x.value, beta).value
+        self.assertTrue(cvar_value <= kappa)
     def test_index(self) -> None:
         """Test the copy function for index.
         """
@@ -1033,6 +1093,18 @@ class TestAtoms(BaseTest):
         with pytest.raises(cp.DPPError):
             problem.solve(enforce_dpp=True)
 
+    def test_cumsum(self) -> None:
+        for axis in [0, 1]:
+            x = cp.Variable((4, 3))
+            expr = cp.cumsum(x, axis=axis)
+            x_val = np.arange(12).reshape((4, 3))
+            target = np.cumsum(x_val, axis=axis)
+            
+            prob = cp.Problem(cp.Minimize(0), [x == x_val])
+            prob.solve()
+            
+            assert np.allclose(expr.value, target)
+    
     def test_kron_expr(self) -> None:
         """Test the kron atom.
         """
