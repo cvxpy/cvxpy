@@ -15,7 +15,7 @@ limitations under the License.
 """
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Iterable
+from typing import TYPE_CHECKING, Iterable, Optional
 
 if TYPE_CHECKING:
     from cvxpy import Constant, Parameter, Variable
@@ -95,12 +95,13 @@ class Leaf(expression.Expression):
     """
 
     def __init__(
-        self, shape: int | tuple[int, ...], value=None, nonneg: bool = False,
+        self, shape: int | tuple[int, ...], value = None, nonneg: bool = False,
         nonpos: bool = False, complex: bool = False, imag: bool = False,
         symmetric: bool = False, diag: bool = False, PSD: bool = False,
         NSD: bool = False, hermitian: bool = False,
-        boolean: bool = False, integer: bool = False,
-        sparsity=None, pos: bool = False, neg: bool = False, bounds: Iterable | None=None
+        boolean: Iterable | bool = False, integer: Iterable | bool = False,
+        sparsity: Iterable | bool = False, pos: bool = False, neg: bool = False,
+        bounds: Iterable | None = None
     ) -> None:
         if isinstance(shape, numbers.Integral):
             shape = (int(shape),)
@@ -142,7 +143,10 @@ class Leaf(expression.Expression):
             self.integer_idx = []
         else:
             self.integer_idx = integer
-
+        if sparsity:
+            self.sparse_idx = self._validate_indices(sparsity)
+        else:
+            self.sparse_idx = []
         # Only one attribute be True (except can be boolean and integer).
         true_attr = sum(1 for k, v in self.attributes.items() if v)
         # HACK we should remove this feature or allow multiple attributes in general.
@@ -151,17 +155,35 @@ class Leaf(expression.Expression):
         if true_attr > 1:
             raise ValueError("Cannot set more than one special attribute in %s."
                              % self.__class__.__name__)
-
         if value is not None:
             self.value = value
 
         self.args = []
-
         self.bounds = bounds
 
-    def _get_attr_str(self) -> str:
-        """Get a string representing the attributes.
+    def _validate_indices(self, indices: list[tuple[int]] | tuple[np.ndarray]) -> None:
         """
+        Validate the sparsity pattern for a leaf node.
+    
+        Parameters:
+        indices: List or tuple of indices indicating the positions of non-zero elements.
+        """
+        if not all(len(idx) == len(indices[0]) for idx in indices):
+            raise ValueError("All index tuples in indices must have the same length.")
+        
+        if len(indices) != len(self._shape):
+            raise ValueError(f"Indices should have {len(self._shape)} dimensions.")
+        
+        # convert list/tuple to array to validate indices within bounds
+        indices = np.array(indices)
+
+        if np.any(indices < 0) or np.any(indices >= np.array(self._shape).reshape(-1, 1)):
+            raise ValueError(
+                f"Indices are out of bounds for expression with shape {self._shape}.")
+        return tuple(indices)
+    
+    def _get_attr_str(self) -> str:
+        """Get a string representing the attributes."""
         attr_str = ""
         for attr, val in self.attributes.items():
             if attr != 'real' and val:
@@ -189,13 +211,11 @@ class Leaf(expression.Expression):
         return self  # Leaves are not deep copied.
 
     def get_data(self) -> None:
-        """Leaves are not copied.
-        """
+        """Leaves are not copied."""
 
     @property
     def shape(self) -> tuple[int, ...]:
-        """ tuple : The dimensions of the expression.
-        """
+        """The dimensions of the expression."""
         return self._shape
 
     def variables(self) -> list[Variable]:
@@ -420,6 +440,10 @@ class Leaf(expression.Expression):
                     return val
                 w[bad] = 0
             return (V * w).dot(V.T)
+        elif self.attributes['sparsity']:
+            new_val = np.zeros(self.shape)
+            new_val[self.sparse_idx] = val
+            return new_val
         else:
             return val
 
@@ -428,9 +452,8 @@ class Leaf(expression.Expression):
         self._value = val
 
     @property
-    def value(self):
-        """NumPy.ndarray or None: The numeric value of the parameter.
-        """
+    def value(self) -> Optional[np.ndarray]:
+        """The numeric value of the expression."""
         return self._value
 
     @value.setter
