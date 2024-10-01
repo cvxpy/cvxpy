@@ -1660,3 +1660,12 @@ class TestND_Expressions():
         prob.solve(canon_backend=cp.SCIPY_CANON_BACKEND)
         assert np.allclose(expr.value, y)
     
+    def test_nd_transpose(self) -> None:
+        var = cp.Variable((5, 24, 10))
+        target = np.arange(1200).reshape((5, 24, 10))
+        expr = var.T
+        y = target.T
+        prob = cp.Problem(self.obj, [expr == y])
+        prob.solve(canon_backend=cp.SCIPY_CANON_BACKEND)
+        assert np.allclose(expr.value, y)
+    
