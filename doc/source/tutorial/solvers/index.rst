@@ -116,28 +116,28 @@ LP - Linear Programming refers to problems with a linear objective function and 
 
 QP - Quadratic Programming refers to problems with a quadratic objective function and linear constraints.
 
-SOCP - Second-Order Cone Programming refers to problems with second-order cone constraints. The second-order cone is defined as
+SOCP - Second-Order Cone Programming refers to problems with second-order cone constraints.
 
-    :math:`\mathcal{C}_{n+1} = \left\{\begin{bmatrix} x \\ t \end{bmatrix} \mid x \in \mathbb{R}^n , t \in \mathbb{R} , \| x \|_2 \leq t\right\}`
+The second-order cone is defined as: :math:`\mathcal{C}_{n+1} = \left\{\begin{bmatrix} x \\ t \end{bmatrix} \mid x \in \mathbb{R}^n , t \in \mathbb{R} , \| x \|_2 \leq t\right\}`
 
 SDP - Semidefinite Programming refers to problems with :ref:`semidefinite matrix constraints <Semidefinite matrices>`.
 
-EXP - refers to problems with exponential cone constraints. The exponential cone is defined as
+EXP - refers to problems with exponential cone constraints.
 
-    :math:`\{(x,y,z) \mid y > 0, y\exp(x/y) \leq z \} \cup \{ (x,y,z) \mid x \leq 0, y = 0, z \geq 0\}`.
+The exponential cone is defined as: :math:`\{(x,y,z) \mid y > 0, y\exp(x/y) \leq z \} \cup \{ (x,y,z) \mid x \leq 0, y = 0, z \geq 0\}`.
 
-POW - refers to problems with 3-dimensional power cone constraints. The 3D power cone is defined as
+POW - refers to problems with 3-dimensional power cone constraints.
 
-    :math:`\{(x,y,z) \mid x^{\alpha}y^{\alpha} \geq |z|, x \geq 0, y \geq 0 \}`.
+The 3D power cone is defined as: :math:`\{(x,y,z) \mid x^{\alpha}y^{\alpha} \geq |z|, x \geq 0, y \geq 0 \}`.
 
 Support for power cone constraints is a recent addition (v1.1.8), and CVXPY currently does
-not have any atoms that take advantage of this constraint. If you want you want to use this
+not have any atoms that take advantage of this constraint. If you want to use this
 type of constraint in your model, you will need to instantiate ``PowCone3D`` and/or ``PowConeND``
 objects manually.
 
 MIP - :ref:`Mixed-Integer Programming <Mixed-integer programs>` refers to problems where some decision variables are constrained to be integer values.
 
-By default CVXPY calls the solver most specialized to the problem type. For example, `ECOS`_ is called for SOCPs.
+By default CVXPY calls the solver most specialized to the problem type. For example, `CLARABEL`_ is called for SOCPs.
 `SCS`_ can handle all problems (except mixed-integer programs). If the problem is a QP, CVXPY will use `OSQP`_.
 
 You can change the solver called by CVXPY using the ``solver`` keyword argument. If the solver you choose cannot solve the problem, CVXPY will raise an exception. Here's example code solving the same problem with different solvers.
@@ -327,7 +327,7 @@ For example, here we tell SCS to use an indirect method for solving linear equat
 Here is the complete list of solver options.
 
 .. info:: `OSQP`_ options:
-   :collapsible: open
+    :collapsible: open
 
     ``'max_iter'``
         maximum number of iterations (default: 10,000).
@@ -341,7 +341,7 @@ Here is the complete list of solver options.
     For others see `OSQP documentation <https://osqp.org/docs/interfaces/solver_settings.html>`_.
 
 .. info:: `PROXQP`_ options:
-   :collapsible:
+    :collapsible:
 
     ``'backend'``
         solver backend [dense, sparse] (default: dense).
@@ -365,7 +365,7 @@ Here is the complete list of solver options.
         dual inequality constraint proximal parameter (default: 1e-1).
 
 .. info:: `ECOS`_ options:
-   :collapsible:
+    :collapsible:
 
     ``'max_iters'``
         maximum number of iterations (default: 100).
@@ -389,7 +389,7 @@ Here is the complete list of solver options.
         tolerance for feasibility condition for inaccurate solution (default: 1e-4).
 
 .. info:: `DAQP`_ options:
-   :collapsible:
+    :collapsible:
 
     For more information `see the DAQP documentation <https://darnstrom.github.io/daqp/parameters/>`_,
     some features of DAQP are currently unsupported in CVXPY.
@@ -425,7 +425,7 @@ Here is the complete list of solver options.
         proximal-point iterations (default: 1e-6).
 
 .. info:: `GLOP`_ options:
-   :collapsible:
+    :collapsible:
 
     ``'time_limit_sec'``
         Time limit for the solve, in seconds.
@@ -436,7 +436,7 @@ Here is the complete list of solver options.
         `here <https://github.com/google/or-tools/blob/2cb85b4eead4c38e1c54b48044f92087cf165bce/ortools/glop/parameters.proto#L26>`_.
 
 .. info:: `MOSEK`_ options
-   :collapsible:
+    :collapsible:
 
     ``'mosek_params'``
         A dictionary of MOSEK parameters in the form ``name: value``. Parameter names
@@ -481,7 +481,7 @@ Here is the complete list of solver options.
         to the ``mosek_params`` argument.
 
 .. info:: `CVXOPT`_ options
-   :collapsible:
+    :collapsible:
 
     ``'max_iters'``
         maximum number of iterations (default: 100).
@@ -518,7 +518,7 @@ Here is the complete list of solver options.
         code: `cvxpy/reductions/solvers/kktsolver.py <https://github.com/cvxpy/cvxpy/blob/master/cvxpy/reductions/solvers/kktsolver.py>`_.
 
 .. info:: `SDPA`_ options
-   :collapsible:
+    :collapsible:
 
     ``'maxIteration'``
         The maximum number of iterations. (default: 100).
@@ -575,7 +575,7 @@ Here is the complete list of solver options.
         The zero point of matrix operation, determine unboundness, or LU decomposition. (default: 1.0E-12).
 
 .. info:: `SCS`_ options
-   :collapsible:
+    :collapsible:
 
     ``'max_iters'``
         maximum number of iterations (default: 2500).
@@ -592,11 +592,11 @@ Here is the complete list of solver options.
         its default value is 10. See `this page of the SCS documentation <https://www.cvxgrp.org/scs/algorithm/acceleration.html#in-scs>`_
         for more information.
 
-        .. warning::
-            The value of this parameter often effects whether or not SCS 2.X will converge to an accurate solution.
-            If you don't *explicitly* set ``acceleration_lookback`` and SCS 2.X fails to converge, then CVXPY
-            will raise a warning and try to re-solve the problem with ``acceleration_lookback=0``.
-            No attempt will be made to re-solve with problem if you have SCS version 3.0 or higher.
+    .. warning::
+        The value of this parameter often effects whether or not SCS 2.X will converge to an accurate solution.
+        If you don't *explicitly* set ``acceleration_lookback`` and SCS 2.X fails to converge, then CVXPY
+        will raise a warning and try to re-solve the problem with ``acceleration_lookback=0``.
+        No attempt will be made to re-solve with problem if you have SCS version 3.0 or higher.
 
     ``'scale'``
         balance between minimizing primal and dual residual (default: 5.0).
@@ -611,7 +611,7 @@ Here is the complete list of solver options.
         whether to use a quadratic objective or reduce it to SOC constraints (default: True).
 
 .. info:: `CBC`_ options
-   :collapsible:
+    :collapsible:
 
     Cut-generation through `CGL`_
 
@@ -650,12 +650,12 @@ Here is the complete list of solver options.
         returns if the gap between the best known solution and the best possible solution is less than this percentage.
 
 .. info:: `COPT`_ options:
-   :collapsible:
+    :collapsible:
 
     COPT solver options are specified in CVXPY as keyword arguments. The full list of COPT parameters with defaults is listed `here <https://guide.coap.online/copt/en-doc/index.html#parameters>`_.
 
 .. info:: `CPLEX`_ options:
-   :collapsible:
+    :collapsible:
 
     ``'cplex_params'``
         a dictionary where the key-value pairs are composed of parameter names (as used in the CPLEX Python API) and parameter values. For example, to set the advance start switch parameter (i.e., CPX_PARAM_ADVIND), use "advance" for the parameter name. For the data consistency checking and modeling assistance parameter (i.e., CPX_PARAM_DATACHECK), use "read.datacheck" for the parameter name, and so on.
@@ -669,18 +669,18 @@ Here is the complete list of solver options.
         parameters are automatically changed and the problem is re-solved in order to determine its precise status.
 
 .. info:: `NAG`_ options:
-   :collapsible:
+    :collapsible:
 
     ``'nag_params'``
         a dictionary of NAG option parameters. Refer to NAG's Python or Fortran API for details. For example, to set the maximum number of iterations for a linear programming problem to 20, use "LPIPM Iteration Limit" for the key name and 20 for its value .
 
 .. info:: SCIP_ options:
-   :collapsible:
+    :collapsible:
 
     ``'scip_params'`` a dictionary of SCIP optional parameters, a full list of parameters with defaults is listed `here <https://www.scipopt.org/doc-5.0.1/html/PARAMETERS.php>`_.
 
 .. info:: `SCIPY`_ options:
-   :collapsible:
+    :collapsible:
 
     ``'scipy_options'`` a dictionary of SciPy optional parameters, a full list of parameters with defaults is listed `here <https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.linprog.html#scipy.optimize.linprog>`_.
 
@@ -689,7 +689,7 @@ Here is the complete list of solver options.
     * The main advantage of this solver is its ability to use the `HiGHS`_ LP and MIP solvers, which are coded in C++. However, these require versions of SciPy larger than 1.6.1 and 1.9.0, respectively. To use the `HiGHS`_ LP solvers, simply set the method parameter to 'highs-ds' (for dual-simplex), 'highs-ipm' (for interior-point method) or 'highs' (which will choose either 'highs-ds' or 'highs-ipm' for you). To use the `HiGHS`_ MIP solver, leave the method parameter unspecified or set it explicitly to 'highs'.
 
 .. info:: `PDLP`_ options:
-   :collapsible:
+    :collapsible:
 
     ``'time_limit_sec'``
         Time limit for the solve, in seconds.
@@ -700,7 +700,7 @@ Here is the complete list of solver options.
         `here <https://github.com/google/or-tools/blob/a3ef28e824ee84a948796dffbb8254e67714cb56/ortools/pdlp/solvers.proto#L150>`_.
 
 .. info:: `GUROBI`_ options:
-   :collapsible:
+    :collapsible:
 
     Gurobi solver options are specified in CVXPY as keyword arguments. The full list of Gurobi parameters with defaults is listed `here <https://www.gurobi.com/documentation/9.1/refman/parameters.html>`_.
 
@@ -715,7 +715,7 @@ Here is the complete list of solver options.
         parameters are automatically changed and the problem is re-solved in order to determine its precise status.
 
 .. info:: `CLARABEL`_ options:
-   :collapsible:
+    :collapsible:
 
     ``'max_iter'``
         maximum number of iterations (default: 50).
@@ -726,7 +726,7 @@ Here is the complete list of solver options.
     For others see `CLARABEL documentation <https://oxfordcontrol.github.io/ClarabelDocs/stable/api_settings/>`_.
 
 .. info::  `XPRESS`_ options:
-   :collapsible:
+    :collapsible:
 
     ``'save_iis'``
         Whether (and how many) Irreduceable Infeasible Subsystems
@@ -746,7 +746,7 @@ Here is the complete list of solver options.
     command. For all controls see `FICO Xpress Optimizer manual <https://www.fico.com/fico-xpress-optimization/docs/dms2019-03/solver/optimizer/HTML/chapter7.html>`_.
 
 .. info:: `PIQP`_ options:
-   :collapsible:
+    :collapsible:
 
     ``'backend'``
         solver backend [dense, sparse] (default: sparse).
