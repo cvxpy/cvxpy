@@ -17,15 +17,15 @@ if [[ "$PYTHON_VERSION" == "3.9" ]]; then
 elif [[ "$PYTHON_VERSION" == "3.10" ]]; then
     # The earliest version of numpy that works is 1.21.
     # Given numpy 1.21, the earliest version of scipy we can use is 1.7.
-    conda install scipy=1.7 numpy=1.21 mkl pip pytest hypothesis openblas ecos scs osqp cvxopt proxsuite daqp "setuptools>65.5.1"
+    conda install scipy=1.7 numpy=1.21 mkl pip pyscipopt pytest hypothesis openblas ecos scs osqp cvxopt proxsuite daqp "setuptools>65.5.1"
 elif [[ "$PYTHON_VERSION" == "3.11" ]]; then
     # The earliest version of numpy that works is 1.23.4.
     # Given numpy 1.23.4, the earliest version of scipy we can use is 1.9.3.
-    conda install scipy=1.9.3 numpy=1.23.4 mkl pip pytest hypothesis openblas ecos scs cvxopt proxsuite daqp "setuptools>65.5.1"
+    conda install scipy=1.9.3 numpy=1.23.4 mkl pip pyscipopt pytest hypothesis openblas ecos scs cvxopt proxsuite daqp "setuptools>65.5.1"
 elif [[ "$PYTHON_VERSION" == "3.12" ]]; then
     # The earliest version of numpy that works is 1.26.4
     # Given numpy 1.26.4, the earliest version of scipy we can use is 1.11.3.
-    conda install scipy=1.11.3 numpy=1.26.4 mkl pip pytest hypothesis openblas ecos scs cvxopt proxsuite daqp "setuptools>65.5.1"
+    conda install scipy=1.11.3 numpy=1.26.4 mkl pip pyscipopt pytest hypothesis openblas ecos scs cvxopt proxsuite daqp "setuptools>65.5.1"
 fi
 
 if [[ "$PYTHON_VERSION" == "3.12" ]]; then
@@ -50,12 +50,6 @@ fi
 # cylp has no wheels for Windows
 if [[ "$RUNNER_OS" != "Windows" ]]; then
   python -m pip install cylp
-fi
-
-# SCIP only works with scipy >= 1.5 due to dependency conflicts when installing on Linux/macOS
-# TODO make work on linux and mac.
-if [[ "$PYTHON_VERSION" == "3.9" ]] && [[ "$RUNNER_OS" == "Windows" ]]; then
-  conda install pyscipopt
 fi
 
 # Only install Mosek if license is available (secret is not copied to forks)
