@@ -89,19 +89,6 @@ or a conda environment.
         preconfigured environments for CVXPY development via `devcontainers <https://containers.dev/>`_.
         To get started, click the "Code" button on the CVXPY repository and select "Open with Codespaces".
 
-.. warning::
-    Apple M1 users have had trouble installing CVXPY using the commands above.
-    That trouble stemmed partly from a configuration error in CVXPY's
-    ``pyproject.toml``, which has been fixed in CVXPY 1.1.19 and 1.2.0.
-    If you have those versions (or newer) then the above commands should
-    work *provided* (1) you have ``cmake`` installed via Homebrew and (2)
-    you have an ECOS 2.0.5 wheel. The cmake requirement stems from OSQP
-    and there appear to be problems building more recent versions of ECOS on M1 machines.
-    See `this comment <https://github.com/cvxpy/cvxpy/issues/1190#issuecomment-994613793>`_
-    on the CVXPY repo and
-    `this issue <https://github.com/embotech/ecos-python/issues/33>`_ on the ECOS repo
-    for more information.
-
 
 Install with Additional Solver Support
 ------------------------------------
