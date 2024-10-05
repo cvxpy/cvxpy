@@ -1647,3 +1647,25 @@ class TestND_Expressions():
         prob = cp.Problem(self.obj, [expr == y])
         prob.solve(canon_backend=cp.SCIPY_CANON_BACKEND)
         assert np.allclose(expr.value, y)
+
+    @pytest.mark.parametrize("order", ['C', 'F'])
+    @pytest.mark.parametrize("shape", [(20, 2, 30), (300, 2, 2), 
+                                       (1, 24, 5, 10), (240, 5, 1)])
+    def test_nd_reshape(self, order, shape) -> None:
+        var = cp.Variable((5, 24, 10))
+        target = np.arange(1200).reshape((5, 24, 10))
+        expr = cp.reshape(var, shape, order=order)
+        y = target.reshape(shape, order=order)
+        prob = cp.Problem(self.obj, [expr == y])
+        prob.solve(canon_backend=cp.SCIPY_CANON_BACKEND)
+        assert np.allclose(expr.value, y)
+    
+    def test_nd_transpose(self) -> None:
+        var = cp.Variable((5, 24, 10))
+        target = np.arange(1200).reshape((5, 24, 10))
+        expr = var.T
+        y = target.T
+        prob = cp.Problem(self.obj, [expr == y])
+        prob.solve(canon_backend=cp.SCIPY_CANON_BACKEND)
+        assert np.allclose(expr.value, y)
+    

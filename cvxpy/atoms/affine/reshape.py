@@ -151,7 +151,7 @@ class reshape(AffAtom):
             if len(shape) <= 1:
                 return (lu.reshape(arg, shape), [])
             else:
-                result = lu.reshape(arg, (shape[1], shape[0]))
+                result = lu.reshape(arg, shape[::-1])
                 return (lu.transpose(result), [])
 
 

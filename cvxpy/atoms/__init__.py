@@ -41,6 +41,7 @@ from cvxpy.atoms.affine.wraps import (hermitian_wrap, psd_wrap,
                                       skew_symmetric_wrap, symmetric_wrap,)
 from cvxpy.atoms.condition_number import condition_number
 from cvxpy.atoms.cummax import cummax
+from cvxpy.atoms.cvar import cvar
 from cvxpy.atoms.dist_ratio import dist_ratio
 from cvxpy.atoms.dotsort import dotsort
 from cvxpy.atoms.elementwise.abs import abs
