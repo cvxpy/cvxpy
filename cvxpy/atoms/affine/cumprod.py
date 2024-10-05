@@ -18,8 +18,10 @@ from typing import List, Tuple
 import numpy as np
 
 import cvxpy.lin_ops.lin_op as lo
+import cvxpy.lin_ops.lin_utils as lu
 from cvxpy.atoms.affine.affine_atom import AffAtom
 from cvxpy.atoms.axis_atom import AxisAtom
+from cvxpy.atoms.gmatmul import gmatmul
 from cvxpy.constraints.constraint import Constraint
 from cvxpy.expressions.expression import Expression
 
@@ -87,4 +89,6 @@ class cumprod(AffAtom, AxisAtom):
         tuple
             (LinOp for objective, list of constraints)
         """
-        return ()
+        n = arg_objs[0]
+        A = lu.create_const(np.triu(np.ones(shape)), shape=shape)
+        return (gmatmul(A, n), [])

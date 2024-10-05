@@ -1098,8 +1098,8 @@ class TestAtoms(BaseTest):
             x = cp.Variable((4, 3))
             expr = cp.cumsum(x, axis=axis)
             x_val = np.arange(12).reshape((4, 3))
+
             target = np.cumsum(x_val, axis=axis)
-            
             prob = cp.Problem(cp.Minimize(cp.sum(expr)), [x == x_val])
             prob.solve()
             
@@ -1110,6 +1110,7 @@ class TestAtoms(BaseTest):
             x = cp.Variable((4, 3))
             expr = cp.cumprod(x, axis=axis)
             x_val = np.arange(12).reshape((4, 3))
+            
             target = np.cumprod(x_val, axis=axis)
             prob = cp.Problem(cp.Minimize(cp.sum(expr)), [x == x_val])
             prob.solve()
