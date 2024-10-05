@@ -11,7 +11,7 @@ conda config --set remote_backoff_factor 2
 conda config --set remote_read_timeout_secs 120.0
 conda install mkl pip pytest hypothesis openblas "setuptools>65.5.1"
 conda install ecos scs osqp cvxopt proxsuite daqp
-python -m pip install coptpy gurobipy piqp clarabel
+python -m pip install coptpy gurobipy piqp clarabel pyscipopt
 
 if [[ "$PYTHON_VERSION" == "3.9" ]]; then
   # The earliest version of numpy that works is 1.20.
@@ -28,7 +28,7 @@ elif [[ "$PYTHON_VERSION" == "3.11" ]]; then
 elif [[ "$PYTHON_VERSION" == "3.12" ]]; then
     # The earliest version of numpy that works is 1.26.4
     # Given numpy 1.26.4, the earliest version of scipy we can use is 1.11.3.
-  conda install scipy=1.11.3 numpy=1.26.4 pyscipopt
+  conda install scipy=1.11.3 numpy=1.26.4
 fi
 
 if [[ "$PYTHON_VERSION" == "3.11" ]]; then
