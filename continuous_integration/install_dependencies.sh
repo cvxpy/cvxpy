@@ -18,16 +18,16 @@ if [[ "$PYTHON_VERSION" == "3.9" ]]; then
   # Given numpy 1.20, the earliest version of scipy we can use is 1.6.
   conda install scipy=1.6 numpy=1.20
 elif [[ "$PYTHON_VERSION" == "3.10" ]]; then
-    # The earliest version of numpy that works is 1.21.
-    # Given numpy 1.21, the earliest version of scipy we can use is 1.7.
+     The earliest version of numpy that works is 1.21.
+  # Given numpy 1.21, the earliest version of scipy we can use is 1.7.
   conda install scipy=1.7 numpy=1.21
 elif [[ "$PYTHON_VERSION" == "3.11" ]]; then
-    # The earliest version of numpy that works is 1.23.4.
-    # Given numpy 1.23.4, the earliest version of scipy we can use is 1.9.3.
+  # The earliest version of numpy that works is 1.23.4.
+  # Given numpy 1.23.4, the earliest version of scipy we can use is 1.9.3.
   conda install scipy=1.9.3 numpy=1.23.4
 elif [[ "$PYTHON_VERSION" == "3.12" ]]; then
-    # The earliest version of numpy that works is 1.26.4
-    # Given numpy 1.26.4, the earliest version of scipy we can use is 1.11.3.
+  # The earliest version of numpy that works is 1.26.4
+  # Given numpy 1.26.4, the earliest version of scipy we can use is 1.11.3.
   conda install scipy=1.11.3 numpy=1.26.4
 fi
 
@@ -39,16 +39,17 @@ if [[ "$RUNNER_OS" == "Windows" ]]; then
   # SDPA with OpenBLAS backend does not pass LP5 on Windows
   python -m pip install sdpa-multiprecision
 else
+  # cylp has no wheels for Windows
+  conda install pyscipopt cylp
+fi
+
+if [[ "$PYTHON_VERSION" != "3.9" ]]; then
+  # SDPA didn't pass LP5 on Ubuntu for Python 3.9
   python -m pip install sdpa-python
 fi
 
 if [[ "$PYTHON_VERSION" == "3.11" ]] && [[ "$RUNNER_OS" != "macOS" ]]; then
   python -m pip install xpress
-fi
-
-# cylp has no wheels for Windows
-if [[ "$RUNNER_OS" != "Windows" ]]; then
-  python -m pip install cylp
 fi
 
 # Only install Mosek if license is available (secret is not copied to forks)
