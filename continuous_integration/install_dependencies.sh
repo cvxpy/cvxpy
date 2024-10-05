@@ -40,7 +40,8 @@ if [[ "$RUNNER_OS" == "Windows" ]]; then
   python -m pip install sdpa-multiprecision
 else
   # cylp has no wheels for Windows
-  conda install pyscipopt cylp
+  conda install pyscipopt
+  python -m pip install cylp
 fi
 
 if [[ "$PYTHON_VERSION" != "3.9" ]]; then
