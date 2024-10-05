@@ -58,14 +58,6 @@ cumsum
 .. autoclass:: cvxpy.cumsum
     :show-inheritance:
 
-.. _cumprod:
-
-cumprod
------------------------------------
-
-.. autoclass:: cvxpy.cumprod
-    :show-inheritance:
-
 .. _diag:
 
 diag

@@ -12,6 +12,14 @@ cummax
 .. autoclass:: cvxpy.atoms.cummax.cummax
     :show-inheritance:
 
+.. _cumprod:
+
+cumprod
+-----------------------------------
+
+.. autoclass:: cvxpy.atoms.cumprod.cumprod
+    :show-inheritance:
+
 .. _diff_pos:
 
 diff_pos

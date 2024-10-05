@@ -884,13 +884,6 @@ Expression and a negative Expression) then the returned Expression will have unk
      - |affine| affine
      - |incr| incr.
 
-   * - :ref:`cumprod(X, axis=0) <cumprod>`
-
-     - cumulative prod along given axis.
-     - :math:`X \in \mathbf{R}^{m \times n}`
-     - |affine| affine
-     - |incr| incr.
-
    * - :ref:`diag(x) <diag>`
 
      - :math:`\left[\begin{matrix}x_1  & &  \\& \ddots & \\& & x_n\end{matrix}\right]`
