@@ -44,8 +44,8 @@ else
   python -m pip install cylp
 fi
 
-if [[ "$PYTHON_VERSION" != "3.9" ]]; then
-  # SDPA didn't pass LP5 on Ubuntu for Python 3.9
+if [[ "$PYTHON_VERSION" != "3.9" ]] && [[ "$PYTHON_VERSION" != "3.12" ]]; then
+  # SDPA didn't pass LP5 on Ubuntu for Python 3.9 and 3.12
   python -m pip install sdpa-python
 fi
 
