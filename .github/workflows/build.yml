@@ -29,7 +29,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ ubuntu-20.04, macos-12, windows-2022 ]
-        python-version: [ 3.9, "3.10", "3.11", "3.12", "3.13" ]
+        python-version: [ 3.9, "3.10", "3.11", "3.12" ]
 
     env:
       RUNNER_OS: ${{ matrix.os }}
@@ -40,9 +40,6 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-      - name: Set up Python 3.13
-        if: ${{ matrix.python-version }} == "3.13"
-        run: conda create -n py313 python=3.13 -c conda-forge/label/python_rc -c conda-forge
 
       - name: Set Additional Envs
         run: |
@@ -93,10 +90,7 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
-      - name: Set up Python 3.13
-        if: ${{ matrix.python-version }} == "3.13"
-        run: conda create -n py313 python=3.13 -c conda-forge/label/python_rc -c conda-forge
-
+      
       - name: Set Additional Envs
         shell: bash
         run: |
@@ -167,10 +161,7 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
-      - name: Set up Python 3.13
-        if: ${{ matrix.python-version }} == "3.13"
-        run: conda create -n py313 python=3.13 -c conda-forge/label/python_rc -c conda-forge
-
+      
       - name: Set Additional Envs
         shell: bash
         run: |
