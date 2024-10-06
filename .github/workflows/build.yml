@@ -61,7 +61,7 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y conda
           conda create -n py313 python=3.13 -c conda-forge/label/python_rc -c conda-forge
-          echo "source activate py313" >> $GITHUB_ENV
+          echo "conda activate py313" >> $GITHUB_ENV
 
       - name: Install
         run: |
