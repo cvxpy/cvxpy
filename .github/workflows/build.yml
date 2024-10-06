@@ -49,7 +49,7 @@ jobs:
       
       - name: Setup MiniConda
         if: ${{ matrix.python-version != '3.13' }}
-      - uses: conda-incubator/setup-miniconda@v3
+        uses: conda-incubator/setup-miniconda@v3
         with:
           auto-update-conda: true
           python-version: ${{ matrix.python-version }}
