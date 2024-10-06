@@ -41,9 +41,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Set up Python 3.13
-        if: matrix.python-version == '3.13'
+        if: matrix.python-version == "3.13"
         run: conda create -n py313 python=3.13 -c conda-forge/label/python_rc -c conda-forge
-        
+
       - name: Set Additional Envs
         run: |
           echo "PYTHON_SUBVERSION=$(echo $PYTHON_VERSION | cut -c 3-)" >> $GITHUB_ENV
