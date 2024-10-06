@@ -29,7 +29,11 @@ jobs:
       fail-fast: false
       matrix:
         os: [ ubuntu-20.04, macos-12, windows-2022 ]
-        python-version: [ 3.9, "3.10", "3.11", "3.12", "3.13-dev" ]
+        python-version: [ 3.9, "3.10", "3.11", "3.12" ]
+        experimental: [false]
+        include:
+          - python-version: '3.13-dev'
+            experimental: true
 
     env:
       RUNNER_OS: ${{ matrix.os }}
