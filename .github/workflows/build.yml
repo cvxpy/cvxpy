@@ -29,7 +29,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ ubuntu-20.04, macos-12, windows-2022 ]
-        python-version: [ 3.9, "3.10", "3.11", "3.12", "3.13.0rc2" ]
+        python-version: [ 3.9, "3.10", "3.11", "3.12", "3.13" ]
 
     env:
       RUNNER_OS: ${{ matrix.os }}
@@ -74,7 +74,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ ubuntu-20.04, macos-12, windows-2022 ]
-        python-version: [ 3.9, "3.10", "3.11", "3.12", "3.13.0rc2" ]
+        python-version: [ 3.9, "3.10", "3.11", "3.12", "3.13" ]
 
     env:
       RUNNER_OS: ${{ matrix.os }}
@@ -145,7 +145,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ ubuntu-20.04, macos-12, windows-2022 ]
-        python-version: [ 3.9, "3.10", "3.11", "3.12", "3.13.0rc2" ]
+        python-version: [ 3.9, "3.10", "3.11", "3.12", "3.13" ]
 
     env:
       PYTHON_VERSION: ${{ matrix.python-version }}
