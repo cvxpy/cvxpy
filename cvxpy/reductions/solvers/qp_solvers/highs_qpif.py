@@ -26,7 +26,7 @@ from cvxpy.reductions.solvers.qp_solvers.qp_solver import QpSolver
 #  - solver cache + warm start
 
 class HIGHS(QpSolver):
-    """QP interface for the OSQP solver"""
+    """QP interface for the HiGHS solver"""
 
     # Note that HiGHS does not support MIQP but supports MILP
     MIP_CAPABLE = True
