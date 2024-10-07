@@ -29,11 +29,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ ubuntu-20.04, macos-12, windows-2022 ]
-        python-version: [ 3.9, "3.10", "3.11", "3.12" ]
-        experimental: [false]
-        include:
-          - python-version: '3.13-dev'
-            experimental: true
+        python-version: [ 3.9, "3.10", "3.11", "3.12", "3.13" ]
 
     env:
       RUNNER_OS: ${{ matrix.os }}
@@ -50,8 +46,6 @@ jobs:
           echo "PYTHON_SUBVERSION=$(echo $PYTHON_VERSION | cut -c 3-)" >> $GITHUB_ENV
           echo $MOSEK_CI_BASE64 | base64 -d > mosek.lic
           echo "MOSEKLM_LICENSE_FILE=$( [[ $RUNNER_OS == 'macOS' ]] && echo $(pwd)/mosek.lic || echo $(realpath mosek.lic) )" >> $GITHUB_ENV
-      
-      - name: Setup MiniConda
         uses: conda-incubator/setup-miniconda@v3
         with:
           auto-update-conda: true
