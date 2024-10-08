@@ -30,9 +30,6 @@ jobs:
       matrix:
         os: [ ubuntu-20.04, macos-12, windows-2022 ]
         python-version: [ 3.9, "3.10", "3.11", "3.12" ]
-        exclude:
-          - os: ubuntu-20.04
-            python-version: 3.12
         include:
           - os: ubuntu-20.04
             python-version: 3.12
@@ -83,14 +80,9 @@ jobs:
         os: [ ubuntu-20.04, macos-12, windows-2022 ]
         python-version: [ 3.9, "3.10", "3.11", "3.12" ]
         base: [ true, false ]
-        exclude:
-          - os: ubuntu-20.04
-            python-version: 3.12
-            base: true
         include:
           - os: ubuntu-20.04
             python-version: 3.12
-            base: true
             single_action_config: "True"
 
     env:
