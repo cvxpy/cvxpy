@@ -30,6 +30,13 @@ jobs:
       matrix:
         os: [ ubuntu-20.04, macos-12, windows-2022 ]
         python-version: [ 3.9, "3.10", "3.11", "3.12" ]
+        exclude:
+          - os: ubuntu-20.04
+            python-version: 3.12
+        include:
+          - os: ubuntu-20.04
+            python-version: 3.12
+            single_action_config: "True"
 
     env:
       RUNNER_OS: ${{ matrix.os }}
@@ -76,12 +83,21 @@ jobs:
         os: [ ubuntu-20.04, macos-12, windows-2022 ]
         python-version: [ 3.9, "3.10", "3.11", "3.12" ]
         base: [ true, false ]
+        exclude:
+          - os: ubuntu-20.04
+            python-version: 3.12
+            base: true
+        include:
+          - os: ubuntu-20.04
+            python-version: 3.12
+            base: true
+            single_action_config: "True"
 
     env:
       RUNNER_OS: ${{ matrix.os }}
       PYTHON_VERSION: ${{ matrix.python-version }}
       SINGLE_ACTION_CONFIG: "${{ matrix.single_action_config == 'True' }}"
-      PIP_INSTALL: "${{ matrix.pip_install == 'True' }}"
+      PIP_INSTALL: "${{ matrix.python-version == '3.12' }}"
       PYPI_SERVER: ${{ secrets.PYPI_SERVER }}
       PYPI_USER: ${{ secrets.PYPI_USER }}
       PYPI_PASSWORD: ${{ matrix.base && secrets.PYPI_BASE_PASSWORD || secrets.PYPI_PASSWORD }}
