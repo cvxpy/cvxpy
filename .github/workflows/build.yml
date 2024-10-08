@@ -148,14 +148,14 @@ jobs:
           python -m build --sdist -o wheelhouse
 
       - name: Check wheels
-        if: ${{github.event_name == 'push' &&  env.USE_OPENMP != 'True'}}
+        if: ${{github.event_name == 'push' && env.USE_OPENMP != 'True'}}
         shell: bash
         run: |
           python -m pip install --upgrade twine
           twine check wheelhouse/*
 
-      - name:  Release to pypi
-        if: ${{env.DEPLOY == 'True' &&  env.USE_OPENMP != 'True'}}
+      - name: Release to pypi
+        if: ${{env.DEPLOY == 'True' && env.USE_OPENMP != 'True'}}
         shell: bash
         run: |
           twine upload --skip-existing --repository-url $PYPI_SERVER wheelhouse/* -u $PYPI_USER -p $PYPI_PASSWORD
