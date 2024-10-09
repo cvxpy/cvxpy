@@ -30,7 +30,10 @@ jobs:
       matrix:
         os: [ ubuntu-20.04, macos-12, windows-2022 ]
         python-version: [ 3.9, "3.10", "3.11", "3.12" ]
-
+        include:
+          - os: ubuntu-20.04
+            python-version: 3.12
+            single_action_config: "True"
     env:
       RUNNER_OS: ${{ matrix.os }}
       PYTHON_VERSION: ${{ matrix.python-version }}
