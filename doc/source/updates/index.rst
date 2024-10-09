@@ -4,7 +4,37 @@ Changes to CVXPY
 ================
 
 This page details changes made to CVXPY over time, in reverse chronological order.
-CVXPY's project maintainers currently provide support for CVXPY 1.5 and 1.4.
+CVXPY's project maintainers currently provide support for CVXPY 1.6 and 1.5.
+
+CVXPY 1.6
+---------
+
+This release is consistent with our semantic versioning guarantee. It
+comes packed with many new features, bug fixes, and performance
+improvements. This version of CVXPY supports Python 3.9 through 3.13,
+While working on the next release, we continue to officially support
+CVXPY 1.5.
+
+Default reshape order warning
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+New features
+~~~~~~~~~~~~
+
+- New atom: :ref:`cvar <cvar>`
+- Support for N-dimensional variables and expressions for the following operations:
+    * axis atoms like min, max and sum
+    * Indexing
+    * elementwise operations
+- Sparsity attribute for variables
+- New website and documentation theme
+- Ability to pass multiple solvers as argument to ``.solve()``
+- Performance improvement for ``sum_largest``
+- Performance improvement for ``cum_sum``
+- Performance improvement for integer and boolean variables
+- Improving string representation of special index
+
 
 CVXPY 1.5
 ---------
@@ -73,7 +103,7 @@ New features
 -  Adds methods to CVXPY expressions that are found on NumPy ndarrays such as ``.sum()``, ``.max()``, and ``.mean()``
 -  New solver interface: ``PIQP``
 -  Adds SDP support to the Clarabel interface
--  Addedd support for OR-Tools 9.7
+-  Added support for OR-Tools 9.7
 -  Removed support for OR-Tools 9.4
 -  ``PowerConeND`` now supports extracting its dual variables
 -  ``reshape`` now supports using ``-1`` as a dimension, with the same
