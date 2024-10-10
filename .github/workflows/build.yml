@@ -28,7 +28,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ ubuntu-latest, macos-latest, windows-latest ]
+        os: [ ubuntu-20.04, macos-12, windows-2022 ]
         python-version: [ 3.9, "3.10", "3.11", "3.12", "3.13" ]
 
     env:
@@ -73,7 +73,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ ubuntu-latest, macos-latest, windows-latest ]
+        os: [ ubuntu-20.04, macos-12, windows-2022 ]
         python-version: [ 3.9, "3.10", "3.11", "3.12", "3.13" ]
 
     env:
@@ -144,7 +144,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ ubuntu-latest, macos-latest, windows-latest ]
+        os: [ ubuntu-20.04, macos-12, windows-2022 ]
         python-version: [ 3.9, "3.10", "3.11", "3.12", "3.13" ]
 
     env:
