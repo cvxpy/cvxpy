@@ -32,7 +32,7 @@ jobs:
         python-version: [ 3.9, "3.10", "3.11", "3.12" ]
         include:
           - os: macos-12
-            python-version: 3.8
+            python-version: 3.9
             single_action_config: "True"
     env:
       RUNNER_OS: ${{ matrix.os }}
@@ -80,7 +80,7 @@ jobs:
         python-version: [ 3.9, "3.10", "3.11", "3.12" ]
         include:
           - os: macos-12
-            python-version: 3.8
+            python-version: 3.9
             single_action_config: "True"
 
     env:
@@ -155,7 +155,7 @@ jobs:
         python-version: [ 3.9, "3.10", "3.11", "3.12" ]
         include:
           - os: macos-12
-            python-version: 3.8
+            python-version: 3.9
             single_action_config: "True"
 
     env:
