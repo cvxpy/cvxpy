@@ -5,6 +5,7 @@ from cvxpy.atoms.affine.binary_operators import (DivExpression, MulExpression,
                                                  multiply,)
 from cvxpy.atoms.affine.sum import Sum
 from cvxpy.atoms.affine.trace import trace
+from cvxpy.atoms.cumprod import cumprod
 from cvxpy.atoms.elementwise.exp import exp
 from cvxpy.atoms.elementwise.log import log
 from cvxpy.atoms.elementwise.maximum import maximum
@@ -31,6 +32,8 @@ from cvxpy.expressions.variable import Variable
 from cvxpy.reductions.dgp2dcp.canonicalizers.add_canon import add_canon
 from cvxpy.reductions.dgp2dcp.canonicalizers.constant_canon import (
     constant_canon,)
+from cvxpy.reductions.dgp2dcp.canonicalizers.cumprod_canon import (
+    cumprod_canon,)
 from cvxpy.reductions.dgp2dcp.canonicalizers.div_canon import div_canon
 from cvxpy.reductions.dgp2dcp.canonicalizers.exp_canon import exp_canon
 from cvxpy.reductions.dgp2dcp.canonicalizers.eye_minus_inv_canon import (
@@ -67,6 +70,7 @@ from cvxpy.reductions.eliminate_pwl.canonicalizers import (
 CANON_METHODS = {
     AddExpression : add_canon,
     Constant : constant_canon,
+    cumprod : cumprod_canon,
     DivExpression : div_canon,
     exp : exp_canon,
     eye_minus_inv : eye_minus_inv_canon,
