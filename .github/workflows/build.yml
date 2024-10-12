@@ -33,6 +33,9 @@ jobs:
         include:
           - os: ubuntu-20.04
             python-version: 3.12
+            openmp: "True"
+          - os: macos-12
+            python-version: 3.12
             single_action_config: "True"
 
     env:
