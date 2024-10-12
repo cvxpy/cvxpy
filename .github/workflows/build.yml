@@ -31,6 +31,8 @@ jobs:
         os: [ ubuntu-20.04, macos-12, windows-2022 ]
         python-version: [ 3.9, "3.10", "3.11", "3.12" ]
         include:
+          # These are intended to just add their extra parameter to existing matrix combinations;
+          # see https://docs.github.com/en/actions/writing-workflows/workflow-syntax-for-github-actions#jobsjob_idstrategymatrixinclude
           - os: ubuntu-20.04
             python-version: 3.12
             openmp: "True"
@@ -84,6 +86,8 @@ jobs:
         python-version: [ 3.9, "3.10", "3.11", "3.12" ]
         build-cvxpy-base: [ true, false ]  # whether to build cvxpy-base (true) or regular cvxpy (false)
         include:
+          # This is intended to just add the single_action_config parameter to one existing combination;
+          # see https://docs.github.com/en/actions/writing-workflows/workflow-syntax-for-github-actions#jobsjob_idstrategymatrixinclude
           - os: ubuntu-20.04
             python-version: 3.12
             single_action_config: "True"
