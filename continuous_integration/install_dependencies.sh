@@ -9,7 +9,7 @@ conda config --set remote_connect_timeout_secs 30.0
 conda config --set remote_max_retries 10
 conda config --set remote_backoff_factor 2
 conda config --set remote_read_timeout_secs 120.0
-conda install mkl pip pytest hypothesis openblas "setuptools>65.5.1"
+conda install mkl pip pytest pytest-cov hypothesis openblas "setuptools>65.5.1"
 conda install ecos scs osqp cvxopt proxsuite daqp
 python -m pip install coptpy gurobipy piqp clarabel
 
