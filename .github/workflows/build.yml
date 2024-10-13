@@ -97,7 +97,7 @@ jobs:
       RUNNER_OS: ${{ matrix.os }}
       PYTHON_VERSION: ${{ matrix.python-version }}
       SINGLE_ACTION_CONFIG: "${{ matrix.single_action_config == 'True' }}"
-      PIP_INSTALL: "${{ matrix.python-version == '3.12' }}"
+      PIP_INSTALL: "${{ matrix.python-version == '3.11' }}"
       PYPI_SERVER: ${{ secrets.PYPI_SERVER }}
       PYPI_USER: ${{ secrets.PYPI_USER }}
       PYPI_PASSWORD: ${{ matrix.build-cvxpy-base && secrets.PYPI_BASE_PASSWORD || secrets.PYPI_PASSWORD }}
