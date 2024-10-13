@@ -101,6 +101,7 @@ jobs:
       PYPI_SERVER: ${{ secrets.PYPI_SERVER }}
       PYPI_USER: ${{ secrets.PYPI_USER }}
       PYPI_PASSWORD: ${{ matrix.build-cvxpy-base && secrets.PYPI_BASE_PASSWORD || secrets.PYPI_PASSWORD }}
+      CVXPY_BASE_SUFFIX: ${{ matrix.build-cvxpy-base && "base-" || "" }}
 
     steps:
       - uses: actions/checkout@v4
@@ -126,7 +127,6 @@ jobs:
           sed -i.bak '/scs >= /d' pyproject.toml
           sed -i.bak -e 's/name="cvxpy",/name="cvxpy-base",/g' setup.py
           rm -rf pyproject.toml.bak setup.py.bak
-          echo "CVXPY_BASE_SUFFIX=base-" >> "$GITHUB_ENV"
 
       - name: Verify that we can build by pip-install on each OS.
         if: ${{matrix.build-cvxpy-base && env.PIP_INSTALL == 'True'}}
