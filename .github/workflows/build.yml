@@ -36,14 +36,15 @@ jobs:
           - os: ubuntu-20.04
             python-version: 3.12
             openmp: "True"
+            single_action_config: false
           - os: macos-12
             python-version: 3.12
-            single_action_config: "True"
+            single_action_config: true
 
     env:
       RUNNER_OS: ${{ matrix.os }}
       PYTHON_VERSION: ${{ matrix.python-version }}
-      SINGLE_ACTION_CONFIG: "${{ matrix.single_action_config == 'True' && 'True' || 'False' }}"
+      SINGLE_ACTION_CONFIG: "${{ matrix.single_action_config && 'True' || 'False' }}"
       USE_OPENMP: "${{ matrix.openmp == 'True' && 'True' || 'False' }}"
       MOSEK_CI_BASE64: ${{ secrets.MOSEK_CI_BASE64 }}
 
