@@ -15,23 +15,26 @@ limitations under the License.
 """
 
 import numpy as np
-import scipy.sparse as sp
 
 import cvxpy.interface as intf
 import cvxpy.settings as s
 from cvxpy.error import SolverError
 from cvxpy.reductions.solution import Solution, failure_solution
-from cvxpy.reductions.solvers.qp_solvers.qp_solver import QpSolver
+from cvxpy.reductions.solvers.conic_solvers.conic_solver import (
+    ConicSolver,
+    dims_to_solver_dict,
+)
 
-# TODO:
-#  - solver cache + warm start
 
+class HIGHS(ConicSolver):
+    """
+    An interface for the HiGHS solver
+    """
 
-class HIGHS(QpSolver):
-    """QP interface for the HiGHS solver"""
-
-    # Note that HiGHS does not support MIQP but supports MILP
-    MIP_CAPABLE = False
+    # Solver capabilities.
+    MIP_CAPABLE = True
+    SUPPORTED_CONSTRAINTS = ConicSolver.SUPPORTED_CONSTRAINTS
+    MI_SUPPORTED_CONSTRAINTS = SUPPORTED_CONSTRAINTS
 
     # Map of OSQP status to CVXPY status.
     STATUS_MAP = {
@@ -57,6 +60,18 @@ class HIGHS(QpSolver):
 
         highspy
 
+    def accepts(self, problem) -> bool:
+        """Can HiGHS solve the problem?"""
+        if not problem.objective.args[0].is_affine():
+            return False
+        for constr in problem.constraints:
+            if type(constr) not in self.SUPPORTED_CONSTRAINTS:
+                return False
+            for arg in constr.args:
+                if not arg.is_affine():
+                    return False
+        return True
+
     def apply(self, problem):
         """
         Construct QP problem data stored in a dictionary.
@@ -67,6 +82,11 @@ class HIGHS(QpSolver):
 
         """
         data, inv_data = super(HIGHS, self).apply(problem)
+        variables = problem.x
+        data[s.BOOL_IDX] = [int(t[0]) for t in variables.boolean_idx]
+        data[s.INT_IDX] = [int(t[0]) for t in variables.integer_idx]
+        inv_data["is_mip"] = data[s.BOOL_IDX] or data[s.INT_IDX]
+
         return data, inv_data
 
     def invert(self, results, inverse_data):
@@ -87,7 +107,7 @@ class HIGHS(QpSolver):
             }
             # add duals if not a MIP.
             dual_vars = None
-            if not inverse_data[HIGHS.IS_MIP]:
+            if not inverse_data["is_mip"]:
                 dual_vars = {HIGHS.DUAL_VAR_ID: -np.array(results["solution"].row_dual)}
             attr[s.NUM_ITERS] = (
                 results["info"].ipm_iteration_count
@@ -106,13 +126,12 @@ class HIGHS(QpSolver):
     ):
         """Returns the result of the call to the solver.
 
-        minimize      1/2 x' P x + q' x
-            subject to    A x =  b
-                          F x <= g
+        minimize          cx
+            subject to    A x <=  b
 
         in HiGHS, the opt problem format is,
 
-        minimize      1/2 x' P x + q' x
+        minimize          cx
             subject to    lboundA <= A x <= uboundA
 
         Parameters
@@ -135,26 +154,33 @@ class HIGHS(QpSolver):
 
         # setup problem data
         inf = hp.Highs().inf
-        P = data[s.P]
-        q = data[s.Q]
-        A = sp.vstack([data[s.A], data[s.F]]).tocsc()
+        dims = dims_to_solver_dict(data[s.DIMS])
+
+        c = data[s.C]
+        # A = sp.vstack([data[s.A], data[s.F]]).tocsc()
+        A = data[s.A].tocsc()
         data["Ax"] = A
-        uboundA = np.concatenate((data[s.B], data[s.G]))
+
+        leq_start = dims[s.EQ_DIM]
+        leq_end = dims[s.EQ_DIM] + dims[s.LEQ_DIM]
+        uboundA = data[s.B]
         data["u"] = uboundA
-        lboundA = np.concatenate([data[s.B], -inf * np.ones(data[s.G].shape)])
+        lboundA = np.concatenate(
+            [data[s.B][:leq_start], -inf * np.ones(data[s.B][leq_start:leq_end].shape)]
+        )
         data["l"] = lboundA
 
         # setup highs model
         model = hp.HighsModel()
         lp = model.lp_
         lp.num_col_ = A.shape[1]
-        assert data["n_var"] == A.shape[1]
+        # assert data['n_var'] == A.shape[1]
         lp.num_row_ = A.shape[0]
-        assert data["n_eq"] + data["n_ineq"] == A.shape[0]
+        # assert data['n_eq'] + data['n_ineq'] == A.shape[0]
 
         # offset already applied in invert()
         lp.offset_ = 0
-        lp.col_cost_ = q
+        lp.col_cost_ = c
         lp.row_lower_ = lboundA
         lp.row_upper_ = uboundA
 
@@ -165,20 +191,24 @@ class HIGHS(QpSolver):
         lp.a_matrix_.value_ = A.data
 
         # Define Variable bounds
-        lp.col_lower_ = -inf * np.ones(shape=lp.num_col_, dtype=q.dtype)
-        lp.col_upper_ = inf * np.ones(shape=lp.num_col_, dtype=q.dtype)
-
-        # note that we count actual nonzeros because
-        # parameter values could make the problem linear
-        # (i.e., P.count_nonzero() <= P.nnz)
-        if P.count_nonzero():
-            hessian = model.hessian_
-            hessian.dim_ = model.lp_.num_col_
-            assert P.format == "csc"
-            hessian.format_ = hp.HessianFormat.kSquare
-            hessian.start_ = P.indptr
-            hessian.index_ = P.indices
-            hessian.value_ = P.data
+        col_lower = -inf * np.ones(shape=lp.num_col_, dtype=c.dtype)
+        col_upper = inf * np.ones(shape=lp.num_col_, dtype=c.dtype)
+        # update col_lower and col_upper to account for boolean variables,
+        # also set integrality_ for boolean or integers variables
+        if data[s.BOOL_IDX] or data[s.INT_IDX]:
+            # note that integrality_ can only be assigned a list
+            integrality = [hp.HighsVarType.kContinuous] * lp.num_col_
+            if data[s.BOOL_IDX]:
+                for ind in data[s.BOOL_IDX]:
+                    integrality[ind] = hp.HighsVarType.kInteger
+                bool_mask = np.array(data[s.BOOL_IDX], dtype=int)
+                col_lower[bool_mask] = 0
+                col_upper[bool_mask] = 1
+            for ind in data[s.INT_IDX]:
+                integrality[ind] = hp.HighsVarType.kInteger
+            lp.integrality_ = integrality
+        lp.col_lower_ = col_lower
+        lp.col_upper_ = col_upper
 
         # setup options
         options = hp.HighsOptions()
@@ -189,13 +219,6 @@ class HIGHS(QpSolver):
         solver = hp.Highs()
         solver.passModel(model)
         solver.passOptions(options)
-
-        if warm_start and solver_cache is not None and self.name() in solver_cache:
-            old_solver, old_data, old_result = solver_cache[self.name()]
-            old_status = self.STATUS_MAP.get(old_result["model_status"], s.SOLVER_ERROR)
-
-            if old_status in s.SOLUTION_PRESENT:
-                solver.setSolution(old_result["solution"])
 
         # initialize and solve problem
         try:
