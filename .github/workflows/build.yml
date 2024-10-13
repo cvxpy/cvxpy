@@ -101,7 +101,7 @@ jobs:
       PYPI_SERVER: ${{ secrets.PYPI_SERVER }}
       PYPI_USER: ${{ secrets.PYPI_USER }}
       PYPI_PASSWORD: ${{ matrix.build-cvxpy-base && secrets.PYPI_BASE_PASSWORD || secrets.PYPI_PASSWORD }}
-      CVXPY_BASE_SUFFIX: ${{ matrix.build-cvxpy-base && "base-" || "" }}
+      CVXPY_BASE_SUFFIX: ${{ matrix.build-cvxpy-base && 'base-' || '' }}
 
     steps:
       - uses: actions/checkout@v4
