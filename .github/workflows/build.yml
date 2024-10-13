@@ -150,7 +150,7 @@ jobs:
         uses: pypa/cibuildwheel@v2.19.1
 
       - name: Build source
-        if: ${{github.event_name == 'push' && env.SINGLE_ACTION_CONFIG == 'True'}}
+        if: ${{env.SINGLE_ACTION_CONFIG == 'True'}}
         run: |
           pip install build
           python -m build --sdist -o wheelhouse
