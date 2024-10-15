@@ -15,7 +15,7 @@ limitations under the License.
 """
 import builtins
 from functools import wraps
-from typing import List, Optional, Tuple
+from typing import Optional
 
 import numpy as np
 
@@ -38,7 +38,7 @@ class Sum(AxisAtom, AffAtom):
         The axis or axes along which to sum. The default (axis=None) will
         sum all of the elements of the expression.
 
-        .. versionadded:: 1.7.0
+        .. versionadded:: 1.6.0
 
         If axis is a tuple of ints, a sum is performed on all of the axes
         specified in the tuple.
@@ -82,9 +82,10 @@ class Sum(AxisAtom, AffAtom):
             result = np.sum(values[0], axis=self.axis, keepdims=self.keepdims)
         return result
 
-    def graph_implementation(
-        self, arg_objs, shape: Tuple[int, ...], data=None
-    ) -> Tuple[lo.LinOp, List[Constraint]]:
+    def graph_implementation(self,
+                            arg_objs: list[lo.LinOp],
+                            shape: tuple[int, ...],
+                            data=None) -> tuple[lo.LinOp, list[Constraint]]:
         """
         Sum the linear expression's entries.
 
@@ -92,15 +93,10 @@ class Sum(AxisAtom, AffAtom):
         ----------
         arg_objs : list
             LinExpr for each argument.
-        shape : tuple
+        shape : int or tuple of ints
             The shape of the resulting expression.
-        data : [axis, keepdims]
+        data : [axis, keepdims] or None
             The axis and keepdims parameters of the sum expression.
-
-        Returns
-        -------
-        tuple
-            (LinOp for objective, list of constraints)
         """
         axis, keepdims = data
         # Note: added new case for summing with n-dimensional shapes and 
