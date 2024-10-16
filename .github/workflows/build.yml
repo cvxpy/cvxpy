@@ -133,6 +133,8 @@ jobs:
         run: |
           pip install . pytest cplex
           pytest cvxpy/tests/test_conic_solvers.py -k 'TestCPLEX'
+          # ensure a fresh state for cibuildwheel
+          rm -r build
 
       - name: Set up QEMU  # For aarch64, see https://cibuildwheel.readthedocs.io/en/stable/faq/#emulation
         if: runner.os == 'Linux'
@@ -172,5 +174,5 @@ jobs:
         if: ${{github.event_name == 'push' && env.USE_OPENMP != 'True'}}
         uses: actions/upload-artifact@v4
         with:
-          name: wheels-${CVXPY_BASE_SUFFIX}${{ matrix.os }}-${{ matrix.python-version }}
+          name: wheels-${{ env.CVXPY_BASE_SUFFIX }}${{ matrix.os }}-${{ matrix.python-version }}
           path: ./wheelhouse
