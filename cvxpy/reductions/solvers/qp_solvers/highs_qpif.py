@@ -23,9 +23,6 @@ from cvxpy.error import SolverError
 from cvxpy.reductions.solution import Solution, failure_solution
 from cvxpy.reductions.solvers.qp_solvers.qp_solver import QpSolver
 
-# TODO:
-#  - solver cache + warm start
-
 
 class HIGHS(QpSolver):
     """QP interface for the HiGHS solver"""
@@ -33,7 +30,7 @@ class HIGHS(QpSolver):
     # Note that HiGHS does not support MIQP but supports MILP
     MIP_CAPABLE = False
 
-    # Map of OSQP status to CVXPY status.
+    # Map of HiGHS status to CVXPY status.
     STATUS_MAP = {
         "kNotset": s.SOLVER_ERROR,
         "kModelError": s.SOLVER_ERROR,

@@ -36,7 +36,7 @@ class HIGHS(ConicSolver):
     SUPPORTED_CONSTRAINTS = ConicSolver.SUPPORTED_CONSTRAINTS
     MI_SUPPORTED_CONSTRAINTS = SUPPORTED_CONSTRAINTS
 
-    # Map of OSQP status to CVXPY status.
+    # Map of HiGHS status to CVXPY status.
     STATUS_MAP = {
         "kNotset": s.SOLVER_ERROR,
         "kModelError": s.SOLVER_ERROR,
@@ -73,14 +73,8 @@ class HIGHS(ConicSolver):
         return True
 
     def apply(self, problem):
-        """
-        Construct QP problem data stored in a dictionary.
-        In HiGHS, the QP has the following form
+        """Returns a new problem and data for inverting the new solution."""
 
-            minimize      1/2 x' P x + q' x
-            subject to    L <= A x <= U
-
-        """
         data, inv_data = super(HIGHS, self).apply(problem)
         variables = problem.x
         data[s.BOOL_IDX] = [int(t[0]) for t in variables.boolean_idx]
