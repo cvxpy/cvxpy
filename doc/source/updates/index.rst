@@ -18,6 +18,17 @@ CVXPY 1.5.
 Default reshape order warning
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+CVXPY's default order for array manipulation atoms such as reshape, vec and flatten,
+is Fortran ('F'). In this release CVXPY raises a warning when no explicit order is specified.
+
+In version 1.7, we plan to raise an error if the order is not specified.
+Finally, in version 1.8, we will switch the default order from ('F') to ('C') to
+match NumPy's behavior. 
+
+New backwards support policy
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
 
 New features
 ~~~~~~~~~~~~
