@@ -198,6 +198,16 @@ Install with Additional Solver Support
 
     CVXPY's SCIP interface does not reliably recover dual variables for constraints. If you require dual variables for a continuous problem, you will need to use another solver. We welcome additional contributions to the SCIP interface, to recover dual variables for constraints in continuous problems.
 
+.. info:: HiGHS
+   :collapsible:
+
+   CVXPY supports the HiGHS solver. Run the following command to install the HiGHS python interface.
+
+   .. code-block:: python
+    pip install highspy
+   
+   See the `HiGHS <https://ergo-code.github.io/HiGHS/dev/interfaces/python/>`_ documentation for additional instructions.
+
 .. info:: SCIPY
     :collapsible:
 

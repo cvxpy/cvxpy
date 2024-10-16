@@ -482,6 +482,29 @@ class TestQp(BaseTest):
                 assert X_vals[row, col] + 1 == model_x[i].start
                 assert np.isclose(X.value[row, col], model_x[i].x)
 
+    def test_highs_warmstart(self) -> None:
+        """Test warm start.
+        """
+        if cp.HIGHS in INSTALLED_SOLVERS:
+            m = 200
+            n = 100
+            np.random.seed(1)
+            A = np.random.randn(m, n)
+            b = Parameter(m)
+
+            # Construct the problem.
+            x = Variable(n)
+            prob = Problem(Minimize(sum_squares(A @ x - b)))
+
+            b.value = np.random.randn(m)
+            result = prob.solve(solver=cp.HIGHS, warm_start=False)
+            result2 = prob.solve(solver=cp.HIGHS, warm_start=True)
+            self.assertAlmostEqual(result, result2)
+            b.value = np.random.randn(m)
+            result = prob.solve(solver=cp.HIGHS, warm_start=True)
+            result2 = prob.solve(solver=cp.HIGHS, warm_start=False)
+            self.assertAlmostEqual(result, result2)
+
     def test_parametric(self) -> None:
         """Test solve parametric problem vs full problem"""
         x = Variable()
