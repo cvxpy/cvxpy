@@ -11,7 +11,7 @@ conda config --set remote_backoff_factor 2
 conda config --set remote_read_timeout_secs 120.0
 conda install mkl pip pytest pytest-cov hypothesis openblas "setuptools>65.5.1"
 conda install ecos scs osqp cvxopt proxsuite daqp
-python -m pip install coptpy gurobipy piqp clarabel
+python -m pip install coptpy==7.1.7 gurobipy piqp clarabel
 
 if [[ "$PYTHON_VERSION" == "3.9" ]]; then
   # The earliest version of numpy that works is 1.20.
