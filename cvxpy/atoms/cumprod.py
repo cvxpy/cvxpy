@@ -47,6 +47,22 @@ class cumprod(AffAtom, AxisAtom):
         """The same as the input."""
         return self.args[0].shape
 
+    def is_atom_convex(self) -> bool:
+        """Is the atom convex?"""
+        return False
+
+    def is_atom_concave(self) -> bool:
+        """Is the atom concave?"""
+        return False
+    
+    def is_atom_log_log_convex(self) -> bool:
+        """Is the atom log-log convex?"""
+        return True
+
+    def is_atom_log_log_concave(self) -> bool:
+        """Is the atom log-log concave?"""
+        return True
+
     def _grad(self, values) -> list:
         """Gives the (sub/super)gradient of the atom w.r.t. each argument.
 

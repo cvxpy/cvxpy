@@ -1107,13 +1107,14 @@ class TestAtoms(BaseTest):
 
     def test_cumprod(self) -> None:
         for axis in [0, 1]:
-            x = cp.Variable((4, 3))
+            x = cp.Variable((4, 3), pos=True)
             expr = cp.cumprod(x, axis=axis)
-            x_val = np.arange(12).reshape((4, 3))
+            # constant needs to be elementwise positive
+            x_val = (np.arange(12)+1).reshape((4, 3))
             
             target = np.cumprod(x_val, axis=axis)
             prob = cp.Problem(cp.Minimize(cp.sum(expr)), [x == x_val])
-            prob.solve()
+            prob.solve(gp=True)
             
             assert np.allclose(expr.value, target)
     

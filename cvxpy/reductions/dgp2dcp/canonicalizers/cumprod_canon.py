@@ -13,8 +13,8 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+from cvxpy.atoms.affine.cumsum import cumsum
+
+
 def cumprod_canon(expr, args):
-    out = 0.0
-    for x_i, p_i in zip(args[0], expr.p):
-        out += p_i * x_i
-    return (1 / sum(expr.p)) * out, []
+    return cumsum(args[0], axis=expr.axis), []
