@@ -78,5 +78,5 @@ class cumprod(AffAtom, AxisAtom):
         return []
 
     def get_data(self) -> list:
-        """Returns the axis being summed."""
+        """Returns the axis being multiplied."""
         return [self.axis]
