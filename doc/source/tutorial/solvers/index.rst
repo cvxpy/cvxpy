@@ -105,6 +105,8 @@ The table below shows the types of problems the supported solvers can handle.
 +----------------+----+----+------+-----+-----+-----+-----+
 | `SCIPY`_       | X  |    |      |     |     |     | X*  |
 +----------------+----+----+------+-----+-----+-----+-----+
+| `HiGHS`_       | X  | X  |      |     |     |     | X*  |
++----------------+----+----+------+-----+-----+-----+-----+
 
 (*) Mixed-integer LP only.
 
@@ -813,7 +815,7 @@ will be the same as the class variable ``SUPPORTED_CONSTRAINTS``.
 .. _CBC: https://projects.coin-or.org/Cbc
 .. _CGL: https://projects.coin-or.org/Cgl
 .. _CPLEX: https://www.ibm.com/docs/en/icos
-.. _NAG: https://www.nag.co.uk/nag-library-python/
+.. _NAG: https://nag.com/mathematical-optimization/
 .. _OSQP: https://osqp.org/
 .. _PDLP: https://developers.google.com/optimization
 .. _SCIP: https://scip.zib.de/
