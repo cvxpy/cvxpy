@@ -10,7 +10,7 @@ CVXPY
 **The CVXPY documentation is at [cvxpy.org](https://www.cvxpy.org/).**
 
 *We are building a CVXPY community on [Discord](https://discord.gg/4urRQeGBCr). Join the conversation! For issues and long-form discussions, use [Github Issues](https://github.com/cvxpy/cvxpy/issues) and [Github Discussions](https://github.com/cvxpy/cvxpy/discussions).*
-
+ 
 **Contents**
 - [Installation](#installation)
 - [Getting started](#getting-started)
