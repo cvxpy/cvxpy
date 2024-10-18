@@ -399,6 +399,13 @@ tutorial <functions>` for more information.
      - |affine| log-log affine
      - |incr| incr.
 
+   * - :ref:`cumprod(X, axis=0) <cumprod>`
+
+     - cumulative product along given axis.
+     - :math:`X \in \mathbf{R}^{m \times n}`
+     - |affine| log-log affine
+     - |incr| incr.
+
    * - :ref:`quad_form(x, P) <quad-form>`
      - :math:`x^T P x`
      - :math:`x \in \mathbf{R}^n`, :math:`P \in \mathbf{R}^{n \times n}_{++}`

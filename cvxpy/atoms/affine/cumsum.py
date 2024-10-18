@@ -66,7 +66,7 @@ class cumsum(AffAtom, AxisAtom):
     @AffAtom.numpy_numeric
     def numeric(self, values):
         """
-        Returns the cumulative product of elements of an expression over an axis.
+        Returns the cumulative sum of elements of an expression over an axis.
         """
         return np.cumsum(values[0], axis=self.axis)
 
