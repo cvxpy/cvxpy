@@ -823,7 +823,6 @@ class Problem(u.Canonical):
                       'conic_solvers': []}
         if isinstance(solver, Solver):
             return self._add_custom_solver_candidates(solver)
-
         if solver is not None:
             if solver not in slv_def.INSTALLED_SOLVERS:
                 raise error.SolverError("The solver %s is not installed." % solver)
@@ -1068,7 +1067,8 @@ class Problem(u.Canonical):
                     "values before solving a problem." % parameter.name())
 
         if verbose:
-            n_variables = sum(np.prod(v.shape) for v in self.variables())
+            n_variables = sum(len(v.sparse_idx[0]) if v.sparse_idx else 
+                              np.prod(v.shape) for v in self.variables())
             n_constraints = sum(np.prod(c.shape) for c in self.constraints)
             n_parameters = sum(np.prod(p.shape) for p in self.parameters())
             s.LOGGER.info(

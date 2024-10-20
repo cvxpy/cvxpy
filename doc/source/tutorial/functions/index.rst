@@ -80,6 +80,18 @@ and returns a scalar.
      - DCP Properties
      - Curvature |_|
 
+   * - :ref:`cvar(x, beta) <cvar>`
+     - average of the :math:`(1-\beta)`
+       
+       fraction of largest values in :math:`x`
+     - :math:`x \in \mathbf{R}^m`
+      
+       :math:`\beta \in (0,1)`
+     - sign depends on :math:`x`
+       
+       |incr| incr.
+     - |convex| convex
+
    * - :ref:`dotsort(X,W) <dotsort>`
 
        constant :math:`W \in \mathbf{R}^{o \times p}`
@@ -995,18 +1007,18 @@ The input to :math:`\texttt{bmat}` is a list of lists of CVXPY expressions.
 It constructs a block matrix.
 The elements of each inner list are stacked horizontally and then the resulting block matrices are stacked vertically.
 
-The output :math:`y = \mathbf{convolve}(c, x)` has size :math:`n+m-1` and is defined as
+The output :math:`y = \texttt{convolve}(c, x)` has size :math:`n+m-1` and is defined as
 :math:`y_k =\sum_{j=0}^{k} c[j]x[k-j]`.
 
-The output :math:`y = \mathbf{vec}(X)` is the matrix :math:`X` flattened in column-major order into a vector.
+The output :math:`y = \texttt{vec}(X)` is the matrix :math:`X` flattened in column-major order into a vector.
 Formally, :math:`y_i = X_{i \bmod{m}, \left \lfloor{i/m}\right \rfloor }`.
 
-The output :math:`Y = \mathbf{reshape}(X, (m', n'), \text{order='F'})` is the matrix :math:`X` cast into an :math:`m' \times n'` matrix.
+The output :math:`Y = \texttt{reshape}(X, (m', n'), \text{order='F'})` is the matrix :math:`X` cast into an :math:`m' \times n'` matrix.
 The entries are taken from :math:`X` in column-major order and stored in :math:`Y` in column-major order.
-Formally, :math:`Y_{ij} = \mathbf{vec}(X)_{m'j + i}`.
+Formally, :math:`Y_{ij} = \texttt{vec}(X)_{m'j + i}`.
 If order='C' then :math:`X` will be read in row-major order and :math:`Y` will be written to in row-major order.
 
-The output :math:`y = \mathbf{upper\_tri}(X)` is formed by concatenating partial rows of :math:`X`.
+The output :math:`y = \texttt{upper_tri}(X)` is formed by concatenating partial rows of :math:`X`.
 I.e., :math:`y = (X[0,1{:}],\, X[1, 2{:}],\, \ldots, X[n-1, n])`.
 
 .. |positive| image:: functions_files/positive.svg
