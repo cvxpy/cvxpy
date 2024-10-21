@@ -54,7 +54,7 @@ elif [[ "$PYTHON_VERSION" != "3.13" ]]; then
   python -m pip install cylp
 fi
 
-if [[ "$PYTHON_VERSION" = "3.10" ]] && [[ "$RUNNER_OS" != "Windows" ]]; then
+if [[ "$PYTHON_VERSION" == "3.10" ]] && [[ "$RUNNER_OS" != "Windows" ]]; then
   # SDPA didn't pass LP5 on Ubuntu for Python 3.9 and 3.12
   python -m pip install sdpa-python
 fi
@@ -64,7 +64,7 @@ if [[ "$PYTHON_VERSION" == "3.11" ]] && [[ "$RUNNER_OS" != "macOS" ]]; then
 fi
 
 # Only install Mosek if license is available (secret is not copied to forks)
-if [[ -n "$MOSEK_CI_BASE64" ]]; then
+if [[ -n "$MOSEK_CI_BASE64" ]] && [[ "$PYTHON_VERSION" != "3.13" ]]; then
     python -m pip install mosek
 fi
 
