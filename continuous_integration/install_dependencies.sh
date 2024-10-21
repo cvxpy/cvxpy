@@ -38,7 +38,7 @@ elif [[ "$PYTHON_VERSION" == "3.12" ]]; then
   conda install scipy=1.11.3 numpy=1.26.4
 else
   # These versions are the first that are compatible with Python 3.13.
-  conda install scipy=1.14.1 numpy=2.1.0
+  conda install scipy=1.14.1 numpy=2.1.2
 fi
 
 if [[ "$PYTHON_VERSION" == "3.11" ]]; then
@@ -54,7 +54,7 @@ elif [[ "$PYTHON_VERSION" != "3.13" ]]; then
   python -m pip install cylp
 fi
 
-if [[ "$PYTHON_VERSION" != "3.9" ]] && [[ "$PYTHON_VERSION" != "3.12" ]] && [[ "$PYTHON_VERSION" != "3.13" ]]; then
+if [[ "$PYTHON_VERSION" = "3.10" ]] && [[ "$RUNNER_OS" != "Windows" ]]; then
   # SDPA didn't pass LP5 on Ubuntu for Python 3.9 and 3.12
   python -m pip install sdpa-python
 fi
