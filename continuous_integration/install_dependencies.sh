@@ -45,7 +45,7 @@ if [[ "$PYTHON_VERSION" == "3.11" ]]; then
   python -m pip install cplex diffcp "ortools>=9.7,<9.10"
 fi
 
-if [[ "$RUNNER_OS" == "Windows" ]]; then
+if [[ "$RUNNER_OS" == "Windows" ]] && [[ "$PYTHON_VERSION" != "3.13" ]]; then
   # SDPA with OpenBLAS backend does not pass LP5 on Windows
   python -m pip install sdpa-multiprecision
 elif [[ "$PYTHON_VERSION" != "3.13" ]]; then
