@@ -32,11 +32,12 @@ elif [[ "$PYTHON_VERSION" == "3.11" ]]; then
   # The earliest version of numpy that works is 1.23.4.
   # Given numpy 1.23.4, the earliest version of scipy we can use is 1.9.3.
   conda install scipy=1.9.3 numpy=1.23.4
-else
-  # This case is for Python 3.12 and 3.13.
+elif [[ "$PYTHON_VERSION" == "3.12" ]]; then
   # The earliest version of numpy that works is 1.26.4
   # Given numpy 1.26.4, the earliest version of scipy we can use is 1.11.3.
   conda install scipy=1.11.3 numpy=1.26.4
+else
+  conda install scipy=1.14.0 numpy=2.1.0
 fi
 
 if [[ "$PYTHON_VERSION" == "3.11" ]]; then
