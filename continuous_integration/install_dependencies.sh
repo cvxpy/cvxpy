@@ -10,8 +10,15 @@ conda config --set remote_max_retries 10
 conda config --set remote_backoff_factor 2
 conda config --set remote_read_timeout_secs 120.0
 conda install mkl pip pytest pytest-cov hypothesis openblas "setuptools>65.5.1"
-conda install ecos scs cvxopt proxsuite daqp
-python -m pip install coptpy==7.1.7 gurobipy piqp clarabel osqp
+
+if [[ "$PYTHON_VERSION" != "3.13" ]]; then
+  conda install ecos scs cvxopt proxsuite daqp
+  python -m pip install coptpy==7.1.7 gurobipy piqp clarabel osqp
+else
+  # only install the essential solvers for Python 3.13.
+  conda install ecos
+  python -m pip install clarabel osqp
+fi
 
 if [[ "$PYTHON_VERSION" == "3.9" ]]; then
   # The earliest version of numpy that works is 1.20.
@@ -25,7 +32,8 @@ elif [[ "$PYTHON_VERSION" == "3.11" ]]; then
   # The earliest version of numpy that works is 1.23.4.
   # Given numpy 1.23.4, the earliest version of scipy we can use is 1.9.3.
   conda install scipy=1.9.3 numpy=1.23.4
-elif [[ "$PYTHON_VERSION" == "3.12" ]]; then
+else
+  # This case is for Python 3.12 and 3.13.
   # The earliest version of numpy that works is 1.26.4
   # Given numpy 1.26.4, the earliest version of scipy we can use is 1.11.3.
   conda install scipy=1.11.3 numpy=1.26.4
