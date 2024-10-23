@@ -30,6 +30,7 @@ from cvxpy.atoms.affine.sum import Sum
 from cvxpy.atoms.affine.transpose import transpose
 from cvxpy.atoms.affine.unary_operators import NegExpression
 from cvxpy.atoms.affine.vstack import Vstack
+from cvxpy.atoms.affine.concatenate import Concatenate
 from cvxpy.atoms.affine.wraps import hermitian_wrap
 from cvxpy.atoms.norm_nuc import normNuc
 from cvxpy.constraints import (PSD, SOC, Equality, Inequality,
@@ -76,6 +77,7 @@ CANON_METHODS = {
     NegExpression: separable_canon,
     upper_tri: separable_canon,
     Vstack: separable_canon,
+    Concatenate: separable_canon,
 
     conv: binary_canon,
     DivExpression: binary_canon,

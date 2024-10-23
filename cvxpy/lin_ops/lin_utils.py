@@ -572,6 +572,22 @@ def vstack(operators, shape: Tuple[int, ...]):
     """
     return lo.LinOp(lo.VSTACK, shape, operators, None)
 
+def concatenate(operators, shape: Tuple[int, ...], axis: int):
+    """Concatenate operators on axis.
+
+    Parameters
+    ----------
+    operator : list
+        The operators to concatenate.
+    shape : tuple
+        The (rows, cols) of the concatenated operators.
+
+    Returns
+    -------
+    LinOp
+       LinOp representing the stacked expression.
+    """
+    return lo.LinOp(lo.CONCATENATE, shape, operators, [axis])
 
 def get_constr_expr(lh_op, rh_op):
     """Returns the operator in the constraint.

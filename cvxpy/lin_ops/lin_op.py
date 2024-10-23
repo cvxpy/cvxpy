@@ -94,6 +94,9 @@ HSTACK = "hstack"
 # Vertically concatenating operators.
 # Data: None
 VSTACK = "vstack"
+# Stack concatenating operators.
+# Data: None
+CONCATENATE = "concatenate"
 # A scalar constant.
 # Data: Python float.
 SCALAR_CONST = "scalar_const"
