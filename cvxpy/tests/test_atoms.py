@@ -208,7 +208,7 @@ class TestAtoms(BaseTest):
 
         # Error message when geo_mean used incorrectly.
         with pytest.raises(
-                TypeError, 
+                TypeError,
                 match=SECOND_ARG_SHOULD_NOT_BE_EXPRESSION_ERROR_MESSAGE
             ):
             cp.geo_mean(self.x, self.y)
@@ -560,6 +560,58 @@ class TestAtoms(BaseTest):
         expr = cp.vstack([2, Variable((1,))])
         self.assertEqual(expr.shape, (2, 1))
 
+    def test_concatenate(self):
+        atom = cp.concatenate([self.x, self.y], axis=0)
+        self.assertEqual(atom.name(), "Concatenate(x, y, 0)")
+        self.assertEqual(atom.shape, (4,))  # (2 vectors are concatenated on axis 0)
+
+        with self.assertRaises(ValueError) as cm:
+            # x and y are 1D arrays, so they can't be concatenated on axis 1
+            atom = cp.concatenate([self.x, self.y], axis=1)
+        self.assertEqual(str(cm.exception), "Axis 1 is out of bounds for array of dimension 1")
+
+        atom = cp.concatenate([self.A, self.C], axis=None)
+        self.assertEqual(atom.shape, (10,))
+
+        atom = cp.concatenate([self.A, self.C], axis=0)
+        self.assertEqual(atom.shape, (5, 2))
+
+        with self.assertRaises(ValueError) as cm:
+            atom = cp.concatenate([self.A, self.C], axis=1)
+        self.assertEqual(
+            str(cm.exception),
+            "All the input array dimensions except for the concatenation axis "
+            "must match exactly, but along dimension 0, the array at index 0 "
+            "has size 2 and the array at index 1 has size 3",
+        )
+
+        atom = cp.concatenate([self.A, self.B], axis=1)
+        self.assertEqual(atom.shape, (2, 4))
+
+        atom = cp.concatenate([self.A, self.B], axis=0)
+        self.assertEqual(atom.shape, (4, 2))
+
+        atom = cp.concatenate([self.A, self.B], axis=None)
+        self.assertEqual(atom.shape, (8,))
+
+        with self.assertRaises(ValueError) as cm:
+            cp.concatenate([self.A, self.a], axis=0)
+        self.assertEqual(
+            str(cm.exception), "Zero-dimensional arrays cannot be concatenated along an axis"
+        )
+
+        with self.assertRaises(ValueError) as cm:
+            cp.concatenate([self.A, self.C], axis=2)
+        self.assertEqual(str(cm.exception), "Axis 2 is out of bounds for array of dimension 2")
+
+        with self.assertRaises(ValueError) as cm:
+            cp.concatenate([self.C, self.x], axis=1)
+        self.assertEqual(
+            str(cm.exception),
+            "all the input arrays must have same number of dimensions, but the array at index "
+            "0 has 2 dimension(s) and the array at index 1 has 1 dimension(s)",
+        )
+
     def test_reshape(self) -> None:
         """Test the reshape class.
         """
@@ -796,7 +848,7 @@ class TestAtoms(BaseTest):
 
         # works with row vectors
         assert np.allclose(
-            cp.vec_to_upper_tri(np.arange(6)).value, 
+            cp.vec_to_upper_tri(np.arange(6)).value,
             cp.vec_to_upper_tri(np.arange(6).reshape(1, 6)).value
         )
 
@@ -963,7 +1015,7 @@ class TestAtoms(BaseTest):
         # Check that sum_smallest is PWL so can be canonicalized as a QP.
         atom = cp.sum_smallest(self.x, 2)
         assert atom.is_pwl()
-    
+
     def test_cvar(self) -> None:
         """Test the cvar atom and its use in a linear program."""
         # Check that CVaR is correctly computed
@@ -973,18 +1025,18 @@ class TestAtoms(BaseTest):
         m = 100  # Size of random vector
         x = np.random.randn(m)  # Random vector
         betas = [0.1, 0.5, 0.9, 0.95, 0.99] # Probability levels
-        
+
         for beta in betas:
             # Evaluate using cvar atom
             cvar_atom = cp.cvar(x, beta)
             cvar_value = cvar_atom.value
-            
+
             # Evaluate CVaR using alternative formulation
             alpha = cp.Variable()
             objective = alpha + 1/((1-beta)*m) * cp.sum(cp.pos(x - alpha))
             prob_alt = cp.Problem(cp.Minimize(objective))
             cvar_alt_value = prob_alt.solve()
-            
+
             # Check that the results are equal (within numerical tolerance)
             self.assertAlmostEqual(cvar_value, cvar_alt_value)
 
@@ -1102,7 +1154,7 @@ class TestAtoms(BaseTest):
             target = np.cumsum(x_val, axis=axis)
             prob = cp.Problem(cp.Minimize(cp.sum(expr)), [x == x_val])
             prob.solve()
-            
+
             assert np.allclose(expr.value, target)
 
     def test_cumprod(self) -> None:
@@ -1111,13 +1163,13 @@ class TestAtoms(BaseTest):
             expr = cp.cumprod(x, axis=axis)
             # constant needs to be elementwise positive
             x_val = (np.arange(12)+1).reshape((4, 3))
-            
+
             target = np.cumprod(x_val, axis=axis)
             prob = cp.Problem(cp.Minimize(cp.sum(expr)), [x == x_val])
             prob.solve(gp=True)
-            
+
             assert np.allclose(expr.value, target)
-    
+
     def test_kron_expr(self) -> None:
         """Test the kron atom.
         """
@@ -1594,7 +1646,7 @@ class TestAtoms(BaseTest):
             cp.outer(d, A)
 
         # allow 2D inputs once row-major flattening is the default
-        assert np.allclose(cp.vec(np.array([[1, 2], [3, 4]]), order='F').value, 
+        assert np.allclose(cp.vec(np.array([[1, 2], [3, 4]]), order='F').value,
                            np.array([1, 3, 2, 4]))
 
     def test_conj(self) -> None:
