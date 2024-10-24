@@ -823,7 +823,6 @@ class Problem(u.Canonical):
                       'conic_solvers': []}
         if isinstance(solver, Solver):
             return self._add_custom_solver_candidates(solver)
-
         if solver is not None:
             if solver not in slv_def.INSTALLED_SOLVERS:
                 raise error.SolverError("The solver %s is not installed." % solver)
