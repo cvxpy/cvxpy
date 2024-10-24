@@ -9,53 +9,48 @@ conda config --set remote_connect_timeout_secs 30.0
 conda config --set remote_max_retries 10
 conda config --set remote_backoff_factor 2
 conda config --set remote_read_timeout_secs 120.0
+conda install mkl pip pytest pytest-cov hypothesis openblas "setuptools>65.5.1"
+conda install ecos scs osqp cvxopt proxsuite daqp
+python -m pip install coptpy==7.1.7 gurobipy piqp clarabel
 
 if [[ "$PYTHON_VERSION" == "3.9" ]]; then
   # The earliest version of numpy that works is 1.20.
   # Given numpy 1.20, the earliest version of scipy we can use is 1.6.
-  conda install scipy=1.6 numpy=1.20 mkl pip pytest hypothesis openblas ecos scs osqp cvxopt proxsuite daqp "setuptools>65.5.1"
+  conda install scipy=1.6 numpy=1.20
 elif [[ "$PYTHON_VERSION" == "3.10" ]]; then
-    # The earliest version of numpy that works is 1.21.
-    # Given numpy 1.21, the earliest version of scipy we can use is 1.7.
-    conda install scipy=1.7 numpy=1.21 mkl pip pytest hypothesis openblas ecos scs osqp cvxopt proxsuite daqp "setuptools>65.5.1"
+  # The earliest version of numpy that works is 1.21.
+  # Given numpy 1.21, the earliest version of scipy we can use is 1.7.
+  conda install scipy=1.7 numpy=1.21
 elif [[ "$PYTHON_VERSION" == "3.11" ]]; then
-    # The earliest version of numpy that works is 1.23.4.
-    # Given numpy 1.23.4, the earliest version of scipy we can use is 1.9.3.
-    conda install scipy=1.9.3 numpy=1.23.4 mkl pip pytest hypothesis openblas ecos scs cvxopt proxsuite daqp "setuptools>65.5.1"
+  # The earliest version of numpy that works is 1.23.4.
+  # Given numpy 1.23.4, the earliest version of scipy we can use is 1.9.3.
+  conda install scipy=1.9.3 numpy=1.23.4
 elif [[ "$PYTHON_VERSION" == "3.12" ]]; then
-    # The earliest version of numpy that works is 1.26.4
-    # Given numpy 1.26.4, the earliest version of scipy we can use is 1.11.3.
-    conda install scipy=1.11.3 numpy=1.26.4 mkl pip pytest hypothesis openblas ecos scs cvxopt proxsuite daqp "setuptools>65.5.1"
+  # The earliest version of numpy that works is 1.26.4
+  # Given numpy 1.26.4, the earliest version of scipy we can use is 1.11.3.
+  conda install scipy=1.11.3 numpy=1.26.4
 fi
 
-if [[ "$PYTHON_VERSION" == "3.12" ]]; then
-  python -m pip install coptpy gurobipy piqp osqp clarabel
-elif [[ "$PYTHON_VERSION" == "3.11" ]]; then
-  python -m pip install coptpy gurobipy cplex piqp osqp diffcp "ortools>=9.7,<9.10" clarabel
-else
-  python -m pip install coptpy gurobipy cplex diffcp piqp clarabel
+if [[ "$PYTHON_VERSION" == "3.11" ]]; then
+  python -m pip install cplex diffcp "ortools>=9.7,<9.10"
 fi
 
 if [[ "$RUNNER_OS" == "Windows" ]]; then
   # SDPA with OpenBLAS backend does not pass LP5 on Windows
   python -m pip install sdpa-multiprecision
 else
+  # cylp has no wheels for Windows
+  conda install pyscipopt
+  python -m pip install cylp
+fi
+
+if [[ "$PYTHON_VERSION" != "3.9" ]] && [[ "$PYTHON_VERSION" != "3.12" ]]; then
+  # SDPA didn't pass LP5 on Ubuntu for Python 3.9 and 3.12
   python -m pip install sdpa-python
 fi
 
 if [[ "$PYTHON_VERSION" == "3.11" ]] && [[ "$RUNNER_OS" != "macOS" ]]; then
   python -m pip install xpress
-fi
-
-# cylp has no wheels for Windows
-if [[ "$RUNNER_OS" != "Windows" ]]; then
-  python -m pip install cylp
-fi
-
-# SCIP only works with scipy >= 1.5 due to dependency conflicts when installing on Linux/macOS
-# TODO make work on linux and mac.
-if [[ "$PYTHON_VERSION" == "3.9" ]] && [[ "$RUNNER_OS" == "Windows" ]]; then
-  conda install pyscipopt
 fi
 
 # Only install Mosek if license is available (secret is not copied to forks)
