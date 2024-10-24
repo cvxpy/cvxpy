@@ -1525,7 +1525,7 @@ class TestND_Expressions():
         self.x = Variable((2,2,2), name='x')
         self.target = (1+np.arange(8)).reshape(2,2,2)
         self.obj = cp.Minimize(0)
-    
+
     def test_nd_variable(self) -> None:
         prob = cp.Problem(self.obj, [self.x == self.target])
         prob.solve(canon_backend=cp.SCIPY_CANON_BACKEND)
@@ -1565,6 +1565,14 @@ class TestND_Expressions():
         prob.solve(canon_backend=cp.SCIPY_CANON_BACKEND)
         assert np.allclose(expr.value, self.target)
 
+    def test_nd_concatenate(self) -> None:
+        x = Variable((1, 2, 2))
+        z = Variable((1, 2, 2))
+        expr = cp.concatenate([x,z], axis = 0)
+        prob = cp.Problem(self.obj, [expr == self.target])
+        prob.solve(canon_backend=cp.SCIPY_CANON_BACKEND)
+        assert np.allclose(expr.value, self.target)
+
     def test_nd_sum_expr(self) -> None:
         x = [cp.Variable((2,2,2)) for _ in range(10)]
         expr = sum(x)
@@ -1598,7 +1606,7 @@ class TestND_Expressions():
         prob = cp.Problem(self.obj, [expr == y])
         prob.solve(canon_backend=cp.SCIPY_CANON_BACKEND)
         assert np.allclose(expr.value, y)
-    
+
     @given(integer_array_indices(shape=(2,2,2)))
     def test_nd_integer_index(self, s) -> None:
         expr = self.x[s]
@@ -1612,7 +1620,7 @@ class TestND_Expressions():
         # Skip examples with 0-d output. TODO allow 0-d expressions in cvxpy.
         def is_zero_dim_output(axis):
             return 0 in self.target[axis].shape
-        
+
         assume(is_zero_dim_output(axis) is False)
         expr = self.x[axis]
         y = self.target[axis]
@@ -1633,7 +1641,7 @@ class TestND_Expressions():
     def test_nd_bool_index(self, axis) -> None:
         def is_zero_dim_output(axis):
             return 0 in self.target[axis].shape
-        
+
         assume(is_zero_dim_output(axis) is False)
         expr = self.x[axis]
         y = self.target[axis]
@@ -1649,7 +1657,7 @@ class TestND_Expressions():
         assert np.allclose(expr.value, y)
 
     @pytest.mark.parametrize("order", ['C', 'F'])
-    @pytest.mark.parametrize("shape", [(20, 2, 30), (300, 2, 2), 
+    @pytest.mark.parametrize("shape", [(20, 2, 30), (300, 2, 2),
                                        (1, 24, 5, 10), (240, 5, 1)])
     def test_nd_reshape(self, order, shape) -> None:
         var = cp.Variable((5, 24, 10))
@@ -1659,7 +1667,7 @@ class TestND_Expressions():
         prob = cp.Problem(self.obj, [expr == y])
         prob.solve(canon_backend=cp.SCIPY_CANON_BACKEND)
         assert np.allclose(expr.value, y)
-    
+
     def test_nd_transpose(self) -> None:
         var = cp.Variable((5, 24, 10))
         target = np.arange(1200).reshape((5, 24, 10))
@@ -1668,4 +1676,3 @@ class TestND_Expressions():
         prob = cp.Problem(self.obj, [expr == y])
         prob.solve(canon_backend=cp.SCIPY_CANON_BACKEND)
         assert np.allclose(expr.value, y)
-    
