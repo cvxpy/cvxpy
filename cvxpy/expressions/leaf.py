@@ -53,10 +53,8 @@ class Leaf(expression.Expression):
 
     Parameters
     ----------
-    shape : Iterable of ints or int
-        The leaf dimensions. Either an integer n for a 1D shape, or an
-        iterable where the semantics are the same as NumPy ndarray shapes.
-        **Shapes cannot be more than 2D**.
+    shape : int or tuple of ints
+        Shape of the leaf, e.g., ``(3, 2)`` or ``2``.
     value : numeric type
         A value to assign to the leaf.
     nonneg : bool
@@ -75,17 +73,17 @@ class Leaf(expression.Expression):
         Is the variable constrained to be negative semidefinite?
     Hermitian : bool
         Is the variable Hermitian?
-    boolean : bool or list of tuple
+    boolean : bool or Iterable
         Is the variable boolean? True, which constrains
         the entire Variable to be boolean, False, or a list of
         indices which should be constrained as boolean, where each
         index is a tuple of length exactly equal to the
         length of shape.
-    integer : bool or list of tuple
+    integer : bool or Iterable
         Is the variable integer? The semantics are the same as the
         boolean argument.
-    sparsity : list of tuplewith
-        Fixed sparsity pattern for the variable.
+    sparsity : Iterable
+        Is the variable sparse?
     pos : bool
         Is the variable positive?
     neg : bool
@@ -219,81 +217,66 @@ class Leaf(expression.Expression):
         return self._shape
 
     def variables(self) -> list[Variable]:
-        """Default is empty list of Variables.
-        """
+        """Default is empty list of Variables."""
         return []
 
     def parameters(self) -> list[Parameter]:
-        """Default is empty list of Parameters.
-        """
+        """Default is empty list of Parameters."""
         return []
 
     def constants(self) -> list[Constant]:
-        """Default is empty list of Constants.
-        """
+        """Default is empty list of Constants."""
         return []
 
     def is_convex(self) -> bool:
-        """Is the expression convex?
-        """
+        """Is the expression convex?"""
         return True
 
     def is_concave(self) -> bool:
-        """Is the expression concave?
-        """
+        """Is the expression concave?"""
         return True
 
     def is_log_log_convex(self) -> bool:
-        """Is the expression log-log convex?
-        """
+        """Is the expression log-log convex?"""
         return self.is_pos()
 
     def is_log_log_concave(self) -> bool:
-        """Is the expression log-log concave?
-        """
+        """Is the expression log-log concave?"""
         return self.is_pos()
 
     def is_nonneg(self) -> bool:
-        """Is the expression nonnegative?
-        """
+        """Is the expression nonnegative?"""
         return (self.attributes['nonneg'] or self.attributes['pos'] or
                 self.attributes['boolean'])
 
     def is_nonpos(self) -> bool:
-        """Is the expression nonpositive?
-        """
+        """Is the expression nonpositive?"""
         return self.attributes['nonpos'] or self.attributes['neg']
 
     def is_pos(self) -> bool:
-        """Is the expression positive?
-        """
+        """Is the expression positive?"""
         return self.attributes['pos']
 
     def is_neg(self) -> bool:
-        """Is the expression negative?
-        """
+        """Is the expression negative?"""
         return self.attributes['neg']
 
     def is_hermitian(self) -> bool:
-        """Is the Leaf hermitian?
-        """
+        """Is the Leaf hermitian?"""
         return (self.is_real() and self.is_symmetric()) or \
             self.attributes['hermitian'] or self.is_psd() or self.is_nsd()
 
     def is_symmetric(self) -> bool:
-        """Is the Leaf symmetric?
-        """
+        """Is the Leaf symmetric?"""
         return self.is_scalar() or \
             any(self.attributes[key] for key in ['diag', 'symmetric', 'PSD', 'NSD'])
 
     def is_imag(self) -> bool:
-        """Is the Leaf imaginary?
-        """
+        """Is the Leaf imaginary?"""
         return self.attributes['imag']
 
     def is_complex(self) -> bool:
-        """Is the Leaf complex valued?
-        """
+        """Is the Leaf complex valued?"""
         return self.attributes['complex'] or self.is_imag() or self.attributes['hermitian']
 
     def _has_lower_bounds(self) -> bool:
@@ -538,33 +521,27 @@ class Leaf(expression.Expression):
         return val
 
     def is_psd(self) -> bool:
-        """Is the expression a positive semidefinite matrix?
-        """
+        """Is the expression a positive semidefinite matrix?"""
         return self.attributes['PSD']
 
     def is_nsd(self) -> bool:
-        """Is the expression a negative semidefinite matrix?
-        """
+        """Is the expression a negative semidefinite matrix?"""
         return self.attributes['NSD']
 
     def is_diag(self) -> bool:
-        """Is the expression a diagonal matrix?
-        """
+        """Is the expression a diagonal matrix?"""
         return self.attributes['diag']
 
     def is_quadratic(self) -> bool:
-        """Leaf nodes are always quadratic.
-        """
+        """Leaf nodes are always quadratic."""
         return True
 
     def has_quadratic_term(self) -> bool:
-        """Leaf nodes are not quadratic terms.
-        """
+        """Leaf nodes are not quadratic terms."""
         return False
 
     def is_pwl(self) -> bool:
-        """Leaf nodes are always piecewise linear.
-        """
+        """Leaf nodes are always piecewise linear."""
         return True
 
     def is_dpp(self, context: str = 'dcp') -> bool:
