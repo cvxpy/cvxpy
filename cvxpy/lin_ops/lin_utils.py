@@ -16,7 +16,7 @@ limitations under the License.
 THIS FILE IS DEPRECATED AND MAY BE REMOVED WITHOUT WARNING!
 DO NOT CALL THESE FUNCTIONS IN YOUR CODE!
 """
-from typing import Tuple
+from typing import Optional, Tuple
 
 import numpy as np
 
@@ -572,7 +572,7 @@ def vstack(operators, shape: Tuple[int, ...]):
     """
     return lo.LinOp(lo.VSTACK, shape, operators, None)
 
-def concatenate(operators, shape: Tuple[int, ...], axis: int):
+def concatenate(operators, shape: Tuple[int, ...], axis: Optional[int] = 0):
     """Concatenate operators on axis.
 
     Parameters
@@ -581,6 +581,8 @@ def concatenate(operators, shape: Tuple[int, ...], axis: int):
         The operators to concatenate.
     shape : tuple
         The (rows, cols) of the concatenated operators.
+    axis : int, optional
+        The axis along which the operators will be joined.
 
     Returns
     -------

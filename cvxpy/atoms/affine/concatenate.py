@@ -1,5 +1,5 @@
 """
-Copyright 2013 Steven Diamond
+Copyright, the CVXPY authors
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -24,7 +24,7 @@ from cvxpy.atoms.affine.affine_atom import AffAtom
 from cvxpy.constraints.constraint import Constraint
 
 
-def concatenate(arg_list, axis: Optional[int] = None):
+def concatenate(arg_list, axis: Optional[int] = 0):
     assert axis is None or (isinstance(axis,int) and axis >=0)
     return Concatenate(*(arg_list + [axis]))
 

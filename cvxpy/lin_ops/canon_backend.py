@@ -498,48 +498,6 @@ class PythonCanonBackend(CanonBackend):
         It correctly maps the indices from the input tensors to the concatenated output tensor,
         ensuring that elements are placed in the correct positions in the resulting tensor.
 
-        1. **Case when `axis=None`**:
-        - If `axis` is `None`, following NumPy's behavior, the arrays are flattened in
-            'C' order (row-major) before concatenation.
-        - An index sequence `order` is generated that covers all elements of the input arguments.
-        - The rows in `res` are selected using `res.select_rows(order)`, and the result is returned.
-
-        2. **Concatenation along a specific axis**:
-        - `offset` is initialized to 0 to track the cumulative index displacement between arguments.
-        - An empty list `indices` is created to store the reshaped indices of each argument.
-
-        3. **Processing each argument**:
-        - For each `arg` in `lin.args`:
-            - `arg_rows` is calculated as the total number of elements in `arg` using
-                `np.prod(arg.shape)`.
-            - An array of indices from 0 to `arg_rows - 1` is generated using `np.arange(arg_rows)`.
-            - This array is reshaped to the shape of `arg` using `reshape(arg.shape, order='F')`.
-            The use of `order='F'` (Fortran order) means that the indices are assigned such
-            that the first axis (axis=0) changes the fastest, i.e., in column-major order.
-            - The current `offset` is added to the indices to ensure that they are unique across all
-            input tensors.
-            - The reshaped array of indices is appended to the list `indices`.
-            - `offset` is updated by adding `arg_rows`.
-
-        4. **Concatenation of indices**:
-        - The arrays of indices stored in `indices` are concatenated along the specified
-            axis using `np.concatenate(indices, axis=axis)`.
-        - The result is an array of indices representing the position of each element in
-            the concatenated tensor.
-
-        5. **Flattening of indices**:
-        - The concatenated indices are flattened using `flatten(order='F')`.
-        - Using `order='F'` ensures that the indices are flattened in column-major order,
-            maintaining consistency with the data layout in memory and how they are accessed in the
-            resulting tensor.
-        - The array of indices is converted to integer type using `astype(int)`.
-
-        6. **Selecting rows and returning the result**:
-        - The rows in `res` are selected using `res.select_rows(order)`, where `order`
-            is the flattened array of indices.
-        - The modified `res`, which now represents the concatenated tensor with correctly ordered
-            elements, is returned.
-
         """
 
         res = self.hstack(lin=lin, view=view)
