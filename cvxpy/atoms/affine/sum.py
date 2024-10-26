@@ -15,7 +15,7 @@ limitations under the License.
 """
 import builtins
 from functools import wraps
-from typing import List, Optional, Tuple
+from typing import Optional
 
 import numpy as np
 
@@ -28,34 +28,52 @@ from cvxpy.constraints.constraint import Constraint
 
 
 class Sum(AxisAtom, AffAtom):
-    """Sum the entries of an expression.
+    """Sum the entries of an expression over a given axis.
 
     Parameters
     ----------
     expr : Expression
         The expression to sum the entries of.
-    axis : int
-        The axis along which to sum.
-    keepdims : bool
-        Whether to drop dimensions after summing.
+    axis : None or int or tuple of ints, optional
+        The axis or axes along which to sum. The default (axis=None) will
+        sum all of the elements of the expression.
+
+        .. versionadded:: 1.6.0
+
+        If axis is a tuple of ints, a sum is performed on all of the axes
+        specified in the tuple.
+    keepdims : bool, optional
+        If set to true, the axes which are summed over remain in the output
+        as dimensions with size one.
+
+    Examples
+    --------
+    >>> import cvxpy as cp
+    >>> x = cp.Variable((2, 3, 4))
+    >>> expr = cp.sum(x)
+    >>> expr.shape
+    ()
+    >>> expr = cp.sum(x, axis=0)
+    >>> expr.shape
+    (3, 4)
+    >>> expr = cp.sum(x, axis=(1, 2))
+    >>> expr.shape
+    (2,)
     """
 
-    def __init__(self, expr, axis: Optional[int] = None, keepdims: bool = False) -> None:
+    def __init__(self, expr, axis=None, keepdims=False) -> None:
         super(Sum, self).__init__(expr, axis=axis, keepdims=keepdims)
 
     def is_atom_log_log_convex(self) -> bool:
-        """Is the atom log-log convex?
-        """
+        """Is the atom log-log convex?"""
         return True
 
     def is_atom_log_log_concave(self) -> bool:
-        """Is the atom log-log concave?
-        """
+        """Is the atom log-log concave?"""
         return False
 
     def numeric(self, values):
-        """Sums the entries of value.
-        """
+        """Sums the entries of value."""
         if intf.is_sparse(values[0]):
             result = np.asarray(values[0].sum(axis=self.axis))
             if not self.keepdims and self.axis is not None:
@@ -64,9 +82,10 @@ class Sum(AxisAtom, AffAtom):
             result = np.sum(values[0], axis=self.axis, keepdims=self.keepdims)
         return result
 
-    def graph_implementation(
-        self, arg_objs, shape: Tuple[int, ...], data=None
-    ) -> Tuple[lo.LinOp, List[Constraint]]:
+    def graph_implementation(self,
+                            arg_objs: list[lo.LinOp],
+                            shape: tuple[int, ...],
+                            data=None) -> tuple[lo.LinOp, list[Constraint]]:
         """
         Sum the linear expression's entries.
 
@@ -74,15 +93,10 @@ class Sum(AxisAtom, AffAtom):
         ----------
         arg_objs : list
             LinExpr for each argument.
-        shape : tuple
+        shape : int or tuple of ints
             The shape of the resulting expression.
-        data : [axis, keepdims]
+        data : [axis, keepdims] or None
             The axis and keepdims parameters of the sum expression.
-
-        Returns
-        -------
-        tuple
-            (LinOp for objective, list of constraints)
         """
         axis, keepdims = data
         # Note: added new case for summing with n-dimensional shapes and 
