@@ -60,7 +60,7 @@ if [[ "$PYTHON_VERSION" == "3.10" ]] && [[ "$RUNNER_OS" != "Windows" ]]; then
 fi
 
 if [[ "$PYTHON_VERSION" == "3.11" ]] && [[ "$RUNNER_OS" != "macOS" ]]; then
-  python -m pip install xpress
+  python -m pip install xpress==9.4.3
 fi
 
 # Only install Mosek if license is available (secret is not copied to forks)
