@@ -32,18 +32,18 @@ New backwards support policy
 New features
 ~~~~~~~~~~~~
 
-- Python 3.13 support and dropped Python 3.8 support
+- Added Python 3.13 support and dropped Python 3.8 support
 - New HiGHS solver interface
 - New atom: :ref:`cvar <cvar>`
 - New atom: :ref:`cumprod <cumprod>`
 - Support for N-dimensional variables and expressions for the following operations:
     * axis atoms like min, max and sum
-    * Indexing
+    * indexing
     * elementwise operations
 - Sparsity attribute for variables
 - New website and documentation theme
 - Ability to pass multiple solvers as argument to ``.solve()``
-- Performance improvement for ``sum_largest`` and ``cum_sum``
+- Performance improvement for ``sum_largest`` and ``cumsum``
 - Performance improvement for integer and boolean variables
 - Improving string representation of special index
 
