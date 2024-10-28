@@ -24,7 +24,7 @@ In version 1.7, we plan to raise an error if the order is not specified.
 Finally, in version 1.8, we will switch the default order from ('F') to ('C') to
 match NumPy's behavior. 
 
-New backwards support policy
+Dropping ECOS dependency
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
