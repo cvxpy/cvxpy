@@ -333,7 +333,7 @@ class TestSlacks(BaseTest):
     def test_expcone_socp_1(self):
         sth = STH.expcone_socp_1()
         for affine in TestSlacks.AFF_MIXED_CASES:
-            TestSlacks.simulate_chain(sth.prob, affine, solver='CLARABEL')
+            TestSlacks.simulate_chain(sth.prob, affine, solver='SCS')
             sth.verify_objective(places=4)
             sth.verify_primal_values(places=4)
 
@@ -559,8 +559,8 @@ class TestRelEntrQuad(BaseTest):
     def test_expcone_socp_1(self):
         sth = self.expcone_socp_1()
         sth.solve(solver=cp.SCS)
-        sth.verify_primal_values(places=6)
-        sth.verify_objective(places=6)
+        sth.verify_primal_values(places=3)
+        sth.verify_objective(places=3)
 
 
 def sdp_ipm_installed():

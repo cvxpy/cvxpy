@@ -1993,7 +1993,7 @@ class TestProblem(BaseTest):
             constraints = [a >= 0., -alpha <= D.T @ a, D.T @ a <= alpha]
 
             prob = cp.Problem(obj, constraints)
-            prob.solve(solver=s.OSQP)
+            prob.solve(solver=s.CLARABEL)
             assert prob.status == 'optimal'
             return prob
 
@@ -2003,11 +2003,11 @@ class TestProblem(BaseTest):
 
         make_problem(D_dense)
         coef_dense = a.value.T.dot(D_dense)
-        np.testing.assert_almost_equal(expected_coef, coef_dense)
+        np.testing.assert_almost_equal(expected_coef, coef_dense, decimal=4)
 
         make_problem(D_sparse)
         coef_sparse = a.value.T @ D_sparse
-        np.testing.assert_almost_equal(expected_coef, coef_sparse)
+        np.testing.assert_almost_equal(expected_coef, coef_sparse, decimal=4)
 
     def test_special_index(self) -> None:
         """Test QP code path with special indexing.

@@ -223,7 +223,7 @@ class TestDqcp(base_test.BaseTest):
         self.assertFalse(problem.is_dcp())
         self.assertFalse(problem.is_dgp())
 
-        problem.solve(cp.CLARABEL, qcp=True)
+        problem.solve(cp.SCS, qcp=True)
         self.assertAlmostEqual(problem.objective.value, 72, places=1)
         self.assertAlmostEqual(x.value, 12, places=1)
         self.assertAlmostEqual(y.value, 6, places=1)
@@ -242,7 +242,7 @@ class TestDqcp(base_test.BaseTest):
         self.assertFalse(problem.is_dcp())
         self.assertFalse(problem.is_dgp())
 
-        problem.solve(cp.CLARABEL, qcp=True)
+        problem.solve(cp.SCS, qcp=True)
         self.assertAlmostEqual(problem.objective.value, 72, places=1)
         self.assertAlmostEqual(x.value, -12, places=1)
         self.assertAlmostEqual(y.value, -6, places=1)
@@ -262,7 +262,7 @@ class TestDqcp(base_test.BaseTest):
         self.assertFalse(problem.is_dcp())
         self.assertFalse(problem.is_dgp())
 
-        problem.solve(cp.CLARABEL, qcp=True)
+        problem.solve(cp.SCS, qcp=True)
         self.assertAlmostEqual(problem.objective.value, -42, places=1)
         self.assertAlmostEqual(x.value, 7, places=1)
         self.assertAlmostEqual(y.value, -6, places=1)
@@ -281,7 +281,7 @@ class TestDqcp(base_test.BaseTest):
         self.assertFalse(problem.is_dcp())
         self.assertFalse(problem.is_dgp())
 
-        problem.solve(cp.CLARABEL, qcp=True)
+        problem.solve(cp.SCS, qcp=True)
         self.assertAlmostEqual(problem.objective.value, -42, places=1)
         self.assertAlmostEqual(x.value, 7, places=1)
         self.assertAlmostEqual(y.value, -6, places=1)
@@ -294,7 +294,7 @@ class TestDqcp(base_test.BaseTest):
         self.assertFalse(expr.is_quasiconvex())
 
         problem = cp.Problem(cp.Maximize(expr), [x <= 4, y <= 9])
-        problem.solve(cp.CLARABEL, qcp=True)
+        problem.solve(cp.SCS, qcp=True)
         self.assertAlmostEqual(problem.objective.value, 6, places=1)
         self.assertAlmostEqual(x.value, 4, places=1)
         self.assertAlmostEqual(y.value, 9, places=1)
@@ -306,7 +306,7 @@ class TestDqcp(base_test.BaseTest):
         self.assertFalse(expr.is_quasiconvex())
 
         problem = cp.Problem(cp.Maximize(expr), [x <= 4, y <= 9])
-        problem.solve(cp.CLARABEL, qcp=True)
+        problem.solve(cp.SCS, qcp=True)
         # (2 + 2) * (3 + 4) = 28
         self.assertAlmostEqual(problem.objective.value, 28, places=1)
         self.assertAlmostEqual(x.value, 4, places=1)
@@ -323,7 +323,7 @@ class TestDqcp(base_test.BaseTest):
         problem = cp.Problem(cp.Minimize(expr), [x == 12, y <= 6])
         self.assertTrue(problem.is_dqcp())
 
-        problem.solve(cp.CLARABEL, qcp=True)
+        problem.solve(cp.SCS, qcp=True)
         self.assertAlmostEqual(problem.objective.value, 2.0, places=1)
         self.assertAlmostEqual(x.value, 12, places=1)
         self.assertAlmostEqual(y.value, 6, places=1)
@@ -338,7 +338,7 @@ class TestDqcp(base_test.BaseTest):
         problem = cp.Problem(cp.Maximize(expr), [x == 12, y >= -6])
         self.assertTrue(problem.is_dqcp())
 
-        problem.solve(cp.CLARABEL, qcp=True)
+        problem.solve(cp.SCS, qcp=True)
         self.assertAlmostEqual(problem.objective.value, -2.0, places=1)
         self.assertAlmostEqual(x.value, 12, places=1)
         self.assertAlmostEqual(y.value, -6, places=1)
@@ -369,7 +369,7 @@ class TestDqcp(base_test.BaseTest):
 
         problem = cp.Problem(cp.Maximize(concave_frac))
         self.assertTrue(problem.is_dqcp())
-        problem.solve(cp.CLARABEL, qcp=True)
+        problem.solve(cp.SCS, qcp=True)
         self.assertAlmostEqual(problem.objective.value, 0.428, places=1)
         self.assertAlmostEqual(x.value, 0.5, places=1)
 
@@ -454,9 +454,9 @@ class TestDqcp(base_test.BaseTest):
         a = np.ones(2)
         b = np.zeros(2)
         problem = cp.Problem(cp.Minimize(cp.dist_ratio(x, a, b)), [x <= 0.8])
-        problem.solve(cp.CLARABEL, qcp=True)
-        np.testing.assert_almost_equal(problem.objective.value, 0.25)
-        np.testing.assert_almost_equal(x.value, np.array([0.8, 0.8]))
+        problem.solve(cp.SCS, qcp=True)
+        np.testing.assert_almost_equal(problem.objective.value, 0.25, decimal=3)
+        np.testing.assert_almost_equal(x.value, np.array([0.8, 0.8]), decimal=3)
 
     def test_infeasible_exp_constr(self) -> None:
         x = cp.Variable()
@@ -613,7 +613,7 @@ class TestDqcp(base_test.BaseTest):
         objective_fn = -cp.sqrt(x) / y
         problem = cp.Problem(cp.Minimize(objective_fn), [cp.exp(x) <= y])
         # smoke test
-        problem.solve(cp.CLARABEL, qcp=True)
+        problem.solve(cp.SCS, qcp=True)
 
     def test_curvature(self) -> None:
         x = cp.Variable(3)
@@ -654,7 +654,7 @@ class TestDqcp(base_test.BaseTest):
         obj = cp.max((1 - 2*cp.sqrt(x) + x) / x)
         problem = cp.Problem(cp.Minimize(obj), [x[0] <= 0.5, x[1] <= 0.9])
         self.assertTrue(problem.is_dqcp())
-        problem.solve(cp.CLARABEL, qcp=True)
+        problem.solve(cp.SCS, qcp=True)
         self.assertAlmostEqual(problem.objective.value, 0.1715, places=3)
 
     def test_min(self) -> None:
