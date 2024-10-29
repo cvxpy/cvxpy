@@ -352,8 +352,8 @@ class TestSlacks(BaseTest):
             sth.verify_primal_values(places=3)
 
     @pytest.mark.skipif(
-        len(INSTALLED_MI) == 0, 
-        reason='No mixed-integer solver is installed.'
+        "HIGHS" not in INSTALLED_MI, 
+        reason='HiGHS solver is not installed.'
     )
     def test_mi_lp_1(self):
         sth = STH.mi_lp_1()

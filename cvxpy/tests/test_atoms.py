@@ -1335,7 +1335,7 @@ class TestAtoms(BaseTest):
         p3.solve(solver=cp.CLARABEL)
         self.assertAlmostEqual(p1.value, p3.value)
 
-    @unittest.skipUnless(len(INSTALLED_MI_SOLVERS) > 0, 'No mixed-integer solver is installed.')
+    @unittest.skipUnless("HIGHS" in INSTALLED_MI_SOLVERS, 'HiGHS solver is not installed.')
     def test_partial_optimize_special_var(self) -> None:
         x, y = Variable(boolean=True), Variable(integer=True)
 
