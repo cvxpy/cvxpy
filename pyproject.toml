@@ -43,7 +43,6 @@ name = "cvxpy"
 description = "A domain-specific language for modeling convex optimization problems in Python."
 dependencies = [
     "osqp >= 0.6.2",
-    "ecos >= 2",
     "clarabel >= 0.5.0",
     "scs >= 3.2.4.post1",
     "numpy >= 1.20",
@@ -64,8 +63,8 @@ CBC = ["cylp>=0.91.5"]
 CLARABEL = []
 CVXOPT = ["cvxopt"]
 DIFFCP = ["diffcp"]
-ECOS = []
-ECOS_BB = []
+ECOS = ["ecos"]
+ECOS_BB = ["ecos"]
 GLOP = ["ortools>=9.7,<9.10"]
 GLPK = ["cvxopt"]
 GLPK_MI = ["cvxopt"]
