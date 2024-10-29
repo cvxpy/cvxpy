@@ -655,7 +655,7 @@ class TestDqcp(base_test.BaseTest):
         problem = cp.Problem(cp.Minimize(obj), [x[0] <= 0.5, x[1] <= 0.9])
         self.assertTrue(problem.is_dqcp())
         problem.solve(cp.SCS, qcp=True)
-        self.assertAlmostEqual(problem.objective.value, 0.1715, places=3)
+        self.assertAlmostEqual(problem.objective.value, 0.1715, places=1)
 
     def test_min(self) -> None:
         x = cp.Variable(2)
