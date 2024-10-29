@@ -114,11 +114,6 @@ class quantum_rel_entr(Atom):
         Returns:
             A list of SciPy CSC sparse matrices or None.
         """
-        # N = values[0]
-        # L = cholesky(N)
-        # derivative = 2*(L + L * logm(np.dot(L.T, L)))
-        # TODO: have to wrap derivative around scipy CSC sparse matrices
-        #  compare to log_det atom.
         raise ValueError()
 
     def _domain(self) -> List[Constraint]:
