@@ -92,7 +92,7 @@ class TestNonlinearAtoms(BaseTest):
         p_refProb.value = npSPriors
         klprob.solve(solver=cp.SCS)
         self.assertItemsAlmostEqual(v_prob.value, npSPriors, places=3)
-        klprob.solve(solver=cp.ECOS)
+        klprob.solve(solver=cp.CLARABEL)
         self.assertItemsAlmostEqual(v_prob.value, npSPriors)
 
     def test_rel_entr(self) -> None:
@@ -127,7 +127,7 @@ class TestNonlinearAtoms(BaseTest):
         y = cp.Variable()
 
         kl_div_prob = cp.Problem(cp.Minimize(cp.kl_div(x, y)), constraints=[x + y <= 1])
-        kl_div_prob.solve(solver=cp.ECOS)
+        kl_div_prob.solve(solver=cp.CLARABEL)
         self.assertItemsAlmostEqual(x.value, y.value)
         self.assertItemsAlmostEqual(kl_div_prob.value, 0)
 
@@ -150,7 +150,7 @@ class TestNonlinearAtoms(BaseTest):
             x = cp.Variable(n)
             obj = cp.Maximize(cp.sum(cp.entr(x)))
             p = cp.Problem(obj, [cp.sum(x) == 1])
-            p.solve(solver=cp.ECOS)
+            p.solve(solver=cp.CLARABEL)
             self.assertItemsAlmostEqual(x.value, n*[1./n])
             p.solve(solver=cp.SCS)
             self.assertItemsAlmostEqual(x.value, n*[1./n], places=3)

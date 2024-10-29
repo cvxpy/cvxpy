@@ -291,7 +291,7 @@ class TestComplex(BaseTest):
         """
         x = Variable((1, 2), complex=True)
         prob = Problem(cp.Maximize(cp.sum(cp.imag(x) + cp.real(x))), [cp.norm1(x) <= 2])
-        result = prob.solve(solver="ECOS")
+        result = prob.solve(solver=cp.CLARABEL)
         self.assertAlmostEqual(result, 2*np.sqrt(2))
         val = np.ones(2)*np.sqrt(2)/2
         # self.assertItemsAlmostEqual(x.value, val + 1j*val)
@@ -299,7 +299,7 @@ class TestComplex(BaseTest):
         x = Variable((2, 2), complex=True)
         prob = Problem(cp.Maximize(cp.sum(cp.imag(x) + cp.real(x))),
                        [cp.pnorm(x, p=2) <= np.sqrt(8)])
-        result = prob.solve(solver="ECOS")
+        result = prob.solve(solver=cp.CLARABEL)
         self.assertAlmostEqual(result, 8)
         val = np.ones((2, 2))
         self.assertItemsAlmostEqual(x.value, val + 1j*val)
@@ -388,7 +388,7 @@ class TestComplex(BaseTest):
         x = Variable(3, complex=False)
         value = cp.quad_form(b, P).value
         prob = Problem(cp.Minimize(cp.quad_form(x, P)), [x == b])
-        result = prob.solve(solver="ECOS")
+        result = prob.solve(solver="CLARABEL")
         self.assertAlmostEqual(result, value)
 
         # Solve a problem with complex variable
@@ -396,7 +396,7 @@ class TestComplex(BaseTest):
         x = Variable(3, complex=True)
         value = cp.quad_form(b, P).value
         prob = Problem(cp.Minimize(cp.quad_form(x, P)), [x == b])
-        result = prob.solve(solver="ECOS")
+        result = prob.solve(solver="CLARABEL")
         normalization = max(abs(result), abs(value))
         self.assertAlmostEqual(result / normalization, value / normalization, places=5)
 
@@ -406,7 +406,7 @@ class TestComplex(BaseTest):
         value = cp.quad_form(b, P).value
         expr = cp.quad_form(x, P)
         prob = Problem(cp.Minimize(expr), [x == b])
-        result = prob.solve(solver="ECOS")
+        result = prob.solve(solver="CLARABEL")
         normalization = max(abs(result), abs(value))
         self.assertAlmostEqual(result / normalization, value / normalization)
 
@@ -484,7 +484,7 @@ class TestComplex(BaseTest):
         obj = cp.Maximize(cp.real(cp.sum(v * np.ones((2, 2)))))
         con = [cp.norm(v) <= 1]
         prob = cp.Problem(obj, con)
-        result = prob.solve(solver="ECOS")
+        result = prob.solve(solver="CLARABEL")
         self.assertAlmostEqual(result, 4.0)
 
     def test_sparse(self) -> None:
@@ -652,7 +652,7 @@ class TestComplex(BaseTest):
 
         obj = cp.Maximize(cp.real(complex_var))
         prob = cp.Problem(obj, constraints)
-        prob.solve(solver='ECOS_BB')
+        prob.solve(solver=cp.SCIPY)
         self.assertAlmostEqual(prob.value, 1, places=4)
 
     def test_partial_trace(self) -> None:

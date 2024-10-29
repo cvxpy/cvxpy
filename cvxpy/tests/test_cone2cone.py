@@ -291,7 +291,7 @@ class TestSlacks(BaseTest):
         # typical LP
         sth = STH.lp_2()
         for affine in TestSlacks.AFF_LP_CASES:
-            TestSlacks.simulate_chain(sth.prob, affine, solver='ECOS')
+            TestSlacks.simulate_chain(sth.prob, affine, solver='CLARABEL')
             sth.verify_objective(places=4)
             sth.verify_primal_values(places=4)
 
@@ -299,41 +299,41 @@ class TestSlacks(BaseTest):
         # unbounded LP
         sth = STH.lp_3()
         for affine in TestSlacks.AFF_LP_CASES:
-            TestSlacks.simulate_chain(sth.prob, affine, solver='ECOS')
+            TestSlacks.simulate_chain(sth.prob, affine, solver='CLARABEL')
             sth.verify_objective(places=4)
 
     def test_lp_4(self):
         # infeasible LP
         sth = STH.lp_4()
         for affine in TestSlacks.AFF_LP_CASES:
-            TestSlacks.simulate_chain(sth.prob, affine, solver='ECOS')
+            TestSlacks.simulate_chain(sth.prob, affine, solver='CLARABEL')
             sth.verify_objective(places=4)
 
     def test_socp_2(self):
         sth = STH.socp_2()
         for affine in TestSlacks.AFF_SOCP_CASES:
-            TestSlacks.simulate_chain(sth.prob, affine, solver='ECOS')
+            TestSlacks.simulate_chain(sth.prob, affine, solver='CLARABEL')
             sth.verify_objective(places=4)
             sth.verify_primal_values(places=4)
 
     def test_socp_3(self):
         for axis in [0, 1]:
             sth = STH.socp_3(axis)
-            TestSlacks.simulate_chain(sth.prob, [], solver='ECOS')
+            TestSlacks.simulate_chain(sth.prob, [], solver='CLARABEL')
             sth.verify_objective(places=4)
             sth.verify_primal_values(places=4)
 
     def test_expcone_1(self):
         sth = STH.expcone_1()
         for affine in TestSlacks.AFF_EXP_CASES:
-            TestSlacks.simulate_chain(sth.prob, affine, solver='ECOS')
+            TestSlacks.simulate_chain(sth.prob, affine, solver='CLARABEL')
             sth.verify_objective(places=4)
             sth.verify_primal_values(places=4)
 
     def test_expcone_socp_1(self):
         sth = STH.expcone_socp_1()
         for affine in TestSlacks.AFF_MIXED_CASES:
-            TestSlacks.simulate_chain(sth.prob, affine, solver='ECOS')
+            TestSlacks.simulate_chain(sth.prob, affine, solver='CLARABEL')
             sth.verify_objective(places=4)
             sth.verify_primal_values(places=4)
 
@@ -354,7 +354,7 @@ class TestSlacks(BaseTest):
     def test_mi_lp_1(self):
         sth = STH.mi_lp_1()
         for affine in TestSlacks.AFF_LP_CASES:
-            TestSlacks.simulate_chain(sth.prob, affine, solver='ECOS_BB')
+            TestSlacks.simulate_chain(sth.prob, affine, solver=cp.SCIPY)
             sth.verify_objective(places=4)
             sth.verify_primal_values(places=4)
 
@@ -362,7 +362,7 @@ class TestSlacks(BaseTest):
     def test_mi_socp_1(self):
         sth = STH.mi_socp_1()
         for affine in TestSlacks.AFF_SOCP_CASES:
-            TestSlacks.simulate_chain(sth.prob, affine, solver='ECOS_BB')
+            TestSlacks.simulate_chain(sth.prob, affine, solver=cp.SCIPY)
             sth.verify_objective(places=4)
             sth.verify_primal_values(places=4)
 
@@ -520,7 +520,7 @@ class TestRelEntrQuad(BaseTest):
 
     def test_expcone_1(self):
         sth = self.expcone_1()
-        sth.solve(solver='ECOS')
+        sth.solve(solver='CLARABEL')
         sth.verify_primal_values(places=2)
         sth.verify_objective(places=2)
 
@@ -558,9 +558,9 @@ class TestRelEntrQuad(BaseTest):
 
     def test_expcone_socp_1(self):
         sth = self.expcone_socp_1()
-        sth.solve(solver='ECOS')
-        sth.verify_primal_values(places=2)
-        sth.verify_objective(places=2)
+        sth.solve(solver=cp.SCS)
+        sth.verify_primal_values(places=6)
+        sth.verify_objective(places=6)
 
 
 def sdp_ipm_installed():

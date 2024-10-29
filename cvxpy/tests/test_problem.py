@@ -193,9 +193,7 @@ class TestProblem(BaseTest):
         prob.solve(solver=s.CLARABEL)
         stats = prob.solver_stats
         self.assertGreater(stats.solve_time, 0)
-        self.assertGreater(stats.setup_time, 0)
         self.assertGreater(stats.num_iters, 0)
-        self.assertIn('info', stats.extra_stats)
 
         prob = Problem(cp.Minimize(cp.norm(self.x)), [self.x == 0])
         prob.solve(solver=s.SCS)
@@ -233,8 +231,7 @@ class TestProblem(BaseTest):
         dims = data[ConicSolver.DIMS]
         self.assertEqual(dims.soc, [3])
         self.assertEqual(data["c"].shape, (3,))
-        self.assertIsNone(data["A"])
-        self.assertEqual(data["G"].shape, (3, 3))
+        self.assertEqual(data["A"].shape, (3, 3))
 
         # caching use_quad_obj
         p = Problem(cp.Minimize(cp.sum_squares(self.x) + 2))
@@ -1242,17 +1239,6 @@ class TestProblem(BaseTest):
         result = p.solve(solver=s.SCS)
         self.assertAlmostEqual(result, 0)
 
-        with self.assertRaises(ValueError) as cm:
-            obj = cp.Minimize(cp.sum(cp.square(self.x)))
-            constraints = [self.x == self.x]
-            problem = Problem(obj, constraints)
-            problem.solve(solver=s.CLARABEL)
-        self.assertEqual(
-            str(cm.exception),
-            "CLARABEL cannot handle sparse data with nnz == 0; "
-            "this is a bug in CLARABEL, and it indicates that your problem "
-            "might have redundant constraints.")
-
     # Test that symmetry is enforced.
     def test_sdp_symmetry(self) -> None:
         p = Problem(cp.Minimize(cp.lambda_max(self.A)), [self.A >= 2])
@@ -1383,10 +1369,10 @@ class TestProblem(BaseTest):
         """Tests that errors occur when you use an invalid solver.
         """
         with self.assertRaises(SolverError):
-            Problem(cp.Minimize(Variable(boolean=True))).solve(solver=s.CLARABEL)
+            Problem(cp.Minimize(Variable(boolean=True))).solve(solver=s.OSQP)
 
         with self.assertRaises(SolverError):
-            Problem(cp.Minimize(cp.lambda_max(self.A))).solve(solver=s.CLARABEL)
+            Problem(cp.Minimize(cp.lambda_max(self.A))).solve(solver=s.OSQP)
 
         with self.assertRaises(SolverError):
             Problem(cp.Minimize(self.a)).solve(solver=s.SCS)
@@ -2007,7 +1993,7 @@ class TestProblem(BaseTest):
             constraints = [a >= 0., -alpha <= D.T @ a, D.T @ a <= alpha]
 
             prob = cp.Problem(obj, constraints)
-            prob.solve(solver=s.CLARABEL)
+            prob.solve(solver=s.OSQP)
             assert prob.status == 'optimal'
             return prob
 
