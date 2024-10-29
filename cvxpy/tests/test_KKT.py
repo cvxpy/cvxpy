@@ -11,7 +11,7 @@ class TestKKT_LPs(BaseTest):
     def test_lp_1(self, places=4):
         # typical LP
         sth = STH.lp_1()
-        sth.solve(solver='ECOS')
+        sth.solve(solver='CLARABEL')
         sth.check_primal_feasibility(places)
         sth.check_complementarity(places)
         sth.check_dual_domains(places)
@@ -20,7 +20,7 @@ class TestKKT_LPs(BaseTest):
     def test_lp_2(self, places=4):
         # typical LP
         sth = STH.lp_2()
-        sth.solve(solver='ECOS')
+        sth.solve(solver='CLARABEL')
         sth.check_primal_feasibility(places)
         sth.check_complementarity(places)
         sth.check_dual_domains(places)
@@ -29,7 +29,7 @@ class TestKKT_LPs(BaseTest):
     def test_lp_5(self, places=4):
         # LP with redundant constraints
         sth = STH.lp_5()
-        sth.solve(solver='ECOS')
+        sth.solve(solver='CLARABEL')
         sth.check_primal_feasibility(places)
         sth.check_complementarity(places)
         sth.check_dual_domains(places)
@@ -40,7 +40,7 @@ class TestKKT_QPs(BaseTest):
 
     def test_qp_0(self, places=4):
         sth = STH.qp_0()
-        sth.solve(solver='ECOS')
+        sth.solve(solver='CLARABEL')
         sth.check_primal_feasibility(places)
         sth.check_complementarity(places)
         sth.check_dual_domains(places)
@@ -52,7 +52,7 @@ class TestKKT_SOCPs(BaseTest):
 
     def test_socp_0(self, places=4):
         sth = STH.socp_0()
-        sth.solve(solver='ECOS')
+        sth.solve(solver='CLARABEL')
         sth.check_primal_feasibility(places)
         sth.check_complementarity(places)
         sth.check_dual_domains(places)
@@ -61,7 +61,7 @@ class TestKKT_SOCPs(BaseTest):
 
     def test_socp_1(self, places=4):
         sth = STH.socp_1()
-        sth.solve(solver='ECOS')
+        sth.solve(solver='CLARABEL')
         sth.check_primal_feasibility(places)
         sth.check_complementarity(places)
         sth.check_dual_domains(places)
@@ -70,7 +70,7 @@ class TestKKT_SOCPs(BaseTest):
 
     def test_socp_2(self, places=4):
         sth = STH.socp_2()
-        sth.solve(solver='ECOS')
+        sth.solve(solver='CLARABEL')
         sth.check_primal_feasibility(places)
         sth.check_complementarity(places)
         sth.check_dual_domains(places)
@@ -79,7 +79,7 @@ class TestKKT_SOCPs(BaseTest):
 
     def test_socp_3ax0(self, places=4):
         sth = STH.socp_3(axis=0)
-        sth.solve(solver='ECOS')
+        sth.solve(solver='CLARABEL')
         sth.check_primal_feasibility(places)
         sth.check_complementarity(places)
         sth.check_dual_domains(places)
@@ -89,7 +89,7 @@ class TestKKT_SOCPs(BaseTest):
 
     def test_socp_3ax1(self, places=4):
         sth = STH.socp_3(axis=1)
-        sth.solve(solver='ECOS')
+        sth.solve(solver='CLARABEL')
         sth.check_primal_feasibility(places)
         sth.check_complementarity(places)
         sth.check_dual_domains(places)
@@ -101,7 +101,7 @@ class TestKKT_ECPs(BaseTest):
 
     def test_expcone_1(self, places = 4):
         sth = STH.expcone_1()
-        sth.solve(solver='ECOS')
+        sth.solve(solver='CLARABEL')
         sth.check_primal_feasibility(places)
         sth.check_complementarity(places)
         sth.check_dual_domains(places)

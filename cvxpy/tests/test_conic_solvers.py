@@ -41,6 +41,7 @@ from cvxpy.tests.solver_test_helpers import (
 from cvxpy.utilities.versioning import Version
 
 
+@unittest.skipUnless('ECOS' in INSTALLED_SOLVERS, 'ECOS is not installed.')
 class TestECOS(BaseTest):
 
     def setUp(self) -> None:
@@ -2130,6 +2131,7 @@ class TestAllSolvers(BaseTest):
             self.assertItemsAlmostEqual(x.value, [0, 0])
 
 
+@unittest.skipUnless('ECOS' in INSTALLED_SOLVERS, 'ECOS_BB is not installed.')
 class TestECOS_BB(unittest.TestCase):
 
     def test_ecos_bb_explicit_only(self) -> None:

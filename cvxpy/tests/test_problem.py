@@ -21,7 +21,6 @@ import warnings
 from fractions import Fraction
 from io import StringIO
 
-import ecos
 import numpy
 import numpy as np
 import scipy.sparse as sp
@@ -38,7 +37,7 @@ from cvxpy.error import DCPError, ParameterError, SolverError
 from cvxpy.expressions.constants import Constant, Parameter
 from cvxpy.expressions.variable import Variable
 from cvxpy.problems.problem import Problem
-from cvxpy.reductions.solvers.conic_solvers import ecos_conif, scs_conif
+from cvxpy.reductions.solvers.conic_solvers import scs_conif
 from cvxpy.reductions.solvers.conic_solvers.conic_solver import ConicSolver
 from cvxpy.reductions.solvers.defines import (
     INSTALLED_SOLVERS,
@@ -191,7 +190,7 @@ class TestProblem(BaseTest):
         """Test the solver_stats method.
         """
         prob = Problem(cp.Minimize(cp.norm(self.x)), [self.x == 0])
-        prob.solve(solver=s.ECOS)
+        prob.solve(solver=s.CLARABEL)
         stats = prob.solver_stats
         self.assertGreater(stats.solve_time, 0)
         self.assertGreater(stats.setup_time, 0)
@@ -230,7 +229,7 @@ class TestProblem(BaseTest):
         self.assertEqual(data["c"].shape, (2,))
         self.assertEqual(data["A"].shape, (3, 2))
 
-        data, _, _ = Problem(cp.Minimize(cp.norm(self.x) + 3)).get_problem_data(s.ECOS)
+        data, _, _ = Problem(cp.Minimize(cp.norm(self.x) + 3)).get_problem_data(s.CLARABEL)
         dims = data[ConicSolver.DIMS]
         self.assertEqual(dims.soc, [3])
         self.assertEqual(data["c"].shape, (3,))
@@ -272,17 +271,6 @@ class TestProblem(BaseTest):
         prob.unpack_results(solution, chain, inv)
         self.assertAlmostEqual(self.a.value, 0, places=3)
         self.assertAlmostEqual(prob.value, 1, places=3)
-        self.assertAlmostEqual(prob.status, s.OPTIMAL)
-
-        prob = Problem(cp.Minimize(cp.norm(self.x)), [self.x == 0])
-        args, chain, inv = prob.get_problem_data(s.ECOS)
-        cones = ecos_conif.dims_to_solver_dict(args[ConicSolver.DIMS])
-        solution = ecos.solve(args["c"], args["G"], args["h"],
-                              cones, args["A"], args["b"])
-        prob = Problem(cp.Minimize(cp.norm(self.x)), [self.x == 0])
-        prob.unpack_results(solution, chain, inv)
-        self.assertItemsAlmostEqual(self.x.value, [0, 0])
-        self.assertAlmostEqual(prob.value, 0)
         self.assertAlmostEqual(prob.status, s.OPTIMAL)
 
     def test_verbose(self) -> None:
@@ -420,7 +408,7 @@ class TestProblem(BaseTest):
     #         obj = cp.Minimize(sum)
     #         p = Problem(obj, constraints)
     #         objective, constraints = p.canonicalize()
-    #         sym_data = SymData(objective, constraints, SOLVERS[s.ECOS])
+    #         sym_data = SymData(objective, constraints, SOLVERS[s.CLARABEL])
     #         # Sort by offset.
     #         vars_ = sorted(sym_data.var_offsets.items(),
     #                        key=lambda key_val: key_val[1])
@@ -626,7 +614,7 @@ class TestProblem(BaseTest):
         # Test status and value.
         exp = cp.Maximize(self.a)
         p = Problem(exp, [self.a <= 2])
-        result = p.solve(solver=s.ECOS)
+        result = p.solve(solver=s.CLARABEL)
         self.assertEqual(result, p.value)
         self.assertEqual(p.status, s.OPTIMAL)
         assert self.a.value is not None
@@ -634,7 +622,7 @@ class TestProblem(BaseTest):
 
         # Unbounded problems.
         p = Problem(cp.Maximize(self.a), [self.a >= 2])
-        p.solve(solver=s.ECOS)
+        p.solve(solver=s.CLARABEL)
         self.assertEqual(p.status, s.UNBOUNDED)
         assert numpy.isinf(p.value)
         assert p.value > 0
@@ -654,7 +642,7 @@ class TestProblem(BaseTest):
         self.a.save_value(2)
         p.constraints[0].save_dual_value(2)
 
-        result = p.solve(solver=s.ECOS)
+        result = p.solve(solver=s.CLARABEL)
         self.assertEqual(result, p.value)
         self.assertEqual(p.status, s.INFEASIBLE)
         assert numpy.isinf(p.value)
@@ -663,7 +651,7 @@ class TestProblem(BaseTest):
         assert p.constraints[0].dual_value is None
 
         p = Problem(cp.Minimize(-self.a), [self.a >= 2, self.a <= 1])
-        result = p.solve(solver=s.ECOS)
+        result = p.solve(solver=s.CLARABEL)
         self.assertEqual(result, p.value)
         self.assertEqual(p.status, s.INFEASIBLE)
         assert numpy.isinf(p.value)
@@ -691,12 +679,12 @@ class TestProblem(BaseTest):
         self.assertItemsAlmostEqual(self.x.value, [8, 8], places=3)
         self.assertItemsAlmostEqual(self.z.value, [2, 2], places=3)
 
-    def test_ecos_noineq(self) -> None:
-        """Test ECOS with no inequality constraints.
+    def test_CLARABEL_noineq(self) -> None:
+        """Test CLARABEL with no inequality constraints.
         """
         T = Constant(numpy.ones((2, 2))).value
         p = Problem(cp.Minimize(1), [self.A == T])
-        result = p.solve(solver=s.ECOS)
+        result = p.solve(solver=s.CLARABEL)
         self.assertAlmostEqual(result, 1)
         self.assertItemsAlmostEqual(self.A.value, T)
 
@@ -924,7 +912,7 @@ class TestProblem(BaseTest):
     def test_dual_variables(self) -> None:
         """Test recovery of dual variables.
         """
-        for solver in [s.ECOS, s.SCS, s.CVXOPT]:
+        for solver in [s.CLARABEL, s.SCS, s.CVXOPT]:
             if solver in INSTALLED_SOLVERS:
                 if solver == s.SCS:
                     acc = 1
@@ -1258,11 +1246,11 @@ class TestProblem(BaseTest):
             obj = cp.Minimize(cp.sum(cp.square(self.x)))
             constraints = [self.x == self.x]
             problem = Problem(obj, constraints)
-            problem.solve(solver=s.ECOS)
+            problem.solve(solver=s.CLARABEL)
         self.assertEqual(
             str(cm.exception),
-            "ECOS cannot handle sparse data with nnz == 0; "
-            "this is a bug in ECOS, and it indicates that your problem "
+            "CLARABEL cannot handle sparse data with nnz == 0; "
+            "this is a bug in CLARABEL, and it indicates that your problem "
             "might have redundant constraints.")
 
     # Test that symmetry is enforced.
@@ -1395,10 +1383,10 @@ class TestProblem(BaseTest):
         """Tests that errors occur when you use an invalid solver.
         """
         with self.assertRaises(SolverError):
-            Problem(cp.Minimize(Variable(boolean=True))).solve(solver=s.ECOS)
+            Problem(cp.Minimize(Variable(boolean=True))).solve(solver=s.CLARABEL)
 
         with self.assertRaises(SolverError):
-            Problem(cp.Minimize(cp.lambda_max(self.A))).solve(solver=s.ECOS)
+            Problem(cp.Minimize(cp.lambda_max(self.A))).solve(solver=s.CLARABEL)
 
         with self.assertRaises(SolverError):
             Problem(cp.Minimize(self.a)).solve(solver=s.SCS)
@@ -2019,7 +2007,7 @@ class TestProblem(BaseTest):
             constraints = [a >= 0., -alpha <= D.T @ a, D.T @ a <= alpha]
 
             prob = cp.Problem(obj, constraints)
-            prob.solve(solver=cp.settings.ECOS)
+            prob.solve(solver=s.CLARABEL)
             assert prob.status == 'optimal'
             return prob
 
@@ -2238,7 +2226,7 @@ class TestProblem(BaseTest):
                 assert isinstance(w[0].message, FutureWarning)
                 assert str(w[0].message) == ECOS_DEPRECATION_MSG
             
-            # No warning if ECOS solver specified.
+            # No warning if CLARABEL solver specified.
             with warnings.catch_warnings(record=True) as w:
-                prob.solve(solver=cp.ECOS)
+                prob.solve(solver=cp.CLARABEL)
                 assert len(w) == 0

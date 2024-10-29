@@ -9,7 +9,7 @@ from cvxpy.reductions import solution
 from cvxpy.settings import SOLVER_ERROR
 from cvxpy.tests.base_test import BaseTest
 
-SOLVER = cvxpy.ECOS
+SOLVER = cvxpy.CLARABEL
 
 
 class TestDgp2Dcp(BaseTest):
