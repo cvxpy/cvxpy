@@ -15,12 +15,14 @@ limitations under the License.
 """
 
 import numpy as np
+import pytest
 import scipy.sparse as sp
 
 import cvxpy as cp
 from cvxpy import Minimize, Problem
 from cvxpy.expressions.constants import Constant, Parameter
 from cvxpy.expressions.variable import Variable
+from cvxpy.reductions.solvers.defines import INSTALLED_MI_SOLVERS
 from cvxpy.tests.base_test import BaseTest
 
 
@@ -637,6 +639,10 @@ class TestComplex(BaseTest):
         print("P2 is complex:", cp.quad_form(x, P2).curvature)
         assert cp.quad_form(x, P2).is_dcp()
 
+    @pytest.mark.skipif(
+        len(INSTALLED_MI_SOLVERS) == 0, 
+        reason='No mixed-integer solver is installed.'
+    )
     def test_bool(self) -> None:
         # The purpose of this test is to make sure
         # that we don't try to recover dual variables
@@ -652,7 +658,7 @@ class TestComplex(BaseTest):
 
         obj = cp.Maximize(cp.real(complex_var))
         prob = cp.Problem(obj, constraints)
-        prob.solve(solver=cp.SCIPY)
+        prob.solve(solver=cp.HIGHS)
         self.assertAlmostEqual(prob.value, 1, places=4)
 
     def test_partial_trace(self) -> None:

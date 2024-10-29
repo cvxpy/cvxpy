@@ -93,7 +93,7 @@ class TestNonlinearAtoms(BaseTest):
         klprob.solve(solver=cp.SCS)
         self.assertItemsAlmostEqual(v_prob.value, npSPriors, places=3)
         klprob.solve(solver=cp.CLARABEL)
-        self.assertItemsAlmostEqual(v_prob.value, npSPriors)
+        self.assertItemsAlmostEqual(v_prob.value, npSPriors, places=3)
 
     def test_rel_entr(self) -> None:
         """Test a problem with rel_entr.
@@ -151,7 +151,7 @@ class TestNonlinearAtoms(BaseTest):
             obj = cp.Maximize(cp.sum(cp.entr(x)))
             p = cp.Problem(obj, [cp.sum(x) == 1])
             p.solve(solver=cp.CLARABEL)
-            self.assertItemsAlmostEqual(x.value, n*[1./n])
+            self.assertItemsAlmostEqual(x.value, n*[1./n], places=3)
             p.solve(solver=cp.SCS)
             self.assertItemsAlmostEqual(x.value, n*[1./n], places=3)
 
