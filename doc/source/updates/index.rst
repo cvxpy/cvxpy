@@ -4,7 +4,53 @@ Changes to CVXPY
 ================
 
 This page details changes made to CVXPY over time, in reverse chronological order.
-CVXPY's project maintainers currently provide support for CVXPY 1.4 and 1.3.
+CVXPY's project maintainers currently provide support for CVXPY 1.5 and 1.4.
+
+CVXPY 1.5
+---------
+
+This release is consistent with our semantic versioning guarantee. It
+comes packed with many new features, bug fixes, and performance
+improvements. This version of CVXPY supports Python 3.8 through 3.12,
+While working on the next release, we continue to officially support
+CVXPY 1.5 and 1.4.
+
+This release may **not** be compatible with NumPy 2.0.
+
+
+ECOS deprecation
+~~~~~~~~~~~~~~~~
+
+CVXPY has used ECOS as the default solver for many years; however, it
+has known issues with performance and numerical stability in edge cases.
+Recently, a new solver, Clarabel, that improves the algorithm and
+implementation of ECOS has been under development.
+
+In this release, CVXPY uses Clarabel instead of ECOS for all
+categories of problems where ECOS was previously the default.
+
+In 1.6, we plan to no longer install ECOS as a CVXPY dependency.
+We have no plans to remove support for calling ECOS as a solver.
+
+We encourage you to try and use Clarabel instead, but if you're
+dependent on ECOS's exact behavior please explicitly specify it as a
+solver and as a dependency for your project.
+
+New features
+~~~~~~~~~~~~
+
+- Major updates to the documentation, adding a number of new sections to the 
+    User Guide and breaking up the monolithic Advanced features page
+- Added `.curvatures` containing all curvatures an expression is compatible with
+- Variable bounds can be specified with `cp.Variable(bound=(lower, upper))`
+    and are directly passed to the solver when helpful. `lower` and `upper` can
+    be either a NumPy array or floating point number.
+- Constants can be named by writing `cp.Constant(name='...')`
+- Added a new atom, `vdot`, that has the same behavior as `scalar_product`
+- CVXPY runs in the next PyOdide release via wasm
+- Added or-tools 9.9 support
+- Major rewrite to the PDLP interface
+- Dropped MOSEK <= 9 support and upgraded the MOSEK integration code
 
 CVXPY 1.4
 ---------
@@ -24,8 +70,7 @@ New features
 -  New atom: :ref:`std <std>`
 -  New atom: :ref:`var <var>`
 -  New atom: :ref:`vec_to_upper_tri <vec-to-upper-tri>`
--  Adds methods to CVXPY expressions that are found on NumPy ndarrays
-  such as ``.sum()``, ``.max()``, and ``.mean()``
+-  Adds methods to CVXPY expressions that are found on NumPy ndarrays such as ``.sum()``, ``.max()``, and ``.mean()``
 -  New solver interface: ``PIQP``
 -  Adds SDP support to the Clarabel interface
 -  Addedd support for OR-Tools 9.7
@@ -125,37 +170,37 @@ We review those features and the new features in CVXPY 1.2.0 below.
 
 Constraints and atoms
 ~~~~~~~~~~~~~~~~~~~~~
- * 1.2.0: added atoms for `partial trace <https://en.wikipedia.org/wiki/Partial_trace>`_ and partial transpose,
-   which are important linear operators in quantum information
- * 1.2.0: updated ``kron`` so that either argument in ``kron(A, B)`` can be a non-constant affine Expression,
-   provided the other argument is constant. We previously required that ``A`` was constant.
- * 1.2.0: added ``xexp``: an atom that implements :math:`\texttt{xexp}(x) = x e^{x}`.
- * 1.1.14: added ``loggamma``: an atom which approximates the log of the gamma function
- * 1.1.14: added ``rel_entr``: an atom with the same semantics as the SciPy's "rel_entr"
- * 1.1.8: added ``log_normcdf``: an atom that approximates the log of the Gaussian distribution's CDF
- * 1.1.8: added power cone constraints
+* 1.2.0: added atoms for `partial trace <https://en.wikipedia.org/wiki/Partial_trace>`_ and partial transpose,
+  which are important linear operators in quantum information
+* 1.2.0: updated ``kron`` so that either argument in ``kron(A, B)`` can be a non-constant affine Expression,
+  provided the other argument is constant. We previously required that ``A`` was constant.
+* 1.2.0: added ``xexp``: an atom that implements :math:`\texttt{xexp}(x) = x e^{x}`.
+* 1.1.14: added ``loggamma``: an atom which approximates the log of the gamma function
+* 1.1.14: added ``rel_entr``: an atom with the same semantics as the SciPy's "rel_entr"
+* 1.1.8: added ``log_normcdf``: an atom that approximates the log of the Gaussian distribution's CDF
+* 1.1.8: added power cone constraints
 
 Solver interfaces
 ~~~~~~~~~~~~~~~~~
- * 1.2.0: support PDLP and GLOP, via OR-Tools
- * 1.1.17: support for SCS 3.0
- * 1.1.14: support for HiGHS (and other LP solvers that come with SciPy)
- * 1.1.12: ECOS, ECOS_BB, and SCS report solver statistics
- * 1.1.12: support warm-start with GUROBI
- * 1.1.8: added a mechanism for users to create solver interfaces without modifying CVXPY source code
- * 1.1.6: rewrote the MOSEK interface; it now dualizes all continuous problems
- * 1.1.4: support for FICO XPRESS
- * 1.1.2: support for SCIP
- * 1.1.2: users can provide their own implementation of a KKT solver for use with CVXOPT
+* 1.2.0: support PDLP and GLOP, via OR-Tools
+* 1.1.17: support for SCS 3.0
+* 1.1.14: support for HiGHS (and other LP solvers that come with SciPy)
+* 1.1.12: ECOS, ECOS_BB, and SCS report solver statistics
+* 1.1.12: support warm-start with GUROBI
+* 1.1.8: added a mechanism for users to create solver interfaces without modifying CVXPY source code
+* 1.1.6: rewrote the MOSEK interface; it now dualizes all continuous problems
+* 1.1.4: support for FICO XPRESS
+* 1.1.2: support for SCIP
+* 1.1.2: users can provide their own implementation of a KKT solver for use with CVXOPT
 
 General system improvements
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
- * 1.1.18: A problem status "infeasible or unbounded", for use by specific solvers in rare situations
- * 1.1.11: verbose logging
- * 1.1.11: several improvements to CVXPY's  C++ backend rewriting system, "cvxcore."
-   In particular, CVXPY can now be compiled from source with openmp enabled, which allows
-   canonicalization to take advantage of multithreading.
- * 1.1.6: a "Dualize" reduction
+* 1.1.18: A problem status "infeasible or unbounded", for use by specific solvers in rare situations
+* 1.1.11: verbose logging
+* 1.1.11: several improvements to CVXPY's  C++ backend rewriting system, "cvxcore."
+  In particular, CVXPY can now be compiled from source with openmp enabled, which allows
+  canonicalization to take advantage of multithreading.
+* 1.1.6: a "Dualize" reduction
 
 CVXPY 1.1
 ---------
@@ -188,11 +233,11 @@ CVXPY has long provided abstractions ("atoms" and "transforms") which make it ea
 optimization problems in natural ways. The release of CVXPY 1.1 is accompanied by the following
 new abstractions:
 
- - A "support function" transform for use in disciplined convex programming.
- - A "scalar product" atom, for appropriate use across all problem classes.
- - A "gmatmul" atom, which captures the DGP equivalent to matrix multiplication.
- - The atoms ``cp.max`` and ``cp.min`` have been extended for use in DQCP.
- - The python builtin ``sum`` is now allowed in DGP.
+- A "support function" transform for use in disciplined convex programming.
+- A "scalar product" atom, for appropriate use across all problem classes.
+- A "gmatmul" atom, which captures the DGP equivalent to matrix multiplication.
+- The atoms ``cp.max`` and ``cp.min`` have been extended for use in DQCP.
+- The python builtin ``sum`` is now allowed in DGP.
 
 Breaking changes
 ~~~~~~~~~~~~~~~~

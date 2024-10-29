@@ -15,11 +15,12 @@ limitations under the License.
 """
 
 from cvxpy.atoms.affine.binary_operators import (matmul, multiply,
-                                                 scalar_product, outer,)
+                                                 vdot, scalar_product, outer,)
 from cvxpy.atoms.affine.bmat import bmat
 from cvxpy.atoms.affine.conj import conj
 from cvxpy.atoms.affine.conv import conv, convolve
 from cvxpy.atoms.affine.cumsum import cumsum
+from cvxpy.atoms.cumprod import cumprod
 from cvxpy.atoms.affine.diag import diag
 from cvxpy.atoms.affine.diff import diff
 from cvxpy.atoms.affine.hstack import hstack
@@ -40,6 +41,7 @@ from cvxpy.atoms.affine.wraps import (hermitian_wrap, psd_wrap,
                                       skew_symmetric_wrap, symmetric_wrap,)
 from cvxpy.atoms.condition_number import condition_number
 from cvxpy.atoms.cummax import cummax
+from cvxpy.atoms.cvar import cvar
 from cvxpy.atoms.dist_ratio import dist_ratio
 from cvxpy.atoms.dotsort import dotsort
 from cvxpy.atoms.elementwise.abs import abs

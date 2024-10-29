@@ -92,13 +92,13 @@ class SCIPY(ConicSolver):
         data[s.A] = -A[:len_eq]
         if data[s.A].shape[0] == 0:
             data[s.A] = None
-        data[s.B] = b[:len_eq].flatten()
+        data[s.B] = b[:len_eq].flatten(order='F')
         if data[s.B].shape[0] == 0:
             data[s.B] = None
         data[s.G] = -A[len_eq:]
         if 0 in data[s.G].shape:
             data[s.G] = None
-        data[s.H] = b[len_eq:].flatten()
+        data[s.H] = b[len_eq:].flatten(order='F')
         if 0 in data[s.H].shape:
             data[s.H] = None
         return data, inv_data
@@ -259,9 +259,15 @@ class SCIPY(ConicSolver):
                     inverse_data[self.NEQ_CONSTR])
                 eq_dual.update(leq_dual)
                 dual_vars = eq_dual
+            
             attr = {}
-            if "mip_gap" in solution:
-                attr[s.EXTRA_STATS] = {"mip_gap": solution['mip_gap']}
+            if "nit" in solution: # Number of interior-point or simplex iterations
+                attr[s.NUM_ITERS] = solution['nit']
+            if "mip_gap" in solution: # Branch and bound statistics
+                attr[s.EXTRA_STATS] = {"mip_gap": solution['mip_gap'], 
+                                       "mip_node_count": solution['mip_node_count'], 
+                                       "mip_dual_bound": solution['mip_dual_bound']}
+
             return Solution(status, opt_val, primal_vars, dual_vars, attr)
         else:
             return failure_solution(status)

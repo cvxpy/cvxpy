@@ -1,5 +1,5 @@
 """
-Copyright 2013 Steven Diamond
+Copyright 2024 the CVXPY developers
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -13,3 +13,8 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+from cvxpy.atoms.affine.cumsum import cumsum
+
+
+def cumprod_canon(expr, args):
+    return cumsum(args[0], axis=expr.axis), []

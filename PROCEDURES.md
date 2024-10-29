@@ -44,6 +44,7 @@ Let's say we're releasing 1.2.0.
    The state of this branch is effectively a pre-release of
    CVXPY 1.3.0.
 5. Update `docs/source/index.rst` to say "Welcome to CVXPY 1.3"
+6. Extend the ``version_info`` field in ``doc/source/conf.py``.
 
 ### Incrementing the MICRO version number (a.k.a., releasing a patch)
 
@@ -108,6 +109,9 @@ although we should only ping conda-forge/core if h-vetinari is unavailable.
 An import note: cvxpy's conda-forge feedstock includes a patch to remove ``pyproject.toml``,
 because it ignores and tramples over the required build dependencies as conda-forge sets them up.
 If this file has changed between versions, the old patch will fail to apply and will need to be rebased.
+
+## Creating a release on GitHub
+Go to the [Releases](https://github.com/cvxpy/cvxpy/releases) tab and click "Draft a new release". Select the previously created tag and write release notes. For minor releases, this includes a summary of new features and deprecations. Additionally, we mention the PRs contained in the release and their contributors. Take care to select the "set as the latest release" only for minor releases or patches to the most recent major release.
 
 ## Deploying updated documentation to gh-pages
 

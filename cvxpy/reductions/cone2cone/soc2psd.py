@@ -46,8 +46,8 @@ class SOC2PSD(Reduction):
         soc_id_from_psd = {}
 
         for constraint in soc_constraints:
-            """
-            The SOC constraint :math:`\\lVert X \\rVert_2 \leq t` is modeled by `t` and `X`.
+            r"""
+            The SOC constraint :math:`\lVert X \rVert_2 \leq t` is modeled by `t` and `X`.
             We extract these `t` and `X` from the SOC constraint object.
             """
             t, X = constraint.args
@@ -74,14 +74,14 @@ class SOC2PSD(Reduction):
                 """
 
                 A = scalar_term * sparse.eye(1)
-                B = cp.reshape(X,[-1,1]).T
+                B = cp.reshape(X,[-1,1], order='F').T
                 C = scalar_term * sparse.eye(vector_term_len)
 
                 """
                 Another technique for reference
 
                 A = scalar_term * sparse.eye(vector_term_len)
-                B = cp.reshape(X,[-1,1])
+                B = cp.reshape(X,[-1,1], order='F')
                 C = scalar_term * sparse.eye(1)
                 """
 

@@ -14,8 +14,6 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from __future__ import division
-
 import numpy as np
 
 import cvxpy as cp
@@ -192,6 +190,12 @@ class TestGrad(BaseTest):
         expr = cp.normNuc(self.A)
         self.A.value = [[10, 4], [4, 30]]
         self.assertItemsAlmostEqual(expr.grad[self.A].toarray(), [1, 0, 0, 1])
+
+        # Failed for rectangular inputs.
+        # https://github.com/cvxpy/cvxpy/issues/2364
+        expr = cp.normNuc(self.C)
+        self.C.value = np.array([[1, 0], [0, 0], [0, 2]])
+        self.assertItemsAlmostEqual(expr.grad[self.C].toarray(), [1, 0, 0, 0, 0, 1])
 
     def test_log_det(self) -> None:
         """Test gradient for log_det
@@ -380,8 +384,9 @@ class TestGrad(BaseTest):
         self.A.value = [[1, 2], [3, 4]]
         lin_expr = linearize(expr)
         manual = expr.value + 2*cp.reshape(
-            cp.diag(cp.vec(self.A)).value @ cp.vec(self.A - self.A.value),
-            (2, 2)
+            cp.diag(cp.vec(self.A, order='F')).value @ cp.vec(self.A - self.A.value, order='F'), 
+            (2, 2), 
+            order='F'
         )
         self.assertItemsAlmostEqual(lin_expr.value, expr.value)
         self.A.value = [[-5, -5], [8.2, 4.4]]
@@ -794,7 +799,7 @@ class TestGrad(BaseTest):
         for obj in [Minimize((self.a)**-1), Maximize(cp.entr(self.a))]:
             prob = Problem(obj, [self.x + self.a >= [5, 8]])
             # Optimize over nothing.
-            expr = partial_optimize(prob, dont_opt_vars=[self.x, self.a], solver=cp.ECOS)
+            expr = partial_optimize(prob, dont_opt_vars=[self.x, self.a], solver=cp.CLARABEL)
             self.a.value = None
             self.x.value = None
             grad = expr.grad
@@ -814,22 +819,22 @@ class TestGrad(BaseTest):
             self.assertItemsAlmostEqual(grad[self.x].toarray(), [0, 0, 0, 0])
 
             # Optimize over x.
-            expr = partial_optimize(prob, opt_vars=[self.x], solver=cp.ECOS)
+            expr = partial_optimize(prob, opt_vars=[self.x], solver=cp.CLARABEL)
             self.a.value = 1
             grad = expr.grad
             self.assertAlmostEqual(grad[self.a], obj.args[0].grad[self.a] + 0)
 
             # Optimize over a.
             fix_prob = Problem(obj, [self.x + self.a >= [5, 8], self.x == 0])
-            fix_prob.solve(solver=cp.ECOS)
+            fix_prob.solve(solver=cp.CLARABEL)
             dual_val = fix_prob.constraints[0].dual_variables[0].value
-            expr = partial_optimize(prob, opt_vars=[self.a], solver=cp.ECOS)
+            expr = partial_optimize(prob, opt_vars=[self.a], solver=cp.CLARABEL)
             self.x.value = [0, 0]
             grad = expr.grad
             self.assertItemsAlmostEqual(grad[self.x].toarray(), dual_val)
 
             # Optimize over x and a.
-            expr = partial_optimize(prob, opt_vars=[self.x, self.a], solver=cp.ECOS)
+            expr = partial_optimize(prob, opt_vars=[self.x, self.a], solver=cp.CLARABEL)
             grad = expr.grad
             self.assertAlmostEqual(grad, {})
 

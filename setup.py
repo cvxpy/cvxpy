@@ -52,36 +52,17 @@ if sys.platform == 'darwin':
 
 setup_versioning.write_version_py()
 VERSION = setup_versioning.VERSION
+extensions = [setup_extensions.cvxcore, setup_extensions.sparsecholesky]
 
 setup(
-    name='cvxpy',
+    name="cvxpy",
     version=str(VERSION),
-    author='Steven Diamond, Eric Chu, Stephen Boyd',
-    author_email='stevend2@stanford.edu, akshayka@cs.stanford.edu, '
-                 'echu508@stanford.edu, boyd@stanford.edu',
     cmdclass={'build_ext': build_ext_cvxpy},
-    ext_modules=[setup_extensions.cvxcore, setup_extensions.sparsecholesky],
+    ext_modules=extensions if "PYODIDE" not in os.environ else [],
     packages=find_packages(exclude=["doc*",
-                                    "examples*",
-                                    "cvxpy.performance_tests*"]),
-    url='https://github.com/cvxpy/cvxpy',
-    license='Apache License, Version 2.0',
+                                    "examples*"]),
     zip_safe=False,
-    description='A domain-specific language for modeling convex optimization '
-                'problems in Python.',
     package_data={
         'cvxpy': ['py.typed'],
     },
-    long_description=open('README.md').read(),
-    long_description_content_type="text/markdown",
-    python_requires='>=3.8',
-    install_requires=[
-        "osqp >= 0.6.2",
-        "ecos >= 2",
-        "clarabel >= 0.5.0",
-        "scs >= 3.0",
-        "numpy >= 1.15",
-        "scipy >= 1.1.0",
-        "pybind11"
-    ],
 )

@@ -38,8 +38,6 @@ class Constraint(u.Canonical):
         A unique id for the constraint.
     """
 
-    __metaclass__ = abc.ABCMeta
-
     def __init__(self, args, constr_id=None) -> None:
         # TODO cast constants.
         # self.args = [cvxtypes.expression().cast_to_const(arg) for arg in args]
@@ -67,8 +65,17 @@ class Constraint(u.Canonical):
 
     @property
     def shape(self):
-        """int : The shape of the constrained expression."""
+        """
+        int : The shape of the constrained expression.
+        """
         return self.args[0].shape
+
+    @property
+    def ndim(self) -> int:
+        """
+        int : The maximum number of dimensions of the constrained expression.
+        """
+        return len(self.args[0].shape)
 
     @property
     def size(self):
@@ -120,7 +127,8 @@ class Constraint(u.Canonical):
         else:
             raise ValueError("Unsupported context ", context)
 
-    @abc.abstractproperty
+    @property
+    @abc.abstractmethod
     def residual(self):
         """The residual of the constraint.
 
@@ -203,16 +211,6 @@ class Constraint(u.Canonical):
         """Data needed to copy.
         """
         return [self.id]
-
-    def __nonzero__(self):
-        """Raises an exception when called.
-
-        Python 2 version.
-
-        Called when evaluating the truth value of the constraint.
-        Raising an error here prevents writing chained constraints.
-        """
-        return self._chain_constraints()
 
     def _chain_constraints(self):
         """Raises an error due to chained constraints.

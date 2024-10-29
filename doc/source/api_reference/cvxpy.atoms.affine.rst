@@ -174,12 +174,12 @@ reshape
 .. autoclass:: cvxpy.reshape
     :show-inheritance:
 
-.. _scalar_product:
+.. _vdot:
 
-scalar_product
+vdot
 --------------
 
-.. autofunction:: cvxpy.scalar_product
+.. autofunction:: cvxpy.vdot
 
 .. _sum:
 

@@ -6,17 +6,17 @@ Contributing
 We welcome all contributors to CVXPY. You don't need to be an expert in convex
 optimization to help out. Here are simple ways to start contributing immediately:
 
- * Help answer questions on the `CVXPY discord <https://discord.gg/4urRQeGBCr>`_,
-   `Github discussions <https://github.com/cvxpy/cvxpy/discussions>`_,
-   or `StackOverflow <https://stackoverflow.com/questions/tagged/cvxpy>`_
+* Help answer questions on the `CVXPY discord <https://discord.gg/4urRQeGBCr>`_,
+  `Github discussions <https://github.com/cvxpy/cvxpy/discussions>`_,
+  or `StackOverflow <https://stackoverflow.com/questions/tagged/cvxpy>`_
 
- * Read the CVXPY source code and improve the documentation, or address TODOs
+* Read the CVXPY source code and improve the documentation, or address TODOs
 
- * Fix typos or otherwise enhance the `website documentation <https://github.com/cvxpy/cvxpy/tree/master/doc>`_
+* Fix typos or otherwise enhance the `website documentation <https://github.com/cvxpy/cvxpy/tree/master/doc>`_
 
- * Browse the `issue tracker <https://github.com/cvxpy/cvxpy/issues>`_, and work on unassigned bugs or feature requests
+* Browse the `issue tracker <https://github.com/cvxpy/cvxpy/issues>`_, and work on unassigned bugs or feature requests
 
- * Polish the `example library <https://github.com/cvxpy/cvxpy/tree/master/examples>`_
+* Polish the `example library <https://github.com/cvxpy/cvxpy/tree/master/examples>`_
 
 If you'd like to add a new example to our library, or implement a new feature,
 please get in touch with us first by opening a GitHub issue to make sure that your
@@ -34,29 +34,36 @@ Wishlist
 --------
 
 Here is a non-exhaustive list of opportunities to make prominent contributions to CVXPY.
+
 We've roughly categorized the opportunities as whether they amount to small-, medium-, or large-scope projects.
-New contributors are encouraged to focus on the projects with small or medium scope.
-Please contact a project maintainer if you're interested in working on a project with large scope.
+New contributors are encouraged to focus on small or medium projects.
+
+If you're interested in working on a large project, join the `Discord <https://discord.gg/4urRQeGBCr>`_ and let us know!
+We'll be happy to provide guidance and advice.
 
 Small scope projects
  - `State required cone types for atoms <https://github.com/cvxpy/cvxpy/issues/574>`_.
- - `Specify a list of solvers sorted by priority rather than just a single solver <https://github.com/cvxpy/cvxpy/issues/1529>`_.
+ - CuPy Canonicalization Backend for performance improvements over SciPy. (requires CUDA)
+ - Introduce sparse variables in constraint formulation.
+ - Propagate variable bounds to solvers.
+ - Add QDLDL as another option for sparse Cholesky.
+ - Add search and filter functionality for the atoms table.
 
 Medium scope projects
  - `Support integer variables in geometric programming <https://github.com/cvxpy/cvxpy/issues/1590>`_.
- - Add an interface to `COSMO.jl <https://oxfordcontrol.github.io/COSMO.jl/stable/>`_ [`1161 <https://github.com/cvxpy/cvxpy/issues/1161>`_].
- - Support more open-source interior-point SDP solvers [`1093 <https://github.com/cvxpy/cvxpy/issues/1093>`_, `1419 <https://github.com/cvxpy/cvxpy/discussions/1419>`_].
  - `Post-solver feasibility checks <https://github.com/cvxpy/cvxpy/issues/434>`_.
- - `Citation generator <https://github.com/cvxpy/cvxpy/issues/1341>`_.
  - `Developer documentation for key reduction files <https://github.com/cvxpy/cvxpy/issues/582>`_.
+ - `Allow multiple types and attributes for variables and parameters <https://github.com/cvxpy/cvxpy/issues/566>`_.
+ - cp.trace(A @ B) transforms into cp.vdot(A, B).
+ - Allow sparse variables to reduce problem dimension.
+ - `IPOPT interface to introduce support for non-linear non-convex problems <https://github.com/cvxpy/cvxpy/issues/1594>`_.
+ - `Vectorize the quad_over_lin atom <https://github.com/cvxpy/cvxpy/issues/1197>`_.
 
 Large scope projects
  - Expand use of power cone constraints [`1222 <https://github.com/cvxpy/cvxpy/issues/1222>`_, `1223 <https://github.com/cvxpy/cvxpy/issues/1223>`_].
- - Problem serialization [`532 <https://github.com/cvxpy/cvxpy/issues/532>`_, `1333 <https://github.com/cvxpy/cvxpy/issues/1333>`_, `1438 <https://github.com/cvxpy/cvxpy/issues/1438>`_]
- - Pretty print method for summarizing a solution and its dual variables.
- - `Support for n-dimensional expressions, variables, parameters, etc <https://github.com/cvxpy/cvxpy/issues/198>`_.
- - `10x improvement in the speed and memory usage of cvxcore <https://github.com/cvxpy/cvxpy/issues/708>`_, `especially for DPP problems <https://github.com/cvxpy/cvxpy/issues/1332>`_.
- - Full compatibility with NumPy broadcasting rules. This will be a breaking change, and can only go in CVXPY 2.0.
+ - Problem serialization [`532 <https://github.com/cvxpy/cvxpy/issues/532>`_, `1333 <https://github.com/cvxpy/cvxpy/issues/1333>`_, `1438 <https://github.com/cvxpy/cvxpy/issues/1438>`_].
+ - Quadratically Constrained QP support.
+ - Replace cvxcore (Cython or Rust Backend).
 
 
 General principles
@@ -71,32 +78,32 @@ Start by forking the CVXPY repository and installing CVXPY
 You should configure git on your local machine before changing any code.
 Here's one way CVXPY contributors might configure git:
 
- 1. Tell git about the existence of the official CVXPY repo:
-   ::
+1. Tell git about the existence of the official CVXPY repo:
+::
 
     git remote add upstream https://github.com/cvxpy/cvxpy.git
 
- 2. Fetch a copy of the official master branch:
-    ::
+2. Fetch a copy of the official master branch:
+::
 
-     git fetch upstream master
+    git fetch upstream master
 
- 3. Create a local branch which will track the official master branch:
-    ::
+3. Create a local branch which will track the official master branch:
+::
 
-     git branch --track official_master upstream/master
+    git branch --track official_master upstream/master
 
-   The *only* command you should use on the ``official_master`` branch is ``git pull``.
-   The purpose of this tracking branch is to allow you to easily sync with the main
-   CVXPY repository. Such an ability can be a huge help in resolving any merge conflicts
-   encountered in a pull request. For simple contributions, you might never use this branch.
+The *only* command you should use on the ``official_master`` branch is ``git pull``.
+The purpose of this tracking branch is to allow you to easily sync with the main
+CVXPY repository. Such an ability can be a huge help in resolving any merge conflicts
+encountered in a pull request. For simple contributions, you might never use this branch.
 
- 4. Switch back to your forked master branch:
-    ::
+4. Switch back to your forked master branch:
+::
 
-        git checkout master
+    git checkout master
 
- 5. Resume work as usual!
+5. Resume work as usual!
 
 Contribution checklist
 ~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -105,15 +112,15 @@ Contributions are made through
 `pull requests <https://help.github.com/articles/using-pull-requests/>`_.
 Before sending a pull request, make sure you do the following:
 
- - Add our :ref:`license <contrib_license>` to new files
+- Add our :ref:`license <contrib_license>` to new files
 
- - Check that your code adheres to our :ref:`coding style <contrib_style>`.
+- Check that your code adheres to our :ref:`coding style <contrib_style>`.
 
- - :ref:`Write<contrib_unittests>` unittests.
+- :ref:`Write<contrib_unittests>` unittests.
 
- - :ref:`Run<contrib_run_tests>` the unittests and check that they're passing.
+- :ref:`Run<contrib_run_tests>` the unittests and check that they're passing.
 
- - :ref:`Run the benchmarks<contrib_run_benchmarks>` to make sure your change doesn't introduce a regression
+- :ref:`Run the benchmarks<contrib_run_benchmarks>` to make sure your change doesn't introduce a regression
 
 Once you've made your pull request, a member of the CVXPY development team
 will assign themselves to review it. You might have a few back-and-forths
@@ -129,23 +136,23 @@ License
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 Please add the following license to new files:
 
-  ::
+::
 
-    """
-    Copyright, the CVXPY authors
+  """
+  Copyright, the CVXPY authors
 
-    Licensed under the Apache License, Version 2.0 (the "License");
-    you may not use this file except in compliance with the License.
-    You may obtain a copy of the License at
+  Licensed under the Apache License, Version 2.0 (the "License");
+  you may not use this file except in compliance with the License.
+  You may obtain a copy of the License at
 
-        http://www.apache.org/licenses/LICENSE-2.0
+      http://www.apache.org/licenses/LICENSE-2.0
 
-    Unless required by applicable law or agreed to in writing, software
-    distributed under the License is distributed on an "AS IS" BASIS,
-    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-    See the License for the specific language governing permissions and
-    limitations under the License.
-    """
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+  """
 
 .. _contrib_style:
 
@@ -155,7 +162,7 @@ We use `ruff <https://beta.ruff.rs/docs/>`_ to enforce our Python coding
 style. Before sending us a pull request, navigate to the project root
 and run
 
-  ::
+::
 
     pip install ruff
     ruff check cvxpy
@@ -166,7 +173,7 @@ errors that are reported before sending the pull request.
 Optionally, the package `pre-commit <https://pre-commit.com/>`_ can be installed
 to check these conventions automatically before every commit.
 
-  ::
+::
 
      pip install pre-commit
      pre-commit install
@@ -194,19 +201,19 @@ Running unit tests
 We use ``pytest`` to run our unit tests, which you can install with ``pip install pytest``.
 To run all unit tests, ``cd`` into ``cvxpy/tests`` and run the following command:
 
-  ::
+::
 
     pytest
 
 To run tests in a specific file (e.g., ``test_dgp.py``), use
 
-  ::
+::
 
     pytest test_dgp.py
 
 To run a specific test method (e.g., ``TestDgp.test_product``), use
 
-  ::
+::
 
     pytest test_dgp.py::TestDgp::test_product
 
@@ -219,16 +226,11 @@ to ``pytest``.
 
 Benchmarks
 ~~~~~~~~~~~~~~~~~~~~~~~~~
-CVXPY has a few benchmarks in ``cvxpy/tests/test_benchmarks.py``, which test
-the time to canonicalize problems. Please run
+CVXPY has performance `benchmarks <https://github.com/cvxpy/benchmarks>`_ which test the time to canonicalize problems.
+These problems are automatically benchmarked on every commit using `airspeed velocity <https://asv.readthedocs.io>`_ and github actions.
 
-  ::
-
-    pytest -s test_benchmarks.py
-
-with and without your change, to make sure no performance regressions are
-introduced. If you are making a code contribution, please include the output of
-the above command (with and without your change) in your pull request.
+Optionally, the package `act <https://github.com/nektos/act>`_ can be installed
+to run github actions locally.
 
 .. _contrib_solver:
 
@@ -276,12 +278,12 @@ In this case you need to create a file called ``awesome_conif.py`` in the same f
 Within ``awesome_conif.py`` you will define a class ``Awesome(ConicSolver)``.
 The ``Awesome(ConicSolver)`` class will manage all interaction between CVXPY and the
 existing ``AwesomePy`` python package. It will need to implement six functions:
- - import_solver,
- - name,
- - accepts,
- - apply,
- - solve_via_data, and
- - invert.
+- import_solver,
+- name,
+- accepts,
+- apply,
+- solve_via_data, and
+- invert.
 
 The first three functions are very easy (often trivial) to write.
 The remaining functions are called in order: ``apply`` stages data for ``solve_via_data``,
@@ -312,26 +314,26 @@ The abstraction for the standard form is
 where :math:`K` is a product of elementary convex cones. The design of CVXPY allows
 for any cone supported by a target solver, but the current elementary convex cones are
 
- 1. The zero cone :math:`y = 0 \in \mathbb{R}^m`.
- 2. The nonnegative cone :math:`y \geq 0 \in \mathbb{R}^m`.
- 3. The second order cone
+1. The zero cone :math:`y = 0 \in \mathbb{R}^m`.
+2. The nonnegative cone :math:`y \geq 0 \in \mathbb{R}^m`.
+3. The second order cone
 
-    .. math::
+.. math::
 
-        (u,v) \in K_{\mathrm{soc}}^n \doteq \{ (t,x) \,:\, t \geq \|x\|_2  \} \subset \mathbb{R} \times \mathbb{R}^n.
+    (u,v) \in K_{\mathrm{soc}}^n \doteq \{ (t,x) \,:\, t \geq \|x\|_2  \} \subset \mathbb{R} \times \mathbb{R}^n.
 
- 4. One of several vectorized versions of the positive semidefinite cone.
- 5. The exponential cone
+4. One of several vectorized versions of the positive semidefinite cone.
+5. The exponential cone
 
-   .. math::
+.. math::
 
-        (u,v,w) \in K_e \doteq \mathrm{cl}\{(x,y,z) |  z \geq y \exp(x/y), y>0\}.
+    (u,v,w) \in K_e \doteq \mathrm{cl}\{(x,y,z) |  z \geq y \exp(x/y), y>0\}.
 
- 6. The 3-dimensional power cone, parameterized by a number :math:`\alpha\in (0, 1)`:
+6. The 3-dimensional power cone, parameterized by a number :math:`\alpha\in (0, 1)`:
 
-    .. math::
+.. math::
 
-        (u,v) \in K_{\mathrm{pow}}^{\alpha} \doteq \{ (x,y,z) \,:\, x^{\alpha}y^{1-\alpha} \geq |z|, (x,y) \geq 0 \}.
+    (u,v) \in K_{\mathrm{pow}}^{\alpha} \doteq \{ (x,y,z) \,:\, x^{\alpha}y^{1-\alpha} \geq |z|, (x,y) \geq 0 \}.
 
 We address the vectorization options for the semidefinite cones later.
 For now it's useful to say that the ``Awesome(ConicSolver)`` class will access an
@@ -352,9 +354,9 @@ The dict is keyed by the references to CVXPY's Zero, NonNeg, SOC, PSD, ExpCone,
 and PowCone3D classes. You will need to interact with these constraint classes during
 dual variable recovery.
 For the other variables in that code snippet ...
- -  ``c, d`` define the objective function ``c @ x + d``, and
- - ``A, b, cone_dims`` define the abstractions :math:`A`, :math:`b`,
-   :math:`K` in problem  :math:`(P)`.
+
+- ``c, d`` define the objective function ``c @ x + d``, and
+- ``A, b, cone_dims`` define the abstractions :math:`A`, :math:`b`, :math:`K` in problem  :math:`(P)`.
 
 The first step in writing a solver interface is to understand the exact
 meanings of ``A, b, cone_dims``, so that you can correctly build a primal
@@ -365,40 +367,40 @@ The ``cone_dims`` object is an instance of the ConeDims class, as defined in
 ``A`` is a SciPy sparse matrix, and ``b`` is a numpy ndarray with ``b.ndim == 1``.
 The rows of ``A`` and entries of ``b`` are given in a very specific order, as described below.
 
- - Equality constraints are found in the first ``cone_dims.zero`` rows of ``A`` and entries of ``b``.
-   Letting ``eq = cone_dims.zero``, the constraint is
+- Equality constraints are found in the first ``cone_dims.zero`` rows of ``A`` and entries of ``b``.
+  Letting ``eq = cone_dims.zero``, the constraint is
 
-    .. code::
+  .. code::
 
-        A[:eq, :] @ x + b[:eq] == 0.
+      A[:eq, :] @ x + b[:eq] == 0.
 
- - Inequality constraints occur immediately after the equations.
-   If for example ``ineq = cone_dims.nonneg`` then the feasible
-   set has the constraint
+- Inequality constraints occur immediately after the equations.
+  If for example ``ineq = cone_dims.nonneg`` then the feasible
+  set has the constraint
 
-    .. code::
+  .. code::
 
-        A[eq:eq + ineq, :] @ x + b[eq:eq + ineq] >= 0.
+      A[eq:eq + ineq, :] @ x + b[eq:eq + ineq] >= 0.
 
- - Second order cone (SOC) constraints are handled after inequalities.
-   Here, ``cone_dims.soc`` is a *list of integers* rather than a single integer.
-   Supposing ``cone_dims.soc[0] == 10``, the first second order cone constraint appearing
-   in this optimization problem would involve 10 rows of ``A`` and 10 entries of ``b``.
-   The SOC vectorization we use is given by :math:`K_{\mathrm{soc}}^n` as defined above.
- - PSD constraints follow SOC constraints.
-   For most solver interfaces it is a good idea to make a deliberate decision about how to
-   handle the vectorization, which amounts to implementing ``Awesome(ConicSolver).psd_format_mat``.
-   If you do nothing, then the vectorization will behave as in ``ConicSolver.psd_format_mat``,
-   which takes a PSD constraint of order :math:`n` and maps it to :math:`n^2` rows of :math:`A` and
-   entries of :math:`b`.
-   You can also borrow from ``SCS.psd_format_mat`` which maps an order :math:`n` PSD constraint
-   to :math:`n(n+1)/2` suitably scaled rows of :math:`A` and entries of :math:`b`, or
-   ``MOSEK.psd_format_mat`` which behaves identically to SCS except for the scaling.
- - The next block of ``3 * cone_dims.exp`` rows in ``A, b`` correspond to consecutive
-   three-dimensional exponential cones, as defined by :math:`K_e` above.
- - The final block of ``3 * len(cone_dims.p3d)`` rows in ``A, b`` correspond to
-   three-dimensional power cones defined by :math:`K_{\mathrm{pow}}^{\alpha}`, where the
-   i-th triple of rows has ``alpha = cone_dims.p3d[i]``.
+- Second order cone (SOC) constraints are handled after inequalities.
+  Here, ``cone_dims.soc`` is a *list of integers* rather than a single integer.
+  Supposing ``cone_dims.soc[0] == 10``, the first second order cone constraint appearing
+  in this optimization problem would involve 10 rows of ``A`` and 10 entries of ``b``.
+  The SOC vectorization we use is given by :math:`K_{\mathrm{soc}}^n` as defined above.
+- PSD constraints follow SOC constraints.
+  For most solver interfaces it is a good idea to make a deliberate decision about how to
+  handle the vectorization, which amounts to implementing ``Awesome(ConicSolver).psd_format_mat``.
+  If you do nothing, then the vectorization will behave as in ``ConicSolver.psd_format_mat``,
+  which takes a PSD constraint of order :math:`n` and maps it to :math:`n^2` rows of :math:`A` and
+  entries of :math:`b`.
+  You can also borrow from ``SCS.psd_format_mat`` which maps an order :math:`n` PSD constraint
+  to :math:`n(n+1)/2` suitably scaled rows of :math:`A` and entries of :math:`b`, or
+  ``MOSEK.psd_format_mat`` which behaves identically to SCS except for the scaling.
+- The next block of ``3 * cone_dims.exp`` rows in ``A, b`` correspond to consecutive
+  three-dimensional exponential cones, as defined by :math:`K_e` above.
+- The final block of ``3 * len(cone_dims.p3d)`` rows in ``A, b`` correspond to
+  three-dimensional power cones defined by :math:`K_{\mathrm{pow}}^{\alpha}`, where the
+  i-th triple of rows has ``alpha = cone_dims.p3d[i]``.
 
 If *Awesome* supports nonlinear constraints like SOC, ExpCone, PSD, or PowCone3D, then
 it's possible that you will need to transform data ``A, b`` in order to write these constraints in
@@ -462,9 +464,9 @@ Registering a solver
 Correctly implementing ``Awesome(ConicSolver)`` isn't enough to call *Awesome* from CVXPY.
 You need to make edits in a handful of other places, namely
 
- - `conic_solvers/__init__.py <https://github.com/cvxpy/cvxpy/blob/master/cvxpy/reductions/solvers/conic_solvers/__init__.py>`_,
- - `solvers/defines.py <https://github.com/cvxpy/cvxpy/blob/master/cvxpy/reductions/solvers/defines.py>`_, and
- - `cvxpy/__init__.py <https://github.com/cvxpy/cvxpy/blob/master/cvxpy/__init__.py>`_.
+- `conic_solvers/__init__.py <https://github.com/cvxpy/cvxpy/blob/master/cvxpy/reductions/solvers/conic_solvers/__init__.py>`_,
+- `solvers/defines.py <https://github.com/cvxpy/cvxpy/blob/master/cvxpy/reductions/solvers/defines.py>`_, and
+- `cvxpy/__init__.py <https://github.com/cvxpy/cvxpy/blob/master/cvxpy/__init__.py>`_.
 
 The existing content of those files should make it clear what's needed
 to add *Awesome* to CVXPY.

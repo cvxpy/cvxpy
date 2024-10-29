@@ -7,10 +7,10 @@ jobs:
   doc_deploy:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/setup-python@v2
+      - uses: actions/setup-python@v5
         with:
-          python-version: 3.8
-      - uses: actions/checkout@v2
+          python-version: "3.12"
+      - uses: actions/checkout@v4
         with:
           ref: gh-pages
       - name: Set already deployed versions
@@ -20,11 +20,11 @@ jobs:
           echo ALL_DEPLOYED_VERSIONS=$(python -c "import os;from packaging import version;print(os.listdir('version'))") >> $GITHUB_ENV
 
         # Checkout master
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
       - name: Install
         run: |
           python -m pip install -e .
-          python -m pip install sphinx sphinxcontrib-jquery
+          python -m pip install -r doc/requirements.txt
           cd doc
           make html
 
@@ -36,20 +36,15 @@ jobs:
           echo DEPLOY_LATEST=$(python continuous_integration/doc_is_latest.py --c "$CURRENT_VERSION" --l "$LATEST_DEPLOYED_VERSION") >> $GITHUB_ENV
 
       - name: Deploy this version
-        uses: JamesIves/github-pages-deploy-action@v4.2.2
+        uses: JamesIves/github-pages-deploy-action@v4.6.1
         with:
           branch: gh-pages # The branch the action should deploy to.
           folder: doc/build/html # The folder the action should deploy.
           target-folder: ${{ env.VERSION_PATH }}
 
-      - name: Create version json
-        run: |
-          python continuous_integration/doc_write_versions.py
-          mv versions.json doc/build/html
-
       - name: Deploy to root if latest version
         if: ${{env.DEPLOY_LATEST == 'True'}}
-        uses: JamesIves/github-pages-deploy-action@v4.2.2
+        uses: JamesIves/github-pages-deploy-action@v4.6.1
         with:
           branch: gh-pages # The branch the action should deploy to.
           folder: doc/build/html # The folder the action should deploy.

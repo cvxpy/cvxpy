@@ -4,4 +4,3 @@ ecos
 scs
 numpy
 scipy
-pybind11

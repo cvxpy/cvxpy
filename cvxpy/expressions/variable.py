@@ -15,59 +15,22 @@ limitations under the License.
 """
 from __future__ import annotations
 
-from typing import Any, Iterable
+from typing import Any, Iterable, Optional, Tuple
 
 import scipy.sparse as sp
 
 import cvxpy.lin_ops.lin_utils as lu
 from cvxpy import settings as s
+from cvxpy.constraints.constraint import Constraint
+from cvxpy.expressions.expression import Expression
 from cvxpy.expressions.leaf import Leaf
 
 
-def upper_tri_to_full(n: int) -> sp.csc_matrix:
-    """Returns a coefficient matrix to create a symmetric matrix.
-
-    Parameters
-    ----------
-    n : int
-        The width/height of the matrix.
-
-    Returns
-    -------
-    SciPy CSC matrix
-        The coefficient matrix.
-    """
-    entries = n*(n+1)//2
-
-    val_arr = []
-    row_arr = []
-    col_arr = []
-    count = 0
-    for i in range(n):
-        for j in range(i, n):
-            # Index in the original matrix.
-            col_arr.append(count)
-            # Index in the filled matrix.
-            row_arr.append(j*n + i)
-            val_arr.append(1.0)
-            if i != j:
-                # Index in the original matrix.
-                col_arr.append(count)
-                # Index in the filled matrix.
-                row_arr.append(i*n + j)
-                val_arr.append(1.0)
-            count += 1
-
-    return sp.csc_matrix((val_arr, (row_arr, col_arr)),
-                         (n*n, entries))
-
-
 class Variable(Leaf):
-    """The optimization variables in a problem.
-    """
+    """The optimization variables in a problem."""
 
     def __init__(
-        self, shape: int | Iterable[int, ...] = (), name: str | None = None,
+        self, shape: int | Iterable[int] = (), name: str | None = None,
         var_id: int | None = None, **kwargs: Any
     ):
         if var_id is None:
@@ -88,53 +51,43 @@ class Variable(Leaf):
         super(Variable, self).__init__(shape, **kwargs)
 
     def name(self) -> str:
-        """str : The name of the variable."""
+        """The name of the variable."""
         return self._name
 
     def is_constant(self) -> bool:
         return False
 
     @property
-    def grad(self) -> dict[Variable, sp.csc_matrix]:
+    def grad(self) -> Optional[dict[Variable, sp.csc_matrix]]:
         """Gives the (sub/super)gradient of the expression w.r.t. each variable.
 
         Matrix expressions are vectorized, so the gradient is a matrix.
-
-        Returns:
-            A map of variable to SciPy CSC sparse matrix or None.
         """
         # TODO(akshayka): Do not assume shape is 2D.
         return {self: sp.eye(self.size).tocsc()}
 
     def variables(self) -> list[Variable]:
-        """Returns itself as a variable.
-        """
+        """Returns itself as a variable."""
         return [self]
 
-    def canonicalize(self):
-        """Returns the graph implementation of the object.
-
-        Returns:
-            A tuple of (affine expression, [constraints]).
-        """
+    def canonicalize(self) -> Tuple[Expression, list[Constraint]]:
+        """Returns the graph implementation of the object."""
         obj = lu.create_var(self.shape, self.id)
         return (obj, [])
 
     def attributes_were_lowered(self) -> bool:
-        """True iff variable generated when lowering a variable with attributes.
-        """
+        """True iff variable generated when lowering a variable with attributes."""
         return self._variable_with_attributes is not None
 
     def set_variable_of_provenance(self, variable: Variable) -> None:
         assert variable.attributes
         self._variable_with_attributes = variable
 
-    def variable_of_provenance(self) -> Variable | None:
+    def variable_of_provenance(self) -> Optional[Variable]:
         """Returns a variable with attributes from which this variable was generated."""
         return self._variable_with_attributes
 
     def __repr__(self) -> str:
-        """String to recreate the object.
-        """
+        """String to recreate the variable."""
         attr_str = self._get_attr_str()
         return f"Variable({self.shape}, {self.__str__()}{attr_str})"

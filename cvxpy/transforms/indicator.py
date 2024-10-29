@@ -94,6 +94,11 @@ class indicator(Expression):
         """
         return ()
 
+    def is_dpp(self, context: str = 'dcp') -> bool:
+        """The expression is a disciplined parameterized expression.
+        """
+        return False
+
     def name(self) -> str:
         """Returns the string representation of the expression.
         """
@@ -115,7 +120,7 @@ class indicator(Expression):
         if all(cons.value(tolerance=self.err_tol) for cons in self.args):
             return 0.0
         else:
-            return np.infty
+            return np.inf
 
     @property
     def grad(self):

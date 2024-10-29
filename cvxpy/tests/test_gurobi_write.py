@@ -1,5 +1,5 @@
 """
-Copyright 2022, the CVXPY authors
+Copyright, the CVXPY authors
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -13,6 +13,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+
 import os
 import unittest
 
@@ -20,30 +21,27 @@ import numpy as np
 
 import cvxpy as cp
 from cvxpy.reductions.solvers.defines import INSTALLED_SOLVERS
-from cvxpy.tests.base_test import BaseTest
 
 
 @unittest.skipUnless('GUROBI' in INSTALLED_SOLVERS, 'GUROBI is not installed.')
-class TestGurobiWrite(BaseTest):
-    def test_write(self) -> None:
-        """Test the Gurobi model.write().
-        """
-        if not os.path.exists('./resources/'):
-            os.makedirs('./resources/')
-        elif os.path.exists('./resources/gurobi_model.lp'):
-            os.remove('./resources/gurobi_model.lp')
+def test_write(tmpdir):
+    """Test the Gurobi model.write().
+    """
 
-        m = 20
-        n = 15
-        np.random.seed(0)
-        A = np.random.randn(m, n)
-        b = np.random.randn(m)
+    filename = "gurobi_model.lp"
+    path = os.path.join(tmpdir, filename)
 
-        x = cp.Variable(n)
-        cost = cp.sum_squares(A @ x - b)
-        prob = cp.Problem(cp.Minimize(cost))
-        prob.solve(solver=cp.GUROBI,
-                   verbose=True,
-                   save_file='./resources/gurobi_model.lp')
+    m = 20
+    n = 15
+    np.random.seed(0)
+    A = np.random.randn(m, n)
+    b = np.random.randn(m)
 
-        assert os.path.exists('./resources/gurobi_model.lp')
+    x = cp.Variable(n)
+    cost = cp.sum_squares(A @ x - b)
+    prob = cp.Problem(cp.Minimize(cost))
+    prob.solve(solver=cp.GUROBI,
+                verbose=True,
+                save_file=path)
+
+    assert os.path.exists(path)

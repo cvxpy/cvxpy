@@ -13,15 +13,12 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import sys
+from functools import reduce
 from typing import Any, List, Tuple
 
 import numpy as np
 
 from cvxpy.atoms.elementwise.elementwise import Elementwise
-
-if sys.version_info >= (3, 0):
-    from functools import reduce
 
 
 class minimum(Elementwise):

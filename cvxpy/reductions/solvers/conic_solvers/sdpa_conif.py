@@ -104,7 +104,7 @@ class SDPA(ConicSolver):
         data[s.A] = A
         if data[s.A].shape[0] == 0:
             data[s.A] = None
-        data[s.B] = b.flatten()
+        data[s.B] = b.flatten(order='F')
         if data[s.B].shape[0] == 0:
             data[s.B] = None
 
@@ -133,7 +133,7 @@ class SDPA(ConicSolver):
             return failure_solution(status)
 
     def solve_via_data(self, data, warm_start: bool, verbose: bool, solver_opts, solver_cache=None):
-        """
+        r"""
         CVXPY represents cone programs as
             (P) min_x { c^T x : A x + b \in K } + d
 
@@ -156,7 +156,6 @@ class SDPA(ConicSolver):
         https://sdpa-python.github.io/docs/formats/sdpa_sedumi.html
         """
         import sdpap
-        from scipy import matrix
 
         data[s.DIMS] = dims_to_solver_dict(data[s.DIMS])
 
@@ -174,7 +173,7 @@ class SDPA(ConicSolver):
         if 'print' not in solver_opts:
             solver_opts['print'] = 'display' if verbose else 'no'
         x, y, sdpapinfo, timeinfo, sdpainfo = sdpap.solve(
-            A, -matrix(b), matrix(c), K, J, solver_opts)
+            A, -b, c, K, J, solver_opts)
 
         solution = {}
         solution[s.STATUS] = self.STATUS_MAP[sdpapinfo['phasevalue']]

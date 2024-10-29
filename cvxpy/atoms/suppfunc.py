@@ -109,7 +109,7 @@ class SuppFuncAtom(Atom):
         from cvxpy.problems.objective import Maximize
         from cvxpy.problems.problem import Problem
         y_val = self.args[0].value.round(decimals=9).ravel(order='F')
-        x_flat = self._parent.x.flatten()
+        x_flat = self._parent.x.flatten(order='F')
         cons = self._parent.constraints
         if len(cons) == 0:
             dummy = Variable()

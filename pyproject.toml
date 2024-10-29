@@ -1,5 +1,11 @@
 [tool.ruff]
-select = ["E", "F", "I"]
+select = [
+    "E",
+    "F",
+    "I",
+    "NPY201",
+    "W605",  # Check for invalid escape sequences in docstrings (errors in py >= 3.11)
+]
 line-length = 100
 exclude = [
     "build",
@@ -9,7 +15,7 @@ exclude = [
     "*__init__.py"
 ]
 # The minimum Python version that should be supported
-target-version = "py37"
+target-version = "py39"
 
 
 [tool.pytest.ini_options]
@@ -19,17 +25,72 @@ testpaths = [
 
 [build-system]
 requires = [
-    "numpy>=1.17,<1.18; python_version=='3.8' and platform_machine!='aarch64'",
-    "numpy>=1.19.2,<1.20; python_version=='3.8' and platform_machine=='aarch64'",
-    "numpy>=1.19,<1.20; python_version=='3.9' and (platform_machine not in 'arm64|aarch64' or platform_system!='Darwin')",
-    "numpy>=1.19.2,<1.20; python_version=='3.9' and platform_machine=='aarch64'",
-    "numpy>=1.21.4,<1.22; python_version=='3.9' and (platform_machine=='arm64' and platform_system=='Darwin')",
-    "numpy>=1.21,<1.22; python_version=='3.10' and (platform_machine!='arm64' or platform_system!='Darwin')",
-    "numpy>=1.21.4,<1.22; python_version=='3.10' and (platform_machine=='arm64' and platform_system=='Darwin')",
-    "numpy>=1.23.4,<1.24; python_version=='3.11'",
-    "numpy>=1.26.0,<1.27; python_version=='3.12'",
+    "numpy >= 2.0.0",
     "scipy >= 1.1.0",
-    "setuptools>65.5.1",
+    # 68.1.0 Promoted pyproject.toml's [tool.setuptools] out of beta.
+    "setuptools >= 68.1.0",
     "wheel",
     "pybind11"
 ]
+
+# We need access to the 'setup' package at build time.
+# Hence we declare a custom build backend.
+build-backend = "setup.build_meta"  # just re-exports setuptools.build_meta definitions
+backend-path = ["."]
+
+[project]
+name = "cvxpy"
+description = "A domain-specific language for modeling convex optimization problems in Python."
+dependencies = [
+    "osqp >= 0.6.2",
+    "ecos >= 2",
+    "clarabel >= 0.5.0",
+    "scs >= 3.2.4.post1",
+    "numpy >= 1.20",
+    "scipy >= 1.1.0",
+]
+requires-python = ">=3.9"
+urls = {Homepage = "https://github.com/cvxpy/cvxpy"}
+license = {text = "Apache License, Version 2.0"}
+authors = [{name = "Steven Diamond", email = "stevend2@stanford.edu"},
+           {name = "", email = "akshayka@cs.stanford.edu"},
+           {name = "Eric Chu", email = "echu508@stanford.edu"},
+           {name = "Stephen Boyd", email = "boyd@stanford.edu"}]
+dynamic = ["version"]
+
+[project.optional-dependencies]
+# Solver names as in cvxpy.settings = pip-installable distribution providing it
+CBC = ["cylp>=0.91.5"]
+CLARABEL = []
+CVXOPT = ["cvxopt"]
+DIFFCP = ["diffcp"]
+ECOS = []
+ECOS_BB = []
+GLOP = ["ortools>=9.7,<9.10"]
+GLPK = ["cvxopt"]
+GLPK_MI = ["cvxopt"]
+GUROBI = ["gurobipy"]
+HIGHS = ["highspy"]
+MOSEK = ["Mosek"]
+OSQP = []
+PDLP = ["ortools>=9.7,<9.10"]
+PIQP = ["piqp"]
+PROXQP = ["proxsuite"]
+SCIP = ["PySCIPOpt"]
+SCIPY = ["scipy"]
+SCS = ["setuptools>65.5.1"]
+XPRESS = ["xpress"]
+DAQP = ["daqp"]
+testing = ["pytest", "hypothesis"]
+doc = ["sphinx",
+       "sphinxcontrib.jquery",
+       "sphinx-inline-tabs",
+       "sphinx-design",
+       "sphinx-immaterial>=0.11.7"]
+
+[project.readme]
+file = "README.md"
+content-type = "text/markdown"
+
+[tool.setuptools]
+include-package-data = false

@@ -35,7 +35,12 @@ from cvxpy.expressions.variable import Variable
 from cvxpy.problems.objective import Minimize
 from cvxpy.problems.param_prob import ParamProb
 from cvxpy.reductions import InverseData, Solution, cvx_attr2constr
-from cvxpy.reductions.matrix_stuffing import MatrixStuffing, extract_mip_idx
+from cvxpy.reductions.matrix_stuffing import (
+    MatrixStuffing,
+    extract_lower_bounds,
+    extract_mip_idx,
+    extract_upper_bounds,
+)
 from cvxpy.reductions.utilities import (
     ReducedMat,
     are_args_affine,
@@ -138,7 +143,10 @@ class ParamConeProg(ParamProb):
                  parameters,
                  param_id_to_col,
                  P=None,
-                 formatted: bool = False) -> None:
+                 formatted: bool = False,
+                 lower_bounds: np.ndarray | None = None,
+                 upper_bounds: np.ndarray | None = None,
+                 ) -> None:
         # The problem data tensors; c is for the constraint, and A for
         # the problem data matrix
         self.c = c
@@ -146,6 +154,9 @@ class ParamConeProg(ParamProb):
         self.P = P
         # The variable
         self.x = x
+        # Lower and upper bounds for the variable, if present.
+        self.lower_bounds = lower_bounds
+        self.upper_bounds = upper_bounds
 
         # Form a reduced representation of A and P, for faster application
         # of parameters.
@@ -238,7 +249,7 @@ class ParamConeProg(ParamProb):
             # slow path.
             # TODO: make this faster by intelligently operating on the
             # sparse matrix data / making use of reduced_A
-            del_param_vec += np.squeeze((delAb.T @ self.A).A)
+            del_param_vec += np.squeeze((delAb.T @ self.A).toarray())
         del_param_vec = np.squeeze(del_param_vec)
 
         param_id_to_delta_param = {}
@@ -349,11 +360,14 @@ class ConeMatrixStuffing(MatrixStuffing):
             elif isinstance(con, PowCone3D) and con.args[0].ndim > 1:
                 x, y, z = con.args
                 alpha = con.alpha
-                con = PowCone3D(x.flatten(), y.flatten(), z.flatten(), alpha.flatten(),
+                con = PowCone3D(x.flatten(order='F'),
+                                y.flatten(order='F'),
+                                z.flatten(order='F'),
+                                alpha.flatten(order='F'),
                                 constr_id=con.constr_id)
             elif isinstance(con, ExpCone) and con.args[0].ndim > 1:
                 x, y, z = con.args
-                con = ExpCone(x.flatten(), y.flatten(), z.flatten(),
+                con = ExpCone(x.flatten(order='F'), y.flatten(order='F'), z.flatten(order='F'),
                               constr_id=con.constr_id)
             cons.append(con)
         # Reorder constraints to Zero, NonNeg, SOC, PSD, EXP, PowCone3D
@@ -368,15 +382,22 @@ class ConeMatrixStuffing(MatrixStuffing):
         params_to_problem_data = extractor.affine(expr_list)
 
         inverse_data.minimize = type(problem.objective) == Minimize
-        new_prob = ParamConeProg(params_to_c,
-                                 flattened_variable,
-                                 params_to_problem_data,
-                                 problem.variables(),
-                                 inverse_data.var_offsets,
-                                 ordered_cons,
-                                 problem.parameters(),
-                                 inverse_data.param_id_map,
-                                 P=params_to_P)
+        variables = problem.variables()
+        lower_bounds = extract_lower_bounds(variables, flattened_variable.size)
+        upper_bounds = extract_upper_bounds(variables, flattened_variable.size)
+        new_prob = ParamConeProg(
+            params_to_c,
+            flattened_variable,
+            params_to_problem_data,
+            variables,
+            inverse_data.var_offsets,
+            ordered_cons,
+            problem.parameters(),
+            inverse_data.param_id_map,
+            P=params_to_P,
+            lower_bounds=lower_bounds,
+            upper_bounds=upper_bounds,
+        )
         return new_prob, inverse_data
 
     def invert(self, solution, inverse_data):

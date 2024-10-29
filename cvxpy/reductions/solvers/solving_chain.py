@@ -43,16 +43,34 @@ from cvxpy.reductions.reduction import Reduction
 from cvxpy.reductions.solvers import defines as slv_def
 from cvxpy.reductions.solvers.constant_solver import ConstantSolver
 from cvxpy.reductions.solvers.solver import Solver
-from cvxpy.settings import ECOS, PARAM_THRESHOLD
+from cvxpy.settings import (
+    CLARABEL,
+    CPP_CANON_BACKEND,
+    ECOS,
+    NUMPY_CANON_BACKEND,
+    PARAM_THRESHOLD,
+    SCIPY_CANON_BACKEND,
+)
 from cvxpy.utilities.debug_tools import build_non_disciplined_error_msg
 
 DPP_ERROR_MSG = (
     "You are solving a parameterized problem that is not DPP. "
     "Because the problem is not DPP, subsequent solves will not be "
     "faster than the first one. For more information, see the "
-    "documentation on Discplined Parametrized Programming, at\n"
-    "\thttps://www.cvxpy.org/tutorial/advanced/index.html#"
-    "disciplined-parametrized-programming"
+    "documentation on Disciplined Parametrized Programming, at "
+    "https://www.cvxpy.org/tutorial/dpp/index.html"
+)
+
+ECOS_DEP_DEPRECATION_MSG = (
+    """
+    You specified your problem should be solved by ECOS. Starting in
+    CXVPY 1.6.0, ECOS will no longer be installed by default with CVXPY.
+    Please either add ECOS as an explicit install dependency to your project
+    or switch to our new default solver, Clarabel, by either not specifying a
+    solver argument or specifying ``solver=cp.CLARABEL``. To suppress this
+    warning while continuing to use ECOS, you can filter this warning using
+    Python's ``warnings`` module until you are using 1.6.0.
+    """
 )
 
 ECOS_DEPRECATION_MSG = (
@@ -145,19 +163,19 @@ def _reductions_for_problem_class(problem, candidates, gp: bool = False, solver_
     if type(problem.objective) == Maximize:
         reductions += [FlipObjective()]
 
-    use_quad = True if solver_opts is None else solver_opts.get('use_quad_obj', True)
-    if _solve_as_qp(problem, candidates) and use_quad:
-        reductions += [CvxAttr2Constr(), qp2symbolic_qp.Qp2SymbolicQp()]
-    else:
-        # Canonicalize it to conic problem.
-        if not candidates['conic_solvers']:
-            raise SolverError("Problem could not be reduced to a QP, and no "
-                              "conic solvers exist among candidate solvers "
-                              "(%s)." % candidates)
-
+    # Special reduction for finite set constraint, 
+    # used by both QP and conic pathways.
     constr_types = {type(c) for c in problem.constraints}
     if FiniteSet in constr_types:
         reductions += [Valinvec2mixedint()]
+
+    use_quad = True if solver_opts is None else solver_opts.get('use_quad_obj', True)
+    valid_qp = _solve_as_qp(problem, candidates) and use_quad
+    valid_conic = len(candidates['conic_solvers']) > 0
+    if not valid_qp and not valid_conic:
+        raise SolverError("Problem could not be reduced to a QP, and no "
+                            "conic solvers exist among candidate solvers "
+                            "(%s)." % candidates)
 
     return reductions
 
@@ -212,6 +230,7 @@ def construct_solving_chain(problem, candidates,
         Raised if no suitable solver exists among the installed solvers, or
         if the target solver is not installed.
     """
+    canon_backend = _get_canon_backend(problem, canon_backend)
     if len(problem.variables()) == 0:
         return SolvingChain(reductions=[ConstantSolver()])
     reductions = _reductions_for_problem_class(problem, candidates, gp, solver_opts)
@@ -245,8 +264,12 @@ def construct_solving_chain(problem, candidates,
         # Canonicalize as a QP
         solver = candidates['qp_solvers'][0]
         solver_instance = slv_def.SOLVER_MAP_QP[solver]
-        reductions += [QpMatrixStuffing(canon_backend=canon_backend),
-                       solver_instance]
+        reductions += [
+            CvxAttr2Constr(reduce_bounds=not solver_instance.BOUNDED_VARIABLES), 
+            qp2symbolic_qp.Qp2SymbolicQp(),
+            QpMatrixStuffing(canon_backend=canon_backend),
+            solver_instance,
+        ]
         return SolvingChain(reductions=reductions)
 
     # Canonicalize as a cone program
@@ -300,7 +323,13 @@ def construct_solving_chain(problem, candidates,
 
     # Here, we make use of the observation that canonicalization only
     # increases the number of constraints in our problem.
-    has_constr = len(cones) > 0 or len(problem.constraints) > 0
+    var_domains = sum([var.domain for var in problem.variables()], start = [])
+    has_constr = len(cones) > 0 or len(problem.constraints) > 0 or len(var_domains) > 0
+
+    if PSD in cones \
+            and slv_def.DISREGARD_CLARABEL_SDP_SUPPORT_FOR_DEFAULT_RESOLUTION \
+            and specified_solver is None:
+        candidates['conic_solvers'] = [s for s in candidates['conic_solvers'] if s != CLARABEL]
 
     for solver in candidates['conic_solvers']:
         solver_instance = slv_def.SOLVER_MAP_CONIC[solver]
@@ -312,6 +341,7 @@ def construct_solving_chain(problem, candidates,
         unsupported_constraints = [
             cone for cone in cones if cone not in supported_constraints
         ]
+
         if has_constr or not solver_instance.REQUIRES_CONSTR:
             if ex_cos:
                 reductions.append(Exotic2Common())
@@ -327,12 +357,12 @@ def construct_solving_chain(problem, candidates,
                 problem.objective.expr.has_quadratic_term()
             reductions += [
                 Dcp2Cone(quad_obj=quad_obj),
-                CvxAttr2Constr(),
+                CvxAttr2Constr(reduce_bounds=not solver_instance.BOUNDED_VARIABLES),
             ]
             if all(c in supported_constraints for c in cones):
-                # Raise a warning if ECOS is used without being specified
-                # by the user.
-                if solver == ECOS and specified_solver is None:
+                if solver == ECOS and specified_solver == ECOS:
+                    warnings.warn(ECOS_DEP_DEPRECATION_MSG, FutureWarning)
+                elif solver == ECOS and specified_solver is None:
                     warnings.warn(ECOS_DEPRECATION_MSG, FutureWarning)
                 # Return the reduction chain.
                 reductions += [
@@ -353,6 +383,39 @@ def construct_solving_chain(problem, candidates,
                       "enough constraints in the problem." % (
                           candidates['conic_solvers'],
                           ", ".join([cone.__name__ for cone in cones])))
+
+
+def _get_canon_backend(problem, canon_backend):
+    """
+    This function checks if the problem has expressions of dimension greater
+    than 2, then raises a warning if the default backend is not specified or 
+    raises an error if the backend is specified as 'CPP'.
+
+    Parameters
+    ----------
+    problem : Problem
+        The problem for which to build a chain. 
+    canon_backend : str
+        'CPP' (default) | 'SCIPY'
+        Specifies which backend to use for canonicalization, which can affect
+        compilation time. Defaults to None, i.e., selecting the default
+        backend.
+    Returns
+    -------
+    canon_backend : str
+        The canonicalization backend to use.
+    """
+    if problem._max_ndim() > 2:
+        if canon_backend is None:
+            warnings.warn(UserWarning(
+                f"The problem has an expression with dimension greater than 2. "
+                f"Defaulting to the {SCIPY_CANON_BACKEND} backend for canonicalization."))
+            return SCIPY_CANON_BACKEND
+        elif canon_backend == CPP_CANON_BACKEND:
+            raise ValueError(f"Only the {SCIPY_CANON_BACKEND} and {NUMPY_CANON_BACKEND} "
+                             f"backends are supported for problems with expressions of "
+                             f"dimension greater than 2.")
+    return canon_backend
 
 
 class SolvingChain(Chain):

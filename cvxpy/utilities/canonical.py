@@ -22,12 +22,10 @@ from cvxpy.utilities import performance_utils as pu
 from cvxpy.utilities.deterministic import unique_list
 
 
-class Canonical:
+class Canonical(metaclass=abc.ABCMeta):
     """
     An interface for objects that can be canonicalized.
     """
-
-    __metaclass__ = abc.ABCMeta
 
     @property
     def expr(self):
@@ -153,6 +151,17 @@ class Canonical:
         """
         # Remove duplicates.
         return unique_list(atom for arg in self.args for atom in arg.atoms())
+
+    @pu.compute_once
+    def _max_ndim(self) -> int:
+        """
+        The maximum number of dimensions of the sub-expression.
+        """
+        return max([self.ndim] + [arg._max_ndim() for arg in self.args])
+
+    @abc.abstractmethod
+    def __str__(self) -> str:
+        raise NotImplementedError()
 
 
 _MISSING = object()
