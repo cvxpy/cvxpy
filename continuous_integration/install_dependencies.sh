@@ -16,7 +16,7 @@ if [[ "$PYTHON_VERSION" != "3.13" ]]; then
   python -m pip install coptpy==7.1.7 gurobipy piqp clarabel osqp
 else
   # only install the essential solvers for Python 3.13.
-  conda install ecos scs
+  conda install scs
   python -m pip install clarabel osqp
 fi
 
