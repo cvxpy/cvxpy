@@ -22,6 +22,12 @@ def __():
 
 @app.cell
 def __(mo):
+    mo.md(r"""## Nearest Correlation Matrix (in the sense of the QREP )""")
+    return
+
+
+@app.cell
+def __(mo):
     mo.md(
         r"""
         The first simple problem that we solve, is that of computing the nearest correlation matrix to a given symmetric matrix in the sense of the Quantum Relative Entropy (QREP) i.e., we want to find the closest SDP matrix with unit diagonal to our initial given matrix where distance is measured in the sense of the QREP --- this problem arises regularly in finance, where the correlations are between stocks and is usually solved in the sense of the Frobenius norm.
@@ -55,6 +61,12 @@ def __(cp, n, np):
     prob_corr = cp.Problem(obj_corr, cons_corr)
     prob_corr.solve(solver='MOSEK')
     return M_corr, X_corr, cons_corr, n_corr, obj_corr, prob_corr
+
+
+@app.cell
+def __(mo):
+    mo.md(r"""## Capacity of a **«classical-quantum»** channel""")
+    return
 
 
 @app.cell
@@ -129,6 +141,12 @@ def __(cp, np, randRho):
 
 @app.cell
 def __(mo):
+    mo.md(r"""## Entanglement-assisted classical capacity of a quantum channel""")
+    return
+
+
+@app.cell
+def __(mo):
     mo.md(
         r"""
         The next problem that we solve is that of computing the so-called _«entanglement-assisted classical capacity»_ of a quantum channel, $\Phi$, which quantifies the amount of classical bits that can be transmitted reliably through it, if, the receiver and the transmitter are allowed to share an arbitrary entangled state.
@@ -190,6 +208,12 @@ def __(cp, np):
         prob_en,
         rho_en,
     )
+
+
+@app.cell
+def __(mo):
+    mo.md(r"""## Unassisted quantum capacity of a quantum channel""")
+    return
 
 
 @app.cell
@@ -289,6 +313,12 @@ def __(applychan, cp, np):
         prob_cc,
         rho_cc,
     )
+
+
+@app.cell
+def __(mo):
+    mo.md("""## Relative entropy of Entanglement""")
+    return
 
 
 @app.cell
