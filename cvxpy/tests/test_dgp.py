@@ -160,7 +160,13 @@ class TestDgp(BaseTest):
         self.assertTrue(geo_mean.is_log_log_convex())
         self.assertTrue(geo_mean.is_log_log_concave())
 
-    def test_geo_mean_scalar(self) -> None:
+    def test_geo_mean_scalar1(self) -> None:
+        x = cvxpy.Variable(1, pos=True)
+        p = np.array([2])
+        geo_mean = cvxpy.geo_mean(x, p)
+        self.assertTrue(geo_mean.is_dgp())
+    
+    def test_geo_mean_scalar2(self) -> None:
         x = cvxpy.Variable(pos=True)
         p = np.array([2])
         geo_mean = cvxpy.geo_mean(x, p)
