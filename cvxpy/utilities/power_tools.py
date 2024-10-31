@@ -86,6 +86,12 @@ def gm_constrs(t, x_list, p):
         if 1 not in elem:
             constraints += [gm(d[elem], d[children[0]], d[children[1]])]
 
+    # Handle single-variable case
+    if len(x_list) == 1:
+        # Assuming p[0] = 1 for geometric mean
+        x = x_list[0]
+        constraints += [t <= x]
+
     return constraints
 
 
