@@ -160,6 +160,26 @@ class TestDgp(BaseTest):
         self.assertTrue(geo_mean.is_log_log_convex())
         self.assertTrue(geo_mean.is_log_log_concave())
 
+    def test_geo_mean_scalar(self) -> None:
+        x = cvxpy.Variable(pos=True)
+        p = np.array([2])
+        geo_mean = cvxpy.geo_mean(x, p)
+        self.assertTrue(geo_mean.is_dgp())
+
+    def test_inv_prod(self) -> None:
+        x = cvxpy.Variable(2)
+        # # test inv_prod with scalar value
+        prob1 = cvxpy.Problem(cvxpy.Minimize(cvxpy.inv_prod(x[0])+cvxpy.inv_prod(x[:2])), [cvxpy.sum(x)==2])
+        prob1.solve()
+
+        # compare inv_prod with inv_pos
+        prob2 = cvxpy.Problem(cvxpy.Minimize(cvxpy.inv_prod(x[:1])+cvxpy.inv_prod(x[:2])), [cvxpy.sum(x)==2])
+        prob2.solve()
+
+        prob3 = cvxpy.Problem(cvxpy.Minimize(cvxpy.inv_pos(x[0])+cvxpy.inv_prod(x[:2])), [cvxpy.sum(x)==2])
+        prob3.solve()
+        self.assertAlmostEqual(prob2.value, prob3.value, 4)
+    
     def test_builtin_sum(self) -> None:
         x = cvxpy.Variable(2, pos=True)
         self.assertTrue(sum(x).is_log_log_convex())
