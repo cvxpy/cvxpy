@@ -90,7 +90,7 @@ def gm_constrs(t, x_list, p):
     if len(x_list) == 1:
         # Assuming p[0] = 1 for geometric mean
         x = x_list[0]
-        constraints += [t <= x]
+        constraints += [t == x]
 
     return constraints
 
