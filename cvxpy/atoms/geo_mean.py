@@ -19,6 +19,7 @@ from typing import List, Optional, Tuple
 import numpy as np
 import scipy.sparse as sp
 
+from cvxpy.atoms.affine.promote import promote
 from cvxpy.atoms.atom import Atom
 from cvxpy.atoms.errormsg import SECOND_ARG_SHOULD_NOT_BE_EXPRESSION_ERROR_MESSAGE
 from cvxpy.constraints.constraint import Constraint
@@ -213,7 +214,10 @@ class geo_mean(Atom):
         elif p is not None and hasattr(p, '__getitem__'):
             p = np.array(p)
             idxs = p > 0
-            x = Expression.cast_to_const(x)[idxs]
+            if isinstance(x, list):
+                x = np.array(x)
+            shape = (1,) if x.ndim == 0 else x.shape
+            x = Expression.cast_to_const(promote(x, shape=shape))[idxs]
             p = p[idxs]
         super(geo_mean, self).__init__(x)
 
