@@ -64,17 +64,10 @@ class Concatenate(AffAtom):
         )
 
     def shape_from_args(self) -> Tuple[int, ...]:
-        if self.axis is None:
-            # Flatten all arrays and sum their sizes
-            total_size = sum(arg.size for arg in self.args)
-            return (total_size,)
-        axis = self.axis
-        ref_shape = self.args[0].shape
-        # Initialize the output shape with the reference shape
-        output_shape = list(ref_shape)
-        # Sum sizes along the specified axis
-        output_shape[axis] = sum(arg.shape[axis] for arg in self.args)
-        return tuple(output_shape)
+        return np.concatenate(
+            [np.empty(arg.shape, dtype=np.dtype([])) for arg in self.args],
+            axis=self.axis,
+        ).shape
 
     def graph_implementation(
         self,
