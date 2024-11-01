@@ -57,10 +57,10 @@ class NonPos(Constraint):
         warnings.warn(NonPos.DEPRECATION_MESSAGE, DeprecationWarning)
         super(NonPos, self).__init__([expr], constr_id)
         if not self.args[0].is_real():
-            raise ValueError("Input to NonPos must be real.")
+            raise ValueError('Input to NonPos must be real.')
 
     def name(self) -> str:
-        return "%s <= 0" % self.args[0]
+        return '%s <= 0' % self.args[0]
 
     def is_dcp(self, dpp: bool = False) -> bool:
         """A NonPos constraint is DCP if its argument is convex."""
@@ -90,8 +90,9 @@ class NonPos(Constraint):
     def violation(self):
         res = self.residual
         if res is None:
-            raise ValueError("Cannot compute the violation of an constraint "
-                             "whose expression is None-valued.")
+            raise ValueError(
+                'Cannot compute the violation of an constraint ' 'whose expression is None-valued.'
+            )
         viol = np.linalg.norm(res, ord=2)
         return viol
 
@@ -113,13 +114,14 @@ class NonNeg(Constraint):
     constr_id : int
         A unique id for the constraint.
     """
+
     def __init__(self, expr, constr_id=None) -> None:
         super(NonNeg, self).__init__([expr], constr_id)
         if not self.args[0].is_real():
-            raise ValueError("Input to NonNeg must be real.")
+            raise ValueError('Input to NonNeg must be real.')
 
     def name(self) -> str:
-        return "%s >= 0" % self.args[0]
+        return '%s >= 0' % self.args[0]
 
     def is_dcp(self, dpp: bool = False) -> bool:
         """A non-negative constraint is DCP if its argument is concave."""
@@ -149,8 +151,9 @@ class NonNeg(Constraint):
     def violation(self):
         res = self.residual
         if res is None:
-            raise ValueError("Cannot compute the violation of an constraint "
-                             "whose expression is None-valued.")
+            raise ValueError(
+                'Cannot compute the violation of an constraint ' 'whose expression is None-valued.'
+            )
         viol = np.linalg.norm(res, ord=2)
         return viol
 
@@ -178,10 +181,11 @@ class Inequality(Constraint):
     constr_id : int
         A unique id for the constraint.
     """
+
     def __init__(self, lhs, rhs, constr_id=None) -> None:
         self._expr = lhs - rhs
         if self._expr.is_complex():
-            raise ValueError("Inequality constraints cannot be complex.")
+            raise ValueError('Inequality constraints cannot be complex.')
         super(Inequality, self).__init__([lhs, rhs], constr_id)
 
     def _construct_dual_variables(self, args) -> None:
@@ -192,7 +196,7 @@ class Inequality(Constraint):
         return self._expr
 
     def name(self) -> str:
-        return "%s <= %s" % (self.args[0], self.args[1])
+        return '%s <= %s' % (self.args[0], self.args[1])
 
     @property
     def shape(self):
@@ -214,10 +218,8 @@ class Inequality(Constraint):
     def is_dgp(self, dpp: bool = False) -> bool:
         if dpp:
             with scopes.dpp_scope():
-                return (self.args[0].is_log_log_convex() and
-                        self.args[1].is_log_log_concave())
-        return (self.args[0].is_log_log_convex() and
-                self.args[1].is_log_log_concave())
+                return self.args[0].is_log_log_convex() and self.args[1].is_log_log_concave()
+        return self.args[0].is_log_log_convex() and self.args[1].is_log_log_concave()
 
     def is_dpp(self, context='dcp') -> bool:
         if context.lower() == 'dcp':
@@ -229,9 +231,10 @@ class Inequality(Constraint):
 
     def is_dqcp(self) -> bool:
         return (
-            self.is_dcp() or
-            (self.args[0].is_quasiconvex() and self.args[1].is_constant()) or
-            (self.args[0].is_constant() and self.args[1].is_quasiconcave()))
+            self.is_dcp()
+            or (self.args[0].is_quasiconvex() and self.args[1].is_constant())
+            or (self.args[0].is_constant() and self.args[1].is_quasiconcave())
+        )
 
     @property
     def residual(self):

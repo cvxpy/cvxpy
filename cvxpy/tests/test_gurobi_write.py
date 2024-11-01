@@ -25,10 +25,9 @@ from cvxpy.reductions.solvers.defines import INSTALLED_SOLVERS
 
 @unittest.skipUnless('GUROBI' in INSTALLED_SOLVERS, 'GUROBI is not installed.')
 def test_write(tmpdir):
-    """Test the Gurobi model.write().
-    """
+    """Test the Gurobi model.write()."""
 
-    filename = "gurobi_model.lp"
+    filename = 'gurobi_model.lp'
     path = os.path.join(tmpdir, filename)
 
     m = 20
@@ -40,8 +39,6 @@ def test_write(tmpdir):
     x = cp.Variable(n)
     cost = cp.sum_squares(A @ x - b)
     prob = cp.Problem(cp.Minimize(cost))
-    prob.solve(solver=cp.GUROBI,
-                verbose=True,
-                save_file=path)
+    prob.solve(solver=cp.GUROBI, verbose=True, save_file=path)
 
     assert os.path.exists(path)

@@ -27,11 +27,10 @@ from cvxpy.tests.base_test import BaseTest
 
 
 class TestComplex(BaseTest):
-    """ Unit tests for the expression/expression module. """
+    """Unit tests for the expression/expression module."""
 
     def test_variable(self) -> None:
-        """Test the Variable class.
-        """
+        """Test the Variable class."""
         x = Variable(2, complex=False)
         y = Variable(2, complex=True)
         z = Variable(2, imag=True)
@@ -44,19 +43,18 @@ class TestComplex(BaseTest):
         assert z.is_imag()
 
         with self.assertRaises(Exception) as cm:
-            x.value = np.array([1j, 0.])
-        self.assertEqual(str(cm.exception), "Variable value must be real.")
+            x.value = np.array([1j, 0.0])
+        self.assertEqual(str(cm.exception), 'Variable value must be real.')
 
-        y.value = np.array([1., 0.])
-        y.value = np.array([1j, 0.])
+        y.value = np.array([1.0, 0.0])
+        y.value = np.array([1j, 0.0])
 
         with self.assertRaises(Exception) as cm:
-            z.value = np.array([1., 0.])
-        self.assertEqual(str(cm.exception), "Variable value must be imaginary.")
+            z.value = np.array([1.0, 0.0])
+        self.assertEqual(str(cm.exception), 'Variable value must be imaginary.')
 
     def test_parameter(self) -> None:
-        """Test the parameter class.
-        """
+        """Test the parameter class."""
         x = Parameter(2, complex=False)
         y = Parameter(2, complex=True)
         z = Parameter(2, imag=True)
@@ -69,21 +67,20 @@ class TestComplex(BaseTest):
         assert z.is_imag()
 
         with self.assertRaises(Exception) as cm:
-            x.value = np.array([1j, 0.])
-        self.assertEqual(str(cm.exception), "Parameter value must be real.")
+            x.value = np.array([1j, 0.0])
+        self.assertEqual(str(cm.exception), 'Parameter value must be real.')
 
-        y.value = np.array([1., 0.])
-        y.value = np.array([1j, 0.])
+        y.value = np.array([1.0, 0.0])
+        y.value = np.array([1j, 0.0])
 
         with self.assertRaises(Exception) as cm:
-            z.value = np.array([1., 0.])
-        self.assertEqual(str(cm.exception), "Parameter value must be imaginary.")
+            z.value = np.array([1.0, 0.0])
+        self.assertEqual(str(cm.exception), 'Parameter value must be imaginary.')
 
     def test_constant(self) -> None:
-        """Test the parameter class.
-        """
+        """Test the parameter class."""
         x = Constant(2)
-        y = Constant(2j+1)
+        y = Constant(2j + 1)
         z = Constant(2j)
 
         assert not x.is_complex()
@@ -94,8 +91,7 @@ class TestComplex(BaseTest):
         assert z.is_imag()
 
     def test_objective(self) -> None:
-        """Test objectives.
-        """
+        """Test objectives."""
         x = Variable(complex=True)
         with self.assertRaises(Exception) as cm:
             Minimize(x)
@@ -106,8 +102,7 @@ class TestComplex(BaseTest):
         self.assertEqual(str(cm.exception), "The 'maximize' objective must be real valued.")
 
     def test_arithmetic(self) -> None:
-        """Test basic arithmetic expressions.
-        """
+        """Test basic arithmetic expressions."""
         x = Variable(complex=True)
         y = Variable(imag=True)
         z = Variable()
@@ -120,32 +115,31 @@ class TestComplex(BaseTest):
         assert expr.is_complex()
         assert not expr.is_imag()
 
-        expr = y*z
+        expr = y * z
         assert expr.is_complex()
         assert expr.is_imag()
 
-        expr = y*y
+        expr = y * y
         assert not expr.is_complex()
         assert not expr.is_imag()
 
-        expr = y/2
+        expr = y / 2
         assert expr.is_complex()
         assert expr.is_imag()
 
-        expr = y/1j
+        expr = y / 1j
         assert not expr.is_complex()
         assert not expr.is_imag()
 
         A = np.ones((2, 2))
-        expr = (A*A)*y
+        expr = (A * A) * y
         assert expr.is_complex()
         assert expr.is_imag()
 
     def test_real(self) -> None:
-        """Test real.
-        """
+        """Test real."""
         A = np.ones((2, 2))
-        expr = Constant(A) + 1j*Constant(A)
+        expr = Constant(A) + 1j * Constant(A)
         expr = cp.real(expr)
         assert expr.is_real()
         assert not expr.is_complex()
@@ -157,92 +151,91 @@ class TestComplex(BaseTest):
         assert expr.is_real()
 
     def test_imag(self) -> None:
-        """Test imag.
-        """
+        """Test imag."""
         A = np.ones((2, 2))
-        expr = Constant(A) + 2j*Constant(A)
+        expr = Constant(A) + 2j * Constant(A)
         expr = cp.imag(expr)
         assert expr.is_real()
         assert not expr.is_complex()
         assert not expr.is_imag()
-        self.assertItemsAlmostEqual(expr.value, 2*A)
+        self.assertItemsAlmostEqual(expr.value, 2 * A)
 
     def test_conj(self) -> None:
-        """Test imag.
-        """
+        """Test imag."""
         A = np.ones((2, 2))
-        expr = Constant(A) + 1j*Constant(A)
+        expr = Constant(A) + 1j * Constant(A)
         expr = cp.conj(expr)
         assert not expr.is_real()
         assert expr.is_complex()
         assert not expr.is_imag()
-        self.assertItemsAlmostEqual(expr.value, A - 1j*A)
+        self.assertItemsAlmostEqual(expr.value, A - 1j * A)
 
     def test_affine_atoms_canon(self) -> None:
-        """Test canonicalization for affine atoms.
-        """
+        """Test canonicalization for affine atoms."""
         # Scalar.
         x = Variable()
-        expr = cp.imag(x + 1j*x)
+        expr = cp.imag(x + 1j * x)
         prob = Problem(Minimize(expr), [x >= 0])
-        result = prob.solve(solver="SCS", eps=1e-6)
+        result = prob.solve(solver='SCS', eps=1e-6)
         self.assertAlmostEqual(result, 0)
         self.assertAlmostEqual(x.value, 0)
 
         x = Variable(imag=True)
-        expr = 1j*x
+        expr = 1j * x
         prob = Problem(Minimize(expr), [cp.imag(x) <= 1])
-        result = prob.solve(solver="SCS", eps=1e-6)
+        result = prob.solve(solver='SCS', eps=1e-6)
         self.assertAlmostEqual(result, -1)
         self.assertAlmostEqual(x.value, 1j)
 
         x = Variable(2)
-        expr = x*1j
-        prob = Problem(Minimize(expr[0]*1j + expr[1]*1j), [cp.real(x + 1j) >= 1])
-        result = prob.solve(solver="SCS", eps=1e-6)
+        expr = x * 1j
+        prob = Problem(Minimize(expr[0] * 1j + expr[1] * 1j), [cp.real(x + 1j) >= 1])
+        result = prob.solve(solver='SCS', eps=1e-6)
         self.assertAlmostEqual(result, -np.inf)
-        prob = Problem(Minimize(expr[0]*1j + expr[1]*1j), [cp.real(x + 1j) <= 1])
-        result = prob.solve(solver="SCS", eps=1e-6)
+        prob = Problem(Minimize(expr[0] * 1j + expr[1] * 1j), [cp.real(x + 1j) <= 1])
+        result = prob.solve(solver='SCS', eps=1e-6)
         self.assertAlmostEqual(result, -2)
         self.assertItemsAlmostEqual(x.value, [1, 1])
-        prob = Problem(Minimize(expr[0]*1j + expr[1]*1j), [cp.real(x + 1j) >= 1, cp.conj(x) <= 0])
-        result = prob.solve(solver="SCS", eps=1e-6)
+        prob = Problem(
+            Minimize(expr[0] * 1j + expr[1] * 1j), [cp.real(x + 1j) >= 1, cp.conj(x) <= 0]
+        )
+        result = prob.solve(solver='SCS', eps=1e-6)
         self.assertAlmostEqual(result, np.inf)
 
         x = Variable((2, 2))
         y = Variable((3, 2), complex=True)
         expr = cp.vstack([x, y])
-        prob = Problem(Minimize(cp.sum(cp.imag(cp.conj(expr)))),
-                       [x == 0, cp.real(y) == 0, cp.imag(y) <= 1])
-        result = prob.solve(solver="SCS", eps=1e-6)
+        prob = Problem(
+            Minimize(cp.sum(cp.imag(cp.conj(expr)))), [x == 0, cp.real(y) == 0, cp.imag(y) <= 1]
+        )
+        result = prob.solve(solver='SCS', eps=1e-6)
         self.assertAlmostEqual(result, -6)
-        self.assertItemsAlmostEqual(y.value, 1j*np.ones((3, 2)))
+        self.assertItemsAlmostEqual(y.value, 1j * np.ones((3, 2)))
         self.assertItemsAlmostEqual(x.value, np.zeros((2, 2)))
 
         x = Variable((2, 2))
         y = Variable((3, 2), complex=True)
         expr = cp.vstack([x, y])
-        prob = Problem(Minimize(cp.sum(cp.imag(expr.H))),
-                       [x == 0, cp.real(y) == 0, cp.imag(y) <= 1])
-        result = prob.solve(solver="SCS", eps=1e-6)
+        prob = Problem(
+            Minimize(cp.sum(cp.imag(expr.H))), [x == 0, cp.real(y) == 0, cp.imag(y) <= 1]
+        )
+        result = prob.solve(solver='SCS', eps=1e-6)
         self.assertAlmostEqual(result, -6)
-        self.assertItemsAlmostEqual(y.value, 1j*np.ones((3, 2)))
+        self.assertItemsAlmostEqual(y.value, 1j * np.ones((3, 2)))
         self.assertItemsAlmostEqual(x.value, np.zeros((2, 2)))
 
     def test_params(self) -> None:
-        """Test with parameters.
-        """
+        """Test with parameters."""
         p = cp.Parameter(imag=True, value=1j)
         x = Variable(2, complex=True)
-        prob = Problem(cp.Maximize(cp.sum(cp.imag(x) + cp.real(x))), [cp.abs(p*x) <= 2])
-        result = prob.solve(solver="SCS", eps=1e-6)
-        self.assertAlmostEqual(result, 4*np.sqrt(2))
-        val = np.ones(2)*np.sqrt(2)
-        self.assertItemsAlmostEqual(x.value, val + 1j*val)
+        prob = Problem(cp.Maximize(cp.sum(cp.imag(x) + cp.real(x))), [cp.abs(p * x) <= 2])
+        result = prob.solve(solver='SCS', eps=1e-6)
+        self.assertAlmostEqual(result, 4 * np.sqrt(2))
+        val = np.ones(2) * np.sqrt(2)
+        self.assertItemsAlmostEqual(x.value, val + 1j * val)
 
     def test_complex_ndarray(self) -> None:
-        """Test ndarray of type complex64 and complex128.
-        """
+        """Test ndarray of type complex64 and complex128."""
         x = Variable()
         z = np.full(1, 1j, dtype=np.complex64)
         x.value = 0
@@ -254,67 +247,63 @@ class TestComplex(BaseTest):
         assert np.isclose(expr.value, z)
 
     def test_missing_imag(self) -> None:
-        """Test problems where imaginary is missing.
-        """
+        """Test problems where imaginary is missing."""
         Z = Variable((2, 2), hermitian=True)
         constraints = [cp.trace(cp.real(Z)) == 1]
         obj = cp.Minimize(0)
         prob = cp.Problem(obj, constraints)
-        prob.solve(solver="SCS")
+        prob.solve(solver='SCS')
 
         Z = Variable((2, 2), imag=True)
         obj = cp.Minimize(cp.trace(cp.real(Z)))
         prob = cp.Problem(obj, constraints)
-        result = prob.solve(solver="SCS")
+        result = prob.solve(solver='SCS')
         self.assertAlmostEqual(result, 0)
 
     def test_abs(self) -> None:
-        """Test with absolute value.
-        """
+        """Test with absolute value."""
         x = Variable(2, complex=True)
         prob = Problem(cp.Maximize(cp.sum(cp.imag(x) + cp.real(x))), [cp.abs(x) <= 2])
-        result = prob.solve(solver="SCS", eps=1e-6)
-        self.assertAlmostEqual(result, 4*np.sqrt(2))
-        val = np.ones(2)*np.sqrt(2)
-        self.assertItemsAlmostEqual(x.value, val + 1j*val)
+        result = prob.solve(solver='SCS', eps=1e-6)
+        self.assertAlmostEqual(result, 4 * np.sqrt(2))
+        val = np.ones(2) * np.sqrt(2)
+        self.assertItemsAlmostEqual(x.value, val + 1j * val)
 
     def test_soc(self) -> None:
-        """Test with SOC.
-        """
+        """Test with SOC."""
         x = Variable(2, complex=True)
         t = Variable()
         prob = Problem(cp.Minimize(t), [cp.SOC(t, x), x == 2j])
-        result = prob.solve(solver="SCS", eps=1e-6)
-        self.assertAlmostEqual(result, 2*np.sqrt(2))
+        result = prob.solve(solver='SCS', eps=1e-6)
+        self.assertAlmostEqual(result, 2 * np.sqrt(2))
         self.assertItemsAlmostEqual(x.value, [2j, 2j])
 
     def test_pnorm(self) -> None:
-        """Test complex with pnorm.
-        """
+        """Test complex with pnorm."""
         x = Variable((1, 2), complex=True)
         prob = Problem(cp.Maximize(cp.sum(cp.imag(x) + cp.real(x))), [cp.norm1(x) <= 2])
         result = prob.solve(solver=cp.CLARABEL)
-        self.assertAlmostEqual(result, 2*np.sqrt(2))
-        val = np.ones(2)*np.sqrt(2)/2
+        self.assertAlmostEqual(result, 2 * np.sqrt(2))
+        val = np.ones(2) * np.sqrt(2) / 2
         # self.assertItemsAlmostEqual(x.value, val + 1j*val)
 
         x = Variable((2, 2), complex=True)
-        prob = Problem(cp.Maximize(cp.sum(cp.imag(x) + cp.real(x))),
-                       [cp.pnorm(x, p=2) <= np.sqrt(8)])
+        prob = Problem(
+            cp.Maximize(cp.sum(cp.imag(x) + cp.real(x))), [cp.pnorm(x, p=2) <= np.sqrt(8)]
+        )
         result = prob.solve(solver=cp.CLARABEL)
         self.assertAlmostEqual(result, 8)
         val = np.ones((2, 2))
-        self.assertItemsAlmostEqual(x.value, val + 1j*val)
+        self.assertItemsAlmostEqual(x.value, val + 1j * val)
 
     def test_matrix_norms(self) -> None:
-        """Test matrix norms.
-        """
-        P = np.arange(8) - 2j*np.arange(8)
+        """Test matrix norms."""
+        P = np.arange(8) - 2j * np.arange(8)
         P = np.reshape(P, (2, 4))
         sigma_max = np.linalg.norm(P, 2)
         X = Variable((2, 4), complex=True)
         prob = Problem(Minimize(cp.norm(X, 2)), [X == P])
-        result = prob.solve(solver="SCS")
+        result = prob.solve(solver='SCS')
         self.assertAlmostEqual(result, sigma_max, places=1)
 
         norm_nuc = np.linalg.norm(P, 'nuc')
@@ -324,11 +313,10 @@ class TestComplex(BaseTest):
         self.assertAlmostEqual(result, norm_nuc, places=1)
 
     def test_log_det(self) -> None:
-        """Test log det.
-        """
-        P = np.arange(9) - 2j*np.arange(9)
+        """Test log det."""
+        P = np.arange(9) - 2j * np.arange(9)
         P = np.reshape(P, (3, 3))
-        P = np.conj(P.T).dot(P)/100 + np.eye(3)*.1
+        P = np.conj(P.T).dot(P) / 100 + np.eye(3) * 0.1
         logdet_value = cp.log_det(P).value
         X = Variable((3, 3), complex=True)
         objective = cp.log_det(X)
@@ -347,14 +335,13 @@ class TestComplex(BaseTest):
         obj = cp.Maximize(cp.log_det(X))
         prob = cp.Problem(objective=obj, constraints=cons)
         prob.solve(solver=cp.SCS, eps=1e-6)
-        self.assertAlmostEqual(obj.value, 3*np.log(3))
+        self.assertAlmostEqual(obj.value, 3 * np.log(3))
 
     def test_eigval_atoms(self) -> None:
-        """Test eigenvalue atoms.
-        """
-        P = np.arange(9) - 2j*np.arange(9)
+        """Test eigenvalue atoms."""
+        P = np.arange(9) - 2j * np.arange(9)
         P = np.reshape(P, (3, 3))
-        P1 = np.conj(P.T).dot(P)/10 + np.eye(3)*.1
+        P1 = np.conj(P.T).dot(P) / 10 + np.eye(3) * 0.1
         P2 = np.array([[10, 1j, 0], [-1j, 10, 0], [0, 0, 1]])
         for P in [P1, P2]:
             value = cp.lambda_max(P).value
@@ -378,11 +365,10 @@ class TestComplex(BaseTest):
             self.assertAlmostEqual(result, value, places=3)
 
     def test_quad_form(self) -> None:
-        """Test quad_form atom.
-        """
+        """Test quad_form atom."""
         # Create a random positive definite Hermitian matrix for all tests.
         np.random.seed(42)
-        P = np.random.randn(3, 3) - 1j*np.random.randn(3, 3)
+        P = np.random.randn(3, 3) - 1j * np.random.randn(3, 3)
         P = np.conj(P.T).dot(P)
 
         # Solve a problem with real variable
@@ -390,31 +376,30 @@ class TestComplex(BaseTest):
         x = Variable(3, complex=False)
         value = cp.quad_form(b, P).value
         prob = Problem(cp.Minimize(cp.quad_form(x, P)), [x == b])
-        result = prob.solve(solver="CLARABEL")
+        result = prob.solve(solver='CLARABEL')
         self.assertAlmostEqual(result, value)
 
         # Solve a problem with complex variable
-        b = np.arange(3) + 3j*(np.arange(3) + 10)
+        b = np.arange(3) + 3j * (np.arange(3) + 10)
         x = Variable(3, complex=True)
         value = cp.quad_form(b, P).value
         prob = Problem(cp.Minimize(cp.quad_form(x, P)), [x == b])
-        result = prob.solve(solver="CLARABEL")
+        result = prob.solve(solver='CLARABEL')
         normalization = max(abs(result), abs(value))
         self.assertAlmostEqual(result / normalization, value / normalization, places=5)
 
         # Solve a problem with an imaginary variable
-        b = 3j*(np.arange(3) + 10)
+        b = 3j * (np.arange(3) + 10)
         x = Variable(3, imag=True)
         value = cp.quad_form(b, P).value
         expr = cp.quad_form(x, P)
         prob = Problem(cp.Minimize(expr), [x == b])
-        result = prob.solve(solver="CLARABEL")
+        result = prob.solve(solver='CLARABEL')
         normalization = max(abs(result), abs(value))
         self.assertAlmostEqual(result / normalization, value / normalization)
 
     def test_matrix_frac(self) -> None:
-        """Test matrix_frac atom.
-        """
+        """Test matrix_frac atom."""
         P = np.array([[10, 1j], [-1j, 10]])
         Y = Variable((2, 2), complex=True)
         b = np.arange(2)
@@ -425,7 +410,7 @@ class TestComplex(BaseTest):
         result = prob.solve(solver=cp.SCS, eps=1e-6, max_iters=7500, verbose=True)
         self.assertAlmostEqual(result, value, places=3)
 
-        b = (np.arange(2) + 3j*(np.arange(2) + 10))
+        b = np.arange(2) + 3j * (np.arange(2) + 10)
         x = Variable(2, complex=True)
         value = cp.matrix_frac(b, P).value
         expr = cp.matrix_frac(x, Y)
@@ -433,7 +418,7 @@ class TestComplex(BaseTest):
         result = prob.solve(solver=cp.SCS, eps=1e-6)
         self.assertAlmostEqual(result, value, places=3)
 
-        b = (np.arange(2) + 10)/10j
+        b = (np.arange(2) + 10) / 10j
         x = Variable(2, imag=True)
         value = cp.matrix_frac(b, P).value
         expr = cp.matrix_frac(x, Y)
@@ -442,8 +427,7 @@ class TestComplex(BaseTest):
         self.assertAlmostEqual(result, value, places=3)
 
     def test_quad_over_lin(self) -> None:
-        """Test quad_over_lin atom.
-        """
+        """Test quad_over_lin atom."""
         P = np.array([[10, 1j], [-1j, 10]])
         X = Variable((2, 2), complex=True)
         b = 1
@@ -462,36 +446,32 @@ class TestComplex(BaseTest):
         self.assertItemsAlmostEqual(X.value, P, places=3)
 
     def test_hermitian(self) -> None:
-        """Test Hermitian variables.
-        """
+        """Test Hermitian variables."""
         X = Variable((2, 2), hermitian=True)
-        prob = Problem(cp.Minimize(cp.imag(X[1, 0])),
-                       [X[0, 0] == 2, X[1, 1] == 3, X[0, 1] == 1+1j])
-        prob.solve(solver="SCS")
-        self.assertItemsAlmostEqual(X.value, [2, 1-1j, 1+1j, 3])
+        prob = Problem(
+            cp.Minimize(cp.imag(X[1, 0])), [X[0, 0] == 2, X[1, 1] == 3, X[0, 1] == 1 + 1j]
+        )
+        prob.solve(solver='SCS')
+        self.assertItemsAlmostEqual(X.value, [2, 1 - 1j, 1 + 1j, 3])
 
     def test_psd(self) -> None:
-        """Test Hermitian variables.
-        """
+        """Test Hermitian variables."""
         X = Variable((2, 2), hermitian=True)
-        prob = Problem(cp.Minimize(cp.imag(X[1, 0])),
-                       [X >> 0, X[0, 0] == -1])
-        prob.solve(solver="SCS")
+        prob = Problem(cp.Minimize(cp.imag(X[1, 0])), [X >> 0, X[0, 0] == -1])
+        prob.solve(solver='SCS')
         assert prob.status is cp.INFEASIBLE
 
     def test_promote(self) -> None:
-        """Test promotion of complex variables.
-        """
+        """Test promotion of complex variables."""
         v = Variable(complex=True)
         obj = cp.Maximize(cp.real(cp.sum(v * np.ones((2, 2)))))
         con = [cp.norm(v) <= 1]
         prob = cp.Problem(obj, con)
-        result = prob.solve(solver="CLARABEL")
+        result = prob.solve(solver='CLARABEL')
         self.assertAlmostEqual(result, 4.0)
 
     def test_sparse(self) -> None:
-        """Test problem with complex sparse matrix.
-        """
+        """Test problem with complex sparse matrix."""
         # define sparse matrix [[0, 1j],[-1j,0]]
         row = np.array([0, 1])
         col = np.array([1, 0])
@@ -504,7 +484,7 @@ class TestComplex(BaseTest):
         obj = cp.Maximize(0)
         cons = [A @ rho == Id]
         prob = cp.Problem(obj, cons)
-        prob.solve(solver="SCS")
+        prob.solve(solver='SCS')
         rho_sparse = rho.value
         # infeasible here, which is wrong!
 
@@ -514,12 +494,11 @@ class TestComplex(BaseTest):
         obj = cp.Maximize(0)
         cons = [A.toarray() @ rho == Id]
         prob = cp.Problem(obj, cons)
-        prob.solve(solver="SCS")
+        prob.solve(solver='SCS')
         self.assertItemsAlmostEqual(rho.value, rho_sparse)
 
     def test_special_idx(self) -> None:
-        """Test with special index.
-        """
+        """Test with special index."""
         c = [0, 1]
         n = len(c)
         # Create optimization variables.
@@ -533,42 +512,50 @@ class TestComplex(BaseTest):
         obj = cp.Maximize(c[0] - cp.real(cp.trace(f)))
         # Form and solve problem.
         prob = cp.Problem(obj, constraints)
-        prob.solve(solver="SCS")
+        prob.solve(solver='SCS')
 
     def test_validation(self) -> None:
-        """Test that complex arguments are rejected.
-        """
+        """Test that complex arguments are rejected."""
         x = Variable(complex=True)
         with self.assertRaises(Exception) as cm:
             (x >= 0)
-        self.assertEqual(str(cm.exception), "Inequality constraints cannot be complex.")
+        self.assertEqual(str(cm.exception), 'Inequality constraints cannot be complex.')
 
         with self.assertRaises(Exception) as cm:
             cp.quad_over_lin(x, x)
-        self.assertEqual(str(cm.exception),
-                         "The second argument to quad_over_lin cannot be complex.")
+        self.assertEqual(
+            str(cm.exception), 'The second argument to quad_over_lin cannot be complex.'
+        )
 
         with self.assertRaises(Exception) as cm:
             cp.sum_largest(x, 2)
-        self.assertEqual(str(cm.exception), "Arguments to sum_largest cannot be complex.")
+        self.assertEqual(str(cm.exception), 'Arguments to sum_largest cannot be complex.')
 
         with self.assertRaises(Exception) as cm:
             cp.dotsort(x, 2)
-        self.assertEqual(str(cm.exception), "Arguments to dotsort cannot be complex.")
+        self.assertEqual(str(cm.exception), 'Arguments to dotsort cannot be complex.')
 
         with self.assertRaises(Exception) as cm:
-            cp.dotsort(cp.Variable(2), np.array([1+2j]))
-        self.assertEqual(str(cm.exception), "Arguments to dotsort cannot be complex.")
+            cp.dotsort(cp.Variable(2), np.array([1 + 2j]))
+        self.assertEqual(str(cm.exception), 'Arguments to dotsort cannot be complex.')
 
         x = Variable(2, complex=True)
-        for atom in [cp.geo_mean, cp.log_sum_exp, cp.max,
-                     cp.entr, cp.exp, cp.huber,
-                     cp.log, cp.log1p, cp.logistic]:
+        for atom in [
+            cp.geo_mean,
+            cp.log_sum_exp,
+            cp.max,
+            cp.entr,
+            cp.exp,
+            cp.huber,
+            cp.log,
+            cp.log1p,
+            cp.logistic,
+        ]:
             name = atom.__name__
             with self.assertRaises(Exception) as cm:
                 print(name)
                 atom(x)
-            self.assertEqual(str(cm.exception), "Arguments to %s cannot be complex." % name)
+            self.assertEqual(str(cm.exception), 'Arguments to %s cannot be complex.' % name)
 
         x = Variable(2, complex=True)
         for atom in [cp.maximum, cp.kl_div]:
@@ -576,28 +563,27 @@ class TestComplex(BaseTest):
             with self.assertRaises(Exception) as cm:
                 print(name)
                 atom(x, x)
-            self.assertEqual(str(cm.exception), "Arguments to %s cannot be complex." % name)
+            self.assertEqual(str(cm.exception), 'Arguments to %s cannot be complex.' % name)
 
         x = Variable(2, complex=True)
-        for atom in [cp.inv_pos, cp.sqrt, lambda x: cp.power(x, .2)]:
+        for atom in [cp.inv_pos, cp.sqrt, lambda x: cp.power(x, 0.2)]:
             with self.assertRaises(Exception) as cm:
                 atom(x)
-            self.assertEqual(str(cm.exception), "Arguments to power cannot be complex.")
+            self.assertEqual(str(cm.exception), 'Arguments to power cannot be complex.')
 
         x = Variable(2, complex=True)
-        for atom in [cp.harmonic_mean, lambda x: cp.pnorm(x, .2)]:
+        for atom in [cp.harmonic_mean, lambda x: cp.pnorm(x, 0.2)]:
             with self.assertRaises(Exception) as cm:
                 atom(x)
-            self.assertEqual(str(cm.exception), "pnorm(x, p) cannot have x complex for p < 1.")
+            self.assertEqual(str(cm.exception), 'pnorm(x, p) cannot have x complex for p < 1.')
 
     def test_diag(self) -> None:
-        """Test diag of mat, and of vector.
-        """
+        """Test diag of mat, and of vector."""
         X = cp.Variable((2, 2), complex=True)
         obj = cp.Maximize(cp.trace(cp.real(X)))
         cons = [cp.diag(X) == 1]
         prob = cp.Problem(obj, cons)
-        result = prob.solve(solver="SCS")
+        result = prob.solve(solver='SCS')
         self.assertAlmostEqual(result, 2)
 
         x = cp.Variable(2, complex=True)
@@ -605,43 +591,39 @@ class TestComplex(BaseTest):
         obj = cp.Maximize(cp.trace(cp.real(X)))
         cons = [cp.diag(X) == 1]
         prob = cp.Problem(obj, cons)
-        result = prob.solve(solver="SCS")
+        result = prob.solve(solver='SCS')
         self.assertAlmostEqual(result, 2)
 
     def test_complex_qp(self) -> None:
-        """Test a QP with a complex variable.
-        """
-        A0 = np.array([0+1j, 2-1j])
-        A1 = np.array([[2, -1+1j], [4-3j, -3+2j]])
+        """Test a QP with a complex variable."""
+        A0 = np.array([0 + 1j, 2 - 1j])
+        A1 = np.array([[2, -1 + 1j], [4 - 3j, -3 + 2j]])
         Z = cp.Variable(complex=True)
         X = cp.Variable(2)
-        B = np.array([2+1j, -2j])
+        B = np.array([2 + 1j, -2j])
 
-        objective = cp.Minimize(cp.sum_squares(A0*Z + A1@X - B))
+        objective = cp.Minimize(cp.sum_squares(A0 * Z + A1 @ X - B))
         prob = cp.Problem(objective)
-        prob.solve(solver="SCS")
+        prob.solve(solver='SCS')
         self.assertEqual(prob.status, cp.OPTIMAL)
 
         constraints = [X >= 0]
         prob = cp.Problem(objective, constraints)
-        prob.solve(solver="SCS")
+        prob.solve(solver='SCS')
         self.assertEqual(prob.status, cp.OPTIMAL)
         assert constraints[0].dual_value is not None
 
     def test_quad_psd(self) -> None:
-        """Test PSD checking from #1491.
-        """
+        """Test PSD checking from #1491."""
         x = cp.Variable(2, complex=True)
         P1 = np.eye(2)
-        P2 = np.array([[1+0j, 0+0j],
-                       [0-0j, 1+0j]])
-        print("P1 is real:", cp.quad_form(x, P1).curvature)
-        print("P2 is complex:", cp.quad_form(x, P2).curvature)
+        P2 = np.array([[1 + 0j, 0 + 0j], [0 - 0j, 1 + 0j]])
+        print('P1 is real:', cp.quad_form(x, P1).curvature)
+        print('P2 is complex:', cp.quad_form(x, P2).curvature)
         assert cp.quad_form(x, P2).is_dcp()
 
     @pytest.mark.skipif(
-        "HIGHS" not in INSTALLED_MI_SOLVERS, 
-        reason='HiGHS solver is not installed.'
+        'HIGHS' not in INSTALLED_MI_SOLVERS, reason='HiGHS solver is not installed.'
     )
     def test_bool(self) -> None:
         # The purpose of this test is to make sure
@@ -672,11 +654,11 @@ class TestComplex(BaseTest):
         np.random.seed(1)
 
         # Generate test case.
-        rho_A = np.random.random((4, 4)) + 1j*np.random.random((4, 4))
+        rho_A = np.random.random((4, 4)) + 1j * np.random.random((4, 4))
         rho_A /= np.trace(rho_A)
-        rho_B = np.random.random((3, 3)) + 1j*np.random.random((3, 3))
+        rho_B = np.random.random((3, 3)) + 1j * np.random.random((3, 3))
         rho_B /= np.trace(rho_B)
-        rho_C = np.random.random((2, 2)) + 1j*np.random.random((2, 2))
+        rho_C = np.random.random((2, 2)) + 1j * np.random.random((2, 2))
         rho_C /= np.trace(rho_C)
         rho_AB = np.kron(rho_A, rho_B)
         rho_AC = np.kron(rho_A, rho_C)
@@ -706,11 +688,11 @@ class TestComplex(BaseTest):
         np.random.seed(1)
 
         # Generate three test cases
-        rho_A = np.random.random((6, 6)) + 1j*np.random.random((6, 6))
+        rho_A = np.random.random((6, 6)) + 1j * np.random.random((6, 6))
         rho_A /= np.trace(rho_A)
-        rho_B = np.random.random((4, 4)) + 1j*np.random.random((4, 4))
+        rho_B = np.random.random((4, 4)) + 1j * np.random.random((4, 4))
         rho_B /= np.trace(rho_B)
-        rho_C = np.random.random((2, 2)) + 1j*np.random.random((2, 2))
+        rho_C = np.random.random((2, 2)) + 1j * np.random.random((2, 2))
         rho_C /= np.trace(rho_C)
 
         rho_TC = np.kron(np.kron(rho_A, rho_B), rho_C.T)

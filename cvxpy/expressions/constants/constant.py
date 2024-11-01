@@ -27,8 +27,10 @@ import cvxpy.utilities.linalg as eig_util
 from cvxpy.expressions.leaf import Leaf
 from cvxpy.utilities import performance_utils as perf
 
-NESTED_LIST_WARNING = "Initializing a Constant with a nested list is " \
-                      "undefined behavior. Consider using a numpy array instead."
+NESTED_LIST_WARNING = (
+    'Initializing a Constant with a nested list is '
+    'undefined behavior. Consider using a numpy array instead.'
+)
 
 
 class Constant(Leaf):
@@ -44,8 +46,7 @@ class Constant(Leaf):
     def __init__(self, value, name: Optional[str] = None) -> None:
         # Keep sparse matrices sparse.
         if intf.is_sparse(value):
-            self._value = intf.DEFAULT_SPARSE_INTF.const_to_matrix(
-                value, convert_scalars=True)
+            self._value = intf.DEFAULT_SPARSE_INTF.const_to_matrix(value, convert_scalars=True)
             self._sparse = True
         else:
             if isinstance(value, list) and any(isinstance(i, list) for i in value):
@@ -67,21 +68,22 @@ class Constant(Leaf):
 
     def name(self) -> str:
         """
-         The value of the constant as a string.
+        The value of the constant as a string.
         """
         if self._name is None:
-            if len(self.shape) == 2 and "\n" in str(self.value):
-                return np.array2string(self.value,
-                                       edgeitems=s.PRINT_EDGEITEMS,
-                                       threshold=s.PRINT_THRESHOLD,
-                                       formatter={'float': lambda x: f'{x:.2f}'})
+            if len(self.shape) == 2 and '\n' in str(self.value):
+                return np.array2string(
+                    self.value,
+                    edgeitems=s.PRINT_EDGEITEMS,
+                    threshold=s.PRINT_THRESHOLD,
+                    formatter={'float': lambda x: f'{x:.2f}'},
+                )
             return str(self.value)
         else:
             return self._name
 
-    def constants(self) -> List["Constant"]:
-        """Returns self as a constant.
-        """
+    def constants(self) -> List['Constant']:
+        """Returns self as a constant."""
         return [self]
 
     def is_constant(self) -> bool:
@@ -89,13 +91,11 @@ class Constant(Leaf):
 
     @property
     def value(self):
-        """NumPy.ndarray or None: The numeric value of the constant.
-        """
+        """NumPy.ndarray or None: The numeric value of the constant."""
         return self._value
 
     def is_pos(self) -> bool:
-        """Returns whether the constant is elementwise positive.
-        """
+        """Returns whether the constant is elementwise positive."""
         if self._cached_is_pos is None:
             if sp.issparse(self._value):
                 # sparse constants cannot be elementwise positive,
@@ -118,8 +118,7 @@ class Constant(Leaf):
 
     @property
     def shape(self) -> Tuple[int, ...]:
-        """Returns the (row, col) dimensions of the expression.
-        """
+        """Returns the (row, col) dimensions of the expression."""
         return self._shape
 
     def canonicalize(self):
@@ -132,43 +131,35 @@ class Constant(Leaf):
         return (obj, [])
 
     def __repr__(self) -> str:
-        """Returns a string with information about the expression.
-        """
-        return "Constant(%s, %s, %s)" % (self.curvature,
-                                         self.sign,
-                                         self.shape)
+        """Returns a string with information about the expression."""
+        return 'Constant(%s, %s, %s)' % (self.curvature, self.sign, self.shape)
 
     def is_nonneg(self) -> bool:
-        """Is the expression nonnegative?
-        """
+        """Is the expression nonnegative?"""
         if self._nonneg is None:
             self._compute_attr()
         return self._nonneg
 
     def is_nonpos(self) -> bool:
-        """Is the expression nonpositive?
-        """
+        """Is the expression nonpositive?"""
         if self._nonpos is None:
             self._compute_attr()
         return self._nonpos
 
     def is_imag(self) -> bool:
-        """Is the Leaf imaginary?
-        """
+        """Is the Leaf imaginary?"""
         if self._imag is None:
             self._compute_attr()
         return self._imag
 
     @perf.compute_once
     def is_complex(self) -> bool:
-        """Is the Leaf complex valued?
-        """
+        """Is the Leaf complex valued?"""
         return np.iscomplexobj(self.value)
 
     @perf.compute_once
     def is_symmetric(self) -> bool:
-        """Is the expression symmetric?
-        """
+        """Is the expression symmetric?"""
         if self.is_scalar():
             return True
         elif self.ndim == 2 and self.shape[0] == self.shape[1]:
@@ -180,8 +171,7 @@ class Constant(Leaf):
 
     @perf.compute_once
     def is_hermitian(self) -> bool:
-        """Is the expression a Hermitian matrix?
-        """
+        """Is the expression a Hermitian matrix?"""
         if self.is_scalar() and self.is_real():
             return True
         elif self.ndim == 2 and self.shape[0] == self.shape[1]:
@@ -192,21 +182,19 @@ class Constant(Leaf):
             return False
 
     def _compute_attr(self) -> None:
-        """Compute the attributes of the constant related to complex/real, sign.
-        """
+        """Compute the attributes of the constant related to complex/real, sign."""
         # Set DCP attributes.
         is_real, is_imag = intf.is_complex(self.value)
         if self.is_complex():
             is_nonneg = is_nonpos = False
         else:
             is_nonneg, is_nonpos = intf.sign(self.value)
-        self._imag = (is_imag and not is_real)
+        self._imag = is_imag and not is_real
         self._nonpos = is_nonpos
         self._nonneg = is_nonneg
 
     def _compute_symm_attr(self) -> None:
-        """Determine whether the constant is symmetric/Hermitian.
-        """
+        """Determine whether the constant is symmetric/Hermitian."""
         # Set DCP attributes.
         is_symm, is_herm = intf.is_hermitian(self.value)
         self._symm = is_symm
@@ -219,8 +207,7 @@ class Constant(Leaf):
 
     @perf.compute_once
     def is_psd(self) -> bool:
-        """Is the expression a positive semidefinite matrix?
-        """
+        """Is the expression a positive semidefinite matrix?"""
         # Symbolic only cases.
         if self.is_scalar() and self.is_nonneg():
             return True
@@ -241,8 +228,7 @@ class Constant(Leaf):
 
     @perf.compute_once
     def is_nsd(self) -> bool:
-        """Is the expression a negative semidefinite matrix?
-        """
+        """Is the expression a negative semidefinite matrix?"""
         # Symbolic only cases.
         if self.is_scalar() and self.is_nonpos():
             return True

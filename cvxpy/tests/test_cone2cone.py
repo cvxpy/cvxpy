@@ -13,6 +13,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+
 import unittest
 
 import numpy as np
@@ -39,7 +40,6 @@ from cvxpy.tests.base_test import BaseTest
 
 
 class TestDualize(BaseTest):
-
     @staticmethod
     def simulate_chain(in_prob):
         # Get a ParamConeProg object
@@ -58,24 +58,24 @@ class TestDualize(BaseTest):
         dual_prims = {a2d.FREE: y[:i], a2d.SOC: []}
         if K_dir[a2d.NONNEG]:
             dim = K_dir[a2d.NONNEG]
-            dual_prims[a2d.NONNEG] = y[i:i+dim]
-            constraints.append(y[i:i+dim] >= 0)
+            dual_prims[a2d.NONNEG] = y[i : i + dim]
+            constraints.append(y[i : i + dim] >= 0)
             i += dim
         for dim in K_dir[a2d.SOC]:
-            dual_prims[a2d.SOC].append(y[i:i+dim])
-            constraints.append(SOC(y[i], y[i+1:i+dim]))
+            dual_prims[a2d.SOC].append(y[i : i + dim])
+            constraints.append(SOC(y[i], y[i + 1 : i + dim]))
             i += dim
         if K_dir[a2d.DUAL_EXP]:
             exp_len = 3 * K_dir[a2d.DUAL_EXP]
-            dual_prims[a2d.DUAL_EXP] = y[i:i+exp_len]
-            y_de = cp.reshape(y[i:i+exp_len], (exp_len//3, 3), order='C')  # fill rows first
-            constraints.append(ExpCone(-y_de[:, 1], -y_de[:, 0], np.exp(1)*y_de[:, 2]))
+            dual_prims[a2d.DUAL_EXP] = y[i : i + exp_len]
+            y_de = cp.reshape(y[i : i + exp_len], (exp_len // 3, 3), order='C')  # fill rows first
+            constraints.append(ExpCone(-y_de[:, 1], -y_de[:, 0], np.exp(1) * y_de[:, 2]))
             i += exp_len
         if K_dir[a2d.DUAL_POW3D]:
             alpha = np.array(K_dir[a2d.DUAL_POW3D])
             dual_prims[a2d.DUAL_POW3D] = y[i:]
             y_dp = cp.reshape(y[i:], (alpha.size, 3), order='C')  # fill rows first
-            pow_con = PowCone3D(y_dp[:, 0] / alpha, y_dp[:, 1] / (1-alpha), y_dp[:, 2], alpha)
+            pow_con = PowCone3D(y_dp[:, 0] / alpha, y_dp[:, 1] / (1 - alpha), y_dp[:, 2], alpha)
             constraints.append(pow_con)
         objective = cp.Maximize(c @ y)
         dual_prob = cp.Problem(objective, constraints)
@@ -189,7 +189,6 @@ class TestDualize(BaseTest):
 
 
 class TestSlacks(BaseTest):
-
     AFF_LP_CASES = [[a2d.NONNEG], []]
     AFF_SOCP_CASES = [[a2d.NONNEG, a2d.SOC], [a2d.NONNEG], [a2d.SOC], []]
     AFF_EXP_CASES = [[a2d.NONNEG, a2d.EXP], [a2d.NONNEG], [a2d.EXP], []]
@@ -217,7 +216,7 @@ class TestSlacks(BaseTest):
         constraints = aff_con + dir_con + int_con
         slack_prob = cp.Problem(objective, constraints)
         slack_prob.solve(**solve_kwargs)
-        slack_prims = {a2d.FREE: y[:cone_prog.x.size].value}  # nothing else need be populated.
+        slack_prims = {a2d.FREE: y[: cone_prog.x.size].value}  # nothing else need be populated.
         slack_sol = Solution(slack_prob.status, slack_prob.value, slack_prims, None, dict())
         cone_sol = a2d.Slacks.invert(slack_sol, inv_data)
 
@@ -231,19 +230,19 @@ class TestSlacks(BaseTest):
         i = 0
         if K_aff[a2d.ZERO]:
             dim = K_aff[a2d.ZERO]
-            constraints.append(G[i:i+dim, :] @ y == h[i:i+dim])
+            constraints.append(G[i : i + dim, :] @ y == h[i : i + dim])
             i += dim
         if K_aff[a2d.NONNEG]:
             dim = K_aff[a2d.NONNEG]
-            constraints.append(G[i:i+dim, :] @ y <= h[i:i+dim])
+            constraints.append(G[i : i + dim, :] @ y <= h[i : i + dim])
             i += dim
         for dim in K_aff[a2d.SOC]:
-            expr = h[i:i+dim] - G[i:i+dim, :] @ y
+            expr = h[i : i + dim] - G[i : i + dim, :] @ y
             constraints.append(SOC(expr[0], expr[1:]))
             i += dim
         if K_aff[a2d.EXP]:
             dim = 3 * K_aff[a2d.EXP]
-            expr = cp.reshape(h[i:i+dim] - G[i:i+dim, :] @ y, (dim//3, 3), order='C')
+            expr = cp.reshape(h[i : i + dim] - G[i : i + dim, :] @ y, (dim // 3, 3), order='C')
             constraints.append(ExpCone(expr[:, 0], expr[:, 1], expr[:, 2]))
             i += dim
         if K_aff[a2d.POW3D]:
@@ -258,14 +257,14 @@ class TestSlacks(BaseTest):
         i = K_dir[a2d.FREE]
         if K_dir[a2d.NONNEG]:
             dim = K_dir[a2d.NONNEG]
-            constraints.append(y[i:i+dim] >= 0)
+            constraints.append(y[i : i + dim] >= 0)
             i += dim
         for dim in K_dir[a2d.SOC]:
-            constraints.append(SOC(y[i], y[i+1:i+dim]))
+            constraints.append(SOC(y[i], y[i + 1 : i + dim]))
             i += dim
         if K_dir[a2d.EXP]:
             dim = 3 * K_dir[a2d.EXP]
-            expr = cp.reshape(y[i:i+dim], (dim//3, 3), order='C')
+            expr = cp.reshape(y[i : i + dim], (dim // 3, 3), order='C')
             constraints.append(ExpCone(expr[:, 0], expr[:, 1], expr[:, 2]))
             i += dim
         if K_dir[a2d.POW3D]:
@@ -351,10 +350,7 @@ class TestSlacks(BaseTest):
             sth.verify_objective(places=3)
             sth.verify_primal_values(places=3)
 
-    @pytest.mark.skipif(
-        "HIGHS" not in INSTALLED_MI, 
-        reason='HiGHS solver is not installed.'
-    )
+    @pytest.mark.skipif('HIGHS' not in INSTALLED_MI, reason='HiGHS solver is not installed.')
     def test_mi_lp_1(self):
         sth = STH.mi_lp_1()
         for affine in TestSlacks.AFF_LP_CASES:
@@ -362,7 +358,7 @@ class TestSlacks(BaseTest):
             sth.verify_objective(places=4)
             sth.verify_primal_values(places=4)
 
-    @pytest.mark.skip(reason="Known bug in ECOS BB")
+    @pytest.mark.skip(reason='Known bug in ECOS BB')
     def test_mi_socp_1(self):
         sth = STH.mi_socp_1()
         for affine in TestSlacks.AFF_SOCP_CASES:
@@ -370,8 +366,10 @@ class TestSlacks(BaseTest):
             sth.verify_objective(places=4)
             sth.verify_primal_values(places=4)
 
-    @unittest.skipUnless([svr for svr in INSTALLED_MI if svr in MI_SOCP],
-                         'No appropriate mixed-integer SOCP solver is installed.')
+    @unittest.skipUnless(
+        [svr for svr in INSTALLED_MI if svr in MI_SOCP],
+        'No appropriate mixed-integer SOCP solver is installed.',
+    )
     def test_mi_socp_2(self):
         sth = STH.mi_socp_2()
         for affine in TestSlacks.AFF_SOCP_CASES:
@@ -381,7 +379,6 @@ class TestSlacks(BaseTest):
 
 
 class TestPowND(BaseTest):
-
     @staticmethod
     def pcp_3(axis):
         """
@@ -407,22 +404,17 @@ class TestPowND(BaseTest):
         hypos = cp.Variable(shape=(2,))
         expect_hypos = None
         objective = cp.Maximize(cp.sum(hypos) - x[0])
-        W = cp.bmat([[x[0], x[2]],
-                     [x[1], 1.0]])
-        alpha = np.array([[0.2, 0.4],
-                          [0.8, 0.6]])
+        W = cp.bmat([[x[0], x[2]], [x[1], 1.0]])
+        alpha = np.array([[0.2, 0.4], [0.8, 0.6]])
         if axis == 1:
             W = W.T
             alpha = alpha.T
         con_pairs = [
             (x[0] + x[1] + 0.5 * x[2] == 2, None),
-            (cp.constraints.PowConeND(W, hypos, alpha, axis=axis), None)
+            (cp.constraints.PowConeND(W, hypos, alpha, axis=axis), None),
         ]
         obj_pair = (objective, 1.8073406786220672)
-        var_pairs = [
-            (x, expect_x),
-            (hypos, expect_hypos)
-        ]
+        var_pairs = [(x, expect_x), (hypos, expect_hypos)]
         sth = STH.SolverTestHelper(obj_pair, var_pairs, con_pairs)
         return sth
 
@@ -467,8 +459,7 @@ class TestPowND(BaseTest):
 
         z = cp.Variable()
         pow_objective = (cp.Maximize(z), np.exp(log_prob.value))
-        pow_cons = [(cp.sum(X, axis=0) <= 1, None),
-                    (PowConeND(W=u, z=z, alpha=b), None)]
+        pow_cons = [(cp.sum(X, axis=0) <= 1, None), (PowConeND(W=u, z=z, alpha=b), None)]
         pow_vars = [(X, expect_X)]
         sth = STH.SolverTestHelper(pow_objective, pow_vars, pow_cons)
         return sth
@@ -491,7 +482,6 @@ class TestPowND(BaseTest):
 
 
 class TestRelEntrQuad(BaseTest):
-
     def expcone_1(self) -> STH.SolverTestHelper:
         """
         min   3 * x[0] + 2 * x[1] + x[2]
@@ -506,17 +496,16 @@ class TestRelEntrQuad(BaseTest):
         """
         x = cp.Variable(shape=(3, 1))
         cone_con = ExpCone(x[2], x[1], x[0]).as_quad_approx(5, 5)
-        constraints = [cp.sum(x) <= 1.0,
-                       cp.sum(x) >= 0.1,
-                       x >= 0,
-                       cone_con]
+        constraints = [cp.sum(x) <= 1.0, cp.sum(x) >= 0.1, x >= 0, cone_con]
         obj = cp.Minimize(3 * x[0] + 2 * x[1] + x[2])
         obj_pair = (obj, 0.23534820622420757)
         expect_exp = [np.array([-1.35348213]), np.array([-0.35348211]), np.array([0.64651792])]
-        con_pairs = [(constraints[0], 0),
-                     (constraints[1], 2.3534821130067614),
-                     (constraints[2], np.zeros(shape=(3, 1))),
-                     (constraints[3], expect_exp)]
+        con_pairs = [
+            (constraints[0], 0),
+            (constraints[1], 2.3534821130067614),
+            (constraints[2], np.zeros(shape=(3, 1))),
+            (constraints[3], expect_exp),
+        ]
         expect_x = np.array([[0.05462721], [0.02609378], [0.01927901]])
         var_pairs = [(x, expect_x)]
         sth = STH.SolverTestHelper(obj_pair, var_pairs, con_pairs)
@@ -532,15 +521,17 @@ class TestRelEntrQuad(BaseTest):
         """
         A random risk-parity portfolio optimization problem.
         """
-        sigma = np.array([[1.83, 1.79, 3.22],
-                          [1.79, 2.18, 3.18],
-                          [3.22, 3.18, 8.69]])
+        sigma = np.array([[1.83, 1.79, 3.22], [1.79, 2.18, 3.18], [3.22, 3.18, 8.69]])
         L = np.linalg.cholesky(sigma)
         c = 0.75
         t = cp.Variable(name='t')
         x = cp.Variable(shape=(3,), name='x')
         s = cp.Variable(shape=(3,), name='s')
-        e = cp.Constant(np.ones(3, ))
+        e = cp.Constant(
+            np.ones(
+                3,
+            )
+        )
         objective = cp.Minimize(t - c * e @ s)
         con1 = cp.norm(L.T @ x, p=2) <= t
         con2 = ExpCone(s, e, x).as_quad_approx(5, 5)
@@ -550,13 +541,7 @@ class TestRelEntrQuad(BaseTest):
             (x, np.array([0.57608346, 0.54315695, 0.28037716])),
             (s, np.array([-0.55150, -0.61036, -1.27161])),
         ]
-        con_pairs = [
-            (con1, 1.0),
-            (con2, [None,
-                    None,
-                    None]
-             )
-        ]
+        con_pairs = [(con1, 1.0), (con2, [None, None, None])]
         sth = STH.SolverTestHelper(obj_pair, var_pairs, con_pairs)
         return sth
 
@@ -572,10 +557,10 @@ def sdp_ipm_installed():
     return len(viable) > 0
 
 
-@unittest.skipUnless(sdp_ipm_installed(),
-                     'First-order solvers are too slow for the accuracy we need.')
+@unittest.skipUnless(
+    sdp_ipm_installed(), 'First-order solvers are too slow for the accuracy we need.'
+)
 class TestOpRelConeQuad(BaseTest):
-
     def setUp(self, n=3) -> None:
         self.n = n
         self.a = cp.Variable(shape=(n,), pos=True)
@@ -590,14 +575,14 @@ class TestOpRelConeQuad(BaseTest):
             rand_gen_func = self.rng.random_sample
 
         self.a_lower = np.cumsum(rand_gen_func(n))
-        self.a_upper = self.a_lower + 0.05*rand_gen_func(n)
+        self.a_upper = self.a_lower + 0.05 * rand_gen_func(n)
         self.b_lower = np.cumsum(rand_gen_func(n))
-        self.b_upper = self.b_lower + 0.05*rand_gen_func(n)
+        self.b_upper = self.b_lower + 0.05 * rand_gen_func(n)
         self.base_cons = [
             self.a_lower <= self.a,
             self.a <= self.a_upper,
             self.b_lower <= self.b,
-            self.b <= self.b_upper
+            self.b <= self.b_upper,
         ]
         installed_solvers = cp.installed_solvers()
         if cp.MOSEK in installed_solvers:
@@ -612,7 +597,7 @@ class TestOpRelConeQuad(BaseTest):
 
     @staticmethod
     def Dop_commute(a: np.ndarray, b: np.ndarray, U: np.ndarray):
-        D = np.diag(a * np.log(a/b))
+        D = np.diag(a * np.log(a / b))
         if np.iscomplexobj(U):
             out = U @ D @ U.conj().T
         else:
@@ -620,8 +605,7 @@ class TestOpRelConeQuad(BaseTest):
         return out
 
     @staticmethod
-    def sum_rel_entr_approx(a: cp.Expression, b: cp.Expression,
-                            apx_m: int, apx_k: int):
+    def sum_rel_entr_approx(a: cp.Expression, b: cp.Expression, apx_m: int, apx_k: int):
         n = a.size
         assert n == b.size
         epi_vec = cp.Variable(shape=n)
@@ -643,9 +627,7 @@ class TestOpRelConeQuad(BaseTest):
         in the Dop_commute method above)
         """
         # Compute the expected optimal solution
-        temp_obj, temp_con = TestOpRelConeQuad.sum_rel_entr_approx(
-            self.a, self.b, apx_m, apx_k
-        )
+        temp_obj, temp_con = TestOpRelConeQuad.sum_rel_entr_approx(self.a, self.b, apx_m, apx_k)
         temp_constraints = [con for con in self.base_cons]
         temp_constraints.append(temp_con)
         temp_prob = cp.Problem(temp_obj, temp_constraints)
@@ -729,14 +711,22 @@ class TestOpRelConeQuad(BaseTest):
         n, m, k = 4, 3, 3
         # generate two sets of linearly orthogonal vectors
         # Each to be set as the eigenvectors of a particular input matrix to Dop
-        U1 = np.array([[-0.05878522, -0.78378355, -0.49418311, -0.37149791],
-                       [0.67696027, -0.25733435, 0.59263364, -0.35254672],
-                       [0.43478177, 0.53648704, -0.54593428, -0.47444939],
-                       [0.59096015, -0.17788771, -0.32638042, 0.71595942]])
-        U2 = np.array([[-0.42499169, 0.6887562, 0.55846178, 0.18198188],
-                       [-0.55478633, -0.7091174, 0.3884544, 0.19613213],
-                       [-0.55591804, 0.14358541, -0.72444644, 0.38146522],
-                       [0.4500548, -0.04637494, 0.11135968, 0.88481584]])
+        U1 = np.array(
+            [
+                [-0.05878522, -0.78378355, -0.49418311, -0.37149791],
+                [0.67696027, -0.25733435, 0.59263364, -0.35254672],
+                [0.43478177, 0.53648704, -0.54593428, -0.47444939],
+                [0.59096015, -0.17788771, -0.32638042, 0.71595942],
+            ]
+        )
+        U2 = np.array(
+            [
+                [-0.42499169, 0.6887562, 0.55846178, 0.18198188],
+                [-0.55478633, -0.7091174, 0.3884544, 0.19613213],
+                [-0.55591804, 0.14358541, -0.72444644, 0.38146522],
+                [0.4500548, -0.04637494, 0.11135968, 0.88481584],
+            ]
+        )
         a_diag = cp.Variable(shape=(n,), pos=True)
         b_diag = cp.Variable(shape=(n,), pos=True)
         A = U1 @ cp.diag(a_diag) @ U1.T
@@ -751,18 +741,18 @@ class TestOpRelConeQuad(BaseTest):
         con3 = a_diag <= a_upper
         con4 = b_lower <= b_diag
         con5 = b_diag <= b_upper
-        con_pairs = [(con1, None),
-                     (con2, None),
-                     (con3, None),
-                     (con4, None),
-                     (con5, None)]
+        con_pairs = [(con1, None), (con2, None), (con3, None), (con4, None), (con5, None)]
         obj = cp.Minimize(trace(T))
 
         expect_obj = 1.85476
-        expect_T = np.array([[0.49316819, 0.20845265, 0.60474713, -0.5820242],
-                             [0.20845265, 0.31084053, 0.2264112, -0.8442255],
-                             [0.60474713, 0.2264112, 0.4687153, -0.85667283],
-                             [-0.5820242, -0.8442255, -0.85667283, 0.58206723]])
+        expect_T = np.array(
+            [
+                [0.49316819, 0.20845265, 0.60474713, -0.5820242],
+                [0.20845265, 0.31084053, 0.2264112, -0.8442255],
+                [0.60474713, 0.2264112, 0.4687153, -0.85667283],
+                [-0.5820242, -0.8442255, -0.85667283, 0.58206723],
+            ]
+        )
 
         obj_pair = (obj, expect_obj)
         var_pairs = [(T, expect_T)]

@@ -39,7 +39,7 @@ from cvxpy.tests.solver_test_helpers import StandardTestLPs
 
 
 class TestQp(BaseTest):
-    """ Unit tests for the domain module. """
+    """Unit tests for the domain module."""
 
     def setUp(self) -> None:
         self.a = Variable(name='a')
@@ -108,22 +108,19 @@ class TestQp(BaseTest):
             self.equivalent_forms_3(solver)
 
     def quad_over_lin(self, solver) -> None:
-        p = Problem(Minimize(0.5 * quad_over_lin(abs(self.x-1), 1)),
-                    [self.x <= -1])
+        p = Problem(Minimize(0.5 * quad_over_lin(abs(self.x - 1), 1)), [self.x <= -1])
         self.solve_QP(p, solver)
         for var in p.variables():
-            self.assertItemsAlmostEqual(np.array([-1., -1.]),
-                                        var.value, places=4)
+            self.assertItemsAlmostEqual(np.array([-1.0, -1.0]), var.value, places=4)
         for con in p.constraints:
-            self.assertItemsAlmostEqual(np.array([2., 2.]),
-                                        con.dual_value, places=4)
+            self.assertItemsAlmostEqual(np.array([2.0, 2.0]), con.dual_value, places=4)
 
     def abs(self, solver) -> None:
         u = Variable(2)
         constr = []
         constr += [abs(u[1] - u[0]) <= 100]
         prob = Problem(Minimize(sum_squares(u)), constr)
-        print("The problem is QP: ", prob.is_qp())
+        print('The problem is QP: ', prob.is_qp())
         self.assertEqual(prob.is_qp(), True)
         result = prob.solve(solver=solver)
         self.assertAlmostEqual(result, 0)
@@ -132,14 +129,13 @@ class TestQp(BaseTest):
         p = Problem(Minimize(sum(power(self.x, 2))), [])
         self.solve_QP(p, solver)
         for var in p.variables():
-            self.assertItemsAlmostEqual([0., 0.], var.value, places=4)
+            self.assertItemsAlmostEqual([0.0, 0.0], var.value, places=4)
 
     def power_matrix(self, solver) -> None:
-        p = Problem(Minimize(sum(power(self.A - 3., 2))), [])
+        p = Problem(Minimize(sum(power(self.A - 3.0, 2))), [])
         self.solve_QP(p, solver)
         for var in p.variables():
-            self.assertItemsAlmostEqual([3., 3., 3., 3.],
-                                        var.value, places=4)
+            self.assertItemsAlmostEqual([3.0, 3.0, 3.0, 3.0], var.value, places=4)
 
     def square_affine(self, solver) -> None:
         A = np.random.randn(10, 2)
@@ -147,30 +143,28 @@ class TestQp(BaseTest):
         p = Problem(Minimize(sum_squares(A @ self.x - b)))
         self.solve_QP(p, solver)
         for var in p.variables():
-            self.assertItemsAlmostEqual(lstsq(A, b)[0].flatten(order='F'), var.value,
-                                        places=1)
+            self.assertItemsAlmostEqual(lstsq(A, b)[0].flatten(order='F'), var.value, places=1)
 
     def quad_form(self, solver) -> None:
         np.random.seed(0)
         A = np.random.randn(5, 5)
         z = np.random.randn(5)
         P = A.T.dot(A)
-        q = -2*P.dot(z)
+        q = -2 * P.dot(z)
         p = Problem(Minimize(QuadForm(self.w, P) + q.T @ self.w))
         self.solve_QP(p, solver)
         for var in p.variables():
             self.assertItemsAlmostEqual(z, var.value, places=4)
 
     def rep_quad_form(self, solver) -> None:
-        """A problem where the quad_form term is used multiple times.
-        """
+        """A problem where the quad_form term is used multiple times."""
         np.random.seed(0)
         A = np.random.randn(5, 5)
         z = np.random.randn(5)
         P = A.T.dot(A)
-        q = -2*P.dot(z)
+        q = -2 * P.dot(z)
         qf = QuadForm(self.w, P)
-        p = Problem(Minimize(0.5*qf + 0.5*qf + q.T @ self.w))
+        p = Problem(Minimize(0.5 * qf + 0.5 * qf + q.T @ self.w))
         self.solve_QP(p, solver)
         for var in p.variables():
             self.assertItemsAlmostEqual(z, var.value, places=4)
@@ -183,7 +177,7 @@ class TestQp(BaseTest):
         p = Problem(Minimize(sum(self.x)), [self.x >= 0, A @ self.x <= b])
         self.solve_QP(p, solver)
         for var in p.variables():
-            self.assertItemsAlmostEqual([0., 0.], var.value, places=3)
+            self.assertItemsAlmostEqual([0.0, 0.0], var.value, places=3)
 
     def maximize_problem(self, solver) -> None:
         A = np.random.randn(5, 2)
@@ -193,7 +187,7 @@ class TestQp(BaseTest):
         p = Problem(Maximize(-sum(self.x)), [self.x >= 0, A @ self.x <= b])
         self.solve_QP(p, solver)
         for var in p.variables():
-            self.assertItemsAlmostEqual([0., 0.], var.value, places=3)
+            self.assertItemsAlmostEqual([0.0, 0.0], var.value, places=3)
 
     def norm_2(self, solver) -> None:
         A = np.random.randn(10, 5)
@@ -201,8 +195,7 @@ class TestQp(BaseTest):
         p = Problem(Minimize(norm(A @ self.w - b, 2)))
         self.solve_QP(p, solver)
         for var in p.variables():
-            self.assertItemsAlmostEqual(lstsq(A, b)[0].flatten(order='F'), var.value,
-                                        places=1)
+            self.assertItemsAlmostEqual(lstsq(A, b)[0].flatten(order='F'), var.value, places=1)
 
     def mat_norm_2(self, solver) -> None:
         A = np.random.randn(5, 3)
@@ -210,15 +203,14 @@ class TestQp(BaseTest):
         p = Problem(Minimize(norm(A @ self.C - B, 2)))
         s = self.solve_QP(p, solver)
         for var in p.variables():
-            self.assertItemsAlmostEqual(lstsq(A, B)[0],
-                                        s.primal_vars[var.id], places=1)
+            self.assertItemsAlmostEqual(lstsq(A, B)[0], s.primal_vars[var.id], places=1)
 
     def quad_form_coeff(self, solver) -> None:
         np.random.seed(0)
         A = np.random.randn(5, 5)
         z = np.random.randn(5)
         P = A.T.dot(A)
-        q = -2*P.dot(z)
+        q = -2 * P.dot(z)
         p = Problem(Minimize(QuadForm(self.w, P) + q.T @ self.w))
         self.solve_QP(p, solver)
         for var in p.variables():
@@ -229,8 +221,9 @@ class TestQp(BaseTest):
         q = np.array([[-22], [-14.5], [13]])
         r = 1
         y_star = np.array([[1], [0.5], [-1]])
-        p = Problem(Minimize(0.5*QuadForm(self.y, P) + q.T @ self.y + r),
-                    [self.y >= -1, self.y <= 1])
+        p = Problem(
+            Minimize(0.5 * QuadForm(self.y, P) + q.T @ self.y + r), [self.y >= -1, self.y <= 1]
+        )
         self.solve_QP(p, solver)
         for var in p.variables():
             self.assertItemsAlmostEqual(y_star, var.value, places=4)
@@ -244,8 +237,7 @@ class TestQp(BaseTest):
         # Generate data
         x_data = np.random.rand(n) * 5
         x_data = np.atleast_2d(x_data)
-        x_data_expanded = np.vstack([np.power(x_data, i)
-                                     for i in range(1, 4)])
+        x_data_expanded = np.vstack([np.power(x_data, i) for i in range(1, 4)])
         x_data_expanded = np.atleast_2d(x_data_expanded)
         y_data = x_data_expanded.T.dot(true_coeffs) + 0.5 * np.random.rand(n, 1)
         y_data = np.atleast_2d(y_data)
@@ -265,13 +257,11 @@ class TestQp(BaseTest):
         true_coeffs = np.array([2, -2, 0.5])
         # Generate data
         x_data = np.random.rand(n) * 5
-        x_data_expanded = np.vstack([np.power(x_data, i)
-                                     for i in range(1, 4)])
+        x_data_expanded = np.vstack([np.power(x_data, i) for i in range(1, 4)])
         print(x_data_expanded.shape, true_coeffs.shape)
         y_data = x_data_expanded.T.dot(true_coeffs) + 0.5 * np.random.rand(n)
 
-        quadratic = self.offset + x_data * self.slope + \
-            self.quadratic_coeff*np.power(x_data, 2)
+        quadratic = self.offset + x_data * self.slope + self.quadratic_coeff * np.power(x_data, 2)
         residuals = quadratic.T - y_data
         fit_error = sum_squares(residuals)
         p = Problem(Minimize(fit_error), [])
@@ -293,12 +283,11 @@ class TestQp(BaseTest):
         constraints = []
         # Add constraints on our variables
         for i in range(T - 1):
-            constraints += [self.position[:, i + 1] == self.position[:, i] +
-                            h * self.velocity[:, i]]
-            acceleration = self.force[:, i]/mass + g - \
-                drag * self.velocity[:, i]
-            constraints += [self.velocity[:, i + 1] == self.velocity[:, i] +
-                            h * acceleration]
+            constraints += [
+                self.position[:, i + 1] == self.position[:, i] + h * self.velocity[:, i]
+            ]
+            acceleration = self.force[:, i] / mass + g - drag * self.velocity[:, i]
+            constraints += [self.velocity[:, i + 1] == self.velocity[:, i] + h * acceleration]
 
         # Add position constraints
         constraints += [self.position[:, 0] == 0]
@@ -307,7 +296,7 @@ class TestQp(BaseTest):
         constraints += [self.velocity[:, 0] == initial_velocity]
         constraints += [self.velocity[:, -1] == 0]
         # Solve the problem
-        p = Problem(Minimize(.01 * sum_squares(self.force)), constraints)
+        p = Problem(Minimize(0.01 * sum_squares(self.force)), constraints)
         self.solve_QP(p, solver)
         self.assertAlmostEqual(1059.616, p.value, places=1)
 
@@ -331,8 +320,7 @@ class TestQp(BaseTest):
 
         A = np.ones((k, n))
         b = np.ones((k))
-        obj = sum_squares(A @ self.xsr - b) + \
-            eta*sum_squares(self.xsr[:-1]-self.xsr[1:])
+        obj = sum_squares(A @ self.xsr - b) + eta * sum_squares(self.xsr[:-1] - self.xsr[1:])
         p = Problem(Minimize(obj), [])
         self.solve_QP(p, solver)
         self.assertAlmostEqual(0, p.value, places=4)
@@ -352,14 +340,17 @@ class TestQp(BaseTest):
         # Generate problem data
         n = 3
         m = 5
-        data = [0.89, 0.39, 0.96, 0.34, 0.68, 0.18, 0.63 ,0.42, 0.51, 0.66, 0.43, 0.77]
+        data = [0.89, 0.39, 0.96, 0.34, 0.68, 0.18, 0.63, 0.42, 0.51, 0.66, 0.43, 0.77]
         indices = [0, 1, 2, 3, 4, 2, 3, 0, 1, 2, 3, 4]
         indptr = [0, 5, 7, 12]
-        A = sp.csc_matrix((data, indices, indptr), shape=(m,n))
+        A = sp.csc_matrix((data, indices, indptr), shape=(m, n))
         x_true = np.random.randn(n) / np.sqrt(n)
         ind95 = (np.random.rand(m) < 0.95).astype(float)
-        b = A.dot(x_true) + np.multiply(0.5*np.random.randn(m), ind95) \
-            + np.multiply(10.*np.random.rand(m), 1. - ind95)
+        b = (
+            A.dot(x_true)
+            + np.multiply(0.5 * np.random.randn(m), ind95)
+            + np.multiply(10.0 * np.random.rand(m), 1.0 - ind95)
+        )
 
         # Solve the Huber regression problem
         x = Variable(n)
@@ -369,9 +360,7 @@ class TestQp(BaseTest):
         p = Problem(Minimize(objective))
         self.solve_QP(p, solver)
         self.assertAlmostEqual(1.452797819667, objective.value, places=3)
-        self.assertItemsAlmostEqual(x.value,
-                                    [1.20524645, -0.85271489, -0.50838494],
-                                    places=3)
+        self.assertItemsAlmostEqual(x.value, [1.20524645, -0.85271489, -0.50838494], places=3)
 
     def equivalent_forms_1(self, solver) -> None:
         m = 100
@@ -383,7 +372,7 @@ class TestQp(BaseTest):
         G = np.random.randn(r, n)
         h = np.random.randn(r)
 
-        obj1 = .1 * sum((A @ self.xef - b) ** 2)
+        obj1 = 0.1 * sum((A @ self.xef - b) ** 2)
         cons = [G @ self.xef == h]
 
         p1 = Problem(Minimize(obj1), cons)
@@ -402,10 +391,10 @@ class TestQp(BaseTest):
 
         # ||Ax-b||^2 = x^T (A^T A) x - 2(A^T b)^T x + ||b||^2
         P = np.dot(A.T, A)
-        q = -2*np.dot(A.T, b)
+        q = -2 * np.dot(A.T, b)
         r = np.dot(b.T, b)
 
-        obj2 = .1*(QuadForm(self.xef, P)+q.T @ self.xef+r)
+        obj2 = 0.1 * (QuadForm(self.xef, P) + q.T @ self.xef + r)
         cons = [G @ self.xef == h]
 
         p2 = Problem(Minimize(obj2), cons)
@@ -424,11 +413,11 @@ class TestQp(BaseTest):
 
         # ||Ax-b||^2 = x^T (A^T A) x - 2(A^T b)^T x + ||b||^2
         P = np.dot(A.T, A)
-        q = -2*np.dot(A.T, b)
+        q = -2 * np.dot(A.T, b)
         r = np.dot(b.T, b)
         Pinv = np.linalg.inv(P)
 
-        obj3 = .1 * (matrix_frac(self.xef, Pinv)+q.T @ self.xef+r)
+        obj3 = 0.1 * (matrix_frac(self.xef, Pinv) + q.T @ self.xef + r)
         cons = [G @ self.xef == h]
 
         p3 = Problem(Minimize(obj3), cons)
@@ -436,8 +425,7 @@ class TestQp(BaseTest):
         self.assertAlmostEqual(p3.value, 68.1119420108, places=4)
 
     def test_warm_start(self) -> None:
-        """Test warm start.
-        """
+        """Test warm start."""
         m = 200
         n = 100
         np.random.seed(1)
@@ -449,25 +437,25 @@ class TestQp(BaseTest):
         prob = Problem(Minimize(sum_squares(A @ x - b)))
 
         b.value = np.random.randn(m)
-        result = prob.solve(solver="OSQP", warm_start=False)
-        result2 = prob.solve(solver="OSQP", warm_start=True)
+        result = prob.solve(solver='OSQP', warm_start=False)
+        result2 = prob.solve(solver='OSQP', warm_start=True)
         self.assertAlmostEqual(result, result2)
         b.value = np.random.randn(m)
-        result = prob.solve(solver="OSQP", warm_start=True)
-        result2 = prob.solve(solver="OSQP", warm_start=False)
+        result = prob.solve(solver='OSQP', warm_start=True)
+        result2 = prob.solve(solver='OSQP', warm_start=False)
         self.assertAlmostEqual(result, result2)
 
     def test_gurobi_warmstart(self) -> None:
-        """Test Gurobi warm start with a user provided point.
-        """
+        """Test Gurobi warm start with a user provided point."""
         if cp.GUROBI in INSTALLED_SOLVERS:
             import gurobipy
+
             m = 4
             n = 3
 
             y = Variable(nonneg=True)
             X = Variable((m, n))
-            X_vals = np.reshape(np.arange(m*n), (m, n))
+            X_vals = np.reshape(np.arange(m * n), (m, n))
             prob = Problem(Minimize(y**2 + cp.sum(X)), [X == X_vals])
             X.value = X_vals + 1
             prob.solve(solver=cp.GUROBI, warm_start=True)
@@ -483,8 +471,7 @@ class TestQp(BaseTest):
                 assert np.isclose(X.value[row, col], model_x[i].x)
 
     def test_highs_warmstart(self) -> None:
-        """Test warm start.
-        """
+        """Test warm start."""
         if cp.HIGHS in INSTALLED_SOLVERS:
             m = 200
             n = 100
@@ -510,16 +497,15 @@ class TestQp(BaseTest):
         x = Variable()
         a = 10
         #  b_vec = [-10, -2., 2., 3., 10.]
-        b_vec = [-10, -2.]
+        b_vec = [-10, -2.0]
 
         for solver in self.solvers:
-
             print(solver)
             # Solve from scratch with no parameters
             x_full = []
             obj_full = []
             for b in b_vec:
-                obj = Minimize(a * (x ** 2) + b * x)
+                obj = Minimize(a * (x**2) + b * x)
                 constraints = [0 <= x, x <= 1]
                 prob = Problem(obj, constraints)
                 prob.solve(solver=solver)
@@ -530,7 +516,7 @@ class TestQp(BaseTest):
             x_param = []
             obj_param = []
             b = Parameter()
-            obj = Minimize(a * (x ** 2) + b * x)
+            obj = Minimize(a * (x**2) + b * x)
             constraints = [0 <= x, x <= 1]
             prob = Problem(obj, constraints)
             for b_value in b_vec:
@@ -546,61 +532,65 @@ class TestQp(BaseTest):
                 self.assertAlmostEqual(obj_full[i], obj_param[i])
 
     def test_square_param(self) -> None:
-        """Test issue arising with square plus parameter.
-        """
+        """Test issue arising with square plus parameter."""
         a = Parameter(value=1)
         b = Variable()
 
-        obj = Minimize(b ** 2 + abs(a))
+        obj = Minimize(b**2 + abs(a))
         prob = Problem(obj)
-        prob.solve(solver="SCS")
+        prob.solve(solver='SCS')
         self.assertAlmostEqual(obj.value, 1.0)
 
     def test_gurobi_time_limit_no_solution(self) -> None:
         """Make sure that if Gurobi terminates due to a time limit before finding a solution:
-            1) no error is raised,
-            2) solver stats are returned.
-            The test is skipped if something changes on Gurobi's side so that:
-            - a solution is found despite a time limit of zero,
-            - a different termination criteria is hit first.
+        1) no error is raised,
+        2) solver stats are returned.
+        The test is skipped if something changes on Gurobi's side so that:
+        - a solution is found despite a time limit of zero,
+        - a different termination criteria is hit first.
         """
         from cvxpy import GUROBI
+
         if GUROBI in INSTALLED_SOLVERS:
             import gurobipy
+
             objective = Minimize(self.x[0])
             constraints = [self.x[0] >= 1]
             prob = Problem(objective, constraints)
             try:
                 prob.solve(solver=GUROBI, TimeLimit=0.0)
             except Exception as e:
-                self.fail("An exception %s is raised instead of returning a result." % e)
+                self.fail('An exception %s is raised instead of returning a result.' % e)
 
             extra_stats = None
-            solver_stats = getattr(prob, "solver_stats", None)
+            solver_stats = getattr(prob, 'solver_stats', None)
             if solver_stats:
-                extra_stats = getattr(solver_stats, "extra_stats", None)
-            self.assertTrue(extra_stats, "Solver stats have not been returned.")
+                extra_stats = getattr(solver_stats, 'extra_stats', None)
+            self.assertTrue(extra_stats, 'Solver stats have not been returned.')
 
-            nb_solutions = getattr(extra_stats, "SolCount", None)
+            nb_solutions = getattr(extra_stats, 'SolCount', None)
             if nb_solutions:
-                self.skipTest("Gurobi has found a solution, the test is not relevant anymore.")
+                self.skipTest('Gurobi has found a solution, the test is not relevant anymore.')
 
-            solver_status = getattr(extra_stats, "Status", None)
+            solver_status = getattr(extra_stats, 'Status', None)
             if solver_status != gurobipy.StatusConstClass.TIME_LIMIT:
-                self.skipTest("Gurobi terminated for a different reason than reaching time limit, "
-                              "the test is not relevant anymore.")
+                self.skipTest(
+                    'Gurobi terminated for a different reason than reaching time limit, '
+                    'the test is not relevant anymore.'
+                )
 
         else:
             with self.assertRaises(Exception) as cm:
                 prob = Problem(Minimize(norm(self.x, 1)), [self.x == 0])
                 prob.solve(solver=GUROBI, TimeLimit=0)
-            self.assertEqual(str(cm.exception), "The solver %s is not installed." % GUROBI)
+            self.assertEqual(str(cm.exception), 'The solver %s is not installed.' % GUROBI)
 
     def test_gurobi_environment(self) -> None:
         """Tests that Gurobi environments can be passed to Model.
         Gurobi environments can include licensing and model parameter data.
         """
         from cvxpy import GUROBI
+
         if GUROBI in INSTALLED_SOLVERS:
             import gurobipy
 
@@ -628,4 +618,4 @@ class TestQp(BaseTest):
             with self.assertRaises(Exception) as cm:
                 prob = Problem(Minimize(norm(self.x, 1)), [self.x == 0])
                 prob.solve(solver=GUROBI, TimeLimit=0)
-            self.assertEqual(str(cm.exception), "The solver %s is not installed." % GUROBI)
+            self.assertEqual(str(cm.exception), 'The solver %s is not installed.' % GUROBI)

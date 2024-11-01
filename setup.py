@@ -34,6 +34,7 @@ class build_ext_cvxpy(build_ext):
         builtins.__NUMPY_SETUP__ = False
 
         import numpy
+
         self.include_dirs.append(numpy.get_include())
 
 
@@ -46,7 +47,8 @@ if sys.platform == 'darwin':
     if 'MACOSX_DEPLOYMENT_TARGET' not in os.environ:
         current_system = distutils.version.LooseVersion(platform.mac_ver()[0])
         python_target = distutils.version.LooseVersion(
-            sysconfig.get_config_var('MACOSX_DEPLOYMENT_TARGET'))
+            sysconfig.get_config_var('MACOSX_DEPLOYMENT_TARGET')
+        )
         if python_target < '10.9' and current_system >= '10.9':
             os.environ['MACOSX_DEPLOYMENT_TARGET'] = '10.9'
 
@@ -55,12 +57,11 @@ VERSION = setup_versioning.VERSION
 extensions = [setup_extensions.cvxcore, setup_extensions.sparsecholesky]
 
 setup(
-    name="cvxpy",
+    name='cvxpy',
     version=str(VERSION),
     cmdclass={'build_ext': build_ext_cvxpy},
-    ext_modules=extensions if "PYODIDE" not in os.environ else [],
-    packages=find_packages(exclude=["doc*",
-                                    "examples*"]),
+    ext_modules=extensions if 'PYODIDE' not in os.environ else [],
+    packages=find_packages(exclude=['doc*', 'examples*']),
     zip_safe=False,
     package_data={
         'cvxpy': ['py.typed'],

@@ -93,7 +93,7 @@ class TestDgp(BaseTest):
         x = cvxpy.Variable(pos=True)
         y = cvxpy.Variable(pos=True)
         z = cvxpy.Variable(pos=True)
-        monomial = 5.0 * (x ** 0.1) * y ** (-0.1) * z ** (3)
+        monomial = 5.0 * (x**0.1) * y ** (-0.1) * z ** (3)
         self.assertTrue(monomial.is_dgp())
         self.assertTrue(monomial.is_log_log_convex())
         self.assertTrue(monomial.is_log_log_concave())
@@ -107,7 +107,7 @@ class TestDgp(BaseTest):
         x = cvxpy.Variable(pos=True)
         y = cvxpy.Variable(pos=True)
         z = cvxpy.Variable(pos=True)
-        monomial = 5.0 * (x ** 0.1) * y ** (-0.1) * z ** (3)
+        monomial = 5.0 * (x**0.1) * y ** (-0.1) * z ** (3)
         posynomial = 5.0 * x * y + 1.2 * y * y
         another_posynomial = posynomial * posynomial
         expr = cvxpy.maximum(monomial, posynomial, another_posynomial)
@@ -128,7 +128,7 @@ class TestDgp(BaseTest):
         x = cvxpy.Variable(pos=True)
         y = cvxpy.Variable(pos=True)
         z = cvxpy.Variable(pos=True)
-        monomial = 5.0 * (x ** 0.1) * y ** (-0.1) * z ** (3)
+        monomial = 5.0 * (x**0.1) * y ** (-0.1) * z ** (3)
         posynomial = 5.0 * x * y + 1.2 * y * y
         another_posynomial = posynomial * posynomial
         expr = cvxpy.minimum(monomial, 1 / posynomial, 1 / another_posynomial)
@@ -141,7 +141,7 @@ class TestDgp(BaseTest):
         self.assertTrue(not expr.is_log_log_convex())
         self.assertTrue(expr.is_log_log_concave())
 
-        expr = expr ** 2
+        expr = expr**2
         self.assertTrue(expr.is_dgp())
         self.assertTrue(not expr.is_log_log_convex())
         self.assertTrue(expr.is_log_log_concave())
@@ -149,7 +149,7 @@ class TestDgp(BaseTest):
     def test_constant(self) -> None:
         x = cvxpy.Constant(1.0)
         self.assertTrue(x.is_dgp())
-        self.assertFalse((-1.0*x).is_dgp())
+        self.assertFalse((-1.0 * x).is_dgp())
 
     def test_geo_mean(self) -> None:
         x = cvxpy.Variable(3, pos=True)
@@ -210,15 +210,13 @@ class TestDgp(BaseTest):
         A = cvxpy.Variable((2, 2))
         with self.assertRaises(Exception) as cm:
             cvxpy.gmatmul(A, x)
-        self.assertTrue(str(cm.exception) ==
-                        "gmatmul(A, X) requires that A be constant.")
+        self.assertTrue(str(cm.exception) == 'gmatmul(A, X) requires that A be constant.')
 
         x = cvxpy.Variable(2)
         A = np.ones((4, 2))
         with self.assertRaises(Exception) as cm:
             cvxpy.gmatmul(A, x)
-        self.assertTrue(str(cm.exception) ==
-                        "gmatmul(A, X) requires that X be positive.")
+        self.assertTrue(str(cm.exception) == 'gmatmul(A, X) requires that X be positive.')
 
         x = cvxpy.Variable(3, pos=True)
         A = np.ones((4, 3))
@@ -232,7 +230,7 @@ class TestDgp(BaseTest):
         self.assertTrue(cvxpy.gmatmul(-A, x).is_decr(0))
 
         x = cvxpy.Variable((2, 3), pos=True)
-        A = np.array([[2., -1.], [0., 3.]])
+        A = np.array([[2.0, -1.0], [0.0, 3.0]])
         gmatmul = cvxpy.gmatmul(A, x)
         self.assertTrue(gmatmul.is_dgp())
         self.assertTrue(gmatmul.is_log_log_affine())

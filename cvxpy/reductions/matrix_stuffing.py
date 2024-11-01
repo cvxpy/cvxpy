@@ -14,7 +14,6 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-
 from typing import List, Optional, Tuple
 
 import numpy as np
@@ -39,12 +38,12 @@ def extract_lower_bounds(variables: list, var_size: int) -> Optional[np.ndarray]
     vert_offset = 0
     for x in variables:
         if x.is_nonneg():
-            lower_bounds[vert_offset:vert_offset+x.size] = 0
-        elif x.attributes["bounds"] is not None:
+            lower_bounds[vert_offset : vert_offset + x.size] = 0
+        elif x.attributes['bounds'] is not None:
             # Store lower bound in Fortran order.
             var_lower_bound = x.attributes['bounds'][0]
-            flattened = np.reshape(var_lower_bound, x.size, order="F")
-            lower_bounds[vert_offset:vert_offset+x.size] = flattened
+            flattened = np.reshape(var_lower_bound, x.size, order='F')
+            lower_bounds[vert_offset : vert_offset + x.size] = flattened
         vert_offset += x.size
     return lower_bounds
 
@@ -66,12 +65,12 @@ def extract_upper_bounds(variables: list, var_size: int) -> Optional[np.ndarray]
     vert_offset = 0
     for x in variables:
         if x.is_nonpos():
-            upper_bounds[vert_offset:vert_offset+x.size] = 0
-        elif x.attributes["bounds"] is not None:
+            upper_bounds[vert_offset : vert_offset + x.size] = 0
+        elif x.attributes['bounds'] is not None:
             # Store upper bound in Fortran order.
             var_upper_bound = x.attributes['bounds'][1]
-            flattened = np.reshape(var_upper_bound, x.size, order="F")
-            upper_bounds[vert_offset:vert_offset+x.size] = flattened
+            flattened = np.reshape(var_upper_bound, x.size, order='F')
+            upper_bounds[vert_offset : vert_offset + x.size] = flattened
         vert_offset += x.size
     return upper_bounds
 
@@ -119,6 +118,7 @@ class MatrixStuffing(Reduction):
         InverseData
             Data for solution retrieval
         """
+
     def invert(self, solution, inverse_data):
         raise NotImplementedError()
 

@@ -23,7 +23,7 @@ from cvxpy.tests.base_test import BaseTest
 
 
 class TestNonlinearAtoms(BaseTest):
-    """ Unit tests for the nonlinear atoms module. """
+    """Unit tests for the nonlinear atoms module."""
 
     def setUp(self) -> None:
         self.x = cp.Variable(2, name='x')
@@ -65,14 +65,12 @@ class TestNonlinearAtoms(BaseTest):
         self.assertAlmostEqual(result, 1)
 
     def test_entr(self) -> None:
-        """Test the entr atom.
-        """
+        """Test the entr atom."""
         self.assertEqual(cp.entr(0).value, 0)
         assert np.isneginf(cp.entr(-1).value)
 
     def test_kl_div(self) -> None:
-        """Test a problem with kl_div.
-        """
+        """Test a problem with kl_div."""
         kK = 50
         kSeed = 10
 
@@ -96,8 +94,7 @@ class TestNonlinearAtoms(BaseTest):
         self.assertItemsAlmostEqual(v_prob.value, npSPriors, places=3)
 
     def test_rel_entr(self) -> None:
-        """Test a problem with rel_entr.
-        """
+        """Test a problem with rel_entr."""
         kK = 50
         kSeed = 10
 
@@ -121,8 +118,7 @@ class TestNonlinearAtoms(BaseTest):
         self.assertItemsAlmostEqual(v_prob.value, npSPriors, places=3)
 
     def test_difference_kl_div_rel_entr(self) -> None:
-        """A test showing the difference between kl_div and rel_entr
-        """
+        """A test showing the difference between kl_div and rel_entr"""
         x = cp.Variable()
         y = cp.Variable()
 
@@ -143,40 +139,37 @@ class TestNonlinearAtoms(BaseTest):
         self.assertItemsAlmostEqual(rel_entr_prob.value, -0.278464)
 
     def test_entr_prob(self) -> None:
-        """Test a problem with entr.
-        """
+        """Test a problem with entr."""
         for n in [5, 10, 25]:
             print(n)
             x = cp.Variable(n)
             obj = cp.Maximize(cp.sum(cp.entr(x)))
             p = cp.Problem(obj, [cp.sum(x) == 1])
             p.solve(solver=cp.CLARABEL)
-            self.assertItemsAlmostEqual(x.value, n*[1./n], places=3)
+            self.assertItemsAlmostEqual(x.value, n * [1.0 / n], places=3)
             p.solve(solver=cp.SCS)
-            self.assertItemsAlmostEqual(x.value, n*[1./n], places=3)
+            self.assertItemsAlmostEqual(x.value, n * [1.0 / n], places=3)
 
     def test_exp(self) -> None:
-        """Test a problem with exp.
-        """
+        """Test a problem with exp."""
         for n in [5, 10, 25]:
             print(n)
             x = cp.Variable(n)
             obj = cp.Minimize(cp.sum(cp.exp(x)))
             p = cp.Problem(obj, [cp.sum(x) == 1])
             p.solve(solver=cp.SCS)
-            self.assertItemsAlmostEqual(x.value, n*[1./n], places=3)
+            self.assertItemsAlmostEqual(x.value, n * [1.0 / n], places=3)
             p.solve(solver=cp.CLARABEL)
-            self.assertItemsAlmostEqual(x.value, n*[1./n])
+            self.assertItemsAlmostEqual(x.value, n * [1.0 / n])
 
     def test_log(self) -> None:
-        """Test a problem with log.
-        """
+        """Test a problem with log."""
         for n in [5, 10, 25]:
             print(n)
             x = cp.Variable(n)
             obj = cp.Maximize(cp.sum(cp.log(x)))
             p = cp.Problem(obj, [cp.sum(x) == 1])
             p.solve(solver=cp.CLARABEL)
-            self.assertItemsAlmostEqual(x.value, n*[1./n])
+            self.assertItemsAlmostEqual(x.value, n * [1.0 / n])
             p.solve(solver=cp.SCS)
-            self.assertItemsAlmostEqual(x.value, n*[1./n], places=2)
+            self.assertItemsAlmostEqual(x.value, n * [1.0 / n], places=2)

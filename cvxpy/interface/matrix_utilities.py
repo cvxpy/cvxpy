@@ -22,10 +22,11 @@ import scipy.sparse as sp
 from cvxpy.interface import numpy_interface as np_intf
 
 # A mapping of class to interface.
-INTERFACES = {np.ndarray: np_intf.NDArrayInterface(),
-              np.matrix: np_intf.MatrixInterface(),
-              sp.csc_matrix: np_intf.SparseMatrixInterface(),
-              }
+INTERFACES = {
+    np.ndarray: np_intf.NDArrayInterface(),
+    np.matrix: np_intf.MatrixInterface(),
+    sp.csc_matrix: np_intf.SparseMatrixInterface(),
+}
 # Default Numpy interface.
 DEFAULT_NP_INTF = INTERFACES[np.ndarray]
 # Default dense and sparse matrix interfaces.
@@ -39,17 +40,18 @@ def get_matrix_interface(target_class):
 
 
 def get_cvxopt_dense_intf():
-    """Dynamic import of CVXOPT dense interface.
-    """
+    """Dynamic import of CVXOPT dense interface."""
     import cvxpy.interface.cvxopt_interface.valuerix_interface as dmi
+
     return dmi.DenseMatrixInterface()
 
 
 def get_cvxopt_sparse_intf():
-    """Dynamic import of CVXOPT sparse interface.
-    """
+    """Dynamic import of CVXOPT sparse interface."""
     import cvxpy.interface.cvxopt_interface.sparse_matrix_interface as smi
+
     return smi.SparseMatrixInterface()
+
 
 # Tools for handling CVXOPT matrices.
 
@@ -68,13 +70,15 @@ def sparse2cvxopt(value):
         The converted matrix.
     """
     import cvxopt
+
     if isinstance(value, (np.ndarray, np.matrix)):
         return cvxopt.sparse(cvxopt.matrix(value.astype('float64')), tc='d')
     # Convert scipy sparse matrices to coo form first.
     elif sp.issparse(value):
         value = value.tocoo()
-        return cvxopt.spmatrix(value.data.tolist(), value.row.tolist(),
-                               value.col.tolist(), size=value.shape, tc='d')
+        return cvxopt.spmatrix(
+            value.data.tolist(), value.row.tolist(), value.col.tolist(), size=value.shape, tc='d'
+        )
 
 
 def dense2cvxopt(value):
@@ -91,6 +95,7 @@ def dense2cvxopt(value):
         The converted matrix.
     """
     import cvxopt
+
     return cvxopt.matrix(value, tc='d')
 
 
@@ -111,9 +116,9 @@ def cvxopt2dense(value):
 
 
 def is_sparse(constant) -> bool:
-    """Is the constant a sparse matrix?
-    """
+    """Is the constant a sparse matrix?"""
     return sp.issparse(constant)
+
 
 # Get the dimensions of the constant.
 
@@ -134,13 +139,15 @@ def shape(constant):
     elif is_sparse(constant):
         return INTERFACES[sp.csc_matrix].shape(constant)
     else:
-        raise TypeError("%s is not a valid type for a Constant value." % type(constant))
+        raise TypeError('%s is not a valid type for a Constant value.' % type(constant))
+
 
 # Is the constant a column vector?
 
 
 def is_vector(constant) -> bool:
     return shape(constant)[1] == 1
+
 
 # Is the constant a scalar?
 
@@ -150,8 +157,7 @@ def is_scalar(constant) -> bool:
 
 
 def from_2D_to_1D(constant):
-    """Convert 2D Numpy matrices or arrays to 1D.
-    """
+    """Convert 2D Numpy matrices or arrays to 1D."""
     if isinstance(constant, np.ndarray) and constant.ndim == 2:
         return np.asarray(constant)[:, 0]
     else:
@@ -159,8 +165,7 @@ def from_2D_to_1D(constant):
 
 
 def from_1D_to_2D(constant):
-    """Convert 1D Numpy arrays to matrices.
-    """
+    """Convert 1D Numpy arrays to matrices."""
     if isinstance(constant, np.ndarray) and constant.ndim == 1:
         return np.asmatrix(constant).T
     else:
@@ -168,16 +173,14 @@ def from_1D_to_2D(constant):
 
 
 def convert(constant, sparse: bool = False, convert_scalars: bool = False):
-    """Convert to appropriate type.
-    """
+    """Convert to appropriate type."""
     if isinstance(constant, (list, np.matrix)):
-        return DEFAULT_INTF.const_to_matrix(constant,
-                                            convert_scalars=convert_scalars)
+        return DEFAULT_INTF.const_to_matrix(constant, convert_scalars=convert_scalars)
     elif sparse:
-        return DEFAULT_SPARSE_INTF.const_to_matrix(constant,
-                                                   convert_scalars=convert_scalars)
+        return DEFAULT_SPARSE_INTF.const_to_matrix(constant, convert_scalars=convert_scalars)
     else:
         return constant
+
 
 # Get the value of the passed constant, interpreted as a scalar.
 
@@ -193,7 +196,8 @@ def scalar_value(constant):
     elif is_sparse(constant):
         return INTERFACES[sp.csc_matrix].scalar_value(constant.tocsc())
     else:
-        raise TypeError("%s is not a valid type for a Constant value." % type(constant))
+        raise TypeError('%s is not a valid type for a Constant value.' % type(constant))
+
 
 # Return the collective sign of the matrix entries.
 
@@ -254,6 +258,7 @@ def is_complex(constant, tol: float = 1e-5) -> bool:
         imag_max = np.abs(constant.imag).max()
     return (real_max >= tol, imag_max >= tol)
 
+
 # Get the value at the given index.
 
 
@@ -270,8 +275,7 @@ def index(constant, key):
 
 
 def is_hermitian(constant) -> bool:
-    """Check if a matrix is Hermitian and/or symmetric.
-    """
+    """Check if a matrix is Hermitian and/or symmetric."""
     complex_type = np.iscomplexobj(constant)
     if complex_type:
         # TODO catch complex symmetric but not Hermitian?
@@ -296,7 +300,7 @@ def is_hermitian(constant) -> bool:
 
 
 def is_skew_symmetric(constant) -> bool:
-    """Is the """
+    """Is the"""
     complex_type = np.iscomplexobj(constant)
     if complex_type:
         return False

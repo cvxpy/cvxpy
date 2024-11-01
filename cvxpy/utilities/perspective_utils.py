@@ -41,15 +41,15 @@ def form_cone_constraint(z: Variable, constraint: Constraint) -> Constraint:
         n = z.shape[0]
         assert len(z.shape) == 1
         assert n % 3 == 0  # we think this is how the exponential cone works
-        step = n//3
+        step = n // 3
         return ExpCone(z[:step], z[step:-step], z[-step:])
     elif isinstance(constraint, Zero):
         return Zero(z)
     elif isinstance(constraint, PSD):
         assert len(z.shape) == 1
         N = z.shape[0]
-        n = int(N**.5)
-        assert N == n**2, "argument is not a vectorized square matrix"
+        n = int(N**0.5)
+        assert N == n**2, 'argument is not a vectorized square matrix'
         z_mat = cp.reshape(z, (n, n), order='F')
         return PSD(z_mat)  # do we need constraint_id?
     elif isinstance(constraint, PowCone3D):

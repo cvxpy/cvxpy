@@ -60,17 +60,16 @@ SYMMETRIC_ATTRIBUTES = [
 
 def convex_attributes(variables) -> list[str]:
     """Returns a list of the (constraint-generating) convex attributes present
-       among the variables.
+    among the variables.
     """
     return attributes_present(variables, CONVEX_ATTRIBUTES)
 
 
 def attributes_present(variables, attr_map) -> list[str]:
     """Returns a list of the relevant attributes present
-       among the variables.
+    among the variables.
     """
-    return [attr for attr in attr_map if any(v.attributes[attr] for v
-                                             in variables)]
+    return [attr for attr in attr_map if any(v.attributes[attr] for v in variables)]
 
 
 def recover_value_for_variable(variable, lowered_value, project: bool = True):
@@ -82,7 +81,7 @@ def recover_value_for_variable(variable, lowered_value, project: bool = True):
         idxs = np.triu_indices(n)
         value[idxs] = lowered_value.flatten(order='F')
         return value + value.T - np.diag(value.diagonal())
-    #TODO keep sparse / return coo_tensor
+    # TODO keep sparse / return coo_tensor
     elif variable.attributes['sparsity']:
         value = np.zeros(variable.shape)
         value[variable.sparse_idx] = lowered_value
@@ -115,9 +114,7 @@ class CvxAttr2Constr(Reduction):
         if self.reduce_bounds:
             return CONVEX_ATTRIBUTES
         else:
-            return [
-                attr for attr in CONVEX_ATTRIBUTES if attr not in BOUND_ATTRIBUTES
-            ]
+            return [attr for attr in CONVEX_ATTRIBUTES if attr not in BOUND_ATTRIBUTES]
 
     def accepts(self, problem) -> bool:
         return True
@@ -146,7 +143,7 @@ class CvxAttr2Constr(Reduction):
 
                 if attributes_present([var], SYMMETRIC_ATTRIBUTES):
                     n = var.shape[0]
-                    shape = (n*(n+1)//2, 1)
+                    shape = (n * (n + 1) // 2, 1)
                     upper_tri = Variable(shape, var_id=var.id, **new_attr)
                     upper_tri.set_variable_of_provenance(var)
                     id2new_var[var.id] = upper_tri
@@ -160,9 +157,13 @@ class CvxAttr2Constr(Reduction):
                     id2new_var[var.id] = sparse_var
                     row_idx = np.ravel_multi_index(var.sparse_idx, var.shape, order='F')
                     col_idx = np.arange(n)
-                    coeff_matrix = Constant(sp.csc_matrix((np.ones(n), (row_idx, col_idx)),
-                                                    shape=(np.prod(var.shape, dtype=int), n)),
-                                                    name="sparse_coeff")
+                    coeff_matrix = Constant(
+                        sp.csc_matrix(
+                            (np.ones(n), (row_idx, col_idx)),
+                            shape=(np.prod(var.shape, dtype=int), n),
+                        ),
+                        name='sparse_coeff',
+                    )
                     obj = reshape(coeff_matrix @ sparse_var, var.shape, order='F')
                 elif var.attributes['diag']:
                     diag_var = Variable(var.shape[0], var_id=var.id, **new_attr)
@@ -205,11 +206,11 @@ class CvxAttr2Constr(Reduction):
         for id, var in id2old_var.items():
             new_var = id2new_var[id]
             if new_var.id in solution.primal_vars:
-                pvars[id] = recover_value_for_variable(
-                    var, solution.primal_vars[new_var.id])
+                pvars[id] = recover_value_for_variable(var, solution.primal_vars[new_var.id])
 
-        dvars = {orig_id: solution.dual_vars[vid]
-                 for orig_id, vid in cons_id_map.items()
-                 if vid in solution.dual_vars}
-        return Solution(solution.status, solution.opt_val, pvars, dvars,
-                        solution.attr)
+        dvars = {
+            orig_id: solution.dual_vars[vid]
+            for orig_id, vid in cons_id_map.items()
+            if vid in solution.dual_vars
+        }
+        return Solution(solution.status, solution.opt_val, pvars, dvars, solution.attr)

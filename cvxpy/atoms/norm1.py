@@ -13,6 +13,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+
 from typing import List, Tuple
 
 import numpy as np
@@ -26,8 +27,7 @@ class norm1(AxisAtom):
     _allow_complex = True
 
     def numeric(self, values):
-        """Returns the one norm of x.
-        """
+        """Returns the one norm of x."""
         if self.axis is None:
             values = np.array(values[0]).flatten()
         else:
@@ -35,47 +35,38 @@ class norm1(AxisAtom):
         return np.linalg.norm(values, 1, axis=self.axis, keepdims=self.keepdims)
 
     def sign_from_args(self) -> Tuple[bool, bool]:
-        """Returns sign (is positive, is negative) of the expression.
-        """
+        """Returns sign (is positive, is negative) of the expression."""
         # Always positive.
         return (True, False)
 
     def is_atom_convex(self) -> bool:
-        """Is the atom convex?
-        """
+        """Is the atom convex?"""
         return True
 
     def is_atom_concave(self) -> bool:
-        """Is the atom concave?
-        """
+        """Is the atom concave?"""
         return False
 
     def is_incr(self, idx) -> bool:
-        """Is the composition non-decreasing in argument idx?
-        """
+        """Is the composition non-decreasing in argument idx?"""
         return self.args[0].is_nonneg()
 
     def is_decr(self, idx) -> bool:
-        """Is the composition non-increasing in argument idx?
-        """
+        """Is the composition non-increasing in argument idx?"""
         return self.args[0].is_nonpos()
 
     def is_pwl(self) -> bool:
-        """Is the atom piecewise linear?
-        """
-        return self.args[0].is_pwl() and \
-            (self.args[0].is_real() or self.args[0].is_imag())
+        """Is the atom piecewise linear?"""
+        return self.args[0].is_pwl() and (self.args[0].is_real() or self.args[0].is_imag())
 
     def get_data(self):
         return [self.axis]
 
     def name(self) -> str:
-        return "%s(%s)" % (self.__class__.__name__,
-                           self.args[0].name())
+        return '%s(%s)' % (self.__class__.__name__, self.args[0].name())
 
     def _domain(self) -> List[Constraint]:
-        """Returns constraints describing the domain of the node.
-        """
+        """Returns constraints describing the domain of the node."""
         return []
 
     def _grad(self, values):
@@ -105,6 +96,6 @@ class norm1(AxisAtom):
         rows = value.size
         D_null = sp.csc_matrix((rows, 1), dtype='float64')
         value = value.reshape((rows, 1))
-        D_null += (value > 0)
-        D_null -= (value < 0)
+        D_null += value > 0
+        D_null -= value < 0
         return D_null

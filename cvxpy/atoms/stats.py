@@ -30,7 +30,7 @@ def mean(x, axis=None, keepdims=False):
     elif axis in (0, 1):
         return cvxpy_sum(x, axis, keepdims) / x.shape[axis]
     else:
-        raise ValueError("Invalid axis value.")
+        raise ValueError('Invalid axis value.')
 
 
 def std(x, axis=None, keepdims=False, ddof=0):
@@ -42,10 +42,12 @@ def std(x, axis=None, keepdims=False, ddof=0):
     if axis is None:
         return norm((x - mean(x)).flatten(order='F'), 2) / np.sqrt(x.size - ddof)
     elif axis in (0, 1):
-        return norm(x - mean(x, axis, True), 2, axis=axis, keepdims=keepdims) \
-                / np.sqrt(x.shape[axis] - ddof)
+        return norm(x - mean(x, axis, True), 2, axis=axis, keepdims=keepdims) / np.sqrt(
+            x.shape[axis] - ddof
+        )
     else:
-        raise ValueError("Invalid axis value.")
+        raise ValueError('Invalid axis value.')
+
 
 def var(x, axis=None, keepdims=False, ddof=0):
     """
@@ -65,4 +67,4 @@ def var(x, axis=None, keepdims=False, ddof=0):
         # return sum_squares(x - mean(x, axis, True), 2, axis=axis, keepdims=keepdims) \
         #         / (x.shape[axis] - ddof)
     else:
-        raise ValueError("Invalid axis value.")
+        raise ValueError('Invalid axis value.')

@@ -13,6 +13,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+
 from typing import Optional, Tuple
 
 import numpy as np
@@ -23,8 +24,7 @@ from cvxpy.expressions import cvxtypes
 
 
 class max(AxisAtom):
-    """:math:`\\max_{i,j}\\{X_{i,j}\\}`.
-    """
+    """:math:`\\max_{i,j}\\{X_{i,j}\\}`."""
 
     __EXPR_AXIS_ERROR__ = """
 
@@ -43,8 +43,7 @@ class max(AxisAtom):
 
     @Atom.numpy_numeric
     def numeric(self, values):
-        """Returns the largest entry in x.
-        """
+        """Returns the largest entry in x."""
         return values[0].max(axis=self.axis, keepdims=self.keepdims)
 
     def _grad(self, values):
@@ -79,42 +78,34 @@ class max(AxisAtom):
         return D
 
     def sign_from_args(self) -> Tuple[bool, bool]:
-        """Returns sign (is positive, is negative) of the expression.
-        """
+        """Returns sign (is positive, is negative) of the expression."""
         # Same as argument.
         return (self.args[0].is_nonneg(), self.args[0].is_nonpos())
 
     def is_atom_convex(self) -> bool:
-        """Is the atom convex?
-        """
+        """Is the atom convex?"""
         return True
 
     def is_atom_concave(self) -> bool:
-        """Is the atom concave?
-        """
+        """Is the atom concave?"""
         return False
 
     def is_atom_log_log_convex(self) -> bool:
-        """Is the atom log-log convex?
-        """
+        """Is the atom log-log convex?"""
         return True
 
     def is_atom_log_log_concave(self) -> bool:
-        """Is the atom log-log concave?
-        """
+        """Is the atom log-log concave?"""
         return False
 
     def is_incr(self, idx) -> bool:
-        """Is the composition non-decreasing in argument idx?
-        """
+        """Is the composition non-decreasing in argument idx?"""
         return True
 
     def is_decr(self, idx) -> bool:
-        """Is the composition non-increasing in argument idx?
-        """
+        """Is the composition non-increasing in argument idx?"""
         return False
 
     def is_pwl(self) -> bool:
-        """Is the atom piecewise linear?
-        """
+        """Is the atom piecewise linear?"""
         return self.args[0].is_pwl()

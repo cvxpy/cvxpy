@@ -22,18 +22,17 @@ from cvxpy.tests.base_test import BaseTest
 
 
 class TestInterfaces(BaseTest):
-    """ Unit tests for matrix interfaces. """
+    """Unit tests for matrix interfaces."""
 
     def setUp(self) -> None:
         pass
 
     def sign_for_intf(self, interface) -> None:
-        """Test sign for a given interface.
-        """
+        """Test sign for a given interface."""
         mat = interface.const_to_matrix([[1, 2, 3, 4], [3, 4, 5, 6]])
         self.assertEqual(intf.sign(mat), (True, False))  # Positive.
         self.assertEqual(intf.sign(-mat), (False, True))  # Negative.
-        self.assertEqual(intf.sign(0*mat), (True, True))  # Zero.
+        self.assertEqual(intf.sign(0 * mat), (True, True))  # Zero.
         mat = interface.const_to_matrix([[-1, 2, 3, 4], [3, 4, 5, 6]])
         self.assertEqual(intf.sign(mat), (False, False))  # Unknown.
 
@@ -62,10 +61,8 @@ class TestInterfaces(BaseTest):
         # Scalars and matrices.
         scalar = interface.const_to_matrix(2)
         mat = interface.const_to_matrix([1, 2, 3])
-        self.assertTrue((
-                scalar*mat == interface.const_to_matrix([2, 4, 6])).all())
-        self.assertTrue((
-                scalar - mat == interface.const_to_matrix([1, 0, -1])).all())
+        self.assertTrue((scalar * mat == interface.const_to_matrix([2, 4, 6])).all())
+        self.assertTrue((scalar - mat == interface.const_to_matrix([1, 0, -1])).all())
         # Sign
         self.sign_for_intf(interface)
         # shape.
@@ -97,8 +94,7 @@ class TestInterfaces(BaseTest):
         self.sign_for_intf(interface)
 
     def test_scipy_sparse(self) -> None:
-        """Test cvxopt sparse interface.
-        """
+        """Test cvxopt sparse interface."""
         interface = intf.get_matrix_interface(sp.csc_matrix)
         # const_to_matrix
         mat = interface.const_to_matrix([1, 2, 3])
@@ -145,26 +141,27 @@ class TestInterfaces(BaseTest):
         self.assertEqual(mat[1, 0], -1j)
 
     def test_conversion_between_intf(self) -> None:
-        """Test conversion between every pair of interfaces.
-        """
-        interfaces = [intf.get_matrix_interface(np.ndarray),
-                      intf.get_matrix_interface(np.matrix),
-                      intf.get_matrix_interface(sp.csc_matrix)]
+        """Test conversion between every pair of interfaces."""
+        interfaces = [
+            intf.get_matrix_interface(np.ndarray),
+            intf.get_matrix_interface(np.matrix),
+            intf.get_matrix_interface(sp.csc_matrix),
+        ]
         cmp_mat = [[1, 2, 3, 4], [3, 4, 5, 6], [-1, 0, 2, 4]]
         for i in range(len(interfaces)):
-            for j in range(i+1, len(interfaces)):
+            for j in range(i + 1, len(interfaces)):
                 intf1 = interfaces[i]
                 mat1 = intf1.const_to_matrix(cmp_mat)
                 intf2 = interfaces[j]
                 mat2 = intf2.const_to_matrix(cmp_mat)
                 for col in range(len(cmp_mat)):
                     for row in range(len(cmp_mat[0])):
-                        key = (slice(row, row+1, None),
-                               slice(col, col+1, None))
-                        self.assertEqual(intf1.index(mat1, key),
-                                         intf2.index(mat2, key))
+                        key = (slice(row, row + 1, None), slice(col, col + 1, None))
+                        self.assertEqual(intf1.index(mat1, key), intf2.index(mat2, key))
                         # Convert between the interfaces.
-                        self.assertEqual(cmp_mat[col][row],
-                                         intf1.index(intf1.const_to_matrix(mat2), key))
-                        self.assertEqual(intf2.index(intf2.const_to_matrix(mat1), key),
-                                         cmp_mat[col][row])
+                        self.assertEqual(
+                            cmp_mat[col][row], intf1.index(intf1.const_to_matrix(mat2), key)
+                        )
+                        self.assertEqual(
+                            intf2.index(intf2.const_to_matrix(mat1), key), cmp_mat[col][row]
+                        )

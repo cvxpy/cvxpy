@@ -76,8 +76,7 @@ def kkt_ldl(G, dims, A):
     from cvxopt.misc import pack, scale, unpack
 
     p, n = A.size
-    ldK = n + p + dims['l'] + sum(dims['q']) + sum([int(k*(k+1)/2)
-                                                    for k in dims['s']])
+    ldK = n + p + dims['l'] + sum(dims['q']) + sum([int(k * (k + 1) / 2) for k in dims['s']])
     K = matrix(0.0, (ldK, ldK))
     ipiv = matrix(0, (ldK, 1))
     u = matrix(0.0, (ldK, 1))
@@ -87,19 +86,18 @@ def kkt_ldl(G, dims, A):
         blas.scal(0.0, K)
         if H is not None:
             K[:n, :n] = H
-        K[n:n+p, :n] = A
+        K[n : n + p, :n] = A
         for k in range(n):
             g[:] = G[:, k]
             scale(g, W, trans='T', inverse='I')
-            pack(g, K, dims, 0, offsety=k*ldK + n + p)
-        K[(ldK+1)*(p+n):: ldK+1] = -1.0
+            pack(g, K, dims, 0, offsety=k * ldK + n + p)
+        K[(ldK + 1) * (p + n) :: ldK + 1] = -1.0
         # Add positive regularization in 1x1 block and negative in 2x2 block.
-        K[0: (ldK+1)*n: ldK+1] += REG_EPS
-        K[(ldK+1)*n:: ldK+1] += -REG_EPS
+        K[0 : (ldK + 1) * n : ldK + 1] += REG_EPS
+        K[(ldK + 1) * n :: ldK + 1] += -REG_EPS
         lapack.sytrf(K, ipiv)
 
         def solve(x, y, z):
-
             # Solve
             #
             #     [ H          A'   G'*W^{-1}  ]   [ ux   ]   [ bx        ]

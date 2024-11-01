@@ -19,7 +19,7 @@ class Chain(Reduction):
         return str(self.reductions)
 
     def __repr__(self) -> str:
-        return "Chain(reductions=%s)" % repr(self.reductions)
+        return 'Chain(reductions=%s)' % repr(self.reductions)
 
     def get(self, reduction_type):
         for reduction in self.reductions:
@@ -78,8 +78,7 @@ class Chain(Reduction):
         return problem, inverse_data
 
     def invert(self, solution, inverse_data):
-        """Returns a solution to the original problem given the inverse_data.
-        """
+        """Returns a solution to the original problem given the inverse_data."""
         for r, inv in reversed(list(zip(self.reductions, inverse_data))):
             solution = r.invert(solution, inv)
         return solution

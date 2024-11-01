@@ -14,7 +14,6 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-
 WARN = False
 
 
@@ -33,30 +32,24 @@ def warnings_enabled() -> bool:
 
 
 class SolverError(Exception):
-    """Error thrown when a solver encounters an error solving a problem.
-    """
+    """Error thrown when a solver encounters an error solving a problem."""
 
 
 class DCPError(Exception):
-    """Error thrown for DCP violations.
-    """
+    """Error thrown for DCP violations."""
 
 
 class DPPError(Exception):
-    """Error thrown for DPP violations.
-    """
+    """Error thrown for DPP violations."""
 
 
 class DGPError(Exception):
-    """Error thrown for DGP violations.
-    """
+    """Error thrown for DGP violations."""
 
 
 class DQCPError(Exception):
-    """Error thrown for DQCP violations.
-    """
+    """Error thrown for DQCP violations."""
 
 
 class ParameterError(Exception):
-    """Error thrown for accessing the value of an unspecified parameter.
-    """
+    """Error thrown for accessing the value of an unspecified parameter."""

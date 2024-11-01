@@ -25,11 +25,10 @@ from cvxpy.atoms.atom import Atom
 
 
 class Elementwise(Atom):
-    """ Abstract base class for elementwise atoms. """
+    """Abstract base class for elementwise atoms."""
 
     def shape_from_args(self) -> Tuple[int, ...]:
-        """Shape is the same as the sum of the arguments.
-        """
+        """Shape is the same as the sum of the arguments."""
         return u.shape.sum_shapes([arg.shape for arg in self.args])
 
     def validate_arguments(self) -> None:
@@ -41,8 +40,7 @@ class Elementwise(Atom):
         super(Elementwise, self).validate_arguments()
 
     def is_symmetric(self) -> bool:
-        """Is the expression symmetric?
-        """
+        """Is the expression symmetric?"""
         symm_args = all(arg.is_symmetric() for arg in self.args)
         return self.shape[0] == self.shape[1] and symm_args
 

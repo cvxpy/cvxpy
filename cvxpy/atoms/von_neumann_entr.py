@@ -13,6 +13,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+
 from typing import List, Tuple
 
 import numpy as np
@@ -63,41 +64,34 @@ class von_neumann_entr(Atom):
         return val
 
     def validate_arguments(self) -> None:
-        """Verify that the argument A is PSD.
-        """
+        """Verify that the argument A is PSD."""
         N = self.args[0]
         if N.size > 1:
             if N.ndim != 2 or N.shape[0] != N.shape[1]:
                 raise ValueError('Argument must be a square matrix.')
 
     def sign_from_args(self) -> Tuple[bool, bool]:
-        """Returns sign (is positive, is negative) of the expression.
-        """
+        """Returns sign (is positive, is negative) of the expression."""
         return (False, False)
 
     def is_atom_convex(self) -> bool:
-        """Is the atom convex?
-        """
+        """Is the atom convex?"""
         return False
 
     def shape_from_args(self) -> Tuple[int, ...]:
-        """Returns the shape of the expression.
-        """
+        """Returns the shape of the expression."""
         return tuple()
 
     def is_atom_concave(self) -> bool:
-        """Is the atom concave?
-        """
+        """Is the atom concave?"""
         return True
 
     def is_incr(self, idx) -> bool:
-        """Is the composition non-decreasing in argument idx?
-        """
+        """Is the composition non-decreasing in argument idx?"""
         return False
 
     def is_decr(self, idx) -> bool:
-        """Is the composition non-increasing in argument idx?
-        """
+        """Is the composition non-increasing in argument idx?"""
         return False
 
     def get_data(self):
@@ -122,6 +116,5 @@ class von_neumann_entr(Atom):
         raise ValueError()
 
     def _domain(self) -> List[Constraint]:
-        """Returns constraints describing the domain of the node.
-        """
+        """Returns constraints describing the domain of the node."""
         return [self.args[0] >> 0]

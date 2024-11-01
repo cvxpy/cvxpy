@@ -13,6 +13,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+
 import abc
 from typing import Tuple
 
@@ -48,6 +49,7 @@ class BaseMatrixInterface(metaclass=abc.ABCMeta):
                 return cvxpy.interface.matrix_utilities.scalar_value(value)
             else:
                 return converter(self, value)
+
         return new_converter
 
     # Return an identity matrix.
@@ -96,8 +98,17 @@ class BaseMatrixInterface(metaclass=abc.ABCMeta):
     def reshape(self, matrix, shape: Tuple[int, ...]):
         raise NotImplementedError()
 
-    def block_add(self, matrix, block, vert_offset, horiz_offset, rows, cols,
-                  vert_step: int = 1, horiz_step: int = 1) -> None:
+    def block_add(
+        self,
+        matrix,
+        block,
+        vert_offset,
+        horiz_offset,
+        rows,
+        cols,
+        vert_step: int = 1,
+        horiz_step: int = 1,
+    ) -> None:
         """Add the block to a slice of the matrix.
 
         Args:
@@ -111,8 +122,10 @@ class BaseMatrixInterface(metaclass=abc.ABCMeta):
             horiz_step: The column step size for the matrix slice.
         """
         block = self._format_block(matrix, block, rows, cols)
-        matrix[vert_offset:(rows+vert_offset):vert_step,
-               horiz_offset:(horiz_offset+cols):horiz_step] += block
+        matrix[
+            vert_offset : (rows + vert_offset) : vert_step,
+            horiz_offset : (horiz_offset + cols) : horiz_step,
+        ] += block
 
     def _format_block(self, matrix, block, rows, cols):
         """Formats the block for block_add.
@@ -126,7 +139,8 @@ class BaseMatrixInterface(metaclass=abc.ABCMeta):
         # If the block is a scalar, promote it.
         if cvxpy.interface.matrix_utilities.is_scalar(block):
             block = self.scalar_matrix(
-                cvxpy.interface.matrix_utilities.scalar_value(block), rows, cols)
+                cvxpy.interface.matrix_utilities.scalar_value(block), rows, cols
+            )
         # If the block is a vector coerced into a matrix, promote it.
         elif cvxpy.interface.matrix_utilities.is_vector(block) and cols > 1:
             block = self.reshape(block, (rows, cols))

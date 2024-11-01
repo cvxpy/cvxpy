@@ -13,6 +13,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+
 from functools import reduce
 from operator import mul
 from typing import List, Tuple
@@ -81,21 +82,21 @@ def mul_shapes_promote(
         If either of the shapes are scalars, or if the shapes are incompatible.
     """
     if not lh_shape or not rh_shape:
-        raise ValueError("Multiplication by scalars is not permitted.")
+        raise ValueError('Multiplication by scalars is not permitted.')
 
     # Promote 1D shapes to 2D
     lh_shape = (1,) + lh_shape if len(lh_shape) == 1 else lh_shape
     rh_shape = rh_shape + (1,) if len(rh_shape) == 1 else rh_shape
 
     if lh_shape[-1] != rh_shape[-2]:
-        raise ValueError("Incompatible dimensions %s %s" % (lh_shape, rh_shape))
-    
+        raise ValueError('Incompatible dimensions %s %s' % (lh_shape, rh_shape))
+
     # Calculate resulting shape for higher-dimensional arrays
     if len(lh_shape) > 2 or len(rh_shape) > 2:
         try:
             outer_dims = np.broadcast_shapes(lh_shape[:-2], rh_shape[:-2])
         except ValueError:
-            raise ValueError("Incompatible dimensions %s %s" % (lh_shape, rh_shape))
+            raise ValueError('Incompatible dimensions %s %s' % (lh_shape, rh_shape))
         shape = outer_dims + (lh_shape[-2], rh_shape[-1])
     else:
         shape = (lh_shape[-2], rh_shape[-1])

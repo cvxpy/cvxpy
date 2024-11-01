@@ -25,8 +25,7 @@ from cvxpy.reductions.reduction import Reduction
 
 
 class SOC2PSD(Reduction):
-    """Convert all SOC constraints to equivalent PSD constraints.
-    """
+    """Convert all SOC constraints to equivalent PSD constraints."""
 
     def accepts(self, problem):
         return True
@@ -63,7 +62,7 @@ class SOC2PSD(Reduction):
             with :math:`SchurComplement(M) >> 0` should give us the original SOC constraint.
             """
 
-            if t.shape==(1,): # when `constraint` object has only one constraint
+            if t.shape == (1,):  # when `constraint` object has only one constraint
                 scalar_term = t[0]
                 vector_term_len = X.shape[0]
 
@@ -74,7 +73,7 @@ class SOC2PSD(Reduction):
                 """
 
                 A = scalar_term * sparse.eye(1)
-                B = cp.reshape(X,[-1,1], order='F').T
+                B = cp.reshape(X, [-1, 1], order='F').T
                 C = scalar_term * sparse.eye(vector_term_len)
 
                 """
@@ -88,10 +87,7 @@ class SOC2PSD(Reduction):
                 """
                 Construct M from A, B and C
                 """
-                M = cp.bmat([
-                    [A, B],
-                    [B.T, C]
-                ])
+                M = cp.bmat([[A, B], [B.T, C]])
 
                 """
                 Constrain M to the PSD cone.
@@ -99,28 +95,26 @@ class SOC2PSD(Reduction):
                 new_psd_constraint = PSD(M)
                 soc_id_from_psd[new_psd_constraint.id] = constraint.id
                 psd_constraints.append(new_psd_constraint)
-            else: # when `constraint` object has multiple packed constraints
-                if constraint.axis==1:
+            else:  # when `constraint` object has multiple packed constraints
+                if constraint.axis == 1:
                     X = X.T
                 for subidx in range(t.shape[0]):
                     scalar_term = t[subidx]
                     vector_term_len = X.shape[0]
 
                     A = scalar_term * sparse.eye(1)
-                    B = X[:,subidx:subidx+1].T
+                    B = X[:, subidx : subidx + 1].T
                     C = scalar_term * sparse.eye(vector_term_len)
 
-                    M = cp.bmat([
-                        [A, B],
-                        [B.T, C]
-                    ])
+                    M = cp.bmat([[A, B], [B.T, C]])
 
                     new_psd_constraint = PSD(M)
                     soc_id_from_psd[new_psd_constraint.id] = constraint.id
                     psd_constraints.append(new_psd_constraint)
 
-        new_problem = problems.problem.Problem(problem.objective,
-                                               other_constraints + psd_constraints)
+        new_problem = problems.problem.Problem(
+            problem.objective, other_constraints + psd_constraints
+        )
 
         inverse_data = (soc_id_from_psd, soc_constraint_ids)
         return new_problem, inverse_data
@@ -132,7 +126,7 @@ class SOC2PSD(Reduction):
         The dual variables that we return in `solution` should correspond to the original
         SOC constraints, and not their PSD equivalents. To this end, inversion is required.
         """
-        if solution.dual_vars=={}:
+        if solution.dual_vars == {}:
             # in case the solver fails
             return solution
 

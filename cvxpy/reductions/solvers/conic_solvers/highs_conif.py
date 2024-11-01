@@ -38,18 +38,18 @@ class HIGHS(ConicSolver):
 
     # Map of HiGHS status to CVXPY status.
     STATUS_MAP = {
-        "kNotset": s.SOLVER_ERROR,
-        "kModelError": s.SOLVER_ERROR,
-        "kSolveError": s.SOLVER_ERROR,
-        "kOptimal": s.OPTIMAL,
-        "kInfeasible": s.INFEASIBLE,
-        "kUnboundedOrInfeasible": s.INFEASIBLE_OR_UNBOUNDED,
-        "kUnbounded": s.UNBOUNDED,
-        "kObjectiveBound": s.USER_LIMIT,
-        "kObjectiveTarget": s.USER_LIMIT,
-        "kTimeLimit": s.USER_LIMIT,
-        "kIterationLimit": s.USER_LIMIT,
-        "kSolutionLimit": s.USER_LIMIT,
+        'kNotset': s.SOLVER_ERROR,
+        'kModelError': s.SOLVER_ERROR,
+        'kSolveError': s.SOLVER_ERROR,
+        'kOptimal': s.OPTIMAL,
+        'kInfeasible': s.INFEASIBLE,
+        'kUnboundedOrInfeasible': s.INFEASIBLE_OR_UNBOUNDED,
+        'kUnbounded': s.UNBOUNDED,
+        'kObjectiveBound': s.USER_LIMIT,
+        'kObjectiveTarget': s.USER_LIMIT,
+        'kTimeLimit': s.USER_LIMIT,
+        'kIterationLimit': s.USER_LIMIT,
+        'kSolutionLimit': s.USER_LIMIT,
     }
 
     def name(self):
@@ -79,45 +79,43 @@ class HIGHS(ConicSolver):
         variables = problem.x
         data[s.BOOL_IDX] = [int(t[0]) for t in variables.boolean_idx]
         data[s.INT_IDX] = [int(t[0]) for t in variables.integer_idx]
-        inv_data["is_mip"] = data[s.BOOL_IDX] or data[s.INT_IDX]
+        inv_data['is_mip'] = data[s.BOOL_IDX] or data[s.INT_IDX]
 
         return data, inv_data
 
     def invert(self, results, inverse_data):
         """Returns the solution to the original problem given the inverse_data."""
         attr = {
-            s.SOLVE_TIME: results["run_time"],
-            s.EXTRA_STATS: results["info"],
+            s.SOLVE_TIME: results['run_time'],
+            s.EXTRA_STATS: results['info'],
         }
 
         # map solver statuses back to CVXPY statuses
-        status = self.STATUS_MAP.get(results["model_status"], s.UNKNOWN)
+        status = self.STATUS_MAP.get(results['model_status'], s.UNKNOWN)
         if status in s.SOLUTION_PRESENT:
-            opt_val = results["info"].objective_function_value + inverse_data[s.OFFSET]
+            opt_val = results['info'].objective_function_value + inverse_data[s.OFFSET]
             primal_vars = {
                 HIGHS.VAR_ID: intf.DEFAULT_INTF.const_to_matrix(
-                    np.array(results["solution"].col_value)
+                    np.array(results['solution'].col_value)
                 )
             }
             # add duals if not a MIP.
             dual_vars = None
-            if not inverse_data["is_mip"]:
-                dual_vars = {HIGHS.DUAL_VAR_ID: -np.array(results["solution"].row_dual)}
+            if not inverse_data['is_mip']:
+                dual_vars = {HIGHS.DUAL_VAR_ID: -np.array(results['solution'].row_dual)}
             attr[s.NUM_ITERS] = (
-                results["info"].ipm_iteration_count
-                + results["info"].crossover_iteration_count
-                + results["info"].pdlp_iteration_count
-                + results["info"].qp_iteration_count
-                + results["info"].simplex_iteration_count
+                results['info'].ipm_iteration_count
+                + results['info'].crossover_iteration_count
+                + results['info'].pdlp_iteration_count
+                + results['info'].qp_iteration_count
+                + results['info'].simplex_iteration_count
             )
             sol = Solution(status, opt_val, primal_vars, dual_vars, attr)
         else:
             sol = failure_solution(status, attr)
         return sol
 
-    def solve_via_data(
-        self, data, warm_start: bool, verbose: bool, solver_opts, solver_cache=None
-    ):
+    def solve_via_data(self, data, warm_start: bool, verbose: bool, solver_opts, solver_cache=None):
         """Returns the result of the call to the solver.
 
         minimize          cx
@@ -153,16 +151,16 @@ class HIGHS(ConicSolver):
         c = data[s.C]
         # A = sp.vstack([data[s.A], data[s.F]]).tocsc()
         A = data[s.A].tocsc()
-        data["Ax"] = A
+        data['Ax'] = A
 
         leq_start = dims[s.EQ_DIM]
         leq_end = dims[s.EQ_DIM] + dims[s.LEQ_DIM]
         uboundA = data[s.B]
-        data["u"] = uboundA
+        data['u'] = uboundA
         lboundA = np.concatenate(
             [data[s.B][:leq_start], -inf * np.ones(data[s.B][leq_start:leq_end].shape)]
         )
-        data["l"] = lboundA
+        data['l'] = lboundA
 
         # setup highs model
         model = hp.HighsModel()
@@ -178,7 +176,7 @@ class HIGHS(ConicSolver):
         lp.row_lower_ = lboundA
         lp.row_upper_ = uboundA
 
-        assert A.format == "csc"
+        assert A.format == 'csc'
         lp.a_matrix_.format_ = hp.MatrixFormat.kColwise
         lp.a_matrix_.start_ = A.indptr
         lp.a_matrix_.index_ = A.indices
@@ -218,11 +216,11 @@ class HIGHS(ConicSolver):
         try:
             solver.run()
             results = {
-                "solution": solver.getSolution(),
-                "basis": solver.getBasis(),
-                "info": solver.getInfo(),
-                "model_status": solver.getModelStatus().name,
-                "run_time": solver.getRunTime(),
+                'solution': solver.getSolution(),
+                'basis': solver.getBasis(),
+                'info': solver.getInfo(),
+                'model_status': solver.getModelStatus().name,
+                'run_time': solver.getRunTime(),
             }
         except ValueError as e:
             raise SolverError(e)

@@ -35,14 +35,13 @@ def diff(x, k: int = 1, axis: int = 0):
     """
     x = Expression.cast_to_const(x)
     if (axis == 1 and x.ndim < 2) or x.ndim == 0:
-        raise ValueError("Invalid axis given input dimensions.")
+        raise ValueError('Invalid axis given input dimensions.')
     elif axis == 1:
         x = x.T
 
     # Always test shape[0] because if axis == 1 x is transposed.
     if k < 0 or k >= x.shape[0]:
-        raise ValueError("Must have k >= 0 and X must have < k elements along "
-                         "axis")
+        raise ValueError('Must have k >= 0 and X must have < k elements along ' 'axis')
     for i in range(k):
         if x.ndim == 2:
             x = x[1:, :] - x[:-1, :]

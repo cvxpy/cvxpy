@@ -21,10 +21,9 @@ from cvxpy.reductions.reduction import Reduction
 
 
 class Solver(Reduction):
-    """Generic interface for a solver that uses reduction semantics
-    """
+    """Generic interface for a solver that uses reduction semantics"""
 
-    DIMS = "dims"
+    DIMS = 'dims'
     # ^ The key that maps to "ConeDims" in the data returned by apply().
     #
     #   There are separate ConeDims classes for cone programs vs QPs.
@@ -42,39 +41,33 @@ class Solver(Reduction):
 
     @abc.abstractmethod
     def name(self):
-        """The name of the solver.
-        """
+        """The name of the solver."""
         raise NotImplementedError()
 
     @abc.abstractmethod
     def import_solver(self):
-        """Imports the solver.
-        """
+        """Imports the solver."""
         raise NotImplementedError()
 
     def is_installed(self) -> bool:
-        """Is the solver installed?
-        """
+        """Is the solver installed?"""
         try:
             self.import_solver()
             return True
         except Exception as e:
             if not isinstance(e, ModuleNotFoundError):
                 s.LOGGER.warning(
-                    f"Encountered unexpected exception importing solver {self.name()}:\n"
-                    + repr(e)
+                    f'Encountered unexpected exception importing solver {self.name()}:\n' + repr(e)
                 )
             return False
 
     @abc.abstractmethod
     def solve_via_data(self, data, warm_start: bool, verbose: bool, solver_opts, solver_cache=None):
-        """Solve a problem represented by data returned from apply.
-        """
+        """Solve a problem represented by data returned from apply."""
         raise NotImplementedError()
 
     def solve(self, problem, warm_start: bool, verbose: bool, solver_opts):
-        """Solve the problem and return a Solution object.
-        """
+        """Solve the problem and return a Solution object."""
         data, inv_data = self.apply(problem)
         solution = self.solve_via_data(data, warm_start, verbose, solver_opts)
         return self.invert(solution, inv_data)

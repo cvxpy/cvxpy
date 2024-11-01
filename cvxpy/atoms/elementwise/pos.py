@@ -18,7 +18,5 @@ from cvxpy.atoms.elementwise.maximum import maximum
 
 
 def pos(x):
-    """ Alias for maximum{x,0}.
-
-    """
+    """Alias for maximum{x,0}."""
     return maximum(x, 0)

@@ -13,6 +13,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+
 from typing import List, Tuple
 
 import numpy as np
@@ -25,7 +26,7 @@ from cvxpy.expressions.expression import Expression
 
 
 def promote(expr: Expression, shape: Tuple[int, ...]):
-    """ Promote a scalar expression to a vector/matrix.
+    """Promote a scalar expression to a vector/matrix.
 
     Parameters
     ----------
@@ -50,7 +51,7 @@ def promote(expr: Expression, shape: Tuple[int, ...]):
 
 
 class Promote(AffAtom):
-    """ Promote a scalar expression to a vector/matrix.
+    """Promote a scalar expression to a vector/matrix.
 
     Attributes
     ----------
@@ -66,13 +67,11 @@ class Promote(AffAtom):
 
     @AffAtom.numpy_numeric
     def numeric(self, values):
-        """Promotes the value.
-        """
+        """Promotes the value."""
         return np.ones(self.promoted_shape) * values[0]
 
     def is_symmetric(self) -> bool:
-        """Is the expression symmetric?
-        """
+        """Is the expression symmetric?"""
         return self.ndim == 2 and self.shape[0] == self.shape[1]
 
     def is_atom_log_log_convex(self) -> bool:
@@ -84,13 +83,11 @@ class Promote(AffAtom):
         return True
 
     def shape_from_args(self) -> Tuple[int, ...]:
-        """Returns the (row, col) shape of the expression.
-        """
+        """Returns the (row, col) shape of the expression."""
         return self.promoted_shape
 
     def get_data(self):
-        """Returns info needed to reconstruct the expression besides the args.
-        """
+        """Returns info needed to reconstruct the expression besides the args."""
         return [self.promoted_shape]
 
     def graph_implementation(

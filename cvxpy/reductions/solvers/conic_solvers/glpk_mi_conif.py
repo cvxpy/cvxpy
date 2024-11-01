@@ -22,8 +22,7 @@ from cvxpy.reductions.solvers.conic_solvers.conic_solver import ConicSolver
 
 
 class GLPK_MI(GLPK):
-    """An interface for the GLPK MI solver.
-    """
+    """An interface for the GLPK MI solver."""
 
     # Solver capabilities.
     MIP_CAPABLE = True
@@ -31,8 +30,7 @@ class GLPK_MI(GLPK):
     MI_SUPPORTED_CONSTRAINTS = SUPPORTED_CONSTRAINTS
 
     def name(self):
-        """The name of the solver.
-        """
+        """The name of the solver."""
         return s.GLPK_MI
 
     def apply(self, problem):
@@ -57,33 +55,35 @@ class GLPK_MI(GLPK):
         old_options = cvxopt.glpk.options.copy()
         # Silence cvxopt if verbose is False.
         if verbose:
-            cvxopt.glpk.options["msg_lev"] = "GLP_MSG_ON"
+            cvxopt.glpk.options['msg_lev'] = 'GLP_MSG_ON'
         else:
-            cvxopt.glpk.options["msg_lev"] = "GLP_MSG_OFF"
+            cvxopt.glpk.options['msg_lev'] = 'GLP_MSG_OFF'
 
         data = self._prepare_cvxopt_matrices(data)
 
         # Apply any user-specific options.
         # Rename max_iters to maxiters.
-        if "max_iters" in solver_opts:
-            solver_opts["maxiters"] = solver_opts["max_iters"]
+        if 'max_iters' in solver_opts:
+            solver_opts['maxiters'] = solver_opts['max_iters']
         for key, value in solver_opts.items():
             cvxopt.glpk.options[key] = value
 
         try:
-            results_tup = cvxopt.glpk.ilp(data[s.C],
-                                          data[s.G],
-                                          data[s.H],
-                                          data[s.A],
-                                          data[s.B],
-                                          set(int(i) for i in data[s.INT_IDX]),
-                                          set(int(i) for i in data[s.BOOL_IDX]))
+            results_tup = cvxopt.glpk.ilp(
+                data[s.C],
+                data[s.G],
+                data[s.H],
+                data[s.A],
+                data[s.B],
+                set(int(i) for i in data[s.INT_IDX]),
+                set(int(i) for i in data[s.BOOL_IDX]),
+            )
             results_dict = {}
-            results_dict["status"] = results_tup[0]
-            results_dict["x"] = results_tup[1]
+            results_dict['status'] = results_tup[0]
+            results_dict['x'] = results_tup[1]
         # Catch exceptions in CVXOPT and convert them to solver errors.
         except ValueError:
-            results_dict = {"status": "unknown"}
+            results_dict = {'status': 'unknown'}
 
         # Restore original cvxopt solver options.
         self._restore_solver_options(old_options)
@@ -95,14 +95,13 @@ class GLPK_MI(GLPK):
         if solution[s.STATUS] in s.SOLUTION_PRESENT:
             # No dual variables.
             solution[s.PRIMAL] = intf.cvxopt2dense(results_dict['x'])
-            primal_val = (data[s.C].T*results_dict['x'])[0]
+            primal_val = (data[s.C].T * results_dict['x'])[0]
             solution[s.VALUE] = primal_val
 
         return solution
 
     def invert(self, solution, inverse_data):
-        """Returns the solution to the original problem given the inverse_data.
-        """
+        """Returns the solution to the original problem given the inverse_data."""
         status = solution['status']
 
         if status in s.SOLUTION_PRESENT:
@@ -115,6 +114,7 @@ class GLPK_MI(GLPK):
     @staticmethod
     def _restore_solver_options(old_options) -> None:
         import cvxopt.glpk
+
         for key, value in list(cvxopt.glpk.options.items()):
             if key in old_options:
                 cvxopt.glpk.options[key] = old_options[key]

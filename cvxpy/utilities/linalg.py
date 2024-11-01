@@ -42,7 +42,7 @@ def is_diagonal(A):
     elif isinstance(A, np.ndarray):
         off_diagonal_elements = A - np.diag(np.diag(A))
     else:
-        raise ValueError("Unsupported matrix type.")
+        raise ValueError('Unsupported matrix type.')
 
     return np.allclose(off_diagonal_elements, 0)
 
@@ -84,7 +84,6 @@ def is_psd_within_tol(A, tol):
             return min_diag_entry >= -tol
 
     def SA_eigsh(sigma):
-
         # Check for default_rng in np.random module (new API)
         if hasattr(np.random, 'default_rng'):
             g = np.random.default_rng(123)
@@ -94,8 +93,7 @@ def is_psd_within_tol(A, tol):
         n = A.shape[0]
         v0 = g.normal(loc=0.0, scale=1.0, size=n)
 
-        return sparla.eigsh(A, k=1, sigma=sigma, which='SA', v0=v0,
-                            return_eigenvectors=False)
+        return sparla.eigsh(A, k=1, sigma=sigma, which='SA', v0=v0, return_eigenvectors=False)
         # Returns the eigenvalue w[i] of A where 1/(w[i] - sigma) is minimized.
         #
         # If A - sigma*I is PSD, then w[i] should be equal to the largest
@@ -124,7 +122,7 @@ def is_psd_within_tol(A, tol):
         [1] https://en.wikipedia.org/wiki/Definite_matrix
         """
 
-        error_with_note = f"{str(e)}\n\n{message}"
+        error_with_note = f'{str(e)}\n\n{message}'
 
         raise sparla.ArpackNoConvergence(error_with_note, e.eigenvalues, e.eigenvectors)
 
@@ -181,7 +179,6 @@ def gershgorin_psd_check(A, tol):
 
 
 class SparseCholeskyMessages:
-
     ASYMMETRIC = 'Input matrix is not symmetric to within provided tolerance.'
     INDEFINITE = 'Input matrix is neither positive nor negative definite.'
     EIGEN_FAIL = 'Cholesky decomposition failed.'
@@ -239,10 +236,7 @@ def sparse_cholesky(A, sym_tol=settings.CHOL_SYM_TOL, assume_posdef=False):
     outcols = spchol.IntVector()
     outvals = spchol.DoubleVector()
     try:
-        spchol.sparse_chol_from_vecs(
-            n, inrows, incols, invals,
-            outpivs, outrows, outcols, outvals
-        )
+        spchol.sparse_chol_from_vecs(n, inrows, incols, invals, outpivs, outrows, outcols, outvals)
     except RuntimeError as e:
         if e.args[0] == SparseCholeskyMessages.EIGEN_FAIL:
             raise ValueError(e.args)

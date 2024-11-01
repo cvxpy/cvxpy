@@ -33,6 +33,7 @@ class Dcp2Cone(Canonicalization):
     them into problems with affine or quadratic objectives and conic
     constraints whose arguments are affine.
     """
+
     def __init__(self, problem=None, quad_obj: bool = False) -> None:
         super(Canonicalization, self).__init__(problem=problem)
         self.cone_canon_methods = cone_canon_methods
@@ -40,33 +41,28 @@ class Dcp2Cone(Canonicalization):
         self.quad_obj = quad_obj
 
     def accepts(self, problem):
-        """A problem is accepted if it is a minimization and is DCP.
-        """
+        """A problem is accepted if it is a minimization and is DCP."""
         return type(problem.objective) == Minimize and problem.is_dcp()
 
     def apply(self, problem):
-        """Converts a DCP problem to a conic form.
-        """
+        """Converts a DCP problem to a conic form."""
         if not self.accepts(problem):
-            raise ValueError("Cannot reduce problem to cone program")
+            raise ValueError('Cannot reduce problem to cone program')
 
         inverse_data = InverseData(problem)
 
-        canon_objective, canon_constraints = self.canonicalize_tree(
-            problem.objective, True)
+        canon_objective, canon_constraints = self.canonicalize_tree(problem.objective, True)
 
         for constraint in problem.constraints:
             # canon_constr is the constraint rexpressed in terms of
             # its canonicalized arguments, and aux_constr are the constraints
             # generated while canonicalizing the arguments of the original
             # constraint
-            canon_constr, aux_constr = self.canonicalize_tree(
-                constraint, False)
+            canon_constr, aux_constr = self.canonicalize_tree(constraint, False)
             canon_constraints += aux_constr + [canon_constr]
             inverse_data.cons_id_map.update({constraint.id: canon_constr.id})
 
-        new_problem = problems.problem.Problem(canon_objective,
-                                               canon_constraints)
+        new_problem = problems.problem.Problem(canon_objective, canon_constraints)
         return new_problem, inverse_data
 
     def canonicalize_tree(self, expr, affine_above: bool) -> Tuple[Expression, list]:
@@ -83,8 +79,7 @@ class Dcp2Cone(Canonicalization):
         """
         # TODO don't copy affine expressions?
         if type(expr) == cvxtypes.partial_problem():
-            canon_expr, constrs = self.canonicalize_tree(
-              expr.args[0].objective.expr, False)
+            canon_expr, constrs = self.canonicalize_tree(expr.args[0].objective.expr, False)
             for constr in expr.args[0].constraints:
                 canon_constr, aux_constr = self.canonicalize_tree(constr, False)
                 constrs += [canon_constr] + aux_constr
@@ -114,8 +109,7 @@ class Dcp2Cone(Canonicalization):
         A tuple of the canonicalized expression and generated constraints.
         """
         # Constant trees are collapsed, but parameter trees are preserved.
-        if isinstance(expr, Expression) and (
-                expr.is_constant() and not expr.parameters()):
+        if isinstance(expr, Expression) and (expr.is_constant() and not expr.parameters()):
             return expr, []
 
         if self.quad_obj and affine_above and type(expr) in self.quad_canon_methods:

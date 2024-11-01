@@ -22,7 +22,7 @@ from cvxpy.tests.base_test import BaseTest
 
 
 class TestSemidefiniteVariable(BaseTest):
-    """ Unit tests for the expressions/shape module. """
+    """Unit tests for the expressions/shape module."""
 
     def setUp(self) -> None:
         self.X = Variable((2, 2), PSD=True)
@@ -30,25 +30,24 @@ class TestSemidefiniteVariable(BaseTest):
         self.F = np.array([[1, 0], [0, -1]])
 
     def test_symm(self) -> None:
-        """Test that results are symmetric.
-        """
+        """Test that results are symmetric."""
         M = Variable((3, 3), PSD=True)
-        C1 = np.array([[0, 0, 1/2], [0, 0, 0], [1/2, 0, 1]])
-        C2 = np.array([[0, 0, 0], [0, 0, 1/2], [0, 1/2, 1]])
+        C1 = np.array([[0, 0, 1 / 2], [0, 0, 0], [1 / 2, 0, 1]])
+        C2 = np.array([[0, 0, 0], [0, 0, 1 / 2], [0, 1 / 2, 1]])
         x1 = Variable((3, 3), PSD=True)
         x2 = Variable((3, 3), PSD=True)
         constraints = [M + C1 == x1]
         constraints += [M + C2 == x2]
         objective = cp.Minimize(cp.trace(M))
         prob = cp.Problem(objective, constraints)
-        prob.solve(solver="SCS")
+        prob.solve(solver='SCS')
         assert (M.value == M.T.value).all()
 
     def test_sdp_problem(self) -> None:
         # PSD in objective.
         obj = cp.Minimize(cp.sum(cp.square(self.X - self.F)))
         p = cp.Problem(obj, [])
-        result = p.solve(solver="SCS")
+        result = p.solve(solver='SCS')
         self.assertAlmostEqual(result, 1, places=4)
 
         self.assertAlmostEqual(self.X.value[0, 0], 1, places=3)
@@ -60,7 +59,7 @@ class TestSemidefiniteVariable(BaseTest):
         # ECHU: note to self, apparently this is a source of redundancy
         obj = cp.Minimize(cp.sum(cp.square(self.Y - self.F)))
         p = cp.Problem(obj, [self.Y == Variable((2, 2), PSD=True)])
-        result = p.solve(solver="SCS")
+        result = p.solve(solver='SCS')
         self.assertAlmostEqual(result, 1, places=2)
 
         self.assertAlmostEqual(self.Y.value[0, 0], 1, places=3)
@@ -69,12 +68,15 @@ class TestSemidefiniteVariable(BaseTest):
         self.assertAlmostEqual(self.Y.value[1, 1], 0, places=3)
 
         # Index into semidef.
-        obj = cp.Minimize(cp.square(self.X[0, 0] - 1) +
-                           cp.square(self.X[1, 0] - 2) +
-                           # square(self.X[0,1] - 3) +
-                           cp.square(self.X[1, 1] - 4))
+        obj = cp.Minimize(
+            cp.square(self.X[0, 0] - 1)
+            + cp.square(self.X[1, 0] - 2)
+            +
+            # square(self.X[0,1] - 3) +
+            cp.square(self.X[1, 1] - 4)
+        )
         p = cp.Problem(obj, [])
-        result = p.solve(solver="SCS")
+        result = p.solve(solver='SCS')
         print(self.X.value)
         self.assertAlmostEqual(result, 0)
 

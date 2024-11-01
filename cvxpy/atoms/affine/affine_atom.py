@@ -13,6 +13,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+
 from typing import Any, List, Tuple
 
 import scipy.sparse as sp
@@ -27,45 +28,39 @@ from cvxpy.utilities import performance_utils as perf
 
 
 class AffAtom(Atom):
-    """ Abstract base class for affine atoms. """
+    """Abstract base class for affine atoms."""
+
     _allow_complex = True
 
     def sign_from_args(self) -> Tuple[bool, bool]:
-        """By default, the sign is the most general of all the argument signs.
-        """
+        """By default, the sign is the most general of all the argument signs."""
         return u.sign.sum_signs([arg for arg in self.args])
 
     def is_imag(self) -> bool:
-        """Is the expression imaginary?
-        """
+        """Is the expression imaginary?"""
         # Default is most generic argument.
         return all(arg.is_imag() for arg in self.args)
 
     def is_complex(self) -> bool:
-        """Is the expression complex valued?
-        """
+        """Is the expression complex valued?"""
         # Default is most generic argument.
         return any(arg.is_complex() for arg in self.args)
 
     def is_atom_convex(self) -> bool:
-        """Is the atom convex?
-        """
+        """Is the atom convex?"""
         return True
 
     def is_atom_concave(self) -> bool:
-        """Is the atom concave?
-        """
+        """Is the atom concave?"""
         return True
 
     def is_incr(self, idx) -> bool:
-        """Is the composition non-decreasing in argument idx?
-        """
+        """Is the composition non-decreasing in argument idx?"""
         # Defaults to increasing.
         return True
 
     def is_decr(self, idx) -> bool:
-        """Is the composition non-increasing in argument idx?
-        """
+        """Is the composition non-increasing in argument idx?"""
         # Defaults to increasing.
         return False
 
@@ -90,21 +85,17 @@ class AffAtom(Atom):
     # TODO is this right?
     @perf.compute_once
     def is_psd(self) -> bool:
-        """Is the expression a positive semidefinite matrix?
-        """
+        """Is the expression a positive semidefinite matrix?"""
         for idx, arg in enumerate(self.args):
-            if not ((self.is_incr(idx) and arg.is_psd()) or
-                    (self.is_decr(idx) and arg.is_nsd())):
+            if not ((self.is_incr(idx) and arg.is_psd()) or (self.is_decr(idx) and arg.is_nsd())):
                 return False
         return True
 
     @perf.compute_once
     def is_nsd(self) -> bool:
-        """Is the expression a positive semidefinite matrix?
-        """
+        """Is the expression a positive semidefinite matrix?"""
         for idx, arg in enumerate(self.args):
-            if not ((self.is_decr(idx) and arg.is_psd()) or
-                    (self.is_incr(idx) and arg.is_nsd())):
+            if not ((self.is_decr(idx) and arg.is_psd()) or (self.is_incr(idx) and arg.is_nsd())):
                 return False
         return True
 
@@ -132,8 +123,7 @@ class AffAtom(Atom):
                 var_offsets[idx] = offset
                 offset += arg.size
         var_length = offset
-        fake_expr, _ = self.graph_implementation(fake_args, self.shape,
-                                                 self.get_data())
+        fake_expr, _ = self.graph_implementation(fake_args, self.shape, self.get_data())
         param_to_size = {lo.CONSTANT_ID: 1}
         param_to_col = {lo.CONSTANT_ID: 0}
         # Get the matrix representation of the function.

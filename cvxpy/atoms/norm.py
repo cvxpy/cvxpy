@@ -41,7 +41,7 @@ def norm(x, p: Union[int, str] = 2, axis=None, keepdims: bool = False):
         'fro' (for frobenius), 'nuc' (sum of singular values), np.inf or
         'inf' (infinity norm).
     axis : The axis along which to apply the norm, if any.
-    keepdims: If this is set to True, the axes which are reduced are left 
+    keepdims: If this is set to True, the axes which are reduced are left
         in the result as dimensions with size one.
 
     Returns
@@ -62,16 +62,16 @@ def norm(x, p: Union[int, str] = 2, axis=None, keepdims: bool = False):
             return sigma_max(x)
         elif p == 'nuc':  # the nuclear norm (sum of singular values)
             return normNuc(x)
-        elif p in [np.inf, "inf", "Inf"]:  # the matrix infinity-norm
+        elif p in [np.inf, 'inf', 'Inf']:  # the matrix infinity-norm
             return cvxpy.atoms.max(norm1(x, axis=1))
         else:
             raise RuntimeError('Unsupported matrix norm.')
     else:
         if p == 1 or x.is_scalar():
             return norm1(x, axis=axis, keepdims=keepdims)
-        elif str(p).lower() == "inf":
+        elif str(p).lower() == 'inf':
             return norm_inf(x, axis=axis, keepdims=keepdims)
-        elif str(p).lower() == "fro":
+        elif str(p).lower() == 'fro':
             # TODO should not work for vectors.
             return pnorm(vec(x, order='F'), 2, axis)
         elif isinstance(p, str):

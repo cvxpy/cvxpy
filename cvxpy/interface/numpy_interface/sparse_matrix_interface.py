@@ -24,6 +24,7 @@ class SparseMatrixInterface(NDArrayInterface):
     """
     An interface to convert constant values to the scipy sparse CSC class.
     """
+
     TARGET_MATRIX = sp.csc_matrix
 
     @NDArrayInterface.scalar_const
@@ -48,34 +49,38 @@ class SparseMatrixInterface(NDArrayInterface):
         return sp.csc_matrix(value, dtype=dtype)
 
     def identity(self, size):
-        """Return an identity matrix.
-        """
-        return sp.eye(size, size, format="csc")
+        """Return an identity matrix."""
+        return sp.eye(size, size, format='csc')
 
     def size(self, matrix):
-        """Return the dimensions of the matrix.
-        """
+        """Return the dimensions of the matrix."""
         return matrix.shape
 
     def scalar_value(self, matrix):
-        """Get the value of the passed matrix, interpreted as a scalar.
-        """
+        """Get the value of the passed matrix, interpreted as a scalar."""
         return matrix[0, 0]
 
     def zeros(self, rows, cols):
-        """Return a matrix with all 0's.
-        """
+        """Return a matrix with all 0's."""
         return sp.csc_matrix((rows, cols), dtype='float64')
 
     def reshape(self, matrix, size):
-        """Change the shape of the matrix.
-        """
+        """Change the shape of the matrix."""
         matrix = matrix.todense()
         matrix = super(SparseMatrixInterface, self).reshape(matrix, size)
         return self.const_to_matrix(matrix, convert_scalars=True)
 
-    def block_add(self, matrix, block, vert_offset, horiz_offset, rows, cols,
-                  vert_step: int = 1, horiz_step: int = 1) -> None:
+    def block_add(
+        self,
+        matrix,
+        block,
+        vert_offset,
+        horiz_offset,
+        rows,
+        cols,
+        vert_step: int = 1,
+        horiz_step: int = 1,
+    ) -> None:
         """Add the block to a slice of the matrix.
 
         Args:
@@ -89,7 +94,9 @@ class SparseMatrixInterface(NDArrayInterface):
             horiz_step: The column step size for the matrix slice.
         """
         block = self._format_block(matrix, block, rows, cols)
-        slice_ = [slice(vert_offset, rows+vert_offset, vert_step),
-                  slice(horiz_offset, horiz_offset+cols, horiz_step)]
+        slice_ = [
+            slice(vert_offset, rows + vert_offset, vert_step),
+            slice(horiz_offset, horiz_offset + cols, horiz_step),
+        ]
         # Convert to lil before changing sparsity structure.
         matrix[slice_[0], slice_[1]] = matrix[slice_[0], slice_[1]] + block

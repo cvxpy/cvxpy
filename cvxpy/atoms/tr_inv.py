@@ -40,10 +40,10 @@ class tr_inv(Atom):
         For positive definite matrix X, this is the trace of inverse of X.
         """
         # if values[0] isn't Hermitian then return np.inf
-        if (LA.norm(values[0] - values[0].T.conj()) >= 1e-8):
+        if LA.norm(values[0] - values[0].T.conj()) >= 1e-8:
             return np.inf
         # take symmetric part of the input to enhance numerical stability
-        symm = (values[0] + values[0].T)/2
+        symm = (values[0] + values[0].T) / 2
         eigVal = LA.eigvalsh(symm)
         if min(eigVal) <= 0:
             return np.inf
@@ -53,36 +53,30 @@ class tr_inv(Atom):
     def validate_arguments(self) -> None:
         X = self.args[0]
         if len(X.shape) == 1 or X.shape[0] != X.shape[1]:
-            raise TypeError("The argument to tr_inv must be a square matrix.")
+            raise TypeError('The argument to tr_inv must be a square matrix.')
 
     def shape_from_args(self) -> Tuple[int, ...]:
-        """Returns the (row, col) shape of the expression.
-        """
+        """Returns the (row, col) shape of the expression."""
         return tuple()
 
     def sign_from_args(self) -> Tuple[bool, bool]:
-        """Returns sign (is positive, is negative) of the expression.
-        """
+        """Returns sign (is positive, is negative) of the expression."""
         return (True, False)
 
     def is_atom_convex(self) -> bool:
-        """Is the atom convex?
-        """
+        """Is the atom convex?"""
         return True
 
     def is_atom_concave(self) -> bool:
-        """Is the atom concave?
-        """
+        """Is the atom concave?"""
         return False
 
     def is_incr(self, idx) -> bool:
-        """Is the composition non-decreasing in argument idx?
-        """
+        """Is the composition non-decreasing in argument idx?"""
         return False
 
     def is_decr(self, idx) -> bool:
-        """Is the composition non-increasing in argument idx?
-        """
+        """Is the composition non-increasing in argument idx?"""
         return False
 
     def _grad(self, values):
@@ -101,24 +95,25 @@ class tr_inv(Atom):
         if np.min(eigen_val) > 0:
             # Grad: -X^{-2}.T
             D = np.linalg.inv(X).T
-            D = - D @ D
+            D = -D @ D
             return [sp.csc_matrix(D.ravel(order='F')).T]
         # Outside domain.
         else:
             return [None]
 
     def _domain(self) -> List[Constraint]:
-        """Returns constraints describing the domain of the node.
-        """
+        """Returns constraints describing the domain of the node."""
         return [self.args[0] >> 0]
 
     @property
     def value(self) -> float:
-        if not np.allclose(self.args[0].value,
-                           self.args[0].value.T.conj(),
-                           rtol=s.ATOM_EVAL_TOL,
-                           atol=s.ATOM_EVAL_TOL):
-            raise ValueError("Input matrix was not Hermitian/symmetric.")
+        if not np.allclose(
+            self.args[0].value,
+            self.args[0].value.T.conj(),
+            rtol=s.ATOM_EVAL_TOL,
+            atol=s.ATOM_EVAL_TOL,
+        ):
+            raise ValueError('Input matrix was not Hermitian/symmetric.')
         if any([p.value is None for p in self.parameters()]):
             return None
         return self._value_impl()

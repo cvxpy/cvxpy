@@ -14,7 +14,6 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-
 from typing import Tuple
 
 import numpy
@@ -30,6 +29,7 @@ class NDArrayInterface(base.BaseMatrixInterface):
     """
     An interface to convert constant values to the numpy ndarray class.
     """
+
     TARGET_MATRIX = numpy.ndarray
 
     def const_to_matrix(self, value, convert_scalars: bool = False):
@@ -64,8 +64,7 @@ class NDArrayInterface(base.BaseMatrixInterface):
         return tuple(int(d) for d in matrix.shape)
 
     def size(self, matrix):
-        """Returns the number of elements in the matrix.
-        """
+        """Returns the number of elements in the matrix."""
         return numpy.prod(self.shape(matrix))
 
     # Get the value of the passed matrix, interpreted as a scalar.

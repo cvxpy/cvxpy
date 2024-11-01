@@ -51,74 +51,64 @@ class QuadForm(Atom):
         super(QuadForm, self).validate_arguments()
         n = self.args[1].shape[0]
         if self.args[1].shape[1] != n or self.args[0].shape not in [(n, 1), (n,)]:
-            raise ValueError("Invalid dimensions for arguments.")
+            raise ValueError('Invalid dimensions for arguments.')
         if not self.args[1].is_hermitian():
-            raise ValueError("Quadratic form matrices must be symmetric/Hermitian.")
+            raise ValueError('Quadratic form matrices must be symmetric/Hermitian.')
 
     def sign_from_args(self) -> Tuple[bool, bool]:
-        """Returns sign (is positive, is negative) of the expression.
-        """
+        """Returns sign (is positive, is negative) of the expression."""
         return (self.is_atom_convex(), self.is_atom_concave())
 
     def is_atom_convex(self) -> bool:
-        """Is the atom convex?
-        """
+        """Is the atom convex?"""
         P = self.args[1]
         return P.is_constant() and P.is_psd()
 
     def is_atom_concave(self) -> bool:
-        """Is the atom concave?
-        """
+        """Is the atom concave?"""
         P = self.args[1]
         return P.is_constant() and P.is_nsd()
 
     def is_atom_log_log_convex(self) -> bool:
-        """Is the atom log-log convex?
-        """
+        """Is the atom log-log convex?"""
         return True
 
     def is_atom_log_log_concave(self) -> bool:
-        """Is the atom log-log concave?
-        """
+        """Is the atom log-log concave?"""
         return False
 
     def is_incr(self, idx) -> bool:
-        """Is the composition non-decreasing in argument idx?
-        """
-        return (self.args[0].is_nonneg() and self.args[1].is_nonneg()) or \
-               (self.args[0].is_nonpos() and self.args[1].is_nonneg())
+        """Is the composition non-decreasing in argument idx?"""
+        return (self.args[0].is_nonneg() and self.args[1].is_nonneg()) or (
+            self.args[0].is_nonpos() and self.args[1].is_nonneg()
+        )
 
     def is_decr(self, idx) -> bool:
-        """Is the composition non-increasing in argument idx?
-        """
-        return (self.args[0].is_nonneg() and self.args[1].is_nonpos()) or \
-               (self.args[0].is_nonpos() and self.args[1].is_nonpos())
+        """Is the composition non-increasing in argument idx?"""
+        return (self.args[0].is_nonneg() and self.args[1].is_nonpos()) or (
+            self.args[0].is_nonpos() and self.args[1].is_nonpos()
+        )
 
     def is_quadratic(self) -> bool:
-        """Is the atom quadratic?
-        """
+        """Is the atom quadratic?"""
         return True
 
     def has_quadratic_term(self) -> bool:
-        """Always a quadratic term.
-        """
+        """Always a quadratic term."""
         return True
 
     def is_pwl(self) -> bool:
-        """Is the atom piecewise linear?
-        """
+        """Is the atom piecewise linear?"""
         return False
 
     def name(self) -> str:
-        return "%s(%s, %s)" % (self.__class__.__name__,
-                               self.args[0],
-                               self.args[1])
+        return '%s(%s, %s)' % (self.__class__.__name__, self.args[0], self.args[1])
 
     def _grad(self, values):
         x = np.array(values[0])
         P = np.array(values[1])
         D = (P + np.conj(P.T)) @ x
-        return [sp.csc_matrix(D.ravel(order="F")).T]
+        return [sp.csc_matrix(D.ravel(order='F')).T]
 
     def shape_from_args(self) -> Tuple[int, ...]:
         return tuple()
@@ -128,6 +118,7 @@ class SymbolicQuadForm(Atom):
     """
     Symbolic form of QuadForm when quadratic matrix is not known (yet).
     """
+
     def __init__(self, x, P, expr) -> None:
         self.original_expression = expr
         super(SymbolicQuadForm, self).__init__(x, P)
@@ -223,14 +214,14 @@ def decomp_quad(P, cond=None, rcond=None, lower=True, check_finite: bool = True)
     maskn = w_scaled < -cond
     # TODO: allow indefinite quad_form
     if np.any(maskp) and np.any(maskn):
-        warnings.warn("Forming a nonconvex expression quad_form(x, indefinite).")
+        warnings.warn('Forming a nonconvex expression quad_form(x, indefinite).')
     M1 = V[:, maskp] * np.sqrt(w_scaled[maskp])
     M2 = V[:, maskn] * np.sqrt(-w_scaled[maskn])
     return scale, M1, M2
 
 
 def quad_form(x, P, assume_PSD: bool = False):
-    """ Alias for :math:`x^T P x`.
+    """Alias for :math:`x^T P x`.
 
     Parameters
     ----------
@@ -241,7 +232,7 @@ def quad_form(x, P, assume_PSD: bool = False):
     x, P = map(Expression.cast_to_const, (x, P))
     # Check dimensions.
     if not P.ndim == 2 or P.shape[0] != P.shape[1] or max(x.shape, (1,))[0] != P.shape[0]:
-        raise Exception("Invalid dimensions for arguments.")
+        raise Exception('Invalid dimensions for arguments.')
     if x.is_constant():
         return x.H @ P @ x
     elif P.is_constant():
@@ -249,6 +240,4 @@ def quad_form(x, P, assume_PSD: bool = False):
             P = psd_wrap(P)
         return QuadForm(x, P)
     else:
-        raise Exception(
-            "At least one argument to quad_form must be non-variable."
-        )
+        raise Exception('At least one argument to quad_form must be non-variable.')

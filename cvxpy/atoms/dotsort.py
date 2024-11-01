@@ -25,7 +25,7 @@ from cvxpy.expressions.constants.parameter import is_param_affine
 
 
 class dotsort(Atom):
-    r""" Computes :math:`\langle sort\left(vec(X)\right), sort\left(vec(W)\right) \rangle`,
+    r"""Computes :math:`\langle sort\left(vec(X)\right), sort\left(vec(W)\right) \rangle`,
     where :math:`X` is an expression and :math:`W` is constant.
 
     | Both arguments are flattened, i.e., we define :math:`x=vec(X)`, :math:`w=vec(W)`.
@@ -49,9 +49,9 @@ class dotsort(Atom):
 
     def validate_arguments(self) -> None:
         if not self.args[1].is_constant():
-            raise ValueError("The W argument must be constant.")
+            raise ValueError('The W argument must be constant.')
         if self.args[0].size < self.args[1].size:
-            raise ValueError("The size of of W must be less or equal to the size of X.")
+            raise ValueError('The size of of W must be less or equal to the size of X.')
 
         super(dotsort, self).validate_arguments()
 
@@ -83,13 +83,11 @@ class dotsort(Atom):
         return [sp.csc_matrix((sorted_w, (indices, np.zeros(n))), shape=(n, 1))]
 
     def shape_from_args(self) -> Tuple[int, ...]:
-        """Returns the (row, col) shape of the expression.
-        """
+        """Returns the (row, col) shape of the expression."""
         return tuple()
 
     def sign_from_args(self) -> Tuple[bool, bool]:
-        """Returns sign (is positive, is negative) of the expression.
-        """
+        """Returns sign (is positive, is negative) of the expression."""
         # Same as argument.
         x_pos = self.args[0].is_nonneg()
         x_neg = self.args[0].is_nonpos()
@@ -103,8 +101,7 @@ class dotsort(Atom):
         return is_positive, is_negative
 
     def is_atom_convex(self) -> bool:
-        """Is the atom convex?
-        """
+        """Is the atom convex?"""
         if u.scopes.dpp_scope_active():
             # dotsort is convex under DPP if W is parameter affine
             X = self.args[0]
@@ -114,31 +111,26 @@ class dotsort(Atom):
             return True
 
     def is_atom_concave(self) -> bool:
-        """Is the atom concave?
-        """
+        """Is the atom concave?"""
         return False
 
     def is_incr(self, idx) -> bool:
-        """Is the composition non-decreasing in argument idx?
-        """
+        """Is the composition non-decreasing in argument idx?"""
         return self.args[1].is_nonneg()
 
     def is_decr(self, idx) -> bool:
-        """Is the composition non-increasing in argument idx?
-        """
+        """Is the composition non-increasing in argument idx?"""
         return self.args[1].is_nonpos()
 
     def get_data(self):
-        """Returns None, W is stored as an argument.
-        """
+        """Returns None, W is stored as an argument."""
         return None
 
     @staticmethod
-    def _get_args_from_values(values: List[np.ndarray]) \
-            -> Tuple[np.ndarray, np.ndarray]:
+    def _get_args_from_values(values: List[np.ndarray]) -> Tuple[np.ndarray, np.ndarray]:
         x = values[0].flatten()
         w = values[1].flatten()
 
         w_padded = np.zeros_like(x)  # pad in case size(W) < size(X)
-        w_padded[:len(w)] = w
+        w_padded[: len(w)] = w
         return x, w_padded

@@ -27,45 +27,42 @@ def dims_to_solver_dict(cone_dims):
         'f': cone_dims.zero,
         'l': cone_dims.nonneg,
         # 'q': cone_dims.soc,
-        's': cone_dims.psd
+        's': cone_dims.psd,
     }
     return cones
 
 
 class SDPA(ConicSolver):
-    """An interface for the SDPA solver.
-    """
+    """An interface for the SDPA solver."""
+
     # Solver capabilities.
     MIP_CAPABLE = False
     SUPPORTED_CONSTRAINTS = ConicSolver.SUPPORTED_CONSTRAINTS + [PSD]
 
     # Map of SDPA status to CVXPY status.
     STATUS_MAP = {
-        "pdOPT": s.OPTIMAL,
-        "noINFO": s.SOLVER_ERROR,
-        "pFEAS": s.OPTIMAL_INACCURATE,
-        "dFEAS": s.OPTIMAL_INACCURATE,
-        "pdFEAS": s.OPTIMAL_INACCURATE,
-        "pdINF": s.INFEASIBLE,
-        "pFEAS_dINF": s.UNBOUNDED,
-        "pINF_dFEAS": s.INFEASIBLE,
-        "pUNBD": s.UNBOUNDED,
-        "dUNBD": s.INFEASIBLE  # by weak duality
+        'pdOPT': s.OPTIMAL,
+        'noINFO': s.SOLVER_ERROR,
+        'pFEAS': s.OPTIMAL_INACCURATE,
+        'dFEAS': s.OPTIMAL_INACCURATE,
+        'pdFEAS': s.OPTIMAL_INACCURATE,
+        'pdINF': s.INFEASIBLE,
+        'pFEAS_dINF': s.UNBOUNDED,
+        'pINF_dFEAS': s.INFEASIBLE,
+        'pUNBD': s.UNBOUNDED,
+        'dUNBD': s.INFEASIBLE,  # by weak duality
     }
 
     def name(self):
-        """The name of the solver.
-        """
+        """The name of the solver."""
         return s.SDPA
 
     def import_solver(self) -> None:
-        """Imports the solver.
-        """
+        """Imports the solver."""
         import sdpap  # noqa F401
 
     def accepts(self, problem) -> bool:
-        """Can SDPA solve the problem?
-        """
+        """Can SDPA solve the problem?"""
         if not problem.objective.args[0].is_affine():
             return False
         for constr in problem.constraints:
@@ -111,21 +108,18 @@ class SDPA(ConicSolver):
         return data, inv_data
 
     def invert(self, solution, inverse_data):
-        """Returns the solution to the original problem given the inverse_data.
-        """
+        """Returns the solution to the original problem given the inverse_data."""
         status = solution['status']
 
         if status in s.SOLUTION_PRESENT:
             opt_val = solution['value']
             primal_vars = {inverse_data[self.VAR_ID]: solution['primal']}
             eq_dual = utilities.get_dual_values(
-                solution['eq_dual'],
-                utilities.extract_dual_value,
-                inverse_data[Solver.EQ_CONSTR])
+                solution['eq_dual'], utilities.extract_dual_value, inverse_data[Solver.EQ_CONSTR]
+            )
             leq_dual = utilities.get_dual_values(
-                solution['ineq_dual'],
-                utilities.extract_dual_value,
-                inverse_data[Solver.NEQ_CONSTR])
+                solution['ineq_dual'], utilities.extract_dual_value, inverse_data[Solver.NEQ_CONSTR]
+            )
             eq_dual.update(leq_dual)
             dual_vars = eq_dual
             return Solution(status, opt_val, primal_vars, dual_vars, {})
@@ -172,8 +166,7 @@ class SDPA(ConicSolver):
         # User may choose to display solver output in non verbose mode.
         if 'print' not in solver_opts:
             solver_opts['print'] = 'display' if verbose else 'no'
-        x, y, sdpapinfo, timeinfo, sdpainfo = sdpap.solve(
-            A, -b, c, K, J, solver_opts)
+        x, y, sdpapinfo, timeinfo, sdpainfo = sdpap.solve(A, -b, c, K, J, solver_opts)
 
         solution = {}
         solution[s.STATUS] = self.STATUS_MAP[sdpapinfo['phasevalue']]
@@ -183,7 +176,7 @@ class SDPA(ConicSolver):
             y = y.toarray()
             solution[s.VALUE] = sdpapinfo['primalObj']
             solution[s.PRIMAL] = x
-            solution[s.EQ_DUAL] = y[:dims['f']]
-            solution[s.INEQ_DUAL] = y[dims['f']:]
+            solution[s.EQ_DUAL] = y[: dims['f']]
+            solution[s.INEQ_DUAL] = y[dims['f'] :]
 
         return solution

@@ -13,6 +13,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+
 import numpy as np
 
 from cvxpy import settings
@@ -54,42 +55,35 @@ class Dgp2Dcp(Canonicalization):
     >>> print(dgp_problem.value)
     >>> print(dgp_problem.variables())
     """
+
     def __init__(self, problem=None) -> None:
         # Canonicalization of DGP is stateful; canon_methods created
         # in `apply`.
         super(Dgp2Dcp, self).__init__(canon_methods=None, problem=problem)
 
     def accepts(self, problem):
-        """A problem is accepted if it is DGP.
-        """
-        return problem.is_dgp() and all(
-            p.value is not None for p in problem.parameters())
+        """A problem is accepted if it is DGP."""
+        return problem.is_dgp() and all(p.value is not None for p in problem.parameters())
 
     def apply(self, problem):
-        """Converts a DGP problem to a DCP problem.
-        """
+        """Converts a DGP problem to a DCP problem."""
         if not self.accepts(problem):
-            raise ValueError("The supplied problem is not DGP.")
+            raise ValueError('The supplied problem is not DGP.')
 
         self.canon_methods = DgpCanonMethods()
         equiv_problem, inverse_data = super(Dgp2Dcp, self).apply(problem)
         inverse_data._problem = problem
         return equiv_problem, inverse_data
 
-    def canonicalize_expr(
-            self, 
-            expr: Expression, 
-            args: list, 
-            canonicalize_params: bool = True
-        ):
+    def canonicalize_expr(self, expr: Expression, args: list, canonicalize_params: bool = True):
         """Canonicalize an expression, w.r.t. canonicalized arguments.
-        
+
         Args:
             expr: Expression to canonicalize.
             args: Arguments to the expression.
-            canonicalize_params: Should constant subtrees 
+            canonicalize_params: Should constant subtrees
                 containing parameters be canonicalized?
-        
+
         Returns:
             canonicalized expression, constraints
         """

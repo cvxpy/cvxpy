@@ -24,7 +24,7 @@ from cvxpy.transforms.partial_optimize import partial_optimize
 
 
 class TestDomain(BaseTest):
-    """ Unit tests for the domain module. """
+    """Unit tests for the domain module."""
 
     def setUp(self) -> None:
         self.a = Variable(name='a')
@@ -38,9 +38,8 @@ class TestDomain(BaseTest):
         self.C = Variable((3, 2), name='C')
 
     def test_partial_problem(self) -> None:
-        """Test domain for partial minimization/maximization problems.
-        """
-        for obj in [Minimize((self.a)**-1), Maximize(cp.log(self.a))]:
+        """Test domain for partial minimization/maximization problems."""
+        for obj in [Minimize((self.a) ** -1), Maximize(cp.log(self.a))]:
             orig_prob = Problem(obj, [self.x + self.a >= [5, 8]])
             # Optimize over nothing.
             expr = partial_optimize(orig_prob, dont_opt_vars=[self.x, self.a])
@@ -72,8 +71,7 @@ class TestDomain(BaseTest):
             self.assertItemsAlmostEqual(self.x.value, [0, 0])
 
     def test_geo_mean(self) -> None:
-        """Test domain for geo_mean
-        """
+        """Test domain for geo_mean"""
         dom = cp.geo_mean(self.x).domain
         prob = Problem(Minimize(sum(self.x)), dom)
         prob.solve(solver=cp.SCS, eps=1e-5)
@@ -93,8 +91,7 @@ class TestDomain(BaseTest):
         self.assertItemsAlmostEqual(self.z.value, [-1, 0, 0])
 
     def test_quad_over_lin(self) -> None:
-        """Test domain for quad_over_lin
-        """
+        """Test domain for quad_over_lin"""
         dom = cp.quad_over_lin(self.x, self.a).domain
         Problem(Minimize(self.a), dom).solve(solver=cp.SCS, eps=1e-6)
         self.assertAlmostEqual(self.a.value, 0)
@@ -109,37 +106,32 @@ class TestDomain(BaseTest):
     #     self.assertItemsAlmostEqual(self.A.value, np.array([[1, 2.5], [2.5, 4]]))
 
     def test_pnorm(self) -> None:
-        """ Test domain for pnorm.
-        """
+        """Test domain for pnorm."""
         dom = cp.pnorm(self.a, -0.5).domain
         prob = Problem(Minimize(self.a), dom)
         prob.solve(solver=cp.SCS, eps=1e-6)
         self.assertAlmostEqual(prob.value, 0)
 
     def test_log(self) -> None:
-        """Test domain for log.
-        """
+        """Test domain for log."""
         dom = cp.log(self.a).domain
         Problem(Minimize(self.a), dom).solve(solver=cp.SCS, eps=1e-6)
         self.assertAlmostEqual(self.a.value, 0)
 
     def test_log1p(self) -> None:
-        """Test domain for log1p.
-        """
+        """Test domain for log1p."""
         dom = cp.log1p(self.a).domain
         Problem(Minimize(self.a), dom).solve(solver=cp.SCS, eps=1e-6)
         self.assertAlmostEqual(self.a.value, -1)
 
     def test_entr(self) -> None:
-        """Test domain for entr.
-        """
+        """Test domain for entr."""
         dom = cp.entr(self.a).domain
         Problem(Minimize(self.a), dom).solve(solver=cp.SCS, eps=1e-6)
         self.assertAlmostEqual(self.a.value, 0)
 
     def test_kl_div(self) -> None:
-        """Test domain for kl_div.
-        """
+        """Test domain for kl_div."""
         b = Variable()
         dom = cp.kl_div(self.a, b).domain
         Problem(Minimize(self.a + b), dom).solve(solver=cp.SCS, eps=1e-5)
@@ -147,8 +139,7 @@ class TestDomain(BaseTest):
         self.assertAlmostEqual(b.value, 0)
 
     def test_rel_entr(self) -> None:
-        """Test domain for rel_entr.
-        """
+        """Test domain for rel_entr."""
         b = Variable()
         dom = cp.rel_entr(self.a, b).domain
         Problem(Minimize(self.a + b), dom).solve()
@@ -156,8 +147,7 @@ class TestDomain(BaseTest):
         self.assertAlmostEqual(b.value, 0)
 
     def test_power(self) -> None:
-        """Test domain for power.
-        """
+        """Test domain for power."""
         opts = {'eps': 1e-8, 'max_iters': 100000}
         dom = cp.sqrt(self.a).domain
         Problem(Minimize(self.a), dom).solve(solver=cp.SCS, **opts)
@@ -167,25 +157,23 @@ class TestDomain(BaseTest):
         Problem(Minimize(self.a), dom + [self.a >= -100]).solve(solver=cp.SCS, **opts)
         self.assertAlmostEqual(self.a.value, -100)
 
-        dom = ((self.a)**-1).domain
+        dom = ((self.a) ** -1).domain
         Problem(Minimize(self.a), dom + [self.a >= -100]).solve(solver=cp.SCS, **opts)
         self.assertAlmostEqual(self.a.value, 0)
 
-        dom = ((self.a)**3).domain
+        dom = ((self.a) ** 3).domain
         Problem(Minimize(self.a), dom + [self.a >= -100]).solve(solver=cp.SCS, **opts)
         self.assertAlmostEqual(self.a.value, 0)
 
     def test_log_det(self) -> None:
-        """Test domain for log_det.
-        """
+        """Test domain for log_det."""
         dom = cp.log_det(self.A + np.eye(2)).domain
         prob = Problem(Minimize(cp.sum(cp.diag(self.A))), dom)
         prob.solve(solver=cp.SCS)
         self.assertAlmostEqual(prob.value, -2, places=3)
 
     def test_matrix_frac(self) -> None:
-        """Test domain for matrix_frac.
-        """
+        """Test domain for matrix_frac."""
         dom = cp.matrix_frac(self.x, self.A + np.eye(2)).domain
         prob = Problem(Minimize(cp.sum(cp.diag(self.A))), dom)
         prob.solve(solver=cp.SCS)

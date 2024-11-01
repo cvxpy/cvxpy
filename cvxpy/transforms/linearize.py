@@ -47,9 +47,7 @@ def linearize(expr):
     else:
         tangent = expr.value
         if tangent is None:
-            raise ValueError(
-                "Cannot linearize non-affine expression with missing variable values."
-            )
+            raise ValueError('Cannot linearize non-affine expression with missing variable values.')
         grad_map = expr.grad
         for var in expr.variables():
             if grad_map[var] is None:

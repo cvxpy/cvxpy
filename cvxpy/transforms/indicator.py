@@ -42,19 +42,16 @@ class indicator(Expression):
 
     @perf.compute_once
     def is_constant(self) -> bool:
-        """The Indicator is constant if all constraints have constant args.
-        """
+        """The Indicator is constant if all constraints have constant args."""
         all_args = sum([c.args for c in self.args], [])
         return all([arg.is_constant() for arg in all_args])
 
     def is_convex(self) -> bool:
-        """Is the expression convex?
-        """
+        """Is the expression convex?"""
         return True
 
     def is_concave(self) -> bool:
-        """Is the expression concave?
-        """
+        """Is the expression concave?"""
         return False
 
     def is_log_log_convex(self) -> bool:
@@ -64,49 +61,41 @@ class indicator(Expression):
         return False
 
     def is_nonneg(self) -> bool:
-        """Is the expression positive?
-        """
+        """Is the expression positive?"""
         return True
 
     def is_nonpos(self) -> bool:
-        """Is the expression negative?
-        """
+        """Is the expression negative?"""
         return False
 
     def is_imag(self) -> bool:
-        """Is the Leaf imaginary?
-        """
+        """Is the Leaf imaginary?"""
         return False
 
     def is_complex(self) -> bool:
-        """Is the Leaf complex valued?
-        """
+        """Is the Leaf complex valued?"""
         return False
 
     def get_data(self) -> List[float]:
-        """Returns info needed to reconstruct the expression besides the args.
-        """
+        """Returns info needed to reconstruct the expression besides the args."""
         return [self.err_tol]
 
     @property
     def shape(self) -> Tuple[int, ...]:
-        """Returns the (row, col) dimensions of the expression.
-        """
+        """Returns the (row, col) dimensions of the expression."""
         return ()
 
     def is_dpp(self, context: str = 'dcp') -> bool:
-        """The expression is a disciplined parameterized expression.
-        """
+        """The expression is a disciplined parameterized expression."""
         return False
 
     def name(self) -> str:
-        """Returns the string representation of the expression.
-        """
-        return f"Indicator({self.args})"
+        """Returns the string representation of the expression."""
+        return f'Indicator({self.args})'
 
     def domain(self) -> List[Constraint]:
         """A list of constraints describing the closure of the region
-           where the expression is finite.
+        where the expression is finite.
         """
         return self.args
 

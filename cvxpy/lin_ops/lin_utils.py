@@ -16,6 +16,7 @@ limitations under the License.
 THIS FILE IS DEPRECATED AND MAY BE REMOVED WITHOUT WARNING!
 DO NOT CALL THESE FUNCTIONS IN YOUR CODE!
 """
+
 from typing import Optional, Tuple
 
 import numpy as np
@@ -151,10 +152,7 @@ def is_const(operator) -> bool:
     -------
         True if the LinOp is a constant, False otherwise.
     """
-    return operator.type in [lo.SCALAR_CONST,
-                             lo.SPARSE_CONST,
-                             lo.DENSE_CONST,
-                             lo.PARAM]
+    return operator.type in [lo.SCALAR_CONST, lo.SPARSE_CONST, lo.DENSE_CONST, lo.PARAM]
 
 
 def sum_expr(operators):
@@ -226,12 +224,9 @@ def promote_lin_ops_for_mul(lh_op, rh_op):
     tuple
        Shape of the product
     """
-    lh_shape, rh_shape, shape = u.shape.mul_shapes_promote(
-        lh_op.shape, rh_op.shape)
-    lh_op = lo.LinOp(lh_op.type, lh_shape, lh_op.args,
-                     lh_op.data)
-    rh_op = lo.LinOp(rh_op.type, rh_shape, rh_op.args,
-                     rh_op.data)
+    lh_shape, rh_shape, shape = u.shape.mul_shapes_promote(lh_op.shape, rh_op.shape)
+    lh_op = lo.LinOp(lh_op.type, lh_shape, lh_op.args, lh_op.data)
+    rh_op = lo.LinOp(rh_op.type, rh_shape, rh_op.args, rh_op.data)
     return lh_op, rh_op, shape
 
 
@@ -532,8 +527,8 @@ def upper_tri(operator):
     LinOp
        LinOp representing the vectorized upper triangle.
     """
-    entries = operator.shape[0]*operator.shape[1]
-    shape = ((entries - operator.shape[0])//2, 1)
+    entries = operator.shape[0] * operator.shape[1]
+    shape = ((entries - operator.shape[0]) // 2, 1)
     return lo.LinOp(lo.UPPER_TRI, shape, [operator], None)
 
 
@@ -572,6 +567,7 @@ def vstack(operators, shape: Tuple[int, ...]):
     """
     return lo.LinOp(lo.VSTACK, shape, operators, None)
 
+
 def concatenate(operators, shape: Tuple[int, ...], axis: Optional[int] = 0):
     """Concatenate operators on axis.
 
@@ -591,9 +587,9 @@ def concatenate(operators, shape: Tuple[int, ...], axis: Optional[int] = 0):
     """
     return lo.LinOp(lo.CONCATENATE, shape, operators, [axis])
 
+
 def get_constr_expr(lh_op, rh_op):
-    """Returns the operator in the constraint.
-    """
+    """Returns the operator in the constraint."""
     # rh_op defaults to 0.
     if rh_op is None:
         return lh_op
@@ -752,9 +748,7 @@ def replace_new_vars(expr, id_to_new_var):
     else:
         new_args = []
         for arg in expr.args:
-            new_args.append(
-                replace_new_vars(arg, id_to_new_var)
-            )
+            new_args.append(replace_new_vars(arg, id_to_new_var))
         return lo.LinOp(expr.type, expr.shape, new_args, expr.data)
 
 
@@ -777,7 +771,7 @@ def check_param_val(param):
     """
     val = param.value
     if val is None:
-        raise ValueError("Problem has missing parameter value.")
+        raise ValueError('Problem has missing parameter value.')
     else:
         return val
 

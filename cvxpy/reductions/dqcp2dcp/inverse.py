@@ -13,6 +13,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+
 import numpy as np
 
 from cvxpy import atoms
@@ -25,8 +26,18 @@ from cvxpy.atoms.affine.unary_operators import NegExpression
 # Sum, and cumsum) are only invertible in special cases, checked in the
 # `invertible` function.
 INVERTIBLE = set(
-    [atoms.ceil, atoms.floor, NegExpression, atoms.exp, atoms.log, atoms.log1p,
-     atoms.logistic, atoms.power, atoms.abs])
+    [
+        atoms.ceil,
+        atoms.floor,
+        NegExpression,
+        atoms.exp,
+        atoms.log,
+        atoms.log1p,
+        atoms.logistic,
+        atoms.power,
+        atoms.abs,
+    ]
+)
 
 
 # Inverses are extended-value functions
@@ -46,10 +57,12 @@ def inverse(expr):
     elif type(expr) == atoms.logistic:
         return lambda t: atoms.log(atoms.exp(t) - 1) if t.is_nonneg() else -np.inf
     elif type(expr) == atoms.power:
+
         def power_inv(t):
             if expr.p.value == 1:
                 return t
-            return atoms.power(t, 1/expr.p.value) if t.is_nonneg() else np.inf
+            return atoms.power(t, 1 / expr.p.value) if t.is_nonneg() else np.inf
+
         return power_inv
     elif type(expr) == atoms.multiply:
         if expr.args[0].is_constant():
@@ -80,7 +93,7 @@ def inverse(expr):
         elif arg.is_nonpos():
             return lambda t: -t
         else:
-            raise ValueError("Sign of argument must be known.")
+            raise ValueError('Sign of argument must be known.')
     elif type(expr) in (Sum, atoms.cumsum):
         return lambda t: t
     else:
@@ -88,8 +101,11 @@ def inverse(expr):
 
 
 def invertible(expr):
-    if (isinstance(expr, atoms.multiply) or isinstance(expr, DivExpression) or
-            isinstance(expr, AddExpression)):
+    if (
+        isinstance(expr, atoms.multiply)
+        or isinstance(expr, DivExpression)
+        or isinstance(expr, AddExpression)
+    ):
         return len(expr._non_const_idx()) == 1
     elif isinstance(expr, (Sum, atoms.cumsum)):
         return expr._is_real()

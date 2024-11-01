@@ -13,6 +13,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+
 from collections import namedtuple
 from typing import Any, List, Tuple
 
@@ -46,8 +47,8 @@ from cvxpy.reductions.solution import Solution
 #       the problem is feasible, and returns a smaller value for which the
 #       problem is still feasible
 BisectionData = namedtuple(
-    "BisectionData",
-    ['feas_problem', 'param', 'tighten_lower', 'tighten_upper'])
+    'BisectionData', ['feas_problem', 'param', 'tighten_lower', 'tighten_upper']
+)
 
 
 def _get_lazy_and_real_constraints(constraints):
@@ -72,30 +73,30 @@ class Dqcp2Dcp(Canonicalization):
 
     Problems emitted by this reduction can be solved with the `cp.bisect`
     function.
-   """
+    """
+
     def __init__(self, problem=None) -> None:
-        super(Dqcp2Dcp, self).__init__(
-            canon_methods=CANON_METHODS, problem=problem)
+        super(Dqcp2Dcp, self).__init__(canon_methods=CANON_METHODS, problem=problem)
         self._bisection_data = None
 
     def accepts(self, problem):
-        """A problem is accepted if it is (a minimization) DQCP.
-        """
+        """A problem is accepted if it is (a minimization) DQCP."""
         return type(problem.objective) == Minimize and problem.is_dqcp()
 
     def invert(self, solution, inverse_data):
-        pvars = {vid: solution.primal_vars[vid] for vid in inverse_data.id_map
-                 if vid in solution.primal_vars}
+        pvars = {
+            vid: solution.primal_vars[vid]
+            for vid in inverse_data.id_map
+            if vid in solution.primal_vars
+        }
         for vid in inverse_data.id_map:
             if vid not in pvars:
                 # Variable was optimized out because it was unconstrained.
                 pvars[vid] = 0.0
-        return Solution(solution.status, solution.opt_val, pvars, {},
-                        solution.attr)
+        return Solution(solution.status, solution.opt_val, pvars, {}, solution.attr)
 
     def apply(self, problem):
-        """Recursively canonicalize the objective and every constraint.
-        """
+        """Recursively canonicalize the objective and every constraint."""
         constraints = []
         for constr in problem.constraints:
             constraints += self._canonicalize_constraint(constr)
@@ -116,7 +117,8 @@ class Dqcp2Dcp(Canonicalization):
         param_problem = problems.problem.Problem(Minimize(0), real)
         param_problem._lazy_constraints = lazy
         param_problem._bisection_data = BisectionData(
-            feas_problem, t, *tighten.tighten_fns(objective))
+            feas_problem, t, *tighten.tighten_fns(objective)
+        )
         return param_problem, InverseData(problem)
 
     def _canonicalize_tree(self, expr):
@@ -136,9 +138,9 @@ class Dqcp2Dcp(Canonicalization):
             canon_arg, c = self._canonicalize_tree(arg)
             if isinstance(canon_arg, Variable):
                 if arg.is_nonneg():
-                    canon_arg.attributes["nonneg"] = True
+                    canon_arg.attributes['nonneg'] = True
                 elif arg.is_nonpos():
-                    canon_arg.attributes["nonpos"] = True
+                    canon_arg.attributes['nonpos'] = True
             canon_args += [canon_arg]
             constrs += c
         return canon_args, constrs
@@ -205,8 +207,7 @@ class Dqcp2Dcp(Canonicalization):
                 return self._canonicalize_constraint(expr >= rhs)
             elif isinstance(lhs, (maximum, max_atom)):
                 # Lower maximum.
-                return [c for arg in lhs.args
-                        for c in self._canonicalize_constraint(arg <= rhs)]
+                return [c for arg in lhs.args for c in self._canonicalize_constraint(arg <= rhs)]
             else:
                 # Replace quasiconvex atom with a sublevel set.
                 canon_args, aux_args_constr = self._canon_args(lhs)
@@ -227,8 +228,7 @@ class Dqcp2Dcp(Canonicalization):
             return self._canonicalize_constraint(lhs >= expr)
         elif isinstance(rhs, (minimum, min_atom)):
             # Lower minimum.
-            return [c for arg in rhs.args
-                    for c in self._canonicalize_constraint(lhs <= arg)]
+            return [c for arg in rhs.args for c in self._canonicalize_constraint(lhs <= arg)]
         else:
             # Replace quasiconcave atom with a superlevel set.
             canon_args, aux_args_constr = self._canon_args(rhs)

@@ -13,6 +13,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+
 from __future__ import annotations
 
 import numbers
@@ -49,22 +50,18 @@ class reshape(AffAtom):
     """
 
     def __init__(
-        self,
-        expr,
-        shape: int | Tuple[int, ...],
-        order: Literal["F", "C", None] = None
+        self, expr, shape: int | Tuple[int, ...], order: Literal['F', 'C', None] = None
     ) -> None:
         if isinstance(shape, numbers.Integral):
             shape = (int(shape),)
         if not s.ALLOW_ND_EXPR and len(shape) > 2:
-            raise ValueError("Expressions of dimension greater than 2 "
-                             "are not supported.")
+            raise ValueError('Expressions of dimension greater than 2 ' 'are not supported.')
         if any(d == -1 for d in shape):
             shape = self._infer_shape(shape, expr.size)
 
         self._shape = tuple(shape)
         if order is None:
-            reshape_order_warning = DEFAULT_ORDER_DEPRECATION_MSG.replace("FUNC_NAME", "reshape")
+            reshape_order_warning = DEFAULT_ORDER_DEPRECATION_MSG.replace('FUNC_NAME', 'reshape')
             warnings.warn(reshape_order_warning, FutureWarning)
             order = 'F'
         assert order in ['F', 'C']
@@ -73,55 +70,45 @@ class reshape(AffAtom):
 
     @staticmethod
     def _infer_shape(shape: Tuple[int, ...], size: int) -> Tuple[int, ...]:
-        assert shape.count(-1) == 1, "Only one dimension can be -1."
+        assert shape.count(-1) == 1, 'Only one dimension can be -1.'
         if len(shape) == 1:
             shape = (size,)
         else:
             unspecified_index = shape.index(-1)
             specified = shape[1 - unspecified_index]
-            assert specified >= 0, "Specified dimension must be nonnegative."
+            assert specified >= 0, 'Specified dimension must be nonnegative.'
             unspecified, remainder = np.divmod(size, shape[1 - unspecified_index])
             if remainder != 0:
-                raise ValueError(
-                    f"Cannot reshape expression of size {size} into shape {shape}."
-                )
+                raise ValueError(f'Cannot reshape expression of size {size} into shape {shape}.')
             shape = tuple(unspecified if d == -1 else specified for d in shape)
         return shape
 
     def is_atom_log_log_convex(self) -> bool:
-        """Is the atom log-log convex?
-        """
+        """Is the atom log-log convex?"""
         return True
 
     def is_atom_log_log_concave(self) -> bool:
-        """Is the atom log-log concave?
-        """
+        """Is the atom log-log concave?"""
         return True
 
     @AffAtom.numpy_numeric
     def numeric(self, values):
-        """Reshape the value.
-        """
+        """Reshape the value."""
         return np.reshape(values[0], self.shape, order=self.order)
 
     def validate_arguments(self) -> None:
-        """Checks that the new shape has the same number of entries as the old.
-        """
+        """Checks that the new shape has the same number of entries as the old."""
         old_len = self.args[0].size
         new_len = size_from_shape(self._shape)
         if not old_len == new_len:
-            raise ValueError(
-                "Invalid reshape dimensions %s." % (self._shape,)
-            )
+            raise ValueError('Invalid reshape dimensions %s.' % (self._shape,))
 
     def shape_from_args(self) -> Tuple[int, ...]:
-        """Returns the shape from the rows, cols arguments.
-        """
+        """Returns the shape from the rows, cols arguments."""
         return self._shape
 
     def get_data(self):
-        """Returns info needed to reconstruct the expression besides the args.
-        """
+        """Returns info needed to reconstruct the expression besides the args."""
         return [self._shape, self.order]
 
     def graph_implementation(
@@ -173,6 +160,8 @@ def deep_flatten(x):
             y.append(x1)
         y = hstack(y)
         return y
-    msg = 'The input to deep_flatten must be an Expression, a NumPy array, an int'\
-          + ' or float, or a nested list thereof. Received input of type %s' % type(x)
+    msg = (
+        'The input to deep_flatten must be an Expression, a NumPy array, an int'
+        + ' or float, or a nested list thereof. Received input of type %s' % type(x)
+    )
     raise ValueError(msg)

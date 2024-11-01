@@ -27,6 +27,7 @@ def scs_coniclift(x, constraints):
     from cvxpy.atoms.affine.sum import sum
     from cvxpy.problems.objective import Minimize
     from cvxpy.problems.problem import Problem
+
     prob = Problem(Minimize(sum(x)), constraints)
     # ^ The objective value is only used to make sure that "x"
     # participates in the problem. So, if constraints is an
@@ -67,7 +68,7 @@ def scs_cone_selectors(K):
     """
     if K.p3d:
         msg = "SuppFunc doesn't yet support feasible sets represented \n"
-        msg += "with power cone constraints."
+        msg += 'with power cone constraints.'
         raise NotImplementedError(msg)
         # TODO: implement
     idx = K.zero
@@ -85,12 +86,7 @@ def scs_cone_selectors(K):
         idx += veclen
     expsize = 3 * K.exp
     exp_idxs = np.arange(idx, idx + expsize)
-    selectors = {
-        'nonneg': nonneg_idxs,
-        'exp': exp_idxs,
-        'soc': soc_idxs,
-        'psd': psd_idxs
-    }
+    selectors = {'nonneg': nonneg_idxs, 'exp': exp_idxs, 'soc': soc_idxs, 'psd': psd_idxs}
     return selectors
 
 

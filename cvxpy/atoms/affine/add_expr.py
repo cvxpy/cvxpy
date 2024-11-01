@@ -13,6 +13,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+
 import operator as op
 from functools import reduce
 from typing import Any, Iterable, List, Tuple
@@ -26,8 +27,7 @@ from cvxpy.expressions.expression import Expression
 
 
 class AddExpression(AffAtom):
-    """The sum of any number of expressions.
-    """
+    """The sum of any number of expressions."""
 
     def __init__(self, arg_groups: Iterable[Expression]) -> None:
         super(AddExpression, self).__init__(*arg_groups)
@@ -36,45 +36,40 @@ class AddExpression(AffAtom):
             self.args += self.expand_args(group)
 
     def shape_from_args(self) -> Tuple[int, ...]:
-        """Returns the (row, col) shape of the expression.
-        """
+        """Returns the (row, col) shape of the expression."""
         return u.shape.sum_shapes([arg.shape for arg in self.args])
 
     def expand_args(self, expr: Expression) -> List[Expression]:
-        """Helper function to extract the arguments from an AddExpression.
-        """
+        """Helper function to extract the arguments from an AddExpression."""
         if isinstance(expr, AddExpression):
             return expr.args
         else:
             return [expr]
+
     def name(self) -> str:
         result = str(self.args[0])
         for i in range(1, len(self.args)):
-            result += " + " + str(self.args[i])
+            result += ' + ' + str(self.args[i])
         return result
 
     def numeric(self, values: Iterable[Any]) -> Any:
         return reduce(op.add, values)
 
     def is_atom_log_log_convex(self) -> bool:
-        """Is the atom log-log convex?
-        """
+        """Is the atom log-log convex?"""
         return True
 
     def is_atom_log_log_concave(self) -> bool:
-        """Is the atom log-log concave?
-        """
+        """Is the atom log-log concave?"""
         return False
 
     def is_symmetric(self) -> bool:
-        """Is the expression symmetric?
-        """
+        """Is the expression symmetric?"""
         symm_args = all(arg.is_symmetric() for arg in self.args)
         return self.shape[0] == self.shape[1] and symm_args
 
     def is_hermitian(self) -> bool:
-        """Is the expression Hermitian?
-        """
+        """Is the expression Hermitian?"""
         herm_args = all(arg.is_hermitian() for arg in self.args)
         return self.shape[0] == self.shape[1] and herm_args
 
@@ -96,9 +91,9 @@ class AddExpression(AffAtom):
         if args is None:
             # The __init__ method of AddExpression recreates the args,
             # but passes *arg_groups to the super class for checks.
-            # Since these checks are already done for self, we pass [self], i.e., 
+            # Since these checks are already done for self, we pass [self], i.e.,
             # a single [AddExpression], before the args are recreated.
-            args = [self]  
+            args = [self]
         copy = type(self).__new__(type(self))
         copy.__init__(args)
         return copy

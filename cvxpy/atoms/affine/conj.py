@@ -24,39 +24,33 @@ from cvxpy.constraints.constraint import Constraint
 
 
 class conj(AffAtom):
-    """Complex conjugate.
-    """
+    """Complex conjugate."""
+
     def __init__(self, expr) -> None:
         super(conj, self).__init__(expr)
 
     def numeric(self, values):
-        """Convert the vector constant into a diagonal matrix.
-        """
+        """Convert the vector constant into a diagonal matrix."""
         return np.conj(values[0])
 
     def shape_from_args(self) -> Tuple[int, ...]:
-        """Returns the shape of the expression.
-        """
+        """Returns the shape of the expression."""
         return self.args[0].shape
 
     def is_incr(self, idx) -> bool:
-        """Is the composition non-decreasing in argument idx?
-        """
+        """Is the composition non-decreasing in argument idx?"""
         return False
 
     def is_decr(self, idx) -> bool:
-        """Is the composition non-increasing in argument idx?
-        """
+        """Is the composition non-increasing in argument idx?"""
         return False
 
     def is_symmetric(self) -> bool:
-        """Is the expression symmetric?
-        """
+        """Is the expression symmetric?"""
         return self.args[0].is_symmetric()
 
     def is_hermitian(self) -> bool:
-        """Is the expression Hermitian?
-        """
+        """Is the expression Hermitian?"""
         return self.args[0].is_hermitian()
 
     def graph_implementation(

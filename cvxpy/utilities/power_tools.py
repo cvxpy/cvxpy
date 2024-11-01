@@ -28,16 +28,15 @@ from cvxpy.expressions.variable import Variable
 
 def gm(t, x, y):
     length = t.size
-    return SOC(t=reshape(x+y, (length,), order='F'),
-               X=vstack([
-                   reshape(x-y, (1, length), order='F'),
-                   reshape(2*t, (1, length), order='F')
-               ]),
-               axis=0)
+    return SOC(
+        t=reshape(x + y, (length,), order='F'),
+        X=vstack([reshape(x - y, (1, length), order='F'), reshape(2 * t, (1, length), order='F')]),
+        axis=0,
+    )
 
 
 def gm_constrs(t, x_list, p):
-    """ Form the internal CXVPY constraints to form the weighted geometric mean t <= x^p.
+    """Form the internal CXVPY constraints to form the weighted geometric mean t <= x^p.
 
     t <= x[0]^p[0] * x[1]^p[1] * ... * x[n]^p[n]
 
@@ -71,13 +70,13 @@ def gm_constrs(t, x_list, p):
 
     long_w = len(w) - len(x_list)
     if long_w > 0:
-        x_list += [t]*long_w
+        x_list += [t] * long_w
 
     assert len(x_list) == len(w)
 
     for i, (p, v) in enumerate(zip(w, x_list)):
         if p > 0:
-            tmp = [0]*len(w)
+            tmp = [0] * len(w)
             tmp[i] = 1
             d[tuple(tmp)] = v
 
@@ -96,46 +95,46 @@ def gm_constrs(t, x_list, p):
 
 
 def pow_high(p, max_denom: int = 1024):
-    """ Return (t,1,x) power tuple
+    """Return (t,1,x) power tuple
 
-        x <= t^(1/p) 1^(1-1/p)
+    x <= t^(1/p) 1^(1-1/p)
 
-        user wants the epigraph variable t
+    user wants the epigraph variable t
     """
     assert p > 1
-    p = Fraction(1/Fraction(p)).limit_denominator(max_denom)
-    if 1/p == int(1/p):
-        return int(1/p), (p, 1-p)
-    return 1/p, (p, 1-p)
+    p = Fraction(1 / Fraction(p)).limit_denominator(max_denom)
+    if 1 / p == int(1 / p):
+        return int(1 / p), (p, 1 - p)
+    return 1 / p, (p, 1 - p)
 
 
 def pow_mid(p, max_denom: int = 1024):
-    """ Return (x,1,t) power tuple
+    """Return (x,1,t) power tuple
 
-        t <= x^p 1^(1-p)
+    t <= x^p 1^(1-p)
 
-        user wants the epigraph variable t
+    user wants the epigraph variable t
     """
     assert 0 < p < 1
     p = Fraction(p).limit_denominator(max_denom)
-    return p, (p, 1-p)
+    return p, (p, 1 - p)
 
 
 def pow_neg(p, max_denom: int = 1024):
-    """ Return (x,t,1) power tuple
+    """Return (x,t,1) power tuple
 
-        1 <= x^(p/(p-1)) t^(-1/(p-1))
+    1 <= x^(p/(p-1)) t^(-1/(p-1))
 
-        user wants the epigraph variable t
+    user wants the epigraph variable t
     """
     assert p < 0
     p = Fraction(p)
-    p = Fraction(p/(p-1)).limit_denominator(max_denom)
-    return p/(p-1), (p, 1-p)
+    p = Fraction(p / (p - 1)).limit_denominator(max_denom)
+    return p / (p - 1), (p, 1 - p)
 
 
 def is_power2(num) -> bool:
-    """ Test if num is a positive integer power of 2.
+    """Test if num is a positive integer power of 2.
 
     .. note::
         Fails if num is a np.integer type like np.int32, np.int64, etc.
@@ -161,7 +160,7 @@ def is_power2(num) -> bool:
 
 
 def is_dyad(frac) -> bool:
-    """ Test if frac is a nonnegative dyadic fraction or integer.
+    """Test if frac is a nonnegative dyadic fraction or integer.
 
     Examples
     --------
@@ -188,24 +187,24 @@ def is_dyad(frac) -> bool:
 
 
 def is_dyad_weight(w) -> bool:
-    """ Test if a vector is a valid dyadic weight vector.
+    """Test if a vector is a valid dyadic weight vector.
 
-        w must be nonnegative, sum to 1, and have integer or dyadic fractional elements.
+    w must be nonnegative, sum to 1, and have integer or dyadic fractional elements.
 
-        Examples
-        --------
-        >>> is_dyad_weight((Fraction(1,2), Fraction(1,2)))
-        True
-        >>> is_dyad_weight((Fraction(1,3), Fraction(2,3)))
-        False
-        >>> is_dyad_weight((0, 1, 0))
-        True
+    Examples
+    --------
+    >>> is_dyad_weight((Fraction(1,2), Fraction(1,2)))
+    True
+    >>> is_dyad_weight((Fraction(1,3), Fraction(2,3)))
+    False
+    >>> is_dyad_weight((0, 1, 0))
+    True
     """
     return is_weight(w) and all(is_dyad(f) for f in w)
 
 
 def is_weight(w) -> bool:
-    """ Test if w is a valid weight vector.
+    """Test if w is a valid weight vector.
         w must have nonnegative integer or fractional elements, and sum to 1.
 
     Examples
@@ -230,13 +229,11 @@ def is_weight(w) -> bool:
     """
     if isinstance(w, np.ndarray):
         w = w.tolist()
-    valid_elems = all(v >= 0 and
-                      isinstance(v, (numbers.Integral, Fraction)) for v in w)
+    valid_elems = all(v >= 0 and isinstance(v, (numbers.Integral, Fraction)) for v in w)
     return valid_elems and sum(w) == 1
 
 
-__EXCEED_DENOMINATOR_LIMIT__ = \
-    """
+__EXCEED_DENOMINATOR_LIMIT__ = """
     Can't reliably represent the input weight vector.
     Try increasing `max_denom` or checking the denominators
     of your input fractions.
@@ -244,7 +241,7 @@ __EXCEED_DENOMINATOR_LIMIT__ = \
 
 
 def fracify(a, max_denom: int = 1024, force_dyad: bool = False):
-    """ Return a valid fractional weight tuple (and its dyadic completion)
+    """Return a valid fractional weight tuple (and its dyadic completion)
         to represent the weights given by ``a``.
 
         When the input tuple contains only integers and fractions,
@@ -384,7 +381,7 @@ def fracify(a, max_denom: int = 1024, force_dyad: bool = False):
             raise ValueError(__EXCEED_DENOMINATOR_LIMIT__)
     else:
         # fall through code
-        w_frac = tuple(Fraction(float(v)/total).limit_denominator(max_denom) for v in a)
+        w_frac = tuple(Fraction(float(v) / total).limit_denominator(max_denom) for v in a)
         if sum(w_frac) != 1:
             w_frac = make_frac(a, max_denom)
 
@@ -396,7 +393,7 @@ def fracify(a, max_denom: int = 1024, force_dyad: bool = False):
 
 
 def make_frac(a, denom):
-    """ Approximate ``a/sum(a)`` with tuple of fractions with denominator *exactly* ``denom``.
+    """Approximate ``a/sum(a)`` with tuple of fractions with denominator *exactly* ``denom``.
 
     >>> a = [.123, .345, .532]
     >>> make_frac(a,10)
@@ -407,11 +404,11 @@ def make_frac(a, denom):
     (Fraction(123, 1000), Fraction(69, 200), Fraction(133, 250))
     """
 
-    a = np.array(a, dtype=float)/sum(a)
+    a = np.array(a, dtype=float) / sum(a)
     b = (denom * a).astype(int)
-    err = b/float(denom) - a
+    err = b / float(denom) - a
 
-    inds = np.argsort(err)[:(denom - sum(b))]
+    inds = np.argsort(err)[: (denom - sum(b))]
     b[inds] += 1
 
     denom = int(denom)
@@ -421,7 +418,7 @@ def make_frac(a, denom):
 
 
 def dyad_completion(w):
-    """ Return the dyadic completion of ``w``.
+    """Return the dyadic completion of ``w``.
 
         Return ``w`` if ``w`` is already dyadic.
 
@@ -447,35 +444,35 @@ def dyad_completion(w):
         # need to add the dummy variable to represent as dyadic
         d = max(non_dyad_dens)
         p = next_pow2(d)
-        w_aug = tuple(Fraction(v*d, p) for v in w) + (Fraction(p-d, p),)
+        w_aug = tuple(Fraction(v * d, p) for v in w) + (Fraction(p - d, p),)
         return dyad_completion(w_aug)
     else:
         return w
 
 
 def approx_error(a_orig, w_approx):
-    """ Return the :math:`\\ell_\\infty` norm error from approximating the vector a_orig/sum(a_orig)
-        with the weight vector w_approx.
+    """Return the :math:`\\ell_\\infty` norm error from approximating the vector a_orig/sum(a_orig)
+    with the weight vector w_approx.
 
-        That is, return
+    That is, return
 
-        .. math:: \\|a/\\mathbf{1}^T a - w_{\\mbox{approx}} \\|_\\infty
+    .. math:: \\|a/\\mathbf{1}^T a - w_{\\mbox{approx}} \\|_\\infty
 
 
-        >>> e = approx_error([1, 1, 1], [Fraction(1,3), Fraction(1,3), Fraction(1,3)])
-        >>> e <= 1e-10
-        True
+    >>> e = approx_error([1, 1, 1], [Fraction(1,3), Fraction(1,3), Fraction(1,3)])
+    >>> e <= 1e-10
+    True
     """
     assert all(v >= 0 for v in a_orig)
     assert is_weight(w_approx)
     assert len(a_orig) == len(w_approx)
 
-    w_orig = np.array(a_orig, dtype=float)/sum(a_orig)
-    return float(max(abs(v1-v2) for v1, v2 in zip(w_orig, w_approx)))
+    w_orig = np.array(a_orig, dtype=float) / sum(a_orig)
+    return float(max(abs(v1 - v2) for v1, v2 in zip(w_orig, w_approx)))
 
 
 def next_pow2(n):
-    """ Return first power of 2 >= n.
+    """Return first power of 2 >= n.
 
     >>> next_pow2(3)
     4
@@ -558,13 +555,13 @@ def check_dyad(w, w_dyad):
         # w is its own dyadic completion
         return True
     if len(w_dyad) == len(w) + 1:
-        return w == tuple(Fraction(v, 1-w_dyad[-1]) for v in w_dyad[:-1])
+        return w == tuple(Fraction(v, 1 - w_dyad[-1]) for v in w_dyad[:-1])
     else:
         return False
 
 
 def split(w_dyad):
-    """ Split a tuple of dyadic rationals into two children
+    """Split a tuple of dyadic rationals into two children
     so that d_tup = 1/2*(child1 + child2).
 
     Here, d_tup, child1, and child2 have nonnegative dyadic rational elements,
@@ -580,8 +577,8 @@ def split(w_dyad):
         return ()
 
     bit = Fraction(1, 1)
-    child1 = [Fraction(0)]*len(w_dyad)
-    child2 = list(2*f for f in w_dyad)  # assign twice the parent's value to child 2
+    child1 = [Fraction(0)] * len(w_dyad)
+    child2 = list(2 * f for f in w_dyad)  # assign twice the parent's value to child 2
 
     while True:
         for ind, val in enumerate(child2):
@@ -596,7 +593,7 @@ def split(w_dyad):
 
 
 def decompose(w_dyad):
-    """ Recursively split dyadic tuples to produce a DAG. A node
+    """Recursively split dyadic tuples to produce a DAG. A node
     can have multiple parents. Interior nodes in the DAG represent second-order cones
     which must be formed to represent the corresponding weighted geometric mean.
 
@@ -620,25 +617,23 @@ def decompose(w_dyad):
 
 
 def prettytuple(t):
-    """ Use the string representation of objects in a tuple.
-    """
+    """Use the string representation of objects in a tuple."""
     return '(' + ', '.join(str(f) for f in t) + ')'
 
 
 def get_max_denom(tup):
-    """ Get the maximum denominator in a sequence of ``Fraction`` and ``int`` objects
-    """
+    """Get the maximum denominator in a sequence of ``Fraction`` and ``int`` objects"""
     return max(Fraction(f).denominator for f in tup)
 
 
 def prettydict(d):
-    """ Print keys of a dictionary with children (expected to be a Sequence) indented underneath.
+    """Print keys of a dictionary with children (expected to be a Sequence) indented underneath.
 
     Used for printing out trees of second order cones to represent weighted geometric means.
 
     """
     keys = sorted(list(d.keys()), key=get_max_denom, reverse=True)
-    result = ""
+    result = ''
     for tup in keys:
         children = sorted(d[tup], key=get_max_denom, reverse=False)
         result += prettytuple(tup) + '\n'
@@ -649,7 +644,7 @@ def prettydict(d):
 
 
 def lower_bound(w_dyad):
-    """ Return a lower bound on the number of cones needed to represent the tuple.
+    """Return a lower bound on the number of cones needed to represent the tuple.
         Based on two simple lower bounds.
 
     Examples
@@ -666,7 +661,7 @@ def lower_bound(w_dyad):
     assert is_dyad_weight(w_dyad)
     md = get_max_denom(w_dyad)
 
-    lb1 = len(bin(md))-3
+    lb1 = len(bin(md)) - 3
 
     # don't include zero entries
     lb2 = sum(1 if e != 0 else 0 for e in w_dyad) - 1
@@ -674,8 +669,8 @@ def lower_bound(w_dyad):
 
 
 def over_bound(w_dyad, tree):
-    """ Return the number of cones in the tree beyond the known lower bounds.
-        if it is zero, then we know the tuple can't be represented in fewer cones.
+    """Return the number of cones in the tree beyond the known lower bounds.
+    if it is zero, then we know the tuple can't be represented in fewer cones.
     """
     nonzeros = sum(1 for e in w_dyad if e != 0)
     return len(tree) - lower_bound(w_dyad) - nonzeros

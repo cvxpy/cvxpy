@@ -9,7 +9,6 @@ from cvxpy.expressions.variable import Variable
 
 
 class SuppFuncAtom(Atom):
-
     def __init__(self, y, parent) -> None:
         """
         Parameters
@@ -29,9 +28,9 @@ class SuppFuncAtom(Atom):
 
     def validate_arguments(self) -> None:
         if self.args[0].is_complex():
-            raise ValueError("Arguments to SuppFuncAtom cannot be complex.")
+            raise ValueError('Arguments to SuppFuncAtom cannot be complex.')
         if not self.args[0].is_affine():
-            raise ValueError("Arguments to SuppFuncAtom must be affine.")
+            raise ValueError('Arguments to SuppFuncAtom must be affine.')
 
     def variables(self):
         varlist = self.args[0].variables()
@@ -108,6 +107,7 @@ class SuppFuncAtom(Atom):
     def _value_impl(self):
         from cvxpy.problems.objective import Maximize
         from cvxpy.problems.problem import Problem
+
         y_val = self.args[0].value.round(decimals=9).ravel(order='F')
         x_flat = self._parent.x.flatten(order='F')
         cons = self._parent.constraints
@@ -136,7 +136,7 @@ class SuppFuncAtom(Atom):
             return [gradmat]
 
     def __lt__(self, other):
-        raise NotImplementedError("Strict inequalities are not allowed.")
+        raise NotImplementedError('Strict inequalities are not allowed.')
 
     def __gt__(self, other):
-        raise NotImplementedError("Strict inequalities are not allowed.")
+        raise NotImplementedError('Strict inequalities are not allowed.')

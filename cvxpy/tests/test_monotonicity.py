@@ -20,21 +20,22 @@ from cvxpy.tests.base_test import BaseTest
 
 
 class TestMonotonicity(BaseTest):
-    """ Unit tests for the utilities/monotonicity class. """
+    """Unit tests for the utilities/monotonicity class."""
+
     # Test application of DCP composition rules to determine curvature.
 
     def test_dcp_curvature(self) -> None:
         expr = 1 + cp.exp(cp.Variable())
         self.assertEqual(expr.curvature, s.CONVEX)
 
-        expr = cp.Parameter()*cp.Variable(nonneg=True)
+        expr = cp.Parameter() * cp.Variable(nonneg=True)
         self.assertEqual(expr.curvature, s.AFFINE)
 
         f = lambda x: x**2 + x**0.5  # noqa E731
         expr = f(cp.Constant(2))
         self.assertEqual(expr.curvature, s.CONSTANT)
 
-        expr = cp.exp(cp.Variable())**2
+        expr = cp.exp(cp.Variable()) ** 2
         self.assertEqual(expr.curvature, s.CONVEX)
 
         expr = 1 - cp.sqrt(cp.Variable())
@@ -43,7 +44,7 @@ class TestMonotonicity(BaseTest):
         expr = cp.log(cp.sqrt(cp.Variable()))
         self.assertEqual(expr.curvature, s.CONCAVE)
 
-        expr = -(cp.exp(cp.Variable()))**2
+        expr = -((cp.exp(cp.Variable())) ** 2)
         self.assertEqual(expr.curvature, s.CONCAVE)
 
         expr = cp.log(cp.exp(cp.Variable()))
@@ -52,7 +53,7 @@ class TestMonotonicity(BaseTest):
         expr = cp.entr(cp.Variable(nonneg=True))
         self.assertEqual(expr.curvature, s.CONCAVE)
 
-        expr = ((cp.Variable()**2)**0.5)**0
+        expr = ((cp.Variable() ** 2) ** 0.5) ** 0
         self.assertEqual(expr.curvature, s.CONSTANT)
 
     # Test DCP composition rules with signed monotonicity.

@@ -94,7 +94,7 @@ class huber(Elementwise):
     def validate_arguments(self) -> None:
         """Checks that M >= 0 and is a constant or Parameter."""
         if not (self.M.is_nonneg() and self.M.is_scalar() and self.M.is_constant()):
-            raise ValueError("M must be a non-negative scalar constant or Parameter.")
+            raise ValueError('M must be a non-negative scalar constant or Parameter.')
         super(huber, self).validate_arguments()
 
     def _grad(self, values):

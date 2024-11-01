@@ -13,6 +13,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+
 from __future__ import annotations
 
 import warnings
@@ -67,41 +68,43 @@ class ExpCone(Cone):
                 raise ValueError('All arguments must be affine and real.')
         xs, ys, zs = self.x.shape, self.y.shape, self.z.shape
         if xs != ys or xs != zs:
-            msg = ("All arguments must have the same shapes. Provided arguments have"
-                   "shapes %s" % str((xs, ys, zs)))
+            msg = (
+                'All arguments must have the same shapes. Provided arguments have'
+                'shapes %s' % str((xs, ys, zs))
+            )
             raise ValueError(msg)
         super(ExpCone, self).__init__(args, constr_id)
 
     def __str__(self) -> str:
-        return "ExpCone(%s, %s, %s)" % (self.x, self.y, self.z)
+        return 'ExpCone(%s, %s, %s)' % (self.x, self.y, self.z)
 
     def __repr__(self) -> str:
-        return "ExpCone(%s, %s, %s)" % (self.x, self.y, self.z)
+        return 'ExpCone(%s, %s, %s)' % (self.x, self.y, self.z)
 
     @property
     def residual(self):
         # TODO(akshayka): The projection should be implemented directly.
         from cvxpy import Minimize, Problem, Variable, hstack, norm2
+
         if self.x.value is None or self.y.value is None or self.z.value is None:
             return None
         x = Variable(self.x.shape)
         y = Variable(self.y.shape)
         z = Variable(self.z.shape)
         constr = [ExpCone(x, y, z)]
-        obj = Minimize(norm2(hstack([x, y, z]) -
-                             hstack([self.x.value, self.y.value, self.z.value])))
+        obj = Minimize(
+            norm2(hstack([x, y, z]) - hstack([self.x.value, self.y.value, self.z.value]))
+        )
         problem = Problem(obj, constr)
         return problem.solve()
 
     @property
     def size(self) -> int:
-        """The number of entries in the combined cones.
-        """
+        """The number of entries in the combined cones."""
         return 3 * self.num_cones()
 
     def num_cones(self):
-        """The number of elementwise cones.
-        """
+        """The number of elementwise cones."""
         return self.x.size
 
     def as_quad_approx(self, m: int, k: int) -> RelEntrConeQuad:
@@ -115,11 +118,10 @@ class ExpCone(Cone):
         list
             A list of the sizes of the elementwise cones.
         """
-        return [3]*self.num_cones()
+        return [3] * self.num_cones()
 
     def is_dcp(self, dpp: bool = False) -> bool:
-        """An exponential constraint is DCP if each argument is affine.
-        """
+        """An exponential constraint is DCP if each argument is affine."""
         if dpp:
             with scopes.dpp_scope():
                 return all(arg.is_affine() for arg in self.args)
@@ -150,16 +152,16 @@ class ExpCone(Cone):
         """Implements the dual cone of the exponential cone
         See Pg 85 of the MOSEK modelling cookbook for more information"""
         if args == ():
-            return ExpCone(-self.dual_variables[1], -self.dual_variables[0],
-                           np.exp(1) * self.dual_variables[2])
+            return ExpCone(
+                -self.dual_variables[1], -self.dual_variables[0], np.exp(1) * self.dual_variables[2]
+            )
         else:
             # some assertions for verifying `args`
             args_shapes = [arg.shape for arg in args]
             instance_args_shapes = [arg.shape for arg in self.args]
             assert len(args) == len(self.args)
             assert args_shapes == instance_args_shapes
-            return ExpCone(-args[1], -args[0],
-                           np.exp(1)*args[2])
+            return ExpCone(-args[1], -args[0], np.exp(1) * args[2])
 
 
 class RelEntrConeQuad(Cone):
@@ -190,8 +192,9 @@ class RelEntrConeQuad(Cone):
     k: Another parameter controlling the approximation
     """
 
-    def __init__(self, x: Expression, y: Expression, z: Expression,
-                 m: int, k: int, constr_id=None) -> None:
+    def __init__(
+        self, x: Expression, y: Expression, z: Expression, m: int, k: int, constr_id=None
+    ) -> None:
         Expression = cvxtypes.expression()
         self.x = Expression.cast_to_const(x)
         self.y = Expression.cast_to_const(y)
@@ -204,8 +207,10 @@ class RelEntrConeQuad(Cone):
         self.k = k
         xs, ys, zs = self.x.shape, self.y.shape, self.z.shape
         if xs != ys or xs != zs:
-            msg = ("All arguments must have the same shapes. Provided arguments have"
-                   "shapes %s" % str((xs, ys, zs)))
+            msg = (
+                'All arguments must have the same shapes. Provided arguments have'
+                'shapes %s' % str((xs, ys, zs))
+            )
             raise ValueError(msg)
         super(RelEntrConeQuad, self).__init__([self.x, self.y, self.z], constr_id)
 
@@ -214,7 +219,7 @@ class RelEntrConeQuad(Cone):
 
     def __str__(self) -> str:
         tup = (self.x, self.y, self.z, self.m, self.k)
-        return "RelEntrConeQuad(%s, %s, %s, %s, %s)" % tup
+        return 'RelEntrConeQuad(%s, %s, %s, %s, %s)' % tup
 
     def __repr__(self) -> str:
         return self.__str__()
@@ -223,6 +228,7 @@ class RelEntrConeQuad(Cone):
     def residual(self):
         # TODO(akshayka): The projection should be implemented directly.
         from cvxpy import Minimize, Problem, Variable, hstack, norm2
+
         if self.x.value is None or self.y.value is None or self.z.value is None:
             return None
         cvxtypes.expression()
@@ -230,20 +236,19 @@ class RelEntrConeQuad(Cone):
         y = Variable(self.y.shape)
         z = Variable(self.z.shape)
         constr = [RelEntrConeQuad(x, y, z, self.m, self.k)]
-        obj = Minimize(norm2(hstack([x, y, z]) -
-                             hstack([self.x.value, self.y.value, self.z.value])))
+        obj = Minimize(
+            norm2(hstack([x, y, z]) - hstack([self.x.value, self.y.value, self.z.value]))
+        )
         problem = Problem(obj, constr)
         return problem.solve()
 
     @property
     def size(self) -> int:
-        """The number of entries in the combined cones.
-        """
+        """The number of entries in the combined cones."""
         return 3 * self.num_cones()
 
     def num_cones(self):
-        """The number of elementwise cones.
-        """
+        """The number of elementwise cones."""
         return self.x.size
 
     def cone_sizes(self) -> List[int]:
@@ -254,11 +259,10 @@ class RelEntrConeQuad(Cone):
         list
             A list of the sizes of the elementwise cones.
         """
-        return [3]*self.num_cones()
+        return [3] * self.num_cones()
 
     def is_dcp(self, dpp: bool = False) -> bool:
-        """An exponential constraint is DCP if each argument is affine.
-        """
+        """An exponential constraint is DCP if each argument is affine."""
         if dpp:
             with scopes.dpp_scope():
                 return all(arg.is_affine() for arg in self.args)
@@ -314,28 +318,33 @@ class OpRelEntrConeQuad(Cone):
     This approximation uses :math:`m + k` semidefinite constraints.
     """
 
-    def __init__(self, X: Expression, Y: Expression, Z: Expression,
-                 m: int, k: int, constr_id=None) -> None:
+    def __init__(
+        self, X: Expression, Y: Expression, Z: Expression, m: int, k: int, constr_id=None
+    ) -> None:
         Expression = cvxtypes.expression()
         self.X = Expression.cast_to_const(X)
         self.Y = Expression.cast_to_const(Y)
         self.Z = Expression.cast_to_const(Z)
         if (not X.is_hermitian()) or (not Y.is_hermitian()) or (not Z.is_hermitian()):
-            msg = ("One of the input matrices has not explicitly been declared as symmetric or"
-                   "Hermitian. If the inputs are Variable objects, try declaring them with the"
-                   "symmetric=True or Hermitian=True properties. If the inputs are general "
-                   "Expression objects that are known to be symmetric or Hermitian, then you"
-                   "can wrap them with the symmetric_wrap and hermitian_wrap atoms. Failure to"
-                   "do one of these things will cause this function to impose a symmetry or"
-                   "conjugate-symmetry constraint internally, in a way that is very"
-                   "inefficient.")
+            msg = (
+                'One of the input matrices has not explicitly been declared as symmetric or'
+                'Hermitian. If the inputs are Variable objects, try declaring them with the'
+                'symmetric=True or Hermitian=True properties. If the inputs are general '
+                'Expression objects that are known to be symmetric or Hermitian, then you'
+                'can wrap them with the symmetric_wrap and hermitian_wrap atoms. Failure to'
+                'do one of these things will cause this function to impose a symmetry or'
+                'conjugate-symmetry constraint internally, in a way that is very'
+                'inefficient.'
+            )
             warnings.warn(msg)
         self.m = m
         self.k = k
         Xs, Ys, Zs = self.X.shape, self.Y.shape, self.Z.shape
         if Xs != Ys or Xs != Zs:
-            msg = ("All arguments must have the same shapes. Provided arguments have"
-                   "shapes %s" % str((Xs, Ys, Zs)))
+            msg = (
+                'All arguments must have the same shapes. Provided arguments have'
+                'shapes %s' % str((Xs, Ys, Zs))
+            )
             raise ValueError(msg)
         super(OpRelEntrConeQuad, self).__init__([self.X, self.Y, self.Z], constr_id)
 
@@ -344,7 +353,7 @@ class OpRelEntrConeQuad(Cone):
 
     def __str__(self) -> str:
         tup = (self.X, self.Y, self.Z, self.m, self.k)
-        return "OpRelEntrConeQuad(%s, %s, %s, %s, %s)" % tup
+        return 'OpRelEntrConeQuad(%s, %s, %s, %s, %s)' % tup
 
     def __repr__(self) -> str:
         return self.__str__()
@@ -356,13 +365,11 @@ class OpRelEntrConeQuad(Cone):
 
     @property
     def size(self) -> int:
-        """The number of entries in the combined cones.
-        """
+        """The number of entries in the combined cones."""
         return 3 * self.num_cones()
 
     def num_cones(self):
-        """The number of elementwise cones.
-        """
+        """The number of elementwise cones."""
         return self.X.size
 
     def cone_sizes(self) -> List[int]:
@@ -373,11 +380,10 @@ class OpRelEntrConeQuad(Cone):
         list
             A list of the sizes of the elementwise cones.
         """
-        return [3]*self.num_cones()
+        return [3] * self.num_cones()
 
     def is_dcp(self, dpp: bool = False) -> bool:
-        """An operator relative conic constraint is DCP when (A, b, C) is affine
-        """
+        """An operator relative conic constraint is DCP when (A, b, C) is affine"""
         if dpp:
             with scopes.dpp_scope():
                 return all(arg.is_affine() for arg in self.args)

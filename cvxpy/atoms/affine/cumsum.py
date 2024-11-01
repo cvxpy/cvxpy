@@ -13,6 +13,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+
 from typing import List, Tuple
 
 import numpy as np
@@ -43,9 +44,7 @@ def get_diff_mat(dim: int, axis: int) -> sp.csc_matrix:
     sp.csc_matrix
         A square matrix representing first order difference.
     """
-    mat = sp.diags([np.ones(dim), -np.ones(dim - 1)], [0, -1], 
-                   shape=(dim, dim), 
-                   format='csc')
+    mat = sp.diags([np.ones(dim), -np.ones(dim - 1)], [0, -1], shape=(dim, dim), format='csc')
     return mat if axis == 0 else mat.T
 
 
@@ -60,6 +59,7 @@ class cumsum(AffAtom, AxisAtom):
     axis : int
         The axis to sum across if 2D.
     """
+
     def __init__(self, expr: Expression, axis: int = 0) -> None:
         super(cumsum, self).__init__(expr, axis)
 

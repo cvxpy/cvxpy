@@ -13,6 +13,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+
 from typing import Tuple
 
 import numpy as np
@@ -22,21 +23,18 @@ from cvxpy.atoms.axis_atom import AxisAtom
 
 
 class cummax(AxisAtom):
-    """Cumulative maximum.
-    """
+    """Cumulative maximum."""
 
     def __init__(self, x, axis: int = 0) -> None:
         super(cummax, self).__init__(x, axis=axis)
 
     @Atom.numpy_numeric
     def numeric(self, values):
-        """Returns the largest entry in x.
-        """
+        """Returns the largest entry in x."""
         return np.maximum.accumulate(values[0], axis=self.axis)
 
     def shape_from_args(self) -> Tuple[int, ...]:
-        """The same as the input.
-        """
+        """The same as the input."""
         return self.args[0].shape
 
     def _grad(self, values):
@@ -73,32 +71,26 @@ class cummax(AxisAtom):
         return D
 
     def sign_from_args(self) -> Tuple[bool, bool]:
-        """Returns sign (is positive, is negative) of the expression.
-        """
+        """Returns sign (is positive, is negative) of the expression."""
         # Same as argument.
         return (self.args[0].is_nonneg(), self.args[0].is_nonpos())
 
     def get_data(self):
-        """Returns the axis being summed.
-        """
+        """Returns the axis being summed."""
         return [self.axis]
 
     def is_atom_convex(self) -> bool:
-        """Is the atom convex?
-        """
+        """Is the atom convex?"""
         return True
 
     def is_atom_concave(self) -> bool:
-        """Is the atom concave?
-        """
+        """Is the atom concave?"""
         return False
 
     def is_incr(self, idx) -> bool:
-        """Is the composition non-decreasing in argument idx?
-        """
+        """Is the composition non-decreasing in argument idx?"""
         return True
 
     def is_decr(self, idx) -> bool:
-        """Is the composition non-increasing in argument idx?
-        """
+        """Is the composition non-increasing in argument idx?"""
         return False

@@ -39,28 +39,34 @@ def test_issue_2402_scalar_parameter():
     are used on quadratic forms with the same variable.
     """
 
-    r =  np.array([-0.48,  0.11,  0.09, -0.39,  0.03])
-    Sigma = np.array([
-        [2.4e-04, 1.3e-04, 2.0e-04, 1.6e-04, 2.0e-04],
-        [1.3e-04, 2.8e-04, 2.1e-04, 1.7e-04, 1.5e-04],
-        [2.0e-04, 2.1e-04, 5.8e-04, 3.3e-04, 2.3e-04],
-        [1.6e-04, 1.7e-04, 3.3e-04, 6.9e-04, 2.1e-04],
-        [2.0e-04, 1.5e-04, 2.3e-04, 2.1e-04, 3.6e-04]])
+    r = np.array([-0.48, 0.11, 0.09, -0.39, 0.03])
+    Sigma = np.array(
+        [
+            [2.4e-04, 1.3e-04, 2.0e-04, 1.6e-04, 2.0e-04],
+            [1.3e-04, 2.8e-04, 2.1e-04, 1.7e-04, 1.5e-04],
+            [2.0e-04, 2.1e-04, 5.8e-04, 3.3e-04, 2.3e-04],
+            [1.6e-04, 1.7e-04, 3.3e-04, 6.9e-04, 2.1e-04],
+            [2.0e-04, 1.5e-04, 2.3e-04, 2.1e-04, 3.6e-04],
+        ]
+    )
 
     w = cp.Variable(5)
-    risk_aversion = cp.Parameter(value=1., nonneg=True)
-    ridge_coef = cp.Parameter(value=0., nonneg=True)
-    
-    obj_func = r @ w - risk_aversion * cp.quad_form(w, Sigma) -  ridge_coef * cp.sum_squares(w)
+    risk_aversion = cp.Parameter(value=1.0, nonneg=True)
+    ridge_coef = cp.Parameter(value=0.0, nonneg=True)
+
+    obj_func = r @ w - risk_aversion * cp.quad_form(w, Sigma) - ridge_coef * cp.sum_squares(w)
     objective = cp.Maximize(obj_func)
     fixed_w = np.array([10, 11, 12, 13, 14])
     constraints = [w == fixed_w]
     prob = cp.Problem(objective, constraints)
     prob.solve()
-    
-    expected_value = r @ fixed_w - risk_aversion.value * np.dot(fixed_w, np.dot(Sigma, fixed_w)) - \
-        ridge_coef.value * np.sum(np.square(fixed_w))
-    
+
+    expected_value = (
+        r @ fixed_w
+        - risk_aversion.value * np.dot(fixed_w, np.dot(Sigma, fixed_w))
+        - ridge_coef.value * np.sum(np.square(fixed_w))
+    )
+
     assert np.isclose(prob.value, expected_value)
     assert np.allclose(w.value, fixed_w)
 
@@ -71,28 +77,34 @@ def test_issue_2402_scalar_constant():
     which was a separate issue in the same problem.
     """
 
-    r =  np.array([-0.48,  0.11,  0.09, -0.39,  0.03])
-    Sigma = np.array([
-        [2.4e-04, 1.3e-04, 2.0e-04, 1.6e-04, 2.0e-04],
-        [1.3e-04, 2.8e-04, 2.1e-04, 1.7e-04, 1.5e-04],
-        [2.0e-04, 2.1e-04, 5.8e-04, 3.3e-04, 2.3e-04],
-        [1.6e-04, 1.7e-04, 3.3e-04, 6.9e-04, 2.1e-04],
-        [2.0e-04, 1.5e-04, 2.3e-04, 2.1e-04, 3.6e-04]])
+    r = np.array([-0.48, 0.11, 0.09, -0.39, 0.03])
+    Sigma = np.array(
+        [
+            [2.4e-04, 1.3e-04, 2.0e-04, 1.6e-04, 2.0e-04],
+            [1.3e-04, 2.8e-04, 2.1e-04, 1.7e-04, 1.5e-04],
+            [2.0e-04, 2.1e-04, 5.8e-04, 3.3e-04, 2.3e-04],
+            [1.6e-04, 1.7e-04, 3.3e-04, 6.9e-04, 2.1e-04],
+            [2.0e-04, 1.5e-04, 2.3e-04, 2.1e-04, 3.6e-04],
+        ]
+    )
 
     w = cp.Variable(5)
-    risk_aversion = cp.Parameter(value=1., nonneg=True)
+    risk_aversion = cp.Parameter(value=1.0, nonneg=True)
     ridge_coef = 0
-    
-    obj_func = r @ w - risk_aversion * cp.quad_form(w, Sigma) -  ridge_coef * cp.sum_squares(w)
+
+    obj_func = r @ w - risk_aversion * cp.quad_form(w, Sigma) - ridge_coef * cp.sum_squares(w)
     objective = cp.Maximize(obj_func)
     fixed_w = np.array([10, 11, 12, 13, 14])
     constraints = [w == fixed_w]
     prob = cp.Problem(objective, constraints)
     prob.solve()
-    
-    expected_value = r @ fixed_w - risk_aversion.value * np.dot(fixed_w, np.dot(Sigma, fixed_w)) - \
-        ridge_coef * np.sum(np.square(fixed_w))
-    
+
+    expected_value = (
+        r @ fixed_w
+        - risk_aversion.value * np.dot(fixed_w, np.dot(Sigma, fixed_w))
+        - ridge_coef * np.sum(np.square(fixed_w))
+    )
+
     assert np.isclose(prob.value, expected_value)
     assert np.allclose(w.value, fixed_w)
 
@@ -103,30 +115,38 @@ def test_issue_2402_vector():
     with a different error due to a dimension mismatch.
     """
 
-    r =  np.array([-0.48,  0.11,  0.09, -0.39,  0.03])
-    Sigma = np.array([
-        [2.4e-04, 1.3e-04, 2.0e-04, 1.6e-04, 2.0e-04],
-        [1.3e-04, 2.8e-04, 2.1e-04, 1.7e-04, 1.5e-04],
-        [2.0e-04, 2.1e-04, 5.8e-04, 3.3e-04, 2.3e-04],
-        [1.6e-04, 1.7e-04, 3.3e-04, 6.9e-04, 2.1e-04],
-        [2.0e-04, 1.5e-04, 2.3e-04, 2.1e-04, 3.6e-04]
-    ])
+    r = np.array([-0.48, 0.11, 0.09, -0.39, 0.03])
+    Sigma = np.array(
+        [
+            [2.4e-04, 1.3e-04, 2.0e-04, 1.6e-04, 2.0e-04],
+            [1.3e-04, 2.8e-04, 2.1e-04, 1.7e-04, 1.5e-04],
+            [2.0e-04, 2.1e-04, 5.8e-04, 3.3e-04, 2.3e-04],
+            [1.6e-04, 1.7e-04, 3.3e-04, 6.9e-04, 2.1e-04],
+            [2.0e-04, 1.5e-04, 2.3e-04, 2.1e-04, 3.6e-04],
+        ]
+    )
 
     w = cp.Variable(5)
-    risk_aversion = cp.Parameter(value=2., nonneg=True)
+    risk_aversion = cp.Parameter(value=2.0, nonneg=True)
     ridge_coef = cp.Parameter((5), value=np.arange(5), nonneg=True)
 
-    obj_func = r @ w - risk_aversion * cp.quad_form(w, Sigma) - \
-        cp.sum(cp.multiply(cp.multiply(ridge_coef, np.array([5,6,7,8,9])), cp.square(w)))
+    obj_func = (
+        r @ w
+        - risk_aversion * cp.quad_form(w, Sigma)
+        - cp.sum(cp.multiply(cp.multiply(ridge_coef, np.array([5, 6, 7, 8, 9])), cp.square(w)))
+    )
 
     objective = cp.Maximize(obj_func)
     fixed_w = np.array([10, 11, 12, 13, 14])
     constraints = [w == fixed_w]
     prob = cp.Problem(objective, constraints)
     prob.solve()
-    
-    expected_value = r @ fixed_w - risk_aversion.value * np.dot(fixed_w, np.dot(Sigma, fixed_w)) - \
-        np.sum(ridge_coef.value * np.array([5,6,7,8,9]) * np.square(fixed_w))
+
+    expected_value = (
+        r @ fixed_w
+        - risk_aversion.value * np.dot(fixed_w, np.dot(Sigma, fixed_w))
+        - np.sum(ridge_coef.value * np.array([5, 6, 7, 8, 9]) * np.square(fixed_w))
+    )
 
     assert np.isclose(prob.value, expected_value)
     assert np.allclose(w.value, fixed_w)
@@ -178,8 +198,8 @@ def test_coeff_extractor(coeff_extractor):
     coeffs, constant = coeff_extractor.extract_quadratic_coeffs(affine_expr, quad_forms)
 
     assert len(coeffs) == 1
-    assert np.allclose(coeffs[1]["q"].toarray(), np.zeros((2, 3)))
-    P = coeffs[1]["P"]
+    assert np.allclose(coeffs[1]['q'].toarray(), np.zeros((2, 3)))
+    P = coeffs[1]['P']
     assert isinstance(P, TensorRepresentation)
     assert np.allclose(P.data, np.ones((4)))
     assert np.allclose(P.row, np.array([0, 1, 0, 1]))
@@ -200,7 +220,7 @@ def test_issue_2437():
     alpha = np.array([0.04, 0.05, 0.06])
     ivol = np.array([0.07, 0.08, 0.09])
 
-    w = cp.Variable(N, name="w")
+    w = cp.Variable(N, name='w')
 
     risk = (cp.multiply(w, ivol) ** 2).sum()
     U = w @ alpha - risk - cp.abs(w) @ t_cost

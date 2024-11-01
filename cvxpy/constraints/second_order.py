@@ -38,13 +38,15 @@ class SOC(Cone):
     def __init__(self, t, X, axis: int = 0, constr_id=None) -> None:
         t = cvxtypes.expression().cast_to_const(t)
         if len(t.shape) >= 2 or not t.is_real():
-            raise ValueError("Invalid first argument.")
+            raise ValueError('Invalid first argument.')
         # Check t has one entry per cone.
-        if (len(X.shape) <= 1 and t.size > 1) or \
-           (len(X.shape) == 2 and t.size != X.shape[1-axis]) or \
-           (len(X.shape) == 1 and axis == 1):
+        if (
+            (len(X.shape) <= 1 and t.size > 1)
+            or (len(X.shape) == 2 and t.size != X.shape[1 - axis])
+            or (len(X.shape) == 1 and axis == 1)
+        ):
             raise ValueError(
-                "Argument dimensions %s and %s, with axis=%i, are incompatible."
+                'Argument dimensions %s and %s, with axis=%i, are incompatible.'
                 % (t.shape, X.shape, axis)
             )
         self.axis = axis
@@ -53,7 +55,7 @@ class SOC(Cone):
         super(SOC, self).__init__([t, X], constr_id)
 
     def __str__(self) -> str:
-        return "SOC(%s, %s)" % (self.args[0], self.args[1])
+        return 'SOC(%s, %s)' % (self.args[0], self.args[1])
 
     @property
     def residual(self) -> Optional[np.ndarray]:
@@ -96,7 +98,7 @@ class SOC(Cone):
 
         # 2. proj(t,X) = 0.5*(t/||x|| + 1)(||x||,x)  if -||x|| < t < ||x||
         abs_t_less_x_norm = np.abs(t) < norms
-        avg_coeff = 0.5 * (1 + t/norms)
+        avg_coeff = 0.5 * (1 + t / norms)
         X_proj[abs_t_less_x_norm] = avg_coeff[abs_t_less_x_norm, None] * X[abs_t_less_x_norm]
         t_proj[abs_t_less_x_norm] = avg_coeff[abs_t_less_x_norm] * norms[abs_t_less_x_norm]
 
@@ -120,14 +122,12 @@ class SOC(Cone):
         return [self.axis, self.id]
 
     def num_cones(self):
-        """The number of elementwise cones.
-        """
+        """The number of elementwise cones."""
         return self.args[0].size
 
     @property
     def size(self) -> int:
-        """The number of entries in the combined cones.
-        """
+        """The number of entries in the combined cones."""
         cone_size = 1 + self.args[1].shape[self.axis]
         return cone_size * self.num_cones()
 
@@ -143,8 +143,7 @@ class SOC(Cone):
         return [cone_size] * self.num_cones()
 
     def is_dcp(self, dpp: bool = False) -> bool:
-        """An SOC constraint is DCP if each of its arguments is affine.
-        """
+        """An SOC constraint is DCP if each of its arguments is affine."""
         if dpp:
             with scopes.dpp_scope():
                 return all(arg.is_affine() for arg in self.args)

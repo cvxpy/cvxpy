@@ -13,6 +13,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+
 from typing import Tuple
 
 import numpy as np
@@ -32,11 +33,9 @@ class TestKron(BaseTest):
     """
 
     @staticmethod
-    def make_kron_prob(z_dims: Tuple[int],
-                       c_dims: Tuple[int],
-                       param: bool,
-                       var_left: bool,
-                       seed: int):
+    def make_kron_prob(
+        z_dims: Tuple[int], c_dims: Tuple[int], param: bool, var_left: bool, seed: int
+    ):
         """
         Construct random nonnegative matrices (C, L) of shapes
         (c_dims, z_dims) respectively. Define an optimization
@@ -84,14 +83,12 @@ class TestKron(BaseTest):
 
 
 class TestKronRightVar(TestKron):
-
     C_DIMS = [(1, 1), (2, 1), (1, 2), (2, 2)]
 
     def test_gen_kronr_param(self):
         z_dims = (2, 2)
         for c_dims in TestKronRightVar.C_DIMS:
-            Z, C, L, prob = self.make_kron_prob(z_dims, c_dims, param=True,
-                                                var_left=False, seed=0)
+            Z, C, L, prob = self.make_kron_prob(z_dims, c_dims, param=True, var_left=False, seed=0)
             prob.solve(solver=cp.CLARABEL)
             self.assertEqual(prob.status, cp.OPTIMAL)
             con_viols = prob.constraints[0].violation()
@@ -101,8 +98,7 @@ class TestKronRightVar(TestKron):
     def test_gen_kronr_const(self):
         z_dims = (2, 2)
         for c_dims in TestKronRightVar.C_DIMS:
-            Z, C, L, prob = self.make_kron_prob(z_dims, c_dims, param=False,
-                                                var_left=False, seed=0)
+            Z, C, L, prob = self.make_kron_prob(z_dims, c_dims, param=False, var_left=False, seed=0)
             prob.solve(solver=cp.CLARABEL)
             self.assertEqual(prob.status, cp.OPTIMAL)
             con_viols = prob.constraints[0].violation()
@@ -111,7 +107,6 @@ class TestKronRightVar(TestKron):
 
 
 class TestKronLeftVar(TestKron):
-
     C_DIMS = [(1, 1), (2, 1), (1, 2), (2, 2)]
 
     def symvar_kronl(self, param):
@@ -147,7 +142,7 @@ class TestKronLeftVar(TestKron):
 
     def scalar_kronl(self, param):
         y = cp.Variable(shape=(1, 1))
-        A_val = np.array([[1., 2.], [3., 4.]])
+        A_val = np.array([[1.0, 2.0], [3.0, 4.0]])
         L = np.array([[0.5, 1], [2, 3]])
         U = np.array([[10, 11], [12, 13]])
         if param:
@@ -178,8 +173,7 @@ class TestKronLeftVar(TestKron):
     def test_gen_kronl_param(self):
         z_dims = (2, 2)
         for c_dims in TestKronLeftVar.C_DIMS:
-            Z, C, L, prob = self.make_kron_prob(z_dims, c_dims, param=True,
-                                                var_left=True, seed=0)
+            Z, C, L, prob = self.make_kron_prob(z_dims, c_dims, param=True, var_left=True, seed=0)
             prob.solve(solver=cp.CLARABEL)
             self.assertEqual(prob.status, cp.OPTIMAL)
             con_viols = prob.constraints[0].violation()
@@ -189,8 +183,7 @@ class TestKronLeftVar(TestKron):
     def test_gen_kronr_const(self):
         z_dims = (2, 2)
         for c_dims in TestKronLeftVar.C_DIMS:
-            Z, C, L, prob = self.make_kron_prob(z_dims, c_dims, param=False,
-                                                var_left=True, seed=0)
+            Z, C, L, prob = self.make_kron_prob(z_dims, c_dims, param=False, var_left=True, seed=0)
             prob.solve(solver=cp.CLARABEL)
             self.assertEqual(prob.status, cp.OPTIMAL)
             con_viols = prob.constraints[0].violation()

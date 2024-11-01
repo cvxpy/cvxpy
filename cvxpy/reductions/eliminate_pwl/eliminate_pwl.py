@@ -23,8 +23,7 @@ class EliminatePwl(Canonicalization):
     """Eliminates piecewise linear atoms."""
 
     def __init__(self, problem=None) -> None:
-        super(EliminatePwl, self).__init__(
-          problem=problem, canon_methods=elim_pwl_methods)
+        super(EliminatePwl, self).__init__(problem=problem, canon_methods=elim_pwl_methods)
 
     def accepts(self, problem) -> bool:
         atom_types = [type(atom) for atom in problem.atoms()]
@@ -33,5 +32,5 @@ class EliminatePwl(Canonicalization):
 
     def apply(self, problem):
         if not self.accepts(problem):
-            raise ValueError("Cannot canonicalize pwl atoms.")
+            raise ValueError('Cannot canonicalize pwl atoms.')
         return super(EliminatePwl, self).apply(problem)

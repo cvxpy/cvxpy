@@ -36,7 +36,7 @@ from cvxpy.transforms.partial_optimize import partial_optimize
 
 
 class TestAtoms(BaseTest):
-    """ Unit tests for the atoms module. """
+    """Unit tests for the atoms module."""
 
     def setUp(self) -> None:
         self.a = Variable(name='a')
@@ -49,8 +49,7 @@ class TestAtoms(BaseTest):
         self.C = Variable((3, 2), name='C')
 
     def test_add_expr_copy(self) -> None:
-        """Test the copy function for AddExpresion class.
-        """
+        """Test the copy function for AddExpresion class."""
         atom = self.x + self.y
         copy = atom.copy()
         self.assertTrue(type(copy) is type(atom))
@@ -67,9 +66,8 @@ class TestAtoms(BaseTest):
         self.assertEqual(copy.get_data(), atom.get_data())
 
     def test_norm_inf(self) -> None:
-        """Test the norm_inf class.
-        """
-        exp = self.x+self.y
+        """Test the norm_inf class."""
+        exp = self.x + self.y
         atom = cp.norm_inf(exp)
         # self.assertEqual(atom.name(), "norm_inf(x + y)")
         self.assertEqual(atom.shape, tuple())
@@ -80,9 +78,8 @@ class TestAtoms(BaseTest):
         self.assertEqual(cp.norm_inf(-atom).curvature, s.CONVEX)
 
     def test_norm1(self) -> None:
-        """Test the norm1 class.
-        """
-        exp = self.x+self.y
+        """Test the norm1 class."""
+        exp = self.x + self.y
         atom = cp.norm1(exp)
         # self.assertEqual(atom.name(), "norm1(x + y)")
         self.assertEqual(atom.shape, tuple())
@@ -91,47 +88,54 @@ class TestAtoms(BaseTest):
         self.assertEqual(cp.norm1(-atom).curvature, s.CONVEX)
 
     def test_list_input(self) -> None:
-        """Test that list input is rejected.
-        """
+        """Test that list input is rejected."""
         with self.assertRaises(Exception) as cm:
             cp.max([cp.Variable(), 1])
-        self.assertTrue(str(cm.exception) in (
-            "The input must be a single CVXPY Expression, not a list. "
-            "Combine Expressions using atoms such as bmat, hstack, and vstack."))
+        self.assertTrue(
+            str(cm.exception)
+            in (
+                'The input must be a single CVXPY Expression, not a list. '
+                'Combine Expressions using atoms such as bmat, hstack, and vstack.'
+            )
+        )
 
         with self.assertRaises(Exception) as cm:
             cp.norm([1, cp.Variable()])
-        self.assertTrue(str(cm.exception) in (
-            "The input must be a single CVXPY Expression, not a list. "
-            "Combine Expressions using atoms such as bmat, hstack, and vstack."))
+        self.assertTrue(
+            str(cm.exception)
+            in (
+                'The input must be a single CVXPY Expression, not a list. '
+                'Combine Expressions using atoms such as bmat, hstack, and vstack.'
+            )
+        )
 
         x = cp.Variable()
         y = cp.Variable()
         with self.assertRaises(Exception) as cm:
             cp.norm([x, y]) <= 1
-        self.assertTrue(str(cm.exception) in (
-            "The input must be a single CVXPY Expression, not a list. "
-            "Combine Expressions using atoms such as bmat, hstack, and vstack."))
+        self.assertTrue(
+            str(cm.exception)
+            in (
+                'The input must be a single CVXPY Expression, not a list. '
+                'Combine Expressions using atoms such as bmat, hstack, and vstack.'
+            )
+        )
 
     def test_norm_exceptions(self) -> None:
-        """Test that norm exceptions are raised as expected.
-        """
+        """Test that norm exceptions are raised as expected."""
         x = cp.Variable(2)
         with self.assertRaises(Exception) as cm:
             cp.norm(x, 'nuc')
-        self.assertTrue(str(cm.exception) in (
-            "Unsupported norm option nuc for non-matrix."))
+        self.assertTrue(str(cm.exception) in ('Unsupported norm option nuc for non-matrix.'))
 
     def test_quad_form(self) -> None:
-        """Test quad_form atom.
-        """
+        """Test quad_form atom."""
         P = Parameter((2, 2), symmetric=True)
         expr = cp.quad_form(self.x, P)
         assert not expr.is_dcp()
 
     def test_power(self) -> None:
-        """Test the power class.
-        """
+        """Test the power class."""
         from fractions import Fraction
 
         for shape in [(1, 1), (3, 1), (2, 3)]:
@@ -139,7 +143,7 @@ class TestAtoms(BaseTest):
             y = Variable(shape)
             exp = x + y
 
-            for p in 0, 1, 2, 3, 2.7, .67, -1, -2.3, Fraction(4, 5):
+            for p in 0, 1, 2, 3, 2.7, 0.67, -1, -2.3, Fraction(4, 5):
                 atom = cp.power(exp, p)
 
                 self.assertEqual(atom.shape, shape)
@@ -207,10 +211,7 @@ class TestAtoms(BaseTest):
         self.assertEqual(copy.get_data(), atom.get_data())
 
         # Error message when geo_mean used incorrectly.
-        with pytest.raises(
-                TypeError,
-                match=SECOND_ARG_SHOULD_NOT_BE_EXPRESSION_ERROR_MESSAGE
-            ):
+        with pytest.raises(TypeError, match=SECOND_ARG_SHOULD_NOT_BE_EXPRESSION_ERROR_MESSAGE):
             cp.geo_mean(self.x, self.y)
 
     # Test the harmonic_mean class.
@@ -258,17 +259,17 @@ class TestAtoms(BaseTest):
         self.assertEqual(atom.curvature, s.CONVEX)
         self.assertEqual(atom.sign, s.NONNEG)
 
-        atom = cp.pnorm(self.x, p=.5)
+        atom = cp.pnorm(self.x, p=0.5)
         self.assertEqual(atom.shape, tuple())
         self.assertEqual(atom.curvature, s.CONCAVE)
         self.assertEqual(atom.sign, s.NONNEG)
 
-        atom = cp.pnorm(self.x, p=.7)
+        atom = cp.pnorm(self.x, p=0.7)
         self.assertEqual(atom.shape, tuple())
         self.assertEqual(atom.curvature, s.CONCAVE)
         self.assertEqual(atom.sign, s.NONNEG)
 
-        atom = cp.pnorm(self.x, p=-.1)
+        atom = cp.pnorm(self.x, p=-0.1)
         self.assertEqual(atom.shape, tuple())
         self.assertEqual(atom.curvature, s.CONCAVE)
         self.assertEqual(atom.sign, s.NONNEG)
@@ -325,12 +326,12 @@ class TestAtoms(BaseTest):
         # Test quad_over_lin shape validation.
         with self.assertRaises(Exception) as cm:
             cp.quad_over_lin(self.x, self.x)
-        self.assertEqual(str(cm.exception),
-                         "The second argument to quad_over_lin must be a scalar.")
+        self.assertEqual(
+            str(cm.exception), 'The second argument to quad_over_lin must be a scalar.'
+        )
 
     def test_elemwise_arg_count(self) -> None:
-        """Test arg count for max and min variants.
-        """
+        """Test arg count for max and min variants."""
         error_message = r"__init__\(\) missing 1 required positional argument: 'arg2'"
         with pytest.raises(TypeError, match=error_message):
             cp.maximum(1)
@@ -339,25 +340,25 @@ class TestAtoms(BaseTest):
             cp.minimum(1)
 
     def test_matrix_frac(self) -> None:
-        """Test for the matrix_frac atom.
-        """
+        """Test for the matrix_frac atom."""
         atom = cp.matrix_frac(self.x, self.A)
         self.assertEqual(atom.shape, tuple())
         self.assertEqual(atom.curvature, s.CONVEX)
         # Test matrix_frac shape validation.
         with self.assertRaises(Exception) as cm:
             cp.matrix_frac(self.x, self.C)
-        self.assertEqual(str(cm.exception),
-                         "The second argument to matrix_frac must be a square matrix.")
+        self.assertEqual(
+            str(cm.exception), 'The second argument to matrix_frac must be a square matrix.'
+        )
 
         with self.assertRaises(Exception) as cm:
             cp.matrix_frac(Variable(3), self.A)
-        self.assertEqual(str(cm.exception),
-                         "The arguments to matrix_frac have incompatible dimensions.")
+        self.assertEqual(
+            str(cm.exception), 'The arguments to matrix_frac have incompatible dimensions.'
+        )
 
     def test_max(self) -> None:
-        """Test max.
-        """
+        """Test max."""
         # One arg, test sign.
         self.assertEqual(cp.max(1).sign, s.NONNEG)
         self.assertEqual(cp.max(-2).sign, s.NONPOS)
@@ -372,17 +373,16 @@ class TestAtoms(BaseTest):
         # Invalid axis.
         with self.assertRaises(Exception) as cm:
             cp.max(self.x, axis=4)
-        self.assertEqual(str(cm.exception), "axis 4 is out of bounds for array of dimension 1")
+        self.assertEqual(str(cm.exception), 'axis 4 is out of bounds for array of dimension 1')
         with self.assertRaises(Exception) as cm:
             cp.max(Variable(2), axis=1).shape
-        self.assertEqual(str(cm.exception), "axis 1 is out of bounds for array of dimension 1")
+        self.assertEqual(str(cm.exception), 'axis 1 is out of bounds for array of dimension 1')
         with self.assertRaises(ValueError) as cm:
             cp.max(self.x, self.x)  # a common erroneous use-case
         self.assertEqual(str(cm.exception), cp.max.__EXPR_AXIS_ERROR__)
 
     def test_min(self) -> None:
-        """Test min.
-        """
+        """Test min."""
         # One arg, test sign.
         self.assertEqual(cp.min(1).sign, s.NONNEG)
         self.assertEqual(cp.min(-2).sign, s.NONPOS)
@@ -397,10 +397,10 @@ class TestAtoms(BaseTest):
         # Invalid axis.
         with self.assertRaises(Exception) as cm:
             cp.min(self.x, axis=4)
-        self.assertEqual(str(cm.exception), "axis 4 is out of bounds for array of dimension 1")
+        self.assertEqual(str(cm.exception), 'axis 4 is out of bounds for array of dimension 1')
         with self.assertRaises(Exception) as cm:
             cp.min(Variable(2), axis=1).shape
-        self.assertEqual(str(cm.exception), "axis 1 is out of bounds for array of dimension 1")
+        self.assertEqual(str(cm.exception), 'axis 1 is out of bounds for array of dimension 1')
         with self.assertRaises(ValueError) as cm:
             cp.min(self.x, self.x)  # a common erroneous use-case
         self.assertEqual(str(cm.exception), cp.min.__EXPR_AXIS_ERROR__)
@@ -433,14 +433,11 @@ class TestAtoms(BaseTest):
         self.assertEqual(cp.maximum(-3, -2).sign, s.NONPOS)
 
         # Many args.
-        self.assertEqual(cp.maximum(-2, Variable(), 0, -1, Variable(), 1).sign,
-                         s.NONNEG)
+        self.assertEqual(cp.maximum(-2, Variable(), 0, -1, Variable(), 1).sign, s.NONNEG)
 
         # Promotion.
-        self.assertEqual(cp.maximum(1, Variable(2)).sign,
-                         s.NONNEG)
-        self.assertEqual(cp.maximum(1, Variable(2)).shape,
-                         (2,))
+        self.assertEqual(cp.maximum(1, Variable(2)).sign, s.NONNEG)
+        self.assertEqual(cp.maximum(1, Variable(2)).shape, (2,))
 
     # Test sign logic for minimum.
     def test_minimum_sign(self) -> None:
@@ -460,18 +457,14 @@ class TestAtoms(BaseTest):
         self.assertEqual(cp.minimum(-3, -2).sign, s.NONPOS)
 
         # Many args.
-        self.assertEqual(cp.minimum(-2, Variable(), 0, -1, Variable(), 1).sign,
-                         s.NONPOS)
+        self.assertEqual(cp.minimum(-2, Variable(), 0, -1, Variable(), 1).sign, s.NONPOS)
 
         # Promotion.
-        self.assertEqual(cp.minimum(-1, Variable(2)).sign,
-                         s.NONPOS)
-        self.assertEqual(cp.minimum(-1, Variable(2)).shape,
-                         (2,))
+        self.assertEqual(cp.minimum(-1, Variable(2)).sign, s.NONPOS)
+        self.assertEqual(cp.minimum(-1, Variable(2)).shape, (2,))
 
     def test_sum(self) -> None:
-        """Test the sum atom.
-        """
+        """Test the sum atom."""
         self.assertEqual(cp.sum(1).sign, s.NONNEG)
         self.assertEqual(cp.sum(Constant([1, -1])).sign, s.UNKNOWN)
         self.assertEqual(cp.sum(Constant([1, -1])).curvature, s.CONSTANT)
@@ -492,11 +485,10 @@ class TestAtoms(BaseTest):
         # Invalid axis.
         with self.assertRaises(Exception) as cm:
             cp.sum(self.x, axis=4)
-        self.assertEqual(str(cm.exception),
-                        "axis 4 is out of bounds for array of dimension 1")
+        self.assertEqual(str(cm.exception), 'axis 4 is out of bounds for array of dimension 1')
         with self.assertRaises(Exception) as cm:
             cp.sum(Variable(2), axis=1).shape
-        self.assertEqual(str(cm.exception), "axis 1 is out of bounds for array of dimension 1")
+        self.assertEqual(str(cm.exception), 'axis 1 is out of bounds for array of dimension 1')
 
         A = sp.eye(3)
         self.assertEqual(cp.sum(A).value, 3)
@@ -505,8 +497,7 @@ class TestAtoms(BaseTest):
         self.assertItemsAlmostEqual(cp.sum(A, axis=0).value, [1, 1, 1])
 
     def test_multiply(self) -> None:
-        """Test the multiply atom.
-        """
+        """Test the multiply atom."""
         self.assertEqual(cp.multiply([1, -1], self.x).sign, s.UNKNOWN)
         self.assertEqual(cp.multiply([1, -1], self.x).curvature, s.AFFINE)
         self.assertEqual(cp.multiply([1, -1], self.x).shape, (2,))
@@ -529,11 +520,11 @@ class TestAtoms(BaseTest):
     # Test the vstack class.
     def test_vstack(self) -> None:
         atom = cp.vstack([self.x, self.y, self.x])
-        self.assertEqual(atom.name(), "Vstack(x, y, x)")
+        self.assertEqual(atom.name(), 'Vstack(x, y, x)')
         self.assertEqual(atom.shape, (3, 2))
 
         atom = cp.vstack([self.A, self.C, self.B])
-        self.assertEqual(atom.name(), "Vstack(A, C, B)")
+        self.assertEqual(atom.name(), 'Vstack(A, C, B)')
         self.assertEqual(atom.shape, (7, 2))
 
         entries = []
@@ -545,13 +536,15 @@ class TestAtoms(BaseTest):
 
         with self.assertRaises(Exception) as cm:
             cp.vstack([self.C, 1])
-        self.assertEqual(str(cm.exception),
-                         "All the input dimensions except for axis 0 must match exactly.")
+        self.assertEqual(
+            str(cm.exception), 'All the input dimensions except for axis 0 must match exactly.'
+        )
 
         with self.assertRaises(Exception) as cm:
             cp.vstack([self.x, Variable(3)])
-        self.assertEqual(str(cm.exception),
-                         "All the input dimensions except for axis 0 must match exactly.")
+        self.assertEqual(
+            str(cm.exception), 'All the input dimensions except for axis 0 must match exactly.'
+        )
 
         with self.assertRaises(TypeError) as cm:
             cp.vstack()
@@ -564,8 +557,9 @@ class TestAtoms(BaseTest):
         # TODO: concatenated is not exposed in cp.concatenated yet. Use cp.concatenate in
         # this test once it is available
         from cvxpy.atoms.affine.concatenate import concatenate
+
         atom = concatenate([self.x, self.y], axis=0)
-        self.assertEqual(atom.name(), "Concatenate(x, y, 0)")
+        self.assertEqual(atom.name(), 'Concatenate(x, y, 0)')
         self.assertEqual(atom.shape, (4,))  # (2 vectors are concatenated on axis 0)
 
         with self.assertRaises(ValueError):
@@ -605,8 +599,7 @@ class TestAtoms(BaseTest):
         # Expected ValueError due to mismatched number of dimensions between arrays
 
     def test_reshape(self) -> None:
-        """Test the reshape class.
-        """
+        """Test the reshape class."""
         expr = cp.reshape(self.A, (4, 1), order='F')
         self.assertEqual(expr.sign, s.UNKNOWN)
         self.assertEqual(expr.curvature, s.AFFINE)
@@ -622,8 +615,7 @@ class TestAtoms(BaseTest):
 
         with self.assertRaises(Exception) as cm:
             cp.reshape(self.C, (5, 4), order='F')
-        self.assertEqual(str(cm.exception),
-                         "Invalid reshape dimensions (5, 4).")
+        self.assertEqual(str(cm.exception), 'Invalid reshape dimensions (5, 4).')
 
         # Test C-style reshape.
         a = np.arange(10)
@@ -647,12 +639,14 @@ class TestAtoms(BaseTest):
         self.assertItemsAlmostEqual(a_np, x.value)
 
         # Test more complex C-style reshape: matrix to another matrix
-        b = np.array([
-            [0, 1, 2],
-            [3, 4, 5],
-            [6, 7, 8],
-            [9, 10, 11],
-        ])
+        b = np.array(
+            [
+                [0, 1, 2],
+                [3, 4, 5],
+                [6, 7, 8],
+                [9, 10, 11],
+            ]
+        )
         b_reshaped = b.reshape((2, 6), order='C')
         X = cp.Variable(b.shape)
         X_reshaped = cp.reshape(X, (2, 6), order='C')
@@ -678,16 +672,16 @@ class TestAtoms(BaseTest):
             numpy_expr_reshaped = np.reshape(numpy_expr, shape)
             self.assertEqual(numpy_expr_reshaped.shape, expected_shape)
 
-        with pytest.raises(ValueError, match="Cannot reshape expression"):
+        with pytest.raises(ValueError, match='Cannot reshape expression'):
             cp.reshape(expr, (8, -1), order='F')
 
-        with pytest.raises(AssertionError, match="Only one"):
+        with pytest.raises(AssertionError, match='Only one'):
             cp.reshape(expr, (-1, -1), order='F')
 
-        with pytest.raises(ValueError, match="Invalid reshape dimensions"):
+        with pytest.raises(ValueError, match='Invalid reshape dimensions'):
             cp.reshape(expr, (-1, 0), order='F')
 
-        with pytest.raises(AssertionError, match="Specified dimension must be nonnegative"):
+        with pytest.raises(AssertionError, match='Specified dimension must be nonnegative'):
             cp.reshape(expr, (-1, -2), order='F')
 
         A = np.array([[1, 2, 3], [4, 5, 6]])
@@ -697,8 +691,7 @@ class TestAtoms(BaseTest):
         assert np.allclose(A_reshaped.value, A.reshape(-1, order='F'))
 
     def test_vec(self) -> None:
-        """Test the vec atom.
-        """
+        """Test the vec atom."""
         expr = cp.vec(self.C, order='F')
         self.assertEqual(expr.sign, s.UNKNOWN)
         self.assertEqual(expr.curvature, s.AFFINE)
@@ -713,8 +706,7 @@ class TestAtoms(BaseTest):
         self.assertEqual(expr.shape, (1,))
 
     def test_diag(self) -> None:
-        """Test the diag atom.
-        """
+        """Test the diag atom."""
         expr = cp.diag(self.x)
         self.assertEqual(expr.sign, s.UNKNOWN)
         self.assertEqual(expr.curvature, s.AFFINE)
@@ -738,8 +730,7 @@ class TestAtoms(BaseTest):
 
         with self.assertRaises(Exception) as cm:
             cp.diag(self.C)
-        self.assertEqual(str(cm.exception),
-                         "Argument to diag must be a vector or square matrix.")
+        self.assertEqual(str(cm.exception), 'Argument to diag must be a vector or square matrix.')
 
         # Test that diag is PSD
         w = np.array([1.0, 2.0])
@@ -768,8 +759,7 @@ class TestAtoms(BaseTest):
         self.assertEqual(X.size, 36)
 
     def test_trace(self) -> None:
-        """Test the trace atom.
-        """
+        """Test the trace atom."""
         expr = cp.trace(self.A)
         self.assertEqual(expr.sign, s.UNKNOWN)
         self.assertEqual(expr.curvature, s.AFFINE)
@@ -777,12 +767,10 @@ class TestAtoms(BaseTest):
 
         with self.assertRaises(Exception) as cm:
             cp.trace(self.C)
-        self.assertEqual(str(cm.exception),
-                         "Argument to trace must be a square matrix.")
+        self.assertEqual(str(cm.exception), 'Argument to trace must be a square matrix.')
 
     def test_trace_sign_psd(self) -> None:
-        """Test sign of trace for psd/nsd inputs.
-        """
+        """Test sign of trace for psd/nsd inputs."""
         X_psd = cp.Variable((2, 2), PSD=True)
         X_nsd = cp.Variable((2, 2), NSD=True)
 
@@ -793,8 +781,7 @@ class TestAtoms(BaseTest):
         assert nsd_trace.is_nonpos()
 
     def test_log1p(self) -> None:
-        """Test the log1p atom.
-        """
+        """Test the log1p atom."""
         expr = cp.log1p(1)
         self.assertEqual(expr.sign, s.NONNEG)
         self.assertEqual(expr.curvature, s.CONSTANT)
@@ -805,8 +792,7 @@ class TestAtoms(BaseTest):
     def test_upper_tri(self) -> None:
         with self.assertRaises(Exception) as cm:
             cp.upper_tri(self.C)
-        self.assertEqual(str(cm.exception),
-                         "Argument to upper_tri must be a square matrix.")
+        self.assertEqual(str(cm.exception), 'Argument to upper_tri must be a square matrix.')
 
     def test_vec_to_upper_tri(self) -> None:
         x = Variable(shape=(3,))
@@ -821,27 +807,24 @@ class TestAtoms(BaseTest):
         actual = Y.value
         expect = np.array([[0, 4], [0, 0]])
         assert np.allclose(actual, expect)
-        A_expect = np.array([[0, 11, 12, 13],
-                             [0, 0, 16, 17],
-                             [0, 0, 0, 21],
-                             [0, 0, 0, 0]])
+        A_expect = np.array([[0, 11, 12, 13], [0, 0, 16, 17], [0, 0, 0, 21], [0, 0, 0, 0]])
         a = np.array([11, 12, 13, 16, 17, 21])
         A_actual = cp.vec_to_upper_tri(a, strict=True).value
         assert np.allclose(A_actual, A_expect)
 
-        with pytest.raises(ValueError, match="must be a triangular number"):
+        with pytest.raises(ValueError, match='must be a triangular number'):
             cp.vec_to_upper_tri(cp.Variable(shape=(4)))
 
-        with pytest.raises(ValueError, match="must be a triangular number"):
+        with pytest.raises(ValueError, match='must be a triangular number'):
             cp.vec_to_upper_tri(cp.Variable(shape=(4)), strict=True)
 
-        with pytest.raises(ValueError, match="must be a vector"):
+        with pytest.raises(ValueError, match='must be a vector'):
             cp.vec_to_upper_tri(cp.Variable(shape=(2, 2)))
 
         # works with row vectors
         assert np.allclose(
             cp.vec_to_upper_tri(np.arange(6)).value,
-            cp.vec_to_upper_tri(np.arange(6).reshape(1, 6)).value
+            cp.vec_to_upper_tri(np.arange(6).reshape(1, 6)).value,
         )
 
         # works with scalars
@@ -850,7 +833,7 @@ class TestAtoms(BaseTest):
     def test_upper_tri_to_full(self) -> None:
         for n in range(3, 8):
             A = upper_tri_to_full(n)
-            v = np.arange(n * (n+1) // 2)
+            v = np.arange(n * (n + 1) // 2)
             M = (A @ v).reshape((n, n), order='F')
             assert np.allclose(M, M.T)
 
@@ -860,13 +843,15 @@ class TestAtoms(BaseTest):
 
         with self.assertRaises(Exception) as cm:
             cp.huber(self.x, -1)
-        self.assertEqual(str(cm.exception),
-                         "M must be a non-negative scalar constant or Parameter.")
+        self.assertEqual(
+            str(cm.exception), 'M must be a non-negative scalar constant or Parameter.'
+        )
 
         with self.assertRaises(Exception) as cm:
             cp.huber(self.x, [1, 1])
-        self.assertEqual(str(cm.exception),
-                         "M must be a non-negative scalar constant or Parameter.")
+        self.assertEqual(
+            str(cm.exception), 'M must be a non-negative scalar constant or Parameter.'
+        )
 
         # M parameter.
         M = Parameter(nonneg=True)
@@ -878,8 +863,9 @@ class TestAtoms(BaseTest):
         M = Parameter(nonpos=True)
         with self.assertRaises(Exception) as cm:
             cp.huber(self.x, M)
-        self.assertEqual(str(cm.exception),
-                         "M must be a non-negative scalar constant or Parameter.")
+        self.assertEqual(
+            str(cm.exception), 'M must be a non-negative scalar constant or Parameter.'
+        )
 
         # Test copy with args=None
         atom = cp.huber(self.x, 2)
@@ -920,7 +906,7 @@ class TestAtoms(BaseTest):
         # Test with DPP
         x = cp.Variable()
         M = cp.Parameter(nonneg=True)
-        problem = cp.Problem(cp.Minimize(x**2 + cp.huber(3*x-5, 2 * M + 0.15)), [x >= 0.5])
+        problem = cp.Problem(cp.Minimize(x**2 + cp.huber(3 * x - 5, 2 * M + 0.15)), [x >= 0.5])
 
         M.value = 0.425
         result = problem.solve()
@@ -938,27 +924,22 @@ class TestAtoms(BaseTest):
         self.assertAlmostEqual(x.value, 1.5)
 
     def test_sum_largest(self) -> None:
-        """Test the sum_largest atom and related atoms.
-        """
+        """Test the sum_largest atom and related atoms."""
         with self.assertRaises(Exception) as cm:
             cp.sum_largest(self.x, -1)
-        self.assertEqual(str(cm.exception),
-                         "Second argument must be a positive integer.")
+        self.assertEqual(str(cm.exception), 'Second argument must be a positive integer.')
 
         with self.assertRaises(Exception) as cm:
             cp.lambda_sum_largest(self.x, 2.4)
-        self.assertEqual(str(cm.exception),
-                         "First argument must be a square matrix.")
+        self.assertEqual(str(cm.exception), 'First argument must be a square matrix.')
 
         with self.assertRaises(Exception) as cm:
             cp.lambda_sum_largest(Variable((2, 2)), 2.4)
-        self.assertEqual(str(cm.exception),
-                         "Second argument must be a positive integer.")
+        self.assertEqual(str(cm.exception), 'Second argument must be a positive integer.')
 
         with self.assertRaises(ValueError) as cm:
             cp.lambda_sum_largest([[1, 2], [3, 4]], 2).value
-        self.assertEqual(str(cm.exception),
-                         "Input matrix was not Hermitian/symmetric.")
+        self.assertEqual(str(cm.exception), 'Input matrix was not Hermitian/symmetric.')
 
         # Test copy with args=None
         atom = cp.sum_largest(self.x, 2)
@@ -992,17 +973,14 @@ class TestAtoms(BaseTest):
             self.assertAlmostEqual(expr.value, v[prev_idx].sum())
 
     def test_sum_smallest(self) -> None:
-        """Test the sum_smallest atom and related atoms.
-        """
+        """Test the sum_smallest atom and related atoms."""
         with self.assertRaises(Exception) as cm:
             cp.sum_smallest(self.x, -1)
-        self.assertEqual(str(cm.exception),
-                         "Second argument must be a positive integer.")
+        self.assertEqual(str(cm.exception), 'Second argument must be a positive integer.')
 
         with self.assertRaises(Exception) as cm:
             cp.lambda_sum_smallest(Variable((2, 2)), 2.4)
-        self.assertEqual(str(cm.exception),
-                         "Second argument must be a positive integer.")
+        self.assertEqual(str(cm.exception), 'Second argument must be a positive integer.')
 
         # Check that sum_smallest is PWL so can be canonicalized as a QP.
         atom = cp.sum_smallest(self.x, 2)
@@ -1016,7 +994,7 @@ class TestAtoms(BaseTest):
         # Generate problem data
         m = 100  # Size of random vector
         x = np.random.randn(m)  # Random vector
-        betas = [0.1, 0.5, 0.9, 0.95, 0.99] # Probability levels
+        betas = [0.1, 0.5, 0.9, 0.95, 0.99]  # Probability levels
 
         for beta in betas:
             # Evaluate using cvar atom
@@ -1025,7 +1003,7 @@ class TestAtoms(BaseTest):
 
             # Evaluate CVaR using alternative formulation
             alpha = cp.Variable()
-            objective = alpha + 1/((1-beta)*m) * cp.sum(cp.pos(x - alpha))
+            objective = alpha + 1 / ((1 - beta) * m) * cp.sum(cp.pos(x - alpha))
             prob_alt = cp.Problem(cp.Minimize(objective))
             cvar_alt_value = prob_alt.solve()
 
@@ -1052,7 +1030,7 @@ class TestAtoms(BaseTest):
         # Define constraints
         constraints = [
             x >= 0,  # Non-negativity constraint
-            cp.cvar(A @ x, beta) <= kappa  # CVaR constraint
+            cp.cvar(A @ x, beta) <= kappa,  # CVaR constraint
         ]
 
         # Create and solve the problem
@@ -1068,9 +1046,9 @@ class TestAtoms(BaseTest):
         # Check that the CVaR constraint is satisfied
         cvar_value = cp.cvar(A @ x.value, beta).value
         self.assertTrue(cvar_value <= kappa)
+
     def test_index(self) -> None:
-        """Test the copy function for index.
-        """
+        """Test the copy function for index."""
         # Test copy with args=None
         shape = (5, 4)
         A = Variable(shape)
@@ -1090,21 +1068,19 @@ class TestAtoms(BaseTest):
         self.assertEqual(copy.get_data(), atom.get_data())
 
     def test_bmat(self) -> None:
-        """Test the bmat atom.
-        """
+        """Test the bmat atom."""
         v_np = np.ones((3, 1))
-        expr = np.vstack([np.hstack([v_np, v_np]),
-                          np.hstack([np.zeros((2, 1)),
-                                     np.array([[1, 2]]).T])])
+        expr = np.vstack(
+            [np.hstack([v_np, v_np]), np.hstack([np.zeros((2, 1)), np.array([[1, 2]]).T])]
+        )
         self.assertEqual(expr.shape, (5, 2))
-        const = np.vstack([np.hstack([v_np, v_np]),
-                           np.hstack([np.zeros((2, 1)),
-                                      np.array([[1, 2]]).T])])
+        const = np.vstack(
+            [np.hstack([v_np, v_np]), np.hstack([np.zeros((2, 1)), np.array([[1, 2]]).T])]
+        )
         self.assertItemsAlmostEqual(expr, const)
 
     def test_conv(self) -> None:
-        """Test the conv atom.
-        """
+        """Test the conv atom."""
         a = np.ones((3, 1))
         b = Parameter(2, nonneg=True)
         expr = cp.conv(a, b)
@@ -1115,12 +1091,10 @@ class TestAtoms(BaseTest):
         assert expr.is_nonpos()
         with self.assertRaises(Exception) as cm:
             cp.conv(self.x, -1)
-        self.assertEqual(str(cm.exception),
-                         "The first argument to conv must be constant.")
+        self.assertEqual(str(cm.exception), 'The first argument to conv must be constant.')
         with self.assertRaises(Exception) as cm:
             cp.conv([[0, 1], [0, 1]], self.x)
-        self.assertEqual(str(cm.exception),
-                         "The arguments to conv must resolve to vectors.")
+        self.assertEqual(str(cm.exception), 'The arguments to conv must resolve to vectors.')
 
         # Test with parameter input.
         # https://github.com/cvxpy/cvxpy/issues/2218
@@ -1154,7 +1128,7 @@ class TestAtoms(BaseTest):
             x = cp.Variable((4, 3), pos=True)
             expr = cp.cumprod(x, axis=axis)
             # constant needs to be elementwise positive
-            x_val = (np.arange(12)+1).reshape((4, 3))
+            x_val = (np.arange(12) + 1).reshape((4, 3))
 
             target = np.cumprod(x_val, axis=axis)
             prob = cp.Problem(cp.Minimize(cp.sum(expr)), [x == x_val])
@@ -1163,8 +1137,7 @@ class TestAtoms(BaseTest):
             assert np.allclose(expr.value, target)
 
     def test_kron_expr(self) -> None:
-        """Test the kron atom.
-        """
+        """Test the kron atom."""
         a = np.ones((3, 2))
         b = Parameter((2, 1), nonneg=True)
         expr = cp.kron(a, b)
@@ -1175,12 +1148,10 @@ class TestAtoms(BaseTest):
         assert expr.is_nonpos()
         with self.assertRaises(Exception) as cm:
             cp.kron(self.x, self.x)
-        self.assertEqual(str(cm.exception),
-                         "At least one argument to kron must be constant.")
+        self.assertEqual(str(cm.exception), 'At least one argument to kron must be constant.')
 
     def test_convolve(self) -> None:
-        """Test the convolve atom.
-        """
+        """Test the convolve atom."""
         a = np.ones((3,))
         b = Parameter(2, nonneg=True)
         expr = cp.convolve(a, b)
@@ -1191,9 +1162,8 @@ class TestAtoms(BaseTest):
         assert expr.is_nonpos()
         with self.assertRaises(Exception) as cm:
             cp.convolve(self.x, -1)
-        self.assertEqual(str(cm.exception),
-                         "The first argument to conv must be constant.")
-        with pytest.raises(ValueError, match="scalar or 1D"):
+        self.assertEqual(str(cm.exception), 'The first argument to conv must be constant.')
+        with pytest.raises(ValueError, match='scalar or 1D'):
             cp.convolve([[0, 1], [0, 1]], self.x)
 
         # Test with parameter input.
@@ -1212,13 +1182,12 @@ class TestAtoms(BaseTest):
             problem.solve(enforce_dpp=True)
 
     def test_ptp(self) -> None:
-        """Test the ptp atom.
-        """
-        a = np.array([[10., -10., 3.0], [6., 0., -1.5]])
+        """Test the ptp atom."""
+        a = np.array([[10.0, -10.0, 3.0], [6.0, 0.0, -1.5]])
         expr = cp.ptp(a)
         assert expr.is_nonneg()
         assert expr.shape == ()
-        assert np.isclose(expr.value, 20.)
+        assert np.isclose(expr.value, 20.0)
 
         expr = cp.ptp(a, axis=0)
         assert expr.is_nonneg()
@@ -1228,7 +1197,7 @@ class TestAtoms(BaseTest):
         expr = cp.ptp(a, axis=1)
         assert expr.is_nonneg()
         expr.shape == (2,)
-        assert np.allclose(expr.value, np.array([20., 7.5]))
+        assert np.allclose(expr.value, np.array([20.0, 7.5]))
 
         expr = cp.ptp(a, 0, True)
         assert expr.is_nonneg()
@@ -1238,16 +1207,15 @@ class TestAtoms(BaseTest):
         expr = cp.ptp(a, 1, True)
         assert expr.is_nonneg()
         assert expr.shape == (2, 1)
-        assert np.allclose(expr.value, np.array([[20.], [7.5]]))
+        assert np.allclose(expr.value, np.array([[20.0], [7.5]]))
 
         x = cp.Variable(10)
         expr = cp.ptp(x)
         assert expr.curvature == 'CONVEX'
 
     def test_stats(self) -> None:
-        """Test the mean, std, var atoms.
-        """
-        a = np.array([[10., 10., 3.0], [6., 0., 1.5]])
+        """Test the mean, std, var atoms."""
+        a = np.array([[10.0, 10.0, 3.0], [6.0, 0.0, 1.5]])
         expr_mean = cp.mean(a)
         expr_var = cp.var(a)
         expr_std = cp.std(a)
@@ -1281,8 +1249,7 @@ class TestAtoms(BaseTest):
                 assert np.allclose(a.std(axis=axis, keepdims=keepdims), expr_std.value)
 
     def test_partial_optimize_dcp(self) -> None:
-        """Test DCP properties of partial optimize.
-        """
+        """Test DCP properties of partial optimize."""
         # Evaluate the 1-norm in the usual way (i.e., in epigraph form).
         dims = 3
         x, t = Variable(dims), Variable(dims)
@@ -1300,12 +1267,11 @@ class TestAtoms(BaseTest):
         self.assertEqual(g.is_concave(), False)
 
     def test_partial_optimize_eval_1norm(self) -> None:
-        """Test the partial_optimize atom.
-        """
+        """Test the partial_optimize atom."""
         # Evaluate the 1-norm in the usual way (i.e., in epigraph form).
         dims = 3
         x, t = Variable(dims), Variable(dims)
-        xval = [-5]*dims
+        xval = [-5] * dims
         p1 = Problem(cp.Minimize(cp.sum(t)), [-t <= xval, xval <= t])
         p1.solve()
 
@@ -1340,15 +1306,19 @@ class TestAtoms(BaseTest):
 
         with self.assertRaises(Exception) as cm:
             g = partial_optimize(p2)
-        self.assertEqual(str(cm.exception),
-                         "partial_optimize called with neither opt_vars nor dont_opt_vars.")
+        self.assertEqual(
+            str(cm.exception), 'partial_optimize called with neither opt_vars nor dont_opt_vars.'
+        )
 
         with self.assertRaises(Exception) as cm:
             g = partial_optimize(p2, [], [x])
-        self.assertEqual(str(cm.exception),
-                         ("If opt_vars and new_opt_vars are both specified, "
-                          "they must contain all variables in the problem.")
-                         )
+        self.assertEqual(
+            str(cm.exception),
+            (
+                'If opt_vars and new_opt_vars are both specified, '
+                'they must contain all variables in the problem.'
+            ),
+        )
 
     def test_partial_optimize_min_1norm(self) -> None:
         # Minimize the 1-norm in the usual way
@@ -1369,29 +1339,29 @@ class TestAtoms(BaseTest):
 
         # Solve the (simple) two-stage problem by "combining" the two stages
         # (i.e., by solving a single linear program)
-        p1 = Problem(Minimize(x+y), [x+y >= 3, y >= 4, x >= 5])
+        p1 = Problem(Minimize(x + y), [x + y >= 3, y >= 4, x >= 5])
         p1.solve(solver=cp.CLARABEL)
 
         # Solve the two-stage problem via partial_optimize
-        p2 = Problem(Minimize(y), [x+y >= 3, y >= 4])
+        p2 = Problem(Minimize(y), [x + y >= 3, y >= 4])
         g = partial_optimize(p2, [y], [x])
-        p3 = Problem(Minimize(x+g), [x >= 5])
+        p3 = Problem(Minimize(x + g), [x >= 5])
         p3.solve(solver=cp.CLARABEL)
         self.assertAlmostEqual(p1.value, p3.value)
 
-    @unittest.skipUnless("HIGHS" in INSTALLED_MI_SOLVERS, 'HiGHS solver is not installed.')
+    @unittest.skipUnless('HIGHS' in INSTALLED_MI_SOLVERS, 'HiGHS solver is not installed.')
     def test_partial_optimize_special_var(self) -> None:
         x, y = Variable(boolean=True), Variable(integer=True)
 
         # Solve the (simple) two-stage problem by "combining" the two stages
         # (i.e., by solving a single linear program)
-        p1 = Problem(Minimize(x+y), [x+y >= 3, y >= 4, x >= 5])
+        p1 = Problem(Minimize(x + y), [x + y >= 3, y >= 4, x >= 5])
         p1.solve(solver=cp.HIGHS)
 
         # Solve the two-stage problem via partial_optimize
-        p2 = Problem(Minimize(y), [x+y >= 3, y >= 4])
+        p2 = Problem(Minimize(y), [x + y >= 3, y >= 4])
         g = partial_optimize(p2, [y], [x])
-        p3 = Problem(Minimize(x+g), [x >= 5])
+        p3 = Problem(Minimize(x + g), [x >= 5])
         p3.solve(solver=cp.HIGHS)
         self.assertAlmostEqual(p1.value, p3.value)
 
@@ -1400,32 +1370,31 @@ class TestAtoms(BaseTest):
 
         # Solve the (simple) two-stage problem by "combining" the two stages
         # (i.e., by solving a single linear program)
-        p1 = Problem(Minimize(x + cp.exp(y)), [x+y >= 3, y >= 4, x >= 5])
+        p1 = Problem(Minimize(x + cp.exp(y)), [x + y >= 3, y >= 4, x >= 5])
         p1.solve(solver=cp.SCS, eps=1e-9)
 
         # Solve the two-stage problem via partial_optimize
-        p2 = Problem(Minimize(cp.exp(y)), [x+y >= 3, y >= 4])
+        p2 = Problem(Minimize(cp.exp(y)), [x + y >= 3, y >= 4])
         g = partial_optimize(p2, [y], [x], solver=cp.SCS, eps=1e-9)
-        p3 = Problem(Minimize(x+g), [x >= 5])
+        p3 = Problem(Minimize(x + g), [x >= 5])
         p3.solve(solver=cp.SCS, eps=1e-9)
         self.assertAlmostEqual(p1.value, p3.value, places=4)
 
     def test_partial_optimize_params(self) -> None:
-        """Test partial optimize with parameters.
-        """
+        """Test partial optimize with parameters."""
         x, y = Variable(1), Variable(1)
         gamma = Parameter()
 
         # Solve the (simple) two-stage problem by "combining" the two stages
         # (i.e., by solving a single linear program)
-        p1 = Problem(Minimize(x+y), [x+y >= gamma, y >= 4, x >= 5])
+        p1 = Problem(Minimize(x + y), [x + y >= gamma, y >= 4, x >= 5])
         gamma.value = 3
         p1.solve(solver=cp.SCS, eps=1e-6)
 
         # Solve the two-stage problem via partial_optimize
-        p2 = Problem(Minimize(y), [x+y >= gamma, y >= 4])
+        p2 = Problem(Minimize(y), [x + y >= gamma, y >= 4])
         g = partial_optimize(p2, [y], [x], solver=cp.SCS, eps=1e-6)
-        p3 = Problem(Minimize(x+g), [x >= 5])
+        p3 = Problem(Minimize(x + g), [x >= 5])
         p3.solve(solver=cp.SCS, eps=1e-6)
         self.assertAlmostEqual(p1.value, p3.value)
 
@@ -1435,12 +1404,12 @@ class TestAtoms(BaseTest):
 
         # Solve the (simple) two-stage problem by "combining" the two stages
         # (i.e., by solving a single linear program)
-        p1 = Problem(Minimize(y), [xval+y >= 3])
+        p1 = Problem(Minimize(y), [xval + y >= 3])
         p1.solve(solver=cp.SCS, eps=1e-6)
 
         # Solve the two-stage problem via partial_optimize
         constr = [y >= -100]
-        p2 = Problem(Minimize(y), [x+y >= 3] + constr)
+        p2 = Problem(Minimize(y), [x + y >= 3] + constr)
         g = partial_optimize(p2, [y], [x], solver=cp.SCS, eps=1e-6)
         x.value = xval
         y.value = 42
@@ -1451,7 +1420,7 @@ class TestAtoms(BaseTest):
         self.assertAlmostEqual(constr[0].dual_value, 42)
 
         # No variables optimized over.
-        p2 = Problem(Minimize(y), [x+y >= 3])
+        p2 = Problem(Minimize(y), [x + y >= 3])
         g = partial_optimize(p2, [], [x, y], solver=cp.SCS, eps=1e-6)
         x.value = xval
         y.value = 42
@@ -1462,8 +1431,7 @@ class TestAtoms(BaseTest):
         self.assertAlmostEqual(p2.constraints[0].dual_value, 42)
 
     def test_partial_optimize_stacked(self) -> None:
-        """Minimize the 1-norm in the usual way
-        """
+        """Minimize the 1-norm in the usual way"""
         dims = 3
         x = Variable(dims, name='x')
         t = Variable(dims, name='t')
@@ -1471,7 +1439,10 @@ class TestAtoms(BaseTest):
 
         # Minimize the 1-norm via partial_optimize
         g = partial_optimize(p1, [t], [x])
-        g2 = partial_optimize(Problem(Minimize(g)), [x], )
+        g2 = partial_optimize(
+            Problem(Minimize(g)),
+            [x],
+        )
         p2 = Problem(Minimize(g2))
         p2.solve()
 
@@ -1479,26 +1450,23 @@ class TestAtoms(BaseTest):
         self.assertAlmostEqual(p1.value, p2.value)
 
     def test_nonnegative_variable(self) -> None:
-        """Test the NonNegative Variable class.
-        """
+        """Test the NonNegative Variable class."""
         x = Variable(nonneg=True)
-        p = Problem(Minimize(5+x), [x >= 3])
+        p = Problem(Minimize(5 + x), [x >= 3])
         p.solve(solver=cp.SCS, eps=1e-5)
         self.assertAlmostEqual(p.value, 8)
         self.assertAlmostEqual(x.value, 3)
 
     def test_mixed_norm(self) -> None:
-        """Test mixed norm.
-        """
+        """Test mixed norm."""
         y = Variable((5, 5))
-        obj = Minimize(cp.mixed_norm(y, "inf", 1))
+        obj = Minimize(cp.mixed_norm(y, 'inf', 1))
         prob = Problem(obj, [y == np.ones((5, 5))])
         result = prob.solve(solver=cp.SCS)
         self.assertAlmostEqual(result, 5)
 
     def test_mat_norms(self) -> None:
-        """Test that norm1 and normInf match definition for matrices.
-        """
+        """Test that norm1 and normInf match definition for matrices."""
         A = np.array([[1, 2], [3, 4]])
         X = Variable((2, 2))
         obj = Minimize(cp.norm(X, 1))
@@ -1515,7 +1483,7 @@ class TestAtoms(BaseTest):
         x = cp.Variable()
         constraints = [0 <= x, x <= 1]
         expr = cp.transforms.indicator(constraints)
-        x.value = .5
+        x.value = 0.5
         self.assertEqual(expr.value, 0.0)
         x.value = 2
         self.assertEqual(expr.value, np.inf)
@@ -1524,24 +1492,19 @@ class TestAtoms(BaseTest):
         # test malformed input
         with self.assertRaises(ValueError) as cm:
             cp.log_det([[1, 2], [3, 4]]).value
-        self.assertEqual(str(cm.exception),
-                         "Input matrix was not Hermitian/symmetric.")
+        self.assertEqual(str(cm.exception), 'Input matrix was not Hermitian/symmetric.')
 
     def test_lambda_max(self) -> None:
         with self.assertRaises(ValueError) as cm:
             cp.lambda_max([[1, 2], [3, 4]]).value
-        self.assertEqual(str(cm.exception),
-                         "Input matrix was not Hermitian/symmetric.")
+        self.assertEqual(str(cm.exception), 'Input matrix was not Hermitian/symmetric.')
 
     def test_diff(self) -> None:
-        """Test the diff atom.
-        """
+        """Test the diff atom."""
         A = cp.Variable((20, 10))
         B = np.zeros((20, 10))
-        self.assertEqual(cp.diff(A, axis=0).shape,
-                         np.diff(B, axis=0).shape)
-        self.assertEqual(cp.diff(A, axis=1).shape,
-                         np.diff(B, axis=1).shape)
+        self.assertEqual(cp.diff(A, axis=0).shape, np.diff(B, axis=0).shape)
+        self.assertEqual(cp.diff(A, axis=1).shape, np.diff(B, axis=1).shape)
 
         # Issue #1834
 
@@ -1553,7 +1516,7 @@ class TestAtoms(BaseTest):
         expr = cp.diff(x2, axis=1)
         self.assertItemsAlmostEqual(expr.value, np.diff(x1, axis=1))
 
-        with pytest.raises(ValueError, match="< k elements"):
+        with pytest.raises(ValueError, match='< k elements'):
             cp.diff(x1, axis=0).value
 
     def test_log_normcdf(self) -> None:
@@ -1577,8 +1540,7 @@ class TestAtoms(BaseTest):
         )
 
     def test_vdot(self) -> None:
-        """Test scalar product.
-        """
+        """Test scalar product."""
         p = np.ones((4,))
         v = cp.Variable((4,))
 
@@ -1608,8 +1570,7 @@ class TestAtoms(BaseTest):
         assert np.allclose(v.value, p.value)
 
     def test_outer(self) -> None:
-        """Test the outer atom.
-        """
+        """Test the outer atom."""
         a = np.ones((3,))
         b = Variable((2,))
         expr = cp.outer(a, b)
@@ -1632,18 +1593,18 @@ class TestAtoms(BaseTest):
         # Test with matrices
         A = np.arange(4).reshape((2, 2))
 
-        with pytest.raises(ValueError, match="x must be a vector"):
+        with pytest.raises(ValueError, match='x must be a vector'):
             cp.outer(A, d)
-        with pytest.raises(ValueError, match="y must be a vector"):
+        with pytest.raises(ValueError, match='y must be a vector'):
             cp.outer(d, A)
 
         # allow 2D inputs once row-major flattening is the default
-        assert np.allclose(cp.vec(np.array([[1, 2], [3, 4]]), order='F').value,
-                           np.array([1, 3, 2, 4]))
+        assert np.allclose(
+            cp.vec(np.array([[1, 2], [3, 4]]), order='F').value, np.array([1, 3, 2, 4])
+        )
 
     def test_conj(self) -> None:
-        """Test conj.
-        """
+        """Test conj."""
         v = cp.Variable((4,))
         obj = cp.Minimize(cp.sum(v))
         prob = cp.Problem(obj, [cp.conj(v) >= 1])
@@ -1651,8 +1612,7 @@ class TestAtoms(BaseTest):
         assert np.allclose(v.value, np.ones((4,)))
 
     def test_loggamma(self) -> None:
-        """Test the approximation of log-gamma.
-        """
+        """Test the approximation of log-gamma."""
         # Test evaluation.
         A = np.arange(1, 10)
         A = np.reshape(A, (3, 3))
@@ -1662,8 +1622,7 @@ class TestAtoms(BaseTest):
         # Test solving a problem.
         X = cp.Variable((3, 3))
         cost = cp.sum(cp.loggamma(X))
-        prob = cp.Problem(cp.Minimize(cost),
-                          [X == A])
+        prob = cp.Problem(cp.Minimize(cost), [X == A])
         result = prob.solve(solver=cp.SCS)
         assert np.isclose(result, true_val.sum(), atol=1e0)
 
@@ -1678,11 +1637,11 @@ class TestAtoms(BaseTest):
         np.random.seed(1)
 
         # Generate five test cases
-        rho_A = np.random.random((4, 4)) + 1j*np.random.random((4, 4))
+        rho_A = np.random.random((4, 4)) + 1j * np.random.random((4, 4))
         rho_A /= np.trace(rho_A)
-        rho_B = np.random.random((3, 3)) + 1j*np.random.random((3, 3))
+        rho_B = np.random.random((3, 3)) + 1j * np.random.random((3, 3))
         rho_B /= np.trace(rho_B)
-        rho_C = np.random.random((2, 2)) + 1j*np.random.random((2, 2))
+        rho_C = np.random.random((2, 2)) + 1j * np.random.random((2, 2))
         rho_C /= np.trace(rho_C)
         rho_AB = np.kron(rho_A, rho_B)
         rho_AC = np.kron(rho_A, rho_C)
@@ -1708,25 +1667,25 @@ class TestAtoms(BaseTest):
         assert np.allclose(rho_C_test.value, rho_C)
 
     def test_partial_trace_exceptions(self) -> None:
-        """Test exceptions raised by partial trace.
-        """
+        """Test exceptions raised by partial trace."""
         X = cp.Variable((4, 3))
         with self.assertRaises(ValueError) as cm:
             cp.partial_trace(X, dims=[2, 3], axis=0)
-        self.assertEqual(str(cm.exception),
-                         "Only supports square matrices.")
+        self.assertEqual(str(cm.exception), 'Only supports square matrices.')
 
         X = cp.Variable((6, 6))
         with self.assertRaises(ValueError) as cm:
             cp.partial_trace(X, dims=[2, 3], axis=-1)
-        self.assertEqual(str(cm.exception),
-                         "Invalid axis argument, should be between 0 and 2, got -1.")
+        self.assertEqual(
+            str(cm.exception), 'Invalid axis argument, should be between 0 and 2, got -1.'
+        )
 
         X = cp.Variable((6, 6))
         with self.assertRaises(ValueError) as cm:
             cp.partial_trace(X, dims=[2, 4], axis=0)
-        self.assertEqual(str(cm.exception),
-                         "Dimension of system doesn't correspond to dimension of subsystems.")
+        self.assertEqual(
+            str(cm.exception), "Dimension of system doesn't correspond to dimension of subsystems."
+        )
 
     def test_partial_transpose(self) -> None:
         """
@@ -1739,11 +1698,11 @@ class TestAtoms(BaseTest):
         np.random.seed(1)
 
         # Generate three test cases
-        rho_A = np.random.random((8, 8)) + 1j*np.random.random((8, 8))
+        rho_A = np.random.random((8, 8)) + 1j * np.random.random((8, 8))
         rho_A /= np.trace(rho_A)
-        rho_B = np.random.random((6, 6)) + 1j*np.random.random((6, 6))
+        rho_B = np.random.random((6, 6)) + 1j * np.random.random((6, 6))
         rho_B /= np.trace(rho_B)
-        rho_C = np.random.random((4, 4)) + 1j*np.random.random((4, 4))
+        rho_C = np.random.random((4, 4)) + 1j * np.random.random((4, 4))
         rho_C /= np.trace(rho_C)
 
         rho_TC = np.kron(np.kron(rho_A, rho_B), rho_C.T)
@@ -1767,29 +1726,28 @@ class TestAtoms(BaseTest):
         assert np.allclose(rho_TA_test.value, rho_TA)
 
     def test_partial_transpose_exceptions(self) -> None:
-        """Test exceptions raised by partial trace.
-        """
+        """Test exceptions raised by partial trace."""
         X = cp.Variable((4, 3))
         with self.assertRaises(ValueError) as cm:
             cp.partial_transpose(X, dims=[2, 3], axis=0)
-        self.assertEqual(str(cm.exception),
-                         "Only supports square matrices.")
+        self.assertEqual(str(cm.exception), 'Only supports square matrices.')
 
         X = cp.Variable((6, 6))
         with self.assertRaises(ValueError) as cm:
             cp.partial_transpose(X, dims=[2, 3], axis=-1)
-        self.assertEqual(str(cm.exception),
-                         "Invalid axis argument, should be between 0 and 2, got -1.")
+        self.assertEqual(
+            str(cm.exception), 'Invalid axis argument, should be between 0 and 2, got -1.'
+        )
 
         X = cp.Variable((6, 6))
         with self.assertRaises(ValueError) as cm:
             cp.partial_transpose(X, dims=[2, 4], axis=0)
-        self.assertEqual(str(cm.exception),
-                         "Dimension of system doesn't correspond to dimension of subsystems.")
+        self.assertEqual(
+            str(cm.exception), "Dimension of system doesn't correspond to dimension of subsystems."
+        )
 
     def test_log_sum_exp(self) -> None:
-        """Test log_sum_exp sign.
-        """
+        """Test log_sum_exp sign."""
         # Test for non-negative x
         x = Variable(nonneg=True)
         atom = cp.log_sum_exp(x)
@@ -1837,7 +1795,7 @@ class TestAtoms(BaseTest):
         self.assertItemsAlmostEqual(x.value, reshaped)
 
     def test_tr_inv(self) -> None:
-        """Test tr_inv atom. """
+        """Test tr_inv atom."""
         T = 5
         # Solves the following SDP problem:
         #           minimize    trace(inv(X))
@@ -1850,9 +1808,7 @@ class TestAtoms(BaseTest):
         # Define and solve the CVXPY problem.
         # X should be a PSD
         constraints = [X >> 0]
-        constraints += [
-            cp.trace(X) == 1
-        ]
+        constraints += [cp.trace(X) == 1]
         prob = cp.Problem(cp.Minimize(cp.tr_inv(X)), constraints)
         prob.solve()
         # Check result. The best value is T^2.
@@ -1881,8 +1837,9 @@ class TestAtoms(BaseTest):
         # where X of the naive result is I.
         self.assertTrue(prob.value < naiveRes)
 
+
 class TestDotsort(BaseTest):
-    """ Unit tests for the dotsort atom. """
+    """Unit tests for the dotsort atom."""
 
     def setUp(self) -> None:
         self.x = cp.Variable(5)
@@ -1925,15 +1882,16 @@ class TestDotsort(BaseTest):
         x_val = np.arange(25).reshape((5, 5))
         w = np.arange(4).reshape((2, 2))
         w_padded = np.zeros_like(x_val)
-        w_padded[:w.shape[0], :w.shape[1]] = w
+        w_padded[: w.shape[0], : w.shape[1]] = w
         expr = cp.dotsort(x, w)
         assert expr.is_convex()
         assert expr.is_incr(0)
 
         prob = cp.Problem(cp.Minimize(expr), [x == x_val])
         prob.solve()
-        self.assertAlmostEqual(prob.objective.value,
-                               np.sort(x_val.flatten()) @ np.sort(w_padded.flatten()))
+        self.assertAlmostEqual(
+            prob.objective.value, np.sort(x_val.flatten()) @ np.sort(w_padded.flatten())
+        )
 
     def test_0D(self):
         # scalar w
@@ -1962,15 +1920,16 @@ class TestDotsort(BaseTest):
         x_val = np.arange(25).reshape((5, 5))
         w = np.arange(4).reshape((2, 2))
         w_padded = np.zeros_like(x_val)
-        w_padded[:w.shape[0], :w.shape[1]] = w
+        w_padded[: w.shape[0], : w.shape[1]] = w
         expr = cp.dotsort(x, w)
         assert expr.is_convex()
         assert expr.is_incr(0)
 
         prob = cp.Problem(cp.Minimize(expr), [])
         prob.solve()
-        self.assertAlmostEqual(prob.objective.value,
-                               np.sort(x_val.flatten()) @ np.sort(w_padded.flatten()))
+        self.assertAlmostEqual(
+            prob.objective.value, np.sort(x_val.flatten()) @ np.sort(w_padded.flatten())
+        )
 
     def test_parameter(self):
         x_val = np.array([1, 3, 2, -5, 0])
@@ -1987,12 +1946,14 @@ class TestDotsort(BaseTest):
 
         prob = cp.Problem(cp.Minimize(expr), [self.x == x_val])
         prob.solve(enforce_dpp=True)
-        self.assertAlmostEqual(prob.objective.value,
-                               np.sort(x_val) @ np.sort(np.array([1, 0, 0, 0, 0])))
+        self.assertAlmostEqual(
+            prob.objective.value, np.sort(x_val) @ np.sort(np.array([1, 0, 0, 0, 0]))
+        )
         w_p.value = [-1, -1]
         prob.solve(enforce_dpp=True)
-        self.assertAlmostEqual(prob.objective.value,
-                               np.sort(x_val) @ np.sort(np.array([-1, -1, 0, 0, 0])))
+        self.assertAlmostEqual(
+            prob.objective.value, np.sort(x_val) @ np.sort(np.array([-1, -1, 0, 0, 0]))
+        )
 
         # Test parameter affine
         w_p = cp.Parameter(2, value=[1, 0])
@@ -2000,35 +1961,38 @@ class TestDotsort(BaseTest):
         expr = cp.dotsort(self.x, parameter_affine_expression)
         prob = cp.Problem(cp.Minimize(expr), [self.x == x_val])
         prob.solve(enforce_dpp=True)
-        self.assertAlmostEqual(prob.objective.value,
-                               np.sort(x_val) @ np.sort(np.array([2, 0, 0, 0, 0])))
+        self.assertAlmostEqual(
+            prob.objective.value, np.sort(x_val) @ np.sort(np.array([2, 0, 0, 0, 0]))
+        )
         w_p.value = [-1, -1]
         prob.solve(enforce_dpp=True)
-        self.assertAlmostEqual(prob.objective.value,
-                               np.sort(x_val) @ np.sort(np.array([-2, -2, 0, 0, 0])))
+        self.assertAlmostEqual(
+            prob.objective.value, np.sort(x_val) @ np.sort(np.array([-2, -2, 0, 0, 0]))
+        )
 
         # Test constant + non-parameter affine
         x_const = np.array([1, 2, 3])
         p = cp.Parameter(value=2)
-        p_squared = p ** 2
+        p_squared = p**2
         expr = cp.dotsort(x_const, p_squared)
         problem = cp.Problem(cp.Minimize(expr))
         problem.solve(enforce_dpp=True)
-        self.assertAlmostEqual(expr.value, 2 ** 2 * 3)
+        self.assertAlmostEqual(expr.value, 2**2 * 3)
         p.value = -1
         problem.solve(enforce_dpp=True)
         self.assertAlmostEqual(expr.value, (-1) ** 2 * 3)
 
         # Test non-parameter affine w/ with implicit casting to constant
-        with pytest.warns(UserWarning,
-                          match='You are solving a parameterized problem that is not DPP.'):
+        with pytest.warns(
+            UserWarning, match='You are solving a parameterized problem that is not DPP.'
+        ):
             x_val = np.array([1, 2, 3, 4, 5])
             p = cp.Parameter(value=2)
-            p_squared = p ** 2
+            p_squared = p**2
             expr = cp.dotsort(self.x, p_squared)
             problem = cp.Problem(cp.Minimize(expr), [self.x == x_val])
             problem.solve()
-            self.assertAlmostEqual(expr.value, 2 ** 2 * 5)
+            self.assertAlmostEqual(expr.value, 2**2 * 5)
             p.value = -1
             problem.solve()
             self.assertAlmostEqual(expr.value, (-1) ** 2 * 5)
@@ -2092,29 +2056,28 @@ class TestDotsort(BaseTest):
         # len(w) > len(x)
         with self.assertRaises(Exception) as cm:
             cp.dotsort(self.x, [1, 2, 3, 4, 5, 8])
-        self.assertEqual(str(cm.exception),
-                         "The size of of W must be less or equal to the size of X.")
+        self.assertEqual(
+            str(cm.exception), 'The size of of W must be less or equal to the size of X.'
+        )
 
         # two variable expressions
         with self.assertRaises(Exception) as cm:
             cp.dotsort(self.x, cp.Variable(3))
-        self.assertEqual(str(cm.exception),
-                         "The W argument must be constant.")
+        self.assertEqual(str(cm.exception), 'The W argument must be constant.')
 
         # swapped arguments
         with self.assertRaises(Exception) as cm:
             cp.dotsort([1, 2, 3], self.x)
-        self.assertEqual(str(cm.exception),
-                         "The W argument must be constant.")
+        self.assertEqual(str(cm.exception), 'The W argument must be constant.')
 
         # non-dcp composition
         with self.assertRaises(Exception) as cm:
             cp.Problem(cp.Minimize(cp.dotsort(cp.abs(self.x), [-1, 1]))).solve()
-        assert "Problem does not follow DCP rules" in str(cm.exception)
+        assert 'Problem does not follow DCP rules' in str(cm.exception)
 
         # # non-dpp composition
         p = cp.Parameter(value=2)
-        p_squared = p ** 2
+        p_squared = p**2
         with self.assertRaises(Exception) as cm:
             cp.Problem(cp.Minimize(cp.dotsort(self.x, p_squared))).solve(enforce_dpp=True)
-        assert "You are solving a parameterized problem that is not DPP" in str(cm.exception)
+        assert 'You are solving a parameterized problem that is not DPP' in str(cm.exception)

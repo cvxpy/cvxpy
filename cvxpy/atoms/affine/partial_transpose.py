@@ -46,7 +46,7 @@ def _term(expr, i: int, j: int, dims: Tuple[int], axis: Optional[int] = 0):
     # This function returns the (i,j)-th term in the sum, namely
     # (I ⊗ |i><j| ⊗ I) x (I ⊗ |i><j| ⊗ I).
     a = sp.coo_matrix(([1.0], ([0], [0])))
-    for (i_axis, dim) in enumerate(dims):
+    for i_axis, dim in enumerate(dims):
         if i_axis == axis:
             v = sp.coo_matrix(([1], ([i], [j])), shape=(dim, dim))
             a = sp.kron(a, v)
@@ -79,13 +79,11 @@ def partial_transpose(expr, dims: Tuple[int, ...], axis: Optional[int] = 0):
     """
     expr = Atom.cast_to_const(expr)
     if expr.ndim < 2 or expr.shape[0] != expr.shape[1]:
-        raise ValueError("Only supports square matrices.")
+        raise ValueError('Only supports square matrices.')
     if axis < 0 or axis >= len(dims):
-        raise ValueError(
-            f"Invalid axis argument, should be between 0 and {len(dims)}, got {axis}."
-        )
+        raise ValueError(f'Invalid axis argument, should be between 0 and {len(dims)}, got {axis}.')
     if expr.shape[0] != np.prod(dims):
         raise ValueError("Dimension of system doesn't correspond to dimension of subsystems.")
-    return sum([
-        _term(expr, i, j, dims, axis) for i in range(dims[axis]) for j in range(dims[axis])
-    ])
+    return sum(
+        [_term(expr, i, j, dims, axis) for i in range(dims[axis]) for j in range(dims[axis])]
+    )

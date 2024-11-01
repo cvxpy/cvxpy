@@ -55,8 +55,7 @@ def tr_inv_canon(expr, args):
         ei = np.zeros((n, 1))
         ei[i] = 1.0
         ui = Variable((1, 1))
-        R = bmat([[X, ei],
-                  [ei.T, ui]])
+        R = bmat([[X, ei], [ei.T, ui]])
         constraints += [R >> 0]
         if su is None:
             su = ui

@@ -39,28 +39,23 @@ class rel_entr(Elementwise):
         return rel_entr_scipy(x, y)
 
     def sign_from_args(self) -> Tuple[bool, bool]:
-        """Returns sign (is positive, is negative) of the expression.
-        """
+        """Returns sign (is positive, is negative) of the expression."""
         return (False, False)
 
     def is_atom_convex(self) -> bool:
-        """Is the atom convex?
-        """
+        """Is the atom convex?"""
         return True
 
     def is_atom_concave(self) -> bool:
-        """Is the atom concave?
-        """
+        """Is the atom concave?"""
         return False
 
     def is_incr(self, idx) -> bool:
-        """Is the composition non-decreasing in argument idx?
-        """
+        """Is the composition non-decreasing in argument idx?"""
         return False
 
     def is_decr(self, idx) -> bool:
-        """Is the composition non-increasing in argument idx?
-        """
+        """Is the composition non-increasing in argument idx?"""
         if idx == 0:
             return False
         else:
@@ -81,17 +76,15 @@ class rel_entr(Elementwise):
             # Non-differentiable.
             return [None, None]
         else:
-            div = values[0]/values[1]
-            grad_vals = [np.log(div) + 1, - div]
+            div = values[0] / values[1]
+            grad_vals = [np.log(div) + 1, -div]
             grad_list = []
             for idx in range(len(values)):
                 rows = self.args[idx].size
                 cols = self.size
-                grad_list += [rel_entr.elemwise_grad_to_diag(grad_vals[idx],
-                                                             rows, cols)]
+                grad_list += [rel_entr.elemwise_grad_to_diag(grad_vals[idx], rows, cols)]
             return grad_list
 
     def _domain(self):
-        """Returns constraints describing the domain of the node.
-        """
+        """Returns constraints describing the domain of the node."""
         return [self.args[0] >= 0, self.args[1] >= 0]

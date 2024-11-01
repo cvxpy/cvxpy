@@ -33,10 +33,7 @@ from cvxpy.reductions.dcp2cone.canonicalizers.von_neumann_entr_canon import (
     von_neumann_entr_canon,
 )
 
-APPROX_CONES = {
-    RelEntrConeQuad: {cp.SOC},
-    OpRelEntrConeQuad: {cp.PSD}
-}
+APPROX_CONES = {RelEntrConeQuad: {cp.SOC}, OpRelEntrConeQuad: {cp.PSD}}
 
 
 def gauss_legendre(n):
@@ -44,14 +41,14 @@ def gauss_legendre(n):
     Helper function for returning the weights and nodes for an
     n-point Gauss-Legendre quadrature on [0, 1]
     """
-    beta = 0.5/np.sqrt(np.ones(n-1)-(2*np.arange(1, n, dtype=float))**(-2))
+    beta = 0.5 / np.sqrt(np.ones(n - 1) - (2 * np.arange(1, n, dtype=float)) ** (-2))
     T = np.diag(beta, 1) + np.diag(beta, -1)
     D, V = np.linalg.eigh(T)
     x = D
     x, i = np.sort(x), np.argsort(x)
-    w = 2 * (np.array([V[0][k] for k in i]))**2
-    x = (x + 1)/2
-    w = w/2
+    w = 2 * (np.array([V[0][k] for k in i])) ** 2
+    x = (x + 1) / 2
+    w = w / 2
     return w, x
 
 
@@ -76,7 +73,7 @@ def rotated_quad_cone(X: cp.Expression, y: cp.Expression, z: cp.Expression):
     #   SOC(t=y + t, X=[y - t, 2*x])
     ####################################
     soc_X_col0 = cp.reshape(y - z, (m, 1), order='F')
-    soc_X = cp.hstack((soc_X_col0, 2*X))
+    soc_X = cp.hstack((soc_X_col0, 2 * X))
     soc_t = y + z
     con = cp.SOC(t=soc_t, X=soc_X, axis=1)
     return con
@@ -104,10 +101,10 @@ def RelEntrConeQuad_canon(con: RelEntrConeQuad, args) -> Tuple[Constraint, List[
     x, y = con.x, con.y
     n = x.size
     # Z has been declared as so to allow for proper vectorization
-    Z = Variable(shape=(k+1, n))
+    Z = Variable(shape=(k + 1, n))
     w, t = gauss_legendre(m)
     T = Variable(shape=(m, n))
-    lead_con = Zero(w @ T + con.z/2**k)
+    lead_con = Zero(w @ T + con.z / 2**k)
     constrs = [Zero(Z[0] - y)]
 
     for i in range(k):
@@ -119,20 +116,20 @@ def RelEntrConeQuad_canon(con: RelEntrConeQuad, args) -> Tuple[Constraint, List[
         # rotated quadratic cone, see `dcp2cone/quad_over_lin_canon.py` for the very similar
         # scalar case
         epi = Z[i, :]
-        stackedZ = Z[i+1, :]
+        stackedZ = Z[i + 1, :]
         cons = rotated_quad_cone(stackedZ, epi, x)
         constrs.append(cons)
         constrs.extend([epi >= 0, x >= 0])
 
     for i in range(m):
-        off_diag = -(t[i]**0.5) * T[i, :]
+        off_diag = -(t[i] ** 0.5) * T[i, :]
         # The following matrix needs to be PSD.
         #     [ Z[k] - x - T[i] , off_diag      ]
         #     [ off_diag        , x - t[i]*T[i] ]
-        epi = (Z[k, :] - x - T[i, :])
-        cons = rotated_quad_cone(off_diag, epi, x-t[i]*T[i, :])
+        epi = Z[k, :] - x - T[i, :]
+        cons = rotated_quad_cone(off_diag, epi, x - t[i] * T[i, :])
         constrs.append(cons)
-        constrs.extend([epi >= 0, x-t[i]*T[i, :] >= 0])
+        constrs.extend([epi >= 0, x - t[i] * T[i, :] >= 0])
 
     return lead_con, constrs
 
@@ -143,8 +140,8 @@ def OpRelEntrConeQuad_canon(con: OpRelEntrConeQuad, args) -> Tuple[Constraint, L
     assert X.is_real()
     assert Y.is_real()
     assert con.Z.is_real()
-    Zs = {i: Variable(shape=X.shape, symmetric=True) for i in range(k+1)}
-    Ts = {i: Variable(shape=X.shape, symmetric=True) for i in range(m+1)}
+    Zs = {i: Variable(shape=X.shape, symmetric=True) for i in range(k + 1)}
+    Ts = {i: Variable(shape=X.shape, symmetric=True) for i in range(m + 1)}
     constrs = [Zero(Zs[0] - Y)]
     if not X.is_symmetric():
         ut = upper_tri(X)
@@ -159,19 +156,21 @@ def OpRelEntrConeQuad_canon(con: OpRelEntrConeQuad, args) -> Tuple[Constraint, L
         lt = upper_tri(con.Z.T)
         constrs.append(ut == lt)
     w, t = gauss_legendre(m)
-    lead_con = Zero(cp.sum([w[i] * Ts[i] for i in range(m)]) + con.Z/2**k)
+    lead_con = Zero(cp.sum([w[i] * Ts[i] for i in range(m)]) + con.Z / 2**k)
 
     for i in range(k):
         #     [Z[i]  , Z[i+1]]
         #     [Z[i+1], x     ]
-        constrs.append(cp.bmat([[Zs[i], Zs[i+1]], [Zs[i+1].T, X]]) >> 0)
+        constrs.append(cp.bmat([[Zs[i], Zs[i + 1]], [Zs[i + 1].T, X]]) >> 0)
 
     for i in range(m):
-        off_diag = -(t[i]**0.5) * Ts[i]
+        off_diag = -(t[i] ** 0.5) * Ts[i]
         # The following matrix needs to be PSD.
         #     [ Z[k] - x - T[i] , off_diag      ]
         #     [ off_diag        , x - t[i]*T[i] ]
-        constrs.append(cp.bmat([[Zs[k] - X - Ts[i], off_diag], [off_diag.T, X-t[i]*Ts[i]]]) >> 0)
+        constrs.append(
+            cp.bmat([[Zs[k] - X - Ts[i], off_diag], [off_diag.T, X - t[i] * Ts[i]]]) >> 0
+        )
 
     return lead_con, constrs
 
@@ -183,8 +182,7 @@ def von_neumann_entr_QuadApprox(expr, args):
     for con in initial_cons:
         if isinstance(con, ExpCone):  # should only hit this once.
             qa_con = con.as_quad_approx(m, k)
-            qa_con_canon_lead, qa_con_canon = RelEntrConeQuad_canon(
-                qa_con, None)
+            qa_con_canon_lead, qa_con_canon = RelEntrConeQuad_canon(qa_con, None)
             cons.append(qa_con_canon_lead)
             cons.extend(qa_con_canon)
         else:
@@ -202,9 +200,8 @@ def von_neumann_entr_canon_dispatch(expr, args):
 class QuadApprox(Canonicalization):
     CANON_METHODS = {
         RelEntrConeQuad: RelEntrConeQuad_canon,
-        OpRelEntrConeQuad: OpRelEntrConeQuad_canon
+        OpRelEntrConeQuad: OpRelEntrConeQuad_canon,
     }
 
     def __init__(self, problem=None) -> None:
-        super(QuadApprox, self).__init__(
-            problem=problem, canon_methods=QuadApprox.CANON_METHODS)
+        super(QuadApprox, self).__init__(problem=problem, canon_methods=QuadApprox.CANON_METHODS)

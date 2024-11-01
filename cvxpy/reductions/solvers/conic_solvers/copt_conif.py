@@ -1,6 +1,7 @@
 """
 This file is the CVXPY conic extension of the Cardinal Optimizer
 """
+
 import numpy as np
 import scipy.sparse as sp
 
@@ -36,13 +37,14 @@ def tri_to_full(lower_tri, n):
     full[np.triu_indices(n)] = lower_tri
     full += full.T
     full[np.diag_indices(n)] /= 2.0
-    return np.reshape(full, n*n, order="F")
+    return np.reshape(full, n * n, order='F')
 
 
 class COPT(ConicSolver):
     """
     An interface for the COPT solver.
     """
+
     # Solver capabilities
     MIP_CAPABLE = True
     SUPPORTED_CONSTRAINTS = ConicSolver.SUPPORTED_CONSTRAINTS + [SOC, ExpCone, PSD]
@@ -54,21 +56,21 @@ class COPT(ConicSolver):
     MI_SUPPORTED_CONSTRAINTS = ConicSolver.SUPPORTED_CONSTRAINTS + [SOC]
 
     # Keyword arguments for the CVXPY interface.
-    INTERFACE_ARGS = ["save_file", "reoptimize"]
+    INTERFACE_ARGS = ['save_file', 'reoptimize']
 
     # Map between COPT status and CVXPY status
     STATUS_MAP = {
-                  1: s.OPTIMAL,             # optimal
-                  2: s.INFEASIBLE,          # infeasible
-                  3: s.UNBOUNDED,           # unbounded
-                  4: s.INF_OR_UNB,          # infeasible or unbounded
-                  5: s.SOLVER_ERROR,        # numerical
-                  6: s.USER_LIMIT,          # node limit
-                  7: s.OPTIMAL_INACCURATE,  # imprecise
-                  8: s.USER_LIMIT,          # time out
-                  9: s.SOLVER_ERROR,        # unfinished
-                  10: s.USER_LIMIT          # interrupted
-                 }
+        1: s.OPTIMAL,  # optimal
+        2: s.INFEASIBLE,  # infeasible
+        3: s.UNBOUNDED,  # unbounded
+        4: s.INF_OR_UNB,  # infeasible or unbounded
+        5: s.SOLVER_ERROR,  # numerical
+        6: s.USER_LIMIT,  # node limit
+        7: s.OPTIMAL_INACCURATE,  # imprecise
+        8: s.USER_LIMIT,  # time out
+        9: s.SOLVER_ERROR,  # unfinished
+        10: s.USER_LIMIT,  # interrupted
+    }
 
     def name(self):
         """
@@ -105,14 +107,12 @@ class COPT(ConicSolver):
         imposed on solely the lower triangular part of the variable matrix.
         """
         rows = cols = constr.expr.shape[0]
-        entries = rows * (cols + 1)//2
+        entries = rows * (cols + 1) // 2
 
         row_arr = np.arange(0, entries)
 
         lower_diag_indices = np.tril_indices(rows)
-        col_arr = np.sort(np.ravel_multi_index(lower_diag_indices,
-                                               (rows, cols),
-                                               order='F'))
+        col_arr = np.sort(np.ravel_multi_index(lower_diag_indices, (rows, cols), order='F'))
 
         val_arr = np.zeros((rows, cols))
         val_arr[lower_diag_indices] = 1.0
@@ -120,7 +120,7 @@ class COPT(ConicSolver):
         val_arr = np.ravel(val_arr, order='F')
         val_arr = val_arr[np.nonzero(val_arr)]
 
-        shape = (entries, rows*cols)
+        shape = (entries, rows * cols)
         scaled_lower_tri = sp.csc_matrix((val_arr, (row_arr, col_arr)), shape)
 
         idx = np.arange(rows * cols)
@@ -173,9 +173,11 @@ class COPT(ConicSolver):
         Returns the solution to the original problem given the inverse_data.
         """
         status = solution[s.STATUS]
-        attr = {s.SOLVE_TIME: solution[s.SOLVE_TIME],
-                s.NUM_ITERS: solution[s.NUM_ITERS],
-                s.EXTRA_STATS: solution['model']}
+        attr = {
+            s.SOLVE_TIME: solution[s.SOLVE_TIME],
+            s.NUM_ITERS: solution[s.NUM_ITERS],
+            s.EXTRA_STATS: solution['model'],
+        }
 
         primal_vars = None
         dual_vars = None
@@ -184,13 +186,11 @@ class COPT(ConicSolver):
             primal_vars = {inverse_data[COPT.VAR_ID]: solution[s.PRIMAL]}
             if not inverse_data['is_mip']:
                 eq_dual = utilities.get_dual_values(
-                    solution[s.EQ_DUAL],
-                    self.extract_dual_value,
-                    inverse_data[COPT.EQ_CONSTR])
+                    solution[s.EQ_DUAL], self.extract_dual_value, inverse_data[COPT.EQ_CONSTR]
+                )
                 leq_dual = utilities.get_dual_values(
-                    solution[s.INEQ_DUAL],
-                    self.extract_dual_value,
-                    inverse_data[COPT.NEQ_CONSTR])
+                    solution[s.INEQ_DUAL], self.extract_dual_value, inverse_data[COPT.NEQ_CONSTR]
+                )
                 for con in inverse_data[self.NEQ_CONSTR]:
                     if isinstance(con, ExpCone):
                         cid = con.id
@@ -329,13 +329,16 @@ class COPT(ConicSolver):
 
             # Load cone data
             if dims[s.SOC_DIM]:
-                model.loadCone(ncone, None, dims[s.SOC_DIM],
-                               range(A.shape[1] - nconedim - nexpconedim, A.shape[1] - nexpconedim))
+                model.loadCone(
+                    ncone,
+                    None,
+                    dims[s.SOC_DIM],
+                    range(A.shape[1] - nconedim - nexpconedim, A.shape[1] - nexpconedim),
+                )
 
             # Load exponential cone data
             if dims[s.EXP_DIM]:
-                model.loadExpCone(nexpcone, None,
-                                  range(A.shape[1] - nexpconedim, A.shape[1]))
+                model.loadExpCone(nexpcone, None, range(A.shape[1] - nexpconedim, A.shape[1]))
 
         # Set parameters
         for key, value in solver_opts.items():
@@ -372,8 +375,8 @@ class COPT(ConicSolver):
 
                     # Recover the dual solution
                     solution['y'] = np.hstack((model.getValues(), model.getPsdValues()))
-                    solution[s.EQ_DUAL] = solution['y'][0:dims[s.EQ_DIM]]
-                    solution[s.INEQ_DUAL] = solution['y'][dims[s.EQ_DIM]:]
+                    solution[s.EQ_DUAL] = solution['y'][0 : dims[s.EQ_DIM]]
+                    solution[s.INEQ_DUAL] = solution['y'][dims[s.EQ_DIM] :]
             else:
                 if model.haslpsol or model.hasmipsol:
                     solution[s.VALUE] = model.objval
@@ -382,8 +385,8 @@ class COPT(ConicSolver):
                 # Get dual values of linear constraints if not MIP
                 if not (data[s.BOOL_IDX] or data[s.INT_IDX]) and model.haslpsol:
                     solution['y'] = -np.array(model.getDuals())
-                    solution[s.EQ_DUAL] = solution['y'][0:dims[s.EQ_DIM]]
-                    solution[s.INEQ_DUAL] = solution['y'][dims[s.EQ_DIM]:]
+                    solution[s.EQ_DUAL] = solution['y'][0 : dims[s.EQ_DIM]]
+                    solution[s.INEQ_DUAL] = solution['y'][dims[s.EQ_DIM] :]
         except Exception:
             pass
 

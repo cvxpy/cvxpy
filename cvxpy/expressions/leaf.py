@@ -13,6 +13,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+
 from __future__ import annotations
 
 from typing import TYPE_CHECKING, Iterable, Optional
@@ -93,38 +94,58 @@ class Leaf(expression.Expression):
     """
 
     def __init__(
-        self, shape: int | tuple[int, ...], value = None, nonneg: bool = False,
-        nonpos: bool = False, complex: bool = False, imag: bool = False,
-        symmetric: bool = False, diag: bool = False, PSD: bool = False,
-        NSD: bool = False, hermitian: bool = False,
-        boolean: Iterable | bool = False, integer: Iterable | bool = False,
-        sparsity: Iterable | bool = False, pos: bool = False, neg: bool = False,
-        bounds: Iterable | None = None
+        self,
+        shape: int | tuple[int, ...],
+        value=None,
+        nonneg: bool = False,
+        nonpos: bool = False,
+        complex: bool = False,
+        imag: bool = False,
+        symmetric: bool = False,
+        diag: bool = False,
+        PSD: bool = False,
+        NSD: bool = False,
+        hermitian: bool = False,
+        boolean: Iterable | bool = False,
+        integer: Iterable | bool = False,
+        sparsity: Iterable | bool = False,
+        pos: bool = False,
+        neg: bool = False,
+        bounds: Iterable | None = None,
     ) -> None:
         if isinstance(shape, numbers.Integral):
             shape = (int(shape),)
         elif not s.ALLOW_ND_EXPR and len(shape) > 2:
-            raise ValueError("Expressions of dimension greater than 2 "
-                             "are not supported.")
+            raise ValueError('Expressions of dimension greater than 2 ' 'are not supported.')
         for d in shape:
             if not isinstance(d, numbers.Integral) or d <= 0:
-                raise ValueError("Invalid dimensions %s." % (shape,))
+                raise ValueError('Invalid dimensions %s.' % (shape,))
         shape = tuple(shape)
         self._shape = shape
 
-        if (PSD or NSD or symmetric or diag or hermitian) and (len(shape) != 2
-                                                               or shape[0] != shape[1]):
-            raise ValueError("Invalid dimensions %s. Must be a square matrix."
-                             % (shape,))
+        if (PSD or NSD or symmetric or diag or hermitian) and (
+            len(shape) != 2 or shape[0] != shape[1]
+        ):
+            raise ValueError('Invalid dimensions %s. Must be a square matrix.' % (shape,))
 
         # Process attributes.
-        self.attributes = {'nonneg': nonneg, 'nonpos': nonpos,
-                           'pos': pos, 'neg': neg,
-                           'complex': complex, 'imag': imag,
-                           'symmetric': symmetric, 'diag': diag,
-                           'PSD': PSD, 'NSD': NSD,
-                           'hermitian': hermitian, 'boolean': boolean,
-                           'integer':  integer, 'sparsity': sparsity, 'bounds': bounds}
+        self.attributes = {
+            'nonneg': nonneg,
+            'nonpos': nonpos,
+            'pos': pos,
+            'neg': neg,
+            'complex': complex,
+            'imag': imag,
+            'symmetric': symmetric,
+            'diag': diag,
+            'PSD': PSD,
+            'NSD': NSD,
+            'hermitian': hermitian,
+            'boolean': boolean,
+            'integer': integer,
+            'sparsity': sparsity,
+            'bounds': bounds,
+        }
         if boolean is True:
             shape = max(shape, (1,))
             flat_idx = np.arange(np.prod(shape))
@@ -151,8 +172,9 @@ class Leaf(expression.Expression):
         if boolean and integer:
             true_attr -= 1
         if true_attr > 1:
-            raise ValueError("Cannot set more than one special attribute in %s."
-                             % self.__class__.__name__)
+            raise ValueError(
+                'Cannot set more than one special attribute in %s.' % self.__class__.__name__
+            )
         if value is not None:
             self.value = value
 
@@ -162,30 +184,29 @@ class Leaf(expression.Expression):
     def _validate_indices(self, indices: list[tuple[int]] | tuple[np.ndarray]) -> None:
         """
         Validate the sparsity pattern for a leaf node.
-    
+
         Parameters:
         indices: List or tuple of indices indicating the positions of non-zero elements.
         """
         if not all(len(idx) == len(indices[0]) for idx in indices):
-            raise ValueError("All index tuples in indices must have the same length.")
-        
+            raise ValueError('All index tuples in indices must have the same length.')
+
         if len(indices) != len(self._shape):
-            raise ValueError(f"Indices should have {len(self._shape)} dimensions.")
-        
+            raise ValueError(f'Indices should have {len(self._shape)} dimensions.')
+
         # convert list/tuple to array to validate indices within bounds
         indices = np.array(indices)
 
         if np.any(indices < 0) or np.any(indices >= np.array(self._shape).reshape(-1, 1)):
-            raise ValueError(
-                f"Indices are out of bounds for expression with shape {self._shape}.")
+            raise ValueError(f'Indices are out of bounds for expression with shape {self._shape}.')
         return tuple(indices)
-    
+
     def _get_attr_str(self) -> str:
         """Get a string representing the attributes."""
-        attr_str = ""
+        attr_str = ''
         for attr, val in self.attributes.items():
             if attr != 'real' and val:
-                attr_str += ", %s=%s" % (attr, val)
+                attr_str += ', %s=%s' % (attr, val)
         return attr_str
 
     def copy(self, args=None, id_objects=None):
@@ -246,8 +267,7 @@ class Leaf(expression.Expression):
 
     def is_nonneg(self) -> bool:
         """Is the expression nonnegative?"""
-        return (self.attributes['nonneg'] or self.attributes['pos'] or
-                self.attributes['boolean'])
+        return self.attributes['nonneg'] or self.attributes['pos'] or self.attributes['boolean']
 
     def is_nonpos(self) -> bool:
         """Is the expression nonpositive?"""
@@ -263,13 +283,18 @@ class Leaf(expression.Expression):
 
     def is_hermitian(self) -> bool:
         """Is the Leaf hermitian?"""
-        return (self.is_real() and self.is_symmetric()) or \
-            self.attributes['hermitian'] or self.is_psd() or self.is_nsd()
+        return (
+            (self.is_real() and self.is_symmetric())
+            or self.attributes['hermitian']
+            or self.is_psd()
+            or self.is_nsd()
+        )
 
     def is_symmetric(self) -> bool:
         """Is the Leaf symmetric?"""
-        return self.is_scalar() or \
-            any(self.attributes[key] for key in ['diag', 'symmetric', 'PSD', 'NSD'])
+        return self.is_scalar() or any(
+            self.attributes[key] for key in ['diag', 'symmetric', 'PSD', 'NSD']
+        )
 
     def is_imag(self) -> bool:
         """Is the Leaf imaginary?"""
@@ -311,7 +336,7 @@ class Leaf(expression.Expression):
         Parameters
         ----------
         term: The term to encode in the constraints.
-        constraints: An existing list of constraitns to append to.        
+        constraints: An existing list of constraitns to append to.
         """
         if self.attributes['nonneg'] or self.attributes['pos']:
             constraints.append(term >= 0)
@@ -321,8 +346,8 @@ class Leaf(expression.Expression):
             bounds = self.bounds
             lower_bounds, upper_bounds = bounds
             # Create masks if -inf or inf is present in the bounds
-            lower_bound_mask = (lower_bounds != -np.inf)
-            upper_bound_mask = (upper_bounds != np.inf)
+            lower_bound_mask = lower_bounds != -np.inf
+            upper_bound_mask = upper_bounds != np.inf
 
             if np.any(lower_bound_mask):
                 # At least one valid lower bound,
@@ -342,7 +367,7 @@ class Leaf(expression.Expression):
     @property
     def domain(self) -> list[Constraint]:
         """A list of constraints describing the closure of the region
-           where the expression is finite.
+        where the expression is finite.
         """
         # Default is full domain.
         domain = []
@@ -376,20 +401,20 @@ class Leaf(expression.Expression):
             val = np.real(val)
 
         if self.attributes['nonpos'] and self.attributes['nonneg']:
-            return 0*val
+            return 0 * val
         elif self.attributes['nonpos'] or self.attributes['neg']:
-            return np.minimum(val, 0.)
+            return np.minimum(val, 0.0)
         elif self.attributes['nonneg'] or self.attributes['pos']:
-            return np.maximum(val, 0.)
+            return np.maximum(val, 0.0)
         elif self.attributes['bounds']:
             return np.clip(val, self.bounds[0], self.bounds[1])
         elif self.attributes['imag']:
-            return np.imag(val)*1j
+            return np.imag(val) * 1j
         elif self.attributes['complex']:
             return val.astype(complex)
         elif self.attributes['boolean']:
             # TODO(akshayka): respect the boolean indices.
-            return np.round(np.clip(val, 0., 1.))
+            return np.round(np.clip(val, 0.0, 1.0))
         elif self.attributes['integer']:
             # TODO(akshayka): respect the integer indices.
             # also, a variable may be integer in some indices and
@@ -402,13 +427,12 @@ class Leaf(expression.Expression):
                 val = np.diag(val)
             return sp.diags([val], [0])
         elif self.attributes['hermitian']:
-            return (val + np.conj(val).T)/2.
-        elif any([self.attributes[key] for
-                  key in ['symmetric', 'PSD', 'NSD']]):
+            return (val + np.conj(val).T) / 2.0
+        elif any([self.attributes[key] for key in ['symmetric', 'PSD', 'NSD']]):
             if val.dtype.kind in 'ib':
                 val = val.astype(float)
             val = val + val.T
-            val /= 2.
+            val /= 2.0
             if self.attributes['symmetric']:
                 return val
             w, V = LA.eigh(val)
@@ -444,8 +468,7 @@ class Leaf(expression.Expression):
         self.save_value(self._validate_value(val))
 
     def project_and_assign(self, val) -> None:
-        """Project and assign a value to the variable.
-        """
+        """Project and assign a value to the variable."""
         self.save_value(self.project(val))
 
     def _validate_value(self, val):
@@ -466,8 +489,8 @@ class Leaf(expression.Expression):
             val = intf.convert(val)
             if intf.shape(val) != self.shape:
                 raise ValueError(
-                    "Invalid dimensions %s for %s value." %
-                    (intf.shape(val), self.__class__.__name__)
+                    'Invalid dimensions %s for %s value.'
+                    % (intf.shape(val), self.__class__.__name__)
                 )
             projection = self.project(val)
             # ^ might be a numpy array, or sparse scipy matrix.
@@ -477,8 +500,7 @@ class Leaf(expression.Expression):
                 # ^ based on current implementation of project(...),
                 #   is is not possible for this Leaf to be PSD/NSD *and*
                 #   a sparse matrix.
-                close_enough = np.allclose(delta.data, 0,
-                                           atol=SPARSE_PROJECTION_TOL)
+                close_enough = np.allclose(delta.data, 0, atol=SPARSE_PROJECTION_TOL)
                 # ^ only check for near-equality on nonzero values.
             else:
                 # the data could be a scipy matrix, or a numpy array.
@@ -492,8 +514,7 @@ class Leaf(expression.Expression):
                 else:
                     # For all other Leafs we use the infinity norm on
                     # the vectorized Leaf.
-                    close_enough = np.allclose(delta, 0,
-                                               atol=GENERAL_PROJECTION_TOL)
+                    close_enough = np.allclose(delta, 0, atol=GENERAL_PROJECTION_TOL)
             if not close_enough:
                 if self.attributes['nonneg']:
                     attr_str = 'nonnegative'
@@ -515,9 +536,7 @@ class Leaf(expression.Expression):
                     attr_str = 'in bounds'
                 else:
                     attr_str = ([k for (k, v) in self.attributes.items() if v] + ['real'])[0]
-                raise ValueError(
-                    "%s value must be %s." % (self.__class__.__name__, attr_str)
-                )
+                raise ValueError('%s value must be %s.' % (self.__class__.__name__, attr_str))
         return val
 
     def is_psd(self) -> bool:
@@ -547,7 +566,7 @@ class Leaf(expression.Expression):
     def is_dpp(self, context: str = 'dcp') -> bool:
         """The expression is a disciplined parameterized expression.
 
-           context: dcp or dgp
+        context: dcp or dgp
         """
         return True
 
@@ -567,15 +586,15 @@ class Leaf(expression.Expression):
 
         # Check that bounds is an iterable of two items
         if not isinstance(value, Iterable) or len(value) != 2:
-            raise ValueError("Bounds should be a list of two items.")
+            raise ValueError('Bounds should be a list of two items.')
 
         # Check that bounds contains two scalars or two arrays with matching shapes.
         for val in value:
             valid_array = isinstance(val, np.ndarray) and val.shape == self.shape
             if not (val is None or np.isscalar(val) or valid_array):
                 raise ValueError(
-                    "Bounds should be None, scalars, or arrays with the "
-                    "same dimensions as the variable/parameter."
+                    'Bounds should be None, scalars, or arrays with the '
+                    'same dimensions as the variable/parameter.'
                 )
 
         # Promote upper and lower bounds to arrays.
@@ -588,18 +607,18 @@ class Leaf(expression.Expression):
 
         # Check that upper_bound >= lower_bound
         if np.any(value[0] > value[1]):
-            raise ValueError("Invalid bounds: some upper bounds are less "
-                             "than corresponding lower bounds.")
+            raise ValueError(
+                'Invalid bounds: some upper bounds are less ' 'than corresponding lower bounds.'
+            )
 
         if np.any(np.isnan(value[0])) or np.any(np.isnan(value[1])):
-            raise ValueError("np.nan is not feasible as lower "
-                                "or upper bound.")
+            raise ValueError('np.nan is not feasible as lower ' 'or upper bound.')
 
         # Upper bound cannot be -np.inf.
         if np.any(value[1] == -np.inf):
-            raise ValueError("-np.inf is not feasible as an upper bound.")
+            raise ValueError('-np.inf is not feasible as an upper bound.')
         # Lower bound cannot be np.inf.
         if np.any(value[0] == np.inf):
-            raise ValueError("np.inf is not feasible as a lower bound.")
+            raise ValueError('np.inf is not feasible as a lower bound.')
 
         self._bounds = value

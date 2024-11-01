@@ -13,6 +13,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+
 import abc
 
 
@@ -29,8 +30,9 @@ class ParamProb(metaclass=abc.ABCMeta):
         raise NotImplementedError()
 
     @abc.abstractmethod
-    def apply_parameters(self, id_to_param_value=None, zero_offset: bool = False,
-                         keep_zeros: bool = False):
+    def apply_parameters(
+        self, id_to_param_value=None, zero_offset: bool = False, keep_zeros: bool = False
+    ):
         """Returns A, b after applying parameters (and reshaping).
 
         Args:

@@ -25,17 +25,16 @@ from cvxpy.tests.base_test import BaseTest
 
 
 class TestConvolution(BaseTest):
-    """ Unit tests for convolution. """
+    """Unit tests for convolution."""
 
     def test_1D_conv(self) -> None:
-        """Test 1D convolution.
-        """
+        """Test 1D convolution."""
         n = 3
         x = cp.Variable(n)
         f = np.array([1, 2, 3])
         g = np.array([0, 1, 0.5])
-        f_conv_g = np.array([0., 1., 2.5,  4., 1.5])
-        with pytest.warns(DeprecationWarning, match="Use convolve"):
+        f_conv_g = np.array([0.0, 1.0, 2.5, 4.0, 1.5])
+        with pytest.warns(DeprecationWarning, match='Use convolve'):
             expr = cp.conv(f, g)
         assert expr.is_constant()
         self.assertEqual(expr.shape, (5,))
@@ -46,8 +45,7 @@ class TestConvolution(BaseTest):
         assert expr.is_affine()
         self.assertEqual(expr.shape, (5,))
         # Matrix stuffing.
-        prob = cp.Problem(cp.Minimize(cp.norm(expr, 1)),
-                           [x == g])
+        prob = cp.Problem(cp.Minimize(cp.norm(expr, 1)), [x == g])
         result = prob.solve(solver=cp.SCS)
         self.assertAlmostEqual(result, sum(f_conv_g), places=3)
         self.assertItemsAlmostEqual(expr.value, f_conv_g)
@@ -64,13 +62,12 @@ class TestConvolution(BaseTest):
         self.assertItemsAlmostEqual(expr.value, 2 * f)
 
     def test_convolve(self) -> None:
-        """Test convolve.
-        """
+        """Test convolve."""
         n = 3
         x = cp.Variable(n)
         f = np.array([1, 2, 3])
         g = np.array([0, 1, 0.5])
-        f_conv_g = np.array([0., 1., 2.5,  4., 1.5])
+        f_conv_g = np.array([0.0, 1.0, 2.5, 4.0, 1.5])
         expr = cp.convolve(f, g)
         assert expr.is_constant()
         self.assertEqual(expr.shape, (5,))
@@ -81,8 +78,7 @@ class TestConvolution(BaseTest):
         assert expr.is_affine()
         self.assertEqual(expr.shape, (5,))
         # Matrix stuffing.
-        prob = cp.Problem(cp.Minimize(cp.norm(expr, 1)),
-                           [x == g])
+        prob = cp.Problem(cp.Minimize(cp.norm(expr, 1)), [x == g])
         result = prob.solve(solver=cp.SCS)
         self.assertAlmostEqual(result, sum(f_conv_g), places=3)
         self.assertItemsAlmostEqual(expr.value, f_conv_g)
@@ -98,46 +94,42 @@ class TestConvolution(BaseTest):
         self.assertEqual(expr.shape, expr.value.shape)
         self.assertItemsAlmostEqual(expr.value, 2 * f)
 
-        with pytest.raises(ValueError, match="must be scalar or 1D"):
+        with pytest.raises(ValueError, match='must be scalar or 1D'):
             expr = cp.convolve(f, g[:, None])
 
-        with pytest.raises(ValueError, match="must be scalar or 1D"):
+        with pytest.raises(ValueError, match='must be scalar or 1D'):
             expr = cp.convolve(f[:, None], g)
 
-        with pytest.raises(ValueError, match="must be scalar or 1D"):
+        with pytest.raises(ValueError, match='must be scalar or 1D'):
             expr = cp.convolve(f[:, None], g[:, None])
 
     def prob_mat_vs_mul_funcs(self, prob) -> None:
         data, dims = prob.get_problem_data(solver=cp.SCS)
-        A = data["A"]
+        A = data['A']
         objective, constr_map, dims, solver = prob.canonicalize(cp.SCS)
 
         all_ineq = constr_map[s.EQ] + constr_map[s.LEQ]
-        var_offsets, var_sizes, x_length = prob._get_var_offsets(objective,
-                                                                 all_ineq)
+        var_offsets, var_sizes, x_length = prob._get_var_offsets(objective, all_ineq)
         constraints = constr_map[s.EQ] + constr_map[s.LEQ]
         constraints = prune_constants(constraints)
-        Amul, ATmul = iterative.get_mul_funcs(constraints, dims,
-                                              var_offsets, var_sizes,
-                                              x_length)
-        vec = np.array(range(1, x_length+1))
+        Amul, ATmul = iterative.get_mul_funcs(constraints, dims, var_offsets, var_sizes, x_length)
+        vec = np.array(range(1, x_length + 1))
         # A @ vec
         result = np.zeros(A.shape[0])
         Amul(vec, result)
         self.assertItemsAlmostEqual(A @ vec, result)
         Amul(vec, result)
-        self.assertItemsAlmostEqual(2*A @ vec, result)
+        self.assertItemsAlmostEqual(2 * A @ vec, result)
         # A.T @ vec
         vec = np.array(range(A.shape[0]))
         result = np.zeros(A.shape[1])
         ATmul(vec, result)
         self.assertItemsAlmostEqual(A.T @ vec, result)
         ATmul(vec, result)
-        self.assertItemsAlmostEqual(2*A.T @ vec, result)
+        self.assertItemsAlmostEqual(2 * A.T @ vec, result)
 
     def mat_from_func(self, func, rows, cols):
-        """Convert a multiplier function to a matrix.
-        """
+        """Convert a multiplier function to a matrix."""
         test_vec = np.zeros(cols)
         result = np.zeros(rows)
         matrix = np.zeros((rows, cols))
@@ -151,8 +143,7 @@ class TestConvolution(BaseTest):
         return matrix
 
     def test_conv_prob(self) -> None:
-        """Test a problem with convolution.
-        """
+        """Test a problem with convolution."""
         N = 5
         # Test conv.
         y = np.random.randn(N, 1)
@@ -175,15 +166,9 @@ class TestConvolution(BaseTest):
         assert prob.status is cp.UNBOUNDED
 
     def test_0D_conv(self) -> None:
-        """Convolution with 0D input.
-        """
+        """Convolution with 0D input."""
         for func in [cp.conv, cp.convolve]:
             x = cp.Variable((1,))  # or cp.Variable((1,1))
-            problem = cp.Problem(
-                cp.Minimize(
-                    cp.max(func(1., cp.multiply(1., x)))
-                ),
-                [x >= 0]
-            )
+            problem = cp.Problem(cp.Minimize(cp.max(func(1.0, cp.multiply(1.0, x)))), [x >= 0])
             problem.solve(solver=cp.CLARABEL)
             assert problem.status == cp.OPTIMAL

@@ -26,40 +26,37 @@ from cvxpy.reductions.solvers.conic_solvers.conic_solver import ConicSolver
 
 
 class NAG(ConicSolver):
-    """ An interface to the NAG SOCP solver
-    """
+    """An interface to the NAG SOCP solver"""
 
     MIP_CAPABLE = False
     SUPPORTED_CONSTRAINTS = ConicSolver.SUPPORTED_CONSTRAINTS + [SOC]
 
     # Map of NAG status to CVXPY status
-    STATUS_MAP = {0: s.OPTIMAL,
-                  20: s.SOLVER_ERROR,
-                  22: s.SOLVER_ERROR,
-                  23: s.SOLVER_ERROR,
-                  24: s.SOLVER_ERROR,
-                  50: s.OPTIMAL_INACCURATE,
-                  51: s.INFEASIBLE,
-                  52: s.UNBOUNDED}
+    STATUS_MAP = {
+        0: s.OPTIMAL,
+        20: s.SOLVER_ERROR,
+        22: s.SOLVER_ERROR,
+        23: s.SOLVER_ERROR,
+        24: s.SOLVER_ERROR,
+        50: s.OPTIMAL_INACCURATE,
+        51: s.INFEASIBLE,
+        52: s.UNBOUNDED,
+    }
 
     def import_solver(self) -> None:
-        """Imports the solver.
-        """
+        """Imports the solver."""
         from naginterfaces.library import opt  # noqa F401
 
     def name(self):
-        """The name of the solver.
-        """
+        """The name of the solver."""
         return s.NAG
-    
+
     def supports_quad_obj(self) -> bool:
-        """NAG supports quadratic objective.
-        """
+        """NAG supports quadratic objective."""
         return True
 
     def accepts(self, problem) -> bool:
-        """Can NAG solve the problem?
-        """
+        """Can NAG solve the problem?"""
         if not problem.objective.args[0].is_affine():
             return False
         for constr in problem.constraints:
@@ -93,7 +90,7 @@ class NAG(ConicSolver):
             c, d, A, b = problem.apply_parameters()
         else:
             P, c, d, A, b = problem.apply_parameters(quad_obj=True)
-            data[s.P] = P 
+            data[s.P] = P
 
         A = -A
         data[s.C] = c.ravel()
@@ -110,11 +107,11 @@ class NAG(ConicSolver):
         eq_dim = data[s.DIMS][s.EQ_DIM]
         if num_linear_leq > 0:
             offset = num_linear_eq
-            for con in problem.constraints[offset:offset + num_linear_leq]:
+            for con in problem.constraints[offset : offset + num_linear_leq]:
                 inv_data['lin_dim'].append((con.id, con.size))
             row_offset = eq_dim
-            Gs.append(A[row_offset:row_offset + leq_dim])
-            hs.append(b[row_offset:row_offset + leq_dim])
+            Gs.append(A[row_offset : row_offset + leq_dim])
+            hs.append(b[row_offset : row_offset + leq_dim])
         # Linear equations
         if num_linear_eq > 0:
             for con in problem.constraints[:num_linear_eq]:
@@ -127,11 +124,11 @@ class NAG(ConicSolver):
         soc_dim = sum(data[s.DIMS][s.SOC_DIM])
         if num_soc > 0:
             offset = num_linear_eq + num_linear_leq
-            for con in problem.constraints[offset:offset + num_soc]:
+            for con in problem.constraints[offset : offset + num_soc]:
                 inv_data['soc_dim'].append((con.id, con.size))
             row_offset = leq_dim + eq_dim
-            Gs.append(A[row_offset:row_offset + soc_dim])
-            hs.append(b[row_offset:row_offset + soc_dim])
+            Gs.append(A[row_offset : row_offset + soc_dim])
+            hs.append(b[row_offset : row_offset + soc_dim])
         data['nvar'] = len(c) + sum(data[s.DIMS][s.SOC_DIM])
         inv_data['nr'] = len(c)
         if Gs:
@@ -145,7 +142,6 @@ class NAG(ConicSolver):
         return (data, inv_data)
 
     def invert(self, solution, inverse_data):
-
         status = self.STATUS_MAP[solution['status']]
         sln = solution['sln']
 
@@ -164,14 +160,14 @@ class NAG(ConicSolver):
                 lin_dvars = np.zeros(lin_dim)
                 idx = 0
                 for i in range(lin_dim):
-                    lin_dvars[i] = sln.u[idx+1] - sln.u[idx]
+                    lin_dvars[i] = sln.u[idx + 1] - sln.u[idx]
                     idx += 2
                 idx = 0
                 for id, dim in inverse_data['lin_dim']:
                     if dim == 1:
                         dual_vars[id] = lin_dvars[idx]
                     else:
-                        dual_vars[id] = np.array(lin_dvars[idx:(idx + dim)])
+                        dual_vars[id] = np.array(lin_dvars[idx : (idx + dim)])
                     idx += dim
             soc_dim = sum(ell for _, ell in inverse_data['soc_dim'])
             if soc_dim > 0:
@@ -180,7 +176,7 @@ class NAG(ConicSolver):
                     if dim == 1:
                         dual_vars[id] = sln.uc[idx]
                     else:
-                        dual_vars[id] = np.array(sln.uc[idx:(idx + dim)])
+                        dual_vars[id] = np.array(sln.uc[idx : (idx + dim)])
                     idx += dim
             sol = Solution(status, opt_val, primal_vars, dual_vars, attr)
         else:
@@ -213,7 +209,7 @@ class NAG(ConicSolver):
             Prows, Pcols, Pvals = sp.sparse.find(Put)
             Prows = Prows + 1
             Pcols = Pcols + 1
-            idxc = np.arange(1, len(cvec)+1)
+            idxc = np.arange(1, len(cvec) + 1)
             opt.handle_set_quadobj(handle, idxc, cvec, Prows, Pcols, Pvals)
         # Define linear objective
         else:
@@ -241,29 +237,28 @@ class NAG(ConicSolver):
         size_cdvars = 0
         if soc_dim > 0:
             for size_cone in dims[s.SOC_DIM]:
-                opt.handle_set_group(handle, gtype='Q',
-                                     group=np.arange(idx+1, idx+size_cone+1),
-                                     idgroup=0)
+                opt.handle_set_group(
+                    handle, gtype='Q', group=np.arange(idx + 1, idx + size_cone + 1), idgroup=0
+                )
                 idx += size_cone
                 size_cdvars += size_cone
 
         # Deactivate printing by default
-        opt.handle_opt_set(handle, "Print File = -1")
+        opt.handle_opt_set(handle, 'Print File = -1')
         if verbose:
-            opt.handle_opt_set(handle, "Monitoring File = 6")
-            opt.handle_opt_set(handle, "Monitoring Level = 2")
+            opt.handle_opt_set(handle, 'Monitoring File = 6')
+            opt.handle_opt_set(handle, 'Monitoring Level = 2')
 
-        
         # use_quad_obj is only for canonicalization
-        if "use_quad_obj" in solver_opts: 
-            del solver_opts["use_quad_obj"]
+        if 'use_quad_obj' in solver_opts:
+            del solver_opts['use_quad_obj']
         # Set the optional parameters
         kwargs = sorted(solver_opts.keys())
-        if "nag_params" in kwargs:
-            for option, value in solver_opts["nag_params"].items():
+        if 'nag_params' in kwargs:
+            for option, value in solver_opts['nag_params'].items():
                 optstr = option + '=' + str(value)
                 opt.handle_opt_set(handle, optstr)
-            kwargs.remove("nag_params")
+            kwargs.remove('nag_params')
         if kwargs:
             raise ValueError("invalid keyword-argument '{0}'".format(kwargs[0]))
 
@@ -277,15 +272,18 @@ class NAG(ConicSolver):
         # Call SOCP interior point solver
         x = np.zeros(nvar)
         status = 0
-        u = np.zeros(2*m)
+        u = np.zeros(2 * m)
         uc = np.zeros(size_cdvars)
         try:
             if soc_dim > 0 or s.P in data:
                 sln = opt.handle_solve_socp_ipm(handle, x=x, u=u, uc=uc, io_manager=iom)
             elif soc_dim == 0:
                 sln = opt.handle_solve_lp_ipm(handle, x=x, u=u, io_manager=iom)
-        except (utils.NagValueError, utils.NagAlgorithmicWarning,
-                utils.NagAlgorithmicMajorWarning) as exc:
+        except (
+            utils.NagValueError,
+            utils.NagAlgorithmicWarning,
+            utils.NagAlgorithmicMajorWarning,
+        ) as exc:
             status = exc.errno
             sln = exc.return_data
         # Destroy the handle:

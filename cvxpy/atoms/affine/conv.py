@@ -29,7 +29,7 @@ from cvxpy.expressions.constants.parameter import is_param_free
 
 
 class conv(AffAtom):
-    """ 1D discrete convolution of two vectors.
+    """1D discrete convolution of two vectors.
 
     The discrete convolution :math:`c` of vectors :math:`a` and :math:`b` of
     lengths :math:`n` and :math:`m`, respectively, is a length-:math:`(n+m-1)`
@@ -48,13 +48,12 @@ class conv(AffAtom):
     """
 
     def __init__(self, lh_expr, rh_expr) -> None:
-        warnings.warn("conv is deprecated. Use convolve instead.", DeprecationWarning)
+        warnings.warn('conv is deprecated. Use convolve instead.', DeprecationWarning)
         super(conv, self).__init__(lh_expr, rh_expr)
 
     @AffAtom.numpy_numeric
     def numeric(self, values):
-        """Convolve the two values.
-        """
+        """Convolve the two values."""
         flat_values = list(map(intf.from_2D_to_1D, values))
         output = np.convolve(flat_values[0], flat_values[1])
         if values[0].ndim == 2 or values[1].ndim == 2:
@@ -63,16 +62,14 @@ class conv(AffAtom):
             return output
 
     def validate_arguments(self) -> None:
-        """Checks that both arguments are vectors, and the first is constant.
-        """
+        """Checks that both arguments are vectors, and the first is constant."""
         if not self.args[0].is_vector() or not self.args[1].is_vector():
-            raise ValueError("The arguments to conv must resolve to vectors.")
+            raise ValueError('The arguments to conv must resolve to vectors.')
         if not self.args[0].is_constant():
-            raise ValueError("The first argument to conv must be constant.")
+            raise ValueError('The first argument to conv must be constant.')
 
     def is_atom_convex(self) -> bool:
-        """Is the atom convex?
-        """
+        """Is the atom convex?"""
         # TODO support a non-constant first argument.
         if u.scopes.dpp_scope_active():
             # conv is not DPP if any parameters are present.
@@ -82,13 +79,11 @@ class conv(AffAtom):
             return self.args[0].is_constant()
 
     def is_atom_concave(self) -> bool:
-        """Is the atom concave?
-        """
+        """Is the atom concave?"""
         return self.is_atom_convex()
 
     def shape_from_args(self) -> Tuple[int, int]:
-        """The sum of the argument dimensions - 1.
-        """
+        """The sum of the argument dimensions - 1."""
         lh_length = self.args[0].size
         rh_length = self.args[1].size
         output_length = lh_length + rh_length - 1
@@ -98,18 +93,15 @@ class conv(AffAtom):
             return (output_length,)
 
     def sign_from_args(self) -> Tuple[bool, bool]:
-        """Same as times.
-        """
+        """Same as times."""
         return u.sign.mul_sign(self.args[0], self.args[1])
 
     def is_incr(self, idx) -> bool:
-        """Is the composition non-decreasing in argument idx?
-        """
+        """Is the composition non-decreasing in argument idx?"""
         return self.args[0].is_nonneg()
 
     def is_decr(self, idx) -> bool:
-        """Is the composition non-increasing in argument idx?
-        """
+        """Is the composition non-increasing in argument idx?"""
         return self.args[0].is_nonpos()
 
     def graph_implementation(
@@ -135,7 +127,7 @@ class conv(AffAtom):
 
 
 class convolve(AffAtom):
-    """ 1D discrete convolution of two vectors.
+    """1D discrete convolution of two vectors.
 
     The discrete convolution :math:`c` of vectors :math:`a` and :math:`b` of
     lengths :math:`n` and :math:`m`, respectively, is a length-:math:`(n+m-1)`
@@ -154,26 +146,24 @@ class convolve(AffAtom):
     rh_expr : Expression
         A scalar or 1D vector.
     """
+
     # TODO work with right hand constant.
     # TODO(akshayka): make DGP-compatible
 
     @AffAtom.numpy_numeric
     def numeric(self, values):
-        """Convolve the two values.
-        """
+        """Convolve the two values."""
         return np.convolve(values[0], values[1])
 
     def validate_arguments(self) -> None:
-        """Checks that both arguments are vectors, and the first is constant.
-        """
+        """Checks that both arguments are vectors, and the first is constant."""
         if not self.args[0].ndim <= 1 or not self.args[1].ndim <= 1:
-            raise ValueError("The arguments to conv must be scalar or 1D.")
+            raise ValueError('The arguments to conv must be scalar or 1D.')
         if not self.args[0].is_constant():
-            raise ValueError("The first argument to conv must be constant.")
+            raise ValueError('The first argument to conv must be constant.')
 
     def is_atom_convex(self) -> bool:
-        """Is the atom convex?
-        """
+        """Is the atom convex?"""
         # TODO support a non-constant first argument.
         if u.scopes.dpp_scope_active():
             # conv is not DPP if any parameters are present.
@@ -183,30 +173,25 @@ class convolve(AffAtom):
             return self.args[0].is_constant()
 
     def is_atom_concave(self) -> bool:
-        """Is the atom concave?
-        """
+        """Is the atom concave?"""
         return self.is_atom_convex()
 
     def shape_from_args(self) -> Tuple[int, int]:
-        """The sum of the argument dimensions - 1.
-        """
+        """The sum of the argument dimensions - 1."""
         lh_length = self.args[0].size
         rh_length = self.args[1].size
         return (lh_length + rh_length - 1,)
 
     def sign_from_args(self) -> Tuple[bool, bool]:
-        """Same as times.
-        """
+        """Same as times."""
         return u.sign.mul_sign(self.args[0], self.args[1])
 
     def is_incr(self, idx) -> bool:
-        """Is the composition non-decreasing in argument idx?
-        """
+        """Is the composition non-decreasing in argument idx?"""
         return self.args[0].is_nonneg()
 
     def is_decr(self, idx) -> bool:
-        """Is the composition non-increasing in argument idx?
-        """
+        """Is the composition non-increasing in argument idx?"""
         return self.args[0].is_nonpos()
 
     def graph_implementation(

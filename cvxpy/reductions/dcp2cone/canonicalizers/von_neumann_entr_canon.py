@@ -13,6 +13,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+
 from cvxpy import Variable, lambda_sum_largest, trace
 from cvxpy.atoms.affine.sum import sum
 from cvxpy.constraints.nonpos import NonNeg
@@ -50,7 +51,7 @@ def von_neumann_entr_canon(expr, args):
 
     # x[:(n-1)] >= x[1:]
     #   x[0] >= x[1],  x[1] >= x[2], ...
-    con = NonNeg(x[:(n - 1)] - x[1:])
+    con = NonNeg(x[: (n - 1)] - x[1:])
     constrs.append(con)
 
     # END code that applies to all spectral functions #

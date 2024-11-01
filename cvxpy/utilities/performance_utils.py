@@ -13,13 +13,14 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+
 import functools
 from typing import Callable, TypeVar
 
 from cvxpy.utilities import scopes
 
-R = TypeVar("R")
-T = TypeVar("T")
+R = TypeVar('R')
+T = TypeVar('T')
 
 
 def lazyprop(func):
@@ -38,6 +39,7 @@ def lazyprop(func):
         except AttributeError:
             setattr(self, attr_name, func(self))
         return getattr(self, attr_name)
+
     return _lazyprop
 
 
@@ -58,7 +60,7 @@ def compute_once(func: Callable[[T], R]) -> Callable[[T], R]:
 
     This decorator should not be used when there are an unbounded or very
     large number of argument and keyword argument combinations.
-     """
+    """
 
     @functools.wraps(func)
     def _compute_once(self, *args, **kwargs) -> R:
@@ -73,4 +75,5 @@ def compute_once(func: Callable[[T], R]) -> Callable[[T], R]:
         result = func(self, *args, **kwargs)
         cache[key] = result
         return result
+
     return _compute_once

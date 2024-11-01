@@ -13,6 +13,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+
 import operator as op
 from typing import List, Tuple
 
@@ -39,39 +40,33 @@ class UnaryOperator(AffAtom):
 
 
 class NegExpression(UnaryOperator):
-    """Negation of an expression.
-    """
-    OP_NAME = "-"
+    """Negation of an expression."""
+
+    OP_NAME = '-'
     OP_FUNC = op.neg
 
     def shape_from_args(self) -> Tuple[int, ...]:
-        """Returns the (row, col) shape of the expression.
-        """
+        """Returns the (row, col) shape of the expression."""
         return self.args[0].shape
 
     def sign_from_args(self) -> Tuple[bool, bool]:
-        """Returns sign (is positive, is negative) of the expression.
-        """
+        """Returns sign (is positive, is negative) of the expression."""
         return (self.args[0].is_nonpos(), self.args[0].is_nonneg())
 
     def is_incr(self, idx) -> bool:
-        """Is the composition non-decreasing in argument idx?
-        """
+        """Is the composition non-decreasing in argument idx?"""
         return False
 
     def is_decr(self, idx) -> bool:
-        """Is the composition non-increasing in argument idx?
-        """
+        """Is the composition non-increasing in argument idx?"""
         return True
 
     def is_symmetric(self) -> bool:
-        """Is the expression symmetric?
-        """
+        """Is the expression symmetric?"""
         return self.args[0].is_symmetric()
 
     def is_hermitian(self) -> bool:
-        """Is the expression Hermitian?
-        """
+        """Is the expression Hermitian?"""
         return self.args[0].is_hermitian()
 
     def graph_implementation(

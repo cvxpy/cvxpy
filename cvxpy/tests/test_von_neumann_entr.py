@@ -25,12 +25,10 @@ from cvxpy.utilities.linalg import onb_for_orthogonal_complement
 
 
 class Test_von_neumann_entr:
-
     if 'MOSEK' in cp.installed_solvers():
         SOLVE_ARGS = {'solver': 'MOSEK', 'verbose': True}
     else:
-        SOLVE_ARGS = {'solver': 'SCS', 'eps': 1e-6, 'max_iters': 500_000,
-                      'verbose': True}
+        SOLVE_ARGS = {'solver': 'SCS', 'eps': 1e-6, 'max_iters': 500_000, 'verbose': True}
 
     @staticmethod
     def make_test_1(complex):
@@ -88,9 +86,9 @@ class Test_von_neumann_entr:
         Expect N's unspecified eigenvalue to be 0.4"""
         n = 3
         N = cp.Variable(shape=(n, n), PSD=True)
-        V12 = np.array([[-0.12309149, 0.90453403],
-                        [-0.49236596, 0.30151134],
-                        [-0.86164044, -0.30151134]])
+        V12 = np.array(
+            [[-0.12309149, 0.90453403], [-0.49236596, 0.30151134], [-0.86164044, -0.30151134]]
+        )
         mu12 = np.array([0.3, 0.2])
         trMin = 0.9
         cons1 = N @ V12 == V12 * mu12
@@ -143,13 +141,13 @@ class Test_von_neumann_entr:
         #
         ###################################################
         apx_m, apx_k = 2, 2
-        A1_real = np.array([[8.38972, 1.02671, 0.87991],
-                            [1.02671, 8.41455, 7.31307],
-                            [0.87991, 7.31307, 2.35915]])
+        A1_real = np.array(
+            [[8.38972, 1.02671, 0.87991], [1.02671, 8.41455, 7.31307], [0.87991, 7.31307, 2.35915]]
+        )
 
-        A2_real = np.array([[6.92907, 4.37713, 5.11915],
-                            [4.37713, 7.96725, 4.42217],
-                            [5.11915, 4.42217, 2.72919]])
+        A2_real = np.array(
+            [[6.92907, 4.37713, 5.11915], [4.37713, 7.96725, 4.42217], [5.11915, 4.42217, 2.72919]]
+        )
         if real:
             U = np.eye(3)
             A1 = A1_real
@@ -170,12 +168,10 @@ class Test_von_neumann_entr:
         diag_X = cp.Variable(shape=(3,))
         ref_X = cp.diag(diag_X)
         if real:
-            ref_cons = [trace(A1 @ ref_X) == b[0],
-                        trace(A2 @ ref_X) == b[1]]
+            ref_cons = [trace(A1 @ ref_X) == b[0], trace(A2 @ ref_X) == b[1]]
         else:
             conjugated_X = U @ ref_X @ U.conj().T
-            ref_cons = [trace(A1 @ conjugated_X) == b[0],
-                        trace(A2 @ conjugated_X) == b[1]]
+            ref_cons = [trace(A1 @ conjugated_X) == b[0], trace(A2 @ conjugated_X) == b[1]]
         if quad_approx:
             ref_objective, con = Test_von_neumann_entr.sum_entr_approx(diag_X, apx_m, apx_k)
             ref_cons.append(con)
@@ -192,16 +188,16 @@ class Test_von_neumann_entr:
         ###################################################
         if real:
             N = cp.Variable(shape=(3, 3), PSD=True)
-            cons = [trace(A1 @ N) == b[0],
-                    trace(A2 @ N) == b[1],
-                    N - cp.diag(cp.diag(N)) == 0]
+            cons = [trace(A1 @ N) == b[0], trace(A2 @ N) == b[1], N - cp.diag(cp.diag(N)) == 0]
             expect_N = ref_X.value
         else:
             N = cp.Variable(shape=(3, 3), hermitian=True)
             aconj_N = U.conj().T @ N @ U
-            cons = [trace(A1 @ N) == b[0],
-                    trace(A2 @ N) == b[1],
-                    aconj_N - cp.diag(cp.diag(aconj_N)) == 0]
+            cons = [
+                trace(A1 @ N) == b[0],
+                trace(A2 @ N) == b[1],
+                aconj_N - cp.diag(cp.diag(aconj_N)) == 0,
+            ]
             expect_N = conjugated_X.value
         if quad_approx:
             objective = cp.Minimize(-von_neumann_entr(N, (apx_m, apx_k)))

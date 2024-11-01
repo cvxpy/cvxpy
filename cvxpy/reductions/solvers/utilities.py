@@ -21,7 +21,7 @@ import numpy as np
 import cvxpy.interface as intf
 
 
-def stack_vals(variables: list, default: float, order: str = "F") -> np.ndarray:
+def stack_vals(variables: list, default: float, order: str = 'F') -> np.ndarray:
     """Stacks the values of the given variables.
 
     Parameters
@@ -51,7 +51,7 @@ def expcone_permutor(n_cones, exp_cone_order) -> np.ndarray:
 
 
 def extract_dual_value(result_vec, offset, constraint):
-    value = result_vec[offset:offset + constraint.size]
+    value = result_vec[offset : offset + constraint.size]
     if constraint.size == 1:
         value = intf.scalar_value(value)
     offset += constraint.size

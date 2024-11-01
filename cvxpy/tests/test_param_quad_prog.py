@@ -13,6 +13,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+
 import unittest
 
 import numpy as np
@@ -24,7 +25,6 @@ from cvxpy.tests.base_test import BaseTest
 
 
 class TestParamQuadProg(BaseTest):
-
     def setUp(self) -> None:
         self.solvers = [x for x in QP_SOLVERS if x in INSTALLED_SOLVERS]
 
@@ -45,8 +45,8 @@ class TestParamQuadProg(BaseTest):
             b = np.random.randn(m)
             x = cp.Variable(n)
             gamma = cp.Parameter(nonneg=True)
-            gamma_val = .5
-            gamma_val_new = .1
+            gamma_val = 0.5
+            gamma_val_new = 0.1
             objective = cp.Minimize(gamma * cp.sum_squares(A @ x - b) + cp.norm(x, 1))
             constraints = [1 <= x, x <= 2]
 
@@ -84,7 +84,7 @@ class TestParamQuadProg(BaseTest):
             b = np.random.randn(m)
             x = cp.Variable(n)
             gamma = cp.Parameter(nonneg=True)
-            gamma.value = .5
+            gamma.value = 0.5
             objective = cp.Minimize(cp.sum_squares(A @ x - b) + gamma * cp.norm(x, 1))
             constraints = [0 <= x, x <= 1]
 
@@ -103,7 +103,8 @@ class TestParamQuadProg(BaseTest):
             data, solver_inverse_data = solving_chain.solver.apply(param_prog)
             inverse_data = inverse_data + [solver_inverse_data]
             raw_solution = solver.solve_via_data(
-                    data, warm_start=False, verbose=False, solver_opts={})
+                data, warm_start=False, verbose=False, solver_opts={}
+            )
             problem.unpack_results(raw_solution, solving_chain, inverse_data)
             x_param = np.copy(x.value)
 
@@ -115,7 +116,7 @@ class TestParamQuadProg(BaseTest):
         """Test that lower and upper bounds on variables are propagated."""
         # Create a solver instance where bounded variables are disabled.
         solver_instance = OSQP()
-        solver_instance.name = lambda: "Custom OSQP, no bounded variables"
+        solver_instance.name = lambda: 'Custom OSQP, no bounded variables'
         solver_instance.BOUNDED_VARIABLES = False
 
         lower_bounds = -10
@@ -130,7 +131,7 @@ class TestParamQuadProg(BaseTest):
 
         # Create a solver instance where bounded variables are enabled.
         solver_instance = OSQP()
-        solver_instance.name = lambda: "Custom OSQP, bounded variables"
+        solver_instance.name = lambda: 'Custom OSQP, bounded variables'
         solver_instance.BOUNDED_VARIABLES = True
 
         lower_bounds = -10
@@ -141,25 +142,25 @@ class TestParamQuadProg(BaseTest):
         param_quad_prog = data[cp.settings.PARAM_PROB]
 
         assert np.all(param_quad_prog.lower_bounds == lower_bounds)
-        param_upper_bound = np.reshape(param_quad_prog.upper_bounds, (3, 2), order="F")
+        param_upper_bound = np.reshape(param_quad_prog.upper_bounds, (3, 2), order='F')
         assert np.all(param_upper_bound == upper_bounds)
 
     @unittest.skipUnless(cp.DAQP in INSTALLED_SOLVERS, 'DAQP is not installed.')
     def test_daqp_var_bounds(self) -> None:
         """Testing variable bounds problem with DAQP."""
-        x1 = cp.Variable(bounds=[-1,1])
-        x2 = cp.Variable(bounds=[-.5,1])
+        x1 = cp.Variable(bounds=[-1, 1])
+        x2 = cp.Variable(bounds=[-0.5, 1])
         x3 = cp.Variable()
-        objective = (x1**2 + x2**2)/2 + x1 + x2 + x3
-        constraints = [-3<=x1+x2, x1+x2<=3, -4<=x1-x2, x1-x2<=4, x3>=-2]
+        objective = (x1**2 + x2**2) / 2 + x1 + x2 + x3
+        constraints = [-3 <= x1 + x2, x1 + x2 <= 3, -4 <= x1 - x2, x1 - x2 <= 4, x3 >= -2]
         prob = cp.Problem(cp.Minimize(objective), constraints)
         data, _, _ = prob.get_problem_data(solver=cp.DAQP)
         param_quad_prog = data[cp.settings.PARAM_PROB]
 
-        assert np.all(param_quad_prog.lower_bounds == np.array([-1, -.5, -np.inf]))
+        assert np.all(param_quad_prog.lower_bounds == np.array([-1, -0.5, -np.inf]))
         assert np.all(param_quad_prog.upper_bounds == np.array([1, 1, np.inf]))
 
         prob.solve(solver=cp.DAQP)
         assert np.isclose(x1.value, -1)
-        assert np.isclose(x2.value, -.5)
+        assert np.isclose(x2.value, -0.5)
         assert np.isclose(x3.value, -2)

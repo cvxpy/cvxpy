@@ -45,22 +45,16 @@ class Canonical(metaclass=abc.ABCMeta):
     # TODO(akshayka): some code relies on these not being cached, figure out
     # which code and fix it
     def variables(self):
-        """Returns all the variables present in the arguments.
-        """
-        return unique_list(
-            [var for arg in self.args for var in arg.variables()])
+        """Returns all the variables present in the arguments."""
+        return unique_list([var for arg in self.args for var in arg.variables()])
 
     def parameters(self):
-        """Returns all the parameters present in the arguments.
-        """
-        return unique_list(
-            [param for arg in self.args for param in arg.parameters()])
+        """Returns all the parameters present in the arguments."""
+        return unique_list([param for arg in self.args for param in arg.parameters()])
 
     def constants(self):
-        """Returns all the constants present in the arguments.
-        """
-        return unique_list(
-            [const for arg in self.args for const in arg.constants()])
+        """Returns all the constants present in the arguments."""
+        return unique_list([const for arg in self.args for const in arg.constants()])
 
     def tree_copy(self, id_objects=None):
         new_args = []

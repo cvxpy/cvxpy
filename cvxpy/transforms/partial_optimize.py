@@ -31,8 +31,8 @@ def partial_optimize(
     opt_vars: Optional[List[Variable]] = None,
     dont_opt_vars: Optional[List[Variable]] = None,
     solver=None,
-    **kwargs
-) -> "PartialProblem":
+    **kwargs,
+) -> 'PartialProblem':
     """Partially optimizes the given problem over the specified variables.
 
     Either opt_vars or dont_opt_vars must be given.
@@ -71,9 +71,7 @@ def partial_optimize(
     """
     # One of the two arguments must be specified.
     if opt_vars is None and dont_opt_vars is None:
-        raise ValueError(
-            "partial_optimize called with neither opt_vars nor dont_opt_vars."
-        )
+        raise ValueError('partial_optimize called with neither opt_vars nor dont_opt_vars.')
     # If opt_vars is not specified, it's the complement of dont_opt_vars.
     elif opt_vars is None:
         ids = [id(var) for var in dont_opt_vars]
@@ -87,16 +85,16 @@ def partial_optimize(
         for var in prob.variables():
             if id(var) not in ids:
                 raise ValueError(
-                    ("If opt_vars and new_opt_vars are both specified, "
-                     "they must contain all variables in the problem.")
+                    (
+                        'If opt_vars and new_opt_vars are both specified, '
+                        'they must contain all variables in the problem.'
+                    )
                 )
 
     # Replace the opt_vars in prob with new variables.
-    id_to_new_var = {id(var): Variable(var.shape,
-                                       **var.attributes) for var in opt_vars}
+    id_to_new_var = {id(var): Variable(var.shape, **var.attributes) for var in opt_vars}
     new_obj = prob.objective.tree_copy(id_to_new_var)
-    new_constrs = [con.tree_copy(id_to_new_var)
-                   for con in prob.constraints]
+    new_constrs = [con.tree_copy(id_to_new_var) for con in prob.constraints]
     new_var_prob = Problem(new_obj, new_constrs)
     return PartialProblem(new_var_prob, opt_vars, dont_opt_vars, solver, **kwargs)
 
@@ -113,8 +111,13 @@ class PartialProblem(Expression):
     """
 
     def __init__(
-            self, prob: Problem, opt_vars: List[Variable],
-            dont_opt_vars: List[Variable], solver, **kwargs) -> None:
+        self,
+        prob: Problem,
+        opt_vars: List[Variable],
+        dont_opt_vars: List[Variable],
+        solver,
+        **kwargs,
+    ) -> None:
         self.opt_vars = opt_vars
         self.dont_opt_vars = dont_opt_vars
         self.solver = solver
@@ -123,89 +126,70 @@ class PartialProblem(Expression):
         super(PartialProblem, self).__init__()
 
     def get_data(self):
-        """Returns info needed to reconstruct the expression besides the args.
-        """
+        """Returns info needed to reconstruct the expression besides the args."""
         return [self.opt_vars, self.dont_opt_vars, self.solver]
 
     def is_constant(self) -> bool:
         return len(self.args[0].variables()) == 0
 
     def is_convex(self) -> bool:
-        """Is the expression convex?
-        """
-        return self.args[0].is_dcp() and \
-            type(self.args[0].objective) == Minimize
+        """Is the expression convex?"""
+        return self.args[0].is_dcp() and type(self.args[0].objective) == Minimize
 
     def is_concave(self) -> bool:
-        """Is the expression concave?
-        """
-        return self.args[0].is_dcp() and \
-            type(self.args[0].objective) == Maximize
+        """Is the expression concave?"""
+        return self.args[0].is_dcp() and type(self.args[0].objective) == Maximize
 
     def is_dpp(self, context: str = 'dcp') -> bool:
-        """The expression is a disciplined parameterized expression.
-        """
+        """The expression is a disciplined parameterized expression."""
         if context.lower() in ['dcp', 'dgp']:
             return self.args[0].is_dpp(context)
         else:
-            raise ValueError("Unsupported context", context)
+            raise ValueError('Unsupported context', context)
 
     def is_log_log_convex(self) -> bool:
-        """Is the expression convex?
-        """
-        return self.args[0].is_dgp() and \
-            type(self.args[0].objective) == Minimize
+        """Is the expression convex?"""
+        return self.args[0].is_dgp() and type(self.args[0].objective) == Minimize
 
     def is_log_log_concave(self) -> bool:
-        """Is the expression convex?
-        """
-        return self.args[0].is_dgp() and \
-            type(self.args[0].objective) == Maximize
+        """Is the expression convex?"""
+        return self.args[0].is_dgp() and type(self.args[0].objective) == Maximize
 
     def is_nonneg(self) -> bool:
-        """Is the expression nonnegative?
-        """
+        """Is the expression nonnegative?"""
         return self.args[0].objective.args[0].is_nonneg()
 
     def is_nonpos(self) -> bool:
-        """Is the expression nonpositive?
-        """
+        """Is the expression nonpositive?"""
         return self.args[0].objective.args[0].is_nonpos()
 
     def is_imag(self) -> bool:
-        """Is the Leaf imaginary?
-        """
+        """Is the Leaf imaginary?"""
         return False
 
     def is_complex(self) -> bool:
-        """Is the Leaf complex valued?
-        """
+        """Is the Leaf complex valued?"""
         return False
 
     @property
     def shape(self) -> Tuple[int, ...]:
-        """Returns the (row, col) dimensions of the expression.
-        """
+        """Returns the (row, col) dimensions of the expression."""
         return tuple()
 
     def name(self) -> str:
-        """Returns the string representation of the expression.
-        """
-        return f"PartialProblem({self.args[0]})"
+        """Returns the string representation of the expression."""
+        return f'PartialProblem({self.args[0]})'
 
     def variables(self) -> List[Variable]:
-        """Returns the variables in the problem.
-        """
+        """Returns the variables in the problem."""
         return self.args[0].variables()
 
     def parameters(self):
-        """Returns the parameters in the problem.
-        """
+        """Returns the parameters in the problem."""
         return self.args[0].parameters()
 
     def constants(self) -> List[Constant]:
-        """Returns the constants in the problem.
-        """
+        """Returns the constants in the problem."""
         return self.args[0].constants()
 
     @property
@@ -237,8 +221,7 @@ class PartialProblem(Expression):
                 return u.grad.error_grad(self)
             else:
                 fix_vars += [var == var.value]
-        prob = Problem(self.args[0].objective,
-                       fix_vars + self.args[0].constraints)
+        prob = Problem(self.args[0].objective, fix_vars + self.args[0].constraints)
         prob.solve(solver=self.solver, **self._solve_kwargs)
         # Compute gradient.
         if prob.status in s.SOLUTION_PRESENT:
@@ -265,7 +248,7 @@ class PartialProblem(Expression):
     @property
     def domain(self):
         """A list of constraints describing the closure of the region
-           where the expression is finite.
+        where the expression is finite.
         """
         # Variables optimized over are replaced in self.args[0].
         obj_expr = self.args[0].objective.args[0]

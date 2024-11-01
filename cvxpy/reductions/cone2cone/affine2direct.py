@@ -13,6 +13,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+
 import numpy as np
 import scipy as sp
 
@@ -101,21 +102,15 @@ class Dualize:
             SOC: Kp.soc,  # lengths of blocks of soc-constrained variables.
             PSD: Kp.psd,  # "orders" of PSD variables
             DUAL_EXP: Kp.exp,  # number of length-3 blocks of dual exp cone variables.
-            DUAL_POW3D: Kp.p3d  # scale parameters for dual 3d power cones
+            DUAL_POW3D: Kp.p3d,  # scale parameters for dual 3d power cones
         }
-        data = {
-            s.A: A.T,
-            s.B: c,
-            s.C: -b,
-            'K_dir': Kd,
-            'dualized': True
-        }
+        data = {s.A: A.T, s.B: c, s.C: -b, 'K_dir': Kd, 'dualized': True}
         inv_data = {
             s.OBJ_OFFSET: d,
             'constr_map': problem.constr_map,
             'x_id': problem.x.id,
             'K_dir': Kd,
-            'dualized': True
+            'dualized': True,
         }
         return data, inv_data
 
@@ -168,25 +163,24 @@ class Dualize:
         primal_vars, dual_vars = None, None
         if status in s.SOLUTION_PRESENT:
             opt_val = solution.opt_val + inv_data[s.OBJ_OFFSET]
-            primal_vars = {inv_data['x_id']:
-                           solution.dual_vars[s.EQ_DUAL]}
+            primal_vars = {inv_data['x_id']: solution.dual_vars[s.EQ_DUAL]}
             dual_vars = dict()
             direct_prims = solution.primal_vars
             constr_map = inv_data['constr_map']
             i = 0
             for con in constr_map[Zero_obj]:
-                dv = direct_prims[FREE][i:i + con.size]
+                dv = direct_prims[FREE][i : i + con.size]
                 dual_vars[con.id] = dv if dv.size > 1 else dv.item()
                 i += con.size
             i = 0
             for con in constr_map[NonNeg_obj]:
-                dv = direct_prims[NONNEG][i:i + con.size]
+                dv = direct_prims[NONNEG][i : i + con.size]
                 dual_vars[con.id] = dv if dv.size > 1 else dv.item()
                 i += con.size
             i = 0
             for con in constr_map[SOC_obj]:
                 block_len = con.shape[0]
-                dv = np.concatenate(direct_prims[SOC][i:i + block_len])
+                dv = np.concatenate(direct_prims[SOC][i : i + block_len])
                 dual_vars[con.id] = dv
                 i += block_len
             for i, con in enumerate(constr_map[PSD_obj]):
@@ -194,12 +188,12 @@ class Dualize:
                 dual_vars[con.id] = dv
             i = 0
             for con in constr_map[ExpCone_obj]:
-                dv = direct_prims[DUAL_EXP][i:i + con.size]
+                dv = direct_prims[DUAL_EXP][i : i + con.size]
                 dual_vars[con.id] = dv
                 i += con.size
             i = 0
             for con in constr_map[PowCone_obj]:
-                dv = direct_prims[DUAL_POW3D][i:i + con.size]
+                dv = direct_prims[DUAL_POW3D][i : i + con.size]
                 dual_vars[con.id] = dv
                 i += con.size
         elif status == s.INFEASIBLE:
@@ -305,14 +299,14 @@ class Slacks:
             NONNEG: cone_dims.nonneg,
             SOC: sum(cone_dims.soc),
             EXP: 3 * cone_dims.exp,
-            POW3D: 3 * len(cone_dims.p3d)
+            POW3D: 3 * len(cone_dims.p3d),
         }
         row_offsets = {
             ZERO: 0,
             NONNEG: cone_lens[ZERO],
             SOC: cone_lens[ZERO] + cone_lens[NONNEG],
             EXP: cone_lens[ZERO] + cone_lens[NONNEG] + cone_lens[SOC],
-            POW3D: cone_lens[ZERO] + cone_lens[NONNEG] + cone_lens[SOC] + cone_lens[EXP]
+            POW3D: cone_lens[ZERO] + cone_lens[NONNEG] + cone_lens[SOC] + cone_lens[EXP],
         }
         # ^ If the rows of A are formatted in an order different from
         # zero -> nonneg -> soc -> exp -> pow, then the above block of code should
@@ -334,8 +328,8 @@ class Slacks:
             co_dim = cone_lens[co_type]
             if co_dim > 0:
                 r = row_offsets[co_type]
-                A_temp = A[r:r + co_dim, :]
-                b_temp = b[r:r + co_dim]
+                A_temp = A[r : r + co_dim, :]
+                b_temp = b[r : r + co_dim]
                 if co_type in affine:
                     A_aff.append(A_temp)
                     b_aff.append(b_temp)
@@ -351,7 +345,7 @@ class Slacks:
             PSD: [],  # not currently supported in this reduction
             DUAL_EXP: 0,  # not currently supported in cvxpy
             POW3D: [] if POW3D in affine else cone_dims.p3d,
-            DUAL_POW3D: []  # not currently supported in cvxpy
+            DUAL_POW3D: [],  # not currently supported in cvxpy
         }
         K_aff = {
             NONNEG: cone_dims.nonneg if NONNEG in affine else 0,
@@ -359,7 +353,7 @@ class Slacks:
             EXP: cone_dims.exp if EXP in affine else 0,
             PSD: [],  # currently not supported in this reduction
             ZERO: cone_dims.zero + total_slack,
-            POW3D: cone_dims.p3d if POW3D in affine else []
+            POW3D: cone_dims.p3d if POW3D in affine else [],
         }
 
         data = dict()

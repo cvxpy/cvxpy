@@ -39,4 +39,4 @@ def harmonic_mean(x):
     # TODO(akshayka): Behavior of the below is incorrect when x has negative
     # entries. Either fail fast or provide a correct expression with
     # unknown curvature.
-    return x.size*pnorm(x, -1)
+    return x.size * pnorm(x, -1)

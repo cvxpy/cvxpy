@@ -44,37 +44,39 @@ except ModuleNotFoundError:
 # Mapping of SCIP to cvxpy status codes
 STATUS_MAP = {
     # SOLUTION_PRESENT
-    "optimal": s.OPTIMAL,
-    "timelimit": s.OPTIMAL_INACCURATE,
-    "gaplimit": s.OPTIMAL_INACCURATE,
-    "nodelimit": s.OPTIMAL_INACCURATE,
-    "totalnodelimit": s.OPTIMAL_INACCURATE,
-    "bestsollimit": s.USER_LIMIT,
+    'optimal': s.OPTIMAL,
+    'timelimit': s.OPTIMAL_INACCURATE,
+    'gaplimit': s.OPTIMAL_INACCURATE,
+    'nodelimit': s.OPTIMAL_INACCURATE,
+    'totalnodelimit': s.OPTIMAL_INACCURATE,
+    'bestsollimit': s.USER_LIMIT,
     # INF_OR_UNB
-    "infeasible": s.INFEASIBLE,
-    "unbounded": s.UNBOUNDED,
-    "inforunbd": s.INFEASIBLE_OR_UNBOUNDED,
+    'infeasible': s.INFEASIBLE,
+    'unbounded': s.UNBOUNDED,
+    'inforunbd': s.INFEASIBLE_OR_UNBOUNDED,
     # ERROR
-    "userinterrupt": s.SOLVER_ERROR,
-    "memlimit": s.SOLVER_ERROR,
-    "sollimit": s.SOLVER_ERROR,
-    "stallnodelimit": s.SOLVER_ERROR,
-    "restartlimit": s.SOLVER_ERROR,
-    "unknown": s.SOLVER_ERROR,
+    'userinterrupt': s.SOLVER_ERROR,
+    'memlimit': s.SOLVER_ERROR,
+    'sollimit': s.SOLVER_ERROR,
+    'stallnodelimit': s.SOLVER_ERROR,
+    'restartlimit': s.SOLVER_ERROR,
+    'unknown': s.SOLVER_ERROR,
 }
 
 
 class ConstraintTypes:
     """Constraint type constants."""
-    EQUAL = "EQUAL"
-    LESS_THAN_OR_EQUAL = "LESS_THAN_OR_EQUAL"
+
+    EQUAL = 'EQUAL'
+    LESS_THAN_OR_EQUAL = 'LESS_THAN_OR_EQUAL'
 
 
 class VariableTypes:
     """Variable type constants."""
-    BINARY = "BINARY"
-    INTEGER = "INTEGER"
-    CONTINUOUS = "CONTINUOUS"
+
+    BINARY = 'BINARY'
+    INTEGER = 'INTEGER'
+    CONTINUOUS = 'CONTINUOUS'
 
 
 class SCIP(ConicSolver):
@@ -91,6 +93,7 @@ class SCIP(ConicSolver):
     def import_solver(self) -> None:
         """Imports the solver."""
         import pyscipopt
+
         pyscipopt
 
     def apply(self, problem: ParamConeProg) -> Tuple[Dict, Dict]:
@@ -108,10 +111,7 @@ class SCIP(ConicSolver):
         constr_map = problem.constr_map
         inv_data[self.EQ_CONSTR] = constr_map[Zero]
         inv_data[self.NEQ_CONSTR] = (
-            constr_map[NonNeg]
-            + constr_map[SOC]
-            + constr_map[s.PSD]
-            + constr_map[ExpCone]
+            constr_map[NonNeg] + constr_map[SOC] + constr_map[s.PSD] + constr_map[ExpCone]
         )
 
         # Apply parameter values.
@@ -143,7 +143,7 @@ class SCIP(ConicSolver):
             opt_val = solution['value'] + inverse_data[s.OFFSET]
             primal_vars = {inverse_data[SCIP.VAR_ID]: solution['primal']}
 
-            if "eq_dual" in solution and not inverse_data['is_mip']:
+            if 'eq_dual' in solution and not inverse_data['is_mip']:
                 eq_dual = utilities.get_dual_values(
                     result_vec=solution['eq_dual'],
                     parse_func=utilities.extract_dual_value,
@@ -163,12 +163,12 @@ class SCIP(ConicSolver):
             return failure_solution(status)
 
     def solve_via_data(
-            self,
-            data: Dict[str, Any],
-            warm_start: bool,
-            verbose: bool,
-            solver_opts: Dict[str, Any],
-            solver_cache: Dict = None,
+        self,
+        data: Dict[str, Any],
+        warm_start: bool,
+        verbose: bool,
+        solver_opts: Dict[str, Any],
+        solver_cache: Dict = None,
     ) -> Solution:
         """Returns the result of the call to the solver."""
         from pyscipopt.scip import Model
@@ -201,7 +201,7 @@ class SCIP(ConicSolver):
             variables.append(
                 model.addVar(
                     obj=obj,
-                    name="x_%d" % n,
+                    name='x_%d' % n,
                     vtype=var_type,
                     lb=None if var_type != VariableTypes.BINARY else 0,
                     ub=None if var_type != VariableTypes.BINARY else 1,
@@ -210,12 +210,12 @@ class SCIP(ConicSolver):
         return variables
 
     def _add_constraints(
-            self,
-            model: ScipModel,
-            variables: List,
-            A: dok_matrix,
-            b: np.ndarray,
-            dims: Dict[str, Union[int, List]],
+        self,
+        model: ScipModel,
+        variables: List,
+        A: dok_matrix,
+        b: np.ndarray,
+        dims: Dict[str, Union[int, List]],
     ) -> List:
         """Create a list of constraints."""
 
@@ -262,12 +262,12 @@ class SCIP(ConicSolver):
         return equal_constraints + inequal_constraints + new_leq_constrs + soc_constrs
 
     def _set_params(
-            self,
-            model: ScipModel,
-            verbose: bool,
-            solver_opts: Optional[Dict],
-            data: Dict[str, Any],
-            dims: Dict[str, Union[int, List]],
+        self,
+        model: ScipModel,
+        verbose: bool,
+        solver_opts: Optional[Dict],
+        data: Dict[str, Any],
+        dims: Dict[str, Union[int, List]],
     ) -> None:
         """Set model solve parameters."""
         from pyscipopt import SCIP_PARAMSETTING
@@ -277,13 +277,13 @@ class SCIP(ConicSolver):
         model.hideOutput(hide_output)
 
         # General kwarg params
-        scip_params = solver_opts.pop("scip_params", {})
+        scip_params = solver_opts.pop('scip_params', {})
         if solver_opts:
             try:
                 model.setParams(solver_opts)
             except KeyError as e:
                 raise KeyError(
-                    "One or more solver params in {} are not valid: {}".format(
+                    'One or more solver params in {} are not valid: {}'.format(
                         list(solver_opts.keys()),
                         e,
                     )
@@ -295,7 +295,7 @@ class SCIP(ConicSolver):
                 model.setParams(scip_params)
             except KeyError as e:
                 raise KeyError(
-                    "One or more scip params in {} are not valid: {}".format(
+                    'One or more scip params in {} are not valid: {}'.format(
                         list(scip_params.keys()),
                         e,
                     )
@@ -310,34 +310,34 @@ class SCIP(ConicSolver):
             model.disablePropagation()
 
     def _solve(
-            self,
-            model: ScipModel,
-            variables: List,
-            constraints: List,
-            data: Dict[str, Any],
-            dims: Dict[str, Union[int, List]],
+        self,
+        model: ScipModel,
+        variables: List,
+        constraints: List,
+        data: Dict[str, Any],
+        dims: Dict[str, Union[int, List]],
     ) -> Dict[str, Any]:
         """Solve and return a solution if one exists."""
 
         try:
             model.optimize()
         except Exception as e:
-            log.warning("Error encountered when optimising %s: %s", model, e)
+            log.warning('Error encountered when optimising %s: %s', model, e)
 
         solution = {}
 
         if max(model.getNSols(), model.getNCountedSols()) > 0:
             sol = model.getBestSol()
-            solution["primal"] = np.array([sol[v] for v in variables])
+            solution['primal'] = np.array([sol[v] for v in variables])
 
             # HACK can't get objective value directly if stopped due to time limit.
             if model.getStatus() == 'timelimit':
                 # the solution value is not actually necessary
                 # since CVXPY calculates it by evaluating the objective
                 # at the solution.
-                solution["value"] = np.nan
+                solution['value'] = np.nan
             else:
-                solution["value"] = model.getObjVal()
+                solution['value'] = model.getObjVal()
 
             is_mip = data[s.BOOL_IDX] or data[s.INT_IDX]
             has_soc_constr = len(dims[s.SOC_DIM]) > 1
@@ -353,24 +353,26 @@ class SCIP(ConicSolver):
                         dual = model.getDualsolLinear(lc)
                         vals.append(dual)
 
-                solution["y"] = -np.array(vals)
-                solution[s.EQ_DUAL] = solution["y"][0:dims[s.EQ_DIM]]
-                solution[s.INEQ_DUAL] = solution["y"][dims[s.EQ_DIM]:]
+                solution['y'] = -np.array(vals)
+                solution[s.EQ_DUAL] = solution['y'][0 : dims[s.EQ_DIM]]
+                solution[s.INEQ_DUAL] = solution['y'][dims[s.EQ_DIM] :]
 
         solution[s.SOLVE_TIME] = model.getSolvingTime()
-        solution["status"] = STATUS_MAP[model.getStatus()]
-        if solution["status"] == s.SOLVER_ERROR and model.getNCountedSols() > 0:
-            solution["status"] = s.OPTIMAL_INACCURATE
+        solution['status'] = STATUS_MAP[model.getStatus()]
+        if solution['status'] == s.SOLVER_ERROR and model.getNCountedSols() > 0:
+            solution['status'] = s.OPTIMAL_INACCURATE
 
-        if model.getStatus() == 'timelimit' \
-                and model.getNCountedSols() == 0 \
-                and model.getNSols() == 0:
-            solution["status"] = s.SOLVER_ERROR
+        if (
+            model.getStatus() == 'timelimit'
+            and model.getNCountedSols() == 0
+            and model.getNSols() == 0
+        ):
+            solution['status'] = s.SOLVER_ERROR
 
-        if model.getStatus() == 'timelimit' \
-                and (model.getNSols() > 0 \
-                or model.getNCountedSols() > 0):
-            solution["status"] = s.OPTIMAL_INACCURATE
+        if model.getStatus() == 'timelimit' and (
+            model.getNSols() > 0 or model.getNCountedSols() > 0
+        ):
+            solution['status'] = s.OPTIMAL_INACCURATE
 
         return solution
 
@@ -403,9 +405,7 @@ class SCIP(ConicSolver):
             if expr_list[i]:
                 expression = quicksum(coeff * var for coeff, var in expr_list[i])
                 constraint = model.addCons(
-                    (expression == b[i])
-                    if ctype == ConstraintTypes.EQUAL
-                    else (expression <= b[i])
+                    (expression == b[i]) if ctype == ConstraintTypes.EQUAL else (expression <= b[i])
                 )
                 constraints.append(constraint)
             else:
@@ -442,21 +442,17 @@ class SCIP(ConicSolver):
             lb = 0 if len(soc_vars) == 0 else None
             var = model.addVar(
                 obj=0,
-                name="soc_t_%d" % i,
+                name='soc_t_%d' % i,
                 vtype=VariableTypes.CONTINUOUS,
                 lb=lb,
                 ub=None,
             )
             soc_vars.append(var)
 
-        lin_expr_list = [
-            b[i] - quicksum(coeff * var for coeff, var in expr_list[i])
-            for i in rows
-        ]
+        lin_expr_list = [b[i] - quicksum(coeff * var for coeff, var in expr_list[i]) for i in rows]
 
         new_lin_constrs = [
-            model.addCons(soc_vars[i] == lin_expr_list[i])
-            for i, _ in enumerate(lin_expr_list)
+            model.addCons(soc_vars[i] == lin_expr_list[i]) for i, _ in enumerate(lin_expr_list)
         ]
 
         # Interesting because only <=?

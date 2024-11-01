@@ -16,6 +16,7 @@ limitations under the License.
 
 This interface borrows heavily from the one in scs_conif.py
 """
+
 import numpy as np
 import scipy.sparse as sp
 
@@ -28,8 +29,8 @@ from cvxpy.reductions.solvers.conic_solvers.conic_solver import ConicSolver
 
 
 def dims_to_solver_cones(cone_dims):
-
     import clarabel
+
     cones = []
 
     # assume that constraints are presented
@@ -86,7 +87,8 @@ def triu_to_full(upper_tri, n):
     full[np.diag_indices(n)] /= 2
     full[np.tril_indices(n, k=-1)] /= np.sqrt(2)
     full[np.triu_indices(n, k=1)] /= np.sqrt(2)
-    return np.reshape(full, n*n, order="F")
+    return np.reshape(full, n * n, order='F')
+
 
 def clarabel_psdvec_to_psdmat(vec: Expression, indices: np.ndarray) -> Expression:
     """
@@ -109,7 +111,7 @@ def clarabel_psdvec_to_psdmat(vec: Expression, indices: np.ndarray) -> Expressio
     rather than a numpy ndarray.
     """
     n = int(np.sqrt(indices.size * 2))
-    rows, cols = np.tril_indices(n)   # tril here not an error
+    rows, cols = np.tril_indices(n)  # tril here not an error
     mats = []
     for i, idx in enumerate(indices):
         r, c = rows[i], cols[i]
@@ -126,42 +128,38 @@ def clarabel_psdvec_to_psdmat(vec: Expression, indices: np.ndarray) -> Expressio
 
 
 class CLARABEL(ConicSolver):
-    """An interface for the Clarabel solver.
-    """
+    """An interface for the Clarabel solver."""
 
     # Solver capabilities.
     MIP_CAPABLE = False
-    SUPPORTED_CONSTRAINTS = ConicSolver.SUPPORTED_CONSTRAINTS \
-        + [SOC, ExpCone, PowCone3D, PSD]
+    SUPPORTED_CONSTRAINTS = ConicSolver.SUPPORTED_CONSTRAINTS + [SOC, ExpCone, PowCone3D, PSD]
 
     STATUS_MAP = {
-                    "Solved": s.OPTIMAL,
-                    "PrimalInfeasible": s.INFEASIBLE,
-                    "DualInfeasible": s.UNBOUNDED,
-                    "AlmostSolved": s.OPTIMAL_INACCURATE,
-                    "AlmostPrimalInfeasible": s.INFEASIBLE_INACCURATE,
-                    "AlmostDualInfeasible": s.UNBOUNDED_INACCURATE,
-                    "MaxIterations": s.USER_LIMIT,
-                    "MaxTime": s.USER_LIMIT,
-                    "NumericalError": s.SOLVER_ERROR,
-                    "InsufficientProgress": s.SOLVER_ERROR
-                }
+        'Solved': s.OPTIMAL,
+        'PrimalInfeasible': s.INFEASIBLE,
+        'DualInfeasible': s.UNBOUNDED,
+        'AlmostSolved': s.OPTIMAL_INACCURATE,
+        'AlmostPrimalInfeasible': s.INFEASIBLE_INACCURATE,
+        'AlmostDualInfeasible': s.UNBOUNDED_INACCURATE,
+        'MaxIterations': s.USER_LIMIT,
+        'MaxTime': s.USER_LIMIT,
+        'NumericalError': s.SOLVER_ERROR,
+        'InsufficientProgress': s.SOLVER_ERROR,
+    }
 
     # Order of exponential cone arguments for solver.
     EXP_CONE_ORDER = [0, 1, 2]
 
     def name(self):
-        """The name of the solver.
-        """
+        """The name of the solver."""
         return 'CLARABEL'
 
     def import_solver(self) -> None:
-        """Imports the solver.
-        """
+        """Imports the solver."""
         import clarabel  # noqa F401
 
     def supports_quad_obj(self) -> bool:
-        """Clarabel supports quadratic objective with any combination 
+        """Clarabel supports quadratic objective with any combination
         of conic constraints.
         """
         return True
@@ -176,14 +174,12 @@ class CLARABEL(ConicSolver):
 
         """
         rows = cols = constr.expr.shape[0]
-        entries = rows * (cols + 1)//2
+        entries = rows * (cols + 1) // 2
 
         row_arr = np.arange(0, entries)
 
         upper_diag_indices = np.triu_indices(rows)
-        col_arr = np.sort(np.ravel_multi_index(upper_diag_indices,
-                                               (rows, cols),
-                                               order='F'))
+        col_arr = np.sort(np.ravel_multi_index(upper_diag_indices, (rows, cols), order='F'))
 
         val_arr = np.zeros((rows, cols))
         val_arr[upper_diag_indices] = np.sqrt(2)
@@ -191,7 +187,7 @@ class CLARABEL(ConicSolver):
         val_arr = np.ravel(val_arr, order='F')
         val_arr = val_arr[np.nonzero(val_arr)]
 
-        shape = (entries, rows*cols)
+        shape = (entries, rows * cols)
         scaled_upper_tri = sp.csc_matrix((val_arr, (row_arr, col_arr)), shape)
 
         idx = np.arange(rows * cols)
@@ -205,8 +201,7 @@ class CLARABEL(ConicSolver):
 
     @staticmethod
     def extract_dual_value(result_vec, offset, constraint):
-        """Extracts the dual value for constraint starting at offset.
-        """
+        """Extracts the dual value for constraint starting at offset."""
 
         # special case: PSD constraints treated internally in
         # svec (scaled triangular) form
@@ -222,8 +217,7 @@ class CLARABEL(ConicSolver):
             return utilities.extract_dual_value(result_vec, offset, constraint)
 
     def invert(self, solution, inverse_data):
-        """Returns the solution to the original problem given the inverse_data.
-        """
+        """Returns the solution to the original problem given the inverse_data."""
 
         attr = {}
         status = self.STATUS_MAP[str(solution.status)]
@@ -235,18 +229,16 @@ class CLARABEL(ConicSolver):
         if status in s.SOLUTION_PRESENT:
             primal_val = solution.obj_val
             opt_val = primal_val + inverse_data[s.OFFSET]
-            primal_vars = {
-                inverse_data[CLARABEL.VAR_ID]: solution.x
-            }
+            primal_vars = {inverse_data[CLARABEL.VAR_ID]: solution.x}
             eq_dual_vars = utilities.get_dual_values(
-                solution.z[:inverse_data[ConicSolver.DIMS].zero],
+                solution.z[: inverse_data[ConicSolver.DIMS].zero],
                 self.extract_dual_value,
-                inverse_data[CLARABEL.EQ_CONSTR]
+                inverse_data[CLARABEL.EQ_CONSTR],
             )
             ineq_dual_vars = utilities.get_dual_values(
-                solution.z[inverse_data[ConicSolver.DIMS].zero:],
+                solution.z[inverse_data[ConicSolver.DIMS].zero :],
                 self.extract_dual_value,
-                inverse_data[CLARABEL.NEQ_CONSTR]
+                inverse_data[CLARABEL.NEQ_CONSTR],
             )
             dual_vars = {}
             dual_vars.update(eq_dual_vars)
@@ -263,8 +255,8 @@ class CLARABEL(ConicSolver):
         settings.verbose = verbose
 
         # use_quad_obj is only for canonicalization.
-        if "use_quad_obj" in opts:
-            del opts["use_quad_obj"]
+        if 'use_quad_obj' in opts:
+            del opts['use_quad_obj']
 
         for opt in opts.keys():
             try:
@@ -310,7 +302,6 @@ class CLARABEL(ConicSolver):
         cones = dims_to_solver_cones(data[ConicSolver.DIMS])
 
         def solve(_solver_opts):
-
             _settings = CLARABEL.parse_solver_opts(verbose, _solver_opts)
             _solver = clarabel.DefaultSolver(P, c, A, b, cones, _settings)
             _results = _solver.solve()

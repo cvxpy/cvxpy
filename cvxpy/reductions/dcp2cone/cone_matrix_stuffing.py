@@ -13,6 +13,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+
 from __future__ import annotations
 
 import numpy as np
@@ -92,20 +93,17 @@ class ConeDims:
         self.p3d = p3d
 
     def __repr__(self) -> str:
-        return "(zero: {0}, nonneg: {1}, exp: {2}, soc: {3}, psd: {4}, p3d: {5})".format(
-            self.zero, self.nonneg, self.exp, self.soc, self.psd, self.p3d)
+        return '(zero: {0}, nonneg: {1}, exp: {2}, soc: {3}, psd: {4}, p3d: {5})'.format(
+            self.zero, self.nonneg, self.exp, self.soc, self.psd, self.p3d
+        )
 
     def __str__(self) -> str:
-        """String representation.
-        """
-        return ("%i equalities, %i inequalities, %i exponential cones, \n"
-                "SOC constraints: %s, PSD constraints: %s,\n"
-                " 3d power cones %s.") % (self.zero,
-                                          self.nonneg,
-                                          self.exp,
-                                          self.soc,
-                                          self.psd,
-                                          self.p3d)
+        """String representation."""
+        return (
+            '%i equalities, %i inequalities, %i exponential cones, \n'
+            'SOC constraints: %s, PSD constraints: %s,\n'
+            ' 3d power cones %s.'
+        ) % (self.zero, self.nonneg, self.exp, self.soc, self.psd, self.p3d)
 
     def __getitem__(self, key):
         if key == self.EQ_DIM:
@@ -136,17 +134,22 @@ class ParamConeProg(ParamProb):
 
     The constant offsets d and b are the last column of c and A.
     """
-    def __init__(self, c, x, A,
-                 variables,
-                 var_id_to_col,
-                 constraints,
-                 parameters,
-                 param_id_to_col,
-                 P=None,
-                 formatted: bool = False,
-                 lower_bounds: np.ndarray | None = None,
-                 upper_bounds: np.ndarray | None = None,
-                 ) -> None:
+
+    def __init__(
+        self,
+        c,
+        x,
+        A,
+        variables,
+        var_id_to_col,
+        constraints,
+        parameters,
+        param_id_to_col,
+        P=None,
+        formatted: bool = False,
+        lower_bounds: np.ndarray | None = None,
+        upper_bounds: np.ndarray | None = None,
+    ) -> None:
         # The problem data tensors; c is for the constraint, and A for
         # the problem data matrix
         self.c = c
@@ -183,11 +186,15 @@ class ParamConeProg(ParamProb):
 
     def is_mixed_integer(self) -> bool:
         """Is the problem mixed-integer?"""
-        return self.x.attributes['boolean'] or \
-            self.x.attributes['integer']
+        return self.x.attributes['boolean'] or self.x.attributes['integer']
 
-    def apply_parameters(self, id_to_param_value=None, zero_offset: bool = False,
-                         keep_zeros: bool = False, quad_obj: bool = False):
+    def apply_parameters(
+        self,
+        id_to_param_value=None,
+        zero_offset: bool = False,
+        keep_zeros: bool = False,
+        quad_obj: bool = False,
+    ):
         """Returns A, b after applying parameters (and reshaping).
 
         Args:
@@ -201,17 +208,22 @@ class ParamConeProg(ParamProb):
         self.reduced_A.cache(keep_zeros)
 
         def param_value(idx):
-            return (np.array(self.id_to_param[idx].value) if id_to_param_value
-                    is None else id_to_param_value[idx])
+            return (
+                np.array(self.id_to_param[idx].value)
+                if id_to_param_value is None
+                else id_to_param_value[idx]
+            )
 
         param_vec = canonInterface.get_parameter_vector(
             self.total_param_size,
             self.param_id_to_col,
             self.param_id_to_size,
             param_value,
-            zero_offset=zero_offset)
+            zero_offset=zero_offset,
+        )
         c, d = canonInterface.get_matrix_from_tensor(
-            self.c, param_vec, self.x.size, with_offset=True)
+            self.c, param_vec, self.x.size, with_offset=True
+        )
         c = c.toarray().flatten()
         A, b = self.reduced_A.get_matrix_from_tensor(param_vec, with_offset=True)
         if quad_obj:
@@ -256,14 +268,12 @@ class ParamConeProg(ParamProb):
         for param_id, col in self.param_id_to_col.items():
             if param_id in active_params:
                 param = self.id_to_param[param_id]
-                delta = del_param_vec[col:col + param.size]
-                param_id_to_delta_param[param_id] = np.reshape(
-                    delta, param.shape, order='F')
+                delta = del_param_vec[col : col + param.size]
+                param_id_to_delta_param[param_id] = np.reshape(delta, param.shape, order='F')
         return param_id_to_delta_param
 
     def split_solution(self, sltn, active_vars=None):
-        """Splits the solution into individual variables.
-        """
+        """Splits the solution into individual variables."""
         if active_vars is None:
             active_vars = [v.id for v in self.variables]
         # var id to solution.
@@ -271,21 +281,19 @@ class ParamConeProg(ParamProb):
         for var_id, col in self.var_id_to_col.items():
             if var_id in active_vars:
                 var = self.id_to_var[var_id]
-                value = sltn[col:var.size+col]
+                value = sltn[col : var.size + col]
                 if var.attributes_were_lowered():
                     orig_var = var.variable_of_provenance()
                     value = cvx_attr2constr.recover_value_for_variable(
-                        orig_var, value, project=False)
-                    sltn_dict[orig_var.id] = np.reshape(
-                        value, orig_var.shape, order='F')
+                        orig_var, value, project=False
+                    )
+                    sltn_dict[orig_var.id] = np.reshape(value, orig_var.shape, order='F')
                 else:
-                    sltn_dict[var_id] = np.reshape(
-                        value, var.shape, order='F')
+                    sltn_dict[var_id] = np.reshape(value, var.shape, order='F')
         return sltn_dict
 
     def split_adjoint(self, del_vars=None):
-        """Adjoint of split_solution.
-        """
+        """Adjoint of split_solution."""
         var_vec = np.zeros(self.x.size)
         for var_id, delta in del_vars.items():
             var = self.id_to_var[var_id]
@@ -293,10 +301,11 @@ class ParamConeProg(ParamProb):
             if var.attributes_were_lowered():
                 orig_var = var.variable_of_provenance()
                 if cvx_attr2constr.attributes_present(
-                        [orig_var], cvx_attr2constr.SYMMETRIC_ATTRIBUTES):
+                    [orig_var], cvx_attr2constr.SYMMETRIC_ATTRIBUTES
+                ):
                     delta = delta + delta.T - np.diag(np.diag(delta))
                 delta = cvx_attr2constr.lower_value(orig_var, delta)
-            var_vec[col:col + var.size] = delta.flatten(order='F')
+            var_vec[col : col + var.size] = delta.flatten(order='F')
         return var_vec
 
 
@@ -307,6 +316,7 @@ class ConeMatrixStuffing(MatrixStuffing):
     constraints which may have zero or more arguments, all of which must be
     affine.
     """
+
     CONSTRAINTS = 'ordered_constraints'
 
     def __init__(self, quad_obj: bool = False, canon_backend: str | None = None):
@@ -315,13 +325,16 @@ class ConeMatrixStuffing(MatrixStuffing):
         self.canon_backend = canon_backend
 
     def accepts(self, problem):
-        valid_obj_curv = (self.quad_obj and problem.objective.expr.is_quadratic()) or \
-            problem.objective.expr.is_affine()
-        return (type(problem.objective) == Minimize
-                and valid_obj_curv
-                and not cvx_attr2constr.convex_attributes(problem.variables())
-                and are_args_affine(problem.constraints)
-                and problem.is_dpp())
+        valid_obj_curv = (
+            self.quad_obj and problem.objective.expr.is_quadratic()
+        ) or problem.objective.expr.is_affine()
+        return (
+            type(problem.objective) == Minimize
+            and valid_obj_curv
+            and not cvx_attr2constr.convex_attributes(problem.variables())
+            and are_args_affine(problem.constraints)
+            and problem.is_dpp()
+        )
 
     def stuffed_objective(self, problem, extractor):
         # concatenate all variables in one vector
@@ -332,7 +345,7 @@ class ConeMatrixStuffing(MatrixStuffing):
             expr = problem.objective.expr.copy()
             params_to_P, params_to_c = extractor.quad_form(expr)
             # Handle 0.5 factor.
-            params_to_P = 2*params_to_P
+            params_to_P = 2 * params_to_P
         else:
             # Extract to c.T * x + r; c is represented by a ma
             params_to_c = extractor.affine(problem.objective.expr)
@@ -343,8 +356,7 @@ class ConeMatrixStuffing(MatrixStuffing):
         inverse_data = InverseData(problem)
         # Form the constraints
         extractor = CoeffExtractor(inverse_data, self.canon_backend)
-        params_to_P, params_to_c, flattened_variable = self.stuffed_objective(
-            problem, extractor)
+        params_to_P, params_to_c, flattened_variable = self.stuffed_objective(problem, extractor)
         # Lower equality and inequality to Zero and NonNeg.
         cons = []
         for con in problem.constraints:
@@ -355,25 +367,36 @@ class ConeMatrixStuffing(MatrixStuffing):
             elif isinstance(con, NonPos):
                 con = nonpos2nonneg(con)
             elif isinstance(con, SOC) and con.axis == 1:
-                con = SOC(con.args[0], con.args[1].T, axis=0,
-                          constr_id=con.constr_id)
+                con = SOC(con.args[0], con.args[1].T, axis=0, constr_id=con.constr_id)
             elif isinstance(con, PowCone3D) and con.args[0].ndim > 1:
                 x, y, z = con.args
                 alpha = con.alpha
-                con = PowCone3D(x.flatten(order='F'),
-                                y.flatten(order='F'),
-                                z.flatten(order='F'),
-                                alpha.flatten(order='F'),
-                                constr_id=con.constr_id)
+                con = PowCone3D(
+                    x.flatten(order='F'),
+                    y.flatten(order='F'),
+                    z.flatten(order='F'),
+                    alpha.flatten(order='F'),
+                    constr_id=con.constr_id,
+                )
             elif isinstance(con, ExpCone) and con.args[0].ndim > 1:
                 x, y, z = con.args
-                con = ExpCone(x.flatten(order='F'), y.flatten(order='F'), z.flatten(order='F'),
-                              constr_id=con.constr_id)
+                con = ExpCone(
+                    x.flatten(order='F'),
+                    y.flatten(order='F'),
+                    z.flatten(order='F'),
+                    constr_id=con.constr_id,
+                )
             cons.append(con)
         # Reorder constraints to Zero, NonNeg, SOC, PSD, EXP, PowCone3D
         constr_map = group_constraints(cons)
-        ordered_cons = constr_map[Zero] + constr_map[NonNeg] + \
-            constr_map[SOC] + constr_map[PSD] + constr_map[ExpCone] + constr_map[PowCone3D]
+        ordered_cons = (
+            constr_map[Zero]
+            + constr_map[NonNeg]
+            + constr_map[SOC]
+            + constr_map[PSD]
+            + constr_map[ExpCone]
+            + constr_map[PowCone3D]
+        )
         inverse_data.cons_id_map = {con.id: con.id for con in ordered_cons}
 
         inverse_data.constraints = ordered_cons
@@ -411,16 +434,14 @@ class ConeMatrixStuffing(MatrixStuffing):
 
         primal_vars, dual_vars = {}, {}
         if solution.status not in s.SOLUTION_PRESENT:
-            return Solution(solution.status, opt_val, primal_vars, dual_vars,
-                            solution.attr)
+            return Solution(solution.status, opt_val, primal_vars, dual_vars, solution.attr)
 
         # Split vectorized variable into components.
         x_opt = list(solution.primal_vars.values())[0]
         for var_id, offset in var_map.items():
             shape = inverse_data.var_shapes[var_id]
             size = np.prod(shape, dtype=int)
-            primal_vars[var_id] = np.reshape(x_opt[offset:offset+size], shape,
-                                             order='F')
+            primal_vars[var_id] = np.reshape(x_opt[offset : offset + size], shape, order='F')
 
         # Remap dual variables if dual exists (problem is convex).
         if solution.dual_vars is not None:
@@ -431,11 +452,6 @@ class ConeMatrixStuffing(MatrixStuffing):
                 if shape == () or isinstance(con_obj, (ExpCone, SOC)):
                     dual_vars[old_con] = solution.dual_vars[new_con]
                 else:
-                    dual_vars[old_con] = np.reshape(
-                        solution.dual_vars[new_con],
-                        shape,
-                        order='F'
-                    )
+                    dual_vars[old_con] = np.reshape(solution.dual_vars[new_con], shape, order='F')
 
-        return Solution(solution.status, opt_val, primal_vars, dual_vars,
-                        solution.attr)
+        return Solution(solution.status, opt_val, primal_vars, dual_vars, solution.attr)

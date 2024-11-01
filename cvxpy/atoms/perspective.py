@@ -56,8 +56,8 @@ class perspective(Atom):
     def validate_arguments(self) -> None:
         assert self.f.size == 1  # dealing only with scalars, for now
         assert self.args[0].size == 1
-        assert isinstance(self.args[0], Variable), "s must be a variable"
-        assert self.args[0].is_nonneg(), "s must be a nonnegative variable"
+        assert isinstance(self.args[0], Variable), 's must be a variable'
+        assert self.args[0].is_nonneg(), 's must be a nonnegative variable'
         return super().validate_arguments()
 
     def numeric(self, values: list[np.ndarray, np.ndarray]) -> np.ndarray:
@@ -72,23 +72,23 @@ class perspective(Atom):
         f = self.f
         if np.isclose(values[0], 0.0):
             # Handle s = 0 with the recession function by swapping f with f_recession
-            # Since we just swap the two functions, we end up with s * f_recession(x / s) 
+            # Since we just swap the two functions, we end up with s * f_recession(x / s)
             # when we actually just want f_recession(x). Thus we set s=1 to ignore s.
-            assert self.f_recession is not None, (
-                "To handle s = 0, pass in a recession function f_recession"
-            )
+            assert (
+                self.f_recession is not None
+            ), 'To handle s = 0, pass in a recession function f_recession'
             f = self.f_recession
-            values[0] = 1 
+            values[0] = 1
 
         old_x_vals = [var.value for var in f.variables()]
 
         def set_vals(vals, s_val):
             for var, val in zip(f.variables(), vals):
-                var.value = val/s_val
+                var.value = val / s_val
 
         set_vals(values[1:], s_val=values[0])
 
-        ret_val = np.array([f.value*s_val])
+        ret_val = np.array([f.value * s_val])
 
         set_vals(old_x_vals, s_val=1)
 
@@ -101,40 +101,35 @@ class perspective(Atom):
 
         assert s_pos
 
-        is_positive = (f_pos and s_pos)
-        is_negative = (f_neg and s_pos)
+        is_positive = f_pos and s_pos
+        is_negative = f_neg and s_pos
 
         return is_positive, is_negative
 
     def is_atom_convex(self) -> bool:
-        """Is the atom convex?
-        """
+        """Is the atom convex?"""
         if scopes.dpp_scope_active() and not is_param_free(self.f):
             return False
         else:
             return self.f.is_convex() and self.args[0].is_nonneg()
 
     def is_atom_concave(self) -> bool:
-        """Is the atom concave?
-        """
+        """Is the atom concave?"""
         if scopes.dpp_scope_active() and not is_param_free(self.f):
             return False
         else:
             return self.f.is_concave() and self.args[0].is_nonneg()
 
     def is_incr(self, idx) -> bool:
-        """Is the composition non-decreasing in argument idx?
-        """
+        """Is the composition non-decreasing in argument idx?"""
         return False
 
     def is_decr(self, idx: int) -> bool:
-        """Is the composition non-increasing in argument idx?
-        """
+        """Is the composition non-increasing in argument idx?"""
         return False
 
     def shape_from_args(self) -> Tuple[int, ...]:
-        """Returns the (row, col) shape of the expression.
-        """
+        """Returns the (row, col) shape of the expression."""
         return self.f.shape
 
     def _grad(self, values):

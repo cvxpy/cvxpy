@@ -22,7 +22,8 @@ from .elementwise import Elementwise
 
 
 class abs(Elementwise):
-    """ Elementwise absolute value """
+    """Elementwise absolute value"""
+
     _allow_complex = True
 
     def __init__(self, x) -> None:
@@ -34,36 +35,29 @@ class abs(Elementwise):
         return np.absolute(values[0])
 
     def sign_from_args(self) -> Tuple[bool, bool]:
-        """Returns sign (is positive, is negative) of the expression.
-        """
+        """Returns sign (is positive, is negative) of the expression."""
         # Always positive.
         return (True, False)
 
     def is_atom_convex(self) -> bool:
-        """Is the atom convex?
-        """
+        """Is the atom convex?"""
         return True
 
     def is_atom_concave(self) -> bool:
-        """Is the atom concave?
-        """
+        """Is the atom concave?"""
         return False
 
     def is_incr(self, idx) -> bool:
-        """Is the composition non-decreasing in argument idx?
-        """
+        """Is the composition non-decreasing in argument idx?"""
         return self.args[idx].is_nonneg()
 
     def is_decr(self, idx) -> bool:
-        """Is the composition non-increasing in argument idx?
-        """
+        """Is the composition non-increasing in argument idx?"""
         return self.args[idx].is_nonpos()
 
     def is_pwl(self) -> bool:
-        """Is the atom piecewise linear?
-        """
-        return self.args[0].is_pwl() and \
-            (self.args[0].is_real() or self.args[0].is_imag())
+        """Is the atom piecewise linear?"""
+        return self.args[0].is_pwl() and (self.args[0].is_real() or self.args[0].is_imag())
 
     def _grad(self, values):
         """Gives the (sub/super)gradient of the atom w.r.t. each argument.
@@ -80,6 +74,6 @@ class abs(Elementwise):
         rows = self.expr.size
         cols = self.size
         D = np.zeros(self.expr.shape)
-        D += (values[0] > 0)
-        D -= (values[0] < 0)
+        D += values[0] > 0
+        D -= values[0] < 0
         return [abs.elemwise_grad_to_diag(D, rows, cols)]

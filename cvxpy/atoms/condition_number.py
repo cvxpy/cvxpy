@@ -13,6 +13,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+
 from typing import List, Tuple
 
 from scipy import linalg as LA
@@ -22,9 +23,10 @@ from cvxpy.constraints.constraint import Constraint
 
 
 class condition_number(Atom):
-    """ Condition Number; :math:`\\lambda_{\\max}(A) / \\lambda_{\\min}(A)`.
-        Requires that A be a Positive Semidefinite Matrix.
+    """Condition Number; :math:`\\lambda_{\\max}(A) / \\lambda_{\\min}(A)`.
+    Requires that A be a Positive Semidefinite Matrix.
     """
+
     def __init__(self, A) -> None:
         super(condition_number, self).__init__(A)
 
@@ -33,14 +35,13 @@ class condition_number(Atom):
 
         Requires that A be a Positive Semidefinite Matrix.
         """
-        lo = hi = self.args[0].shape[0]-1
+        lo = hi = self.args[0].shape[0] - 1
         max_eigen = LA.eigvalsh(values[0], subset_by_index=(lo, hi))[0]
         min_eigen = -LA.eigvalsh(-values[0], subset_by_index=(lo, hi))[0]
         return max_eigen / min_eigen
 
     def _domain(self) -> List[Constraint]:
-        """Returns constraints describing the domain of the node.
-        """
+        """Returns constraints describing the domain of the node."""
         return [self.args[0].H == self.args[0], self.args[0] >> 0]
 
     def _grad(self, values):
@@ -57,44 +58,36 @@ class condition_number(Atom):
         raise NotImplementedError
 
     def validate_arguments(self) -> None:
-        """Verify that the argument A is square.
-        """
+        """Verify that the argument A is square."""
         if not self.args[0].ndim == 2 or self.args[0].shape[0] != self.args[0].shape[1]:
             raise ValueError(
-                f"The argument {self.args[0].name()} to condition_number must be a square matrix."
+                f'The argument {self.args[0].name()} to condition_number must be a square matrix.'
             )
 
     def shape_from_args(self) -> Tuple[int, ...]:
-        """Returns the (row, col) shape of the expression.
-        """
+        """Returns the (row, col) shape of the expression."""
         return tuple()
 
     def sign_from_args(self) -> Tuple[bool, bool]:
-        """Returns sign (is positive, is negative) of the expression.
-        """
+        """Returns sign (is positive, is negative) of the expression."""
         return (True, False)
 
     def is_atom_convex(self) -> bool:
-        """Is the atom convex?
-        """
+        """Is the atom convex?"""
         return False
 
     def is_atom_concave(self) -> bool:
-        """Is the atom concave?
-        """
+        """Is the atom concave?"""
         return False
 
     def is_atom_quasiconvex(self) -> bool:
-        """Is the atom quasiconvex?
-        """
+        """Is the atom quasiconvex?"""
         return True
 
     def is_incr(self, idx) -> bool:
-        """Is the composition non-decreasing in argument idx?
-        """
+        """Is the composition non-decreasing in argument idx?"""
         return False
 
     def is_decr(self, idx) -> bool:
-        """Is the composition non-increasing in argument idx?
-        """
+        """Is the composition non-increasing in argument idx?"""
         return False

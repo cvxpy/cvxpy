@@ -27,7 +27,5 @@ def xexp_canon(expr, args):
     power_expr = power(x, 2)
     power_obj, constraints = power_canon(power_expr, power_expr.args)
 
-    constraints += [ExpCone(u, x, t),
-                    u >= power_obj,
-                    x >= 0]
+    constraints += [ExpCone(u, x, t), u >= power_obj, x >= 0]
     return t, constraints

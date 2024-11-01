@@ -24,17 +24,14 @@ from cvxpy.atoms.axis_atom import AxisAtom
 
 
 class log_sum_exp(AxisAtom):
-    """:math:`\\log\\sum_i e^{x_i}`
-
-    """
+    """:math:`\\log\\sum_i e^{x_i}`"""
 
     def __init__(self, x, axis=None, keepdims: bool = False) -> None:
         super(log_sum_exp, self).__init__(x, axis=axis, keepdims=keepdims)
 
     @Atom.numpy_numeric
     def numeric(self, values):
-        """Evaluates e^x elementwise, sums, and takes the log.
-        """
+        """Evaluates e^x elementwise, sums, and takes the log."""
         return logsumexp(values[0], axis=self.axis, keepdims=self.keepdims)
 
     def _grad(self, values):
@@ -63,31 +60,26 @@ class log_sum_exp(AxisAtom):
         """
         denom = np.exp(logsumexp(value, axis=None, keepdims=True))
         nom = np.exp(value)
-        D = nom/denom
+        D = nom / denom
         return D
 
     def sign_from_args(self) -> Tuple[bool, bool]:
-        """Returns sign (is positive, is negative) of the expression.
-        """
+        """Returns sign (is positive, is negative) of the expression."""
         # Non-negative when arg is non-negative.
         return (self.args[0].is_nonneg(), False)
 
     def is_atom_convex(self) -> bool:
-        """Is the atom convex?
-        """
+        """Is the atom convex?"""
         return True
 
     def is_atom_concave(self) -> bool:
-        """Is the atom concave?
-        """
+        """Is the atom concave?"""
         return False
 
     def is_incr(self, idx) -> bool:
-        """Is the composition non-decreasing in argument idx?
-        """
+        """Is the composition non-decreasing in argument idx?"""
         return True
 
     def is_decr(self, idx) -> bool:
-        """Is the composition non-increasing in argument idx?
-        """
+        """Is the composition non-increasing in argument idx?"""
         return False

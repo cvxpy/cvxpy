@@ -36,7 +36,9 @@ class TestSupportFunctions(BaseTest):
         n = 5
         x = cp.Variable(shape=(n,))
         sigma = cp.suppfunc(x, [])
-        a = np.random.randn(n,)
+        a = np.random.randn(
+            n,
+        )
         y = cp.Variable(shape=(n,))
         cons = [sigma(y - a) <= 0]  # "<= num" for any num >= 0 is valid.
         objective = cp.Minimize(a @ y)
@@ -54,10 +56,14 @@ class TestSupportFunctions(BaseTest):
     def test_vector1norm(self) -> None:
         n = 3
         np.random.seed(1)
-        a = np.random.randn(n,)
+        a = np.random.randn(
+            n,
+        )
         x = cp.Variable(shape=(n,))
         sigma = cp.suppfunc(x, [cp.norm(x - a, 1) <= 1])
-        y = np.random.randn(n,)
+        y = np.random.randn(
+            n,
+        )
         y_var = cp.Variable(shape=(n,))
         prob = cp.Problem(cp.Minimize(sigma(y_var)), [y == y_var])
         prob.solve(solver='CLARABEL')
@@ -69,10 +75,14 @@ class TestSupportFunctions(BaseTest):
     def test_vector2norm(self) -> None:
         n = 3
         np.random.seed(1)
-        a = np.random.randn(n,)
+        a = np.random.randn(
+            n,
+        )
         x = cp.Variable(shape=(n,))
         sigma = cp.suppfunc(x, [cp.norm(x - a, 2) <= 1])
-        y = np.random.randn(n,)
+        y = np.random.randn(
+            n,
+        )
         y_var = cp.Variable(shape=(n,))
         prob = cp.Problem(cp.Minimize(sigma(y_var)), [y == y_var])
         prob.solve(solver='CLARABEL')
@@ -145,8 +155,12 @@ class TestSupportFunctions(BaseTest):
 
     def test_expcone_2(self) -> None:
         x = cp.Variable(shape=(3,))
-        tempcons = [cp.sum(x) <= 1.0, cp.sum(x) >= 0.1, x >= 0.01,
-                    cp.kl_div(x[1], x[0]) + x[1] - x[0] + x[2] <= 0]
+        tempcons = [
+            cp.sum(x) <= 1.0,
+            cp.sum(x) >= 0.1,
+            x >= 0.01,
+            cp.kl_div(x[1], x[0]) + x[1] - x[0] + x[2] <= 0,
+        ]
         sigma = cp.suppfunc(x, tempcons)
         y = cp.Variable(shape=(3,))
         a = np.array([-3, -2, -1])  # this is negative of objective in mosek_conif.py example
@@ -183,11 +197,30 @@ class TestSupportFunctions(BaseTest):
     def test_invalid_solver(self) -> None:
         n = 3
         x = cp.Variable(shape=(n,))
-        sigma = cp.suppfunc(x, [cp.norm(x - np.random.randn(n,), 2) <= 1])
+        sigma = cp.suppfunc(
+            x,
+            [
+                cp.norm(
+                    x
+                    - np.random.randn(
+                        n,
+                    ),
+                    2,
+                )
+                <= 1
+            ],
+        )
         y_var = cp.Variable(shape=(n,))
-        prob = cp.Problem(cp.Minimize(sigma(y_var)), [np.random.randn(n,) == y_var])
-        with self.assertRaisesRegex(
-                SolverError, ".*could not be reduced to a QP.*"):
+        prob = cp.Problem(
+            cp.Minimize(sigma(y_var)),
+            [
+                np.random.randn(
+                    n,
+                )
+                == y_var
+            ],
+        )
+        with self.assertRaisesRegex(SolverError, '.*could not be reduced to a QP.*'):
             prob.solve(solver='OSQP')
 
     def test_invalid_variable(self) -> None:

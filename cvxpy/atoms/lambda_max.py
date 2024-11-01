@@ -13,6 +13,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+
 from typing import List, Tuple
 
 import numpy as np
@@ -24,8 +25,7 @@ from cvxpy.constraints.constraint import Constraint
 
 
 class lambda_max(Atom):
-    """ Maximum eigenvalue; :math:`\\lambda_{\\max}(A)`.
-    """
+    """Maximum eigenvalue; :math:`\\lambda_{\\max}(A)`."""
 
     def __init__(self, A) -> None:
         super(lambda_max, self).__init__(A)
@@ -35,12 +35,11 @@ class lambda_max(Atom):
 
         Requires that A be symmetric.
         """
-        lo = hi = self.args[0].shape[0]-1
+        lo = hi = self.args[0].shape[0] - 1
         return LA.eigvalsh(values[0], subset_by_index=(lo, hi))[0]
 
     def _domain(self) -> List[Constraint]:
-        """Returns constraints describing the domain of the node.
-        """
+        """Returns constraints describing the domain of the node."""
         return [self.args[0].H == self.args[0]]
 
     def _grad(self, values):
@@ -62,46 +61,41 @@ class lambda_max(Atom):
         return [sp.csc_matrix(D.ravel(order='F')).T]
 
     def validate_arguments(self) -> None:
-        """Verify that the argument A is square.
-        """
+        """Verify that the argument A is square."""
         if not self.args[0].ndim == 2 or self.args[0].shape[0] != self.args[0].shape[1]:
-            raise ValueError("The argument '%s' to lambda_max must resolve to a square matrix."
-                             % self.args[0].name())
+            raise ValueError(
+                "The argument '%s' to lambda_max must resolve to a square matrix."
+                % self.args[0].name()
+            )
 
     def shape_from_args(self) -> Tuple[int, ...]:
-        """Returns the (row, col) shape of the expression.
-        """
+        """Returns the (row, col) shape of the expression."""
         return tuple()
 
     def sign_from_args(self) -> Tuple[bool, bool]:
-        """Returns sign (is positive, is negative) of the expression.
-        """
+        """Returns sign (is positive, is negative) of the expression."""
         return (False, False)
 
     def is_atom_convex(self) -> bool:
-        """Is the atom convex?
-        """
+        """Is the atom convex?"""
         return True
 
     def is_atom_concave(self) -> bool:
-        """Is the atom concave?
-        """
+        """Is the atom concave?"""
         return False
 
     def is_incr(self, idx) -> bool:
-        """Is the composition non-decreasing in argument idx?
-        """
+        """Is the composition non-decreasing in argument idx?"""
         return False
 
     def is_decr(self, idx) -> bool:
-        """Is the composition non-increasing in argument idx?
-        """
+        """Is the composition non-increasing in argument idx?"""
         return False
 
     @property
     def value(self):
         if not np.allclose(self.args[0].value, self.args[0].value.T.conj()):
-            raise ValueError("Input matrix was not Hermitian/symmetric.")
+            raise ValueError('Input matrix was not Hermitian/symmetric.')
         if any([p.value is None for p in self.parameters()]):
             return None
         return self._value_impl()

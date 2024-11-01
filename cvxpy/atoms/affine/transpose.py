@@ -13,6 +13,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+
 from typing import List, Tuple
 
 import numpy as np
@@ -24,8 +25,7 @@ from cvxpy.constraints.constraint import Constraint
 
 
 class transpose(AffAtom):
-    """Transpose an expression.
-    """
+    """Transpose an expression."""
 
     def __init__(self, expr, axes=None) -> None:
         self.axes = axes
@@ -33,7 +33,7 @@ class transpose(AffAtom):
 
     # The string representation of the atom.
     def name(self) -> str:
-        return "%s.T" % self.args[0]
+        return '%s.T' % self.args[0]
 
     # Returns the transpose of the given value.
     @AffAtom.numpy_numeric
@@ -41,38 +41,31 @@ class transpose(AffAtom):
         return np.transpose(values[0], axes=self.axes)
 
     def is_atom_log_log_convex(self) -> bool:
-        """Is the atom log-log convex?
-        """
+        """Is the atom log-log convex?"""
         return True
 
     def is_atom_log_log_concave(self) -> bool:
-        """Is the atom log-log concave?
-        """
+        """Is the atom log-log concave?"""
         return True
 
     def is_symmetric(self) -> bool:
-        """Is the expression symmetric?
-        """
+        """Is the expression symmetric?"""
         return self.args[0].is_symmetric()
 
     def is_skew_symmetric(self) -> bool:
-        """Is the expression skew-symmetric?
-        """
+        """Is the expression skew-symmetric?"""
         return self.args[0].is_skew_symmetric()
 
     def is_hermitian(self) -> bool:
-        """Is the expression Hermitian?
-        """
+        """Is the expression Hermitian?"""
         return self.args[0].is_hermitian()
 
     def shape_from_args(self) -> Tuple[int, ...]:
-        """Returns the shape of the transpose expression.
-        """
+        """Returns the shape of the transpose expression."""
         return self.args[0].shape[::-1]
 
     def get_data(self):
-        """ Returns the axes for transposition.
-        """
+        """Returns the axes for transposition."""
         return [self.axes]
 
     def graph_implementation(

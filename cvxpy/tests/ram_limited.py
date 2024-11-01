@@ -38,9 +38,9 @@ def issue826() -> None:
     #
     # This test is for checking that #826 is resolved.
     n = 2**8
-    m = int(2 ** 32 / n) + 1
+    m = int(2**32 / n) + 1
 
-    vals = np.arange(m*n, dtype=np.double) / 1000.0
+    vals = np.arange(m * n, dtype=np.double) / 1000.0
     A = vals.reshape(n, m)
     x = cp.Variable(shape=(m,))
     cons = [A @ x >= 0]

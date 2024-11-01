@@ -49,17 +49,14 @@ class PSD(Cone):
     def __init__(self, expr, constr_id=None) -> None:
         # Argument must be square matrix.
         if len(expr.shape) != 2 or expr.shape[0] != expr.shape[1]:
-            raise ValueError(
-                "Non-square matrix in positive definite constraint."
-            )
+            raise ValueError('Non-square matrix in positive definite constraint.')
         super(PSD, self).__init__([expr], constr_id)
 
     def name(self) -> str:
-        return "%s >> 0" % self.args[0]
+        return '%s >> 0' % self.args[0]
 
     def is_dcp(self, dpp: bool = False) -> bool:
-        """A PSD constraint is DCP if the constrained expression is affine.
-        """
+        """A PSD constraint is DCP if the constrained expression is affine."""
         if dpp:
             with scopes.dpp_scope():
                 return self.args[0].is_affine()
@@ -81,7 +78,7 @@ class PSD(Cone):
         """
         if self.expr.value is None:
             return None
-        min_eig = cvxtypes.lambda_min()(self.args[0] + self.args[0].T)/2
+        min_eig = cvxtypes.lambda_min()(self.args[0] + self.args[0].T) / 2
         return cvxtypes.neg()(min_eig).value
 
     def _dual_cone(self, *args):

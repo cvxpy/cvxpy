@@ -19,7 +19,6 @@ from cvxpy.expressions.expression import Expression
 
 
 def sum_smallest(x, k):
-    """Sum of the smallest k values.
-    """
+    """Sum of the smallest k values."""
     x = Expression.cast_to_const(x)
     return -sum_largest(-x, k)

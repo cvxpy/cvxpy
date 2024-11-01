@@ -13,6 +13,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
@@ -48,6 +49,7 @@ class TensorRepresentation:
     Sparse representation of a 3D Tensor. Semantically similar to COO format, with one extra
     dimension. Here, 'row' is axis 0, 'col' axis 1, and 'parameter_offset' axis 2.
     """
+
     data: np.ndarray
     row: np.ndarray
     col: np.ndarray
@@ -75,22 +77,24 @@ class TensorRepresentation:
         return cls(data, row, col, parameter_offset, tensors[0].shape)
 
     def __eq__(self, other: TensorRepresentation) -> bool:
-        return isinstance(other, TensorRepresentation) and \
-            np.all(self.data == other.data) and \
-            np.all(self.row == other.row) and \
-            np.all(self.col == other.col) and \
-            np.all(self.parameter_offset == other.parameter_offset) and \
-            self.shape == other.shape
+        return (
+            isinstance(other, TensorRepresentation)
+            and np.all(self.data == other.data)
+            and np.all(self.row == other.row)
+            and np.all(self.col == other.col)
+            and np.all(self.parameter_offset == other.parameter_offset)
+            and self.shape == other.shape
+        )
 
     def __add__(self, other: TensorRepresentation) -> TensorRepresentation:
         if self.shape != other.shape:
-            raise ValueError("Shapes must match for addition.")
+            raise ValueError('Shapes must match for addition.')
         return TensorRepresentation(
             np.concatenate([self.data, other.data]),
             np.concatenate([self.row, other.row]),
             np.concatenate([self.col, other.col]),
             np.concatenate([self.parameter_offset, other.parameter_offset]),
-            self.shape
+            self.shape,
         )
 
     @classmethod
@@ -107,7 +111,7 @@ class TensorRepresentation:
         """
         Flatten into 2D scipy csc-matrix in column-major order and transpose.
         """
-        rows = (self.col.astype(np.int64) * np.int64(self.shape[0]) + self.row.astype(np.int64))
+        rows = self.col.astype(np.int64) * np.int64(self.shape[0]) + self.row.astype(np.int64)
         cols = self.parameter_offset.astype(np.int64)
         shape = (np.prod(self.shape, dtype=np.int64), num_param_slices)
         return sp.csc_matrix((self.data, (rows, cols)), shape=shape)
@@ -121,8 +125,14 @@ class TensorRepresentation:
 
 
 class CanonBackend(ABC):
-    def __init__(self, id_to_col: dict[int, int], param_to_size: dict[int, int],
-                 param_to_col: dict[int, int], param_size_plus_one: int, var_length: int):
+    def __init__(
+        self,
+        id_to_col: dict[int, int],
+        param_to_size: dict[int, int],
+        param_to_col: dict[int, int],
+        param_size_plus_one: int,
+        var_length: int,
+    ):
         """
         CanonBackend handles the compilation from LinOp trees to a final sparse tensor through its
         subclasses.
@@ -159,7 +169,7 @@ class CanonBackend(ABC):
         backends = {
             NUMPY_CANON_BACKEND: NumPyCanonBackend,
             SCIPY_CANON_BACKEND: SciPyCanonBackend,
-            RUST_CANON_BACKEND: RustCanonBackend
+            RUST_CANON_BACKEND: RustCanonBackend,
         }
         return backends[backend_name](*args, **kwargs)
 
@@ -225,25 +235,28 @@ class PythonCanonBackend(CanonBackend):
         """
 
         # Leaf nodes
-        if lin_op.type == "variable":
+        if lin_op.type == 'variable':
             assert isinstance(lin_op.data, int)
             assert s.ALLOW_ND_EXPR or len(lin_op.shape) in {0, 1, 2}
             variable_tensor = self.get_variable_tensor(lin_op.shape, lin_op.data)
-            return empty_view.create_new_tensor_view({lin_op.data}, variable_tensor,
-                                                     is_parameter_free=True)
-        elif lin_op.type in {"scalar_const", "dense_const", "sparse_const"}:
+            return empty_view.create_new_tensor_view(
+                {lin_op.data}, variable_tensor, is_parameter_free=True
+            )
+        elif lin_op.type in {'scalar_const', 'dense_const', 'sparse_const'}:
             data_tensor = self.get_data_tensor(lin_op.data)
-            return empty_view.create_new_tensor_view({Constant.ID.value}, data_tensor,
-                                                     is_parameter_free=True)
-        elif lin_op.type == "param":
+            return empty_view.create_new_tensor_view(
+                {Constant.ID.value}, data_tensor, is_parameter_free=True
+            )
+        elif lin_op.type == 'param':
             param_tensor = self.get_param_tensor(lin_op.shape, lin_op.data)
-            return empty_view.create_new_tensor_view({Constant.ID.value}, param_tensor,
-                                                     is_parameter_free=False)
+            return empty_view.create_new_tensor_view(
+                {Constant.ID.value}, param_tensor, is_parameter_free=False
+            )
 
         # Internal nodes
         else:
             func = self.get_func(lin_op.type)
-            if lin_op.type in {"concatenate", "vstack", "hstack"}:
+            if lin_op.type in {'concatenate', 'vstack', 'hstack'}:
                 return func(lin_op, empty_view)
 
             res = None
@@ -257,14 +270,15 @@ class PythonCanonBackend(CanonBackend):
             assert res is not None
             return res
 
-    def get_constant_data(self, lin_op: LinOp, view: TensorView, column: bool) \
-            -> tuple[np.ndarray | sp.spmatrix, bool]:
+    def get_constant_data(
+        self, lin_op: LinOp, view: TensorView, column: bool
+    ) -> tuple[np.ndarray | sp.spmatrix, bool]:
         """
         Extract the constant data from a LinOp node. In most cases, lin_op will be of
         type "*_const" or "param", but can handle arbitrary types.
         """
         # Fast path for constant data to prevent reshape into column vector.
-        constants = {"scalar_const", "dense_const", "sparse_const"}
+        constants = {'scalar_const', 'dense_const', 'sparse_const'}
         if not column and lin_op.type in constants and len(lin_op.shape) == 2:
             constant_data = self.get_constant_data_from_const(lin_op)
             return constant_data, True
@@ -279,8 +293,9 @@ class PythonCanonBackend(CanonBackend):
             lin_op_shape = lin_op.shape if len(lin_op.shape) == 2 else [1, lin_op.shape[0]]
             constant_data = self.reshape_constant_data(constant_data, lin_op_shape)
 
-        data_to_return = constant_data[Constant.ID.value] if constant_view.is_parameter_free \
-            else constant_data
+        data_to_return = (
+            constant_data[Constant.ID.value] if constant_view.is_parameter_free else constant_data
+        )
         return data_to_return, constant_view.is_parameter_free
 
     @staticmethod
@@ -329,27 +344,27 @@ class PythonCanonBackend(CanonBackend):
         The function implementation.
         """
         mapping = {
-            "sum": self.sum_op,
-            "mul": self.mul,
-            "promote": self.promote,
-            "neg": self.neg,
-            "mul_elem": self.mul_elem,
-            "sum_entries": self.sum_entries,
-            "div": self.div,
-            "reshape": self.reshape,
-            "index": self.index,
-            "diag_vec": self.diag_vec,
-            "hstack": self.hstack,
-            "vstack": self.vstack,
-            "concatenate": self.concatenate,
-            "transpose": self.transpose,
-            "upper_tri": self.upper_tri,
-            "diag_mat": self.diag_mat,
-            "rmul": self.rmul,
-            "trace": self.trace,
-            "conv": self.conv,
-            "kron_l": self.kron_l,
-            "kron_r": self.kron_r,
+            'sum': self.sum_op,
+            'mul': self.mul,
+            'promote': self.promote,
+            'neg': self.neg,
+            'mul_elem': self.mul_elem,
+            'sum_entries': self.sum_entries,
+            'div': self.div,
+            'reshape': self.reshape,
+            'index': self.index,
+            'diag_vec': self.diag_vec,
+            'hstack': self.hstack,
+            'vstack': self.vstack,
+            'concatenate': self.concatenate,
+            'transpose': self.transpose,
+            'upper_tri': self.upper_tri,
+            'diag_mat': self.diag_mat,
+            'rmul': self.rmul,
+            'trace': self.trace,
+            'conv': self.conv,
+            'kron_l': self.kron_l,
+            'kron_r': self.kron_r,
         }
         return mapping[func_name]
 
@@ -441,7 +456,7 @@ class PythonCanonBackend(CanonBackend):
         for i in range(1, len(indices)):
             product_size = cum_prod[i - 1]
             # add new indices to rows and apply offset to all previous indices
-            offset = np.add.outer(rows, indices[i] * product_size).flatten(order="F")
+            offset = np.add.outer(rows, indices[i] * product_size).flatten(order='F')
             rows = offset
         view.select_rows(rows)
         return view
@@ -512,9 +527,9 @@ class PythonCanonBackend(CanonBackend):
         indices = []
         for arg in lin.args:
             arg_rows = np.prod(arg.shape)
-            indices.append(np.arange(arg_rows).reshape(arg.shape, order = "F") + offset)
+            indices.append(np.arange(arg_rows).reshape(arg.shape, order='F') + offset)
             offset += arg_rows
-        order = np.concatenate(indices, axis = axis).flatten(order="F").astype(int)
+        order = np.concatenate(indices, axis=axis).flatten(order='F').astype(int)
         res.select_rows(order)
         return res
 
@@ -529,9 +544,9 @@ class PythonCanonBackend(CanonBackend):
         indices = []
         for arg in lin.args:
             arg_rows = np.prod(arg.shape)
-            indices.append(np.arange(arg_rows).reshape(arg.shape, order="F") + offset)
+            indices.append(np.arange(arg_rows).reshape(arg.shape, order='F') + offset)
             offset += arg_rows
-        order = np.vstack(indices).flatten(order="F").astype(int)
+        order = np.vstack(indices).flatten(order='F').astype(int)
         res.select_rows(order)
         return res
 
@@ -541,7 +556,7 @@ class PythonCanonBackend(CanonBackend):
         Given (A, b) in view, permute the rows such that they correspond to the transposed
         expression.
         """
-        rows = np.arange(np.prod(lin.shape)).reshape(lin.shape).flatten(order="F")
+        rows = np.arange(np.prod(lin.shape)).reshape(lin.shape).flatten(order='F')
         view.select_rows(rows)
         return view
 
@@ -552,7 +567,7 @@ class PythonCanonBackend(CanonBackend):
         in the original expression.
         Note: The diagonal itself is not included.
         """
-        indices = np.arange(np.prod(lin.args[0].shape)).reshape(lin.args[0].shape, order="F")
+        indices = np.arange(np.prod(lin.args[0].shape)).reshape(lin.args[0].shape, order='F')
         triu_indices = indices[np.triu_indices_from(indices, k=1)]
         view.select_rows(triu_indices)
         return view
@@ -636,12 +651,14 @@ class PythonCanonBackend(CanonBackend):
         rhs_ones = np.ones(rhs_shape)
         lhs_ones = np.ones(lhs_shape)
 
-        rhs_arange = np.arange(np.prod(rhs_shape)).reshape(rhs_shape, order="F")
-        lhs_arange = np.arange(np.prod(lhs_shape)).reshape(lhs_shape, order="F")
+        rhs_arange = np.arange(np.prod(rhs_shape)).reshape(rhs_shape, order='F')
+        lhs_arange = np.arange(np.prod(lhs_shape)).reshape(lhs_shape, order='F')
 
-        row_indices = (np.kron(lhs_ones, rhs_arange) +
-                       np.kron(lhs_arange, rhs_ones * np.prod(rhs_shape))) \
-            .flatten(order="F").astype(int)
+        row_indices = (
+            (np.kron(lhs_ones, rhs_arange) + np.kron(lhs_arange, rhs_ones * np.prod(rhs_shape)))
+            .flatten(order='F')
+            .astype(int)
+        )
         return row_indices
 
     @abstractmethod
@@ -677,13 +694,16 @@ class RustCanonBackend(CanonBackend):
 
     def build_matrix(self, lin_ops: list[LinOp]) -> sp.csc_matrix:
         import cvxpy_rust
+
         self.id_to_col[-1] = self.var_length
-        (data, (row, col), shape) = cvxpy_rust.build_matrix(lin_ops,
-                                                            self.param_size_plus_one,
-                                                            self.id_to_col,
-                                                            self.param_to_size,
-                                                            self.param_to_col,
-                                                            self.var_length)
+        (data, (row, col), shape) = cvxpy_rust.build_matrix(
+            lin_ops,
+            self.param_size_plus_one,
+            self.id_to_col,
+            self.param_to_size,
+            self.param_to_col,
+            self.var_length,
+        )
         self.id_to_col.pop(-1)
         return sp.csc_matrix((data, (row, col)), shape)
 
@@ -699,18 +719,19 @@ class NumPyCanonBackend(PythonCanonBackend):
         return constant
 
     @staticmethod
-    def reshape_constant_data(constant_data: dict[int, np.ndarray],
-                              lin_op_shape: tuple[int, int]) -> dict[int, np.ndarray]:
+    def reshape_constant_data(
+        constant_data: dict[int, np.ndarray], lin_op_shape: tuple[int, int]
+    ) -> dict[int, np.ndarray]:
         """
         Reshape constant data from column format to the required shape for operations that
         do not require column format. This function unpacks the constant data dict and reshapes
         dimensions 1 and 2 of the tensor 'v' according to the lin_op_shape argument.
         """
-        return {k: v.reshape((v.shape[0], *lin_op_shape), order="F")
-                for k, v in constant_data.items()}
+        return {
+            k: v.reshape((v.shape[0], *lin_op_shape), order='F') for k, v in constant_data.items()
+        }
 
-    def concatenate_tensors(self, tensors: list[TensorRepresentation]) \
-            -> TensorRepresentation:
+    def concatenate_tensors(self, tensors: list[TensorRepresentation]) -> TensorRepresentation:
         """
         Takes list of tensors which have already been offset along axis 0 (rows) and
         combines them into a single tensor.
@@ -722,9 +743,13 @@ class NumPyCanonBackend(PythonCanonBackend):
         Returns an empty view of the corresponding NumPyTensorView subclass,
         coupling the NumPyCanonBackend subclass with the NumPyTensorView subclass.
         """
-        return NumPyTensorView.get_empty_view(self.param_size_plus_one, self.id_to_col,
-                                              self.param_to_size, self.param_to_col,
-                                              self.var_length)
+        return NumPyTensorView.get_empty_view(
+            self.param_size_plus_one,
+            self.id_to_col,
+            self.param_to_size,
+            self.param_to_col,
+            self.var_length,
+        )
 
     def mul(self, lin: LinOp, view: NumPyTensorView) -> NumPyTensorView:
         """
@@ -776,14 +801,17 @@ class NumPyCanonBackend(PythonCanonBackend):
         """
         lhs, is_param_free_lhs = self.get_constant_data(lin.data, view, column=True)
         if isinstance(lhs, dict):
+
             def parametrized_mul(x):
                 assert x.shape[0] == 1
                 return {k: v * x for k, v in lhs.items()}
 
             func = parametrized_mul
         else:
+
             def func(x):
                 return lhs * x
+
         return view.accumulate_over_variables(func, is_param_free_function=is_param_free_lhs)
 
     @staticmethod
@@ -803,6 +831,7 @@ class NumPyCanonBackend(PythonCanonBackend):
         x = np.eye(8)
         out = x.reshape(2,2,2,8).sum(axis=axis).reshape(n // prod(shape[axis]),8)
         """
+
         def func(x):
             axis, _ = _lin.data
             if axis is None:
@@ -818,8 +847,8 @@ class NumPyCanonBackend(PythonCanonBackend):
                 else:
                     d = shape[axis]
                     axis += 1
-                x = x.reshape((p,)+shape+(n,), order='F').sum(axis=axis)
-                return x.reshape((p, n//d, n), order='F')
+                x = x.reshape((p,) + shape + (n,), order='F').sum(axis=axis)
+                return x.reshape((p, n // d, n), order='F')
 
         view.apply_all(func)
         return view
@@ -881,6 +910,7 @@ class NumPyCanonBackend(PythonCanonBackend):
         Returns a function that takes in a tensor, modifies the shape of the tensor by extending
         it to total_rows, and then shifts the entries by offset along axis 1.
         """
+
         def stack_func(tensor):
             rows = tensor.shape[1]
             new_rows = (np.arange(rows) + offset).astype(int)
@@ -1024,8 +1054,9 @@ class NumPyCanonBackend(PythonCanonBackend):
 
         return view.accumulate_over_variables(func, is_param_free_function=is_param_free_rhs)
 
-    def get_variable_tensor(self, shape: tuple[int, ...], variable_id: int) \
-            -> dict[int, dict[int, np.ndarray]]:
+    def get_variable_tensor(
+        self, shape: tuple[int, ...], variable_id: int
+    ) -> dict[int, dict[int, np.ndarray]]:
         """
         Returns tensor of a variable node, i.e., eye(n) across axes 0 and 1, where n is
         the size of the variable.
@@ -1041,11 +1072,12 @@ class NumPyCanonBackend(PythonCanonBackend):
         This function expands the dimension of the column vector on the parameter axis.
         """
         data = self._to_dense(data)
-        tensor = data.reshape((-1, 1), order="F")
+        tensor = data.reshape((-1, 1), order='F')
         return {Constant.ID.value: {Constant.ID.value: np.expand_dims(tensor, axis=0)}}
 
-    def get_param_tensor(self, shape: tuple[int, ...], parameter_id: int) \
-            -> dict[int, dict[int, np.ndarray]]:
+    def get_param_tensor(
+        self, shape: tuple[int, ...], parameter_id: int
+    ) -> dict[int, dict[int, np.ndarray]]:
         """
         Returns tensor of a parameter node, i.e., eye(n) across axes 0 and 2, where n is
         the size of the parameter.
@@ -1079,20 +1111,23 @@ class SciPyCanonBackend(PythonCanonBackend):
         return constant
 
     @staticmethod
-    def reshape_constant_data(constant_data: dict[int, sp.csc_matrix],
-                              lin_op_shape: tuple[int, int]) \
-            -> dict[int, sp.csc_matrix]:
+    def reshape_constant_data(
+        constant_data: dict[int, sp.csc_matrix], lin_op_shape: tuple[int, int]
+    ) -> dict[int, sp.csc_matrix]:
         """
         Reshape constant data from column format to the required shape for operations that
         do not require column format. This function unpacks the constant data dict and reshapes
         the stacked slices of the tensor 'v' according to the lin_op_shape argument.
         """
-        return {k: SciPyCanonBackend._reshape_single_constant_tensor(v, lin_op_shape)
-                for k, v in constant_data.items()}
+        return {
+            k: SciPyCanonBackend._reshape_single_constant_tensor(v, lin_op_shape)
+            for k, v in constant_data.items()
+        }
 
     @staticmethod
-    def _reshape_single_constant_tensor(v: sp.csc_matrix, lin_op_shape: tuple[int, int]) \
-            -> sp.csc_matrix:
+    def _reshape_single_constant_tensor(
+        v: sp.csc_matrix, lin_op_shape: tuple[int, int]
+    ) -> sp.csc_matrix:
         """
         Given v, which is a matrix of shape (p * lin_op_shape[0] * lin_op_shape[1], 1),
         reshape v into a matrix of shape (p * lin_op_shape[0], lin_op_shape[1]).
@@ -1116,15 +1151,20 @@ class SciPyCanonBackend(PythonCanonBackend):
         Returns an empty view of the corresponding SciPyTensorView subclass,
         coupling the SciPyCanonBackend subclass with the SciPyTensorView subclass.
         """
-        return SciPyTensorView.get_empty_view(self.param_size_plus_one, self.id_to_col,
-                                                      self.param_to_size, self.param_to_col,
-                                                      self.var_length)
+        return SciPyTensorView.get_empty_view(
+            self.param_size_plus_one,
+            self.id_to_col,
+            self.param_to_size,
+            self.param_to_col,
+            self.var_length,
+        )
 
     @staticmethod
     def neg(_lin: LinOp, view: SciPyTensorView) -> SciPyTensorView:
         """
         Given (A, b) in view, return (-A, -b).
         """
+
         def func(x, _p):
             return -x
 
@@ -1142,7 +1182,7 @@ class SciPyCanonBackend(PythonCanonBackend):
         if is_param_free_lhs:
             reps = view.rows // lhs.shape[-1]
             if reps > 1:
-                stacked_lhs = (sp.kron(sp.eye(reps, format="csr"), lhs))
+                stacked_lhs = sp.kron(sp.eye(reps, format='csr'), lhs)
             else:
                 stacked_lhs = lhs
 
@@ -1150,7 +1190,7 @@ class SciPyCanonBackend(PythonCanonBackend):
                 if p == 1:
                     return (stacked_lhs @ x).tocsr()
                 else:
-                    return ((sp.kron(sp.eye(p, format="csc"), stacked_lhs)) @ x).tocsc()
+                    return ((sp.kron(sp.eye(p, format='csc'), stacked_lhs)) @ x).tocsc()
         else:
             reps = view.rows // next(iter(lhs.values())).shape[-1]
             if reps > 1:
@@ -1164,8 +1204,7 @@ class SciPyCanonBackend(PythonCanonBackend):
             func = parametrized_mul
         return view.accumulate_over_variables(func, is_param_free_function=is_param_free_lhs)
 
-    def _stacked_kron_r(self, lhs: dict[int, list[sp.csc_matrix]], reps: int) \
-            -> sp.csc_matrix:
+    def _stacked_kron_r(self, lhs: dict[int, list[sp.csc_matrix]], reps: int) -> sp.csc_matrix:
         """
         Given a stacked lhs
         [[A_0],
@@ -1186,14 +1225,13 @@ class SciPyCanonBackend(PythonCanonBackend):
             coo = v.tocoo()
             data, rows, cols = coo.data, coo.row, coo.col
             slices, rows = np.divmod(rows, old_shape[0])
-            new_rows = np.repeat(rows + slices * old_shape[0] * reps, reps) + \
-                np.tile(np.arange(reps) * old_shape[0], len(rows))
-            new_cols = np.repeat(cols, reps) + \
-                np.tile(np.arange(reps) * old_shape[1], len(cols))
+            new_rows = np.repeat(rows + slices * old_shape[0] * reps, reps) + np.tile(
+                np.arange(reps) * old_shape[0], len(rows)
+            )
+            new_cols = np.repeat(cols, reps) + np.tile(np.arange(reps) * old_shape[1], len(cols))
             new_data = np.repeat(data, reps)
             new_shape = (v.shape[0] * reps, v.shape[1] * reps)
-            res[param_id] = sp.csc_matrix(
-                (new_data, (new_rows, new_cols)), shape=new_shape)
+            res[param_id] = sp.csc_matrix((new_data, (new_rows, new_cols)), shape=new_shape)
         return res
 
     @staticmethod
@@ -1215,6 +1253,7 @@ class SciPyCanonBackend(PythonCanonBackend):
         """
         lhs, is_param_free_lhs = self.get_constant_data(lin.data, view, column=True)
         if is_param_free_lhs:
+
             def func(x, p):
                 if p == 1:
                     return lhs.multiply(x)
@@ -1222,9 +1261,11 @@ class SciPyCanonBackend(PythonCanonBackend):
                     new_lhs = sp.vstack([lhs] * p)
                     return new_lhs.multiply(x)
         else:
+
             def parametrized_mul(x):
-                return {k: v.multiply(sp.vstack([x] * self.param_to_size[k]))
-                        for k, v in lhs.items()}
+                return {
+                    k: v.multiply(sp.vstack([x] * self.param_to_size[k])) for k, v in lhs.items()
+                }
 
             func = parametrized_mul
         return view.accumulate_over_variables(func, is_param_free_function=is_param_free_lhs)
@@ -1240,6 +1281,7 @@ class SciPyCanonBackend(PythonCanonBackend):
         column indices in column-major order.
         """
         sum_coeff_matrix = self._get_sum_coeff_matrix
+
         def func(x, p):
             shape = tuple(_lin.args[0].shape)
             axis, _ = _lin.data
@@ -1252,10 +1294,10 @@ class SciPyCanonBackend(PythonCanonBackend):
             else:
                 m = x.shape[0] // p
                 if axis is None:
-                    return (sp.kron(sp.eye(p, format="csc"), np.ones(m)) @ x).tocsc()
+                    return (sp.kron(sp.eye(p, format='csc'), np.ones(m)) @ x).tocsc()
                 else:
                     A = sum_coeff_matrix(shape=shape, axis=axis)
-                    return (sp.kron(sp.eye(p, format="csc"), A) @ x).tocsc()
+                    return (sp.kron(sp.eye(p, format='csc'), A) @ x).tocsc()
 
         view.apply_all(func)
         return view
@@ -1298,7 +1340,7 @@ class SciPyCanonBackend(PythonCanonBackend):
         d = np.prod([shape[i] for i in axis], dtype=int)
         row_idx = self._get_sum_row_indices(shape, axis)
         col_idx = np.arange(n)
-        A = sp.csr_matrix((np.ones(n), (row_idx, col_idx)), shape=(n//d, n))
+        A = sp.csr_matrix((np.ones(n), (row_idx, col_idx)), shape=(n // d, n))
         return A
 
     def div(self, lin: LinOp, view: SciPyTensorView) -> SciPyTensorView:
@@ -1360,14 +1402,17 @@ class SciPyCanonBackend(PythonCanonBackend):
         Returns a function that takes in a tensor, modifies the shape of the tensor by extending
         it to total_rows, and then shifts the entries by offset along axis 0.
         """
+
         def stack_func(tensor, p):
             coo_repr = tensor.tocoo()
             m = coo_repr.shape[0] // p
             slices = coo_repr.row // m
-            new_rows = (coo_repr.row + (slices + 1) * offset)
+            new_rows = coo_repr.row + (slices + 1) * offset
             new_rows = new_rows + slices * (total_rows - m - offset).astype(int)
-            return sp.csc_matrix((coo_repr.data, (new_rows, coo_repr.col)),
-                                 shape=(int(total_rows * p), tensor.shape[1]))
+            return sp.csc_matrix(
+                (coo_repr.data, (new_rows, coo_repr.col)),
+                shape=(int(total_rows * p), tensor.shape[1]),
+            )
 
         return stack_func
 
@@ -1386,12 +1431,11 @@ class SciPyCanonBackend(PythonCanonBackend):
         arg_cols = lin.args[0].shape[0] if len(lin.args[0].shape) == 1 else lin.args[0].shape[1]
 
         if is_param_free_lhs:
-
             if len(lin.data.shape) == 1 and arg_cols != lhs.shape[0]:
                 lhs = lhs.T
             reps = view.rows // lhs.shape[0]
             if reps > 1:
-                stacked_lhs = sp.kron(lhs.T, sp.eye(reps, format="csr"))
+                stacked_lhs = sp.kron(lhs.T, sp.eye(reps, format='csr'))
             else:
                 stacked_lhs = lhs.T
 
@@ -1399,7 +1443,7 @@ class SciPyCanonBackend(PythonCanonBackend):
                 if p == 1:
                     return (stacked_lhs @ x).tocsr()
                 else:
-                    return ((sp.kron(sp.eye(p, format="csc"), stacked_lhs)) @ x).tocsc()
+                    return ((sp.kron(sp.eye(p, format='csc'), stacked_lhs)) @ x).tocsc()
         else:
             k, v = next(iter(lhs.items()))
             lhs_rows = v.shape[0] // self.param_to_size[k]
@@ -1450,8 +1494,7 @@ class SciPyCanonBackend(PythonCanonBackend):
 
         return sp.csc_matrix((data, (new_rows, new_cols)), shape=new_stacked_shape)
 
-    def _stacked_kron_l(self, lhs: dict[int, list[sp.csc_matrix]], reps: int) \
-            -> sp.csc_matrix:
+    def _stacked_kron_l(self, lhs: dict[int, list[sp.csc_matrix]], reps: int) -> sp.csc_matrix:
         """
         Given a stacked lhs with the following entries:
         [[a11, a12],
@@ -1474,8 +1517,7 @@ class SciPyCanonBackend(PythonCanonBackend):
             new_cols = np.repeat(cols * reps, reps) + np.tile(np.arange(reps), len(cols))
             new_data = np.repeat(data, reps)
             new_shape = (v.shape[0] * reps, v.shape[1] * reps)
-            res[param_id] = sp.csc_matrix(
-                (new_data, (new_rows, new_cols)), shape=new_shape)
+            res[param_id] = sp.csc_matrix((new_data, (new_rows, new_cols)), shape=new_shape)
         return res
 
     @staticmethod
@@ -1496,7 +1538,7 @@ class SciPyCanonBackend(PythonCanonBackend):
             if p == 1:
                 return (lhs @ x).tocsr()
             else:
-                return (sp.kron(sp.eye(p, format="csc"), lhs) @ x).tocsc()
+                return (sp.kron(sp.eye(p, format='csc'), lhs) @ x).tocsc()
 
         return view.accumulate_over_variables(func, is_param_free_function=True)
 
@@ -1511,8 +1553,9 @@ class SciPyCanonBackend(PythonCanonBackend):
         Note: conv currently doesn't support parameters.
         """
         lhs, is_param_free_lhs = self.get_constant_data(lin.data, view, column=False)
-        assert is_param_free_lhs, \
-            "SciPy backend does not support parametrized left operand for conv."
+        assert (
+            is_param_free_lhs
+        ), 'SciPy backend does not support parametrized left operand for conv.'
         assert lhs.ndim == 2
 
         if len(lin.data.shape) == 1:
@@ -1530,8 +1573,7 @@ class SciPyCanonBackend(PythonCanonBackend):
         lhs = sp.csr_matrix((data, (row_idx, col_idx)), shape=(rows, cols))
 
         def func(x, p):
-            assert p == 1, \
-                "SciPy backend does not support parametrized right operand for conv."
+            assert p == 1, 'SciPy backend does not support parametrized right operand for conv.'
             return lhs @ x
 
         return view.accumulate_over_variables(func, is_param_free_function=is_param_free_lhs)
@@ -1545,8 +1587,9 @@ class SciPyCanonBackend(PythonCanonBackend):
         Note: kron_r currently doesn't support parameters.
         """
         lhs, is_param_free_lhs = self.get_constant_data(lin.data, view, column=True)
-        assert is_param_free_lhs, \
-            "SciPy backend does not support parametrized left operand for kron_r."
+        assert (
+            is_param_free_lhs
+        ), 'SciPy backend does not support parametrized left operand for kron_r.'
         assert lhs.ndim == 2
 
         assert len({arg.shape for arg in lin.args}) == 1
@@ -1555,8 +1598,7 @@ class SciPyCanonBackend(PythonCanonBackend):
         row_idx = self._get_kron_row_indices(lin.data.shape, rhs_shape)
 
         def func(x, p):
-            assert p == 1, \
-                "SciPy backend does not support parametrized right operand for kron_r."
+            assert p == 1, 'SciPy backend does not support parametrized right operand for kron_r.'
             assert x.ndim == 2
             kron_res = sp.kron(lhs, x).tocsr()
             kron_res = kron_res[row_idx, :]
@@ -1573,8 +1615,9 @@ class SciPyCanonBackend(PythonCanonBackend):
         Note: kron_l currently doesn't support parameters.
         """
         rhs, is_param_free_rhs = self.get_constant_data(lin.data, view, column=True)
-        assert is_param_free_rhs, \
-            "SciPy backend does not support parametrized right operand for kron_l."
+        assert (
+            is_param_free_rhs
+        ), 'SciPy backend does not support parametrized right operand for kron_l.'
         assert rhs.ndim == 2
 
         assert len({arg.shape for arg in lin.args}) == 1
@@ -1583,8 +1626,7 @@ class SciPyCanonBackend(PythonCanonBackend):
         row_idx = self._get_kron_row_indices(lhs_shape, lin.data.shape)
 
         def func(x, p):
-            assert p == 1, \
-                "SciPy backend does not support parametrized left operand for kron_l."
+            assert p == 1, 'SciPy backend does not support parametrized left operand for kron_l.'
             assert x.ndim == 2
             kron_res = sp.kron(x, rhs).tocsr()
             kron_res = kron_res[row_idx, :]
@@ -1592,8 +1634,9 @@ class SciPyCanonBackend(PythonCanonBackend):
 
         return view.accumulate_over_variables(func, is_param_free_function=is_param_free_rhs)
 
-    def get_variable_tensor(self, shape: tuple[int, ...], variable_id: int) -> \
-            dict[int, dict[int, sp.csc_matrix]]:
+    def get_variable_tensor(
+        self, shape: tuple[int, ...], variable_id: int
+    ) -> dict[int, dict[int, sp.csc_matrix]]:
         """
         Returns tensor of a variable node, i.e., eye(n) across axes 0 and 1, where n is
         the size of the variable.
@@ -1601,23 +1644,25 @@ class SciPyCanonBackend(PythonCanonBackend):
         """
         assert variable_id != Constant.ID
         n = int(np.prod(shape))
-        return {variable_id: {Constant.ID.value: sp.eye(n, format="csc")}}
+        return {variable_id: {Constant.ID.value: sp.eye(n, format='csc')}}
 
-    def get_data_tensor(self, data: np.ndarray | sp.spmatrix) -> \
-            dict[int, dict[int, sp.csr_matrix]]:
+    def get_data_tensor(
+        self, data: np.ndarray | sp.spmatrix
+    ) -> dict[int, dict[int, sp.csr_matrix]]:
         """
         Returns tensor of constant node as a column vector.
         This function reshapes the data and converts it to csc format.
         """
         if isinstance(data, np.ndarray):
             # Slightly faster compared to reshaping after casting
-            tensor = sp.csr_matrix(data.reshape((-1, 1), order="F"))
+            tensor = sp.csr_matrix(data.reshape((-1, 1), order='F'))
         else:
-            tensor = sp.coo_matrix(data).reshape((-1, 1), order="F").tocsr()
+            tensor = sp.coo_matrix(data).reshape((-1, 1), order='F').tocsr()
         return {Constant.ID.value: {Constant.ID.value: tensor}}
 
-    def get_param_tensor(self, shape: tuple[int, ...], parameter_id: int) -> \
-            dict[int, dict[int, sp.csc_matrix]]:
+    def get_param_tensor(
+        self, shape: tuple[int, ...], parameter_id: int
+    ) -> dict[int, dict[int, sp.csc_matrix]]:
         """
         Returns tensor of a parameter node, i.e., eye(n) across axes 0 and 2, where n is
         the size of the parameter.
@@ -1626,8 +1671,10 @@ class SciPyCanonBackend(PythonCanonBackend):
         assert parameter_id != Constant.ID
         param_size = self.param_to_size[parameter_id]
         shape = (int(np.prod(shape) * param_size), 1)
-        arg = np.ones(param_size), (np.arange(param_size) + np.arange(param_size) * param_size,
-                                    np.zeros(param_size))
+        arg = (
+            np.ones(param_size),
+            (np.arange(param_size) + np.arange(param_size) * param_size, np.zeros(param_size)),
+        )
         param_vec = sp.csc_matrix(arg, shape)
         return {Constant.ID.value: {parameter_id: param_vec}}
 
@@ -1639,16 +1686,17 @@ class TensorView(ABC):
     The class facilitates the application of the CanonBackend functions.
     """
 
-    def __init__(self,
-                 variable_ids: set[int] | None,
-                 tensor: Any,
-                 is_parameter_free: bool,
-                 param_size_plus_one: int,
-                 id_to_col: dict[int, int],
-                 param_to_size: dict[int, int],
-                 param_to_col: dict[int, int],
-                 var_length: int
-                 ):
+    def __init__(
+        self,
+        variable_ids: set[int] | None,
+        tensor: Any,
+        is_parameter_free: bool,
+        param_size_plus_one: int,
+        id_to_col: dict[int, int],
+        param_to_size: dict[int, int],
+        param_to_col: dict[int, int],
+        var_length: int,
+    ):
         self.variable_ids = variable_ids if variable_ids is not None else None
         self.tensor = tensor
         self.is_parameter_free = is_parameter_free
@@ -1678,15 +1726,27 @@ class TensorView(ABC):
         pass  # noqa
 
     @classmethod
-    def get_empty_view(cls, param_size_plus_one: int, id_to_col: dict[int, int],
-                       param_to_size: dict[int, int], param_to_col: dict[int, int],
-                       var_length: int) \
-            -> TensorView:
+    def get_empty_view(
+        cls,
+        param_size_plus_one: int,
+        id_to_col: dict[int, int],
+        param_to_size: dict[int, int],
+        param_to_col: dict[int, int],
+        var_length: int,
+    ) -> TensorView:
         """
         Return a TensorView that has shape information, but no data.
         """
-        return cls(None, None, True, param_size_plus_one, id_to_col, param_to_size, param_to_col,
-                   var_length)
+        return cls(
+            None,
+            None,
+            True,
+            param_size_plus_one,
+            id_to_col,
+            param_to_size,
+            param_to_col,
+            var_length,
+        )
 
     @staticmethod
     def is_constant_data(variable_ids: set[int]) -> bool:
@@ -1725,8 +1785,9 @@ class TensorView(ABC):
         pass  # noqa
 
     @abstractmethod
-    def create_new_tensor_view(self, variable_ids: set[int], tensor: Any, is_parameter_free: bool) \
-            -> TensorView:
+    def create_new_tensor_view(
+        self, variable_ids: set[int], tensor: Any, is_parameter_free: bool
+    ) -> TensorView:
         """
         Create new TensorView with same shape information as self, but new data.
         """
@@ -1753,8 +1814,11 @@ class DictTensorView(TensorView, ABC):
         that contains the non-parameter constants, due to DPP rules.
         """
         for variable_id, tensor in self.tensor.items():
-            self.tensor[variable_id] = self.apply_to_parameters(func, tensor) if \
-                is_param_free_function else func(tensor[Constant.ID.value])
+            self.tensor[variable_id] = (
+                self.apply_to_parameters(func, tensor)
+                if is_param_free_function
+                else func(tensor[Constant.ID.value])
+            )
 
         self.is_parameter_free = self.is_parameter_free and is_param_free_function
         return self
@@ -1813,7 +1877,6 @@ class DictTensorView(TensorView, ABC):
 
 
 class NumPyTensorView(DictTensorView):
-
     @property
     def rows(self) -> int:
         """
@@ -1843,14 +1906,17 @@ class NumPyTensorView(DictTensorView):
         for variable_id, variable_tensor in self.tensor.items():
             for parameter_id, parameter_tensor in variable_tensor.items():
                 param_size, rows, cols = parameter_tensor.shape
-                tensor_representations.append(TensorRepresentation(
-                    parameter_tensor.flatten(order='F'),
-                    np.repeat(np.tile(np.arange(rows), cols), param_size) + row_offset,
-                    np.repeat(np.repeat(np.arange(cols), rows), param_size)
-                    + self.id_to_col[variable_id],
-                    np.tile(np.arange(param_size), rows * cols) + self.param_to_col[parameter_id],
-                    shape=shape
-                ))
+                tensor_representations.append(
+                    TensorRepresentation(
+                        parameter_tensor.flatten(order='F'),
+                        np.repeat(np.tile(np.arange(rows), cols), param_size) + row_offset,
+                        np.repeat(np.repeat(np.arange(cols), rows), param_size)
+                        + self.id_to_col[variable_id],
+                        np.tile(np.arange(param_size), rows * cols)
+                        + self.param_to_col[parameter_id],
+                        shape=shape,
+                    )
+                )
         return TensorRepresentation.combine(tensor_representations)
 
     def select_rows(self, rows: np.ndarray) -> None:
@@ -1859,6 +1925,7 @@ class NumPyTensorView(DictTensorView):
         The rows of the 3d tensor are in axis=1, this function selects a subset
         of the original tensor.
         """
+
         def func(x):
             return x[:, rows, :]
 
@@ -1870,24 +1937,33 @@ class NumPyTensorView(DictTensorView):
         The tensor functions in the NumPyBackend manipulate 3d arrays.
         Therefore, this function applies 'func' directly to the tensor 'v'.
         """
-        self.tensor = {var_id: {k: func(v)
-                                for k, v in parameter_repr.items()}
-                       for var_id, parameter_repr in self.tensor.items()}
+        self.tensor = {
+            var_id: {k: func(v) for k, v in parameter_repr.items()}
+            for var_id, parameter_repr in self.tensor.items()
+        }
 
-    def create_new_tensor_view(self, variable_ids: set[int], tensor: Any,
-                               is_parameter_free: bool) -> NumPyTensorView:
+    def create_new_tensor_view(
+        self, variable_ids: set[int], tensor: Any, is_parameter_free: bool
+    ) -> NumPyTensorView:
         """
         Create new NumPyTensorView with same shape information as self,
         but new tensor data.
         """
-        return NumPyTensorView(variable_ids, tensor, is_parameter_free, self.param_size_plus_one,
-                               self.id_to_col, self.param_to_size, self.param_to_col,
-                               self.var_length)
+        return NumPyTensorView(
+            variable_ids,
+            tensor,
+            is_parameter_free,
+            self.param_size_plus_one,
+            self.id_to_col,
+            self.param_to_size,
+            self.param_to_col,
+            self.var_length,
+        )
 
     @staticmethod
-    def apply_to_parameters(func: Callable,
-                            parameter_representation: dict[int, np.ndarray]) \
-            -> dict[int, np.ndarray]:
+    def apply_to_parameters(
+        func: Callable, parameter_representation: dict[int, np.ndarray]
+    ) -> dict[int, np.ndarray]:
         """
         Apply 'func' to the entire tensor of the parameter representation.
         """
@@ -1909,7 +1985,6 @@ class NumPyTensorView(DictTensorView):
 
 
 class SciPyTensorView(DictTensorView):
-
     @property
     def rows(self) -> int:
         """
@@ -1941,13 +2016,15 @@ class SciPyTensorView(DictTensorView):
                 p = self.param_to_size[parameter_id]
                 m = parameter_matrix.shape[0] // p
                 coo_repr = parameter_matrix.tocoo(copy=False)
-                tensor_representations.append(TensorRepresentation(
-                    coo_repr.data,
-                    (coo_repr.row % m) + row_offset,
-                    coo_repr.col + self.id_to_col[variable_id],
-                    coo_repr.row // m + np.ones(coo_repr.nnz) * self.param_to_col[parameter_id],
-                    shape=shape
-                ))
+                tensor_representations.append(
+                    TensorRepresentation(
+                        coo_repr.data,
+                        (coo_repr.row % m) + row_offset,
+                        coo_repr.col + self.id_to_col[variable_id],
+                        coo_repr.row // m + np.ones(coo_repr.nnz) * self.param_to_col[parameter_id],
+                        shape=shape,
+                    )
+                )
         return TensorRepresentation.combine(tensor_representations)
 
     def select_rows(self, rows: np.ndarray) -> None:
@@ -1956,6 +2033,7 @@ class SciPyTensorView(DictTensorView):
         we must select the same 'rows' from each parameter slice. This is done by
         introducing an offset of size 'm' for every parameter.
         """
+
         def func(x, p):
             if p == 1:
                 return x[rows, :]
@@ -1971,24 +2049,32 @@ class SciPyTensorView(DictTensorView):
         For the stacked-slices backend, we must pass an additional parameter 'p'
         which is the number of parameter slices.
         """
-        self.tensor = {var_id: {k: func(v, self.param_to_size[k])
-                                for k, v in parameter_repr.items()}
-                       for var_id, parameter_repr in self.tensor.items()}
+        self.tensor = {
+            var_id: {k: func(v, self.param_to_size[k]) for k, v in parameter_repr.items()}
+            for var_id, parameter_repr in self.tensor.items()
+        }
 
-    def create_new_tensor_view(self, variable_ids: set[int], tensor: Any,
-                               is_parameter_free: bool) -> SciPyTensorView:
+    def create_new_tensor_view(
+        self, variable_ids: set[int], tensor: Any, is_parameter_free: bool
+    ) -> SciPyTensorView:
         """
         Create new SciPyTensorView with same shape information as self,
         but new tensor data.
         """
-        return SciPyTensorView(variable_ids, tensor, is_parameter_free,
-                                       self.param_size_plus_one, self.id_to_col,
-                                       self.param_to_size, self.param_to_col,
-                                       self.var_length)
+        return SciPyTensorView(
+            variable_ids,
+            tensor,
+            is_parameter_free,
+            self.param_size_plus_one,
+            self.id_to_col,
+            self.param_to_size,
+            self.param_to_col,
+            self.var_length,
+        )
 
-    def apply_to_parameters(self, func: Callable,
-                            parameter_representation: dict[int, sp.spmatrix]) \
-            -> dict[int, sp.spmatrix]:
+    def apply_to_parameters(
+        self, func: Callable, parameter_representation: dict[int, sp.spmatrix]
+    ) -> dict[int, sp.spmatrix]:
         """
         Apply 'func' to each slice of the parameter representation.
         For the stacked-slices backend, we must pass an additional parameter 'p'

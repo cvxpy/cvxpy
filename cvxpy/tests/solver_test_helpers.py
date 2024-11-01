@@ -13,6 +13,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+
 import warnings
 
 import numpy as np
@@ -22,7 +23,6 @@ from cvxpy.tests.base_test import BaseTest
 
 
 class SolverTestHelper:
-
     def __init__(self, obj_pair, var_pairs, con_pairs) -> None:
         self.objective = obj_pair[0]
         self.constraints = [c for c, _ in con_pairs]
@@ -78,12 +78,12 @@ class SolverTestHelper:
                 dual_violation = con.dual_residual
                 if isinstance(con, cp.constraints.SOC):
                     dual_violation = np.linalg.norm(dual_violation)
-                self.tester.assertLessEqual(dual_violation, 10**(-places))
+                self.tester.assertLessEqual(dual_violation, 10 ** (-places))
             elif isinstance(con, cp.constraints.Inequality):
                 # TODO: move this to Inequality.dual_violation
                 dv = con.dual_value
                 min_dv = np.min(dv)
-                self.tester.assertGreaterEqual(min_dv, -(10**(-places)))
+                self.tester.assertGreaterEqual(min_dv, -(10 ** (-places)))
             elif isinstance(con, (cp.constraints.Equality, cp.constraints.Zero)):
                 dv = con.dual_value
                 self.tester.assertIsNotNone(dv)
@@ -101,25 +101,31 @@ class SolverTestHelper:
         #   complementarity against the dual variable of the
         #   attribute constraint.
         for con in self.constraints:
-            if isinstance(con, (cp.constraints.Inequality,
-                                cp.constraints.Equality)):
+            if isinstance(con, (cp.constraints.Inequality, cp.constraints.Equality)):
                 comp = cp.vdot(con.expr, con.dual_value).value
-            elif isinstance(con, (cp.constraints.ExpCone,
-                                  cp.constraints.SOC,
-                                  cp.constraints.NonNeg,
-                                  cp.constraints.Zero,
-                                  cp.constraints.PSD,
-                                  cp.constraints.PowCone3D,
-                                  cp.constraints.PowConeND)):
+            elif isinstance(
+                con,
+                (
+                    cp.constraints.ExpCone,
+                    cp.constraints.SOC,
+                    cp.constraints.NonNeg,
+                    cp.constraints.Zero,
+                    cp.constraints.PSD,
+                    cp.constraints.PowCone3D,
+                    cp.constraints.PowConeND,
+                ),
+            ):
                 comp = cp.vdot(con.args, con.dual_value).value
             elif isinstance(con, cp.RelEntrConeQuad) or isinstance(con, cp.OpRelEntrConeQuad):
-                msg = '\nDual variables not implemented for quadrature based approximations;' \
-                       + '\nSkipping complementarity check.'
+                msg = (
+                    '\nDual variables not implemented for quadrature based approximations;'
+                    + '\nSkipping complementarity check.'
+                )
                 warnings.warn(msg)
             else:
                 raise ValueError('Unknown constraint type %s.' % type(con))
             self.tester.assertAlmostEqual(comp, 0, places)
-            
+
     def check_stationary_lagrangian(self, places) -> None:
         L = self.prob.objective.expr
         objective = self.prob.objective
@@ -128,18 +134,22 @@ class SolverTestHelper:
         else:
             L = -objective.expr
         for con in self.constraints:
-            if isinstance(con, (cp.constraints.Inequality,
-                                cp.constraints.Equality)):
+            if isinstance(con, (cp.constraints.Inequality, cp.constraints.Equality)):
                 dual_var_value = con.dual_value
                 prim_var_expr = con.expr
                 L = L + cp.vdot(dual_var_value, prim_var_expr)
-            elif isinstance(con, (cp.constraints.ExpCone,
-                                  cp.constraints.SOC,
-                                  cp.constraints.Zero,
-                                  cp.constraints.NonNeg,
-                                  cp.constraints.PSD,
-                                  cp.constraints.PowCone3D,
-                                  cp.constraints.PowConeND)):
+            elif isinstance(
+                con,
+                (
+                    cp.constraints.ExpCone,
+                    cp.constraints.SOC,
+                    cp.constraints.Zero,
+                    cp.constraints.NonNeg,
+                    cp.constraints.PSD,
+                    cp.constraints.PowCone3D,
+                    cp.constraints.PowConeND,
+                ),
+            ):
                 L = L - cp.vdot(con.args, con.dual_value)
             else:
                 raise NotImplementedError()
@@ -161,11 +171,11 @@ class SolverTestHelper:
         flags (e.g.: PSD/symmetric etc.), in such a case we check, `dLdX\in K^{*}`, where
         `K` is the convex cone corresponding to the implicit constraint on `X`
         """
-        for (opt_var, v) in g.items():
+        for opt_var, v in g.items():
             if all(not attr for attr in list(map(lambda x: x[1], opt_var.attributes.items()))):
                 """Case when the variable doesn't have any special attributes"""
                 norm = np.linalg.norm(v.data) / np.sqrt(opt_var.size)
-                if norm > 10**(-places):
+                if norm > 10 ** (-places):
                     bad_norms.append((norm, opt_var))
             else:
                 if opt_var.is_psd():
@@ -173,14 +183,14 @@ class SolverTestHelper:
                     g_bad_mat = cp.Constant(np.reshape(g[opt_var].toarray(), opt_var.shape))
                     tmp_con = g_bad_mat >> 0
                     dual_cone_violation = tmp_con.residual
-                    if dual_cone_violation > 10**(-places):
+                    if dual_cone_violation > 10 ** (-places):
                         bad_norms.append((dual_cone_violation, opt_var))
                 elif opt_var.is_nsd():
                     """The NSD cone is also self-dual"""
                     g_bad_mat = cp.Constant(np.reshape(g[opt_var].toarray(), opt_var.shape))
                     tmp_con = g_bad_mat << 0
                     dual_cone_violation = tmp_con.residual
-                    if dual_cone_violation > 10**(-places):
+                    if dual_cone_violation > 10 ** (-places):
                         bad_norms.append((dual_cone_violation, opt_var))
                 elif opt_var.is_diag():
                     """The dual cone to the set of diagonal matrices is the set of
@@ -188,7 +198,7 @@ class SolverTestHelper:
                     g_bad_mat = np.reshape(g[opt_var].toarray(), opt_var.shape)
                     diag_entries = np.diag(opt_var.value)
                     dual_cone_violation = np.linalg.norm(diag_entries) / np.sqrt(opt_var.size)
-                    if diag_entries > 10**(-places):
+                    if diag_entries > 10 ** (-places):
                         bad_norms.append((dual_cone_violation, opt_var))
                 elif opt_var.is_symmetric():
                     r"""The dual cone to the set of symmetric matrices is the
@@ -198,21 +208,21 @@ class SolverTestHelper:
                     g_bad_mat = np.reshape(g[opt_var].toarray(), opt_var.shape)
                     mat = g_bad_mat + g_bad_mat.T
                     dual_cone_violation = np.linalg.norm(mat) / np.sqrt(opt_var.size)
-                    if dual_cone_violation > 10**(-places):
+                    if dual_cone_violation > 10 ** (-places):
                         bad_norms.append((dual_cone_violation, opt_var))
                 elif opt_var.is_nonpos():
                     """The cone of matrices with all entries nonpos is self-dual"""
                     g_bad_mat = cp.Constant(np.reshape(g[opt_var].toarray(), opt_var.shape))
                     tmp_con = g_bad_mat <= 0
                     dual_cone_violation = np.linalg.norm(tmp_con.residual) / np.sqrt(opt_var.size)
-                    if dual_cone_violation > 10**(-places):
+                    if dual_cone_violation > 10 ** (-places):
                         bad_norms.append((dual_cone_violation, opt_var))
                 elif opt_var.is_nonneg():
                     """The cone of matrices with all entries nonneg is self-dual"""
                     g_bad_mat = cp.Constant(np.reshape(g[opt_var].toarray(), opt_var.shape))
                     tmp_con = g_bad_mat >= 0
                     dual_cone_violation = np.linalg.norm(tmp_con.residual) / np.sqrt(opt_var.size)
-                    if dual_cone_violation > 10**(-places):
+                    if dual_cone_violation > 10 ** (-places):
                         bad_norms.append((dual_cone_violation, opt_var))
 
         if len(bad_norms):
@@ -222,10 +232,10 @@ class SolverTestHelper:
         variables and the corresponding gradient norms are as follows:
             """
             for norm, opt_var in bad_norms:
-                msg += f"\n\t\t\t{opt_var.name} : {norm}"
+                msg += f'\n\t\t\t{opt_var.name} : {norm}'
             msg += '\n'
             self.tester.fail(msg)
-        pass 
+        pass
 
     def verify_objective(self, places) -> None:
         actual = self.prob.value
@@ -268,14 +278,8 @@ def lp_1() -> SolverTestHelper:
     # http://cvxopt.org/userguide/coneprog.html?highlight=solvers.lp#cvxopt.solvers.lp
     x = cp.Variable(shape=(2,), name='x')
     objective = cp.Minimize(-4 * x[0] - 5 * x[1])
-    constraints = [2 * x[0] + x[1] <= 3,
-                   x[0] + 2 * x[1] <= 3,
-                   x[0] >= 0,
-                   x[1] >= 0]
-    con_pairs = [(constraints[0], 1),
-                 (constraints[1], 2),
-                 (constraints[2], 0),
-                 (constraints[3], 0)]
+    constraints = [2 * x[0] + x[1] <= 3, x[0] + 2 * x[1] <= 3, x[0] >= 0, x[1] >= 0]
+    con_pairs = [(constraints[0], 1), (constraints[1], 2), (constraints[2], 0), (constraints[3], 0)]
     var_pairs = [(x, np.array([1, 1]))]
     obj_pair = (objective, -9)
     sth = SolverTestHelper(obj_pair, var_pairs, con_pairs)
@@ -286,9 +290,7 @@ def lp_2() -> SolverTestHelper:
     x = cp.Variable(shape=(2,), name='x')
     objective = cp.Minimize(x[0] + 0.5 * x[1])
     constraints = [x[0] >= -100, x[0] <= -10, x[1] == 1]
-    con_pairs = [(constraints[0], 1),
-                 (constraints[1], 0),
-                 (constraints[2], -0.5)]
+    con_pairs = [(constraints[0], 1), (constraints[1], 0), (constraints[2], -0.5)]
     var_pairs = [(x, np.array([-100, 1]))]
     obj_pair = (objective, -99.5)
     sth = SolverTestHelper(obj_pair, var_pairs, con_pairs)
@@ -310,8 +312,7 @@ def lp_4() -> SolverTestHelper:
     x = cp.Variable(5)
     objective = (cp.Minimize(cp.sum(x)), np.inf)
     var_pairs = [(x, None)]
-    con_pairs = [(x <= 0, None),
-                 (x >= 1, None)]
+    con_pairs = [(x <= 0, None), (x >= 1, None)]
     sth = SolverTestHelper(objective, var_pairs, con_pairs)
     return sth
 
@@ -344,6 +345,7 @@ def lp_6() -> SolverTestHelper:
     """Test LP with no constraints"""
     x = cp.Variable()
     from cvxpy.expressions.constants import Constant
+
     objective = cp.Maximize(Constant(0.23) * x)
     obj_pair = (objective, np.inf)
     var_pairs = [(x, None)]
@@ -358,20 +360,17 @@ def lp_7() -> SolverTestHelper:
     This test will not pass on CVXOPT (as of v1.3.1) and on SDPA without GMP support.
     """
     n = 50
-    a = cp.Variable((n+1))
+    a = cp.Variable((n + 1))
     delta = cp.Variable((n))
-    b = cp.Variable((n+1))
+    b = cp.Variable((n + 1))
     objective = cp.Minimize(cp.sum(cp.pos(delta)))
     constraints = [
         a[1:] - a[:-1] == delta,
         a >= cp.pos(b),
     ]
-    con_pairs = [(constraints[0], None),
-                 (constraints[1], None)]
-    var_pairs = [(a, None),
-                 (delta, None),
-                 (b, None)]
-    obj_pair = (objective, 0.)
+    con_pairs = [(constraints[0], None), (constraints[1], None)]
+    var_pairs = [(a, None), (delta, None), (b, None)]
+    obj_pair = (objective, 0.0)
     sth = SolverTestHelper(obj_pair, var_pairs, con_pairs)
     return sth
 
@@ -407,21 +406,20 @@ def socp_1() -> SolverTestHelper:
     x = cp.Variable(shape=(3,))
     y = cp.Variable()
     soc = cp.constraints.second_order.SOC(y, x)
-    constraints = [soc,
-                   x[0] + x[1] + 3 * x[2] >= 1.0,
-                   y <= 5]
+    constraints = [soc, x[0] + x[1] + 3 * x[2] >= 1.0, y <= 5]
     obj = cp.Minimize(3 * x[0] + 2 * x[1] + x[2])
     expect_x = np.array([-3.874621860638774, -2.129788233677883, 2.33480343377204])
     expect_x = np.round(expect_x, decimals=5)
     expect_y = 5
-    var_pairs = [(x, expect_x),
-                 (y, expect_y)]
-    expect_soc = [np.array([2.86560262]), np.array([2.22062583,  1.22062583, -1.33812252])]
+    var_pairs = [(x, expect_x), (y, expect_y)]
+    expect_soc = [np.array([2.86560262]), np.array([2.22062583, 1.22062583, -1.33812252])]
     expect_ineq1 = 0.7793969212001993
     expect_ineq2 = 2.865602615049077
-    con_pairs = [(constraints[0], expect_soc),
-                 (constraints[1], expect_ineq1),
-                 (constraints[2], expect_ineq2)]
+    con_pairs = [
+        (constraints[0], expect_soc),
+        (constraints[1], expect_ineq1),
+        (constraints[2], expect_ineq2),
+    ]
     obj_pair = (obj, -13.548638904065102)
     sth = SolverTestHelper(obj_pair, var_pairs, con_pairs)
     return sth
@@ -434,14 +432,18 @@ def socp_2() -> SolverTestHelper:
     x = cp.Variable(shape=(2,), name='x')
     objective = cp.Minimize(-4 * x[0] - 5 * x[1])
     expr = cp.reshape(x[0] + 2 * x[1], (1, 1), order='F')
-    constraints = [2 * x[0] + x[1] <= 3,
-                   cp.constraints.SOC(cp.Constant([3]), expr),
-                   x[0] >= 0,
-                   x[1] >= 0]
-    con_pairs = [(constraints[0], 1),
-                 (constraints[1], [np.array([2.]), np.array([[-2.]])]),
-                 (constraints[2], 0),
-                 (constraints[3], 0)]
+    constraints = [
+        2 * x[0] + x[1] <= 3,
+        cp.constraints.SOC(cp.Constant([3]), expr),
+        x[0] >= 0,
+        x[1] >= 0,
+    ]
+    con_pairs = [
+        (constraints[0], 1),
+        (constraints[1], [np.array([2.0]), np.array([[-2.0]])]),
+        (constraints[2], 0),
+        (constraints[3], 0),
+    ]
     var_pairs = [(x, np.array([1, 1]))]
     obj_pair = (objective, -9)
     sth = SolverTestHelper(obj_pair, var_pairs, con_pairs)
@@ -458,22 +460,25 @@ def socp_3(axis) -> SolverTestHelper:
     mat3 = np.diag([0.2, 1.8])
 
     X = cp.vstack([mat1 @ x, mat2 @ x, mat3 @ x])  # stack these as rows
-    t = cp.Constant(np.ones(3, ))
+    t = cp.Constant(
+        np.ones(
+            3,
+        )
+    )
     objective = cp.Minimize(c @ x)
     if axis == 0:
         con = cp.constraints.SOC(t, X.T, axis=0)
         con_expect = [
-            np.array([0, 1.16454469e+00, 7.67560451e-01]),
-            np.array([[0, -9.74311819e-01, -1.28440860e-01],
-                      [0, 6.37872081e-01, 7.56737724e-01]])
+            np.array([0, 1.16454469e00, 7.67560451e-01]),
+            np.array([[0, -9.74311819e-01, -1.28440860e-01], [0, 6.37872081e-01, 7.56737724e-01]]),
         ]
     else:
         con = cp.constraints.SOC(t, X, axis=1)
         con_expect = [
-            np.array([0, 1.16454469e+00, 7.67560451e-01]),
-            np.array([[0, 0],
-                      [-9.74311819e-01, 6.37872081e-01],
-                      [-1.28440860e-01, 7.56737724e-01]])
+            np.array([0, 1.16454469e00, 7.67560451e-01]),
+            np.array(
+                [[0, 0], [-9.74311819e-01, 6.37872081e-01], [-1.28440860e-01, 7.56737724e-01]]
+            ),
         ]
     obj_pair = (objective, -1.932105)
     con_pairs = [(con, con_expect)]
@@ -491,12 +496,21 @@ def sdp_1(objective_sense) -> SolverTestHelper:
     complementary slackness holds with the PSD primal variable and its dual variable.
     """
     rho = cp.Variable(shape=(4, 4), symmetric=True)
-    constraints = [0.6 <= rho[0, 1], rho[0, 1] <= 0.9,
-                   0.8 <= rho[0, 2], rho[0, 2] <= 0.9,
-                   0.5 <= rho[1, 3], rho[1, 3] <= 0.7,
-                   -0.8 <= rho[2, 3], rho[2, 3] <= -0.4,
-                   rho[0, 0] == 1, rho[1, 1] == 1, rho[2, 2] == 1, rho[3, 3] == 1,
-                   rho >> 0]
+    constraints = [
+        0.6 <= rho[0, 1],
+        rho[0, 1] <= 0.9,
+        0.8 <= rho[0, 2],
+        rho[0, 2] <= 0.9,
+        0.5 <= rho[1, 3],
+        rho[1, 3] <= 0.7,
+        -0.8 <= rho[2, 3],
+        rho[2, 3] <= -0.4,
+        rho[0, 0] == 1,
+        rho[1, 1] == 1,
+        rho[2, 2] == 1,
+        rho[3, 3] == 1,
+        rho >> 0,
+    ]
     if objective_sense == 'min':
         obj = cp.Minimize(rho[0, 3])
         obj_pair = (obj, -0.39)
@@ -524,22 +538,34 @@ def sdp_2() -> SolverTestHelper:
     b = 23
     k = -3
     var_pairs = [
-        (X1, np.array([[21.04711571, 4.07709873],
-                       [4.07709873, 0.7897868]])),
-        (X2, np.array([[5.05366214, -3., 0., 0.],
-                       [-3., 1.78088676, 0., 0.],
-                       [0., 0., 0., 0.],
-                       [0., 0., 0., -0.]]))
+        (X1, np.array([[21.04711571, 4.07709873], [4.07709873, 0.7897868]])),
+        (
+            X2,
+            np.array(
+                [
+                    [5.05366214, -3.0, 0.0, 0.0],
+                    [-3.0, 1.78088676, 0.0, 0.0],
+                    [0.0, 0.0, 0.0, 0.0],
+                    [0.0, 0.0, 0.0, -0.0],
+                ]
+            ),
+        ),
     ]
     con_pairs = [
         (cp.trace(A1 @ X1) + cp.trace(A2 @ X2) == b, -0.83772234),
         (X2[0, 1] <= k, 11.04455278),
-        (X1 >> 0, np.array([[21.04711571, 4.07709873],
-                            [4.07709873, 0.7897868]])),
-        (X2 >> 0, np.array([[1., 1.68455405, 0., 0.],
-                            [1.68455405, 2.83772234, 0., 0.],
-                            [0., 0., 1., 0.],
-                            [0., 0., 0., 2.51316702]]))
+        (X1 >> 0, np.array([[21.04711571, 4.07709873], [4.07709873, 0.7897868]])),
+        (
+            X2 >> 0,
+            np.array(
+                [
+                    [1.0, 1.68455405, 0.0, 0.0],
+                    [1.68455405, 2.83772234, 0.0, 0.0],
+                    [0.0, 0.0, 1.0, 0.0],
+                    [0.0, 0.0, 0.0, 2.51316702],
+                ]
+            ),
+        ),
     ]
     obj_expr = cp.Minimize(cp.trace(C1 @ X1) + cp.trace(C2 @ X2))
     obj_pair = (obj_expr, 52.40127214)
@@ -556,17 +582,16 @@ def expcone_1() -> SolverTestHelper:
     """
     x = cp.Variable(shape=(3, 1))
     cone_con = cp.constraints.ExpCone(x[2], x[1], x[0])
-    constraints = [cp.sum(x) <= 1.0,
-                   cp.sum(x) >= 0.1,
-                   x >= 0,
-                   cone_con]
+    constraints = [cp.sum(x) <= 1.0, cp.sum(x) >= 0.1, x >= 0, cone_con]
     obj = cp.Minimize(3 * x[0] + 2 * x[1] + x[2])
     obj_pair = (obj, 0.23534820622420757)
     expect_exp = [np.array([-1.35348213]), np.array([-0.35348211]), np.array([0.64651792])]
-    con_pairs = [(constraints[0], 0),
-                 (constraints[1], 2.3534821130067614),
-                 (constraints[2], np.zeros(shape=(3, 1))),
-                 (constraints[3], expect_exp)]
+    con_pairs = [
+        (constraints[0], 0),
+        (constraints[1], 2.3534821130067614),
+        (constraints[2], np.zeros(shape=(3, 1))),
+        (constraints[3], expect_exp),
+    ]
     expect_x = np.array([[0.05462721], [0.02609378], [0.01927901]])
     var_pairs = [(x, expect_x)]
     sth = SolverTestHelper(obj_pair, var_pairs, con_pairs)
@@ -577,15 +602,17 @@ def expcone_socp_1() -> SolverTestHelper:
     """
     A random risk-parity portfolio optimization problem.
     """
-    sigma = np.array([[1.83, 1.79, 3.22],
-                      [1.79, 2.18, 3.18],
-                      [3.22, 3.18, 8.69]])
+    sigma = np.array([[1.83, 1.79, 3.22], [1.79, 2.18, 3.18], [3.22, 3.18, 8.69]])
     L = np.linalg.cholesky(sigma)
     c = 0.75
     t = cp.Variable(name='t')
     x = cp.Variable(shape=(3,), name='x')
     s = cp.Variable(shape=(3,), name='s')
-    e = cp.Constant(np.ones(3, ))
+    e = cp.Constant(
+        np.ones(
+            3,
+        )
+    )
     objective = cp.Minimize(t - c * e @ s)
     con1 = cp.norm(L.T @ x, p=2) <= t
     con2 = cp.constraints.ExpCone(s, e, x)
@@ -597,10 +624,14 @@ def expcone_socp_1() -> SolverTestHelper:
     ]
     con_pairs = [
         (con1, 1.0),
-        (con2, [np.array([-0.75, -0.75, -0.75]),
+        (
+            con2,
+            [
+                np.array([-0.75, -0.75, -0.75]),
                 np.array([-1.16363, -1.20777, -1.70371]),
-                np.array([1.30190, 1.38082, 2.67496])]
-         )
+                np.array([1.30190, 1.38082, 2.67496]),
+            ],
+        ),
     ]
     sth = SolverTestHelper(obj_pair, var_pairs, con_pairs)
     return sth
@@ -610,40 +641,43 @@ def sdp_pcp_1() -> SolverTestHelper:
     """
     Example sdp and power cone.
     """
-    Sigma = np.array([[ 0.4787481 , -0.96924914],
-                      [-0.96924914,  2.77788598]])
+    Sigma = np.array([[0.4787481, -0.96924914], [-0.96924914, 2.77788598]])
 
-    x = cp.Variable(shape=(2,1))
-    y = cp.Variable(shape=(2,1))
-    X = cp.Variable(shape=(2,2), symmetric=True)
+    x = cp.Variable(shape=(2, 1))
+    y = cp.Variable(shape=(2, 1))
+    X = cp.Variable(shape=(2, 2), symmetric=True)
     M1 = cp.vstack([X, x.T])
     M2 = cp.vstack([x, np.ones((1, 1))])
     M3 = cp.hstack([M1, M2])
 
     var_pairs = [
-        (x, np.array([[0.72128204],
-                      [0.27871796]])),
-        (y, np.array([[0.01],
-                      [0.01]])),
-        (X, np.array([[0.52024779, 0.20103426],
-                      [0.20103426, 0.0776837 ]])),        
+        (x, np.array([[0.72128204], [0.27871796]])),
+        (y, np.array([[0.01], [0.01]])),
+        (X, np.array([[0.52024779, 0.20103426], [0.20103426, 0.0776837]])),
     ]
     con_pairs = [
         (cp.sum(x) == 1, -0.1503204799112807),
-        (x >= 0, np.array([[-0.],
-                           [-0.]])),
-        (y >= 0.01, np.array([[0.70705506],
-                               [0.70715844]])),
-        (M3 >> 0, np.array([[ 0.4787481 , -0.96924914, -0.07516024],
-                            [-0.96924914,  2.77788598, -0.07516024],
-                            [-0.07516024, -0.07516024,  0.07516094]])),
-        (cp.PowCone3D(x, np.ones((2,1)), y, 0.9), [np.array([[1.17878172e-09],
-                                                             [3.05162243e-09]]),
-                                                   np.array([[9.20157640e-10],
-                                                             [9.40823207e-10]]),
-                                                   np.array([[2.41053358e-10],
-                                                             [7.43432462e-10]])]),
-        ]
+        (x >= 0, np.array([[-0.0], [-0.0]])),
+        (y >= 0.01, np.array([[0.70705506], [0.70715844]])),
+        (
+            M3 >> 0,
+            np.array(
+                [
+                    [0.4787481, -0.96924914, -0.07516024],
+                    [-0.96924914, 2.77788598, -0.07516024],
+                    [-0.07516024, -0.07516024, 0.07516094],
+                ]
+            ),
+        ),
+        (
+            cp.PowCone3D(x, np.ones((2, 1)), y, 0.9),
+            [
+                np.array([[1.17878172e-09], [3.05162243e-09]]),
+                np.array([[9.20157640e-10], [9.40823207e-10]]),
+                np.array([[2.41053358e-10], [7.43432462e-10]]),
+            ],
+        ),
+    ]
     obj_expr = cp.Minimize(cp.trace(Sigma @ X) + cp.norm(y, p=2))
     obj_pair = (obj_expr, 0.089301671322676)
     sth = SolverTestHelper(obj_pair, var_pairs, con_pairs)
@@ -662,28 +696,32 @@ def pcp_1() -> SolverTestHelper:
     x = cp.Variable(shape=(3,))
     y_square = cp.Variable()
     epis = cp.Variable(shape=(3,))
-    constraints = [cp.constraints.PowCone3D(np.ones(3), epis, x, cp.Constant([0.5, 0.5, 0.5])),
-                   cp.sum(epis) <= y_square,
-                   x[0] + x[1] + 3 * x[2] >= 1.0,
-                   y_square <= 25]
+    constraints = [
+        cp.constraints.PowCone3D(np.ones(3), epis, x, cp.Constant([0.5, 0.5, 0.5])),
+        cp.sum(epis) <= y_square,
+        x[0] + x[1] + 3 * x[2] >= 1.0,
+        y_square <= 25,
+    ]
     obj = cp.Minimize(3 * x[0] + 2 * x[1] + x[2])
     expect_x = np.array([-3.874621860638774, -2.129788233677883, 2.33480343377204])
-    expect_epis = expect_x ** 2
+    expect_epis = expect_x**2
     expect_x = np.round(expect_x, decimals=5)
     expect_epis = np.round(expect_epis, decimals=5)
     expect_y_square = 25
-    var_pairs = [(x, expect_x),
-                 (epis, expect_epis),
-                 (y_square, expect_y_square)]
+    var_pairs = [(x, expect_x), (epis, expect_epis), (y_square, expect_y_square)]
     expect_ineq1 = 0.7793969212001993
     expect_ineq2 = 2.865602615049077 / 10
-    expect_pc = [np.array([4.30209047, 1.29985494, 1.56211543]),
-                 np.array([0.28655796, 0.28655796, 0.28655796]),
-                 np.array([2.22062898, 1.22062899, -1.33811302])]
-    con_pairs = [(constraints[0], expect_pc),
-                 (constraints[1], expect_ineq2),
-                 (constraints[2], expect_ineq1),
-                 (constraints[3], expect_ineq2)]
+    expect_pc = [
+        np.array([4.30209047, 1.29985494, 1.56211543]),
+        np.array([0.28655796, 0.28655796, 0.28655796]),
+        np.array([2.22062898, 1.22062899, -1.33811302]),
+    ]
+    con_pairs = [
+        (constraints[0], expect_pc),
+        (constraints[1], expect_ineq2),
+        (constraints[2], expect_ineq1),
+        (constraints[3], expect_ineq2),
+    ]
     obj_pair = (obj, -13.548638904065102)
     sth = SolverTestHelper(obj_pair, var_pairs, con_pairs)
     return sth
@@ -709,90 +747,115 @@ def pcp_2() -> SolverTestHelper:
     arg1 = cp.hstack([x[0], x[2]])
     arg2 = cp.hstack(([x[1], 1.0]))
     pc_con = cp.constraints.PowCone3D(arg1, arg2, hypos, [0.2, 0.4])
-    expect_pc_con = [np.array([1.48466366, 0.24233184]),
-                     np.array([0.48466367, 0.83801333]),
-                     np.array([-1., -1.])]
-    con_pairs = [
-        (x[0] + x[1] + 0.5 * x[2] == 2, 0.4846636697795672),
-        (pc_con, expect_pc_con)
+    expect_pc_con = [
+        np.array([1.48466366, 0.24233184]),
+        np.array([0.48466367, 0.83801333]),
+        np.array([-1.0, -1.0]),
     ]
+    con_pairs = [(x[0] + x[1] + 0.5 * x[2] == 2, 0.4846636697795672), (pc_con, expect_pc_con)]
     obj_pair = (objective, -1.8073406786220672)
-    var_pairs = [
-        (x, np.array([0.06393515, 0.78320961, 2.30571048])),
-        (hypos, None)
-    ]
+    var_pairs = [(x, np.array([0.06393515, 0.78320961, 2.30571048])), (hypos, None)]
     sth = SolverTestHelper(obj_pair, var_pairs, con_pairs)
     return sth
 
 
 def pcp_3() -> SolverTestHelper:
     from scipy.optimize import Bounds, minimize
+
     w = cp.Variable((2, 1))
-    D = np.array([
-       [-1.0856306,   0.99734545],
-       [0.2829785,  -1.50629471],
-       [-0.57860025,  1.65143654],
-       [-2.42667924, -0.42891263],
-       [1.26593626, -0.8667404],
-       [-0.67888615, -0.09470897],
-       [1.49138963, -0.638902]])  # T-by-N
+    D = np.array(
+        [
+            [-1.0856306, 0.99734545],
+            [0.2829785, -1.50629471],
+            [-0.57860025, 1.65143654],
+            [-2.42667924, -0.42891263],
+            [1.26593626, -0.8667404],
+            [-0.67888615, -0.09470897],
+            [1.49138963, -0.638902],
+        ]
+    )  # T-by-N
     """
     Minimize ||D @ w||_p s.t. 0 <= w, sum(w) == 1.
         Refer to https://docs.mosek.com/modeling-cookbook/powo.html#p-norm-cones
     """
-    p = 1/0.4
+    p = 1 / 0.4
     T = D.shape[0]
     t = cp.Variable()
     d = cp.Variable((T, 1))
     ones = np.ones((T, 1))
 
-    powcone = cp.constraints.PowCone3D(d, t * ones, D @ w, 1/p)
+    powcone = cp.constraints.PowCone3D(d, t * ones, D @ w, 1 / p)
     constraints = [cp.sum(w) == 1, w >= 0, powcone, cp.sum(d) == t]
     con_pairs = [
         (constraints[0], -1.51430),
         (constraints[1], np.array([0.0, 0.0])),
-        (constraints[2], [
-              np.array([[0.40000935],
+        (
+            constraints[2],
+            [
+                np.array(
+                    [
                         [0.40000935],
                         [0.40000935],
                         [0.40000935],
                         [0.40000935],
                         [0.40000935],
-                        [0.40000935]]),
-              np.array([[2.84369172e-03],
+                        [0.40000935],
+                        [0.40000935],
+                    ]
+                ),
+                np.array(
+                    [
+                        [2.84369172e-03],
                         [1.22657446e-01],
                         [1.12146997e-01],
                         [3.45802205e-01],
                         [2.76327461e-05],
                         [1.27539057e-02],
-                        [3.75878155e-03]]),
-              np.array([[-0.04031276],
+                        [3.75878155e-03],
+                    ]
+                ),
+                np.array(
+                    [
+                        [-0.04031276],
                         [0.38577107],
                         [-0.36558292],
                         [0.71847219],
                         [0.00249992],
                         [0.09919715],
-                        [-0.04765863]])]),
-        (constraints[3], 0.40000935)
+                        [-0.04765863],
+                    ]
+                ),
+            ],
+        ),
+        (constraints[3], 0.40000935),
     ]
 
     def univar_obj(w0):
         return np.linalg.norm(D[:, 0] * w0 + D[:, 1] * (1 - w0), ord=p)
+
     univar_bounds = Bounds([0], [1])
     univar_res = minimize(univar_obj, np.array([0.4]), bounds=univar_bounds, tol=1e-16)
     w_opt = np.array([[univar_res.x], [1 - univar_res.x]])
 
     obj_pair = (cp.Minimize(t), univar_res.fun)
-    var_pairs = [(d, np.array([
-                       [7.17144981e-03],
-                       [3.09557056e-01],
-                       [2.83038570e-01],
-                       [8.72785905e-01],
-                       [6.92995408e-05],
-                       [3.21904516e-02],
-                       [9.48918352e-03]])),
-                 (w, w_opt),
-                 (t, np.array([univar_res.fun]))]
+    var_pairs = [
+        (
+            d,
+            np.array(
+                [
+                    [7.17144981e-03],
+                    [3.09557056e-01],
+                    [2.83038570e-01],
+                    [8.72785905e-01],
+                    [6.92995408e-05],
+                    [3.21904516e-02],
+                    [9.48918352e-03],
+                ]
+            ),
+        ),
+        (w, w_opt),
+        (t, np.array([univar_res.fun])),
+    ]
     sth = SolverTestHelper(obj_pair, var_pairs, con_pairs)
     return sth
 
@@ -800,11 +863,9 @@ def pcp_3() -> SolverTestHelper:
 def mi_lp_0() -> SolverTestHelper:
     x = cp.Variable(shape=(2,))
     bool_var = cp.Variable(boolean=True)
-    con_pairs = [(x == bool_var, None),
-                 (bool_var == 0, None)]
+    con_pairs = [(x == bool_var, None), (bool_var == 0, None)]
     obj_pair = (cp.Minimize(cp.norm(x, 1) + 1.0), 1)
-    var_pairs = [(x, np.array([0, 0])),
-                 (bool_var, 0)]
+    var_pairs = [(x, np.array([0, 0])), (bool_var, 0)]
     sth = SolverTestHelper(obj_pair, var_pairs, con_pairs)
     return sth
 
@@ -814,15 +875,15 @@ def mi_lp_1() -> SolverTestHelper:
     boolvar = cp.Variable(boolean=True)
     intvar = cp.Variable(integer=True)
     objective = cp.Minimize(-4 * x[0] - 5 * x[1])
-    constraints = [2 * x[0] + x[1] <= intvar,
-                   x[0] + 2 * x[1] <= 3 * boolvar,
-                   x >= 0,
-                   intvar == 3 * boolvar,
-                   intvar == 3]
+    constraints = [
+        2 * x[0] + x[1] <= intvar,
+        x[0] + 2 * x[1] <= 3 * boolvar,
+        x >= 0,
+        intvar == 3 * boolvar,
+        intvar == 3,
+    ]
     obj_pair = (objective, -9)
-    var_pairs = [(x, np.array([1, 1])),
-                 (boolvar, 1),
-                 (intvar,  3)]
+    var_pairs = [(x, np.array([1, 1])), (boolvar, 1), (intvar, 3)]
     con_pairs = [(c, None) for c in constraints]
     sth = SolverTestHelper(obj_pair, var_pairs, con_pairs)
     return sth
@@ -833,23 +894,58 @@ def mi_lp_2() -> SolverTestHelper:
     n = 50
     c = 995
     z = 8373
-    coeffs = [[1, 94, 485, 0], [2, 506, 326, 0], [3, 416, 248, 0],
-              [4, 992, 421, 0], [5, 649, 322, 0], [6, 237, 795, 0],
-              [7, 457, 43, 1], [8, 815, 845, 0], [9, 446, 955, 0],
-              [10, 422, 252, 0], [11, 791, 9, 1], [12, 359, 901, 0],
-              [13, 667, 122, 1], [14, 598, 94, 1], [15, 7, 738, 0],
-              [16, 544, 574, 0], [17, 334, 715, 0], [18, 766, 882, 0],
-              [19, 994, 367, 0], [20, 893, 984, 0], [21, 633, 299, 0],
-              [22, 131, 433, 0], [23, 428, 682, 0], [24, 700, 72, 1],
-              [25, 617, 874, 0], [26, 874, 138, 1], [27, 720, 856, 0],
-              [28, 419, 145, 0], [29, 794, 995, 0], [30, 196, 529, 0],
-              [31, 997, 199, 1], [32, 116, 277, 0], [33, 908, 97, 1],
-              [34, 539, 719, 0], [35, 707, 242, 0], [36, 569, 107, 0],
-              [37, 537, 122, 0], [38, 931, 70, 1], [39, 726, 98, 1],
-              [40, 487, 600, 0], [41, 772, 645, 0], [42, 513, 267, 0],
-              [43, 81, 972, 0], [44, 943, 895, 0], [45, 58, 213, 0],
-              [46, 303, 748, 0], [47, 764, 487, 0], [48, 536, 923, 0],
-              [49, 724, 29, 1], [50, 789, 674, 0]]  # index, p / w / x
+    coeffs = [
+        [1, 94, 485, 0],
+        [2, 506, 326, 0],
+        [3, 416, 248, 0],
+        [4, 992, 421, 0],
+        [5, 649, 322, 0],
+        [6, 237, 795, 0],
+        [7, 457, 43, 1],
+        [8, 815, 845, 0],
+        [9, 446, 955, 0],
+        [10, 422, 252, 0],
+        [11, 791, 9, 1],
+        [12, 359, 901, 0],
+        [13, 667, 122, 1],
+        [14, 598, 94, 1],
+        [15, 7, 738, 0],
+        [16, 544, 574, 0],
+        [17, 334, 715, 0],
+        [18, 766, 882, 0],
+        [19, 994, 367, 0],
+        [20, 893, 984, 0],
+        [21, 633, 299, 0],
+        [22, 131, 433, 0],
+        [23, 428, 682, 0],
+        [24, 700, 72, 1],
+        [25, 617, 874, 0],
+        [26, 874, 138, 1],
+        [27, 720, 856, 0],
+        [28, 419, 145, 0],
+        [29, 794, 995, 0],
+        [30, 196, 529, 0],
+        [31, 997, 199, 1],
+        [32, 116, 277, 0],
+        [33, 908, 97, 1],
+        [34, 539, 719, 0],
+        [35, 707, 242, 0],
+        [36, 569, 107, 0],
+        [37, 537, 122, 0],
+        [38, 931, 70, 1],
+        [39, 726, 98, 1],
+        [40, 487, 600, 0],
+        [41, 772, 645, 0],
+        [42, 513, 267, 0],
+        [43, 81, 972, 0],
+        [44, 943, 895, 0],
+        [45, 58, 213, 0],
+        [46, 303, 748, 0],
+        [47, 764, 487, 0],
+        [48, 536, 923, 0],
+        [49, 724, 29, 1],
+        [50, 789, 674, 0],
+    ]  # index, p / w / x
     X = cp.Variable(n, boolean=True)
     objective = cp.Maximize(cp.sum(cp.multiply([i[1] for i in coeffs], X)))
     constraints = [cp.sum(cp.multiply([i[2] for i in coeffs], X)) <= c]
@@ -864,15 +960,18 @@ def mi_lp_3() -> SolverTestHelper:
     # infeasible (but relaxable) test case
     x = cp.Variable(4, boolean=True)
     from cvxpy.expressions.constants import Constant
+
     objective = cp.Maximize(Constant(1))
-    constraints = [x[0] + x[1] + x[2] + x[3] <= 2,
-                   x[0] + x[1] + x[2] + x[3] >= 2,
-                   x[0] + x[1] <= 1,
-                   x[0] + x[2] <= 1,
-                   x[0] + x[3] <= 1,
-                   x[2] + x[3] <= 1,
-                   x[1] + x[3] <= 1,
-                   x[1] + x[2] <= 1]
+    constraints = [
+        x[0] + x[1] + x[2] + x[3] <= 2,
+        x[0] + x[1] + x[2] + x[3] >= 2,
+        x[0] + x[1] <= 1,
+        x[0] + x[2] <= 1,
+        x[0] + x[3] <= 1,
+        x[2] + x[3] <= 1,
+        x[1] + x[3] <= 1,
+        x[1] + x[2] <= 1,
+    ]
     obj_pair = (objective, -np.inf)
     con_pairs = [(c, None) for c in constraints]
     var_pairs = [(x, None)]
@@ -884,6 +983,7 @@ def mi_lp_4() -> SolverTestHelper:
     """Test MI without constraints"""
     x = cp.Variable(boolean=True)
     from cvxpy.expressions.constants import Constant
+
     objective = cp.Maximize(Constant(0.23) * x)
     obj_pair = (objective, 0.23)
     var_pairs = [(x, 1)]
@@ -894,21 +994,23 @@ def mi_lp_4() -> SolverTestHelper:
 def mi_lp_5() -> SolverTestHelper:
     # infeasible boolean problem - https://trac.sagemath.org/ticket/31962#comment:48
     z = cp.Variable(11, boolean=True)
-    constraints = [z[2] + z[1] == 1,
-                   z[4] + z[3] == 1,
-                   z[6] + z[5] == 1,
-                   z[8] + z[7] == 1,
-                   z[10] + z[9] == 1,
-                   z[4] + z[1] <= 1,
-                   z[2] + z[3] <= 1,
-                   z[6] + z[2] <= 1,
-                   z[1] + z[5] <= 1,
-                   z[8] + z[6] <= 1,
-                   z[5] + z[7] <= 1,
-                   z[10] + z[8] <= 1,
-                   z[7] + z[9] <= 1,
-                   z[9] + z[4] <= 1,
-                   z[3] + z[10] <= 1]
+    constraints = [
+        z[2] + z[1] == 1,
+        z[4] + z[3] == 1,
+        z[6] + z[5] == 1,
+        z[8] + z[7] == 1,
+        z[10] + z[9] == 1,
+        z[4] + z[1] <= 1,
+        z[2] + z[3] <= 1,
+        z[6] + z[2] <= 1,
+        z[1] + z[5] <= 1,
+        z[8] + z[6] <= 1,
+        z[5] + z[7] <= 1,
+        z[10] + z[8] <= 1,
+        z[7] + z[9] <= 1,
+        z[9] + z[4] <= 1,
+        z[3] + z[10] <= 1,
+    ]
     obj = cp.Minimize(0)
     obj_pair = (obj, np.inf)
     con_pairs = [(c, None) for c in constraints]
@@ -916,13 +1018,14 @@ def mi_lp_5() -> SolverTestHelper:
     sth = SolverTestHelper(obj_pair, var_pairs, con_pairs)
     return sth
 
+
 def mi_lp_6() -> SolverTestHelper:
     "Test MILP for timelimit and no feasible solution"
     n = 70
     m = 70
-    x = cp.Variable((n,), boolean=True, name="x")
-    y = cp.Variable((n,), name="y")
-    z = cp.Variable((m,), pos=True, name="z")
+    x = cp.Variable((n,), boolean=True, name='x')
+    y = cp.Variable((n,), name='y')
+    z = cp.Variable((m,), pos=True, name='z')
     A = np.random.rand(m, n)
     b = np.random.rand(m)
     objective = cp.Maximize(cp.sum(y))
@@ -952,11 +1055,8 @@ def mi_lp_6() -> SolverTestHelper:
         z[29] >= 1,
     ]
     return SolverTestHelper(
-        (objective, None),
-        [(x, None), (y, None), (z, None)],
-        [(con, None) for con in constraints]
+        (objective, None), [(x, None), (y, None), (z, None)], [(con, None) for con in constraints]
     )
-
 
 
 def mi_lp_7() -> SolverTestHelper:
@@ -980,8 +1080,15 @@ def mi_lp_7() -> SolverTestHelper:
     ]
     return SolverTestHelper(
         (objective, None),
-        [(c, None,), (d, None), (c_or_d, None)],
-        [(con, None) for con in constraints]
+        [
+            (
+                c,
+                None,
+            ),
+            (d, None),
+            (c_or_d, None),
+        ],
+        [(con, None) for con in constraints],
     )
 
 
@@ -996,14 +1103,15 @@ def mi_socp_1() -> SolverTestHelper:
     """
     x = cp.Variable(shape=(3,))
     y = cp.Variable(shape=(2,), integer=True)
-    constraints = [cp.norm(x, 2) <= y[0],
-                   cp.norm(x, 2) <= y[1],
-                   x[0] + x[1] + 3 * x[2] >= 0.1,
-                   y <= 5]
+    constraints = [
+        cp.norm(x, 2) <= y[0],
+        cp.norm(x, 2) <= y[1],
+        x[0] + x[1] + 3 * x[2] >= 0.1,
+        y <= 5,
+    ]
     obj = cp.Minimize(3 * x[0] + 2 * x[1] + x[2] + y[0] + 2 * y[1])
     obj_pair = (obj, 0.21363997604807272)
-    var_pairs = [(x, np.array([-0.78510265, -0.43565177,  0.44025147])),
-                 (y, np.array([1, 1]))]
+    var_pairs = [(x, np.array([-0.78510265, -0.43565177, 0.44025147])), (y, np.array([1, 1]))]
     con_pairs = [(c, None) for c in constraints]  # no dual values for mixed-integer problems.
     sth = SolverTestHelper(obj_pair, var_pairs, con_pairs)
     return sth
@@ -1018,15 +1126,15 @@ def mi_socp_2() -> SolverTestHelper:
     bool_var = cp.Variable(boolean=True)
     int_var = cp.Variable(integer=True)
     objective = cp.Minimize(-4 * x[0] - 5 * x[1])
-    constraints = [2 * x[0] + x[1] <= int_var,
-                   (x[0] + 2 * x[1]) ** 2 <= 9 * bool_var,
-                   x >= 0,
-                   int_var == 3 * bool_var,
-                   int_var == 3]
+    constraints = [
+        2 * x[0] + x[1] <= int_var,
+        (x[0] + 2 * x[1]) ** 2 <= 9 * bool_var,
+        x >= 0,
+        int_var == 3 * bool_var,
+        int_var == 3,
+    ]
     obj_pair = (objective, -9)
-    var_pairs = [(x, np.array([1, 1])),
-                 (bool_var, 1),
-                 (int_var, 3)]
+    var_pairs = [(x, np.array([1, 1])), (bool_var, 1), (int_var, 3)]
     con_pairs = [(con, None) for con in constraints]
     sth = SolverTestHelper(obj_pair, var_pairs, con_pairs)
     return sth
@@ -1052,20 +1160,15 @@ def mi_pcp_0() -> SolverTestHelper:
         (x[0] + x[1] + 0.5 * x[2] == 2, None),
         (pc_con, None),
         (0.1 <= q, None),
-        (q <= 1.9, None)
+        (q <= 1.9, None),
     ]
     obj_pair = (objective, -1.8073406786220672)
-    var_pairs = [
-        (x, np.array([0.06393515, 0.78320961, 2.30571048])),
-        (hypos, None),
-        (q, 1.0)
-    ]
+    var_pairs = [(x, np.array([0.06393515, 0.78320961, 2.30571048])), (hypos, None), (q, 1.0)]
     sth = SolverTestHelper(obj_pair, var_pairs, con_pairs)
     return sth
 
 
 class StandardTestLPs:
-
     @staticmethod
     def test_lp_0(solver, places: int = 4, duals: bool = True, **kwargs) -> SolverTestHelper:
         sth = lp_0()
@@ -1111,7 +1214,7 @@ class StandardTestLPs:
         return sth
 
     @staticmethod
-    def test_lp_5(solver, places: int = 4, duals: bool = True,  **kwargs) -> SolverTestHelper:
+    def test_lp_5(solver, places: int = 4, duals: bool = True, **kwargs) -> SolverTestHelper:
         sth = lp_5()
         sth.solve(solver, **kwargs)
         sth.verify_objective(places)
@@ -1136,7 +1239,8 @@ class StandardTestLPs:
     def test_lp_7(solver, places: int = 4, duals: bool = True, **kwargs) -> SolverTestHelper:
         sth = lp_7()
         import sdpap
-        if sdpap.sdpacall.sdpacall.get_backend_info()["gmp"]:
+
+        if sdpap.sdpacall.sdpacall.get_backend_info()['gmp']:
             sth.solve(solver, **kwargs)
             sth.verify_objective(places)
         return sth
@@ -1191,7 +1295,6 @@ class StandardTestLPs:
 
 
 class StandardTestQPs:
-
     @staticmethod
     def test_qp_0(solver, places: int = 4, duals: bool = True, **kwargs) -> SolverTestHelper:
         sth = qp_0()
@@ -1205,7 +1308,6 @@ class StandardTestQPs:
 
 
 class StandardTestSOCPs:
-
     @staticmethod
     def test_socp_0(solver, places: int = 4, duals: bool = True, **kwargs) -> SolverTestHelper:
         sth = socp_0()
@@ -1278,7 +1380,6 @@ class StandardTestSOCPs:
 
 
 class StandardTestSDPs:
-
     @staticmethod
     def test_sdp_1min(solver, places: int = 4, duals: bool = True, **kwargs) -> SolverTestHelper:
         sth = sdp_1('min')
@@ -1316,7 +1417,6 @@ class StandardTestSDPs:
 
 
 class StandardTestECPs:
-
     @staticmethod
     def test_expcone_1(solver, places: int = 4, duals: bool = True, **kwargs) -> SolverTestHelper:
         sth = expcone_1()
@@ -1330,7 +1430,6 @@ class StandardTestECPs:
 
 
 class StandardTestMixedCPs:
-
     @staticmethod
     def test_exp_soc_1(solver, places: int = 3, duals: bool = True, **kwargs) -> SolverTestHelper:
         sth = expcone_socp_1()
@@ -1354,9 +1453,8 @@ class StandardTestMixedCPs:
             sth.check_dual_domains(places)
         return sth
 
-    
-class StandardTestPCPs:
 
+class StandardTestPCPs:
     @staticmethod
     def test_pcp_1(solver, places: int = 3, duals: bool = True, **kwargs) -> SolverTestHelper:
         sth = pcp_1()

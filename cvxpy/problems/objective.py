@@ -36,20 +36,18 @@ class Objective(u.Canonical):
         If expr is not a scalar.
     """
 
-    NAME = "objective"
+    NAME = 'objective'
 
     def __init__(self, expr) -> None:
         self.args = [Expression.cast_to_const(expr)]
         # Validate that the objective resolves to a scalar.
         if not self.args[0].is_scalar():
-            raise ValueError("The '%s' objective must resolve to a scalar."
-                             % self.NAME)
+            raise ValueError("The '%s' objective must resolve to a scalar." % self.NAME)
         if not self.args[0].is_real():
-            raise ValueError("The '%s' objective must be real valued."
-                             % self.NAME)
+            raise ValueError("The '%s' objective must be real valued." % self.NAME)
 
     def __repr__(self) -> str:
-        return "%s(%s)" % (self.__class__.__name__, repr(self.args[0]))
+        return '%s(%s)' % (self.__class__.__name__, repr(self.args[0]))
 
     def __str__(self) -> str:
         return ' '.join([self.NAME, self.args[0].name()])
@@ -86,14 +84,13 @@ class Objective(u.Canonical):
     def __div__(self, other):
         if not isinstance(other, (int, float)):
             raise NotImplementedError()
-        return self * (1.0/other)
+        return self * (1.0 / other)
 
     __truediv__ = __div__
 
     @property
     def value(self):
-        """The value of the objective expression.
-        """
+        """The value of the objective expression."""
         v = self.args[0].value
         if v is None:
             return None
@@ -101,13 +98,11 @@ class Objective(u.Canonical):
             return scalar_value(v)
 
     def is_quadratic(self) -> bool:
-        """Returns if the objective is a quadratic function.
-        """
+        """Returns if the objective is a quadratic function."""
         return self.args[0].is_quadratic()
 
     def is_qpwa(self) -> bool:
-        """Returns if the objective is a quadratic of piecewise affine.
-        """
+        """Returns if the objective is a quadratic of piecewise affine."""
         return self.args[0].is_qpwa()
 
 
@@ -125,9 +120,9 @@ class Minimize(Objective):
         If expr is not a scalar.
     """
 
-    NAME = "minimize"
+    NAME = 'minimize'
 
-    def __neg__(self) -> "Maximize":
+    def __neg__(self) -> 'Maximize':
         return Maximize(-self.args[0])
 
     def __add__(self, other):
@@ -137,24 +132,21 @@ class Minimize(Objective):
         if type(other) is Minimize:
             return Minimize(self.args[0] + other.args[0])
         else:
-            raise DCPError("Problem does not follow DCP rules.")
+            raise DCPError('Problem does not follow DCP rules.')
 
     def canonicalize(self):
-        """Pass on the target expression's objective and constraints.
-        """
+        """Pass on the target expression's objective and constraints."""
         return self.args[0].canonical_form
 
     def is_dcp(self, dpp: bool = False) -> bool:
-        """The objective must be convex.
-        """
+        """The objective must be convex."""
         if dpp:
             with scopes.dpp_scope():
                 return self.args[0].is_convex()
         return self.args[0].is_convex()
 
     def is_dgp(self, dpp: bool = False) -> bool:
-        """The objective must be log-log convex.
-        """
+        """The objective must be log-log convex."""
         if dpp:
             with scopes.dpp_scope():
                 return self.args[0].is_log_log_convex()
@@ -167,17 +159,15 @@ class Minimize(Objective):
             elif context.lower() == 'dgp':
                 return self.is_dgp(dpp=True)
             else:
-                raise ValueError("Unsupported context ", context)
+                raise ValueError('Unsupported context ', context)
 
     def is_dqcp(self) -> bool:
-        """The objective must be quasiconvex.
-        """
+        """The objective must be quasiconvex."""
         return self.args[0].is_quasiconvex()
 
     @staticmethod
     def primal_to_result(result):
-        """The value of the objective given the solver primal value.
-        """
+        """The value of the objective given the solver primal value."""
         return result
 
 
@@ -195,7 +185,7 @@ class Maximize(Objective):
         If expr is not a scalar.
     """
 
-    NAME = "maximize"
+    NAME = 'maximize'
 
     def __neg__(self) -> Minimize:
         return Minimize(-self.args[0])
@@ -207,25 +197,22 @@ class Maximize(Objective):
         if type(other) is Maximize:
             return Maximize(self.args[0] + other.args[0])
         else:
-            raise Exception("Problem does not follow DCP rules.")
+            raise Exception('Problem does not follow DCP rules.')
 
     def canonicalize(self):
-        """Negates the target expression's objective.
-        """
+        """Negates the target expression's objective."""
         obj, constraints = self.args[0].canonical_form
         return (lu.neg_expr(obj), constraints)
 
     def is_dcp(self, dpp: bool = False) -> bool:
-        """The objective must be concave.
-        """
+        """The objective must be concave."""
         if dpp:
             with scopes.dpp_scope():
                 return self.args[0].is_concave()
         return self.args[0].is_concave()
 
     def is_dgp(self, dpp: bool = False) -> bool:
-        """The objective must be log-log concave.
-        """
+        """The objective must be log-log concave."""
         if dpp:
             with scopes.dpp_scope():
                 return self.args[0].is_log_log_concave()
@@ -238,15 +225,13 @@ class Maximize(Objective):
             elif context.lower() == 'dgp':
                 return self.is_dgp(dpp=True)
             else:
-                raise ValueError("Unsupported context ", context)
+                raise ValueError('Unsupported context ', context)
 
     def is_dqcp(self) -> bool:
-        """The objective must be quasiconcave.
-        """
+        """The objective must be quasiconcave."""
         return self.args[0].is_quasiconcave()
 
     @staticmethod
     def primal_to_result(result):
-        """The value of the objective given the solver primal value.
-        """
+        """The value of the objective given the solver primal value."""
         return -result

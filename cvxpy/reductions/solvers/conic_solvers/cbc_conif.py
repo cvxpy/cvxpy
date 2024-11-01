@@ -25,8 +25,7 @@ from cvxpy.reductions.solvers.conic_solvers.conic_solver import (
 
 
 class CBC(ConicSolver):
-    """ An interface to the CBC solver
-    """
+    """An interface to the CBC solver"""
 
     # Solver capabilities.
     MIP_CAPABLE = True
@@ -34,38 +33,38 @@ class CBC(ConicSolver):
     MI_SUPPORTED_CONSTRAINTS = SUPPORTED_CONSTRAINTS
 
     # Map of CBC status to CVXPY status.
-    STATUS_MAP_MIP = {'solution': s.OPTIMAL,
-                      'relaxation infeasible': s.INFEASIBLE,
-                      'problem proven infeasible': s.INFEASIBLE,
-                      'relaxation abandoned': s.SOLVER_ERROR,
-                      'stopped on user event': s.SOLVER_ERROR,
-                      'stopped on nodes': s.OPTIMAL_INACCURATE,
-                      'stopped on gap': s.OPTIMAL_INACCURATE,
-                      'stopped on time': s.OPTIMAL_INACCURATE,
-                      'stopped on solutions': s.OPTIMAL_INACCURATE,
-                      'linear relaxation unbounded': s.UNBOUNDED,
-                      'unset': s.UNBOUNDED}
+    STATUS_MAP_MIP = {
+        'solution': s.OPTIMAL,
+        'relaxation infeasible': s.INFEASIBLE,
+        'problem proven infeasible': s.INFEASIBLE,
+        'relaxation abandoned': s.SOLVER_ERROR,
+        'stopped on user event': s.SOLVER_ERROR,
+        'stopped on nodes': s.OPTIMAL_INACCURATE,
+        'stopped on gap': s.OPTIMAL_INACCURATE,
+        'stopped on time': s.OPTIMAL_INACCURATE,
+        'stopped on solutions': s.OPTIMAL_INACCURATE,
+        'linear relaxation unbounded': s.UNBOUNDED,
+        'unset': s.UNBOUNDED,
+    }
 
-    STATUS_MAP_LP = {'optimal': s.OPTIMAL,
-                     'primal infeasible': s.INFEASIBLE,
-                     'dual infeasible': s.UNBOUNDED,
-                     'stopped due to errors': s.SOLVER_ERROR,
-                     'stopped by event handler (virtual int '
-                     'ClpEventHandler::event())': s.SOLVER_ERROR}
+    STATUS_MAP_LP = {
+        'optimal': s.OPTIMAL,
+        'primal infeasible': s.INFEASIBLE,
+        'dual infeasible': s.UNBOUNDED,
+        'stopped due to errors': s.SOLVER_ERROR,
+        'stopped by event handler (virtual int ' 'ClpEventHandler::event())': s.SOLVER_ERROR,
+    }
 
     def name(self):
-        """The name of the solver.
-        """
+        """The name of the solver."""
         return s.CBC
 
     def import_solver(self) -> None:
-        """Imports the solver.
-        """
+        """Imports the solver."""
         from cylp.cy import CyClpSimplex  # noqa F401
 
     def accepts(self, problem) -> bool:
-        """Can Cbc solve the problem?
-        """
+        """Can Cbc solve the problem?"""
         # TODO check if is matrix stuffed.
         if not problem.objective.args[0].is_affine():
             return False
@@ -93,8 +92,7 @@ class CBC(ConicSolver):
         return data, inv_data
 
     def invert(self, solution, inverse_data):
-        """Returns the solution to the original problem given the inverse_data.
-        """
+        """Returns the solution to the original problem given the inverse_data."""
         status = solution['status']
 
         if status in s.SOLUTION_PRESENT:
@@ -124,7 +122,7 @@ class CBC(ConicSolver):
 
         # Constraints
         # eq
-        model += A[0:dims[s.EQ_DIM], :] * x == CyLPArray(b[0:dims[s.EQ_DIM]])
+        model += A[0 : dims[s.EQ_DIM], :] * x == CyLPArray(b[0 : dims[s.EQ_DIM]])
 
         # leq
         leq_start = dims[s.EQ_DIM]
@@ -147,13 +145,13 @@ class CBC(ConicSolver):
             idxs = data[s.BOOL_IDX]
             n_idxs = len(idxs)
 
-            model.setColumnLowerSubset(np.arange(n_idxs, dtype=np.int32),
-                                       np.array(idxs, np.int32),
-                                       np.zeros(n_idxs))
+            model.setColumnLowerSubset(
+                np.arange(n_idxs, dtype=np.int32), np.array(idxs, np.int32), np.zeros(n_idxs)
+            )
 
-            model.setColumnUpperSubset(np.arange(n_idxs, dtype=np.int32),
-                                       np.array(idxs, np.int32),
-                                       np.ones(n_idxs))
+            model.setColumnUpperSubset(
+                np.arange(n_idxs, dtype=np.int32), np.array(idxs, np.int32), np.ones(n_idxs)
+            )
 
         # Verbosity Clp
         if not verbose:
@@ -161,12 +159,19 @@ class CBC(ConicSolver):
 
         # Build model & solve
         status = None
-        clp_model_options = {"dualTolerance", "primalTolerance",
-                             "maxNumIteration", "logLevel", "automaticScaling",
-                             "scaling", "infeasibilityCost", "optimizationDirection"}
-        clp_solve_options = {"presolve"}
+        clp_model_options = {
+            'dualTolerance',
+            'primalTolerance',
+            'maxNumIteration',
+            'logLevel',
+            'automaticScaling',
+            'scaling',
+            'infeasibilityCost',
+            'optimizationDirection',
+        }
+        clp_solve_options = {'presolve'}
         # all the above keys except logLevel apply only to models solved with CLP
-        non_cbc_options = (clp_model_options | clp_solve_options) - {"logLevel"}
+        non_cbc_options = (clp_model_options | clp_solve_options) - {'logLevel'}
         for key in solver_opts:
             if key in clp_model_options:
                 setattr(model, key, solver_opts[key])
@@ -201,12 +206,12 @@ class CBC(ConicSolver):
 
         solution = {}
         if data[s.BOOL_IDX] or data[s.INT_IDX]:
-            solution["status"] = self.STATUS_MAP_MIP[status]
-            solution["primal"] = cbcModel.primalVariableSolution['x']
-            solution["value"] = cbcModel.objectiveValue
+            solution['status'] = self.STATUS_MAP_MIP[status]
+            solution['primal'] = cbcModel.primalVariableSolution['x']
+            solution['value'] = cbcModel.objectiveValue
         else:
-            solution["status"] = self.STATUS_MAP_LP[status]
-            solution["primal"] = model.primalVariableSolution['x']
-            solution["value"] = model.objectiveValue
+            solution['status'] = self.STATUS_MAP_LP[status]
+            solution['primal'] = model.primalVariableSolution['x']
+            solution['value'] = model.objectiveValue
 
         return solution

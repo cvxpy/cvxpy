@@ -13,6 +13,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+
 from __future__ import annotations
 
 import numpy as np
@@ -71,6 +72,7 @@ class ConeDims:
         A list of the positive semidefinite cone dimensions, where the
         dimension of the PSD cone of k by k matrices is k.
     """
+
     def __init__(self, constr_map) -> None:
         self.zero = int(sum(c.size for c in constr_map[Zero]))
         self.nonneg = int(sum(c.size for c in constr_map[NonNeg]))
@@ -79,18 +81,16 @@ class ConeDims:
         self.psd = [int(c.shape[0]) for c in constr_map[PSD]]
 
     def __repr__(self) -> str:
-        return "(zero: {0}, nonpos: {1}, exp: {2}, soc: {3}, psd: {4})".format(
-            self.zero, self.nonneg, self.exp, self.soc, self.psd)
+        return '(zero: {0}, nonpos: {1}, exp: {2}, soc: {3}, psd: {4})'.format(
+            self.zero, self.nonneg, self.exp, self.soc, self.psd
+        )
 
     def __str__(self) -> str:
-        """String representation.
-        """
-        return ("%i equalities, %i inequalities, %i exponential cones, \n"
-                "SOC constraints: %s, PSD constraints: %s.") % (self.zero,
-                                                                self.nonneg,
-                                                                self.exp,
-                                                                self.soc,
-                                                                self.psd)
+        """String representation."""
+        return (
+            '%i equalities, %i inequalities, %i exponential cones, \n'
+            'SOC constraints: %s, PSD constraints: %s.'
+        ) % (self.zero, self.nonneg, self.exp, self.soc, self.psd)
 
     def __getitem__(self, key):
         if key == s.EQ_DIM:
@@ -118,16 +118,22 @@ class ParamQuadProg(ParamProb):
 
     The constant offsets d and b are the last column of c and A.
     """
-    def __init__(self, P, q, x, A,
-                 variables,
-                 var_id_to_col,
-                 constraints,
-                 parameters,
-                 param_id_to_col,
-                 formatted: bool = False,
-                 lower_bounds: np.ndarray | None = None,
-                 upper_bounds: np.ndarray | None = None,
-                 ) -> None:
+
+    def __init__(
+        self,
+        P,
+        q,
+        x,
+        A,
+        variables,
+        var_id_to_col,
+        constraints,
+        parameters,
+        param_id_to_col,
+        formatted: bool = False,
+        lower_bounds: np.ndarray | None = None,
+        upper_bounds: np.ndarray | None = None,
+    ) -> None:
         self.P = P
         self.q = q
         self.x = x
@@ -157,11 +163,11 @@ class ParamQuadProg(ParamProb):
 
     def is_mixed_integer(self) -> bool:
         """Is the problem mixed-integer?"""
-        return self.x.attributes['boolean'] or \
-            self.x.attributes['integer']
+        return self.x.attributes['boolean'] or self.x.attributes['integer']
 
-    def apply_parameters(self, id_to_param_value=None, zero_offset: bool = False,
-                         keep_zeros: bool = False):
+    def apply_parameters(
+        self, id_to_param_value=None, zero_offset: bool = False, keep_zeros: bool = False
+    ):
         """Returns A, b after applying parameters (and reshaping).
 
         Args:
@@ -171,21 +177,28 @@ class ParamQuadProg(ParamProb):
           keep_zeros: (optional) if True, store explicit zeros in A where
                         parameters are affected
         """
+
         def param_value(idx):
-            return (np.array(self.id_to_param[idx].value) if id_to_param_value
-                    is None else id_to_param_value[idx])
+            return (
+                np.array(self.id_to_param[idx].value)
+                if id_to_param_value is None
+                else id_to_param_value[idx]
+            )
+
         param_vec = canonInterface.get_parameter_vector(
             self.total_param_size,
             self.param_id_to_col,
             self.param_id_to_size,
             param_value,
-            zero_offset=zero_offset)
+            zero_offset=zero_offset,
+        )
 
         self.reduced_P.cache(keep_zeros)
         P, _ = self.reduced_P.get_matrix_from_tensor(param_vec, with_offset=False)
 
         q, d = canonInterface.get_matrix_from_tensor(
-            self.q, param_vec, self.x.size, with_offset=True)
+            self.q, param_vec, self.x.size, with_offset=True
+        )
         q = q.toarray().flatten()
 
         self.reduced_A.cache(keep_zeros)
@@ -203,24 +216,22 @@ class ParamQuadProg(ParamProb):
         raise NotImplementedError
 
     def split_solution(self, sltn, active_vars=None):
-        """Splits the solution into individual variables.
-        """
+        """Splits the solution into individual variables."""
         raise NotImplementedError
 
     def split_adjoint(self, del_vars=None):
-        """Adjoint of split_solution.
-        """
+        """Adjoint of split_solution."""
         raise NotImplementedError
 
 
 class QpMatrixStuffing(MatrixStuffing):
     """Fills in numeric values for this problem instance.
 
-       Outputs a DCP-compliant minimization problem with an objective
-       of the form
-           QuadForm(x, p) + q.T * x
-       and Zero/NonNeg constraints, both of which exclusively carry
-       affine arguments.
+    Outputs a DCP-compliant minimization problem with an objective
+    of the form
+        QuadForm(x, p) + q.T * x
+    and Zero/NonNeg constraints, both of which exclusively carry
+    affine arguments.
     """
 
     def __init__(self, canon_backend: str | None = None):
@@ -228,21 +239,22 @@ class QpMatrixStuffing(MatrixStuffing):
 
     @staticmethod
     def accepts(problem):
-        return (type(problem.objective) == Minimize
-                and problem.objective.is_quadratic()
-                and problem.is_dcp()
-                and not convex_attributes(problem.variables())
-                and all(type(c) in [Zero, NonNeg, Equality, Inequality]
-                        for c in problem.constraints)
-                and are_args_affine(problem.constraints)
-                and problem.is_dpp())
+        return (
+            type(problem.objective) == Minimize
+            and problem.objective.is_quadratic()
+            and problem.is_dcp()
+            and not convex_attributes(problem.variables())
+            and all(type(c) in [Zero, NonNeg, Equality, Inequality] for c in problem.constraints)
+            and are_args_affine(problem.constraints)
+            and problem.is_dpp()
+        )
 
     def stuffed_objective(self, problem, extractor):
         # extract to 0.5 * x.T * P * x + q.T * x + r
         expr = problem.objective.expr.copy()
         params_to_P, params_to_q = extractor.quad_form(expr)
         # Handle 0.5 factor.
-        params_to_P = 2*params_to_P
+        params_to_P = 2 * params_to_P
 
         # concatenate all variables in one vector
         boolean, integer = extract_mip_idx(problem.variables())
@@ -255,8 +267,7 @@ class QpMatrixStuffing(MatrixStuffing):
         inverse_data = InverseData(problem)
         # Form the constraints
         extractor = CoeffExtractor(inverse_data, self.canon_backend)
-        params_to_P, params_to_q, flattened_variable = self.stuffed_objective(
-            problem, extractor)
+        params_to_P, params_to_q, flattened_variable = self.stuffed_objective(problem, extractor)
         # Lower equality and inequality to Zero and NonNeg.
         cons = []
         for con in problem.constraints:
@@ -307,16 +318,14 @@ class QpMatrixStuffing(MatrixStuffing):
 
         primal_vars, dual_vars = {}, {}
         if solution.status not in s.SOLUTION_PRESENT:
-            return Solution(solution.status, opt_val, primal_vars, dual_vars,
-                            solution.attr)
+            return Solution(solution.status, opt_val, primal_vars, dual_vars, solution.attr)
 
         # Split vectorized variable into components.
         x_opt = list(solution.primal_vars.values())[0]
         for var_id, offset in var_map.items():
             shape = inverse_data.var_shapes[var_id]
             size = np.prod(shape, dtype=int)
-            primal_vars[var_id] = np.reshape(x_opt[offset:offset+size], shape,
-                                             order='F')
+            primal_vars[var_id] = np.reshape(x_opt[offset : offset + size], shape, order='F')
 
         # Remap dual variables if dual exists (problem is convex).
         if solution.dual_vars is not None:
@@ -326,11 +335,8 @@ class QpMatrixStuffing(MatrixStuffing):
             for constr in inverse_data.constraints:
                 # QP constraints can only have one argument.
                 dual_vars[constr.id] = np.reshape(
-                    dual_var[offset:offset+constr.args[0].size],
-                    constr.args[0].shape,
-                    order='F'
+                    dual_var[offset : offset + constr.args[0].size], constr.args[0].shape, order='F'
                 )
                 offset += constr.size
 
-        return Solution(solution.status, opt_val, primal_vars, dual_vars,
-                        solution.attr)
+        return Solution(solution.status, opt_val, primal_vars, dual_vars, solution.attr)

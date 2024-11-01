@@ -13,6 +13,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+
 from __future__ import annotations
 
 from typing import Any, Iterable, Optional, Tuple
@@ -30,19 +31,22 @@ class Variable(Leaf):
     """The optimization variables in a problem."""
 
     def __init__(
-        self, shape: int | Iterable[int] = (), name: str | None = None,
-        var_id: int | None = None, **kwargs: Any
+        self,
+        shape: int | Iterable[int] = (),
+        name: str | None = None,
+        var_id: int | None = None,
+        **kwargs: Any,
     ):
         if var_id is None:
             self.id = lu.get_id()
         else:
             self.id = var_id
         if name is None:
-            self._name = "%s%d" % (s.VAR_PREFIX, self.id)
+            self._name = '%s%d' % (s.VAR_PREFIX, self.id)
         elif isinstance(name, str):
             self._name = name
         else:
-            raise TypeError("Variable name %s must be a string." % name)
+            raise TypeError('Variable name %s must be a string.' % name)
 
         self._variable_with_attributes: Variable | None = None
         self._value = None
@@ -90,4 +94,4 @@ class Variable(Leaf):
     def __repr__(self) -> str:
         """String to recreate the variable."""
         attr_str = self._get_attr_str()
-        return f"Variable({self.shape}, {self.__str__()}{attr_str})"
+        return f'Variable({self.shape}, {self.__str__()}{attr_str})'

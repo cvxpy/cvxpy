@@ -21,7 +21,6 @@ from cvxpy.tests.base_test import BaseTest
 
 
 class TestGeoMean(BaseTest):
-
     def test_multi_step_dyad_completion(self) -> None:
         """
         Consider four market equilibrium problems.
@@ -43,12 +42,14 @@ class TestGeoMean(BaseTest):
         X = cp.Variable(shape=(n_buyer, n_items), nonneg=True)
         cons = [cp.sum(X, axis=0) <= 1]
         u = cp.sum(cp.multiply(V, X), axis=1)
-        bs = np.array([
-            [110, 14, 6, 77, 108],
-            [15., 4., 8., 0., 9.],
-            [14., 21., 217., 57., 6.],
-            [3., 36., 77., 8., 8.]
-        ])
+        bs = np.array(
+            [
+                [110, 14, 6, 77, 108],
+                [15.0, 4.0, 8.0, 0.0, 9.0],
+                [14.0, 21.0, 217.0, 57.0, 6.0],
+                [3.0, 36.0, 77.0, 8.0, 8.0],
+            ]
+        )
         for i, b in enumerate(bs):
             log_objective = cp.Maximize(b @ cp.log(u))
             log_prob = cp.Problem(log_objective, cons)
@@ -95,8 +96,7 @@ class TestGeoMean(BaseTest):
             y[2] = (y[0] ** alpha_float) * (y[1] ** (1 - alpha_float)) + 0.05
             objective = cp.Minimize(cp.norm(y - x, 2))
 
-            actual_constraints = [cp.constraints.PowCone3D(x[0], x[1], x[2],
-                                                           [alpha_float])]
+            actual_constraints = [cp.constraints.PowCone3D(x[0], x[1], x[2], [alpha_float])]
             actual_prob = cp.Problem(objective, actual_constraints)
             actual_prob.solve(**proj_solve_args)
             actual_x = x.value.copy()

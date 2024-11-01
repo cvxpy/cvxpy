@@ -24,7 +24,8 @@ from cvxpy.atoms.atom import Atom
 
 
 class sigma_max(Atom):
-    """ Maximum singular value. """
+    """Maximum singular value."""
+
     _allow_complex = True
 
     def __init__(self, A) -> None:
@@ -32,8 +33,7 @@ class sigma_max(Atom):
 
     @Atom.numpy_numeric
     def numeric(self, values):
-        """Returns the largest singular value of A.
-        """
+        """Returns the largest singular value of A."""
         return LA.norm(values[0], 2)
 
     def _grad(self, values):
@@ -55,32 +55,26 @@ class sigma_max(Atom):
         return [sp.csc_matrix(D.ravel(order='F')).T]
 
     def shape_from_args(self) -> Tuple[int, ...]:
-        """Returns the (row, col) shape of the expression.
-        """
+        """Returns the (row, col) shape of the expression."""
         return tuple()
 
     def sign_from_args(self) -> Tuple[bool, bool]:
-        """Returns sign (is positive, is negative) of the expression.
-        """
+        """Returns sign (is positive, is negative) of the expression."""
         # Always positive.
         return (True, False)
 
     def is_atom_convex(self) -> bool:
-        """Is the atom convex?
-        """
+        """Is the atom convex?"""
         return True
 
     def is_atom_concave(self) -> bool:
-        """Is the atom concave?
-        """
+        """Is the atom concave?"""
         return False
 
     def is_incr(self, idx) -> bool:
-        """Is the composition non-decreasing in argument idx?
-        """
+        """Is the composition non-decreasing in argument idx?"""
         return False
 
     def is_decr(self, idx) -> bool:
-        """Is the composition non-increasing in argument idx?
-        """
+        """Is the composition non-increasing in argument idx?"""
         return False

@@ -20,8 +20,7 @@ from cvxpy.reductions.reduction import Reduction
 
 
 class FlipObjective(Reduction):
-    """Flip a minimization objective to a maximization and vice versa.
-     """
+    """Flip a minimization objective to a maximization and vice versa."""
 
     def accepts(self, problem) -> bool:
         return True
@@ -43,8 +42,7 @@ class FlipObjective(Reduction):
         """
         is_maximize = type(problem.objective) == Maximize
         objective = Minimize if is_maximize else Maximize
-        problem = cvxtypes.problem()(objective(-problem.objective.expr),
-                                     problem.constraints)
+        problem = cvxtypes.problem()(objective(-problem.objective.expr), problem.constraints)
         return problem, []
 
     def invert(self, solution, inverse_data):

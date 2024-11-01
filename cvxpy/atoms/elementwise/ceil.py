@@ -13,6 +13,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+
 from typing import Tuple
 
 import numpy as np
@@ -34,8 +35,7 @@ class ceil(Elementwise):
         return np.ceil(np.around(values[0], decimals=decimals))
 
     def sign_from_args(self) -> Tuple[bool, bool]:
-        """Returns sign (is positive, is negative) of the expression.
-        """
+        """Returns sign (is positive, is negative) of the expression."""
         if self.args[0].is_nonneg() and self.args[0].is_nonpos():
             return (True, True)
         elif self.args[0].is_nonneg():
@@ -46,43 +46,35 @@ class ceil(Elementwise):
             return (False, False)
 
     def is_atom_convex(self) -> bool:
-        """Is the atom convex?
-        """
+        """Is the atom convex?"""
         return False
 
     def is_atom_concave(self) -> bool:
-        """Is the atom concave?
-        """
+        """Is the atom concave?"""
         return False
 
     def is_atom_log_log_convex(self) -> bool:
-        """Is the atom log-log convex?
-        """
+        """Is the atom log-log convex?"""
         return False
 
     def is_atom_log_log_concave(self) -> bool:
-        """Is the atom log-log concave?
-        """
+        """Is the atom log-log concave?"""
         return False
 
     def is_atom_quasiconvex(self) -> bool:
-        """Is the atom quasiconvex?
-        """
+        """Is the atom quasiconvex?"""
         return True
 
     def is_atom_quasiconcave(self) -> bool:
-        """Is the atom quasiconcave?
-        """
+        """Is the atom quasiconcave?"""
         return True
 
     def is_incr(self, idx) -> bool:
-        """Is the composition non-decreasing in argument idx?
-        """
+        """Is the composition non-decreasing in argument idx?"""
         return True
 
     def is_decr(self, idx) -> bool:
-        """Is the composition non-increasing in argument idx?
-        """
+        """Is the composition non-increasing in argument idx?"""
         return False
 
     def _grad(self, values):
@@ -110,8 +102,7 @@ class floor(Elementwise):
         return np.floor(values[0])
 
     def sign_from_args(self) -> Tuple[bool, bool]:
-        """Returns sign (is positive, is negative) of the expression.
-        """
+        """Returns sign (is positive, is negative) of the expression."""
         if self.args[0].is_nonneg() and self.args[0].is_nonpos():
             return (True, True)
         elif self.args[0].is_nonneg():
@@ -122,43 +113,35 @@ class floor(Elementwise):
             return (False, False)
 
     def is_atom_convex(self) -> bool:
-        """Is the atom convex?
-        """
+        """Is the atom convex?"""
         return False
 
     def is_atom_concave(self) -> bool:
-        """Is the atom concave?
-        """
+        """Is the atom concave?"""
         return False
 
     def is_atom_log_log_convex(self) -> bool:
-        """Is the atom log-log convex?
-        """
+        """Is the atom log-log convex?"""
         return False
 
     def is_atom_log_log_concave(self) -> bool:
-        """Is the atom log-log concave?
-        """
+        """Is the atom log-log concave?"""
         return False
 
     def is_atom_quasiconvex(self) -> bool:
-        """Is the atom quasiconvex?
-        """
+        """Is the atom quasiconvex?"""
         return True
 
     def is_atom_quasiconcave(self) -> bool:
-        """Is the atom quasiconcave?
-        """
+        """Is the atom quasiconcave?"""
         return True
 
     def is_incr(self, idx) -> bool:
-        """Is the composition non-decreasing in argument idx?
-        """
+        """Is the composition non-decreasing in argument idx?"""
         return True
 
     def is_decr(self, idx) -> bool:
-        """Is the composition non-increasing in argument idx?
-        """
+        """Is the composition non-increasing in argument idx?"""
         return False
 
     def _grad(self, values):

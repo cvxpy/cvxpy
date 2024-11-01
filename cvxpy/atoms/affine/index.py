@@ -13,6 +13,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+
 from typing import Optional, Tuple
 
 import numpy as np
@@ -41,7 +42,7 @@ class index(AffAtom):
         The expression indexed/sliced into.
     key :
         The index/slicing key (i.e. expr[key[0],key[1]])
-    
+
     Examples
     --------
     >>> import cvxpy as cp
@@ -75,7 +76,7 @@ class index(AffAtom):
 
     def name(self):
         """String representation of the index expression."""
-        inner_str = "[%s" + ", %s"*(len(self.key)-1) + "]"
+        inner_str = '[%s' + ', %s' * (len(self.key) - 1) + ']'
         return self.args[0].name() + inner_str % ku.to_str(self.key)
 
     def numeric(self, values):
@@ -130,23 +131,20 @@ class special_index(AffAtom):
         super(special_index, self).__init__(expr)
 
     def is_atom_log_log_convex(self) -> bool:
-        """Is the atom log-log convex?
-        """
+        """Is the atom log-log convex?"""
         return True
 
     def is_atom_log_log_concave(self) -> bool:
-        """Is the atom log-log concave?
-        """
+        """Is the atom log-log concave?"""
         return True
 
     def name(self) -> str:
         """String representation of the special index expression."""
         key_str = ku.special_key_to_str(self.key)
-        return f"{self.args[0].name()}[{key_str}]"
+        return f'{self.args[0].name()}[{key_str}]'
 
     def numeric(self, values):
-        """Returns the index/slice into the given value.
-        """
+        """Returns the index/slice into the given value."""
         return values[0][self.key]
 
     def shape_from_args(self) -> Tuple[int, ...]:
@@ -167,16 +165,13 @@ class special_index(AffAtom):
         select_vec = np.reshape(self._select_mat, self._select_mat.size, order='F')
         identity = sp.eye(self.args[0].size).tocsc()
         lowered = reshape(
-            identity[select_vec] @ vec(self.args[0], order='F'),
-            self._shape,
-            order='F'
+            identity[select_vec] @ vec(self.args[0], order='F'), self._shape, order='F'
         )
         return lowered.grad
 
-    def graph_implementation(self,
-                            arg_objs: list,
-                            shape: Tuple[int, ...],
-                            data=None) -> Tuple[lo.LinOp, list[Constraint]]:
+    def graph_implementation(
+        self, arg_objs: list, shape: Tuple[int, ...], data=None
+    ) -> Tuple[lo.LinOp, list[Constraint]]:
         """Index/slice into the expression.
 
         Parameters

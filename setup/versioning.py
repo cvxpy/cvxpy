@@ -13,6 +13,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+
 import os
 import subprocess
 
@@ -69,13 +70,12 @@ def git_version():
         #   point from the current branch (assuming a full `git clone`, it may be
         #   less if `--depth` was used - commonly the default in CI):
         prev_version_tag = '^v{}.{}.0'.format(MAJOR, MINOR - 2)
-        out = _minimal_ext_cmd(['git', 'rev-list', 'HEAD', prev_version_tag,
-                                '--count'])
+        out = _minimal_ext_cmd(['git', 'rev-list', 'HEAD', prev_version_tag, '--count'])
         COMMIT_COUNT = out.strip().decode('ascii')
         COMMIT_COUNT = '0' if not COMMIT_COUNT else COMMIT_COUNT
     except OSError:
-        GIT_REVISION = "Unknown"
-        COMMIT_COUNT = "Unknown"
+        GIT_REVISION = 'Unknown'
+        COMMIT_COUNT = 'Unknown'
 
     return GIT_REVISION, COMMIT_COUNT
 
@@ -93,12 +93,13 @@ def get_version_info():
         # must be a source distribution, use existing version file
         # load it as a separate module to not load cvxpy/__init__.py
         import runpy
+
         ns = runpy.run_path('cvxpy/version.py')
         GIT_REVISION = ns['git_revision']
         COMMIT_COUNT = ns['git_revision']
     else:
-        GIT_REVISION = "Unknown"
-        COMMIT_COUNT = "Unknown"
+        GIT_REVISION = 'Unknown'
+        COMMIT_COUNT = 'Unknown'
 
     if not IS_RELEASED:
         FULLVERSION += '.dev0+' + COMMIT_COUNT + '.' + GIT_REVISION
@@ -122,10 +123,15 @@ if not release:
 
     a = open(filename, 'w')
     try:
-        a.write(cnt % {'version': VERSION,
-                       'full_version': FULLVERSION,
-                       'git_revision': GIT_REVISION,
-                       'commit_count': COMMIT_COUNT,
-                       'isrelease': str(IS_RELEASED)})
+        a.write(
+            cnt
+            % {
+                'version': VERSION,
+                'full_version': FULLVERSION,
+                'git_revision': GIT_REVISION,
+                'commit_count': COMMIT_COUNT,
+                'isrelease': str(IS_RELEASED),
+            }
+        )
     finally:
         a.close()

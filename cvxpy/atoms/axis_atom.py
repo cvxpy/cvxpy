@@ -43,7 +43,7 @@ class AxisAtom(Atom):
             if self.keepdims:
                 shape[self.axis] = 1
             else:
-                shape = shape[:self.axis] + shape[self.axis+1:]
+                shape = shape[: self.axis] + shape[self.axis + 1 :]
         else:
             if self.keepdims:
                 for axis in self.axis:
@@ -69,7 +69,7 @@ class AxisAtom(Atom):
                 if axis < 0:
                     axis += dim
                 if axis >= dim or axis < 0:
-                    raise ValueError(f"axis {axis} is out of bounds for array of dimension {dim}")
+                    raise ValueError(f'axis {axis} is out of bounds for array of dimension {dim}')
         super(AxisAtom, self).validate_arguments()
 
     def _axis_grad(self, values) -> Optional[List[sp.csc_matrix]]:
@@ -93,7 +93,7 @@ class AxisAtom(Atom):
         else:
             m, n = self.args[0].shape
             if self.axis == 0:  # function apply to each column
-                D = sp.csc_matrix((m*n, n), dtype=float)
+                D = sp.csc_matrix((m * n, n), dtype=float)
                 for i in range(n):
                     value = values[0][:, i]
                     d = self._column_grad(value).T
@@ -101,22 +101,22 @@ class AxisAtom(Atom):
                         return [None]
                     else:
                         d = np.array(d).flatten()
-                    row = np.linspace(i*n, i*n+m-1, m)  # [i*n, i*n+1, ..., i*n+m-1]
-                    col = np.ones((m))*i
-                    D = D + sp.csc_matrix((d, (row, col)),
-                                          shape=(m*n, n))  # d must be 1-D
+                    row = np.linspace(i * n, i * n + m - 1, m)  # [i*n, i*n+1, ..., i*n+m-1]
+                    col = np.ones((m)) * i
+                    D = D + sp.csc_matrix((d, (row, col)), shape=(m * n, n))  # d must be 1-D
             else:  # function apply to each row
                 values = np.transpose(values[0])
-                D = sp.csc_matrix((m*n, m), dtype=float)
+                D = sp.csc_matrix((m * n, m), dtype=float)
                 for i in range(m):
                     value = values[:, i]
                     d = self._column_grad(value).T
                     if d is None:
                         return [None]
-                    row = np.linspace(i, i+(n-1)*m, n)  # [0+i, m+i, ..., m(n-1)+i]
-                    col = np.ones((n))*i
-                    D = D + sp.csc_matrix((np.array(d)[0], (row, col)),
-                                          shape=(m*n, m))  # d must be 1-D
+                    row = np.linspace(i, i + (n - 1) * m, n)  # [0+i, m+i, ..., m(n-1)+i]
+                    col = np.ones((n)) * i
+                    D = D + sp.csc_matrix(
+                        (np.array(d)[0], (row, col)), shape=(m * n, m)
+                    )  # d must be 1-D
         return [D]
 
     def _column_grad(self, value):

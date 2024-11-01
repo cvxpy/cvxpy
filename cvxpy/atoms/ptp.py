@@ -14,7 +14,6 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-
 from cvxpy.atoms.affine.wraps import nonneg_wrap
 from cvxpy.atoms.max import max as cvxpy_max
 from cvxpy.atoms.min import min as cvxpy_min

@@ -13,6 +13,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+
 import builtins
 from functools import wraps
 from typing import Optional
@@ -82,10 +83,9 @@ class Sum(AxisAtom, AffAtom):
             result = np.sum(values[0], axis=self.axis, keepdims=self.keepdims)
         return result
 
-    def graph_implementation(self,
-                            arg_objs: list[lo.LinOp],
-                            shape: tuple[int, ...],
-                            data=None) -> tuple[lo.LinOp, list[Constraint]]:
+    def graph_implementation(
+        self, arg_objs: list[lo.LinOp], shape: tuple[int, ...], data=None
+    ) -> tuple[lo.LinOp, list[Constraint]]:
         """
         Sum the linear expression's entries.
 
@@ -99,7 +99,7 @@ class Sum(AxisAtom, AffAtom):
             The axis and keepdims parameters of the sum expression.
         """
         axis, keepdims = data
-        # Note: added new case for summing with n-dimensional shapes and 
+        # Note: added new case for summing with n-dimensional shapes and
         # multiple axes. Previous behavior is kept in the else statement.
         if len(arg_objs[0].shape) > 2 or axis not in {None, 0, 1}:
             obj = lu.sum_entries(arg_objs[0], shape=shape, axis=axis, keepdims=keepdims)

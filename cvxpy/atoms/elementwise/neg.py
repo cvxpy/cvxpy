@@ -18,7 +18,5 @@ from cvxpy.atoms.elementwise.minimum import minimum
 
 
 def neg(x):
-    """ Alias for -minimum{x, 0}.
-
-    """
+    """Alias for -minimum{x, 0}."""
     return -minimum(x, 0)

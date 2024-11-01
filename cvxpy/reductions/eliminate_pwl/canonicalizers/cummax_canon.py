@@ -18,8 +18,7 @@ from cvxpy.expressions.variable import Variable
 
 
 def cummax_canon(expr, args):
-    """Cumulative max.
-    """
+    """Cumulative max."""
     X = args[0]
     axis = expr.axis
     # Implicit O(n) definition:

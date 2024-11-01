@@ -13,6 +13,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+
 from __future__ import annotations
 
 import cvxpy.lin_ops.lin_utils as lu
@@ -41,18 +42,23 @@ class Parameter(Leaf):
     the hyper-parameters of a machine learning model to be Parameter objects;
     more generally, Parameters are useful for computing trade-off curves.
     """
+
     PARAM_COUNT = 0
 
     def __init__(
-        self, shape: int | tuple[int, ...] = (), name: str | None = None, value=None,
-        id=None, **kwargs
+        self,
+        shape: int | tuple[int, ...] = (),
+        name: str | None = None,
+        value=None,
+        id=None,
+        **kwargs,
     ) -> None:
         if id is None:
             self.id = lu.get_id()
         else:
             self.id = id
         if name is None:
-            self._name = f"{s.PARAM_PREFIX}{self.id}"
+            self._name = f'{s.PARAM_PREFIX}{self.id}'
         else:
             self._name = name
         # Initialize with value if provided.
@@ -63,8 +69,7 @@ class Parameter(Leaf):
         self._is_constant = True
 
     def get_data(self):
-        """Returns info needed to reconstruct the expression besides the args.
-        """
+        """Returns info needed to reconstruct the expression besides the args."""
         return [self.shape, self._name, self.value, self.id, self.attributes]
 
     def name(self) -> str:
@@ -78,8 +83,7 @@ class Parameter(Leaf):
     # Getter and setter for parameter value.
     @property
     def value(self):
-        """NumPy.ndarray or None: The numeric value of the parameter.
-        """
+        """NumPy.ndarray or None: The numeric value of the parameter."""
         return self._value
 
     @value.setter
@@ -98,8 +102,7 @@ class Parameter(Leaf):
         return {}
 
     def parameters(self) -> list[Parameter]:
-        """Returns itself as a parameter.
-        """
+        """Returns itself as a parameter."""
         return [self]
 
     def canonicalize(self):
@@ -112,10 +115,9 @@ class Parameter(Leaf):
         return (obj, [])
 
     def __repr__(self) -> str:
-        """String to recreate the object.
-        """
+        """String to recreate the object."""
         attr_str = self._get_attr_str()
         if len(attr_str) > 0:
-            return "Parameter(%s%s)" % (self.shape, attr_str)
+            return 'Parameter(%s%s)' % (self.shape, attr_str)
         else:
-            return "Parameter(%s)" % (self.shape,)
+            return 'Parameter(%s)' % (self.shape,)

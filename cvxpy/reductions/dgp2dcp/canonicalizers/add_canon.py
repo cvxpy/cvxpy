@@ -26,20 +26,17 @@ def add_canon(expr, args):
         return log_sum_exp(hstack(args)), []
 
     rows = []
-    summands = [
-       promote(s, expr.shape) if s.is_scalar() else s for s in args]
+    summands = [promote(s, expr.shape) if s.is_scalar() else s for s in args]
     if len(expr.shape) == 1:
         for i in range(expr.shape[0]):
             row = []
-            row.append(
-              log_sum_exp(hstack([summand[i] for summand in summands])))
+            row.append(log_sum_exp(hstack([summand[i] for summand in summands])))
             rows.append(row)
         return reshape(bmat(rows), expr.shape, order='F'), []
     else:
         for i in range(expr.shape[0]):
             row = []
             for j in range(expr.shape[1]):
-                row.append(
-                  log_sum_exp(hstack([summand[i, j] for summand in summands])))
+                row.append(log_sum_exp(hstack([summand[i, j] for summand in summands])))
             rows.append(row)
         return reshape(bmat(rows), expr.shape, order='F'), []

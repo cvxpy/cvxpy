@@ -17,6 +17,11 @@ exclude = [
 # The minimum Python version that should be supported
 target-version = "py39"
 
+ignore = ["E721"]
+
+[tool.ruff.format]
+quote-style = "single"
+
 
 [tool.pytest.ini_options]
 testpaths = [

@@ -33,10 +33,9 @@ class sum_largest(Atom):
         super(sum_largest, self).__init__(x)
 
     def validate_arguments(self) -> None:
-        """Verify that k is a positive integer.
-        """
+        """Verify that k is a positive integer."""
         if int(self.k) != self.k or self.k <= 0:
-            raise ValueError("Second argument must be a positive integer.")
+            raise ValueError('Second argument must be a positive integer.')
         super(sum_largest, self).validate_arguments()
 
     def numeric(self, values):
@@ -63,47 +62,39 @@ class sum_largest(Atom):
         value = intf.from_2D_to_1D(values[0].flatten().T)
         k = int(self.k)
         indices = np.argpartition(-value, kth=k)[:k]
-        D = np.zeros((self.args[0].shape[0]*self.args[0].shape[1], 1))
+        D = np.zeros((self.args[0].shape[0] * self.args[0].shape[1], 1))
         D[indices] = 1
         return [sp.csc_matrix(D)]
 
     def shape_from_args(self) -> Tuple[int, ...]:
-        """Returns the (row, col) shape of the expression.
-        """
+        """Returns the (row, col) shape of the expression."""
         return tuple()
 
     def sign_from_args(self) -> Tuple[bool, bool]:
-        """Returns sign (is positive, is negative) of the expression.
-        """
+        """Returns sign (is positive, is negative) of the expression."""
         # Same as argument.
         return (self.args[0].is_nonneg(), self.args[0].is_nonpos())
 
     def is_atom_convex(self) -> bool:
-        """Is the atom convex?
-        """
+        """Is the atom convex?"""
         return True
 
     def is_atom_concave(self) -> bool:
-        """Is the atom concave?
-        """
+        """Is the atom concave?"""
         return False
 
     def is_incr(self, idx) -> bool:
-        """Is the composition non-decreasing in argument idx?
-        """
+        """Is the composition non-decreasing in argument idx?"""
         return True
 
     def is_decr(self, idx) -> bool:
-        """Is the composition non-increasing in argument idx?
-        """
+        """Is the composition non-increasing in argument idx?"""
         return False
 
     def is_pwl(self) -> bool:
-        """Is the atom piecewise linear?
-        """
+        """Is the atom piecewise linear?"""
         return all(arg.is_pwl() for arg in self.args)
 
     def get_data(self):
-        """Returns the parameter k.
-        """
+        """Returns the parameter k."""
         return [self.k]

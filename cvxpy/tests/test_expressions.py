@@ -42,7 +42,7 @@ from cvxpy.utilities.linalg import gershgorin_psd_check
 
 
 class TestExpressions(BaseTest):
-    """ Unit tests for the expression/expression module. """
+    """Unit tests for the expression/expression module."""
 
     def setUp(self) -> None:
         self.a = Variable(name='a')
@@ -71,42 +71,41 @@ class TestExpressions(BaseTest):
         # self.assertEqual(x.canonical_form[0].shape, (2, 1))
         # self.assertEqual(x.canonical_form[1], [])
 
-        self.assertEqual(repr(self.x), "Variable((2,), x)")
-        self.assertEqual(repr(self.A), "Variable((2, 2), A)")
-        self.assertEqual(repr(cp.Variable(name='x', nonneg=True)), "Variable((), x, nonneg=True)")
-        self.assertTrue(repr(cp.Variable()).startswith("Variable((), var"))
+        self.assertEqual(repr(self.x), 'Variable((2,), x)')
+        self.assertEqual(repr(self.A), 'Variable((2, 2), A)')
+        self.assertEqual(repr(cp.Variable(name='x', nonneg=True)), 'Variable((), x, nonneg=True)')
+        self.assertTrue(repr(cp.Variable()).startswith('Variable((), var'))
 
         # Test shape provided as list instead of tuple
         self.assertEqual(cp.Variable(shape=[2], integer=True).shape, (2,))
 
         with self.assertRaises(Exception) as cm:
             Variable((2, 2), diag=True, symmetric=True)
-        self.assertEqual(str(cm.exception),
-                         "Cannot set more than one special attribute in Variable.")
+        self.assertEqual(
+            str(cm.exception), 'Cannot set more than one special attribute in Variable.'
+        )
 
         with self.assertRaises(Exception) as cm:
             Variable((2, 0))
-        self.assertEqual(str(cm.exception), "Invalid dimensions (2, 0).")
+        self.assertEqual(str(cm.exception), 'Invalid dimensions (2, 0).')
 
         with self.assertRaises(Exception) as cm:
-            Variable((2, .5))
-        self.assertEqual(str(cm.exception), "Invalid dimensions (2, 0.5).")
+            Variable((2, 0.5))
+        self.assertEqual(str(cm.exception), 'Invalid dimensions (2, 0.5).')
 
         with self.assertRaises(Exception) as cm:
             Variable(2, 1)
-        self.assertEqual(str(cm.exception),
-                         "Variable name 1 must be a string.")
+        self.assertEqual(str(cm.exception), 'Variable name 1 must be a string.')
 
     def test_assign_var_value(self) -> None:
-        """Test assigning a value to a variable.
-        """
+        """Test assigning a value to a variable."""
         # Scalar variable.
         a = Variable()
         a.value = 1
         self.assertEqual(a.value, 1)
         with self.assertRaises(Exception) as cm:
             a.value = [2, 1]
-        self.assertEqual(str(cm.exception), "Invalid dimensions (2,) for Variable value.")
+        self.assertEqual(str(cm.exception), 'Invalid dimensions (2,) for Variable value.')
 
         # Test assigning None.
         a.value = 1
@@ -126,24 +125,24 @@ class TestExpressions(BaseTest):
         x = Variable(nonneg=True)
         with self.assertRaises(Exception) as cm:
             x.value = -2
-        self.assertEqual(str(cm.exception), "Variable value must be nonnegative.")
+        self.assertEqual(str(cm.exception), 'Variable value must be nonnegative.')
 
     # Test tranposing variables.
     def test_transpose_variable(self) -> None:
         var = self.a.T
-        self.assertEqual(var.name(), "a")
+        self.assertEqual(var.name(), 'a')
         self.assertEqual(var.shape, tuple())
 
         self.a.save_value(2)
         self.assertEqual(var.value, 2)
 
         var = self.x
-        self.assertEqual(var.name(), "x")
+        self.assertEqual(var.name(), 'x')
         self.assertEqual(var.shape, (2,))
 
         x = Variable((2, 1), name='x')
         var = x.T
-        self.assertEqual(var.name(), "x.T")
+        self.assertEqual(var.name(), 'x.T')
         self.assertEqual(var.shape, (1, 2))
 
         x.save_value(np.array([[1, 2]]).T)
@@ -151,7 +150,7 @@ class TestExpressions(BaseTest):
         self.assertEqual(var.value[0, 1], 2)
 
         var = self.C.T
-        self.assertEqual(var.name(), "C.T")
+        self.assertEqual(var.name(), 'C.T')
         self.assertEqual(var.shape, (2, 3))
 
         # coeffs = var.canonical_form[0].coefficients()
@@ -160,11 +159,11 @@ class TestExpressions(BaseTest):
         # self.assertEqual(mat[1,3], 1)
 
         index = var[1, 0]
-        self.assertEqual(index.name(), "C.T[1, 0]")
+        self.assertEqual(index.name(), 'C.T[1, 0]')
         self.assertEqual(index.shape, tuple())
 
         var = x.T.T
-        self.assertEqual(var.name(), "x.T.T")
+        self.assertEqual(var.name(), 'x.T.T')
         self.assertEqual(var.shape, (2, 1))
 
     # Test the Constant class.
@@ -191,7 +190,7 @@ class TestExpressions(BaseTest):
         self.assertEqual(c.shape, (1, 2))
         self.assertEqual(c.sign, s.NONNEG)
         self.assertEqual((-c).sign, s.NONPOS)
-        self.assertEqual((0*c).sign, s.ZERO)
+        self.assertEqual((0 * c).sign, s.ZERO)
         c = Constant([[2], [-2]])
         self.assertEqual(c.sign, s.UNKNOWN)
 
@@ -211,13 +210,13 @@ class TestExpressions(BaseTest):
         self.assertEqual(exp.sign, s.UNKNOWN)
 
         # Test repr.
-        self.assertEqual(repr(c), "Constant(CONSTANT, NONNEGATIVE, (2,))")
+        self.assertEqual(repr(c), 'Constant(CONSTANT, NONNEGATIVE, (2,))')
 
         # Test name.
-        c = Constant(1, name="test")
-        self.assertEqual(str(c), "test")
-        self.assertEqual(c.name(), "test")
-        self.assertEqual(repr(c), "Constant(CONSTANT, NONNEGATIVE, ())")
+        c = Constant(1, name='test')
+        self.assertEqual(str(c), 'test')
+        self.assertEqual(c.name(), 'test')
+        self.assertEqual(repr(c), 'Constant(CONSTANT, NONNEGATIVE, ())')
 
     def test_constant_psd_nsd(self):
         n = 5
@@ -259,7 +258,7 @@ class TestExpressions(BaseTest):
         self.assertTrue(gershgorin_psd_check(P.value, tol=0.0))
 
         # Verify good behavior for large eigenvalues
-        P = Constant(np.diag(9*[1e-4] + [-1e4]))
+        P = Constant(np.diag(9 * [1e-4] + [-1e4]))
         self.assertFalse(P.is_psd())
         self.assertFalse(P.is_nsd())
 
@@ -273,9 +272,9 @@ class TestExpressions(BaseTest):
         self.assertTrue(gershgorin_psd_check(P.value, s.EIGVAL_TOL))
         self.assertTrue(P.is_psd())
         self.assertTrue((-P).is_nsd())
-        Q = -s.EIGVAL_TOL/2 * P
+        Q = -s.EIGVAL_TOL / 2 * P
         self.assertTrue(gershgorin_psd_check(Q.value, s.EIGVAL_TOL))
-        Q = -1.1*s.EIGVAL_TOL*P
+        Q = -1.1 * s.EIGVAL_TOL * P
         self.assertFalse(gershgorin_psd_check(Q.value, s.EIGVAL_TOL))
         self.assertFalse(Q.is_psd())
 
@@ -285,7 +284,7 @@ class TestExpressions(BaseTest):
         M2_true = np.zeros((3, 3))
         M3_true = np.array([[0, 1], [-1, 0]])
         M4_true = np.array([[0, -1], [1, 0]])
-        M5_false = np.array([[0, 1], [1,  0]])
+        M5_false = np.array([[0, 1], [1, 0]])
         M6_false = np.array([[1, 1], [-1, 0]])
         M7_false = np.array([[0, 1], [-1.1, 0]])
 
@@ -333,8 +332,7 @@ class TestExpressions(BaseTest):
         pass
 
     def test_1D_array(self) -> None:
-        """Test NumPy 1D arrays as constants.
-        """
+        """Test NumPy 1D arrays as constants."""
         c = np.array([1, 2])
         p = Parameter(2)
         p.value = [1, 1]
@@ -345,7 +343,7 @@ class TestExpressions(BaseTest):
     def test_parameters_successes(self) -> None:
         # Parameter names and dimensions
         p = Parameter(name='p')
-        self.assertEqual(p.name(), "p")
+        self.assertEqual(p.name(), 'p')
         self.assertEqual(p.shape, tuple())
 
         # Entry-wise constraints on parameter values.
@@ -383,19 +381,18 @@ class TestExpressions(BaseTest):
         m, n = 10, 5
         A = np.random.randn(m, n) + 1j * np.random.randn(m, n)  # a random complex matrix
         A = np.dot(A.T.conj(), A)  # a random Hermitian positive definite matrix
-        A = np.vstack([np.hstack([np.real(A), -np.imag(A)]),
-                       np.hstack([np.imag(A), np.real(A)])])
+        A = np.vstack([np.hstack([np.real(A), -np.imag(A)]), np.hstack([np.imag(A), np.real(A)])])
 
-        p = Parameter(shape=(2*n, 2*n), PSD=True)
+        p = Parameter(shape=(2 * n, 2 * n), PSD=True)
         p.value = A
         self.assertItemsAlmostEqual(p.value, A)
 
         # Test arithmetic.
         p = Parameter(shape=(2, 2), PSD=True)
-        self.assertTrue((2*p).is_psd())
+        self.assertTrue((2 * p).is_psd())
         self.assertTrue((p + p).is_psd())
         self.assertTrue((-p).is_nsd())
-        self.assertTrue(((-2)*(-p)).is_psd())
+        self.assertTrue(((-2) * (-p)).is_psd())
 
         # Test invalid PSD and NSD parameters
         n = 5
@@ -413,21 +410,21 @@ class TestExpressions(BaseTest):
         for vi in vs:
             with self.assertRaises(Exception) as cm:
                 P.value = U @ np.diag(vi) @ U.T
-            self.assertEqual(str(cm.exception), "Parameter value must be positive semidefinite.")
+            self.assertEqual(str(cm.exception), 'Parameter value must be positive semidefinite.')
             with self.assertRaises(Exception) as cm:
                 N.value = -U @ np.diag(vi) @ U.T
-            self.assertEqual(str(cm.exception), "Parameter value must be negative semidefinite.")
+            self.assertEqual(str(cm.exception), 'Parameter value must be negative semidefinite.')
 
     # Test the Parameter class on bad inputs.
     def test_parameters_failures(self) -> None:
         p = Parameter(name='p')
-        self.assertEqual(p.name(), "p")
+        self.assertEqual(p.name(), 'p')
         self.assertEqual(p.shape, tuple())
 
         p = Parameter((4, 3), nonneg=True)
         with self.assertRaises(Exception) as cm:
             p.value = 1
-        self.assertEqual(str(cm.exception), "Invalid dimensions () for Parameter value.")
+        self.assertEqual(str(cm.exception), 'Invalid dimensions () for Parameter value.')
 
         val = -np.ones((4, 3))
         val[0, 0] = 2
@@ -435,52 +432,52 @@ class TestExpressions(BaseTest):
         p = Parameter((4, 3), nonneg=True)
         with self.assertRaises(Exception) as cm:
             p.value = val
-        self.assertEqual(str(cm.exception), "Parameter value must be nonnegative.")
+        self.assertEqual(str(cm.exception), 'Parameter value must be nonnegative.')
 
         p = Parameter((4, 3), nonpos=True)
         with self.assertRaises(Exception) as cm:
             p.value = val
-        self.assertEqual(str(cm.exception), "Parameter value must be nonpositive.")
+        self.assertEqual(str(cm.exception), 'Parameter value must be nonpositive.')
 
         with self.assertRaises(Exception) as cm:
             p = Parameter(2, 1, nonpos=True, value=[2, 1])
-        self.assertEqual(str(cm.exception), "Parameter value must be nonpositive.")
+        self.assertEqual(str(cm.exception), 'Parameter value must be nonpositive.')
 
         with self.assertRaises(Exception) as cm:
             p = Parameter((4, 3), nonneg=True, value=[1, 2])
-        self.assertEqual(str(cm.exception), "Invalid dimensions (2,) for Parameter value.")
+        self.assertEqual(str(cm.exception), 'Invalid dimensions (2,) for Parameter value.')
 
         with self.assertRaises(Exception) as cm:
             p = Parameter((2, 2), diag=True, symmetric=True)
-        self.assertEqual(str(cm.exception),
-                         "Cannot set more than one special attribute in Parameter.")
+        self.assertEqual(
+            str(cm.exception), 'Cannot set more than one special attribute in Parameter.'
+        )
 
         # Boolean
         with self.assertRaises(Exception) as cm:
             p = Parameter((2, 2), boolean=True, value=[[1, 1], [1, -1]])
-        self.assertEqual(str(cm.exception), "Parameter value must be boolean.")
+        self.assertEqual(str(cm.exception), 'Parameter value must be boolean.')
 
         # Integer
         with self.assertRaises(Exception) as cm:
             p = Parameter((2, 2), integer=True, value=[[1, 1.5], [1, -1]])
-        self.assertEqual(str(cm.exception), "Parameter value must be integer.")
+        self.assertEqual(str(cm.exception), 'Parameter value must be integer.')
 
         # Diag.
         with self.assertRaises(Exception) as cm:
             p = Parameter((2, 2), diag=True, value=[[1, 1], [1, -1]])
-        self.assertEqual(str(cm.exception), "Parameter value must be diagonal.")
+        self.assertEqual(str(cm.exception), 'Parameter value must be diagonal.')
 
         # Symmetric.
         with self.assertRaises(Exception) as cm:
             p = Parameter((2, 2), symmetric=True, value=[[1, 1], [-1, -1]])
-        self.assertEqual(str(cm.exception), "Parameter value must be symmetric.")
+        self.assertEqual(str(cm.exception), 'Parameter value must be symmetric.')
 
     def test_symmetric(self) -> None:
-        """Test symmetric variables.
-        """
+        """Test symmetric variables."""
         with self.assertRaises(Exception) as cm:
             v = Variable((4, 3), symmetric=True)
-        self.assertEqual(str(cm.exception), "Invalid dimensions (4, 3). Must be a square matrix.")
+        self.assertEqual(str(cm.exception), 'Invalid dimensions (4, 3). Must be a square matrix.')
 
         v = Variable((2, 2), symmetric=True)
         assert v.is_symmetric()
@@ -510,11 +507,10 @@ class TestExpressions(BaseTest):
         assert expr.is_symmetric()
 
     def test_hermitian(self) -> None:
-        """Test Hermitian variables.
-        """
+        """Test Hermitian variables."""
         with self.assertRaises(Exception) as cm:
             v = Variable((4, 3), hermitian=True)
-        self.assertEqual(str(cm.exception), "Invalid dimensions (4, 3). Must be a square matrix.")
+        self.assertEqual(str(cm.exception), 'Invalid dimensions (4, 3). Must be a square matrix.')
 
         v = Variable((2, 2), hermitian=True)
         assert v.is_hermitian()
@@ -542,8 +538,7 @@ class TestExpressions(BaseTest):
         assert expr.is_hermitian()
 
     def test_round_attr(self) -> None:
-        """Test rounding for attributes.
-        """
+        """Test rounding for attributes."""
         # Nonpos
         v = Variable(1, nonpos=True)
         self.assertAlmostEqual(v.project(1), 0)
@@ -558,38 +553,33 @@ class TestExpressions(BaseTest):
 
         # Boolean
         v = Variable((2, 2), boolean=True)
-        self.assertItemsAlmostEqual(v.project(np.array([[1, -1], [1, 0]]).T),
-                                    [1, 0, 1, 0])
+        self.assertItemsAlmostEqual(v.project(np.array([[1, -1], [1, 0]]).T), [1, 0, 1, 0])
 
         # Integer
         v = Variable((2, 2), integer=True)
-        self.assertItemsAlmostEqual(v.project(np.array([[1, -1.6], [1, 0]]).T),
-                                    [1, -2, 1, 0])
+        self.assertItemsAlmostEqual(v.project(np.array([[1, -1.6], [1, 0]]).T), [1, -2, 1, 0])
 
         # Symmetric
         v = Variable((2, 2), symmetric=True)
-        self.assertItemsAlmostEqual(v.project(np.array([[1, -1], [1, 0]])),
-                                    [1, 0, 0, 0])
+        self.assertItemsAlmostEqual(v.project(np.array([[1, -1], [1, 0]])), [1, 0, 0, 0])
 
         # PSD
         v = Variable((2, 2), PSD=True)
-        self.assertItemsAlmostEqual(v.project(np.array([[1, -1], [1, -1]])),
-                                    [1, 0, 0, 0])
+        self.assertItemsAlmostEqual(v.project(np.array([[1, -1], [1, -1]])), [1, 0, 0, 0])
 
         # NSD
         v = Variable((2, 2), NSD=True)
-        self.assertItemsAlmostEqual(v.project(np.array([[1, -1], [1, -1]])),
-                                    [0, 0, 0, -1])
+        self.assertItemsAlmostEqual(v.project(np.array([[1, -1], [1, -1]])), [0, 0, 0, -1])
 
         # diag
         v = Variable((2, 2), diag=True)
-        self.assertItemsAlmostEqual(v.project(np.array([[1, -1], [1, 0]])).todense(),
-                                    [1, 0, 0, 0])
+        self.assertItemsAlmostEqual(v.project(np.array([[1, -1], [1, 0]])).todense(), [1, 0, 0, 0])
 
         # Hermitian
         v = Variable((2, 2), hermitian=True)
-        self.assertItemsAlmostEqual(v.project(np.array([[1, -1j], [1, 0]])),
-                                    [1, 0.5+0.5j, 0.5-0.5j, 0])
+        self.assertItemsAlmostEqual(
+            v.project(np.array([[1, -1j], [1, 0]])), [1, 0.5 + 0.5j, 0.5 - 0.5j, 0]
+        )
 
         A = Constant(np.array([[1.0]]))
         self.assertEqual(A.is_psd(), True)
@@ -638,7 +628,7 @@ class TestExpressions(BaseTest):
         self.assertEqual(len(exp.args), 3)
 
         # Test repr.
-        self.assertEqual(repr(exp), "Expression(AFFINE, UNKNOWN, (2,))")
+        self.assertEqual(repr(exp), 'Expression(AFFINE, UNKNOWN, (2,))')
 
     # Test the SubExpresion class.
     def test_sub_expression(self) -> None:
@@ -669,7 +659,7 @@ class TestExpressions(BaseTest):
             (self.A - self.C)
 
         # Test repr.
-        self.assertEqual(repr(self.x - c), "Expression(AFFINE, UNKNOWN, (2,))")
+        self.assertEqual(repr(self.x - c), 'Expression(AFFINE, UNKNOWN, (2,))')
 
     # Test the MulExpresion class.
     def test_mul_expression(self) -> None:
@@ -693,7 +683,7 @@ class TestExpressions(BaseTest):
 
         # Affine times affine is okay
         with warnings.catch_warnings():
-            warnings.simplefilter("ignore")
+            warnings.simplefilter('ignore')
             q = self.A @ self.B
             self.assertTrue(q.is_quadratic())
 
@@ -729,13 +719,12 @@ class TestExpressions(BaseTest):
             c * self.x
             self.assertEqual(len(w), 5)
             # verify that an error can be raised.
-            warnings.simplefilter("error", UserWarning)
+            warnings.simplefilter('error', UserWarning)
             with self.assertRaises(UserWarning):
                 c * self.x
 
     def test_matmul_expression(self) -> None:
-        """Test matmul function, corresponding to .__matmul__( operator.
-        """
+        """Test matmul function, corresponding to .__matmul__( operator."""
         # Vectors
         c = Constant([[2], [2]])
         exp = c.__matmul__(self.x)
@@ -746,8 +735,7 @@ class TestExpressions(BaseTest):
 
         with self.assertRaises(Exception) as cm:
             self.x.__matmul__(2)
-        self.assertEqual(str(cm.exception),
-                         "Scalar operands are not allowed, use '*' instead")
+        self.assertEqual(str(cm.exception), "Scalar operands are not allowed, use '*' instead")
 
         # Incompatible dimensions
         with self.assertRaises(ValueError) as cm:
@@ -755,12 +743,12 @@ class TestExpressions(BaseTest):
 
         # Incompatible dimensions
         with self.assertRaises(Exception) as cm:
-            Constant([[2, 1], [2, 2]]) .__matmul__(self.C)
+            Constant([[2, 1], [2, 2]]).__matmul__(self.C)
 
         # Affine times affine is okay
         with warnings.catch_warnings():
-            warnings.simplefilter("ignore")
-            q = self.A .__matmul__(self.B)
+            warnings.simplefilter('ignore')
+            q = self.A.__matmul__(self.B)
             self.assertTrue(q.is_quadratic())
 
         # # Nonaffine times nonconstant raises error
@@ -772,7 +760,7 @@ class TestExpressions(BaseTest):
 
         # Constant expressions
         T = Constant([[1, 2, 3], [3, 5, 5]])
-        exp = (T + T) .__matmul__(self.B)
+        exp = (T + T).__matmul__(self.B)
         self.assertEqual(exp.curvature, s.AFFINE)
         self.assertEqual(exp.shape, (3, 2))
 
@@ -805,7 +793,7 @@ class TestExpressions(BaseTest):
     # Test the DivExpresion class.
     def test_div_expression(self) -> None:
         # Vectors
-        exp = self.x/2
+        exp = self.x / 2
         self.assertEqual(exp.curvature, s.AFFINE)
         self.assertEqual(exp.sign, s.UNKNOWN)
         # self.assertEqual(exp.canonical_form[0].shape, (2, 1))
@@ -814,25 +802,25 @@ class TestExpressions(BaseTest):
         self.assertEqual(exp.shape, (2,))
 
         with self.assertRaises(Exception) as cm:
-            (self.x/[2, 2, 3])
+            (self.x / [2, 2, 3])
         print(cm.exception)
-        self.assertRegex(str(cm.exception),
-                         "Incompatible shapes for division.*")
+        self.assertRegex(str(cm.exception), 'Incompatible shapes for division.*')
 
         c = Constant([3.0, 4.0, 12.0])
         self.assertItemsAlmostEqual(
-          (c / Constant([1.0, 2.0, 3.0])).value, np.array([3.0, 2.0, 4.0]))
+            (c / Constant([1.0, 2.0, 3.0])).value, np.array([3.0, 2.0, 4.0])
+        )
 
         # Constant expressions.
         c = Constant(2)
-        exp = c/(3 - 5)
+        exp = c / (3 - 5)
         self.assertEqual(exp.curvature, s.CONSTANT)
         self.assertEqual(exp.shape, tuple())
         self.assertEqual(exp.sign, s.NONPOS)
 
         # Parameters.
         p = Parameter(nonneg=True)
-        exp = 2/p
+        exp = 2 / p
         p.value = 2
         self.assertEqual(exp.value, 1)
 
@@ -841,9 +829,9 @@ class TestExpressions(BaseTest):
 
         self.assertEqual(rho.sign, s.NONNEG)
         self.assertEqual(Constant(2).sign, s.NONNEG)
-        self.assertEqual((Constant(2)/Constant(2)).sign, s.NONNEG)
-        self.assertEqual((Constant(2)*rho).sign, s.NONNEG)
-        self.assertEqual((rho/2).sign, s.NONNEG)
+        self.assertEqual((Constant(2) / Constant(2)).sign, s.NONNEG)
+        self.assertEqual((Constant(2) * rho).sign, s.NONNEG)
+        self.assertEqual((rho / 2).sign, s.NONNEG)
 
         # Broadcasting.
         x = cp.Variable((3, 3))
@@ -855,10 +843,9 @@ class TestExpressions(BaseTest):
         self.assertItemsAlmostEqual(A, expr.value)
 
         with self.assertRaises(Exception) as cm:
-            (x/c[:, 0])
+            (x / c[:, 0])
         print(cm.exception)
-        self.assertRegex(str(cm.exception),
-                         "Incompatible shapes for division.*")
+        self.assertRegex(str(cm.exception), 'Incompatible shapes for division.*')
 
     # Test the NegExpression class.
     def test_neg_expression(self) -> None:
@@ -924,11 +911,11 @@ class TestExpressions(BaseTest):
 
         with self.assertRaises(Exception) as cm:
             (self.x[2, 0])
-        self.assertEqual(str(cm.exception), "Too many indices for expression.")
+        self.assertEqual(str(cm.exception), 'Too many indices for expression.')
 
         with self.assertRaises(Exception) as cm:
             (self.x[2])
-        self.assertEqual(str(cm.exception), "Index 2 is out of bounds for axis 0 with size 2.")
+        self.assertEqual(str(cm.exception), 'Index 2 is out of bounds for axis 0 with size 2.')
 
         # Slicing
         exp = self.C[0:2, 1]
@@ -1008,16 +995,15 @@ class TestExpressions(BaseTest):
 
     def test_special_idx_str_repr(self) -> None:
         idx = [i for i in range(178)]
-        exp = cp.Variable((200, 10), name="exp")[idx, 6]
-        self.assertEqual("exp[[0, 1, 2, ..., 175, 176, 177], 6]", str(exp))
+        exp = cp.Variable((200, 10), name='exp')[idx, 6]
+        self.assertEqual('exp[[0, 1, 2, ..., 175, 176, 177], 6]', str(exp))
 
         idx = [i for i in range(5)]
-        exp = cp.Variable((10, 10), name="exp")[idx, 2:5]
-        self.assertEqual("exp[[0, 1, 2, 3, 4], 2:5]", str(exp))
+        exp = cp.Variable((10, 10), name='exp')[idx, 2:5]
+        self.assertEqual('exp[[0, 1, 2, 3, 4], 2:5]', str(exp))
 
     def test_none_idx(self) -> None:
-        """Test None as index.
-        """
+        """Test None as index."""
         expr = self.a[None, None]
         self.assertEqual(expr.shape, (1, 1))
 
@@ -1032,15 +1018,14 @@ class TestExpressions(BaseTest):
         self.assertItemsAlmostEqual(expr.value, [1, 2])
 
     def test_out_of_bounds(self) -> None:
-        """Test out of bounds indices.
-        """
+        """Test out of bounds indices."""
         with self.assertRaises(Exception) as cm:
             self.x[100]
-        self.assertEqual(str(cm.exception), "Index 100 is out of bounds for axis 0 with size 2.")
+        self.assertEqual(str(cm.exception), 'Index 100 is out of bounds for axis 0 with size 2.')
 
         with self.assertRaises(Exception) as cm:
             self.x[-100]
-        self.assertEqual(str(cm.exception), "Index -100 is out of bounds for axis 0 with size 2.")
+        self.assertEqual(str(cm.exception), 'Index -100 is out of bounds for axis 0 with size 2.')
 
         exp = self.x[:-100]
         self.assertEqual(exp.size, 0)
@@ -1058,24 +1043,24 @@ class TestExpressions(BaseTest):
     def test_float_is_invalid_index(self) -> None:
         with self.assertRaises(IndexError) as cm:
             self.x[1.0]
-        self.assertEqual(str(cm.exception), "float is an invalid index type.")
+        self.assertEqual(str(cm.exception), 'float is an invalid index type.')
 
         with self.assertRaises(IndexError) as cm:
             self.x[(1.0,)]
-        self.assertEqual(str(cm.exception), "float is an invalid index type.")
+        self.assertEqual(str(cm.exception), 'float is an invalid index type.')
 
         with self.assertRaises(IndexError) as cm:
-            self.C[: 2.:40]
-        self.assertEqual(str(cm.exception), "float is an invalid index type.")
+            self.C[:2.0:40]
+        self.assertEqual(str(cm.exception), 'float is an invalid index type.')
 
         with self.assertRaises(IndexError) as cm:
             self.x[np.array([1.0, 2.0])]
-        self.assertEqual(str(cm.exception),
-                         "arrays used as indices must be of integer (or boolean) type")
+        self.assertEqual(
+            str(cm.exception), 'arrays used as indices must be of integer (or boolean) type'
+        )
 
     def test_neg_indices(self) -> None:
-        """Test negative indices.
-        """
+        """Test negative indices."""
         c = Constant([[1, 2], [3, 4]])
         exp = c[-1, -1]
         self.assertEqual(exp.value, 4)
@@ -1102,8 +1087,8 @@ class TestExpressions(BaseTest):
         x = Variable(2)
         self.assertEqual(x[::-1].shape, (2,))
 
-        x = Variable(100, name="x")
-        self.assertEqual("x[0:99]", str(x[:-1]))
+        x = Variable(100, name='x')
+        self.assertEqual('x[0:99]', str(x[:-1]))
 
         c = Constant([[1, 2], [3, 4]])
         expr = c[0, 2:0:-1]
@@ -1115,8 +1100,7 @@ class TestExpressions(BaseTest):
         self.assertItemsAlmostEqual(expr.value, [3, 1])
 
     def test_logical_indices(self) -> None:
-        """Test indexing with boolean arrays.
-        """
+        """Test indexing with boolean arrays."""
         A = np.array([[1, 2, 3, 4], [5, 6, 7, 8], [9, 10, 11, 12]])
         C = Constant(A)
 
@@ -1141,8 +1125,7 @@ class TestExpressions(BaseTest):
         expr = C[1, np.array([True, False, False, True])]
         self.assertEqual(expr.shape, (2,))
         self.assertEqual(expr.sign, s.NONNEG)
-        self.assertItemsAlmostEqual(A[1, np.array([True, False, False, True])],
-                                    expr.value)
+        self.assertItemsAlmostEqual(A[1, np.array([True, False, False, True])], expr.value)
 
         # Boolean array for rows, slice for columns.
         expr = C[np.array([True, True, True]), 1:3]
@@ -1154,21 +1137,19 @@ class TestExpressions(BaseTest):
         expr = C[1:-1, np.array([True, False, True, True])]
         self.assertEqual(expr.shape, (1, 3))
         self.assertEqual(expr.sign, s.NONNEG)
-        self.assertItemsAlmostEqual(A[1:-1, np.array([True, False, True, True])],
-                                    expr.value)
+        self.assertItemsAlmostEqual(A[1:-1, np.array([True, False, True, True])], expr.value)
 
         # Boolean arrays for rows and columns.
         # Not sure what this does.
-        expr = C[np.array([True, True, True]),
-                 np.array([True, False, True, True])]
+        expr = C[np.array([True, True, True]), np.array([True, False, True, True])]
         self.assertEqual(expr.shape, (3,))
         self.assertEqual(expr.sign, s.NONNEG)
-        self.assertItemsAlmostEqual(A[np.array([True, True, True]),
-                                      np.array([True, False, True, True])], expr.value)
+        self.assertItemsAlmostEqual(
+            A[np.array([True, True, True]), np.array([True, False, True, True])], expr.value
+        )
 
     def test_selector_list_indices(self) -> None:
-        """Test indexing with lists/ndarrays of indices.
-        """
+        """Test indexing with lists/ndarrays of indices."""
         A = np.array([[1, 2, 3, 4], [5, 6, 7, 8], [9, 10, 11, 12]])
         C = Constant(A)
 
@@ -1229,8 +1210,7 @@ class TestExpressions(BaseTest):
         self.assertEqual(exp.curvature, s.CONVEX)
 
     def test_sum(self) -> None:
-        """Test cvxpy sum function.
-        """
+        """Test cvxpy sum function."""
         self.a.value = 1
         expr = cp.sum(self.a)
         self.assertEqual(expr.value, 1)
@@ -1240,37 +1220,33 @@ class TestExpressions(BaseTest):
         self.assertEqual(expr.value, 3)
 
     def test_var_copy(self) -> None:
-        """Test the copy function for variable types.
-        """
-        x = Variable((3, 4), name="x")
+        """Test the copy function for variable types."""
+        x = Variable((3, 4), name='x')
         y = x.copy()
         self.assertEqual(y.shape, (3, 4))
-        self.assertEqual(y.name(), "x")
+        self.assertEqual(y.name(), 'x')
 
-        x = Variable((5, 5), PSD=True, name="x")
+        x = Variable((5, 5), PSD=True, name='x')
         y = x.copy()
         self.assertEqual(y.shape, (5, 5))
 
     def test_param_copy(self) -> None:
-        """Test the copy function for Parameters.
-        """
-        x = Parameter((3, 4), name="x", nonneg=True)
+        """Test the copy function for Parameters."""
+        x = Parameter((3, 4), name='x', nonneg=True)
         y = x.copy()
         self.assertEqual(y.shape, (3, 4))
-        self.assertEqual(y.name(), "x")
-        self.assertEqual(y.sign, "NONNEGATIVE")
+        self.assertEqual(y.name(), 'x')
+        self.assertEqual(y.sign, 'NONNEGATIVE')
 
     def test_constant_copy(self) -> None:
-        """Test the copy function for Constants.
-        """
+        """Test the copy function for Constants."""
         x = Constant(2)
         y = x.copy()
         self.assertEqual(y.shape, tuple())
         self.assertEqual(y.value, 2)
 
     def test_is_pwl(self) -> None:
-        """Test is_pwl()
-        """
+        """Test is_pwl()"""
         A = np.ones((2, 3))
         b = np.ones(2)
 
@@ -1286,12 +1262,11 @@ class TestExpressions(BaseTest):
         expr = cp.pnorm(3 * self.y, 1)
         self.assertEqual(expr.is_pwl(), True)
 
-        expr = cp.pnorm(3 * self.y ** 2, 1)
+        expr = cp.pnorm(3 * self.y**2, 1)
         self.assertEqual(expr.is_pwl(), False)
 
     def test_broadcast_mul(self) -> None:
-        """Test multiply broadcasting.
-        """
+        """Test multiply broadcasting."""
         y = Parameter((3, 1))
         z = Variable((1, 3))
         y.value = np.arange(3)[:, None]
@@ -1318,8 +1293,7 @@ class TestExpressions(BaseTest):
         self.assertEqual(R.shape, (m, n))
 
     def test_broadcast_add(self) -> None:
-        """Test addition broadcasting.
-        """
+        """Test addition broadcasting."""
         y = Parameter((3, 1))
         z = Variable((1, 3))
         y.value = np.arange(3)[:, None]
@@ -1354,36 +1328,46 @@ class TestExpressions(BaseTest):
         self.assertIn(s.CONSTANT, y.curvatures)
 
         x = cp.Variable(pos=True)
-        self.assertEqual(x.curvatures, [s.AFFINE, s.CONVEX, s.CONCAVE,
-                                        s.LOG_LOG_AFFINE, s.LOG_LOG_CONVEX, s.LOG_LOG_CONCAVE,
-                                        s.QUASILINEAR, s.QUASICONVEX, s.QUASICONCAVE])
+        self.assertEqual(
+            x.curvatures,
+            [
+                s.AFFINE,
+                s.CONVEX,
+                s.CONCAVE,
+                s.LOG_LOG_AFFINE,
+                s.LOG_LOG_CONVEX,
+                s.LOG_LOG_CONCAVE,
+                s.QUASILINEAR,
+                s.QUASICONVEX,
+                s.QUASICONCAVE,
+            ],
+        )
 
-        monomial = x*x*x
-        self.assertEqual(monomial.curvatures, [s.LOG_LOG_AFFINE,
-                                               s.LOG_LOG_CONVEX, s.LOG_LOG_CONCAVE])
+        monomial = x * x * x
+        self.assertEqual(
+            monomial.curvatures, [s.LOG_LOG_AFFINE, s.LOG_LOG_CONVEX, s.LOG_LOG_CONCAVE]
+        )
 
-        posynomial = x*x*x + x
+        posynomial = x * x * x + x
         self.assertEqual(posynomial.curvatures, [s.LOG_LOG_CONVEX])
 
-        llcv = 1/(x*x*x + x)
+        llcv = 1 / (x * x * x + x)
         self.assertEqual(llcv.curvatures, [s.LOG_LOG_CONCAVE])
 
     def test_log_log_curvature(self) -> None:
-        """Test that the curvature string is populated for log-log expressions.
-        """
+        """Test that the curvature string is populated for log-log expressions."""
         x = Variable(pos=True)
-        monomial = x*x*x
+        monomial = x * x * x
         assert monomial.curvature == s.LOG_LOG_AFFINE
 
-        posynomial = x*x*x + x
+        posynomial = x * x * x + x
         assert posynomial.curvature == s.LOG_LOG_CONVEX
 
-        llcv = 1/(x*x*x + x)
+        llcv = 1 / (x * x * x + x)
         assert llcv.curvature == s.LOG_LOG_CONCAVE
 
     def test_quad_form_matmul(self) -> None:
-        """Test conversion of native x.T @ A @ x into QuadForms.
-        """
+        """Test conversion of native x.T @ A @ x into QuadForms."""
 
         # Trivial quad form
         x = Variable(shape=(2,))
@@ -1472,8 +1456,7 @@ class TestExpressions(BaseTest):
         assert not isinstance(expr, cp.QuadForm)
 
     def test_matmul_scalars(self) -> None:
-        """Test evaluating a matmul that reduces one argument internally to a scalar.
-        """
+        """Test evaluating a matmul that reduces one argument internally to a scalar."""
         x = cp.Variable((2,))
         quad = cp.quad_form(x, np.eye(2))
         a = np.array([2])
@@ -1518,12 +1501,11 @@ class TestExpressions(BaseTest):
         assert expr.is_hermitian()
 
 
-class TestND_Expressions():
-
+class TestND_Expressions:
     @pytest.fixture(autouse=True)
     def setup(self) -> None:
-        self.x = Variable((2,2,2), name='x')
-        self.target = (1+np.arange(8)).reshape(2,2,2)
+        self.x = Variable((2, 2, 2), name='x')
+        self.target = (1 + np.arange(8)).reshape(2, 2, 2)
         self.obj = cp.Minimize(0)
 
     def test_nd_variable(self) -> None:
@@ -1533,15 +1515,19 @@ class TestND_Expressions():
 
     def test_nd_variable_warning(self) -> None:
         prob = cp.Problem(self.obj, [self.x == self.target])
-        warning_str = "The problem has an expression with dimension greater than 2. " \
-                    "Defaulting to the SCIPY backend for canonicalization."
+        warning_str = (
+            'The problem has an expression with dimension greater than 2. '
+            'Defaulting to the SCIPY backend for canonicalization.'
+        )
         with pytest.warns(UserWarning, match=warning_str):
             prob.solve()
 
     def test_nd_variable_value_error(self) -> None:
         prob = cp.Problem(self.obj, [self.x == self.target])
-        error_str = "Only the SCIPY and NUMPY backends are supported " \
-                    "for problems with expressions of dimension greater than 2."
+        error_str = (
+            'Only the SCIPY and NUMPY backends are supported '
+            'for problems with expressions of dimension greater than 2.'
+        )
         with pytest.raises(ValueError, match=error_str):
             prob.solve(canon_backend=cp.CPP_CANON_BACKEND)
 
@@ -1560,7 +1546,7 @@ class TestND_Expressions():
     def test_nd_vstack(self) -> None:
         x = Variable((1, 2, 2))
         z = Variable((1, 2, 2))
-        expr = cp.vstack([x,z])
+        expr = cp.vstack([x, z])
         prob = cp.Problem(self.obj, [expr == self.target])
         prob.solve(canon_backend=cp.SCIPY_CANON_BACKEND)
         assert np.allclose(expr.value, self.target)
@@ -1569,21 +1555,22 @@ class TestND_Expressions():
         # TODO: concatenated is not exposed in cp.concatenated yet. Use cp.concatenate
         # in this test once it is available
         from cvxpy.atoms.affine.concatenate import concatenate
+
         x = Variable((1, 2, 2))
         z = Variable((1, 2, 2))
-        expr = concatenate([x,z], axis = 0)
+        expr = concatenate([x, z], axis=0)
         prob = cp.Problem(self.obj, [expr == self.target])
         prob.solve(canon_backend=cp.SCIPY_CANON_BACKEND)
         assert np.allclose(expr.value, self.target)
 
     def test_nd_sum_expr(self) -> None:
-        x = [cp.Variable((2,2,2)) for _ in range(10)]
+        x = [cp.Variable((2, 2, 2)) for _ in range(10)]
         expr = sum(x)
         prob = cp.Problem(self.obj, [expr == self.target])
         prob.solve(canon_backend=cp.SCIPY_CANON_BACKEND)
         assert np.allclose(expr.value, self.target)
 
-    @pytest.mark.parametrize("axis", [(0),(1),(2),((0,1)),((0,2)),((2,1))])
+    @pytest.mark.parametrize('axis', [(0), (1), (2), ((0, 1)), ((0, 2)), ((2, 1))])
     def test_nd_sum(self, axis) -> None:
         expr = cp.sum(self.x, axis=axis, keepdims=True)
         y = self.target.sum(axis=axis, keepdims=True)
@@ -1591,26 +1578,28 @@ class TestND_Expressions():
         prob.solve(canon_backend=cp.SCIPY_CANON_BACKEND)
         assert np.allclose(expr.value, y)
 
-    @pytest.mark.parametrize("axis", [(0),(1),(2),((0,1)),((0,2)),((2,1))])
+    @pytest.mark.parametrize('axis', [(0), (1), (2), ((0, 1)), ((0, 2)), ((2, 1))])
     def test_nd_parametrized_sum(self, axis) -> None:
-        param = cp.Parameter((2,2,2))
-        param.value = np.arange(8).reshape(2,2,2)
+        param = cp.Parameter((2, 2, 2))
+        param.value = np.arange(8).reshape(2, 2, 2)
         expr = cp.multiply(self.x, param).sum(axis=axis)
         target = self.target.sum(axis=axis)
         prob = cp.Problem(self.obj, [expr == target])
         prob.solve(canon_backend=cp.SCIPY_CANON_BACKEND)
         assert np.allclose(expr.value, target)
 
-    @pytest.mark.parametrize("axis", [(0,2,4,5),((4,5)),((0,2,3,1)),((5,3,1)), ((0,1,2,5))])
+    @pytest.mark.parametrize(
+        'axis', [(0, 2, 4, 5), ((4, 5)), ((0, 2, 3, 1)), ((5, 3, 1)), ((0, 1, 2, 5))]
+    )
     def test_nd_big_sum(self, axis) -> None:
-        in_shape = (6,5,4,3,2,1)
+        in_shape = (6, 5, 4, 3, 2, 1)
         expr = cp.Variable(shape=in_shape).sum(axis=axis, keepdims=True)
         y = np.ones(in_shape).sum(axis=axis, keepdims=True)
         prob = cp.Problem(self.obj, [expr == y])
         prob.solve(canon_backend=cp.SCIPY_CANON_BACKEND)
         assert np.allclose(expr.value, y)
 
-    @given(integer_array_indices(shape=(2,2,2)))
+    @given(integer_array_indices(shape=(2, 2, 2)))
     def test_nd_integer_index(self, s) -> None:
         expr = self.x[s]
         y = self.target[s]
@@ -1618,7 +1607,7 @@ class TestND_Expressions():
         prob.solve(canon_backend=cp.SCIPY_CANON_BACKEND)
         assert np.allclose(expr.value, y)
 
-    @given(axis=basic_indices(shape=(2,2,2), allow_newaxis=True))
+    @given(axis=basic_indices(shape=(2, 2, 2), allow_newaxis=True))
     def test_nd__basic_index(self, axis) -> None:
         # Skip examples with 0-d output. TODO allow 0-d expressions in cvxpy.
         def is_zero_dim_output(axis):
@@ -1631,16 +1620,16 @@ class TestND_Expressions():
         prob.solve(canon_backend=cp.SCIPY_CANON_BACKEND)
         assert np.allclose(expr.value, y)
 
-    @given(axis=integer_array_indices(shape=(6,5,4,3,2,1)))
+    @given(axis=integer_array_indices(shape=(6, 5, 4, 3, 2, 1)))
     def test_nd_big_index(self, axis) -> None:
-        in_shape = (6,5,4,3,2,1)
+        in_shape = (6, 5, 4, 3, 2, 1)
         expr = cp.Variable(shape=in_shape)[axis]
         y = np.ones(in_shape)[axis]
         prob = cp.Problem(self.obj, [expr == y])
         prob.solve(canon_backend=cp.SCIPY_CANON_BACKEND)
         assert np.allclose(expr.value, y)
 
-    @given(axis=arrays(shape=(2,2,2), dtype=bool))
+    @given(axis=arrays(shape=(2, 2, 2), dtype=bool))
     def test_nd_bool_index(self, axis) -> None:
         def is_zero_dim_output(axis):
             return 0 in self.target[axis].shape
@@ -1653,15 +1642,14 @@ class TestND_Expressions():
         assert np.allclose(expr.value, y)
 
     def test_nd_index_sum(self) -> None:
-        expr = self.x[:,:,0].sum(axis=0)
-        y = self.target[:,:,0].sum(axis=0)
+        expr = self.x[:, :, 0].sum(axis=0)
+        y = self.target[:, :, 0].sum(axis=0)
         prob = cp.Problem(self.obj, [expr == y])
         prob.solve(canon_backend=cp.SCIPY_CANON_BACKEND)
         assert np.allclose(expr.value, y)
 
-    @pytest.mark.parametrize("order", ['C', 'F'])
-    @pytest.mark.parametrize("shape", [(20, 2, 30), (300, 2, 2),
-                                       (1, 24, 5, 10), (240, 5, 1)])
+    @pytest.mark.parametrize('order', ['C', 'F'])
+    @pytest.mark.parametrize('shape', [(20, 2, 30), (300, 2, 2), (1, 24, 5, 10), (240, 5, 1)])
     def test_nd_reshape(self, order, shape) -> None:
         var = cp.Variable((5, 24, 10))
         target = np.arange(1200).reshape((5, 24, 10))

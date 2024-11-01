@@ -32,6 +32,7 @@ class QpSolver(Solver):
     """
     A QP solver interface.
     """
+
     # Every QP solver supports Zero and NonNeg constraints.
     SUPPORTED_CONSTRAINTS = [Zero, NonNeg]
 
@@ -39,15 +40,16 @@ class QpSolver(Solver):
     # For such solvers, REQUIRES_CONSTR should be set to True.
     REQUIRES_CONSTR = False
 
-    IS_MIP = "IS_MIP"
+    IS_MIP = 'IS_MIP'
 
     def accepts(self, problem):
-        return (isinstance(problem, ParamQuadProg)
-                and (self.MIP_CAPABLE or not problem.is_mixed_integer())
-                and not convex_attributes([problem.x])
-                and (len(problem.constraints) > 0 or not self.REQUIRES_CONSTR)
-                and all(type(c) in self.SUPPORTED_CONSTRAINTS for c in
-                        problem.constraints))
+        return (
+            isinstance(problem, ParamQuadProg)
+            and (self.MIP_CAPABLE or not problem.is_mixed_integer())
+            and not convex_attributes([problem.x])
+            and (len(problem.constraints) > 0 or not self.REQUIRES_CONSTR)
+            and all(type(c) in self.SUPPORTED_CONSTRAINTS for c in problem.constraints)
+        )
 
     def _prepare_data_and_inv_data(self, problem):
         data = {}

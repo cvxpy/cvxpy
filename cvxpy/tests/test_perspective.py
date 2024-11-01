@@ -48,15 +48,15 @@ def quad_example(request):
 
     r = request.param
 
-    obj = cp.quad_over_lin(x, s) + r*x - 4*s
-    constraints = [x >= 2, s <= .5]
+    obj = cp.quad_over_lin(x, s) + r * x - 4 * s
+    constraints = [x >= 2, s <= 0.5]
     prob_ref = cp.Problem(cp.Minimize(obj), constraints)
     prob_ref.solve(solver=SOLVER)
 
     return prob_ref.value, s.value, x.value, r
 
 
-@pytest.mark.parametrize("p", [1, 2])
+@pytest.mark.parametrize('p', [1, 2])
 def test_p_norms(p):
     x = cp.Variable(3)
     s = cp.Variable(nonneg=True, name='s')
@@ -70,7 +70,7 @@ def test_p_norms(p):
     ref_x = cp.Variable(3, pos=True)
     ref_s = cp.Variable(pos=True)
 
-    obj = cp.sum(cp.power(ref_x, p) / cp.power(ref_s, p-1))
+    obj = cp.sum(cp.power(ref_x, p) / cp.power(ref_s, p - 1))
 
     ref_constraints = [ref_x >= [1, 2, 3], ref_s == 1]
     ref_prob = cp.Problem(cp.Minimize(obj), ref_constraints)
@@ -82,11 +82,11 @@ def test_p_norms(p):
         assert np.isclose(s.value, ref_s.value)
 
 
-@pytest.mark.parametrize("cvx", [True, False])
+@pytest.mark.parametrize('cvx', [True, False])
 def test_rel_entr(cvx):
     x = cp.Variable()
     s = cp.Variable(nonneg=True)
-    f = cp.log(x)*(-1 if cvx else 1)
+    f = cp.log(x) * (-1 if cvx else 1)
     obj = cp.perspective(f, s)
     constraints = [1 <= s, s <= 2, 1 <= x, x <= 2]
     prob = cp.Problem(cp.Minimize(obj) if cvx else cp.Maximize(obj), constraints)
@@ -121,15 +121,13 @@ def test_exp():
     ref_z = cp.Variable()
 
     obj = ref_z
-    ref_constraints = [
-        ExpCone(ref_x, ref_s, ref_z),
-        ref_x >= 1, ref_s >= 1]
+    ref_constraints = [ExpCone(ref_x, ref_s, ref_z), ref_x >= 1, ref_s >= 1]
     ref_prob = cp.Problem(cp.Minimize(obj), ref_constraints)
     ref_prob.solve(solver=SOLVER)
 
     assert np.isclose(prob.value, ref_prob.value)
     assert np.isclose(x.value, ref_x.value)
-    assert np.isclose(s.value, ref_s.value, atol=1.e-4)
+    assert np.isclose(s.value, ref_s.value, atol=1.0e-4)
 
 
 @pytest.fixture
@@ -140,10 +138,8 @@ def lse_example():
     ref_z = cp.Variable(3)
     ref_t = cp.Variable()
 
-    ref_constraints = [
-        ref_s >= cp.sum(ref_z),
-        [1, 2, 3] <= ref_x, 1 <= ref_s, ref_s <= 2]
-    ref_constraints += [ExpCone(ref_x[i]-ref_t, ref_s, ref_z[i]) for i in range(3)]
+    ref_constraints = [ref_s >= cp.sum(ref_z), [1, 2, 3] <= ref_x, 1 <= ref_s, ref_s <= 2]
+    ref_constraints += [ExpCone(ref_x[i] - ref_t, ref_s, ref_z[i]) for i in range(3)]
     ref_prob = cp.Problem(cp.Minimize(ref_t), ref_constraints)
     ref_prob.solve(solver=SOLVER)
 
@@ -185,11 +181,11 @@ def test_lse_atom(lse_example):
     assert np.isclose(s.value, ref_s)
 
 
-@pytest.mark.parametrize("x_val,s_val", [(1, 2), (5, .25), (.5, 7)])
+@pytest.mark.parametrize('x_val,s_val', [(1, 2), (5, 0.25), (0.5, 7)])
 def test_evaluate_persp(x_val, s_val):
     x = cp.Variable()
     s = cp.Variable(nonneg=True)
-    f_exp = cp.square(x)+3*x-5
+    f_exp = cp.square(x) + 3 * x - 5
     obj = cp.perspective(f_exp, s)
 
     val_array = np.array([s_val, x_val])
@@ -199,7 +195,7 @@ def test_evaluate_persp(x_val, s_val):
     val = obj.numeric(val_array)
 
     # true val
-    ref_val = x_val**2/s_val + 3*x_val - 5*s_val
+    ref_val = x_val**2 / s_val + 3 * x_val - 5 * s_val
 
     assert np.isclose(val, ref_val)
 
@@ -211,11 +207,11 @@ def test_quad_atom(quad_example):
     x = cp.Variable()
     s = cp.Variable(nonneg=True)
 
-    f_exp = cp.square(x) + r*x - 4
+    f_exp = cp.square(x) + r * x - 4
 
     obj = cp.perspective(f_exp, s)
 
-    constraints = [s <= .5, x >= 2]
+    constraints = [s <= 0.5, x >= 2]
     prob = cp.Problem(cp.Minimize(obj), constraints)
     prob.solve(verbose=True)
 
@@ -232,13 +228,13 @@ def test_quad_persp_persp(quad_example):
     s = cp.Variable(nonneg=True)
     t = cp.Variable(nonneg=True)
 
-    f_exp = cp.square(x) + r*x - 4
+    f_exp = cp.square(x) + r * x - 4
     obj_inner = cp.perspective(f_exp, s)
 
     obj = cp.perspective(obj_inner, t)
     # f(x) -> sf(x/s) -> t(s/t)f(xt/ts) -> sf(x/s)
 
-    constraints = [.1 <= s, s <= .5, x >= 2, .1 <= t, t <= .5]
+    constraints = [0.1 <= s, s <= 0.5, x >= 2, 0.1 <= t, t <= 0.5]
     prob = cp.Problem(cp.Minimize(obj), constraints)
     prob.solve(verbose=True)
 
@@ -275,15 +271,15 @@ def test_quad_quad():
     assert np.isclose(s.value, ref_s.value)
 
 
-@pytest.mark.parametrize("n", [4, 5, 7, 11])
+@pytest.mark.parametrize('n', [4, 5, 7, 11])
 def test_power(n):
     # reference problem
     ref_x = cp.Variable(pos=True)
     ref_s = cp.Variable(pos=True)
 
     # f(x) = x^n -> persp(f)(x,s) = x^n / s^(n-1)
-    obj = cp.power(ref_x, n)/cp.power(ref_s, n-1)
-    constraints = [ref_x >= 1, ref_s <= .5]
+    obj = cp.power(ref_x, n) / cp.power(ref_s, n - 1)
+    constraints = [ref_x >= 1, ref_s <= 0.5]
     ref_prob = cp.Problem(cp.Minimize(obj), constraints)
 
     ref_prob.solve(gp=True)
@@ -294,7 +290,7 @@ def test_power(n):
     f = cp.power(x, n)
     obj = cp.perspective(f, s)
 
-    constraints = [x >= 1, s <= .5]
+    constraints = [x >= 1, s <= 0.5]
 
     prob = cp.Problem(cp.Minimize(obj), constraints)
     prob.solve(solver=SOLVER)
@@ -329,7 +325,7 @@ def test_psd_tr_persp():
     assert np.isclose(prob.value, ref_prob.value)
 
 
-@pytest.mark.parametrize("n", [2, 3, 11])
+@pytest.mark.parametrize('n', [2, 3, 11])
 def test_psd_mf_persp(n):
     # reference problem
     ref_x = cp.Variable(n)
@@ -348,7 +344,11 @@ def test_psd_mf_persp(n):
 
     f = cp.matrix_frac(x, P)
     obj = cp.perspective(f, s)
-    constraints = [x == 5, P == np.eye(n), s == 1, ]
+    constraints = [
+        x == 5,
+        P == np.eye(n),
+        s == 1,
+    ]
     prob = cp.Problem(cp.Minimize(obj), constraints)
     prob.solve(solver=cp.SCS)
 
@@ -357,7 +357,7 @@ def test_psd_mf_persp(n):
     assert np.allclose(x.value, ref_x.value, atol=1e-2)
 
 
-@pytest.mark.parametrize("n", [2, 3, 11])
+@pytest.mark.parametrize('n', [2, 3, 11])
 def test_psd_tr_square(n):
     # reference problem
     ref_s = cp.Variable(nonneg=True)
@@ -407,7 +407,7 @@ def test_diag():
 def test_scalar_x():
     x = cp.Variable()
     s = cp.Variable(nonneg=True)
-    obj = perspective(x-1, s)
+    obj = perspective(x - 1, s)
 
     prob = cp.Problem(cp.Minimize(obj), [x >= 3.14, s <= 1])
     prob.solve()
@@ -418,10 +418,10 @@ def test_assert_s_nonzero():
     # If s=0 arises, make sure we ask for a recession function
     x = cp.Variable()
     s = cp.Variable(nonneg=True)
-    obj = perspective(x+1, s)
+    obj = perspective(x + 1, s)
 
     prob = cp.Problem(cp.Minimize(obj), [x >= 3.14])
-    with pytest.raises(AssertionError, match="pass in a recession function"):
+    with pytest.raises(AssertionError, match='pass in a recession function'):
         prob.solve()
 
 
@@ -429,7 +429,7 @@ def test_parameter():
     p = cp.Parameter(nonneg=True)
     x = cp.Variable()
     s = cp.Variable(nonneg=True)
-    f = p*cp.square(x)
+    f = p * cp.square(x)
 
     obj = cp.perspective(f, s)
     prob = cp.Problem(cp.Minimize(obj), [s <= 1, x >= 2])
@@ -437,14 +437,14 @@ def test_parameter():
 
     prob.solve()
 
-    assert np.isclose(prob.value, 4*p.value)
+    assert np.isclose(prob.value, 4 * p.value)
 
 
 def test_afine_s():
     # test requiring affine s nonneg
     x = cp.Variable()
     s = cp.Variable(2)
-    with pytest.raises(AssertionError, match="s must be a variable"):
+    with pytest.raises(AssertionError, match='s must be a variable'):
         perspective(cp.square(x), cp.sum(s))
 
 
@@ -453,13 +453,14 @@ def test_dpp():
     s = cp.Variable(nonneg=True)
     a = cp.Parameter()
 
-    obj = cp.perspective(cp.square(a+x), s)
+    obj = cp.perspective(cp.square(a + x), s)
 
     assert not obj.is_dpp()
 
-    obj = cp.perspective(cp.log(a+x), s)
+    obj = cp.perspective(cp.log(a + x), s)
 
     assert not obj.is_dpp()
+
 
 def test_s_eq_0():
     # Problem where the optimal s is s = 0
@@ -470,7 +471,7 @@ def test_s_eq_0():
     f_recession = x
     obj = cp.perspective(f, s, f_recession=f_recession)
     constr = [-cp.square(x) + 1 >= 0]
-    
+
     prob = cp.Problem(cp.Minimize(obj), constr)
     prob.solve()
 

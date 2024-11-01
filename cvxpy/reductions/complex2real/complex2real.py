@@ -47,16 +47,15 @@ class Complex2Real(Reduction):
 
     def apply(self, problem):
         inverse_data = InverseData(problem)
-        real2imag = {var.id: lu.get_id() for var in problem.variables()
-                     if var.is_complex()}
-        constr_dict = {cons.id: lu.get_id() for cons in problem.constraints
-                       if cons.is_complex()}
+        real2imag = {var.id: lu.get_id() for var in problem.variables() if var.is_complex()}
+        constr_dict = {cons.id: lu.get_id() for cons in problem.constraints if cons.is_complex()}
         real2imag.update(constr_dict)
         inverse_data.real2imag = real2imag
 
         leaf_map = {}
         real_obj, imag_obj = self.canonicalize_tree(
-            problem.objective, inverse_data.real2imag, leaf_map)
+            problem.objective, inverse_data.real2imag, leaf_map
+        )
         assert imag_obj is None
 
         constrs = []
@@ -64,7 +63,8 @@ class Complex2Real(Reduction):
             # real2imag maps variable id to a potential new variable
             # created for the imaginary part.
             real_constrs, imag_constrs = self.canonicalize_tree(
-                constraint, inverse_data.real2imag, leaf_map)
+                constraint, inverse_data.real2imag, leaf_map
+            )
             if isinstance(real_constrs, list):
                 constrs.extend(real_constrs)
             elif isinstance(real_constrs, Constraint):
@@ -74,8 +74,7 @@ class Complex2Real(Reduction):
             elif isinstance(imag_constrs, Constraint):
                 constrs.append(imag_constrs)
 
-        new_problem = problems.problem.Problem(real_obj,
-                                               constrs)
+        new_problem = problems.problem.Problem(real_obj, constrs)
         return new_problem, inverse_data
 
     def invert(self, solution, inverse_data):
@@ -92,7 +91,7 @@ class Complex2Real(Reduction):
                 elif var.is_imag():
                     # Purely imaginary variables
                     imag_id = inverse_data.real2imag[vid]
-                    pvars[vid] = 1j*solution.primal_vars[imag_id]
+                    pvars[vid] = 1j * solution.primal_vars[imag_id]
                 elif var.is_complex() and var.is_hermitian():
                     # Hermitian variables
                     pvars[vid] = solution.primal_vars[vid]
@@ -101,14 +100,14 @@ class Complex2Real(Reduction):
                         imag_val = solution.primal_vars[imag_id]
                         imag_val = vec_to_upper_tri(imag_val, True).value
                         imag_val -= imag_val.T
-                        pvars[vid] = pvars[vid] + 1j*imag_val
+                        pvars[vid] = pvars[vid] + 1j * imag_val
                 elif var.is_complex():
                     # General complex variables
                     pvars[vid] = solution.primal_vars[vid]
                     imag_id = inverse_data.real2imag[vid]
                     if imag_id in solution.primal_vars:
                         imag_val = solution.primal_vars[imag_id]
-                        pvars[vid] = pvars[vid] + 1j*imag_val
+                        pvars[vid] = pvars[vid] + 1j * imag_val
             if solution.dual_vars:
                 #
                 #   Dual variables
@@ -118,7 +117,7 @@ class Complex2Real(Reduction):
                         dvars[cid] = solution.dual_vars[cid]
                     elif cons.is_imag():
                         imag_id = inverse_data.real2imag[cid]
-                        dvars[cid] = 1j*solution.dual_vars[imag_id]
+                        dvars[cid] = 1j * solution.dual_vars[imag_id]
                     # All cases that follow are for complex-valued constraints:
                     #   1. check equality constraints.
                     #   2. check PSD constraints.
@@ -127,8 +126,7 @@ class Complex2Real(Reduction):
                     elif isinstance(cons, (Equality, Zero)):
                         imag_id = inverse_data.real2imag[cid]
                         if imag_id in solution.dual_vars:
-                            dvars[cid] = solution.dual_vars[cid] + \
-                                1j*solution.dual_vars[imag_id]
+                            dvars[cid] = solution.dual_vars[cid] + 1j * solution.dual_vars[imag_id]
                         else:
                             dvars[cid] = solution.dual_vars[cid]
                     elif isinstance(cons, PSD):
@@ -146,15 +144,14 @@ class Complex2Real(Reduction):
                         # upper-right block of the dual variable for con_y.
                         n = cons.args[0].shape[0]
                         dual = solution.dual_vars[cid]
-                        dvars[cid] = dual[:n, :n] + 1j*dual[n:, :n]
+                        dvars[cid] = dual[:n, :n] + 1j * dual[n:, :n]
                     elif isinstance(cons, self.UNIMPLEMENTED_COMPLEX_DUALS):
                         # TODO: implement dual variable recovery
                         pass
                     else:
-                        raise Exception("Unknown constraint type.")
+                        raise Exception('Unknown constraint type.')
 
-        return Solution(solution.status, solution.opt_val, pvars, dvars,
-                        solution.attr)
+        return Solution(solution.status, solution.opt_val, pvars, dvars, solution.attr)
 
     def canonicalize_tree(self, expr, real2imag, leaf_map):
         # TODO don't copy affine expressions?
@@ -167,9 +164,9 @@ class Complex2Real(Reduction):
                 real_arg, imag_arg = self.canonicalize_tree(arg, real2imag, leaf_map)
                 real_args.append(real_arg)
                 imag_args.append(imag_arg)
-            real_out, imag_out = self.canonicalize_expr(expr, real_args,
-                                                        imag_args, real2imag,
-                                                        leaf_map)
+            real_out, imag_out = self.canonicalize_expr(
+                expr, real_args, imag_args, real2imag, leaf_map
+            )
         return real_out, imag_out
 
     def canonicalize_expr(self, expr, real_args, imag_args, real2imag, leaf_map):

@@ -29,8 +29,7 @@ def inequality_canon(expr, real_args, imag_args, real2imag):
         if imag_args[i] is None:
             imag_args[i] = Constant(np.zeros(real_args[i].shape))
 
-    imag_cons = [Inequality(imag_args[0], imag_args[1],
-                            constr_id=real2imag[expr.id])]
+    imag_cons = [Inequality(imag_args[0], imag_args[1], constr_id=real2imag[expr.id])]
     if real_args[0] is None and real_args[1] is None:
         return None, imag_cons
     else:

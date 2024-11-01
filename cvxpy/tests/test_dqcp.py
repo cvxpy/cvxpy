@@ -13,6 +13,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+
 import numpy as np
 import pytest
 
@@ -394,7 +395,7 @@ class TestDqcp(base_test.BaseTest):
         b = A @ x_star
         epsilon = 1e-2
         x = cp.Variable(n)
-        mse = cp.sum_squares(A @ x - b)/n
+        mse = cp.sum_squares(A @ x - b) / n
         problem = cp.Problem(cp.Minimize(cp.length(x)), [mse <= epsilon])
         assert problem.is_dqcp()
 
@@ -405,16 +406,15 @@ class TestDqcp(base_test.BaseTest):
         n = 5
         x = cp.Variable(n)
         self.assertTrue(cp.length(cp.abs(x)).is_incr(0))
-        self.assertFalse(cp.length(cp.abs(x)-1).is_incr(0))
+        self.assertFalse(cp.length(cp.abs(x) - 1).is_incr(0))
         self.assertTrue(cp.length(cp.abs(x)).is_dqcp())
-        self.assertFalse(cp.length(cp.abs(x)-1).is_dqcp())
+        self.assertFalse(cp.length(cp.abs(x) - 1).is_dqcp())
         self.assertTrue(cp.length(-cp.abs(x)).is_decr(0))
-        self.assertFalse(cp.length(-cp.abs(x)+1).is_decr(0))
+        self.assertFalse(cp.length(-cp.abs(x) + 1).is_decr(0))
 
     def test_infeasible(self) -> None:
         x = cp.Variable(2)
-        problem = cp.Problem(
-            cp.Minimize(cp.length(x)), [x == -1, cp.ceil(x) >= 1])
+        problem = cp.Problem(cp.Minimize(cp.length(x)), [x == -1, cp.ceil(x) >= 1])
         problem.solve(SOLVER, qcp=True)
         self.assertIn(problem.status, (s.INFEASIBLE, s.INFEASIBLE_INACCURATE))
 
@@ -431,10 +431,9 @@ class TestDqcp(base_test.BaseTest):
         self.assertGreater(x.value, 0)
 
         # Check that sign doesn't change value.
-        vector = np.array([.1, -.3, .5])
+        vector = np.array([0.1, -0.3, 0.5])
         variable = cp.Variable(len(vector))
-        problem = cp.Problem(cp.Maximize(vector @ variable),
-                             [cp.norm2(variable) <= 1.])
+        problem = cp.Problem(cp.Maximize(vector @ variable), [cp.norm2(variable) <= 1.0])
         problem.solve(solver=cp.SCS)
 
         value = variable.value.copy()
@@ -506,8 +505,8 @@ class TestDqcp(base_test.BaseTest):
         gen_lambda_max = cp.gen_lambda_max(A, B)
         known_indices = tuple(zip(*[[0, 0], [0, 2], [1, 1]]))
         constr = [
-          A[known_indices] == [1.0, 1.9, 0.8],
-          B[known_indices] == [3.0, 1.4, 0.2],
+            A[known_indices] == [1.0, 1.9, 0.8],
+            B[known_indices] == [3.0, 1.4, 0.2],
         ]
         problem = cp.Problem(cp.Minimize(gen_lambda_max), constr)
         self.assertTrue(problem.is_dqcp())
@@ -520,15 +519,16 @@ class TestDqcp(base_test.BaseTest):
         constr = [
             A[0][0] == 2.0,
             A[1][1] == 3.0,
-            A[0][1] <= 2, A[0][1] >= 1,
-            A[1][0] <= 2, A[1][0] >= 1,
+            A[0][1] <= 2,
+            A[0][1] >= 1,
+            A[1][0] <= 2,
+            A[1][0] >= 1,
         ]
         prob = cp.Problem(cp.Minimize(con_num), constr)
         self.assertTrue(prob.is_dqcp())
         # smoke test
         prob.solve(cp.SCS, qcp=True)
-        ans = np.asarray([[2.0, 1.0],
-                          [1.0, 3.0]])
+        ans = np.asarray([[2.0, 1.0], [1.0, 3.0]])
         self.assertItemsAlmostEqual(A.value, ans, places=1)
 
     def test_card_ls(self) -> None:
@@ -541,7 +541,7 @@ class TestDqcp(base_test.BaseTest):
 
         x = cp.Variable(n)
         objective_fn = cp.length(x)
-        mse = cp.sum_squares(cp.matmul(A, x) - b)/n
+        mse = cp.sum_squares(cp.matmul(A, x) - b) / n
         problem = cp.Problem(cp.Minimize(objective_fn), [mse <= epsilon])
         # smoke test
         problem.solve(SOLVER, qcp=True)
@@ -592,18 +592,18 @@ class TestDqcp(base_test.BaseTest):
 
     def test_reciprocal(self) -> None:
         x = cp.Variable(pos=True)
-        problem = cp.Problem(cp.Minimize(1/x))
+        problem = cp.Problem(cp.Minimize(1 / x))
         problem.solve(SOLVER, qcp=True)
         self.assertAlmostEqual(problem.value, 0, places=3)
 
     def test_abs(self) -> None:
         x = cp.Variable(pos=True)
-        problem = cp.Problem(cp.Minimize(cp.abs(1/x)))
+        problem = cp.Problem(cp.Minimize(cp.abs(1 / x)))
         problem.solve(SOLVER, qcp=True)
         self.assertAlmostEqual(problem.value, 0, places=3)
 
         x = cp.Variable(neg=True)
-        problem = cp.Problem(cp.Minimize(cp.abs(1/x)))
+        problem = cp.Problem(cp.Minimize(cp.abs(1 / x)))
         problem.solve(SOLVER, qcp=True)
         self.assertAlmostEqual(problem.value, 0, places=3)
 
@@ -651,7 +651,7 @@ class TestDqcp(base_test.BaseTest):
 
     def test_max(self) -> None:
         x = cp.Variable(2, pos=True)
-        obj = cp.max((1 - 2*cp.sqrt(x) + x) / x)
+        obj = cp.max((1 - 2 * cp.sqrt(x) + x) / x)
         problem = cp.Problem(cp.Minimize(obj), [x[0] <= 0.5, x[1] <= 0.9])
         self.assertTrue(problem.is_dqcp())
         problem.solve(cp.SCS, qcp=True)
@@ -660,8 +660,7 @@ class TestDqcp(base_test.BaseTest):
     def test_min(self) -> None:
         x = cp.Variable(2)
         expr = cp.min(cp.ceil(x))
-        problem = cp.Problem(cp.Maximize(expr),
-                             [x[0] >= 11.9, x[0] <= 15.8, x[1] >= 17.4])
+        problem = cp.Problem(cp.Maximize(expr), [x[0] >= 11.9, x[0] <= 15.8, x[1] >= 17.4])
         self.assertTrue(problem.is_dqcp())
         problem.solve(SOLVER, qcp=True)
         self.assertAlmostEqual(problem.objective.value, 16.0)
@@ -691,15 +690,15 @@ class TestDqcp(base_test.BaseTest):
 
     def test_scalar_sum(self) -> None:
         x = cp.Variable(pos=True)
-        problem = cp.Problem(cp.Minimize(cp.sum(1/x)))
+        problem = cp.Problem(cp.Minimize(cp.sum(1 / x)))
         problem.solve(SOLVER, qcp=True)
         self.assertAlmostEqual(problem.value, 0, places=3)
 
         # TODO: Make this test pass. Need to add a special case for scalar sums.
         with self.assertRaises(Exception) as cm:
-            problem = cp.Problem(cp.Minimize(cp.cumsum(1/x)))
+            problem = cp.Problem(cp.Minimize(cp.cumsum(1 / x)))
             problem.solve(SOLVER, qcp=True)
-        self.assertEqual(str(cm.exception), "axis 0 is out of bounds for array of dimension 0")
+        self.assertEqual(str(cm.exception), 'axis 0 is out of bounds for array of dimension 0')
 
     def test_parameter_bug(self) -> None:
         """Test bug with parameters arising from interaction of
@@ -722,13 +721,13 @@ class TestDqcp(base_test.BaseTest):
 
     def test_psd_constraint_bug(self) -> None:
         """Test bug with DQCP and PSD constraints.
-        
+
         https://github.com/cvxpy/cvxpy/issues/2373
         """
-        A = cp.Variable((2,2),symmetric=True)
+        A = cp.Variable((2, 2), symmetric=True)
 
-        x = A[0,1]
-        y = A[1,1]
+        x = A[0, 1]
+        y = A[1, 1]
 
         # assertions and constraints
         x = cp.atoms.affine.wraps.nonneg_wrap(x)
@@ -736,13 +735,12 @@ class TestDqcp(base_test.BaseTest):
         constraints = [A >> 0]
 
         # function
-        f = x*y
+        f = x * y
 
         # create the problem
         problem = cp.Problem(cp.Maximize(f), constraints)
 
         # solve
         assert problem.is_dqcp()
-        with pytest.raises(cp.SolverError, 
-                           match="Max iters hit during bisection."):
+        with pytest.raises(cp.SolverError, match='Max iters hit during bisection.'):
             problem.solve(qcp=True, solver=cp.SCS, max_iters=1)

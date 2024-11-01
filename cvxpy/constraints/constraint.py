@@ -50,15 +50,12 @@ class Constraint(u.Canonical):
         super(Constraint, self).__init__()
 
     def __str__(self):
-        """Returns a string showing the mathematical constraint.
-        """
+        """Returns a string showing the mathematical constraint."""
         return self.name()
 
     def __repr__(self) -> str:
-        """Returns a string with information about the constraint.
-        """
-        return "%s(%s)" % (self.__class__.__name__,
-                           repr(self.args[0]))
+        """Returns a string with information about the constraint."""
+        return '%s(%s)' % (self.__class__.__name__, repr(self.args[0]))
 
     def _construct_dual_variables(self, args) -> None:
         self.dual_variables = [cvxtypes.variable()(arg.shape) for arg in args]
@@ -83,18 +80,15 @@ class Constraint(u.Canonical):
         return self.args[0].size
 
     def is_real(self) -> bool:
-        """Is the Leaf real valued?
-        """
+        """Is the Leaf real valued?"""
         return not self.is_complex()
 
     def is_imag(self) -> bool:
-        """Is the Leaf imaginary?
-        """
+        """Is the Leaf imaginary?"""
         return all(arg.is_imag() for arg in self.args)
 
     def is_complex(self) -> bool:
-        """Is the Leaf complex valued?
-        """
+        """Is the Leaf complex valued?"""
         return any(arg.is_complex() for arg in self.args)
 
     @abc.abstractmethod
@@ -125,7 +119,7 @@ class Constraint(u.Canonical):
         elif context.lower() == 'dgp':
             return self.is_dgp(dpp=True)
         else:
-            raise ValueError("Unsupported context ", context)
+            raise ValueError('Unsupported context ', context)
 
     @property
     @abc.abstractmethod
@@ -167,8 +161,9 @@ class Constraint(u.Canonical):
         """
         residual = self.residual
         if residual is None:
-            raise ValueError("Cannot compute the violation of an constraint "
-                             "whose expression is None-valued.")
+            raise ValueError(
+                'Cannot compute the violation of an constraint ' 'whose expression is None-valued.'
+            )
         return residual
 
     def value(self, tolerance: float = 1e-8):
@@ -193,14 +188,14 @@ class Constraint(u.Canonical):
         """
         residual = self.residual
         if residual is None:
-            raise ValueError("Cannot compute the value of an constraint "
-                             "whose expression is None-valued.")
+            raise ValueError(
+                'Cannot compute the value of an constraint ' 'whose expression is None-valued.'
+            )
         return np.all(residual <= tolerance)
 
     @property
     def id(self):
-        """Wrapper for compatibility with variables.
-        """
+        """Wrapper for compatibility with variables."""
         return self.constr_id
 
     @id.setter
@@ -208,16 +203,16 @@ class Constraint(u.Canonical):
         self.constr_id = value
 
     def get_data(self):
-        """Data needed to copy.
-        """
+        """Data needed to copy."""
         return [self.id]
 
     def _chain_constraints(self):
-        """Raises an error due to chained constraints.
-        """
+        """Raises an error due to chained constraints."""
         raise Exception(
-            ("Cannot evaluate the truth value of a constraint or "
-             "chain constraints, e.g., 1 >= x >= 0.")
+            (
+                'Cannot evaluate the truth value of a constraint or '
+                'chain constraints, e.g., 1 >= x >= 0.'
+            )
         )
 
     def __bool__(self):
@@ -234,8 +229,7 @@ class Constraint(u.Canonical):
 
     @property
     def dual_value(self):
-        """NumPy.ndarray : The value of the dual variable.
-        """
+        """NumPy.ndarray : The value of the dual variable."""
         dual_vals = [dv.value for dv in self.dual_variables]
         if len(dual_vals) == 1:
             return dual_vals[0]

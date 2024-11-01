@@ -13,6 +13,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+
 from typing import Callable, List, Tuple
 
 import numpy as np
@@ -25,7 +26,6 @@ from cvxpy.reductions.canonicalization import Canonicalization
 
 
 def exprval_in_vec_ineq(expr, vec):
-
     assert len(expr.shape) == 1
     n_entries = expr.shape[0]
 
@@ -77,10 +77,9 @@ class Valinvec2mixedint(Canonicalization):
     def accepts(self, problem) -> bool:
         return any(FiniteSet in {type(c) for c in problem.constraints})
 
-    CANON_METHODS = {
-        FiniteSet: finite_set_canon
-    }
+    CANON_METHODS = {FiniteSet: finite_set_canon}
 
     def __init__(self, problem=None) -> None:
-        super(Valinvec2mixedint, self).__init__(problem=problem,
-                                                canon_methods=Valinvec2mixedint.CANON_METHODS)
+        super(Valinvec2mixedint, self).__init__(
+            problem=problem, canon_methods=Valinvec2mixedint.CANON_METHODS
+        )

@@ -1,6 +1,7 @@
 """
 This file is the CVXPY QP extension of the Cardinal Optimizer
 """
+
 import numpy as np
 import scipy.sparse as sp
 
@@ -13,25 +14,26 @@ class COPT(QpSolver):
     """
     QP interface for the COPT solver
     """
+
     # Solve capabilities
     MIP_CAPABLE = True
 
     # Keyword arguments for the CVXPY interface.
-    INTERFACE_ARGS = ["save_file", "reoptimize"]
+    INTERFACE_ARGS = ['save_file', 'reoptimize']
 
     # Map between COPT status and CVXPY status
     STATUS_MAP = {
-                  1: s.OPTIMAL,             # optimal
-                  2: s.INFEASIBLE,          # infeasible
-                  3: s.UNBOUNDED,           # unbounded
-                  4: s.INF_OR_UNB,          # infeasible or unbounded
-                  5: s.SOLVER_ERROR,        # numerical
-                  6: s.USER_LIMIT,          # node limit
-                  7: s.OPTIMAL_INACCURATE,  # imprecise
-                  8: s.USER_LIMIT,          # time out
-                  9: s.SOLVER_ERROR,        # unfinished
-                  10: s.USER_LIMIT          # interrupted
-                 }
+        1: s.OPTIMAL,  # optimal
+        2: s.INFEASIBLE,  # infeasible
+        3: s.UNBOUNDED,  # unbounded
+        4: s.INF_OR_UNB,  # infeasible or unbounded
+        5: s.SOLVER_ERROR,  # numerical
+        6: s.USER_LIMIT,  # node limit
+        7: s.OPTIMAL_INACCURATE,  # imprecise
+        8: s.USER_LIMIT,  # time out
+        9: s.SOLVER_ERROR,  # unfinished
+        10: s.USER_LIMIT,  # interrupted
+    }
 
     def name(self):
         """
@@ -50,9 +52,11 @@ class COPT(QpSolver):
         Returns the solution to the original problem given the inverse_data.
         """
         status = solution[s.STATUS]
-        attr = {s.SOLVE_TIME: solution[s.SOLVE_TIME],
-                s.NUM_ITERS: solution[s.NUM_ITERS],
-                s.EXTRA_STATS: solution['model']}
+        attr = {
+            s.SOLVE_TIME: solution[s.SOLVE_TIME],
+            s.NUM_ITERS: solution[s.NUM_ITERS],
+            s.EXTRA_STATS: solution['model'],
+        }
 
         primal_vars = None
         dual_vars = None
@@ -149,7 +153,7 @@ class COPT(QpSolver):
         # Load Q data
         if P.count_nonzero():
             P = P.tocoo()
-            model.loadQ(0.5*P)
+            model.loadQ(0.5 * P)
 
         # Set parameters
         for key, value in solver_opts.items():

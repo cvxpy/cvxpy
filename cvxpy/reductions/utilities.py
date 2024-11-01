@@ -61,8 +61,7 @@ def special_index_canon(expr, args):
 
 
 def are_args_affine(constraints) -> bool:
-    return all(arg.is_affine() for constr in constraints
-               for arg in constr.args)
+    return all(arg.is_affine() for constr in constraints for arg in constr.args)
 
 
 def group_constraints(constraints):
@@ -137,9 +136,9 @@ class ReducedMat:
             # Form a reduced representation of the mapping,
             # for faster application of parameters.
             if np.prod(self.matrix_data.shape) != 0:
-                reduced_mat, indices, indptr, shape = (
-                    canonInterface.reduce_problem_data_tensor(
-                        self.matrix_data, self.var_len, self.quad_form))
+                reduced_mat, indices, indptr, shape = canonInterface.reduce_problem_data_tensor(
+                    self.matrix_data, self.var_len, self.quad_form
+                )
                 self.reduced_mat = reduced_mat
                 self.problem_data_index = (indices, indptr, shape)
             else:
@@ -148,7 +147,8 @@ class ReducedMat:
 
         if keep_zeros and self.mapping_nonzero is None:
             self.mapping_nonzero = canonInterface.A_mapping_nonzero_rows(
-                self.matrix_data, self.var_len)
+                self.matrix_data, self.var_len
+            )
 
     def get_matrix_from_tensor(self, param_vec: np.ndarray, with_offset: bool = True) -> Tuple:
         """Wraps get_matrix_from_tensor in canonInterface.
@@ -165,7 +165,10 @@ class ReducedMat:
             If with_offset=False, returned b is None.
         """
         return canonInterface.get_matrix_from_tensor(
-            self.reduced_mat, param_vec, self.var_len,
+            self.reduced_mat,
+            param_vec,
+            self.var_len,
             nonzero_rows=self.mapping_nonzero,
             with_offset=with_offset,
-            problem_data_index=self.problem_data_index)
+            problem_data_index=self.problem_data_index,
+        )

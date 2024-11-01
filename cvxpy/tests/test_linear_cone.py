@@ -32,12 +32,13 @@ from cvxpy.tests.solver_test_helpers import SolverTestHelper
 
 def solve_wrapper(solver, param_cone_prog):
     data, inv_data = solver.apply(param_cone_prog)
-    return solver.invert(solver.solve_via_data(
-        data, warm_start=False, verbose=False, solver_opts={}), inv_data)
+    return solver.invert(
+        solver.solve_via_data(data, warm_start=False, verbose=False, solver_opts={}), inv_data
+    )
 
 
 class TestLinearCone(BaseTest):
-    """ Unit tests for the domain module. """
+    """Unit tests for the domain module."""
 
     def setUp(self) -> None:
         self.a = Variable(name='a')
@@ -55,10 +56,9 @@ class TestLinearCone(BaseTest):
         self.solvers = [CLARABEL()]
 
     def test_scalar_lp(self) -> None:
-        """Test scalar LP problems.
-        """
+        """Test scalar LP problems."""
         for solver in self.solvers:
-            p = Problem(Minimize(3*self.a), [self.a >= 2])
+            p = Problem(Minimize(3 * self.a), [self.a >= 2])
             self.assertTrue(ConeMatrixStuffing().accepts(p))
             result = p.solve(solver.name())
             p_new = ConeMatrixStuffing().apply(p)
@@ -66,12 +66,12 @@ class TestLinearCone(BaseTest):
             self.assertAlmostEqual(result, sltn.opt_val)
             inv_sltn = ConeMatrixStuffing().invert(sltn, p_new[1])
             self.assertAlmostEqual(inv_sltn.opt_val, result)
-            self.assertAlmostEqual(inv_sltn.primal_vars[self.a.id],
-                                   self.a.value)
+            self.assertAlmostEqual(inv_sltn.primal_vars[self.a.id], self.a.value)
 
             # TODO: Maximize
-            p = Problem(Minimize(-3*self.a + self.b),
-                        [self.a <= 2, self.b == self.a, self.b <= 5])
+            p = Problem(
+                Minimize(-3 * self.a + self.b), [self.a <= 2, self.b == self.a, self.b <= 5]
+            )
             result = p.solve(solver.name())
             self.assertTrue(ConeMatrixStuffing().accepts(p))
             p_new = ConeMatrixStuffing().apply(p)
@@ -79,16 +79,14 @@ class TestLinearCone(BaseTest):
             self.assertAlmostEqual(sltn.opt_val, result)
             inv_sltn = ConeMatrixStuffing().invert(sltn, p_new[1])
             self.assertAlmostEqual(inv_sltn.opt_val, result)
-            self.assertAlmostEqual(inv_sltn.primal_vars[self.a.id],
-                                   self.a.value)
-            self.assertAlmostEqual(inv_sltn.primal_vars[self.b.id],
-                                   self.b.value)
+            self.assertAlmostEqual(inv_sltn.primal_vars[self.a.id], self.a.value)
+            self.assertAlmostEqual(inv_sltn.primal_vars[self.b.id], self.b.value)
 
             # With a constant in the objective.
-            p = Problem(Minimize(3*self.a - self.b + 100),
-                        [self.a >= 2,
-                         self.b + 5*self.c - 2 == self.a,
-                         self.b <= 5 + self.c])
+            p = Problem(
+                Minimize(3 * self.a - self.b + 100),
+                [self.a >= 2, self.b + 5 * self.c - 2 == self.a, self.b <= 5 + self.c],
+            )
             self.assertTrue(ConeMatrixStuffing().accepts(p))
             result = p.solve(solver.name())
             p_new = ConeMatrixStuffing().apply(p)
@@ -96,10 +94,8 @@ class TestLinearCone(BaseTest):
             self.assertAlmostEqual(sltn.opt_val, result)
             inv_sltn = ConeMatrixStuffing().invert(sltn, p_new[1])
             self.assertAlmostEqual(inv_sltn.opt_val, result)
-            self.assertAlmostEqual(inv_sltn.primal_vars[self.a.id],
-                                   self.a.value)
-            self.assertAlmostEqual(inv_sltn.primal_vars[self.b.id],
-                                   self.b.value)
+            self.assertAlmostEqual(inv_sltn.primal_vars[self.a.id], self.a.value)
+            self.assertAlmostEqual(inv_sltn.primal_vars[self.b.id], self.b.value)
 
             # Unbounded problems.
             # TODO: Maximize
@@ -151,16 +147,14 @@ class TestLinearCone(BaseTest):
             inv_sltn = ConeMatrixStuffing().invert(sltn, p_new1[1])
 
             self.assertAlmostEqual(inv_sltn.opt_val, result)
-            self.assertItemsAlmostEqual(inv_sltn.primal_vars[self.x.id],
-                                        self.x.value)
+            self.assertItemsAlmostEqual(inv_sltn.primal_vars[self.x.id], self.x.value)
 
             A = Constant(np.array([[3, 5], [1, 2]]).T).value
             Imat = Constant([[1, 0], [0, 1]])
-            p = Problem(Minimize(c.T @ self.x + self.a),
-                        [A @ self.x >= [-1, 1],
-                         4*Imat @ self.z == self.x,
-                         self.z >= [2, 2],
-                         self.a >= 2])
+            p = Problem(
+                Minimize(c.T @ self.x + self.a),
+                [A @ self.x >= [-1, 1], 4 * Imat @ self.z == self.x, self.z >= [2, 2], self.a >= 2],
+            )
             self.assertTrue(ConeMatrixStuffing().accepts(p))
             result = p.solve(solver.name())
             p_new = ConeMatrixStuffing().apply(p)
@@ -170,8 +164,7 @@ class TestLinearCone(BaseTest):
             inv_sltn = ConeMatrixStuffing().invert(sltn, p_new[1])
             self.assertAlmostEqual(inv_sltn.opt_val, result, places=1)
             for var in p.variables():
-                self.assertItemsAlmostEqual(inv_sltn.primal_vars[var.id],
-                                            var.value, places=1)
+                self.assertItemsAlmostEqual(inv_sltn.primal_vars[var.id], var.value, places=1)
 
     # Test matrix LP problems.
     def test_matrix_lp(self) -> None:
@@ -186,12 +179,10 @@ class TestLinearCone(BaseTest):
             inv_sltn = ConeMatrixStuffing().invert(sltn, p_new[1])
             self.assertAlmostEqual(inv_sltn.opt_val, result)
             for var in p.variables():
-                self.assertItemsAlmostEqual(inv_sltn.primal_vars[var.id],
-                                            var.value)
+                self.assertItemsAlmostEqual(inv_sltn.primal_vars[var.id], var.value)
 
-            T = Constant(np.ones((2, 3))*2).value
-            p = Problem(Minimize(1), [self.A >= T @ self.C,
-                                      self.A == self.B, self.C == T.T])
+            T = Constant(np.ones((2, 3)) * 2).value
+            p = Problem(Minimize(1), [self.A >= T @ self.C, self.A == self.B, self.C == T.T])
             self.assertTrue(ConeMatrixStuffing().accepts(p))
             result = p.solve(solver.name())
             p_new = ConeMatrixStuffing().apply(p)
@@ -200,12 +191,10 @@ class TestLinearCone(BaseTest):
             inv_sltn = ConeMatrixStuffing().invert(sltn, p_new[1])
             self.assertAlmostEqual(inv_sltn.opt_val, result)
             for var in p.variables():
-                self.assertItemsAlmostEqual(inv_sltn.primal_vars[var.id],
-                                            var.value)
+                self.assertItemsAlmostEqual(inv_sltn.primal_vars[var.id], var.value)
 
     def test_socp(self) -> None:
-        """Test SOCP problems.
-        """
+        """Test SOCP problems."""
         for solver in self.solvers:
             # Basic.
             p = Problem(Minimize(self.b), [pnorm(self.x, p=2) <= self.b])
@@ -220,14 +209,17 @@ class TestLinearCone(BaseTest):
             inv_sltn = ConeMatrixStuffing().invert(sltn, p_new[1])
             self.assertAlmostEqual(inv_sltn.opt_val, result)
             for var in p.variables():
-                self.assertItemsAlmostEqual(inv_sltn.primal_vars[var.id],
-                                            var.value)
+                self.assertItemsAlmostEqual(inv_sltn.primal_vars[var.id], var.value)
 
             # More complex.
-            p = Problem(Minimize(self.b), [pnorm(self.x/2 + self.y[:2], p=2) <= self.b+5,
-                                           self.x >= 1, self.y == 5])
-            pmod = Problem(Minimize(self.b), [SOC(self.b+5, self.x/2 + self.y[:2]),
-                                              self.x >= 1, self.y == 5])
+            p = Problem(
+                Minimize(self.b),
+                [pnorm(self.x / 2 + self.y[:2], p=2) <= self.b + 5, self.x >= 1, self.y == 5],
+            )
+            pmod = Problem(
+                Minimize(self.b),
+                [SOC(self.b + 5, self.x / 2 + self.y[:2]), self.x >= 1, self.y == 5],
+            )
             self.assertTrue(ConeMatrixStuffing().accepts(pmod))
             result = p.solve(solver.name())
             p_new = ConeMatrixStuffing().apply(pmod)
@@ -236,12 +228,10 @@ class TestLinearCone(BaseTest):
             inv_sltn = ConeMatrixStuffing().invert(sltn, p_new[1])
             self.assertAlmostEqual(inv_sltn.opt_val, result, places=2)
             for var in p.variables():
-                self.assertItemsAlmostEqual(inv_sltn.primal_vars[var.id],
-                                            var.value, places=2)
+                self.assertItemsAlmostEqual(inv_sltn.primal_vars[var.id], var.value, places=2)
 
     def exp_cone(self) -> None:
-        """Test exponential cone problems.
-        """
+        """Test exponential cone problems."""
         for solver in self.solvers:
             # Basic.
             p = Problem(Minimize(self.b), [exp(self.a) <= self.b, self.a >= 1])
@@ -256,14 +246,16 @@ class TestLinearCone(BaseTest):
             inv_sltn = ConeMatrixStuffing().invert(sltn, p_new[1])
             self.assertAlmostEqual(inv_sltn.opt_val, result, places=1)
             for var in pmod.variables():
-                self.assertItemsAlmostEqual(inv_sltn.primal_vars[var.id],
-                                            var.value, places=1)
+                self.assertItemsAlmostEqual(inv_sltn.primal_vars[var.id], var.value, places=1)
 
             # More complex.
-            p = Problem(Minimize(self.b), [exp(self.a/2 + self.c) <= self.b+5,
-                                           self.a >= 1, self.c >= 5])
-            pmod = Problem(Minimize(self.b), [ExpCone(self.a/2 + self.c, Constant(1), self.b+5),
-                                              self.a >= 1, self.c >= 5])
+            p = Problem(
+                Minimize(self.b), [exp(self.a / 2 + self.c) <= self.b + 5, self.a >= 1, self.c >= 5]
+            )
+            pmod = Problem(
+                Minimize(self.b),
+                [ExpCone(self.a / 2 + self.c, Constant(1), self.b + 5), self.a >= 1, self.c >= 5],
+            )
             self.assertTrue(ConeMatrixStuffing().accepts(pmod))
             result = p.solve(solver.name())
             p_new = ConeMatrixStuffing().apply(pmod)
@@ -272,20 +264,14 @@ class TestLinearCone(BaseTest):
             inv_sltn = ConeMatrixStuffing().invert(sltn, p_new[1])
             self.assertAlmostEqual(inv_sltn.opt_val, result, places=0)
             for var in pmod.variables():
-                self.assertItemsAlmostEqual(inv_sltn.primal_vars[var.id],
-                                            var.value, places=0)
+                self.assertItemsAlmostEqual(inv_sltn.primal_vars[var.id], var.value, places=0)
 
     # Test positive definite constraints.
     def test_psd_constraints(self) -> None:
-        """ Test positive semi-definite constraints
-        """
+        """Test positive semi-definite constraints"""
         C = Variable((3, 3))
         obj = Maximize(C[0, 2])
-        constraints = [diag(C) == 1,
-                       C[0, 1] == 0.6,
-                       C[1, 2] == -0.3,
-                       C == C.T,
-                       C >> 0]
+        constraints = [diag(C) == 1, C[0, 1] == 0.6, C[1, 2] == -0.3, C == C.T, C >> 0]
         prob = Problem(obj, constraints)
         self.assertTrue(FlipObjective().accepts(prob))
         p_min = FlipObjective().apply(prob)
@@ -308,10 +294,7 @@ class TestLinearCone(BaseTest):
     def test_nonneg_constraints_backend(self) -> None:
         x = Variable(shape=(2,), name='x')
         objective = Maximize(-4 * x[0] - 5 * x[1])
-        constr_expr = hstack([3 - (2 * x[0] + x[1]),
-                              3 - (x[0] + 2 * x[1]),
-                              x[0],
-                              x[1]])
+        constr_expr = hstack([3 - (2 * x[0] + x[1]), 3 - (x[0] + 2 * x[1]), x[0], x[1]])
         constraints = [NonNeg(constr_expr)]
         prob = Problem(objective, constraints)
         self.assertFalse(ConeMatrixStuffing().accepts(prob))
@@ -322,10 +305,7 @@ class TestLinearCone(BaseTest):
     def test_nonneg_constraints_end_user(self) -> None:
         x = Variable(shape=(2,), name='x')
         objective = Minimize(-4 * x[0] - 5 * x[1])
-        constr_expr = hstack([3 - (2 * x[0] + x[1]),
-                              3 - (x[0] + 2 * x[1]),
-                              x[0],
-                              x[1]])
+        constr_expr = hstack([3 - (2 * x[0] + x[1]), 3 - (x[0] + 2 * x[1]), x[0], x[1]])
         constraints = [NonNeg(constr_expr)]
         expect_dual_var = np.array([1, 2, 0, 0])
         con_pairs = [(constraints[0], expect_dual_var)]
@@ -348,7 +328,7 @@ class TestLinearCone(BaseTest):
         expr_val = constraints[0].residual
         self.assertItemsAlmostEqual(
             expr_val,  # first two constraints are feasible.
-            np.array([0, 0, 1, 2])
+            np.array([0, 0, 1, 2]),
         )
         # Run a second check for violations
         reported_viol = constraints[0].violation()

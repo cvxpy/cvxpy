@@ -15,13 +15,21 @@ from cvxpy.reductions.solvers.solver import Solver
 from cvxpy.utilities.canonical import Canonical
 
 
-@pytest.mark.parametrize("expected_abc", [
-    Canonical,
-    Expression, Atom, AffAtom, Leaf,
-    Constraint,
-    Reduction, Solver, ConicSolver,
-    ParamProb,
-    BaseMatrixInterface,
-])
+@pytest.mark.parametrize(
+    'expected_abc',
+    [
+        Canonical,
+        Expression,
+        Atom,
+        AffAtom,
+        Leaf,
+        Constraint,
+        Reduction,
+        Solver,
+        ConicSolver,
+        ParamProb,
+        BaseMatrixInterface,
+    ],
+)
 def test_is_abstract(expected_abc):
     assert inspect.isabstract(expected_abc)

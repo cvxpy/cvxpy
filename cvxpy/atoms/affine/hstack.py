@@ -13,6 +13,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+
 from typing import List, Tuple
 
 import numpy as np
@@ -23,7 +24,7 @@ from cvxpy.atoms.affine.affine_atom import AffAtom
 from cvxpy.constraints.constraint import Constraint
 
 
-def hstack(arg_list) -> "Hstack":
+def hstack(arg_list) -> 'Hstack':
     """Horizontal concatenation of an arbitrary number of Expressions.
 
     Parameters
@@ -39,7 +40,8 @@ def hstack(arg_list) -> "Hstack":
 
 
 class Hstack(AffAtom):
-    """ Horizontal concatenation """
+    """Horizontal concatenation"""
+
     def is_atom_log_log_convex(self) -> bool:
         return True
 
@@ -61,8 +63,7 @@ class Hstack(AffAtom):
     # All arguments must have the same width.
     def validate_arguments(self) -> None:
         model = self.args[0].shape
-        error = ValueError(("All the input dimensions except"
-                            " for axis 1 must match exactly."))
+        error = ValueError(('All the input dimensions except' ' for axis 1 must match exactly.'))
         for arg in self.args[1:]:
             if len(arg.shape) != len(model):
                 raise error

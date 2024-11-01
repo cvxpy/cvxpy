@@ -13,6 +13,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+
 import numpy as np
 
 from cvxpy.atoms.affine.diag import diag
@@ -23,7 +24,6 @@ from cvxpy.utilities.perspective_utils import form_cone_constraint
 
 
 def perspective_canon(expr, args):
-
     from cvxpy.problems.problem import Problem
 
     # Only working for minimization right now.
@@ -31,7 +31,7 @@ def perspective_canon(expr, args):
     aux_prob = Problem((Minimize if expr.f.is_convex() else Maximize)(expr.f))
     # Does numerical solution value of epigraph t coincide with expr.f numerical
     # value at opt?
-    solver_opts = {"use_quad_obj": False}
+    solver_opts = {'use_quad_obj': False}
     chain = aux_prob._construct_chain(solver_opts=solver_opts, ignore_dpp=True)
     chain.reductions = chain.reductions[:-1]  # skip solver reduction
     prob_canon = chain.apply(aux_prob)[0]  # grab problem instance
@@ -39,7 +39,7 @@ def perspective_canon(expr, args):
 
     c = prob_canon.c.toarray().flatten()[:-1]
     d = prob_canon.c.toarray().flatten()[-1]
-    Ab = prob_canon.A.toarray().reshape((-1, len(c)+1), order="F")
+    Ab = prob_canon.A.toarray().reshape((-1, len(c) + 1), order='F')
     A, b = Ab[:, :-1], Ab[:, -1]
 
     # given f in epigraph form, aka epi f = \{(x,t) | f(x) \leq t\}
@@ -62,17 +62,17 @@ def perspective_canon(expr, args):
     if A.shape[0] > 0:
         # Rules out the case where f is affine and requires no additional
         # constraints.
-        x_pers = A@x_canon + s*b
+        x_pers = A @ x_canon + s * b
 
         i = 0
         for con in prob_canon.constraints:
             sz = con.size
-            var_slice = x_pers[i:i+sz]
+            var_slice = x_pers[i : i + sz]
             pers_constraint = form_cone_constraint(var_slice, con)
             constraints.append(pers_constraint)
             i += sz
 
-    constraints.append(-c@x_canon + t - s*d >= 0)
+    constraints.append(-c @ x_canon + t - s * d >= 0)
 
     # recover initial variables
 
@@ -80,8 +80,8 @@ def perspective_canon(expr, args):
 
     for var in expr.f.variables():
         start_ind = prob_canon.var_id_to_col[var.id]
-        end_ind = end_inds[end_inds.index(start_ind)+1]
-        if var.attributes["diag"]:  # checking for diagonal first because diagonal is also symmetric
+        end_ind = end_inds[end_inds.index(start_ind) + 1]
+        if var.attributes['diag']:  # checking for diagonal first because diagonal is also symmetric
             constraints += [diag(var) == x_canon[start_ind:end_ind]]
         elif var.is_symmetric() and var.size > 1:
             n = var.shape[0]
@@ -90,4 +90,4 @@ def perspective_canon(expr, args):
         else:
             constraints.append(vec(var, order='F') == x_canon[start_ind:end_ind])
 
-    return (1 if expr.f.is_convex() else -1)*t, constraints
+    return (1 if expr.f.is_convex() else -1) * t, constraints

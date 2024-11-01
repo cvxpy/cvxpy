@@ -23,18 +23,18 @@ from cvxpy.reductions.solvers.defines import INSTALLED_SOLVERS
 from cvxpy.tests import solver_test_helpers as STH
 
 solver_installed = pytest.mark.skipif(
-    cp.GLPK_MI not in INSTALLED_SOLVERS, reason="Required solver not installed"
+    cp.GLPK_MI not in INSTALLED_SOLVERS, reason='Required solver not installed'
 )
 
 
 @solver_installed
-@pytest.mark.parametrize("ineq_form", [True, False])
+@pytest.mark.parametrize('ineq_form', [True, False])
 class TestFiniteSet:
     @staticmethod
     def make_test_1(ineq_form: bool):
         """vec contains a contiguous range of integers"""
         x = cp.Variable(shape=(4,))
-        expect_x = np.array([0., 7., 3., 0.])
+        expect_x = np.array([0.0, 7.0, 3.0, 0.0])
         vec = np.arange(10)
         objective = cp.Maximize(x[0] + x[1] + 2 * x[2] - 2 * x[3])
         constr1 = FiniteSet(x[0], vec, ineq_form=ineq_form)
@@ -54,11 +54,9 @@ class TestFiniteSet:
             (constr5, None),
             (constr6, None),
             (constr7, None),
-            (constr8, None)
+            (constr8, None),
         ]
-        var_pairs = [
-            (x, expect_x)
-        ]
+        var_pairs = [(x, expect_x)]
         sth = STH.SolverTestHelper(obj_pair, var_pairs, con_pairs)
         return sth
 
@@ -78,14 +76,8 @@ class TestFiniteSet:
         constr2 = x <= 10
         constr3 = FiniteSet(x, vec, ineq_form=ineq_form)
         obj_pairs = (objective, -1.125)
-        var_pairs = [
-            (x, expect_x)
-        ]
-        con_pairs = [
-            (constr1, None),
-            (constr2, None),
-            (constr3, None)
-        ]
+        var_pairs = [(x, expect_x)]
+        con_pairs = [(constr1, None), (constr2, None), (constr3, None)]
         sth = STH.SolverTestHelper(obj_pairs, var_pairs, con_pairs)
         return sth
 
@@ -103,14 +95,10 @@ class TestFiniteSet:
         objective = cp.Minimize(cp.abs(x - 3))
         vec = [1]
         cons1 = FiniteSet(x, vec, ineq_form=ineq_form)
-        expected_x = np.array([1.])
+        expected_x = np.array([1.0])
         obj_pair = (objective, 2.0)
-        var_pairs = [
-            (x, expected_x)
-        ]
-        con_pairs = [
-            (cons1, None)
-        ]
+        var_pairs = [(x, expected_x)]
+        con_pairs = [(cons1, None)]
         sth = STH.SolverTestHelper(obj_pair, var_pairs, con_pairs)
         return sth
 
@@ -128,14 +116,10 @@ class TestFiniteSet:
         objective = cp.Minimize(cp.abs(x - 3))
         vec = [1, 1, 1, 2, 2, 3, 3]
         cons1 = FiniteSet(x, vec, ineq_form=ineq_form)
-        expected_x = np.array([3.])
+        expected_x = np.array([3.0])
         obj_pair = (objective, 0.0)
-        var_pairs = [
-            (x, expected_x)
-        ]
-        con_pairs = [
-            (cons1, None)
-        ]
+        var_pairs = [(x, expected_x)]
+        con_pairs = [(cons1, None)]
         sth = STH.SolverTestHelper(obj_pair, var_pairs, con_pairs)
         return sth
 
@@ -162,7 +146,7 @@ class TestFiniteSet:
         constr6 = 2 * x[1] - 8 * x[2] <= 0
         constr7 = x[1] - 2 * x[2] + x[3] >= 1
         constr8 = x[0] + x[1] + x[2] + x[3] == 10
-        expected_x = np.array([4., 4., 1., 1.])
+        expected_x = np.array([4.0, 4.0, 1.0, 1.0])
         obj_pair = (objective, 8.0)
         con_pairs = [
             (constr1, None),
@@ -172,11 +156,9 @@ class TestFiniteSet:
             (constr5, None),
             (constr6, None),
             (constr7, None),
-            (constr8, None)
+            (constr8, None),
         ]
-        var_pairs = [
-            (x, expected_x)
-        ]
+        var_pairs = [(x, expected_x)]
         sth = STH.SolverTestHelper(obj_pair, var_pairs, con_pairs)
         return sth
 
@@ -199,14 +181,8 @@ class TestFiniteSet:
         expr = 2 * x + 1
         constr3 = FiniteSet(expr, vec, ineq_form=ineq_form)
         obj_pairs = (objective, -1.0625)
-        var_pairs = [
-            (x, expect_x)
-        ]
-        con_pairs = [
-            (constr1, None),
-            (constr2, None),
-            (constr3, None)
-        ]
+        var_pairs = [(x, expect_x)]
+        con_pairs = [(constr1, None), (constr2, None), (constr3, None)]
         sth = STH.SolverTestHelper(obj_pairs, var_pairs, con_pairs)
         return sth
 
@@ -221,7 +197,7 @@ class TestFiniteSet:
     def make_test_7(ineq_form: bool):
         """For testing vectorization of FiniteSet class"""
         x = cp.Variable(shape=(4,))
-        expect_x = np.array([0., 7., 3., 0.])
+        expect_x = np.array([0.0, 7.0, 3.0, 0.0])
         vec = np.arange(10)
         objective = cp.Maximize(x[0] + x[1] + 2 * x[2] - 2 * x[3])
         constr1 = FiniteSet(x, vec, ineq_form=ineq_form)
@@ -235,11 +211,9 @@ class TestFiniteSet:
             (constr2, None),
             (constr3, None),
             (constr4, None),
-            (constr5, None)
+            (constr5, None),
         ]
-        var_pairs = [
-            (x, expect_x)
-        ]
+        var_pairs = [(x, expect_x)]
         sth = STH.SolverTestHelper(obj_pair, var_pairs, con_pairs)
         return sth
 
@@ -298,7 +272,7 @@ class TestFiniteSet:
         constraints = [FiniteSet(x, set_vals, ineq_form=ineq_form)]
         problem = cp.Problem(objective, constraints)
         problem.solve(solver=cp.GLPK_MI)
-        assert np.allclose(x.value, np.ones(shape)*max(set_vals))
+        assert np.allclose(x.value, np.ones(shape) * max(set_vals))
 
     @staticmethod
     def test_non_affine_exception(ineq_form: bool):
@@ -306,7 +280,7 @@ class TestFiniteSet:
         x = cp.Variable()
         x_abs = cp.abs(x)
         set_vals = {1, 2, 3}
-        with pytest.raises(ValueError, match="must be affine"):
+        with pytest.raises(ValueError, match='must be affine'):
             FiniteSet(x_abs, set_vals, ineq_form=ineq_form)
 
     @staticmethod
@@ -315,8 +289,10 @@ class TestFiniteSet:
         x = cp.Variable(shape)
         objective = cp.Maximize(cp.sum(x))
         set_vals = {0, 1, 2}
-        constraints = [FiniteSet(x, set_vals, ineq_form=ineq_form),
-                       x <= np.arange(4).reshape(shape)]
+        constraints = [
+            FiniteSet(x, set_vals, ineq_form=ineq_form),
+            x <= np.arange(4).reshape(shape),
+        ]
         problem = cp.Problem(objective, constraints)
         problem.solve(solver=cp.GLPK_MI)
         assert np.allclose(x.value, np.array([[0, 1], [2, 2]]))
@@ -326,7 +302,7 @@ class TestFiniteSet:
         """Test FiniteSet used in a GP."""
         x = cp.Variable(pos=True)
         y = cp.Variable(pos=True)
-        objective = cp.Maximize(x*y)
+        objective = cp.Maximize(x * y)
         # Test with a single element
         set_vals = {2}
         constraints = [FiniteSet(x, set_vals, ineq_form=ineq_form), y <= 1]
@@ -348,9 +324,9 @@ class TestFiniteSet:
         """Test FiniteSet applied to a monomial."""
         x = cp.Variable(pos=True)
         y = cp.Variable(pos=True)
-        objective = cp.Maximize(x*y)
+        objective = cp.Maximize(x * y)
         set_vals = {1, 2, 3}
-        constraints = [FiniteSet(x*y, set_vals, ineq_form=ineq_form), x == 1]
+        constraints = [FiniteSet(x * y, set_vals, ineq_form=ineq_form), x == 1]
         problem = cp.Problem(objective, constraints)
         # Without DPP.
         problem.solve(gp=True, solver=cp.GLPK_MI, ignore_dpp=True)
@@ -367,27 +343,27 @@ class TestFiniteSet:
         """Test FiniteSet used in a GP with invalid set."""
         x = cp.Variable(pos=True)
         y = cp.Variable(pos=True)
-        objective = cp.Maximize(x*y)
+        objective = cp.Maximize(x * y)
         # Test with 0.
         set_vals = {0, 1, 2, 3}
         constraints = [FiniteSet(x, set_vals, ineq_form=ineq_form), y <= 1]
         problem = cp.Problem(objective, constraints)
-        with pytest.raises(cp.error.DGPError, match="does not follow DGP"):
+        with pytest.raises(cp.error.DGPError, match='does not follow DGP'):
             problem.solve(gp=True, solver=cp.GLPK_MI)
 
         # Test with negative elements.
         set_vals = {-1, 1}
         constraints = [FiniteSet(x, set_vals, ineq_form=ineq_form), y <= 1]
         problem = cp.Problem(objective, constraints)
-        with pytest.raises(cp.error.DGPError, match="not DGP"):
+        with pytest.raises(cp.error.DGPError, match='not DGP'):
             problem.solve(gp=True, solver=cp.GLPK_MI)
 
         # Violates DPP.
         set_vals = {0.5, 1}
         param = cp.Parameter(pos=True, value=1)
-        constraints = [FiniteSet((x*param)**param, set_vals, ineq_form=ineq_form), y <= 1]
+        constraints = [FiniteSet((x * param) ** param, set_vals, ineq_form=ineq_form), y <= 1]
         problem = cp.Problem(objective, constraints)
-        with pytest.raises(cp.error.DPPError, match="not DPP"):
+        with pytest.raises(cp.error.DPPError, match='not DPP'):
             problem.solve(gp=True, solver=cp.GLPK_MI, enforce_dpp=True)
 
         # TODO get parameters working.
@@ -395,7 +371,7 @@ class TestFiniteSet:
         set_vals = cp.Parameter(3, pos=True, value=[1, 2, 3])
         constraints = [FiniteSet(x, set_vals, ineq_form=ineq_form), y <= 1]
         problem = cp.Problem(objective, constraints)
-        with pytest.raises(cp.error.DGPError, match="does not follow DGP"):
+        with pytest.raises(cp.error.DGPError, match='does not follow DGP'):
             problem.solve(gp=True, solver=cp.GLPK_MI)
 
 

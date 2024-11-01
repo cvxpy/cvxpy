@@ -46,6 +46,7 @@ class gmatmul(Atom):
     X : cvxpy.Expression
         A positive matrix.
     """
+
     def __init__(self, A, X) -> None:
         # NB: It is important that the exponent is an attribute, not
         # an argument. This prevents parametrized exponents from being replaced
@@ -54,56 +55,41 @@ class gmatmul(Atom):
         super(gmatmul, self).__init__(X)
 
     def numeric(self, values):
-        """Geometric matrix multiplication.
-        """
+        """Geometric matrix multiplication."""
         logX = np.log(values[0])
         return np.exp(self.A.value @ logX)
 
     def name(self) -> str:
-        return "%s(%s, %s)" % (self.__class__.__name__,
-                               self.A,
-                               self.args[0])
+        return '%s(%s, %s)' % (self.__class__.__name__, self.A, self.args[0])
 
     def validate_arguments(self) -> None:
-        """Raises an error if the arguments are invalid.
-        """
+        """Raises an error if the arguments are invalid."""
         super(gmatmul, self).validate_arguments()
         if not self.A.is_constant():
-            raise ValueError(
-                "gmatmul(A, X) requires that A be constant."
-            )
+            raise ValueError('gmatmul(A, X) requires that A be constant.')
         if self.A.parameters() and not isinstance(self.A, cvxtypes.parameter()):
-            raise ValueError(
-                "gmatmul(A, X) requires that A be a Constant or a Parameter."
-            )
+            raise ValueError('gmatmul(A, X) requires that A be a Constant or a Parameter.')
         if not self.args[0].is_pos():
-            raise ValueError(
-                "gmatmul(A, X) requires that X be positive."
-            )
+            raise ValueError('gmatmul(A, X) requires that X be positive.')
 
     def shape_from_args(self) -> Tuple[int, ...]:
-        """Returns the (row, col) shape of the expression.
-        """
+        """Returns the (row, col) shape of the expression."""
         return u.shape.mul_shapes(self.A.shape, self.args[0].shape)
 
     def get_data(self):
-        """Returns info needed to reconstruct the expression besides the args.
-        """
+        """Returns info needed to reconstruct the expression besides the args."""
         return [self.A]
 
     def sign_from_args(self) -> Tuple[bool, bool]:
-        """Returns sign (is positive, is negative) of the expression.
-        """
+        """Returns sign (is positive, is negative) of the expression."""
         return (True, False)
 
     def is_atom_convex(self) -> bool:
-        """Is the atom convex?
-        """
+        """Is the atom convex?"""
         return False
 
     def is_atom_concave(self) -> bool:
-        """Is the atom concave?
-        """
+        """Is the atom concave?"""
         return False
 
     def parameters(self):
@@ -111,8 +97,7 @@ class gmatmul(Atom):
         return self.args[0].parameters() + self.A.parameters()
 
     def is_atom_log_log_convex(self) -> bool:
-        """Is the atom log-log convex?
-        """
+        """Is the atom log-log convex?"""
         if u.scopes.dpp_scope_active():
             # This branch applies curvature rules for DPP.
             #
@@ -133,18 +118,15 @@ class gmatmul(Atom):
             return True
 
     def is_atom_log_log_concave(self) -> bool:
-        """Is the atom log-log concave?
-        """
+        """Is the atom log-log concave?"""
         return self.is_atom_log_log_convex()
 
     def is_incr(self, idx) -> bool:
-        """Is the composition non-decreasing in argument idx?
-        """
+        """Is the composition non-decreasing in argument idx?"""
         return self.A.is_nonneg()
 
     def is_decr(self, idx) -> bool:
-        """Is the composition non-increasing in argument idx?
-        """
+        """Is the composition non-increasing in argument idx?"""
         return self.A.is_nonpos()
 
     def _grad(self, values) -> None:

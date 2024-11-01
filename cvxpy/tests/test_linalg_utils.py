@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import numpy as np # noqa F403
+import numpy as np  # noqa F403
 import pytest
 import scipy.sparse as spar
 
@@ -23,12 +23,13 @@ from cvxpy.utilities import linalg as lau
 
 try:
     import lau.sparse_cholesky
+
     missing_extension = False
 except ModuleNotFoundError:
     missing_extension = True
 
-class TestSparseCholesky(BaseTest):
 
+class TestSparseCholesky(BaseTest):
     def check_gram(self, Lp, A, places=5):
         G = Lp @ Lp.T
         delta = (G - A).toarray().flatten()
@@ -40,7 +41,7 @@ class TestSparseCholesky(BaseTest):
         delta = (L - spar.tril(L)).toarray().flatten()
         self.assertItemsAlmostEqual(delta, np.zeros(delta.size), places)
 
-    @pytest.mark.skipif(missing_extension, reason="requires sparse_cholesky")
+    @pytest.mark.skipif(missing_extension, reason='requires sparse_cholesky')
     def test_diagonal(self):
         np.random.seed(0)
         A = spar.csc_matrix(np.diag(np.random.rand(4)))
@@ -48,7 +49,7 @@ class TestSparseCholesky(BaseTest):
         self.check_factor(L)
         self.check_gram(L[p, :], A)
 
-    @pytest.mark.skipif(missing_extension, reason="requires sparse_cholesky")
+    @pytest.mark.skipif(missing_extension, reason='requires sparse_cholesky')
     def test_tridiagonal(self):
         np.random.seed(0)
         n = 5
@@ -59,7 +60,7 @@ class TestSparseCholesky(BaseTest):
         self.check_factor(L)
         self.check_gram(L[p, :], A)
 
-    @pytest.mark.skipif(missing_extension, reason="requires sparse_cholesky")
+    @pytest.mark.skipif(missing_extension, reason='requires sparse_cholesky')
     def test_generic(self):
         np.random.seed(0)
         B = np.random.randn(3, 3)
@@ -68,7 +69,7 @@ class TestSparseCholesky(BaseTest):
         self.check_factor(L)
         self.check_gram(L[p, :], A)
 
-    @pytest.mark.skipif(missing_extension, reason="requires sparse_cholesky")
+    @pytest.mark.skipif(missing_extension, reason='requires sparse_cholesky')
     def test_singular(self):
         # error on singular PSD matrix
         np.random.seed(0)
@@ -77,12 +78,12 @@ class TestSparseCholesky(BaseTest):
         with self.assertRaises(ValueError, msg=lau.SparseCholeskyMessages.EIGEN_FAIL):
             lau.sparse_cholesky(A)
 
-    @pytest.mark.skipif(missing_extension, reason="requires sparse_cholesky")
+    @pytest.mark.skipif(missing_extension, reason='requires sparse_cholesky')
     def test_nonsingular_indefinite(self):
         np.random.seed(0)
         n = 5
         diag = np.random.rand(n) + 0.1
-        diag[n-1] = -1
+        diag[n - 1] = -1
         offdiag = np.min(np.abs(diag)) * np.ones(n - 1) / 2
         A = spar.diags([offdiag, diag, offdiag], [-1, 0, 1])
         with self.assertRaises(ValueError, msg=lau.SparseCholeskyMessages.INDEFINITE):

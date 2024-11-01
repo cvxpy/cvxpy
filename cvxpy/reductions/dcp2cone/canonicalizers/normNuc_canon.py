@@ -32,8 +32,7 @@ def normNuc_canon(expr, args) -> Tuple[float, List[Constraint]]:
     constraints = []
     U = Variable(shape=(m, m), symmetric=True)
     V = Variable(shape=(n, n), symmetric=True)
-    X = bmat([[U, A],
-              [A.T, V]])
+    X = bmat([[U, A], [A.T, V]])
     constraints.append(X >> 0)
     trace_value = 0.5 * (trace(U) + trace(V))
     return trace_value, constraints

@@ -13,6 +13,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+
 import numpy as np
 
 from cvxpy.constraints.constraint import Constraint
@@ -61,9 +62,12 @@ class FiniteSet(Constraint):
             vec = list(vec)
         vec = Expression.cast_to_const(vec).flatten(order='F')
         if not expre.is_affine() and not expre.is_log_log_affine():
-            msg = """
+            msg = (
+                """
             Provided Expression must be affine or log-log affine, but had curvature %s.
-            """ % expre.curvature
+            """
+                % expre.curvature
+            )
             raise ValueError(msg)
         # Note: we use the term "expre" rather than "expr" since
         # "expr" is already a property used by all Constraint classes.
@@ -73,7 +77,7 @@ class FiniteSet(Constraint):
         super(FiniteSet, self).__init__([expre, vec], constr_id)
 
     def name(self) -> str:
-        return "FiniteSet(%s, %s)" % (self.args[0], self.args[1])
+        return 'FiniteSet(%s, %s)' % (self.args[0], self.args[1])
 
     def get_data(self):
         return [self._ineq_form, self.id]

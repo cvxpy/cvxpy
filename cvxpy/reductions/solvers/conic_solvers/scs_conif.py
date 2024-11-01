@@ -14,6 +14,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+
 import numpy as np
 import scipy.sparse as sp
 
@@ -35,6 +36,7 @@ def dims_to_solver_dict(cone_dims):
     cones = dims_to_solver_dict_default(cone_dims)
 
     import scs
+
     if Version(scs.__version__) >= Version('3.0.0'):
         cones['z'] = cones.pop('f')  # renamed to 'z' in SCS 3.0.0
     return cones
@@ -71,7 +73,7 @@ def tri_to_full(lower_tri, n):
     full[np.diag_indices(n)] /= 2
     full[np.tril_indices(n, k=-1)] /= np.sqrt(2)
     full[np.triu_indices(n, k=1)] /= np.sqrt(2)
-    return np.reshape(full, n*n, order="F")
+    return np.reshape(full, n * n, order='F')
 
 
 def scs_psdvec_to_psdmat(vec: Expression, indices: np.ndarray) -> Expression:
@@ -112,25 +114,25 @@ def scs_psdvec_to_psdmat(vec: Expression, indices: np.ndarray) -> Expression:
 
 
 class SCS(ConicSolver):
-    """An interface for the SCS solver.
-    """
+    """An interface for the SCS solver."""
 
     # Solver capabilities.
     MIP_CAPABLE = False
-    SUPPORTED_CONSTRAINTS = ConicSolver.SUPPORTED_CONSTRAINTS \
-        + [SOC, ExpCone, PSD, PowCone3D]
+    SUPPORTED_CONSTRAINTS = ConicSolver.SUPPORTED_CONSTRAINTS + [SOC, ExpCone, PSD, PowCone3D]
     REQUIRES_CONSTR = True
 
     # Map of SCS status value to CVXPY status.
-    STATUS_MAP = {1: s.OPTIMAL,
-                  2: s.OPTIMAL_INACCURATE,
-                  -1: s.UNBOUNDED,
-                  -6: s.UNBOUNDED_INACCURATE,
-                  -2: s.INFEASIBLE,
-                  -7: s.INFEASIBLE_INACCURATE,
-                  -4: s.SOLVER_ERROR,           # Failed
-                  -3: s.SOLVER_ERROR,           # Indeterminate
-                  -5: s.SOLVER_ERROR}           # SIGINT
+    STATUS_MAP = {
+        1: s.OPTIMAL,
+        2: s.OPTIMAL_INACCURATE,
+        -1: s.UNBOUNDED,
+        -6: s.UNBOUNDED_INACCURATE,
+        -2: s.INFEASIBLE,
+        -7: s.INFEASIBLE_INACCURATE,
+        -4: s.SOLVER_ERROR,  # Failed
+        -3: s.SOLVER_ERROR,  # Indeterminate
+        -5: s.SOLVER_ERROR,
+    }  # SIGINT
 
     # Order of exponential cone arguments for solver.
     EXP_CONE_ORDER = [0, 1, 2]
@@ -151,19 +153,17 @@ class SCS(ConicSolver):
     """
 
     def name(self):
-        """The name of the solver.
-        """
+        """The name of the solver."""
         return s.SCS
 
     def import_solver(self) -> None:
-        """Imports the solver.
-        """
+        """Imports the solver."""
         import scs  # noqa F401
 
     def supports_quad_obj(self) -> bool:
-        """SCS >= 3.0.0 supports a quadratic objective.
-        """
+        """SCS >= 3.0.0 supports a quadratic objective."""
         import scs
+
         return Version(scs.__version__) >= Version('3.0.0')
 
     @staticmethod
@@ -176,14 +176,12 @@ class SCS(ConicSolver):
         sqrt(2), and applies to the symmetric part of the constrained expression.
         """
         rows = cols = constr.expr.shape[0]
-        entries = rows * (cols + 1)//2
+        entries = rows * (cols + 1) // 2
 
         row_arr = np.arange(0, entries)
 
         lower_diag_indices = np.tril_indices(rows)
-        col_arr = np.sort(np.ravel_multi_index(lower_diag_indices,
-                                               (rows, cols),
-                                               order='F'))
+        col_arr = np.sort(np.ravel_multi_index(lower_diag_indices, (rows, cols), order='F'))
 
         val_arr = np.zeros((rows, cols))
         val_arr[lower_diag_indices] = np.sqrt(2)
@@ -191,7 +189,7 @@ class SCS(ConicSolver):
         val_arr = np.ravel(val_arr, order='F')
         val_arr = val_arr[np.nonzero(val_arr)]
 
-        shape = (entries, rows*cols)
+        shape = (entries, rows * cols)
         scaled_lower_tri = sp.csc_matrix((val_arr, (row_arr, col_arr)), shape)
 
         idx = np.arange(rows * cols)
@@ -227,46 +225,43 @@ class SCS(ConicSolver):
             full = tri_to_full(lower_tri, dim)
             return full, new_offset
         else:
-            return utilities.extract_dual_value(result_vec, offset,
-                                                constraint)
+            return utilities.extract_dual_value(result_vec, offset, constraint)
 
     def invert(self, solution, inverse_data):
-        """Returns the solution to the original problem given the inverse_data.
-        """
+        """Returns the solution to the original problem given the inverse_data."""
         import scs
+
         attr = {}
         # SCS versions 1.*, SCS 2.*
         if Version(scs.__version__) < Version('3.0.0'):
-            status = self.STATUS_MAP[solution["info"]["statusVal"]]
-            attr[s.SOLVE_TIME] = solution["info"]["solveTime"] / 1000
-            attr[s.SETUP_TIME] = solution["info"]["setupTime"] / 1000
+            status = self.STATUS_MAP[solution['info']['statusVal']]
+            attr[s.SOLVE_TIME] = solution['info']['solveTime'] / 1000
+            attr[s.SETUP_TIME] = solution['info']['setupTime'] / 1000
 
         # SCS version 3.*
         else:
-            status = self.STATUS_MAP[solution["info"]["status_val"]]
-            attr[s.SOLVE_TIME] = solution["info"]["solve_time"] / 1000
-            attr[s.SETUP_TIME] = solution["info"]["setup_time"] / 1000
+            status = self.STATUS_MAP[solution['info']['status_val']]
+            attr[s.SOLVE_TIME] = solution['info']['solve_time'] / 1000
+            attr[s.SETUP_TIME] = solution['info']['setup_time'] / 1000
 
-        attr[s.NUM_ITERS] = solution["info"]["iter"]
+        attr[s.NUM_ITERS] = solution['info']['iter']
         attr[s.EXTRA_STATS] = solution
 
         if status in s.SOLUTION_PRESENT:
-            primal_val = solution["info"]["pobj"]
+            primal_val = solution['info']['pobj']
             opt_val = primal_val + inverse_data[s.OFFSET]
             # TODO expand primal and dual variables from lower triangular to full.
             # TODO but this makes map from solution to variables not a slice.
-            primal_vars = {
-                inverse_data[SCS.VAR_ID]: solution["x"]
-            }
+            primal_vars = {inverse_data[SCS.VAR_ID]: solution['x']}
             eq_dual_vars = utilities.get_dual_values(
-                solution["y"][:inverse_data[ConicSolver.DIMS].zero],
+                solution['y'][: inverse_data[ConicSolver.DIMS].zero],
                 self.extract_dual_value,
-                inverse_data[SCS.EQ_CONSTR]
+                inverse_data[SCS.EQ_CONSTR],
             )
             ineq_dual_vars = utilities.get_dual_values(
-                solution["y"][inverse_data[ConicSolver.DIMS].zero:],
+                solution['y'][inverse_data[ConicSolver.DIMS].zero :],
                 self.extract_dual_value,
-                inverse_data[SCS.NEQ_CONSTR]
+                inverse_data[SCS.NEQ_CONSTR],
             )
             dual_vars = {}
             dual_vars.update(eq_dual_vars)
@@ -278,25 +273,27 @@ class SCS(ConicSolver):
     @staticmethod
     def parse_solver_options(solver_opts):
         import scs
+
         if Version(scs.__version__) < Version('3.0.0'):
-            if "eps_abs" in solver_opts or "eps_rel" in solver_opts:
+            if 'eps_abs' in solver_opts or 'eps_rel' in solver_opts:
                 # Take the min of eps_rel and eps_abs to be eps
-                solver_opts["eps"] = min(solver_opts.get("eps_abs", 1),
-                                         solver_opts.get("eps_rel", 1))
+                solver_opts['eps'] = min(
+                    solver_opts.get('eps_abs', 1), solver_opts.get('eps_rel', 1)
+                )
             else:
                 # Default to eps = 1e-4 instead of 1e-3.
-                solver_opts["eps"] = solver_opts.get("eps", 1e-4)
+                solver_opts['eps'] = solver_opts.get('eps', 1e-4)
         else:
-            if "eps" in solver_opts:  # eps replaced by eps_abs, eps_rel
-                solver_opts["eps_abs"] = solver_opts["eps"]
-                solver_opts["eps_rel"] = solver_opts["eps"]
-                del solver_opts["eps"]
+            if 'eps' in solver_opts:  # eps replaced by eps_abs, eps_rel
+                solver_opts['eps_abs'] = solver_opts['eps']
+                solver_opts['eps_rel'] = solver_opts['eps']
+                del solver_opts['eps']
             else:
                 solver_opts['eps_abs'] = solver_opts.get('eps_abs', 1e-5)
                 solver_opts['eps_rel'] = solver_opts.get('eps_rel', 1e-5)
         # use_quad_obj is only for canonicalization.
-        if "use_quad_obj" in solver_opts:
-            del solver_opts["use_quad_obj"]
+        if 'use_quad_obj' in solver_opts:
+            del solver_opts['use_quad_obj']
         return solver_opts
 
     def solve_via_data(self, data, warm_start: bool, verbose: bool, solver_opts, solver_cache=None):
@@ -318,34 +315,38 @@ class SCS(ConicSolver):
         The result returned by a call to scs.solve().
         """
         import scs
+
         scs_version = Version(scs.__version__)
-        args = {"A": data[s.A], "b": data[s.B], "c": data[s.C]}
+        args = {'A': data[s.A], 'b': data[s.B], 'c': data[s.C]}
         if s.P in data:
-            args["P"] = data[s.P]
-        if warm_start and solver_cache is not None and \
-                self.name() in solver_cache:
-            args["x"] = solver_cache[self.name()]["x"]
-            args["y"] = solver_cache[self.name()]["y"]
-            args["s"] = solver_cache[self.name()]["s"]
+            args['P'] = data[s.P]
+        if warm_start and solver_cache is not None and self.name() in solver_cache:
+            args['x'] = solver_cache[self.name()]['x']
+            args['y'] = solver_cache[self.name()]['y']
+            args['s'] = solver_cache[self.name()]['s']
         cones = dims_to_solver_dict(data[ConicSolver.DIMS])
 
         def solve(_solver_opts):
             if scs_version.major < 3:
                 _results = scs.solve(args, cones, verbose=verbose, **_solver_opts)
-                _status = self.STATUS_MAP[_results["info"]["statusVal"]]
+                _status = self.STATUS_MAP[_results['info']['statusVal']]
             else:
                 _results = scs.solve(args, cones, verbose=verbose, **_solver_opts)
-                _status = self.STATUS_MAP[_results["info"]["status_val"]]
+                _status = self.STATUS_MAP[_results['info']['status_val']]
             return _results, _status
 
         solver_opts = SCS.parse_solver_options(solver_opts)
         results, status = solve(solver_opts)
-        if (status in s.INACCURATE and scs_version.major == 2
-                and "acceleration_lookback" not in solver_opts):
+        if (
+            status in s.INACCURATE
+            and scs_version.major == 2
+            and 'acceleration_lookback' not in solver_opts
+        ):
             import warnings
+
             warnings.warn(SCS.ACCELERATION_RETRY_MESSAGE % str(scs_version))
             retry_opts = solver_opts.copy()
-            retry_opts["acceleration_lookback"] = 0
+            retry_opts['acceleration_lookback'] = 0
             results, status = solve(retry_opts)
 
         if solver_cache is not None and status == s.OPTIMAL:

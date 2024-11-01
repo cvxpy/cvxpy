@@ -28,13 +28,11 @@ from cvxpy.tests.base_test import BaseTest
 
 class TestNonOptimal(BaseTest):
     def test_singular_quad_form(self) -> None:
-        """Test quad form with a singular matrix.
-        """
+        """Test quad form with a singular matrix."""
         # Solve a quadratic program.
         np.random.seed(1234)
         for n in (3, 4, 5):
             for i in range(5):
-
                 # construct a random 1d finite distribution
                 v = np.exp(np.random.randn(n))
                 v = v / np.sum(v)
@@ -48,11 +46,10 @@ class TestNonOptimal(BaseTest):
                 E = np.identity(n) - np.outer(v, v) / np.inner(v, v)
                 Q = np.dot(E, np.dot(Q, E.T))
                 observed_rank = np.linalg.matrix_rank(Q)
-                desired_rank = n-1
+                desired_rank = n - 1
                 assert_equal(observed_rank, desired_rank)
 
                 for action in 'minimize', 'maximize':
-
                     # Look for the extremum of the quadratic form
                     # under the simplex constraint.
                     x = cp.Variable(n)
@@ -73,8 +70,7 @@ class TestNonOptimal(BaseTest):
                     assert_allclose(xopt, v, atol=1e-3)
 
     def test_sparse_quad_form(self) -> None:
-        """Test quad form with a sparse matrix.
-        """
+        """Test quad form with a sparse matrix."""
         Q = sp.eye(2)
         x = cp.Variable(2)
         cost = cp.quad_form(x, Q)
@@ -97,8 +93,7 @@ class TestNonOptimal(BaseTest):
         self.assertEqual(len(function.value), 1)
 
     def test_param_quad_form(self) -> None:
-        """Test quad form with a parameter.
-        """
+        """Test quad form with a parameter."""
         P = cp.Parameter((2, 2), PSD=True)
         Q = np.eye(2)
         x = cp.Variable(2)
@@ -110,57 +105,50 @@ class TestNonOptimal(BaseTest):
             self.assertAlmostEqual(prob.solve(solver=cp.SCS), 5)
 
     def test_non_symmetric(self) -> None:
-        """Test when P is constant and not symmetric.
-        """
+        """Test when P is constant and not symmetric."""
         P = np.array([[2, 2], [3, 4]])
         x = cp.Variable(2)
         with self.assertRaises(Exception) as cm:
             cp.quad_form(x, P)
-        self.assertTrue("Quadratic form matrices must be symmetric/Hermitian."
-                        in str(cm.exception))
+        self.assertTrue('Quadratic form matrices must be symmetric/Hermitian.' in str(cm.exception))
 
     def test_non_psd(self) -> None:
-        """Test error when P is symmetric but not definite.
-        """
+        """Test error when P is symmetric but not definite."""
         P = np.array([[1, 0], [0, -1]])
         x = cp.Variable(2)
         # Forming quad_form is okay
         with warnings.catch_warnings():
-            warnings.simplefilter("ignore")
+            warnings.simplefilter('ignore')
             cost = cp.quad_form(x, P)
         prob = cp.Problem(cp.Minimize(cost), [x == [1, 2]])
         with self.assertRaises(Exception) as cm:
             prob.solve(solver=cp.SCS)
-        self.assertTrue("Problem does not follow DCP rules."
-                        in str(cm.exception))
+        self.assertTrue('Problem does not follow DCP rules.' in str(cm.exception))
 
     def test_psd_exactly_tolerance(self) -> None:
-        """Test that PSD check when eigenvalue is exactly -EIGVAL_TOL
-        """
-        P = np.array([[-0.999*EIGVAL_TOL, 0], [0, 10]])
+        """Test that PSD check when eigenvalue is exactly -EIGVAL_TOL"""
+        P = np.array([[-0.999 * EIGVAL_TOL, 0], [0, 10]])
         x = cp.Variable(2)
         # Forming quad_form is okay
         with warnings.catch_warnings():
-            warnings.simplefilter("ignore")
+            warnings.simplefilter('ignore')
             cost = cp.quad_form(x, P)
             prob = cp.Problem(cp.Minimize(cost), [x == [1, 2]])
             prob.solve(solver=cp.SCS)
 
     def test_nsd_exactly_tolerance(self) -> None:
-        """Test that NSD check when eigenvalue is exactly EIGVAL_TOL
-        """
-        P = np.array([[0.999*EIGVAL_TOL, 0], [0, -10]])
+        """Test that NSD check when eigenvalue is exactly EIGVAL_TOL"""
+        P = np.array([[0.999 * EIGVAL_TOL, 0], [0, -10]])
         x = cp.Variable(2)
         # Forming quad_form is okay
         with warnings.catch_warnings():
-            warnings.simplefilter("ignore")
+            warnings.simplefilter('ignore')
             cost = cp.quad_form(x, P)
             prob = cp.Problem(cp.Maximize(cost), [x == [1, 2]])
             prob.solve(solver=cp.SCS)
 
     def test_obj_eval(self) -> None:
-        """Test case where objective evaluation differs from result.
-        """
+        """Test case where objective evaluation differs from result."""
         x = cp.Variable((2, 1))
         A = np.array([[1.0]])
         B = np.array([[1.0, 1.0]]).T
@@ -171,38 +159,37 @@ class TestNonOptimal(BaseTest):
         self.assertAlmostEqual(prob.value, prob.objective.value)
 
     def test_zero_term(self) -> None:
-        """Test a quad form multiplied by zero.
-        """
+        """Test a quad form multiplied by zero."""
         data_norm = np.random.random(5)
-        M = np.random.random(5*2).reshape((5, 2))
+        M = np.random.random(5 * 2).reshape((5, 2))
         c = cp.Variable(M.shape[1])
         lopt = 0
         laplacian_matrix = np.ones((2, 2))
         design_matrix = cp.Constant(M)
         objective = cp.Minimize(
-            cp.sum_squares(design_matrix @ c - data_norm) +
-            lopt * cp.quad_form(c, laplacian_matrix)
+            cp.sum_squares(design_matrix @ c - data_norm) + lopt * cp.quad_form(c, laplacian_matrix)
         )
         constraints = [(M[0] @ c) == 1]  # (K * c) >= -0.1]
         prob = cp.Problem(objective, constraints)
         prob.solve(solver=cp.SCS)
 
     def test_zero_matrix(self) -> None:
-        """Test quad_form with P = 0.
-        """
+        """Test quad_form with P = 0."""
         x = cp.Variable(3)
         A = np.eye(3)
-        b = np.ones(3,)
-        c = -np.ones(3,)
+        b = np.ones(
+            3,
+        )
+        c = -np.ones(
+            3,
+        )
         P = np.zeros((3, 3))
-        expr = (1/2) * cp.quad_form(x, P) + c.T @ x
-        prob = cp.Problem(cp.Minimize(expr),
-                          [A @ x <= b])
+        expr = (1 / 2) * cp.quad_form(x, P) + c.T @ x
+        prob = cp.Problem(cp.Minimize(expr), [A @ x <= b])
         prob.solve(solver=cp.SCS)
 
     def test_assume_psd(self) -> None:
-        """Test assume_PSD argument.
-        """
+        """Test assume_PSD argument."""
         x = cp.Variable(3)
         A = np.eye(3)
         expr = cp.quad_form(x, A, assume_PSD=True)
@@ -214,6 +201,7 @@ class TestNonOptimal(BaseTest):
 
         prob = cp.Problem(cp.Minimize(expr))
         # Transform to a SolverError.
-        with pytest.raises(cp.SolverError,
-                           match=r"(Workspace allocation error!)|(Setup Error \(Error Code 4\))"):
+        with pytest.raises(
+            cp.SolverError, match=r'(Workspace allocation error!)|(Setup Error \(Error Code 4\))'
+        ):
             prob.solve(solver=cp.OSQP)

@@ -13,6 +13,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+
 from typing import Tuple
 
 import numpy as np
@@ -25,6 +26,7 @@ class MatrixInterface(NDArrayInterface):
     """
     An interface to convert constant values to the numpy matrix class.
     """
+
     TARGET_MATRIX = np.matrix
 
     @NDArrayInterface.scalar_const
@@ -39,8 +41,7 @@ class MatrixInterface(NDArrayInterface):
             A matrix of type self.target_matrix or a scalar.
         """
         # Lists and 1D arrays become column vectors.
-        if isinstance(value, list) or \
-                isinstance(value, np.ndarray) and value.ndim == 1:
+        if isinstance(value, list) or isinstance(value, np.ndarray) and value.ndim == 1:
             value = np.asmatrix(value, dtype='float64').T
         # First convert sparse to dense.
         elif sp.issparse(value):

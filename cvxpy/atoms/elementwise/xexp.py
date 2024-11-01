@@ -23,8 +23,7 @@ from cvxpy.constraints.constraint import Constraint
 
 
 class xexp(Elementwise):
-    """Elementwise :math:`{x}*e^{x}`.
-    """
+    """Elementwise :math:`{x}*e^{x}`."""
 
     def __init__(self, x) -> None:
         super(xexp, self).__init__(x)
@@ -35,39 +34,32 @@ class xexp(Elementwise):
         return values[0] * np.exp(values[0])
 
     def sign_from_args(self) -> Tuple[bool, bool]:
-        """Returns sign (is positive, is negative) of the expression.
-        """
+        """Returns sign (is positive, is negative) of the expression."""
         # Depends upon the sign of x.
         return (self.args[0].is_nonneg(), self.args[0].is_nonpos())
 
     def is_atom_convex(self) -> bool:
-        """Is the atom convex?
-        """
+        """Is the atom convex?"""
         return self.args[0].is_nonneg()
 
     def is_atom_concave(self) -> bool:
-        """Is the atom concave?
-        """
+        """Is the atom concave?"""
         return False
 
     def is_atom_log_log_convex(self) -> bool:
-        """Is the atom log-log convex?
-        """
+        """Is the atom log-log convex?"""
         return True
 
     def is_atom_log_log_concave(self) -> bool:
-        """Is the atom log-log concave?
-        """
+        """Is the atom log-log concave?"""
         return False
 
     def is_incr(self, idx) -> bool:
-        """Is the composition non-decreasing in argument idx?
-        """
+        """Is the composition non-decreasing in argument idx?"""
         return True
 
     def is_decr(self, idx) -> bool:
-        """Is the composition non-increasing in argument idx?
-        """
+        """Is the composition non-increasing in argument idx?"""
         return False
 
     def _grad(self, values):
@@ -87,6 +79,5 @@ class xexp(Elementwise):
         return [xexp.elemwise_grad_to_diag(grad_vals, rows, cols)]
 
     def _domain(self) -> List[Constraint]:
-        """Returns constraints describing the domain of the node.
-        """
+        """Returns constraints describing the domain of the node."""
         return [self.args[0] >= 0]

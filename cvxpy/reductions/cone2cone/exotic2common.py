@@ -23,9 +23,7 @@ from cvxpy.expressions.variable import Variable
 from cvxpy.reductions.canonicalization import Canonicalization
 from cvxpy.reductions.solution import Solution
 
-EXOTIC_CONES = {
-    PowConeND: {PowCone3D}
-}
+EXOTIC_CONES = {PowConeND: {PowCone3D}}
 """
 ^ An "exotic" cone is defined as any cone that isn't
 supported by ParamConeProg. If ParamConeProg is updated
@@ -55,19 +53,19 @@ def pow_nd_canon(con, args):
     if n == 2:
         can_con = PowCone3D(W[0, :], W[1, :], z, alpha[0, :])
     else:
-        T = Variable(shape=(n-2, k))
+        T = Variable(shape=(n - 2, k))
         x_3d, y_3d, z_3d, alpha_3d = [], [], [], []
         for j in range(k):
             x_3d.append(W[:-1, j])
             y_3d.append(T[:, j])
-            y_3d.append(W[n-1, j])
+            y_3d.append(W[n - 1, j])
             z_3d.append(z[j])
             z_3d.append(T[:, j])
             r_nums = alpha[:, j]
             r_dens = np.cumsum(r_nums[::-1])[::-1]
             # ^ equivalent to [np.sum(alpha[i:, j]) for i in range(n)]
             r = r_nums / r_dens
-            alpha_3d.append(r[:n-1])
+            alpha_3d.append(r[: n - 1])
         x_3d = hstack(x_3d)
         y_3d = hstack(y_3d)
         z_3d = hstack(z_3d)
@@ -84,27 +82,29 @@ def pow_nd_canon(con, args):
 
 
 class Exotic2Common(Canonicalization):
-
-    CANON_METHODS = {
-        PowConeND: pow_nd_canon
-    }
+    CANON_METHODS = {PowConeND: pow_nd_canon}
 
     def __init__(self, problem=None) -> None:
         super(Exotic2Common, self).__init__(
-            problem=problem, canon_methods=Exotic2Common.CANON_METHODS)
+            problem=problem, canon_methods=Exotic2Common.CANON_METHODS
+        )
 
     def invert(self, solution, inverse_data):
-        pvars = {vid: solution.primal_vars[vid] for vid in inverse_data.id_map
-                 if vid in solution.primal_vars}
-        dvars = {orig_id: solution.dual_vars[vid]
-                 for orig_id, vid in inverse_data.cons_id_map.items()
-                 if vid in solution.dual_vars}
+        pvars = {
+            vid: solution.primal_vars[vid]
+            for vid in inverse_data.id_map
+            if vid in solution.primal_vars
+        }
+        dvars = {
+            orig_id: solution.dual_vars[vid]
+            for orig_id, vid in inverse_data.cons_id_map.items()
+            if vid in solution.dual_vars
+        }
 
         if dvars == {}:
-            #NOTE: pre-maturely trigger return of the method in case the problem
+            # NOTE: pre-maturely trigger return of the method in case the problem
             # is infeasible (otherwise will run into some opaque errors)
-            return Solution(solution.status, solution.opt_val, pvars, dvars,
-                        solution.attr)
+            return Solution(solution.status, solution.opt_val, pvars, dvars, solution.attr)
 
         dv = {}
         for cons_id, cons in inverse_data.id2cons.items():
@@ -114,14 +114,13 @@ class Exotic2Common(Canonicalization):
                 for i in range(cons.args[1].shape[0]):
                     # Iterating over the vectorized constraints
                     dv[cons_id].append([])
-                    tmp_duals = dvars[cons_id][:, i * div_size: (i + 1) * div_size]
+                    tmp_duals = dvars[cons_id][:, i * div_size : (i + 1) * div_size]
                     for j, col_dvars in enumerate(tmp_duals.T):
                         if j == len(tmp_duals.T) - 1:
                             dv[cons_id][-1] += [col_dvars[0], col_dvars[1]]
                         else:
                             dv[cons_id][-1].append(col_dvars[0])
-                    dv[cons_id][-1].append(tmp_duals.T[0][-1]) # dual value corresponding to `z`
+                    dv[cons_id][-1].append(tmp_duals.T[0][-1])  # dual value corresponding to `z`
                 dvars[cons_id] = np.array(dv[cons_id])
 
-        return Solution(solution.status, solution.opt_val, pvars, dvars,
-                        solution.attr)
+        return Solution(solution.status, solution.opt_val, pvars, dvars, solution.attr)
