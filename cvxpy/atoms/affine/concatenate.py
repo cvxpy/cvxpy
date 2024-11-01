@@ -25,7 +25,7 @@ from cvxpy.constraints.constraint import Constraint
 
 
 def concatenate(arg_list, axis: Optional[int] = 0):
-    assert axis is None or (isinstance(axis,int) and axis >=0)
+    assert axis is None or (isinstance(axis, int) and axis >= 0)
     return Concatenate(*(arg_list + [axis]))
 
 
@@ -56,36 +56,12 @@ class Concatenate(AffAtom):
         return [self.axis]
 
     def validate_arguments(self) -> None:
-        # If axis is None, arrays are flattened, so no validation is necessary.
-        if self.axis is None:
-            return
-        axis = self.axis
-        ref_shape = self.args[0].shape
-        # Zero-dimensional arrays cannot be concatenated along a specified axis.
-        if ref_shape == ():
-            raise ValueError("Zero-dimensional arrays cannot be concatenated along an axis")
-        ndim = len(ref_shape)
-        if axis >= ndim:
-            raise ValueError(f"Axis {axis} is out of bounds for array of dimension {ndim}")
-
-        for idx, arg in enumerate(self.args[1:], start=1):
-            arg_shape = arg.shape
-            if arg_shape == ():
-                raise ValueError("Zero-dimensional arrays cannot be concatenated along an axis")
-            if len(arg_shape) != ndim:
-                raise ValueError(
-                    f"all the input arrays must have same number of dimensions, but the array "
-                    f"at index 0 has {ndim} dimension(s) and the array at index {idx} has "
-                    f"{len(arg_shape)} dimension(s)"
-                )
-            for i in range(ndim):
-                if i != axis and ref_shape[i] != arg_shape[i]:
-                    raise ValueError(
-                        "All the input array dimensions except for the concatenation axis "
-                        f"must match exactly, but along dimension {i}, the array at index 0 "
-                        f"has size {ref_shape[i]} and the array at index {idx} has "
-                        f"size {arg_shape[i]}"
-                    )
+        # Validates that the input shapes in `self.args` are suitable for
+        # concatenation along a specified axis using numpy API with empty arrays
+        np.concatenate(
+            [np.empty(arg.shape, dtype=np.dtype([])) for arg in self.args],
+            axis=self.axis,
+        )
 
     def shape_from_args(self) -> Tuple[int, ...]:
         if self.axis is None:

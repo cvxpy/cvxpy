@@ -568,7 +568,7 @@ class TestAtoms(BaseTest):
         with self.assertRaises(ValueError) as cm:
             # x and y are 1D arrays, so they can't be concatenated on axis 1
             atom = cp.concatenate([self.x, self.y], axis=1)
-        self.assertEqual(str(cm.exception), "Axis 1 is out of bounds for array of dimension 1")
+        self.assertEqual(str(cm.exception), "axis 1 is out of bounds for array of dimension 1")
 
         atom = cp.concatenate([self.A, self.C], axis=None)
         self.assertEqual(atom.shape, (10,))
@@ -580,7 +580,7 @@ class TestAtoms(BaseTest):
             atom = cp.concatenate([self.A, self.C], axis=1)
         self.assertEqual(
             str(cm.exception),
-            "All the input array dimensions except for the concatenation axis "
+            "all the input array dimensions except for the concatenation axis "
             "must match exactly, but along dimension 0, the array at index 0 "
             "has size 2 and the array at index 1 has size 3",
         )
@@ -595,14 +595,14 @@ class TestAtoms(BaseTest):
         self.assertEqual(atom.shape, (8,))
 
         with self.assertRaises(ValueError) as cm:
-            cp.concatenate([self.A, self.a], axis=0)
+            cp.concatenate([self.a, self.A], axis=0)
         self.assertEqual(
-            str(cm.exception), "Zero-dimensional arrays cannot be concatenated along an axis"
+            str(cm.exception), "zero-dimensional arrays cannot be concatenated"
         )
 
         with self.assertRaises(ValueError) as cm:
             cp.concatenate([self.A, self.C], axis=2)
-        self.assertEqual(str(cm.exception), "Axis 2 is out of bounds for array of dimension 2")
+        self.assertEqual(str(cm.exception), "axis 2 is out of bounds for array of dimension 2")
 
         with self.assertRaises(ValueError) as cm:
             cp.concatenate([self.C, self.x], axis=1)
