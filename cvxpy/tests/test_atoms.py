@@ -561,23 +561,26 @@ class TestAtoms(BaseTest):
         self.assertEqual(expr.shape, (2, 1))
 
     def test_concatenate(self):
-        atom = cp.concatenate([self.x, self.y], axis=0)
+        # TODO: concatenated is not exposed in cp.concatenated yet. Use cp.concatenate in
+        # this test once it is available
+        from cvxpy.atoms.affine.concatenate import concatenate
+        atom = concatenate([self.x, self.y], axis=0)
         self.assertEqual(atom.name(), "Concatenate(x, y, 0)")
         self.assertEqual(atom.shape, (4,))  # (2 vectors are concatenated on axis 0)
 
         with self.assertRaises(ValueError) as cm:
             # x and y are 1D arrays, so they can't be concatenated on axis 1
-            atom = cp.concatenate([self.x, self.y], axis=1)
+            atom = concatenate([self.x, self.y], axis=1)
         self.assertEqual(str(cm.exception), "axis 1 is out of bounds for array of dimension 1")
 
-        atom = cp.concatenate([self.A, self.C], axis=None)
+        atom = concatenate([self.A, self.C], axis=None)
         self.assertEqual(atom.shape, (10,))
 
-        atom = cp.concatenate([self.A, self.C], axis=0)
+        atom = concatenate([self.A, self.C], axis=0)
         self.assertEqual(atom.shape, (5, 2))
 
         with self.assertRaises(ValueError) as cm:
-            atom = cp.concatenate([self.A, self.C], axis=1)
+            atom = concatenate([self.A, self.C], axis=1)
         self.assertEqual(
             str(cm.exception),
             "all the input array dimensions except for the concatenation axis "
@@ -585,27 +588,27 @@ class TestAtoms(BaseTest):
             "has size 2 and the array at index 1 has size 3",
         )
 
-        atom = cp.concatenate([self.A, self.B], axis=1)
+        atom = concatenate([self.A, self.B], axis=1)
         self.assertEqual(atom.shape, (2, 4))
 
-        atom = cp.concatenate([self.A, self.B], axis=0)
+        atom = concatenate([self.A, self.B], axis=0)
         self.assertEqual(atom.shape, (4, 2))
 
-        atom = cp.concatenate([self.A, self.B], axis=None)
+        atom = concatenate([self.A, self.B], axis=None)
         self.assertEqual(atom.shape, (8,))
 
         with self.assertRaises(ValueError) as cm:
-            cp.concatenate([self.a, self.A], axis=0)
+            concatenate([self.a, self.A], axis=0)
         self.assertEqual(
             str(cm.exception), "zero-dimensional arrays cannot be concatenated"
         )
 
         with self.assertRaises(ValueError) as cm:
-            cp.concatenate([self.A, self.C], axis=2)
+            concatenate([self.A, self.C], axis=2)
         self.assertEqual(str(cm.exception), "axis 2 is out of bounds for array of dimension 2")
 
         with self.assertRaises(ValueError) as cm:
-            cp.concatenate([self.C, self.x], axis=1)
+            concatenate([self.C, self.x], axis=1)
         self.assertEqual(
             str(cm.exception),
             "all the input arrays must have same number of dimensions, but the array at index "
