@@ -25,7 +25,7 @@ from cvxpy.expressions.variable import Variable
 from cvxpy.reductions.cvx_attr2constr import CvxAttr2Constr
 from cvxpy.reductions.dcp2cone.cone_matrix_stuffing import ConeMatrixStuffing
 from cvxpy.reductions.flip_objective import FlipObjective
-from cvxpy.reductions.solvers.conic_solvers.ecos_conif import ECOS
+from cvxpy.reductions.solvers.conic_solvers.clarabel_conif import CLARABEL
 from cvxpy.tests.base_test import BaseTest
 from cvxpy.tests.solver_test_helpers import SolverTestHelper
 
@@ -52,7 +52,7 @@ class TestLinearCone(BaseTest):
         self.B = Variable((2, 2), name='B')
         self.C = Variable((3, 2), name='C')
 
-        self.solvers = [ECOS()]
+        self.solvers = [CLARABEL()]
 
     def test_scalar_lp(self) -> None:
         """Test scalar LP problems.
@@ -334,7 +334,7 @@ class TestLinearCone(BaseTest):
         # Check that the problem compiles correctly, and that
         # dual variables are recovered correctly.
         sth = SolverTestHelper(obj_pair, var_pairs, con_pairs)
-        sth.solve(solver='ECOS')
+        sth.solve(solver='CLARABEL')
         sth.verify_primal_values(places=4)
         sth.verify_dual_values(places=4)
         # Check that violations are computed properly

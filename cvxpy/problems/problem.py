@@ -483,7 +483,7 @@ class Problem(u.Canonical):
         Arguments
         ---------
         solver : str, optional
-            The solver to use. For example, 'ECOS', 'SCS', or 'OSQP'.
+            The solver to use. For example, 'CLARABEL', 'SCS', or 'OSQP'.
         solver_path : list of (str, dict) tuples or strings, optional
             The solvers to use with optional arguments.
             The function tries the solvers in the given order and

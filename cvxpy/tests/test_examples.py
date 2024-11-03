@@ -20,7 +20,6 @@ import numpy as np
 
 import cvxpy as cvx
 import cvxpy.interface as intf
-from cvxpy.reductions.solvers.conic_solvers import ecos_conif
 from cvxpy.tests.base_test import BaseTest
 
 
@@ -279,9 +278,9 @@ class TestExamples(BaseTest):
         constraints = [x >= 2]
         prob = cvx.Problem(obj, constraints)
 
-        # Solve with ECOS.
-        prob.solve(solver=cvx.ECOS)
-        print("optimal value with ECOS:", prob.value)
+        # Solve with CLARABEL.
+        prob.solve(solver=cvx.CLARABEL)
+        print("optimal value with CLARABEL:", prob.value)
         self.assertAlmostEqual(prob.value, 6)
 
         # Solve with CVXOPT.
@@ -472,7 +471,7 @@ class TestExamples(BaseTest):
 
         # An unbounded problem.
         prob = cvx.Problem(cvx.Minimize(x))
-        prob.solve(solver=cvx.ECOS)
+        prob.solve(solver=cvx.CLARABEL)
         print("status:", prob.status)
         print("optimal value", prob.value)
 
@@ -608,32 +607,6 @@ class TestExamples(BaseTest):
         constraints = [cvx.multiply(Known, U) == cvx.multiply(Known, Ucorr)]
         prob = cvx.Problem(obj, constraints)
         prob.solve(solver=cvx.SCS)
-
-    def test_advanced2(self) -> None:
-        """Test code from the advanced section of the tutorial.
-        """
-        x = cvx.Variable()
-        prob = cvx.Problem(cvx.Minimize(cvx.square(x)), [x == 2])
-        # Get ECOS arguments.
-        data, chain, inverse = prob.get_problem_data(cvx.ECOS)
-
-        # Get CVXOPT arguments.
-        if cvx.CVXOPT in cvx.installed_solvers():
-            data, chain, inverse = prob.get_problem_data(cvx.CVXOPT)
-
-        # Get SCS arguments.
-        data, chain, inverse = prob.get_problem_data(cvx.SCS)
-
-        import ecos
-
-        # Get ECOS arguments.
-        data, chain, inverse = prob.get_problem_data(cvx.ECOS)
-        # Call ECOS solver.
-        solution = ecos.solve(data["c"], data["G"], data["h"],
-                              ecos_conif.dims_to_solver_dict(data["dims"]),
-                              data["A"], data["b"])
-        # Unpack raw solver output.
-        prob.unpack_results(solution, chain, inverse)
 
     def test_log_sum_exp(self) -> None:
         """Test log_sum_exp function that failed in Github issue.

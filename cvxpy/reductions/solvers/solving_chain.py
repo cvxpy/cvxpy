@@ -46,7 +46,6 @@ from cvxpy.reductions.solvers.solver import Solver
 from cvxpy.settings import (
     CLARABEL,
     CPP_CANON_BACKEND,
-    ECOS,
     NUMPY_CANON_BACKEND,
     PARAM_THRESHOLD,
     SCIPY_CANON_BACKEND,
@@ -360,10 +359,6 @@ def construct_solving_chain(problem, candidates,
                 CvxAttr2Constr(reduce_bounds=not solver_instance.BOUNDED_VARIABLES),
             ]
             if all(c in supported_constraints for c in cones):
-                if solver == ECOS and specified_solver == ECOS:
-                    warnings.warn(ECOS_DEP_DEPRECATION_MSG, FutureWarning)
-                elif solver == ECOS and specified_solver is None:
-                    warnings.warn(ECOS_DEPRECATION_MSG, FutureWarning)
                 # Return the reduction chain.
                 reductions += [
                     ConeMatrixStuffing(quad_obj=quad_obj, canon_backend=canon_backend),

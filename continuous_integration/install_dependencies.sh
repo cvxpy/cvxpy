@@ -13,10 +13,10 @@ conda install mkl pip pytest pytest-cov hypothesis openblas "setuptools>65.5.1"
 
 if [[ "$PYTHON_VERSION" != "3.13" ]]; then
   conda install ecos scs cvxopt proxsuite daqp
-  python -m pip install coptpy==7.1.7 gurobipy piqp clarabel osqp
+  python -m pip install coptpy==7.1.7 gurobipy piqp clarabel osqp highspy
 else
   # only install the essential solvers for Python 3.13.
-  conda install ecos scs
+  conda install scs
   python -m pip install clarabel osqp
 fi
 
@@ -60,7 +60,7 @@ if [[ "$PYTHON_VERSION" == "3.10" ]] && [[ "$RUNNER_OS" != "Windows" ]]; then
 fi
 
 if [[ "$PYTHON_VERSION" == "3.11" ]] && [[ "$RUNNER_OS" != "macOS" ]]; then
-  python -m pip install xpress
+  python -m pip install xpress==9.4.3
 fi
 
 # Only install Mosek if license is available (secret is not copied to forks)
