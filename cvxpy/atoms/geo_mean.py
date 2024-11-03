@@ -216,8 +216,10 @@ class geo_mean(Atom):
             idxs = p > 0
             if isinstance(x, list):
                 x = np.array(x)
-            shape = (1,) if x.ndim == 0 else x.shape
-            x = Expression.cast_to_const(promote(x, shape=shape))[idxs]
+            if x.ndim == 0:
+                x = Expression.cast_to_const(promote(x, shape=(1,)))[idxs]
+            else:
+                x = Expression.cast_to_const(x)[idxs]
             p = p[idxs]
         super(geo_mean, self).__init__(x)
 

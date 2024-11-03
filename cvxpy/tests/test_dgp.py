@@ -165,7 +165,13 @@ class TestDgp(BaseTest):
         p = np.array([2])
         geo_mean = cvxpy.geo_mean(x, p)
         self.assertTrue(geo_mean.is_dgp())
-    
+        prob = cvxpy.Problem(
+            cvxpy.Maximize(geo_mean),
+            [x == 2],
+        )
+        prob.solve()
+        self.assertEqual(prob.value, 2)
+
     def test_geo_mean_scalar2(self) -> None:
         x = cvxpy.Variable(pos=True)
         p = np.array([2])
