@@ -100,6 +100,49 @@ about the sign of ``x`` to the DCP analyzer.
     One downside of using attributes over explicit constraints is that dual variables will not be recorded. Dual variable values
     are only recorded for explicit constraints.
 
+.. _sparsity:
+
+Sparsity Attribute
+------------------
+
+In some optimization problems, it is beneficial to define a sparsity attribute for variables. This attribute defines the subset of
+variables that you would like to optimize over. In the example below, the problem is optimizing over the set of upper triangular matrices.
+
+.. code:: python
+
+    # Creates a upper triangular sparse variable
+    X = cp.Variable((10, 10), sparsity=np.triu_indices(n=10))
+
+    prob = cp.Minimize(cp.norm(X) + cp.sum(X))
+
+The sparsity attribute avoids defining unnecessary variables and can have great performance improvements both in terms of memory and computation,
+all while maintaining the desired shape of your expression. Another way to define the sparsity attribute is using `np.where <https://numpy.org/doc/stable/reference/generated/numpy.where.html>`
+with a condition on given problem data. In the example below, the sparse variables represent all the entries in ``data`` that are greater than ``0.5``. 
+
+.. code:: python
+
+    # define problem data (adapt to your use-case)
+    data = np.random.randn(10, 10)
+    # Creates a sparse variable given condition on data
+    X = cp.Variable((10, 10), sparsity=np.where(data > 0.5))
+
+    prob = cp.Minimize(cp.norm(X) + cp.sum(X))
+
+Finally, you can also define the sparsity attribute manually. The input to the attribute needs to conform to the index format
+as defined in `np.indices <https://numpy.org/doc/stable/reference/generated/numpy.indices.html>`.
+
+.. code:: python
+
+    # Creates a sparse variable manually
+    # The first tuple represent row indices and the second column indices
+    # This is essentially targeting the following indices
+    # [[1, 0, 0],
+    #  [0, 0, 1],
+    #  [0, 0, 0]]
+    X = cp.Variable((3, 3), sparsity=[(0, 1), (0, 2)])
+
+    prob = cp.Minimize(cp.norm(X) + cp.sum(X))
+
 .. _semidefinite:
 
 Semidefinite matrices
