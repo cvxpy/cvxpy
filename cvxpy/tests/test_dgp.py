@@ -54,7 +54,7 @@ class TestDgp(BaseTest):
         div = x / y
         self.assertTrue(div.is_log_log_affine())
 
-        div = posynomial / (3.0 * x * y**(-0.1))
+        div = posynomial / (3.0 * x * y ** (-0.1))
         self.assertTrue(div.is_log_log_convex())
         self.assertFalse(div.is_log_log_concave())
         self.assertTrue(div.is_dgp())
@@ -159,6 +159,47 @@ class TestDgp(BaseTest):
         self.assertTrue(geo_mean.is_log_log_affine())
         self.assertTrue(geo_mean.is_log_log_convex())
         self.assertTrue(geo_mean.is_log_log_concave())
+
+    def test_geo_mean_scalar1(self) -> None:
+        x = cvxpy.Variable(1, pos=True)
+        p = np.array([2])
+        geo_mean = cvxpy.geo_mean(x, p)
+        self.assertTrue(geo_mean.is_dgp())
+        prob = cvxpy.Problem(
+            cvxpy.Maximize(geo_mean),
+            [x == 2],
+        )
+        prob.solve()
+        self.assertEqual(prob.value, 2)
+
+    def test_geo_mean_scalar2(self) -> None:
+        x = cvxpy.Variable(pos=True)
+        p = np.array([2])
+        geo_mean = cvxpy.geo_mean(x, p)
+        self.assertTrue(geo_mean.is_dgp())
+
+    def test_inv_prod(self) -> None:
+        x = cvxpy.Variable(2)
+        # # test inv_prod with scalar value
+        prob1 = cvxpy.Problem(
+            cvxpy.Minimize(cvxpy.inv_prod(x[0]) + cvxpy.inv_prod(x[:2])),
+            [cvxpy.sum(x) == 2],
+        )
+        prob1.solve()
+
+        # compare inv_prod with inv_pos
+        prob2 = cvxpy.Problem(
+            cvxpy.Minimize(cvxpy.inv_prod(x[:1]) + cvxpy.inv_prod(x[:2])),
+            [cvxpy.sum(x) == 2],
+        )
+        prob2.solve()
+
+        prob3 = cvxpy.Problem(
+            cvxpy.Minimize(cvxpy.inv_pos(x[0]) + cvxpy.inv_prod(x[:2])),
+            [cvxpy.sum(x) == 2],
+        )
+        prob3.solve()
+        self.assertAlmostEqual(prob2.value, prob3.value, 4)
 
     def test_builtin_sum(self) -> None:
         x = cvxpy.Variable(2, pos=True)
