@@ -26,9 +26,7 @@ from cvxpy.constraints.constraint import Constraint
 
 
 class log_det(Atom):
-    """:math:`\\log\\det A`
-
-    """
+    """:math:`\\log\\det A`"""
 
     def __init__(self, A) -> None:
         super(log_det, self).__init__(A)
@@ -40,7 +38,7 @@ class log_det(Atom):
         and is equivalent to the nuclear norm of the matrix logarithm of A.
         """
         # take Hermitian part of the input.
-        symm = (values[0] + np.conj(values[0].T))/2
+        symm = (values[0] + np.conj(values[0].T)) / 2
         sign, logdet = LA.slogdet(symm)
         if np.isclose(np.real(sign), 1):
             return logdet
@@ -54,33 +52,27 @@ class log_det(Atom):
             raise TypeError("The argument to log_det must be a square matrix.")
 
     def shape_from_args(self) -> Tuple[int, ...]:
-        """Returns the (row, col) shape of the expression.
-        """
+        """Returns the (row, col) shape of the expression."""
         return tuple()
 
     def sign_from_args(self) -> Tuple[bool, bool]:
-        """Returns sign (is positive, is negative) of the expression.
-        """
+        """Returns sign (is positive, is negative) of the expression."""
         return (True, False)
 
     def is_atom_convex(self) -> bool:
-        """Is the atom convex?
-        """
+        """Is the atom convex?"""
         return False
 
     def is_atom_concave(self) -> bool:
-        """Is the atom concave?
-        """
+        """Is the atom concave?"""
         return True
 
     def is_incr(self, idx) -> bool:
-        """Is the composition non-decreasing in argument idx?
-        """
+        """Is the composition non-decreasing in argument idx?"""
         return False
 
     def is_decr(self, idx) -> bool:
-        """Is the composition non-increasing in argument idx?
-        """
+        """Is the composition non-increasing in argument idx?"""
         return False
 
     def _grad(self, values):
@@ -99,22 +91,23 @@ class log_det(Atom):
         if np.min(eigen_val) > 0:
             # Grad: X^{-1}.T
             D = np.linalg.inv(X).T
-            return [sp.csc_matrix(D.ravel(order='F')).T]
+            return [sp.csc_matrix(D.ravel(order="F")).T]
         # Outside domain.
         else:
             return [None]
 
     def _domain(self) -> List[Constraint]:
-        """Returns constraints describing the domain of the node.
-        """
+        """Returns constraints describing the domain of the node."""
         return [self.args[0] >> 0]
 
     @property
     def value(self) -> float:
-        if not np.allclose(self.args[0].value,
-                           self.args[0].value.T.conj(),
-                           rtol=s.ATOM_EVAL_TOL,
-                           atol=s.ATOM_EVAL_TOL):
+        if not np.allclose(
+            self.args[0].value,
+            self.args[0].value.T.conj(),
+            rtol=s.ATOM_EVAL_TOL,
+            atol=s.ATOM_EVAL_TOL,
+        ):
             raise ValueError("Input matrix was not Hermitian/symmetric.")
         if any([p.value is None for p in self.parameters()]):
             return None

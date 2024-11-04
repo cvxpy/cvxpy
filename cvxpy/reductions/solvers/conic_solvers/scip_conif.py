@@ -66,12 +66,14 @@ STATUS_MAP = {
 
 class ConstraintTypes:
     """Constraint type constants."""
+
     EQUAL = "EQUAL"
     LESS_THAN_OR_EQUAL = "LESS_THAN_OR_EQUAL"
 
 
 class VariableTypes:
     """Variable type constants."""
+
     BINARY = "BINARY"
     INTEGER = "INTEGER"
     CONTINUOUS = "CONTINUOUS"
@@ -86,11 +88,12 @@ class SCIP(ConicSolver):
 
     def name(self) -> str:
         """The name of the solver."""
-        return 'SCIP'
+        return "SCIP"
 
     def import_solver(self) -> None:
         """Imports the solver."""
         import pyscipopt
+
         pyscipopt
 
     def apply(self, problem: ParamConeProg) -> Tuple[Dict, Dict]:
@@ -108,10 +111,7 @@ class SCIP(ConicSolver):
         constr_map = problem.constr_map
         inv_data[self.EQ_CONSTR] = constr_map[Zero]
         inv_data[self.NEQ_CONSTR] = (
-            constr_map[NonNeg]
-            + constr_map[SOC]
-            + constr_map[s.PSD]
-            + constr_map[ExpCone]
+            constr_map[NonNeg] + constr_map[SOC] + constr_map[s.PSD] + constr_map[ExpCone]
         )
 
         # Apply parameter values.
@@ -129,28 +129,28 @@ class SCIP(ConicSolver):
         # Use of sets here is minor lift to speed up get_variable_type(...) below.
         data[s.BOOL_IDX] = set(int(t[0]) for t in variables.boolean_idx)
         data[s.INT_IDX] = set(int(t[0]) for t in variables.integer_idx)
-        inv_data['is_mip'] = data[s.BOOL_IDX] or data[s.INT_IDX]
+        inv_data["is_mip"] = data[s.BOOL_IDX] or data[s.INT_IDX]
 
         return data, inv_data
 
     def invert(self, solution: Dict[str, Any], inverse_data: Dict[str, Any]) -> Solution:
         """Returns the solution to the original problem given the inverse_data."""
 
-        status = solution['status']
+        status = solution["status"]
         dual_vars = None
 
         if status in s.SOLUTION_PRESENT:
-            opt_val = solution['value'] + inverse_data[s.OFFSET]
-            primal_vars = {inverse_data[SCIP.VAR_ID]: solution['primal']}
+            opt_val = solution["value"] + inverse_data[s.OFFSET]
+            primal_vars = {inverse_data[SCIP.VAR_ID]: solution["primal"]}
 
-            if "eq_dual" in solution and not inverse_data['is_mip']:
+            if "eq_dual" in solution and not inverse_data["is_mip"]:
                 eq_dual = utilities.get_dual_values(
-                    result_vec=solution['eq_dual'],
+                    result_vec=solution["eq_dual"],
                     parse_func=utilities.extract_dual_value,
                     constraints=inverse_data[SCIP.EQ_CONSTR],
                 )
                 leq_dual = utilities.get_dual_values(
-                    result_vec=solution['ineq_dual'],
+                    result_vec=solution["ineq_dual"],
                     parse_func=utilities.extract_dual_value,
                     constraints=inverse_data[SCIP.NEQ_CONSTR],
                 )
@@ -163,12 +163,12 @@ class SCIP(ConicSolver):
             return failure_solution(status)
 
     def solve_via_data(
-            self,
-            data: Dict[str, Any],
-            warm_start: bool,
-            verbose: bool,
-            solver_opts: Dict[str, Any],
-            solver_cache: Dict = None,
+        self,
+        data: Dict[str, Any],
+        warm_start: bool,
+        verbose: bool,
+        solver_opts: Dict[str, Any],
+        solver_cache: Dict = None,
     ) -> Solution:
         """Returns the result of the call to the solver."""
         from pyscipopt.scip import Model
@@ -210,12 +210,12 @@ class SCIP(ConicSolver):
         return variables
 
     def _add_constraints(
-            self,
-            model: ScipModel,
-            variables: List,
-            A: dok_matrix,
-            b: np.ndarray,
-            dims: Dict[str, Union[int, List]],
+        self,
+        model: ScipModel,
+        variables: List,
+        A: dok_matrix,
+        b: np.ndarray,
+        dims: Dict[str, Union[int, List]],
     ) -> List:
         """Create a list of constraints."""
 
@@ -262,12 +262,12 @@ class SCIP(ConicSolver):
         return equal_constraints + inequal_constraints + new_leq_constrs + soc_constrs
 
     def _set_params(
-            self,
-            model: ScipModel,
-            verbose: bool,
-            solver_opts: Optional[Dict],
-            data: Dict[str, Any],
-            dims: Dict[str, Union[int, List]],
+        self,
+        model: ScipModel,
+        verbose: bool,
+        solver_opts: Optional[Dict],
+        data: Dict[str, Any],
+        dims: Dict[str, Union[int, List]],
     ) -> None:
         """Set model solve parameters."""
         from pyscipopt import SCIP_PARAMSETTING
@@ -310,12 +310,12 @@ class SCIP(ConicSolver):
             model.disablePropagation()
 
     def _solve(
-            self,
-            model: ScipModel,
-            variables: List,
-            constraints: List,
-            data: Dict[str, Any],
-            dims: Dict[str, Union[int, List]],
+        self,
+        model: ScipModel,
+        variables: List,
+        constraints: List,
+        data: Dict[str, Any],
+        dims: Dict[str, Union[int, List]],
     ) -> Dict[str, Any]:
         """Solve and return a solution if one exists."""
 
@@ -331,7 +331,7 @@ class SCIP(ConicSolver):
             solution["primal"] = np.array([sol[v] for v in variables])
 
             # HACK can't get objective value directly if stopped due to time limit.
-            if model.getStatus() == 'timelimit':
+            if model.getStatus() == "timelimit":
                 # the solution value is not actually necessary
                 # since CVXPY calculates it by evaluating the objective
                 # at the solution.
@@ -354,22 +354,24 @@ class SCIP(ConicSolver):
                         vals.append(dual)
 
                 solution["y"] = -np.array(vals)
-                solution[s.EQ_DUAL] = solution["y"][0:dims[s.EQ_DIM]]
-                solution[s.INEQ_DUAL] = solution["y"][dims[s.EQ_DIM]:]
+                solution[s.EQ_DUAL] = solution["y"][0 : dims[s.EQ_DIM]]
+                solution[s.INEQ_DUAL] = solution["y"][dims[s.EQ_DIM] :]
 
         solution[s.SOLVE_TIME] = model.getSolvingTime()
         solution["status"] = STATUS_MAP[model.getStatus()]
         if solution["status"] == s.SOLVER_ERROR and model.getNCountedSols() > 0:
             solution["status"] = s.OPTIMAL_INACCURATE
 
-        if model.getStatus() == 'timelimit' \
-                and model.getNCountedSols() == 0 \
-                and model.getNSols() == 0:
+        if (
+            model.getStatus() == "timelimit"
+            and model.getNCountedSols() == 0
+            and model.getNSols() == 0
+        ):
             solution["status"] = s.SOLVER_ERROR
 
-        if model.getStatus() == 'timelimit' \
-                and (model.getNSols() > 0 \
-                or model.getNCountedSols() > 0):
+        if model.getStatus() == "timelimit" and (
+            model.getNSols() > 0 or model.getNCountedSols() > 0
+        ):
             solution["status"] = s.OPTIMAL_INACCURATE
 
         return solution
@@ -403,9 +405,7 @@ class SCIP(ConicSolver):
             if expr_list[i]:
                 expression = quicksum(coeff * var for coeff, var in expr_list[i])
                 constraint = model.addCons(
-                    (expression == b[i])
-                    if ctype == ConstraintTypes.EQUAL
-                    else (expression <= b[i])
+                    (expression == b[i]) if ctype == ConstraintTypes.EQUAL else (expression <= b[i])
                 )
                 constraints.append(constraint)
             else:
@@ -449,14 +449,10 @@ class SCIP(ConicSolver):
             )
             soc_vars.append(var)
 
-        lin_expr_list = [
-            b[i] - quicksum(coeff * var for coeff, var in expr_list[i])
-            for i in rows
-        ]
+        lin_expr_list = [b[i] - quicksum(coeff * var for coeff, var in expr_list[i]) for i in rows]
 
         new_lin_constrs = [
-            model.addCons(soc_vars[i] == lin_expr_list[i])
-            for i, _ in enumerate(lin_expr_list)
+            model.addCons(soc_vars[i] == lin_expr_list[i]) for i, _ in enumerate(lin_expr_list)
         ]
 
         # Interesting because only <=?

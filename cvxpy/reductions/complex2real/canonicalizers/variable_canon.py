@@ -32,7 +32,7 @@ def variable_canon(expr, real_args, imag_args, real2imag):
         n = expr.shape[0]
         real = Variable((n, n), var_id=expr.id, symmetric=True)
         if n > 1:
-            imag_var = Variable(shape=n*(n-1)//2, var_id=real2imag[expr.id])
+            imag_var = Variable(shape=n * (n - 1) // 2, var_id=real2imag[expr.id])
             imag_upper_tri = vec_to_upper_tri(imag_var, strict=True)
             imag = skew_symmetric_wrap(imag_upper_tri - imag_upper_tri.T)
         else:

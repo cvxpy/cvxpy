@@ -43,5 +43,5 @@ def lambda_sum_largest_canon(expr, args):
     k = expr.k
     Z = Variable((X.shape[0], X.shape[0]), PSD=True)
     obj, constr = lambda_max_canon(expr, [X - Z])
-    obj = k*obj + trace(Z)
+    obj = k * obj + trace(Z)
     return obj, constr

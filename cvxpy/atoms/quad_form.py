@@ -56,63 +56,53 @@ class QuadForm(Atom):
             raise ValueError("Quadratic form matrices must be symmetric/Hermitian.")
 
     def sign_from_args(self) -> Tuple[bool, bool]:
-        """Returns sign (is positive, is negative) of the expression.
-        """
+        """Returns sign (is positive, is negative) of the expression."""
         return (self.is_atom_convex(), self.is_atom_concave())
 
     def is_atom_convex(self) -> bool:
-        """Is the atom convex?
-        """
+        """Is the atom convex?"""
         P = self.args[1]
         return P.is_constant() and P.is_psd()
 
     def is_atom_concave(self) -> bool:
-        """Is the atom concave?
-        """
+        """Is the atom concave?"""
         P = self.args[1]
         return P.is_constant() and P.is_nsd()
 
     def is_atom_log_log_convex(self) -> bool:
-        """Is the atom log-log convex?
-        """
+        """Is the atom log-log convex?"""
         return True
 
     def is_atom_log_log_concave(self) -> bool:
-        """Is the atom log-log concave?
-        """
+        """Is the atom log-log concave?"""
         return False
 
     def is_incr(self, idx) -> bool:
-        """Is the composition non-decreasing in argument idx?
-        """
-        return (self.args[0].is_nonneg() and self.args[1].is_nonneg()) or \
-               (self.args[0].is_nonpos() and self.args[1].is_nonneg())
+        """Is the composition non-decreasing in argument idx?"""
+        return (self.args[0].is_nonneg() and self.args[1].is_nonneg()) or (
+            self.args[0].is_nonpos() and self.args[1].is_nonneg()
+        )
 
     def is_decr(self, idx) -> bool:
-        """Is the composition non-increasing in argument idx?
-        """
-        return (self.args[0].is_nonneg() and self.args[1].is_nonpos()) or \
-               (self.args[0].is_nonpos() and self.args[1].is_nonpos())
+        """Is the composition non-increasing in argument idx?"""
+        return (self.args[0].is_nonneg() and self.args[1].is_nonpos()) or (
+            self.args[0].is_nonpos() and self.args[1].is_nonpos()
+        )
 
     def is_quadratic(self) -> bool:
-        """Is the atom quadratic?
-        """
+        """Is the atom quadratic?"""
         return True
 
     def has_quadratic_term(self) -> bool:
-        """Always a quadratic term.
-        """
+        """Always a quadratic term."""
         return True
 
     def is_pwl(self) -> bool:
-        """Is the atom piecewise linear?
-        """
+        """Is the atom piecewise linear?"""
         return False
 
     def name(self) -> str:
-        return "%s(%s, %s)" % (self.__class__.__name__,
-                               self.args[0],
-                               self.args[1])
+        return "%s(%s, %s)" % (self.__class__.__name__, self.args[0], self.args[1])
 
     def _grad(self, values):
         x = np.array(values[0])
@@ -128,6 +118,7 @@ class SymbolicQuadForm(Atom):
     """
     Symbolic form of QuadForm when quadratic matrix is not known (yet).
     """
+
     def __init__(self, x, P, expr) -> None:
         self.original_expression = expr
         super(SymbolicQuadForm, self).__init__(x, P)
@@ -211,7 +202,7 @@ def decomp_quad(P, cond=None, rcond=None, lower=True, check_finite: bool = True)
         cond = rcond
     if cond in (None, -1):
         t = V.dtype.char.lower()
-        factor = {'f': 1e3, 'd': 1e6}
+        factor = {"f": 1e3, "d": 1e6}
         cond = factor[t] * np.finfo(t).eps
 
     scale = max(np.absolute(w))
@@ -230,7 +221,7 @@ def decomp_quad(P, cond=None, rcond=None, lower=True, check_finite: bool = True)
 
 
 def quad_form(x, P, assume_PSD: bool = False):
-    """ Alias for :math:`x^T P x`.
+    """Alias for :math:`x^T P x`.
 
     Parameters
     ----------
@@ -249,6 +240,4 @@ def quad_form(x, P, assume_PSD: bool = False):
             P = psd_wrap(P)
         return QuadForm(x, P)
     else:
-        raise Exception(
-            "At least one argument to quad_form must be non-variable."
-        )
+        raise Exception("At least one argument to quad_form must be non-variable.")

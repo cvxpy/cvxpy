@@ -32,6 +32,7 @@ class QpSolver(Solver):
     """
     A QP solver interface.
     """
+
     # Every QP solver supports Zero and NonNeg constraints.
     SUPPORTED_CONSTRAINTS = [Zero, NonNeg]
 
@@ -42,12 +43,13 @@ class QpSolver(Solver):
     IS_MIP = "IS_MIP"
 
     def accepts(self, problem):
-        return (isinstance(problem, ParamQuadProg)
-                and (self.MIP_CAPABLE or not problem.is_mixed_integer())
-                and not convex_attributes([problem.x])
-                and (len(problem.constraints) > 0 or not self.REQUIRES_CONSTR)
-                and all(type(c) in self.SUPPORTED_CONSTRAINTS for c in
-                        problem.constraints))
+        return (
+            isinstance(problem, ParamQuadProg)
+            and (self.MIP_CAPABLE or not problem.is_mixed_integer())
+            and not convex_attributes([problem.x])
+            and (len(problem.constraints) > 0 or not self.REQUIRES_CONSTR)
+            and all(type(c) in self.SUPPORTED_CONSTRAINTS for c in problem.constraints)
+        )
 
     def _prepare_data_and_inv_data(self, problem):
         data = {}
@@ -106,8 +108,8 @@ class QpSolver(Solver):
         data[s.INT_IDX] = [t[0] for t in problem.x.integer_idx]
         data[s.LOWER_BOUNDS] = problem.lower_bounds
         data[s.UPPER_BOUNDS] = problem.upper_bounds
-        data['n_var'] = n
-        data['n_eq'] = A.shape[0]
-        data['n_ineq'] = F.shape[0]
+        data["n_var"] = n
+        data["n_eq"] = A.shape[0]
+        data["n_ineq"] = F.shape[0]
 
         return data, inv_data

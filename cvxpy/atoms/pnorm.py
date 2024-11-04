@@ -13,6 +13,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+
 from typing import List, Tuple, Union
 
 import numpy as np
@@ -41,7 +42,7 @@ def pnorm(x, p: Union[int, str] = 2, axis=None, keepdims: bool = False, max_deno
     """
     if p == 1:
         return norm1(x, axis=axis, keepdims=keepdims)
-    elif p in [np.inf, 'inf', 'Inf']:
+    elif p in [np.inf, "inf", "Inf"]:
         return norm_inf(x, axis=axis, keepdims=keepdims)
     else:
         return Pnorm(x, p=p, axis=axis, keepdims=keepdims, max_denom=max_denom)
@@ -116,10 +117,12 @@ class Pnorm(AxisAtom):
     Expression
         An Expression representing the norm.
     """
+
     _allow_complex = True
 
-    def __init__(self, x, p: int = 2, axis=None,
-                 keepdims: bool = False, max_denom: int = 1024) -> None:
+    def __init__(
+        self, x, p: int = 2, axis=None, keepdims: bool = False, max_denom: int = 1024
+    ) -> None:
         if p < 0:
             # TODO(akshayka): Why do we accept p < 0?
             self.p, _ = pow_neg(p, max_denom)
@@ -128,19 +131,17 @@ class Pnorm(AxisAtom):
         elif p > 1:
             self.p, _ = pow_high(p, max_denom)
         elif p == 1:
-            raise ValueError('Use the norm1 class to instantiate a one norm.')
-        elif p == 'inf' or p == 'Inf' or p == np.inf:
-            raise ValueError('Use the norm_inf class to instantiate an '
-                             'infinity norm.')
+            raise ValueError("Use the norm1 class to instantiate a one norm.")
+        elif p == "inf" or p == "Inf" or p == np.inf:
+            raise ValueError("Use the norm_inf class to instantiate an " "infinity norm.")
         else:
-            raise ValueError('Invalid p: {}'.format(p))
+            raise ValueError("Invalid p: {}".format(p))
         self.approx_error = float(abs(self.p - p))
         self.original_p = p
         super(Pnorm, self).__init__(x, axis=axis, keepdims=keepdims)
 
     def numeric(self, values):
-        """Returns the p-norm of x.
-        """
+        """Returns the p-norm of x."""
 
         if self.axis is None:
             values = np.array(values[0]).flatten()
@@ -152,70 +153,57 @@ class Pnorm(AxisAtom):
         if self.p < 0 and np.any(values == 0):
             return 0.0
 
-        return np.linalg.norm(values, float(self.p), axis=self.axis,
-                              keepdims=self.keepdims)
+        return np.linalg.norm(values, float(self.p), axis=self.axis, keepdims=self.keepdims)
 
     def validate_arguments(self) -> None:
         super(Pnorm, self).validate_arguments()
         # TODO(akshayka): Why is axis not supported for other norms?
         if self.axis is not None and self.p != 2:
-            raise ValueError(
-                "The axis parameter is only supported for p=2.")
+            raise ValueError("The axis parameter is only supported for p=2.")
         if self.p < 1 and self.args[0].is_complex():
             raise ValueError("pnorm(x, p) cannot have x complex for p < 1.")
 
     def sign_from_args(self) -> Tuple[bool, bool]:
-        """Returns sign (is positive, is negative) of the expression.
-        """
+        """Returns sign (is positive, is negative) of the expression."""
         # Always positive.
         return (True, False)
 
     def is_atom_convex(self) -> bool:
-        """Is the atom convex?
-        """
+        """Is the atom convex?"""
         return self.p > 1
 
     def is_atom_concave(self) -> bool:
-        """Is the atom concave?
-        """
+        """Is the atom concave?"""
         return self.p < 1
 
     def is_atom_log_log_convex(self) -> bool:
-        """Is the atom log-log convex?
-        """
+        """Is the atom log-log convex?"""
         return True
 
     def is_atom_log_log_concave(self) -> bool:
-        """Is the atom log-log concave?
-        """
+        """Is the atom log-log concave?"""
         return False
 
     def is_incr(self, idx) -> bool:
-        """Is the composition non-decreasing in argument idx?
-        """
+        """Is the composition non-decreasing in argument idx?"""
         return self.p < 1 or (self.p > 1 and self.args[0].is_nonneg())
 
     def is_decr(self, idx) -> bool:
-        """Is the composition non-increasing in argument idx?
-        """
+        """Is the composition non-increasing in argument idx?"""
         return self.p > 1 and self.args[0].is_nonpos()
 
     def is_pwl(self) -> bool:
-        """Is the atom piecewise linear?
-        """
+        """Is the atom piecewise linear?"""
         return False
 
     def get_data(self):
         return [self.p, self.axis]
 
     def name(self) -> str:
-        return "%s(%s, %s)" % (self.__class__.__name__,
-                               self.args[0].name(),
-                               self.p)
+        return "%s(%s, %s)" % (self.__class__.__name__, self.args[0].name(), self.p)
 
     def _domain(self) -> List[Constraint]:
-        """Returns constraints describing the domain of the node.
-        """
+        """Returns constraints describing the domain of the node."""
         if self.p < 1 and self.p != 0:
             return [self.args[0] >= 0]
         else:
@@ -249,7 +237,7 @@ class Pnorm(AxisAtom):
         # Outside domain.
         if self.p < 1 and np.any(value <= 0):
             return None
-        D_null = sp.csc_matrix((rows, 1), dtype='float64')
+        D_null = sp.csc_matrix((rows, 1), dtype="float64")
         denominator = np.linalg.norm(value, float(self.p))
         denominator = np.power(denominator, self.p - 1)
         # Subgrad is 0 when denom is 0 (or undefined).

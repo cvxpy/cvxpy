@@ -16,14 +16,14 @@ limitations under the License.
 THIS FILE IS DEPRECATED AND MAY BE REMOVED WITHOUT WARNING!
 DO NOT CALL THESE FUNCTIONS IN YOUR CODE!
 """
+
 import numpy as np
 import scipy.sparse as sp
 
 
 def get_row_nnz(mat, row):
-    """Return the number of nonzeros in row.
-    """
-    return mat.indptr[row+1] - mat.indptr[row]
+    """Return the number of nonzeros in row."""
+    return mat.indptr[row + 1] - mat.indptr[row]
 
 
 def compress_matrix(A, b, equil_eps: float = 1e-10):
@@ -58,30 +58,31 @@ def compress_matrix(A, b, equil_eps: float = 1e-10):
     prev_ptr = A.indptr[0]
     for row_num in range(A.shape[0]):
         keep_row = True
-        ptr = A.indptr[row_num+1]
+        ptr = A.indptr[row_num + 1]
         pattern = tuple(A.indices[prev_ptr:ptr])
         # Eliminate empty rows.
         nnz = ptr - prev_ptr
         if nnz == 0 or np.linalg.norm(A.data[prev_ptr:ptr]) < equil_eps:
             keep_row = False
-            P_V.append(0.)
+            P_V.append(0.0)
             P_I.append(row_num)
             P_J.append(0)
         # Sparsity pattern is the same or there was a false collision.
         # Check rows have the same number of nonzeros.
-        elif pattern in sparsity_to_row and nnz == \
-                get_row_nnz(A, sparsity_to_row[pattern][0]):
+        elif pattern in sparsity_to_row and nnz == get_row_nnz(A, sparsity_to_row[pattern][0]):
             # Now test if one row is a multiple of another.
             row_matches = sparsity_to_row[pattern]
             for row_match in row_matches:
                 cur_vals = A.data[prev_ptr:ptr]
                 prev_match_ptr = A.indptr[row_match]
-                match_ptr = A.indptr[row_match+1]
+                match_ptr = A.indptr[row_match + 1]
                 match_vals = A.data[prev_match_ptr:match_ptr]
                 # Ratio should be constant.
-                ratio = cur_vals/match_vals
-                if np.ptp(ratio) < equil_eps and \
-                   abs(ratio[0] - b[row_num]/b[row_match]) < equil_eps:
+                ratio = cur_vals / match_vals
+                if (
+                    np.ptp(ratio) < equil_eps
+                    and abs(ratio[0] - b[row_num] / b[row_match]) < equil_eps
+                ):
                     keep_row = False
                     P_V.append(ratio[0])
                     P_I.append(row_num)
@@ -94,9 +95,9 @@ def compress_matrix(A, b, equil_eps: float = 1e-10):
 
         if keep_row:
             row_to_keep.append(row_num)
-            P_V.append(1.)
+            P_V.append(1.0)
             P_I.append(row_num)
-            P_J.append(len(row_to_keep)-1)
+            P_J.append(len(row_to_keep) - 1)
 
     # Compress A and b.
     cols = max(len(row_to_keep), 1)

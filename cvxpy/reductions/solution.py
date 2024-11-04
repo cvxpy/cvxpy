@@ -13,6 +13,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+
 import numpy as np
 
 import cvxpy.settings as s
@@ -49,7 +50,7 @@ def failure_solution(status, attr=None) -> "Solution":
     if attr is None:
         attr = {}
     if status == s.INFEASIBLE_OR_UNBOUNDED:
-        attr['message'] = INF_OR_UNB_MESSAGE
+        attr["message"] = INF_OR_UNB_MESSAGE
     return Solution(status, opt_val, {}, {}, attr)
 
 
@@ -69,6 +70,7 @@ class Solution:
     attr : dict
         Miscelleneous information propagated up from a solver.
     """
+
     def __init__(self, status, opt_val, primal_vars, dual_vars, attr) -> None:
         self.status = status
         self.opt_val = opt_val
@@ -77,18 +79,21 @@ class Solution:
         self.attr = attr
 
     def copy(self) -> "Solution":
-        return Solution(self.status,
-                        self.opt_val,
-                        self.primal_vars,
-                        self.dual_vars,
-                        self.attr)
+        return Solution(self.status, self.opt_val, self.primal_vars, self.dual_vars, self.attr)
 
     def __str__(self) -> str:
         return "Solution(status=%s, opt_val=%s, primal_vars=%s, dual_vars=%s, attr=%s)" % (
-          self.status, self.opt_val, self.primal_vars, self.dual_vars, self.attr)
+            self.status,
+            self.opt_val,
+            self.primal_vars,
+            self.dual_vars,
+            self.attr,
+        )
 
     def __repr__(self) -> str:
-        return "Solution(%s, %s, %s, %s)" % (self.status,
-                                             self.primal_vars,
-                                             self.dual_vars,
-                                             self.attr)
+        return "Solution(%s, %s, %s, %s)" % (
+            self.status,
+            self.primal_vars,
+            self.dual_vars,
+            self.attr,
+        )

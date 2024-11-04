@@ -13,6 +13,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+
 from typing import List, Tuple
 
 import cvxpy.lin_ops.lin_op as lo
@@ -21,8 +22,8 @@ from cvxpy.constraints.constraint import Constraint
 
 
 class Wrap(AffAtom):
-    """A no-op wrapper to assert properties.
-    """
+    """A no-op wrapper to assert properties."""
+
     def __init__(self, arg) -> None:
         return super(Wrap, self).__init__(arg)
 
@@ -33,16 +34,14 @@ class Wrap(AffAtom):
         return True
 
     def numeric(self, values):
-        """ Returns input.
-        """
+        """Returns input."""
         return values[0]
 
     def is_complex(self) -> bool:
         return self.args[0].is_complex()
 
     def shape_from_args(self) -> Tuple[int, ...]:
-        """Shape of input.
-        """
+        """Shape of input."""
         return self.args[0].shape
 
     def graph_implementation(
@@ -68,22 +67,21 @@ class Wrap(AffAtom):
 
 
 class nonneg_wrap(Wrap):
-    """Asserts that the expression is nonnegative.
-    """
+    """Asserts that the expression is nonnegative."""
+
     def is_nonneg(self) -> bool:
         return True
 
 
 class nonpos_wrap(Wrap):
-    """Asserts that the expression is nonpositive.
-    """
+    """Asserts that the expression is nonpositive."""
+
     def is_nonpos(self) -> bool:
         return True
 
 
 class psd_wrap(Wrap):
-    """Asserts that a square matrix is PSD.
-    """
+    """Asserts that a square matrix is PSD."""
 
     def validate_arguments(self) -> None:
         arg = self.args[0]
@@ -107,8 +105,7 @@ class psd_wrap(Wrap):
 
 
 class symmetric_wrap(Wrap):
-    """Asserts that a real square matrix is symmetric
-    """
+    """Asserts that a real square matrix is symmetric"""
 
     def validate_arguments(self) -> None:
         validate_real_square(self.args[0])
@@ -121,8 +118,7 @@ class symmetric_wrap(Wrap):
 
 
 class hermitian_wrap(Wrap):
-    """Asserts that a square matrix is Hermitian.
-    """
+    """Asserts that a square matrix is Hermitian."""
 
     def validate_arguments(self) -> None:
         arg = self.args[0]
@@ -137,8 +133,7 @@ class hermitian_wrap(Wrap):
 
 
 class skew_symmetric_wrap(Wrap):
-    """Asserts that X is a real square matrix, satisfying X + X.T == 0.
-    """
+    """Asserts that X is a real square matrix, satisfying X + X.T == 0."""
 
     def validate_arguments(self) -> None:
         validate_real_square(self.args[0])

@@ -76,7 +76,8 @@ We use [ruff](https://docs.astral.sh/ruff/) to enforce our Python coding style. 
 
 ```
 pip install ruff
-ruff check cvxpy
+ruff check --fix
+ruff format
 ```
 
 to make sure that your changes abide by our style conventions. Please fix any errors that are reported before sending the pull request.

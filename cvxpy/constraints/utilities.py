@@ -13,6 +13,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+
 from typing import Tuple
 
 import scipy.sparse as sp
@@ -60,9 +61,9 @@ def format_axis(t, X, axis):
     if len(X.shape) == 1:
         X = lu.reshape(X, (X.shape[0], 1))
     mat_shape = (cone_size, X.shape[0])
-    val_arr = (cone_size - 1)*[1.0]
+    val_arr = (cone_size - 1) * [1.0]
     row_arr = range(1, cone_size)
-    col_arr = range(cone_size-1)
+    col_arr = range(cone_size - 1)
     X_mat = sp.csc_matrix((val_arr, (row_arr, col_arr)), mat_shape)
     X_mat = lu.create_const(X_mat, mat_shape, sparse=True)
     mul_shape = (cone_size, X.shape[1])
@@ -87,7 +88,7 @@ def format_elemwise(vars_):
     # gives the format for the elementwise cone constraints.
     spacing = len(vars_)
     # Matrix spaces out columns of the LinOp expressions.
-    mat_shape = (spacing*vars_[0].shape[0], vars_[0].shape[0])
+    mat_shape = (spacing * vars_[0].shape[0], vars_[0].shape[0])
     terms = []
     for i, var in enumerate(vars_):
         mat = get_spacing_matrix(mat_shape, spacing, i)
@@ -118,7 +119,7 @@ def get_spacing_matrix(shape: Tuple[int, ...], spacing, offset):
     # Selects from each column.
     for var_row in range(shape[1]):
         val_arr.append(1.0)
-        row_arr.append(spacing*var_row + offset)
+        row_arr.append(spacing * var_row + offset)
         col_arr.append(var_row)
     mat = sp.csc_matrix((val_arr, (row_arr, col_arr)), shape)
     return lu.create_const(mat, shape, sparse=True)

@@ -49,8 +49,8 @@ def set_parameters(model, solver_opts) -> None:
                 parameter.set(value)
             except AttributeError:
                 raise ValueError(
-                    "invalid CPLEX parameter, value pair ({0}, {1})".format(
-                        param, value))
+                    "invalid CPLEX parameter, value pair ({0}, {1})".format(param, value)
+                )
         kwargs.remove("cplex_params")
     if "cplex_filename" in kwargs:
         filename = solver_opts["cplex_filename"]
@@ -80,25 +80,20 @@ def _handle_solve_status(model, solstat):
         unbounded_status_codes = (
             status.MIP_unbounded,
             status.MIP_benders_master_unbounded,
-            status.benders_master_unbounded
+            status.benders_master_unbounded,
         )
     else:
-        unbounded_status_codes = (
-            status.MIP_unbounded,
-        )
+        unbounded_status_codes = (status.MIP_unbounded,)
 
     if solstat == status.MIP_optimal:
         return status.optimal
     elif solstat == status.MIP_infeasible:
         return status.infeasible
-    elif solstat in (status.MIP_time_limit_feasible,
-                     status.MIP_time_limit_infeasible):
+    elif solstat in (status.MIP_time_limit_feasible, status.MIP_time_limit_infeasible):
         return status.abort_time_limit
-    elif solstat in (status.MIP_dettime_limit_feasible,
-                     status.MIP_dettime_limit_infeasible):
+    elif solstat in (status.MIP_dettime_limit_feasible, status.MIP_dettime_limit_infeasible):
         return status.abort_dettime_limit
-    elif solstat in (status.MIP_abort_feasible,
-                     status.MIP_abort_infeasible):
+    elif solstat in (status.MIP_abort_feasible, status.MIP_abort_infeasible):
         return status.abort_user
     elif solstat == status.MIP_optimal_infeasible:
         return status.optimal_infeasible
@@ -106,36 +101,37 @@ def _handle_solve_status(model, solstat):
         return status.infeasible_or_unbounded
     elif solstat in unbounded_status_codes:
         return status.unbounded
-    elif solstat in (status.feasible_relaxed_sum,
-                     status.MIP_feasible_relaxed_sum,
-                     status.optimal_relaxed_sum,
-                     status.MIP_optimal_relaxed_sum,
-                     status.feasible_relaxed_inf,
-                     status.MIP_feasible_relaxed_inf,
-                     status.optimal_relaxed_inf,
-                     status.MIP_optimal_relaxed_inf,
-                     status.feasible_relaxed_quad,
-                     status.MIP_feasible_relaxed_quad,
-                     status.optimal_relaxed_quad,
-                     status.MIP_optimal_relaxed_quad):
-        raise AssertionError(
-            "feasopt status encountered: {0}".format(solstat))
-    elif solstat in (status.conflict_feasible,
-                     status.conflict_minimal,
-                     status.conflict_abort_contradiction,
-                     status.conflict_abort_time_limit,
-                     status.conflict_abort_dettime_limit,
-                     status.conflict_abort_iteration_limit,
-                     status.conflict_abort_node_limit,
-                     status.conflict_abort_obj_limit,
-                     status.conflict_abort_memory_limit,
-                     status.conflict_abort_user):
-        raise AssertionError(
-            "conflict refiner status encountered: {0}".format(solstat))
+    elif solstat in (
+        status.feasible_relaxed_sum,
+        status.MIP_feasible_relaxed_sum,
+        status.optimal_relaxed_sum,
+        status.MIP_optimal_relaxed_sum,
+        status.feasible_relaxed_inf,
+        status.MIP_feasible_relaxed_inf,
+        status.optimal_relaxed_inf,
+        status.MIP_optimal_relaxed_inf,
+        status.feasible_relaxed_quad,
+        status.MIP_feasible_relaxed_quad,
+        status.optimal_relaxed_quad,
+        status.MIP_optimal_relaxed_quad,
+    ):
+        raise AssertionError("feasopt status encountered: {0}".format(solstat))
+    elif solstat in (
+        status.conflict_feasible,
+        status.conflict_minimal,
+        status.conflict_abort_contradiction,
+        status.conflict_abort_time_limit,
+        status.conflict_abort_dettime_limit,
+        status.conflict_abort_iteration_limit,
+        status.conflict_abort_node_limit,
+        status.conflict_abort_obj_limit,
+        status.conflict_abort_memory_limit,
+        status.conflict_abort_user,
+    ):
+        raise AssertionError("conflict refiner status encountered: {0}".format(solstat))
     elif solstat == status.relaxation_unbounded:
         return status.relaxation_unbounded
-    elif solstat in (status.feasible,
-                     status.MIP_feasible):
+    elif solstat in (status.feasible, status.MIP_feasible):
         return status.feasible
     elif solstat == status.benders_num_best:
         return status.num_best
@@ -150,50 +146,62 @@ def get_status(model):
     dfeas = model.solution.is_dual_feasible()
     status = model.solution.status
     solstat = _handle_solve_status(model, model.solution.get_status())
-    if solstat in (status.node_limit_infeasible,
-                   status.fail_infeasible,
-                   status.mem_limit_infeasible,
-                   status.fail_infeasible_no_tree,
-                   status.num_best):
+    if solstat in (
+        status.node_limit_infeasible,
+        status.fail_infeasible,
+        status.mem_limit_infeasible,
+        status.fail_infeasible_no_tree,
+        status.num_best,
+    ):
         return s.SOLVER_ERROR
-    elif solstat in (status.abort_user,
-                     status.abort_iteration_limit,
-                     status.abort_time_limit,
-                     status.abort_dettime_limit,
-                     status.abort_obj_limit,
-                     status.abort_primal_obj_limit,
-                     status.abort_dual_obj_limit,
-                     status.abort_relaxed,
-                     status.first_order):
+    elif solstat in (
+        status.abort_user,
+        status.abort_iteration_limit,
+        status.abort_time_limit,
+        status.abort_dettime_limit,
+        status.abort_obj_limit,
+        status.abort_primal_obj_limit,
+        status.abort_dual_obj_limit,
+        status.abort_relaxed,
+        status.first_order,
+    ):
         if pfeas:
             return s.OPTIMAL_INACCURATE
         else:
             return s.SOLVER_ERROR
-    elif solstat in (status.node_limit_feasible,
-                     status.solution_limit,
-                     status.populate_solution_limit,
-                     status.fail_feasible,
-                     status.mem_limit_feasible,
-                     status.fail_feasible_no_tree,
-                     status.feasible):
+    elif solstat in (
+        status.node_limit_feasible,
+        status.solution_limit,
+        status.populate_solution_limit,
+        status.fail_feasible,
+        status.mem_limit_feasible,
+        status.fail_feasible_no_tree,
+        status.feasible,
+    ):
         if dfeas:
             return s.OPTIMAL
         else:
             return s.OPTIMAL_INACCURATE
-    elif solstat in (status.optimal,
-                     status.optimal_tolerance,
-                     status.optimal_infeasible,
-                     status.optimal_populated,
-                     status.optimal_populated_tolerance):
+    elif solstat in (
+        status.optimal,
+        status.optimal_tolerance,
+        status.optimal_infeasible,
+        status.optimal_populated,
+        status.optimal_populated_tolerance,
+    ):
         return s.OPTIMAL
-    elif solstat in (status.infeasible,
-                     status.optimal_relaxed_sum,
-                     status.optimal_relaxed_inf,
-                     status.optimal_relaxed_quad):
+    elif solstat in (
+        status.infeasible,
+        status.optimal_relaxed_sum,
+        status.optimal_relaxed_inf,
+        status.optimal_relaxed_quad,
+    ):
         return s.INFEASIBLE
-    elif solstat in (status.feasible_relaxed_quad,
-                     status.feasible_relaxed_inf,
-                     status.feasible_relaxed_sum):
+    elif solstat in (
+        status.feasible_relaxed_quad,
+        status.feasible_relaxed_inf,
+        status.feasible_relaxed_sum,
+    ):
         return s.SOLVER_ERROR
     elif solstat == status.unbounded:
         return s.UNBOUNDED
@@ -204,8 +212,7 @@ def get_status(model):
 
 
 class CPLEX(ConicSolver):
-    """An interface for the CPLEX solver.
-    """
+    """An interface for the CPLEX solver."""
 
     # Solver capabilities.
     MIP_CAPABLE = True
@@ -213,7 +220,7 @@ class CPLEX(ConicSolver):
     MI_SUPPORTED_CONSTRAINTS = SUPPORTED_CONSTRAINTS
 
     def name(self):
-        """The name of the solver. """
+        """The name of the solver."""
         return s.CPLEX
 
     def import_solver(self) -> None:
@@ -221,8 +228,7 @@ class CPLEX(ConicSolver):
         import cplex  # noqa F401
 
     def accepts(self, problem) -> bool:
-        """Can CPLEX solve the problem?
-        """
+        """Can CPLEX solve the problem?"""
         # TODO check if is matrix stuffed.
         if not problem.objective.args[0].is_affine():
             return False
@@ -246,13 +252,12 @@ class CPLEX(ConicSolver):
         variables = problem.x
         data[s.BOOL_IDX] = [int(t[0]) for t in variables.boolean_idx]
         data[s.INT_IDX] = [int(t[0]) for t in variables.integer_idx]
-        inv_data['is_mip'] = data[s.BOOL_IDX] or data[s.INT_IDX]
+        inv_data["is_mip"] = data[s.BOOL_IDX] or data[s.INT_IDX]
 
         return data, inv_data
 
     def invert(self, solution, inverse_data):
-        """Returns the solution to the original problem given the inverse_data.
-        """
+        """Returns the solution to the original problem given the inverse_data."""
         model = solution["model"]
         attr = {}
         if s.SOLVE_TIME in solution:
@@ -263,13 +268,12 @@ class CPLEX(ConicSolver):
         primal_vars = None
         dual_vars = None
         if status in s.SOLUTION_PRESENT:
-            opt_val = (model.solution.get_objective_value() +
-                       inverse_data[s.OFFSET])
+            opt_val = model.solution.get_objective_value() + inverse_data[s.OFFSET]
 
             x = np.array(model.solution.get_values())
             primal_vars = {inverse_data[CPLEX.VAR_ID]: x}
 
-            if not inverse_data['is_mip']:
+            if not inverse_data["is_mip"]:
                 # The dual values are retrieved in the order that the
                 # constraints were added in solve_via_data() below. We
                 # must be careful to map them to inverse_data[EQ_CONSTR]
@@ -278,7 +282,8 @@ class CPLEX(ConicSolver):
                 dual_vars = utilities.get_dual_values(
                     y,
                     utilities.extract_dual_value,
-                    inverse_data[CPLEX.EQ_CONSTR] + inverse_data[CPLEX.NEQ_CONSTR])
+                    inverse_data[CPLEX.EQ_CONSTR] + inverse_data[CPLEX.NEQ_CONSTR],
+                )
 
             return Solution(status, opt_val, primal_vars, dual_vars, attr)
         else:
@@ -305,46 +310,50 @@ class CPLEX(ConicSolver):
             for i in range(n):
                 # Set variable type.
                 if i in data[s.BOOL_IDX]:
-                    vtype.append('B')
+                    vtype.append("B")
                 elif i in data[s.INT_IDX]:
-                    vtype.append('I')
+                    vtype.append("I")
                 else:
-                    vtype.append('C')
+                    vtype.append("C")
         else:
             # If we specify types (even with 'C'), then the problem will
             # be interpreted as a MIP. Leaving vtype as an empty list
             # here, will ensure that the problem type remains an LP.
             pass
         # Add the variables in a batch
-        variables = list(model.variables.add(
-            obj=[c[i] for i in range(n)],
-            lb=[-cplex.infinity]*n,  # default LB is 0
-            ub=[cplex.infinity]*n,
-            types="".join(vtype),
-            names=["x_%d" % i for i in range(n)]))
+        variables = list(
+            model.variables.add(
+                obj=[c[i] for i in range(n)],
+                lb=[-cplex.infinity] * n,  # default LB is 0
+                ub=[cplex.infinity] * n,
+                types="".join(vtype),
+                names=["x_%d" % i for i in range(n)],
+            )
+        )
 
         # Add equality constraints
-        cpx_constrs += [_CpxConstr(_LIN, x)
-                        for x in self.add_model_lin_constr(
-                                model, variables,
-                                range(dims[s.EQ_DIM]),
-                                'E', A, b)]
+        cpx_constrs += [
+            _CpxConstr(_LIN, x)
+            for x in self.add_model_lin_constr(model, variables, range(dims[s.EQ_DIM]), "E", A, b)
+        ]
 
         # Add inequality (<=) constraints
         leq_start = dims[s.EQ_DIM]
         leq_end = dims[s.EQ_DIM] + dims[s.LEQ_DIM]
-        cpx_constrs += [_CpxConstr(_LIN, x)
-                        for x in self.add_model_lin_constr(
-                                model, variables,
-                                range(leq_start, leq_end),
-                                'L', A, b)]
+        cpx_constrs += [
+            _CpxConstr(_LIN, x)
+            for x in self.add_model_lin_constr(
+                model, variables, range(leq_start, leq_end), "L", A, b
+            )
+        ]
 
         # Add SOC constraints
         soc_start = leq_end
         for constr_len in dims[s.SOC_DIM]:
             soc_end = soc_start + constr_len
             soc_constr, new_leq, new_vars = self.add_model_soc_constr(
-                model, variables, range(soc_start, soc_end), A, b)
+                model, variables, range(soc_start, soc_end), A, b
+            )
             cpx_constrs.append(_CpxConstr(_QUAD, soc_constr))
             cpx_constrs += [_CpxConstr(_LIN, x) for x in new_leq]
             variables += new_vars
@@ -358,10 +367,11 @@ class CPLEX(ConicSolver):
         # easily override it via the "cplex_params" solver option (see
         # set_parameters function).
         model.parameters.preprocessing.qcpduals.set(
-            model.parameters.preprocessing.qcpduals.values.force)
+            model.parameters.preprocessing.qcpduals.values.force
+        )
 
         # Set parameters
-        reoptimize = solver_opts.pop('reoptimize', False)
+        reoptimize = solver_opts.pop("reoptimize", False)
         set_parameters(model, solver_opts)
 
         # Solve problem
@@ -383,8 +393,7 @@ class CPLEX(ConicSolver):
 
         return solution
 
-    def add_model_lin_constr(self, model, variables,
-                             rows, ctype, mat, vec):
+    def add_model_lin_constr(self, model, variables, rows, ctype, mat, vec):
         """Adds EQ/LEQ constraints to the model using the data from mat and vec.
 
         Parameters
@@ -417,15 +426,16 @@ class CPLEX(ConicSolver):
         # For better performance, we add the constraints in a batch.
         if lin_expr:
             assert len(lin_expr) == len(rhs)
-            constr.extend(list(
-                model.linear_constraints.add(
-                    lin_expr=lin_expr,
-                    senses=ctype * len(lin_expr),
-                    rhs=rhs)))
+            constr.extend(
+                list(
+                    model.linear_constraints.add(
+                        lin_expr=lin_expr, senses=ctype * len(lin_expr), rhs=rhs
+                    )
+                )
+            )
         return constr
 
-    def add_model_soc_constr(self, model, variables,
-                             rows, mat, vec):
+    def add_model_soc_constr(self, model, variables, rows, mat, vec):
         """Adds SOC constraint to the model using the data from mat and vec.
 
         Parameters
@@ -473,12 +483,11 @@ class CPLEX(ConicSolver):
             else:
                 lb = [-cplex.infinity]
                 names = ["soc_x_%d" % i]
-            soc_vars.extend(list(model.variables.add(
-                obj=[0],
-                lb=lb,
-                ub=[cplex.infinity],
-                types="",
-                names=names)))
+            soc_vars.extend(
+                list(
+                    model.variables.add(obj=[0], lb=lb, ub=[cplex.infinity], types="", names=names)
+                )
+            )
 
         new_lin_constrs = []
         for i, expr in enumerate(lin_expr_list):
@@ -489,20 +498,22 @@ class CPLEX(ConicSolver):
                 ind, val = expr
                 ind.append(soc_vars[i])
                 val.append(1.0)
-            new_lin_constrs.extend(list(
-                model.linear_constraints.add(
-                    lin_expr=[cplex.SparsePair(ind=ind, val=val)],
-                    senses="E",
-                    rhs=[lin_rhs[i]])))
+            new_lin_constrs.extend(
+                list(
+                    model.linear_constraints.add(
+                        lin_expr=[cplex.SparsePair(ind=ind, val=val)], senses="E", rhs=[lin_rhs[i]]
+                    )
+                )
+            )
 
         assert len(soc_vars) > 0
         qconstr = model.quadratic_constraints.add(
             lin_expr=cplex.SparsePair(ind=[], val=[]),
             quad_expr=cplex.SparseTriple(
-                ind1=soc_vars,
-                ind2=soc_vars,
-                val=[-1.0] + [1.0] * (len(soc_vars) - 1)),
+                ind1=soc_vars, ind2=soc_vars, val=[-1.0] + [1.0] * (len(soc_vars) - 1)
+            ),
             sense="L",
             rhs=0.0,
-            name="")
+            name="",
+        )
         return (qconstr, new_lin_constrs, soc_vars)

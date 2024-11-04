@@ -13,6 +13,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+
 import unittest
 from typing import Tuple
 
@@ -26,26 +27,25 @@ from cvxpy.expressions.variable import Variable
 
 
 class TestMatrices(unittest.TestCase):
-    """ Unit tests for testing different forms of matrices as constants. """
+    """Unit tests for testing different forms of matrices as constants."""
 
     def assertExpression(self, expr, shape: Tuple[int, ...]) -> None:
-        """Asserts that expr is an Expression with dimension shape.
-        """
+        """Asserts that expr is an Expression with dimension shape."""
         assert isinstance(expr, Expression) or isinstance(expr, Constraint)
         self.assertEqual(expr.shape, shape)
 
     def setUp(self) -> None:
-        self.a = Variable(name='a')
-        self.b = Variable(name='b')
-        self.c = Variable(name='c')
+        self.a = Variable(name="a")
+        self.b = Variable(name="b")
+        self.c = Variable(name="c")
 
-        self.x = Variable(2, name='x')
-        self.y = Variable(3, name='y')
-        self.z = Variable(2, name='z')
+        self.x = Variable(2, name="x")
+        self.y = Variable(3, name="y")
+        self.z = Variable(2, name="z")
 
-        self.A = Variable((2, 2), name='A')
-        self.B = Variable((2, 2), name='B')
-        self.C = Variable((3, 2), name='C')
+        self.A = Variable((2, 2), name="A")
+        self.B = Variable((2, 2), name="B")
+        self.C = Variable((3, 2), name="C")
 
     # Test numpy arrays
     def test_numpy_arrays(self) -> None:

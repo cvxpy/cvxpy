@@ -51,7 +51,7 @@ def expcone_permutor(n_cones, exp_cone_order) -> np.ndarray:
 
 
 def extract_dual_value(result_vec, offset, constraint):
-    value = result_vec[offset:offset + constraint.size]
+    value = result_vec[offset : offset + constraint.size]
     if constraint.size == 1:
         value = intf.scalar_value(value)
     offset += constraint.size

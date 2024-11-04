@@ -29,16 +29,19 @@ class PIQP(QpSolver):
     MIP_CAPABLE = False
 
     # Map of PIQP status to CVXPY status.
-    STATUS_MAP = {"PIQP_SOLVED": s.OPTIMAL,
-                  "PIQP_MAX_ITER_REACHED": s.USER_LIMIT,
-                  "PIQP_PRIMAL_INFEASIBLE": s.INFEASIBLE,
-                  "PIQP_DUAL_INFEASIBLE": s.UNBOUNDED}
+    STATUS_MAP = {
+        "PIQP_SOLVED": s.OPTIMAL,
+        "PIQP_MAX_ITER_REACHED": s.USER_LIMIT,
+        "PIQP_PRIMAL_INFEASIBLE": s.INFEASIBLE,
+        "PIQP_DUAL_INFEASIBLE": s.UNBOUNDED,
+    }
 
     def name(self):
         return s.PIQP
 
     def import_solver(self) -> None:
         import piqp
+
         piqp
 
     def invert(self, solution, inverse_data):
@@ -50,27 +53,22 @@ class PIQP(QpSolver):
 
         if status in s.SOLUTION_PRESENT:
             opt_val = solution.info.primal_obj + inverse_data[s.OFFSET]
-            primal_vars = {
-                PIQP.VAR_ID:
-                intf.DEFAULT_INTF.const_to_matrix(np.array(solution.x))
-            }
+            primal_vars = {PIQP.VAR_ID: intf.DEFAULT_INTF.const_to_matrix(np.array(solution.x))}
 
-            dual_vars = {PIQP.DUAL_VAR_ID: np.concatenate(
-                (solution.y, solution.z))}
+            dual_vars = {PIQP.DUAL_VAR_ID: np.concatenate((solution.y, solution.z))}
             attr[s.NUM_ITERS] = solution.info.iter
             sol = Solution(status, opt_val, primal_vars, dual_vars, attr)
         else:
             sol = failure_solution(status, attr)
         return sol
 
-    def solve_via_data(self, data, warm_start: bool, verbose: bool, solver_opts,
-                       solver_cache=None):
+    def solve_via_data(self, data, warm_start: bool, verbose: bool, solver_opts, solver_cache=None):
         import piqp
 
         solver_opts = solver_opts.copy()
 
-        solver_opts['backend'] = solver_opts.get('backend', 'sparse')
-        backend = solver_opts['backend']
+        solver_opts["backend"] = solver_opts.get("backend", "sparse")
+        backend = solver_opts["backend"]
 
         if backend == "dense":
             # Convert sparse to dense matrices
@@ -93,7 +91,7 @@ class PIQP(QpSolver):
         elif backend == "sparse":
             solver = piqp.SparseSolver()
 
-        del solver_opts['backend']
+        del solver_opts["backend"]
         for opt in solver_opts.keys():
             try:
                 solver.settings.__setattr__(opt, solver_opts[opt])
@@ -103,12 +101,7 @@ class PIQP(QpSolver):
                 raise TypeError(f"PIQP: unrecognized solver setting '{opt}'.") from e
         solver.settings.verbose = verbose
 
-        solver.setup(P=P,
-                     c=q,
-                     A=A,
-                     b=b,
-                     G=F,
-                     h=g)
+        solver.setup(P=P, c=q, A=A, b=b, G=F, h=g)
 
         solver.solve()
 

@@ -14,7 +14,6 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-
 import cvxpy.interface as intf
 import cvxpy.settings as s
 from cvxpy.constraints import ExpCone
@@ -28,8 +27,7 @@ from cvxpy.reductions.solvers.conic_solvers.ecos_conif import (
 
 
 class ECOS_BB(ECOS):
-    """An interface for the ECOS BB solver.
-    """
+    """An interface for the ECOS BB solver."""
 
     # Solver capabilities.
     MIP_CAPABLE = True
@@ -52,8 +50,7 @@ class ECOS_BB(ECOS):
     # MI_MAXITER_UNBOUNDED (ECOS_DINF + ECOS_INACC_OFFSET)
 
     def name(self):
-        """The name of the solver.
-        """
+        """The name of the solver."""
         return s.ECOS_BB
 
     def apply(self, problem):
@@ -63,13 +60,12 @@ class ECOS_BB(ECOS):
         var = problem.x
         data[s.BOOL_IDX] = [int(t[0]) for t in var.boolean_idx]
         data[s.INT_IDX] = [int(t[0]) for t in var.integer_idx]
-        inv_data['is_mip'] = data[s.BOOL_IDX] or data[s.INT_IDX]
+        inv_data["is_mip"] = data[s.BOOL_IDX] or data[s.INT_IDX]
         return data, inv_data
 
     def invert(self, solution, inverse_data):
-        """Returns solution to original problem, given inverse_data.
-        """
-        status = self.STATUS_MAP[solution['info']['exitFlag']]
+        """Returns solution to original problem, given inverse_data."""
+        status = self.STATUS_MAP[solution["info"]["exitFlag"]]
 
         # Timing data
         attr = {}
@@ -79,29 +75,24 @@ class ECOS_BB(ECOS):
         attr[s.EXTRA_STATS] = solution
 
         if status in s.SOLUTION_PRESENT:
-            primal_val = solution['info']['pcost']
+            primal_val = solution["info"]["pcost"]
             opt_val = primal_val + inverse_data[s.OFFSET]
             primal_vars = {
-                inverse_data[self.VAR_ID]: intf.DEFAULT_INTF.const_to_matrix(solution['x'])
+                inverse_data[self.VAR_ID]: intf.DEFAULT_INTF.const_to_matrix(solution["x"])
             }
             dual_vars = None
-            if not inverse_data['is_mip']:
+            if not inverse_data["is_mip"]:
                 dual_vars = utilities.get_dual_values(
-                    solution['z'],
-                    utilities.extract_dual_value,
-                    inverse_data[self.NEQ_CONSTR]
+                    solution["z"], utilities.extract_dual_value, inverse_data[self.NEQ_CONSTR]
                 )
                 for con in inverse_data[self.NEQ_CONSTR]:
                     if isinstance(con, ExpCone):
                         cid = con.id
                         n_cones = con.num_cones()
-                        perm = utilities.expcone_permutor(n_cones,
-                                                          ECOS.EXP_CONE_ORDER)
+                        perm = utilities.expcone_permutor(n_cones, ECOS.EXP_CONE_ORDER)
                         dual_vars[cid] = dual_vars[cid][perm]
                 eq_duals = utilities.get_dual_values(
-                    solution['y'],
-                    utilities.extract_dual_value,
-                    inverse_data[self.EQ_CONSTR]
+                    solution["y"], utilities.extract_dual_value, inverse_data[self.EQ_CONSTR]
                 )
                 dual_vars.update(eq_duals)
             return Solution(status, opt_val, primal_vars, dual_vars, attr)
@@ -110,18 +101,25 @@ class ECOS_BB(ECOS):
 
     def solve_via_data(self, data, warm_start: bool, verbose: bool, solver_opts, solver_cache=None):
         import ecos
+
         cones = dims_to_solver_dict(data[ConicSolver.DIMS])
         # Default verbose to false for BB wrapper.
-        if 'mi_verbose' in solver_opts:
-            mi_verbose = solver_opts['mi_verbose']
-            del solver_opts['mi_verbose']
+        if "mi_verbose" in solver_opts:
+            mi_verbose = solver_opts["mi_verbose"]
+            del solver_opts["mi_verbose"]
         else:
             mi_verbose = verbose
-        solution = ecos.solve(data[s.C], data[s.G], data[s.H],
-                              cones, data[s.A], data[s.B],
-                              verbose=verbose,
-                              mi_verbose=mi_verbose,
-                              bool_vars_idx=data[s.BOOL_IDX],
-                              int_vars_idx=data[s.INT_IDX],
-                              **solver_opts)
+        solution = ecos.solve(
+            data[s.C],
+            data[s.G],
+            data[s.H],
+            cones,
+            data[s.A],
+            data[s.B],
+            verbose=verbose,
+            mi_verbose=mi_verbose,
+            bool_vars_idx=data[s.BOOL_IDX],
+            int_vars_idx=data[s.INT_IDX],
+            **solver_opts,
+        )
         return solution

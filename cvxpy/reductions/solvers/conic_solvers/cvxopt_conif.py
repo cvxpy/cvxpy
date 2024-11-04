@@ -41,43 +41,40 @@ def dims_to_solver_dict(cone_dims) -> Dict[str, Union[List[int], int]]:
 
 
 class CVXOPT(ConicSolver):
-    """An interface for the CVXOPT solver.
-    """
+    """An interface for the CVXOPT solver."""
 
     # Solver capabilities.
     MIP_CAPABLE = False
-    SUPPORTED_CONSTRAINTS = ConicSolver.SUPPORTED_CONSTRAINTS + [SOC,
-                                                                 PSD]
+    SUPPORTED_CONSTRAINTS = ConicSolver.SUPPORTED_CONSTRAINTS + [SOC, PSD]
 
     # Map of CVXOPT status to CVXPY status.
-    STATUS_MAP = {"optimal": s.OPTIMAL,
-                  "feasible": s.OPTIMAL_INACCURATE,
-                  "infeasible problem": s.INFEASIBLE,
-                  "primal infeasible": s.INFEASIBLE,
-                  "LP relaxation is primal infeasible": s.INFEASIBLE,
-                  "LP relaxation is dual infeasible": s.UNBOUNDED,
-                  "unbounded": s.UNBOUNDED,
-                  "dual infeasible": s.UNBOUNDED,
-                  "unknown": s.SOLVER_ERROR,
-                  "undefined": s.SOLVER_ERROR,
-                  "solver_error": s.SOLVER_ERROR}
+    STATUS_MAP = {
+        "optimal": s.OPTIMAL,
+        "feasible": s.OPTIMAL_INACCURATE,
+        "infeasible problem": s.INFEASIBLE,
+        "primal infeasible": s.INFEASIBLE,
+        "LP relaxation is primal infeasible": s.INFEASIBLE,
+        "LP relaxation is dual infeasible": s.UNBOUNDED,
+        "unbounded": s.UNBOUNDED,
+        "dual infeasible": s.UNBOUNDED,
+        "unknown": s.SOLVER_ERROR,
+        "undefined": s.SOLVER_ERROR,
+        "solver_error": s.SOLVER_ERROR,
+    }
 
     # When constraints aren't provided, use zero matrix and vector of this length
     MIN_CONSTRAINT_LENGTH = 0
 
     def name(self):
-        """The name of the solver.
-        """
+        """The name of the solver."""
         return s.CVXOPT
 
     def import_solver(self) -> None:
-        """Imports the solver.
-        """
+        """Imports the solver."""
         import cvxopt  # noqa F401
 
     def accepts(self, problem) -> bool:
-        """Can CVXOPT solve the problem?
-        """
+        """Can CVXOPT solve the problem?"""
         # TODO check if is matrix stuffed.
         if not problem.objective.args[0].is_affine():
             return False
@@ -117,7 +114,7 @@ class CVXOPT(ConicSolver):
         data[s.A] = -A[:len_eq]
         if data[s.A].shape[0] == 0:
             data[s.A] = None
-        data[s.B] = b[:len_eq].flatten(order='F')
+        data[s.B] = b[:len_eq].flatten(order="F")
         if data[s.B].shape[0] == 0:
             data[s.B] = None
         if len_eq >= A.shape[0]:
@@ -127,18 +124,16 @@ class CVXOPT(ConicSolver):
             data[s.H] = None
         else:
             data[s.G] = -A[len_eq:]
-            data[s.H] = b[len_eq:].flatten(order='F')
+            data[s.H] = b[len_eq:].flatten(order="F")
         return data, inv_data
 
     def invert(self, solution, inverse_data):
-        """Returns the solution to the original problem given the inverse_data.
-        """
+        """Returns the solution to the original problem given the inverse_data."""
         return super(CVXOPT, self).invert(solution, inverse_data)
 
     @classmethod
     def _prepare_cvxopt_matrices(cls, data) -> dict:
-        """Convert constraints and cost to solver-specific format
-        """
+        """Convert constraints and cost to solver-specific format"""
         cvxopt_data = data.copy()
 
         # convert cost to cvxopt format
@@ -169,7 +164,7 @@ class CVXOPT(ConicSolver):
         data[s.DIMS] = dims_to_solver_dict(data[s.DIMS])
         # Do a preliminary check for a certain, problematic KKT solver.
         kktsolver = self.get_kktsolver_opt(solver_opts)
-        if isinstance(kktsolver, str) and kktsolver == 'chol':
+        if isinstance(kktsolver, str) and kktsolver == "chol":
             if self.remove_redundant_rows(data) == s.INFEASIBLE:
                 return {s.STATUS: s.INFEASIBLE}
 
@@ -198,8 +193,7 @@ class CVXOPT(ConicSolver):
             kktsolver = kktsolver(c, G, h, dims, A, b)
 
         try:
-            results_dict = cvxopt.solvers.conelp(c, G, h, dims, A, b,
-                                                 kktsolver=kktsolver)
+            results_dict = cvxopt.solvers.conelp(c, G, h, dims, A, b, kktsolver=kktsolver)
         # Catch exceptions in CVXOPT and convert them to solver errors.
         except ValueError:
             results_dict = {"status": "unknown"}
@@ -209,28 +203,28 @@ class CVXOPT(ConicSolver):
 
         # Construct solution.
         solution = {}
-        status = self.STATUS_MAP[results_dict['status']]
+        status = self.STATUS_MAP[results_dict["status"]]
         solution[s.STATUS] = status
         if solution[s.STATUS] in s.SOLUTION_PRESENT:
-            primal_val = results_dict['primal objective']
+            primal_val = results_dict["primal objective"]
             solution[s.VALUE] = primal_val
-            solution[s.PRIMAL] = results_dict['x']
-            solution[s.EQ_DUAL] = results_dict['y']
-            solution[s.INEQ_DUAL] = results_dict['z']
+            solution[s.PRIMAL] = results_dict["x"]
+            solution[s.EQ_DUAL] = results_dict["y"]
+            solution[s.INEQ_DUAL] = results_dict["z"]
             # Need to multiply duals by Q and P_leq.
             if "Q" in data:
-                y = results_dict['y']
+                y = results_dict["y"]
                 # Test if all constraints eliminated.
                 if y.size[0] == 0:
                     dual_len = data["Q"].size[0]
-                    solution[s.EQ_DUAL] = cvxopt.matrix(0., (dual_len, 1))
+                    solution[s.EQ_DUAL] = cvxopt.matrix(0.0, (dual_len, 1))
                 else:
-                    solution[s.EQ_DUAL] = data["Q"]*y
+                    solution[s.EQ_DUAL] = data["Q"] * y
             if "P_leq" in data:
                 leq_len = data[s.DIMS][s.LEQ_DIM]
                 P_rows = data["P_leq"].size[0]
                 new_len = P_rows + solution[s.INEQ_DUAL].size[0] - leq_len
-                new_dual = cvxopt.matrix(0., (new_len, 1))
+                new_dual = cvxopt.matrix(0.0, (new_len, 1))
                 z = solution[s.INEQ_DUAL][:leq_len]
                 # Test if all constraints eliminated.
                 if z.size[0] == 0:
@@ -282,13 +276,13 @@ class CVXOPT(ConicSolver):
                 data[s.A] = None
                 data[s.B] = None
                 return s.OPTIMAL
-        if hasattr(np.random, 'default_rng'):
+        if hasattr(np.random, "default_rng"):
             g = np.random.default_rng(123)
         else:  # fallback to legacy RandomState
             g = np.random.RandomState(123)
         n = gram.shape[0]
         rand_v0 = g.normal(loc=0.0, scale=1.0, size=n)
-        eig = eigsh(gram, k=1, which='SM', v0=rand_v0, return_eigenvectors=False)
+        eig = eigsh(gram, k=1, which="SM", v0=rand_v0, return_eigenvectors=False)
         if eig > TOL:
             return s.OPTIMAL
         #
@@ -303,7 +297,7 @@ class CVXOPT(ConicSolver):
         R = R[rows_to_keep, :]
         Q = Q[:, rows_to_keep]
         # Invert P from col -> var to var -> col.
-        Pinv = np.zeros(P.size, dtype='int')
+        Pinv = np.zeros(P.size, dtype="int")
         for i in range(P.size):
             Pinv[P[i]] = i
         # Rearrage R.
@@ -321,10 +315,10 @@ class CVXOPT(ConicSolver):
         #
         if G is not None:
             G = G.tocsr()
-            G_leq = G[:dims[s.LEQ_DIM], :]
-            h_leq = h[:dims[s.LEQ_DIM]].ravel()
-            G_other = G[dims[s.LEQ_DIM]:, :]
-            h_other = h[dims[s.LEQ_DIM]:].ravel()
+            G_leq = G[: dims[s.LEQ_DIM], :]
+            h_leq = h[: dims[s.LEQ_DIM]].ravel()
+            G_other = G[dims[s.LEQ_DIM] :, :]
+            h_other = h[dims[s.LEQ_DIM] :].ravel()
             G_leq, h_leq, P_leq = compress_matrix(G_leq, h_leq)
             dims[s.LEQ_DIM] = int(h_leq.shape[0])
             data["P_leq"] = intf.sparse2cvxopt(P_leq)
@@ -340,6 +334,7 @@ class CVXOPT(ConicSolver):
     @staticmethod
     def _restore_solver_options(old_options) -> None:
         import cvxopt.solvers
+
         for key, value in list(cvxopt.solvers.options.items()):
             if key in old_options:
                 cvxopt.solvers.options[key] = old_options[key]
@@ -366,5 +361,5 @@ class CVXOPT(ConicSolver):
             kktsolver = solver_opts["kktsolver"]
             del solver_opts["kktsolver"]
         else:
-            kktsolver = 'chol'
+            kktsolver = "chol"
         return kktsolver

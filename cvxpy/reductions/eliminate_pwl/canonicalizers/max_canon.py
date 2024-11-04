@@ -30,9 +30,9 @@ def max_canon(expr, args):
     if axis is None:  # shape = (1, 1)
         promoted_t = promote(t, x.shape)
     elif axis == 0:  # shape = (1, n)
-        promoted_t = Constant(np.ones((x.shape[0], 1))) @ reshape(t, (1, x.shape[1]), order='F')
+        promoted_t = Constant(np.ones((x.shape[0], 1))) @ reshape(t, (1, x.shape[1]), order="F")
     else:  # shape = (m, 1)
-        promoted_t = reshape(t, (x.shape[0], 1), order='F') @ Constant(np.ones((1, x.shape[1])))
+        promoted_t = reshape(t, (x.shape[0], 1), order="F") @ Constant(np.ones((1, x.shape[1])))
 
     constraints = [x <= promoted_t]
     return t, constraints

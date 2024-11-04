@@ -1,6 +1,7 @@
 """
 This file is the CVXPY QP extension of the Cardinal Optimizer
 """
+
 import numpy as np
 import scipy.sparse as sp
 
@@ -13,6 +14,7 @@ class COPT(QpSolver):
     """
     QP interface for the COPT solver
     """
+
     # Solve capabilities
     MIP_CAPABLE = True
 
@@ -21,23 +23,23 @@ class COPT(QpSolver):
 
     # Map between COPT status and CVXPY status
     STATUS_MAP = {
-                  1: s.OPTIMAL,             # optimal
-                  2: s.INFEASIBLE,          # infeasible
-                  3: s.UNBOUNDED,           # unbounded
-                  4: s.INF_OR_UNB,          # infeasible or unbounded
-                  5: s.SOLVER_ERROR,        # numerical
-                  6: s.USER_LIMIT,          # node limit
-                  7: s.OPTIMAL_INACCURATE,  # imprecise
-                  8: s.USER_LIMIT,          # time out
-                  9: s.SOLVER_ERROR,        # unfinished
-                  10: s.USER_LIMIT          # interrupted
-                 }
+        1: s.OPTIMAL,  # optimal
+        2: s.INFEASIBLE,  # infeasible
+        3: s.UNBOUNDED,  # unbounded
+        4: s.INF_OR_UNB,  # infeasible or unbounded
+        5: s.SOLVER_ERROR,  # numerical
+        6: s.USER_LIMIT,  # node limit
+        7: s.OPTIMAL_INACCURATE,  # imprecise
+        8: s.USER_LIMIT,  # time out
+        9: s.SOLVER_ERROR,  # unfinished
+        10: s.USER_LIMIT,  # interrupted
+    }
 
     def name(self):
         """
         The name of solver.
         """
-        return 'COPT'
+        return "COPT"
 
     def import_solver(self):
         """
@@ -50,9 +52,11 @@ class COPT(QpSolver):
         Returns the solution to the original problem given the inverse_data.
         """
         status = solution[s.STATUS]
-        attr = {s.SOLVE_TIME: solution[s.SOLVE_TIME],
-                s.NUM_ITERS: solution[s.NUM_ITERS],
-                s.EXTRA_STATS: solution['model']}
+        attr = {
+            s.SOLVE_TIME: solution[s.SOLVE_TIME],
+            s.NUM_ITERS: solution[s.NUM_ITERS],
+            s.EXTRA_STATS: solution["model"],
+        }
 
         primal_vars = None
         dual_vars = None
@@ -60,7 +64,7 @@ class COPT(QpSolver):
             opt_val = solution[s.VALUE] + inverse_data[s.OFFSET]
             primal_vars = {inverse_data[COPT.VAR_ID]: solution[s.PRIMAL]}
             if not inverse_data[COPT.IS_MIP]:
-                dual_vars = {COPT.DUAL_VAR_ID: solution['y']}
+                dual_vars = {COPT.DUAL_VAR_ID: solution["y"]}
             return Solution(status, opt_val, primal_vars, dual_vars, attr)
         else:
             return failure_solution(status, attr)
@@ -92,7 +96,7 @@ class COPT(QpSolver):
         # Create COPT environment and model
         envconfig = copt.EnvrConfig()
         if not verbose:
-            envconfig.set('nobanner', '1')
+            envconfig.set("nobanner", "1")
 
         env = copt.Envr(envconfig)
         model = env.createModel()
@@ -109,7 +113,7 @@ class COPT(QpSolver):
         g = data[s.G]
 
         # Build COPT problem data
-        n = data['n_var']
+        n = data["n_var"]
 
         if A.shape[0] > 0 and F.shape[0] == 0:
             Amat = A
@@ -149,7 +153,7 @@ class COPT(QpSolver):
         # Load Q data
         if P.count_nonzero():
             P = P.tocoo()
-            model.loadQ(0.5*P)
+            model.loadQ(0.5 * P)
 
         # Set parameters
         for key, value in solver_opts.items():
@@ -157,15 +161,15 @@ class COPT(QpSolver):
             if key not in self.INTERFACE_ARGS:
                 model.setParam(key, value)
 
-        if 'save_file' in solver_opts:
-            model.write(solver_opts['save_file'])
+        if "save_file" in solver_opts:
+            model.write(solver_opts["save_file"])
 
         # Solve problem
         solution = {}
         try:
             model.solve()
             # Reoptimize if INF_OR_UNBD, to get definitive answer.
-            if model.status == copt.COPT.INF_OR_UNB and solver_opts.get('reoptimize', True):
+            if model.status == copt.COPT.INF_OR_UNB and solver_opts.get("reoptimize", True):
                 model.setParam(copt.COPT.Param.Presolve, 0)
                 model.solve()
             if model.hasmipsol:
@@ -174,7 +178,7 @@ class COPT(QpSolver):
             elif model.haslpsol:
                 solution[s.VALUE] = model.objval
                 solution[s.PRIMAL] = np.array(model.getValues())
-                solution['y'] = -np.array(model.getDuals())
+                solution["y"] = -np.array(model.getDuals())
         except Exception:
             pass
 
@@ -187,6 +191,6 @@ class COPT(QpSolver):
         if solution[s.STATUS] == s.USER_LIMIT and not model.hasmipsol:
             solution[s.STATUS] = s.INFEASIBLE_INACCURATE
 
-        solution['model'] = model
+        solution["model"] = model
 
         return solution

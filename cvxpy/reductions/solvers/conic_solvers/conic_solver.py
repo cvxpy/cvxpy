@@ -13,6 +13,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+
 from typing import Tuple
 
 import numpy as np
@@ -34,6 +35,7 @@ from cvxpy.reductions.solvers.solver import Solver
 
 class LinearOperator:
     """A wrapper for linear operators."""
+
     def __init__(self, linear_op, shape: Tuple[int, ...]) -> None:
         if sp.issparse(linear_op):
             self._matmul = lambda X: linear_op @ X
@@ -44,19 +46,26 @@ class LinearOperator:
     def __call__(self, X):
         return self._matmul(X)
 
+
 class IdentityOperator(LinearOperator):
     """A wrapper for the identity operator."""
+
     def __init__(self, n):
-        self.shape = (n,n)
+        self.shape = (n, n)
+
     def __call__(self, X):
         return X
 
+
 class NegativeIdentityOperator(LinearOperator):
     """A wrapper for the negative identity operator."""
+
     def __init__(self, n):
-        self.shape = (n,n)
+        self.shape = (n, n)
+
     def __call__(self, X):
         return -X
+
 
 def as_linear_operator(linear_op):
     if isinstance(linear_op, LinearOperator):
@@ -76,9 +85,10 @@ def as_block_diag_linear_operator(matrices) -> LinearOperator:
     def matmul(X):
         outputs = []
         for i, op in enumerate(linear_operators):
-            Xi = X[col_indices[i]:col_indices[i + 1]]
+            Xi = X[col_indices[i] : col_indices[i + 1]]
             outputs.append(op(Xi))
         return sp.vstack(outputs)
+
     return LinearOperator(matmul, (m, n))
 
 
@@ -86,19 +96,19 @@ def as_block_diag_linear_operator(matrices) -> LinearOperator:
 # that can be supplied to solvers.
 def dims_to_solver_dict(cone_dims):
     cones = {
-        'f': cone_dims.zero,
-        'l': cone_dims.nonneg,
-        'q': cone_dims.soc,
-        'ep': cone_dims.exp,
-        's': cone_dims.psd,
-        'p': cone_dims.p3d
+        "f": cone_dims.zero,
+        "l": cone_dims.nonneg,
+        "q": cone_dims.soc,
+        "ep": cone_dims.exp,
+        "s": cone_dims.psd,
+        "p": cone_dims.p3d,
     }
     return cones
 
 
 class ConicSolver(Solver):
-    """Conic solver class with reduction semantics
-    """
+    """Conic solver class with reduction semantics"""
+
     # The key that maps to ConeDims in the data returned by apply().
     DIMS = "dims"
 
@@ -116,17 +126,17 @@ class ConicSolver(Solver):
     EXP_CONE_ORDER = None
 
     def supports_quad_obj(self) -> bool:
-        """By default does not support a quadratic objective.
-        """
+        """By default does not support a quadratic objective."""
         return False
 
     def accepts(self, problem):
-        return (isinstance(problem, ParamConeProg)
-                and (self.MIP_CAPABLE or not problem.is_mixed_integer())
-                and not convex_attributes([problem.x])
-                and (len(problem.constraints) > 0 or not self.REQUIRES_CONSTR)
-                and all(type(c) in self.SUPPORTED_CONSTRAINTS for c in
-                        problem.constraints))
+        return (
+            isinstance(problem, ParamConeProg)
+            and (self.MIP_CAPABLE or not problem.is_mixed_integer())
+            and not convex_attributes([problem.x])
+            and (len(problem.constraints) > 0 or not self.REQUIRES_CONSTR)
+            and all(type(c) in self.SUPPORTED_CONSTRAINTS for c in problem.constraints)
+        )
 
     @staticmethod
     def get_spacing_matrix(shape: Tuple[int, ...], spacing, streak, num_blocks, offset):
@@ -153,17 +163,20 @@ class ConicSolver(Solver):
         num_values = num_blocks * streak
         val_arr = np.ones(num_values, dtype=np.float64)
         streak_plus_spacing = streak + spacing
-        row_arr = np.arange(0, num_blocks * streak_plus_spacing).reshape(
-            num_blocks, streak_plus_spacing)[:, :streak].flatten() + offset
+        row_arr = (
+            np.arange(0, num_blocks * streak_plus_spacing)
+            .reshape(num_blocks, streak_plus_spacing)[:, :streak]
+            .flatten()
+            + offset
+        )
         col_arr = np.arange(num_values)
         return sp.csc_matrix((val_arr, (row_arr, col_arr)), shape)
 
     @staticmethod
     def psd_format_mat(constr):
-        """Return a matrix to multiply by PSD constraint coefficients.
-        """
+        """Return a matrix to multiply by PSD constraint coefficients."""
         # Default is identity.
-        return sp.eye(constr.size, format='csc')
+        return sp.eye(constr.size, format="csc")
 
     @classmethod
     def format_constraints(cls, problem, exp_cone_order):
@@ -206,7 +219,7 @@ class ConicSolver(Solver):
                 restruct_mat.append(IdentityOperator(constr.size))
             elif type(constr) == SOC:
                 # Group each t row with appropriate X rows.
-                assert constr.axis == 0, 'SOC must be lowered to axis == 0'
+                assert constr.axis == 0, "SOC must be lowered to axis == 0"
 
                 # Interleave the rows of coeffs[0] and coeffs[1]:
                 #     coeffs[0][0, :]
@@ -244,8 +257,11 @@ class ConicSolver(Solver):
                 arg_mats = []
                 for i, arg in enumerate(constr.args):
                     space_mat = ConicSolver.get_spacing_matrix(
-                        shape=(total_height, arg.size), spacing=2,
-                        streak=1, num_blocks=arg.size, offset=i,
+                        shape=(total_height, arg.size),
+                        spacing=2,
+                        streak=1,
+                        num_blocks=arg.size,
+                        offset=i,
                     )
                     arg_mats.append(space_mat)
                 restruct_mat.append(sp.hstack(arg_mats))
@@ -262,10 +278,10 @@ class ConicSolver(Solver):
             # this is equivalent to but _much_ faster than:
             #    restruct_mat_rep = sp.block_diag([restruct_mat]*(problem.x.size + 1))
             #    restruct_A = restruct_mat_rep * problem.A
-            unspecified, _ = np.divmod(problem.A.shape[0] * problem.A.shape[1],
-                                        restruct_mat.shape[1], dtype=np.int64)
-            reshaped_A = problem.A.reshape(restruct_mat.shape[1],
-                                           unspecified, order='F').tocsr()
+            unspecified, _ = np.divmod(
+                problem.A.shape[0] * problem.A.shape[1], restruct_mat.shape[1], dtype=np.int64
+            )
+            reshaped_A = problem.A.reshape(restruct_mat.shape[1], unspecified, order="F").tocsr()
             restructured_A = restruct_mat(reshaped_A).tocoo()
             # Because of a bug in scipy versions <  1.20, `reshape`
             # can overflow if indices are int32s.
@@ -273,7 +289,9 @@ class ConicSolver(Solver):
             restructured_A.col = restructured_A.col.astype(np.int64)
             restructured_A = restructured_A.reshape(
                 np.int64(restruct_mat.shape[0]) * (np.int64(problem.x.size) + 1),
-                problem.A.shape[1], order='F')
+                problem.A.shape[1],
+                order="F",
+            )
         else:
             restructured_A = problem.A
         new_param_cone_prog = ParamConeProg(
@@ -293,21 +311,18 @@ class ConicSolver(Solver):
         return new_param_cone_prog
 
     def invert(self, solution, inverse_data):
-        """Returns the solution to the original problem given the inverse_data.
-        """
-        status = solution['status']
+        """Returns the solution to the original problem given the inverse_data."""
+        status = solution["status"]
 
         if status in s.SOLUTION_PRESENT:
-            opt_val = solution['value']
-            primal_vars = {inverse_data[self.VAR_ID]: solution['primal']}
+            opt_val = solution["value"]
+            primal_vars = {inverse_data[self.VAR_ID]: solution["primal"]}
             eq_dual = utilities.get_dual_values(
-                solution['eq_dual'],
-                utilities.extract_dual_value,
-                inverse_data[Solver.EQ_CONSTR])
+                solution["eq_dual"], utilities.extract_dual_value, inverse_data[Solver.EQ_CONSTR]
+            )
             leq_dual = utilities.get_dual_values(
-                solution['ineq_dual'],
-                utilities.extract_dual_value,
-                inverse_data[Solver.NEQ_CONSTR])
+                solution["ineq_dual"], utilities.extract_dual_value, inverse_data[Solver.NEQ_CONSTR]
+            )
             eq_dual.update(leq_dual)
             dual_vars = eq_dual
             return Solution(status, opt_val, primal_vars, dual_vars, {})
@@ -336,8 +351,13 @@ class ConicSolver(Solver):
 
         constr_map = problem.constr_map
         inv_data[self.EQ_CONSTR] = constr_map[Zero]
-        inv_data[self.NEQ_CONSTR] = constr_map[NonNeg] + constr_map[SOC] + \
-            constr_map[PSD] + constr_map[ExpCone] + constr_map[PowCone3D]
+        inv_data[self.NEQ_CONSTR] = (
+            constr_map[NonNeg]
+            + constr_map[SOC]
+            + constr_map[PSD]
+            + constr_map[ExpCone]
+            + constr_map[PowCone3D]
+        )
         return problem, data, inv_data
 
     def apply(self, problem):

@@ -22,7 +22,7 @@ from cvxpy.expressions.constants import Constant
 
 def separable_canon(expr, real_args, imag_args, real2imag):
     """Canonicalize linear functions that are separable
-       in real and imaginary parts.
+    in real and imaginary parts.
     """
     if all(val is None for val in imag_args):
         outputs = (expr.copy(real_args), None)
@@ -41,7 +41,7 @@ def separable_canon(expr, real_args, imag_args, real2imag):
 def real_canon(expr, real_args, imag_args, real2imag):
     # If no real arguments, return zero.
     if real_args[0] is None:
-        return 0*imag_args[0], None
+        return 0 * imag_args[0], None
     else:
         return real_args[0], None
 
@@ -49,7 +49,7 @@ def real_canon(expr, real_args, imag_args, real2imag):
 def imag_canon(expr, real_args, imag_args, real2imag):
     # If no real arguments, return zero.
     if imag_args[0] is None:
-        return 0*real_args[0], None
+        return 0 * real_args[0], None
     else:
         return imag_args[0], None
 
@@ -73,8 +73,7 @@ def conj_canon(expr, real_args, imag_args, real2imag):
 
 
 def join(expr, lh_arg, rh_arg):
-    """Helper function to combine arguments.
-    """
+    """Helper function to combine arguments."""
     if lh_arg is None or rh_arg is None:
         return None
     else:
@@ -83,7 +82,7 @@ def join(expr, lh_arg, rh_arg):
 
 def add(lh_arg, rh_arg, neg: bool = False):
     """Helper function to sum arguments.
-       Negates rh_arg if neg is True.
+    Negates rh_arg if neg is True.
     """
     if rh_arg is not None and neg:
         rh_arg = -rh_arg
@@ -99,8 +98,7 @@ def add(lh_arg, rh_arg, neg: bool = False):
 
 
 def binary_canon(expr, real_args, imag_args, real2imag):
-    """Canonicalize functions like multiplication.
-    """
+    """Canonicalize functions like multiplication."""
     real_by_real = join(expr, real_args[0], real_args[1])
     imag_by_imag = join(expr, imag_args[0], imag_args[1])
     real_by_imag = join(expr, real_args[0], imag_args[1])

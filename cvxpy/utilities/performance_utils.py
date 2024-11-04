@@ -13,6 +13,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+
 import functools
 from typing import Callable, TypeVar
 
@@ -29,22 +30,23 @@ def lazyprop(func):
     @functools.wraps(func)
     def _lazyprop(self):
         if scopes.dpp_scope_active():
-            attr_name = '_lazy_dpp_' + func.__name__
+            attr_name = "_lazy_dpp_" + func.__name__
         else:
-            attr_name = '_lazy_' + func.__name__
+            attr_name = "_lazy_" + func.__name__
 
         try:
             return getattr(self, attr_name)
         except AttributeError:
             setattr(self, attr_name, func(self))
         return getattr(self, attr_name)
+
     return _lazyprop
 
 
 def _cache_key(args, kwargs):
     key = args + tuple(list(kwargs.items()))
     if scopes.dpp_scope_active():
-        key = ('__dpp_scope_active__',) + key
+        key = ("__dpp_scope_active__",) + key
     return key
 
 
@@ -58,11 +60,11 @@ def compute_once(func: Callable[[T], R]) -> Callable[[T], R]:
 
     This decorator should not be used when there are an unbounded or very
     large number of argument and keyword argument combinations.
-     """
+    """
 
     @functools.wraps(func)
     def _compute_once(self, *args, **kwargs) -> R:
-        cache_name = func.__name__ + '__cache__'
+        cache_name = func.__name__ + "__cache__"
         if not hasattr(self, cache_name):
             # On first call, the cache is created and stored in self
             setattr(self, cache_name, {})
@@ -73,4 +75,5 @@ def compute_once(func: Callable[[T], R]) -> Callable[[T], R]:
         result = func(self, *args, **kwargs)
         cache[key] = result
         return result
+
     return _compute_once

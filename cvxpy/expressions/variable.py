@@ -13,6 +13,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+
 from __future__ import annotations
 
 from typing import Any, Iterable, Optional, Tuple
@@ -30,8 +31,11 @@ class Variable(Leaf):
     """The optimization variables in a problem."""
 
     def __init__(
-        self, shape: int | Iterable[int] = (), name: str | None = None,
-        var_id: int | None = None, **kwargs: Any
+        self,
+        shape: int | Iterable[int] = (),
+        name: str | None = None,
+        var_id: int | None = None,
+        **kwargs: Any,
     ):
         if var_id is None:
             self.id = lu.get_id()

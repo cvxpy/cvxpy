@@ -38,7 +38,7 @@ def vec(X, order: Literal["F", "C", None] = None):
     if order is None:
         vec_order_warning = DEFAULT_ORDER_DEPRECATION_MSG.replace("FUNC_NAME", "vec")
         warnings.warn(vec_order_warning, FutureWarning)
-        order = 'F'
-    assert order in ['F', 'C']
+        order = "F"
+    assert order in ["F", "C"]
     X = Expression.cast_to_const(X)
     return reshape(X, (X.size,), order)

@@ -38,10 +38,16 @@ def validate_key(key, shape: Tuple[int, ...]):
         Error: Index/slice out of bounds.
     """
     key = to_tuple(key)
-    if any(isinstance(k, float) or (isinstance(k, slice) and (
-            isinstance(k.start, float) or
-            isinstance(k.stop, float) or
-            isinstance(k.step, float))) for k in key):
+    if any(
+        isinstance(k, float)
+        or (
+            isinstance(k, slice)
+            and (
+                isinstance(k.start, float) or isinstance(k.stop, float) or isinstance(k.step, float)
+            )
+        )
+        for k in key
+    ):
         raise IndexError("float is an invalid index type.")
     if len(key) == 0:
         raise IndexError("An index cannot be empty.")
@@ -52,14 +58,13 @@ def validate_key(key, shape: Tuple[int, ...]):
         raise IndexError("Too many indices for expression.")
     elif slices < len(shape):
         # Add : to the right.
-        key = tuple(list(key) + [slice(None, None, None)]*(len(shape) - slices))
+        key = tuple(list(key) + [slice(None, None, None)] * (len(shape) - slices))
     # Change numbers into slices and ensure all slices have a start and step.
     return tuple(format_slice(slc, dim, i) for slc, dim, i in zip(key, shape, range(len(shape))))
 
 
 def to_tuple(key):
-    """Convert key to tuple if necessary.
-    """
+    """Convert key to tuple if necessary."""
     if isinstance(key, tuple):
         return key
     else:
@@ -88,8 +93,8 @@ def format_slice(key_val, dim, axis) -> Optional[slice]:
             start = np.clip(wrap_neg_index(to_int(key_val.start, 0), dim), 0, dim)
             stop = np.clip(wrap_neg_index(to_int(key_val.stop, dim), dim), 0, dim)
         else:
-            start = np.clip(wrap_neg_index(to_int(key_val.start, dim-1), dim), -1, dim-1)
-            stop = np.clip(wrap_neg_index(to_int(key_val.stop, -dim-1), dim, True), -1, dim-1)
+            start = np.clip(wrap_neg_index(to_int(key_val.start, dim - 1), dim), -1, dim - 1)
+            stop = np.clip(wrap_neg_index(to_int(key_val.stop, -dim - 1), dim, True), -1, dim - 1)
         return slice(start, stop, step)
     else:
         # Convert to int.
@@ -104,8 +109,7 @@ def format_slice(key_val, dim, axis) -> Optional[slice]:
 
 
 def to_int(val, none_val=None):
-    """Convert everything but None to an int.
-    """
+    """Convert everything but None to an int."""
     if val is None:
         return none_val
     else:
@@ -119,8 +123,7 @@ def wrap_neg_index(index, dim, neg_step: bool = False):
         index: The index to convert. Can be None.
         dim: The length of the dimension being indexed.
     """
-    if index is not None and index < 0 and \
-       not (neg_step and index == -1):
+    if index is not None and index < 0 and not (neg_step and index == -1):
         index += dim
     return index
 
@@ -136,12 +139,11 @@ def index_to_slice(idx) -> slice:
     slice
         A slice equivalent to the index.
     """
-    return slice(idx, idx+1, None)
+    return slice(idx, idx + 1, None)
 
 
 def slice_to_str(slc):
-    """Converts a slice into a string.
-    """
+    """Converts a slice into a string."""
     if is_single_index(slc):
         return str(slc.start)
     endpoints = [none_to_empty(val) for val in (slc.start, slc.stop)]
@@ -152,24 +154,20 @@ def slice_to_str(slc):
 
 
 def none_to_empty(val):
-    """Converts None to an empty string.
-    """
+    """Converts None to an empty string."""
     if val is None:
-        return ''
+        return ""
     else:
         return val
 
 
 def is_single_index(slc) -> bool:
-    """Is the slice equivalent to a single index?
-    """
+    """Is the slice equivalent to a single index?"""
     if slc.step is None:
         step = 1
     else:
         step = slc.step
-    return slc.start is not None and \
-        slc.stop is not None and \
-        slc.start + step >= slc.stop
+    return slc.start is not None and slc.stop is not None and slc.start + step >= slc.stop
 
 
 def shape(key, orig_key, shape: Tuple[int, ...]) -> Tuple[int, ...]:
@@ -188,21 +186,19 @@ def shape(key, orig_key, shape: Tuple[int, ...]) -> Tuple[int, ...]:
         if key[i] is None:
             dims.append(1)
         else:
-            size = int(np.ceil((key[i].stop - key[i].start)/key[i].step))
+            size = int(np.ceil((key[i].stop - key[i].start) / key[i].step))
             if size > 1 or i >= len(orig_key) or isinstance(orig_key[i], slice):
                 dims.append(max(size, 0))
     return tuple(dims)
 
 
 def to_str(key):
-    """Converts a key (i.e. two slices) into a string.
-    """
+    """Converts a key (i.e. two slices) into a string."""
     return tuple(slice_to_str(elem) for elem in key)
 
 
 def is_special_slice(key) -> bool:
-    """Does the key contain a list, ndarray, or logical ndarray?
-    """
+    """Does the key contain a list, ndarray, or logical ndarray?"""
     # Slices and int-like numbers are fine.
     for elem in to_tuple(key):
         if not (isinstance(elem, (numbers.Number, slice)) or np.isscalar(elem)):
@@ -228,5 +224,5 @@ def pprint_sequence(seq, max_elems=6):
     """Shorten the sequence (array or list) for pretty-printing."""
     if len(seq) > max_elems:
         half = max_elems // 2
-        return str(seq[:half])[:-1] + ', ..., ' + str(seq[-half:])[1:]
+        return str(seq[:half])[:-1] + ", ..., " + str(seq[-half:])[1:]
     return str(seq)

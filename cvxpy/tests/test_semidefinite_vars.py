@@ -22,7 +22,7 @@ from cvxpy.tests.base_test import BaseTest
 
 
 class TestSemidefiniteVariable(BaseTest):
-    """ Unit tests for the expressions/shape module. """
+    """Unit tests for the expressions/shape module."""
 
     def setUp(self) -> None:
         self.X = Variable((2, 2), PSD=True)
@@ -30,11 +30,10 @@ class TestSemidefiniteVariable(BaseTest):
         self.F = np.array([[1, 0], [0, -1]])
 
     def test_symm(self) -> None:
-        """Test that results are symmetric.
-        """
+        """Test that results are symmetric."""
         M = Variable((3, 3), PSD=True)
-        C1 = np.array([[0, 0, 1/2], [0, 0, 0], [1/2, 0, 1]])
-        C2 = np.array([[0, 0, 0], [0, 0, 1/2], [0, 1/2, 1]])
+        C1 = np.array([[0, 0, 1 / 2], [0, 0, 0], [1 / 2, 0, 1]])
+        C2 = np.array([[0, 0, 0], [0, 0, 1 / 2], [0, 1 / 2, 1]])
         x1 = Variable((3, 3), PSD=True)
         x2 = Variable((3, 3), PSD=True)
         constraints = [M + C1 == x1]
@@ -69,10 +68,13 @@ class TestSemidefiniteVariable(BaseTest):
         self.assertAlmostEqual(self.Y.value[1, 1], 0, places=3)
 
         # Index into semidef.
-        obj = cp.Minimize(cp.square(self.X[0, 0] - 1) +
-                           cp.square(self.X[1, 0] - 2) +
-                           # square(self.X[0,1] - 3) +
-                           cp.square(self.X[1, 1] - 4))
+        obj = cp.Minimize(
+            cp.square(self.X[0, 0] - 1)
+            + cp.square(self.X[1, 0] - 2)
+            +
+            # square(self.X[0,1] - 3) +
+            cp.square(self.X[1, 1] - 4)
+        )
         p = cp.Problem(obj, [])
         result = p.solve(solver="SCS")
         print(self.X.value)

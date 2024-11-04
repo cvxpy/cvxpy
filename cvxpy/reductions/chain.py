@@ -72,14 +72,13 @@ class Chain(Reduction):
         inverse_data = []
         for r in self.reductions:
             if verbose:
-                s.LOGGER.info('Applying reduction %s', type(r).__name__)
+                s.LOGGER.info("Applying reduction %s", type(r).__name__)
             problem, inv = r.apply(problem)
             inverse_data.append(inv)
         return problem, inverse_data
 
     def invert(self, solution, inverse_data):
-        """Returns a solution to the original problem given the inverse_data.
-        """
+        """Returns a solution to the original problem given the inverse_data."""
         for r, inv in reversed(list(zip(self.reductions, inverse_data))):
             solution = r.invert(solution, inv)
         return solution

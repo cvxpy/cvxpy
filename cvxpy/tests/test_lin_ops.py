@@ -41,11 +41,10 @@ from cvxpy.tests.base_test import BaseTest
 
 
 class test_lin_ops(BaseTest):
-    """ Unit tests for the lin_ops module. """
+    """Unit tests for the lin_ops module."""
 
     def test_variables(self) -> None:
-        """Test creating a variable.
-        """
+        """Test creating a variable."""
         var = create_var((5, 4), var_id=1)
         self.assertEqual(var.shape, (5, 4))
         self.assertEqual(var.data, 1)
@@ -53,16 +52,14 @@ class test_lin_ops(BaseTest):
         self.assertEqual(var.type, VARIABLE)
 
     def test_param(self) -> None:
-        """Test creating a parameter.
-        """
+        """Test creating a parameter."""
         var = create_param((5, 4))
         self.assertEqual(var.shape, (5, 4))
         self.assertEqual(len(var.args), 0)
         self.assertEqual(var.type, PARAM)
 
     def test_constant(self) -> None:
-        """Test creating a constant.
-        """
+        """Test creating a constant."""
         # Scalar constant.
         shape = (1, 1)
         mat = create_const(1.0, shape)
@@ -88,8 +85,7 @@ class test_lin_ops(BaseTest):
         assert (mat.data.todense() == sp.eye(5).todense()).all()
 
     def test_add_expr(self) -> None:
-        """Test adding lin expr.
-        """
+        """Test adding lin expr."""
         shape = (5, 4)
         x = create_var(shape)
         y = create_var(shape)
@@ -99,8 +95,7 @@ class test_lin_ops(BaseTest):
         assert len(add_expr.args) == 2
 
     def test_get_vars(self) -> None:
-        """Test getting vars from an expression.
-        """
+        """Test getting vars from an expression."""
         shape = (5, 4)
         x = create_var(shape)
         y = create_var(shape)
@@ -112,8 +107,7 @@ class test_lin_ops(BaseTest):
         self.assertCountEqual(vars_, ref)
 
     def test_neg_expr(self) -> None:
-        """Test negating an expression.
-        """
+        """Test negating an expression."""
         shape = (5, 4)
         var = create_var(shape)
         expr = neg_expr(var)
@@ -122,8 +116,7 @@ class test_lin_ops(BaseTest):
         self.assertEqual(expr.type, NEG)
 
     def test_eq_constr(self) -> None:
-        """Test creating an equality constraint.
-        """
+        """Test creating an equality constraint."""
         shape = (5, 5)
         x = create_var(shape)
         y = create_var(shape)
@@ -137,8 +130,7 @@ class test_lin_ops(BaseTest):
         self.assertCountEqual(vars_, ref)
 
     def test_leq_constr(self) -> None:
-        """Test creating a less than or equal constraint.
-        """
+        """Test creating a less than or equal constraint."""
         shape = (5, 5)
         x = create_var(shape)
         y = create_var(shape)
@@ -152,8 +144,7 @@ class test_lin_ops(BaseTest):
         self.assertCountEqual(vars_, ref)
 
     def test_sum(self) -> None:
-        """Test sum entries op.
-        """
+        """Test sum entries op."""
         shape = (5, 5)
         x = create_var(shape)
         expr = sum_entries(x, (1, 1))

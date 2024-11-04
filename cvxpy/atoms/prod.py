@@ -44,45 +44,37 @@ class Prod(AxisAtom):
         super(Prod, self).__init__(expr, axis=axis, keepdims=keepdims)
 
     def sign_from_args(self) -> Tuple[bool, bool]:
-        """Returns sign (is positive, is negative) of the expression.
-        """
+        """Returns sign (is positive, is negative) of the expression."""
         if self.args[0].is_nonneg():
             return (True, False)
         return (False, False)
 
     def is_atom_convex(self) -> bool:
-        """Is the atom convex?
-        """
+        """Is the atom convex?"""
         return False
 
     def is_atom_concave(self) -> bool:
-        """Is the atom concave?
-        """
+        """Is the atom concave?"""
         return False
 
     def is_atom_log_log_convex(self) -> bool:
-        """Is the atom log-log convex?
-        """
+        """Is the atom log-log convex?"""
         return True
 
     def is_atom_log_log_concave(self) -> bool:
-        """Is the atom log-log concave?
-        """
+        """Is the atom log-log concave?"""
         return True
 
     def is_incr(self, idx) -> bool:
-        """Is the composition non-decreasing in argument idx?
-        """
+        """Is the composition non-decreasing in argument idx?"""
         return self.args[0].is_nonneg()
 
     def is_decr(self, idx) -> bool:
-        """Is the composition non-increasing in argument idx?
-        """
+        """Is the composition non-increasing in argument idx?"""
         return False
 
     def numeric(self, values):
-        """Takes the product of the entries of value.
-        """
+        """Takes the product of the entries of value."""
         if intf.is_sparse(values[0]):
             sp_mat = values[0]
             if self.axis is None:
@@ -96,7 +88,7 @@ class Prod(AxisAtom):
                 # The following snippet is taken from stackoverflow.
                 # https://stackoverflow.com/questions/44320865/
                 mask = sp_mat.getnnz(axis=self.axis) == sp_mat.shape[self.axis]
-                result = np.zeros(sp_mat.shape[1-self.axis], dtype=sp_mat.dtype)
+                result = np.zeros(sp_mat.shape[1 - self.axis], dtype=sp_mat.dtype)
                 data = sp_mat[:, mask] if self.axis == 0 else sp_mat[mask, :]
                 result[mask] = np.prod(data.toarray(), axis=self.axis)
                 if self.keepdims:

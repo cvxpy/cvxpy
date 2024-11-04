@@ -26,34 +26,30 @@ from cvxpy.lin_ops.tree_mat import mul, sum_dicts, tmul
 
 
 def get_mul_funcs(sym_data):
-
     def accAmul(x, y, is_abs: bool = False):
         # y += A*x
         rows = y.shape[0]
-        var_dict = vec_to_dict(x, sym_data.var_offsets,
-                               sym_data.var_sizes)
+        var_dict = vec_to_dict(x, sym_data.var_offsets, sym_data.var_sizes)
         y += constr_mul(sym_data.constraints, var_dict, rows, is_abs)
 
     def accATmul(x, y, is_abs: bool = False):
         # y += A.T*x
         terms = constr_unpack(sym_data.constraints, x)
         val_dict = constr_tmul(sym_data.constraints, terms, is_abs)
-        y += dict_to_vec(val_dict, sym_data.var_offsets,
-                         sym_data.var_sizes, sym_data.x_length)
+        y += dict_to_vec(val_dict, sym_data.var_offsets, sym_data.var_sizes, sym_data.x_length)
 
     return (accAmul, accATmul)
 
 
 def constr_unpack(constraints, vector):
-    """Unpacks a vector into a list of values for constraints.
-    """
+    """Unpacks a vector into a list of values for constraints."""
     values = []
     offset = 0
     for constr in constraints:
         rows, cols = constr.size
         val = np.zeros((rows, cols))
         for col in range(cols):
-            val[:, col] = vector[offset:offset+rows]
+            val[:, col] = vector[offset : offset + rows]
             offset += rows
         values.append(val)
     return values
@@ -82,7 +78,7 @@ def vec_to_dict(vector, var_offsets, var_sizes):
         value = np.zeros(size)
         offset = var_offsets[id_]
         for col in range(size[1]):
-            value[:, col] = vector[offset:size[0]+offset]
+            value[:, col] = vector[offset : size[0] + offset]
             offset += size[0]
         val_dict[id_] = value
     return val_dict
@@ -110,9 +106,9 @@ def dict_to_vec(val_dict, var_offsets, var_sizes, vec_len):
         for col in range(size[1]):
             # Handle scalars separately.
             if np.isscalar(value):
-                vector[offset:size[0]+offset] = value
+                vector[offset : size[0] + offset] = value
             else:
-                vector[offset:size[0]+offset] = np.squeeze(value[:, col])
+                vector[offset : size[0] + offset] = np.squeeze(value[:, col])
             offset += size[0]
     return vector
 
@@ -139,9 +135,9 @@ def constr_mul(constraints, var_dict, vec_size, is_abs):
         for col in range(cols):
             # Handle scalars separately.
             if np.isscalar(result):
-                product[offset:offset+rows] = result
+                product[offset : offset + rows] = result
             else:
-                product[offset:offset+rows] = np.squeeze(result[:, col])
+                product[offset : offset + rows] = np.squeeze(result[:, col])
             offset += rows
 
     return product

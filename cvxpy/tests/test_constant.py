@@ -9,7 +9,6 @@ from cvxpy import psd_wrap
 
 
 def test_is_psd() -> None:
-
     n = 50
 
     # trivial cases
@@ -45,14 +44,12 @@ def test_is_psd() -> None:
 
 def test_print():
     A = cp.Constant(np.ones((3, 3)))
-    assert str(A) == '[[1.00 1.00 1.00]\n [1.00 1.00 1.00]\n [1.00 1.00 1.00]]'
+    assert str(A) == "[[1.00 1.00 1.00]\n [1.00 1.00 1.00]\n [1.00 1.00 1.00]]"
     B = cp.Constant(np.ones((5, 2)))
-    assert str(
-        B) == '[[1.00 1.00]\n [1.00 1.00]\n ...\n [1.00 1.00]\n [1.00 1.00]]'
+    assert str(B) == "[[1.00 1.00]\n [1.00 1.00]\n ...\n [1.00 1.00]\n [1.00 1.00]]"
     default = s.PRINT_EDGEITEMS
     s.PRINT_EDGEITEMS = 10
-    assert str(
-        B) == '[[1.00 1.00]\n [1.00 1.00]\n [1.00 1.00]\n [1.00 1.00]\n [1.00 1.00]]'
+    assert str(B) == "[[1.00 1.00]\n [1.00 1.00]\n [1.00 1.00]\n [1.00 1.00]\n [1.00 1.00]]"
     s.PRINT_EDGEITEMS = default
 
 
@@ -77,7 +74,6 @@ def test_prod():
 
 
 def test_nested_lists():
-
     A = [[1, 2], [3, 4], [5, 6]]
 
     numpy_array = np.array(A)

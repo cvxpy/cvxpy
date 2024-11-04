@@ -13,6 +13,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+
 from functools import reduce
 from operator import mul
 from typing import List, Tuple
@@ -89,7 +90,7 @@ def mul_shapes_promote(
 
     if lh_shape[-1] != rh_shape[-2]:
         raise ValueError("Incompatible dimensions %s %s" % (lh_shape, rh_shape))
-    
+
     # Calculate resulting shape for higher-dimensional arrays
     if len(lh_shape) > 2 or len(rh_shape) > 2:
         try:

@@ -13,6 +13,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+
 from typing import Tuple
 
 import numpy as np
@@ -21,33 +22,28 @@ from cvxpy.atoms.affine.affine_atom import AffAtom
 
 
 class real(AffAtom):
-    """Extracts the real part of an expression.
-    """
+    """Extracts the real part of an expression."""
+
     def __init__(self, expr) -> None:
         super(real, self).__init__(expr)
 
     def numeric(self, values):
-        """Convert the vector constant into a diagonal matrix.
-        """
+        """Convert the vector constant into a diagonal matrix."""
         # Convert values to 1D.
         return np.real(values[0])
 
     def shape_from_args(self) -> Tuple[int, ...]:
-        """Returns the shape of the expression.
-        """
+        """Returns the shape of the expression."""
         return self.args[0].shape
 
     def is_imag(self) -> bool:
-        """Is the expression imaginary?
-        """
+        """Is the expression imaginary?"""
         return False
 
     def is_complex(self) -> bool:
-        """Is the expression complex valued?
-        """
+        """Is the expression complex valued?"""
         return False
 
     def is_symmetric(self) -> bool:
-        """Is the expression symmetric?
-        """
+        """Is the expression symmetric?"""
         return self.args[0].is_hermitian()

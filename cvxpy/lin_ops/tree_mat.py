@@ -16,6 +16,7 @@ limitations under the License.
 THIS FILE IS DEPRECATED AND MAY BE REMOVED WITHOUT WARNING!
 DO NOT CALL THESE FUNCTIONS IN YOUR CODE!
 """
+
 import copy
 
 import numpy as np
@@ -156,10 +157,10 @@ def op_mul(lin_op, args):
         result = -args[0]
     elif lin_op.type is lo.MUL:
         coeff = mul(lin_op.data, {})
-        result = coeff*args[0]
+        result = coeff * args[0]
     elif lin_op.type is lo.DIV:
         divisor = mul(lin_op.data, {})
-        result = args[0]/divisor
+        result = args[0] / divisor
     elif lin_op.type is lo.SUM_ENTRIES:
         result = np.sum(args[0])
     elif lin_op.type is lo.INDEX:
@@ -170,7 +171,7 @@ def op_mul(lin_op, args):
     elif lin_op.type is lo.CONV:
         result = conv_mul(lin_op, args[0])
     elif lin_op.type is lo.PROMOTE:
-        result = np.ones(lin_op.shape)*args[0]
+        result = np.ones(lin_op.shape) * args[0]
     elif lin_op.type is lo.DIAG_VEC:
         val = intf.from_2D_to_1D(args[0])
         result = np.diag(val)
@@ -202,10 +203,10 @@ def op_abs_mul(lin_op, args):
     # Absolute value of coefficient.
     elif lin_op.type is lo.MUL:
         coeff = mul(lin_op.data, {}, True)
-        result = coeff*args[0]
+        result = coeff * args[0]
     elif lin_op.type is lo.DIV:
         divisor = mul(lin_op.data, {}, True)
-        result = args[0]/divisor
+        result = args[0] / divisor
     elif lin_op.type is lo.CONV:
         result = conv_mul(lin_op, args[0], is_abs=True)
     else:
@@ -236,14 +237,14 @@ def op_tmul(lin_op, value):
         coeff = mul(lin_op.data, {})
         # Scalar coefficient, no need to transpose.
         if np.isscalar(coeff):
-            result = coeff*value
+            result = coeff * value
         else:
-            result = coeff.T*value
+            result = coeff.T * value
     elif lin_op.type is lo.DIV:
         divisor = mul(lin_op.data, {})
-        result = value/divisor
+        result = value / divisor
     elif lin_op.type is lo.SUM_ENTRIES:
-        result = np.asmatrix(np.ones(lin_op.args[0].shape))*value
+        result = np.asmatrix(np.ones(lin_op.args[0].shape)) * value
     elif lin_op.type is lo.INDEX:
         row_slc, col_slc = lin_op.data
         result = np.asmatrix(np.zeros(lin_op.args[0].shape))
@@ -286,12 +287,12 @@ def op_abs_tmul(lin_op, value):
         coeff = mul(lin_op.data, {}, True)
         # Scalar coefficient, no need to transpose.
         if np.isscalar(coeff):
-            result = coeff*value
+            result = coeff * value
         else:
-            result = coeff.T*value
+            result = coeff.T * value
     elif lin_op.type is lo.DIV:
         divisor = mul(lin_op.data, {}, True)
-        result = value/divisor
+        result = value / divisor
     elif lin_op.type is lo.CONV:
         result = conv_mul(lin_op, value, True, True)
     else:
@@ -324,13 +325,13 @@ def conv_mul(lin_op, rh_val, transpose: bool = False, is_abs: bool = False):
     if transpose:
         constant = np.flipud(constant)
         # rh_val always larger than constant.
-        return fftconvolve(rh_val, constant, mode='valid')
+        return fftconvolve(rh_val, constant, mode="valid")
     else:
         # First argument must be larger.
         if constant.size >= rh_val.size:
-            return fftconvolve(constant, rh_val, mode='full')
+            return fftconvolve(constant, rh_val, mode="full")
         else:
-            return fftconvolve(rh_val, constant, mode='full')
+            return fftconvolve(rh_val, constant, mode="full")
 
 
 def get_constant(lin_op):
@@ -347,8 +348,8 @@ def get_constant(lin_op):
         The constant term as a flattened vector.
     """
     constant = mul(lin_op, {})
-    const_size = constant.shape[0]*constant.shape[1]
-    return np.reshape(constant, const_size, 'F')
+    const_size = constant.shape[0] * constant.shape[1]
+    return np.reshape(constant, const_size, "F")
 
 
 def get_constr_constant(constraints):
@@ -410,10 +411,7 @@ def prune_expr(lin_op) -> bool:
     """
     if lin_op.type is lo.VARIABLE:
         return False
-    elif lin_op.type in [lo.SCALAR_CONST,
-                         lo.DENSE_CONST,
-                         lo.SPARSE_CONST,
-                         lo.PARAM]:
+    elif lin_op.type in [lo.SCALAR_CONST, lo.DENSE_CONST, lo.SPARSE_CONST, lo.PARAM]:
         return True
 
     pruned_args = []

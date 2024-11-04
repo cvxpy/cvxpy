@@ -38,9 +38,9 @@ def pnorm_canon(expr, args):
     if p == 2:
         if axis is None:
             assert shape == tuple()
-            return t, [SOC(t, vec(x, order='F'))]
+            return t, [SOC(t, vec(x, order="F"))]
         else:
-            return t, [SOC(vec(t, order='F'), x, axis)]
+            return t, [SOC(vec(t, order="F"), x, axis)]
 
     # we need an absolute value constraint for the symmetric convex branches
     # (p > 1)
@@ -64,10 +64,10 @@ def pnorm_canon(expr, args):
     promoted_t = Constant(np.ones(x.shape)) * t
     p = Fraction(p)
     if p < 0:
-        constraints += gm_constrs(promoted_t, [x, r],  (-p/(1-p), 1/(1-p)))
+        constraints += gm_constrs(promoted_t, [x, r], (-p / (1 - p), 1 / (1 - p)))
     if 0 < p < 1:
-        constraints += gm_constrs(r,  [x, promoted_t], (p, 1-p))
+        constraints += gm_constrs(r, [x, promoted_t], (p, 1 - p))
     if p > 1:
-        constraints += gm_constrs(x,  [r, promoted_t], (1/p, 1-1/p))
+        constraints += gm_constrs(x, [r, promoted_t], (1 / p, 1 - 1 / p))
 
     return t, constraints

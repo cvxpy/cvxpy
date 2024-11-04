@@ -9,7 +9,7 @@ import cvxpy.settings as settings
 
 def orth(V, tol=1e-12):
     """Return a matrix whose columns are an orthonormal basis for range(V)"""
-    Q, R, p = la.qr(V, mode='economic', pivoting=True)
+    Q, R, p = la.qr(V, mode="economic", pivoting=True)
     # ^ V[:, p] == Q @ R.
     rank = np.count_nonzero(np.sum(np.abs(R) > tol, axis=1))
     Q = Q[:, :rank].reshape((V.shape[0], rank))  # ensure 2-dimensional
@@ -84,9 +84,8 @@ def is_psd_within_tol(A, tol):
             return min_diag_entry >= -tol
 
     def SA_eigsh(sigma):
-
         # Check for default_rng in np.random module (new API)
-        if hasattr(np.random, 'default_rng'):
+        if hasattr(np.random, "default_rng"):
             g = np.random.default_rng(123)
         else:  # fallback to legacy RandomState
             g = np.random.RandomState(123)
@@ -94,8 +93,7 @@ def is_psd_within_tol(A, tol):
         n = A.shape[0]
         v0 = g.normal(loc=0.0, scale=1.0, size=n)
 
-        return sparla.eigsh(A, k=1, sigma=sigma, which='SA', v0=v0,
-                            return_eigenvectors=False)
+        return sparla.eigsh(A, k=1, sigma=sigma, which="SA", v0=v0, return_eigenvectors=False)
         # Returns the eigenvalue w[i] of A where 1/(w[i] - sigma) is minimized.
         #
         # If A - sigma*I is PSD, then w[i] should be equal to the largest
@@ -181,12 +179,11 @@ def gershgorin_psd_check(A, tol):
 
 
 class SparseCholeskyMessages:
-
-    ASYMMETRIC = 'Input matrix is not symmetric to within provided tolerance.'
-    INDEFINITE = 'Input matrix is neither positive nor negative definite.'
-    EIGEN_FAIL = 'Cholesky decomposition failed.'
-    NOT_SPARSE = 'Input must be a SciPy sparse matrix.'
-    NOT_REAL = 'Input matrix must be real.'
+    ASYMMETRIC = "Input matrix is not symmetric to within provided tolerance."
+    INDEFINITE = "Input matrix is neither positive nor negative definite."
+    EIGEN_FAIL = "Cholesky decomposition failed."
+    NOT_SPARSE = "Input must be a SciPy sparse matrix."
+    NOT_REAL = "Input matrix must be real."
 
 
 def sparse_cholesky(A, sym_tol=settings.CHOL_SYM_TOL, assume_posdef=False):
@@ -239,10 +236,7 @@ def sparse_cholesky(A, sym_tol=settings.CHOL_SYM_TOL, assume_posdef=False):
     outcols = spchol.IntVector()
     outvals = spchol.DoubleVector()
     try:
-        spchol.sparse_chol_from_vecs(
-            n, inrows, incols, invals,
-            outpivs, outrows, outcols, outvals
-        )
+        spchol.sparse_chol_from_vecs(n, inrows, incols, invals, outpivs, outrows, outcols, outvals)
     except RuntimeError as e:
         if e.args[0] == SparseCholeskyMessages.EIGEN_FAIL:
             raise ValueError(e.args)

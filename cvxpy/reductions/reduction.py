@@ -82,12 +82,11 @@ class Reduction(metaclass=ABCMeta):
         ValueError
             If this Reduction was constructed without a Problem.
         """
-        if hasattr(self, '_emitted_problem'):
+        if hasattr(self, "_emitted_problem"):
             return self._emitted_problem
 
         if self.problem is None:
-            raise ValueError(
-              "The reduction was constructed without a Problem.")
+            raise ValueError("The reduction was constructed without a Problem.")
 
         problem, retrieval_data = self.apply(self.problem)
         self._emitted_problem = problem
@@ -113,7 +112,7 @@ class Reduction(metaclass=ABCMeta):
             If `self.problem` is None, or if `reduce()` was not previously
             called.
         """
-        if not hasattr(self, '_retrieval_data'):
+        if not hasattr(self, "_retrieval_data"):
             raise ValueError("`reduce()` must be called before `retrieve()`.")
         return self.invert(solution, self._retrieval_data)
 

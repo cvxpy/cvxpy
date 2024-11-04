@@ -5,7 +5,7 @@ import scipy.sparse as sp
 import cvxpy as cp
 
 
-class TestAttributes():
+class TestAttributes:
     @pytest.mark.parametrize("sparsity", [[np.array([0, 0]), np.array([0, 1])], [(0, 1), (0, 2)]])
     def test_sparsity_pattern(self, sparsity):
         X = cp.Variable((3, 3), sparsity=sparsity)
@@ -16,19 +16,19 @@ class TestAttributes():
         assert np.allclose(X.value, z)
 
     def test_sparsity_condition(self):
-        data = np.arange(8).reshape((2,2,2))
+        data = np.arange(8).reshape((2, 2, 2))
         mask = np.where(data % 2 == 0)
-        X = cp.Variable((2,2,2), sparsity=mask)
+        X = cp.Variable((2, 2, 2), sparsity=mask)
         prob = cp.Problem(cp.Minimize(cp.sum(X)), [X >= -1, X <= 1])
         prob.solve()
-        z = np.zeros((2,2,2))
+        z = np.zeros((2, 2, 2))
         z[mask] = -1
         assert np.allclose(X.value, z)
 
     def test_sparsity_invalid_input(self):
         with pytest.raises(ValueError, match="Indices should have 2 dimensions."):
             cp.Variable((3, 3), sparsity=[(0, 1), (0, 1), (0, 1)])
-    
+
     def test_sparsity_incorrect_dim(self):
         with pytest.raises(
             ValueError, match="All index tuples in indices must have the same length."
@@ -48,11 +48,11 @@ class TestAttributes():
     def test_sparsity_reduces_num_var(self):
         X = cp.Variable((3, 3), sparsity=[(0, 1), (0, 2)])
         prob = cp.Problem(cp.Minimize(cp.sum(X)), [X >= -1, X <= 1])
-        assert prob.get_problem_data(cp.CLARABEL)[0]['A'].shape[1] == 2
+        assert prob.get_problem_data(cp.CLARABEL)[0]["A"].shape[1] == 2
 
         X = cp.Variable((3, 3))
         prob = cp.Problem(cp.Minimize(cp.sum(X)), [X >= -1, X <= 1])
-        assert prob.get_problem_data(cp.CLARABEL)[0]['A'].shape[1] == 9
+        assert prob.get_problem_data(cp.CLARABEL)[0]["A"].shape[1] == 9
 
     def test_diag_value_sparse(self):
         X = cp.Variable((3, 3), diag=True)

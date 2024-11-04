@@ -35,7 +35,7 @@ from cvxpy.utilities.power_tools import (
 
 
 class geo_mean(Atom):
-    """ The (weighted) geometric mean of vector ``x``, with optional powers given by ``p``:
+    """The (weighted) geometric mean of vector ``x``, with optional powers given by ``p``:
 
     .. math::
 
@@ -179,7 +179,7 @@ class geo_mean(Atom):
     """
 
     def __init__(self, x, p: Optional[List[int]] = None, max_denom: int = 1024) -> None:
-        """ Implementation details of geo_mean.
+        """Implementation details of geo_mean.
 
         Attributes
         ----------
@@ -211,7 +211,7 @@ class geo_mean(Atom):
         Expression = cvxtypes.expression()
         if p is not None and isinstance(p, Expression):
             raise TypeError(SECOND_ARG_SHOULD_NOT_BE_EXPRESSION_ERROR_MESSAGE)
-        elif p is not None and hasattr(p, '__getitem__'):
+        elif p is not None and hasattr(p, "__getitem__"):
             p = np.array(p)
             idxs = p > 0
             if isinstance(x, list):
@@ -227,17 +227,17 @@ class geo_mean(Atom):
         if x.is_vector():
             n = 1 if x.ndim == 0 else max(x.shape)
         else:
-            raise ValueError('x must be a row or column vector.')
+            raise ValueError("x must be a row or column vector.")
 
         if p is None:
-            p = [1]*n
+            p = [1] * n
         self.p = p
 
         if len(p) != n:
-            raise ValueError('x and p must have the same number of elements.')
+            raise ValueError("x and p must have the same number of elements.")
 
         if any(v < 0 for v in p) or sum(p) <= 0:
-            raise ValueError('powers must be nonnegative and not all zero.')
+            raise ValueError("powers must be nonnegative and not all zero.")
 
         self.w, self.w_dyad = fracify(p, max_denom)
         self.approx_error = approx_error(p, self.w)
@@ -258,12 +258,11 @@ class geo_mean(Atom):
         values = np.array(values[0]).flatten()
         val = 1.0
         for x, p in zip(values, self.w):
-            val *= x**float(p)
+            val *= x ** float(p)
         return val
 
     def _domain(self) -> List[Constraint]:
-        """Returns constraints describing the domain of the node.
-        """
+        """Returns constraints describing the domain of the node."""
         # No special case when only one non-zero weight.
         selection = np.array([w_i > 0 for w_i in self.w])
         return [self.args[0][selection > 0] >= 0]
@@ -286,56 +285,50 @@ class geo_mean(Atom):
         if np.any(x[w_arr > 0] <= 0):
             return [None]
         else:
-            D = w_arr/x.ravel(order='F')*self.numeric(values)
+            D = w_arr / x.ravel(order="F") * self.numeric(values)
             return [sp.csc_matrix(D).T]
 
     def name(self) -> str:
-        return "%s(%s, (%s))" % (self.__class__.__name__,
-                                 self.args[0].name(),
-                                 ', '.join(str(v) for v in self.w))
+        return "%s(%s, (%s))" % (
+            self.__class__.__name__,
+            self.args[0].name(),
+            ", ".join(str(v) for v in self.w),
+        )
 
     def pretty_tree(self) -> None:
         print(prettydict(self.tree))
 
     def shape_from_args(self) -> Tuple[int, ...]:
-        """Returns the (row, col) shape of the expression.
-        """
+        """Returns the (row, col) shape of the expression."""
         return tuple()
 
     def sign_from_args(self) -> Tuple[bool, bool]:
-        """Returns sign (is positive, is negative) of the expression.
-        """
+        """Returns sign (is positive, is negative) of the expression."""
         # Always positive.
         return (True, False)
 
     def is_atom_convex(self) -> bool:
-        """Is the atom convex?
-        """
+        """Is the atom convex?"""
         return False
 
     def is_atom_concave(self) -> bool:
-        """Is the atom concave?
-        """
+        """Is the atom concave?"""
         return True
 
     def is_atom_log_log_convex(self) -> bool:
-        """Is the atom log-log convex?
-        """
+        """Is the atom log-log convex?"""
         return True
 
     def is_atom_log_log_concave(self) -> bool:
-        """Is the atom log-log concave?
-        """
+        """Is the atom log-log concave?"""
         return True
 
     def is_incr(self, idx) -> bool:
-        """Is the composition non-decreasing in argument idx?
-        """
+        """Is the composition non-decreasing in argument idx?"""
         return True
 
     def is_decr(self, idx) -> bool:
-        """Is the composition non-increasing in argument idx?
-        """
+        """Is the composition non-increasing in argument idx?"""
         return False
 
     def get_data(self):

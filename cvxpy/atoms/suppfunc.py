@@ -9,7 +9,6 @@ from cvxpy.expressions.variable import Variable
 
 
 class SuppFuncAtom(Atom):
-
     def __init__(self, y, parent) -> None:
         """
         Parameters
@@ -108,14 +107,15 @@ class SuppFuncAtom(Atom):
     def _value_impl(self):
         from cvxpy.problems.objective import Maximize
         from cvxpy.problems.problem import Problem
-        y_val = self.args[0].value.round(decimals=9).ravel(order='F')
-        x_flat = self._parent.x.flatten(order='F')
+
+        y_val = self.args[0].value.round(decimals=9).ravel(order="F")
+        x_flat = self._parent.x.flatten(order="F")
         cons = self._parent.constraints
         if len(cons) == 0:
             dummy = Variable()
             cons = [dummy == 1]
         prob = Problem(Maximize(y_val @ x_flat), cons)
-        val = prob.solve(solver='SCS', eps=1e-6)
+        val = prob.solve(solver="SCS", eps=1e-6)
         return val
 
     def _grad(self, values):
@@ -132,7 +132,7 @@ class SuppFuncAtom(Atom):
             # this means the support function is not finite at this input.
             return [None]
         else:
-            gradmat = sp.csc_matrix(gradval.ravel(order='F')).T
+            gradmat = sp.csc_matrix(gradval.ravel(order="F")).T
             return [gradmat]
 
     def __lt__(self, other):

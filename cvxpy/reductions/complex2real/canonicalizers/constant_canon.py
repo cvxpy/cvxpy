@@ -23,5 +23,4 @@ def constant_canon(expr, real_args, imag_args, real2imag):
     elif expr.is_imag():
         return None, Constant(expr.value.imag)
     else:
-        return (Constant(expr.value.real),
-                Constant(expr.value.imag))
+        return (Constant(expr.value.real), Constant(expr.value.imag))

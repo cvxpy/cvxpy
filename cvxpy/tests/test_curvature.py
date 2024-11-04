@@ -21,14 +21,14 @@ from cvxpy.settings import QUASILINEAR, UNKNOWN
 
 
 class TestCurvature(unittest.TestCase):
-    """ Unit tests for the expression/curvature class. """
+    """Unit tests for the expression/curvature class."""
 
     def setUp(self) -> None:
-        self.cvx = Variable()**2
-        self.ccv = Variable()**0.5
+        self.cvx = Variable() ** 2
+        self.ccv = Variable() ** 0.5
         self.aff = Variable()
         self.const = Constant(5)
-        self.unknown_curv = log(Variable()**3)
+        self.unknown_curv = log(Variable() ** 3)
 
         self.pos = Constant(1)
         self.neg = Constant(-1)
@@ -51,13 +51,13 @@ class TestCurvature(unittest.TestCase):
 
     def test_sign_mult(self) -> None:
         self.assertEqual((self.zero * self.cvx).curvature, self.aff.curvature)
-        self.assertEqual((self.neg*self.cvx).curvature, self.ccv.curvature)
-        self.assertEqual((self.neg*self.ccv).curvature, self.cvx.curvature)
-        self.assertEqual((self.neg*self.unknown_curv).curvature, QUASILINEAR)
-        self.assertEqual((self.pos*self.aff).curvature, self.aff.curvature)
-        self.assertEqual((self.pos*self.ccv).curvature, self.ccv.curvature)
-        self.assertEqual((self.unknown_sign*self.const).curvature, self.const.curvature)
-        self.assertEqual((self.unknown_sign*self.ccv).curvature, UNKNOWN)
+        self.assertEqual((self.neg * self.cvx).curvature, self.ccv.curvature)
+        self.assertEqual((self.neg * self.ccv).curvature, self.cvx.curvature)
+        self.assertEqual((self.neg * self.unknown_curv).curvature, QUASILINEAR)
+        self.assertEqual((self.pos * self.aff).curvature, self.aff.curvature)
+        self.assertEqual((self.pos * self.ccv).curvature, self.ccv.curvature)
+        self.assertEqual((self.unknown_sign * self.const).curvature, self.const.curvature)
+        self.assertEqual((self.unknown_sign * self.ccv).curvature, UNKNOWN)
 
     def test_neg(self) -> None:
         self.assertEqual((-self.cvx).curvature, self.ccv.curvature)

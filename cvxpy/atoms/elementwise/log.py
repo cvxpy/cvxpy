@@ -13,6 +13,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+
 from typing import List, Tuple
 
 import numpy as np
@@ -22,52 +23,43 @@ from cvxpy.constraints.constraint import Constraint
 
 
 class log(Elementwise):
-    """Elementwise :math:`\\log x`.
-    """
+    """Elementwise :math:`\\log x`."""
 
     def __init__(self, x) -> None:
         super(log, self).__init__(x)
 
     @Elementwise.numpy_numeric
     def numeric(self, values):
-        """Returns the elementwise natural log of x.
-        """
+        """Returns the elementwise natural log of x."""
         return np.log(values[0])
 
     def sign_from_args(self) -> Tuple[bool, bool]:
-        """Returns sign (is positive, is negative) of the expression.
-        """
+        """Returns sign (is positive, is negative) of the expression."""
         # Always unknown.
         return (False, False)
 
     def is_atom_convex(self) -> bool:
-        """Is the atom convex?
-        """
+        """Is the atom convex?"""
         return False
 
     def is_atom_concave(self) -> bool:
-        """Is the atom concave?
-        """
+        """Is the atom concave?"""
         return True
 
     def is_atom_log_log_convex(self) -> bool:
-        """Is the atom log-log convex?
-        """
+        """Is the atom log-log convex?"""
         return False
 
     def is_atom_log_log_concave(self) -> bool:
-        """Is the atom log-log concave?
-        """
+        """Is the atom log-log concave?"""
         return True
 
     def is_incr(self, idx) -> bool:
-        """Is the composition non-decreasing in argument idx?
-        """
+        """Is the composition non-decreasing in argument idx?"""
         return True
 
     def is_decr(self, idx) -> bool:
-        """Is the composition non-increasing in argument idx?
-        """
+        """Is the composition non-increasing in argument idx?"""
         return False
 
     def _grad(self, values):
@@ -88,10 +80,9 @@ class log(Elementwise):
             # Non-differentiable.
             return [None]
         else:
-            grad_vals = 1.0/values[0]
+            grad_vals = 1.0 / values[0]
             return [log.elemwise_grad_to_diag(grad_vals, rows, cols)]
 
     def _domain(self) -> List[Constraint]:
-        """Returns constraints describing the domain of the node.
-        """
+        """Returns constraints describing the domain of the node."""
         return [self.args[0] >= 0]

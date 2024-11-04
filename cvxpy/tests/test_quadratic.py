@@ -26,7 +26,7 @@ from cvxpy.tests.base_test import BaseTest
 
 
 class TestExpressions(BaseTest):
-    """ Unit tests for the expression/expression module. """
+    """Unit tests for the expression/expression module."""
 
     def setUp(self) -> None:
         pass
@@ -46,18 +46,18 @@ class TestExpressions(BaseTest):
             self.assertTrue(s.is_affine())
             self.assertTrue(s.is_quadratic())
 
-        t = power(x-y, 1)
+        t = power(x - y, 1)
         self.assertFalse(t.is_constant())
         self.assertTrue(t.is_affine())
         self.assertTrue(t.is_quadratic())
 
-        u = power(x+2*y, 2)
+        u = power(x + 2 * y, 2)
         self.assertFalse(u.is_constant())
         self.assertFalse(u.is_affine())
         self.assertTrue(u.is_quadratic())
         self.assertTrue(u.is_dcp())
 
-        w = (x+2*y)**2
+        w = (x + 2 * y) ** 2
         self.assertFalse(w.is_constant())
         self.assertFalse(w.is_affine())
         self.assertTrue(w.is_quadratic())
@@ -82,13 +82,13 @@ class TestExpressions(BaseTest):
         x = Variable((3, 5))
         y = Variable((3, 5))
         z = Variable()
-        s = cp.quad_over_lin(x-y, z)
+        s = cp.quad_over_lin(x - y, z)
         self.assertFalse(s.is_constant())
         self.assertFalse(s.is_affine())
         self.assertFalse(s.is_quadratic())
         self.assertTrue(s.is_dcp())
 
-        t = cp.quad_over_lin(x+2*y, 5)
+        t = cp.quad_over_lin(x + 2 * y, 5)
         self.assertFalse(t.is_constant())
         self.assertFalse(t.is_affine())
         self.assertTrue(t.is_quadratic())
@@ -106,7 +106,7 @@ class TestExpressions(BaseTest):
 
     def test_quadratic_form(self) -> None:
         x = Variable(5)
-        P = np.eye(5) - 2*np.ones((5, 5))
+        P = np.eye(5) - 2 * np.ones((5, 5))
         q = np.ones((5, 1))
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
@@ -136,7 +136,7 @@ class TestExpressions(BaseTest):
 
         # Frobenius norm squared is indeed quadratic
         # but can't show quadraticity using recursive rules
-        t = cp.norm(y, 'fro')**2
+        t = cp.norm(y, "fro") ** 2
         self.assertFalse(t.is_constant())
         self.assertFalse(t.is_affine())
         self.assertFalse(t.is_quadratic())
@@ -148,11 +148,11 @@ class TestExpressions(BaseTest):
         z = Variable()
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
-            s = y*z
+            s = y * z
             self.assertTrue(s.is_quadratic())
             self.assertFalse(s.is_dcp())
 
-            t = (x+y)**2 - s - z*z
+            t = (x + y) ** 2 - s - z * z
             self.assertTrue(t.is_quadratic())
             self.assertFalse(t.is_dcp())
 
@@ -161,7 +161,7 @@ class TestExpressions(BaseTest):
         y = Variable()
         z = Variable()
 
-        s = cp.max(vstack([x, y, z]))**2
+        s = cp.max(vstack([x, y, z])) ** 2
         self.assertFalse(s.is_quadratic())
 
         t = cp.max(vstack([x**2, power(y, 2), z]))
@@ -184,11 +184,11 @@ class TestExpressions(BaseTest):
         """Test the has_quadratic_term function."""
         x = Variable()
         assert not x.has_quadratic_term()
-        assert not (3 + 3*x).has_quadratic_term()
+        assert not (3 + 3 * x).has_quadratic_term()
         assert (x**2).has_quadratic_term()
-        assert (x**2/2).has_quadratic_term()
+        assert (x**2 / 2).has_quadratic_term()
         assert (x**2 + x**3).has_quadratic_term()
-        assert (2*x**2 + x**3).has_quadratic_term()
+        assert (2 * x**2 + x**3).has_quadratic_term()
         assert cp.conj(x**2).has_quadratic_term()
         assert not cp.pos(x**2).has_quadratic_term()
         assert cp.square(x**2).has_quadratic_term()

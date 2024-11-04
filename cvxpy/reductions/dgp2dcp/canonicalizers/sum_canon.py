@@ -25,7 +25,7 @@ def sum_canon(expr, args):
     if expr.axis is None:
         summation = explicit_sum(X)
         canon, _ = add_canon(summation, summation.args)
-        return reshape(canon, expr.shape, order='F'), []
+        return reshape(canon, expr.shape, order="F"), []
 
     if expr.axis == 0:
         X = X.T
@@ -36,4 +36,4 @@ def sum_canon(expr, args):
         canon, _ = add_canon(summation, summation.args)
         rows.append(canon)
     canon = hstack(rows)
-    return reshape(canon, expr.shape, order='F'), []
+    return reshape(canon, expr.shape, order="F"), []

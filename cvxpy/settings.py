@@ -13,6 +13,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+
 import logging
 import sys
 
@@ -21,9 +22,7 @@ LOGGER.propagate = False
 LOGGER.setLevel(logging.INFO)
 _stream_handler = logging.StreamHandler(sys.stdout)
 _stream_handler.setLevel(logging.INFO)
-_formatter = logging.Formatter(
-    fmt="(CVXPY) %(asctime)s: %(message)s", datefmt="%b %d %I:%M:%S %p"
-)
+_formatter = logging.Formatter(fmt="(CVXPY) %(asctime)s: %(message)s", datefmt="%b %d %I:%M:%S %p")
 _stream_handler.setFormatter(_formatter)
 LOGGER.addHandler(_stream_handler)
 
@@ -58,12 +57,15 @@ SOLVER_ERROR = "solver_error"
 # Statuses that indicate a solution was found.
 SOLUTION_PRESENT = [OPTIMAL, OPTIMAL_INACCURATE, USER_LIMIT]
 # Statuses that indicate the problem is infeasible or unbounded.
-INF_OR_UNB = [INFEASIBLE, INFEASIBLE_INACCURATE,
-              UNBOUNDED, UNBOUNDED_INACCURATE,
-              INFEASIBLE_OR_UNBOUNDED]
+INF_OR_UNB = [
+    INFEASIBLE,
+    INFEASIBLE_INACCURATE,
+    UNBOUNDED,
+    UNBOUNDED_INACCURATE,
+    INFEASIBLE_OR_UNBOUNDED,
+]
 # Statuses that indicate an inaccurate solution.
-INACCURATE = [OPTIMAL_INACCURATE, INFEASIBLE_INACCURATE,
-              UNBOUNDED_INACCURATE, USER_LIMIT]
+INACCURATE = [OPTIMAL_INACCURATE, INFEASIBLE_INACCURATE, UNBOUNDED_INACCURATE, USER_LIMIT]
 # Statuses that indicate an error.
 ERROR = [SOLVER_ERROR]
 
@@ -93,10 +95,31 @@ SCIPY = "SCIPY"
 CLARABEL = "CLARABEL"
 DAQP = "DAQP"
 HIGHS = "HIGHS"
-SOLVERS = [CLARABEL, ECOS, CVXOPT, GLOP, GLPK, GLPK_MI,
-           SCS, SDPA, GUROBI, OSQP, CPLEX,
-           MOSEK, CBC, COPT, XPRESS, PIQP, PROXQP,
-           NAG, PDLP, SCIP, SCIPY, DAQP, HIGHS]
+SOLVERS = [
+    CLARABEL,
+    ECOS,
+    CVXOPT,
+    GLOP,
+    GLPK,
+    GLPK_MI,
+    SCS,
+    SDPA,
+    GUROBI,
+    OSQP,
+    CPLEX,
+    MOSEK,
+    CBC,
+    COPT,
+    XPRESS,
+    PIQP,
+    PROXQP,
+    NAG,
+    PDLP,
+    SCIP,
+    SCIPY,
+    DAQP,
+    HIGHS,
+]
 
 # Xpress-specific items
 XPRESS_IIS = "XPRESS_IIS"

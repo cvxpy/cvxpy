@@ -13,6 +13,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+
 import contextlib
 from typing import Generator
 
@@ -45,5 +46,5 @@ def dpp_scope() -> Generator[None, None, None]:
 
 
 def dpp_scope_active() -> bool:
-    """Returns True if a `dpp_scope` is active. """
+    """Returns True if a `dpp_scope` is active."""
     return _dpp_scope_active

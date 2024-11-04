@@ -64,12 +64,11 @@ def log_det_canon(expr, args):
     """
     A = args[0]  # n by n matrix.
     n, _ = A.shape
-    z = Variable(shape=(n*(n+1)//2,))
+    z = Variable(shape=(n * (n + 1) // 2,))
     Z = vec_to_upper_tri(z, strict=False)
     d = diag_mat(Z)  # a vector
     D = diag_vec(d)  # a matrix
-    X = bmat([[D, Z],
-              [Z.T, A]])
+    X = bmat([[D, Z], [Z.T, A]])
     constraints = [PSD(X)]
     log_expr = log(d)
     obj, constr = log_canon(log_expr, log_expr.args)

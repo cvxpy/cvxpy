@@ -47,17 +47,16 @@ if __name__ == "__main__":
 
         Usage:
             python cvxpy_upgrade.py --infile foo.py --outfile bar.py
-        """)
-    parser.add_argument("--infile", dest="input_file",
-                        help="The name of the file to upgrade.",
-                        required=True)
-    parser.add_argument("--outfile", dest="output_file",
-                        help="The output filename.",
-                        required=True)
+        """
+    )
+    parser.add_argument(
+        "--infile", dest="input_file", help="The name of the file to upgrade.", required=True
+    )
+    parser.add_argument("--outfile", dest="output_file", help="The output filename.", required=True)
     args = parser.parse_args()
-    with open(args.input_file, 'rU') as f:
+    with open(args.input_file, "rU") as f:
         code = f.read()
     for pattern, subst in SUBST:
         code = re.sub(pattern, subst, code)
-    with open(args.output_file, 'w') as f:
+    with open(args.output_file, "w") as f:
         f.write(code)

@@ -22,25 +22,24 @@ from cvxpy.expressions.variable import Variable
 
 
 class TestObjectives(unittest.TestCase):
-    """ Unit tests for the expression/expression module. """
+    """Unit tests for the expression/expression module."""
 
     def setUp(self) -> None:
-        self.x = Variable(name='x')
-        self.y = Variable(3, name='y')
-        self.z = Variable(name='z')
+        self.x = Variable(name="x")
+        self.y = Variable(3, name="y")
+        self.z = Variable(name="z")
 
     def test_str(self) -> None:
-        """Test string representations.
-        """
+        """Test string representations."""
         obj = cp.Minimize(self.x)
         self.assertEqual(repr(obj), "Minimize(%s)" % repr(self.x))
-        obj = cp.Minimize(2*self.x)
-        self.assertEqual(repr(obj), "Minimize(%s)" % repr(2*self.x))
+        obj = cp.Minimize(2 * self.x)
+        self.assertEqual(repr(obj), "Minimize(%s)" % repr(2 * self.x))
 
         obj = cp.Maximize(self.x)
         self.assertEqual(repr(obj), "Maximize(%s)" % repr(self.x))
-        obj = cp.Maximize(2*self.x)
-        self.assertEqual(repr(obj), "Maximize(%s)" % repr(2*self.x))
+        obj = cp.Maximize(2 * self.x)
+        self.assertEqual(repr(obj), "Maximize(%s)" % repr(2 * self.x))
 
     # Test the Minimize class.
     def test_minimize(self) -> None:
@@ -54,8 +53,7 @@ class TestObjectives(unittest.TestCase):
 
         with self.assertRaises(Exception) as cm:
             cp.Minimize(self.y).canonical_form
-        self.assertEqual(str(cm.exception),
-                         "The 'minimize' objective must resolve to a scalar.")
+        self.assertEqual(str(cm.exception), "The 'minimize' objective must resolve to a scalar.")
 
         # Test copy with args=None
         copy = obj.copy()
@@ -81,8 +79,7 @@ class TestObjectives(unittest.TestCase):
 
         with self.assertRaises(Exception) as cm:
             cp.Maximize(self.y).canonical_form
-        self.assertEqual(str(cm.exception),
-                         "The 'maximize' objective must resolve to a scalar.")
+        self.assertEqual(str(cm.exception), "The 'maximize' objective must resolve to a scalar.")
 
         # Test copy with args=None
         copy = obj.copy()
@@ -105,10 +102,9 @@ class TestObjectives(unittest.TestCase):
         self.assertEqual(cp.Maximize(-cp.norm_inf(self.x)).is_dcp(), True)
 
     def test_add_problems(self) -> None:
-        """Test adding objectives.
-        """
+        """Test adding objectives."""
         expr1 = self.x**2
-        expr2 = (self.x)**(-1)
+        expr2 = (self.x) ** (-1)
         alpha = 2
 
         # Addition.
@@ -126,10 +122,10 @@ class TestObjectives(unittest.TestCase):
 
         # Multiplication (alpha is a positive scalar).
 
-        assert (alpha*cp.Minimize(expr1)).is_dcp()
+        assert (alpha * cp.Minimize(expr1)).is_dcp()
 
-        assert (alpha*cp.Maximize(-expr1)).is_dcp()
+        assert (alpha * cp.Maximize(-expr1)).is_dcp()
 
-        assert (-alpha*cp.Maximize(-expr1)).is_dcp()
+        assert (-alpha * cp.Maximize(-expr1)).is_dcp()
 
-        assert (-alpha*cp.Maximize(-expr1)).is_dcp()
+        assert (-alpha * cp.Maximize(-expr1)).is_dcp()

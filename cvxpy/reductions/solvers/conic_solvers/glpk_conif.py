@@ -21,8 +21,8 @@ from cvxpy.reductions.solvers.conic_solvers.cvxopt_conif import CVXOPT
 
 
 class GLPK(CVXOPT):
-    """An interface for the GLPK solver.
-    """
+    """An interface for the GLPK solver."""
+
     # Solver capabilities.
     MIP_CAPABLE = False
     SUPPORTED_CONSTRAINTS = ConicSolver.SUPPORTED_CONSTRAINTS
@@ -31,18 +31,15 @@ class GLPK(CVXOPT):
     MIN_CONSTRAINT_LENGTH = 1
 
     def name(self):
-        """The name of the solver.
-        """
+        """The name of the solver."""
         return s.GLPK
 
     def import_solver(self) -> None:
-        """Imports the solver.
-        """
+        """Imports the solver."""
         from cvxopt import glpk  # noqa F401
 
     def invert(self, solution, inverse_data):
-        """Returns the solution to the original problem given the inverse_data.
-        """
+        """Returns the solution to the original problem given the inverse_data."""
         return super(GLPK, self).invert(solution, inverse_data)
 
     def solve_via_data(self, data, warm_start: bool, verbose: bool, solver_opts, solver_cache=None):
@@ -69,12 +66,9 @@ class GLPK(CVXOPT):
             cvxopt.solvers.options[key] = value
 
         try:
-            results_dict = cvxopt.solvers.lp(data[s.C],
-                                             data[s.G],
-                                             data[s.H],
-                                             data[s.A],
-                                             data[s.B],
-                                             solver="glpk")
+            results_dict = cvxopt.solvers.lp(
+                data[s.C], data[s.G], data[s.H], data[s.A], data[s.B], solver="glpk"
+            )
 
         # Catch exceptions in CVXOPT and convert them to solver errors.
         except ValueError:
@@ -85,14 +79,14 @@ class GLPK(CVXOPT):
 
         # Convert CVXOPT results to solution format.
         solution = {}
-        status = self.STATUS_MAP[results_dict['status']]
+        status = self.STATUS_MAP[results_dict["status"]]
         solution[s.STATUS] = status
         if solution[s.STATUS] in s.SOLUTION_PRESENT:
-            primal_val = results_dict['primal objective']
+            primal_val = results_dict["primal objective"]
             solution[s.VALUE] = primal_val
-            solution[s.PRIMAL] = results_dict['x']
-            solution[s.EQ_DUAL] = results_dict['y']
-            solution[s.INEQ_DUAL] = results_dict['z']
+            solution[s.PRIMAL] = results_dict["x"]
+            solution[s.EQ_DUAL] = results_dict["y"]
+            solution[s.INEQ_DUAL] = results_dict["z"]
             for key in [s.PRIMAL, s.EQ_DUAL, s.INEQ_DUAL]:
                 solution[key] = intf.cvxopt2dense(solution[key])
 
@@ -101,6 +95,7 @@ class GLPK(CVXOPT):
     @staticmethod
     def _restore_solver_options(old_options) -> None:
         import cvxopt.solvers
+
         for key, value in list(cvxopt.solvers.options.items()):
             if key in old_options:
                 cvxopt.solvers.options[key] = old_options[key]

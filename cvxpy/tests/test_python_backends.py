@@ -499,7 +499,7 @@ class TestBackends:
         view_A = sp.coo_matrix((view_A.data, (view_A.row, view_A.col)), shape=(2, 2)).toarray()
         assert np.all(view_A == np.eye(2))
 
-        sum_entries_lin_op = linOpHelper(shape = (2,), data = [None, True], args=[variable_lin_op])
+        sum_entries_lin_op = linOpHelper(shape=(2,), data=[None, True], args=[variable_lin_op])
         out_view = backend.sum_entries(sum_entries_lin_op, view)
         A = out_view.get_tensor_representation(0, 1)
 
@@ -654,7 +654,7 @@ class TestBackends:
         lin_op_x = linOpHelper((1, 2), type="variable", data=1)
         lin_op_y = linOpHelper((1, 2), type="variable", data=2)
 
-        concatenate_lin_op = linOpHelper(args=[lin_op_x, lin_op_y], data = [1])
+        concatenate_lin_op = linOpHelper(args=[lin_op_x, lin_op_y], data=[1])
         backend.id_to_col = {1: 0, 2: 2}
         out_view = backend.concatenate(concatenate_lin_op, backend.get_empty_view())
         A = out_view.get_tensor_representation(0, 4)
@@ -665,7 +665,7 @@ class TestBackends:
         assert np.all(A == expected)
 
         # Axis = 0
-        concatenate_lin_op = linOpHelper(args=[lin_op_x, lin_op_y], data = [0])
+        concatenate_lin_op = linOpHelper(args=[lin_op_x, lin_op_y], data=[0])
         out_view = backend.concatenate(concatenate_lin_op, backend.get_empty_view())
         A = out_view.get_tensor_representation(0, 4)
 
@@ -674,17 +674,19 @@ class TestBackends:
         expected = np.array([[1, 0, 0, 0], [0, 0, 1, 0], [0, 1, 0, 0], [0, 0, 0, 1]])
         assert np.all(A == expected)
 
-
-    @pytest.mark.parametrize("axis, variable_indices", [
-        # Axis 0
-        (0, [0, 1, 8, 9, 2, 3, 10, 11, 4, 5, 12, 13, 6, 7, 14, 15]),
-        # Axis 1
-        (1, [0, 1, 2, 3, 8, 9, 10, 11, 4, 5, 6, 7, 12, 13, 14, 15]),
-        # Axis 2
-        (2, list(range(16))),
-        # Axis None
-        (None, list(range(16))),
-    ])
+    @pytest.mark.parametrize(
+        "axis, variable_indices",
+        [
+            # Axis 0
+            (0, [0, 1, 8, 9, 2, 3, 10, 11, 4, 5, 12, 13, 6, 7, 14, 15]),
+            # Axis 1
+            (1, [0, 1, 2, 3, 8, 9, 10, 11, 4, 5, 6, 7, 12, 13, 14, 15]),
+            # Axis 2
+            (2, list(range(16))),
+            # Axis None
+            (None, list(range(16))),
+        ],
+    )
     def test_concatenate_nd(self, backend, axis, variable_indices):
         """
         Test the concatenate operation with variables of shape (2, 2, 2)
@@ -747,6 +749,7 @@ class TestBackends:
         so the resulting array is [x000, x001, x010, x011, x100, x101, x110, x111,
                                 y000, y001, y010, y011, y100, y101, y110, y111]
         """
+
         def get_expected_matrix(variable_indices):
             A = np.zeros((16, 16), dtype=int)
             positions = np.arange(16)
@@ -762,7 +765,7 @@ class TestBackends:
         lin_op_y = linOpHelper((2, 2, 2), type="variable", data=2)
 
         # Perform concatenation along the specified axis
-        concatenate_lin_op = linOpHelper(args=[lin_op_x, lin_op_y], data = [axis])
+        concatenate_lin_op = linOpHelper(args=[lin_op_x, lin_op_y], data=[axis])
         out_view = backend.concatenate(concatenate_lin_op, backend.get_empty_view())
         A = out_view.get_tensor_representation(0, 16)
         # Convert to numpy array
@@ -1950,7 +1953,6 @@ class TestND_Backends:
         assert isinstance(backend, PythonCanonBackend)
         return backend
 
-
     def test_nd_sum_entries(self, backend):
         """
         define x = Variable((2,2,2)) with
@@ -2018,24 +2020,27 @@ class TestND_Backends:
 
         # cast to numpy
         A = sp.coo_matrix((A.data, (A.row, A.col)), shape=(4, 8)).toarray()
-        expected = np.array([[1, 0, 0, 0, 1, 0, 0, 0],
-                             [0, 1, 0, 0, 0, 1, 0, 0],
-                             [0, 0, 1, 0, 0, 0, 1, 0],
-                             [0, 0, 0, 1, 0, 0, 0, 1]])
+        expected = np.array(
+            [
+                [1, 0, 0, 0, 1, 0, 0, 0],
+                [0, 1, 0, 0, 0, 1, 0, 0],
+                [0, 0, 1, 0, 0, 0, 1, 0],
+                [0, 0, 0, 1, 0, 0, 0, 1],
+            ]
+        )
         assert np.all(A == expected)
 
         # Note: view is edited in-place:
         assert out_view.get_tensor_representation(0, 4) == view.get_tensor_representation(0, 4)
 
-    @pytest.mark.parametrize("axes, expected", [((0,1),
-                                                [[1, 1, 1, 1, 0, 0, 0, 0],
-                                                [0, 0, 0, 0, 1, 1, 1, 1]]),
-                                                ((0,2),
-                                                [[1, 1, 0, 0, 1, 1, 0, 0],
-                                                [0, 0, 1, 1, 0, 0, 1, 1]]),
-                                                ((2,1),
-                                                [[1, 0, 1, 0, 1, 0, 1, 0],
-                                                [0, 1, 0, 1, 0, 1, 0, 1]])])
+    @pytest.mark.parametrize(
+        "axes, expected",
+        [
+            ((0, 1), [[1, 1, 1, 1, 0, 0, 0, 0], [0, 0, 0, 0, 1, 1, 1, 1]]),
+            ((0, 2), [[1, 1, 0, 0, 1, 1, 0, 0], [0, 0, 1, 1, 0, 0, 1, 1]]),
+            ((2, 1), [[1, 0, 1, 0, 1, 0, 1, 0], [0, 1, 0, 1, 0, 1, 0, 1]]),
+        ],
+    )
     def test_nd_sum_entries_multiple_axes(self, backend, axes, expected):
         """
         define x = Variable((2,2,2)) with
@@ -2136,17 +2141,22 @@ class TestND_Backends:
         view_A = sp.coo_matrix((view_A.data, (view_A.row, view_A.col)), shape=(8, 8)).toarray()
         assert np.all(view_A == np.eye(8))
 
-        index_2d_lin_op = linOpHelper(data=[slice(0, 2, 1), slice(0, 1, 1), slice(0, 2, 1)],
-                                      args=[variable_lin_op])
+        index_2d_lin_op = linOpHelper(
+            data=[slice(0, 2, 1), slice(0, 1, 1), slice(0, 2, 1)], args=[variable_lin_op]
+        )
         out_view = backend.index(index_2d_lin_op, view)
         A = out_view.get_tensor_representation(0, 4)
 
         # cast to numpy
         A = sp.coo_matrix((A.data, (A.row, A.col)), shape=(4, 8)).toarray()
-        expected = np.array([[1, 0, 0, 0, 0, 0, 0, 0],
-                             [0, 1, 0, 0, 0, 0, 0, 0],
-                             [0, 0, 0, 0, 1, 0, 0, 0],
-                             [0, 0, 0, 0, 0, 1, 0, 0]])
+        expected = np.array(
+            [
+                [1, 0, 0, 0, 0, 0, 0, 0],
+                [0, 1, 0, 0, 0, 0, 0, 0],
+                [0, 0, 0, 0, 1, 0, 0, 0],
+                [0, 0, 0, 0, 0, 1, 0, 0],
+            ]
+        )
         assert np.all(A == expected)
 
         index_1d_lin_op = linOpHelper(data=[slice(1, 2, 1)], args=[variable_lin_op])
@@ -2218,29 +2228,34 @@ class TestParametrizedND_Backends:
         [[0   0   0   0   0   0   0   0],
          [0   0   0   0   0   0   0   1]]
         """
-        param_lin_op = linOpHelper((2,2,2), type="param", data=2)
-        variable_lin_op = linOpHelper((2,2,2), type="variable", data=1)
+        param_lin_op = linOpHelper((2, 2, 2), type="param", data=2)
+        variable_lin_op = linOpHelper((2, 2, 2), type="variable", data=1)
         var_view = param_backend.process_constraint(variable_lin_op, param_backend.get_empty_view())
         mul_elem_lin_op = linOpHelper(data=param_lin_op)
         param_var_view = param_backend.mul_elem(mul_elem_lin_op, var_view)
 
-        sum_entries_lin_op = linOpHelper(shape=(2,2,2), data=[(0,2), True], args=[variable_lin_op])
+        sum_entries_lin_op = linOpHelper(
+            shape=(2, 2, 2), data=[(0, 2), True], args=[variable_lin_op]
+        )
         out_view = param_backend.sum_entries(sum_entries_lin_op, param_var_view)
         out_repr = out_view.get_tensor_representation(0, 2)
 
         slice_idx_zero = out_repr.get_param_slice(0).toarray()[:, :-1]
-        expected_idx_zero = np.array([[1., 0., 0., 0., 0., 0., 0., 0.],
-                                    [0., 0., 0., 0., 0., 0., 0., 0.]])
+        expected_idx_zero = np.array(
+            [[1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0], [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]]
+        )
         assert np.all(slice_idx_zero == expected_idx_zero)
 
         slice_idx_one = out_repr.get_param_slice(1).toarray()[:, :-1]
-        expected_idx_one = np.array([[0., 1., 0., 0., 0., 0., 0., 0.],
-                                    [0., 0., 0., 0., 0., 0., 0., 0.]])
+        expected_idx_one = np.array(
+            [[0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0], [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]]
+        )
         assert np.all(slice_idx_one == expected_idx_one)
 
         slice_idx_seven = out_repr.get_param_slice(7).toarray()[:, :-1]
-        expected_idx_seven = np.array([[0., 0., 0., 0., 0., 0., 0., 0.],
-                                    [0., 0., 0., 0., 0., 0., 0., 1.]])
+        expected_idx_seven = np.array(
+            [[0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0], [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0]]
+        )
         assert np.all(slice_idx_seven == expected_idx_seven)
 
         # Note: view is edited in-place:

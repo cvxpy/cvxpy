@@ -13,6 +13,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+
 import numpy as np
 
 from cvxpy.constraints.constraint import Constraint
@@ -59,11 +60,14 @@ class FiniteSet(Constraint):
         Expression = cvxtypes.expression()
         if isinstance(vec, set):
             vec = list(vec)
-        vec = Expression.cast_to_const(vec).flatten(order='F')
+        vec = Expression.cast_to_const(vec).flatten(order="F")
         if not expre.is_affine() and not expre.is_log_log_affine():
-            msg = """
+            msg = (
+                """
             Provided Expression must be affine or log-log affine, but had curvature %s.
-            """ % expre.curvature
+            """
+                % expre.curvature
+            )
             raise ValueError(msg)
         # Note: we use the term "expre" rather than "expr" since
         # "expr" is already a property used by all Constraint classes.
@@ -128,7 +132,7 @@ class FiniteSet(Constraint):
         -------
         float
         """
-        expr_val = np.array(self.expre.value).flatten(order='F')
+        expr_val = np.array(self.expre.value).flatten(order="F")
         vec_val = self.vec.value
         resids = [np.min(np.abs(val - vec_val)) for val in expr_val]
         res = max(resids)

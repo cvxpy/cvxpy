@@ -13,6 +13,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+
 from typing import List, Tuple
 
 import numpy as np
@@ -61,27 +62,21 @@ class upper_tri(AffAtom):
         return values[0][upper_idx]
 
     def validate_arguments(self) -> None:
-        """Checks that the argument is a square matrix.
-        """
+        """Checks that the argument is a square matrix."""
         if not self.args[0].ndim == 2 or self.args[0].shape[0] != self.args[0].shape[1]:
-            raise ValueError(
-                "Argument to upper_tri must be a square matrix."
-            )
+            raise ValueError("Argument to upper_tri must be a square matrix.")
 
     def shape_from_args(self) -> Tuple[int, int]:
-        """A vector.
-        """
+        """A vector."""
         rows, cols = self.args[0].shape
-        return (rows*(cols-1)//2, 1)
+        return (rows * (cols - 1) // 2, 1)
 
     def is_atom_log_log_convex(self) -> bool:
-        """Is the atom log-log convex?
-        """
+        """Is the atom log-log convex?"""
         return True
 
     def is_atom_log_log_concave(self) -> bool:
-        """Is the atom log-log concave?
-        """
+        """Is the atom log-log concave?"""
         return True
 
     def graph_implementation(
@@ -117,7 +112,7 @@ def vec_to_upper_tri(expr, strict: bool = False):
     if not expr.is_vector():
         raise ValueError("The input must be a vector.")
     if expr.ndim != 1:
-        expr = vec(expr, order='F')
+        expr = vec(expr, order="F")
 
     ell = expr.shape[0]
     if strict:
@@ -141,7 +136,7 @@ def vec_to_upper_tri(expr, strict: bool = False):
     P_cols = np.arange(ell)
     P_vals = np.ones(P_cols.size)
     P = sp.csc_matrix((P_vals, (P_rows, P_cols)), shape=(n * n, ell))
-    return reshape(P @ expr, (n, n), order='F').T
+    return reshape(P @ expr, (n, n), order="F").T
 
 
 def upper_tri_to_full(n: int) -> sp.csc_matrix:
@@ -160,7 +155,7 @@ def upper_tri_to_full(n: int) -> sp.csc_matrix:
     sp.csc_matrix
         The coefficient matrix.
     """
-    entries = n*(n+1)//2
+    entries = n * (n + 1) // 2
 
     # Initialize row and col indices from upper triangular matrix
     rows, cols = np.triu_indices(n)

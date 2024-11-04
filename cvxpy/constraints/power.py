@@ -47,7 +47,7 @@ class PowCone3D(Cone):
         self.z = Expression.cast_to_const(z)
         for val in [self.x, self.y, self.z]:
             if not (val.is_affine() and val.is_real()):
-                raise ValueError('All arguments must be affine and real.')
+                raise ValueError("All arguments must be affine and real.")
         alpha = Expression.cast_to_const(alpha)
         if alpha.is_scalar():
             if self.x.shape:
@@ -66,11 +66,13 @@ class PowCone3D(Cone):
         else:
             arg_shapes = [self.x.shape, self.y.shape, self.z.shape, self.alpha.shape]
         if any(arg_shapes[0] != s for s in arg_shapes[1:]):
-            msg = ("All arguments must have the same shapes. Provided arguments have"
-                   "shapes %s" % str(arg_shapes))
+            msg = (
+                "All arguments must have the same shapes. Provided arguments have"
+                "shapes %s" % str(arg_shapes)
+            )
             raise ValueError(msg)
-        super(PowCone3D, self).__init__([self.x, self.y, self.z],
-                                        constr_id)
+        super(PowCone3D, self).__init__([self.x, self.y, self.z], constr_id)
+
     def __str__(self) -> str:
         return "Pow3D(%s, %s, %s; %s)" % (self.x, self.y, self.z, self.alpha)
 
@@ -78,16 +80,18 @@ class PowCone3D(Cone):
     def residual(self):
         # TODO: The projection should be implemented directly.
         from cvxpy import Minimize, Problem, Variable, hstack, norm2
+
         if self.x.value is None or self.y.value is None or self.z.value is None:
             return None
         x = Variable(self.x.shape)
         y = Variable(self.y.shape)
         z = Variable(self.z.shape)
         constr = [PowCone3D(x, y, z, self.alpha)]
-        obj = Minimize(norm2(hstack([x, y, z]) -
-                             hstack([self.x.value, self.y.value, self.z.value])))
+        obj = Minimize(
+            norm2(hstack([x, y, z]) - hstack([self.x.value, self.y.value, self.z.value]))
+        )
         problem = Problem(obj, constr)
-        return problem.solve(solver='SCS', eps=1e-8)
+        return problem.solve(solver="SCS", eps=1e-8)
 
     def get_data(self):
         return [self.alpha, self.id]
@@ -106,7 +110,7 @@ class PowCone3D(Cone):
         return self.x.size
 
     def cone_sizes(self) -> List[int]:
-        return [3]*self.num_cones()
+        return [3] * self.num_cones()
 
     def is_dcp(self, dpp: bool = False) -> bool:
         if dpp:
@@ -143,16 +147,19 @@ class PowCone3D(Cone):
         """Implements the dual cone of PowCone3D See Pg 85
         of the MOSEK modelling cookbook for more information"""
         if args is None:
-            PowCone3D(self.dual_variables[0]/self.alpha, self.dual_variables[1]/(1-self.alpha),
-                      self.dual_variables[2], self.alpha)
+            PowCone3D(
+                self.dual_variables[0] / self.alpha,
+                self.dual_variables[1] / (1 - self.alpha),
+                self.dual_variables[2],
+                self.alpha,
+            )
         else:
             # some assertions for verifying `args`
             args_shapes = [arg.shape for arg in args]
             instance_args_shapes = [arg.shape for arg in self.args]
             assert len(args) == len(self.args)
             assert args_shapes == instance_args_shapes
-            return PowCone3D(args[0]/self.alpha, args[1]/(1-self.alpha),
-                             args[2], self.alpha)
+            return PowCone3D(args[0] / self.alpha, args[1] / (1 - self.alpha), args[2], self.alpha)
 
 
 class PowConeND(Cone):
@@ -187,23 +194,29 @@ class PowConeND(Cone):
             raise ValueError(msg)
         z = Expression.cast_to_const(z)
         if z.ndim > 1 or not (z.is_real() and z.is_affine()):
-            msg = ("Invalid second argument. z must be affine, real, "
-                   "and have at most one z.ndim <= 1.")
+            msg = (
+                "Invalid second argument. z must be affine, real, "
+                "and have at most one z.ndim <= 1."
+            )
             raise ValueError(msg)
         # Check z has one entry per cone.
-        if (W.ndim <= 1 and z.size > 1) or \
-           (W.ndim == 2 and z.size != W.shape[1-axis]) or \
-           (W.ndim == 1 and axis == 1):
+        if (
+            (W.ndim <= 1 and z.size > 1)
+            or (W.ndim == 2 and z.size != W.shape[1 - axis])
+            or (W.ndim == 1 and axis == 1)
+        ):
             raise ValueError(
                 "Argument dimensions %s and %s, with axis=%i, are incompatible."
-                % (W.shape, z.shape, axis))
+                % (W.shape, z.shape, axis)
+            )
         if W.ndim == 2 and W.shape[axis] <= 1:
             msg = "PowConeND requires left-hand-side to have at least two terms."
             raise ValueError(msg)
         alpha = Expression.cast_to_const(alpha)
         if alpha.shape != W.shape:
-            raise ValueError("Argument dimensions %s and %s are not equal."
-                             % (W.shape, alpha.shape))
+            raise ValueError(
+                "Argument dimensions %s and %s are not equal." % (W.shape, alpha.shape)
+            )
         if np.any(alpha.value <= 0):
             raise ValueError("Argument alpha must be entry-wise positive.")
         if np.any(np.abs(1 - np.sum(alpha.value, axis=axis)) > PowConeND._TOL_):
@@ -213,7 +226,7 @@ class PowConeND(Cone):
         self.alpha = alpha
         self.axis = axis
         if z.ndim == 0:
-            z = z.flatten(order='F')
+            z = z.flatten(order="F")
         super(PowConeND, self).__init__([W, z], constr_id)
 
     def __str__(self) -> str:
@@ -232,16 +245,20 @@ class PowConeND(Cone):
     def residual(self):
         # TODO: The projection should be implemented directly.
         from cvxpy import Minimize, Problem, Variable, hstack, norm2
+
         if self.W.value is None or self.z.value is None:
             return None
         W = Variable(self.W.shape)
         z = Variable(self.z.shape)
         constr = [PowConeND(W, z, self.alpha, axis=self.axis)]
-        obj = Minimize(norm2(hstack([W.flatten(order='F'), z.flatten(order='F')]) -
-                             hstack([self.W.flatten(order='F').value, 
-                                     self.z.flatten(order='F').value])))
+        obj = Minimize(
+            norm2(
+                hstack([W.flatten(order="F"), z.flatten(order="F")])
+                - hstack([self.W.flatten(order="F").value, self.z.flatten(order="F").value])
+            )
+        )
         problem = Problem(obj, constr)
-        return problem.solve(solver='SCS', eps=1e-8)
+        return problem.solve(solver="SCS", eps=1e-8)
 
     def num_cones(self):
         return self.z.size
@@ -256,8 +273,7 @@ class PowConeND(Cone):
         return [cone_size] * self.num_cones()
 
     def is_dcp(self, dpp: bool = False) -> bool:
-        """A power cone constraint is DCP if each argument is affine.
-        """
+        """A power cone constraint is DCP if each argument is affine."""
         if dpp:
             with scopes.dpp_scope():
                 args_ok = self.args[0].is_affine() and self.args[1].is_affine()
@@ -278,7 +294,7 @@ class PowConeND(Cone):
             dW = dW.T
             dz = dz.T
         if dW.shape[1] == 1:
-            #NOTE: Targetting problems where duals have the shape
+            # NOTE: Targetting problems where duals have the shape
             # (n, 1) --- dropping the extra dimension is crucial for
             # the `_dual_cone` and `dual_residual` methods to work properly
             dW = np.squeeze(dW)
@@ -289,7 +305,7 @@ class PowConeND(Cone):
         """Implements the dual cone of PowConeND See Pg 85
         of the MOSEK modelling cookbook for more information"""
         if args is None or args == ():
-            scaled_duals = self.dual_variables[0]/self.alpha
+            scaled_duals = self.dual_variables[0] / self.alpha
             return PowConeND(scaled_duals, self.dual_variables[1], self.alpha, axis=self.axis)
         else:
             # some assertions for verifying `args`
@@ -298,4 +314,4 @@ class PowConeND(Cone):
             assert len(args) == len(self.args)
             assert args_shapes == instance_args_shapes
             assert args[0].value.shape == self.alpha.value.shape
-            return PowConeND(args[0]/self.alpha, args[1], self.alpha, axis=self.axis)
+            return PowConeND(args[0] / self.alpha, args[1], self.alpha, axis=self.axis)
