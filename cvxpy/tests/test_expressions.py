@@ -1566,12 +1566,9 @@ class TestND_Expressions():
         assert np.allclose(expr.value, self.target)
 
     def test_nd_concatenate(self) -> None:
-        # TODO: concatenated is not exposed in cp.concatenated yet. Use cp.concatenate
-        # in this test once it is available
-        from cvxpy.atoms.affine.concatenate import concatenate
-        x = Variable((1, 2, 2))
-        z = Variable((1, 2, 2))
-        expr = concatenate([x,z], axis = 0)
+        x = cp.Variable((1, 2, 2))
+        z = cp.Variable((1, 2, 2))
+        expr = cp.concatenate([x,z], axis = 0)
         prob = cp.Problem(self.obj, [expr == self.target])
         prob.solve(canon_backend=cp.SCIPY_CANON_BACKEND)
         assert np.allclose(expr.value, self.target)

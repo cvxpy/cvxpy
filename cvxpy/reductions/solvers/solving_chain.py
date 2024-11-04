@@ -5,6 +5,7 @@ import warnings
 import numpy as np
 
 from cvxpy.atoms import EXP_ATOMS, NONPOS_ATOMS, PSD_ATOMS, SOC_ATOMS
+from cvxpy.atoms.atom import Atom
 from cvxpy.constraints import (
     PSD,
     SOC,
@@ -74,12 +75,16 @@ ECOS_DEP_DEPRECATION_MSG = (
 
 ECOS_DEPRECATION_MSG = (
     """
-    Your problem is being solved with the ECOS solver by default. Starting in 
-    CVXPY 1.5.0, Clarabel will be used as the default solver instead. To continue 
-    using ECOS, specify the ECOS solver explicitly using the ``solver=cp.ECOS`` 
+    Your problem is being solved with the ECOS solver by default. Starting in
+    CVXPY 1.5.0, Clarabel will be used as the default solver instead. To continue
+    using ECOS, specify the ECOS solver explicitly using the ``solver=cp.ECOS``
     argument to the ``problem.solve`` method.
     """
 )
+
+
+UNSUPPORTED_IN_CPP = ["Concatenate"]
+"""Operators that are not supported in the CPP backend"""
 
 def _is_lp(self):
     """Is problem a linear program?
@@ -162,7 +167,7 @@ def _reductions_for_problem_class(problem, candidates, gp: bool = False, solver_
     if type(problem.objective) == Maximize:
         reductions += [FlipObjective()]
 
-    # Special reduction for finite set constraint, 
+    # Special reduction for finite set constraint,
     # used by both QP and conic pathways.
     constr_types = {type(c) for c in problem.constraints}
     if FiniteSet in constr_types:
@@ -264,7 +269,7 @@ def construct_solving_chain(problem, candidates,
         solver = candidates['qp_solvers'][0]
         solver_instance = slv_def.SOLVER_MAP_QP[solver]
         reductions += [
-            CvxAttr2Constr(reduce_bounds=not solver_instance.BOUNDED_VARIABLES), 
+            CvxAttr2Constr(reduce_bounds=not solver_instance.BOUNDED_VARIABLES),
             qp2symbolic_qp.Qp2SymbolicQp(),
             QpMatrixStuffing(canon_backend=canon_backend),
             solver_instance,
@@ -379,17 +384,43 @@ def construct_solving_chain(problem, candidates,
                           candidates['conic_solvers'],
                           ", ".join([cone.__name__ for cone in cones])))
 
+def _contains_cpp_excluded_atom(problem):
+    """
+    Recursively traverses the atoms of the problem and returns True if it finds
+    any atom in the UNSUPPORTED_IN_CPP list. Otherwise, returns False.
+
+    :param problem: An instance of the Problem class.
+    :param EXCLUDE: A list of atom classes to exclude.
+    :return: Boolean indicating whether any atom is in UNSUPPORTED_IN_CPP.
+    """
+    # Helper function to traverse atoms while excluding the current expression
+    def atom_in_exclude(expr):
+        # Check if the current expression is in UNSUPPORTED_IN_CPP
+        if expr.__name__ in UNSUPPORTED_IN_CPP:
+            return True
+        # Check each subatom
+        if isinstance(expr, Atom):
+            for sub_atom in expr.atoms():
+                if atom_in_exclude(sub_atom):
+                    return True
+        return False
+
+    for atom in problem.atoms():
+        if atom_in_exclude(atom):
+            return True
+
+    return False
 
 def _get_canon_backend(problem, canon_backend):
     """
     This function checks if the problem has expressions of dimension greater
-    than 2, then raises a warning if the default backend is not specified or 
+    than 2, then raises a warning if the default backend is not specified or
     raises an error if the backend is specified as 'CPP'.
 
     Parameters
     ----------
     problem : Problem
-        The problem for which to build a chain. 
+        The problem for which to build a chain.
     canon_backend : str
         'CPP' (default) | 'SCIPY'
         Specifies which backend to use for canonicalization, which can affect
@@ -400,6 +431,10 @@ def _get_canon_backend(problem, canon_backend):
     canon_backend : str
         The canonicalization backend to use.
     """
+
+    if _contains_cpp_excluded_atom(problem):
+        return SCIPY_CANON_BACKEND
+
     if problem._max_ndim() > 2:
         if canon_backend is None:
             warnings.warn(UserWarning(
