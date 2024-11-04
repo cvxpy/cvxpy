@@ -94,7 +94,7 @@ class XPRESS(ConicSolver):
         variables = problem.x
         data[s.BOOL_IDX] = [int(t[0]) for t in variables.boolean_idx]
         data[s.INT_IDX] = [int(t[0]) for t in variables.integer_idx]
-        inv_data['is_mip'] = data[s.BOOL_IDX] or data[s.INT_IDX]
+        inv_data["is_mip"] = data[s.BOOL_IDX] or data[s.INT_IDX]
 
         return data, inv_data
 
@@ -105,16 +105,16 @@ class XPRESS(ConicSolver):
         primal_vars = None
         dual_vars = None
         if status in s.SOLUTION_PRESENT:
-            opt_val = solution['getObjVal'] + inverse_data[s.OFFSET]
-            primal_vars = {inverse_data[XPRESS.VAR_ID]: solution['primal']}
-            if not inverse_data['is_mip']:
+            opt_val = solution["getObjVal"] + inverse_data[s.OFFSET]
+            primal_vars = {inverse_data[XPRESS.VAR_ID]: solution["primal"]}
+            if not inverse_data["is_mip"]:
                 eq_dual = utilities.get_dual_values(
-                    solution['eq_dual'],
+                    solution["eq_dual"],
                     utilities.extract_dual_value,
                     inverse_data[XPRESS.EQ_CONSTR],
                 )
                 leq_dual = utilities.get_dual_values(
-                    solution['ineq_dual'],
+                    solution["ineq_dual"],
                     utilities.extract_dual_value,
                     inverse_data[XPRESS.NEQ_CONSTR],
                 )
@@ -162,8 +162,8 @@ class XPRESS(ConicSolver):
         # Uses flat naming. Warning: this mixes
         # original with auxiliary variables.
 
-        varnames = ['x_{0:05d}'.format(i) for i in range(len(c))]
-        linRownames = ['lc_{0:05d}'.format(i) for i in range(len(b))]
+        varnames = ["x_{0:05d}".format(i) for i in range(len(c))]
+        linRownames = ["lc_{0:05d}".format(i) for i in range(len(b))]
 
         if verbose:
             self.prob_.controls.miplog = 2
@@ -176,9 +176,9 @@ class XPRESS(ConicSolver):
             self.prob_.controls.xslp_log = -1
 
         self.prob_.loadproblem(
-            probname='CVX_xpress_conic',
+            probname="CVX_xpress_conic",
             # constraint types
-            qrtypes=['E'] * nrowsEQ + ['L'] * nrowsLEQ,
+            qrtypes=["E"] * nrowsEQ + ["L"] * nrowsLEQ,
             rhs=b,  # rhs
             range=None,  # range
             obj=c,  # obj coeff
@@ -196,7 +196,7 @@ class XPRESS(ConicSolver):
         # Set variable types for discrete variables
         self.prob_.chgcoltype(
             data[s.BOOL_IDX] + data[s.INT_IDX],
-            'B' * len(data[s.BOOL_IDX]) + 'I' * len(data[s.INT_IDX]),
+            "B" * len(data[s.BOOL_IDX]) + "I" * len(data[s.INT_IDX]),
         )
 
         currow = nrows
@@ -220,10 +220,10 @@ class XPRESS(ConicSolver):
             currow += k
 
             # Create new (cone) variables and add them to the problem
-            if Version(xp.__version__) >= Version('9.4.0'):
+            if Version(xp.__version__) >= Version("9.4.0"):
                 conevar = [
                     self.prob_.addVariable(
-                        name='cX{0:d}_{1:d}'.format(iCone, i), lb=-xp.infinity if i > 0 else 0
+                        name="cX{0:d}_{1:d}".format(iCone, i), lb=-xp.infinity if i > 0 else 0
                     )
                     for i in range(k)
                 ]
@@ -231,7 +231,7 @@ class XPRESS(ConicSolver):
                 conevar = np.array(
                     [
                         xp.var(
-                            name='cX{0:d}_{1:d}'.format(iCone, i), lb=-xp.infinity if i > 0 else 0
+                            name="cX{0:d}_{1:d}".format(iCone, i), lb=-xp.infinity if i > 0 else 0
                         )
                         for i in range(k)
                     ]
@@ -242,11 +242,11 @@ class XPRESS(ConicSolver):
 
             mstart = makeMstart(A, k, 0)
 
-            trNames = ['linT_qc{0:d}_{1:d}'.format(iCone, i) for i in range(k)]
+            trNames = ["linT_qc{0:d}_{1:d}".format(iCone, i) for i in range(k)]
 
             # Linear transformation for cone variables <--> original variables
             self.prob_.addrows(
-                ['E'] * k,  # qrtypes
+                ["E"] * k,  # qrtypes
                 b,  # rhs
                 mstart,  # mstart
                 A.indices[A.data != 0],  # ind
@@ -256,7 +256,7 @@ class XPRESS(ConicSolver):
 
             self.prob_.chgmcoef([initrow + i for i in range(k)], conevar, [1] * k)
 
-            conename = 'cone_qc{0:d}'.format(iCone)
+            conename = "cone_qc{0:d}".format(iCone)
             # Real cone on the cone variables (if k == 1 there's no
             # need for this constraint as y**2 >= 0 is redundant)
             if k > 1:
@@ -289,42 +289,42 @@ class XPRESS(ConicSolver):
 
         self.prob_.setControl({i: solver_opts[i] for i in solver_opts if i in xp.controls.__dict__})
 
-        if 'bargaptarget' not in solver_opts:
+        if "bargaptarget" not in solver_opts:
             self.prob_.controls.bargaptarget = 1e-30
 
-        if 'feastol' not in solver_opts:
+        if "feastol" not in solver_opts:
             self.prob_.controls.feastol = 1e-9
 
         # If option given, write file before solving
-        if 'write_mps' in solver_opts:
-            self.prob_.write(solver_opts['write_mps'])
+        if "write_mps" in solver_opts:
+            self.prob_.write(solver_opts["write_mps"])
 
         # Solve
         self.prob_.solve()
 
         results_dict = {
-            'problem': self.prob_,
-            'status': self.prob_.getProbStatus(),
-            'obj_value': self.prob_.getObjVal(),
+            "problem": self.prob_,
+            "status": self.prob_.getProbStatus(),
+            "obj_value": self.prob_.getObjVal(),
         }
 
         status_map_lp, status_map_mip = get_status_maps()
 
-        if 'mip_' in self.prob_.getProbStatusString():
-            status = status_map_mip[results_dict['status']]
+        if "mip_" in self.prob_.getProbStatusString():
+            status = status_map_mip[results_dict["status"]]
         else:
-            status = status_map_lp[results_dict['status']]
+            status = status_map_lp[results_dict["status"]]
 
         results_dict[s.XPRESS_TROW] = transf2Orig
 
         results_dict[s.XPRESS_IIS] = None  # Return no IIS if problem is feasible
 
         if status in s.SOLUTION_PRESENT:
-            results_dict['x'] = self.prob_.getSolution()
+            results_dict["x"] = self.prob_.getSolution()
             if not (data[s.BOOL_IDX] or data[s.INT_IDX]):
-                results_dict['y'] = -np.array(self.prob_.getDual())
+                results_dict["y"] = -np.array(self.prob_.getDual())
 
-        elif status == s.INFEASIBLE and 'save_iis' in solver_opts and solver_opts['save_iis'] != 0:
+        elif status == s.INFEASIBLE and "save_iis" in solver_opts and solver_opts["save_iis"] != 0:
             # Retrieve all IIS. For LPs there can be more than one,
             # but for QCQPs there is only support for one IIS.
 
@@ -348,20 +348,20 @@ class XPRESS(ConicSolver):
 
             results_dict[s.XPRESS_IIS] = [
                 {
-                    'orig_row': origrow,
-                    'row': row,
-                    'col': col,
-                    'rtype': rtype,
-                    'btype': btype,
-                    'duals': duals,
-                    'redcost': rdcs,
-                    'isolrow': isrows,
-                    'isolcol': icols,
+                    "orig_row": origrow,
+                    "row": row,
+                    "col": col,
+                    "rtype": rtype,
+                    "btype": btype,
+                    "duals": duals,
+                    "redcost": rdcs,
+                    "isolrow": isrows,
+                    "isolcol": icols,
                 }
             ]
 
             while self.prob_.iisnext() == 0 and (
-                solver_opts['save_iis'] < 0 or iisIndex < solver_opts['save_iis']
+                solver_opts["save_iis"] < 0 or iisIndex < solver_opts["save_iis"]
             ):
                 iisIndex += 1
                 self.prob_.getiisdata(iisIndex, row, col, rtype, btype, duals, rdcs, isrows, icols)
@@ -375,22 +375,22 @@ class XPRESS(ConicSolver):
         status_map_lp, status_map_mip = get_status_maps()
 
         if data[s.BOOL_IDX] or data[s.INT_IDX]:
-            solution[s.STATUS] = status_map_mip[results_dict['status']]
+            solution[s.STATUS] = status_map_mip[results_dict["status"]]
         else:
-            solution[s.STATUS] = status_map_lp[results_dict['status']]
+            solution[s.STATUS] = status_map_lp[results_dict["status"]]
 
         if solution[s.STATUS] in s.SOLUTION_PRESENT:
-            solution[s.PRIMAL] = results_dict['x']
-            solution[s.VALUE] = results_dict['obj_value']
+            solution[s.PRIMAL] = results_dict["x"]
+            solution[s.VALUE] = results_dict["obj_value"]
 
             if not (data[s.BOOL_IDX] or data[s.INT_IDX]):
-                solution[s.EQ_DUAL] = results_dict['y'][0 : dims[s.EQ_DIM]]
-                solution[s.INEQ_DUAL] = results_dict['y'][dims[s.EQ_DIM] :]
+                solution[s.EQ_DUAL] = results_dict["y"][0 : dims[s.EQ_DIM]]
+                solution[s.INEQ_DUAL] = results_dict["y"][dims[s.EQ_DIM] :]
 
         solution[s.XPRESS_IIS] = results_dict[s.XPRESS_IIS]
         solution[s.XPRESS_TROW] = results_dict[s.XPRESS_TROW]
 
-        solution['getObjVal'] = self.prob_.getObjVal()
+        solution["getObjVal"] = self.prob_.getObjVal()
 
         solution[s.SOLVE_TIME] = self.prob_.attributes.time
 

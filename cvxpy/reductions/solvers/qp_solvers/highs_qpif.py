@@ -32,18 +32,18 @@ class HIGHS(QpSolver):
 
     # Map of HiGHS status to CVXPY status.
     STATUS_MAP = {
-        'kNotset': s.SOLVER_ERROR,
-        'kModelError': s.SOLVER_ERROR,
-        'kSolveError': s.SOLVER_ERROR,
-        'kOptimal': s.OPTIMAL,
-        'kInfeasible': s.INFEASIBLE,
-        'kUnboundedOrInfeasible': s.INFEASIBLE_OR_UNBOUNDED,
-        'kUnbounded': s.UNBOUNDED,
-        'kObjectiveBound': s.USER_LIMIT,
-        'kObjectiveTarget': s.USER_LIMIT,
-        'kTimeLimit': s.USER_LIMIT,
-        'kIterationLimit': s.USER_LIMIT,
-        'kSolutionLimit': s.USER_LIMIT,
+        "kNotset": s.SOLVER_ERROR,
+        "kModelError": s.SOLVER_ERROR,
+        "kSolveError": s.SOLVER_ERROR,
+        "kOptimal": s.OPTIMAL,
+        "kInfeasible": s.INFEASIBLE,
+        "kUnboundedOrInfeasible": s.INFEASIBLE_OR_UNBOUNDED,
+        "kUnbounded": s.UNBOUNDED,
+        "kObjectiveBound": s.USER_LIMIT,
+        "kObjectiveTarget": s.USER_LIMIT,
+        "kTimeLimit": s.USER_LIMIT,
+        "kIterationLimit": s.USER_LIMIT,
+        "kSolutionLimit": s.USER_LIMIT,
     }
 
     def name(self):
@@ -69,29 +69,29 @@ class HIGHS(QpSolver):
     def invert(self, results, inverse_data):
         """Returns the solution to the original problem given the inverse_data."""
         attr = {
-            s.SOLVE_TIME: results['run_time'],
-            s.EXTRA_STATS: results['info'],
+            s.SOLVE_TIME: results["run_time"],
+            s.EXTRA_STATS: results["info"],
         }
 
         # map solver statuses back to CVXPY statuses
-        status = self.STATUS_MAP.get(results['model_status'], s.UNKNOWN)
+        status = self.STATUS_MAP.get(results["model_status"], s.UNKNOWN)
         if status in s.SOLUTION_PRESENT:
-            opt_val = results['info'].objective_function_value + inverse_data[s.OFFSET]
+            opt_val = results["info"].objective_function_value + inverse_data[s.OFFSET]
             primal_vars = {
                 HIGHS.VAR_ID: intf.DEFAULT_INTF.const_to_matrix(
-                    np.array(results['solution'].col_value)
+                    np.array(results["solution"].col_value)
                 )
             }
             # add duals if not a MIP.
             dual_vars = None
             if not inverse_data[HIGHS.IS_MIP]:
-                dual_vars = {HIGHS.DUAL_VAR_ID: -np.array(results['solution'].row_dual)}
+                dual_vars = {HIGHS.DUAL_VAR_ID: -np.array(results["solution"].row_dual)}
             attr[s.NUM_ITERS] = (
-                results['info'].ipm_iteration_count
-                + results['info'].crossover_iteration_count
-                + results['info'].pdlp_iteration_count
-                + results['info'].qp_iteration_count
-                + results['info'].simplex_iteration_count
+                results["info"].ipm_iteration_count
+                + results["info"].crossover_iteration_count
+                + results["info"].pdlp_iteration_count
+                + results["info"].qp_iteration_count
+                + results["info"].simplex_iteration_count
             )
             sol = Solution(status, opt_val, primal_vars, dual_vars, attr)
         else:
@@ -133,19 +133,19 @@ class HIGHS(QpSolver):
         P = data[s.P]
         q = data[s.Q]
         A = sp.vstack([data[s.A], data[s.F]]).tocsc()
-        data['Ax'] = A
+        data["Ax"] = A
         uboundA = np.concatenate((data[s.B], data[s.G]))
-        data['u'] = uboundA
+        data["u"] = uboundA
         lboundA = np.concatenate([data[s.B], -inf * np.ones(data[s.G].shape)])
-        data['l'] = lboundA
+        data["l"] = lboundA
 
         # setup highs model
         model = hp.HighsModel()
         lp = model.lp_
         lp.num_col_ = A.shape[1]
-        assert data['n_var'] == A.shape[1]
+        assert data["n_var"] == A.shape[1]
         lp.num_row_ = A.shape[0]
-        assert data['n_eq'] + data['n_ineq'] == A.shape[0]
+        assert data["n_eq"] + data["n_ineq"] == A.shape[0]
 
         # offset already applied in invert()
         lp.offset_ = 0
@@ -153,7 +153,7 @@ class HIGHS(QpSolver):
         lp.row_lower_ = lboundA
         lp.row_upper_ = uboundA
 
-        assert A.format == 'csc'
+        assert A.format == "csc"
         lp.a_matrix_.format_ = hp.MatrixFormat.kColwise
         lp.a_matrix_.start_ = A.indptr
         lp.a_matrix_.index_ = A.indices
@@ -169,7 +169,7 @@ class HIGHS(QpSolver):
         if P.count_nonzero():
             hessian = model.hessian_
             hessian.dim_ = model.lp_.num_col_
-            assert P.format == 'csc'
+            assert P.format == "csc"
             hessian.format_ = hp.HessianFormat.kSquare
             hessian.start_ = P.indptr
             hessian.index_ = P.indices
@@ -187,20 +187,20 @@ class HIGHS(QpSolver):
 
         if warm_start and solver_cache is not None and self.name() in solver_cache:
             old_solver, old_data, old_result = solver_cache[self.name()]
-            old_status = self.STATUS_MAP.get(old_result['model_status'], s.SOLVER_ERROR)
+            old_status = self.STATUS_MAP.get(old_result["model_status"], s.SOLVER_ERROR)
 
             if old_status in s.SOLUTION_PRESENT:
-                solver.setSolution(old_result['solution'])
+                solver.setSolution(old_result["solution"])
 
         # initialize and solve problem
         try:
             solver.run()
             results = {
-                'solution': solver.getSolution(),
-                'basis': solver.getBasis(),
-                'info': solver.getInfo(),
-                'model_status': solver.getModelStatus().name,
-                'run_time': solver.getRunTime(),
+                "solution": solver.getSolution(),
+                "basis": solver.getBasis(),
+                "info": solver.getInfo(),
+                "model_status": solver.getModelStatus().name,
+                "run_time": solver.getRunTime(),
             }
         except ValueError as e:
             raise SolverError(e)

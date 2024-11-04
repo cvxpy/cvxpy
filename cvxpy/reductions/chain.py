@@ -19,7 +19,7 @@ class Chain(Reduction):
         return str(self.reductions)
 
     def __repr__(self) -> str:
-        return 'Chain(reductions=%s)' % repr(self.reductions)
+        return "Chain(reductions=%s)" % repr(self.reductions)
 
     def get(self, reduction_type):
         for reduction in self.reductions:
@@ -72,7 +72,7 @@ class Chain(Reduction):
         inverse_data = []
         for r in self.reductions:
             if verbose:
-                s.LOGGER.info('Applying reduction %s', type(r).__name__)
+                s.LOGGER.info("Applying reduction %s", type(r).__name__)
             problem, inv = r.apply(problem)
             inverse_data.append(inv)
         return problem, inverse_data

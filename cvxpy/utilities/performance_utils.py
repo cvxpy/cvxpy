@@ -19,8 +19,8 @@ from typing import Callable, TypeVar
 
 from cvxpy.utilities import scopes
 
-R = TypeVar('R')
-T = TypeVar('T')
+R = TypeVar("R")
+T = TypeVar("T")
 
 
 def lazyprop(func):
@@ -30,9 +30,9 @@ def lazyprop(func):
     @functools.wraps(func)
     def _lazyprop(self):
         if scopes.dpp_scope_active():
-            attr_name = '_lazy_dpp_' + func.__name__
+            attr_name = "_lazy_dpp_" + func.__name__
         else:
-            attr_name = '_lazy_' + func.__name__
+            attr_name = "_lazy_" + func.__name__
 
         try:
             return getattr(self, attr_name)
@@ -46,7 +46,7 @@ def lazyprop(func):
 def _cache_key(args, kwargs):
     key = args + tuple(list(kwargs.items()))
     if scopes.dpp_scope_active():
-        key = ('__dpp_scope_active__',) + key
+        key = ("__dpp_scope_active__",) + key
     return key
 
 
@@ -64,7 +64,7 @@ def compute_once(func: Callable[[T], R]) -> Callable[[T], R]:
 
     @functools.wraps(func)
     def _compute_once(self, *args, **kwargs) -> R:
-        cache_name = func.__name__ + '__cache__'
+        cache_name = func.__name__ + "__cache__"
         if not hasattr(self, cache_name):
             # On first call, the cache is created and stored in self
             setattr(self, cache_name, {})

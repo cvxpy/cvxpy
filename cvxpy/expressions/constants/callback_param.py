@@ -51,4 +51,4 @@ class CallbackParam(Parameter):
 
     @value.setter
     def value(self, _val):
-        raise NotImplementedError('Cannot set the value of a CallbackParam.')
+        raise NotImplementedError("Cannot set the value of a CallbackParam.")

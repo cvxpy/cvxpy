@@ -33,7 +33,7 @@ class transpose(AffAtom):
 
     # The string representation of the atom.
     def name(self) -> str:
-        return '%s.T' % self.args[0]
+        return "%s.T" % self.args[0]
 
     # Returns the transpose of the given value.
     @AffAtom.numpy_numeric

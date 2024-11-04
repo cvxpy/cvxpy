@@ -44,39 +44,39 @@ except ModuleNotFoundError:
 # Mapping of SCIP to cvxpy status codes
 STATUS_MAP = {
     # SOLUTION_PRESENT
-    'optimal': s.OPTIMAL,
-    'timelimit': s.OPTIMAL_INACCURATE,
-    'gaplimit': s.OPTIMAL_INACCURATE,
-    'nodelimit': s.OPTIMAL_INACCURATE,
-    'totalnodelimit': s.OPTIMAL_INACCURATE,
-    'bestsollimit': s.USER_LIMIT,
+    "optimal": s.OPTIMAL,
+    "timelimit": s.OPTIMAL_INACCURATE,
+    "gaplimit": s.OPTIMAL_INACCURATE,
+    "nodelimit": s.OPTIMAL_INACCURATE,
+    "totalnodelimit": s.OPTIMAL_INACCURATE,
+    "bestsollimit": s.USER_LIMIT,
     # INF_OR_UNB
-    'infeasible': s.INFEASIBLE,
-    'unbounded': s.UNBOUNDED,
-    'inforunbd': s.INFEASIBLE_OR_UNBOUNDED,
+    "infeasible": s.INFEASIBLE,
+    "unbounded": s.UNBOUNDED,
+    "inforunbd": s.INFEASIBLE_OR_UNBOUNDED,
     # ERROR
-    'userinterrupt': s.SOLVER_ERROR,
-    'memlimit': s.SOLVER_ERROR,
-    'sollimit': s.SOLVER_ERROR,
-    'stallnodelimit': s.SOLVER_ERROR,
-    'restartlimit': s.SOLVER_ERROR,
-    'unknown': s.SOLVER_ERROR,
+    "userinterrupt": s.SOLVER_ERROR,
+    "memlimit": s.SOLVER_ERROR,
+    "sollimit": s.SOLVER_ERROR,
+    "stallnodelimit": s.SOLVER_ERROR,
+    "restartlimit": s.SOLVER_ERROR,
+    "unknown": s.SOLVER_ERROR,
 }
 
 
 class ConstraintTypes:
     """Constraint type constants."""
 
-    EQUAL = 'EQUAL'
-    LESS_THAN_OR_EQUAL = 'LESS_THAN_OR_EQUAL'
+    EQUAL = "EQUAL"
+    LESS_THAN_OR_EQUAL = "LESS_THAN_OR_EQUAL"
 
 
 class VariableTypes:
     """Variable type constants."""
 
-    BINARY = 'BINARY'
-    INTEGER = 'INTEGER'
-    CONTINUOUS = 'CONTINUOUS'
+    BINARY = "BINARY"
+    INTEGER = "INTEGER"
+    CONTINUOUS = "CONTINUOUS"
 
 
 class SCIP(ConicSolver):
@@ -88,7 +88,7 @@ class SCIP(ConicSolver):
 
     def name(self) -> str:
         """The name of the solver."""
-        return 'SCIP'
+        return "SCIP"
 
     def import_solver(self) -> None:
         """Imports the solver."""
@@ -129,28 +129,28 @@ class SCIP(ConicSolver):
         # Use of sets here is minor lift to speed up get_variable_type(...) below.
         data[s.BOOL_IDX] = set(int(t[0]) for t in variables.boolean_idx)
         data[s.INT_IDX] = set(int(t[0]) for t in variables.integer_idx)
-        inv_data['is_mip'] = data[s.BOOL_IDX] or data[s.INT_IDX]
+        inv_data["is_mip"] = data[s.BOOL_IDX] or data[s.INT_IDX]
 
         return data, inv_data
 
     def invert(self, solution: Dict[str, Any], inverse_data: Dict[str, Any]) -> Solution:
         """Returns the solution to the original problem given the inverse_data."""
 
-        status = solution['status']
+        status = solution["status"]
         dual_vars = None
 
         if status in s.SOLUTION_PRESENT:
-            opt_val = solution['value'] + inverse_data[s.OFFSET]
-            primal_vars = {inverse_data[SCIP.VAR_ID]: solution['primal']}
+            opt_val = solution["value"] + inverse_data[s.OFFSET]
+            primal_vars = {inverse_data[SCIP.VAR_ID]: solution["primal"]}
 
-            if 'eq_dual' in solution and not inverse_data['is_mip']:
+            if "eq_dual" in solution and not inverse_data["is_mip"]:
                 eq_dual = utilities.get_dual_values(
-                    result_vec=solution['eq_dual'],
+                    result_vec=solution["eq_dual"],
                     parse_func=utilities.extract_dual_value,
                     constraints=inverse_data[SCIP.EQ_CONSTR],
                 )
                 leq_dual = utilities.get_dual_values(
-                    result_vec=solution['ineq_dual'],
+                    result_vec=solution["ineq_dual"],
                     parse_func=utilities.extract_dual_value,
                     constraints=inverse_data[SCIP.NEQ_CONSTR],
                 )
@@ -201,7 +201,7 @@ class SCIP(ConicSolver):
             variables.append(
                 model.addVar(
                     obj=obj,
-                    name='x_%d' % n,
+                    name="x_%d" % n,
                     vtype=var_type,
                     lb=None if var_type != VariableTypes.BINARY else 0,
                     ub=None if var_type != VariableTypes.BINARY else 1,
@@ -277,13 +277,13 @@ class SCIP(ConicSolver):
         model.hideOutput(hide_output)
 
         # General kwarg params
-        scip_params = solver_opts.pop('scip_params', {})
+        scip_params = solver_opts.pop("scip_params", {})
         if solver_opts:
             try:
                 model.setParams(solver_opts)
             except KeyError as e:
                 raise KeyError(
-                    'One or more solver params in {} are not valid: {}'.format(
+                    "One or more solver params in {} are not valid: {}".format(
                         list(solver_opts.keys()),
                         e,
                     )
@@ -295,7 +295,7 @@ class SCIP(ConicSolver):
                 model.setParams(scip_params)
             except KeyError as e:
                 raise KeyError(
-                    'One or more scip params in {} are not valid: {}'.format(
+                    "One or more scip params in {} are not valid: {}".format(
                         list(scip_params.keys()),
                         e,
                     )
@@ -322,22 +322,22 @@ class SCIP(ConicSolver):
         try:
             model.optimize()
         except Exception as e:
-            log.warning('Error encountered when optimising %s: %s', model, e)
+            log.warning("Error encountered when optimising %s: %s", model, e)
 
         solution = {}
 
         if max(model.getNSols(), model.getNCountedSols()) > 0:
             sol = model.getBestSol()
-            solution['primal'] = np.array([sol[v] for v in variables])
+            solution["primal"] = np.array([sol[v] for v in variables])
 
             # HACK can't get objective value directly if stopped due to time limit.
-            if model.getStatus() == 'timelimit':
+            if model.getStatus() == "timelimit":
                 # the solution value is not actually necessary
                 # since CVXPY calculates it by evaluating the objective
                 # at the solution.
-                solution['value'] = np.nan
+                solution["value"] = np.nan
             else:
-                solution['value'] = model.getObjVal()
+                solution["value"] = model.getObjVal()
 
             is_mip = data[s.BOOL_IDX] or data[s.INT_IDX]
             has_soc_constr = len(dims[s.SOC_DIM]) > 1
@@ -353,26 +353,26 @@ class SCIP(ConicSolver):
                         dual = model.getDualsolLinear(lc)
                         vals.append(dual)
 
-                solution['y'] = -np.array(vals)
-                solution[s.EQ_DUAL] = solution['y'][0 : dims[s.EQ_DIM]]
-                solution[s.INEQ_DUAL] = solution['y'][dims[s.EQ_DIM] :]
+                solution["y"] = -np.array(vals)
+                solution[s.EQ_DUAL] = solution["y"][0 : dims[s.EQ_DIM]]
+                solution[s.INEQ_DUAL] = solution["y"][dims[s.EQ_DIM] :]
 
         solution[s.SOLVE_TIME] = model.getSolvingTime()
-        solution['status'] = STATUS_MAP[model.getStatus()]
-        if solution['status'] == s.SOLVER_ERROR and model.getNCountedSols() > 0:
-            solution['status'] = s.OPTIMAL_INACCURATE
+        solution["status"] = STATUS_MAP[model.getStatus()]
+        if solution["status"] == s.SOLVER_ERROR and model.getNCountedSols() > 0:
+            solution["status"] = s.OPTIMAL_INACCURATE
 
         if (
-            model.getStatus() == 'timelimit'
+            model.getStatus() == "timelimit"
             and model.getNCountedSols() == 0
             and model.getNSols() == 0
         ):
-            solution['status'] = s.SOLVER_ERROR
+            solution["status"] = s.SOLVER_ERROR
 
-        if model.getStatus() == 'timelimit' and (
+        if model.getStatus() == "timelimit" and (
             model.getNSols() > 0 or model.getNCountedSols() > 0
         ):
-            solution['status'] = s.OPTIMAL_INACCURATE
+            solution["status"] = s.OPTIMAL_INACCURATE
 
         return solution
 
@@ -442,7 +442,7 @@ class SCIP(ConicSolver):
             lb = 0 if len(soc_vars) == 0 else None
             var = model.addVar(
                 obj=0,
-                name='soc_t_%d' % i,
+                name="soc_t_%d" % i,
                 vtype=VariableTypes.CONTINUOUS,
                 lb=lb,
                 ub=None,

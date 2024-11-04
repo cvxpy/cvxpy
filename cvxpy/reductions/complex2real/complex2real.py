@@ -149,7 +149,7 @@ class Complex2Real(Reduction):
                         # TODO: implement dual variable recovery
                         pass
                     else:
-                        raise Exception('Unknown constraint type.')
+                        raise Exception("Unknown constraint type.")
 
         return Solution(solution.status, solution.opt_val, pvars, dvars, solution.attr)
 

@@ -25,7 +25,7 @@ from cvxpy.constraints.cones import Cone
 from cvxpy.expressions import cvxtypes
 from cvxpy.utilities import scopes
 
-Expression = TypeVar('Expression')
+Expression = TypeVar("Expression")
 
 
 class ExpCone(Cone):
@@ -65,21 +65,21 @@ class ExpCone(Cone):
         args = [self.x, self.y, self.z]
         for val in args:
             if not (val.is_affine() and val.is_real()):
-                raise ValueError('All arguments must be affine and real.')
+                raise ValueError("All arguments must be affine and real.")
         xs, ys, zs = self.x.shape, self.y.shape, self.z.shape
         if xs != ys or xs != zs:
             msg = (
-                'All arguments must have the same shapes. Provided arguments have'
-                'shapes %s' % str((xs, ys, zs))
+                "All arguments must have the same shapes. Provided arguments have"
+                "shapes %s" % str((xs, ys, zs))
             )
             raise ValueError(msg)
         super(ExpCone, self).__init__(args, constr_id)
 
     def __str__(self) -> str:
-        return 'ExpCone(%s, %s, %s)' % (self.x, self.y, self.z)
+        return "ExpCone(%s, %s, %s)" % (self.x, self.y, self.z)
 
     def __repr__(self) -> str:
-        return 'ExpCone(%s, %s, %s)' % (self.x, self.y, self.z)
+        return "ExpCone(%s, %s, %s)" % (self.x, self.y, self.z)
 
     @property
     def residual(self):
@@ -202,14 +202,14 @@ class RelEntrConeQuad(Cone):
         args = [self.x, self.y, self.z]
         for val in args:
             if not (val.is_affine() and val.is_real()):
-                raise ValueError('All Expression arguments must be affine and real.')
+                raise ValueError("All Expression arguments must be affine and real.")
         self.m = m
         self.k = k
         xs, ys, zs = self.x.shape, self.y.shape, self.z.shape
         if xs != ys or xs != zs:
             msg = (
-                'All arguments must have the same shapes. Provided arguments have'
-                'shapes %s' % str((xs, ys, zs))
+                "All arguments must have the same shapes. Provided arguments have"
+                "shapes %s" % str((xs, ys, zs))
             )
             raise ValueError(msg)
         super(RelEntrConeQuad, self).__init__([self.x, self.y, self.z], constr_id)
@@ -219,7 +219,7 @@ class RelEntrConeQuad(Cone):
 
     def __str__(self) -> str:
         tup = (self.x, self.y, self.z, self.m, self.k)
-        return 'RelEntrConeQuad(%s, %s, %s, %s, %s)' % tup
+        return "RelEntrConeQuad(%s, %s, %s, %s, %s)" % tup
 
     def __repr__(self) -> str:
         return self.__str__()
@@ -327,14 +327,14 @@ class OpRelEntrConeQuad(Cone):
         self.Z = Expression.cast_to_const(Z)
         if (not X.is_hermitian()) or (not Y.is_hermitian()) or (not Z.is_hermitian()):
             msg = (
-                'One of the input matrices has not explicitly been declared as symmetric or'
-                'Hermitian. If the inputs are Variable objects, try declaring them with the'
-                'symmetric=True or Hermitian=True properties. If the inputs are general '
-                'Expression objects that are known to be symmetric or Hermitian, then you'
-                'can wrap them with the symmetric_wrap and hermitian_wrap atoms. Failure to'
-                'do one of these things will cause this function to impose a symmetry or'
-                'conjugate-symmetry constraint internally, in a way that is very'
-                'inefficient.'
+                "One of the input matrices has not explicitly been declared as symmetric or"
+                "Hermitian. If the inputs are Variable objects, try declaring them with the"
+                "symmetric=True or Hermitian=True properties. If the inputs are general "
+                "Expression objects that are known to be symmetric or Hermitian, then you"
+                "can wrap them with the symmetric_wrap and hermitian_wrap atoms. Failure to"
+                "do one of these things will cause this function to impose a symmetry or"
+                "conjugate-symmetry constraint internally, in a way that is very"
+                "inefficient."
             )
             warnings.warn(msg)
         self.m = m
@@ -342,8 +342,8 @@ class OpRelEntrConeQuad(Cone):
         Xs, Ys, Zs = self.X.shape, self.Y.shape, self.Z.shape
         if Xs != Ys or Xs != Zs:
             msg = (
-                'All arguments must have the same shapes. Provided arguments have'
-                'shapes %s' % str((Xs, Ys, Zs))
+                "All arguments must have the same shapes. Provided arguments have"
+                "shapes %s" % str((Xs, Ys, Zs))
             )
             raise ValueError(msg)
         super(OpRelEntrConeQuad, self).__init__([self.X, self.Y, self.Z], constr_id)
@@ -353,7 +353,7 @@ class OpRelEntrConeQuad(Cone):
 
     def __str__(self) -> str:
         tup = (self.X, self.Y, self.Z, self.m, self.k)
-        return 'OpRelEntrConeQuad(%s, %s, %s, %s, %s)' % tup
+        return "OpRelEntrConeQuad(%s, %s, %s, %s, %s)" % tup
 
     def __repr__(self) -> str:
         return self.__str__()

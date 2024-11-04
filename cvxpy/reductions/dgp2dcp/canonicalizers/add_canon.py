@@ -32,11 +32,11 @@ def add_canon(expr, args):
             row = []
             row.append(log_sum_exp(hstack([summand[i] for summand in summands])))
             rows.append(row)
-        return reshape(bmat(rows), expr.shape, order='F'), []
+        return reshape(bmat(rows), expr.shape, order="F"), []
     else:
         for i in range(expr.shape[0]):
             row = []
             for j in range(expr.shape[1]):
                 row.append(log_sum_exp(hstack([summand[i, j] for summand in summands])))
             rows.append(row)
-        return reshape(bmat(rows), expr.shape, order='F'), []
+        return reshape(bmat(rows), expr.shape, order="F"), []

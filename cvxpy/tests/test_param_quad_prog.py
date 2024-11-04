@@ -71,7 +71,7 @@ class TestParamQuadProg(BaseTest):
             x_gamma_new = np.copy(x.value)
 
             # Check if data match
-            np.testing.assert_allclose(data_param_new['P'].todense(), data_scratch['P'].todense())
+            np.testing.assert_allclose(data_param_new["P"].todense(), data_scratch["P"].todense())
 
             # Check if solutions match
             np.testing.assert_allclose(x_gamma_new, x_scratch, rtol=1e-02, atol=1e-02)
@@ -116,7 +116,7 @@ class TestParamQuadProg(BaseTest):
         """Test that lower and upper bounds on variables are propagated."""
         # Create a solver instance where bounded variables are disabled.
         solver_instance = OSQP()
-        solver_instance.name = lambda: 'Custom OSQP, no bounded variables'
+        solver_instance.name = lambda: "Custom OSQP, no bounded variables"
         solver_instance.BOUNDED_VARIABLES = False
 
         lower_bounds = -10
@@ -131,7 +131,7 @@ class TestParamQuadProg(BaseTest):
 
         # Create a solver instance where bounded variables are enabled.
         solver_instance = OSQP()
-        solver_instance.name = lambda: 'Custom OSQP, bounded variables'
+        solver_instance.name = lambda: "Custom OSQP, bounded variables"
         solver_instance.BOUNDED_VARIABLES = True
 
         lower_bounds = -10
@@ -142,10 +142,10 @@ class TestParamQuadProg(BaseTest):
         param_quad_prog = data[cp.settings.PARAM_PROB]
 
         assert np.all(param_quad_prog.lower_bounds == lower_bounds)
-        param_upper_bound = np.reshape(param_quad_prog.upper_bounds, (3, 2), order='F')
+        param_upper_bound = np.reshape(param_quad_prog.upper_bounds, (3, 2), order="F")
         assert np.all(param_upper_bound == upper_bounds)
 
-    @unittest.skipUnless(cp.DAQP in INSTALLED_SOLVERS, 'DAQP is not installed.')
+    @unittest.skipUnless(cp.DAQP in INSTALLED_SOLVERS, "DAQP is not installed.")
     def test_daqp_var_bounds(self) -> None:
         """Testing variable bounds problem with DAQP."""
         x1 = cp.Variable(bounds=[-1, 1])

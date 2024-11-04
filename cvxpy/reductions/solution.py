@@ -28,7 +28,7 @@ INF_OR_UNB_MESSAGE = """
     """
 
 
-def failure_solution(status, attr=None) -> 'Solution':
+def failure_solution(status, attr=None) -> "Solution":
     """Factory function for infeasible or unbounded solutions.
 
     Parameters
@@ -50,7 +50,7 @@ def failure_solution(status, attr=None) -> 'Solution':
     if attr is None:
         attr = {}
     if status == s.INFEASIBLE_OR_UNBOUNDED:
-        attr['message'] = INF_OR_UNB_MESSAGE
+        attr["message"] = INF_OR_UNB_MESSAGE
     return Solution(status, opt_val, {}, {}, attr)
 
 
@@ -78,11 +78,11 @@ class Solution:
         self.dual_vars = dual_vars
         self.attr = attr
 
-    def copy(self) -> 'Solution':
+    def copy(self) -> "Solution":
         return Solution(self.status, self.opt_val, self.primal_vars, self.dual_vars, self.attr)
 
     def __str__(self) -> str:
-        return 'Solution(status=%s, opt_val=%s, primal_vars=%s, dual_vars=%s, attr=%s)' % (
+        return "Solution(status=%s, opt_val=%s, primal_vars=%s, dual_vars=%s, attr=%s)" % (
             self.status,
             self.opt_val,
             self.primal_vars,
@@ -91,7 +91,7 @@ class Solution:
         )
 
     def __repr__(self) -> str:
-        return 'Solution(%s, %s, %s, %s)' % (
+        return "Solution(%s, %s, %s, %s)" % (
             self.status,
             self.primal_vars,
             self.dual_vars,

@@ -26,12 +26,12 @@ class TestNonlinearAtoms(BaseTest):
     """Unit tests for the nonlinear atoms module."""
 
     def setUp(self) -> None:
-        self.x = cp.Variable(2, name='x')
-        self.y = cp.Variable(2, name='y')
+        self.x = cp.Variable(2, name="x")
+        self.y = cp.Variable(2, name="y")
 
-        self.A = cp.Variable((2, 2), name='A')
-        self.B = cp.Variable((2, 2), name='B')
-        self.C = cp.Variable((3, 2), name='C')
+        self.A = cp.Variable((2, 2), name="A")
+        self.B = cp.Variable((2, 2), name="B")
+        self.C = cp.Variable((3, 2), name="C")
 
     def test_log_problem(self) -> None:
         # Log in objective.

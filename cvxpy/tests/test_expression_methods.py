@@ -29,14 +29,14 @@ class TestExpressionMethods(BaseTest):
     """Unit tests for the atoms module."""
 
     def setUp(self) -> None:
-        self.a = Variable(name='a')
+        self.a = Variable(name="a")
 
-        self.x = Variable(2, name='x')
-        self.y = Variable(2, name='y')
+        self.x = Variable(2, name="x")
+        self.y = Variable(2, name="y")
 
-        self.A = Variable((2, 2), name='A')
-        self.B = Variable((2, 2), name='B')
-        self.C = Variable((3, 2), name='C')
+        self.A = Variable((2, 2), name="A")
+        self.B = Variable((2, 2), name="B")
+        self.C = Variable((3, 2), name="C")
 
     def test_all_expressions(self) -> None:
         complex_X = Constant(
@@ -46,7 +46,7 @@ class TestExpressionMethods(BaseTest):
 
         # Takes no arguments and only complex input is interesting
         for method in [
-            'conj',
+            "conj",
         ]:
             fn = getattr(cp, method)
             method_fn = getattr(complex_X, method)
@@ -56,17 +56,17 @@ class TestExpressionMethods(BaseTest):
 
         # Takes no arguments
         for method in [
-            'conj',
-            'trace',
-            'cumsum',
-            'max',
-            'min',
-            'mean',
-            'ptp',
-            'prod',
-            'sum',
-            'std',
-            'var',
+            "conj",
+            "trace",
+            "cumsum",
+            "max",
+            "min",
+            "mean",
+            "ptp",
+            "prod",
+            "sum",
+            "std",
+            "var",
         ]:
             fn = getattr(cp, method)
             method_fn = getattr(X, method)
@@ -76,7 +76,7 @@ class TestExpressionMethods(BaseTest):
 
         # Takes axis arguments
         for method in [
-            'cumsum',
+            "cumsum",
         ]:
             for axis in [None, 0, 1]:
                 fn = getattr(cp, method)(X, axis)
@@ -87,12 +87,12 @@ class TestExpressionMethods(BaseTest):
 
         # Takes axis, keepdims arguments
         for method in [
-            'max',
-            'mean',
-            'min',
-            'prod',
-            'ptp',
-            'sum',
+            "max",
+            "mean",
+            "min",
+            "prod",
+            "ptp",
+            "sum",
         ]:
             for axis in [None, 0, 1]:
                 for keepdims in [True, False]:
@@ -104,7 +104,7 @@ class TestExpressionMethods(BaseTest):
 
         # Takes axis, keepdims, ddof arguments
         for method in [
-            'std',
+            "std",
         ]:
             for axis in [None, 0, 1]:
                 for keepdims in [True, False]:
@@ -117,7 +117,7 @@ class TestExpressionMethods(BaseTest):
 
         # Takes ddof arguments
         for method in [
-            'var',
+            "var",
         ]:
             for ddof in [0, 1, 2]:
                 fn = getattr(cp, method)(X, ddof=ddof)
@@ -128,27 +128,27 @@ class TestExpressionMethods(BaseTest):
 
     def test_reshape(self) -> None:
         """Test the reshape class."""
-        expr = self.A.reshape((4, 1), order='F')
+        expr = self.A.reshape((4, 1), order="F")
         self.assertEqual(expr.sign, s.UNKNOWN)
         self.assertEqual(expr.curvature, s.AFFINE)
         self.assertEqual(expr.shape, (4, 1))
 
-        expr = expr.reshape((2, 2), order='F')
+        expr = expr.reshape((2, 2), order="F")
         self.assertEqual(expr.shape, (2, 2))
 
-        expr = cp.square(self.x).reshape((1, 2), order='F')
+        expr = cp.square(self.x).reshape((1, 2), order="F")
         self.assertEqual(expr.sign, s.NONNEG)
         self.assertEqual(expr.curvature, s.CONVEX)
         self.assertEqual(expr.shape, (1, 2))
 
         with self.assertRaises(Exception) as cm:
-            self.C.reshape((5, 4), order='F')
-        self.assertEqual(str(cm.exception), 'Invalid reshape dimensions (5, 4).')
+            self.C.reshape((5, 4), order="F")
+        self.assertEqual(str(cm.exception), "Invalid reshape dimensions (5, 4).")
 
         # Test C-style reshape.
         a = np.arange(10)
-        A_np = np.reshape(a, (5, 2), order='C')
-        A_cp = Constant(a).reshape((5, 2), order='C')
+        A_np = np.reshape(a, (5, 2), order="C")
+        A_cp = Constant(a).reshape((5, 2), order="C")
         self.assertItemsAlmostEqual(A_np, A_cp.value)
 
         X = cp.Variable((5, 2))
@@ -156,8 +156,8 @@ class TestExpressionMethods(BaseTest):
         prob.solve(solver=cp.SCS)
         self.assertItemsAlmostEqual(A_np, X.value)
 
-        a_np = np.reshape(A_np, 10, order='C')
-        a_cp = A_cp.reshape(10, order='C')
+        a_np = np.reshape(A_np, 10, order="C")
+        a_cp = A_cp.reshape(10, order="C")
 
         self.assertItemsAlmostEqual(a_np, a_cp.value)
 
@@ -175,9 +175,9 @@ class TestExpressionMethods(BaseTest):
                 [9, 10, 11],
             ]
         )
-        b_reshaped = b.reshape((2, 6), order='C')
+        b_reshaped = b.reshape((2, 6), order="C")
         X = cp.Variable(b.shape)
-        X_reshaped = X.reshape((2, 6), order='C')
+        X_reshaped = X.reshape((2, 6), order="C")
         prob = cp.Problem(cp.Minimize(0), [X_reshaped == b_reshaped])
         prob.solve(solver=cp.SCS)
         self.assertItemsAlmostEqual(b_reshaped, X_reshaped.value)
@@ -192,9 +192,9 @@ class TestExpressionMethods(BaseTest):
                 [9, 10, 11],
             ]
         )
-        b_reshaped = b.reshape((2, 6), order='F')
+        b_reshaped = b.reshape((2, 6), order="F")
         X = cp.Variable(b.shape)
-        X_reshaped = X.reshape((2, 6), order='F')
+        X_reshaped = X.reshape((2, 6), order="F")
         prob = cp.Problem(cp.Minimize(0), [X_reshaped == b_reshaped])
         prob.solve(solver=cp.SCS)
         self.assertItemsAlmostEqual(b_reshaped, X_reshaped.value)
@@ -211,29 +211,29 @@ class TestExpressionMethods(BaseTest):
         expected_shapes = [(6, 1), (1, 6), (3, 2), (6,), (6,)]
 
         for shape, expected_shape in zip(shapes, expected_shapes):
-            expr_reshaped = expr.reshape(shape, order='F')
+            expr_reshaped = expr.reshape(shape, order="F")
             self.assertEqual(expr_reshaped.shape, expected_shape)
 
             numpy_expr_reshaped = np.reshape(numpy_expr, shape)
             self.assertEqual(numpy_expr_reshaped.shape, expected_shape)
 
-        with pytest.raises(ValueError, match='Cannot reshape expression'):
-            expr.reshape((8, -1), order='F')
+        with pytest.raises(ValueError, match="Cannot reshape expression"):
+            expr.reshape((8, -1), order="F")
 
-        with pytest.raises(AssertionError, match='Only one'):
-            expr.reshape((-1, -1), order='F')
+        with pytest.raises(AssertionError, match="Only one"):
+            expr.reshape((-1, -1), order="F")
 
-        with pytest.raises(ValueError, match='Invalid reshape dimensions'):
-            expr.reshape((-1, 0), order='F')
+        with pytest.raises(ValueError, match="Invalid reshape dimensions"):
+            expr.reshape((-1, 0), order="F")
 
-        with pytest.raises(AssertionError, match='Specified dimension must be nonnegative'):
-            expr.reshape((-1, -2), order='F')
+        with pytest.raises(AssertionError, match="Specified dimension must be nonnegative"):
+            expr.reshape((-1, -2), order="F")
 
         A = np.array([[1, 2, 3], [4, 5, 6]])
-        A_reshaped = Constant(A).reshape(-1, order='C')
-        assert np.allclose(A_reshaped.value, A.reshape(-1, order='C'))
-        A_reshaped = Constant(A).reshape(-1, order='F')
-        assert np.allclose(A_reshaped.value, A.reshape(-1, order='F'))
+        A_reshaped = Constant(A).reshape(-1, order="C")
+        assert np.allclose(A_reshaped.value, A.reshape(-1, order="C"))
+        A_reshaped = Constant(A).reshape(-1, order="F")
+        assert np.allclose(A_reshaped.value, A.reshape(-1, order="F"))
 
     def test_missing_order_warning(self) -> None:
         X = cp.Variable((4, 3))
@@ -261,7 +261,7 @@ class TestExpressionMethods(BaseTest):
         # Invalid axis.
         with self.assertRaises(Exception) as cm:
             self.x.max(axis=4)
-        self.assertEqual(str(cm.exception), 'axis 4 is out of bounds for array of dimension 1')
+        self.assertEqual(str(cm.exception), "axis 4 is out of bounds for array of dimension 1")
 
     def test_min(self) -> None:
         """
@@ -278,7 +278,7 @@ class TestExpressionMethods(BaseTest):
         # Invalid axis.
         with self.assertRaises(Exception) as cm:
             self.x.min(axis=4)
-        self.assertEqual(str(cm.exception), 'axis 4 is out of bounds for array of dimension 1')
+        self.assertEqual(str(cm.exception), "axis 4 is out of bounds for array of dimension 1")
 
     def test_sum(self) -> None:
         """
@@ -303,7 +303,7 @@ class TestExpressionMethods(BaseTest):
         # Invalid axis.
         with self.assertRaises(Exception) as cm:
             cp.sum(self.x, axis=4)
-        self.assertEqual(str(cm.exception), 'axis 4 is out of bounds for array of dimension 1')
+        self.assertEqual(str(cm.exception), "axis 4 is out of bounds for array of dimension 1")
 
         A = sp.eye(3)
         self.assertEqual(Constant(A).sum().value, 3)
@@ -320,7 +320,7 @@ class TestExpressionMethods(BaseTest):
 
         with self.assertRaises(Exception) as cm:
             self.C.trace()
-        self.assertEqual(str(cm.exception), 'Argument to trace must be a square matrix.')
+        self.assertEqual(str(cm.exception), "Argument to trace must be a square matrix.")
 
     def test_trace_sign_psd(self) -> None:
         """Test sign of trace for psd/nsd inputs."""

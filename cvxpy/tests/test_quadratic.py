@@ -40,7 +40,7 @@ class TestExpressions(BaseTest):
         self.assertTrue(x.is_quadratic())
 
         with warnings.catch_warnings():
-            warnings.simplefilter('ignore')
+            warnings.simplefilter("ignore")
             s = power(x.T @ y, 0)
             self.assertTrue(s.is_constant())
             self.assertTrue(s.is_affine())
@@ -71,7 +71,7 @@ class TestExpressions(BaseTest):
         self.assertTrue(x.is_quadratic())
 
         with warnings.catch_warnings():
-            warnings.simplefilter('ignore')
+            warnings.simplefilter("ignore")
             s = x.T @ y
         self.assertFalse(s.is_constant())
         self.assertFalse(s.is_affine())
@@ -109,7 +109,7 @@ class TestExpressions(BaseTest):
         P = np.eye(5) - 2 * np.ones((5, 5))
         q = np.ones((5, 1))
         with warnings.catch_warnings():
-            warnings.simplefilter('ignore')
+            warnings.simplefilter("ignore")
             s = x.T @ P @ x + q.T @ x
         self.assertFalse(s.is_constant())
         self.assertFalse(s.is_affine())
@@ -136,7 +136,7 @@ class TestExpressions(BaseTest):
 
         # Frobenius norm squared is indeed quadratic
         # but can't show quadraticity using recursive rules
-        t = cp.norm(y, 'fro') ** 2
+        t = cp.norm(y, "fro") ** 2
         self.assertFalse(t.is_constant())
         self.assertFalse(t.is_affine())
         self.assertFalse(t.is_quadratic())
@@ -147,7 +147,7 @@ class TestExpressions(BaseTest):
         y = Variable()
         z = Variable()
         with warnings.catch_warnings():
-            warnings.simplefilter('ignore')
+            warnings.simplefilter("ignore")
             s = y * z
             self.assertTrue(s.is_quadratic())
             self.assertFalse(s.is_dcp())
@@ -172,7 +172,7 @@ class TestExpressions(BaseTest):
         y = Variable((5, 4))
 
         with warnings.catch_warnings():
-            warnings.simplefilter('ignore')
+            warnings.simplefilter("ignore")
             s = x @ y
 
         self.assertFalse(s.is_constant())

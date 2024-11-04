@@ -210,13 +210,13 @@ class TestDgp(BaseTest):
         A = cvxpy.Variable((2, 2))
         with self.assertRaises(Exception) as cm:
             cvxpy.gmatmul(A, x)
-        self.assertTrue(str(cm.exception) == 'gmatmul(A, X) requires that A be constant.')
+        self.assertTrue(str(cm.exception) == "gmatmul(A, X) requires that A be constant.")
 
         x = cvxpy.Variable(2)
         A = np.ones((4, 2))
         with self.assertRaises(Exception) as cm:
             cvxpy.gmatmul(A, x)
-        self.assertTrue(str(cm.exception) == 'gmatmul(A, X) requires that X be positive.')
+        self.assertTrue(str(cm.exception) == "gmatmul(A, X) requires that X be positive.")
 
         x = cvxpy.Variable(3, pos=True)
         A = np.ones((4, 3))

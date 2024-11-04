@@ -35,7 +35,7 @@ class SCIPY(ConicSolver):
     SUPPORTED_CONSTRAINTS = ConicSolver.SUPPORTED_CONSTRAINTS
 
     # Solver capabilities.
-    if Version(scipy.__version__) < Version('1.9.0'):
+    if Version(scipy.__version__) < Version("1.9.0"):
         MIP_CAPABLE = False
     else:
         MIP_CAPABLE = True
@@ -78,7 +78,7 @@ class SCIPY(ConicSolver):
         variables = problem.x
         data[s.BOOL_IDX] = [int(t[0]) for t in variables.boolean_idx]
         data[s.INT_IDX] = [int(t[0]) for t in variables.integer_idx]
-        inv_data['is_mip'] = data[s.BOOL_IDX] or data[s.INT_IDX]
+        inv_data["is_mip"] = data[s.BOOL_IDX] or data[s.INT_IDX]
 
         constr_map = problem.constr_map
         inv_data[self.EQ_CONSTR] = constr_map[Zero]
@@ -91,13 +91,13 @@ class SCIPY(ConicSolver):
         data[s.A] = -A[:len_eq]
         if data[s.A].shape[0] == 0:
             data[s.A] = None
-        data[s.B] = b[:len_eq].flatten(order='F')
+        data[s.B] = b[:len_eq].flatten(order="F")
         if data[s.B].shape[0] == 0:
             data[s.B] = None
         data[s.G] = -A[len_eq:]
         if 0 in data[s.G].shape:
             data[s.G] = None
-        data[s.H] = b[len_eq:].flatten(order='F')
+        data[s.H] = b[len_eq:].flatten(order="F")
         if 0 in data[s.H].shape:
             data[s.H] = None
         return data, inv_data
@@ -106,10 +106,10 @@ class SCIPY(ConicSolver):
         from scipy import optimize as opt
 
         # Set default method which can be overriden by user inputs
-        if Version(scipy.__version__) < Version('1.6.1'):
-            meth = 'interior-point'
+        if Version(scipy.__version__) < Version("1.6.1"):
+            meth = "interior-point"
         else:
-            meth = 'highs'
+            meth = "highs"
 
         # Check if the problem is a MIP.
         problem_is_a_mip = data[s.BOOL_IDX] or data[s.INT_IDX]
@@ -135,48 +135,48 @@ class SCIPY(ConicSolver):
         if solver_opts:
             # Raise error message if the parameters are not passed in
             # a dictionary called 'scipy_options'.
-            if 'scipy_options' not in solver_opts:
+            if "scipy_options" not in solver_opts:
                 raise ValueError(
-                    'All parameters for the SCIPY solver should '
-                    'be encased within a dictionary called '
-                    'scipy_options e.g. \n'
+                    "All parameters for the SCIPY solver should "
+                    "be encased within a dictionary called "
+                    "scipy_options e.g. \n"
                     "prob.solve(solver='SCIPY', verbose=True,"
                     " scipy_options={'method':'highs-ds', 'maxiter':10000})"
                 )
 
-            if Version(scipy.__version__) < Version('1.9.0'):
+            if Version(scipy.__version__) < Version("1.9.0"):
                 # Raise warning if the 'method' parameter is not specified
-                if 'method' not in solver_opts['scipy_options']:
+                if "method" not in solver_opts["scipy_options"]:
                     self._log_scipy_method_warning(meth)
 
-            if 'method' in solver_opts['scipy_options']:
-                meth = solver_opts['scipy_options'].pop('method')
+            if "method" in solver_opts["scipy_options"]:
+                meth = solver_opts["scipy_options"].pop("method")
 
                 # Check to see if scipy version larger than 1.6.1 is installed
                 # if method chosen is one of the highs methods.
-                ver = Version(scipy.__version__) < Version('1.6.1')
-                if (meth in ['highs-ds', 'highs-ipm', 'highs']) & ver:
-                    raise ValueError('The HiGHS solvers require a SciPy version >= 1.6.1')
+                ver = Version(scipy.__version__) < Version("1.6.1")
+                if (meth in ["highs-ds", "highs-ipm", "highs"]) & ver:
+                    raise ValueError("The HiGHS solvers require a SciPy version >= 1.6.1")
 
             # Disable the 'bounds' parameter to avoid problems with
             # canonicalised problems.
-            if 'bounds' in solver_opts['scipy_options']:
+            if "bounds" in solver_opts["scipy_options"]:
                 raise ValueError(
-                    'Please do not specify bounds through '
-                    'scipy_options. Please specify bounds '
-                    'through CVXPY.'
+                    "Please do not specify bounds through "
+                    "scipy_options. Please specify bounds "
+                    "through CVXPY."
                 )
 
             # Check that the 'integrality' parameter isn't specified.
-            if 'integrality' in solver_opts['scipy_options']:
+            if "integrality" in solver_opts["scipy_options"]:
                 raise ValueError(
-                    'Please do not specify variable integrality through '
-                    'scipy_options. Please specify variable types '
-                    'through CVXPY.'
+                    "Please do not specify variable integrality through "
+                    "scipy_options. Please specify variable types "
+                    "through CVXPY."
                 )
 
             # Check for SciPy method support (i.e., only 'highs' supports MIP models).
-            method_supports_mip = meth == 'highs'
+            method_supports_mip = meth == "highs"
 
             if problem_is_a_mip and not method_supports_mip:
                 raise ValueError("Only the 'highs' SciPy method can solve MIP models.")
@@ -186,9 +186,9 @@ class SCIPY(ConicSolver):
             # x0 = solver_opts['scipy_options'].pop("x0", None)
         else:
             # Instantiate an empty `scipy_options` entry.
-            solver_opts['scipy_options'] = {}
+            solver_opts["scipy_options"] = {}
 
-            if Version(scipy.__version__) < Version('1.9.0'):
+            if Version(scipy.__version__) < Version("1.9.0"):
                 self._log_scipy_method_warning(meth)
 
         if problem_is_a_mip:
@@ -207,7 +207,7 @@ class SCIPY(ConicSolver):
             solution = opt.milp(
                 data[s.C],
                 constraints=constraints,
-                options=solver_opts['scipy_options'],
+                options=solver_opts["scipy_options"],
                 integrality=integrality,
                 bounds=bounds,
             )
@@ -219,32 +219,32 @@ class SCIPY(ConicSolver):
                 A_eq=data[s.A],
                 b_eq=data[s.B],
                 method=meth,
-                options=solver_opts['scipy_options'],
+                options=solver_opts["scipy_options"],
                 bounds=bounds,
             )
 
         # Replace `scipy_options` method to avoid future warnings.
-        solver_opts['scipy_options']['method'] = meth
+        solver_opts["scipy_options"]["method"] = meth
 
         if verbose is True:
-            print('Solver terminated with message: ' + solution.message)
+            print("Solver terminated with message: " + solution.message)
 
         return solution
 
     def _log_scipy_method_warning(self, meth):
         warnings.warn(
             "It is best to specify the 'method' parameter "
-            'within scipy_options. The main advantage '
-            'of this solver is its ability to use the '
-            'HiGHS LP solvers via scipy.optimize.linprog(), '
-            'which requires a SciPy version >= 1.6.1.'
+            "within scipy_options. The main advantage "
+            "of this solver is its ability to use the "
+            "HiGHS LP solvers via scipy.optimize.linprog(), "
+            "which requires a SciPy version >= 1.6.1."
             "\n\nThe default method '{}' will be"
-            ' used in this case.\n'.format(meth)
+            " used in this case.\n".format(meth)
         )
 
     def invert(self, solution, inverse_data):
         """Returns the solution to the original problem given the inverse_data."""
-        status = self.STATUS_MAP[solution['status']]
+        status = self.STATUS_MAP[solution["status"]]
 
         # Sometimes when the solver's time limit is reached, the solver doesn't return a solution.
         # In these situations we correct the status from s.OPTIMAL_INACCURATE to s.SOLVER_ERROR
@@ -254,21 +254,21 @@ class SCIPY(ConicSolver):
         primal_vars = None
         dual_vars = None
         if status in s.SOLUTION_PRESENT:
-            primal_val = solution['fun']
+            primal_val = solution["fun"]
             opt_val = primal_val + inverse_data[s.OFFSET]
-            primal_vars = {inverse_data[self.VAR_ID]: solution['x']}
+            primal_vars = {inverse_data[self.VAR_ID]: solution["x"]}
 
             # SciPy linprog only returns duals for version >= 1.7.0
             # and method is one of 'highs', 'highs-ds' or 'highs-ipm'
             # MIP problems don't have duals and thus are not updated.
-            if 'ineqlin' in solution and not inverse_data['is_mip']:
+            if "ineqlin" in solution and not inverse_data["is_mip"]:
                 eq_dual = utilities.get_dual_values(
-                    -solution['eqlin']['marginals'],
+                    -solution["eqlin"]["marginals"],
                     utilities.extract_dual_value,
                     inverse_data[self.EQ_CONSTR],
                 )
                 leq_dual = utilities.get_dual_values(
-                    -solution['ineqlin']['marginals'],
+                    -solution["ineqlin"]["marginals"],
                     utilities.extract_dual_value,
                     inverse_data[self.NEQ_CONSTR],
                 )
@@ -276,13 +276,13 @@ class SCIPY(ConicSolver):
                 dual_vars = eq_dual
 
             attr = {}
-            if 'nit' in solution:  # Number of interior-point or simplex iterations
-                attr[s.NUM_ITERS] = solution['nit']
-            if 'mip_gap' in solution:  # Branch and bound statistics
+            if "nit" in solution:  # Number of interior-point or simplex iterations
+                attr[s.NUM_ITERS] = solution["nit"]
+            if "mip_gap" in solution:  # Branch and bound statistics
                 attr[s.EXTRA_STATS] = {
-                    'mip_gap': solution['mip_gap'],
-                    'mip_node_count': solution['mip_node_count'],
-                    'mip_dual_bound': solution['mip_dual_bound'],
+                    "mip_gap": solution["mip_gap"],
+                    "mip_node_count": solution["mip_node_count"],
+                    "mip_dual_bound": solution["mip_dual_bound"],
                 }
 
             return Solution(status, opt_val, primal_vars, dual_vars, attr)

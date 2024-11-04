@@ -69,7 +69,7 @@ class AxisAtom(Atom):
                 if axis < 0:
                     axis += dim
                 if axis >= dim or axis < 0:
-                    raise ValueError(f'axis {axis} is out of bounds for array of dimension {dim}')
+                    raise ValueError(f"axis {axis} is out of bounds for array of dimension {dim}")
         super(AxisAtom, self).validate_arguments()
 
     def _axis_grad(self, values) -> Optional[List[sp.csc_matrix]]:

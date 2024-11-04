@@ -64,7 +64,7 @@ class upper_tri(AffAtom):
     def validate_arguments(self) -> None:
         """Checks that the argument is a square matrix."""
         if not self.args[0].ndim == 2 or self.args[0].shape[0] != self.args[0].shape[1]:
-            raise ValueError('Argument to upper_tri must be a square matrix.')
+            raise ValueError("Argument to upper_tri must be a square matrix.")
 
     def shape_from_args(self) -> Tuple[int, int]:
         """A vector."""
@@ -110,9 +110,9 @@ def vec_to_upper_tri(expr, strict: bool = False):
     expr = Expression.cast_to_const(expr)
 
     if not expr.is_vector():
-        raise ValueError('The input must be a vector.')
+        raise ValueError("The input must be a vector.")
     if expr.ndim != 1:
-        expr = vec(expr, order='F')
+        expr = vec(expr, order="F")
 
     ell = expr.shape[0]
     if strict:
@@ -123,7 +123,7 @@ def vec_to_upper_tri(expr, strict: bool = False):
         n = ((8 * ell + 1) ** 0.5 - 1) // 2
     n = int(n)
     if not (n * (n + 1) // 2 == ell or n * (n - 1) // 2 == ell):
-        raise ValueError('The size of the vector must be a triangular number.')
+        raise ValueError("The size of the vector must be a triangular number.")
 
     """
     Initialize a coefficient matrix P that creates an upper triangular matrix when 
@@ -136,7 +136,7 @@ def vec_to_upper_tri(expr, strict: bool = False):
     P_cols = np.arange(ell)
     P_vals = np.ones(P_cols.size)
     P = sp.csc_matrix((P_vals, (P_rows, P_cols)), shape=(n * n, ell))
-    return reshape(P @ expr, (n, n), order='F').T
+    return reshape(P @ expr, (n, n), order="F").T
 
 
 def upper_tri_to_full(n: int) -> sp.csc_matrix:

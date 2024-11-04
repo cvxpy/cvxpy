@@ -41,23 +41,23 @@ class SolverTestHelper:
         all_cons = [c for c in self.constraints]  # shallow copy
         for x in self.prob.variables():
             attrs = x.attributes
-            if attrs['nonneg'] or attrs['pos']:
+            if attrs["nonneg"] or attrs["pos"]:
                 all_cons.append(x >= 0)
-            elif attrs['nonpos'] or attrs['neg']:
+            elif attrs["nonpos"] or attrs["neg"]:
                 all_cons.append(x <= 0)
-            elif attrs['imag']:
+            elif attrs["imag"]:
                 all_cons.append(x + cp.conj(x) == 0)
-            elif attrs['symmetric']:
+            elif attrs["symmetric"]:
                 all_cons.append(x == x.T)
-            elif attrs['diag']:
+            elif attrs["diag"]:
                 all_cons.append(x - cp.diag(cp.diag(x)) == 0)
-            elif attrs['PSD']:
+            elif attrs["PSD"]:
                 all_cons.append(x >> 0)
-            elif attrs['NSD']:
+            elif attrs["NSD"]:
                 all_cons.append(x << 0)
-            elif attrs['hermitian']:
+            elif attrs["hermitian"]:
                 all_cons.append(x == cp.conj(x.T))
-            elif attrs['boolean'] or attrs['integer']:
+            elif attrs["boolean"] or attrs["integer"]:
                 round_val = np.round(x.value)
                 all_cons.append(x == round_val)
         for con in all_cons:
@@ -93,7 +93,7 @@ class SolverTestHelper:
                 else:
                     self.tester.assertIsInstance(dv, float)
             else:
-                raise ValueError('Unknown constraint type %s.' % type(con))
+                raise ValueError("Unknown constraint type %s." % type(con))
 
     def check_complementarity(self, places) -> None:
         # TODO: once dual variables are stored for attributes
@@ -118,18 +118,18 @@ class SolverTestHelper:
                 comp = cp.vdot(con.args, con.dual_value).value
             elif isinstance(con, cp.RelEntrConeQuad) or isinstance(con, cp.OpRelEntrConeQuad):
                 msg = (
-                    '\nDual variables not implemented for quadrature based approximations;'
-                    + '\nSkipping complementarity check.'
+                    "\nDual variables not implemented for quadrature based approximations;"
+                    + "\nSkipping complementarity check."
                 )
                 warnings.warn(msg)
             else:
-                raise ValueError('Unknown constraint type %s.' % type(con))
+                raise ValueError("Unknown constraint type %s." % type(con))
             self.tester.assertAlmostEqual(comp, 0, places)
 
     def check_stationary_lagrangian(self, places) -> None:
         L = self.prob.objective.expr
         objective = self.prob.objective
-        if objective.NAME == 'minimize':
+        if objective.NAME == "minimize":
             L = objective.expr
         else:
             L = -objective.expr
@@ -156,7 +156,7 @@ class SolverTestHelper:
         try:
             g = L.grad
         except TypeError as e:
-            assert 'is not subscriptable' in str(e)
+            assert "is not subscriptable" in str(e)
             msg = """\n
             CVXPY problems with `diag` variables are not supported for
             stationarity checks as of now
@@ -232,8 +232,8 @@ class SolverTestHelper:
         variables and the corresponding gradient norms are as follows:
             """
             for norm, opt_var in bad_norms:
-                msg += f'\n\t\t\t{opt_var.name} : {norm}'
-            msg += '\n'
+                msg += f"\n\t\t\t{opt_var.name} : {norm}"
+            msg += "\n"
             self.tester.fail(msg)
         pass
 
@@ -276,7 +276,7 @@ def lp_0() -> SolverTestHelper:
 def lp_1() -> SolverTestHelper:
     # Example from
     # http://cvxopt.org/userguide/coneprog.html?highlight=solvers.lp#cvxopt.solvers.lp
-    x = cp.Variable(shape=(2,), name='x')
+    x = cp.Variable(shape=(2,), name="x")
     objective = cp.Minimize(-4 * x[0] - 5 * x[1])
     constraints = [2 * x[0] + x[1] <= 3, x[0] + 2 * x[1] <= 3, x[0] >= 0, x[1] >= 0]
     con_pairs = [(constraints[0], 1), (constraints[1], 2), (constraints[2], 0), (constraints[3], 0)]
@@ -287,7 +287,7 @@ def lp_1() -> SolverTestHelper:
 
 
 def lp_2() -> SolverTestHelper:
-    x = cp.Variable(shape=(2,), name='x')
+    x = cp.Variable(shape=(2,), name="x")
     objective = cp.Minimize(x[0] + 0.5 * x[1])
     constraints = [x[0] >= -100, x[0] <= -10, x[1] == 1]
     con_pairs = [(constraints[0], 1), (constraints[1], 0), (constraints[2], -0.5)]
@@ -429,9 +429,9 @@ def socp_2() -> SolverTestHelper:
     """
     An (unnecessarily) SOCP-based reformulation of LP_1.
     """
-    x = cp.Variable(shape=(2,), name='x')
+    x = cp.Variable(shape=(2,), name="x")
     objective = cp.Minimize(-4 * x[0] - 5 * x[1])
-    expr = cp.reshape(x[0] + 2 * x[1], (1, 1), order='F')
+    expr = cp.reshape(x[0] + 2 * x[1], (1, 1), order="F")
     constraints = [
         2 * x[0] + x[1] <= 3,
         cp.constraints.SOC(cp.Constant([3]), expr),
@@ -511,14 +511,14 @@ def sdp_1(objective_sense) -> SolverTestHelper:
         rho[3, 3] == 1,
         rho >> 0,
     ]
-    if objective_sense == 'min':
+    if objective_sense == "min":
         obj = cp.Minimize(rho[0, 3])
         obj_pair = (obj, -0.39)
-    elif objective_sense == 'max':
+    elif objective_sense == "max":
         obj = cp.Maximize(rho[0, 3])
         obj_pair = (obj, 0.23)
     else:
-        raise RuntimeError('Unknown objective_sense.')
+        raise RuntimeError("Unknown objective_sense.")
     con_pairs = [(c, None) for c in constraints]
     var_pairs = [(rho, None)]
     sth = SolverTestHelper(obj_pair, var_pairs, con_pairs)
@@ -605,9 +605,9 @@ def expcone_socp_1() -> SolverTestHelper:
     sigma = np.array([[1.83, 1.79, 3.22], [1.79, 2.18, 3.18], [3.22, 3.18, 8.69]])
     L = np.linalg.cholesky(sigma)
     c = 0.75
-    t = cp.Variable(name='t')
-    x = cp.Variable(shape=(3,), name='x')
-    s = cp.Variable(shape=(3,), name='s')
+    t = cp.Variable(name="t")
+    x = cp.Variable(shape=(3,), name="x")
+    s = cp.Variable(shape=(3,), name="s")
     e = cp.Constant(
         np.ones(
             3,
@@ -871,7 +871,7 @@ def mi_lp_0() -> SolverTestHelper:
 
 
 def mi_lp_1() -> SolverTestHelper:
-    x = cp.Variable(2, name='x')
+    x = cp.Variable(2, name="x")
     boolvar = cp.Variable(boolean=True)
     intvar = cp.Variable(integer=True)
     objective = cp.Minimize(-4 * x[0] - 5 * x[1])
@@ -1023,9 +1023,9 @@ def mi_lp_6() -> SolverTestHelper:
     "Test MILP for timelimit and no feasible solution"
     n = 70
     m = 70
-    x = cp.Variable((n,), boolean=True, name='x')
-    y = cp.Variable((n,), name='y')
-    z = cp.Variable((m,), pos=True, name='z')
+    x = cp.Variable((n,), boolean=True, name="x")
+    y = cp.Variable((n,), name="y")
+    z = cp.Variable((m,), pos=True, name="z")
     A = np.random.rand(m, n)
     b = np.random.rand(m)
     objective = cp.Maximize(cp.sum(y))
@@ -1240,7 +1240,7 @@ class StandardTestLPs:
         sth = lp_7()
         import sdpap
 
-        if sdpap.sdpacall.sdpacall.get_backend_info()['gmp']:
+        if sdpap.sdpacall.sdpacall.get_backend_info()["gmp"]:
             sth.solve(solver, **kwargs)
             sth.verify_objective(places)
         return sth
@@ -1382,7 +1382,7 @@ class StandardTestSOCPs:
 class StandardTestSDPs:
     @staticmethod
     def test_sdp_1min(solver, places: int = 4, duals: bool = True, **kwargs) -> SolverTestHelper:
-        sth = sdp_1('min')
+        sth = sdp_1("min")
         sth.solve(solver, **kwargs)
         sth.verify_objective(places=2)  # only 2 digits recorded.
         sth.check_primal_feasibility(places)
@@ -1393,7 +1393,7 @@ class StandardTestSDPs:
 
     @staticmethod
     def test_sdp_1max(solver, places: int = 4, duals: bool = True, **kwargs) -> SolverTestHelper:
-        sth = sdp_1('max')
+        sth = sdp_1("max")
         sth.solve(solver, **kwargs)
         sth.verify_objective(places=2)  # only 2 digits recorded.
         sth.check_primal_feasibility(places)

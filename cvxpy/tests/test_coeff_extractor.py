@@ -198,8 +198,8 @@ def test_coeff_extractor(coeff_extractor):
     coeffs, constant = coeff_extractor.extract_quadratic_coeffs(affine_expr, quad_forms)
 
     assert len(coeffs) == 1
-    assert np.allclose(coeffs[1]['q'].toarray(), np.zeros((2, 3)))
-    P = coeffs[1]['P']
+    assert np.allclose(coeffs[1]["q"].toarray(), np.zeros((2, 3)))
+    P = coeffs[1]["P"]
     assert isinstance(P, TensorRepresentation)
     assert np.allclose(P.data, np.ones((4)))
     assert np.allclose(P.row, np.array([0, 1, 0, 1]))
@@ -220,7 +220,7 @@ def test_issue_2437():
     alpha = np.array([0.04, 0.05, 0.06])
     ivol = np.array([0.07, 0.08, 0.09])
 
-    w = cp.Variable(N, name='w')
+    w = cp.Variable(N, name="w")
 
     risk = (cp.multiply(w, ivol) ** 2).sum()
     U = w @ alpha - risk - cp.abs(w) @ t_cost

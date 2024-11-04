@@ -87,7 +87,7 @@ def triu_to_full(upper_tri, n):
     full[np.diag_indices(n)] /= 2
     full[np.tril_indices(n, k=-1)] /= np.sqrt(2)
     full[np.triu_indices(n, k=1)] /= np.sqrt(2)
-    return np.reshape(full, n * n, order='F')
+    return np.reshape(full, n * n, order="F")
 
 
 def clarabel_psdvec_to_psdmat(vec: Expression, indices: np.ndarray) -> Expression:
@@ -135,16 +135,16 @@ class CLARABEL(ConicSolver):
     SUPPORTED_CONSTRAINTS = ConicSolver.SUPPORTED_CONSTRAINTS + [SOC, ExpCone, PowCone3D, PSD]
 
     STATUS_MAP = {
-        'Solved': s.OPTIMAL,
-        'PrimalInfeasible': s.INFEASIBLE,
-        'DualInfeasible': s.UNBOUNDED,
-        'AlmostSolved': s.OPTIMAL_INACCURATE,
-        'AlmostPrimalInfeasible': s.INFEASIBLE_INACCURATE,
-        'AlmostDualInfeasible': s.UNBOUNDED_INACCURATE,
-        'MaxIterations': s.USER_LIMIT,
-        'MaxTime': s.USER_LIMIT,
-        'NumericalError': s.SOLVER_ERROR,
-        'InsufficientProgress': s.SOLVER_ERROR,
+        "Solved": s.OPTIMAL,
+        "PrimalInfeasible": s.INFEASIBLE,
+        "DualInfeasible": s.UNBOUNDED,
+        "AlmostSolved": s.OPTIMAL_INACCURATE,
+        "AlmostPrimalInfeasible": s.INFEASIBLE_INACCURATE,
+        "AlmostDualInfeasible": s.UNBOUNDED_INACCURATE,
+        "MaxIterations": s.USER_LIMIT,
+        "MaxTime": s.USER_LIMIT,
+        "NumericalError": s.SOLVER_ERROR,
+        "InsufficientProgress": s.SOLVER_ERROR,
     }
 
     # Order of exponential cone arguments for solver.
@@ -152,7 +152,7 @@ class CLARABEL(ConicSolver):
 
     def name(self):
         """The name of the solver."""
-        return 'CLARABEL'
+        return "CLARABEL"
 
     def import_solver(self) -> None:
         """Imports the solver."""
@@ -179,12 +179,12 @@ class CLARABEL(ConicSolver):
         row_arr = np.arange(0, entries)
 
         upper_diag_indices = np.triu_indices(rows)
-        col_arr = np.sort(np.ravel_multi_index(upper_diag_indices, (rows, cols), order='F'))
+        col_arr = np.sort(np.ravel_multi_index(upper_diag_indices, (rows, cols), order="F"))
 
         val_arr = np.zeros((rows, cols))
         val_arr[upper_diag_indices] = np.sqrt(2)
         np.fill_diagonal(val_arr, 1.0)
-        val_arr = np.ravel(val_arr, order='F')
+        val_arr = np.ravel(val_arr, order="F")
         val_arr = val_arr[np.nonzero(val_arr)]
 
         shape = (entries, rows * cols)
@@ -193,8 +193,8 @@ class CLARABEL(ConicSolver):
         idx = np.arange(rows * cols)
         val_symm = 0.5 * np.ones(2 * rows * cols)
         K = idx.reshape((rows, cols))
-        row_symm = np.append(idx, np.ravel(K, order='F'))
-        col_symm = np.append(idx, np.ravel(K.T, order='F'))
+        row_symm = np.append(idx, np.ravel(K, order="F"))
+        col_symm = np.append(idx, np.ravel(K.T, order="F"))
         symm_matrix = sp.csc_matrix((val_symm, (row_symm, col_symm)))
 
         return scaled_upper_tri @ symm_matrix
@@ -255,8 +255,8 @@ class CLARABEL(ConicSolver):
         settings.verbose = verbose
 
         # use_quad_obj is only for canonicalization.
-        if 'use_quad_obj' in opts:
-            del opts['use_quad_obj']
+        if "use_quad_obj" in opts:
+            del opts["use_quad_obj"]
 
         for opt in opts.keys():
             try:

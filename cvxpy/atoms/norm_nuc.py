@@ -32,7 +32,7 @@ class normNuc(Atom):
 
     def numeric(self, values):
         """Returns the nuclear norm (i.e. the sum of the singular values) of A."""
-        return np.linalg.norm(values[0], 'nuc')
+        return np.linalg.norm(values[0], "nuc")
 
     def _grad(self, values):
         """Gives the (sub/super)gradient of the atom w.r.t. each argument.
@@ -48,7 +48,7 @@ class normNuc(Atom):
         # Grad UV^T
         U, _, V = np.linalg.svd(values[0], full_matrices=False)
         D = U.dot(V)
-        return [sp.csc_matrix(D.ravel(order='F')).T]
+        return [sp.csc_matrix(D.ravel(order="F")).T]
 
     def shape_from_args(self) -> Tuple[int, ...]:
         """Returns the (row, col) shape of the expression."""

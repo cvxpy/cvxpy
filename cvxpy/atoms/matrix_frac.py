@@ -73,14 +73,14 @@ class MatrixFrac(Atom):
         # partial_P = - (P^-1 * X * X^T * P^-1)^T
         else:
             DX = np.dot(P_inv + np.transpose(P_inv), X)
-            DX = DX.T.ravel(order='F')
+            DX = DX.T.ravel(order="F")
             DX = sp.csc_matrix(DX).T
 
             DP = np.dot(P_inv, X)
             DP = np.dot(DP, X.T)
             DP = np.dot(DP, P_inv)
             DP = -DP.T
-            DP = sp.csc_matrix(DP.T.ravel(order='F')).T
+            DP = sp.csc_matrix(DP.T.ravel(order="F")).T
             return [DX, DP]
 
     def validate_arguments(self) -> None:
@@ -88,9 +88,9 @@ class MatrixFrac(Atom):
         X = self.args[0]
         P = self.args[1]
         if P.ndim != 2 or P.shape[0] != P.shape[1]:
-            raise ValueError('The second argument to matrix_frac must be a square matrix.')
+            raise ValueError("The second argument to matrix_frac must be a square matrix.")
         elif X.shape[0] != P.shape[0]:
-            raise ValueError('The arguments to matrix_frac have incompatible dimensions.')
+            raise ValueError("The arguments to matrix_frac have incompatible dimensions.")
 
     def shape_from_args(self) -> Tuple[int, ...]:
         """Returns the (row, col) shape of the expression."""

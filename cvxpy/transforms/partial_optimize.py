@@ -32,7 +32,7 @@ def partial_optimize(
     dont_opt_vars: Optional[List[Variable]] = None,
     solver=None,
     **kwargs,
-) -> 'PartialProblem':
+) -> "PartialProblem":
     """Partially optimizes the given problem over the specified variables.
 
     Either opt_vars or dont_opt_vars must be given.
@@ -71,7 +71,7 @@ def partial_optimize(
     """
     # One of the two arguments must be specified.
     if opt_vars is None and dont_opt_vars is None:
-        raise ValueError('partial_optimize called with neither opt_vars nor dont_opt_vars.')
+        raise ValueError("partial_optimize called with neither opt_vars nor dont_opt_vars.")
     # If opt_vars is not specified, it's the complement of dont_opt_vars.
     elif opt_vars is None:
         ids = [id(var) for var in dont_opt_vars]
@@ -86,8 +86,8 @@ def partial_optimize(
             if id(var) not in ids:
                 raise ValueError(
                     (
-                        'If opt_vars and new_opt_vars are both specified, '
-                        'they must contain all variables in the problem.'
+                        "If opt_vars and new_opt_vars are both specified, "
+                        "they must contain all variables in the problem."
                     )
                 )
 
@@ -140,12 +140,12 @@ class PartialProblem(Expression):
         """Is the expression concave?"""
         return self.args[0].is_dcp() and type(self.args[0].objective) == Maximize
 
-    def is_dpp(self, context: str = 'dcp') -> bool:
+    def is_dpp(self, context: str = "dcp") -> bool:
         """The expression is a disciplined parameterized expression."""
-        if context.lower() in ['dcp', 'dgp']:
+        if context.lower() in ["dcp", "dgp"]:
             return self.args[0].is_dpp(context)
         else:
-            raise ValueError('Unsupported context', context)
+            raise ValueError("Unsupported context", context)
 
     def is_log_log_convex(self) -> bool:
         """Is the expression convex?"""
@@ -178,7 +178,7 @@ class PartialProblem(Expression):
 
     def name(self) -> str:
         """Returns the string representation of the expression."""
-        return f'PartialProblem({self.args[0]})'
+        return f"PartialProblem({self.args[0]})"
 
     def variables(self) -> List[Variable]:
         """Returns the variables in the problem."""

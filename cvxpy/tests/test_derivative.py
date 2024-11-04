@@ -6,10 +6,10 @@ import cvxpy as cp
 import cvxpy.settings as s
 from cvxpy.tests.base_test import BaseTest
 
-warnings.filterwarnings('ignore')
+warnings.filterwarnings("ignore")
 
 SOLVE_METHODS = [s.SCS, s.ECOS]
-EPS_NAME = {s.SCS: 'eps', s.ECOS: 'abstol'}
+EPS_NAME = {s.SCS: "eps", s.ECOS: "abstol"}
 
 
 def perturbcheck(
@@ -74,8 +74,8 @@ def gradcheck(
     for solver in solve_methods:
         eps_opt = {EPS_NAME[solver]: eps}
         # Default of 15k iterations for SCS.
-        if solver == s.SCS and 'max_iters' not in kwargs:
-            kwargs['max_iters'] = 15_000
+        if solver == s.SCS and "max_iters" not in kwargs:
+            kwargs["max_iters"] = 15_000
 
         size = sum(p.size for p in problem.parameters())
         values = np.zeros(size)
@@ -130,7 +130,7 @@ class TestBackward(BaseTest):
 
             diffcp  # for flake8
         except ModuleNotFoundError:
-            self.skipTest('diffcp not installed.')
+            self.skipTest("diffcp not installed.")
 
     def test_scalar_quadratic(self) -> None:
         b = cp.Parameter()
@@ -161,7 +161,7 @@ class TestBackward(BaseTest):
         n = 3
         x = cp.Variable(n)
         A = cp.Parameter((n, n))
-        b = cp.Parameter(n, name='b')
+        b = cp.Parameter(n, name="b")
         objective = cp.Minimize(cp.pnorm(A @ x - b, p=1))
         problem = cp.Problem(objective)
         self.assertTrue(problem.is_dpp())
@@ -177,7 +177,7 @@ class TestBackward(BaseTest):
         m, n = 3, 2
         x = cp.Variable(n)
         A = cp.Parameter((m, n))
-        b = cp.Parameter(m, name='b')
+        b = cp.Parameter(m, name="b")
         objective = cp.Minimize(cp.pnorm(A @ x - b, p=1))
         problem = cp.Problem(objective)
         self.assertTrue(problem.is_dpp())
@@ -297,12 +297,12 @@ class TestBackward(BaseTest):
         problem.solve(cp.SCS)
         with self.assertRaisesRegex(
             ValueError,
-            'backward can only be called after calling ' 'solve with `requires_grad=True`',
+            "backward can only be called after calling " "solve with `requires_grad=True`",
         ):
             problem.backward()
         with self.assertRaisesRegex(
             ValueError,
-            'derivative can only be called after calling ' 'solve with `requires_grad=True`',
+            "derivative can only be called after calling " "solve with `requires_grad=True`",
         ):
             problem.derivative()
 
@@ -313,11 +313,11 @@ class TestBackward(BaseTest):
         param.value = 1
         problem.solve(solver=cp.DIFFCP, requires_grad=True)
         with self.assertRaisesRegex(
-            cp.SolverError, 'Backpropagating through ' 'infeasible/unbounded.*'
+            cp.SolverError, "Backpropagating through " "infeasible/unbounded.*"
         ):
             problem.backward()
         with self.assertRaisesRegex(
-            ValueError, 'Differentiating through ' 'infeasible/unbounded.*'
+            ValueError, "Differentiating through " "infeasible/unbounded.*"
         ):
             problem.derivative()
 
@@ -328,11 +328,11 @@ class TestBackward(BaseTest):
         param.value = 1
         problem.solve(solver=cp.DIFFCP, requires_grad=True)
         with self.assertRaisesRegex(
-            cp.error.SolverError, 'Backpropagating through ' 'infeasible/unbounded.*'
+            cp.error.SolverError, "Backpropagating through " "infeasible/unbounded.*"
         ):
             problem.backward()
         with self.assertRaisesRegex(
-            ValueError, 'Differentiating through ' 'infeasible/unbounded.*'
+            ValueError, "Differentiating through " "infeasible/unbounded.*"
         ):
             problem.derivative()
 
@@ -342,7 +342,7 @@ class TestBackward(BaseTest):
         problem = cp.Problem(cp.Minimize(x), [x <= param])
         param.value = 1
         with self.assertRaisesRegex(
-            ValueError, 'When requires_grad is True, the ' 'only supported solver is SCS.*'
+            ValueError, "When requires_grad is True, the " "only supported solver is SCS.*"
         ):
             problem.solve(cp.CLARABEL, requires_grad=True)
 
@@ -365,7 +365,7 @@ class TestBackwardDgp(BaseTest):
 
             diffcp  # for flake8
         except ModuleNotFoundError:
-            self.skipTest('diffcp not installed.')
+            self.skipTest("diffcp not installed.")
 
     def test_one_minus_analytic(self) -> None:
         # construct a problem with solution
@@ -560,7 +560,7 @@ class TestBackwardDgp(BaseTest):
     def test_matrix_constraint(self) -> None:
         X = cp.Variable((2, 2), pos=True)
         a = cp.Parameter(pos=True, value=0.1)
-        obj = cp.Minimize(cp.geo_mean(cp.vec(X, order='F')))
+        obj = cp.Minimize(cp.geo_mean(cp.vec(X, order="F")))
         constr = [cp.diag(X) == a, cp.hstack([X[0, 1], X[1, 0]]) == 2 * a]
         problem = cp.Problem(obj, constr)
         gradcheck(problem, gp=True)

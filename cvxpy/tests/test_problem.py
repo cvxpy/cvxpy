@@ -51,30 +51,30 @@ class TestProblem(BaseTest):
     """Unit tests for the expression/expression module."""
 
     def setUp(self) -> None:
-        self.a = Variable(name='a')
-        self.b = Variable(name='b')
-        self.c = Variable(name='c')
+        self.a = Variable(name="a")
+        self.b = Variable(name="b")
+        self.c = Variable(name="c")
 
-        self.x = Variable(2, name='x')
-        self.y = Variable(3, name='y')
-        self.z = Variable(2, name='z')
+        self.x = Variable(2, name="x")
+        self.y = Variable(3, name="y")
+        self.z = Variable(2, name="z")
 
-        self.A = Variable((2, 2), name='A')
-        self.B = Variable((2, 2), name='B')
-        self.C = Variable((3, 2), name='C')
+        self.A = Variable((2, 2), name="A")
+        self.B = Variable((2, 2), name="B")
+        self.C = Variable((3, 2), name="C")
 
     def test_to_str(self) -> None:
         """Test string representations."""
         obj = cp.Minimize(self.a)
         prob = Problem(obj)
-        self.assertEqual(repr(prob), 'Problem(%s, %s)' % (repr(obj), repr([])))
+        self.assertEqual(repr(prob), "Problem(%s, %s)" % (repr(obj), repr([])))
         constraints = [self.x * 2 == self.x, self.x == 0]
         prob = Problem(obj, constraints)
-        self.assertEqual(repr(prob), 'Problem(%s, %s)' % (repr(obj), repr(constraints)))
+        self.assertEqual(repr(prob), "Problem(%s, %s)" % (repr(obj), repr(constraints)))
 
         # Test str.
-        result = 'minimize %(name)s\nsubject to %(name)s == 0\n           %(name)s >= 0' % {
-            'name': self.a.name()
+        result = "minimize %(name)s\nsubject to %(name)s == 0\n           %(name)s >= 0" % {
+            "name": self.a.name()
         }
         prob = Problem(cp.Minimize(self.a), [Zero(self.a), NonNeg(self.a)])
         self.assertEqual(str(prob), result)
@@ -88,7 +88,7 @@ class TestProblem(BaseTest):
 
     def test_var_dict(self) -> None:
         p = Problem(cp.Minimize(self.a), [self.a <= self.x, self.b <= self.A + 2])
-        assert p.var_dict == {'a': self.a, 'x': self.x, 'b': self.b, 'A': self.A}
+        assert p.var_dict == {"a": self.a, "x": self.x, "b": self.b, "A": self.A}
 
     def test_parameters(self) -> None:
         """Test the parameters method."""
@@ -101,14 +101,14 @@ class TestProblem(BaseTest):
         self.assertCountEqual(params, ref)
 
     def test_param_dict(self) -> None:
-        p1 = Parameter(name='p1')
-        p2 = Parameter(3, nonpos=True, name='p2')
-        p3 = Parameter((4, 4), nonneg=True, name='p3')
+        p1 = Parameter(name="p1")
+        p2 = Parameter(3, nonpos=True, name="p2")
+        p3 = Parameter((4, 4), nonneg=True, name="p3")
         p = Problem(cp.Minimize(p1), [self.a + p1 <= p2, self.b <= p3 + p3 + 2])
-        assert p.param_dict == {'p1': p1, 'p2': p2, 'p3': p3}
+        assert p.param_dict == {"p1": p1, "p2": p2, "p3": p3}
 
     def test_solving_a_problem_with_unspecified_parameters(self) -> None:
-        param = cp.Parameter(name='lambda')
+        param = cp.Parameter(name="lambda")
         problem = cp.Problem(cp.Minimize(param), [])
         with self.assertRaises(ParameterError, msg="A Parameter (whose name is 'lambda').*"):
             problem.solve(solver=cp.SCS)
@@ -191,7 +191,7 @@ class TestProblem(BaseTest):
         self.assertGreater(stats.solve_time, 0)
         self.assertGreater(stats.setup_time, 0)
         self.assertGreater(stats.num_iters, 0)
-        self.assertIn('info', stats.extra_stats)
+        self.assertIn("info", stats.extra_stats)
 
         prob = Problem(cp.Minimize(cp.sum(self.x)), [self.x == 0])
         prob.solve(solver=s.OSQP)
@@ -200,8 +200,8 @@ class TestProblem(BaseTest):
         # We do not populate setup_time for OSQP (OSQP decomposes time
         # into setup, solve, and polish; these are summed to obtain solve_time)
         self.assertGreater(stats.num_iters, 0)
-        self.assertTrue(hasattr(stats.extra_stats, 'info'))
-        self.assertTrue(str(stats).startswith('SolverStats(solver_name='))
+        self.assertTrue(hasattr(stats.extra_stats, "info"))
+        self.assertTrue(str(stats).startswith("SolverStats(solver_name="))
 
     def test_compilation_time(self) -> None:
         prob = Problem(cp.Minimize(cp.norm(self.x)), [self.x == 0])
@@ -213,28 +213,28 @@ class TestProblem(BaseTest):
         data, _, _ = Problem(cp.Minimize(cp.exp(self.a) + 2)).get_problem_data(s.SCS)
         dims = data[ConicSolver.DIMS]
         self.assertEqual(dims.exp, 1)
-        self.assertEqual(data['c'].shape, (2,))
-        self.assertEqual(data['A'].shape, (3, 2))
+        self.assertEqual(data["c"].shape, (2,))
+        self.assertEqual(data["A"].shape, (3, 2))
 
         data, _, _ = Problem(cp.Minimize(cp.norm(self.x) + 3)).get_problem_data(s.CLARABEL)
         dims = data[ConicSolver.DIMS]
         self.assertEqual(dims.soc, [3])
-        self.assertEqual(data['c'].shape, (3,))
-        self.assertEqual(data['A'].shape, (3, 3))
+        self.assertEqual(data["c"].shape, (3,))
+        self.assertEqual(data["A"].shape, (3, 3))
 
         # caching use_quad_obj
         p = Problem(cp.Minimize(cp.sum_squares(self.x) + 2))
-        data, _, _ = p.get_problem_data(s.SCS, solver_opts={'use_quad_obj': False})
+        data, _, _ = p.get_problem_data(s.SCS, solver_opts={"use_quad_obj": False})
         dims = data[ConicSolver.DIMS]
         self.assertEqual(dims.soc, [4])
-        self.assertEqual(data['c'].shape, (3,))
-        self.assertEqual(data['A'].shape, (4, 3))
-        data, _, _ = p.get_problem_data(s.SCS, solver_opts={'use_quad_obj': True})
+        self.assertEqual(data["c"].shape, (3,))
+        self.assertEqual(data["A"].shape, (4, 3))
+        data, _, _ = p.get_problem_data(s.SCS, solver_opts={"use_quad_obj": True})
         dims = data[ConicSolver.DIMS]
         self.assertEqual(dims.soc, [])
-        self.assertEqual(data['P'].shape, (2, 2))
-        self.assertEqual(data['c'].shape, (2,))
-        self.assertEqual(data['A'].shape, (0, 2))
+        self.assertEqual(data["P"].shape, (2, 2))
+        self.assertEqual(data["c"].shape, (2,))
+        self.assertEqual(data["A"].shape, (0, 2))
 
         if s.CVXOPT in INSTALLED_SOLVERS:
             data, _, _ = Problem(cp.Minimize(cp.norm(self.x) + 3)).get_problem_data(s.CVXOPT)
@@ -248,7 +248,7 @@ class TestProblem(BaseTest):
         """Test unpack results method."""
         prob = Problem(cp.Minimize(cp.exp(self.a)), [self.a == 0])
         args, chain, inv = prob.get_problem_data(s.SCS)
-        data = {'c': args['c'], 'A': args['A'], 'b': args['b']}
+        data = {"c": args["c"], "A": args["A"], "b": args["b"]}
         cones = scs_conif.dims_to_solver_dict(args[ConicSolver.DIMS])
         solution = scs.solve(data, cones)
         prob = Problem(cp.Minimize(cp.exp(self.a)), [self.a == 0])
@@ -285,7 +285,7 @@ class TestProblem(BaseTest):
                         p.solve(verbose=verbose, solver=solver)
 
                     if PSD in SOLVER_MAP_CONIC[solver].SUPPORTED_CONSTRAINTS:
-                        a_mat = cp.reshape(self.a, shape=(1, 1), order='F')
+                        a_mat = cp.reshape(self.a, shape=(1, 1), order="F")
                         p = Problem(cp.Minimize(self.a), [cp.lambda_min(a_mat) >= 2])
                         p.solve(verbose=verbose, solver=solver)
 
@@ -329,7 +329,7 @@ class TestProblem(BaseTest):
                         p.solve(solver_verbose=solver_verbose, solver=solver)
 
                     if PSD in SOLVER_MAP_CONIC[solver].SUPPORTED_CONSTRAINTS:
-                        a_mat = cp.reshape(self.a, shape=(1, 1), order='F')
+                        a_mat = cp.reshape(self.a, shape=(1, 1), order="F")
                         p = Problem(cp.Minimize(self.a), [cp.lambda_min(a_mat) >= 2])
                         p.solve(solver_verbose=solver_verbose, solver=solver)
 
@@ -348,21 +348,21 @@ class TestProblem(BaseTest):
 
     # Test registering other solve methods.
     def test_register_solve(self) -> None:
-        Problem.register_solve('test', lambda self: 1)
+        Problem.register_solve("test", lambda self: 1)
         p = Problem(cp.Minimize(1))
-        result = p.solve(method='test')
+        result = p.solve(method="test")
         self.assertEqual(result, 1)
 
         def test(self, a, b: int = 2):
             return (a, b)
 
-        Problem.register_solve('test', test)
+        Problem.register_solve("test", test)
         p = Problem(cp.Minimize(0))
-        result = p.solve(1, b=3, method='test')
+        result = p.solve(1, b=3, method="test")
         self.assertEqual(result, (1, 3))
-        result = p.solve(1, method='test')
+        result = p.solve(1, method="test")
         self.assertEqual(result, (1, 2))
-        result = p.solve(1, method='test', b=4)
+        result = p.solve(1, method="test", b=4)
         self.assertEqual(result, (1, 4))
 
     # def test_consistency(self):
@@ -506,7 +506,7 @@ class TestProblem(BaseTest):
 
     # Test problems involving variables with the same name.
     def test_variable_name_conflict(self) -> None:
-        var = Variable(name='a')
+        var = Variable(name="a")
         p = Problem(cp.Maximize(self.a + var), [var == 2 + self.a, var <= 3])
         result = p.solve(solver=cp.SCS, eps=1e-5)
         self.assertAlmostEqual(result, 4.0)
@@ -537,7 +537,7 @@ class TestProblem(BaseTest):
         # Test cp.Minimize + cp.Maximize
         with self.assertRaises(DCPError) as cm:
             prob1 + prob3
-        self.assertEqual(str(cm.exception), 'Problem does not follow DCP rules.')
+        self.assertEqual(str(cm.exception), "Problem does not follow DCP rules.")
 
     # Test problem multiplication by scalar
     def test_mul_problems(self) -> None:
@@ -853,19 +853,19 @@ class TestProblem(BaseTest):
         with self.assertRaises(Exception) as cm:
             Problem(cp.Minimize(cp.quad_form(self.x, self.A))).solve(solver=cp.SCS, eps=1e-6)
         self.assertEqual(
-            str(cm.exception), 'At least one argument to quad_form must be non-variable.'
+            str(cm.exception), "At least one argument to quad_form must be non-variable."
         )
 
         with self.assertRaises(Exception) as cm:
             Problem(cp.Minimize(cp.quad_form(1, self.A))).solve(solver=cp.SCS, eps=1e-6)
-        self.assertEqual(str(cm.exception), 'Invalid dimensions for arguments.')
+        self.assertEqual(str(cm.exception), "Invalid dimensions for arguments.")
 
         with warnings.catch_warnings():
-            warnings.simplefilter('ignore')
+            warnings.simplefilter("ignore")
             with self.assertRaises(Exception) as cm:
                 objective = cp.Minimize(cp.quad_form(self.x, [[-1, 0], [0, 9]]))
                 Problem(objective).solve(solver=cp.SCS, eps=1e-6)
-            self.assertTrue('Problem does not follow DCP rules.' in str(cm.exception))
+            self.assertTrue("Problem does not follow DCP rules." in str(cm.exception))
 
         P = [[4, 0], [0, 9]]
         p = Problem(cp.Minimize(cp.quad_form(self.x, P)), [self.x >= 1])
@@ -1053,11 +1053,11 @@ class TestProblem(BaseTest):
 
     # Test the vstack atom.
     def test_vstack(self) -> None:
-        a = Variable((1, 1), name='a')
-        b = Variable((1, 1), name='b')
+        a = Variable((1, 1), name="a")
+        b = Variable((1, 1), name="b")
 
-        x = Variable((2, 1), name='x')
-        y = Variable((3, 1), name='y')
+        x = Variable((2, 1), name="x")
+        y = Variable((3, 1), name="y")
 
         c = numpy.ones((1, 5))
         problem = Problem(cp.Minimize(c @ cp.vstack([x, y])), [x == [[1, 2]], y == [[3, 4, 5]]])
@@ -1089,7 +1089,7 @@ class TestProblem(BaseTest):
         )
         with self.assertRaises(Exception) as cm:
             problem.solve(solver=cp.SCS, eps=1e-5)
-        self.assertTrue('Problem does not follow DCP rules.' in str(cm.exception))
+        self.assertTrue("Problem does not follow DCP rules." in str(cm.exception))
 
         # Test parametrized vstack
         p = Parameter((2, 1), value=np.array([[3], [3]]))
@@ -1101,11 +1101,11 @@ class TestProblem(BaseTest):
 
     # Test the hstack atom.
     def test_hstack(self) -> None:
-        a = Variable((1, 1), name='a')
-        b = Variable((1, 1), name='b')
+        a = Variable((1, 1), name="a")
+        b = Variable((1, 1), name="b")
 
-        x = Variable((2, 1), name='x')
-        y = Variable((3, 1), name='y')
+        x = Variable((2, 1), name="x")
+        y = Variable((3, 1), name="y")
 
         c = numpy.ones((1, 5))
         problem = Problem(
@@ -1141,7 +1141,7 @@ class TestProblem(BaseTest):
         )
         with self.assertRaises(Exception) as cm:
             problem.solve(solver=cp.SCS, eps=1e-5)
-        self.assertTrue('Problem does not follow DCP rules.' in str(cm.exception))
+        self.assertTrue("Problem does not follow DCP rules." in str(cm.exception))
 
         # Test parametrized hstack
         p, q = Parameter(2, value=[3, 3]), Parameter(2, value=[-8, -8])
@@ -1154,7 +1154,7 @@ class TestProblem(BaseTest):
         """Test using a cvxpy expression as an objective."""
         with self.assertRaises(Exception) as cm:
             Problem(self.x + 2)
-        self.assertEqual(str(cm.exception), 'Problem objective must be Minimize or Maximize.')
+        self.assertEqual(str(cm.exception), "Problem objective must be Minimize or Maximize.")
 
     # Test variable transpose.
     def test_transpose(self) -> None:
@@ -1405,8 +1405,8 @@ class TestProblem(BaseTest):
         b = cp.matmul(A, numpy.random.randn(40))
 
         # valid input, return solution
-        solvers_with_str = [(s.OSQP, {'max_iter': 1}), s.CLARABEL]
-        solvers_empty_dict = [(s.OSQP, {'max_iter': 1}), (s.CLARABEL, {})]
+        solvers_with_str = [(s.OSQP, {"max_iter": 1}), s.CLARABEL]
+        solvers_empty_dict = [(s.OSQP, {"max_iter": 1}), (s.CLARABEL, {})]
 
         for solvers in [solvers_with_str, solvers_empty_dict]:
             self.assertIsNotNone(
@@ -1416,7 +1416,7 @@ class TestProblem(BaseTest):
             )
 
         # valid input, raise SolverError
-        solvers = [(s.OSQP, {'max_iter': 1})]
+        solvers = [(s.OSQP, {"max_iter": 1})]
 
         with self.assertRaises(SolverError):
             Problem(cp.Minimize(cp.sum_squares(cp.matmul(A, cp.Variable(40)) - b))).solve(
@@ -1425,8 +1425,8 @@ class TestProblem(BaseTest):
 
         # invalid input, raise ValueError
         solvers_invalid_inner_input = [
-            {'str': {}},
-            'str',
+            {"str": {}},
+            "str",
             [],
             [1],
             [()],
@@ -1451,14 +1451,14 @@ class TestProblem(BaseTest):
     def test_reshape(self) -> None:
         """Tests problems with reshape."""
         # Test on scalars.
-        self.assertEqual(cp.reshape(1, (1, 1), order='F').value, 1)
+        self.assertEqual(cp.reshape(1, (1, 1), order="F").value, 1)
 
         # Test vector to matrix.
         x = Variable(4)
         mat = numpy.array([[1, -1], [2, -2]]).T
         vec = numpy.array([[1, 2, 3, 4]]).T
         vec_mat = numpy.array([[1, 2], [3, 4]]).T
-        expr = cp.reshape(x, (2, 2), order='F')
+        expr = cp.reshape(x, (2, 2), order="F")
         obj = cp.Minimize(cp.sum(mat @ expr))
         prob = Problem(obj, [x[:, None] == vec])
         result = prob.solve(solver=cp.SCS)
@@ -1466,36 +1466,36 @@ class TestProblem(BaseTest):
 
         # Test on matrix to vector.
         c = [1, 2, 3, 4]
-        expr = cp.reshape(self.A, (4, 1), order='F')
+        expr = cp.reshape(self.A, (4, 1), order="F")
         obj = cp.Minimize(expr.T @ c)
         constraints = [self.A == [[-1, -2], [3, 4]]]
         prob = Problem(obj, constraints)
         result = prob.solve(solver=cp.SCS)
         self.assertAlmostEqual(result, 20)
         self.assertItemsAlmostEqual(expr.value, [-1, -2, 3, 4])
-        self.assertItemsAlmostEqual(cp.reshape(expr, (2, 2), order='F').value, [-1, -2, 3, 4])
+        self.assertItemsAlmostEqual(cp.reshape(expr, (2, 2), order="F").value, [-1, -2, 3, 4])
 
         # Test matrix to matrix.
-        expr = cp.reshape(self.C, (2, 3), order='F')
+        expr = cp.reshape(self.C, (2, 3), order="F")
         mat = numpy.array([[1, -1], [2, -2]])
         C_mat = numpy.array([[1, 4], [2, 5], [3, 6]])
         obj = cp.Minimize(cp.sum(mat @ expr))
         prob = Problem(obj, [self.C == C_mat])
         result = prob.solve(solver=cp.SCS)
-        reshaped = numpy.reshape(C_mat, (2, 3), order='F')
+        reshaped = numpy.reshape(C_mat, (2, 3), order="F")
         self.assertAlmostEqual(result, (mat.dot(reshaped)).sum())
         self.assertItemsAlmostEqual(expr.value, C_mat)
 
         # Test promoted expressions.
         c = numpy.array([[1, -1], [2, -2]]).T
-        expr = cp.reshape(c * self.a, (1, 4), order='F')
+        expr = cp.reshape(c * self.a, (1, 4), order="F")
         obj = cp.Minimize(expr @ [1, 2, 3, 4])
         prob = Problem(obj, [self.a == 2])
         result = prob.solve(solver=cp.SCS)
         self.assertAlmostEqual(result, -6)
         self.assertItemsAlmostEqual(expr.value, 2 * c)
 
-        expr = cp.reshape(c * self.a, (4, 1), order='F')
+        expr = cp.reshape(c * self.a, (4, 1), order="F")
         obj = cp.Minimize(expr.T @ [1, 2, 3, 4])
         prob = Problem(obj, [self.a == 2])
         result = prob.solve(solver=cp.SCS)
@@ -1521,7 +1521,7 @@ class TestProblem(BaseTest):
     def test_vec(self) -> None:
         """Tests problems with vec."""
         c = [1, 2, 3, 4]
-        expr = cp.vec(self.A, order='F')
+        expr = cp.vec(self.A, order="F")
         obj = cp.Minimize(expr.T @ c)
         constraints = [self.A == [[-1, -2], [3, 4]]]
         prob = Problem(obj, constraints)
@@ -1601,11 +1601,11 @@ class TestProblem(BaseTest):
         prob = Problem(cp.Minimize(obj), [g == 0])
         self.assertFalse(prob.is_dpp())
         with warnings.catch_warnings():
-            warnings.simplefilter('ignore')
+            warnings.simplefilter("ignore")
             prob.solve(cp.SCS)
         x0.value = 1
         with warnings.catch_warnings():
-            warnings.simplefilter('ignore')
+            warnings.simplefilter("ignore")
             prob.solve(solver=cp.SCS)
         self.assertAlmostEqual(g.value, 0)
 
@@ -1613,11 +1613,11 @@ class TestProblem(BaseTest):
         prob = Problem(cp.Minimize(x0 * x), [x == 1])
         x0.value = 2
         with warnings.catch_warnings():
-            warnings.simplefilter('ignore')
+            warnings.simplefilter("ignore")
             prob.solve(solver=cp.SCS)
         x0.value = 1
         with warnings.catch_warnings():
-            warnings.simplefilter('ignore')
+            warnings.simplefilter("ignore")
             prob.solve(solver=cp.SCS)
         self.assertAlmostEqual(prob.value, 1, places=2)
 
@@ -1648,7 +1648,7 @@ class TestProblem(BaseTest):
         """Test the duals of PSD constraints."""
         if s.CVXOPT in INSTALLED_SOLVERS:
             # Test the dual values with cpopt.
-            C = Variable((2, 2), symmetric=True, name='C')
+            C = Variable((2, 2), symmetric=True, name="C")
             obj = cp.Maximize(C[0, 0])
             constraints = [C << [[2, 0], [0, 2]]]
             prob = Problem(obj, constraints)
@@ -1656,7 +1656,7 @@ class TestProblem(BaseTest):
             self.assertAlmostEqual(result, 2)
 
             psd_constr_dual = constraints[0].dual_value.copy()
-            C = Variable((2, 2), symmetric=True, name='C')
+            C = Variable((2, 2), symmetric=True, name="C")
             X = Variable((2, 2), PSD=True)
             obj = cp.Maximize(C[0, 0])
             constraints = [X == [[2, 0], [0, 2]] - C]
@@ -1780,7 +1780,7 @@ class TestProblem(BaseTest):
     def test_pnorm(self) -> None:
         import numpy as np
 
-        x = Variable(3, name='x')
+        x = Variable(3, name="x")
 
         a = np.array([1.0, 2, 3])
 
@@ -1800,14 +1800,14 @@ class TestProblem(BaseTest):
                 x_true = a ** (1.0 / (p - 1)) / a.dot(a ** (1.0 / (p - 1)))
 
             x_alg = np.array(x.value).flatten()
-            self.assertTrue(np.allclose(x_alg, x_true, 1e-2), 'p = {}'.format(p))
+            self.assertTrue(np.allclose(x_alg, x_true, 1e-2), "p = {}".format(p))
             self.assertTrue(np.allclose(prob.value, np.linalg.norm(x_alg, p)))
             self.assertTrue(np.allclose(np.linalg.norm(x_alg, p), cp.pnorm(x_alg, p).value))
 
     def test_pnorm_concave(self) -> None:
         import numpy as np
 
-        x = Variable(3, name='x')
+        x = Variable(3, name="x")
 
         # test positivity constraints
         a = np.array([-1.0, 2, 3])
@@ -1938,7 +1938,7 @@ class TestProblem(BaseTest):
     def test_invalid_constr(self) -> None:
         """Test a problem with an invalid constraint."""
         x = cp.Variable()
-        with self.assertRaisesRegex(ValueError, r'Problem has an invalid constraint.*'):
+        with self.assertRaisesRegex(ValueError, r"Problem has an invalid constraint.*"):
             cp.Problem(cp.Minimize(x), [cp.sum(x)])
 
     def test_pos(self) -> None:
@@ -1984,7 +1984,7 @@ class TestProblem(BaseTest):
 
             prob = cp.Problem(obj, constraints)
             prob.solve(solver=s.CLARABEL)
-            assert prob.status == 'optimal'
+            assert prob.status == "optimal"
             return prob
 
         expected_coef = np.array(
@@ -2030,7 +2030,7 @@ class TestProblem(BaseTest):
         q = np.arange(n)
         a = np.ones((m, n))
         b = np.ones((m, 1))
-        x = cp.Variable((n, 1), name='x')
+        x = cp.Variable((n, 1), name="x")
         constraints = [a @ x == b]
         objective = cp.Minimize((1 / 2) * cp.square(q.T @ x) + cp.transforms.indicator(constraints))
         problem = cp.Problem(objective)
@@ -2067,9 +2067,9 @@ class TestProblem(BaseTest):
         x = cp.Variable((5, 2))
         y = cp.Variable((5, 2))
 
-        stacked_flattened = cp.vstack([cp.vec(x, order='F'), cp.vec(y, order='F')])  # (2, 10)
+        stacked_flattened = cp.vstack([cp.vec(x, order="F"), cp.vec(y, order="F")])  # (2, 10)
         minimum = cp.min(stacked_flattened, axis=0)  # (10,)
-        reshaped_minimum = cp.reshape(minimum, (5, 2), order='F')  # (5, 2)
+        reshaped_minimum = cp.reshape(minimum, (5, 2), order="F")  # (5, 2)
 
         obj = cp.sum(reshaped_minimum)
         problem = cp.Problem(cp.Maximize(obj), [x == 1, y == 2])
@@ -2170,8 +2170,8 @@ class TestProblem(BaseTest):
             b = sum(sum(x) for x in a)
             cp.Problem(cp.Maximize(0), [b >= 0])
             assert len(w) == 1
-            assert 'vectorizing' in str(w[-1].message)
-            assert 'Constraint #0' in str(w[-1].message)
+            assert "vectorizing" in str(w[-1].message)
+            assert "Constraint #0" in str(w[-1].message)
 
         # Warning raised for objective.
         with warnings.catch_warnings(record=True) as w:
@@ -2179,8 +2179,8 @@ class TestProblem(BaseTest):
             b = sum(sum(x) for x in a)
             cp.Problem(cp.Maximize(b))
             assert len(w) == 1
-            assert 'vectorizing' in str(w[-1].message)
-            assert 'Objective' in str(w[-1].message)
+            assert "vectorizing" in str(w[-1].message)
+            assert "Objective" in str(w[-1].message)
 
         # No warning.
         with warnings.catch_warnings(record=True) as w:
@@ -2200,7 +2200,7 @@ class TestProblem(BaseTest):
         # Check if ECOS is the top default solver.
         candidate_solvers = prob._find_candidate_solvers(solver=None, gp=False)
         prob._sort_candidate_solvers(candidate_solvers)
-        if candidate_solvers['conic_solvers'][0] == cp.ECOS:
+        if candidate_solvers["conic_solvers"][0] == cp.ECOS:
             with warnings.catch_warnings(record=True) as w:
                 prob.solve()
                 assert isinstance(w[0].message, FutureWarning)

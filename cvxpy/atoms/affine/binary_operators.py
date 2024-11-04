@@ -45,7 +45,7 @@ class BinaryOperator(AffAtom):
 
     """
 
-    OP_NAME = 'BINARY_OP'
+    OP_NAME = "BINARY_OP"
 
     def __init__(self, lh_exp, rh_exp) -> None:
         super(BinaryOperator, self).__init__(lh_exp, rh_exp)
@@ -54,10 +54,10 @@ class BinaryOperator(AffAtom):
         pretty_args = []
         for a in self.args:
             if isinstance(a, (AddExpression, DivExpression)):
-                pretty_args.append('(' + a.name() + ')')
+                pretty_args.append("(" + a.name() + ")")
             else:
                 pretty_args.append(a.name())
-        return pretty_args[0] + ' ' + self.OP_NAME + ' ' + pretty_args[1]
+        return pretty_args[0] + " " + self.OP_NAME + " " + pretty_args[1]
 
     def numeric(self, values):
         """Applies the binary operator to the values."""
@@ -80,7 +80,7 @@ class BinaryOperator(AffAtom):
         )
 
 
-def matmul(lh_exp, rh_exp) -> 'MulExpression':
+def matmul(lh_exp, rh_exp) -> "MulExpression":
     """Matrix multiplication."""
     return MulExpression(lh_exp, rh_exp)
 
@@ -101,7 +101,7 @@ class MulExpression(BinaryOperator):
         The right-hand side of the multiplication.
     """
 
-    OP_NAME = '@'
+    OP_NAME = "@"
     OP_FUNC = op.mul
 
     def numeric(self, values):
@@ -195,7 +195,7 @@ class MulExpression(BinaryOperator):
             DX[k :: self.args[0].shape[0], k :: self.args[0].shape[0]] = Y
         DX = sp.csc_matrix(DX)
         cols = 1 if len(self.args[1].shape) == 1 else self.args[1].shape[1]
-        DY = sp.block_diag([X.T for k in range(cols)], 'csc')
+        DY = sp.block_diag([X.T for k in range(cols)], "csc")
 
         return [DX, DY]
 
@@ -226,7 +226,7 @@ class MulExpression(BinaryOperator):
         elif self.args[1].is_constant():
             return (lu.rmul_expr(lhs, rhs, shape), [])
         else:
-            raise DCPError('Product of two non-constant expressions is not ' 'DCP.')
+            raise DCPError("Product of two non-constant expressions is not " "DCP.")
 
 
 class multiply(MulExpression):
@@ -310,7 +310,7 @@ class multiply(MulExpression):
         elif self.args[1].is_constant():
             return (lu.multiply(rhs, lhs), [])
         else:
-            raise DCPError('Product of two non-constant expressions is not ' 'DCP.')
+            raise DCPError("Product of two non-constant expressions is not " "DCP.")
 
 
 class DivExpression(BinaryOperator):
@@ -319,7 +319,7 @@ class DivExpression(BinaryOperator):
     Can be created by using the / operator of expression.
     """
 
-    OP_NAME = '/'
+    OP_NAME = "/"
     OP_FUNC = np.divide
 
     def __init__(self, lh_expr, rh_expr) -> None:
@@ -465,11 +465,11 @@ def outer(x, y):
     """
     x = Expression.cast_to_const(x)
     if x.ndim > 1:
-        raise ValueError('x must be a vector.')
+        raise ValueError("x must be a vector.")
     y = Expression.cast_to_const(y)
     if y.ndim > 1:
-        raise ValueError('y must be a vector.')
+        raise ValueError("y must be a vector.")
 
-    x = reshape(x, (x.size, 1), order='F')
-    y = reshape(y, (1, y.size), order='F')
+    x = reshape(x, (x.size, 1), order="F")
+    y = reshape(y, (1, y.size), order="F")
     return x @ y

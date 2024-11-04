@@ -20,7 +20,7 @@ target-version = "py39"
 ignore = ["E721"]
 
 [tool.ruff.format]
-quote-style = "single"
+quote-style = "double"
 
 
 [tool.pytest.ini_options]

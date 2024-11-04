@@ -24,10 +24,10 @@ from cvxpy.reductions.solvers.solver import Solver
 
 def dims_to_solver_dict(cone_dims):
     cones = {
-        'f': cone_dims.zero,
-        'l': cone_dims.nonneg,
+        "f": cone_dims.zero,
+        "l": cone_dims.nonneg,
         # 'q': cone_dims.soc,
-        's': cone_dims.psd,
+        "s": cone_dims.psd,
     }
     return cones
 
@@ -41,16 +41,16 @@ class SDPA(ConicSolver):
 
     # Map of SDPA status to CVXPY status.
     STATUS_MAP = {
-        'pdOPT': s.OPTIMAL,
-        'noINFO': s.SOLVER_ERROR,
-        'pFEAS': s.OPTIMAL_INACCURATE,
-        'dFEAS': s.OPTIMAL_INACCURATE,
-        'pdFEAS': s.OPTIMAL_INACCURATE,
-        'pdINF': s.INFEASIBLE,
-        'pFEAS_dINF': s.UNBOUNDED,
-        'pINF_dFEAS': s.INFEASIBLE,
-        'pUNBD': s.UNBOUNDED,
-        'dUNBD': s.INFEASIBLE,  # by weak duality
+        "pdOPT": s.OPTIMAL,
+        "noINFO": s.SOLVER_ERROR,
+        "pFEAS": s.OPTIMAL_INACCURATE,
+        "dFEAS": s.OPTIMAL_INACCURATE,
+        "pdFEAS": s.OPTIMAL_INACCURATE,
+        "pdINF": s.INFEASIBLE,
+        "pFEAS_dINF": s.UNBOUNDED,
+        "pINF_dFEAS": s.INFEASIBLE,
+        "pUNBD": s.UNBOUNDED,
+        "dUNBD": s.INFEASIBLE,  # by weak duality
     }
 
     def name(self):
@@ -101,7 +101,7 @@ class SDPA(ConicSolver):
         data[s.A] = A
         if data[s.A].shape[0] == 0:
             data[s.A] = None
-        data[s.B] = b.flatten(order='F')
+        data[s.B] = b.flatten(order="F")
         if data[s.B].shape[0] == 0:
             data[s.B] = None
 
@@ -109,16 +109,16 @@ class SDPA(ConicSolver):
 
     def invert(self, solution, inverse_data):
         """Returns the solution to the original problem given the inverse_data."""
-        status = solution['status']
+        status = solution["status"]
 
         if status in s.SOLUTION_PRESENT:
-            opt_val = solution['value']
-            primal_vars = {inverse_data[self.VAR_ID]: solution['primal']}
+            opt_val = solution["value"]
+            primal_vars = {inverse_data[self.VAR_ID]: solution["primal"]}
             eq_dual = utilities.get_dual_values(
-                solution['eq_dual'], utilities.extract_dual_value, inverse_data[Solver.EQ_CONSTR]
+                solution["eq_dual"], utilities.extract_dual_value, inverse_data[Solver.EQ_CONSTR]
             )
             leq_dual = utilities.get_dual_values(
-                solution['ineq_dual'], utilities.extract_dual_value, inverse_data[Solver.NEQ_CONSTR]
+                solution["ineq_dual"], utilities.extract_dual_value, inverse_data[Solver.NEQ_CONSTR]
             )
             eq_dual.update(leq_dual)
             dual_vars = eq_dual
@@ -160,23 +160,23 @@ class SDPA(ConicSolver):
         K = sdpap.SymCone(f=c.shape[0])
 
         # cone K in CVXPY conic form becomes the cone J of SDPAP (after flipping the sign of b)
-        J = sdpap.SymCone(f=dims['f'], l=dims['l'], s=tuple(dims['s']))
+        J = sdpap.SymCone(f=dims["f"], l=dims["l"], s=tuple(dims["s"]))
 
         # `solver_opts['print'] = 'display'` can override `verbose = False`.
         # User may choose to display solver output in non verbose mode.
-        if 'print' not in solver_opts:
-            solver_opts['print'] = 'display' if verbose else 'no'
+        if "print" not in solver_opts:
+            solver_opts["print"] = "display" if verbose else "no"
         x, y, sdpapinfo, timeinfo, sdpainfo = sdpap.solve(A, -b, c, K, J, solver_opts)
 
         solution = {}
-        solution[s.STATUS] = self.STATUS_MAP[sdpapinfo['phasevalue']]
+        solution[s.STATUS] = self.STATUS_MAP[sdpapinfo["phasevalue"]]
 
         if solution[s.STATUS] in s.SOLUTION_PRESENT:
             x = x.toarray()
             y = y.toarray()
-            solution[s.VALUE] = sdpapinfo['primalObj']
+            solution[s.VALUE] = sdpapinfo["primalObj"]
             solution[s.PRIMAL] = x
-            solution[s.EQ_DUAL] = y[: dims['f']]
-            solution[s.INEQ_DUAL] = y[dims['f'] :]
+            solution[s.EQ_DUAL] = y[: dims["f"]]
+            solution[s.INEQ_DUAL] = y[dims["f"] :]
 
         return solution

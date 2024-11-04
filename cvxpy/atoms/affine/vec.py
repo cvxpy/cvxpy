@@ -21,7 +21,7 @@ from cvxpy.atoms.affine.reshape import reshape
 from cvxpy.expressions.expression import DEFAULT_ORDER_DEPRECATION_MSG, Expression
 
 
-def vec(X, order: Literal['F', 'C', None] = None):
+def vec(X, order: Literal["F", "C", None] = None):
     """Flattens the matrix X into a vector.
 
     Parameters
@@ -36,9 +36,9 @@ def vec(X, order: Literal['F', 'C', None] = None):
         An Expression representing the flattened matrix.
     """
     if order is None:
-        vec_order_warning = DEFAULT_ORDER_DEPRECATION_MSG.replace('FUNC_NAME', 'vec')
+        vec_order_warning = DEFAULT_ORDER_DEPRECATION_MSG.replace("FUNC_NAME", "vec")
         warnings.warn(vec_order_warning, FutureWarning)
-        order = 'F'
-    assert order in ['F', 'C']
+        order = "F"
+    assert order in ["F", "C"]
     X = Expression.cast_to_const(X)
     return reshape(X, (X.size,), order)

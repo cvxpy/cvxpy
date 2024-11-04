@@ -49,7 +49,7 @@ class log_det(Atom):
     def validate_arguments(self) -> None:
         X = self.args[0]
         if len(X.shape) == 1 or X.shape[0] != X.shape[1]:
-            raise TypeError('The argument to log_det must be a square matrix.')
+            raise TypeError("The argument to log_det must be a square matrix.")
 
     def shape_from_args(self) -> Tuple[int, ...]:
         """Returns the (row, col) shape of the expression."""
@@ -91,7 +91,7 @@ class log_det(Atom):
         if np.min(eigen_val) > 0:
             # Grad: X^{-1}.T
             D = np.linalg.inv(X).T
-            return [sp.csc_matrix(D.ravel(order='F')).T]
+            return [sp.csc_matrix(D.ravel(order="F")).T]
         # Outside domain.
         else:
             return [None]
@@ -108,7 +108,7 @@ class log_det(Atom):
             rtol=s.ATOM_EVAL_TOL,
             atol=s.ATOM_EVAL_TOL,
         ):
-            raise ValueError('Input matrix was not Hermitian/symmetric.')
+            raise ValueError("Input matrix was not Hermitian/symmetric.")
         if any([p.value is None for p in self.parameters()]):
             return None
         return self._value_impl()

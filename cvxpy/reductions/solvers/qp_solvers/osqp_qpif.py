@@ -56,31 +56,31 @@ class OSQP(QpSolver):
         P = data[s.P]
         q = data[s.Q]
         A = sp.vstack([data[s.A], data[s.F]]).tocsc()
-        data['Ax'] = A
+        data["Ax"] = A
         uA = np.concatenate((data[s.B], data[s.G]))
-        data['u'] = uA
+        data["u"] = uA
         lA = np.concatenate([data[s.B], -np.inf * np.ones(data[s.G].shape)])
-        data['l'] = lA
+        data["l"] = lA
 
         # Overwrite defaults eps_abs=eps_rel=1e-3, max_iter=4000
-        solver_opts['eps_abs'] = solver_opts.get('eps_abs', 1e-5)
-        solver_opts['eps_rel'] = solver_opts.get('eps_rel', 1e-5)
-        solver_opts['max_iter'] = solver_opts.get('max_iter', 10000)
+        solver_opts["eps_abs"] = solver_opts.get("eps_abs", 1e-5)
+        solver_opts["eps_rel"] = solver_opts.get("eps_rel", 1e-5)
+        solver_opts["max_iter"] = solver_opts.get("max_iter", 10000)
 
         # Use cached data
         if warm_start and solver_cache is not None and self.name() in solver_cache:
             solver, old_data, results = solver_cache[self.name()]
             new_args = {}
-            for key in ['q', 'l', 'u']:
+            for key in ["q", "l", "u"]:
                 if any(data[key] != old_data[key]):
                     new_args[key] = data[key]
             factorizing = False
             if P.data.shape != old_data[s.P].data.shape or any(P.data != old_data[s.P].data):
                 P_triu = sp.triu(P).tocsc()
-                new_args['Px'] = P_triu.data
+                new_args["Px"] = P_triu.data
                 factorizing = True
-            if A.data.shape != old_data['Ax'].data.shape or any(A.data != old_data['Ax'].data):
-                new_args['Ax'] = A.data
+            if A.data.shape != old_data["Ax"].data.shape or any(A.data != old_data["Ax"].data):
+                new_args["Ax"] = A.data
                 factorizing = True
 
             if new_args:
@@ -90,11 +90,11 @@ class OSQP(QpSolver):
             if status == s.OPTIMAL:
                 solver.warm_start(results.x, results.y)
             # Polish if factorizing.
-            solver_opts['polish'] = solver_opts.get('polish', factorizing)
+            solver_opts["polish"] = solver_opts.get("polish", factorizing)
             solver.update_settings(verbose=verbose, **solver_opts)
         else:
             # Initialize and solve problem
-            solver_opts['polish'] = solver_opts.get('polish', True)
+            solver_opts["polish"] = solver_opts.get("polish", True)
             solver = osqp.OSQP()
             try:
                 solver.setup(P, q, A, lA, uA, verbose=verbose, **solver_opts)

@@ -42,11 +42,11 @@ class MatrixInterface(NDArrayInterface):
         """
         # Lists and 1D arrays become column vectors.
         if isinstance(value, list) or isinstance(value, np.ndarray) and value.ndim == 1:
-            value = np.asmatrix(value, dtype='float64').T
+            value = np.asmatrix(value, dtype="float64").T
         # First convert sparse to dense.
         elif sp.issparse(value):
             value = value.todense()
-        return np.asmatrix(value, dtype='float64')
+        return np.asmatrix(value, dtype="float64")
 
     # Return an identity matrix.
     def identity(self, size):
@@ -54,8 +54,8 @@ class MatrixInterface(NDArrayInterface):
 
     # A matrix with all entries equal to the given scalar value.
     def scalar_matrix(self, value, shape: Tuple[int, ...]):
-        mat = np.zeros(shape, dtype='float64') + value
+        mat = np.zeros(shape, dtype="float64") + value
         return np.asmatrix(mat)
 
     def reshape(self, matrix, size):
-        return np.reshape(matrix, size, order='F')
+        return np.reshape(matrix, size, order="F")

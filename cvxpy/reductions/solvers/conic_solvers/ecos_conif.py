@@ -28,9 +28,9 @@ from cvxpy.reductions.solvers.conic_solvers.conic_solver import ConicSolver
 # that can be supplied to ecos.
 def dims_to_solver_dict(cone_dims):
     cones = {
-        'l': cone_dims.nonneg,
-        'q': cone_dims.soc,
-        'e': cone_dims.exp,
+        "l": cone_dims.nonneg,
+        "q": cone_dims.soc,
+        "e": cone_dims.exp,
     }
     return cones
 
@@ -114,13 +114,13 @@ class ECOS(ConicSolver):
         data[s.A] = -A[:len_eq]
         if data[s.A].shape[0] == 0:
             data[s.A] = None
-        data[s.B] = b[:len_eq].flatten(order='F')
+        data[s.B] = b[:len_eq].flatten(order="F")
         if data[s.B].shape[0] == 0:
             data[s.B] = None
         data[s.G] = -A[len_eq:]
         if 0 in data[s.G].shape:
             data[s.G] = None
-        data[s.H] = b[len_eq:].flatten(order='F')
+        data[s.H] = b[len_eq:].flatten(order="F")
         if 0 in data[s.H].shape:
             data[s.H] = None
         return data, inv_data
@@ -131,9 +131,9 @@ class ECOS(ConicSolver):
         cones = dims_to_solver_dict(data[ConicSolver.DIMS])
         if data[s.A] is not None and data[s.A].nnz == 0 and np.prod(data[s.A].shape) > 0:
             raise ValueError(
-                'ECOS cannot handle sparse data with nnz == 0; '
-                'this is a bug in ECOS, and it indicates that your problem '
-                'might have redundant constraints.'
+                "ECOS cannot handle sparse data with nnz == 0; "
+                "this is a bug in ECOS, and it indicates that your problem "
+                "might have redundant constraints."
             )
         solution = ecos.solve(
             data[s.C],
@@ -149,23 +149,23 @@ class ECOS(ConicSolver):
 
     def invert(self, solution, inverse_data):
         """Returns solution to original problem, given inverse_data."""
-        status = self.STATUS_MAP[solution['info']['exitFlag']]
+        status = self.STATUS_MAP[solution["info"]["exitFlag"]]
 
         # Timing data
         attr = {}
-        attr[s.SOLVE_TIME] = solution['info']['timing']['tsolve']
-        attr[s.SETUP_TIME] = solution['info']['timing']['tsetup']
-        attr[s.NUM_ITERS] = solution['info']['iter']
+        attr[s.SOLVE_TIME] = solution["info"]["timing"]["tsolve"]
+        attr[s.SETUP_TIME] = solution["info"]["timing"]["tsetup"]
+        attr[s.NUM_ITERS] = solution["info"]["iter"]
         attr[s.EXTRA_STATS] = solution
 
         if status in s.SOLUTION_PRESENT:
-            primal_val = solution['info']['pcost']
+            primal_val = solution["info"]["pcost"]
             opt_val = primal_val + inverse_data[s.OFFSET]
             primal_vars = {
-                inverse_data[self.VAR_ID]: intf.DEFAULT_INTF.const_to_matrix(solution['x'])
+                inverse_data[self.VAR_ID]: intf.DEFAULT_INTF.const_to_matrix(solution["x"])
             }
             dual_vars = utilities.get_dual_values(
-                solution['z'], utilities.extract_dual_value, inverse_data[self.NEQ_CONSTR]
+                solution["z"], utilities.extract_dual_value, inverse_data[self.NEQ_CONSTR]
             )
             for con in inverse_data[self.NEQ_CONSTR]:
                 if isinstance(con, ExpCone):
@@ -174,7 +174,7 @@ class ECOS(ConicSolver):
                     perm = utilities.expcone_permutor(n_cones, ECOS.EXP_CONE_ORDER)
                     dual_vars[cid] = dual_vars[cid][perm]
             eq_duals = utilities.get_dual_values(
-                solution['y'], utilities.extract_dual_value, inverse_data[self.EQ_CONSTR]
+                solution["y"], utilities.extract_dual_value, inverse_data[self.EQ_CONSTR]
             )
             dual_vars.update(eq_duals)
             return Solution(status, opt_val, primal_vars, dual_vars, attr)

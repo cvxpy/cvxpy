@@ -30,9 +30,9 @@ class dist_ratio(Atom):
     def __init__(self, x, a, b) -> None:
         super(dist_ratio, self).__init__(x, a, b)
         if not self.args[1].is_constant():
-            raise ValueError('`a` must be a constant.')
+            raise ValueError("`a` must be a constant.")
         if not self.args[2].is_constant():
-            raise ValueError('`b` must be a constant.')
+            raise ValueError("`b` must be a constant.")
         self.a = self.args[1].value
         self.b = self.args[2].value
 

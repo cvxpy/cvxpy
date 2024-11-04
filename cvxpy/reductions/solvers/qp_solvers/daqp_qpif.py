@@ -44,16 +44,16 @@ class DAQP(QpSolver):
 
     # these are solver options that can be passed; we drop any other - good idea?
     ALLOWED_SOLVER_OPTS = (
-        'primal_tol',
-        'dual_tol',
-        'zero_tol',
-        'pivot_tol',
-        'progress_tol',
-        'cycle_tol',
-        'iter_limit',
-        'fval_bound',
-        'eps_prox',
-        'eta_prox',
+        "primal_tol",
+        "dual_tol",
+        "zero_tol",
+        "pivot_tol",
+        "progress_tol",
+        "cycle_tol",
+        "iter_limit",
+        "fval_bound",
+        "eps_prox",
+        "eta_prox",
         # ignore the ones about soft constraints and branch-and-bound for now
     )
 
@@ -69,8 +69,8 @@ class DAQP(QpSolver):
         (xstar, fval, exitflag, info) = solution
 
         attr = {
-            s.SOLVE_TIME: info['solve_time'],
-            s.SETUP_TIME: info['setup_time'],
+            s.SOLVE_TIME: info["solve_time"],
+            s.SETUP_TIME: info["setup_time"],
         }
         attr[s.EXTRA_STATS] = info
 
@@ -82,8 +82,8 @@ class DAQP(QpSolver):
             primal_vars = {DAQP.VAR_ID: intf.DEFAULT_INTF.const_to_matrix(np.array(xstar))}
             # dual variables associated with var bounds: TODO
             len_primal = len(xstar)
-            dual_vars = {DAQP.DUAL_VAR_ID: np.array(info['lam'][len_primal:])}
-            attr[s.NUM_ITERS] = info['iterations']
+            dual_vars = {DAQP.DUAL_VAR_ID: np.array(info["lam"][len_primal:])}
+            attr[s.NUM_ITERS] = info["iterations"]
             sol = Solution(status, opt_val, primal_vars, dual_vars, attr)
         else:
             sol = failure_solution(status, attr)
@@ -146,7 +146,7 @@ class DAQP(QpSolver):
         # according to https://stackoverflow.com/questions/16266720/find-out-if-a-matrix-is-positive-definite-with-numpy
         # best way to check positive definiteness (since we already know it is symmetric)
 
-        if 'eps_prox' not in solver_opts:
+        if "eps_prox" not in solver_opts:
             try:
                 np.linalg.cholesky(H)
                 is_positive_definite = True
@@ -156,7 +156,7 @@ class DAQP(QpSolver):
             is_positive_definite = False  # shouldn't be used
 
         # Overwrite defaults eps_prox
-        solver_opts['eps_prox'] = solver_opts.get('eps_prox', 0.0 if is_positive_definite else 1e-5)
+        solver_opts["eps_prox"] = solver_opts.get("eps_prox", 0.0 if is_positive_definite else 1e-5)
         # This is chosen by benchmarking to a typical problem class
         # https://gist.github.com/enzbus/3d0236c7ed93cff5f0ec3f8587bcd67e
         # Zero (which is default) can't be used in most cases because Cvxpy's

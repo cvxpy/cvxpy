@@ -29,7 +29,7 @@ class GUROBI(QpSolver):
     MIP_CAPABLE = True
 
     # Keyword arguments for the CVXPY interface.
-    INTERFACE_ARGS = ['save_file', 'reoptimize']
+    INTERFACE_ARGS = ["save_file", "reoptimize"]
 
     # Map of Gurobi status to CVXPY status.
     STATUS_MAP = {
@@ -73,11 +73,11 @@ class GUROBI(QpSolver):
 
         data, inv_data = super(GUROBI, self).apply(problem)
         # Add initial guess.
-        data['init_value'] = utilities.stack_vals(problem.variables, grb.GRB.UNDEFINED)
+        data["init_value"] = utilities.stack_vals(problem.variables, grb.GRB.UNDEFINED)
         return data, inv_data
 
     def invert(self, results, inverse_data):
-        model = results['model']
+        model = results["model"]
         x_grb = model.getVars()
         n = len(x_grb)
         constraints_grb = model.getConstrs()
@@ -132,25 +132,25 @@ class GUROBI(QpSolver):
         b = data[s.B]
         F = data[s.F].tocsr()  # Convert F matrix to csr format
         g = data[s.G]
-        n = data['n_var']
+        n = data["n_var"]
 
         # Constrain values between bounds
         constrain_gurobi_infty(b)
         constrain_gurobi_infty(g)
 
         # Create a new model
-        if 'env' in solver_opts:
+        if "env" in solver_opts:
             # Specifies environment to create Gurobi model for control over licensing and parameters
             # https://www.gurobi.com/documentation/9.1/refman/environments.html
-            default_env = solver_opts['env']
-            del solver_opts['env']
+            default_env = solver_opts["env"]
+            del solver_opts["env"]
             model = grb.Model(env=default_env)
         else:
             # Create Gurobi model using default (unspecified) environment
             model = grb.Model()
 
         # Pass through verbosity
-        model.setParam('OutputFlag', verbose)
+        model.setParam("OutputFlag", verbose)
 
         # Add variables
         vtypes = {}
@@ -178,7 +178,7 @@ class GUROBI(QpSolver):
         elif warm_start:
             # Set the start value of Gurobi vars to user provided values.
             for idx in range(len(x_grb)):
-                x_grb[idx].start = data['init_value'][idx]
+                x_grb[idx].start = data["init_value"][idx]
 
         if A.shape[0] > 0:
             # We can pass all of A @ x == b at once, use stable API
@@ -196,28 +196,28 @@ class GUROBI(QpSolver):
         model.setMObjective(0.5 * P, q, 0.0)
 
         # Set parameters
-        model.setParam('QCPDual', True)
+        model.setParam("QCPDual", True)
         for key, value in solver_opts.items():
             # Ignore arguments unique to the CVXPY interface.
             if key not in self.INTERFACE_ARGS:
                 model.setParam(key, value)
 
-        if 'save_file' in solver_opts:
-            model.write(solver_opts['save_file'])
+        if "save_file" in solver_opts:
+            model.write(solver_opts["save_file"])
 
         # Solve problem
         results_dict = {}
         try:
             # Solve
             model.optimize()
-            if model.Status == 4 and solver_opts.get('reoptimize', False):
+            if model.Status == 4 and solver_opts.get("reoptimize", False):
                 # INF_OR_UNBD. Solve again to get a definitive answer.
-                model.setParam('DualReductions', 0)
+                model.setParam("DualReductions", 0)
                 model.optimize()
         except Exception:  # Error in the solution
-            results_dict['status'] = s.SOLVER_ERROR
+            results_dict["status"] = s.SOLVER_ERROR
 
-        results_dict['model'] = model
+        results_dict["model"] = model
 
         if solver_cache is not None:
             solver_cache[self.name()] = model

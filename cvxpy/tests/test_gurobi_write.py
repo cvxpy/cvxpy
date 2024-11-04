@@ -23,11 +23,11 @@ import cvxpy as cp
 from cvxpy.reductions.solvers.defines import INSTALLED_SOLVERS
 
 
-@unittest.skipUnless('GUROBI' in INSTALLED_SOLVERS, 'GUROBI is not installed.')
+@unittest.skipUnless("GUROBI" in INSTALLED_SOLVERS, "GUROBI is not installed.")
 def test_write(tmpdir):
     """Test the Gurobi model.write()."""
 
-    filename = 'gurobi_model.lp'
+    filename = "gurobi_model.lp"
     path = os.path.join(tmpdir, filename)
 
     m = 20

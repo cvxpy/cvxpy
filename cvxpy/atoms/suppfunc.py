@@ -28,9 +28,9 @@ class SuppFuncAtom(Atom):
 
     def validate_arguments(self) -> None:
         if self.args[0].is_complex():
-            raise ValueError('Arguments to SuppFuncAtom cannot be complex.')
+            raise ValueError("Arguments to SuppFuncAtom cannot be complex.")
         if not self.args[0].is_affine():
-            raise ValueError('Arguments to SuppFuncAtom must be affine.')
+            raise ValueError("Arguments to SuppFuncAtom must be affine.")
 
     def variables(self):
         varlist = self.args[0].variables()
@@ -108,14 +108,14 @@ class SuppFuncAtom(Atom):
         from cvxpy.problems.objective import Maximize
         from cvxpy.problems.problem import Problem
 
-        y_val = self.args[0].value.round(decimals=9).ravel(order='F')
-        x_flat = self._parent.x.flatten(order='F')
+        y_val = self.args[0].value.round(decimals=9).ravel(order="F")
+        x_flat = self._parent.x.flatten(order="F")
         cons = self._parent.constraints
         if len(cons) == 0:
             dummy = Variable()
             cons = [dummy == 1]
         prob = Problem(Maximize(y_val @ x_flat), cons)
-        val = prob.solve(solver='SCS', eps=1e-6)
+        val = prob.solve(solver="SCS", eps=1e-6)
         return val
 
     def _grad(self, values):
@@ -132,11 +132,11 @@ class SuppFuncAtom(Atom):
             # this means the support function is not finite at this input.
             return [None]
         else:
-            gradmat = sp.csc_matrix(gradval.ravel(order='F')).T
+            gradmat = sp.csc_matrix(gradval.ravel(order="F")).T
             return [gradmat]
 
     def __lt__(self, other):
-        raise NotImplementedError('Strict inequalities are not allowed.')
+        raise NotImplementedError("Strict inequalities are not allowed.")
 
     def __gt__(self, other):
-        raise NotImplementedError('Strict inequalities are not allowed.')
+        raise NotImplementedError("Strict inequalities are not allowed.")

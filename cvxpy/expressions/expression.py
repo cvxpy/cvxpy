@@ -107,7 +107,7 @@ __BINARY_EXPRESSION_UFUNCS__ = {
 }
 
 
-ExpressionLike = 'Expression | np.typing.ArrayLike'
+ExpressionLike = "Expression | np.typing.ArrayLike"
 
 
 class Expression(u.Canonical):
@@ -159,7 +159,7 @@ class Expression(u.Canonical):
 
     def __repr__(self) -> str:
         """Returns a string with information about the expression."""
-        return 'Expression(%s, %s, %s)' % (self.curvature, self.sign, self.shape)
+        return "Expression(%s, %s, %s)" % (self.curvature, self.sign, self.shape)
 
     @abc.abstractmethod
     def name(self) -> str:
@@ -316,7 +316,7 @@ class Expression(u.Canonical):
         return self.is_log_log_convex() or self.is_log_log_concave()
 
     @abc.abstractmethod
-    def is_dpp(self, context: str = 'dcp') -> bool:
+    def is_dpp(self, context: str = "dcp") -> bool:
         """The expression is a disciplined parameterized expression."""
         raise NotImplementedError()
 
@@ -448,17 +448,17 @@ class Expression(u.Canonical):
         """int : The number of dimensions in the expression's shape."""
         return len(self.shape)
 
-    def flatten(self, order: Literal['F', 'C', None] = None):
+    def flatten(self, order: Literal["F", "C", None] = None):
         """
         Vectorizes the expression.
 
         order: column-major ('F') or row-major ('C') order.
         """
         if order is None:
-            flatten_order_warning = DEFAULT_ORDER_DEPRECATION_MSG.replace('FUNC_NAME', 'flatten')
+            flatten_order_warning = DEFAULT_ORDER_DEPRECATION_MSG.replace("FUNC_NAME", "flatten")
             warnings.warn(flatten_order_warning, FutureWarning)
-            order = 'F'
-        assert order in ['F', 'C']
+            order = "F"
+        assert order in ["F", "C"]
         return cvxtypes.vec()(self, order)
 
     def is_scalar(self) -> bool:
@@ -501,7 +501,7 @@ class Expression(u.Canonical):
         else:
             return cvxtypes.conj()(self).T
 
-    def __pow__(self, power: float) -> 'Expression':
+    def __pow__(self, power: float) -> "Expression":
         """Raise expression to a power.
 
         Parameters
@@ -516,29 +516,29 @@ class Expression(u.Canonical):
         """
         return cvxtypes.power()(self, power)
 
-    def __rpow__(self, base: float) -> 'Expression':
+    def __rpow__(self, base: float) -> "Expression":
         raise NotImplementedError(
-            'CVXPY currently does not support variables '
-            'on the right side of **. Consider using the'
-            ' identity that a**x = cp.exp(cp.multiply(np'
-            '.log(a), x)).'
+            "CVXPY currently does not support variables "
+            "on the right side of **. Consider using the"
+            " identity that a**x = cp.exp(cp.multiply(np"
+            ".log(a), x))."
         )
 
     # Arithmetic operators.
     @staticmethod
-    def cast_to_const(expr: 'Expression'):
+    def cast_to_const(expr: "Expression"):
         """Converts a non-Expression to a Constant."""
         if isinstance(expr, list):
             for elem in expr:
                 if isinstance(elem, Expression):
                     raise ValueError(
-                        'The input must be a single CVXPY Expression, not a list. '
-                        'Combine Expressions using atoms such as bmat, hstack, and vstack.'
+                        "The input must be a single CVXPY Expression, not a list. "
+                        "Combine Expressions using atoms such as bmat, hstack, and vstack."
                     )
         return expr if isinstance(expr, Expression) else cvxtypes.constant()(expr)
 
     @staticmethod
-    def broadcast(lh_expr: 'Expression', rh_expr: 'Expression'):
+    def broadcast(lh_expr: "Expression", rh_expr: "Expression"):
         """Broacast the binary operator."""
         lh_expr = Expression.cast_to_const(lh_expr)
         rh_expr = Expression.cast_to_const(rh_expr)
@@ -563,7 +563,7 @@ class Expression(u.Canonical):
         return lh_expr, rh_expr
 
     @_cast_other
-    def __add__(self, other: ExpressionLike) -> 'Expression':
+    def __add__(self, other: ExpressionLike) -> "Expression":
         """Expression : Sum two expressions."""
         if isinstance(other, cvxtypes.constant()) and other.is_zero():
             return self
@@ -571,24 +571,24 @@ class Expression(u.Canonical):
         return cvxtypes.add_expr()([self, other])
 
     @_cast_other
-    def __radd__(self, other: ExpressionLike) -> 'Expression':
+    def __radd__(self, other: ExpressionLike) -> "Expression":
         """Expression : Sum two expressions."""
         if isinstance(other, cvxtypes.constant()) and other.is_zero():
             return self
         return other + self
 
     @_cast_other
-    def __sub__(self, other: ExpressionLike) -> 'Expression':
+    def __sub__(self, other: ExpressionLike) -> "Expression":
         """Expression : The difference of two expressions."""
         return self + -other
 
     @_cast_other
-    def __rsub__(self, other: ExpressionLike) -> 'Expression':
+    def __rsub__(self, other: ExpressionLike) -> "Expression":
         """Expression : The difference of two expressions."""
         return other - self
 
     @_cast_other
-    def __mul__(self, other: ExpressionLike) -> 'Expression':
+    def __mul__(self, other: ExpressionLike) -> "Expression":
         """Expression : The product of two expressions."""
         if self.shape == () or other.shape == ():
             # Use one argument to apply a scaling to the remaining argument.
@@ -607,12 +607,12 @@ class Expression(u.Canonical):
             # don't check for that here.
             if not (self.is_constant() or other.is_constant()):
                 if error.warnings_enabled():
-                    warnings.warn('Forming a nonconvex expression.')
+                    warnings.warn("Forming a nonconvex expression.")
             # Because we want to discourage using ``*`` to call matmul, we
             # raise a warning to the user.
             with warnings.catch_warnings():
                 global __STAR_MATMUL_COUNT__
-                warnings.simplefilter('always', UserWarning, append=True)
+                warnings.simplefilter("always", UserWarning, append=True)
                 msg = __STAR_MATMUL_WARNING__ % __STAR_MATMUL_COUNT__
                 warnings.warn(msg, UserWarning)
                 warnings.warn(msg, DeprecationWarning)
@@ -620,7 +620,7 @@ class Expression(u.Canonical):
             return cvxtypes.matmul_expr()(self, other)
 
     @_cast_other
-    def __matmul__(self, other: ExpressionLike) -> 'Expression':
+    def __matmul__(self, other: ExpressionLike) -> "Expression":
         """Expression : Matrix multiplication of two expressions."""
         if self.shape == () or other.shape == ():
             raise ValueError("Scalar operands are not allowed, use '*' instead")
@@ -637,38 +637,38 @@ class Expression(u.Canonical):
         return cvxtypes.matmul_expr()(self, other)
 
     @_cast_other
-    def __truediv__(self, other: ExpressionLike) -> 'Expression':
+    def __truediv__(self, other: ExpressionLike) -> "Expression":
         """Expression : One expression divided by another."""
         return self.__div__(other)
 
     @_cast_other
-    def __div__(self, other: ExpressionLike) -> 'Expression':
+    def __div__(self, other: ExpressionLike) -> "Expression":
         """Expression : One expression divided by another."""
         self, other = self.broadcast(self, other)
         if (self.is_scalar() or other.is_scalar()) or other.shape == self.shape:
             return cvxtypes.div_expr()(self, other)
         else:
             raise ValueError(
-                'Incompatible shapes for division (%s / %s)' % (self.shape, other.shape)
+                "Incompatible shapes for division (%s / %s)" % (self.shape, other.shape)
             )
 
     @_cast_other
-    def __rdiv__(self, other: ExpressionLike) -> 'Expression':
+    def __rdiv__(self, other: ExpressionLike) -> "Expression":
         """Expression : Called for Number / Expression."""
         return other / self
 
     @_cast_other
-    def __rtruediv__(self, other: ExpressionLike) -> 'Expression':
+    def __rtruediv__(self, other: ExpressionLike) -> "Expression":
         """Expression : Called for Number / Expression."""
         return other / self
 
     @_cast_other
-    def __rmul__(self, other: ExpressionLike) -> 'Expression':
+    def __rmul__(self, other: ExpressionLike) -> "Expression":
         """Expression : Called for Number * Expression."""
         return other * self
 
     @_cast_other
-    def __rmatmul__(self, other: ExpressionLike) -> 'Expression':
+    def __rmatmul__(self, other: ExpressionLike) -> "Expression":
         """Expression : Called for matrix @ Expression."""
         if self.shape == () or other.shape == ():
             raise ValueError("Scalar operands are not allowed, use '*' instead")
@@ -714,14 +714,14 @@ class Expression(u.Canonical):
         return Inequality(self, other)
 
     def __lt__(self, other: ExpressionLike):
-        raise NotImplementedError('Strict inequalities are not allowed.')
+        raise NotImplementedError("Strict inequalities are not allowed.")
 
     @_cast_other
     def __ge__(self, other: ExpressionLike):
         return Inequality(other, self)
 
     def __gt__(self, other: ExpressionLike):
-        raise NotImplementedError('Strict inequalities are not allowed.')
+        raise NotImplementedError("Strict inequalities are not allowed.")
 
     def __array_ufunc__(self, ufunc, method, *args, **kwargs):
         try:
@@ -729,12 +729,12 @@ class Expression(u.Canonical):
             if kwargs == {} and len(args) == 2 and args[1] is self:
                 return ufunc_handler(self, args[0])
             elif (
-                kwargs.keys() == {'out'}
+                kwargs.keys() == {"out"}
                 and len(args) == 2
                 and args[1] is self
-                and isinstance(kwargs['out'], tuple)
-                and len(kwargs['out']) == 1
-                and args[0] is kwargs['out'][0]
+                and isinstance(kwargs["out"], tuple)
+                and len(kwargs["out"]) == 1
+                and args[0] is kwargs["out"][0]
             ):
                 raise RuntimeError(__INPLACE_MUTATION_ERROR__)
 
@@ -810,14 +810,14 @@ class Expression(u.Canonical):
 
         return ptp(self, axis, keepdims)
 
-    def reshape(self, shape, order: Literal['F', 'C', None] = None):
+    def reshape(self, shape, order: Literal["F", "C", None] = None):
         """
         Equivalent to `cp.reshape(self, shape, order)`.
         """
         if order is None:
-            reshape_order_warning = DEFAULT_ORDER_DEPRECATION_MSG.replace('FUNC_NAME', 'reshape')
+            reshape_order_warning = DEFAULT_ORDER_DEPRECATION_MSG.replace("FUNC_NAME", "reshape")
             warnings.warn(reshape_order_warning, FutureWarning)
-            order = 'F'
+            order = "F"
         from cvxpy import reshape
 
         return reshape(self, shape, order)

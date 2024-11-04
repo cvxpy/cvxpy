@@ -25,8 +25,8 @@ def mulexpression_canon(expr, args):
     lhs = args[0]
     rhs = args[1]
     lhs_shape, rhs_shape, _ = mul_shapes_promote(lhs.shape, rhs.shape)
-    lhs = reshape(lhs, lhs_shape, order='F')
-    rhs = reshape(rhs, rhs_shape, order='F')
+    lhs = reshape(lhs, lhs_shape, order="F")
+    rhs = reshape(rhs, rhs_shape, order="F")
     rows = []
     # TODO(akshayka): Parallelize this for large matrices.
     for i in range(lhs.shape[0]):

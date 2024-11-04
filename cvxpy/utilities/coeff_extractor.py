@@ -138,7 +138,7 @@ class CoeffExtractor:
                 P = quad_forms[var_id][2].P
                 assert (
                     P.value is not None
-                ), 'P matrix must be instantiated before calling extract_quadratic_coeffs.'
+                ), "P matrix must be instantiated before calling extract_quadratic_coeffs."
                 if sp.issparse(P) and not isinstance(P, sp.coo_matrix):
                     P = P.value.tocoo()
                 else:
@@ -153,7 +153,7 @@ class CoeffExtractor:
                     data = P.data[:, None] * c_part[:, nonzero_idxs]
                     param_idxs = np.arange(num_params)[nonzero_idxs]
                     P_tup = TensorRepresentation(
-                        data.flatten(order='F'),
+                        data.flatten(order="F"),
                         np.tile(P.row, len(param_idxs)),
                         np.tile(P.col, len(param_idxs)),
                         np.repeat(param_idxs, len(P.data)),
@@ -165,7 +165,7 @@ class CoeffExtractor:
                     # variable.
                     assert (
                         P.col == P.row
-                    ).all(), 'Only diagonal P matrices are supported for multiple quad forms.'
+                    ).all(), "Only diagonal P matrices are supported for multiple quad forms."
 
                     scaled_c_part = P @ c_part
                     paramx_idx_row, param_idx_col = np.nonzero(scaled_c_part)
@@ -175,20 +175,20 @@ class CoeffExtractor:
                     )
 
                 if orig_id in coeffs:
-                    if 'P' in coeffs[orig_id]:
-                        coeffs[orig_id]['P'] = coeffs[orig_id]['P'] + P_tup
+                    if "P" in coeffs[orig_id]:
+                        coeffs[orig_id]["P"] = coeffs[orig_id]["P"] + P_tup
                     else:
-                        coeffs[orig_id]['P'] = P_tup
+                        coeffs[orig_id]["P"] = P_tup
                 else:
                     # No q for dummy variables.
                     coeffs[orig_id] = dict()
-                    coeffs[orig_id]['P'] = P_tup
+                    coeffs[orig_id]["P"] = P_tup
                     shape = (P.shape[0], c.shape[1])
                     if num_params == 1:
                         # Fast path for no parameters, keep q dense.
-                        coeffs[orig_id]['q'] = np.zeros(shape)
+                        coeffs[orig_id]["q"] = np.zeros(shape)
                     else:
-                        coeffs[orig_id]['q'] = sp.coo_matrix(([], ([], [])), shape=shape)
+                        coeffs[orig_id]["q"] = sp.coo_matrix(([], ([], [])), shape=shape)
             else:
                 # This was a true variable, so it can only have a q term.
                 var_offset = affine_id_map[var.id][0]
@@ -196,16 +196,16 @@ class CoeffExtractor:
                 if var.id in coeffs:
                     # Fast path for no parameters, q is dense and so is c.
                     if num_params == 1:
-                        coeffs[var.id]['q'] += c[var_offset : var_offset + var_size, :]
+                        coeffs[var.id]["q"] += c[var_offset : var_offset + var_size, :]
                     else:
-                        coeffs[var.id]['q'] += param_coeffs[var_offset : var_offset + var_size, :]
+                        coeffs[var.id]["q"] += param_coeffs[var_offset : var_offset + var_size, :]
                 else:
                     coeffs[var.id] = dict()
                     # Fast path for no parameters, q is dense and so is c.
                     if num_params == 1:
-                        coeffs[var.id]['q'] = c[var_offset : var_offset + var_size, :]
+                        coeffs[var.id]["q"] = c[var_offset : var_offset + var_size, :]
                     else:
-                        coeffs[var.id]['q'] = param_coeffs[var_offset : var_offset + var_size, :]
+                        coeffs[var.id]["q"] = param_coeffs[var_offset : var_offset + var_size, :]
         return coeffs, constant
 
     def quad_form(self, expr):
@@ -236,13 +236,13 @@ class CoeffExtractor:
         for var_id, _ in offsets:
             shape = self.var_shapes[var_id]
             size = np.prod(shape, dtype=int)
-            if var_id in coeffs and 'P' in coeffs[var_id]:
-                P = coeffs[var_id]['P']
+            if var_id in coeffs and "P" in coeffs[var_id]:
+                P = coeffs[var_id]["P"]
                 P_entries += P.data.size
             else:
                 P = TensorRepresentation.empty_with_shape((size, size))
-            if var_id in coeffs and 'q' in coeffs[var_id]:
-                q = coeffs[var_id]['q']
+            if var_id in coeffs and "q" in coeffs[var_id]:
+                q = coeffs[var_id]["q"]
             else:
                 # Fast path for no parameters.
                 if num_params == 1:
@@ -255,7 +255,7 @@ class CoeffExtractor:
             P_height += size
 
         if P_height != self.x_length:
-            raise ValueError('Resulting quadratic form does not have ' 'appropriate dimensions')
+            raise ValueError("Resulting quadratic form does not have " "appropriate dimensions")
 
         # Stitch together Ps and qs and constant.
         P = self.merge_P_list(P_list, P_height, num_params)

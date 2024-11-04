@@ -57,7 +57,7 @@ class von_neumann_entr(Atom):
 
     def numeric(self, values):
         N = values[0]
-        if hasattr(N, 'value'):
+        if hasattr(N, "value"):
             N = N.value  # assume this is an ndarray
         w = LA.eigvalsh(N)
         val = np.sum(entr(w))
@@ -68,7 +68,7 @@ class von_neumann_entr(Atom):
         N = self.args[0]
         if N.size > 1:
             if N.ndim != 2 or N.shape[0] != N.shape[1]:
-                raise ValueError('Argument must be a square matrix.')
+                raise ValueError("Argument must be a square matrix.")
 
     def sign_from_args(self) -> Tuple[bool, bool]:
         """Returns sign (is positive, is negative) of the expression."""

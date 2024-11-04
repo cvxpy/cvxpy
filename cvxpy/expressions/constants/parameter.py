@@ -58,7 +58,7 @@ class Parameter(Leaf):
         else:
             self.id = id
         if name is None:
-            self._name = f'{s.PARAM_PREFIX}{self.id}'
+            self._name = f"{s.PARAM_PREFIX}{self.id}"
         else:
             self._name = name
         # Initialize with value if provided.
@@ -118,6 +118,6 @@ class Parameter(Leaf):
         """String to recreate the object."""
         attr_str = self._get_attr_str()
         if len(attr_str) > 0:
-            return 'Parameter(%s%s)' % (self.shape, attr_str)
+            return "Parameter(%s%s)" % (self.shape, attr_str)
         else:
-            return 'Parameter(%s)' % (self.shape,)
+            return "Parameter(%s)" % (self.shape,)

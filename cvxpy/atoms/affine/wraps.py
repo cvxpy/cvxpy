@@ -87,9 +87,9 @@ class psd_wrap(Wrap):
         arg = self.args[0]
         ndim_test = len(arg.shape) == 2
         if not ndim_test:
-            raise ValueError('The input must be a square matrix.')
+            raise ValueError("The input must be a square matrix.")
         elif arg.shape[0] != arg.shape[1]:
-            raise ValueError('The input must be a square matrix.')
+            raise ValueError("The input must be a square matrix.")
 
     def is_psd(self) -> bool:
         return True
@@ -124,9 +124,9 @@ class hermitian_wrap(Wrap):
         arg = self.args[0]
         ndim_test = len(arg.shape) == 2
         if not ndim_test:
-            raise ValueError('The input must be a square matrix.')
+            raise ValueError("The input must be a square matrix.")
         elif arg.shape[0] != arg.shape[1]:
-            raise ValueError('The input must be a square matrix.')
+            raise ValueError("The input must be a square matrix.")
 
     def is_hermitian(self) -> bool:
         return True
@@ -145,8 +145,8 @@ class skew_symmetric_wrap(Wrap):
 def validate_real_square(arg):
     ndim_test = len(arg.shape) == 2
     if not ndim_test:
-        raise ValueError('The input must be a square matrix.')
+        raise ValueError("The input must be a square matrix.")
     elif arg.shape[0] != arg.shape[1]:
-        raise ValueError('The input must be a square matrix.')
+        raise ValueError("The input must be a square matrix.")
     elif not arg.is_real():
-        raise ValueError('The input must be a real matrix.')
+        raise ValueError("The input must be a real matrix.")

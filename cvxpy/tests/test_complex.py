@@ -44,14 +44,14 @@ class TestComplex(BaseTest):
 
         with self.assertRaises(Exception) as cm:
             x.value = np.array([1j, 0.0])
-        self.assertEqual(str(cm.exception), 'Variable value must be real.')
+        self.assertEqual(str(cm.exception), "Variable value must be real.")
 
         y.value = np.array([1.0, 0.0])
         y.value = np.array([1j, 0.0])
 
         with self.assertRaises(Exception) as cm:
             z.value = np.array([1.0, 0.0])
-        self.assertEqual(str(cm.exception), 'Variable value must be imaginary.')
+        self.assertEqual(str(cm.exception), "Variable value must be imaginary.")
 
     def test_parameter(self) -> None:
         """Test the parameter class."""
@@ -68,14 +68,14 @@ class TestComplex(BaseTest):
 
         with self.assertRaises(Exception) as cm:
             x.value = np.array([1j, 0.0])
-        self.assertEqual(str(cm.exception), 'Parameter value must be real.')
+        self.assertEqual(str(cm.exception), "Parameter value must be real.")
 
         y.value = np.array([1.0, 0.0])
         y.value = np.array([1j, 0.0])
 
         with self.assertRaises(Exception) as cm:
             z.value = np.array([1.0, 0.0])
-        self.assertEqual(str(cm.exception), 'Parameter value must be imaginary.')
+        self.assertEqual(str(cm.exception), "Parameter value must be imaginary.")
 
     def test_constant(self) -> None:
         """Test the parameter class."""
@@ -176,30 +176,30 @@ class TestComplex(BaseTest):
         x = Variable()
         expr = cp.imag(x + 1j * x)
         prob = Problem(Minimize(expr), [x >= 0])
-        result = prob.solve(solver='SCS', eps=1e-6)
+        result = prob.solve(solver="SCS", eps=1e-6)
         self.assertAlmostEqual(result, 0)
         self.assertAlmostEqual(x.value, 0)
 
         x = Variable(imag=True)
         expr = 1j * x
         prob = Problem(Minimize(expr), [cp.imag(x) <= 1])
-        result = prob.solve(solver='SCS', eps=1e-6)
+        result = prob.solve(solver="SCS", eps=1e-6)
         self.assertAlmostEqual(result, -1)
         self.assertAlmostEqual(x.value, 1j)
 
         x = Variable(2)
         expr = x * 1j
         prob = Problem(Minimize(expr[0] * 1j + expr[1] * 1j), [cp.real(x + 1j) >= 1])
-        result = prob.solve(solver='SCS', eps=1e-6)
+        result = prob.solve(solver="SCS", eps=1e-6)
         self.assertAlmostEqual(result, -np.inf)
         prob = Problem(Minimize(expr[0] * 1j + expr[1] * 1j), [cp.real(x + 1j) <= 1])
-        result = prob.solve(solver='SCS', eps=1e-6)
+        result = prob.solve(solver="SCS", eps=1e-6)
         self.assertAlmostEqual(result, -2)
         self.assertItemsAlmostEqual(x.value, [1, 1])
         prob = Problem(
             Minimize(expr[0] * 1j + expr[1] * 1j), [cp.real(x + 1j) >= 1, cp.conj(x) <= 0]
         )
-        result = prob.solve(solver='SCS', eps=1e-6)
+        result = prob.solve(solver="SCS", eps=1e-6)
         self.assertAlmostEqual(result, np.inf)
 
         x = Variable((2, 2))
@@ -208,7 +208,7 @@ class TestComplex(BaseTest):
         prob = Problem(
             Minimize(cp.sum(cp.imag(cp.conj(expr)))), [x == 0, cp.real(y) == 0, cp.imag(y) <= 1]
         )
-        result = prob.solve(solver='SCS', eps=1e-6)
+        result = prob.solve(solver="SCS", eps=1e-6)
         self.assertAlmostEqual(result, -6)
         self.assertItemsAlmostEqual(y.value, 1j * np.ones((3, 2)))
         self.assertItemsAlmostEqual(x.value, np.zeros((2, 2)))
@@ -219,7 +219,7 @@ class TestComplex(BaseTest):
         prob = Problem(
             Minimize(cp.sum(cp.imag(expr.H))), [x == 0, cp.real(y) == 0, cp.imag(y) <= 1]
         )
-        result = prob.solve(solver='SCS', eps=1e-6)
+        result = prob.solve(solver="SCS", eps=1e-6)
         self.assertAlmostEqual(result, -6)
         self.assertItemsAlmostEqual(y.value, 1j * np.ones((3, 2)))
         self.assertItemsAlmostEqual(x.value, np.zeros((2, 2)))
@@ -229,7 +229,7 @@ class TestComplex(BaseTest):
         p = cp.Parameter(imag=True, value=1j)
         x = Variable(2, complex=True)
         prob = Problem(cp.Maximize(cp.sum(cp.imag(x) + cp.real(x))), [cp.abs(p * x) <= 2])
-        result = prob.solve(solver='SCS', eps=1e-6)
+        result = prob.solve(solver="SCS", eps=1e-6)
         self.assertAlmostEqual(result, 4 * np.sqrt(2))
         val = np.ones(2) * np.sqrt(2)
         self.assertItemsAlmostEqual(x.value, val + 1j * val)
@@ -252,19 +252,19 @@ class TestComplex(BaseTest):
         constraints = [cp.trace(cp.real(Z)) == 1]
         obj = cp.Minimize(0)
         prob = cp.Problem(obj, constraints)
-        prob.solve(solver='SCS')
+        prob.solve(solver="SCS")
 
         Z = Variable((2, 2), imag=True)
         obj = cp.Minimize(cp.trace(cp.real(Z)))
         prob = cp.Problem(obj, constraints)
-        result = prob.solve(solver='SCS')
+        result = prob.solve(solver="SCS")
         self.assertAlmostEqual(result, 0)
 
     def test_abs(self) -> None:
         """Test with absolute value."""
         x = Variable(2, complex=True)
         prob = Problem(cp.Maximize(cp.sum(cp.imag(x) + cp.real(x))), [cp.abs(x) <= 2])
-        result = prob.solve(solver='SCS', eps=1e-6)
+        result = prob.solve(solver="SCS", eps=1e-6)
         self.assertAlmostEqual(result, 4 * np.sqrt(2))
         val = np.ones(2) * np.sqrt(2)
         self.assertItemsAlmostEqual(x.value, val + 1j * val)
@@ -274,7 +274,7 @@ class TestComplex(BaseTest):
         x = Variable(2, complex=True)
         t = Variable()
         prob = Problem(cp.Minimize(t), [cp.SOC(t, x), x == 2j])
-        result = prob.solve(solver='SCS', eps=1e-6)
+        result = prob.solve(solver="SCS", eps=1e-6)
         self.assertAlmostEqual(result, 2 * np.sqrt(2))
         self.assertItemsAlmostEqual(x.value, [2j, 2j])
 
@@ -303,12 +303,12 @@ class TestComplex(BaseTest):
         sigma_max = np.linalg.norm(P, 2)
         X = Variable((2, 4), complex=True)
         prob = Problem(Minimize(cp.norm(X, 2)), [X == P])
-        result = prob.solve(solver='SCS')
+        result = prob.solve(solver="SCS")
         self.assertAlmostEqual(result, sigma_max, places=1)
 
-        norm_nuc = np.linalg.norm(P, 'nuc')
+        norm_nuc = np.linalg.norm(P, "nuc")
         X = Variable((2, 4), complex=True)
-        prob = Problem(Minimize(cp.norm(X, 'nuc')), [X == P])
+        prob = Problem(Minimize(cp.norm(X, "nuc")), [X == P])
         result = prob.solve(solver=cp.SCS, eps=1e-4)
         self.assertAlmostEqual(result, norm_nuc, places=1)
 
@@ -376,7 +376,7 @@ class TestComplex(BaseTest):
         x = Variable(3, complex=False)
         value = cp.quad_form(b, P).value
         prob = Problem(cp.Minimize(cp.quad_form(x, P)), [x == b])
-        result = prob.solve(solver='CLARABEL')
+        result = prob.solve(solver="CLARABEL")
         self.assertAlmostEqual(result, value)
 
         # Solve a problem with complex variable
@@ -384,7 +384,7 @@ class TestComplex(BaseTest):
         x = Variable(3, complex=True)
         value = cp.quad_form(b, P).value
         prob = Problem(cp.Minimize(cp.quad_form(x, P)), [x == b])
-        result = prob.solve(solver='CLARABEL')
+        result = prob.solve(solver="CLARABEL")
         normalization = max(abs(result), abs(value))
         self.assertAlmostEqual(result / normalization, value / normalization, places=5)
 
@@ -394,7 +394,7 @@ class TestComplex(BaseTest):
         value = cp.quad_form(b, P).value
         expr = cp.quad_form(x, P)
         prob = Problem(cp.Minimize(expr), [x == b])
-        result = prob.solve(solver='CLARABEL')
+        result = prob.solve(solver="CLARABEL")
         normalization = max(abs(result), abs(value))
         self.assertAlmostEqual(result / normalization, value / normalization)
 
@@ -451,14 +451,14 @@ class TestComplex(BaseTest):
         prob = Problem(
             cp.Minimize(cp.imag(X[1, 0])), [X[0, 0] == 2, X[1, 1] == 3, X[0, 1] == 1 + 1j]
         )
-        prob.solve(solver='SCS')
+        prob.solve(solver="SCS")
         self.assertItemsAlmostEqual(X.value, [2, 1 - 1j, 1 + 1j, 3])
 
     def test_psd(self) -> None:
         """Test Hermitian variables."""
         X = Variable((2, 2), hermitian=True)
         prob = Problem(cp.Minimize(cp.imag(X[1, 0])), [X >> 0, X[0, 0] == -1])
-        prob.solve(solver='SCS')
+        prob.solve(solver="SCS")
         assert prob.status is cp.INFEASIBLE
 
     def test_promote(self) -> None:
@@ -467,7 +467,7 @@ class TestComplex(BaseTest):
         obj = cp.Maximize(cp.real(cp.sum(v * np.ones((2, 2)))))
         con = [cp.norm(v) <= 1]
         prob = cp.Problem(obj, con)
-        result = prob.solve(solver='CLARABEL')
+        result = prob.solve(solver="CLARABEL")
         self.assertAlmostEqual(result, 4.0)
 
     def test_sparse(self) -> None:
@@ -484,7 +484,7 @@ class TestComplex(BaseTest):
         obj = cp.Maximize(0)
         cons = [A @ rho == Id]
         prob = cp.Problem(obj, cons)
-        prob.solve(solver='SCS')
+        prob.solve(solver="SCS")
         rho_sparse = rho.value
         # infeasible here, which is wrong!
 
@@ -494,7 +494,7 @@ class TestComplex(BaseTest):
         obj = cp.Maximize(0)
         cons = [A.toarray() @ rho == Id]
         prob = cp.Problem(obj, cons)
-        prob.solve(solver='SCS')
+        prob.solve(solver="SCS")
         self.assertItemsAlmostEqual(rho.value, rho_sparse)
 
     def test_special_idx(self) -> None:
@@ -507,37 +507,37 @@ class TestComplex(BaseTest):
         constraints = [f >> 0]
         for k in range(1, n):
             indices = [(i * n) + i - (n - k) for i in range(n - k, n)]
-            constraints += [cp.sum(cp.vec(f, order='F')[indices]) == c[n - k]]
+            constraints += [cp.sum(cp.vec(f, order="F")[indices]) == c[n - k]]
         # Form objective.
         obj = cp.Maximize(c[0] - cp.real(cp.trace(f)))
         # Form and solve problem.
         prob = cp.Problem(obj, constraints)
-        prob.solve(solver='SCS')
+        prob.solve(solver="SCS")
 
     def test_validation(self) -> None:
         """Test that complex arguments are rejected."""
         x = Variable(complex=True)
         with self.assertRaises(Exception) as cm:
             (x >= 0)
-        self.assertEqual(str(cm.exception), 'Inequality constraints cannot be complex.')
+        self.assertEqual(str(cm.exception), "Inequality constraints cannot be complex.")
 
         with self.assertRaises(Exception) as cm:
             cp.quad_over_lin(x, x)
         self.assertEqual(
-            str(cm.exception), 'The second argument to quad_over_lin cannot be complex.'
+            str(cm.exception), "The second argument to quad_over_lin cannot be complex."
         )
 
         with self.assertRaises(Exception) as cm:
             cp.sum_largest(x, 2)
-        self.assertEqual(str(cm.exception), 'Arguments to sum_largest cannot be complex.')
+        self.assertEqual(str(cm.exception), "Arguments to sum_largest cannot be complex.")
 
         with self.assertRaises(Exception) as cm:
             cp.dotsort(x, 2)
-        self.assertEqual(str(cm.exception), 'Arguments to dotsort cannot be complex.')
+        self.assertEqual(str(cm.exception), "Arguments to dotsort cannot be complex.")
 
         with self.assertRaises(Exception) as cm:
             cp.dotsort(cp.Variable(2), np.array([1 + 2j]))
-        self.assertEqual(str(cm.exception), 'Arguments to dotsort cannot be complex.')
+        self.assertEqual(str(cm.exception), "Arguments to dotsort cannot be complex.")
 
         x = Variable(2, complex=True)
         for atom in [
@@ -555,7 +555,7 @@ class TestComplex(BaseTest):
             with self.assertRaises(Exception) as cm:
                 print(name)
                 atom(x)
-            self.assertEqual(str(cm.exception), 'Arguments to %s cannot be complex.' % name)
+            self.assertEqual(str(cm.exception), "Arguments to %s cannot be complex." % name)
 
         x = Variable(2, complex=True)
         for atom in [cp.maximum, cp.kl_div]:
@@ -563,19 +563,19 @@ class TestComplex(BaseTest):
             with self.assertRaises(Exception) as cm:
                 print(name)
                 atom(x, x)
-            self.assertEqual(str(cm.exception), 'Arguments to %s cannot be complex.' % name)
+            self.assertEqual(str(cm.exception), "Arguments to %s cannot be complex." % name)
 
         x = Variable(2, complex=True)
         for atom in [cp.inv_pos, cp.sqrt, lambda x: cp.power(x, 0.2)]:
             with self.assertRaises(Exception) as cm:
                 atom(x)
-            self.assertEqual(str(cm.exception), 'Arguments to power cannot be complex.')
+            self.assertEqual(str(cm.exception), "Arguments to power cannot be complex.")
 
         x = Variable(2, complex=True)
         for atom in [cp.harmonic_mean, lambda x: cp.pnorm(x, 0.2)]:
             with self.assertRaises(Exception) as cm:
                 atom(x)
-            self.assertEqual(str(cm.exception), 'pnorm(x, p) cannot have x complex for p < 1.')
+            self.assertEqual(str(cm.exception), "pnorm(x, p) cannot have x complex for p < 1.")
 
     def test_diag(self) -> None:
         """Test diag of mat, and of vector."""
@@ -583,7 +583,7 @@ class TestComplex(BaseTest):
         obj = cp.Maximize(cp.trace(cp.real(X)))
         cons = [cp.diag(X) == 1]
         prob = cp.Problem(obj, cons)
-        result = prob.solve(solver='SCS')
+        result = prob.solve(solver="SCS")
         self.assertAlmostEqual(result, 2)
 
         x = cp.Variable(2, complex=True)
@@ -591,7 +591,7 @@ class TestComplex(BaseTest):
         obj = cp.Maximize(cp.trace(cp.real(X)))
         cons = [cp.diag(X) == 1]
         prob = cp.Problem(obj, cons)
-        result = prob.solve(solver='SCS')
+        result = prob.solve(solver="SCS")
         self.assertAlmostEqual(result, 2)
 
     def test_complex_qp(self) -> None:
@@ -604,12 +604,12 @@ class TestComplex(BaseTest):
 
         objective = cp.Minimize(cp.sum_squares(A0 * Z + A1 @ X - B))
         prob = cp.Problem(objective)
-        prob.solve(solver='SCS')
+        prob.solve(solver="SCS")
         self.assertEqual(prob.status, cp.OPTIMAL)
 
         constraints = [X >= 0]
         prob = cp.Problem(objective, constraints)
-        prob.solve(solver='SCS')
+        prob.solve(solver="SCS")
         self.assertEqual(prob.status, cp.OPTIMAL)
         assert constraints[0].dual_value is not None
 
@@ -618,12 +618,12 @@ class TestComplex(BaseTest):
         x = cp.Variable(2, complex=True)
         P1 = np.eye(2)
         P2 = np.array([[1 + 0j, 0 + 0j], [0 - 0j, 1 + 0j]])
-        print('P1 is real:', cp.quad_form(x, P1).curvature)
-        print('P2 is complex:', cp.quad_form(x, P2).curvature)
+        print("P1 is real:", cp.quad_form(x, P1).curvature)
+        print("P2 is complex:", cp.quad_form(x, P2).curvature)
         assert cp.quad_form(x, P2).is_dcp()
 
     @pytest.mark.skipif(
-        'HIGHS' not in INSTALLED_MI_SOLVERS, reason='HiGHS solver is not installed.'
+        "HIGHS" not in INSTALLED_MI_SOLVERS, reason="HiGHS solver is not installed."
     )
     def test_bool(self) -> None:
         # The purpose of this test is to make sure

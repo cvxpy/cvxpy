@@ -70,7 +70,7 @@ class eye_minus_inv(Atom):
         super(eye_minus_inv, self).__init__(X)
         if len(X.shape) != 2 or X.shape[0] != X.shape[1]:
             raise ValueError(
-                'The argument to `eye_minus_inv` must be a ' 'square matrix, received ', X
+                "The argument to `eye_minus_inv` must be a " "square matrix, received ", X
             )
         self.args[0] = X
 
@@ -78,7 +78,7 @@ class eye_minus_inv(Atom):
         return np.linalg.inv(np.eye(self.args[0].shape[0]) - values[0])
 
     def name(self) -> str:
-        return '%s(%s)' % (self.__class__.__name__, self.args[0])
+        return "%s(%s)" % (self.__class__.__name__, self.args[0])
 
     def shape_from_args(self) -> Tuple[int, ...]:
         """Returns the (row, col) shape of the expression."""

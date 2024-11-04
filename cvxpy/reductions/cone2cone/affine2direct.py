@@ -26,15 +26,15 @@ from cvxpy.constraints.second_order import SOC as SOC_obj
 from cvxpy.constraints.zero import Zero as Zero_obj
 from cvxpy.reductions.solution import Solution
 
-FREE = 'fr'
-ZERO = '0'
-NONNEG = '+'
-EXP = 'e'
-DUAL_EXP = 'de'
-SOC = 'q'
-PSD = 's'
-POW3D = 'pp3'
-DUAL_POW3D = 'dp3'
+FREE = "fr"
+ZERO = "0"
+NONNEG = "+"
+EXP = "e"
+DUAL_EXP = "de"
+SOC = "q"
+PSD = "s"
+POW3D = "pp3"
+DUAL_POW3D = "dp3"
 
 
 class Dualize:
@@ -104,13 +104,13 @@ class Dualize:
             DUAL_EXP: Kp.exp,  # number of length-3 blocks of dual exp cone variables.
             DUAL_POW3D: Kp.p3d,  # scale parameters for dual 3d power cones
         }
-        data = {s.A: A.T, s.B: c, s.C: -b, 'K_dir': Kd, 'dualized': True}
+        data = {s.A: A.T, s.B: c, s.C: -b, "K_dir": Kd, "dualized": True}
         inv_data = {
             s.OBJ_OFFSET: d,
-            'constr_map': problem.constr_map,
-            'x_id': problem.x.id,
-            'K_dir': Kd,
-            'dualized': True,
+            "constr_map": problem.constr_map,
+            "x_id": problem.x.id,
+            "K_dir": Kd,
+            "dualized": True,
         }
         return data, inv_data
 
@@ -163,10 +163,10 @@ class Dualize:
         primal_vars, dual_vars = None, None
         if status in s.SOLUTION_PRESENT:
             opt_val = solution.opt_val + inv_data[s.OBJ_OFFSET]
-            primal_vars = {inv_data['x_id']: solution.dual_vars[s.EQ_DUAL]}
+            primal_vars = {inv_data["x_id"]: solution.dual_vars[s.EQ_DUAL]}
             dual_vars = dict()
             direct_prims = solution.primal_vars
-            constr_map = inv_data['constr_map']
+            constr_map = inv_data["constr_map"]
             i = 0
             for con in constr_map[Zero_obj]:
                 dv = direct_prims[FREE][i : i + con.size]
@@ -362,7 +362,7 @@ class Slacks:
             A_slk = sp.sparse.vstack(tuple(A_slk))
             eye = sp.sparse.eye(total_slack)
             if A_aff:
-                A_aff = sp.sparse.vstack(tuple(A_aff), format='csr')
+                A_aff = sp.sparse.vstack(tuple(A_aff), format="csr")
                 G = sp.sparse.bmat([[A_slk, eye], [A_aff, None]])
                 h = np.concatenate(b_slk + b_aff)  # concatenate lists, then turn to vector
             else:
@@ -371,7 +371,7 @@ class Slacks:
             f = np.concatenate((c, np.zeros(total_slack)))
         elif A_aff:
             # No slack variables were introduced.
-            G = sp.sparse.vstack(tuple(A_aff), format='csr')
+            G = sp.sparse.vstack(tuple(A_aff), format="csr")
             h = np.concatenate(b_aff)
             f = c
         else:
@@ -382,13 +382,13 @@ class Slacks:
         data[s.C] = f
         data[s.BOOL_IDX] = [int(t[0]) for t in prob.x.boolean_idx]
         data[s.INT_IDX] = [int(t[0]) for t in prob.x.integer_idx]
-        data['K_dir'] = K_dir
-        data['K_aff'] = K_aff
+        data["K_dir"] = K_dir
+        data["K_aff"] = K_aff
 
         inv_data = dict()
-        inv_data['x_id'] = prob.x.id
-        inv_data['K_dir'] = K_dir
-        inv_data['K_aff'] = K_aff
+        inv_data["x_id"] = prob.x.id
+        inv_data["K_dir"] = K_dir
+        inv_data["K_aff"] = K_aff
         inv_data[s.OBJ_OFFSET] = d
 
         return data, inv_data
@@ -399,6 +399,6 @@ class Slacks:
             prim_vars = solution.primal_vars
             x = prim_vars[FREE]
             del prim_vars[FREE]
-            prim_vars[inv_data['x_id']] = x
+            prim_vars[inv_data["x_id"]] = x
         solution.opt_val += inv_data[s.OBJ_OFFSET]
         return solution

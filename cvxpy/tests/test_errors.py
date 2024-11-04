@@ -36,9 +36,9 @@ class TestErrors(BaseTest):
     """
 
     def setUp(self) -> None:
-        self.x = cp.Variable((2, 2), name='x')
+        self.x = cp.Variable((2, 2), name="x")
         self.x.value = [[10.0, 11], [12, 13]]
-        self.y = cp.Variable(1, name='y')
+        self.y = cp.Variable(1, name="y")
 
     def test_np_ufunc_errors(self) -> None:
         with pytest.raises(RuntimeError, match=__NUMPY_UFUNC_ERROR__):

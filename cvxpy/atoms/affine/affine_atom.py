@@ -148,7 +148,7 @@ class AffAtom(Atom):
                 if grad_shape == (1, 1):
                     grad_list += [0]
                 else:
-                    grad_list += [sp.coo_matrix(grad_shape, dtype='float64')]
+                    grad_list += [sp.coo_matrix(grad_shape, dtype="float64")]
             else:
                 stop = start + arg.size
                 grad_list += [stacked_grad[start:stop, :]]

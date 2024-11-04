@@ -18,8 +18,8 @@ import argparse
 from packaging import version
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--c', type=str, help='current version')
-parser.add_argument('--l', type=str, help='latest deployed version')
+parser.add_argument("--c", type=str, help="current version")
+parser.add_argument("--l", type=str, help="latest deployed version")
 args = parser.parse_args()
 if not args.l:
     print(True)

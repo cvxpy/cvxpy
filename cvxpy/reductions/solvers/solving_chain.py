@@ -53,11 +53,11 @@ from cvxpy.settings import (
 from cvxpy.utilities.debug_tools import build_non_disciplined_error_msg
 
 DPP_ERROR_MSG = (
-    'You are solving a parameterized problem that is not DPP. '
-    'Because the problem is not DPP, subsequent solves will not be '
-    'faster than the first one. For more information, see the '
-    'documentation on Disciplined Parametrized Programming, at '
-    'https://www.cvxpy.org/tutorial/dpp/index.html'
+    "You are solving a parameterized problem that is not DPP. "
+    "Because the problem is not DPP, subsequent solves will not be "
+    "faster than the first one. For more information, see the "
+    "documentation on Disciplined Parametrized Programming, at "
+    "https://www.cvxpy.org/tutorial/dpp/index.html"
 )
 
 ECOS_DEP_DEPRECATION_MSG = """
@@ -91,13 +91,13 @@ def _is_lp(self):
 
 def _solve_as_qp(problem, candidates):
     if _is_lp(problem) and [
-        s for s in candidates['conic_solvers'] if s not in candidates['qp_solvers']
+        s for s in candidates["conic_solvers"] if s not in candidates["qp_solvers"]
     ]:
         # OSQP can take many iterations for LPs; use a conic solver instead
         # GUROBI and CPLEX QP/LP interfaces are more efficient
         #   -> Use them instead of conic if applicable.
         return False
-    return candidates['qp_solvers'] and qp2symbolic_qp.accepts(problem)
+    return candidates["qp_solvers"] and qp2symbolic_qp.accepts(problem)
 
 
 def _reductions_for_problem_class(
@@ -137,31 +137,31 @@ def _reductions_for_problem_class(
         reductions += [Dgp2Dcp()]
 
     if not gp and not problem.is_dcp():
-        append = build_non_disciplined_error_msg(problem, 'DCP')
+        append = build_non_disciplined_error_msg(problem, "DCP")
         if problem.is_dgp():
             append += (
-                '\nHowever, the problem does follow DGP rules. '
-                'Consider calling solve() with `gp=True`.'
+                "\nHowever, the problem does follow DGP rules. "
+                "Consider calling solve() with `gp=True`."
             )
         elif problem.is_dqcp():
             append += (
-                '\nHowever, the problem does follow DQCP rules. '
-                'Consider calling solve() with `qcp=True`.'
+                "\nHowever, the problem does follow DQCP rules. "
+                "Consider calling solve() with `qcp=True`."
             )
-        raise DCPError('Problem does not follow DCP rules. Specifically:\n' + append)
+        raise DCPError("Problem does not follow DCP rules. Specifically:\n" + append)
     elif gp and not problem.is_dgp():
-        append = build_non_disciplined_error_msg(problem, 'DGP')
+        append = build_non_disciplined_error_msg(problem, "DGP")
         if problem.is_dcp():
             append += (
-                '\nHowever, the problem does follow DCP rules. '
-                'Consider calling solve() with `gp=False`.'
+                "\nHowever, the problem does follow DCP rules. "
+                "Consider calling solve() with `gp=False`."
             )
         elif problem.is_dqcp():
             append += (
-                '\nHowever, the problem does follow DQCP rules. '
-                'Consider calling solve() with `qcp=True`.'
+                "\nHowever, the problem does follow DQCP rules. "
+                "Consider calling solve() with `qcp=True`."
             )
-        raise DGPError('Problem does not follow DGP rules.' + append)
+        raise DGPError("Problem does not follow DGP rules." + append)
 
     # Dcp2Cone and Qp2SymbolicQp require problems to minimize their objectives.
     if type(problem.objective) == Maximize:
@@ -173,14 +173,14 @@ def _reductions_for_problem_class(
     if FiniteSet in constr_types:
         reductions += [Valinvec2mixedint()]
 
-    use_quad = True if solver_opts is None else solver_opts.get('use_quad_obj', True)
+    use_quad = True if solver_opts is None else solver_opts.get("use_quad_obj", True)
     valid_qp = _solve_as_qp(problem, candidates) and use_quad
-    valid_conic = len(candidates['conic_solvers']) > 0
+    valid_conic = len(candidates["conic_solvers"]) > 0
     if not valid_qp and not valid_conic:
         raise SolverError(
-            'Problem could not be reduced to a QP, and no '
-            'conic solvers exist among candidate solvers '
-            '(%s).' % candidates
+            "Problem could not be reduced to a QP, and no "
+            "conic solvers exist among candidate solvers "
+            "(%s)." % candidates
         )
 
     return reductions
@@ -195,7 +195,7 @@ def construct_solving_chain(
     canon_backend: str | None = None,
     solver_opts: dict | None = None,
     specified_solver: str | None = None,
-) -> 'SolvingChain':
+) -> "SolvingChain":
     """Build a reduction chain from a problem to an installed solver.
 
     Note that if the supplied problem has 0 variables, then the solver
@@ -244,7 +244,7 @@ def construct_solving_chain(
     reductions = _reductions_for_problem_class(problem, candidates, gp, solver_opts)
 
     # Process DPP status of the problem.
-    dpp_context = 'dcp' if not gp else 'dgp'
+    dpp_context = "dcp" if not gp else "dgp"
     if ignore_dpp or not problem.is_dpp(dpp_context):
         # No warning for ignore_dpp.
         if ignore_dpp:
@@ -260,17 +260,17 @@ def construct_solving_chain(
         n_parameters = sum(np.prod(param.shape) for param in problem.parameters())
         if n_parameters >= PARAM_THRESHOLD:
             warnings.warn(
-                'Your problem has too many parameters for efficient DPP '
+                "Your problem has too many parameters for efficient DPP "
                 "compilation. We suggest setting 'ignore_dpp = True'."
             )
 
     # Conclude with matrix stuffing; choose one of the following paths:
     #   (1) QpMatrixStuffing --> [a QpSolver],
     #   (2) ConeMatrixStuffing --> [a ConicSolver]
-    use_quad = True if solver_opts is None else solver_opts.get('use_quad_obj', True)
+    use_quad = True if solver_opts is None else solver_opts.get("use_quad_obj", True)
     if _solve_as_qp(problem, candidates) and use_quad:
         # Canonicalize as a QP
-        solver = candidates['qp_solvers'][0]
+        solver = candidates["qp_solvers"][0]
         solver_instance = slv_def.SOLVER_MAP_QP[solver]
         reductions += [
             CvxAttr2Constr(reduce_bounds=not solver_instance.BOUNDED_VARIABLES),
@@ -281,11 +281,11 @@ def construct_solving_chain(
         return SolvingChain(reductions=reductions)
 
     # Canonicalize as a cone program
-    if not candidates['conic_solvers']:
+    if not candidates["conic_solvers"]:
         raise SolverError(
-            'Problem could not be reduced to a QP, and no '
-            'conic solvers exist among candidate solvers '
-            '(%s).' % candidates
+            "Problem could not be reduced to a QP, and no "
+            "conic solvers exist among candidate solvers "
+            "(%s)." % candidates
         )
 
     constr_types = set()
@@ -344,9 +344,9 @@ def construct_solving_chain(
         and slv_def.DISREGARD_CLARABEL_SDP_SUPPORT_FOR_DEFAULT_RESOLUTION
         and specified_solver is None
     ):
-        candidates['conic_solvers'] = [s for s in candidates['conic_solvers'] if s != CLARABEL]
+        candidates["conic_solvers"] = [s for s in candidates["conic_solvers"] if s != CLARABEL]
 
-    for solver in candidates['conic_solvers']:
+    for solver in candidates["conic_solvers"]:
         solver_instance = slv_def.SOLVER_MAP_CONIC[solver]
         # Cones supported for MI problems may differ from non MI.
         if problem.is_mixed_integer():
@@ -365,7 +365,7 @@ def construct_solving_chain(
             if solver_opts is None:
                 use_quad_obj = True
             else:
-                use_quad_obj = solver_opts.get('use_quad_obj', True)
+                use_quad_obj = solver_opts.get("use_quad_obj", True)
             quad_obj = (
                 use_quad_obj
                 and solver_instance.supports_quad_obj()
@@ -391,10 +391,10 @@ def construct_solving_chain(
                 return SolvingChain(reductions=reductions)
 
     raise SolverError(
-        'Either candidate conic solvers (%s) do not support the '
-        'cones output by the problem (%s), or there are not '
-        'enough constraints in the problem.'
-        % (candidates['conic_solvers'], ', '.join([cone.__name__ for cone in cones]))
+        "Either candidate conic solvers (%s) do not support the "
+        "cones output by the problem (%s), or there are not "
+        "enough constraints in the problem."
+        % (candidates["conic_solvers"], ", ".join([cone.__name__ for cone in cones]))
     )
 
 
@@ -422,16 +422,16 @@ def _get_canon_backend(problem, canon_backend):
         if canon_backend is None:
             warnings.warn(
                 UserWarning(
-                    f'The problem has an expression with dimension greater than 2. '
-                    f'Defaulting to the {SCIPY_CANON_BACKEND} backend for canonicalization.'
+                    f"The problem has an expression with dimension greater than 2. "
+                    f"Defaulting to the {SCIPY_CANON_BACKEND} backend for canonicalization."
                 )
             )
             return SCIPY_CANON_BACKEND
         elif canon_backend == CPP_CANON_BACKEND:
             raise ValueError(
-                f'Only the {SCIPY_CANON_BACKEND} and {NUMPY_CANON_BACKEND} '
-                f'backends are supported for problems with expressions of '
-                f'dimension greater than 2.'
+                f"Only the {SCIPY_CANON_BACKEND} and {NUMPY_CANON_BACKEND} "
+                f"backends are supported for problems with expressions of "
+                f"dimension greater than 2."
             )
     return canon_backend
 
@@ -456,10 +456,10 @@ class SolvingChain(Chain):
     def __init__(self, problem=None, reductions=None) -> None:
         super(SolvingChain, self).__init__(problem=problem, reductions=reductions)
         if not isinstance(self.reductions[-1], Solver):
-            raise ValueError('Solving chains must terminate with a Solver.')
+            raise ValueError("Solving chains must terminate with a Solver.")
         self.solver = self.reductions[-1]
 
-    def prepend(self, chain) -> 'SolvingChain':
+    def prepend(self, chain) -> "SolvingChain":
         """
         Create and return a new SolvingChain by concatenating
         chain with this instance.

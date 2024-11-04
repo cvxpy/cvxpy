@@ -81,15 +81,15 @@ class ConeDims:
         self.psd = [int(c.shape[0]) for c in constr_map[PSD]]
 
     def __repr__(self) -> str:
-        return '(zero: {0}, nonpos: {1}, exp: {2}, soc: {3}, psd: {4})'.format(
+        return "(zero: {0}, nonpos: {1}, exp: {2}, soc: {3}, psd: {4})".format(
             self.zero, self.nonneg, self.exp, self.soc, self.psd
         )
 
     def __str__(self) -> str:
         """String representation."""
         return (
-            '%i equalities, %i inequalities, %i exponential cones, \n'
-            'SOC constraints: %s, PSD constraints: %s.'
+            "%i equalities, %i inequalities, %i exponential cones, \n"
+            "SOC constraints: %s, PSD constraints: %s."
         ) % (self.zero, self.nonneg, self.exp, self.soc, self.psd)
 
     def __getitem__(self, key):
@@ -163,7 +163,7 @@ class ParamQuadProg(ParamProb):
 
     def is_mixed_integer(self) -> bool:
         """Is the problem mixed-integer?"""
-        return self.x.attributes['boolean'] or self.x.attributes['integer']
+        return self.x.attributes["boolean"] or self.x.attributes["integer"]
 
     def apply_parameters(
         self, id_to_param_value=None, zero_offset: bool = False, keep_zeros: bool = False
@@ -325,7 +325,7 @@ class QpMatrixStuffing(MatrixStuffing):
         for var_id, offset in var_map.items():
             shape = inverse_data.var_shapes[var_id]
             size = np.prod(shape, dtype=int)
-            primal_vars[var_id] = np.reshape(x_opt[offset : offset + size], shape, order='F')
+            primal_vars[var_id] = np.reshape(x_opt[offset : offset + size], shape, order="F")
 
         # Remap dual variables if dual exists (problem is convex).
         if solution.dual_vars is not None:
@@ -335,7 +335,7 @@ class QpMatrixStuffing(MatrixStuffing):
             for constr in inverse_data.constraints:
                 # QP constraints can only have one argument.
                 dual_vars[constr.id] = np.reshape(
-                    dual_var[offset : offset + constr.args[0].size], constr.args[0].shape, order='F'
+                    dual_var[offset : offset + constr.args[0].size], constr.args[0].shape, order="F"
                 )
                 offset += constr.size
 

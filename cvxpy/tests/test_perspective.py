@@ -56,10 +56,10 @@ def quad_example(request):
     return prob_ref.value, s.value, x.value, r
 
 
-@pytest.mark.parametrize('p', [1, 2])
+@pytest.mark.parametrize("p", [1, 2])
 def test_p_norms(p):
     x = cp.Variable(3)
-    s = cp.Variable(nonneg=True, name='s')
+    s = cp.Variable(nonneg=True, name="s")
     f = cp.norm(x, p)
     obj = cp.perspective(f, s)
     constraints = [1 == s, x >= [1, 2, 3]]
@@ -82,7 +82,7 @@ def test_p_norms(p):
         assert np.isclose(s.value, ref_s.value)
 
 
-@pytest.mark.parametrize('cvx', [True, False])
+@pytest.mark.parametrize("cvx", [True, False])
 def test_rel_entr(cvx):
     x = cp.Variable()
     s = cp.Variable(nonneg=True)
@@ -181,7 +181,7 @@ def test_lse_atom(lse_example):
     assert np.isclose(s.value, ref_s)
 
 
-@pytest.mark.parametrize('x_val,s_val', [(1, 2), (5, 0.25), (0.5, 7)])
+@pytest.mark.parametrize("x_val,s_val", [(1, 2), (5, 0.25), (0.5, 7)])
 def test_evaluate_persp(x_val, s_val):
     x = cp.Variable()
     s = cp.Variable(nonneg=True)
@@ -271,7 +271,7 @@ def test_quad_quad():
     assert np.isclose(s.value, ref_s.value)
 
 
-@pytest.mark.parametrize('n', [4, 5, 7, 11])
+@pytest.mark.parametrize("n", [4, 5, 7, 11])
 def test_power(n):
     # reference problem
     ref_x = cp.Variable(pos=True)
@@ -325,7 +325,7 @@ def test_psd_tr_persp():
     assert np.isclose(prob.value, ref_prob.value)
 
 
-@pytest.mark.parametrize('n', [2, 3, 11])
+@pytest.mark.parametrize("n", [2, 3, 11])
 def test_psd_mf_persp(n):
     # reference problem
     ref_x = cp.Variable(n)
@@ -357,7 +357,7 @@ def test_psd_mf_persp(n):
     assert np.allclose(x.value, ref_x.value, atol=1e-2)
 
 
-@pytest.mark.parametrize('n', [2, 3, 11])
+@pytest.mark.parametrize("n", [2, 3, 11])
 def test_psd_tr_square(n):
     # reference problem
     ref_s = cp.Variable(nonneg=True)
@@ -421,7 +421,7 @@ def test_assert_s_nonzero():
     obj = perspective(x + 1, s)
 
     prob = cp.Problem(cp.Minimize(obj), [x >= 3.14])
-    with pytest.raises(AssertionError, match='pass in a recession function'):
+    with pytest.raises(AssertionError, match="pass in a recession function"):
         prob.solve()
 
 
@@ -444,7 +444,7 @@ def test_afine_s():
     # test requiring affine s nonneg
     x = cp.Variable()
     s = cp.Variable(2)
-    with pytest.raises(AssertionError, match='s must be a variable'):
+    with pytest.raises(AssertionError, match="s must be a variable"):
         perspective(cp.square(x), cp.sum(s))
 
 

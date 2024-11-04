@@ -47,7 +47,7 @@ from cvxpy.reductions.solution import Solution
 #       the problem is feasible, and returns a smaller value for which the
 #       problem is still feasible
 BisectionData = namedtuple(
-    'BisectionData', ['feas_problem', 'param', 'tighten_lower', 'tighten_upper']
+    "BisectionData", ["feas_problem", "param", "tighten_lower", "tighten_upper"]
 )
 
 
@@ -138,9 +138,9 @@ class Dqcp2Dcp(Canonicalization):
             canon_arg, c = self._canonicalize_tree(arg)
             if isinstance(canon_arg, Variable):
                 if arg.is_nonneg():
-                    canon_arg.attributes['nonneg'] = True
+                    canon_arg.attributes["nonneg"] = True
                 elif arg.is_nonpos():
-                    canon_arg.attributes['nonpos'] = True
+                    canon_arg.attributes["nonpos"] = True
             canon_args += [canon_arg]
             constrs += c
         return canon_args, constrs

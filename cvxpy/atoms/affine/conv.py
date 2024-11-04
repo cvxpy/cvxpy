@@ -48,7 +48,7 @@ class conv(AffAtom):
     """
 
     def __init__(self, lh_expr, rh_expr) -> None:
-        warnings.warn('conv is deprecated. Use convolve instead.', DeprecationWarning)
+        warnings.warn("conv is deprecated. Use convolve instead.", DeprecationWarning)
         super(conv, self).__init__(lh_expr, rh_expr)
 
     @AffAtom.numpy_numeric
@@ -64,9 +64,9 @@ class conv(AffAtom):
     def validate_arguments(self) -> None:
         """Checks that both arguments are vectors, and the first is constant."""
         if not self.args[0].is_vector() or not self.args[1].is_vector():
-            raise ValueError('The arguments to conv must resolve to vectors.')
+            raise ValueError("The arguments to conv must resolve to vectors.")
         if not self.args[0].is_constant():
-            raise ValueError('The first argument to conv must be constant.')
+            raise ValueError("The first argument to conv must be constant.")
 
     def is_atom_convex(self) -> bool:
         """Is the atom convex?"""
@@ -158,9 +158,9 @@ class convolve(AffAtom):
     def validate_arguments(self) -> None:
         """Checks that both arguments are vectors, and the first is constant."""
         if not self.args[0].ndim <= 1 or not self.args[1].ndim <= 1:
-            raise ValueError('The arguments to conv must be scalar or 1D.')
+            raise ValueError("The arguments to conv must be scalar or 1D.")
         if not self.args[0].is_constant():
-            raise ValueError('The first argument to conv must be constant.')
+            raise ValueError("The first argument to conv must be constant.")
 
     def is_atom_convex(self) -> bool:
         """Is the atom convex?"""

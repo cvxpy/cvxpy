@@ -28,14 +28,14 @@ class TestGrad(BaseTest):
     """Unit tests for the grad module."""
 
     def setUp(self) -> None:
-        self.a = Variable(name='a')
+        self.a = Variable(name="a")
 
-        self.x = Variable(2, name='x')
-        self.y = Variable(2, name='y')
+        self.x = Variable(2, name="x")
+        self.y = Variable(2, name="y")
 
-        self.A = Variable((2, 2), name='A')
-        self.B = Variable((2, 2), name='B')
-        self.C = Variable((3, 2), name='C')
+        self.A = Variable((2, 2), name="A")
+        self.B = Variable((2, 2), name="B")
+        self.C = Variable((3, 2), name="C")
 
     def test_affine_prod(self) -> None:
         """Test gradient for affine_prod"""
@@ -407,15 +407,15 @@ class TestGrad(BaseTest):
             linearize(expr)
         self.assertEqual(
             str(cm.exception),
-            'Cannot linearize non-affine expression with missing variable values.',
+            "Cannot linearize non-affine expression with missing variable values.",
         )
 
         self.A.value = [[1, 2], [3, 4]]
         lin_expr = linearize(expr)
         manual = expr.value + 2 * cp.reshape(
-            cp.diag(cp.vec(self.A, order='F')).value @ cp.vec(self.A - self.A.value, order='F'),
+            cp.diag(cp.vec(self.A, order="F")).value @ cp.vec(self.A - self.A.value, order="F"),
             (2, 2),
-            order='F',
+            order="F",
         )
         self.assertItemsAlmostEqual(lin_expr.value, expr.value)
         self.A.value = [[-5, -5], [8.2, 4.4]]
@@ -629,7 +629,7 @@ class TestGrad(BaseTest):
         expr = cp.kl_div(self.A, self.B)
         self.A.value = [[1, 2], [3, 4]]
         self.B.value = [[5, 1], [3.5, 2.3]]
-        div = (self.A.value / self.B.value).ravel(order='F')
+        div = (self.A.value / self.B.value).ravel(order="F")
         val = np.zeros((4, 4)) + np.diag(np.log(div))
         self.assertItemsAlmostEqual(expr.grad[self.A].toarray(), val)
         val = np.zeros((4, 4)) + np.diag(1 - div)
@@ -672,7 +672,7 @@ class TestGrad(BaseTest):
         expr = cp.rel_entr(self.A, self.B)
         self.A.value = [[1, 2], [3, 4]]
         self.B.value = [[5, 1], [3.5, 2.3]]
-        div = (self.A.value / self.B.value).ravel(order='F')
+        div = (self.A.value / self.B.value).ravel(order="F")
         val = np.zeros((4, 4)) + np.diag(np.log(div) + 1)
         self.assertItemsAlmostEqual(expr.grad[self.A].toarray(), val)
         val = np.zeros((4, 4)) + np.diag(-div)

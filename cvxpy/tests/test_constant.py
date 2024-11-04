@@ -35,7 +35,7 @@ def test_is_psd() -> None:
         try:
             cp.Constant(P).is_psd()
         except sparla.ArpackNoConvergence as e:
-            assert 'CVXPY note' in str(e)
+            assert "CVXPY note" in str(e)
             failures.add(seed)
     assert failures == {97}
 
@@ -44,12 +44,12 @@ def test_is_psd() -> None:
 
 def test_print():
     A = cp.Constant(np.ones((3, 3)))
-    assert str(A) == '[[1.00 1.00 1.00]\n [1.00 1.00 1.00]\n [1.00 1.00 1.00]]'
+    assert str(A) == "[[1.00 1.00 1.00]\n [1.00 1.00 1.00]\n [1.00 1.00 1.00]]"
     B = cp.Constant(np.ones((5, 2)))
-    assert str(B) == '[[1.00 1.00]\n [1.00 1.00]\n ...\n [1.00 1.00]\n [1.00 1.00]]'
+    assert str(B) == "[[1.00 1.00]\n [1.00 1.00]\n ...\n [1.00 1.00]\n [1.00 1.00]]"
     default = s.PRINT_EDGEITEMS
     s.PRINT_EDGEITEMS = 10
-    assert str(B) == '[[1.00 1.00]\n [1.00 1.00]\n [1.00 1.00]\n [1.00 1.00]\n [1.00 1.00]]'
+    assert str(B) == "[[1.00 1.00]\n [1.00 1.00]\n [1.00 1.00]\n [1.00 1.00]\n [1.00 1.00]]"
     s.PRINT_EDGEITEMS = default
 
 
@@ -79,7 +79,7 @@ def test_nested_lists():
     numpy_array = np.array(A)
     constant_from_numpy = cp.Constant(numpy_array)
 
-    with pytest.warns(match='nested list is undefined behavior'):
+    with pytest.warns(match="nested list is undefined behavior"):
         constant_from_lists = cp.Constant(A)
 
     assert np.allclose(constant_from_numpy.value, numpy_array)

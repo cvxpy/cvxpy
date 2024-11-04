@@ -40,8 +40,8 @@ class TestExamples(BaseTest):
         b = np.ones(4)
 
         # Create and solve the model
-        r = cvx.Variable(name='r')
-        x_c = cvx.Variable(2, name='x_c')
+        r = cvx.Variable(name="r")
+        x_c = cvx.Variable(2, name="x_c")
         obj = cvx.Maximize(r)
         constraints = [  # TODO have atoms compute values for constants.
             a1.T @ x_c + np.linalg.norm(a1) * r <= b[0],
@@ -168,7 +168,7 @@ class TestExamples(BaseTest):
         # Raises an error for assigning a value with invalid sign.
         with self.assertRaises(Exception) as cm:
             G.value = numpy.ones((4, 7))
-        self.assertEqual(str(cm.exception), 'Parameter value must be nonpositive.')
+        self.assertEqual(str(cm.exception), "Parameter value must be nonpositive.")
 
         ####################################################
         a = cvx.Variable()
@@ -267,7 +267,7 @@ class TestExamples(BaseTest):
             if label * (sample.T @ a - b).value < 0:
                 errors += 1
 
-        print('%s misclassifications' % errors)
+        print("%s misclassifications" % errors)
         print(a.value)
         print(b.value)
 
@@ -281,47 +281,47 @@ class TestExamples(BaseTest):
 
         # Solve with CLARABEL.
         prob.solve(solver=cvx.CLARABEL)
-        print('optimal value with CLARABEL:', prob.value)
+        print("optimal value with CLARABEL:", prob.value)
         self.assertAlmostEqual(prob.value, 6)
 
         # Solve with CVXOPT.
         if cvx.CVXOPT in cvx.installed_solvers():
             prob.solve(solver=cvx.CVXOPT)
-            print('optimal value with CVXOPT:', prob.value)
+            print("optimal value with CVXOPT:", prob.value)
             self.assertAlmostEqual(prob.value, 6)
 
         # Solve with SCS.
         prob.solve(solver=cvx.SCS)
-        print('optimal value with SCS:', prob.value)
+        print("optimal value with SCS:", prob.value)
         self.assertAlmostEqual(prob.value, 6, places=2)
 
         if cvx.CPLEX in cvx.installed_solvers():
             # Solve with CPLEX.
             prob.solve(solver=cvx.CPLEX)
-            print('optimal value with CPLEX:', prob.value)
+            print("optimal value with CPLEX:", prob.value)
             self.assertAlmostEqual(prob.value, 6)
 
         if cvx.GLPK in cvx.installed_solvers():
             # Solve with GLPK.
             prob.solve(solver=cvx.GLPK)
-            print('optimal value with GLPK:', prob.value)
+            print("optimal value with GLPK:", prob.value)
             self.assertAlmostEqual(prob.value, 6)
 
             # Solve with GLPK_MI.
             prob.solve(solver=cvx.GLPK_MI)
-            print('optimal value with GLPK_MI:', prob.value)
+            print("optimal value with GLPK_MI:", prob.value)
             self.assertAlmostEqual(prob.value, 6)
 
         if cvx.GUROBI in cvx.installed_solvers():
             # Solve with Gurobi.
             prob.solve(solver=cvx.GUROBI)
-            print('optimal value with GUROBI:', prob.value)
+            print("optimal value with GUROBI:", prob.value)
             self.assertAlmostEqual(prob.value, 6)
 
         if cvx.XPRESS in cvx.installed_solvers():
             # Solve with the Xpress Optimizer.
             prob.solve(solver=cvx.XPRESS)
-            print('optimal value with XPRESS:', prob.value)
+            print("optimal value with XPRESS:", prob.value)
             self.assertAlmostEqual(prob.value, 6)
 
         print(cvx.installed_solvers())
@@ -407,9 +407,9 @@ class TestExamples(BaseTest):
         # Form and solve problem.
         prob = cvx.Problem(obj, constraints)
         prob.solve(solver=cvx.SCS, eps=1e-6)  # Returns the optimal value.
-        print('status:', prob.status)
-        print('optimal value', prob.value)
-        print('optimal var', x.value, y.value)
+        print("status:", prob.status)
+        print("optimal value", prob.value)
+        print("optimal var", x.value, y.value)
 
         ########################################
 
@@ -426,9 +426,9 @@ class TestExamples(BaseTest):
         # Form and solve problem.
         prob = cvx.Problem(obj, constraints)
         prob.solve(solver=cvx.SCS, eps=1e-6)  # Returns the optimal value.
-        print('status:', prob.status)
-        print('optimal value', prob.value)
-        print('optimal var', x.value, y.value)
+        print("status:", prob.status)
+        print("optimal value", prob.value)
+        print("optimal var", x.value, y.value)
 
         self.assertEqual(prob.status, cvx.OPTIMAL)
         self.assertAlmostEqual(prob.value, 1.0)
@@ -439,7 +439,7 @@ class TestExamples(BaseTest):
 
         # Replace the objective.
         prob = cvx.Problem(cvx.Maximize(x + y), prob.constraints)
-        print('optimal value', prob.solve(solver=cvx.SCS, eps=1e-6))
+        print("optimal value", prob.solve(solver=cvx.SCS, eps=1e-6))
 
         self.assertAlmostEqual(prob.value, 1.0, places=3)
 
@@ -447,7 +447,7 @@ class TestExamples(BaseTest):
         constraints = prob.constraints
         constraints[0] = x + y <= 3
         prob = cvx.Problem(prob.objective, constraints)
-        print('optimal value', prob.solve(solver=cvx.SCS, eps=1e-6))
+        print("optimal value", prob.solve(solver=cvx.SCS, eps=1e-6))
 
         self.assertAlmostEqual(prob.value, 3.0, places=2)
 
@@ -458,8 +458,8 @@ class TestExamples(BaseTest):
         # An infeasible problem.
         prob = cvx.Problem(cvx.Minimize(x), [x >= 1, x <= 0])
         prob.solve(solver=cvx.SCS, eps=1e-6)
-        print('status:', prob.status)
-        print('optimal value', prob.value)
+        print("status:", prob.status)
+        print("optimal value", prob.value)
 
         self.assertEqual(prob.status, cvx.INFEASIBLE)
         self.assertAlmostEqual(prob.value, np.inf)
@@ -467,8 +467,8 @@ class TestExamples(BaseTest):
         # An unbounded problem.
         prob = cvx.Problem(cvx.Minimize(x))
         prob.solve(solver=cvx.CLARABEL)
-        print('status:', prob.status)
-        print('optimal value', prob.value)
+        print("status:", prob.status)
+        print("optimal value", prob.value)
 
         self.assertEqual(prob.status, cvx.UNBOUNDED)
         self.assertAlmostEqual(prob.value, -np.inf)
@@ -500,8 +500,8 @@ class TestExamples(BaseTest):
         constraints = [0 <= x, x <= 1]
         prob = cvx.Problem(objective, constraints)
 
-        print('Optimal value', prob.solve(solver=cvx.SCS, eps=1e-6))
-        print('Optimal var')
+        print("Optimal value", prob.solve(solver=cvx.SCS, eps=1e-6))
+        print("Optimal var")
         print(x.value)  # A numpy matrix.
 
         self.assertAlmostEqual(prob.value, 4.14133859146)
@@ -567,9 +567,9 @@ class TestExamples(BaseTest):
         A = numpy.ones((3, 5))
 
         # Use expr.size to get the dimensions.
-        print('dimensions of X:', X.size)
-        print('dimensions of sum(X):', cvx.sum(X).size)
-        print('dimensions of A @ X:', (A @ X).size)
+        print("dimensions of X:", X.size)
+        print("dimensions of sum(X):", cvx.sum(X).size)
+        print("dimensions of A @ X:", (A @ X).size)
 
         # ValueError raised for invalid dimensions.
         try:
@@ -620,5 +620,5 @@ class TestExamples(BaseTest):
         p.solve(solver=cvx.SCS, max_iters=1)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

@@ -88,8 +88,8 @@ def test_problem():
 
 
 def test_constraints_in_problem():
-    x = cp.Variable(name='x', nonneg=True)
-    y = cp.Variable(name='y', nonneg=True)
+    x = cp.Variable(name="x", nonneg=True)
+    y = cp.Variable(name="y", nonneg=True)
 
     original_constraints = [x + y == 1]
     shallow_constraints = copy.copy(original_constraints)

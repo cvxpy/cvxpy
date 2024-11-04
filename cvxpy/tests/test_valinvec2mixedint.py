@@ -23,12 +23,12 @@ from cvxpy.reductions.solvers.defines import INSTALLED_SOLVERS
 from cvxpy.tests import solver_test_helpers as STH
 
 solver_installed = pytest.mark.skipif(
-    cp.GLPK_MI not in INSTALLED_SOLVERS, reason='Required solver not installed'
+    cp.GLPK_MI not in INSTALLED_SOLVERS, reason="Required solver not installed"
 )
 
 
 @solver_installed
-@pytest.mark.parametrize('ineq_form', [True, False])
+@pytest.mark.parametrize("ineq_form", [True, False])
 class TestFiniteSet:
     @staticmethod
     def make_test_1(ineq_form: bool):
@@ -62,7 +62,7 @@ class TestFiniteSet:
 
     def test_1(self, ineq_form: bool):
         sth = TestFiniteSet.make_test_1(ineq_form)
-        sth.solve(solver='GLPK_MI')
+        sth.solve(solver="GLPK_MI")
         sth.verify_objective(places=3)
         sth.verify_primal_values(places=3)
 
@@ -84,7 +84,7 @@ class TestFiniteSet:
     @staticmethod
     def test_2(ineq_form: bool):
         sth = TestFiniteSet.make_test_2(ineq_form)
-        sth.solve(solver='GLPK_MI')
+        sth.solve(solver="GLPK_MI")
         sth.verify_objective(places=3)
         sth.verify_primal_values(places=3)
 
@@ -105,7 +105,7 @@ class TestFiniteSet:
     @staticmethod
     def test_3(ineq_form: bool):
         sth = TestFiniteSet.make_test_3(ineq_form)
-        sth.solve(solver='GLPK_MI')
+        sth.solve(solver="GLPK_MI")
         sth.verify_objective(places=3)
         sth.verify_primal_values(places=3)
 
@@ -126,7 +126,7 @@ class TestFiniteSet:
     @staticmethod
     def test_4(ineq_form: bool):
         sth = TestFiniteSet.make_test_4(ineq_form)
-        sth.solve(solver='GLPK_MI')
+        sth.solve(solver="GLPK_MI")
         sth.verify_objective(places=3)
         sth.verify_primal_values(places=3)
 
@@ -165,7 +165,7 @@ class TestFiniteSet:
     @staticmethod
     def test_5(ineq_form: bool):
         sth = TestFiniteSet.make_test_5(ineq_form)
-        sth.solve(solver='GLPK_MI')
+        sth.solve(solver="GLPK_MI")
         sth.verify_objective(places=3)
         sth.verify_primal_values(places=3)
 
@@ -189,7 +189,7 @@ class TestFiniteSet:
     @staticmethod
     def test_6(ineq_form: bool):
         sth = TestFiniteSet.make_test_6(ineq_form)
-        sth.solve(solver='GLPK_MI')
+        sth.solve(solver="GLPK_MI")
         sth.verify_objective(places=3)
         sth.verify_primal_values(places=3)
 
@@ -220,7 +220,7 @@ class TestFiniteSet:
     @staticmethod
     def test_7(ineq_form: bool):
         sth = TestFiniteSet.make_test_7(ineq_form)
-        sth.solve(solver='GLPK_MI')
+        sth.solve(solver="GLPK_MI")
         sth.verify_objective(places=3)
         sth.verify_primal_values(places=3)
 
@@ -280,7 +280,7 @@ class TestFiniteSet:
         x = cp.Variable()
         x_abs = cp.abs(x)
         set_vals = {1, 2, 3}
-        with pytest.raises(ValueError, match='must be affine'):
+        with pytest.raises(ValueError, match="must be affine"):
             FiniteSet(x_abs, set_vals, ineq_form=ineq_form)
 
     @staticmethod
@@ -348,14 +348,14 @@ class TestFiniteSet:
         set_vals = {0, 1, 2, 3}
         constraints = [FiniteSet(x, set_vals, ineq_form=ineq_form), y <= 1]
         problem = cp.Problem(objective, constraints)
-        with pytest.raises(cp.error.DGPError, match='does not follow DGP'):
+        with pytest.raises(cp.error.DGPError, match="does not follow DGP"):
             problem.solve(gp=True, solver=cp.GLPK_MI)
 
         # Test with negative elements.
         set_vals = {-1, 1}
         constraints = [FiniteSet(x, set_vals, ineq_form=ineq_form), y <= 1]
         problem = cp.Problem(objective, constraints)
-        with pytest.raises(cp.error.DGPError, match='not DGP'):
+        with pytest.raises(cp.error.DGPError, match="not DGP"):
             problem.solve(gp=True, solver=cp.GLPK_MI)
 
         # Violates DPP.
@@ -363,7 +363,7 @@ class TestFiniteSet:
         param = cp.Parameter(pos=True, value=1)
         constraints = [FiniteSet((x * param) ** param, set_vals, ineq_form=ineq_form), y <= 1]
         problem = cp.Problem(objective, constraints)
-        with pytest.raises(cp.error.DPPError, match='not DPP'):
+        with pytest.raises(cp.error.DPPError, match="not DPP"):
             problem.solve(gp=True, solver=cp.GLPK_MI, enforce_dpp=True)
 
         # TODO get parameters working.
@@ -371,7 +371,7 @@ class TestFiniteSet:
         set_vals = cp.Parameter(3, pos=True, value=[1, 2, 3])
         constraints = [FiniteSet(x, set_vals, ineq_form=ineq_form), y <= 1]
         problem = cp.Problem(objective, constraints)
-        with pytest.raises(cp.error.DGPError, match='does not follow DGP'):
+        with pytest.raises(cp.error.DGPError, match="does not follow DGP"):
             problem.solve(gp=True, solver=cp.GLPK_MI)
 
 

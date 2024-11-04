@@ -22,6 +22,6 @@ from collections import namedtuple
 # Constraints with linear expressions.
 # constr_id is used to recover dual variables.
 # expr == 0
-LinEqConstr = namedtuple('LinEqConstr', ['expr', 'constr_id', 'shape'])
+LinEqConstr = namedtuple("LinEqConstr", ["expr", "constr_id", "shape"])
 # expr <= 0
-LinLeqConstr = namedtuple('LinLeqConstr', ['expr', 'constr_id', 'shape'])
+LinLeqConstr = namedtuple("LinLeqConstr", ["expr", "constr_id", "shape"])

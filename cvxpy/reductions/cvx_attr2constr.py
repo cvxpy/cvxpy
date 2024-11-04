@@ -29,32 +29,32 @@ from cvxpy.reductions.solution import Solution
 
 # Convex attributes that generate constraints.
 CONVEX_ATTRIBUTES = [
-    'nonneg',
-    'nonpos',
-    'pos',
-    'neg',
-    'symmetric',
-    'diag',
-    'PSD',
-    'NSD',
-    'bounds',
-    'sparsity',
+    "nonneg",
+    "nonpos",
+    "pos",
+    "neg",
+    "symmetric",
+    "diag",
+    "PSD",
+    "NSD",
+    "bounds",
+    "sparsity",
 ]
 
 # Attributes that define lower and upper bounds.
 BOUND_ATTRIBUTES = [
-    'nonneg',
-    'nonpos',
-    'pos',
-    'neg',
-    'bounds',
+    "nonneg",
+    "nonpos",
+    "pos",
+    "neg",
+    "bounds",
 ]
 
 # Attributes related to symmetry.
 SYMMETRIC_ATTRIBUTES = [
-    'symmetric',
-    'PSD',
-    'NSD',
+    "symmetric",
+    "PSD",
+    "NSD",
 ]
 
 
@@ -73,16 +73,16 @@ def attributes_present(variables, attr_map) -> list[str]:
 
 
 def recover_value_for_variable(variable, lowered_value, project: bool = True):
-    if variable.attributes['diag']:
-        return sp.diags(lowered_value.flatten(order='F'))
+    if variable.attributes["diag"]:
+        return sp.diags(lowered_value.flatten(order="F"))
     elif attributes_present([variable], SYMMETRIC_ATTRIBUTES):
         n = variable.shape[0]
         value = np.zeros(variable.shape)
         idxs = np.triu_indices(n)
-        value[idxs] = lowered_value.flatten(order='F')
+        value[idxs] = lowered_value.flatten(order="F")
         return value + value.T - np.diag(value.diagonal())
     # TODO keep sparse / return coo_tensor
-    elif variable.attributes['sparsity']:
+    elif variable.attributes["sparsity"]:
         value = np.zeros(variable.shape)
         value[variable.sparse_idx] = lowered_value
         return value
@@ -95,7 +95,7 @@ def recover_value_for_variable(variable, lowered_value, project: bool = True):
 def lower_value(variable, value) -> np.ndarray:
     if attributes_present([variable], SYMMETRIC_ATTRIBUTES):
         return value[np.triu_indices(variable.shape[0])]
-    elif variable.attributes['diag']:
+    elif variable.attributes["diag"]:
         return np.diag(value)
     else:
         return value
@@ -139,7 +139,7 @@ class CvxAttr2Constr(Reduction):
                 for key in reduction_attributes:
                     if new_attr[key]:
                         new_var = True
-                        new_attr[key] = None if key == 'bounds' else False
+                        new_attr[key] = None if key == "bounds" else False
 
                 if attributes_present([var], SYMMETRIC_ATTRIBUTES):
                     n = var.shape[0]
@@ -149,23 +149,23 @@ class CvxAttr2Constr(Reduction):
                     id2new_var[var.id] = upper_tri
                     fill_coeff = Constant(upper_tri_to_full(n))
                     full_mat = fill_coeff @ upper_tri
-                    obj = reshape(full_mat, (n, n), order='F')
-                elif var.attributes['sparsity']:
+                    obj = reshape(full_mat, (n, n), order="F")
+                elif var.attributes["sparsity"]:
                     n = len(var.sparse_idx[0])
                     sparse_var = Variable(n, var_id=var.id, **new_attr)
                     sparse_var.set_variable_of_provenance(var)
                     id2new_var[var.id] = sparse_var
-                    row_idx = np.ravel_multi_index(var.sparse_idx, var.shape, order='F')
+                    row_idx = np.ravel_multi_index(var.sparse_idx, var.shape, order="F")
                     col_idx = np.arange(n)
                     coeff_matrix = Constant(
                         sp.csc_matrix(
                             (np.ones(n), (row_idx, col_idx)),
                             shape=(np.prod(var.shape, dtype=int), n),
                         ),
-                        name='sparse_coeff',
+                        name="sparse_coeff",
                     )
-                    obj = reshape(coeff_matrix @ sparse_var, var.shape, order='F')
-                elif var.attributes['diag']:
+                    obj = reshape(coeff_matrix @ sparse_var, var.shape, order="F")
+                elif var.attributes["diag"]:
                     diag_var = Variable(var.shape[0], var_id=var.id, **new_attr)
                     diag_var.set_variable_of_provenance(var)
                     id2new_var[var.id] = diag_var
@@ -182,7 +182,7 @@ class CvxAttr2Constr(Reduction):
                 # Attributes related to positive and negative definiteness.
                 if var.is_psd():
                     constr.append(obj >> 0)
-                elif var.attributes['NSD']:
+                elif var.attributes["NSD"]:
                     constr.append(obj << 0)
                 # Add in constraints from bounds.
                 if self.reduce_bounds:

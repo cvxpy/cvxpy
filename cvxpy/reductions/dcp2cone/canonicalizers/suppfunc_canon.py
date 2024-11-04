@@ -8,7 +8,7 @@ from cvxpy.reductions.solvers.conic_solvers.scs_conif import (
 
 
 def suppfunc_canon(expr, args):
-    y = args[0].flatten(order='F')
+    y = args[0].flatten(order="F")
     # ^ That's the user-supplied argument to the support function.
     parent = expr._parent
     A, b, K_sels = parent.conic_repr_of_set()
@@ -30,21 +30,21 @@ def suppfunc_canon(expr, args):
     local_cons = [A.T @ eta + y_lift == 0]
     # now, the conic constraints on eta.
     #   nonneg, exp, soc, psd
-    nonnegsel = K_sels['nonneg']
+    nonnegsel = K_sels["nonneg"]
     if nonnegsel.size > 0:
         temp_expr = eta[nonnegsel]
         local_cons.append(temp_expr >= 0)
-    socsels = K_sels['soc']
+    socsels = K_sels["soc"]
     for socsel in socsels:
         tempsca = eta[socsel[0]]
         tempvec = eta[socsel[1:]]
         soccon = SOC(tempsca, tempvec)
         local_cons.append(soccon)
-    psdsels = K_sels['psd']
+    psdsels = K_sels["psd"]
     for psdsel in psdsels:
         curmat = scs_psdvec_to_psdmat(eta, psdsel)
         local_cons.append(curmat >> 0)
-    expsel = K_sels['exp']
+    expsel = K_sels["exp"]
     if expsel.size > 0:
         matexpsel = np.reshape(expsel, (-1, 3))
         curr_u = eta[matexpsel[:, 0]]

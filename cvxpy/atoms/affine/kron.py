@@ -42,9 +42,9 @@ class kron(AffAtom):
     def validate_arguments(self) -> None:
         """Checks that both arguments are vectors, and the first is constant."""
         if not (self.args[0].is_constant() or self.args[1].is_constant()):
-            raise ValueError('At least one argument to kron must be constant.')
+            raise ValueError("At least one argument to kron must be constant.")
         elif self.args[0].ndim != 2 or self.args[1].ndim != 2:
-            raise ValueError('kron requires matrix arguments.')
+            raise ValueError("kron requires matrix arguments.")
 
     def shape_from_args(self) -> Tuple[int, int]:
         rows = self.args[0].shape[0] * self.args[1].shape[0]

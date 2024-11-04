@@ -35,17 +35,17 @@ class TestMatrices(unittest.TestCase):
         self.assertEqual(expr.shape, shape)
 
     def setUp(self) -> None:
-        self.a = Variable(name='a')
-        self.b = Variable(name='b')
-        self.c = Variable(name='c')
+        self.a = Variable(name="a")
+        self.b = Variable(name="b")
+        self.c = Variable(name="c")
 
-        self.x = Variable(2, name='x')
-        self.y = Variable(3, name='y')
-        self.z = Variable(2, name='z')
+        self.x = Variable(2, name="x")
+        self.y = Variable(3, name="y")
+        self.z = Variable(2, name="z")
 
-        self.A = Variable((2, 2), name='A')
-        self.B = Variable((2, 2), name='B')
-        self.C = Variable((3, 2), name='C')
+        self.A = Variable((2, 2), name="A")
+        self.B = Variable((2, 2), name="B")
+        self.C = Variable((3, 2), name="C")
 
     # Test numpy arrays
     def test_numpy_arrays(self) -> None:

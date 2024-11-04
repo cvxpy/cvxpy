@@ -55,7 +55,7 @@ def mul_sup(expr, t):
     elif x.is_nonpos() and y.is_nonpos():
         return [-x >= t * atoms.inv_pos(-y)]
     else:
-        raise ValueError('Incorrect signs.')
+        raise ValueError("Incorrect signs.")
 
 
 def mul_sub(expr, t):
@@ -65,7 +65,7 @@ def mul_sub(expr, t):
     elif x.is_nonpos() and y.is_nonneg():
         return [x <= t * atoms.inv_pos(y)]
     else:
-        raise ValueError('Incorrect signs.')
+        raise ValueError("Incorrect signs.")
 
 
 def ratio_sup(expr, t):
@@ -180,8 +180,8 @@ def sublevel(expr, t):
         return SUBLEVEL_SETS[type(expr)](expr, t)
     except KeyError:
         raise RuntimeError(
-            f'The {type(expr)} atom is not yet supported in DQCP. Please '
-            'file an issue here: https://github.com/cvxpy/cvxpy/issues'
+            f"The {type(expr)} atom is not yet supported in DQCP. Please "
+            "file an issue here: https://github.com/cvxpy/cvxpy/issues"
         )
 
 
@@ -194,6 +194,6 @@ def superlevel(expr, t):
         return SUPERLEVEL_SETS[type(expr)](expr, t)
     except KeyError:
         raise RuntimeError(
-            f'The {type(expr)} atom is not yet supported in DQCP. Please '
-            'file an issue here: https://github.com/cvxpy/cvxpy/issues'
+            f"The {type(expr)} atom is not yet supported in DQCP. Please "
+            "file an issue here: https://github.com/cvxpy/cvxpy/issues"
         )

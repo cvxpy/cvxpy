@@ -47,7 +47,7 @@ class Dcp2Cone(Canonicalization):
     def apply(self, problem):
         """Converts a DCP problem to a conic form."""
         if not self.accepts(problem):
-            raise ValueError('Cannot reduce problem to cone program')
+            raise ValueError("Cannot reduce problem to cone program")
 
         inverse_data = InverseData(problem)
 

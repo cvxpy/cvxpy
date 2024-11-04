@@ -33,18 +33,18 @@ def scs_coniclift(x, constraints):
     # participates in the problem. So, if constraints is an
     # empty list, then the support function is the standard
     # support function for R^n.
-    data, chain, invdata = prob.get_problem_data(solver='SCS')
+    data, chain, invdata = prob.get_problem_data(solver="SCS")
     inv = invdata[-2]
     x_offset = inv.var_offsets[x.id]
     x_indices = np.arange(x_offset, x_offset + x.size)
-    A = data['A']
+    A = data["A"]
     x_selector = np.zeros(shape=(A.shape[1],), dtype=bool)
     x_selector[x_indices] = True
     A_x = A[:, x_selector]
     A_other = A[:, ~x_selector]
     A = -sparse.hstack([A_x, A_other])
-    b = data['b']
-    K = data['dims']
+    b = data["b"]
+    K = data["dims"]
     return A, b, K
 
 
@@ -68,7 +68,7 @@ def scs_cone_selectors(K):
     """
     if K.p3d:
         msg = "SuppFunc doesn't yet support feasible sets represented \n"
-        msg += 'with power cone constraints.'
+        msg += "with power cone constraints."
         raise NotImplementedError(msg)
         # TODO: implement
     idx = K.zero
@@ -86,7 +86,7 @@ def scs_cone_selectors(K):
         idx += veclen
     expsize = 3 * K.exp
     exp_idxs = np.arange(idx, idx + expsize)
-    selectors = {'nonneg': nonneg_idxs, 'exp': exp_idxs, 'soc': soc_idxs, 'psd': psd_idxs}
+    selectors = {"nonneg": nonneg_idxs, "exp": exp_idxs, "soc": soc_idxs, "psd": psd_idxs}
     return selectors
 
 
@@ -153,13 +153,13 @@ class SuppFunc:
 
     def __init__(self, x, constraints):
         if not isinstance(x, Variable):
-            raise ValueError('The first argument must be an unmodified cvxpy Variable object.')
+            raise ValueError("The first argument must be an unmodified cvxpy Variable object.")
         if any(x.attributes[attr] for attr in CONVEX_ATTRIBUTES):
-            raise ValueError('The first argument cannot have any declared attributes.')
+            raise ValueError("The first argument cannot have any declared attributes.")
         for con in constraints:
             con_params = con.parameters()
             if len(con_params) > 0:
-                raise ValueError('Convex sets described with Parameter objects are not allowed.')
+                raise ValueError("Convex sets described with Parameter objects are not allowed.")
         self.x = x
         self.constraints = constraints
         self._A = None

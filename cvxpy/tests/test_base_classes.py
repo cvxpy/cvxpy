@@ -16,7 +16,7 @@ from cvxpy.utilities.canonical import Canonical
 
 
 @pytest.mark.parametrize(
-    'expected_abc',
+    "expected_abc",
     [
         Canonical,
         Expression,

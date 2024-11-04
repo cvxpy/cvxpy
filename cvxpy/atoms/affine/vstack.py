@@ -24,7 +24,7 @@ from cvxpy.atoms.affine.affine_atom import AffAtom
 from cvxpy.constraints.constraint import Constraint
 
 
-def vstack(arg_list) -> 'Vstack':
+def vstack(arg_list) -> "Vstack":
     """Wrapper on vstack to ensure list argument."""
     return Vstack(*arg_list)
 
@@ -73,7 +73,7 @@ class Vstack(AffAtom):
                 or (len(model) <= 1 and model != arg_shape)
             ):
                 raise ValueError(
-                    ('All the input dimensions except' ' for axis 0 must match exactly.')
+                    ("All the input dimensions except" " for axis 0 must match exactly.")
                 )
 
     def graph_implementation(

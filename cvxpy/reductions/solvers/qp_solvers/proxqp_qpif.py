@@ -30,13 +30,13 @@ class PROXQP(QpSolver):
 
     # Map of Proxqp status to CVXPY status.
     STATUS_MAP = {
-        'PROXQP_SOLVED': s.OPTIMAL,
-        'PROXQP_MAX_ITER_REACHED': s.USER_LIMIT,
-        'PROXQP_PRIMAL_INFEASIBLE': s.INFEASIBLE,
-        'PROXQP_DUAL_INFEASIBLE': s.UNBOUNDED,
+        "PROXQP_SOLVED": s.OPTIMAL,
+        "PROXQP_MAX_ITER_REACHED": s.USER_LIMIT,
+        "PROXQP_PRIMAL_INFEASIBLE": s.INFEASIBLE,
+        "PROXQP_DUAL_INFEASIBLE": s.UNBOUNDED,
     }
 
-    VAR_MAP = {'P': 'H', 'q': 'g', 'A': 'A', 'b': 'b', 'F': 'C', 'l': 'lb', 'G': 'ub'}
+    VAR_MAP = {"P": "H", "q": "g", "A": "A", "b": "b", "F": "C", "l": "lb", "G": "ub"}
 
     def name(self):
         return s.PROXQP
@@ -48,7 +48,7 @@ class PROXQP(QpSolver):
 
     def invert(self, solution, inverse_data):
         attr = {s.SOLVE_TIME: solution.info.run_time}
-        attr[s.EXTRA_STATS] = {'solution': solution}
+        attr[s.EXTRA_STATS] = {"solution": solution}
 
         # Map PROXQP statuses back to CVXPY statuses
         status = self.STATUS_MAP.get(solution.info.status.name, s.SOLVER_ERROR)
@@ -67,52 +67,52 @@ class PROXQP(QpSolver):
     def solve_via_data(self, data, warm_start: bool, verbose: bool, solver_opts, solver_cache=None):
         import proxsuite
 
-        solver_opts['backend'] = solver_opts.get('backend', 'dense')
-        backend = solver_opts['backend']
+        solver_opts["backend"] = solver_opts.get("backend", "dense")
+        backend = solver_opts["backend"]
 
-        if backend == 'dense':
+        if backend == "dense":
             # Convert sparse to dense matrices
             P = data[s.P].toarray()
             A = data[s.A].toarray()
             F = data[s.F].toarray()
-        elif backend == 'sparse':
+        elif backend == "sparse":
             P = data[s.P]
             A = data[s.A]
             F = data[s.F]
         else:
-            raise ValueError('Wrong input, backend most be either dense or sparse')
+            raise ValueError("Wrong input, backend most be either dense or sparse")
 
         q = data[s.Q]
         b = data[s.B]
         g = data[s.G]
 
         lb = -np.inf * np.ones(data[s.G].shape)
-        data['lb'] = lb
+        data["lb"] = lb
 
-        n_var = data['n_var']
-        n_eq = data['n_eq']
-        n_ineq = data['n_ineq']
+        n_var = data["n_var"]
+        n_eq = data["n_eq"]
+        n_ineq = data["n_ineq"]
 
         # Overwrite default values
-        solver_opts['eps_abs'] = solver_opts.get('eps_abs', 1e-8)
-        solver_opts['eps_rel'] = solver_opts.get('eps_rel', 0.0)
-        solver_opts['max_iter'] = solver_opts.get('max_iter', 10000)
-        solver_opts['rho'] = solver_opts.get('rho', 1e-6)
-        solver_opts['mu_eq'] = solver_opts.get('mu_eq', 1e-3)
-        solver_opts['mu_in'] = solver_opts.get('mu_in', 1e-1)
+        solver_opts["eps_abs"] = solver_opts.get("eps_abs", 1e-8)
+        solver_opts["eps_rel"] = solver_opts.get("eps_rel", 0.0)
+        solver_opts["max_iter"] = solver_opts.get("max_iter", 10000)
+        solver_opts["rho"] = solver_opts.get("rho", 1e-6)
+        solver_opts["mu_eq"] = solver_opts.get("mu_eq", 1e-3)
+        solver_opts["mu_in"] = solver_opts.get("mu_in", 1e-1)
         # Use cached data
         if warm_start and solver_cache is not None and self.name() in solver_cache:
             solver, old_data, results = solver_cache[self.name()]
             new_args = {}
-            for key in ['q', 'b', 'G', 'lb']:
+            for key in ["q", "b", "G", "lb"]:
                 if any(data[key] != old_data[key]):
                     new_args[self.VAR_MAP[key]] = data[key]
             if P.data.shape != old_data[s.P].data.shape or any(P.data != old_data[s.P].data):
-                new_args['H'] = P
+                new_args["H"] = P
             if A.data.shape != old_data[s.A].data.shape or any(A.data != old_data[s.A].data):
-                new_args['A'] = A
+                new_args["A"] = A
             if F.data.shape != old_data[s.F].data.shape or any(F.data != old_data[s.F].data):
-                new_args['C'] = F
+                new_args["C"] = F
 
             if new_args:
                 solver.update(**new_args)
@@ -124,9 +124,9 @@ class PROXQP(QpSolver):
             else:
                 solver.solve()
         else:
-            if backend == 'dense':
+            if backend == "dense":
                 solver = proxsuite.proxqp.dense.QP(n_var, n_eq, n_ineq)
-            elif backend == 'sparse':
+            elif backend == "sparse":
                 solver = proxsuite.proxqp.sparse.QP(n_var, n_eq, n_ineq)
 
             solver.init(
@@ -137,14 +137,14 @@ class PROXQP(QpSolver):
                 C=F,
                 l=lb,
                 u=g,
-                rho=solver_opts['rho'],
-                mu_eq=solver_opts['mu_eq'],
-                mu_in=solver_opts['mu_in'],
+                rho=solver_opts["rho"],
+                mu_eq=solver_opts["mu_eq"],
+                mu_in=solver_opts["mu_in"],
             )
 
-            solver.settings.eps_abs = solver_opts['eps_abs']
-            solver.settings.eps_rel = solver_opts['eps_rel']
-            solver.settings.max_iter = solver_opts['max_iter']
+            solver.settings.eps_abs = solver_opts["eps_abs"]
+            solver.settings.eps_rel = solver_opts["eps_rel"]
+            solver.settings.max_iter = solver_opts["max_iter"]
             solver.settings.verbose = verbose
 
             solver.solve()

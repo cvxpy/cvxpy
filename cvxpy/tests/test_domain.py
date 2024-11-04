@@ -27,15 +27,15 @@ class TestDomain(BaseTest):
     """Unit tests for the domain module."""
 
     def setUp(self) -> None:
-        self.a = Variable(name='a')
+        self.a = Variable(name="a")
 
-        self.x = Variable(2, name='x')
-        self.y = Variable(2, name='y')
-        self.z = Variable(3, name='z')
+        self.x = Variable(2, name="x")
+        self.y = Variable(2, name="y")
+        self.z = Variable(3, name="z")
 
-        self.A = Variable((2, 2), name='A')
-        self.B = Variable((2, 2), name='B')
-        self.C = Variable((3, 2), name='C')
+        self.A = Variable((2, 2), name="A")
+        self.B = Variable((2, 2), name="B")
+        self.C = Variable((3, 2), name="C")
 
     def test_partial_problem(self) -> None:
         """Test domain for partial minimization/maximization problems."""
@@ -148,7 +148,7 @@ class TestDomain(BaseTest):
 
     def test_power(self) -> None:
         """Test domain for power."""
-        opts = {'eps': 1e-8, 'max_iters': 100000}
+        opts = {"eps": 1e-8, "max_iters": 100000}
         dom = cp.sqrt(self.a).domain
         Problem(Minimize(self.a), dom).solve(solver=cp.SCS, **opts)
         self.assertAlmostEqual(self.a.value, 0)

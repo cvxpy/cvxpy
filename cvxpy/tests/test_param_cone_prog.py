@@ -43,7 +43,7 @@ class TestParamConeProg(BaseTest):
         param_cone_prog = data[cp.settings.PARAM_PROB]
         solver = SCS()
         raw_solution = solver.solve_via_data(data, warm_start=False, verbose=False, solver_opts={})[
-            'x'
+            "x"
         ]
         sltn_dict = param_cone_prog.split_solution(raw_solution, active_vars=var_dict)
         adjoint = param_cone_prog.split_adjoint(sltn_dict)
@@ -62,7 +62,7 @@ class TestParamConeProg(BaseTest):
         param_cone_prog = data[cp.settings.PARAM_PROB]
         solver = SCS()
         raw_solution = solver.solve_via_data(data, warm_start=False, verbose=False, solver_opts={})[
-            'x'
+            "x"
         ]
         sltn_dict = param_cone_prog.split_solution(raw_solution, active_vars=var_dict)
         adjoint = param_cone_prog.split_adjoint(sltn_dict)
@@ -85,7 +85,7 @@ class TestParamConeProg(BaseTest):
         param_cone_prog = data[cp.settings.PARAM_PROB]
         solver = SCS()
         raw_solution = solver.solve_via_data(data, warm_start=False, verbose=False, solver_opts={})[
-            'x'
+            "x"
         ]
         sltn_dict = param_cone_prog.split_solution(raw_solution, active_vars=var_dict)
         self.assertEqual(sltn_dict[s.id].shape, s.shape)
@@ -105,7 +105,7 @@ class TestParamConeProg(BaseTest):
         """Test that lower and upper bounds on variables are propagated."""
         # Create a solver instance where bounded variables are disabled.
         solver_instance = SCS()
-        solver_instance.name = lambda: 'Custom SCS, no bounded variables'
+        solver_instance.name = lambda: "Custom SCS, no bounded variables"
         solver_instance.BOUNDED_VARIABLES = False
 
         lower_bounds = -10
@@ -120,7 +120,7 @@ class TestParamConeProg(BaseTest):
 
         # Create a solver instance where bounded variables are enabled.
         solver_instance = SCS()
-        solver_instance.name = lambda: 'Custom SCS, bounded variables'
+        solver_instance.name = lambda: "Custom SCS, bounded variables"
         solver_instance.BOUNDED_VARIABLES = True
 
         lower_bounds = -10
@@ -131,5 +131,5 @@ class TestParamConeProg(BaseTest):
         param_cone_prog = data[cp.settings.PARAM_PROB]
 
         assert np.all(param_cone_prog.lower_bounds == lower_bounds)
-        param_upper_bound = np.reshape(param_cone_prog.upper_bounds, (3, 2), order='F')
+        param_upper_bound = np.reshape(param_cone_prog.upper_bounds, (3, 2), order="F")
         assert np.all(param_upper_bound == upper_bounds)

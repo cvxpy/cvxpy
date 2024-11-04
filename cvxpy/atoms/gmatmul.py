@@ -60,17 +60,17 @@ class gmatmul(Atom):
         return np.exp(self.A.value @ logX)
 
     def name(self) -> str:
-        return '%s(%s, %s)' % (self.__class__.__name__, self.A, self.args[0])
+        return "%s(%s, %s)" % (self.__class__.__name__, self.A, self.args[0])
 
     def validate_arguments(self) -> None:
         """Raises an error if the arguments are invalid."""
         super(gmatmul, self).validate_arguments()
         if not self.A.is_constant():
-            raise ValueError('gmatmul(A, X) requires that A be constant.')
+            raise ValueError("gmatmul(A, X) requires that A be constant.")
         if self.A.parameters() and not isinstance(self.A, cvxtypes.parameter()):
-            raise ValueError('gmatmul(A, X) requires that A be a Constant or a Parameter.')
+            raise ValueError("gmatmul(A, X) requires that A be a Constant or a Parameter.")
         if not self.args[0].is_pos():
-            raise ValueError('gmatmul(A, X) requires that X be positive.')
+            raise ValueError("gmatmul(A, X) requires that X be positive.")
 
     def shape_from_args(self) -> Tuple[int, ...]:
         """Returns the (row, col) shape of the expression."""

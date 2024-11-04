@@ -41,17 +41,17 @@ class TestLinearCone(BaseTest):
     """Unit tests for the domain module."""
 
     def setUp(self) -> None:
-        self.a = Variable(name='a')
-        self.b = Variable(name='b')
-        self.c = Variable(name='c')
+        self.a = Variable(name="a")
+        self.b = Variable(name="b")
+        self.c = Variable(name="c")
 
-        self.x = Variable(2, name='x')
-        self.y = Variable(3, name='y')
-        self.z = Variable(2, name='z')
+        self.x = Variable(2, name="x")
+        self.y = Variable(3, name="y")
+        self.z = Variable(2, name="z")
 
-        self.A = Variable((2, 2), name='A')
-        self.B = Variable((2, 2), name='B')
-        self.C = Variable((3, 2), name='C')
+        self.A = Variable((2, 2), name="A")
+        self.B = Variable((2, 2), name="B")
+        self.C = Variable((3, 2), name="C")
 
         self.solvers = [CLARABEL()]
 
@@ -292,7 +292,7 @@ class TestLinearCone(BaseTest):
         self.assertTrue(ConeMatrixStuffing().accepts(prob))
 
     def test_nonneg_constraints_backend(self) -> None:
-        x = Variable(shape=(2,), name='x')
+        x = Variable(shape=(2,), name="x")
         objective = Maximize(-4 * x[0] - 5 * x[1])
         constr_expr = hstack([3 - (2 * x[0] + x[1]), 3 - (x[0] + 2 * x[1]), x[0], x[1]])
         constraints = [NonNeg(constr_expr)]
@@ -303,7 +303,7 @@ class TestLinearCone(BaseTest):
         self.assertTrue(ConeMatrixStuffing().accepts(p_min[0]))
 
     def test_nonneg_constraints_end_user(self) -> None:
-        x = Variable(shape=(2,), name='x')
+        x = Variable(shape=(2,), name="x")
         objective = Minimize(-4 * x[0] - 5 * x[1])
         constr_expr = hstack([3 - (2 * x[0] + x[1]), 3 - (x[0] + 2 * x[1]), x[0], x[1]])
         constraints = [NonNeg(constr_expr)]
@@ -314,7 +314,7 @@ class TestLinearCone(BaseTest):
         # Check that the problem compiles correctly, and that
         # dual variables are recovered correctly.
         sth = SolverTestHelper(obj_pair, var_pairs, con_pairs)
-        sth.solve(solver='CLARABEL')
+        sth.solve(solver="CLARABEL")
         sth.verify_primal_values(places=4)
         sth.verify_dual_values(places=4)
         # Check that violations are computed properly

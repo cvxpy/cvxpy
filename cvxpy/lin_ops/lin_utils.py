@@ -771,7 +771,7 @@ def check_param_val(param):
     """
     val = param.value
     if val is None:
-        raise ValueError('Problem has missing parameter value.')
+        raise ValueError("Problem has missing parameter value.")
     else:
         return val
 

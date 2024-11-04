@@ -77,12 +77,12 @@ def targets_and_priorities(
     Raises:
       ValueError: If the scalarized objective is neither convex nor concave.
     """
-    assert len(objectives) == len(priorities), 'Number of objectives and priorities must match.'
-    assert len(objectives) == len(targets), 'Number of objectives and targets must match.'
+    assert len(objectives) == len(priorities), "Number of objectives and priorities must match."
+    assert len(objectives) == len(targets), "Number of objectives and targets must match."
     if limits is not None:
-        assert len(objectives) == len(limits), 'Number of objectives and limits must match.'
+        assert len(objectives) == len(limits), "Number of objectives and limits must match."
 
-    assert off_target >= 0, 'The off_target argument must be nonnegative.'
+    assert off_target >= 0, "The off_target argument must be nonnegative."
 
     num_objs = len(objectives)
     new_objs: List[Union[Minimize, Maximize]] = []
@@ -105,7 +105,7 @@ def targets_and_priorities(
     elif obj_expr.is_concave():
         return Maximize(obj_expr)
     else:
-        raise ValueError('Scalarized objective is neither convex nor concave.')
+        raise ValueError("Scalarized objective is neither convex nor concave.")
 
 
 def max(objectives: List[Union[Minimize, Maximize]], weights) -> Minimize:

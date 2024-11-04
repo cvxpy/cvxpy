@@ -50,7 +50,7 @@ class SparseMatrixInterface(NDArrayInterface):
 
     def identity(self, size):
         """Return an identity matrix."""
-        return sp.eye(size, size, format='csc')
+        return sp.eye(size, size, format="csc")
 
     def size(self, matrix):
         """Return the dimensions of the matrix."""
@@ -62,7 +62,7 @@ class SparseMatrixInterface(NDArrayInterface):
 
     def zeros(self, rows, cols):
         """Return a matrix with all 0's."""
-        return sp.csc_matrix((rows, cols), dtype='float64')
+        return sp.csc_matrix((rows, cols), dtype="float64")
 
     def reshape(self, matrix, size):
         """Change the shape of the matrix."""

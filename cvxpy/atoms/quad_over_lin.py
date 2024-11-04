@@ -114,9 +114,9 @@ class quad_over_lin(Atom):
     def validate_arguments(self) -> None:
         """Check dimensions of arguments."""
         if not self.args[1].is_scalar():
-            raise ValueError('The second argument to quad_over_lin must be a scalar.')
+            raise ValueError("The second argument to quad_over_lin must be a scalar.")
         if self.args[1].is_complex():
-            raise ValueError('The second argument to quad_over_lin cannot be complex.')
+            raise ValueError("The second argument to quad_over_lin cannot be complex.")
         super(quad_over_lin, self).validate_arguments()
 
     def is_quadratic(self) -> bool:

@@ -41,10 +41,10 @@ class CPLEX(QpSolver):
         cplex
 
     def invert(self, results, inverse_data):
-        model = results['model']
+        model = results["model"]
         attr = {}
-        if 'cputime' in results:
-            attr[s.SOLVE_TIME] = results['cputime']
+        if "cputime" in results:
+            attr[s.SOLVE_TIME] = results["cputime"]
         attr[s.NUM_ITERS] = (
             int(model.solution.progress.get_num_barrier_iterations())
             if not inverse_data[CPLEX.IS_MIP]
@@ -81,9 +81,9 @@ class CPLEX(QpSolver):
         b = data[s.B]
         F = data[s.F].tocsr()  # Convert F matrix to csr format
         g = data[s.G]
-        n_var = data['n_var']
-        n_eq = data['n_eq']
-        n_ineq = data['n_ineq']
+        n_var = data["n_var"]
+        n_eq = data["n_eq"]
+        n_ineq = data["n_ineq"]
 
         # Constrain values between bounds
         constrain_cplex_infty(b)
@@ -116,7 +116,7 @@ class CPLEX(QpSolver):
             lin_expr.append([A.indices[start:end].tolist(), A.data[start:end].tolist()])
             rhs.append(b[i])
         if lin_expr:
-            model.linear_constraints.add(lin_expr=lin_expr, senses=['E'] * len(lin_expr), rhs=rhs)
+            model.linear_constraints.add(lin_expr=lin_expr, senses=["E"] * len(lin_expr), rhs=rhs)
 
         lin_expr, rhs = [], []
         for i in range(n_ineq):  # Add inequalities
@@ -125,7 +125,7 @@ class CPLEX(QpSolver):
             lin_expr.append([F.indices[start:end].tolist(), F.data[start:end].tolist()])
             rhs.append(g[i])
         if lin_expr:
-            model.linear_constraints.add(lin_expr=lin_expr, senses=['L'] * len(lin_expr), rhs=rhs)
+            model.linear_constraints.add(lin_expr=lin_expr, senses=["L"] * len(lin_expr), rhs=rhs)
 
         # Set quadratic Cost
         if P.count_nonzero():  # Only if quadratic form is not null
@@ -141,7 +141,7 @@ class CPLEX(QpSolver):
             hide_solver_output(model)
 
         # Set parameters
-        reoptimize = solver_opts.pop('reoptimize', False)
+        reoptimize = solver_opts.pop("reoptimize", False)
         set_parameters(model, solver_opts)
 
         # Solve problem
@@ -150,18 +150,18 @@ class CPLEX(QpSolver):
             start = model.get_time()
             model.solve()
             end = model.get_time()
-            results_dict['cputime'] = end - start
+            results_dict["cputime"] = end - start
 
             ambiguous_status = get_status(model) == s.INFEASIBLE_OR_UNBOUNDED
             if ambiguous_status and reoptimize:
                 model.parameters.preprocessing.presolve.set(0)
                 start_time = model.get_time()
                 model.solve()
-                results_dict['cputime'] += model.get_time() - start_time
+                results_dict["cputime"] += model.get_time() - start_time
 
         except Exception:  # Error in the solution
-            results_dict['status'] = s.SOLVER_ERROR
+            results_dict["status"] = s.SOLVER_ERROR
 
-        results_dict['model'] = model
+        results_dict["model"] = model
 
         return results_dict

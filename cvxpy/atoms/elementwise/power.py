@@ -140,7 +140,7 @@ class power(Elementwise):
             isinstance(self.p, cvxtypes.constant()) or isinstance(self.p, cvxtypes.parameter())
         ):
             raise ValueError(
-                'The exponent `p` must be either a Constant or ' 'a Parameter; received ', type(p)
+                "The exponent `p` must be either a Constant or " "a Parameter; received ", type(p)
             )
         self.max_denom = max_denom
 
@@ -358,12 +358,12 @@ class power(Elementwise):
             p = self.p.value
         else:
             raise ValueError(
-                'Cannot compute grad of parametrized power when ' 'parameter value is unspecified.'
+                "Cannot compute grad of parametrized power when " "parameter value is unspecified."
             )
 
         if p == 0:
             # All zeros.
-            return [sp.csc_matrix((rows, cols), dtype='float64')]
+            return [sp.csc_matrix((rows, cols), dtype="float64")]
         # Outside domain or on boundary.
         if not is_power2(p) and np.min(values[0]) <= 0:
             if p < 1:
@@ -385,8 +385,8 @@ class power(Elementwise):
 
         if p is None:
             raise ValueError(
-                'Cannot compute domain of parametrized power when '
-                'parameter value is unspecified.'
+                "Cannot compute domain of parametrized power when "
+                "parameter value is unspecified."
             )
         elif (p < 1 and not p == 0) or (p > 1 and not is_power2(p)):
             return [self.args[0] >= 0]
@@ -396,7 +396,7 @@ class power(Elementwise):
     def get_data(self):
         return [self._p_orig, self.max_denom]
 
-    def copy(self, args=None, id_objects=None) -> 'power':
+    def copy(self, args=None, id_objects=None) -> "power":
         """Returns a shallow copy of the power atom.
 
         Parameters
@@ -414,4 +414,4 @@ class power(Elementwise):
         return power(args[0], self._p_orig, self.max_denom)
 
     def name(self) -> str:
-        return '%s(%s, %s)' % (self.__class__.__name__, self.args[0].name(), self.p.value)
+        return "%s(%s, %s)" % (self.__class__.__name__, self.args[0].name(), self.p.value)

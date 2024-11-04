@@ -72,12 +72,12 @@ def sparse2cvxopt(value):
     import cvxopt
 
     if isinstance(value, (np.ndarray, np.matrix)):
-        return cvxopt.sparse(cvxopt.matrix(value.astype('float64')), tc='d')
+        return cvxopt.sparse(cvxopt.matrix(value.astype("float64")), tc="d")
     # Convert scipy sparse matrices to coo form first.
     elif sp.issparse(value):
         value = value.tocoo()
         return cvxopt.spmatrix(
-            value.data.tolist(), value.row.tolist(), value.col.tolist(), size=value.shape, tc='d'
+            value.data.tolist(), value.row.tolist(), value.col.tolist(), size=value.shape, tc="d"
         )
 
 
@@ -96,7 +96,7 @@ def dense2cvxopt(value):
     """
     import cvxopt
 
-    return cvxopt.matrix(value, tc='d')
+    return cvxopt.matrix(value, tc="d")
 
 
 def cvxopt2dense(value):
@@ -139,7 +139,7 @@ def shape(constant):
     elif is_sparse(constant):
         return INTERFACES[sp.csc_matrix].shape(constant)
     else:
-        raise TypeError('%s is not a valid type for a Constant value.' % type(constant))
+        raise TypeError("%s is not a valid type for a Constant value." % type(constant))
 
 
 # Is the constant a column vector?
@@ -196,7 +196,7 @@ def scalar_value(constant):
     elif is_sparse(constant):
         return INTERFACES[sp.csc_matrix].scalar_value(constant.tocsc())
     else:
-        raise TypeError('%s is not a valid type for a Constant value.' % type(constant))
+        raise TypeError("%s is not a valid type for a Constant value." % type(constant))
 
 
 # Return the collective sign of the matrix entries.
@@ -328,7 +328,7 @@ def is_sparse_symmetric(m, complex: bool = False) -> bool:
     """
     # https://mail.scipy.org/pipermail/scipy-dev/2014-October/020101.html
     if m.shape[0] != m.shape[1]:
-        raise ValueError('m must be a square matrix')
+        raise ValueError("m must be a square matrix")
 
     if not isinstance(m, sp.coo_matrix):
         m = sp.coo_matrix(m)
@@ -374,7 +374,7 @@ def is_sparse_skew_symmetric(A) -> bool:
         The check result.
     """
     if A.shape[0] != A.shape[1]:
-        raise ValueError('m must be a square matrix')
+        raise ValueError("m must be a square matrix")
 
     if not isinstance(A, sp.coo_matrix):
         A = sp.coo_matrix(A)

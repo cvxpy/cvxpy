@@ -38,7 +38,7 @@ def constant_grad(expr):
         if (rows, cols) == (1, 1):
             grad[var] = 0.0
         else:
-            grad[var] = sp.csc_matrix((rows, cols), dtype='float64')
+            grad[var] = sp.csc_matrix((rows, cols), dtype="float64")
     return grad
 
 

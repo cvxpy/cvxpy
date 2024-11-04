@@ -42,7 +42,7 @@ class UnaryOperator(AffAtom):
 class NegExpression(UnaryOperator):
     """Negation of an expression."""
 
-    OP_NAME = '-'
+    OP_NAME = "-"
     OP_FUNC = op.neg
 
     def shape_from_args(self) -> Tuple[int, ...]:

@@ -39,26 +39,26 @@ class PDLP(ConicSolver):
 
     # The key that maps to the pdlp.QuadraticProgram in the data returned by
     # apply().
-    PDLP_MODEL = 'pdlp_model'
+    PDLP_MODEL = "pdlp_model"
 
     def name(self) -> str:
         """The name of the solver."""
-        return 'PDLP'
+        return "PDLP"
 
     def import_solver(self) -> None:
         """Imports the solver."""
         import ortools  # noqa F401
 
-        if Version(ortools.__version__) < Version('9.7.0'):
+        if Version(ortools.__version__) < Version("9.7.0"):
             raise RuntimeError(
-                f'Version of ortools ({ortools.__version__}) ' f'is too old. Expected >= 9.7.0.'
+                f"Version of ortools ({ortools.__version__}) " f"is too old. Expected >= 9.7.0."
             )
-        if Version(ortools.__version__) >= Version('9.10.0'):
+        if Version(ortools.__version__) >= Version("9.10.0"):
             raise RuntimeError(
-                'Unrecognized new version of ortools '
-                f'({ortools.__version__}). Expected < 9.10.0. '
-                'Please open a feature request on cvxpy to '
-                'enable support for this version.'
+                "Unrecognized new version of ortools "
+                f"({ortools.__version__}). Expected < 9.10.0. "
+                "Please open a feature request on cvxpy to "
+                "enable support for this version."
             )
 
     def apply(self, problem: ParamConeProg) -> Tuple[Dict, Dict]:
@@ -74,12 +74,12 @@ class PDLP(ConicSolver):
         data[self.DIMS] = problem.cone_dims
 
         constr_map = problem.constr_map
-        inv_data['constraints'] = constr_map[Zero] + constr_map[NonNeg]
+        inv_data["constraints"] = constr_map[Zero] + constr_map[NonNeg]
 
         # Min c'x + d such that Ax + b = s, s \in cones.
         c, d, A, b = problem.apply_parameters()
         A = csr_matrix(A)
-        data['num_constraints'], data['num_vars'] = A.shape
+        data["num_constraints"], data["num_vars"] = A.shape
 
         model = pdlp.QuadraticProgram()
         model.objective_offset = d.item() if isinstance(d, np.ndarray) else d
@@ -105,16 +105,16 @@ class PDLP(ConicSolver):
 
     def invert(self, solution: Dict[str, Any], inverse_data: Dict[str, Any]) -> Solution:
         """Returns the solution to the original problem."""
-        status = solution['status']
+        status = solution["status"]
 
         if status in s.SOLUTION_PRESENT:
-            primal_vars = {inverse_data[self.VAR_ID]: solution['primal']}
+            primal_vars = {inverse_data[self.VAR_ID]: solution["primal"]}
             dual_vars = utilities.get_dual_values(
-                result_vec=solution['dual'],
+                result_vec=solution["dual"],
                 parse_func=utilities.extract_dual_value,
-                constraints=inverse_data['constraints'],
+                constraints=inverse_data["constraints"],
             )
-            return Solution(status, solution['value'], primal_vars, dual_vars, {})
+            return Solution(status, solution["value"], primal_vars, dual_vars, {})
         else:
             return failure_solution(status)
 
@@ -135,29 +135,29 @@ class PDLP(ConicSolver):
         # CVXPY reductions can leave a messy problem (e.g., no variable
         # bounds), so we turn on presolving by default.
         parameters.presolve_options.use_glop = True
-        if 'parameters_proto' in solver_opts:
-            proto = solver_opts['parameters_proto']
+        if "parameters_proto" in solver_opts:
+            proto = solver_opts["parameters_proto"]
             if not isinstance(proto, solvers_pb2.PrimalDualHybridGradientParams):
-                log.error('parameters_proto must be a PrimalDualHybridGradientParams')
-                return {'status': s.SOLVER_ERROR}
+                log.error("parameters_proto must be a PrimalDualHybridGradientParams")
+                return {"status": s.SOLVER_ERROR}
             parameters.MergeFrom(proto)
-        if 'time_limit_sec' in solver_opts:
-            limit = float(solver_opts['time_limit_sec'])
+        if "time_limit_sec" in solver_opts:
+            limit = float(solver_opts["time_limit_sec"])
             parameters.termination_criteria.time_sec_limit = limit
 
         result = pdlp.primal_dual_hybrid_gradient(data[self.PDLP_MODEL], parameters)
         solution = {}
-        solution['primal'] = result.primal_solution
-        solution['dual'] = result.dual_solution
-        solution['status'] = self._status_map(result.solve_log)
+        solution["primal"] = result.primal_solution
+        solution["dual"] = result.dual_solution
+        solution["status"] = self._status_map(result.solve_log)
 
         convergence_info = self._get_convergence_info(
             result.solve_log.solution_stats, result.solve_log.solution_type
         )
         if convergence_info is not None:
-            solution['value'] = convergence_info.primal_objective
+            solution["value"] = convergence_info.primal_objective
         else:
-            solution['value'] = -np.inf
+            solution["value"] = -np.inf
 
         return solution
 
@@ -187,19 +187,19 @@ class PDLP(ConicSolver):
         elif status == TerminationReason.TERMINATION_REASON_KKT_MATRIX_PASS_LIMIT:
             return s.USER_LIMIT
         elif status == TerminationReason.TERMINATION_REASON_NUMERICAL_ERROR:
-            log.warning('PDLP reported a numerical error.')
+            log.warning("PDLP reported a numerical error.")
             return s.USER_LIMIT
         elif status == TerminationReason.TERMINATION_REASON_INVALID_PROBLEM:
-            log.error('Invalid problem: %s', solve_log.termination_string)
+            log.error("Invalid problem: %s", solve_log.termination_string)
             return s.SOLVER_ERROR
         elif status == TerminationReason.TERMINATION_REASON_INVALID_PARAMETER:
-            log.error('Invalid parameter: %s', solve_log.termination_string)
+            log.error("Invalid parameter: %s", solve_log.termination_string)
             return s.SOLVER_ERROR
         elif status == TerminationReason.TERMINATION_REASON_PRIMAL_OR_DUAL_INFEASIBLE:
             return s.INFEASIBLE_OR_UNBOUNDED
         else:
             log.error(
-                'Unexpected status: %s Message: %s',
+                "Unexpected status: %s Message: %s",
                 TerminationReason.Name(status),
                 solve_log.termination_string,
             )

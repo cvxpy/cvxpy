@@ -30,88 +30,88 @@ class LinOp:
         self.data = data  # This is later set to C++ LinOp objects' linOp_data_ field.
 
     def __repr__(self) -> str:
-        return f'LinOp({self.type}, {self.shape})'
+        return f"LinOp({self.type}, {self.shape})"
 
 
 # The types of linear operators.
 
 # A variable.
 # Data: var id.
-VARIABLE = 'variable'
+VARIABLE = "variable"
 # Promoting a scalar expression.
 # Data: None
-PROMOTE = 'promote'
+PROMOTE = "promote"
 # Multiplying an expression by a constant.
 # Data: LinOp evaluating to the left hand multiple.
-MUL = 'mul'
+MUL = "mul"
 # Multiplying an expression by a constant on the right.
 # Data: LinOp evaluating to the right hand multiple.
-RMUL = 'rmul'
+RMUL = "rmul"
 # Multiplying an expression elementwise by a constant.
 # Data: LinOp evaluating to the left hand multiple.
-MUL_ELEM = 'mul_elem'
+MUL_ELEM = "mul_elem"
 # Dividing an expression by a scalar constant.
 # Data: LinOp evaluating to the divisor.
-DIV = 'div'
+DIV = "div"
 # Summing expressions.
-SUM = 'sum'
+SUM = "sum"
 # Negating an expression.
-NEG = 'neg'
+NEG = "neg"
 # An index/slice into an expression.
 # Data: (row slice, col slice).
-INDEX = 'index'
+INDEX = "index"
 # The transpose of an expression.
 # Data: None.
-TRANSPOSE = 'transpose'
+TRANSPOSE = "transpose"
 # The sum of the entries of an expression.
 # Data: None
-SUM_ENTRIES = 'sum_entries'
+SUM_ENTRIES = "sum_entries"
 # The sum of the diagonal entries of an expression.
 # Data: None
-TRACE = 'trace'
+TRACE = "trace"
 # An expression cast into a different shape.
 # Data: None
-RESHAPE = 'reshape'
+RESHAPE = "reshape"
 # Converts a vector to a diagonal matrix.
 # Data: int, diagonal offset
-DIAG_VEC = 'diag_vec'
+DIAG_VEC = "diag_vec"
 # Converts the diagonal of a matrix to a vector.
 # Data: int, diagonal offset
-DIAG_MAT = 'diag_mat'
+DIAG_MAT = "diag_mat"
 # Vectorized upper triangular portion of a matrix.
 # Data: None
-UPPER_TRI = 'upper_tri'
+UPPER_TRI = "upper_tri"
 # The 1D discrete convolution of two vectors.
 # Data: LinOp evaluating to the left hand term.
-CONV = 'conv'
+CONV = "conv"
 # The Kronecker product of two matrices.
 # Data: LinOp evaluating to the left hand term (variable in the right-hand term).
-KRON_R = 'kron_r'
+KRON_R = "kron_r"
 # Data: LinOp evaluating to the right hand term (variable in the left-hand term).
-KRON_L = 'kron_l'
+KRON_L = "kron_l"
 # Horizontally concatenating operators.
 # Data: None
-HSTACK = 'hstack'
+HSTACK = "hstack"
 # Vertically concatenating operators.
 # Data: None
-VSTACK = 'vstack'
+VSTACK = "vstack"
 # Stack concatenating operators.
 # Data: None
-CONCATENATE = 'concatenate'
+CONCATENATE = "concatenate"
 # A scalar constant.
 # Data: Python float.
-SCALAR_CONST = 'scalar_const'
+SCALAR_CONST = "scalar_const"
 # A dense matrix/vector constant.
 # Data: NumPy matrix.
-DENSE_CONST = 'dense_const'
+DENSE_CONST = "dense_const"
 # A sparse matrix constant.
 # Data: SciPy sparse matrix.
-SPARSE_CONST = 'sparse_const'
+SPARSE_CONST = "sparse_const"
 # Some function of parameters.
 # Data: CVXPY expression.
-PARAM = 'param'
+PARAM = "param"
 # An expression with no variables.
 # Data: None
-NO_OP = 'no_op'
+NO_OP = "no_op"
 # ID in coefficients for constants.
 CONSTANT_ID = -1

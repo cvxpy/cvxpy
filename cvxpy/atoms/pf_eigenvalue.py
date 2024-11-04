@@ -41,7 +41,7 @@ class pf_eigenvalue(Atom):
         super(pf_eigenvalue, self).__init__(X)
         if len(X.shape) != 2 or X.shape[0] != X.shape[1]:
             raise ValueError(
-                'Argument to `spectral radius` must be a ' 'square matrix, received ', X
+                "Argument to `spectral radius` must be a " "square matrix, received ", X
             )
         self.args[0] = X
 
@@ -49,7 +49,7 @@ class pf_eigenvalue(Atom):
         return np.max(np.abs(np.linalg.eig(values[0])[0]))
 
     def name(self) -> str:
-        return '%s(%s)' % (self.__class__.__name__, self.args[0])
+        return "%s(%s)" % (self.__class__.__name__, self.args[0])
 
     def shape_from_args(self) -> Tuple[int, ...]:
         """Returns the (row, col) shape of the expression."""

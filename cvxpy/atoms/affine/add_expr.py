@@ -49,7 +49,7 @@ class AddExpression(AffAtom):
     def name(self) -> str:
         result = str(self.args[0])
         for i in range(1, len(self.args)):
-            result += ' + ' + str(self.args[i])
+            result += " + " + str(self.args[i])
         return result
 
     def numeric(self, values: Iterable[Any]) -> Any:
@@ -75,7 +75,7 @@ class AddExpression(AffAtom):
 
     # As __init__ takes in the arg_groups instead of args, we need a special
     # copy() function.
-    def copy(self, args=None, id_objects=None) -> 'AddExpression':
+    def copy(self, args=None, id_objects=None) -> "AddExpression":
         """Returns a shallow copy of the AddExpression atom.
 
         Parameters

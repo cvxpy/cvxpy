@@ -12,7 +12,7 @@ def replace_params_with_consts(expr):
         return expr
     elif isinstance(expr, Parameter):
         if expr.value is None:
-            raise ParameterError('Problem contains unspecified parameters.')
+            raise ParameterError("Problem contains unspecified parameters.")
         return Constant(expr.value)
     else:
         new_args = []

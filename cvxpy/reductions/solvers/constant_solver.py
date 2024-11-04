@@ -19,7 +19,7 @@ class ConstantSolver(Solver):
         return solution
 
     def name(self) -> str:
-        return 'CONSTANT_SOLVER'
+        return "CONSTANT_SOLVER"
 
     def import_solver(self) -> None:
         return

@@ -135,7 +135,7 @@ MI_SOLVERS = [
 MI_SOCP_SOLVERS = [s.MOSEK, s.GUROBI, s.CPLEX, s.XPRESS, s.SCIP, s.ECOS_BB]
 
 # Acknowledge MI solver support for SciPy >= 1.9.
-if not (Version(scipy.__version__) < Version('1.9.0')):
+if not (Version(scipy.__version__) < Version("1.9.0")):
     MI_SOLVERS.append(s.SCIPY)
 
 

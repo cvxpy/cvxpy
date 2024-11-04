@@ -29,8 +29,8 @@ from cvxpy.expressions.variable import Variable
 def gm(t, x, y):
     length = t.size
     return SOC(
-        t=reshape(x + y, (length,), order='F'),
-        X=vstack([reshape(x - y, (1, length), order='F'), reshape(2 * t, (1, length), order='F')]),
+        t=reshape(x + y, (length,), order="F"),
+        X=vstack([reshape(x - y, (1, length), order="F"), reshape(2 * t, (1, length), order="F")]),
         axis=0,
     )
 
@@ -361,10 +361,10 @@ def fracify(a, max_denom: int = 1024, force_dyad: bool = False):
 
     """
     if any(v < 0 for v in a):
-        raise ValueError('Input powers must be nonnegative.')
+        raise ValueError("Input powers must be nonnegative.")
 
     if not (isinstance(max_denom, numbers.Integral) and max_denom > 0):
-        raise ValueError('Input denominator must be an integer.')
+        raise ValueError("Input denominator must be an integer.")
 
     if isinstance(a, np.ndarray):
         a = a.tolist()
@@ -589,7 +589,7 @@ def split(w_dyad):
                 return tuple(child1), tuple(child2)
         bit /= 2
 
-    raise ValueError('Something wrong with input {}'.format(w_dyad))
+    raise ValueError("Something wrong with input {}".format(w_dyad))
 
 
 def decompose(w_dyad):
@@ -604,7 +604,7 @@ def decompose(w_dyad):
     """
 
     if not is_dyad_weight(w_dyad):
-        raise ValueError('input must be a dyadic weight vector. got: {}'.format(w_dyad))
+        raise ValueError("input must be a dyadic weight vector. got: {}".format(w_dyad))
 
     tree = {}
     todo = [tuple(w_dyad)]
@@ -618,7 +618,7 @@ def decompose(w_dyad):
 
 def prettytuple(t):
     """Use the string representation of objects in a tuple."""
-    return '(' + ', '.join(str(f) for f in t) + ')'
+    return "(" + ", ".join(str(f) for f in t) + ")"
 
 
 def get_max_denom(tup):
@@ -633,12 +633,12 @@ def prettydict(d):
 
     """
     keys = sorted(list(d.keys()), key=get_max_denom, reverse=True)
-    result = ''
+    result = ""
     for tup in keys:
         children = sorted(d[tup], key=get_max_denom, reverse=False)
-        result += prettytuple(tup) + '\n'
+        result += prettytuple(tup) + "\n"
         for child in children:
-            result += '  ' + prettytuple(child) + '\n'
+            result += "  " + prettytuple(child) + "\n"
 
     return result
 

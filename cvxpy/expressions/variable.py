@@ -42,11 +42,11 @@ class Variable(Leaf):
         else:
             self.id = var_id
         if name is None:
-            self._name = '%s%d' % (s.VAR_PREFIX, self.id)
+            self._name = "%s%d" % (s.VAR_PREFIX, self.id)
         elif isinstance(name, str):
             self._name = name
         else:
-            raise TypeError('Variable name %s must be a string.' % name)
+            raise TypeError("Variable name %s must be a string." % name)
 
         self._variable_with_attributes: Variable | None = None
         self._value = None
@@ -94,4 +94,4 @@ class Variable(Leaf):
     def __repr__(self) -> str:
         """String to recreate the variable."""
         attr_str = self._get_attr_str()
-        return f'Variable({self.shape}, {self.__str__()}{attr_str})'
+        return f"Variable({self.shape}, {self.__str__()}{attr_str})"

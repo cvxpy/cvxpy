@@ -11,7 +11,7 @@ def pnorm_canon(expr, args):
     if x.shape == tuple():
         x = promote(p, (1,))
     if expr.axis is None or len(x.shape) == 1:
-        x = vec(x, order='F')
+        x = vec(x, order="F")
         return (1.0 / p) * log_sum_exp(hstack([xi * p for xi in x])), []
 
     if expr.axis == 0:

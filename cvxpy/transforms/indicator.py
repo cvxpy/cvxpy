@@ -85,13 +85,13 @@ class indicator(Expression):
         """Returns the (row, col) dimensions of the expression."""
         return ()
 
-    def is_dpp(self, context: str = 'dcp') -> bool:
+    def is_dpp(self, context: str = "dcp") -> bool:
         """The expression is a disciplined parameterized expression."""
         return False
 
     def name(self) -> str:
         """Returns the string representation of the expression."""
-        return f'Indicator({self.args})'
+        return f"Indicator({self.args})"
 
     def domain(self) -> List[Constraint]:
         """A list of constraints describing the closure of the region

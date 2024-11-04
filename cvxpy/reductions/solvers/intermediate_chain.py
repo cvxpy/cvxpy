@@ -63,48 +63,48 @@ def construct_intermediate_chain(problem, candidates, gp: bool = False):
         reductions += [Dgp2Dcp()]
 
     if not gp and not problem.is_dcp():
-        append = build_non_disciplined_error_msg(problem, 'DCP')
+        append = build_non_disciplined_error_msg(problem, "DCP")
         if problem.is_dgp():
             append += (
-                '\nHowever, the problem does follow DGP rules. '
-                'Consider calling solve() with `gp=True`.'
+                "\nHowever, the problem does follow DGP rules. "
+                "Consider calling solve() with `gp=True`."
             )
         elif problem.is_dqcp():
             append += (
-                '\nHowever, the problem does follow DQCP rules. '
-                'Consider calling solve() with `qcp=True`.'
+                "\nHowever, the problem does follow DQCP rules. "
+                "Consider calling solve() with `qcp=True`."
             )
-        raise DCPError('Problem does not follow DCP rules. Specifically:\n' + append)
+        raise DCPError("Problem does not follow DCP rules. Specifically:\n" + append)
 
     elif gp and not problem.is_dgp():
-        append = build_non_disciplined_error_msg(problem, 'DGP')
+        append = build_non_disciplined_error_msg(problem, "DGP")
         if problem.is_dcp():
             append += (
-                '\nHowever, the problem does follow DCP rules. '
-                'Consider calling solve() with `gp=False`.'
+                "\nHowever, the problem does follow DCP rules. "
+                "Consider calling solve() with `gp=False`."
             )
         elif problem.is_dqcp():
             append += (
-                '\nHowever, the problem does follow DQCP rules. '
-                'Consider calling solve() with `qcp=True`.'
+                "\nHowever, the problem does follow DQCP rules. "
+                "Consider calling solve() with `qcp=True`."
             )
-        raise DGPError('Problem does not follow DGP rules.' + append)
+        raise DGPError("Problem does not follow DGP rules." + append)
 
     # Dcp2Cone and Qp2SymbolicQp require problems to minimize their objectives.
     if type(problem.objective) == Maximize:
         reductions += [FlipObjective()]
 
     # First, attempt to canonicalize the problem to a linearly constrained QP.
-    if candidates['qp_solvers'] and qp2symbolic_qp.accepts(problem):
+    if candidates["qp_solvers"] and qp2symbolic_qp.accepts(problem):
         reductions += [CvxAttr2Constr(), Qp2SymbolicQp()]
         return Chain(reductions=reductions)
 
     # Canonicalize it to conic problem.
-    if not candidates['conic_solvers']:
+    if not candidates["conic_solvers"]:
         raise SolverError(
-            'Problem could not be reduced to a QP, and no '
-            'conic solvers exist among candidate solvers '
-            '(%s).' % candidates
+            "Problem could not be reduced to a QP, and no "
+            "conic solvers exist among candidate solvers "
+            "(%s)." % candidates
         )
     reductions += [Dcp2Cone(), CvxAttr2Constr()]
     return Chain(reductions=reductions)

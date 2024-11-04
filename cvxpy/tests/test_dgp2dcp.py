@@ -28,30 +28,30 @@ class TestDgp2Dcp(BaseTest):
         opt = dcp.solve(SOLVER)
         # dcp is solved in log-space, so it is unbounded below
         # (since the OPT for dgp is 0 + epsilon).
-        self.assertEqual(opt, -float('inf'))
-        self.assertEqual(dcp.status, 'unbounded')
+        self.assertEqual(opt, -float("inf"))
+        self.assertEqual(dcp.status, "unbounded")
 
         dgp.unpack(dgp2dcp.retrieve(dcp.solution))
         self.assertAlmostEqual(dgp.value, 0.0)
-        self.assertEqual(dgp.status, 'unbounded')
+        self.assertEqual(dgp.status, "unbounded")
         dgp._clear_solution()
         dgp.solve(SOLVER, gp=True)
         self.assertAlmostEqual(dgp.value, 0.0)
-        self.assertEqual(dgp.status, 'unbounded')
+        self.assertEqual(dgp.status, "unbounded")
 
         dgp = cvxpy.Problem(cvxpy.Maximize(prod), [])
         dgp2dcp = cvxpy.reductions.Dgp2Dcp(dgp)
         dcp = dgp2dcp.reduce()
-        self.assertEqual(dcp.solve(SOLVER), float('inf'))
-        self.assertEqual(dcp.status, 'unbounded')
+        self.assertEqual(dcp.solve(SOLVER), float("inf"))
+        self.assertEqual(dcp.status, "unbounded")
 
         dgp.unpack(dgp2dcp.retrieve(dcp.solution))
-        self.assertEqual(dgp.value, float('inf'))
-        self.assertEqual(dgp.status, 'unbounded')
+        self.assertEqual(dgp.value, float("inf"))
+        self.assertEqual(dgp.status, "unbounded")
         dgp._clear_solution()
         dgp.solve(SOLVER, gp=True)
-        self.assertAlmostEqual(dgp.value, float('inf'))
-        self.assertEqual(dgp.status, 'unbounded')
+        self.assertAlmostEqual(dgp.value, float("inf"))
+        self.assertEqual(dgp.status, "unbounded")
 
     def test_basic_equality_constraint(self) -> None:
         x = cvxpy.Variable(pos=True)
@@ -211,7 +211,7 @@ class TestDgp2Dcp(BaseTest):
         self.assertAlmostEqual(y.value, 4.0)
 
     def test_sum_largest(self) -> None:
-        self.skipTest('Enable test once sum_largest is implemented.')
+        self.skipTest("Enable test once sum_largest is implemented.")
         x = cvxpy.Variable((4,), pos=True)
         obj = cvxpy.Minimize(cvxpy.sum_largest(x, 3))
         constr = [x[0] * x[1] * x[2] * x[3] >= 16]
@@ -237,14 +237,14 @@ class TestDgp2Dcp(BaseTest):
         dgp2dcp = cvxpy.reductions.Dgp2Dcp(dgp)
         dcp = dgp2dcp.reduce()
         opt = dcp.solve(SOLVER)
-        self.assertEqual(dcp.value, -float('inf'))
+        self.assertEqual(dcp.value, -float("inf"))
         dgp.unpack(dgp2dcp.retrieve(dcp.solution))
         self.assertAlmostEqual(dgp.value, 0.0)
-        self.assertAlmostEqual(dgp.status, 'unbounded')
+        self.assertAlmostEqual(dgp.status, "unbounded")
         dgp._clear_solution()
         dgp.solve(SOLVER, gp=True)
         self.assertAlmostEqual(dgp.value, 0.0)
-        self.assertAlmostEqual(dgp.status, 'unbounded')
+        self.assertAlmostEqual(dgp.status, "unbounded")
 
         # Another unbounded problem.
         x = cvxpy.Variable(2, pos=True)
@@ -253,14 +253,14 @@ class TestDgp2Dcp(BaseTest):
         dgp2dcp = cvxpy.reductions.Dgp2Dcp(dgp)
         dcp = dgp2dcp.reduce()
         opt = dcp.solve(SOLVER)
-        self.assertEqual(dcp.value, -float('inf'))
+        self.assertEqual(dcp.value, -float("inf"))
         dgp.unpack(dgp2dcp.retrieve(dcp.solution))
         self.assertAlmostEqual(dgp.value, 0.0)
-        self.assertAlmostEqual(dgp.status, 'unbounded')
+        self.assertAlmostEqual(dgp.status, "unbounded")
         dgp._clear_solution()
         dgp.solve(SOLVER, gp=True)
         self.assertAlmostEqual(dgp.value, 0.0)
-        self.assertAlmostEqual(dgp.status, 'unbounded')
+        self.assertAlmostEqual(dgp.status, "unbounded")
 
         # Composition with posynomials.
         x = cvxpy.Variable((4,), pos=True)
@@ -305,44 +305,44 @@ class TestDgp2Dcp(BaseTest):
         dgp2dcp = cvxpy.reductions.Dgp2Dcp(dgp)
         dcp = dgp2dcp.reduce()
         dcp.solve(SOLVER)
-        self.assertEqual(dcp.value, -float('inf'))
+        self.assertEqual(dcp.value, -float("inf"))
         dgp.unpack(dgp2dcp.retrieve(dcp.solution))
         self.assertEqual(dgp.value, 0.0)
-        self.assertEqual(dgp.status, 'unbounded')
+        self.assertEqual(dgp.status, "unbounded")
         dgp._clear_solution()
         dgp.solve(SOLVER, gp=True)
         self.assertEqual(dgp.value, 0.0)
-        self.assertEqual(dgp.status, 'unbounded')
+        self.assertEqual(dgp.status, "unbounded")
 
     def test_solving_non_dgp_problem_raises_error(self) -> None:
         problem = cvxpy.Problem(cvxpy.Minimize(-1.0 * cvxpy.Variable()), [])
-        with pytest.raises(error.DGPError, match='However, the problem does follow DCP rules'):
+        with pytest.raises(error.DGPError, match="However, the problem does follow DCP rules"):
             problem.solve(SOLVER, gp=True)
         problem.solve(SOLVER)
-        self.assertEqual(problem.status, 'unbounded')
-        self.assertEqual(problem.value, -float('inf'))
+        self.assertEqual(problem.status, "unbounded")
+        self.assertEqual(problem.value, -float("inf"))
 
     def test_solving_non_dcp_problem_raises_error(self) -> None:
         problem = cvxpy.Problem(
             cvxpy.Minimize(cvxpy.Variable(pos=True) * cvxpy.Variable(pos=True)),
         )
-        with pytest.raises(error.DCPError, match='However, the problem does follow DGP rules'):
+        with pytest.raises(error.DCPError, match="However, the problem does follow DGP rules"):
             problem.solve(SOLVER, gp=True)
 
             problem.solve(SOLVER)
         problem.solve(SOLVER, gp=True)
-        self.assertEqual(problem.status, 'unbounded')
+        self.assertEqual(problem.status, "unbounded")
         self.assertAlmostEqual(problem.value, 0.0)
 
     def test_solving_non_dcp_problems_raises_detailed_error(self) -> None:
         x = cvxpy.Variable(3)
         problem = cvxpy.Problem(cvxpy.Minimize(cvxpy.sum(x) - cvxpy.sum_squares(x)))
-        with self.assertRaisesRegex(error.DCPError, r'The objective is not DCP'):
+        with self.assertRaisesRegex(error.DCPError, r"The objective is not DCP"):
             problem.solve(SOLVER)
 
-        x = cvxpy.Variable(name='x')
+        x = cvxpy.Variable(name="x")
         problem = cvxpy.Problem(cvxpy.Minimize(x), [x * x <= 5])
-        with self.assertRaisesRegex(error.DCPError, r'The following constraints are not DCP'):
+        with self.assertRaisesRegex(error.DCPError, r"The following constraints are not DCP"):
             problem.solve(SOLVER)
 
     def test_add_canon(self) -> None:
@@ -399,16 +399,16 @@ class TestDgp2Dcp(BaseTest):
         x = cvxpy.Variable(pos=True)
         problem = cvxpy.Problem(cvxpy.Minimize(x))
         error_msg = (
-            'When `gp=True`, `solver` must be a conic solver '
+            "When `gp=True`, `solver` must be a conic solver "
             "(received 'OSQP'); try calling `solve()` with "
-            '`solver=cvxpy.CLARABEL`.'
+            "`solver=cvxpy.CLARABEL`."
         )
         with self.assertRaises(error.SolverError) as err:
-            problem.solve(solver='OSQP', gp=True)
+            problem.solve(solver="OSQP", gp=True)
             self.assertEqual(error_msg, str(err))
 
     def test_paper_example_sum_largest(self) -> None:
-        self.skipTest('Enable test once sum_largest is implemented.')
+        self.skipTest("Enable test once sum_largest is implemented.")
         x = cvxpy.Variable((4,), pos=True)
         x0, x1, x2, x3 = (x[0], x[1], x[2], x[3])
         obj = cvxpy.Minimize(
@@ -438,7 +438,7 @@ class TestDgp2Dcp(BaseTest):
             cvxpy.geo_mean(cvxpy.hstack([X[0, 1], X[1, 0]])) == 0.1,
         ]
         problem = cvxpy.Problem(obj, constr)
-        problem.solve(gp=True, solver='SCS')
+        problem.solve(gp=True, solver="SCS")
         np.testing.assert_almost_equal(X.value, 0.1 * np.ones((2, 2)), decimal=3)
         self.assertAlmostEqual(problem.value, 2.25)
 
@@ -447,7 +447,7 @@ class TestDgp2Dcp(BaseTest):
         obj = cvxpy.Minimize(cvxpy.trace(cvxpy.eye_minus_inv(X)))
         constr = [cvxpy.diag(X) == 0.1, cvxpy.hstack([X[0, 1], X[1, 0]]) == 0.1]
         problem = cvxpy.Problem(obj, constr)
-        problem.solve(gp=True, solver='CLARABEL')
+        problem.solve(gp=True, solver="CLARABEL")
         np.testing.assert_almost_equal(X.value, 0.1 * np.ones((2, 2)), decimal=3)
         self.assertAlmostEqual(problem.value, 2.25)
 
@@ -582,12 +582,12 @@ class TestDgp2Dcp(BaseTest):
         self.assertAlmostEqual(problem.value, 2.0)
 
     def test_parameter_name(self) -> None:
-        param = cvxpy.Parameter(pos=True, name='alpha')
+        param = cvxpy.Parameter(pos=True, name="alpha")
         param.value = 1.0
         dgp = cvxpy.Problem(cvxpy.Minimize(param), [])
         dgp2dcp = cvxpy.reductions.Dgp2Dcp(dgp)
         dcp = dgp2dcp.reduce()
-        self.assertAlmostEqual(dcp.parameters()[0].name(), 'alpha')
+        self.assertAlmostEqual(dcp.parameters()[0].name(), "alpha")
 
     def test_gmatmul(self) -> None:
         x = cvxpy.Variable(2, pos=True)
@@ -635,8 +635,8 @@ class TestDgp2Dcp(BaseTest):
         # Test fro norm
         x = cvxpy.Variable(pos=True)
         mat = [[1, 0.5], [2, 3]]
-        l2_norm = np.linalg.norm(mat, 'fro')
-        p = cvxpy.Problem(cvxpy.Minimize(cvxpy.norm(cvxpy.Constant(mat), p='fro') * x**2), [x >= 1])
+        l2_norm = np.linalg.norm(mat, "fro")
+        p = cvxpy.Problem(cvxpy.Minimize(cvxpy.norm(cvxpy.Constant(mat), p="fro") * x**2), [x >= 1])
         self.assertAlmostEqual(p.solve(gp=True), l2_norm)
         self.assertAlmostEqual(p.solution.opt_val, l2_norm)
         self.assertAlmostEqual(x.value, 1.0)

@@ -42,7 +42,7 @@ def pnorm(x, p: Union[int, str] = 2, axis=None, keepdims: bool = False, max_deno
     """
     if p == 1:
         return norm1(x, axis=axis, keepdims=keepdims)
-    elif p in [np.inf, 'inf', 'Inf']:
+    elif p in [np.inf, "inf", "Inf"]:
         return norm_inf(x, axis=axis, keepdims=keepdims)
     else:
         return Pnorm(x, p=p, axis=axis, keepdims=keepdims, max_denom=max_denom)
@@ -131,11 +131,11 @@ class Pnorm(AxisAtom):
         elif p > 1:
             self.p, _ = pow_high(p, max_denom)
         elif p == 1:
-            raise ValueError('Use the norm1 class to instantiate a one norm.')
-        elif p == 'inf' or p == 'Inf' or p == np.inf:
-            raise ValueError('Use the norm_inf class to instantiate an ' 'infinity norm.')
+            raise ValueError("Use the norm1 class to instantiate a one norm.")
+        elif p == "inf" or p == "Inf" or p == np.inf:
+            raise ValueError("Use the norm_inf class to instantiate an " "infinity norm.")
         else:
-            raise ValueError('Invalid p: {}'.format(p))
+            raise ValueError("Invalid p: {}".format(p))
         self.approx_error = float(abs(self.p - p))
         self.original_p = p
         super(Pnorm, self).__init__(x, axis=axis, keepdims=keepdims)
@@ -159,9 +159,9 @@ class Pnorm(AxisAtom):
         super(Pnorm, self).validate_arguments()
         # TODO(akshayka): Why is axis not supported for other norms?
         if self.axis is not None and self.p != 2:
-            raise ValueError('The axis parameter is only supported for p=2.')
+            raise ValueError("The axis parameter is only supported for p=2.")
         if self.p < 1 and self.args[0].is_complex():
-            raise ValueError('pnorm(x, p) cannot have x complex for p < 1.')
+            raise ValueError("pnorm(x, p) cannot have x complex for p < 1.")
 
     def sign_from_args(self) -> Tuple[bool, bool]:
         """Returns sign (is positive, is negative) of the expression."""
@@ -200,7 +200,7 @@ class Pnorm(AxisAtom):
         return [self.p, self.axis]
 
     def name(self) -> str:
-        return '%s(%s, %s)' % (self.__class__.__name__, self.args[0].name(), self.p)
+        return "%s(%s, %s)" % (self.__class__.__name__, self.args[0].name(), self.p)
 
     def _domain(self) -> List[Constraint]:
         """Returns constraints describing the domain of the node."""
@@ -237,7 +237,7 @@ class Pnorm(AxisAtom):
         # Outside domain.
         if self.p < 1 and np.any(value <= 0):
             return None
-        D_null = sp.csc_matrix((rows, 1), dtype='float64')
+        D_null = sp.csc_matrix((rows, 1), dtype="float64")
         denominator = np.linalg.norm(value, float(self.p))
         denominator = np.power(denominator, self.p - 1)
         # Subgrad is 0 when denom is 0 (or undefined).

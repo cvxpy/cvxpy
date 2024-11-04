@@ -31,10 +31,10 @@ class TestGeoMean(BaseTest):
         The reference solution is computed by taking the log of the geo_mean objective,
         which has the effect of making the problem ExpCone representable.
         """
-        if 'MOSEK' in cp.installed_solvers():
-            log_solve_args = {'solver': 'MOSEK'}
+        if "MOSEK" in cp.installed_solvers():
+            log_solve_args = {"solver": "MOSEK"}
         else:
-            log_solve_args = {'solver': 'CLARABEL'}
+            log_solve_args = {"solver": "CLARABEL"}
         n_buyer = 5
         n_items = 7
         np.random.seed(0)
@@ -63,12 +63,12 @@ class TestGeoMean(BaseTest):
             try:
                 self.assertItemsAlmostEqual(actual_X, expect_X, places=3)
             except AssertionError as e:
-                print(f'Failure at index {i} (when b={str(b)}).')
+                print(f"Failure at index {i} (when b={str(b)}).")
                 log_prob.solve(**log_solve_args, verbose=True)
                 print(X.value)
                 geo_prob.solve(verbose=True)
                 print(X.value)
-                print('The valuation matrix was')
+                print("The valuation matrix was")
                 print(V)
                 raise e
 
@@ -82,10 +82,10 @@ class TestGeoMean(BaseTest):
         Check validity of the reformulation by solving
         orthogonal projection problems.
         """
-        if 'MOSEK' in cp.installed_solvers():
-            proj_solve_args = {'solver': 'MOSEK'}
+        if "MOSEK" in cp.installed_solvers():
+            proj_solve_args = {"solver": "MOSEK"}
         else:
-            proj_solve_args = {'solver': 'SCS', 'eps': 1e-10}
+            proj_solve_args = {"solver": "SCS", "eps": 1e-10}
         min_numerator = 2
         denominator = 25
         x = cp.Variable(3)
@@ -109,5 +109,5 @@ class TestGeoMean(BaseTest):
             try:
                 self.assertItemsAlmostEqual(actual_x, approx_x, places=4)
             except AssertionError as e:
-                print(f'Failure at index {i} (when alpha={alpha_float}).')
+                print(f"Failure at index {i} (when alpha={alpha_float}).")
                 raise e

@@ -28,8 +28,8 @@ from cvxpy.expressions.leaf import Leaf
 from cvxpy.utilities import performance_utils as perf
 
 NESTED_LIST_WARNING = (
-    'Initializing a Constant with a nested list is '
-    'undefined behavior. Consider using a numpy array instead.'
+    "Initializing a Constant with a nested list is "
+    "undefined behavior. Consider using a numpy array instead."
 )
 
 
@@ -71,18 +71,18 @@ class Constant(Leaf):
         The value of the constant as a string.
         """
         if self._name is None:
-            if len(self.shape) == 2 and '\n' in str(self.value):
+            if len(self.shape) == 2 and "\n" in str(self.value):
                 return np.array2string(
                     self.value,
                     edgeitems=s.PRINT_EDGEITEMS,
                     threshold=s.PRINT_THRESHOLD,
-                    formatter={'float': lambda x: f'{x:.2f}'},
+                    formatter={"float": lambda x: f"{x:.2f}"},
                 )
             return str(self.value)
         else:
             return self._name
 
-    def constants(self) -> List['Constant']:
+    def constants(self) -> List["Constant"]:
         """Returns self as a constant."""
         return [self]
 
@@ -132,7 +132,7 @@ class Constant(Leaf):
 
     def __repr__(self) -> str:
         """Returns a string with information about the expression."""
-        return 'Constant(%s, %s, %s)' % (self.curvature, self.sign, self.shape)
+        return "Constant(%s, %s, %s)" % (self.curvature, self.sign, self.shape)
 
     def is_nonneg(self) -> bool:
         """Is the expression nonnegative?"""

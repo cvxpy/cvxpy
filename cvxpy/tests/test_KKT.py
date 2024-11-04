@@ -10,7 +10,7 @@ class TestKKT_LPs(BaseTest):
     def test_lp_1(self, places=4):
         # typical LP
         sth = STH.lp_1()
-        sth.solve(solver='CLARABEL')
+        sth.solve(solver="CLARABEL")
         sth.check_primal_feasibility(places)
         sth.check_complementarity(places)
         sth.check_dual_domains(places)
@@ -19,7 +19,7 @@ class TestKKT_LPs(BaseTest):
     def test_lp_2(self, places=4):
         # typical LP
         sth = STH.lp_2()
-        sth.solve(solver='CLARABEL')
+        sth.solve(solver="CLARABEL")
         sth.check_primal_feasibility(places)
         sth.check_complementarity(places)
         sth.check_dual_domains(places)
@@ -28,7 +28,7 @@ class TestKKT_LPs(BaseTest):
     def test_lp_5(self, places=4):
         # LP with redundant constraints
         sth = STH.lp_5()
-        sth.solve(solver='CLARABEL')
+        sth.solve(solver="CLARABEL")
         sth.check_primal_feasibility(places)
         sth.check_complementarity(places)
         sth.check_dual_domains(places)
@@ -38,7 +38,7 @@ class TestKKT_LPs(BaseTest):
 class TestKKT_QPs(BaseTest):
     def test_qp_0(self, places=4):
         sth = STH.qp_0()
-        sth.solve(solver='CLARABEL')
+        sth.solve(solver="CLARABEL")
         sth.check_primal_feasibility(places)
         sth.check_complementarity(places)
         sth.check_dual_domains(places)
@@ -49,7 +49,7 @@ class TestKKT_QPs(BaseTest):
 class TestKKT_SOCPs(BaseTest):
     def test_socp_0(self, places=4):
         sth = STH.socp_0()
-        sth.solve(solver='CLARABEL')
+        sth.solve(solver="CLARABEL")
         sth.check_primal_feasibility(places)
         sth.check_complementarity(places)
         sth.check_dual_domains(places)
@@ -58,7 +58,7 @@ class TestKKT_SOCPs(BaseTest):
 
     def test_socp_1(self, places=4):
         sth = STH.socp_1()
-        sth.solve(solver='CLARABEL')
+        sth.solve(solver="CLARABEL")
         sth.check_primal_feasibility(places)
         sth.check_complementarity(places)
         sth.check_dual_domains(places)
@@ -67,7 +67,7 @@ class TestKKT_SOCPs(BaseTest):
 
     def test_socp_2(self, places=4):
         sth = STH.socp_2()
-        sth.solve(solver='CLARABEL')
+        sth.solve(solver="CLARABEL")
         sth.check_primal_feasibility(places)
         sth.check_complementarity(places)
         sth.check_dual_domains(places)
@@ -76,7 +76,7 @@ class TestKKT_SOCPs(BaseTest):
 
     def test_socp_3ax0(self, places=4):
         sth = STH.socp_3(axis=0)
-        sth.solve(solver='CLARABEL')
+        sth.solve(solver="CLARABEL")
         sth.check_primal_feasibility(places)
         sth.check_complementarity(places)
         sth.check_dual_domains(places)
@@ -85,7 +85,7 @@ class TestKKT_SOCPs(BaseTest):
 
     def test_socp_3ax1(self, places=4):
         sth = STH.socp_3(axis=1)
-        sth.solve(solver='CLARABEL')
+        sth.solve(solver="CLARABEL")
         sth.check_primal_feasibility(places)
         sth.check_complementarity(places)
         sth.check_dual_domains(places)
@@ -96,7 +96,7 @@ class TestKKT_SOCPs(BaseTest):
 class TestKKT_ECPs(BaseTest):
     def test_expcone_1(self, places=4):
         sth = STH.expcone_1()
-        sth.solve(solver='CLARABEL')
+        sth.solve(solver="CLARABEL")
         sth.check_primal_feasibility(places)
         sth.check_complementarity(places)
         sth.check_dual_domains(places)
@@ -106,8 +106,8 @@ class TestKKT_ECPs(BaseTest):
 
 class TestKKT_SDPs(BaseTest):
     def test_sdp_1min(self, places=4):
-        sth = STH.sdp_1('min')
-        sth.solve(solver='SCS', eps=1e-6)
+        sth = STH.sdp_1("min")
+        sth.solve(solver="SCS", eps=1e-6)
         sth.check_primal_feasibility(places)
         sth.check_complementarity(places)
         sth.check_dual_domains(places)
@@ -115,8 +115,8 @@ class TestKKT_SDPs(BaseTest):
         return sth
 
     def test_sdp_1max(self, places=4):
-        sth = STH.sdp_1('max')
-        sth.solve(solver='SCS')
+        sth = STH.sdp_1("max")
+        sth.solve(solver="SCS")
         sth.check_primal_feasibility(places)
         sth.check_complementarity(places)
         sth.check_dual_domains(places)
@@ -125,7 +125,7 @@ class TestKKT_SDPs(BaseTest):
 
     def test_sdp_2(self, places=4):
         sth = STH.sdp_2()
-        sth.solve(solver='SCS', eps=1e-6)
+        sth.solve(solver="SCS", eps=1e-6)
         sth.check_primal_feasibility(places)
         sth.check_complementarity(places)
         sth.check_dual_domains(places)
@@ -175,7 +175,7 @@ class TestKKT_PCPs(BaseTest):
         ]
         obj = cp.Maximize(z[0] + z[1])
         prob = cp.Problem(obj, cons)
-        prob.solve(solver='SCS')
+        prob.solve(solver="SCS")
         obj_pair = (obj, 2.7003780870341516)
         cons_pairs = [(con, None) for con in cons]
         var_pairs = [(z, None), (X, None), (u, None)]
@@ -183,7 +183,7 @@ class TestKKT_PCPs(BaseTest):
 
     def test_pcp_1(self, places: int = 4):
         sth = STH.pcp_1()
-        sth.solve(solver='SCS', eps=1e-6)
+        sth.solve(solver="SCS", eps=1e-6)
         sth.check_primal_feasibility(places)
         sth.check_complementarity(places)
         sth.check_dual_domains(places)
@@ -192,7 +192,7 @@ class TestKKT_PCPs(BaseTest):
 
     def test_pcp_2(self, places: int = 4):
         sth = STH.pcp_2()
-        sth.solve(solver='SCS', eps=1e-6)
+        sth.solve(solver="SCS", eps=1e-6)
         sth.check_primal_feasibility(places)
         sth.check_complementarity(places)
         sth.check_dual_domains(places)
@@ -201,7 +201,7 @@ class TestKKT_PCPs(BaseTest):
 
     def test_pcp_3(self, places: int = 4):
         sth = STH.pcp_3()
-        sth.solve(solver='SCS', eps=1e-6)
+        sth.solve(solver="SCS", eps=1e-6)
         sth.check_primal_feasibility(places)
         sth.check_complementarity(places)
         sth.check_dual_domains(places)
@@ -211,7 +211,7 @@ class TestKKT_PCPs(BaseTest):
     # Tests for verifying the dual value implementation of `PowConeND`
     def test_pcp_4(self, places: int = 3):
         sth = self.non_vec_pow_nd()
-        sth.solve(solver='SCS', eps=1e-6)
+        sth.solve(solver="SCS", eps=1e-6)
         sth.check_primal_feasibility(places)
         sth.check_complementarity(places)
         sth.check_dual_domains(places)
@@ -220,7 +220,7 @@ class TestKKT_PCPs(BaseTest):
 
     def test_pcp_5(self, places: int = 3):
         sth = self.vec_pow_nd()
-        sth.solve(solver='SCS', eps=1e-6)
+        sth.solve(solver="SCS", eps=1e-6)
         sth.check_primal_feasibility(places)
         sth.check_complementarity(places)
         sth.check_dual_domains(places)
@@ -229,7 +229,7 @@ class TestKKT_PCPs(BaseTest):
 
     def test_pcp_6(self, places: int = 3):
         sth = TestPowND.pcp_4()
-        sth.solve(solver='SCS', eps=1e-6)
+        sth.solve(solver="SCS", eps=1e-6)
         sth.check_dual_domains(places)
         sth.check_stationary_lagrangian(places)
         return sth
@@ -393,7 +393,7 @@ class TestKKT_Flags(BaseTest):
 
     def test_kkt_nsd_var(self, places=4):
         sth = TestKKT_Flags.nsd_flag()
-        sth.solve(solver='SCS')
+        sth.solve(solver="SCS")
         sth.check_primal_feasibility(places)
         sth.check_complementarity(places)
         sth.check_dual_domains(places)
@@ -402,7 +402,7 @@ class TestKKT_Flags(BaseTest):
 
     def test_kkt_psd_var(self, places=4):
         sth = TestKKT_Flags.psd_flag()
-        sth.solve(solver='SCS')
+        sth.solve(solver="SCS")
         sth.check_primal_feasibility(places)
         sth.check_complementarity(places)
         sth.check_dual_domains(places)
@@ -411,7 +411,7 @@ class TestKKT_Flags(BaseTest):
 
     def test_kkt_symmetric_var(self, places=4):
         sth = TestKKT_Flags.symmetric_flag()
-        sth.solve(solver='SCS')
+        sth.solve(solver="SCS")
         sth.check_primal_feasibility(places)
         sth.check_complementarity(places)
         sth.check_dual_domains(places)
@@ -420,7 +420,7 @@ class TestKKT_Flags(BaseTest):
 
     def test_kkt_nonneg_var(self, places=4):
         sth = TestKKT_Flags.nonneg_flag()
-        sth.solve(solver='SCS')
+        sth.solve(solver="SCS")
         sth.check_primal_feasibility(places)
         sth.check_complementarity(places)
         sth.check_dual_domains(places)
@@ -429,7 +429,7 @@ class TestKKT_Flags(BaseTest):
 
     def test_kkt_nonpos_var(self, places=4):
         sth = TestKKT_Flags.nonpos_flag()
-        sth.solve(solver='SCS')
+        sth.solve(solver="SCS")
         sth.check_primal_feasibility(places)
         sth.check_complementarity(places)
         sth.check_dual_domains(places)

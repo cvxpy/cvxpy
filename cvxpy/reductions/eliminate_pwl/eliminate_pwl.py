@@ -32,5 +32,5 @@ class EliminatePwl(Canonicalization):
 
     def apply(self, problem):
         if not self.accepts(problem):
-            raise ValueError('Cannot canonicalize pwl atoms.')
+            raise ValueError("Cannot canonicalize pwl atoms.")
         return super(EliminatePwl, self).apply(problem)

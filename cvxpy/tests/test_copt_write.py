@@ -23,11 +23,11 @@ import cvxpy as cp
 from cvxpy.reductions.solvers.defines import INSTALLED_SOLVERS
 
 
-@unittest.skipUnless('COPT' in INSTALLED_SOLVERS, 'COPT is not installed.')
+@unittest.skipUnless("COPT" in INSTALLED_SOLVERS, "COPT is not installed.")
 def test_write(tmpdir):
     """Test the COPT model.write()."""
 
-    filename = 'copt_model.bin'
+    filename = "copt_model.bin"
     path = os.path.join(tmpdir, filename)
 
     m = 20

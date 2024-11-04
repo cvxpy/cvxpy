@@ -25,27 +25,27 @@ class TestObjectives(unittest.TestCase):
     """Unit tests for the expression/expression module."""
 
     def setUp(self) -> None:
-        self.x = Variable(name='x')
-        self.y = Variable(3, name='y')
-        self.z = Variable(name='z')
+        self.x = Variable(name="x")
+        self.y = Variable(3, name="y")
+        self.z = Variable(name="z")
 
     def test_str(self) -> None:
         """Test string representations."""
         obj = cp.Minimize(self.x)
-        self.assertEqual(repr(obj), 'Minimize(%s)' % repr(self.x))
+        self.assertEqual(repr(obj), "Minimize(%s)" % repr(self.x))
         obj = cp.Minimize(2 * self.x)
-        self.assertEqual(repr(obj), 'Minimize(%s)' % repr(2 * self.x))
+        self.assertEqual(repr(obj), "Minimize(%s)" % repr(2 * self.x))
 
         obj = cp.Maximize(self.x)
-        self.assertEqual(repr(obj), 'Maximize(%s)' % repr(self.x))
+        self.assertEqual(repr(obj), "Maximize(%s)" % repr(self.x))
         obj = cp.Maximize(2 * self.x)
-        self.assertEqual(repr(obj), 'Maximize(%s)' % repr(2 * self.x))
+        self.assertEqual(repr(obj), "Maximize(%s)" % repr(2 * self.x))
 
     # Test the Minimize class.
     def test_minimize(self) -> None:
         exp = self.x + self.z
         obj = cp.Minimize(exp)
-        self.assertEqual(str(obj), 'minimize %s' % exp.name())
+        self.assertEqual(str(obj), "minimize %s" % exp.name())
         new_obj, constraints = obj.canonical_form
         # self.assertEqual(constraints[0].name(), (new_obj == exp).name())
         # for affine objectives, there should be no constraints
@@ -71,7 +71,7 @@ class TestObjectives(unittest.TestCase):
     def test_maximize(self) -> None:
         exp = self.x + self.z
         obj = cp.Maximize(exp)
-        self.assertEqual(str(obj), 'maximize %s' % exp.name())
+        self.assertEqual(str(obj), "maximize %s" % exp.name())
         new_obj, constraints = obj.canonical_form
         # self.assertEqual(constraints[0].name(), (new_obj == exp).name())
         # for affine objectives, there should be no constraints
@@ -116,7 +116,7 @@ class TestObjectives(unittest.TestCase):
         # Test Minimize + Maximize
         with self.assertRaises(DCPError) as cm:
             cp.Minimize(expr1) + cp.Maximize(-expr2)
-        self.assertEqual(str(cm.exception), 'Problem does not follow DCP rules.')
+        self.assertEqual(str(cm.exception), "Problem does not follow DCP rules.")
 
         assert (cp.Minimize(expr1) - cp.Maximize(-expr2)).is_dcp()
 

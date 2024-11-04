@@ -45,24 +45,24 @@ def issue826() -> None:
     x = cp.Variable(shape=(m,))
     cons = [A @ x >= 0]
     prob = cp.Problem(cp.Maximize(0), cons)
-    data = prob.get_problem_data(solver='SCS')
-    vals_canon = data[0]['A'].data
+    data = prob.get_problem_data(solver="SCS")
+    vals_canon = data[0]["A"].data
 
     tester = unittest.TestCase()
     diff = vals - vals_canon
     err = np.abs(diff)
     tester.assertLessEqual(err, 1e-3)
-    print('\t issue826 test finished')
+    print("\t issue826 test finished")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     if len(sys.argv) > 1:
         for arg in sys.argv[1:]:
-            if arg == 'issue826':
-                print('Start issue826 test')
+            if arg == "issue826":
+                print("Start issue826 test")
                 issue826()
             else:
-                print('Unknown argument:\n\t' + arg)
+                print("Unknown argument:\n\t" + arg)
     else:
-        print('Start issue826 test')
+        print("Start issue826 test")
         issue826()

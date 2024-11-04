@@ -211,7 +211,7 @@ class geo_mean(Atom):
         Expression = cvxtypes.expression()
         if p is not None and isinstance(p, Expression):
             raise TypeError(SECOND_ARG_SHOULD_NOT_BE_EXPRESSION_ERROR_MESSAGE)
-        elif p is not None and hasattr(p, '__getitem__'):
+        elif p is not None and hasattr(p, "__getitem__"):
             p = np.array(p)
             idxs = p > 0
             if isinstance(x, list):
@@ -227,17 +227,17 @@ class geo_mean(Atom):
         if x.is_vector():
             n = 1 if x.ndim == 0 else max(x.shape)
         else:
-            raise ValueError('x must be a row or column vector.')
+            raise ValueError("x must be a row or column vector.")
 
         if p is None:
             p = [1] * n
         self.p = p
 
         if len(p) != n:
-            raise ValueError('x and p must have the same number of elements.')
+            raise ValueError("x and p must have the same number of elements.")
 
         if any(v < 0 for v in p) or sum(p) <= 0:
-            raise ValueError('powers must be nonnegative and not all zero.')
+            raise ValueError("powers must be nonnegative and not all zero.")
 
         self.w, self.w_dyad = fracify(p, max_denom)
         self.approx_error = approx_error(p, self.w)
@@ -285,14 +285,14 @@ class geo_mean(Atom):
         if np.any(x[w_arr > 0] <= 0):
             return [None]
         else:
-            D = w_arr / x.ravel(order='F') * self.numeric(values)
+            D = w_arr / x.ravel(order="F") * self.numeric(values)
             return [sp.csc_matrix(D).T]
 
     def name(self) -> str:
-        return '%s(%s, (%s))' % (
+        return "%s(%s, (%s))" % (
             self.__class__.__name__,
             self.args[0].name(),
-            ', '.join(str(v) for v in self.w),
+            ", ".join(str(v) for v in self.w),
         )
 
     def pretty_tree(self) -> None:

@@ -698,7 +698,7 @@ class TestDqcp(base_test.BaseTest):
         with self.assertRaises(Exception) as cm:
             problem = cp.Problem(cp.Minimize(cp.cumsum(1 / x)))
             problem.solve(SOLVER, qcp=True)
-        self.assertEqual(str(cm.exception), 'axis 0 is out of bounds for array of dimension 0')
+        self.assertEqual(str(cm.exception), "axis 0 is out of bounds for array of dimension 0")
 
     def test_parameter_bug(self) -> None:
         """Test bug with parameters arising from interaction of
@@ -742,5 +742,5 @@ class TestDqcp(base_test.BaseTest):
 
         # solve
         assert problem.is_dqcp()
-        with pytest.raises(cp.SolverError, match='Max iters hit during bisection.'):
+        with pytest.raises(cp.SolverError, match="Max iters hit during bisection."):
             problem.solve(qcp=True, solver=cp.SCS, max_iters=1)

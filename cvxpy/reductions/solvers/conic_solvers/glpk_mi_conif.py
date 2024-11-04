@@ -55,16 +55,16 @@ class GLPK_MI(GLPK):
         old_options = cvxopt.glpk.options.copy()
         # Silence cvxopt if verbose is False.
         if verbose:
-            cvxopt.glpk.options['msg_lev'] = 'GLP_MSG_ON'
+            cvxopt.glpk.options["msg_lev"] = "GLP_MSG_ON"
         else:
-            cvxopt.glpk.options['msg_lev'] = 'GLP_MSG_OFF'
+            cvxopt.glpk.options["msg_lev"] = "GLP_MSG_OFF"
 
         data = self._prepare_cvxopt_matrices(data)
 
         # Apply any user-specific options.
         # Rename max_iters to maxiters.
-        if 'max_iters' in solver_opts:
-            solver_opts['maxiters'] = solver_opts['max_iters']
+        if "max_iters" in solver_opts:
+            solver_opts["maxiters"] = solver_opts["max_iters"]
         for key, value in solver_opts.items():
             cvxopt.glpk.options[key] = value
 
@@ -79,34 +79,34 @@ class GLPK_MI(GLPK):
                 set(int(i) for i in data[s.BOOL_IDX]),
             )
             results_dict = {}
-            results_dict['status'] = results_tup[0]
-            results_dict['x'] = results_tup[1]
+            results_dict["status"] = results_tup[0]
+            results_dict["x"] = results_tup[1]
         # Catch exceptions in CVXOPT and convert them to solver errors.
         except ValueError:
-            results_dict = {'status': 'unknown'}
+            results_dict = {"status": "unknown"}
 
         # Restore original cvxopt solver options.
         self._restore_solver_options(old_options)
 
         # Convert CVXOPT results to solution format.
         solution = {}
-        status = self.STATUS_MAP[results_dict['status']]
+        status = self.STATUS_MAP[results_dict["status"]]
         solution[s.STATUS] = status
         if solution[s.STATUS] in s.SOLUTION_PRESENT:
             # No dual variables.
-            solution[s.PRIMAL] = intf.cvxopt2dense(results_dict['x'])
-            primal_val = (data[s.C].T * results_dict['x'])[0]
+            solution[s.PRIMAL] = intf.cvxopt2dense(results_dict["x"])
+            primal_val = (data[s.C].T * results_dict["x"])[0]
             solution[s.VALUE] = primal_val
 
         return solution
 
     def invert(self, solution, inverse_data):
         """Returns the solution to the original problem given the inverse_data."""
-        status = solution['status']
+        status = solution["status"]
 
         if status in s.SOLUTION_PRESENT:
-            opt_val = solution['value'] + inverse_data[s.OFFSET]
-            primal_vars = {inverse_data[self.VAR_ID]: solution['primal']}
+            opt_val = solution["value"] + inverse_data[s.OFFSET]
+            primal_vars = {inverse_data[self.VAR_ID]: solution["primal"]}
             return Solution(status, opt_val, primal_vars, None, {})
         else:
             return failure_solution(status)

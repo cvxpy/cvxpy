@@ -47,7 +47,7 @@ class PowCone3D(Cone):
         self.z = Expression.cast_to_const(z)
         for val in [self.x, self.y, self.z]:
             if not (val.is_affine() and val.is_real()):
-                raise ValueError('All arguments must be affine and real.')
+                raise ValueError("All arguments must be affine and real.")
         alpha = Expression.cast_to_const(alpha)
         if alpha.is_scalar():
             if self.x.shape:
@@ -59,7 +59,7 @@ class PowCone3D(Cone):
                 alpha = cvxtypes.promote()(alpha, (1,))
         self.alpha = alpha
         if np.any(self.alpha.value <= 0) or np.any(self.alpha.value >= 1):
-            msg = 'Argument alpha must have entries in the open interval (0, 1).'
+            msg = "Argument alpha must have entries in the open interval (0, 1)."
             raise ValueError(msg)
         if alpha.shape == (1,):
             arg_shapes = [self.x.shape, self.y.shape, self.z.shape, ()]
@@ -67,14 +67,14 @@ class PowCone3D(Cone):
             arg_shapes = [self.x.shape, self.y.shape, self.z.shape, self.alpha.shape]
         if any(arg_shapes[0] != s for s in arg_shapes[1:]):
             msg = (
-                'All arguments must have the same shapes. Provided arguments have'
-                'shapes %s' % str(arg_shapes)
+                "All arguments must have the same shapes. Provided arguments have"
+                "shapes %s" % str(arg_shapes)
             )
             raise ValueError(msg)
         super(PowCone3D, self).__init__([self.x, self.y, self.z], constr_id)
 
     def __str__(self) -> str:
-        return 'Pow3D(%s, %s, %s; %s)' % (self.x, self.y, self.z, self.alpha)
+        return "Pow3D(%s, %s, %s; %s)" % (self.x, self.y, self.z, self.alpha)
 
     @property
     def residual(self):
@@ -91,7 +91,7 @@ class PowCone3D(Cone):
             norm2(hstack([x, y, z]) - hstack([self.x.value, self.y.value, self.z.value]))
         )
         problem = Problem(obj, constr)
-        return problem.solve(solver='SCS', eps=1e-8)
+        return problem.solve(solver="SCS", eps=1e-8)
 
     def get_data(self):
         return [self.alpha, self.id]
@@ -190,13 +190,13 @@ class PowConeND(Cone):
         Expression = cvxtypes.expression()
         W = Expression.cast_to_const(W)
         if not (W.is_real() and W.is_affine()):
-            msg = 'Invalid first argument; W must be affine and real.'
+            msg = "Invalid first argument; W must be affine and real."
             raise ValueError(msg)
         z = Expression.cast_to_const(z)
         if z.ndim > 1 or not (z.is_real() and z.is_affine()):
             msg = (
-                'Invalid second argument. z must be affine, real, '
-                'and have at most one z.ndim <= 1.'
+                "Invalid second argument. z must be affine, real, "
+                "and have at most one z.ndim <= 1."
             )
             raise ValueError(msg)
         # Check z has one entry per cone.
@@ -206,31 +206,31 @@ class PowConeND(Cone):
             or (W.ndim == 1 and axis == 1)
         ):
             raise ValueError(
-                'Argument dimensions %s and %s, with axis=%i, are incompatible.'
+                "Argument dimensions %s and %s, with axis=%i, are incompatible."
                 % (W.shape, z.shape, axis)
             )
         if W.ndim == 2 and W.shape[axis] <= 1:
-            msg = 'PowConeND requires left-hand-side to have at least two terms.'
+            msg = "PowConeND requires left-hand-side to have at least two terms."
             raise ValueError(msg)
         alpha = Expression.cast_to_const(alpha)
         if alpha.shape != W.shape:
             raise ValueError(
-                'Argument dimensions %s and %s are not equal.' % (W.shape, alpha.shape)
+                "Argument dimensions %s and %s are not equal." % (W.shape, alpha.shape)
             )
         if np.any(alpha.value <= 0):
-            raise ValueError('Argument alpha must be entry-wise positive.')
+            raise ValueError("Argument alpha must be entry-wise positive.")
         if np.any(np.abs(1 - np.sum(alpha.value, axis=axis)) > PowConeND._TOL_):
-            raise ValueError('Argument alpha must sum to 1 along axis %s.' % axis)
+            raise ValueError("Argument alpha must sum to 1 along axis %s." % axis)
         self.W = W
         self.z = z
         self.alpha = alpha
         self.axis = axis
         if z.ndim == 0:
-            z = z.flatten(order='F')
+            z = z.flatten(order="F")
         super(PowConeND, self).__init__([W, z], constr_id)
 
     def __str__(self) -> str:
-        return 'PowND(%s, %s; %s)' % (self.W, self.z, self.alpha)
+        return "PowND(%s, %s; %s)" % (self.W, self.z, self.alpha)
 
     def is_imag(self) -> bool:
         return False
@@ -253,12 +253,12 @@ class PowConeND(Cone):
         constr = [PowConeND(W, z, self.alpha, axis=self.axis)]
         obj = Minimize(
             norm2(
-                hstack([W.flatten(order='F'), z.flatten(order='F')])
-                - hstack([self.W.flatten(order='F').value, self.z.flatten(order='F').value])
+                hstack([W.flatten(order="F"), z.flatten(order="F")])
+                - hstack([self.W.flatten(order="F").value, self.z.flatten(order="F").value])
             )
         )
         problem = Problem(obj, constr)
-        return problem.solve(solver='SCS', eps=1e-8)
+        return problem.solve(solver="SCS", eps=1e-8)
 
     def num_cones(self):
         return self.z.size

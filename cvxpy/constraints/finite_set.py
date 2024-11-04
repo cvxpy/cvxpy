@@ -60,7 +60,7 @@ class FiniteSet(Constraint):
         Expression = cvxtypes.expression()
         if isinstance(vec, set):
             vec = list(vec)
-        vec = Expression.cast_to_const(vec).flatten(order='F')
+        vec = Expression.cast_to_const(vec).flatten(order="F")
         if not expre.is_affine() and not expre.is_log_log_affine():
             msg = (
                 """
@@ -77,7 +77,7 @@ class FiniteSet(Constraint):
         super(FiniteSet, self).__init__([expre, vec], constr_id)
 
     def name(self) -> str:
-        return 'FiniteSet(%s, %s)' % (self.args[0], self.args[1])
+        return "FiniteSet(%s, %s)" % (self.args[0], self.args[1])
 
     def get_data(self):
         return [self._ineq_form, self.id]
@@ -132,7 +132,7 @@ class FiniteSet(Constraint):
         -------
         float
         """
-        expr_val = np.array(self.expre.value).flatten(order='F')
+        expr_val = np.array(self.expre.value).flatten(order="F")
         vec_val = self.vec.value
         resids = [np.min(np.abs(val - vec_val)) for val in expr_val]
         res = max(resids)

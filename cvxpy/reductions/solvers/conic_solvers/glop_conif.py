@@ -38,27 +38,27 @@ class GLOP(ConicSolver):
     SUPPORTED_CONSTRAINTS = ConicSolver.SUPPORTED_CONSTRAINTS
 
     # The key that maps to the MPModelProto in the data returned by apply().
-    MODEL_PROTO = 'model_proto'
+    MODEL_PROTO = "model_proto"
 
     def name(self) -> str:
         """The name of the solver."""
-        return 'GLOP'
+        return "GLOP"
 
     def import_solver(self) -> None:
         """Imports the solver."""
         import google.protobuf  # noqa F401
         import ortools  # noqa F401
 
-        if Version(ortools.__version__) < Version('9.5.0'):
+        if Version(ortools.__version__) < Version("9.5.0"):
             raise RuntimeError(
-                f'Version of ortools ({ortools.__version__}) ' f'is too old. Expected >= 9.5.0.'
+                f"Version of ortools ({ortools.__version__}) " f"is too old. Expected >= 9.5.0."
             )
-        if Version(ortools.__version__) >= Version('9.10.0'):
+        if Version(ortools.__version__) >= Version("9.10.0"):
             raise RuntimeError(
-                'Unrecognized new version of ortools '
-                f'({ortools.__version__}). Expected < 9.10.0. '
-                'Please open a feature request on cvxpy to '
-                'enable support for this version.'
+                "Unrecognized new version of ortools "
+                f"({ortools.__version__}). Expected < 9.10.0. "
+                "Please open a feature request on cvxpy to "
+                "enable support for this version."
             )
 
     def apply(self, problem: ParamConeProg) -> Tuple[Dict, Dict]:
@@ -74,12 +74,12 @@ class GLOP(ConicSolver):
         data[self.DIMS] = problem.cone_dims
 
         constr_map = problem.constr_map
-        inv_data['constraints'] = constr_map[Zero] + constr_map[NonNeg]
+        inv_data["constraints"] = constr_map[Zero] + constr_map[NonNeg]
 
         # Min c'x + d such that Ax + b = s, s \in cones.
         c, d, A, b = problem.apply_parameters()
         A = csr_matrix(A)
-        data['num_constraints'], data['num_vars'] = A.shape
+        data["num_constraints"], data["num_vars"] = A.shape
 
         # TODO: Switch to a vectorized model-building interface when one is
         # available in OR-Tools.
@@ -87,12 +87,12 @@ class GLOP(ConicSolver):
         model.objective_offset = d.item() if isinstance(d, ndarray) else d
         for var_index, obj_coef in enumerate(c):
             var = linear_solver_pb2.MPVariableProto(
-                objective_coefficient=obj_coef, name='x_%d' % var_index
+                objective_coefficient=obj_coef, name="x_%d" % var_index
             )
             model.variable.append(var)
 
         for row_index in range(A.shape[0]):
-            constraint = linear_solver_pb2.MPConstraintProto(name='constraint_%d' % row_index)
+            constraint = linear_solver_pb2.MPConstraintProto(name="constraint_%d" % row_index)
             start = A.indptr[row_index]
             end = A.indptr[row_index + 1]
             for nz_index in range(start, end):
@@ -114,16 +114,16 @@ class GLOP(ConicSolver):
 
     def invert(self, solution: Dict[str, Any], inverse_data: Dict[str, Any]) -> Solution:
         """Returns the solution to the original problem."""
-        status = solution['status']
+        status = solution["status"]
 
         if status in s.SOLUTION_PRESENT:
-            primal_vars = {inverse_data[self.VAR_ID]: solution['primal']}
+            primal_vars = {inverse_data[self.VAR_ID]: solution["primal"]}
             dual_vars = utilities.get_dual_values(
-                result_vec=solution['dual'],
+                result_vec=solution["dual"],
                 parse_func=utilities.extract_dual_value,
-                constraints=inverse_data['constraints'],
+                constraints=inverse_data["constraints"],
             )
-            return Solution(status, solution['value'], primal_vars, dual_vars, {})
+            return Solution(status, solution["value"], primal_vars, dual_vars, {})
         else:
             return failure_solution(status)
 
@@ -142,41 +142,41 @@ class GLOP(ConicSolver):
 
         response = linear_solver_pb2.MPSolutionResponse()
 
-        solver = pywraplp.Solver.CreateSolver('GLOP')
+        solver = pywraplp.Solver.CreateSolver("GLOP")
         solver.LoadModelFromProto(data[self.MODEL_PROTO])
         if verbose:
             solver.EnableOutput()
-        if 'parameters_proto' in solver_opts:
-            proto = solver_opts['parameters_proto']
+        if "parameters_proto" in solver_opts:
+            proto = solver_opts["parameters_proto"]
             if not isinstance(proto, parameters_pb2.GlopParameters):
-                log.error('parameters_proto must be a GlopParameters')
-                return {'status': s.SOLVER_ERROR}
+                log.error("parameters_proto must be a GlopParameters")
+                return {"status": s.SOLVER_ERROR}
             proto_str = text_format.MessageToString(proto)
             if not solver.SetSolverSpecificParametersAsString(proto_str):
-                return {'status': s.SOLVER_ERROR}
-        if 'time_limit_sec' in solver_opts:
-            solver.SetTimeLimit(int(1000 * solver_opts['time_limit_sec']))
+                return {"status": s.SOLVER_ERROR}
+        if "time_limit_sec" in solver_opts:
+            solver.SetTimeLimit(int(1000 * solver_opts["time_limit_sec"]))
         solver.Solve()
         solver.FillSolutionResponseProto(response)
 
         solution = {}
-        solution['value'] = response.objective_value
-        solution['status'] = self._status_map(response)
-        has_primal = data['num_vars'] == 0 or len(response.variable_value) > 0
+        solution["value"] = response.objective_value
+        solution["status"] = self._status_map(response)
+        has_primal = data["num_vars"] == 0 or len(response.variable_value) > 0
         if has_primal:
-            solution['primal'] = array(response.variable_value)
+            solution["primal"] = array(response.variable_value)
         else:
-            solution['primal'] = None
-        has_dual = data['num_constraints'] == 0 or len(response.dual_value) > 0
+            solution["primal"] = None
+        has_dual = data["num_constraints"] == 0 or len(response.dual_value) > 0
         if has_dual:
-            solution['dual'] = array(response.dual_value)
+            solution["dual"] = array(response.dual_value)
         else:
-            solution['dual'] = None
+            solution["dual"] = None
 
         # Make solution status more precise depending on whether a solution is
         # present.
-        if solution['status'] == s.SOLVER_ERROR and has_primal and has_dual:
-            solution['status'] = s.USER_LIMIT
+        if solution["status"] == s.SOLVER_ERROR and has_primal and has_dual:
+            solution["status"] = s.USER_LIMIT
 
         return solution
 
@@ -200,16 +200,16 @@ class GLOP(ConicSolver):
         elif status == MPSolverResponseStatus.MPSOLVER_CANCELLED_BY_USER:
             return s.SOLVER_ERROR
         elif status == MPSolverResponseStatus.MPSOLVER_MODEL_INVALID:
-            log.error('Solver reported that the model is invalid. Message: %s', response.status_str)
+            log.error("Solver reported that the model is invalid. Message: %s", response.status_str)
             return s.SOLVER_ERROR
         # Skipping MPSOLVER_MODEL_INVALID_SOLUTION_HINT because we don't accept
         # solution hints.
         elif status == MPSolverResponseStatus.MPSOLVER_MODEL_INVALID_SOLVER_PARAMETERS:  # noqa
-            log.error('Invalid solver parameters: %s', response.status_str)
+            log.error("Invalid solver parameters: %s", response.status_str)
             return s.SOLVER_ERROR
         else:
             log.warning(
-                'Unrecognized status: %s Message: %s',
+                "Unrecognized status: %s Message: %s",
                 linear_solver_pb2.MPSolverResponseStatus.Name(status),
                 response.status_str,
             )

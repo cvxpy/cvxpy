@@ -52,11 +52,11 @@ def nonpos2nonneg(nonpos):
 def special_index_canon(expr, args):
     select_mat = expr._select_mat
     final_shape = expr._select_mat.shape
-    select_vec = np.reshape(select_mat, select_mat.size, order='F')
+    select_vec = np.reshape(select_mat, select_mat.size, order="F")
     # Select the chosen entries from expr.
     arg = args[0]
     identity = sp.eye(arg.size).tocsc()
-    lowered = reshape(identity[select_vec] @ vec(arg, order='F'), final_shape, order='F')
+    lowered = reshape(identity[select_vec] @ vec(arg, order="F"), final_shape, order="F")
     return lowered, []
 
 

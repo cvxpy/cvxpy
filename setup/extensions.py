@@ -21,16 +21,16 @@ from setuptools import Extension
 
 
 def not_on_windows(s: str) -> str:
-    return s if platform.system().lower() != 'windows' else ''
+    return s if platform.system().lower() != "windows" else ""
 
 
 compiler_args = [
-    '-O3',
-    '-std=c++11',
-    '-Wall',
-    '-pedantic',
-    not_on_windows('-Wextra'),
-    not_on_windows('-Wno-unused-parameter'),
+    "-O3",
+    "-std=c++11",
+    "-Wall",
+    "-pedantic",
+    not_on_windows("-Wextra"),
+    not_on_windows("-Wno-unused-parameter"),
 ]
 
 # Optionally specify openmp flags when installing, eg
@@ -39,22 +39,22 @@ compiler_args = [
 #
 # TODO wheels should be compiled with openmp ...
 cvxcore = Extension(
-    '_cvxcore',
+    "_cvxcore",
     sources=[
-        'cvxpy/cvxcore/src/cvxcore.cpp',
-        'cvxpy/cvxcore/src/LinOpOperations.cpp',
-        'cvxpy/cvxcore/src/Utils.cpp',
-        'cvxpy/cvxcore/python/cvxcore_wrap.cxx',
+        "cvxpy/cvxcore/src/cvxcore.cpp",
+        "cvxpy/cvxcore/src/LinOpOperations.cpp",
+        "cvxpy/cvxcore/src/Utils.cpp",
+        "cvxpy/cvxcore/python/cvxcore_wrap.cxx",
     ],
-    include_dirs=['cvxpy/cvxcore/src/', 'cvxpy/cvxcore/python/', 'cvxpy/cvxcore/include/'],
+    include_dirs=["cvxpy/cvxcore/src/", "cvxpy/cvxcore/python/", "cvxpy/cvxcore/include/"],
     extra_compile_args=compiler_args,
-    extra_link_args=['-O3'],
+    extra_link_args=["-O3"],
 )
 
 sparsecholesky = Pybind11Extension(
-    '_cvxpy_sparsecholesky',
-    sources=['cvxpy/utilities/cpp/sparsecholesky/main.cpp'],
-    define_macros=[('VERSION_INFO', '0.0.1')],
+    "_cvxpy_sparsecholesky",
+    sources=["cvxpy/utilities/cpp/sparsecholesky/main.cpp"],
+    define_macros=[("VERSION_INFO", "0.0.1")],
     extra_compile_args=compiler_args,
-    extra_link_args=['-O3'],
+    extra_link_args=["-O3"],
 )

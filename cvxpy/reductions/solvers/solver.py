@@ -23,7 +23,7 @@ from cvxpy.reductions.reduction import Reduction
 class Solver(Reduction):
     """Generic interface for a solver that uses reduction semantics"""
 
-    DIMS = 'dims'
+    DIMS = "dims"
     # ^ The key that maps to "ConeDims" in the data returned by apply().
     #
     #   There are separate ConeDims classes for cone programs vs QPs.
@@ -34,10 +34,10 @@ class Solver(Reduction):
     BOUNDED_VARIABLES = False
 
     # Keys for inverse data.
-    VAR_ID = 'var_id'
-    DUAL_VAR_ID = 'dual_var_id'
-    EQ_CONSTR = 'eq_constr'
-    NEQ_CONSTR = 'other_constr'
+    VAR_ID = "var_id"
+    DUAL_VAR_ID = "dual_var_id"
+    EQ_CONSTR = "eq_constr"
+    NEQ_CONSTR = "other_constr"
 
     @abc.abstractmethod
     def name(self):
@@ -57,7 +57,7 @@ class Solver(Reduction):
         except Exception as e:
             if not isinstance(e, ModuleNotFoundError):
                 s.LOGGER.warning(
-                    f'Encountered unexpected exception importing solver {self.name()}:\n' + repr(e)
+                    f"Encountered unexpected exception importing solver {self.name()}:\n" + repr(e)
                 )
             return False
 

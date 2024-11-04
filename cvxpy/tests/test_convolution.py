@@ -34,7 +34,7 @@ class TestConvolution(BaseTest):
         f = np.array([1, 2, 3])
         g = np.array([0, 1, 0.5])
         f_conv_g = np.array([0.0, 1.0, 2.5, 4.0, 1.5])
-        with pytest.warns(DeprecationWarning, match='Use convolve'):
+        with pytest.warns(DeprecationWarning, match="Use convolve"):
             expr = cp.conv(f, g)
         assert expr.is_constant()
         self.assertEqual(expr.shape, (5,))
@@ -94,18 +94,18 @@ class TestConvolution(BaseTest):
         self.assertEqual(expr.shape, expr.value.shape)
         self.assertItemsAlmostEqual(expr.value, 2 * f)
 
-        with pytest.raises(ValueError, match='must be scalar or 1D'):
+        with pytest.raises(ValueError, match="must be scalar or 1D"):
             expr = cp.convolve(f, g[:, None])
 
-        with pytest.raises(ValueError, match='must be scalar or 1D'):
+        with pytest.raises(ValueError, match="must be scalar or 1D"):
             expr = cp.convolve(f[:, None], g)
 
-        with pytest.raises(ValueError, match='must be scalar or 1D'):
+        with pytest.raises(ValueError, match="must be scalar or 1D"):
             expr = cp.convolve(f[:, None], g[:, None])
 
     def prob_mat_vs_mul_funcs(self, prob) -> None:
         data, dims = prob.get_problem_data(solver=cp.SCS)
-        A = data['A']
+        A = data["A"]
         objective, constr_map, dims, solver = prob.canonicalize(cp.SCS)
 
         all_ineq = constr_map[s.EQ] + constr_map[s.LEQ]

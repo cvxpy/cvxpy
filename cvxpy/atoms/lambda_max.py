@@ -58,7 +58,7 @@ class lambda_max(Atom):
         d[-1] = 1
         d = np.diag(d)
         D = v.dot(d).dot(v.T)
-        return [sp.csc_matrix(D.ravel(order='F')).T]
+        return [sp.csc_matrix(D.ravel(order="F")).T]
 
     def validate_arguments(self) -> None:
         """Verify that the argument A is square."""
@@ -95,7 +95,7 @@ class lambda_max(Atom):
     @property
     def value(self):
         if not np.allclose(self.args[0].value, self.args[0].value.T.conj()):
-            raise ValueError('Input matrix was not Hermitian/symmetric.')
+            raise ValueError("Input matrix was not Hermitian/symmetric.")
         if any([p.value is None for p in self.parameters()]):
             return None
         return self._value_impl()

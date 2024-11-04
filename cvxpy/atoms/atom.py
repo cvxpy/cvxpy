@@ -44,13 +44,13 @@ class Atom(Expression):
         self.id = lu.get_id()
         # Throws error if args is empty.
         if len(args) == 0:
-            raise TypeError('No arguments given to %s.' % self.__class__.__name__)
+            raise TypeError("No arguments given to %s." % self.__class__.__name__)
         # Convert raw values to Constants.
         self.args = [Atom.cast_to_const(arg) for arg in args]
         self.validate_arguments()
         self._shape = self.shape_from_args()
         if not s.ALLOW_ND_EXPR and len(self._shape) > 2:
-            raise ValueError('Atoms must be at most 2D.')
+            raise ValueError("Atoms must be at most 2D.")
 
     def name(self) -> str:
         """Returns the string representation of the function call."""
@@ -58,15 +58,15 @@ class Atom(Expression):
             data = []
         else:
             data = [str(elem) for elem in self.get_data()]
-        return '%s(%s)' % (
+        return "%s(%s)" % (
             self.__class__.__name__,
-            ', '.join([arg.name() for arg in self.args] + data),
+            ", ".join([arg.name() for arg in self.args] + data),
         )
 
     def validate_arguments(self) -> None:
         """Raises an error if the arguments are invalid."""
         if not self._allow_complex and any(arg.is_complex() for arg in self.args):
-            raise ValueError('Arguments to %s cannot be complex.' % self.__class__.__name__)
+            raise ValueError("Arguments to %s cannot be complex." % self.__class__.__name__)
 
     @abc.abstractmethod
     def shape_from_args(self) -> Tuple[int, ...]:
@@ -184,14 +184,14 @@ class Atom(Expression):
         else:
             return False
 
-    def is_dpp(self, context='dcp') -> bool:
+    def is_dpp(self, context="dcp") -> bool:
         """The expression is a disciplined parameterized expression."""
-        if context.lower() == 'dcp':
+        if context.lower() == "dcp":
             return self.is_dcp(dpp=True)
-        elif context.lower() == 'dgp':
+        elif context.lower() == "dgp":
             return self.is_dgp(dpp=True)
         else:
-            raise ValueError('Unsupported context ', context)
+            raise ValueError("Unsupported context ", context)
 
     @perf.compute_once
     def is_log_log_convex(self) -> bool:
@@ -314,7 +314,7 @@ class Atom(Expression):
 
     def graph_implementation(
         self, arg_objs, shape: Tuple[int, ...], data=None
-    ) -> Tuple[lo.LinOp, List['Constraint']]:
+    ) -> Tuple[lo.LinOp, List["Constraint"]]:
         """Reduces the atom to an affine expression and list of constraints.
 
         Parameters
@@ -421,13 +421,13 @@ class Atom(Expression):
         raise NotImplementedError()
 
     @property
-    def domain(self) -> List['Constraint']:
+    def domain(self) -> List["Constraint"]:
         """A list of constraints describing the closure of the region
         where the expression is finite.
         """
         return self._domain() + [con for arg in self.args for con in arg.domain]
 
-    def _domain(self) -> List['Constraint']:
+    def _domain(self) -> List["Constraint"]:
         """Returns constraints describing the domain of the atom."""
         # Default is no constraints.
         return []
@@ -446,7 +446,7 @@ class Atom(Expression):
 
         return new_numeric
 
-    def atoms(self) -> List['Atom']:
+    def atoms(self) -> List["Atom"]:
         """A list of the atom types present amongst this atom's arguments."""
         atom_list = []
         for arg in self.args:

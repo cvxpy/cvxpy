@@ -63,7 +63,7 @@ class gen_lambda_max(Atom):
         ):
             raise ValueError(
                 "The arguments '%s' and '%s' to gen_lambda_max must "
-                'be square and have the same dimensions.'
+                "be square and have the same dimensions."
                 % (self.args[0].name(), self.args[1].name())
             )
 

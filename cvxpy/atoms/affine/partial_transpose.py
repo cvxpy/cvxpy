@@ -79,9 +79,9 @@ def partial_transpose(expr, dims: Tuple[int, ...], axis: Optional[int] = 0):
     """
     expr = Atom.cast_to_const(expr)
     if expr.ndim < 2 or expr.shape[0] != expr.shape[1]:
-        raise ValueError('Only supports square matrices.')
+        raise ValueError("Only supports square matrices.")
     if axis < 0 or axis >= len(dims):
-        raise ValueError(f'Invalid axis argument, should be between 0 and {len(dims)}, got {axis}.')
+        raise ValueError(f"Invalid axis argument, should be between 0 and {len(dims)}, got {axis}.")
     if expr.shape[0] != np.prod(dims):
         raise ValueError("Dimension of system doesn't correspond to dimension of subsystems.")
     return sum(

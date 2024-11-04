@@ -9,7 +9,7 @@ import cvxpy.settings as settings
 
 def orth(V, tol=1e-12):
     """Return a matrix whose columns are an orthonormal basis for range(V)"""
-    Q, R, p = la.qr(V, mode='economic', pivoting=True)
+    Q, R, p = la.qr(V, mode="economic", pivoting=True)
     # ^ V[:, p] == Q @ R.
     rank = np.count_nonzero(np.sum(np.abs(R) > tol, axis=1))
     Q = Q[:, :rank].reshape((V.shape[0], rank))  # ensure 2-dimensional
@@ -42,7 +42,7 @@ def is_diagonal(A):
     elif isinstance(A, np.ndarray):
         off_diagonal_elements = A - np.diag(np.diag(A))
     else:
-        raise ValueError('Unsupported matrix type.')
+        raise ValueError("Unsupported matrix type.")
 
     return np.allclose(off_diagonal_elements, 0)
 
@@ -85,7 +85,7 @@ def is_psd_within_tol(A, tol):
 
     def SA_eigsh(sigma):
         # Check for default_rng in np.random module (new API)
-        if hasattr(np.random, 'default_rng'):
+        if hasattr(np.random, "default_rng"):
             g = np.random.default_rng(123)
         else:  # fallback to legacy RandomState
             g = np.random.RandomState(123)
@@ -93,7 +93,7 @@ def is_psd_within_tol(A, tol):
         n = A.shape[0]
         v0 = g.normal(loc=0.0, scale=1.0, size=n)
 
-        return sparla.eigsh(A, k=1, sigma=sigma, which='SA', v0=v0, return_eigenvectors=False)
+        return sparla.eigsh(A, k=1, sigma=sigma, which="SA", v0=v0, return_eigenvectors=False)
         # Returns the eigenvalue w[i] of A where 1/(w[i] - sigma) is minimized.
         #
         # If A - sigma*I is PSD, then w[i] should be equal to the largest
@@ -122,7 +122,7 @@ def is_psd_within_tol(A, tol):
         [1] https://en.wikipedia.org/wiki/Definite_matrix
         """
 
-        error_with_note = f'{str(e)}\n\n{message}'
+        error_with_note = f"{str(e)}\n\n{message}"
 
         raise sparla.ArpackNoConvergence(error_with_note, e.eigenvalues, e.eigenvectors)
 
@@ -179,11 +179,11 @@ def gershgorin_psd_check(A, tol):
 
 
 class SparseCholeskyMessages:
-    ASYMMETRIC = 'Input matrix is not symmetric to within provided tolerance.'
-    INDEFINITE = 'Input matrix is neither positive nor negative definite.'
-    EIGEN_FAIL = 'Cholesky decomposition failed.'
-    NOT_SPARSE = 'Input must be a SciPy sparse matrix.'
-    NOT_REAL = 'Input matrix must be real.'
+    ASYMMETRIC = "Input matrix is not symmetric to within provided tolerance."
+    INDEFINITE = "Input matrix is neither positive nor negative definite."
+    EIGEN_FAIL = "Cholesky decomposition failed."
+    NOT_SPARSE = "Input must be a SciPy sparse matrix."
+    NOT_REAL = "Input matrix must be real."
 
 
 def sparse_cholesky(A, sym_tol=settings.CHOL_SYM_TOL, assume_posdef=False):

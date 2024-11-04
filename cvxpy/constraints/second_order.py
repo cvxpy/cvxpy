@@ -38,7 +38,7 @@ class SOC(Cone):
     def __init__(self, t, X, axis: int = 0, constr_id=None) -> None:
         t = cvxtypes.expression().cast_to_const(t)
         if len(t.shape) >= 2 or not t.is_real():
-            raise ValueError('Invalid first argument.')
+            raise ValueError("Invalid first argument.")
         # Check t has one entry per cone.
         if (
             (len(X.shape) <= 1 and t.size > 1)
@@ -46,16 +46,16 @@ class SOC(Cone):
             or (len(X.shape) == 1 and axis == 1)
         ):
             raise ValueError(
-                'Argument dimensions %s and %s, with axis=%i, are incompatible.'
+                "Argument dimensions %s and %s, with axis=%i, are incompatible."
                 % (t.shape, X.shape, axis)
             )
         self.axis = axis
         if len(t.shape) == 0:
-            t = t.flatten(order='F')
+            t = t.flatten(order="F")
         super(SOC, self).__init__([t, X], constr_id)
 
     def __str__(self) -> str:
-        return 'SOC(%s, %s)' % (self.args[0], self.args[1])
+        return "SOC(%s, %s)" % (self.args[0], self.args[1])
 
     @property
     def residual(self) -> Optional[np.ndarray]:

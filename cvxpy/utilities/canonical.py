@@ -115,13 +115,13 @@ class Canonical(metaclass=abc.ABCMeta):
         Creates an independent copy of the object while maintaining the relationship between the
         nodes in the expression tree.
         """
-        cvxpy_id = getattr(self, 'id', None)
+        cvxpy_id = getattr(self, "id", None)
         if cvxpy_id is not None and cvxpy_id in memo:
             return memo[cvxpy_id]
         else:
             with DefaultDeepCopyContextManager(self):  # Avoid infinite recursion
                 new = copy.deepcopy(self, memo)
-            if getattr(self, 'id', None) is not None:
+            if getattr(self, "id", None) is not None:
                 new_id = lu.get_id()
                 new.id = new_id
             memo[cvxpy_id] = new
@@ -171,7 +171,7 @@ class DefaultDeepCopyContextManager:
         self.deepcopy = None
 
     def __enter__(self):
-        self.deepcopy = getattr(self.item, '__deepcopy__', _MISSING)
+        self.deepcopy = getattr(self.item, "__deepcopy__", _MISSING)
         if self.deepcopy is not _MISSING:
             self.item.__deepcopy__ = None
 

@@ -52,7 +52,7 @@ class sigma_max(Atom):
         ds = np.zeros(len(s))
         ds[0] = 1
         D = U.dot(np.diag(ds)).dot(V)
-        return [sp.csc_matrix(D.ravel(order='F')).T]
+        return [sp.csc_matrix(D.ravel(order="F")).T]
 
     def shape_from_args(self) -> Tuple[int, ...]:
         """Returns the (row, col) shape of the expression."""

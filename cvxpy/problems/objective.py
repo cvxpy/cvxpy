@@ -36,7 +36,7 @@ class Objective(u.Canonical):
         If expr is not a scalar.
     """
 
-    NAME = 'objective'
+    NAME = "objective"
 
     def __init__(self, expr) -> None:
         self.args = [Expression.cast_to_const(expr)]
@@ -47,10 +47,10 @@ class Objective(u.Canonical):
             raise ValueError("The '%s' objective must be real valued." % self.NAME)
 
     def __repr__(self) -> str:
-        return '%s(%s)' % (self.__class__.__name__, repr(self.args[0]))
+        return "%s(%s)" % (self.__class__.__name__, repr(self.args[0]))
 
     def __str__(self) -> str:
-        return ' '.join([self.NAME, self.args[0].name()])
+        return " ".join([self.NAME, self.args[0].name()])
 
     def __radd__(self, other):
         if other == 0:
@@ -120,9 +120,9 @@ class Minimize(Objective):
         If expr is not a scalar.
     """
 
-    NAME = 'minimize'
+    NAME = "minimize"
 
-    def __neg__(self) -> 'Maximize':
+    def __neg__(self) -> "Maximize":
         return Maximize(-self.args[0])
 
     def __add__(self, other):
@@ -132,7 +132,7 @@ class Minimize(Objective):
         if type(other) is Minimize:
             return Minimize(self.args[0] + other.args[0])
         else:
-            raise DCPError('Problem does not follow DCP rules.')
+            raise DCPError("Problem does not follow DCP rules.")
 
     def canonicalize(self):
         """Pass on the target expression's objective and constraints."""
@@ -152,14 +152,14 @@ class Minimize(Objective):
                 return self.args[0].is_log_log_convex()
         return self.args[0].is_log_log_convex()
 
-    def is_dpp(self, context='dcp') -> bool:
+    def is_dpp(self, context="dcp") -> bool:
         with scopes.dpp_scope():
-            if context.lower() == 'dcp':
+            if context.lower() == "dcp":
                 return self.is_dcp(dpp=True)
-            elif context.lower() == 'dgp':
+            elif context.lower() == "dgp":
                 return self.is_dgp(dpp=True)
             else:
-                raise ValueError('Unsupported context ', context)
+                raise ValueError("Unsupported context ", context)
 
     def is_dqcp(self) -> bool:
         """The objective must be quasiconvex."""
@@ -185,7 +185,7 @@ class Maximize(Objective):
         If expr is not a scalar.
     """
 
-    NAME = 'maximize'
+    NAME = "maximize"
 
     def __neg__(self) -> Minimize:
         return Minimize(-self.args[0])
@@ -197,7 +197,7 @@ class Maximize(Objective):
         if type(other) is Maximize:
             return Maximize(self.args[0] + other.args[0])
         else:
-            raise Exception('Problem does not follow DCP rules.')
+            raise Exception("Problem does not follow DCP rules.")
 
     def canonicalize(self):
         """Negates the target expression's objective."""
@@ -218,14 +218,14 @@ class Maximize(Objective):
                 return self.args[0].is_log_log_concave()
         return self.args[0].is_log_log_concave()
 
-    def is_dpp(self, context='dcp') -> bool:
+    def is_dpp(self, context="dcp") -> bool:
         with scopes.dpp_scope():
-            if context.lower() == 'dcp':
+            if context.lower() == "dcp":
                 return self.is_dcp(dpp=True)
-            elif context.lower() == 'dgp':
+            elif context.lower() == "dgp":
                 return self.is_dgp(dpp=True)
             else:
-                raise ValueError('Unsupported context ', context)
+                raise ValueError("Unsupported context ", context)
 
     def is_dqcp(self) -> bool:
         """The objective must be quasiconcave."""

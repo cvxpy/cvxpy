@@ -40,7 +40,7 @@ class QpSolver(Solver):
     # For such solvers, REQUIRES_CONSTR should be set to True.
     REQUIRES_CONSTR = False
 
-    IS_MIP = 'IS_MIP'
+    IS_MIP = "IS_MIP"
 
     def accepts(self, problem):
         return (
@@ -108,8 +108,8 @@ class QpSolver(Solver):
         data[s.INT_IDX] = [t[0] for t in problem.x.integer_idx]
         data[s.LOWER_BOUNDS] = problem.lower_bounds
         data[s.UPPER_BOUNDS] = problem.upper_bounds
-        data['n_var'] = n
-        data['n_eq'] = A.shape[0]
-        data['n_ineq'] = F.shape[0]
+        data["n_var"] = n
+        data["n_eq"] = A.shape[0]
+        data["n_ineq"] = F.shape[0]
 
         return data, inv_data

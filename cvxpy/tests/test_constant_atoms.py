@@ -32,7 +32,7 @@ from cvxpy.problems.problem import Problem
 from cvxpy.reductions.solvers.defines import INSTALLED_SOLVERS
 from cvxpy.settings import CVXOPT, ECOS, MOSEK, OSQP, ROBUST_KKTSOLVER, SCS
 
-ROBUST_CVXOPT = 'robust_cvxopt'
+ROBUST_CVXOPT = "robust_cvxopt"
 SOLVER_TO_TOL = {SCS: 1e-2, ECOS: 1e-7, OSQP: 1e-1}
 SOLVERS_TO_TRY = [ECOS, SCS, OSQP]
 # Test CVXOPT if installed.
@@ -184,20 +184,20 @@ atoms_minimize = [
     ),
     (lambda x: cp.max(x, axis=1), (2,), [[[-5, 2], [-3, 1]]], Constant([-3, 2])),
     (lambda x: cp.norm(x, 2), tuple(), [v_np], Constant([3])),
-    (lambda x: cp.norm(x, 'fro'), tuple(), [[[-1, 2], [3, -4]]], Constant([5.47722557])),
+    (lambda x: cp.norm(x, "fro"), tuple(), [[[-1, 2], [3, -4]]], Constant([5.47722557])),
     (lambda x: cp.norm(x, 1), tuple(), [v_np], Constant([5])),
     (lambda x: cp.norm(x, 1), tuple(), [[[-1, 2], [3, -4]]], Constant([7])),
-    (lambda x: cp.norm(x, 'inf'), tuple(), [v_np], Constant([2])),
-    (lambda x: cp.norm(x, 'inf'), tuple(), [[[-1, 2], [3, -4]]], Constant([6])),
-    (lambda x: cp.norm(x, 'nuc'), tuple(), [[[2, 0], [0, 1]]], Constant([3])),
+    (lambda x: cp.norm(x, "inf"), tuple(), [v_np], Constant([2])),
+    (lambda x: cp.norm(x, "inf"), tuple(), [[[-1, 2], [3, -4]]], Constant([6])),
+    (lambda x: cp.norm(x, "nuc"), tuple(), [[[2, 0], [0, 1]]], Constant([3])),
     (
-        lambda x: cp.norm(x, 'nuc'),
+        lambda x: cp.norm(x, "nuc"),
         tuple(),
         [[[3, 4, 5], [6, 7, 8], [9, 10, 11]]],
         Constant([23.173260452512931]),
     ),
     (
-        lambda x: cp.norm(x, 'nuc'),
+        lambda x: cp.norm(x, "nuc"),
         tuple(),
         [[[3, 4, 5], [6, 7, 8]]],
         Constant([14.618376738088918]),
@@ -213,7 +213,7 @@ atoms_minimize = [
     (lambda x: cp.mixed_norm(x, 1, 1), tuple(), [[[1, 2, 3], [4, 5, 6]]], Constant([21])),
     # (lambda x: mixed_norm(x, 2, 1), tuple(), [[[3, 1], [4, math.sqrt(3)]]],
     #     Constant([7])),
-    (lambda x: cp.mixed_norm(x, 1, 'inf'), tuple(), [[[1, 4], [5, 6]]], Constant([10])),
+    (lambda x: cp.mixed_norm(x, 1, "inf"), tuple(), [[[1, 4], [5, 6]]], Constant([10])),
     (cp.pnorm, tuple(), [[1, 2, 3]], Constant([3.7416573867739413])),
     (lambda x: cp.pnorm(x, 1), tuple(), [[1.1, 2, -3]], Constant([6.1])),
     (lambda x: cp.pnorm(x, 2), tuple(), [[1.1, 2, -3]], Constant([3.7696153649941531])),
@@ -224,7 +224,7 @@ atoms_minimize = [
         [[[1, 2], [4, 5]]],
         Constant([math.sqrt(17), math.sqrt(29)]),
     ),
-    (lambda x: cp.pnorm(x, 'inf'), tuple(), [[1.1, 2, -3]], Constant([3])),
+    (lambda x: cp.pnorm(x, "inf"), tuple(), [[1.1, 2, -3]], Constant([3])),
     (lambda x: cp.pnorm(x, 3), tuple(), [[1.1, 2, -3]], Constant([3.3120161866074733])),
     (lambda x: cp.pnorm(x, 5.6), tuple(), [[1.1, 2, -3]], Constant([3.0548953718931089])),
     (lambda x: cp.pnorm(x, 1.2), tuple(), [[[1, 2, 3], [4, 5, 6]]], Constant([15.971021676279573])),
@@ -403,7 +403,7 @@ def run_atom(atom, problem, obj_val, solver, verbose: bool = False) -> None:
     if verbose:
         print(problem.objective)
         print(problem.constraints)
-        print('solver', solver)
+        print("solver", solver)
     if check_solver(problem, solver):
         tolerance = SOLVER_TO_TOL[solver]
 
@@ -437,7 +437,7 @@ atoms_minimize = [(a, cp.Minimize) for a in atoms_minimize]
 atoms_maximize = [(a, cp.Maximize) for a in atoms_maximize]
 
 
-@pytest.mark.parametrize('atom_info, objective_type', atoms_minimize + atoms_maximize)
+@pytest.mark.parametrize("atom_info, objective_type", atoms_minimize + atoms_maximize)
 def test_constant_atoms(atom_info, objective_type) -> None:
     atom, size, args, obj_val = atom_info
 

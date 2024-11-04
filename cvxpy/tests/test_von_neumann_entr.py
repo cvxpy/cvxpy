@@ -25,17 +25,17 @@ from cvxpy.utilities.linalg import onb_for_orthogonal_complement
 
 
 class Test_von_neumann_entr:
-    if 'MOSEK' in cp.installed_solvers():
-        SOLVE_ARGS = {'solver': 'MOSEK', 'verbose': True}
+    if "MOSEK" in cp.installed_solvers():
+        SOLVE_ARGS = {"solver": "MOSEK", "verbose": True}
     else:
-        SOLVE_ARGS = {'solver': 'SCS', 'eps': 1e-6, 'max_iters': 500_000, 'verbose': True}
+        SOLVE_ARGS = {"solver": "SCS", "eps": 1e-6, "max_iters": 500_000, "verbose": True}
 
     @staticmethod
     def make_test_1(complex):
         """Enforce an upper bound of 0.8 on trace(N);
         Expect N's unspecified eigenvalue to be 0.2"""
         n = 3
-        if hasattr(np.random, 'default_rng'):
+        if hasattr(np.random, "default_rng"):
             rng = np.random.default_rng(0)
         else:
             rng = np.random.RandomState(0)

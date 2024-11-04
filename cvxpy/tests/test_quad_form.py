@@ -49,14 +49,14 @@ class TestNonOptimal(BaseTest):
                 desired_rank = n - 1
                 assert_equal(observed_rank, desired_rank)
 
-                for action in 'minimize', 'maximize':
+                for action in "minimize", "maximize":
                     # Look for the extremum of the quadratic form
                     # under the simplex constraint.
                     x = cp.Variable(n)
-                    if action == 'minimize':
+                    if action == "minimize":
                         q = cp.quad_form(x, Q)
                         objective = cp.Minimize(q)
-                    elif action == 'maximize':
+                    elif action == "maximize":
                         q = cp.quad_form(x, -Q)
                         objective = cp.Maximize(q)
                     constraints = [0 <= x, cp.sum(x) == 1]
@@ -101,7 +101,7 @@ class TestNonOptimal(BaseTest):
         P.value = Q
         prob = cp.Problem(cp.Minimize(cost), [x == [1, 2]])
         with warnings.catch_warnings():
-            warnings.simplefilter('ignore')
+            warnings.simplefilter("ignore")
             self.assertAlmostEqual(prob.solve(solver=cp.SCS), 5)
 
     def test_non_symmetric(self) -> None:
@@ -110,7 +110,7 @@ class TestNonOptimal(BaseTest):
         x = cp.Variable(2)
         with self.assertRaises(Exception) as cm:
             cp.quad_form(x, P)
-        self.assertTrue('Quadratic form matrices must be symmetric/Hermitian.' in str(cm.exception))
+        self.assertTrue("Quadratic form matrices must be symmetric/Hermitian." in str(cm.exception))
 
     def test_non_psd(self) -> None:
         """Test error when P is symmetric but not definite."""
@@ -118,12 +118,12 @@ class TestNonOptimal(BaseTest):
         x = cp.Variable(2)
         # Forming quad_form is okay
         with warnings.catch_warnings():
-            warnings.simplefilter('ignore')
+            warnings.simplefilter("ignore")
             cost = cp.quad_form(x, P)
         prob = cp.Problem(cp.Minimize(cost), [x == [1, 2]])
         with self.assertRaises(Exception) as cm:
             prob.solve(solver=cp.SCS)
-        self.assertTrue('Problem does not follow DCP rules.' in str(cm.exception))
+        self.assertTrue("Problem does not follow DCP rules." in str(cm.exception))
 
     def test_psd_exactly_tolerance(self) -> None:
         """Test that PSD check when eigenvalue is exactly -EIGVAL_TOL"""
@@ -131,7 +131,7 @@ class TestNonOptimal(BaseTest):
         x = cp.Variable(2)
         # Forming quad_form is okay
         with warnings.catch_warnings():
-            warnings.simplefilter('ignore')
+            warnings.simplefilter("ignore")
             cost = cp.quad_form(x, P)
             prob = cp.Problem(cp.Minimize(cost), [x == [1, 2]])
             prob.solve(solver=cp.SCS)
@@ -142,7 +142,7 @@ class TestNonOptimal(BaseTest):
         x = cp.Variable(2)
         # Forming quad_form is okay
         with warnings.catch_warnings():
-            warnings.simplefilter('ignore')
+            warnings.simplefilter("ignore")
             cost = cp.quad_form(x, P)
             prob = cp.Problem(cp.Maximize(cost), [x == [1, 2]])
             prob.solve(solver=cp.SCS)
@@ -202,6 +202,6 @@ class TestNonOptimal(BaseTest):
         prob = cp.Problem(cp.Minimize(expr))
         # Transform to a SolverError.
         with pytest.raises(
-            cp.SolverError, match=r'(Workspace allocation error!)|(Setup Error \(Error Code 4\))'
+            cp.SolverError, match=r"(Workspace allocation error!)|(Setup Error \(Error Code 4\))"
         ):
             prob.solve(solver=cp.OSQP)

@@ -48,14 +48,14 @@ def validate_key(key, shape: Tuple[int, ...]):
         )
         for k in key
     ):
-        raise IndexError('float is an invalid index type.')
+        raise IndexError("float is an invalid index type.")
     if len(key) == 0:
-        raise IndexError('An index cannot be empty.')
+        raise IndexError("An index cannot be empty.")
     # Change single indices for vectors into double indices.
     none_count = sum(1 for elem in key if elem is None)
     slices = len(key) - none_count
     if slices > len(shape):
-        raise IndexError('Too many indices for expression.')
+        raise IndexError("Too many indices for expression.")
     elif slices < len(shape):
         # Add : to the right.
         key = tuple(list(key) + [slice(None, None, None)] * (len(shape) - slices))
@@ -88,7 +88,7 @@ def format_slice(key_val, dim, axis) -> Optional[slice]:
     elif isinstance(key_val, slice):
         step = to_int(key_val.step, 1)
         if step == 0:
-            raise ValueError('step length cannot be 0')
+            raise ValueError("step length cannot be 0")
         elif step > 0:
             start = np.clip(wrap_neg_index(to_int(key_val.start, 0), dim), 0, dim)
             stop = np.clip(wrap_neg_index(to_int(key_val.stop, dim), dim), 0, dim)
@@ -104,7 +104,7 @@ def format_slice(key_val, dim, axis) -> Optional[slice]:
             return slice(key_val, key_val + 1, 1)
         else:
             raise IndexError(
-                'Index %i is out of bounds for axis %i with size %i.' % (orig_key_val, axis, dim)
+                "Index %i is out of bounds for axis %i with size %i." % (orig_key_val, axis, dim)
             )
 
 
@@ -148,15 +148,15 @@ def slice_to_str(slc):
         return str(slc.start)
     endpoints = [none_to_empty(val) for val in (slc.start, slc.stop)]
     if slc.step is not None and slc.step != 1:
-        return '%s:%s:%s' % (endpoints[0], endpoints[1], slc.step)
+        return "%s:%s:%s" % (endpoints[0], endpoints[1], slc.step)
     else:
-        return '%s:%s' % (endpoints[0], endpoints[1])
+        return "%s:%s" % (endpoints[0], endpoints[1])
 
 
 def none_to_empty(val):
     """Converts None to an empty string."""
     if val is None:
-        return ''
+        return ""
     else:
         return val
 
@@ -217,12 +217,12 @@ def special_key_to_str(key):
             key_strs.append(slice_to_str(k))
         else:
             key_strs.append(str(k))
-    return ', '.join(key_strs)
+    return ", ".join(key_strs)
 
 
 def pprint_sequence(seq, max_elems=6):
     """Shorten the sequence (array or list) for pretty-printing."""
     if len(seq) > max_elems:
         half = max_elems // 2
-        return str(seq[:half])[:-1] + ', ..., ' + str(seq[-half:])[1:]
+        return str(seq[:half])[:-1] + ", ..., " + str(seq[-half:])[1:]
     return str(seq)

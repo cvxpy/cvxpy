@@ -62,7 +62,7 @@ class cummax(AxisAtom):
             A NumPy ndarray or None.
         """
         # Grad: 1 wherever maximum changes.
-        value = np.array(value).ravel(order='F')
+        value = np.array(value).ravel(order="F")
         maxes = np.maximum.accumulate(value)
         D = np.zeros((value.size, 1))
         D[0] = 1

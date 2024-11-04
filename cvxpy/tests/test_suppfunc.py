@@ -43,7 +43,7 @@ class TestSupportFunctions(BaseTest):
         cons = [sigma(y - a) <= 0]  # "<= num" for any num >= 0 is valid.
         objective = cp.Minimize(a @ y)
         prob = cp.Problem(objective, cons)
-        prob.solve(solver='CLARABEL')
+        prob.solve(solver="CLARABEL")
         actual = prob.value
         expected = np.dot(a, a)
         self.assertLessEqual(abs(actual - expected), 1e-6)
@@ -66,7 +66,7 @@ class TestSupportFunctions(BaseTest):
         )
         y_var = cp.Variable(shape=(n,))
         prob = cp.Problem(cp.Minimize(sigma(y_var)), [y == y_var])
-        prob.solve(solver='CLARABEL')
+        prob.solve(solver="CLARABEL")
         actual = prob.value
         expected = a @ y + np.linalg.norm(y, ord=np.inf)
         self.assertLessEqual(abs(actual - expected), 1e-5)
@@ -85,7 +85,7 @@ class TestSupportFunctions(BaseTest):
         )
         y_var = cp.Variable(shape=(n,))
         prob = cp.Problem(cp.Minimize(sigma(y_var)), [y == y_var])
-        prob.solve(solver='CLARABEL')
+        prob.solve(solver="CLARABEL")
         actual = prob.value
         expected = a @ y + np.linalg.norm(y, ord=2)
         self.assertLessEqual(abs(actual - expected), 1e-6)
@@ -99,9 +99,9 @@ class TestSupportFunctions(BaseTest):
         sigma = cp.suppfunc(x, [x[:, 0] == 0])
         y = cp.Variable(shape=(rows, cols))
         cons = [sigma(y - a) <= 0]
-        objective = cp.Minimize(cp.sum_squares(y.flatten(order='F')))
+        objective = cp.Minimize(cp.sum_squares(y.flatten(order="F")))
         prob = cp.Problem(objective, cons)
-        prob.solve(solver='CLARABEL')
+        prob.solve(solver="CLARABEL")
         expect = np.hstack([np.zeros(shape=(rows, 1)), a[:, [1]]])
         actual = y.value
         self.assertLessEqual(np.linalg.norm(actual - expect, ord=2), 1e-6)
@@ -115,10 +115,10 @@ class TestSupportFunctions(BaseTest):
         sigma = cp.suppfunc(X, [X >> 0])
         A = np.random.randn(n, n)
         Y = cp.Variable(shape=(n, n))
-        objective = cp.Minimize(cp.norm(A.ravel(order='F') + Y.flatten(order='F')))
+        objective = cp.Minimize(cp.norm(A.ravel(order="F") + Y.flatten(order="F")))
         cons = [sigma(Y) <= 0]  # Y is negative definite.
         prob = cp.Problem(objective, cons)
-        prob.solve(solver='SCS', eps=1e-8)
+        prob.solve(solver="SCS", eps=1e-8)
         viol = cons[0].violation()
         self.assertLessEqual(viol, 1e-6)
         eigs = np.linalg.eigh(Y.value)[0]
@@ -134,7 +134,7 @@ class TestSupportFunctions(BaseTest):
         Y = cp.Variable(shape=(rows, cols))
         cons = [Y == A]
         prob = cp.Problem(cp.Minimize(sigma(Y)), cons)
-        prob.solve(solver='SCS', eps=1e-8)
+        prob.solve(solver="SCS", eps=1e-8)
         actual = prob.value
         expect = np.sum(A_sv)
         self.assertLessEqual(abs(actual - expect), 1e-6)
@@ -148,7 +148,7 @@ class TestSupportFunctions(BaseTest):
         cons = [sigma(y) <= 1]
         # ^ That just means -1 <= y[0] <= 1
         prob = cp.Problem(cp.Minimize(obj_expr), cons)
-        prob.solve(solver='CLARABEL')
+        prob.solve(solver="CLARABEL")
         viol = cons[0].violation()
         self.assertLessEqual(viol, 1e-6)
         self.assertLessEqual(abs(y.value - (-1)), 1e-6)
@@ -168,7 +168,7 @@ class TestSupportFunctions(BaseTest):
         objective = cp.Maximize(expr)
         cons = [y == a]
         prob = cp.Problem(objective, cons)
-        prob.solve(solver='CLARABEL')
+        prob.solve(solver="CLARABEL")
         # Check for expected objective value
         epi_actual = prob.value
         direct_actual = expr.value
@@ -187,7 +187,7 @@ class TestSupportFunctions(BaseTest):
         cons = [Y == A]
         expr = sigma(Y)
         prob = cp.Problem(cp.Minimize(expr), cons)  # opt value of support func would be at X=I.
-        prob.solve(solver='SCS', eps=1e-8)
+        prob.solve(solver="SCS", eps=1e-8)
         actual1 = prob.value  # computed with epigraph
         actual2 = expr.value  # computed by evaluating support function, as a maximization problem.
         self.assertLessEqual(abs(actual1 - actual2), 1e-6)
@@ -220,8 +220,8 @@ class TestSupportFunctions(BaseTest):
                 == y_var
             ],
         )
-        with self.assertRaisesRegex(SolverError, '.*could not be reduced to a QP.*'):
-            prob.solve(solver='OSQP')
+        with self.assertRaisesRegex(SolverError, ".*could not be reduced to a QP.*"):
+            prob.solve(solver="OSQP")
 
     def test_invalid_variable(self) -> None:
         x = cp.Variable(shape=(2, 2), symmetric=True)

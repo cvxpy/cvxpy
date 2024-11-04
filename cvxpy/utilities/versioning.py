@@ -27,9 +27,9 @@ class Version:
 
     def __init__(self, v: Union[str, Tuple[int, int, int]]):
         if isinstance(v, str):
-            v = v.split('rc')[0].split('.')
+            v = v.split("rc")[0].split(".")
             assert len(v) >= 3  # anything after the third place doesn't matter
-            v[2] = v[2].split('+')[0]  # anything after the + doesn't matter
+            v[2] = v[2].split("+")[0]  # anything after the + doesn't matter
         self.major = int(v[0])
         self.minor = int(v[1])
         self.micro = int(v[2])
@@ -54,4 +54,4 @@ class Version:
         return self.v != other.v
 
     def __str__(self):
-        return '%s.%s.%s' % self.v
+        return "%s.%s.%s" % self.v

@@ -35,28 +35,28 @@ _LIN, _QUAD = 0, 1
 # quadratic indices. The "cpx_constrs" member of the solution will
 # contain namedtuples of (constr_type, index) where constr_type is either
 # _LIN or _QUAD.
-_CpxConstr = namedtuple('_CpxConstr', ['constr_type', 'index'])
+_CpxConstr = namedtuple("_CpxConstr", ["constr_type", "index"])
 
 
 def set_parameters(model, solver_opts) -> None:
     """Sets CPLEX parameters."""
     kwargs = sorted(solver_opts.keys())
-    if 'cplex_params' in kwargs:
-        for param, value in solver_opts['cplex_params'].items():
+    if "cplex_params" in kwargs:
+        for param, value in solver_opts["cplex_params"].items():
             try:
                 f = attrgetter(param)
                 parameter = f(model.parameters)
                 parameter.set(value)
             except AttributeError:
                 raise ValueError(
-                    'invalid CPLEX parameter, value pair ({0}, {1})'.format(param, value)
+                    "invalid CPLEX parameter, value pair ({0}, {1})".format(param, value)
                 )
-        kwargs.remove('cplex_params')
-    if 'cplex_filename' in kwargs:
-        filename = solver_opts['cplex_filename']
+        kwargs.remove("cplex_params")
+    if "cplex_filename" in kwargs:
+        filename = solver_opts["cplex_filename"]
         if filename:
             model.write(filename)
-        kwargs.remove('cplex_filename')
+        kwargs.remove("cplex_filename")
     if kwargs:
         raise ValueError("invalid keyword-argument '{0}'".format(kwargs[0]))
 
@@ -115,7 +115,7 @@ def _handle_solve_status(model, solstat):
         status.optimal_relaxed_quad,
         status.MIP_optimal_relaxed_quad,
     ):
-        raise AssertionError('feasopt status encountered: {0}'.format(solstat))
+        raise AssertionError("feasopt status encountered: {0}".format(solstat))
     elif solstat in (
         status.conflict_feasible,
         status.conflict_minimal,
@@ -128,7 +128,7 @@ def _handle_solve_status(model, solstat):
         status.conflict_abort_memory_limit,
         status.conflict_abort_user,
     ):
-        raise AssertionError('conflict refiner status encountered: {0}'.format(solstat))
+        raise AssertionError("conflict refiner status encountered: {0}".format(solstat))
     elif solstat == status.relaxation_unbounded:
         return status.relaxation_unbounded
     elif solstat in (status.feasible, status.MIP_feasible):
@@ -252,13 +252,13 @@ class CPLEX(ConicSolver):
         variables = problem.x
         data[s.BOOL_IDX] = [int(t[0]) for t in variables.boolean_idx]
         data[s.INT_IDX] = [int(t[0]) for t in variables.integer_idx]
-        inv_data['is_mip'] = data[s.BOOL_IDX] or data[s.INT_IDX]
+        inv_data["is_mip"] = data[s.BOOL_IDX] or data[s.INT_IDX]
 
         return data, inv_data
 
     def invert(self, solution, inverse_data):
         """Returns the solution to the original problem given the inverse_data."""
-        model = solution['model']
+        model = solution["model"]
         attr = {}
         if s.SOLVE_TIME in solution:
             attr[s.SOLVE_TIME] = solution[s.SOLVE_TIME]
@@ -273,7 +273,7 @@ class CPLEX(ConicSolver):
             x = np.array(model.solution.get_values())
             primal_vars = {inverse_data[CPLEX.VAR_ID]: x}
 
-            if not inverse_data['is_mip']:
+            if not inverse_data["is_mip"]:
                 # The dual values are retrieved in the order that the
                 # constraints were added in solve_via_data() below. We
                 # must be careful to map them to inverse_data[EQ_CONSTR]
@@ -310,11 +310,11 @@ class CPLEX(ConicSolver):
             for i in range(n):
                 # Set variable type.
                 if i in data[s.BOOL_IDX]:
-                    vtype.append('B')
+                    vtype.append("B")
                 elif i in data[s.INT_IDX]:
-                    vtype.append('I')
+                    vtype.append("I")
                 else:
-                    vtype.append('C')
+                    vtype.append("C")
         else:
             # If we specify types (even with 'C'), then the problem will
             # be interpreted as a MIP. Leaving vtype as an empty list
@@ -326,15 +326,15 @@ class CPLEX(ConicSolver):
                 obj=[c[i] for i in range(n)],
                 lb=[-cplex.infinity] * n,  # default LB is 0
                 ub=[cplex.infinity] * n,
-                types=''.join(vtype),
-                names=['x_%d' % i for i in range(n)],
+                types="".join(vtype),
+                names=["x_%d" % i for i in range(n)],
             )
         )
 
         # Add equality constraints
         cpx_constrs += [
             _CpxConstr(_LIN, x)
-            for x in self.add_model_lin_constr(model, variables, range(dims[s.EQ_DIM]), 'E', A, b)
+            for x in self.add_model_lin_constr(model, variables, range(dims[s.EQ_DIM]), "E", A, b)
         ]
 
         # Add inequality (<=) constraints
@@ -343,7 +343,7 @@ class CPLEX(ConicSolver):
         cpx_constrs += [
             _CpxConstr(_LIN, x)
             for x in self.add_model_lin_constr(
-                model, variables, range(leq_start, leq_end), 'L', A, b
+                model, variables, range(leq_start, leq_end), "L", A, b
             )
         ]
 
@@ -371,11 +371,11 @@ class CPLEX(ConicSolver):
         )
 
         # Set parameters
-        reoptimize = solver_opts.pop('reoptimize', False)
+        reoptimize = solver_opts.pop("reoptimize", False)
         set_parameters(model, solver_opts)
 
         # Solve problem
-        solution = {'model': model}
+        solution = {"model": model}
         try:
             start_time = model.get_time()
             model.solve()
@@ -478,14 +478,14 @@ class CPLEX(ConicSolver):
         for i in rows:
             if is_first:
                 lb = [0.0]
-                names = ['soc_t_%d' % i]
+                names = ["soc_t_%d" % i]
                 is_first = False
             else:
                 lb = [-cplex.infinity]
-                names = ['soc_x_%d' % i]
+                names = ["soc_x_%d" % i]
             soc_vars.extend(
                 list(
-                    model.variables.add(obj=[0], lb=lb, ub=[cplex.infinity], types='', names=names)
+                    model.variables.add(obj=[0], lb=lb, ub=[cplex.infinity], types="", names=names)
                 )
             )
 
@@ -501,7 +501,7 @@ class CPLEX(ConicSolver):
             new_lin_constrs.extend(
                 list(
                     model.linear_constraints.add(
-                        lin_expr=[cplex.SparsePair(ind=ind, val=val)], senses='E', rhs=[lin_rhs[i]]
+                        lin_expr=[cplex.SparsePair(ind=ind, val=val)], senses="E", rhs=[lin_rhs[i]]
                     )
                 )
             )
@@ -512,8 +512,8 @@ class CPLEX(ConicSolver):
             quad_expr=cplex.SparseTriple(
                 ind1=soc_vars, ind2=soc_vars, val=[-1.0] + [1.0] * (len(soc_vars) - 1)
             ),
-            sense='L',
+            sense="L",
             rhs=0.0,
-            name='',
+            name="",
         )
         return (qconstr, new_lin_constrs, soc_vars)

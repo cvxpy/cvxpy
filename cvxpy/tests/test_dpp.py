@@ -124,11 +124,11 @@ class TestDcp(BaseTest):
         self.assertFalse(problem.is_dpp())
         self.assertTrue(problem.is_dcp())
         with warnings.catch_warnings():
-            warnings.simplefilter('ignore')
+            warnings.simplefilter("ignore")
             self.assertEqual(problem.solve(cp.SCS), 25)
         x.value = 3
         with warnings.catch_warnings():
-            warnings.simplefilter('ignore')
+            warnings.simplefilter("ignore")
             self.assertEqual(problem.solve(cp.SCS), 9)
 
     def test_solve_dpp_problem(self) -> None:
@@ -148,7 +148,7 @@ class TestDcp(BaseTest):
         y = cp.Variable()
         problem = cp.Problem(cp.Minimize(x * x), [x == y])
         with warnings.catch_warnings():
-            warnings.simplefilter('ignore')
+            warnings.simplefilter("ignore")
             _, chain, _ = problem.get_problem_data(cp.SCS)
         self.assertFalse(problem.is_dpp())
         self.assertTrue(cp.reductions.eval_params.EvalParams in [type(r) for r in chain.reductions])
@@ -255,7 +255,7 @@ class TestDcp(BaseTest):
         prob = cp.Problem(obj, cons)
         s.value = np.array([1.0])
         with warnings.catch_warnings():
-            warnings.simplefilter('ignore')
+            warnings.simplefilter("ignore")
             prob.solve(solver=cp.SCS, eps=1e-6)
         np.testing.assert_almost_equal(prob.value, 2.0, decimal=3)
 
@@ -266,7 +266,7 @@ class TestDcp(BaseTest):
         prob = cp.Problem(obj, cons)
         s.value = np.array([1.0])
         with warnings.catch_warnings():
-            warnings.simplefilter('ignore')
+            warnings.simplefilter("ignore")
             prob.solve(solver=cp.SCS, eps=1e-6)
         np.testing.assert_almost_equal(prob.value, 2.0, decimal=3)
 
@@ -277,7 +277,7 @@ class TestDcp(BaseTest):
         prob = cp.Problem(obj, cons)
         s.value = np.array([1.0])
         with warnings.catch_warnings():
-            warnings.simplefilter('ignore')
+            warnings.simplefilter("ignore")
             prob.solve(solver=cp.SCS, eps=1e-6)
         np.testing.assert_almost_equal(prob.value, 1.0, decimal=3)
 
@@ -313,7 +313,7 @@ class TestDcp(BaseTest):
 
         with warnings.catch_warnings():
             # TODO(akshayka): Try to emit DPP problems in Dqcp2Dcp
-            warnings.filterwarnings('ignore', message=r'.*DPP.*')
+            warnings.filterwarnings("ignore", message=r".*DPP.*")
             p.value = 1
             prob.solve(solver=cp.CLARABEL)
             sol1 = x.value.copy()
@@ -447,7 +447,7 @@ class TestDgp(BaseTest):
             dgp.solve(solver=cp.SCS, gp=True, enforce_dpp=True)
 
         with warnings.catch_warnings():
-            warnings.simplefilter('ignore')
+            warnings.simplefilter("ignore")
             dgp.solve(solver=cp.SCS, gp=True, enforce_dpp=False)
             self.assertAlmostEqual(x.value, 1.0)
 
@@ -460,7 +460,7 @@ class TestDgp(BaseTest):
 
         self.assertTrue(problem.is_dgp())
         self.assertTrue(problem.is_dgp(dpp=True))
-        self.assertFalse(problem.is_dpp('dcp'))
+        self.assertFalse(problem.is_dpp("dcp"))
 
         problem.solve(solver=cp.SCS, gp=True, enforce_dpp=True)
         self.assertAlmostEqual(x.value, 1.0)
@@ -486,7 +486,7 @@ class TestDgp(BaseTest):
 
         self.assertTrue(problem.is_dgp())
         self.assertTrue(problem.is_dgp(dpp=True))
-        self.assertFalse(problem.is_dpp('dcp'))
+        self.assertFalse(problem.is_dpp("dcp"))
 
         problem.solve(solver=cp.SCS, gp=True, enforce_dpp=True)
         self.assertAlmostEqual(x.value, 1.0)
@@ -577,7 +577,7 @@ class TestDgp(BaseTest):
         self.assertAlmostEqual(y.value, 3.0)
 
     def test_param_in_exponent_and_elsewhere(self) -> None:
-        alpha = cp.Parameter(pos=True, value=1.0, name='alpha')
+        alpha = cp.Parameter(pos=True, value=1.0, name="alpha")
         x = cp.Variable(pos=True)
         problem = cp.Problem(cp.Minimize(x**alpha), [x == alpha])
 
@@ -600,8 +600,8 @@ class TestDgp(BaseTest):
         x = cp.Variable(pos=True)
         y = cp.Variable(pos=True)
 
-        alpha = cp.Parameter(pos=True, value=1.0, name='alpha')
-        beta = cp.Parameter(pos=True, value=3.0, name='beta')
+        alpha = cp.Parameter(pos=True, value=1.0, name="alpha")
+        beta = cp.Parameter(pos=True, value=3.0, name="beta")
         prod1 = x * y**alpha
         prod2 = beta * x * y**alpha
         posy = prod1 + prod2
@@ -626,8 +626,8 @@ class TestDgp(BaseTest):
         x = cp.Variable(pos=True)
         y = cp.Variable(pos=True)
 
-        alpha = cp.Parameter(pos=True, value=1.0, name='alpha')
-        beta = cp.Parameter(pos=True, value=3.0, name='beta')
+        alpha = cp.Parameter(pos=True, value=1.0, name="alpha")
+        beta = cp.Parameter(pos=True, value=3.0, name="beta")
         prod1 = x * y**alpha
         prod2 = beta * x * y**alpha
         posy = prod1 + prod2
@@ -894,5 +894,5 @@ class TestCallbackParam(BaseTest):
         problem.solve()
         self.assertAlmostEqual(self.x.value, 8.0)
 
-        with pytest.raises(NotImplementedError, match='Cannot set the value of a CallbackParam'):
+        with pytest.raises(NotImplementedError, match="Cannot set the value of a CallbackParam"):
             callback_param.value = 1.0

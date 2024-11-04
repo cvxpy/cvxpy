@@ -30,10 +30,10 @@ class PIQP(QpSolver):
 
     # Map of PIQP status to CVXPY status.
     STATUS_MAP = {
-        'PIQP_SOLVED': s.OPTIMAL,
-        'PIQP_MAX_ITER_REACHED': s.USER_LIMIT,
-        'PIQP_PRIMAL_INFEASIBLE': s.INFEASIBLE,
-        'PIQP_DUAL_INFEASIBLE': s.UNBOUNDED,
+        "PIQP_SOLVED": s.OPTIMAL,
+        "PIQP_MAX_ITER_REACHED": s.USER_LIMIT,
+        "PIQP_PRIMAL_INFEASIBLE": s.INFEASIBLE,
+        "PIQP_DUAL_INFEASIBLE": s.UNBOUNDED,
     }
 
     def name(self):
@@ -46,7 +46,7 @@ class PIQP(QpSolver):
 
     def invert(self, solution, inverse_data):
         attr = {s.SOLVE_TIME: solution.info.run_time}
-        attr[s.EXTRA_STATS] = {'solution': solution}
+        attr[s.EXTRA_STATS] = {"solution": solution}
 
         # Map PIQP statuses back to CVXPY statuses
         status = self.STATUS_MAP.get(solution.info.status.name, s.SOLVER_ERROR)
@@ -67,31 +67,31 @@ class PIQP(QpSolver):
 
         solver_opts = solver_opts.copy()
 
-        solver_opts['backend'] = solver_opts.get('backend', 'sparse')
-        backend = solver_opts['backend']
+        solver_opts["backend"] = solver_opts.get("backend", "sparse")
+        backend = solver_opts["backend"]
 
-        if backend == 'dense':
+        if backend == "dense":
             # Convert sparse to dense matrices
             P = data[s.P].toarray()
             A = data[s.A].toarray()
             F = data[s.F].toarray()
-        elif backend == 'sparse':
+        elif backend == "sparse":
             P = data[s.P]
             A = data[s.A]
             F = data[s.F]
         else:
-            raise ValueError('Wrong input, backend most be either dense or sparse')
+            raise ValueError("Wrong input, backend most be either dense or sparse")
 
         q = data[s.Q]
         b = data[s.B]
         g = data[s.G]
 
-        if backend == 'dense':
+        if backend == "dense":
             solver = piqp.DenseSolver()
-        elif backend == 'sparse':
+        elif backend == "sparse":
             solver = piqp.SparseSolver()
 
-        del solver_opts['backend']
+        del solver_opts["backend"]
         for opt in solver_opts.keys():
             try:
                 solver.settings.__setattr__(opt, solver_opts[opt])

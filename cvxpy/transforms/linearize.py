@@ -47,14 +47,14 @@ def linearize(expr):
     else:
         tangent = expr.value
         if tangent is None:
-            raise ValueError('Cannot linearize non-affine expression with missing variable values.')
+            raise ValueError("Cannot linearize non-affine expression with missing variable values.")
         grad_map = expr.grad
         for var in expr.variables():
             if grad_map[var] is None:
                 return None
             elif var.is_matrix():
-                flattened = Constant(grad_map[var]).T @ vec(var - var.value, order='F')
-                tangent = tangent + reshape(flattened, expr.shape, order='F')
+                flattened = Constant(grad_map[var]).T @ vec(var - var.value, order="F")
+                tangent = tangent + reshape(flattened, expr.shape, order="F")
             else:
                 tangent = tangent + Constant(grad_map[var]).T @ (var - var.value)
         return tangent

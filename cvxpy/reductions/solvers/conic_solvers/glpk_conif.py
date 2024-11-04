@@ -49,44 +49,44 @@ class GLPK(CVXOPT):
         old_options = cvxopt.solvers.options.copy()
         # Silence cvxopt if verbose is False.
         if verbose:
-            cvxopt.solvers.options['msg_lev'] = 'GLP_MSG_ON'
+            cvxopt.solvers.options["msg_lev"] = "GLP_MSG_ON"
         else:
-            if 'glpk' in solver_opts:
-                solver_opts['glpk']['msg_lev'] = 'GLP_MSG_OFF'
+            if "glpk" in solver_opts:
+                solver_opts["glpk"]["msg_lev"] = "GLP_MSG_OFF"
             else:
-                solver_opts['glpk'] = {'msg_lev': 'GLP_MSG_OFF'}
+                solver_opts["glpk"] = {"msg_lev": "GLP_MSG_OFF"}
 
         data = self._prepare_cvxopt_matrices(data)
 
         # Apply any user-specific options.
         # Rename max_iters to maxiters.
-        if 'max_iters' in solver_opts:
-            solver_opts['maxiters'] = solver_opts['max_iters']
+        if "max_iters" in solver_opts:
+            solver_opts["maxiters"] = solver_opts["max_iters"]
         for key, value in solver_opts.items():
             cvxopt.solvers.options[key] = value
 
         try:
             results_dict = cvxopt.solvers.lp(
-                data[s.C], data[s.G], data[s.H], data[s.A], data[s.B], solver='glpk'
+                data[s.C], data[s.G], data[s.H], data[s.A], data[s.B], solver="glpk"
             )
 
         # Catch exceptions in CVXOPT and convert them to solver errors.
         except ValueError:
-            results_dict = {'status': 'unknown'}
+            results_dict = {"status": "unknown"}
 
         # Restore original cvxopt solver options.
         self._restore_solver_options(old_options)
 
         # Convert CVXOPT results to solution format.
         solution = {}
-        status = self.STATUS_MAP[results_dict['status']]
+        status = self.STATUS_MAP[results_dict["status"]]
         solution[s.STATUS] = status
         if solution[s.STATUS] in s.SOLUTION_PRESENT:
-            primal_val = results_dict['primal objective']
+            primal_val = results_dict["primal objective"]
             solution[s.VALUE] = primal_val
-            solution[s.PRIMAL] = results_dict['x']
-            solution[s.EQ_DUAL] = results_dict['y']
-            solution[s.INEQ_DUAL] = results_dict['z']
+            solution[s.PRIMAL] = results_dict["x"]
+            solution[s.EQ_DUAL] = results_dict["y"]
+            solution[s.INEQ_DUAL] = results_dict["z"]
             for key in [s.PRIMAL, s.EQ_DUAL, s.INEQ_DUAL]:
                 solution[key] = intf.cvxopt2dense(solution[key])
 

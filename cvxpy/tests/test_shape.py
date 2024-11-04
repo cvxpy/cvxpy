@@ -56,7 +56,7 @@ class TestShape:
         n = 2
         a = Variable([n, n])
         b = Variable(n**2)
-        c = reshape(b, [n, n], order='F')
+        c = reshape(b, [n, n], order="F")
         assert (a + c).shape == (n, n)
-        d = reshape(b, (n, n), order='F')
+        d = reshape(b, (n, n), order="F")
         assert (a + d).shape == (n, n)

@@ -73,7 +73,7 @@ class NDArrayInterface(base.BaseMatrixInterface):
 
     # A matrix with all entries equal to the given scalar value.
     def scalar_matrix(self, value, shape: Tuple[int, ...]):
-        return numpy.zeros(shape, dtype='float64') + value
+        return numpy.zeros(shape, dtype="float64") + value
 
     def reshape(self, matrix, size):
-        return numpy.reshape(matrix, size, order='F')
+        return numpy.reshape(matrix, size, order="F")

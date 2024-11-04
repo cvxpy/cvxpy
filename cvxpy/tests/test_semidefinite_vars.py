@@ -40,14 +40,14 @@ class TestSemidefiniteVariable(BaseTest):
         constraints += [M + C2 == x2]
         objective = cp.Minimize(cp.trace(M))
         prob = cp.Problem(objective, constraints)
-        prob.solve(solver='SCS')
+        prob.solve(solver="SCS")
         assert (M.value == M.T.value).all()
 
     def test_sdp_problem(self) -> None:
         # PSD in objective.
         obj = cp.Minimize(cp.sum(cp.square(self.X - self.F)))
         p = cp.Problem(obj, [])
-        result = p.solve(solver='SCS')
+        result = p.solve(solver="SCS")
         self.assertAlmostEqual(result, 1, places=4)
 
         self.assertAlmostEqual(self.X.value[0, 0], 1, places=3)
@@ -59,7 +59,7 @@ class TestSemidefiniteVariable(BaseTest):
         # ECHU: note to self, apparently this is a source of redundancy
         obj = cp.Minimize(cp.sum(cp.square(self.Y - self.F)))
         p = cp.Problem(obj, [self.Y == Variable((2, 2), PSD=True)])
-        result = p.solve(solver='SCS')
+        result = p.solve(solver="SCS")
         self.assertAlmostEqual(result, 1, places=2)
 
         self.assertAlmostEqual(self.Y.value[0, 0], 1, places=3)
@@ -76,7 +76,7 @@ class TestSemidefiniteVariable(BaseTest):
             cp.square(self.X[1, 1] - 4)
         )
         p = cp.Problem(obj, [])
-        result = p.solve(solver='SCS')
+        result = p.solve(solver="SCS")
         print(self.X.value)
         self.assertAlmostEqual(result, 0)
 

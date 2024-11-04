@@ -96,12 +96,12 @@ def as_block_diag_linear_operator(matrices) -> LinearOperator:
 # that can be supplied to solvers.
 def dims_to_solver_dict(cone_dims):
     cones = {
-        'f': cone_dims.zero,
-        'l': cone_dims.nonneg,
-        'q': cone_dims.soc,
-        'ep': cone_dims.exp,
-        's': cone_dims.psd,
-        'p': cone_dims.p3d,
+        "f": cone_dims.zero,
+        "l": cone_dims.nonneg,
+        "q": cone_dims.soc,
+        "ep": cone_dims.exp,
+        "s": cone_dims.psd,
+        "p": cone_dims.p3d,
     }
     return cones
 
@@ -110,7 +110,7 @@ class ConicSolver(Solver):
     """Conic solver class with reduction semantics"""
 
     # The key that maps to ConeDims in the data returned by apply().
-    DIMS = 'dims'
+    DIMS = "dims"
 
     # Every conic solver must support Zero and NonNeg constraints.
     SUPPORTED_CONSTRAINTS = [Zero, NonNeg]
@@ -176,7 +176,7 @@ class ConicSolver(Solver):
     def psd_format_mat(constr):
         """Return a matrix to multiply by PSD constraint coefficients."""
         # Default is identity.
-        return sp.eye(constr.size, format='csc')
+        return sp.eye(constr.size, format="csc")
 
     @classmethod
     def format_constraints(cls, problem, exp_cone_order):
@@ -219,7 +219,7 @@ class ConicSolver(Solver):
                 restruct_mat.append(IdentityOperator(constr.size))
             elif type(constr) == SOC:
                 # Group each t row with appropriate X rows.
-                assert constr.axis == 0, 'SOC must be lowered to axis == 0'
+                assert constr.axis == 0, "SOC must be lowered to axis == 0"
 
                 # Interleave the rows of coeffs[0] and coeffs[1]:
                 #     coeffs[0][0, :]
@@ -268,7 +268,7 @@ class ConicSolver(Solver):
             elif type(constr) == PSD:
                 restruct_mat.append(cls.psd_format_mat(constr))
             else:
-                raise ValueError('Unsupported constraint type.')
+                raise ValueError("Unsupported constraint type.")
 
         # Form new ParamConeProg
         if restruct_mat:
@@ -281,7 +281,7 @@ class ConicSolver(Solver):
             unspecified, _ = np.divmod(
                 problem.A.shape[0] * problem.A.shape[1], restruct_mat.shape[1], dtype=np.int64
             )
-            reshaped_A = problem.A.reshape(restruct_mat.shape[1], unspecified, order='F').tocsr()
+            reshaped_A = problem.A.reshape(restruct_mat.shape[1], unspecified, order="F").tocsr()
             restructured_A = restruct_mat(reshaped_A).tocoo()
             # Because of a bug in scipy versions <  1.20, `reshape`
             # can overflow if indices are int32s.
@@ -290,7 +290,7 @@ class ConicSolver(Solver):
             restructured_A = restructured_A.reshape(
                 np.int64(restruct_mat.shape[0]) * (np.int64(problem.x.size) + 1),
                 problem.A.shape[1],
-                order='F',
+                order="F",
             )
         else:
             restructured_A = problem.A
@@ -312,16 +312,16 @@ class ConicSolver(Solver):
 
     def invert(self, solution, inverse_data):
         """Returns the solution to the original problem given the inverse_data."""
-        status = solution['status']
+        status = solution["status"]
 
         if status in s.SOLUTION_PRESENT:
-            opt_val = solution['value']
-            primal_vars = {inverse_data[self.VAR_ID]: solution['primal']}
+            opt_val = solution["value"]
+            primal_vars = {inverse_data[self.VAR_ID]: solution["primal"]}
             eq_dual = utilities.get_dual_values(
-                solution['eq_dual'], utilities.extract_dual_value, inverse_data[Solver.EQ_CONSTR]
+                solution["eq_dual"], utilities.extract_dual_value, inverse_data[Solver.EQ_CONSTR]
             )
             leq_dual = utilities.get_dual_values(
-                solution['ineq_dual'], utilities.extract_dual_value, inverse_data[Solver.NEQ_CONSTR]
+                solution["ineq_dual"], utilities.extract_dual_value, inverse_data[Solver.NEQ_CONSTR]
             )
             eq_dual.update(leq_dual)
             dual_vars = eq_dual

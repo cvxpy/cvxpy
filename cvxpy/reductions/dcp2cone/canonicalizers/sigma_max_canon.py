@@ -27,7 +27,7 @@ def sigma_max_canon(expr, args):
     n, m = A.shape
     shape = expr.shape
     if not np.prod(shape) == 1:
-        raise RuntimeError('Invalid shape of expr in sigma_max canonicalization.')
+        raise RuntimeError("Invalid shape of expr in sigma_max canonicalization.")
     t = Variable(shape)
     tI_n = sp.eye(n) * t
     tI_m = sp.eye(m) * t

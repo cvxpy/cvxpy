@@ -56,8 +56,8 @@ class perspective(Atom):
     def validate_arguments(self) -> None:
         assert self.f.size == 1  # dealing only with scalars, for now
         assert self.args[0].size == 1
-        assert isinstance(self.args[0], Variable), 's must be a variable'
-        assert self.args[0].is_nonneg(), 's must be a nonnegative variable'
+        assert isinstance(self.args[0], Variable), "s must be a variable"
+        assert self.args[0].is_nonneg(), "s must be a nonnegative variable"
         return super().validate_arguments()
 
     def numeric(self, values: list[np.ndarray, np.ndarray]) -> np.ndarray:
@@ -76,7 +76,7 @@ class perspective(Atom):
             # when we actually just want f_recession(x). Thus we set s=1 to ignore s.
             assert (
                 self.f_recession is not None
-            ), 'To handle s = 0, pass in a recession function f_recession'
+            ), "To handle s = 0, pass in a recession function f_recession"
             f = self.f_recession
             values[0] = 1
 

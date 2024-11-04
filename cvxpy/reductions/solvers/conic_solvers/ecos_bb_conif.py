@@ -60,30 +60,30 @@ class ECOS_BB(ECOS):
         var = problem.x
         data[s.BOOL_IDX] = [int(t[0]) for t in var.boolean_idx]
         data[s.INT_IDX] = [int(t[0]) for t in var.integer_idx]
-        inv_data['is_mip'] = data[s.BOOL_IDX] or data[s.INT_IDX]
+        inv_data["is_mip"] = data[s.BOOL_IDX] or data[s.INT_IDX]
         return data, inv_data
 
     def invert(self, solution, inverse_data):
         """Returns solution to original problem, given inverse_data."""
-        status = self.STATUS_MAP[solution['info']['exitFlag']]
+        status = self.STATUS_MAP[solution["info"]["exitFlag"]]
 
         # Timing data
         attr = {}
-        attr[s.SOLVE_TIME] = solution['info']['timing']['tsolve']
-        attr[s.SETUP_TIME] = solution['info']['timing']['tsetup']
-        attr[s.NUM_ITERS] = solution['info']['iter']
+        attr[s.SOLVE_TIME] = solution["info"]["timing"]["tsolve"]
+        attr[s.SETUP_TIME] = solution["info"]["timing"]["tsetup"]
+        attr[s.NUM_ITERS] = solution["info"]["iter"]
         attr[s.EXTRA_STATS] = solution
 
         if status in s.SOLUTION_PRESENT:
-            primal_val = solution['info']['pcost']
+            primal_val = solution["info"]["pcost"]
             opt_val = primal_val + inverse_data[s.OFFSET]
             primal_vars = {
-                inverse_data[self.VAR_ID]: intf.DEFAULT_INTF.const_to_matrix(solution['x'])
+                inverse_data[self.VAR_ID]: intf.DEFAULT_INTF.const_to_matrix(solution["x"])
             }
             dual_vars = None
-            if not inverse_data['is_mip']:
+            if not inverse_data["is_mip"]:
                 dual_vars = utilities.get_dual_values(
-                    solution['z'], utilities.extract_dual_value, inverse_data[self.NEQ_CONSTR]
+                    solution["z"], utilities.extract_dual_value, inverse_data[self.NEQ_CONSTR]
                 )
                 for con in inverse_data[self.NEQ_CONSTR]:
                     if isinstance(con, ExpCone):
@@ -92,7 +92,7 @@ class ECOS_BB(ECOS):
                         perm = utilities.expcone_permutor(n_cones, ECOS.EXP_CONE_ORDER)
                         dual_vars[cid] = dual_vars[cid][perm]
                 eq_duals = utilities.get_dual_values(
-                    solution['y'], utilities.extract_dual_value, inverse_data[self.EQ_CONSTR]
+                    solution["y"], utilities.extract_dual_value, inverse_data[self.EQ_CONSTR]
                 )
                 dual_vars.update(eq_duals)
             return Solution(status, opt_val, primal_vars, dual_vars, attr)
@@ -104,9 +104,9 @@ class ECOS_BB(ECOS):
 
         cones = dims_to_solver_dict(data[ConicSolver.DIMS])
         # Default verbose to false for BB wrapper.
-        if 'mi_verbose' in solver_opts:
-            mi_verbose = solver_opts['mi_verbose']
-            del solver_opts['mi_verbose']
+        if "mi_verbose" in solver_opts:
+            mi_verbose = solver_opts["mi_verbose"]
+            del solver_opts["mi_verbose"]
         else:
             mi_verbose = verbose
         solution = ecos.solve(

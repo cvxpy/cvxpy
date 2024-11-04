@@ -29,21 +29,21 @@ class TestConstraints(BaseTest):
     """Unit tests for the expression/expression module."""
 
     def setUp(self) -> None:
-        self.a = Variable(name='a')
-        self.b = Variable(name='b')
+        self.a = Variable(name="a")
+        self.b = Variable(name="b")
 
-        self.x = Variable(2, name='x')
-        self.y = Variable(3, name='y')
-        self.z = Variable(2, name='z')
+        self.x = Variable(2, name="x")
+        self.y = Variable(3, name="y")
+        self.z = Variable(2, name="z")
 
-        self.A = Variable((2, 2), name='A')
-        self.B = Variable((2, 2), name='B')
-        self.C = Variable((3, 2), name='C')
+        self.A = Variable((2, 2), name="A")
+        self.B = Variable((2, 2), name="B")
+        self.C = Variable((3, 2), name="C")
 
     def test_equality(self) -> None:
         """Test the Equality class."""
         constr = self.x == self.z
-        self.assertEqual(constr.name(), 'x == z')
+        self.assertEqual(constr.name(), "x == z")
         self.assertEqual(constr.shape, (2,))
         # Test value and dual_value.
         assert constr.dual_value is None
@@ -85,7 +85,7 @@ class TestConstraints(BaseTest):
     def test_inequality(self) -> None:
         """Test the Inequality class."""
         constr = self.x <= self.z
-        self.assertEqual(constr.name(), 'x <= z')
+        self.assertEqual(constr.name(), "x <= z")
         self.assertEqual(constr.shape, (2,))
         # Test value and dual_value.
         assert constr.dual_value is None
@@ -128,7 +128,7 @@ class TestConstraints(BaseTest):
     def test_psd_constraint(self) -> None:
         """Test the PSD constraint <<."""
         constr = self.A >> self.B
-        self.assertEqual(constr.name(), 'A + -B >> 0')
+        self.assertEqual(constr.name(), "A + -B >> 0")
         self.assertEqual(constr.shape, (2, 2))
         # Test value and dual_value.
         assert constr.dual_value is None
@@ -147,7 +147,7 @@ class TestConstraints(BaseTest):
 
         with self.assertRaises(Exception) as cm:
             (self.x >> 0)
-        self.assertEqual(str(cm.exception), 'Non-square matrix in positive definite constraint.')
+        self.assertEqual(str(cm.exception), "Non-square matrix in positive definite constraint.")
 
         # Test copy with args=None
         copy = constr.copy()
@@ -164,7 +164,7 @@ class TestConstraints(BaseTest):
     def test_nsd_constraint(self) -> None:
         """Test the PSD constraint <<."""
         constr = self.A << self.B
-        self.assertEqual(constr.name(), 'B + -A >> 0')
+        self.assertEqual(constr.name(), "B + -A >> 0")
         self.assertEqual(constr.shape, (2, 2))
         # Test value and dual_value.
         assert constr.dual_value is None
@@ -178,12 +178,12 @@ class TestConstraints(BaseTest):
 
         with self.assertRaises(Exception) as cm:
             self.x << 0
-        self.assertEqual(str(cm.exception), 'Non-square matrix in positive definite constraint.')
+        self.assertEqual(str(cm.exception), "Non-square matrix in positive definite constraint.")
 
     def test_geq(self) -> None:
         """Test the >= operator."""
         constr = self.z >= self.x
-        self.assertEqual(constr.name(), 'x <= z')
+        self.assertEqual(constr.name(), "x <= z")
         self.assertEqual(constr.shape, (2,))
 
         # Incompatible dimensions
@@ -198,7 +198,7 @@ class TestConstraints(BaseTest):
         self.assertEqual(constr.size, 3)
 
         # Test invalid dimensions.
-        error_str = 'Argument dimensions (1,) and (1, 4), with axis=0, ' 'are incompatible.'
+        error_str = "Argument dimensions (1,) and (1, 4), with axis=0, " "are incompatible."
         with self.assertRaises(Exception) as cm:
             SOC(Variable(1), Variable((1, 4)))
         self.assertEqual(str(cm.exception), error_str)
@@ -295,7 +295,7 @@ class TestConstraints(BaseTest):
         """
         Simple test case with scalar AND vector `alpha`
         inputs to `PowCone3D`
-        """ ''
+        """ ""
         x_0 = cp.Variable(shape=(3,))
         x = cp.Variable(shape=(3,))
         cons = [cp.PowCone3D(x_0[0], x_0[1], x_0[2], 0.25), x <= -10]
@@ -318,7 +318,7 @@ class TestConstraints(BaseTest):
             con = PowConeND(W, z, alpha.reshape((n, 1)))
         with self.assertRaises(ValueError):
             # wrong axis
-            con = PowConeND(reshape_atom(W, (n, 1), order='F'), z, alpha.reshape((n, 1)), axis=1)
+            con = PowConeND(reshape_atom(W, (n, 1), order="F"), z, alpha.reshape((n, 1)), axis=1)
         # Compute a violation
         con = PowConeND(W, z, alpha)
         W0 = 0.1 + np.random.rand(n)
@@ -331,8 +331,8 @@ class TestConstraints(BaseTest):
     def test_chained_constraints(self) -> None:
         """Tests that chaining constraints raises an error."""
         error_str = (
-            'Cannot evaluate the truth value of a constraint or '
-            'chain constraints, e.g., 1 >= x >= 0.'
+            "Cannot evaluate the truth value of a constraint or "
+            "chain constraints, e.g., 1 >= x >= 0."
         )
         with self.assertRaises(Exception) as cm:
             (self.z <= self.x <= 1)
@@ -412,7 +412,7 @@ class TestConstraints(BaseTest):
         self.assertItemsAlmostEqual(x_1.value, [1, 2, 3])
         # Check value validation and project.
         self.assertItemsAlmostEqual(x_1.project([0, 0, 0]), [1, 2, 3])
-        with pytest.raises(ValueError, match='in bounds.'):
+        with pytest.raises(ValueError, match="in bounds."):
             x_1.value = [0, 0, 0]
 
         # Try again using domain.
@@ -437,13 +437,13 @@ class TestConstraints(BaseTest):
         self.assertItemsAlmostEqual(x_4.value, [2, 3, 4])
 
         # Check if bounds are a list of 2 items
-        with pytest.raises(ValueError, match='Bounds should be a list of two items.'):
+        with pytest.raises(ValueError, match="Bounds should be a list of two items."):
             cp.Variable((2,), bounds=[np.array([0, 1, 2])])
 
         # Check for mismatch in dimensions of lower and upper bounds
-        with pytest.raises(ValueError, match='with the same dimensions as the variable/parameter.'):
+        with pytest.raises(ValueError, match="with the same dimensions as the variable/parameter."):
             cp.Variable((2,), bounds=[np.array([1, 2]), np.array([1, 2, 3])])
-        with pytest.raises(ValueError, match='with the same dimensions as the variable/parameter.'):
+        with pytest.raises(ValueError, match="with the same dimensions as the variable/parameter."):
             cp.Variable((2,), bounds=[np.array([1, 2, 3, 4]), 5])
 
         # Check that bounds attribute handles -inf and inf correctly
@@ -455,7 +455,7 @@ class TestConstraints(BaseTest):
         # Check value validation and project.
         self.assertItemsAlmostEqual(x_5.project([2, 1]), [1, 1])
         x_5.value = [0, 0]
-        with pytest.raises(ValueError, match='in bounds.'):
+        with pytest.raises(ValueError, match="in bounds."):
             x_5.value = [2, 1]
         cp.Problem(cp.Minimize(x_6 @ c_2)).solve()
         self.assertItemsAlmostEqual(x_6.value, [3, 3, 3])
@@ -482,29 +482,29 @@ class TestConstraints(BaseTest):
 
         with pytest.raises(
             ValueError,
-            match='Invalid bounds: some upper ' 'bounds are less than corresponding lower bounds.',
+            match="Invalid bounds: some upper " "bounds are less than corresponding lower bounds.",
         ):
             cp.Variable((2,), bounds=[np.array([2, 3]), np.array([1, 4])])
 
-        with pytest.raises(ValueError, match='-np.inf is not feasible as an upper bound.'):
+        with pytest.raises(ValueError, match="-np.inf is not feasible as an upper bound."):
             cp.Variable((2,), bounds=[None, -np.inf])
-        with pytest.raises(ValueError, match='-np.inf is not feasible as an upper bound.'):
+        with pytest.raises(ValueError, match="-np.inf is not feasible as an upper bound."):
             cp.Variable((2,), bounds=[-np.inf, np.array([1, -np.inf])])
-        with pytest.raises(ValueError, match='-np.inf is not feasible as an upper bound.'):
+        with pytest.raises(ValueError, match="-np.inf is not feasible as an upper bound."):
             cp.Variable((2,), bounds=[np.array([1, -np.inf]), np.array([2, -np.inf])])
 
-        with pytest.raises(ValueError, match='np.inf is not feasible as a lower bound.'):
+        with pytest.raises(ValueError, match="np.inf is not feasible as a lower bound."):
             cp.Variable((2,), bounds=[np.inf, np.inf])
-        with pytest.raises(ValueError, match='np.inf is not feasible as a lower bound.'):
+        with pytest.raises(ValueError, match="np.inf is not feasible as a lower bound."):
             cp.Variable((2,), bounds=[np.array([1, np.inf]), np.inf])
-        with pytest.raises(ValueError, match='np.inf is not feasible as a lower bound.'):
+        with pytest.raises(ValueError, match="np.inf is not feasible as a lower bound."):
             cp.Variable((2,), bounds=[np.array([1, np.inf]), np.array([2, np.inf])])
 
-        with pytest.raises(ValueError, match='np.nan is not feasible as lower or upper bound.'):
+        with pytest.raises(ValueError, match="np.nan is not feasible as lower or upper bound."):
             cp.Variable((2,), bounds=[np.nan, np.nan])
-        with pytest.raises(ValueError, match='np.nan is not feasible as lower or upper bound.'):
+        with pytest.raises(ValueError, match="np.nan is not feasible as lower or upper bound."):
             cp.Variable((2,), bounds=[np.nan, np.array([1, np.nan])])
-        with pytest.raises(ValueError, match='np.nan is not feasible as lower or upper bound.'):
+        with pytest.raises(ValueError, match="np.nan is not feasible as lower or upper bound."):
             cp.Variable((2,), bounds=[np.array([1, np.nan]), np.nan])
-        with pytest.raises(ValueError, match='np.nan is not feasible as lower or upper bound.'):
+        with pytest.raises(ValueError, match="np.nan is not feasible as lower or upper bound."):
             cp.Variable((2,), bounds=[np.array([1, np.nan]), np.array([2, np.nan])])

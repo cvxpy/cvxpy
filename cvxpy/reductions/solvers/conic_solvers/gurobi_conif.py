@@ -38,7 +38,7 @@ class GUROBI(ConicSolver):
     MI_SUPPORTED_CONSTRAINTS = SUPPORTED_CONSTRAINTS
 
     # Keyword arguments for the CVXPY interface.
-    INTERFACE_ARGS = ['save_file', 'reoptimize']
+    INTERFACE_ARGS = ["save_file", "reoptimize"]
 
     # Map of Gurobi status to CVXPY status.
     STATUS_MAP = {
@@ -95,31 +95,31 @@ class GUROBI(ConicSolver):
         variables = problem.x
         data[s.BOOL_IDX] = [int(t[0]) for t in variables.boolean_idx]
         data[s.INT_IDX] = [int(t[0]) for t in variables.integer_idx]
-        inv_data['is_mip'] = data[s.BOOL_IDX] or data[s.INT_IDX]
+        inv_data["is_mip"] = data[s.BOOL_IDX] or data[s.INT_IDX]
 
         # Add initial guess.
-        data['init_value'] = utilities.stack_vals(problem.variables, grb.GRB.UNDEFINED)
+        data["init_value"] = utilities.stack_vals(problem.variables, grb.GRB.UNDEFINED)
 
         return data, inv_data
 
     def invert(self, solution, inverse_data):
         """Returns the solution to the original problem given the inverse_data."""
-        status = solution['status']
-        attr = {s.EXTRA_STATS: solution['model'], s.SOLVE_TIME: solution[s.SOLVE_TIME]}
+        status = solution["status"]
+        attr = {s.EXTRA_STATS: solution["model"], s.SOLVE_TIME: solution[s.SOLVE_TIME]}
 
         primal_vars = None
         dual_vars = None
         if status in s.SOLUTION_PRESENT:
-            opt_val = solution['value'] + inverse_data[s.OFFSET]
-            primal_vars = {inverse_data[GUROBI.VAR_ID]: solution['primal']}
-            if 'eq_dual' in solution and not inverse_data['is_mip']:
+            opt_val = solution["value"] + inverse_data[s.OFFSET]
+            primal_vars = {inverse_data[GUROBI.VAR_ID]: solution["primal"]}
+            if "eq_dual" in solution and not inverse_data["is_mip"]:
                 eq_dual = utilities.get_dual_values(
-                    solution['eq_dual'],
+                    solution["eq_dual"],
                     utilities.extract_dual_value,
                     inverse_data[GUROBI.EQ_CONSTR],
                 )
                 leq_dual = utilities.get_dual_values(
-                    solution['ineq_dual'],
+                    solution["ineq_dual"],
                     utilities.extract_dual_value,
                     inverse_data[GUROBI.NEQ_CONSTR],
                 )
@@ -158,18 +158,18 @@ class GUROBI(ConicSolver):
         n = c.shape[0]
 
         # Create a new model
-        if 'env' in solver_opts:
+        if "env" in solver_opts:
             # Specifies environment to create Gurobi model for control over licensing and parameters
             # https://www.gurobi.com/documentation/9.1/refman/environments.html
-            default_env = solver_opts['env']
-            del solver_opts['env']
+            default_env = solver_opts["env"]
+            del solver_opts["env"]
             model = gurobipy.Model(env=default_env)
         else:
             # Create Gurobi model using default (unspecified) environment
             model = gurobipy.Model()
 
         # Pass through verbosity
-        model.setParam('OutputFlag', verbose)
+        model.setParam("OutputFlag", verbose)
 
         variables = []
         for i in range(n):
@@ -183,7 +183,7 @@ class GUROBI(ConicSolver):
             variables.append(
                 model.addVar(
                     obj=c[i],
-                    name='x_%d' % i,
+                    name="x_%d" % i,
                     vtype=vtype,
                     # Gurobi's default LB is 0 (WHY???)
                     lb=-gurobipy.GRB.INFINITY,
@@ -203,11 +203,11 @@ class GUROBI(ConicSolver):
                     x[idx].start = old_x[idx].X
         elif warm_start:
             for i in range(len(x)):
-                x[i].start = data['init_value'][i]
+                x[i].start = data["init_value"][i]
 
         leq_start = dims[s.EQ_DIM]
         leq_end = dims[s.EQ_DIM] + dims[s.LEQ_DIM]
-        if hasattr(model, 'addMConstr'):
+        if hasattr(model, "addMConstr"):
             # Code path for Gurobi v10.0-
             eq_constrs = model.addMConstr(
                 A[:leq_start, :], None, gurobipy.GRB.EQUAL, b[:leq_start]
@@ -215,7 +215,7 @@ class GUROBI(ConicSolver):
             ineq_constrs = model.addMConstr(
                 A[leq_start:leq_end, :], None, gurobipy.GRB.LESS_EQUAL, b[leq_start:leq_end]
             ).tolist()
-        elif hasattr(model, 'addMConstrs'):
+        elif hasattr(model, "addMConstrs"):
             # Code path for Gurobi v9.0-v9.5
             eq_constrs = model.addMConstrs(
                 A[:leq_start, :], None, gurobipy.GRB.EQUAL, b[:leq_start]
@@ -246,12 +246,12 @@ class GUROBI(ConicSolver):
             soc_start += constr_len
 
         # Save file (*.mst, *.sol, ect.)
-        if 'save_file' in solver_opts:
-            model.write(solver_opts['save_file'])
+        if "save_file" in solver_opts:
+            model.write(solver_opts["save_file"])
 
         # Set parameters
         # TODO user option to not compute duals.
-        model.setParam('QCPDual', True)
+        model.setParam("QCPDual", True)
         for key, value in solver_opts.items():
             # Ignore arguments unique to the CVXPY interface.
             if key not in self.INTERFACE_ARGS:
@@ -260,12 +260,12 @@ class GUROBI(ConicSolver):
         solution = {}
         try:
             model.optimize()
-            if model.Status == 4 and solver_opts.get('reoptimize', False):
+            if model.Status == 4 and solver_opts.get("reoptimize", False):
                 # INF_OR_UNBD. Solve again to get a definitive answer.
-                model.setParam('DualReductions', 0)
+                model.setParam("DualReductions", 0)
                 model.optimize()
-            solution['value'] = model.ObjVal
-            solution['primal'] = np.array([v.X for v in variables])
+            solution["value"] = model.ObjVal
+            solution["primal"] = np.array([v.X for v in variables])
 
             # Only add duals if not a MIP.
             # Not sure why we need to negate the following,
@@ -273,20 +273,20 @@ class GUROBI(ConicSolver):
             vals = []
             if not (data[s.BOOL_IDX] or data[s.INT_IDX]):
                 lin_constrs = eq_constrs + ineq_constrs + new_leq_constrs
-                vals += model.getAttr('Pi', lin_constrs)
-                vals += model.getAttr('QCPi', soc_constrs)
-                solution['y'] = -np.array(vals)
-                solution[s.EQ_DUAL] = solution['y'][0 : dims[s.EQ_DIM]]
-                solution[s.INEQ_DUAL] = solution['y'][dims[s.EQ_DIM] :]
+                vals += model.getAttr("Pi", lin_constrs)
+                vals += model.getAttr("QCPi", soc_constrs)
+                solution["y"] = -np.array(vals)
+                solution[s.EQ_DUAL] = solution["y"][0 : dims[s.EQ_DIM]]
+                solution[s.INEQ_DUAL] = solution["y"][dims[s.EQ_DIM] :]
         except Exception:
             pass
         solution[s.SOLVE_TIME] = model.Runtime
-        solution['status'] = self.STATUS_MAP.get(model.Status, s.SOLVER_ERROR)
-        if solution['status'] == s.SOLVER_ERROR and model.SolCount:
-            solution['status'] = s.OPTIMAL_INACCURATE
-        if solution['status'] == s.USER_LIMIT and not model.SolCount:
-            solution['status'] = s.INFEASIBLE_INACCURATE
-        solution['model'] = model
+        solution["status"] = self.STATUS_MAP.get(model.Status, s.SOLVER_ERROR)
+        if solution["status"] == s.SOLVER_ERROR and model.SolCount:
+            solution["status"] = s.OPTIMAL_INACCURATE
+        if solution["status"] == s.USER_LIMIT and not model.SolCount:
+            solution["status"] = s.INFEASIBLE_INACCURATE
+        solution["model"] = model
 
         # Save model for warm start.
         if solver_cache is not None:
@@ -355,14 +355,14 @@ class GUROBI(ConicSolver):
         # Make a variable and equality constraint for each term.
         soc_vars = [
             model.addVar(
-                obj=0, name='soc_t_%d' % rows[0], vtype=gp.GRB.CONTINUOUS, lb=0, ub=gp.GRB.INFINITY
+                obj=0, name="soc_t_%d" % rows[0], vtype=gp.GRB.CONTINUOUS, lb=0, ub=gp.GRB.INFINITY
             )
         ]
         for i in rows[1:]:
             soc_vars += [
                 model.addVar(
                     obj=0,
-                    name='soc_x_%d' % i,
+                    name="soc_x_%d" % i,
                     vtype=gp.GRB.CONTINUOUS,
                     lb=-gp.GRB.INFINITY,
                     ub=gp.GRB.INFINITY,

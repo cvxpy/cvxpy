@@ -21,25 +21,25 @@ from cvxpy.utilities.versioning import Version
 
 class TestVersioning(unittest.TestCase):
     def test_typical_inputs(self):
-        self.assertTrue(Version('1.0.0') < Version('2.0.0'))
-        self.assertTrue(Version('1.0.0') < Version('1.1.0'))
-        self.assertTrue(Version('1.0.0') < Version('1.0.1'))
-        self.assertFalse(Version('1.0.0') < Version('1.0.0'))
-        self.assertTrue(Version('1.0.0') <= Version('1.0.0'))
+        self.assertTrue(Version("1.0.0") < Version("2.0.0"))
+        self.assertTrue(Version("1.0.0") < Version("1.1.0"))
+        self.assertTrue(Version("1.0.0") < Version("1.0.1"))
+        self.assertFalse(Version("1.0.0") < Version("1.0.0"))
+        self.assertTrue(Version("1.0.0") <= Version("1.0.0"))
 
-        self.assertFalse(Version('1.0.0') >= Version('2.0.0'))
-        self.assertFalse(Version('1.0.0') >= Version('1.1.0'))
-        self.assertFalse(Version('1.0.0') >= Version('1.0.1'))
-        self.assertTrue(Version('1.0.0') >= Version('1.0.0'))
-        self.assertFalse(Version('1.0.0') > Version('1.0.0'))
+        self.assertFalse(Version("1.0.0") >= Version("2.0.0"))
+        self.assertFalse(Version("1.0.0") >= Version("1.1.0"))
+        self.assertFalse(Version("1.0.0") >= Version("1.0.1"))
+        self.assertTrue(Version("1.0.0") >= Version("1.0.0"))
+        self.assertFalse(Version("1.0.0") > Version("1.0.0"))
 
     def test_tuple_construction(self):
-        self.assertTrue(Version('0100.2.03') == Version((100, 2, 3)))
-        self.assertTrue(Version('1.2.3') == Version((1, 2, 3, None)))
-        self.assertTrue(Version('1.2.3') == Version((1, 2, 3, 'junk')))
-        self.assertTrue(Version('1.2.3') == Version((1, 2, 3, -1)))
+        self.assertTrue(Version("0100.2.03") == Version((100, 2, 3)))
+        self.assertTrue(Version("1.2.3") == Version((1, 2, 3, None)))
+        self.assertTrue(Version("1.2.3") == Version((1, 2, 3, "junk")))
+        self.assertTrue(Version("1.2.3") == Version((1, 2, 3, -1)))
 
     def test_local_version_identifiers(self):
-        self.assertTrue(Version('1.0.0') == Version('1.0.0+1'))
-        self.assertTrue(Version('1.0.0') == Version('1.0.0+xxx'))
-        self.assertTrue(Version('1.0.0') == Version('1.0.0+x.y.z'))
+        self.assertTrue(Version("1.0.0") == Version("1.0.0+1"))
+        self.assertTrue(Version("1.0.0") == Version("1.0.0+xxx"))
+        self.assertTrue(Version("1.0.0") == Version("1.0.0+x.y.z"))

@@ -55,7 +55,7 @@ class Constraint(u.Canonical):
 
     def __repr__(self) -> str:
         """Returns a string with information about the constraint."""
-        return '%s(%s)' % (self.__class__.__name__, repr(self.args[0]))
+        return "%s(%s)" % (self.__class__.__name__, repr(self.args[0]))
 
     def _construct_dual_variables(self, args) -> None:
         self.dual_variables = [cvxtypes.variable()(arg.shape) for arg in args]
@@ -113,13 +113,13 @@ class Constraint(u.Canonical):
         """
         raise NotImplementedError()
 
-    def is_dpp(self, context='dcp') -> bool:
-        if context.lower() == 'dcp':
+    def is_dpp(self, context="dcp") -> bool:
+        if context.lower() == "dcp":
             return self.is_dcp(dpp=True)
-        elif context.lower() == 'dgp':
+        elif context.lower() == "dgp":
             return self.is_dgp(dpp=True)
         else:
-            raise ValueError('Unsupported context ', context)
+            raise ValueError("Unsupported context ", context)
 
     @property
     @abc.abstractmethod
@@ -162,7 +162,7 @@ class Constraint(u.Canonical):
         residual = self.residual
         if residual is None:
             raise ValueError(
-                'Cannot compute the violation of an constraint ' 'whose expression is None-valued.'
+                "Cannot compute the violation of an constraint " "whose expression is None-valued."
             )
         return residual
 
@@ -189,7 +189,7 @@ class Constraint(u.Canonical):
         residual = self.residual
         if residual is None:
             raise ValueError(
-                'Cannot compute the value of an constraint ' 'whose expression is None-valued.'
+                "Cannot compute the value of an constraint " "whose expression is None-valued."
             )
         return np.all(residual <= tolerance)
 
@@ -210,8 +210,8 @@ class Constraint(u.Canonical):
         """Raises an error due to chained constraints."""
         raise Exception(
             (
-                'Cannot evaluate the truth value of a constraint or '
-                'chain constraints, e.g., 1 >= x >= 0.'
+                "Cannot evaluate the truth value of a constraint or "
+                "chain constraints, e.g., 1 >= x >= 0."
             )
         )
 

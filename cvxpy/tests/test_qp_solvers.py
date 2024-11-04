@@ -42,36 +42,36 @@ class TestQp(BaseTest):
     """Unit tests for the domain module."""
 
     def setUp(self) -> None:
-        self.a = Variable(name='a')
-        self.b = Variable(name='b')
-        self.c = Variable(name='c')
+        self.a = Variable(name="a")
+        self.b = Variable(name="b")
+        self.c = Variable(name="c")
 
-        self.x = Variable(2, name='x')
-        self.y = Variable(3, name='y')
-        self.z = Variable(2, name='z')
-        self.w = Variable(5, name='w')
+        self.x = Variable(2, name="x")
+        self.y = Variable(3, name="y")
+        self.z = Variable(2, name="z")
+        self.w = Variable(5, name="w")
 
-        self.A = Variable((2, 2), name='A')
-        self.B = Variable((2, 2), name='B')
-        self.C = Variable((3, 2), name='C')
+        self.A = Variable((2, 2), name="A")
+        self.B = Variable((2, 2), name="B")
+        self.C = Variable((3, 2), name="C")
 
-        self.slope = Variable(1, name='slope')
-        self.offset = Variable(1, name='offset')
-        self.quadratic_coeff = Variable(1, name='quadratic_coeff')
+        self.slope = Variable(1, name="slope")
+        self.offset = Variable(1, name="offset")
+        self.quadratic_coeff = Variable(1, name="quadratic_coeff")
 
         T = 30
-        self.position = Variable((2, T), name='position')
-        self.velocity = Variable((2, T), name='velocity')
-        self.force = Variable((2, T - 1), name='force')
+        self.position = Variable((2, T), name="position")
+        self.velocity = Variable((2, T), name="velocity")
+        self.force = Variable((2, T - 1), name="force")
 
-        self.xs = Variable(80, name='xs')
-        self.xsr = Variable(50, name='xsr')
-        self.xef = Variable(80, name='xef')
+        self.xs = Variable(80, name="xs")
+        self.xsr = Variable(50, name="xsr")
+        self.xef = Variable(80, name="xef")
 
         # Check for all installed QP solvers
         self.solvers = [x for x in QP_SOLVERS if x in INSTALLED_SOLVERS]
-        if 'MOSEK' in INSTALLED_SOLVERS:
-            self.solvers.append('MOSEK')
+        if "MOSEK" in INSTALLED_SOLVERS:
+            self.solvers.append("MOSEK")
 
     def solve_QP(self, problem, solver_name):
         return problem.solve(solver=solver_name, verbose=False)
@@ -120,7 +120,7 @@ class TestQp(BaseTest):
         constr = []
         constr += [abs(u[1] - u[0]) <= 100]
         prob = Problem(Minimize(sum_squares(u)), constr)
-        print('The problem is QP: ', prob.is_qp())
+        print("The problem is QP: ", prob.is_qp())
         self.assertEqual(prob.is_qp(), True)
         result = prob.solve(solver=solver)
         self.assertAlmostEqual(result, 0)
@@ -143,7 +143,7 @@ class TestQp(BaseTest):
         p = Problem(Minimize(sum_squares(A @ self.x - b)))
         self.solve_QP(p, solver)
         for var in p.variables():
-            self.assertItemsAlmostEqual(lstsq(A, b)[0].flatten(order='F'), var.value, places=1)
+            self.assertItemsAlmostEqual(lstsq(A, b)[0].flatten(order="F"), var.value, places=1)
 
     def quad_form(self, solver) -> None:
         np.random.seed(0)
@@ -195,7 +195,7 @@ class TestQp(BaseTest):
         p = Problem(Minimize(norm(A @ self.w - b, 2)))
         self.solve_QP(p, solver)
         for var in p.variables():
-            self.assertItemsAlmostEqual(lstsq(A, b)[0].flatten(order='F'), var.value, places=1)
+            self.assertItemsAlmostEqual(lstsq(A, b)[0].flatten(order="F"), var.value, places=1)
 
     def mat_norm_2(self, solver) -> None:
         A = np.random.randn(5, 3)
@@ -437,12 +437,12 @@ class TestQp(BaseTest):
         prob = Problem(Minimize(sum_squares(A @ x - b)))
 
         b.value = np.random.randn(m)
-        result = prob.solve(solver='OSQP', warm_start=False)
-        result2 = prob.solve(solver='OSQP', warm_start=True)
+        result = prob.solve(solver="OSQP", warm_start=False)
+        result2 = prob.solve(solver="OSQP", warm_start=True)
         self.assertAlmostEqual(result, result2)
         b.value = np.random.randn(m)
-        result = prob.solve(solver='OSQP', warm_start=True)
-        result2 = prob.solve(solver='OSQP', warm_start=False)
+        result = prob.solve(solver="OSQP", warm_start=True)
+        result2 = prob.solve(solver="OSQP", warm_start=False)
         self.assertAlmostEqual(result, result2)
 
     def test_gurobi_warmstart(self) -> None:
@@ -538,7 +538,7 @@ class TestQp(BaseTest):
 
         obj = Minimize(b**2 + abs(a))
         prob = Problem(obj)
-        prob.solve(solver='SCS')
+        prob.solve(solver="SCS")
         self.assertAlmostEqual(obj.value, 1.0)
 
     def test_gurobi_time_limit_no_solution(self) -> None:
@@ -560,30 +560,30 @@ class TestQp(BaseTest):
             try:
                 prob.solve(solver=GUROBI, TimeLimit=0.0)
             except Exception as e:
-                self.fail('An exception %s is raised instead of returning a result.' % e)
+                self.fail("An exception %s is raised instead of returning a result." % e)
 
             extra_stats = None
-            solver_stats = getattr(prob, 'solver_stats', None)
+            solver_stats = getattr(prob, "solver_stats", None)
             if solver_stats:
-                extra_stats = getattr(solver_stats, 'extra_stats', None)
-            self.assertTrue(extra_stats, 'Solver stats have not been returned.')
+                extra_stats = getattr(solver_stats, "extra_stats", None)
+            self.assertTrue(extra_stats, "Solver stats have not been returned.")
 
-            nb_solutions = getattr(extra_stats, 'SolCount', None)
+            nb_solutions = getattr(extra_stats, "SolCount", None)
             if nb_solutions:
-                self.skipTest('Gurobi has found a solution, the test is not relevant anymore.')
+                self.skipTest("Gurobi has found a solution, the test is not relevant anymore.")
 
-            solver_status = getattr(extra_stats, 'Status', None)
+            solver_status = getattr(extra_stats, "Status", None)
             if solver_status != gurobipy.StatusConstClass.TIME_LIMIT:
                 self.skipTest(
-                    'Gurobi terminated for a different reason than reaching time limit, '
-                    'the test is not relevant anymore.'
+                    "Gurobi terminated for a different reason than reaching time limit, "
+                    "the test is not relevant anymore."
                 )
 
         else:
             with self.assertRaises(Exception) as cm:
                 prob = Problem(Minimize(norm(self.x, 1)), [self.x == 0])
                 prob.solve(solver=GUROBI, TimeLimit=0)
-            self.assertEqual(str(cm.exception), 'The solver %s is not installed.' % GUROBI)
+            self.assertEqual(str(cm.exception), "The solver %s is not installed." % GUROBI)
 
     def test_gurobi_environment(self) -> None:
         """Tests that Gurobi environments can be passed to Model.
@@ -596,9 +596,9 @@ class TestQp(BaseTest):
 
             # Set a few parameters to random values close to their defaults
             params = {
-                'MIPGap': np.random.random(),  # range {0, INFINITY}
-                'AggFill': np.random.randint(10),  # range {-1, MAXINT}
-                'PerturbValue': np.random.random(),  # range: {0, INFINITY}
+                "MIPGap": np.random.random(),  # range {0, INFINITY}
+                "AggFill": np.random.randint(10),  # range {-1, MAXINT}
+                "PerturbValue": np.random.random(),  # range: {0, INFINITY}
             }
 
             # Create a custom environment and set some parameters
@@ -607,7 +607,7 @@ class TestQp(BaseTest):
                 custom_env.setParam(k, v)
 
             # Testing QP Solver Interface
-            sth = StandardTestLPs.test_lp_0(solver='GUROBI', env=custom_env)
+            sth = StandardTestLPs.test_lp_0(solver="GUROBI", env=custom_env)
             model = sth.prob.solver_stats.extra_stats
             for k, v in params.items():
                 # https://www.gurobi.com/documentation/9.1/refman/py_model_getparaminfo.html
@@ -618,4 +618,4 @@ class TestQp(BaseTest):
             with self.assertRaises(Exception) as cm:
                 prob = Problem(Minimize(norm(self.x, 1)), [self.x == 0])
                 prob.solve(solver=GUROBI, TimeLimit=0)
-            self.assertEqual(str(cm.exception), 'The solver %s is not installed.' % GUROBI)
+            self.assertEqual(str(cm.exception), "The solver %s is not installed." % GUROBI)

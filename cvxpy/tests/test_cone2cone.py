@@ -51,7 +51,7 @@ class TestDualize(BaseTest):
         # Solve the problem, invert the dualize reduction.
         cone_prog = ConicSolver.format_constraints(cone_prog, exp_cone_order=[0, 1, 2])
         data, inv_data = a2d.Dualize.apply(cone_prog)
-        A, b, c, K_dir = data[s.A], data[s.B], data[s.C], data['K_dir']
+        A, b, c, K_dir = data[s.A], data[s.B], data[s.C], data["K_dir"]
         y = cp.Variable(shape=(A.shape[1],))
         constraints = [A @ y == b]
         i = K_dir[a2d.FREE]
@@ -68,18 +68,18 @@ class TestDualize(BaseTest):
         if K_dir[a2d.DUAL_EXP]:
             exp_len = 3 * K_dir[a2d.DUAL_EXP]
             dual_prims[a2d.DUAL_EXP] = y[i : i + exp_len]
-            y_de = cp.reshape(y[i : i + exp_len], (exp_len // 3, 3), order='C')  # fill rows first
+            y_de = cp.reshape(y[i : i + exp_len], (exp_len // 3, 3), order="C")  # fill rows first
             constraints.append(ExpCone(-y_de[:, 1], -y_de[:, 0], np.exp(1) * y_de[:, 2]))
             i += exp_len
         if K_dir[a2d.DUAL_POW3D]:
             alpha = np.array(K_dir[a2d.DUAL_POW3D])
             dual_prims[a2d.DUAL_POW3D] = y[i:]
-            y_dp = cp.reshape(y[i:], (alpha.size, 3), order='C')  # fill rows first
+            y_dp = cp.reshape(y[i:], (alpha.size, 3), order="C")  # fill rows first
             pow_con = PowCone3D(y_dp[:, 0] / alpha, y_dp[:, 1] / (1 - alpha), y_dp[:, 2], alpha)
             constraints.append(pow_con)
         objective = cp.Maximize(c @ y)
         dual_prob = cp.Problem(objective, constraints)
-        dual_prob.solve(solver='SCS', eps=1e-8)
+        dual_prob.solve(solver="SCS", eps=1e-8)
         dual_prims[a2d.FREE] = dual_prims[a2d.FREE].value
         if K_dir[a2d.NONNEG]:
             dual_prims[a2d.NONNEG] = dual_prims[a2d.NONNEG].value
@@ -206,7 +206,7 @@ class TestSlacks(BaseTest):
         # solve the problem, invert the reduction.
         cone_prog = ConicSolver.format_constraints(cone_prog, exp_cone_order=[0, 1, 2])
         data, inv_data = a2d.Slacks.apply(cone_prog, affine)
-        G, h, f, K_dir, K_aff = data[s.A], data[s.B], data[s.C], data['K_dir'], data['K_aff']
+        G, h, f, K_dir, K_aff = data[s.A], data[s.B], data[s.C], data["K_dir"], data["K_aff"]
         G = sp.sparse.csc_matrix(G)
         y = cp.Variable(shape=(G.shape[1],))
         objective = cp.Minimize(f @ y)
@@ -242,12 +242,12 @@ class TestSlacks(BaseTest):
             i += dim
         if K_aff[a2d.EXP]:
             dim = 3 * K_aff[a2d.EXP]
-            expr = cp.reshape(h[i : i + dim] - G[i : i + dim, :] @ y, (dim // 3, 3), order='C')
+            expr = cp.reshape(h[i : i + dim] - G[i : i + dim, :] @ y, (dim // 3, 3), order="C")
             constraints.append(ExpCone(expr[:, 0], expr[:, 1], expr[:, 2]))
             i += dim
         if K_aff[a2d.POW3D]:
             alpha = np.array(K_aff[a2d.POW3D])
-            expr = cp.reshape(h[i:] - G[i:, :] @ y, (alpha.size, 3), order='C')
+            expr = cp.reshape(h[i:] - G[i:, :] @ y, (alpha.size, 3), order="C")
             constraints.append(PowCone3D(expr[:, 0], expr[:, 1], expr[:, 2], alpha))
         return constraints
 
@@ -264,12 +264,12 @@ class TestSlacks(BaseTest):
             i += dim
         if K_dir[a2d.EXP]:
             dim = 3 * K_dir[a2d.EXP]
-            expr = cp.reshape(y[i : i + dim], (dim // 3, 3), order='C')
+            expr = cp.reshape(y[i : i + dim], (dim // 3, 3), order="C")
             constraints.append(ExpCone(expr[:, 0], expr[:, 1], expr[:, 2]))
             i += dim
         if K_dir[a2d.POW3D]:
             alpha = np.array(K_dir[a2d.POW3D])
-            expr = cp.reshape(y[i:], (alpha.size, 3), order='C')
+            expr = cp.reshape(y[i:], (alpha.size, 3), order="C")
             constraints.append(PowCone3D(expr[:, 0], expr[:, 1], expr[:, 2], alpha))
         return constraints
 
@@ -290,7 +290,7 @@ class TestSlacks(BaseTest):
         # typical LP
         sth = STH.lp_2()
         for affine in TestSlacks.AFF_LP_CASES:
-            TestSlacks.simulate_chain(sth.prob, affine, solver='CLARABEL')
+            TestSlacks.simulate_chain(sth.prob, affine, solver="CLARABEL")
             sth.verify_objective(places=4)
             sth.verify_primal_values(places=4)
 
@@ -298,59 +298,59 @@ class TestSlacks(BaseTest):
         # unbounded LP
         sth = STH.lp_3()
         for affine in TestSlacks.AFF_LP_CASES:
-            TestSlacks.simulate_chain(sth.prob, affine, solver='CLARABEL')
+            TestSlacks.simulate_chain(sth.prob, affine, solver="CLARABEL")
             sth.verify_objective(places=4)
 
     def test_lp_4(self):
         # infeasible LP
         sth = STH.lp_4()
         for affine in TestSlacks.AFF_LP_CASES:
-            TestSlacks.simulate_chain(sth.prob, affine, solver='CLARABEL')
+            TestSlacks.simulate_chain(sth.prob, affine, solver="CLARABEL")
             sth.verify_objective(places=4)
 
     def test_socp_2(self):
         sth = STH.socp_2()
         for affine in TestSlacks.AFF_SOCP_CASES:
-            TestSlacks.simulate_chain(sth.prob, affine, solver='CLARABEL')
+            TestSlacks.simulate_chain(sth.prob, affine, solver="CLARABEL")
             sth.verify_objective(places=4)
             sth.verify_primal_values(places=4)
 
     def test_socp_3(self):
         for axis in [0, 1]:
             sth = STH.socp_3(axis)
-            TestSlacks.simulate_chain(sth.prob, [], solver='CLARABEL')
+            TestSlacks.simulate_chain(sth.prob, [], solver="CLARABEL")
             sth.verify_objective(places=4)
             sth.verify_primal_values(places=4)
 
     def test_expcone_1(self):
         sth = STH.expcone_1()
         for affine in TestSlacks.AFF_EXP_CASES:
-            TestSlacks.simulate_chain(sth.prob, affine, solver='CLARABEL')
+            TestSlacks.simulate_chain(sth.prob, affine, solver="CLARABEL")
             sth.verify_objective(places=4)
             sth.verify_primal_values(places=4)
 
     def test_expcone_socp_1(self):
         sth = STH.expcone_socp_1()
         for affine in TestSlacks.AFF_MIXED_CASES:
-            TestSlacks.simulate_chain(sth.prob, affine, solver='SCS')
+            TestSlacks.simulate_chain(sth.prob, affine, solver="SCS")
             sth.verify_objective(places=4)
             sth.verify_primal_values(places=4)
 
     def test_pcp_1(self):
         sth = STH.pcp_1()
         for affine in TestSlacks.AFF_PCP_CASES:
-            TestSlacks.simulate_chain(sth.prob, affine, solver='SCS', eps=1e-8)
+            TestSlacks.simulate_chain(sth.prob, affine, solver="SCS", eps=1e-8)
             sth.verify_objective(places=3)
             sth.verify_primal_values(places=3)
 
     def test_pcp_2(self):
         sth = STH.pcp_2()
         for affine in TestSlacks.AFF_PCP_CASES:
-            TestSlacks.simulate_chain(sth.prob, affine, solver='SCS', eps=1e-8)
+            TestSlacks.simulate_chain(sth.prob, affine, solver="SCS", eps=1e-8)
             sth.verify_objective(places=3)
             sth.verify_primal_values(places=3)
 
-    @pytest.mark.skipif('HIGHS' not in INSTALLED_MI, reason='HiGHS solver is not installed.')
+    @pytest.mark.skipif("HIGHS" not in INSTALLED_MI, reason="HiGHS solver is not installed.")
     def test_mi_lp_1(self):
         sth = STH.mi_lp_1()
         for affine in TestSlacks.AFF_LP_CASES:
@@ -358,7 +358,7 @@ class TestSlacks(BaseTest):
             sth.verify_objective(places=4)
             sth.verify_primal_values(places=4)
 
-    @pytest.mark.skip(reason='Known bug in ECOS BB')
+    @pytest.mark.skip(reason="Known bug in ECOS BB")
     def test_mi_socp_1(self):
         sth = STH.mi_socp_1()
         for affine in TestSlacks.AFF_SOCP_CASES:
@@ -368,7 +368,7 @@ class TestSlacks(BaseTest):
 
     @unittest.skipUnless(
         [svr for svr in INSTALLED_MI if svr in MI_SOCP],
-        'No appropriate mixed-integer SOCP solver is installed.',
+        "No appropriate mixed-integer SOCP solver is installed.",
     )
     def test_mi_socp_2(self):
         sth = STH.mi_socp_2()
@@ -420,7 +420,7 @@ class TestPowND(BaseTest):
 
     def test_pcp_3a(self):
         sth = TestPowND.pcp_3(axis=0)
-        sth.solve(solver='SCS', eps=1e-8)
+        sth.solve(solver="SCS", eps=1e-8)
         sth.verify_objective(places=3)
         sth.verify_primal_values(places=3)
         sth.check_complementarity(places=3)
@@ -428,7 +428,7 @@ class TestPowND(BaseTest):
 
     def test_pcp_3b(self):
         sth = TestPowND.pcp_3(axis=1)
-        sth.solve(solver='SCS', eps=1e-8)
+        sth.solve(solver="SCS", eps=1e-8)
         sth.verify_objective(places=3)
         sth.verify_primal_values(places=3)
         sth.check_complementarity(places=3)
@@ -454,7 +454,7 @@ class TestPowND(BaseTest):
         log_objective = cp.Maximize(cp.sum(cp.multiply(b, cp.log(u))))
         log_cons = [cp.sum(X, axis=0) <= 1]
         log_prob = cp.Problem(log_objective, log_cons)
-        log_prob.solve(solver='SCS', eps=1e-8)
+        log_prob.solve(solver="SCS", eps=1e-8)
         expect_X = X.value
 
         z = cp.Variable()
@@ -466,7 +466,7 @@ class TestPowND(BaseTest):
 
     def test_pcp_4a(self):
         sth = TestPowND.pcp_4(ceei=True)
-        sth.solve(solver='SCS', eps=1e-8)
+        sth.solve(solver="SCS", eps=1e-8)
         sth.verify_objective(places=3)
         sth.verify_primal_values(places=3)
         sth.check_complementarity(places=3)
@@ -474,7 +474,7 @@ class TestPowND(BaseTest):
 
     def test_pcp_4b(self):
         sth = TestPowND.pcp_4(ceei=False)
-        sth.solve(solver='SCS', eps=1e-8)
+        sth.solve(solver="SCS", eps=1e-8)
         sth.verify_objective(places=3)
         sth.verify_primal_values(places=3)
         sth.check_complementarity(places=3)
@@ -513,7 +513,7 @@ class TestRelEntrQuad(BaseTest):
 
     def test_expcone_1(self):
         sth = self.expcone_1()
-        sth.solve(solver='CLARABEL')
+        sth.solve(solver="CLARABEL")
         sth.verify_primal_values(places=2)
         sth.verify_objective(places=2)
 
@@ -524,9 +524,9 @@ class TestRelEntrQuad(BaseTest):
         sigma = np.array([[1.83, 1.79, 3.22], [1.79, 2.18, 3.18], [3.22, 3.18, 8.69]])
         L = np.linalg.cholesky(sigma)
         c = 0.75
-        t = cp.Variable(name='t')
-        x = cp.Variable(shape=(3,), name='x')
-        s = cp.Variable(shape=(3,), name='s')
+        t = cp.Variable(name="t")
+        x = cp.Variable(shape=(3,), name="x")
+        s = cp.Variable(shape=(3,), name="s")
         e = cp.Constant(
             np.ones(
                 3,
@@ -558,18 +558,18 @@ def sdp_ipm_installed():
 
 
 @unittest.skipUnless(
-    sdp_ipm_installed(), 'First-order solvers are too slow for the accuracy we need.'
+    sdp_ipm_installed(), "First-order solvers are too slow for the accuracy we need."
 )
 class TestOpRelConeQuad(BaseTest):
     def setUp(self, n=3) -> None:
         self.n = n
         self.a = cp.Variable(shape=(n,), pos=True)
         self.b = cp.Variable(shape=(n,), pos=True)
-        if hasattr(np.random, 'default_rng'):
+        if hasattr(np.random, "default_rng"):
             self.rng = np.random.default_rng(0)
         else:
             self.rng = np.random.RandomState(0)
-        if hasattr(self.rng, 'random'):
+        if hasattr(self.rng, "random"):
             rand_gen_func = self.rng.random
         else:
             rand_gen_func = self.rng.random_sample
@@ -592,7 +592,7 @@ class TestOpRelConeQuad(BaseTest):
         elif cp.COPT in installed_solvers:
             self.solver = cp.COPT
         else:
-            raise RuntimeError('No viable solver installed.')
+            raise RuntimeError("No viable solver installed.")
         pass
 
     @staticmethod

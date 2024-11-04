@@ -68,7 +68,7 @@ class Dgp2Dcp(Canonicalization):
     def apply(self, problem):
         """Converts a DGP problem to a DCP problem."""
         if not self.accepts(problem):
-            raise ValueError('The supplied problem is not DGP.')
+            raise ValueError("The supplied problem is not DGP.")
 
         self.canon_methods = DgpCanonMethods()
         equiv_problem, inverse_data = super(Dgp2Dcp, self).apply(problem)

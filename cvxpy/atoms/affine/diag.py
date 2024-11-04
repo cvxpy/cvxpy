@@ -27,7 +27,7 @@ from cvxpy.atoms.affine.vec import vec
 from cvxpy.constraints.constraint import Constraint
 
 
-def diag(expr, k: int = 0) -> Union['diag_mat', 'diag_vec']:
+def diag(expr, k: int = 0) -> Union["diag_mat", "diag_vec"]:
     """Extracts the diagonal from a matrix or makes a vector a diagonal matrix.
 
     Parameters
@@ -47,12 +47,12 @@ def diag(expr, k: int = 0) -> Union['diag_mat', 'diag_vec']:
     """
     expr = AffAtom.cast_to_const(expr)
     if expr.is_vector():
-        return diag_vec(vec(expr, order='F'), k)
+        return diag_vec(vec(expr, order="F"), k)
     elif expr.ndim == 2 and expr.shape[0] == expr.shape[1]:
-        assert abs(k) < expr.shape[0], 'Offset out of bounds.'
+        assert abs(k) < expr.shape[0], "Offset out of bounds."
         return diag_mat(expr, k)
     else:
-        raise ValueError('Argument to diag must be a vector or square matrix.')
+        raise ValueError("Argument to diag must be a vector or square matrix.")
 
 
 class diag_vec(AffAtom):

@@ -71,7 +71,7 @@ class min(AxisAtom):
             A NumPy ndarray or None.
         """
         # Grad: 1 for a largest index.
-        value = np.array(value).ravel(order='F')
+        value = np.array(value).ravel(order="F")
         idx = np.argmin(value)
         D = np.zeros((value.size, 1))
         D[idx] = 1

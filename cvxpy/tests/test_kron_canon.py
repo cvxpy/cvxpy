@@ -122,13 +122,13 @@ class TestKronLeftVar(TestKron):
         U = np.array([[10, 11], [12, 13]])
         kronX = cp.kron(X, b)  # should be equal to X
 
-        objective = cp.Minimize(cp.sum(X.flatten(order='F')))
+        objective = cp.Minimize(cp.sum(X.flatten(order="F")))
         constraints = [U >= kronX, kronX >= L]
         prob = cp.Problem(objective, constraints)
         prob.solve()
 
         self.assertItemsAlmostEqual(X.value, np.array([[0.5, 2], [2, 3]]) / 1.5)
-        objective = cp.Maximize(cp.sum(X.flatten(order='F')))
+        objective = cp.Maximize(cp.sum(X.flatten(order="F")))
         prob = cp.Problem(objective, constraints)
         prob.solve()
         self.assertItemsAlmostEqual(X.value, np.array([[10, 11], [11, 13]]) / 1.5)

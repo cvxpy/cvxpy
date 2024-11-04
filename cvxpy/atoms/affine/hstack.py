@@ -24,7 +24,7 @@ from cvxpy.atoms.affine.affine_atom import AffAtom
 from cvxpy.constraints.constraint import Constraint
 
 
-def hstack(arg_list) -> 'Hstack':
+def hstack(arg_list) -> "Hstack":
     """Horizontal concatenation of an arbitrary number of Expressions.
 
     Parameters
@@ -35,7 +35,7 @@ def hstack(arg_list) -> 'Hstack':
     arg_list = [AffAtom.cast_to_const(arg) for arg in arg_list]
     for idx, arg in enumerate(arg_list):
         if arg.ndim == 0:
-            arg_list[idx] = arg.flatten(order='F')
+            arg_list[idx] = arg.flatten(order="F")
     return Hstack(*arg_list)
 
 
@@ -63,7 +63,7 @@ class Hstack(AffAtom):
     # All arguments must have the same width.
     def validate_arguments(self) -> None:
         model = self.args[0].shape
-        error = ValueError(('All the input dimensions except' ' for axis 1 must match exactly.'))
+        error = ValueError(("All the input dimensions except" " for axis 1 must match exactly."))
         for arg in self.args[1:]:
             if len(arg.shape) != len(model):
                 raise error

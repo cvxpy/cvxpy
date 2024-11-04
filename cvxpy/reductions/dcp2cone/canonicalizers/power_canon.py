@@ -44,4 +44,4 @@ def power_canon(expr, args):
         elif p < 0:
             return t, gm_constrs(ones, [x, t], w)
         else:
-            raise NotImplementedError('This power is not yet supported.')
+            raise NotImplementedError("This power is not yet supported.")

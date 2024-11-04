@@ -29,7 +29,7 @@ def accepts(problem):
     """
     return (
         problem.objective.expr.is_qpwa()
-        and not set(['PSD', 'NSD']).intersection(convex_attributes(problem.variables()))
+        and not set(["PSD", "NSD"]).intersection(convex_attributes(problem.variables()))
         and all(
             (type(c) in (Inequality, NonPos, NonNeg) and c.expr.is_pwl())
             or (type(c) in (Equality, Zero) and are_args_affine([c]))
@@ -58,5 +58,5 @@ class Qp2SymbolicQp(Canonicalization):
     def apply(self, problem):
         """Converts a QP to an even more symbolic form."""
         if not self.accepts(problem):
-            raise ValueError('Cannot reduce problem to symbolic QP')
+            raise ValueError("Cannot reduce problem to symbolic QP")
         return super(Qp2SymbolicQp, self).apply(problem)

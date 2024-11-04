@@ -93,7 +93,7 @@ class ScalarizeTest(BaseTest):
         targets = [1, -1]
         priorities = [1, 1]
 
-        with pytest.raises(ValueError, match='Scalarized objective is neither convex nor concave'):
+        with pytest.raises(ValueError, match="Scalarized objective is neither convex nor concave"):
             scalarize.targets_and_priorities(objectives, priorities, targets)
 
         priorities = [1, -1]
@@ -111,23 +111,23 @@ class ScalarizeTest(BaseTest):
 
         # Test exceptions:
         priorities = [1]
-        with pytest.raises(AssertionError, match='Number of objectives and priorities'):
+        with pytest.raises(AssertionError, match="Number of objectives and priorities"):
             scalarize.targets_and_priorities(self.objectives, priorities, targets)
 
         priorities = [1, 1]
         targets = [1]
-        with pytest.raises(AssertionError, match='Number of objectives and targets'):
+        with pytest.raises(AssertionError, match="Number of objectives and targets"):
             scalarize.targets_and_priorities(self.objectives, priorities, targets)
 
         priorities = [1, 1]
         targets = [1, 1]
         limits = [1]
-        with pytest.raises(AssertionError, match='Number of objectives and limits'):
+        with pytest.raises(AssertionError, match="Number of objectives and limits"):
             scalarize.targets_and_priorities(self.objectives, priorities, targets, limits)
 
         limits = [1, 1]
         off_target = -1
-        with pytest.raises(AssertionError, match='The off_target argument must be nonnegative'):
+        with pytest.raises(AssertionError, match="The off_target argument must be nonnegative"):
             scalarize.targets_and_priorities(
                 self.objectives, priorities, targets, limits, off_target
             )

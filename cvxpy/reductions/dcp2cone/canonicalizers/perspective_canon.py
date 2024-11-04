@@ -31,7 +31,7 @@ def perspective_canon(expr, args):
     aux_prob = Problem((Minimize if expr.f.is_convex() else Maximize)(expr.f))
     # Does numerical solution value of epigraph t coincide with expr.f numerical
     # value at opt?
-    solver_opts = {'use_quad_obj': False}
+    solver_opts = {"use_quad_obj": False}
     chain = aux_prob._construct_chain(solver_opts=solver_opts, ignore_dpp=True)
     chain.reductions = chain.reductions[:-1]  # skip solver reduction
     prob_canon = chain.apply(aux_prob)[0]  # grab problem instance
@@ -39,7 +39,7 @@ def perspective_canon(expr, args):
 
     c = prob_canon.c.toarray().flatten()[:-1]
     d = prob_canon.c.toarray().flatten()[-1]
-    Ab = prob_canon.A.toarray().reshape((-1, len(c) + 1), order='F')
+    Ab = prob_canon.A.toarray().reshape((-1, len(c) + 1), order="F")
     A, b = Ab[:, :-1], Ab[:, -1]
 
     # given f in epigraph form, aka epi f = \{(x,t) | f(x) \leq t\}
@@ -81,13 +81,13 @@ def perspective_canon(expr, args):
     for var in expr.f.variables():
         start_ind = prob_canon.var_id_to_col[var.id]
         end_ind = end_inds[end_inds.index(start_ind) + 1]
-        if var.attributes['diag']:  # checking for diagonal first because diagonal is also symmetric
+        if var.attributes["diag"]:  # checking for diagonal first because diagonal is also symmetric
             constraints += [diag(var) == x_canon[start_ind:end_ind]]
         elif var.is_symmetric() and var.size > 1:
             n = var.shape[0]
             inds = np.triu_indices(n, k=0)  # includes diagonal
             constraints += [var[inds] == x_canon[start_ind:end_ind]]
         else:
-            constraints.append(vec(var, order='F') == x_canon[start_ind:end_ind])
+            constraints.append(vec(var, order="F") == x_canon[start_ind:end_ind])
 
     return (1 if expr.f.is_convex() else -1) * t, constraints

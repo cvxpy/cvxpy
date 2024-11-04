@@ -93,7 +93,7 @@ def inverse(expr):
         elif arg.is_nonpos():
             return lambda t: -t
         else:
-            raise ValueError('Sign of argument must be known.')
+            raise ValueError("Sign of argument must be known.")
     elif type(expr) in (Sum, atoms.cumsum):
         return lambda t: t
     else:

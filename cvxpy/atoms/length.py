@@ -28,7 +28,7 @@ class length(Atom):
     def __init__(self, x) -> None:
         super(length, self).__init__(x)
         if not self.args[0].is_vector():
-            raise ValueError('`length` can only be applied to vectors.')
+            raise ValueError("`length` can only be applied to vectors.")
 
     @Atom.numpy_numeric
     def numeric(self, values) -> int:

@@ -49,11 +49,11 @@ class PSD(Cone):
     def __init__(self, expr, constr_id=None) -> None:
         # Argument must be square matrix.
         if len(expr.shape) != 2 or expr.shape[0] != expr.shape[1]:
-            raise ValueError('Non-square matrix in positive definite constraint.')
+            raise ValueError("Non-square matrix in positive definite constraint.")
         super(PSD, self).__init__([expr], constr_id)
 
     def name(self) -> str:
-        return '%s >> 0' % self.args[0]
+        return "%s >> 0" % self.args[0]
 
     def is_dcp(self, dpp: bool = False) -> bool:
         """A PSD constraint is DCP if the constrained expression is affine."""

@@ -38,7 +38,7 @@ class Zero(Constraint):
 
     def __repr__(self) -> str:
         """Returns a string with information about the constraint."""
-        return '%s(%s)' % (self.__class__.__name__, repr(self.args[0]))
+        return "%s(%s)" % (self.__class__.__name__, repr(self.args[0]))
 
     @property
     def shape(self):
@@ -51,7 +51,7 @@ class Zero(Constraint):
         return self.args[0].size
 
     def name(self) -> str:
-        return '%s == 0' % self.args[0]
+        return "%s == 0" % self.args[0]
 
     def is_dcp(self, dpp: bool = False) -> bool:
         """A zero constraint is DCP if its argument is affine."""
@@ -106,7 +106,7 @@ class Equality(Constraint):
 
     def __repr__(self) -> str:
         """Returns a string with information about the constraint."""
-        return '%s(%s, %s)' % (self.__class__.__name__, repr(self.args[0]), repr(self.args[1]))
+        return "%s(%s, %s)" % (self.__class__.__name__, repr(self.args[0]), repr(self.args[1]))
 
     def _construct_dual_variables(self, args) -> None:
         super(Equality, self)._construct_dual_variables([self._expr])
@@ -126,7 +126,7 @@ class Equality(Constraint):
         return self.expr.size
 
     def name(self) -> str:
-        return '%s == %s' % (self.args[0], self.args[1])
+        return "%s == %s" % (self.args[0], self.args[1])
 
     def is_dcp(self, dpp: bool = False) -> bool:
         """An equality constraint is DCP if its argument is affine."""
