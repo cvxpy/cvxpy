@@ -39,8 +39,7 @@ class TestQuantumRelEntr:
     if 'MOSEK' in cp.installed_solvers():
         SOLVE_ARGS = {'solver': 'MOSEK', 'verbose': True}
     else:
-        SOLVE_ARGS = {'solver': 'CLARABEL', 'eps': 1e-6, 'max_iters': 10_000,
-                      'verbose': True}
+        SOLVE_ARGS = {'solver': 'CLARABEL', 'verbose': True}
 
     @staticmethod
     def make_test_1():
