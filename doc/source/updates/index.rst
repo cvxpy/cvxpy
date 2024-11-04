@@ -22,12 +22,15 @@ is Fortran ('F'). In this release CVXPY raises a warning when no explicit order 
 
 In version 1.7, we plan to raise an error if the order is not specified.
 Finally, in version 1.8, we will switch the default order from ('F') to ('C') to
-match NumPy's behavior. 
+match NumPy's behavior.
 
 Dropping ECOS dependency
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~
 
-
+In version 1.5, we changed our default solver from ECOS to Clarabel and announced that we would be
+removing ECOS as a dependency in 1.6. Despite some regressions in certain DQCP tests, we are
+moving forward with dropping ECOS in this release. If you are experiencing any issues with Clarabel
+we encourage you to try using SCS or add ECOS as a dependency to your project.
 
 New features
 ~~~~~~~~~~~~
@@ -36,6 +39,9 @@ New features
 - New HiGHS solver interface
 - New atom: :ref:`cvar <cvar>`
 - New atom: :ref:`cumprod <cumprod>`
+- New atom: :ref:`quantum_rel_entr <quantum_rel_entr>`
+- New atom: :ref:`quantum_cond_entr <quantum_cond_entr>`
+- New atom: :ref:`concatenate <concatenate>`
 - Support for N-dimensional variables and expressions for the following operations:
     * axis atoms like min, max and sum
     * indexing
