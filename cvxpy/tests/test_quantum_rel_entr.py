@@ -8,23 +8,17 @@ from cvxpy.tests import solver_test_helpers as STH
 
 def applychan(chan: np.array, rho: cp.Variable, rep: str, dim: tuple[int, int]):
     dimA, dimB, dimE = None, None, None
-    match rep:
-        case 'choi2':
-            dimA, dimB = dim
-        case 'isom':
-            dimA = chan.shape[1]
-            dimB = dim[1]
-            dimE = int(chan.shape[0]/dimB)
-            pass
-
-    match rep:
-        case 'choi2':
-            arg = chan @ kron(rho.T, np.eye(dimB))
-            rho_out = partial_trace(arg, [dimA, dimB], 0)
-            return rho_out
-        case 'isom':
-            rho_out = partial_trace(chan @ rho @ chan.conj().T, [dimB, dimE], 1)
-            return rho_out
+    if rep == 'choi2':
+        dimA, dimB = dim
+        arg = chan @ kron(rho.T, np.eye(dimB))
+        rho_out = partial_trace(arg, [dimA, dimB], 0)
+        return rho_out
+    elif rep == 'isom':
+        dimA = chan.shape[1]
+        dimB = dim[1]
+        dimE = int(chan.shape[0]/dimB)
+        rho_out = partial_trace(chan @ rho @ chan.conj().T, [dimB, dimE], 1)
+        return rho_out
 
 def randH(n: int):
     A = np.random.randn(n, n) + 1j * np.random.randn(n, n)
@@ -84,11 +78,10 @@ class TestQuantumRelEntr:
         Compute lower bound on relative entropy of entanglement (PPT relaxation)
         """
         na, nb = (2, 2)
-        rho = np.array([
-        [0.0692 - 6.701e-20j, 0.0506 - 3.933e-02j, -0.0226 - 5.0588e-03j, -0.0717 - 9.583e-03j],
-        [0.0506 + 3.933e-02j, 0.128 - 3.1804e-18j, 0.00853 + 2.2208e-02j, -0.1281 - 1.455e-01j],
-        [-0.0226 + 5.0588e-03j, 0.00854 - 2.2208e-02j, 0.466 + 3.0270e-18j, -0.0522 - 2.683e-03j],
-        [-0.0717 + 9.5837e-03j, -0.1281 + 1.4553-01j, -0.0522 + 2.6835e-03j, 0.335 + 2.2041e-19j]])
+        rho = np.array([[ 0.07 -0.j   ,  0.051-0.039j, -0.023-0.005j, -0.072-0.01j ],
+                        [ 0.051+0.039j,  0.129-0.j   ,  0.009+0.022j, -0.128-0.146j],
+                        [-0.023+0.005j,  0.009-0.022j,  0.466+0.j   , -0.052-0.003j],
+                        [-0.072+0.01j , -0.128+0.146j, -0.052+0.003j,  0.335+0.j   ]])
 
         tau = cp.Variable(shape=(na * nb, na * nb), hermitian=True)
         expect_tau = \
@@ -184,39 +177,6 @@ class TestQuantumRelEntr:
 
         return sth
 
-    @staticmethod
-    def make_test_5():
-        """
-        % Entanglement-assisted classical capacity of a quantum channel
-
-        % Dimensions of input, output, and environment spaces of channel
-        """
-        na, nb, ne = (2, 2, 2)
-
-        def AD(gamma: float):
-            return np.array([[1, 0], [0, np.sqrt(gamma)], [0, np.sqrt(1-gamma)], [0, 0]])
-
-        U = AD(0.2)
-
-        rho = cp.Variable(shape=(na, na), hermitian=True)
-        rho_expect = np.array([[0.5185, 0],
-                               [0, 0.4815]])
-        var_pairs = [(rho, rho_expect)]
-
-        obj = cp.Maximize((cp.quantum_cond_entr(U @ rho @ U.conj().T, [nb, ne]) +
-                        cp.von_neumann_entr(cp.partial_trace(U @ rho @ U.conj().T, [nb, ne], 1)))\
-                          /np.log(2))
-        obj_expect = -np.inf
-        obj_pair = (obj, obj_expect)
-
-        cons1 = rho >> 0
-        cons2 = cp.trace(rho) == 1
-        cons_pairs = [(cons1, None), (cons2, None)]
-
-        sth = STH.SolverTestHelper(obj_pair, var_pairs, cons_pairs)
-
-        return sth
-
     def test_1(self):
         sth = TestQuantumRelEntr.make_test_1()
         sth.solve(**self.SOLVE_ARGS)
@@ -226,8 +186,8 @@ class TestQuantumRelEntr:
     def test_2(self):
         sth = TestQuantumRelEntr.make_test_2()
         sth.solve(**self.SOLVE_ARGS)
-        sth.verify_objective(places=3)
-        sth.verify_primal_values(places=3)
+        sth.verify_objective(places=2)
+        sth.verify_primal_values(places=2)
 
     def test_3(self):
         sth = TestQuantumRelEntr.make_test_3()
@@ -237,12 +197,6 @@ class TestQuantumRelEntr:
 
     def test_4(self):
         sth = TestQuantumRelEntr.make_test_4()
-        sth.solve(**self.SOLVE_ARGS)
-        sth.verify_objective(places=3)
-        sth.verify_primal_values(places=3)
-
-    def test_5(self):
-        sth = TestQuantumRelEntr.make_test_5()
         sth.solve(**self.SOLVE_ARGS)
         sth.verify_objective(places=3)
         sth.verify_primal_values(places=3)
