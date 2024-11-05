@@ -18,7 +18,7 @@ of :py:class:`Variable <cvxpy.expressions.variable.Variable>` and
     Creates a Leaf object (e.g., Variable or Parameter).
     Only one attribute can be active (set to True).
 
-    :param shape: The variable dimensions (0D by default). Cannot be more than 2D.
+    :param shape: The variable dimensions, defaults to scalar (0D).
     :type shape: tuple or int
     :param value: A value to assign to the variable.
     :type value: numeric type
@@ -104,6 +104,8 @@ about the sign of ``x`` to the DCP analyzer.
 
 Sparsity Attribute
 ------------------
+
+.. versionadded:: 1.6
 
 In some optimization problems, it is beneficial to define a sparsity attribute for variables. This attribute defines the subset of
 variables that you would like to optimize over. In the example below, the problem is optimizing over the set of upper triangular matrices.

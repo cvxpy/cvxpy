@@ -8,10 +8,26 @@ This section of the tutorial covers features of CVXPY intended for users with ad
 N-dimensional expressions
 -------------------------
 
-.. new:: 1.6
+.. versionadded:: 1.6
+
+CVXPY now supports N-dimensional expressions. This allows one to define variables, parameters, and constants with arbitrary number of dimensions.
+The dimensions of an expression are specified as a tuple of integers.
 
 .. code:: python
-  
+    
+    x = cp.Variable((12, 10, 24))
+
+    constraints = [cp.sum(x, axis=(0, 2)) <= 2000,
+                   x[:, :, :12] <= 100]
+
+    obj = cp.Minimize((x - y)**2)
+    prob = cp.Problem(obj, constraints)
+    prob.solve()
+
+.. warning::
+
+    N-dimensional support is still experimental and may not work with all features of CVXPY.
+    If you encounter any issues or missing functionality, please report them on the `GitHub issues page <https://github.com/cvxpy/cvxpy/issues>`_`.
 
 Dual variables
 --------------

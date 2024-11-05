@@ -168,7 +168,7 @@ vectors, or matrices, meaning they are 0, 1, or 2 dimensional.
     # Vector variable with shape (5,).
     x = cp.Variable(5)
 
-    # Matrix variable with shape (5, 1).
+    # Column vector variable with shape (5, 1).
     x = cp.Variable((5, 1))
 
     # Matrix variable with shape (4, 7).
@@ -182,7 +182,6 @@ sparse matrices, etc. ``A`` and ``b`` could even be different types.
 Currently the following types may be used as constants:
 
 -  NumPy ndarrays
--  NumPy matrices
 -  SciPy sparse matrices
 
 Here's an example of a CVXPY problem with vectors and matrices:
@@ -190,16 +189,15 @@ Here's an example of a CVXPY problem with vectors and matrices:
 .. code:: python
 
     # Solves a bounded least-squares problem.
-
     import cvxpy as cp
-    import numpy
+    import numpy as np
 
     # Problem data.
     m = 10
     n = 5
     numpy.random.seed(1)
-    A = numpy.random.randn(m, n)
-    b = numpy.random.randn(m)
+    A = np.random.randn(m, n)
+    b = np.random.randn(m)
 
     # Construct the problem.
     x = cp.Variable(n)
@@ -207,16 +205,16 @@ Here's an example of a CVXPY problem with vectors and matrices:
     constraints = [0 <= x, x <= 1]
     prob = cp.Problem(objective, constraints)
 
-    print("Optimal value", prob.solve())
-    print("Optimal var")
+    print("Optimal objective value", prob.solve())
+    print("Optimal variable value")
     print(x.value) # A numpy ndarray.
 
 ::
 
-    Optimal value 4.14133859146
-    Optimal var
+    Optimal ojbective value 4.14133859146
+    Optimal variable value
     [ -5.11480673e-21   6.30625742e-21   1.34643668e-01   1.24976681e-01
-  -4.79039542e-21]
+    -4.79039542e-21]
 
 Constraints
 -----------
@@ -237,8 +235,7 @@ cases, solving a parametrized program multiple times can be
 substantially faster than repeatedly solving a new problem: after reading
 this section, be sure to read the tutorial on :ref:`dpp` (DPP).
 
-Parameters can be vectors or matrices, just like variables. When you
-create a parameter you have the option of specifying attributes such as the
+When you create a parameter you have the option of specifying attributes such as the
 sign of the parameter's entries, whether the parameter is symmetric, etc.
 These attributes are used in :ref:`dcp` and are unknown unless specified.
 Parameters can be assigned a constant value any time after they are created.
@@ -257,7 +254,7 @@ as those specified when the parameter was created.
     G = cp.Parameter((4, 7), nonpos=True)
 
     # Assigns a constant value to G.
-    G.value = -numpy.ones((4, 7))
+    G.value = -np.ones((4, 7))
 
 You can initialize a parameter with a value. The following code segments are equivalent:
 
@@ -276,15 +273,15 @@ computes a trade-off curve for a LASSO problem.
 .. code:: python
 
     import cvxpy as cp
-    import numpy
+    import numpy as np
     import matplotlib.pyplot as plt
 
     # Problem data.
     n = 15
     m = 10
-    numpy.random.seed(1)
-    A = numpy.random.randn(n, m)
-    b = numpy.random.randn(n)
+    np.random.seed(1)
+    A = np.random.randn(n, m)
+    b = np.random.randn(n)
     # gamma must be nonnegative due to DCP rules.
     gamma = cp.Parameter(nonneg=True)
 
@@ -298,7 +295,7 @@ computes a trade-off curve for a LASSO problem.
     sq_penalty = []
     l1_penalty = []
     x_values = []
-    gamma_vals = numpy.logspace(-4, 6)
+    gamma_vals = np.logspace(-4, 6)
     for val in gamma_vals:
         gamma.value = val
         prob.solve()
