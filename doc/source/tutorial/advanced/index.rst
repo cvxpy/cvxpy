@@ -11,18 +11,29 @@ N-dimensional expressions
 .. versionadded:: 1.6
 
 CVXPY now supports N-dimensional expressions. This allows one to define variables, parameters, and constants with arbitrary number of dimensions.
-We refer you to NumPy's excellent `reference <https://numpy.org/doc/stable/reference/arrays.ndarray.html>`_ on the N-dimensional array. 
+This new feature enables users to model problems with multi-dimensional data in a more natural way.
+
+In the example below, we consider a problem where the goal is to optimize the usage of a resource across multiple locations, days, and hours.
+We are now able to easily form constraints on any combination of dimensions.
 
 .. code:: python
     
+    # create a 3-dimensional variable (locations, days, hours)
     x = cp.Variable((12, 10, 24))
 
-    constraints = [cp.sum(x, axis=(0, 2)) <= 2000,
-                   x[:, :, :12] <= 100]
+    constraints = [
+      cp.sum(x, axis=(0, 2)) <= 2000, # constrain the daily usage across all locations
+      x[:, :, :12] <= 100 # constrain the first 12 hours of each day at every location
+      x[0, 3, :] == 0 # constrain the usage at the first location on the fourth day to be zero
+      ]
 
-    obj = cp.Minimize((x - y)**2)
+    obj = cp.Minimize(cp.sum_squares(x))
     prob = cp.Problem(obj, constraints)
     prob.solve()
+
+Please refer to NumPy's excellent `reference <https://numpy.org/doc/stable/reference/arrays.ndarray.html>`_ 
+on N-dimensional arrays and the `array API standard <https://data-apis.org/array-api/latest/API_specification/index.html>`_ for more details
+on how to manipulate N-dimensional arrays. Our goal is to match the NumPy API as closely as possible.
 
 .. warning::
 
