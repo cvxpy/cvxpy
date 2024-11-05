@@ -5,6 +5,14 @@ Advanced Features
 
 This section of the tutorial covers features of CVXPY intended for users with advanced knowledge of convex optimization. We recommend `Convex Optimization <https://www.stanford.edu/~boyd/cvxbook/>`_ by Boyd and Vandenberghe as a reference for any terms you are unfamiliar with.
 
+N-dimensional expressions
+-------------------------
+
+.. new:: 1.6
+
+.. code:: python
+  
+
 Dual variables
 --------------
 
