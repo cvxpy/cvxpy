@@ -262,10 +262,14 @@ class Problem(u.Canonical):
         """
         Returns the maximum number of dimensions of any argument in the problem.
         """
-        prob_max_ndim = self.objective.expr._max_ndim()
-        for con in self.constraints:
-            prob_max_ndim = max(prob_max_ndim, max(arg._max_ndim() for arg in con.args))
-        return prob_max_ndim
+        return max(expr._max_ndim() for expr in self.constraints + [self.objective.expr])
+
+    @perf.compute_once
+    def _supports_cpp(self) -> bool:
+        """
+        Returns True if all the arguments in the problem support cpp backend.
+        """
+        return all(expr._all_cpp_support() for expr in self.constraints + [self.objective.expr])
 
     @perf.compute_once
     def is_dgp(self, dpp: bool = False) -> bool:
@@ -425,7 +429,7 @@ class Problem(u.Canonical):
                    last time it was compiled.
         """
         return self._compilation_time
-    
+
     def _solve_solver_path(self, solve_func, solvers:List[tuple[str, Dict] | str],
                                 args, kwargs):
         """Solve a problem using multiple solvers.
@@ -1067,7 +1071,7 @@ class Problem(u.Canonical):
                     "values before solving a problem." % parameter.name())
 
         if verbose:
-            n_variables = sum(len(v.sparse_idx[0]) if v.sparse_idx else 
+            n_variables = sum(len(v.sparse_idx[0]) if v.sparse_idx else
                               np.prod(v.shape) for v in self.variables())
             n_constraints = sum(np.prod(c.shape) for c in self.constraints)
             n_parameters = sum(np.prod(p.shape) for p in self.parameters())

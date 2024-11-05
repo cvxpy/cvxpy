@@ -100,6 +100,9 @@ class Canonical(metaclass=abc.ABCMeta):
         else:
             return type(self)(*args)
 
+    def supports_cpp(self):
+        return True
+
     def __copy__(self):
         """
         Called by copy.copy()
@@ -153,11 +156,33 @@ class Canonical(metaclass=abc.ABCMeta):
         return unique_list(atom for arg in self.args for atom in arg.atoms())
 
     @pu.compute_once
+    def _aggregate_metrics(self) -> dict:
+        """
+        Aggregates multiple metrics based on sub-expressions.
+        """
+        max_ndim = self.ndim
+        cpp_support = self.supports_cpp()
+
+        for arg in self.args:
+            max_ndim = max(max_ndim, arg._max_ndim())
+            cpp_support = cpp_support and arg.supports_cpp()
+
+        metrics = {
+            "max_ndim": max_ndim,
+            "all_support_cpp": cpp_support
+        }
+        return metrics
+
     def _max_ndim(self) -> int:
+        """The maximum number of dimensions of the sub-expression.
         """
-        The maximum number of dimensions of the sub-expression.
+        return self._aggregate_metrics()["max_ndim"]
+
+    def _all_cpp_support(self) -> bool:
         """
-        return max([self.ndim] + [arg._max_ndim() for arg in self.args])
+        Returns True if all sub-expressions support C++, False otherwise.
+        """
+        return self._aggregate_metrics()["all_support_cpp"]
 
     @abc.abstractmethod
     def __str__(self) -> str:

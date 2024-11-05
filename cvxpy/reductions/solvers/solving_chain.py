@@ -5,7 +5,6 @@ import warnings
 import numpy as np
 
 from cvxpy.atoms import EXP_ATOMS, NONPOS_ATOMS, PSD_ATOMS, SOC_ATOMS
-from cvxpy.atoms.atom import Atom
 from cvxpy.constraints import (
     PSD,
     SOC,
@@ -82,9 +81,6 @@ ECOS_DEPRECATION_MSG = (
     """
 )
 
-
-UNSUPPORTED_IN_CPP = ["Concatenate"]
-"""Operators that are not supported in the CPP backend"""
 
 def _is_lp(self):
     """Is problem a linear program?
@@ -384,38 +380,12 @@ def construct_solving_chain(problem, candidates,
                           candidates['conic_solvers'],
                           ", ".join([cone.__name__ for cone in cones])))
 
-def _contains_cpp_excluded_atom(problem):
-    """
-    Recursively traverses the atoms of the problem and returns True if it finds
-    any atom in the UNSUPPORTED_IN_CPP list. Otherwise, returns False.
-
-    :param problem: An instance of the Problem class.
-    :param EXCLUDE: A list of atom classes to exclude.
-    :return: Boolean indicating whether any atom is in UNSUPPORTED_IN_CPP.
-    """
-    # Helper function to traverse atoms while excluding the current expression
-    def atom_in_exclude(expr):
-        # Check if the current expression is in UNSUPPORTED_IN_CPP
-        if expr.__name__ in UNSUPPORTED_IN_CPP:
-            return True
-        # Check each subatom
-        if isinstance(expr, Atom):
-            for sub_atom in expr.atoms():
-                if atom_in_exclude(sub_atom):
-                    return True
-        return False
-
-    for atom in problem.atoms():
-        if atom_in_exclude(atom):
-            return True
-
-    return False
-
 def _get_canon_backend(problem, canon_backend):
     """
     This function checks if the problem has expressions of dimension greater
-    than 2, then raises a warning if the default backend is not specified or
-    raises an error if the backend is specified as 'CPP'.
+    than 2 or if it lacks C++ support, then raises a warning if the default
+    backend is not specified or raises an error if the backend is specified
+    as 'CPP'.
 
     Parameters
     ----------
@@ -432,8 +402,17 @@ def _get_canon_backend(problem, canon_backend):
         The canonicalization backend to use.
     """
 
-    if _contains_cpp_excluded_atom(problem):
-        return SCIPY_CANON_BACKEND
+    if not problem._supports_cpp():
+        if canon_backend is None:
+            warnings.warn(UserWarning(
+                f"The problem includes expressions that don't support {CPP_CANON_BACKEND} backend. "
+                f"Defaulting to the {SCIPY_CANON_BACKEND} backend for canonicalization."))
+            return SCIPY_CANON_BACKEND
+        elif canon_backend == CPP_CANON_BACKEND:
+            raise ValueError(f"The {CPP_CANON_BACKEND} backend cannot be used with problems "
+                             f"that expressions which do not support it.")
+        else:
+            return canon_backend  # Use the specified backend (e.g., SCIPY_CANON_BACKEND)
 
     if problem._max_ndim() > 2:
         if canon_backend is None:
