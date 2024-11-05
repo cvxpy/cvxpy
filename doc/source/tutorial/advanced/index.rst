@@ -11,7 +11,7 @@ N-dimensional expressions
 .. versionadded:: 1.6
 
 CVXPY now supports N-dimensional expressions. This allows one to define variables, parameters, and constants with arbitrary number of dimensions.
-The dimensions of an expression are specified as a tuple of integers.
+We refer you to NumPy's excellent `reference <https://numpy.org/doc/stable/reference/arrays.ndarray.html>`_ on the N-dimensional array. 
 
 .. code:: python
     
@@ -26,8 +26,8 @@ The dimensions of an expression are specified as a tuple of integers.
 
 .. warning::
 
-    N-dimensional support is still experimental and may not work with all features of CVXPY.
-    If you encounter any issues or missing functionality, please report them on the `GitHub issues page <https://github.com/cvxpy/cvxpy/issues>`_`.
+    N-dimensional support is still experimental and may not work with all CVXPY features.
+    If you encounter any issues or missing functionality, please report them on `GitHub issues <https://github.com/cvxpy/cvxpy/issues>`_.
 
 Dual variables
 --------------

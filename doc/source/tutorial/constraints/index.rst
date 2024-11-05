@@ -145,6 +145,12 @@ as defined in `np.indices <https://numpy.org/doc/stable/reference/generated/nump
 
     prob = cp.Minimize(cp.norm(X) + cp.sum(X))
 
+.. warning::
+
+    The sparsity attribute is not yet supported for setting the value of a variable or parameter.
+    In a future release, we plan to have a projection method for sparsity attributes using a custom datatype
+    based on PyTorch's `sparse_coo format <https://pytorch.org/docs/stable/generated/torch.sparse_coo_tensor.html>`_.
+
 .. _semidefinite:
 
 Semidefinite matrices
