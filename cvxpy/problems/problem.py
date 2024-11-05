@@ -269,7 +269,7 @@ class Problem(u.Canonical):
         """
         Returns True if all the arguments in the problem support cpp backend.
         """
-        return all(expr._all_cpp_support() for expr in self.constraints + [self.objective.expr])
+        return all(expr._all_support_cpp() for expr in self.constraints + [self.objective.expr])
 
     @perf.compute_once
     def is_dgp(self, dpp: bool = False) -> bool:

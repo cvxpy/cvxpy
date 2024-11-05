@@ -42,7 +42,7 @@ class Concatenate(AffAtom):
             self.axis = None
         super().__init__(*args)
 
-    def supports_cpp(self) -> bool:
+    def _supports_cpp(self) -> bool:
         return False
 
     def is_atom_log_log_convex(self) -> bool:

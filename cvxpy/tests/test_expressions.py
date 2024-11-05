@@ -1517,6 +1517,42 @@ class TestExpressions(BaseTest):
         expr = hermitian_wrap(U)
         assert expr.is_hermitian()
 
+    def test_expr_does_not_support_cpp_warning(self):
+        from cvxpy.atoms.affine.sum import Sum
+
+        class SumNotSupportedInCPP(Sum):
+            def _supports_cpp(self):
+                return False
+
+        x = Variable(2)
+        prob = Problem(Minimize(0), [SumNotSupportedInCPP(x) == 1])
+
+        with pytest.warns(
+            UserWarning,
+            match="The problem includes expressions that don't support "
+            "CPP backend. Defaulting to the SCIPY backend "
+            "for canonicalization.",
+        ):
+            prob.solve()
+
+
+    def test_expr_does_not_support_cpp_error(self):
+        from cvxpy.atoms.affine.sum import Sum
+
+        class SumNotSupportedInCPP(Sum):
+            def _supports_cpp(self):
+                return False
+
+        x = Variable(2)
+        prob = Problem(Minimize(0), [SumNotSupportedInCPP(x) == 1])
+
+        with pytest.raises(
+            ValueError,
+            match="The CPP backend cannot be used with problems "
+            "that have expressions which do not support it",
+        ):
+            prob.solve(canon_backend=cp.CPP_CANON_BACKEND)
+
 
 class TestND_Expressions():
 

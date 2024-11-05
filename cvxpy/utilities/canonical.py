@@ -100,7 +100,11 @@ class Canonical(metaclass=abc.ABCMeta):
         else:
             return type(self)(*args)
 
-    def supports_cpp(self):
+    def _supports_cpp(self) -> bool:
+        """
+        Determines whether the current atom is implemented in C++. This method should be
+        overridden in derived atom classes that are not implemented in C++.
+        """
         return True
 
     def __copy__(self):
@@ -158,14 +162,17 @@ class Canonical(metaclass=abc.ABCMeta):
     @pu.compute_once
     def _aggregate_metrics(self) -> dict:
         """
-        Aggregates multiple metrics based on sub-expressions.
+        Aggregates and caches metrics for expression trees in self.args. So far
+        metrics include the maximum dimensionality ('max_ndim') and whether
+        all sub-expressions support C++ ('all_support_cpp').
+
         """
         max_ndim = self.ndim
-        cpp_support = self.supports_cpp()
+        cpp_support = self._supports_cpp()
 
         for arg in self.args:
             max_ndim = max(max_ndim, arg._max_ndim())
-            cpp_support = cpp_support and arg.supports_cpp()
+            cpp_support = cpp_support and arg._supports_cpp()
 
         metrics = {
             "max_ndim": max_ndim,
@@ -178,7 +185,7 @@ class Canonical(metaclass=abc.ABCMeta):
         """
         return self._aggregate_metrics()["max_ndim"]
 
-    def _all_cpp_support(self) -> bool:
+    def _all_support_cpp(self) -> bool:
         """
         Returns True if all sub-expressions support C++, False otherwise.
         """
