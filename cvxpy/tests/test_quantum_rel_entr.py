@@ -38,8 +38,8 @@ class TestQuantumRelEntr:
     - These problems also show up in a Marimo notebook linked on the CVXPY docs
     """
     run_full_test_suite = 'MOSEK' in cp.installed_solvers()
-    SOLVE_ARGS = {'solver': 'MOSEK', 'verbose': True} if run_full_test_suite\
-                  else {'solver': 'CLARABEL', 'verbose': True}
+    MOSEK_ARGS = {'solver': 'MOSEK', 'verbose': True}
+    CLARABEL_ARGS = {'solver': 'CLARABEL', 'verbose': True}
 
     @staticmethod
     def make_test_1():
@@ -178,7 +178,7 @@ class TestQuantumRelEntr:
 
     def test_1(self):
         sth = TestQuantumRelEntr.make_test_1()
-        sth.solve(**self.SOLVE_ARGS)
+        sth.solve(**self.CLARABEL_ARGS)
         sth.verify_objective(places=3)
         sth.verify_primal_values(places=3)
 
@@ -186,13 +186,13 @@ class TestQuantumRelEntr:
                         reason="These tests are too slow to solve with CLARABEL")
     def test_2(self):
         sth = TestQuantumRelEntr.make_test_2()
-        sth.solve(**self.SOLVE_ARGS)
+        sth.solve(**self.MOSEK_ARGS)
         sth.verify_objective(places=2)
         sth.verify_primal_values(places=2)
 
     def test_3(self):
         sth = TestQuantumRelEntr.make_test_3()
-        sth.solve(**self.SOLVE_ARGS)
+        sth.solve(**self.CLARABEL_ARGS)
         sth.verify_objective(places=3)
         sth.verify_primal_values(places=3)
 
@@ -200,6 +200,6 @@ class TestQuantumRelEntr:
                         reason="These tests are too slow to solve with CLARABEL")
     def test_4(self):
         sth = TestQuantumRelEntr.make_test_4()
-        sth.solve(**self.SOLVE_ARGS)
+        sth.solve(**self.MOSEK_ARGS)
         sth.verify_objective(places=3)
         sth.verify_primal_values(places=3)
