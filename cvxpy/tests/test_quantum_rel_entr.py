@@ -1,4 +1,5 @@
 import numpy as np
+import pytest
 
 import cvxpy as cp
 from cvxpy.atoms.affine.kron import kron
@@ -36,10 +37,9 @@ class TestQuantumRelEntr:
     CVXQUAD implementations
     - These problems also show up in a Marimo notebook linked on the CVXPY docs
     """
-    if 'MOSEK' in cp.installed_solvers():
-        SOLVE_ARGS = {'solver': 'MOSEK', 'verbose': True}
-    else:
-        SOLVE_ARGS = {'solver': 'CLARABEL', 'verbose': True}
+    run_full_test_suite = 'MOSEK' in cp.installed_solvers()
+    SOLVE_ARGS = {'solver': 'MOSEK', 'verbose': True} if run_full_test_suite\
+                  else {'solver': 'CLARABEL', 'verbose': True}
 
     @staticmethod
     def make_test_1():
@@ -182,6 +182,8 @@ class TestQuantumRelEntr:
         sth.verify_objective(places=3)
         sth.verify_primal_values(places=3)
 
+    @pytest.mark.skipif(not run_full_test_suite,\
+                        reason="These tests are too slow to solve with CLARABEL")
     def test_2(self):
         sth = TestQuantumRelEntr.make_test_2()
         sth.solve(**self.SOLVE_ARGS)
@@ -194,6 +196,8 @@ class TestQuantumRelEntr:
         sth.verify_objective(places=3)
         sth.verify_primal_values(places=3)
 
+    @pytest.mark.skipif(not run_full_test_suite,\
+                        reason="These tests are too slow to solve with CLARABEL")
     def test_4(self):
         sth = TestQuantumRelEntr.make_test_4()
         sth.solve(**self.SOLVE_ARGS)
