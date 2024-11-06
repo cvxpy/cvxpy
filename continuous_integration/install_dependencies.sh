@@ -48,7 +48,9 @@ fi
 if [[ "$RUNNER_OS" == "Windows" ]] && [[ "$PYTHON_VERSION" != "3.13" ]]; then
   # SDPA with OpenBLAS backend does not pass LP5 on Windows
   python -m pip install sdpa-multiprecision
-elif [[ "$PYTHON_VERSION" != "3.13" ]]; then
+fi
+
+if [[ "$PYTHON_VERSION" == "3.12" ]] && [[ "$RUNNER_OS" != "Windows" ]]; then
   # cylp has no wheels for Windows
   python -m pip install cylp pyscipopt==5.2.1
 fi
