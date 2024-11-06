@@ -47,7 +47,7 @@ def __(mo):
 
 
 @app.cell
-def __(cp, n, np):
+def __(cp, np):
     n_corr = 4 # Choose `n` as per your taste
     np.random.seed(0)
     M_corr = np.random.randn(n_corr, n_corr)
@@ -55,7 +55,7 @@ def __(cp, n, np):
     X_corr = cp.Variable(shape=(n_corr, n_corr), symmetric=True)
     obj_corr = cp.Minimize(cp.quantum_rel_entr(M_corr, X_corr))
     cons_corr = [
-                cp.diag(X_corr) == np.ones((n,)),
+                cp.diag(X_corr) == np.ones((n_corr,)),
                 X_corr >> 0
                 ]
     prob_corr = cp.Problem(obj_corr, cons_corr)
@@ -85,7 +85,6 @@ def __(mo):
         Where $H(.)$ is the Von Neumann entropy.
 
         The above problem can be implemented fairly straightforwardly in CVXPY using a mixture of standard CVXPY functionality and the $\texttt{von\_neumann\_entr}$ atom. It also requires the $\texttt{randRho}$ routine from the `qubit` MATLAB package which generates random density matrices (which in turn relies on the $\texttt{randH}$ routine which generates random hermitian matrices)
-
         """
     )
     return
@@ -176,7 +175,6 @@ def __(mo):
         The quantum conditional entropy admits a definition in terms of the $\texttt{QRE}$ and the partial trace operator and has been implemented in CVXPY within `quantum_cond_entr`.
 
         Try it out below! (this problem will take longer to solve!)
-
         """
     )
     return
@@ -244,7 +242,6 @@ def __(mo):
         \end{equation*}
 
         Writing this problem out in CVXPY required the implementation of the $\texttt{applychan}$ method from the `qubit` MATLAB package. Additionally, this required the $\texttt{quantum\_cond\_entr}$ (which depends on the $\texttt{QRE}$ as discussed above).
-
         """
     )
     return
@@ -339,7 +336,6 @@ def __(mo):
         \begin{equation*}
         \texttt{REE}^{(1)}(\rho) = \mathop{\text{min}}_{\tau\in \text{PPT}}D(\rho || \tau)
         \end{equation*}
-
         """
     )
     return

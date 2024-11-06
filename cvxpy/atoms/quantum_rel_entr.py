@@ -60,12 +60,8 @@ class quantum_rel_entr(Atom):
         return (r1 - r2)
 
     def validate_arguments(self) -> None:
-        """Verify that the argument A is PSD.
-        """
-        N = self.args[0]
-        if N.size > 1:
-            if N.ndim != 2 or N.shape[0] != N.shape[1]:
-                raise ValueError('Argument must be a square matrix.')
+        if not (self.args[0].is_hermitian() and self.args[1].is_hermitian()):
+            raise ValueError('Arguments must be Hermitian')
 
     def sign_from_args(self) -> Tuple[bool, bool]:
         """Returns sign (is positive, is negative) of the expression.
@@ -111,9 +107,9 @@ class quantum_rel_entr(Atom):
         Returns:
             A list of SciPy CSC sparse matrices or None.
         """
-        raise ValueError()
+        raise NotImplementedError()
 
     def _domain(self) -> List[Constraint]:
         """Returns constraints describing the domain of the node.
         """
-        return [self.args[0] >> 0]
+        return [self.args[0] >> 0, self.args[1] >> 0]

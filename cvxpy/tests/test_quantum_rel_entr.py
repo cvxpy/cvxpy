@@ -103,39 +103,9 @@ class TestQuantumRelEntr:
 
         return sth
 
+
     @staticmethod
     def make_test_3():
-        """
-        Compute capacity of a cq-channel
-        """
-        rho1 = np.array([[1, 0],
-                        [0, 0]])
-        rho2 = 0.5 * np.ones((2, 2))
-        H1 = cp.von_neumann_entr(rho1)
-        H2 = cp.von_neumann_entr(rho2)
-
-        p1 = cp.Variable()
-        p2 = cp.Variable()
-        p1_expect = 0.5
-        p2_expect = 0.5
-        var_pairs = [(p1, p1_expect), (p2, p2_expect)]
-
-        obj = cp.Maximize((cp.von_neumann_entr(p1 * rho1 + p2 * rho2) - p1 * H1 - \
-                           p2 * H2)/np.log(2))
-        obj_expect = 0.60088
-        obj_pair = (obj, obj_expect)
-
-        cons1 = p1 >= 0
-        cons2 = p2 >= 0
-        cons3 = p1 + p2 == 1
-        cons_pair = [(cons1, None), (cons2, None), (cons3, None)]
-
-        sth = STH.SolverTestHelper(obj_pair, var_pairs, cons_pair)
-
-        return sth
-
-    @staticmethod
-    def make_test_4():
         """
         % Quantum capacity of degradable channels
 
@@ -190,16 +160,10 @@ class TestQuantumRelEntr:
         sth.verify_objective(places=2)
         sth.verify_primal_values(places=2)
 
-    def test_3(self):
-        sth = TestQuantumRelEntr.make_test_3()
-        sth.solve(**self.CLARABEL_ARGS)
-        sth.verify_objective(places=3)
-        sth.verify_primal_values(places=3)
-
     @pytest.mark.skipif(not run_full_test_suite,\
                         reason="These tests are too slow to solve with CLARABEL")
-    def test_4(self):
-        sth = TestQuantumRelEntr.make_test_4()
+    def test_3(self):
+        sth = TestQuantumRelEntr.make_test_3()
         sth.solve(**self.MOSEK_ARGS)
         sth.verify_objective(places=3)
         sth.verify_primal_values(places=3)

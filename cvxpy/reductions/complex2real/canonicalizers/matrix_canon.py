@@ -132,8 +132,8 @@ def von_neumann_entr_canon(expr: von_neumann_entr,
 def quantum_rel_entr_canon(expr: quantum_rel_entr,
                            real_args: List[Union[Expression, None]],
                            imag_args: List[Union[Expression, None]], real2imag):
-    """
-    TODO: WRITE ME.
+    """Transform Hermitian input for quantum_rel_entr into equivalent
+    symmetric input for quantum_rel_entr.
     """
     no_imag = all(ia is None for ia in imag_args)
     if no_imag:
@@ -143,11 +143,6 @@ def quantum_rel_entr_canon(expr: quantum_rel_entr,
     expanded_Y = expand_complex(real_args[1], imag_args[1])
     canon_expr = expr.copy([expanded_X, expanded_Y])
     canon_expr = canon_expr / 2
-    # ^ I'm guessing this is the correct normalization, since the
-    #   spectra of (expanded_X, expanded_Y) is just the spectra
-    #   of (X, Y) repeated twice. We'll need a unit test that
-    #   checks correctness relative to CVXQUAD output for some test
-    #   problem. -- Riley
     return canon_expr, None
 
 
