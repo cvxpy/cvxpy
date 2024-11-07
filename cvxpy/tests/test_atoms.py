@@ -561,47 +561,44 @@ class TestAtoms(BaseTest):
         self.assertEqual(expr.shape, (2, 1))
 
     def test_concatenate(self):
-        # TODO: concatenated is not exposed in cp.concatenated yet. Use cp.concatenate in
-        # this test once it is available
-        from cvxpy.atoms.affine.concatenate import concatenate
-        atom = concatenate([self.x, self.y], axis=0)
+        atom = cp.concatenate([self.x, self.y], axis=0)
         self.assertEqual(atom.name(), "Concatenate(x, y, 0)")
         self.assertEqual(atom.shape, (4,))  # (2 vectors are concatenated on axis 0)
 
         with self.assertRaises(ValueError):
             # x and y are 1D arrays, so they can't be concatenated on axis 1
-            atom = concatenate([self.x, self.y], axis=1)
+            atom = cp.concatenate([self.x, self.y], axis=1)
         # Expected ValueError due to invalid axis for 1D arrays
 
-        atom = concatenate([self.A, self.C], axis=None)
+        atom = cp.concatenate([self.A, self.C], axis=None)
         self.assertEqual(atom.shape, (10,))
 
-        atom = concatenate([self.A, self.C], axis=0)
+        atom = cp.concatenate([self.A, self.C], axis=0)
         self.assertEqual(atom.shape, (5, 2))
 
         with self.assertRaises(ValueError):
-            atom = concatenate([self.A, self.C], axis=1)
+            atom = cp.concatenate([self.A, self.C], axis=1)
         # Expected ValueError due to mismatched dimensions along dimension 0
 
-        atom = concatenate([self.A, self.B], axis=1)
+        atom = cp.concatenate([self.A, self.B], axis=1)
         self.assertEqual(atom.shape, (2, 4))
 
-        atom = concatenate([self.A, self.B], axis=0)
+        atom = cp.concatenate([self.A, self.B], axis=0)
         self.assertEqual(atom.shape, (4, 2))
 
-        atom = concatenate([self.A, self.B], axis=None)
+        atom = cp.concatenate([self.A, self.B], axis=None)
         self.assertEqual(atom.shape, (8,))
 
         with self.assertRaises(ValueError):
-            concatenate([self.a, self.A], axis=0)
+            cp.concatenate([self.a, self.A], axis=0)
         # Expected ValueError due to zero-dimensional arrays cannot be concatenated
 
         with self.assertRaises(ValueError):
-            concatenate([self.A, self.C], axis=2)
+            cp.concatenate([self.A, self.C], axis=2)
         # Expected ValueError due to axis 2 being out of bounds for 2D arrays
 
         with self.assertRaises(ValueError):
-            concatenate([self.C, self.x], axis=1)
+            cp.concatenate([self.C, self.x], axis=1)
         # Expected ValueError due to mismatched number of dimensions between arrays
 
     def test_reshape(self) -> None:

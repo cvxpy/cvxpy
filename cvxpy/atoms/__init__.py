@@ -31,8 +31,7 @@ from cvxpy.atoms.affine.partial_transpose import partial_transpose
 from cvxpy.atoms.affine.promote import promote
 from cvxpy.atoms.affine.real import real
 from cvxpy.atoms.affine.reshape import deep_flatten, reshape
-# TODO: Remove comment once concatenated is enabled
-# from cvxpy.atoms.affine.concatenate import concatenate
+from cvxpy.atoms.affine.concatenate import concatenate
 from cvxpy.atoms.affine.sum import sum
 from cvxpy.atoms.affine.trace import trace
 from cvxpy.atoms.affine.transpose import transpose
