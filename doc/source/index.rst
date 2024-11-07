@@ -69,7 +69,7 @@ more, browse the :doc:`library of examples </examples/index>`. For
 background on convex optimization, see the book `Convex Optimization
 <https://www.stanford.edu/~boyd/cvxbook/>`_ by Boyd and Vandenberghe.
 
-CVXPY relies on the open source solvers `Clarabel`_, `OSQP`_, `SCS`_, and `ECOS`_.
+CVXPY relies on the open source solvers `Clarabel`_, `OSQP`_ and `SCS`_.
 Additional solvers are supported, but must be installed separately.
 
 **Community.**
@@ -104,17 +104,15 @@ guide </contributing/index>` and join us `on Discord <https://discord.gg/4urRQeG
 
 **News.**
 
-CVXPY 1.3 introduced the option for users to specify different canonicalization backends,
-which can drastically reduce the canonicalization time. Initially, a second backend based on
-the SciPy sparse module was added. Read more about the new backends here: 
-:ref:`canonicalization-backends`. See `CVXPYgen <https://github.com/cvxgrp/cvxpygen>`_ for a
-complementary code generation approach. Following the introduction of semantic versioning,
-since the CVXPY 1.3 release, everything that can be imported from the `cvxpy` namespace is
-considered to be part of the public API.
+CVXPY 1.6 introduces N-dimensional expressions with an API analogous to NumPy ndarrays.
+This new feature is very experimental as only a small subset of CVXPY's atoms are supported.
+In addition, version 1.6 also introduces a sparsity attribute for variables, 
+a new HiGHS solver interface for (mixed-integer) linear programs and quadratic programs,
+and support for Python 3.13. Finally, the CVXPY team has updated the documentation
+website to use a modern theme based on Sphinx Immaterial.
 
 .. _Clarabel: https://github.com/oxfordcontrol/Clarabel.rs
 .. _OSQP: https://osqp.org/
-.. _ECOS: http://github.com/ifa-ethz/ecos
 .. _SCS: http://github.com/cvxgrp/scs
 
 .. toctree::
