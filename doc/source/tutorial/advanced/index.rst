@@ -23,9 +23,8 @@ We are now able to easily form constraints on any combination of dimensions.
 
     constraints = [
       cp.sum(x, axis=(0, 2)) <= 2000, # constrain the daily usage across all locations
-      x[:, :, :12] <= 100 # constrain the first 12 hours of each day at every location
-      x[0, 3, :] == 0 # constrain the usage at the first location on the fourth day to be zero
-      ]
+      x[:, :, :12] <= 100, # constrain the first 12 hours of each day at every location
+      x[:, 3, :] == 0,] # constrain the usage on the fourth day to be zero
 
     obj = cp.Minimize(cp.sum_squares(x))
     prob = cp.Problem(obj, constraints)

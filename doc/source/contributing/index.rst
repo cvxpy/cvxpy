@@ -48,22 +48,28 @@ Small scope projects
  - Propagate variable bounds to solvers.
  - Add QDLDL as another option for sparse Cholesky.
  - Add search and filter functionality for the atoms table.
+ - Improved string representation of expressions for debugging.
+ - Custom error messages for common use-cases.
+ - `Use NumPy's array input validation <https://github.com/cvxpy/cvxpy/issues/2613>`_.
 
 Medium scope projects
- - `Support integer variables in geometric programming <https://github.com/cvxpy/cvxpy/issues/1590>`_.
  - `Post-solver feasibility checks <https://github.com/cvxpy/cvxpy/issues/434>`_.
- - `Developer documentation for key reduction files <https://github.com/cvxpy/cvxpy/issues/582>`_.
  - `Allow multiple types and attributes for variables and parameters <https://github.com/cvxpy/cvxpy/issues/566>`_.
  - cp.trace(A @ B) transforms into cp.vdot(A, B).
- - Allow sparse variables to reduce problem dimension.
  - `IPOPT interface to introduce support for non-linear non-convex problems <https://github.com/cvxpy/cvxpy/issues/1594>`_.
  - `Vectorize the quad_over_lin atom <https://github.com/cvxpy/cvxpy/issues/1197>`_.
+ - `Support for expressions with size zero <https://github.com/cvxpy/cvxpy/issues/1429>`_.
+ - Caching computation of lin_ops during matrix stuffing.
+ - N-dimensional matmul with broadcasting supported.
 
 Large scope projects
  - Expand use of power cone constraints [`1222 <https://github.com/cvxpy/cvxpy/issues/1222>`_, `1223 <https://github.com/cvxpy/cvxpy/issues/1223>`_].
  - Problem serialization [`532 <https://github.com/cvxpy/cvxpy/issues/532>`_, `1333 <https://github.com/cvxpy/cvxpy/issues/1333>`_, `1438 <https://github.com/cvxpy/cvxpy/issues/1438>`_].
  - Quadratically Constrained QP support.
  - Replace cvxcore (Cython or Rust Backend).
+ - `Supporting optimisation on non-Euclidean manifolds <https://github.com/cvxpy/cvxpy/issues/2605>`_.
+ - Match NumPy's API across all analog atoms.
+ - Support for a cp.einsum atom.
 
 
 General principles
