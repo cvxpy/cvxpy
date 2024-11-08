@@ -61,6 +61,7 @@ Medium scope projects
  - `Support for expressions with size zero <https://github.com/cvxpy/cvxpy/issues/1429>`_.
  - Caching computation of lin_ops during matrix stuffing.
  - N-dimensional matmul with broadcasting supported.
+ - Port examples section to Marimo and add new examples using N-dimensional expressions.
 
 Large scope projects
  - Expand use of power cone constraints [`1222 <https://github.com/cvxpy/cvxpy/issues/1222>`_, `1223 <https://github.com/cvxpy/cvxpy/issues/1223>`_].
