@@ -42,12 +42,12 @@ New features
 - New atom: :ref:`quantum_rel_entr <quantum_rel_entr>`
 - New atom: :ref:`quantum_cond_entr <quantum_cond_entr>`
 - New atom: :ref:`concatenate <concatenate>`
-- Support for N-dimensional variables and expressions for the following operations:
+- Support for :ref:`N-dimensional variables <n-dimensional>` and expressions for the following operations:
     * axis atoms like min, max and sum
     * indexing
     * elementwise operations
-- Sparsity attribute for variables
-- New website and documentation theme
+- :ref:`Sparsity attribute <sparsity>` for variables
+- New website and documentation theme based on `Sphinx Immaterial <https://jbms.github.io/sphinx-immaterial/>`_
 - Ability to pass multiple solvers as argument to ``.solve()``
 - Performance improvement for ``sum_largest`` and ``cumsum``
 - Performance improvement for integer and boolean variables

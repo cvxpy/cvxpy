@@ -5,6 +5,8 @@ Advanced Features
 
 This section of the tutorial covers features of CVXPY intended for users with advanced knowledge of convex optimization. We recommend `Convex Optimization <https://www.stanford.edu/~boyd/cvxbook/>`_ by Boyd and Vandenberghe as a reference for any terms you are unfamiliar with.
 
+.. _n-dimensional:
+
 N-dimensional expressions
 -------------------------
 
@@ -38,6 +40,8 @@ on how to manipulate N-dimensional arrays. Our goal is to match the NumPy API as
 
     N-dimensional support is still experimental and may not work with all CVXPY features.
     If you encounter any issues or missing functionality, please report them on `GitHub issues <https://github.com/cvxpy/cvxpy/issues>`_.
+
+.. _dual-variables:
 
 Dual variables
 --------------
@@ -78,6 +82,8 @@ You can use CVXPY to find the optimal dual variables for a problem. When you cal
 
 The dual variable for ``x - y >= 1`` is 2. By complementarity this implies that ``x - y`` is 1, which we can see is true. The fact that the dual variable is non-zero also tells us that if we tighten ``x - y >= 1``, (i.e., increase the right-hand side), the optimal value of the problem will increase.
 
+.. _transforms:
+
 Transforms
 ----------
 
@@ -104,6 +110,8 @@ constraints hold and :math:`\infty` when they are violated.
    expr.value = inf
 
 The full set of transforms available is discussed in :ref:`transforms-api`.
+
+.. _problem-arithmetic:
 
 Problem arithmetic
 ------------------
@@ -171,6 +179,8 @@ objectives and problems and follow the same rules as above.
 .. \mbox{minimize}  &\sum_{i=1}^n \alpha_i f_i(x) \\
 .. \mbox{subject to} &x \in \cap_{i=1}^n \mathcal C_i
 .. \end{array}`
+
+.. _standard-form:
 
 Getting the standard form
 -------------------------
