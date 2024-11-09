@@ -4,6 +4,7 @@ import pytest
 import cvxpy as cp
 from cvxpy.atoms.affine.kron import kron
 from cvxpy.atoms.affine.partial_trace import partial_trace
+from cvxpy.atoms.affine.wraps import hermitian_wrap
 from cvxpy.tests import solver_test_helpers as STH
 
 
@@ -125,7 +126,7 @@ class TestQuantumRelEntr:
 
         def Ic(rho: cp.Variable):
             return cp.quantum_cond_entr(
-                        W @ applychan(U, rho, 'isom', (na, nb)) @ W.conj().T,
+                        hermitian_wrap(W @ applychan(U, rho, 'isom', (na, nb)) @ W.conj().T),
                         [ne, nf], 1
                     )/np.log(2)
 
