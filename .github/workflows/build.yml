@@ -50,6 +50,12 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+      - name: Install CMAKE for ubuntu
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y cmake build-essential
+          
       - name: Set Additional Envs
         run: |
           echo "PYTHON_SUBVERSION=$(echo $PYTHON_VERSION | cut -c 3-)" >> $GITHUB_ENV
