@@ -13,8 +13,8 @@ def quantum_cond_entr(rho: Expression , dim: list[int], sys: Optional[int]=0):
     if sys == 0:
         composite_arg = kron(np.eye(dim[0]),
                              partial_trace(rho, dim, sys))
-        return -quantum_rel_entr(hermitian_wrap(rho), hermitian_wrap(composite_arg))
+        return -quantum_rel_entr(rho, hermitian_wrap(composite_arg))
     elif sys == 1:
         composite_arg = kron(partial_trace(rho, dim, sys),
                              np.eye(dim[1]))
-        return -quantum_rel_entr(hermitian_wrap(rho), hermitian_wrap(composite_arg))
+        return -quantum_rel_entr(rho, hermitian_wrap(composite_arg))
