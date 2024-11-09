@@ -51,7 +51,7 @@ Small scope projects
  - `Improved string representation of expressions for debugging <https://github.com/cvxpy/cvxpy/issues/2619>`_.
  - `Clearer and custom error messages for better traceability <https://github.com/cvxpy/cvxpy/issues/2620>`_.
  - `Use NumPy's array input validation <https://github.com/cvxpy/cvxpy/issues/2613>`_.
- - Fix MOSEK automatic dualization step [`#2107 <https://github.com/cvxpy/cvxpy/issues/2107>`_, `#1403 <https://github.com/cvxpy/cvxpy/issues/1403>`_].
+ - Have MOSEK interface choose between solving the primal and the dual [`2107 <https://github.com/cvxpy/cvxpy/issues/2107>`_, `1403 <https://github.com/cvxpy/cvxpy/issues/1403>`_].
 
 Medium scope projects
  - `Post-solver feasibility checks <https://github.com/cvxpy/cvxpy/issues/434>`_.
@@ -69,8 +69,8 @@ Large scope projects
  - Problem serialization [`532 <https://github.com/cvxpy/cvxpy/issues/532>`_, `1333 <https://github.com/cvxpy/cvxpy/issues/1333>`_, `1438 <https://github.com/cvxpy/cvxpy/issues/1438>`_].
  - Quadratically Constrained QP support.
  - Replace cvxcore (Cython or Rust Backend).
- - `Supporting optimisation on non-Euclidean manifolds <https://github.com/cvxpy/cvxpy/issues/2605>`_.
- - Match NumPy's API across all analog atoms.
+ - `Support complex parameters in DPP <https://github.com/cvxpy/cvxpy/issues/1666>`_.
+ - Match NumPy's API across all atoms.
  - Support for a cp.einsum atom.
  - `Logical boolean operations <https://github.com/cvxpy/cvxpy/issues/1000>`_.
 
