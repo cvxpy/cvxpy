@@ -51,6 +51,7 @@ Small scope projects
  - Improved string representation of expressions for debugging.
  - Custom error messages for common use-cases.
  - `Use NumPy's array input validation <https://github.com/cvxpy/cvxpy/issues/2613>`_.
+ - Fix MOSEK automatic dualization step [`#2107 <https://github.com/cvxpy/cvxpy/issues/2107>`_, `#1403 <https://github.com/cvxpy/cvxpy/issues/1403>`_].
 
 Medium scope projects
  - `Post-solver feasibility checks <https://github.com/cvxpy/cvxpy/issues/434>`_.
@@ -71,6 +72,7 @@ Large scope projects
  - `Supporting optimisation on non-Euclidean manifolds <https://github.com/cvxpy/cvxpy/issues/2605>`_.
  - Match NumPy's API across all analog atoms.
  - Support for a cp.einsum atom.
+ - `Logical boolean operations <https://github.com/cvxpy/cvxpy/issues/1000>`_.
 
 
 General principles
