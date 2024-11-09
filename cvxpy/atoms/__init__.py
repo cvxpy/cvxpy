@@ -77,6 +77,7 @@ from cvxpy.atoms.lambda_max import lambda_max
 from cvxpy.atoms.lambda_min import lambda_min
 from cvxpy.atoms.lambda_sum_largest import lambda_sum_largest
 from cvxpy.atoms.lambda_sum_smallest import lambda_sum_smallest
+from cvxpy.atoms.quantum_cond_entr import quantum_cond_entr
 from cvxpy.atoms.length import length
 from cvxpy.atoms.log_det import log_det
 from cvxpy.atoms.log_sum_exp import log_sum_exp
@@ -103,6 +104,7 @@ from cvxpy.atoms.sum_squares import sum_squares
 from cvxpy.atoms.total_variation import tv
 from cvxpy.atoms.tr_inv import tr_inv
 from cvxpy.atoms.von_neumann_entr import von_neumann_entr
+from cvxpy.atoms.quantum_rel_entr import quantum_rel_entr
 from cvxpy.atoms.stats import mean, std, var
 from cvxpy.atoms.ptp import ptp
 
@@ -142,6 +144,7 @@ PSD_ATOMS = [
     normNuc,
     sigma_max,
     tr_inv,
+    quantum_rel_entr,
 ]
 
 NONPOS_ATOMS = [
