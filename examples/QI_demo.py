@@ -17,7 +17,8 @@ def __():
     import numpy as np
 
     from cvxpy.atoms.affine.partial_trace import partial_trace
-    return cp, np, partial_trace
+    from cvxpy.atoms.affine.wraps import hermitian_wrap
+    return cp, hermitian_wrap, np, partial_trace
 
 
 @app.cell
@@ -181,14 +182,14 @@ def __(mo):
 
 
 @app.cell
-def __(cp, np):
+def __(cp, hermitian_wrap, np):
     na_en, nb_en, ne_en = (2, 2, 2)
     AD_en = lambda gamma: np.array([[1, 0], [0, np.sqrt(gamma)], [0, np.sqrt(1-gamma)], [0, 0]])
     U_en = AD_en(0.2)
 
     rho_en = cp.Variable(shape=(na_en, na_en), hermitian=True)
-    obj_en = cp.Maximize((cp.quantum_cond_entr(U_en @ rho_en @ U_en.conj().T, [nb_en, ne_en]) +
-                       cp.von_neumann_entr(cp.partial_trace(U_en @ rho_en @ U_en.conj().T, [nb_en, ne_en], 1)))/np.log(2))
+    obj_en = cp.Maximize(cp.quantum_cond_entr(hermitian_wrap(U_en @ rho_en @ U_en.conj().T), [nb_en, ne_en]) +
+                       cp.von_neumann_entr(cp.partial_trace(U_en @ rho_en @ U_en.conj().T, [nb_en, ne_en], 1)))/np.log(2)
     cons_en = [
         rho_en >> 0,
         cp.trace(rho_en) == 1
@@ -274,7 +275,7 @@ def __(cp, kron, np, partial_trace):
 
 
 @app.cell
-def __(applychan, cp, np):
+def __(applychan, cp, hermitian_wrap, np):
     na_cc, nb_cc, ne_cc, nf_cc = (2, 2, 2, 2)
     AD_cc = lambda gamma: np.array([[1, 0],[0, np.sqrt(gamma)],[0, np.sqrt(1-gamma)],[0, 0]])
     gamma = 0.2
@@ -283,7 +284,7 @@ def __(applychan, cp, np):
     W_cc = AD_cc((1-2*gamma)/(1-gamma))
 
     Ic_cc = lambda rho: cp.quantum_cond_entr(
-        W_cc @ applychan(U_cc, rho, 'isom', (na_cc, nb_cc)) @ W_cc.conj().T,
+        hermitian_wrap(W_cc @ applychan(U_cc, rho, 'isom', (na_cc, nb_cc)) @ W_cc.conj().T),
         [ne_cc, nf_cc], 1
     )/np.log(2)
 
