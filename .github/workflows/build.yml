@@ -33,7 +33,7 @@ jobs:
         include:
           # These are intended to just add their extra parameter to existing matrix combinations;
           # see https://docs.github.com/en/actions/writing-workflows/workflow-syntax-for-github-actions#jobsjob_idstrategymatrixinclude
-          - os: ubuntu-20.04
+          - os: ubuntu-22.04
             python-version: 3.12
             openmp: "True"
             single_action_config: false
@@ -55,7 +55,6 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y cmake build-essential
-          
       - name: Set Additional Envs
         run: |
           echo "PYTHON_SUBVERSION=$(echo $PYTHON_VERSION | cut -c 3-)" >> $GITHUB_ENV
