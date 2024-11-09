@@ -61,13 +61,6 @@ jobs:
           python-version: ${{ matrix.python-version }}
           channels: conda-forge,anaconda
 
-      - name: Install CMAKE for ubuntu
-        if: runner.os == 'Linux'
-        shell: bash -l {0}
-        run: |
-          conda install -y cmake make compilers
-          cmake --version # Verify installation
-
       - name: Install
         run: |
           source continuous_integration/install_dependencies.sh
