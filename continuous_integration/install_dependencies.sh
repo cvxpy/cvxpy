@@ -17,7 +17,7 @@ if [[ "$PYTHON_VERSION" != "3.13" ]]; then
 else
   # only install the essential solvers for Python 3.13.
   conda install scs
-  python -m pip install clarabel osqp
+  python -m pip install clarabel cmake==3.30.5 osqp
 fi
 
 if [[ "$PYTHON_VERSION" == "3.9" ]]; then
