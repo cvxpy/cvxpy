@@ -48,8 +48,8 @@ Small scope projects
  - Propagate variable bounds to solvers.
  - Add QDLDL as another option for sparse Cholesky.
  - Add search and filter functionality for the atoms table.
- - Improved string representation of expressions for debugging.
- - Custom error messages for common use-cases.
+ - `Improved string representation of expressions for debugging <https://github.com/cvxpy/cvxpy/issues/2619>`_.
+ - `Clearer and custom error messages for better traceability <https://github.com/cvxpy/cvxpy/issues/2620>`_.
  - `Use NumPy's array input validation <https://github.com/cvxpy/cvxpy/issues/2613>`_.
  - Fix MOSEK automatic dualization step [`#2107 <https://github.com/cvxpy/cvxpy/issues/2107>`_, `#1403 <https://github.com/cvxpy/cvxpy/issues/1403>`_].
 
@@ -62,7 +62,7 @@ Medium scope projects
  - `Support for expressions with size zero <https://github.com/cvxpy/cvxpy/issues/1429>`_.
  - Caching computation of lin_ops during matrix stuffing.
  - N-dimensional matmul with broadcasting supported.
- - Port examples section to Marimo and add new examples using N-dimensional expressions.
+ - `Port examples section to Marimo and add new examples using N-dimensional expressions <https://github.com/cvxpy/cvxpy/issues/2618>`_.
 
 Large scope projects
  - Expand use of power cone constraints [`1222 <https://github.com/cvxpy/cvxpy/issues/1222>`_, `1223 <https://github.com/cvxpy/cvxpy/issues/1223>`_].
