@@ -50,11 +50,6 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-      - name: Install CMAKE for ubuntu
-        if: runner.os == 'Linux'
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y cmake build-essential
       - name: Set Additional Envs
         run: |
           echo "PYTHON_SUBVERSION=$(echo $PYTHON_VERSION | cut -c 3-)" >> $GITHUB_ENV
@@ -65,6 +60,13 @@ jobs:
           auto-update-conda: true
           python-version: ${{ matrix.python-version }}
           channels: conda-forge,anaconda
+
+      - name: Install CMAKE for ubuntu
+        if: runner.os == 'Linux'
+        shell: bash -l {0}
+        run: |
+          conda install -y cmake make compilers
+          cmake --version # Verify installation
 
       - name: Install
         run: |
