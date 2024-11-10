@@ -37,12 +37,12 @@ elif [[ "$PYTHON_VERSION" == "3.12" ]]; then
   # Given numpy 1.26.4, the earliest version of scipy we can use is 1.11.3.
   conda install scipy=1.11.3 numpy=1.26.4
 else
-  # These versions are the first that are compatible with Python 3.13.
-  conda install scipy=1.14.1 numpy=2.1.2
+  # Install newest versions for Python 3.13.
+  conda install scipy numpy
 fi
 
 if [[ "$PYTHON_VERSION" == "3.11" ]]; then
-  python -m pip install cplex diffcp "ortools>=9.7,<9.10"
+  python -m pip install cplex "ortools>=9.7,<9.10"
 fi
 
 if [[ "$RUNNER_OS" == "Windows" ]] && [[ "$PYTHON_VERSION" != "3.13" ]]; then
@@ -52,7 +52,7 @@ fi
 
 if [[ "$PYTHON_VERSION" == "3.12" ]] && [[ "$RUNNER_OS" != "Windows" ]]; then
   # cylp has no wheels for Windows
-  python -m pip install cylp pyscipopt==5.2.1
+  python -m pip install cylp pyscipopt==5.2.1 diffcp
 fi
 
 if [[ "$PYTHON_VERSION" == "3.10" ]] && [[ "$RUNNER_OS" != "Windows" ]]; then
