@@ -1,0 +1,3169 @@
+
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+      <link rel="icon" href="../_static/favicon.ico">
+    
+    
+      
+        <title>Reductions - </title>
+      
+    
+    
+      
+        
+        
+      
+      
+
+    
+    
+    
+      
+        
+        
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+        <link rel="stylesheet" type="text/css" href="../_static/sphinx_immaterial_theme.4b4a8c74e2ff2ab5b.min.css?v=afa97f93" />
+        <link rel="stylesheet" type="text/css" href="../_static/tabs.css?v=4c969af8" />
+        <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
+        <link rel="stylesheet" type="text/css" href="../_static/css/styling.css?v=84aacf86" />
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce((e,_)=>(e<<5)-e+_.charCodeAt(0),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+  
+
+
+  
+  
+
+
+  <script id="__analytics">function __md_analytics(){window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)},ga.l=+new Date,ga("create","UA-50248335-1","auto"),ga("set","anonymizeIp",!0),ga("send","pageview"),document.addEventListener("DOMContentLoaded",function(){document.forms.search&&document.forms.search.query.addEventListener("blur",function(){var e;this.value&&(e=document.location.pathname,ga("send","pageview",e+"?q="+this.value))}),document$.subscribe(function(){var a=document.forms.feedback;if(void 0!==a)for(var e of a.querySelectorAll("[type=submit]"))e.addEventListener("click",function(e){e.preventDefault();var t=document.location.pathname,e=this.getAttribute("data-md-value");ga("send","event","feedback","click",t,e),a.firstElementChild.disabled=!0;e=a.querySelector(".md-feedback__note [data-md-value='"+e+"']");e&&(e.hidden=!1)}),a.hidden=!1}),location$.subscribe(function(e){ga("send","pageview",e.pathname)})});var e=document.createElement("script");e.async=!0,e.src="https://www.google-analytics.com/analytics.js",document.getElementById("__analytics").insertAdjacentElement("afterEnd",e)}</script>
+
+  
+    <script>"undefined"!=typeof __md_analytics&&__md_analytics()</script>
+  
+
+    
+    
+    
+  </head>
+  
+  
+    
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="" data-md-color-accent="">
+  
+    
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#disclaimer" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+      <div data-md-component="outdated" hidden>
+        
+      </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--lifted" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../index.html" title="" class="md-header__button md-logo" aria-label="" data-md-component="logo">
+      <img src="../_static/cvxpy-wordmark-light.png" alt="logo">
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2Z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Reductions
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+    
+      <label class="md-header__button md-icon" for="__search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"/></svg>
+      </label>
+      <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"/></svg>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12Z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+          <a href="javascript:void(0)" class="md-search__icon md-icon" title="Share" aria-label="Share" data-clipboard data-clipboard-text="" data-md-component="search-share" tabindex="-1">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7 0-.24-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9a3 3 0 0 0-3 3 3 3 0 0 0 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.15c-.05.21-.08.43-.08.66 0 1.61 1.31 2.91 2.92 2.91 1.61 0 2.92-1.3 2.92-2.91A2.92 2.92 0 0 0 18 16.08Z"/></svg>
+          </a>
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41Z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/cvxpy/cvxpy/" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3zm44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8zM97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1zm-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7zm32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1zm-11.4-14.7c-1.6 1-1.6 3.6 0 5.9 1.6 2.3 4.3 3.3 5.6 2.3 1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    CVXPY
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+    
+      
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-tabs__inner md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+
+
+  <li class="md-tabs__item">
+    <a href="../install/index.html" class="md-tabs__link">
+      <span class="md-ellipsis">Install</span>
+    </a>
+  </li>
+
+      
+        
+  
+  
+
+
+  <li class="md-tabs__item">
+    <a href="../tutorial/index.html" class="md-tabs__link">
+      <span class="md-ellipsis">User Guide</span>
+    </a>
+  </li>
+
+      
+        
+  
+  
+    
+  
+
+
+  <li class="md-tabs__item">
+    <a href="cvxpy.html" class="md-tabs__link md-tabs__link--active">
+      <span class="md-ellipsis">API Documentation</span>
+    </a>
+  </li>
+
+      
+        
+  
+  
+
+
+  <li class="md-tabs__item">
+    <a href="../examples/index.html" class="md-tabs__link">
+      <span class="md-ellipsis">Examples</span>
+    </a>
+  </li>
+
+      
+        
+  
+  
+
+
+  <li class="md-tabs__item">
+    <a href="../contributing/index.html" class="md-tabs__link">
+      <span class="md-ellipsis">Contributing</span>
+    </a>
+  </li>
+
+      
+        
+  
+  
+
+
+  <li class="md-tabs__item">
+    <a href="../updates/index.html" class="md-tabs__link">
+      <span class="md-ellipsis">Changelog</span>
+    </a>
+  </li>
+
+      
+        
+  
+  
+
+
+  <li class="md-tabs__item">
+    <a href="../faq/index.html" class="md-tabs__link">
+      <span class="md-ellipsis">FAQ</span>
+    </a>
+  </li>
+
+      
+        
+  
+  
+
+
+  <li class="md-tabs__item">
+    <a href="../resources/index.html" class="md-tabs__link">
+      <span class="md-ellipsis">Resources</span>
+    </a>
+  </li>
+
+      
+    </ul>
+  </div>
+</nav>
+    
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+      
+      
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../index.html" title="" class="md-nav__button md-logo" aria-label="" data-md-component="logo">
+      <img src="../_static/cvxpy-wordmark-light.png" alt="logo">
+    </a>
+    
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/cvxpy/cvxpy/" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3zm44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8zM97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1zm-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7zm32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1zm-11.4-14.7c-1.6 1-1.6 3.6 0 5.9 1.6 2.3 4.3 3.3 5.6 2.3 1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    CVXPY
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+      
+
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../install/index.html" class="md-nav__link">
+        <span class="md-ellipsis">Install</span>
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tutorial/index.html" class="md-nav__link">
+        <span class="md-ellipsis">User Guide</span>
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+    
+  
+  
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_3" type="checkbox" id="__nav_3" checked>
+      
+      
+      
+        
+        <div class="md-nav__link md-nav__link--index ">
+          <a href="cvxpy.html"><span class="md-ellipsis">API Documentation</span></a>
+          
+            <label for="__nav_3">
+              <span class="md-nav__icon md-icon"></span>
+            </label>
+          
+        </div>
+      
+      <nav class="md-nav" aria-label="API Documentation" data-md-level="1">
+        <label class="md-nav__title" for="__nav_3">
+          <span class="md-nav__icon md-icon"></span>
+          <span class="md-ellipsis">API Documentation</span>
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="cvxpy.atoms.html" class="md-nav__link">
+        <span class="md-ellipsis">Atoms</span>
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="cvxpy.constraints.html" class="md-nav__link">
+        <span class="md-ellipsis">Constraints</span>
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="cvxpy.expressions.html" class="md-nav__link">
+        <span class="md-ellipsis">Expressions</span>
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="cvxpy.problems.html" class="md-nav__link">
+        <span class="md-ellipsis">Problems</span>
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="cvxpy.transforms.html" class="md-nav__link">
+        <span class="md-ellipsis">Transforms</span>
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+    
+  
+    
+  
+    
+    <li class="md-nav__item md-nav__item--active md-nav__current-nested md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_3_6" type="checkbox" id="__nav_3_6" checked>
+      
+      
+      
+        
+        <div class="md-nav__link md-nav__link--index md-nav__link--active">
+          <a href="#"><span class="md-ellipsis">Reductions</span></a>
+          
+            <label for="__nav_3_6">
+              <span class="md-nav__icon md-icon"></span>
+            </label>
+          
+        </div>
+      
+      <nav class="md-nav" aria-label="Reductions" data-md-level="2">
+        <label class="md-nav__title" for="__nav_3_6">
+          <span class="md-nav__icon md-icon"></span>
+          <span class="md-ellipsis">Reductions</span>
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" data-md-toggle="__nav_3_6_1" type="checkbox" id="__nav_3_6_1" checked>
+      
+      
+      
+        
+        <div class="md-nav__link md-nav__link--index ">
+          <a href="#types-of-reductions"><span title="types of reductions (reference label)" class="md-ellipsis">Types of Reductions</span></a>
+          
+            <label for="__nav_3_6_1">
+              <span class="md-nav__icon md-icon"></span>
+            </label>
+          
+        </div>
+      
+      <nav class="md-nav" aria-label="Types of Reductions" data-md-level="3">
+        <label class="md-nav__title" for="__nav_3_6_1">
+          <span class="md-nav__icon md-icon"></span>
+          <span title="types of reductions (reference label)" class="md-ellipsis">Types of Reductions</span>
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="cvxpy.reductions.middle_end.html" class="md-nav__link">
+        <span class="md-ellipsis">Middle-<wbr>End</span>
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="cvxpy.reductions.back_end.html" class="md-nav__link">
+        <span class="md-ellipsis">Back-<wbr>End</span>
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+  
+      
+    <li class="md-nav__item md-nav__item--active md-nav__current-toc">
+      
+      
+      <input class="md-nav__toggle md-toggle" data-md-toggle="toc" type="checkbox" id="__toc">
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          <span class="md-ellipsis">Reductions</span>
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="#" class="md-nav__link md-nav__link--active">
+        <span class="md-ellipsis">Reductions</span>
+      </a>
+      
+        
+
+  
+
+<nav class="md-nav md-nav--secondary">
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      On this page
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#disclaimer" class="md-nav__link">
+    <span title="disclaimer (reference label)" class="md-ellipsis">Disclaimer</span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#types-of-reductions" class="md-nav__link">
+    <span title="types of reductions (reference label)" class="md-ellipsis">Types of Reductions</span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Types of Reductions">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="cvxpy.reductions.middle_end.html" class="md-nav__link">
+    <span class="md-ellipsis">Middle-<wbr>End</span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="cvxpy.reductions.back_end.html" class="md-nav__link">
+    <span class="md-ellipsis">Back-<wbr>End</span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#core-classes" class="md-nav__link">
+    <span title="core classes (reference label)" class="md-ellipsis">Core classes</span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Core classes">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#solution" class="md-nav__link">
+    <span title="solution (reference label)" class="md-ellipsis">Solution</span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Solution">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.reductions.solution.Solution" class="md-nav__link">
+    <span aria-label="Python class" class="objinfo-icon objinfo-icon__data" title="Python class">C</span><span title="cvxpy.reductions.solution.Solution (Python class) — A solution to an optimization problem." class="md-ellipsis">cvxpy.<wbr>reductions.<wbr>solution.<wbr>Solution</span>
+  </a>
+  
+    <nav class="md-nav" aria-label="cvxpy.reductions.solution.Solution">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.reductions.solution.Solution.status" class="md-nav__link">
+    <span aria-label="Python attribute" class="objinfo-icon objinfo-icon__alias" title="Python attribute">A</span><span title="cvxpy.reductions.solution.Solution.status (Python attribute) — The status code." class="md-ellipsis">status</span>
+  </a>
+  
+    <nav class="md-nav" aria-label="status">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.reductions.solution.Solution.status-type" class="md-nav__link">
+    <span class="md-ellipsis">Type</span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.reductions.solution.Solution.opt_val" class="md-nav__link">
+    <span aria-label="Python attribute" class="objinfo-icon objinfo-icon__alias" title="Python attribute">A</span><span title="cvxpy.reductions.solution.Solution.opt_val (Python attribute) — The optimal value." class="md-ellipsis">opt_<wbr>val</span>
+  </a>
+  
+    <nav class="md-nav" aria-label="opt_val">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.reductions.solution.Solution.opt_val-type" class="md-nav__link">
+    <span class="md-ellipsis">Type</span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.reductions.solution.Solution.primal_vars" class="md-nav__link">
+    <span aria-label="Python attribute" class="objinfo-icon objinfo-icon__alias" title="Python attribute">A</span><span title="cvxpy.reductions.solution.Solution.primal_vars (Python attribute) — A map from variable ids to optimal values." class="md-ellipsis">primal_<wbr>vars</span>
+  </a>
+  
+    <nav class="md-nav" aria-label="primal_vars">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.reductions.solution.Solution.primal_vars-type" class="md-nav__link">
+    <span class="md-ellipsis">Type</span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.reductions.solution.Solution.dual_vars" class="md-nav__link">
+    <span aria-label="Python attribute" class="objinfo-icon objinfo-icon__alias" title="Python attribute">A</span><span title="cvxpy.reductions.solution.Solution.dual_vars (Python attribute) — A map from constraint ids to dual values." class="md-ellipsis">dual_<wbr>vars</span>
+  </a>
+  
+    <nav class="md-nav" aria-label="dual_vars">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.reductions.solution.Solution.dual_vars-type" class="md-nav__link">
+    <span class="md-ellipsis">Type</span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.reductions.solution.Solution.attr" class="md-nav__link">
+    <span aria-label="Python attribute" class="objinfo-icon objinfo-icon__alias" title="Python attribute">A</span><span title="cvxpy.reductions.solution.Solution.attr (Python attribute) — Miscelleneous information propagated up from a solver." class="md-ellipsis">attr</span>
+  </a>
+  
+    <nav class="md-nav" aria-label="attr">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.reductions.solution.Solution.attr-type" class="md-nav__link">
+    <span class="md-ellipsis">Type</span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#reduction" class="md-nav__link">
+    <span title="reduction (reference label)" class="md-ellipsis">Reduction</span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Reduction">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.reductions.reduction.Reduction" class="md-nav__link">
+    <span aria-label="Python class" class="objinfo-icon objinfo-icon__data" title="Python class">C</span><span title="cvxpy.reductions.reduction.Reduction (Python class) — Abstract base class for reductions." class="md-ellipsis">cvxpy.<wbr>reductions.<wbr>reduction.<wbr>Reduction</span>
+  </a>
+  
+    <nav class="md-nav" aria-label="cvxpy.reductions.reduction.Reduction">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.reductions.reduction.Reduction-parameters" class="md-nav__link">
+    <span class="md-ellipsis">Parameters</span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Parameters">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.reductions.reduction.Reduction.__init__.problem" class="md-nav__link">
+    <span aria-label="Python parameter" class="objinfo-icon objinfo-icon__sub-data" title="Python parameter">p</span><span title="cvxpy.reductions.reduction.Reduction.__init__.problem (Python parameter) — A problem owned by this reduction; possibly None." class="md-ellipsis">problem</span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.reductions.reduction.Reduction.__init__" class="md-nav__link">
+    <span aria-label="Python method" class="objinfo-icon objinfo-icon__procedure" title="Python method">M</span><span title="cvxpy.reductions.reduction.Reduction.__init__ (Python method) — Construct a reduction for reducing problem." class="md-ellipsis">__<wbr>init__<wbr></span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.reductions.reduction.Reduction.accepts" class="md-nav__link">
+    <span aria-label="Python method" class="objinfo-icon objinfo-icon__procedure" title="Python method">M</span><span title="cvxpy.reductions.reduction.Reduction.accepts (Python method) — States whether the reduction accepts a problem." class="md-ellipsis">accepts</span>
+  </a>
+  
+    <nav class="md-nav" aria-label="accepts">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.reductions.reduction.Reduction.accepts-parameters" class="md-nav__link">
+    <span class="md-ellipsis">Parameters</span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Parameters">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.reductions.reduction.Reduction.accepts.problem" class="md-nav__link">
+    <span aria-label="Python parameter" class="objinfo-icon objinfo-icon__sub-data" title="Python parameter">p</span><span title="cvxpy.reductions.reduction.Reduction.accepts.problem (Python parameter) — The problem to check." class="md-ellipsis">problem</span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.reductions.reduction.Reduction.accepts-returns" class="md-nav__link">
+    <span class="md-ellipsis">Returns</span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.reductions.reduction.Reduction.accepts-return-type" class="md-nav__link">
+    <span class="md-ellipsis">Return type</span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.reductions.reduction.Reduction.apply" class="md-nav__link">
+    <span aria-label="Python method" class="objinfo-icon objinfo-icon__procedure" title="Python method">M</span><span title="cvxpy.reductions.reduction.Reduction.apply (Python method) — Applies the reduction to a problem and returns an equivalent problem." class="md-ellipsis">apply</span>
+  </a>
+  
+    <nav class="md-nav" aria-label="apply">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.reductions.reduction.Reduction.apply-parameters" class="md-nav__link">
+    <span class="md-ellipsis">Parameters</span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Parameters">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.reductions.reduction.Reduction.apply.problem" class="md-nav__link">
+    <span aria-label="Python parameter" class="objinfo-icon objinfo-icon__sub-data" title="Python parameter">p</span><span title="cvxpy.reductions.reduction.Reduction.apply.problem (Python parameter) — The problem to which the reduction will be applied." class="md-ellipsis">problem</span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.reductions.reduction.Reduction.apply-returns" class="md-nav__link">
+    <span class="md-ellipsis">Returns</span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.reductions.reduction.Reduction.invert" class="md-nav__link">
+    <span aria-label="Python method" class="objinfo-icon objinfo-icon__procedure" title="Python method">M</span><span title="cvxpy.reductions.reduction.Reduction.invert (Python method) — Returns a solution to the original problem given the inverse_data." class="md-ellipsis">invert</span>
+  </a>
+  
+    <nav class="md-nav" aria-label="invert">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.reductions.reduction.Reduction.invert-parameters" class="md-nav__link">
+    <span class="md-ellipsis">Parameters</span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Parameters">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.reductions.reduction.Reduction.invert.solution" class="md-nav__link">
+    <span aria-label="Python parameter" class="objinfo-icon objinfo-icon__sub-data" title="Python parameter">p</span><span title="cvxpy.reductions.reduction.Reduction.invert.solution (Python parameter) — A solution to a problem that generated the inverse_data." class="md-ellipsis">solution</span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.reductions.reduction.Reduction.invert.inverse_data" class="md-nav__link">
+    <span aria-label="Python parameter" class="objinfo-icon objinfo-icon__sub-data" title="Python parameter">p</span><span title="cvxpy.reductions.reduction.Reduction.invert.inverse_data (Python parameter) — The data encoding the original problem." class="md-ellipsis">inverse_<wbr>data</span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.reductions.reduction.Reduction.invert-returns" class="md-nav__link">
+    <span class="md-ellipsis">Returns</span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.reductions.reduction.Reduction.invert-return-type" class="md-nav__link">
+    <span class="md-ellipsis">Return type</span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.reductions.reduction.Reduction.reduce" class="md-nav__link">
+    <span aria-label="Python method" class="objinfo-icon objinfo-icon__procedure" title="Python method">M</span><span title="cvxpy.reductions.reduction.Reduction.reduce (Python method) — Reduces the owned problem to an equivalent problem." class="md-ellipsis">reduce</span>
+  </a>
+  
+    <nav class="md-nav" aria-label="reduce">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.reductions.reduction.Reduction.reduce-returns" class="md-nav__link">
+    <span class="md-ellipsis">Returns</span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.reductions.reduction.Reduction.reduce-return-type" class="md-nav__link">
+    <span class="md-ellipsis">Return type</span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.reductions.reduction.Reduction.reduce-raises" class="md-nav__link">
+    <span class="md-ellipsis">Raises</span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.reductions.reduction.Reduction.retrieve" class="md-nav__link">
+    <span aria-label="Python method" class="objinfo-icon objinfo-icon__procedure" title="Python method">M</span><span title="cvxpy.reductions.reduction.Reduction.retrieve (Python method) — Retrieves a solution to the owned problem." class="md-ellipsis">retrieve</span>
+  </a>
+  
+    <nav class="md-nav" aria-label="retrieve">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.reductions.reduction.Reduction.retrieve-parameters" class="md-nav__link">
+    <span class="md-ellipsis">Parameters</span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Parameters">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.reductions.reduction.Reduction.retrieve.solution" class="md-nav__link">
+    <span aria-label="Python parameter" class="objinfo-icon objinfo-icon__sub-data" title="Python parameter">p</span><span title="cvxpy.reductions.reduction.Reduction.retrieve.solution (Python parameter) — A solution to the problem emitted by reduce()." class="md-ellipsis">solution</span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.reductions.reduction.Reduction.retrieve-returns" class="md-nav__link">
+    <span class="md-ellipsis">Returns</span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.reductions.reduction.Reduction.retrieve-return-type" class="md-nav__link">
+    <span class="md-ellipsis">Return type</span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.reductions.reduction.Reduction.retrieve-raises" class="md-nav__link">
+    <span class="md-ellipsis">Raises</span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#chain" class="md-nav__link">
+    <span title="chain (reference label)" class="md-ellipsis">Chain</span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Chain">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.reductions.chain.Chain" class="md-nav__link">
+    <span aria-label="Python class" class="objinfo-icon objinfo-icon__data" title="Python class">C</span><span title="cvxpy.reductions.chain.Chain (Python class) — Bases: Reduction" class="md-ellipsis">cvxpy.<wbr>reductions.<wbr>chain.<wbr>Chain</span>
+  </a>
+  
+    <nav class="md-nav" aria-label="cvxpy.reductions.chain.Chain">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.reductions.chain.Chain.reductions" class="md-nav__link">
+    <span aria-label="Python attribute" class="objinfo-icon objinfo-icon__alias" title="Python attribute">A</span><span title="cvxpy.reductions.chain.Chain.reductions (Python attribute) — A list of reductions." class="md-ellipsis">reductions</span>
+  </a>
+  
+    <nav class="md-nav" aria-label="reductions">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.reductions.chain.Chain.reductions-type" class="md-nav__link">
+    <span class="md-ellipsis">Type</span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.reductions.chain.Chain.accepts" class="md-nav__link">
+    <span aria-label="Python method" class="objinfo-icon objinfo-icon__procedure" title="Python method">M</span><span title="cvxpy.reductions.chain.Chain.accepts (Python method) — A problem is accepted if the sequence of reductions is valid." class="md-ellipsis">accepts</span>
+  </a>
+  
+    <nav class="md-nav" aria-label="accepts">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.reductions.chain.Chain.accepts-parameters" class="md-nav__link">
+    <span class="md-ellipsis">Parameters</span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Parameters">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.reductions.chain.Chain.accepts.problem" class="md-nav__link">
+    <span aria-label="Python parameter" class="objinfo-icon objinfo-icon__sub-data" title="Python parameter">p</span><span title="cvxpy.reductions.chain.Chain.accepts.problem (Python parameter) — The problem to check." class="md-ellipsis">problem</span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.reductions.chain.Chain.accepts-returns" class="md-nav__link">
+    <span class="md-ellipsis">Returns</span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.reductions.chain.Chain.accepts-return-type" class="md-nav__link">
+    <span class="md-ellipsis">Return type</span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.reductions.chain.Chain.apply" class="md-nav__link">
+    <span aria-label="Python method" class="objinfo-icon objinfo-icon__procedure" title="Python method">M</span><span title="cvxpy.reductions.chain.Chain.apply (Python method) — Applies the chain to a problem and returns an equivalent problem." class="md-ellipsis">apply</span>
+  </a>
+  
+    <nav class="md-nav" aria-label="apply">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.reductions.chain.Chain.apply-parameters" class="md-nav__link">
+    <span class="md-ellipsis">Parameters</span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Parameters">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.reductions.chain.Chain.apply.problem" class="md-nav__link">
+    <span aria-label="Python parameter" class="objinfo-icon objinfo-icon__sub-data" title="Python parameter">p</span><span title="cvxpy.reductions.chain.Chain.apply.problem (Python parameter) — The problem to which the chain will be applied." class="md-ellipsis">problem</span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.reductions.chain.Chain.apply.verbose" class="md-nav__link">
+    <span aria-label="Python parameter" class="objinfo-icon objinfo-icon__sub-data" title="Python parameter">p</span><span title="cvxpy.reductions.chain.Chain.apply.verbose (Python parameter) — Whehter to print verbose output." class="md-ellipsis">verbose</span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.reductions.chain.Chain.apply-returns" class="md-nav__link">
+    <span class="md-ellipsis">Returns</span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.reductions.chain.Chain.invert" class="md-nav__link">
+    <span aria-label="Python method" class="objinfo-icon objinfo-icon__procedure" title="Python method">M</span><span title="cvxpy.reductions.chain.Chain.invert (Python method) — Returns a solution to the original problem given the inverse_data." class="md-ellipsis">invert</span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#solvingchain" class="md-nav__link">
+    <span title="solvingchain (reference label)" class="md-ellipsis">Solving<wbr>Chain</span>
+  </a>
+  
+    <nav class="md-nav" aria-label="SolvingChain">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.reductions.solvers.solving_chain.SolvingChain" class="md-nav__link">
+    <span aria-label="Python class" class="objinfo-icon objinfo-icon__data" title="Python class">C</span><span title="cvxpy.reductions.solvers.solving_chain.SolvingChain (Python class) — Bases: Chain" class="md-ellipsis">cvxpy.<wbr>reductions.<wbr>solvers.<wbr>solving_<wbr>chain.<wbr>Solving<wbr>Chain</span>
+  </a>
+  
+    <nav class="md-nav" aria-label="cvxpy.reductions.solvers.solving_chain.SolvingChain">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.reductions.solvers.solving_chain.SolvingChain-parameters" class="md-nav__link">
+    <span class="md-ellipsis">Parameters</span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Parameters">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.reductions.solvers.solving_chain.SolvingChain.__init__.reductions" class="md-nav__link">
+    <span aria-label="Python parameter" class="objinfo-icon objinfo-icon__sub-data" title="Python parameter">p</span><span title="cvxpy.reductions.solvers.solving_chain.SolvingChain.__init__.reductions (Python parameter) — A list of reductions." class="md-ellipsis">reductions</span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.reductions.solvers.solving_chain.SolvingChain.reductions" class="md-nav__link">
+    <span aria-label="Python attribute" class="objinfo-icon objinfo-icon__alias" title="Python attribute">A</span><span title="cvxpy.reductions.solvers.solving_chain.SolvingChain.reductions (Python attribute) — A list of reductions." class="md-ellipsis">reductions</span>
+  </a>
+  
+    <nav class="md-nav" aria-label="reductions">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.reductions.solvers.solving_chain.SolvingChain.reductions-type" class="md-nav__link">
+    <span class="md-ellipsis">Type</span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.reductions.solvers.solving_chain.SolvingChain.solver" class="md-nav__link">
+    <span aria-label="Python attribute" class="objinfo-icon objinfo-icon__alias" title="Python attribute">A</span><span title="cvxpy.reductions.solvers.solving_chain.SolvingChain.solver (Python attribute) — The solver, i.e., reductions[-1]." class="md-ellipsis">solver</span>
+  </a>
+  
+    <nav class="md-nav" aria-label="solver">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.reductions.solvers.solving_chain.SolvingChain.solver-type" class="md-nav__link">
+    <span class="md-ellipsis">Type</span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.reductions.solvers.solving_chain.SolvingChain.prepend" class="md-nav__link">
+    <span aria-label="Python method" class="objinfo-icon objinfo-icon__procedure" title="Python method">M</span><span title="cvxpy.reductions.solvers.solving_chain.SolvingChain.prepend (Python method) — Create and return a new SolvingChain by concatenating chain with this instance." class="md-ellipsis">prepend</span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.reductions.solvers.solving_chain.SolvingChain.solve" class="md-nav__link">
+    <span aria-label="Python method" class="objinfo-icon objinfo-icon__procedure" title="Python method">M</span><span title="cvxpy.reductions.solvers.solving_chain.SolvingChain.solve (Python method) — Solves the problem by applying the chain." class="md-ellipsis">solve</span>
+  </a>
+  
+    <nav class="md-nav" aria-label="solve">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.reductions.solvers.solving_chain.SolvingChain.solve-parameters" class="md-nav__link">
+    <span class="md-ellipsis">Parameters</span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Parameters">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.reductions.solvers.solving_chain.SolvingChain.solve.problem" class="md-nav__link">
+    <span aria-label="Python parameter" class="objinfo-icon objinfo-icon__sub-data" title="Python parameter">p</span><span title="cvxpy.reductions.solvers.solving_chain.SolvingChain.solve.problem (Python parameter) — The problem to solve." class="md-ellipsis">problem</span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.reductions.solvers.solving_chain.SolvingChain.solve.warm_start" class="md-nav__link">
+    <span aria-label="Python parameter" class="objinfo-icon objinfo-icon__sub-data" title="Python parameter">p</span><span title="cvxpy.reductions.solvers.solving_chain.SolvingChain.solve.warm_start (Python parameter) — Whether to warm start the solver." class="md-ellipsis">warm_<wbr>start</span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.reductions.solvers.solving_chain.SolvingChain.solve.verbose" class="md-nav__link">
+    <span aria-label="Python parameter" class="objinfo-icon objinfo-icon__sub-data" title="Python parameter">p</span><span title="cvxpy.reductions.solvers.solving_chain.SolvingChain.solve.verbose (Python parameter) — Whether to enable solver verbosity." class="md-ellipsis">verbose</span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.reductions.solvers.solving_chain.SolvingChain.solve.solver_opts" class="md-nav__link">
+    <span aria-label="Python parameter" class="objinfo-icon objinfo-icon__sub-data" title="Python parameter">p</span><span title="cvxpy.reductions.solvers.solving_chain.SolvingChain.solve.solver_opts (Python parameter) — Solver specific options." class="md-ellipsis">solver_<wbr>opts</span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.reductions.solvers.solving_chain.SolvingChain.solve-returns" class="md-nav__link">
+    <span class="md-ellipsis">Returns</span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.reductions.solvers.solving_chain.SolvingChain.solve-return-type" class="md-nav__link">
+    <span class="md-ellipsis">Return type</span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.reductions.solvers.solving_chain.SolvingChain.solve_via_data" class="md-nav__link">
+    <span aria-label="Python method" class="objinfo-icon objinfo-icon__procedure" title="Python method">M</span><span title="cvxpy.reductions.solvers.solving_chain.SolvingChain.solve_via_data (Python method) — Solves the problem using the data output by the an apply invocation." class="md-ellipsis">solve_<wbr>via_<wbr>data</span>
+  </a>
+  
+    <nav class="md-nav" aria-label="solve_via_data">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.reductions.solvers.solving_chain.SolvingChain.solve_via_data-parameters" class="md-nav__link">
+    <span class="md-ellipsis">Parameters</span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Parameters">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.reductions.solvers.solving_chain.SolvingChain.solve_via_data.problem" class="md-nav__link">
+    <span aria-label="Python parameter" class="objinfo-icon objinfo-icon__sub-data" title="Python parameter">p</span><span title="cvxpy.reductions.solvers.solving_chain.SolvingChain.solve_via_data.problem (Python parameter) — The problem to solve." class="md-ellipsis">problem</span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.reductions.solvers.solving_chain.SolvingChain.solve_via_data.data" class="md-nav__link">
+    <span aria-label="Python parameter" class="objinfo-icon objinfo-icon__sub-data" title="Python parameter">p</span><span title="cvxpy.reductions.solvers.solving_chain.SolvingChain.solve_via_data.data (Python parameter) — Data for the solver." class="md-ellipsis">data</span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.reductions.solvers.solving_chain.SolvingChain.solve_via_data.warm_start" class="md-nav__link">
+    <span aria-label="Python parameter" class="objinfo-icon objinfo-icon__sub-data" title="Python parameter">p</span><span title="cvxpy.reductions.solvers.solving_chain.SolvingChain.solve_via_data.warm_start (Python parameter) — Whether to warm start the solver." class="md-ellipsis">warm_<wbr>start</span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.reductions.solvers.solving_chain.SolvingChain.solve_via_data.verbose" class="md-nav__link">
+    <span aria-label="Python parameter" class="objinfo-icon objinfo-icon__sub-data" title="Python parameter">p</span><span title="cvxpy.reductions.solvers.solving_chain.SolvingChain.solve_via_data.verbose (Python parameter) — Whether to enable solver verbosity." class="md-ellipsis">verbose</span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.reductions.solvers.solving_chain.SolvingChain.solve_via_data.solver_opts" class="md-nav__link">
+    <span aria-label="Python parameter" class="objinfo-icon objinfo-icon__sub-data" title="Python parameter">p</span><span title="cvxpy.reductions.solvers.solving_chain.SolvingChain.solve_via_data.solver_opts (Python parameter) — Solver specific options." class="md-ellipsis">solver_<wbr>opts</span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.reductions.solvers.solving_chain.SolvingChain.solve_via_data-returns" class="md-nav__link">
+    <span class="md-ellipsis">Returns</span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.reductions.solvers.solving_chain.SolvingChain.solve_via_data-return-type" class="md-nav__link">
+    <span class="md-ellipsis">Return type</span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../examples/index.html" class="md-nav__link">
+        <span class="md-ellipsis">Examples</span>
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../contributing/index.html" class="md-nav__link">
+        <span class="md-ellipsis">Contributing</span>
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../updates/index.html" class="md-nav__link">
+        <span class="md-ellipsis">Changelog</span>
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../faq/index.html" class="md-nav__link">
+        <span class="md-ellipsis">FAQ</span>
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../resources/index.html" class="md-nav__link">
+        <span class="md-ellipsis">Resources</span>
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+  
+
+<nav class="md-nav md-nav--secondary">
+  
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      On this page
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#disclaimer" class="md-nav__link">
+    <span title="disclaimer (reference label)" class="md-ellipsis">Disclaimer</span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#types-of-reductions" class="md-nav__link">
+    <span title="types of reductions (reference label)" class="md-ellipsis">Types of Reductions</span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#core-classes" class="md-nav__link">
+    <span title="core classes (reference label)" class="md-ellipsis">Core classes</span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Core classes">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#solution" class="md-nav__link">
+    <span title="solution (reference label)" class="md-ellipsis">Solution</span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Solution">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.reductions.solution.Solution" class="md-nav__link">
+    <span aria-label="Python class" class="objinfo-icon objinfo-icon__data" title="Python class">C</span><span title="cvxpy.reductions.solution.Solution (Python class) — A solution to an optimization problem." class="md-ellipsis">cvxpy.<wbr>reductions.<wbr>solution.<wbr>Solution</span>
+  </a>
+  
+    <nav class="md-nav" aria-label="cvxpy.reductions.solution.Solution">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.reductions.solution.Solution.status" class="md-nav__link">
+    <span aria-label="Python attribute" class="objinfo-icon objinfo-icon__alias" title="Python attribute">A</span><span title="cvxpy.reductions.solution.Solution.status (Python attribute) — The status code." class="md-ellipsis">status</span>
+  </a>
+  
+    <nav class="md-nav" aria-label="status">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.reductions.solution.Solution.status-type" class="md-nav__link">
+    <span class="md-ellipsis">Type</span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.reductions.solution.Solution.opt_val" class="md-nav__link">
+    <span aria-label="Python attribute" class="objinfo-icon objinfo-icon__alias" title="Python attribute">A</span><span title="cvxpy.reductions.solution.Solution.opt_val (Python attribute) — The optimal value." class="md-ellipsis">opt_<wbr>val</span>
+  </a>
+  
+    <nav class="md-nav" aria-label="opt_val">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.reductions.solution.Solution.opt_val-type" class="md-nav__link">
+    <span class="md-ellipsis">Type</span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.reductions.solution.Solution.primal_vars" class="md-nav__link">
+    <span aria-label="Python attribute" class="objinfo-icon objinfo-icon__alias" title="Python attribute">A</span><span title="cvxpy.reductions.solution.Solution.primal_vars (Python attribute) — A map from variable ids to optimal values." class="md-ellipsis">primal_<wbr>vars</span>
+  </a>
+  
+    <nav class="md-nav" aria-label="primal_vars">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.reductions.solution.Solution.primal_vars-type" class="md-nav__link">
+    <span class="md-ellipsis">Type</span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.reductions.solution.Solution.dual_vars" class="md-nav__link">
+    <span aria-label="Python attribute" class="objinfo-icon objinfo-icon__alias" title="Python attribute">A</span><span title="cvxpy.reductions.solution.Solution.dual_vars (Python attribute) — A map from constraint ids to dual values." class="md-ellipsis">dual_<wbr>vars</span>
+  </a>
+  
+    <nav class="md-nav" aria-label="dual_vars">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.reductions.solution.Solution.dual_vars-type" class="md-nav__link">
+    <span class="md-ellipsis">Type</span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.reductions.solution.Solution.attr" class="md-nav__link">
+    <span aria-label="Python attribute" class="objinfo-icon objinfo-icon__alias" title="Python attribute">A</span><span title="cvxpy.reductions.solution.Solution.attr (Python attribute) — Miscelleneous information propagated up from a solver." class="md-ellipsis">attr</span>
+  </a>
+  
+    <nav class="md-nav" aria-label="attr">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.reductions.solution.Solution.attr-type" class="md-nav__link">
+    <span class="md-ellipsis">Type</span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#reduction" class="md-nav__link">
+    <span title="reduction (reference label)" class="md-ellipsis">Reduction</span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Reduction">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.reductions.reduction.Reduction" class="md-nav__link">
+    <span aria-label="Python class" class="objinfo-icon objinfo-icon__data" title="Python class">C</span><span title="cvxpy.reductions.reduction.Reduction (Python class) — Abstract base class for reductions." class="md-ellipsis">cvxpy.<wbr>reductions.<wbr>reduction.<wbr>Reduction</span>
+  </a>
+  
+    <nav class="md-nav" aria-label="cvxpy.reductions.reduction.Reduction">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.reductions.reduction.Reduction-parameters" class="md-nav__link">
+    <span class="md-ellipsis">Parameters</span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Parameters">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.reductions.reduction.Reduction.__init__.problem" class="md-nav__link">
+    <span aria-label="Python parameter" class="objinfo-icon objinfo-icon__sub-data" title="Python parameter">p</span><span title="cvxpy.reductions.reduction.Reduction.__init__.problem (Python parameter) — A problem owned by this reduction; possibly None." class="md-ellipsis">problem</span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.reductions.reduction.Reduction.__init__" class="md-nav__link">
+    <span aria-label="Python method" class="objinfo-icon objinfo-icon__procedure" title="Python method">M</span><span title="cvxpy.reductions.reduction.Reduction.__init__ (Python method) — Construct a reduction for reducing problem." class="md-ellipsis">__<wbr>init__<wbr></span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.reductions.reduction.Reduction.accepts" class="md-nav__link">
+    <span aria-label="Python method" class="objinfo-icon objinfo-icon__procedure" title="Python method">M</span><span title="cvxpy.reductions.reduction.Reduction.accepts (Python method) — States whether the reduction accepts a problem." class="md-ellipsis">accepts</span>
+  </a>
+  
+    <nav class="md-nav" aria-label="accepts">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.reductions.reduction.Reduction.accepts-parameters" class="md-nav__link">
+    <span class="md-ellipsis">Parameters</span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Parameters">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.reductions.reduction.Reduction.accepts.problem" class="md-nav__link">
+    <span aria-label="Python parameter" class="objinfo-icon objinfo-icon__sub-data" title="Python parameter">p</span><span title="cvxpy.reductions.reduction.Reduction.accepts.problem (Python parameter) — The problem to check." class="md-ellipsis">problem</span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.reductions.reduction.Reduction.accepts-returns" class="md-nav__link">
+    <span class="md-ellipsis">Returns</span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.reductions.reduction.Reduction.accepts-return-type" class="md-nav__link">
+    <span class="md-ellipsis">Return type</span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.reductions.reduction.Reduction.apply" class="md-nav__link">
+    <span aria-label="Python method" class="objinfo-icon objinfo-icon__procedure" title="Python method">M</span><span title="cvxpy.reductions.reduction.Reduction.apply (Python method) — Applies the reduction to a problem and returns an equivalent problem." class="md-ellipsis">apply</span>
+  </a>
+  
+    <nav class="md-nav" aria-label="apply">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.reductions.reduction.Reduction.apply-parameters" class="md-nav__link">
+    <span class="md-ellipsis">Parameters</span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Parameters">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.reductions.reduction.Reduction.apply.problem" class="md-nav__link">
+    <span aria-label="Python parameter" class="objinfo-icon objinfo-icon__sub-data" title="Python parameter">p</span><span title="cvxpy.reductions.reduction.Reduction.apply.problem (Python parameter) — The problem to which the reduction will be applied." class="md-ellipsis">problem</span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.reductions.reduction.Reduction.apply-returns" class="md-nav__link">
+    <span class="md-ellipsis">Returns</span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.reductions.reduction.Reduction.invert" class="md-nav__link">
+    <span aria-label="Python method" class="objinfo-icon objinfo-icon__procedure" title="Python method">M</span><span title="cvxpy.reductions.reduction.Reduction.invert (Python method) — Returns a solution to the original problem given the inverse_data." class="md-ellipsis">invert</span>
+  </a>
+  
+    <nav class="md-nav" aria-label="invert">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.reductions.reduction.Reduction.invert-parameters" class="md-nav__link">
+    <span class="md-ellipsis">Parameters</span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Parameters">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.reductions.reduction.Reduction.invert.solution" class="md-nav__link">
+    <span aria-label="Python parameter" class="objinfo-icon objinfo-icon__sub-data" title="Python parameter">p</span><span title="cvxpy.reductions.reduction.Reduction.invert.solution (Python parameter) — A solution to a problem that generated the inverse_data." class="md-ellipsis">solution</span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.reductions.reduction.Reduction.invert.inverse_data" class="md-nav__link">
+    <span aria-label="Python parameter" class="objinfo-icon objinfo-icon__sub-data" title="Python parameter">p</span><span title="cvxpy.reductions.reduction.Reduction.invert.inverse_data (Python parameter) — The data encoding the original problem." class="md-ellipsis">inverse_<wbr>data</span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.reductions.reduction.Reduction.invert-returns" class="md-nav__link">
+    <span class="md-ellipsis">Returns</span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.reductions.reduction.Reduction.invert-return-type" class="md-nav__link">
+    <span class="md-ellipsis">Return type</span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.reductions.reduction.Reduction.reduce" class="md-nav__link">
+    <span aria-label="Python method" class="objinfo-icon objinfo-icon__procedure" title="Python method">M</span><span title="cvxpy.reductions.reduction.Reduction.reduce (Python method) — Reduces the owned problem to an equivalent problem." class="md-ellipsis">reduce</span>
+  </a>
+  
+    <nav class="md-nav" aria-label="reduce">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.reductions.reduction.Reduction.reduce-returns" class="md-nav__link">
+    <span class="md-ellipsis">Returns</span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.reductions.reduction.Reduction.reduce-return-type" class="md-nav__link">
+    <span class="md-ellipsis">Return type</span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.reductions.reduction.Reduction.reduce-raises" class="md-nav__link">
+    <span class="md-ellipsis">Raises</span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.reductions.reduction.Reduction.retrieve" class="md-nav__link">
+    <span aria-label="Python method" class="objinfo-icon objinfo-icon__procedure" title="Python method">M</span><span title="cvxpy.reductions.reduction.Reduction.retrieve (Python method) — Retrieves a solution to the owned problem." class="md-ellipsis">retrieve</span>
+  </a>
+  
+    <nav class="md-nav" aria-label="retrieve">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.reductions.reduction.Reduction.retrieve-parameters" class="md-nav__link">
+    <span class="md-ellipsis">Parameters</span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Parameters">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.reductions.reduction.Reduction.retrieve.solution" class="md-nav__link">
+    <span aria-label="Python parameter" class="objinfo-icon objinfo-icon__sub-data" title="Python parameter">p</span><span title="cvxpy.reductions.reduction.Reduction.retrieve.solution (Python parameter) — A solution to the problem emitted by reduce()." class="md-ellipsis">solution</span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.reductions.reduction.Reduction.retrieve-returns" class="md-nav__link">
+    <span class="md-ellipsis">Returns</span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.reductions.reduction.Reduction.retrieve-return-type" class="md-nav__link">
+    <span class="md-ellipsis">Return type</span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.reductions.reduction.Reduction.retrieve-raises" class="md-nav__link">
+    <span class="md-ellipsis">Raises</span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#chain" class="md-nav__link">
+    <span title="chain (reference label)" class="md-ellipsis">Chain</span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Chain">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.reductions.chain.Chain" class="md-nav__link">
+    <span aria-label="Python class" class="objinfo-icon objinfo-icon__data" title="Python class">C</span><span title="cvxpy.reductions.chain.Chain (Python class) — Bases: Reduction" class="md-ellipsis">cvxpy.<wbr>reductions.<wbr>chain.<wbr>Chain</span>
+  </a>
+  
+    <nav class="md-nav" aria-label="cvxpy.reductions.chain.Chain">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.reductions.chain.Chain.reductions" class="md-nav__link">
+    <span aria-label="Python attribute" class="objinfo-icon objinfo-icon__alias" title="Python attribute">A</span><span title="cvxpy.reductions.chain.Chain.reductions (Python attribute) — A list of reductions." class="md-ellipsis">reductions</span>
+  </a>
+  
+    <nav class="md-nav" aria-label="reductions">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.reductions.chain.Chain.reductions-type" class="md-nav__link">
+    <span class="md-ellipsis">Type</span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.reductions.chain.Chain.accepts" class="md-nav__link">
+    <span aria-label="Python method" class="objinfo-icon objinfo-icon__procedure" title="Python method">M</span><span title="cvxpy.reductions.chain.Chain.accepts (Python method) — A problem is accepted if the sequence of reductions is valid." class="md-ellipsis">accepts</span>
+  </a>
+  
+    <nav class="md-nav" aria-label="accepts">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.reductions.chain.Chain.accepts-parameters" class="md-nav__link">
+    <span class="md-ellipsis">Parameters</span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Parameters">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.reductions.chain.Chain.accepts.problem" class="md-nav__link">
+    <span aria-label="Python parameter" class="objinfo-icon objinfo-icon__sub-data" title="Python parameter">p</span><span title="cvxpy.reductions.chain.Chain.accepts.problem (Python parameter) — The problem to check." class="md-ellipsis">problem</span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.reductions.chain.Chain.accepts-returns" class="md-nav__link">
+    <span class="md-ellipsis">Returns</span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.reductions.chain.Chain.accepts-return-type" class="md-nav__link">
+    <span class="md-ellipsis">Return type</span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.reductions.chain.Chain.apply" class="md-nav__link">
+    <span aria-label="Python method" class="objinfo-icon objinfo-icon__procedure" title="Python method">M</span><span title="cvxpy.reductions.chain.Chain.apply (Python method) — Applies the chain to a problem and returns an equivalent problem." class="md-ellipsis">apply</span>
+  </a>
+  
+    <nav class="md-nav" aria-label="apply">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.reductions.chain.Chain.apply-parameters" class="md-nav__link">
+    <span class="md-ellipsis">Parameters</span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Parameters">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.reductions.chain.Chain.apply.problem" class="md-nav__link">
+    <span aria-label="Python parameter" class="objinfo-icon objinfo-icon__sub-data" title="Python parameter">p</span><span title="cvxpy.reductions.chain.Chain.apply.problem (Python parameter) — The problem to which the chain will be applied." class="md-ellipsis">problem</span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.reductions.chain.Chain.apply.verbose" class="md-nav__link">
+    <span aria-label="Python parameter" class="objinfo-icon objinfo-icon__sub-data" title="Python parameter">p</span><span title="cvxpy.reductions.chain.Chain.apply.verbose (Python parameter) — Whehter to print verbose output." class="md-ellipsis">verbose</span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.reductions.chain.Chain.apply-returns" class="md-nav__link">
+    <span class="md-ellipsis">Returns</span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.reductions.chain.Chain.invert" class="md-nav__link">
+    <span aria-label="Python method" class="objinfo-icon objinfo-icon__procedure" title="Python method">M</span><span title="cvxpy.reductions.chain.Chain.invert (Python method) — Returns a solution to the original problem given the inverse_data." class="md-ellipsis">invert</span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#solvingchain" class="md-nav__link">
+    <span title="solvingchain (reference label)" class="md-ellipsis">Solving<wbr>Chain</span>
+  </a>
+  
+    <nav class="md-nav" aria-label="SolvingChain">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.reductions.solvers.solving_chain.SolvingChain" class="md-nav__link">
+    <span aria-label="Python class" class="objinfo-icon objinfo-icon__data" title="Python class">C</span><span title="cvxpy.reductions.solvers.solving_chain.SolvingChain (Python class) — Bases: Chain" class="md-ellipsis">cvxpy.<wbr>reductions.<wbr>solvers.<wbr>solving_<wbr>chain.<wbr>Solving<wbr>Chain</span>
+  </a>
+  
+    <nav class="md-nav" aria-label="cvxpy.reductions.solvers.solving_chain.SolvingChain">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.reductions.solvers.solving_chain.SolvingChain-parameters" class="md-nav__link">
+    <span class="md-ellipsis">Parameters</span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Parameters">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.reductions.solvers.solving_chain.SolvingChain.__init__.reductions" class="md-nav__link">
+    <span aria-label="Python parameter" class="objinfo-icon objinfo-icon__sub-data" title="Python parameter">p</span><span title="cvxpy.reductions.solvers.solving_chain.SolvingChain.__init__.reductions (Python parameter) — A list of reductions." class="md-ellipsis">reductions</span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.reductions.solvers.solving_chain.SolvingChain.reductions" class="md-nav__link">
+    <span aria-label="Python attribute" class="objinfo-icon objinfo-icon__alias" title="Python attribute">A</span><span title="cvxpy.reductions.solvers.solving_chain.SolvingChain.reductions (Python attribute) — A list of reductions." class="md-ellipsis">reductions</span>
+  </a>
+  
+    <nav class="md-nav" aria-label="reductions">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.reductions.solvers.solving_chain.SolvingChain.reductions-type" class="md-nav__link">
+    <span class="md-ellipsis">Type</span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.reductions.solvers.solving_chain.SolvingChain.solver" class="md-nav__link">
+    <span aria-label="Python attribute" class="objinfo-icon objinfo-icon__alias" title="Python attribute">A</span><span title="cvxpy.reductions.solvers.solving_chain.SolvingChain.solver (Python attribute) — The solver, i.e., reductions[-1]." class="md-ellipsis">solver</span>
+  </a>
+  
+    <nav class="md-nav" aria-label="solver">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.reductions.solvers.solving_chain.SolvingChain.solver-type" class="md-nav__link">
+    <span class="md-ellipsis">Type</span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.reductions.solvers.solving_chain.SolvingChain.prepend" class="md-nav__link">
+    <span aria-label="Python method" class="objinfo-icon objinfo-icon__procedure" title="Python method">M</span><span title="cvxpy.reductions.solvers.solving_chain.SolvingChain.prepend (Python method) — Create and return a new SolvingChain by concatenating chain with this instance." class="md-ellipsis">prepend</span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.reductions.solvers.solving_chain.SolvingChain.solve" class="md-nav__link">
+    <span aria-label="Python method" class="objinfo-icon objinfo-icon__procedure" title="Python method">M</span><span title="cvxpy.reductions.solvers.solving_chain.SolvingChain.solve (Python method) — Solves the problem by applying the chain." class="md-ellipsis">solve</span>
+  </a>
+  
+    <nav class="md-nav" aria-label="solve">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.reductions.solvers.solving_chain.SolvingChain.solve-parameters" class="md-nav__link">
+    <span class="md-ellipsis">Parameters</span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Parameters">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.reductions.solvers.solving_chain.SolvingChain.solve.problem" class="md-nav__link">
+    <span aria-label="Python parameter" class="objinfo-icon objinfo-icon__sub-data" title="Python parameter">p</span><span title="cvxpy.reductions.solvers.solving_chain.SolvingChain.solve.problem (Python parameter) — The problem to solve." class="md-ellipsis">problem</span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.reductions.solvers.solving_chain.SolvingChain.solve.warm_start" class="md-nav__link">
+    <span aria-label="Python parameter" class="objinfo-icon objinfo-icon__sub-data" title="Python parameter">p</span><span title="cvxpy.reductions.solvers.solving_chain.SolvingChain.solve.warm_start (Python parameter) — Whether to warm start the solver." class="md-ellipsis">warm_<wbr>start</span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.reductions.solvers.solving_chain.SolvingChain.solve.verbose" class="md-nav__link">
+    <span aria-label="Python parameter" class="objinfo-icon objinfo-icon__sub-data" title="Python parameter">p</span><span title="cvxpy.reductions.solvers.solving_chain.SolvingChain.solve.verbose (Python parameter) — Whether to enable solver verbosity." class="md-ellipsis">verbose</span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.reductions.solvers.solving_chain.SolvingChain.solve.solver_opts" class="md-nav__link">
+    <span aria-label="Python parameter" class="objinfo-icon objinfo-icon__sub-data" title="Python parameter">p</span><span title="cvxpy.reductions.solvers.solving_chain.SolvingChain.solve.solver_opts (Python parameter) — Solver specific options." class="md-ellipsis">solver_<wbr>opts</span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.reductions.solvers.solving_chain.SolvingChain.solve-returns" class="md-nav__link">
+    <span class="md-ellipsis">Returns</span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.reductions.solvers.solving_chain.SolvingChain.solve-return-type" class="md-nav__link">
+    <span class="md-ellipsis">Return type</span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.reductions.solvers.solving_chain.SolvingChain.solve_via_data" class="md-nav__link">
+    <span aria-label="Python method" class="objinfo-icon objinfo-icon__procedure" title="Python method">M</span><span title="cvxpy.reductions.solvers.solving_chain.SolvingChain.solve_via_data (Python method) — Solves the problem using the data output by the an apply invocation." class="md-ellipsis">solve_<wbr>via_<wbr>data</span>
+  </a>
+  
+    <nav class="md-nav" aria-label="solve_via_data">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.reductions.solvers.solving_chain.SolvingChain.solve_via_data-parameters" class="md-nav__link">
+    <span class="md-ellipsis">Parameters</span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Parameters">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.reductions.solvers.solving_chain.SolvingChain.solve_via_data.problem" class="md-nav__link">
+    <span aria-label="Python parameter" class="objinfo-icon objinfo-icon__sub-data" title="Python parameter">p</span><span title="cvxpy.reductions.solvers.solving_chain.SolvingChain.solve_via_data.problem (Python parameter) — The problem to solve." class="md-ellipsis">problem</span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.reductions.solvers.solving_chain.SolvingChain.solve_via_data.data" class="md-nav__link">
+    <span aria-label="Python parameter" class="objinfo-icon objinfo-icon__sub-data" title="Python parameter">p</span><span title="cvxpy.reductions.solvers.solving_chain.SolvingChain.solve_via_data.data (Python parameter) — Data for the solver." class="md-ellipsis">data</span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.reductions.solvers.solving_chain.SolvingChain.solve_via_data.warm_start" class="md-nav__link">
+    <span aria-label="Python parameter" class="objinfo-icon objinfo-icon__sub-data" title="Python parameter">p</span><span title="cvxpy.reductions.solvers.solving_chain.SolvingChain.solve_via_data.warm_start (Python parameter) — Whether to warm start the solver." class="md-ellipsis">warm_<wbr>start</span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.reductions.solvers.solving_chain.SolvingChain.solve_via_data.verbose" class="md-nav__link">
+    <span aria-label="Python parameter" class="objinfo-icon objinfo-icon__sub-data" title="Python parameter">p</span><span title="cvxpy.reductions.solvers.solving_chain.SolvingChain.solve_via_data.verbose (Python parameter) — Whether to enable solver verbosity." class="md-ellipsis">verbose</span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.reductions.solvers.solving_chain.SolvingChain.solve_via_data.solver_opts" class="md-nav__link">
+    <span aria-label="Python parameter" class="objinfo-icon objinfo-icon__sub-data" title="Python parameter">p</span><span title="cvxpy.reductions.solvers.solving_chain.SolvingChain.solve_via_data.solver_opts (Python parameter) — Solver specific options." class="md-ellipsis">solver_<wbr>opts</span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.reductions.solvers.solving_chain.SolvingChain.solve_via_data-returns" class="md-nav__link">
+    <span class="md-ellipsis">Returns</span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.reductions.solvers.solving_chain.SolvingChain.solve_via_data-return-type" class="md-nav__link">
+    <span class="md-ellipsis">Return type</span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset" role="main">
+                  
+
+
+<h1 id="reductions"><span id="reductions-api"></span>Reductions<a class="headerlink" href="#reductions" title="Link to this heading">¶</a></h1>
+<p>A <a class="reference internal" href="#cvxpy.reductions.reduction.Reduction" title="cvxpy.reductions.reduction.Reduction (Python class) — Abstract base class for reductions."><code class="xref py py-class docutils literal notranslate"><span class="pre">Reduction</span></code></a> is a transformation
+from one problem to an equivalent problem. Two problems are equivalent
+if a solution of one can be converted to a solution of the other with no
+more than a moderate amount of effort. CVXPY uses reductions to rewrite
+problems into forms that solvers will accept.</p>
+<h2 id="disclaimer"><span id="reductions-disclaimer"></span>Disclaimer<a class="headerlink" href="#disclaimer" title="Link to this heading">¶</a></h2>
+<p>The majority of users do not need to know anything about CVXPY’s reduction system.
+Indeed, most users need not even know that reductions exist!</p>
+<p>In order to make sure that we have flexibility to improve CVXPY’s speed
+and capabilities while preserving backwards-compatibility, we have
+determined that the reduction system will not be considered part of CVXPY’s
+public API. As such, aspects of this system can change without notice in future releases.</p>
+<p>We provide this documentation for CVXPY contributors, for the curious, and for
+those who are okay with building on an API that may not be available in future
+versions of CVXPY.
+Please contact us if you have an interesting application which requires direct
+access to the Reduction system and if you care about forward compatibility with
+future versions of CVXPY.</p>
+<h2 id="types-of-reductions">Types of Reductions<a class="headerlink" href="#types-of-reductions" title="Link to this heading">¶</a></h2>
+<p>Reductions allow CVXPY to support different problem classes such as convex
+and log-log convex programming. They also help CVXPY target different categories
+of solvers, such as quadratic programming solvers and conic solvers.</p>
+<p>Appropriating terminology from software compilers, we classify reductions as
+either middle-end reductions or back-end reductions. A reduction that simplifies
+a source problem without regard to the targeted solver is called a
+<a class="reference internal" href="cvxpy.reductions.middle_end.html"><span class="doc">middle-end reduction</span></a>, whereas a reduction
+that takes a source problem and converts it to a form acceptable to a category
+of solvers is called a <a class="reference internal" href="cvxpy.reductions.back_end.html"><span class="doc">back-end reduction</span></a>.
+Each solver (along with the mode in which it is invoked) is called a <em>back-end</em>
+or <em>target</em>.</p>
+<p>Here’s a breakdown of CVXPY’s reductions:</p>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="cvxpy.reductions.middle_end.html">Middle-End</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="cvxpy.reductions.middle_end.html#complex2real">Complex2Real</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="cvxpy.reductions.middle_end.html#cvxpy.reductions.complex2real.complex2real.Complex2Real">cvxpy.reductions.complex2real.complex2real.Complex2Real</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="cvxpy.reductions.middle_end.html#cvxpy.reductions.complex2real.complex2real.Complex2Real.accepts">accepts</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="cvxpy.reductions.middle_end.html#cvxpy.reductions.complex2real.complex2real.Complex2Real.accepts-parameters">Parameters</a><ul>
+<li class="toctree-l6"><a class="reference internal" href="cvxpy.reductions.middle_end.html#cvxpy.reductions.complex2real.complex2real.Complex2Real.accepts.problem">problem</a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="cvxpy.reductions.middle_end.html#cvxpy.reductions.complex2real.complex2real.Complex2Real.accepts-returns">Returns</a></li>
+<li class="toctree-l5"><a class="reference internal" href="cvxpy.reductions.middle_end.html#cvxpy.reductions.complex2real.complex2real.Complex2Real.accepts-return-type">Return type</a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="cvxpy.reductions.middle_end.html#cvxpy.reductions.complex2real.complex2real.Complex2Real.apply">apply</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="cvxpy.reductions.middle_end.html#cvxpy.reductions.complex2real.complex2real.Complex2Real.apply-parameters">Parameters</a><ul>
+<li class="toctree-l6"><a class="reference internal" href="cvxpy.reductions.middle_end.html#cvxpy.reductions.complex2real.complex2real.Complex2Real.apply.problem">problem</a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="cvxpy.reductions.middle_end.html#cvxpy.reductions.complex2real.complex2real.Complex2Real.apply-returns">Returns</a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="cvxpy.reductions.middle_end.html#cvxpy.reductions.complex2real.complex2real.Complex2Real.invert">invert</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="cvxpy.reductions.middle_end.html#cvxpy.reductions.complex2real.complex2real.Complex2Real.invert-parameters">Parameters</a><ul>
+<li class="toctree-l6"><a class="reference internal" href="cvxpy.reductions.middle_end.html#cvxpy.reductions.complex2real.complex2real.Complex2Real.invert.solution">solution</a></li>
+<li class="toctree-l6"><a class="reference internal" href="cvxpy.reductions.middle_end.html#cvxpy.reductions.complex2real.complex2real.Complex2Real.invert.inverse_data">inverse_data</a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="cvxpy.reductions.middle_end.html#cvxpy.reductions.complex2real.complex2real.Complex2Real.invert-returns">Returns</a></li>
+<li class="toctree-l5"><a class="reference internal" href="cvxpy.reductions.middle_end.html#cvxpy.reductions.complex2real.complex2real.Complex2Real.invert-return-type">Return type</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="cvxpy.reductions.middle_end.html#cvxattr2constr">CvxAttr2Constr</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="cvxpy.reductions.middle_end.html#cvxpy.reductions.cvx_attr2constr.CvxAttr2Constr">cvxpy.reductions.cvx_attr2constr.CvxAttr2Constr</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="cvxpy.reductions.middle_end.html#cvxpy.reductions.cvx_attr2constr.CvxAttr2Constr.accepts">accepts</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="cvxpy.reductions.middle_end.html#cvxpy.reductions.cvx_attr2constr.CvxAttr2Constr.accepts-parameters">Parameters</a><ul>
+<li class="toctree-l6"><a class="reference internal" href="cvxpy.reductions.middle_end.html#cvxpy.reductions.cvx_attr2constr.CvxAttr2Constr.accepts.problem">problem</a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="cvxpy.reductions.middle_end.html#cvxpy.reductions.cvx_attr2constr.CvxAttr2Constr.accepts-returns">Returns</a></li>
+<li class="toctree-l5"><a class="reference internal" href="cvxpy.reductions.middle_end.html#cvxpy.reductions.cvx_attr2constr.CvxAttr2Constr.accepts-return-type">Return type</a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="cvxpy.reductions.middle_end.html#cvxpy.reductions.cvx_attr2constr.CvxAttr2Constr.apply">apply</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="cvxpy.reductions.middle_end.html#cvxpy.reductions.cvx_attr2constr.CvxAttr2Constr.apply-parameters">Parameters</a><ul>
+<li class="toctree-l6"><a class="reference internal" href="cvxpy.reductions.middle_end.html#cvxpy.reductions.cvx_attr2constr.CvxAttr2Constr.apply.problem">problem</a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="cvxpy.reductions.middle_end.html#cvxpy.reductions.cvx_attr2constr.CvxAttr2Constr.apply-returns">Returns</a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="cvxpy.reductions.middle_end.html#cvxpy.reductions.cvx_attr2constr.CvxAttr2Constr.invert">invert</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="cvxpy.reductions.middle_end.html#cvxpy.reductions.cvx_attr2constr.CvxAttr2Constr.invert-parameters">Parameters</a><ul>
+<li class="toctree-l6"><a class="reference internal" href="cvxpy.reductions.middle_end.html#cvxpy.reductions.cvx_attr2constr.CvxAttr2Constr.invert.solution">solution</a></li>
+<li class="toctree-l6"><a class="reference internal" href="cvxpy.reductions.middle_end.html#cvxpy.reductions.cvx_attr2constr.CvxAttr2Constr.invert.inverse_data">inverse_data</a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="cvxpy.reductions.middle_end.html#cvxpy.reductions.cvx_attr2constr.CvxAttr2Constr.invert-returns">Returns</a></li>
+<li class="toctree-l5"><a class="reference internal" href="cvxpy.reductions.middle_end.html#cvxpy.reductions.cvx_attr2constr.CvxAttr2Constr.invert-return-type">Return type</a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="cvxpy.reductions.middle_end.html#cvxpy.reductions.cvx_attr2constr.CvxAttr2Constr.reduction_attributes">reduction_attributes</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="cvxpy.reductions.middle_end.html#dgp2dcp">Dgp2Dcp</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="cvxpy.reductions.middle_end.html#cvxpy.reductions.dgp2dcp.dgp2dcp.Dgp2Dcp">cvxpy.reductions.dgp2dcp.dgp2dcp.Dgp2Dcp</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="cvxpy.reductions.middle_end.html#cvxpy.reductions.dgp2dcp.dgp2dcp.Dgp2Dcp.accepts">accepts</a></li>
+<li class="toctree-l4"><a class="reference internal" href="cvxpy.reductions.middle_end.html#cvxpy.reductions.dgp2dcp.dgp2dcp.Dgp2Dcp.apply">apply</a></li>
+<li class="toctree-l4"><a class="reference internal" href="cvxpy.reductions.middle_end.html#cvxpy.reductions.dgp2dcp.dgp2dcp.Dgp2Dcp.canonicalize_expr">canonicalize_expr</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="cvxpy.reductions.middle_end.html#cvxpy.reductions.dgp2dcp.dgp2dcp.Dgp2Dcp.canonicalize_expr-parameters">Parameters</a><ul>
+<li class="toctree-l6"><a class="reference internal" href="cvxpy.reductions.middle_end.html#cvxpy.reductions.dgp2dcp.dgp2dcp.Dgp2Dcp.canonicalize_expr.expr">expr</a></li>
+<li class="toctree-l6"><a class="reference internal" href="cvxpy.reductions.middle_end.html#cvxpy.reductions.dgp2dcp.dgp2dcp.Dgp2Dcp.canonicalize_expr.args">args</a></li>
+<li class="toctree-l6"><a class="reference internal" href="cvxpy.reductions.middle_end.html#cvxpy.reductions.dgp2dcp.dgp2dcp.Dgp2Dcp.canonicalize_expr.canonicalize_params">canonicalize_params</a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="cvxpy.reductions.middle_end.html#cvxpy.reductions.dgp2dcp.dgp2dcp.Dgp2Dcp.canonicalize_expr-returns">Returns</a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="cvxpy.reductions.middle_end.html#cvxpy.reductions.dgp2dcp.dgp2dcp.Dgp2Dcp.invert">invert</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="cvxpy.reductions.middle_end.html#cvxpy.reductions.dgp2dcp.dgp2dcp.Dgp2Dcp.invert-parameters">Parameters</a><ul>
+<li class="toctree-l6"><a class="reference internal" href="cvxpy.reductions.middle_end.html#cvxpy.reductions.dgp2dcp.dgp2dcp.Dgp2Dcp.invert.solution">solution</a></li>
+<li class="toctree-l6"><a class="reference internal" href="cvxpy.reductions.middle_end.html#cvxpy.reductions.dgp2dcp.dgp2dcp.Dgp2Dcp.invert.inverse_data">inverse_data</a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="cvxpy.reductions.middle_end.html#cvxpy.reductions.dgp2dcp.dgp2dcp.Dgp2Dcp.invert-returns">Returns</a></li>
+<li class="toctree-l5"><a class="reference internal" href="cvxpy.reductions.middle_end.html#cvxpy.reductions.dgp2dcp.dgp2dcp.Dgp2Dcp.invert-return-type">Return type</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="cvxpy.reductions.middle_end.html#evalparams">EvalParams</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="cvxpy.reductions.middle_end.html#cvxpy.reductions.eval_params.EvalParams">cvxpy.reductions.eval_params.EvalParams</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="cvxpy.reductions.middle_end.html#cvxpy.reductions.eval_params.EvalParams.accepts">accepts</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="cvxpy.reductions.middle_end.html#cvxpy.reductions.eval_params.EvalParams.accepts-parameters">Parameters</a><ul>
+<li class="toctree-l6"><a class="reference internal" href="cvxpy.reductions.middle_end.html#cvxpy.reductions.eval_params.EvalParams.accepts.problem">problem</a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="cvxpy.reductions.middle_end.html#cvxpy.reductions.eval_params.EvalParams.accepts-returns">Returns</a></li>
+<li class="toctree-l5"><a class="reference internal" href="cvxpy.reductions.middle_end.html#cvxpy.reductions.eval_params.EvalParams.accepts-return-type">Return type</a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="cvxpy.reductions.middle_end.html#cvxpy.reductions.eval_params.EvalParams.apply">apply</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="cvxpy.reductions.middle_end.html#cvxpy.reductions.eval_params.EvalParams.apply-parameters">Parameters</a><ul>
+<li class="toctree-l6"><a class="reference internal" href="cvxpy.reductions.middle_end.html#cvxpy.reductions.eval_params.EvalParams.apply.problem">problem</a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="cvxpy.reductions.middle_end.html#cvxpy.reductions.eval_params.EvalParams.apply-returns">Returns</a></li>
+<li class="toctree-l5"><a class="reference internal" href="cvxpy.reductions.middle_end.html#cvxpy.reductions.eval_params.EvalParams.apply-return-type">Return type</a></li>
+<li class="toctree-l5"><a class="reference internal" href="cvxpy.reductions.middle_end.html#cvxpy.reductions.eval_params.EvalParams.apply-raises">Raises</a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="cvxpy.reductions.middle_end.html#cvxpy.reductions.eval_params.EvalParams.invert">invert</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="cvxpy.reductions.middle_end.html#flipobjective">FlipObjective</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="cvxpy.reductions.middle_end.html#cvxpy.reductions.flip_objective.FlipObjective">cvxpy.reductions.flip_objective.FlipObjective</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="cvxpy.reductions.middle_end.html#cvxpy.reductions.flip_objective.FlipObjective.accepts">accepts</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="cvxpy.reductions.middle_end.html#cvxpy.reductions.flip_objective.FlipObjective.accepts-parameters">Parameters</a><ul>
+<li class="toctree-l6"><a class="reference internal" href="cvxpy.reductions.middle_end.html#cvxpy.reductions.flip_objective.FlipObjective.accepts.problem">problem</a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="cvxpy.reductions.middle_end.html#cvxpy.reductions.flip_objective.FlipObjective.accepts-returns">Returns</a></li>
+<li class="toctree-l5"><a class="reference internal" href="cvxpy.reductions.middle_end.html#cvxpy.reductions.flip_objective.FlipObjective.accepts-return-type">Return type</a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="cvxpy.reductions.middle_end.html#cvxpy.reductions.flip_objective.FlipObjective.apply">apply</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="cvxpy.reductions.middle_end.html#cvxpy.reductions.flip_objective.FlipObjective.apply-parameters">Parameters</a><ul>
+<li class="toctree-l6"><a class="reference internal" href="cvxpy.reductions.middle_end.html#cvxpy.reductions.flip_objective.FlipObjective.apply.problem">problem</a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="cvxpy.reductions.middle_end.html#cvxpy.reductions.flip_objective.FlipObjective.apply-returns">Returns</a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="cvxpy.reductions.middle_end.html#cvxpy.reductions.flip_objective.FlipObjective.invert">invert</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="cvxpy.reductions.middle_end.html#cvxpy.reductions.flip_objective.FlipObjective.invert-parameters">Parameters</a><ul>
+<li class="toctree-l6"><a class="reference internal" href="cvxpy.reductions.middle_end.html#cvxpy.reductions.flip_objective.FlipObjective.invert.solution">solution</a></li>
+<li class="toctree-l6"><a class="reference internal" href="cvxpy.reductions.middle_end.html#cvxpy.reductions.flip_objective.FlipObjective.invert.inverse_data">inverse_data</a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="cvxpy.reductions.middle_end.html#cvxpy.reductions.flip_objective.FlipObjective.invert-returns">Returns</a></li>
+<li class="toctree-l5"><a class="reference internal" href="cvxpy.reductions.middle_end.html#cvxpy.reductions.flip_objective.FlipObjective.invert-return-type">Return type</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="cvxpy.reductions.back_end.html">Back-End</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="cvxpy.reductions.back_end.html#dcp2cone">Dcp2Cone</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="cvxpy.reductions.back_end.html#cvxpy.reductions.dcp2cone.dcp2cone.Dcp2Cone">cvxpy.reductions.dcp2cone.dcp2cone.Dcp2Cone</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="cvxpy.reductions.back_end.html#cvxpy.reductions.dcp2cone.dcp2cone.Dcp2Cone.accepts">accepts</a></li>
+<li class="toctree-l4"><a class="reference internal" href="cvxpy.reductions.back_end.html#cvxpy.reductions.dcp2cone.dcp2cone.Dcp2Cone.apply">apply</a></li>
+<li class="toctree-l4"><a class="reference internal" href="cvxpy.reductions.back_end.html#cvxpy.reductions.dcp2cone.dcp2cone.Dcp2Cone.canonicalize_expr">canonicalize_expr</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="cvxpy.reductions.back_end.html#cvxpy.reductions.dcp2cone.dcp2cone.Dcp2Cone.canonicalize_expr-parameters">Parameters</a><ul>
+<li class="toctree-l6"><a class="reference internal" href="cvxpy.reductions.back_end.html#cvxpy.reductions.dcp2cone.dcp2cone.Dcp2Cone.canonicalize_expr.expr">expr</a></li>
+<li class="toctree-l6"><a class="reference internal" href="cvxpy.reductions.back_end.html#cvxpy.reductions.dcp2cone.dcp2cone.Dcp2Cone.canonicalize_expr.args">args</a></li>
+<li class="toctree-l6"><a class="reference internal" href="cvxpy.reductions.back_end.html#cvxpy.reductions.dcp2cone.dcp2cone.Dcp2Cone.canonicalize_expr.affine_above">affine_above</a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="cvxpy.reductions.back_end.html#cvxpy.reductions.dcp2cone.dcp2cone.Dcp2Cone.canonicalize_expr-return-type">Return type</a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="cvxpy.reductions.back_end.html#cvxpy.reductions.dcp2cone.dcp2cone.Dcp2Cone.canonicalize_tree">canonicalize_tree</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="cvxpy.reductions.back_end.html#cvxpy.reductions.dcp2cone.dcp2cone.Dcp2Cone.canonicalize_tree-parameters">Parameters</a><ul>
+<li class="toctree-l6"><a class="reference internal" href="cvxpy.reductions.back_end.html#cvxpy.reductions.dcp2cone.dcp2cone.Dcp2Cone.canonicalize_tree.expr">expr</a></li>
+<li class="toctree-l6"><a class="reference internal" href="cvxpy.reductions.back_end.html#cvxpy.reductions.dcp2cone.dcp2cone.Dcp2Cone.canonicalize_tree.affine_above">affine_above</a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="cvxpy.reductions.back_end.html#cvxpy.reductions.dcp2cone.dcp2cone.Dcp2Cone.canonicalize_tree-return-type">Return type</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="cvxpy.reductions.back_end.html#qp2symbolicqp">Qp2SymbolicQp</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="cvxpy.reductions.back_end.html#cvxpy.reductions.qp2quad_form.qp2symbolic_qp.Qp2SymbolicQp">cvxpy.reductions.qp2quad_form.qp2symbolic_qp.Qp2SymbolicQp</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="cvxpy.reductions.back_end.html#cvxpy.reductions.qp2quad_form.qp2symbolic_qp.Qp2SymbolicQp.accepts">accepts</a></li>
+<li class="toctree-l4"><a class="reference internal" href="cvxpy.reductions.back_end.html#cvxpy.reductions.qp2quad_form.qp2symbolic_qp.Qp2SymbolicQp.apply">apply</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="cvxpy.reductions.back_end.html#dualize">Dualize</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="cvxpy.reductions.back_end.html#cvxpy.reductions.cone2cone.affine2direct.Dualize">cvxpy.reductions.cone2cone.affine2direct.Dualize</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="cvxpy.reductions.back_end.html#usage">Usage</a></li>
+<li class="toctree-l4"><a class="reference internal" href="cvxpy.reductions.back_end.html#assumptions">Assumptions</a></li>
+<li class="toctree-l4"><a class="reference internal" href="cvxpy.reductions.back_end.html#additional-notes">Additional notes</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="cvxpy.reductions.back_end.html#cvxpy.reductions.cone2cone.affine2direct.Dualize.invert">invert</a><ul>
+<li class="toctree-l6"><a class="reference internal" href="cvxpy.reductions.back_end.html#details-on-required-formatting-of-solution-primal-vars">Details on required formatting of solution.primal_vars</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="cvxpy.reductions.back_end.html#slacks">Slacks</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="cvxpy.reductions.back_end.html#cvxpy.reductions.cone2cone.affine2direct.Slacks">cvxpy.reductions.cone2cone.affine2direct.Slacks</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="cvxpy.reductions.back_end.html#cvxpy.reductions.cone2cone.affine2direct.Slacks.apply">apply</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="cvxpy.reductions.back_end.html#id1">Assumptions</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</div>
+<h2 id="core-classes">Core classes<a class="headerlink" href="#core-classes" title="Link to this heading">¶</a></h2>
+<p>Reductions exchange data and operate by way of the following classes.
+Other data structures can be used, such as dicts keyed by strings, but
+these are the main classes which define the Reduction system.</p>
+<h3 id="solution">Solution<a class="headerlink" href="#solution" title="Link to this heading">¶</a></h3>
+<dl class="py class objdesc">
+<dt class="sig sig-object highlight sig-wrap py" id="cvxpy.reductions.solution.Solution">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">cvxpy.reductions.solution.</span></span><span class="sig-name descname"><span class="pre">Solution</span></span><span class="sig-paren">(</span><span class="sig-param-decl"><em class="sig-param"><a class="n reference internal" href="#cvxpy.reductions.solution.Solution" title="cvxpy.reductions.solution.Solution.__init__.status (Python parameter)"><span class="n"><span class="pre">status</span></span></a></em>, </span><span class="sig-param-decl"><em class="sig-param"><a class="n reference internal" href="#cvxpy.reductions.solution.Solution" title="cvxpy.reductions.solution.Solution.__init__.opt_val (Python parameter)"><span class="n"><span class="pre">opt_val</span></span></a></em>, </span><span class="sig-param-decl"><em class="sig-param"><a class="n reference internal" href="#cvxpy.reductions.solution.Solution" title="cvxpy.reductions.solution.Solution.__init__.primal_vars (Python parameter)"><span class="n"><span class="pre">primal_vars</span></span></a></em>, </span><span class="sig-param-decl"><em class="sig-param"><a class="n reference internal" href="#cvxpy.reductions.solution.Solution" title="cvxpy.reductions.solution.Solution.__init__.dual_vars (Python parameter)"><span class="n"><span class="pre">dual_vars</span></span></a></em>, </span><span class="sig-param-decl"><em class="sig-param"><a class="n reference internal" href="#cvxpy.reductions.solution.Solution" title="cvxpy.reductions.solution.Solution.__init__.attr (Python parameter)"><span class="n"><span class="pre">attr</span></span></a></em></span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/reductions/solution.html#Solution"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.reductions.solution.Solution" title="Link to this definition">¶</a></dt>
+<dd><p>A solution to an optimization problem.</p>
+<dl class="py attribute objdesc">
+<dt class="sig sig-object highlight py" id="cvxpy.reductions.solution.Solution.status">
+<span class="sig-name descname"><span class="pre">status</span></span><a class="headerlink" href="#cvxpy.reductions.solution.Solution.status" title="Link to this definition">¶</a></dt>
+<dd><p>The status code.</p>
+<dl class="field-list simple">
+<dt class="field-odd" id="cvxpy.reductions.solution.Solution.status-type">Type<span class="colon">:</span><a class="headerlink" href="#cvxpy.reductions.solution.Solution.status-type" title="Permalink to this headline">¶</a></dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute objdesc">
+<dt class="sig sig-object highlight py" id="cvxpy.reductions.solution.Solution.opt_val">
+<span class="sig-name descname"><span class="pre">opt_val</span></span><a class="headerlink" href="#cvxpy.reductions.solution.Solution.opt_val" title="Link to this definition">¶</a></dt>
+<dd><p>The optimal value.</p>
+<dl class="field-list simple">
+<dt class="field-odd" id="cvxpy.reductions.solution.Solution.opt_val-type">Type<span class="colon">:</span><a class="headerlink" href="#cvxpy.reductions.solution.Solution.opt_val-type" title="Permalink to this headline">¶</a></dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute objdesc">
+<dt class="sig sig-object highlight py" id="cvxpy.reductions.solution.Solution.primal_vars">
+<span class="sig-name descname"><span class="pre">primal_vars</span></span><a class="headerlink" href="#cvxpy.reductions.solution.Solution.primal_vars" title="Link to this definition">¶</a></dt>
+<dd><p>A map from variable ids to optimal values.</p>
+<dl class="field-list simple">
+<dt class="field-odd" id="cvxpy.reductions.solution.Solution.primal_vars-type">Type<span class="colon">:</span><a class="headerlink" href="#cvxpy.reductions.solution.Solution.primal_vars-type" title="Permalink to this headline">¶</a></dt>
+<dd class="field-odd"><p>dict of id to NumPy ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute objdesc">
+<dt class="sig sig-object highlight py" id="cvxpy.reductions.solution.Solution.dual_vars">
+<span class="sig-name descname"><span class="pre">dual_vars</span></span><a class="headerlink" href="#cvxpy.reductions.solution.Solution.dual_vars" title="Link to this definition">¶</a></dt>
+<dd><p>A map from constraint ids to dual values.</p>
+<dl class="field-list simple">
+<dt class="field-odd" id="cvxpy.reductions.solution.Solution.dual_vars-type">Type<span class="colon">:</span><a class="headerlink" href="#cvxpy.reductions.solution.Solution.dual_vars-type" title="Permalink to this headline">¶</a></dt>
+<dd class="field-odd"><p>dict of id to NumPy ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute objdesc">
+<dt class="sig sig-object highlight py" id="cvxpy.reductions.solution.Solution.attr">
+<span class="sig-name descname"><span class="pre">attr</span></span><a class="headerlink" href="#cvxpy.reductions.solution.Solution.attr" title="Link to this definition">¶</a></dt>
+<dd><p>Miscelleneous information propagated up from a solver.</p>
+<dl class="field-list simple">
+<dt class="field-odd" id="cvxpy.reductions.solution.Solution.attr-type">Type<span class="colon">:</span><a class="headerlink" href="#cvxpy.reductions.solution.Solution.attr-type" title="Permalink to this headline">¶</a></dt>
+<dd class="field-odd"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<h3 id="reduction">Reduction<a class="headerlink" href="#reduction" title="Link to this heading">¶</a></h3>
+<dl class="py class objdesc">
+<dt class="sig sig-object highlight py" id="cvxpy.reductions.reduction.Reduction">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">cvxpy.reductions.reduction.</span></span><span class="sig-name descname"><span class="pre">Reduction</span></span><span class="sig-paren">(</span><span class="sig-param-decl"><em class="sig-param"><a class="n reference internal" href="#cvxpy.reductions.reduction.Reduction.__init__.problem" title="cvxpy.reductions.reduction.Reduction.__init__.problem (Python parameter) — A problem owned by this reduction; possibly None."><span class="n"><span class="pre">problem</span></span></a><span class="o"><span class="pre">=</span></span><code class="code python default_value docutils literal highlight highlight-python"><span class="kc">None</span></code></em></span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/reductions/reduction.html#Reduction"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.reductions.reduction.Reduction" title="Link to this definition">¶</a></dt>
+<dd><p>Abstract base class for reductions.</p>
+<p>A reduction is an actor that transforms a problem into an
+equivalent problem. By equivalent we mean that there exists
+a mapping between solutions of either problem: if we reduce a problem
+<span class="math notranslate nohighlight">\(A\)</span> to another problem <span class="math notranslate nohighlight">\(B\)</span> and then proceed to find a solution
+to <span class="math notranslate nohighlight">\(B\)</span>, we can convert it to a solution of <span class="math notranslate nohighlight">\(A\)</span> with at most a
+moderate amount of effort.</p>
+<p>A reduction that is instantiated with a non-None problem offers
+two key methods: <cite>reduce</cite> and <cite>retrieve</cite>. The <cite>reduce()</cite> method converts
+the problem the reduction was instantiated with to an equivalent
+problem. The <cite>retrieve()</cite> method takes as an argument a Solution
+for the equivalent problem and returns a Solution for the problem
+owned by the reduction.</p>
+<p>Every reduction offers three low-level methods: accepts, apply, and invert.
+The accepts method of a particular reduction specifies the types of problems
+that it is applicable to; the apply method takes a problem and reduces
+it to an equivalent form, and the invert method maps solutions
+from reduced-to problems to their problems of provenance.</p>
+<dl class="field-list simple">
+<dt class="field-odd" id="cvxpy.reductions.reduction.Reduction-parameters">Parameters<span class="colon">:</span><a class="headerlink" href="#cvxpy.reductions.reduction.Reduction-parameters" title="Permalink to this headline">¶</a></dt>
+<dd class="field-odd"><dl class="simple api-field highlight">
+<dt id="cvxpy.reductions.reduction.Reduction.__init__.problem"><span class="sig-name descname">problem</span><span class="p"> : </span><span class="desctype"><span class="desctype"><a class="reference internal" href="cvxpy.problems.html#cvxpy.Problem" title="cvxpy.Problem (Python class) — A convex optimization problem.">Problem</a></span></span><a class="headerlink" href="#cvxpy.reductions.reduction.Reduction.__init__.problem" title="Permalink to this definition">¶</a></dt><dd><p>A problem owned by this reduction; possibly None.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<dl class="py method objdesc">
+<dt class="sig sig-object highlight py" id="cvxpy.reductions.reduction.Reduction.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><span class="sig-param-decl"><em class="sig-param"><a class="n reference internal" href="#cvxpy.reductions.reduction.Reduction.__init__.problem" title="cvxpy.reductions.reduction.Reduction.__init__.problem (Python parameter) — A problem owned by this reduction; possibly None."><span class="n"><span class="pre">problem</span></span></a><span class="o"><span class="pre">=</span></span><code class="code python default_value docutils literal highlight highlight-python"><span class="kc">None</span></code></em></span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/reductions/reduction.html#Reduction.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.reductions.reduction.Reduction.__init__" title="Link to this definition">¶</a></dt>
+<dd><p>Construct a reduction for reducing <cite>problem</cite>.</p>
+<p>If <cite>problem</cite> is not None, then a subsequent invocation of <cite>reduce()</cite>
+will reduce <cite>problem</cite> and return an equivalent one.</p>
+</dd></dl>
+
+<dl class="py method objdesc">
+<dt class="sig sig-object highlight py" id="cvxpy.reductions.reduction.Reduction.accepts">
+<span class="sig-name descname"><span class="pre">accepts</span></span><span class="sig-paren">(</span><span class="sig-param-decl"><em class="sig-param"><a class="n reference internal" href="#cvxpy.reductions.reduction.Reduction.accepts.problem" title="cvxpy.reductions.reduction.Reduction.accepts.problem (Python parameter) — The problem to check."><span class="n"><span class="pre">problem</span></span></a></em></span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/reductions/reduction.html#Reduction.accepts"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.reductions.reduction.Reduction.accepts" title="Link to this definition">¶</a></dt>
+<dd><p>States whether the reduction accepts a problem.</p>
+<dl class="field-list simple">
+<dt class="field-odd" id="cvxpy.reductions.reduction.Reduction.accepts-parameters">Parameters<span class="colon">:</span><a class="headerlink" href="#cvxpy.reductions.reduction.Reduction.accepts-parameters" title="Permalink to this headline">¶</a></dt>
+<dd class="field-odd"><dl class="simple api-field highlight">
+<dt id="cvxpy.reductions.reduction.Reduction.accepts.problem"><span class="sig-name descname">problem</span><span class="p"> : </span><span class="desctype"><span class="desctype"><a class="reference internal" href="cvxpy.problems.html#cvxpy.Problem" title="cvxpy.Problem (Python class) — A convex optimization problem.">Problem</a></span></span><a class="headerlink" href="#cvxpy.reductions.reduction.Reduction.accepts.problem" title="Permalink to this definition">¶</a></dt><dd><p>The problem to check.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even" id="cvxpy.reductions.reduction.Reduction.accepts-returns">Returns<span class="colon">:</span><a class="headerlink" href="#cvxpy.reductions.reduction.Reduction.accepts-returns" title="Permalink to this headline">¶</a></dt>
+<dd class="field-even"><p>True if the reduction can be applied, False otherwise.</p>
+</dd>
+<dt class="field-odd" id="cvxpy.reductions.reduction.Reduction.accepts-return-type">Return type<span class="colon">:</span><a class="headerlink" href="#cvxpy.reductions.reduction.Reduction.accepts-return-type" title="Permalink to this headline">¶</a></dt>
+<dd class="field-odd"><p>bool</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method objdesc">
+<dt class="sig sig-object highlight py" id="cvxpy.reductions.reduction.Reduction.apply">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">apply</span></span><span class="sig-paren">(</span><span class="sig-param-decl"><em class="sig-param"><a class="n reference internal" href="#cvxpy.reductions.reduction.Reduction.apply.problem" title="cvxpy.reductions.reduction.Reduction.apply.problem (Python parameter) — The problem to which the reduction will be applied."><span class="n"><span class="pre">problem</span></span></a></em></span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/reductions/reduction.html#Reduction.apply"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.reductions.reduction.Reduction.apply" title="Link to this definition">¶</a></dt>
+<dd><p>Applies the reduction to a problem and returns an equivalent problem.</p>
+<dl class="field-list simple">
+<dt class="field-odd" id="cvxpy.reductions.reduction.Reduction.apply-parameters">Parameters<span class="colon">:</span><a class="headerlink" href="#cvxpy.reductions.reduction.Reduction.apply-parameters" title="Permalink to this headline">¶</a></dt>
+<dd class="field-odd"><dl class="simple api-field highlight">
+<dt id="cvxpy.reductions.reduction.Reduction.apply.problem"><span class="sig-name descname">problem</span><span class="p"> : </span><span class="desctype"><span class="desctype"><a class="reference internal" href="cvxpy.problems.html#cvxpy.Problem" title="cvxpy.Problem (Python class) — A convex optimization problem.">Problem</a></span></span><a class="headerlink" href="#cvxpy.reductions.reduction.Reduction.apply.problem" title="Permalink to this definition">¶</a></dt><dd><p>The problem to which the reduction will be applied.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even" id="cvxpy.reductions.reduction.Reduction.apply-returns">Returns<span class="colon">:</span><a class="headerlink" href="#cvxpy.reductions.reduction.Reduction.apply-returns" title="Permalink to this headline">¶</a></dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><em>Problem or dict</em> – An equivalent problem, encoded either as a Problem or a dict.</p></li>
+<li><p><em>InverseData, list or dict</em> – Data needed by the reduction in order to invert this particular
+application.</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method objdesc">
+<dt class="sig sig-object highlight py" id="cvxpy.reductions.reduction.Reduction.invert">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">invert</span></span><span class="sig-paren">(</span><span class="sig-param-decl"><em class="sig-param"><a class="n reference internal" href="#cvxpy.reductions.reduction.Reduction.invert.solution" title="cvxpy.reductions.reduction.Reduction.invert.solution (Python parameter) — A solution to a problem that generated the inverse_data."><span class="n"><span class="pre">solution</span></span></a></em>, </span><span class="sig-param-decl"><em class="sig-param"><a class="n reference internal" href="#cvxpy.reductions.reduction.Reduction.invert.inverse_data" title="cvxpy.reductions.reduction.Reduction.invert.inverse_data (Python parameter) — The data encoding the original problem."><span class="n"><span class="pre">inverse_data</span></span></a></em></span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/reductions/reduction.html#Reduction.invert"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.reductions.reduction.Reduction.invert" title="Link to this definition">¶</a></dt>
+<dd><p>Returns a solution to the original problem given the inverse_data.</p>
+<dl class="field-list simple">
+<dt class="field-odd" id="cvxpy.reductions.reduction.Reduction.invert-parameters">Parameters<span class="colon">:</span><a class="headerlink" href="#cvxpy.reductions.reduction.Reduction.invert-parameters" title="Permalink to this headline">¶</a></dt>
+<dd class="field-odd"><dl class="simple api-field highlight">
+<dt id="cvxpy.reductions.reduction.Reduction.invert.solution"><span class="sig-name descname">solution</span><span class="p"> : </span><span class="desctype"><span class="desctype"><a class="reference internal" href="#cvxpy.reductions.solution.Solution" title="cvxpy.reductions.solution.Solution (Python class) — A solution to an optimization problem.">Solution</a></span></span><a class="headerlink" href="#cvxpy.reductions.reduction.Reduction.invert.solution" title="Permalink to this definition">¶</a></dt><dd><p>A solution to a problem that generated the inverse_data.</p>
+</dd>
+<dt id="cvxpy.reductions.reduction.Reduction.invert.inverse_data"><span class="n sig-name">inverse_data</span><a class="headerlink" href="#cvxpy.reductions.reduction.Reduction.invert.inverse_data" title="Permalink to this definition">¶</a></dt><dd><p>The data encoding the original problem.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even" id="cvxpy.reductions.reduction.Reduction.invert-returns">Returns<span class="colon">:</span><a class="headerlink" href="#cvxpy.reductions.reduction.Reduction.invert-returns" title="Permalink to this headline">¶</a></dt>
+<dd class="field-even"><p>A solution to the original problem.</p>
+</dd>
+<dt class="field-odd" id="cvxpy.reductions.reduction.Reduction.invert-return-type">Return type<span class="colon">:</span><a class="headerlink" href="#cvxpy.reductions.reduction.Reduction.invert-return-type" title="Permalink to this headline">¶</a></dt>
+<dd class="field-odd"><p><a class="reference internal" href="#cvxpy.reductions.solution.Solution" title="cvxpy.reductions.solution.Solution (Python class) — A solution to an optimization problem.">Solution</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method objdesc">
+<dt class="sig sig-object highlight py" id="cvxpy.reductions.reduction.Reduction.reduce">
+<span class="sig-name descname"><span class="pre">reduce</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/reductions/reduction.html#Reduction.reduce"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.reductions.reduction.Reduction.reduce" title="Link to this definition">¶</a></dt>
+<dd><p>Reduces the owned problem to an equivalent problem.</p>
+<dl class="field-list simple">
+<dt class="field-odd" id="cvxpy.reductions.reduction.Reduction.reduce-returns">Returns<span class="colon">:</span><a class="headerlink" href="#cvxpy.reductions.reduction.Reduction.reduce-returns" title="Permalink to this headline">¶</a></dt>
+<dd class="field-odd"><p>An equivalent problem, encoded either as a Problem or a dict.</p>
+</dd>
+<dt class="field-even" id="cvxpy.reductions.reduction.Reduction.reduce-return-type">Return type<span class="colon">:</span><a class="headerlink" href="#cvxpy.reductions.reduction.Reduction.reduce-return-type" title="Permalink to this headline">¶</a></dt>
+<dd class="field-even"><p><a class="reference internal" href="cvxpy.problems.html#cvxpy.Problem" title="cvxpy.Problem (Python class) — A convex optimization problem.">Problem</a> or dict</p>
+</dd>
+<dt class="field-odd" id="cvxpy.reductions.reduction.Reduction.reduce-raises">Raises<span class="colon">:</span><a class="headerlink" href="#cvxpy.reductions.reduction.Reduction.reduce-raises" title="Permalink to this headline">¶</a></dt>
+<dd class="field-odd"><p><strong>ValueError</strong> – If this Reduction was constructed without a Problem.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method objdesc">
+<dt class="sig sig-object highlight py" id="cvxpy.reductions.reduction.Reduction.retrieve">
+<span class="sig-name descname"><span class="pre">retrieve</span></span><span class="sig-paren">(</span><span class="sig-param-decl"><em class="sig-param"><a class="n reference internal" href="#cvxpy.reductions.reduction.Reduction.retrieve.solution" title="cvxpy.reductions.reduction.Reduction.retrieve.solution (Python parameter) — A solution to the problem emitted by reduce()."><span class="n"><span class="pre">solution</span></span></a></em></span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/reductions/reduction.html#Reduction.retrieve"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.reductions.reduction.Reduction.retrieve" title="Link to this definition">¶</a></dt>
+<dd><p>Retrieves a solution to the owned problem.</p>
+<dl class="field-list simple">
+<dt class="field-odd" id="cvxpy.reductions.reduction.Reduction.retrieve-parameters">Parameters<span class="colon">:</span><a class="headerlink" href="#cvxpy.reductions.reduction.Reduction.retrieve-parameters" title="Permalink to this headline">¶</a></dt>
+<dd class="field-odd"><dl class="simple api-field highlight">
+<dt id="cvxpy.reductions.reduction.Reduction.retrieve.solution"><span class="sig-name descname">solution</span><span class="p"> : </span><span class="desctype"><span class="desctype"><a class="reference internal" href="#cvxpy.reductions.solution.Solution" title="cvxpy.reductions.solution.Solution (Python class) — A solution to an optimization problem.">Solution</a></span></span><a class="headerlink" href="#cvxpy.reductions.reduction.Reduction.retrieve.solution" title="Permalink to this definition">¶</a></dt><dd><p>A solution to the problem emitted by <cite>reduce()</cite>.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even" id="cvxpy.reductions.reduction.Reduction.retrieve-returns">Returns<span class="colon">:</span><a class="headerlink" href="#cvxpy.reductions.reduction.Reduction.retrieve-returns" title="Permalink to this headline">¶</a></dt>
+<dd class="field-even"><p>A solution to the owned problem.</p>
+</dd>
+<dt class="field-odd" id="cvxpy.reductions.reduction.Reduction.retrieve-return-type">Return type<span class="colon">:</span><a class="headerlink" href="#cvxpy.reductions.reduction.Reduction.retrieve-return-type" title="Permalink to this headline">¶</a></dt>
+<dd class="field-odd"><p><a class="reference internal" href="#cvxpy.reductions.solution.Solution" title="cvxpy.reductions.solution.Solution (Python class) — A solution to an optimization problem.">Solution</a></p>
+</dd>
+<dt class="field-even" id="cvxpy.reductions.reduction.Reduction.retrieve-raises">Raises<span class="colon">:</span><a class="headerlink" href="#cvxpy.reductions.reduction.Reduction.retrieve-raises" title="Permalink to this headline">¶</a></dt>
+<dd class="field-even"><p><strong>ValueError</strong> – If <cite>self.problem</cite> is None, or if <cite>reduce()</cite> was not previously
+    called.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<h3 id="chain">Chain<a class="headerlink" href="#chain" title="Link to this heading">¶</a></h3>
+<dl class="py class objdesc">
+<dt class="sig sig-object highlight py" id="cvxpy.reductions.chain.Chain">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">cvxpy.reductions.chain.</span></span><span class="sig-name descname"><span class="pre">Chain</span></span><span class="sig-paren">(</span><span class="sig-param-decl"><em class="sig-param"><a class="n reference internal" href="#cvxpy.reductions.chain.Chain" title="cvxpy.reductions.chain.Chain.__init__.problem (Python parameter)"><span class="n"><span class="pre">problem</span></span></a><span class="o"><span class="pre">=</span></span><code class="code python default_value docutils literal highlight highlight-python"><span class="kc">None</span></code></em>, </span><span class="sig-param-decl"><em class="sig-param"><a class="n reference internal" href="#cvxpy.reductions.chain.Chain" title="cvxpy.reductions.chain.Chain.__init__.reductions (Python parameter)"><span class="n"><span class="pre">reductions</span></span></a><span class="o"><span class="pre">=</span></span><code class="code python default_value docutils literal highlight highlight-python"><span class="kc">None</span></code></em></span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/reductions/chain.html#Chain"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.reductions.chain.Chain" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#cvxpy.reductions.reduction.Reduction" title="cvxpy.reductions.reduction.Reduction (Python class) — Abstract base class for reductions."><code class="xref py py-class docutils literal notranslate"><span class="pre">Reduction</span></code></a></p>
+<p>A logical grouping of multiple reductions into a single reduction.</p>
+<dl class="py attribute objdesc">
+<dt class="sig sig-object highlight py" id="cvxpy.reductions.chain.Chain.reductions">
+<span class="sig-name descname"><span class="pre">reductions</span></span><a class="headerlink" href="#cvxpy.reductions.chain.Chain.reductions" title="Link to this definition">¶</a></dt>
+<dd><p>A list of reductions.</p>
+<dl class="field-list simple">
+<dt class="field-odd" id="cvxpy.reductions.chain.Chain.reductions-type">Type<span class="colon">:</span><a class="headerlink" href="#cvxpy.reductions.chain.Chain.reductions-type" title="Permalink to this headline">¶</a></dt>
+<dd class="field-odd"><p>list[<a class="reference internal" href="#cvxpy.reductions.reduction.Reduction" title="cvxpy.reductions.reduction.Reduction (Python class) — Abstract base class for reductions.">Reduction</a>]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method objdesc">
+<dt class="sig sig-object highlight py" id="cvxpy.reductions.chain.Chain.accepts">
+<span class="sig-name descname"><span class="pre">accepts</span></span><span class="sig-paren">(</span><span class="sig-param-decl"><em class="sig-param"><a class="n reference internal" href="#cvxpy.reductions.chain.Chain.accepts.problem" title="cvxpy.reductions.chain.Chain.accepts.problem (Python parameter) — The problem to check."><span class="n"><span class="pre">problem</span></span></a></em></span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="desctype"><span class="pre">bool</span></span></span></span><a class="reference internal" href="../_modules/cvxpy/reductions/chain.html#Chain.accepts"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.reductions.chain.Chain.accepts" title="Link to this definition">¶</a></dt>
+<dd><p>A problem is accepted if the sequence of reductions is valid.</p>
+<p>In particular, the i-th reduction must accept the output of the i-1th
+reduction, with the first reduction (self.reductions[0])
+in the sequence taking as input the supplied problem.</p>
+<dl class="field-list simple">
+<dt class="field-odd" id="cvxpy.reductions.chain.Chain.accepts-parameters">Parameters<span class="colon">:</span><a class="headerlink" href="#cvxpy.reductions.chain.Chain.accepts-parameters" title="Permalink to this headline">¶</a></dt>
+<dd class="field-odd"><dl class="simple api-field highlight">
+<dt id="cvxpy.reductions.chain.Chain.accepts.problem"><span class="sig-name descname">problem</span><span class="p"> : </span><span class="desctype"><span class="desctype"><a class="reference internal" href="cvxpy.problems.html#cvxpy.Problem" title="cvxpy.Problem (Python class) — A convex optimization problem.">Problem</a></span></span><a class="headerlink" href="#cvxpy.reductions.chain.Chain.accepts.problem" title="Permalink to this definition">¶</a></dt><dd><p>The problem to check.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even" id="cvxpy.reductions.chain.Chain.accepts-returns">Returns<span class="colon">:</span><a class="headerlink" href="#cvxpy.reductions.chain.Chain.accepts-returns" title="Permalink to this headline">¶</a></dt>
+<dd class="field-even"><p>True if the chain can be applied, False otherwise.</p>
+</dd>
+<dt class="field-odd" id="cvxpy.reductions.chain.Chain.accepts-return-type">Return type<span class="colon">:</span><a class="headerlink" href="#cvxpy.reductions.chain.Chain.accepts-return-type" title="Permalink to this headline">¶</a></dt>
+<dd class="field-odd"><p>bool</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method objdesc">
+<dt class="sig sig-object highlight py" id="cvxpy.reductions.chain.Chain.apply">
+<span class="sig-name descname"><span class="pre">apply</span></span><span class="sig-paren">(</span><span class="sig-param-decl"><em class="sig-param"><a class="n reference internal" href="#cvxpy.reductions.chain.Chain.apply.problem" title="cvxpy.reductions.chain.Chain.apply.problem (Python parameter) — The problem to which the chain will be applied."><span class="n"><span class="pre">problem</span></span></a></em>, </span><span class="sig-param-decl"><em class="sig-param"><a class="n reference internal" href="#cvxpy.reductions.chain.Chain.apply.verbose" title="cvxpy.reductions.chain.Chain.apply.verbose (Python parameter) — Whehter to print verbose output."><span class="n"><span class="pre">verbose</span></span></a><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="desctype"><span class="pre">bool</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><code class="code python default_value docutils literal highlight highlight-python"><span class="kc">False</span></code></em></span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/reductions/chain.html#Chain.apply"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.reductions.chain.Chain.apply" title="Link to this definition">¶</a></dt>
+<dd><p>Applies the chain to a problem and returns an equivalent problem.</p>
+<dl class="field-list simple">
+<dt class="field-odd" id="cvxpy.reductions.chain.Chain.apply-parameters">Parameters<span class="colon">:</span><a class="headerlink" href="#cvxpy.reductions.chain.Chain.apply-parameters" title="Permalink to this headline">¶</a></dt>
+<dd class="field-odd"><dl class="simple api-field highlight">
+<dt id="cvxpy.reductions.chain.Chain.apply.problem"><span class="sig-name descname">problem</span><span class="p"> : </span><span class="desctype"><span class="desctype"><a class="reference internal" href="cvxpy.problems.html#cvxpy.Problem" title="cvxpy.Problem (Python class) — A convex optimization problem.">Problem</a></span></span><a class="headerlink" href="#cvxpy.reductions.chain.Chain.apply.problem" title="Permalink to this definition">¶</a></dt><dd><p>The problem to which the chain will be applied.</p>
+</dd>
+<dt id="cvxpy.reductions.chain.Chain.apply.verbose"><span class="sig-name descname">verbose</span><span class="p"> : </span><span class="desctype"><span class="desctype">bool, optional</span></span><a class="headerlink" href="#cvxpy.reductions.chain.Chain.apply.verbose" title="Permalink to this definition">¶</a></dt><dd><p>Whehter to print verbose output.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even" id="cvxpy.reductions.chain.Chain.apply-returns">Returns<span class="colon">:</span><a class="headerlink" href="#cvxpy.reductions.chain.Chain.apply-returns" title="Permalink to this headline">¶</a></dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><em>Problem or dict</em> – The problem yielded by applying the reductions in sequence,
+starting at self.reductions[0].</p></li>
+<li><p><em>list</em> – The inverse data yielded by each of the reductions.</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method objdesc">
+<dt class="sig sig-object highlight py" id="cvxpy.reductions.chain.Chain.invert">
+<span class="sig-name descname"><span class="pre">invert</span></span><span class="sig-paren">(</span><span class="sig-param-decl"><em class="sig-param"><a class="n reference internal" href="#cvxpy.reductions.chain.Chain.invert" title="cvxpy.reductions.chain.Chain.invert.solution (Python parameter)"><span class="n"><span class="pre">solution</span></span></a></em>, </span><span class="sig-param-decl"><em class="sig-param"><a class="n reference internal" href="#cvxpy.reductions.chain.Chain.invert" title="cvxpy.reductions.chain.Chain.invert.inverse_data (Python parameter)"><span class="n"><span class="pre">inverse_data</span></span></a></em></span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/reductions/chain.html#Chain.invert"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.reductions.chain.Chain.invert" title="Link to this definition">¶</a></dt>
+<dd><p>Returns a solution to the original problem given the inverse_data.</p>
+</dd></dl>
+
+</dd></dl>
+
+<h3 id="solvingchain">SolvingChain<a class="headerlink" href="#solvingchain" title="Link to this heading">¶</a></h3>
+<dl class="py class objdesc">
+<dt class="sig sig-object highlight sig-wrap py" id="cvxpy.reductions.solvers.solving_chain.SolvingChain">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">cvxpy.reductions.solvers.solving_chain.</span></span><span class="sig-name descname"><span class="pre">SolvingChain</span></span><span class="sig-paren">(</span><span class="sig-param-decl"><em class="sig-param"><a class="n reference internal" href="#cvxpy.reductions.solvers.solving_chain.SolvingChain" title="cvxpy.reductions.solvers.solving_chain.SolvingChain.__init__.problem (Python parameter)"><span class="n"><span class="pre">problem</span></span></a><span class="o"><span class="pre">=</span></span><code class="code python default_value docutils literal highlight highlight-python"><span class="kc">None</span></code></em>, </span><span class="sig-param-decl"><em class="sig-param"><a class="n reference internal" href="#cvxpy.reductions.solvers.solving_chain.SolvingChain.__init__.reductions" title="cvxpy.reductions.solvers.solving_chain.SolvingChain.__init__.reductions (Python parameter) — A list of reductions."><span class="n"><span class="pre">reductions</span></span></a><span class="o"><span class="pre">=</span></span><code class="code python default_value docutils literal highlight highlight-python"><span class="kc">None</span></code></em></span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/reductions/solvers/solving_chain.html#SolvingChain"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.reductions.solvers.solving_chain.SolvingChain" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#cvxpy.reductions.chain.Chain" title="cvxpy.reductions.chain.Chain (Python class) — Bases: Reduction"><code class="xref py py-class docutils literal notranslate"><span class="pre">Chain</span></code></a></p>
+<p>A reduction chain that ends with a solver.</p>
+<dl class="field-list simple">
+<dt class="field-odd" id="cvxpy.reductions.solvers.solving_chain.SolvingChain-parameters">Parameters<span class="colon">:</span><a class="headerlink" href="#cvxpy.reductions.solvers.solving_chain.SolvingChain-parameters" title="Permalink to this headline">¶</a></dt>
+<dd class="field-odd"><dl class="simple api-field highlight">
+<dt id="cvxpy.reductions.solvers.solving_chain.SolvingChain.__init__.reductions"><span class="sig-name descname">reductions</span><span class="p"> : </span><span class="desctype"><span class="desctype">list[<a class="reference internal" href="#cvxpy.reductions.reduction.Reduction" title="cvxpy.reductions.reduction.Reduction (Python class) — Abstract base class for reductions.">Reduction</a>]</span></span><a class="headerlink" href="#cvxpy.reductions.solvers.solving_chain.SolvingChain.__init__.reductions" title="Permalink to this definition">¶</a></dt><dd><p>A list of reductions. The last reduction in the list must be a solver
+instance.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<dl class="py attribute objdesc">
+<dt class="sig sig-object highlight py" id="cvxpy.reductions.solvers.solving_chain.SolvingChain.reductions">
+<span class="sig-name descname"><span class="pre">reductions</span></span><a class="headerlink" href="#cvxpy.reductions.solvers.solving_chain.SolvingChain.reductions" title="Link to this definition">¶</a></dt>
+<dd><p>A list of reductions.</p>
+<dl class="field-list simple">
+<dt class="field-odd" id="cvxpy.reductions.solvers.solving_chain.SolvingChain.reductions-type">Type<span class="colon">:</span><a class="headerlink" href="#cvxpy.reductions.solvers.solving_chain.SolvingChain.reductions-type" title="Permalink to this headline">¶</a></dt>
+<dd class="field-odd"><p>list[<a class="reference internal" href="#cvxpy.reductions.reduction.Reduction" title="cvxpy.reductions.reduction.Reduction (Python class) — Abstract base class for reductions.">Reduction</a>]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute objdesc">
+<dt class="sig sig-object highlight py" id="cvxpy.reductions.solvers.solving_chain.SolvingChain.solver">
+<span class="sig-name descname"><span class="pre">solver</span></span><a class="headerlink" href="#cvxpy.reductions.solvers.solving_chain.SolvingChain.solver" title="Link to this definition">¶</a></dt>
+<dd><p>The solver, i.e., reductions[-1].</p>
+<dl class="field-list simple">
+<dt class="field-odd" id="cvxpy.reductions.solvers.solving_chain.SolvingChain.solver-type">Type<span class="colon">:</span><a class="headerlink" href="#cvxpy.reductions.solvers.solving_chain.SolvingChain.solver-type" title="Permalink to this headline">¶</a></dt>
+<dd class="field-odd"><p>Solver</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method objdesc">
+<dt class="sig sig-object highlight py" id="cvxpy.reductions.solvers.solving_chain.SolvingChain.prepend">
+<span class="sig-name descname"><span class="pre">prepend</span></span><span class="sig-paren">(</span><span class="sig-param-decl"><em class="sig-param"><a class="n reference internal" href="#cvxpy.reductions.solvers.solving_chain.SolvingChain.prepend" title="cvxpy.reductions.solvers.solving_chain.SolvingChain.prepend.chain (Python parameter)"><span class="n"><span class="pre">chain</span></span></a></em></span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="desctype"><a class="reference internal" href="#cvxpy.reductions.solvers.solving_chain.SolvingChain" title="cvxpy.reductions.solvers.solving_chain.SolvingChain (Python class) — Bases: Chain"><span class="pre">SolvingChain</span></a></span></span></span><a class="reference internal" href="../_modules/cvxpy/reductions/solvers/solving_chain.html#SolvingChain.prepend"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.reductions.solvers.solving_chain.SolvingChain.prepend" title="Link to this definition">¶</a></dt>
+<dd><p>Create and return a new SolvingChain by concatenating
+chain with this instance.</p>
+</dd></dl>
+
+<dl class="py method objdesc">
+<dt class="sig sig-object highlight py" id="cvxpy.reductions.solvers.solving_chain.SolvingChain.solve">
+<span class="sig-name descname"><span class="pre">solve</span></span><span class="sig-paren">(</span><span class="sig-param-decl"><em class="sig-param"><a class="n reference internal" href="#cvxpy.reductions.solvers.solving_chain.SolvingChain.solve.problem" title="cvxpy.reductions.solvers.solving_chain.SolvingChain.solve.problem (Python parameter) — The problem to solve."><span class="n"><span class="pre">problem</span></span></a></em>, </span><span class="sig-param-decl"><em class="sig-param"><a class="n reference internal" href="#cvxpy.reductions.solvers.solving_chain.SolvingChain.solve.warm_start" title="cvxpy.reductions.solvers.solving_chain.SolvingChain.solve.warm_start (Python parameter) — Whether to warm start the solver."><span class="n"><span class="pre">warm_start</span></span></a><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="desctype"><span class="pre">bool</span></span></span></em>, </span><span class="sig-param-decl"><em class="sig-param"><a class="n reference internal" href="#cvxpy.reductions.solvers.solving_chain.SolvingChain.solve.verbose" title="cvxpy.reductions.solvers.solving_chain.SolvingChain.solve.verbose (Python parameter) — Whether to enable solver verbosity."><span class="n"><span class="pre">verbose</span></span></a><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="desctype"><span class="pre">bool</span></span></span></em>, </span><span class="sig-param-decl"><em class="sig-param"><a class="n reference internal" href="#cvxpy.reductions.solvers.solving_chain.SolvingChain.solve.solver_opts" title="cvxpy.reductions.solvers.solving_chain.SolvingChain.solve.solver_opts (Python parameter) — Solver specific options."><span class="n"><span class="pre">solver_opts</span></span></a></em></span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/reductions/solvers/solving_chain.html#SolvingChain.solve"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.reductions.solvers.solving_chain.SolvingChain.solve" title="Link to this definition">¶</a></dt>
+<dd><p>Solves the problem by applying the chain.</p>
+<p>Applies each reduction in the chain to the problem, solves it,
+and then inverts the chain to return a solution of the supplied
+problem.</p>
+<dl class="field-list simple">
+<dt class="field-odd" id="cvxpy.reductions.solvers.solving_chain.SolvingChain.solve-parameters">Parameters<span class="colon">:</span><a class="headerlink" href="#cvxpy.reductions.solvers.solving_chain.SolvingChain.solve-parameters" title="Permalink to this headline">¶</a></dt>
+<dd class="field-odd"><dl class="simple api-field highlight">
+<dt id="cvxpy.reductions.solvers.solving_chain.SolvingChain.solve.problem"><span class="sig-name descname">problem</span><span class="p"> : </span><span class="desctype"><span class="desctype"><a class="reference internal" href="cvxpy.problems.html#cvxpy.Problem" title="cvxpy.Problem (Python class) — A convex optimization problem.">Problem</a></span></span><a class="headerlink" href="#cvxpy.reductions.solvers.solving_chain.SolvingChain.solve.problem" title="Permalink to this definition">¶</a></dt><dd><p>The problem to solve.</p>
+</dd>
+<dt id="cvxpy.reductions.solvers.solving_chain.SolvingChain.solve.warm_start"><span class="sig-name descname">warm_start</span><span class="p"> : </span><span class="desctype"><span class="desctype">bool</span></span><a class="headerlink" href="#cvxpy.reductions.solvers.solving_chain.SolvingChain.solve.warm_start" title="Permalink to this definition">¶</a></dt><dd><p>Whether to warm start the solver.</p>
+</dd>
+<dt id="cvxpy.reductions.solvers.solving_chain.SolvingChain.solve.verbose"><span class="sig-name descname">verbose</span><span class="p"> : </span><span class="desctype"><span class="desctype">bool</span></span><a class="headerlink" href="#cvxpy.reductions.solvers.solving_chain.SolvingChain.solve.verbose" title="Permalink to this definition">¶</a></dt><dd><p>Whether to enable solver verbosity.</p>
+</dd>
+<dt id="cvxpy.reductions.solvers.solving_chain.SolvingChain.solve.solver_opts"><span class="sig-name descname">solver_opts</span><span class="p"> : </span><span class="desctype"><span class="desctype">dict</span></span><a class="headerlink" href="#cvxpy.reductions.solvers.solving_chain.SolvingChain.solve.solver_opts" title="Permalink to this definition">¶</a></dt><dd><p>Solver specific options.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even" id="cvxpy.reductions.solvers.solving_chain.SolvingChain.solve-returns">Returns<span class="colon">:</span><a class="headerlink" href="#cvxpy.reductions.solvers.solving_chain.SolvingChain.solve-returns" title="Permalink to this headline">¶</a></dt>
+<dd class="field-even"><p><strong>solution</strong> – A solution to the problem.</p>
+</dd>
+<dt class="field-odd" id="cvxpy.reductions.solvers.solving_chain.SolvingChain.solve-return-type">Return type<span class="colon">:</span><a class="headerlink" href="#cvxpy.reductions.solvers.solving_chain.SolvingChain.solve-return-type" title="Permalink to this headline">¶</a></dt>
+<dd class="field-odd"><p><a class="reference internal" href="#cvxpy.reductions.solution.Solution" title="cvxpy.reductions.solution.Solution (Python class) — A solution to an optimization problem.">Solution</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method objdesc">
+<dt class="sig sig-object highlight sig-wrap py" id="cvxpy.reductions.solvers.solving_chain.SolvingChain.solve_via_data">
+<span class="sig-name descname"><span class="pre">solve_via_data</span></span><span class="sig-paren">(</span><span class="sig-param-decl"><em class="sig-param"><a class="n reference internal" href="#cvxpy.reductions.solvers.solving_chain.SolvingChain.solve_via_data.problem" title="cvxpy.reductions.solvers.solving_chain.SolvingChain.solve_via_data.problem (Python parameter) — The problem to solve."><span class="n"><span class="pre">problem</span></span></a></em>, </span><span class="sig-param-decl"><em class="sig-param"><a class="n reference internal" href="#cvxpy.reductions.solvers.solving_chain.SolvingChain.solve_via_data.data" title="cvxpy.reductions.solvers.solving_chain.SolvingChain.solve_via_data.data (Python parameter) — Data for the solver."><span class="n"><span class="pre">data</span></span></a></em>, </span><span class="sig-param-decl"><em class="sig-param"><a class="n reference internal" href="#cvxpy.reductions.solvers.solving_chain.SolvingChain.solve_via_data.warm_start" title="cvxpy.reductions.solvers.solving_chain.SolvingChain.solve_via_data.warm_start (Python parameter) — Whether to warm start the solver."><span class="n"><span class="pre">warm_start</span></span></a><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="desctype"><span class="pre">bool</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><code class="code python default_value docutils literal highlight highlight-python"><span class="kc">False</span></code></em>, </span><span class="sig-param-decl"><em class="sig-param"><a class="n reference internal" href="#cvxpy.reductions.solvers.solving_chain.SolvingChain.solve_via_data.verbose" title="cvxpy.reductions.solvers.solving_chain.SolvingChain.solve_via_data.verbose (Python parameter) — Whether to enable solver verbosity."><span class="n"><span class="pre">verbose</span></span></a><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="desctype"><span class="pre">bool</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><code class="code python default_value docutils literal highlight highlight-python"><span class="kc">False</span></code></em>, </span><span class="sig-param-decl"><em class="sig-param"><a class="n reference internal" href="#cvxpy.reductions.solvers.solving_chain.SolvingChain.solve_via_data.solver_opts" title="cvxpy.reductions.solvers.solving_chain.SolvingChain.solve_via_data.solver_opts (Python parameter) — Solver specific options."><span class="n"><span class="pre">solver_opts</span></span></a><span class="o"><span class="pre">=</span></span><code class="code python default_value docutils literal highlight highlight-python"><span class="p">{}</span></code></em></span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/reductions/solvers/solving_chain.html#SolvingChain.solve_via_data"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.reductions.solvers.solving_chain.SolvingChain.solve_via_data" title="Link to this definition">¶</a></dt>
+<dd><p>Solves the problem using the data output by the an apply invocation.</p>
+<p>The semantics are:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><code><span class="n">data</span><span class="p">,</span> <span class="n">inverse_data</span> <span class="o">=</span> <span class="n">solving_chain</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="n">problem</span><span class="p">)</span>
+<span class="n">solution</span> <span class="o">=</span> <span class="n">solving_chain</span><span class="o">.</span><span class="n">invert</span><span class="p">(</span><span class="n">solver_chain</span><span class="o">.</span><span class="n">solve_via_data</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="o">...</span><span class="p">))</span>
+</code></pre></div>
+</div>
+<p>which is equivalent to writing</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><code><span class="n">solution</span> <span class="o">=</span> <span class="n">solving_chain</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">problem</span><span class="p">,</span> <span class="o">...</span><span class="p">)</span>
+</code></pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd" id="cvxpy.reductions.solvers.solving_chain.SolvingChain.solve_via_data-parameters">Parameters<span class="colon">:</span><a class="headerlink" href="#cvxpy.reductions.solvers.solving_chain.SolvingChain.solve_via_data-parameters" title="Permalink to this headline">¶</a></dt>
+<dd class="field-odd"><dl class="simple api-field highlight">
+<dt id="cvxpy.reductions.solvers.solving_chain.SolvingChain.solve_via_data.problem"><span class="sig-name descname">problem</span><span class="p"> : </span><span class="desctype"><span class="desctype"><a class="reference internal" href="cvxpy.problems.html#cvxpy.Problem" title="cvxpy.Problem (Python class) — A convex optimization problem.">Problem</a></span></span><a class="headerlink" href="#cvxpy.reductions.solvers.solving_chain.SolvingChain.solve_via_data.problem" title="Permalink to this definition">¶</a></dt><dd><p>The problem to solve.</p>
+</dd>
+<dt id="cvxpy.reductions.solvers.solving_chain.SolvingChain.solve_via_data.data"><span class="sig-name descname">data</span><span class="p"> : </span><span class="desctype"><span class="desctype">map</span></span><a class="headerlink" href="#cvxpy.reductions.solvers.solving_chain.SolvingChain.solve_via_data.data" title="Permalink to this definition">¶</a></dt><dd><p>Data for the solver.</p>
+</dd>
+<dt id="cvxpy.reductions.solvers.solving_chain.SolvingChain.solve_via_data.warm_start"><span class="sig-name descname">warm_start</span><span class="p"> : </span><span class="desctype"><span class="desctype">bool</span></span><a class="headerlink" href="#cvxpy.reductions.solvers.solving_chain.SolvingChain.solve_via_data.warm_start" title="Permalink to this definition">¶</a></dt><dd><p>Whether to warm start the solver.</p>
+</dd>
+<dt id="cvxpy.reductions.solvers.solving_chain.SolvingChain.solve_via_data.verbose"><span class="sig-name descname">verbose</span><span class="p"> : </span><span class="desctype"><span class="desctype">bool</span></span><a class="headerlink" href="#cvxpy.reductions.solvers.solving_chain.SolvingChain.solve_via_data.verbose" title="Permalink to this definition">¶</a></dt><dd><p>Whether to enable solver verbosity.</p>
+</dd>
+<dt id="cvxpy.reductions.solvers.solving_chain.SolvingChain.solve_via_data.solver_opts"><span class="sig-name descname">solver_opts</span><span class="p"> : </span><span class="desctype"><span class="desctype">dict</span></span><a class="headerlink" href="#cvxpy.reductions.solvers.solving_chain.SolvingChain.solve_via_data.solver_opts" title="Permalink to this definition">¶</a></dt><dd><p>Solver specific options.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even" id="cvxpy.reductions.solvers.solving_chain.SolvingChain.solve_via_data-returns">Returns<span class="colon">:</span><a class="headerlink" href="#cvxpy.reductions.solvers.solving_chain.SolvingChain.solve_via_data-returns" title="Permalink to this headline">¶</a></dt>
+<dd class="field-even"><p>The information returned by the solver; this is not necessarily
+a Solution object.</p>
+</dd>
+<dt class="field-odd" id="cvxpy.reductions.solvers.solving_chain.SolvingChain.solve_via_data-return-type">Return type<span class="colon">:</span><a class="headerlink" href="#cvxpy.reductions.solvers.solving_chain.SolvingChain.solve_via_data-return-type" title="Permalink to this headline">¶</a></dt>
+<dd class="field-odd"><p>raw solver solution</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+
+
+
+  
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+  <script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var tab,labels=set.querySelector(".tabbed-labels");for(tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>
+
+        </div>
+        
+          <a href="#" class="md-top md-icon" data-md-component="top" hidden>
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8v12Z"/></svg>
+            Back to top
+          </a>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+    
+    <nav class="md-footer__inner md-grid" aria-label="Footer" >
+      
+        
+        <a href="cvxpy.transforms.html" class="md-footer__link md-footer__link--prev" aria-label="Previous: Transforms" rel="prev">
+          <div class="md-footer__button md-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12Z"/></svg>
+          </div>
+          <div class="md-footer__title">
+            <div class="md-ellipsis">
+              <span class="md-footer__direction">
+                Previous
+              </span>
+              Transforms
+            </div>
+          </div>
+        </a>
+      
+      
+        
+        <a href="cvxpy.reductions.middle_end.html" class="md-footer__link md-footer__link--next" aria-label="Next: Middle-End Reductions" rel="next">
+          <div class="md-footer__title">
+            <div class="md-ellipsis">
+              <span class="md-footer__direction">
+                Next
+              </span>
+              Middle-End Reductions
+            </div>
+          </div>
+          <div class="md-footer__button md-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11H4Z"/></svg>
+          </div>
+        </a>
+      
+    </nav>
+  
+  
+  
+  <div class="md-footer-meta md-typeset">
+    
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+    <div class="md-footer-copyright__highlight">
+        &#169; Copyright The CVXPY authors.
+        
+    </div>
+  
+    Created using
+    <a href="https://www.sphinx-doc.org/" target="_blank" rel="noopener">Sphinx</a>
+    8.1.3.
+     and
+    <a href="https://github.com/jbms/sphinx-immaterial/" target="_blank" rel="noopener">Sphinx-Immaterial</a>
+  
+</div>
+      
+        <div class="md-social">
+  
+    
+    
+    <a href="https://github.com/cvxpy/cvxpy" target="_blank" rel="noopener" title="Source on github.com" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3zm44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8zM97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1zm-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7zm32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1zm-11.4-14.7c-1.6 1-1.6 3.6 0 5.9 1.6 2.3 4.3 3.3 5.6 2.3 1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2z"/></svg>
+    </a>
+  
+    
+    
+      
+      
+    
+    <a href="https://pypi.org/project/cvxpy/" target="_blank" rel="noopener" title="pypi.org" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc.--><path d="M439.8 200.5c-7.7-30.9-22.3-54.2-53.4-54.2h-40.1v47.4c0 36.8-31.2 67.8-66.8 67.8H172.7c-29.2 0-53.4 25-53.4 54.3v101.8c0 29 25.2 46 53.4 54.3 33.8 9.9 66.3 11.7 106.8 0 26.9-7.8 53.4-23.5 53.4-54.3v-40.7H226.2v-13.6h160.2c31.1 0 42.6-21.7 53.4-54.2 11.2-33.5 10.7-65.7 0-108.6zM286.2 404c11.1 0 20.1 9.1 20.1 20.3 0 11.3-9 20.4-20.1 20.4-11 0-20.1-9.2-20.1-20.4.1-11.3 9.1-20.3 20.1-20.3zM167.8 248.1h106.8c29.7 0 53.4-24.5 53.4-54.3V91.9c0-29-24.4-50.7-53.4-55.6-35.8-5.9-74.7-5.6-106.8.1-45.2 8-53.4 24.7-53.4 55.6v40.7h106.9v13.6h-147c-31.1 0-58.3 18.7-66.8 54.2-9.8 40.7-10.2 66.1 0 108.6 7.6 31.6 25.7 54.2 56.8 54.2H101v-48.8c0-35.3 30.5-66.4 66.8-66.4zm-6.7-142.6c-11.1 0-20.1-9.1-20.1-20.3.1-11.3 9-20.4 20.1-20.4 11 0 20.1 9.2 20.1 20.4s-9 20.3-20.1 20.3z"/></svg>
+    </a>
+  
+</div>
+      
+    </div>
+    
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    <script id="__config" type="application/json">{"base": "..", "features": ["header.autohide", "toc.follow", "navigation.path", "navigation.instant", "navigation.top", "navigation.tabs", "navigation.tabs.sticky", "navigation.tracking", "navigation.expand", "search.highlight", "search.share", "content.tabs.link", "announce.dismiss"], "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version.title": "Select version"}, "version": {"provider": "mike", "staticVersions": [{"aliases": [], "title": "latest", "version": "https://www.cvxpy.org"}, {"aliases": [], "title": "1.4", "version": "https://www.cvxpy.org/version/1.4"}, {"aliases": [], "title": "1.3", "version": "https://www.cvxpy.org/version/1.3"}, {"aliases": [], "title": "1.2", "version": "https://www.cvxpy.org/version/1.2"}, {"aliases": [], "title": "1.1", "version": "https://www.cvxpy.org/version/1.1"}], "versionPath": null}}</script>
+    
+      
+        <script src="../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../_static/sphinx_immaterial_theme.f9d9eeeb247ace16c.min.js?v=8ec58cb5"></script>
+        <script src="../_static/tabs.js?v=3ee01567"></script>
+        <script src="../_static/design-tabs.js?v=f930bc37"></script>
+        <script id="MathJax-script" src="../_static/mathjax/tex-mml-chtml.js?v=cadf963e"></script>
+    
+  </body>
+</html>
