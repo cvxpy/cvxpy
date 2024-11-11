@@ -1,55 +1,488 @@
-<!DOCTYPE html>
 
-<html lang="en">
+
+<!doctype html>
+<html lang="en" class="no-js">
   <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+      <link rel="icon" href="../_static/favicon.ico">
+    
+    
+      
+        <title>cvxpy.reductions.dcp2cone package - </title>
+      
+    
+    
+      
+        
+        
+      
+      
 
-    <title>cvxpy.reductions.dcp2cone package &#8212; CVXPY 1.5 documentation</title>
-    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=fa44fd50" />
-    <link rel="stylesheet" type="text/css" href="../_static/cvxpy_alabaster.css?v=6c13f287" />
-    <link rel="stylesheet" type="text/css" href="../_static/tabs.css?v=4c969af8" />
-    <link rel="stylesheet" type="text/css" href="../_static/design-style.1e8bd061cd6da7fc9cf755528e8ffc24.min.css?v=0a3b3ea7" />
-    <script src="../_static/jquery.js?v=5d32c60e"></script>
-    <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js?v=515d8a7f"></script>
-    <script src="../_static/doctools.js?v=888ff710"></script>
-    <script src="../_static/sphinx_highlight.js?v=4825356b"></script>
-    <script src="../_static/tabs.js?v=3ee01567"></script>
-    <script src="../_static/design-tabs.js?v=36754332"></script>
-    <link rel="icon" href="../_static/favicon.ico"/>
-    <link rel="index" title="Index" href="../genindex.html" />
-    <link rel="search" title="Search" href="../search.html" />
-   
-  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+    
+    
+    
+      
+        
+        
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+        <link rel="stylesheet" type="text/css" href="../_static/sphinx_immaterial_theme.4b4a8c74e2ff2ab5b.min.css?v=afa97f93" />
+        <link rel="stylesheet" type="text/css" href="../_static/tabs.css?v=4c969af8" />
+        <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
+        <link rel="stylesheet" type="text/css" href="../_static/css/styling.css?v=84aacf86" />
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce((e,_)=>(e<<5)-e+_.charCodeAt(0),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+  
+
+
   
   
-  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
 
-  </head><body>
+
+  <script id="__analytics">function __md_analytics(){window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)},ga.l=+new Date,ga("create","UA-50248335-1","auto"),ga("set","anonymizeIp",!0),ga("send","pageview"),document.addEventListener("DOMContentLoaded",function(){document.forms.search&&document.forms.search.query.addEventListener("blur",function(){var e;this.value&&(e=document.location.pathname,ga("send","pageview",e+"?q="+this.value))}),document$.subscribe(function(){var a=document.forms.feedback;if(void 0!==a)for(var e of a.querySelectorAll("[type=submit]"))e.addEventListener("click",function(e){e.preventDefault();var t=document.location.pathname,e=this.getAttribute("data-md-value");ga("send","event","feedback","click",t,e),a.firstElementChild.disabled=!0;e=a.querySelector(".md-feedback__note [data-md-value='"+e+"']");e&&(e.hidden=!1)}),a.hidden=!1}),location$.subscribe(function(e){ga("send","pageview",e.pathname)})});var e=document.createElement("script");e.async=!0,e.src="https://www.google-analytics.com/analytics.js",document.getElementById("__analytics").insertAdjacentElement("afterEnd",e)}</script>
+
+  
+    <script>"undefined"!=typeof __md_analytics&&__md_analytics()</script>
   
 
-    <div class="document">
-      <div class="documentwrapper">
-        <div class="bodywrapper">
-          
+    
+    
+    
+  </head>
+  
+  
+    
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="" data-md-color-accent="">
+  
+    
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+      <div data-md-component="outdated" hidden>
+        
+      </div>
+    
+    
+      
 
-          <div class="body" role="main">
+  
+
+<header class="md-header md-header--lifted" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../index.html" title="" class="md-header__button md-logo" aria-label="" data-md-component="logo">
+      <img src="../_static/cvxpy-wordmark-light.png" alt="logo">
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2Z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
             
-  <section id="cvxpy-reductions-dcp2cone-package">
-<h1>cvxpy.reductions.dcp2cone package<a class="headerlink" href="#cvxpy-reductions-dcp2cone-package" title="Permalink to this heading">¶</a></h1>
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              cvxpy.reductions.dcp2cone package
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+    
+      <label class="md-header__button md-icon" for="__search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"/></svg>
+      </label>
+      <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"/></svg>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12Z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+          <a href="javascript:void(0)" class="md-search__icon md-icon" title="Share" aria-label="Share" data-clipboard data-clipboard-text="" data-md-component="search-share" tabindex="-1">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7 0-.24-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9a3 3 0 0 0-3 3 3 3 0 0 0 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.15c-.05.21-.08.43-.08.66 0 1.61 1.31 2.91 2.92 2.91 1.61 0 2.92-1.3 2.92-2.91A2.92 2.92 0 0 0 18 16.08Z"/></svg>
+          </a>
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41Z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/cvxpy/cvxpy/" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3zm44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8zM97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1zm-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7zm32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1zm-11.4-14.7c-1.6 1-1.6 3.6 0 5.9 1.6 2.3 4.3 3.3 5.6 2.3 1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    CVXPY
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+    
+      
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-tabs__inner md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+
+
+  <li class="md-tabs__item">
+    <a href="../install/index.html" class="md-tabs__link">
+      <span class="md-ellipsis">Install</span>
+    </a>
+  </li>
+
+      
+        
+  
+  
+
+
+  <li class="md-tabs__item">
+    <a href="../tutorial/index.html" class="md-tabs__link">
+      <span class="md-ellipsis">User Guide</span>
+    </a>
+  </li>
+
+      
+        
+  
+  
+
+
+  <li class="md-tabs__item">
+    <a href="cvxpy.html" class="md-tabs__link">
+      <span class="md-ellipsis">API Documentation</span>
+    </a>
+  </li>
+
+      
+        
+  
+  
+
+
+  <li class="md-tabs__item">
+    <a href="../examples/index.html" class="md-tabs__link">
+      <span class="md-ellipsis">Examples</span>
+    </a>
+  </li>
+
+      
+        
+  
+  
+
+
+  <li class="md-tabs__item">
+    <a href="../contributing/index.html" class="md-tabs__link">
+      <span class="md-ellipsis">Contributing</span>
+    </a>
+  </li>
+
+      
+        
+  
+  
+
+
+  <li class="md-tabs__item">
+    <a href="../updates/index.html" class="md-tabs__link">
+      <span class="md-ellipsis">Changelog</span>
+    </a>
+  </li>
+
+      
+        
+  
+  
+
+
+  <li class="md-tabs__item">
+    <a href="../faq/index.html" class="md-tabs__link">
+      <span class="md-ellipsis">FAQ</span>
+    </a>
+  </li>
+
+      
+        
+  
+  
+
+
+  <li class="md-tabs__item">
+    <a href="../resources/index.html" class="md-tabs__link">
+      <span class="md-ellipsis">Resources</span>
+    </a>
+  </li>
+
+      
+    </ul>
+  </div>
+</nav>
+    
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+      
+      
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../index.html" title="" class="md-nav__button md-logo" aria-label="" data-md-component="logo">
+      <img src="../_static/cvxpy-wordmark-light.png" alt="logo">
+    </a>
+    
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/cvxpy/cvxpy/" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3zm44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8zM97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1zm-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7zm32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1zm-11.4-14.7c-1.6 1-1.6 3.6 0 5.9 1.6 2.3 4.3 3.3 5.6 2.3 1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    CVXPY
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+      
+
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../install/index.html" class="md-nav__link">
+        <span class="md-ellipsis">Install</span>
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tutorial/index.html" class="md-nav__link">
+        <span class="md-ellipsis">User Guide</span>
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="cvxpy.html" class="md-nav__link">
+        <span class="md-ellipsis">API Documentation</span>
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../examples/index.html" class="md-nav__link">
+        <span class="md-ellipsis">Examples</span>
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../contributing/index.html" class="md-nav__link">
+        <span class="md-ellipsis">Contributing</span>
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../updates/index.html" class="md-nav__link">
+        <span class="md-ellipsis">Changelog</span>
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../faq/index.html" class="md-nav__link">
+        <span class="md-ellipsis">FAQ</span>
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../resources/index.html" class="md-nav__link">
+        <span class="md-ellipsis">Resources</span>
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+  
+
+<nav class="md-nav md-nav--secondary">
+  
+  
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset" role="main">
+                  
+
+
+<h1 id="cvxpy-reductions-dcp2cone-package">cvxpy.reductions.dcp2cone package<a class="headerlink" href="#cvxpy-reductions-dcp2cone-package" title="Link to this heading">¶</a></h1>
 <p>Please see <a class="reference internal" href="cvxpy.reductions.html#reductions-disclaimer"><span class="std std-ref">our disclaimer</span></a> about the
 Reductions API before using these directly in your code.</p>
-<section id="subpackages">
-<h2>Subpackages<a class="headerlink" href="#subpackages" title="Permalink to this heading">¶</a></h2>
+<h2 id="subpackages">Subpackages<a class="headerlink" href="#subpackages" title="Link to this heading">¶</a></h2>
 <div class="toctree-wrapper compound">
 </div>
-</section>
-<section id="submodules">
-<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this heading">¶</a></h2>
-</section>
-<section id="module-cvxpy.reductions.dcp2cone.cone_matrix_stuffing">
-<span id="cvxpy-reductions-dcp2cone-cone-matrix-stuffing-module"></span><h2>cvxpy.reductions.dcp2cone.cone_matrix_stuffing module<a class="headerlink" href="#module-cvxpy.reductions.dcp2cone.cone_matrix_stuffing" title="Permalink to this heading">¶</a></h2>
+<h2 id="submodules">Submodules<a class="headerlink" href="#submodules" title="Link to this heading">¶</a></h2>
+<h2 id="module-cvxpy.reductions.dcp2cone.cone_matrix_stuffing"><span id="cvxpy-reductions-dcp2cone-cone-matrix-stuffing-module"></span>cvxpy.reductions.dcp2cone.cone_matrix_stuffing module<a class="headerlink" href="#module-cvxpy.reductions.dcp2cone.cone_matrix_stuffing" title="Link to this heading">¶</a></h2>
 <p>Copyright 2013 Steven Diamond</p>
 <p>Licensed under the Apache License, Version 2.0 (the “License”);
 you may not use this file except in compliance with the License.
@@ -62,143 +495,149 @@ distributed under the License is distributed on an “AS IS” BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.</p>
-<dl class="py class">
-<dt class="sig sig-object py" id="cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ConeDims">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">cvxpy.reductions.dcp2cone.cone_matrix_stuffing.</span></span><span class="sig-name descname"><span class="pre">ConeDims</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">constr_map</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/reductions/dcp2cone/cone_matrix_stuffing.html#ConeDims"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ConeDims" title="Permalink to this definition">¶</a></dt>
+<dl class="py class objdesc">
+<dt class="sig sig-object highlight sig-wrap py" id="cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ConeDims">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">cvxpy.reductions.dcp2cone.cone_matrix_stuffing.</span></span><span class="sig-name descname"><span class="pre">ConeDims</span></span><span class="sig-paren">(</span><span class="sig-param-decl"><em class="sig-param"><a class="n reference internal" href="#cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ConeDims" title="cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ConeDims.__init__.constr_map (Python parameter)"><span class="n"><span class="pre">constr_map</span></span></a></em></span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/reductions/dcp2cone/cone_matrix_stuffing.html#ConeDims"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ConeDims" title="Link to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <p>Summary of cone dimensions present in constraints.</p>
 <p>Constraints must be formatted as dictionary that maps from
 constraint type to a list of constraints of that type.</p>
-<dl class="py attribute">
-<dt class="sig sig-object py" id="cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ConeDims.zero">
-<span class="sig-name descname"><span class="pre">zero</span></span><a class="headerlink" href="#cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ConeDims.zero" title="Permalink to this definition">¶</a></dt>
+<dl class="py attribute objdesc">
+<dt class="sig sig-object highlight py" id="cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ConeDims.zero">
+<span class="sig-name descname"><span class="pre">zero</span></span><a class="headerlink" href="#cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ConeDims.zero" title="Link to this definition">¶</a></dt>
 <dd><p>The dimension of the zero cone.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dt class="field-odd" id="cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ConeDims.zero-type">Type<span class="colon">:</span><a class="headerlink" href="#cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ConeDims.zero-type" title="Permalink to this headline">¶</a></dt>
 <dd class="field-odd"><p>int</p>
 </dd>
 </dl>
 </dd></dl>
 
-<dl class="py attribute">
-<dt class="sig sig-object py" id="cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ConeDims.nonneg">
-<span class="sig-name descname"><span class="pre">nonneg</span></span><a class="headerlink" href="#cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ConeDims.nonneg" title="Permalink to this definition">¶</a></dt>
+<dl class="py attribute objdesc">
+<dt class="sig sig-object highlight py" id="cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ConeDims.nonneg">
+<span class="sig-name descname"><span class="pre">nonneg</span></span><a class="headerlink" href="#cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ConeDims.nonneg" title="Link to this definition">¶</a></dt>
 <dd><p>The dimension of the non-negative cone.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dt class="field-odd" id="cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ConeDims.nonneg-type">Type<span class="colon">:</span><a class="headerlink" href="#cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ConeDims.nonneg-type" title="Permalink to this headline">¶</a></dt>
 <dd class="field-odd"><p>int</p>
 </dd>
 </dl>
 </dd></dl>
 
-<dl class="py attribute">
-<dt class="sig sig-object py" id="cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ConeDims.exp">
-<span class="sig-name descname"><span class="pre">exp</span></span><a class="headerlink" href="#cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ConeDims.exp" title="Permalink to this definition">¶</a></dt>
+<dl class="py attribute objdesc">
+<dt class="sig sig-object highlight py" id="cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ConeDims.exp">
+<span class="sig-name descname"><span class="pre">exp</span></span><a class="headerlink" href="#cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ConeDims.exp" title="Link to this definition">¶</a></dt>
 <dd><p>The number of 3-dimensional exponential cones.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dt class="field-odd" id="cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ConeDims.exp-type">Type<span class="colon">:</span><a class="headerlink" href="#cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ConeDims.exp-type" title="Permalink to this headline">¶</a></dt>
 <dd class="field-odd"><p>int</p>
 </dd>
 </dl>
 </dd></dl>
 
-<dl class="py attribute">
-<dt class="sig sig-object py" id="cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ConeDims.soc">
-<span class="sig-name descname"><span class="pre">soc</span></span><a class="headerlink" href="#cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ConeDims.soc" title="Permalink to this definition">¶</a></dt>
+<dl class="py attribute objdesc">
+<dt class="sig sig-object highlight py" id="cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ConeDims.soc">
+<span class="sig-name descname"><span class="pre">soc</span></span><a class="headerlink" href="#cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ConeDims.soc" title="Link to this definition">¶</a></dt>
 <dd><p>A list of the second-order cone dimensions.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dt class="field-odd" id="cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ConeDims.soc-type">Type<span class="colon">:</span><a class="headerlink" href="#cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ConeDims.soc-type" title="Permalink to this headline">¶</a></dt>
 <dd class="field-odd"><p>list of int</p>
 </dd>
 </dl>
 </dd></dl>
 
-<dl class="py attribute">
-<dt class="sig sig-object py" id="cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ConeDims.psd">
-<span class="sig-name descname"><span class="pre">psd</span></span><a class="headerlink" href="#cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ConeDims.psd" title="Permalink to this definition">¶</a></dt>
+<dl class="py attribute objdesc">
+<dt class="sig sig-object highlight py" id="cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ConeDims.psd">
+<span class="sig-name descname"><span class="pre">psd</span></span><a class="headerlink" href="#cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ConeDims.psd" title="Link to this definition">¶</a></dt>
 <dd><p>A list of the positive semidefinite cone dimensions, where the
 dimension of the PSD cone of k by k matrices is k.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dt class="field-odd" id="cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ConeDims.psd-type">Type<span class="colon">:</span><a class="headerlink" href="#cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ConeDims.psd-type" title="Permalink to this headline">¶</a></dt>
 <dd class="field-odd"><p>list of int</p>
 </dd>
 </dl>
 </dd></dl>
 
-<dl class="py attribute">
-<dt class="sig sig-object py" id="cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ConeDims.EQ_DIM">
-<span class="sig-name descname"><span class="pre">EQ_DIM</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'f'</span></em><a class="headerlink" href="#cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ConeDims.EQ_DIM" title="Permalink to this definition">¶</a></dt>
+<dl class="py attribute objdesc">
+<dt class="sig sig-object highlight py" id="cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ConeDims.EQ_DIM">
+<span class="sig-name descname"><span class="pre">EQ_DIM</span></span><span class="p"> <span class="pre">=</span> </span><code class="code python docutils literal highlight highlight-python"><span class="s1">&#39;f&#39;</span></code><a class="headerlink" href="#cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ConeDims.EQ_DIM" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="py attribute">
-<dt class="sig sig-object py" id="cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ConeDims.EXP_DIM">
-<span class="sig-name descname"><span class="pre">EXP_DIM</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'ep'</span></em><a class="headerlink" href="#cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ConeDims.EXP_DIM" title="Permalink to this definition">¶</a></dt>
+<dl class="py attribute objdesc">
+<dt class="sig sig-object highlight py" id="cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ConeDims.EXP_DIM">
+<span class="sig-name descname"><span class="pre">EXP_DIM</span></span><span class="p"> <span class="pre">=</span> </span><code class="code python docutils literal highlight highlight-python"><span class="s1">&#39;ep&#39;</span></code><a class="headerlink" href="#cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ConeDims.EXP_DIM" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="py attribute">
-<dt class="sig sig-object py" id="cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ConeDims.LEQ_DIM">
-<span class="sig-name descname"><span class="pre">LEQ_DIM</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'l'</span></em><a class="headerlink" href="#cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ConeDims.LEQ_DIM" title="Permalink to this definition">¶</a></dt>
+<dl class="py attribute objdesc">
+<dt class="sig sig-object highlight py" id="cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ConeDims.LEQ_DIM">
+<span class="sig-name descname"><span class="pre">LEQ_DIM</span></span><span class="p"> <span class="pre">=</span> </span><code class="code python docutils literal highlight highlight-python"><span class="s1">&#39;l&#39;</span></code><a class="headerlink" href="#cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ConeDims.LEQ_DIM" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="py attribute">
-<dt class="sig sig-object py" id="cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ConeDims.P3D_DIM">
-<span class="sig-name descname"><span class="pre">P3D_DIM</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'p3'</span></em><a class="headerlink" href="#cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ConeDims.P3D_DIM" title="Permalink to this definition">¶</a></dt>
+<dl class="py attribute objdesc">
+<dt class="sig sig-object highlight py" id="cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ConeDims.P3D_DIM">
+<span class="sig-name descname"><span class="pre">P3D_DIM</span></span><span class="p"> <span class="pre">=</span> </span><code class="code python docutils literal highlight highlight-python"><span class="s1">&#39;p3&#39;</span></code><a class="headerlink" href="#cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ConeDims.P3D_DIM" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="py attribute">
-<dt class="sig sig-object py" id="cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ConeDims.PSD_DIM">
-<span class="sig-name descname"><span class="pre">PSD_DIM</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'s'</span></em><a class="headerlink" href="#cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ConeDims.PSD_DIM" title="Permalink to this definition">¶</a></dt>
+<dl class="py attribute objdesc">
+<dt class="sig sig-object highlight py" id="cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ConeDims.PSD_DIM">
+<span class="sig-name descname"><span class="pre">PSD_DIM</span></span><span class="p"> <span class="pre">=</span> </span><code class="code python docutils literal highlight highlight-python"><span class="s1">&#39;s&#39;</span></code><a class="headerlink" href="#cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ConeDims.PSD_DIM" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="py attribute">
-<dt class="sig sig-object py" id="cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ConeDims.SOC_DIM">
-<span class="sig-name descname"><span class="pre">SOC_DIM</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'q'</span></em><a class="headerlink" href="#cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ConeDims.SOC_DIM" title="Permalink to this definition">¶</a></dt>
+<dl class="py attribute objdesc">
+<dt class="sig sig-object highlight py" id="cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ConeDims.SOC_DIM">
+<span class="sig-name descname"><span class="pre">SOC_DIM</span></span><span class="p"> <span class="pre">=</span> </span><code class="code python docutils literal highlight highlight-python"><span class="s1">&#39;q&#39;</span></code><a class="headerlink" href="#cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ConeDims.SOC_DIM" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
 
-<dl class="py class">
-<dt class="sig sig-object py" id="cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ConeMatrixStuffing">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">cvxpy.reductions.dcp2cone.cone_matrix_stuffing.</span></span><span class="sig-name descname"><span class="pre">ConeMatrixStuffing</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">quad_obj</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">canon_backend</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/reductions/dcp2cone/cone_matrix_stuffing.html#ConeMatrixStuffing"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ConeMatrixStuffing" title="Permalink to this definition">¶</a></dt>
+<dl class="py class objdesc">
+<dt class="sig sig-object highlight sig-wrap py" id="cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ConeMatrixStuffing">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">cvxpy.reductions.dcp2cone.cone_matrix_stuffing.</span></span><span class="sig-name descname"><span class="pre">ConeMatrixStuffing</span></span><span class="sig-paren">(</span><span class="sig-param-decl"><em class="sig-param"><a class="n reference internal" href="#cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ConeMatrixStuffing" title="cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ConeMatrixStuffing.__init__.quad_obj (Python parameter)"><span class="n"><span class="pre">quad_obj</span></span></a><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="desctype"><span class="pre">bool</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><code class="code python default_value docutils literal highlight highlight-python"><span class="kc">False</span></code></em>, </span><span class="sig-param-decl"><em class="sig-param"><a class="n reference internal" href="#cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ConeMatrixStuffing" title="cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ConeMatrixStuffing.__init__.canon_backend (Python parameter)"><span class="n"><span class="pre">canon_backend</span></span></a><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="desctype"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><code class="code python default_value docutils literal highlight highlight-python"><span class="kc">None</span></code></em></span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/reductions/dcp2cone/cone_matrix_stuffing.html#ConeMatrixStuffing"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ConeMatrixStuffing" title="Link to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">MatrixStuffing</span></code></p>
 <p>Construct matrices for linear cone problems.</p>
 <p>Linear cone problems are assumed to have a linear objective and cone
 constraints which may have zero or more arguments, all of which must be
 affine.</p>
-<dl class="py attribute">
-<dt class="sig sig-object py" id="cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ConeMatrixStuffing.CONSTRAINTS">
-<span class="sig-name descname"><span class="pre">CONSTRAINTS</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'ordered_constraints'</span></em><a class="headerlink" href="#cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ConeMatrixStuffing.CONSTRAINTS" title="Permalink to this definition">¶</a></dt>
+<dl class="py attribute objdesc">
+<dt class="sig sig-object highlight py" id="cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ConeMatrixStuffing.CONSTRAINTS">
+<span class="sig-name descname"><span class="pre">CONSTRAINTS</span></span><span class="p"> <span class="pre">=</span> </span><code class="code python docutils literal highlight highlight-python"><span class="s1">&#39;ordered_constraints&#39;</span></code><a class="headerlink" href="#cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ConeMatrixStuffing.CONSTRAINTS" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="py method">
-<dt class="sig sig-object py" id="cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ConeMatrixStuffing.accepts">
-<span class="sig-name descname"><span class="pre">accepts</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">problem</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/reductions/dcp2cone/cone_matrix_stuffing.html#ConeMatrixStuffing.accepts"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ConeMatrixStuffing.accepts" title="Permalink to this definition">¶</a></dt>
+<dl class="py method objdesc">
+<dt class="sig sig-object highlight py" id="cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ConeMatrixStuffing.accepts">
+<span class="sig-name descname"><span class="pre">accepts</span></span><span class="sig-paren">(</span><span class="sig-param-decl"><em class="sig-param"><a class="n reference internal" href="#cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ConeMatrixStuffing.accepts.problem" title="cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ConeMatrixStuffing.accepts.problem (Python parameter) — The problem to check."><span class="n"><span class="pre">problem</span></span></a></em></span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/reductions/dcp2cone/cone_matrix_stuffing.html#ConeMatrixStuffing.accepts"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ConeMatrixStuffing.accepts" title="Link to this definition">¶</a></dt>
 <dd><p>States whether the reduction accepts a problem.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>problem</strong> (<a class="reference internal" href="cvxpy.problems.html#cvxpy.Problem" title="cvxpy.Problem"><em>Problem</em></a>) – The problem to check.</p>
+<dt class="field-odd" id="cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ConeMatrixStuffing.accepts-parameters">Parameters<span class="colon">:</span><a class="headerlink" href="#cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ConeMatrixStuffing.accepts-parameters" title="Permalink to this headline">¶</a></dt>
+<dd class="field-odd"><dl class="simple api-field highlight">
+<dt id="cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ConeMatrixStuffing.accepts.problem"><span class="sig-name descname">problem</span><span class="p"> : </span><span class="desctype"><span class="desctype"><a class="reference internal" href="cvxpy.problems.html#cvxpy.Problem" title="cvxpy.Problem (Python class) — A convex optimization problem.">Problem</a></span></span><a class="headerlink" href="#cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ConeMatrixStuffing.accepts.problem" title="Permalink to this definition">¶</a></dt><dd><p>The problem to check.</p>
 </dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
+</dl>
+</dd>
+<dt class="field-even" id="cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ConeMatrixStuffing.accepts-returns">Returns<span class="colon">:</span><a class="headerlink" href="#cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ConeMatrixStuffing.accepts-returns" title="Permalink to this headline">¶</a></dt>
 <dd class="field-even"><p>True if the reduction can be applied, False otherwise.</p>
 </dd>
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dt class="field-odd" id="cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ConeMatrixStuffing.accepts-return-type">Return type<span class="colon">:</span><a class="headerlink" href="#cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ConeMatrixStuffing.accepts-return-type" title="Permalink to this headline">¶</a></dt>
 <dd class="field-odd"><p>bool</p>
 </dd>
 </dl>
 </dd></dl>
 
-<dl class="py method">
-<dt class="sig sig-object py" id="cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ConeMatrixStuffing.apply">
-<span class="sig-name descname"><span class="pre">apply</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">problem</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/reductions/dcp2cone/cone_matrix_stuffing.html#ConeMatrixStuffing.apply"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ConeMatrixStuffing.apply" title="Permalink to this definition">¶</a></dt>
+<dl class="py method objdesc">
+<dt class="sig sig-object highlight py" id="cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ConeMatrixStuffing.apply">
+<span class="sig-name descname"><span class="pre">apply</span></span><span class="sig-paren">(</span><span class="sig-param-decl"><em class="sig-param"><a class="n reference internal" href="#cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ConeMatrixStuffing.apply.problem" title="cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ConeMatrixStuffing.apply.problem (Python parameter) — must be affine"><span class="n"><span class="pre">problem</span></span></a></em></span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/reductions/dcp2cone/cone_matrix_stuffing.html#ConeMatrixStuffing.apply"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ConeMatrixStuffing.apply" title="Link to this definition">¶</a></dt>
 <dd><p>Returns a stuffed problem.</p>
 <p>The returned problem is a minimization problem in which every
 constraint in the problem has affine arguments that are expressed in
 the form A &#64; x + b.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>problem</strong> (<em>The problem to stuff; the arguments</em><em> of </em><em>every constraint</em>) – must be affine</p>
+<dt class="field-odd" id="cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ConeMatrixStuffing.apply-parameters">Parameters<span class="colon">:</span><a class="headerlink" href="#cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ConeMatrixStuffing.apply-parameters" title="Permalink to this headline">¶</a></dt>
+<dd class="field-odd"><dl class="simple api-field highlight">
+<dt id="cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ConeMatrixStuffing.apply.problem"><span class="sig-name descname">problem</span><span class="p"> : </span><span class="desctype"><span class="desctype">The problem to stuff; the arguments of every constraint</span></span><a class="headerlink" href="#cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ConeMatrixStuffing.apply.problem" title="Permalink to this definition">¶</a></dt><dd><p>must be affine</p>
 </dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
+</dl>
+</dd>
+<dt class="field-even" id="cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ConeMatrixStuffing.apply-returns">Returns<span class="colon">:</span><a class="headerlink" href="#cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ConeMatrixStuffing.apply-returns" title="Permalink to this headline">¶</a></dt>
 <dd class="field-even"><p><ul class="simple">
 <li><p><em>Problem</em> – The stuffed problem</p></li>
 <li><p><em>InverseData</em> – Data for solution retrieval</p></li>
@@ -208,22 +647,22 @@ the form A &#64; x + b.</p>
 </dl>
 </dd></dl>
 
-<dl class="py method">
-<dt class="sig sig-object py" id="cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ConeMatrixStuffing.invert">
-<span class="sig-name descname"><span class="pre">invert</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">solution</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">inverse_data</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/reductions/dcp2cone/cone_matrix_stuffing.html#ConeMatrixStuffing.invert"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ConeMatrixStuffing.invert" title="Permalink to this definition">¶</a></dt>
+<dl class="py method objdesc">
+<dt class="sig sig-object highlight py" id="cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ConeMatrixStuffing.invert">
+<span class="sig-name descname"><span class="pre">invert</span></span><span class="sig-paren">(</span><span class="sig-param-decl"><em class="sig-param"><a class="n reference internal" href="#cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ConeMatrixStuffing.invert" title="cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ConeMatrixStuffing.invert.solution (Python parameter)"><span class="n"><span class="pre">solution</span></span></a></em>, </span><span class="sig-param-decl"><em class="sig-param"><a class="n reference internal" href="#cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ConeMatrixStuffing.invert" title="cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ConeMatrixStuffing.invert.inverse_data (Python parameter)"><span class="n"><span class="pre">inverse_data</span></span></a></em></span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/reductions/dcp2cone/cone_matrix_stuffing.html#ConeMatrixStuffing.invert"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ConeMatrixStuffing.invert" title="Link to this definition">¶</a></dt>
 <dd><p>Retrieves a solution to the original problem</p>
 </dd></dl>
 
-<dl class="py method">
-<dt class="sig sig-object py" id="cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ConeMatrixStuffing.stuffed_objective">
-<span class="sig-name descname"><span class="pre">stuffed_objective</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">problem</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">extractor</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/reductions/dcp2cone/cone_matrix_stuffing.html#ConeMatrixStuffing.stuffed_objective"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ConeMatrixStuffing.stuffed_objective" title="Permalink to this definition">¶</a></dt>
+<dl class="py method objdesc">
+<dt class="sig sig-object highlight py" id="cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ConeMatrixStuffing.stuffed_objective">
+<span class="sig-name descname"><span class="pre">stuffed_objective</span></span><span class="sig-paren">(</span><span class="sig-param-decl"><em class="sig-param"><a class="n reference internal" href="#cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ConeMatrixStuffing.stuffed_objective" title="cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ConeMatrixStuffing.stuffed_objective.problem (Python parameter)"><span class="n"><span class="pre">problem</span></span></a></em>, </span><span class="sig-param-decl"><em class="sig-param"><a class="n reference internal" href="#cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ConeMatrixStuffing.stuffed_objective" title="cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ConeMatrixStuffing.stuffed_objective.extractor (Python parameter)"><span class="n"><span class="pre">extractor</span></span></a></em></span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/reductions/dcp2cone/cone_matrix_stuffing.html#ConeMatrixStuffing.stuffed_objective"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ConeMatrixStuffing.stuffed_objective" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
 
-<dl class="py class">
-<dt class="sig sig-object py" id="cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ParamConeProg">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">cvxpy.reductions.dcp2cone.cone_matrix_stuffing.</span></span><span class="sig-name descname"><span class="pre">ParamConeProg</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">c</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">A</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">variables</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">var_id_to_col</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">constraints</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parameters</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">param_id_to_col</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">P</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">formatted</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lower_bounds</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">np.ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">upper_bounds</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">np.ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/reductions/dcp2cone/cone_matrix_stuffing.html#ParamConeProg"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ParamConeProg" title="Permalink to this definition">¶</a></dt>
+<dl class="py class objdesc">
+<dt class="sig sig-object highlight sig-wrap py" id="cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ParamConeProg">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">cvxpy.reductions.dcp2cone.cone_matrix_stuffing.</span></span><span class="sig-name descname"><span class="pre">ParamConeProg</span></span><span class="sig-paren">(</span><span class="sig-param-decl"><em class="sig-param"><a class="n reference internal" href="#cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ParamConeProg" title="cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ParamConeProg.__init__.c (Python parameter)"><span class="n"><span class="pre">c</span></span></a></em>, </span><span class="sig-param-decl"><em class="sig-param"><a class="n reference internal" href="#cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ParamConeProg" title="cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ParamConeProg.__init__.x (Python parameter)"><span class="n"><span class="pre">x</span></span></a></em>, </span><span class="sig-param-decl"><em class="sig-param"><a class="n reference internal" href="#cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ParamConeProg" title="cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ParamConeProg.__init__.A (Python parameter)"><span class="n"><span class="pre">A</span></span></a></em>, </span><span class="sig-param-decl"><em class="sig-param"><a class="n reference internal" href="#cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ParamConeProg" title="cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ParamConeProg.__init__.variables (Python parameter)"><span class="n"><span class="pre">variables</span></span></a></em>, </span><span class="sig-param-decl"><em class="sig-param"><a class="n reference internal" href="#cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ParamConeProg" title="cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ParamConeProg.__init__.var_id_to_col (Python parameter)"><span class="n"><span class="pre">var_id_to_col</span></span></a></em>, </span><span class="sig-param-decl"><em class="sig-param"><a class="n reference internal" href="#cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ParamConeProg" title="cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ParamConeProg.__init__.constraints (Python parameter)"><span class="n"><span class="pre">constraints</span></span></a></em>, </span><span class="sig-param-decl"><em class="sig-param"><a class="n reference internal" href="#cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ParamConeProg" title="cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ParamConeProg.__init__.parameters (Python parameter)"><span class="n"><span class="pre">parameters</span></span></a></em>, </span><span class="sig-param-decl"><em class="sig-param"><a class="n reference internal" href="#cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ParamConeProg" title="cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ParamConeProg.__init__.param_id_to_col (Python parameter)"><span class="n"><span class="pre">param_id_to_col</span></span></a></em>, </span><span class="sig-param-decl"><em class="sig-param"><a class="n reference internal" href="#cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ParamConeProg" title="cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ParamConeProg.__init__.P (Python parameter)"><span class="n"><span class="pre">P</span></span></a><span class="o"><span class="pre">=</span></span><code class="code python default_value docutils literal highlight highlight-python"><span class="kc">None</span></code></em>, </span><span class="sig-param-decl"><em class="sig-param"><a class="n reference internal" href="#cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ParamConeProg" title="cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ParamConeProg.__init__.formatted (Python parameter)"><span class="n"><span class="pre">formatted</span></span></a><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="desctype"><span class="pre">bool</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><code class="code python default_value docutils literal highlight highlight-python"><span class="kc">False</span></code></em>, </span><span class="sig-param-decl"><em class="sig-param"><a class="n reference internal" href="#cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ParamConeProg" title="cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ParamConeProg.__init__.lower_bounds (Python parameter)"><span class="n"><span class="pre">lower_bounds</span></span></a><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="desctype"><span class="pre">ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><code class="code python default_value docutils literal highlight highlight-python"><span class="kc">None</span></code></em>, </span><span class="sig-param-decl"><em class="sig-param"><a class="n reference internal" href="#cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ParamConeProg" title="cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ParamConeProg.__init__.upper_bounds (Python parameter)"><span class="n"><span class="pre">upper_bounds</span></span></a><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="desctype"><span class="pre">ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><code class="code python default_value docutils literal highlight highlight-python"><span class="kc">None</span></code></em></span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/reductions/dcp2cone/cone_matrix_stuffing.html#ParamConeProg"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ParamConeProg" title="Link to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">ParamProb</span></code></p>
 <p>Represents a parameterized cone program</p>
 <p>minimize   c’x  + d + [(1/2)x’Px]
@@ -233,59 +672,61 @@ subject to cone_constr1(A_1*x + b_1, …)</p>
 cone_constrK(A_i*x + b_i, …)</p>
 </div></blockquote>
 <p>The constant offsets d and b are the last column of c and A.</p>
-<dl class="py method">
-<dt class="sig sig-object py" id="cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ParamConeProg.apply_param_jac">
-<span class="sig-name descname"><span class="pre">apply_param_jac</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">delc</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">delA</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">delb</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">active_params</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/reductions/dcp2cone/cone_matrix_stuffing.html#ParamConeProg.apply_param_jac"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ParamConeProg.apply_param_jac" title="Permalink to this definition">¶</a></dt>
+<dl class="py method objdesc">
+<dt class="sig sig-object highlight py" id="cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ParamConeProg.apply_param_jac">
+<span class="sig-name descname"><span class="pre">apply_param_jac</span></span><span class="sig-paren">(</span><span class="sig-param-decl"><em class="sig-param"><a class="n reference internal" href="#cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ParamConeProg.apply_param_jac" title="cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ParamConeProg.apply_param_jac.delc (Python parameter)"><span class="n"><span class="pre">delc</span></span></a></em>, </span><span class="sig-param-decl"><em class="sig-param"><a class="n reference internal" href="#cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ParamConeProg.apply_param_jac" title="cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ParamConeProg.apply_param_jac.delA (Python parameter)"><span class="n"><span class="pre">delA</span></span></a></em>, </span><span class="sig-param-decl"><em class="sig-param"><a class="n reference internal" href="#cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ParamConeProg.apply_param_jac" title="cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ParamConeProg.apply_param_jac.delb (Python parameter)"><span class="n"><span class="pre">delb</span></span></a></em>, </span><span class="sig-param-decl"><em class="sig-param"><a class="n reference internal" href="#cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ParamConeProg.apply_param_jac" title="cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ParamConeProg.apply_param_jac.active_params (Python parameter)"><span class="n"><span class="pre">active_params</span></span></a><span class="o"><span class="pre">=</span></span><code class="code python default_value docutils literal highlight highlight-python"><span class="kc">None</span></code></em></span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/reductions/dcp2cone/cone_matrix_stuffing.html#ParamConeProg.apply_param_jac"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ParamConeProg.apply_param_jac" title="Link to this definition">¶</a></dt>
 <dd><p>Multiplies by Jacobian of parameter mapping.</p>
 <p>Assumes delA is sparse.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dt class="field-odd" id="cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ParamConeProg.apply_param_jac-returns">Returns<span class="colon">:</span><a class="headerlink" href="#cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ParamConeProg.apply_param_jac-returns" title="Permalink to this headline">¶</a></dt>
 <dd class="field-odd"><p>A dictionary param.id -&gt; dparam</p>
 </dd>
 </dl>
 </dd></dl>
 
-<dl class="py method">
-<dt class="sig sig-object py" id="cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ParamConeProg.apply_parameters">
-<span class="sig-name descname"><span class="pre">apply_parameters</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">id_to_param_value</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">zero_offset</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">keep_zeros</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">quad_obj</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/reductions/dcp2cone/cone_matrix_stuffing.html#ParamConeProg.apply_parameters"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ParamConeProg.apply_parameters" title="Permalink to this definition">¶</a></dt>
+<dl class="py method objdesc">
+<dt class="sig sig-object highlight sig-wrap py" id="cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ParamConeProg.apply_parameters">
+<span class="sig-name descname"><span class="pre">apply_parameters</span></span><span class="sig-paren">(</span><span class="sig-param-decl"><em class="sig-param"><a class="n reference internal" href="#cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ParamConeProg.apply_parameters.id_to_param_value" title="cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ParamConeProg.apply_parameters.id_to_param_value (Python parameter) — (optional) dict mapping parameter ids to values."><span class="n"><span class="pre">id_to_param_value</span></span></a><span class="o"><span class="pre">=</span></span><code class="code python default_value docutils literal highlight highlight-python"><span class="kc">None</span></code></em>, </span><span class="sig-param-decl"><em class="sig-param"><a class="n reference internal" href="#cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ParamConeProg.apply_parameters.zero_offset" title="cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ParamConeProg.apply_parameters.zero_offset (Python parameter) — (optional) if True, zero out the constant offset in the parameter vector."><span class="n"><span class="pre">zero_offset</span></span></a><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="desctype"><span class="pre">bool</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><code class="code python default_value docutils literal highlight highlight-python"><span class="kc">False</span></code></em>, </span><span class="sig-param-decl"><em class="sig-param"><a class="n reference internal" href="#cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ParamConeProg.apply_parameters.keep_zeros" title="cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ParamConeProg.apply_parameters.keep_zeros (Python parameter) — (optional) if True, store explicit zeros in A where parameters are affected."><span class="n"><span class="pre">keep_zeros</span></span></a><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="desctype"><span class="pre">bool</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><code class="code python default_value docutils literal highlight highlight-python"><span class="kc">False</span></code></em>, </span><span class="sig-param-decl"><em class="sig-param"><a class="n reference internal" href="#cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ParamConeProg.apply_parameters.quad_obj" title="cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ParamConeProg.apply_parameters.quad_obj (Python parameter) — (optional) if True, include quadratic objective term."><span class="n"><span class="pre">quad_obj</span></span></a><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="desctype"><span class="pre">bool</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><code class="code python default_value docutils literal highlight highlight-python"><span class="kc">False</span></code></em></span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/reductions/dcp2cone/cone_matrix_stuffing.html#ParamConeProg.apply_parameters"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ParamConeProg.apply_parameters" title="Link to this definition">¶</a></dt>
 <dd><p>Returns A, b after applying parameters (and reshaping).</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>id_to_param_value</strong> – (optional) dict mapping parameter ids to values.</p></li>
-<li><p><strong>zero_offset</strong> – (optional) if True, zero out the constant offset in the
-parameter vector.</p></li>
-<li><p><strong>keep_zeros</strong> – (optional) if True, store explicit zeros in A where
-parameters are affected.</p></li>
-<li><p><strong>quad_obj</strong> – (optional) if True, include quadratic objective term.</p></li>
-</ul>
+<dt class="field-odd" id="cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ParamConeProg.apply_parameters-parameters">Parameters<span class="colon">:</span><a class="headerlink" href="#cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ParamConeProg.apply_parameters-parameters" title="Permalink to this headline">¶</a></dt>
+<dd class="field-odd"><dl class="simple api-field highlight">
+<dt id="cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ParamConeProg.apply_parameters.id_to_param_value"><span class="n sig-name">id_to_param_value</span><span class="o">=</span><code class="code python default_value docutils literal highlight highlight-python"><span class="kc">None</span></code><a class="headerlink" href="#cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ParamConeProg.apply_parameters.id_to_param_value" title="Permalink to this definition">¶</a></dt><dd><p>(optional) dict mapping parameter ids to values.</p>
+</dd>
+<dt id="cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ParamConeProg.apply_parameters.zero_offset"><span class="n sig-name">zero_offset</span><span class="p">:</span><span class="w"> </span><span class="n"><span class="desctype">bool</span></span><span class="w"> </span><span class="o">=</span><span class="w"> </span><code class="code python default_value docutils literal highlight highlight-python"><span class="kc">False</span></code><a class="headerlink" href="#cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ParamConeProg.apply_parameters.zero_offset" title="Permalink to this definition">¶</a></dt><dd><p>(optional) if True, zero out the constant offset in the
+parameter vector.</p>
+</dd>
+<dt id="cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ParamConeProg.apply_parameters.keep_zeros"><span class="n sig-name">keep_zeros</span><span class="p">:</span><span class="w"> </span><span class="n"><span class="desctype">bool</span></span><span class="w"> </span><span class="o">=</span><span class="w"> </span><code class="code python default_value docutils literal highlight highlight-python"><span class="kc">False</span></code><a class="headerlink" href="#cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ParamConeProg.apply_parameters.keep_zeros" title="Permalink to this definition">¶</a></dt><dd><p>(optional) if True, store explicit zeros in A where
+parameters are affected.</p>
+</dd>
+<dt id="cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ParamConeProg.apply_parameters.quad_obj"><span class="n sig-name">quad_obj</span><span class="p">:</span><span class="w"> </span><span class="n"><span class="desctype">bool</span></span><span class="w"> </span><span class="o">=</span><span class="w"> </span><code class="code python default_value docutils literal highlight highlight-python"><span class="kc">False</span></code><a class="headerlink" href="#cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ParamConeProg.apply_parameters.quad_obj" title="Permalink to this definition">¶</a></dt><dd><p>(optional) if True, include quadratic objective term.</p>
+</dd>
+</dl>
 </dd>
 </dl>
 </dd></dl>
 
-<dl class="py method">
-<dt class="sig sig-object py" id="cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ParamConeProg.is_mixed_integer">
-<span class="sig-name descname"><span class="pre">is_mixed_integer</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="reference internal" href="../_modules/cvxpy/reductions/dcp2cone/cone_matrix_stuffing.html#ParamConeProg.is_mixed_integer"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ParamConeProg.is_mixed_integer" title="Permalink to this definition">¶</a></dt>
+<dl class="py method objdesc">
+<dt class="sig sig-object highlight py" id="cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ParamConeProg.is_mixed_integer">
+<span class="sig-name descname"><span class="pre">is_mixed_integer</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="desctype"><span class="pre">bool</span></span></span></span><a class="reference internal" href="../_modules/cvxpy/reductions/dcp2cone/cone_matrix_stuffing.html#ParamConeProg.is_mixed_integer"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ParamConeProg.is_mixed_integer" title="Link to this definition">¶</a></dt>
 <dd><p>Is the problem mixed-integer?</p>
 </dd></dl>
 
-<dl class="py method">
-<dt class="sig sig-object py" id="cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ParamConeProg.split_adjoint">
-<span class="sig-name descname"><span class="pre">split_adjoint</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">del_vars</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/reductions/dcp2cone/cone_matrix_stuffing.html#ParamConeProg.split_adjoint"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ParamConeProg.split_adjoint" title="Permalink to this definition">¶</a></dt>
+<dl class="py method objdesc">
+<dt class="sig sig-object highlight py" id="cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ParamConeProg.split_adjoint">
+<span class="sig-name descname"><span class="pre">split_adjoint</span></span><span class="sig-paren">(</span><span class="sig-param-decl"><em class="sig-param"><a class="n reference internal" href="#cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ParamConeProg.split_adjoint" title="cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ParamConeProg.split_adjoint.del_vars (Python parameter)"><span class="n"><span class="pre">del_vars</span></span></a><span class="o"><span class="pre">=</span></span><code class="code python default_value docutils literal highlight highlight-python"><span class="kc">None</span></code></em></span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/reductions/dcp2cone/cone_matrix_stuffing.html#ParamConeProg.split_adjoint"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ParamConeProg.split_adjoint" title="Link to this definition">¶</a></dt>
 <dd><p>Adjoint of split_solution.</p>
 </dd></dl>
 
-<dl class="py method">
-<dt class="sig sig-object py" id="cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ParamConeProg.split_solution">
-<span class="sig-name descname"><span class="pre">split_solution</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sltn</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">active_vars</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/reductions/dcp2cone/cone_matrix_stuffing.html#ParamConeProg.split_solution"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ParamConeProg.split_solution" title="Permalink to this definition">¶</a></dt>
+<dl class="py method objdesc">
+<dt class="sig sig-object highlight py" id="cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ParamConeProg.split_solution">
+<span class="sig-name descname"><span class="pre">split_solution</span></span><span class="sig-paren">(</span><span class="sig-param-decl"><em class="sig-param"><a class="n reference internal" href="#cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ParamConeProg.split_solution" title="cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ParamConeProg.split_solution.sltn (Python parameter)"><span class="n"><span class="pre">sltn</span></span></a></em>, </span><span class="sig-param-decl"><em class="sig-param"><a class="n reference internal" href="#cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ParamConeProg.split_solution" title="cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ParamConeProg.split_solution.active_vars (Python parameter)"><span class="n"><span class="pre">active_vars</span></span></a><span class="o"><span class="pre">=</span></span><code class="code python default_value docutils literal highlight highlight-python"><span class="kc">None</span></code></em></span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/reductions/dcp2cone/cone_matrix_stuffing.html#ParamConeProg.split_solution"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ParamConeProg.split_solution" title="Link to this definition">¶</a></dt>
 <dd><p>Splits the solution into individual variables.</p>
 </dd></dl>
 
 </dd></dl>
 
-</section>
-<section id="module-cvxpy.reductions.dcp2cone.dcp2cone">
-<span id="cvxpy-reductions-dcp2cone-dcp2cone-module"></span><h2>cvxpy.reductions.dcp2cone.dcp2cone module<a class="headerlink" href="#module-cvxpy.reductions.dcp2cone.dcp2cone" title="Permalink to this heading">¶</a></h2>
+<h2 id="module-cvxpy.reductions.dcp2cone.dcp2cone"><span id="cvxpy-reductions-dcp2cone-dcp2cone-module"></span>cvxpy.reductions.dcp2cone.dcp2cone module<a class="headerlink" href="#module-cvxpy.reductions.dcp2cone.dcp2cone" title="Link to this heading">¶</a></h2>
 <p>Copyright 2013 Steven Diamond, 2017 Akshay Agrawal, 2017 Robin Verschueren</p>
 <p>Licensed under the Apache License, Version 2.0 (the “License”);
 you may not use this file except in compliance with the License.
@@ -298,56 +739,61 @@ distributed under the License is distributed on an “AS IS” BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.</p>
-<dl class="py class">
-<dt class="sig sig-object py" id="cvxpy.reductions.dcp2cone.dcp2cone.Dcp2Cone">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">cvxpy.reductions.dcp2cone.dcp2cone.</span></span><span class="sig-name descname"><span class="pre">Dcp2Cone</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">problem</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">quad_obj</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/reductions/dcp2cone/dcp2cone.html#Dcp2Cone"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.reductions.dcp2cone.dcp2cone.Dcp2Cone" title="Permalink to this definition">¶</a></dt>
+<dl class="py class objdesc">
+<dt class="sig sig-object highlight sig-wrap py" id="cvxpy.reductions.dcp2cone.dcp2cone.Dcp2Cone">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">cvxpy.reductions.dcp2cone.dcp2cone.</span></span><span class="sig-name descname"><span class="pre">Dcp2Cone</span></span><span class="sig-paren">(</span><span class="sig-param-decl"><em class="sig-param"><a class="n reference internal" href="#cvxpy.reductions.dcp2cone.dcp2cone.Dcp2Cone" title="cvxpy.reductions.dcp2cone.dcp2cone.Dcp2Cone.__init__.problem (Python parameter)"><span class="n"><span class="pre">problem</span></span></a><span class="o"><span class="pre">=</span></span><code class="code python default_value docutils literal highlight highlight-python"><span class="kc">None</span></code></em>, </span><span class="sig-param-decl"><em class="sig-param"><a class="n reference internal" href="#cvxpy.reductions.dcp2cone.dcp2cone.Dcp2Cone" title="cvxpy.reductions.dcp2cone.dcp2cone.Dcp2Cone.__init__.quad_obj (Python parameter)"><span class="n"><span class="pre">quad_obj</span></span></a><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="desctype"><span class="pre">bool</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><code class="code python default_value docutils literal highlight highlight-python"><span class="kc">False</span></code></em></span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/reductions/dcp2cone/dcp2cone.html#Dcp2Cone"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.reductions.dcp2cone.dcp2cone.Dcp2Cone" title="Link to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Canonicalization</span></code></p>
 <p>Reduce DCP problems to a conic form.</p>
 <p>This reduction takes as input (minimization) DCP problems and converts
 them into problems with affine or quadratic objectives and conic
 constraints whose arguments are affine.</p>
-<dl class="py method">
-<dt class="sig sig-object py" id="cvxpy.reductions.dcp2cone.dcp2cone.Dcp2Cone.accepts">
-<span class="sig-name descname"><span class="pre">accepts</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">problem</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/reductions/dcp2cone/dcp2cone.html#Dcp2Cone.accepts"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.reductions.dcp2cone.dcp2cone.Dcp2Cone.accepts" title="Permalink to this definition">¶</a></dt>
+<dl class="py method objdesc">
+<dt class="sig sig-object highlight py" id="cvxpy.reductions.dcp2cone.dcp2cone.Dcp2Cone.accepts">
+<span class="sig-name descname"><span class="pre">accepts</span></span><span class="sig-paren">(</span><span class="sig-param-decl"><em class="sig-param"><a class="n reference internal" href="#cvxpy.reductions.dcp2cone.dcp2cone.Dcp2Cone.accepts" title="cvxpy.reductions.dcp2cone.dcp2cone.Dcp2Cone.accepts.problem (Python parameter)"><span class="n"><span class="pre">problem</span></span></a></em></span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/reductions/dcp2cone/dcp2cone.html#Dcp2Cone.accepts"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.reductions.dcp2cone.dcp2cone.Dcp2Cone.accepts" title="Link to this definition">¶</a></dt>
 <dd><p>A problem is accepted if it is a minimization and is DCP.</p>
 </dd></dl>
 
-<dl class="py method">
-<dt class="sig sig-object py" id="cvxpy.reductions.dcp2cone.dcp2cone.Dcp2Cone.apply">
-<span class="sig-name descname"><span class="pre">apply</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">problem</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/reductions/dcp2cone/dcp2cone.html#Dcp2Cone.apply"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.reductions.dcp2cone.dcp2cone.Dcp2Cone.apply" title="Permalink to this definition">¶</a></dt>
+<dl class="py method objdesc">
+<dt class="sig sig-object highlight py" id="cvxpy.reductions.dcp2cone.dcp2cone.Dcp2Cone.apply">
+<span class="sig-name descname"><span class="pre">apply</span></span><span class="sig-paren">(</span><span class="sig-param-decl"><em class="sig-param"><a class="n reference internal" href="#cvxpy.reductions.dcp2cone.dcp2cone.Dcp2Cone.apply" title="cvxpy.reductions.dcp2cone.dcp2cone.Dcp2Cone.apply.problem (Python parameter)"><span class="n"><span class="pre">problem</span></span></a></em></span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/reductions/dcp2cone/dcp2cone.html#Dcp2Cone.apply"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.reductions.dcp2cone.dcp2cone.Dcp2Cone.apply" title="Link to this definition">¶</a></dt>
 <dd><p>Converts a DCP problem to a conic form.</p>
 </dd></dl>
 
-<dl class="py method">
-<dt class="sig sig-object py" id="cvxpy.reductions.dcp2cone.dcp2cone.Dcp2Cone.canonicalize_expr">
-<span class="sig-name descname"><span class="pre">canonicalize_expr</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">expr</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">affine_above</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="cvxpy.expressions.html#cvxpy.expressions.expression.Expression" title="cvxpy.expressions.expression.Expression"><span class="pre">Expression</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/cvxpy/reductions/dcp2cone/dcp2cone.html#Dcp2Cone.canonicalize_expr"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.reductions.dcp2cone.dcp2cone.Dcp2Cone.canonicalize_expr" title="Permalink to this definition">¶</a></dt>
+<dl class="py method objdesc">
+<dt class="sig sig-object highlight sig-wrap py" id="cvxpy.reductions.dcp2cone.dcp2cone.Dcp2Cone.canonicalize_expr">
+<span class="sig-name descname"><span class="pre">canonicalize_expr</span></span><span class="sig-paren">(</span><span class="sig-param-decl"><em class="sig-param"><a class="n reference internal" href="#cvxpy.reductions.dcp2cone.dcp2cone.Dcp2Cone.canonicalize_expr.expr" title="cvxpy.reductions.dcp2cone.dcp2cone.Dcp2Cone.canonicalize_expr.expr (Python parameter)"><span class="n"><span class="pre">expr</span></span></a></em>, </span><span class="sig-param-decl"><em class="sig-param"><a class="n reference internal" href="#cvxpy.reductions.dcp2cone.dcp2cone.Dcp2Cone.canonicalize_expr.args" title="cvxpy.reductions.dcp2cone.dcp2cone.Dcp2Cone.canonicalize_expr.args (Python parameter)"><span class="n"><span class="pre">args</span></span></a></em>, </span><span class="sig-param-decl"><em class="sig-param"><a class="n reference internal" href="#cvxpy.reductions.dcp2cone.dcp2cone.Dcp2Cone.canonicalize_expr.affine_above" title="cvxpy.reductions.dcp2cone.dcp2cone.Dcp2Cone.canonicalize_expr.affine_above (Python parameter)"><span class="n"><span class="pre">affine_above</span></span></a><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="desctype"><span class="pre">bool</span></span></span></em></span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="desctype"><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="cvxpy.expressions.html#cvxpy.expressions.expression.Expression" title="cvxpy.expressions.expression.Expression (Python class) — Bases: Canonical"><span class="pre">Expression</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">]</span></span></span></span></span><a class="reference internal" href="../_modules/cvxpy/reductions/dcp2cone/dcp2cone.html#Dcp2Cone.canonicalize_expr"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.reductions.dcp2cone.dcp2cone.Dcp2Cone.canonicalize_expr" title="Link to this definition">¶</a></dt>
 <dd><p>Canonicalize an expression, w.r.t. canonicalized arguments.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>expr</strong> (<em>The expression tree to canonicalize.</em>) – </p></li>
-<li><p><strong>args</strong> (<em>The canonicalized arguments</em><em> of </em><em>expr.</em>) – </p></li>
-<li><p><strong>affine_above</strong> (<em>The path up to the root node is all affine atoms.</em>) – </p></li>
-</ul>
+<dt class="field-odd" id="cvxpy.reductions.dcp2cone.dcp2cone.Dcp2Cone.canonicalize_expr-parameters">Parameters<span class="colon">:</span><a class="headerlink" href="#cvxpy.reductions.dcp2cone.dcp2cone.Dcp2Cone.canonicalize_expr-parameters" title="Permalink to this headline">¶</a></dt>
+<dd class="field-odd"><dl class="simple api-field highlight">
+<dt id="cvxpy.reductions.dcp2cone.dcp2cone.Dcp2Cone.canonicalize_expr.expr"><span class="sig-name descname">expr</span><span class="p"> : </span><span class="desctype"><span class="desctype">The expression tree to canonicalize.</span></span><a class="headerlink" href="#cvxpy.reductions.dcp2cone.dcp2cone.Dcp2Cone.canonicalize_expr.expr" title="Permalink to this definition">¶</a></dt><dd><p></p>
 </dd>
-<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dt id="cvxpy.reductions.dcp2cone.dcp2cone.Dcp2Cone.canonicalize_expr.args"><span class="sig-name descname">args</span><span class="p"> : </span><span class="desctype"><span class="desctype">The canonicalized arguments of expr.</span></span><a class="headerlink" href="#cvxpy.reductions.dcp2cone.dcp2cone.Dcp2Cone.canonicalize_expr.args" title="Permalink to this definition">¶</a></dt><dd><p></p>
+</dd>
+<dt id="cvxpy.reductions.dcp2cone.dcp2cone.Dcp2Cone.canonicalize_expr.affine_above"><span class="sig-name descname">affine_above</span><span class="p"> : </span><span class="desctype"><span class="desctype">The path up to the root node is all affine atoms.</span></span><a class="headerlink" href="#cvxpy.reductions.dcp2cone.dcp2cone.Dcp2Cone.canonicalize_expr.affine_above" title="Permalink to this definition">¶</a></dt><dd><p></p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even" id="cvxpy.reductions.dcp2cone.dcp2cone.Dcp2Cone.canonicalize_expr-return-type">Return type<span class="colon">:</span><a class="headerlink" href="#cvxpy.reductions.dcp2cone.dcp2cone.Dcp2Cone.canonicalize_expr-return-type" title="Permalink to this headline">¶</a></dt>
 <dd class="field-even"><p>A tuple of the canonicalized expression and generated constraints.</p>
 </dd>
 </dl>
 </dd></dl>
 
-<dl class="py method">
-<dt class="sig sig-object py" id="cvxpy.reductions.dcp2cone.dcp2cone.Dcp2Cone.canonicalize_tree">
-<span class="sig-name descname"><span class="pre">canonicalize_tree</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">expr</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">affine_above</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="cvxpy.expressions.html#cvxpy.expressions.expression.Expression" title="cvxpy.expressions.expression.Expression"><span class="pre">Expression</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/cvxpy/reductions/dcp2cone/dcp2cone.html#Dcp2Cone.canonicalize_tree"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.reductions.dcp2cone.dcp2cone.Dcp2Cone.canonicalize_tree" title="Permalink to this definition">¶</a></dt>
+<dl class="py method objdesc">
+<dt class="sig sig-object highlight sig-wrap py" id="cvxpy.reductions.dcp2cone.dcp2cone.Dcp2Cone.canonicalize_tree">
+<span class="sig-name descname"><span class="pre">canonicalize_tree</span></span><span class="sig-paren">(</span><span class="sig-param-decl"><em class="sig-param"><a class="n reference internal" href="#cvxpy.reductions.dcp2cone.dcp2cone.Dcp2Cone.canonicalize_tree.expr" title="cvxpy.reductions.dcp2cone.dcp2cone.Dcp2Cone.canonicalize_tree.expr (Python parameter)"><span class="n"><span class="pre">expr</span></span></a></em>, </span><span class="sig-param-decl"><em class="sig-param"><a class="n reference internal" href="#cvxpy.reductions.dcp2cone.dcp2cone.Dcp2Cone.canonicalize_tree.affine_above" title="cvxpy.reductions.dcp2cone.dcp2cone.Dcp2Cone.canonicalize_tree.affine_above (Python parameter)"><span class="n"><span class="pre">affine_above</span></span></a><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="desctype"><span class="pre">bool</span></span></span></em></span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="desctype"><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="cvxpy.expressions.html#cvxpy.expressions.expression.Expression" title="cvxpy.expressions.expression.Expression (Python class) — Bases: Canonical"><span class="pre">Expression</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">]</span></span></span></span></span><a class="reference internal" href="../_modules/cvxpy/reductions/dcp2cone/dcp2cone.html#Dcp2Cone.canonicalize_tree"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.reductions.dcp2cone.dcp2cone.Dcp2Cone.canonicalize_tree" title="Link to this definition">¶</a></dt>
 <dd><p>Recursively canonicalize an Expression.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>expr</strong> (<em>The expression tree to canonicalize.</em>) – </p></li>
-<li><p><strong>affine_above</strong> (<em>The path up to the root node is all affine atoms.</em>) – </p></li>
-</ul>
+<dt class="field-odd" id="cvxpy.reductions.dcp2cone.dcp2cone.Dcp2Cone.canonicalize_tree-parameters">Parameters<span class="colon">:</span><a class="headerlink" href="#cvxpy.reductions.dcp2cone.dcp2cone.Dcp2Cone.canonicalize_tree-parameters" title="Permalink to this headline">¶</a></dt>
+<dd class="field-odd"><dl class="simple api-field highlight">
+<dt id="cvxpy.reductions.dcp2cone.dcp2cone.Dcp2Cone.canonicalize_tree.expr"><span class="sig-name descname">expr</span><span class="p"> : </span><span class="desctype"><span class="desctype">The expression tree to canonicalize.</span></span><a class="headerlink" href="#cvxpy.reductions.dcp2cone.dcp2cone.Dcp2Cone.canonicalize_tree.expr" title="Permalink to this definition">¶</a></dt><dd><p></p>
 </dd>
-<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dt id="cvxpy.reductions.dcp2cone.dcp2cone.Dcp2Cone.canonicalize_tree.affine_above"><span class="sig-name descname">affine_above</span><span class="p"> : </span><span class="desctype"><span class="desctype">The path up to the root node is all affine atoms.</span></span><a class="headerlink" href="#cvxpy.reductions.dcp2cone.dcp2cone.Dcp2Cone.canonicalize_tree.affine_above" title="Permalink to this definition">¶</a></dt><dd><p></p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even" id="cvxpy.reductions.dcp2cone.dcp2cone.Dcp2Cone.canonicalize_tree-return-type">Return type<span class="colon">:</span><a class="headerlink" href="#cvxpy.reductions.dcp2cone.dcp2cone.Dcp2Cone.canonicalize_tree-return-type" title="Permalink to this headline">¶</a></dt>
 <dd class="field-even"><p>A tuple of the canonicalized expression and generated constraints.</p>
 </dd>
 </dl>
@@ -355,9 +801,7 @@ constraints whose arguments are affine.</p>
 
 </dd></dl>
 
-</section>
-<section id="module-cvxpy.reductions.dcp2cone">
-<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-cvxpy.reductions.dcp2cone" title="Permalink to this heading">¶</a></h2>
+<h2 id="module-cvxpy.reductions.dcp2cone"><span id="module-contents"></span>Module contents<a class="headerlink" href="#module-cvxpy.reductions.dcp2cone" title="Link to this heading">¶</a></h2>
 <p>Copyright 2013 Steven Diamond</p>
 <p>Licensed under the Apache License, Version 2.0 (the “License”);
 you may not use this file except in compliance with the License.
@@ -370,121 +814,89 @@ distributed under the License is distributed on an “AS IS” BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.</p>
-</section>
-</section>
 
 
-          </div>
+
+  
+
+
+
+
+                
+              </article>
+            </div>
           
+          
+  <script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var tab,labels=set.querySelector(".tabbed-labels");for(tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>
+
         </div>
-      </div>
-      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
-        <div class="sphinxsidebarwrapper">
-<h1 class="logo"><a href="../index.html">CVXPY</a></h1>
-
-
-
-
-
-
-<p>
-<iframe src="https://ghbtns.com/github-btn.html?user=cvxpy&repo=cvxpy&type=star&count=true&size=large&v=2"
-  allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
-</p>
-
-
-
-
-
-<h3>Navigation</h3>
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="../install/index.html">Install</a></li>
-</ul>
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="../tutorial/index.html">User Guide</a></li>
-</ul>
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="cvxpy.html">API Documentation</a></li>
-</ul>
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="../examples/index.html">Examples</a></li>
-</ul>
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="../contributing/index.html">Contributing</a></li>
-</ul>
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="../updates/index.html">Changelog</a></li>
-</ul>
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="../faq/index.html">FAQ</a></li>
-</ul>
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="../resources/index.html">Resources</a></li>
-</ul>
-
-
-<div id="searchbox" style="display: none" role="search">
-  <h3 id="searchlabel">Quick search</h3>
-    <div class="searchformwrapper">
-    <form class="search" action="../search.html" method="get">
-      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
-      <input type="submit" value="Go" />
-    </form>
-    </div>
-</div>
-<script>document.getElementById('searchbox').style.display = "block"</script><div>
-    <h3>
-        Version selector
-    </h3>
-    <select id="dynamic_selector" name="versions" onchange="if (this.value) window.location.href=this.value">
-    </select>
-    <script>
-        obj = $.getJSON("https://raw.githubusercontent.com/cvxpy/cvxpy/gh-pages/versions.json")
-            .done(function (data) {
-                const base_url = "https://www.cvxpy.org/"
-                let html = "<option value='' selected>Choose version here</option>";
-                html += "<option value=" + base_url + ">latest" + ""
-                for (let i = 0; i < data.length; i++) {
-                    html += "<option value=" + base_url + "version/"  + data[i] + ">" + data[i] + ""
-                }
-                document.getElementById("dynamic_selector").innerHTML = html;
-            });
-    </script>
-</div>
-        </div>
-      </div>
-      <div class="clearer"></div>
-    </div>
-    <div class="footer">
-      &copy;The CVXPY authors.
+        
+          <a href="#" class="md-top md-icon" data-md-component="top" hidden>
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8v12Z"/></svg>
+            Back to top
+          </a>
+        
+      </main>
       
-      |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 7.1.2</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.13</a>
-      
-      |
-      <a href="../_sources/api_reference/cvxpy.reductions.dcp2cone.rst.txt"
-          rel="nofollow">Page source</a>
+        <footer class="md-footer">
+  
+  
+  
+  <div class="md-footer-meta md-typeset">
+    
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+    <div class="md-footer-copyright__highlight">
+        &#169; Copyright The CVXPY authors.
+        
     </div>
-
+  
+    Created using
+    <a href="https://www.sphinx-doc.org/" target="_blank" rel="noopener">Sphinx</a>
+    8.1.3.
+     and
+    <a href="https://github.com/jbms/sphinx-immaterial/" target="_blank" rel="noopener">Sphinx-Immaterial</a>
+  
+</div>
+      
+        <div class="md-social">
+  
     
-
     
-    <script type="text/javascript">
-
-      var _gaq = _gaq || [];
-      _gaq.push(['_setAccount', 'UA-50248335-1']);
-      _gaq.push(['_setDomainName', 'none']);
-      _gaq.push(['_setAllowLinker', true]);
-      _gaq.push(['_trackPageview']);
-
-      (function() {
-        var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
-        ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
-        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
-      })();
-
-    </script>
+    <a href="https://github.com/cvxpy/cvxpy" target="_blank" rel="noopener" title="Source on github.com" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3zm44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8zM97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1zm-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7zm32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1zm-11.4-14.7c-1.6 1-1.6 3.6 0 5.9 1.6 2.3 4.3 3.3 5.6 2.3 1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2z"/></svg>
+    </a>
+  
+    
+    
+      
+      
+    
+    <a href="https://pypi.org/project/cvxpy/" target="_blank" rel="noopener" title="pypi.org" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc.--><path d="M439.8 200.5c-7.7-30.9-22.3-54.2-53.4-54.2h-40.1v47.4c0 36.8-31.2 67.8-66.8 67.8H172.7c-29.2 0-53.4 25-53.4 54.3v101.8c0 29 25.2 46 53.4 54.3 33.8 9.9 66.3 11.7 106.8 0 26.9-7.8 53.4-23.5 53.4-54.3v-40.7H226.2v-13.6h160.2c31.1 0 42.6-21.7 53.4-54.2 11.2-33.5 10.7-65.7 0-108.6zM286.2 404c11.1 0 20.1 9.1 20.1 20.3 0 11.3-9 20.4-20.1 20.4-11 0-20.1-9.2-20.1-20.4.1-11.3 9.1-20.3 20.1-20.3zM167.8 248.1h106.8c29.7 0 53.4-24.5 53.4-54.3V91.9c0-29-24.4-50.7-53.4-55.6-35.8-5.9-74.7-5.6-106.8.1-45.2 8-53.4 24.7-53.4 55.6v40.7h106.9v13.6h-147c-31.1 0-58.3 18.7-66.8 54.2-9.8 40.7-10.2 66.1 0 108.6 7.6 31.6 25.7 54.2 56.8 54.2H101v-48.8c0-35.3 30.5-66.4 66.8-66.4zm-6.7-142.6c-11.1 0-20.1-9.1-20.1-20.3.1-11.3 9-20.4 20.1-20.4 11 0 20.1 9.2 20.1 20.4s-9 20.3-20.1 20.3z"/></svg>
+    </a>
+  
+</div>
+      
+    </div>
+    
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    <script id="__config" type="application/json">{"base": "..", "features": ["header.autohide", "toc.follow", "navigation.path", "navigation.instant", "navigation.top", "navigation.tabs", "navigation.tabs.sticky", "navigation.tracking", "navigation.expand", "search.highlight", "search.share", "content.tabs.link", "announce.dismiss"], "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version.title": "Select version"}, "version": {"provider": "mike", "staticVersions": [{"aliases": [], "title": "latest", "version": "https://www.cvxpy.org"}, {"aliases": [], "title": "1.4", "version": "https://www.cvxpy.org/version/1.4"}, {"aliases": [], "title": "1.3", "version": "https://www.cvxpy.org/version/1.3"}, {"aliases": [], "title": "1.2", "version": "https://www.cvxpy.org/version/1.2"}, {"aliases": [], "title": "1.1", "version": "https://www.cvxpy.org/version/1.1"}], "versionPath": null}}</script>
+    
+      
+        <script src="../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../_static/sphinx_immaterial_theme.f9d9eeeb247ace16c.min.js?v=8ec58cb5"></script>
+        <script src="../_static/tabs.js?v=3ee01567"></script>
+        <script src="../_static/design-tabs.js?v=f930bc37"></script>
     
   </body>
 </html>

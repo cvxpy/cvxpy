@@ -1,44 +1,481 @@
-<!DOCTYPE html>
 
-<html lang="en">
+
+<!doctype html>
+<html lang="en" class="no-js">
   <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+      <link rel="icon" href="../../_static/favicon.ico">
+    
+    
+      
+        <title>TODO - </title>
+      
+    
+    
+      
+        
+        
+      
+      
 
-    <title>TODO &#8212; CVXPY 1.5 documentation</title>
-    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=fa44fd50" />
-    <link rel="stylesheet" type="text/css" href="../../_static/cvxpy_alabaster.css?v=6c13f287" />
-    <link rel="stylesheet" type="text/css" href="../../_static/tabs.css?v=4c969af8" />
-    <link rel="stylesheet" type="text/css" href="../../_static/design-style.1e8bd061cd6da7fc9cf755528e8ffc24.min.css?v=0a3b3ea7" />
-    <script src="../../_static/jquery.js?v=5d32c60e"></script>
-    <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-    <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js?v=515d8a7f"></script>
-    <script src="../../_static/doctools.js?v=888ff710"></script>
-    <script src="../../_static/sphinx_highlight.js?v=4825356b"></script>
-    <script src="../../_static/tabs.js?v=3ee01567"></script>
-    <script src="../../_static/design-tabs.js?v=36754332"></script>
-    <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
-    <link rel="icon" href="../../_static/favicon.ico"/>
-    <link rel="index" title="Index" href="../../genindex.html" />
-    <link rel="search" title="Search" href="../../search.html" />
-   
-  <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
+    
+    
+    
+      
+        
+        
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+        <link rel="stylesheet" type="text/css" href="../../_static/sphinx_immaterial_theme.4b4a8c74e2ff2ab5b.min.css?v=afa97f93" />
+        <link rel="stylesheet" type="text/css" href="../../_static/tabs.css?v=4c969af8" />
+        <link rel="stylesheet" type="text/css" href="../../_static/sphinx-design.min.css?v=95c83b7e" />
+        <link rel="stylesheet" type="text/css" href="../../_static/css/styling.css?v=84aacf86" />
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce((e,_)=>(e<<5)-e+_.charCodeAt(0),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+  
+
+
   
   
-  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
 
-  </head><body>
+
+  <script id="__analytics">function __md_analytics(){window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)},ga.l=+new Date,ga("create","UA-50248335-1","auto"),ga("set","anonymizeIp",!0),ga("send","pageview"),document.addEventListener("DOMContentLoaded",function(){document.forms.search&&document.forms.search.query.addEventListener("blur",function(){var e;this.value&&(e=document.location.pathname,ga("send","pageview",e+"?q="+this.value))}),document$.subscribe(function(){var a=document.forms.feedback;if(void 0!==a)for(var e of a.querySelectorAll("[type=submit]"))e.addEventListener("click",function(e){e.preventDefault();var t=document.location.pathname,e=this.getAttribute("data-md-value");ga("send","event","feedback","click",t,e),a.firstElementChild.disabled=!0;e=a.querySelector(".md-feedback__note [data-md-value='"+e+"']");e&&(e.hidden=!1)}),a.hidden=!1}),location$.subscribe(function(e){ga("send","pageview",e.pathname)})});var e=document.createElement("script");e.async=!0,e.src="https://www.google-analytics.com/analytics.js",document.getElementById("__analytics").insertAdjacentElement("afterEnd",e)}</script>
+
+  
+    <script>"undefined"!=typeof __md_analytics&&__md_analytics()</script>
   
 
-    <div class="document">
-      <div class="documentwrapper">
-        <div class="bodywrapper">
-          
+    
+    
+    
+  </head>
+  
+  
+    
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="" data-md-color-accent="">
+  
+    
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+      <div data-md-component="outdated" hidden>
+        
+      </div>
+    
+    
+      
 
-          <div class="body" role="main">
+  
+
+<header class="md-header md-header--lifted" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../../index.html" title="" class="md-header__button md-logo" aria-label="" data-md-component="logo">
+      <img src="../../_static/cvxpy-wordmark-light.png" alt="logo">
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2Z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
             
-  <section id="todo">
-<h1>TODO<a class="headerlink" href="#todo" title="Permalink to this heading">¶</a></h1>
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              TODO
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+    
+      <label class="md-header__button md-icon" for="__search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"/></svg>
+      </label>
+      <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"/></svg>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12Z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+          <a href="javascript:void(0)" class="md-search__icon md-icon" title="Share" aria-label="Share" data-clipboard data-clipboard-text="" data-md-component="search-share" tabindex="-1">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7 0-.24-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9a3 3 0 0 0-3 3 3 3 0 0 0 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.15c-.05.21-.08.43-.08.66 0 1.61 1.31 2.91 2.92 2.91 1.61 0 2.92-1.3 2.92-2.91A2.92 2.92 0 0 0 18 16.08Z"/></svg>
+          </a>
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41Z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/cvxpy/cvxpy/" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3zm44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8zM97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1zm-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7zm32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1zm-11.4-14.7c-1.6 1-1.6 3.6 0 5.9 1.6 2.3 4.3 3.3 5.6 2.3 1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    CVXPY
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+    
+      
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-tabs__inner md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+
+
+  <li class="md-tabs__item">
+    <a href="../../install/index.html" class="md-tabs__link">
+      <span class="md-ellipsis">Install</span>
+    </a>
+  </li>
+
+      
+        
+  
+  
+
+
+  <li class="md-tabs__item">
+    <a href="../../tutorial/index.html" class="md-tabs__link">
+      <span class="md-ellipsis">User Guide</span>
+    </a>
+  </li>
+
+      
+        
+  
+  
+
+
+  <li class="md-tabs__item">
+    <a href="../../api_reference/cvxpy.html" class="md-tabs__link">
+      <span class="md-ellipsis">API Documentation</span>
+    </a>
+  </li>
+
+      
+        
+  
+  
+
+
+  <li class="md-tabs__item">
+    <a href="../index.html" class="md-tabs__link">
+      <span class="md-ellipsis">Examples</span>
+    </a>
+  </li>
+
+      
+        
+  
+  
+
+
+  <li class="md-tabs__item">
+    <a href="../../contributing/index.html" class="md-tabs__link">
+      <span class="md-ellipsis">Contributing</span>
+    </a>
+  </li>
+
+      
+        
+  
+  
+
+
+  <li class="md-tabs__item">
+    <a href="../../updates/index.html" class="md-tabs__link">
+      <span class="md-ellipsis">Changelog</span>
+    </a>
+  </li>
+
+      
+        
+  
+  
+
+
+  <li class="md-tabs__item">
+    <a href="../../faq/index.html" class="md-tabs__link">
+      <span class="md-ellipsis">FAQ</span>
+    </a>
+  </li>
+
+      
+        
+  
+  
+
+
+  <li class="md-tabs__item">
+    <a href="../../resources/index.html" class="md-tabs__link">
+      <span class="md-ellipsis">Resources</span>
+    </a>
+  </li>
+
+      
+    </ul>
+  </div>
+</nav>
+    
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+      
+      
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../../index.html" title="" class="md-nav__button md-logo" aria-label="" data-md-component="logo">
+      <img src="../../_static/cvxpy-wordmark-light.png" alt="logo">
+    </a>
+    
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/cvxpy/cvxpy/" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3zm44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8zM97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1zm-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7zm32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1zm-11.4-14.7c-1.6 1-1.6 3.6 0 5.9 1.6 2.3 4.3 3.3 5.6 2.3 1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    CVXPY
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+      
+
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../install/index.html" class="md-nav__link">
+        <span class="md-ellipsis">Install</span>
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorial/index.html" class="md-nav__link">
+        <span class="md-ellipsis">User Guide</span>
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api_reference/cvxpy.html" class="md-nav__link">
+        <span class="md-ellipsis">API Documentation</span>
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../index.html" class="md-nav__link">
+        <span class="md-ellipsis">Examples</span>
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../contributing/index.html" class="md-nav__link">
+        <span class="md-ellipsis">Contributing</span>
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../updates/index.html" class="md-nav__link">
+        <span class="md-ellipsis">Changelog</span>
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../faq/index.html" class="md-nav__link">
+        <span class="md-ellipsis">FAQ</span>
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../resources/index.html" class="md-nav__link">
+        <span class="md-ellipsis">Resources</span>
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+  
+
+<nav class="md-nav md-nav--secondary">
+  
+  
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset" role="main">
+                  
+
+
+<h1 id="todo">TODO<a class="headerlink" href="#todo" title="Link to this heading">¶</a></h1>
 <ul class="simple">
 <li><p>time-varying graphs</p></li>
 <li><p>table of results</p></li>
@@ -46,9 +483,7 @@
 <li><p>remove <span class="math notranslate nohighlight">\(\mathcal{P}\)</span>. just describe a path with <span class="math notranslate nohighlight">\(x\)</span> from
 the start?</p></li>
 </ul>
-</section>
-<section id="topic-references">
-<h1>Topic references<a class="headerlink" href="#topic-references" title="Permalink to this heading">¶</a></h1>
+<h1 id="topic-references">Topic references<a class="headerlink" href="#topic-references" title="Link to this heading">¶</a></h1>
 <ul class="simple">
 <li><p><a class="reference external" href="http://web.stanford.edu/~boyd/cvxbook/">Convex Optimization book</a></p></li>
 <li><p><a class="reference external" href="http://web.stanford.edu/~boyd/cvxbook/bv_cvxbook_extra_exercises.pdf">Additional Exercise 15.4: Allocation of interdiction
@@ -59,9 +494,7 @@ theory</a></p></li>
 <li><p><cite>Iterated weighted :math:</cite>ell_1`
 heuristic &lt;<a class="reference external" href="http://stanford.edu/class/ee364b/lectures/l1_ext_slides.pdf">http://stanford.edu/class/ee364b/lectures/l1_ext_slides.pdf</a>&gt;`__</p></li>
 </ul>
-</section>
-<section id="allocating-interdiction-effort-to-catch-a-smuggler">
-<h1>Allocating interdiction effort to catch a smuggler<a class="headerlink" href="#allocating-interdiction-effort-to-catch-a-smuggler" title="Permalink to this heading">¶</a></h1>
+<h1 id="allocating-interdiction-effort-to-catch-a-smuggler">Allocating interdiction effort to catch a smuggler<a class="headerlink" href="#allocating-interdiction-effort-to-catch-a-smuggler" title="Link to this heading">¶</a></h1>
 <p>We’ll explore a game between a smuggler moving through a graph and a
 security team trying to catch him.</p>
 <p>The smuggler moves along a directed graph (cycles are allowed) with
@@ -82,9 +515,7 @@ etc. We’ll keep this abstract for now, and just consider that security
 can modify the evasion probabilities subject to some constraints. Their
 goal is to choose evasion probabilities to minimize the chance that the
 smuggler gets through undetected.</p>
-</section>
-<section id="transformations-and-mathematical-formulation">
-<h1>Transformations and mathematical formulation<a class="headerlink" href="#transformations-and-mathematical-formulation" title="Permalink to this heading">¶</a></h1>
+<h1 id="transformations-and-mathematical-formulation">Transformations and mathematical formulation<a class="headerlink" href="#transformations-and-mathematical-formulation" title="Link to this heading">¶</a></h1>
 <p>We’ll take the logarithm of all probabilities to make the problem
 amenable to convex optimization and simplify the remaining discussion.
 This transforms products of variables (generally not convex) into sums
@@ -101,9 +532,7 @@ that path. That is,</p>
 <p>Define <span class="math notranslate nohighlight">\(P(c, \mathcal{P}) = -\infty\)</span> if <span class="math notranslate nohighlight">\(\mathcal{P}\)</span> is not
 a valid path from source to sink. We do this to implicitly encode the
 constraint that the smuggler’s path must be valid.</p>
-</section>
-<section id="min-max-game">
-<h1>Min/max game<a class="headerlink" href="#min-max-game" title="Permalink to this heading">¶</a></h1>
+<h1 id="min-max-game">Min/max game<a class="headerlink" href="#min-max-game" title="Link to this heading">¶</a></h1>
 <p>We can now interpret this problem as a min/max game. The smuggler is
 trying to maximize his chance of getting through undetected by choosing
 <span class="math notranslate nohighlight">\(\mathcal{P}\)</span>, and security is trying to minimize the smuggler’s
@@ -129,14 +558,12 @@ some constraints on <span class="math notranslate nohighlight">\(c\)</span>, whi
 <p>In the remainder, we’ll first consider the smuggler’s objective so as to
 obtain a convex formulation of <span class="math notranslate nohighlight">\(P^\mathrm{opt}(c)\)</span>, which we can
 then use to analyze and optimize the security team’s objective.</p>
-</section>
-<section id="helper-functions">
-<h1>Helper functions<a class="headerlink" href="#helper-functions" title="Permalink to this heading">¶</a></h1>
+<h1 id="helper-functions">Helper functions<a class="headerlink" href="#helper-functions" title="Link to this heading">¶</a></h1>
 <p>The next cell contains some helper functions for generating the examples
 and plotting the results. This is the majority of the code. The actual
 CVXPY optimization code is only a few lines. We’ll go over the
 optimization code later in the notebook.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1">#%config InlineBackend.figure_format = &#39;pdf&#39;</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><code><span class="c1">#%config InlineBackend.figure_format = &#39;pdf&#39;</span>
 <span class="c1">#%config InlineBackend.figure_format = &#39;svg&#39;</span>
 <span class="o">%</span><span class="n">config</span> <span class="n">InlineBackend</span><span class="o">.</span><span class="n">figure_format</span> <span class="o">=</span> <span class="s1">&#39;retina&#39;</span>
 
@@ -408,11 +835,9 @@ optimization code later in the notebook.</p>
         <span class="k">if</span> <span class="n">e2</span> <span class="ow">in</span> <span class="n">edge2ind</span><span class="p">:</span>
             <span class="n">a</span><span class="p">[</span><span class="n">edge2ind</span><span class="p">[</span><span class="n">e2</span><span class="p">]]</span> <span class="o">=</span> <span class="n">a</span><span class="p">[</span><span class="n">edge2ind</span><span class="p">[</span><span class="n">e</span><span class="p">]]</span>
     <span class="k">return</span> <span class="n">a</span>
-</pre></div>
+</code></pre></div>
 </div>
-</section>
-<section id="smuggler-s-objective">
-<h1>Smuggler’s objective<a class="headerlink" href="#smuggler-s-objective" title="Permalink to this heading">¶</a></h1>
+<h1 id="smuggler-s-objective">Smuggler’s objective<a class="headerlink" href="#smuggler-s-objective" title="Link to this heading">¶</a></h1>
 <p>The smuggler chooses a path <span class="math notranslate nohighlight">\(\mathcal{P}\)</span> only after <span class="math notranslate nohighlight">\(c\)</span> is
 fixed. His goal is to find a valid path in the graph which maximizes
 <span class="math notranslate nohighlight">\(\sum_{j \in \mathcal{P}} c_j\)</span>. Note that this problem can be cast
@@ -455,9 +880,7 @@ still be recovered.</p>
 and LP optimal values are equal. Before continuing on to security’s
 perspective, we’ll look at an example of the smuggler choosing an
 optimal path in a given graph.</p>
-</section>
-<section id="smuggler-s-path-example">
-<h1>Smuggler’s path example<a class="headerlink" href="#smuggler-s-path-example" title="Permalink to this heading">¶</a></h1>
+<h1 id="smuggler-s-path-example">Smuggler’s path example<a class="headerlink" href="#smuggler-s-path-example" title="Link to this heading">¶</a></h1>
 <p>We’ll solve the smuggler’s problem on an example network to see an
 example of an optimal path.</p>
 <p>We’ll create an <span class="math notranslate nohighlight">\(N \times N\)</span> grid of points with small
@@ -473,7 +896,7 @@ over the interval <span class="math notranslate nohighlight">\(\left[0,1\right]\
 upper-left corner of the graph plot to node <span class="math notranslate nohighlight">\(n-1\)</span> in the
 lower-right corner of the graph plot.</p>
 <p>We show the graph with the edge evasion probabilities below.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">N</span> <span class="o">=</span> <span class="mi">10</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><code><span class="n">N</span> <span class="o">=</span> <span class="mi">10</span>
 <span class="n">G</span><span class="p">,</span> <span class="n">pos</span> <span class="o">=</span> <span class="n">formGraph</span><span class="p">(</span><span class="n">N</span><span class="p">,</span><span class="mf">.12</span><span class="p">,</span><span class="mf">1.2</span><span class="p">,</span><span class="n">seed</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
 <span class="n">n</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">number_of_nodes</span><span class="p">()</span>
 
@@ -481,16 +904,17 @@ lower-right corner of the graph plot.</p>
 <span class="n">p</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="n">a</span><span class="p">)</span>
 
 <span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">showPaths</span><span class="p">(</span><span class="n">G</span><span class="p">,</span><span class="n">pos</span><span class="p">,</span><span class="n">p</span><span class="p">,</span><span class="n">Gnodes</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="n">Rnodes</span><span class="o">=</span><span class="p">[</span><span class="n">n</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
-</pre></div>
+</code></pre></div>
 </div>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">/</span><span class="n">anaconda3</span><span class="o">/</span><span class="n">envs</span><span class="o">/</span><span class="n">cvxpy</span><span class="o">/</span><span class="n">lib</span><span class="o">/</span><span class="n">python3</span><span class="mf">.6</span><span class="o">/</span><span class="n">site</span><span class="o">-</span><span class="n">packages</span><span class="o">/</span><span class="n">networkx</span><span class="o">/</span><span class="n">drawing</span><span class="o">/</span><span class="n">nx_pylab</span><span class="o">.</span><span class="n">py</span><span class="p">:</span><span class="mi">611</span><span class="p">:</span> <span class="n">MatplotlibDeprecationWarning</span><span class="p">:</span> <span class="nb">isinstance</span><span class="p">(</span><span class="o">...</span><span class="p">,</span> <span class="n">numbers</span><span class="o">.</span><span class="n">Number</span><span class="p">)</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><code><span class="o">/</span><span class="n">anaconda3</span><span class="o">/</span><span class="n">envs</span><span class="o">/</span><span class="n">cvxpy</span><span class="o">/</span><span class="n">lib</span><span class="o">/</span><span class="n">python3</span><span class="mf">.6</span><span class="o">/</span><span class="n">site</span><span class="o">-</span><span class="n">packages</span><span class="o">/</span><span class="n">networkx</span><span class="o">/</span><span class="n">drawing</span><span class="o">/</span><span class="n">nx_pylab</span><span class="o">.</span><span class="n">py</span><span class="p">:</span><span class="mi">611</span><span class="p">:</span> <span class="n">MatplotlibDeprecationWarning</span><span class="p">:</span> <span class="nb">isinstance</span><span class="p">(</span><span class="o">...</span><span class="p">,</span> <span class="n">numbers</span><span class="o">.</span><span class="n">Number</span><span class="p">)</span>
   <span class="k">if</span> <span class="n">cb</span><span class="o">.</span><span class="n">is_numlike</span><span class="p">(</span><span class="n">alpha</span><span class="p">):</span>
-</pre></div>
+</code></pre></div>
 </div>
-<a class="reference internal image-reference" href="../../_images/interdiction_5_1.png"><img alt="../../_images/interdiction_5_1.png" src="../../_images/interdiction_5_1.png" style="width: 438px; height: 360px;" /></a>
+<a class="reference internal image-reference" href="../../_images/interdiction_5_1.png"><img alt="../../_images/interdiction_5_1.png" src="../../_images/interdiction_5_1.png" style="width: 438px; height: 360px;" />
+</a>
 <p>We form the smuggler’s relaxed convex problem and solve it to find his
 optimal path. We plot the path below.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">A</span> <span class="o">=</span> <span class="n">nx</span><span class="o">.</span><span class="n">incidence_matrix</span><span class="p">(</span><span class="n">G</span><span class="p">,</span><span class="n">oriented</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span><span class="o">.</span><span class="n">toarray</span><span class="p">()</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><code><span class="n">A</span> <span class="o">=</span> <span class="n">nx</span><span class="o">.</span><span class="n">incidence_matrix</span><span class="p">(</span><span class="n">G</span><span class="p">,</span><span class="n">oriented</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span><span class="o">.</span><span class="n">toarray</span><span class="p">()</span>
 <span class="n">n</span><span class="p">,</span><span class="n">m</span> <span class="o">=</span> <span class="n">A</span><span class="o">.</span><span class="n">shape</span>
 
 <span class="n">b</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
@@ -515,9 +939,9 @@ optimal path. We plot the path below.</p>
 <span class="n">constr</span> <span class="o">=</span> <span class="p">[</span><span class="n">A</span><span class="o">*</span><span class="n">x</span> <span class="o">==</span> <span class="n">b</span><span class="p">,</span><span class="n">x</span><span class="o">&gt;=</span><span class="mi">0</span><span class="p">,</span> <span class="n">x</span> <span class="o">&lt;=</span> <span class="mi">1</span><span class="p">]</span>
 <span class="n">cp</span><span class="o">.</span><span class="n">Problem</span><span class="p">(</span><span class="n">cp</span><span class="o">.</span><span class="n">Maximize</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">T</span><span class="o">*</span><span class="n">c</span><span class="p">),</span><span class="n">constr</span><span class="p">)</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">verbose</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 <span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">value</span><span class="p">)</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
-</pre></div>
+</code></pre></div>
 </div>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">-----------------------------------------------------------------</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><code><span class="o">-----------------------------------------------------------------</span>
            <span class="n">OSQP</span> <span class="n">v0</span><span class="mf">.4.1</span>  <span class="o">-</span>  <span class="n">Operator</span> <span class="n">Splitting</span> <span class="n">QP</span> <span class="n">Solver</span>
               <span class="p">(</span><span class="n">c</span><span class="p">)</span> <span class="n">Bartolomeo</span> <span class="n">Stellato</span><span class="p">,</span>  <span class="n">Goran</span> <span class="n">Banjac</span>
         <span class="n">University</span> <span class="n">of</span> <span class="n">Oxford</span>  <span class="o">-</span>  <span class="n">Stanford</span> <span class="n">University</span> <span class="mi">2018</span>
@@ -543,37 +967,37 @@ optimal path. We plot the path below.</p>
 <span class="n">optimal</span> <span class="n">objective</span><span class="p">:</span>    <span class="mf">5.0606</span>
 <span class="n">run</span> <span class="n">time</span><span class="p">:</span>             <span class="mf">1.15e-02</span><span class="n">s</span>
 <span class="n">optimal</span> <span class="n">rho</span> <span class="n">estimate</span><span class="p">:</span> <span class="mf">5.09e-01</span>
-</pre></div>
+</code></pre></div>
 </div>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">path</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">flatnonzero</span><span class="p">(</span><span class="n">x</span> <span class="o">&gt;</span> <span class="mf">.1</span><span class="p">))</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><code><span class="n">path</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">flatnonzero</span><span class="p">(</span><span class="n">x</span> <span class="o">&gt;</span> <span class="mf">.1</span><span class="p">))</span>
 <span class="n">showPaths</span><span class="p">(</span><span class="n">G</span><span class="p">,</span><span class="n">pos</span><span class="p">,</span><span class="n">p</span><span class="p">,</span><span class="n">path</span><span class="p">,</span><span class="n">Gnodes</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="n">Rnodes</span><span class="o">=</span><span class="p">[</span><span class="n">n</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
 <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;The evasion probability of the smuggler&#39;s &quot;</span>
       <span class="s2">&quot;optimal path is </span><span class="si">%e</span><span class="s2">, or </span><span class="si">%.3f%%</span><span class="s2">.&quot;</span><span class="o">%</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">c</span><span class="p">)),</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">c</span><span class="p">))</span><span class="o">*</span><span class="mi">100</span><span class="p">))</span>
-</pre></div>
+</code></pre></div>
 </div>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">The</span> <span class="n">evasion</span> <span class="n">probability</span> <span class="n">of</span> <span class="n">the</span> <span class="n">smuggler</span><span class="s1">&#39;s optimal path is 6.341943e-03, or 0.634%.</span>
-</pre></div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><code><span class="n">The</span> <span class="n">evasion</span> <span class="n">probability</span> <span class="n">of</span> <span class="n">the</span> <span class="n">smuggler</span><span class="s1">&#39;s optimal path is 6.341943e-03, or 0.634%.</span>
+</code></pre></div>
 </div>
-<a class="reference internal image-reference" href="../../_images/interdiction_8_1.png"><img alt="../../_images/interdiction_8_1.png" src="../../_images/interdiction_8_1.png" style="width: 438px; height: 360px;" /></a>
+<a class="reference internal image-reference" href="../../_images/interdiction_8_1.png"><img alt="../../_images/interdiction_8_1.png" src="../../_images/interdiction_8_1.png" style="width: 438px; height: 360px;" />
+</a>
 <p>We run a discrete graph-theoretic shortest path algorithm on the same
 graph to check that we get the same optimal path. The function
 <code class="docutils literal notranslate"><span class="pre">optPath</span></code> is using the NetworkX Python package and
 <a class="reference external" href="http://en.wikipedia.org/wiki/Dijkstra%27s_algorithm">Dijkstra’s_algorithm</a>
 to compute the optimal path.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">y</span> <span class="o">=</span> <span class="n">optPath</span><span class="p">(</span><span class="n">G</span><span class="p">,</span><span class="n">p</span><span class="p">)</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><code><span class="n">y</span> <span class="o">=</span> <span class="n">optPath</span><span class="p">(</span><span class="n">G</span><span class="p">,</span><span class="n">p</span><span class="p">)</span>
 <span class="n">path</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">flatnonzero</span><span class="p">(</span><span class="n">y</span> <span class="o">&gt;</span> <span class="mf">.1</span><span class="p">))</span>
 <span class="n">showPaths</span><span class="p">(</span><span class="n">G</span><span class="p">,</span><span class="n">pos</span><span class="p">,</span><span class="n">p</span><span class="p">,</span><span class="n">path</span><span class="p">,</span><span class="n">Gnodes</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="n">Rnodes</span><span class="o">=</span><span class="p">[</span><span class="n">n</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
 <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;The evasion probability of the smuggler&#39;s &quot;</span>
       <span class="s2">&quot;optimal path is </span><span class="si">%e</span><span class="s2">, or </span><span class="si">%.3f%%</span><span class="s2">.&quot;</span><span class="o">%</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">y</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">c</span><span class="p">)),</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">y</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">c</span><span class="p">))</span><span class="o">*</span><span class="mi">100</span><span class="p">))</span>
-</pre></div>
+</code></pre></div>
 </div>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">The</span> <span class="n">evasion</span> <span class="n">probability</span> <span class="n">of</span> <span class="n">the</span> <span class="n">smuggler</span><span class="s1">&#39;s optimal path is 6.343747e-03, or 0.634%.</span>
-</pre></div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><code><span class="n">The</span> <span class="n">evasion</span> <span class="n">probability</span> <span class="n">of</span> <span class="n">the</span> <span class="n">smuggler</span><span class="s1">&#39;s optimal path is 6.343747e-03, or 0.634%.</span>
+</code></pre></div>
 </div>
-<a class="reference internal image-reference" href="../../_images/interdiction_10_1.png"><img alt="../../_images/interdiction_10_1.png" src="../../_images/interdiction_10_1.png" style="width: 438px; height: 360px;" /></a>
-</section>
-<section id="security-s-objective">
-<h1>Security’s objective<a class="headerlink" href="#security-s-objective" title="Permalink to this heading">¶</a></h1>
+<a class="reference internal image-reference" href="../../_images/interdiction_10_1.png"><img alt="../../_images/interdiction_10_1.png" src="../../_images/interdiction_10_1.png" style="width: 438px; height: 360px;" />
+</a>
+<h1 id="security-s-objective">Security’s objective<a class="headerlink" href="#security-s-objective" title="Link to this heading">¶</a></h1>
 <p>The security team’s goal is to minimize <span class="math notranslate nohighlight">\(P^\mathrm{opt}(c)\)</span>,
 subject to some constraints (say, limits on budget or personnel), which
 we’ll denote by <span class="math notranslate nohighlight">\(c \in \mathcal{C}\)</span>:</p>
@@ -601,9 +1025,7 @@ variables.</p>
 solving to find <span class="math notranslate nohighlight">\(c^\star\)</span>, the security team will have optimally
 allocated resources to make detection of the smuggler as likely as
 possible.</p>
-</section>
-<section id="security-example">
-<h1>Security example<a class="headerlink" href="#security-example" title="Permalink to this heading">¶</a></h1>
+<h1 id="security-example">Security example<a class="headerlink" href="#security-example" title="Link to this heading">¶</a></h1>
 <p>We’ll consider security’s problem on the same network as the last
 example with the edge evasion probabilities modeled as
 <span class="math notranslate nohighlight">\(p_j = e^{-a_j r_j}\)</span>, where <span class="math notranslate nohighlight">\(r_j \in \mathbf{R}_+\)</span> denotes
@@ -626,15 +1048,15 @@ equal evasion probabilities. We’ll enforce that constraint with
 <p>The final model is \[ ]</p>
 <p>We solve the model below with <span class="math notranslate nohighlight">\(R=5\)</span> and report the evasion
 probability of the smuggler’s optimal path.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">nu</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="n">n</span><span class="p">)</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><code><span class="n">nu</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="n">n</span><span class="p">)</span>
 <span class="n">r</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="n">m</span><span class="p">)</span>
 <span class="n">constr</span> <span class="o">=</span> <span class="p">[</span><span class="n">A</span><span class="o">.</span><span class="n">T</span><span class="o">*</span><span class="n">nu</span> <span class="o">&gt;=</span> <span class="o">-</span><span class="n">cp</span><span class="o">.</span><span class="n">multiply</span><span class="p">(</span><span class="n">a</span><span class="p">,</span><span class="n">r</span><span class="p">),</span> <span class="n">cp</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">r</span><span class="p">)</span> <span class="o">==</span> <span class="n">m</span><span class="p">,</span> <span class="n">r</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">B</span><span class="o">*</span><span class="n">r</span> <span class="o">==</span> <span class="mi">0</span><span class="p">,</span> <span class="n">r</span> <span class="o">&lt;=</span> <span class="mi">5</span><span class="p">]</span>
 <span class="n">cp</span><span class="o">.</span><span class="n">Problem</span><span class="p">(</span><span class="n">cp</span><span class="o">.</span><span class="n">Minimize</span><span class="p">(</span><span class="n">nu</span><span class="o">.</span><span class="n">T</span><span class="o">*</span><span class="n">b</span><span class="p">),</span><span class="n">constr</span><span class="p">)</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">verbose</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 <span class="n">nu</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">nu</span><span class="o">.</span><span class="n">value</span><span class="p">)</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
 <span class="n">r</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">value</span><span class="p">)</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
-</pre></div>
+</code></pre></div>
 </div>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">-----------------------------------------------------------------</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><code><span class="o">-----------------------------------------------------------------</span>
            <span class="n">OSQP</span> <span class="n">v0</span><span class="mf">.4.1</span>  <span class="o">-</span>  <span class="n">Operator</span> <span class="n">Splitting</span> <span class="n">QP</span> <span class="n">Solver</span>
               <span class="p">(</span><span class="n">c</span><span class="p">)</span> <span class="n">Bartolomeo</span> <span class="n">Stellato</span><span class="p">,</span>  <span class="n">Goran</span> <span class="n">Banjac</span>
         <span class="n">University</span> <span class="n">of</span> <span class="n">Oxford</span>  <span class="o">-</span>  <span class="n">Stanford</span> <span class="n">University</span> <span class="mi">2018</span>
@@ -660,32 +1082,33 @@ probability of the smuggler’s optimal path.</p>
 <span class="n">optimal</span> <span class="n">objective</span><span class="p">:</span>    <span class="o">-</span><span class="mf">22.2692</span>
 <span class="n">run</span> <span class="n">time</span><span class="p">:</span>             <span class="mf">1.05e-02</span><span class="n">s</span>
 <span class="n">optimal</span> <span class="n">rho</span> <span class="n">estimate</span><span class="p">:</span> <span class="mf">4.10e-03</span>
-</pre></div>
+</code></pre></div>
 </div>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nb">print</span><span class="p">(</span><span class="s2">&quot;The evasion probability of the smuggler&#39;s optimal path is </span><span class="si">%e</span><span class="s2">.&quot;</span><span class="o">%</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">nu</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">b</span><span class="p">)),))</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><code><span class="nb">print</span><span class="p">(</span><span class="s2">&quot;The evasion probability of the smuggler&#39;s optimal path is </span><span class="si">%e</span><span class="s2">.&quot;</span><span class="o">%</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">nu</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">b</span><span class="p">)),))</span>
 <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;The smuggler&#39;s chance of evasion is </span><span class="si">%.2f</span><span class="s2"> times smaller than with the uniform resource allocation.&quot;</span><span class="o">%</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">c</span><span class="p">))</span><span class="o">/</span><span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">nu</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">b</span><span class="p">))))</span>
-</pre></div>
+</code></pre></div>
 </div>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">The</span> <span class="n">evasion</span> <span class="n">probability</span> <span class="n">of</span> <span class="n">the</span> <span class="n">smuggler</span><span class="s1">&#39;s optimal path is 2.131035e-10.</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><code><span class="n">The</span> <span class="n">evasion</span> <span class="n">probability</span> <span class="n">of</span> <span class="n">the</span> <span class="n">smuggler</span><span class="s1">&#39;s optimal path is 2.131035e-10.</span>
 <span class="n">The</span> <span class="n">smuggler</span><span class="s1">&#39;s chance of evasion is 29759913.87 times smaller than with the uniform resource allocation.</span>
-</pre></div>
+</code></pre></div>
 </div>
 <p>Here we plot the resulting edge evasion probabilities from the optimal
 allocation.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">p</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="n">a</span><span class="o">*</span><span class="n">r</span><span class="p">)</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><code><span class="n">p</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="n">a</span><span class="o">*</span><span class="n">r</span><span class="p">)</span>
 <span class="n">showPaths</span><span class="p">(</span><span class="n">G</span><span class="p">,</span><span class="n">pos</span><span class="p">,</span><span class="n">p</span><span class="p">,</span><span class="n">Gnodes</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="n">Rnodes</span><span class="o">=</span><span class="p">[</span><span class="n">n</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
-</pre></div>
+</code></pre></div>
 </div>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="o">&lt;</span><span class="n">Figure</span> <span class="n">size</span> <span class="mi">576</span><span class="n">x432</span> <span class="k">with</span> <span class="mi">2</span> <span class="n">Axes</span><span class="o">&gt;</span><span class="p">,</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><code><span class="p">(</span><span class="o">&lt;</span><span class="n">Figure</span> <span class="n">size</span> <span class="mi">576</span><span class="n">x432</span> <span class="k">with</span> <span class="mi">2</span> <span class="n">Axes</span><span class="o">&gt;</span><span class="p">,</span>
  <span class="o">&lt;</span><span class="n">matplotlib</span><span class="o">.</span><span class="n">axes</span><span class="o">.</span><span class="n">_subplots</span><span class="o">.</span><span class="n">AxesSubplot</span> <span class="n">at</span> <span class="mh">0xd19325278</span><span class="o">&gt;</span><span class="p">)</span>
-</pre></div>
+</code></pre></div>
 </div>
-<a class="reference internal image-reference" href="../../_images/interdiction_15_1.png"><img alt="../../_images/interdiction_15_1.png" src="../../_images/interdiction_15_1.png" style="width: 438px; height: 360px;" /></a>
+<a class="reference internal image-reference" href="../../_images/interdiction_15_1.png"><img alt="../../_images/interdiction_15_1.png" src="../../_images/interdiction_15_1.png" style="width: 438px; height: 360px;" />
+</a>
 <p>We can now solve the smuggler’s problem with these optimal resource
 allocations, but we won’t recover a Boolean solution for
 <span class="math notranslate nohighlight">\(x^{\star}\)</span> because the optimal path is not unique. Note, however,
 that the optimal evasion probability is the same.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">c</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">p</span><span class="p">)</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><code><span class="n">c</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">p</span><span class="p">)</span>
 <span class="n">x</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="n">m</span><span class="p">)</span>
 <span class="n">constr</span> <span class="o">=</span> <span class="p">[</span><span class="n">A</span><span class="o">*</span><span class="n">x</span> <span class="o">==</span> <span class="n">b</span><span class="p">,</span><span class="n">x</span><span class="o">&gt;=</span><span class="mi">0</span><span class="p">,</span> <span class="n">x</span> <span class="o">&lt;=</span> <span class="mi">1</span><span class="p">]</span>
 <span class="n">cp</span><span class="o">.</span><span class="n">Problem</span><span class="p">(</span><span class="n">cp</span><span class="o">.</span><span class="n">Maximize</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">T</span><span class="o">*</span><span class="n">c</span><span class="p">),</span><span class="n">constr</span><span class="p">)</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">verbose</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
@@ -693,9 +1116,9 @@ that the optimal evasion probability is the same.</p>
 
 <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;The evasion probability of the smuggler&#39;s optimal path is </span><span class="si">%e</span><span class="s2">.&quot;</span><span class="o">%</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">c</span><span class="p">)),))</span>
-</pre></div>
+</code></pre></div>
 </div>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">-----------------------------------------------------------------</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><code><span class="o">-----------------------------------------------------------------</span>
            <span class="n">OSQP</span> <span class="n">v0</span><span class="mf">.4.1</span>  <span class="o">-</span>  <span class="n">Operator</span> <span class="n">Splitting</span> <span class="n">QP</span> <span class="n">Solver</span>
               <span class="p">(</span><span class="n">c</span><span class="p">)</span> <span class="n">Bartolomeo</span> <span class="n">Stellato</span><span class="p">,</span>  <span class="n">Goran</span> <span class="n">Banjac</span>
         <span class="n">University</span> <span class="n">of</span> <span class="n">Oxford</span>  <span class="o">-</span>  <span class="n">Stanford</span> <span class="n">University</span> <span class="mi">2018</span>
@@ -724,27 +1147,27 @@ that the optimal evasion probability is the same.</p>
 <span class="n">optimal</span> <span class="n">rho</span> <span class="n">estimate</span><span class="p">:</span> <span class="mf">1.37e-01</span>
 
 <span class="n">The</span> <span class="n">evasion</span> <span class="n">probability</span> <span class="n">of</span> <span class="n">the</span> <span class="n">smuggler</span><span class="s1">&#39;s optimal path is 1.123036e-09.</span>
-</pre></div>
+</code></pre></div>
 </div>
-<a class="reference internal image-reference" href="../../_images/interdiction_17_1.png"><img alt="../../_images/interdiction_17_1.png" src="../../_images/interdiction_17_1.png" style="width: 373px; height: 250px;" /></a>
+<a class="reference internal image-reference" href="../../_images/interdiction_17_1.png"><img alt="../../_images/interdiction_17_1.png" src="../../_images/interdiction_17_1.png" style="width: 373px; height: 250px;" />
+</a>
 <p>We use
 <a class="reference external" href="http://en.wikipedia.org/wiki/Dijkstra%27s_algorithm">Dijkstra’s_algorithm</a>
 again to recover an optimal path for the smuggler in the case that the
 path is not unique and plot it below. We again check that the detection
 probability is what we predicted previously.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">x</span> <span class="o">=</span> <span class="n">optPath</span><span class="p">(</span><span class="n">G</span><span class="p">,</span><span class="n">p</span><span class="p">)</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><code><span class="n">x</span> <span class="o">=</span> <span class="n">optPath</span><span class="p">(</span><span class="n">G</span><span class="p">,</span><span class="n">p</span><span class="p">)</span>
 <span class="n">path</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">flatnonzero</span><span class="p">(</span><span class="n">x</span> <span class="o">&gt;</span> <span class="mf">.1</span><span class="p">))</span>
 <span class="n">showPaths</span><span class="p">(</span><span class="n">G</span><span class="p">,</span><span class="n">pos</span><span class="p">,</span><span class="n">p</span><span class="p">,</span><span class="n">path</span><span class="p">,</span><span class="n">Gnodes</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="n">Rnodes</span><span class="o">=</span><span class="p">[</span><span class="n">n</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
 <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;The evasion probability of the smuggler&#39;s optimal path is </span><span class="si">%e</span><span class="s2">.&quot;</span><span class="o">%</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">c</span><span class="p">)),))</span>
-</pre></div>
+</code></pre></div>
 </div>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">The</span> <span class="n">evasion</span> <span class="n">probability</span> <span class="n">of</span> <span class="n">the</span> <span class="n">smuggler</span><span class="s1">&#39;s optimal path is 9.553365e-10.</span>
-</pre></div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><code><span class="n">The</span> <span class="n">evasion</span> <span class="n">probability</span> <span class="n">of</span> <span class="n">the</span> <span class="n">smuggler</span><span class="s1">&#39;s optimal path is 9.553365e-10.</span>
+</code></pre></div>
 </div>
-<a class="reference internal image-reference" href="../../_images/interdiction_19_1.png"><img alt="../../_images/interdiction_19_1.png" src="../../_images/interdiction_19_1.png" style="width: 438px; height: 360px;" /></a>
-</section>
-<section id="guard-placement-example">
-<h1>Guard placement example<a class="headerlink" href="#guard-placement-example" title="Permalink to this heading">¶</a></h1>
+<a class="reference internal image-reference" href="../../_images/interdiction_19_1.png"><img alt="../../_images/interdiction_19_1.png" src="../../_images/interdiction_19_1.png" style="width: 438px; height: 360px;" />
+</a>
+<h1 id="guard-placement-example">Guard placement example<a class="headerlink" href="#guard-placement-example" title="Link to this heading">¶</a></h1>
 <p>We can now go through a more advanced example.</p>
 <p>In the previous example, security had direct control over the evasion
 probability on each edge. In this section, we’ll consider an example
@@ -761,8 +1184,7 @@ region covered by the graph. The smuggler and security will have to work
 around the buildings. That is, no node is located inside a building, no
 edge crosses through a building, and guards can’t see through building
 walls, restricting their line-of-sight and effect on nearby edges.</p>
-<section id="multiple-sources-and-destinations">
-<h2>Multiple sources and destinations<a class="headerlink" href="#multiple-sources-and-destinations" title="Permalink to this heading">¶</a></h2>
+<h2 id="multiple-sources-and-destinations">Multiple sources and destinations<a class="headerlink" href="#multiple-sources-and-destinations" title="Link to this heading">¶</a></h2>
 <p>To allow for multiple source and destination nodes without changing the
 convex formulation, we’ll add a dummy source node and a dummy sink node.
 The source node will have edges going to each node in the graph on the
@@ -771,18 +1193,17 @@ right. We’ll ensure that these dummy edges always have evasion
 probability 1. The plot below demonstrates the idea. We won’t plot the
 dummy nodes or edges, but we will highlight the ‘new’ source and sink
 nodes with light green and red as before.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># show dummy source and destination node</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><code><span class="c1"># show dummy source and destination node</span>
 <span class="n">N</span> <span class="o">=</span> <span class="mi">10</span>
 <span class="n">G</span><span class="p">,</span> <span class="n">pos</span> <span class="o">=</span> <span class="n">formGraph</span><span class="p">(</span><span class="n">N</span><span class="p">,</span><span class="mf">.1</span><span class="p">,</span><span class="mf">1.2</span><span class="p">,</span><span class="n">seed</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span><span class="n">dummyNodes</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 <span class="n">n</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">number_of_nodes</span><span class="p">()</span>
 <span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">showPaths</span><span class="p">(</span><span class="n">G</span><span class="p">,</span><span class="n">pos</span><span class="p">,</span><span class="n">Gnodes</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="n">Rnodes</span><span class="o">=</span><span class="p">[</span><span class="n">n</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
 <span class="n">ax</span><span class="o">.</span><span class="n">axis</span><span class="p">([</span><span class="o">-</span><span class="mf">.6</span><span class="p">,</span><span class="mf">1.6</span><span class="p">,</span><span class="o">-</span><span class="mf">.05</span><span class="p">,</span><span class="mf">1.05</span><span class="p">]);</span>
-</pre></div>
+</code></pre></div>
 </div>
-<a class="reference internal image-reference" href="../../_images/interdiction_21_0.png"><img alt="../../_images/interdiction_21_0.png" src="../../_images/interdiction_21_0.png" style="width: 469px; height: 350px;" /></a>
-</section>
-<section id="guards">
-<h2>Guards<a class="headerlink" href="#guards" title="Permalink to this heading">¶</a></h2>
+<a class="reference internal image-reference" href="../../_images/interdiction_21_0.png"><img alt="../../_images/interdiction_21_0.png" src="../../_images/interdiction_21_0.png" style="width: 469px; height: 350px;" />
+</a>
+<h2 id="guards">Guards<a class="headerlink" href="#guards" title="Link to this heading">¶</a></h2>
 <p>The security team will select a subset of guards to place in the graph.
 Each guard will have a profile, which gives his effect on the edge
 evasion probabilities. The guard’s effect will be a function of his
@@ -791,7 +1212,7 @@ placed anywhere in the region occupied by the graph, but we’ll only
 consider guards placed on node positions to make them easy to visualize.</p>
 <p>An example of a few guards and the resulting evasion probabilities is
 shown below.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">N</span> <span class="o">=</span> <span class="mi">10</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><code><span class="n">N</span> <span class="o">=</span> <span class="mi">10</span>
 <span class="n">k</span> <span class="o">=</span> <span class="mi">5</span>
 <span class="n">G</span><span class="p">,</span> <span class="n">pos</span> <span class="o">=</span> <span class="n">formGraph</span><span class="p">(</span><span class="n">N</span><span class="p">,</span><span class="mf">.1</span><span class="p">,</span><span class="mf">1.2</span><span class="p">,</span><span class="n">seed</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span><span class="n">dummyNodes</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 <span class="n">n</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">number_of_nodes</span><span class="p">()</span>
@@ -806,15 +1227,14 @@ shown below.</p>
 <span class="n">edgeProbs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">edgeProbs</span><span class="p">)</span>
 
 <span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">showPaths</span><span class="p">(</span><span class="n">G</span><span class="p">,</span><span class="n">pos</span><span class="p">,</span><span class="n">edgeProbs</span><span class="p">,</span><span class="n">visibleNodes</span><span class="o">=</span><span class="n">visibleNodes</span><span class="p">,</span><span class="n">Gnodes</span><span class="o">=</span><span class="n">Gnodes</span><span class="p">,</span><span class="n">Rnodes</span><span class="o">=</span><span class="n">Rnodes</span><span class="p">,</span><span class="n">guards</span><span class="o">=</span><span class="n">guardIdxs</span><span class="p">)</span>
-</pre></div>
+</code></pre></div>
 </div>
-<a class="reference internal image-reference" href="../../_images/interdiction_23_0.png"><img alt="../../_images/interdiction_23_0.png" src="../../_images/interdiction_23_0.png" style="width: 438px; height: 360px;" /></a>
-</section>
-<section id="buildings">
-<h2>Buildings<a class="headerlink" href="#buildings" title="Permalink to this heading">¶</a></h2>
+<a class="reference internal image-reference" href="../../_images/interdiction_23_0.png"><img alt="../../_images/interdiction_23_0.png" src="../../_images/interdiction_23_0.png" style="width: 438px; height: 360px;" />
+</a>
+<h2 id="buildings">Buildings<a class="headerlink" href="#buildings" title="Link to this heading">¶</a></h2>
 <p>We’ll also add buildings, which will modify the graph topology and also
 restrict the view of the guards.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">N</span> <span class="o">=</span> <span class="mi">10</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><code><span class="n">N</span> <span class="o">=</span> <span class="mi">10</span>
 <span class="n">k</span> <span class="o">=</span> <span class="mi">5</span>
 <span class="n">buildings</span> <span class="o">=</span> <span class="p">[(</span><span class="mf">.2</span><span class="p">,</span><span class="mf">.8</span><span class="p">,</span><span class="mf">.3</span><span class="p">,</span><span class="mf">.1</span><span class="p">),</span>
              <span class="p">(</span><span class="mf">.35</span><span class="p">,</span><span class="mf">.1</span><span class="p">,</span><span class="mf">.3</span><span class="p">,</span><span class="mf">.1</span><span class="p">),</span>
@@ -839,27 +1259,23 @@ restrict the view of the guards.</p>
 <span class="k">for</span> <span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">,</span><span class="n">w</span><span class="p">,</span><span class="n">h</span> <span class="ow">in</span> <span class="n">buildings</span><span class="p">:</span>
     <span class="n">rect</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">Rectangle</span><span class="p">((</span><span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">),</span><span class="n">w</span><span class="p">,</span><span class="n">h</span><span class="p">,</span><span class="n">fc</span><span class="o">=</span><span class="s1">&#39;y&#39;</span><span class="p">,</span><span class="n">alpha</span><span class="o">=</span><span class="mf">.3</span><span class="p">)</span>
     <span class="n">ax</span><span class="o">.</span><span class="n">add_patch</span><span class="p">(</span><span class="n">rect</span><span class="p">)</span>
-</pre></div>
+</code></pre></div>
 </div>
-<a class="reference internal image-reference" href="../../_images/interdiction_25_0.png"><img alt="../../_images/interdiction_25_0.png" src="../../_images/interdiction_25_0.png" style="width: 438px; height: 360px;" /></a>
-</section>
-</section>
-<section id="example-to-solve">
-<h1>Example to solve<a class="headerlink" href="#example-to-solve" title="Permalink to this heading">¶</a></h1>
+<a class="reference internal image-reference" href="../../_images/interdiction_25_0.png"><img alt="../../_images/interdiction_25_0.png" src="../../_images/interdiction_25_0.png" style="width: 438px; height: 360px;" />
+</a>
+<h1 id="example-to-solve">Example to solve<a class="headerlink" href="#example-to-solve" title="Link to this heading">¶</a></h1>
 <p>We’ll solve a larger example with buildings, guards, and multiple source
 and destination nodes. We’ll consider a guard at every interior node of
 the graph, and try to find a limited number, say 10, to secure the graph
 as well as possible.</p>
-</section>
-<section id="id1">
-<h1>TODO<a class="headerlink" href="#id1" title="Permalink to this heading">¶</a></h1>
+<h1 id="id1">TODO<a class="headerlink" href="#id1" title="Link to this heading">¶</a></h1>
 <ul class="simple">
 <li><p>optimization formulation</p></li>
 <li><p>this one turns out to be a ‘true’ integer program, unlike the last</p></li>
 <li><p>use iterative reweighting to get boolean solution</p></li>
 <li><p>use relaxation to give bounds on distance to true optimal</p></li>
 </ul>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">N</span> <span class="o">=</span> <span class="mi">17</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><code><span class="n">N</span> <span class="o">=</span> <span class="mi">17</span>
 <span class="n">buildings</span> <span class="o">=</span> <span class="p">[(</span><span class="mf">.2</span><span class="p">,</span><span class="mf">.8</span><span class="p">,</span><span class="mf">.3</span><span class="p">,</span><span class="mf">.1</span><span class="p">),</span>
              <span class="p">(</span><span class="mf">.35</span><span class="p">,</span><span class="mf">.1</span><span class="p">,</span><span class="mf">.3</span><span class="p">,</span><span class="mf">.1</span><span class="p">),</span>
              <span class="p">(</span><span class="mf">.55</span><span class="p">,</span><span class="mf">.55</span><span class="p">,</span><span class="mf">.3</span><span class="p">,</span><span class="mf">.1</span><span class="p">),</span>
@@ -877,18 +1293,19 @@ as well as possible.</p>
 <span class="n">edgeVals</span> <span class="o">=</span> <span class="n">getGuardEffects</span><span class="p">(</span><span class="n">G</span><span class="p">,</span><span class="n">pos</span><span class="p">,</span><span class="n">guardIdxs</span><span class="p">,</span><span class="n">buildings</span><span class="o">=</span><span class="n">buildings</span><span class="p">,</span><span class="n">dummyNodes</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="n">n</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
 <span class="n">edgeProbs</span> <span class="o">=</span> <span class="n">edgeVals</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
 <span class="n">edgeProbs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">edgeProbs</span><span class="p">)</span>
-</pre></div>
+</code></pre></div>
 </div>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">showPaths</span><span class="p">(</span><span class="n">G</span><span class="p">,</span><span class="n">pos</span><span class="p">,</span><span class="n">edgeProbs</span><span class="p">,</span><span class="n">visibleNodes</span><span class="o">=</span><span class="n">visibleNodes</span><span class="p">,</span><span class="n">Gnodes</span><span class="o">=</span><span class="n">Gnodes</span><span class="p">,</span><span class="n">Rnodes</span><span class="o">=</span><span class="n">Rnodes</span><span class="p">,</span><span class="n">guards</span><span class="o">=</span><span class="n">guardIdxs</span><span class="p">)</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><code><span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">showPaths</span><span class="p">(</span><span class="n">G</span><span class="p">,</span><span class="n">pos</span><span class="p">,</span><span class="n">edgeProbs</span><span class="p">,</span><span class="n">visibleNodes</span><span class="o">=</span><span class="n">visibleNodes</span><span class="p">,</span><span class="n">Gnodes</span><span class="o">=</span><span class="n">Gnodes</span><span class="p">,</span><span class="n">Rnodes</span><span class="o">=</span><span class="n">Rnodes</span><span class="p">,</span><span class="n">guards</span><span class="o">=</span><span class="n">guardIdxs</span><span class="p">)</span>
 
 <span class="n">fig</span><span class="o">.</span><span class="n">set_size_inches</span><span class="p">((</span><span class="mi">16</span><span class="p">,</span><span class="mi">8</span><span class="p">))</span>
 <span class="k">for</span> <span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">,</span><span class="n">w</span><span class="p">,</span><span class="n">h</span> <span class="ow">in</span> <span class="n">buildings</span><span class="p">:</span>
     <span class="n">rect</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">Rectangle</span><span class="p">((</span><span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">),</span><span class="n">w</span><span class="p">,</span><span class="n">h</span><span class="p">,</span><span class="n">fc</span><span class="o">=</span><span class="s1">&#39;y&#39;</span><span class="p">,</span><span class="n">alpha</span><span class="o">=</span><span class="mf">.3</span><span class="p">)</span>
     <span class="n">ax</span><span class="o">.</span><span class="n">add_patch</span><span class="p">(</span><span class="n">rect</span><span class="p">)</span>
-</pre></div>
+</code></pre></div>
 </div>
-<a class="reference internal image-reference" href="../../_images/interdiction_28_0.png"><img alt="../../_images/interdiction_28_0.png" src="../../_images/interdiction_28_0.png" style="width: 575px; height: 469px;" /></a>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">A</span> <span class="o">=</span> <span class="n">nx</span><span class="o">.</span><span class="n">incidence_matrix</span><span class="p">(</span><span class="n">G</span><span class="p">,</span><span class="n">oriented</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span><span class="o">.</span><span class="n">toarray</span><span class="p">()</span>
+<a class="reference internal image-reference" href="../../_images/interdiction_28_0.png"><img alt="../../_images/interdiction_28_0.png" src="../../_images/interdiction_28_0.png" style="width: 575px; height: 469px;" />
+</a>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><code><span class="n">A</span> <span class="o">=</span> <span class="n">nx</span><span class="o">.</span><span class="n">incidence_matrix</span><span class="p">(</span><span class="n">G</span><span class="p">,</span><span class="n">oriented</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span><span class="o">.</span><span class="n">toarray</span><span class="p">()</span>
 <span class="n">n</span><span class="p">,</span><span class="n">m</span> <span class="o">=</span> <span class="n">A</span><span class="o">.</span><span class="n">shape</span>
 <span class="n">numGuards</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">guardIdxs</span><span class="p">)</span>
 
@@ -907,9 +1324,9 @@ as well as possible.</p>
     <span class="n">nu</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">nu</span><span class="o">.</span><span class="n">value</span><span class="p">)</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
     <span class="n">r</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">value</span><span class="p">)</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
     <span class="n">w</span> <span class="o">=</span> <span class="mi">1</span><span class="o">/</span><span class="p">(</span><span class="n">eps</span><span class="o">+</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">r</span><span class="p">))</span>
-</pre></div>
+</code></pre></div>
 </div>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">-----------------------------------------------------------------</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><code><span class="o">-----------------------------------------------------------------</span>
            <span class="n">OSQP</span> <span class="n">v0</span><span class="mf">.4.1</span>  <span class="o">-</span>  <span class="n">Operator</span> <span class="n">Splitting</span> <span class="n">QP</span> <span class="n">Solver</span>
               <span class="p">(</span><span class="n">c</span><span class="p">)</span> <span class="n">Bartolomeo</span> <span class="n">Stellato</span><span class="p">,</span>  <span class="n">Goran</span> <span class="n">Banjac</span>
         <span class="n">University</span> <span class="n">of</span> <span class="n">Oxford</span>  <span class="o">-</span>  <span class="n">Stanford</span> <span class="n">University</span> <span class="mi">2018</span>
@@ -968,16 +1385,17 @@ as well as possible.</p>
 <span class="n">optimal</span> <span class="n">objective</span><span class="p">:</span>    <span class="mf">18.4712</span>
 <span class="n">run</span> <span class="n">time</span><span class="p">:</span>             <span class="mf">3.31e-01</span><span class="n">s</span>
 <span class="n">optimal</span> <span class="n">rho</span> <span class="n">estimate</span><span class="p">:</span> <span class="mf">2.86e-02</span>
-</pre></div>
+</code></pre></div>
 </div>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">r</span><span class="p">,</span><span class="s1">&#39;o&#39;</span><span class="p">)</span>
-</pre></div>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><code><span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">r</span><span class="p">,</span><span class="s1">&#39;o&#39;</span><span class="p">)</span>
+</code></pre></div>
 </div>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">[</span><span class="o">&lt;</span><span class="n">matplotlib</span><span class="o">.</span><span class="n">lines</span><span class="o">.</span><span class="n">Line2D</span> <span class="n">at</span> <span class="mh">0xd1b50d438</span><span class="o">&gt;</span><span class="p">]</span>
-</pre></div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><code><span class="p">[</span><span class="o">&lt;</span><span class="n">matplotlib</span><span class="o">.</span><span class="n">lines</span><span class="o">.</span><span class="n">Line2D</span> <span class="n">at</span> <span class="mh">0xd1b50d438</span><span class="o">&gt;</span><span class="p">]</span>
+</code></pre></div>
 </div>
-<a class="reference internal image-reference" href="../../_images/interdiction_30_1.png"><img alt="../../_images/interdiction_30_1.png" src="../../_images/interdiction_30_1.png" style="width: 373px; height: 250px;" /></a>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">c</span> <span class="o">=</span> <span class="n">edgeVals</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">r</span><span class="p">)</span>
+<a class="reference internal image-reference" href="../../_images/interdiction_30_1.png"><img alt="../../_images/interdiction_30_1.png" src="../../_images/interdiction_30_1.png" style="width: 373px; height: 250px;" />
+</a>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><code><span class="n">c</span> <span class="o">=</span> <span class="n">edgeVals</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">r</span><span class="p">)</span>
 <span class="n">edgeProbs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">c</span><span class="p">)</span>
 
 <span class="n">guards</span> <span class="o">=</span> <span class="p">[</span><span class="n">guardIdxs</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">guardIdxs</span><span class="p">))</span> <span class="k">if</span> <span class="n">r</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mf">.5</span><span class="p">]</span>
@@ -986,136 +1404,108 @@ as well as possible.</p>
 <span class="k">for</span> <span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">,</span><span class="n">w</span><span class="p">,</span><span class="n">h</span> <span class="ow">in</span> <span class="n">buildings</span><span class="p">:</span>
     <span class="n">rect</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">Rectangle</span><span class="p">((</span><span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">),</span><span class="n">w</span><span class="p">,</span><span class="n">h</span><span class="p">,</span><span class="n">fc</span><span class="o">=</span><span class="s1">&#39;y&#39;</span><span class="p">,</span><span class="n">alpha</span><span class="o">=</span><span class="mf">.3</span><span class="p">)</span>
     <span class="n">ax</span><span class="o">.</span><span class="n">add_patch</span><span class="p">(</span><span class="n">rect</span><span class="p">)</span>
-</pre></div>
+</code></pre></div>
 </div>
-<a class="reference internal image-reference" href="../../_images/interdiction_31_0.png"><img alt="../../_images/interdiction_31_0.png" src="../../_images/interdiction_31_0.png" style="width: 438px; height: 360px;" /></a>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">x</span> <span class="o">=</span> <span class="n">optPath</span><span class="p">(</span><span class="n">G</span><span class="p">,</span><span class="n">edgeProbs</span><span class="p">)</span>
+<a class="reference internal image-reference" href="../../_images/interdiction_31_0.png"><img alt="../../_images/interdiction_31_0.png" src="../../_images/interdiction_31_0.png" style="width: 438px; height: 360px;" />
+</a>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><code><span class="n">x</span> <span class="o">=</span> <span class="n">optPath</span><span class="p">(</span><span class="n">G</span><span class="p">,</span><span class="n">edgeProbs</span><span class="p">)</span>
 <span class="n">path_inds</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">flatnonzero</span><span class="p">(</span><span class="n">x</span> <span class="o">&gt;</span> <span class="mf">.1</span><span class="p">))</span>
 <span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">showPaths</span><span class="p">(</span><span class="n">G</span><span class="p">,</span><span class="n">pos</span><span class="p">,</span><span class="n">edgeProbs</span><span class="p">,</span><span class="n">path</span><span class="o">=</span><span class="n">path_inds</span><span class="p">,</span><span class="n">visibleNodes</span><span class="o">=</span><span class="n">visibleNodes</span><span class="p">,</span><span class="n">Gnodes</span><span class="o">=</span><span class="n">Gnodes</span><span class="p">,</span><span class="n">Rnodes</span><span class="o">=</span><span class="n">Rnodes</span><span class="p">,</span><span class="n">guards</span><span class="o">=</span><span class="n">guards</span><span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;The evasion probability of the smuggler&#39;s optimal path is </span><span class="si">%e</span><span class="s2">.&quot;</span><span class="o">%</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">c</span><span class="p">)),))</span>
 <span class="k">for</span> <span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">,</span><span class="n">w</span><span class="p">,</span><span class="n">h</span> <span class="ow">in</span> <span class="n">buildings</span><span class="p">:</span>
     <span class="n">rect</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">Rectangle</span><span class="p">((</span><span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">),</span><span class="n">w</span><span class="p">,</span><span class="n">h</span><span class="p">,</span><span class="n">fc</span><span class="o">=</span><span class="s1">&#39;y&#39;</span><span class="p">,</span><span class="n">alpha</span><span class="o">=</span><span class="mf">.3</span><span class="p">)</span>
     <span class="n">ax</span><span class="o">.</span><span class="n">add_patch</span><span class="p">(</span><span class="n">rect</span><span class="p">)</span>
-</pre></div>
+</code></pre></div>
 </div>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">The</span> <span class="n">evasion</span> <span class="n">probability</span> <span class="n">of</span> <span class="n">the</span> <span class="n">smuggler</span><span class="s1">&#39;s optimal path is 9.213215e-05.</span>
-</pre></div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><code><span class="n">The</span> <span class="n">evasion</span> <span class="n">probability</span> <span class="n">of</span> <span class="n">the</span> <span class="n">smuggler</span><span class="s1">&#39;s optimal path is 9.213215e-05.</span>
+</code></pre></div>
 </div>
-<a class="reference internal image-reference" href="../../_images/interdiction_32_1.png"><img alt="../../_images/interdiction_32_1.png" src="../../_images/interdiction_32_1.png" style="width: 438px; height: 360px;" /></a>
-</section>
+<a class="reference internal image-reference" href="../../_images/interdiction_32_1.png"><img alt="../../_images/interdiction_32_1.png" src="../../_images/interdiction_32_1.png" style="width: 438px; height: 360px;" />
+</a>
 
 
-          </div>
+
+  
+
+
+
+
+                
+              </article>
+            </div>
           
+          
+  <script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var tab,labels=set.querySelector(".tabbed-labels");for(tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>
+
         </div>
-      </div>
-      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
-        <div class="sphinxsidebarwrapper">
-<h1 class="logo"><a href="../../index.html">CVXPY</a></h1>
-
-
-
-
-
-
-<p>
-<iframe src="https://ghbtns.com/github-btn.html?user=cvxpy&repo=cvxpy&type=star&count=true&size=large&v=2"
-  allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
-</p>
-
-
-
-
-
-<h3>Navigation</h3>
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="../../install/index.html">Install</a></li>
-</ul>
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="../../tutorial/index.html">User Guide</a></li>
-</ul>
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="../../api_reference/cvxpy.html">API Documentation</a></li>
-</ul>
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="../index.html">Examples</a></li>
-</ul>
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="../../contributing/index.html">Contributing</a></li>
-</ul>
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="../../updates/index.html">Changelog</a></li>
-</ul>
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="../../faq/index.html">FAQ</a></li>
-</ul>
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="../../resources/index.html">Resources</a></li>
-</ul>
-
-
-<div id="searchbox" style="display: none" role="search">
-  <h3 id="searchlabel">Quick search</h3>
-    <div class="searchformwrapper">
-    <form class="search" action="../../search.html" method="get">
-      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
-      <input type="submit" value="Go" />
-    </form>
-    </div>
-</div>
-<script>document.getElementById('searchbox').style.display = "block"</script><div>
-    <h3>
-        Version selector
-    </h3>
-    <select id="dynamic_selector" name="versions" onchange="if (this.value) window.location.href=this.value">
-    </select>
-    <script>
-        obj = $.getJSON("https://raw.githubusercontent.com/cvxpy/cvxpy/gh-pages/versions.json")
-            .done(function (data) {
-                const base_url = "https://www.cvxpy.org/"
-                let html = "<option value='' selected>Choose version here</option>";
-                html += "<option value=" + base_url + ">latest" + ""
-                for (let i = 0; i < data.length; i++) {
-                    html += "<option value=" + base_url + "version/"  + data[i] + ">" + data[i] + ""
-                }
-                document.getElementById("dynamic_selector").innerHTML = html;
-            });
-    </script>
-</div>
-        </div>
-      </div>
-      <div class="clearer"></div>
-    </div>
-    <div class="footer">
-      &copy;The CVXPY authors.
+        
+          <a href="#" class="md-top md-icon" data-md-component="top" hidden>
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8v12Z"/></svg>
+            Back to top
+          </a>
+        
+      </main>
       
-      |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 7.1.2</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.13</a>
-      
-      |
-      <a href="../../_sources/examples/applications/interdiction.rst.txt"
-          rel="nofollow">Page source</a>
+        <footer class="md-footer">
+  
+  
+  
+  <div class="md-footer-meta md-typeset">
+    
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+    <div class="md-footer-copyright__highlight">
+        &#169; Copyright The CVXPY authors.
+        
     </div>
-
+  
+    Created using
+    <a href="https://www.sphinx-doc.org/" target="_blank" rel="noopener">Sphinx</a>
+    8.1.3.
+     and
+    <a href="https://github.com/jbms/sphinx-immaterial/" target="_blank" rel="noopener">Sphinx-Immaterial</a>
+  
+</div>
+      
+        <div class="md-social">
+  
     
-
     
-    <script type="text/javascript">
-
-      var _gaq = _gaq || [];
-      _gaq.push(['_setAccount', 'UA-50248335-1']);
-      _gaq.push(['_setDomainName', 'none']);
-      _gaq.push(['_setAllowLinker', true]);
-      _gaq.push(['_trackPageview']);
-
-      (function() {
-        var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
-        ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
-        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
-      })();
-
-    </script>
+    <a href="https://github.com/cvxpy/cvxpy" target="_blank" rel="noopener" title="Source on github.com" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3zm44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8zM97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1zm-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7zm32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1zm-11.4-14.7c-1.6 1-1.6 3.6 0 5.9 1.6 2.3 4.3 3.3 5.6 2.3 1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2z"/></svg>
+    </a>
+  
+    
+    
+      
+      
+    
+    <a href="https://pypi.org/project/cvxpy/" target="_blank" rel="noopener" title="pypi.org" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc.--><path d="M439.8 200.5c-7.7-30.9-22.3-54.2-53.4-54.2h-40.1v47.4c0 36.8-31.2 67.8-66.8 67.8H172.7c-29.2 0-53.4 25-53.4 54.3v101.8c0 29 25.2 46 53.4 54.3 33.8 9.9 66.3 11.7 106.8 0 26.9-7.8 53.4-23.5 53.4-54.3v-40.7H226.2v-13.6h160.2c31.1 0 42.6-21.7 53.4-54.2 11.2-33.5 10.7-65.7 0-108.6zM286.2 404c11.1 0 20.1 9.1 20.1 20.3 0 11.3-9 20.4-20.1 20.4-11 0-20.1-9.2-20.1-20.4.1-11.3 9.1-20.3 20.1-20.3zM167.8 248.1h106.8c29.7 0 53.4-24.5 53.4-54.3V91.9c0-29-24.4-50.7-53.4-55.6-35.8-5.9-74.7-5.6-106.8.1-45.2 8-53.4 24.7-53.4 55.6v40.7h106.9v13.6h-147c-31.1 0-58.3 18.7-66.8 54.2-9.8 40.7-10.2 66.1 0 108.6 7.6 31.6 25.7 54.2 56.8 54.2H101v-48.8c0-35.3 30.5-66.4 66.8-66.4zm-6.7-142.6c-11.1 0-20.1-9.1-20.1-20.3.1-11.3 9-20.4 20.1-20.4 11 0 20.1 9.2 20.1 20.4s-9 20.3-20.1 20.3z"/></svg>
+    </a>
+  
+</div>
+      
+    </div>
+    
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    <script id="__config" type="application/json">{"base": "../..", "features": ["header.autohide", "toc.follow", "navigation.path", "navigation.instant", "navigation.top", "navigation.tabs", "navigation.tabs.sticky", "navigation.tracking", "navigation.expand", "search.highlight", "search.share", "content.tabs.link", "announce.dismiss"], "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version.title": "Select version"}, "version": {"provider": "mike", "staticVersions": [{"aliases": [], "title": "latest", "version": "https://www.cvxpy.org"}, {"aliases": [], "title": "1.4", "version": "https://www.cvxpy.org/version/1.4"}, {"aliases": [], "title": "1.3", "version": "https://www.cvxpy.org/version/1.3"}, {"aliases": [], "title": "1.2", "version": "https://www.cvxpy.org/version/1.2"}, {"aliases": [], "title": "1.1", "version": "https://www.cvxpy.org/version/1.1"}], "versionPath": null}}</script>
+    
+      
+        <script src="../../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../../_static/sphinx_immaterial_theme.f9d9eeeb247ace16c.min.js?v=8ec58cb5"></script>
+        <script src="../../_static/tabs.js?v=3ee01567"></script>
+        <script src="../../_static/design-tabs.js?v=f930bc37"></script>
+        <script id="MathJax-script" src="../../_static/mathjax/tex-mml-chtml.js?v=cadf963e"></script>
     
   </body>
 </html>

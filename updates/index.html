@@ -1,58 +1,1126 @@
-<!DOCTYPE html>
 
-<html lang="en">
+
+<!doctype html>
+<html lang="en" class="no-js">
   <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+      <link rel="icon" href="../_static/favicon.ico">
+    
+    
+      
+        <title>Changes to CVXPY - </title>
+      
+    
+    
+      
+        
+        
+      
+      
 
-    <title>Changes to CVXPY &#8212; CVXPY 1.5 documentation</title>
-    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=fa44fd50" />
-    <link rel="stylesheet" type="text/css" href="../_static/cvxpy_alabaster.css?v=6c13f287" />
-    <link rel="stylesheet" type="text/css" href="../_static/tabs.css?v=4c969af8" />
-    <link rel="stylesheet" type="text/css" href="../_static/design-style.1e8bd061cd6da7fc9cf755528e8ffc24.min.css?v=0a3b3ea7" />
-    <script src="../_static/jquery.js?v=5d32c60e"></script>
-    <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js?v=515d8a7f"></script>
-    <script src="../_static/doctools.js?v=888ff710"></script>
-    <script src="../_static/sphinx_highlight.js?v=4825356b"></script>
-    <script src="../_static/tabs.js?v=3ee01567"></script>
-    <script src="../_static/design-tabs.js?v=36754332"></script>
-    <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
-    <link rel="icon" href="../_static/favicon.ico"/>
-    <link rel="index" title="Index" href="../genindex.html" />
-    <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="FAQ" href="../faq/index.html" />
-    <link rel="prev" title="Contributing" href="../contributing/index.html" />
-   
-  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+    
+    
+    
+      
+        
+        
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+        <link rel="stylesheet" type="text/css" href="../_static/sphinx_immaterial_theme.4b4a8c74e2ff2ab5b.min.css?v=afa97f93" />
+        <link rel="stylesheet" type="text/css" href="../_static/tabs.css?v=4c969af8" />
+        <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
+        <link rel="stylesheet" type="text/css" href="../_static/css/styling.css?v=84aacf86" />
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce((e,_)=>(e<<5)-e+_.charCodeAt(0),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+  
+
+
   
   
-  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
 
-  </head><body>
+
+  <script id="__analytics">function __md_analytics(){window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)},ga.l=+new Date,ga("create","UA-50248335-1","auto"),ga("set","anonymizeIp",!0),ga("send","pageview"),document.addEventListener("DOMContentLoaded",function(){document.forms.search&&document.forms.search.query.addEventListener("blur",function(){var e;this.value&&(e=document.location.pathname,ga("send","pageview",e+"?q="+this.value))}),document$.subscribe(function(){var a=document.forms.feedback;if(void 0!==a)for(var e of a.querySelectorAll("[type=submit]"))e.addEventListener("click",function(e){e.preventDefault();var t=document.location.pathname,e=this.getAttribute("data-md-value");ga("send","event","feedback","click",t,e),a.firstElementChild.disabled=!0;e=a.querySelector(".md-feedback__note [data-md-value='"+e+"']");e&&(e.hidden=!1)}),a.hidden=!1}),location$.subscribe(function(e){ga("send","pageview",e.pathname)})});var e=document.createElement("script");e.async=!0,e.src="https://www.google-analytics.com/analytics.js",document.getElementById("__analytics").insertAdjacentElement("afterEnd",e)}</script>
+
+  
+    <script>"undefined"!=typeof __md_analytics&&__md_analytics()</script>
   
 
-    <div class="document">
-      <div class="documentwrapper">
-        <div class="bodywrapper">
-          
+    
+    
+    
+  </head>
+  
+  
+    
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="" data-md-color-accent="">
+  
+    
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#cvxpy-1-6" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+      <div data-md-component="outdated" hidden>
+        
+      </div>
+    
+    
+      
 
-          <div class="body" role="main">
+  
+
+<header class="md-header md-header--lifted" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../index.html" title="" class="md-header__button md-logo" aria-label="" data-md-component="logo">
+      <img src="../_static/cvxpy-wordmark-light.png" alt="logo">
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2Z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
             
-  <section id="changes-to-cvxpy">
-<span id="updates"></span><h1>Changes to CVXPY<a class="headerlink" href="#changes-to-cvxpy" title="Permalink to this heading">¶</a></h1>
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Changes to CVXPY
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+    
+      <label class="md-header__button md-icon" for="__search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"/></svg>
+      </label>
+      <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"/></svg>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12Z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+          <a href="javascript:void(0)" class="md-search__icon md-icon" title="Share" aria-label="Share" data-clipboard data-clipboard-text="" data-md-component="search-share" tabindex="-1">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7 0-.24-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9a3 3 0 0 0-3 3 3 3 0 0 0 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.15c-.05.21-.08.43-.08.66 0 1.61 1.31 2.91 2.92 2.91 1.61 0 2.92-1.3 2.92-2.91A2.92 2.92 0 0 0 18 16.08Z"/></svg>
+          </a>
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41Z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/cvxpy/cvxpy/" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3zm44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8zM97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1zm-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7zm32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1zm-11.4-14.7c-1.6 1-1.6 3.6 0 5.9 1.6 2.3 4.3 3.3 5.6 2.3 1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    CVXPY
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+    
+      
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-tabs__inner md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+
+
+  <li class="md-tabs__item">
+    <a href="../install/index.html" class="md-tabs__link">
+      <span class="md-ellipsis">Install</span>
+    </a>
+  </li>
+
+      
+        
+  
+  
+
+
+  <li class="md-tabs__item">
+    <a href="../tutorial/index.html" class="md-tabs__link">
+      <span class="md-ellipsis">User Guide</span>
+    </a>
+  </li>
+
+      
+        
+  
+  
+
+
+  <li class="md-tabs__item">
+    <a href="../api_reference/cvxpy.html" class="md-tabs__link">
+      <span class="md-ellipsis">API Documentation</span>
+    </a>
+  </li>
+
+      
+        
+  
+  
+
+
+  <li class="md-tabs__item">
+    <a href="../examples/index.html" class="md-tabs__link">
+      <span class="md-ellipsis">Examples</span>
+    </a>
+  </li>
+
+      
+        
+  
+  
+
+
+  <li class="md-tabs__item">
+    <a href="../contributing/index.html" class="md-tabs__link">
+      <span class="md-ellipsis">Contributing</span>
+    </a>
+  </li>
+
+      
+        
+  
+  
+    
+  
+
+
+  <li class="md-tabs__item">
+    <a href="#" class="md-tabs__link md-tabs__link--active">
+      <span class="md-ellipsis">Changelog</span>
+    </a>
+  </li>
+
+      
+        
+  
+  
+
+
+  <li class="md-tabs__item">
+    <a href="../faq/index.html" class="md-tabs__link">
+      <span class="md-ellipsis">FAQ</span>
+    </a>
+  </li>
+
+      
+        
+  
+  
+
+
+  <li class="md-tabs__item">
+    <a href="../resources/index.html" class="md-tabs__link">
+      <span class="md-ellipsis">Resources</span>
+    </a>
+  </li>
+
+      
+    </ul>
+  </div>
+</nav>
+    
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+      
+      
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../index.html" title="" class="md-nav__button md-logo" aria-label="" data-md-component="logo">
+      <img src="../_static/cvxpy-wordmark-light.png" alt="logo">
+    </a>
+    
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/cvxpy/cvxpy/" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3zm44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8zM97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1zm-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7zm32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1zm-11.4-14.7c-1.6 1-1.6 3.6 0 5.9 1.6 2.3 4.3 3.3 5.6 2.3 1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    CVXPY
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+      
+
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../install/index.html" class="md-nav__link">
+        <span class="md-ellipsis">Install</span>
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tutorial/index.html" class="md-nav__link">
+        <span class="md-ellipsis">User Guide</span>
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api_reference/cvxpy.html" class="md-nav__link">
+        <span class="md-ellipsis">API Documentation</span>
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../examples/index.html" class="md-nav__link">
+        <span class="md-ellipsis">Examples</span>
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../contributing/index.html" class="md-nav__link">
+        <span class="md-ellipsis">Contributing</span>
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+    
+  
+    
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      
+      <input class="md-nav__toggle md-toggle" data-md-toggle="toc" type="checkbox" id="__toc">
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          <span class="md-ellipsis">Changelog</span>
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="#" class="md-nav__link md-nav__link--active">
+        <span class="md-ellipsis">Changelog</span>
+      </a>
+      
+        
+
+  
+
+<nav class="md-nav md-nav--secondary">
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      On this page
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#cvxpy-1-6" class="md-nav__link">
+    <span title="cvxpy 1.6 (reference label)" class="md-ellipsis">CVXPY 1.<wbr>6</span>
+  </a>
+  
+    <nav class="md-nav" aria-label="CVXPY 1.6">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#default-reshape-order-warning" class="md-nav__link">
+    <span title="default reshape order warning (reference label)" class="md-ellipsis">Default reshape order warning</span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#dropping-ecos-dependency" class="md-nav__link">
+    <span title="dropping ecos dependency (reference label)" class="md-ellipsis">Dropping ECOS dependency</span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#new-features" class="md-nav__link">
+    <span class="md-ellipsis">New features</span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cvxpy-1-5" class="md-nav__link">
+    <span title="cvxpy 1.5 (reference label)" class="md-ellipsis">CVXPY 1.<wbr>5</span>
+  </a>
+  
+    <nav class="md-nav" aria-label="CVXPY 1.5">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#ecos-deprecation" class="md-nav__link">
+    <span class="md-ellipsis">ECOS deprecation</span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#id1" class="md-nav__link">
+    <span class="md-ellipsis">New features</span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cvxpy-1-4" class="md-nav__link">
+    <span title="cvxpy 1.4 (reference label)" class="md-ellipsis">CVXPY 1.<wbr>4</span>
+  </a>
+  
+    <nav class="md-nav" aria-label="CVXPY 1.4">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#id2" class="md-nav__link">
+    <span title="new features (reference label)" class="md-ellipsis">New features</span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#id3" class="md-nav__link">
+    <span title="ecos deprecation (reference label)" class="md-ellipsis">ECOS deprecation</span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#conv-deprecation" class="md-nav__link">
+    <span title="``conv`` deprecation (reference label)" class="md-ellipsis">conv deprecation</span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#nonpos-deprecation" class="md-nav__link">
+    <span title="``nonpos`` deprecation (reference label)" class="md-ellipsis">Non<wbr>Pos deprecation</span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cvxpy-1-3" class="md-nav__link">
+    <span title="cvxpy 1.3 (reference label)" class="md-ellipsis">CVXPY 1.<wbr>3</span>
+  </a>
+  
+    <nav class="md-nav" aria-label="CVXPY 1.3">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#constraints-and-atoms" class="md-nav__link">
+    <span class="md-ellipsis">Constraints and atoms</span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#solver-interfaces" class="md-nav__link">
+    <span class="md-ellipsis">Solver interfaces</span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#general-system-improvements" class="md-nav__link">
+    <span class="md-ellipsis">General system improvements</span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cvxpy-1-2" class="md-nav__link">
+    <span title="cvxpy 1.2 (reference label)" class="md-ellipsis">CVXPY 1.<wbr>2</span>
+  </a>
+  
+    <nav class="md-nav" aria-label="CVXPY 1.2">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#id5" class="md-nav__link">
+    <span title="constraints and atoms (reference label)" class="md-ellipsis">Constraints and atoms</span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#id6" class="md-nav__link">
+    <span title="solver interfaces (reference label)" class="md-ellipsis">Solver interfaces</span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#id7" class="md-nav__link">
+    <span title="general system improvements (reference label)" class="md-ellipsis">General system improvements</span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cvxpy-1-1" class="md-nav__link">
+    <span title="cvxpy 1.1 (reference label)" class="md-ellipsis">CVXPY 1.<wbr>1</span>
+  </a>
+  
+    <nav class="md-nav" aria-label="CVXPY 1.1">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#highlights" class="md-nav__link">
+    <span title="highlights (reference label)" class="md-ellipsis">Highlights</span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#new-atoms-and-transforms" class="md-nav__link">
+    <span title="new atoms and transforms (reference label)" class="md-ellipsis">New atoms and transforms</span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#breaking-changes" class="md-nav__link">
+    <span title="breaking changes (reference label)" class="md-ellipsis">Breaking changes</span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#bugfixes" class="md-nav__link">
+    <span title="bugfixes (reference label)" class="md-ellipsis">Bugfixes</span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#known-issues" class="md-nav__link">
+    <span title="known issues (reference label)" class="md-ellipsis">Known issues</span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#notable-patches-since-cvxpy-1-1-0" class="md-nav__link">
+    <span title="notable patches since cvxpy 1.1.0 (reference label)" class="md-ellipsis">Notable patches since CVXPY 1.<wbr>1.<wbr>0</span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cvxpy-1-0" class="md-nav__link">
+    <span title="cvxpy 1.0 (reference label)" class="md-ellipsis">CVXPY 1.<wbr>0</span>
+  </a>
+  
+    <nav class="md-nav" aria-label="CVXPY 1.0">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#overview" class="md-nav__link">
+    <span title="overview (reference label)" class="md-ellipsis">Overview</span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#reductions" class="md-nav__link">
+    <span title="reductions (reference label)" class="md-ellipsis">Reductions</span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#attributes" class="md-nav__link">
+    <span title="attributes (reference label)" class="md-ellipsis">Attributes</span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#numpy-compatibility" class="md-nav__link">
+    <span title="numpy compatibility (reference label)" class="md-ellipsis">Num<wbr>Py Compatibility</span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#transforms" class="md-nav__link">
+    <span title="transforms (reference label)" class="md-ellipsis">Transforms</span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../faq/index.html" class="md-nav__link">
+        <span class="md-ellipsis">FAQ</span>
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../resources/index.html" class="md-nav__link">
+        <span class="md-ellipsis">Resources</span>
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+  
+
+<nav class="md-nav md-nav--secondary">
+  
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      On this page
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#cvxpy-1-6" class="md-nav__link">
+    <span title="cvxpy 1.6 (reference label)" class="md-ellipsis">CVXPY 1.<wbr>6</span>
+  </a>
+  
+    <nav class="md-nav" aria-label="CVXPY 1.6">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#default-reshape-order-warning" class="md-nav__link">
+    <span title="default reshape order warning (reference label)" class="md-ellipsis">Default reshape order warning</span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#dropping-ecos-dependency" class="md-nav__link">
+    <span title="dropping ecos dependency (reference label)" class="md-ellipsis">Dropping ECOS dependency</span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#new-features" class="md-nav__link">
+    <span class="md-ellipsis">New features</span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cvxpy-1-5" class="md-nav__link">
+    <span title="cvxpy 1.5 (reference label)" class="md-ellipsis">CVXPY 1.<wbr>5</span>
+  </a>
+  
+    <nav class="md-nav" aria-label="CVXPY 1.5">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#ecos-deprecation" class="md-nav__link">
+    <span class="md-ellipsis">ECOS deprecation</span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#id1" class="md-nav__link">
+    <span class="md-ellipsis">New features</span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cvxpy-1-4" class="md-nav__link">
+    <span title="cvxpy 1.4 (reference label)" class="md-ellipsis">CVXPY 1.<wbr>4</span>
+  </a>
+  
+    <nav class="md-nav" aria-label="CVXPY 1.4">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#id2" class="md-nav__link">
+    <span title="new features (reference label)" class="md-ellipsis">New features</span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#id3" class="md-nav__link">
+    <span title="ecos deprecation (reference label)" class="md-ellipsis">ECOS deprecation</span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#conv-deprecation" class="md-nav__link">
+    <span title="``conv`` deprecation (reference label)" class="md-ellipsis">conv deprecation</span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#nonpos-deprecation" class="md-nav__link">
+    <span title="``nonpos`` deprecation (reference label)" class="md-ellipsis">Non<wbr>Pos deprecation</span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cvxpy-1-3" class="md-nav__link">
+    <span title="cvxpy 1.3 (reference label)" class="md-ellipsis">CVXPY 1.<wbr>3</span>
+  </a>
+  
+    <nav class="md-nav" aria-label="CVXPY 1.3">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#constraints-and-atoms" class="md-nav__link">
+    <span class="md-ellipsis">Constraints and atoms</span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#solver-interfaces" class="md-nav__link">
+    <span class="md-ellipsis">Solver interfaces</span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#general-system-improvements" class="md-nav__link">
+    <span class="md-ellipsis">General system improvements</span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cvxpy-1-2" class="md-nav__link">
+    <span title="cvxpy 1.2 (reference label)" class="md-ellipsis">CVXPY 1.<wbr>2</span>
+  </a>
+  
+    <nav class="md-nav" aria-label="CVXPY 1.2">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#id5" class="md-nav__link">
+    <span title="constraints and atoms (reference label)" class="md-ellipsis">Constraints and atoms</span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#id6" class="md-nav__link">
+    <span title="solver interfaces (reference label)" class="md-ellipsis">Solver interfaces</span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#id7" class="md-nav__link">
+    <span title="general system improvements (reference label)" class="md-ellipsis">General system improvements</span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cvxpy-1-1" class="md-nav__link">
+    <span title="cvxpy 1.1 (reference label)" class="md-ellipsis">CVXPY 1.<wbr>1</span>
+  </a>
+  
+    <nav class="md-nav" aria-label="CVXPY 1.1">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#highlights" class="md-nav__link">
+    <span title="highlights (reference label)" class="md-ellipsis">Highlights</span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#new-atoms-and-transforms" class="md-nav__link">
+    <span title="new atoms and transforms (reference label)" class="md-ellipsis">New atoms and transforms</span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#breaking-changes" class="md-nav__link">
+    <span title="breaking changes (reference label)" class="md-ellipsis">Breaking changes</span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#bugfixes" class="md-nav__link">
+    <span title="bugfixes (reference label)" class="md-ellipsis">Bugfixes</span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#known-issues" class="md-nav__link">
+    <span title="known issues (reference label)" class="md-ellipsis">Known issues</span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#notable-patches-since-cvxpy-1-1-0" class="md-nav__link">
+    <span title="notable patches since cvxpy 1.1.0 (reference label)" class="md-ellipsis">Notable patches since CVXPY 1.<wbr>1.<wbr>0</span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cvxpy-1-0" class="md-nav__link">
+    <span title="cvxpy 1.0 (reference label)" class="md-ellipsis">CVXPY 1.<wbr>0</span>
+  </a>
+  
+    <nav class="md-nav" aria-label="CVXPY 1.0">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#overview" class="md-nav__link">
+    <span title="overview (reference label)" class="md-ellipsis">Overview</span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#reductions" class="md-nav__link">
+    <span title="reductions (reference label)" class="md-ellipsis">Reductions</span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#attributes" class="md-nav__link">
+    <span title="attributes (reference label)" class="md-ellipsis">Attributes</span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#numpy-compatibility" class="md-nav__link">
+    <span title="numpy compatibility (reference label)" class="md-ellipsis">Num<wbr>Py Compatibility</span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#transforms" class="md-nav__link">
+    <span title="transforms (reference label)" class="md-ellipsis">Transforms</span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset" role="main">
+                  
+
+
+<h1 id="changes-to-cvxpy"><span id="updates"></span>Changes to CVXPY<a class="headerlink" href="#changes-to-cvxpy" title="Link to this heading">¶</a></h1>
 <p>This page details changes made to CVXPY over time, in reverse chronological order.
-CVXPY’s project maintainers currently provide support for CVXPY 1.5 and 1.4.</p>
-<section id="cvxpy-1-5">
-<h2>CVXPY 1.5<a class="headerlink" href="#cvxpy-1-5" title="Permalink to this heading">¶</a></h2>
+CVXPY’s project maintainers currently provide support for CVXPY 1.6 and 1.5.</p>
+<h2 id="cvxpy-1-6">CVXPY 1.6<a class="headerlink" href="#cvxpy-1-6" title="Link to this heading">¶</a></h2>
+<p>This release is consistent with our semantic versioning guarantee. It
+comes packed with many new features, bug fixes, and performance improvements.
+This version of CVXPY supports Python 3.9 through 3.13. While working on the next release,
+we continue to officially support CVXPY 1.5.</p>
+<h3 id="default-reshape-order-warning">Default reshape order warning<a class="headerlink" href="#default-reshape-order-warning" title="Link to this heading">¶</a></h3>
+<p>CVXPY’s default order for array manipulation atoms such as reshape, vec and flatten,
+is Fortran (‘F’). In this release CVXPY raises a warning when no explicit order is specified.</p>
+<p>In version 1.7, we plan to raise an error if the order is not specified.
+Finally, in version 1.8, we will switch the default order from (‘F’) to (‘C’) to
+match NumPy’s behavior.</p>
+<h3 id="dropping-ecos-dependency">Dropping ECOS dependency<a class="headerlink" href="#dropping-ecos-dependency" title="Link to this heading">¶</a></h3>
+<p>In version 1.5, we changed our default solver from ECOS to Clarabel and announced that we would be
+removing ECOS as a dependency in 1.6. Despite some regressions in certain DQCP tests, we are
+moving forward with dropping ECOS in this release. If you are experiencing any issues with Clarabel
+we encourage you to try using SCS or add ECOS as a dependency to your project.</p>
+<h3 id="new-features">New features<a class="headerlink" href="#new-features" title="Link to this heading">¶</a></h3>
+<ul class="simple">
+<li><p>Added Python 3.13 support and dropped Python 3.8 support</p></li>
+<li><p>New HiGHS solver interface</p></li>
+<li><p>New atom: <a class="reference internal" href="../api_reference/cvxpy.atoms.other_atoms.html#cvar"><span class="std std-ref">cvar</span></a></p></li>
+<li><p>New atom: <a class="reference internal" href="../api_reference/cvxpy.atoms.other_atoms.html#cumprod"><span class="std std-ref">cumprod</span></a></p></li>
+<li><p>New atom: <span class="xref std std-ref">quantum_rel_entr</span></p></li>
+<li><p>New atom: <span class="xref std std-ref">quantum_cond_entr</span></p></li>
+<li><p>New atom: <span class="xref std std-ref">concatenate</span></p></li>
+<li><dl class="simple">
+<dt>Support for <a class="reference internal" href="../tutorial/advanced/index.html#n-dimensional"><span class="std std-ref">N-dimensional variables</span></a> and expressions for the following operations:</dt><dd><ul>
+<li><p>axis atoms like min, max and sum</p></li>
+<li><p>indexing</p></li>
+<li><p>elementwise operations</p></li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><p><a class="reference internal" href="../tutorial/constraints/index.html#sparsity"><span class="std std-ref">Sparsity attribute</span></a> for variables</p></li>
+<li><p>New website and documentation theme based on <a class="reference external" href="https://jbms.github.io/sphinx-immaterial/">Sphinx Immaterial</a></p></li>
+<li><p>Ability to pass multiple solvers as argument to <code class="docutils literal notranslate"><span class="pre">.solve()</span></code></p></li>
+<li><p>Performance improvement for <code class="docutils literal notranslate"><span class="pre">sum_largest</span></code> and <code class="docutils literal notranslate"><span class="pre">cumsum</span></code></p></li>
+<li><p>Performance improvement for integer and boolean variables</p></li>
+<li><p>Improving string representation of special index</p></li>
+</ul>
+<h2 id="cvxpy-1-5">CVXPY 1.5<a class="headerlink" href="#cvxpy-1-5" title="Link to this heading">¶</a></h2>
 <p>This release is consistent with our semantic versioning guarantee. It
 comes packed with many new features, bug fixes, and performance
 improvements. This version of CVXPY supports Python 3.8 through 3.12,
 While working on the next release, we continue to officially support
 CVXPY 1.5 and 1.4.</p>
 <p>This release may <strong>not</strong> be compatible with NumPy 2.0.</p>
-<section id="ecos-deprecation">
-<h3>ECOS deprecation<a class="headerlink" href="#ecos-deprecation" title="Permalink to this heading">¶</a></h3>
+<h3 id="ecos-deprecation">ECOS deprecation<a class="headerlink" href="#ecos-deprecation" title="Link to this heading">¶</a></h3>
 <p>CVXPY has used ECOS as the default solver for many years; however, it
 has known issues with performance and numerical stability in edge cases.
 Recently, a new solver, Clarabel, that improves the algorithm and
@@ -64,16 +1132,20 @@ We have no plans to remove support for calling ECOS as a solver.</p>
 <p>We encourage you to try and use Clarabel instead, but if you’re
 dependent on ECOS’s exact behavior please explicitly specify it as a
 solver and as a dependency for your project.</p>
-</section>
-<section id="new-features">
-<h3>New features<a class="headerlink" href="#new-features" title="Permalink to this heading">¶</a></h3>
+<h3 id="id1">New features<a class="headerlink" href="#id1" title="Link to this heading">¶</a></h3>
 <ul class="simple">
-<li><p>Major updates to the documentation, adding a number of new sections to the
-User Guide and breaking up the monolithic Advanced features page</p></li>
+<li><dl class="simple">
+<dt>Major updates to the documentation, adding a number of new sections to the</dt><dd><p>User Guide and breaking up the monolithic Advanced features page</p>
+</dd>
+</dl>
+</li>
 <li><p>Added <cite>.curvatures</cite> containing all curvatures an expression is compatible with</p></li>
-<li><p>Variable bounds can be specified with <cite>cp.Variable(bound=(lower, upper))</cite>
-and are directly passed to the solver when helpful. <cite>lower</cite> and <cite>upper</cite> can
-be either a NumPy array or floating point number.</p></li>
+<li><dl class="simple">
+<dt>Variable bounds can be specified with <cite>cp.Variable(bound=(lower, upper))</cite></dt><dd><p>and are directly passed to the solver when helpful. <cite>lower</cite> and <cite>upper</cite> can
+be either a NumPy array or floating point number.</p>
+</dd>
+</dl>
+</li>
 <li><p>Constants can be named by writing <cite>cp.Constant(name=’…’)</cite></p></li>
 <li><p>Added a new atom, <cite>vdot</cite>, that has the same behavior as <cite>scalar_product</cite></p></li>
 <li><p>CVXPY runs in the next PyOdide release via wasm</p></li>
@@ -81,17 +1153,13 @@ be either a NumPy array or floating point number.</p></li>
 <li><p>Major rewrite to the PDLP interface</p></li>
 <li><p>Dropped MOSEK &lt;= 9 support and upgraded the MOSEK integration code</p></li>
 </ul>
-</section>
-</section>
-<section id="cvxpy-1-4">
-<h2>CVXPY 1.4<a class="headerlink" href="#cvxpy-1-4" title="Permalink to this heading">¶</a></h2>
+<h2 id="cvxpy-1-4">CVXPY 1.4<a class="headerlink" href="#cvxpy-1-4" title="Link to this heading">¶</a></h2>
 <p>This release is consistent with our semantic versioning guarantee. It
 comes packed with many new features, bug fixes, and performance
 improvements. This version of CVXPY supports Python 3.8 through 3.12,
 and is our first release that supports Python 3.12. While working on the
 next release, we continue to officially support CVXPY 1.3 and 1.4.</p>
-<section id="id1">
-<h3>New features<a class="headerlink" href="#id1" title="Permalink to this heading">¶</a></h3>
+<h3 id="id2">New features<a class="headerlink" href="#id2" title="Link to this heading">¶</a></h3>
 <ul class="simple">
 <li><p>New atom: <a class="reference internal" href="../api_reference/cvxpy.atoms.affine.html#convolve"><span class="std std-ref">convolve</span></a></p></li>
 <li><p>New atom: <a class="reference internal" href="../api_reference/cvxpy.atoms.affine.html#mean"><span class="std std-ref">mean</span></a></p></li>
@@ -100,15 +1168,10 @@ next release, we continue to officially support CVXPY 1.3 and 1.4.</p>
 <li><p>New atom: <a class="reference internal" href="../api_reference/cvxpy.atoms.other_atoms.html#std"><span class="std std-ref">std</span></a></p></li>
 <li><p>New atom: <a class="reference internal" href="../api_reference/cvxpy.atoms.other_atoms.html#var"><span class="std std-ref">var</span></a></p></li>
 <li><p>New atom: <span class="xref std std-ref">vec_to_upper_tri</span></p></li>
-<li><p>Adds methods to CVXPY expressions that are found on NumPy ndarrays</p></li>
-</ul>
-<blockquote>
-<div><p>such as <code class="docutils literal notranslate"><span class="pre">.sum()</span></code>, <code class="docutils literal notranslate"><span class="pre">.max()</span></code>, and <code class="docutils literal notranslate"><span class="pre">.mean()</span></code></p>
-</div></blockquote>
-<ul class="simple">
+<li><p>Adds methods to CVXPY expressions that are found on NumPy ndarrays such as <code class="docutils literal notranslate"><span class="pre">.sum()</span></code>, <code class="docutils literal notranslate"><span class="pre">.max()</span></code>, and <code class="docutils literal notranslate"><span class="pre">.mean()</span></code></p></li>
 <li><p>New solver interface: <code class="docutils literal notranslate"><span class="pre">PIQP</span></code></p></li>
 <li><p>Adds SDP support to the Clarabel interface</p></li>
-<li><p>Addedd support for OR-Tools 9.7</p></li>
+<li><p>Added support for OR-Tools 9.7</p></li>
 <li><p>Removed support for OR-Tools 9.4</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">PowerConeND</span></code> now supports extracting its dual variables</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">reshape</span></code> now supports using <code class="docutils literal notranslate"><span class="pre">-1</span></code> as a dimension, with the same
@@ -122,9 +1185,7 @@ error</p></li>
 <li><p>Performance improvements for quadratic forms with sparse matrices</p></li>
 <li><p>Greater support for static typing</p></li>
 </ul>
-</section>
-<section id="id2">
-<h3>ECOS deprecation<a class="headerlink" href="#id2" title="Permalink to this heading">¶</a></h3>
+<h3 id="id3">ECOS deprecation<a class="headerlink" href="#id3" title="Link to this heading">¶</a></h3>
 <p>CVXPY has used ECOS as the default solver for many years; however, it
 has known issues with performance and numerical stability in edge cases.
 Recently, a new solver, Clarabel, that improves the algorithm and
@@ -138,24 +1199,17 @@ ECOS is called by default.
 We encourage you to try and use Clarabel instead, but if you’re
 dependent on ECOS’s exact behavior please explicitly specify it as a
 solver.</p>
-</section>
-<section id="conv-deprecation">
-<h3><code class="docutils literal notranslate"><span class="pre">conv</span></code> deprecation<a class="headerlink" href="#conv-deprecation" title="Permalink to this heading">¶</a></h3>
+<h3 id="conv-deprecation"><code class="docutils literal notranslate"><span class="pre">conv</span></code> deprecation<a class="headerlink" href="#conv-deprecation" title="Link to this heading">¶</a></h3>
 <p>The CVXPY atom <code class="docutils literal notranslate"><span class="pre">conv</span></code> is inconsistent with NumPy’s convolve functions.
 We are deprecating it, but have no plans to remove it in the short term.
 We encourage all users to use the CVXPY atom <code class="docutils literal notranslate"><span class="pre">convolve</span></code> instead.</p>
-</section>
-<section id="nonpos-deprecation">
-<h3><code class="docutils literal notranslate"><span class="pre">NonPos</span></code> deprecation<a class="headerlink" href="#nonpos-deprecation" title="Permalink to this heading">¶</a></h3>
+<h3 id="nonpos-deprecation"><code class="docutils literal notranslate"><span class="pre">NonPos</span></code> deprecation<a class="headerlink" href="#nonpos-deprecation" title="Link to this heading">¶</a></h3>
 <p>The <code class="docutils literal notranslate"><span class="pre">NonPos</span></code> cone uses the opposite dual variable sign convention as
 the rest of the CVXPY cones and a constraint of <code class="docutils literal notranslate"><span class="pre">NonPos(expr)</span></code> is the
 same as a constraint on <code class="docutils literal notranslate"><span class="pre">NonNeg(-expr)</span></code>. We are deprecating
 <code class="docutils literal notranslate"><span class="pre">NonPos</span></code>, but have no plans to remove it in the short term. We
 encourage users to switch to using <code class="docutils literal notranslate"><span class="pre">NonNeg</span></code>.</p>
-</section>
-</section>
-<section id="cvxpy-1-3">
-<h2>CVXPY 1.3<a class="headerlink" href="#cvxpy-1-3" title="Permalink to this heading">¶</a></h2>
+<h2 id="cvxpy-1-3">CVXPY 1.3<a class="headerlink" href="#cvxpy-1-3" title="Link to this heading">¶</a></h2>
 <p>CVXPY 1.3 brings many new features, bug fixes, and performance improvements. It introduces a new
 <a class="reference internal" href="../tutorial/advanced/index.html#canonicalization-backends"><span class="std std-ref">SciPy-based backend</span></a> and formalizes the public API of CVXPY as everything that is
 importable directly from the <code class="docutils literal notranslate"><span class="pre">cvxpy</span></code> namespace.
@@ -164,8 +1218,7 @@ the API has not yet been fixed. It is explicitly not a part of our API whether a
 or classes, e.g. we do not consider replacing <code class="docutils literal notranslate"><span class="pre">cvxpy.power</span></code>, which is currently a class, with a function to be a
 breaking change or replacing <code class="docutils literal notranslate"><span class="pre">cp.quad_form</span></code> which is a function to become a class to be a breaking change.
 Code of the form <code class="docutils literal notranslate"><span class="pre">cvxpy.power(a,</span> <span class="pre">b)</span></code> is guaranteed to remain working.</p>
-<section id="constraints-and-atoms">
-<h3>Constraints and atoms<a class="headerlink" href="#constraints-and-atoms" title="Permalink to this heading">¶</a></h3>
+<h3 id="constraints-and-atoms">Constraints and atoms<a class="headerlink" href="#constraints-and-atoms" title="Link to this heading">¶</a></h3>
 <ul class="simple">
 <li><p><a class="reference internal" href="../api_reference/cvxpy.constraints.html#finite-set"><span class="std std-ref">FiniteSet</span></a></p></li>
 <li><p><a class="reference internal" href="../api_reference/cvxpy.constraints.html#rel-entr-cone-quad"><span class="std std-ref">RelEntrConeQuad</span></a></p></li>
@@ -175,25 +1228,18 @@ Code of the form <code class="docutils literal notranslate"><span class="pre">cv
 <li><p><a class="reference internal" href="../api_reference/cvxpy.atoms.other_atoms.html#von-neumann-entr"><span class="std std-ref">von_neumann_entr(X)</span></a></p></li>
 <li><p><a class="reference internal" href="../api_reference/cvxpy.atoms.other_atoms.html#perspective"><span class="std std-ref">perspective(f(x),s)</span></a></p></li>
 </ul>
-</section>
-<section id="solver-interfaces">
-<h3>Solver interfaces<a class="headerlink" href="#solver-interfaces" title="Permalink to this heading">¶</a></h3>
+<h3 id="solver-interfaces">Solver interfaces<a class="headerlink" href="#solver-interfaces" title="Link to this heading">¶</a></h3>
 <ul class="simple">
 <li><p><a class="reference internal" href="../resources/related_projects/index.html#solvers"><span class="std std-ref">New interfaces</span></a>: COPT, SDPA, Clarabel, and proxqp</p></li>
 </ul>
-</section>
-<section id="general-system-improvements">
-<h3>General system improvements<a class="headerlink" href="#general-system-improvements" title="Permalink to this heading">¶</a></h3>
+<h3 id="general-system-improvements">General system improvements<a class="headerlink" href="#general-system-improvements" title="Link to this heading">¶</a></h3>
 <ul class="simple">
 <li><p>Support for native quadratic forms (<code class="docutils literal notranslate"><span class="pre">x.T</span> <span class="pre">&#64;</span> <span class="pre">P</span> <span class="pre">&#64;</span> <span class="pre">x</span></code>)</p></li>
 <li><p>The new OpRelEntrConeQuad constraint class is the first major piece of our effort to improve support for quantum
 information modeling (<a class="reference external" href="https://github.com/cvxpy/org/blob/main/GSoC2022/aryamanjeendgar/final_report.pdf">GSOC project</a>)</p></li>
 <li><p>Continuous performance benchmarking (<a class="reference external" href="https://github.com/cvxpy/org/blob/main/GSoC2022/parthb83/final_report.md">GSOC project</a>)</p></li>
 </ul>
-</section>
-</section>
-<section id="cvxpy-1-2">
-<h2>CVXPY 1.2<a class="headerlink" href="#cvxpy-1-2" title="Permalink to this heading">¶</a></h2>
+<h2 id="cvxpy-1-2">CVXPY 1.2<a class="headerlink" href="#cvxpy-1-2" title="Link to this heading">¶</a></h2>
 <p>We’re taking a big step toward <a class="reference external" href="https://semver.org/">semantic versioning</a>!
 Our new versioning policy will be to increment the minor version number (the “x” in “CVXPY 1.x.y”)
 whenever we introduce new features.
@@ -204,10 +1250,8 @@ API-breaking changes will require incrementing the major version number (i.e., m
 Many new features were added <em>after</em> CVXPY 1.1.0 but <em>before</em> CVXPY 1.2.0.
 These features accumulated over the course of CVXPY 1.1.1 and 1.1.18.
 We review those features and the new features in CVXPY 1.2.0 below.</p>
-<section id="id4">
-<h3>Constraints and atoms<a class="headerlink" href="#id4" title="Permalink to this heading">¶</a></h3>
-<blockquote>
-<div><ul class="simple">
+<h3 id="id5">Constraints and atoms<a class="headerlink" href="#id5" title="Link to this heading">¶</a></h3>
+<ul class="simple">
 <li><p>1.2.0: added atoms for <a class="reference external" href="https://en.wikipedia.org/wiki/Partial_trace">partial trace</a> and partial transpose,
 which are important linear operators in quantum information</p></li>
 <li><p>1.2.0: updated <code class="docutils literal notranslate"><span class="pre">kron</span></code> so that either argument in <code class="docutils literal notranslate"><span class="pre">kron(A,</span> <span class="pre">B)</span></code> can be a non-constant affine Expression,
@@ -218,12 +1262,8 @@ provided the other argument is constant. We previously required that <code class
 <li><p>1.1.8: added <code class="docutils literal notranslate"><span class="pre">log_normcdf</span></code>: an atom that approximates the log of the Gaussian distribution’s CDF</p></li>
 <li><p>1.1.8: added power cone constraints</p></li>
 </ul>
-</div></blockquote>
-</section>
-<section id="id5">
-<h3>Solver interfaces<a class="headerlink" href="#id5" title="Permalink to this heading">¶</a></h3>
-<blockquote>
-<div><ul class="simple">
+<h3 id="id6">Solver interfaces<a class="headerlink" href="#id6" title="Link to this heading">¶</a></h3>
+<ul class="simple">
 <li><p>1.2.0: support PDLP and GLOP, via OR-Tools</p></li>
 <li><p>1.1.17: support for SCS 3.0</p></li>
 <li><p>1.1.14: support for HiGHS (and other LP solvers that come with SciPy)</p></li>
@@ -235,12 +1275,8 @@ provided the other argument is constant. We previously required that <code class
 <li><p>1.1.2: support for SCIP</p></li>
 <li><p>1.1.2: users can provide their own implementation of a KKT solver for use with CVXOPT</p></li>
 </ul>
-</div></blockquote>
-</section>
-<section id="id6">
-<h3>General system improvements<a class="headerlink" href="#id6" title="Permalink to this heading">¶</a></h3>
-<blockquote>
-<div><ul class="simple">
+<h3 id="id7">General system improvements<a class="headerlink" href="#id7" title="Link to this heading">¶</a></h3>
+<ul class="simple">
 <li><p>1.1.18: A problem status “infeasible or unbounded”, for use by specific solvers in rare situations</p></li>
 <li><p>1.1.11: verbose logging</p></li>
 <li><p>1.1.11: several improvements to CVXPY’s  C++ backend rewriting system, “cvxcore.”
@@ -248,13 +1284,8 @@ In particular, CVXPY can now be compiled from source with openmp enabled, which 
 canonicalization to take advantage of multithreading.</p></li>
 <li><p>1.1.6: a “Dualize” reduction</p></li>
 </ul>
-</div></blockquote>
-</section>
-</section>
-<section id="cvxpy-1-1">
-<h2>CVXPY 1.1<a class="headerlink" href="#cvxpy-1-1" title="Permalink to this heading">¶</a></h2>
-<section id="highlights">
-<h3>Highlights<a class="headerlink" href="#highlights" title="Permalink to this heading">¶</a></h3>
+<h2 id="cvxpy-1-1">CVXPY 1.1<a class="headerlink" href="#cvxpy-1-1" title="Link to this heading">¶</a></h2>
+<h3 id="highlights">Highlights<a class="headerlink" href="#highlights" title="Link to this heading">¶</a></h3>
 <p><a class="reference internal" href="../tutorial/dpp/index.html#dpp"><span class="std std-ref">Disciplined parametrized programming</span></a> or “DPP” is a ruleset for constructing parametrized problems in
 CVXPY. Taking advantage of DPP can decrease the time it takes CVXPY to repeatedly canonicalize a parametrized problem.
 DPP also provides the basis for differentiating the map from parameters to the solution of an optimization problem.</p>
@@ -270,50 +1301,38 @@ and the <a class="reference external" href="https://web.stanford.edu/~boyd/paper
 this behavior is officially deprecated. All matrix multiplication should now be performed with
 the python standard <code class="docutils literal notranslate"><span class="pre">&#64;</span></code> operator. CVXPY will raise a warning if <code class="docutils literal notranslate"><span class="pre">*</span></code> is used when one of
 the operands is not a scalar.</p>
-</section>
-<section id="new-atoms-and-transforms">
-<h3>New atoms and transforms<a class="headerlink" href="#new-atoms-and-transforms" title="Permalink to this heading">¶</a></h3>
+<h3 id="new-atoms-and-transforms">New atoms and transforms<a class="headerlink" href="#new-atoms-and-transforms" title="Link to this heading">¶</a></h3>
 <p>CVXPY has long provided abstractions (“atoms” and “transforms”) which make it easier to specify
 optimization problems in natural ways. The release of CVXPY 1.1 is accompanied by the following
 new abstractions:</p>
-<blockquote>
-<div><ul class="simple">
+<ul class="simple">
 <li><p>A “support function” transform for use in disciplined convex programming.</p></li>
 <li><p>A “scalar product” atom, for appropriate use across all problem classes.</p></li>
 <li><p>A “gmatmul” atom, which captures the DGP equivalent to matrix multiplication.</p></li>
 <li><p>The atoms <code class="docutils literal notranslate"><span class="pre">cp.max</span></code> and <code class="docutils literal notranslate"><span class="pre">cp.min</span></code> have been extended for use in DQCP.</p></li>
 <li><p>The python builtin <code class="docutils literal notranslate"><span class="pre">sum</span></code> is now allowed in DGP.</p></li>
 </ul>
-</div></blockquote>
-</section>
-<section id="breaking-changes">
-<h3>Breaking changes<a class="headerlink" href="#breaking-changes" title="Permalink to this heading">¶</a></h3>
+<h3 id="breaking-changes">Breaking changes<a class="headerlink" href="#breaking-changes" title="Link to this heading">¶</a></h3>
 <p>We no longer support Python 2 or Python 3.4.</p>
 <p>CVXPY 1.1.0 drops the SuperSCS and ECOS_BB solvers.</p>
-<div class="admonition note">
+<div class="note admonition">
 <p class="admonition-title">Note</p>
 <p>We added ECOS_BB back in version 1.1.6. Starting with
 CVXPY 1.2.0, any backwards-incompatible change like removing a
 solver interface will require incrementing CVXPY’s major version
 number (e.g., moving from series 1.X to 2.X).</p>
 </div>
-</section>
-<section id="bugfixes">
-<h3>Bugfixes<a class="headerlink" href="#bugfixes" title="Permalink to this heading">¶</a></h3>
+<h3 id="bugfixes">Bugfixes<a class="headerlink" href="#bugfixes" title="Link to this heading">¶</a></h3>
 <p>CVXPY 1.1 has substantially improved support for recovering dual variables.
 Advanced users should be able to recover dual variables to any conic constraint,
 including exponential-cone and second-order-cone constraints.</p>
 <p>This release resolves bugs in detecting when a problem falls into the category of
 “disciplined quasiconvex programming” (DQCP).</p>
-</section>
-<section id="known-issues">
-<h3>Known issues<a class="headerlink" href="#known-issues" title="Permalink to this heading">¶</a></h3>
+<h3 id="known-issues">Known issues<a class="headerlink" href="#known-issues" title="Link to this heading">¶</a></h3>
 <p>DPP problems with many CVXPY Parameters can take a long time to compile.</p>
 <p>Disciplined quasiconvex programming (DQCP) doesn’t support DPP.</p>
 <p>The XPRESS interface is currently not working. (Fixed in CVXPY 1.1.4.)</p>
-</section>
-<section id="notable-patches-since-cvxpy-1-1-0">
-<h3>Notable patches since CVXPY 1.1.0<a class="headerlink" href="#notable-patches-since-cvxpy-1-1-0" title="Permalink to this heading">¶</a></h3>
+<h3 id="notable-patches-since-cvxpy-1-1-0">Notable patches since CVXPY 1.1.0<a class="headerlink" href="#notable-patches-since-cvxpy-1-1-0" title="Link to this heading">¶</a></h3>
 <dl class="simple">
 <dt>Version 1.1.10</dt><dd><ul class="simple">
 <li><p>When NumPy 1.20 was released many users encountered errors in installing or importing
@@ -349,15 +1368,11 @@ options in the off chance that this change made your solve times increase.</p></
 </ul>
 </dd>
 </dl>
-</section>
-</section>
-<section id="cvxpy-1-0">
-<h2>CVXPY 1.0<a class="headerlink" href="#cvxpy-1-0" title="Permalink to this heading">¶</a></h2>
+<h2 id="cvxpy-1-0">CVXPY 1.0<a class="headerlink" href="#cvxpy-1-0" title="Link to this heading">¶</a></h2>
 <p>CVXPY 1.0 includes a major rewrite of the CVXPY internals, as well as a number of changes to the user interface. We first give an overview of the changes, before diving into the details.
 We only cover changes that might be of interest to users.</p>
 <p>We have created a script to convert code using CVXPY 0.4.11 into CVXPY 1.0, available <a class="reference external" href="https://github.com/cvxpy/cvxpy/blob/1.0/cvxpy/utilities/cvxpy_upgrade.py">here</a>.</p>
-<section id="overview">
-<h3>Overview<a class="headerlink" href="#overview" title="Permalink to this heading">¶</a></h3>
+<h3 id="overview">Overview<a class="headerlink" href="#overview" title="Link to this heading">¶</a></h3>
 <ul class="simple">
 <li><p>Disciplined geometric programming (DGP): Starting with version 1.0.11, CVXPY lets you formulate and solve log-log convex programs, which generalize both traditional geometric programs and generalized geometric programs. To get started with DGP, check out <a class="reference internal" href="../tutorial/dgp/index.html#dgp"><span class="std std-ref">the tutorial</span></a> and consult the <a class="reference external" href="https://web.stanford.edu/~boyd/papers/dgp.html">accompanying paper</a>.</p></li>
 <li><p>Reductions: CVXPY 1.0 uses a modular system of <em>reductions</em> to convert problems input by the user into the format required by the solver, which makes it easy to support new standard forms, such as quadratic programs, and more advanced user inputs, such as problems with complex variables. See <a class="reference internal" href="../api_reference/cvxpy.reductions.html#reductions-api"><span class="std std-ref">Reductions</span></a> and the <a class="reference external" href="https://stanford.edu/~boyd/papers/cvxpy_rewriting.html">accompanying paper</a> for further details.</p></li>
@@ -365,9 +1380,7 @@ We only cover changes that might be of interest to users.</p>
 <li><p>NumPy compatibility: CVXPY’s interface has been changed to resemble NumPy as closely as possible, including support for 0D and 1D arrays.</p></li>
 <li><p>Transforms: The new transform class provides additional ways of manipulating CVXPY objects, byond the atomic functions. While atomic functions operate only on expressions, transforms may also take Problem, Objective, or Constraint objects as input.</p></li>
 </ul>
-</section>
-<section id="reductions">
-<h3>Reductions<a class="headerlink" href="#reductions" title="Permalink to this heading">¶</a></h3>
+<h3 id="reductions">Reductions<a class="headerlink" href="#reductions" title="Link to this heading">¶</a></h3>
 <p>A reduction is a transformation
 from one problem to an equivalent problem. Two problems are equivalent
 if a solution of one can be converted to a solution of the other with no
@@ -375,9 +1388,7 @@ more than a moderate amount of effort. CVXPY uses reductions to rewrite
 problems into forms that solvers will accept.
 The practical benefit of the reduction based framework is that CVXPY 1.0 supports quadratic programs as a target solver standard form in addition to cone programs, with more standard forms on the way.
 It also makes it easy to add generic problem transformations such as converting problems with complex variables into problems with only real variables.</p>
-</section>
-<section id="attributes">
-<h3>Attributes<a class="headerlink" href="#attributes" title="Permalink to this heading">¶</a></h3>
+<h3 id="attributes">Attributes<a class="headerlink" href="#attributes" title="Link to this heading">¶</a></h3>
 <p>Attributes describe the symbolic properties of variables and parameters and are specified as arguments to the constructor. For example, <code class="docutils literal notranslate"><span class="pre">Variable(nonneg=True)</span></code> creates a scalar variable constrained to be nonnegative.
 Attributes replace the previous syntax of special variable classes like <code class="docutils literal notranslate"><span class="pre">Bool</span></code> for boolean variables and <code class="docutils literal notranslate"><span class="pre">Semidef</span></code> for symmetric positive semidefinite variables,
 as well as specification of the sign for parameters (e.g., <code class="docutils literal notranslate"><span class="pre">Parameter(sign='positive')</span></code>).
@@ -392,9 +1403,7 @@ Concretely, write</p>
 <li><p><code class="docutils literal notranslate"><span class="pre">Parameter(shape,</span> <span class="pre">nonpos=True)</span></code> instead of <code class="docutils literal notranslate"><span class="pre">Parameter(shape,</span> <span class="pre">sign='negative')</span></code>.</p></li>
 </ul>
 <p>See <a class="reference internal" href="#attributes"><span class="std std-ref">Attributes</span></a> for a complete list of supported attributes. More attributes will be added in the future.</p>
-</section>
-<section id="numpy-compatibility">
-<h3>NumPy Compatibility<a class="headerlink" href="#numpy-compatibility" title="Permalink to this heading">¶</a></h3>
+<h3 id="numpy-compatibility">NumPy Compatibility<a class="headerlink" href="#numpy-compatibility" title="Link to this heading">¶</a></h3>
 <p>The following interface changes have been made to make CVXPY more compatible with NumPy syntax:</p>
 <ul class="simple">
 <li><p>The <code class="docutils literal notranslate"><span class="pre">value</span></code> field of CVXPY expressions now returns NumPy ndarrays instead of NumPy matrices.</p></li>
@@ -414,173 +1423,132 @@ Concretely, write</p>
 <li><p>Due to the name changes, we now strongly recommend against importing CVXPY using the syntax <code class="docutils literal notranslate"><span class="pre">from</span> <span class="pre">cvxpy</span> <span class="pre">import</span> <span class="pre">*</span></code>.</p></li>
 <li><p>The <code class="docutils literal notranslate"><span class="pre">vstack</span></code> and <code class="docutils literal notranslate"><span class="pre">hstack</span></code> atoms now take lists as input. For example, write <code class="docutils literal notranslate"><span class="pre">vstack([x,</span> <span class="pre">y])</span></code> instead of <code class="docutils literal notranslate"><span class="pre">vstack(x,</span> <span class="pre">y)</span></code>.</p></li>
 </ul>
-</section>
-<section id="transforms">
-<h3>Transforms<a class="headerlink" href="#transforms" title="Permalink to this heading">¶</a></h3>
+<h3 id="transforms">Transforms<a class="headerlink" href="#transforms" title="Link to this heading">¶</a></h3>
 <p>Transforms provide additional ways of manipulating CVXPY objects
 beyond the atomic functions.
 For example, the <code class="docutils literal notranslate"><span class="pre">indicator</span></code> transform converts a list of constraints
 into an expression representing the convex function that takes value 0 when
 the constraints hold and <span class="math notranslate nohighlight">\(\infty\)</span> when they are violated. See <a class="reference internal" href="../api_reference/cvxpy.transforms.html#transforms-api"><span class="std std-ref">Transforms</span></a> for a full list of the new transforms.</p>
-</section>
-</section>
-</section>
 
 
-          </div>
+
+  
+
+
+
+
+                
+              </article>
+            </div>
           
+          
+  <script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var tab,labels=set.querySelector(".tabbed-labels");for(tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>
+
         </div>
-      </div>
-      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
-        <div class="sphinxsidebarwrapper">
-<h1 class="logo"><a href="../index.html">CVXPY</a></h1>
-
-
-
-
-
-
-<p>
-<iframe src="https://ghbtns.com/github-btn.html?user=cvxpy&repo=cvxpy&type=star&count=true&size=large&v=2"
-  allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
-</p>
-
-
-
-
-
-<h3>Navigation</h3>
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="../install/index.html">Install</a></li>
-</ul>
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="../tutorial/index.html">User Guide</a></li>
-</ul>
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="../api_reference/cvxpy.html">API Documentation</a></li>
-</ul>
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="../examples/index.html">Examples</a></li>
-</ul>
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="../contributing/index.html">Contributing</a></li>
-</ul>
-<ul class="current">
-<li class="toctree-l1 current"><a class="current reference internal" href="#">Changelog</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#cvxpy-1-5">CVXPY 1.5</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#ecos-deprecation">ECOS deprecation</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#new-features">New features</a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="#cvxpy-1-4">CVXPY 1.4</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#id1">New features</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#id2">ECOS deprecation</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#conv-deprecation"><code class="docutils literal notranslate"><span class="pre">conv</span></code> deprecation</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#nonpos-deprecation"><code class="docutils literal notranslate"><span class="pre">NonPos</span></code> deprecation</a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="#cvxpy-1-3">CVXPY 1.3</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#constraints-and-atoms">Constraints and atoms</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#solver-interfaces">Solver interfaces</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#general-system-improvements">General system improvements</a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="#cvxpy-1-2">CVXPY 1.2</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#id4">Constraints and atoms</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#id5">Solver interfaces</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#id6">General system improvements</a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="#cvxpy-1-1">CVXPY 1.1</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#highlights">Highlights</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#new-atoms-and-transforms">New atoms and transforms</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#breaking-changes">Breaking changes</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#bugfixes">Bugfixes</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#known-issues">Known issues</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#notable-patches-since-cvxpy-1-1-0">Notable patches since CVXPY 1.1.0</a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="#cvxpy-1-0">CVXPY 1.0</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#overview">Overview</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#reductions">Reductions</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#attributes">Attributes</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#numpy-compatibility">NumPy Compatibility</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#transforms">Transforms</a></li>
-</ul>
-</li>
-</ul>
-</li>
-</ul>
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="../faq/index.html">FAQ</a></li>
-</ul>
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="../resources/index.html">Resources</a></li>
-</ul>
-
-
-<div id="searchbox" style="display: none" role="search">
-  <h3 id="searchlabel">Quick search</h3>
-    <div class="searchformwrapper">
-    <form class="search" action="../search.html" method="get">
-      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
-      <input type="submit" value="Go" />
-    </form>
-    </div>
-</div>
-<script>document.getElementById('searchbox').style.display = "block"</script><div>
-    <h3>
-        Version selector
-    </h3>
-    <select id="dynamic_selector" name="versions" onchange="if (this.value) window.location.href=this.value">
-    </select>
-    <script>
-        obj = $.getJSON("https://raw.githubusercontent.com/cvxpy/cvxpy/gh-pages/versions.json")
-            .done(function (data) {
-                const base_url = "https://www.cvxpy.org/"
-                let html = "<option value='' selected>Choose version here</option>";
-                html += "<option value=" + base_url + ">latest" + ""
-                for (let i = 0; i < data.length; i++) {
-                    html += "<option value=" + base_url + "version/"  + data[i] + ">" + data[i] + ""
-                }
-                document.getElementById("dynamic_selector").innerHTML = html;
-            });
-    </script>
-</div>
-        </div>
-      </div>
-      <div class="clearer"></div>
-    </div>
-    <div class="footer">
-      &copy;The CVXPY authors.
+        
+          <a href="#" class="md-top md-icon" data-md-component="top" hidden>
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8v12Z"/></svg>
+            Back to top
+          </a>
+        
+      </main>
       
-      |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 7.1.2</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.13</a>
+        <footer class="md-footer">
+  
+    
+    <nav class="md-footer__inner md-grid" aria-label="Footer" >
       
-      |
-      <a href="../_sources/updates/index.rst.txt"
-          rel="nofollow">Page source</a>
+        
+        <a href="../contributing/index.html" class="md-footer__link md-footer__link--prev" aria-label="Previous: Contributing" rel="prev">
+          <div class="md-footer__button md-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12Z"/></svg>
+          </div>
+          <div class="md-footer__title">
+            <div class="md-ellipsis">
+              <span class="md-footer__direction">
+                Previous
+              </span>
+              Contributing
+            </div>
+          </div>
+        </a>
+      
+      
+        
+        <a href="../faq/index.html" class="md-footer__link md-footer__link--next" aria-label="Next: FAQ" rel="next">
+          <div class="md-footer__title">
+            <div class="md-ellipsis">
+              <span class="md-footer__direction">
+                Next
+              </span>
+              FAQ
+            </div>
+          </div>
+          <div class="md-footer__button md-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11H4Z"/></svg>
+          </div>
+        </a>
+      
+    </nav>
+  
+  
+  
+  <div class="md-footer-meta md-typeset">
+    
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+    <div class="md-footer-copyright__highlight">
+        &#169; Copyright The CVXPY authors.
+        
     </div>
-
+  
+    Created using
+    <a href="https://www.sphinx-doc.org/" target="_blank" rel="noopener">Sphinx</a>
+    8.1.3.
+     and
+    <a href="https://github.com/jbms/sphinx-immaterial/" target="_blank" rel="noopener">Sphinx-Immaterial</a>
+  
+</div>
+      
+        <div class="md-social">
+  
     
-
     
-    <script type="text/javascript">
-
-      var _gaq = _gaq || [];
-      _gaq.push(['_setAccount', 'UA-50248335-1']);
-      _gaq.push(['_setDomainName', 'none']);
-      _gaq.push(['_setAllowLinker', true]);
-      _gaq.push(['_trackPageview']);
-
-      (function() {
-        var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
-        ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
-        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
-      })();
-
-    </script>
+    <a href="https://github.com/cvxpy/cvxpy" target="_blank" rel="noopener" title="Source on github.com" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3zm44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8zM97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1zm-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7zm32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1zm-11.4-14.7c-1.6 1-1.6 3.6 0 5.9 1.6 2.3 4.3 3.3 5.6 2.3 1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2z"/></svg>
+    </a>
+  
+    
+    
+      
+      
+    
+    <a href="https://pypi.org/project/cvxpy/" target="_blank" rel="noopener" title="pypi.org" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc.--><path d="M439.8 200.5c-7.7-30.9-22.3-54.2-53.4-54.2h-40.1v47.4c0 36.8-31.2 67.8-66.8 67.8H172.7c-29.2 0-53.4 25-53.4 54.3v101.8c0 29 25.2 46 53.4 54.3 33.8 9.9 66.3 11.7 106.8 0 26.9-7.8 53.4-23.5 53.4-54.3v-40.7H226.2v-13.6h160.2c31.1 0 42.6-21.7 53.4-54.2 11.2-33.5 10.7-65.7 0-108.6zM286.2 404c11.1 0 20.1 9.1 20.1 20.3 0 11.3-9 20.4-20.1 20.4-11 0-20.1-9.2-20.1-20.4.1-11.3 9.1-20.3 20.1-20.3zM167.8 248.1h106.8c29.7 0 53.4-24.5 53.4-54.3V91.9c0-29-24.4-50.7-53.4-55.6-35.8-5.9-74.7-5.6-106.8.1-45.2 8-53.4 24.7-53.4 55.6v40.7h106.9v13.6h-147c-31.1 0-58.3 18.7-66.8 54.2-9.8 40.7-10.2 66.1 0 108.6 7.6 31.6 25.7 54.2 56.8 54.2H101v-48.8c0-35.3 30.5-66.4 66.8-66.4zm-6.7-142.6c-11.1 0-20.1-9.1-20.1-20.3.1-11.3 9-20.4 20.1-20.4 11 0 20.1 9.2 20.1 20.4s-9 20.3-20.1 20.3z"/></svg>
+    </a>
+  
+</div>
+      
+    </div>
+    
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    <script id="__config" type="application/json">{"base": "..", "features": ["header.autohide", "toc.follow", "navigation.path", "navigation.instant", "navigation.top", "navigation.tabs", "navigation.tabs.sticky", "navigation.tracking", "navigation.expand", "search.highlight", "search.share", "content.tabs.link", "announce.dismiss"], "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version.title": "Select version"}, "version": {"provider": "mike", "staticVersions": [{"aliases": [], "title": "latest", "version": "https://www.cvxpy.org"}, {"aliases": [], "title": "1.4", "version": "https://www.cvxpy.org/version/1.4"}, {"aliases": [], "title": "1.3", "version": "https://www.cvxpy.org/version/1.3"}, {"aliases": [], "title": "1.2", "version": "https://www.cvxpy.org/version/1.2"}, {"aliases": [], "title": "1.1", "version": "https://www.cvxpy.org/version/1.1"}], "versionPath": null}}</script>
+    
+      
+        <script src="../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../_static/sphinx_immaterial_theme.f9d9eeeb247ace16c.min.js?v=8ec58cb5"></script>
+        <script src="../_static/tabs.js?v=3ee01567"></script>
+        <script src="../_static/design-tabs.js?v=f930bc37"></script>
+        <script id="MathJax-script" src="../_static/mathjax/tex-mml-chtml.js?v=cadf963e"></script>
     
   </body>
 </html>

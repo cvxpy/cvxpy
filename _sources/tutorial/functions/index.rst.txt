@@ -77,20 +77,36 @@ and returns a scalar.
    * - Function
      - Meaning
      - Domain
-     - Sign
+     - DCP Properties
      - Curvature |_|
-     - Monotonicity
+
+   * - :ref:`cvar(x, beta) <cvar>`
+     - average of the :math:`(1-\beta)`
+       
+       fraction of largest values in :math:`x`
+     - :math:`x \in \mathbf{R}^m`
+      
+       :math:`\beta \in (0,1)`
+     - sign depends on :math:`x`
+       
+       |incr| incr.
+     - |convex| convex
 
    * - :ref:`dotsort(X,W) <dotsort>`
 
        constant :math:`W \in \mathbf{R}^{o \times p}`
-     - :math:`\langle sort\left(vec(X)\right), sort\left(vec(W)\right) \rangle`
+     - :math:`\text{dot product of}`
+       :math:`\operatorname{sort}\operatorname{vec}(X) \text{ and}`
+       :math:`\operatorname{sort}\operatorname{vec}(W)`
      - :math:`X \in \mathbf{R}^{m \times n}`
-     - depends on :math:`X`, :math:`W`
-     - |convex| convex
-     - |incr| for :math:`\min(W) \geq 0`
+     - sign depends on 
+     
+       :math:`X` and :math:`W`
+
+       |incr| for :math:`\min(W) \geq 0`
 
        |decr| for :math:`\max(W) \leq 0`
+     - |convex| convex
 
    * - :ref:`geo_mean(x) <geo-mean>`
 
@@ -104,71 +120,72 @@ and returns a scalar.
        :math:`\left(x_1^{p_1} \cdots x_n^{p_n}\right)^{\frac{1}{\mathbf{1}^T p}}`
      - :math:`x \in \mathbf{R}^n_{+}`
      - |positive| positive
+
+       |incr| incr.
      - |concave| concave
-     - |incr| incr.
 
    * - :ref:`harmonic_mean(x) <harmonic-mean>`
      - :math:`\frac{n}{\frac{1}{x_1} + \cdots + \frac{1}{x_n}}`
      - :math:`x \in \mathbf{R}^n_{+}`
      - |positive| positive
+
+       |incr| incr.
      - |concave| concave
-     - |incr| incr.
 
    * - :ref:`inv_prod(x) <inv-prod>`
      - :math:`(x_1\cdots x_n)^{-1}`
      - :math:`x \in \mathbf{R}^n_+`
      - |positive| positive
+
+       |decr| decr.
      - |convex| convex
-     - |decr| decr.
 
 
    * - :ref:`lambda_max(X) <lambda-max>`
      - :math:`\lambda_{\max}(X)`
      - :math:`X \in \mathbf{S}^n`
-     - |unknown| unknown
+     - |unknown| unknown sign
      - |convex| convex
-     - None
 
    * - :ref:`lambda_min(X) <lambda-min>`
      - :math:`\lambda_{\min}(X)`
      - :math:`X \in \mathbf{S}^n`
-     - |unknown| unknown
+     - |unknown| unknown sign
      - |concave| concave
-     - None
 
    * - :ref:`lambda_sum_largest(X,k) <lambda-sum-largest>`
 
        :math:`k = 1,\ldots, n`
-     - :math:`\text{sum of $k$ largest}\\ \text{eigenvalues of $X$}`
+     - :math:`\text{sum of $k$ largest}`
+       :math:`\text{eigenvalues of $X$}`
      - :math:`X \in\mathbf{S}^{n}`
-     - |unknown| unknown
+     - |unknown| unknown sign
      - |convex| convex
-     - None
 
    * - :ref:`lambda_sum_smallest(X,k) <lambda-sum-smallest>`
 
        :math:`k = 1,\ldots, n`
-     - :math:`\text{sum of $k$ smallest}\\ \text{eigenvalues of $X$}`
+     - :math:`\text{sum of $k$ smallest}`
+       :math:`\text{eigenvalues of $X$}`
      - :math:`X \in\mathbf{S}^{n}`
-     - |unknown| unknown
+     - |unknown| unknown sign
      - |concave| concave
-     - None
 
    * - :ref:`log_det(X) <log-det>`
 
      - :math:`\log \left(\det (X)\right)`
      - :math:`X \in \mathbf{S}^n_+`
-     - |unknown| unknown
+     - |unknown| unknown sign
      - |concave| concave
-     - None
 
    * - :ref:`log_sum_exp(X) <log-sum-exp>`
 
      - :math:`\log \left(\sum_{ij}e^{X_{ij}}\right)`
      - :math:`X \in\mathbf{R}^{m \times n}`
-     - |unknown| unknown
+     - |unknown| unknown sign
+
+       |incr| incr.
      - |convex| convex
-     - |incr| incr.
 
    * - :ref:`matrix_frac(x, P) <matrix-frac>`
 
@@ -178,39 +195,41 @@ and returns a scalar.
        :math:`P \in\mathbf{S}^n_{++}`
      - |positive| positive
      - |convex| convex
-     - None
 
    * - :ref:`max(X) <max>`
 
      - :math:`\max_{ij}\left\{ X_{ij}\right\}`
      - :math:`X \in\mathbf{R}^{m \times n}`
-     - same as X
+     - same sign as X
+
+       |incr| incr.
      - |convex| convex
-     - |incr| incr.
 
    * - :ref:`mean(X) <mean>`
 
      - :math:`\frac{1}{m n}\sum_{ij}\left\{ X_{ij}\right\}`
      - :math:`X \in\mathbf{R}^{m \times n}`
-     - same as X
+     - same sign as X
+
+       |incr| incr.
      - |affine| affine
-     - |incr| incr.
 
    * - :ref:`min(X) <min>`
 
      - :math:`\min_{ij}\left\{ X_{ij}\right\}`
      - :math:`X \in\mathbf{R}^{m \times n}`
-     - same as X
+     - same sign as X
+
+       |incr| incr.
      - |concave| concave
-     - |incr| incr.
 
    * - :ref:`mixed_norm(X, p, q) <mixed-norm>`
 
-     - :math:`\left(\sum_k\left(\sum_l\lvert x_{k,l}\rvert^p\right)^{q/p}\right)^{1/q}`
+       :math:`Y = \left(\sum_l\lvert x_{k,l}\rvert^p\right)`
+     - :math:`\left(\sum_k Y^{q/p}\right)^{1/q}`
      - :math:`X \in\mathbf{R}^{n \times n}`
      - |positive| positive
      - |convex| convex
-     - None
 
    * - :ref:`norm(x) <norm>`
 
@@ -219,62 +238,67 @@ and returns a scalar.
      - :math:`\sqrt{\sum_{i} \lvert x_{i} \rvert^2 }`
      - :math:`X \in\mathbf{R}^{n}`
      - |positive| positive
-     - |convex| convex
-     - |incr| for :math:`x_{i} \geq 0`
+
+       |incr| for :math:`x_{i} \geq 0`
 
        |decr| for :math:`x_{i} \leq 0`
+     - |convex| convex
 
    * - :ref:`norm(x, 1) <norm>`
      - :math:`\sum_{i}\lvert x_{i} \rvert`
      - :math:`x \in\mathbf{R}^{n}`
      - |positive| positive
-     - |convex| convex
-     - |incr| for :math:`x_{i} \geq 0`
+
+       |incr| for :math:`x_{i} \geq 0`
 
        |decr| for :math:`x_{i} \leq 0`
+     - |convex| convex
 
    * - :ref:`norm(x, "inf") <norm>`
      - :math:`\max_{i} \{\lvert x_{i} \rvert\}`
      - :math:`x \in\mathbf{R}^{n}`
      - |positive| positive
-     - |convex| convex
-     - |incr| for :math:`x_{i} \geq 0`
+
+       |incr| for :math:`x_{i} \geq 0`
 
        |decr| for :math:`x_{i} \leq 0`
+     - |convex| convex
 
    * - :ref:`norm(X, "fro") <norm>`
      - :math:`\sqrt{\sum_{ij}X_{ij}^2 }`
      - :math:`X \in\mathbf{R}^{m \times n}`
      - |positive| positive
-     - |convex| convex
-     - |incr| for :math:`X_{ij} \geq 0`
+
+       |incr| for :math:`X_{ij} \geq 0`
 
        |decr| for :math:`X_{ij} \leq 0`
+     - |convex| convex
 
    * - :ref:`norm(X, 1) <norm>`
      - :math:`\max_{j} \|X_{:,j}\|_1`
      - :math:`X \in\mathbf{R}^{m \times n}`
      - |positive| positive
-     - |convex| convex
-     - |incr| for :math:`X_{ij} \geq 0`
+
+       |incr| for :math:`X_{ij} \geq 0`
 
        |decr| for :math:`X_{ij} \leq 0`
+     - |convex| convex
 
    * - :ref:`norm(X, "inf") <norm>`
      - :math:`\max_{i} \|X_{i,:}\|_1`
      - :math:`X \in\mathbf{R}^{m \times n}`
      - |positive| positive
-     - |convex| convex
-     - |incr| for :math:`X_{ij} \geq 0`
+       
+       |incr| for :math:`X_{ij} \geq 0`
 
        |decr| for :math:`X_{ij} \leq 0`
+     - |convex| convex
 
    * - :ref:`norm(X, "nuc") <norm>`
      - :math:`\mathrm{tr}\left(\left(X^T X\right)^{1/2}\right)`
      - :math:`X \in\mathbf{R}^{m \times n}`
      - |positive| positive
      - |convex| convex
-     - None
 
    * - :ref:`norm(X) <norm>`
 
@@ -283,7 +307,6 @@ and returns a scalar.
      - :math:`X \in\mathbf{R}^{m \times n}`
      - |positive| positive
      - |convex| convex
-     - None
 
    * - :ref:`perspective(f(x),s) <perspective>`
 
@@ -291,54 +314,55 @@ and returns a scalar.
      - :math:`x \in \mathop{\bf dom} f`
 
        :math:`s \geq 0`
-     - same as f
+     - same sign as f
      - |convex| / |concave|
 
        same as :math:`f`
-     - None
 
    * - :ref:`pnorm(X, p) <pnorm_func>`
 
        :math:`p \geq 1`
 
        or ``p = 'inf'``
-     - :math:`\|X\|_p = \left(\sum_{ij} |X_{ij}|^p \right)^{1/p}`
+     - :math:`\left(\sum_{ij} |X_{ij}|^p \right)^{1/p}`
      - :math:`X \in \mathbf{R}^{m \times n}`
      - |positive| positive
-     - |convex| convex
-     - |incr| for :math:`X_{ij} \geq 0`
+       
+       |incr| for :math:`X_{ij} \geq 0`
 
        |decr| for :math:`X_{ij} \leq 0`
+     - |convex| convex
 
    * - :ref:`pnorm(X, p) <pnorm_func>`
 
        :math:`p < 1`, :math:`p \neq 0`
-     - :math:`\|X\|_p = \left(\sum_{ij} X_{ij}^p \right)^{1/p}`
+     - :math:`\left(\sum_{ij} X_{ij}^p \right)^{1/p}`
      - :math:`X \in \mathbf{R}^{m \times n}_+`
      - |positive| positive
+
+       |incr| incr.
      - |concave| concave
-     - |incr| incr.
 
    * - :ref:`ptp(X) <ptp>`
 
-     - :math:`\max_{ij} X_{ij} - \min_{ij} X_{ij}`
+     - :math:`\max_{ij} X_{ij}`
+     
+       :math:`- \min_{ij} X_{ij}`
      - :math:`X \in \mathbf{R}^{m \times n}`
      - |positive| positive
      - |convex| convex
-     - None
 
    * - :ref:`quad_form(x, P) <quad-form>`
 
        constant :math:`P \in \mathbf{S}^n_+`
      - :math:`x^T P x`
      - :math:`x \in \mathbf{R}^n`
-
-
      - |positive| positive
-     - |convex| convex
-     - |incr| for :math:`x_i \geq 0`
+       
+       |incr| for :math:`x_i \geq 0`
 
        |decr| for :math:`x_i \leq 0`
+     - |convex| convex
 
    * - :ref:`quad_form(x, P) <quad-form>`
 
@@ -346,19 +370,21 @@ and returns a scalar.
      - :math:`x^T P x`
      - :math:`x \in \mathbf{R}^n`
      - |negative| negative
-     - |concave| concave
-     - |decr| for :math:`x_i \geq 0`
+       
+       |decr| for :math:`x_i \geq 0`
 
        |incr| for :math:`x_i \leq 0`
+     - |concave| concave
 
    * - :ref:`quad_form(c, X) <quad-form>`
 
        constant :math:`c \in \mathbf{R}^n`
      - :math:`c^T X c`
      - :math:`X \in\mathbf{R}^{n \times n}`
-     - depends |_| on |_| c, |_| X
+     - sign depends |_| on |_| c, |_| X
+      
+       monotonicity depends |_| on |_| c
      - |affine| affine
-     - depends |_| on |_| c
 
    * - :ref:`quad_over_lin(X, y) <quad-over-lin>`
 
@@ -367,64 +393,69 @@ and returns a scalar.
 
        :math:`y > 0`
      - |positive| positive
-     - |convex| convex
-     - |incr| for :math:`X_{ij} \geq 0`
+       
+       |incr| for :math:`X_{ij} \geq 0`
 
        |decr| for :math:`X_{ij} \leq 0`
 
        |decr| decr. in :math:`y`
+     - |convex| convex
 
    * - :ref:`std(X) <std>`
 
-     - :math:`\sqrt{\frac{1}{mn} \sum_{ij}\left(X_{ij} - \frac{1}{mn}\sum_{k\ell} X_{k\ell}\right)^2}`
+     - analog to `numpy.std <https://numpy.org/doc/stable/reference/generated/numpy.std.html#numpy-std>`_
      - :math:`X \in\mathbf{R}^{m \times n}`
      - |positive| positive
      - |convex| convex
-     - None
 
    * - :ref:`sum(X) <sum>`
 
      - :math:`\sum_{ij}X_{ij}`
      - :math:`X \in\mathbf{R}^{m \times n}`
-     - same as X
+     - same sign as X
+
+       |incr| incr.
      - |affine| affine
-     - |incr| incr.
 
    * - :ref:`sum_largest(X, k) <sum-largest>`
 
        :math:`k = 1,2,\ldots`
      - :math:`\text{sum of } k\text{ largest }X_{ij}`
      - :math:`X \in\mathbf{R}^{m \times n}`
-     - same as X
+     - same sign as X
+
+       |incr| incr.
      - |convex| convex
-     - |incr| incr.
 
    * - :ref:`sum_smallest(X, k) <sum-smallest>`
 
        :math:`k = 1,2,\ldots`
      - :math:`\text{sum of } k\text{ smallest }X_{ij}`
      - :math:`X \in\mathbf{R}^{m \times n}`
-     - same as X
+     - same sign as X
+
+       |incr| incr.
      - |concave| concave
-     - |incr| incr.
 
    * - :ref:`sum_squares(X) <sum-squares>`
 
      - :math:`\sum_{ij}X_{ij}^2`
      - :math:`X \in\mathbf{R}^{m \times n}`
      - |positive| positive
-     - |convex| convex
-     - |incr| for :math:`X_{ij} \geq 0`
+
+       |incr| for :math:`X_{ij} \geq 0`
 
        |decr| for :math:`X_{ij} \leq 0`
+     - |convex| convex
 
    * - :ref:`trace(X) <trace>`
 
      - :math:`\mathrm{tr}\left(X \right)`
      - :math:`X \in\mathbf{R}^{n \times n}`
-     - same as X
+     - same sign as X
+
+       |incr| incr.
      - |affine| affine
-     - |incr| incr.
 
    * - :ref:`tr_inv(X) <tr_inv>`
 
@@ -432,7 +463,6 @@ and returns a scalar.
      - :math:`X \in\mathbf{S}^n_{++}`
      - |positive| positive
      - |convex| convex
-     - None
 
    * - :ref:`tv(x) <tv>`
 
@@ -440,36 +470,33 @@ and returns a scalar.
      - :math:`x \in \mathbf{R}^n`
      - |positive| positive
      - |convex| convex
-     - None
 
    * - :ref:`tv(X) <tv>`
-     - :math:`\sum_{ij}\left\| \left[\begin{matrix} X_{i+1,j} - X_{ij} \\ X_{i,j+1} -X_{ij} \end{matrix}\right] \right\|_2`
+       :math:`Y = \left[\begin{matrix} X_{i+1,j} - X_{ij} \\ X_{i,j+1} -X_{ij} \end{matrix}\right]`
+     - :math:`\sum_{ij}\left\| Y \right\|_2`
      - :math:`X \in \mathbf{R}^{m \times n}`
      - |positive| positive
      - |convex| convex
-     - None
 
    * - :ref:`tv([X1,...,Xk]) <tv>`
-     - :math:`\sum_{ij}\left\| \left[\begin{matrix} X_{i+1,j}^{(1)} - X_{ij}^{(1)} \\ X_{i,j+1}^{(1)} -X_{ij}^{(1)} \\ \vdots \\ X_{i+1,j}^{(k)} - X_{ij}^{(k)} \\ X_{i,j+1}^{(k)} -X_{ij}^{(k)}  \end{matrix}\right] \right\|_2`
+       :math:`Y = \left[\begin{matrix} X_{i+1,j}^{(1)} - X_{ij}^{(1)} \\ X_{i,j+1}^{(1)} -X_{ij}^{(1)} \\ \vdots \\ X_{i+1,j}^{(k)} - X_{ij}^{(k)} \\ X_{i,j+1}^{(k)} -X_{ij}^{(k)}  \end{matrix}\right]`
+     - :math:`\sum_{ij}\left\| Y \right\|_2`
      - :math:`X^{(i)} \in\mathbf{R}^{m \times n}`
      - |positive| positive
      - |convex| convex
-     - None
 
    * - :ref:`var(X) <var>`
 
-     - :math:`{\frac{1}{mn} \sum_{ij}\left(X_{ij} - \frac{1}{mn}\sum_{k\ell} X_{k\ell}\right)^2}`
+     - analog to `numpy.var <https://numpy.org/doc/stable/reference/generated/numpy.var.html#numpy-var>`_
      - :math:`X \in\mathbf{R}^{m \times n}`
      - |positive| positive
      - |convex| convex
-     - None
 
    * - :ref:`von_neumann_entr(X) <von-neumann-entr>`
      - :math:`-\operatorname{tr}(X\operatorname{logm}(X))`
      - :math:`X \in \mathbf{S}^{n}_+`
-     - |unknown| unknown
+     - |unknown| unknown sign
      - |concave| concave
-     - None
 
 Clarifications for scalar functions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -531,43 +558,42 @@ scalars, which are promoted.
    * - Function
      - Meaning
      - Domain
-     - Sign
+     - DCP Properties
      - Curvature |_|
-     - Monotonicity
 
    * - :ref:`abs(x) <abs>`
 
      - :math:`\lvert x \rvert`
      - :math:`x \in \mathbf{C}`
      - |positive| positive
-     - |convex| convex
-     - |incr| for :math:`x \geq 0`
+       
+       |incr| for :math:`x \geq 0`
 
        |decr| for :math:`x \leq 0`
+     - |convex| convex
 
    * - :ref:`conj(x) <conj>`
 
      - complex conjugate
      - :math:`x \in \mathbf{C}`
-     - |unknown| unknown
+     - |unknown| unknown sign
      - |affine| affine
-     - None
 
    * - :ref:`entr(x) <entr>`
 
      - :math:`-x \log (x)`
      - :math:`x > 0`
-     - |unknown| unknown
+     - |unknown| unknown sign
      - |concave| concave
-     - None
 
    * - :ref:`exp(x) <exp>`
 
      - :math:`e^x`
      - :math:`x \in \mathbf{R}`
      - |positive| positive
+       
+       |incr| incr.
      - |convex| convex
-     - |incr| incr.
 
    * - :ref:`huber(x, M=1) <huber>`
 
@@ -575,27 +601,28 @@ scalars, which are promoted.
      - :math:`\begin{cases}x^2 &|x| \leq M  \\2M|x| - M^2&|x| >M\end{cases}`
      - :math:`x \in \mathbf{R}`
      - |positive| positive
-     - |convex| convex
-     - |incr| for :math:`x \geq 0`
+       
+       |incr| for :math:`x \geq 0`
 
        |decr| for :math:`x \leq 0`
+     - |convex| convex
 
 
    * - :ref:`imag(x) <imag-atom>`
 
      - imaginary part of a complex number
      - :math:`x \in \mathbf{C}`
-     - |unknown| unknown
+     - |unknown| unknown sign
      - |affine| affine
-     - none
 
    * - :ref:`inv_pos(x) <inv-pos>`
 
      - :math:`1/x`
      - :math:`x > 0`
      - |positive| positive
+
+       |decr| decr.
      - |convex| convex
-     - |decr| decr.
 
    * - :ref:`kl_div(x, y) <kl-div>`
 
@@ -605,62 +632,66 @@ scalars, which are promoted.
        :math:`y > 0`
      - |positive| positive
      - |convex| convex
-     - None
 
    * - :ref:`log(x) <log>`
 
      - :math:`\log(x)`
      - :math:`x > 0`
-     - |unknown| unknown
+     - |unknown| unknown sign
+       
+       |incr| incr.
      - |concave| concave
-     - |incr| incr.
 
    * - :ref:`log_normcdf(x) <log-normcdf>`
 
      - :ref:`approximate <clarifyelementwise>` log of the standard normal CDF
      - :math:`x \in \mathbf{R}`
      - |negative| negative
+
+       |incr| incr.
      - |concave| concave
-     - |incr| incr.
 
    * - :ref:`log1p(x) <log1p>`
 
      - :math:`\log(x+1)`
      - :math:`x > -1`
-     - same as x
+     - same sign as x
+
+       |incr| incr.
      - |concave| concave
-     - |incr| incr.
 
    * - :ref:`loggamma(x) <loggamma>`
 
      - :ref:`approximate <clarifyelementwise>` `log of the Gamma function <https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.loggamma.html>`_
      - :math:`x > 0`
-     - |unknown| unknown
+     - |unknown| unknown sign
      - |convex| convex
-     - None
 
    * - :ref:`logistic(x) <logistic>`
 
      - :math:`\log(1 + e^{x})`
      - :math:`x \in \mathbf{R}`
      - |positive| positive
+       
+       |incr| incr.
      - |convex| convex
-     - |incr| incr.
 
    * - :ref:`maximum(x, y) <maximum>`
 
      - :math:`\max \left\{x, y\right\}`
      - :math:`x,y \in \mathbf{R}`
-     - depends on x,y
+     - sign depends on x,y
+       
+       |incr| incr.
      - |convex| convex
-     - |incr| incr.
 
    * - :ref:`minimum(x, y) <minimum>`
      - :math:`\min \left\{x, y\right\}`
      - :math:`x, y \in \mathbf{R}`
-     - depends |_| on |_| x,y
+     - sign depends |_| on |_| x,y
+       
+       |incr| incr.
      - |concave| concave
-     - |incr| incr.
 
    * - :ref:`multiply(c, x) <multiply>`
 
@@ -668,36 +699,39 @@ scalars, which are promoted.
      - c*x
      - :math:`x \in\mathbf{R}`
      - :math:`\mathrm{sign}(cx)`
+      
+       monotonicity depends |_| on |_| c
      - |affine| affine
-     - depends |_| on |_| c
 
    * - :ref:`neg(x) <neg>`
      - :math:`\max \left\{-x, 0 \right\}`
      - :math:`x \in \mathbf{R}`
      - |positive| positive
+       
+       |decr| decr.
      - |convex| convex
-     - |decr| decr.
 
    * - :ref:`pos(x) <pos>`
      - :math:`\max \left\{x, 0 \right\}`
      - :math:`x \in \mathbf{R}`
      - |positive| positive
+       
+       |incr| incr.
      - |convex| convex
-     - |incr| incr.
 
    * - :ref:`power(x, 0) <power>`
      - :math:`1`
      - :math:`x \in \mathbf{R}`
      - |positive| positive
      - constant
-     - |_|
 
    * - :ref:`power(x, 1) <power>`
      - :math:`x`
      - :math:`x \in \mathbf{R}`
-     - same as x
+     - same sign as x
+       
+       |incr| incr.
      - |affine| affine
-     - |incr| incr.
 
    * - :ref:`power(x, p) <power>`
 
@@ -705,10 +739,11 @@ scalars, which are promoted.
      - :math:`x^p`
      - :math:`x \in \mathbf{R}`
      - |positive| positive
-     - |convex| convex
-     - |incr| for :math:`x \geq 0`
+       
+       |incr| for :math:`x \geq 0`
 
        |decr| for :math:`x \leq 0`
+     - |convex| convex
 
    * - :ref:`power(x, p) <power>`
 
@@ -716,8 +751,9 @@ scalars, which are promoted.
      - :math:`x^p`
      - :math:`x > 0`
      - |positive| positive
+       
+       |decr| decr.
      - |convex| convex
-     - |decr| decr.
 
    * - :ref:`power(x, p) <power>`
 
@@ -725,8 +761,9 @@ scalars, which are promoted.
      - :math:`x^p`
      - :math:`x \geq 0`
      - |positive| positive
+       
+       |incr| incr.
      - |concave| concave
-     - |incr| incr.
 
    * - :ref:`power(x, p) <power>`
 
@@ -735,16 +772,18 @@ scalars, which are promoted.
      - :math:`x^p`
      - :math:`x \geq 0`
      - |positive| positive
+       
+       |incr| incr.
      - |convex| convex
-     - |incr| incr.
 
    * - :ref:`real(x) <real-atom>`
 
      - real part of a complex number
      - :math:`x \in \mathbf{C}`
      - |unknown| unknown
+       
+       |incr| incr.
      - |affine| affine
-     - |incr| incr.
 
    * - :ref:`rel_entr(x, y) <rel-entr>`
 
@@ -752,11 +791,10 @@ scalars, which are promoted.
      - :math:`x > 0`
 
        :math:`y > 0`
-     - |unknown| unknown
-     - |convex| convex
-     - None in :math:`x`
-
+     - |unknown| unknown sign
+       
        |decr| in :math:`y`
+     - |convex| convex
 
    * - :ref:`scalene(x, alpha, beta) <scalene>`
 
@@ -766,36 +804,40 @@ scalars, which are promoted.
      - :math:`\alpha\mathrm{pos}(x)+ \beta\mathrm{neg}(x)`
      - :math:`x \in \mathbf{R}`
      - |positive| positive
-     - |convex| convex
-     - |incr| for :math:`x \geq 0`
+       
+       |incr| for :math:`x \geq 0`
 
        |decr| for :math:`x \leq 0`
+     - |convex| convex
 
    * - :ref:`sqrt(x) <sqrt>`
 
      - :math:`\sqrt x`
      - :math:`x \geq 0`
      - |positive| positive
+       
+       |incr| incr.
      - |concave| concave
-     - |incr| incr.
 
    * - :ref:`square(x) <square>`
 
      - :math:`x^2`
      - :math:`x \in \mathbf{R}`
      - |positive| positive
-     - |convex| convex
-     - |incr| for :math:`x \geq 0`
+      
+       |incr| for :math:`x \geq 0`
 
        |decr| for :math:`x \leq 0`
-    
+     - |convex| convex
+
    * - :ref:`xexp(x) <xexp>`
 
      - :math:`x e^x`
      - :math:`x \geq 0`
      - |positive| positive
+       
+       |incr| incr.
      - |convex| convex
-     - |incr| incr.
 
 .. _clarifyelementwise:
 
@@ -943,7 +985,7 @@ Expression and a negative Expression) then the returned Expression will have unk
      - |affine| affine
      - |incr| incr.
 
-   * - :ref:`vec_to_upper_tri(X, strict=False) <vec-to-upper-tri>`
+   * - :ref:`vec_to_upper_tri(X, strict=False) <vec_to_upper_tri>`
 
      - :math:`x' \in\mathbf{R}^{n(n-1)/2}` for ``strict=True``
 
@@ -965,18 +1007,18 @@ The input to :math:`\texttt{bmat}` is a list of lists of CVXPY expressions.
 It constructs a block matrix.
 The elements of each inner list are stacked horizontally and then the resulting block matrices are stacked vertically.
 
-The output :math:`y = \mathbf{convolve}(c, x)` has size :math:`n+m-1` and is defined as
+The output :math:`y = \texttt{convolve}(c, x)` has size :math:`n+m-1` and is defined as
 :math:`y_k =\sum_{j=0}^{k} c[j]x[k-j]`.
 
-The output :math:`y = \mathbf{vec}(X)` is the matrix :math:`X` flattened in column-major order into a vector.
+The output :math:`y = \texttt{vec}(X)` is the matrix :math:`X` flattened in column-major order into a vector.
 Formally, :math:`y_i = X_{i \bmod{m}, \left \lfloor{i/m}\right \rfloor }`.
 
-The output :math:`Y = \mathbf{reshape}(X, (m', n'), \text{order='F'})` is the matrix :math:`X` cast into an :math:`m' \times n'` matrix.
+The output :math:`Y = \texttt{reshape}(X, (m', n'), \text{order='F'})` is the matrix :math:`X` cast into an :math:`m' \times n'` matrix.
 The entries are taken from :math:`X` in column-major order and stored in :math:`Y` in column-major order.
-Formally, :math:`Y_{ij} = \mathbf{vec}(X)_{m'j + i}`.
+Formally, :math:`Y_{ij} = \texttt{vec}(X)_{m'j + i}`.
 If order='C' then :math:`X` will be read in row-major order and :math:`Y` will be written to in row-major order.
 
-The output :math:`y = \mathbf{upper\_tri}(X)` is formed by concatenating partial rows of :math:`X`.
+The output :math:`y = \texttt{upper_tri}(X)` is formed by concatenating partial rows of :math:`X`.
 I.e., :math:`y = (X[0,1{:}],\, X[1, 2{:}],\, \ldots, X[n-1, n])`.
 
 .. |positive| image:: functions_files/positive.svg

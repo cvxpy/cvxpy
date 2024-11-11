@@ -1,46 +1,841 @@
-<!DOCTYPE html>
 
-<html lang="en">
+
+<!doctype html>
+<html lang="en" class="no-js">
   <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+      <link rel="icon" href="../../_static/favicon.ico">
+    
+    
+      
+        <title>Disciplined Geometric Programming - </title>
+      
+    
+    
+      
+        
+        
+      
+      
 
-    <title>Disciplined Geometric Programming &#8212; CVXPY 1.5 documentation</title>
-    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=fa44fd50" />
-    <link rel="stylesheet" type="text/css" href="../../_static/cvxpy_alabaster.css?v=6c13f287" />
-    <link rel="stylesheet" type="text/css" href="../../_static/tabs.css?v=4c969af8" />
-    <link rel="stylesheet" type="text/css" href="../../_static/design-style.1e8bd061cd6da7fc9cf755528e8ffc24.min.css?v=0a3b3ea7" />
-    <script src="../../_static/jquery.js?v=5d32c60e"></script>
-    <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-    <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js?v=515d8a7f"></script>
-    <script src="../../_static/doctools.js?v=888ff710"></script>
-    <script src="../../_static/sphinx_highlight.js?v=4825356b"></script>
-    <script src="../../_static/tabs.js?v=3ee01567"></script>
-    <script src="../../_static/design-tabs.js?v=36754332"></script>
-    <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
-    <link rel="icon" href="../../_static/favicon.ico"/>
-    <link rel="index" title="Index" href="../../genindex.html" />
-    <link rel="search" title="Search" href="../../search.html" />
-    <link rel="next" title="Disciplined Parametrized Programming" href="../dpp/index.html" />
-    <link rel="prev" title="Disciplined Convex Programming" href="../dcp/index.html" />
-   
-  <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
+    
+    
+    
+      
+        
+        
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+        <link rel="stylesheet" type="text/css" href="../../_static/sphinx_immaterial_theme.4b4a8c74e2ff2ab5b.min.css?v=afa97f93" />
+        <link rel="stylesheet" type="text/css" href="../../_static/tabs.css?v=4c969af8" />
+        <link rel="stylesheet" type="text/css" href="../../_static/sphinx-design.min.css?v=95c83b7e" />
+        <link rel="stylesheet" type="text/css" href="../../_static/css/styling.css?v=84aacf86" />
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce((e,_)=>(e<<5)-e+_.charCodeAt(0),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+  
+
+
   
   
-  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
 
-  </head><body>
+
+  <script id="__analytics">function __md_analytics(){window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)},ga.l=+new Date,ga("create","UA-50248335-1","auto"),ga("set","anonymizeIp",!0),ga("send","pageview"),document.addEventListener("DOMContentLoaded",function(){document.forms.search&&document.forms.search.query.addEventListener("blur",function(){var e;this.value&&(e=document.location.pathname,ga("send","pageview",e+"?q="+this.value))}),document$.subscribe(function(){var a=document.forms.feedback;if(void 0!==a)for(var e of a.querySelectorAll("[type=submit]"))e.addEventListener("click",function(e){e.preventDefault();var t=document.location.pathname,e=this.getAttribute("data-md-value");ga("send","event","feedback","click",t,e),a.firstElementChild.disabled=!0;e=a.querySelector(".md-feedback__note [data-md-value='"+e+"']");e&&(e.hidden=!1)}),a.hidden=!1}),location$.subscribe(function(e){ga("send","pageview",e.pathname)})});var e=document.createElement("script");e.async=!0,e.src="https://www.google-analytics.com/analytics.js",document.getElementById("__analytics").insertAdjacentElement("afterEnd",e)}</script>
+
+  
+    <script>"undefined"!=typeof __md_analytics&&__md_analytics()</script>
   
 
-    <div class="document">
-      <div class="documentwrapper">
-        <div class="bodywrapper">
-          
+    
+    
+    
+  </head>
+  
+  
+    
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="" data-md-color-accent="">
+  
+    
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#log-log-curvature" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+      <div data-md-component="outdated" hidden>
+        
+      </div>
+    
+    
+      
 
-          <div class="body" role="main">
+  
+
+<header class="md-header md-header--lifted" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../../index.html" title="" class="md-header__button md-logo" aria-label="" data-md-component="logo">
+      <img src="../../_static/cvxpy-wordmark-light.png" alt="logo">
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2Z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
             
-  <section id="disciplined-geometric-programming">
-<span id="dgp"></span><h1>Disciplined Geometric Programming<a class="headerlink" href="#disciplined-geometric-programming" title="Permalink to this heading">¶</a></h1>
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Disciplined Geometric Programming
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+    
+      <label class="md-header__button md-icon" for="__search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"/></svg>
+      </label>
+      <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"/></svg>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12Z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+          <a href="javascript:void(0)" class="md-search__icon md-icon" title="Share" aria-label="Share" data-clipboard data-clipboard-text="" data-md-component="search-share" tabindex="-1">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7 0-.24-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9a3 3 0 0 0-3 3 3 3 0 0 0 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.15c-.05.21-.08.43-.08.66 0 1.61 1.31 2.91 2.92 2.91 1.61 0 2.92-1.3 2.92-2.91A2.92 2.92 0 0 0 18 16.08Z"/></svg>
+          </a>
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41Z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/cvxpy/cvxpy/" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3zm44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8zM97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1zm-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7zm32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1zm-11.4-14.7c-1.6 1-1.6 3.6 0 5.9 1.6 2.3 4.3 3.3 5.6 2.3 1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    CVXPY
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+    
+      
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-tabs__inner md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+
+
+  <li class="md-tabs__item">
+    <a href="../../install/index.html" class="md-tabs__link">
+      <span class="md-ellipsis">Install</span>
+    </a>
+  </li>
+
+      
+        
+  
+  
+    
+  
+
+
+  <li class="md-tabs__item">
+    <a href="../index.html" class="md-tabs__link md-tabs__link--active">
+      <span class="md-ellipsis">User Guide</span>
+    </a>
+  </li>
+
+      
+        
+  
+  
+
+
+  <li class="md-tabs__item">
+    <a href="../../api_reference/cvxpy.html" class="md-tabs__link">
+      <span class="md-ellipsis">API Documentation</span>
+    </a>
+  </li>
+
+      
+        
+  
+  
+
+
+  <li class="md-tabs__item">
+    <a href="../../examples/index.html" class="md-tabs__link">
+      <span class="md-ellipsis">Examples</span>
+    </a>
+  </li>
+
+      
+        
+  
+  
+
+
+  <li class="md-tabs__item">
+    <a href="../../contributing/index.html" class="md-tabs__link">
+      <span class="md-ellipsis">Contributing</span>
+    </a>
+  </li>
+
+      
+        
+  
+  
+
+
+  <li class="md-tabs__item">
+    <a href="../../updates/index.html" class="md-tabs__link">
+      <span class="md-ellipsis">Changelog</span>
+    </a>
+  </li>
+
+      
+        
+  
+  
+
+
+  <li class="md-tabs__item">
+    <a href="../../faq/index.html" class="md-tabs__link">
+      <span class="md-ellipsis">FAQ</span>
+    </a>
+  </li>
+
+      
+        
+  
+  
+
+
+  <li class="md-tabs__item">
+    <a href="../../resources/index.html" class="md-tabs__link">
+      <span class="md-ellipsis">Resources</span>
+    </a>
+  </li>
+
+      
+    </ul>
+  </div>
+</nav>
+    
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+      
+      
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../../index.html" title="" class="md-nav__button md-logo" aria-label="" data-md-component="logo">
+      <img src="../../_static/cvxpy-wordmark-light.png" alt="logo">
+    </a>
+    
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/cvxpy/cvxpy/" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3zm44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8zM97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1zm-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7zm32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1zm-11.4-14.7c-1.6 1-1.6 3.6 0 5.9 1.6 2.3 4.3 3.3 5.6 2.3 1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    CVXPY
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+      
+
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../install/index.html" class="md-nav__link">
+        <span class="md-ellipsis">Install</span>
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+    
+  
+  
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_2" type="checkbox" id="__nav_2" checked>
+      
+      
+      
+        
+        <div class="md-nav__link md-nav__link--index ">
+          <a href="../index.html"><span class="md-ellipsis">User Guide</span></a>
+          
+            <label for="__nav_2">
+              <span class="md-nav__icon md-icon"></span>
+            </label>
+          
+        </div>
+      
+      <nav class="md-nav" aria-label="User Guide" data-md-level="1">
+        <label class="md-nav__title" for="__nav_2">
+          <span class="md-nav__icon md-icon"></span>
+          <span class="md-ellipsis">User Guide</span>
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../intro/index.html" class="md-nav__link">
+        <span class="md-ellipsis">What is CVXPY?</span>
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../functions/index.html" class="md-nav__link">
+        <span class="md-ellipsis">Atomic Functions</span>
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../dcp/index.html" class="md-nav__link">
+        <span class="md-ellipsis">Disciplined Convex Programming</span>
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+    
+  
+    
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      
+      <input class="md-nav__toggle md-toggle" data-md-toggle="toc" type="checkbox" id="__toc">
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          <span class="md-ellipsis">Disciplined Geometric Programming</span>
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="#" class="md-nav__link md-nav__link--active">
+        <span class="md-ellipsis">Disciplined Geometric Programming</span>
+      </a>
+      
+        
+
+  
+
+<nav class="md-nav md-nav--secondary">
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      On this page
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#log-log-curvature" class="md-nav__link">
+    <span title="log-log curvature (reference label)" class="md-ellipsis">Log-<wbr>log curvature</span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#log-log-curvature-rules" class="md-nav__link">
+    <span title="log-log curvature rules (reference label)" class="md-ellipsis">Log-<wbr>log curvature rules</span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#dgp-problems" class="md-nav__link">
+    <span title="dgp problems (reference label)" class="md-ellipsis">DGP problems</span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#dgp-atoms" class="md-nav__link">
+    <span title="dgp-atoms (reference label)" class="md-ellipsis">DGP atoms</span>
+  </a>
+  
+    <nav class="md-nav" aria-label="DGP atoms">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#infix-operators" class="md-nav__link">
+    <span title="infix operators (reference label)" class="md-ellipsis">Infix operators</span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#transpose" class="md-nav__link">
+    <span class="md-ellipsis">Transpose</span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#power" class="md-nav__link">
+    <span class="md-ellipsis">Power</span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#scalar-functions" class="md-nav__link">
+    <span class="md-ellipsis">Scalar functions</span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#elementwise-functions" class="md-nav__link">
+    <span class="md-ellipsis">Elementwise functions</span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#vector-matrix-functions" class="md-nav__link">
+    <span class="md-ellipsis">Vector/matrix functions</span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../dpp/index.html" class="md-nav__link">
+        <span class="md-ellipsis">Disciplined Parametrized Programming</span>
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../dqcp/index.html" class="md-nav__link">
+        <span class="md-ellipsis">Disciplined Quasiconvex Programming</span>
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../constraints/index.html" class="md-nav__link">
+        <span class="md-ellipsis">Advanced Constraints</span>
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../advanced/index.html" class="md-nav__link">
+        <span class="md-ellipsis">Advanced Features</span>
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../solvers/index.html" class="md-nav__link">
+        <span class="md-ellipsis">Solver Features</span>
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api_reference/cvxpy.html" class="md-nav__link">
+        <span class="md-ellipsis">API Documentation</span>
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../examples/index.html" class="md-nav__link">
+        <span class="md-ellipsis">Examples</span>
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../contributing/index.html" class="md-nav__link">
+        <span class="md-ellipsis">Contributing</span>
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../updates/index.html" class="md-nav__link">
+        <span class="md-ellipsis">Changelog</span>
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../faq/index.html" class="md-nav__link">
+        <span class="md-ellipsis">FAQ</span>
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../resources/index.html" class="md-nav__link">
+        <span class="md-ellipsis">Resources</span>
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+  
+
+<nav class="md-nav md-nav--secondary">
+  
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      On this page
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#log-log-curvature" class="md-nav__link">
+    <span title="log-log curvature (reference label)" class="md-ellipsis">Log-<wbr>log curvature</span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#log-log-curvature-rules" class="md-nav__link">
+    <span title="log-log curvature rules (reference label)" class="md-ellipsis">Log-<wbr>log curvature rules</span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#dgp-problems" class="md-nav__link">
+    <span title="dgp problems (reference label)" class="md-ellipsis">DGP problems</span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#dgp-atoms" class="md-nav__link">
+    <span title="dgp-atoms (reference label)" class="md-ellipsis">DGP atoms</span>
+  </a>
+  
+    <nav class="md-nav" aria-label="DGP atoms">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#infix-operators" class="md-nav__link">
+    <span title="infix operators (reference label)" class="md-ellipsis">Infix operators</span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#transpose" class="md-nav__link">
+    <span class="md-ellipsis">Transpose</span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#power" class="md-nav__link">
+    <span class="md-ellipsis">Power</span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#scalar-functions" class="md-nav__link">
+    <span class="md-ellipsis">Scalar functions</span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#elementwise-functions" class="md-nav__link">
+    <span class="md-ellipsis">Elementwise functions</span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#vector-matrix-functions" class="md-nav__link">
+    <span class="md-ellipsis">Vector/matrix functions</span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset" role="main">
+                  
+
+
+<h1 id="disciplined-geometric-programming"><span id="dgp"></span>Disciplined Geometric Programming<a class="headerlink" href="#disciplined-geometric-programming" title="Link to this heading">¶</a></h1>
 <p>Disciplined geometric programming (DGP) is an analog of DCP for
 <em>log-log convex</em> functions, that is, functions of positive variables that
 are convex with respect to the geometric mean instead of the arithmetic mean.</p>
@@ -52,7 +847,7 @@ transformation. Every geometric program (GP) and generalized geometric program
 (GGP) is an LLCP, but there are LLCPs that are neither GPs nor GGPs.</p>
 <p>CVXPY lets you form and solve DGP problems, just as it does for DCP
 problems. For example, the following code solves a simple geometric program,</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">cvxpy</span> <span class="k">as</span> <span class="nn">cp</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><code><span class="kn">import</span> <span class="nn">cvxpy</span> <span class="k">as</span> <span class="nn">cp</span>
 
 <span class="c1"># DGP requires Variables to be declared positive via `pos=True`.</span>
 <span class="n">x</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="n">pos</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
@@ -68,14 +863,14 @@ problems. For example, the following code solves a simple geometric program,</p>
 <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;x: &quot;</span><span class="p">,</span> <span class="n">x</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;y: &quot;</span><span class="p">,</span> <span class="n">y</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;z: &quot;</span><span class="p">,</span> <span class="n">z</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
-</pre></div>
+</code></pre></div>
 </div>
 <p>and it prints the below output.</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">Optimal</span> <span class="n">value</span><span class="p">:</span> <span class="mf">1.9999999938309496</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><code><span class="n">Optimal</span> <span class="n">value</span><span class="p">:</span> <span class="mf">1.9999999938309496</span>
 <span class="n">x</span><span class="p">:</span> <span class="mf">0.9999999989682057</span>
 <span class="n">y</span><span class="p">:</span> <span class="mf">1.999999974180587</span>
 <span class="n">z</span><span class="p">:</span> <span class="mf">1.0000000108569758</span>
-</pre></div>
+</code></pre></div>
 </div>
 <p>Note that to solve DGP problems, you must pass the option
 <code class="docutils literal notranslate"><span class="pre">gp=True</span></code> to the <code class="docutils literal notranslate"><span class="pre">solve()</span></code> method.</p>
@@ -88,8 +883,7 @@ the section on <a class="reference internal" href="../functions/index.html#funct
 For interactive code examples, check out our <a class="reference internal" href="../../examples/index.html#dgp-examples"><span class="std std-ref">notebooks</span></a>.</p>
 <p><em>Note: DGP is a recent addition to CVXPY. If you have feedback, please file an
 issue or make a pull request on</em> <a class="reference external" href="https://github.com/cvxpy/cvxpy">Github</a>.</p>
-<section id="log-log-curvature">
-<h2>Log-log curvature<a class="headerlink" href="#log-log-curvature" title="Permalink to this heading">¶</a></h2>
+<h2 id="log-log-curvature">Log-log curvature<a class="headerlink" href="#log-log-curvature" title="Link to this heading">¶</a></h2>
 <p>Just as every Expression in CVXPY has a curvature (constant, affine, convex, concave,
 or unknown), every Expression also has a log-log curvature.</p>
 <p>A function <span class="math notranslate nohighlight">\(f : D \subseteq \mathbf{R}^n_{++} \to \mathbf{R}\)</span> is said to
@@ -111,7 +905,7 @@ curvature</a> is presented at the end of this page.</p>
 <p>In the below table, <span class="math notranslate nohighlight">\(F\)</span> is the log-log transformation of <span class="math notranslate nohighlight">\(f\)</span>,
 <span class="math notranslate nohighlight">\(u=\log x\)</span>, and <span class="math notranslate nohighlight">\(v=\log y\)</span>,
 where <span class="math notranslate nohighlight">\(x\)</span> and <span class="math notranslate nohighlight">\(y\)</span> are in the domain of <span class="math notranslate nohighlight">\(f\)</span></p>
-<table class="docutils align-default">
+<table class="docutils data align-default">
 <thead>
 <tr class="row-odd"><th class="head"><p>Log-Log Curvature</p></th>
 <th class="head"><p>Meaning</p></th>
@@ -142,7 +936,7 @@ log-log affine expression is log-log convex and log-log concave.</p>
 <p>The log-log curvature of an Expression is stored in its
 <code class="code docutils literal notranslate"><span class="pre">.log_log_curvature</span></code> attribute. For example, running the following
 script</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">cvxpy</span> <span class="k">as</span> <span class="nn">cp</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><code><span class="kn">import</span> <span class="nn">cvxpy</span> <span class="k">as</span> <span class="nn">cp</span>
 
 <span class="n">x</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="n">pos</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 <span class="n">y</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="n">pos</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
@@ -158,24 +952,22 @@ script</p>
 <span class="nb">print</span><span class="p">(</span><span class="n">posynomial</span><span class="o">.</span><span class="n">log_log_curvature</span><span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="n">reciprocal</span><span class="o">.</span><span class="n">log_log_curvature</span><span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="n">unknown</span><span class="o">.</span><span class="n">log_log_curvature</span><span class="p">)</span>
-</pre></div>
+</code></pre></div>
 </div>
 <p>prints the following output.</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">LOG</span><span class="o">-</span><span class="n">LOG</span> <span class="n">CONSTANT</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><code><span class="n">LOG</span><span class="o">-</span><span class="n">LOG</span> <span class="n">CONSTANT</span>
 <span class="n">LOG</span><span class="o">-</span><span class="n">LOG</span> <span class="n">AFFINE</span>
 <span class="n">LOG</span><span class="o">-</span><span class="n">LOG</span> <span class="n">CONVEX</span>
 <span class="n">LOG</span><span class="o">-</span><span class="n">LOG</span> <span class="n">CONCAVE</span>
 <span class="n">UNKNOWN</span>
-</pre></div>
+</code></pre></div>
 </div>
 <p>You can also check the log-log curvature of an Expression by
 calling the methods
 <code class="code docutils literal notranslate"><span class="pre">is_log_log_constant()</span></code>, <code class="code docutils literal notranslate"><span class="pre">is_log_log_affine()</span></code>,
 <code class="code docutils literal notranslate"><span class="pre">is_log_log_convex()</span></code>, <code class="code docutils literal notranslate"><span class="pre">is_log_log_concave()</span></code>. For example,
 <code class="code docutils literal notranslate"><span class="pre">posynomial.is_log_log_convex()</span></code> would evaluate to <code class="code docutils literal notranslate"><span class="pre">True</span></code>.</p>
-</section>
-<section id="log-log-curvature-rules">
-<h2>Log-log curvature rules<a class="headerlink" href="#log-log-curvature-rules" title="Permalink to this heading">¶</a></h2>
+<h2 id="log-log-curvature-rules">Log-log curvature rules<a class="headerlink" href="#log-log-curvature-rules" title="Link to this heading">¶</a></h2>
 <p>For an Expression to have known log-log curvature, all of the Constants,
 Variables, and Parameters it refers to must be elementwise positive. A
 Constant is positive if its numerical value is positive. Variables
@@ -215,7 +1007,7 @@ expr_n)\)</span> is marked as having unknown curvature.</p>
 the Expression “is DGP.” You can check whether an Expression is DGP
 by calling the method <code class="code docutils literal notranslate"><span class="pre">is_dgp()</span></code>. For example, the assertions
 in the following code block will pass.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">cvxpy</span> <span class="k">as</span> <span class="nn">cp</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><code><span class="kn">import</span> <span class="nn">cvxpy</span> <span class="k">as</span> <span class="nn">cp</span>
 
 <span class="n">x</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="n">pos</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 <span class="n">y</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="n">pos</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
@@ -225,16 +1017,14 @@ in the following code block will pass.</p>
 
 <span class="k">assert</span> <span class="n">monomial</span><span class="o">.</span><span class="n">is_dgp</span><span class="p">()</span>
 <span class="k">assert</span> <span class="n">posynomial</span><span class="o">.</span><span class="n">is_dgp</span><span class="p">()</span>
-</pre></div>
+</code></pre></div>
 </div>
 <p>An Expression is DGP precisely when it has known log-log curvature, which means
 at least one of the methods <code class="code docutils literal notranslate"><span class="pre">is_log_log_constant()</span></code>,
 <code class="code docutils literal notranslate"><span class="pre">is_log_log_affine()</span></code>, <code class="code docutils literal notranslate"><span class="pre">is_log_log_convex()</span></code>,
 <code class="code docutils literal notranslate"><span class="pre">is_log_log_concave()</span></code> will return <code class="code docutils literal notranslate"><span class="pre">True</span></code>.</p>
-</section>
-<section id="dgp-problems">
-<h2>DGP problems<a class="headerlink" href="#dgp-problems" title="Permalink to this heading">¶</a></h2>
-<p>A <a class="reference internal" href="../../api_reference/cvxpy.problems.html#cvxpy.Problem" title="cvxpy.problems.problem.Problem"><code class="xref py py-class docutils literal notranslate"><span class="pre">Problem</span></code></a> is constructed from an objective and
+<h2 id="dgp-problems">DGP problems<a class="headerlink" href="#dgp-problems" title="Link to this heading">¶</a></h2>
+<p>A <a class="reference internal" href="../../api_reference/cvxpy.problems.html#cvxpy.Problem" title="cvxpy.problems.problem.Problem (Python class)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Problem</span></code></a> is constructed from an objective and
 a list of constraints. If a problem follows the DGP rules, it is guaranteed to
 be an LLCP and solvable by CVXPY. The DGP rules require that the problem
 objective have one of two forms:</p>
@@ -251,7 +1041,7 @@ objective have one of two forms:</p>
 <p>You can check that a problem, constraint, or objective satisfies the DGP
 rules by calling <code class="docutils literal notranslate"><span class="pre">object.is_dgp()</span></code>. Here are some examples of DGP and
 non-DGP problems:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">cvxpy</span> <span class="k">as</span> <span class="nn">cp</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><code><span class="kn">import</span> <span class="nn">cvxpy</span> <span class="k">as</span> <span class="nn">cp</span>
 
 <span class="c1"># DGP requires Variables to be declared positive via `pos=True`.</span>
 <span class="n">x</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="n">pos</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
@@ -272,20 +1062,17 @@ non-DGP problems:</p>
 <span class="k">assert</span> <span class="ow">not</span> <span class="n">objective_fn</span><span class="o">.</span><span class="n">is_dgp</span><span class="p">()</span>
 <span class="n">problem</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Problem</span><span class="p">(</span><span class="n">cp</span><span class="o">.</span><span class="n">Maximize</span><span class="p">(</span><span class="n">objective_fn</span><span class="p">),</span> <span class="n">constraints</span><span class="p">)</span>
 <span class="k">assert</span> <span class="ow">not</span> <span class="n">problem</span><span class="o">.</span><span class="n">is_dgp</span><span class="p">()</span>
-</pre></div>
+</code></pre></div>
 </div>
 <p>CVXPY will raise an exception if you call <code class="docutils literal notranslate"><span class="pre">problem.solve(gp=True)</span></code> on a
 non-DGP problem.</p>
-</section>
-<section id="dgp-atoms">
-<span id="id1"></span><h2>DGP atoms<a class="headerlink" href="#dgp-atoms" title="Permalink to this heading">¶</a></h2>
+<h2 id="dgp-atoms"><span id="id1"></span>DGP atoms<a class="headerlink" href="#dgp-atoms" title="Link to this heading">¶</a></h2>
 <p>This section of the tutorial describes the DGP atom library, that is,
 the atomic functions with known log-log curvature and monotonicity.
 CVXPY uses the function information in this section and the DGP rules
 to mark expressions with a log-log curvature. Note that every DGP expression
 is positive.</p>
-<section id="infix-operators">
-<h3>Infix operators<a class="headerlink" href="#infix-operators" title="Permalink to this heading">¶</a></h3>
+<h3 id="infix-operators">Infix operators<a class="headerlink" href="#infix-operators" title="Link to this heading">¶</a></h3>
 <p>The infix operators <code class="docutils literal notranslate"><span class="pre">+,</span> <span class="pre">*,</span> <span class="pre">/</span></code> are treated as atoms. The operators
 <code class="docutils literal notranslate"><span class="pre">*</span></code> and <code class="docutils literal notranslate"><span class="pre">/</span></code> are log-log affine functions. The operator <code class="docutils literal notranslate"><span class="pre">+</span></code>
 is log-log convex in both its arguments.</p>
@@ -296,24 +1083,18 @@ Regardless of your Python version, you can also use the <a class="reference inte
 elementwise, use the <a class="reference internal" href="../../api_reference/cvxpy.atoms.affine.html#multiply"><span class="std std-ref">multiply atom</span></a>. Finally,
 to take the product of the entries of an Expression, use
 the <a class="reference internal" href="../../api_reference/cvxpy.atoms.other_atoms.html#prod"><span class="std std-ref">prod atom</span></a>.</p>
-</section>
-<section id="transpose">
-<h3>Transpose<a class="headerlink" href="#transpose" title="Permalink to this heading">¶</a></h3>
+<h3 id="transpose">Transpose<a class="headerlink" href="#transpose" title="Link to this heading">¶</a></h3>
 <p>The transpose of any expression can be obtained using the syntax
 <code class="docutils literal notranslate"><span class="pre">expr.T</span></code>. Transpose is a log-log affine function.</p>
-</section>
-<section id="power">
-<h3>Power<a class="headerlink" href="#power" title="Permalink to this heading">¶</a></h3>
+<h3 id="power">Power<a class="headerlink" href="#power" title="Link to this heading">¶</a></h3>
 <p>For any CVXPY expression <code class="docutils literal notranslate"><span class="pre">expr</span></code>, the power operator <code class="docutils literal notranslate"><span class="pre">expr**p</span></code> is equivalent
 to the function <code class="docutils literal notranslate"><span class="pre">power(expr,</span> <span class="pre">p)</span></code>. Taking powers is a log-log affine function.</p>
-</section>
-<section id="scalar-functions">
-<h3>Scalar functions<a class="headerlink" href="#scalar-functions" title="Permalink to this heading">¶</a></h3>
+<h3 id="scalar-functions">Scalar functions<a class="headerlink" href="#scalar-functions" title="Link to this heading">¶</a></h3>
 <p>A scalar function takes one or more scalars, vectors, or matrices as arguments
 and returns a scalar. Note that several of these atoms may be
 applied along an axis; see the API reference or the <a class="reference internal" href="../functions/index.html#functions"><span class="std std-ref">DCP atoms
 tutorial</span></a> for more information.</p>
-<table class="docutils align-default">
+<table class="docutils data align-default">
 <thead>
 <tr class="row-odd"><th class="head"><p>Function</p></th>
 <th class="head"><p>Meaning</p></th>
@@ -332,52 +1113,52 @@ tutorial</span></a> for more information.</p>
 <p><span class="math notranslate nohighlight">\(\left(x_1^{p_1} \cdots x_n^{p_n}\right)^{\frac{1}{\mathbf{1}^T p}}\)</span></p>
 </td>
 <td><p><span class="math notranslate nohighlight">\(x \in \mathbf{R}^n_{+}\)</span></p></td>
-<td><p><a class="reference internal" href="../../_images/affine.svg"><img alt="affine" height="15px" src="../../_images/affine.svg" width="15px" /></a> log-log affine</p></td>
-<td><p><a class="reference internal" href="../../_images/increasing.svg"><img alt="incr" height="15px" src="../../_images/increasing.svg" width="15px" /></a> incr.</p></td>
+<td><p><a class="reference internal" href="../../_images/affine.svg"><img alt="affine" src="../../_images/affine.svg" style="width: 15px; height: 15px;" /></a> log-log affine</p></td>
+<td><p><a class="reference internal" href="../../_images/increasing.svg"><img alt="incr" src="../../_images/increasing.svg" style="width: 15px; height: 15px;" /></a> incr.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="../../api_reference/cvxpy.atoms.other_atoms.html#harmonic-mean"><span class="std std-ref">harmonic_mean(x)</span></a></p></td>
 <td><p><span class="math notranslate nohighlight">\(\frac{n}{\frac{1}{x_1} + \cdots + \frac{1}{x_n}}\)</span></p></td>
 <td><p><span class="math notranslate nohighlight">\(x \in \mathbf{R}^n_{+}\)</span></p></td>
-<td><p><a class="reference internal" href="../../_images/concave.svg"><img alt="concave" height="15px" src="../../_images/concave.svg" width="15px" /></a> log-log concave</p></td>
-<td><p><a class="reference internal" href="../../_images/increasing.svg"><img alt="incr" height="15px" src="../../_images/increasing.svg" width="15px" /></a> incr.</p></td>
+<td><p><a class="reference internal" href="../../_images/concave.svg"><img alt="concave" src="../../_images/concave.svg" style="width: 15px; height: 15px;" /></a> log-log concave</p></td>
+<td><p><a class="reference internal" href="../../_images/increasing.svg"><img alt="incr" src="../../_images/increasing.svg" style="width: 15px; height: 15px;" /></a> incr.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="../../api_reference/cvxpy.atoms.other_atoms.html#max"><span class="std std-ref">max(X)</span></a></p></td>
 <td><p><span class="math notranslate nohighlight">\(\max_{ij}\left\{ X_{ij}\right\}\)</span></p></td>
 <td><p><span class="math notranslate nohighlight">\(X \in\mathbf{R}^{m \times n}_{++}\)</span></p></td>
-<td><p><a class="reference internal" href="../../_images/convex.svg"><img alt="convex" height="15px" src="../../_images/convex.svg" width="15px" /></a> log-log convex</p></td>
-<td><p><a class="reference internal" href="../../_images/increasing.svg"><img alt="incr" height="15px" src="../../_images/increasing.svg" width="15px" /></a> incr.</p></td>
+<td><p><a class="reference internal" href="../../_images/convex.svg"><img alt="convex" src="../../_images/convex.svg" style="width: 15px; height: 15px;" /></a> log-log convex</p></td>
+<td><p><a class="reference internal" href="../../_images/increasing.svg"><img alt="incr" src="../../_images/increasing.svg" style="width: 15px; height: 15px;" /></a> incr.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="../../api_reference/cvxpy.atoms.other_atoms.html#min"><span class="std std-ref">min(X)</span></a></p></td>
 <td><p><span class="math notranslate nohighlight">\(\min_{ij}\left\{ X_{ij}\right\}\)</span></p></td>
 <td><p><span class="math notranslate nohighlight">\(X \in\mathbf{R}^{m \times n}_{++}\)</span></p></td>
-<td><p><a class="reference internal" href="../../_images/concave.svg"><img alt="concave" height="15px" src="../../_images/concave.svg" width="15px" /></a> log-log concave</p></td>
-<td><p><a class="reference internal" href="../../_images/increasing.svg"><img alt="incr" height="15px" src="../../_images/increasing.svg" width="15px" /></a> incr.</p></td>
+<td><p><a class="reference internal" href="../../_images/concave.svg"><img alt="concave" src="../../_images/concave.svg" style="width: 15px; height: 15px;" /></a> log-log concave</p></td>
+<td><p><a class="reference internal" href="../../_images/increasing.svg"><img alt="incr" src="../../_images/increasing.svg" style="width: 15px; height: 15px;" /></a> incr.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="../../api_reference/cvxpy.atoms.other_atoms.html#norm"><span class="std std-ref">norm(x)</span></a></p>
 <p>norm(x, 2)</p>
 </td>
 <td><p><span class="math notranslate nohighlight">\(\sqrt{\sum_{i} \lvert x_{i} \rvert^2 }\)</span></p></td>
 <td><p><span class="math notranslate nohighlight">\(X \in\mathbf{R}^{n}_{++}\)</span></p></td>
-<td><p><a class="reference internal" href="../../_images/convex.svg"><img alt="convex" height="15px" src="../../_images/convex.svg" width="15px" /></a> log-log convex</p></td>
-<td><p><a class="reference internal" href="../../_images/increasing.svg"><img alt="incr" height="15px" src="../../_images/increasing.svg" width="15px" /></a> incr.</p></td>
+<td><p><a class="reference internal" href="../../_images/convex.svg"><img alt="convex" src="../../_images/convex.svg" style="width: 15px; height: 15px;" /></a> log-log convex</p></td>
+<td><p><a class="reference internal" href="../../_images/increasing.svg"><img alt="incr" src="../../_images/increasing.svg" style="width: 15px; height: 15px;" /></a> incr.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="../../api_reference/cvxpy.atoms.other_atoms.html#norm"><span class="std std-ref">norm(X, “fro”)</span></a></p></td>
 <td><p><span class="math notranslate nohighlight">\(\sqrt{\sum_{ij}X_{ij}^2 }\)</span></p></td>
 <td><p><span class="math notranslate nohighlight">\(X \in\mathbf{R}^{m \times n}_{++}\)</span></p></td>
-<td><p><a class="reference internal" href="../../_images/convex.svg"><img alt="convex" height="15px" src="../../_images/convex.svg" width="15px" /></a> log-log convex</p></td>
-<td><p><a class="reference internal" href="../../_images/increasing.svg"><img alt="incr" height="15px" src="../../_images/increasing.svg" width="15px" /></a> incr.</p></td>
+<td><p><a class="reference internal" href="../../_images/convex.svg"><img alt="convex" src="../../_images/convex.svg" style="width: 15px; height: 15px;" /></a> log-log convex</p></td>
+<td><p><a class="reference internal" href="../../_images/increasing.svg"><img alt="incr" src="../../_images/increasing.svg" style="width: 15px; height: 15px;" /></a> incr.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="../../api_reference/cvxpy.atoms.other_atoms.html#norm"><span class="std std-ref">norm(X, 1)</span></a></p></td>
 <td><p><span class="math notranslate nohighlight">\(\sum_{ij}\lvert X_{ij} \rvert\)</span></p></td>
 <td><p><span class="math notranslate nohighlight">\(X \in\mathbf{R}^{m \times n}_{++}\)</span></p></td>
-<td><p><a class="reference internal" href="../../_images/convex.svg"><img alt="convex" height="15px" src="../../_images/convex.svg" width="15px" /></a> log-log convex</p></td>
-<td><p><a class="reference internal" href="../../_images/increasing.svg"><img alt="incr" height="15px" src="../../_images/increasing.svg" width="15px" /></a> incr.</p></td>
+<td><p><a class="reference internal" href="../../_images/convex.svg"><img alt="convex" src="../../_images/convex.svg" style="width: 15px; height: 15px;" /></a> log-log convex</p></td>
+<td><p><a class="reference internal" href="../../_images/increasing.svg"><img alt="incr" src="../../_images/increasing.svg" style="width: 15px; height: 15px;" /></a> incr.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="../../api_reference/cvxpy.atoms.other_atoms.html#norm"><span class="std std-ref">norm(X, “inf”)</span></a></p></td>
 <td><p><span class="math notranslate nohighlight">\(\max_{ij} \{\lvert X_{ij} \rvert\}\)</span></p></td>
 <td><p><span class="math notranslate nohighlight">\(X \in\mathbf{R}^{m \times n}_{++}\)</span></p></td>
-<td><p><a class="reference internal" href="../../_images/convex.svg"><img alt="convex" height="15px" src="../../_images/convex.svg" width="15px" /></a> log-log convex</p></td>
-<td><p><a class="reference internal" href="../../_images/increasing.svg"><img alt="incr" height="15px" src="../../_images/increasing.svg" width="15px" /></a> incr.</p></td>
+<td><p><a class="reference internal" href="../../_images/convex.svg"><img alt="convex" src="../../_images/convex.svg" style="width: 15px; height: 15px;" /></a> log-log convex</p></td>
+<td><p><a class="reference internal" href="../../_images/increasing.svg"><img alt="incr" src="../../_images/increasing.svg" style="width: 15px; height: 15px;" /></a> incr.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="../../api_reference/cvxpy.atoms.other_atoms.html#pnorm-func"><span class="std std-ref">pnorm(X, p)</span></a></p>
 <p><span class="math notranslate nohighlight">\(p \geq 1\)</span></p>
@@ -385,68 +1166,72 @@ tutorial</span></a> for more information.</p>
 </td>
 <td><p><span class="math notranslate nohighlight">\(\|X\|_p = \left(\sum_{ij} |X_{ij}|^p \right)^{1/p}\)</span></p></td>
 <td><p><span class="math notranslate nohighlight">\(X \in \mathbf{R}^{m \times n}_{++}\)</span></p></td>
-<td><p><a class="reference internal" href="../../_images/convex.svg"><img alt="convex" height="15px" src="../../_images/convex.svg" width="15px" /></a> log-log convex</p></td>
-<td><p><a class="reference internal" href="../../_images/increasing.svg"><img alt="incr" height="15px" src="../../_images/increasing.svg" width="15px" /></a> incr.</p></td>
+<td><p><a class="reference internal" href="../../_images/convex.svg"><img alt="convex" src="../../_images/convex.svg" style="width: 15px; height: 15px;" /></a> log-log convex</p></td>
+<td><p><a class="reference internal" href="../../_images/increasing.svg"><img alt="incr" src="../../_images/increasing.svg" style="width: 15px; height: 15px;" /></a> incr.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="../../api_reference/cvxpy.atoms.other_atoms.html#pnorm-func"><span class="std std-ref">pnorm(X, p)</span></a></p>
 <p><span class="math notranslate nohighlight">\(0 &lt; p &lt; 1\)</span></p>
 </td>
 <td><p><span class="math notranslate nohighlight">\(\|X\|_p = \left(\sum_{ij} X_{ij}^p \right)^{1/p}\)</span></p></td>
 <td><p><span class="math notranslate nohighlight">\(X \in \mathbf{R}^{m \times n}_{++}\)</span></p></td>
-<td><p><a class="reference internal" href="../../_images/convex.svg"><img alt="convex" height="15px" src="../../_images/convex.svg" width="15px" /></a> log-log convex</p></td>
-<td><p><a class="reference internal" href="../../_images/increasing.svg"><img alt="incr" height="15px" src="../../_images/increasing.svg" width="15px" /></a> incr.</p></td>
+<td><p><a class="reference internal" href="../../_images/convex.svg"><img alt="convex" src="../../_images/convex.svg" style="width: 15px; height: 15px;" /></a> log-log convex</p></td>
+<td><p><a class="reference internal" href="../../_images/increasing.svg"><img alt="incr" src="../../_images/increasing.svg" style="width: 15px; height: 15px;" /></a> incr.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="../../api_reference/cvxpy.atoms.other_atoms.html#prod"><span class="std std-ref">prod(X)</span></a></p></td>
 <td><p><span class="math notranslate nohighlight">\(\prod_{ij}X_{ij}\)</span></p></td>
 <td><p><span class="math notranslate nohighlight">\(X \in\mathbf{R}^{m \times n}_{++}\)</span></p></td>
-<td><p><a class="reference internal" href="../../_images/affine.svg"><img alt="affine" height="15px" src="../../_images/affine.svg" width="15px" /></a> log-log affine</p></td>
-<td><p><a class="reference internal" href="../../_images/increasing.svg"><img alt="incr" height="15px" src="../../_images/increasing.svg" width="15px" /></a> incr.</p></td>
+<td><p><a class="reference internal" href="../../_images/affine.svg"><img alt="affine" src="../../_images/affine.svg" style="width: 15px; height: 15px;" /></a> log-log affine</p></td>
+<td><p><a class="reference internal" href="../../_images/increasing.svg"><img alt="incr" src="../../_images/increasing.svg" style="width: 15px; height: 15px;" /></a> incr.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="../../api_reference/cvxpy.atoms.other_atoms.html#quad-form"><span class="std std-ref">quad_form(x, P)</span></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="../../api_reference/cvxpy.atoms.other_atoms.html#cumprod"><span class="std std-ref">cumprod(X, axis=0)</span></a></p></td>
+<td><p>cumulative product along given axis.</p></td>
+<td><p><span class="math notranslate nohighlight">\(X \in \mathbf{R}^{m \times n}\)</span></p></td>
+<td><p><a class="reference internal" href="../../_images/affine.svg"><img alt="affine" src="../../_images/affine.svg" style="width: 15px; height: 15px;" /></a> log-log affine</p></td>
+<td><p><a class="reference internal" href="../../_images/increasing.svg"><img alt="incr" src="../../_images/increasing.svg" style="width: 15px; height: 15px;" /></a> incr.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="../../api_reference/cvxpy.atoms.other_atoms.html#quad-form"><span class="std std-ref">quad_form(x, P)</span></a></p></td>
 <td><p><span class="math notranslate nohighlight">\(x^T P x\)</span></p></td>
 <td><p><span class="math notranslate nohighlight">\(x \in \mathbf{R}^n\)</span>, <span class="math notranslate nohighlight">\(P \in \mathbf{R}^{n \times n}_{++}\)</span></p></td>
-<td><p><a class="reference internal" href="../../_images/convex.svg"><img alt="convex" height="15px" src="../../_images/convex.svg" width="15px" /></a> log-log convex</p></td>
-<td><p><a class="reference internal" href="../../_images/increasing.svg"><img alt="incr" height="15px" src="../../_images/increasing.svg" width="15px" /></a> incr.</p></td>
+<td><p><a class="reference internal" href="../../_images/convex.svg"><img alt="convex" src="../../_images/convex.svg" style="width: 15px; height: 15px;" /></a> log-log convex</p></td>
+<td><p><a class="reference internal" href="../../_images/increasing.svg"><img alt="incr" src="../../_images/increasing.svg" style="width: 15px; height: 15px;" /></a> incr.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="../../api_reference/cvxpy.atoms.other_atoms.html#quad-over-lin"><span class="std std-ref">quad_over_lin(X, y)</span></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="../../api_reference/cvxpy.atoms.other_atoms.html#quad-over-lin"><span class="std std-ref">quad_over_lin(X, y)</span></a></p></td>
 <td><p><span class="math notranslate nohighlight">\(\left(\sum_{ij}X_{ij}^2\right)/y\)</span></p></td>
 <td><p><span class="math notranslate nohighlight">\(x \in \mathbf{R}^n_{++}\)</span></p>
 <p><span class="math notranslate nohighlight">\(y &gt; 0\)</span></p>
 </td>
-<td><p><a class="reference internal" href="../../_images/convex.svg"><img alt="convex" height="15px" src="../../_images/convex.svg" width="15px" /></a> log-log convex</p></td>
-<td><p><a class="reference internal" href="../../_images/increasing.svg"><img alt="incr" height="15px" src="../../_images/increasing.svg" width="15px" /></a> in <span class="math notranslate nohighlight">\(X_{ij}\)</span></p>
-<p><a class="reference internal" href="../../_images/decreasing.svg"><img alt="decr" height="15px" src="../../_images/decreasing.svg" width="15px" /></a> decr. in <span class="math notranslate nohighlight">\(y\)</span></p>
+<td><p><a class="reference internal" href="../../_images/convex.svg"><img alt="convex" src="../../_images/convex.svg" style="width: 15px; height: 15px;" /></a> log-log convex</p></td>
+<td><p><a class="reference internal" href="../../_images/increasing.svg"><img alt="incr" src="../../_images/increasing.svg" style="width: 15px; height: 15px;" /></a> in <span class="math notranslate nohighlight">\(X_{ij}\)</span></p>
+<p><a class="reference internal" href="../../_images/decreasing.svg"><img alt="decr" src="../../_images/decreasing.svg" style="width: 15px; height: 15px;" /></a> decr. in <span class="math notranslate nohighlight">\(y\)</span></p>
 </td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="../../api_reference/cvxpy.atoms.affine.html#sum"><span class="std std-ref">sum(X)</span></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="../../api_reference/cvxpy.atoms.affine.html#sum"><span class="std std-ref">sum(X)</span></a></p></td>
 <td><p><span class="math notranslate nohighlight">\(\sum_{ij}X_{ij}\)</span></p></td>
 <td><p><span class="math notranslate nohighlight">\(X \in\mathbf{R}^{m \times n}_{++}\)</span></p></td>
-<td><p><a class="reference internal" href="../../_images/convex.svg"><img alt="convex" height="15px" src="../../_images/convex.svg" width="15px" /></a> log-log convex</p></td>
-<td><p><a class="reference internal" href="../../_images/increasing.svg"><img alt="incr" height="15px" src="../../_images/increasing.svg" width="15px" /></a> incr.</p></td>
+<td><p><a class="reference internal" href="../../_images/convex.svg"><img alt="convex" src="../../_images/convex.svg" style="width: 15px; height: 15px;" /></a> log-log convex</p></td>
+<td><p><a class="reference internal" href="../../_images/increasing.svg"><img alt="incr" src="../../_images/increasing.svg" style="width: 15px; height: 15px;" /></a> incr.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="../../api_reference/cvxpy.atoms.other_atoms.html#sum-squares"><span class="std std-ref">sum_squares(X)</span></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="../../api_reference/cvxpy.atoms.other_atoms.html#sum-squares"><span class="std std-ref">sum_squares(X)</span></a></p></td>
 <td><p><span class="math notranslate nohighlight">\(\sum_{ij}X_{ij}^2\)</span></p></td>
 <td><p><span class="math notranslate nohighlight">\(X \in\mathbf{R}^{m \times n}_{++}\)</span></p></td>
-<td><p><a class="reference internal" href="../../_images/convex.svg"><img alt="convex" height="15px" src="../../_images/convex.svg" width="15px" /></a> log-log convex</p></td>
-<td><p><a class="reference internal" href="../../_images/increasing.svg"><img alt="incr" height="15px" src="../../_images/increasing.svg" width="15px" /></a> incr.</p></td>
+<td><p><a class="reference internal" href="../../_images/convex.svg"><img alt="convex" src="../../_images/convex.svg" style="width: 15px; height: 15px;" /></a> log-log convex</p></td>
+<td><p><a class="reference internal" href="../../_images/increasing.svg"><img alt="incr" src="../../_images/increasing.svg" style="width: 15px; height: 15px;" /></a> incr.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="../../api_reference/cvxpy.atoms.affine.html#trace"><span class="std std-ref">trace(X)</span></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="../../api_reference/cvxpy.atoms.affine.html#trace"><span class="std std-ref">trace(X)</span></a></p></td>
 <td><p><span class="math notranslate nohighlight">\(\mathrm{tr}\left(X \right)\)</span></p></td>
 <td><p><span class="math notranslate nohighlight">\(X \in\mathbf{R}^{n \times n}_{++}\)</span></p></td>
-<td><p><a class="reference internal" href="../../_images/convex.svg"><img alt="convex" height="15px" src="../../_images/convex.svg" width="15px" /></a> log-log convex</p></td>
-<td><p><a class="reference internal" href="../../_images/increasing.svg"><img alt="incr" height="15px" src="../../_images/increasing.svg" width="15px" /></a> incr.</p></td>
+<td><p><a class="reference internal" href="../../_images/convex.svg"><img alt="convex" src="../../_images/convex.svg" style="width: 15px; height: 15px;" /></a> log-log convex</p></td>
+<td><p><a class="reference internal" href="../../_images/increasing.svg"><img alt="incr" src="../../_images/increasing.svg" style="width: 15px; height: 15px;" /></a> incr.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="../../api_reference/cvxpy.atoms.other_atoms.html#pf-eigenvalue"><span class="std std-ref">pf_eigenvalue(X)</span></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="../../api_reference/cvxpy.atoms.other_atoms.html#pf-eigenvalue"><span class="std std-ref">pf_eigenvalue(X)</span></a></p></td>
 <td><p>spectral radius of <span class="math notranslate nohighlight">\(X\)</span></p></td>
 <td><p><span class="math notranslate nohighlight">\(X \in\mathbf{R}^{n \times n}_{++}\)</span></p></td>
-<td><p><a class="reference internal" href="../../_images/convex.svg"><img alt="convex" height="15px" src="../../_images/convex.svg" width="15px" /></a> log-log convex</p></td>
-<td><p><a class="reference internal" href="../../_images/increasing.svg"><img alt="incr" height="15px" src="../../_images/increasing.svg" width="15px" /></a> incr.</p></td>
+<td><p><a class="reference internal" href="../../_images/convex.svg"><img alt="convex" src="../../_images/convex.svg" style="width: 15px; height: 15px;" /></a> log-log convex</p></td>
+<td><p><a class="reference internal" href="../../_images/increasing.svg"><img alt="incr" src="../../_images/increasing.svg" style="width: 15px; height: 15px;" /></a> incr.</p></td>
 </tr>
 </tbody>
 </table>
-</section>
-<section id="elementwise-functions">
-<h3>Elementwise functions<a class="headerlink" href="#elementwise-functions" title="Permalink to this heading">¶</a></h3>
+<h3 id="elementwise-functions">Elementwise functions<a class="headerlink" href="#elementwise-functions" title="Link to this heading">¶</a></h3>
 <p>These functions operate on each element of their arguments. For example, if
 <code class="docutils literal notranslate"><span class="pre">X</span></code> is a 5 by 4 matrix variable, then <code class="docutils literal notranslate"><span class="pre">sqrt(X)</span></code> is a 5 by 4 matrix
 expression. <code class="docutils literal notranslate"><span class="pre">sqrt(X)[1,</span> <span class="pre">2]</span></code> is equivalent to <code class="docutils literal notranslate"><span class="pre">sqrt(X[1,</span> <span class="pre">2])</span></code>.</p>
@@ -456,7 +1241,7 @@ example, if <code class="docutils literal notranslate"><span class="pre">X</span
 <span class="pre">Y)</span></code> is a 3 by 3 matrix expression.  <code class="docutils literal notranslate"><span class="pre">maximum(X,</span> <span class="pre">Y)[2,</span> <span class="pre">0]</span></code> is equivalent to
 <code class="docutils literal notranslate"><span class="pre">maximum(X[2,</span> <span class="pre">0],</span> <span class="pre">Y[2,</span> <span class="pre">0])</span></code>. This means all arguments must have the same
 dimensions or be scalars, which are promoted.</p>
-<table class="docutils align-default">
+<table class="docutils data align-default">
 <thead>
 <tr class="row-odd"><th class="head"><p>Function</p></th>
 <th class="head"><p>Meaning</p></th>
@@ -469,52 +1254,52 @@ dimensions or be scalars, which are promoted.</p>
 <tr class="row-even"><td><p><span class="xref std std-ref">diff_pos(x, y)</span></p></td>
 <td><p><span class="math notranslate nohighlight">\(x - y\)</span></p></td>
 <td><p><span class="math notranslate nohighlight">\(0 &lt; y &lt; x\)</span></p></td>
-<td><p><a class="reference internal" href="../../_images/concave.svg"><img alt="concave" height="15px" src="../../_images/concave.svg" width="15px" /></a> log-log concave</p></td>
-<td><p><a class="reference internal" href="../../_images/increasing.svg"><img alt="incr" height="15px" src="../../_images/increasing.svg" width="15px" /></a> incr.  in <span class="math notranslate nohighlight">\(x\)</span></p>
-<p><a class="reference internal" href="../../_images/decreasing.svg"><img alt="decr" height="15px" src="../../_images/decreasing.svg" width="15px" /></a> decr. in <span class="math notranslate nohighlight">\(y\)</span></p>
+<td><p><a class="reference internal" href="../../_images/concave.svg"><img alt="concave" src="../../_images/concave.svg" style="width: 15px; height: 15px;" /></a> log-log concave</p></td>
+<td><p><a class="reference internal" href="../../_images/increasing.svg"><img alt="incr" src="../../_images/increasing.svg" style="width: 15px; height: 15px;" /></a> incr.  in <span class="math notranslate nohighlight">\(x\)</span></p>
+<p><a class="reference internal" href="../../_images/decreasing.svg"><img alt="decr" src="../../_images/decreasing.svg" style="width: 15px; height: 15px;" /></a> decr. in <span class="math notranslate nohighlight">\(y\)</span></p>
 </td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="../../api_reference/cvxpy.atoms.elementwise.html#entr"><span class="std std-ref">entr(x)</span></a></p></td>
 <td><p><span class="math notranslate nohighlight">\(-x \log (x)\)</span></p></td>
 <td><p><span class="math notranslate nohighlight">\(0 &lt; x &lt; 1\)</span></p></td>
-<td><p><a class="reference internal" href="../../_images/concave.svg"><img alt="concave" height="15px" src="../../_images/concave.svg" width="15px" /></a> log-log concave</p></td>
+<td><p><a class="reference internal" href="../../_images/concave.svg"><img alt="concave" src="../../_images/concave.svg" style="width: 15px; height: 15px;" /></a> log-log concave</p></td>
 <td><p>None</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="../../api_reference/cvxpy.atoms.elementwise.html#exp"><span class="std std-ref">exp(x)</span></a></p></td>
 <td><p><span class="math notranslate nohighlight">\(e^x\)</span></p></td>
 <td><p><span class="math notranslate nohighlight">\(x &gt; 0\)</span></p></td>
-<td><p><a class="reference internal" href="../../_images/convex.svg"><img alt="convex" height="15px" src="../../_images/convex.svg" width="15px" /></a> log-log convex</p></td>
-<td><p><a class="reference internal" href="../../_images/increasing.svg"><img alt="incr" height="15px" src="../../_images/increasing.svg" width="15px" /></a> incr.</p></td>
+<td><p><a class="reference internal" href="../../_images/convex.svg"><img alt="convex" src="../../_images/convex.svg" style="width: 15px; height: 15px;" /></a> log-log convex</p></td>
+<td><p><a class="reference internal" href="../../_images/increasing.svg"><img alt="incr" src="../../_images/increasing.svg" style="width: 15px; height: 15px;" /></a> incr.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="../../api_reference/cvxpy.atoms.elementwise.html#log"><span class="std std-ref">log(x)</span></a></p></td>
 <td><p><span class="math notranslate nohighlight">\(\log(x)\)</span></p></td>
 <td><p><span class="math notranslate nohighlight">\(x &gt; 1\)</span></p></td>
-<td><p><a class="reference internal" href="../../_images/concave.svg"><img alt="concave" height="15px" src="../../_images/concave.svg" width="15px" /></a> log-log concave</p></td>
-<td><p><a class="reference internal" href="../../_images/increasing.svg"><img alt="incr" height="15px" src="../../_images/increasing.svg" width="15px" /></a> incr.</p></td>
+<td><p><a class="reference internal" href="../../_images/concave.svg"><img alt="concave" src="../../_images/concave.svg" style="width: 15px; height: 15px;" /></a> log-log concave</p></td>
+<td><p><a class="reference internal" href="../../_images/increasing.svg"><img alt="incr" src="../../_images/increasing.svg" style="width: 15px; height: 15px;" /></a> incr.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="../../api_reference/cvxpy.atoms.elementwise.html#maximum"><span class="std std-ref">maximum(x, y)</span></a></p></td>
 <td><p><span class="math notranslate nohighlight">\(\max \left\{x, y\right\}\)</span></p></td>
 <td><p><span class="math notranslate nohighlight">\(x,y &gt; 0\)</span></p></td>
-<td><p><a class="reference internal" href="../../_images/convex.svg"><img alt="convex" height="15px" src="../../_images/convex.svg" width="15px" /></a> log-log convex</p></td>
-<td><p><a class="reference internal" href="../../_images/increasing.svg"><img alt="incr" height="15px" src="../../_images/increasing.svg" width="15px" /></a> incr.</p></td>
+<td><p><a class="reference internal" href="../../_images/convex.svg"><img alt="convex" src="../../_images/convex.svg" style="width: 15px; height: 15px;" /></a> log-log convex</p></td>
+<td><p><a class="reference internal" href="../../_images/increasing.svg"><img alt="incr" src="../../_images/increasing.svg" style="width: 15px; height: 15px;" /></a> incr.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="../../api_reference/cvxpy.atoms.elementwise.html#minimum"><span class="std std-ref">minimum(x, y)</span></a></p></td>
 <td><p><span class="math notranslate nohighlight">\(\min \left\{x, y\right\}\)</span></p></td>
 <td><p><span class="math notranslate nohighlight">\(x, y &gt; 0\)</span></p></td>
-<td><p><a class="reference internal" href="../../_images/concave.svg"><img alt="concave" height="15px" src="../../_images/concave.svg" width="15px" /></a> log-log concave</p></td>
-<td><p><a class="reference internal" href="../../_images/increasing.svg"><img alt="incr" height="15px" src="../../_images/increasing.svg" width="15px" /></a> incr.</p></td>
+<td><p><a class="reference internal" href="../../_images/concave.svg"><img alt="concave" src="../../_images/concave.svg" style="width: 15px; height: 15px;" /></a> log-log concave</p></td>
+<td><p><a class="reference internal" href="../../_images/increasing.svg"><img alt="incr" src="../../_images/increasing.svg" style="width: 15px; height: 15px;" /></a> incr.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="../../api_reference/cvxpy.atoms.affine.html#multiply"><span class="std std-ref">multiply(x, y)</span></a></p></td>
 <td><p><span class="math notranslate nohighlight">\(x*y\)</span></p></td>
 <td><p><span class="math notranslate nohighlight">\(x, y &gt; 0\)</span></p></td>
-<td><p><a class="reference internal" href="../../_images/affine.svg"><img alt="affine" height="15px" src="../../_images/affine.svg" width="15px" /></a> log-log affine</p></td>
-<td><p><a class="reference internal" href="../../_images/increasing.svg"><img alt="incr" height="15px" src="../../_images/increasing.svg" width="15px" /></a> incr.</p></td>
+<td><p><a class="reference internal" href="../../_images/affine.svg"><img alt="affine" src="../../_images/affine.svg" style="width: 15px; height: 15px;" /></a> log-log affine</p></td>
+<td><p><a class="reference internal" href="../../_images/increasing.svg"><img alt="incr" src="../../_images/increasing.svg" style="width: 15px; height: 15px;" /></a> incr.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="../../api_reference/cvxpy.atoms.other_atoms.html#one-minus-pos"><span class="std std-ref">one_minus_pos(x)</span></a></p></td>
 <td><p><span class="math notranslate nohighlight">\(1 - x\)</span></p></td>
 <td><p><span class="math notranslate nohighlight">\(0 &lt; x &lt; 1\)</span></p></td>
-<td><p><a class="reference internal" href="../../_images/concave.svg"><img alt="concave" height="15px" src="../../_images/concave.svg" width="15px" /></a> log-log concave</p></td>
-<td><p><a class="reference internal" href="../../_images/decreasing.svg"><img alt="decr" height="15px" src="../../_images/decreasing.svg" width="15px" /></a> decr.</p></td>
+<td><p><a class="reference internal" href="../../_images/concave.svg"><img alt="concave" src="../../_images/concave.svg" style="width: 15px; height: 15px;" /></a> log-log concave</p></td>
+<td><p><a class="reference internal" href="../../_images/decreasing.svg"><img alt="decr" src="../../_images/decreasing.svg" style="width: 15px; height: 15px;" /></a> decr.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="../functions/index.html#power"><span class="std std-ref">power(x, 0)</span></a></p></td>
 <td><p><span class="math notranslate nohighlight">\(1\)</span></p></td>
@@ -525,37 +1310,35 @@ dimensions or be scalars, which are promoted.</p>
 <tr class="row-odd"><td><p><a class="reference internal" href="../functions/index.html#power"><span class="std std-ref">power(x, p)</span></a></p></td>
 <td><p><span class="math notranslate nohighlight">\(x\)</span></p></td>
 <td><p><span class="math notranslate nohighlight">\(x &gt; 0\)</span></p></td>
-<td><p><a class="reference internal" href="../../_images/affine.svg"><img alt="affine" height="15px" src="../../_images/affine.svg" width="15px" /></a> log-log affine</p></td>
-<td><p><a class="reference internal" href="../../_images/increasing.svg"><img alt="incr" height="15px" src="../../_images/increasing.svg" width="15px" /></a> for <span class="math notranslate nohighlight">\(p &gt; 0\)</span></p>
-<p><a class="reference internal" href="../../_images/decreasing.svg"><img alt="decr" height="15px" src="../../_images/decreasing.svg" width="15px" /></a> for <span class="math notranslate nohighlight">\(p &lt; 0\)</span></p>
+<td><p><a class="reference internal" href="../../_images/affine.svg"><img alt="affine" src="../../_images/affine.svg" style="width: 15px; height: 15px;" /></a> log-log affine</p></td>
+<td><p><a class="reference internal" href="../../_images/increasing.svg"><img alt="incr" src="../../_images/increasing.svg" style="width: 15px; height: 15px;" /></a> for <span class="math notranslate nohighlight">\(p &gt; 0\)</span></p>
+<p><a class="reference internal" href="../../_images/decreasing.svg"><img alt="decr" src="../../_images/decreasing.svg" style="width: 15px; height: 15px;" /></a> for <span class="math notranslate nohighlight">\(p &lt; 0\)</span></p>
 </td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="../../api_reference/cvxpy.atoms.elementwise.html#sqrt"><span class="std std-ref">sqrt(x)</span></a></p></td>
 <td><p><span class="math notranslate nohighlight">\(\sqrt x\)</span></p></td>
 <td><p><span class="math notranslate nohighlight">\(x &gt; 0\)</span></p></td>
-<td><p><a class="reference internal" href="../../_images/affine.svg"><img alt="affine" height="15px" src="../../_images/affine.svg" width="15px" /></a> log-log affine</p></td>
-<td><p><a class="reference internal" href="../../_images/increasing.svg"><img alt="incr" height="15px" src="../../_images/increasing.svg" width="15px" /></a> incr.</p></td>
+<td><p><a class="reference internal" href="../../_images/affine.svg"><img alt="affine" src="../../_images/affine.svg" style="width: 15px; height: 15px;" /></a> log-log affine</p></td>
+<td><p><a class="reference internal" href="../../_images/increasing.svg"><img alt="incr" src="../../_images/increasing.svg" style="width: 15px; height: 15px;" /></a> incr.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="../../api_reference/cvxpy.atoms.elementwise.html#square"><span class="std std-ref">square(x)</span></a></p></td>
 <td><p><span class="math notranslate nohighlight">\(x^2\)</span></p></td>
 <td><p><span class="math notranslate nohighlight">\(x &gt; 0\)</span></p></td>
-<td><p><a class="reference internal" href="../../_images/affine.svg"><img alt="affine" height="15px" src="../../_images/affine.svg" width="15px" /></a> log-log affine</p></td>
-<td><p><a class="reference internal" href="../../_images/increasing.svg"><img alt="incr" height="15px" src="../../_images/increasing.svg" width="15px" /></a> incr.</p></td>
+<td><p><a class="reference internal" href="../../_images/affine.svg"><img alt="affine" src="../../_images/affine.svg" style="width: 15px; height: 15px;" /></a> log-log affine</p></td>
+<td><p><a class="reference internal" href="../../_images/increasing.svg"><img alt="incr" src="../../_images/increasing.svg" style="width: 15px; height: 15px;" /></a> incr.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="../../api_reference/cvxpy.atoms.elementwise.html#xexp"><span class="std std-ref">xexp(x)</span></a></p></td>
 <td><p><span class="math notranslate nohighlight">\(x e^x\)</span></p></td>
 <td><p><span class="math notranslate nohighlight">\(x &gt; 0\)</span></p></td>
-<td><p><a class="reference internal" href="../../_images/convex.svg"><img alt="convex" height="15px" src="../../_images/convex.svg" width="15px" /></a> log-log convex</p></td>
-<td><p><a class="reference internal" href="../../_images/increasing.svg"><img alt="incr" height="15px" src="../../_images/increasing.svg" width="15px" /></a> incr.</p></td>
+<td><p><a class="reference internal" href="../../_images/convex.svg"><img alt="convex" src="../../_images/convex.svg" style="width: 15px; height: 15px;" /></a> log-log convex</p></td>
+<td><p><a class="reference internal" href="../../_images/increasing.svg"><img alt="incr" src="../../_images/increasing.svg" style="width: 15px; height: 15px;" /></a> incr.</p></td>
 </tr>
 </tbody>
 </table>
-</section>
-<section id="vector-matrix-functions">
-<h3>Vector/matrix functions<a class="headerlink" href="#vector-matrix-functions" title="Permalink to this heading">¶</a></h3>
+<h3 id="vector-matrix-functions">Vector/matrix functions<a class="headerlink" href="#vector-matrix-functions" title="Link to this heading">¶</a></h3>
 <p>A vector/matrix function takes one or more scalars, vectors, or matrices as arguments
 and returns a vector or matrix.</p>
-<table class="docutils align-default">
+<table class="docutils data align-default">
 <thead>
 <tr class="row-odd"><th class="head"><p>Function</p></th>
 <th class="head"><p>Meaning</p></th>
@@ -570,218 +1353,197 @@ and returns a vector or matrix.</p>
 [Xp1,…,Xpq]])</span></a></p></td>
 <td><p><span class="math notranslate nohighlight">\(\left[\begin{matrix} X^{(1,1)} &amp;  \cdots &amp;  X^{(1,q)} \\ \vdots &amp;   &amp; \vdots \\ X^{(p,1)} &amp; \cdots &amp;   X^{(p,q)} \end{matrix}\right]\)</span></p></td>
 <td><p><span class="math notranslate nohighlight">\(X^{(i,j)} \in\mathbf{R}^{m_i \times n_j}_{++}\)</span></p></td>
-<td><p><a class="reference internal" href="../../_images/affine.svg"><img alt="affine" height="15px" src="../../_images/affine.svg" width="15px" /></a> log-log affine</p></td>
-<td><p><a class="reference internal" href="../../_images/increasing.svg"><img alt="incr" height="15px" src="../../_images/increasing.svg" width="15px" /></a> incr.</p></td>
+<td><p><a class="reference internal" href="../../_images/affine.svg"><img alt="affine" src="../../_images/affine.svg" style="width: 15px; height: 15px;" /></a> log-log affine</p></td>
+<td><p><a class="reference internal" href="../../_images/increasing.svg"><img alt="incr" src="../../_images/increasing.svg" style="width: 15px; height: 15px;" /></a> incr.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="../../api_reference/cvxpy.atoms.affine.html#diag"><span class="std std-ref">diag(x)</span></a></p></td>
 <td><p><span class="math notranslate nohighlight">\(\left[\begin{matrix}x_1  &amp; &amp;  \\&amp; \ddots &amp; \\&amp; &amp; x_n\end{matrix}\right]\)</span></p></td>
 <td><p><span class="math notranslate nohighlight">\(x \in\mathbf{R}^{n}_{++}\)</span></p></td>
-<td><p><a class="reference internal" href="../../_images/affine.svg"><img alt="affine" height="15px" src="../../_images/affine.svg" width="15px" /></a> log-log affine</p></td>
-<td><p><a class="reference internal" href="../../_images/increasing.svg"><img alt="incr" height="15px" src="../../_images/increasing.svg" width="15px" /></a> incr.</p></td>
+<td><p><a class="reference internal" href="../../_images/affine.svg"><img alt="affine" src="../../_images/affine.svg" style="width: 15px; height: 15px;" /></a> log-log affine</p></td>
+<td><p><a class="reference internal" href="../../_images/increasing.svg"><img alt="incr" src="../../_images/increasing.svg" style="width: 15px; height: 15px;" /></a> incr.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="../../api_reference/cvxpy.atoms.affine.html#diag"><span class="std std-ref">diag(X)</span></a></p></td>
 <td><p><span class="math notranslate nohighlight">\(\left[\begin{matrix}X_{11}  \\\vdots \\X_{nn}\end{matrix}\right]\)</span></p></td>
 <td><p><span class="math notranslate nohighlight">\(X \in\mathbf{R}^{n \times n}_{++}\)</span></p></td>
-<td><p><a class="reference internal" href="../../_images/affine.svg"><img alt="affine" height="15px" src="../../_images/affine.svg" width="15px" /></a> log-log affine</p></td>
-<td><p><a class="reference internal" href="../../_images/increasing.svg"><img alt="incr" height="15px" src="../../_images/increasing.svg" width="15px" /></a> incr.</p></td>
+<td><p><a class="reference internal" href="../../_images/affine.svg"><img alt="affine" src="../../_images/affine.svg" style="width: 15px; height: 15px;" /></a> log-log affine</p></td>
+<td><p><a class="reference internal" href="../../_images/increasing.svg"><img alt="incr" src="../../_images/increasing.svg" style="width: 15px; height: 15px;" /></a> incr.</p></td>
 </tr>
 <tr class="row-odd"><td><p><span class="xref std std-ref">eye_minus_inv(X)</span></p></td>
 <td><p><span class="math notranslate nohighlight">\((I - X)^{-1}\)</span></p></td>
 <td><p><span class="math notranslate nohighlight">\(X \in\mathbf{R}^{n \times n}_{++}, \lambda_{\text{pf}}(X) &lt; 1\)</span></p></td>
-<td><p><a class="reference internal" href="../../_images/convex.svg"><img alt="convex" height="15px" src="../../_images/convex.svg" width="15px" /></a> log-log convex</p></td>
-<td><p><a class="reference internal" href="../../_images/increasing.svg"><img alt="incr" height="15px" src="../../_images/increasing.svg" width="15px" /></a> incr.</p></td>
+<td><p><a class="reference internal" href="../../_images/convex.svg"><img alt="convex" src="../../_images/convex.svg" style="width: 15px; height: 15px;" /></a> log-log convex</p></td>
+<td><p><a class="reference internal" href="../../_images/increasing.svg"><img alt="incr" src="../../_images/increasing.svg" style="width: 15px; height: 15px;" /></a> incr.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="../../api_reference/cvxpy.atoms.other_atoms.html#gmatmul"><span class="std std-ref">gmatmul(A, x)</span></a></p>
 <p><span class="math notranslate nohighlight">\(A \in \mathbf{R}^{m \times n}\)</span></p>
 </td>
 <td><p><span class="math notranslate nohighlight">\(\left[\begin{matrix}\prod_{j=1}^n x_j^{A_{1j}} \\\vdots \\\prod_{j=1}^n x_j^{A_{mj}}\end{matrix}\right]\)</span></p></td>
 <td><p><span class="math notranslate nohighlight">\(x \in \mathbf{R}^n_{++}\)</span></p></td>
-<td><p><a class="reference internal" href="../../_images/affine.svg"><img alt="affine" height="15px" src="../../_images/affine.svg" width="15px" /></a> log-log affine</p></td>
-<td><p><a class="reference internal" href="../../_images/increasing.svg"><img alt="incr" height="15px" src="../../_images/increasing.svg" width="15px" /></a> for <span class="math notranslate nohighlight">\(A_{ij} \geq 0\)</span></p>
-<p><a class="reference internal" href="../../_images/decreasing.svg"><img alt="decr" height="15px" src="../../_images/decreasing.svg" width="15px" /></a> for <span class="math notranslate nohighlight">\(A_{ij} \leq 0\)</span></p>
+<td><p><a class="reference internal" href="../../_images/affine.svg"><img alt="affine" src="../../_images/affine.svg" style="width: 15px; height: 15px;" /></a> log-log affine</p></td>
+<td><p><a class="reference internal" href="../../_images/increasing.svg"><img alt="incr" src="../../_images/increasing.svg" style="width: 15px; height: 15px;" /></a> for <span class="math notranslate nohighlight">\(A_{ij} \geq 0\)</span></p>
+<p><a class="reference internal" href="../../_images/decreasing.svg"><img alt="decr" src="../../_images/decreasing.svg" style="width: 15px; height: 15px;" /></a> for <span class="math notranslate nohighlight">\(A_{ij} \leq 0\)</span></p>
 </td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="../../api_reference/cvxpy.atoms.affine.html#hstack"><span class="std std-ref">hstack([X1, …, Xk])</span></a></p></td>
 <td><p><span class="math notranslate nohighlight">\(\left[\begin{matrix}X^{(1)}  \cdots    X^{(k)}\end{matrix}\right]\)</span></p></td>
 <td><p><span class="math notranslate nohighlight">\(X^{(i)} \in\mathbf{R}^{m \times n_i}_{++}\)</span></p></td>
-<td><p><a class="reference internal" href="../../_images/affine.svg"><img alt="affine" height="15px" src="../../_images/affine.svg" width="15px" /></a> log-log affine</p></td>
-<td><p><a class="reference internal" href="../../_images/increasing.svg"><img alt="incr" height="15px" src="../../_images/increasing.svg" width="15px" /></a> incr.</p></td>
+<td><p><a class="reference internal" href="../../_images/affine.svg"><img alt="affine" src="../../_images/affine.svg" style="width: 15px; height: 15px;" /></a> log-log affine</p></td>
+<td><p><a class="reference internal" href="../../_images/increasing.svg"><img alt="incr" src="../../_images/increasing.svg" style="width: 15px; height: 15px;" /></a> incr.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="../../api_reference/cvxpy.atoms.affine.html#matmul"><span class="std std-ref">matmul(X, Y)</span></a></p></td>
 <td><p><span class="math notranslate nohighlight">\(XY\)</span></p></td>
 <td><p><span class="math notranslate nohighlight">\(X \in\mathbf{R}^{m \times n}_{++}, Y \in\mathbf{R}^{n \times p}_{++}`\)</span></p></td>
-<td><p><a class="reference internal" href="../../_images/convex.svg"><img alt="convex" height="15px" src="../../_images/convex.svg" width="15px" /></a> log-log convex</p></td>
-<td><p><a class="reference internal" href="../../_images/increasing.svg"><img alt="incr" height="15px" src="../../_images/increasing.svg" width="15px" /></a> incr.</p></td>
+<td><p><a class="reference internal" href="../../_images/convex.svg"><img alt="convex" src="../../_images/convex.svg" style="width: 15px; height: 15px;" /></a> log-log convex</p></td>
+<td><p><a class="reference internal" href="../../_images/increasing.svg"><img alt="incr" src="../../_images/increasing.svg" style="width: 15px; height: 15px;" /></a> incr.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="../../api_reference/cvxpy.atoms.other_atoms.html#resolvent"><span class="std std-ref">resolvent(X)</span></a></p></td>
 <td><p><span class="math notranslate nohighlight">\((sI - X)^{-1}\)</span></p></td>
 <td><p><span class="math notranslate nohighlight">\(X \in\mathbf{R}^{n \times n}_{++}, \lambda_{\text{pf}}(X) &lt; s\)</span></p></td>
-<td><p><a class="reference internal" href="../../_images/convex.svg"><img alt="convex" height="15px" src="../../_images/convex.svg" width="15px" /></a> log-log convex</p></td>
-<td><p><a class="reference internal" href="../../_images/increasing.svg"><img alt="incr" height="15px" src="../../_images/increasing.svg" width="15px" /></a> incr.</p></td>
+<td><p><a class="reference internal" href="../../_images/convex.svg"><img alt="convex" src="../../_images/convex.svg" style="width: 15px; height: 15px;" /></a> log-log convex</p></td>
+<td><p><a class="reference internal" href="../../_images/increasing.svg"><img alt="incr" src="../../_images/increasing.svg" style="width: 15px; height: 15px;" /></a> incr.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="../../api_reference/cvxpy.atoms.affine.html#reshape"><span class="std std-ref">reshape(X, (m’, n’))</span></a></p></td>
 <td><p><span class="math notranslate nohighlight">\(X' \in\mathbf{R}^{m' \times n'}\)</span></p></td>
 <td><p><span class="math notranslate nohighlight">\(X \in\mathbf{R}^{m \times n}_{++}\)</span></p>
 <p><span class="math notranslate nohighlight">\(m'n' = mn\)</span></p>
 </td>
-<td><p><a class="reference internal" href="../../_images/affine.svg"><img alt="affine" height="15px" src="../../_images/affine.svg" width="15px" /></a> log-log affine</p></td>
-<td><p><a class="reference internal" href="../../_images/increasing.svg"><img alt="incr" height="15px" src="../../_images/increasing.svg" width="15px" /></a> incr.</p></td>
+<td><p><a class="reference internal" href="../../_images/affine.svg"><img alt="affine" src="../../_images/affine.svg" style="width: 15px; height: 15px;" /></a> log-log affine</p></td>
+<td><p><a class="reference internal" href="../../_images/increasing.svg"><img alt="incr" src="../../_images/increasing.svg" style="width: 15px; height: 15px;" /></a> incr.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="../../api_reference/cvxpy.atoms.affine.html#vec"><span class="std std-ref">vec(X)</span></a></p></td>
 <td><p><span class="math notranslate nohighlight">\(x' \in\mathbf{R}^{mn}\)</span></p></td>
 <td><p><span class="math notranslate nohighlight">\(X \in\mathbf{R}^{m \times n}_{++}\)</span></p></td>
-<td><p><a class="reference internal" href="../../_images/affine.svg"><img alt="affine" height="15px" src="../../_images/affine.svg" width="15px" /></a> log-log affine</p></td>
-<td><p><a class="reference internal" href="../../_images/increasing.svg"><img alt="incr" height="15px" src="../../_images/increasing.svg" width="15px" /></a> incr.</p></td>
+<td><p><a class="reference internal" href="../../_images/affine.svg"><img alt="affine" src="../../_images/affine.svg" style="width: 15px; height: 15px;" /></a> log-log affine</p></td>
+<td><p><a class="reference internal" href="../../_images/increasing.svg"><img alt="incr" src="../../_images/increasing.svg" style="width: 15px; height: 15px;" /></a> incr.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="../../api_reference/cvxpy.atoms.affine.html#vstack"><span class="std std-ref">vstack([X1, …, Xk])</span></a></p></td>
 <td><p><span class="math notranslate nohighlight">\(\left[\begin{matrix}X^{(1)}  \\ \vdots  \\X^{(k)}\end{matrix}\right]\)</span></p></td>
 <td><p><span class="math notranslate nohighlight">\(X^{(i)} \in\mathbf{R}^{m_i \times n}_{++}\)</span></p></td>
-<td><p><a class="reference internal" href="../../_images/affine.svg"><img alt="affine" height="15px" src="../../_images/affine.svg" width="15px" /></a> log-log affine</p></td>
-<td><p><a class="reference internal" href="../../_images/increasing.svg"><img alt="incr" height="15px" src="../../_images/increasing.svg" width="15px" /></a> incr.</p></td>
+<td><p><a class="reference internal" href="../../_images/affine.svg"><img alt="affine" src="../../_images/affine.svg" style="width: 15px; height: 15px;" /></a> log-log affine</p></td>
+<td><p><a class="reference internal" href="../../_images/increasing.svg"><img alt="incr" src="../../_images/increasing.svg" style="width: 15px; height: 15px;" /></a> incr.</p></td>
 </tr>
 </tbody>
 </table>
-</section>
-</section>
-</section>
 
 
-          </div>
+
+  
+
+
+
+
+                
+              </article>
+            </div>
           
+          
+  <script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var tab,labels=set.querySelector(".tabbed-labels");for(tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>
+
         </div>
-      </div>
-      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
-        <div class="sphinxsidebarwrapper">
-<h1 class="logo"><a href="../../index.html">CVXPY</a></h1>
-
-
-
-
-
-
-<p>
-<iframe src="https://ghbtns.com/github-btn.html?user=cvxpy&repo=cvxpy&type=star&count=true&size=large&v=2"
-  allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
-</p>
-
-
-
-
-
-<h3>Navigation</h3>
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="../../install/index.html">Install</a></li>
-</ul>
-<ul class="current">
-<li class="toctree-l1 current"><a class="reference internal" href="../index.html">User Guide</a><ul class="current">
-<li class="toctree-l2"><a class="reference internal" href="../intro/index.html">What is CVXPY?</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../functions/index.html">Atomic Functions</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../dcp/index.html">Disciplined Convex Programming</a></li>
-<li class="toctree-l2 current"><a class="current reference internal" href="#">Disciplined Geometric Programming</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#log-log-curvature">Log-log curvature</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#log-log-curvature-rules">Log-log curvature rules</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#dgp-problems">DGP problems</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#dgp-atoms">DGP atoms</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="#infix-operators">Infix operators</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#transpose">Transpose</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#power">Power</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#scalar-functions">Scalar functions</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#elementwise-functions">Elementwise functions</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#vector-matrix-functions">Vector/matrix functions</a></li>
-</ul>
-</li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="../dpp/index.html">Disciplined Parametrized Programming</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../dqcp/index.html">Disciplined Quasiconvex Programming</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../constraints/index.html">Advanced Constraints</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../advanced/index.html">Advanced Features</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../solvers/index.html">Solver Features</a></li>
-</ul>
-</li>
-</ul>
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="../../api_reference/cvxpy.html">API Documentation</a></li>
-</ul>
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="../../examples/index.html">Examples</a></li>
-</ul>
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="../../contributing/index.html">Contributing</a></li>
-</ul>
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="../../updates/index.html">Changelog</a></li>
-</ul>
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="../../faq/index.html">FAQ</a></li>
-</ul>
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="../../resources/index.html">Resources</a></li>
-</ul>
-
-
-<div id="searchbox" style="display: none" role="search">
-  <h3 id="searchlabel">Quick search</h3>
-    <div class="searchformwrapper">
-    <form class="search" action="../../search.html" method="get">
-      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
-      <input type="submit" value="Go" />
-    </form>
-    </div>
-</div>
-<script>document.getElementById('searchbox').style.display = "block"</script><div>
-    <h3>
-        Version selector
-    </h3>
-    <select id="dynamic_selector" name="versions" onchange="if (this.value) window.location.href=this.value">
-    </select>
-    <script>
-        obj = $.getJSON("https://raw.githubusercontent.com/cvxpy/cvxpy/gh-pages/versions.json")
-            .done(function (data) {
-                const base_url = "https://www.cvxpy.org/"
-                let html = "<option value='' selected>Choose version here</option>";
-                html += "<option value=" + base_url + ">latest" + ""
-                for (let i = 0; i < data.length; i++) {
-                    html += "<option value=" + base_url + "version/"  + data[i] + ">" + data[i] + ""
-                }
-                document.getElementById("dynamic_selector").innerHTML = html;
-            });
-    </script>
-</div>
-        </div>
-      </div>
-      <div class="clearer"></div>
-    </div>
-    <div class="footer">
-      &copy;The CVXPY authors.
+        
+          <a href="#" class="md-top md-icon" data-md-component="top" hidden>
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8v12Z"/></svg>
+            Back to top
+          </a>
+        
+      </main>
       
-      |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 7.1.2</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.13</a>
+        <footer class="md-footer">
+  
+    
+    <nav class="md-footer__inner md-grid" aria-label="Footer" >
       
-      |
-      <a href="../../_sources/tutorial/dgp/index.rst.txt"
-          rel="nofollow">Page source</a>
+        
+        <a href="../dcp/index.html" class="md-footer__link md-footer__link--prev" aria-label="Previous: Disciplined Convex Programming" rel="prev">
+          <div class="md-footer__button md-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12Z"/></svg>
+          </div>
+          <div class="md-footer__title">
+            <div class="md-ellipsis">
+              <span class="md-footer__direction">
+                Previous
+              </span>
+              Disciplined Convex Programming
+            </div>
+          </div>
+        </a>
+      
+      
+        
+        <a href="../dpp/index.html" class="md-footer__link md-footer__link--next" aria-label="Next: Disciplined Parametrized Programming" rel="next">
+          <div class="md-footer__title">
+            <div class="md-ellipsis">
+              <span class="md-footer__direction">
+                Next
+              </span>
+              Disciplined Parametrized Programming
+            </div>
+          </div>
+          <div class="md-footer__button md-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11H4Z"/></svg>
+          </div>
+        </a>
+      
+    </nav>
+  
+  
+  
+  <div class="md-footer-meta md-typeset">
+    
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+    <div class="md-footer-copyright__highlight">
+        &#169; Copyright The CVXPY authors.
+        
     </div>
-
+  
+    Created using
+    <a href="https://www.sphinx-doc.org/" target="_blank" rel="noopener">Sphinx</a>
+    8.1.3.
+     and
+    <a href="https://github.com/jbms/sphinx-immaterial/" target="_blank" rel="noopener">Sphinx-Immaterial</a>
+  
+</div>
+      
+        <div class="md-social">
+  
     
-
     
-    <script type="text/javascript">
-
-      var _gaq = _gaq || [];
-      _gaq.push(['_setAccount', 'UA-50248335-1']);
-      _gaq.push(['_setDomainName', 'none']);
-      _gaq.push(['_setAllowLinker', true]);
-      _gaq.push(['_trackPageview']);
-
-      (function() {
-        var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
-        ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
-        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
-      })();
-
-    </script>
+    <a href="https://github.com/cvxpy/cvxpy" target="_blank" rel="noopener" title="Source on github.com" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3zm44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8zM97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1zm-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7zm32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1zm-11.4-14.7c-1.6 1-1.6 3.6 0 5.9 1.6 2.3 4.3 3.3 5.6 2.3 1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2z"/></svg>
+    </a>
+  
+    
+    
+      
+      
+    
+    <a href="https://pypi.org/project/cvxpy/" target="_blank" rel="noopener" title="pypi.org" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc.--><path d="M439.8 200.5c-7.7-30.9-22.3-54.2-53.4-54.2h-40.1v47.4c0 36.8-31.2 67.8-66.8 67.8H172.7c-29.2 0-53.4 25-53.4 54.3v101.8c0 29 25.2 46 53.4 54.3 33.8 9.9 66.3 11.7 106.8 0 26.9-7.8 53.4-23.5 53.4-54.3v-40.7H226.2v-13.6h160.2c31.1 0 42.6-21.7 53.4-54.2 11.2-33.5 10.7-65.7 0-108.6zM286.2 404c11.1 0 20.1 9.1 20.1 20.3 0 11.3-9 20.4-20.1 20.4-11 0-20.1-9.2-20.1-20.4.1-11.3 9.1-20.3 20.1-20.3zM167.8 248.1h106.8c29.7 0 53.4-24.5 53.4-54.3V91.9c0-29-24.4-50.7-53.4-55.6-35.8-5.9-74.7-5.6-106.8.1-45.2 8-53.4 24.7-53.4 55.6v40.7h106.9v13.6h-147c-31.1 0-58.3 18.7-66.8 54.2-9.8 40.7-10.2 66.1 0 108.6 7.6 31.6 25.7 54.2 56.8 54.2H101v-48.8c0-35.3 30.5-66.4 66.8-66.4zm-6.7-142.6c-11.1 0-20.1-9.1-20.1-20.3.1-11.3 9-20.4 20.1-20.4 11 0 20.1 9.2 20.1 20.4s-9 20.3-20.1 20.3z"/></svg>
+    </a>
+  
+</div>
+      
+    </div>
+    
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    <script id="__config" type="application/json">{"base": "../..", "features": ["header.autohide", "toc.follow", "navigation.path", "navigation.instant", "navigation.top", "navigation.tabs", "navigation.tabs.sticky", "navigation.tracking", "navigation.expand", "search.highlight", "search.share", "content.tabs.link", "announce.dismiss"], "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version.title": "Select version"}, "version": {"provider": "mike", "staticVersions": [{"aliases": [], "title": "latest", "version": "https://www.cvxpy.org"}, {"aliases": [], "title": "1.4", "version": "https://www.cvxpy.org/version/1.4"}, {"aliases": [], "title": "1.3", "version": "https://www.cvxpy.org/version/1.3"}, {"aliases": [], "title": "1.2", "version": "https://www.cvxpy.org/version/1.2"}, {"aliases": [], "title": "1.1", "version": "https://www.cvxpy.org/version/1.1"}], "versionPath": null}}</script>
+    
+      
+        <script src="../../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../../_static/sphinx_immaterial_theme.f9d9eeeb247ace16c.min.js?v=8ec58cb5"></script>
+        <script src="../../_static/tabs.js?v=3ee01567"></script>
+        <script src="../../_static/design-tabs.js?v=f930bc37"></script>
+        <script id="MathJax-script" src="../../_static/mathjax/tex-mml-chtml.js?v=cadf963e"></script>
     
   </body>
 </html>

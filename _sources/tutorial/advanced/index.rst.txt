@@ -5,6 +5,44 @@ Advanced Features
 
 This section of the tutorial covers features of CVXPY intended for users with advanced knowledge of convex optimization. We recommend `Convex Optimization <https://www.stanford.edu/~boyd/cvxbook/>`_ by Boyd and Vandenberghe as a reference for any terms you are unfamiliar with.
 
+.. _n-dimensional:
+
+N-dimensional expressions
+-------------------------
+
+.. versionadded:: 1.6
+
+CVXPY now supports N-dimensional expressions. This allows one to define variables, parameters, and constants with arbitrary number of dimensions.
+This new feature enables users to model problems with multi-dimensional data in a more natural way.
+
+In the example below, we consider a problem where the goal is to optimize the usage of a resource across multiple locations, days, and hours.
+We are now able to easily form constraints on any combination of dimensions.
+
+.. code:: python
+    
+    # create a 3-dimensional variable (locations, days, hours)
+    x = cp.Variable((12, 10, 24))
+
+    constraints = [
+      cp.sum(x, axis=(0, 2)) <= 2000, # constrain the daily usage across all locations
+      x[:, :, :12] <= 100, # constrain the first 12 hours of each day at every location
+      x[:, 3, :] == 0,] # constrain the usage on the fourth day to be zero
+
+    obj = cp.Minimize(cp.sum_squares(x))
+    prob = cp.Problem(obj, constraints)
+    prob.solve()
+
+Please refer to NumPy's excellent `reference <https://numpy.org/doc/stable/reference/arrays.ndarray.html>`_ 
+on N-dimensional arrays and the `array API standard <https://data-apis.org/array-api/latest/API_specification/index.html>`_ for more details
+on how to manipulate N-dimensional arrays. Our goal is to match the NumPy API as closely as possible.
+
+.. warning::
+
+    N-dimensional support is still experimental and may not work with all CVXPY features.
+    If you encounter any issues or missing functionality, please report them on `GitHub issues <https://github.com/cvxpy/cvxpy/issues>`_.
+
+.. _dual-variables:
+
 Dual variables
 --------------
 
@@ -44,6 +82,8 @@ You can use CVXPY to find the optimal dual variables for a problem. When you cal
 
 The dual variable for ``x - y >= 1`` is 2. By complementarity this implies that ``x - y`` is 1, which we can see is true. The fact that the dual variable is non-zero also tells us that if we tighten ``x - y >= 1``, (i.e., increase the right-hand side), the optimal value of the problem will increase.
 
+.. _transforms:
+
 Transforms
 ----------
 
@@ -70,6 +110,8 @@ constraints hold and :math:`\infty` when they are violated.
    expr.value = inf
 
 The full set of transforms available is discussed in :ref:`transforms-api`.
+
+.. _problem-arithmetic:
 
 Problem arithmetic
 ------------------
@@ -137,6 +179,8 @@ objectives and problems and follow the same rules as above.
 .. \mbox{minimize}  &\sum_{i=1}^n \alpha_i f_i(x) \\
 .. \mbox{subject to} &x \in \cap_{i=1}^n \mathcal C_i
 .. \end{array}`
+
+.. _standard-form:
 
 Getting the standard form
 -------------------------
