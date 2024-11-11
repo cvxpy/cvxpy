@@ -203,22 +203,17 @@ html_theme_options = {
         },
         {
             "version": "https://www.cvxpy.org/version/1.4",
-            "title": "1.4",
+            "title": "1.5",
             "aliases": [],
         },
         {
             "version": "https://www.cvxpy.org/version/1.3",
-            "title": "1.3",
+            "title": "1.4",
             "aliases": [],
         },
         {
             "version": "https://www.cvxpy.org/version/1.2",
-            "title": "1.2",
-            "aliases": [],
-        },
-        {
-            "version": "https://www.cvxpy.org/version/1.1",
-            "title": "1.1",
+            "title": "1.3",
             "aliases": [],
         },
     ],
