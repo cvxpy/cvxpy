@@ -48,8 +48,12 @@ class DIFFCP(scs_conif.SCS):
         """Imports the solver.
         """
         import diffcp
+        major_version = int(diffcp.__version__.split(".")[0])
+        minor_version = int(diffcp.__version__.split(".")[1])
         patch_version = int(diffcp.__version__.split(".")[2])
-        if patch_version < 15:
+        if major_version <= 1 \
+                and minor_version == 0 \
+                and patch_version < 15:
             raise ImportError("diffcp >= 1.0.15 is required")
 
     def supports_quad_obj(self) -> bool:

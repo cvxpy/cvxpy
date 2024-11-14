@@ -90,7 +90,7 @@ class reshape(AffAtom):
     def numeric(self, values):
         """Reshape the value.
         """
-        return np.reshape(values[0], self.shape, self.order)
+        return np.reshape(values[0], self.shape, order=self.order)
 
     def validate_arguments(self) -> None:
         """Checks that the new shape has the same number of entries as the old.
