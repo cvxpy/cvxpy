@@ -202,18 +202,18 @@ html_theme_options = {
             "aliases": [],
         },
         {
-            "version": "https://www.cvxpy.org/version/1.4",
+            "version": "https://www.cvxpy.org/version/1.6",
+            "title": "1.6",
+            "aliases": [],
+        },
+        {
+            "version": "https://www.cvxpy.org/version/1.5",
             "title": "1.5",
             "aliases": [],
         },
         {
-            "version": "https://www.cvxpy.org/version/1.3",
+            "version": "https://www.cvxpy.org/version/1.4",
             "title": "1.4",
-            "aliases": [],
-        },
-        {
-            "version": "https://www.cvxpy.org/version/1.2",
-            "title": "1.3",
             "aliases": [],
         },
     ],
