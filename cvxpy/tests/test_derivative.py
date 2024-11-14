@@ -35,6 +35,9 @@ def perturbcheck(problem, gp: bool = False, solve_methods: list = SOLVE_METHODS,
         problem.derivative()
         variable_values = [v.value for v in problem.variables()]
         deltas = [v.delta for v in problem.variables()]
+        
+        dual_values = [c.dual_variables[0].value for c in problem.constraints]
+        deltas_dual = [c.dual_variables[0].delta for c in problem.constraints]
 
         # Compute perturbations numerically
         old_values = {}
@@ -45,8 +48,16 @@ def perturbcheck(problem, gp: bool = False, solve_methods: list = SOLVE_METHODS,
         num_deltas = [
             v.value - old_value for (v, old_value)
             in zip(problem.variables(), variable_values)]
+        
+        num_deltas_dual = [
+            c.dual_variables[0].value - old_value for (c, old_value)
+            in zip(problem.constraints, dual_values)
+        ]
 
         for analytical, numerical in zip(deltas, num_deltas):
+            np.testing.assert_allclose(analytical, numerical, atol=atol)
+        
+        for analytical, numerical in zip(deltas_dual, num_deltas_dual):
             np.testing.assert_allclose(analytical, numerical, atol=atol)
 
         for param in problem.parameters():
