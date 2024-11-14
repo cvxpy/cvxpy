@@ -586,7 +586,7 @@ class TestQp(BaseTest):
                 self.skipTest("Gurobi has found a solution, the test is not relevant anymore.")
 
             solver_status = getattr(extra_stats, "Status", None)
-            if solver_status != gurobipy.StatusConstClass.TIME_LIMIT:
+            if solver_status != gurobipy.GRB.TIME_LIMIT:
                 self.skipTest("Gurobi terminated for a different reason than reaching time limit, "
                               "the test is not relevant anymore.")
 
