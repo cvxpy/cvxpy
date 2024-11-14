@@ -44,6 +44,7 @@ from cvxpy.reductions.flip_objective import FlipObjective
 from cvxpy.reductions.solution import INF_OR_UNB_MESSAGE
 from cvxpy.reductions.solvers import bisection
 from cvxpy.reductions.solvers import defines as slv_def
+from cvxpy.reductions.solvers.conic_solvers import DIFFCP
 from cvxpy.reductions.solvers.conic_solvers.conic_solver import ConicSolver
 from cvxpy.reductions.solvers.defines import SOLVER_MAP_CONIC, SOLVER_MAP_QP
 from cvxpy.reductions.solvers.qp_solvers.qp_solver import QpSolver
@@ -124,7 +125,6 @@ def _validate_constraint(constraint):
     else:
         raise ValueError("Problem has an invalid constraint of type %s" %
                          type(constraint))
-
 
 class Problem(u.Canonical):
     """A convex optimization problem.
@@ -1394,17 +1394,44 @@ class Problem(u.Canonical):
         dc, _, dA, db = param_prog.apply_parameters(param_deltas,
                                                     zero_offset=True)
         start = time.time()
-        dx, _, _ = D(-dA, db, dc)
+        dx, dy, _ = D(-dA, db, dc)
         end = time.time()
         backward_cache['D_TIME'] = end - start
-        dvars = param_prog.split_solution(
-            dx, [v.id for v in self.variables()])
+
+        chain = self._cache.solving_chain
+        inverse_data = self._cache.inverse_data
+
+        solution = {
+            "info" : {
+                "solve_method" : s.SCS,
+                "solve_time" : self.solver_stats.solve_time,
+                "setup_time" : self.solver_stats.setup_time,
+                "iter" : self.solver_stats.num_iters,
+                "status_val" : 1, # see SCS.STATUS_MAP
+                "pobj" : self.value,
+            },
+            "x" : dx,
+            "y" : dy,
+            "solve_method": s.SCS,
+        }
+
+        diffcp = DIFFCP()
+        _, solver_inverse_data = self._cache.solving_chain.solver.apply(self._cache.param_prog)
+        solution = diffcp.invert(solution, solver_inverse_data)
+        solution = chain.invert(solution, inverse_data)
+
         for variable in self.variables():
-            variable.delta = dvars[variable.id]
+            variable.delta = solution.primal_vars[variable.id]
             if gp:
                 # x_gp = exp(x_cone_program),
                 # dx_gp/d x_cone_program = exp(x_cone_program) = x_gp
-                variable.delta *= variable.value
+                variable.delta = variable.delta * variable.value
+
+        for cons in self.constraints:
+            val = solution.dual_vars[cons.id]
+            dual_var = cons.dual_variables[0]
+            dual_var.delta = val
+            # TODO: handle GP?
 
     def _clear_solution(self) -> None:
         for v in self.variables():
