@@ -42,9 +42,8 @@ from cvxpy.reductions.dqcp2dcp import dqcp2dcp
 from cvxpy.reductions.eval_params import EvalParams
 from cvxpy.reductions.flip_objective import FlipObjective
 from cvxpy.reductions.solution import INF_OR_UNB_MESSAGE
-from cvxpy.reductions.solvers import bisection
+from cvxpy.reductions.solvers import bisection, conic_solvers
 from cvxpy.reductions.solvers import defines as slv_def
-from cvxpy.reductions.solvers.conic_solvers import DIFFCP
 from cvxpy.reductions.solvers.conic_solvers.conic_solver import ConicSolver
 from cvxpy.reductions.solvers.defines import SOLVER_MAP_CONIC, SOLVER_MAP_QP
 from cvxpy.reductions.solvers.qp_solvers.qp_solver import QpSolver
@@ -1415,7 +1414,7 @@ class Problem(u.Canonical):
             "solve_method": s.SCS,
         }
 
-        diffcp = DIFFCP()
+        diffcp = conic_solvers.DIFFCP()
         _, solver_inverse_data = self._cache.solving_chain.solver.apply(self._cache.param_prog)
         solution = diffcp.invert(solution, solver_inverse_data)
         solution = chain.invert(solution, inverse_data)
