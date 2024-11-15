@@ -146,6 +146,7 @@ class ParamConeProg(ParamProb):
                  formatted: bool = False,
                  lower_bounds: np.ndarray | None = None,
                  upper_bounds: np.ndarray | None = None,
+                 constraint_offsets: dict | None = None
                  ) -> None:
         # The problem data tensors; c is for the constraint, and A for
         # the problem data matrix
@@ -177,6 +178,7 @@ class ParamConeProg(ParamProb):
         self.variables = variables
         self.var_id_to_col = var_id_to_col
         self.id_to_var = {v.id: v for v in self.variables}
+        self.constraint_offsets = constraint_offsets
 
         # whether this param cone prog has been formatted for a solver
         self.formatted = formatted
@@ -397,6 +399,7 @@ class ConeMatrixStuffing(MatrixStuffing):
             P=params_to_P,
             lower_bounds=lower_bounds,
             upper_bounds=upper_bounds,
+            constraint_offsets=inverse_data.constraint_offsets
         )
         return new_prob, inverse_data
 

@@ -289,6 +289,7 @@ class ConicSolver(Solver):
             formatted=True,
             lower_bounds=problem.lower_bounds,
             upper_bounds=problem.upper_bounds,
+            constraint_offsets=problem.constraint_offsets,
         )
         return new_param_cone_prog
 

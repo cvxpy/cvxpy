@@ -1420,18 +1420,30 @@ class Problem(u.Canonical):
         solution = diffcp.invert(solution, solver_inverse_data)
         solution = chain.invert(solution, inverse_data)
 
+        dvars = param_prog.split_solution(
+            dx, [v.id for v in self.variables()])
+
+        dcons = {}
+        constraint_offsets = inverse_data[0].constraint_offsets
+        for c in self.constraints:
+            col = constraint_offsets[c.id]
+            value = dy[col:c.size+col]
+            dcons[c.id] = value
+
         for variable in self.variables():
-            variable.delta = solution.primal_vars[variable.id]
+            # variable.delta = solution.primal_vars[variable.id]
+            variable.delta = dvars[variable.id]
+
             if gp:
                 # x_gp = exp(x_cone_program),
                 # dx_gp/d x_cone_program = exp(x_cone_program) = x_gp
                 variable.delta = variable.delta * variable.value
 
         for cons in self.constraints:
-            val = solution.dual_vars[cons.id]
+            # val = solution.dual_vars[cons.id]
+            val = dcons[cons.id]
             dual_var = cons.dual_variables[0]
             dual_var.delta = val
-            # TODO: handle GP?
 
     def _clear_solution(self) -> None:
         for v in self.variables():
