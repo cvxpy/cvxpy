@@ -219,6 +219,74 @@ class TestExpressions(BaseTest):
         self.assertEqual(c.name(), "test")
         self.assertEqual(repr(c), "Constant(CONSTANT, NONNEGATIVE, ())")
 
+    def test_variable_bounds(self):
+        # Valid bounds: Scalars promoted to arrays
+        x = cp.Variable((2, 2), name="x", bounds=[0, 10])
+        self.assertTrue(np.array_equal(x.bounds[0], np.zeros((2, 2))))
+        self.assertTrue(np.array_equal(x.bounds[1], np.full((2, 2), 10)))
+
+        # Valid bounds: Arrays with matching shape
+        bounds = [np.zeros((2, 2)), np.ones((2, 2)) * 5]
+        x = cp.Variable((2, 2), name="x", bounds=bounds)
+        self.assertTrue(np.array_equal(x.bounds[0], np.zeros((2, 2))))
+        self.assertTrue(np.array_equal(x.bounds[1], np.ones((2, 2)) * 5))
+
+        # Valid bounds: One bound is None
+        bounds = [None, 5]
+        x = cp.Variable((2, 2), name="x", bounds=bounds)
+        self.assertTrue(np.array_equal(x.bounds[0], np.full((2, 2), -np.inf)))
+        self.assertTrue(np.array_equal(x.bounds[1], np.full((2, 2), 5)))
+
+        # Invalid bounds: Length not equal to 2
+        bounds = [0]  # Only one item
+        with self.assertRaises(ValueError) as context:
+            x = cp.Variable((2, 2), name="x", bounds=bounds)
+        self.assertEqual(str(context.exception), "Bounds should be a list of two items.")
+
+        # Invalid bounds: Non-iterable type
+        bounds = 10  # Not iterable
+        with self.assertRaises(ValueError) as context:
+            x = cp.Variable((2, 2), name="x", bounds=bounds)
+        self.assertEqual(str(context.exception), "Bounds should be a list of two items.")
+
+        # Invalid bounds: Arrays with non-matching shape
+        bounds = [np.zeros((3, 3)), np.ones((3, 3))]
+        with self.assertRaises(ValueError) as context:
+            x = cp.Variable((2, 2), name="x", bounds=bounds)
+        self.assertEqual(
+            str(context.exception),
+            "Bounds should be None, scalars, or arrays with the same dimensions "
+            "as the variable/parameter."
+        )
+
+        # Invalid bounds: Lower bound > Upper bound
+        bounds = [5, 0]
+        with self.assertRaises(ValueError) as context:
+            x = cp.Variable((2, 2), name="x", bounds=bounds)
+        self.assertEqual(
+            str(context.exception),
+            "Invalid bounds: some upper bounds are less than "
+            "corresponding lower bounds."
+        )
+
+        # Invalid bounds: NaN in bounds
+        bounds = [np.nan, 10]
+        with self.assertRaises(ValueError) as context:
+            x = cp.Variable((2, 2), name="x", bounds=bounds)
+        self.assertEqual(str(context.exception), "np.nan is not feasible as lower or upper bound.")
+
+        # Invalid bounds: Upper bound is -inf
+        bounds = [0, -np.inf]
+        with self.assertRaises(ValueError) as context:
+            x = cp.Variable((2, 2), name="x", bounds=bounds)
+        self.assertEqual(str(context.exception), "-np.inf is not feasible as an upper bound.")
+
+        # Invalid bounds: Lower bound is inf
+        bounds = [np.inf, 10]
+        with self.assertRaises(ValueError) as context:
+            x = cp.Variable((2, 2), name="x", bounds=bounds)
+        self.assertEqual(str(context.exception), "np.inf is not feasible as a lower bound.")
+
     def test_constant_psd_nsd(self):
         n = 5
         np.random.randn(0)
