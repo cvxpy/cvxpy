@@ -25,8 +25,6 @@ class InverseData:
         self.id_map, self.var_offsets, self.x_length, self.var_shapes = \
             InverseData.get_var_offsets(varis)
         
-        self.constraint_offsets = InverseData.get_constraint_offsets(problem.constraints)
-
         self.param_shapes = {}
         # Always start with CONSTANT_ID.
         self.param_to_size = {lo.CONSTANT_ID: 1}
@@ -56,12 +54,3 @@ class InverseData:
             id_map[x.id] = (vert_offset, x.size)
             vert_offset += x.size
         return (id_map, var_offsets, vert_offset, var_shapes)
-    
-    @staticmethod
-    def get_constraint_offsets(constraints):
-        constraint_offsets = {}
-        vert_offset = 0
-        for c in constraints:
-            constraint_offsets[c.id] = vert_offset
-            vert_offset += c.size
-        return constraint_offsets
