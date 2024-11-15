@@ -3,10 +3,9 @@ import pytest
 import scipy.sparse as sp
 
 import cvxpy as cp
-from cvxpy.tests.base_test import BaseTest
 
 
-class TestAttributes(BaseTest):
+class TestAttributes:
     @pytest.mark.parametrize("sparsity", [[np.array([0, 0]), np.array([0, 1])], [(0, 1), (0, 2)]])
     def test_sparsity_pattern(self, sparsity):
         X = cp.Variable((3, 3), sparsity=sparsity)
@@ -66,67 +65,66 @@ class TestAttributes(BaseTest):
     def test_variable_bounds(self):
         # Valid bounds: Scalars promoted to arrays
         x = cp.Variable((2, 2), name="x", bounds=[0, 10])
-        self.assertTrue(np.array_equal(x.bounds[0], np.zeros((2, 2))))
-        self.assertTrue(np.array_equal(x.bounds[1], np.full((2, 2), 10)))
+        assert np.array_equal(x.bounds[0], np.zeros((2, 2)))
+        assert np.array_equal(x.bounds[1], np.full((2, 2), 10))
 
         # Valid bounds: Arrays with matching shape
         bounds = [np.zeros((2, 2)), np.ones((2, 2)) * 5]
         x = cp.Variable((2, 2), name="x", bounds=bounds)
-        self.assertTrue(np.array_equal(x.bounds[0], np.zeros((2, 2))))
-        self.assertTrue(np.array_equal(x.bounds[1], np.ones((2, 2)) * 5))
+        assert np.array_equal(x.bounds[0], np.zeros((2, 2)))
+        assert np.array_equal(x.bounds[1], np.ones((2, 2)) * 5)
 
         # Valid bounds: One bound is None
         bounds = [None, 5]
         x = cp.Variable((2, 2), name="x", bounds=bounds)
-        self.assertTrue(np.array_equal(x.bounds[0], np.full((2, 2), -np.inf)))
-        self.assertTrue(np.array_equal(x.bounds[1], np.full((2, 2), 5)))
+        assert np.array_equal(x.bounds[0], np.full((2, 2), -np.inf))
+        assert np.array_equal(x.bounds[1], np.full((2, 2), 5))
 
         # Invalid bounds: Length not equal to 2
         bounds = [0]  # Only one item
-        with self.assertRaises(ValueError) as context:
+        with pytest.raises(ValueError, match="Bounds should be a list of two items."):
             x = cp.Variable((2, 2), name="x", bounds=bounds)
-        self.assertEqual(str(context.exception), "Bounds should be a list of two items.")
 
         # Invalid bounds: Non-iterable type
         bounds = 10  # Not iterable
-        with self.assertRaises(ValueError) as context:
+        with pytest.raises(ValueError, match="Bounds should be a list of two items."):
             x = cp.Variable((2, 2), name="x", bounds=bounds)
-        self.assertEqual(str(context.exception), "Bounds should be a list of two items.")
 
         # Invalid bounds: Arrays with non-matching shape
         bounds = [np.zeros((3, 3)), np.ones((3, 3))]
-        with self.assertRaises(ValueError) as context:
+        with pytest.raises(
+            ValueError,
+            match="Bounds should be None, scalars, or arrays with the same dimensions "
+                "as the variable/parameter.",
+        ):
             x = cp.Variable((2, 2), name="x", bounds=bounds)
-        self.assertEqual(
-            str(context.exception),
-            "Bounds should be None, scalars, or arrays with the same dimensions "
-            "as the variable/parameter."
-        )
 
         # Invalid bounds: Lower bound > Upper bound
         bounds = [5, 0]
-        with self.assertRaises(ValueError) as context:
+        with pytest.raises(
+            ValueError,
+            match="Invalid bounds: some upper bounds are less than "
+                "corresponding lower bounds.",
+        ):
             x = cp.Variable((2, 2), name="x", bounds=bounds)
-        self.assertEqual(
-            str(context.exception),
-            "Invalid bounds: some upper bounds are less than "
-            "corresponding lower bounds."
-        )
 
         # Invalid bounds: NaN in bounds
         bounds = [np.nan, 10]
-        with self.assertRaises(ValueError) as context:
+        with pytest.raises(
+            ValueError, match="np.nan is not feasible as lower or upper bound."
+        ):
             x = cp.Variable((2, 2), name="x", bounds=bounds)
-        self.assertEqual(str(context.exception), "np.nan is not feasible as lower or upper bound.")
 
         # Invalid bounds: Upper bound is -inf
         bounds = [0, -np.inf]
-        with self.assertRaises(ValueError) as context:
+        with pytest.raises(
+            ValueError, match="-np.inf is not feasible as an upper bound."
+        ):
             x = cp.Variable((2, 2), name="x", bounds=bounds)
-        self.assertEqual(str(context.exception), "-np.inf is not feasible as an upper bound.")
 
         # Invalid bounds: Lower bound is inf
         bounds = [np.inf, 10]
-        with self.assertRaises(ValueError) as context:
+        with pytest.raises(
+            ValueError, match="np.inf is not feasible as a lower bound."
+        ):
             x = cp.Variable((2, 2), name="x", bounds=bounds)
-        self.assertEqual(str(context.exception), "np.inf is not feasible as a lower bound.")
