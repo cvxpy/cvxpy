@@ -157,21 +157,21 @@ class Leaf(expression.Expression):
             self.value = value
 
         self.args = []
-        self.bounds = bounds
+        self.bounds = self._ensure_valid_bounds(bounds)
 
     def _validate_indices(self, indices: list[tuple[int]] | tuple[np.ndarray]) -> None:
         """
         Validate the sparsity pattern for a leaf node.
-    
+
         Parameters:
         indices: List or tuple of indices indicating the positions of non-zero elements.
         """
         if not all(len(idx) == len(indices[0]) for idx in indices):
             raise ValueError("All index tuples in indices must have the same length.")
-        
+
         if len(indices) != len(self._shape):
             raise ValueError(f"Indices should have {len(self._shape)} dimensions.")
-        
+
         # convert list/tuple to array to validate indices within bounds
         indices = np.array(indices)
 
@@ -179,7 +179,7 @@ class Leaf(expression.Expression):
             raise ValueError(
                 f"Indices are out of bounds for expression with shape {self._shape}.")
         return tuple(indices)
-    
+
     def _get_attr_str(self) -> str:
         """Get a string representing the attributes."""
         attr_str = ""
@@ -311,7 +311,7 @@ class Leaf(expression.Expression):
         Parameters
         ----------
         term: The term to encode in the constraints.
-        constraints: An existing list of constraitns to append to.        
+        constraints: An existing list of constraitns to append to.
         """
         if self.attributes['nonneg'] or self.attributes['pos']:
             constraints.append(term >= 0)
@@ -554,15 +554,9 @@ class Leaf(expression.Expression):
     def atoms(self) -> list[Atom]:
         return []
 
-    @property
-    def bounds(self):
-        return self._bounds
-
-    @bounds.setter
-    def bounds(self, value):
+    def _ensure_valid_bounds(self, value) -> Iterable | None:
         # In case for a constant or no bounds
         if value is None:
-            self._bounds = None
             return
 
         # Check that bounds is an iterable of two items
@@ -586,6 +580,13 @@ class Leaf(expression.Expression):
             elif np.isscalar(val):
                 value[idx] = np.full(self.shape, val)
 
+        # Upper bound cannot be -np.inf.
+        if np.any(value[1] == -np.inf):
+            raise ValueError("-np.inf is not feasible as an upper bound.")
+        # Lower bound cannot be np.inf.
+        if np.any(value[0] == np.inf):
+            raise ValueError("np.inf is not feasible as a lower bound.")
+
         # Check that upper_bound >= lower_bound
         if np.any(value[0] > value[1]):
             raise ValueError("Invalid bounds: some upper bounds are less "
@@ -595,11 +596,4 @@ class Leaf(expression.Expression):
             raise ValueError("np.nan is not feasible as lower "
                                 "or upper bound.")
 
-        # Upper bound cannot be -np.inf.
-        if np.any(value[1] == -np.inf):
-            raise ValueError("-np.inf is not feasible as an upper bound.")
-        # Lower bound cannot be np.inf.
-        if np.any(value[0] == np.inf):
-            raise ValueError("np.inf is not feasible as a lower bound.")
-
-        self._bounds = value
+        return value
