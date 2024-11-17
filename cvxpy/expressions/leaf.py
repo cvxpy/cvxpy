@@ -425,7 +425,7 @@ class Leaf(expression.Expression):
             return (V * w).dot(V.T)
         elif self.attributes['sparsity']:
             new_val = np.zeros(self.shape)
-            new_val[self.sparse_idx] = val
+            new_val[self.sparse_idx] = val[self.sparse_idx]
             return new_val
         else:
             return val
@@ -464,14 +464,6 @@ class Leaf(expression.Expression):
         if val is not None:
             # Convert val to ndarray or sparse matrix.
             val = intf.convert(val)
-            if self.attributes['sparsity']:
-                dim = len(self.sparse_idx[0])
-                if intf.shape(val) != (dim,):
-                    raise ValueError(
-                        "Invalid dimensions %s for sparse %s value with dimension (%d,)." %
-                        (intf.shape(val), self.__class__.__name__, dim)
-                    )
-                return self.project(val)
             if intf.shape(val) != self.shape:
                 raise ValueError(
                     "Invalid dimensions %s for %s value." %
@@ -511,6 +503,8 @@ class Leaf(expression.Expression):
                     attr_str = 'nonpositive'
                 elif self.attributes['neg']:
                     attr_str = 'negative'
+                elif self.attributes['sparsity']:
+                    attr_str = 'zero outside of sparsity pattern'
                 elif self.attributes['diag']:
                     attr_str = 'diagonal'
                 elif self.attributes['PSD']:
