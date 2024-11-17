@@ -42,7 +42,7 @@ else
 fi
 
 if [[ "$PYTHON_VERSION" == "3.11" ]]; then
-  python -m pip install cplex "ortools>=9.7,<9.10"
+  python -m pip install cplex "ortools>=9.7,<9.12"
 fi
 
 if [[ "$RUNNER_OS" == "Windows" ]] && [[ "$PYTHON_VERSION" != "3.13" ]]; then
