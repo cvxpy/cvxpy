@@ -67,11 +67,13 @@ class TestAttributes:
     def test_sparsity_parameter_incorrect_dim(self):
         A = cp.Parameter((3, 3), sparsity=[(0, 2, 1, 2), (0, 1, 2, 2)])
         with pytest.raises(
-            ValueError, match="Invalid dimensions \\(3, 3\\) for sparse Parameter value with dimension \\(4,\\)."
+            ValueError, match="Invalid dimensions \\(3, 3\\) for sparse Parameter "
+            "value with dimension \\(4,\\)."
         ):
             A.value = np.ones((3, 3))
         with pytest.raises(
-            ValueError, match="Invalid dimensions \\(4, 1\\) for sparse Parameter value with dimension \\(4,\\)."
+            ValueError, match="Invalid dimensions \\(4, 1\\) for sparse Parameter "
+            "value with dimension \\(4,\\)."
         ):
             A.value = np.ones((4, 1))
 
