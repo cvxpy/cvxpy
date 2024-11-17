@@ -53,6 +53,27 @@ class TestAttributes:
         X = cp.Variable((3, 3))
         prob = cp.Problem(cp.Minimize(cp.sum(X)), [X >= -1, X <= 1])
         assert prob.get_problem_data(cp.CLARABEL)[0]['A'].shape[1] == 9
+        
+    def test_sparsity_parameter(self):
+        X = cp.Variable((3, 3))
+        A = cp.Parameter((3, 3), sparsity=[(0, 2, 1, 2), (0, 1, 2, 2)])
+        prob = cp.Problem(cp.Minimize(cp.sum(X)), [X >= A, X <= 1])
+        A.value = -np.ones((4,))
+        prob.solve()
+        z = np.zeros((3, 3))
+        z[A.sparse_idx] = -1
+        assert np.allclose(X.value, z)
+        
+    def test_sparsity_parameter_incorrect_dim(self):
+        A = cp.Parameter((3, 3), sparsity=[(0, 2, 1, 2), (0, 1, 2, 2)])
+        with pytest.raises(
+            ValueError, match="Invalid dimensions \\(3, 3\\) for sparse Parameter value with dimension \\(4,\\)."
+        ):
+            A.value = np.ones((3, 3))
+        with pytest.raises(
+            ValueError, match="Invalid dimensions \\(4, 1\\) for sparse Parameter value with dimension \\(4,\\)."
+        ):
+            A.value = np.ones((4, 1))
 
     def test_diag_value_sparse(self):
         X = cp.Variable((3, 3), diag=True)

@@ -464,6 +464,14 @@ class Leaf(expression.Expression):
         if val is not None:
             # Convert val to ndarray or sparse matrix.
             val = intf.convert(val)
+            if self.attributes['sparsity']:
+                dim = len(self.sparse_idx[0])
+                if intf.shape(val) != (dim,):
+                    raise ValueError(
+                        "Invalid dimensions %s for sparse %s value with dimension (%d,)." %
+                        (intf.shape(val), self.__class__.__name__, dim)
+                    )
+                return self.project(val)
             if intf.shape(val) != self.shape:
                 raise ValueError(
                     "Invalid dimensions %s for %s value." %
