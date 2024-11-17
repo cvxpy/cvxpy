@@ -257,7 +257,11 @@ class MOSEK(ConicSolver):
             else:
                 data['A_bar_data'] = []
                 data['c_bar_data'] = []
-
+        if problem.x._bounds:
+            lower_bounds = problem.x._bounds[0]
+            data['lb'] = lower_bounds
+            upper_bounds = problem.x._bounds[1]
+            data['ub'] = upper_bounds
         data[s.PARAM_PROB] = problem
         return data, inv_data
 
@@ -331,8 +335,27 @@ class MOSEK(ConicSolver):
         c, A, b, K = data[s.C], data[s.A], data[s.B], data['K_dir']
         n, m = A.shape
         task.appendvars(m)
-        o = np.zeros(m)
-        task.putvarboundlist(np.arange(m, dtype=int), [mosek.boundkey.fr] * m, o, o)
+        # Handle variable bounds if they exist
+        if 'lb' in data and 'ub' in data:
+            bl, bu = data['lb'].copy(), data['ub'].copy()
+            # Initialize bound key array as defined in 
+            # https://docs.mosek.com/10.2/pythonapi/constants.html#mosek.boundkey
+            bk = np.empty(m, dtype=np.object_)
+            mask = np.isfinite([data['lb'], data['ub']])
+
+            bk[(~mask[0]) & (~mask[1])] = mosek.boundkey.fr # (free) No bounds
+            bk[(~mask[0]) & mask[1]] = mosek.boundkey.up # Upper bound only
+            bk[mask[0] & (~mask[1])] = mosek.boundkey.lo # Lower bound only
+            bk[mask[0] & mask[1]] = mosek.boundkey.ra # (range) Both bounds
+            
+            # Replace infinite values with zeros for free variables
+            bl[~mask[0]] = 0.0
+            bu[~mask[1]] = 0.0
+            task.putvarboundlist(np.arange(m, dtype=int), list(bk), bl, bu)
+        else:
+            o = np.zeros(m)
+            task.putvarboundlist(np.arange(m, dtype=int), [mosek.boundkey.fr] * m, o, o)
+
         task.appendcons(n)
         # objective
         task.putclist(np.arange(c.size, dtype=int), c)
