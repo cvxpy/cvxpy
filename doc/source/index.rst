@@ -92,12 +92,13 @@ CVXPY is developed and maintained by
 `Steven Diamond <https://stevendiamond.me/>`_,
 `Akshay Agrawal <https://akshayagrawal.com>`_,
 `Riley Murray <https://rileyjmurray.wordpress.com/>`_,
-`Philipp Schiele <https://www.philippschiele.com/>`_, and
-`Bartolomeo Stellato <https://stellato.io/>`_ with many others contributing
+`Philipp Schiele <https://www.philippschiele.com/>`_,
+`Bartolomeo Stellato <https://stellato.io/>`_, and
+`Parth Nobel <https://ptnobel.github.io/>`_ with many others contributing
 significantly. A non-exhaustive list of people who have shaped CVXPY over the
 years includes Stephen Boyd, Eric Chu, Robin Verschueren,
 Jaehyun Park, Enzo Busseti, AJ Friend, Judson Wilson, Chris Dembia, and
-Parth Nobel.
+William Zhang.
 
 We appreciate all contributions. To get involved, see our :doc:`contributing
 guide </contributing/index>` and join us `on Discord <https://discord.gg/4urRQeGBCr>`_.
