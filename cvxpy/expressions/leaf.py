@@ -424,6 +424,8 @@ class Leaf(expression.Expression):
                 w[bad] = 0
             return (V * w).dot(V.T)
         elif self.attributes['sparsity']:
+            warnings.warn('Assigning to a sparse CVXPY expression via `.value` is discouraged.'
+                          ' Use `.value_sparse` instead', RuntimeWarning, 3)
             new_val = np.zeros(self.shape)
             new_val[self.sparse_idx] = val[self.sparse_idx]
             return new_val
