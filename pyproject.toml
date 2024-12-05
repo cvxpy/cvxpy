@@ -1,4 +1,18 @@
 [tool.ruff]
+# The minimum Python version that should be supported
+target-version = "py39"
+
+line-length = 100
+
+extend-exclude = [
+    "build",
+    "examples",
+    "doc",
+    "cvxpy/cvxcore/*",
+    "*__init__.py"
+]
+
+[tool.ruff.lint]
 select = [
     "E",
     "F",
@@ -6,16 +20,10 @@ select = [
     "NPY201",
     "W605",  # Check for invalid escape sequences in docstrings (errors in py >= 3.11)
 ]
-line-length = 100
-exclude = [
-    "build",
-    "examples",
-    "doc",
-    "cvxpy/cvxcore/*",
-    "*__init__.py"
+
+ignore = [
+    "E721" # Do not compare types, use 'isinstance()'
 ]
-# The minimum Python version that should be supported
-target-version = "py39"
 
 
 [tool.pytest.ini_options]
