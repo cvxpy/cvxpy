@@ -447,8 +447,8 @@ class Leaf(expression.Expression):
             warnings.warn('Reading from a sparse CVXPY expression via `.value` is discouraged.'
                           ' Use `.value_sparse` instead', RuntimeWarning, 1)
             val = np.zeros(self.shape)
-            val[self.sparse_idx] = self._value[self.sparse_idx]
-            return self._value
+            val[self.sparse_idx] = self._value
+            return val
 
     @value.setter
     def value(self, val) -> None:
@@ -461,9 +461,10 @@ class Leaf(expression.Expression):
 
     @value_sparse.setter
     def value_sparse(self, val) -> None:
-        if not isinstance(val.coords, (scipy_coo_array, sp.coo_array)):
-            raise ValueError('Invalid type for assigning value_sparse.'
-                             f'type should be {scipy_coo_array_name}')
+        if not isinstance(val, (scipy_coo_array, sp.coo_array)):
+            raise ValueError(
+                'Invalid type for assigning value_sparse.'
+                f'Recieved: {type(val)} Expected {scipy_coo_array_name}')
         if val.coords != self.sparse_idx:
             raise ValueError(f'Indexes differ between {val} and variable.')
         self.save_value(self._validate_value(val.data, True))
