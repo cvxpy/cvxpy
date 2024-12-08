@@ -50,7 +50,7 @@ def form_cone_constraint(z: Variable, constraint: Constraint) -> Constraint:
         N = z.shape[0]
         n = int(N**.5)
         assert N == n**2, "argument is not a vectorized square matrix"
-        z_mat = cp.reshape(z, (n, n))
+        z_mat = cp.reshape(z, (n, n), order='F')
         return PSD(z_mat)  # do we need constraint_id?
     elif isinstance(constraint, PowCone3D):
         raise NotImplementedError

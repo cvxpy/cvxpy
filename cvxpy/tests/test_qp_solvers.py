@@ -147,8 +147,7 @@ class TestQp(BaseTest):
         p = Problem(Minimize(sum_squares(A @ self.x - b)))
         self.solve_QP(p, solver)
         for var in p.variables():
-            self.assertItemsAlmostEqual(lstsq(A, b)[0].flatten(),
-                                        var.value,
+            self.assertItemsAlmostEqual(lstsq(A, b)[0].flatten(order='F'), var.value,
                                         places=1)
 
     def quad_form(self, solver) -> None:
@@ -202,7 +201,7 @@ class TestQp(BaseTest):
         p = Problem(Minimize(norm(A @ self.w - b, 2)))
         self.solve_QP(p, solver)
         for var in p.variables():
-            self.assertItemsAlmostEqual(lstsq(A, b)[0].flatten(), var.value,
+            self.assertItemsAlmostEqual(lstsq(A, b)[0].flatten(order='F'), var.value,
                                         places=1)
 
     def mat_norm_2(self, solver) -> None:
@@ -483,6 +482,29 @@ class TestQp(BaseTest):
                 assert X_vals[row, col] + 1 == model_x[i].start
                 assert np.isclose(X.value[row, col], model_x[i].x)
 
+    def test_highs_warmstart(self) -> None:
+        """Test warm start.
+        """
+        if cp.HIGHS in INSTALLED_SOLVERS:
+            m = 200
+            n = 100
+            np.random.seed(1)
+            A = np.random.randn(m, n)
+            b = Parameter(m)
+
+            # Construct the problem.
+            x = Variable(n)
+            prob = Problem(Minimize(sum_squares(A @ x - b)))
+
+            b.value = np.random.randn(m)
+            result = prob.solve(solver=cp.HIGHS, warm_start=False)
+            result2 = prob.solve(solver=cp.HIGHS, warm_start=True)
+            self.assertAlmostEqual(result, result2)
+            b.value = np.random.randn(m)
+            result = prob.solve(solver=cp.HIGHS, warm_start=True)
+            result2 = prob.solve(solver=cp.HIGHS, warm_start=False)
+            self.assertAlmostEqual(result, result2)
+
     def test_parametric(self) -> None:
         """Test solve parametric problem vs full problem"""
         x = Variable()
@@ -564,7 +586,7 @@ class TestQp(BaseTest):
                 self.skipTest("Gurobi has found a solution, the test is not relevant anymore.")
 
             solver_status = getattr(extra_stats, "Status", None)
-            if solver_status != gurobipy.StatusConstClass.TIME_LIMIT:
+            if solver_status != gurobipy.GRB.TIME_LIMIT:
                 self.skipTest("Gurobi terminated for a different reason than reaching time limit, "
                               "the test is not relevant anymore.")
 

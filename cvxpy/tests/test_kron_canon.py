@@ -92,7 +92,7 @@ class TestKronRightVar(TestKron):
         for c_dims in TestKronRightVar.C_DIMS:
             Z, C, L, prob = self.make_kron_prob(z_dims, c_dims, param=True,
                                                 var_left=False, seed=0)
-            prob.solve(solver='ECOS', abstol=1e-8, reltol=1e-8)
+            prob.solve(solver=cp.CLARABEL)
             self.assertEqual(prob.status, cp.OPTIMAL)
             con_viols = prob.constraints[0].violation()
             self.assertLessEqual(np.max(con_viols), 1e-4)
@@ -103,7 +103,7 @@ class TestKronRightVar(TestKron):
         for c_dims in TestKronRightVar.C_DIMS:
             Z, C, L, prob = self.make_kron_prob(z_dims, c_dims, param=False,
                                                 var_left=False, seed=0)
-            prob.solve(solver='ECOS', abstol=1e-8, reltol=1e-8)
+            prob.solve(solver=cp.CLARABEL)
             self.assertEqual(prob.status, cp.OPTIMAL)
             con_viols = prob.constraints[0].violation()
             self.assertLessEqual(np.max(con_viols), 1e-4)
@@ -127,13 +127,13 @@ class TestKronLeftVar(TestKron):
         U = np.array([[10, 11], [12, 13]])
         kronX = cp.kron(X, b)  # should be equal to X
 
-        objective = cp.Minimize(cp.sum(X.flatten()))
+        objective = cp.Minimize(cp.sum(X.flatten(order='F')))
         constraints = [U >= kronX, kronX >= L]
         prob = cp.Problem(objective, constraints)
         prob.solve()
 
         self.assertItemsAlmostEqual(X.value, np.array([[0.5, 2], [2, 3]]) / 1.5)
-        objective = cp.Maximize(cp.sum(X.flatten()))
+        objective = cp.Maximize(cp.sum(X.flatten(order='F')))
         prob = cp.Problem(objective, constraints)
         prob.solve()
         self.assertItemsAlmostEqual(X.value, np.array([[10, 11], [11, 13]]) / 1.5)
@@ -180,7 +180,7 @@ class TestKronLeftVar(TestKron):
         for c_dims in TestKronLeftVar.C_DIMS:
             Z, C, L, prob = self.make_kron_prob(z_dims, c_dims, param=True,
                                                 var_left=True, seed=0)
-            prob.solve(solver='ECOS', abstol=1e-8, reltol=1e-8)
+            prob.solve(solver=cp.CLARABEL)
             self.assertEqual(prob.status, cp.OPTIMAL)
             con_viols = prob.constraints[0].violation()
             self.assertLessEqual(np.max(con_viols), 1e-4)
@@ -191,7 +191,7 @@ class TestKronLeftVar(TestKron):
         for c_dims in TestKronLeftVar.C_DIMS:
             Z, C, L, prob = self.make_kron_prob(z_dims, c_dims, param=False,
                                                 var_left=True, seed=0)
-            prob.solve(solver='ECOS', abstol=1e-8, reltol=1e-8)
+            prob.solve(solver=cp.CLARABEL)
             self.assertEqual(prob.status, cp.OPTIMAL)
             con_viols = prob.constraints[0].violation()
             self.assertLessEqual(np.max(con_viols), 1e-4)

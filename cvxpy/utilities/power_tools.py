@@ -28,8 +28,11 @@ from cvxpy.expressions.variable import Variable
 
 def gm(t, x, y):
     length = t.size
-    return SOC(t=reshape(x+y, (length,)),
-               X=vstack([reshape(x-y, (1, length)), reshape(2*t, (1, length))]),
+    return SOC(t=reshape(x+y, (length,), order='F'),
+               X=vstack([
+                   reshape(x-y, (1, length), order='F'),
+                   reshape(2*t, (1, length), order='F')
+               ]),
                axis=0)
 
 
@@ -82,6 +85,12 @@ def gm_constrs(t, x_list, p):
     for elem, children in tree.items():
         if 1 not in elem:
             constraints += [gm(d[elem], d[children[0]], d[children[1]])]
+
+    # Handle single-variable case
+    if len(x_list) == 1:
+        # Assuming p[0] = 1 for geometric mean
+        x = x_list[0]
+        constraints += [t == x]
 
     return constraints
 

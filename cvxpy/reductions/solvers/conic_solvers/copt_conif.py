@@ -5,7 +5,7 @@ import numpy as np
 import scipy.sparse as sp
 
 import cvxpy.settings as s
-from cvxpy.constraints import PSD, SOC
+from cvxpy.constraints import PSD, SOC, ExpCone
 from cvxpy.reductions.solution import Solution, failure_solution
 from cvxpy.reductions.solvers import utilities
 from cvxpy.reductions.solvers.conic_solvers.conic_solver import (
@@ -45,11 +45,16 @@ class COPT(ConicSolver):
     """
     # Solver capabilities
     MIP_CAPABLE = True
-    SUPPORTED_CONSTRAINTS = ConicSolver.SUPPORTED_CONSTRAINTS + [SOC, PSD]
+    SUPPORTED_CONSTRAINTS = ConicSolver.SUPPORTED_CONSTRAINTS + [SOC, ExpCone, PSD]
     REQUIRES_CONSTR = True
 
-    # Only supports MI LPs
-    MI_SUPPORTED_CONSTRAINTS = ConicSolver.SUPPORTED_CONSTRAINTS
+    EXP_CONE_ORDER = [2, 1, 0]
+
+    # Support MILP and MISOCP
+    MI_SUPPORTED_CONSTRAINTS = ConicSolver.SUPPORTED_CONSTRAINTS + [SOC]
+
+    # Keyword arguments for the CVXPY interface.
+    INTERFACE_ARGS = ["save_file", "reoptimize"]
 
     # Map between COPT status and CVXPY status
     STATUS_MAP = {
@@ -153,6 +158,8 @@ class COPT(ConicSolver):
         tuple
             (dict of arguments needed for the solver, inverse data)
         """
+        if not problem.formatted:
+            problem = self.format_constraints(problem, self.EXP_CONE_ORDER)
         data, inv_data = super(COPT, self).apply(problem)
         variables = problem.x
         data[s.BOOL_IDX] = [int(t[0]) for t in variables.boolean_idx]
@@ -184,6 +191,12 @@ class COPT(ConicSolver):
                     solution[s.INEQ_DUAL],
                     self.extract_dual_value,
                     inverse_data[COPT.NEQ_CONSTR])
+                for con in inverse_data[self.NEQ_CONSTR]:
+                    if isinstance(con, ExpCone):
+                        cid = con.id
+                        n_cones = con.num_cones()
+                        perm = utilities.expcone_permutor(n_cones, COPT.EXP_CONE_ORDER)
+                        leq_dual[cid] = leq_dual[cid][perm]
                 eq_dual.update(leq_dual)
                 dual_vars = eq_dual
             return Solution(status, opt_val, primal_vars, dual_vars, attr)
@@ -286,8 +299,30 @@ class COPT(ConicSolver):
                         nlincol += dim
                         lb[nlincol] = 0.0
 
-                if data[s.BOOL_IDX] or data[s.INT_IDX]:
+                if vtype is not None:
                     vtype = np.append(vtype, [copt.COPT.CONTINUOUS] * nconedim)
+
+            # Build exponential cone data
+            nexpcone = 0
+            nexpconedim = 0
+            if dims[s.EXP_DIM]:
+                nexpcone = dims[s.EXP_DIM]
+                nexpconedim = dims[s.EXP_DIM] * 3
+                nlinrow = dims[s.EQ_DIM] + dims[s.LEQ_DIM]
+                if dims[s.SOC_DIM]:
+                    nlinrow += sum(dims[s.SOC_DIM])
+                nlincol = A.shape[1]
+
+                diag = sp.spdiags(np.ones(nexpconedim), -nlinrow, A.shape[0], nexpconedim)
+                A = sp.csc_matrix(sp.hstack([A, diag]))
+
+                c = np.append(c, np.zeros(nexpconedim))
+
+                lb = np.append(lb, -copt.COPT.INFINITY * np.ones(nexpconedim))
+                ub = np.append(ub, +copt.COPT.INFINITY * np.ones(nexpconedim))
+
+                if vtype is not None:
+                    vtype = np.append(vtype, [copt.COPT.CONTINUOUS] * nexpconedim)
 
             # Load matrix data
             model.loadMatrix(c, A, lhs, rhs, lb, ub, vtype)
@@ -295,11 +330,21 @@ class COPT(ConicSolver):
             # Load cone data
             if dims[s.SOC_DIM]:
                 model.loadCone(ncone, None, dims[s.SOC_DIM],
-                               range(A.shape[1] - nconedim, A.shape[1]))
+                               range(A.shape[1] - nconedim - nexpconedim, A.shape[1] - nexpconedim))
+
+            # Load exponential cone data
+            if dims[s.EXP_DIM]:
+                model.loadExpCone(nexpcone, None,
+                                  range(A.shape[1] - nexpconedim, A.shape[1]))
 
         # Set parameters
         for key, value in solver_opts.items():
-            model.setParam(key, value)
+            # Ignore arguments unique to the CVXPY interface.
+            if key not in self.INTERFACE_ARGS:
+                model.setParam(key, value)
+
+        if 'save_file' in solver_opts:
+            model.write(solver_opts['save_file'])
 
         solution = {}
         try:

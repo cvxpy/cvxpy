@@ -16,21 +16,24 @@ limitations under the License.
 from __future__ import annotations
 
 import numbers
-from typing import List, Tuple
+import warnings
+from typing import List, Literal, Tuple
 
 import numpy as np
 
 import cvxpy.lin_ops.lin_op as lo
 import cvxpy.lin_ops.lin_utils as lu
+import cvxpy.settings as s
 from cvxpy.atoms.affine.affine_atom import AffAtom
 from cvxpy.atoms.affine.hstack import hstack
 from cvxpy.constraints.constraint import Constraint
-from cvxpy.expressions.expression import Expression
+from cvxpy.expressions.expression import DEFAULT_ORDER_DEPRECATION_MSG, Expression
 from cvxpy.utilities.shape import size_from_shape
 
 
 class reshape(AffAtom):
-    """Reshapes the expression.
+    """
+    Reshapes the expression.
 
     Vectorizes the expression then unvectorizes it into the new shape.
     The entries are reshaped and stored in column-major order, also known
@@ -45,16 +48,25 @@ class reshape(AffAtom):
     order : F(ortran) or C
     """
 
-    def __init__(self, expr, shape: int | Tuple[int, ...], order: str = 'F') -> None:
+    def __init__(
+        self,
+        expr,
+        shape: int | Tuple[int, ...],
+        order: Literal["F", "C", None] = None
+    ) -> None:
         if isinstance(shape, numbers.Integral):
             shape = (int(shape),)
-        if len(shape) > 2:
+        if not s.ALLOW_ND_EXPR and len(shape) > 2:
             raise ValueError("Expressions of dimension greater than 2 "
                              "are not supported.")
         if any(d == -1 for d in shape):
             shape = self._infer_shape(shape, expr.size)
 
         self._shape = tuple(shape)
+        if order is None:
+            reshape_order_warning = DEFAULT_ORDER_DEPRECATION_MSG.replace("FUNC_NAME", "reshape")
+            warnings.warn(reshape_order_warning, FutureWarning)
+            order = 'F'
         assert order in ['F', 'C']
         self.order = order
         super(reshape, self).__init__(expr)
@@ -68,7 +80,7 @@ class reshape(AffAtom):
             unspecified_index = shape.index(-1)
             specified = shape[1 - unspecified_index]
             assert specified >= 0, "Specified dimension must be nonnegative."
-            unspecified, remainder = divmod(size, shape[1 - unspecified_index])
+            unspecified, remainder = np.divmod(size, shape[1 - unspecified_index])
             if remainder != 0:
                 raise ValueError(
                     f"Cannot reshape expression of size {size} into shape {shape}."
@@ -90,7 +102,7 @@ class reshape(AffAtom):
     def numeric(self, values):
         """Reshape the value.
         """
-        return np.reshape(values[0], self.shape, self.order)
+        return np.reshape(values[0], self.shape, order=self.order)
 
     def validate_arguments(self) -> None:
         """Checks that the new shape has the same number of entries as the old.
@@ -139,7 +151,7 @@ class reshape(AffAtom):
             if len(shape) <= 1:
                 return (lu.reshape(arg, shape), [])
             else:
-                result = lu.reshape(arg, (shape[1], shape[0]))
+                result = lu.reshape(arg, shape[::-1])
                 return (lu.transpose(result), [])
 
 
@@ -149,10 +161,10 @@ def deep_flatten(x):
         if len(x.shape) == 1:
             return x
         else:
-            return x.flatten()
+            return x.flatten(order='F')
     elif isinstance(x, np.ndarray) or isinstance(x, (int, float)):
         x = Expression.cast_to_const(x)
-        return x.flatten()
+        return x.flatten(order='F')
     # recursion
     if isinstance(x, list):
         y = []

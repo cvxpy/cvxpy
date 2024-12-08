@@ -15,11 +15,12 @@ limitations under the License.
 """
 
 from cvxpy.atoms.affine.binary_operators import (matmul, multiply,
-                                                 scalar_product, outer,)
+                                                 vdot, scalar_product, outer,)
 from cvxpy.atoms.affine.bmat import bmat
 from cvxpy.atoms.affine.conj import conj
 from cvxpy.atoms.affine.conv import conv, convolve
 from cvxpy.atoms.affine.cumsum import cumsum
+from cvxpy.atoms.cumprod import cumprod
 from cvxpy.atoms.affine.diag import diag
 from cvxpy.atoms.affine.diff import diff
 from cvxpy.atoms.affine.hstack import hstack
@@ -30,6 +31,7 @@ from cvxpy.atoms.affine.partial_transpose import partial_transpose
 from cvxpy.atoms.affine.promote import promote
 from cvxpy.atoms.affine.real import real
 from cvxpy.atoms.affine.reshape import deep_flatten, reshape
+from cvxpy.atoms.affine.concatenate import concatenate
 from cvxpy.atoms.affine.sum import sum
 from cvxpy.atoms.affine.trace import trace
 from cvxpy.atoms.affine.transpose import transpose
@@ -40,6 +42,7 @@ from cvxpy.atoms.affine.wraps import (hermitian_wrap, psd_wrap,
                                       skew_symmetric_wrap, symmetric_wrap,)
 from cvxpy.atoms.condition_number import condition_number
 from cvxpy.atoms.cummax import cummax
+from cvxpy.atoms.cvar import cvar
 from cvxpy.atoms.dist_ratio import dist_ratio
 from cvxpy.atoms.dotsort import dotsort
 from cvxpy.atoms.elementwise.abs import abs
@@ -74,6 +77,7 @@ from cvxpy.atoms.lambda_max import lambda_max
 from cvxpy.atoms.lambda_min import lambda_min
 from cvxpy.atoms.lambda_sum_largest import lambda_sum_largest
 from cvxpy.atoms.lambda_sum_smallest import lambda_sum_smallest
+from cvxpy.atoms.quantum_cond_entr import quantum_cond_entr
 from cvxpy.atoms.length import length
 from cvxpy.atoms.log_det import log_det
 from cvxpy.atoms.log_sum_exp import log_sum_exp
@@ -100,6 +104,7 @@ from cvxpy.atoms.sum_squares import sum_squares
 from cvxpy.atoms.total_variation import tv
 from cvxpy.atoms.tr_inv import tr_inv
 from cvxpy.atoms.von_neumann_entr import von_neumann_entr
+from cvxpy.atoms.quantum_rel_entr import quantum_rel_entr
 from cvxpy.atoms.stats import mean, std, var
 from cvxpy.atoms.ptp import ptp
 
@@ -139,6 +144,7 @@ PSD_ATOMS = [
     normNuc,
     sigma_max,
     tr_inv,
+    quantum_rel_entr,
 ]
 
 NONPOS_ATOMS = [

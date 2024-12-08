@@ -17,7 +17,7 @@ limitations under the License.
 import abc
 import warnings
 from functools import wraps
-from typing import List, Tuple
+from typing import List, Literal, Tuple
 
 import numpy as np
 
@@ -68,10 +68,27 @@ errors or code that doesn't behave as expected. Consider using one of the
 functions documented here: https://www.cvxpy.org/tutorial/functions/index.html
 """
 
+__INPLACE_MUTATION_ERROR__ = """
+You're trying to mutate a CVXPY expression inplace. This is prone to errors or
+code that doesn't behave as expected. Consider alternatives. For example, replace
+    x += 1
+with
+    x = x + 1
+"""
+
 __ABS_ERROR__ = """
 You're calling the built-in abs function on a CVXPY expression. This is not
 supported. Consider using the abs function provided by CVXPY.
 """
+
+DEFAULT_ORDER_DEPRECATION_MSG = (
+    """
+    You didn't specify the order of the FUNC_NAME expression. The default order
+    used in CVXPY is Fortran ('F') order. This default will change to match NumPy's
+    default order ('C') in a future version of CVXPY.
+    To suppress this warning, please specify the order explicitly.
+    """
+)
 
 __BINARY_EXPRESSION_UFUNCS__ = {
         np.add: lambda self, a: self.__radd__(a),
@@ -102,12 +119,11 @@ class Expression(u.Canonical):
     expressions (e.g., the sum of two expressions) and constraints.
     """
 
-    __metaclass__ = abc.ABCMeta
-
     # Handles arithmetic operator overloading with Numpy.
     __array_priority__ = 100
 
-    @abc.abstractproperty
+    @property
+    @abc.abstractmethod
     def value(self):
         """NumPy.ndarray or None : The numeric value of the expression.
         """
@@ -118,7 +134,8 @@ class Expression(u.Canonical):
         """
         return self.value
 
-    @abc.abstractproperty
+    @property
+    @abc.abstractmethod
     def grad(self):
         """Gives the (sub/super)gradient of the expression w.r.t. each variable.
 
@@ -132,7 +149,8 @@ class Expression(u.Canonical):
         """
         raise NotImplementedError()
 
-    @abc.abstractproperty
+    @property
+    @abc.abstractmethod
     def domain(self):
         """list : The constraints describing the closure of the region
            where the expression is finite.
@@ -431,7 +449,8 @@ class Expression(u.Canonical):
         """
         raise NotImplementedError()
 
-    @abc.abstractproperty
+    @property
+    @abc.abstractmethod
     def shape(self) -> Tuple[int, ...]:
         """tuple : The expression dimensions.
         """
@@ -442,7 +461,8 @@ class Expression(u.Canonical):
         """
         return not self.is_complex()
 
-    @abc.abstractproperty
+    @property
+    @abc.abstractmethod
     def is_imag(self) -> bool:
         """Is the Leaf imaginary?
         """
@@ -466,11 +486,16 @@ class Expression(u.Canonical):
         """
         return len(self.shape)
 
-    def flatten(self, order: str = 'F'):
-        """Vectorizes the expression.
+    def flatten(self, order: Literal["F", "C", None] = None):
+        """
+        Vectorizes the expression.
 
         order: column-major ('F') or row-major ('C') order.
         """
+        if order is None:
+            flatten_order_warning = DEFAULT_ORDER_DEPRECATION_MSG.replace("FUNC_NAME", "flatten")
+            warnings.warn(flatten_order_warning, FutureWarning)
+            order = 'F'
         assert order in ['F', 'C']
         return cvxtypes.vec()(self, order)
 
@@ -767,6 +792,14 @@ class Expression(u.Canonical):
                     len(args) == 2 and \
                     args[1] is self:
                 return ufunc_handler(self, args[0])
+            elif kwargs.keys() == {'out'} and \
+                    len(args) == 2 and \
+                    args[1] is self and \
+                    isinstance(kwargs['out'], tuple) and \
+                    len(kwargs['out']) == 1 and \
+                    args[0] is kwargs['out'][0]:
+                raise RuntimeError(__INPLACE_MUTATION_ERROR__)
+
         except KeyError:
             pass
 
@@ -831,10 +864,14 @@ class Expression(u.Canonical):
         from cvxpy import ptp
         return ptp(self, axis, keepdims)
 
-    def reshape(self, shape, order='F'):
+    def reshape(self, shape, order: Literal["F", "C", None] = None):
         """
         Equivalent to `cp.reshape(self, shape, order)`.
         """
+        if order is None:
+            reshape_order_warning = DEFAULT_ORDER_DEPRECATION_MSG.replace("FUNC_NAME", "reshape")
+            warnings.warn(reshape_order_warning, FutureWarning)
+            order = 'F'
         from cvxpy import reshape
         return reshape(self, shape, order)
 

@@ -16,7 +16,7 @@ limitations under the License.
 THIS FILE IS DEPRECATED AND MAY BE REMOVED WITHOUT WARNING!
 DO NOT CALL THESE FUNCTIONS IN YOUR CODE!
 """
-from typing import Tuple
+from typing import Optional, Tuple
 
 import numpy as np
 
@@ -368,7 +368,7 @@ def promote(operator, shape: Tuple[int, ...]):
     return lo.LinOp(lo.PROMOTE, shape, [operator], None)
 
 
-def sum_entries(operator, shape: Tuple[int, ...]):
+def sum_entries(operator, shape: Tuple[int, ...], axis=None, keepdims=None):
     """Sum the entries of an operator.
 
     Parameters
@@ -383,7 +383,7 @@ def sum_entries(operator, shape: Tuple[int, ...]):
     LinOp
         An operator representing the sum.
     """
-    return lo.LinOp(lo.SUM_ENTRIES, shape, [operator], None)
+    return lo.LinOp(lo.SUM_ENTRIES, shape, [operator], data=[axis, keepdims])
 
 
 def trace(operator):
@@ -457,10 +457,8 @@ def transpose(operator):
     """
     if len(operator.shape) < 2:
         return operator
-    elif len(operator.shape) > 2:
-        raise NotImplementedError()
     else:
-        shape = (operator.shape[1], operator.shape[0])
+        shape = operator.shape[::-1]
         return lo.LinOp(lo.TRANSPOSE, shape, [operator], None)
 
 
@@ -574,6 +572,24 @@ def vstack(operators, shape: Tuple[int, ...]):
     """
     return lo.LinOp(lo.VSTACK, shape, operators, None)
 
+def concatenate(operators, shape: Tuple[int, ...], axis: Optional[int] = 0):
+    """Concatenate operators on axis.
+
+    Parameters
+    ----------
+    operator : list
+        The operators to concatenate.
+    shape : tuple
+        The (rows, cols) of the concatenated operators.
+    axis : int, optional
+        The axis along which the operators will be joined.
+
+    Returns
+    -------
+    LinOp
+       LinOp representing the stacked expression.
+    """
+    return lo.LinOp(lo.CONCATENATE, shape, operators, [axis])
 
 def get_constr_expr(lh_op, rh_op):
     """Returns the operator in the constraint.

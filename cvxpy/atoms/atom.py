@@ -23,6 +23,7 @@ import numpy as np
 
 import cvxpy.lin_ops.lin_op as lo
 import cvxpy.lin_ops.lin_utils as lu
+import cvxpy.settings as s
 from cvxpy import interface as intf
 from cvxpy import utilities as u
 from cvxpy.expressions import cvxtypes
@@ -34,7 +35,6 @@ from cvxpy.utilities.deterministic import unique_list
 
 class Atom(Expression):
     """ Abstract base class for atoms. """
-    __metaclass__ = abc.ABCMeta
     _allow_complex = False
     # args are the expressions passed into the Atom constructor.
 
@@ -49,7 +49,7 @@ class Atom(Expression):
         self.args = [Atom.cast_to_const(arg) for arg in args]
         self.validate_arguments()
         self._shape = self.shape_from_args()
-        if len(self._shape) > 2:
+        if not s.ALLOW_ND_EXPR and len(self._shape) > 2:
             raise ValueError("Atoms must be at most 2D.")
 
     def name(self) -> str:

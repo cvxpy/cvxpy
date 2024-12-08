@@ -14,6 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+import warnings
 from typing import List, Optional, Tuple
 
 import numpy as np
@@ -26,16 +27,18 @@ import cvxpy.utilities.linalg as eig_util
 from cvxpy.expressions.leaf import Leaf
 from cvxpy.utilities import performance_utils as perf
 
+NESTED_LIST_WARNING = "Initializing a Constant with a nested list is " \
+                      "undefined behavior. Consider using a numpy array instead."
+
 
 class Constant(Leaf):
     """
     A constant value.
 
-    Raw numerical constants (Python primite types, NumPy ndarrays,
-    and NumPy matrices) are implicitly cast to constants via Expression
-    operator overloading. For example, if ``x`` is an expression and
-    ``c`` is a raw constant, then ``x + c`` creates an expression by
-    casting ``c`` to a Constant.
+    Raw numerical constants such as Python primitive types or NumPy ndarrays
+    are implicitly cast to constants via Expression operator overloading.
+    For example, if ``x`` is an expression and``c`` is a raw constant,
+    then ``x + c`` creates an expression by casting ``c`` to a Constant.
     """
 
     def __init__(self, value, name: Optional[str] = None) -> None:
@@ -45,6 +48,9 @@ class Constant(Leaf):
                 value, convert_scalars=True)
             self._sparse = True
         else:
+            if isinstance(value, list) and any(isinstance(i, list) for i in value):
+                warnings.warn(NESTED_LIST_WARNING)
+
             self._value = intf.DEFAULT_INTF.const_to_matrix(value)
             self._sparse = False
         self._imag: Optional[bool] = None
@@ -60,14 +66,15 @@ class Constant(Leaf):
         super(Constant, self).__init__(intf.shape(self.value))
 
     def name(self) -> str:
-        """The value as a string.
+        """
+         The value of the constant as a string.
         """
         if self._name is None:
             if len(self.shape) == 2 and "\n" in str(self.value):
                 return np.array2string(self.value,
-                                    edgeitems=s.PRINT_EDGEITEMS,
-                                    threshold=s.PRINT_THRESHOLD,
-                                    formatter={'float': lambda x: f'{x:.2f}'})
+                                       edgeitems=s.PRINT_EDGEITEMS,
+                                       threshold=s.PRINT_THRESHOLD,
+                                       formatter={'float': lambda x: f'{x:.2f}'})
             return str(self.value)
         else:
             return self._name

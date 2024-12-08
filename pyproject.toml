@@ -1,4 +1,18 @@
 [tool.ruff]
+# The minimum Python version that should be supported
+target-version = "py39"
+
+line-length = 100
+
+extend-exclude = [
+    "build",
+    "examples",
+    "doc",
+    "cvxpy/cvxcore/*",
+    "*__init__.py"
+]
+
+[tool.ruff.lint]
 select = [
     "E",
     "F",
@@ -6,16 +20,10 @@ select = [
     "NPY201",
     "W605",  # Check for invalid escape sequences in docstrings (errors in py >= 3.11)
 ]
-line-length = 100
-exclude = [
-    "build",
-    "examples",
-    "doc",
-    "cvxpy/cvxcore/*",
-    "*__init__.py"
+
+ignore = [
+    "E721" # Do not compare types, use 'isinstance()'
 ]
-# The minimum Python version that should be supported
-target-version = "py37"
 
 
 [tool.pytest.ini_options]
@@ -25,10 +33,10 @@ testpaths = [
 
 [build-system]
 requires = [
-    "oldest-supported-numpy",
+    "numpy >= 2.0.0",
     "scipy >= 1.1.0",
     # 68.1.0 Promoted pyproject.toml's [tool.setuptools] out of beta.
-    "setuptools>=68.1.0",
+    "setuptools >= 68.1.0",
     "wheel",
     "pybind11"
 ]
@@ -43,13 +51,12 @@ name = "cvxpy"
 description = "A domain-specific language for modeling convex optimization problems in Python."
 dependencies = [
     "osqp >= 0.6.2",
-    "ecos >= 2",
     "clarabel >= 0.5.0",
     "scs >= 3.2.4.post1",
-    "numpy >= 1.15",
+    "numpy >= 1.20",
     "scipy >= 1.1.0",
 ]
-requires-python = ">=3.8"
+requires-python = ">=3.9"
 urls = {Homepage = "https://github.com/cvxpy/cvxpy"}
 license = {text = "Apache License, Version 2.0"}
 authors = [{name = "Steven Diamond", email = "stevend2@stanford.edu"},
@@ -64,16 +71,16 @@ CBC = ["cylp>=0.91.5"]
 CLARABEL = []
 CVXOPT = ["cvxopt"]
 DIFFCP = ["diffcp"]
-ECOS = []
-ECOS_BB = []
-GLOP = ["ortools>=9.7,<9.8"]
+ECOS = ["ecos"]
+ECOS_BB = ["ecos"]
+GLOP = ["ortools>=9.7,<9.12"]
 GLPK = ["cvxopt"]
 GLPK_MI = ["cvxopt"]
 GUROBI = ["gurobipy"]
-HIGHS = ["scipy>=1.6.1"]
+HIGHS = ["highspy"]
 MOSEK = ["Mosek"]
 OSQP = []
-PDLP = ["ortools>=9.7,<9.8"]
+PDLP = ["ortools>=9.7,<9.12"]
 PIQP = ["piqp"]
 PROXQP = ["proxsuite"]
 SCIP = ["PySCIPOpt"]
@@ -81,6 +88,12 @@ SCIPY = ["scipy"]
 SCS = ["setuptools>65.5.1"]
 XPRESS = ["xpress"]
 DAQP = ["daqp"]
+testing = ["pytest", "hypothesis"]
+doc = ["sphinx",
+       "sphinxcontrib.jquery",
+       "sphinx-inline-tabs",
+       "sphinx-design",
+       "sphinx-immaterial>=0.11.7"]
 
 [project.readme]
 file = "README.md"

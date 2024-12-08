@@ -92,10 +92,11 @@ SCIP = "SCIP"
 SCIPY = "SCIPY"
 CLARABEL = "CLARABEL"
 DAQP = "DAQP"
+HIGHS = "HIGHS"
 SOLVERS = [CLARABEL, ECOS, CVXOPT, GLOP, GLPK, GLPK_MI,
            SCS, SDPA, GUROBI, OSQP, CPLEX,
            MOSEK, CBC, COPT, XPRESS, PIQP, PROXQP,
-           NAG, PDLP, SCIP, SCIPY, DAQP]
+           NAG, PDLP, SCIP, SCIPY, DAQP, HIGHS]
 
 # Xpress-specific items
 XPRESS_IIS = "XPRESS_IIS"
@@ -182,7 +183,8 @@ SCIPY_CANON_BACKEND = "SCIPY"
 RUST_CANON_BACKEND = "RUST"
 CPP_CANON_BACKEND = "CPP"
 
-DEFAULT_CANON_BACKEND = CPP_CANON_BACKEND
+# Default canonicalization backend, pyodide uses SciPy
+DEFAULT_CANON_BACKEND = CPP_CANON_BACKEND if sys.platform != "emscripten" else SCIPY_CANON_BACKEND
 
 # Numerical tolerances
 EIGVAL_TOL = 1e-10
@@ -200,6 +202,9 @@ PARAM_THRESHOLD = 1e4
 # -1 defaults to system default (configurable via the OMP_NUM_THREADS
 # environment variable)
 NUM_THREADS = -1
+
+# Flag to allow ND expressions.
+ALLOW_ND_EXPR = True
 
 PRINT_EDGEITEMS = 2
 PRINT_THRESHOLD = 5

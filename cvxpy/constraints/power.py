@@ -129,10 +129,10 @@ class PowCone3D(Cone):
         return s
 
     def save_dual_value(self, value) -> None:
-        value = np.reshape(value, newshape=(3, -1))
-        dv0 = np.reshape(value[0, :], newshape=self.x.shape)
-        dv1 = np.reshape(value[1, :], newshape=self.y.shape)
-        dv2 = np.reshape(value[2, :], newshape=self.z.shape)
+        value = np.reshape(value, (3, -1))
+        dv0 = np.reshape(value[0, :], self.x.shape)
+        dv1 = np.reshape(value[1, :], self.y.shape)
+        dv2 = np.reshape(value[2, :], self.z.shape)
         self.dual_variables[0].save_value(dv0)
         self.dual_variables[1].save_value(dv1)
         self.dual_variables[2].save_value(dv2)
@@ -213,7 +213,7 @@ class PowConeND(Cone):
         self.alpha = alpha
         self.axis = axis
         if z.ndim == 0:
-            z = z.flatten()
+            z = z.flatten(order='F')
         super(PowConeND, self).__init__([W, z], constr_id)
 
     def __str__(self) -> str:
@@ -237,8 +237,9 @@ class PowConeND(Cone):
         W = Variable(self.W.shape)
         z = Variable(self.z.shape)
         constr = [PowConeND(W, z, self.alpha, axis=self.axis)]
-        obj = Minimize(norm2(hstack([W.flatten(), z.flatten()]) -
-                             hstack([self.W.flatten().value, self.z.flatten().value])))
+        obj = Minimize(norm2(hstack([W.flatten(order='F'), z.flatten(order='F')]) -
+                             hstack([self.W.flatten(order='F').value, 
+                                     self.z.flatten(order='F').value])))
         problem = Problem(obj, constr)
         return problem.solve(solver='SCS', eps=1e-8)
 

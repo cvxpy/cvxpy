@@ -39,6 +39,6 @@ def dotsort_canon(expr, args):
     q = Variable((1, w_unique.size))
 
     obj = sum(t) + q @ w_counts
-    x_w_unique_outer_product = outer(vec(x), vec(w_unique))
+    x_w_unique_outer_product = outer(vec(x, order='F'), vec(w_unique, order='F'))
     constraints = [x_w_unique_outer_product <= t + q]
     return obj, constraints
