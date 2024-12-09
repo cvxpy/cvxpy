@@ -23,7 +23,6 @@ from typing import Any, Callable
 import numpy as np
 try:
     import graphblas as gb
-    from graphblas.core.utils import ensure_type
     gb.config["autocompute"]
 except ImportError:
     _has_graphblas = False
@@ -2266,8 +2265,6 @@ class DictTensorView(TensorView, ABC):
                 res[key] = self.add_tensors(a[key], b[key])
             else:
                 try:
-                    a[key] = ensure_type(a[key], self.tensor_type())
-                    b[key] = ensure_type(b[key], self.tensor_type())
                     res[key] = self.add_tensors(a[key], b[key])
                 except:
                     raise ValueError(f'Values must either be dicts or {self.tensor_type()}.')
