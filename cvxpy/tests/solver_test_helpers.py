@@ -433,7 +433,7 @@ def socp_2() -> SolverTestHelper:
     """
     x = cp.Variable(shape=(2,), name='x')
     objective = cp.Minimize(-4 * x[0] - 5 * x[1])
-    expr = cp.reshape(x[0] + 2 * x[1], (1, 1))
+    expr = cp.reshape(x[0] + 2 * x[1], (1, 1), order='F')
     constraints = [2 * x[0] + x[1] <= 3,
                    cp.constraints.SOC(cp.Constant([3]), expr),
                    x[0] >= 0,

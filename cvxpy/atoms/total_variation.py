@@ -57,5 +57,5 @@ def tv(value, *args):
                 mat[1:rows, 0:cols-1] - mat[0:rows-1, 0:cols-1],
             ]
         length = diffs[0].shape[0]*diffs[1].shape[1]
-        stacked = vstack([reshape(diff, (1, length)) for diff in diffs])
+        stacked = vstack([reshape(diff, (1, length), order='F') for diff in diffs])
         return sum(norm(stacked, p=2, axis=0))

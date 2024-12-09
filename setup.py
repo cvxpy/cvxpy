@@ -55,12 +55,12 @@ VERSION = setup_versioning.VERSION
 extensions = [setup_extensions.cvxcore, setup_extensions.sparsecholesky]
 
 setup(
+    name="cvxpy",
     version=str(VERSION),
     cmdclass={'build_ext': build_ext_cvxpy},
     ext_modules=extensions if "PYODIDE" not in os.environ else [],
     packages=find_packages(exclude=["doc*",
-                                    "examples*",
-                                    "cvxpy.performance_tests*"]),
+                                    "examples*"]),
     zip_safe=False,
     package_data={
         'cvxpy': ['py.typed'],

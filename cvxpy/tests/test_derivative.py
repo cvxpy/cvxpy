@@ -325,7 +325,7 @@ class TestBackward(BaseTest):
         with self.assertRaisesRegex(ValueError,
                                     "When requires_grad is True, the "
                                     "only supported solver is SCS.*"):
-            problem.solve(cp.ECOS, requires_grad=True)
+            problem.solve(cp.CLARABEL, requires_grad=True)
 
     def test_zero_in_problem_data(self) -> None:
         x = cp.Variable()
@@ -539,7 +539,7 @@ class TestBackwardDgp(BaseTest):
     def test_matrix_constraint(self) -> None:
         X = cp.Variable((2, 2), pos=True)
         a = cp.Parameter(pos=True, value=0.1)
-        obj = cp.Minimize(cp.geo_mean(cp.vec(X)))
+        obj = cp.Minimize(cp.geo_mean(cp.vec(X, order='F')))
         constr = [cp.diag(X) == a,
                   cp.hstack([X[0, 1], X[1, 0]]) == 2*a]
         problem = cp.Problem(obj, constr)

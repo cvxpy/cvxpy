@@ -165,7 +165,8 @@ class ConicSolver(Solver):
         # Default is identity.
         return sp.eye(constr.size, format='csc')
 
-    def format_constraints(self, problem, exp_cone_order):
+    @classmethod
+    def format_constraints(cls, problem, exp_cone_order):
         """
         Returns a ParamConeProg whose problem data tensors will yield the
         coefficient "A" and offset "b" for the constraint in the following
@@ -249,7 +250,7 @@ class ConicSolver(Solver):
                     arg_mats.append(space_mat)
                 restruct_mat.append(sp.hstack(arg_mats))
             elif type(constr) == PSD:
-                restruct_mat.append(self.psd_format_mat(constr))
+                restruct_mat.append(cls.psd_format_mat(constr))
             else:
                 raise ValueError("Unsupported constraint type.")
 
@@ -261,9 +262,8 @@ class ConicSolver(Solver):
             # this is equivalent to but _much_ faster than:
             #    restruct_mat_rep = sp.block_diag([restruct_mat]*(problem.x.size + 1))
             #    restruct_A = restruct_mat_rep * problem.A
-            unspecified, remainder = divmod(problem.A.shape[0] *
-                                            problem.A.shape[1],
-                                            restruct_mat.shape[1])
+            unspecified, _ = np.divmod(problem.A.shape[0] * problem.A.shape[1],
+                                        restruct_mat.shape[1], dtype=np.int64)
             reshaped_A = problem.A.reshape(restruct_mat.shape[1],
                                            unspecified, order='F').tocsr()
             restructured_A = restruct_mat(reshaped_A).tocoo()

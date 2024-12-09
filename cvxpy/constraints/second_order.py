@@ -49,7 +49,7 @@ class SOC(Cone):
             )
         self.axis = axis
         if len(t.shape) == 0:
-            t = t.flatten()
+            t = t.flatten(order='F')
         super(SOC, self).__init__([t, X], constr_id)
 
     def __str__(self) -> str:
@@ -158,7 +158,7 @@ class SOC(Cone):
 
     def save_dual_value(self, value) -> None:
         cone_size = 1 + self.args[1].shape[self.axis]
-        value = np.reshape(value, newshape=(-1, cone_size))
+        value = np.reshape(value, (-1, cone_size))
         t = value[:, 0]
         X = value[:, 1:]
         if self.axis == 0:

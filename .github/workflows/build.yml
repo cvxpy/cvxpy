@@ -28,24 +28,23 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ ubuntu-20.04, macos-11, windows-2022 ]
-        python-version: [ 3.9, "3.10", "3.11", "3.12" ]
+        os: [ ubuntu-22.04, macos-13, windows-2022 ]
+        python-version: [ 3.9, "3.10", "3.11", "3.12", "3.13" ]
         include:
-          - os: ubuntu-20.04
-            python-version: 3.8
+          # These are intended to just add their extra parameter to existing matrix combinations;
+          # see https://docs.github.com/en/actions/writing-workflows/workflow-syntax-for-github-actions#jobsjob_idstrategymatrixinclude
+          - os: ubuntu-22.04
+            python-version: 3.12
             openmp: "True"
-          - os: ubuntu-20.04
-            python-version: 3.8
-          - os: macos-11
-            python-version: 3.8
-            single_action_config: "True"
-          - os: windows-2022
-            python-version: 3.8
+            single_action_config: false
+          - os: macos-13
+            python-version: 3.12
+            single_action_config: true
 
     env:
       RUNNER_OS: ${{ matrix.os }}
       PYTHON_VERSION: ${{ matrix.python-version }}
-      SINGLE_ACTION_CONFIG: "${{ matrix.single_action_config == 'True' && 'True' || 'False' }}"
+      SINGLE_ACTION_CONFIG: "${{ matrix.single_action_config && 'True' || 'False' }}"
       USE_OPENMP: "${{ matrix.openmp == 'True' && 'True' || 'False' }}"
       MOSEK_CI_BASE64: ${{ secrets.MOSEK_CI_BASE64 }}
 
@@ -84,24 +83,25 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ ubuntu-20.04, macos-11, windows-2022 ]
-        python-version: [ 3.9, "3.10", "3.11", "3.12" ]
+        os: [ ubuntu-22.04, macos-13, windows-2022 ]
+        python-version: [ 3.9, "3.10", "3.11", "3.12", "3.13" ]
+        build-cvxpy-base: [ true, false ]  # whether to build cvxpy-base (true) or regular cvxpy (false)
         include:
-          - os: ubuntu-20.04
-            python-version: 3.8
-          - os: macos-11
-            python-version: 3.8
-            single_action_config: "True"
-          - os: windows-2022
-            python-version: 3.8
+          # This is intended to just add the single_action_config parameter to one existing combination;
+          # see https://docs.github.com/en/actions/writing-workflows/workflow-syntax-for-github-actions#jobsjob_idstrategymatrixinclude
+          - os: ubuntu-22.04
+            python-version: 3.12
+            single_action_config: true
 
     env:
       RUNNER_OS: ${{ matrix.os }}
       PYTHON_VERSION: ${{ matrix.python-version }}
-      SINGLE_ACTION_CONFIG: "${{ matrix.single_action_config == 'True' }}"
+      SINGLE_ACTION_CONFIG: "${{ matrix.single_action_config }}"
+      PIP_INSTALL: "${{ matrix.python-version == '3.11' }}"
       PYPI_SERVER: ${{ secrets.PYPI_SERVER }}
       PYPI_USER: ${{ secrets.PYPI_USER }}
-      PYPI_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
+      PYPI_PASSWORD: ${{ matrix.build-cvxpy-base && secrets.PYPI_BASE_PASSWORD || secrets.PYPI_PASSWORD }}
+      CVXPY_BASE_SUFFIX: ${{ matrix.build-cvxpy-base && 'base-' || '' }}
 
     steps:
       - uses: actions/checkout@v4
@@ -114,6 +114,27 @@ jobs:
         run: |
           echo "PYTHON_SUBVERSION=$(echo $PYTHON_VERSION | cut -c 3-)" >> $GITHUB_ENV
           echo "DEPLOY=$( [[ $GITHUB_EVENT_NAME == 'push' && $GITHUB_REF == 'refs/tags'* ]] && echo 'True' || echo 'False' )" >> $GITHUB_ENV
+
+      - name: Adapt pyproject.toml
+        if: ${{matrix.build-cvxpy-base}}
+        shell: bash
+        run: |
+          # Mac has a different syntax for sed -i, this works across oses
+          sed -i.bak -e 's/name = "cvxpy"/name = "cvxpy-base"/g' pyproject.toml
+          sed -i.bak '/clarabel >= /d' pyproject.toml
+          sed -i.bak '/osqp >= /d' pyproject.toml
+          sed -i.bak '/ecos >= /d' pyproject.toml
+          sed -i.bak '/scs >= /d' pyproject.toml
+          sed -i.bak -e 's/name="cvxpy",/name="cvxpy-base",/g' setup.py
+          rm -rf pyproject.toml.bak setup.py.bak
+
+      - name: Verify that we can build by pip-install on each OS.
+        if: ${{matrix.build-cvxpy-base && env.PIP_INSTALL == 'True'}}
+        run: |
+          pip install . pytest cplex
+          pytest cvxpy/tests/test_conic_solvers.py -k 'TestCPLEX'
+          # ensure a fresh state for cibuildwheel
+          rm -r build
 
       - name: Set up QEMU  # For aarch64, see https://cibuildwheel.readthedocs.io/en/stable/faq/#emulation
         if: runner.os == 'Linux'
@@ -128,7 +149,7 @@ jobs:
           CIBW_SKIP: "*-win32 *-manylinux_i686 *-musllinux*"
           CIBW_ARCHS_MACOS: x86_64 universal2
           CIBW_ARCHS_LINUX: auto aarch64
-        uses: pypa/cibuildwheel@v2.17.0
+        uses: pypa/cibuildwheel@v2.22.0
 
       - name: Build source
         if: ${{github.event_name == 'push' && env.SINGLE_ACTION_CONFIG == 'True'}}
@@ -137,14 +158,14 @@ jobs:
           python -m build --sdist -o wheelhouse
 
       - name: Check wheels
-        if: ${{github.event_name == 'push' &&  env.USE_OPENMP != 'True'}}
+        if: ${{github.event_name == 'push' && env.USE_OPENMP != 'True'}}
         shell: bash
         run: |
           python -m pip install --upgrade twine
           twine check wheelhouse/*
 
-      - name:  Release to pypi
-        if: ${{env.DEPLOY == 'True' &&  env.USE_OPENMP != 'True'}}
+      - name: Release to pypi
+        if: ${{env.DEPLOY == 'True' && env.USE_OPENMP != 'True'}}
         shell: bash
         run: |
           twine upload --skip-existing --repository-url $PYPI_SERVER wheelhouse/* -u $PYPI_USER -p $PYPI_PASSWORD
@@ -153,125 +174,5 @@ jobs:
         if: ${{github.event_name == 'push' && env.USE_OPENMP != 'True'}}
         uses: actions/upload-artifact@v4
         with:
-          name: wheels-${{ matrix.os }}-${{ matrix.python-version }}
+          name: wheels-${{ env.CVXPY_BASE_SUFFIX }}${{ matrix.os }}-${{ matrix.python-version }}
           path: ./wheelhouse
-
-  build_cvxpy-base:
-    needs: build
-
-    runs-on: ${{ matrix.os }}
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ ubuntu-20.04, macos-11, windows-2022 ]
-        python-version: [ 3.9, "3.10", "3.11", "3.12" ]
-        include:
-          - os: ubuntu-20.04
-            python-version: 3.8
-            pip_intall: "True"
-          - os: macos-11
-            python-version: 3.8
-            pip_install: "True"
-            single_action_config: "True"
-          - os: windows-2022
-            python-version: 3.8
-            pip_install: "True"
-
-    env:
-      PYTHON_VERSION: ${{ matrix.python-version }}
-      SINGLE_ACTION_CONFIG: "${{ matrix.single_action_config == 'True' }}"
-      PIP_INSTALL: "${{ matrix.pip_install == 'True' }}"
-      PYPI_SERVER: ${{ secrets.PYPI_SERVER }}
-      PYPI_USER: ${{ secrets.PYPI_USER }}
-      PYPI_BASE_PASSWORD: ${{ secrets.PYPI_BASE_PASSWORD }}
-
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: ${{ matrix.python-version }}
-      - name: Set Additional Envs
-        shell: bash
-        run: |
-          echo "PYTHON_SUBVERSION=$(echo $PYTHON_VERSION | cut -c 3-)" >> $GITHUB_ENV
-          echo "DEPLOY=$( [[ $GITHUB_EVENT_NAME == 'push' && $GITHUB_REF == 'refs/tags'* ]] && echo 'True' || echo 'False' )" >> $GITHUB_ENV
-
-      - name: Adapt pyproject.toml
-        shell: bash
-        run: |
-          # Mac has a different syntax for sed -i, this works across oses
-          sed -i.bak '/clarabel >= /d' pyproject.toml
-          sed -i.bak '/osqp >= /d' pyproject.toml
-          sed -i.bak '/ecos >= /d' pyproject.toml
-          sed -i.bak '/scs >= /d' pyproject.toml
-          rm -rf pyproject.toml.bak
-
-      - name: Verify that we can build by pip-install on each OS.
-        if: ${{env.PIP_INSTALL == 'True'}}
-        run: |
-          pip install . pytest cplex
-          pytest cvxpy/tests/test_conic_solvers.py -k 'TestCPLEX'
-
-      - name: Set up QEMU  # For aarch64, see https://cibuildwheel.readthedocs.io/en/stable/faq/#emulation
-        if: runner.os == 'Linux'
-        uses: docker/setup-qemu-action@v3
-        with:
-          platforms: all
-
-      - name: Build wheels
-        if: ${{github.event_name == 'push'}}
-        env:
-          CIBW_BUILD: "cp3${{env.PYTHON_SUBVERSION}}-*"
-          CIBW_SKIP: "*-win32 *-manylinux_i686 *-musllinux*"
-          CIBW_ARCHS_MACOS: x86_64 universal2
-          CIBW_ARCHS_LINUX: auto aarch64
-        uses: pypa/cibuildwheel@v2.17.0
-
-      - name: Build source
-        if: ${{github.event_name == 'push' && env.SINGLE_ACTION_CONFIG == 'True'}}
-        run: |
-          pip install build
-          python -m build --sdist -o wheelhouse
-
-      - name: Check wheels
-        shell: bash
-        if: ${{github.event_name == 'push'}}
-        run: |
-          python -m pip install --upgrade twine
-          twine check wheelhouse/*
-
-      - name: Release to pypi
-        shell: bash
-        if: ${{env.DEPLOY == 'True'}}
-        run: |
-          twine upload --skip-existing --repository-url $PYPI_SERVER wheelhouse/* -u $PYPI_USER -p $PYPI_BASE_PASSWORD
-
-      - name: Upload artifacts to github
-        if: ${{github.event_name == 'push'}}
-        uses: actions/upload-artifact@v4
-        with:
-          name: wheels-base-${{ matrix.os }}-${{ matrix.python-version }}
-          path: ./wheelhouse
-
-  sonarcloud:
-    needs: build
-    name: SonarCloud
-    runs-on: ubuntu-latest
-    env:
-      SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
-      - uses: actions/download-artifact@v4
-        with:
-          name: coverage
-      - name: Check if environment variable exists
-        run: |
-          echo "RUN_SONAR=$( [[ -n "$SONAR_TOKEN" ]] && echo 'True' || echo 'False' )" >> $GITHUB_ENV
-      - name: SonarCloud Scan
-        if: ${{env.RUN_SONAR == 'True'}}
-        uses: SonarSource/sonarcloud-github-action@master
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Needed to get PR information, if any
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}

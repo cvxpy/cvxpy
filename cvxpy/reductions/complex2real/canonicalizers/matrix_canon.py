@@ -22,6 +22,7 @@ from cvxpy.atoms import (
     bmat,
     lambda_sum_largest,
     normNuc,
+    quantum_rel_entr,
     reshape,
     symmetric_wrap,
     von_neumann_entr,
@@ -47,7 +48,6 @@ def expand_complex(real_part: Optional[Expression],
     if real_part is None:
         real_part = Constant(np.zeros(imag_part.shape))
     elif imag_part is None:
-        # This is a strange code path to hit.
         imag_part = Constant(np.zeros(real_part.shape))
     matrix = bmat([[real_part, -imag_part],
                    [imag_part, real_part]])
@@ -129,6 +129,23 @@ def von_neumann_entr_canon(expr: von_neumann_entr,
     return canon_expr, None
 
 
+def quantum_rel_entr_canon(expr: quantum_rel_entr,
+                           real_args: List[Union[Expression, None]],
+                           imag_args: List[Union[Expression, None]], real2imag):
+    """Transform Hermitian input for quantum_rel_entr into equivalent
+    symmetric input for quantum_rel_entr.
+    """
+    no_imag = all(ia is None for ia in imag_args)
+    if no_imag:
+        return expr.copy(real_args)
+    assert all(ra is not None for ra in real_args)
+    expanded_X = expand_complex(real_args[0], imag_args[0])
+    expanded_Y = expand_complex(real_args[1], imag_args[1])
+    canon_expr = expr.copy([expanded_X, expanded_Y])
+    canon_expr = canon_expr / 2
+    return canon_expr, None
+
+
 def op_rel_entr_cone_canon(expr: OpRelEntrConeQuad,
                            real_args: List[Union[Expression, None]],
                            imag_args: List[Union[Expression, None]], real2imag):
@@ -150,7 +167,7 @@ def at_least_2D(expr: Expression):
     """Upcast 0D and 1D to 2D.
     """
     if expr.ndim < 2:
-        return reshape(expr, (expr.size, 1))
+        return reshape(expr, (expr.size, 1), order='F')
     else:
         return expr
 

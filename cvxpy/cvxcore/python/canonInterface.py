@@ -127,7 +127,7 @@ def reduce_problem_data_tensor(A, var_length, quad_form: bool = False):
     # add one more column for the offset if not quad_form
     if not quad_form:
         n_cols += 1
-    n_constr = A.shape[0] // (n_cols)
+    n_constr, _ = np.divmod(A.shape[0], n_cols, dtype=np.int64)
     shape = (n_constr, n_cols)
     indices = nonzero_rows % (n_constr)
 
@@ -136,7 +136,7 @@ def reduce_problem_data_tensor(A, var_length, quad_form: bool = False):
 
     # construction of the indptr: scan through cols, and find
     # the structure of the column index pointer
-    indptr = np.zeros(n_cols + 1, dtype=np.int32)
+    indptr = np.zeros(n_cols + 1, dtype=np.int64)
     positions, counts = np.unique(cols, return_counts=True)
     indptr[positions+1] = counts
     indptr = np.cumsum(indptr)

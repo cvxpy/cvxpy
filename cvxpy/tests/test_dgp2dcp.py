@@ -9,7 +9,7 @@ from cvxpy.reductions import solution
 from cvxpy.settings import SOLVER_ERROR
 from cvxpy.tests.base_test import BaseTest
 
-SOLVER = cvxpy.ECOS
+SOLVER = cvxpy.CLARABEL
 
 
 class TestDgp2Dcp(BaseTest):
@@ -402,7 +402,7 @@ class TestDgp2Dcp(BaseTest):
         problem = cvxpy.Problem(cvxpy.Minimize(x))
         error_msg = ("When `gp=True`, `solver` must be a conic solver "
                      "(received 'OSQP'); try calling `solve()` with "
-                     "`solver=cvxpy.ECOS`.")
+                     "`solver=cvxpy.CLARABEL`.")
         with self.assertRaises(error.SolverError) as err:
             problem.solve(solver="OSQP", gp=True)
             self.assertEqual(error_msg, str(err))
@@ -436,7 +436,7 @@ class TestDgp2Dcp(BaseTest):
         constr = [cvxpy.geo_mean(cvxpy.diag(X)) == 0.1,
                   cvxpy.geo_mean(cvxpy.hstack([X[0, 1], X[1, 0]])) == 0.1]
         problem = cvxpy.Problem(obj, constr)
-        problem.solve(gp=True, solver="ECOS")
+        problem.solve(gp=True, solver="SCS")
         np.testing.assert_almost_equal(X.value, 0.1*np.ones((2, 2)), decimal=3)
         self.assertAlmostEqual(problem.value, 2.25)
 
@@ -446,7 +446,7 @@ class TestDgp2Dcp(BaseTest):
         constr = [cvxpy.diag(X) == 0.1,
                   cvxpy.hstack([X[0, 1], X[1, 0]]) == 0.1]
         problem = cvxpy.Problem(obj, constr)
-        problem.solve(gp=True, solver="ECOS")
+        problem.solve(gp=True, solver="CLARABEL")
         np.testing.assert_almost_equal(X.value, 0.1*np.ones((2, 2)), decimal=3)
         self.assertAlmostEqual(problem.value, 2.25)
 
@@ -532,9 +532,9 @@ class TestDgp2Dcp(BaseTest):
                                 [cvxpy.multiply(w, h) >= 10,
                                 cvxpy.sum(w) <= 10])
         problem.solve(SOLVER, gp=True)
-        np.testing.assert_almost_equal(problem.value, 4)
-        np.testing.assert_almost_equal(h.value, np.array([2, 2]))
-        np.testing.assert_almost_equal(w.value, np.array([5, 5]))
+        np.testing.assert_almost_equal(problem.value, 4, decimal=3)
+        np.testing.assert_almost_equal(h.value, np.array([2, 2]), decimal=3)
+        np.testing.assert_almost_equal(w.value, np.array([5, 5]), decimal=3)
 
     def test_sum_squares_vector(self) -> None:
         w = cvxpy.Variable(2, pos=True)
@@ -543,9 +543,9 @@ class TestDgp2Dcp(BaseTest):
                                 [cvxpy.multiply(w, h) >= 10,
                                 cvxpy.sum(w) <= 10])
         problem.solve(SOLVER, gp=True)
-        np.testing.assert_almost_equal(problem.value, 8)
-        np.testing.assert_almost_equal(h.value, np.array([2, 2]))
-        np.testing.assert_almost_equal(w.value, np.array([5, 5]))
+        np.testing.assert_almost_equal(problem.value, 8, decimal=3)
+        np.testing.assert_almost_equal(h.value, np.array([2, 2]), decimal=3)
+        np.testing.assert_almost_equal(w.value, np.array([5, 5]), decimal=3)
 
     def test_sum_matrix(self) -> None:
         w = cvxpy.Variable((2, 2), pos=True)
@@ -554,9 +554,9 @@ class TestDgp2Dcp(BaseTest):
                                 [cvxpy.multiply(w, h) >= 10,
                                 cvxpy.sum(w) <= 20])
         problem.solve(SOLVER, gp=True)
-        np.testing.assert_almost_equal(problem.value, 8)
-        np.testing.assert_almost_equal(h.value, np.array([[2, 2], [2, 2]]))
-        np.testing.assert_almost_equal(w.value, np.array([[5, 5], [5, 5]]))
+        np.testing.assert_almost_equal(problem.value, 8, decimal=3)
+        np.testing.assert_almost_equal(h.value, np.array([[2, 2], [2, 2]]), decimal=3)
+        np.testing.assert_almost_equal(w.value, np.array([[5, 5], [5, 5]]), decimal=3)
 
     def test_trace(self) -> None:
         w = cvxpy.Variable((1, 1), pos=True)

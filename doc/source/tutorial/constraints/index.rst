@@ -18,7 +18,7 @@ of :py:class:`Variable <cvxpy.expressions.variable.Variable>` and
     Creates a Leaf object (e.g., Variable or Parameter).
     Only one attribute can be active (set to True).
 
-    :param shape: The variable dimensions (0D by default). Cannot be more than 2D.
+    :param shape: The variable dimensions, defaults to scalar (0D).
     :type shape: tuple or int
     :param value: A value to assign to the variable.
     :type value: numeric type
@@ -100,6 +100,57 @@ about the sign of ``x`` to the DCP analyzer.
     One downside of using attributes over explicit constraints is that dual variables will not be recorded. Dual variable values
     are only recorded for explicit constraints.
 
+.. _sparsity:
+
+Sparsity Attribute
+------------------
+
+.. versionadded:: 1.6
+
+In some optimization problems, it is beneficial to define a sparsity attribute for variables. This attribute defines the subset of
+variables that you would like to optimize over. In the example below, the problem is optimizing over the set of upper triangular matrices.
+
+.. code:: python
+
+    # Creates a upper triangular sparse variable
+    X = cp.Variable((10, 10), sparsity=np.triu_indices(n=10))
+
+    prob = cp.Minimize(cp.norm(X) + cp.sum(X))
+
+The sparsity attribute avoids defining unnecessary variables and can have great performance improvements both in terms of memory and computation,
+all while maintaining the desired shape of your expression. Another way to define the sparsity attribute is using `np.where <https://numpy.org/doc/stable/reference/generated/numpy.where.html>`_
+with a condition on given problem data. In the example below, the sparse variable represents all the entries in ``data`` that are greater than ``0.5``. 
+
+.. code:: python
+
+    # define problem data (adapt to your use-case)
+    data = np.random.randn(10, 10)
+    # Creates a sparse variable given condition on data
+    X = cp.Variable((10, 10), sparsity=np.where(data > 0.5))
+
+    prob = cp.Minimize(cp.norm(X) + cp.sum(X))
+
+Finally, you can also define the sparsity attribute manually. The input to the attribute needs to conform to the index format
+as defined in `np.indices <https://numpy.org/doc/stable/reference/generated/numpy.indices.html>`_.
+
+.. code:: python
+
+    # Creates a sparse variable manually
+    # The first tuple represent row indices and the second column indices
+    # This is equivalent to calling np.where(data == 1) on the following matrix
+    # [[1, 0, 0],
+    #  [0, 0, 1],
+    #  [0, 0, 0]]
+    X = cp.Variable((3, 3), sparsity=[(0, 1), (0, 2)])
+
+    prob = cp.Minimize(cp.norm(X) + cp.sum(X))
+
+.. warning::
+
+    The sparsity attribute is not yet supported for setting the value of a variable or parameter.
+    In a future release, we plan to have a projection method for sparsity attributes using a custom datatype
+    based on PyTorch's `sparse_coo format <https://pytorch.org/docs/stable/generated/torch.sparse_coo_tensor.html>`_.
+
 .. _semidefinite:
 
 Semidefinite matrices
@@ -173,23 +224,16 @@ You can construct mixed-integer programs by creating variables with the attribut
 CVXPY provides interfaces to many mixed-integer solvers, including open source and commercial solvers.
 For licensing reasons, CVXPY does not install any of the preferred solvers by default.
 
-The preferred open source mixed-integer solvers in CVXPY are GLPK_MI_, CBC_ and SCIP_. The CVXOPT_
+The preferred open source mixed-integer solvers in CVXPY are HiGHS, GLPK_MI, CBC and SCIP. The CVXOPT
 python package provides CVXPY with access to GLPK_MI; CVXOPT can be installed by running
 ``pip install cvxopt`` in your command line or terminal. SCIP supports nonlinear models, but
 GLPK_MI and CBC do not.
 
-CVXPY comes with ECOS_BB -- an open source mixed-integer nonlinear solver -- by default. However
-ECOS_BB will not be called automatically; you must explicitly call ``prob.solve(solver='ECOS_BB')``
-if you want to use it (:ref:`changed in CVXPY 1.1.6 <changes116>`). This policy stems from the fact
-that there are recurring correctness issues with ECOS_BB. If you rely on this solver for some
-application then you need to be aware of the increased risks that come with using it.
-If you need to use an open-source mixed-integer nonlinear solver from CVXPY, then we recommend you install SCIP.
-
 If you need to solve a large mixed-integer problem quickly, or if you have a nonlinear mixed-integer
-model that is challenging for SCIP, then you will need to use a commercial solver such as CPLEX_,
-GUROBI_, XPRESS_, MOSEK_, or COPT_. Commercial solvers require licenses to run. CPLEX, GUROBI, and MOSEK
-provide free licenses to those
-in academia (both students and faculty), as well as trial versions to those outside academia.
+model that is challenging for SCIP or HiGHS, then you will need to use a commercial solver such as CPLEX,
+GUROBI, XPRESS, MOSEK, or COPT. Commercial solvers require licenses to run. CPLEX, GUROBI, and MOSEK
+provide free licenses to those in academia (both students and faculty), as well as trial versions to those outside academia.
+
 CPLEX Free Edition is available at no cost regardless of academic status, however it still requires
 online registration, and it's limited to problems with at most 1000 variables and 1000 constraints.
 XPRESS has a free community edition which does not require registration, however it is limited

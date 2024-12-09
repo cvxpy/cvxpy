@@ -16,6 +16,7 @@ limitations under the License.
 
 
 import builtins
+import re
 
 import numpy as np
 import pytest
@@ -24,6 +25,7 @@ import cvxpy as cp
 from cvxpy.expressions.expression import (
     __ABS_ERROR__,
     __BINARY_EXPRESSION_UFUNCS__,
+    __INPLACE_MUTATION_ERROR__,
     __NUMPY_UFUNC_ERROR__,
 )
 from cvxpy.tests.base_test import BaseTest
@@ -47,6 +49,15 @@ class TestErrors(BaseTest):
         with pytest.raises(RuntimeError, match=__NUMPY_UFUNC_ERROR__):
             np.log(self.x)
 
+    def test_inplace_mutation_errors(self) -> None:
+        a = np.array([1, 2, 3])
+        with pytest.raises(RuntimeError, match=re.escape(__INPLACE_MUTATION_ERROR__)):
+            a += self.x
+
+        with pytest.raises(RuntimeError, match=re.escape(__INPLACE_MUTATION_ERROR__)):
+            np.add(a, self.x, out=a)
+
+
     def test_some_np_ufunc_works(self) -> None:
         a = np.array([[1., 3.], [3., 1.]])
         b = np.int64(1)
@@ -58,7 +69,7 @@ class TestErrors(BaseTest):
                 continue  # We don't implement __rpow__ yet.
             with pytest.raises(RuntimeError, match=__NUMPY_UFUNC_ERROR__):
                 ufunc(self.x, a)
-            with pytest.raises(RuntimeError, match=__NUMPY_UFUNC_ERROR__):
+            with pytest.raises(RuntimeError, match=re.escape(__INPLACE_MUTATION_ERROR__)):
                 ufunc(a, self.x, out=a)
 
             if ufunc is np.left_shift or \
@@ -81,7 +92,7 @@ class TestErrors(BaseTest):
             with pytest.raises(RuntimeError, match=__NUMPY_UFUNC_ERROR__):
                 ufunc(self.x, b)
 
-            with pytest.raises(RuntimeError, match=__NUMPY_UFUNC_ERROR__):
+            with pytest.raises(RuntimeError, match=re.escape(__INPLACE_MUTATION_ERROR__)):
                 ufunc(b, self.x, out=b)
 
             if ufunc is np.left_shift or \
