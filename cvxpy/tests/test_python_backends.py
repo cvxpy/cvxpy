@@ -3,7 +3,14 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Callable
 
-import graphblas as gb
+try:
+    import graphblas as gb
+    from graphblas.core.utils import ensure_type
+    gb.config["autocompute"]
+except ImportError:
+    _has_graphblas = False
+else:
+    _has_graphblas = True
 import numpy as np
 import pytest
 import scipy.sparse as sp
