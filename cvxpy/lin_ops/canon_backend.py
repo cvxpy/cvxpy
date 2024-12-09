@@ -24,6 +24,7 @@ import numpy as np
 try:
     import graphblas as gb
     from graphblas.core.utils import ensure_type
+    gb.config["autocompute"]
 except ImportError:
     _has_graphblas = False
 else:
@@ -45,7 +46,6 @@ from cvxpy.settings import (
 Note: this file is tested extensively with illustrative examples in test_python_backends.py,
 complementing the docstrings of the functions below.
 """
-gb.config["autocompute"]
 
 
 class Constant(Enum):
