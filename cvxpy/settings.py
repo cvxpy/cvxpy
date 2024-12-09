@@ -185,7 +185,7 @@ RUST_CANON_BACKEND = "RUST"
 CPP_CANON_BACKEND = "CPP"
 
 # Default canonicalization backend, pyodide uses SciPy
-DEFAULT_CANON_BACKEND = "SCIPY"
+DEFAULT_CANON_BACKEND = "GRAPHBLAS"
 
 # Numerical tolerances
 EIGVAL_TOL = 1e-10
