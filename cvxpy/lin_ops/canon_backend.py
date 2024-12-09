@@ -21,8 +21,14 @@ from enum import Enum
 from typing import Any, Callable
 
 import numpy as np
-import graphblas as gb
-from graphblas.core.utils import ensure_type
+try:
+    import graphblas as gb
+    from graphblas.core.utils import ensure_type
+except ImportError:
+    _has_graphblas = False
+else:
+    _has_graphblas = True
+
 import scipy.sparse as sp
 from scipy.signal import convolve
 
