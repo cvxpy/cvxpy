@@ -1787,6 +1787,7 @@ class GraphBlasBackend(PythonCanonBackend):
     def sum_entries(_lin: LinOp, view: GraphBlasTensorView) -> GraphBlasTensorView:
         def func(x, p):
             if p == 1:
+                x = GraphBlasTensorView.ensure_new_matrix(x)
                 return (x.reduce_columnwise("sum")._as_matrix().T).new()
             else:
                 m = x.shape[0] // p
@@ -1988,7 +1989,7 @@ class GraphBlasBackend(PythonCanonBackend):
             lhs = lhs.T
 
         rows = lin.shape[0]
-        cols = lin.args[0].shape[0]
+        cols = lin.args[0].shape[0] if len(lin.args[0].shape) > 0 else 1
         non_zeros = lhs.shape[0]
 
         lhs = GraphBlasTensorView.ensure_new_matrix(lhs)
@@ -2483,8 +2484,9 @@ class GraphBlasTensorView(DictTensorView):
         else:
             raise ValueError('Tensor cannot be None')
 
-    def get_tensor_representation(self, row_offset: int) -> TensorRepresentation:
+    def get_tensor_representation(self, row_offset: int, total_rows: int) -> TensorRepresentation:
         assert self.tensor is not None
+        shape = (total_rows, self.var_length + 1)
         tensor_representations = []
         for variable_id, variable_tensor in self.tensor.items():
             for parameter_id, parameter_matrix in variable_tensor.items():
@@ -2497,6 +2499,7 @@ class GraphBlasTensorView(DictTensorView):
                     (coo_repr[0] % m) + row_offset,
                     coo_repr[1] + self.id_to_col[variable_id],
                     coo_repr[0] // m + np.ones(len(coo_repr[2])) * self.param_to_col[parameter_id],
+                    shape=shape
                 ))
         return TensorRepresentation.combine(tensor_representations)
 
