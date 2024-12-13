@@ -115,6 +115,7 @@ class TestErrors(BaseTest):
         self.assertEqual(vstack.shape, (1, 1))
         self.assertEqual(vstack.dtype, object)
 
+    @pytest.mark.filterwarnings("ignore:DeprecationWarning")
     def test_broken_numpy_functions(self) -> None:
         with pytest.raises(RuntimeError, match=__NUMPY_UFUNC_ERROR__):
             np.linalg.norm(self.x)
