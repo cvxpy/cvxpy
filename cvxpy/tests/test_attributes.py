@@ -53,6 +53,26 @@ class TestAttributes:
         X = cp.Variable((3, 3))
         prob = cp.Problem(cp.Minimize(cp.sum(X)), [X >= -1, X <= 1])
         assert prob.get_problem_data(cp.CLARABEL)[0]['A'].shape[1] == 9
+        
+    def test_sparsity_parameter(self):
+        X = cp.Variable((3, 3))
+        sparsity = [(0, 2, 1, 2), (0, 1, 2, 2)]
+        A = cp.Parameter((3, 3), sparsity=sparsity)
+        prob = cp.Problem(cp.Minimize(cp.sum(X)), [X >= A, X <= 1])
+        A.value = np.zeros((3, 3))
+        for i, j in zip(*sparsity):
+            A.value[i, j] = -1
+        prob.solve()
+        z = np.zeros((3, 3))
+        z[A.sparse_idx] = -1
+        assert np.allclose(X.value, z)
+        
+    def test_sparsity_parameter_incorrect_pattern(self):
+        A = cp.Parameter((3, 3), sparsity=[(0, 2, 1, 2), (0, 1, 2, 2)])
+        with pytest.raises(
+            ValueError, match="Parameter value must be zero outside of sparsity pattern."
+        ):
+            A.value = np.ones((3, 3))
 
     def test_diag_value_sparse(self):
         X = cp.Variable((3, 3), diag=True)
