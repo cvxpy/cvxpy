@@ -21,6 +21,14 @@ from enum import Enum
 from typing import Any, Callable
 
 import numpy as np
+try:
+    import graphblas as gb
+    gb.config["autocompute"]
+except ImportError:
+    _has_graphblas = False
+else:
+    _has_graphblas = True
+
 import scipy.sparse as sp
 from scipy.signal import convolve
 
@@ -30,6 +38,7 @@ from cvxpy.settings import (
     NUMPY_CANON_BACKEND,
     RUST_CANON_BACKEND,
     SCIPY_CANON_BACKEND,
+    GRAPHBLAS_CANON_BACKEND,
 )
 
 """
@@ -159,6 +168,7 @@ class CanonBackend(ABC):
         backends = {
             NUMPY_CANON_BACKEND: NumPyCanonBackend,
             SCIPY_CANON_BACKEND: SciPyCanonBackend,
+            GRAPHBLAS_CANON_BACKEND: GraphBlasBackend,
             RUST_CANON_BACKEND: RustCanonBackend
         }
         return backends[backend_name](*args, **kwargs)
@@ -200,7 +210,7 @@ class PythonCanonBackend(CanonBackend):
         total_rows = sum(np.prod(lin_op.shape) for lin_op in lin_ops)
         row_offset = 0
         for lin_op in lin_ops:
-            lin_op_rows = np.prod(lin_op.shape)
+            lin_op_rows = np.prod(lin_op.shape, dtype=int)
             empty_view = self.get_empty_view()
             lin_op_tensor = self.process_constraint(lin_op, empty_view)
             constraint_res.append(lin_op_tensor.get_tensor_representation(row_offset, total_rows))
@@ -803,6 +813,7 @@ class NumPyCanonBackend(PythonCanonBackend):
         x = np.eye(8)
         out = x.reshape(2,2,2,8).sum(axis=axis).reshape(n // prod(shape[axis]),8)
         """
+
         def func(x):
             axis, _ = _lin.data
             if axis is None:
@@ -881,6 +892,7 @@ class NumPyCanonBackend(PythonCanonBackend):
         Returns a function that takes in a tensor, modifies the shape of the tensor by extending
         it to total_rows, and then shifts the entries by offset along axis 1.
         """
+
         def stack_func(tensor):
             rows = tensor.shape[1]
             new_rows = (np.arange(rows) + offset).astype(int)
@@ -1117,14 +1129,15 @@ class SciPyCanonBackend(PythonCanonBackend):
         coupling the SciPyCanonBackend subclass with the SciPyTensorView subclass.
         """
         return SciPyTensorView.get_empty_view(self.param_size_plus_one, self.id_to_col,
-                                                      self.param_to_size, self.param_to_col,
-                                                      self.var_length)
+                                              self.param_to_size, self.param_to_col,
+                                              self.var_length)
 
     @staticmethod
     def neg(_lin: LinOp, view: SciPyTensorView) -> SciPyTensorView:
         """
         Given (A, b) in view, return (-A, -b).
         """
+
         def func(x, _p):
             return -x
 
@@ -1187,9 +1200,9 @@ class SciPyCanonBackend(PythonCanonBackend):
             data, rows, cols = coo.data, coo.row, coo.col
             slices, rows = np.divmod(rows, old_shape[0])
             new_rows = np.repeat(rows + slices * old_shape[0] * reps, reps) + \
-                np.tile(np.arange(reps) * old_shape[0], len(rows))
+                       np.tile(np.arange(reps) * old_shape[0], len(rows))
             new_cols = np.repeat(cols, reps) + \
-                np.tile(np.arange(reps) * old_shape[1], len(cols))
+                       np.tile(np.arange(reps) * old_shape[1], len(cols))
             new_data = np.repeat(data, reps)
             new_shape = (v.shape[0] * reps, v.shape[1] * reps)
             res[param_id] = sp.csc_matrix(
@@ -1360,6 +1373,7 @@ class SciPyCanonBackend(PythonCanonBackend):
         Returns a function that takes in a tensor, modifies the shape of the tensor by extending
         it to total_rows, and then shifts the entries by offset along axis 0.
         """
+
         def stack_func(tensor, p):
             coo_repr = tensor.tocoo()
             m = coo_repr.shape[0] // p
@@ -1632,6 +1646,452 @@ class SciPyCanonBackend(PythonCanonBackend):
         return {Constant.ID.value: {parameter_id: param_vec}}
 
 
+class GraphBlasBackend(PythonCanonBackend):
+    @staticmethod
+    def get_constant_data_from_const(lin_op: LinOp) -> gb.Matrix:
+        """
+        Extract the constant data from a LinOp node of type "*_const".
+        """
+        if not isinstance(lin_op.data, (np.ndarray, np.float64)):
+            data = lin_op.data.toarray()
+        else:
+            data = lin_op.data
+        if data.shape == (1, 1) or data.shape == ():
+            constant = gb.Matrix.from_scalar(value=data, nrows=1, ncols=1, dtype=float)
+        else:
+            constant = gb.Matrix.from_dense(data, missing_value=0, dtype=float)
+        assert constant.shape == lin_op.shape
+        return constant
+
+    @staticmethod
+    def reshape_constant_data(constant_data: dict[int, gb.Matrix],
+                              lin_op_shape: tuple[int, int]) -> dict[int, gb.Matrix]:
+
+        return {k: GraphBlasBackend._reshape_single_constant_tensor(v, lin_op_shape)
+                for k, v in constant_data.items()}
+
+    @staticmethod
+    def _reshape_single_constant_tensor(v: gb.Matrix, lin_op_shape: tuple[int, int]) \
+            -> gb.Matrix:
+        v = GraphBlasTensorView.ensure_new_matrix(v)
+        p = np.prod(v.shape) // np.prod(lin_op_shape)
+        old_shape = (v.nrows // p, v.ncols)
+
+        stacked_rows, cols, data = v.to_coo()
+        slice, rows = np.divmod(stacked_rows, old_shape[0])
+
+        element_position = cols * old_shape[0] + rows
+        new_cols, new_rows = np.divmod(element_position, lin_op_shape[0])
+        new_rows = slice * lin_op_shape[0] + new_rows
+
+        return gb.Matrix.from_coo(rows=new_rows,
+                                  columns=new_cols,
+                                  values=data,
+                                  nrows=p * lin_op_shape[0],
+                                  ncols=lin_op_shape[1])
+
+    def get_empty_view(self) -> TensorView:
+        return GraphBlasTensorView.get_empty_view(self.param_size_plus_one, self.id_to_col,
+                                                  self.param_to_size, self.param_to_col,
+                                                  self.var_length)
+
+    def neg(self, lin: LinOp, view: GraphBlasTensorView) -> GraphBlasTensorView:
+        def func(x, _p):
+            return -x
+
+        view.apply_all(func)
+        return view
+
+    def mul(self, lin: LinOp, view: GraphBlasTensorView) -> GraphBlasTensorView:
+        lhs, is_param_free_lhs = self.get_constant_data(lin.data, view, column=False)
+        if is_param_free_lhs:
+            reps = view.rows // lhs.shape[-1]
+            if reps > 1:
+                eye = gb.Vector.from_scalar(1, reps).diag()
+                stacked_lhs = eye.kronecker(lhs)
+            else:
+                stacked_lhs = lhs
+
+            def func(x, p):
+                if p == 1:
+                    return (stacked_lhs @ x).new()
+                else:
+                    eye = gb.Vector.from_scalar(1, p).diag()
+                    return (eye.kronecker(stacked_lhs) @ x).new()
+        else:
+            reps = view.rows // next(iter(lhs.values())).shape[-1]
+            if reps > 1:
+                stacked_lhs = self._stacked_kron_r(lhs, reps)
+            else:
+                stacked_lhs = lhs
+
+            def parametrized_mul(x):
+                return {k: (v @ x).new() for k, v in stacked_lhs.items()}
+
+            func = parametrized_mul
+        return view.accumulate_over_variables(func, is_param_free_function=is_param_free_lhs)
+
+    def _stacked_kron_r(self, lhs: dict[int, gb.Matrix], reps: int) \
+            -> gb.Matrix:
+        """
+        Given a stacked lhs
+        [[A_0],
+         [A_1],
+         ...
+        apply the Kronecker product with the identity matrix of size reps
+        (kron(eye(reps), lhs)) to each slice, e.g., for reps = 2:
+        [[A_0, 0],
+         [0, A_0],
+         [A_1, 0],
+         [0, A_1],
+         ...
+        """
+        res = dict()
+        for param_id, v in lhs.items():
+            p = self.param_to_size[param_id]
+            old_shape = (v.shape[0] // p, v.shape[1])
+            rows, cols, data = v.to_coo()
+            new_rows = np.repeat(rows // old_shape[0], reps) * (old_shape[0] * (reps - 1)) + \
+                       np.repeat(rows, reps) + np.tile(np.arange(reps) * old_shape[0], len(rows))
+            new_cols = np.tile(np.arange(reps) * old_shape[1], len(cols)) + \
+                       np.repeat(cols, reps)
+            new_data = np.repeat(data, reps)
+            res[param_id] = gb.Matrix.from_coo(rows=new_rows.astype(int),
+                                               columns=new_cols.astype(int),
+                                               values=new_data,
+                                               nrows=v.shape[0] * reps,
+                                               ncols=v.shape[1] * reps)
+        return res
+
+    @staticmethod
+    def promote(lin: LinOp, view: GraphBlasTensorView) -> GraphBlasTensorView:
+        num_entries = int(np.prod(lin.shape))
+        rows = np.zeros(num_entries).astype(int)
+        view.select_rows(rows)
+        return view
+
+    def mul_elem(self, lin: LinOp, view: GraphBlasTensorView) -> GraphBlasTensorView:
+        lhs, is_param_free_lhs = self.get_constant_data(lin.data, view, column=True)
+        if is_param_free_lhs:
+            def func(x, p):
+                if p == 1:
+                    return (lhs.ewise_mult(x)).new()
+                else:
+                    new_lhs = GraphBlasTensorView.ensure_new_vector(gb.ss.concat([[lhs]] * p))
+                    return (new_lhs.ewise_mult(x)).new()
+        else:
+            def parametrized_mul(x):
+                return {k: (GraphBlasTensorView.ensure_new_vector(v).ewise_mult
+                            (gb.ss.concat([[x]] * self.param_to_size[k]))).new()
+                        for k, v in lhs.items()}
+
+            func = parametrized_mul
+        return view.accumulate_over_variables(func, is_param_free_function=is_param_free_lhs)
+
+    @staticmethod
+    def sum_entries(_lin: LinOp, view: GraphBlasTensorView) -> GraphBlasTensorView:
+        def func(x, p):
+            if p == 1:
+                x = GraphBlasTensorView.ensure_new_matrix(x)
+                return (x.reduce_columnwise("sum")._as_matrix().T).new()
+            else:
+                m = x.shape[0] // p
+                eye = gb.Vector.from_scalar(1, p).diag()
+                return (eye.kronecker(gb.Vector.from_scalar(1, m)._as_matrix().T, "times") @ x).new()
+
+        view.apply_all(func)
+        return view
+
+    def div(self, lin: LinOp, view: GraphBlasTensorView) -> GraphBlasTensorView:
+        lhs, is_param_free_lhs = self.get_constant_data(lin.data, view, column=True)
+        assert is_param_free_lhs
+        lhs.dtype = float
+        lhs = gb.unary.minv(lhs)
+
+        def div_func(x, p):
+            if p == 1:
+                return (lhs.ewise_mult(x)).new()
+            else:
+                new_lhs = GraphBlasTensorView.ensure_new_vector(gb.ss.concat([[lhs]] * p))
+                return (new_lhs.ewise_mult(x)).new()
+
+        return view.accumulate_over_variables(div_func, is_param_free_function=is_param_free_lhs)
+
+    @staticmethod
+    def diag_vec(lin: LinOp, view: GraphBlasTensorView) -> GraphBlasTensorView:
+        assert lin.shape[0] == lin.shape[1]
+        k = lin.data
+        rows = lin.shape[0]
+        total_rows = int(lin.shape[0] ** 2)
+
+        def func(x, p):
+            shape = list(x.shape)
+            nrows = shape[0]
+            shape[0] = int(total_rows * p)
+            x = x.to_coo()
+            x_slice, x_row = np.divmod(x[0], nrows // p)
+            if k == 0:
+                new_rows = x_row * (rows + 1)
+            elif k > 0:
+                new_rows = x_row * (rows + 1) + rows * k
+            else:
+                new_rows = x_row * (rows + 1) - k
+            new_rows = (new_rows + x_slice * total_rows).astype(int)
+            return gb.Matrix.from_coo(rows=new_rows,
+                                      columns=x[1],
+                                      values=x[2],
+                                      nrows=shape[0],
+                                      ncols=shape[1])
+
+        view.apply_all(func)
+        return view
+
+    @staticmethod
+    def get_stack_func(total_rows: int, offset: int) -> Callable:
+        def stack_func(tensor, p):
+            tensor = GraphBlasTensorView.ensure_new_matrix(tensor)
+            coo_repr = tensor.to_coo()
+            m = tensor.shape[0] // p
+            slices = coo_repr[0] // m
+            new_rows = (coo_repr[0] + (slices + 1) * offset)
+            new_rows = new_rows + slices * (total_rows - m - offset)
+            return gb.Matrix.from_coo(rows=new_rows.astype(int),
+                                      columns=coo_repr[1].astype(int),
+                                      values=coo_repr[2],
+                                      nrows=int(total_rows * p),
+                                      ncols=tensor.shape[1])
+
+        return stack_func
+
+    def rmul(self, lin: LinOp, view: GraphBlasTensorView) -> GraphBlasTensorView:
+        """
+        Multiply view with constant data from the right.
+        When the rhs is parametrized, multiply each slice of the tensor with the
+        single, constant slice of the lhs.
+        Otherwise, multiply the single slice of the tensor with each slice of the lhs.
+
+        Note: Even though this is rmul, we still use "lhs", as is implemented via a
+        multiplication from the left in this function.
+        """
+        lhs, is_param_free_lhs = self.get_constant_data(lin.data, view, column=False)
+
+        arg_cols = lin.args[0].shape[0] if len(lin.args[0].shape) == 1 else lin.args[0].shape[1]
+
+        if is_param_free_lhs:
+            if len(lin.data.shape) == 1 and arg_cols != lhs.shape[0]:
+                lhs = lhs.T
+            reps = view.rows // lhs.shape[0]
+            if reps > 1:
+                eye = gb.Vector.from_scalar(1, reps).diag()
+                stacked_lhs = lhs.T.kronecker(eye)
+            else:
+                stacked_lhs = lhs.T
+
+            def func(x, p):
+                if p == 1:
+                    return (stacked_lhs @ x).new()
+                else:
+                    eye = gb.Vector.from_scalar(1, p).diag()
+                    return (eye.kronecker(stacked_lhs) @ x).new()
+        else:
+            k, v = next(iter(lhs.items()))
+            lhs_rows = v.shape[0] // self.param_to_size[k]
+
+            if len(lin.data.shape) == 1 and arg_cols != lhs_rows:
+                # Example: (n,n) @ (n,), we need to interpret the rhs as a column vector,
+                # but it is a row vector by default, so we need to transpose
+                lhs = {k: self._transpose_stacked(v, k) for k, v in lhs.items()}
+                k, v = next(iter(lhs.items()))
+                lhs_rows = v.shape[0] // self.param_to_size[k]
+
+            reps = view.rows // lhs_rows
+
+            lhs = {k: self._transpose_stacked(v, k) for k, v in lhs.items()}
+
+            if reps > 1:
+                stacked_lhs = self._stacked_kron_l(lhs, reps)
+            else:
+                stacked_lhs = lhs
+
+            def parametrized_mul(x):
+                return {k: (v @ x).new() for k, v in stacked_lhs.items()}
+
+            func = parametrized_mul
+        return view.accumulate_over_variables(func, is_param_free_function=is_param_free_lhs)
+
+    def _transpose_stacked(self, v: gb.Matrix, param_id: int) -> gb.Matrix:
+        """
+        Given v, which is a stacked matrix of shape (p * n, m), transpose each slice of v,
+        returning a stacked matrix of shape (p * m, n).
+        Example:
+        Input:      Output:
+        [[A_0],     [[A_0.T],
+         [A_1],      [A_1.T],
+          ...        ...
+        """
+        old_shape = (v.shape[0] // self.param_to_size[param_id], v.shape[1])
+        p = v.shape[0] // old_shape[0]
+        new_shape = (old_shape[1], old_shape[0])
+        rows, cols, data = v.to_coo()
+        slices, rows = np.divmod(rows, old_shape[0])
+        new_rows = cols + slices * new_shape[0]
+        new_cols = rows
+        return gb.Matrix.from_coo(rows=new_rows,
+                                  columns=new_cols,
+                                  values=data,
+                                  nrows=p * new_shape[0],
+                                  ncols=new_shape[1])
+
+    def _stacked_kron_l(self, lhs: dict[int, gb.Matrix], reps: int) \
+            -> gb.Matrix:
+        """
+        Given a stacked lhs with the following entries:
+        [[a11, a12],
+         [a21, a22],
+         ...
+        Apply the Kronecker product with the identity matrix of size reps
+        (kron(lhs, eye(reps))) to each slice, e.g., for reps = 2:
+        [[a11, 0, a12, 0],
+         [0, a11, 0, a12],
+         [a21, 0, a22, 0],
+         [0, a21, 0, a22],
+         ...
+        """
+        res = dict()
+        for param_id, v in lhs.items():
+            self.param_to_size[param_id]
+            rows, cols, data = v.to_coo()
+            new_rows = np.repeat(rows * reps, reps) + np.tile(np.arange(reps), len(rows))
+            new_cols = np.repeat(cols * reps, reps) + np.tile(np.arange(reps), len(cols))
+            new_data = np.repeat(data, reps)
+            res[param_id] = gb.Matrix.from_coo(rows=new_rows.astype(int),
+                                               columns=new_cols.astype(int),
+                                               values=new_data,
+                                               nrows=v.shape[0] * reps,
+                                               ncols=v.shape[1] * reps)
+        return res
+
+    @staticmethod
+    def trace(lin: LinOp, view: GraphBlasTensorView) -> GraphBlasTensorView:
+        shape = lin.args[0].shape
+        indices = np.arange(shape[0]) * shape[0] + np.arange(shape[0])
+        lhs = gb.Vector.from_coo(indices, dtype=int)
+
+        def func(x, p):
+            if p == 1:
+                return ((lhs @ x)._as_matrix().T).new()
+            else:
+                eye = gb.Vector.from_scalar(1, p).diag()
+                return (eye.kronecker(lhs._as_matrix().T) @ x).new()
+
+        return view.accumulate_over_variables(func, is_param_free_function=True)
+
+    def conv(self, lin: LinOp, view: GraphBlasTensorView) -> GraphBlasTensorView:
+        lhs, is_param_free_lhs = self.get_constant_data(lin.data, view, column=False)
+        assert is_param_free_lhs
+
+        if len(lin.data.shape) == 1:
+            lhs = lhs.T
+
+        rows = lin.shape[0]
+        cols = lin.args[0].shape[0] if len(lin.args[0].shape) > 0 else 1
+        non_zeros = lhs.shape[0]
+
+        lhs = GraphBlasTensorView.ensure_new_matrix(lhs)
+        lhs = lhs.to_coo()
+        row_idx = (np.tile(lhs[0], cols) + np.repeat(np.arange(cols), non_zeros)).astype(int)
+        col_idx = (np.tile(lhs[1], cols) + np.repeat(np.arange(cols), non_zeros)).astype(int)
+        data = np.tile(lhs[2], cols)
+        lhs = gb.Matrix.from_coo(rows=row_idx,
+                                 columns=col_idx,
+                                 values=data,
+                                 nrows=rows,
+                                 ncols=cols)
+
+        def func(x, _p):
+            return (lhs @ x).new()
+
+        return view.accumulate_over_variables(func, is_param_free_function=is_param_free_lhs)
+
+    def kron_r(self, lin: LinOp, view: GraphBlasTensorView) -> GraphBlasTensorView:
+        lhs, is_param_free_lhs = self.get_constant_data(lin.data, view, column=True)
+        assert is_param_free_lhs
+
+        assert len({arg.shape for arg in lin.args}) == 1
+        rhs_shape = lin.args[0].shape
+
+        lhs_ones = np.ones(lin.data.shape)
+        rhs_ones = np.ones(rhs_shape)
+
+        lhs_arange = np.arange(np.prod(lin.data.shape)).reshape(lin.data.shape, order="F")
+        rhs_arange = np.arange(np.prod(rhs_shape)).reshape(rhs_shape, order="F")
+
+        row_indices = (np.kron(lhs_ones, rhs_arange) +
+                       np.kron(lhs_arange, rhs_ones * np.prod(rhs_shape))) \
+            .flatten(order="F").astype(int)
+
+        def func(x, _p):
+            assert x.ndim == 2
+            kron_res = lhs._as_matrix().kronecker(x)
+            kron_res = kron_res[row_indices, :]
+            return (kron_res).new()
+
+        return view.accumulate_over_variables(func, is_param_free_function=is_param_free_lhs)
+
+    def kron_l(self, lin: LinOp, view: GraphBlasTensorView) -> GraphBlasTensorView:
+        rhs, is_param_free_rhs = self.get_constant_data(lin.data, view, column=True)
+        assert is_param_free_rhs
+
+        assert len({arg.shape for arg in lin.args}) == 1
+        lhs_shape = lin.args[0].shape
+
+        rhs_ones = np.ones(lin.data.shape)
+        lhs_ones = np.ones(lhs_shape)
+
+        rhs_arange = np.arange(np.prod(lin.data.shape)).reshape(lin.data.shape, order="F")
+        lhs_arange = np.arange(np.prod(lhs_shape)).reshape(lhs_shape, order="F")
+
+        row_indices = (np.kron(lhs_ones, rhs_arange) +
+                       np.kron(lhs_arange, rhs_ones * np.prod(lin.data.shape))) \
+            .flatten(order="F").astype(int)
+
+        def func(x, _p):
+            assert x.ndim == 2
+            kron_res = x.kronecker(rhs._as_matrix())
+            kron_res = kron_res[row_indices, :]
+            return (kron_res).new()
+
+        return view.accumulate_over_variables(func, is_param_free_function=is_param_free_rhs)
+
+    def get_variable_tensor(self, shape: tuple[int, ...], variable_id: int) -> \
+            dict[int, dict[int, gb.Matrix]]:
+        assert variable_id != Constant.ID
+        n = int(np.prod(shape))
+        eye = gb.Vector.from_scalar(1, n).diag()
+        return {variable_id: {Constant.ID.value: eye}}
+
+    def get_data_tensor(self, data: np.ndarray | sp.spmatrix) -> \
+            dict[int, dict[int, gb.Vector]]:
+        if isinstance(data, np.ndarray):
+            tensor = gb.Vector.from_dense(data.flatten(order="F"))
+        else:
+            tensor = sp.coo_matrix(data).reshape((-1, 1), order="F")
+            tensor = gb.Vector.from_coo(indices=tensor.row,
+                                        values=tensor.data,
+                                        size=tensor.shape[0])
+        return {Constant.ID.value: {Constant.ID.value: tensor}}
+
+    def get_param_tensor(self, shape: tuple[int, ...], parameter_id: int) -> \
+            dict[int, dict[int, gb.Vector]]:
+        assert parameter_id != Constant.ID
+        # Change default sparse matrix format to column
+        gb.ss.config["format"] = "by_col"
+        p = self.param_to_size[parameter_id]
+        param_vec = gb.Vector.from_coo(indices=np.arange(p) + np.arange(p) * p,
+                                       size=int(np.prod(shape) * p))
+        return {Constant.ID.value: {parameter_id: param_vec}}
+
+
 class TensorView(ABC):
     """
     A TensorView represents the tensors for A and b, which are of shape
@@ -1804,7 +2264,10 @@ class DictTensorView(TensorView, ABC):
             elif isinstance(a[key], self.tensor_type()) and isinstance(b[key], self.tensor_type()):
                 res[key] = self.add_tensors(a[key], b[key])
             else:
-                raise ValueError(f'Values must either be dicts or {self.tensor_type()}.')
+                try:
+                    res[key] = self.add_tensors(a[key], b[key])
+                except:
+                    raise ValueError(f'Values must either be dicts or {self.tensor_type()}.')
         for key in keys_a - intersect:
             res[key] = a[key]
         for key in keys_b - intersect:
@@ -1859,6 +2322,7 @@ class NumPyTensorView(DictTensorView):
         The rows of the 3d tensor are in axis=1, this function selects a subset
         of the original tensor.
         """
+
         def func(x):
             return x[:, rows, :]
 
@@ -1956,6 +2420,7 @@ class SciPyTensorView(DictTensorView):
         we must select the same 'rows' from each parameter slice. This is done by
         introducing an offset of size 'm' for every parameter.
         """
+
         def func(x, p):
             if p == 1:
                 return x[rows, :]
@@ -1982,9 +2447,9 @@ class SciPyTensorView(DictTensorView):
         but new tensor data.
         """
         return SciPyTensorView(variable_ids, tensor, is_parameter_free,
-                                       self.param_size_plus_one, self.id_to_col,
-                                       self.param_to_size, self.param_to_col,
-                                       self.var_length)
+                               self.param_size_plus_one, self.id_to_col,
+                               self.param_to_size, self.param_to_col,
+                               self.var_length)
 
     def apply_to_parameters(self, func: Callable,
                             parameter_representation: dict[int, sp.spmatrix]) \
@@ -2010,3 +2475,89 @@ class SciPyTensorView(DictTensorView):
         sparse matrix instead of smaller sparse matrices in a list.
         """
         return sp.spmatrix
+
+
+class GraphBlasTensorView(DictTensorView):
+    @property
+    def rows(self) -> int:
+        if self.tensor is not None:
+            for param_dict in self.tensor.values():
+                for param_id, param_mat in param_dict.items():
+                    return param_mat.shape[0] // self.param_to_size[param_id]
+        else:
+            raise ValueError('Tensor cannot be None')
+
+    def get_tensor_representation(self, row_offset: int, total_rows: int) -> TensorRepresentation:
+        assert self.tensor is not None
+        shape = (total_rows, self.var_length + 1)
+        tensor_representations = []
+        for variable_id, variable_tensor in self.tensor.items():
+            for parameter_id, parameter_matrix in variable_tensor.items():
+                p = self.param_to_size[parameter_id]
+                m = parameter_matrix.shape[0] // p
+                parameter_matrix = self.ensure_new_matrix(parameter_matrix)
+                coo_repr = parameter_matrix.to_coo()
+                tensor_representations.append(TensorRepresentation(
+                    coo_repr[2],
+                    (coo_repr[0] % m) + row_offset,
+                    coo_repr[1] + self.id_to_col[variable_id],
+                    coo_repr[0] // m + np.ones(len(coo_repr[2])) * self.param_to_col[parameter_id],
+                    shape=shape
+                ))
+        return TensorRepresentation.combine(tensor_representations)
+
+    def select_rows(self, rows: np.ndarray) -> None:
+        def func(x, p):
+            x = self.ensure_new_matrix(x)
+            if p == 1:
+                return (x[rows, :]).new()
+            else:
+                m = x.shape[0] // p
+                return (x[np.tile(rows, p) + np.repeat(np.arange(p) * m, len(rows)), :]).new()
+
+        self.apply_all(func)
+
+    def apply_all(self, func: Callable) -> None:
+        self.tensor = {var_id: {k: func(v, self.param_to_size[k])
+                                for k, v in parameter_repr.items()}
+                       for var_id, parameter_repr in self.tensor.items()}
+
+    def create_new_tensor_view(self, variable_ids: set[int], tensor: Any,
+                               is_parameter_free: bool) -> GraphBlasTensorView:
+        return GraphBlasTensorView(variable_ids, tensor, is_parameter_free,
+                                   self.param_size_plus_one, self.id_to_col,
+                                   self.param_to_size, self.param_to_col,
+                                   self.var_length)
+
+    def apply_to_parameters(self, func: Callable,
+                            parameter_representation: dict[int, gb.Matrix]) \
+            -> dict[int, gb.Matrix]:
+        return {k: func(v, self.param_to_size[k])
+                for k, v in parameter_representation.items()}
+
+    @staticmethod
+    def ensure_new_matrix(tensor: Any):
+        if not isinstance(tensor, GraphBlasTensorView.tensor_type()):
+            tensor = tensor.new()
+        if isinstance(tensor, gb.Vector):
+            tensor = tensor._as_matrix()
+        return tensor
+
+    @staticmethod
+    def ensure_new_vector(tensor: Any):
+        if not isinstance(tensor, GraphBlasTensorView.tensor_type()):
+            tensor = tensor.new()
+        if isinstance(tensor, gb.Matrix):
+            tensor = tensor._as_vector()
+        return tensor
+
+    @staticmethod
+    def add_tensors(a: gb.Matrix, b: gb.Matrix) -> gb.Matrix:
+        if isinstance(b, gb.Vector):
+            return (b + a).new()
+        else:
+            return (a + b).new()
+
+    @staticmethod
+    def tensor_type():
+        return gb.Matrix, gb.Vector
