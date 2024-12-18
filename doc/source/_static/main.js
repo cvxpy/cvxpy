@@ -58,6 +58,9 @@ $(document).ready(function() {
   function initializeMainTable() {
     var table = $('table.atomic-functions').DataTable();
     var originalData = table.data().toArray();
+    $('#operationTypeFilter input').change(function(e) {
+      console.log(e)
+    });
     $('#applyFilters').click(function() {
       var curvatureValue = $('input[name="curvature"]:checked').val();
       var operationTypeValue = $('input[name="operationType"]:checked').val();

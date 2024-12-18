@@ -59,6 +59,10 @@ tags
 
 # Things specific to this project
 cvxpy/version.py
+<<<<<<< HEAD
 
 # Hypothesis testing
 .hypothesis/
+=======
+.hypothesis
+>>>>>>> 07dba15da (adding some changes for styling and making tables look nicer)
