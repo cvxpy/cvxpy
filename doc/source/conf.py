@@ -258,11 +258,11 @@ html_favicon = "_static/favicon.ico"
 html_static_path = ['_static']
 html_css_files = [
     'css/styling.css',
-    'https://cdn.datatables.net/1.10.23/css/jquery.dataTables.min.css',
+    'https://cdn.datatables.net/2.1.8/css/dataTables.dataTables.css',
 ]
 html_js_files = [
-    'https://cdn.datatables.net/1.10.23/js/jquery.dataTables.min.js',
-    'main.js',
+    'https://cdn.datatables.net/2.1.8/js/dataTables.js',
+    'js/functions-table.js',
 ]
 # If not '', a 'Last updated on:' timestamp is inserted at every page bottom,
 # using the given strftime format.
