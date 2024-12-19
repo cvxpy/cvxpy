@@ -262,7 +262,6 @@ html_css_files = [
 ]
 html_js_files = [
     'https://cdn.datatables.net/2.1.8/js/dataTables.js',
-    'js/functions-table.js',
 ]
 # If not '', a 'Last updated on:' timestamp is inserted at every page bottom,
 # using the given strftime format.
