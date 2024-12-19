@@ -6,7 +6,6 @@ The table below lists all the atomic functions available in CVXPY.
 
 Filters
 -------
-
 .. raw:: html
 
     <div class="card">
@@ -38,8 +37,8 @@ Filters
                     </label>
                 </div>
             </form>
-            <h5>Operation Type</h5>
-            <form id="operationTypeFilter">
+            <h5>Type</h5>
+            <form id="typeFilter">
                 <div></div>
                 <label>
                     <input type="radio" name="operationType" value="all" checked> All
@@ -54,8 +53,22 @@ Filters
                     <input type="radio" name="operationType" value="matrix"> Matrix/Vector
                 </label>
             </form>
-            <button id="applyFilters">Submit</button>
-            <button id="resetFilters">Reset Filters</button>
+            <h5>Sign</h5>
+            <form id="signFilter">
+                <div></div>
+                <label>
+                    <input type="radio" name="operationSign" value="all" checked> All
+                </label>
+                <label>
+                    <input type="radio" name="operationSign" value="positive"> Positive
+                </label>
+                <label>
+                    <input type="radio" name="operationSign" value="negative"> Negative
+                </label>
+                <label>
+                    <input type="radio" name="operationSign" value="unknown"> Unknown
+                </label>
+            </form>
         </div>
     </div>
 
@@ -63,42 +76,43 @@ Atoms table
 -----------
 .. include:: functions_table.rst
     
-
 .. raw:: html
 
     <script>
-    function initializeMainTable() {
-        var table = $('table.atomic-functions').DataTable();
-        var originalData = table.data().toArray();
-        $('#operationTypeFilter input').change(function(e) {
-            console.log(e)
-        });
-        $('#applyFilters').click(function() {
-            var curvatureValue = $('input[name="curvature"]:checked').val();
-            var operationTypeValue = $('input[name="operationType"]:checked').val();
-            var filteredData = originalData;
+    $(document).ready(function() {
+        function initializeMainTable() {
+            var table = $('table.atomic-functions').DataTable();
+            var originalData = table.data().toArray();
 
-            if (curvatureValue !== "all") {
-                filteredData = filteredData.filter(row => {
-                    const curv = $(row[4]).text().trim();
-                    return curv === curvatureValue;
-                });
-            }
-            if (operationTypeValue !== "all") {
-                filteredData = filteredData.filter(row => {
-                    const type = $(row[6]).text().trim();
-                    return type === operationTypeValue;
-                });
-            }
-            table.clear().rows.add(filteredData).draw();
-        });
+            function applyFilters() {
+                var curvatureValue = $('input[name="curvature"]:checked').val();
+                var operationTypeValue = $('input[name="operationType"]:checked').val();
+                var operationSignValue = $('input[name="operationSign"]:checked').val();
+                var filteredData = originalData;
 
-        $('#resetFilters').click(function() {
-            $('input[name="curvature"][value="all"]').prop('checked', true);
-            $('input[name="operationType"][value="all"]').prop('checked', true);
-            table.clear().rows.add(originalData).draw();
-        });
-    }
-    initializeMainTable();
+                if (curvatureValue !== "all") {
+                    filteredData = filteredData.filter(row => {
+                        const curv = $(row[4]).text().trim();
+                        return curv === curvatureValue;
+                    });
+                }
+                if (operationTypeValue !== "all") {
+                    filteredData = filteredData.filter(row => {
+                        const type = $(row[6]).text().trim();
+                        return type === operationTypeValue;
+                    });
+                }
+                if (operationSignValue !== "all") {
+                    filteredData = filteredData.filter(row => {
+                        const sign = $(row[3]).text().trim();
+                        return sign === operationSignValue;
+                    });
+                }
+                table.clear().rows.add(filteredData).draw();
+            }
+
+            $('#curvatureFilter input, #typeFilter input, #signFilter input').change(applyFilters);
+        }
+        initializeMainTable();
+    });
     </script>
-    
