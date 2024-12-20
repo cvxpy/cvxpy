@@ -78,6 +78,9 @@ Atoms table
     
 .. raw:: html
 
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/2.1.8/css/dataTables.dataTables.css">
+    <script src="https://cdn.datatables.net/2.1.8/js/dataTables.js"></script>
     <script>
     $(document).ready(function() {
         function initializeMainTable() {
