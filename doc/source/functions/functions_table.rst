@@ -939,7 +939,7 @@
        :math:`p \geq 1`
 
        or ``p = 'inf'``
-     - :math:`\|X\|_p = \left(\sum_{ij} |X_{ij}|^p \right)^{1/p}`
+     - :math:`\left(\sum_{ij} |X_{ij}|^p \right)^{1/p}`
      - :math:`X \in \mathbf{R}^{m \times n}_{++}`
      - none
      - |convex| log-log convex
@@ -949,7 +949,7 @@
    * - :ref:`pnorm(X, p) <pnorm_func>`
 
        :math:`0 < p < 1`
-     - :math:`\|X\|_p = \left(\sum_{ij} X_{ij}^p \right)^{1/p}`
+     - :math:`\left(\sum_{ij} X_{ij}^p \right)^{1/p}`
      - :math:`X \in \mathbf{R}^{m \times n}_{++}`
      - none
      - |convex| log-log convex
@@ -1195,7 +1195,8 @@
 
    * - :ref:`matmul(X, Y) <matmul>`
      - :math:`XY`
-     - :math:`X \in\mathbf{R}^{m \times n}_{++}, Y \in\mathbf{R}^{n \times p}_{++}``
+     - :math:`X \in\mathbf{R}^{m \times n}_{++}`
+       :math:`Y \in\mathbf{R}^{n \times p}_{++}`
      - none
      - |convex| log-log convex
      - |incr| incr.

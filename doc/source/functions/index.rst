@@ -4,8 +4,6 @@ Functions
 =========
 The table below lists all the atomic functions available in CVXPY.
 
-Filters
--------
 .. raw:: html
 
     <div class="card">
@@ -84,7 +82,15 @@ Atoms table
     <script>
     $(document).ready(function() {
         function initializeMainTable() {
-            var table = $('table.atomic-functions').DataTable();
+            var table = $('table.atomic-functions').DataTable( {
+                            layout: {
+                                topStart: 'search',
+                                topEnd: null,
+                                bottomStart: null,
+                                bottomEnd: null,
+                                bottom: 'paging'
+                            }
+                        } );
             var originalData = table.data().toArray();
 
             function applyFilters() {
