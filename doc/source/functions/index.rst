@@ -51,20 +51,23 @@ The table below lists all the atomic functions available in CVXPY.
                     <input type="radio" name="operationType" value="matrix"> Matrix/Vector
                 </label>
             </form>
-            <h5>Sign</h5>
-            <form id="signFilter">
+            <h5>DCP Property</h5>
+            <form id="dcpFilter">
                 <div></div>
                 <label>
-                    <input type="radio" name="operationSign" value="all" checked> All
+                    <input type="radio" name="dcpProperties" value="all" checked> All
                 </label>
                 <label>
-                    <input type="radio" name="operationSign" value="positive"> Positive
+                    <input type="radio" name="dcpProperties" value="positive"> Positive
                 </label>
                 <label>
-                    <input type="radio" name="operationSign" value="negative"> Negative
+                    <input type="radio" name="dcpProperties" value="negative"> Negative
                 </label>
                 <label>
-                    <input type="radio" name="operationSign" value="unknown"> Unknown
+                    <input type="radio" name="dcpProperties" value="incr"> Increasing
+                </label>
+                <label>
+                    <input type="radio" name="dcpProperties" value="decr"> Decreasing
                 </label>
             </form>
         </div>
@@ -96,7 +99,7 @@ Atoms table
             function applyFilters() {
                 var curvatureValue = $('input[name="curvature"]:checked').val();
                 var operationTypeValue = $('input[name="operationType"]:checked').val();
-                var operationSignValue = $('input[name="operationSign"]:checked').val();
+                var dcpFilterValue = $('input[name="dcpProperties"]:checked').val();
                 var filteredData = originalData;
 
                 if (curvatureValue !== "all") {
@@ -111,16 +114,16 @@ Atoms table
                         return type === operationTypeValue;
                     });
                 }
-                if (operationSignValue !== "all") {
+                if (dcpFilterValue !== "all") {
                     filteredData = filteredData.filter(row => {
-                        const sign = $(row[3]).text().trim();
-                        return sign === operationSignValue;
+                        const dcp = $(row[3]).text().trim();
+                        return dcp.includes(dcpFilterValue);
                     });
                 }
                 table.clear().rows.add(filteredData).draw();
             }
 
-            $('#curvatureFilter input, #typeFilter input, #signFilter input').change(applyFilters);
+            $('#curvatureFilter input, #typeFilter input, #dcpFilter input').change(applyFilters);
         }
         initializeMainTable();
     });

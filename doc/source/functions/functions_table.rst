@@ -717,9 +717,7 @@
      - |convex| convex
      - elementwise
 
-   * - :ref:`bmat([[X11,...,X1q],
-       ...,
-       [Xp1,...,Xpq]]) <bmat>`
+   * - :ref:`bmat() <bmat>`
 
      - :math:`\left[\begin{matrix} X^{(1,1)} &  \cdots &  X^{(1,q)} \\ \vdots &   & \vdots \\ X^{(p,1)} & \cdots &   X^{(p,q)} \end{matrix}\right]`
      - :math:`X^{(i,j)} \in\mathbf{R}^{m_i \times n_j}`
@@ -1113,9 +1111,7 @@
      - |convex| log-log convex
      - elementwise
 
-   * - :ref:`bmat([[X11,...,X1q],
-       ...,
-       [Xp1,...,Xpq]]) <bmat>`
+   * - :ref:`bmat() <bmat>`
 
      - :math:`\left[\begin{matrix} X^{(1,1)} &  \cdots &  X^{(1,q)} \\ \vdots &   & \vdots \\ X^{(p,1)} & \cdots &   X^{(p,q)} \end{matrix}\right]`
      - :math:`X^{(i,j)} \in\mathbf{R}^{m_i \times n_j}_{++}`
@@ -1138,9 +1134,11 @@
      - |affine| log-log affine
      - matrix
 
-   * - :ref:`eye_minus_inv(X) <eye-minus-inv>`
+   * - :ref:`eye_minus_inv(X) <eye_minus_inv>`
      - :math:`(I - X)^{-1}`
-     - :math:`X \in\mathbf{R}^{n \times n}_{++}, \lambda_{\text{pf}}(X) < 1`
+     - :math:`X \in\mathbf{R}^{n \times n}_{++}`,
+     
+       :math:`\lambda_{\text{pf}}(X) < 1`
      - |incr| incr.
      - |convex| log-log convex
      - matrix
