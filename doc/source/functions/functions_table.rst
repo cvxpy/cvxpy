@@ -335,7 +335,9 @@
    * - :ref:`sum_largest(X, k) <sum-largest>`
 
        :math:`k = 1,2,\ldots`
-     - :math:`\text{sum of } k\text{ largest }X_{ij}`
+     - :math:`\text{sum of } k`
+     
+       :math:`\text{largest }X_{ij}`
      - :math:`X \in\mathbf{R}^{m \times n}`
      - same sign as X
 
@@ -346,7 +348,9 @@
    * - :ref:`sum_smallest(X, k) <sum-smallest>`
 
        :math:`k = 1,2,\ldots`
-     - :math:`\text{sum of } k\text{ smallest }X_{ij}`
+     - :math:`\text{sum of } k`
+     
+       :math:`\text{smallest }X_{ij}`
      - :math:`X \in\mathbf{R}^{m \times n}`
      - same sign as X
 
@@ -454,18 +458,23 @@
    * - :ref:`huber(x, M=1) <huber>`
 
        :math:`M \geq 0`
-     - :math:`\begin{cases}x^2 &|x| \leq M  \\2M|x| - M^2&|x| >M\end{cases}`
+     - :math:`\begin{aligned} & \text{if } |x| \leq M\colon \\& x^2 \end{aligned}`
+     
+       :math:`\begin{aligned} & \text{if } |x| > M\colon \\& 2M|x| - M^2 \end{aligned}`
      - :math:`x \in \mathbf{R}`
      - |positive| positive
 
        |incr| for :math:`x \geq 0`
+       
        |decr| for :math:`x \leq 0`
      - |convex| convex
      - elementwise
 
    * - :ref:`imag(x) <imag-atom>`
 
-     - imaginary part of a complex number
+     - imaginary part 
+     
+       of a complex number
      - :math:`x \in \mathbf{C}`
      - |unknown| unknown sign
      - |affine| affine
@@ -485,6 +494,7 @@
 
      - :math:`x \log(x/y) - x + y`
      - :math:`x > 0`
+
        :math:`y > 0`
      - |positive| positive
      - |convex| convex
@@ -719,7 +729,7 @@
 
    * - :ref:`bmat() <bmat>`
 
-     - :math:`\left[\begin{matrix} X^{(1,1)} &  \cdots &  X^{(1,q)} \\ \vdots &   & \vdots \\ X^{(p,1)} & \cdots &   X^{(p,q)} \end{matrix}\right]`
+     - :math:`\left[\begin{matrix} X^{(1,1)} & .. &  X^{(1,q)} \\ \vdots &   & \vdots \\ X^{(p,1)} & .. &   X^{(p,q)} \end{matrix}\right]`
      - :math:`X^{(i,j)} \in\mathbf{R}^{m_i \times n_j}`
      - |incr| incr.
      - |affine| affine
@@ -777,7 +787,7 @@
    * - :ref:`kron(X, Y) <kron>`
 
        constant :math:`X\in\mathbf{R}^{p \times q}`
-     - :math:`\left[\begin{matrix}X_{11}Y & \cdots & X_{1q}Y \\ \vdots  &        & \vdots \\ X_{p1}Y &  \cdots      & X_{pq}Y     \end{matrix}\right]`
+     - :math:`\left[\begin{matrix}X_{11}Y & .. & X_{1q}Y \\ \vdots  &        & \vdots \\ X_{p1}Y & .. & X_{pq}Y     \end{matrix}\right]`
      - :math:`Y \in \mathbf{R}^{m \times n}`
      - monotonicity depends on :math:`X`
      - |affine| affine
@@ -786,7 +796,7 @@
    * - :ref:`kron(X, Y) <kron>`
 
        constant :math:`Y\in\mathbf{R}^{m \times n}`
-     - :math:`\left[\begin{matrix}X_{11}Y & \cdots & X_{1q}Y \\ \vdots  &        & \vdots \\ X_{p1}Y &  \cdots      & X_{pq}Y     \end{matrix}\right]`
+     - :math:`\left[\begin{matrix}X_{11}Y & .. & X_{1q}Y \\ \vdots  &        & \vdots \\ X_{p1}Y & .. & X_{pq}Y     \end{matrix}\right]`
      - :math:`X \in \mathbf{R}^{p \times q}`
      - monotonicity depends on :math:`Y`
      - |affine| affine
@@ -843,7 +853,7 @@
      - |affine| affine
      - matrix
 
-   * - :ref:`vec_to_upper_tri(X, strict=False) <vec-to-upper-tri>`
+   * - :ref:`vec_to_upper_tri(X, strict=False) <vec_to_upper_tri>`
 
      - :math:`x' \in\mathbf{R}^{n(n-1)/2}` for ``strict=True``
 
@@ -1008,7 +1018,7 @@
      - |convex| log-log convex
      - scalar
 
-   * - :ref:`diff_pos(x, y) <diff-pos>`
+   * - :ref:`diff_pos(x, y) <diff_pos>`
      - :math:`x - y`
      - :math:`0 < y < x`
      - |incr| incr.  in :math:`x`
@@ -1113,7 +1123,7 @@
 
    * - :ref:`bmat() <bmat>`
 
-     - :math:`\left[\begin{matrix} X^{(1,1)} &  \cdots &  X^{(1,q)} \\ \vdots &   & \vdots \\ X^{(p,1)} & \cdots &   X^{(p,q)} \end{matrix}\right]`
+     - :math:`\left[\begin{matrix} X^{(1,1)} & .. &  X^{(1,q)} \\ \vdots &   & \vdots \\ X^{(p,1)} & .. &   X^{(p,q)} \end{matrix}\right]`
      - :math:`X^{(i,j)} \in\mathbf{R}^{m_i \times n_j}_{++}`
      - |incr| incr.
      - |affine| log-log affine
@@ -1171,7 +1181,9 @@
 
    * - :ref:`resolvent(X) <resolvent>`
      - :math:`(sI - X)^{-1}`
-     - :math:`X \in\mathbf{R}^{n \times n}_{++}, \lambda_{\text{pf}}(X) < s`
+     - :math:`X \in\mathbf{R}^{n \times n}_{++}`
+     
+       :math:`\lambda_{\text{pf}}(X) < s`
      - |incr| incr.
      - |convex| log-log convex
      - matrix
