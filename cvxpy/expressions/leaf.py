@@ -426,8 +426,9 @@ class Leaf(expression.Expression):
                 w[bad] = 0
             return (V * w).dot(V.T)
         elif self.attributes['sparsity'] and not sparse_path:
-            warnings.warn('Assigning to a sparse CVXPY expression via `.value` is discouraged.'
-                          ' Use `.value_sparse` instead', RuntimeWarning, 3)
+            warnings.warn('Accessing a sparse CVXPY expression via a dense representation.'
+                          ' Please report this as a bug to the CVXPY Discord or GitHub.',
+                          RuntimeWarning, 3)
             new_val = np.zeros(self.shape)
             new_val[self.sparse_idx] = val[self.sparse_idx]
             return new_val
@@ -436,7 +437,13 @@ class Leaf(expression.Expression):
 
     # Getter and setter for parameter value.
     def save_value(self, val) -> None:
-        self._value = val
+        if self.sparse_idx is None:
+            self._value = val
+        else:
+            warnings.warn('Writing to a sparse CVXPY expression via `.value` is discouraged.'
+                          ' Use `.value_sparse` instead', RuntimeWarning, 1)
+            self._value = val[self.sparse_idx]
+
 
     @property
     def value(self) -> Optional[np.ndarray]:
@@ -462,9 +469,18 @@ class Leaf(expression.Expression):
     @value_sparse.setter
     def value_sparse(self, val) -> None:
         if not isinstance(val, (scipy_coo_array, sp.coo_array)):
+            if isinstance(val, (np.ndarray)) \
+                    and val.shape == (len(self.sparse_idx[0]),):
+                raise ValueError(
+                    'Invalid type for assigning value_sparse.'
+                    'Try using `'
+                    f'expr.value_sparse = {scipy_coo_array_name}((values, expr.sparse_idx))'
+                    '` instead.')
             raise ValueError(
                 'Invalid type for assigning value_sparse.'
-                f'Recieved: {type(val)} Expected {scipy_coo_array_name}')
+                f'Recieved: {type(val)} Expected {scipy_coo_array_name}.'
+                f' Instantiate with {scipy_coo_array_name}((value_array, coordinates))'
+                )
         if val.coords != self.sparse_idx:
             raise ValueError(f'Indexes differ between {val} and variable.')
         self.save_value(self._validate_value(val.data, True))
