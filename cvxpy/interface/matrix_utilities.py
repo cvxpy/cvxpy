@@ -23,7 +23,6 @@ from cvxpy.interface import numpy_interface as np_intf
 
 # A mapping of class to interface.
 INTERFACES = {np.ndarray: np_intf.NDArrayInterface(),
-              np.matrix: np_intf.MatrixInterface(),
               sp.csc_matrix: np_intf.SparseMatrixInterface(),
               }
 # Default Numpy interface.
