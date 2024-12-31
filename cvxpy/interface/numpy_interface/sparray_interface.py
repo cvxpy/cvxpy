@@ -20,11 +20,11 @@ import scipy.sparse as sp
 from cvxpy.interface.numpy_interface.ndarray_interface import NDArrayInterface
 
 
-class SparseMatrixInterface(NDArrayInterface):
+class SparseArrayInterface(NDArrayInterface):
     """
     An interface to convert constant values to the scipy sparse CSC class.
     """
-    TARGET_MATRIX = sp.csc_matrix
+    TARGET_MATRIX = sp.csc_array
 
     @NDArrayInterface.scalar_const
     def const_to_matrix(self, value, convert_scalars: bool = False):
@@ -37,39 +37,33 @@ class SparseMatrixInterface(NDArrayInterface):
         Returns:
             A matrix of type self.target_matrix or a scalar.
         """
-        # Convert cvxopt sparse to coo matrix.
         if isinstance(value, list):
-            return sp.csc_matrix(value, dtype=np.double).T
+            return sp.csc_array(value, dtype=np.double).T
         if value.dtype in [np.double, complex]:
             dtype = value.dtype
-        else:
-            # Cast bool, int, etc to double
+        else: # Cast bool, int, etc to double
             dtype = np.double
-        return sp.csc_matrix(value, dtype=dtype)
+        return sp.csc_array(value, dtype=dtype)
 
     def identity(self, size):
-        """Return an identity matrix.
-        """
-        return sp.eye(size, size, format="csc")
+        """Return an identity matrix."""
+        return sp.eye_array(size, format="csc")
 
     def size(self, matrix):
-        """Return the dimensions of the matrix.
-        """
+        """Return the dimensions of the matrix."""
         return matrix.shape
 
     def scalar_value(self, matrix):
-        """Get the value of the passed matrix, interpreted as a scalar.
-        """
+        """Get the value of the passed matrix, interpreted as a scalar."""
         return matrix[0, 0]
 
     def zeros(self, rows, cols):
-        """Return a matrix with all 0's.
-        """
-        return sp.csc_matrix((rows, cols), dtype='float64')
+        """Return a matrix with all 0's."""
+        return sp.zeros((rows, cols), dtype='float64')
 
     def reshape(self, matrix, size):
         """Change the shape of the matrix."""
-        matrix = sp.csc_matrix(matrix)
+        matrix = sp.csc_array(matrix)
         matrix = matrix.reshape(size, order='F', copy=False)
         return self.const_to_matrix(matrix, convert_scalars=True)
 

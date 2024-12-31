@@ -17,3 +17,5 @@ limitations under the License.
 from cvxpy.interface.numpy_interface.ndarray_interface import NDArrayInterface
 from cvxpy.interface.numpy_interface.sparse_matrix_interface import (
     SparseMatrixInterface,)
+from cvxpy.interface.numpy_interface.sparray_interface import (
+    SparseArrayInterface,)
