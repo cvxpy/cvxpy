@@ -13,6 +13,10 @@ repos:
         files: ^.*\.py$
       - id: trailing-whitespace
         files: ^.*\.py$
+      - id: check-yaml
+      - id: check-toml
+
+
     #  - repo: https://github.com/Lucas-C/pre-commit-hooks
     #    rev: v1.5.5
     #    hooks:
@@ -37,3 +41,14 @@ repos:
     hooks:
       - id: markdownlint-fix
         args: ["--ignore", '.github/ISSUE_TEMPLATE/*.md']
+
+  - repo: https://github.com/rhysd/actionlint
+    rev: v1.7.5
+    hooks:
+      - id: actionlint
+        args: [-ignore, SC]
+
+  - repo: https://github.com/abravalheri/validate-pyproject
+    rev: v0.23
+    hooks:
+      - id: validate-pyproject
