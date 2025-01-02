@@ -1,5 +1,4 @@
 clarabel
 osqp
-scs
 numpy
 scipy
