@@ -234,6 +234,13 @@ Install with Additional Solver Support
     Be aware that PROXQP by default uses dense matrices to represent problem data.
     You may achieve better performance by setting ``backend = 'sparse'`` in your call to ``problem.solve``.
 
+.. info:: QOCO
+    :collapsible:
+
+    CVXPY supports the QOCO solver.
+    Simply install QOCO such that you can ``import qoco`` in Python.
+    See the `QOCO <QOCOWEBSITE>`_ website for installation instructions.
+
 .. info:: Without default solvers
     :collapsible:
 

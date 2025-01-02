@@ -36,6 +36,7 @@ from cvxpy.reductions.solvers.conic_solvers.highs_conif import HIGHS as HIGHS_co
 from cvxpy.reductions.solvers.conic_solvers.mosek_conif import MOSEK as MOSEK_con
 from cvxpy.reductions.solvers.conic_solvers.nag_conif import NAG as NAG_con
 from cvxpy.reductions.solvers.conic_solvers.pdlp_conif import PDLP as PDLP_con
+from cvxpy.reductions.solvers.conic_solvers.qoco_conif import QOCO as QOCO_con
 from cvxpy.reductions.solvers.conic_solvers.scip_conif import SCIP as SCIP_con
 from cvxpy.reductions.solvers.conic_solvers.scipy_conif import SCIPY as SCIPY_con
 from cvxpy.reductions.solvers.conic_solvers.scs_conif import SCS as SCS_con
@@ -59,7 +60,7 @@ solver_conic_intf = [DIFFCP_con(), ECOS_con(),
                      GLPK_MI_con(), CBC_con(), CLARABEL_con(), SCS_con(), SDPA_con(),
                      GUROBI_con(), MOSEK_con(), CPLEX_con(), NAG_con(), XPRESS_con(),
                      SCIP_con(), SCIPY_con(), HIGHS_con(), GLOP_con(), PDLP_con(),
-                     ECOS_BB_con(),]
+                     QOCO_con(), ECOS_BB_con(),]
 solver_qp_intf = [OSQP_qp(),
                   GUROBI_qp(),
                   CPLEX_qp(),
