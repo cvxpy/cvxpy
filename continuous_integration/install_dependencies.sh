@@ -31,6 +31,7 @@ else
   # Lower versions of Python all install scipy 1.9.3 and numpy 1.23.4.
   # This change is necessary for compatibility with the scipy.array interface.
   conda install scipy=1.9.3 numpy=1.23.4
+fi
 
 if [[ "$PYTHON_VERSION" == "3.11" ]]; then
   python -m pip install cplex "ortools>=9.7,<9.12"
