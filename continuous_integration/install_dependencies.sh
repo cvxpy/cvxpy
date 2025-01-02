@@ -13,7 +13,7 @@ conda install mkl pip pytest pytest-cov hypothesis openblas "setuptools>65.5.1"
 
 if [[ "$PYTHON_VERSION" != "3.13" ]]; then
   conda install ecos scs cvxopt proxsuite daqp
-  python -m pip install coptpy==7.1.7 gurobipy piqp clarabel osqp highspy==1.8.1
+  python -m pip install coptpy==7.1.7 gurobipy piqp clarabel osqp highspy
 else
   # only install the essential solvers for Python 3.13.
   conda install scs
