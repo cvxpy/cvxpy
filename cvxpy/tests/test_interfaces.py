@@ -123,6 +123,7 @@ class TestInterfaces(BaseTest):
         """Test conversion between every pair of interfaces.
         """
         interfaces = [intf.get_matrix_interface(np.ndarray),
+                      intf.get_matrix_interface(sp.csc_array),
                       intf.get_matrix_interface(sp.csc_matrix)]
         cmp_mat = [[1, 2, 3, 4], [3, 4, 5, 6], [-1, 0, 2, 4]]
         for i in range(len(interfaces)):
