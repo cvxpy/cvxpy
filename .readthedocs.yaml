@@ -7,9 +7,9 @@ version: 2
 
 # Set the OS, Python version and other tools you might need
 build:
-  os: ubuntu-22.04
+  os: mac-os
   tools:
-    python: "3.13"
+    python: "3.12"
     # You can also specify other tool versions:
     # nodejs: "19"
     # rust: "1.64"
