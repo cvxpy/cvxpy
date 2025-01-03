@@ -35,22 +35,6 @@ The table below lists all the atomic functions available in CVXPY.
                     </label>
                 </div>
             </form>
-            <h5>Type</h5>
-            <form id="typeFilter">
-                <div></div>
-                <label>
-                    <input type="radio" name="operationType" value="all" checked> All
-                </label>
-                <label>
-                    <input type="radio" name="operationType" value="scalar"> Scalar
-                </label>
-                <label>
-                    <input type="radio" name="operationType" value="elementwise"> Elementwise
-                </label>
-                <label>
-                    <input type="radio" name="operationType" value="matrix"> Matrix/Vector
-                </label>
-            </form>
             <h5>DCP Property</h5>
             <form id="dcpFilter">
                 <div></div>
@@ -98,7 +82,6 @@ Atoms table
 
             function applyFilters() {
                 var curvatureValue = $('input[name="curvature"]:checked').val();
-                var operationTypeValue = $('input[name="operationType"]:checked').val();
                 var dcpFilterValue = $('input[name="dcpProperties"]:checked').val();
                 var filteredData = originalData;
 
@@ -106,12 +89,6 @@ Atoms table
                     filteredData = filteredData.filter(row => {
                         const curv = $(row[4]).text().trim();
                         return curv === curvatureValue;
-                    });
-                }
-                if (operationTypeValue !== "all") {
-                    filteredData = filteredData.filter(row => {
-                        const type = $(row[6]).text().trim();
-                        return type === operationTypeValue;
                     });
                 }
                 if (dcpFilterValue !== "all") {
@@ -123,7 +100,7 @@ Atoms table
                 table.clear().rows.add(filteredData).draw();
             }
 
-            $('#curvatureFilter input, #typeFilter input, #dcpFilter input').change(applyFilters);
+            $('#curvatureFilter input, #dcpFilter input').change(applyFilters);
         }
         initializeMainTable();
     });
