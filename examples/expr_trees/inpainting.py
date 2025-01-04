@@ -138,4 +138,3 @@ import cProfile
 cProfile.run("""
 result = p.solve(solver=cp.ECOS, verbose=True)
 """)
-

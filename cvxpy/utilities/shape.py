@@ -89,7 +89,7 @@ def mul_shapes_promote(
 
     if lh_shape[-1] != rh_shape[-2]:
         raise ValueError("Incompatible dimensions %s %s" % (lh_shape, rh_shape))
-    
+
     # Calculate resulting shape for higher-dimensional arrays
     if len(lh_shape) > 2 or len(rh_shape) > 2:
         try:

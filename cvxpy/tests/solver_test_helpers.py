@@ -119,7 +119,7 @@ class SolverTestHelper:
             else:
                 raise ValueError('Unknown constraint type %s.' % type(con))
             self.tester.assertAlmostEqual(comp, 0, places)
-            
+
     def check_stationary_lagrangian(self, places) -> None:
         L = self.prob.objective.expr
         objective = self.prob.objective
@@ -225,7 +225,7 @@ class SolverTestHelper:
                 msg += f"\n\t\t\t{opt_var.name} : {norm}"
             msg += '\n'
             self.tester.fail(msg)
-        pass 
+        pass
 
     def verify_objective(self, places) -> None:
         actual = self.prob.value
@@ -626,7 +626,7 @@ def sdp_pcp_1() -> SolverTestHelper:
         (y, np.array([[0.01],
                       [0.01]])),
         (X, np.array([[0.52024779, 0.20103426],
-                      [0.20103426, 0.0776837 ]])),        
+                      [0.20103426, 0.0776837 ]])),
     ]
     con_pairs = [
         (cp.sum(x) == 1, -0.1503204799112807),
@@ -1354,7 +1354,7 @@ class StandardTestMixedCPs:
             sth.check_dual_domains(places)
         return sth
 
-    
+
 class StandardTestPCPs:
 
     @staticmethod

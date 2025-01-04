@@ -483,7 +483,7 @@ def outer(x, y):
     y = Expression.cast_to_const(y)
     if y.ndim > 1:
         raise ValueError("y must be a vector.")
-    
+
     x = reshape(x, (x.size, 1), order='F')
     y = reshape(y, (1, y.size), order='F')
     return x @ y

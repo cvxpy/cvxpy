@@ -20,8 +20,9 @@ A clear and concise description of what you expected to happen.
 If applicable, include program output. If reporting a program crash, please include the entire stack trace.
 
 **Version**
- - OS: 
- - CVXPY Version:
+
+- OS:
+- CVXPY Version:
 
 **Additional context**
 Add any other context about the problem here.

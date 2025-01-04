@@ -99,7 +99,7 @@ class Sum(AxisAtom, AffAtom):
             The axis and keepdims parameters of the sum expression.
         """
         axis, keepdims = data
-        # Note: added new case for summing with n-dimensional shapes and 
+        # Note: added new case for summing with n-dimensional shapes and
         # multiple axes. Previous behavior is kept in the else statement.
         if len(arg_objs[0].shape) > 2 or axis not in {None, 0, 1}:
             obj = lu.sum_entries(arg_objs[0], shape=shape, axis=axis, keepdims=keepdims)

@@ -640,7 +640,7 @@ class TestComplex(BaseTest):
         assert cp.quad_form(x, P2).is_dcp()
 
     @pytest.mark.skipif(
-        "HIGHS" not in INSTALLED_MI_SOLVERS, 
+        "HIGHS" not in INSTALLED_MI_SOLVERS,
         reason='HiGHS solver is not installed.'
     )
     def test_bool(self) -> None:
