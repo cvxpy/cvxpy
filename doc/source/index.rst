@@ -129,6 +129,11 @@ website to use a modern theme based on Sphinx Immaterial.
 .. toctree::
    :hidden:
 
+   functions/index
+
+.. toctree::
+   :hidden:
+
    API Documentation <api_reference/cvxpy>
 
 .. toctree::
