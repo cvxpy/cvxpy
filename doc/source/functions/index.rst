@@ -76,7 +76,8 @@ Atoms table
                                 bottomStart: null,
                                 bottomEnd: null,
                                 bottom: 'paging'
-                            }
+                            },
+                            pageLength: 15
                         } );
             var originalData = table.data().toArray();
 
