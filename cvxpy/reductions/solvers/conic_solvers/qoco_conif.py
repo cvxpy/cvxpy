@@ -15,13 +15,25 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 """
-import numpy as np
-
 import cvxpy.settings as s
 from cvxpy.constraints import SOC
 from cvxpy.reductions.solution import Solution, failure_solution
+from cvxpy.reductions.solvers import utilities
 from cvxpy.reductions.solvers.conic_solvers.conic_solver import ConicSolver
 
+# QOCO standard form.
+# minimize   (1/2)x'Px + c'x
+# subject to Ax = b
+#            Gx \leq_C h <==> h - Gx \in C
+#
+# Inputs:
+# P is quadratic cost term
+# c is linear cost term
+# A is equality constraint matrix
+# G is conic constraint matrix
+# l is dimension of nonnegative orthant
+# nsoc is number of second-order cones
+# q is a vector of dimensions for each second-order cone
 
 def dims_to_solver_cones(cone_dims):
 
@@ -78,8 +90,21 @@ class QOCO(ConicSolver):
             primal_vars = {
                 inverse_data[QOCO.VAR_ID]: solution.x
             }
-            dual_vars = {QOCO.DUAL_VAR_ID: np.concatenate(
-                (solution.y, solution.z))}
+            eq_dual_vars = utilities.get_dual_values(
+                solution.y,
+                utilities.extract_dual_value,
+                inverse_data[QOCO.EQ_CONSTR]
+            )
+            ineq_dual_vars = utilities.get_dual_values(
+                solution.z,
+                utilities.extract_dual_value,
+                inverse_data[QOCO.NEQ_CONSTR]
+            )
+
+            dual_vars = {}
+            dual_vars.update(eq_dual_vars)
+            dual_vars.update(ineq_dual_vars)
+
             return Solution(status, opt_val, primal_vars, dual_vars, attr)
         else:
             return failure_solution(status, attr)
@@ -102,17 +127,16 @@ class QOCO(ConicSolver):
         """
         import qoco
 
-        # Get p, l, nsoc, and q from cones
+        # Get p, num_nn, nsoc, and q from cones
         cones = dims_to_solver_cones(data[ConicSolver.DIMS])
         p = cones['z'] # Number of equality constraints
-        l = cones['l'] # Number of non-negative orthant constraints
+        num_nno = cones['l'] # Number of non-negative orthant constraints
         q = cones['q'] # Array of second-order cone dimensions
         nsoc = len(q)  # Number of second-order cones
-        m = l + sum(q)
+        m = num_nno + sum(q)
 
         # Get n, m, P, c, A, b, G, h from conic_solver's apply call
         _, n = data[s.A].shape
-        P = data[s.P] 
         if s.P in data:
             P = data[s.P]
         else:
@@ -120,13 +144,13 @@ class QOCO(ConicSolver):
         c = data[s.C]
 
         A = data[s.A][0:p, :] if p > 0 else None
-        b = data[s.b][0:p] if p > 0 else None
+        b = data[s.B][0:p] if p > 0 else None
 
         G = data[s.A][p::, :] if m > 0 else None
-        h = data[s.b][p::] if m > 0 else None
+        h = data[s.B][p::] if m > 0 else None
 
         solver = qoco.QOCO()
-        solver.setup(n, m, p, P, c, A, b, G, h, l, nsoc, q, solver_opts, verbose=verbose)
+        solver.setup(n, m, p, P, c, A, b, G, h, num_nno, nsoc, q, verbose=verbose, **solver_opts)
         results = solver.solve()
 
         if solver_cache is not None:
