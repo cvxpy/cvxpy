@@ -202,23 +202,18 @@ html_theme_options = {
             "aliases": [],
         },
         {
+            "version": "https://www.cvxpy.org/version/1.6",
+            "title": "1.6",
+            "aliases": [],
+        },
+        {
+            "version": "https://www.cvxpy.org/version/1.5",
+            "title": "1.5",
+            "aliases": [],
+        },
+        {
             "version": "https://www.cvxpy.org/version/1.4",
             "title": "1.4",
-            "aliases": [],
-        },
-        {
-            "version": "https://www.cvxpy.org/version/1.3",
-            "title": "1.3",
-            "aliases": [],
-        },
-        {
-            "version": "https://www.cvxpy.org/version/1.2",
-            "title": "1.2",
-            "aliases": [],
-        },
-        {
-            "version": "https://www.cvxpy.org/version/1.1",
-            "title": "1.1",
             "aliases": [],
         },
     ],
@@ -261,8 +256,13 @@ html_favicon = "_static/favicon.ico"
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
 html_static_path = ['_static']
-html_css_files = ['css/styling.css']
-
+html_css_files = [
+    'css/styling.css',
+    'https://cdn.datatables.net/2.1.8/css/dataTables.dataTables.css',
+]
+html_js_files = [
+    'https://cdn.datatables.net/2.1.8/js/dataTables.js',
+]
 # If not '', a 'Last updated on:' timestamp is inserted at every page bottom,
 # using the given strftime format.
 #html_last_updated_fmt = '%b %d, %Y'

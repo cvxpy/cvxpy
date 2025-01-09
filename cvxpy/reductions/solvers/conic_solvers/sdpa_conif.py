@@ -104,7 +104,7 @@ class SDPA(ConicSolver):
         data[s.A] = A
         if data[s.A].shape[0] == 0:
             data[s.A] = None
-        data[s.B] = b.flatten()
+        data[s.B] = b.flatten(order='F')
         if data[s.B].shape[0] == 0:
             data[s.B] = None
 

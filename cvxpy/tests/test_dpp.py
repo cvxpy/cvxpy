@@ -7,7 +7,7 @@ import cvxpy as cp
 import cvxpy.error as error
 from cvxpy.tests.base_test import BaseTest
 
-SOLVER = cp.ECOS
+SOLVER = cp.CLARABEL
 
 
 class TestDcp(BaseTest):
@@ -799,8 +799,8 @@ class TestDgp(BaseTest):
         np.testing.assert_almost_equal(w.value, np.array([4, 4]), decimal=3)
 
         alpha.value = [4.0, 4.0]
-        problem.solve(SOLVER, gp=True, enforce_dpp=True)
-        self.assertAlmostEqual(problem.value, 40)
+        problem.solve(cp.CLARABEL, gp=True, enforce_dpp=True)
+        self.assertAlmostEqual(problem.value, 40, places=3)
         np.testing.assert_almost_equal(h.value, np.array([20, 20]), decimal=3)
         np.testing.assert_almost_equal(w.value, np.array([1, 1]), decimal=3)
 

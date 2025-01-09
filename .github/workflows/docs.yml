@@ -9,7 +9,7 @@ jobs:
     steps:
       - uses: actions/setup-python@v5
         with:
-          python-version: 3.9
+          python-version: "3.12"
       - uses: actions/checkout@v4
         with:
           ref: gh-pages
@@ -36,7 +36,7 @@ jobs:
           echo DEPLOY_LATEST=$(python continuous_integration/doc_is_latest.py --c "$CURRENT_VERSION" --l "$LATEST_DEPLOYED_VERSION") >> $GITHUB_ENV
 
       - name: Deploy this version
-        uses: JamesIves/github-pages-deploy-action@v4.6.1
+        uses: JamesIves/github-pages-deploy-action@v4.7.2
         with:
           branch: gh-pages # The branch the action should deploy to.
           folder: doc/build/html # The folder the action should deploy.
@@ -44,7 +44,7 @@ jobs:
 
       - name: Deploy to root if latest version
         if: ${{env.DEPLOY_LATEST == 'True'}}
-        uses: JamesIves/github-pages-deploy-action@v4.6.1
+        uses: JamesIves/github-pages-deploy-action@v4.7.2
         with:
           branch: gh-pages # The branch the action should deploy to.
           folder: doc/build/html # The folder the action should deploy.

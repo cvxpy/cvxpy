@@ -24,5 +24,3 @@ if [[ "$SINGLE_ACTION_CONFIG" == "True" ]]; then
 else
     pytest cvxpy/tests
 fi
-
-pytest cvxpy/performance_tests

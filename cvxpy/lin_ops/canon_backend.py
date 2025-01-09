@@ -81,7 +81,7 @@ class TensorRepresentation:
             np.all(self.col == other.col) and \
             np.all(self.parameter_offset == other.parameter_offset) and \
             self.shape == other.shape
-    
+
     def __add__(self, other: TensorRepresentation) -> TensorRepresentation:
         if self.shape != other.shape:
             raise ValueError("Shapes must match for addition.")
@@ -243,7 +243,7 @@ class PythonCanonBackend(CanonBackend):
         # Internal nodes
         else:
             func = self.get_func(lin_op.type)
-            if lin_op.type in {"vstack", "hstack"}:
+            if lin_op.type in {"concatenate", "vstack", "hstack"}:
                 return func(lin_op, empty_view)
 
             res = None
@@ -341,6 +341,7 @@ class PythonCanonBackend(CanonBackend):
             "diag_vec": self.diag_vec,
             "hstack": self.hstack,
             "vstack": self.vstack,
+            "concatenate": self.concatenate,
             "transpose": self.transpose,
             "upper_tri": self.upper_tri,
             "diag_mat": self.diag_mat,
@@ -370,8 +371,8 @@ class PythonCanonBackend(CanonBackend):
     def mul(self, lin: LinOp, view: TensorView) -> TensorView:
         """
         Multiply view with constant data from the left.
-        When the lhs is parametrized, multiply each slice of the tensor with the 
-        single, constant slice of the rhs. 
+        When the lhs is parametrized, multiply each slice of the tensor with the
+        single, constant slice of the rhs.
         Otherwise, multiply the single slice of the tensor with each slice of the rhs.
         """
         pass  # noqa
@@ -401,8 +402,8 @@ class PythonCanonBackend(CanonBackend):
         """
         Given (A, b) in view and constant data d, return (A*d, b*d).
         d is broadcasted along dimension 1 (columns).
-        When the lhs is parametrized, multiply elementwise each slice of the tensor with the 
-        single, constant slice of the rhs. 
+        When the lhs is parametrized, multiply elementwise each slice of the tensor with the
+        single, constant slice of the rhs.
         Otherwise, multiply elementwise the single slice of the tensor with each slice of the rhs.
         """
         pass  # noqa
@@ -481,12 +482,40 @@ class PythonCanonBackend(CanonBackend):
             arg_view = self.process_constraint(arg, view)
             func = self.get_stack_func(total_rows, offset)
             arg_view.apply_all(func)
-            offset += np.prod(arg.shape)
+            arg_rows = np.prod(arg.shape)
+            offset += arg_rows
             if res is None:
                 res = arg_view
             else:
                 res += arg_view
         assert res is not None
+        return res
+
+    def concatenate(self, lin: LinOp, view: TensorView) -> TensorView:
+        """Concatenate multiple tensors along a specified axis.
+
+        This method performs the concatenation of multiple tensors, following NumPy's behavior.
+        It correctly maps the indices from the input tensors to the concatenated output tensor,
+        ensuring that elements are placed in the correct positions in the resulting tensor.
+
+        """
+
+        res = self.hstack(lin=lin, view=view)
+        axis = lin.data[0]
+        if axis is None:
+            # In this case following numpy, arrays are flattened in 'C' order
+            order = np.arange(sum(np.prod(arg.shape) for arg in lin.args))
+            res.select_rows(order)
+            return res
+
+        offset = 0
+        indices = []
+        for arg in lin.args:
+            arg_rows = np.prod(arg.shape)
+            indices.append(np.arange(arg_rows).reshape(arg.shape, order = "F") + offset)
+            offset += arg_rows
+        order = np.concatenate(indices, axis = axis).flatten(order="F").astype(int)
+        res.select_rows(order)
         return res
 
     def vstack(self, lin: LinOp, view: TensorView) -> TensorView:
@@ -495,7 +524,7 @@ class PythonCanonBackend(CanonBackend):
         Then, permute the rows of the resulting tensor to be consistent with stacking the arguments
         vertically instead of horizontally.
         """
-        view = self.hstack(lin, view)
+        res = self.hstack(lin=lin, view=view)
         offset = 0
         indices = []
         for arg in lin.args:
@@ -503,8 +532,8 @@ class PythonCanonBackend(CanonBackend):
             indices.append(np.arange(arg_rows).reshape(arg.shape, order="F") + offset)
             offset += arg_rows
         order = np.vstack(indices).flatten(order="F").astype(int)
-        view.select_rows(order)
-        return view
+        res.select_rows(order)
+        return res
 
     @staticmethod
     def transpose(lin: LinOp, view: TensorView) -> TensorView:
@@ -700,8 +729,8 @@ class NumPyCanonBackend(PythonCanonBackend):
     def mul(self, lin: LinOp, view: NumPyTensorView) -> NumPyTensorView:
         """
         Multiply view with constant data from the left.
-        When the lhs is parametrized, multiply each slice of the tensor with the 
-        single, constant slice of the rhs. 
+        When the lhs is parametrized, multiply each slice of the tensor with the
+        single, constant slice of the rhs.
         Otherwise, multiply the single slice of the tensor with each slice of the rhs.
         """
         lhs, is_param_free_lhs = self.get_constant_data(lin.data, view, column=False)
@@ -741,8 +770,8 @@ class NumPyCanonBackend(PythonCanonBackend):
         """
         Given (A, b) in view and constant data d, return (A*d, b*d).
         d is broadcasted along dimension 1 (columns).
-        When the lhs is parametrized, multiply elementwise each slice of the tensor with the 
-        single, constant slice of the rhs. 
+        When the lhs is parametrized, multiply elementwise each slice of the tensor with the
+        single, constant slice of the rhs.
         Otherwise, multiply elementwise the single slice of the tensor with each slice of the rhs.
         """
         lhs, is_param_free_lhs = self.get_constant_data(lin.data, view, column=True)
@@ -767,7 +796,7 @@ class NumPyCanonBackend(PythonCanonBackend):
         The new implementation keeps the columns of the tensor fixed and reshapes the
         remaining dimensions in the original shape of the expression. The sum is then
         performed along the axis parameter. Finally, the tensor is reshaped back to the
-        desired output shape. 
+        desired output shape.
 
         Example:
         # Suppose we want to sum a Variable(2,2,2)
@@ -1105,8 +1134,8 @@ class SciPyCanonBackend(PythonCanonBackend):
     def mul(self, lin: LinOp, view: SciPyTensorView) -> SciPyTensorView:
         """
         Multiply view with constant data from the left.
-        When the lhs is parametrized, multiply each slice of the tensor with the 
-        single, constant slice of the rhs. 
+        When the lhs is parametrized, multiply each slice of the tensor with the
+        single, constant slice of the rhs.
         Otherwise, multiply the single slice of the tensor with each slice of the rhs.
         """
         lhs, is_param_free_lhs = self.get_constant_data(lin.data, view, column=False)
@@ -1207,26 +1236,26 @@ class SciPyCanonBackend(PythonCanonBackend):
         Here, since the slices are stacked, we sum over the rows corresponding
         to the same slice.
 
-        Note: we form the sparse output directly using _get_sum_row_indices and 
+        Note: we form the sparse output directly using _get_sum_row_indices and
         column indices in column-major order.
         """
-        row_idx_func = self._get_sum_row_indices
+        sum_coeff_matrix = self._get_sum_coeff_matrix
         def func(x, p):
+            shape = tuple(_lin.args[0].shape)
+            axis, _ = _lin.data
             if p == 1:
-                axis, _ = _lin.data
                 if axis is None:
                     return sp.csr_matrix(x.sum(axis=0))
                 else:
-                    shape = tuple(_lin.args[0].shape)
-                    axis = axis if isinstance(axis, tuple) else (axis,)
-                    n = x.shape[-1]
-                    d = np.prod([shape[i] for i in axis], dtype=int)
-                    row_idx = row_idx_func(shape=shape, axis=axis)
-                    col_idx = np.arange(n).reshape(shape, order='F').flatten(order='F')
-                    return sp.csr_matrix((x.data, (row_idx, col_idx)), shape=(n//d, n))
+                    A = sum_coeff_matrix(shape=shape, axis=axis)
+                    return A @ x
             else:
                 m = x.shape[0] // p
-                return (sp.kron(sp.eye(p, format="csc"), np.ones(m)) @ x).tocsc()
+                if axis is None:
+                    return (sp.kron(sp.eye(p, format="csc"), np.ones(m)) @ x).tocsc()
+                else:
+                    A = sum_coeff_matrix(shape=shape, axis=axis)
+                    return (sp.kron(sp.eye(p, format="csc"), A) @ x).tocsc()
 
         view.apply_all(func)
         return view
@@ -1235,7 +1264,7 @@ class SciPyCanonBackend(PythonCanonBackend):
         """
         Internal function that computes the row indices corresponding to the sum
         along a specified axis.
-        
+
         Example:
         shape = (2,2,2) and axis = (1)
         out_axes = [True, False, True]
@@ -1259,7 +1288,19 @@ class SciPyCanonBackend(PythonCanonBackend):
         out_dims = np.array(shape)[out_axes]
         row_idx = np.ravel_multi_index(out_idx, dims=out_dims, order='F')
         return row_idx.flatten(order='F')
-    
+
+    def _get_sum_coeff_matrix(self, shape: tuple, axis: tuple) -> sp.csr_matrix:
+        """
+        Internal function that computes the sum coefficient matrix for a given shape and axis.
+        """
+        axis = axis if isinstance(axis, tuple) else (axis,)
+        n = np.prod(shape, dtype=int)
+        d = np.prod([shape[i] for i in axis], dtype=int)
+        row_idx = self._get_sum_row_indices(shape, axis)
+        col_idx = np.arange(n)
+        A = sp.csr_matrix((np.ones(n), (row_idx, col_idx)), shape=(n//d, n))
+        return A
+
     def div(self, lin: LinOp, view: SciPyTensorView) -> SciPyTensorView:
         """
         Given (A, b) in view and constant data d, return (A*(1/d), b*(1/d)).
@@ -1345,7 +1386,7 @@ class SciPyCanonBackend(PythonCanonBackend):
         arg_cols = lin.args[0].shape[0] if len(lin.args[0].shape) == 1 else lin.args[0].shape[1]
 
         if is_param_free_lhs:
-            
+
             if len(lin.data.shape) == 1 and arg_cols != lhs.shape[0]:
                 lhs = lhs.T
             reps = view.rows // lhs.shape[0]
@@ -1384,7 +1425,7 @@ class SciPyCanonBackend(PythonCanonBackend):
 
             func = parametrized_mul
         return view.accumulate_over_variables(func, is_param_free_function=is_param_free_lhs)
-    
+
     def _transpose_stacked(self, v: sp.csc_matrix, param_id: int) -> sp.csc_matrix:
         """
         Given v, which is a stacked matrix of shape (p * n, m), transpose each slice of v,
@@ -1403,7 +1444,7 @@ class SciPyCanonBackend(PythonCanonBackend):
         v = v.tocoo()
         data, rows, cols = v.data, v.row, v.col
         slices, rows = np.divmod(rows, old_shape[0])
-        
+
         new_rows = cols + slices * new_shape[0]
         new_cols = rows
 

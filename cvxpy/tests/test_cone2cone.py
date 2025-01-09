@@ -49,7 +49,7 @@ class TestDualize(BaseTest):
 
         # Dualize the problem, reconstruct a high-level cvxpy problem for the dual.
         # Solve the problem, invert the dualize reduction.
-        cone_prog = ConicSolver().format_constraints(cone_prog, exp_cone_order=[0, 1, 2])
+        cone_prog = ConicSolver.format_constraints(cone_prog, exp_cone_order=[0, 1, 2])
         data, inv_data = a2d.Dualize.apply(cone_prog)
         A, b, c, K_dir = data[s.A], data[s.B], data[s.C], data['K_dir']
         y = cp.Variable(shape=(A.shape[1],))
@@ -205,7 +205,7 @@ class TestSlacks(BaseTest):
 
         # apply the Slacks reduction, reconstruct a high-level problem,
         # solve the problem, invert the reduction.
-        cone_prog = ConicSolver().format_constraints(cone_prog, exp_cone_order=[0, 1, 2])
+        cone_prog = ConicSolver.format_constraints(cone_prog, exp_cone_order=[0, 1, 2])
         data, inv_data = a2d.Slacks.apply(cone_prog, affine)
         G, h, f, K_dir, K_aff = data[s.A], data[s.B], data[s.C], data['K_dir'], data['K_aff']
         G = sp.sparse.csc_matrix(G)
@@ -291,7 +291,7 @@ class TestSlacks(BaseTest):
         # typical LP
         sth = STH.lp_2()
         for affine in TestSlacks.AFF_LP_CASES:
-            TestSlacks.simulate_chain(sth.prob, affine, solver='ECOS')
+            TestSlacks.simulate_chain(sth.prob, affine, solver='CLARABEL')
             sth.verify_objective(places=4)
             sth.verify_primal_values(places=4)
 
@@ -299,41 +299,41 @@ class TestSlacks(BaseTest):
         # unbounded LP
         sth = STH.lp_3()
         for affine in TestSlacks.AFF_LP_CASES:
-            TestSlacks.simulate_chain(sth.prob, affine, solver='ECOS')
+            TestSlacks.simulate_chain(sth.prob, affine, solver='CLARABEL')
             sth.verify_objective(places=4)
 
     def test_lp_4(self):
         # infeasible LP
         sth = STH.lp_4()
         for affine in TestSlacks.AFF_LP_CASES:
-            TestSlacks.simulate_chain(sth.prob, affine, solver='ECOS')
+            TestSlacks.simulate_chain(sth.prob, affine, solver='CLARABEL')
             sth.verify_objective(places=4)
 
     def test_socp_2(self):
         sth = STH.socp_2()
         for affine in TestSlacks.AFF_SOCP_CASES:
-            TestSlacks.simulate_chain(sth.prob, affine, solver='ECOS')
+            TestSlacks.simulate_chain(sth.prob, affine, solver='CLARABEL')
             sth.verify_objective(places=4)
             sth.verify_primal_values(places=4)
 
     def test_socp_3(self):
         for axis in [0, 1]:
             sth = STH.socp_3(axis)
-            TestSlacks.simulate_chain(sth.prob, [], solver='ECOS')
+            TestSlacks.simulate_chain(sth.prob, [], solver='CLARABEL')
             sth.verify_objective(places=4)
             sth.verify_primal_values(places=4)
 
     def test_expcone_1(self):
         sth = STH.expcone_1()
         for affine in TestSlacks.AFF_EXP_CASES:
-            TestSlacks.simulate_chain(sth.prob, affine, solver='ECOS')
+            TestSlacks.simulate_chain(sth.prob, affine, solver='CLARABEL')
             sth.verify_objective(places=4)
             sth.verify_primal_values(places=4)
 
     def test_expcone_socp_1(self):
         sth = STH.expcone_socp_1()
         for affine in TestSlacks.AFF_MIXED_CASES:
-            TestSlacks.simulate_chain(sth.prob, affine, solver='ECOS')
+            TestSlacks.simulate_chain(sth.prob, affine, solver='SCS')
             sth.verify_objective(places=4)
             sth.verify_primal_values(places=4)
 
@@ -351,10 +351,14 @@ class TestSlacks(BaseTest):
             sth.verify_objective(places=3)
             sth.verify_primal_values(places=3)
 
+    @pytest.mark.skipif(
+        "HIGHS" not in INSTALLED_MI, 
+        reason='HiGHS solver is not installed.'
+    )
     def test_mi_lp_1(self):
         sth = STH.mi_lp_1()
         for affine in TestSlacks.AFF_LP_CASES:
-            TestSlacks.simulate_chain(sth.prob, affine, solver='ECOS_BB')
+            TestSlacks.simulate_chain(sth.prob, affine, solver=cp.HIGHS)
             sth.verify_objective(places=4)
             sth.verify_primal_values(places=4)
 
@@ -362,11 +366,11 @@ class TestSlacks(BaseTest):
     def test_mi_socp_1(self):
         sth = STH.mi_socp_1()
         for affine in TestSlacks.AFF_SOCP_CASES:
-            TestSlacks.simulate_chain(sth.prob, affine, solver='ECOS_BB')
+            TestSlacks.simulate_chain(sth.prob, affine, solver=cp.SCIPY)
             sth.verify_objective(places=4)
             sth.verify_primal_values(places=4)
 
-    @unittest.skipUnless([svr for svr in INSTALLED_MI if svr in MI_SOCP and svr != 'ECOS_BB'],
+    @unittest.skipUnless([svr for svr in INSTALLED_MI if svr in MI_SOCP],
                          'No appropriate mixed-integer SOCP solver is installed.')
     def test_mi_socp_2(self):
         sth = STH.mi_socp_2()
@@ -520,7 +524,7 @@ class TestRelEntrQuad(BaseTest):
 
     def test_expcone_1(self):
         sth = self.expcone_1()
-        sth.solve(solver='ECOS')
+        sth.solve(solver='CLARABEL')
         sth.verify_primal_values(places=2)
         sth.verify_objective(places=2)
 
@@ -558,9 +562,9 @@ class TestRelEntrQuad(BaseTest):
 
     def test_expcone_socp_1(self):
         sth = self.expcone_socp_1()
-        sth.solve(solver='ECOS')
-        sth.verify_primal_values(places=2)
-        sth.verify_objective(places=2)
+        sth.solve(solver=cp.SCS)
+        sth.verify_primal_values(places=3)
+        sth.verify_objective(places=3)
 
 
 def sdp_ipm_installed():

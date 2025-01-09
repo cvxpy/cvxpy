@@ -499,7 +499,7 @@ class TestBackends:
         view_A = sp.coo_matrix((view_A.data, (view_A.row, view_A.col)), shape=(2, 2)).toarray()
         assert np.all(view_A == np.eye(2))
 
-        sum_entries_lin_op = linOpHelper(shape = (2,), data = [None, True])
+        sum_entries_lin_op = linOpHelper(shape = (2,), data = [None, True], args=[variable_lin_op])
         out_view = backend.sum_entries(sum_entries_lin_op, view)
         A = out_view.get_tensor_representation(0, 1)
 
@@ -609,6 +609,166 @@ class TestBackends:
         A = sp.coo_matrix((A.data, (A.row, A.col)), shape=(4, 4)).toarray()
         expected = np.array([[1, 0, 0, 0], [0, 0, 1, 0], [0, 1, 0, 0], [0, 0, 0, 1]])
         assert np.all(A == expected)
+
+    def test_concatenate(self, backend):
+        """
+        Define x,y = Variable((1,2)), Variable((1,2)) with
+        [[x1, x2]]
+        and
+        [[y1, y2]]
+
+        concatenate([x, y], axis = 0) yields
+
+        [[x1, x2],
+         [y1, y2]]
+
+        which maps to
+
+         x1   x2  y1  y2
+        [[1   0   0   0],
+         [0   0   1   0],
+         [0   1   0   0],
+         [0   0   0   1]]
+
+        Note that in this case concatenate is equivalent to vstack
+
+        Applying concatenate([x, y], axis=1) yields:
+
+        [[x1, x2, y1, y2]]
+
+        Which is equivalent to hstack([x, y]) in this context.
+
+        The mapping to the matrix A would be:
+
+          x1  x2  y1  y2
+         [[1   0   0  0],
+          [0   1   0  0],
+          [0   0   1  0],
+          [0   0   0  1]]
+
+        """
+        # See InverseData.get_var_offsets method for references to this map
+        backend.id_to_col = {1: 0, 2: 2}
+
+        # Axis = 1
+        lin_op_x = linOpHelper((1, 2), type="variable", data=1)
+        lin_op_y = linOpHelper((1, 2), type="variable", data=2)
+
+        concatenate_lin_op = linOpHelper(args=[lin_op_x, lin_op_y], data = [1])
+        backend.id_to_col = {1: 0, 2: 2}
+        out_view = backend.concatenate(concatenate_lin_op, backend.get_empty_view())
+        A = out_view.get_tensor_representation(0, 4)
+
+        # cast to numpy
+        A = sp.coo_matrix((A.data, (A.row, A.col)), shape=(4, 4)).toarray()
+        expected = np.eye(4)
+        assert np.all(A == expected)
+
+        # Axis = 0
+        concatenate_lin_op = linOpHelper(args=[lin_op_x, lin_op_y], data = [0])
+        out_view = backend.concatenate(concatenate_lin_op, backend.get_empty_view())
+        A = out_view.get_tensor_representation(0, 4)
+
+        # cast to numpy
+        A = sp.coo_matrix((A.data, (A.row, A.col)), shape=(4, 4)).toarray()
+        expected = np.array([[1, 0, 0, 0], [0, 0, 1, 0], [0, 1, 0, 0], [0, 0, 0, 1]])
+        assert np.all(A == expected)
+
+
+    @pytest.mark.parametrize("axis, variable_indices", [
+        # Axis 0
+        (0, [0, 1, 8, 9, 2, 3, 10, 11, 4, 5, 12, 13, 6, 7, 14, 15]),
+        # Axis 1
+        (1, [0, 1, 2, 3, 8, 9, 10, 11, 4, 5, 6, 7, 12, 13, 14, 15]),
+        # Axis 2
+        (2, list(range(16))),
+        # Axis None
+        (None, list(range(16))),
+    ])
+    def test_concatenate_nd(self, backend, axis, variable_indices):
+        """
+        Test the concatenate operation with variables of shape (2, 2, 2)
+        along different axes
+
+        Define variables x and y, each of shape (2, 2, 2):
+
+        x = [
+            [[x000, x001],
+            [x010, x011]],
+            [[x100, x101],
+            [x110, x111]]
+            ]
+
+        y = [
+            [[y000, y001],
+            [y010, y011]],
+            [[y100, y101],
+            [y110, y111]]
+            ]
+
+        The variables are assigned indices as follows:
+
+        Indices for x:
+            x000: 0, x001: 1, x010: 2, x011: 3,
+            x100: 4, x101: 5, x110: 6, x111: 7
+
+        Indices for y:
+            y000: 8, y001: 9, y010: 10, y011: 11,
+            y100: 12, y101: 13, y110: 14, y111: 15
+
+        How we chose the list of variable_indices:
+
+        - For each axis, we perform the concatenation of x and y along that axis.
+        - We assign indices to the variables in x and y as per their positions.
+        - For each argument, we generate an array of indices from 0 to the number of
+        elements minus one, reshaped to the argument's shape with 'F' order
+        (column-major order), and offset by the cumulative
+        number of elements from previous arguments.
+
+        - We concatenate these indices along the specified axis.
+        - We flatten the concatenated indices with 'F' order to obtain the variable_indices,
+        which represent the order of variables in the flattened concatenated tensor.
+
+        The expected variable_indices are:
+
+        For axis=0:
+            [0, 1, 8, 9, 2, 3, 10, 11, 4, 5, 12, 13, 6, 7, 14, 15]
+
+        For axis=1:
+            [0, 1, 2, 3, 8, 9, 10, 11, 4, 5, 6, 7, 12, 13, 14, 15]
+
+        For axis=2:
+            [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
+
+        For axis=None:
+            [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
+
+        axis=None follows NumPy; arrays are flattened in 'C' order before concatenating,
+        so the resulting array is [x000, x001, x010, x011, x100, x101, x110, x111,
+                                y000, y001, y010, y011, y100, y101, y110, y111]
+        """
+        def get_expected_matrix(variable_indices):
+            A = np.zeros((16, 16), dtype=int)
+            positions = np.arange(16)
+            for pos, var_idx in zip(positions, variable_indices):
+                A[pos, var_idx] = 1
+            return A
+
+        # Map variable IDs to column indices
+        backend.id_to_col = {1: 0, 2: 8}
+
+        # Define lin_op_x and lin_op_y with shape (2, 2, 2)
+        lin_op_x = linOpHelper((2, 2, 2), type="variable", data=1)
+        lin_op_y = linOpHelper((2, 2, 2), type="variable", data=2)
+
+        # Perform concatenation along the specified axis
+        concatenate_lin_op = linOpHelper(args=[lin_op_x, lin_op_y], data = [axis])
+        out_view = backend.concatenate(concatenate_lin_op, backend.get_empty_view())
+        A = out_view.get_tensor_representation(0, 16)
+        # Convert to numpy array
+        A = sp.coo_matrix((A.data, (A.row, A.col)), shape=(16, 16)).toarray()
+        expected_A = get_expected_matrix(variable_indices)
+        assert np.all(A == expected_A)
 
     def test_mul(self, backend):
         """
@@ -1035,7 +1195,7 @@ class TestBackends:
 
         """
         kron(l,r)
-        with 
+        with
         l = [[x1],  r = [[a, c],
              [x2]]       [b, d]]
 
@@ -1044,13 +1204,13 @@ class TestBackends:
          [bx1, dx1],
          [ax2, cx2],
          [bx2, dx2]]
-        
+
         Here, we have to swap the row indices of the resulting matrix.
-        Immediately applying kron(l,r) gives to eye(2) and r reshaped to 
+        Immediately applying kron(l,r) gives to eye(2) and r reshaped to
         a column vector gives.
-                 
+
         So we have:
-        kron(l,r) = 
+        kron(l,r) =
         [[a, 0],
          [b, 0],
          [c, 0],
@@ -1260,7 +1420,7 @@ class TestParametrizedBackends:
         mul_elem_lin_op = linOpHelper(data=param_lin_op)
         param_var_view = param_backend.mul_elem(mul_elem_lin_op, var_view)
 
-        sum_entries_lin_op = linOpHelper(shape=(2,), data=[None, True])
+        sum_entries_lin_op = linOpHelper(shape=(2,), data=[None, True], args=[variable_lin_op])
         out_view = param_backend.sum_entries(sum_entries_lin_op, param_var_view)
         out_repr = out_view.get_tensor_representation(0, 1)
 
@@ -1789,7 +1949,7 @@ class TestND_Backends:
         backend = CanonBackend.get_backend(request.param, **kwargs)
         assert isinstance(backend, PythonCanonBackend)
         return backend
-    
+
 
     def test_nd_sum_entries(self, backend):
         """
@@ -1815,7 +1975,7 @@ class TestND_Backends:
         sum(x, axis = 0) means we only consider entries in a given axis (axes)
 
         which, when using the same columns as before, now maps to
-        
+
         sum(x, axis = 0)
         x111 x211 x121 x221 x112 x212 x122 x222
         [[1   1   0   0   0   0   0   0],
@@ -1836,9 +1996,9 @@ class TestND_Backends:
          [0   1   0   0   0   1   0   0],
          [0   0   1   0   0   0   1   0],
          [0   0   0   1   0   0   0   1]]
-        
+
         To reproduce the outputs above, eliminate the given axis
-        and put ones where the remaining axes (axis) match. 
+        and put ones where the remaining axes (axis) match.
 
         Note: sum(x, keepdims=True) is equivalent to sum(x, keepdims=False)
         with a reshape, which is NO-OP in the backend.
@@ -1955,7 +2115,7 @@ class TestND_Backends:
          [0   0   0   0   0   1   0   0],
          [0   0   0   0   0   0   1   0],
          [0   0   0   0   0   0   0   1]]
-        
+
         index() returns the subset of rows corresponding to the slicing of variables.
 
         e.g. x[0:2, 0, 0:2] yields
@@ -2000,6 +2160,93 @@ class TestND_Backends:
 
         # Note: view is edited in-place:
         assert out_view.get_tensor_representation(0, 1) == view.get_tensor_representation(0, 1)
+
+
+class TestParametrizedND_Backends:
+    @staticmethod
+    @pytest.fixture(params=backends)
+    def param_backend(request):
+        kwargs = {
+            "id_to_col": {1: 0},
+            "param_to_size": {-1: 1, 2: 8},
+            "param_to_col": {2: 0, -1: 8},
+            "param_size_plus_one": 9,
+            "var_length": 8,
+        }
+
+        backend = CanonBackend.get_backend(request.param, **kwargs)
+        assert isinstance(backend, PythonCanonBackend)
+        return backend
+
+    def test_parametrized_nd_sum_entries(self, param_backend):
+        """
+        starting with a (2,2,2) parametrized expression
+        x111 x211 x121 x221 x112 x212 x122 x222
+        slice(0)
+        [[1   0   0   0   0   0   0   0],
+         [0   0   0   0   0   0   0   0],
+         ...
+         [0   0   0   0   0   0   0   0],
+         [0   0   0   0   0   0   0   0]]
+        slice(1)
+        [[0   0   0   0   0   0   0   0],
+         [0   1   0   0   0   0   0   0],
+         ...
+         [0   0   0   0   0   0   0   0],
+         [0   0   0   0   0   0   0   0]]
+        ...
+        slice(7)
+        [[0   0   0   0   0   0   0   0],
+         [0   0   0   0   0   0   0   0],
+         ...
+         [0   0   0   0   0   0   0   0],
+         [0   0   0   0   0   0   0   1]]
+
+        sum(x, axis = (0,2)) means we only consider entries in a given axis (axes)
+
+        Thus, when using the same columns as before, we now perform the sum operation
+        over each slice individually:
+
+        x111 x211 x121 x221 x112 x212 x122 x222
+        slice(0)
+        [[1   0   0   0   0   0   0   0],
+         [0   0   0   0   0   0   0   0]]
+        slice(2)
+        [[0   1   0   0   0   0   0   0],
+         [0   0   0   0   0   0   0   0]]
+        slice(7)
+        [[0   0   0   0   0   0   0   0],
+         [0   0   0   0   0   0   0   1]]
+        """
+        param_lin_op = linOpHelper((2,2,2), type="param", data=2)
+        variable_lin_op = linOpHelper((2,2,2), type="variable", data=1)
+        var_view = param_backend.process_constraint(variable_lin_op, param_backend.get_empty_view())
+        mul_elem_lin_op = linOpHelper(data=param_lin_op)
+        param_var_view = param_backend.mul_elem(mul_elem_lin_op, var_view)
+
+        sum_entries_lin_op = linOpHelper(shape=(2,2,2), data=[(0,2), True], args=[variable_lin_op])
+        out_view = param_backend.sum_entries(sum_entries_lin_op, param_var_view)
+        out_repr = out_view.get_tensor_representation(0, 2)
+
+        slice_idx_zero = out_repr.get_param_slice(0).toarray()[:, :-1]
+        expected_idx_zero = np.array([[1., 0., 0., 0., 0., 0., 0., 0.],
+                                    [0., 0., 0., 0., 0., 0., 0., 0.]])
+        assert np.all(slice_idx_zero == expected_idx_zero)
+
+        slice_idx_one = out_repr.get_param_slice(1).toarray()[:, :-1]
+        expected_idx_one = np.array([[0., 1., 0., 0., 0., 0., 0., 0.],
+                                    [0., 0., 0., 0., 0., 0., 0., 0.]])
+        assert np.all(slice_idx_one == expected_idx_one)
+
+        slice_idx_seven = out_repr.get_param_slice(7).toarray()[:, :-1]
+        expected_idx_seven = np.array([[0., 0., 0., 0., 0., 0., 0., 0.],
+                                    [0., 0., 0., 0., 0., 0., 0., 1.]])
+        assert np.all(slice_idx_seven == expected_idx_seven)
+
+        # Note: view is edited in-place:
+        assert out_view.get_tensor_representation(0, 4) == param_var_view.get_tensor_representation(
+            0, 4
+        )
 
 
 class TestNumPyBackend:

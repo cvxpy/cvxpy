@@ -74,8 +74,7 @@ import numpy as np
 a = np.random.random((2,2))
 
 
-class Bar1:
-    __metaclass__ = MyMeta
+class Bar1(metaclass=MyMeta):
     def __add__(self, rhs): return 0
     def __radd__(self, rhs): return 1
     def __lt__(self, rhs): return 0

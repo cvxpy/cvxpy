@@ -46,7 +46,6 @@ from cvxpy.reductions.solvers.solver import Solver
 from cvxpy.settings import (
     CLARABEL,
     CPP_CANON_BACKEND,
-    ECOS,
     NUMPY_CANON_BACKEND,
     PARAM_THRESHOLD,
     SCIPY_CANON_BACKEND,
@@ -75,12 +74,13 @@ ECOS_DEP_DEPRECATION_MSG = (
 
 ECOS_DEPRECATION_MSG = (
     """
-    Your problem is being solved with the ECOS solver by default. Starting in 
-    CVXPY 1.5.0, Clarabel will be used as the default solver instead. To continue 
-    using ECOS, specify the ECOS solver explicitly using the ``solver=cp.ECOS`` 
+    Your problem is being solved with the ECOS solver by default. Starting in
+    CVXPY 1.5.0, Clarabel will be used as the default solver instead. To continue
+    using ECOS, specify the ECOS solver explicitly using the ``solver=cp.ECOS``
     argument to the ``problem.solve`` method.
     """
 )
+
 
 def _is_lp(self):
     """Is problem a linear program?
@@ -163,7 +163,7 @@ def _reductions_for_problem_class(problem, candidates, gp: bool = False, solver_
     if type(problem.objective) == Maximize:
         reductions += [FlipObjective()]
 
-    # Special reduction for finite set constraint, 
+    # Special reduction for finite set constraint,
     # used by both QP and conic pathways.
     constr_types = {type(c) for c in problem.constraints}
     if FiniteSet in constr_types:
@@ -265,7 +265,7 @@ def construct_solving_chain(problem, candidates,
         solver = candidates['qp_solvers'][0]
         solver_instance = slv_def.SOLVER_MAP_QP[solver]
         reductions += [
-            CvxAttr2Constr(reduce_bounds=not solver_instance.BOUNDED_VARIABLES), 
+            CvxAttr2Constr(reduce_bounds=not solver_instance.BOUNDED_VARIABLES),
             qp2symbolic_qp.Qp2SymbolicQp(),
             QpMatrixStuffing(canon_backend=canon_backend),
             solver_instance,
@@ -360,10 +360,6 @@ def construct_solving_chain(problem, candidates,
                 CvxAttr2Constr(reduce_bounds=not solver_instance.BOUNDED_VARIABLES),
             ]
             if all(c in supported_constraints for c in cones):
-                if solver == ECOS and specified_solver == ECOS:
-                    warnings.warn(ECOS_DEP_DEPRECATION_MSG, FutureWarning)
-                elif solver == ECOS and specified_solver is None:
-                    warnings.warn(ECOS_DEPRECATION_MSG, FutureWarning)
                 # Return the reduction chain.
                 reductions += [
                     ConeMatrixStuffing(quad_obj=quad_obj, canon_backend=canon_backend),
@@ -384,17 +380,17 @@ def construct_solving_chain(problem, candidates,
                           candidates['conic_solvers'],
                           ", ".join([cone.__name__ for cone in cones])))
 
-
 def _get_canon_backend(problem, canon_backend):
     """
     This function checks if the problem has expressions of dimension greater
-    than 2, then raises a warning if the default backend is not specified or 
-    raises an error if the backend is specified as 'CPP'.
+    than 2 or if it lacks C++ support, then raises a warning if the default
+    backend is not specified or raises an error if the backend is specified
+    as 'CPP'.
 
     Parameters
     ----------
     problem : Problem
-        The problem for which to build a chain. 
+        The problem for which to build a chain.
     canon_backend : str
         'CPP' (default) | 'SCIPY'
         Specifies which backend to use for canonicalization, which can affect
@@ -405,13 +401,25 @@ def _get_canon_backend(problem, canon_backend):
     canon_backend : str
         The canonicalization backend to use.
     """
+
+    if not problem._supports_cpp():
+        if canon_backend is None:
+            warnings.warn(UserWarning(
+                f"The problem includes expressions that don't support {CPP_CANON_BACKEND} backend. "
+                f"Defaulting to the {SCIPY_CANON_BACKEND} backend for canonicalization."))
+            return SCIPY_CANON_BACKEND
+        if canon_backend == CPP_CANON_BACKEND:
+            raise ValueError(f"The {CPP_CANON_BACKEND} backend cannot be used with problems "
+                             f"that have expressions which do not support it.")
+        return canon_backend  # Use the specified backend (e.g., SCIPY_CANON_BACKEND)
+
     if problem._max_ndim() > 2:
         if canon_backend is None:
             warnings.warn(UserWarning(
                 f"The problem has an expression with dimension greater than 2. "
                 f"Defaulting to the {SCIPY_CANON_BACKEND} backend for canonicalization."))
             return SCIPY_CANON_BACKEND
-        elif canon_backend == CPP_CANON_BACKEND:
+        if canon_backend == CPP_CANON_BACKEND:
             raise ValueError(f"Only the {SCIPY_CANON_BACKEND} and {NUMPY_CANON_BACKEND} "
                              f"backends are supported for problems with expressions of "
                              f"dimension greater than 2.")

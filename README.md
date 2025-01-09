@@ -3,6 +3,7 @@ CVXPY
 [![Build Status](http://github.com/cvxpy/cvxpy/workflows/build/badge.svg?event=push)](https://github.com/cvxpy/cvxpy/actions/workflows/build.yml)
 ![PyPI - downloads](https://img.shields.io/pypi/dm/cvxpy.svg?label=Pypi%20downloads)
 ![Conda - downloads](https://img.shields.io/conda/dn/conda-forge/cvxpy.svg?label=Conda%20downloads)
+[![Discord](https://img.shields.io/badge/Chat-Discord-Blue?color=5865f2)](https://discord.gg/4urRQeGBCr)
 [![Coverage](https://sonarcloud.io/api/project_badges/measure?project=cvxpy_cvxpy&metric=coverage)](https://sonarcloud.io/summary/new_code?id=cvxpy_cvxpy)
 [![Benchmarks](http://img.shields.io/badge/benchmarked%20by-asv-blue.svg?style=flat)](https://cvxpy.github.io/benchmarks/)
 [![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/cvxpy/cvxpy/badge)](https://api.securityscorecards.dev/projects/github.com/cvxpy/cvxpy)
@@ -58,8 +59,7 @@ With CVXPY, you can model
 * quasiconvex programs.
 
 CVXPY is not a solver. It relies upon the open source solvers 
-[Clarabel](https://github.com/oxfordcontrol/Clarabel.rs), 
-[ECOS](https://github.com/embotech/ecos), [SCS](https://github.com/bodono/scs-python),
+[Clarabel](https://github.com/oxfordcontrol/Clarabel.rs), [SCS](https://github.com/bodono/scs-python),
 and [OSQP](https://github.com/oxfordcontrol/osqp). Additional solvers are
 [available](https://www.cvxpy.org/tutorial/solvers/index.html#choosing-a-solver),
 but must be installed separately.
@@ -84,7 +84,6 @@ CVXPY has the following dependencies:
 - Python >= 3.9
 - Clarabel >= 0.5.0
 - OSQP >= 0.6.2
-- ECOS >= 2
 - SCS >= 3.2.4.post1
 - NumPy >= 1.20.0
 - SciPy >= 1.6.0
@@ -143,12 +142,13 @@ CVXPY is developed and maintained by [Steven
 Diamond](https://stevendiamond.me/), [Akshay
 Agrawal](https://akshayagrawal.com), [Riley Murray](https://rileyjmurray.wordpress.com/), 
 [Philipp Schiele](https://www.philippschiele.com/),
-and [Bartolomeo Stellato](https://stellato.io/), with many others contributing
+[Bartolomeo Stellato](https://stellato.io/),
+and [Parth Nobel](https://ptnobel.github.io), with many others contributing
 significantly.
 A non-exhaustive list of people who have shaped CVXPY over the
 years includes Stephen Boyd, Eric Chu, Robin Verschueren,
 Jaehyun Park, Enzo Busseti, AJ Friend, Judson Wilson, Chris Dembia, and
-Parth Nobel.
+William Zhang.
 
 For more information about the team and our processes, see our [governance document](https://github.com/cvxpy/org/blob/main/governance.md).
 

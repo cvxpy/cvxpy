@@ -22,12 +22,10 @@ from cvxpy.utilities import performance_utils as pu
 from cvxpy.utilities.deterministic import unique_list
 
 
-class Canonical:
+class Canonical(metaclass=abc.ABCMeta):
     """
     An interface for objects that can be canonicalized.
     """
-
-    __metaclass__ = abc.ABCMeta
 
     @property
     def expr(self):
@@ -102,6 +100,13 @@ class Canonical:
         else:
             return type(self)(*args)
 
+    def _supports_cpp(self) -> bool:
+        """
+        Determines whether the current atom is implemented in C++. This method should be
+        overridden in derived atom classes that are not implemented in C++.
+        """
+        return True
+
     def __copy__(self):
         """
         Called by copy.copy()
@@ -155,11 +160,40 @@ class Canonical:
         return unique_list(atom for arg in self.args for atom in arg.atoms())
 
     @pu.compute_once
+    def _aggregate_metrics(self) -> dict:
+        """
+        Aggregates and caches metrics for expression trees in self.args. So far
+        metrics include the maximum dimensionality ('max_ndim') and whether
+        all sub-expressions support C++ ('all_support_cpp').
+
+        """
+        max_ndim = self.ndim
+        cpp_support = self._supports_cpp()
+
+        for arg in self.args:
+            max_ndim = max(max_ndim, arg._max_ndim())
+            cpp_support = cpp_support and arg._supports_cpp()
+
+        metrics = {
+            "max_ndim": max_ndim,
+            "all_support_cpp": cpp_support
+        }
+        return metrics
+
     def _max_ndim(self) -> int:
+        """The maximum number of dimensions of the sub-expression.
         """
-        The maximum number of dimensions of the sub-expression.
+        return self._aggregate_metrics()["max_ndim"]
+
+    def _all_support_cpp(self) -> bool:
         """
-        return max([self.ndim] + [arg._max_ndim() for arg in self.args])
+        Returns True if all sub-expressions support C++, False otherwise.
+        """
+        return self._aggregate_metrics()["all_support_cpp"]
+
+    @abc.abstractmethod
+    def __str__(self) -> str:
+        raise NotImplementedError()
 
 
 _MISSING = object()

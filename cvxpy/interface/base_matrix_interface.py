@@ -21,12 +21,11 @@ import numpy as np
 import cvxpy.interface.matrix_utilities
 
 
-class BaseMatrixInterface:
+class BaseMatrixInterface(metaclass=abc.ABCMeta):
     """
     An interface between constants' internal values
     and the target matrix used internally.
     """
-    __metaclass__ = abc.ABCMeta
 
     @abc.abstractmethod
     def const_to_matrix(self, value, convert_scalars: bool = False):

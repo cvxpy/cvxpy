@@ -994,6 +994,15 @@ class TestExpressions(BaseTest):
         self.assertEqual(exp.curvature, s.AFFINE)
         self.assertEqual(exp.shape, (1,))
 
+    def test_special_idx_str_repr(self) -> None:
+        idx = [i for i in range(178)]
+        exp = cp.Variable((200, 10), name="exp")[idx, 6]
+        self.assertEqual("exp[[0, 1, 2, ..., 175, 176, 177], 6]", str(exp))
+
+        idx = [i for i in range(5)]
+        exp = cp.Variable((10, 10), name="exp")[idx, 2:5]
+        self.assertEqual("exp[[0, 1, 2, 3, 4], 2:5]", str(exp))
+
     def test_none_idx(self) -> None:
         """Test None as index.
         """
@@ -1496,6 +1505,42 @@ class TestExpressions(BaseTest):
         expr = hermitian_wrap(U)
         assert expr.is_hermitian()
 
+    def test_expr_does_not_support_cpp_warning(self):
+        from cvxpy.atoms.affine.sum import Sum
+
+        class SumNotSupportedInCPP(Sum):
+            def _supports_cpp(self):
+                return False
+
+        x = Variable(2)
+        prob = Problem(Minimize(0), [SumNotSupportedInCPP(x) == 1])
+
+        with pytest.warns(
+            UserWarning,
+            match="The problem includes expressions that don't support "
+            "CPP backend. Defaulting to the SCIPY backend "
+            "for canonicalization.",
+        ):
+            prob.solve()
+
+
+    def test_expr_does_not_support_cpp_error(self):
+        from cvxpy.atoms.affine.sum import Sum
+
+        class SumNotSupportedInCPP(Sum):
+            def _supports_cpp(self):
+                return False
+
+        x = Variable(2)
+        prob = Problem(Minimize(0), [SumNotSupportedInCPP(x) == 1])
+
+        with pytest.raises(
+            ValueError,
+            match="The CPP backend cannot be used with problems "
+            "that have expressions which do not support it",
+        ):
+            prob.solve(canon_backend=cp.CPP_CANON_BACKEND)
+
 
 class TestND_Expressions():
 
@@ -1504,7 +1549,7 @@ class TestND_Expressions():
         self.x = Variable((2,2,2), name='x')
         self.target = (1+np.arange(8)).reshape(2,2,2)
         self.obj = cp.Minimize(0)
-    
+
     def test_nd_variable(self) -> None:
         prob = cp.Problem(self.obj, [self.x == self.target])
         prob.solve(canon_backend=cp.SCIPY_CANON_BACKEND)
@@ -1544,6 +1589,14 @@ class TestND_Expressions():
         prob.solve(canon_backend=cp.SCIPY_CANON_BACKEND)
         assert np.allclose(expr.value, self.target)
 
+    def test_nd_concatenate(self) -> None:
+        x = cp.Variable((1, 2, 2))
+        z = cp.Variable((1, 2, 2))
+        expr = cp.concatenate([x,z], axis = 0)
+        prob = cp.Problem(self.obj, [expr == self.target])
+        prob.solve(canon_backend=cp.SCIPY_CANON_BACKEND)
+        assert np.allclose(expr.value, self.target)
+
     def test_nd_sum_expr(self) -> None:
         x = [cp.Variable((2,2,2)) for _ in range(10)]
         expr = sum(x)
@@ -1559,6 +1612,16 @@ class TestND_Expressions():
         prob.solve(canon_backend=cp.SCIPY_CANON_BACKEND)
         assert np.allclose(expr.value, y)
 
+    @pytest.mark.parametrize("axis", [(0),(1),(2),((0,1)),((0,2)),((2,1))])
+    def test_nd_parametrized_sum(self, axis) -> None:
+        param = cp.Parameter((2,2,2))
+        param.value = np.arange(8).reshape(2,2,2)
+        expr = cp.multiply(self.x, param).sum(axis=axis)
+        target = self.target.sum(axis=axis)
+        prob = cp.Problem(self.obj, [expr == target])
+        prob.solve(canon_backend=cp.SCIPY_CANON_BACKEND)
+        assert np.allclose(expr.value, target)
+
     @pytest.mark.parametrize("axis", [(0,2,4,5),((4,5)),((0,2,3,1)),((5,3,1)), ((0,1,2,5))])
     def test_nd_big_sum(self, axis) -> None:
         in_shape = (6,5,4,3,2,1)
@@ -1567,7 +1630,7 @@ class TestND_Expressions():
         prob = cp.Problem(self.obj, [expr == y])
         prob.solve(canon_backend=cp.SCIPY_CANON_BACKEND)
         assert np.allclose(expr.value, y)
-    
+
     @given(integer_array_indices(shape=(2,2,2)))
     def test_nd_integer_index(self, s) -> None:
         expr = self.x[s]
@@ -1581,7 +1644,7 @@ class TestND_Expressions():
         # Skip examples with 0-d output. TODO allow 0-d expressions in cvxpy.
         def is_zero_dim_output(axis):
             return 0 in self.target[axis].shape
-        
+
         assume(is_zero_dim_output(axis) is False)
         expr = self.x[axis]
         y = self.target[axis]
@@ -1602,10 +1665,38 @@ class TestND_Expressions():
     def test_nd_bool_index(self, axis) -> None:
         def is_zero_dim_output(axis):
             return 0 in self.target[axis].shape
-        
+
         assume(is_zero_dim_output(axis) is False)
         expr = self.x[axis]
         y = self.target[axis]
+        prob = cp.Problem(self.obj, [expr == y])
+        prob.solve(canon_backend=cp.SCIPY_CANON_BACKEND)
+        assert np.allclose(expr.value, y)
+
+    def test_nd_index_sum(self) -> None:
+        expr = self.x[:,:,0].sum(axis=0)
+        y = self.target[:,:,0].sum(axis=0)
+        prob = cp.Problem(self.obj, [expr == y])
+        prob.solve(canon_backend=cp.SCIPY_CANON_BACKEND)
+        assert np.allclose(expr.value, y)
+
+    @pytest.mark.parametrize("order", ['C', 'F'])
+    @pytest.mark.parametrize("shape", [(20, 2, 30), (300, 2, 2),
+                                       (1, 24, 5, 10), (240, 5, 1)])
+    def test_nd_reshape(self, order, shape) -> None:
+        var = cp.Variable((5, 24, 10))
+        target = np.arange(1200).reshape((5, 24, 10))
+        expr = cp.reshape(var, shape, order=order)
+        y = target.reshape(shape, order=order)
+        prob = cp.Problem(self.obj, [expr == y])
+        prob.solve(canon_backend=cp.SCIPY_CANON_BACKEND)
+        assert np.allclose(expr.value, y)
+
+    def test_nd_transpose(self) -> None:
+        var = cp.Variable((5, 24, 10))
+        target = np.arange(1200).reshape((5, 24, 10))
+        expr = var.T
+        y = target.T
         prob = cp.Problem(self.obj, [expr == y])
         prob.solve(canon_backend=cp.SCIPY_CANON_BACKEND)
         assert np.allclose(expr.value, y)

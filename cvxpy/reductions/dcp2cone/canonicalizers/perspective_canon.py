@@ -88,6 +88,6 @@ def perspective_canon(expr, args):
             inds = np.triu_indices(n, k=0)  # includes diagonal
             constraints += [var[inds] == x_canon[start_ind:end_ind]]
         else:
-            constraints.append(vec(var) == x_canon[start_ind:end_ind])
+            constraints.append(vec(var, order='F') == x_canon[start_ind:end_ind])
 
     return (1 if expr.f.is_convex() else -1)*t, constraints

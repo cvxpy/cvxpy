@@ -117,7 +117,7 @@ class CVXOPT(ConicSolver):
         data[s.A] = -A[:len_eq]
         if data[s.A].shape[0] == 0:
             data[s.A] = None
-        data[s.B] = b[:len_eq].flatten()
+        data[s.B] = b[:len_eq].flatten(order='F')
         if data[s.B].shape[0] == 0:
             data[s.B] = None
         if len_eq >= A.shape[0]:
@@ -127,7 +127,7 @@ class CVXOPT(ConicSolver):
             data[s.H] = None
         else:
             data[s.G] = -A[len_eq:]
-            data[s.H] = b[len_eq:].flatten()
+            data[s.H] = b[len_eq:].flatten(order='F')
         return data, inv_data
 
     def invert(self, solution, inverse_data):

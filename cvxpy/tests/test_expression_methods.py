@@ -132,21 +132,21 @@ class TestExpressionMethods(BaseTest):
     def test_reshape(self) -> None:
         """Test the reshape class.
         """
-        expr = self.A.reshape((4, 1))
+        expr = self.A.reshape((4, 1), order='F')
         self.assertEqual(expr.sign, s.UNKNOWN)
         self.assertEqual(expr.curvature, s.AFFINE)
         self.assertEqual(expr.shape, (4, 1))
 
-        expr = expr.reshape((2, 2))
+        expr = expr.reshape((2, 2), order='F')
         self.assertEqual(expr.shape, (2, 2))
 
-        expr = cp.square(self.x).reshape((1, 2))
+        expr = cp.square(self.x).reshape((1, 2), order='F')
         self.assertEqual(expr.sign, s.NONNEG)
         self.assertEqual(expr.curvature, s.CONVEX)
         self.assertEqual(expr.shape, (1, 2))
 
         with self.assertRaises(Exception) as cm:
-            self.C.reshape((5, 4))
+            self.C.reshape((5, 4), order='F')
         self.assertEqual(str(cm.exception),
                          "Invalid reshape dimensions (5, 4).")
 
@@ -195,7 +195,7 @@ class TestExpressionMethods(BaseTest):
         ])
         b_reshaped = b.reshape((2, 6), order='F')
         X = cp.Variable(b.shape)
-        X_reshaped = X.reshape((2, 6))
+        X_reshaped = X.reshape((2, 6), order='F')
         prob = cp.Problem(cp.Minimize(0), [X_reshaped == b_reshaped])
         prob.solve(solver=cp.SCS)
         self.assertItemsAlmostEqual(b_reshaped, X_reshaped.value)
@@ -213,23 +213,23 @@ class TestExpressionMethods(BaseTest):
         expected_shapes = [(6, 1), (1, 6), (3, 2), (6,), (6,)]
 
         for shape, expected_shape in zip(shapes, expected_shapes):
-            expr_reshaped = expr.reshape(shape)
+            expr_reshaped = expr.reshape(shape, order='F')
             self.assertEqual(expr_reshaped.shape, expected_shape)
 
             numpy_expr_reshaped = np.reshape(numpy_expr, shape)
             self.assertEqual(numpy_expr_reshaped.shape, expected_shape)
 
         with pytest.raises(ValueError, match="Cannot reshape expression"):
-            expr.reshape((8, -1))
+            expr.reshape((8, -1), order='F')
 
         with pytest.raises(AssertionError, match="Only one"):
-            expr.reshape((-1, -1))
+            expr.reshape((-1, -1), order='F')
 
         with pytest.raises(ValueError, match="Invalid reshape dimensions"):
-            expr.reshape((-1, 0))
+            expr.reshape((-1, 0), order='F')
 
         with pytest.raises(AssertionError, match="Specified dimension must be nonnegative"):
-            expr.reshape((-1, -2))
+            expr.reshape((-1, -2), order='F')
 
         A = np.array([[1, 2, 3], [4, 5, 6]])
         A_reshaped = Constant(A).reshape(-1, order='C')
@@ -237,7 +237,16 @@ class TestExpressionMethods(BaseTest):
         A_reshaped = Constant(A).reshape(-1, order='F')
         assert np.allclose(A_reshaped.value, A.reshape(-1, order='F'))
 
-
+    def test_missing_order_warning(self) -> None:
+        X = cp.Variable((4, 3))
+        with pytest.warns(FutureWarning):
+            X.reshape((2, 6))
+        with pytest.warns(FutureWarning):
+            X.flatten()
+        with pytest.warns(FutureWarning):
+            cp.vec(X)
+        with pytest.warns(FutureWarning):
+            cp.reshape(X, (2, 6))
 
     def test_max(self) -> None:
         """

@@ -17,7 +17,7 @@ limitations under the License.
 import abc
 import warnings
 from functools import wraps
-from typing import List, Tuple
+from typing import List, Literal, Tuple
 
 import numpy as np
 
@@ -81,6 +81,15 @@ You're calling the built-in abs function on a CVXPY expression. This is not
 supported. Consider using the abs function provided by CVXPY.
 """
 
+DEFAULT_ORDER_DEPRECATION_MSG = (
+    """
+    You didn't specify the order of the FUNC_NAME expression. The default order
+    used in CVXPY is Fortran ('F') order. This default will change to match NumPy's
+    default order ('C') in a future version of CVXPY.
+    To suppress this warning, please specify the order explicitly.
+    """
+)
+
 __BINARY_EXPRESSION_UFUNCS__ = {
         np.add: lambda self, a: self.__radd__(a),
         np.subtract: lambda self, a: self.__rsub__(a),
@@ -109,8 +118,6 @@ class Expression(u.Canonical):
     Overloads many operators to allow for convenient creation of compound
     expressions (e.g., the sum of two expressions) and constraints.
     """
-
-    __metaclass__ = abc.ABCMeta
 
     # Handles arithmetic operator overloading with Numpy.
     __array_priority__ = 100
@@ -442,7 +449,8 @@ class Expression(u.Canonical):
         """
         raise NotImplementedError()
 
-    @abc.abstractproperty
+    @property
+    @abc.abstractmethod
     def shape(self) -> Tuple[int, ...]:
         """tuple : The expression dimensions.
         """
@@ -453,7 +461,8 @@ class Expression(u.Canonical):
         """
         return not self.is_complex()
 
-    @abc.abstractproperty
+    @property
+    @abc.abstractmethod
     def is_imag(self) -> bool:
         """Is the Leaf imaginary?
         """
@@ -477,11 +486,16 @@ class Expression(u.Canonical):
         """
         return len(self.shape)
 
-    def flatten(self, order: str = 'F'):
-        """Vectorizes the expression.
+    def flatten(self, order: Literal["F", "C", None] = None):
+        """
+        Vectorizes the expression.
 
         order: column-major ('F') or row-major ('C') order.
         """
+        if order is None:
+            flatten_order_warning = DEFAULT_ORDER_DEPRECATION_MSG.replace("FUNC_NAME", "flatten")
+            warnings.warn(flatten_order_warning, FutureWarning)
+            order = 'F'
         assert order in ['F', 'C']
         return cvxtypes.vec()(self, order)
 
@@ -850,10 +864,14 @@ class Expression(u.Canonical):
         from cvxpy import ptp
         return ptp(self, axis, keepdims)
 
-    def reshape(self, shape, order='F'):
+    def reshape(self, shape, order: Literal["F", "C", None] = None):
         """
         Equivalent to `cp.reshape(self, shape, order)`.
         """
+        if order is None:
+            reshape_order_warning = DEFAULT_ORDER_DEPRECATION_MSG.replace("FUNC_NAME", "reshape")
+            warnings.warn(reshape_order_warning, FutureWarning)
+            order = 'F'
         from cvxpy import reshape
         return reshape(self, shape, order)
 

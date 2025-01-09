@@ -41,6 +41,7 @@ from cvxpy.tests.solver_test_helpers import (
 from cvxpy.utilities.versioning import Version
 
 
+@unittest.skipUnless('ECOS' in INSTALLED_SOLVERS, 'ECOS is not installed.')
 class TestECOS(BaseTest):
 
     def setUp(self) -> None:
@@ -1568,7 +1569,7 @@ class TestGUROBI(BaseTest):
                 self.skipTest("Gurobi has found a solution, the test is not relevant anymore.")
 
             solver_status = getattr(extra_stats, "Status", None)
-            if solver_status != gurobipy.StatusConstClass.TIME_LIMIT:
+            if solver_status != gurobipy.GRB.TIME_LIMIT:
                 self.skipTest("Gurobi terminated for a different reason than reaching time limit, "
                               "the test is not relevant anymore.")
 
@@ -2038,6 +2039,42 @@ class TestSCIP(unittest.TestCase):
             assert str(se.value) == exc
 
 
+@unittest.skipUnless("HIGHS" in INSTALLED_SOLVERS, "HiGHS is not installed.")
+class TestHIGHS(unittest.TestCase):
+    def test_highs_lp_0(self) -> None:
+        StandardTestLPs.test_lp_0(solver="HIGHS")
+
+    def test_highs_lp_1(self) -> None:
+        StandardTestLPs.test_lp_1(solver="HIGHS")
+
+    def test_highs_lp_2(self) -> None:
+        StandardTestLPs.test_lp_2(solver="HIGHS")
+
+    def test_highs_lp_3(self) -> None:
+        StandardTestLPs.test_lp_3(solver="HIGHS")
+
+    def test_highs_lp_4(self) -> None:
+        StandardTestLPs.test_lp_4(solver="HIGHS")
+    
+    def test_highs_lp_5(self) -> None:
+        StandardTestLPs.test_lp_5(solver='HIGHS')
+
+    def test_highs_mi_lp_0(self) -> None:
+        StandardTestLPs.test_mi_lp_0(solver='HIGHS')
+
+    def test_highs_mi_lp_1(self) -> None:
+        StandardTestLPs.test_mi_lp_1(solver='HIGHS')
+
+    def test_highs_mi_lp_2(self) -> None:
+        StandardTestLPs.test_mi_lp_2(solver='HIGHS')
+
+    def test_highs_mi_lp_3(self) -> None:
+        StandardTestLPs.test_mi_lp_3(solver='HIGHS')
+
+    def test_highs_mi_lp_5(self) -> None:
+        StandardTestLPs.test_mi_lp_5(solver='HIGHS')
+    
+    
 class TestAllSolvers(BaseTest):
 
     def setUp(self) -> None:
@@ -2094,6 +2131,7 @@ class TestAllSolvers(BaseTest):
             self.assertItemsAlmostEqual(x.value, [0, 0])
 
 
+@unittest.skipUnless('ECOS' in INSTALLED_SOLVERS, 'ECOS_BB is not installed.')
 class TestECOS_BB(unittest.TestCase):
 
     def test_ecos_bb_explicit_only(self) -> None:
