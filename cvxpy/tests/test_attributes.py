@@ -1,9 +1,4 @@
 import numpy as np
-from cvxpy.constraints.nonpos import Inequality
-from cvxpy.constraints.psd import PSD
-from cvxpy.constraints.zero import Equality
-from cvxpy.reductions.cvx_attr2constr import CvxAttr2Constr
-
 import pytest
 import scipy.sparse as sp
 
