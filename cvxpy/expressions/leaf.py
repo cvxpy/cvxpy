@@ -139,6 +139,12 @@ class Leaf(expression.Expression):
             self.integer_idx = np.unravel_index(flat_idx, shape, order='F')
         elif integer is False:
             self.integer_idx = []
+        else:
+            self.integer_idx = integer
+        if sparsity:
+            self.sparse_idx = self._validate_indices(sparsity)
+        else:
+            self.sparse_idx = []
         if value is not None:
             self.value = value
 
