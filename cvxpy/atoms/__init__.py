@@ -109,7 +109,7 @@ from cvxpy.atoms.stats import mean, std, var
 from cvxpy.atoms.ptp import ptp
 from cvxpy.atoms.numerical_integration_1D import numerical_integration_1D
 from cvxpy.atoms.numerical_integration_2D import numerical_integration_2D
-
+from cvxpy.atoms.numerical_integration_ND import numerical_integration_ND
 # TODO(akshayka): Perhaps couple this information with the atom classes
 # themselves.
 SOC_ATOMS = [
