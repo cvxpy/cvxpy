@@ -239,7 +239,7 @@ Install with Additional Solver Support
 
     CVXPY supports the QOCO solver.
     Simply install QOCO such that you can ``import qoco`` in Python.
-    See the `QOCO <QOCOWEBSITE>`_ website for installation instructions.
+    See the `QOCO <https://qoco-org.github.io/qoco/install/index.html>`_ website for installation instructions.
 
 .. info:: Without default solvers
     :collapsible:

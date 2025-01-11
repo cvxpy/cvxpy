@@ -715,7 +715,7 @@ Here is the complete list of solver options.
     ``'reltol'``
         relative accuracy (default: 1e-7).
 
-    For others see `QOCO documentation <QOCOWEBSITE>`_.
+    For others see `QOCO documentation <https://qoco-org.github.io/qoco/api/settings.html>`_.
 
 .. info:: `GUROBI`_ options:
     :collapsible:
@@ -834,7 +834,7 @@ will be the same as the class variable ``SUPPORTED_CONSTRAINTS``.
 .. _NAG: https://nag.com/mathematical-optimization/
 .. _OSQP: https://osqp.org/
 .. _PDLP: https://developers.google.com/optimization
-.. _QOCO: QOCOWEBSITE
+.. _QOCO: https://qoco-org.github.io/qoco/
 .. _SCIP: https://scip.zib.de/
 .. _XPRESS: https://www.fico.com/en/products/fico-xpress-optimization
 .. _SCIPY: https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.linprog.html#scipy.optimize.linprog
