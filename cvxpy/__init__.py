@@ -83,6 +83,7 @@ from cvxpy.settings import (
     OSQP as OSQP,
     DAQP as DAQP,
     PDLP as PDLP,
+    QOCO as QOCO,
     PIQP as PIQP,
     PROXQP as PROXQP,
     ROBUST_KKTSOLVER as ROBUST_KKTSOLVER,
