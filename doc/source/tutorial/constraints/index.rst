@@ -151,8 +151,8 @@ Reading and writing the value of a sparse expression
 
 To avoid storing entries that are known to be zero, we provide the ``.value_sparse`` field,
 which stores only the nonzero entries as a ``scipy.sparse.coo_array``.
-For details on this data structure, please see the `scipy documentation <https://docs.scipy.org/doc/scipy/reference/generated/scipy.sparse.coo_array.html>`_.
-When passing a value, it is expected to be a ``scipy.sparse.coo_array``.
+For details on this data structure, please see the `SciPy documentation <https://docs.scipy.org/doc/scipy/reference/generated/scipy.sparse.coo_array.html>`_.
+When passing a sparse value, it is expected to be a ``scipy.sparse.coo_array``.
 
 .. code:: python
 
