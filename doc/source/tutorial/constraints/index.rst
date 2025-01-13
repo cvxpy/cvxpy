@@ -147,6 +147,7 @@ as defined in `np.indices <https://numpy.org/doc/stable/reference/generated/nump
 
 Reading and writing the value of a sparse expression
 ----------------------------------------------------
+----------------------------------------------------
 
 To avoid storing entries that are known to be zero, we provide the ``.value_sparse`` field,
 which stores only the nonzero entries as a ``scipy.sparse.coo_array``.
