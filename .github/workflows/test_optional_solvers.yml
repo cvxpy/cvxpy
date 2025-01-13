@@ -1,0 +1,26 @@
+name: test_optional_solvers
+
+on:
+    pull_request:
+    push:
+        branches:
+            - master
+        tags:
+          - '*'
+jobs:
+  test_backends:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - uses: actions/checkout@v4
+      - name: Install cvxpy dependencies and all optional solvers (Note gurobipy, mosek, and nag require licenses)
+        run: |
+          pip install . pytest hypothesis
+          pip install cplex ecos mosek cvxopt glop ortools qoco gurobipy xpress PySCIPOpt coptpy highspy sdpa-python cylp diffcp
+          pip install --extra-index-url https://www.nag.com/downloads/py/naginterfaces_mkl naginterfaces 
+      - name: Run test_conic_solvers
+        run : |
+          pytest cvxpy/tests/test_conic_solvers.py
+
