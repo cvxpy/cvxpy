@@ -158,8 +158,9 @@ When passing a sparse value, it is expected to be a ``scipy.sparse.coo_array``.
 
     # Use the sparsity pattern for both the parameter and its assigned value
     sparsity = ([0, 1, 2, 2], [0, 2, 1, 2])
+    data = [1.3, 2.1, 0.7, 3.2]
     P = cp.Parameter((3, 3), sparsity=sparsity)
-    P.value_sparse = coo_array(([1.3, 2.1, 0.7, 3.2], sparsity))
+    P.value_sparse = coo_array((data, sparsity))
 
 Similarly, the value of a sparse variable or parameter is read via ``.value_sparse``.
 
