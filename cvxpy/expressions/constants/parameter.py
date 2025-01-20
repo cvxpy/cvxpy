@@ -76,15 +76,15 @@ class Parameter(Leaf):
         return True
 
     # Getter and setter for parameter value.
-    @property
-    def value(self):
-        """NumPy.ndarray or None: The numeric value of the parameter.
-        """
-        return self._value
+    #@property
+    #def value(self):
+    #    """NumPy.ndarray or None: The numeric value of the parameter.
+    #    """
+    #    return self._value
 
-    @value.setter
-    def value(self, val):
-        self._value = self._validate_value(val)
+    #@value.setter
+    #def value(self, val):
+    #    self._value = self._validate_value(val)
 
     @property
     def grad(self):

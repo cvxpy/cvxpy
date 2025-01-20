@@ -436,14 +436,11 @@ class Leaf(expression.Expression):
             return val
 
     # Getter and setter for parameter value.
-    def save_value(self, val) -> None:
-        if self.sparse_idx is None:
-            self._value = val
+    def save_value(self, val, sparse_path=False) -> None:
+        if self.sparse_idx and not sparse_path:
+            self._value = scipy_coo_array((val[self.sparse_idx], self.sparse_idx), shape=self.shape)
         else:
-            warnings.warn('Writing to a sparse CVXPY expression via `.value` is discouraged.'
-                          ' Use `.value_sparse` instead', RuntimeWarning, 1)
-            self._value = val[self.sparse_idx]
-
+            self._value = val
 
     @property
     def value(self) -> Optional[np.ndarray]:
@@ -454,11 +451,14 @@ class Leaf(expression.Expression):
             warnings.warn('Reading from a sparse CVXPY expression via `.value` is discouraged.'
                           ' Use `.value_sparse` instead', RuntimeWarning, 1)
             val = np.zeros(self.shape)
-            val[self.sparse_idx] = self._value
+            val[self.sparse_idx] = self._value.data
             return val
 
     @value.setter
     def value(self, val) -> None:
+        if self.sparse_idx is not None:
+            warnings.warn('Writing to a sparse CVXPY expression via `.value` is discouraged.'
+                          ' Use `.value_sparse` instead', RuntimeWarning, 1)
         self.save_value(self._validate_value(val))
 
     @property
@@ -483,9 +483,7 @@ class Leaf(expression.Expression):
                 f'Recieved: {type(val)} Expected {scipy_coo_array_name}.'
                 f' Instantiate with {scipy_coo_array_name}((value_array, coordinates))'
                 )
-        if val.coords != self.sparse_idx:
-            raise ValueError(f'Indexes differ between {val} and variable.')
-        self.save_value(self._validate_value(val.data, True))
+        self.save_value(self._validate_value(val, True), True)
 
 
 
@@ -514,6 +512,11 @@ class Leaf(expression.Expression):
                 raise ValueError(
                     "Invalid dimensions %s for %s value." %
                     (intf.shape(val), self.__class__.__name__)
+                )
+            if sparse_path and (np.array(val.coords) != np.array(self.sparse_idx)).any():
+                raise ValueError(
+                    'Invalid sparsity pattern %s for %s value.' %
+                    (val.coords, self.__class__.__name__)
                 )
             projection = self.project(val, sparse_path)
             # ^ might be a numpy array, or sparse scipy matrix.
