@@ -2,8 +2,8 @@
 name: pre-commit Checks
 
 on:
-  #pull_request:
-  push
+  pull_request:
+  push:
     #branches: [main, master]
 
 permissions:
