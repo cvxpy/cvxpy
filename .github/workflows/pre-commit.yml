@@ -2,9 +2,9 @@
 name: pre-commit Checks
 
 on:
-  pull_request:
-  push:
-    branches: [main, master]
+  #pull_request:
+  push
+    #branches: [main, master]
 
 permissions:
   contents: read
