@@ -468,7 +468,9 @@ class Leaf(expression.Expression):
 
     @value_sparse.setter
     def value_sparse(self, val) -> None:
-        if not isinstance(val, (scipy_coo_array, sp.coo_array)):
+        if isinstance(val, sp.spmatrix):
+            val = scipy_coo_array(val)
+        if not isinstance(val, scipy_coo_array):
             if isinstance(val, (np.ndarray)) \
                     and val.shape == (len(self.sparse_idx[0]),):
                 raise ValueError(
