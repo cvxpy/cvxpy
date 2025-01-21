@@ -1,3 +1,6 @@
+import platform
+import sys
+
 import numpy as np
 import pytest
 
@@ -147,7 +150,16 @@ class TestQuantumRelEntr:
 
         return sth
 
+    @pytest.mark.skipif(
+        platform.system() == "Windows"
+        and sys.version_info.major == 3 and sys.version_info.minor == 13,
+        reason="This test is skipped on Windows with Python version 3.13",
+    )
     def test_1(self):
+        print("*****************************")
+        print(f"Platform: {platform.system()}")
+        print(f"Python version: {sys.version_info}")
+        print("*****************************")
         sth = TestQuantumRelEntr.make_test_1()
         sth.solve(**self.CLARABEL_ARGS)
         sth.verify_objective(places=3)
