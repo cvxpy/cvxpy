@@ -62,8 +62,9 @@ class TestAttributes:
         A_value = np.zeros((3, 3))
         A_value[*sparsity] = -1
         with pytest.warns(
-            RuntimeWarning, match='Writing to a sparse CVXPY expression via `.value` is discouraged.'
-                                  ' Use `.value_sparse` instead'
+            RuntimeWarning,
+            match='Writing to a sparse CVXPY expression via `.value` is discouraged.'
+                  ' Use `.value_sparse` instead'
         ):
             A.value = A_value
         
@@ -83,7 +84,9 @@ class TestAttributes:
         ):
             A.value = np.ones((3, 3))
         with pytest.raises(
-            ValueError, match=r"Invalid sparsity pattern \(array\(\[0\]\), array\(\[0\]\)\) for Parameter value."
+            ValueError,
+            match=r'Invalid sparsity pattern \(array\(\[0\]\), array\(\[0\]\)\)'
+                  ' for Parameter value.'
         ):
             A.value_sparse = sp.coo_array(([1], ([0], [0])), (3, 3))
             
@@ -93,8 +96,9 @@ class TestAttributes:
         prob = cp.Problem(cp.Minimize(cp.sum(X)), [X >= -1])
         prob.solve()
         with pytest.warns(
-            RuntimeWarning, match='Reading from a sparse CVXPY expression via `.value` is discouraged.'
-                                  ' Use `.value_sparse` instead'
+            RuntimeWarning,
+            match='Reading from a sparse CVXPY expression via `.value` is discouraged.'
+                  ' Use `.value_sparse` instead'
         ):
             X_value = X.value
         
