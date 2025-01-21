@@ -37,6 +37,7 @@ from cvxpy.settings import (
     PSD_NSD_PROJECTION_TOL,
     SPARSE_PROJECTION_TOL,
 )
+from cvxpy.utilities.coo_array_compat import get_coords
 
 
 class Leaf(expression.Expression):
@@ -512,10 +513,10 @@ class Leaf(expression.Expression):
                     "Invalid dimensions %s for %s value." %
                     (intf.shape(val), self.__class__.__name__)
                 )
-            if sparse_path and (np.array(val.coords) != np.array(self.sparse_idx)).any():
+            if sparse_path and (np.array(get_coords(val)) != np.array(self.sparse_idx)).any():
                 raise ValueError(
                     'Invalid sparsity pattern %s for %s value.' %
-                    (val.coords, self.__class__.__name__)
+                    (get_coords(val), self.__class__.__name__)
                 )
             projection = self.project(val, sparse_path)
             # ^ might be a numpy array, or sparse scipy matrix.
