@@ -758,4 +758,3 @@ class MOSEK(ConicSolver):
             "MSK_DPAR_MIO_TOL_FEAS",
             "MSK_DPAR_MIO_TOL_REL_GAP"
         )
-

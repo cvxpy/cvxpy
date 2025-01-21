@@ -991,4 +991,3 @@ _cvxcore.ConstLinOpVector_swigregister(ConstLinOpVector)
 
 def build_matrix(*args):
     return _cvxcore.build_matrix(*args)
-
