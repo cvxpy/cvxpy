@@ -155,7 +155,6 @@ class TestQuantumRelEntr:
         reason="This test is skipped on Windows with Python version 3.13",
     )
     def test_1(self):
-        print(platform.system())
         sth = TestQuantumRelEntr.make_test_1()
         sth.solve(**self.CLARABEL_ARGS)
         sth.verify_objective(places=3)
