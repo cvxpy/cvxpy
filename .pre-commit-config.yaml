@@ -1,4 +1,12 @@
 repos:
+
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      # fix the end of each py file. It shall end with a completely empty line
+      - id: end-of-file-fixer
+        files: ^.*\.py$
+        
   - repo: https://github.com/astral-sh/ruff-pre-commit
     # Ruff version.
     rev: 'v0.8.1'
