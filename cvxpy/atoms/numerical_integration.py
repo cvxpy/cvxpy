@@ -130,7 +130,11 @@ def numerical_integration_ND(f_callable, w, ranges, g_list, num_points=None,
     points = np.stack([grid.ravel() for grid in grids], axis=-1)#Shape(num_points, num_dims)
 
     # Evaluate boundary conditions
-    domain_mask = np.all(np.stack([g(*points.T) <= 0 for g in g_list], axis=0), axis=0)
+    if g_list is not None:
+        domain_mask = np.all(np.stack([g(*points.T) <= 0 for g in g_list], axis=0), axis=0)
+    else:
+        # If no boundary conditions are provided, consider the entire domain
+        domain_mask = np.ones(points.shape[0], dtype=bool)
 
     # Compute fractional tile volumes
     tile_volumes = d_volume * np.ones(points.shape[0], dtype=float)
