@@ -60,7 +60,7 @@ class TestAttributes:
         A = cp.Parameter((3, 3), sparsity=sparsity)
         prob = cp.Problem(cp.Minimize(cp.sum(X)), [X >= A])
         A_value = np.zeros((3, 3))
-        A_value[*sparsity] = -1
+        A_value[sparsity] = -1
         with pytest.warns(
             RuntimeWarning,
             match='Writing to a sparse CVXPY expression via `.value` is discouraged.'
