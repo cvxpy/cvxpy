@@ -73,7 +73,8 @@ class TestExpressions(BaseTest):
 
         self.assertEqual(repr(self.x), "Variable((2,), x)")
         self.assertEqual(repr(self.A), "Variable((2, 2), A)")
-        self.assertEqual(repr(cp.Variable(name='x', nonneg=True)), "Variable((), x, nonneg=True)")
+        self.assertEqual(repr(cp.Variable(name='x', nonneg=True)),
+                         "Variable((), x, nonneg=True)")
         self.assertTrue(repr(cp.Variable()).startswith("Variable((), var"))
 
         # Test shape provided as list instead of tuple
@@ -81,8 +82,9 @@ class TestExpressions(BaseTest):
 
         with self.assertRaises(Exception) as cm:
             Variable((2, 2), diag=True, symmetric=True)
-        self.assertEqual(str(cm.exception),
-                         "Cannot set more than one special attribute in Variable.")
+        self.assertEqual(
+            str(cm.exception),
+            "Cannot set more than one special attribute in Variable.")
 
         with self.assertRaises(Exception) as cm:
             Variable((2, 0))
@@ -90,7 +92,8 @@ class TestExpressions(BaseTest):
 
         with self.assertRaises(Exception) as cm:
             Variable((2, .5))
-        self.assertEqual(str(cm.exception), "Invalid dimensions (2, 0.5).")
+        self.assertEqual(str(cm.exception),
+                         "Invalid dimensions (2, 0.5).")
 
         with self.assertRaises(Exception) as cm:
             Variable(2, 1)

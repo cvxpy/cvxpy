@@ -30,7 +30,6 @@ import scipy.sparse as sp
 
 import cvxpy.interface as intf
 import cvxpy.settings as s
-from cvxpy.compat import scipy_coo_array, scipy_coo_array_name
 from cvxpy.constraints.constraint import Constraint
 from cvxpy.expressions import expression
 from cvxpy.settings import (
@@ -438,7 +437,7 @@ class Leaf(expression.Expression):
     # Getter and setter for parameter value.
     def save_value(self, val, sparse_path=False) -> None:
         if self.sparse_idx and not sparse_path:
-            self._value = scipy_coo_array((val[self.sparse_idx], self.sparse_idx), shape=self.shape)
+            self._value = sp.coo_array((val[self.sparse_idx], self.sparse_idx), shape=self.shape)
         else:
             self._value = val
 
@@ -469,19 +468,19 @@ class Leaf(expression.Expression):
     @value_sparse.setter
     def value_sparse(self, val) -> None:
         if isinstance(val, sp.spmatrix):
-            val = scipy_coo_array(val)
-        if not isinstance(val, scipy_coo_array):
+            val = sp.coo_array(val)
+        if not isinstance(val, sp.coo_array):
             if isinstance(val, (np.ndarray)) \
                     and val.shape == (len(self.sparse_idx[0]),):
                 raise ValueError(
                     'Invalid type for assigning value_sparse.'
                     'Try using `'
-                    f'expr.value_sparse = {scipy_coo_array_name}((values, expr.sparse_idx))'
+                    'expr.value_sparse = scipy.sparse.coo_array((values, expr.sparse_idx))'
                     '` instead.')
             raise ValueError(
                 'Invalid type for assigning value_sparse.'
-                f'Recieved: {type(val)} Expected {scipy_coo_array_name}.'
-                f' Instantiate with {scipy_coo_array_name}((value_array, coordinates))'
+                f'Recieved: {type(val)} Expected scipy.sparse.coo_array.'
+                f' Instantiate with scipy.sparse.coo_array((value_array, coordinates))'
                 )
         self.save_value(self._validate_value(val, True), True)
 
