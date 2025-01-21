@@ -89,7 +89,8 @@ class TestAttributes:
             A.value = np.ones((3, 3))
         with pytest.raises(
             ValueError,
-            match=r'Invalid sparsity pattern \(array\(\[0\][, dtype=int32]?\), array\(\[0\][, dtype=int32]?\)\)'
+            match='Invalid sparsity pattern '
+                  r'\(array\(\[0\](, dtype=int32)?\), array\(\[0\](, dtype=int32)?\)\)'
                   ' for Parameter value.'
         ):
             A.value_sparse = sp.coo_array(([1], ([0], [0])), (3, 3))
