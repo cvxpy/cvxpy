@@ -40,9 +40,6 @@ jobs:
           - os: macos-13
             python-version: 3.12
             single_action_config: true
-        exclude:
-            - python-version: 3.13
-              os: windows-2022
 
     env:
       RUNNER_OS: ${{ matrix.os }}
