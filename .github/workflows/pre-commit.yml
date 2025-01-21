@@ -1,0 +1,23 @@
+# This can check whether all pre-commit jobs pass
+name: pre-commit Checks
+
+on:
+  pull_request:
+  push:
+    #branches: [main, master]
+
+permissions:
+  contents: read
+
+jobs:
+  pre-commit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: run pre-commit
+        uses: pre-commit/action@2c7b3805fd2a0fd8c1884dcaebf91fc102a13ecd
+        with:
+          extra_args: '--verbose --all-files --color always --show-diff-on-failure'
