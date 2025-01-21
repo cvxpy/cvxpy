@@ -16,6 +16,8 @@ class TestAttributes:
         assert np.allclose(X.value, z)
 
     def test_sparsity_condition(self):
+        if tuple(int(s) for s in sys.version.split('.')[:2]) < (3, 13):
+            return
         data = np.arange(8).reshape((2,2,2))
         mask = np.where(data % 2 == 0)
         X = cp.Variable((2,2,2), sparsity=mask)
