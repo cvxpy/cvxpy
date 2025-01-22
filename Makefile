@@ -16,7 +16,7 @@ ALLSPHINXOPTS	= -d $(BUILDDIR)/doctrees $(PAPEROPT_$(PAPER)) $(SPHINXOPTS) sourc
 # the i18n builder cannot share the environment and doctrees with the others
 I18NSPHINXOPTS	= $(PAPEROPT_$(PAPER)) $(SPHINXOPTS) source
 
-.PHONY: help clean html dirhtml singlehtml pickle json htmlhelp qthelp devhelp epub latex latexpdf text man changes linkcheck doctest gettext
+.PHONY: help clean html dirhtml singlehtml pickle json htmlhelp qthelp devhelp epub latex latexpdf text man changes linkcheck doctest gettext develop
 
 help:
 	@echo "Please use \`make <target>' where <target> is one of"
@@ -172,7 +172,20 @@ gh-pages:
 	git commit --no-verify -m "Generated gh-pages for `git log master -1 --pretty=short --abbrev-commit`" && git push origin gh-pages ; git checkout master
 # TODO(phschiele): define documentation deployment procedures in PROCEDURES.md and update or remove the command above.
 
-develop:
+venv:
+	curl -LsSf https://astral.sh/uv/install.sh | sh
+	uv venv --python '3.12'
+	uv pip install --upgrade pip
+
+develop: venv
+	# Remove any shared object files (cleanup step)
 	rm -f *.so
-	python setup.py clean --all
-	python setup.py develop
+
+	# Install the package in development mode
+	uv pip install -e .
+
+tests: develop
+	# Install pytest & hypothesis
+	pip install pytest hypothesis
+
+	pytest cvxpy/tests
