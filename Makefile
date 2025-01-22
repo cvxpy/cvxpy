@@ -176,16 +176,22 @@ venv:
 	curl -LsSf https://astral.sh/uv/install.sh | sh
 	uv venv --python '3.12'
 	uv pip install --upgrade pip
+	# install setuptools and pybind
+	uv pip install setuptools pybind11
 
 develop: venv
 	# Remove any shared object files (cleanup step)
 	rm -f *.so
 
-	# Install the package in development mode
-	uv pip install -e .
+	uv run python setup.py clean --all
+
+	uv run python setup.py install develop
+
+# Install the package in development mode
+	#uv pip install -e .
 
 tests: develop
 	# Install pytest & hypothesis
-	pip install pytest hypothesis
+	uv pip install pytest hypothesis
 
-	pytest cvxpy/tests
+	uv run pytest cvxpy/tests
