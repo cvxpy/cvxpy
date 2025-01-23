@@ -22,6 +22,7 @@ if TYPE_CHECKING:
     from cvxpy.atoms.atom import Atom
 
 import numbers
+import warnings
 
 import numpy as np
 import numpy.linalg as LA
@@ -36,6 +37,7 @@ from cvxpy.settings import (
     PSD_NSD_PROJECTION_TOL,
     SPARSE_PROJECTION_TOL,
 )
+from cvxpy.utilities.coo_array_compat import get_coords
 
 
 class Leaf(expression.Expression):
@@ -144,7 +146,7 @@ class Leaf(expression.Expression):
         if sparsity:
             self.sparse_idx = self._validate_indices(sparsity)
         else:
-            self.sparse_idx = []
+            self.sparse_idx = None
         # Only one attribute be True (except can be boolean and integer).
         true_attr = sum(1 for k, v in self.attributes.items() if v)
         # HACK we should remove this feature or allow multiple attributes in general.
@@ -355,7 +357,7 @@ class Leaf(expression.Expression):
             domain.append(self << 0)
         return domain
 
-    def project(self, val):
+    def project(self, val, sparse_path=False):
         """Project value onto the attribute set of the leaf.
 
         A sensible idiom is ``leaf.value = leaf.project(val)``.
@@ -423,32 +425,74 @@ class Leaf(expression.Expression):
                     return val
                 w[bad] = 0
             return (V * w).dot(V.T)
-        elif self.attributes['sparsity']:
+        elif self.attributes['sparsity'] and not sparse_path:
+            warnings.warn('Accessing a sparse CVXPY expression via a dense representation.'
+                          ' Please report this as a bug to the CVXPY Discord or GitHub.',
+                          RuntimeWarning, 3)
             new_val = np.zeros(self.shape)
-            new_val[self.sparse_idx] = val
+            new_val[self.sparse_idx] = val[self.sparse_idx]
             return new_val
         else:
             return val
 
     # Getter and setter for parameter value.
-    def save_value(self, val) -> None:
-        self._value = val
+    def save_value(self, val, sparse_path=False) -> None:
+        if self.sparse_idx and not sparse_path:
+            self._value = sp.coo_array((val[self.sparse_idx], self.sparse_idx), shape=self.shape)
+        else:
+            self._value = val
 
     @property
     def value(self) -> Optional[np.ndarray]:
         """The numeric value of the expression."""
-        return self._value
+        if self.sparse_idx is None:
+            return self._value
+        else:
+            warnings.warn('Reading from a sparse CVXPY expression via `.value` is discouraged.'
+                          ' Use `.value_sparse` instead', RuntimeWarning, 1)
+            val = np.zeros(self.shape)
+            val[self.sparse_idx] = self._value.data
+            return val
 
     @value.setter
     def value(self, val) -> None:
+        if self.sparse_idx is not None:
+            warnings.warn('Writing to a sparse CVXPY expression via `.value` is discouraged.'
+                          ' Use `.value_sparse` instead', RuntimeWarning, 1)
         self.save_value(self._validate_value(val))
+
+    @property
+    def value_sparse(self) -> Optional[...]:
+        """The numeric value of the expression if it is a sparse variable."""
+        return self._value
+
+    @value_sparse.setter
+    def value_sparse(self, val) -> None:
+        if isinstance(val, sp.spmatrix):
+            val = sp.coo_array(val)
+        elif not isinstance(val, sp.coo_array):
+            if isinstance(val, (np.ndarray)) \
+                    and val.shape == (len(self.sparse_idx[0]),):
+                raise ValueError(
+                    'Invalid type for assigning value_sparse.'
+                    'Try using `'
+                    'expr.value_sparse = scipy.sparse.coo_array((values, expr.sparse_idx))'
+                    '` instead.')
+            raise ValueError(
+                'Invalid type for assigning value_sparse.'
+                f'Recieved: {type(val)} Expected scipy.sparse.coo_array.'
+                f' Instantiate with scipy.sparse.coo_array((value_array, coordinates))'
+                )
+        self.save_value(self._validate_value(val, True), True)
+
+
 
     def project_and_assign(self, val) -> None:
         """Project and assign a value to the variable.
         """
         self.save_value(self.project(val))
 
-    def _validate_value(self, val):
+    def _validate_value(self, val, sparse_path=False):
         """Check that the value satisfies the leaf's symbolic attributes.
 
         Parameters
@@ -469,7 +513,12 @@ class Leaf(expression.Expression):
                     "Invalid dimensions %s for %s value." %
                     (intf.shape(val), self.__class__.__name__)
                 )
-            projection = self.project(val)
+            if sparse_path and (np.array(get_coords(val)) != np.array(self.sparse_idx)).any():
+                raise ValueError(
+                    'Invalid sparsity pattern %s for %s value.' %
+                    (get_coords(val), self.__class__.__name__)
+                )
+            projection = self.project(val, sparse_path)
             # ^ might be a numpy array, or sparse scipy matrix.
             delta = np.abs(val - projection)
             # ^ might be a numpy array, scipy matrix, or sparse scipy matrix.
@@ -503,6 +552,8 @@ class Leaf(expression.Expression):
                     attr_str = 'nonpositive'
                 elif self.attributes['neg']:
                     attr_str = 'negative'
+                elif self.attributes['sparsity']:
+                    attr_str = 'zero outside of sparsity pattern'
                 elif self.attributes['diag']:
                     attr_str = 'diagonal'
                 elif self.attributes['PSD']:
