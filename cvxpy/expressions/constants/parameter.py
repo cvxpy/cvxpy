@@ -75,17 +75,6 @@ class Parameter(Leaf):
             return False
         return True
 
-    # Getter and setter for parameter value.
-    @property
-    def value(self):
-        """NumPy.ndarray or None: The numeric value of the parameter.
-        """
-        return self._value
-
-    @value.setter
-    def value(self, val):
-        self._value = self._validate_value(val)
-
     @property
     def grad(self):
         """Gives the (sub/super)gradient of the expression w.r.t. each variable.
