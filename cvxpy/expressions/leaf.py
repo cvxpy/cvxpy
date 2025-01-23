@@ -470,7 +470,7 @@ class Leaf(expression.Expression):
     def value_sparse(self, val) -> None:
         if isinstance(val, sp.spmatrix):
             val = sp.coo_array(val)
-        if not isinstance(val, sp.coo_array):
+        elif not isinstance(val, sp.coo_array):
             if isinstance(val, (np.ndarray)) \
                     and val.shape == (len(self.sparse_idx[0]),):
                 raise ValueError(
