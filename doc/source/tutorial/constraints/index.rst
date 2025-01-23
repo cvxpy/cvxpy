@@ -145,11 +145,32 @@ as defined in `np.indices <https://numpy.org/doc/stable/reference/generated/nump
 
     prob = cp.Minimize(cp.norm(X) + cp.sum(X))
 
-.. warning::
+Reading and writing the value of a sparse expression
+----------------------------------------------------
+----------------------------------------------------
 
-    The sparsity attribute is not yet supported for setting the value of a variable or parameter.
-    In a future release, we plan to have a projection method for sparsity attributes using a custom datatype
-    based on PyTorch's `sparse_coo format <https://pytorch.org/docs/stable/generated/torch.sparse_coo_tensor.html>`_.
+To avoid storing entries that are known to be zero, we provide the ``.value_sparse`` field,
+which stores only the nonzero entries as a ``scipy.sparse.coo_array``.
+For details on this data structure, please see the `SciPy documentation <https://docs.scipy.org/doc/scipy/reference/generated/scipy.sparse.coo_array.html>`_.
+When passing a sparse value, it is expected to be a ``scipy.sparse.coo_array``.
+
+.. code:: python
+
+    # Use the sparsity pattern for both the parameter and its assigned value
+    sparsity = ([0, 1, 2, 2], [0, 2, 1, 2])
+    data = [1.3, 2.1, 0.7, 3.2]
+    P = cp.Parameter((3, 3), sparsity=sparsity)
+    P.value_sparse = coo_array((data, sparsity))
+
+Similarly, the value of a sparse variable or parameter is read via ``.value_sparse``.
+
+.. code:: python
+
+    # Construct a problem with a sparse variable, solve, and read its sparse value
+    X = cp.Variable((3, 3), sparsity=[(0, 1), (0, 2)])
+    prob = cp.Problem(cp.Minimize(cp.sum(X)), [...])
+    prob.solve()
+    print(X.value_sparse)
 
 .. _semidefinite:
 
