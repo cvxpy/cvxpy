@@ -256,10 +256,12 @@ class CLARABEL(ConicSolver):
             return failure_solution(status, attr)
 
     @staticmethod
-    def parse_solver_opts(verbose, opts):
+    def parse_solver_opts(verbose, opts, settings = None):
         import clarabel
 
-        settings = clarabel.DefaultSettings()
+        if settings is None:
+            settings = clarabel.DefaultSettings()
+
         settings.verbose = verbose
 
         # use_quad_obj is only for canonicalization.
@@ -285,7 +287,6 @@ class CLARABEL(ConicSolver):
             Data generated via an apply call.
         warm_start : Bool
             Whether to warm_start Clarabel.
-            PJG: From SCS.   We don't support this, not sure if relevant
         verbose : Bool
             Control the verbosity.
         solver_opts : dict
@@ -299,27 +300,44 @@ class CLARABEL(ConicSolver):
 
         A = data[s.A]
         b = data[s.B]
-        c = data[s.C]
+        q = data[s.C]
 
         if s.P in data:
             P = data[s.P]
         else:
-            nvars = c.size
+            nvars = q.size
             P = sp.csc_matrix((nvars, nvars))
 
         cones = dims_to_solver_cones(data[ConicSolver.DIMS])
 
-        def solve(_solver_opts):
+        def new_solver(_solver_opts):
 
             _settings = CLARABEL.parse_solver_opts(verbose, _solver_opts)
-            _solver = clarabel.DefaultSolver(P, c, A, b, cones, _settings)
-            _results = _solver.solve()
+            _solver = clarabel.DefaultSolver(P, q, A, b, cones, _settings)
+            return _solver
+        
+        # Use cached data
+        solver = None
+        if warm_start and solver_cache is not None and self.name() in solver_cache:
+            solver = solver_cache[self.name()]
 
-            return _results, _results.status
+            if hasattr(solver, "update"):  #>= v0.10 only
 
-        results, status = solve(solver_opts)
+                # current internal settings, to be updated if needed
+                oldsettings = solver.get_settings()
+                newsettings = CLARABEL.parse_solver_opts(verbose, solver_opts, oldsettings)
 
-        if solver_cache is not None and self.STATUS_MAP[str(status)]:
-            solver_cache[self.name()] = results
+                # this overwrites all data in the solver, but will not 
+                # reallocate internal memory.  Could be faster if it 
+                # were known which terms (or partial terms) have changed.
+                solver.update(P = P, q = q, A = A, b = b, settings = newsettings)
+
+        if solver is None:
+            solver = new_solver(solver_opts)
+
+        results = solver.solve()
+
+        if solver_cache is not None:
+            solver_cache[self.name()] = solver
 
         return results
