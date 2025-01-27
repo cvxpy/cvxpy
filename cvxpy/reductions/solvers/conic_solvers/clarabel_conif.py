@@ -14,7 +14,6 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 
-This interface borrows heavily from the one in scs_conif.py
 """
 import numpy as np
 import scipy.sparse as sp
@@ -87,6 +86,7 @@ def triu_to_full(upper_tri, n):
     full[np.tril_indices(n, k=-1)] /= np.sqrt(2)
     full[np.triu_indices(n, k=1)] /= np.sqrt(2)
     return np.reshape(full, n*n, order="F")
+
 
 def clarabel_psdvec_to_psdmat(vec: Expression, indices: np.ndarray) -> Expression:
     """
@@ -161,7 +161,7 @@ class CLARABEL(ConicSolver):
         import clarabel  # noqa F401
 
     def supports_quad_obj(self) -> bool:
-        """Clarabel supports quadratic objective with any combination 
+        """Clarabel supports quadratic objective with any combination
         of conic constraints.
         """
         return True
@@ -256,7 +256,7 @@ class CLARABEL(ConicSolver):
             return failure_solution(status, attr)
 
     @staticmethod
-    def parse_solver_opts(verbose, opts, settings = None):
+    def parse_solver_opts(verbose, opts, settings=None):
         import clarabel
 
         if settings is None:
@@ -310,30 +310,40 @@ class CLARABEL(ConicSolver):
 
         cones = dims_to_solver_cones(data[ConicSolver.DIMS])
 
-        def new_solver(_solver_opts):
+        def new_solver():
 
-            _settings = CLARABEL.parse_solver_opts(verbose, _solver_opts)
+            _settings = CLARABEL.parse_solver_opts(verbose, solver_opts)
             _solver = clarabel.DefaultSolver(P, q, A, b, cones, _settings)
             return _solver
-        
-        # Use cached data
-        solver = None
-        if warm_start and solver_cache is not None and self.name() in solver_cache:
-            solver = solver_cache[self.name()]
 
-            if hasattr(solver, "update"):  #>= v0.10 only
+        def updated_solver():
 
+            if (not warm_start) or (solver_cache is None) or (self.name() not in solver_cache):
+                return None
+
+            _solver = solver_cache[self.name()]
+
+            if not hasattr(_solver, "update"):
+                return None
+            elif _solver.is_presolved():
+                return None
+            else:
                 # current internal settings, to be updated if needed
-                oldsettings = solver.get_settings()
+                oldsettings = _solver.get_settings()
                 newsettings = CLARABEL.parse_solver_opts(verbose, solver_opts, oldsettings)
 
-                # this overwrites all data in the solver, but will not 
-                # reallocate internal memory.  Could be faster if it 
+                # this overwrites all data in the solver but will not
+                # reallocate internal memory.  Could be faster if it
                 # were known which terms (or partial terms) have changed.
-                solver.update(P = P, q = q, A = A, b = b, settings = newsettings)
+                # Will error ail if dimensions are sparsity has changed
+                _solver.update(P=P, q=q, A=A, b=b, settings=newsettings)
+                return _solver
+
+        # Try to get cached data
+        solver = updated_solver()
 
         if solver is None:
-            solver = new_solver(solver_opts)
+            solver = new_solver()
 
         results = solver.solve()
 
