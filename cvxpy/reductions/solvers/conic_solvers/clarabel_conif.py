@@ -325,7 +325,8 @@ class CLARABEL(ConicSolver):
 
             if not hasattr(_solver, "update"):
                 return None
-            elif _solver.is_presolved():
+            elif not _solver.is_data_update_allowed():
+                # disallow when presolve or chordal decomposition is used
                 return None
             else:
                 # current internal settings, to be updated if needed
