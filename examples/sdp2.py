@@ -17,8 +17,7 @@ epsilon = 0.2
 # Define the constraints for C
 constraints = [
     C >> 0,  # C must be positive semi-definite
-    cp.diag(C, 0) == np.ones(n),
-    #cp.trace(C) == 1,  # Example constraint: Trace normalization
+    cp.diag(C, 0) == np.ones(n),   # keep the diagonal at 1
     cp.norm(C - C0, "fro") <= epsilon  # Frobenius norm constraint
 ]
 
