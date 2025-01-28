@@ -95,7 +95,7 @@ class Prod(AxisAtom):
                 assert self.axis in [0, 1]
                 # The following snippet is taken from stackoverflow.
                 # https://stackoverflow.com/questions/44320865/
-                mask = sp_mat._getnnz(axis=self.axis) == sp_mat.shape[self.axis]
+                mask = sp_mat.getnnz(axis=self.axis) == sp_mat.shape[self.axis]
                 result = np.zeros(sp_mat.shape[1-self.axis], dtype=sp_mat.dtype)
                 data = sp_mat[:, mask] if self.axis == 0 else sp_mat[mask, :]
                 result[mask] = np.prod(data.toarray(), axis=self.axis)
