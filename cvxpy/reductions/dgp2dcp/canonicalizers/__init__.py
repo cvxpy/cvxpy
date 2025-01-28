@@ -85,7 +85,7 @@ CANON_METHODS = {
     one_minus_pos : one_minus_pos_canon,
     pf_eigenvalue : pf_eigenvalue_canon,
     Pnorm : pnorm_canon,
-    power : power_canon, 
+    power : power_canon,
     Prod : prod_canon,
     quad_form : quad_form_canon,
     quad_over_lin : quad_over_lin_canon,

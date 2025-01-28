@@ -10,7 +10,7 @@ from cvxpy.reductions.solvers.qp_solvers.qp_solver import QpSolver
 
 class DAQP(QpSolver):
     """QP interface for the DAQP solver.
-    
+
     This is a simple implementation based on the `official DAQP documentation
     <https://darnstrom.github.io/daqp/>`_.
 
@@ -67,7 +67,7 @@ class DAQP(QpSolver):
         (xstar,fval,exitflag,info) = solution
 
         attr = {
-            s.SOLVE_TIME: info['solve_time'], 
+            s.SOLVE_TIME: info['solve_time'],
             s.SETUP_TIME: info['setup_time'],
         }
         attr[s.EXTRA_STATS] = info
@@ -104,7 +104,7 @@ class DAQP(QpSolver):
         import daqp
 
         # using naming conventions in
-        # https://darnstrom.github.io/daqp/start/python 
+        # https://darnstrom.github.io/daqp/start/python
 
         H = np.array(data[s.P].todense(), dtype=c_double)
         f = np.array(data[s.Q], dtype=c_double)
@@ -118,10 +118,10 @@ class DAQP(QpSolver):
             var_upper_bounds = np.ones(len(f), dtype=c_double) * np.inf
         else:
             var_upper_bounds = data[s.UPPER_BOUNDS]
-                    
+
         bupper = np.array(np.concatenate((
                 var_upper_bounds,
-                data[s.B], 
+                data[s.B],
                 data[s.G])),
             dtype=c_double)
 
@@ -134,7 +134,7 @@ class DAQP(QpSolver):
         blower = np.array(
             np.concatenate((
                 var_lower_bounds,
-                data[s.B], 
+                data[s.B],
                 -np.inf*np.ones(data[s.G].shape))),
             dtype=c_double)
 

@@ -25,7 +25,7 @@ from cvxpy.utilities import shape
 
 
 class TestShape():
-    
+
     @given(s=mutually_broadcastable_shapes(num_shapes=7))
     def test_add_broadcasting(self, s) -> None:
         assert shape.sum_shapes(s.input_shapes) == s.result_shape

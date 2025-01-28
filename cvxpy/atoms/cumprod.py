@@ -54,7 +54,7 @@ class cumprod(AffAtom, AxisAtom):
     def is_atom_concave(self) -> bool:
         """Is the atom concave?"""
         return False
-    
+
     def is_atom_log_log_convex(self) -> bool:
         """Is the atom log-log convex?"""
         return True

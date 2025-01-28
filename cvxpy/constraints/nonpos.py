@@ -48,7 +48,7 @@ class NonPos(Constraint):
     DEPRECATION_MESSAGE = """
     Explicitly invoking "NonPos(expr)" to a create a constraint is deprecated.
     Please use operator overloading or "NonNeg(-expr)" instead.
-    
+
     Sign conventions on dual variables associated with NonPos constraints may
     change in the future.
     """

@@ -21,14 +21,14 @@ from cvxpy.atoms.dotsort import dotsort
 
 def cvar(x, beta):
     r"""Conditional value at risk (CVaR) at probability level :math:`\beta` of a vector :math:`x`.
-    
-    It represents the average of the :math:`(1-\beta)` fraction of largest values in :math:`x`. 
-    If a probability distribution is represented by a finite set of samples 
-    :math:`x_1, \ldots, x_m \in \mathbb{R}`, the CVaR at level :math:`\beta`, denoted as 
-    :math:`\phi_\beta(x): \mathbb{R}^m \rightarrow \mathbb{R}`, can be computed as: 
+
+    It represents the average of the :math:`(1-\beta)` fraction of largest values in :math:`x`.
+    If a probability distribution is represented by a finite set of samples
+    :math:`x_1, \ldots, x_m \in \mathbb{R}`, the CVaR at level :math:`\beta`, denoted as
+    :math:`\phi_\beta(x): \mathbb{R}^m \rightarrow \mathbb{R}`, can be computed as:
 
     .. math::
-        \phi_\beta(x) = \inf_{\alpha \in \mathbb{R}} \left\{ \alpha + 
+        \phi_\beta(x) = \inf_{\alpha \in \mathbb{R}} \left\{ \alpha +
         \frac{1}{(1-\beta)m}\sum_{i=1}^m(x_i-\alpha)_+ \right\}
 
     where :math:`(x-\alpha)_+ = \max(x-\alpha, 0)` is the positive part of :math:`x-\alpha`.
@@ -51,8 +51,7 @@ def cvar(x, beta):
 
     if len(x.shape) != 1:
         raise ValueError(f"Input must be a vector (1D array), got shape {x.shape}")
-    
+
     k = (1 - beta) * x.shape[0]
     w = np.append(np.ones(int(k)), k - int(k))
     return 1/k * dotsort(x, w)
-    

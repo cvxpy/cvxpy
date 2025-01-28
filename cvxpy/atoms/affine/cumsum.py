@@ -43,8 +43,8 @@ def get_diff_mat(dim: int, axis: int) -> sp.csc_matrix:
     sp.csc_matrix
         A square matrix representing first order difference.
     """
-    mat = sp.diags([np.ones(dim), -np.ones(dim - 1)], [0, -1], 
-                   shape=(dim, dim), 
+    mat = sp.diags([np.ones(dim), -np.ones(dim - 1)], [0, -1],
+                   shape=(dim, dim),
                    format='csc')
     return mat if axis == 0 else mat.T
 

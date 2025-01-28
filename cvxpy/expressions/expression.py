@@ -881,7 +881,7 @@ class Expression(u.Canonical):
         """
         from cvxpy import std
         return std(self, axis=axis, ddof=ddof, keepdims=keepdims)
- 
+
     def sum(self, axis=None, *, keepdims=False):
         """
         Equivalent to `cp.sum(self, axis, keepdims)`.

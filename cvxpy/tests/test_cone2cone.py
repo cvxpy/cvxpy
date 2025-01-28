@@ -352,7 +352,7 @@ class TestSlacks(BaseTest):
             sth.verify_primal_values(places=3)
 
     @pytest.mark.skipif(
-        "HIGHS" not in INSTALLED_MI, 
+        "HIGHS" not in INSTALLED_MI,
         reason='HiGHS solver is not installed.'
     )
     def test_mi_lp_1(self):

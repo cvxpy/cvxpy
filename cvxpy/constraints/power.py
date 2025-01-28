@@ -238,7 +238,7 @@ class PowConeND(Cone):
         z = Variable(self.z.shape)
         constr = [PowConeND(W, z, self.alpha, axis=self.axis)]
         obj = Minimize(norm2(hstack([W.flatten(order='F'), z.flatten(order='F')]) -
-                             hstack([self.W.flatten(order='F').value, 
+                             hstack([self.W.flatten(order='F').value,
                                      self.z.flatten(order='F').value])))
         problem = Problem(obj, constr)
         return problem.solve(solver='SCS', eps=1e-8)

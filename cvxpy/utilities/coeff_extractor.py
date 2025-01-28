@@ -161,7 +161,7 @@ class CoeffExtractor:
                     # variable.
                     assert (P.col == P.row).all(), \
                         "Only diagonal P matrices are supported for multiple quad forms."
-                    
+
                     scaled_c_part = P @ c_part
                     paramx_idx_row, param_idx_col = np.nonzero(scaled_c_part)
                     c_vals = c_part[paramx_idx_row, param_idx_col]
@@ -187,7 +187,7 @@ class CoeffExtractor:
                         # Fast path for no parameters, keep q dense.
                         coeffs[orig_id]['q'] = np.zeros(shape)
                     else:
-                        coeffs[orig_id]['q'] = sp.coo_matrix(([], ([], [])), shape=shape) 
+                        coeffs[orig_id]['q'] = sp.coo_matrix(([], ([], [])), shape=shape)
             else:
                 # This was a true variable, so it can only have a q term.
                 var_offset = affine_id_map[var.id][0]
@@ -198,7 +198,7 @@ class CoeffExtractor:
                         coeffs[var.id]['q'] += c[var_offset:var_offset+var_size, :]
                     else:
                         coeffs[var.id]['q'] += param_coeffs[var_offset:var_offset+var_size, :]
-                else:   
+                else:
                     coeffs[var.id] = dict()
                     # Fast path for no parameters, q is dense and so is c.
                     if num_params == 1:
@@ -265,9 +265,9 @@ class CoeffExtractor:
         return P, q
 
     def merge_P_list(
-            self, 
+            self,
             P_list: List[TensorRepresentation],
-            P_height: int, 
+            P_height: int,
             num_params: int,
         ) -> sp.csc_matrix:
         """Conceptually we build a block diagonal matrix
@@ -281,7 +281,7 @@ class CoeffExtractor:
             P_entries: number of entries in the merged P matrix.
             P_height: number of rows in the merged P matrix.
             num_params: number of parameters in the problem.
-        
+
         Returns:
             A CSC sparse representation of the merged P matrix.
         """
@@ -296,7 +296,7 @@ class CoeffExtractor:
             P.row += offset
             P.col += offset
             P.shape = (P_height, P_height)
-    
+
             offset += m
 
         combined = TensorRepresentation.combine(P_list)

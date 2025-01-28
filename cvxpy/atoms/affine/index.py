@@ -41,7 +41,7 @@ class index(AffAtom):
         The expression indexed/sliced into.
     key :
         The index/slicing key (i.e. expr[key[0],key[1]])
-    
+
     Examples
     --------
     >>> import cvxpy as cp

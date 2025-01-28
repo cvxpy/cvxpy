@@ -131,7 +131,7 @@ def vec_to_upper_tri(expr, strict: bool = False):
         raise ValueError("The size of the vector must be a triangular number.")
 
     """
-    Initialize a coefficient matrix P that creates an upper triangular matrix when 
+    Initialize a coefficient matrix P that creates an upper triangular matrix when
     multiplied with a variable vector expr.
     That is, (P @ expr).reshape((n, n)) is an upper triangular matrix.
     """

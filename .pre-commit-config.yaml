@@ -6,7 +6,10 @@ repos:
       # fix the end of each py file. It shall end with a completely empty line
       - id: end-of-file-fixer
         files: ^.*\.py$
-        
+      - id: check-toml
+      - id: trailing-whitespace
+        files: ^.*\.py$
+
   - repo: https://github.com/astral-sh/ruff-pre-commit
     # Ruff version.
     rev: 'v0.8.1'

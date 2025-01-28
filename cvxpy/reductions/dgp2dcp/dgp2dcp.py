@@ -77,19 +77,19 @@ class Dgp2Dcp(Canonicalization):
         return equiv_problem, inverse_data
 
     def canonicalize_expr(
-            self, 
-            expr: Expression, 
-            args: list, 
+            self,
+            expr: Expression,
+            args: list,
             canonicalize_params: bool = True
         ):
         """Canonicalize an expression, w.r.t. canonicalized arguments.
-        
+
         Args:
             expr: Expression to canonicalize.
             args: Arguments to the expression.
-            canonicalize_params: Should constant subtrees 
+            canonicalize_params: Should constant subtrees
                 containing parameters be canonicalized?
-        
+
         Returns:
             canonicalized expression, constraints
         """
