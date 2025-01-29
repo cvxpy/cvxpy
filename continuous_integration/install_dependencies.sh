@@ -20,17 +20,11 @@ else
   python -m pip install clarabel osqp
 fi
 
-if [[ "$PYTHON_VERSION" == "3.12" ]]; then
-  # The earliest version of numpy that works is 1.26.4
-  # Given numpy 1.26.4, the earliest version of scipy we can use is 1.11.3.
-  conda install scipy=1.11.3 numpy=1.26.4
-elif [[ "$PYTHON_VERSION" == "3.13" ]]; then
-  # Install newest versions for Python 3.13.
+# Install newest stable versions for Python 3.13.
+if [[ "$PYTHON_VERSION" == "3.13" ]]; then
   conda install scipy numpy
 else
-  # Lower versions of Python all install scipy 1.9.3 and numpy 1.23.4.
-  # This change is necessary for compatibility with the scipy.array interface.
-  conda install scipy=1.9.3 numpy=1.23.4
+  conda install scipy=1.13.0 numpy=1.26.4
 fi
 
 if [[ "$PYTHON_VERSION" == "3.11" ]]; then
