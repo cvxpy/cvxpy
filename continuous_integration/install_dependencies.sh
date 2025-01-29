@@ -38,7 +38,7 @@ fi
 
 if [[ "$PYTHON_VERSION" == "3.12" ]] && [[ "$RUNNER_OS" != "Windows" ]]; then
   # cylp has no wheels for Windows
-  python -m pip install cylp pyscipopt==5.2.1 diffcp
+  python -m pip install cylp pyscipopt==5.2.1
 fi
 
 if [[ "$PYTHON_VERSION" == "3.10" ]] && [[ "$RUNNER_OS" != "Windows" ]]; then
