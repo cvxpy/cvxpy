@@ -36,7 +36,7 @@ if [[ "$RUNNER_OS" == "Windows" ]] && [[ "$PYTHON_VERSION" != "3.13" ]]; then
   python -m pip install sdpa-multiprecision
 fi
 
-if [[ "$RUNNER_OS" != "Windows" ]]; then
+if [[ "$RUNNER_OS" != "Windows" ]] && [[ "$PYTHON_VERSION" != "3.13" ]]; then
   conda install cvxopt
 fi
 
