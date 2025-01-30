@@ -37,7 +37,7 @@ if [[ "$RUNNER_OS" == "Windows" ]] && [[ "$PYTHON_VERSION" != "3.13" ]]; then
 fi
 
 if [[ "$RUNNER_OS" != "Windows" ]]; then
-  python -m pip install cvxopt
+  conda install cvxopt
 fi
 
 if [[ "$PYTHON_VERSION" == "3.12" ]] && [[ "$RUNNER_OS" != "Windows" ]]; then
