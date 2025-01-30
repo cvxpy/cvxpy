@@ -12,7 +12,7 @@ conda config --set remote_read_timeout_secs 120.0
 conda install mkl pip pytest pytest-cov hypothesis openblas "setuptools>65.5.1"
 
 if [[ "$PYTHON_VERSION" != "3.13" ]]; then
-  conda install ecos scs cvxopt proxsuite daqp
+  conda install ecos scs proxsuite daqp
   python -m pip install coptpy==7.1.7 gurobipy piqp clarabel osqp highspy
 else
   # only install the essential solvers for Python 3.13.
@@ -34,6 +34,10 @@ fi
 if [[ "$RUNNER_OS" == "Windows" ]] && [[ "$PYTHON_VERSION" != "3.13" ]]; then
   # SDPA with OpenBLAS backend does not pass LP5 on Windows
   python -m pip install sdpa-multiprecision
+fi
+
+if [[ "$RUNNER_OS" != "Windows" ]]; then
+  python -m pip install cvxopt
 fi
 
 if [[ "$PYTHON_VERSION" == "3.12" ]] && [[ "$RUNNER_OS" != "Windows" ]]; then
