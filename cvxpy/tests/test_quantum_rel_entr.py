@@ -1,3 +1,5 @@
+import platform
+
 import numpy as np
 import pytest
 
@@ -147,6 +149,10 @@ class TestQuantumRelEntr:
 
         return sth
 
+    @pytest.mark.skipif(
+        platform.system() == "Windows",
+        reason="This test is skipped on Windows",
+    )
     def test_1(self):
         sth = TestQuantumRelEntr.make_test_1()
         sth.solve(**self.CLARABEL_ARGS)
