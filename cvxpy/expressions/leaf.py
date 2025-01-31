@@ -147,14 +147,6 @@ class Leaf(expression.Expression):
             self.sparse_idx = self._validate_indices(sparsity)
         else:
             self.sparse_idx = None
-        # Only one attribute be True (except can be boolean and integer).
-        true_attr = sum(1 for k, v in self.attributes.items() if v)
-        # HACK we should remove this feature or allow multiple attributes in general.
-        if boolean and integer:
-            true_attr -= 1
-        if true_attr > 1:
-            raise ValueError("Cannot set more than one special attribute in %s."
-                             % self.__class__.__name__)
         if value is not None:
             self.value = value
 
