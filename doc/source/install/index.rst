@@ -281,4 +281,4 @@ To run the tests when CVXPY was not installed from source, use
 .. _CVXPY git repository: https://github.com/cvxpy/cvxpy
 .. _pip: https://pip.pypa.io/
 .. _GLPK: https://www.gnu.org/software/glpk/
-.. _HiGHS: https://www.maths.ed.ac.uk/hall/HiGHS/#guide
+.. _HiGHS: https://highs.dev/
