@@ -63,8 +63,8 @@ or a conda environment.
         * `OSQP`_ >= 0.6.2
         * `CLARABEL`_ >= 0.6.0
         * `SCS`_ >= 3.0
-        * `NumPy`_ >= 1.20.0
-        * `SciPy`_ >= 1.6.0
+        * `NumPy`_ >= 1.21.6
+        * `SciPy`_ >= 1.11.0
 
         All required packages are installed automatically alongside CVXPY.
 
@@ -233,6 +233,13 @@ Install with Additional Solver Support
     See the `proxsuite <https://github.com/simple-robotics/proxsuite#quick-install>`_ github for installation instructions.
     Be aware that PROXQP by default uses dense matrices to represent problem data.
     You may achieve better performance by setting ``backend = 'sparse'`` in your call to ``problem.solve``.
+
+.. info:: QOCO
+    :collapsible:
+
+    CVXPY supports the QOCO solver.
+    Simply install QOCO such that you can ``import qoco`` in Python.
+    See the `QOCO <https://qoco-org.github.io/qoco/install/index.html>`_ website for installation instructions.
 
 .. info:: Without default solvers
     :collapsible:

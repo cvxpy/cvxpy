@@ -1,3 +1,5 @@
+import sys
+
 import numpy as np
 import pytest
 import scipy.sparse as sp
@@ -21,6 +23,8 @@ class TestAttributes:
         assert np.allclose(X.value, z)
 
     def test_sparsity_condition(self):
+        if tuple(int(s) for s in sys.version.split('.')[:2]) < (3, 13):
+            return
         data = np.arange(8).reshape((2,2,2))
         mask = np.where(data % 2 == 0)
         X = cp.Variable((2,2,2), sparsity=mask)
@@ -58,6 +62,62 @@ class TestAttributes:
         X = cp.Variable((3, 3))
         prob = cp.Problem(cp.Minimize(cp.sum(X)), [X >= -1, X <= 1])
         assert prob.get_problem_data(cp.CLARABEL)[0]['A'].shape[1] == 9
+        
+    def test_sparsity_assign_value(self):
+        X = cp.Variable((3, 3))
+        sparsity = [(0, 2, 1, 2), (0, 1, 2, 2)]
+        A = cp.Parameter((3, 3), sparsity=sparsity)
+        prob = cp.Problem(cp.Minimize(cp.sum(X)), [X >= A])
+        A_value = np.zeros((3, 3))
+        A_value[sparsity[0], sparsity[1]] = -1
+        with pytest.warns(
+            RuntimeWarning,
+            match='Writing to a sparse CVXPY expression via `.value` is discouraged.'
+                  ' Use `.value_sparse` instead'
+        ):
+            A.value = A_value
+        
+        prob.solve()
+        z = np.zeros((3, 3))
+        z[A.sparse_idx] = -1
+        assert np.allclose(X.value, z)
+        
+        A.value_sparse = sp.coo_array((-np.ones(4), sparsity))
+        prob.solve()
+        assert np.allclose(X.value, z)
+        
+    def test_sparsity_incorrect_pattern(self):
+        A = cp.Parameter((3, 3), sparsity=[(0, 2, 1, 2), (0, 1, 2, 2)])
+        with pytest.raises(
+            ValueError, match="Parameter value must be zero outside of sparsity pattern."
+        ):
+            A.value = np.ones((3, 3))
+        with pytest.raises(
+            ValueError,
+            match='Invalid sparsity pattern '
+                  r'\(array\(\[0\](, dtype=int32)?\), array\(\[0\](, dtype=int32)?\)\)'
+                  ' for Parameter value.'
+        ):
+            A.value_sparse = sp.coo_array(([1], ([0], [0])), (3, 3))
+            
+    def test_sparsity_read_value(self):
+        sparsity = [(0, 2, 1, 2), (0, 1, 2, 2)]
+        X = cp.Variable((3, 3), sparsity=sparsity)
+        prob = cp.Problem(cp.Minimize(cp.sum(X)), [X >= -1])
+        prob.solve()
+        with pytest.warns(
+            RuntimeWarning,
+            match='Reading from a sparse CVXPY expression via `.value` is discouraged.'
+                  ' Use `.value_sparse` instead'
+        ):
+            X_value = X.value
+        
+        z = np.zeros((3, 3))
+        z[X.sparse_idx] = -1
+        assert np.allclose(X_value, z)
+        
+        X_value_sparse = X.value_sparse
+        assert np.allclose(X_value_sparse.toarray(), z)
 
     def test_diag_value_sparse(self):
         X = cp.Variable((3, 3), diag=True)
