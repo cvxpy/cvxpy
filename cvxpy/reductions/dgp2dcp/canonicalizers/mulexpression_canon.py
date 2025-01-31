@@ -37,5 +37,5 @@ def mulexpression_canon(expr, args):
         rows.append(row)
     mat = bmat(rows)
     if mat.shape != expr.shape:
-        mat = reshape(mat, expr.shape)
+        mat = reshape(mat, expr.shape, order='F')
     return mat, []

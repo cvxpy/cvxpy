@@ -1,5 +1,5 @@
 """
-Copyright 2023, the CVXPY authors
+Copyright 2024, the CVXPY authors
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -32,7 +32,7 @@ import subprocess
 #
 
 MAJOR = 1
-MINOR = 6
+MINOR = 7
 MICRO = 0
 IS_RELEASED = False
 IS_RELEASE_BRANCH = False

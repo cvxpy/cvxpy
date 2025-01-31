@@ -1,4 +1,18 @@
 [tool.ruff]
+# The minimum Python version that should be supported
+target-version = "py39"
+
+line-length = 100
+
+extend-exclude = [
+    "build",
+    "examples",
+    "doc",
+    "cvxpy/cvxcore/*",
+    "*__init__.py"
+]
+
+[tool.ruff.lint]
 select = [
     "E",
     "F",
@@ -6,16 +20,10 @@ select = [
     "NPY201",
     "W605",  # Check for invalid escape sequences in docstrings (errors in py >= 3.11)
 ]
-line-length = 100
-exclude = [
-    "build",
-    "examples",
-    "doc",
-    "cvxpy/cvxcore/*",
-    "*__init__.py"
+
+ignore = [
+    "E721" # Do not compare types, use 'isinstance()'
 ]
-# The minimum Python version that should be supported
-target-version = "py39"
 
 
 [tool.pytest.ini_options]
@@ -26,7 +34,7 @@ testpaths = [
 [build-system]
 requires = [
     "numpy >= 2.0.0",
-    "scipy >= 1.1.0",
+    "scipy >= 1.13.0",
     # 68.1.0 Promoted pyproject.toml's [tool.setuptools] out of beta.
     "setuptools >= 68.1.0",
     "wheel",
@@ -45,8 +53,8 @@ dependencies = [
     "osqp >= 0.6.2",
     "clarabel >= 0.5.0",
     "scs >= 3.2.4.post1",
-    "numpy >= 1.20",
-    "scipy >= 1.1.0",
+    "numpy >= 1.21.6",
+    "scipy >= 1.11.0",
 ]
 requires-python = ">=3.9"
 urls = {Homepage = "https://github.com/cvxpy/cvxpy"}
@@ -65,14 +73,14 @@ CVXOPT = ["cvxopt"]
 DIFFCP = ["diffcp"]
 ECOS = ["ecos"]
 ECOS_BB = ["ecos"]
-GLOP = ["ortools>=9.7,<9.10"]
+GLOP = ["ortools>=9.7,<9.12"]
 GLPK = ["cvxopt"]
 GLPK_MI = ["cvxopt"]
 GUROBI = ["gurobipy"]
 HIGHS = ["highspy"]
 MOSEK = ["Mosek"]
 OSQP = []
-PDLP = ["ortools>=9.7,<9.10"]
+PDLP = ["ortools>=9.7,<9.12"]
 PIQP = ["piqp"]
 PROXQP = ["proxsuite"]
 SCIP = ["PySCIPOpt"]

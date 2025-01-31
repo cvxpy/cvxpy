@@ -71,31 +71,6 @@ class TestInterfaces(BaseTest):
         # shape.
         self.assertEqual(interface.shape(np.array([1, 2, 3])), (3,))
 
-    # Test numpy matrix interface.
-    def test_numpy_matrix(self) -> None:
-        interface = intf.get_matrix_interface(np.matrix)
-        # const_to_matrix
-        mat = interface.const_to_matrix([1, 2, 3])
-        self.assertEqual(interface.shape(mat), (3, 1))
-        mat = interface.const_to_matrix([[1], [2], [3]])
-        self.assertEqual(mat[0, 0], 1)
-        mat = interface.scalar_matrix(2, (4, 3))
-        self.assertEqual(interface.shape(mat), (4, 3))
-        self.assertEqual(interface.index(mat, (1, 2)), 2)
-        # reshape
-        mat = interface.const_to_matrix([[1, 2, 3], [3, 4, 5]])
-        mat = interface.reshape(mat, (6, 1))
-        self.assertEqual(interface.index(mat, (4, 0)), 4)
-        mat = interface.const_to_matrix(1, convert_scalars=True)
-        self.assertEqual(type(interface.reshape(mat, (1, 1))), type(mat))
-        # index
-        mat = interface.const_to_matrix([[1, 2, 3, 4], [3, 4, 5, 6]])
-        self.assertEqual(interface.index(mat, (0, 1)), 3)
-        mat = interface.index(mat, (slice(1, 4, 2), slice(0, 2, None)))
-        self.assertFalse((mat - np.array([[2, 4], [4, 6]])).any())
-        # Sign
-        self.sign_for_intf(interface)
-
     def test_scipy_sparse(self) -> None:
         """Test cvxopt sparse interface.
         """
@@ -148,7 +123,6 @@ class TestInterfaces(BaseTest):
         """Test conversion between every pair of interfaces.
         """
         interfaces = [intf.get_matrix_interface(np.ndarray),
-                      intf.get_matrix_interface(np.matrix),
                       intf.get_matrix_interface(sp.csc_matrix)]
         cmp_mat = [[1, 2, 3, 4], [3, 4, 5, 6], [-1, 0, 2, 4]]
         for i in range(len(interfaces)):
