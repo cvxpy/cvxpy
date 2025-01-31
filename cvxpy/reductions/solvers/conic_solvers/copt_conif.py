@@ -287,7 +287,7 @@ class COPT(ConicSolver):
 
                 diag = sp.diags(np.ones(nconedim), offsets=-nlinrow,
                                 shape=(A.shape[0], nconedim))
-                A = sp.csc_matrix(sp.hstack([A, diag]))
+                A = sp.hstack([A, diag], format='csc')
 
                 c = np.append(c, np.zeros(nconedim))
 
@@ -316,7 +316,7 @@ class COPT(ConicSolver):
 
                 diag = sp.diags(np.ones(nexpconedim), offsets=-nlinrow,
                                 shape=(A.shape[0], nexpconedim))
-                A = sp.csc_matrix(sp.hstack([A, diag]))
+                A = sp.hstack([A, diag], format='csc')
 
                 c = np.append(c, np.zeros(nexpconedim))
 
