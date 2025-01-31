@@ -146,10 +146,11 @@ class Leaf(expression.Expression):
         if sparsity:
             self.sparse_idx = self._validate_indices(sparsity)
         else:
-            self.sparse_idx = []
+            self.sparse_idx = None
+        # count number of attributes
+        self.num_attributes = sum(1 for k, v in self.attributes.items() if v)
         if value is not None:
             self.value = value
-
         self.args = []
         self.bounds = self._ensure_valid_bounds(bounds)
 
@@ -364,8 +365,9 @@ class Leaf(expression.Expression):
         numeric type
             The value rounded to the attribute type.
         """
-        # Only one attribute can be active at once (besides real,
-        # nonpos/nonneg, and bool/int).
+        # Skip the projection operation for more than one attribute
+        if self.num_attributes > 1:
+            return val
         if not self.is_complex():
             val = np.real(val)
 
