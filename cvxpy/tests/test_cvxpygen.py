@@ -18,12 +18,12 @@ import glob
 import os
 import pickle
 
+from cvxpygen import cpg
+
 import numpy as np
 import pytest
 import scipy.sparse as sp
 import cvxpy as cp
-
-from cvxpygen import cpg
 
 
 def network_problem():
@@ -50,6 +50,7 @@ def network_problem():
     # define problem
     return cp.Problem(objective, constraints)
 
+
 def MPC_problem():
 
     # define dimensions
@@ -71,8 +72,8 @@ def MPC_problem():
 
     # define objective
     objective = cp.Minimize(
-        cp.sum_squares(Psqrt @ X[:, H - 1]) + \
-        cp.sum_squares(Qsqrt @ X[:, :H]) + \
+        cp.sum_squares(Psqrt @ X[:, H - 1]) +
+        cp.sum_squares(Qsqrt @ X[:, :H]) +
         cp.sum_squares(Rsqrt @ U)+1
     )
 
@@ -111,7 +112,7 @@ def ADP_problem():
 def assign_data(prob, name, seed):
 
     np.random.seed(seed)
-    
+
     if name == 'network':
 
         n, m = 10, 5
@@ -120,7 +121,7 @@ def assign_data(prob, name, seed):
         prob.param_dict['w'].value = np.random.rand(n)
         prob.param_dict['f_min'].value = np.zeros(n)
         prob.param_dict['f_max'].value = np.ones(n)
-        
+
     elif name == 'MPC':
 
         # continuous-time dynmaics
@@ -141,7 +142,7 @@ def assign_data(prob, name, seed):
         prob.param_dict['Qsqrt'].value = np.eye(6)
         prob.param_dict['Rsqrt'].value = np.sqrt(0.1) * np.eye(3)
         prob.param_dict['x_init'].value = -2*np.ones(6) + 4*np.random.rand(6)
-        
+
     elif name == 'ADP':
 
         def dynamics(x):
@@ -165,19 +166,22 @@ def assign_data(prob, name, seed):
         prob.param_dict['Rsqrt'].value = np.sqrt(0.1) * np.eye(3)
         prob.param_dict['f'].value = np.matmul(Psqrt, np.matmul(A, state))
         prob.param_dict['G'].value = np.matmul(Psqrt, B)
-        
+
     return prob
-       
+
+
 def get_primal_vec(prob, name):
     if name == 'network':
         return prob.var_dict['f'].value
-    elif name == 'MPC':
+    if name == 'MPC':
         return np.concatenate(
             (prob.var_dict['U'].value.flatten(), prob.var_dict['X'].value.flatten())
         )
-    elif name == 'ADP':
+    if name == 'ADP':
         return prob.var_dict['u'].value
- 
+    return None
+
+
 def get_dual_vec(prob):
     dual_values = []
     for constr in prob.constraints:
@@ -187,11 +191,12 @@ def get_dual_vec(prob):
             dual_values.append(constr.dual_value.flatten())
     return np.concatenate(dual_values)
 
+
 def nan_to_inf(val):
     if np.isnan(val):
         return np.inf
-    else:
-        return val
+    return val
+
 
 def check(prob, solver, name, func_get_primal_vec, **extra_settings):
 
@@ -223,7 +228,8 @@ def check(prob, solver, name, func_get_primal_vec, **extra_settings):
         nan_to_inf(val_py), prim_py, dual_py, nan_to_inf(val_cg),
         prim_cg, dual_cg, prim_py_norm, dual_py_norm
     )
-    
+
+
 N_RAND = 1
 
 name_to_prob = {'network': network_problem(), 'MPC': MPC_problem(), 'ADP': ADP_problem()}
@@ -233,6 +239,7 @@ test_combinations = [
     ('ADP', 'SCS', 'loops', 0)
 ]
 
+
 @pytest.mark.parametrize('name, solver, style, seed', test_combinations)
 def test(name, solver, style, seed):
 
@@ -241,7 +248,7 @@ def test(name, solver, style, seed):
     if seed == 0:
         cpg.generate_code(
             prob, code_dir=f'test_{name}_{solver}_{style}', solver=solver,
-            unroll=(style=='unroll'), prefix=f'{name}_{solver}_{style}'
+            unroll=(style == 'unroll'), prefix=f'{name}_{solver}_{style}'
         )
         assert len(glob.glob(os.path.join(f'test_{name}_{solver}_{style}', 'cpg_module.*'))) > 0
 
