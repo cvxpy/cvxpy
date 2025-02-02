@@ -450,6 +450,8 @@ class Leaf(expression.Expression):
         else:
             warnings.warn('Reading from a sparse CVXPY expression via `.value` is discouraged.'
                           ' Use `.value_sparse` instead', RuntimeWarning, 1)
+            if self._value is None:
+                return None
             val = np.zeros(self.shape)
             val[self.sparse_idx] = self._value.data
             return val

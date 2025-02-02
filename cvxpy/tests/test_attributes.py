@@ -98,6 +98,8 @@ class TestAttributes:
     def test_sparsity_read_value(self):
         sparsity = [(0, 2, 1, 2), (0, 1, 2, 2)]
         X = cp.Variable((3, 3), sparsity=sparsity)
+        assert X.value is None
+        
         prob = cp.Problem(cp.Minimize(cp.sum(X)), [X >= -1])
         prob.solve()
         with pytest.warns(
