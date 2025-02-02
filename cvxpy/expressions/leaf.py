@@ -168,19 +168,9 @@ class Leaf(expression.Expression):
         Parameters:
         indices: List or tuple of indices indicating the positions of non-zero elements.
         """
-        if not all(len(idx) == len(indices[0]) for idx in indices):
-            raise ValueError("All index tuples in indices must have the same length.")
-
-        if len(indices) != len(self._shape):
-            raise ValueError(f"Indices should have {len(self._shape)} dimensions.")
-
-        # convert list/tuple to array to validate indices within bounds
-        indices = np.array(indices)
-
-        if np.any(indices < 0) or np.any(indices >= np.array(self._shape).reshape(-1, 1)):
-            raise ValueError(
-                f"Indices are out of bounds for expression with shape {self._shape}.")
-        return tuple(indices)
+        validator = sp.coo_array((np.empty(len(indices[0]), dtype=np.void), indices))
+        validator.sum_duplicates()
+        return validator.coords
 
     def _get_attr_str(self) -> str:
         """Get a string representing the attributes."""
@@ -516,9 +506,9 @@ class Leaf(expression.Expression):
                     (intf.shape(val), self.__class__.__name__)
                 )
             if sparse_path:
-                coords_val = set(coord for coord in zip(*get_coords(val)))
-                coords_sparse_idx = set(coord for coord in zip(*self.sparse_idx))
-                if coords_val != coords_sparse_idx:
+                val.sum_duplicates()
+                coords_val = get_coords(val)
+                if coords_val != self.sparse_idx:
                     raise ValueError(
                         'Invalid sparsity pattern %s for %s value.' %
                         (get_coords(val), self.__class__.__name__)
