@@ -21,7 +21,6 @@ from typing import List, Tuple
 import numpy as np
 import scipy.sparse as sp
 
-import cvxpy.interface as intf
 import cvxpy.lin_ops.lin_op as lo
 import cvxpy.lin_ops.lin_utils as lu
 import cvxpy.utilities as u
@@ -109,11 +108,10 @@ class MulExpression(BinaryOperator):
     def numeric(self, values):
         """Matrix multiplication.
         """
-        if values[0].shape == () or values[1].shape == () or \
-           intf.is_sparse(values[0]) or intf.is_sparse(values[1]):
+        if values[0].shape == () or values[1].shape == ():
             return values[0] * values[1]
         else:
-            return np.matmul(values[0], values[1])
+            return values[0] @ values[1]
 
     def shape_from_args(self) -> Tuple[int, ...]:
         """Returns the (row, col) shape of the expression.
