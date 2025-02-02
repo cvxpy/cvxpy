@@ -18,19 +18,14 @@ import glob
 import os
 import pickle
 
+from cvxpygen import cpg
+
 import numpy as np
 import pytest
 import scipy.sparse as sp
 from cvxpygen import cpg
 
 import cvxpy as cp
-
-
-import pytest
-import cvxpy as cp
-import numpy as np
-import scipy.sparse as sp
-
 
 def network_problem():
 
@@ -55,6 +50,7 @@ def network_problem():
 
     # define problem
     return cp.Problem(objective, constraints)
+
 
 def MPC_problem():
 
@@ -199,6 +195,7 @@ def get_dual_vec(prob):
             dual_values.append(constr.dual_value.flatten())
     return np.concatenate(dual_values)
 
+
 def nan_to_inf(val):
     if np.isnan(val):
         return np.inf
@@ -244,6 +241,7 @@ test_combinations = [
     ('MPC', 'OSQP', 'loops', 0),
     ('ADP', 'SCS', 'loops', 0)
 ]
+
 
 @pytest.mark.parametrize('name, solver, style, seed', test_combinations)
 def test(name, solver, style, seed):
