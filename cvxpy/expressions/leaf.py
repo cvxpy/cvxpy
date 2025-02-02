@@ -149,6 +149,12 @@ class Leaf(expression.Expression):
             self.sparse_idx = None
         # count number of attributes
         self.num_attributes = sum(1 for k, v in self.attributes.items() if v)
+        dim_reducing_attr = ['diag', 'symmetric', 'PSD', 'NSD', 'hermitian', 'sparsity']
+        if sum(1 for k in dim_reducing_attr if self.attributes[k]) > 1:
+            raise ValueError(
+                "A CVXPY Variable cannot have more than one of the following attributes be true: "
+                f"{dim_reducing_attr}"
+            )
         if value is not None:
             self.value = value
         self.args = []
@@ -310,9 +316,9 @@ class Leaf(expression.Expression):
         """
         if self.attributes['nonneg'] or self.attributes['pos']:
             constraints.append(term >= 0)
-        elif self.attributes['nonpos'] or self.attributes['neg']:
+        if self.attributes['nonpos'] or self.attributes['neg']:
             constraints.append(term <= 0)
-        elif self.attributes['bounds']:
+        if self.attributes['bounds']:
             bounds = self.bounds
             lower_bounds, upper_bounds = bounds
             # Create masks if -inf or inf is present in the bounds
