@@ -30,7 +30,8 @@ class TestAttributes:
         assert np.allclose(X.value, z)
 
     def test_sparsity_invalid_input(self):
-        with pytest.raises(ValueError, match="mismatching number of index arrays for shape; got 3, expected 2"):
+        with pytest.raises(ValueError, match="mismatching number of index"
+                           " arrays for shape; got 3, expected 2"):
             cp.Variable((3, 3), sparsity=[(0, 1), (0, 1), (0, 1)])
 
     def test_sparsity_incorrect_dim(self):
