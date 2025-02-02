@@ -81,8 +81,9 @@ class TestAttributes:
         prob.solve()
         assert np.allclose(X.value, z)
         
-        sparsity_rotated = [(1, 2, 2, 0), (2, 2, 1, 0)]
-        A.value_sparse = sp.coo_array((-np.ones(4), sparsity_rotated))
+        z = np.zeros((3, 3))
+        z[A.sparse_idx] = [-1, -2, -3, -4]
+        A.value_sparse = sp.coo_array(([-1, -3, -2, -4], [(0, 1, 2, 2), (0, 2, 1, 2)]))
         prob.solve()
         assert np.allclose(X.value, z)
         
