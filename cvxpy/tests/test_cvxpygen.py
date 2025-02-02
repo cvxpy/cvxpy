@@ -18,8 +18,6 @@ import glob
 import os
 import pickle
 
-from cvxpygen import cpg
-
 import numpy as np
 import pytest
 import scipy.sparse as sp
