@@ -214,7 +214,7 @@ N_RAND = 1
 
 name_to_prob = {'network': network_problem(), 'MPC': MPC_problem(), 'ADP': ADP_problem()}
 
-@pytest.mark.parametrize('name, solver, style, seed', [('network', 'ECOS', 'loops', 0), ('ADP', 'SCS', 'loops', 0)])  # add ('MPC', 'OSQP', 'loops', 0)
+@pytest.mark.parametrize('name, solver, style, seed', [('network', 'ECOS', 'loops', 0), ('MPC', 'OSQP', 'loops', 0), ('ADP', 'SCS', 'loops', 0)])
 def test(name, solver, style, seed):
 
     prob = name_to_prob[name]
