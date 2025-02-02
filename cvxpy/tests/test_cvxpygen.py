@@ -25,6 +25,18 @@ from cvxpygen import cpg
 
 import cvxpy as cp
 
+=======
+
+import pytest
+import cvxpy as cp
+import numpy as np
+import scipy.sparse as sp
+import glob
+import os
+import pickle
+from cvxpygen import cpg
+
+>>>>>>> 9c8a8427 (Initial commit)
 
 def network_problem():
 
@@ -50,7 +62,6 @@ def network_problem():
     # define problem
     return cp.Problem(objective, constraints)
 
-
 def MPC_problem():
 
     # define dimensions
@@ -72,10 +83,14 @@ def MPC_problem():
 
     # define objective
     objective = cp.Minimize(
+<<<<<<< HEAD
         cp.sum_squares(Psqrt @ X[:, H - 1]) +
         cp.sum_squares(Qsqrt @ X[:, :H]) +
         cp.sum_squares(Rsqrt @ U)+1
     )
+=======
+        cp.sum_squares(Psqrt @ X[:, H - 1]) + cp.sum_squares(Qsqrt @ X[:, :H]) + cp.sum_squares(Rsqrt @ U)+1)
+>>>>>>> 9c8a8427 (Initial commit)
 
     # define constraints
     constraints = [X[:, 1:] == A @ X[:, :H] + B @ U,
@@ -112,7 +127,11 @@ def ADP_problem():
 def assign_data(prob, name, seed):
 
     np.random.seed(seed)
+<<<<<<< HEAD
 
+=======
+    
+>>>>>>> 9c8a8427 (Initial commit)
     if name == 'network':
 
         n, m = 10, 5
@@ -121,7 +140,11 @@ def assign_data(prob, name, seed):
         prob.param_dict['w'].value = np.random.rand(n)
         prob.param_dict['f_min'].value = np.zeros(n)
         prob.param_dict['f_max'].value = np.ones(n)
+<<<<<<< HEAD
 
+=======
+        
+>>>>>>> 9c8a8427 (Initial commit)
     elif name == 'MPC':
 
         # continuous-time dynmaics
@@ -136,13 +159,22 @@ def assign_data(prob, name, seed):
         # discrete-time dynamics
         td = 0.1
 
+<<<<<<< HEAD
         prob.param_dict['A'].value_sparse = sp.coo_array(np.eye(6) + td * A_cont)
         prob.param_dict['B'].value_sparse = sp.coo_array(td * B_cont)
+=======
+        prob.param_dict['A'].value = sp.coo_array(np.eye(6) + td * A_cont)
+        prob.param_dict['B'].value = sp.coo_array(td * B_cont)
+>>>>>>> 9c8a8427 (Initial commit)
         prob.param_dict['Psqrt'].value = np.eye(6)
         prob.param_dict['Qsqrt'].value = np.eye(6)
         prob.param_dict['Rsqrt'].value = np.sqrt(0.1) * np.eye(3)
         prob.param_dict['x_init'].value = -2*np.ones(6) + 4*np.random.rand(6)
+<<<<<<< HEAD
 
+=======
+        
+>>>>>>> 9c8a8427 (Initial commit)
     elif name == 'ADP':
 
         def dynamics(x):
@@ -166,6 +198,7 @@ def assign_data(prob, name, seed):
         prob.param_dict['Rsqrt'].value = np.sqrt(0.1) * np.eye(3)
         prob.param_dict['f'].value = np.matmul(Psqrt, np.matmul(A, state))
         prob.param_dict['G'].value = np.matmul(Psqrt, B)
+<<<<<<< HEAD
 
     return prob
 
@@ -182,6 +215,19 @@ def get_primal_vec(prob, name):
     return None
 
 
+=======
+        
+    return prob
+       
+def get_primal_vec(prob, name):
+    if name == 'network':
+        return prob.var_dict['f'].value
+    elif name == 'MPC':
+        return np.concatenate((prob.var_dict['U'].value.flatten(), prob.var_dict['X'].value.flatten()))
+    elif name == 'ADP':
+        return prob.var_dict['u'].value
+ 
+>>>>>>> 9c8a8427 (Initial commit)
 def get_dual_vec(prob):
     dual_values = []
     for constr in prob.constraints:
@@ -191,22 +237,35 @@ def get_dual_vec(prob):
             dual_values.append(constr.dual_value.flatten())
     return np.concatenate(dual_values)
 
+<<<<<<< HEAD
 
 def nan_to_inf(val):
     if np.isnan(val):
         return np.inf
     return val
 
+=======
+def nan_to_inf(val):
+    if np.isnan(val):
+        return np.inf
+    else:
+        return val
+>>>>>>> 9c8a8427 (Initial commit)
 
 def check(prob, solver, name, func_get_primal_vec, **extra_settings):
 
     if solver == 'OSQP':
+<<<<<<< HEAD
         val_py = prob.solve(
             solver='OSQP', eps_abs=1e-3, eps_rel=1e-3,
             eps_prim_inf=1e-4, eps_dual_inf=1e-4, delta=1e-6,
             max_iter=4000, polish=False, adaptive_rho_interval=int(1e6),
             warm_start=False, **extra_settings
         )
+=======
+        val_py = prob.solve(solver='OSQP', eps_abs=1e-3, eps_rel=1e-3, eps_prim_inf=1e-4, eps_dual_inf=1e-4, delta=1e-6,
+                            max_iter=4000, polish=False, adaptive_rho_interval=int(1e6), warm_start=False, **extra_settings)
+>>>>>>> 9c8a8427 (Initial commit)
     elif solver == 'SCS':
         val_py = prob.solve(solver='SCS', warm_start=False, verbose=False, **extra_settings)
     else:
@@ -224,6 +283,7 @@ def check(prob, solver, name, func_get_primal_vec, **extra_settings):
     prim_py_norm = np.linalg.norm(prim_py, 2)
     dual_py_norm = np.linalg.norm(dual_py, 2)
 
+<<<<<<< HEAD
     return (
         nan_to_inf(val_py), prim_py, dual_py, nan_to_inf(val_cg),
         prim_cg, dual_cg, prim_py_norm, dual_py_norm
@@ -241,11 +301,21 @@ test_combinations = [
 
 
 @pytest.mark.parametrize('name, solver, style, seed', test_combinations)
+=======
+    return nan_to_inf(val_py), prim_py, dual_py, nan_to_inf(val_cg), prim_cg, dual_cg, prim_py_norm, dual_py_norm
+    
+N_RAND = 1
+
+name_to_prob = {'network': network_problem(), 'MPC': MPC_problem(), 'ADP': ADP_problem()}
+
+@pytest.mark.parametrize('name, solver, style, seed', [('network', 'ECOS', 'loops', 0), ('ADP', 'SCS', 'loops', 0)])  # add ('MPC', 'OSQP', 'loops', 0)
+>>>>>>> 9c8a8427 (Initial commit)
 def test(name, solver, style, seed):
 
     prob = name_to_prob[name]
 
     if seed == 0:
+<<<<<<< HEAD
         cpg.generate_code(
             prob, code_dir=f'test_{name}_{solver}_{style}', solver=solver,
             unroll=(style == 'unroll'), prefix=f'{name}_{solver}_{style}'
@@ -253,6 +323,18 @@ def test(name, solver, style, seed):
         assert len(glob.glob(os.path.join(f'test_{name}_{solver}_{style}', 'cpg_module.*'))) > 0
 
     with open(f'test_{name}_{solver}_{style}/problem.pickle', 'rb') as f:
+=======
+        if style == 'unroll':
+            cpg.generate_code(prob, code_dir='test_%s_%s_unroll' % (name, solver), solver=solver, unroll=True,
+                              prefix='%s_%s_ex' % (name, solver))
+            assert len(glob.glob(os.path.join('test_%s_%s_unroll' % (name, solver), 'cpg_module.*'))) > 0
+        if style == 'loops':
+            cpg.generate_code(prob, code_dir='test_%s_%s_loops' % (name, solver), solver=solver, unroll=False,
+                              prefix='%s_%s_im' % (name, solver))
+            assert len(glob.glob(os.path.join('test_%s_%s_loops' % (name, solver), 'cpg_module.*'))) > 0
+
+    with open('test_%s_%s_%s/problem.pickle' % (name, solver, style), 'rb') as f:
+>>>>>>> 9c8a8427 (Initial commit)
         prob = pickle.load(f)
 
     prob = assign_data(prob, name, seed)
