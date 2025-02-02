@@ -515,11 +515,14 @@ class Leaf(expression.Expression):
                     "Invalid dimensions %s for %s value." %
                     (intf.shape(val), self.__class__.__name__)
                 )
-            if sparse_path and (np.array(get_coords(val)) != np.array(self.sparse_idx)).any():
-                raise ValueError(
-                    'Invalid sparsity pattern %s for %s value.' %
-                    (get_coords(val), self.__class__.__name__)
-                )
+            if sparse_path:
+                coords_val = set(coord for coord in zip(*get_coords(val)))
+                coords_sparse_idx = set(coord for coord in zip(*self.sparse_idx))
+                if coords_val != coords_sparse_idx:
+                    raise ValueError(
+                        'Invalid sparsity pattern %s for %s value.' %
+                        (get_coords(val), self.__class__.__name__)
+                    )
             projection = self.project(val, sparse_path)
             # ^ might be a numpy array, or sparse scipy matrix.
             delta = np.abs(val - projection)

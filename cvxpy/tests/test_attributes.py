@@ -81,6 +81,11 @@ class TestAttributes:
         prob.solve()
         assert np.allclose(X.value, z)
         
+        sparsity_rotated = [(1, 2, 2, 0), (2, 2, 1, 0)]
+        A.value_sparse = sp.coo_array((-np.ones(4), sparsity_rotated))
+        prob.solve()
+        assert np.allclose(X.value, z)
+        
     def test_sparsity_incorrect_pattern(self):
         A = cp.Parameter((3, 3), sparsity=[(0, 2, 1, 2), (0, 1, 2, 2)])
         with pytest.raises(
