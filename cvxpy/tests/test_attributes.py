@@ -189,9 +189,9 @@ class TestAttributes:
         ):
             x = cp.Variable((2, 2), name="x", bounds=bounds)
 
-    def test_bounds_to_mosek(self):
-        x = cp.Variable(2, bounds=[0, 1])
-        y = cp.Variable(2, bounds=[0, 0.5])
+    def test_mosek_variable_bounds(self):
+        x = cp.Variable(2, integer=True, nonneg=True)
+        y = cp.Variable(2, bounds=[0,1])
         constraints = [x >= 0.5]
         objective = cp.Minimize(cp.sum(x + y))
         problem = cp.Problem(objective, constraints)

@@ -257,10 +257,8 @@ class MOSEK(ConicSolver):
             else:
                 data['A_bar_data'] = []
                 data['c_bar_data'] = []
-        if problem.lower_bounds is not None and problem.lower_bounds.any():
-            data['lb'] = problem.lower_bounds
-        if problem.upper_bounds is not None and problem.upper_bounds.any():
-            data['ub'] = problem.upper_bounds
+        data[s.LOWER_BOUNDS] = problem.lower_bounds
+        data[s.UPPER_BOUNDS] = problem.upper_bounds
         data[s.PARAM_PROB] = problem
         return data, inv_data
 
@@ -410,12 +408,12 @@ class MOSEK(ConicSolver):
         m, n = A.shape
         task.appendvars(n)
         # Create mosek bound keys if variables have bounds
-        if 'lb' in data and 'ub' in data:
-            bl, bu = data['lb'].copy(), data['ub'].copy()
+        if data[s.LOWER_BOUNDS] is not None and data[s.UPPER_BOUNDS] is not None:
+            bl, bu = data[s.LOWER_BOUNDS], data[s.UPPER_BOUNDS]
             # Initialize bound key array as defined in 
             # https://docs.mosek.com/10.2/pythonapi/constants.html#mosek.boundkey
             bk = np.empty(n, dtype=np.object_)
-            mask = np.isfinite([data['lb'], data['ub']])
+            mask = np.isfinite([bl, bu])
 
             bk[(~mask[0]) & (~mask[1])] = mosek.boundkey.fr # (free) No bounds
             bk[(~mask[0]) & mask[1]] = mosek.boundkey.up # Upper bound only
