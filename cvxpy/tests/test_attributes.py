@@ -245,3 +245,10 @@ class TestMultipleAttributes:
 
         prob.solve()
         assert np.allclose(x.value, target)
+
+    def test_nonpos_nonneg_variable(self) -> None:
+        x = cp.Variable(shape=(2,2), nonpos=True, nonneg=True)
+        target = np.zeros((2,2))
+        prob = cp.Problem(cp.Minimize(cp.sum(x)), [x >= -5])
+        prob.solve()
+        assert np.allclose(x.value, target)
