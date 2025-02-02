@@ -514,7 +514,7 @@ class Expression(u.Canonical):
         """
         return self.ndim == 2 and self.shape[0] > 1 and self.shape[1] > 1
 
-    def __getitem__(self, key):
+    def __getitem__(self, key) -> "Expression":
         """Return a slice/index into the expression.
         """
         # Returning self for scalars causes
@@ -527,7 +527,7 @@ class Expression(u.Canonical):
             return cvxtypes.index()(self, key)
 
     @property
-    def T(self):
+    def T(self) -> "Expression":
         """Expression : The transpose of the expression.
         """
         # Transpose of a scalar is that scalar.
@@ -537,7 +537,7 @@ class Expression(u.Canonical):
             return cvxtypes.transpose()(self)
 
     @property
-    def H(self):
+    def H(self) -> "Expression":
         """Expression : The conjugate-transpose of the expression.
         """
         if self.is_real():
@@ -729,7 +729,7 @@ class Expression(u.Canonical):
             raise ValueError("Scalar operands are not allowed, use '*' instead")
         return cvxtypes.matmul_expr()(other, self)
 
-    def __neg__(self):
+    def __neg__(self) -> "Expression":
         """Expression : The negation of the expression.
         """
         return cvxtypes.neg_expr()(self)
@@ -764,13 +764,13 @@ class Expression(u.Canonical):
 
     # Comparison operators.
     @_cast_other
-    def __eq__(self, other: ExpressionLike):
+    def __eq__(self, other: ExpressionLike) -> Equality:
         """Equality : Creates a constraint ``self == other``.
         """
         return Equality(self, other)
 
     @_cast_other
-    def __le__(self, other: ExpressionLike):
+    def __le__(self, other: ExpressionLike) -> Inequality:
         """Inequality : Creates an inequality constraint ``self <= other``.
         """
         return Inequality(self, other)
@@ -779,7 +779,7 @@ class Expression(u.Canonical):
         raise NotImplementedError("Strict inequalities are not allowed.")
 
     @_cast_other
-    def __ge__(self, other: ExpressionLike):
+    def __ge__(self, other: ExpressionLike) -> Inequality:
         return Inequality(other, self)
 
     def __gt__(self, other: ExpressionLike):
