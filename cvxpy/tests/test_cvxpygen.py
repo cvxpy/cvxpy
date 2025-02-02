@@ -14,13 +14,15 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import pytest
-import cvxpy as cp
-import numpy as np
-import scipy.sparse as sp
 import glob
 import os
 import pickle
+
+import numpy as np
+import pytest
+import scipy.sparse as sp
+import cvxpy as cp
+
 from cvxpygen import cpg
 
 
@@ -69,7 +71,10 @@ def MPC_problem():
 
     # define objective
     objective = cp.Minimize(
-        cp.sum_squares(Psqrt @ X[:, H - 1]) + cp.sum_squares(Qsqrt @ X[:, :H]) + cp.sum_squares(Rsqrt @ U)+1)
+        cp.sum_squares(Psqrt @ X[:, H - 1]) + \
+        cp.sum_squares(Qsqrt @ X[:, :H]) + \
+        cp.sum_squares(Rsqrt @ U)+1
+    )
 
     # define constraints
     constraints = [X[:, 1:] == A @ X[:, :H] + B @ U,
@@ -167,7 +172,9 @@ def get_primal_vec(prob, name):
     if name == 'network':
         return prob.var_dict['f'].value
     elif name == 'MPC':
-        return np.concatenate((prob.var_dict['U'].value.flatten(), prob.var_dict['X'].value.flatten()))
+        return np.concatenate(
+            (prob.var_dict['U'].value.flatten(), prob.var_dict['X'].value.flatten())
+        )
     elif name == 'ADP':
         return prob.var_dict['u'].value
  
@@ -189,8 +196,12 @@ def nan_to_inf(val):
 def check(prob, solver, name, func_get_primal_vec, **extra_settings):
 
     if solver == 'OSQP':
-        val_py = prob.solve(solver='OSQP', eps_abs=1e-3, eps_rel=1e-3, eps_prim_inf=1e-4, eps_dual_inf=1e-4, delta=1e-6,
-                            max_iter=4000, polish=False, adaptive_rho_interval=int(1e6), warm_start=False, **extra_settings)
+        val_py = prob.solve(
+            solver='OSQP', eps_abs=1e-3, eps_rel=1e-3,
+            eps_prim_inf=1e-4, eps_dual_inf=1e-4, delta=1e-6,
+            max_iter=4000, polish=False, adaptive_rho_interval=int(1e6),
+            warm_start=False, **extra_settings
+        )
     elif solver == 'SCS':
         val_py = prob.solve(solver='SCS', warm_start=False, verbose=False, **extra_settings)
     else:
@@ -208,28 +219,33 @@ def check(prob, solver, name, func_get_primal_vec, **extra_settings):
     prim_py_norm = np.linalg.norm(prim_py, 2)
     dual_py_norm = np.linalg.norm(dual_py, 2)
 
-    return nan_to_inf(val_py), prim_py, dual_py, nan_to_inf(val_cg), prim_cg, dual_cg, prim_py_norm, dual_py_norm
+    return (
+        nan_to_inf(val_py), prim_py, dual_py, nan_to_inf(val_cg),
+        prim_cg, dual_cg, prim_py_norm, dual_py_norm
+    )
     
 N_RAND = 1
 
 name_to_prob = {'network': network_problem(), 'MPC': MPC_problem(), 'ADP': ADP_problem()}
+test_combinations = [
+    ('network', 'ECOS', 'loops', 0),
+    ('MPC', 'OSQP', 'loops', 0),
+    ('ADP', 'SCS', 'loops', 0)
+]
 
-@pytest.mark.parametrize('name, solver, style, seed', [('network', 'ECOS', 'loops', 0), ('MPC', 'OSQP', 'loops', 0), ('ADP', 'SCS', 'loops', 0)])
+@pytest.mark.parametrize('name, solver, style, seed', test_combinations)
 def test(name, solver, style, seed):
 
     prob = name_to_prob[name]
 
     if seed == 0:
-        if style == 'unroll':
-            cpg.generate_code(prob, code_dir='test_%s_%s_unroll' % (name, solver), solver=solver, unroll=True,
-                              prefix='%s_%s_ex' % (name, solver))
-            assert len(glob.glob(os.path.join('test_%s_%s_unroll' % (name, solver), 'cpg_module.*'))) > 0
-        if style == 'loops':
-            cpg.generate_code(prob, code_dir='test_%s_%s_loops' % (name, solver), solver=solver, unroll=False,
-                              prefix='%s_%s_im' % (name, solver))
-            assert len(glob.glob(os.path.join('test_%s_%s_loops' % (name, solver), 'cpg_module.*'))) > 0
+        cpg.generate_code(
+            prob, code_dir=f'test_{name}_{solver}_{style}', solver=solver,
+            unroll=(style=='unroll'), prefix=f'{name}_{solver}_{style}'
+        )
+        assert len(glob.glob(os.path.join(f'test_{name}_{solver}_{style}', 'cpg_module.*'))) > 0
 
-    with open('test_%s_%s_%s/problem.pickle' % (name, solver, style), 'rb') as f:
+    with open(f'test_{name}_{solver}_{style}/problem.pickle', 'rb') as f:
         prob = pickle.load(f)
 
     prob = assign_data(prob, name, seed)
