@@ -1,3 +1,18 @@
+"""
+Copyright, the CVXPY authors
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+"""
 
 import pytest
 import cvxpy as cp
@@ -115,8 +130,8 @@ def assign_data(prob, name, seed):
         # discrete-time dynamics
         td = 0.1
 
-        prob.param_dict['A'].value = sp.coo_array(np.eye(6) + td * A_cont)
-        prob.param_dict['B'].value = sp.coo_array(td * B_cont)
+        prob.param_dict['A'].value_sparse = sp.coo_array(np.eye(6) + td * A_cont)
+        prob.param_dict['B'].value_sparse = sp.coo_array(td * B_cont)
         prob.param_dict['Psqrt'].value = np.eye(6)
         prob.param_dict['Qsqrt'].value = np.eye(6)
         prob.param_dict['Rsqrt'].value = np.sqrt(0.1) * np.eye(3)
