@@ -168,7 +168,7 @@ class Leaf(expression.Expression):
         Parameters:
         indices: List or tuple of indices indicating the positions of non-zero elements.
         """
-        validator = sp.coo_array((np.empty(len(indices[0]), dtype=np.void), indices))
+        validator = sp.coo_array((np.empty(len(indices[0])), indices))
         validator.sum_duplicates()
         return validator.coords
 
