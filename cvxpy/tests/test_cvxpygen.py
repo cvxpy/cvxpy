@@ -30,10 +30,6 @@ import pytest
 import cvxpy as cp
 import numpy as np
 import scipy.sparse as sp
-import glob
-import os
-import pickle
-from cvxpygen import cpg
 
 
 def network_problem():
