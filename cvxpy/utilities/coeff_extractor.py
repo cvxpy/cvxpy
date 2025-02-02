@@ -229,7 +229,7 @@ class CoeffExtractor:
         offsets = sorted(self.id_map.items(), key=operator.itemgetter(1))
 
         # Extract quadratic matrices and vectors
-        num_params = constant.shape[1]
+        num_params = constant.shape[1] if len(constant.state) > 1 else 1
         P_list = []
         q_list = []
         P_height = 0
