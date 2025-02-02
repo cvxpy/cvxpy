@@ -174,7 +174,7 @@ class Leaf(expression.Expression):
             return []
         validator = sp.coo_array((np.empty(len(indices[0])), indices), shape=self._shape)
         validator.sum_duplicates()
-        return validator.coords
+        return get_coords(validator)
 
     def _get_attr_str(self) -> str:
         """Get a string representing the attributes."""
