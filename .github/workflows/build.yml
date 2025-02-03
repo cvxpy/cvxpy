@@ -22,9 +22,9 @@ jobs:
 
   build:
     runs-on: ${{ matrix.os }}
-    defaults:
-      run:
-        shell: bash -l {0}
+    #defaults:
+    #  run:
+    #    shell: bash -l {0}
     strategy:
       fail-fast: false
       matrix:
