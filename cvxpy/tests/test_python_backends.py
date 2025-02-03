@@ -2348,7 +2348,7 @@ class TestSciPyBackend:
         inner = outer[-1]
         assert inner.keys() == {-1}, "Should only be in parameter slice -1, i.e. non parametrized."
         tensor = inner[-1]
-        assert isinstance(tensor, sp.spmatrix), "Should be a scipy sparse matrix"
+        assert isinstance(tensor, sp.sparray), "Should be a scipy sparse array"
         assert tensor.shape == (4, 1), "Should be a 1*4x1 tensor"
         expected = sp.csr_matrix(data.reshape((-1, 1), order="F"))
         assert (tensor != expected).nnz == 0
@@ -2362,7 +2362,7 @@ class TestSciPyBackend:
         inner = outer[-1]
         assert inner.keys() == {3}, "Should only be the parameter slice of parameter with id 3."
         tensor = inner[3]
-        assert isinstance(tensor, sp.spmatrix), "Should be a scipy sparse matrix"
+        assert isinstance(tensor, sp.sparray), "Should be a scipy sparse array"
         assert tensor.shape == (16, 1), "Should be a 4*4x1 tensor"
         assert (
             tensor.reshape((size, size)) != sp.eye(size, format="csr")
@@ -2380,7 +2380,7 @@ class TestSciPyBackend:
         assert view.add_dicts({"a": one}, {"b": two}) == {"a": one, "b": two}
         assert view.add_dicts({"a": {"c": one}}, {"a": {"c": one}}) == {"a": {"c": two}}
         with pytest.raises(
-            ValueError, match="Values must either be dicts or " "<class 'scipy.sparse."
+            ValueError, match="Values must either be dicts or <class 'scipy.sparse._base.sparray'>"
         ):
             view.add_dicts({"a": 1}, {"a": 2})
 

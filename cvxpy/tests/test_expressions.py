@@ -1653,7 +1653,7 @@ class TestND_Expressions():
         assert np.allclose(expr.value, y)
 
     @given(axis=basic_indices(shape=(2,2,2), allow_newaxis=True))
-    def test_nd__basic_index(self, axis) -> None:
+    def test_nd_basic_index(self, axis) -> None:
         # Skip examples with 0-d output. TODO allow 0-d expressions in cvxpy.
         def is_zero_dim_output(axis):
             return 0 in self.target[axis].shape
