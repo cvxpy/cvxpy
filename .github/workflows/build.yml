@@ -59,7 +59,10 @@ jobs:
       - name: Check MOSEK license
         run: |
             echo "Python subversion is: $PYTHON_SUBVERSION"
+            echo "MOSEKLM_LICENSE_FILE: $MOSEKLM_LICENSE_FILE"
+            echo "start"
             cat $MOSEKLM_LICENSE_FILE
+            echo "end"
             
       - uses: conda-incubator/setup-miniconda@v3
         with:
