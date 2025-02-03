@@ -411,7 +411,10 @@ class Atom(Expression):
                 if grad_arg[key] is None or grad_self[idx] is None:
                     result[key] = None
                 else:
-                    D = grad_arg[key]*grad_self[idx]
+                    if np.isscalar(grad_arg[key]) or np.isscalar(grad_self[idx]):
+                        D = grad_arg[key] * grad_self[idx]
+                    else:
+                        D = grad_arg[key] @ grad_self[idx]
                     # Convert 1x1 matrices to scalars.
                     if not np.isscalar(D) and D.shape == (1, 1):
                         D = D[0, 0]

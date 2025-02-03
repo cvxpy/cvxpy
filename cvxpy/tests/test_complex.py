@@ -222,7 +222,7 @@ class TestComplex(BaseTest):
         x = Variable((2, 2))
         y = Variable((3, 2), complex=True)
         expr = cp.vstack([x, y])
-        prob = Problem(Minimize(cp.sum(cp.imag(expr.H))),
+        prob = Problem(Minimize(cp.sum(cp.imag(expr.T.conjugate()))),
                        [x == 0, cp.real(y) == 0, cp.imag(y) <= 1])
         result = prob.solve(solver="SCS", eps=1e-6)
         self.assertAlmostEqual(result, -6)
