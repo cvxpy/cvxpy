@@ -28,8 +28,8 @@ def sigma_max_canon(expr, args):
     if not np.prod(shape) == 1:
         raise RuntimeError('Invalid shape of expr in sigma_max canonicalization.')
     t = Variable(shape)
-    tI_n = sp.eye(n) * t
-    tI_m = sp.eye(m) * t
+    tI_n = t * sp.eye(n)
+    tI_m = t * sp.eye(m)
     X = bmat([[tI_n, A],
               [A.T, tI_m]])
     constraints = [PSD(X)]

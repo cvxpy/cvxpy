@@ -514,7 +514,7 @@ class Expression(u.Canonical):
         """
         return self.ndim == 2 and self.shape[0] > 1 and self.shape[1] > 1
 
-    def __getitem__(self, key):
+    def __getitem__(self, key) -> "Expression":
         """Return a slice/index into the expression.
         """
         # Returning self for scalars causes
@@ -527,7 +527,7 @@ class Expression(u.Canonical):
             return cvxtypes.index()(self, key)
 
     @property
-    def T(self):
+    def T(self) -> "Expression":
         """Expression : The transpose of the expression.
         """
         # Transpose of a scalar is that scalar.
@@ -537,7 +537,7 @@ class Expression(u.Canonical):
             return cvxtypes.transpose()(self)
 
     @property
-    def H(self):
+    def H(self) -> "Expression":
         """Expression : The conjugate-transpose of the expression.
         """
         if self.is_real():
@@ -729,7 +729,7 @@ class Expression(u.Canonical):
             raise ValueError("Scalar operands are not allowed, use '*' instead")
         return cvxtypes.matmul_expr()(other, self)
 
-    def __neg__(self):
+    def __neg__(self) -> "Expression":
         """Expression : The negation of the expression.
         """
         return cvxtypes.neg_expr()(self)
@@ -764,13 +764,13 @@ class Expression(u.Canonical):
 
     # Comparison operators.
     @_cast_other
-    def __eq__(self, other: ExpressionLike):
+    def __eq__(self, other: ExpressionLike) -> Equality:
         """Equality : Creates a constraint ``self == other``.
         """
         return Equality(self, other)
 
     @_cast_other
-    def __le__(self, other: ExpressionLike):
+    def __le__(self, other: ExpressionLike) -> Inequality:
         """Inequality : Creates an inequality constraint ``self <= other``.
         """
         return Inequality(self, other)
@@ -779,7 +779,7 @@ class Expression(u.Canonical):
         raise NotImplementedError("Strict inequalities are not allowed.")
 
     @_cast_other
-    def __ge__(self, other: ExpressionLike):
+    def __ge__(self, other: ExpressionLike) -> Inequality:
         return Inequality(other, self)
 
     def __gt__(self, other: ExpressionLike):
@@ -808,63 +808,63 @@ class Expression(u.Canonical):
     def __abs__(self):
         raise TypeError(__ABS_ERROR__)
 
-    def conj(self):
+    def conj(self) -> "Expression":
         """
         Equivalent to `cp.conj(self)`.
         """
         from cvxpy import conj
         return conj(self)
 
-    def conjugate(self):
+    def conjugate(self) -> "Expression":
         """
         Equivalent to `cp.conj(self)`.
         """
         from cvxpy import conj
         return conj(self)
 
-    def cumsum(self, axis=0):
+    def cumsum(self, axis=0) -> "Expression":
         """
         Equivalent to `cp.cumsum(self, axis)`.
         """
         from cvxpy import cumsum
         return cumsum(self, axis)
 
-    def max(self, axis=None, *, keepdims=False):
+    def max(self, axis=None, *, keepdims=False) -> "Expression":
         """
         Equivalent to `cp.max(self, axis, keepdims)`.
         """
         from cvxpy import max as max_
         return max_(self, axis, keepdims)
 
-    def mean(self, axis=None, *, keepdims=False):
+    def mean(self, axis=None, *, keepdims=False) -> "Expression":
         """
         Equivalent to `cp.mean(self, axis, keepdims)`.
         """
         from cvxpy import mean
         return mean(self, axis, keepdims)
 
-    def min(self, axis=None, *, keepdims=False):
+    def min(self, axis=None, *, keepdims=False) -> "Expression":
         """
         Equivalent to `cp.min(self, axis, keepdims)`.
         """
         from cvxpy import min as min_
         return min_(self, axis, keepdims)
 
-    def prod(self, axis=None, *, keepdims=False):
+    def prod(self, axis=None, *, keepdims=False) -> "Expression":
         """
         Equivalent to `cp.prod(self, axis, keepdims)`.
         """
         from cvxpy import prod
         return prod(self, axis, keepdims)
 
-    def ptp(self, axis=None, *, keepdims=False):
+    def ptp(self, axis=None, *, keepdims=False) -> "Expression":
         """
         Equivalent to `cp.ptp(self, axis, keepdims)`.
         """
         from cvxpy import ptp
         return ptp(self, axis, keepdims)
 
-    def reshape(self, shape, order: Literal["F", "C", None] = None):
+    def reshape(self, shape, order: Literal["F", "C", None] = None) -> "Expression":
         """
         Equivalent to `cp.reshape(self, shape, order)`.
         """
@@ -875,28 +875,28 @@ class Expression(u.Canonical):
         from cvxpy import reshape
         return reshape(self, shape, order)
 
-    def std(self, axis=None, *, ddof=0, keepdims=False):
+    def std(self, axis=None, *, ddof=0, keepdims=False) -> "Expression":
         """
         Equivalent to `cp.std(self, axis, keepdims)`.
         """
         from cvxpy import std
         return std(self, axis=axis, ddof=ddof, keepdims=keepdims)
 
-    def sum(self, axis=None, *, keepdims=False):
+    def sum(self, axis=None, *, keepdims=False) -> "Expression":
         """
         Equivalent to `cp.sum(self, axis, keepdims)`.
         """
         from cvxpy import sum as sum_
         return sum_(self, axis, keepdims)
 
-    def trace(self):
+    def trace(self) -> "Expression":
         """
         Equivalent to `cp.trace(self)`.
         """
         from cvxpy import trace
         return trace(self)
 
-    def var(self, *, ddof=0):
+    def var(self, *, ddof=0) -> "Expression":
         """
         Equivalent to `cp.var(self)`.
         """

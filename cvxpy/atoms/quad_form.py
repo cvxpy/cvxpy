@@ -243,7 +243,7 @@ def quad_form(x, P, assume_PSD: bool = False):
     if not P.ndim == 2 or P.shape[0] != P.shape[1] or max(x.shape, (1,))[0] != P.shape[0]:
         raise Exception("Invalid dimensions for arguments.")
     if x.is_constant():
-        return x.H @ P @ x
+        return x.T.conjugate() @ P @ x
     elif P.is_constant():
         if assume_PSD:
             P = psd_wrap(P)

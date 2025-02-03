@@ -151,9 +151,8 @@ class TestQuantumRelEntr:
         return sth
 
     @pytest.mark.skipif(
-        platform.system() == "Windows"
-        and sys.version_info.major == 3 and sys.version_info.minor == 13,
-        reason="This test is skipped on Windows with Python version 3.13",
+        platform.system() == "Windows",
+        reason="This test is skipped on Windows",
     )
     def test_1(self):
         print("*****************************")

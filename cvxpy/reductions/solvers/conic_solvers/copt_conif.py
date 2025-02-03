@@ -285,8 +285,9 @@ class COPT(ConicSolver):
                 nlinrow = dims[s.EQ_DIM] + dims[s.LEQ_DIM]
                 nlincol = A.shape[1]
 
-                diag = sp.spdiags(np.ones(nconedim), -nlinrow, A.shape[0], nconedim)
-                A = sp.csc_matrix(sp.hstack([A, diag]))
+                diag = sp.diags(np.ones(nconedim), offsets=-nlinrow,
+                                shape=(A.shape[0], nconedim))
+                A = sp.hstack([A, diag], format='csc')
 
                 c = np.append(c, np.zeros(nconedim))
 
@@ -313,8 +314,9 @@ class COPT(ConicSolver):
                     nlinrow += sum(dims[s.SOC_DIM])
                 nlincol = A.shape[1]
 
-                diag = sp.spdiags(np.ones(nexpconedim), -nlinrow, A.shape[0], nexpconedim)
-                A = sp.csc_matrix(sp.hstack([A, diag]))
+                diag = sp.diags(np.ones(nexpconedim), offsets=-nlinrow,
+                                shape=(A.shape[0], nexpconedim))
+                A = sp.hstack([A, diag], format='csc')
 
                 c = np.append(c, np.zeros(nexpconedim))
 
