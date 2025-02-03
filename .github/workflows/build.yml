@@ -57,7 +57,11 @@ jobs:
           echo "MOSEKLM_LICENSE_FILE=$( [[ $RUNNER_OS == 'macOS' ]] && echo $(pwd)/mosek.lic || echo $(realpath mosek.lic) )" >> $GITHUB_ENV
           cat mosek.lic
           cat $MOSEKLM_LICENSE_FILE
-          
+
+      - name: Check MOSEK license
+        run: |
+            echo "Python subversion is: $PYTHON_SUBVERSION"
+            
       - uses: conda-incubator/setup-miniconda@v3
         with:
           auto-update-conda: true
