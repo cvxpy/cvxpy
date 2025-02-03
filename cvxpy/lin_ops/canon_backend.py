@@ -1142,7 +1142,7 @@ class SciPyCanonBackend(PythonCanonBackend):
         if is_param_free_lhs:
             reps = view.rows // lhs.shape[-1]
             if reps > 1:
-                stacked_lhs = (sp.kron(sp.eye(reps, format="csr"), lhs))
+                stacked_lhs = (sp.kron(sp.eye_array(reps, format="csr"), lhs))
             else:
                 stacked_lhs = lhs
 
@@ -1150,7 +1150,7 @@ class SciPyCanonBackend(PythonCanonBackend):
                 if p == 1:
                     return (stacked_lhs @ x).tocsr()
                 else:
-                    return ((sp.kron(sp.eye(p, format="csc"), stacked_lhs)) @ x).tocsc()
+                    return ((sp.kron(sp.eye_array(p, format="csc"), stacked_lhs)) @ x).tocsc()
         else:
             reps = view.rows // next(iter(lhs.values())).shape[-1]
             if reps > 1:
@@ -1252,10 +1252,10 @@ class SciPyCanonBackend(PythonCanonBackend):
             else:
                 m = x.shape[0] // p
                 if axis is None:
-                    return (sp.kron(sp.eye(p, format="csc"), np.ones(m)) @ x).tocsc()
+                    return (sp.kron(sp.eye_array(p, format="csc"), np.ones(m)) @ x).tocsc()
                 else:
                     A = sum_coeff_matrix(shape=shape, axis=axis)
-                    return (sp.kron(sp.eye(p, format="csc"), A) @ x).tocsc()
+                    return (sp.kron(sp.eye_array(p, format="csc"), A) @ x).tocsc()
 
         view.apply_all(func)
         return view
@@ -1391,7 +1391,7 @@ class SciPyCanonBackend(PythonCanonBackend):
                 lhs = lhs.T
             reps = view.rows // lhs.shape[0]
             if reps > 1:
-                stacked_lhs = sp.kron(lhs.T, sp.eye(reps, format="csr"))
+                stacked_lhs = sp.kron(lhs.T, sp.eye_array(reps, format="csr"))
             else:
                 stacked_lhs = lhs.T
 
@@ -1399,7 +1399,7 @@ class SciPyCanonBackend(PythonCanonBackend):
                 if p == 1:
                     return (stacked_lhs @ x).tocsr()
                 else:
-                    return ((sp.kron(sp.eye(p, format="csc"), stacked_lhs)) @ x).tocsc()
+                    return ((sp.kron(sp.eye_array(p, format="csc"), stacked_lhs)) @ x).tocsc()
         else:
             k, v = next(iter(lhs.items()))
             lhs_rows = v.shape[0] // self.param_to_size[k]
@@ -1496,7 +1496,7 @@ class SciPyCanonBackend(PythonCanonBackend):
             if p == 1:
                 return (lhs @ x).tocsr()
             else:
-                return (sp.kron(sp.eye(p, format="csc"), lhs) @ x).tocsc()
+                return (sp.kron(sp.eye_array(p, format="csc"), lhs) @ x).tocsc()
 
         return view.accumulate_over_variables(func, is_param_free_function=True)
 
@@ -1601,7 +1601,7 @@ class SciPyCanonBackend(PythonCanonBackend):
         """
         assert variable_id != Constant.ID
         n = int(np.prod(shape))
-        return {variable_id: {Constant.ID.value: sp.eye(n, format="csc")}}
+        return {variable_id: {Constant.ID.value: sp.eye_array(n, format="csc")}}
 
     def get_data_tensor(self, data: np.ndarray | sp.sparray) -> \
             dict[int, dict[int, sp.csr_array]]:
@@ -1609,7 +1609,9 @@ class SciPyCanonBackend(PythonCanonBackend):
         Returns tensor of constant node as a column vector.
         This function reshapes the data and converts it to csc format.
         """
-        if isinstance(data, np.ndarray):
+        if data.shape == ():
+            tensor = sp.csr_array(data.reshape((1,1), order="F"))
+        elif isinstance(data, np.ndarray):
             # Slightly faster compared to reshaping after casting
             tensor = sp.csr_array(data.reshape((-1, 1), order="F"))
         else:

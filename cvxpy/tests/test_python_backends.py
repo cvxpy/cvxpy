@@ -2371,16 +2371,16 @@ class TestSciPyBackend:
     def test_tensor_view_add_dicts(self, scipy_backend):
         view = scipy_backend.get_empty_view()
 
-        one = sp.eye(1)
-        two = sp.eye(1) * 2
-        three = sp.eye(1) * 3
+        one = sp.eye_array(1)
+        two = sp.eye_array(1) * 2
+        three = sp.eye_array(1) * 3
 
         assert view.add_dicts({}, {}) == {}
         assert view.add_dicts({"a": one}, {"a": two}) == {"a": three}
         assert view.add_dicts({"a": one}, {"b": two}) == {"a": one, "b": two}
         assert view.add_dicts({"a": {"c": one}}, {"a": {"c": one}}) == {"a": {"c": two}}
         with pytest.raises(
-            ValueError, match="Values must either be dicts or <class 'scipy.sparse._base.sparray'>"
+            ValueError, match=f"Values must either be dicts or {view.tensor_type()}"
         ):
             view.add_dicts({"a": 1}, {"a": 2})
 
