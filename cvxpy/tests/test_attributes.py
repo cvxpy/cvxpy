@@ -252,3 +252,14 @@ class TestMultipleAttributes:
         prob = cp.Problem(cp.Minimize(cp.sum(x)), [x >= -5])
         prob.solve()
         assert np.allclose(x.value, target)
+    
+    def test_sparse_symmetric_variable(self) -> None:
+        import re
+        with pytest.raises(
+            ValueError, 
+            match=re.escape(
+                "A CVXPY Variable cannot have more than one of the following attributes be true: "
+                "['diag', 'symmetric', 'PSD', 'NSD', 'hermitian', 'sparsity']"
+            )
+        ):
+            cp.Variable(shape=(2, 2), symmetric=True, sparsity=[(0, 1), (0, 1)])
