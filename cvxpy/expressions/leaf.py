@@ -479,7 +479,7 @@ class Leaf(expression.Expression):
                 raise ValueError(
                     'Invalid type for assigning value_sparse.'
                     'Try using `'
-                    'expr.value_sparse = scipy.sparse.coo_array((values, expr instead.')
+                    'expr.value_sparse = scipy.sparse.coo_array((values, expr)) instead.')
             raise ValueError(
                 'Invalid type for assigning value_sparse.'
                 f'Recieved: {type(val)} Expected scipy.sparse.coo_array.'
