@@ -60,6 +60,14 @@ jobs:
         run: |
             echo "Python subversion is: $PYTHON_SUBVERSION"
             echo "MOSEKLM_LICENSE_FILE: $MOSEKLM_LICENSE_FILE"
+            if test -f "$MOSEKLM_LICENSE_FILE"; then
+                echo "mosek.lic exists."
+            else
+                echo "mosek.lic does not exist."
+            fi
+
+            ls -l $MOSEKLM_LICENSE_FILE
+            
             echo "start"
             cat $MOSEKLM_LICENSE_FILE
             echo "end"
