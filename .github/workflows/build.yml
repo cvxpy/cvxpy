@@ -3,11 +3,11 @@ name: build
 on:
     pull_request:
     push:
-        branches:
-            - master
-            - 'release/**'
-        tags:
-          - '*'
+        #branches:
+        #    - master
+        #    - 'release/**'
+        #tags:
+        #  - '*'
 
 # https://docs.github.com/en/actions/using-jobs/using-concurrency#example-using-a-fallback-value
 # Only cancels-in-progress on PRs (head_ref only defined in PR, fallback run_id always unique)
