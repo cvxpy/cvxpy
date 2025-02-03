@@ -1,4 +1,4 @@
-name: build
+oname: build
 
 on:
     pull_request:
@@ -61,6 +61,7 @@ jobs:
       - name: Check MOSEK license
         run: |
             echo "Python subversion is: $PYTHON_SUBVERSION"
+            cat $MOSEKLM_LICENSE_FILE
             
       - uses: conda-incubator/setup-miniconda@v3
         with:
