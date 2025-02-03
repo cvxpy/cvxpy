@@ -35,4 +35,4 @@ def inv_prod(value):
 
         where :math:`n` is the length of :math:`x`.
     """
-    return power(inv_pos(geo_mean(value)), int(sum(value.shape)))
+    return power(inv_pos(geo_mean(value)), int(sum(value.shape) if len(value.shape) > 0 else 1))
