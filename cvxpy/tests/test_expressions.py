@@ -20,7 +20,12 @@ import numpy as np
 import pytest
 import scipy.sparse as sp
 from hypothesis import assume, given
-from hypothesis.extra.numpy import arrays, basic_indices, integer_array_indices
+from hypothesis.extra.numpy import (
+    arrays,
+    basic_indices,
+    broadcastable_shapes,
+    integer_array_indices,
+)
 
 import cvxpy as cp
 import cvxpy.interface.matrix_utilities as intf
@@ -1653,7 +1658,7 @@ class TestND_Expressions():
         assert np.allclose(expr.value, y)
 
     @given(axis=basic_indices(shape=(2,2,2), allow_newaxis=True))
-    def test_nd__basic_index(self, axis) -> None:
+    def test_nd_basic_index(self, axis) -> None:
         # Skip examples with 0-d output. TODO allow 0-d expressions in cvxpy.
         def is_zero_dim_output(axis):
             return 0 in self.target[axis].shape
@@ -1713,3 +1718,12 @@ class TestND_Expressions():
         prob = cp.Problem(self.obj, [expr == y])
         prob.solve(canon_backend=cp.SCIPY_CANON_BACKEND)
         assert np.allclose(expr.value, y)
+
+    @given(shapes=broadcastable_shapes(shape=(2, 1, 1)))
+    def test_nd_multiply_broadcast(self, shapes) -> None:
+        var = cp.Variable((2, 1, 1))
+        for shape in shapes:
+            data = np.random.randn(shape)
+            var = cp.multiply(var, data)
+        prob = cp.Problem(cp.Minimize(cp.sum(var)), [])
+        prob.solve()

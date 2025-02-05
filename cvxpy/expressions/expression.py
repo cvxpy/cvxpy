@@ -17,7 +17,7 @@ limitations under the License.
 import abc
 import warnings
 from functools import wraps
-from typing import List, Literal, Tuple
+from typing import List, Literal, Tuple, Union
 
 import numpy as np
 
@@ -109,7 +109,7 @@ __BINARY_EXPRESSION_UFUNCS__ = {
 }
 
 
-ExpressionLike = "Expression | np.typing.ArrayLike"
+ExpressionLike = Union["Expression", np.typing.ArrayLike]
 
 
 class Expression(u.Canonical):
@@ -591,19 +591,13 @@ class Expression(u.Canonical):
         elif rh_expr.is_scalar() and not lh_expr.is_scalar():
             rh_expr = cvxtypes.promote()(rh_expr, lh_expr.shape)
         # Broadcasting.
-        if lh_expr.ndim == 2 and rh_expr.ndim == 2:
+        if lh_expr.ndim >= 2 and rh_expr.ndim >= 2:
             # Replicate dimensions of size 1.
-            dims = [max(lh_expr.shape[i], rh_expr.shape[i]) for i in range(2)]
-            # Broadcast along dim 0.
-            if lh_expr.shape[0] == 1 and lh_expr.shape[0] < dims[0]:
-                lh_expr = np.ones((dims[0], 1)) @ lh_expr
-            if rh_expr.shape[0] == 1 and rh_expr.shape[0] < dims[0]:
-                rh_expr = np.ones((dims[0], 1)) @ rh_expr
-            # Broadcast along dim 1.
-            if lh_expr.shape[1] == 1 and lh_expr.shape[1] < dims[1]:
-                lh_expr = lh_expr @ np.ones((1, dims[1]))
-            if rh_expr.shape[1] == 1 and rh_expr.shape[1] < dims[1]:
-                rh_expr = rh_expr @ np.ones((1, dims[1]))
+            output_shape = np.broadcast_shapes(lh_expr.shape, rh_expr.shape)
+            if lh_expr.shape != output_shape:
+                lh_expr = np.ones(np.prod(output_shape)/np.prod(lh_expr.shape)) @ lh_expr
+            if rh_expr.shape != output_shape:
+                rh_expr = np.ones(np.prod(output_shape)/np.prod(rh_expr.shape)) @ rh_expr
         return lh_expr, rh_expr
 
     @_cast_other
