@@ -172,8 +172,13 @@ class Leaf(expression.Expression):
             if indices != []:
                 raise ValueError("Indices should have 0 dimensions.")
             return []
+        # Attempt to form a COO_array with the indices matrix provided;
+        # this will raise errors if invalid.
         validator = sp.coo_array((np.empty(len(indices[0])), indices), shape=self._shape)
+        # Apply an in-place transformation to the coordinates to reduce the
+        # validator to canonical form
         validator.sum_duplicates()
+        # Return the canonicalized coordinates
         return get_coords(validator)
 
     def _get_attr_str(self) -> str:
