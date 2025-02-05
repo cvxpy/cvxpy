@@ -13,6 +13,8 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+import numpy as np
+
 from cvxpy.atoms.elementwise.inv_pos import inv_pos
 from cvxpy.atoms.elementwise.power import power
 from cvxpy.atoms.geo_mean import geo_mean
@@ -35,4 +37,4 @@ def inv_prod(value):
 
         where :math:`n` is the length of :math:`x`.
     """
-    return power(inv_pos(geo_mean(value)), int(sum(value.shape)))
+    return power(inv_pos(geo_mean(value)), int(np.prod(value.shape)))
