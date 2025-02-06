@@ -199,7 +199,7 @@
    * - :ref:`norm(X) <norm>`
        norm(X, 2)
      - :math:`\sqrt{\lambda_{\max}\left(X^T X\right)}`
-     - :math:`X in\mathbf{R}^{m \times n}`
+     - :math:`X \in\mathbf{R}^{m \times n}`
      - |positive| positive
      - |convex| convex
 
