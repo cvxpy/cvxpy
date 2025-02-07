@@ -200,7 +200,7 @@ class SCIPY(ConicSolver):
             lb = [t[0] if t[0] is not None else -np.inf for t in bounds]
             ub = [t[1] if t[1] is not None else np.inf for t in bounds]
             bounds = scipy.optimize.Bounds(lb, ub)
-            solution = opt.milp(data[s.C], 
+            solution = opt.milp(data[s.C],
                                 constraints=constraints,
                                 options=solver_opts['scipy_options'],
                                 integrality=integrality,
@@ -259,13 +259,13 @@ class SCIPY(ConicSolver):
                     inverse_data[self.NEQ_CONSTR])
                 eq_dual.update(leq_dual)
                 dual_vars = eq_dual
-            
+
             attr = {}
             if "nit" in solution: # Number of interior-point or simplex iterations
                 attr[s.NUM_ITERS] = solution['nit']
             if "mip_gap" in solution: # Branch and bound statistics
-                attr[s.EXTRA_STATS] = {"mip_gap": solution['mip_gap'], 
-                                       "mip_node_count": solution['mip_node_count'], 
+                attr[s.EXTRA_STATS] = {"mip_gap": solution['mip_gap'],
+                                       "mip_node_count": solution['mip_node_count'],
                                        "mip_dual_bound": solution['mip_dual_bound']}
 
             return Solution(status, opt_val, primal_vars, dual_vars, attr)

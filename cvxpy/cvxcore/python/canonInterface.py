@@ -312,4 +312,3 @@ def get_problem_matrix(linOps,
         return A_py
     else:
         raise ValueError(f'Unknown backend: {canon_backend}')
-

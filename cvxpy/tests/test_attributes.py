@@ -57,7 +57,7 @@ class TestAttributes:
         X = cp.Variable((3, 3))
         prob = cp.Problem(cp.Minimize(cp.sum(X)), [X >= -1, X <= 1])
         assert prob.get_problem_data(cp.CLARABEL)[0]['A'].shape[1] == 9
-        
+
     def test_sparsity_assign_value(self):
         X = cp.Variable((3, 3))
         sparsity = [(0, 2, 1, 2), (0, 1, 2, 2)]
@@ -71,16 +71,16 @@ class TestAttributes:
                   ' Use `.value_sparse` instead'
         ):
             A.value = A_value
-        
+
         prob.solve()
         z = np.zeros((3, 3))
         z[A.sparse_idx] = -1
         assert np.allclose(X.value, z)
-        
+
         A.value_sparse = sp.coo_array((-np.ones(4), sparsity))
         prob.solve()
         assert np.allclose(X.value, z)
-        
+
     def test_sparsity_incorrect_pattern(self):
         A = cp.Parameter((3, 3), sparsity=[(0, 2, 1, 2), (0, 1, 2, 2)])
         with pytest.raises(
@@ -94,7 +94,7 @@ class TestAttributes:
                   ' for Parameter value.'
         ):
             A.value_sparse = sp.coo_array(([1], ([0], [0])), (3, 3))
-            
+
     def test_sparsity_read_value(self):
         sparsity = [(0, 2, 1, 2), (0, 1, 2, 2)]
         X = cp.Variable((3, 3), sparsity=sparsity)
@@ -106,11 +106,11 @@ class TestAttributes:
                   ' Use `.value_sparse` instead'
         ):
             X_value = X.value
-        
+
         z = np.zeros((3, 3))
         z[X.sparse_idx] = -1
         assert np.allclose(X_value, z)
-        
+
         X_value_sparse = X.value_sparse
         assert np.allclose(X_value_sparse.toarray(), z)
 
