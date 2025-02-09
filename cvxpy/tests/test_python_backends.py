@@ -3,6 +3,14 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Callable
 
+try:
+    import graphblas as gb
+    from graphblas.core.utils import ensure_type
+    gb.config["autocompute"]
+except ImportError:
+    _has_graphblas = False
+else:
+    _has_graphblas = True
 import numpy as np
 import pytest
 import scipy.sparse as sp
@@ -10,6 +18,7 @@ import scipy.sparse as sp
 import cvxpy.settings as s
 from cvxpy.lin_ops.canon_backend import (
     CanonBackend,
+    GraphBlasBackend,
     NumPyCanonBackend,
     PythonCanonBackend,
     SciPyCanonBackend,
@@ -56,6 +65,9 @@ class TestBackendInstance:
 
         backend = CanonBackend.get_backend(s.NUMPY_CANON_BACKEND, *args)
         assert isinstance(backend, NumPyCanonBackend)
+
+        backend = CanonBackend.get_backend(s.GRAPHBLAS_CANON_BACKEND, *args)
+        assert isinstance(backend, GraphBlasBackend)
 
         with pytest.raises(KeyError):
             CanonBackend.get_backend("notabackend")
@@ -2428,3 +2440,4 @@ class TestSciPyBackend:
         transposed = scipy_backend._transpose_stacked(stacked, param_id)
         expected = sp.vstack([m.T for m in matrices])
         assert (expected != transposed).nnz == 0
+
