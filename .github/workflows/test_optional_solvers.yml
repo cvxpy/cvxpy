@@ -17,8 +17,8 @@ jobs:
       - uses: actions/checkout@v4
       - name: Install cvxpy dependencies and all optional solvers
         run: |
-          pip install . pytest hypothesis
           source continuous_integration/install_dependencies.sh
+          pip install . pytest hypothesis
           pip install glop qoco
       - name: Run test_conic_solvers
         run : |
