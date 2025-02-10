@@ -8,12 +8,12 @@ on:
         tags:
           - '*'
 jobs:
-  test_backends:
+  test_optional_solvers:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/setup-python@v5
         with:
-          python-version: "3.12"
+          python-version: "3.11"
       - uses: actions/checkout@v4
       - name: Install cvxpy dependencies and all optional solvers
         run: |
