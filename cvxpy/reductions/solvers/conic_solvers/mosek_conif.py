@@ -350,7 +350,7 @@ class MOSEK(ConicSolver):
         num_pos = K[a2d.NONNEG]
         if num_pos > 0:
             o = np.zeros(num_pos)
-            task.putvarboundlist(np.arange(idx, idx + num_pos, dtype=int),
+            task.putvarboundlist(np.arange(idx, idx + num_pos, dtype=np.int32),
                                  [mosek.boundkey.lo] * num_pos, o, o)
             idx += num_pos
         num_soc = len(K[a2d.SOC])
@@ -450,7 +450,8 @@ class MOSEK(ConicSolver):
         vartypes = [mosek.variabletype.type_int] * (num_bool + num_int)
         task.putvartypelist(data[s.INT_IDX] + data[s.BOOL_IDX], vartypes)
         if num_bool > 0:
-            task.putvarboundlist(data[s.BOOL_IDX], [mosek.boundkey.ra] * num_bool,
+            bool_indices = data[s.BOOL_IDX].astype(np.int32)
+            task.putvarboundlist(bool_indices, [mosek.boundkey.ra] * num_bool,
                                  [0] * num_bool, [1] * num_bool)
         return task
 
