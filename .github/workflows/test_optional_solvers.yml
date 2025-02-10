@@ -27,8 +27,8 @@ jobs:
         run: |
           source continuous_integration/install_dependencies.sh
           pip install . pytest hypothesis
-          pip install glop qoco
       - name: Run test_conic_solvers
         run : |
           pytest cvxpy/tests/test_conic_solvers.py
+          pytest cvxpy/tests/test_conic_solvers.py::TestQOCO
 
