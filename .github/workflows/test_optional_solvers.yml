@@ -11,9 +11,17 @@ jobs:
   test_optional_solvers:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v4
+      - name: Set Additional Envs
+        run: |
+          echo "PYTHON_SUBVERSION=$(echo $PYTHON_VERSION | cut -c 3-)" >> $GITHUB_ENV
+          echo $MOSEK_CI_BASE64 | base64 -d > mosek.lic
+          echo "MOSEKLM_LICENSE_FILE=$( [[ $RUNNER_OS == 'macOS' ]] && echo $(pwd)/mosek.lic || echo $(realpath mosek.lic) )" >> $GITHUB_ENV
+      - uses: conda-incubator/setup-miniconda@v3
         with:
-          python-version: "3.11"
+          auto-update-conda: true
+          python-version: 3.12
+          channels: conda-forge,anaconda
       - uses: actions/checkout@v4
       - name: Install cvxpy dependencies and all optional solvers
         run: |
