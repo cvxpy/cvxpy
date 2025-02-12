@@ -355,9 +355,9 @@ class TestExamples(BaseTest):
         n = 100  # 10000
         m = 10  # 100
 
-        F = sp.rand(m, n, density=0.01)
+        F = sp.random_array((m, n), density=0.01)
         F.data = np.ones(len(F.data))
-        D = sp.eye(n).tocoo()
+        D = sp.eye_array(n, format='coo')
         D.data = np.random.randn(len(D.data))**2
         Z = np.random.randn(m, 1)
         Z = Z.dot(Z.T)

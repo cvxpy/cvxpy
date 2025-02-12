@@ -135,7 +135,7 @@ class TestAttributes:
         prob = cp.Problem(cp.Minimize(cp.sum(X)), [X >= -1, X <= 1])
         prob.solve()
         z = -np.eye(3)
-        assert type(X.value) is sp.dia_matrix
+        assert sp.issparse(X.value) and X.value.format == "dia"
         assert np.allclose(X.value.toarray(), z)
 
     def test_variable_bounds(self):

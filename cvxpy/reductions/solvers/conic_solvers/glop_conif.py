@@ -18,7 +18,7 @@ import logging
 from typing import Any, Dict, Tuple
 
 from numpy import array, ndarray
-from scipy.sparse import csr_matrix
+from scipy.sparse import csr_array
 
 import cvxpy.settings as s
 from cvxpy import Zero
@@ -74,7 +74,7 @@ class GLOP(ConicSolver):
 
         # Min c'x + d such that Ax + b = s, s \in cones.
         c, d, A, b = problem.apply_parameters()
-        A = csr_matrix(A)
+        A = csr_array(A)
         data["num_constraints"], data["num_vars"] = A.shape
 
         # TODO: Switch to a vectorized model-building interface when one is

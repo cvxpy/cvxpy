@@ -91,7 +91,7 @@ def reduce_problem_data_tensor(A, var_length, quad_form: bool = False):
 
     and the problem data matrix can be constructed with
 
-        problem_data : = sp.csc_matrix(
+        problem_data : = sp.csc_array(
             (data, indices, indptr), shape = shape)
 
     Parameters
@@ -144,7 +144,7 @@ def reduce_problem_data_tensor(A, var_length, quad_form: bool = False):
     return reduced_A, indices, indptr, shape
 
 
-def nonzero_csc_matrix(A):
+def nonzero_csc_array(A):
     # this function returns (rows, cols) corresponding to nonzero entries in
     # A; an entry that is explicitly set to zero is treated as nonzero
     assert not np.isnan(A.data).any()
@@ -173,7 +173,7 @@ def A_mapping_nonzero_rows(problem_data_tensor, var_length):
     A_nrows = problem_data_tensor.shape[0] // (var_length + 1)
     A_ncols = var_length
     A_mapping = problem_data_tensor_csc[:A_nrows*A_ncols, :-1]
-    # don't call nonzero_csc_matrix, because here we don't want to
+    # don't call nonzero_csc_array, because here we don't want to
     # count explicit zeros
     A_mapping_nonzero_rows, _ = A_mapping.nonzero()
     return np.unique(A_mapping_nonzero_rows)
@@ -216,14 +216,13 @@ def get_matrix_from_tensor(problem_data_tensor, param_vec,
     elif problem_data_index is not None:
         flat_problem_data = problem_data_tensor @ param_vec
     else:
-        param_vec = sp.csc_matrix(param_vec[:, None])
+        param_vec = sp.csc_array(param_vec[:, None])
         flat_problem_data = problem_data_tensor @ param_vec
 
 
     if problem_data_index is not None:
         indices, indptr, shape = problem_data_index
-        M = sp.csc_matrix(
-            (flat_problem_data, indices, indptr), shape=shape)
+        M = sp.csc_array((flat_problem_data, indices, indptr), shape=shape)
     else:
         n_cols = var_length
         if with_offset:
@@ -232,18 +231,18 @@ def get_matrix_from_tensor(problem_data_tensor, param_vec,
 
     if with_offset:
         A = M[:, :-1].tocsc()
-        b = np.squeeze(M[:, -1].toarray().flatten())
+        b = np.squeeze(M[:, [-1]].toarray().flatten())
     else:
         A = M.tocsc()
         b = None
 
     if nonzero_rows is not None and nonzero_rows.size > 0:
         A_nrows, _ = A.shape
-        A_rows, A_cols = nonzero_csc_matrix(A)
+        A_rows, A_cols = nonzero_csc_array(A)
         A_vals = np.append(A.data, np.zeros(nonzero_rows.size))
         A_rows = np.append(A_rows, nonzero_rows % A_nrows)
         A_cols = np.append(A_cols, nonzero_rows // A_nrows)
-        A = sp.csc_matrix((A_vals, (A_rows, A_cols)),
+        A = sp.csc_array((A_vals, (A_rows, A_cols)),
                                     shape=A.shape)
 
     return (A, b)
@@ -307,7 +306,7 @@ def get_problem_matrix(linOps,
                                                           param_size_plus_one, var_length)
             A_py = backend.build_matrix(linOps)
         else:
-            A_py = sp.csc_matrix(((), ((), ())), output_shape)
+            A_py = sp.csc_array(((), ((), ())), output_shape)
         assert A_py.shape == output_shape
         return A_py
     else:

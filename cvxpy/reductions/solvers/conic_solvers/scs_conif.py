@@ -192,14 +192,14 @@ class SCS(ConicSolver):
         val_arr = val_arr[np.nonzero(val_arr)]
 
         shape = (entries, rows*cols)
-        scaled_lower_tri = sp.csc_matrix((val_arr, (row_arr, col_arr)), shape)
+        scaled_lower_tri = sp.csc_array((val_arr, (row_arr, col_arr)), shape)
 
         idx = np.arange(rows * cols)
         val_symm = 0.5 * np.ones(2 * rows * cols)
         K = idx.reshape((rows, cols))
         row_symm = np.append(idx, np.ravel(K, order='F'))
         col_symm = np.append(idx, np.ravel(K.T, order='F'))
-        symm_matrix = sp.csc_matrix((val_symm, (row_symm, col_symm)))
+        symm_matrix = sp.csc_array((val_symm, (row_symm, col_symm)))
 
         return scaled_lower_tri @ symm_matrix
 

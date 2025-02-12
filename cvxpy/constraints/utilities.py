@@ -45,7 +45,7 @@ def format_axis(t, X, axis):
     terms = []
     # Make t_mat
     mat_shape = (cone_size, 1)
-    t_mat = sp.csc_matrix(([1.0], ([0], [0])), mat_shape)
+    t_mat = sp.csc_array(([1.0], ([0], [0])), mat_shape)
     t_mat = lu.create_const(t_mat, mat_shape, sparse=True)
     t_vec = t
     if not t.shape:
@@ -63,7 +63,7 @@ def format_axis(t, X, axis):
     val_arr = (cone_size - 1)*[1.0]
     row_arr = range(1, cone_size)
     col_arr = range(cone_size-1)
-    X_mat = sp.csc_matrix((val_arr, (row_arr, col_arr)), mat_shape)
+    X_mat = sp.csc_array((val_arr, (row_arr, col_arr)), mat_shape)
     X_mat = lu.create_const(X_mat, mat_shape, sparse=True)
     mul_shape = (cone_size, X.shape[1])
     terms += [lu.mul_expr(X_mat, X, mul_shape)]
@@ -120,5 +120,5 @@ def get_spacing_matrix(shape: Tuple[int, ...], spacing, offset):
         val_arr.append(1.0)
         row_arr.append(spacing*var_row + offset)
         col_arr.append(var_row)
-    mat = sp.csc_matrix((val_arr, (row_arr, col_arr)), shape)
+    mat = sp.csc_array((val_arr, (row_arr, col_arr)), shape)
     return lu.create_const(mat, shape, sparse=True)
