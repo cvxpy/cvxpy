@@ -455,8 +455,9 @@ class CPLEX(ConicSolver):
         lin_expr_list, soc_vars, lin_rhs = [], [], []
         csr = mat.tocsr()
         for i in rows:
-            ind = [variables[x] for x in csr[i].indices]
-            val = [x for x in csr[i].data]
+            row = csr[[i], :]
+            ind = [variables[x] for x in row.indices]
+            val = [x for x in row.data]
             # Ignore empty constraints.
             if ind:
                 lin_expr_list.append((ind, val))
