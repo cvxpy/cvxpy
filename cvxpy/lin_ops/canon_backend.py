@@ -1074,7 +1074,8 @@ class SciPyCanonBackend(PythonCanonBackend):
         """
         Extract the constant data from a LinOp node of type "*_const".
         """
-        constant = sp.csr_array(lin_op.data)
+        data = [[lin_op.data]] if np.isscalar(lin_op.data) else lin_op.data
+        constant = sp.csr_array(data)
         assert constant.shape == lin_op.shape
         return constant
 
