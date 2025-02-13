@@ -37,9 +37,9 @@ jobs:
         run: |
           source continuous_integration/install_optional_solvers.sh
           pip install . pytest hypothesis
-      - name: Print installed solvers
-        run : |
-          python -c "import cvxpy; print(cvxpy.installed_solvers())" 
+      # - name: Print installed solvers
+      #   run : |
+      #     python -c "import cvxpy; print(cvxpy.installed_solvers())" 
       - name: Run test_conic_solvers
         run : |
           pytest -rs cvxpy/tests/test_conic_solvers.py
