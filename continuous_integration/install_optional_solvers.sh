@@ -16,7 +16,7 @@ else
   python -m pip install clarabel osqp
 fi
 
-if [[ "$PYTHON_VERSION" == "3.11" ]]; then
+if [[ "$PYTHON_VERSION" == "3.12" ]]; then
   python -m pip install cplex "ortools>=9.7,<9.12"
 fi
 
@@ -39,12 +39,12 @@ if [[ "$PYTHON_VERSION" == "3.12" ]] && [[ "$RUNNER_OS" != "Windows" ]]; then
   python -m pip install cylp pyscipopt==5.2.1
 fi
 
-if [[ "$PYTHON_VERSION" == "3.10" ]] && [[ "$RUNNER_OS" != "Windows" ]]; then
+if [[ "$PYTHON_VERSION" == "3.12" ]] && [[ "$RUNNER_OS" != "Windows" ]]; then
   # SDPA didn't pass LP5 on Ubuntu for Python 3.9 and 3.12
   python -m pip install sdpa-python
 fi
 
-if [[ "$PYTHON_VERSION" == "3.11" ]] && [[ "$RUNNER_OS" != "macOS" ]]; then
+if [[ "$PYTHON_VERSION" == "3.12" ]] && [[ "$RUNNER_OS" != "macOS" ]]; then
   python -m pip install xpress==9.4.3
 fi
 
