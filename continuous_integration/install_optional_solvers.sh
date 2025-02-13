@@ -2,11 +2,6 @@
 
 set -e
 
-conda config --set remote_connect_timeout_secs 30.0
-conda config --set remote_max_retries 10
-conda config --set remote_backoff_factor 2
-conda config --set remote_read_timeout_secs 120.0
-conda install pip
 if [[ "$PYTHON_VERSION" != "3.13" ]]; then
   pip install ecos scs proxsuite daqp
   python -m pip install gurobipy piqp clarabel osqp highspy
