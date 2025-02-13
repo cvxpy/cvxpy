@@ -39,3 +39,7 @@ jobs:
         run : |
           pytest -rs cvxpy/tests/test_conic_solvers.py
 
+    env:
+      RUNNER_OS: ${{ matrix.os }}
+      PYTHON_VERSION: 3.12
+      
