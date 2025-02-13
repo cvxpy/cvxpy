@@ -9,11 +9,17 @@ conda config --set remote_read_timeout_secs 120.0
 
 if [[ "$PYTHON_VERSION" != "3.13" ]]; then
   pip install ecos scs proxsuite daqp
-  python -m pip install coptpy==7.1.7 gurobipy piqp clarabel osqp highspy
+  python -m pip install gurobipy piqp clarabel osqp highspy
 else
   # only install the essential solvers for Python 3.13.
   pip install scs
   python -m pip install clarabel osqp
+fi
+
+if [[ "$PYTHON_VERSION" != "3.13" ]] && [[ "$RUNNER_OS" != "macOS" ]]; then
+  # coptpy does not have wheels for macos-13, only macos-10, 
+  # but the runners are on macos-13, so do not install coptpy for macos.
+  python -m pip install coptpy==7.1.7
 fi
 
 if [[ "$PYTHON_VERSION" == "3.12" ]]; then
