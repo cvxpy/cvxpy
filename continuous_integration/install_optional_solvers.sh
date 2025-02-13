@@ -3,22 +3,21 @@
 set -e
 
 if [[ "$PYTHON_VERSION" != "3.13" ]]; then
-  pip install ecos scs proxsuite daqp
-  python -m pip install gurobipy piqp clarabel osqp highspy
+  python -m pip install ecos scs proxsuite daqp gurobipy piqp clarabel osqp highspy
 else
   # only install the essential solvers for Python 3.13.
-  pip install scs
-  python -m pip install clarabel osqp
+  python -m pip install scs clarabel osqp
 fi
 
 if [[ "$PYTHON_VERSION" != "3.13" ]] && [[ "$RUNNER_OS" != "macOS" ]]; then
   # coptpy does not have wheels for macos-13, only macos-10, 
   # but the runners are on macos-13, so do not install coptpy for macos.
-  python -m pip install coptpy==7.1.7
+  # cplex does not have macos wheels
+  python -m pip install coptpy==7.1.7 cplex
 fi
 
 if [[ "$PYTHON_VERSION" == "3.12" ]]; then
-  python -m pip install cplex "ortools>=9.7,<9.12"
+  python -m pip install "ortools>=9.7,<9.12"
 fi
 
 if [[ "$RUNNER_OS" != "Windows" ]]; then
