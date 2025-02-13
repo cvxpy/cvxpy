@@ -27,6 +27,11 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: 3.12
+      - uses: conda-incubator/setup-miniconda@v3
+        with:
+          auto-update-conda: true
+          python-version: 3.12
+          channels: conda-forge,anaconda
       - uses: actions/checkout@v4
       - name: Install cvxpy dependencies and all optional solvers
         run: |
