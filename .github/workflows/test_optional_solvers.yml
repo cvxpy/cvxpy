@@ -29,6 +29,7 @@ jobs:
           channels: conda-forge,anaconda
       - uses: actions/checkout@v4
       - name: Install cvxpy dependencies and all optional solvers
+        shell: bash
         run: |
           source continuous_integration/install_optional_solvers.sh
           pip install . pytest hypothesis
