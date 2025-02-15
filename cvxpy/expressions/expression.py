@@ -17,7 +17,7 @@ limitations under the License.
 import abc
 import warnings
 from functools import wraps
-from typing import List, Literal, Tuple, Union
+from typing import List, Literal, Optional, Tuple, Union
 
 import numpy as np
 
@@ -124,12 +124,12 @@ class Expression(u.Canonical):
 
     @property
     @abc.abstractmethod
-    def value(self):
-        """NumPy.ndarray or None : The numeric value of the expression.
+    def value(self) -> Optional[np.ndarray]:
+        """Returns: The numeric value of the expression.
         """
         raise NotImplementedError()
 
-    def _value_impl(self):
+    def _value_impl(self) -> Optional[np.ndarray]:
         """Implementation of .value.
         """
         return self.value
@@ -500,18 +500,15 @@ class Expression(u.Canonical):
         return cvxtypes.vec()(self, order)
 
     def is_scalar(self) -> bool:
-        """Is the expression a scalar?
-        """
+        """Is the expression a scalar?"""
         return all(d == 1 for d in self.shape)
 
     def is_vector(self) -> bool:
-        """Is the expression a column or row vector?
-        """
+        """Is the expression a column or row vector?"""
         return self.ndim <= 1 or (self.ndim == 2 and min(self.shape) == 1)
 
     def is_matrix(self) -> bool:
-        """Is the expression a matrix?
-        """
+        """Is the expression a matrix?"""
         return self.ndim == 2 and self.shape[0] > 1 and self.shape[1] > 1
 
     def __getitem__(self, key) -> "Expression":
@@ -592,12 +589,17 @@ class Expression(u.Canonical):
             rh_expr = cvxtypes.promote()(rh_expr, lh_expr.shape)
         # Broadcasting.
         if lh_expr.ndim >= 2 and rh_expr.ndim >= 2:
-            # Replicate dimensions of size 1.
-            output_shape = np.broadcast_shapes(lh_expr.shape, rh_expr.shape)
-            if lh_expr.shape != output_shape:
-                lh_expr = np.ones(np.prod(output_shape)/np.prod(lh_expr.shape)) @ lh_expr
-            if rh_expr.shape != output_shape:
-                rh_expr = np.ones(np.prod(output_shape)/np.prod(rh_expr.shape)) @ rh_expr
+            dims = [max(lh_expr.shape[i], rh_expr.shape[i]) for i in range(2)]
+            # Broadcast along dim 0.
+            if lh_expr.shape[0] == 1 and lh_expr.shape[0] < dims[0]:
+                lh_expr = np.ones((dims[0], 1)) @ lh_expr
+            if rh_expr.shape[0] == 1 and rh_expr.shape[0] < dims[0]:
+                rh_expr = np.ones((dims[0], 1)) @ rh_expr
+            # Broadcast along dim 1.
+            if lh_expr.shape[1] == 1 and lh_expr.shape[1] < dims[1]:
+                lh_expr = lh_expr @ np.ones((1, dims[1]))
+            if rh_expr.shape[1] == 1 and rh_expr.shape[1] < dims[1]:
+                rh_expr = rh_expr @ np.ones((1, dims[1]))
         return lh_expr, rh_expr
 
     @_cast_other

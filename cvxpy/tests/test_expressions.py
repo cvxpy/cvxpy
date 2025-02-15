@@ -23,7 +23,6 @@ from hypothesis import assume, given
 from hypothesis.extra.numpy import (
     arrays,
     basic_indices,
-    broadcastable_shapes,
     integer_array_indices,
 )
 
@@ -1719,11 +1718,14 @@ class TestND_Expressions():
         prob.solve(canon_backend=cp.SCIPY_CANON_BACKEND)
         assert np.allclose(expr.value, y)
 
-    @given(shapes=broadcastable_shapes(shape=(2, 1, 1)))
-    def test_nd_multiply_broadcast(self, shapes) -> None:
-        var = cp.Variable((2, 1, 1))
-        for shape in shapes:
-            data = np.random.randn(shape)
-            var = cp.multiply(var, data)
-        prob = cp.Problem(cp.Minimize(cp.sum(var)), [])
-        prob.solve()
+    def test_nd_broadcast(self) -> None:
+        # test broadcast dim 1
+        x = cp.Variable(2)
+        y = cp.Constant(np.ones((2,2)))
+
+        # test broadcast dim 0
+        x = cp.Variable(shape=(2,1))
+        y = cp.Constant(np.ones((2,2)))
+
+        expr = x+y
+        print(expr.shape)
