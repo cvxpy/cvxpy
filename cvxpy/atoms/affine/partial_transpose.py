@@ -51,7 +51,7 @@ def _term(expr, i: int, j: int, dims: Tuple[int], axis: Optional[int] = 0):
             v = sp.coo_matrix(([1], ([i], [j])), shape=(dim, dim))
             a = sp.kron(a, v)
         else:
-            eye_mat = sp.eye(dim)
+            eye_mat = sp.eye_array(dim)
             a = sp.kron(a, eye_mat)
     return a @ expr @ a
 

@@ -81,11 +81,11 @@ class test_lin_ops(BaseTest):
 
         # Sparse matrix constant.
         shape = (5, 5)
-        mat = create_const(sp.eye(5), shape, sparse=True)
+        mat = create_const(sp.eye_array(5), shape, sparse=True)
         self.assertEqual(mat.shape, shape)
         self.assertEqual(len(mat.args), 0)
         self.assertEqual(mat.type, SPARSE_CONST)
-        assert (mat.data.todense() == sp.eye(5).todense()).all()
+        assert (mat.data.todense() == np.eye(5)).all()
 
     def test_add_expr(self) -> None:
         """Test adding lin expr.

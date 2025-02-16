@@ -43,7 +43,7 @@ class TestSparseCholesky(BaseTest):
     @pytest.mark.skipif(missing_extension, reason="requires sparse_cholesky")
     def test_diagonal(self):
         np.random.seed(0)
-        A = spar.csc_matrix(np.diag(np.random.rand(4)))
+        A = spar.csc_array(np.diag(np.random.rand(4)))
         _, L, p = lau.sparse_cholesky(A, 0.0)
         self.check_factor(L)
         self.check_gram(L[p, :], A)
@@ -54,7 +54,7 @@ class TestSparseCholesky(BaseTest):
         n = 5
         diag = np.random.rand(n) + 0.1
         offdiag = np.min(np.abs(diag)) * np.ones(n - 1) / 2
-        A = spar.diags([offdiag, diag, offdiag], [-1, 0, 1])
+        A = spar.diags_array([offdiag, diag, offdiag], offsets=[-1, 0, 1])
         _, L, p = lau.sparse_cholesky(A, 0.0)
         self.check_factor(L)
         self.check_gram(L[p, :], A)
@@ -63,7 +63,7 @@ class TestSparseCholesky(BaseTest):
     def test_generic(self):
         np.random.seed(0)
         B = np.random.randn(3, 3)
-        A = spar.csc_matrix(B @ B.T)
+        A = spar.csc_array(B @ B.T)
         _, L, p = lau.sparse_cholesky(A)
         self.check_factor(L)
         self.check_gram(L[p, :], A)
@@ -84,6 +84,6 @@ class TestSparseCholesky(BaseTest):
         diag = np.random.rand(n) + 0.1
         diag[n-1] = -1
         offdiag = np.min(np.abs(diag)) * np.ones(n - 1) / 2
-        A = spar.diags([offdiag, diag, offdiag], [-1, 0, 1])
+        A = spar.diags_array([offdiag, diag, offdiag], offsets=[-1, 0, 1])
         with self.assertRaises(ValueError, msg=lau.SparseCholeskyMessages.INDEFINITE):
             lau.sparse_cholesky(A, 0.0)

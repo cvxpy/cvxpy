@@ -192,6 +192,9 @@ class SCIPY(ConicSolver):
             G = data[s.G]
             if G is not None:
                 ineq = scipy.optimize.LinearConstraint(G, ub=data[s.H])
+                # ensure that index arrays are int32
+                ineq.A.indptr = ineq.A.indptr.astype(np.int32)
+                ineq.A.indices = ineq.A.indices.astype(np.int32)
                 constraints.append(ineq)
             A = data[s.A]
             if A is not None:
@@ -200,7 +203,7 @@ class SCIPY(ConicSolver):
             lb = [t[0] if t[0] is not None else -np.inf for t in bounds]
             ub = [t[1] if t[1] is not None else np.inf for t in bounds]
             bounds = scipy.optimize.Bounds(lb, ub)
-            solution = opt.milp(data[s.C], 
+            solution = opt.milp(data[s.C],
                                 constraints=constraints,
                                 options=solver_opts['scipy_options'],
                                 integrality=integrality,

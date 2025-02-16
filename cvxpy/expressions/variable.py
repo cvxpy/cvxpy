@@ -58,13 +58,13 @@ class Variable(Leaf):
         return False
 
     @property
-    def grad(self) -> Optional[dict[Variable, sp.csc_matrix]]:
+    def grad(self) -> Optional[dict[Variable, sp.csc_array]]:
         """Gives the (sub/super)gradient of the expression w.r.t. each variable.
 
         Matrix expressions are vectorized, so the gradient is a matrix.
         """
         # TODO(akshayka): Do not assume shape is 2D.
-        return {self: sp.eye(self.size).tocsc()}
+        return {self: sp.eye_array(self.size, format='csc')}
 
     def variables(self) -> list[Variable]:
         """Returns itself as a variable."""

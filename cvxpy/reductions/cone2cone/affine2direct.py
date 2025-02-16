@@ -366,10 +366,10 @@ class Slacks:
         if A_slk:
             # We need to introduce slack variables.
             A_slk = sp.sparse.vstack(tuple(A_slk))
-            eye = sp.sparse.eye(total_slack)
+            eye = sp.sparse.eye_array(total_slack)
             if A_aff:
                 A_aff = sp.sparse.vstack(tuple(A_aff), format='csr')
-                G = sp.sparse.bmat([[A_slk, eye], [A_aff, None]])
+                G = sp.sparse.block_array([[A_slk, eye], [A_aff, None]])
                 h = np.concatenate(b_slk + b_aff)  # concatenate lists, then turn to vector
             else:
                 G = sp.sparse.hstack((A_slk, eye))
