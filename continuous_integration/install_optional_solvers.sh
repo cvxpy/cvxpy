@@ -15,20 +15,8 @@ else
   python -m pip install scs clarabel osqp
 fi
 
-if [[ "$PYTHON_VERSION" != "3.13" ]] && [[ "$RUNNER_OS" != "macOS" ]]; then
-  # coptpy does not have wheels for macos-13, only macos-10, 
-  # but the runners are on macos-13, so do not install coptpy for macos.
-  # cplex does not have macos wheels
-  python -m pip install coptpy==7.1.7 cplex
-fi
-
 if [[ "$PYTHON_VERSION" == "3.12" ]]; then
   python -m pip install "ortools>=9.7,<9.12"
-fi
-
-if [[ "$RUNNER_OS" != "Windows" ]]; then
-  # qoco has no wheels for Windows
-  python -m pip install qoco
 fi
 
 if [[ "$RUNNER_OS" == "Windows" ]] && [[ "$PYTHON_VERSION" != "3.13" ]]; then
@@ -42,16 +30,16 @@ fi
 
 if [[ "$PYTHON_VERSION" == "3.12" ]] && [[ "$RUNNER_OS" != "Windows" ]]; then
   # cylp has no wheels for Windows
-  python -m pip install cylp pyscipopt==5.2.1
+  python -m pip install cylp qoco
 fi
 
-if [[ "$PYTHON_VERSION" == "3.12" ]] && [[ "$RUNNER_OS" != "Windows" ]]; then
+if [[ "$PYTHON_VERSION" == "3.12" ]] && [[ "$RUNNER_OS" != "Ubuntu" ]]; then
   # SDPA didn't pass LP5 on Ubuntu for Python 3.9 and 3.12
   python -m pip install sdpa-python
 fi
 
 if [[ "$PYTHON_VERSION" == "3.12" ]] && [[ "$RUNNER_OS" != "macOS" ]]; then
-  python -m pip install xpress==9.4.3
+  python -m pip install xpress==9.4.3 coptpy==7.1.7 cplex
 fi
 
 # Only install Mosek if license is available (secret is not copied to forks)
