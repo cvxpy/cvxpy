@@ -216,7 +216,7 @@ class MOSEK(ConicSolver):
                 # A_row defines a symmetric matrix by where the first "order" entries
                 #   gives the matrix's first column, the second "order-1" entries gives
                 #   the matrix's second column (diagonal and below), and so on.
-                A_row = A_block[i, :]
+                A_row = A_block[[i], :]
                 if A_row.nnz == 0:
                     continue
 
