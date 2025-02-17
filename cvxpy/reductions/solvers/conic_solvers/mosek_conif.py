@@ -50,8 +50,9 @@ def vectorized_lower_tri_to_mat(v, dim):
     return A
 
 
-def vectorized_lower_tri_to_triples(A: sp.sparse.coo_matrix | list[float] | np.ndarray, dim: int) \
-        -> tuple[list[int], list[int], list[float]]:
+def vectorized_lower_tri_to_triples(A: sp.sparse.coo_matrix | sp.sparse.sparray |
+                                        list[float] | np.ndarray, dim: int) \
+                                    -> tuple[list[int], list[int], list[float]]:
     """
     Attributes
     ----------
@@ -71,7 +72,7 @@ def vectorized_lower_tri_to_triples(A: sp.sparse.coo_matrix | list[float] | np.n
         The values of the entries in the original matrix.
     """
 
-    if isinstance(A, sp.sparse.coo_matrix):
+    if sp.sparse.issparse(A):
         vals = A.data
         flattened_cols = A.col
         # Ensure that the columns are sorted.
