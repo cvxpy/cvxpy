@@ -14,6 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+import os
 import numpy as np
 import scipy.sparse as sp
 
@@ -165,8 +166,32 @@ class GUROBI(ConicSolver):
             del solver_opts['env']
             model = gurobipy.Model(env=default_env)
         else:
-            # Create Gurobi model using default (unspecified) environment
-            model = gurobipy.Model()
+            # Alternatively, reads the license off the environment variables
+            log_file = os.getenv("GUROBI_LOG_FILE", "gurobi.log")
+            license_company = os.getenv("GUROBI_LICENSE_COMPANY", None)
+            license_project = os.getenv("GUROBI_LICENSE_PROJECT", None)
+            license_expiration_date = os.getenv("GUROBI_LICENSE_EXPIRATION_DATE", None)
+            license_code = os.getenv("GUROBI_LICENSE_CODE", None)
+            model = None
+            if (license_company is None
+                or license_project is None
+                or license_expiration_date is None
+                or license_code is None):
+                print("Note: License parameters can be provided in enviroment "
+                    "variables GUROBI_LICENSE_COMPANY, GUROBI_LICENSE_PROJECT, "
+                    "GUROBI_LICENSE_EXPIRATION_DATE, GUROBI_LICENSE_CODE, "
+                    "but are not, at the moment.")
+                model = gurobipy.Model()
+            else:
+                isenv = gurobipy.Env.OtherEnv(
+                    log_file,
+                    license_company,
+                    license_project,
+                    int(license_expiration_date),
+                    license_code,
+                )
+                # Create a new model
+                model = gurobipy.Model(env=isenv)
 
         # Pass through verbosity
         model.setParam("OutputFlag", verbose)
