@@ -17,7 +17,6 @@ limitations under the License.
 from scipy.sparse import eye_array
 
 from cvxpy.atoms.quad_form import SymbolicQuadForm
-from cvxpy.expressions.variable import Variable
 
 
 def quad_over_lin_canon(expr, args):
