@@ -15,6 +15,7 @@ limitations under the License.
 """
 
 import numpy as np
+from scipy import sparse
 
 import cvxpy.interface as intf
 import cvxpy.settings as s
@@ -134,8 +135,17 @@ class ECOS(ConicSolver):
                 "ECOS cannot handle sparse data with nnz == 0; "
                 "this is a bug in ECOS, and it indicates that your problem "
                 "might have redundant constraints.")
-        solution = ecos.solve(data[s.C], data[s.G], data[s.H],
-                              cones, data[s.A], data[s.B],
+
+        # Convert csc_array to csc_matrix
+        G = data[s.G]
+        A = data[s.A]
+        if G is not None:
+            G = sparse.csc_matrix((G.data, G.indices, G.indptr), shape=G.shape)
+        if A is not None:
+            A = sparse.csc_matrix((A.data, A.indices, A.indptr), shape=A.shape)
+
+        solution = ecos.solve(data[s.C], G, data[s.H],
+                              cones, A, data[s.B],
                               verbose=verbose,
                               **solver_opts)
         return solution
