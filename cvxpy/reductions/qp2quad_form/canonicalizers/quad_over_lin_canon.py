@@ -31,8 +31,4 @@ def quad_over_lin_canon(expr, args):
         # but it should be sparse the whole time.
         quad_mat = eye_array(affine_expr.size) / y
 
-    if isinstance(affine_expr, Variable):
-        return SymbolicQuadForm(affine_expr, quad_mat, expr), []
-    else:
-        t = Variable(affine_expr.shape)
-        return SymbolicQuadForm(t, quad_mat, expr), [affine_expr == t]
+    return SymbolicQuadForm(t, quad_mat, expr), [affine_expr == t]
