@@ -211,8 +211,8 @@ class HIGHS(ConicSolver):
             setattr(options, key, value)
 
         solver = hp.Highs()
-        solver.passModel(model)
         solver.passOptions(options)
+        solver.passModel(model)
 
         # initialize and solve problem
         try:

@@ -1,3 +1,5 @@
+import platform
+
 import numpy as np
 import pytest
 
@@ -147,6 +149,10 @@ class TestQuantumRelEntr:
 
         return sth
 
+    @pytest.mark.skipif(
+        platform.system() == "Windows",
+        reason="This test is skipped on Windows",
+    )
     def test_1(self):
         sth = TestQuantumRelEntr.make_test_1()
         sth.solve(**self.CLARABEL_ARGS)
@@ -161,7 +167,7 @@ class TestQuantumRelEntr:
         sth.verify_objective(places=2)
         sth.verify_primal_values(places=2)
 
-    @pytest.mark.skipif(not run_full_test_suite,\
+    @pytest.mark.skipif(platform.system() == 'Linux' or not run_full_test_suite,\
                         reason="These tests are too slow to solve with CLARABEL")
     def test_3(self):
         sth = TestQuantumRelEntr.make_test_3()

@@ -4,7 +4,32 @@ Changes to CVXPY
 ================
 
 This page details changes made to CVXPY over time, in reverse chronological order.
-CVXPY's project maintainers currently provide support for CVXPY 1.6 and 1.5.
+CVXPY's project maintainers currently provide support for CVXPY 1.6.
+
+CVXPY 1.6.1
+-----------
+
+This release is consistent with our semantic versioning guarantee. It comes with bug fixes
+and performance improvements.
+This version of CVXPY supports Python 3.9 through 3.13. While working on the next release,
+we continue to officially support CVXPY 1.6.
+
+SciPy dependency bump
+~~~~~~~~~~~~~~~~~~~~~
+
+We increased our SciPy version to the oldest version that supported our NumPy dependency.
+Because we already had raised the NumPy dependency, we are allowing this dependency change
+during a release cycle.
+
+Bug fixes
+~~~~~~~~~
+
+- The implementation of `ref inv_prod <inv_prod>` was broken for variables of shape other than 1D. It is
+  now fixed. This may break some code that was previously incorrectly allowed and giving
+  incorrect answers.
+- The implementation of sparse variables did not allow for maximal efficiency gains. This can now be
+  addressed with the `value_sparse` attribute.
+
 
 CVXPY 1.6
 ---------

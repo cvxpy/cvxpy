@@ -821,7 +821,7 @@ will be the same as the class variable ``SUPPORTED_CONSTRAINTS``.
 .. _SCIP: https://scip.zib.de/
 .. _XPRESS: https://www.fico.com/en/products/fico-xpress-optimization
 .. _SCIPY: https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.linprog.html#scipy.optimize.linprog
-.. _HiGHS: https://www.maths.ed.ac.uk/hall/HiGHS/#guide
+.. _HiGHS: https://highs.dev/
 .. _CLARABEL: https://oxfordcontrol.github.io/ClarabelDocs/
 .. _PIQP: https://predict-epfl.github.io/piqp/
 .. _PROXQP: https://github.com/simple-robotics/proxsuite

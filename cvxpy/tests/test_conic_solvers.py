@@ -433,6 +433,40 @@ class TestClarabel(BaseTest):
         self.B = cp.Variable((2, 2), name='B')
         self.C = cp.Variable((3, 2), name='C')
 
+    def test_clarabel_parameter_update(self) -> None:
+        """Test warm start.
+        """
+        x = cp.Variable(2)
+        P = cp.Parameter(nonneg=True),
+        A = cp.Parameter(4)
+        b = cp.Parameter(2, nonneg=True)
+        q = cp.Parameter(2)
+
+        def update_parameters(P, A, b, q):
+            P[0].value = np.random.rand()
+            A.value = np.random.randn(4)
+            b.value = np.random.rand(2)
+            q.value = np.random.randn(2)
+
+        prob = cp.Problem(cp.Minimize(P[0]*cp.square(x[0]) + cp.sum_squares(x) + q.T @ x),
+                          [A[0] * x[0] + A[1] * x[1] == b[0],
+                           A[2] * x[0] + A[3] * x[1] <= b[1]])
+
+        update_parameters(P, A, b, q)
+        result1 = prob.solve(solver=cp.CLARABEL, warm_start=False)
+        result2 = prob.solve(solver=cp.CLARABEL, warm_start=True)
+        self.assertAlmostEqual(result1, result2)
+
+        update_parameters(P, A, b, q)
+        result1 = prob.solve(solver=cp.CLARABEL, warm_start=True)
+        result2 = prob.solve(solver=cp.CLARABEL, warm_start=False)
+        self.assertAlmostEqual(result1, result2)
+
+        # consecutive solves, no data update
+        result1 = prob.solve(solver=cp.CLARABEL, warm_start=False)
+        self.assertAlmostEqual(result1, result2)
+
+
     def test_clarabel_lp_0(self) -> None:
         StandardTestLPs.test_lp_0(solver=cp.CLARABEL)
 
@@ -1569,7 +1603,7 @@ class TestGUROBI(BaseTest):
                 self.skipTest("Gurobi has found a solution, the test is not relevant anymore.")
 
             solver_status = getattr(extra_stats, "Status", None)
-            if solver_status != gurobipy.StatusConstClass.TIME_LIMIT:
+            if solver_status != gurobipy.GRB.TIME_LIMIT:
                 self.skipTest("Gurobi terminated for a different reason than reaching time limit, "
                               "the test is not relevant anymore.")
 

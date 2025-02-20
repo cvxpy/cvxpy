@@ -63,8 +63,8 @@ or a conda environment.
         * `OSQP`_ >= 0.6.2
         * `CLARABEL`_ >= 0.6.0
         * `SCS`_ >= 3.0
-        * `NumPy`_ >= 1.20.0
-        * `SciPy`_ >= 1.6.0
+        * `NumPy`_ >= 1.21.6
+        * `SciPy`_ >= 1.11.0
 
         All required packages are installed automatically alongside CVXPY.
 
@@ -281,4 +281,4 @@ To run the tests when CVXPY was not installed from source, use
 .. _CVXPY git repository: https://github.com/cvxpy/cvxpy
 .. _pip: https://pip.pypa.io/
 .. _GLPK: https://www.gnu.org/software/glpk/
-.. _HiGHS: https://www.maths.ed.ac.uk/hall/HiGHS/#guide
+.. _HiGHS: https://highs.dev/
