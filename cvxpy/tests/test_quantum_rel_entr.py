@@ -167,7 +167,7 @@ class TestQuantumRelEntr:
         sth.verify_objective(places=2)
         sth.verify_primal_values(places=2)
 
-    @pytest.mark.skipif(platform.system() == 'Linux',\
+    @pytest.mark.skipif(platform.system() == 'Linux' or not run_full_test_suite,\
                         reason="These tests are too slow to solve with CLARABEL")
     def test_3(self):
         sth = TestQuantumRelEntr.make_test_3()
