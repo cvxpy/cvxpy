@@ -1718,17 +1718,27 @@ class TestND_Expressions():
         prob.solve(canon_backend=cp.SCIPY_CANON_BACKEND)
         assert np.allclose(expr.value, y)
 
-    def test_nd_broadcast(self) -> None:
-        x = cp.Variable(2)
-        y = cp.broadcast_to(x, shape=(2, 2, 2))
-        assert y.shape == (2, 2, 2)
+    @pytest.mark.parametrize("shapes", [((3),(253, 253, 3)),
+                                        ((7, 1, 5),(8, 7, 6, 5)),
+                                        ((1),(5, 4)),
+                                        ((4),(5, 4)),
+                                        ((15, 1, 5), (15, 3, 5)),
+                                        ((3, 5), (15, 3, 5)),
+                                        ((3, 1), (15, 3, 5)),])
+    def test_nd_broadcast(self, shapes) -> None:
+        x = cp.Variable(shapes[0])
+        y = cp.broadcast_to(x, shape=shapes[1])
+        assert y.shape == shapes[1]
         prob = cp.Problem(cp.Minimize(cp.sum(y)), [y == 1])
         prob.solve(canon_backend=cp.SCIPY_CANON_BACKEND)
         assert np.allclose(y.value, 1)
 
-    def test_nd_broadcast_error(self) -> None:
+    @pytest.mark.parametrize("shapes", [((3), (2, 2, 2)),
+                                        ((3), (4)),
+                                        ((2, 1),(8, 4, 3))])
+    def test_nd_broadcast_error(self, shapes) -> None:
         error_str = "operands could not be broadcast together"
         with pytest.raises(Exception, match=error_str):
-            x = cp.Variable(3)
-            y = cp.broadcast_to(x, shape=(2, 2, 2))
-            assert y.shape == (2, 2, 2)
+            x = cp.Variable(shapes[0])
+            y = cp.broadcast_to(x, shape=shapes[1])
+            assert y.shape == shapes[1]
