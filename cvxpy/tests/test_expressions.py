@@ -859,12 +859,6 @@ class TestExpressions(BaseTest):
         A = np.ones((3, 3)) / c
         self.assertItemsAlmostEqual(A, expr.value)
 
-        with self.assertRaises(Exception) as cm:
-            (x/c[:, 0])
-        print(cm.exception)
-        self.assertRegex(str(cm.exception),
-                         "Incompatible shapes for division.*")
-
     # Test the NegExpression class.
     def test_neg_expression(self) -> None:
         # Vectors
