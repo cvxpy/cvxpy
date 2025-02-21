@@ -1721,11 +1721,7 @@ class TestND_Expressions():
     def test_nd_broadcast(self) -> None:
         # test broadcast dim 1
         x = cp.Variable(2)
-        y = cp.Constant(np.ones((2,2)))
-
-        # test broadcast dim 0
-        x = cp.Variable(shape=(2,1))
-        y = cp.Constant(np.ones((2,2)))
-
-        expr = x+y
-        print(expr.shape)
+        y = cp.broadcast_to(x, shape=(2, 2))
+        assert y.shape == (2, 2)
+        prob = cp.Problem(cp.Minimize(cp.sum(y)), [y == 1])
+        prob.solve(canon_backend=cp.SCIPY_CANON_BACKEND)

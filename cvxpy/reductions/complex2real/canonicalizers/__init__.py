@@ -22,7 +22,7 @@ from cvxpy.atoms import (MatrixFrac, Pnorm, QuadForm, abs, bmat, conj, conv,
 from cvxpy.atoms.affine.add_expr import AddExpression
 from cvxpy.atoms.affine.binary_operators import (DivExpression, MulExpression,
                                                  multiply,)
-from cvxpy.atoms.affine.broadcast_to import Broadcast
+from cvxpy.atoms.affine.broadcast_to import broadcast_to
 from cvxpy.atoms.affine.diag import diag_mat, diag_vec
 from cvxpy.atoms.affine.hstack import Hstack
 from cvxpy.atoms.affine.index import index, special_index
@@ -71,7 +71,7 @@ CANON_METHODS = {
     index: separable_canon,
     special_index: separable_canon,
     Promote: separable_canon,
-    Broadcast: separable_canon,
+    broadcast_to: separable_canon,
     reshape: separable_canon,
     Sum: separable_canon,
     trace: trace_canon,

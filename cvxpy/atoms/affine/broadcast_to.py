@@ -24,12 +24,13 @@ from cvxpy.atoms.affine.affine_atom import AffAtom
 from cvxpy.constraints.constraint import Constraint
 
 
-class Broadcast(AffAtom):
+class broadcast_to(AffAtom):
     """Broadcast the expression given a shape input"""
 
     def __init__(self, expr, shape) -> None:
         self.broadcast_shape = shape
-        super(Broadcast, self).__init__(expr)
+        self._shape = expr.shape
+        super(broadcast_to, self).__init__(expr)
 
     def is_atom_log_log_convex(self) -> bool:
         return True
@@ -74,4 +75,4 @@ class Broadcast(AffAtom):
         tuple
             (LinOp for the objective, list of constraints)
         """
-        return (lu.broadcast_to(arg_objs, shape, data[0]), [])
+        return (lu.broadcast_to(arg_objs, shape), [])
