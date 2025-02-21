@@ -588,15 +588,8 @@ class Expression(u.Canonical):
             lh_expr = cp.promote(lh_expr, rh_expr.shape)
         elif rh_expr.is_scalar() and not lh_expr.is_scalar():
             rh_expr = cp.promote(rh_expr, lh_expr.shape)
-        # Broadcasting.
-        if lh_expr.ndim >= 2 or rh_expr.ndim >= 2:
-            output_shape = np.broadcast_shapes(lh_expr.shape, rh_expr.shape)
-            if lh_expr.shape != output_shape:
-                lh_expr = cp.broadcast_to(lh_expr, output_shape)
-            if rh_expr.shape != output_shape:
-                rh_expr = cp.broadcast_to(rh_expr, output_shape)
-        """
-        if lh_expr.ndim >= 2 and rh_expr.ndim >= 2:
+        # TODO: cleanup once CPP backend is removed
+        if lh_expr.ndim == 2 and rh_expr.ndim == 2:
             dims = [max(lh_expr.shape[i], rh_expr.shape[i]) for i in range(2)]
             # Broadcast along dim 0.
             if lh_expr.shape[0] == 1 and lh_expr.shape[0] < dims[0]:
@@ -608,7 +601,13 @@ class Expression(u.Canonical):
                 lh_expr = lh_expr @ np.ones((1, dims[1]))
             if rh_expr.shape[1] == 1 and rh_expr.shape[1] < dims[1]:
                 rh_expr = rh_expr @ np.ones((1, dims[1]))
-        """
+        # Broadcasting.
+        if lh_expr.ndim >= 3 or rh_expr.ndim >= 3:
+            output_shape = np.broadcast_shapes(lh_expr.shape, rh_expr.shape)
+            if lh_expr.shape != output_shape:
+                lh_expr = cp.broadcast_to(lh_expr, output_shape)
+            if rh_expr.shape != output_shape:
+                rh_expr = cp.broadcast_to(rh_expr, output_shape)
         return lh_expr, rh_expr
 
     @_cast_other

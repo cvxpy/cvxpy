@@ -1736,3 +1736,13 @@ class TestND_Expressions():
             x = cp.Variable(shapes[0])
             y = cp.broadcast_to(x, shape=shapes[1])
             assert y.shape == shapes[1]
+
+    def test_no_segfault_multiply(self) -> None:
+        error_str = "Cannot multiply expressions with dimensions"
+        with pytest.raises(Exception, match=error_str):
+            x = cp.Variable(5)
+            a = np.array([1,2,3]).reshape(-1, 1)
+            b = np.array([1,2,3]).reshape(-1, 1)        
+            obj = cp.sum(cp.max(cp.multiply(a, x) + b, axis=0))
+            prob = cp.Problem(cp.Minimize(obj), [])
+            prob.solve(canon_backend=cp.SCIPY_CANON_BACKEND)

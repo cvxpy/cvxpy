@@ -269,7 +269,10 @@ class multiply(MulExpression):
 
     def validate_arguments(self):
         """Validate that the arguments are broadcastable."""
-        np.broadcast_shapes(self.args[0].shape, self.args[1].shape)
+        output_shape = np.broadcast_shapes(self.args[0].shape, self.args[1].shape)
+        if self.args[0].shape != output_shape or self.args[1].shape != output_shape:
+            raise ValueError("Cannot multiply expressions with dimensions %s and %s" %
+                             (self.args[0].shape, self.args[1].shape))
 
     def shape_from_args(self) -> Tuple[int, ...]:
         """Call np.broadcast on multiply arguments."""
