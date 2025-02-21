@@ -332,6 +332,7 @@ class PythonCanonBackend(CanonBackend):
             "sum": self.sum_op,
             "mul": self.mul,
             "promote": self.promote,
+            "broadcast_to": self.broadcast_to,
             "neg": self.neg,
             "mul_elem": self.mul_elem,
             "sum_entries": self.sum_entries,
@@ -384,6 +385,14 @@ class PythonCanonBackend(CanonBackend):
         Promote view by repeating along axis 0 (rows)
         """
         pass  # noqa
+    
+    @staticmethod
+    @abstractmethod
+    def broadcast_to(lin: LinOp, view: TensorView) -> TensorView:
+        """
+        Broadcast view to a new shape.
+        """
+        pass # noqa
 
     @staticmethod
     def neg(_lin: LinOp, view: TensorView) -> TensorView:
@@ -766,6 +775,10 @@ class NumPyCanonBackend(PythonCanonBackend):
         view.apply_all(func)
         return view
 
+    @staticmethod
+    def broadcast_to(lin: LinOp, view: NumPyTensorView) -> NumPyTensorView:
+        pass
+    
     def mul_elem(self, lin: LinOp, view: NumPyTensorView) -> NumPyTensorView:
         """
         Given (A, b) in view and constant data d, return (A*d, b*d).
@@ -1206,6 +1219,10 @@ class SciPyCanonBackend(PythonCanonBackend):
         view.select_rows(rows)
         return view
 
+    @staticmethod
+    def broadcast_to(lin, view):
+        pass
+    
     def mul_elem(self, lin: LinOp, view: SciPyTensorView) -> SciPyTensorView:
         """
         Given (A, b) in view and constant data d, return (A*d, b*d).
