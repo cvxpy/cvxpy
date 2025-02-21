@@ -777,7 +777,18 @@ class NumPyCanonBackend(PythonCanonBackend):
 
     @staticmethod
     def broadcast_to(lin: LinOp, view: NumPyTensorView) -> NumPyTensorView:
-        pass
+        """
+        Broadcast view by repeating along axis 1 (rows).
+        """
+        num_entries = int(np.prod(lin.shape))
+        current_dim = int(np.prod(lin.args[0].shape))
+        times = num_entries // current_dim
+
+        def func(x):
+            return np.tile(x, (1, times, 1))
+
+        view.apply_all(func)
+        return view
     
     def mul_elem(self, lin: LinOp, view: NumPyTensorView) -> NumPyTensorView:
         """
@@ -1221,7 +1232,12 @@ class SciPyCanonBackend(PythonCanonBackend):
 
     @staticmethod
     def broadcast_to(lin: LinOp, view: SciPyTensorView) -> SciPyTensorView:
-        pass
+        num_entries = int(np.prod(lin.shape))
+        current_dim = int(np.prod(lin.args[0].shape))
+        times = num_entries // current_dim
+        rows = np.repeat(np.arange(current_dim), times)
+        view.select_rows(rows)
+        return view
     
     def mul_elem(self, lin: LinOp, view: SciPyTensorView) -> SciPyTensorView:
         """

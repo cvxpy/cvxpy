@@ -32,6 +32,9 @@ class broadcast_to(AffAtom):
         self._shape = expr.shape
         super(broadcast_to, self).__init__(expr)
 
+    def _supports_cpp(self) -> bool:
+        return False
+
     def is_atom_log_log_convex(self) -> bool:
         return True
 

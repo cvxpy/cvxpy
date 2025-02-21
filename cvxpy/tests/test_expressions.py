@@ -1719,9 +1719,16 @@ class TestND_Expressions():
         assert np.allclose(expr.value, y)
 
     def test_nd_broadcast(self) -> None:
-        # test broadcast dim 1
         x = cp.Variable(2)
-        y = cp.broadcast_to(x, shape=(2, 2))
-        assert y.shape == (2, 2)
+        y = cp.broadcast_to(x, shape=(2, 2, 2))
+        assert y.shape == (2, 2, 2)
         prob = cp.Problem(cp.Minimize(cp.sum(y)), [y == 1])
         prob.solve(canon_backend=cp.SCIPY_CANON_BACKEND)
+        assert np.allclose(y.value, 1)
+
+    def test_nd_broadcast_error(self) -> None:
+        error_str = "operands could not be broadcast together"
+        with pytest.raises(Exception, match=error_str):
+            x = cp.Variable(3)
+            y = cp.broadcast_to(x, shape=(2, 2, 2))
+            assert y.shape == (2, 2, 2)
