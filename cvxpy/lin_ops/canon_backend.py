@@ -1220,7 +1220,7 @@ class SciPyCanonBackend(PythonCanonBackend):
         return view
 
     @staticmethod
-    def broadcast_to(lin, view):
+    def broadcast_to(lin: LinOp, view: SciPyTensorView) -> SciPyTensorView:
         pass
     
     def mul_elem(self, lin: LinOp, view: SciPyTensorView) -> SciPyTensorView:

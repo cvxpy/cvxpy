@@ -27,15 +27,9 @@ from cvxpy.constraints.constraint import Constraint
 class Broadcast(AffAtom):
     """Broadcast the expression given a shape input"""
 
-    def __init__(self, *args) -> None:
-        if isinstance(args[-1], int) or args[-1] is None:
-            # Assume the last positional argument is axis
-            axis = args[-1]
-            args = args[:-1]
-            self.axis = axis
-        else:
-            self.axis = None
-        super().__init__(*args)
+    def __init__(self, expr, shape) -> None:
+        self.broadcast_shape = shape
+        super(Broadcast, self).__init__(expr)
 
     def is_atom_log_log_convex(self) -> bool:
         return True
@@ -43,26 +37,20 @@ class Broadcast(AffAtom):
     def is_atom_log_log_concave(self) -> bool:
         return True
 
-    # Returns the concatenation of the values along the specified axis.
     def numeric(self, values):
-        return np.concatenate(values, axis=self.axis)
+        return np.broadcast_to(values[0], shape=self.broadcast_shape)
 
     def get_data(self) -> List[Optional[int]]:
-        return [self.axis]
+        return [self.broadcast_shape]
 
     def validate_arguments(self) -> None:
-        # Validates that the input shapes in `self.args` are suitable for
-        # concatenation along a specified axis using numpy API with empty arrays
-        np.concatenate(
-            [np.empty(arg.shape, dtype=np.dtype([])) for arg in self.args],
-            axis=self.axis,
+        np.broadcast_to(
+            np.empty(self.shape, dtype=np.dtype([])),
+            shape=self.broadcast_shape
         )
 
     def shape_from_args(self) -> Tuple[int, ...]:
-        return np.concatenate(
-            [np.empty(arg.shape, dtype=np.dtype([])) for arg in self.args],
-            axis=self.axis,
-        ).shape
+        return self.broadcast_shape
 
     def graph_implementation(
         self,
@@ -70,7 +58,7 @@ class Broadcast(AffAtom):
         shape: Tuple[int, ...],
         data=None,
     ) -> Tuple[lo.LinOp, List[Constraint]]:
-        """Concatenate the expressions along an existing axis.
+        """Broadcast an expression to a given shape.
 
         Parameters
         ----------
