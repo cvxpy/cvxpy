@@ -1,0 +1,16 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+preferred-citation:
+  type: article
+  authors:
+  - family-names: "Diamond"
+    given-names: "Steven"
+  - family-names: "Boyd"
+    given-names: "Stephen"
+  journal: "Journal of Machine Learning Research"
+  start: 1 # First page number
+  end: 5 # Last page number
+  title: "{CVXPY}: {A} {P}ython-embedded modeling language for convex optimization"
+  number: 83
+  volume: 17
+  year: 2016
