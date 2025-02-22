@@ -367,7 +367,7 @@ class power(Elementwise):
 
         if p == 0:
             # All zeros.
-            return [sp.csc_matrix((rows, cols), dtype='float64')]
+            return [sp.csc_array((rows, cols), dtype='float64')]
         # Outside domain or on boundary.
         if not is_power2(p) and np.min(values[0]) <= 0:
             if p < 1:

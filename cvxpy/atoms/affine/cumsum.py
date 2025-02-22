@@ -28,7 +28,7 @@ from cvxpy.expressions.expression import Expression
 from cvxpy.expressions.variable import Variable
 
 
-def get_diff_mat(dim: int, axis: int) -> sp.csc_matrix:
+def get_diff_mat(dim: int, axis: int) -> sp.csc_array:
     """Return a sparse matrix representation of first order difference operator.
 
     Parameters
@@ -40,11 +40,11 @@ def get_diff_mat(dim: int, axis: int) -> sp.csc_matrix:
 
     Returns
     -------
-    sp.csc_matrix
+    sp.csc_array
         A square matrix representing first order difference.
     """
-    mat = sp.diags([np.ones(dim), -np.ones(dim - 1)], [0, -1], 
-                   shape=(dim, dim), 
+    mat = sp.diags_array([np.ones(dim), -np.ones(dim - 1)], offsets=[0, -1],
+                   shape=(dim, dim),
                    format='csc')
     return mat if axis == 0 else mat.T
 
@@ -86,7 +86,7 @@ class cumsum(AffAtom, AxisAtom):
             A list of SciPy CSC sparse matrices or None.
         """
         dim = values[0].shape[self.axis]
-        mat = sp.tril(np.ones((dim, dim)))
+        mat = sp.csc_array(np.tril(np.ones((dim, dim))))
         var = Variable(self.args[0].shape)
         if self.axis == 0:
             grad = MulExpression(mat, var)._grad(values)[1]

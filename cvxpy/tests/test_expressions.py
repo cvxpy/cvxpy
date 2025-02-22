@@ -270,7 +270,7 @@ class TestExpressions(BaseTest):
         self.assertFalse(P.is_nsd())
 
         # Check with sparse inputs
-        P = Constant(sp.eye(10))
+        P = Constant(sp.eye_array(10))
         self.assertTrue(gershgorin_psd_check(P.value, s.EIGVAL_TOL))
         self.assertTrue(P.is_psd())
         self.assertTrue((-P).is_nsd())
@@ -307,17 +307,17 @@ class TestExpressions(BaseTest):
         self.assertFalse(C.is_skew_symmetric())
 
         # Test sparse constants
-        C = Constant(sp.csc_matrix(M1_false))
+        C = Constant(sp.csc_array(M1_false))
         self.assertFalse(C.is_skew_symmetric())
-        C = Constant(sp.csc_matrix(M2_true))
+        C = Constant(sp.csc_array(M2_true))
         self.assertTrue(C.is_skew_symmetric())
-        C = Constant(sp.csc_matrix(M4_true))
+        C = Constant(sp.csc_array(M4_true))
         self.assertTrue(C.is_skew_symmetric())
-        C = Constant(sp.csc_matrix(M5_false))
+        C = Constant(sp.csc_array(M5_false))
         self.assertFalse(C.is_skew_symmetric())
-        C = Constant(sp.csc_matrix(M6_false))
+        C = Constant(sp.csc_array(M6_false))
         self.assertFalse(C.is_skew_symmetric())
-        C = Constant(sp.csc_matrix(M7_false))
+        C = Constant(sp.csc_array(M7_false))
         self.assertFalse(C.is_skew_symmetric())
 
         # Test complex inputs: never recognized as skew-symmetric.
@@ -368,7 +368,7 @@ class TestExpressions(BaseTest):
 
         # Test valid diagonal parameter.
         p = Parameter((2, 2), diag=True)
-        p.value = sp.csc_matrix(np.eye(2))
+        p.value = sp.csc_array(np.eye(2))
         self.assertItemsAlmostEqual(p.value.todense(), np.eye(2), places=10)
 
     def test_psd_nsd_parameters(self) -> None:
@@ -1409,7 +1409,7 @@ class TestExpressions(BaseTest):
 
         # QuadForm with sparse matrices
         x = Variable(shape=(2,))
-        A = Constant(sp.eye(2))
+        A = Constant(sp.eye_array(2))
         expr = x.T.__matmul__(A).__matmul__(x)
         assert isinstance(expr, cp.QuadForm)
 

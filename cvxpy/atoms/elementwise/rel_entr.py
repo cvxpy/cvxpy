@@ -17,7 +17,7 @@ limitations under the License.
 from typing import List, Optional, Tuple
 
 import numpy as np
-from scipy.sparse import csc_matrix
+from scipy.sparse import csc_array
 from scipy.special import rel_entr as rel_entr_scipy
 
 from cvxpy.atoms.elementwise.elementwise import Elementwise
@@ -66,7 +66,7 @@ class rel_entr(Elementwise):
         else:
             return True
 
-    def _grad(self, values) -> List[Optional[csc_matrix]]:
+    def _grad(self, values) -> List[Optional[csc_array]]:
         """Gives the (sub/super)gradient of the atom w.r.t. each argument.
 
         Matrix expressions are vectorized, so the gradient is a matrix.

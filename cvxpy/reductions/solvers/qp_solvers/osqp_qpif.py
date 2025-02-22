@@ -77,7 +77,7 @@ class OSQP(QpSolver):
             factorizing = False
             if P.data.shape != old_data[s.P].data.shape or any(
                     P.data != old_data[s.P].data):
-                P_triu = sp.triu(P).tocsc()
+                P_triu = sp.csc_array(sp.triu(P, format='csc'))
                 new_args['Px'] = P_triu.data
                 factorizing = True
             if A.data.shape != old_data['Ax'].data.shape or any(

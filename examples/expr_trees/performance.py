@@ -34,8 +34,8 @@ prob.solve(verbose=True)
 # # Point = namedtuple('Point', ['x', 'y', 'z'])
 # cProfile.run("prob.solve()")
 # cProfile.run("prob.solve()")
-#cProfile.run("sp.eye(n*n).tocsc()")
-#cProfile.run("[sp.eye(n*n).tolil()[0:1000,:] for i in range(n)] ")
+#cProfile.run("sp.eye_array(n*n).tocsc()")
+#cProfile.run("[sp.eye_array(n*n).tolil()[0:1000,:] for i in range(n)] ")
 # cProfile.run("[Point(i, i, i) for i in xrange(n*n)]")
 
 # from qcml import QCML

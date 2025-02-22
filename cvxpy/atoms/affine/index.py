@@ -158,14 +158,14 @@ class special_index(AffAtom):
         return [self.key]
 
     @property
-    def grad(self) -> Optional[list[sp.csc_matrix]]:
+    def grad(self) -> Optional[list[sp.csc_array]]:
         """Gives the (sub/super)gradient of the expression w.r.t. each variable.
 
         Matrix expressions are vectorized, so the gradient is a matrix.
         None indicates variable values unknown or outside domain.
         """
         select_vec = np.reshape(self._select_mat, self._select_mat.size, order='F')
-        identity = sp.eye(self.args[0].size).tocsc()
+        identity = sp.eye_array(self.args[0].size, format='csc')
         lowered = reshape(
             identity[select_vec] @ vec(self.args[0], order='F'),
             self._shape,
@@ -193,7 +193,7 @@ class special_index(AffAtom):
         select_vec = np.reshape(select_mat, select_mat.size, order='F')
         # Select the chosen entries from expr.
         arg = arg_objs[0]
-        identity = sp.eye(self.args[0].size).tocsc()
+        identity = sp.eye_array(self.args[0].size, format='csc')
         vec_arg = lu.reshape(arg, (self.args[0].size,))
         mul_mat = identity[select_vec]
         mul_const = lu.create_const(mul_mat, mul_mat.shape, sparse=True)

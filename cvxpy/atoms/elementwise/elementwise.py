@@ -58,7 +58,7 @@ class Elementwise(Atom):
         """
         if not np.isscalar(value):
             value = value.ravel(order='F')
-        return sp.dia_matrix((np.atleast_1d(value), [0]), shape=(rows, cols)).tocsc()
+        return sp.dia_array((np.atleast_1d(value), [0]), shape=(rows, cols)).tocsc()
 
     @staticmethod
     def _promote(arg, shape: Tuple[int, ...]):

@@ -96,7 +96,7 @@ class ceil(Elementwise):
         Returns:
             A list of SciPy CSC sparse matrices or None.
         """
-        return sp.csc_matrix(self.args[0].shape)
+        return sp.csc_array(self.args[0].shape)
 
 
 class floor(Elementwise):
@@ -172,4 +172,4 @@ class floor(Elementwise):
         Returns:
             A list of SciPy CSC sparse matrices or None.
         """
-        return sp.csc_matrix(self.args[0].shape)
+        return sp.csc_array(self.args[0].shape)

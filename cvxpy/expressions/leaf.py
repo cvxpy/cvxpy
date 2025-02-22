@@ -401,7 +401,7 @@ class Leaf(expression.Expression):
                 val = val.diagonal()
             else:
                 val = np.diag(val)
-            return sp.diags([val], [0])
+            return sp.diags_array([val], offsets=[0])
         elif self.attributes['hermitian']:
             return (val + np.conj(val).T)/2.
         elif any([self.attributes[key] for

@@ -140,11 +140,11 @@ def vec_to_upper_tri(expr, strict: bool = False):
     P_rows = n * row_idx + col_idx
     P_cols = np.arange(ell)
     P_vals = np.ones(P_cols.size)
-    P = sp.csc_matrix((P_vals, (P_rows, P_cols)), shape=(n * n, ell))
+    P = sp.csc_array((P_vals, (P_rows, P_cols)), shape=(n * n, ell))
     return reshape(P @ expr, (n, n), order='F').T
 
 
-def upper_tri_to_full(n: int) -> sp.csc_matrix:
+def upper_tri_to_full(n: int) -> sp.csc_array:
     """
     Returns a coefficient matrix A that creates a symmetric matrix when
     multiplied with a variable vector v.
@@ -157,7 +157,7 @@ def upper_tri_to_full(n: int) -> sp.csc_matrix:
 
     Returns
     -------
-    sp.csc_matrix
+    sp.csc_array
         The coefficient matrix.
     """
     entries = n*(n+1)//2
@@ -173,4 +173,4 @@ def upper_tri_to_full(n: int) -> sp.csc_matrix:
     values = np.ones(col_idx.size, dtype=float)
 
     # Construct and return the sparse matrix
-    return sp.csc_matrix((values, (row_idx, col_idx)), shape=(n * n, entries))
+    return sp.csc_array((values, (row_idx, col_idx)), shape=(n * n, entries))

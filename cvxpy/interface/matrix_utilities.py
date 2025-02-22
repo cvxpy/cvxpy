@@ -24,13 +24,14 @@ from cvxpy.interface import numpy_interface as np_intf
 # A mapping of class to interface.
 INTERFACES = {np.ndarray: np_intf.NDArrayInterface(),
               np.matrix: np_intf.MatrixInterface(),
-              sp.csc_matrix: np_intf.SparseMatrixInterface(),
+              sp.csc_matrix: np_intf.SparseArrayInterface(),
+              sp.csc_array: np_intf.SparseArrayInterface(),
               }
 # Default Numpy interface.
 DEFAULT_NP_INTF = INTERFACES[np.ndarray]
 # Default dense and sparse matrix interfaces.
 DEFAULT_INTF = INTERFACES[np.ndarray]
-DEFAULT_SPARSE_INTF = INTERFACES[sp.csc_matrix]
+DEFAULT_SPARSE_INTF = INTERFACES[sp.csc_array]
 
 
 # Returns the interface for interacting with the target matrix class.
@@ -49,7 +50,7 @@ def get_cvxopt_sparse_intf():
     """Dynamic import of CVXOPT sparse interface.
     """
     import cvxpy.interface.cvxopt_interface.sparse_matrix_interface as smi
-    return smi.SparseMatrixInterface()
+    return smi.SparseArrayInterface()
 
 # Tools for handling CVXOPT matrices.
 
@@ -132,7 +133,7 @@ def shape(constant):
         return INTERFACES[constant.__class__].shape(constant)
     # Direct all sparse matrices to CSC interface.
     elif is_sparse(constant):
-        return INTERFACES[sp.csc_matrix].shape(constant)
+        return INTERFACES[sp.csc_array].shape(constant)
     else:
         raise TypeError("%s is not a valid type for a Constant value." % type(constant))
 
@@ -191,7 +192,7 @@ def scalar_value(constant):
         return INTERFACES[constant.__class__].scalar_value(constant)
     # Direct all sparse matrices to CSC interface.
     elif is_sparse(constant):
-        return INTERFACES[sp.csc_matrix].scalar_value(constant.tocsc())
+        return INTERFACES[sp.csc_array].scalar_value(constant.tocsc())
     else:
         raise TypeError("%s is not a valid type for a Constant value." % type(constant))
 
@@ -264,7 +265,7 @@ def index(constant, key):
         return INTERFACES[constant.__class__].index(constant, key)
     # Use CSC interface for all sparse matrices.
     elif is_sparse(constant):
-        interface = INTERFACES[sp.csc_matrix]
+        interface = INTERFACES[sp.csc_array]
         constant = interface.const_to_matrix(constant)
         return interface.index(constant, key)
 

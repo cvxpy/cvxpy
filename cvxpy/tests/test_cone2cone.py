@@ -208,7 +208,7 @@ class TestSlacks(BaseTest):
         cone_prog = ConicSolver.format_constraints(cone_prog, exp_cone_order=[0, 1, 2])
         data, inv_data = a2d.Slacks.apply(cone_prog, affine)
         G, h, f, K_dir, K_aff = data[s.A], data[s.B], data[s.C], data['K_dir'], data['K_aff']
-        G = sp.sparse.csc_matrix(G)
+        G = sp.sparse.csc_array(G)
         y = cp.Variable(shape=(G.shape[1],))
         objective = cp.Minimize(f @ y)
         aff_con = TestSlacks.set_affine_constraints(G, h, y, K_aff)

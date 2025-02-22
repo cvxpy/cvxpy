@@ -152,7 +152,7 @@ class GUROBI(ConicSolver):
 
         c = data[s.C]
         b = data[s.B]
-        A = sp.csr_matrix(data[s.A])
+        A = sp.csr_array(data[s.A])
         dims = dims_to_solver_dict(data[s.DIMS])
 
         n = c.shape[0]

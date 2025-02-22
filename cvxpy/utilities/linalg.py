@@ -2,7 +2,7 @@ import numpy as np
 import scipy.linalg as la
 import scipy.sparse as spar
 import scipy.sparse.linalg as sparla
-from scipy.sparse import csc_matrix
+from scipy.sparse import csc_array
 
 import cvxpy.settings as settings
 
@@ -36,8 +36,8 @@ def onb_for_orthogonal_complement(V):
 
 
 def is_diagonal(A):
-    if isinstance(A, spar.spmatrix):
-        off_diagonal_elements = A - spar.diags(A.diagonal())
+    if spar.issparse(A):
+        off_diagonal_elements = A - spar.diags_array(A.diagonal())
         off_diagonal_elements = off_diagonal_elements.toarray()
     elif isinstance(A, np.ndarray):
         off_diagonal_elements = A - np.diag(np.diag(A))
@@ -66,8 +66,8 @@ def is_psd_within_tol(A, tol):
 
     Parameters
     ----------
-    A : Union[np.ndarray, spar.spmatrix]
-        Symmetric (or Hermitian) NumPy ndarray or SciPy sparse matrix.
+    A : Union[np.ndarray, spar.sparray]
+        Symmetric (or Hermitian) NumPy ndarray or SciPy sparse array.
 
     tol : float
         Nonnegative. Something very small, like 1e-10.
@@ -77,7 +77,7 @@ def is_psd_within_tol(A, tol):
         return True
 
     if is_diagonal(A):
-        if isinstance(A, csc_matrix):
+        if isinstance(A, csc_array):
             return np.all(A.data >= -tol)
         else:
             min_diag_entry = np.min(np.diag(A))
@@ -149,8 +149,8 @@ def gershgorin_psd_check(A, tol):
 
     Parameters
     ----------
-    A : Union[np.ndarray, spar.spmatrix]
-        Symmetric (or Hermitian) NumPy ndarray or SciPy sparse matrix.
+    A : Union[np.ndarray, spar.sparray]
+        Symmetric (or Hermitian) NumPy ndarray or SciPy sparse array.
 
     tol : float
         Nonnegative. Something very small, like 1e-10.
@@ -160,11 +160,11 @@ def gershgorin_psd_check(A, tol):
     True if A is PSD according to the Gershgorin Circle Theorem.
     Otherwise, return False.
     """
-    if isinstance(A, spar.spmatrix):
+    if spar.issparse(A):
         diag = A.diagonal()
         if np.any(diag < -tol):
             return False
-        A_shift = A - spar.diags(diag)
+        A_shift = A - spar.diags_array(diag)
         A_shift = np.abs(A_shift)
         radii = np.array(A_shift.sum(axis=0)).ravel()
         return np.all(diag - radii >= -tol)
@@ -205,7 +205,7 @@ def sparse_cholesky(A, sym_tol=settings.CHOL_SYM_TOL, assume_posdef=False):
     """
     import cvxpy.utilities.cpp.sparsecholesky as spchol  # noqa: I001
 
-    if not isinstance(A, spar.spmatrix):
+    if not spar.issparse(A):
         raise ValueError(SparseCholeskyMessages.NOT_SPARSE)
     if np.iscomplexobj(A):
         raise ValueError(SparseCholeskyMessages.NOT_REAL)
@@ -253,5 +253,5 @@ def sparse_cholesky(A, sym_tol=settings.CHOL_SYM_TOL, assume_posdef=False):
     outrows = np.array(outrows)
     outcols = np.array(outcols)
     outpivs = np.array(outpivs)
-    L = spar.csr_matrix((outvals, (outrows, outcols)), shape=(n, n))
+    L = spar.csr_array((outvals, (outrows, outcols)), shape=(n, n))
     return 1.0, L, outpivs

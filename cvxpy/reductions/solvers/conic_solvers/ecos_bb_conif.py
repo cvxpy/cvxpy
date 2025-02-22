@@ -14,6 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+from scipy import sparse
 
 import cvxpy.interface as intf
 import cvxpy.settings as s
@@ -117,8 +118,16 @@ class ECOS_BB(ECOS):
             del solver_opts['mi_verbose']
         else:
             mi_verbose = verbose
-        solution = ecos.solve(data[s.C], data[s.G], data[s.H],
-                              cones, data[s.A], data[s.B],
+
+        # Convert csc_array to csc_matrix
+        G = data[s.G]
+        A = data[s.A]
+        if G is not None:
+            G = sparse.csc_matrix((G.data, G.indices, G.indptr), shape=G.shape)
+        if A is not None:
+            A = sparse.csc_matrix((A.data, A.indices, A.indptr), shape=A.shape)
+        solution = ecos.solve(data[s.C], G, data[s.H],
+                              cones, A, data[s.B],
                               verbose=verbose,
                               mi_verbose=mi_verbose,
                               bool_vars_idx=data[s.BOOL_IDX],

@@ -156,14 +156,14 @@ class ConicSolver(Solver):
         row_arr = np.arange(0, num_blocks * streak_plus_spacing).reshape(
             num_blocks, streak_plus_spacing)[:, :streak].flatten() + offset
         col_arr = np.arange(num_values)
-        return sp.csc_matrix((val_arr, (row_arr, col_arr)), shape)
+        return sp.csc_array((val_arr, (row_arr, col_arr)), shape)
 
     @staticmethod
     def psd_format_mat(constr):
         """Return a matrix to multiply by PSD constraint coefficients.
         """
         # Default is identity.
-        return sp.eye(constr.size, format='csc')
+        return sp.eye_array(constr.size, format='csc')
 
     @classmethod
     def format_constraints(cls, problem, exp_cone_order):

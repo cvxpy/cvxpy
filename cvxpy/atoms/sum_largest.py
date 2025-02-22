@@ -65,7 +65,7 @@ class sum_largest(Atom):
         indices = np.argpartition(-value, kth=k)[:k]
         D = np.zeros((self.args[0].shape[0]*self.args[0].shape[1], 1))
         D[indices] = 1
-        return [sp.csc_matrix(D)]
+        return [sp.csc_array(D)]
 
     def shape_from_args(self) -> Tuple[int, ...]:
         """Returns the (row, col) shape of the expression.

@@ -38,7 +38,7 @@ def build_matrix(
     var_length: int,
     constr_length: int,
     linOps: List[lo.LinOp],
-) -> sp.csc_matrix:
+) -> sp.csc_array:
     lin_vec = cvxcore.ConstLinOpVector()
 
     id_to_col_C = cvxcore.IntIntMap()
@@ -99,7 +99,7 @@ def build_matrix(
         np.int64(constr_length) * np.int64(var_length + 1),
         param_size_plus_one,
     )
-    A = sp.csc_matrix((V, (I, J)), shape=output_shape)
+    A = sp.csc_array((V, (I, J)), shape=output_shape)
     return A
 
 

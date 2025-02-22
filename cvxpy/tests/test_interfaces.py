@@ -74,7 +74,7 @@ class TestInterfaces(BaseTest):
     def test_scipy_sparse(self) -> None:
         """Test cvxopt sparse interface.
         """
-        interface = intf.get_matrix_interface(sp.csc_matrix)
+        interface = intf.get_matrix_interface(sp.csc_array)
         # const_to_matrix
         mat = interface.const_to_matrix([1, 2, 3])
         self.assertEqual(interface.shape(mat), (3, 1))
@@ -105,7 +105,7 @@ class TestInterfaces(BaseTest):
         mat = interface.index(mat, (slice(1, 4, 2), slice(0, 2, None)))
         self.assertFalse((mat - np.array([[2, 4], [4, 6]])).any())
         # scalar value
-        mat = sp.eye(1)
+        mat = sp.eye_array(1)
         self.assertEqual(intf.scalar_value(mat), 1.0)
         # Sign
         self.sign_for_intf(interface)
@@ -114,7 +114,7 @@ class TestInterfaces(BaseTest):
         row = np.array([0, 1])
         col = np.array([1, 0])
         data = np.array([1j, -1j])
-        A = sp.csr_matrix((data, (row, col)), shape=(2, 2))
+        A = sp.csr_array((data, (row, col)), shape=(2, 2))
         mat = interface.const_to_matrix(A)
         self.assertEqual(mat[0, 1], 1j)
         self.assertEqual(mat[1, 0], -1j)
@@ -123,7 +123,7 @@ class TestInterfaces(BaseTest):
         """Test conversion between every pair of interfaces.
         """
         interfaces = [intf.get_matrix_interface(np.ndarray),
-                      intf.get_matrix_interface(sp.csc_matrix)]
+                      intf.get_matrix_interface(sp.csc_array)]
         cmp_mat = [[1, 2, 3, 4], [3, 4, 5, 6], [-1, 0, 2, 4]]
         for i in range(len(interfaces)):
             for j in range(i+1, len(interfaces)):

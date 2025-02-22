@@ -103,21 +103,21 @@ class TensorRepresentation:
             shape,
         )
 
-    def flatten_tensor(self, num_param_slices: int) -> sp.csc_matrix:
+    def flatten_tensor(self, num_param_slices: int) -> sp.csc_array:
         """
         Flatten into 2D scipy csc-matrix in column-major order and transpose.
         """
         rows = (self.col.astype(np.int64) * np.int64(self.shape[0]) + self.row.astype(np.int64))
         cols = self.parameter_offset.astype(np.int64)
         shape = (np.prod(self.shape, dtype=np.int64), num_param_slices)
-        return sp.csc_matrix((self.data, (rows, cols)), shape=shape)
+        return sp.csc_array((self.data, (rows, cols)), shape=shape)
 
-    def get_param_slice(self, param_offset: int) -> sp.csc_matrix:
+    def get_param_slice(self, param_offset: int) -> sp.csc_array:
         """
         Returns a single slice of the tensor for a given parameter offset.
         """
         mask = self.parameter_offset == param_offset
-        return sp.csc_matrix((self.data[mask], (self.row[mask], self.col[mask])), self.shape)
+        return sp.csc_array((self.data[mask], (self.row[mask], self.col[mask])), self.shape)
 
 
 class CanonBackend(ABC):
@@ -164,11 +164,11 @@ class CanonBackend(ABC):
         return backends[backend_name](*args, **kwargs)
 
     @abstractmethod
-    def build_matrix(self, lin_ops: list[LinOp]) -> sp.csc_matrix:
+    def build_matrix(self, lin_ops: list[LinOp]) -> sp.csc_array:
         """
         Main function called from canonInterface.
         Given a list of LinOp trees, each representing a constraint (or the objective), get the
-        [A b] Tensor for each, stack them and return the result reshaped as a 2D sp.csc_matrix
+        [A b] Tensor for each, stack them and return the result reshaped as a 2D sp.csc_array
         of shape (total_rows * (var_length + 1)), param_size_plus_one)
 
         Parameters
@@ -177,7 +177,7 @@ class CanonBackend(ABC):
 
         Returns
         -------
-        2D sp.csc_matrix representing the constraints (or the objective).
+        2D sp.csc_array representing the constraints (or the objective).
         """
         pass  # noqa
 
@@ -193,7 +193,7 @@ class PythonCanonBackend(CanonBackend):
     - A new constant of size n has shape (1, n, 1)
     """
 
-    def build_matrix(self, lin_ops: list[LinOp]) -> sp.csc_matrix:
+    def build_matrix(self, lin_ops: list[LinOp]) -> sp.csc_array:
         self.id_to_col[-1] = self.var_length
 
         constraint_res = []
@@ -675,7 +675,7 @@ class RustCanonBackend(CanonBackend):
     https://github.com/phschiele/cvxpy/pull/31
     """
 
-    def build_matrix(self, lin_ops: list[LinOp]) -> sp.csc_matrix:
+    def build_matrix(self, lin_ops: list[LinOp]) -> sp.csc_array:
         import cvxpy_rust
         self.id_to_col[-1] = self.var_length
         (data, (row, col), shape) = cvxpy_rust.build_matrix(lin_ops,
@@ -685,7 +685,7 @@ class RustCanonBackend(CanonBackend):
                                                             self.param_to_col,
                                                             self.var_length)
         self.id_to_col.pop(-1)
-        return sp.csc_matrix((data, (row, col)), shape)
+        return sp.csc_array((data, (row, col)), shape)
 
 
 class NumPyCanonBackend(PythonCanonBackend):
@@ -1070,18 +1070,19 @@ class NumPyCanonBackend(PythonCanonBackend):
 
 class SciPyCanonBackend(PythonCanonBackend):
     @staticmethod
-    def get_constant_data_from_const(lin_op: LinOp) -> sp.csr_matrix:
+    def get_constant_data_from_const(lin_op: LinOp) -> sp.csr_array:
         """
         Extract the constant data from a LinOp node of type "*_const".
         """
-        constant = sp.csr_matrix(lin_op.data)
+        data = [[lin_op.data]] if np.isscalar(lin_op.data) else lin_op.data
+        constant = sp.csr_array(data)
         assert constant.shape == lin_op.shape
         return constant
 
     @staticmethod
-    def reshape_constant_data(constant_data: dict[int, sp.csc_matrix],
+    def reshape_constant_data(constant_data: dict[int, sp.csc_array],
                               lin_op_shape: tuple[int, int]) \
-            -> dict[int, sp.csc_matrix]:
+            -> dict[int, sp.csc_array]:
         """
         Reshape constant data from column format to the required shape for operations that
         do not require column format. This function unpacks the constant data dict and reshapes
@@ -1091,8 +1092,8 @@ class SciPyCanonBackend(PythonCanonBackend):
                 for k, v in constant_data.items()}
 
     @staticmethod
-    def _reshape_single_constant_tensor(v: sp.csc_matrix, lin_op_shape: tuple[int, int]) \
-            -> sp.csc_matrix:
+    def _reshape_single_constant_tensor(v: sp.csc_array, lin_op_shape: tuple[int, int]) \
+            -> sp.csc_array:
         """
         Given v, which is a matrix of shape (p * lin_op_shape[0] * lin_op_shape[1], 1),
         reshape v into a matrix of shape (p * lin_op_shape[0], lin_op_shape[1]).
@@ -1109,7 +1110,7 @@ class SciPyCanonBackend(PythonCanonBackend):
         new_rows = slices * lin_op_shape[0] + new_rows
 
         new_stacked_shape = (p * lin_op_shape[0], lin_op_shape[1])
-        return sp.csc_matrix((data, (new_rows, new_cols)), shape=new_stacked_shape)
+        return sp.csc_array((data, (new_rows, new_cols)), shape=new_stacked_shape)
 
     def get_empty_view(self) -> SciPyTensorView:
         """
@@ -1142,7 +1143,7 @@ class SciPyCanonBackend(PythonCanonBackend):
         if is_param_free_lhs:
             reps = view.rows // lhs.shape[-1]
             if reps > 1:
-                stacked_lhs = (sp.kron(sp.eye(reps, format="csr"), lhs))
+                stacked_lhs = (sp.kron(sp.eye_array(reps, format="csr"), lhs))
             else:
                 stacked_lhs = lhs
 
@@ -1150,7 +1151,7 @@ class SciPyCanonBackend(PythonCanonBackend):
                 if p == 1:
                     return (stacked_lhs @ x).tocsr()
                 else:
-                    return ((sp.kron(sp.eye(p, format="csc"), stacked_lhs)) @ x).tocsc()
+                    return ((sp.kron(sp.eye_array(p, format="csc"), stacked_lhs)) @ x).tocsc()
         else:
             reps = view.rows // next(iter(lhs.values())).shape[-1]
             if reps > 1:
@@ -1164,8 +1165,8 @@ class SciPyCanonBackend(PythonCanonBackend):
             func = parametrized_mul
         return view.accumulate_over_variables(func, is_param_free_function=is_param_free_lhs)
 
-    def _stacked_kron_r(self, lhs: dict[int, list[sp.csc_matrix]], reps: int) \
-            -> sp.csc_matrix:
+    def _stacked_kron_r(self, lhs: dict[int, list[sp.csc_array]], reps: int) \
+            -> sp.csc_array:
         """
         Given a stacked lhs
         [[A_0],
@@ -1192,7 +1193,7 @@ class SciPyCanonBackend(PythonCanonBackend):
                 np.tile(np.arange(reps) * old_shape[1], len(cols))
             new_data = np.repeat(data, reps)
             new_shape = (v.shape[0] * reps, v.shape[1] * reps)
-            res[param_id] = sp.csc_matrix(
+            res[param_id] = sp.csc_array(
                 (new_data, (new_rows, new_cols)), shape=new_shape)
         return res
 
@@ -1245,17 +1246,17 @@ class SciPyCanonBackend(PythonCanonBackend):
             axis, _ = _lin.data
             if p == 1:
                 if axis is None:
-                    return sp.csr_matrix(x.sum(axis=0))
+                    return sp.csr_array(x.sum(axis=0).reshape(1, x.shape[1]))
                 else:
                     A = sum_coeff_matrix(shape=shape, axis=axis)
                     return A @ x
             else:
                 m = x.shape[0] // p
                 if axis is None:
-                    return (sp.kron(sp.eye(p, format="csc"), np.ones(m)) @ x).tocsc()
+                    return (sp.kron(sp.eye_array(p, format="csc"), np.ones((1, m))) @ x).tocsc()
                 else:
                     A = sum_coeff_matrix(shape=shape, axis=axis)
-                    return (sp.kron(sp.eye(p, format="csc"), A) @ x).tocsc()
+                    return (sp.kron(sp.eye_array(p, format="csc"), A) @ x).tocsc()
 
         view.apply_all(func)
         return view
@@ -1289,7 +1290,7 @@ class SciPyCanonBackend(PythonCanonBackend):
         row_idx = np.ravel_multi_index(out_idx, dims=out_dims, order='F')
         return row_idx.flatten(order='F')
 
-    def _get_sum_coeff_matrix(self, shape: tuple, axis: tuple) -> sp.csr_matrix:
+    def _get_sum_coeff_matrix(self, shape: tuple, axis: tuple) -> sp.csr_array:
         """
         Internal function that computes the sum coefficient matrix for a given shape and axis.
         """
@@ -1298,7 +1299,7 @@ class SciPyCanonBackend(PythonCanonBackend):
         d = np.prod([shape[i] for i in axis], dtype=int)
         row_idx = self._get_sum_row_indices(shape, axis)
         col_idx = np.arange(n)
-        A = sp.csr_matrix((np.ones(n), (row_idx, col_idx)), shape=(n//d, n))
+        A = sp.csr_array((np.ones(n), (row_idx, col_idx)), shape=(n//d, n))
         return A
 
     def div(self, lin: LinOp, view: SciPyTensorView) -> SciPyTensorView:
@@ -1349,7 +1350,7 @@ class SciPyCanonBackend(PythonCanonBackend):
             else:
                 new_rows = x_row * (rows + 1) - k
             new_rows = (new_rows + x_slice * total_rows).astype(int)
-            return sp.csc_matrix((x.data, (new_rows, x.col)), shape)
+            return sp.csc_array((x.data, (new_rows, x.col)), shape)
 
         view.apply_all(func)
         return view
@@ -1366,7 +1367,7 @@ class SciPyCanonBackend(PythonCanonBackend):
             slices = coo_repr.row // m
             new_rows = (coo_repr.row + (slices + 1) * offset)
             new_rows = new_rows + slices * (total_rows - m - offset).astype(int)
-            return sp.csc_matrix((coo_repr.data, (new_rows, coo_repr.col)),
+            return sp.csc_array((coo_repr.data, (new_rows, coo_repr.col)),
                                  shape=(int(total_rows * p), tensor.shape[1]))
 
         return stack_func
@@ -1391,7 +1392,7 @@ class SciPyCanonBackend(PythonCanonBackend):
                 lhs = lhs.T
             reps = view.rows // lhs.shape[0]
             if reps > 1:
-                stacked_lhs = sp.kron(lhs.T, sp.eye(reps, format="csr"))
+                stacked_lhs = sp.kron(lhs.T, sp.eye_array(reps, format="csr"))
             else:
                 stacked_lhs = lhs.T
 
@@ -1399,7 +1400,7 @@ class SciPyCanonBackend(PythonCanonBackend):
                 if p == 1:
                     return (stacked_lhs @ x).tocsr()
                 else:
-                    return ((sp.kron(sp.eye(p, format="csc"), stacked_lhs)) @ x).tocsc()
+                    return ((sp.kron(sp.eye_array(p, format="csc"), stacked_lhs)) @ x).tocsc()
         else:
             k, v = next(iter(lhs.items()))
             lhs_rows = v.shape[0] // self.param_to_size[k]
@@ -1426,7 +1427,7 @@ class SciPyCanonBackend(PythonCanonBackend):
             func = parametrized_mul
         return view.accumulate_over_variables(func, is_param_free_function=is_param_free_lhs)
 
-    def _transpose_stacked(self, v: sp.csc_matrix, param_id: int) -> sp.csc_matrix:
+    def _transpose_stacked(self, v: sp.csc_array, param_id: int) -> sp.csc_array:
         """
         Given v, which is a stacked matrix of shape (p * n, m), transpose each slice of v,
         returning a stacked matrix of shape (p * m, n).
@@ -1448,10 +1449,10 @@ class SciPyCanonBackend(PythonCanonBackend):
         new_rows = cols + slices * new_shape[0]
         new_cols = rows
 
-        return sp.csc_matrix((data, (new_rows, new_cols)), shape=new_stacked_shape)
+        return sp.csc_array((data, (new_rows, new_cols)), shape=new_stacked_shape)
 
-    def _stacked_kron_l(self, lhs: dict[int, list[sp.csc_matrix]], reps: int) \
-            -> sp.csc_matrix:
+    def _stacked_kron_l(self, lhs: dict[int, list[sp.csc_array]], reps: int) \
+            -> sp.csc_array:
         """
         Given a stacked lhs with the following entries:
         [[a11, a12],
@@ -1474,7 +1475,7 @@ class SciPyCanonBackend(PythonCanonBackend):
             new_cols = np.repeat(cols * reps, reps) + np.tile(np.arange(reps), len(cols))
             new_data = np.repeat(data, reps)
             new_shape = (v.shape[0] * reps, v.shape[1] * reps)
-            res[param_id] = sp.csc_matrix(
+            res[param_id] = sp.csc_array(
                 (new_data, (new_rows, new_cols)), shape=new_shape)
         return res
 
@@ -1490,13 +1491,13 @@ class SciPyCanonBackend(PythonCanonBackend):
 
         data = np.ones(len(indices))
         idx = (np.zeros(len(indices)), indices.astype(int))
-        lhs = sp.csr_matrix((data, idx), shape=(1, np.prod(shape)))
+        lhs = sp.csr_array((data, idx), shape=(1, np.prod(shape)))
 
-        def func(x, p) -> sp.csc_matrix:
+        def func(x, p) -> sp.csc_array:
             if p == 1:
                 return (lhs @ x).tocsr()
             else:
-                return (sp.kron(sp.eye(p, format="csc"), lhs) @ x).tocsc()
+                return (sp.kron(sp.eye_array(p, format="csc"), lhs) @ x).tocsc()
 
         return view.accumulate_over_variables(func, is_param_free_function=True)
 
@@ -1527,7 +1528,7 @@ class SciPyCanonBackend(PythonCanonBackend):
         col_idx = (np.tile(lhs.col, cols) + np.repeat(np.arange(cols), nonzeros)).astype(int)
         data = np.tile(lhs.data, cols)
 
-        lhs = sp.csr_matrix((data, (row_idx, col_idx)), shape=(rows, cols))
+        lhs = sp.csr_array((data, (row_idx, col_idx)), shape=(rows, cols))
 
         def func(x, p):
             assert p == 1, \
@@ -1593,7 +1594,7 @@ class SciPyCanonBackend(PythonCanonBackend):
         return view.accumulate_over_variables(func, is_param_free_function=is_param_free_rhs)
 
     def get_variable_tensor(self, shape: tuple[int, ...], variable_id: int) -> \
-            dict[int, dict[int, sp.csc_matrix]]:
+            dict[int, dict[int, sp.csc_array]]:
         """
         Returns tensor of a variable node, i.e., eye(n) across axes 0 and 1, where n is
         the size of the variable.
@@ -1601,23 +1602,23 @@ class SciPyCanonBackend(PythonCanonBackend):
         """
         assert variable_id != Constant.ID
         n = int(np.prod(shape))
-        return {variable_id: {Constant.ID.value: sp.eye(n, format="csc")}}
+        return {variable_id: {Constant.ID.value: sp.eye_array(n, format="csc")}}
 
     def get_data_tensor(self, data: np.ndarray | sp.spmatrix) -> \
-            dict[int, dict[int, sp.csr_matrix]]:
+            dict[int, dict[int, sp.csr_array]]:
         """
         Returns tensor of constant node as a column vector.
         This function reshapes the data and converts it to csc format.
         """
         if isinstance(data, np.ndarray):
             # Slightly faster compared to reshaping after casting
-            tensor = sp.csr_matrix(data.reshape((-1, 1), order="F"))
+            tensor = sp.csr_array(data.reshape((-1, 1), order="F"))
         else:
             tensor = sp.coo_matrix(data).reshape((-1, 1), order="F").tocsr()
         return {Constant.ID.value: {Constant.ID.value: tensor}}
 
     def get_param_tensor(self, shape: tuple[int, ...], parameter_id: int) -> \
-            dict[int, dict[int, sp.csc_matrix]]:
+            dict[int, dict[int, sp.csc_array]]:
         """
         Returns tensor of a parameter node, i.e., eye(n) across axes 0 and 2, where n is
         the size of the parameter.
@@ -1628,7 +1629,7 @@ class SciPyCanonBackend(PythonCanonBackend):
         shape = (int(np.prod(shape) * param_size), 1)
         arg = np.ones(param_size), (np.arange(param_size) + np.arange(param_size) * param_size,
                                     np.zeros(param_size))
-        param_vec = sp.csc_matrix(arg, shape)
+        param_vec = sp.csc_array(arg, shape)
         return {Constant.ID.value: {parameter_id: param_vec}}
 
 
@@ -2009,4 +2010,4 @@ class SciPyTensorView(DictTensorView):
         The tensor representation of the stacked slices backend is one big
         sparse matrix instead of smaller sparse matrices in a list.
         """
-        return sp.spmatrix
+        return (sp.sparray, sp.spmatrix)

@@ -249,7 +249,7 @@ class Pnorm(AxisAtom):
         # Outside domain.
         if self.p < 1 and np.any(value <= 0):
             return None
-        D_null = sp.csc_matrix((rows, 1), dtype='float64')
+        D_null = sp.csc_array((rows, 1), dtype='float64')
         denominator = np.linalg.norm(value, float(self.p))
         denominator = np.power(denominator, self.p - 1)
         # Subgrad is 0 when denom is 0 (or undefined).

@@ -80,7 +80,7 @@ class dotsort(Atom):
         indices = np.argsort(x)
         n = len(x)
         sorted_w = np.sort(w_padded)
-        return [sp.csc_matrix((sorted_w, (indices, np.zeros(n))), shape=(n, 1))]
+        return [sp.csc_array((sorted_w, (indices, np.zeros(n))), shape=(n, 1))]
 
     def shape_from_args(self) -> Tuple[int, ...]:
         """Returns the (row, col) shape of the expression.

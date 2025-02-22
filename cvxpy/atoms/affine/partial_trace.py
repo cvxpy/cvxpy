@@ -48,7 +48,7 @@ def _term(expr, j: int, dims: Tuple[int], axis: Optional[int] = 0):
             a = sp.kron(a, v.T)
             b = sp.kron(b, v)
         else:
-            eye_mat = sp.eye(dim)
+            eye_mat = sp.eye_array(dim)
             a = sp.kron(a, eye_mat)
             b = sp.kron(b, eye_mat)
     return a @ expr @ b

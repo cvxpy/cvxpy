@@ -87,20 +87,20 @@ class QpSolver(Solver):
             A = AF[:len_eq, :]
             b = -bg[:len_eq]
         else:
-            A, b = sp.csr_matrix((0, n)), -np.array([])
+            A, b = sp.csr_array((0, n)), -np.array([])
 
         if len_leq > 0:
             F = -AF[len_eq:, :]
             g = bg[len_eq:]
         else:
-            F, g = sp.csr_matrix((0, n)), -np.array([])
+            F, g = sp.csr_array((0, n)), -np.array([])
 
         # Create dictionary with problem data
-        data[s.P] = sp.csc_matrix(P)
+        data[s.P] = sp.csc_array(P)
         data[s.Q] = q
-        data[s.A] = sp.csc_matrix(A)
+        data[s.A] = sp.csc_array(A)
         data[s.B] = b
-        data[s.F] = sp.csc_matrix(F)
+        data[s.F] = sp.csc_array(F)
         data[s.G] = g
         data[s.BOOL_IDX] = [t[0] for t in problem.x.boolean_idx]
         data[s.INT_IDX] = [t[0] for t in problem.x.integer_idx]

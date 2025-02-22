@@ -55,7 +55,7 @@ Generate problem data
     
     # Create sparse, symmetric PSD matrix S
     A = np.random.randn(n, n)  # Unit normal gaussian distribution.
-    A[scipy.sparse.rand(n, n, 0.85).todense().nonzero()] = 0  # Sparsen the matrix.
+    A[scipy.sparse.random_array((n, n), density=0.85).todense().nonzero()] = 0  # Sparsen A
     Strue = A.dot(A.T) + 0.05 * np.eye(n)  # Force strict pos. def.
     
     # Create the covariance matrix associated with S.

@@ -496,7 +496,7 @@ class TestComplex(BaseTest):
         row = np.array([0, 1])
         col = np.array([1, 0])
         data = np.array([1j, -1j])
-        A = sp.csr_matrix((data, (row, col)), shape=(2, 2))
+        A = sp.csr_array((data, (row, col)), shape=(2, 2))
 
         # Feasibility with sparse matrix
         rho = cp.Variable((2, 2), complex=True)

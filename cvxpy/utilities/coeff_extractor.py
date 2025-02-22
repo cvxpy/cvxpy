@@ -105,7 +105,7 @@ class CoeffExtractor:
         # and obtains the Pi and qi for that entry i.
         # These are then combined into matrices [P1.flatten(), P2.flatten(), ...]
         # and [q1, q2, ...]
-        constant = param_coeffs[-1, :]
+        constant = param_coeffs[[-1], :]
         # TODO keep sparse.
         c = param_coeffs[:-1, :].toarray()
         num_params = param_coeffs.shape[1]
@@ -269,7 +269,7 @@ class CoeffExtractor:
             P_list: List[TensorRepresentation],
             P_height: int, 
             num_params: int,
-        ) -> sp.csc_matrix:
+        ) -> sp.csc_array:
         """Conceptually we build a block diagonal matrix
            out of all the Ps, then flatten the first two dimensions.
            eg P1
@@ -306,9 +306,9 @@ class CoeffExtractor:
     def merge_q_list(
         self,
         q_list: List[sp.spmatrix | np.ndarray],
-        constant: sp.csc_matrix,
+        constant: sp.csc_array,
         num_params: int,
-    ) -> sp.csr_matrix:
+    ) -> sp.csr_array:
         """Stack q with constant offset as last row.
 
         Args:
@@ -323,7 +323,7 @@ class CoeffExtractor:
         if num_params == 1:
             q = np.vstack(q_list)
             q = np.vstack([q, constant.toarray()])
-            return sp.csr_matrix(q)
+            return sp.csr_array(q)
         else:
             q = sp.vstack(q_list + [constant])
-            return sp.csr_matrix(q)
+            return sp.csr_array(q)

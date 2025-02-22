@@ -27,9 +27,9 @@ m = 100
 pbar = (np.ones((n, 1)) * .03 +
         np.matrix(np.append(np.random.rand(n - 1, 1), 0)).T * .12)
 
-F = sp.rand(m, n, density=0.01)
+F = sp.random_array((m, n), density=0.01)
 F.data = np.ones(len(F.data))
-D = sp.eye(n).tocoo()
+D = sp.eye_array(n, format='coo')
 D.data = np.random.randn(len(D.data))**2
 # num_points=100 # number of points in each vector
 # num_vects=m-1

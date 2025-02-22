@@ -72,7 +72,7 @@ class AxisAtom(Atom):
                     raise ValueError(f"axis {axis} is out of bounds for array of dimension {dim}")
         super(AxisAtom, self).validate_arguments()
 
-    def _axis_grad(self, values) -> Optional[List[sp.csc_matrix]]:
+    def _axis_grad(self, values) -> Optional[List[sp.csc_array]]:
         """
         Gives the (sub/super)gradient of the atom w.r.t. each argument.
 
@@ -89,11 +89,11 @@ class AxisAtom(Atom):
             value = np.reshape(values[0].T, (self.args[0].size, 1))
             D = self._column_grad(value)
             if D is not None:
-                D = sp.csc_matrix(D)
+                D = sp.csc_array(D)
         else:
             m, n = self.args[0].shape
             if self.axis == 0:  # function apply to each column
-                D = sp.csc_matrix((m*n, n), dtype=float)
+                D = sp.csc_array((m*n, n), dtype=float)
                 for i in range(n):
                     value = values[0][:, i]
                     d = self._column_grad(value).T
@@ -103,11 +103,11 @@ class AxisAtom(Atom):
                         d = np.array(d).flatten()
                     row = np.linspace(i*n, i*n+m-1, m)  # [i*n, i*n+1, ..., i*n+m-1]
                     col = np.ones((m))*i
-                    D = D + sp.csc_matrix((d, (row, col)),
+                    D = D + sp.csc_array((d, (row, col)),
                                           shape=(m*n, n))  # d must be 1-D
             else:  # function apply to each row
                 values = np.transpose(values[0])
-                D = sp.csc_matrix((m*n, m), dtype=float)
+                D = sp.csc_array((m*n, m), dtype=float)
                 for i in range(m):
                     value = values[:, i]
                     d = self._column_grad(value).T
@@ -115,7 +115,7 @@ class AxisAtom(Atom):
                         return [None]
                     row = np.linspace(i, i+(n-1)*m, n)  # [0+i, m+i, ..., m(n-1)+i]
                     col = np.ones((n))*i
-                    D = D + sp.csc_matrix((np.array(d)[0], (row, col)),
+                    D = D + sp.csc_array((np.array(d)[0], (row, col)),
                                           shape=(m*n, m))  # d must be 1-D
         return [D]
 

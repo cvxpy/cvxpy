@@ -15,6 +15,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 """
+from numpy import int32
+
 import cvxpy.settings as s
 from cvxpy.constraints import SOC
 from cvxpy.reductions.solution import Solution, failure_solution
@@ -148,6 +150,17 @@ class QOCO(ConicSolver):
 
         G = data[s.A][p::, :] if m > 0 else None
         h = data[s.B][p::] if m > 0 else None
+
+        # Cast row indices and column pointer arrays to int32.
+        if P is not None:
+            P.indices = P.indices.astype(int32)
+            P.indptr = P.indptr.astype(int32)
+        if A is not None:
+            A.indices = A.indices.astype(int32)
+            A.indptr = A.indptr.astype(int32)
+        if G is not None:
+            G.indices = G.indices.astype(int32)
+            G.indptr = G.indptr.astype(int32)
 
         solver = qoco.QOCO()
         solver.setup(n, m, p, P, c, A, b, G, h, num_nno, nsoc, q, verbose=verbose, **solver_opts)
