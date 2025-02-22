@@ -602,7 +602,7 @@ class Expression(u.Canonical):
             if rh_expr.shape[1] == 1 and rh_expr.shape[1] < dims[1]:
                 rh_expr = rh_expr @ np.ones((1, dims[1]))
         # Broadcasting.
-        else:
+        if lh_expr.ndim >= 3 or rh_expr.ndim >= 3:
             output_shape = np.broadcast_shapes(lh_expr.shape, rh_expr.shape)
             if lh_expr.shape != output_shape:
                 lh_expr = cp.broadcast_to(lh_expr, output_shape)

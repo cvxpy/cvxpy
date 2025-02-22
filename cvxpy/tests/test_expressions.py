@@ -1750,7 +1750,6 @@ class TestND_Expressions():
     @pytest.mark.parametrize("shapes", [((3),(253, 253, 3)),
                                         ((7, 1, 5),(8, 7, 6, 5)),
                                         ((1),(5, 4)),
-                                        ((4),(5, 4)),
                                         ((15, 1, 5), (15, 3, 5)),
                                         ((3, 5), (15, 3, 5)),
                                         ((3, 1), (15, 3, 5))])
@@ -1761,3 +1760,12 @@ class TestND_Expressions():
         prob = cp.Problem(cp.Minimize(cp.sum(expr)), [x == 1])
         prob.solve(canon_backend=cp.SCIPY_CANON_BACKEND)
         assert np.allclose(expr.value, y)
+
+    def test_nd_multiply_broadcast_error(self) -> None:
+        error_str = "inconsistent shapes"
+        with pytest.raises(Exception, match=error_str):
+            x = cp.Variable(4)
+            y = np.arange(20).reshape(5, 4)
+            expr = cp.multiply(x, y)
+            prob = cp.Problem(cp.Minimize(cp.sum(expr)), [x == 1])
+            prob.solve(canon_backend=cp.SCIPY_CANON_BACKEND)
