@@ -1718,7 +1718,7 @@ class TestND_Expressions():
                                         ((4),(5, 4)),
                                         ((15, 1, 5), (15, 3, 5)),
                                         ((3, 5), (15, 3, 5)),
-                                        ((3, 1), (15, 3, 5)),])
+                                        ((3, 1), (15, 3, 5))])
     def test_nd_broadcast(self, shapes) -> None:
         x = cp.Variable(shapes[0])
         y = cp.broadcast_to(x, shape=shapes[1])
@@ -1746,3 +1746,18 @@ class TestND_Expressions():
             obj = cp.sum(cp.max(cp.multiply(a, x) + b, axis=0))
             prob = cp.Problem(cp.Minimize(obj), [])
             prob.solve(canon_backend=cp.SCIPY_CANON_BACKEND)
+
+    @pytest.mark.parametrize("shapes", [((3),(253, 253, 3)),
+                                        ((7, 1, 5),(8, 7, 6, 5)),
+                                        ((1),(5, 4)),
+                                        ((4),(5, 4)),
+                                        ((15, 1, 5), (15, 3, 5)),
+                                        ((3, 5), (15, 3, 5)),
+                                        ((3, 1), (15, 3, 5))])
+    def test_nd_multiply_broadcast(self, shapes) -> None:
+        x = cp.Variable(shapes[0])
+        y = np.arange(np.prod(shapes[1])).reshape(shapes[1])
+        expr = cp.multiply(x, y)
+        prob = cp.Problem(cp.Minimize(cp.sum(expr)), [x == 1])
+        prob.solve(canon_backend=cp.SCIPY_CANON_BACKEND)
+        assert np.allclose(expr.value, y)
