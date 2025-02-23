@@ -1065,6 +1065,7 @@ class TestAtoms(BaseTest):
         # Check that the CVaR constraint is satisfied
         cvar_value = cp.cvar(A @ x.value, beta).value
         self.assertTrue(cvar_value <= kappa)
+
     def test_index(self) -> None:
         """Test the copy function for index.
         """

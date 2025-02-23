@@ -20,7 +20,11 @@ import numpy as np
 import pytest
 import scipy.sparse as sp
 from hypothesis import assume, given
-from hypothesis.extra.numpy import arrays, basic_indices, integer_array_indices
+from hypothesis.extra.numpy import (
+    arrays,
+    basic_indices,
+    integer_array_indices,
+)
 
 import cvxpy as cp
 import cvxpy.interface.matrix_utilities as intf
@@ -855,12 +859,6 @@ class TestExpressions(BaseTest):
         A = np.ones((3, 3)) / c
         self.assertItemsAlmostEqual(A, expr.value)
 
-        with self.assertRaises(Exception) as cm:
-            (x/c[:, 0])
-        print(cm.exception)
-        self.assertRegex(str(cm.exception),
-                         "Incompatible shapes for division.*")
-
     # Test the NegExpression class.
     def test_neg_expression(self) -> None:
         # Vectors
@@ -1653,7 +1651,7 @@ class TestND_Expressions():
         assert np.allclose(expr.value, y)
 
     @given(axis=basic_indices(shape=(2,2,2), allow_newaxis=True))
-    def test_nd__basic_index(self, axis) -> None:
+    def test_nd_basic_index(self, axis) -> None:
         # Skip examples with 0-d output. TODO allow 0-d expressions in cvxpy.
         def is_zero_dim_output(axis):
             return 0 in self.target[axis].shape
@@ -1713,3 +1711,61 @@ class TestND_Expressions():
         prob = cp.Problem(self.obj, [expr == y])
         prob.solve(canon_backend=cp.SCIPY_CANON_BACKEND)
         assert np.allclose(expr.value, y)
+
+    @pytest.mark.parametrize("shapes", [((3),(253, 253, 3)),
+                                        ((7, 1, 5),(8, 7, 6, 5)),
+                                        ((1),(5, 4)),
+                                        ((4),(5, 4)),
+                                        ((15, 1, 5), (15, 3, 5)),
+                                        ((3, 5), (15, 3, 5)),
+                                        ((3, 1), (15, 3, 5))])
+    def test_nd_broadcast(self, shapes) -> None:
+        x = cp.Variable(shapes[0])
+        y = cp.broadcast_to(x, shape=shapes[1])
+        assert y.shape == shapes[1]
+        prob = cp.Problem(cp.Minimize(cp.sum(y)), [y == 1])
+        prob.solve(canon_backend=cp.SCIPY_CANON_BACKEND)
+        assert np.allclose(y.value, 1)
+
+    @pytest.mark.parametrize("shapes", [((3), (2, 2, 2)),
+                                        ((3), (4)),
+                                        ((2, 1),(8, 4, 3))])
+    def test_nd_broadcast_error(self, shapes) -> None:
+        error_str = "operands could not be broadcast together"
+        with pytest.raises(Exception, match=error_str):
+            x = cp.Variable(shapes[0])
+            y = cp.broadcast_to(x, shape=shapes[1])
+            assert y.shape == shapes[1]
+
+    def test_no_segfault_multiply(self) -> None:
+        error_str = "Cannot multiply expressions with dimensions"
+        with pytest.raises(Exception, match=error_str):
+            x = cp.Variable(5)
+            a = np.array([1,2,3]).reshape(-1, 1)
+            b = np.array([1,2,3]).reshape(-1, 1)        
+            obj = cp.sum(cp.max(cp.multiply(a, x) + b, axis=0))
+            prob = cp.Problem(cp.Minimize(obj), [])
+            prob.solve(canon_backend=cp.SCIPY_CANON_BACKEND)
+
+    @pytest.mark.parametrize("shapes", [((3),(253, 253, 3)),
+                                        ((7, 1, 5),(8, 7, 6, 5)),
+                                        ((1),(5, 4)),
+                                        ((15, 1, 5), (15, 3, 5)),
+                                        ((3, 5), (15, 3, 5)),
+                                        ((3, 1), (15, 3, 5))])
+    def test_nd_multiply_broadcast(self, shapes) -> None:
+        x = cp.Variable(shapes[0])
+        y = np.arange(np.prod(shapes[1])).reshape(shapes[1])
+        expr = cp.multiply(x, y)
+        prob = cp.Problem(cp.Minimize(cp.sum(expr)), [x == 1])
+        prob.solve(canon_backend=cp.SCIPY_CANON_BACKEND)
+        assert np.allclose(expr.value, y)
+
+    def test_nd_multiply_broadcast_error(self) -> None:
+        error_str = "inconsistent shapes"
+        with pytest.raises(Exception, match=error_str):
+            x = cp.Variable(4)
+            y = np.arange(20).reshape(5, 4)
+            expr = cp.multiply(x, y)
+            prob = cp.Problem(cp.Minimize(cp.sum(expr)), [x == 1])
+            prob.solve(canon_backend=cp.SCIPY_CANON_BACKEND)

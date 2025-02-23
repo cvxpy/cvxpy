@@ -232,21 +232,18 @@ class MulExpression(BinaryOperator):
 
 
 class multiply(MulExpression):
-    """ Multiplies two expressions elementwise.
-    """
+    """Multiplies two expressions elementwise."""
 
     def __init__(self, lh_expr, rh_expr) -> None:
         lh_expr, rh_expr = self.broadcast(lh_expr, rh_expr)
         super(multiply, self).__init__(lh_expr, rh_expr)
 
     def is_atom_log_log_convex(self) -> bool:
-        """Is the atom log-log convex?
-        """
+        """Is the atom log-log convex?"""
         return True
 
     def is_atom_log_log_concave(self) -> bool:
-        """Is the atom log-log concave?
-        """
+        """Is the atom log-log concave?"""
         return True
 
     def is_atom_quasiconvex(self) -> bool:
@@ -262,8 +259,7 @@ class multiply(MulExpression):
             arg.is_nonpos() for arg in self.args)
 
     def numeric(self, values):
-        """Multiplies the values elementwise.
-        """
+        """Multiplies the values elementwise."""
         if sp.issparse(values[0]):
             return values[0].multiply(values[1])
         elif sp.issparse(values[1]):
@@ -271,10 +267,17 @@ class multiply(MulExpression):
         else:
             return np.multiply(values[0], values[1])
 
+    def validate_arguments(self):
+        """Validate that the arguments are broadcastable."""
+        if not self.args[0].is_scalar() and not self.args[1].is_scalar():
+            output_shape = np.broadcast_shapes(self.args[0].shape, self.args[1].shape)
+            if self.args[0].shape != output_shape and self.args[1].shape != output_shape:
+                raise ValueError("Cannot multiply expressions with dimensions %s and %s" %
+                                (self.args[0].shape, self.args[1].shape))
+
     def shape_from_args(self) -> Tuple[int, ...]:
-        """The sum of the argument dimensions - 1.
-        """
-        return u.shape.sum_shapes([arg.shape for arg in self.args])
+        """Call np.broadcast on multiply arguments."""
+        return np.broadcast_shapes(self.args[0].shape, self.args[1].shape)
 
     def is_psd(self) -> bool:
         """Is the expression a positive semidefinite matrix?

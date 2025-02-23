@@ -50,7 +50,7 @@ def promote(expr: Expression, shape: Tuple[int, ...]):
 
 
 class Promote(AffAtom):
-    """ Promote a scalar expression to a vector/matrix.
+    """Promote a scalar expression to a vector/matrix.
 
     Attributes
     ----------
