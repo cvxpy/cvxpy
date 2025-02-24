@@ -36,6 +36,7 @@ class TestGrad(BaseTest):
         self.A = Variable((2, 2), name='A')
         self.B = Variable((2, 2), name='B')
         self.C = Variable((3, 2), name='C')
+        self.D = Variable((1, 2), name='D')
 
     def test_affine_prod(self) -> None:
         """Test gradient for affine_prod
@@ -105,6 +106,14 @@ class TestGrad(BaseTest):
         self.A.value = np.array([[0, 0], [10, 0]])
         self.assertItemsAlmostEqual(expr.grad[self.A].toarray(),
                                     np.array([[0, 0], [0, 1], [0, 0], [0, 0]]))
+        
+        expr = cp.norm(self.D, 2, axis=0)
+        self.D.value = np.array([[0, 10]])
+        self.assertItemsAlmostEqual(expr.grad[self.D].toarray(), np.array([[0, 0], [0, 1]]))
+        
+        expr = cp.norm(self.D, 2, axis=1)
+        self.D.value = np.array([[0, 10]])
+        self.assertItemsAlmostEqual(expr.grad[self.D].toarray(), np.array([[0], [1]]))
 
         expr = cp.pnorm(self.A, 0.5)
         self.A.value = np.array([[3, -4], [4, 3]])
