@@ -144,11 +144,13 @@ class COPT(QpSolver):
                 vtype[data[s.INT_IDX]] = copt.COPT.INTEGER
 
         # Load matrix data
-        model.loadMatrix(q, Amat, lhs, rhs, lb, ub, vtype)
+        # TODO remove `sp.csc_matrix` when COPT starts supporting sparray
+        model.loadMatrix(q, sp.csc_matrix(Amat), lhs, rhs, lb, ub, vtype)
 
         # Load Q data
         if P.count_nonzero():
-            P = P.tocoo()
+            # TODO switch to `P = P.tocoo()` when COPT supports sparray
+            P = sp.coo_matrix(P)
             model.loadQ(0.5*P)
 
         # Set parameters

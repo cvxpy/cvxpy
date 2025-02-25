@@ -316,7 +316,7 @@ class TestQp(BaseTest):
         n = 80
         np.random.seed(1)
         density = 0.4
-        A = sp.rand(m, n, density)
+        A = sp.random_array((m, n), density=density)
         b = np.random.randn(m)
 
         p = Problem(Minimize(sum_squares(A @ self.xs - b)), [self.xs == 0])
@@ -355,7 +355,7 @@ class TestQp(BaseTest):
         data = [0.89, 0.39, 0.96, 0.34, 0.68, 0.18, 0.63 ,0.42, 0.51, 0.66, 0.43, 0.77]
         indices = [0, 1, 2, 3, 4, 2, 3, 0, 1, 2, 3, 4]
         indptr = [0, 5, 7, 12]
-        A = sp.csc_matrix((data, indices, indptr), shape=(m,n))
+        A = sp.csc_array((data, indices, indptr), shape=(m,n))
         x_true = np.random.randn(n) / np.sqrt(n)
         ind95 = (np.random.rand(m) < 0.95).astype(float)
         b = A.dot(x_true) + np.multiply(0.5*np.random.randn(m), ind95) \

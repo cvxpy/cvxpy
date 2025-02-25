@@ -103,7 +103,7 @@ class norm1(AxisAtom):
             A NumPy ndarray matrix or None.
         """
         rows = value.size
-        D_null = sp.csc_matrix((rows, 1), dtype='float64')
+        D_null = sp.csc_array((rows, 1), dtype='float64')
         value = value.reshape((rows, 1))
         D_null += (value > 0)
         D_null -= (value < 0)

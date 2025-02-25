@@ -50,8 +50,9 @@ def vectorized_lower_tri_to_mat(v, dim):
     return A
 
 
-def vectorized_lower_tri_to_triples(A: sp.sparse.coo_matrix | list[float] | np.ndarray, dim: int) \
-        -> tuple[list[int], list[int], list[float]]:
+def vectorized_lower_tri_to_triples(A: sp.sparse.coo_matrix | sp.sparse.sparray |
+                                        list[float] | np.ndarray, dim: int) \
+                                    -> tuple[list[int], list[int], list[float]]:
     """
     Attributes
     ----------
@@ -71,7 +72,7 @@ def vectorized_lower_tri_to_triples(A: sp.sparse.coo_matrix | list[float] | np.n
         The values of the entries in the original matrix.
     """
 
-    if isinstance(A, sp.sparse.coo_matrix):
+    if sp.sparse.issparse(A):
         vals = A.data
         flattened_cols = A.col
         # Ensure that the columns are sorted.
@@ -189,14 +190,14 @@ class MOSEK(ConicSolver):
         val_arr = val_arr[np.nonzero(val_arr)]
 
         shape = (entries, rows*cols)
-        scaled_lower_tri = sp.sparse.csc_matrix((val_arr, (row_arr, col_arr)), shape)
+        scaled_lower_tri = sp.sparse.csc_array((val_arr, (row_arr, col_arr)), shape)
 
         idx = np.arange(rows * cols)
         val_symm = 0.5 * np.ones(2 * rows * cols)
         K = idx.reshape((rows, cols))
         row_symm = np.append(idx, np.ravel(K, order='F'))
         col_symm = np.append(idx, np.ravel(K.T, order='F'))
-        symm_matrix = sp.sparse.csc_matrix((val_symm, (row_symm, col_symm)))
+        symm_matrix = sp.sparse.csc_array((val_symm, (row_symm, col_symm)))
 
         return scaled_lower_tri @ symm_matrix
 
@@ -216,7 +217,7 @@ class MOSEK(ConicSolver):
                 # A_row defines a symmetric matrix by where the first "order" entries
                 #   gives the matrix's first column, the second "order-1" entries gives
                 #   the matrix's second column (diagonal and below), and so on.
-                A_row = A_block[i, :]
+                A_row = A_block[[i], :]
                 if A_row.nnz == 0:
                     continue
 
@@ -333,21 +334,21 @@ class MOSEK(ConicSolver):
         n, m = A.shape
         task.appendvars(m)
         o = np.zeros(m)
-        task.putvarboundlist(np.arange(m, dtype=int), [mosek.boundkey.fr] * m, o, o)
+        task.putvarboundlist(np.arange(m, dtype=np.int32), [mosek.boundkey.fr] * m, o, o)
         task.appendcons(n)
         # objective
-        task.putclist(np.arange(c.size, dtype=int), c)
+        task.putclist(np.arange(c.size, dtype=np.int32), c)
         task.putobjsense(mosek.objsense.maximize)
         # equality constraints
         rows, cols, vals = sp.sparse.find(A)
         task.putaijlist(rows.tolist(), cols.tolist(), vals.tolist())
-        task.putconboundlist(np.arange(n, dtype=int), [mosek.boundkey.fx] * n, b, b)
+        task.putconboundlist(np.arange(n, dtype=np.int32), [mosek.boundkey.fx] * n, b, b)
         # conic constraints
         idx = K[a2d.FREE]
         num_pos = K[a2d.NONNEG]
         if num_pos > 0:
             o = np.zeros(num_pos)
-            task.putvarboundlist(np.arange(idx, idx + num_pos, dtype=int),
+            task.putvarboundlist(np.arange(idx, idx + num_pos, dtype=np.int32),
                                  [mosek.boundkey.lo] * num_pos, o, o)
             idx += num_pos
         num_soc = len(K[a2d.SOC])
@@ -423,20 +424,20 @@ class MOSEK(ConicSolver):
             # Replace infinite values with zeros for free variables
             bl[~mask[0]] = 0.0
             bu[~mask[1]] = 0.0
-            task.putvarboundlist(np.arange(n, dtype=int), list(bk), bl, bu)
+            task.putvarboundlist(np.arange(n, dtype=np.int32), list(bk), bl, bu)
         else:
             o = np.zeros(n)
-            task.putvarboundlist(np.arange(n, dtype=int), [mosek.boundkey.fr] * n, o, o)
+            task.putvarboundlist(np.arange(n, dtype=np.int32), [mosek.boundkey.fr] * n, o, o)
         task.appendcons(m)
         # objective
-        task.putclist(np.arange(n, dtype=int), c)
+        task.putclist(np.arange(n, dtype=np.int32), c)
         task.putobjsense(mosek.objsense.minimize)
         # elementwise constraints
         rows, cols, vals = sp.sparse.find(A)
         task.putaijlist(rows, cols, vals)
         eq_keys = [mosek.boundkey.fx] * K_aff[a2d.ZERO]
         ineq_keys = [mosek.boundkey.up] * K_aff[a2d.NONNEG]
-        task.putconboundlist(np.arange(m, dtype=int), eq_keys + ineq_keys, b, b)
+        task.putconboundlist(np.arange(m, dtype=np.int32), eq_keys + ineq_keys, b, b)
         # conic constraints
         idx = K_dir[a2d.FREE]
         num_soc = len(K_dir[a2d.SOC])

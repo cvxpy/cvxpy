@@ -58,7 +58,7 @@ class one_minus_pos(Atom):
 
     def _grad(self, values):
         del values
-        return sp.csc_matrix(-1.0 * self._ones)
+        return sp.csc_array(-1.0 * self._ones)
 
     def name(self) -> str:
         return "%s(%s)" % (self.__class__.__name__, self.args[0])

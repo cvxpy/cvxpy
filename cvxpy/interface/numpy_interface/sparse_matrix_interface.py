@@ -20,11 +20,11 @@ import scipy.sparse as sp
 from cvxpy.interface.numpy_interface.ndarray_interface import NDArrayInterface
 
 
-class SparseMatrixInterface(NDArrayInterface):
+class SparseArrayInterface(NDArrayInterface):
     """
     An interface to convert constant values to the scipy sparse CSC class.
     """
-    TARGET_MATRIX = sp.csc_matrix
+    TARGET_MATRIX = sp.csc_array
 
     @NDArrayInterface.scalar_const
     def const_to_matrix(self, value, convert_scalars: bool = False):
@@ -39,18 +39,18 @@ class SparseMatrixInterface(NDArrayInterface):
         """
         # Convert cvxopt sparse to coo matrix.
         if isinstance(value, list):
-            return sp.csc_matrix(value, dtype=np.double).T
+            return sp.csc_array(np.atleast_2d(value), dtype=np.double).T
         if value.dtype in [np.double, complex]:
             dtype = value.dtype
         else:
             # Cast bool, int, etc to double
             dtype = np.double
-        return sp.csc_matrix(value, dtype=dtype)
+        return sp.csc_array(value, dtype=dtype)
 
     def identity(self, size):
         """Return an identity matrix.
         """
-        return sp.eye(size, size, format="csc")
+        return sp.eye_array(size, size, format="csc")
 
     def size(self, matrix):
         """Return the dimensions of the matrix.
@@ -65,13 +65,13 @@ class SparseMatrixInterface(NDArrayInterface):
     def zeros(self, rows, cols):
         """Return a matrix with all 0's.
         """
-        return sp.csc_matrix((rows, cols), dtype='float64')
+        return sp.csc_array((rows, cols), dtype='float64')
 
     def reshape(self, matrix, size):
         """Change the shape of the matrix.
         """
         matrix = matrix.todense()
-        matrix = super(SparseMatrixInterface, self).reshape(matrix, size)
+        matrix = super(SparseArrayInterface, self).reshape(matrix, size)
         return self.const_to_matrix(matrix, convert_scalars=True)
 
     def block_add(self, matrix, block, vert_offset, horiz_offset, rows, cols,

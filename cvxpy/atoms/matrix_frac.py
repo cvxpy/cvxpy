@@ -75,13 +75,13 @@ class MatrixFrac(Atom):
         else:
             DX = np.dot(P_inv+np.transpose(P_inv), X)
             DX = DX.T.ravel(order='F')
-            DX = sp.csc_matrix(DX).T
+            DX = sp.csc_array([DX]).T
 
             DP = np.dot(P_inv, X)
             DP = np.dot(DP, X.T)
             DP = np.dot(DP, P_inv)
             DP = -DP.T
-            DP = sp.csc_matrix(DP.T.ravel(order='F')).T
+            DP = sp.csc_array([DP.T.ravel(order='F')]).T
             return [DX, DP]
 
     def validate_arguments(self) -> None:

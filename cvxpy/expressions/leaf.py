@@ -153,26 +153,25 @@ class Leaf(expression.Expression):
         self.args = []
         self.bounds = self._ensure_valid_bounds(bounds)
 
-    def _validate_indices(self, indices: list[tuple[int]] | tuple[np.ndarray]) -> None:
+    def _validate_indices(self, indices: list[tuple[int]] | tuple[np.ndarray]) -> tuple[np.ndarray]:
         """
         Validate the sparsity pattern for a leaf node.
 
         Parameters:
         indices: List or tuple of indices indicating the positions of non-zero elements.
         """
-        if not all(len(idx) == len(indices[0]) for idx in indices):
-            raise ValueError("All index tuples in indices must have the same length.")
-
-        if len(indices) != len(self._shape):
-            raise ValueError(f"Indices should have {len(self._shape)} dimensions.")
-
-        # convert list/tuple to array to validate indices within bounds
-        indices = np.array(indices)
-
-        if np.any(indices < 0) or np.any(indices >= np.array(self._shape).reshape(-1, 1)):
-            raise ValueError(
-                f"Indices are out of bounds for expression with shape {self._shape}.")
-        return tuple(indices)
+        if self._shape == ():
+            if indices != []:
+                raise ValueError("Indices should have 0 dimensions.")
+            return []
+        # Attempt to form a COO_array with the indices matrix provided;
+        # this will raise errors if invalid.
+        validator = sp.coo_array((np.empty(len(indices[0])), indices), shape=self._shape)
+        # Apply an in-place transformation to the coordinates to reduce the
+        # validator to canonical form
+        validator.sum_duplicates()
+        # Return the canonicalized coordinates
+        return get_coords(validator)
 
     def _get_attr_str(self) -> str:
         """Get a string representing the attributes."""
@@ -394,7 +393,7 @@ class Leaf(expression.Expression):
                 val = val.diagonal()
             else:
                 val = np.diag(val)
-            return sp.diags([val], [0])
+            return sp.diags_array([val], offsets=[0])
         elif self.attributes['hermitian']:
             return (val + np.conj(val).T)/2.
         elif any([self.attributes[key] for
@@ -429,8 +428,10 @@ class Leaf(expression.Expression):
 
     # Getter and setter for parameter value.
     def save_value(self, val, sparse_path=False) -> None:
-        if self.sparse_idx and not sparse_path:
+        if self.sparse_idx is not None and not sparse_path:
             self._value = sp.coo_array((val[self.sparse_idx], self.sparse_idx), shape=self.shape)
+        elif self.sparse_idx is not None and sparse_path:
+            self._value = val.data
         else:
             self._value = val
 
@@ -442,6 +443,8 @@ class Leaf(expression.Expression):
         else:
             warnings.warn('Reading from a sparse CVXPY expression via `.value` is discouraged.'
                           ' Use `.value_sparse` instead', RuntimeWarning, 1)
+            if self._value is None:
+                return None
             val = np.zeros(self.shape)
             val[self.sparse_idx] = self._value.data
             return val
@@ -456,7 +459,12 @@ class Leaf(expression.Expression):
     @property
     def value_sparse(self) -> Optional[...]:
         """The numeric value of the expression if it is a sparse variable."""
-        return self._value
+        if self._value is None:
+            return None
+        if isinstance(self._value, np.ndarray):
+            return sp.coo_array((self._value, self.sparse_idx), shape=self.shape)
+        else:
+            return self._value
 
     @value_sparse.setter
     def value_sparse(self, val) -> None:
@@ -468,8 +476,7 @@ class Leaf(expression.Expression):
                 raise ValueError(
                     'Invalid type for assigning value_sparse.'
                     'Try using `'
-                    'expr.value_sparse = scipy.sparse.coo_array((values, expr.sparse_idx))'
-                    '` instead.')
+                    'expr.value_sparse = scipy.sparse.coo_array((values, expr)) instead.')
             raise ValueError(
                 'Invalid type for assigning value_sparse.'
                 f'Recieved: {type(val)} Expected scipy.sparse.coo_array.'
@@ -505,11 +512,15 @@ class Leaf(expression.Expression):
                     "Invalid dimensions %s for %s value." %
                     (intf.shape(val), self.__class__.__name__)
                 )
-            if sparse_path and (np.array(get_coords(val)) != np.array(self.sparse_idx)).any():
-                raise ValueError(
-                    'Invalid sparsity pattern %s for %s value.' %
-                    (get_coords(val), self.__class__.__name__)
-                )
+            if sparse_path:
+                val.sum_duplicates()
+                coords_val = get_coords(val)
+                if len(coords_val) != len(self.sparse_idx) or \
+                     any((a != b).any() for a, b in zip(coords_val, self.sparse_idx)):
+                    raise ValueError(
+                        'Invalid sparsity pattern %s for %s value.' %
+                        (get_coords(val), self.__class__.__name__)
+                    )
             projection = self.project(val, sparse_path)
             # ^ might be a numpy array, or sparse scipy matrix.
             delta = np.abs(val - projection)

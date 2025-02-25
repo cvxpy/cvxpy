@@ -132,7 +132,7 @@ class SuppFuncAtom(Atom):
             # this means the support function is not finite at this input.
             return [None]
         else:
-            gradmat = sp.csc_matrix(gradval.ravel(order='F')).T
+            gradmat = sp.csc_array([gradval.ravel(order='F')]).T
             return [gradmat]
 
     def __lt__(self, other):
