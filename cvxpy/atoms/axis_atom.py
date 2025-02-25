@@ -101,7 +101,7 @@ class AxisAtom(Atom):
                         return [None]
                     else:
                         d = np.array(d).flatten()
-                    row = np.linspace(i*n, i*n+m-1, m)  # [i*n, i*n+1, ..., i*n+m-1]
+                    row = np.linspace(i*m, i*m+m-1, m)  # [i*m, i*m+1, ..., i*m+m-1]
                     col = np.ones((m))*i
                     D = D + sp.csc_array((d, (row, col)),
                                           shape=(m*n, n))  # d must be 1-D
