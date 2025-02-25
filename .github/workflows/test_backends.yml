@@ -20,7 +20,7 @@ jobs:
         run: |
           pip install .
           pip install pytest hypothesis
-          pip install cvxpygen==0.4.2
+          pip install cvxpygen
       - name: Run tests for each non-default backend
         run : |
           export CVXPY_DEFAULT_CANON_BACKEND="SCIPY"
