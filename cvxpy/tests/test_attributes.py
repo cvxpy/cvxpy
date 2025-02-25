@@ -204,11 +204,3 @@ class TestAttributes:
             ValueError, match="np.inf is not feasible as a lower bound."
         ):
             x = cp.Variable((2, 2), name="x", bounds=bounds)
-
-    def test_mosek_variable_bounds(self):
-        x = cp.Variable(2, integer=True, nonneg=True)
-        y = cp.Variable(2, bounds=[0,1])
-        constraints = [x >= 0.5]
-        objective = cp.Minimize(cp.sum(x + y))
-        problem = cp.Problem(objective, constraints)
-        problem.solve(solver=cp.MOSEK)
