@@ -18,7 +18,7 @@ jobs:
       - name: Install pytest and cvxpygen
         run: |
           pip install . pytest hypothesis
-          pip install cvxpygen
+          pip install cvxpygen==0.4.1
       - name: Run test_cvxpygen
         run : |
           pytest cvxpy/tests/test_cvxpygen.py
