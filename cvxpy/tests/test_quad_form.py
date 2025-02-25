@@ -75,14 +75,14 @@ class TestNonOptimal(BaseTest):
     def test_sparse_quad_form(self) -> None:
         """Test quad form with a sparse matrix.
         """
-        Q = sp.eye(2)
+        Q = sp.eye_array(2)
         x = cp.Variable(2)
         cost = cp.quad_form(x, Q)
         prob = cp.Problem(cp.Minimize(cost), [x == [1, 2]])
         self.assertAlmostEqual(prob.solve(solver=cp.OSQP), 5)
 
         # Here are our QP factors
-        A = cp.Constant(sp.eye(4))
+        A = cp.Constant(sp.eye_array(4))
         c = np.ones(4).reshape((1, 4))
 
         # Here is our optimization variable

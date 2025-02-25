@@ -99,7 +99,7 @@ class log_det(Atom):
         if np.min(eigen_val) > 0:
             # Grad: X^{-1}.T
             D = np.linalg.inv(X).T
-            return [sp.csc_matrix(D.ravel(order='F')).T]
+            return [sp.csc_array([D.ravel(order='F')]).T]
         # Outside domain.
         else:
             return [None]

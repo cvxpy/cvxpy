@@ -308,10 +308,10 @@ class TestExpressionMethods(BaseTest):
         self.assertEqual(str(cm.exception),
                         "axis 4 is out of bounds for array of dimension 1")
 
-        A = sp.eye(3)
+        A = sp.eye_array(3)
         self.assertEqual(Constant(A).sum().value, 3)
 
-        A = sp.eye(3)
+        A = sp.eye_array(3)
         self.assertItemsAlmostEqual(Constant(A).sum(axis=0).value, [1, 1, 1])
     def test_trace(self) -> None:
         """Test the trace atom.

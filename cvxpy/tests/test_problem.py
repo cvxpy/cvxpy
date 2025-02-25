@@ -1314,7 +1314,7 @@ class TestProblem(BaseTest):
 
         # Test with a sparse matrix.
         import scipy.sparse as sp
-        interface = intf.get_matrix_interface(sp.csc_matrix)
+        interface = intf.get_matrix_interface(sp.csc_array)
         c = interface.const_to_matrix([1, 2])
         c = cp.Constant(c)
         expr = self.x[:, None]/(1/c)
@@ -1347,7 +1347,7 @@ class TestProblem(BaseTest):
 
         # Test with a sparse matrix.
         import scipy.sparse as sp
-        interface = intf.get_matrix_interface(sp.csc_matrix)
+        interface = intf.get_matrix_interface(sp.csc_array)
         c = interface.const_to_matrix([1, 2])
         expr = cp.multiply(c, self.x[:, None])
         obj = cp.Minimize(cp.norm_inf(expr))

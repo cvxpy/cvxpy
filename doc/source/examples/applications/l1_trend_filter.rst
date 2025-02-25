@@ -51,7 +51,7 @@ Formulate and solve problem
     
     # Form second difference matrix.
     e = np.ones((1, n))
-    D = scipy.sparse.diags([e, -2*e, e], offsets=range(3), shape=(n-2, n))
+    D = scipy.sparse.diags_array([e, -2*e, e], offsets=range(3), shape=(n-2, n))
     
     # Set regularization parameter.
     vlambda = 50

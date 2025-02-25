@@ -237,7 +237,7 @@ class ParamConeProg(ParamProb):
 
         del_param_vec = delc @ self.c[:-1]
         flatdelA = delA.reshape((np.prod(delA.shape), 1), order='F')
-        delAb = sp.vstack([flatdelA, sp.csc_matrix(delb[:, None])])
+        delAb = sp.vstack([flatdelA, sp.csc_array(delb[:, None])])
 
         one_gig_of_doubles = 125000000
         if delAb.shape[0] < one_gig_of_doubles:

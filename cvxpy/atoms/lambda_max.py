@@ -59,7 +59,7 @@ class lambda_max(Atom):
         d[-1] = 1
         d = np.diag(d)
         D = v.dot(d).dot(v.T)
-        return [sp.csc_matrix(D.ravel(order='F')).T]
+        return [sp.csc_array([D.ravel(order='F')]).T]
 
     def validate_arguments(self) -> None:
         """Verify that the argument A is square.
