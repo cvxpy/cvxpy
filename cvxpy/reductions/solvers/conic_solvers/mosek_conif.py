@@ -258,8 +258,6 @@ class MOSEK(ConicSolver):
             else:
                 data['A_bar_data'] = []
                 data['c_bar_data'] = []
-        data[s.LOWER_BOUNDS] = problem.lower_bounds
-        data[s.UPPER_BOUNDS] = problem.upper_bounds
         data[s.PARAM_PROB] = problem
         return data, inv_data
 

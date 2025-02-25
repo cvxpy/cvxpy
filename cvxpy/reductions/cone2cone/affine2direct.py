@@ -391,6 +391,14 @@ class Slacks:
         data['K_dir'] = K_dir
         data['K_aff'] = K_aff
 
+        # Extend lower and upper bounds to cover slack variables.
+        num_vars = G.shape[1]
+        new_vars = num_vars - prob.lower_bounds.size
+        new_lower_bounds = np.full(new_vars, -np.inf)
+        data[s.LOWER_BOUNDS] = np.concatenate([prob.lower_bounds, new_lower_bounds])
+        new_upper_bounds = np.full(new_vars, np.inf)
+        data[s.UPPER_BOUNDS] = np.concatenate([prob.upper_bounds, new_upper_bounds])
+
         inv_data = dict()
         inv_data['x_id'] = prob.x.id
         inv_data['K_dir'] = K_dir
