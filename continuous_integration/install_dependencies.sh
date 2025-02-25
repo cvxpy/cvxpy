@@ -14,7 +14,7 @@ conda install mkl pip pytest pytest-cov hypothesis openblas "setuptools>65.5.1"
 conda install scs
 python -m pip install clarabel osqp
 
-python -m pip install cvxpygen==0.4.1
+python -m pip install cvxpygen==0.4.2
 
 # Install newest stable versions for Python 3.13.
 if [[ "$PYTHON_VERSION" == "3.13" ]]; then
