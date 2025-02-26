@@ -308,6 +308,8 @@ class CLARABEL(ConicSolver):
             nvars = q.size
             P = sp.csc_matrix((nvars, nvars))
 
+        P = sp.triu(P).tocsc()
+
         cones = dims_to_solver_cones(data[ConicSolver.DIMS])
 
         def new_solver():
