@@ -448,9 +448,11 @@ class TestClarabel(BaseTest):
             b.value = np.random.rand(2)
             q.value = np.random.randn(2)
 
-        prob = cp.Problem(cp.Minimize(P[0]*cp.square(x[0]) + cp.sum_squares(x) + q.T @ x),
-                          [A[0] * x[0] + A[1] * x[1] == b[0],
-                           A[2] * x[0] + A[3] * x[1] <= b[1]])
+        prob = cp.Problem(
+                cp.Minimize(P[0]*cp.square(x[0]) + cp.quad_form(x, np.ones([2, 2])) + q.T @ x),
+                [A[0] * x[0] + A[1] * x[1] == b[0],
+                 A[2] * x[0] + A[3] * x[1] <= b[1]]
+            )
 
         update_parameters(P, A, b, q)
         result1 = prob.solve(solver=cp.CLARABEL, warm_start=False)
