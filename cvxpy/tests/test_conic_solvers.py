@@ -563,6 +563,9 @@ class TestMosek(unittest.TestCase):
     def test_mosek_lp_5(self) -> None:
         StandardTestLPs.test_lp_5(solver='MOSEK')
 
+    def test_mosek_lp_bound_attr(self) -> None:
+        StandardTestLPs.test_lp_bound_attr(solver='MOSEK')
+
     def test_mosek_socp_0(self) -> None:
         StandardTestSOCPs.test_socp_0(solver='MOSEK')
 
