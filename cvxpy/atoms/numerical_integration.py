@@ -13,15 +13,27 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+from typing import Callable, List, Optional, Tuple, Union
+
 import numpy as np
 
 from cvxpy.atoms.affine.binary_operators import MulExpression as cvx_multiply
 from cvxpy.atoms.affine.sum import sum as cvx_sum
+from cvxpy.expressions.expression import Expression
+from cvxpy.expressions.variable import Variable
 
 
-def numerical_integration(f_callable, w, ranges, g_list=None, num_points=100,
-                           method="trapezoidal",sampling_mode="grid", grid_points=10,
-                             monte_carlo_samples=1000):
+def numerical_integration(
+    f_callable: Callable[..., Expression], 
+    w: Union[Variable, Expression], 
+    ranges: Union[Tuple[float, float], List[Tuple[float, float]]], 
+    g_list: Optional[List[Callable[..., Expression]]] = None, 
+    num_points: Union[int, List[int]] = 100,
+    method: str = "trapezoidal",
+    sampling_mode: str = "grid",
+    grid_points: int = 10,
+    monte_carlo_samples: int = 1000
+) -> Expression:
     """
     numerical integration function using CVXPY framework.
 
