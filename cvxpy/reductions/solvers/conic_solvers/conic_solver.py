@@ -365,4 +365,6 @@ class ConicSolver(Solver):
         inv_data[s.OFFSET] = d
         data[s.A] = -A
         data[s.B] = b
+        data[s.LOWER_BOUNDS] = problem.lower_bounds
+        data[s.UPPER_BOUNDS] = problem.upper_bounds
         return data, inv_data

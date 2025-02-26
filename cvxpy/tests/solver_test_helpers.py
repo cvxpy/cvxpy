@@ -376,6 +376,18 @@ def lp_7() -> SolverTestHelper:
     return sth
 
 
+def lp_bound_attr() -> SolverTestHelper:
+    """An LP using the variable bounds attribute."""
+    lower = np.array([-100, 1])
+    upper = np.array([-10, 1])
+    x = cp.Variable(shape=(2,), name='x', bounds=[lower, upper])
+    objective = cp.Minimize(x[0] + 0.5 * x[1])
+    var_pairs = [(x, np.array([-100, 1]))]
+    obj_pair = (objective, -99.5)
+    sth = SolverTestHelper(obj_pair, var_pairs, [])
+    return sth
+
+
 def qp_0() -> SolverTestHelper:
     # univariate feasible problem
     x = cp.Variable(1)
@@ -1139,6 +1151,21 @@ class StandardTestLPs:
         if sdpap.sdpacall.sdpacall.get_backend_info()["gmp"]:
             sth.solve(solver, **kwargs)
             sth.verify_objective(places)
+        return sth
+
+    @staticmethod
+    def test_lp_bound_attr(
+            solver, 
+            places: int = 4, 
+            duals: bool = True, 
+            **kwargs
+        ) -> SolverTestHelper:
+        sth = lp_bound_attr()
+        sth.solve(solver, **kwargs)
+        sth.verify_objective(places)
+        sth.verify_primal_values(places)
+        if duals:
+            sth.verify_dual_values(places)
         return sth
 
     @staticmethod
