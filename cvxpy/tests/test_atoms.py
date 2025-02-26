@@ -1877,6 +1877,40 @@ class TestAtoms(BaseTest):
         # The optimized result should be smaller than the naive result,
         # where X of the naive result is I.
         self.assertTrue(prob.value < naiveRes)
+    def test_numerical_integration(self) -> None:
+        """Test the numerical integration atom."""
+        # Create a CVXPY variable
+        w = cp.Variable()
+
+        # Define a simple integrable function, e.g., f(x, w) = x^2 + w
+        def f_callable(x, w):
+            return cp.square(x) + w
+
+        # 1D Integration
+        x_range = (0, 1)
+        integral_1D = cp.numerical_integration(f_callable, w, x_range, num_points=100)
+
+        # Solve the problem
+        prob = cp.Problem(cp.Minimize(integral_1D), [w == 1])
+        prob.solve()
+
+        # Check the result against the exact integral of x^2 + 1 from 0 to 1
+        exact_result_1D = (1**3 / 3) + 1  # Integral of x^2 is x^3 / 3, constant = 1
+        self.assertAlmostEqual(prob.value, exact_result_1D, places=2)
+
+        # ND Integration
+        ranges = [(0, 1), (0, 1)]  # 2D domain
+        def f_callable_nd(x,y, w):
+            return cp.square(x + y) + w
+
+        integral_ND = cp.numerical_integration(f_callable_nd, w, ranges, num_points=[5000, 5000])
+
+        # Solve the problem
+        prob_nd = cp.Problem(cp.Minimize(integral_ND), [w == 1])
+        prob_nd.solve()
+        exact_result_2D=13/6
+        # Check result 
+        self.assertAlmostEqual(prob_nd.value, exact_result_2D, places=2)
 
 class TestDotsort(BaseTest):
     """ Unit tests for the dotsort atom. """
