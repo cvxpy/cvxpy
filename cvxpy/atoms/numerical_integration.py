@@ -77,7 +77,14 @@ def numerical_integration(
 
 
 
-def numerical_integration_1D(f_callable, w, x_start, x_end, num_points=100, method="trapezoidal"):
+def numerical_integration_1D(
+    f_callable: Callable[[np.ndarray, Union[Variable, Expression]], Expression], 
+    w: Union[Variable, Expression], 
+    x_start: float, 
+    x_end: float, 
+    num_points: int = 100, 
+    method: str = "trapezoidal"
+) -> Expression:
     """
     Numerical integration using CVXPY framework.
 
@@ -121,9 +128,17 @@ def numerical_integration_1D(f_callable, w, x_start, x_end, num_points=100, meth
 
 
 
-def numerical_integration_ND(f_callable, w, ranges, g_list, num_points=None,
-                             method="trapezoidal", sampling_mode="grid", grid_points=10,
-                               monte_carlo_samples=1000):
+def numerical_integration_ND(
+    f_callable: Callable[..., Expression], 
+    w: Union[Variable, Expression], 
+    ranges: List[Tuple[float, float]], 
+    g_list: Optional[List[Callable[..., Expression]]] = None, 
+    num_points: Optional[List[int]] = None,
+    method: str = "trapezoidal", 
+    sampling_mode: str = "grid", 
+    grid_points: int = 10,
+    monte_carlo_samples: int = 1000
+) -> Expression:
     """
     Numerical integration for ND domains using CVXPY framework .
 
@@ -157,6 +172,7 @@ def numerical_integration_ND(f_callable, w, ranges, g_list, num_points=None,
     points = np.stack([grid.ravel() for grid in grids], axis=-1)#Shape(num_points, num_dims)
 
     # Evaluate boundary conditions
+    # domain_mask = np.all(np.stack([g(*points.T) <= 0 for g in g_list], axis=0), axis=0)
     if g_list is not None:
         domain_mask = np.all(np.stack([g(*points.T) <= 0 for g in g_list], axis=0), axis=0)
     else:
@@ -195,7 +211,12 @@ def numerical_integration_ND(f_callable, w, ranges, g_list, num_points=None,
         raise ValueError(f"Unknown integration method: {method}")
 
 
-def _compute_fractional_volume_grid_ND(boundary_points, d_volume, g_list, grid_points):
+def _compute_fractional_volume_grid_ND(
+    boundary_points: np.ndarray, 
+    d_volume: float, 
+    g_list: List[Callable[..., Union[bool, np.ndarray]]], 
+    grid_points: int
+) -> np.ndarray:
     """Vectorized fractional volume computation using grid sampling for ND integration."""
     num_dimensions = boundary_points.shape[1]
     sub_deltas = d_volume ** (1 / num_dimensions) / grid_points
@@ -224,8 +245,12 @@ def _compute_fractional_volume_grid_ND(boundary_points, d_volume, g_list, grid_p
 
 
 
-def _compute_fractional_volume_monte_carlo_ND(boundary_points, d_volumes,
-                                               g_list, monte_carlo_samples):
+def _compute_fractional_volume_monte_carlo_ND(
+    boundary_points: np.ndarray, 
+    d_volumes: List[float], 
+    g_list: List[Callable[..., Union[bool, np.ndarray]]], 
+    monte_carlo_samples: int
+) -> np.ndarray:
     """Vectorized fractional volume computation using Monte Carlo sampling for ND integration."""
     random_offsets = np.random.uniform(0, 1, size=(monte_carlo_samples, len(d_volumes))) * d_volumes
     shifted_points = boundary_points[:, None, :] + random_offsets[None, :, :] 
@@ -236,7 +261,11 @@ def _compute_fractional_volume_monte_carlo_ND(boundary_points, d_volumes,
     return (inside_count / monte_carlo_samples) * np.prod(d_volumes)
 
 
-def _simpsons_integral_ND(f_values, d_volumes, num_points):
+def _simpsons_integral_ND(
+    f_values: Expression, 
+    d_volumes: List[float], 
+    num_points: List[int]
+) -> Expression:
     """
     Apply Simpson's rule for ND integration (Vectorized).
     Ensures odd number of points per dimension for Simpson's rule.
@@ -283,7 +312,11 @@ def _simpsons_integral_ND(f_values, d_volumes, num_points):
 
 
 
-def _monte_carlo_integral_ND(f_values, ranges, monte_carlo_samples):
+def _monte_carlo_integral_ND(
+    f_values: Expression, 
+    ranges: List[Tuple[float, float]], 
+    monte_carlo_samples: int
+) -> Expression:
     """Monte Carlo integration for ND (Vectorized)."""
     integral = cvx_sum(f_values)
     bounding_volume = np.prod([end - start for start, end in ranges])
