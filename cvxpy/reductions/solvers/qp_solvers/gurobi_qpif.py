@@ -26,6 +26,7 @@ class GUROBI(QpSolver):
     """QP interface for the Gurobi solver"""
 
     MIP_CAPABLE = True
+    BOUNDED_VARIABLES = True
 
     # Keyword arguments for the CVXPY interface.
     INTERFACE_ARGS = ["save_file", "reoptimize"]
@@ -133,6 +134,14 @@ class GUROBI(QpSolver):
         F = data[s.F].tocsr()       # Convert F matrix to csr format
         g = data[s.G]
         n = data['n_var']
+        lb = data[s.LOWER_BOUNDS]
+        ub = data[s.UPPER_BOUNDS]
+
+        if lb is None:
+            lb = np.full(n, -grb.GRB.INFINITY)
+        if ub is None:
+            ub = np.full(n, grb.GRB.INFINITY)
+
 
         # Constrain values between bounds
         constrain_gurobi_infty(b)
@@ -153,18 +162,12 @@ class GUROBI(QpSolver):
         model.setParam("OutputFlag", verbose)
 
         # Add variables
-        vtypes = {}
+        vtypes = [grb.GRB.CONTINUOUS] * n
         for ind in data[s.BOOL_IDX]:
             vtypes[ind] = grb.GRB.BINARY
         for ind in data[s.INT_IDX]:
             vtypes[ind] = grb.GRB.INTEGER
-        for i in range(n):
-            if i not in vtypes:
-                vtypes[i] = grb.GRB.CONTINUOUS
-        x_grb = model.addVars(int(n),
-                              ub={i: grb.GRB.INFINITY for i in range(n)},
-                              lb={i: -grb.GRB.INFINITY for i in range(n)},
-                              vtype=vtypes)
+        x_grb = model.addVars(n, ub=ub, lb=lb, vtype=vtypes)
 
         if warm_start and solver_cache is not None \
                 and self.name() in solver_cache:
@@ -186,7 +189,7 @@ class GUROBI(QpSolver):
             model.addMConstr(A, None, grb.GRB.EQUAL, b)
 
         if F.shape[0] > 0:
-            # We can pass all of A @ x == b at once, use stable API
+            # We can pass all of F @ x <= g at once, use stable API
             # introduced with Gurobi v9.5
             model.addMConstr(F, None, grb.GRB.LESS_EQUAL, g)
 
@@ -210,8 +213,8 @@ class GUROBI(QpSolver):
         try:
             # Solve
             model.optimize()
-            if model.Status == 4 and solver_opts.get('reoptimize', False):
-                # INF_OR_UNBD. Solve again to get a definitive answer.
+            if model.Status == grb.GRB.INF_OR_UNBD and solver_opts.get('reoptimize', False):
+                # Solve again to get a definitive answer.
                 model.setParam("DualReductions", 0)
                 model.optimize()
         except Exception:  # Error in the solution
