@@ -494,6 +494,15 @@ def socp_3(axis) -> SolverTestHelper:
     return sth
 
 
+def socp_bounds_attr() -> SolverTestHelper:
+    x = cp.Variable(bounds=[-1, 1])
+    obj_pair = (cp.Minimize(x), -1)
+    var_pair = (x, -1)
+    con_pair = (x**2 <= 4, 0)
+    sth = SolverTestHelper(obj_pair, [var_pair], [con_pair])
+    return sth
+
+
 def sdp_1(objective_sense) -> SolverTestHelper:
     """
     Solve "Example 8.3" from Convex Optimization by Boyd & Vandenberghe.
@@ -1298,6 +1307,14 @@ class StandardTestSOCPs:
     @staticmethod
     def test_mi_socp_2(solver, places: int = 4, **kwargs) -> SolverTestHelper:
         sth = mi_socp_2()
+        sth.solve(solver, **kwargs)
+        sth.verify_objective(places)
+        sth.verify_primal_values(places)
+        return sth
+    
+    @staticmethod
+    def test_socp_bounds_attr(solver, places: int = 4, **kwargs) -> SolverTestHelper:
+        sth = socp_bounds_attr()
         sth.solve(solver, **kwargs)
         sth.verify_objective(places)
         sth.verify_primal_values(places)
