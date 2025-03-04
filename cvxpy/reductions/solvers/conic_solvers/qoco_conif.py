@@ -190,7 +190,8 @@ class QOCO(ConicSolver):
             G.indptr = G.indptr.astype(int32)
 
         solver = qoco.QOCO()
-        solver.setup(n, m, p, P, data[s.C], A, data[s.B], G, data[s.H], num_nno, nsoc, q, verbose=verbose, **solver_opts)
+        solver.setup(n, m, p, P, data[s.C], A, data[s.B], G, data[s.H], num_nno, nsoc, q,
+        verbose=verbose, **solver_opts)
         results = solver.solve()
 
         if solver_cache is not None:
