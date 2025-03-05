@@ -109,6 +109,42 @@ class QOCO(ConicSolver):
         else:
             return failure_solution(status, attr)
 
+    def apply(self, problem):
+        """Returns a new problem and data for inverting the new solution.
+
+        Returns
+        -------
+        tuple
+            (dict of arguments needed for the solver, inverse data)
+        """
+
+        # Format constraints
+        #
+        # QOCO requires constraints to be specified in the following order:
+        # 1. zero cone
+        # 2. non-negative orthant
+        # 3. soc
+
+        problem, data, inv_data = self._prepare_data_and_inv_data(problem)
+        p = problem.cone_dims.zero
+        m = p + problem.cone_dims.nonneg + sum(problem.cone_dims.soc)
+
+        if problem.P is None:
+            c, d, A, b = problem.apply_parameters()
+        else:
+            P, c, d, A, b = problem.apply_parameters(quad_obj=True)
+            data[s.P] = P
+
+        inv_data[s.OFFSET] = d
+
+        data[s.C] = c
+        data[s.A] = -A[0:p, :] if p > 0 else None
+        data[s.B] = b[0:p] if p > 0 else None
+        data[s.G] = -A[p::, :] if m > 0 else None
+        data[s.H] = b[p::] if m > 0 else None
+
+        return data, inv_data
+
     def solve_via_data(self, data, warm_start: bool, verbose: bool, solver_opts, solver_cache=None):
         """Returns the result of the call to the solver.
 
@@ -127,30 +163,22 @@ class QOCO(ConicSolver):
         """
         import qoco
 
-        # Get p, num_nn, nsoc, and q from cones
+        # Get p, num_nno, nsoc, and q from cones
         cones = dims_to_solver_cones(data[ConicSolver.DIMS])
         p = cones['z'] # Number of equality constraints
         num_nno = cones['l'] # Number of non-negative orthant constraints
         q = cones['q'] # Array of second-order cone dimensions
         nsoc = len(q)  # Number of second-order cones
         m = num_nno + sum(q)
+        n = len(data[s.C])
 
-        # Get n, m, P, c, A, b, G, h from conic_solver's apply call
-        _, n = data[s.A].shape
-        if s.P in data:
-            P = data[s.P]
-        else:
-            P = None
-        c = data[s.C]
-
-        A = data[s.A][0:p, :] if p > 0 else None
-        b = data[s.B][0:p] if p > 0 else None
-
-        G = data[s.A][p::, :] if m > 0 else None
-        h = data[s.B][p::] if m > 0 else None
+        P = data[s.P] if s.P in data.keys() else None
+        A = data[s.A]
+        G = data[s.G]
 
         solver = qoco.QOCO()
-        solver.setup(n, m, p, P, c, A, b, G, h, num_nno, nsoc, q, verbose=verbose, **solver_opts)
+        solver.setup(n, m, p, P, data[s.C], A, data[s.B], G, data[s.H], num_nno, nsoc, q,
+        verbose=verbose, **solver_opts)
         results = solver.solve()
 
         if solver_cache is not None:
