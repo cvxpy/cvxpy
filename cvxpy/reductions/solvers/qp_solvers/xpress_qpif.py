@@ -169,7 +169,7 @@ class XPRESS(QpSolver):
                                mgcols=data[s.BOOL_IDX] + data[s.INT_IDX],
                                # variables' and constraints' names
                                colnames=colnames,
-                               rownames=rownames)
+                               rownames=rownames if len(rownames) > 0 else None)
 
         # The problem currently has the quadratic objective function
         # and the linear equations. Add the linear inequalities
