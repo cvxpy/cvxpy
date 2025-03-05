@@ -376,6 +376,18 @@ def lp_7() -> SolverTestHelper:
     return sth
 
 
+def lp_bound_attr() -> SolverTestHelper:
+    """An LP using the variable bounds attribute."""
+    lower = np.array([-100, 1])
+    upper = np.array([-10, 1])
+    x = cp.Variable(shape=(2,), name='x', bounds=[lower, upper])
+    objective = cp.Minimize(x[0] + 0.5 * x[1])
+    var_pairs = [(x, np.array([-100, 1]))]
+    obj_pair = (objective, -99.5)
+    sth = SolverTestHelper(obj_pair, var_pairs, [])
+    return sth
+
+
 def qp_0() -> SolverTestHelper:
     # univariate feasible problem
     x = cp.Variable(1)
@@ -479,6 +491,15 @@ def socp_3(axis) -> SolverTestHelper:
     con_pairs = [(con, con_expect)]
     var_pairs = [(x, np.array([0.83666003, -0.54772256]))]
     sth = SolverTestHelper(obj_pair, var_pairs, con_pairs)
+    return sth
+
+
+def socp_bounds_attr() -> SolverTestHelper:
+    x = cp.Variable(bounds=[-1, 1])
+    obj_pair = (cp.Minimize(x), -1)
+    var_pair = (x, -1)
+    con_pair = (x**2 <= 4, 0)
+    sth = SolverTestHelper(obj_pair, [var_pair], [con_pair])
     return sth
 
 
@@ -1142,6 +1163,21 @@ class StandardTestLPs:
         return sth
 
     @staticmethod
+    def test_lp_bound_attr(
+            solver, 
+            places: int = 4, 
+            duals: bool = True, 
+            **kwargs
+        ) -> SolverTestHelper:
+        sth = lp_bound_attr()
+        sth.solve(solver, **kwargs)
+        sth.verify_objective(places)
+        sth.verify_primal_values(places)
+        if duals:
+            sth.verify_dual_values(places)
+        return sth
+
+    @staticmethod
     def test_mi_lp_0(solver, places: int = 4, **kwargs) -> SolverTestHelper:
         sth = mi_lp_0()
         sth.solve(solver, **kwargs)
@@ -1271,6 +1307,14 @@ class StandardTestSOCPs:
     @staticmethod
     def test_mi_socp_2(solver, places: int = 4, **kwargs) -> SolverTestHelper:
         sth = mi_socp_2()
+        sth.solve(solver, **kwargs)
+        sth.verify_objective(places)
+        sth.verify_primal_values(places)
+        return sth
+    
+    @staticmethod
+    def test_socp_bounds_attr(solver, places: int = 4, **kwargs) -> SolverTestHelper:
+        sth = socp_bounds_attr()
         sth.solve(solver, **kwargs)
         sth.verify_objective(places)
         sth.verify_primal_values(places)

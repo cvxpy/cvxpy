@@ -448,9 +448,11 @@ class TestClarabel(BaseTest):
             b.value = np.random.rand(2)
             q.value = np.random.randn(2)
 
-        prob = cp.Problem(cp.Minimize(P[0]*cp.square(x[0]) + cp.sum_squares(x) + q.T @ x),
-                          [A[0] * x[0] + A[1] * x[1] == b[0],
-                           A[2] * x[0] + A[3] * x[1] <= b[1]])
+        prob = cp.Problem(
+                cp.Minimize(P[0]*cp.square(x[0]) + cp.quad_form(x, np.ones([2, 2])) + q.T @ x),
+                [A[0] * x[0] + A[1] * x[1] == b[0],
+                 A[2] * x[0] + A[3] * x[1] <= b[1]]
+            )
 
         update_parameters(P, A, b, q)
         result1 = prob.solve(solver=cp.CLARABEL, warm_start=False)
@@ -560,6 +562,9 @@ class TestMosek(unittest.TestCase):
 
     def test_mosek_lp_5(self) -> None:
         StandardTestLPs.test_lp_5(solver='MOSEK')
+
+    def test_mosek_lp_bound_attr(self) -> None:
+        StandardTestLPs.test_lp_bound_attr(solver='MOSEK')
 
     def test_mosek_socp_0(self) -> None:
         StandardTestSOCPs.test_socp_0(solver='MOSEK')
@@ -1704,6 +1709,15 @@ class TestGUROBI(BaseTest):
     def test_gurobi_lp_5(self) -> None:
         StandardTestLPs.test_lp_5(solver='GUROBI')
 
+    def test_gurobi_lp_bound_attr(self) -> None:
+        sth = StandardTestLPs.test_lp_bound_attr(solver='GUROBI')
+        # check that the bounds do reach the solver and don't just generate constraints
+        model = sth.prob.solver_stats.extra_stats
+        expected_bounds = sth.prob.variables()[0].bounds
+        actual_lb = [v.LB for v in model.getVars()]
+        actual_ub = [v.UB for v in model.getVars()]
+        np.testing.assert_equal([actual_lb, actual_ub], expected_bounds)
+
     def test_gurobi_socp_0(self) -> None:
         StandardTestSOCPs.test_socp_0(solver='GUROBI')
 
@@ -1718,6 +1732,15 @@ class TestGUROBI(BaseTest):
         StandardTestSOCPs.test_socp_3ax0(solver='GUROBI')
         # axis 1
         StandardTestSOCPs.test_socp_3ax1(solver='GUROBI')
+    
+    def test_gurobi_socp_bound_attr(self) -> None:
+        sth = StandardTestSOCPs.test_socp_bounds_attr(solver='GUROBI')
+        # check that the bounds do reach the solver and don't just generate constraints
+        model = sth.prob.solver_stats.extra_stats
+        x = model.getVarByName("x_0")
+        expected_bounds = sth.prob.variables()[0].bounds
+        actual_bounds = [x.LB, x.UB]
+        np.testing.assert_equal(actual_bounds, expected_bounds)
 
     def test_gurobi_mi_lp_0(self) -> None:
         StandardTestLPs.test_mi_lp_0(solver='GUROBI')

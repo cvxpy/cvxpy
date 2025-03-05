@@ -258,7 +258,6 @@ class MOSEK(ConicSolver):
             else:
                 data['A_bar_data'] = []
                 data['c_bar_data'] = []
-
         data[s.PARAM_PROB] = problem
         return data, inv_data
 
@@ -333,21 +332,21 @@ class MOSEK(ConicSolver):
         n, m = A.shape
         task.appendvars(m)
         o = np.zeros(m)
-        task.putvarboundlist(np.arange(m, dtype=int), [mosek.boundkey.fr] * m, o, o)
+        task.putvarboundlist(np.arange(m, dtype=np.int32), [mosek.boundkey.fr] * m, o, o)
         task.appendcons(n)
         # objective
-        task.putclist(np.arange(c.size, dtype=int), c)
+        task.putclist(np.arange(c.size, dtype=np.int32), c)
         task.putobjsense(mosek.objsense.maximize)
         # equality constraints
         rows, cols, vals = sp.sparse.find(A)
         task.putaijlist(rows.tolist(), cols.tolist(), vals.tolist())
-        task.putconboundlist(np.arange(n, dtype=int), [mosek.boundkey.fx] * n, b, b)
+        task.putconboundlist(np.arange(n, dtype=np.int32), [mosek.boundkey.fx] * n, b, b)
         # conic constraints
         idx = K[a2d.FREE]
         num_pos = K[a2d.NONNEG]
         if num_pos > 0:
             o = np.zeros(num_pos)
-            task.putvarboundlist(np.arange(idx, idx + num_pos, dtype=int),
+            task.putvarboundlist(np.arange(idx, idx + num_pos, dtype=np.int32),
                                  [mosek.boundkey.lo] * num_pos, o, o)
             idx += num_pos
         num_soc = len(K[a2d.SOC])
@@ -407,18 +406,36 @@ class MOSEK(ConicSolver):
         # a2d.FREE, then a2d.SOC, then a2d.EXP. PSD is not supported.
         m, n = A.shape
         task.appendvars(n)
-        o = np.zeros(n)
-        task.putvarboundlist(np.arange(n, dtype=int), [mosek.boundkey.fr] * n, o, o)
+        # Create mosek bound keys if variables have bounds
+        if data[s.LOWER_BOUNDS] is not None and data[s.UPPER_BOUNDS] is not None:
+            bl, bu = data[s.LOWER_BOUNDS], data[s.UPPER_BOUNDS]
+            # Initialize bound key array as defined in 
+            # https://docs.mosek.com/10.2/pythonapi/constants.html#mosek.boundkey
+            bk = np.empty(n, dtype=np.object_)
+            mask = np.isfinite([bl, bu])
+
+            bk[(~mask[0]) & (~mask[1])] = mosek.boundkey.fr # (free) No bounds
+            bk[(~mask[0]) & mask[1]] = mosek.boundkey.up # Upper bound only
+            bk[mask[0] & (~mask[1])] = mosek.boundkey.lo # Lower bound only
+            bk[mask[0] & mask[1]] = mosek.boundkey.ra # (range) Both bounds
+
+            # Replace infinite values with zeros for free variables
+            bl[~mask[0]] = 0.0
+            bu[~mask[1]] = 0.0
+            task.putvarboundlist(np.arange(n, dtype=np.int32), list(bk), bl, bu)
+        else:
+            o = np.zeros(n)
+            task.putvarboundlist(np.arange(n, dtype=np.int32), [mosek.boundkey.fr] * n, o, o)
         task.appendcons(m)
         # objective
-        task.putclist(np.arange(n, dtype=int), c)
+        task.putclist(np.arange(n, dtype=np.int32), c)
         task.putobjsense(mosek.objsense.minimize)
         # elementwise constraints
         rows, cols, vals = sp.sparse.find(A)
         task.putaijlist(rows, cols, vals)
         eq_keys = [mosek.boundkey.fx] * K_aff[a2d.ZERO]
         ineq_keys = [mosek.boundkey.up] * K_aff[a2d.NONNEG]
-        task.putconboundlist(np.arange(m, dtype=int), eq_keys + ineq_keys, b, b)
+        task.putconboundlist(np.arange(m, dtype=np.int32), eq_keys + ineq_keys, b, b)
         # conic constraints
         idx = K_dir[a2d.FREE]
         num_soc = len(K_dir[a2d.SOC])
