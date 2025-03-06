@@ -17,7 +17,7 @@ limitations under the License.
 import abc
 import warnings
 from functools import wraps
-from typing import List, Literal, Optional, Tuple, Union
+from typing import List, Literal, Optional, Tuple
 
 import numpy as np
 
@@ -110,7 +110,7 @@ __BINARY_EXPRESSION_UFUNCS__ = {
 }
 
 
-ExpressionLike = Union["Expression", np._typing.ArrayLike]
+ExpressionLike = "Expression" | np.typing.ArrayLike
 
 
 class Expression(u.Canonical):
