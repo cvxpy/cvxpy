@@ -1232,10 +1232,20 @@ class SciPyCanonBackend(PythonCanonBackend):
 
     @staticmethod
     def broadcast_to(lin: LinOp, view: SciPyTensorView) -> SciPyTensorView:
-        num_entries = int(np.prod(lin.shape))
-        current_dim = int(np.prod(lin.args[0].shape))
-        times = num_entries // current_dim
-        rows = np.repeat(np.arange(current_dim), times)
+        """
+        Broadcast view by repeating/tiling along axis 0 (rows).
+        """
+        broadcast_shape = lin.shape
+        original_shape = lin.args[0].shape
+        if len(broadcast_shape) != len(original_shape):
+            diff = len(broadcast_shape) - len(original_shape)
+            original_shape = (1,) * diff + original_shape
+        rows = np.arange(np.prod(original_shape, dtype=int)).astype(int)
+        for a,b in zip(original_shape[:-1], broadcast_shape[:-1]):
+            if a != b:
+                rows = np.repeat(rows, b)
+        if original_shape[-1] != broadcast_shape[-1]:
+            rows = np.tile(rows, broadcast_shape[-1])
         view.select_rows(rows)
         return view
     
