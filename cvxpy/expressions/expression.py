@@ -110,7 +110,7 @@ __BINARY_EXPRESSION_UFUNCS__ = {
 }
 
 
-ExpressionLike = "Expression" | np.typing.ArrayLike
+ExpressionLike = "Expression | np.typing.ArrayLike"
 
 
 class Expression(u.Canonical):
