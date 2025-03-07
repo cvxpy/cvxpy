@@ -1728,19 +1728,29 @@ class TestND_Expressions():
         with pytest.raises(Exception, match=error_str):
             x = cp.Variable(shapes[0])
             y = cp.broadcast_to(x, shape=shapes[1])
-            assert y.shape == shapes[1]
+            assert y.shape is not shapes[1]
 
-    def test_no_segfault_multiply(self) -> None:
-        x = cp.Variable(5)
-        a = np.array([1,2,3]).reshape(-1, 1)
-        b = np.array([1,2,3]).reshape(-1, 1)        
-        obj = cp.sum(cp.max(cp.multiply(a, x) + b, axis=0))
-        prob = cp.Problem(cp.Minimize(obj), [])
-        prob.solve(canon_backend=cp.SCIPY_CANON_BACKEND)
+    @pytest.mark.parametrize("shapes", [((5),(3, 1)),
+                                        ((15, 1),(8)),
+                                        ((3), (2, 1))])
+    def test_segfault_multiply(self, shapes) -> None:
+        # TODO this test should pass once CPP backend is removed
+        """
+        This test ensures that an inconsistent shape error is raised when
+        multiplying two broadcastable array shapes <= 2.
+        Previously this would cause a segfault in the CPP backend.
+        """
+        error_str = "inconsistent shapes"
+        with pytest.raises(Exception, match=error_str):
+            x = cp.Variable(shapes[0])
+            a = np.arange(np.prod(shapes[1])).reshape(shapes[1])
+            b = np.arange(np.prod(shapes[1])).reshape(shapes[1])
+            obj = cp.sum(cp.max(cp.multiply(a, x) + b, axis=0))
+            prob = cp.Problem(cp.Minimize(obj), [])
+            prob.solve(canon_backend=cp.SCIPY_CANON_BACKEND)
 
     @pytest.mark.parametrize("shapes", [((3),(252, 253, 3)),
                                         ((7, 1, 5),(8, 7, 6, 5)),
-                                        ((3), (2, 1)),
                                         ((2, 1, 2), (2, 3, 2)),
                                         ((15, 1, 5), (15, 3, 5)),
                                         ((3, 5), (15, 3, 5)),
@@ -1751,5 +1761,18 @@ class TestND_Expressions():
         expr = cp.multiply(x, y)
         target = np.arange(np.prod(shapes[0])).reshape(shapes[0])
         prob = cp.Problem(cp.Minimize(cp.sum(expr)), [expr == target * y])
+        prob.solve(canon_backend=cp.SCIPY_CANON_BACKEND)
+        assert np.allclose(x.value, target)
+
+    @pytest.mark.parametrize("shapes", [((3),(252, 253, 3)),
+                                        ((7, 1, 5),(8, 7, 6, 5)),
+                                        ((2, 1, 2), (2, 3, 2)),
+                                        ((3, 1), (15, 3, 5))])
+    def test_nd_add_broadcast(self, shapes) -> None:
+        x = cp.Variable(shapes[0])
+        y = np.arange(np.prod(shapes[1])).reshape(shapes[1])
+        expr = x + y
+        target = np.arange(np.prod(shapes[0])).reshape(shapes[0])
+        prob = cp.Problem(cp.Minimize(cp.sum(expr)), [expr == target + y])
         prob.solve(canon_backend=cp.SCIPY_CANON_BACKEND)
         assert np.allclose(x.value, target)

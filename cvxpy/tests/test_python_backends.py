@@ -551,7 +551,7 @@ class TestBackends:
         # Note: view is edited in-place:
         assert out_view.get_tensor_representation(0, 1) == view.get_tensor_representation(0, 1)
 
-    def test_broadcast_lhs(self, backend):
+    def test_broadcast_to_rows(self, backend):
         """
         define x = Variable(3) with
         [x1, x2, x3]
@@ -562,22 +562,17 @@ class TestBackends:
          [0  1  0],
          [0  0  1]]
         
-        define y as np.array([1,2]).reshape(2,1) = array([[1],
-                                                         [2]])
-
-        y is flattened into a column vector in the backend so no change is necessary.
-
-        broadcast(x, y) means we repeat the variable along the rows of y, i.e.,
-        [[1*x1, 1*x2, 1*x3],
-         [1*x1, 2*x2, 2*x3]]
+        broadcast_to(x, (2, 3)) means we repeat every variable twice along the row axis.
 
         Thus we expect the following A matrix:
         
          x1 x2 x3
         [[1  0  0],
-         [1  2  0],
+         [1  0  0],
+         [0  1  0],
+         [0  1  0]
          [0  0  1],
-         [0  0  0]]
+         [0  0  1]]
         """
         variable_lin_op = linOpHelper((3,), type="variable", data=1)
         view = backend.process_constraint(variable_lin_op, backend.get_empty_view())
@@ -587,37 +582,66 @@ class TestBackends:
         view_A = sp.coo_matrix((view_A.data, (view_A.row, view_A.col)), shape=(3, 3)).toarray()
         assert np.all(view_A == np.eye(3))
 
-        broadcast_lin_op = linOpHelper((3,))
+        broadcast_lin_op = linOpHelper((2,3), data=(2,3), args=[variable_lin_op])
         out_view = backend.broadcast_to(broadcast_lin_op, view)
         A = out_view.get_tensor_representation(0, 3)
 
         # cast to numpy
-        A = sp.coo_matrix((A.data, (A.row, A.col)), shape=(3, 1)).toarray()
-        expected = np.array([[1], [1], [1]])
+        A = sp.coo_matrix((A.data, (A.row, A.col)), shape=(6, 3)).toarray()
+        expected = np.array([[1, 0, 0],
+                             [1, 0, 0],
+                             [0, 1, 0],
+                             [0, 1, 0],
+                             [0, 0, 1],
+                             [0, 0, 1]])
         assert np.all(A == expected)
 
         # Note: view is edited in-place:
         assert out_view.get_tensor_representation(0, 1) == view.get_tensor_representation(0, 1)
 
-    def test_broadcast_rhs(self, backend):
+    def test_broadcast_to_cols(self, backend):
         """
+        define x = Variable((2,1)) with
+        [[x1], 
+         [x2]]
 
+        x is represented as eye(2) in the A matrix, i.e.,
+         x1 x2
+        [[1  0],
+         [0  1]]
+        
+        broadcast_to(x, (2, 3)) means we tile the variables three times along the rows
+
+        Thus we expect the following A matrix:
+        
+         x1 x2
+        [[1  0],
+         [0  1],
+         [1  0],
+         [0  1]
+         [1  0],
+         [0  1]]
         """
-        variable_lin_op = linOpHelper((1,), type="variable", data=1)
+        variable_lin_op = linOpHelper((2,1), type="variable", data=1)
         view = backend.process_constraint(variable_lin_op, backend.get_empty_view())
 
         # cast to numpy
-        view_A = view.get_tensor_representation(0, 1)
-        view_A = sp.coo_matrix((view_A.data, (view_A.row, view_A.col)), shape=(1, 1)).toarray()
-        assert np.all(view_A == np.eye(1))
+        view_A = view.get_tensor_representation(0, 2)
+        view_A = sp.coo_matrix((view_A.data, (view_A.row, view_A.col)), shape=(2, 2)).toarray()
+        assert np.all(view_A == np.eye(2))
 
-        promote_lin_op = linOpHelper((3,))
-        out_view = backend.promote(promote_lin_op, view)
-        A = out_view.get_tensor_representation(0, 1)
+        broadcast_lin_op = linOpHelper((2,3), data=(2,3), args=[variable_lin_op])
+        out_view = backend.broadcast_to(broadcast_lin_op, view)
+        A = out_view.get_tensor_representation(0, 3)
 
         # cast to numpy
-        A = sp.coo_matrix((A.data, (A.row, A.col)), shape=(3, 1)).toarray()
-        expected = np.array([[1], [1], [1]])
+        A = sp.coo_matrix((A.data, (A.row, A.col)), shape=(6, 2)).toarray()
+        expected = np.array([[1, 0],
+                             [0, 1],
+                             [1, 0],
+                             [0, 1],
+                             [1, 0],
+                             [0, 1]])
         assert np.all(A == expected)
 
         # Note: view is edited in-place:
@@ -2233,6 +2257,69 @@ class TestND_Backends:
         # Note: view is edited in-place:
         assert out_view.get_tensor_representation(0, 1) == view.get_tensor_representation(0, 1)
 
+    def test_broadcast_to_cols(self, backend):
+        """
+        define x = Variable((2,1,2)) with
+        [[x11, x12], 
+         [x21, x22]]
+
+        x is represented as eye(4) in the A matrix, i.e.,
+         x11 x21 x12 x22
+        [[1   0   0   0],
+         [0   1   0   0],
+         [0   0   1   0],
+         [0   0   0   1]]
+        
+        broadcast_to(x, (2, 3, 2)) means we repeat columns of x three times each subsequently.
+
+        Thus we expect the following A matrix:
+        
+        x11 x21 x12 x22
+        [[1   0   0   0],
+         [0   1   0   0],
+         [1   0   0   0],
+         [0   1   0   0],
+         [1   0   0   0],
+         [0   1   0   0],
+
+         [0   0   1   0],
+         [0   0   0   1],
+         [0   0   1   0],
+         [0   0   0   1],
+         [0   0   1   0],
+         [0   0   0   1]]
+        """
+        variable_lin_op = linOpHelper((2,1,2), type="variable", data=1)
+        view = backend.process_constraint(variable_lin_op, backend.get_empty_view())
+
+        # cast to numpy
+        view_A = view.get_tensor_representation(0, 4)
+        view_A = sp.coo_matrix((view_A.data, (view_A.row, view_A.col)), shape=(4, 4)).toarray()
+        assert np.all(view_A == np.eye(4))
+
+        broadcast_lin_op = linOpHelper((2,3,2), data=(2,3,2), args=[variable_lin_op])
+        out_view = backend.broadcast_to(broadcast_lin_op, view)
+        A = out_view.get_tensor_representation(0, 12)
+
+        # cast to numpy
+        A = sp.coo_matrix((A.data, (A.row, A.col)), shape=(12, 4)).toarray()
+        expected = np.array([[1, 0, 0, 0],
+                             [0, 1, 0, 0],
+                             [1, 0, 0, 0],
+                             [0, 1, 0, 0],
+                             [1, 0, 0, 0],
+                             [0, 1, 0, 0],
+                             [0, 0, 1, 0],
+                             [0, 0, 0, 1],
+                             [0, 0, 1, 0],
+                             [0, 0, 0, 1],
+                             [0, 0, 1, 0],
+                             [0, 0, 0, 1]])
+        assert np.all(A == expected)
+
+        # Note: view is edited in-place:
+        assert out_view.get_tensor_representation(0, 1) == view.get_tensor_representation(0, 1)
+
 
 class TestParametrizedND_Backends:
     @staticmethod
@@ -2319,30 +2406,6 @@ class TestParametrizedND_Backends:
         assert out_view.get_tensor_representation(0, 4) == param_var_view.get_tensor_representation(
             0, 4
         )
-
-    def test_nd_broadcast_lhs(self, backend):
-        """
-        j
-        """
-        variable_lin_op = linOpHelper((1,), type="variable", data=1)
-        view = backend.process_constraint(variable_lin_op, backend.get_empty_view())
-
-        # cast to numpy
-        view_A = view.get_tensor_representation(0, 1)
-        view_A = sp.coo_matrix((view_A.data, (view_A.row, view_A.col)), shape=(1, 1)).toarray()
-        assert np.all(view_A == np.eye(1))
-
-        promote_lin_op = linOpHelper((3,))
-        out_view = backend.promote(promote_lin_op, view)
-        A = out_view.get_tensor_representation(0, 1)
-
-        # cast to numpy
-        A = sp.coo_matrix((A.data, (A.row, A.col)), shape=(3, 1)).toarray()
-        expected = np.array([[1], [1], [1]])
-        assert np.all(A == expected)
-
-        # Note: view is edited in-place:
-        assert out_view.get_tensor_representation(0, 1) == view.get_tensor_representation(0, 1)
 
 
 class TestNumPyBackend:
