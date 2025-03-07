@@ -778,7 +778,7 @@ class NumPyCanonBackend(PythonCanonBackend):
     @staticmethod
     def broadcast_to(lin: LinOp, view: NumPyTensorView) -> NumPyTensorView:
         """
-        Broadcast view by repeating along axis 1 (rows).
+        Broadcast view by calling np.broadcast_to on the rows and indexing the view.
         """
         broadcast_shape = lin.shape
         original_shape = lin.args[0].shape
@@ -1230,7 +1230,7 @@ class SciPyCanonBackend(PythonCanonBackend):
     @staticmethod
     def broadcast_to(lin: LinOp, view: SciPyTensorView) -> SciPyTensorView:
         """
-        Broadcast view by repeating/tiling along axis 0 (rows).
+        Broadcast view by calling np.broadcast_to on the rows and indexing the view.
         """
         broadcast_shape = lin.shape
         original_shape = lin.args[0].shape

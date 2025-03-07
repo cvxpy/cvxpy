@@ -23,6 +23,7 @@ from hypothesis import assume, given
 from hypothesis.extra.numpy import (
     arrays,
     basic_indices,
+    broadcastable_shapes,
     integer_array_indices,
 )
 
@@ -1774,5 +1775,15 @@ class TestND_Expressions():
         expr = x + y
         target = np.arange(np.prod(shapes[0])).reshape(shapes[0])
         prob = cp.Problem(cp.Minimize(cp.sum(expr)), [expr == target + y])
+        prob.solve(canon_backend=cp.SCIPY_CANON_BACKEND)
+        assert np.allclose(x.value, target)
+
+    @given(shape=broadcastable_shapes((8, 14, 8, 28), max_dims=4))
+    def test_nd_broadcast_generated(self, shape) -> None:
+        x = cp.Variable((8, 14, 8, 28))
+        y = np.arange(np.prod((shape))).reshape((shape))
+        expr = x - y
+        target = np.arange(np.prod((8,14,8,28))).reshape(8,14,8,28)
+        prob = cp.Problem(cp.Minimize(cp.sum(expr)), [expr == target - y])
         prob.solve(canon_backend=cp.SCIPY_CANON_BACKEND)
         assert np.allclose(x.value, target)
