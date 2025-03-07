@@ -780,14 +780,11 @@ class NumPyCanonBackend(PythonCanonBackend):
         """
         Broadcast view by repeating along axis 1 (rows).
         """
-        num_entries = int(np.prod(lin.shape))
-        current_dim = int(np.prod(lin.args[0].shape))
-        times = num_entries // current_dim
-
-        def func(x):
-            return np.tile(x, (1, times, 1))
-
-        view.apply_all(func)
+        broadcast_shape = lin.shape
+        original_shape = lin.args[0].shape
+        rows = np.arange(np.prod(original_shape, dtype=int)).reshape(original_shape, order='F')
+        rows = np.broadcast_to(rows, broadcast_shape).flatten(order="F")
+        view.select_rows(rows)
         return view
     
     def mul_elem(self, lin: LinOp, view: NumPyTensorView) -> NumPyTensorView:
@@ -1237,15 +1234,8 @@ class SciPyCanonBackend(PythonCanonBackend):
         """
         broadcast_shape = lin.shape
         original_shape = lin.args[0].shape
-        if len(broadcast_shape) != len(original_shape):
-            diff = len(broadcast_shape) - len(original_shape)
-            original_shape = (1,) * diff + original_shape
-        rows = np.arange(np.prod(original_shape, dtype=int)).astype(int)
-        for a,b in zip(original_shape[:-1], broadcast_shape[:-1]):
-            if a != b:
-                rows = np.repeat(rows, b)
-        if original_shape[-1] != broadcast_shape[-1]:
-            rows = np.tile(rows, broadcast_shape[-1])
+        rows = np.arange(np.prod(original_shape, dtype=int)).reshape(original_shape, order='F')
+        rows = np.broadcast_to(rows, broadcast_shape).flatten(order="F")
         view.select_rows(rows)
         return view
     
