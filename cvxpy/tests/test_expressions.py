@@ -1735,20 +1735,19 @@ class TestND_Expressions():
                                         ((15, 1),(8)),
                                         ((3), (2, 1))])
     def test_segfault_multiply(self, shapes) -> None:
-        # TODO this test should pass once CPP backend is removed
         """
         This test ensures that an inconsistent shape error is raised when
         multiplying two broadcastable array shapes <= 2.
         Previously this would cause a segfault in the CPP backend.
         """
-        error_str = "inconsistent shapes"
-        with pytest.raises(Exception, match=error_str):
-            x = cp.Variable(shapes[0])
-            a = np.arange(np.prod(shapes[1])).reshape(shapes[1])
-            b = np.arange(np.prod(shapes[1])).reshape(shapes[1])
-            obj = cp.sum(cp.max(cp.multiply(a, x) + b, axis=0))
-            prob = cp.Problem(cp.Minimize(obj), [])
-            prob.solve(canon_backend=cp.SCIPY_CANON_BACKEND)
+        x = cp.Variable(shapes[0])
+        target = np.arange(np.prod(shapes[0])).reshape(shapes[0])
+        a = np.arange(np.prod(shapes[1])).reshape(shapes[1])
+        b = np.arange(np.prod(shapes[1])).reshape(shapes[1])
+        obj = cp.sum(cp.max(cp.multiply(a, x) + b, axis=0))
+        prob = cp.Problem(cp.Minimize(obj), [x == target])
+        prob.solve()
+        assert np.allclose(x.value, target)
 
     @pytest.mark.parametrize("shapes", [((3),(252, 253, 3)),
                                         ((7, 1, 5),(8, 7, 6, 5)),
