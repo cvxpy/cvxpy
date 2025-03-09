@@ -108,7 +108,7 @@ from cvxpy.atoms.von_neumann_entr import von_neumann_entr
 from cvxpy.atoms.quantum_rel_entr import quantum_rel_entr
 from cvxpy.atoms.stats import mean, std, var
 from cvxpy.atoms.ptp import ptp
-
+from cvxpy.atoms.numerical_integration import numerical_integration
 # TODO(akshayka): Perhaps couple this information with the atom classes
 # themselves.
 SOC_ATOMS = [
