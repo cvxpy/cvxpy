@@ -816,7 +816,7 @@ class TestExpressions(BaseTest):
             (self.x/[2, 2, 3])
         print(cm.exception)
         self.assertRegex(str(cm.exception),
-                         "shape mismatch")
+                         "Incompatible shapes for division")
 
         c = Constant([3.0, 4.0, 12.0])
         self.assertItemsAlmostEqual(
