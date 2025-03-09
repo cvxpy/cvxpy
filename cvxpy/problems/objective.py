@@ -40,6 +40,8 @@ class Objective(u.Canonical):
 
     def __init__(self, expr) -> None:
         self.args = [Expression.cast_to_const(expr)]
+        # Needed for Canonical._aggregate_metrics.
+        self.ndim = 0
         # Validate that the objective resolves to a scalar.
         if not self.args[0].is_scalar():
             raise ValueError("The '%s' objective must resolve to a scalar."

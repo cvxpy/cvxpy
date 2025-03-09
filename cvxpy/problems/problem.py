@@ -176,6 +176,29 @@ class Problem(u.Canonical):
         self._compilation_time: Optional[float] = None
         self._solve_time: Optional[float] = None
         self.args = [self._objective, self._constraints]
+        # Needed for _aggregate_metrics.
+        self.ndim = 0
+
+    @perf.compute_once
+    def _aggregate_metrics(self) -> dict:
+        """
+        Aggregates and caches metrics for expression trees in self.args. So far
+        metrics include the maximum dimensionality ('max_ndim') and whether
+        all sub-expressions support C++ ('all_support_cpp').
+
+        """
+        max_ndim = self.ndim
+        cpp_support = self._supports_cpp()
+
+        for arg in [self._objective] + self._constraints:
+            max_ndim = max(max_ndim, arg._max_ndim())
+            cpp_support = cpp_support and arg._all_support_cpp()
+
+        metrics = {
+            "max_ndim": max_ndim,
+            "all_support_cpp": cpp_support
+        }
+        return metrics
 
     @property
     def value(self):
