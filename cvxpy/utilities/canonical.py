@@ -172,7 +172,7 @@ class Canonical(metaclass=abc.ABCMeta):
 
         for arg in self.args:
             max_ndim = max(max_ndim, arg._max_ndim())
-            cpp_support = cpp_support and arg._supports_cpp()
+            cpp_support = cpp_support and arg._all_support_cpp()
 
         metrics = {
             "max_ndim": max_ndim,

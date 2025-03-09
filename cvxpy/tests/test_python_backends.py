@@ -551,6 +551,102 @@ class TestBackends:
         # Note: view is edited in-place:
         assert out_view.get_tensor_representation(0, 1) == view.get_tensor_representation(0, 1)
 
+    def test_broadcast_to_rows(self, backend):
+        """
+        define x = Variable(3) with
+        [x1, x2, x3]
+
+        x is represented as eye(3) in the A matrix, i.e.,
+         x1 x2 x3
+        [[1  0  0],
+         [0  1  0],
+         [0  0  1]]
+        
+        broadcast_to(x, (2, 3)) means we repeat every variable twice along the row axis.
+
+        Thus we expect the following A matrix:
+        
+         x1 x2 x3
+        [[1  0  0],
+         [1  0  0],
+         [0  1  0],
+         [0  1  0]
+         [0  0  1],
+         [0  0  1]]
+        """
+        variable_lin_op = linOpHelper((3,), type="variable", data=1)
+        view = backend.process_constraint(variable_lin_op, backend.get_empty_view())
+
+        # cast to numpy
+        view_A = view.get_tensor_representation(0, 3)
+        view_A = sp.coo_matrix((view_A.data, (view_A.row, view_A.col)), shape=(3, 3)).toarray()
+        assert np.all(view_A == np.eye(3))
+
+        broadcast_lin_op = linOpHelper((2,3), data=(2,3), args=[variable_lin_op])
+        out_view = backend.broadcast_to(broadcast_lin_op, view)
+        A = out_view.get_tensor_representation(0, 3)
+
+        # cast to numpy
+        A = sp.coo_matrix((A.data, (A.row, A.col)), shape=(6, 3)).toarray()
+        expected = np.array([[1, 0, 0],
+                             [1, 0, 0],
+                             [0, 1, 0],
+                             [0, 1, 0],
+                             [0, 0, 1],
+                             [0, 0, 1]])
+        assert np.all(A == expected)
+
+        # Note: view is edited in-place:
+        assert out_view.get_tensor_representation(0, 1) == view.get_tensor_representation(0, 1)
+
+    def test_broadcast_to_cols(self, backend):
+        """
+        define x = Variable((2,1)) with
+        [[x1], 
+         [x2]]
+
+        x is represented as eye(2) in the A matrix, i.e.,
+         x1 x2
+        [[1  0],
+         [0  1]]
+        
+        broadcast_to(x, (2, 3)) means we tile the variables three times along the rows
+
+        Thus we expect the following A matrix:
+        
+         x1 x2
+        [[1  0],
+         [0  1],
+         [1  0],
+         [0  1]
+         [1  0],
+         [0  1]]
+        """
+        variable_lin_op = linOpHelper((2,1), type="variable", data=1)
+        view = backend.process_constraint(variable_lin_op, backend.get_empty_view())
+
+        # cast to numpy
+        view_A = view.get_tensor_representation(0, 2)
+        view_A = sp.coo_matrix((view_A.data, (view_A.row, view_A.col)), shape=(2, 2)).toarray()
+        assert np.all(view_A == np.eye(2))
+
+        broadcast_lin_op = linOpHelper((2,3), data=(2,3), args=[variable_lin_op])
+        out_view = backend.broadcast_to(broadcast_lin_op, view)
+        A = out_view.get_tensor_representation(0, 3)
+
+        # cast to numpy
+        A = sp.coo_matrix((A.data, (A.row, A.col)), shape=(6, 2)).toarray()
+        expected = np.array([[1, 0],
+                             [0, 1],
+                             [1, 0],
+                             [0, 1],
+                             [1, 0],
+                             [0, 1]])
+        assert np.all(A == expected)
+
+        # Note: view is edited in-place:
+        assert out_view.get_tensor_representation(0, 1) == view.get_tensor_representation(0, 1)
+
     def test_hstack(self, backend):
         """
         define x,y = Variable((1,)), Variable((1,))
@@ -2156,6 +2252,69 @@ class TestND_Backends:
         # cast to numpy
         A = sp.coo_matrix((A.data, (A.row, A.col)), shape=(1, 8)).toarray()
         expected = np.array([[0, 1, 0, 0, 0, 0, 0, 0]])
+        assert np.all(A == expected)
+
+        # Note: view is edited in-place:
+        assert out_view.get_tensor_representation(0, 1) == view.get_tensor_representation(0, 1)
+
+    def test_nd_broadcast_to(self, backend):
+        """
+        define x = Variable((2,1,2)) with
+        [[x11, x12], 
+         [x21, x22]]
+
+        x is represented as eye(4) in the A matrix, i.e.,
+         x11 x21 x12 x22
+        [[1   0   0   0],
+         [0   1   0   0],
+         [0   0   1   0],
+         [0   0   0   1]]
+        
+        broadcast_to(x, (2, 3, 2)) means we repeat columns of x three times each subsequently.
+
+        Thus we expect the following A matrix:
+        
+        x11 x21 x12 x22
+        [[1   0   0   0],
+         [0   1   0   0],
+         [1   0   0   0],
+         [0   1   0   0],
+         [1   0   0   0],
+         [0   1   0   0],
+
+         [0   0   1   0],
+         [0   0   0   1],
+         [0   0   1   0],
+         [0   0   0   1],
+         [0   0   1   0],
+         [0   0   0   1]]
+        """
+        variable_lin_op = linOpHelper((2,1,2), type="variable", data=1)
+        view = backend.process_constraint(variable_lin_op, backend.get_empty_view())
+
+        # cast to numpy
+        view_A = view.get_tensor_representation(0, 4)
+        view_A = sp.coo_matrix((view_A.data, (view_A.row, view_A.col)), shape=(4, 4)).toarray()
+        assert np.all(view_A == np.eye(4))
+
+        broadcast_lin_op = linOpHelper((2,3,2), data=(2,3,2), args=[variable_lin_op])
+        out_view = backend.broadcast_to(broadcast_lin_op, view)
+        A = out_view.get_tensor_representation(0, 12)
+
+        # cast to numpy
+        A = sp.coo_matrix((A.data, (A.row, A.col)), shape=(12, 4)).toarray()
+        expected = np.array([[1, 0, 0, 0],
+                             [0, 1, 0, 0],
+                             [1, 0, 0, 0],
+                             [0, 1, 0, 0],
+                             [1, 0, 0, 0],
+                             [0, 1, 0, 0],
+                             [0, 0, 1, 0],
+                             [0, 0, 0, 1],
+                             [0, 0, 1, 0],
+                             [0, 0, 0, 1],
+                             [0, 0, 1, 0],
+                             [0, 0, 0, 1]])
         assert np.all(A == expected)
 
         # Note: view is edited in-place:

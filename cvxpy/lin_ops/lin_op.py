@@ -40,6 +40,9 @@ VARIABLE = "variable"
 # Promoting a scalar expression.
 # Data: None
 PROMOTE = "promote"
+# Broadcasting an expression.
+# Data: Shape to broadcast to.
+BROADCAST_TO = "broadcast_to"
 # Multiplying an expression by a constant.
 # Data: LinOp evaluating to the left hand multiple.
 MUL = "mul"
