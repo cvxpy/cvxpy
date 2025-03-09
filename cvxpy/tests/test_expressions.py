@@ -816,7 +816,7 @@ class TestExpressions(BaseTest):
             (self.x/[2, 2, 3])
         print(cm.exception)
         self.assertRegex(str(cm.exception),
-                         "Incompatible shapes for division.*")
+                         "shape mismatch")
 
         c = Constant([3.0, 4.0, 12.0])
         self.assertItemsAlmostEqual(
@@ -1734,9 +1734,9 @@ class TestND_Expressions():
     @pytest.mark.parametrize("shapes", [((5),(3, 1)),
                                         ((15, 1),(8)),
                                         ((3), (2, 1))])
-    def test_segfault_multiply(self, shapes) -> None:
+    def test_no_segfault_multiply(self, shapes) -> None:
         """
-        This test ensures that an inconsistent shape error is raised when
+        This test ensures that no error is raised when
         multiplying two broadcastable array shapes <= 2.
         Previously this would cause a segfault in the CPP backend.
         """
