@@ -20,7 +20,12 @@ import numpy as np
 import pytest
 import scipy.sparse as sp
 from hypothesis import assume, given
-from hypothesis.extra.numpy import arrays, basic_indices, integer_array_indices
+from hypothesis.extra.numpy import (
+    arrays,
+    basic_indices,
+    broadcastable_shapes,
+    integer_array_indices,
+)
 
 import cvxpy as cp
 import cvxpy.interface.matrix_utilities as intf
@@ -764,13 +769,6 @@ class TestExpressions(BaseTest):
             q = self.A .__matmul__(self.B)
             self.assertTrue(q.is_quadratic())
 
-        # # Nonaffine times nonconstant raises error
-        # with warnings.catch_warnings():
-        #     warnings.simplefilter("ignore")
-        #     with self.assertRaises(Exception) as cm:
-        #         (self.A.__matmul__(self.B).__matmul__(self.A))
-        #     self.assertEqual(str(cm.exception), "Cannot multiply UNKNOWN and AFFINE.")
-
         # Constant expressions
         T = Constant([[1, 2, 3], [3, 5, 5]])
         exp = (T + T) .__matmul__(self.B)
@@ -818,7 +816,7 @@ class TestExpressions(BaseTest):
             (self.x/[2, 2, 3])
         print(cm.exception)
         self.assertRegex(str(cm.exception),
-                         "Incompatible shapes for division.*")
+                         "Incompatible shapes for division")
 
         c = Constant([3.0, 4.0, 12.0])
         self.assertItemsAlmostEqual(
@@ -854,12 +852,6 @@ class TestExpressions(BaseTest):
         x.value = np.ones((3, 3))
         A = np.ones((3, 3)) / c
         self.assertItemsAlmostEqual(A, expr.value)
-
-        with self.assertRaises(Exception) as cm:
-            (x/c[:, 0])
-        print(cm.exception)
-        self.assertRegex(str(cm.exception),
-                         "Incompatible shapes for division.*")
 
     # Test the NegExpression class.
     def test_neg_expression(self) -> None:
@@ -1653,7 +1645,7 @@ class TestND_Expressions():
         assert np.allclose(expr.value, y)
 
     @given(axis=basic_indices(shape=(2,2,2), allow_newaxis=True))
-    def test_nd__basic_index(self, axis) -> None:
+    def test_nd_basic_index(self, axis) -> None:
         # Skip examples with 0-d output. TODO allow 0-d expressions in cvxpy.
         def is_zero_dim_output(axis):
             return 0 in self.target[axis].shape
@@ -1713,3 +1705,84 @@ class TestND_Expressions():
         prob = cp.Problem(self.obj, [expr == y])
         prob.solve(canon_backend=cp.SCIPY_CANON_BACKEND)
         assert np.allclose(expr.value, y)
+
+    @pytest.mark.parametrize("shapes", [((3),(253, 253, 3)),
+                                        ((7, 1, 5),(8, 7, 6, 5)),
+                                        ((1),(5, 4)),
+                                        ((4),(5, 4)),
+                                        ((15, 1, 5), (15, 3, 5)),
+                                        ((3, 5), (15, 3, 5)),
+                                        ((3, 1), (15, 3, 5))])
+    def test_nd_broadcast(self, shapes) -> None:
+        x = cp.Variable(shapes[0])
+        y = cp.broadcast_to(x, shape=shapes[1])
+        assert y.shape == shapes[1]
+        prob = cp.Problem(cp.Minimize(cp.sum(y)), [y == 1])
+        prob.solve(canon_backend=cp.SCIPY_CANON_BACKEND)
+        assert np.allclose(y.value, 1)
+
+    @pytest.mark.parametrize("shapes", [((3), (2, 2, 2)),
+                                        ((3), (4)),
+                                        ((2, 1),(8, 4, 3))])
+    def test_nd_broadcast_error(self, shapes) -> None:
+        error_str = "operands could not be broadcast together"
+        with pytest.raises(Exception, match=error_str):
+            x = cp.Variable(shapes[0])
+            y = cp.broadcast_to(x, shape=shapes[1])
+            assert y.shape is not shapes[1]
+
+    @pytest.mark.parametrize("shapes", [((5),(3, 1)),
+                                        ((15, 1),(8)),
+                                        ((3), (2, 1))])
+    def test_no_segfault_multiply(self, shapes) -> None:
+        """
+        This test ensures that no error is raised when
+        multiplying two broadcastable array shapes <= 2.
+        Previously this would cause a segfault in the CPP backend.
+        """
+        x = cp.Variable(shapes[0])
+        target = np.arange(np.prod(shapes[0])).reshape(shapes[0])
+        a = np.arange(np.prod(shapes[1])).reshape(shapes[1])
+        b = np.arange(np.prod(shapes[1])).reshape(shapes[1])
+        obj = cp.sum(cp.max(cp.multiply(a, x) + b, axis=0))
+        prob = cp.Problem(cp.Minimize(obj), [x == target])
+        prob.solve()
+        assert np.allclose(x.value, target)
+
+    @pytest.mark.parametrize("shapes", [((3),(252, 253, 3)),
+                                        ((7, 1, 5),(8, 7, 6, 5)),
+                                        ((2, 1, 2), (2, 3, 2)),
+                                        ((15, 1, 5), (15, 3, 5)),
+                                        ((3, 5), (15, 3, 5)),
+                                        ((3, 1), (15, 3, 5))])
+    def test_nd_multiply_broadcast(self, shapes) -> None:
+        x = cp.Variable(shapes[0])
+        y = np.arange(np.prod(shapes[1])).reshape(shapes[1])
+        expr = cp.multiply(x, y)
+        target = np.arange(np.prod(shapes[0])).reshape(shapes[0])
+        prob = cp.Problem(cp.Minimize(cp.sum(expr)), [expr == target * y])
+        prob.solve(canon_backend=cp.SCIPY_CANON_BACKEND)
+        assert np.allclose(x.value, target)
+
+    @pytest.mark.parametrize("shapes", [((3),(252, 253, 3)),
+                                        ((7, 1, 5),(8, 7, 6, 5)),
+                                        ((2, 1, 2), (2, 3, 2)),
+                                        ((3, 1), (15, 3, 5))])
+    def test_nd_add_broadcast(self, shapes) -> None:
+        x = cp.Variable(shapes[0])
+        y = np.arange(np.prod(shapes[1])).reshape(shapes[1])
+        expr = x + y
+        target = np.arange(np.prod(shapes[0])).reshape(shapes[0])
+        prob = cp.Problem(cp.Minimize(cp.sum(expr)), [expr == target + y])
+        prob.solve(canon_backend=cp.SCIPY_CANON_BACKEND)
+        assert np.allclose(x.value, target)
+
+    @given(shape=broadcastable_shapes((8, 14, 8, 28), max_dims=4))
+    def test_nd_broadcast_generated(self, shape) -> None:
+        x = cp.Variable((8, 14, 8, 28))
+        y = np.arange(np.prod((shape))).reshape((shape))
+        expr = x - y
+        target = np.arange(np.prod((8,14,8,28))).reshape(8,14,8,28)
+        prob = cp.Problem(cp.Minimize(cp.sum(expr)), [expr == target - y])
+        prob.solve(canon_backend=cp.SCIPY_CANON_BACKEND)
+        assert np.allclose(x.value, target)

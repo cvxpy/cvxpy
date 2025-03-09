@@ -17,10 +17,11 @@ limitations under the License.
 import abc
 import warnings
 from functools import wraps
-from typing import List, Literal, Tuple
+from typing import List, Literal, Optional, Tuple
 
 import numpy as np
 
+import cvxpy as cp
 import cvxpy.settings as s
 import cvxpy.utilities as u
 import cvxpy.utilities.key_utils as ku
@@ -124,12 +125,12 @@ class Expression(u.Canonical):
 
     @property
     @abc.abstractmethod
-    def value(self):
-        """NumPy.ndarray or None : The numeric value of the expression.
+    def value(self) -> Optional[np.ndarray]:
+        """Returns: The numeric value of the expression.
         """
         raise NotImplementedError()
 
-    def _value_impl(self):
+    def _value_impl(self) -> Optional[np.ndarray]:
         """Implementation of .value.
         """
         return self.value
@@ -500,18 +501,15 @@ class Expression(u.Canonical):
         return cvxtypes.vec()(self, order)
 
     def is_scalar(self) -> bool:
-        """Is the expression a scalar?
-        """
+        """Is the expression a scalar?"""
         return all(d == 1 for d in self.shape)
 
     def is_vector(self) -> bool:
-        """Is the expression a column or row vector?
-        """
+        """Is the expression a column or row vector?"""
         return self.ndim <= 1 or (self.ndim == 2 and min(self.shape) == 1)
 
     def is_matrix(self) -> bool:
-        """Is the expression a matrix?
-        """
+        """Is the expression a matrix?"""
         return self.ndim == 2 and self.shape[0] > 1 and self.shape[1] > 1
 
     def __getitem__(self, key) -> "Expression":
@@ -582,17 +580,19 @@ class Expression(u.Canonical):
 
     @staticmethod
     def broadcast(lh_expr: "Expression", rh_expr: "Expression"):
-        """Broacast the binary operator.
-        """
+        """Broadcast the binary operator."""
         lh_expr = Expression.cast_to_const(lh_expr)
         rh_expr = Expression.cast_to_const(rh_expr)
+        # Promote.
         if lh_expr.is_scalar() and not rh_expr.is_scalar():
-            lh_expr = cvxtypes.promote()(lh_expr, rh_expr.shape)
+            lh_expr = cp.promote(lh_expr, rh_expr.shape)
         elif rh_expr.is_scalar() and not lh_expr.is_scalar():
-            rh_expr = cvxtypes.promote()(rh_expr, lh_expr.shape)
-        # Broadcasting.
+            rh_expr = cp.promote(rh_expr, lh_expr.shape)
+        # TODO: remove special case once CPP backend is removed
+        elif lh_expr.is_scalar() and rh_expr.is_scalar():
+            return lh_expr, rh_expr
+        # TODO: cleanup once CPP backend is removed
         if lh_expr.ndim == 2 and rh_expr.ndim == 2:
-            # Replicate dimensions of size 1.
             dims = [max(lh_expr.shape[i], rh_expr.shape[i]) for i in range(2)]
             # Broadcast along dim 0.
             if lh_expr.shape[0] == 1 and lh_expr.shape[0] < dims[0]:
@@ -604,6 +604,13 @@ class Expression(u.Canonical):
                 lh_expr = lh_expr @ np.ones((1, dims[1]))
             if rh_expr.shape[1] == 1 and rh_expr.shape[1] < dims[1]:
                 rh_expr = rh_expr @ np.ones((1, dims[1]))
+        # Broadcasting.
+        elif lh_expr.ndim >= 3 or rh_expr.ndim >= 3 or lh_expr.ndim != rh_expr.ndim:
+            output_shape = np.broadcast_shapes(lh_expr.shape, rh_expr.shape)
+            if lh_expr.shape != output_shape:
+                lh_expr = cp.broadcast_to(lh_expr, output_shape)
+            if rh_expr.shape != output_shape:
+                rh_expr = cp.broadcast_to(rh_expr, output_shape)
         return lh_expr, rh_expr
 
     @_cast_other
