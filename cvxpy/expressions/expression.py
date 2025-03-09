@@ -607,7 +607,6 @@ class Expression(u.Canonical):
         # Broadcasting.
         elif lh_expr.ndim >= 3 or rh_expr.ndim >= 3 or lh_expr.ndim != rh_expr.ndim:
             output_shape = np.broadcast_shapes(lh_expr.shape, rh_expr.shape)
-            # breakpoint()
             if lh_expr.shape != output_shape:
                 lh_expr = cp.broadcast_to(lh_expr, output_shape)
             if rh_expr.shape != output_shape:
