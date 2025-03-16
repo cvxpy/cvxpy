@@ -28,6 +28,7 @@ from .gurobi_conif import GUROBI
 from .mosek_conif import MOSEK
 from .nag_conif import NAG
 from .pdlp_conif import PDLP
+from .qoco_conif import QOCO
 from .scip_conif import SCIP
 from .scipy_conif import SCIPY
 from .scs_conif import SCS

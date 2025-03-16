@@ -1267,6 +1267,38 @@ class TestPDLP(unittest.TestCase):
         # a large instance and check that the time limit is hit.
         sth.solve(solver='PDLP', time_limit_sec=1.0)
 
+@unittest.skipUnless('QOCO' in INSTALLED_SOLVERS, 'QOCO is not installed.')
+class TestQOCO(BaseTest):
+    """ Unit tests for QOCO. """
+    def setUp(self) -> None:
+        self.x = cp.Variable(2, name='x')
+        self.y = cp.Variable(3, name='y')
+        self.A = cp.Variable((2, 2), name='A')
+        self.B = cp.Variable((2, 2), name='B')
+        self.C = cp.Variable((3, 2), name='C')
+    def test_qoco_lp_0(self) -> None:
+        StandardTestLPs.test_lp_0(solver='QOCO')
+    def test_qoco_lp_1(self) -> None:
+        StandardTestLPs.test_lp_1(solver='QOCO')
+    def test_qoco_lp_2(self) -> None:
+        StandardTestLPs.test_lp_2(solver='QOCO')
+
+    # lp 3 and 4 are skipped since QOCO cannot detect infeasibility or unboundedness.
+    def test_qoco_lp_5(self) -> None:
+        StandardTestLPs.test_lp_5(solver='QOCO')
+    def test_qoco_qp_0(self) -> None:
+        StandardTestQPs.test_qp_0(solver='QOCO')
+    def test_qoco_socp_0(self) -> None:
+        StandardTestSOCPs.test_socp_0(solver='QOCO')
+    def test_qoco_socp_1(self) -> None:
+        StandardTestSOCPs.test_socp_1(solver='QOCO')
+    def test_qoco_socp_2(self) -> None:
+        StandardTestSOCPs.test_socp_2(solver='QOCO')
+    def test_qoco_socp_3(self) -> None:
+        # axis 0
+        StandardTestSOCPs.test_socp_3ax0(solver='QOCO')
+        # axis 1
+        StandardTestSOCPs.test_socp_3ax1(solver='QOCO')
 
 @unittest.skipUnless('CPLEX' in INSTALLED_SOLVERS, 'CPLEX is not installed.')
 class TestCPLEX(BaseTest):
