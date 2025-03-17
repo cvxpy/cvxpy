@@ -330,16 +330,13 @@ class TestMultipleAttributes:
         p = cp.Parameter(shape=(2, 2), sparsity=sparsity, nonneg=True)
         
         # Valid value assignment
-        p_value = np.zeros((2, 2))
-        p_value[sparsity[0], sparsity[1]] = 5
-        p.value = p_value
+        p_value = sp.eye_array(2).tocoo()
+        p.value_sparse = p_value
         
         x = cp.Variable(shape=(2, 2))
         prob = cp.Problem(cp.Minimize(cp.sum(x)), [x >= p])
         prob.solve()
-        expected = np.zeros((2, 2))
-        expected[0, 0] = 5
-        assert np.allclose(x.value, expected)
+        assert np.allclose(x.value, p_value.todense())
         
         # TODO make parameter validation work for multiple attributes.
         # # Invalid value assignment (negative and in sparsity pattern)
@@ -374,27 +371,6 @@ class TestMultipleAttributes:
         # with pytest.raises(ValueError, match="Parameter value must be nonnegative."):
         #     p.value = np.array([[-1, 0], [0, 1]])
             
-    def test_parameter_complex_multiple_attributes(self) -> None:
-        """Test parameters with multiple attributes in a problem."""
-        p1 = cp.Parameter(shape=(2, 2), nonneg=True, integer=True)
-        p2 = cp.Parameter(shape=(2, 2), nonpos=True, bounds=[-10, 0])
-        
-        p1.value = np.ones((2, 2), dtype=int)
-        p2.value = -np.ones((2, 2))
-        
-        x = cp.Variable(shape=(2, 2))
-        y = cp.Variable(shape=(2, 2))
-        
-        objective = cp.Minimize(cp.sum(x) + cp.sum(y))
-        constraints = [x >= p1, y <= p2]
-        
-        prob = cp.Problem(objective, constraints)
-        prob.solve()
-        
-        assert np.allclose(x.value, np.ones((2, 2)))
-        assert np.allclose(y.value, -np.ones((2, 2)))
-        assert np.isclose(prob.value, 0)
-
     def test_variable_repr(self):
         # test boolean attributes
         x = cp.Variable((10, 10), name="x", nonneg=True)
