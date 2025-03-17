@@ -285,6 +285,114 @@ class TestMultipleAttributes:
         prob.solve()
         assert np.allclose(prob.value, -10)
         assert np.allclose(x.value, np.eye(2) * -5)
+        
+    def test_parameter_multiple_attributes(self) -> None:
+        """Test parameters with multiple attributes."""
+        # Test parameter with nonpos and integer attributes
+        p = cp.Parameter(shape=(2, 2), nonpos=True, integer=True)
+        p.value = -np.ones((2, 2))
+        x = cp.Variable(shape=(2, 2))
+        prob = cp.Problem(cp.Minimize(cp.sum(x)), [x >= p])
+        prob.solve()
+        assert np.allclose(x.value, -np.ones((2, 2)))
+
+        # TODO make parameter validation work for multiple attributes.
+        # # Invalid assignment should raise ValueError
+        # with pytest.raises(ValueError, match="Parameter value must be nonpositive."):
+        #     p.value = np.ones((2, 2))
+        
+        # # Non-integer value should raise ValueError
+        # with pytest.raises(ValueError, match="Parameter value must be integer."):
+        #     p.value = -np.ones((2, 2)) * 0.5
+
+    def test_parameter_bounds_and_attributes(self) -> None:
+        """Test parameters with bounds and other attributes."""
+        # Parameter with bounds and nonneg
+        p = cp.Parameter(shape=(2, 2), nonneg=True, bounds=[0, 10])
+        p.value = np.ones((2, 2)) * 5
+        x = cp.Variable(shape=(2, 2))
+        prob = cp.Problem(cp.Minimize(cp.sum(x)), [x >= p])
+        prob.solve()
+        assert np.allclose(x.value, np.ones((2, 2)) * 5)
+
+        # TODO make parameter validation work for multiple attributes.
+        # # Test values outside bounds
+        # with pytest.raises(ValueError, match="Parameter value must be nonnegative."):
+        #     p.value = -np.ones((2, 2))
+        
+        # with pytest.raises(ValueError, 
+        #  match="Parameter value must be less than or equal to upper bound."):
+        #     p.value = np.ones((2, 2)) * 15
+    
+    def test_parameter_sparsity_and_attributes(self) -> None:
+        """Test parameters with sparsity and other attributes."""
+        sparsity = [(0, 1), (0, 1)]
+        p = cp.Parameter(shape=(2, 2), sparsity=sparsity, nonneg=True)
+        
+        # Valid value assignment
+        p_value = np.zeros((2, 2))
+        p_value[sparsity[0], sparsity[1]] = 5
+        p.value = p_value
+        
+        x = cp.Variable(shape=(2, 2))
+        prob = cp.Problem(cp.Minimize(cp.sum(x)), [x >= p])
+        prob.solve()
+        expected = np.zeros((2, 2))
+        expected[0, 0] = 5
+        assert np.allclose(x.value, expected)
+        
+        # TODO make parameter validation work for multiple attributes.
+        # # Invalid value assignment (negative and in sparsity pattern)
+        # p_value = np.zeros((2, 2))
+        # p_value[sparsity[0], sparsity[1]] = -1
+        # with pytest.raises(ValueError, match="Parameter value must be nonnegative."):
+        #     p.value = p_value
+            
+        # # Value out of sparsity pattern
+        # p_value = np.ones((2, 2))
+        # with pytest.raises(ValueError, 
+        #  match="Parameter value must be zero outside of sparsity pattern."):
+        #     p.value = p_value
+    
+    def test_parameter_psd_and_attributes(self) -> None:
+        """Test parameters with PSD and other attributes."""
+        p = cp.Parameter(shape=(2, 2), PSD=True, nonneg=True)
+        
+        # Valid PSD and nonneg value
+        p.value = np.array([[2, 0], [0, 3]])
+        x = cp.Variable(shape=(2, 2))
+        prob = cp.Problem(cp.Minimize(cp.sum(x)), [x >= p])
+        prob.solve()
+        assert np.allclose(x.value, np.array([[2, 0], [0, 3]]))
+        
+        # Invalid: Not PSD
+        with pytest.raises(ValueError, match="Parameter value must be positive semidefinite."):
+            p.value = np.array([[1, 2], [2, 1]])
+        
+        # Invalid: Not nonneg
+        with pytest.raises(ValueError, match="Parameter value must be nonnegative."):
+            p.value = np.array([[-1, 0], [0, 1]])
+            
+    def test_parameter_complex_multiple_attributes(self) -> None:
+        """Test parameters with multiple attributes in a problem."""
+        p1 = cp.Parameter(shape=(2, 2), nonneg=True, integer=True)
+        p2 = cp.Parameter(shape=(2, 2), nonpos=True, bounds=[-10, 0])
+        
+        p1.value = np.ones((2, 2), dtype=int)
+        p2.value = -np.ones((2, 2))
+        
+        x = cp.Variable(shape=(2, 2))
+        y = cp.Variable(shape=(2, 2))
+        
+        objective = cp.Minimize(cp.sum(x) + cp.sum(y))
+        constraints = [x >= p1, y <= p2]
+        
+        prob = cp.Problem(objective, constraints)
+        prob.solve()
+        
+        assert np.allclose(x.value, np.ones((2, 2)))
+        assert np.allclose(y.value, -np.ones((2, 2)))
+        assert np.isclose(prob.value, 0)
 
     def test_variable_repr(self):
         # test boolean attributes
