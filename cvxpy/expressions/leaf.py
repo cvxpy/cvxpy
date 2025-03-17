@@ -371,12 +371,11 @@ class Leaf(expression.Expression):
         numeric type
             The value rounded to the attribute type.
         """
+        if not self.is_complex():
+            val = np.real(val)
         # Skip the projection operation for more than one attribute
         if self.num_attributes > 1:
             return val
-        if not self.is_complex():
-            val = np.real(val)
-
         if self.attributes['nonpos'] and self.attributes['nonneg']:
             return 0*val
         elif self.attributes['nonpos'] or self.attributes['neg']:
