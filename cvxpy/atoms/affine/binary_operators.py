@@ -21,7 +21,6 @@ from typing import List, Tuple
 import numpy as np
 import scipy.sparse as sp
 
-import cvxpy.interface as intf
 import cvxpy.lin_ops.lin_op as lo
 import cvxpy.lin_ops.lin_utils as lu
 import cvxpy.utilities as u
@@ -109,11 +108,10 @@ class MulExpression(BinaryOperator):
     def numeric(self, values):
         """Matrix multiplication.
         """
-        if values[0].shape == () or values[1].shape == () or \
-           intf.is_sparse(values[0]) or intf.is_sparse(values[1]):
+        if values[0].shape == () or values[1].shape == ():
             return values[0] * values[1]
         else:
-            return np.matmul(values[0], values[1])
+            return values[0] @ values[1]
 
     def shape_from_args(self) -> Tuple[int, ...]:
         """Returns the (row, col) shape of the expression.
@@ -193,10 +191,10 @@ class MulExpression(BinaryOperator):
         # DX = [diag(Y11), diag(Y12), ...]
         #      [diag(Y21), diag(Y22), ...]
         #      [   ...        ...     ...]
-        DX = sp.dok_matrix((DX_rows, cols))
+        DX = sp.dok_array((DX_rows, cols))
         for k in range(self.args[0].shape[0]):
             DX[k::self.args[0].shape[0], k::self.args[0].shape[0]] = Y
-        DX = sp.csc_matrix(DX)
+        DX = sp.csc_array(DX)
         cols = 1 if len(self.args[1].shape) == 1 else self.args[1].shape[1]
         DY = sp.block_diag([X.T for k in range(cols)], 'csc')
 
@@ -234,21 +232,18 @@ class MulExpression(BinaryOperator):
 
 
 class multiply(MulExpression):
-    """ Multiplies two expressions elementwise.
-    """
+    """Multiplies two expressions elementwise."""
 
     def __init__(self, lh_expr, rh_expr) -> None:
         lh_expr, rh_expr = self.broadcast(lh_expr, rh_expr)
         super(multiply, self).__init__(lh_expr, rh_expr)
 
     def is_atom_log_log_convex(self) -> bool:
-        """Is the atom log-log convex?
-        """
+        """Is the atom log-log convex?"""
         return True
 
     def is_atom_log_log_concave(self) -> bool:
-        """Is the atom log-log concave?
-        """
+        """Is the atom log-log concave?"""
         return True
 
     def is_atom_quasiconvex(self) -> bool:
@@ -264,8 +259,7 @@ class multiply(MulExpression):
             arg.is_nonpos() for arg in self.args)
 
     def numeric(self, values):
-        """Multiplies the values elementwise.
-        """
+        """Multiplies the values elementwise."""
         if sp.issparse(values[0]):
             return values[0].multiply(values[1])
         elif sp.issparse(values[1]):
@@ -273,10 +267,16 @@ class multiply(MulExpression):
         else:
             return np.multiply(values[0], values[1])
 
+    def validate_arguments(self):
+        """Validate that the arguments are broadcastable."""
+        np.broadcast(
+            np.empty(self.args[0].shape, dtype=np.dtype([])),
+            np.empty(self.args[1].shape, dtype=np.dtype([]))
+        )
+
     def shape_from_args(self) -> Tuple[int, ...]:
-        """The sum of the argument dimensions - 1.
-        """
-        return u.shape.sum_shapes([arg.shape for arg in self.args])
+        """Call np.broadcast on multiply arguments."""
+        return np.broadcast_shapes(self.args[0].shape, self.args[1].shape)
 
     def is_psd(self) -> bool:
         """Is the expression a positive semidefinite matrix?

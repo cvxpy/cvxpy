@@ -551,6 +551,102 @@ class TestBackends:
         # Note: view is edited in-place:
         assert out_view.get_tensor_representation(0, 1) == view.get_tensor_representation(0, 1)
 
+    def test_broadcast_to_rows(self, backend):
+        """
+        define x = Variable(3) with
+        [x1, x2, x3]
+
+        x is represented as eye(3) in the A matrix, i.e.,
+         x1 x2 x3
+        [[1  0  0],
+         [0  1  0],
+         [0  0  1]]
+        
+        broadcast_to(x, (2, 3)) means we repeat every variable twice along the row axis.
+
+        Thus we expect the following A matrix:
+        
+         x1 x2 x3
+        [[1  0  0],
+         [1  0  0],
+         [0  1  0],
+         [0  1  0]
+         [0  0  1],
+         [0  0  1]]
+        """
+        variable_lin_op = linOpHelper((3,), type="variable", data=1)
+        view = backend.process_constraint(variable_lin_op, backend.get_empty_view())
+
+        # cast to numpy
+        view_A = view.get_tensor_representation(0, 3)
+        view_A = sp.coo_matrix((view_A.data, (view_A.row, view_A.col)), shape=(3, 3)).toarray()
+        assert np.all(view_A == np.eye(3))
+
+        broadcast_lin_op = linOpHelper((2,3), data=(2,3), args=[variable_lin_op])
+        out_view = backend.broadcast_to(broadcast_lin_op, view)
+        A = out_view.get_tensor_representation(0, 3)
+
+        # cast to numpy
+        A = sp.coo_matrix((A.data, (A.row, A.col)), shape=(6, 3)).toarray()
+        expected = np.array([[1, 0, 0],
+                             [1, 0, 0],
+                             [0, 1, 0],
+                             [0, 1, 0],
+                             [0, 0, 1],
+                             [0, 0, 1]])
+        assert np.all(A == expected)
+
+        # Note: view is edited in-place:
+        assert out_view.get_tensor_representation(0, 1) == view.get_tensor_representation(0, 1)
+
+    def test_broadcast_to_cols(self, backend):
+        """
+        define x = Variable((2,1)) with
+        [[x1], 
+         [x2]]
+
+        x is represented as eye(2) in the A matrix, i.e.,
+         x1 x2
+        [[1  0],
+         [0  1]]
+        
+        broadcast_to(x, (2, 3)) means we tile the variables three times along the rows
+
+        Thus we expect the following A matrix:
+        
+         x1 x2
+        [[1  0],
+         [0  1],
+         [1  0],
+         [0  1]
+         [1  0],
+         [0  1]]
+        """
+        variable_lin_op = linOpHelper((2,1), type="variable", data=1)
+        view = backend.process_constraint(variable_lin_op, backend.get_empty_view())
+
+        # cast to numpy
+        view_A = view.get_tensor_representation(0, 2)
+        view_A = sp.coo_matrix((view_A.data, (view_A.row, view_A.col)), shape=(2, 2)).toarray()
+        assert np.all(view_A == np.eye(2))
+
+        broadcast_lin_op = linOpHelper((2,3), data=(2,3), args=[variable_lin_op])
+        out_view = backend.broadcast_to(broadcast_lin_op, view)
+        A = out_view.get_tensor_representation(0, 3)
+
+        # cast to numpy
+        A = sp.coo_matrix((A.data, (A.row, A.col)), shape=(6, 2)).toarray()
+        expected = np.array([[1, 0],
+                             [0, 1],
+                             [1, 0],
+                             [0, 1],
+                             [1, 0],
+                             [0, 1]])
+        assert np.all(A == expected)
+
+        # Note: view is edited in-place:
+        assert out_view.get_tensor_representation(0, 1) == view.get_tensor_representation(0, 1)
+
     def test_hstack(self, backend):
         """
         define x,y = Variable((1,)), Variable((1,))
@@ -2161,6 +2257,69 @@ class TestND_Backends:
         # Note: view is edited in-place:
         assert out_view.get_tensor_representation(0, 1) == view.get_tensor_representation(0, 1)
 
+    def test_nd_broadcast_to(self, backend):
+        """
+        define x = Variable((2,1,2)) with
+        [[x11, x12], 
+         [x21, x22]]
+
+        x is represented as eye(4) in the A matrix, i.e.,
+         x11 x21 x12 x22
+        [[1   0   0   0],
+         [0   1   0   0],
+         [0   0   1   0],
+         [0   0   0   1]]
+        
+        broadcast_to(x, (2, 3, 2)) means we repeat columns of x three times each subsequently.
+
+        Thus we expect the following A matrix:
+        
+        x11 x21 x12 x22
+        [[1   0   0   0],
+         [0   1   0   0],
+         [1   0   0   0],
+         [0   1   0   0],
+         [1   0   0   0],
+         [0   1   0   0],
+
+         [0   0   1   0],
+         [0   0   0   1],
+         [0   0   1   0],
+         [0   0   0   1],
+         [0   0   1   0],
+         [0   0   0   1]]
+        """
+        variable_lin_op = linOpHelper((2,1,2), type="variable", data=1)
+        view = backend.process_constraint(variable_lin_op, backend.get_empty_view())
+
+        # cast to numpy
+        view_A = view.get_tensor_representation(0, 4)
+        view_A = sp.coo_matrix((view_A.data, (view_A.row, view_A.col)), shape=(4, 4)).toarray()
+        assert np.all(view_A == np.eye(4))
+
+        broadcast_lin_op = linOpHelper((2,3,2), data=(2,3,2), args=[variable_lin_op])
+        out_view = backend.broadcast_to(broadcast_lin_op, view)
+        A = out_view.get_tensor_representation(0, 12)
+
+        # cast to numpy
+        A = sp.coo_matrix((A.data, (A.row, A.col)), shape=(12, 4)).toarray()
+        expected = np.array([[1, 0, 0, 0],
+                             [0, 1, 0, 0],
+                             [1, 0, 0, 0],
+                             [0, 1, 0, 0],
+                             [1, 0, 0, 0],
+                             [0, 1, 0, 0],
+                             [0, 0, 1, 0],
+                             [0, 0, 0, 1],
+                             [0, 0, 1, 0],
+                             [0, 0, 0, 1],
+                             [0, 0, 1, 0],
+                             [0, 0, 0, 1]])
+        assert np.all(A == expected)
+
+        # Note: view is edited in-place:
+        assert out_view.get_tensor_representation(0, 1) == view.get_tensor_representation(0, 1)
+
 
 class TestParametrizedND_Backends:
     @staticmethod
@@ -2274,7 +2433,7 @@ class TestNumPyBackend:
         assert tensor.shape == (1, 2, 2), "Should be a 1x2x2 tensor"
         assert np.all(tensor[0] == np.eye(2)), "Should be eye(2)"
 
-    @pytest.mark.parametrize("data", [np.array([[1, 2], [3, 4]]), sp.eye(2) * 4])
+    @pytest.mark.parametrize("data", [np.array([[1, 2], [3, 4]]), sp.eye_array(2) * 4])
     def test_get_data_tensor(self, numpy_backend, data):
         outer = numpy_backend.get_data_tensor(data)
         assert outer.keys() == {-1}, "Should only be constant variable ID."
@@ -2337,20 +2496,20 @@ class TestSciPyBackend:
         inner = outer[1]
         assert inner.keys() == {-1}, "Should only be in parameter slice -1, i.e. non parametrized."
         tensor = inner[-1]
-        assert isinstance(tensor, sp.spmatrix), "Should be a scipy sparse matrix"
+        assert sp.issparse(tensor), "Should be a scipy sparse matrix or array"
         assert tensor.shape == (2, 2), "Should be a 1*2x2 tensor"
         assert np.all(tensor == np.eye(2)), "Should be eye(2)"
 
-    @pytest.mark.parametrize("data", [np.array([[1, 2], [3, 4]]), sp.eye(2) * 4])
+    @pytest.mark.parametrize("data", [np.array([[1, 2], [3, 4]]), sp.eye_array(2) * 4])
     def test_get_data_tensor(self, scipy_backend, data):
         outer = scipy_backend.get_data_tensor(data)
         assert outer.keys() == {-1}, "Should only be constant variable ID."
         inner = outer[-1]
         assert inner.keys() == {-1}, "Should only be in parameter slice -1, i.e. non parametrized."
         tensor = inner[-1]
-        assert isinstance(tensor, sp.spmatrix), "Should be a scipy sparse matrix"
+        assert sp.issparse(tensor), "Should be scipy sparse"
         assert tensor.shape == (4, 1), "Should be a 1*4x1 tensor"
-        expected = sp.csr_matrix(data.reshape((-1, 1), order="F"))
+        expected = sp.csr_array(data.reshape((-1, 1), order="F"))
         assert (tensor != expected).nnz == 0
 
     def test_get_param_tensor(self, scipy_backend):
@@ -2362,25 +2521,25 @@ class TestSciPyBackend:
         inner = outer[-1]
         assert inner.keys() == {3}, "Should only be the parameter slice of parameter with id 3."
         tensor = inner[3]
-        assert isinstance(tensor, sp.spmatrix), "Should be a scipy sparse matrix"
+        assert sp.issparse(tensor), "Should be scipy sparse"
         assert tensor.shape == (16, 1), "Should be a 4*4x1 tensor"
         assert (
-            tensor.reshape((size, size)) != sp.eye(size, format="csr")
+            tensor.reshape((size, size)) != sp.eye_array(size, format="csr")
         ).nnz == 0, "Should be eye(4) when reshaping"
 
     def test_tensor_view_add_dicts(self, scipy_backend):
         view = scipy_backend.get_empty_view()
 
-        one = sp.eye(1)
-        two = sp.eye(1) * 2
-        three = sp.eye(1) * 3
+        one = sp.eye_array(1)
+        two = sp.eye_array(1) * 2
+        three = sp.eye_array(1) * 3
 
         assert view.add_dicts({}, {}) == {}
         assert view.add_dicts({"a": one}, {"a": two}) == {"a": three}
         assert view.add_dicts({"a": one}, {"b": two}) == {"a": one, "b": two}
         assert view.add_dicts({"a": {"c": one}}, {"a": {"c": one}}) == {"a": {"c": two}}
         with pytest.raises(
-            ValueError, match="Values must either be dicts or " "<class 'scipy.sparse."
+            ValueError, match=r"Values must either be dicts or \(<class 'scipy.sparse."
         ):
             view.add_dicts({"a": 1}, {"a": 2})
 
@@ -2390,11 +2549,11 @@ class TestSciPyBackend:
         p = 2
         reps = 3
         param_id = 2
-        matrices = [sp.random(*shape, random_state=i, density=0.5) for i in range(p)]
+        matrices = [sp.random_array(shape, random_state=i, density=0.5) for i in range(p)]
         stacked = sp.vstack(matrices)
         repeated = scipy_backend._stacked_kron_r({param_id: stacked}, reps)
         repeated = repeated[param_id]
-        expected = sp.vstack([sp.kron(sp.eye(reps), m) for m in matrices])
+        expected = sp.vstack([sp.kron(sp.eye_array(reps), m) for m in matrices])
         assert (expected != repeated).nnz == 0
 
     @staticmethod
@@ -2403,19 +2562,19 @@ class TestSciPyBackend:
         p = 2
         reps = 3
         param_id = 2
-        matrices = [sp.random(*shape, random_state=i, density=0.5) for i in range(p)]
+        matrices = [sp.random_array(shape, random_state=i, density=0.5) for i in range(p)]
         stacked = sp.vstack(matrices)
         repeated = scipy_backend._stacked_kron_l({param_id: stacked}, reps)
         repeated = repeated[param_id]
-        expected = sp.vstack([sp.kron(m, sp.eye(reps)) for m in matrices])
+        expected = sp.vstack([sp.kron(m, sp.eye_array(reps)) for m in matrices])
         assert (expected != repeated).nnz == 0
 
     @staticmethod
     def test_reshape_single_constant_tensor(scipy_backend):
-        a = sp.csc_matrix(np.tile(np.arange(6), 3).reshape((-1, 1)))
+        a = sp.csc_array(np.tile(np.arange(6), 3).reshape((-1, 1)))
         reshaped = scipy_backend._reshape_single_constant_tensor(a, (3, 2))
         expected = np.arange(6).reshape((3, 2), order="F")
-        expected = sp.csc_matrix(np.tile(expected, (3, 1)))
+        expected = sp.csc_array(np.tile(expected, (3, 1)))
         assert (reshaped != expected).nnz == 0
 
     @staticmethod
@@ -2423,7 +2582,7 @@ class TestSciPyBackend:
     def test_transpose_stacked(shape, scipy_backend):
         p = 2
         param_id = 2
-        matrices = [sp.random(*shape, random_state=i, density=0.5) for i in range(p)]
+        matrices = [sp.random_array(shape, random_state=i, density=0.5) for i in range(p)]
         stacked = sp.vstack(matrices)
         transposed = scipy_backend._transpose_stacked(stacked, param_id)
         expected = sp.vstack([m.T for m in matrices])

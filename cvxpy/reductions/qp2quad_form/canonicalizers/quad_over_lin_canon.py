@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from scipy.sparse import eye
+from scipy.sparse import eye_array
 
 from cvxpy.atoms.quad_form import SymbolicQuadForm
 from cvxpy.expressions.variable import Variable
@@ -25,11 +25,11 @@ def quad_over_lin_canon(expr, args):
     y = args[1]
     # Simplify if y has no parameters.
     if len(y.parameters()) == 0:
-        quad_mat = eye(affine_expr.size)/y.value
+        quad_mat = eye_array(affine_expr.size) / y.value
     else:
         # TODO this codepath produces an intermediate dense matrix.
         # but it should be sparse the whole time.
-        quad_mat = eye(affine_expr.size)/y
+        quad_mat = eye_array(affine_expr.size) / y
 
     if isinstance(affine_expr, Variable):
         return SymbolicQuadForm(affine_expr, quad_mat, expr), []

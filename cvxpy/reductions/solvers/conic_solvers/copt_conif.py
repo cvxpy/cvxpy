@@ -121,14 +121,14 @@ class COPT(ConicSolver):
         val_arr = val_arr[np.nonzero(val_arr)]
 
         shape = (entries, rows*cols)
-        scaled_lower_tri = sp.csc_matrix((val_arr, (row_arr, col_arr)), shape)
+        scaled_lower_tri = sp.csc_array((val_arr, (row_arr, col_arr)), shape)
 
         idx = np.arange(rows * cols)
         val_symm = 0.5 * np.ones(2 * rows * cols)
         K = idx.reshape((rows, cols))
         row_symm = np.append(idx, np.ravel(K, order='F'))
         col_symm = np.append(idx, np.ravel(K.T, order='F'))
-        symm_matrix = sp.csc_matrix((val_symm, (row_symm, col_symm)))
+        symm_matrix = sp.csc_array((val_symm, (row_symm, col_symm)))
 
         return scaled_lower_tri @ symm_matrix
 
@@ -250,7 +250,8 @@ class COPT(ConicSolver):
             b = data[s.B]
 
             # Solve the dualized problem
-            rowmap = model.loadConeMatrix(-b, A.transpose().tocsc(), -c, dims)
+            # TODO switch to `A.transpose().tocsc()` when COPT supports sparray
+            rowmap = model.loadConeMatrix(-b, sp.csc_matrix(A.transpose()), -c, dims)
             model.objsense = copt.COPT.MAXIMIZE
         else:
             # Build problem data
@@ -285,8 +286,9 @@ class COPT(ConicSolver):
                 nlinrow = dims[s.EQ_DIM] + dims[s.LEQ_DIM]
                 nlincol = A.shape[1]
 
-                diag = sp.spdiags(np.ones(nconedim), -nlinrow, A.shape[0], nconedim)
-                A = sp.csc_matrix(sp.hstack([A, diag]))
+                diag = sp.diags_array(np.ones(nconedim), offsets=-nlinrow,
+                                shape=(A.shape[0], nconedim))
+                A = sp.hstack([A, diag], format='csc')
 
                 c = np.append(c, np.zeros(nconedim))
 
@@ -313,8 +315,9 @@ class COPT(ConicSolver):
                     nlinrow += sum(dims[s.SOC_DIM])
                 nlincol = A.shape[1]
 
-                diag = sp.spdiags(np.ones(nexpconedim), -nlinrow, A.shape[0], nexpconedim)
-                A = sp.csc_matrix(sp.hstack([A, diag]))
+                diag = sp.diags_array(np.ones(nexpconedim), offsets=-nlinrow,
+                                      shape=(A.shape[0], nexpconedim))
+                A = sp.hstack([A, diag], format='csc')
 
                 c = np.append(c, np.zeros(nexpconedim))
 
@@ -325,7 +328,8 @@ class COPT(ConicSolver):
                     vtype = np.append(vtype, [copt.COPT.CONTINUOUS] * nexpconedim)
 
             # Load matrix data
-            model.loadMatrix(c, A, lhs, rhs, lb, ub, vtype)
+            # TODO remove `sp.csc_matrix` when COPT starts supporting sparray
+            model.loadMatrix(c, sp.csc_matrix(A), lhs, rhs, lb, ub, vtype)
 
             # Load cone data
             if dims[s.SOC_DIM]:

@@ -498,10 +498,10 @@ class TestAtoms(BaseTest):
             cp.sum(Variable(2), axis=1).shape
         self.assertEqual(str(cm.exception), "axis 1 is out of bounds for array of dimension 1")
 
-        A = sp.eye(3)
+        A = sp.eye_array(3)
         self.assertEqual(cp.sum(A).value, 3)
 
-        A = sp.eye(3)
+        A = sp.eye_array(3)
         self.assertItemsAlmostEqual(cp.sum(A, axis=0).value, [1, 1, 1])
 
     def test_multiply(self) -> None:
@@ -1065,6 +1065,7 @@ class TestAtoms(BaseTest):
         # Check that the CVaR constraint is satisfied
         cvar_value = cp.cvar(A @ x.value, beta).value
         self.assertTrue(cvar_value <= kappa)
+
     def test_index(self) -> None:
         """Test the copy function for index.
         """

@@ -368,6 +368,12 @@ def promote(operator, shape: Tuple[int, ...]):
     return lo.LinOp(lo.PROMOTE, shape, [operator], None)
 
 
+def broadcast_to(operators, shape: Tuple[int, ...]):
+    """Broadcasts operators to a common shape.
+    """
+    return lo.LinOp(lo.BROADCAST_TO, shape, operators, [])
+
+
 def sum_entries(operator, shape: Tuple[int, ...], axis=None, keepdims=None):
     """Sum the entries of an operator.
 

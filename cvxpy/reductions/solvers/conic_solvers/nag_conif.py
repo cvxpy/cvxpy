@@ -137,7 +137,7 @@ class NAG(ConicSolver):
         if Gs:
             data[s.G] = sp.sparse.vstack(tuple(Gs))
         else:
-            data[s.G] = sp.sparse.csc_matrix((0, 0))
+            data[s.G] = sp.sparse.csc_array((0, 0))
         if hs:
             data[s.H] = np.hstack(tuple(hs))
         else:
@@ -209,7 +209,7 @@ class NAG(ConicSolver):
         # Define quadratic objective if it exists
         if s.P in data:
             P = data[s.P]
-            Put = sp.sparse.triu(P, format='csc')
+            Put = sp.sparse.csc_array(sp.sparse.triu(P, format='csc'))
             Prows, Pcols, Pvals = sp.sparse.find(Put)
             Prows = Prows + 1
             Pcols = Pcols + 1

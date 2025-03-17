@@ -222,7 +222,7 @@ class TestComplex(BaseTest):
         x = Variable((2, 2))
         y = Variable((3, 2), complex=True)
         expr = cp.vstack([x, y])
-        prob = Problem(Minimize(cp.sum(cp.imag(expr.H))),
+        prob = Problem(Minimize(cp.sum(cp.imag(expr.T.conjugate()))),
                        [x == 0, cp.real(y) == 0, cp.imag(y) <= 1])
         result = prob.solve(solver="SCS", eps=1e-6)
         self.assertAlmostEqual(result, -6)
@@ -496,7 +496,7 @@ class TestComplex(BaseTest):
         row = np.array([0, 1])
         col = np.array([1, 0])
         data = np.array([1j, -1j])
-        A = sp.csr_matrix((data, (row, col)), shape=(2, 2))
+        A = sp.csr_array((data, (row, col)), shape=(2, 2))
 
         # Feasibility with sparse matrix
         rho = cp.Variable((2, 2), complex=True)

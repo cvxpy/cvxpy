@@ -51,7 +51,7 @@ corrupt = cvxopt.matrix(corrupt)
 
 e = np.ones(n).T
 ee = np.column_stack((-e,e)).T
-D = sparse.spdiags(ee, range(-1,1), n, n)
+D = sparse.diags_array(ee, offsets=range(-1,1), shape=(n, n))
 D = D.todense()
 D = cvxopt.matrix(D)
 

@@ -33,7 +33,7 @@ def log_normcdf(x):
         SciPy's analog of ``log_normcdf`` is called `log_ndtr <https://docs.scipy.org/doc/scipy/reference/generated/scipy.special.log_ndtr.html>`_.
         We opted not to use that name because its meaning would not be obvious to the casual user.
     """
-    A = scipy.sparse.diags(
+    A = scipy.sparse.diags_array(
         np.sqrt(
             [
                 0.02301291,

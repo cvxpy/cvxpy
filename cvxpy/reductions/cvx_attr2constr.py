@@ -75,7 +75,7 @@ def attributes_present(variables, attr_map) -> list[str]:
 
 def recover_value_for_variable(variable, lowered_value, project: bool = True):
     if variable.attributes['diag']:
-        return sp.diags(lowered_value.flatten(order='F'))
+        return sp.diags_array(lowered_value.flatten(order='F'))
     elif attributes_present([variable], SYMMETRIC_ATTRIBUTES):
         n = variable.shape[0]
         value = np.zeros(variable.shape)
@@ -160,7 +160,7 @@ class CvxAttr2Constr(Reduction):
                     id2new_var[var.id] = sparse_var
                     row_idx = np.ravel_multi_index(var.sparse_idx, var.shape, order='F')
                     col_idx = np.arange(n)
-                    coeff_matrix = Constant(sp.csc_matrix((np.ones(n), (row_idx, col_idx)),
+                    coeff_matrix = Constant(sp.csc_array((np.ones(n), (row_idx, col_idx)),
                                                     shape=(np.prod(var.shape, dtype=int), n)),
                                                     name="sparse_coeff")
                     obj = reshape(coeff_matrix @ sparse_var, var.shape, order='F')

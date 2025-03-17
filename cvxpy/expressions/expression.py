@@ -17,10 +17,11 @@ limitations under the License.
 import abc
 import warnings
 from functools import wraps
-from typing import List, Literal, Tuple
+from typing import List, Literal, Optional, Tuple
 
 import numpy as np
 
+import cvxpy as cp
 import cvxpy.settings as s
 import cvxpy.utilities as u
 import cvxpy.utilities.key_utils as ku
@@ -124,12 +125,12 @@ class Expression(u.Canonical):
 
     @property
     @abc.abstractmethod
-    def value(self):
-        """NumPy.ndarray or None : The numeric value of the expression.
+    def value(self) -> Optional[np.ndarray]:
+        """Returns: The numeric value of the expression.
         """
         raise NotImplementedError()
 
-    def _value_impl(self):
+    def _value_impl(self) -> Optional[np.ndarray]:
         """Implementation of .value.
         """
         return self.value
@@ -500,21 +501,18 @@ class Expression(u.Canonical):
         return cvxtypes.vec()(self, order)
 
     def is_scalar(self) -> bool:
-        """Is the expression a scalar?
-        """
+        """Is the expression a scalar?"""
         return all(d == 1 for d in self.shape)
 
     def is_vector(self) -> bool:
-        """Is the expression a column or row vector?
-        """
+        """Is the expression a column or row vector?"""
         return self.ndim <= 1 or (self.ndim == 2 and min(self.shape) == 1)
 
     def is_matrix(self) -> bool:
-        """Is the expression a matrix?
-        """
+        """Is the expression a matrix?"""
         return self.ndim == 2 and self.shape[0] > 1 and self.shape[1] > 1
 
-    def __getitem__(self, key):
+    def __getitem__(self, key) -> "Expression":
         """Return a slice/index into the expression.
         """
         # Returning self for scalars causes
@@ -527,7 +525,7 @@ class Expression(u.Canonical):
             return cvxtypes.index()(self, key)
 
     @property
-    def T(self):
+    def T(self) -> "Expression":
         """Expression : The transpose of the expression.
         """
         # Transpose of a scalar is that scalar.
@@ -537,7 +535,7 @@ class Expression(u.Canonical):
             return cvxtypes.transpose()(self)
 
     @property
-    def H(self):
+    def H(self) -> "Expression":
         """Expression : The conjugate-transpose of the expression.
         """
         if self.is_real():
@@ -582,17 +580,19 @@ class Expression(u.Canonical):
 
     @staticmethod
     def broadcast(lh_expr: "Expression", rh_expr: "Expression"):
-        """Broacast the binary operator.
-        """
+        """Broadcast the binary operator."""
         lh_expr = Expression.cast_to_const(lh_expr)
         rh_expr = Expression.cast_to_const(rh_expr)
+        # Promote.
         if lh_expr.is_scalar() and not rh_expr.is_scalar():
-            lh_expr = cvxtypes.promote()(lh_expr, rh_expr.shape)
+            lh_expr = cp.promote(lh_expr, rh_expr.shape)
         elif rh_expr.is_scalar() and not lh_expr.is_scalar():
-            rh_expr = cvxtypes.promote()(rh_expr, lh_expr.shape)
-        # Broadcasting.
+            rh_expr = cp.promote(rh_expr, lh_expr.shape)
+        # TODO: remove special case once CPP backend is removed
+        elif lh_expr.is_scalar() and rh_expr.is_scalar():
+            return lh_expr, rh_expr
+        # TODO: cleanup once CPP backend is removed
         if lh_expr.ndim == 2 and rh_expr.ndim == 2:
-            # Replicate dimensions of size 1.
             dims = [max(lh_expr.shape[i], rh_expr.shape[i]) for i in range(2)]
             # Broadcast along dim 0.
             if lh_expr.shape[0] == 1 and lh_expr.shape[0] < dims[0]:
@@ -604,6 +604,13 @@ class Expression(u.Canonical):
                 lh_expr = lh_expr @ np.ones((1, dims[1]))
             if rh_expr.shape[1] == 1 and rh_expr.shape[1] < dims[1]:
                 rh_expr = rh_expr @ np.ones((1, dims[1]))
+        # Broadcasting.
+        elif lh_expr.ndim >= 3 or rh_expr.ndim >= 3 or lh_expr.ndim != rh_expr.ndim:
+            output_shape = np.broadcast_shapes(lh_expr.shape, rh_expr.shape)
+            if lh_expr.shape != output_shape:
+                lh_expr = cp.broadcast_to(lh_expr, output_shape)
+            if rh_expr.shape != output_shape:
+                rh_expr = cp.broadcast_to(rh_expr, output_shape)
         return lh_expr, rh_expr
 
     @_cast_other
@@ -729,7 +736,7 @@ class Expression(u.Canonical):
             raise ValueError("Scalar operands are not allowed, use '*' instead")
         return cvxtypes.matmul_expr()(other, self)
 
-    def __neg__(self):
+    def __neg__(self) -> "Expression":
         """Expression : The negation of the expression.
         """
         return cvxtypes.neg_expr()(self)
@@ -764,13 +771,13 @@ class Expression(u.Canonical):
 
     # Comparison operators.
     @_cast_other
-    def __eq__(self, other: ExpressionLike):
+    def __eq__(self, other: ExpressionLike) -> Equality:
         """Equality : Creates a constraint ``self == other``.
         """
         return Equality(self, other)
 
     @_cast_other
-    def __le__(self, other: ExpressionLike):
+    def __le__(self, other: ExpressionLike) -> Inequality:
         """Inequality : Creates an inequality constraint ``self <= other``.
         """
         return Inequality(self, other)
@@ -779,7 +786,7 @@ class Expression(u.Canonical):
         raise NotImplementedError("Strict inequalities are not allowed.")
 
     @_cast_other
-    def __ge__(self, other: ExpressionLike):
+    def __ge__(self, other: ExpressionLike) -> Inequality:
         return Inequality(other, self)
 
     def __gt__(self, other: ExpressionLike):
@@ -808,63 +815,63 @@ class Expression(u.Canonical):
     def __abs__(self):
         raise TypeError(__ABS_ERROR__)
 
-    def conj(self):
+    def conj(self) -> "Expression":
         """
         Equivalent to `cp.conj(self)`.
         """
         from cvxpy import conj
         return conj(self)
 
-    def conjugate(self):
+    def conjugate(self) -> "Expression":
         """
         Equivalent to `cp.conj(self)`.
         """
         from cvxpy import conj
         return conj(self)
 
-    def cumsum(self, axis=0):
+    def cumsum(self, axis=0) -> "Expression":
         """
         Equivalent to `cp.cumsum(self, axis)`.
         """
         from cvxpy import cumsum
         return cumsum(self, axis)
 
-    def max(self, axis=None, *, keepdims=False):
+    def max(self, axis=None, *, keepdims=False) -> "Expression":
         """
         Equivalent to `cp.max(self, axis, keepdims)`.
         """
         from cvxpy import max as max_
         return max_(self, axis, keepdims)
 
-    def mean(self, axis=None, *, keepdims=False):
+    def mean(self, axis=None, *, keepdims=False) -> "Expression":
         """
         Equivalent to `cp.mean(self, axis, keepdims)`.
         """
         from cvxpy import mean
         return mean(self, axis, keepdims)
 
-    def min(self, axis=None, *, keepdims=False):
+    def min(self, axis=None, *, keepdims=False) -> "Expression":
         """
         Equivalent to `cp.min(self, axis, keepdims)`.
         """
         from cvxpy import min as min_
         return min_(self, axis, keepdims)
 
-    def prod(self, axis=None, *, keepdims=False):
+    def prod(self, axis=None, *, keepdims=False) -> "Expression":
         """
         Equivalent to `cp.prod(self, axis, keepdims)`.
         """
         from cvxpy import prod
         return prod(self, axis, keepdims)
 
-    def ptp(self, axis=None, *, keepdims=False):
+    def ptp(self, axis=None, *, keepdims=False) -> "Expression":
         """
         Equivalent to `cp.ptp(self, axis, keepdims)`.
         """
         from cvxpy import ptp
         return ptp(self, axis, keepdims)
 
-    def reshape(self, shape, order: Literal["F", "C", None] = None):
+    def reshape(self, shape, order: Literal["F", "C", None] = None) -> "Expression":
         """
         Equivalent to `cp.reshape(self, shape, order)`.
         """
@@ -875,28 +882,28 @@ class Expression(u.Canonical):
         from cvxpy import reshape
         return reshape(self, shape, order)
 
-    def std(self, axis=None, *, ddof=0, keepdims=False):
+    def std(self, axis=None, *, ddof=0, keepdims=False) -> "Expression":
         """
         Equivalent to `cp.std(self, axis, keepdims)`.
         """
         from cvxpy import std
         return std(self, axis=axis, ddof=ddof, keepdims=keepdims)
  
-    def sum(self, axis=None, *, keepdims=False):
+    def sum(self, axis=None, *, keepdims=False) -> "Expression":
         """
         Equivalent to `cp.sum(self, axis, keepdims)`.
         """
         from cvxpy import sum as sum_
         return sum_(self, axis, keepdims)
 
-    def trace(self):
+    def trace(self) -> "Expression":
         """
         Equivalent to `cp.trace(self)`.
         """
         from cvxpy import trace
         return trace(self)
 
-    def var(self, *, ddof=0):
+    def var(self, *, ddof=0) -> "Expression":
         """
         Equivalent to `cp.var(self)`.
         """
