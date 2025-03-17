@@ -204,3 +204,28 @@ class TestAttributes:
             ValueError, match="np.inf is not feasible as a lower bound."
         ):
             x = cp.Variable((2, 2), name="x", bounds=bounds)
+
+    def test_variable_repr(self):
+        # test boolean attributes
+        x = cp.Variable((10, 10), name="x", nonneg=True)
+        assert x.__repr__() == "Variable((10, 10), x, nonneg=True)"
+
+        # test bounds representation
+        y = cp.Variable((10, 10), name="y", bounds=[0, 10])
+        assert y.__repr__() == (
+            "Variable((10, 10), y, bounds=([[0 0 ... 0 0]\n"
+            " [0 0 ... 0 0]\n"
+            " ...\n"
+            " [0 0 ... 0 0]\n"
+            " [0 0 ... 0 0]], [[10 10 ... 10 10]\n"
+            " [10 10 ... 10 10]\n"
+            " ...\n"
+            " [10 10 ... 10 10]\n"
+            " [10 10 ... 10 10]]))"
+        )
+
+        # test sparse, mixed-integer/boolean representation
+        z = cp.Variable((10, 10), name="z", sparsity=[(0, 1), (0, 2)])
+        assert z.__repr__() == (
+            "Variable((10, 10), z, sparsity=[(0, 1), (0, 2)])"
+        )
