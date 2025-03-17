@@ -185,8 +185,21 @@ class Leaf(expression.Expression):
         """Get a string representing the attributes."""
         attr_str = ""
         for attr, val in self.attributes.items():
-            if attr != 'real' and val:
-                attr_str += ", %s=%s" % (attr, val)
+            if val is not False and val is not None:
+                if isinstance(val, bool):
+                    attr_str += ", %s=%s" % (attr, val)
+                elif attr == 'bounds' and val is not None:
+                    lower = np.array2string(val[0],
+                                    edgeitems=s.PRINT_EDGEITEMS,
+                                    threshold=s.PRINT_THRESHOLD,
+                                    formatter={'float': lambda x: f'{x:.2f}'})
+                    upper = np.array2string(val[1],
+                                    edgeitems=s.PRINT_EDGEITEMS,
+                                    threshold=s.PRINT_THRESHOLD,
+                                    formatter={'float': lambda x: f'{x:.2f}'})
+                    attr_str += ", %s=(%s, %s)" % (attr, lower, upper)
+                elif attr in ('sparsity', 'boolean', 'integer') and isinstance(val, Iterable):
+                    attr_str += ", %s=%s" % (attr, val)
         return attr_str
 
     def copy(self, args=None, id_objects=None):
@@ -491,8 +504,6 @@ class Leaf(expression.Expression):
                 f' Instantiate with scipy.sparse.coo_array((value_array, coordinates))'
                 )
         self.save_value(self._validate_value(val, True), True)
-
-
 
     def project_and_assign(self, val) -> None:
         """Project and assign a value to the variable.
