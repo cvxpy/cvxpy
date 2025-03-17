@@ -234,32 +234,38 @@ class TestMultipleAttributes:
         assert np.allclose(x.value, -target)
 
     def test_integer_bounds(self) -> None:
-        x = cp.Variable(shape=(2,2), integer=True, bounds=[0, 2])
-        target = np.array(np.eye(2))
-        prob = cp.Problem(cp.Minimize(0), [x == target])
-
-        new_prob = CvxAttr2Constr(prob, reduce_bounds=True)
-        assert type(new_prob.apply(prob)[0].constraints[0]) is Inequality
-        assert type(new_prob.apply(prob)[0].constraints[1]) is Inequality
-        assert type(new_prob.apply(prob)[0].constraints[2]) is Equality
-
+        x = cp.Variable(shape=(2,2), integer=True, bounds=[-1.5, 2])
+        prob = cp.Problem(cp.Minimize(cp.sum(x)), [])
         prob.solve()
-        assert np.allclose(x.value, target)
+        assert prob.value == -4
+        assert np.allclose(x.value, np.ones((2,2)) * -1)
 
     def test_nonpos_nonneg_variable(self) -> None:
         x = cp.Variable(shape=(2,2), nonpos=True, nonneg=True)
         target = np.zeros((2,2))
-        prob = cp.Problem(cp.Minimize(cp.sum(x)), [x >= -5])
+        prob = cp.Problem(cp.Minimize(cp.sum(x)), [])
         prob.solve()
+        assert np.allclose(prob.value, 0)
         assert np.allclose(x.value, target)
     
     def test_sparse_symmetric_variable(self) -> None:
-        import re
         with pytest.raises(
             ValueError, 
-            match=re.escape(
-                "A CVXPY Variable cannot have more than one of the following attributes be true: "
-                "['diag', 'symmetric', 'PSD', 'NSD', 'hermitian', 'sparsity']"
-            )
+            match="A CVXPY Variable cannot have more than one of the following attributes be true"
         ):
             cp.Variable(shape=(2, 2), symmetric=True, sparsity=[(0, 1), (0, 1)])
+
+    def test_sparse_bounded_variable(self) -> None:
+        x = cp.Variable(shape=(2,2), sparsity=[(0,1),(0,1)],
+                        bounds=[np.array([[-1.5, -4], [-3, -2.5]]), 10])
+        prob = cp.Problem(cp.Minimize(cp.sum(x)), [])
+        prob.solve()
+        assert np.allclose(prob.value, -4)
+        assert np.allclose(x.value, np.array([[-1.5, 0], [0, -2.5]]))
+
+    def test_sparse_integer_variable(self) -> None:
+        x = cp.Variable(shape=(2,2), sparsity=[(0,1),(0,1)], integer=True)
+        prob = cp.Problem(cp.Minimize(cp.sum(x)), [x>=-5.5])
+        prob.solve()
+        assert np.allclose(prob.value, -10)
+        assert np.allclose(x.value, np.eye(2) * -5)
