@@ -449,7 +449,9 @@ class Leaf(expression.Expression):
 
     # Getter and setter for parameter value.
     def save_value(self, val, sparse_path=False) -> None:
-        if self.sparse_idx is not None and not sparse_path:
+        if val is None:
+            self._value = None
+        elif self.sparse_idx is not None and not sparse_path:
             self._value = sp.coo_array((val[self.sparse_idx], self.sparse_idx), shape=self.shape)
         elif self.sparse_idx is not None and sparse_path:
             self._value = val.data

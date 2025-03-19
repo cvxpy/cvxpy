@@ -130,6 +130,17 @@ class TestAttributes:
         X_value_sparse = X.value_sparse
         assert np.allclose(X_value_sparse.toarray(), z)
 
+    def test_infeasible_sparse(self):
+        # Create a sparse variable 
+        x = cp.Variable(100, sparsity=(np.array([1, 15, 45, 67, 89]),))
+        objective = cp.Minimize(cp.sum_squares(x))
+
+        # Create infeasible constraints
+        constraints = [x[1] >= 10, x[1] <= 1]
+        problem = cp.Problem(objective, constraints)
+        problem.solve()
+        assert problem.status == "infeasible"
+
     def test_diag_value_sparse(self):
         X = cp.Variable((3, 3), diag=True)
         prob = cp.Problem(cp.Minimize(cp.sum(X)), [X >= -1, X <= 1])
