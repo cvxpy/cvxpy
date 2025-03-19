@@ -55,6 +55,7 @@ from cvxpy.reductions.solvers.solving_chain import (
 from cvxpy.settings import SOLVERS
 from cvxpy.utilities import debug_tools
 from cvxpy.utilities.deterministic import unique_list
+from cvxpy.utilities.citations import cite
 
 SolveResult = namedtuple(
     'SolveResult',
@@ -85,6 +86,14 @@ _NUM_SOLVER_STR = (
     '\n' +
     '-'*_COL_WIDTH
 )
+_CITATION_STR = (
+    '-'*_COL_WIDTH +
+    '\n' +
+    ('Citations').center(_COL_WIDTH) +
+    '\n' +
+    '-'*_COL_WIDTH
+)
+
 _FOOTER = (
     '-'*_COL_WIDTH +
     '\n' +
@@ -1030,6 +1039,7 @@ class Problem(u.Canonical):
                solver: str = None,
                warm_start: bool = True,
                verbose: bool = False,
+               bibtex: bool = False,
                gp: bool = False,
                qcp: bool = False,
                requires_grad: bool = False,
@@ -1180,6 +1190,10 @@ class Problem(u.Canonical):
         solver_verbose = kwargs.pop('solver_verbose', verbose)
         if solver_verbose and (not verbose):
             print(_NUM_SOLVER_STR)
+        if verbose and bibtex:
+            print(_CITATION_STR)
+            breakpoint()
+            cite(self.is_dcp(), gp, qcp, solving_chain.reductions[-1].name(), data['dims'].exp > 0)
         solution = solving_chain.solve_via_data(
             self, data, warm_start, solver_verbose, kwargs)
         end = time.time()
