@@ -1192,7 +1192,6 @@ class Problem(u.Canonical):
             print(_NUM_SOLVER_STR)
         if verbose and bibtex:
             print(_CITATION_STR)
-            breakpoint()
             cite(self.is_dcp(), gp, qcp, solving_chain.reductions[-1].name(), data['dims'].exp > 0)
         solution = solving_chain.solve_via_data(
             self, data, warm_start, solver_verbose, kwargs)

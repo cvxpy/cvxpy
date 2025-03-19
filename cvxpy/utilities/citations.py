@@ -191,16 +191,6 @@ CITATION_DICT["ECOS_EXP"] = \
 }
 """
 
-CITATION_DICT["ECOS_EXP"] = \
-"""
-@book{serrano2015algorithms,
-  title={Algorithms for unsymmetric cone optimization and an implementation for problems with the exponential cone},
-  author={Serrano, Santiago Akle},
-  year={2015},
-  publisher={Stanford University}
-}
-"""
-
 CITATION_DICT["SCS"] = \
 """
 @article{odonoghue2021operator,
