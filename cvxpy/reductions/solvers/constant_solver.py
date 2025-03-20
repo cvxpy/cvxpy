@@ -35,3 +35,6 @@ class ConstantSolver(Solver):
             return Solution(s.OPTIMAL, problem.objective.value, {}, {}, {})
         else:
             return Solution(s.INFEASIBLE, None, {}, {}, {})
+
+    def cite(self, data):
+        return None
