@@ -175,8 +175,8 @@ class QOCO(ConicSolver):
         n = len(data[s.C])
 
         P = data[s.P] if s.P in data.keys() else None
-        A = data[s.A]
-        G = data[s.G]
+        A = data[s.A] if p > 0 else None
+        G = data[s.G] if m > 0 else None
 
         # Cast row indices and column pointer arrays to int32.
         if P is not None:
