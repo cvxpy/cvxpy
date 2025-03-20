@@ -54,8 +54,8 @@ from cvxpy.reductions.solvers.solving_chain import (
 )
 from cvxpy.settings import SOLVERS
 from cvxpy.utilities import debug_tools
-from cvxpy.utilities.deterministic import unique_list
 from cvxpy.utilities.citations import cite
+from cvxpy.utilities.deterministic import unique_list
 
 SolveResult = namedtuple(
     'SolveResult',
@@ -1060,6 +1060,8 @@ class Problem(u.Canonical):
             Should the previous solver result be used to warm start?
         verbose : bool, optional
             Overrides the default of hiding solver output.
+        bibtex : bool, optional
+            Prints bibtex citations for CVXPY, the grammar, and the solver.
         gp : bool, optional
             If True, parses the problem as a disciplined geometric program.
         qcp : bool, optional
@@ -1192,7 +1194,7 @@ class Problem(u.Canonical):
             print(_NUM_SOLVER_STR)
         if verbose and bibtex:
             print(_CITATION_STR)
-            cite(self.is_dcp(), gp, qcp, solving_chain.reductions[-1].name(), data['dims'].exp > 0)
+            cite(self.is_dcp(), gp, qcp, solving_chain.reductions[-1].name(), data)
         solution = solving_chain.solve_via_data(
             self, data, warm_start, solver_verbose, kwargs)
         end = time.time()

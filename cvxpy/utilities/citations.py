@@ -184,7 +184,8 @@ CITATION_DICT["ECOS_BB"] = \
 CITATION_DICT["ECOS_EXP"] = \
 """
 @book{serrano2015algorithms,
-  title={Algorithms for unsymmetric cone optimization and an implementation for problems with the exponential cone},
+  title={Algorithms for unsymmetric cone optimization and an implementation for problems
+  with the exponential cone},
   author={Serrano, Santiago Akle},
   year={2015},
   publisher={Stanford University}
@@ -208,68 +209,71 @@ CITATION_DICT["SCS"] = \
 CITATION_DICT["SDPA"] = \
 """
 @article{doi:10.1080/1055678031000118482,
-    author    = "Yamashita, Makoto
+    author    = {Yamashita, Makoto
                  and Fujisawa, Katsuki
-                 and Kojima, Masakazu",
-    title     = "Implementation and evaluation of SDPA 6.0 (Semidefinite Programming Algorithm 6.0)",
-    journal   = "Optimization Methods and Software",
-    volume    = "18",
-    number    = "4",
-    pages     = "491-505",
-    year      = "2003",
-    publisher = "Taylor & Francis",
-    doi       = "10.1080/1055678031000118482",
-    URL       = "https://doi.org/10.1080/1055678031000118482",
-    eprint    = "https://doi.org/10.1080/1055678031000118482"
+                 and Kojima, Masakazu},
+    title     = {Implementation and evaluation of SDPA 6.0 
+    (Semidefinite Programming Algorithm 6.0)},
+    journal   = {Optimization Methods and Software},
+    volume    = {18},
+    number    = {4},
+    pages     = {491-505},
+    year      = {2003},
+    publisher = {Taylor & Francis},
+    doi       = {10.1080/1055678031000118482},
+    URL       = {https://doi.org/10.1080/1055678031000118482},
+    eprint    = {https://doi.org/10.1080/1055678031000118482}
 }
 
 @Inbook{Yamashita2012,
-    author    = "Yamashita, Makoto
+    author    = {Yamashita, Makoto
                  and Fujisawa, Katsuki
                  and Fukuda, Mituhiro
                  and Kobayashi, Kazuhiro
                  and Nakata, Kazuhide
-                 and Nakata, Maho",
-    editor    = "Anjos, Miguel F.
-                 and Lasserre, Jean B.",
-    title           = "Latest Developments in the SDPA Family for Solving Large-Scale SDPs",
-    bookTitle       = "Handbook on Semidefinite, Conic and Polynomial Optimization",
-    year      = "2012",
-    publisher = "Springer US",
-    address   = "Boston, MA",
-    pages     = "687--713",
-    isbn      = "978-1-4614-0769-0",
-    doi       = "10.1007/978-1-4614-0769-0_24",
-    url       = "https://doi.org/10.1007/978-1-4614-0769-0_24"
+                 and Nakata, Maho},
+    editor    = {Anjos, Miguel F.
+                 and Lasserre, Jean B.},
+    title           = {Latest Developments in the SDPA Family for Solving Large-Scale SDPs},
+    bookTitle       = {Handbook on Semidefinite, Conic and Polynomial Optimization},
+    year      = {2012},
+    publisher = {Springer US},
+    address   = {Boston, MA},
+    pages     = {687--713},
+    isbn      = {978-1-4614-0769-0},
+    doi       = {10.1007/978-1-4614-0769-0_24},
+    url       = {https://doi.org/10.1007/978-1-4614-0769-0_24}
 }
 
 @inproceedings{doi:10.1109/CACSD.2010.5612693,
-    author    = "Nakata, Maho",
-    booktitle = "2010 IEEE International Symposium on Computer-Aided Control System Design", 
-    title     = "A numerical evaluation of highly accurate multiple-precision arithmetic version of semidefinite programming solver: SDPA-GMP, -QD and -DD.", 
-    year      = "2010",
-    volume    = "",
-    number    = "",
-    pages     = "29-34",
-    doi       = "10.1109/CACSD.2010.5612693"
+    author    = {Nakata, Maho},
+    booktitle = {2010 IEEE International Symposium on Computer-Aided Control System Design}, 
+    title     = {A numerical evaluation of highly accurate multiple-precision arithmetic version
+    of semidefinite programming solver: SDPA-GMP, -QD and -DD.}, 
+    year      = {2010},
+    volume    = {},
+    number    = {},
+    pages     = {29-34},
+    doi       = {10.1109/CACSD.2010.5612693}
 }
 
 @article{Kim2011,
-    author    = "Kim, Sunyoung
+    author    = {Kim, Sunyoung
                  and Kojima, Masakazu
                  and Mevissen, Martin
-                 and Yamashita, Makoto",
-    title     = "Exploiting sparsity in linear and nonlinear matrix inequalities via positive semidefinite matrix completion",
-    journal   = "Mathematical Programming",
-    year      = "2011",
-    month     = "Sep",
-    day       = "01",
-    volume    = "129",
-    number    = "1",
-    pages     = "33-68",
-    issn      = "1436-4646",
-    doi       = "10.1007/s10107-010-0402-6",
-    url       = "https://doi.org/10.1007/s10107-010-0402-6"
+                 and Yamashita, Makoto},
+    title     = {Exploiting sparsity in linear and nonlinear matrix inequalities
+    via positive semidefinite matrix completion},
+    journal   = {Mathematical Programming},
+    year      = {2011},
+    month     = {Sep},
+    day       = {01},
+    volume    = {129},
+    number    = {1},
+    pages     = {33-68},
+    issn      = {1436-4646},
+    doi       = {10.1007/s10107-010-0402-6},
+    url       = {https://doi.org/10.1007/s10107-010-0402-6}
 }
 """
 
@@ -336,7 +340,7 @@ CITATION_DICT["PROXQP"] = \
 """
 
 CITATION_DICT["QOCO"] = \
-"""
+r"""
 @misc{chari2025qoco,
   title = {Custom Solver Generation for Quadratic Objective Second-Order Cone Programs},
   author = {Chari, Govind M and A{\c{c}}{\i}kme{\c{s}}e, Beh{\c{c}}et},
@@ -363,9 +367,9 @@ CITATION_DICT["CPLEX"] = \
 CITATION_DICT["MOSEK"] = \
 """
 @manual{mosek,
-   author = "MOSEK ApS",
-   title = "MOSEK Optimization Suite",
-   year = 2025,
+   author = {MOSEK ApS},
+   title = {MOSEK Optimization Suite},
+   year = {2025},
    url = {https://docs.mosek.com/latest/intro/index.html}
  }
 """
@@ -375,7 +379,7 @@ CITATION_DICT["XPRESS"] = \
 @manual{xpress,
   author = {FICO},
   title  = {FICO Xpress Optimization},
-  year   = 2025,
+  year   = {2025},
   url    = {https://www.fico.com/fico-xpress-optimization/docs/latest/overview.html}
 }
 """
@@ -395,7 +399,8 @@ CITATION_DICT["PDLP"] = \
 """
 @article{applegate2021practical,
   title={Practical large-scale linear programming using primal-dual hybrid gradient},
-  author={Applegate, David and D{\'\i}az, Mateo and Hinder, Oliver and Lu, Haihao and Lubin, Miles and O'Donoghue, Brendan and Schudy, Warren},
+  author={Applegate, David and D{\'\\i}az, Mateo and Hinder, Oliver and Lu, Haihao and Lubin, Miles
+  and O'Donoghue, Brendan and Schudy, Warren},
   journal={Advances in Neural Information Processing Systems},
   volume={34},
   pages={20243--20257},
@@ -404,7 +409,8 @@ CITATION_DICT["PDLP"] = \
 
 @article{applegate2025pdlp,
   title={PDLP: A Practical First-Order Method for Large-Scale Linear Programming},
-  author={Applegate, David and D{\'\i}az, Mateo and Hinder, Oliver and Lu, Haihao and Lubin, Miles and O'Donoghue, Brendan and Schudy, Warren},
+  author={Applegate, David and D{\'\\i}az, Mateo and Hinder, Oliver and Lu, Haihao and Lubin, Miles
+  and O'Donoghue, Brendan and Schudy, Warren},
   journal={arXiv preprint arXiv:2501.07018},
   year={2025}
 }
@@ -414,7 +420,10 @@ CITATION_DICT["SCIP"] = \
 """
 @article{bolusani2024scip,
   title={The SCIP optimization suite 9.0},
-  author={Bolusani, Suresh and Besan{\c{c}}on, Mathieu and Bestuzheva, Ksenia and Chmiela, Antonia and Dion{\'\i}sio, Jo{\~a}o and Donkiewicz, Tim and van Doornmalen, Jasper and Eifler, Leon and Ghannam, Mohammed and Gleixner, Ambros and others},
+  author={Bolusani, Suresh and Besan{\\c{c}}on, Mathieu and Bestuzheva, Ksenia
+  and Chmiela, Antonia and Dion{\'\\i}sio, Jo{\\~a}o and Donkiewicz, Tim
+  and van Doornmalen, Jasper and Eifler, Leon and Ghannam, Mohammed and Gleixner, Ambros
+  and others},
   journal={arXiv preprint arXiv:2402.17702},
   year={2024}
 }
@@ -430,11 +439,11 @@ CITATION_DICT["SCIPY"] = \
             Brett, Matthew and Wilson, Joshua and Millman, K. Jarrod and
             Mayorov, Nikolay and Nelson, Andrew R. J. and Jones, Eric and
             Kern, Robert and Larson, Eric and Carey, C J and
-            Polat, {\.I}lhan and Feng, Yu and Moore, Eric W. and
+            Polat, {\\.I}lhan and Feng, Yu and Moore, Eric W. and
             {VanderPlas}, Jake and Laxalde, Denis and Perktold, Josef and
             Cimrman, Robert and Henriksen, Ian and Quintero, E. A. and
             Harris, Charles R. and Archibald, Anne M. and
-            Ribeiro, Ant{\^o}nio H. and Pedregosa, Fabian and
+            Ribeiro, Ant{\\^o}nio H. and Pedregosa, Fabian and
             {van Mulbregt}, Paul and {SciPy 1.0 Contributors}},
   title   = {{{SciPy} 1.0: Fundamental Algorithms for Scientific
             Computing in Python}},
@@ -462,7 +471,8 @@ CITATION_DICT["CLARABEL"] = \
 CITATION_DICT["DAQP"] = \
 """
 @article{arnstrom2022dual,
-  title={A Dual Active-Set Solver for Embedded Quadratic Programming Using Recursive LDL $\^{}$\{$T$\}$ $ Updates},
+  title={A Dual Active-Set Solver for Embedded Quadratic Programming Using Recursive
+  LDL $\\^{}$\\{$T$\\}$ $ Updates},
   author={Arnstr{\"o}m, Daniel and Bemporad, Alberto and Axehill, Daniel},
   journal={IEEE Transactions on Automatic Control},
   volume={67},
@@ -491,7 +501,7 @@ CITATION_DICT["HIGHS"] = \
 }
 """
 
-def cite(dcp, gp, qcp, solver, exp):
+def cite(dcp, gp, qcp, solver, data):
     print("CVXPY:")
     print(CITATION_DICT["CVXPY"])
 
@@ -505,5 +515,5 @@ def cite(dcp, gp, qcp, solver, exp):
 
     print("Solver:")
     print(CITATION_DICT[solver])
-    if solver == "ECOS" and exp:
+    if solver == "ECOS" and data['dims'].exp > 0:
         print(CITATION_DICT["ECOS_EXP"])
