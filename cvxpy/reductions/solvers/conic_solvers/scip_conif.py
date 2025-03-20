@@ -470,7 +470,7 @@ class SCIP(ConicSolver):
             new_lin_constrs,
             soc_vars,
         )
-    
+
     def cite(self, data):
         """Returns the result of the call to the solver.
 

@@ -169,18 +169,6 @@ CITATION_DICT["ECOS"] = \
 }
 """
 
-CITATION_DICT["ECOS_BB"] = \
-"""
-@inproceedings{domahidi2013ecos,
-  title={ECOS: An SOCP solver for embedded systems},
-  author={Domahidi, Alexander and Chu, Eric and Boyd, Stephen},
-  booktitle={2013 European control conference (ECC)},
-  pages={3071--3076},
-  year={2013},
-  organization={IEEE}
-}
-"""
-
 CITATION_DICT["ECOS_EXP"] = \
 """
 @book{serrano2015algorithms,

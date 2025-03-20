@@ -122,7 +122,7 @@ class DIFFCP(scs_conif.SCS):
             return Solution(status, opt_val, primal_vars, dual_vars, attr)
         else:
             return failure_solution(status, attr)
-        
+
     def solve_via_data(self, data, warm_start: bool, verbose: bool, solver_opts,
                        solver_cache=None):
         """Returns the result of the call to the solver.
