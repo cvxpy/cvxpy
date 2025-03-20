@@ -28,6 +28,7 @@ from cvxpy.reductions.cone2cone.affine2direct import Dualize, Slacks
 from cvxpy.reductions.solution import Solution
 from cvxpy.reductions.solvers.conic_solvers.conic_solver import ConicSolver
 from cvxpy.reductions.solvers.utilities import expcone_permutor
+from cvxpy.utilities.citations import CITATION_DICT
 
 __MSK_ENUM_PARAM_DEPRECATION__ = """
 Using MOSEK constants to specify parameters is deprecated.
@@ -777,3 +778,15 @@ class MOSEK(ConicSolver):
             "MSK_DPAR_MIO_TOL_REL_GAP"
         )
 
+    def cite(self, data):
+        """Returns the result of the call to the solver.
+
+        Parameters
+        ----------
+        data : dict
+            Data generated via an apply call.
+        """
+        if data['K_dir']['de'] > 0:
+            return CITATION_DICT["MOSEK"] + CITATION_DICT["MOSEK_EXP"]
+        else:
+            return CITATION_DICT["MOSEK"]

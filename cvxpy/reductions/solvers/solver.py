@@ -72,6 +72,12 @@ class Solver(Reduction):
         """
         raise NotImplementedError()
 
+    @abc.abstractmethod
+    def cite(self, data):
+        """Return bibtex citation for the solver.
+        """
+        raise NotImplementedError()
+
     def solve(self, problem, warm_start: bool, verbose: bool, solver_opts):
         """Solve the problem and return a Solution object.
         """

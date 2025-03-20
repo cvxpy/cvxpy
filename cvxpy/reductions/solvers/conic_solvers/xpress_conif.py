@@ -24,6 +24,7 @@ from cvxpy.reductions.solvers.conic_solvers.conic_solver import (
     ConicSolver,
     dims_to_solver_dict,
 )
+from cvxpy.utilities.citations import CITATION_DICT
 from cvxpy.utilities.versioning import Version
 
 
@@ -387,6 +388,15 @@ class XPRESS(ConicSolver):
 
         return solution
 
+    def cite(self, data):
+        """Returns the result of the call to the solver.
+
+        Parameters
+        ----------
+        data : dict
+            Data generated via an apply call.
+        """
+        return CITATION_DICT["XPRESS"]
 
 def get_status_maps():
     """Create status maps from Xpress to CVXPY

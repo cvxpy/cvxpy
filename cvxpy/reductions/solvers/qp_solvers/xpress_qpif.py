@@ -8,6 +8,7 @@ from cvxpy.reductions.solvers.conic_solvers.xpress_conif import (
     makeMstart,
 )
 from cvxpy.reductions.solvers.qp_solvers.qp_solver import QpSolver
+from cvxpy.utilities.citations import CITATION_DICT
 
 
 class XPRESS(QpSolver):
@@ -257,3 +258,13 @@ class XPRESS(QpSolver):
         del self.prob_
 
         return results_dict
+
+    def cite(self, data):
+        """Returns the result of the call to the solver.
+
+        Parameters
+        ----------
+        data : dict
+            Data generated via an apply call.
+        """
+        return CITATION_DICT["XPRESS"]
