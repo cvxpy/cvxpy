@@ -362,6 +362,24 @@ CITATION_DICT["MOSEK"] = \
  }
 """
 
+CITATION_DICT["MOSEK_EXP"] = \
+"""
+@article{Dahl2021,
+  title = {A primal-dual interior-point algorithm for nonsymmetric exponential-cone optimization},
+  volume = {194},
+  ISSN = {1436-4646},
+  url = {http://dx.doi.org/10.1007/s10107-021-01631-4},
+  DOI = {10.1007/s10107-021-01631-4},
+  number = {1–2},
+  journal = {Mathematical Programming},
+  publisher = {Springer Science and Business Media LLC},
+  author = {Dahl,  Joachim and Andersen,  Erling D.},
+  year = {2021},
+  month = mar,
+  pages = {341–370}
+}
+"""
+
 CITATION_DICT["XPRESS"] = \
 """
 @manual{xpress,

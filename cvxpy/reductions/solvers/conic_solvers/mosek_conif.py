@@ -786,4 +786,7 @@ class MOSEK(ConicSolver):
         data : dict
             Data generated via an apply call.
         """
-        return CITATION_DICT["MOSEK"]
+        if data['K_dir']['de'] > 0:
+            return CITATION_DICT["MOSEK"] + CITATION_DICT["MOSEK_EXP"]
+        else:
+            return CITATION_DICT["MOSEK"]
