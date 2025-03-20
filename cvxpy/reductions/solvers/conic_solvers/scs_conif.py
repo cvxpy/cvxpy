@@ -28,6 +28,7 @@ from cvxpy.reductions.solvers.conic_solvers.conic_solver import (
 from cvxpy.reductions.solvers.conic_solvers.conic_solver import (
     dims_to_solver_dict as dims_to_solver_dict_default,
 )
+from cvxpy.utilities.citations import CITATION_DICT
 from cvxpy.utilities.versioning import Version
 
 
@@ -351,3 +352,13 @@ class SCS(ConicSolver):
         if solver_cache is not None and status == s.OPTIMAL:
             solver_cache[self.name()] = results
         return results
+    
+    def cite(self, data):
+        """Returns the result of the call to the solver.
+
+        Parameters
+        ----------
+        data : dict
+            Data generated via an apply call.
+        """
+        return CITATION_DICT["SCS"]

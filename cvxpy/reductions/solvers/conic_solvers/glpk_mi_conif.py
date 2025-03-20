@@ -19,6 +19,7 @@ import cvxpy.settings as s
 from cvxpy.reductions.solution import Solution, failure_solution
 from cvxpy.reductions.solvers.conic_solvers import GLPK
 from cvxpy.reductions.solvers.conic_solvers.conic_solver import ConicSolver
+from cvxpy.utilities.citations import CITATION_DICT
 
 
 class GLPK_MI(GLPK):
@@ -120,3 +121,13 @@ class GLPK_MI(GLPK):
                 cvxopt.glpk.options[key] = old_options[key]
             else:
                 del cvxopt.glpk.options[key]
+    
+    def cite(self, data):
+        """Returns the result of the call to the solver.
+
+        Parameters
+        ----------
+        data : dict
+            Data generated via an apply call.
+        """
+        return CITATION_DICT["GLPK"]

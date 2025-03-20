@@ -30,6 +30,7 @@ from cvxpy.reductions.solvers.conic_solvers.conic_solver import (
     ConicSolver,
     dims_to_solver_dict,
 )
+from cvxpy.utilities.citations import CITATION_DICT
 
 log = logging.getLogger(__name__)
 
@@ -469,7 +470,16 @@ class SCIP(ConicSolver):
             new_lin_constrs,
             soc_vars,
         )
+    
+    def cite(self, data):
+        """Returns the result of the call to the solver.
 
+        Parameters
+        ----------
+        data : dict
+            Data generated via an apply call.
+        """
+        return CITATION_DICT["SCIP"]
 
 def get_variable_type(n: int, data: Dict[str, Any]) -> str:
     """Given an index n, and a set of data,

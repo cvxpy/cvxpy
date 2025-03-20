@@ -26,6 +26,7 @@ from cvxpy.reductions.solvers.conic_solvers.ecos_conif import (
     ECOS,
     dims_to_solver_dict,
 )
+from cvxpy.utilities.citations import CITATION_DICT
 
 
 class ECOS_BB(ECOS):
@@ -134,3 +135,13 @@ class ECOS_BB(ECOS):
                               int_vars_idx=data[s.INT_IDX],
                               **solver_opts)
         return solution
+    
+    def cite(self, data):
+        """Returns the result of the call to the solver.
+
+        Parameters
+        ----------
+        data : dict
+            Data generated via an apply call.
+        """
+        return CITATION_DICT["ECOS"]

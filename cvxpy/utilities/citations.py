@@ -500,20 +500,3 @@ CITATION_DICT["HIGHS"] = \
   pages = {119–142}
 }
 """
-
-def cite(dcp, gp, qcp, solver, data):
-    print("CVXPY:")
-    print(CITATION_DICT["CVXPY"])
-
-    print("Grammars:")
-    if dcp:
-        print(CITATION_DICT["DCP"]) 
-    if gp:
-        print(CITATION_DICT["GP"]) 
-    if qcp:
-        print(CITATION_DICT["QCP"]) 
-
-    print("Solver:")
-    print(CITATION_DICT[solver])
-    if solver == "ECOS" and data['dims'].exp > 0:
-        print(CITATION_DICT["ECOS_EXP"])

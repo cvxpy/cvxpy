@@ -24,6 +24,7 @@ from cvxpy.expressions.expression import Expression
 from cvxpy.reductions.solution import Solution, failure_solution
 from cvxpy.reductions.solvers import utilities
 from cvxpy.reductions.solvers.conic_solvers.conic_solver import ConicSolver
+from cvxpy.utilities.citations import CITATION_DICT
 
 
 def dims_to_solver_cones(cone_dims):
@@ -354,3 +355,13 @@ class CLARABEL(ConicSolver):
             solver_cache[self.name()] = solver
 
         return results
+    
+    def cite(self, data):
+        """Returns the result of the call to the solver.
+
+        Parameters
+        ----------
+        data : dict
+            Data generated via an apply call.
+        """
+        return CITATION_DICT["CLARABEL"]

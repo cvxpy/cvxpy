@@ -24,6 +24,7 @@ from cvxpy.reductions.solvers.conic_solvers.conic_solver import (
     ConicSolver,
     dims_to_solver_dict,
 )
+from cvxpy.utilities.citations import CITATION_DICT
 
 
 class HIGHS(ConicSolver):
@@ -231,3 +232,13 @@ class HIGHS(ConicSolver):
             solver_cache[self.name()] = (solver, data, results)
 
         return results
+    
+    def cite(self, data):
+        """Returns the result of the call to the solver.
+
+        Parameters
+        ----------
+        data : dict
+            Data generated via an apply call.
+        """
+        return CITATION_DICT["HIGHS"]

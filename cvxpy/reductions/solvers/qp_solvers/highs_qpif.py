@@ -22,6 +22,7 @@ import cvxpy.settings as s
 from cvxpy.error import SolverError
 from cvxpy.reductions.solution import Solution, failure_solution
 from cvxpy.reductions.solvers.qp_solvers.qp_solver import QpSolver
+from cvxpy.utilities.citations import CITATION_DICT
 
 
 class HIGHS(QpSolver):
@@ -211,3 +212,13 @@ class HIGHS(QpSolver):
             solver_cache[self.name()] = (solver, data, results)
 
         return results
+
+    def cite(self, data):
+        """Returns the result of the call to the solver.
+
+        Parameters
+        ----------
+        data : dict
+            Data generated via an apply call.
+        """
+        return CITATION_DICT["HIGHS"]

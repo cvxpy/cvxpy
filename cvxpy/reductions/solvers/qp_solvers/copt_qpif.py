@@ -7,6 +7,7 @@ import scipy.sparse as sp
 import cvxpy.settings as s
 from cvxpy.reductions.solution import Solution, failure_solution
 from cvxpy.reductions.solvers.qp_solvers.qp_solver import QpSolver
+from cvxpy.utilities.citations import CITATION_DICT
 
 
 class COPT(QpSolver):
@@ -192,3 +193,13 @@ class COPT(QpSolver):
         solution['model'] = model
 
         return solution
+
+    def cite(self, data):
+        """Returns the result of the call to the solver.
+
+        Parameters
+        ----------
+        data : dict
+            Data generated via an apply call.
+        """
+        return CITATION_DICT["COPT"]
