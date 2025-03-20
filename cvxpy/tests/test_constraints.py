@@ -405,6 +405,26 @@ class TestConstraints(BaseTest):
         assert cp.Variable(bounds=[1, 2])._has_lower_bounds()
         assert cp.Variable(bounds=[1, 2])._has_upper_bounds()
 
+    def test_broadcasting(self) -> None:
+        """Test interaction of constraints and broadcasting."""
+        x = cp.Variable((3, 1))
+        # c = cp.Constant(np.arange(3))
+        c = cp.Constant(np.ones(3))
+        # Equality constraint.
+        con = (x == c)
+        prob = cp.Problem(cp.Minimize(0), [con])
+        prob.solve(solver=cp.CLARABEL) 
+        assert np.allclose(x.value, c.value)
+
+        # Inequality constraint.
+        con = (x >= c)
+        prob = cp.Problem(cp.Minimize(cp.sum(x)), [con])
+        prob.solve(solver=cp.CLARABEL) 
+        assert np.allclose(x.value, c.value)
+
+        # TODO other constraints
+
+
     def test_bounds_attr(self) -> None:
         """Test that the bounds attribute for variables and parameters is set correctly.
         """
