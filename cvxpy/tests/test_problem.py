@@ -862,7 +862,7 @@ class TestProblem(BaseTest):
 
         with self.assertRaises(Exception) as cm:
             Problem(cp.Minimize(cp.quad_form(1, self.A))).solve(solver=cp.SCS, eps=1e-6)
-        self.assertEqual(str(cm.exception), "Invalid dimensions for arguments.")
+        self.assertEqual(str(cm.exception), "Invalid dimensions for arguments to quad_form.")
 
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")

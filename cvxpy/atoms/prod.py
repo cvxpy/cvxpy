@@ -91,8 +91,7 @@ class Prod(AxisAtom):
                 else:
                     data = np.zeros(1, dtype=sp_mat.dtype)
                 result = np.prod(data)
-            else:
-                assert self.axis in [0, 1]
+            elif self.axis in [0, 1]:
                 # The following snippet is taken from stackoverflow.
                 # https://stackoverflow.com/questions/44320865/
                 # can replace private _getnnz for scipy 1.15+ with count_nonzero
@@ -102,6 +101,8 @@ class Prod(AxisAtom):
                 result[mask] = np.prod(data.toarray(), axis=self.axis)
                 if self.keepdims:
                     result = np.expand_dims(result, self.axis)
+            else:
+                raise UserWarning("cp.prod only supports axis=0 or axis=1 for sparse matrices.")
         else:
             result = np.prod(values[0], axis=self.axis, keepdims=self.keepdims)
         return result

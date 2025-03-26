@@ -51,7 +51,7 @@ class QuadForm(Atom):
         super(QuadForm, self).validate_arguments()
         n = self.args[1].shape[0]
         if self.args[1].shape[1] != n or self.args[0].shape not in [(n, 1), (n,)]:
-            raise ValueError("Invalid dimensions for arguments.")
+            raise ValueError("Invalid dimensions for arguments to quad_form.")
         if not self.args[1].is_hermitian():
             raise ValueError("Quadratic form matrices must be symmetric/Hermitian.")
 
@@ -241,7 +241,7 @@ def quad_form(x, P, assume_PSD: bool = False):
     x, P = map(Expression.cast_to_const, (x, P))
     # Check dimensions.
     if not P.ndim == 2 or P.shape[0] != P.shape[1] or max(x.shape, (1,))[0] != P.shape[0]:
-        raise Exception("Invalid dimensions for arguments.")
+        raise Exception("Invalid dimensions for arguments to quad_form.")
     if x.is_constant():
         return x.T.conjugate() @ P @ x
     elif P.is_constant():

@@ -61,8 +61,10 @@ class quantum_rel_entr(Atom):
 
     def validate_arguments(self) -> None:
         if not (self.args[0].is_hermitian() and self.args[1].is_hermitian()):
-            raise ValueError('Arguments must be Hermitian')
-
+            raise ValueError(
+                "The arguments to quantum_rel_entr must both be hermitian."
+            )
+        
     def sign_from_args(self) -> Tuple[bool, bool]:
         """Returns sign (is positive, is negative) of the expression.
         """

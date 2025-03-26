@@ -141,7 +141,6 @@ class Pnorm(AxisAtom):
     def numeric(self, values):
         """Returns the p-norm of x.
         """
-
         if self.axis is None:
             values = np.array(values[0]).flatten()
         else:

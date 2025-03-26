@@ -49,11 +49,12 @@ class tr_inv(Atom):
             return np.inf
         return np.sum(eigVal**-1)
 
-    # The shape of argument must be square.
     def validate_arguments(self) -> None:
-        X = self.args[0]
-        if len(X.shape) == 1 or X.shape[0] != X.shape[1]:
-            raise TypeError("The argument to tr_inv must be a square matrix.")
+        """Verify that the argument is a square matrix."""
+        if not self.args[0].ndim == 2 or self.args[0].shape[0] != self.args[0].shape[1]:
+            raise ValueError(
+                f"The argument {self.args[0].name()} to tr_inv must be a square matrix."
+            )
 
     def shape_from_args(self) -> Tuple[int, ...]:
         """Returns the (row, col) shape of the expression.

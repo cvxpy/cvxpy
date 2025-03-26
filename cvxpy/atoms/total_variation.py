@@ -46,7 +46,7 @@ def tv(value, *args):
     elif value.ndim == 1:
         return norm(value[1:] - value[0:value.shape[0]-1], 1)
     # L2 norm for matrices.
-    else:
+    elif value.ndim == 2:
         rows, cols = value.shape
         args = map(Expression.cast_to_const, args)
         values = [value] + list(args)
@@ -59,3 +59,5 @@ def tv(value, *args):
         length = diffs[0].shape[0]*diffs[1].shape[1]
         stacked = vstack([reshape(diff, (1, length), order='F') for diff in diffs])
         return sum(norm(stacked, p=2, axis=0))
+    else:
+        raise ValueError("tv cannot have inputs with more than 2 dimensions.")
