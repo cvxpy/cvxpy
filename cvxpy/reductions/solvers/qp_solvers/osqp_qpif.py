@@ -53,6 +53,8 @@ class OSQP(QpSolver):
     def solve_via_data(self, data, warm_start: bool, verbose: bool, solver_opts,
                        solver_cache=None):
         import osqp
+        is_pre_v1 = float(osqp.__version__.split('.')[0]) < 1
+        
         P = data[s.P]
         q = data[s.Q]
         A = sp.vstack([data[s.A], data[s.F]]).tocsc()
@@ -97,11 +99,13 @@ class OSQP(QpSolver):
             if status == s.OPTIMAL:
                 solver.warm_start(results.x, results.y)
             # Polish if factorizing.
-            solver_opts['polish'] = solver_opts.get('polish', factorizing)
+            polish_param = 'polish' if is_pre_v1 else 'polishing'
+            solver_opts[polish_param] = solver_opts.get(polish_param, factorizing)
             solver.update_settings(verbose=verbose, **solver_opts)
         else:
             # Initialize and solve problem
-            solver_opts['polish'] = solver_opts.get('polish', True)
+            polish_param = 'polish' if is_pre_v1 else 'polishing'
+            solver_opts[polish_param] = solver_opts.get(polish_param, True)
             solver = osqp.OSQP()
             try:
                 solver.setup(P, q, A, lA, uA, verbose=verbose, **solver_opts)
