@@ -12,7 +12,8 @@ class OSQP(QpSolver):
     """QP interface for the OSQP solver"""
 
     # Map of OSQP status to CVXPY status.
-    STATUS_MAP = {1: s.OPTIMAL,
+    # Note: Status map has changed in versions >= 1
+    STATUS_MAP_PRE_V1 = {1: s.OPTIMAL,
                   2: s.OPTIMAL_INACCURATE,
                   -2: s.SOLVER_ERROR,           # Maxiter reached
                   -3: s.INFEASIBLE,
@@ -22,6 +23,16 @@ class OSQP(QpSolver):
                   -6: s.USER_LIMIT,
                   -5: s.SOLVER_ERROR,           # Interrupted by user
                   -10: s.SOLVER_ERROR}          # Unsolved
+    STATUS_MAP = {1: s.OPTIMAL,
+                  2: s.OPTIMAL_INACCURATE,
+                  3: s.INFEASIBLE,
+                  4: s.INFEASIBLE_INACCURATE,
+                  5: s.UNBOUNDED,
+                  6: s.UNBOUNDED_INACCURATE,
+                  7: s.SOLVER_ERROR,           # Maxiter reached
+                  8: s.USER_LIMIT,
+                  10: s.SOLVER_ERROR,          # Interrupted by user
+                  11: s.SOLVER_ERROR}          # Unsolved
 
     def name(self):
         return s.OSQP
@@ -31,11 +42,15 @@ class OSQP(QpSolver):
         osqp
 
     def invert(self, solution, inverse_data):
+        import osqp
+        is_pre_v1 = float(osqp.__version__.split('.')[0]) < 1
+
         attr = {s.SOLVE_TIME: solution.info.run_time}
         attr[s.EXTRA_STATS] = solution
 
         # Map OSQP statuses back to CVXPY statuses
-        status = self.STATUS_MAP.get(solution.info.status_val, s.SOLVER_ERROR)
+        status_map = self.STATUS_MAP_PRE_V1 if is_pre_v1 else self.STATUS_MAP
+        status = status_map.get(solution.info.status_val, s.SOLVER_ERROR)
 
         if status in s.SOLUTION_PRESENT:
             opt_val = solution.info.obj_val + inverse_data[s.OFFSET]
@@ -95,7 +110,8 @@ class OSQP(QpSolver):
             if new_args:
                 solver.update(**new_args)
             # Map OSQP statuses back to CVXPY statuses
-            status = self.STATUS_MAP.get(results.info.status_val, s.SOLVER_ERROR)
+            status_map = self.STATUS_MAP_PRE_V1 if is_pre_v1 else self.STATUS_MAP
+            status = status_map.get(results.info.status_val, s.SOLVER_ERROR)
             if status == s.OPTIMAL:
                 solver.warm_start(results.x, results.y)
             # Polish if factorizing.
