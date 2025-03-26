@@ -138,8 +138,13 @@ class TestAttributes:
         # Create infeasible constraints
         constraints = [x[1] >= 10, x[1] <= 1]
         problem = cp.Problem(objective, constraints)
-        problem.solve()
+        problem.solve(solver=cp.CLARABEL)
         assert problem.status == "infeasible"
+
+        # Solve with OSQP > 1.0.0 gives infeasible innacurate
+        problem = cp.Problem(objective, constraints)
+        problem.solve(cp.OSQP)
+        assert problem.status == "infeasible_inaccurate"
 
     def test_diag_value_sparse(self):
         X = cp.Variable((3, 3), diag=True)
