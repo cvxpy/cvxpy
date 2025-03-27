@@ -264,7 +264,7 @@ class QpMatrixStuffing(MatrixStuffing):
             elif isinstance(con, NonPos):
                 con = nonpos2nonneg(con)
             cons.append(con)
-        # Need to double check that intended canonicalization backend still works.
+        # Need to check that intended canonicalization backend still works.
         lowered_con_problem = problem.copy([problem.objective, cons])
         canon_backend = get_canon_backend(lowered_con_problem, self.canon_backend)
         # Form the constraints

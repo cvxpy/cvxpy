@@ -367,7 +367,7 @@ class ConeMatrixStuffing(MatrixStuffing):
                 con = ExpCone(x.flatten(order='F'), y.flatten(order='F'), z.flatten(order='F'),
                               constr_id=con.constr_id)
             cons.append(con)
-        # Need to double check that intended canonicalization backend still works.
+        # Need to check that intended canonicalization backend still works.
         lowered_con_problem = problem.copy([problem.objective, cons])
         canon_backend = get_canon_backend(lowered_con_problem, self.canon_backend)
         # Form the constraints

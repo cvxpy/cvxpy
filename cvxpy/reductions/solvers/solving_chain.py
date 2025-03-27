@@ -43,7 +43,6 @@ from cvxpy.reductions.reduction import Reduction
 from cvxpy.reductions.solvers import defines as slv_def
 from cvxpy.reductions.solvers.constant_solver import ConstantSolver
 from cvxpy.reductions.solvers.solver import Solver
-from cvxpy.reductions.solvers.solving_chain_utils import get_canon_backend
 from cvxpy.settings import (
     CLARABEL,
     PARAM_THRESHOLD,
@@ -228,7 +227,6 @@ def construct_solving_chain(problem, candidates,
         Raised if no suitable solver exists among the installed solvers, or
         if the target solver is not installed.
     """
-    canon_backend = get_canon_backend(problem, canon_backend)
     if len(problem.variables()) == 0:
         return SolvingChain(reductions=[ConstantSolver()])
     reductions = _reductions_for_problem_class(problem, candidates, gp, solver_opts)
