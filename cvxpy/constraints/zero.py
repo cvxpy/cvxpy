@@ -17,7 +17,6 @@ limitations under the License.
 import numpy as np
 
 from cvxpy.constraints.constraint import Constraint
-from cvxpy.expressions import cvxtypes
 from cvxpy.utilities import scopes
 
 
@@ -101,7 +100,6 @@ class Equality(Constraint):
     """A constraint of the form :math:`x = y`.
     """
     def __init__(self, lhs, rhs, constr_id=None) -> None:
-        lhs, rhs = cvxtypes.expression().broadcast(lhs, rhs)
         self._expr = lhs - rhs
         super(Equality, self).__init__([lhs, rhs], constr_id)
 

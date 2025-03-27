@@ -20,7 +20,6 @@ import numpy as np
 
 # Only need Variable from expressions, but that would create a circular import.
 from cvxpy.constraints.constraint import Constraint
-from cvxpy.expressions import cvxtypes
 from cvxpy.utilities import scopes
 
 
@@ -180,7 +179,6 @@ class Inequality(Constraint):
         A unique id for the constraint.
     """
     def __init__(self, lhs, rhs, constr_id=None) -> None:
-        lhs, rhs = cvxtypes.expression().broadcast(lhs, rhs)
         self._expr = lhs - rhs
         if self._expr.is_complex():
             raise ValueError("Inequality constraints cannot be complex.")

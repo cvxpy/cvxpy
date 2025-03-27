@@ -579,10 +579,7 @@ class Expression(u.Canonical):
         return expr if isinstance(expr, Expression) else cvxtypes.constant()(expr)
 
     @staticmethod
-    def broadcast(
-            lh_expr: "Expression", 
-            rh_expr: "Expression"
-        ) -> tuple["Expression", "Expression"]:
+    def broadcast(lh_expr: "Expression", rh_expr: "Expression"):
         """Broadcast the binary operator."""
         lh_expr = Expression.cast_to_const(lh_expr)
         rh_expr = Expression.cast_to_const(rh_expr)
@@ -615,19 +612,6 @@ class Expression(u.Canonical):
             if rh_expr.shape != output_shape:
                 rh_expr = cp.broadcast_to(rh_expr, output_shape)
         return lh_expr, rh_expr
-
-    @staticmethod
-    def broadcast_list(expr_list: list["Expression"]) -> list["Expression"]:
-        """Broadcast an arbitrary number of expressions to the same dimensions."""
-        if len(expr_list) <= 1:
-            return expr_list
-
-        reduction_expr = expr_list[0] 
-        output_list = []
-        for expr in expr_list[1:]:
-            reduction_expr, output_expr = Expression.broadcast(reduction_expr, expr)
-            output_list.append(output_expr)
-        return [reduction_expr] + output_list
 
     @_cast_other
     def __add__(self, other: ExpressionLike) -> "Expression":
