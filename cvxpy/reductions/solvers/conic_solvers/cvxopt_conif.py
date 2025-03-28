@@ -27,6 +27,7 @@ from cvxpy.constraints import PSD, SOC, NonNeg, Zero
 from cvxpy.reductions.solvers.compr_matrix import compress_matrix
 from cvxpy.reductions.solvers.conic_solvers.conic_solver import ConicSolver
 from cvxpy.reductions.solvers.kktsolver import setup_ldl_factor
+from cvxpy.utilities.citations import CITATION_DICT
 
 
 # Utility method for formatting a ConeDims instance into a dictionary
@@ -368,3 +369,13 @@ class CVXOPT(ConicSolver):
         else:
             kktsolver = 'chol'
         return kktsolver
+    
+    def cite(self, data):
+        """Returns the result of the call to the solver.
+
+        Parameters
+        ----------
+        data : dict
+            Data generated via an apply call.
+        """
+        return CITATION_DICT["CVXOPT"]

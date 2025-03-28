@@ -23,6 +23,7 @@ import cvxpy.settings as s
 from cvxpy.constraints import SOC, NonNeg, Zero
 from cvxpy.reductions.solution import Solution, failure_solution
 from cvxpy.reductions.solvers.conic_solvers.conic_solver import ConicSolver
+from cvxpy.utilities.citations import CITATION_DICT
 
 
 class NAG(ConicSolver):
@@ -292,3 +293,13 @@ class NAG(ConicSolver):
         opt.handle_free(handle)
 
         return {'status': status, 'sln': sln}
+    
+    def cite(self, data):
+        """Returns the result of the call to the solver.
+
+        Parameters
+        ----------
+        data : dict
+            Data generated via an apply call.
+        """
+        return CITATION_DICT["NAG"]

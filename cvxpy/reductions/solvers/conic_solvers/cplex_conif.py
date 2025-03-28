@@ -28,6 +28,7 @@ from cvxpy.reductions.solvers.conic_solvers.conic_solver import (
     ConicSolver,
     dims_to_solver_dict,
 )
+from cvxpy.utilities.citations import CITATION_DICT
 
 # Values used to distinguish between linear and quadratic constraints.
 _LIN, _QUAD = 0, 1
@@ -508,3 +509,13 @@ class CPLEX(ConicSolver):
             rhs=0.0,
             name="")
         return (qconstr, new_lin_constrs, soc_vars)
+    
+    def cite(self, data):
+        """Returns the result of the call to the solver.
+
+        Parameters
+        ----------
+        data : dict
+            Data generated via an apply call.
+        """
+        return CITATION_DICT["CPLEX"]
