@@ -330,12 +330,13 @@ CITATION_DICT["PROXQP"] = \
 CITATION_DICT["QOCO"] = \
 r"""
 @misc{chari2025qoco,
-  title = {Custom Solver Generation for Quadratic Objective Second-Order Cone Programs},
-  author = {Chari, Govind M and A{\c{c}}{\i}kme{\c{s}}e, Beh{\c{c}}et},
-  year = {2025},
-  eprint = {2503.12658},
+  title         = {QOCO: A Quadratic Objective Conic Optimizer with Custom Solver Generation},
+  author        = {Chari, Govind M and A{\c{c}}{\i}kme{\c{s}}e, Beh{\c{c}}et},
+  year          = {2025},
+  eprint        = {2503.12658},
   archiveprefix = {arXiv},
-  primaryclass = {math.OC},
+  primaryclass  = {math.OC},
+  url           = {https://arxiv.org/abs/2503.12658}
 }
 """
 
