@@ -60,4 +60,4 @@ def tv(value, *args):
         stacked = vstack([reshape(diff, (1, length), order='F') for diff in diffs])
         return sum(norm(stacked, p=2, axis=0))
     else:
-        raise ValueError("tv cannot have inputs with more than 2 dimensions.")
+        raise ValueError("tv cannot have input arrays with more than 2 dimensions.")

@@ -51,7 +51,7 @@ def diag(expr, k: int = 0) -> Union["diag_mat", "diag_vec"]:
         assert abs(k) < expr.shape[0], "Offset out of bounds."
         return diag_mat(expr, k)
     else:
-        raise ValueError("Argument to diag must be a vector or square matrix.")
+        raise ValueError("Argument to diag must be a 1 or 2-d array.")
 
 
 class diag_vec(AffAtom):
@@ -65,11 +65,11 @@ class diag_vec(AffAtom):
         return [self.k]
     
     def validate_arguments(self) -> None:
-        """Checks that the argument is a square matrix.
+        """Checks that the argument is a vector.
         """
         if not self.args[0].ndim == 1:
             raise ValueError(
-                "Argument to diag_vec must be a vector."
+                "Argument to diag_vec must be a 1-d array"
             )
         
     def is_atom_log_log_convex(self) -> bool:
@@ -151,7 +151,7 @@ class diag_mat(AffAtom):
         """
         if not self.args[0].ndim == 2:
             raise ValueError(
-                "Argument to diag_mat must be a matrix."
+                "Argument to diag_mat must be a 2-d array."
             )
 
     def is_atom_log_log_convex(self) -> bool:

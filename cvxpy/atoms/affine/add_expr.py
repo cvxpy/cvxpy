@@ -47,6 +47,7 @@ class AddExpression(AffAtom):
             return expr.args
         else:
             return [expr]
+
     def name(self) -> str:
         result = str(self.args[0])
         for i in range(1, len(self.args)):

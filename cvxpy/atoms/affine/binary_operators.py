@@ -479,10 +479,10 @@ def outer(x, y):
     """
     x = Expression.cast_to_const(x)
     if x.ndim > 1:
-        raise ValueError("x must be a vector.")
+        raise ValueError("x must be a 1-d array.")
     y = Expression.cast_to_const(y)
     if y.ndim > 1:
-        raise ValueError("y must be a vector.")
+        raise ValueError("y must be a 1-d array.")
     
     x = reshape(x, (x.size, 1), order='F')
     y = reshape(y, (1, y.size), order='F')
