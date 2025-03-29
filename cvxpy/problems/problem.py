@@ -1039,7 +1039,7 @@ class Problem(u.Canonical):
                solver: str = None,
                warm_start: bool = True,
                verbose: bool = False,
-               citation: bool = False,
+               bibtex: bool = False,
                gp: bool = False,
                qcp: bool = False,
                requires_grad: bool = False,
@@ -1060,7 +1060,7 @@ class Problem(u.Canonical):
             Should the previous solver result be used to warm start?
         verbose : bool, optional
             Overrides the default of hiding solver output.
-        citation : bool, optional
+        bibtex : bool, optional
             Prints bibtex citations for CVXPY, the grammar, and the solver.
         gp : bool, optional
             If True, parses the problem as a disciplined geometric program.
@@ -1192,7 +1192,7 @@ class Problem(u.Canonical):
         solver_verbose = kwargs.pop('solver_verbose', verbose)
         if solver_verbose and (not verbose):
             print(_NUM_SOLVER_STR)
-        if verbose and citation:
+        if verbose and bibtex:
             print(_CITATION_STR)
 
             # Cite CVXPY papers.

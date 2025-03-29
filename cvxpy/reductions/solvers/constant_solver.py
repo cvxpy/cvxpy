@@ -37,4 +37,4 @@ class ConstantSolver(Solver):
             return Solution(s.INFEASIBLE, None, {}, {}, {})
 
     def cite(self, data):
-        return None
+        return ""

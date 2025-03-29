@@ -234,7 +234,7 @@ class HIGHS(ConicSolver):
         return results
     
     def cite(self, data):
-        """Returns the result of the call to the solver.
+        """Returns bibtex citation for the solver.
 
         Parameters
         ----------

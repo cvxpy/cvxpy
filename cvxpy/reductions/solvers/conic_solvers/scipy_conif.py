@@ -277,7 +277,7 @@ class SCIPY(ConicSolver):
             return failure_solution(status)
     
     def cite(self, data):
-        """Returns the result of the call to the solver.
+        """Returns bibtex citation for the solver.
 
         Parameters
         ----------

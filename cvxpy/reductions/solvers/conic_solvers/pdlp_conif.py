@@ -206,7 +206,7 @@ class PDLP(ConicSolver):
             return s.SOLVER_ERROR
     
     def cite(self, data):
-        """Returns the result of the call to the solver.
+        """Returns bibtex citation for the solver.
 
         Parameters
         ----------

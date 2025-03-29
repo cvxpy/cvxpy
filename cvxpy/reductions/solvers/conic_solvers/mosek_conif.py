@@ -29,6 +29,7 @@ from cvxpy.reductions.solution import Solution
 from cvxpy.reductions.solvers.conic_solvers.conic_solver import ConicSolver
 from cvxpy.reductions.solvers.utilities import expcone_permutor
 from cvxpy.utilities.citations import CITATION_DICT
+from cvxpy.reductions.cone2cone.affine2direct import EXP, DUAL_EXP, POW3D, DUAL_POW3D
 
 __MSK_ENUM_PARAM_DEPRECATION__ = """
 Using MOSEK constants to specify parameters is deprecated.
@@ -779,14 +780,27 @@ class MOSEK(ConicSolver):
         )
 
     def cite(self, data):
-        """Returns the result of the call to the solver.
+        """Returns bibtex citation for the solver.
 
         Parameters
         ----------
         data : dict
             Data generated via an apply call.
         """
-        if data['K_dir']['de'] > 0:
-            return CITATION_DICT["MOSEK"] + CITATION_DICT["MOSEK_EXP"]
-        else:
-            return CITATION_DICT["MOSEK"]
+        citation = CITATION_DICT['MOSEK']
+
+        # We need another citation if nonsymmetric cones are present.
+        nonsym_cones = False
+        K_dir = data.get('K_dir', dict())
+        if K_dir.get(DUAL_EXP, 0):
+            nonsym_cones = True
+        if K_dir.get(DUAL_POW3D, 0):
+            nonsym_cones = True
+        K_aff = data.get('K_aff', dict())
+        if K_aff.get(EXP, 0):
+            nonsym_cones = True
+        if K_aff.get(POW3D, 0):
+            nonsym_cones = True
+        if nonsym_cones:
+            citation += CITATION_DICT['MOSEK_EXP']
+        return citation
