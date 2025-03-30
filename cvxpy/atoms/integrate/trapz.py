@@ -32,7 +32,7 @@ def trapz(
     axis = axis % y_ndim
     n = y.shape[axis]
 
-    def slicer(start, stop):
+    def slicer(start: int, stop: int) -> tuple:
         return tuple(
             slice(None) if i != axis else slice(start, stop)
             for i in range(y_ndim)
