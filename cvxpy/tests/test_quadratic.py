@@ -201,3 +201,14 @@ class TestExpressions(BaseTest):
         assert cp.matrix_frac(y**3, P).has_quadratic_term()
         P = cp.Parameter((2, 2), PSD=True)
         assert cp.matrix_frac(y**3, P).has_quadratic_term()
+
+    def test_composite_quad_over_lin(self) -> None:
+        """Test sum_squares(x) + quad_over_lin(x, y)"""
+        # https://github.com/cvxpy/cvxpy/issues/2773 
+        x = cp.Variable()
+        y = cp.Variable()
+        obj = cp.Minimize(cp.square(y) + cp.quad_over_lin(x, y))
+        prob = cp.Problem(obj, [y == 1])
+        prob.solve(solver=cp.CLARABEL, use_quad_obj=True)
+        assert np.isclose(y.value, 1)
+        assert np.isclose(x.value, 0)
