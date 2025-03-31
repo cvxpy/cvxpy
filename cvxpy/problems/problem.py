@@ -1097,7 +1097,6 @@ class Problem(u.Canonical):
 
         if verbose:
             print(_HEADER)
-
         for parameter in self.parameters():
             if parameter.value is None:
                 raise error.ParameterError(
@@ -1202,9 +1201,9 @@ class Problem(u.Canonical):
             if self.is_dcp():
                 print(CITATION_DICT["DCP"]) 
             if gp:
-                print(CITATION_DICT["GP"]) 
+                print(CITATION_DICT["DGP"]) 
             if qcp:
-                print(CITATION_DICT["QCP"]) 
+                print(CITATION_DICT["DQCP"]) 
 
             # Cite solver.
             print(solving_chain.reductions[-1].cite(data))

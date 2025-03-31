@@ -45,6 +45,7 @@ from cvxpy.reductions.solvers.defines import (
 )
 from cvxpy.reductions.solvers.solving_chain import ECOS_DEPRECATION_MSG
 from cvxpy.tests.base_test import BaseTest
+from cvxpy.utilities.citations import CITATION_DICT
 
 
 class TestProblem(BaseTest):
@@ -382,6 +383,52 @@ class TestProblem(BaseTest):
         self.assertEqual(result, (1, 2))
         result = p.solve(1, method="test", b=4)
         self.assertEqual(result, (1, 4))
+
+    def test_bibtex(self) -> None:
+        """Test bibtex citations.
+        """
+        # From http://stackoverflow.com/questions/5136611/capture-stdout-from-a-script-in-python
+        # setup the environment
+        backup = sys.stdout
+
+        # Solve Disciplined Convex Program
+        sys.stdout = StringIO()  # capture output
+        p = Problem(cp.Minimize(self.a + self.x[0]),
+                    [self.a >= 2, self.x >= 2])
+        p.solve(verbose=True, bibtex=True)
+        out = sys.stdout.getvalue()  # release output
+        sys.stdout.close()  # close the stream
+        sys.stdout = backup  # restore original stdout
+        assert CITATION_DICT["CVXPY"] in out
+        assert CITATION_DICT["DCP"] in out
+
+        # Solve Disciplined Geometric Program
+        sys.stdout = StringIO()  # capture output
+        x = cp.Variable(pos=True)
+        y = cp.Variable(pos=True)
+        z = cp.Variable(pos=True)
+        objective_fn = x * y * z
+        constraints = [
+        4 * x * y * z + 2 * x * z <= 10, x <= 2*y, y <= 2*x, z >= 1]
+        problem = cp.Problem(cp.Maximize(objective_fn), constraints)
+        problem.solve(verbose=True, bibtex=True, gp=True)
+        out = sys.stdout.getvalue()  # release output
+        sys.stdout.close()  # close the stream
+        sys.stdout = backup  # restore original stdout
+        assert CITATION_DICT["CVXPY"] in out
+        assert CITATION_DICT["DGP"] in out
+
+        # Solve Disciplined Quasiconvex Program
+        sys.stdout = StringIO()  # capture output
+        x = cp.Variable()
+        concave_fractional_fn = cp.sqrt(x) / cp.exp(x)
+        problem = cp.Problem(cp.Maximize(concave_fractional_fn))
+        problem.solve(verbose=True, bibtex=True, qcp=True)
+        out = sys.stdout.getvalue()  # release output
+        sys.stdout.close()  # close the stream
+        sys.stdout = backup  # restore original stdout
+        assert CITATION_DICT["CVXPY"] in out
+        assert CITATION_DICT["DQCP"] in out
 
     # def test_consistency(self):
     #     """Test that variables and constraints keep a consistent order.
