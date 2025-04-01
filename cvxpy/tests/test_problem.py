@@ -423,7 +423,7 @@ class TestProblem(BaseTest):
         x = cp.Variable()
         concave_fractional_fn = cp.sqrt(x) / cp.exp(x)
         problem = cp.Problem(cp.Maximize(concave_fractional_fn))
-        problem.solve(verbose=True, bibtex=True, qcp=True)
+        problem.solve(verbose=True, bibtex=True, qcp=True, solver='ECOS')
         out = sys.stdout.getvalue()  # release output
         sys.stdout.close()  # close the stream
         sys.stdout = backup  # restore original stdout
