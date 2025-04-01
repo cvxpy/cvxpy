@@ -18,9 +18,10 @@ import builtins
 import pickle
 import sys
 import warnings
+from contextlib import redirect_stdout
 from fractions import Fraction
 from io import StringIO
-from contextlib import redirect_stdout
+
 import numpy
 import numpy as np
 import scipy.sparse as sp
