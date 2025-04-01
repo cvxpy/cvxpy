@@ -25,6 +25,7 @@ from cvxpy.reductions.solvers.conic_solvers.conic_solver import (
     ConicSolver,
     dims_to_solver_dict,
 )
+from cvxpy.utilities.citations import CITATION_DICT
 
 
 class GUROBI(ConicSolver):
@@ -399,3 +400,13 @@ class GUROBI(ConicSolver):
         return (model.addQConstr(x_term <= t_term),
                 new_lin_constrs,
                 soc_vars)
+    
+    def cite(self, data):
+        """Returns bibtex citation for the solver.
+
+        Parameters
+        ----------
+        data : dict
+            Data generated via an apply call.
+        """
+        return CITATION_DICT["GUROBI"]

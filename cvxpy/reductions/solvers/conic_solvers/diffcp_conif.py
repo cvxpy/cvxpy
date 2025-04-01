@@ -21,6 +21,7 @@ from cvxpy.reductions.solution import Solution, failure_solution
 from cvxpy.reductions.solvers import utilities
 from cvxpy.reductions.solvers.conic_solvers import scs_conif
 from cvxpy.reductions.solvers.conic_solvers.conic_solver import ConicSolver
+from cvxpy.utilities.citations import CITATION_DICT
 from cvxpy.utilities.versioning import Version
 
 
@@ -178,3 +179,13 @@ class DIFFCP(scs_conif.SCS):
         if solver_cache is not None:
             solver_cache[self.name()] = results
         return results
+    
+    def cite(self, data):
+        """Returns bibtex citation for the solver.
+
+        Parameters
+        ----------
+        data : dict
+            Data generated via an apply call.
+        """
+        return CITATION_DICT["DIFFCP"]
