@@ -1162,6 +1162,10 @@ class Problem(u.Canonical):
                     s.LOGGER.info(
                             'Reducing DQCP problem to a one-parameter '
                             'family of DCP problems, for bisection.')
+                    if bibtex:
+                        print(_CITATION_STR)
+                        print(CITATION_DICT["CVXPY"])
+                        print(CITATION_DICT["DQCP"])                             
                 reductions = [dqcp2dcp.Dqcp2Dcp()]
                 start = time.time()
                 if type(self.objective) == Maximize:
@@ -1197,13 +1201,11 @@ class Problem(u.Canonical):
             # Cite CVXPY papers.
             print(CITATION_DICT["CVXPY"])
 
-            # Cite problem grammars.
+            # Cite problem grammar.
             if self.is_dcp():
                 print(CITATION_DICT["DCP"]) 
             if gp:
                 print(CITATION_DICT["DGP"]) 
-            if qcp:
-                print(CITATION_DICT["DQCP"]) 
 
             # Cite solver.
             print(solving_chain.reductions[-1].cite(data))
