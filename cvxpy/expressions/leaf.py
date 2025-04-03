@@ -152,7 +152,7 @@ class Leaf(expression.Expression):
         dim_reducing_attr = ['diag', 'symmetric', 'PSD', 'NSD', 'hermitian', 'sparsity']
         if sum(1 for k in dim_reducing_attr if self.attributes[k]) > 1:
             raise ValueError(
-                "A CVXPY Variable cannot have more than one of the following attributes be true: "
+                "A CVXPY Variable cannot have more than one of the following attributes: "
                 f"{dim_reducing_attr}"
             )
         if value is not None:
