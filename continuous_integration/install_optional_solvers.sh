@@ -9,7 +9,7 @@ conda config --set remote_read_timeout_secs 120.0
 conda install pip
 
 if [[ "$PYTHON_VERSION" != "3.13" ]]; then
-  python -m pip install ecos scs proxsuite daqp gurobipy piqp clarabel osqp highspy
+  python -m pip install ecos scs proxsuite daqp gurobipy piqp clarabel osqp highspy qoco
 else
   # only install the essential solvers for Python 3.13.
   python -m pip install scs clarabel osqp
@@ -30,7 +30,7 @@ fi
 
 if [[ "$PYTHON_VERSION" == "3.12" ]] && [[ "$RUNNER_OS" != "Windows" ]]; then
   # cylp has no wheels for Windows
-  python -m pip install cylp qoco
+  python -m pip install cylp
 fi
 
 if [[ "$PYTHON_VERSION" == "3.12" ]] && [[ "$RUNNER_OS" != "Ubuntu" ]]; then
