@@ -249,7 +249,6 @@ test_combinations = [
     ('ADP', 'SCS', 'loops', 0)
 ]
 
-
 @pytest.mark.parametrize('name, solver, style, seed', test_combinations)
 def test(name, solver, style, seed):
 
