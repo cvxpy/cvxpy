@@ -267,7 +267,7 @@ class TestMultipleAttributes:
     def test_sparse_symmetric_variable(self) -> None:
         with pytest.raises(
             ValueError, 
-            match="A CVXPY Variable cannot have more than one of the following attributes be true"
+            match="A CVXPY Variable cannot have more than one of the following attributes"
         ):
             cp.Variable(shape=(2, 2), symmetric=True, sparsity=[(0, 1), (0, 1)])
 
