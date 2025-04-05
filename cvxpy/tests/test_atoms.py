@@ -736,7 +736,7 @@ class TestAtoms(BaseTest):
         with self.assertRaises(Exception) as cm:
             cp.diag(self.C)
         self.assertEqual(str(cm.exception),
-                         "Argument to diag must be a vector or square matrix.")
+                         "Argument to diag must be a 1 or 2-d array.")
 
         # Test that diag is PSD
         w = np.array([1.0, 2.0])
@@ -1118,7 +1118,7 @@ class TestAtoms(BaseTest):
         with self.assertRaises(Exception) as cm:
             cp.conv([[0, 1], [0, 1]], self.x)
         self.assertEqual(str(cm.exception),
-                         "The arguments to conv must resolve to vectors.")
+                         "The arguments to conv must resolve to a 1-d array.")
 
         # Test with parameter input.
         # https://github.com/cvxpy/cvxpy/issues/2218
@@ -1630,9 +1630,9 @@ class TestAtoms(BaseTest):
         # Test with matrices
         A = np.arange(4).reshape((2, 2))
 
-        with pytest.raises(ValueError, match="x must be a vector"):
+        with pytest.raises(ValueError, match="x must be a 1-d array"):
             cp.outer(A, d)
-        with pytest.raises(ValueError, match="y must be a vector"):
+        with pytest.raises(ValueError, match="y must be a 1-d array"):
             cp.outer(d, A)
 
         # allow 2D inputs once row-major flattening is the default
