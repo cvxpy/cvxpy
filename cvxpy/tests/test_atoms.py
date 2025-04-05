@@ -1118,7 +1118,7 @@ class TestAtoms(BaseTest):
         with self.assertRaises(Exception) as cm:
             cp.conv([[0, 1], [0, 1]], self.x)
         self.assertEqual(str(cm.exception),
-                         "The arguments to conv must resolve to a 1-d array.")
+                         "The arguments to conv must resolve to a 1-d array")
 
         # Test with parameter input.
         # https://github.com/cvxpy/cvxpy/issues/2218
