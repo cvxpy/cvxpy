@@ -38,14 +38,18 @@ class pf_eigenvalue(Atom):
     """
     def __init__(self, X) -> None:
         super(pf_eigenvalue, self).__init__(X)
-        if len(X.shape) != 2 or X.shape[0] != X.shape[1]:
-            raise ValueError("Argument to `spectral radius` must be a "
-                             "square matrix, received ", X)
         self.args[0] = X
 
     def numeric(self, values):
         return np.max(np.abs(np.linalg.eig(values[0])[0]))
 
+    def validate_arguments(self):
+        """Verify that the argument is a square matrix."""
+        if not self.args[0].ndim == 2 or self.args[0].shape[0] != self.args[0].shape[1]:
+            raise ValueError(
+                f"The argument {self.args[0].name()} to pf_eigenvalue must be a square matrix."
+            )
+    
     def name(self) -> str:
         return "%s(%s)" % (self.__class__.__name__, self.args[0])
 

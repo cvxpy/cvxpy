@@ -70,6 +70,13 @@ class cumsum(AffAtom, AxisAtom):
         """
         return np.cumsum(values[0], axis=self.axis)
 
+    def validate_arguments(self):
+        if self.args[0].ndim > 2:
+            raise UserWarning(
+                "cumsum is only implemented for 1D or 2D arrays and might not "
+                "work as expected for higher dimensions."
+            )
+    
     def shape_from_args(self) -> Tuple[int, ...]:
         """The same as the input."""
         return self.args[0].shape
