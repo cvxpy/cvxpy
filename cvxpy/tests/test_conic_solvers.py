@@ -2155,6 +2155,31 @@ class TestHIGHS:
     def test_highs_solving(self, problem) -> None:
         problem(solver=cp.HIGHS)
 
+    @pytest.mark.parametrize(
+        "problem",
+        # it is enough to validate the options with one problem from each type
+        [StandardTestLPs.test_lp_0, StandardTestLPs.test_mi_lp_0],
+    )
+    def test_highs_options(self, problem) -> None:
+        with pytest.raises(AttributeError):
+            problem(solver=cp.HIGHS, highs_options={"invalid_highs_option": None})
+
+        with pytest.raises(AttributeError):
+            problem(solver=cp.HIGHS, invalid_highs_option=None)
+
+        # Duplicate options
+        with pytest.raises(TypeError):
+            problem(solver=cp.HIGHS, presolve="off", highs_options=dict(presolve="off"))
+
+        # Happy path
+        highs_options = {
+            "solver": "simplex",  # string option -- also `"solver"` shouldn't name-clash
+            "output_flag": True,  # bool option
+            "time_limit": 0.001,  # double option
+            "random_seed": 1234,  # int option
+        }
+        problem(solver=cp.HIGHS, highs_options=highs_options)
+
 
 class TestAllSolvers(BaseTest):
     def setUp(self) -> None:

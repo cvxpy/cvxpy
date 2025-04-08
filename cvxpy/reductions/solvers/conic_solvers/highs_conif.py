@@ -26,6 +26,14 @@ from cvxpy.reductions.solvers.conic_solvers.conic_solver import (
 )
 
 
+def unpack_highs_options_inplace(solver_opts) -> None:
+    # Users can pass options inside a nested dict -- e.g. to circumvent a name clash
+    highs_options = solver_opts.pop("highs_options", dict())
+
+    # merge via update(dict(...)) is needed to avoid silently over-writing options
+    solver_opts.update(dict(**solver_opts, **highs_options))
+
+
 class HIGHS(ConicSolver):
     """
     An interface for the HiGHS solver
@@ -203,6 +211,7 @@ class HIGHS(ConicSolver):
         lp.col_upper_ = col_upper
 
         # setup options
+        unpack_highs_options_inplace(solver_opts)
         options = hp.HighsOptions()
         options.log_to_console = verbose
         for key, value in solver_opts.items():
