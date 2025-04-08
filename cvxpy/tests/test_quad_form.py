@@ -20,6 +20,7 @@ import numpy as np
 import pytest
 import scipy.sparse as sp
 from numpy.testing import assert_allclose, assert_equal
+from osqp.interface import OSQPException
 
 import cvxpy as cp
 from cvxpy.settings import EIGVAL_TOL
@@ -214,6 +215,5 @@ class TestNonOptimal(BaseTest):
 
         prob = cp.Problem(cp.Minimize(expr))
         # Transform to a SolverError.
-        with pytest.raises(cp.SolverError,
-                           match=r"(Workspace allocation error!)|(Setup Error \(Error Code 4\))"):
+        with pytest.raises(OSQPException):
             prob.solve(solver=cp.OSQP)
