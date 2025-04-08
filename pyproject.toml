@@ -12,6 +12,10 @@ extend-exclude = [
     "*__init__.py"
 ]
 
+# Configure single quotes
+[tool.ruff.format]
+quote-style = 'preserve'
+
 [tool.ruff.lint]
 select = [
     "E",

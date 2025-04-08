@@ -43,7 +43,6 @@ from cvxpy.utilities.versioning import Version
 
 @unittest.skipUnless('ECOS' in INSTALLED_SOLVERS, 'ECOS is not installed.')
 class TestECOS(BaseTest):
-
     def setUp(self) -> None:
         self.a = cp.Variable(name='a')
         self.b = cp.Variable(name='b')
@@ -58,8 +57,7 @@ class TestECOS(BaseTest):
         self.C = cp.Variable((3, 2), name='C')
 
     def test_ecos_options(self) -> None:
-        """Test that all the ECOS solver options work.
-        """
+        """Test that all the ECOS solver options work."""
         # Test ecos
         # feastol, abstol, reltol, feastol_inacc,
         # abstol_inacc, and reltol_inacc for tolerance values
@@ -67,9 +65,18 @@ class TestECOS(BaseTest):
         EPS = 1e-4
         prob = cp.Problem(cp.Minimize(cp.norm(self.x, 1) + 1.0), [self.x == 0])
         for i in range(2):
-            prob.solve(solver=cp.ECOS, feastol=EPS, abstol=EPS, reltol=EPS,
-                       feastol_inacc=EPS, abstol_inacc=EPS, reltol_inacc=EPS,
-                       max_iters=20, verbose=True, warm_start=True)
+            prob.solve(
+                solver=cp.ECOS,
+                feastol=EPS,
+                abstol=EPS,
+                reltol=EPS,
+                feastol_inacc=EPS,
+                abstol_inacc=EPS,
+                reltol_inacc=EPS,
+                max_iters=20,
+                verbose=True,
+                warm_start=True,
+            )
         self.assertAlmostEqual(prob.value, 1.0)
         self.assertItemsAlmostEqual(self.x.value, [0, 0])
 
@@ -114,8 +121,8 @@ class TestECOS(BaseTest):
 
 
 class TestSCS(BaseTest):
+    """Unit tests for SCS."""
 
-    """ Unit tests for SCS. """
     def setUp(self) -> None:
         self.x = cp.Variable(2, name='x')
         self.y = cp.Variable(2, name='y')
@@ -133,8 +140,7 @@ class TestSCS(BaseTest):
         super(TestSCS, self).assertAlmostEqual(a, b, places=places)
 
     def test_scs_retry(self) -> None:
-        """Test that SCS retry doesn't trigger a crash.
-        """
+        """Test that SCS retry doesn't trigger a crash."""
         n_sec = 20
         np.random.seed(315)
         mu = np.random.random(n_sec)
@@ -142,17 +148,15 @@ class TestSCS(BaseTest):
         C = np.dot(random_mat, random_mat.transpose())
 
         x = cp.Variable(n_sec)
-        prob = cp.Problem(cp.Minimize(cp.QuadForm(x, C)),
-                          [cp.sum(x) == 1,
-                           0 <= x,
-                           x <= 1,
-                           x @ mu >= np.max(mu) - 1e-6])
+        prob = cp.Problem(
+            cp.Minimize(cp.QuadForm(x, C)),
+            [cp.sum(x) == 1, 0 <= x, x <= 1, x @ mu >= np.max(mu) - 1e-6],
+        )
         prob.solve(cp.SCS)
         assert prob.status in {cp.OPTIMAL, cp.OPTIMAL_INACCURATE}
 
     def test_scs_options(self) -> None:
-        """Test that all the SCS solver options work.
-        """
+        """Test that all the SCS solver options work."""
         # Test SCS
         # MAX_ITERS, EPS, ALPHA, UNDET_TOL, VERBOSE, and NORMALIZE.
         # If opts is missing, then the algorithm uses default settings.
@@ -161,8 +165,15 @@ class TestSCS(BaseTest):
         x = cp.Variable(2, name='x')
         prob = cp.Problem(cp.Minimize(cp.norm(x, 1) + 1.0), [x == 0])
         for i in range(2):
-            prob.solve(solver=cp.SCS, max_iters=50, eps=EPS, alpha=1.2,
-                       verbose=True, normalize=True, use_indirect=False)
+            prob.solve(
+                solver=cp.SCS,
+                max_iters=50,
+                eps=EPS,
+                alpha=1.2,
+                verbose=True,
+                normalize=True,
+                use_indirect=False,
+            )
         self.assertAlmostEqual(prob.value, 1.0, places=2)
         self.assertItemsAlmostEqual(x.value, [0, 0], places=2)
 
@@ -190,8 +201,7 @@ class TestSCS(BaseTest):
         result = p.solve(solver=cp.SCS)
 
     def test_sigma_max(self) -> None:
-        """Test sigma_max.
-        """
+        """Test sigma_max."""
         const = cp.Constant([[1, 2, 3], [4, 5, 6]])
         constr = [self.C == const]
         prob = cp.Problem(cp.Minimize(cp.norm(self.C, 2)), constr)
@@ -200,8 +210,7 @@ class TestSCS(BaseTest):
         self.assertItemsAlmostEqual(self.C.value, const.value)
 
     def test_sdp_var(self) -> None:
-        """Test sdp var.
-        """
+        """Test sdp var."""
         const = cp.Constant([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
         X = cp.Variable((3, 3), PSD=True)
         prob = cp.Problem(cp.Minimize(0), [X == const])
@@ -209,8 +218,7 @@ class TestSCS(BaseTest):
         self.assertEqual(prob.status, cp.INFEASIBLE)
 
     def test_complex_matrices(self) -> None:
-        """Test complex matrices.
-        """
+        """Test complex matrices."""
         # Complex-valued matrix
         np.random.seed(0)
         K = np.array(np.random.rand(2, 2) + 1j * np.random.rand(2, 2))  # example matrix
@@ -220,9 +228,7 @@ class TestSCS(BaseTest):
         X = cp.Variable((2, 2), complex=True)
         Y = cp.Variable((2, 2), complex=True)
         # X, Y >= 0 so trace is real
-        objective = cp.Minimize(
-            cp.real(0.5 * cp.trace(X) + 0.5 * cp.trace(Y))
-        )
+        objective = cp.Minimize(cp.real(0.5 * cp.trace(X) + 0.5 * cp.trace(Y)))
         constraints = [
             cp.bmat([[X, -K.conj().T], [-K, Y]]) >> 0,
             X >> 0,
@@ -237,56 +243,51 @@ class TestSCS(BaseTest):
         self.assertAlmostEqual(sol_scs, n1)
 
     def test_entr(self) -> None:
-        """Test a problem with entr.
-        """
+        """Test a problem with entr."""
         for n in [5, 10, 25]:
             print(n)
             x = cp.Variable(n)
             obj = cp.Maximize(cp.sum(cp.entr(x)))
             p = cp.Problem(obj, [cp.sum(x) == 1])
             p.solve(solver=cp.SCS)
-            self.assertItemsAlmostEqual(x.value, n*[1./n])
+            self.assertItemsAlmostEqual(x.value, n * [1.0 / n])
 
     def test_exp(self) -> None:
-        """Test a problem with exp.
-        """
+        """Test a problem with exp."""
         for n in [5, 10, 25]:
             print(n)
             x = cp.Variable(n)
             obj = cp.Minimize(cp.sum(cp.exp(x)))
             p = cp.Problem(obj, [cp.sum(x) == 1])
             p.solve(solver=cp.SCS)
-            self.assertItemsAlmostEqual(x.value, n*[1./n])
+            self.assertItemsAlmostEqual(x.value, n * [1.0 / n])
 
     def test_log(self) -> None:
-        """Test a problem with log.
-        """
+        """Test a problem with log."""
         for n in [5, 10, 25]:
             print(n)
             x = cp.Variable(n)
             obj = cp.Maximize(cp.sum(cp.log(x)))
             p = cp.Problem(obj, [cp.sum(x) == 1])
             p.solve(solver=cp.SCS)
-            self.assertItemsAlmostEqual(x.value, n*[1./n])
+            self.assertItemsAlmostEqual(x.value, n * [1.0 / n])
 
     def test_solve_problem_twice(self) -> None:
-        """Test a problem with log.
-        """
+        """Test a problem with log."""
         n = 5
         x = cp.Variable(n)
         obj = cp.Maximize(cp.sum(cp.log(x)))
         p = cp.Problem(obj, [cp.sum(x) == 1])
         p.solve(solver=cp.SCS)
         first_value = x.value
-        self.assertItemsAlmostEqual(first_value, n*[1./n])
+        self.assertItemsAlmostEqual(first_value, n * [1.0 / n])
 
         p.solve(solver=cp.SCS)
         second_value = x.value
         self.assertItemsAlmostEqual(first_value, second_value)
 
     def test_warm_start(self) -> None:
-        """Test warm starting.
-        """
+        """Test warm starting."""
         x = cp.Variable(10)
         obj = cp.Minimize(cp.sum(cp.exp(x)))
         prob = cp.Problem(obj, [cp.sum(x) == 1])
@@ -298,10 +299,10 @@ class TestSCS(BaseTest):
         print(time > time2)
 
     def test_warm_start_diffcp(self) -> None:
-        """Test warm starting in diffcvx.
-        """
+        """Test warm starting in diffcvx."""
         try:
             import diffcp
+
             diffcp  # for flake8
         except ModuleNotFoundError:
             self.skipTest("diffcp not installed.")
@@ -313,8 +314,7 @@ class TestSCS(BaseTest):
         self.assertAlmostEqual(result2, result, places=2)
 
     def test_psd_constraint(self) -> None:
-        """Test PSD constraint.
-        """
+        """Test PSD constraint."""
         s = cp.Variable((2, 2))
         obj = cp.Maximize(cp.minimum(s[0, 1], 10))
         const = [s >> 0, cp.diag(s) == np.ones(2)]
@@ -329,17 +329,17 @@ class TestSCS(BaseTest):
         self.assertEqual(np.all(eigs >= 0), True)
 
     def test_quad_obj(self) -> None:
-        """Test SCS canonicalization with a quadratic objective.
-        """
+        """Test SCS canonicalization with a quadratic objective."""
         # Only relevant for SCS >= 3.0.0.
         import scs
+
         if Version(scs.__version__) >= Version('3.0.0'):
             x = cp.Variable(2)
             expr = cp.sum_squares(x)
             constr = [x >= 1]
             prob = cp.Problem(cp.Minimize(expr), constr)
             data = prob.get_problem_data(solver=cp.SCS)
-            self.assertItemsAlmostEqual(data[0]["P"].toarray(), 2*np.eye(2))
+            self.assertItemsAlmostEqual(data[0]["P"].toarray(), 2 * np.eye(2))
             solution1 = prob.solve(solver=cp.SCS)
 
             # When use_quad_obj = False, the quadratic objective is
@@ -359,10 +359,10 @@ class TestSCS(BaseTest):
             assert "P" not in data[0]
 
     def test_quad_obj_with_power(self) -> None:
-        """Test a mixed quadratic/power objective.
-        """
+        """Test a mixed quadratic/power objective."""
         # Only relevant for SCS >= 3.0.0.
         import scs
+
         if Version(scs.__version__) >= Version('3.0.0'):
             # See https://github.com/cvxpy/cvxpy/issues/2059
             x = cp.Variable()
@@ -409,7 +409,7 @@ class TestSCS(BaseTest):
 
     def test_scs_sdp_pcp_1(self):
         StandardTestMixedCPs.test_sdp_pcp_1(solver='SCS')
-        
+
     def test_scs_pcp_1(self) -> None:
         StandardTestPCPs.test_pcp_1(solver='SCS')
 
@@ -422,10 +422,9 @@ class TestSCS(BaseTest):
 
 @unittest.skipUnless('CLARABEL' in INSTALLED_SOLVERS, 'CLARABEL is not installed.')
 class TestClarabel(BaseTest):
+    """Unit tests for Clarabel."""
 
-    """ Unit tests for Clarabel. """
     def setUp(self) -> None:
-
         self.x = cp.Variable(2, name='x')
         self.y = cp.Variable(3, name='y')
 
@@ -434,10 +433,9 @@ class TestClarabel(BaseTest):
         self.C = cp.Variable((3, 2), name='C')
 
     def test_clarabel_parameter_update(self) -> None:
-        """Test warm start.
-        """
+        """Test warm start."""
         x = cp.Variable(2)
-        P = cp.Parameter(nonneg=True),
+        P = (cp.Parameter(nonneg=True),)
         A = cp.Parameter(4)
         b = cp.Parameter(2, nonneg=True)
         q = cp.Parameter(2)
@@ -449,10 +447,9 @@ class TestClarabel(BaseTest):
             q.value = np.random.randn(2)
 
         prob = cp.Problem(
-                cp.Minimize(P[0]*cp.square(x[0]) + cp.quad_form(x, np.ones([2, 2])) + q.T @ x),
-                [A[0] * x[0] + A[1] * x[1] == b[0],
-                 A[2] * x[0] + A[3] * x[1] <= b[1]]
-            )
+            cp.Minimize(P[0] * cp.square(x[0]) + cp.quad_form(x, np.ones([2, 2])) + q.T @ x),
+            [A[0] * x[0] + A[1] * x[1] == b[0], A[2] * x[0] + A[3] * x[1] <= b[1]],
+        )
 
         update_parameters(P, A, b, q)
         result1 = prob.solve(solver=cp.CLARABEL, warm_start=False)
@@ -467,7 +464,6 @@ class TestClarabel(BaseTest):
         # consecutive solves, no data update
         result1 = prob.solve(solver=cp.CLARABEL, warm_start=False)
         self.assertAlmostEqual(result1, result2)
-
 
     def test_clarabel_lp_0(self) -> None:
         StandardTestLPs.test_lp_0(solver=cp.CLARABEL)
@@ -527,7 +523,7 @@ class TestClarabel(BaseTest):
         StandardTestSDPs.test_sdp_1min(solver='CLARABEL')
 
     def test_clarabel_sdp_2(self) -> None:
-        # produces a different optimizer than 
+        # produces a different optimizer than
         # the one expected by the standard test
         places = 3
         sth = sths.sdp_2()
@@ -541,7 +537,6 @@ class TestClarabel(BaseTest):
 
 @unittest.skipUnless('MOSEK' in INSTALLED_SOLVERS, 'MOSEK is not installed.')
 class TestMosek(unittest.TestCase):
-
     def test_mosek_lp_0(self) -> None:
         StandardTestLPs.test_lp_0(solver='MOSEK')
 
@@ -631,6 +626,7 @@ class TestMosek(unittest.TestCase):
 
     def test_mosek_params(self) -> None:
         import mosek
+
         n = 10
         m = 4
         np.random.seed(0)
@@ -644,9 +640,7 @@ class TestMosek(unittest.TestCase):
         constraints = [A @ z == y]
         problem = cp.Problem(objective, constraints)
 
-        invalid_mosek_params = {
-            "MSK_IPAR_NUM_THREADS": "11.3"
-        }
+        invalid_mosek_params = {"MSK_IPAR_NUM_THREADS": "11.3"}
         with self.assertRaises(mosek.Error):
             problem.solve(solver=cp.MOSEK, mosek_params=invalid_mosek_params)
 
@@ -659,7 +653,7 @@ class TestMosek(unittest.TestCase):
             "MSK_IPAR_NUM_THREADS": "17",
             "MSK_IPAR_PRESOLVE_USE": "MSK_PRESOLVE_MODE_OFF",
             "MSK_DPAR_INTPNT_CO_TOL_DFEAS": 1e-9,
-            "MSK_DPAR_INTPNT_CO_TOL_PFEAS": "1e-9"
+            "MSK_DPAR_INTPNT_CO_TOL_PFEAS": "1e-9",
         }
         with pytest.warns():
             problem.solve(solver=cp.MOSEK, mosek_params=mosek_params)
@@ -678,8 +672,7 @@ class TestMosek(unittest.TestCase):
         constraints = [A @ z == y]
         problem = cp.Problem(objective, constraints)
         problem.solve(
-            solver=cp.MOSEK,
-            mosek_params={"MSK_IPAR_OPTIMIZER": "MSK_OPTIMIZER_DUAL_SIMPLEX"}
+            solver=cp.MOSEK, mosek_params={"MSK_IPAR_OPTIMIZER": "MSK_OPTIMIZER_DUAL_SIMPLEX"}
         )
 
     def test_mosek_iis(self) -> None:
@@ -716,23 +709,17 @@ class TestMosek(unittest.TestCase):
     def test_mosek_sdp_power(self) -> None:
         """Test the problem in issue #2128"""
         StandardTestMixedCPs.test_sdp_pcp_1(solver='MOSEK')
-        
 
     def test_power_portfolio(self) -> None:
         """Test the portfolio problem in issue #2042"""
         T, N = 200, 10
 
         rs = np.random.RandomState(123)
-        mean = np.zeros(N) + 1/1000
+        mean = np.zeros(N) + 1 / 1000
         cov = rs.rand(N, N) * 1.5 - 0.5
-        cov = cov @ cov.T/1000 + np.diag(rs.rand(N) * 0.7 + 0.3)/1000
+        cov = cov @ cov.T / 1000 + np.diag(rs.rand(N) * 0.7 + 0.3) / 1000
 
-        Y = st.multivariate_normal.rvs(
-            mean=mean,
-            cov=cov,
-            size=T,
-            random_state=rs
-        )
+        Y = st.multivariate_normal.rvs(mean=mean, cov=cov, size=T, random_state=rs)
 
         w = cp.Variable((N, 1))
         t = cp.Variable((1, 1))
@@ -742,35 +729,36 @@ class TestMosek(unittest.TestCase):
         nu = cp.Variable((T, 1))
         epsilon = cp.Variable((T, 1))
         k = cp.Variable((1, 1))
-        b = np.ones((1, N))/N
+        b = np.ones((1, N)) / N
 
         X = Y @ w
 
         h = 0.2
         ones = np.ones((T, 1))
         constraints = [
-            cp.constraints.power.PowCone3D(z * (1+h)/(2*h) * ones, psi * (1+h)/h, epsilon, 1/(1+h)),
-            cp.constraints.power.PowCone3D(omega/(1-h), nu/h, -z/(2*h) * ones, (1-h)),
+            cp.constraints.power.PowCone3D(
+                z * (1 + h) / (2 * h) * ones, psi * (1 + h) / h, epsilon, 1 / (1 + h)
+            ),
+            cp.constraints.power.PowCone3D(omega / (1 - h), nu / h, -z / (2 * h) * ones, (1 - h)),
             -X - t + epsilon + omega <= 0,
             w >= 0,
             z >= 0,
-            ]
+        ]
 
         obj = t + z + cp.sum(psi + nu)
 
-        constraints += [cp.sum(w) == k,
-                        k >= 0,
-                        b @ cp.log(w) >= 1,
-                        ]
+        constraints += [
+            cp.sum(w) == k,
+            k >= 0,
+            b @ cp.log(w) >= 1,
+        ]
         objective = cp.Minimize(obj)
         prob = cp.Problem(objective, constraints)
         prob.solve(solver=cp.MOSEK)
         assert prob.status is cp.OPTIMAL
 
     def test_mosek_accept_unknown(self) -> None:
-        mosek_param = {
-            "MSK_IPAR_INTPNT_MAX_ITERATIONS": 0
-        }
+        mosek_param = {"MSK_IPAR_INTPNT_MAX_ITERATIONS": 0}
         sth = sths.lp_5()
         sth.solve(solver=cp.MOSEK, accept_unknown=True, mosek_params=mosek_param)
         assert sth.prob.status in {cp.OPTIMAL_INACCURATE, cp.OPTIMAL}
@@ -795,28 +783,28 @@ class TestMosek(unittest.TestCase):
 
         # This exception being raised shows that the eps value is being passed to MOSEK
         import mosek
-        with pytest.raises(mosek.Error, match="The parameter value 0.1 is too large"):
-            prob.solve(solver=cp.MOSEK,
-                       eps=1e-1,
-                       mosek_params={'MSK_DPAR_INTPNT_CO_TOL_DFEAS': 1e-6})
 
+        with pytest.raises(mosek.Error, match="The parameter value 0.1 is too large"):
+            prob.solve(
+                solver=cp.MOSEK, eps=1e-1, mosek_params={'MSK_DPAR_INTPNT_CO_TOL_DFEAS': 1e-6}
+            )
 
         # If parameters are defined explicitly, eps will not overwrite -> no exception
         from cvxpy.reductions.solvers.conic_solvers.mosek_conif import MOSEK
+
         all_params = MOSEK.tolerance_params()
         prob.solve(solver=cp.MOSEK, eps=1e-1, mosek_params={p: 1e-6 for p in all_params})
         assert prob.status is cp.OPTIMAL
 
         # Fails when used with enums
         with pytest.raises(AssertionError, match="not compatible"):
-            prob.solve(solver=cp.MOSEK,
-                       eps=1e-1,
-                       mosek_params={mosek.dparam.intpnt_co_tol_dfeas: 1e-6})
+            prob.solve(
+                solver=cp.MOSEK, eps=1e-1, mosek_params={mosek.dparam.intpnt_co_tol_dfeas: 1e-6}
+            )
 
 
 @unittest.skipUnless('CVXOPT' in INSTALLED_SOLVERS, 'CVXOPT is not installed.')
 class TestCVXOPT(BaseTest):
-
     def setUp(self) -> None:
         self.a = cp.Variable(name='a')
         self.b = cp.Variable(name='b')
@@ -831,8 +819,7 @@ class TestCVXOPT(BaseTest):
         self.C = cp.Variable((3, 2), name='C')
 
     def test_cvxopt_options(self) -> None:
-        """Test that all the CVXOPT solver options work.
-        """
+        """Test that all the CVXOPT solver options work."""
         # 'maxiters'
         # maximum number of iterations (default: 100).
         # 'abstol'
@@ -847,8 +834,16 @@ class TestCVXOPT(BaseTest):
         #  or matrix inequality constraints; 1 otherwise).
         EPS = 1e-7
         prob = cp.Problem(cp.Minimize(cp.norm(self.x, 1) + 1.0), [self.x == 0])
-        prob.solve(solver=cp.CVXOPT, feastol=EPS, abstol=EPS, reltol=EPS,
-                   max_iters=20, verbose=True, kktsolver='chol', refinement=2)
+        prob.solve(
+            solver=cp.CVXOPT,
+            feastol=EPS,
+            abstol=EPS,
+            reltol=EPS,
+            max_iters=20,
+            verbose=True,
+            kktsolver='chol',
+            refinement=2,
+        )
         self.assertAlmostEqual(prob.value, 1.0)
         self.assertItemsAlmostEqual(self.x.value, [0, 0])
 
@@ -880,6 +875,7 @@ class TestCVXOPT(BaseTest):
 
     def test_cvxopt_lp_5(self) -> None:
         from cvxpy.reductions.solvers.kktsolver import setup_ldl_factor
+
         StandardTestLPs.test_lp_5(solver='CVXOPT', kktsolver=setup_ldl_factor)
         StandardTestLPs.test_lp_5(solver='CVXOPT', kktsolver='chol')
 
@@ -910,7 +906,6 @@ class TestCVXOPT(BaseTest):
 
 @unittest.skipUnless('SDPA' in INSTALLED_SOLVERS, 'SDPA is not installed.')
 class TestSDPA(BaseTest):
-
     def test_sdpa_lp_0(self) -> None:
         StandardTestLPs.test_lp_0(solver='SDPA')
 
@@ -928,8 +923,7 @@ class TestSDPA(BaseTest):
 
     def test_sdpa_lp_5(self) -> None:
         # this also tests the ability to pass solver options
-        StandardTestLPs.test_lp_5(solver='SDPA',
-                                  betaBar=0.1, gammaStar=0.8, epsilonDash=8.0E-6)
+        StandardTestLPs.test_lp_5(solver='SDPA', betaBar=0.1, gammaStar=0.8, epsilonDash=8.0e-6)
 
     def test_sdpa_lp_7(self) -> None:
         StandardTestLPs.test_lp_7(solver='SDPA')
@@ -967,6 +961,7 @@ def fflush() -> None:
     https://github.com/pytest-dev/pytest/issues/8753
     """
     import ctypes
+
     libc = ctypes.CDLL(None)
     libc.fflush(None)
 
@@ -975,11 +970,11 @@ def fflush() -> None:
 # As a result, we use the pytest skipif decorator instead of unittest.skipUnless.
 @pytest.mark.skipif('CBC' not in INSTALLED_SOLVERS, reason='CBC is not installed.')
 class TestCBC:
-
     def _cylp_checks_isProvenInfeasible():
         try:
             # https://github.com/coin-or/CyLP/pull/150
             from cylp.cy.CyCbcModel import problemStatus
+
             return problemStatus[0] == 'search completed'
         except ImportError:
             return False
@@ -1014,8 +1009,10 @@ class TestCBC:
     def test_cbc_mi_lp_3(self) -> None:
         StandardTestLPs.test_mi_lp_3(solver='CBC')
 
-    @pytest.mark.skipif(not _cylp_checks_isProvenInfeasible(),
-                        reason='CyLP <= 0.91.4 has no working integer infeasibility detection')
+    @pytest.mark.skipif(
+        not _cylp_checks_isProvenInfeasible(),
+        reason='CyLP <= 0.91.4 has no working integer infeasibility detection',
+    )
     def test_cbc_mi_lp_5(self) -> None:
         StandardTestLPs.test_mi_lp_5(solver='CBC')
 
@@ -1033,7 +1030,7 @@ class TestCBC:
                 {"optimizationDirection": "max"},
                 {"presolve": "off"},
             ]
-        ]
+        ],
     )
     def test_cbc_lp_options(self, opts: dict, capfd: pytest.LogCaptureFixture) -> None:
         """
@@ -1089,7 +1086,6 @@ class TestCBC:
 
 @unittest.skipUnless('GLPK' in INSTALLED_SOLVERS, 'GLPK is not installed.')
 class TestGLPK(unittest.TestCase):
-
     def test_glpk_lp_0(self) -> None:
         StandardTestLPs.test_lp_0(solver='GLPK')
 
@@ -1132,6 +1128,7 @@ class TestGLPK(unittest.TestCase):
     def test_glpk_options(self) -> None:
         sth = sths.lp_1()
         import cvxopt
+
         assert "tm_lim" not in cvxopt.glpk.options
         sth.solve(solver='GLPK', tm_lim=100)
         assert "tm_lim" not in cvxopt.glpk.options
@@ -1143,6 +1140,7 @@ class TestGLPK(unittest.TestCase):
     def test_glpk_mi_options(self) -> None:
         sth = sths.mi_lp_1()
         import cvxopt
+
         assert "tm_lim" not in cvxopt.glpk.options
         sth.solve(solver='GLPK_MI', tm_lim=100, verbose=True)
         assert "tm_lim" not in cvxopt.glpk.options
@@ -1152,7 +1150,6 @@ class TestGLPK(unittest.TestCase):
 
 @unittest.skipUnless('GLOP' in INSTALLED_SOLVERS, 'GLOP is not installed.')
 class TestGLOP(unittest.TestCase):
-
     def test_glop_lp_0(self) -> None:
         StandardTestLPs.test_lp_0(solver='GLOP')
 
@@ -1164,6 +1161,7 @@ class TestGLOP(unittest.TestCase):
 
     def test_glop_lp_3_no_preprocessing(self) -> None:
         from ortools.glop import parameters_pb2
+
         params = parameters_pb2.GlopParameters()
         params.use_preprocessing = False
         StandardTestLPs.test_lp_3(solver='GLOP', parameters_proto=params)
@@ -1184,6 +1182,7 @@ class TestGLOP(unittest.TestCase):
 
     def test_glop_lp_6_no_preprocessing(self) -> None:
         from ortools.glop import parameters_pb2
+
         params = parameters_pb2.GlopParameters()
         params.use_preprocessing = False
         StandardTestLPs.test_lp_6(solver='GLOP', parameters_proto=params)
@@ -1208,7 +1207,6 @@ class TestGLOP(unittest.TestCase):
 
 @unittest.skipUnless('PDLP' in INSTALLED_SOLVERS, 'PDLP is not installed.')
 class TestPDLP(unittest.TestCase):
-
     def test_pdlp_lp_0(self) -> None:
         StandardTestLPs.test_lp_0(solver='PDLP')
 
@@ -1227,6 +1225,7 @@ class TestPDLP(unittest.TestCase):
     # We get the precise status when presolve is disabled.
     def test_pdlp_lp_3_no_presolve(self) -> None:
         from ortools.pdlp import solvers_pb2
+
         params = solvers_pb2.PrimalDualHybridGradientParams()
         params.presolve_options.use_glop = False
         StandardTestLPs.test_lp_3(solver='PDLP', parameters_proto=params)
@@ -1239,6 +1238,7 @@ class TestPDLP(unittest.TestCase):
 
     def test_pdlp_lp_4_no_presolve(self) -> None:
         from ortools.pdlp import solvers_pb2
+
         params = solvers_pb2.PrimalDualHybridGradientParams()
         params.presolve_options.use_glop = False
         StandardTestLPs.test_lp_4(solver='PDLP', parameters_proto=params)
@@ -1254,6 +1254,7 @@ class TestPDLP(unittest.TestCase):
 
     def test_pdlp_lp_6_no_presolve(self) -> None:
         from ortools.pdlp import solvers_pb2
+
         params = solvers_pb2.PrimalDualHybridGradientParams()
         params.presolve_options.use_glop = False
         StandardTestLPs.test_lp_6(solver='PDLP', parameters_proto=params)
@@ -1270,42 +1271,53 @@ class TestPDLP(unittest.TestCase):
         # a large instance and check that the time limit is hit.
         sth.solve(solver='PDLP', time_limit_sec=1.0)
 
+
 @unittest.skipUnless('QOCO' in INSTALLED_SOLVERS, 'QOCO is not installed.')
 class TestQOCO(BaseTest):
-    """ Unit tests for QOCO. """
+    """Unit tests for QOCO."""
+
     def setUp(self) -> None:
         self.x = cp.Variable(2, name='x')
         self.y = cp.Variable(3, name='y')
         self.A = cp.Variable((2, 2), name='A')
         self.B = cp.Variable((2, 2), name='B')
         self.C = cp.Variable((3, 2), name='C')
+
     def test_qoco_lp_0(self) -> None:
         StandardTestLPs.test_lp_0(solver='QOCO')
+
     def test_qoco_lp_1(self) -> None:
         StandardTestLPs.test_lp_1(solver='QOCO')
+
     def test_qoco_lp_2(self) -> None:
         StandardTestLPs.test_lp_2(solver='QOCO')
 
     # lp 3 and 4 are skipped since QOCO cannot detect infeasibility or unboundedness.
     def test_qoco_lp_5(self) -> None:
         StandardTestLPs.test_lp_5(solver='QOCO')
+
     def test_qoco_qp_0(self) -> None:
         StandardTestQPs.test_qp_0(solver='QOCO')
+
     def test_qoco_socp_0(self) -> None:
         StandardTestSOCPs.test_socp_0(solver='QOCO')
+
     def test_qoco_socp_1(self) -> None:
         StandardTestSOCPs.test_socp_1(solver='QOCO')
+
     def test_qoco_socp_2(self) -> None:
         StandardTestSOCPs.test_socp_2(solver='QOCO')
+
     def test_qoco_socp_3(self) -> None:
         # axis 0
         StandardTestSOCPs.test_socp_3ax0(solver='QOCO')
         # axis 1
         StandardTestSOCPs.test_socp_3ax1(solver='QOCO')
 
+
 @unittest.skipUnless('CPLEX' in INSTALLED_SOLVERS, 'CPLEX is not installed.')
 class TestCPLEX(BaseTest):
-    """ Unit tests for solver specific behavior. """
+    """Unit tests for solver specific behavior."""
 
     def setUp(self) -> None:
         self.a = cp.Variable(name='a')
@@ -1322,10 +1334,9 @@ class TestCPLEX(BaseTest):
 
     def test_cplex_warm_start(self) -> None:
         """Make sure that warm starting CPLEX behaves as expected
-           Note: This only checks output, not whether or not CPLEX is warm starting internally
+        Note: This only checks output, not whether or not CPLEX is warm starting internally
         """
         if cp.CPLEX in INSTALLED_SOLVERS:
-
             A = cp.Parameter((2, 2))
             b = cp.Parameter(2)
             h = cp.Parameter(2)
@@ -1337,17 +1348,15 @@ class TestCPLEX(BaseTest):
             c.value = np.array([1, 1])
 
             objective = cp.Maximize(c[0] * self.x[0] + c[1] * self.x[1])
-            constraints = [self.x[0] <= h[0],
-                           self.x[1] <= h[1],
-                           A @ self.x == b]
+            constraints = [self.x[0] <= h[0], self.x[1] <= h[1], A @ self.x == b]
             prob = cp.Problem(objective, constraints)
             result = prob.solve(solver=cp.CPLEX, warm_start=True)
             self.assertEqual(result, 3)
             self.assertItemsAlmostEqual(self.x.value, [1, 2])
 
             # Change A and b from the original values
-            A.value = np.array([[0, 0], [0, 1]])   # <----- Changed
-            b.value = np.array([0, 1])              # <----- Changed
+            A.value = np.array([[0, 0], [0, 1]])  # <----- Changed
+            b.value = np.array([0, 1])  # <----- Changed
             h.value = np.array([2, 2])
             c.value = np.array([1, 1])
 
@@ -1360,7 +1369,7 @@ class TestCPLEX(BaseTest):
             # Change h from the original values
             A.value = np.array([[1, 0], [0, 0]])
             b.value = np.array([1, 0])
-            h.value = np.array([1, 1])              # <----- Changed
+            h.value = np.array([1, 1])  # <----- Changed
             c.value = np.array([1, 1])
 
             # Without setting update_ineq_constrs = False,
@@ -1373,7 +1382,7 @@ class TestCPLEX(BaseTest):
             A.value = np.array([[1, 0], [0, 0]])
             b.value = np.array([1, 0])
             h.value = np.array([2, 2])
-            c.value = np.array([2, 1])              # <----- Changed
+            c.value = np.array([2, 1])  # <----- Changed
 
             # Without setting update_objective = False,
             # the results should change to the correct answer
@@ -1401,12 +1410,9 @@ class TestCPLEX(BaseTest):
             constraints = [A @ z == y]
             problem = cp.Problem(objective, constraints)
 
-            invalid_cplex_params = {
-                "bogus": "foo"
-            }
+            invalid_cplex_params = {"bogus": "foo"}
             with self.assertRaises(ValueError):
-                problem.solve(solver=cp.CPLEX,
-                              cplex_params=invalid_cplex_params)
+                problem.solve(solver=cp.CPLEX, cplex_params=invalid_cplex_params)
 
             with self.assertRaises(ValueError):
                 problem.solve(solver=cp.CPLEX, invalid_kwarg=None)
@@ -1450,10 +1456,11 @@ class TestCPLEX(BaseTest):
         # Parameters are set due to a minor dual-variable related
         # presolve bug in CPLEX, which will be fixed in the next
         # CPLEX release.
-        StandardTestSOCPs.test_socp_1(solver='CPLEX', places=2,
-                                      cplex_params={
-                                          "preprocessing.presolve": 0,
-                                          "preprocessing.reduce": 2})
+        StandardTestSOCPs.test_socp_1(
+            solver='CPLEX',
+            places=2,
+            cplex_params={"preprocessing.presolve": 0, "preprocessing.reduce": 2},
+        )
 
     def test_cplex_socp_2(self) -> None:
         StandardTestSOCPs.test_socp_2(solver='CPLEX')
@@ -1506,7 +1513,7 @@ class TestGUROBI(BaseTest):
 
     def test_gurobi_warm_start(self) -> None:
         """Make sure that warm starting Gurobi behaves as expected
-           Note: This only checks output, not whether or not Gurobi is warm starting internally
+        Note: This only checks output, not whether or not Gurobi is warm starting internally
         """
         if cp.GUROBI in INSTALLED_SOLVERS:
             import gurobipy
@@ -1523,17 +1530,15 @@ class TestGUROBI(BaseTest):
             c.value = np.array([1, 1])
 
             objective = cp.Maximize(c[0] * self.x[0] + c[1] * self.x[1])
-            constraints = [self.x[0]**2 <= h[0]**2,
-                           self.x[1] <= h[1],
-                           A @ self.x == b]
+            constraints = [self.x[0] ** 2 <= h[0] ** 2, self.x[1] <= h[1], A @ self.x == b]
             prob = cp.Problem(objective, constraints)
             result = prob.solve(solver=cp.GUROBI, warm_start=True)
             self.assertAlmostEqual(result, 3)
             self.assertItemsAlmostEqual(self.x.value, [1, 2])
 
             # Change A and b from the original values
-            A.value = np.array([[0, 0], [0, 1]])   # <----- Changed
-            b.value = np.array([0, 1])              # <----- Changed
+            A.value = np.array([[0, 0], [0, 1]])  # <----- Changed
+            b.value = np.array([0, 1])  # <----- Changed
             h.value = np.array([2, 2])
             c.value = np.array([1, 1])
 
@@ -1546,7 +1551,7 @@ class TestGUROBI(BaseTest):
             # Change h from the original values
             A.value = np.array([[1, 0], [0, 0]])
             b.value = np.array([1, 0])
-            h.value = np.array([1, 1])              # <----- Changed
+            h.value = np.array([1, 1])  # <----- Changed
             c.value = np.array([1, 1])
 
             # Without setting update_ineq_constrs = False,
@@ -1559,7 +1564,7 @@ class TestGUROBI(BaseTest):
             A.value = np.array([[1, 0], [0, 0]])
             b.value = np.array([1, 0])
             h.value = np.array([2, 2])
-            c.value = np.array([2, 1])              # <----- Changed
+            c.value = np.array([2, 1])  # <----- Changed
 
             # Without setting update_objective = False,
             # the results should change to the correct answer
@@ -1587,8 +1592,7 @@ class TestGUROBI(BaseTest):
             Y_val = np.reshape(np.arange(6), (3, 2))
             Y.value = Y_val + 1
             objective = cp.Maximize(z + cp.sum(Y))
-            constraints = [Y <= Y_val,
-                           z <= 2]
+            constraints = [Y <= Y_val, z <= 2]
             prob = cp.Problem(objective, constraints)
             result = prob.solve(solver=cp.GUROBI, warm_start=True)
             self.assertEqual(result, Y_val.sum() + 2)
@@ -1613,14 +1617,15 @@ class TestGUROBI(BaseTest):
 
     def test_gurobi_time_limit_no_solution(self) -> None:
         """Make sure that if Gurobi terminates due to a time limit before finding a solution:
-            1) no error is raised,
-            2) solver stats are returned.
-            The test is skipped if something changes on Gurobi's side so that:
-            - a solution is found despite a time limit of zero,
-            - a different termination criteria is hit first.
+        1) no error is raised,
+        2) solver stats are returned.
+        The test is skipped if something changes on Gurobi's side so that:
+        - a solution is found despite a time limit of zero,
+        - a different termination criteria is hit first.
         """
         if cp.GUROBI in INSTALLED_SOLVERS:
             import gurobipy
+
             objective = cp.Minimize(self.x[0])
             constraints = [cp.square(self.x[0]) <= 1]
             prob = cp.Problem(objective, constraints)
@@ -1641,8 +1646,10 @@ class TestGUROBI(BaseTest):
 
             solver_status = getattr(extra_stats, "Status", None)
             if solver_status != gurobipy.GRB.TIME_LIMIT:
-                self.skipTest("Gurobi terminated for a different reason than reaching time limit, "
-                              "the test is not relevant anymore.")
+                self.skipTest(
+                    "Gurobi terminated for a different reason than reaching time limit, "
+                    "the test is not relevant anymore."
+                )
 
         else:
             with self.assertRaises(Exception) as cm:
@@ -1732,7 +1739,7 @@ class TestGUROBI(BaseTest):
         StandardTestSOCPs.test_socp_3ax0(solver='GUROBI')
         # axis 1
         StandardTestSOCPs.test_socp_3ax1(solver='GUROBI')
-    
+
     def test_gurobi_socp_bound_attr(self) -> None:
         sth = StandardTestSOCPs.test_socp_bounds_attr(solver='GUROBI')
         # check that the bounds do reach the solver and don't just generate constraints
@@ -1766,7 +1773,6 @@ class TestGUROBI(BaseTest):
 
 @unittest.skipUnless('XPRESS' in INSTALLED_SOLVERS, 'XPRESS is not installed.')
 class TestXPRESS(BaseTest):
-
     def setUp(self) -> None:
         self.a = cp.Variable(name='a')
         self.b = cp.Variable(name='b')
@@ -1782,7 +1788,7 @@ class TestXPRESS(BaseTest):
 
     def test_xpress_warm_start(self) -> None:
         """Make sure that warm starting Xpress behaves as expected
-           Note: Xpress does not have warmstart yet, it will re-solve problem from scratch
+        Note: Xpress does not have warmstart yet, it will re-solve problem from scratch
         """
         if cp.XPRESS in INSTALLED_SOLVERS:
             import numpy as np
@@ -1798,17 +1804,15 @@ class TestXPRESS(BaseTest):
             c.value = np.array([1, 1])
 
             objective = cp.Maximize(c[0] * self.x[0] + c[1] * self.x[1])
-            constraints = [self.x[0] <= h[0],
-                           self.x[1] <= h[1],
-                           A @ self.x == b]
+            constraints = [self.x[0] <= h[0], self.x[1] <= h[1], A @ self.x == b]
             prob = cp.Problem(objective, constraints)
             result = prob.solve(solver=cp.XPRESS, warm_start=True)
             self.assertEqual(result, 3)
             self.assertItemsAlmostEqual(self.x.value, [1, 2])
 
             # Change A and b from the original values
-            A.value = np.array([[0, 0], [0, 1]])   # <----- Changed
-            b.value = np.array([0, 1])              # <----- Changed
+            A.value = np.array([[0, 0], [0, 1]])  # <----- Changed
+            b.value = np.array([0, 1])  # <----- Changed
             h.value = np.array([2, 2])
             c.value = np.array([1, 1])
 
@@ -1821,7 +1825,7 @@ class TestXPRESS(BaseTest):
             # Change h from the original values
             A.value = np.array([[1, 0], [0, 0]])
             b.value = np.array([1, 0])
-            h.value = np.array([1, 1])              # <----- Changed
+            h.value = np.array([1, 1])  # <----- Changed
             c.value = np.array([1, 1])
 
             # Without setting update_ineq_constrs = False,
@@ -1834,7 +1838,7 @@ class TestXPRESS(BaseTest):
             A.value = np.array([[1, 0], [0, 0]])
             b.value = np.array([1, 0])
             h.value = np.array([2, 2])
-            c.value = np.array([2, 1])              # <----- Changed
+            c.value = np.array([2, 1])  # <----- Changed
 
             # Without setting update_objective = False,
             # the results should change to the correct answer
@@ -1864,7 +1868,7 @@ class TestXPRESS(BaseTest):
 
             params = {
                 "lpiterlimit": 1000,  # maximum number of simplex iterations
-                "maxtime": 1000       # time limit
+                "maxtime": 1000,  # time limit
             }
             problem.solve(solver=cp.XPRESS, **params)
 
@@ -1946,7 +1950,6 @@ class TestXPRESS(BaseTest):
 
 @unittest.skipUnless('NAG' in INSTALLED_SOLVERS, 'NAG is not installed.')
 class TestNAG(BaseTest):
-
     def test_nag_lp_0(self) -> None:
         StandardTestLPs.test_lp_0(solver='NAG')
 
@@ -1981,14 +1984,13 @@ class TestNAG(BaseTest):
         StandardTestSOCPs.test_socp_3ax1(solver='NAG')
 
     def test_nag_quad_obj(self) -> None:
-        """Test NAG canonicalization with a quadratic objective.
-        """    
+        """Test NAG canonicalization with a quadratic objective."""
         x = cp.Variable(2)
         expr = cp.sum_squares(x)
         constr = [x >= 1]
         prob = cp.Problem(cp.Minimize(expr), constr)
         data = prob.get_problem_data(solver='NAG')
-        self.assertItemsAlmostEqual(data[0]["P"].A, 2*np.eye(2))
+        self.assertItemsAlmostEqual(data[0]["P"].A, 2 * np.eye(2))
         solution1 = prob.solve(solver='NAG')
 
         # When use_quad_obj = False, the quadratic objective is
@@ -2010,7 +2012,6 @@ class TestNAG(BaseTest):
 
 @unittest.skipUnless("SCIP" in INSTALLED_SOLVERS, "SCIP is not installed.")
 class TestSCIP(unittest.TestCase):
-
     def test_scip_lp_0(self) -> None:
         StandardTestLPs.test_lp_0(solver="SCIP")
 
@@ -2069,7 +2070,7 @@ class TestSCIP(unittest.TestCase):
         constraints = [
             x >= 0,  # x must be positive
             y >= 1,  # y must be greater or equal to 1
-            x + y <= 4
+            x + y <= 4,
         ]
         obj = cp.Maximize(x)
         prob = cp.Problem(obj, constraints)
@@ -2123,8 +2124,10 @@ class TestSCIP(unittest.TestCase):
         # run without enough time to do anything
         with pytest.raises(cp.error.SolverError) as se:
             sth.solve(solver="SCIP", scip_params={"limits/time": 0.0})
-            exc = "Solver 'SCIP' failed. " \
-                  "Try another solver, or solve with verbose=True for more information."
+            exc = (
+                "Solver 'SCIP' failed. "
+                "Try another solver, or solve with verbose=True for more information."
+            )
             assert str(se.value) == exc
 
 
@@ -2144,7 +2147,7 @@ class TestHIGHS(unittest.TestCase):
 
     def test_highs_lp_4(self) -> None:
         StandardTestLPs.test_lp_4(solver="HIGHS")
-    
+
     def test_highs_lp_5(self) -> None:
         StandardTestLPs.test_lp_5(solver='HIGHS')
 
@@ -2162,10 +2165,9 @@ class TestHIGHS(unittest.TestCase):
 
     def test_highs_mi_lp_5(self) -> None:
         StandardTestLPs.test_mi_lp_5(solver='HIGHS')
-    
-    
-class TestAllSolvers(BaseTest):
 
+
+class TestAllSolvers(BaseTest):
     def setUp(self) -> None:
         self.a = cp.Variable(name='a')
         self.b = cp.Variable(name='b')
@@ -2180,13 +2182,13 @@ class TestAllSolvers(BaseTest):
         self.C = cp.Variable((3, 2), name='C')
 
     def test_installed_solvers(self) -> None:
-        """Test the list of installed solvers.
-        """
+        """Test the list of installed solvers."""
         from cvxpy.reductions.solvers.defines import (
             INSTALLED_SOLVERS,
             SOLVER_MAP_CONIC,
             SOLVER_MAP_QP,
         )
+
         prob = cp.Problem(cp.Minimize(cp.norm(self.x, 1) + 1.0), [self.x == 0])
         for solver in SOLVER_MAP_CONIC.keys():
             if solver in INSTALLED_SOLVERS:
@@ -2212,8 +2214,9 @@ class TestAllSolvers(BaseTest):
         objective = cp.Minimize(cp.sum(x))
         prob = cp.Problem(objective, [x >= 0])
         if INSTALLED_MI_SOLVERS == [cp.ECOS_BB]:
-            with pytest.raises(cp.error.SolverError, match="You need a mixed-integer "
-                                                           "solver for this model"):
+            with pytest.raises(
+                cp.error.SolverError, match="You need a mixed-integer solver for this model"
+            ):
                 prob.solve()
         else:
             prob.solve()
@@ -2222,10 +2225,8 @@ class TestAllSolvers(BaseTest):
 
 @unittest.skipUnless('ECOS' in INSTALLED_SOLVERS, 'ECOS_BB is not installed.')
 class TestECOS_BB(unittest.TestCase):
-
     def test_ecos_bb_explicit_only(self) -> None:
-        """Test that ECOS_BB isn't chosen by default.
-        """
+        """Test that ECOS_BB isn't chosen by default."""
         x = cp.Variable(1, name='x', integer=True)
         objective = cp.Minimize(cp.sum(x))
         prob = cp.Problem(objective, [x >= 0])
@@ -2233,8 +2234,9 @@ class TestECOS_BB(unittest.TestCase):
             prob.solve()
             assert prob.solver_stats.solver_name != cp.ECOS_BB
         else:
-            with pytest.raises(cp.error.SolverError, match="You need a mixed-integer "
-                                                           "solver for this model"):
+            with pytest.raises(
+                cp.error.SolverError, match="You need a mixed-integer solver for this model"
+            ):
                 prob.solve()
 
     def test_ecos_bb_lp_0(self) -> None:
@@ -2298,9 +2300,9 @@ class TestECOS_BB(unittest.TestCase):
 
 
 class TestSCIPY(unittest.TestCase):
-
     def setUp(self):
         import scipy
+
         self.d = Version(scipy.__version__) >= Version('1.7.0')
 
     def test_scipy_lp_0(self) -> None:
@@ -2367,9 +2369,9 @@ class TestSCIPY(unittest.TestCase):
         self.assertTrue("mip_node_count" in sth.prob.solver_stats.extra_stats)
         self.assertTrue("mip_dual_bound" in sth.prob.solver_stats.extra_stats)
 
+
 @unittest.skipUnless('COPT' in INSTALLED_SOLVERS, 'COPT is not installed.')
 class TestCOPT(unittest.TestCase):
-
     def test_copt_lp_0(self) -> None:
         StandardTestLPs.test_lp_0(solver='COPT')
 
