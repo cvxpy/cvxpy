@@ -467,7 +467,7 @@ class Leaf(expression.Expression):
                           ' Use `.value_sparse` instead', RuntimeWarning, 1)
             if self._value is None:
                 return None
-            val = np.zeros(self.shape)
+            val = np.zeros(self.shape, dtype=self._value.dtype)
             val[self.sparse_idx] = self._value.data
             return val
 

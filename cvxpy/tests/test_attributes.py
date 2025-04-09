@@ -362,6 +362,55 @@ class TestMultipleAttributes:
         #  match="Parameter value must be zero outside of sparsity pattern."):
         #     p.value = p_value
     
+    def test_sparse_complex_variable(self) -> None:
+        """Test sparse complex variables."""
+        sparsity = [(0, 1), (0, 1)]
+        x = cp.Variable(shape=(2, 2), complex=True, sparsity=sparsity)
+        
+        # Check that x has correct attributes
+        assert x.is_complex()
+        assert hasattr(x, 'sparse_idx')
+        
+        # Create target value with only nonzeros at sparsity locations
+        target = np.zeros((2, 2), dtype=complex)
+        target[0, 0] = 1+1j
+        target[1, 1] = 2-2j
+        
+        # Set up and solve problem
+        prob = cp.Problem(
+            cp.Minimize(cp.norm(x, 'fro')), 
+            [x[0, 0] == target[0, 0], 
+            x[1, 1] == target[1, 1]]
+        )
+        prob.solve(solver=cp.CLARABEL)
+        
+        # Check sparse value access
+        sparse_value = x.value_sparse
+        assert sp.issparse(sparse_value)
+        assert np.allclose(sparse_value.todense(), target)
+    
+    def test_parameter_complex_sparsity(self) -> None:
+        """Test complex parameters with sparsity."""
+        sparsity = [(0, 1), (0, 1)]
+        p = cp.Parameter(shape=(2, 2), complex=True, sparsity=sparsity)
+        
+        # Valid value assignment - sparse complex matrix
+        complex_values = np.array([1+2j, 3-4j])
+        sparse_matrix = sp.coo_array((complex_values, sparsity), shape=(2, 2))
+        p.value_sparse = sparse_matrix
+        
+        # Use in optimization problem
+        x = cp.Variable(shape=(2, 2), complex=True)
+        prob = cp.Problem(cp.Minimize(cp.norm(x - p, 'fro')))
+        prob.solve(solver=cp.CLARABEL)
+        
+        # Verify results
+        assert np.allclose(x.value, p.value)
+        assert np.allclose(
+            x.value,
+            p.value_sparse.todense()
+        )
+    
     def test_parameter_psd_and_attributes(self) -> None:
         """Test parameters with PSD and other attributes."""
         p = cp.Parameter(shape=(2, 2), PSD=True, nonneg=True)
