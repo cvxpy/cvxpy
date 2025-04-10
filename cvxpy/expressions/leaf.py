@@ -147,17 +147,16 @@ class Leaf(expression.Expression):
             self.sparse_idx = self._validate_indices(sparsity)
         else:
             self.sparse_idx = None
-        # Only one attribute be True (except can be boolean and integer).
-        true_attr = sum(1 for k, v in self.attributes.items() if v)
-        # HACK we should remove this feature or allow multiple attributes in general.
-        if boolean and integer:
-            true_attr -= 1
-        if true_attr > 1:
-            raise ValueError("Cannot set more than one special attribute in %s."
-                             % self.__class__.__name__)
+        # count number of attributes
+        self.num_attributes = sum(1 for k, v in self.attributes.items() if v)
+        dim_reducing_attr = ['diag', 'symmetric', 'PSD', 'NSD', 'hermitian', 'sparsity']
+        if sum(1 for k in dim_reducing_attr if self.attributes[k]) > 1:
+            raise ValueError(
+                "A CVXPY Variable cannot have more than one of the following attributes: "
+                f"{dim_reducing_attr}"
+            )
         if value is not None:
             self.value = value
-
         self.args = []
         self.bounds = self._ensure_valid_bounds(bounds)
 
@@ -329,9 +328,9 @@ class Leaf(expression.Expression):
         """
         if self.attributes['nonneg'] or self.attributes['pos']:
             constraints.append(term >= 0)
-        elif self.attributes['nonpos'] or self.attributes['neg']:
+        if self.attributes['nonpos'] or self.attributes['neg']:
             constraints.append(term <= 0)
-        elif self.attributes['bounds']:
+        if self.attributes['bounds']:
             bounds = self.bounds
             lower_bounds, upper_bounds = bounds
             # Create masks if -inf or inf is present in the bounds
@@ -384,11 +383,11 @@ class Leaf(expression.Expression):
         numeric type
             The value rounded to the attribute type.
         """
-        # Only one attribute can be active at once (besides real,
-        # nonpos/nonneg, and bool/int).
         if not self.is_complex():
             val = np.real(val)
-
+        # Skip the projection operation for more than one attribute
+        if self.num_attributes > 1:
+            return val
         if self.attributes['nonpos'] and self.attributes['nonneg']:
             return 0*val
         elif self.attributes['nonpos'] or self.attributes['neg']:
@@ -468,7 +467,7 @@ class Leaf(expression.Expression):
                           ' Use `.value_sparse` instead', RuntimeWarning, 1)
             if self._value is None:
                 return None
-            val = np.zeros(self.shape)
+            val = np.zeros(self.shape, dtype=self._value.dtype)
             val[self.sparse_idx] = self._value.data
             return val
 

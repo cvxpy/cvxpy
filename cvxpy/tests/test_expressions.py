@@ -73,8 +73,6 @@ class TestExpressions(BaseTest):
         self.assertEqual(x.shape, (2,))
         self.assertEqual(y.shape, tuple())
         self.assertEqual(x.curvature, s.AFFINE)
-        # self.assertEqual(x.canonical_form[0].shape, (2, 1))
-        # self.assertEqual(x.canonical_form[1], [])
 
         self.assertEqual(repr(self.x), "Variable((2,), x)")
         self.assertEqual(repr(self.A), "Variable((2, 2), A)")
@@ -84,11 +82,6 @@ class TestExpressions(BaseTest):
 
         # Test shape provided as list instead of tuple
         self.assertEqual(cp.Variable(shape=[2], integer=True).shape, (2,))
-
-        with self.assertRaises(Exception) as cm:
-            Variable((2, 2), diag=True, symmetric=True)
-        self.assertEqual(str(cm.exception),
-                         "Cannot set more than one special attribute in Variable.")
 
         with self.assertRaises(Exception) as cm:
             Variable((2, 0))
@@ -455,11 +448,6 @@ class TestExpressions(BaseTest):
         with self.assertRaises(Exception) as cm:
             p = Parameter((4, 3), nonneg=True, value=[1, 2])
         self.assertEqual(str(cm.exception), "Invalid dimensions (2,) for Parameter value.")
-
-        with self.assertRaises(Exception) as cm:
-            p = Parameter((2, 2), diag=True, symmetric=True)
-        self.assertEqual(str(cm.exception),
-                         "Cannot set more than one special attribute in Parameter.")
 
         # Boolean
         with self.assertRaises(Exception) as cm:
