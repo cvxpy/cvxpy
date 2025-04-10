@@ -2172,8 +2172,12 @@ class TestHIGHS:
         highs_options = {
             "solver": "simplex",  # string option -- also `"solver"` shouldn't name-clash
             "output_flag": True,  # bool option
-            "time_limit": 0.001,  # double option
+            "time_limit": 0.123,  # double option
             "random_seed": 1234,  # int option
+            # no need to optimize for real
+            "mip_rel_gap": 1.0,  
+            "primal_feasibility_tolerance": 1e-3,
+            "dual_feasibility_tolerance": 1e-3,
         }
         problem(solver=cp.HIGHS, highs_options=highs_options)
 
