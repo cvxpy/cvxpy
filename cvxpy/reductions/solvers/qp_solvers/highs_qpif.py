@@ -24,6 +24,14 @@ from cvxpy.reductions.solution import Solution, failure_solution
 from cvxpy.reductions.solvers.qp_solvers.qp_solver import QpSolver
 
 
+def unpack_highs_options_inplace(solver_opts) -> None:
+    # Users can pass options inside a nested dict -- e.g. to circumvent a name clash
+    highs_options = solver_opts.pop("highs_options", dict())
+
+    # merge via update(dict(...)) is needed to avoid silently over-writing options
+    solver_opts.update(dict(**solver_opts, **highs_options))
+
+
 class HIGHS(QpSolver):
     """QP interface for the HiGHS solver"""
 
@@ -178,6 +186,7 @@ class HIGHS(QpSolver):
             hessian.value_ = P.data
 
         # setup options
+        unpack_highs_options_inplace(solver_opts)
         options = hp.HighsOptions()
         options.log_to_console = verbose
         for key, value in solver_opts.items():
