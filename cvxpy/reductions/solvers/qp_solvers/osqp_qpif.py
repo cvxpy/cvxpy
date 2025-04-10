@@ -100,7 +100,7 @@ class OSQP(QpSolver):
             solver = osqp.OSQP()
             try:
                 solver.setup(P, q, A, lA, uA, verbose=verbose, **solver_opts)
-            except ValueError as e:
+            except Exception as e:
                 raise SolverError(e)
 
         results = solver.solve()

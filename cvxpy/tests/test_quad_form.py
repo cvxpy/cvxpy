@@ -214,6 +214,5 @@ class TestNonOptimal(BaseTest):
 
         prob = cp.Problem(cp.Minimize(expr))
         # Transform to a SolverError.
-        with pytest.raises(cp.SolverError,
-                           match=r"(Workspace allocation error!)|(Setup Error \(Error Code 4\))"):
+        with pytest.raises(cp.SolverError):
             prob.solve(solver=cp.OSQP)
