@@ -18,6 +18,7 @@ import cvxpy.interface as intf
 import cvxpy.settings as s
 from cvxpy.reductions.solvers.conic_solvers.conic_solver import ConicSolver
 from cvxpy.reductions.solvers.conic_solvers.cvxopt_conif import CVXOPT
+from cvxpy.utilities.citations import CITATION_DICT
 
 
 class GLPK(CVXOPT):
@@ -106,3 +107,13 @@ class GLPK(CVXOPT):
                 cvxopt.solvers.options[key] = old_options[key]
             else:
                 del cvxopt.solvers.options[key]
+    
+    def cite(self, data):
+        """Returns bibtex citation for the solver.
+
+        Parameters
+        ----------
+        data : dict
+            Data generated via an apply call.
+        """
+        return CITATION_DICT["GLPK"]

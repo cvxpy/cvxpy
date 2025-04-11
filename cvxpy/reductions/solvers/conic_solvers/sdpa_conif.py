@@ -20,6 +20,7 @@ from cvxpy.reductions.solution import Solution, failure_solution
 from cvxpy.reductions.solvers import utilities
 from cvxpy.reductions.solvers.conic_solvers.conic_solver import ConicSolver
 from cvxpy.reductions.solvers.solver import Solver
+from cvxpy.utilities.citations import CITATION_DICT
 
 
 def dims_to_solver_dict(cone_dims):
@@ -187,3 +188,13 @@ class SDPA(ConicSolver):
             solution[s.INEQ_DUAL] = y[dims['f']:]
 
         return solution
+    
+    def cite(self, data):
+        """Returns bibtex citation for the solver.
+
+        Parameters
+        ----------
+        data : dict
+            Data generated via an apply call.
+        """
+        return CITATION_DICT["SDPA"]
