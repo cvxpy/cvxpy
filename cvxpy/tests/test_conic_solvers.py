@@ -2107,42 +2107,60 @@ class TestSCIP(unittest.TestCase):
             assert str(se.value) == exc
 
 
-@unittest.skipUnless("HIGHS" in INSTALLED_SOLVERS, "HiGHS is not installed.")
-class TestHIGHS(unittest.TestCase):
-    def test_highs_lp_0(self) -> None:
-        StandardTestLPs.test_lp_0(solver="HIGHS")
+# We can't inherit from unittest.TestCase since we access some advanced pytest features.
+# As a result, we use the pytest skipif decorator instead of unittest.skipUnless.
+@pytest.mark.skipif('HIGHS' not in INSTALLED_SOLVERS, reason="HiGHS is not installed.")
+class TestHIGHS:
+    @pytest.mark.parametrize(
+        "problem",
+        [
+            StandardTestLPs.test_lp_0,
+            StandardTestLPs.test_lp_1,
+            StandardTestLPs.test_lp_2,
+            StandardTestLPs.test_lp_3,
+            StandardTestLPs.test_lp_4,
+            StandardTestLPs.test_lp_5,
+            StandardTestLPs.test_mi_lp_0,
+            StandardTestLPs.test_mi_lp_1,
+            StandardTestLPs.test_mi_lp_2,
+            StandardTestLPs.test_mi_lp_3,
+            StandardTestLPs.test_mi_lp_4,
+            StandardTestLPs.test_mi_lp_5,
+        ],
+    )
+    def test_highs_solving(self, problem) -> None:
+        problem(solver=cp.HIGHS)
 
-    def test_highs_lp_1(self) -> None:
-        StandardTestLPs.test_lp_1(solver="HIGHS")
+    @pytest.mark.parametrize(
+        "problem",
+        # it is enough to validate the options with one problem from each type
+        [StandardTestLPs.test_lp_0, StandardTestLPs.test_mi_lp_0],
+    )
+    def test_highs_options(self, problem) -> None:
+        with pytest.raises(AttributeError):
+            problem(solver=cp.HIGHS, highs_options={"invalid_highs_option": None})
 
-    def test_highs_lp_2(self) -> None:
-        StandardTestLPs.test_lp_2(solver="HIGHS")
+        with pytest.raises(AttributeError):
+            problem(solver=cp.HIGHS, invalid_highs_option=None)
 
-    def test_highs_lp_3(self) -> None:
-        StandardTestLPs.test_lp_3(solver="HIGHS")
+        # Duplicate options
+        with pytest.raises(TypeError):
+            problem(solver=cp.HIGHS, presolve="off", highs_options=dict(presolve="off"))
 
-    def test_highs_lp_4(self) -> None:
-        StandardTestLPs.test_lp_4(solver="HIGHS")
-    
-    def test_highs_lp_5(self) -> None:
-        StandardTestLPs.test_lp_5(solver='HIGHS')
+        # Happy path
+        highs_options = {
+            "solver": "simplex",  # string option -- also `"solver"` shouldn't name-clash
+            "output_flag": True,  # bool option
+            "time_limit": 0.123,  # double option
+            "random_seed": 1234,  # int option
+            # no need to optimize for real
+            "mip_rel_gap": 1.0,  
+            "primal_feasibility_tolerance": 1e-3,
+            "dual_feasibility_tolerance": 1e-3,
+        }
+        problem(solver=cp.HIGHS, highs_options=highs_options)
 
-    def test_highs_mi_lp_0(self) -> None:
-        StandardTestLPs.test_mi_lp_0(solver='HIGHS')
 
-    def test_highs_mi_lp_1(self) -> None:
-        StandardTestLPs.test_mi_lp_1(solver='HIGHS')
-
-    def test_highs_mi_lp_2(self) -> None:
-        StandardTestLPs.test_mi_lp_2(solver='HIGHS')
-
-    def test_highs_mi_lp_3(self) -> None:
-        StandardTestLPs.test_mi_lp_3(solver='HIGHS')
-
-    def test_highs_mi_lp_5(self) -> None:
-        StandardTestLPs.test_mi_lp_5(solver='HIGHS')
-    
-    
 class TestAllSolvers(BaseTest):
 
     def setUp(self) -> None:

@@ -173,8 +173,8 @@ class QOCO(ConicSolver):
         n = len(data[s.C])
 
         P = data[s.P] if s.P in data.keys() else None
-        A = data[s.A]
-        G = data[s.G]
+        A = data[s.A] if p > 0 else None
+        G = data[s.G] if m > 0 else None
 
         solver = qoco.QOCO()
         solver.setup(n, m, p, P, data[s.C], A, data[s.B], G, data[s.H], num_nno, nsoc, q,

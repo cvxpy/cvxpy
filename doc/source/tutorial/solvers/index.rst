@@ -780,6 +780,20 @@ Here is the complete list of solver options.
 
     For others see `PIQP documentation <https://predict-epfl.github.io/piqp/interfaces/settings>`_.
 
+
+.. info:: `HIGHS`_ options:
+    :collapsible:
+
+    All options of HiGHS solver can be specified within the ``solve`` command directly as keyword arguments. For example `solve(solver=cp.HIGHS, presolve="off")` would switch of the HiGHS presolver.
+
+    **Please note**: If an option name clashes with a `solve` method argument (e.g., `solver` option of HiGHS), it can be modified via the `highs_options` argument below.
+
+    ``highs_options``
+        Solver options can also be passed as a dictionary where the key-value pairs are composed of HiGHS option names and associated values. For example, `solve(solver=cp.HIGHS, highs_options=dict(solver="simplex"))` would set the LP solver of HiGHS to simplex.
+
+    For other options see `HiGHS documentation <https://ergo-code.github.io/HiGHS/dev/options/definitions/>`_.
+
+
 Custom Solvers
 ------------------------------------
 Although ``cvxpy`` supports many different solvers out of the box, it is also possible to define and use custom solvers. This can be helpful in prototyping or developing custom solvers tailored to a specific application.
