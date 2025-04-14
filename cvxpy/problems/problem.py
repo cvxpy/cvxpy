@@ -732,7 +732,7 @@ class Problem(u.Canonical):
 
         start = time.time()
         # Convert solver argument to upper case.
-        if solver is not None:
+        if isinstance(solver, str):
             solver = solver.upper()
         # Cache includes ignore_dpp and solver_opts['use_quad_obj']
         # because they alter compilation.
@@ -853,9 +853,10 @@ class Problem(u.Canonical):
                       'conic_solvers': []}
         if isinstance(solver, Solver):
             return self._add_custom_solver_candidates(solver)
-        if solver is not None:
-            # Convert solver to upper case.
+        # Convert solver to upper case.
+        if isinstance(solver, str):
             solver = solver.upper()
+        if solver is not None:
             if solver not in slv_def.INSTALLED_SOLVERS:
                 raise error.SolverError("The solver %s is not installed." % solver)
             if solver in slv_def.CONIC_SOLVERS:
