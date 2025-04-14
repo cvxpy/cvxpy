@@ -256,6 +256,13 @@ class TestProblem(BaseTest):
             # offsets were correctly parsed until we update the CVXOPT
             # interface.
 
+        # Test with uncapitalized solver name.
+        data, _, _ = Problem(cp.Minimize(cp.norm(self.x) + 3)).get_problem_data("Clarabel")
+        dims = data[ConicSolver.DIMS]
+        self.assertEqual(dims.soc, [3])
+        self.assertEqual(data["c"].shape, (3,))
+        self.assertEqual(data["A"].shape, (3, 3))
+
     def test_unpack_results(self) -> None:
         """Test unpack results method.
         """
@@ -1404,8 +1411,9 @@ class TestProblem(BaseTest):
         # valid input, return solution
         solvers_with_str=[(s.OSQP, {'max_iter':1}), s.CLARABEL]
         solvers_empty_dict=[(s.OSQP, {'max_iter':1}), (s.CLARABEL, {})]
+        solvers_wrong_case=[("osqp", {'max_iter':1}), "Clarabel"]
 
-        for solvers in [solvers_with_str, solvers_empty_dict]:
+        for solvers in [solvers_with_str, solvers_empty_dict, solvers_wrong_case]:
             self.assertIsNotNone(Problem(cp.Minimize(
                 cp.sum_squares(cp.matmul(A, cp.Variable(40)) - b))).solve(
                 solver_path=solvers))
