@@ -731,6 +731,9 @@ class Problem(u.Canonical):
             raise DPPError("Cannot set enforce_dpp = True and ignore_dpp = True.")
 
         start = time.time()
+        # Convert solver argument to upper case.
+        if solver is not None:
+            solver = solver.upper()
         # Cache includes ignore_dpp and solver_opts['use_quad_obj']
         # because they alter compilation.
         if solver_opts is None:
@@ -851,6 +854,8 @@ class Problem(u.Canonical):
         if isinstance(solver, Solver):
             return self._add_custom_solver_candidates(solver)
         if solver is not None:
+            # Convert solver to upper case.
+            solver = solver.upper()
             if solver not in slv_def.INSTALLED_SOLVERS:
                 raise error.SolverError("The solver %s is not installed." % solver)
             if solver in slv_def.CONIC_SOLVERS:

@@ -256,6 +256,13 @@ class TestProblem(BaseTest):
             # offsets were correctly parsed until we update the CVXOPT
             # interface.
 
+        # Test with uncapitalized solver name.
+        data, _, _ = Problem(cp.Minimize(cp.norm(self.x) + 3)).get_problem_data("Clarabel")
+        dims = data[ConicSolver.DIMS]
+        self.assertEqual(dims.soc, [3])
+        self.assertEqual(data["c"].shape, (3,))
+        self.assertEqual(data["A"].shape, (3, 3))
+
     def test_unpack_results(self) -> None:
         """Test unpack results method.
         """
