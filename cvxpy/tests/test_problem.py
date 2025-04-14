@@ -1411,8 +1411,9 @@ class TestProblem(BaseTest):
         # valid input, return solution
         solvers_with_str=[(s.OSQP, {'max_iter':1}), s.CLARABEL]
         solvers_empty_dict=[(s.OSQP, {'max_iter':1}), (s.CLARABEL, {})]
+        solvers_wrong_case=[("osqp", {'max_iter':1}), "Clarabel"]
 
-        for solvers in [solvers_with_str, solvers_empty_dict]:
+        for solvers in [solvers_with_str, solvers_empty_dict, solvers_wrong_case]:
             self.assertIsNotNone(Problem(cp.Minimize(
                 cp.sum_squares(cp.matmul(A, cp.Variable(40)) - b))).solve(
                 solver_path=solvers))
