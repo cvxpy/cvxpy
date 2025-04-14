@@ -473,6 +473,10 @@ class TestClarabel(BaseTest):
     def test_clarabel_lp_0(self) -> None:
         StandardTestLPs.test_lp_0(solver=cp.CLARABEL)
 
+    def test_clarabel_nonstandard_name(self) -> None:
+        # Test that solver name with non-standard capitalization works.
+        StandardTestLPs.test_lp_0(solver="Clarabel")
+
     def test_clarabel_lp_1(self) -> None:
         StandardTestLPs.test_lp_1(solver='CLARABEL')
 
@@ -2131,6 +2135,11 @@ class TestHIGHS:
     )
     def test_highs_solving(self, problem) -> None:
         problem(solver=cp.HIGHS)
+
+    def test_highs_nonstandard_name(self) -> None:
+        """Test HiGHS solver with non-capitalized solver name."""
+        # https://github.com/cvxpy/cvxpy/issues/2751
+        StandardTestLPs.test_lp_0(solver="HiGHS")
 
     @pytest.mark.parametrize(
         ["problem", "confirmation_string"],
