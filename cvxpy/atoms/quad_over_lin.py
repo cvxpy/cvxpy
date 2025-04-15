@@ -27,8 +27,7 @@ from cvxpy.expressions.constants.parameter import is_param_free
 
 
 class quad_over_lin(Atom):
-    """ :math:`(sum_{ij}X^2_{ij})/y`
-
+    """:math:`(sum_{ij}X^2_{ij})/y`
     """
     _allow_complex = True
 
