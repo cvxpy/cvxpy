@@ -9,6 +9,7 @@ from cvxpy.reductions.solvers.conic_solvers.cplex_conif import (
     set_parameters,
 )
 from cvxpy.reductions.solvers.qp_solvers.qp_solver import QpSolver
+from cvxpy.utilities.citations import CITATION_DICT
 
 
 def constrain_cplex_infty(v) -> None:
@@ -172,3 +173,13 @@ class CPLEX(QpSolver):
         results_dict["model"] = model
 
         return results_dict
+
+    def cite(self, data):
+        """Returns bibtex citation for the solver.
+
+        Parameters
+        ----------
+        data : dict
+            Data generated via an apply call.
+        """
+        return CITATION_DICT["CPLEX"]

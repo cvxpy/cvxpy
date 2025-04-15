@@ -23,15 +23,16 @@ from cvxpy.constraints import SOC, ExpCone, NonNeg, Zero
 from cvxpy.reductions.solution import Solution, failure_solution
 from cvxpy.reductions.solvers import utilities
 from cvxpy.reductions.solvers.conic_solvers.conic_solver import ConicSolver
+from cvxpy.utilities.citations import CITATION_DICT
 
 
 # Utility method for formatting a ConeDims instance into a dictionary
 # that can be supplied to ecos.
 def dims_to_solver_dict(cone_dims):
     cones = {
-        'l': cone_dims.nonneg,
+        "l": cone_dims.nonneg,
         "q": cone_dims.soc,
-        'e': cone_dims.exp,
+        "e": cone_dims.exp,
     }
     return cones
 
@@ -184,3 +185,16 @@ class ECOS(ConicSolver):
             return Solution(status, opt_val, primal_vars, dual_vars, attr)
         else:
             return failure_solution(status, attr)
+    
+    def cite(self, data):
+        """Returns bibtex citation for the solver.
+
+        Parameters
+        ----------
+        data : dict
+            Data generated via an apply call.
+        """
+        if data["dims"].exp > 0:
+            return CITATION_DICT["ECOS"] + CITATION_DICT["ECOS_EXP"]
+        else:
+            return CITATION_DICT["ECOS"]
