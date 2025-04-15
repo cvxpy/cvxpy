@@ -47,12 +47,9 @@ build-backend = "setup.build_meta"  # just re-exports setuptools.build_meta defi
 backend-path = ["."]
 
 [project]
-name = "cvxpy"
-description = "A domain-specific language for modeling convex optimization problems in Python."
+name = "cvxpy-base"
+description = "A domain-specific language for modeling convex optimization problems in Python, base package without solvers."
 dependencies = [
-    "osqp >= 0.6.2",
-    "clarabel >= 0.5.0",
-    "scs >= 3.2.4.post1",
     "numpy >= 1.21.6",
     "scipy >= 1.11.0",
 ]
@@ -66,29 +63,6 @@ authors = [{name = "Steven Diamond", email = "stevend2@stanford.edu"},
 dynamic = ["version"]
 
 [project.optional-dependencies]
-# Solver names as in cvxpy.settings = pip-installable distribution providing it
-CBC = ["cylp>=0.91.5"]
-CLARABEL = []
-CVXOPT = ["cvxopt"]
-DIFFCP = ["diffcp"]
-ECOS = ["ecos"]
-ECOS_BB = ["ecos"]
-GLOP = ["ortools>=9.7,<9.12"]
-GLPK = ["cvxopt"]
-GLPK_MI = ["cvxopt"]
-GUROBI = ["gurobipy"]
-HIGHS = ["highspy"]
-MOSEK = ["Mosek"]
-OSQP = []
-PDLP = ["ortools>=9.7,<9.12"]
-PIQP = ["piqp"]
-PROXQP = ["proxsuite"]
-QOCO = ["qoco"]
-SCIP = ["PySCIPOpt"]
-SCIPY = ["scipy"]
-SCS = []
-XPRESS = ["xpress"]
-DAQP = ["daqp"]
 testing = ["pytest", "hypothesis"]
 doc = ["sphinx",
        "sphinxcontrib.jquery",
