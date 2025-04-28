@@ -125,8 +125,8 @@ class HIGHS(QpSolver):
         ----------
         data : dict
             Data used by the solver.
-        warm_start : bool
-            Not used.
+        warm_start : Bool
+            Whether to warm_start HiGHS.
         verbose : bool
             Should the solver print output?
         solver_opts : dict
