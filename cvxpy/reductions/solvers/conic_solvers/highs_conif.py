@@ -141,7 +141,7 @@ class HIGHS(ConicSolver):
         ----------
         data : dict
             Data used by the solver.
-        warm_start : Bool
+        warm_start : bool
             Whether to warm_start HiGHS.
         verbose : bool
             Should the solver print output?
