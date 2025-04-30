@@ -56,7 +56,7 @@ class PIQP(QpSolver):
             }
 
             dual_vars = {PIQP.DUAL_VAR_ID: np.concatenate(
-                (solution.y, solution.z))}
+                (solution.y, solution.z if hasattr(solution, 'z') else solution.z_u))}
             attr[s.NUM_ITERS] = solution.info.iter
             sol = Solution(status, opt_val, primal_vars, dual_vars, attr)
         else:
@@ -66,55 +66,99 @@ class PIQP(QpSolver):
     def solve_via_data(self, data, warm_start: bool, verbose: bool, solver_opts,
                        solver_cache=None):
         import piqp
+        old_interface = float(piqp.__version__.split('.')[0]) == 0 \
+                        and float(piqp.__version__.split('.')[1]) <= 5
 
         solver_opts = solver_opts.copy()
 
         solver_opts['backend'] = solver_opts.get('backend', 'sparse')
         backend = solver_opts['backend']
-
-        if backend == "dense":
-            # Convert sparse to dense matrices
-            P = data[s.P].toarray()
-            A = data[s.A].toarray()
-            F = data[s.F].toarray()
-        elif backend == "sparse":
-            P = data[s.P]
-            A = data[s.A]
-            F = data[s.F]
-        else:
-            raise ValueError("Wrong input, backend most be either dense or sparse")
-
-        q = data[s.Q]
-        b = data[s.B]
-        g = data[s.G]
-
-        if backend == "dense":
-            solver = piqp.DenseSolver()
-        elif backend == "sparse":
-            solver = piqp.SparseSolver()
-
         del solver_opts['backend']
-        for opt in solver_opts.keys():
-            try:
-                solver.settings.__setattr__(opt, solver_opts[opt])
-            except TypeError as e:
-                raise TypeError(f"PIQP: Incorrect type for setting '{opt}'.") from e
-            except AttributeError as e:
-                raise TypeError(f"PIQP: unrecognized solver setting '{opt}'.") from e
-        solver.settings.verbose = verbose
 
-        solver.setup(P=P,
-                     c=q,
-                     A=A,
-                     b=b,
-                     G=F,
-                     h=g)
+        if backend not in ['dense', 'sparse']:
+            raise ValueError("Wrong input, backend must be either dense or sparse")
+
+        def update_solver_settings(solver):
+            for opt in solver_opts.keys():
+                try:
+                    solver.settings.__setattr__(opt, solver_opts[opt])
+                except TypeError as e:
+                    raise TypeError(f"PIQP: Incorrect type for setting '{opt}'.") from e
+                except AttributeError as e:
+                    raise TypeError(f"PIQP: Unrecognized solver setting '{opt}'.") from e
+            solver.settings.verbose = verbose
+
+        structure_changed = True
+        if warm_start and solver_cache is not None and self.name() in solver_cache:
+            structure_changed = False
+
+            solver, old_data, _ = solver_cache[self.name()]
+            new_args = {}
+
+            for key, param in [(s.Q, 'c'), (s.B, 'b'), (s.G, 'h' if old_interface else 'h_u')]:
+                if any(data[key] != old_data[key]):
+                    new_args[param] = data[key]
+
+            if backend == 'sparse' and data[s.P].data.shape != old_data[s.P].data.shape:
+                    structure_changed = True
+            elif data[s.P].data.shape != old_data[s.P].data.shape or any(
+                    data[s.P].data != old_data[s.P].data):
+                new_args['P'] = data[s.P] if backend == 'sparse' else data[s.P].toarray()
+
+            if backend == 'sparse' and data[s.A].data.shape != old_data[s.A].data.shape:
+                    structure_changed = True
+            elif data[s.A].data.shape != old_data[s.A].data.shape or any(
+                    data[s.A].data != old_data[s.A].data):
+                new_args['A'] = data[s.A] if backend == 'sparse' else data[s.A].toarray()
+
+            if backend == 'sparse' and data[s.F].data.shape != old_data[s.F].data.shape:
+                    structure_changed = True
+            elif data[s.F].data.shape != old_data[s.F].data.shape or any(
+                    data[s.F].data != old_data[s.F].data):
+                new_args['G'] = data[s.F] if backend == 'sparse' else data[s.F].toarray()
+
+            if backend == 'dense' and not isinstance(solver, piqp.DenseSolver):
+                structure_changed = True
+            if backend == 'sparse' and not isinstance(solver, piqp.SparseSolver):
+                structure_changed = True
+
+            update_solver_settings(solver)
+
+            if not structure_changed and new_args:
+                solver.update(**new_args)
+
+        if structure_changed:
+            if backend == 'dense':
+                solver = piqp.DenseSolver()
+            else:
+                solver = piqp.SparseSolver()
+
+            update_solver_settings(solver)
+
+            if backend == 'dense':
+                # Convert sparse to dense matrices
+                P = data[s.P].toarray()
+                A = data[s.A].toarray()
+                F = data[s.F].toarray()
+            else:
+                P = data[s.P]
+                A = data[s.A]
+                F = data[s.F]
+
+            q = data[s.Q]
+            b = data[s.B]
+            g = data[s.G]
+
+            if old_interface:
+                solver.setup(P=P, c=q, A=A, b=b, G=F, h=g)
+            else:
+                solver.setup(P=P, c=q, A=A, b=b, G=F, h_u=g)
 
         solver.solve()
 
         result = solver.result
 
         if solver_cache is not None:
-            solver_cache[self.name()] = result
+            solver_cache[self.name()] = (solver, data, result)
 
         return result
