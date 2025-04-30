@@ -27,7 +27,7 @@ class real(AffAtom):
         super(real, self).__init__(expr)
 
     def numeric(self, values):
-        """Convert the vector constant into a diagonal matrix.
+        """
         """
         # Convert values to 1D.
         return np.real(values[0])

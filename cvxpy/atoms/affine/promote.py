@@ -43,7 +43,7 @@ def promote(expr: Expression, shape: Tuple[int, ...]):
     expr = Expression.cast_to_const(expr)
     if expr.shape != shape:
         if not expr.is_scalar():
-            raise ValueError('Only scalars may be promoted.')
+            raise ValueError('Only 0-d arrays may be promoted.')
         return Promote(expr, shape)
     else:
         return expr

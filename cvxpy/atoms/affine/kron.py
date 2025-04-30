@@ -45,7 +45,7 @@ class kron(AffAtom):
         if not (self.args[0].is_constant() or self.args[1].is_constant()):
             raise ValueError("At least one argument to kron must be constant.")
         elif self.args[0].ndim != 2 or self.args[1].ndim != 2:
-            raise ValueError("kron requires matrix arguments.")
+            raise ValueError("kron requires both arguments to be 2-d.")
 
     def shape_from_args(self) -> Tuple[int, int]:
         rows = self.args[0].shape[0]*self.args[1].shape[0]
