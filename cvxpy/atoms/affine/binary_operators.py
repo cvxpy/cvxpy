@@ -117,11 +117,6 @@ class MulExpression(BinaryOperator):
         """Validate that the arguments can be multiplied together."""
         if self.args[0].ndim > 2 or self.args[1].ndim > 2:
             raise ValueError("Multiplication with N-d arrays is not yet supported")
-        else:
-            # asserts that shapes can be multiplied
-            lhs = np.empty(self.args[0].shape, dtype=np.dtype([]))
-            rhs = np.empty(self.args[1].shape, dtype=np.dtype([]))
-            lhs @ rhs
     
     def shape_from_args(self) -> Tuple[int, ...]:
         """Returns the (row, col) shape of the expression.

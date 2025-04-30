@@ -775,7 +775,7 @@ class TestAtoms(BaseTest):
         with self.assertRaises(Exception) as cm:
             cp.trace(self.C)
         self.assertEqual(str(cm.exception),
-                         "Argument to trace must be a square matrix.")
+                         "Argument to trace must be a 2-d array.")
 
     def test_trace_sign_psd(self) -> None:
         """Test sign of trace for psd/nsd inputs.
@@ -803,7 +803,7 @@ class TestAtoms(BaseTest):
         with self.assertRaises(Exception) as cm:
             cp.upper_tri(self.C)
         self.assertEqual(str(cm.exception),
-                         "Argument to upper_tri must be a square matrix.")
+                         "Argument to upper_tri must be a 2-d array.")
 
     def test_vec_to_upper_tri(self) -> None:
         x = Variable(shape=(3,))
@@ -1712,7 +1712,7 @@ class TestAtoms(BaseTest):
         with self.assertRaises(ValueError) as cm:
             cp.partial_trace(X, dims=[2, 3], axis=0)
         self.assertEqual(str(cm.exception),
-                         "Only supports square matrices.")
+                         "partial_trace only supports 2-d arrays.")
 
         X = cp.Variable((6, 6))
         with self.assertRaises(ValueError) as cm:
@@ -1771,7 +1771,7 @@ class TestAtoms(BaseTest):
         with self.assertRaises(ValueError) as cm:
             cp.partial_transpose(X, dims=[2, 3], axis=0)
         self.assertEqual(str(cm.exception),
-                         "Only supports square matrices.")
+                         "partial_transpose only supports 2-d arrays.")
 
         X = cp.Variable((6, 6))
         with self.assertRaises(ValueError) as cm:
