@@ -67,7 +67,8 @@ class PIQP(QpSolver):
     def solve_via_data(self, data, warm_start: bool, verbose: bool, solver_opts,
                        solver_cache=None):
         import piqp
-        old_interface = float(piqp.__version__.split('.')[0]) == 0 and float(piqp.__version__.split('.')[1]) <= 5
+        old_interface = float(piqp.__version__.split('.')[0]) == 0 \
+                        and float(piqp.__version__.split('.')[1]) <= 5
 
         solver_opts = solver_opts.copy()
 
@@ -101,17 +102,20 @@ class PIQP(QpSolver):
 
             if backend == 'sparse' and data[s.P].data.shape != old_data[s.P].data.shape:
                     structure_changed = True
-            elif data[s.P].data.shape != old_data[s.P].data.shape or any(data[s.P].data != old_data[s.P].data):
+            elif data[s.P].data.shape != old_data[s.P].data.shape or any(
+                    data[s.P].data != old_data[s.P].data):
                 new_args['P'] = data[s.P] if backend == 'sparse' else data[s.P].toarray()
 
             if backend == 'sparse' and data[s.A].data.shape != old_data[s.A].data.shape:
                     structure_changed = True
-            elif data[s.A].data.shape != old_data[s.A].data.shape or any(data[s.A].data != old_data[s.A].data):
+            elif data[s.A].data.shape != old_data[s.A].data.shape or any(
+                    data[s.A].data != old_data[s.A].data):
                 new_args['A'] = data[s.A] if backend == 'sparse' else data[s.A].toarray()
 
             if backend == 'sparse' and data[s.F].data.shape != old_data[s.F].data.shape:
                     structure_changed = True
-            elif data[s.F].data.shape != old_data[s.F].data.shape or any(data[s.F].data != old_data[s.F].data):
+            elif data[s.F].data.shape != old_data[s.F].data.shape or any(
+                    data[s.F].data != old_data[s.F].data):
                 new_args['G'] = data[s.F] if backend == 'sparse' else data[s.F].toarray()
 
             if backend == 'dense' and not isinstance(solver, piqp.DenseSolver):
