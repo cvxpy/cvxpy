@@ -22,7 +22,7 @@ from cvxpy.expressions.expression import DEFAULT_ORDER_DEPRECATION_MSG, Expressi
 
 
 def vec(X, order: Literal["F", "C", None] = None):
-    """Flattens the matrix X into a vector.
+    """Flattens the matrix X into a 1-d array.
 
     Parameters
     ----------

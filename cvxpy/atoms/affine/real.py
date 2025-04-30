@@ -28,8 +28,8 @@ class real(AffAtom):
 
     def numeric(self, values):
         """
+        Return the real part of a complex array.
         """
-        # Convert values to 1D.
         return np.real(values[0])
 
     def shape_from_args(self) -> Tuple[int, ...]:
