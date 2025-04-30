@@ -77,7 +77,7 @@ class PIQP(QpSolver):
         del solver_opts['backend']
 
         if backend not in ['dense', 'sparse']:
-            raise ValueError("Wrong input, backend most be either dense or sparse")
+            raise ValueError("Wrong input, backend must be either dense or sparse")
 
         def update_solver_settings(solver):
             for opt in solver_opts.keys():
