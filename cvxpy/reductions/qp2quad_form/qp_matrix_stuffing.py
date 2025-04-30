@@ -41,6 +41,7 @@ from cvxpy.reductions.matrix_stuffing import (
     extract_mip_idx,
     extract_upper_bounds,
 )
+from cvxpy.reductions.solvers.solving_chain_utils import get_canon_backend
 from cvxpy.reductions.utilities import (
     ReducedMat,
     are_args_affine,
@@ -253,10 +254,6 @@ class QpMatrixStuffing(MatrixStuffing):
     def apply(self, problem):
         """See docstring for MatrixStuffing.apply"""
         inverse_data = InverseData(problem)
-        # Form the constraints
-        extractor = CoeffExtractor(inverse_data, self.canon_backend)
-        params_to_P, params_to_q, flattened_variable = self.stuffed_objective(
-            problem, extractor)
         # Lower equality and inequality to Zero and NonNeg.
         cons = []
         for con in problem.constraints:
@@ -267,6 +264,13 @@ class QpMatrixStuffing(MatrixStuffing):
             elif isinstance(con, NonPos):
                 con = nonpos2nonneg(con)
             cons.append(con)
+        # Need to check that intended canonicalization backend still works.
+        lowered_con_problem = problem.copy([problem.objective, cons])
+        canon_backend = get_canon_backend(lowered_con_problem, self.canon_backend)
+        # Form the constraints
+        extractor = CoeffExtractor(inverse_data, canon_backend)
+        params_to_P, params_to_q, flattened_variable = self.stuffed_objective(
+            problem, extractor)
 
         # Reorder constraints to Zero, NonNeg.
         constr_map = group_constraints(cons)

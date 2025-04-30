@@ -147,17 +147,16 @@ class Leaf(expression.Expression):
             self.sparse_idx = self._validate_indices(sparsity)
         else:
             self.sparse_idx = None
-        # Only one attribute be True (except can be boolean and integer).
-        true_attr = sum(1 for k, v in self.attributes.items() if v)
-        # HACK we should remove this feature or allow multiple attributes in general.
-        if boolean and integer:
-            true_attr -= 1
-        if true_attr > 1:
-            raise ValueError("Cannot set more than one special attribute in %s."
-                             % self.__class__.__name__)
+        # count number of attributes
+        self.num_attributes = sum(1 for k, v in self.attributes.items() if v)
+        dim_reducing_attr = ['diag', 'symmetric', 'PSD', 'NSD', 'hermitian', 'sparsity']
+        if sum(1 for k in dim_reducing_attr if self.attributes[k]) > 1:
+            raise ValueError(
+                "A CVXPY Variable cannot have more than one of the following attributes: "
+                f"{dim_reducing_attr}"
+            )
         if value is not None:
             self.value = value
-
         self.args = []
         self.bounds = self._ensure_valid_bounds(bounds)
 
@@ -185,8 +184,21 @@ class Leaf(expression.Expression):
         """Get a string representing the attributes."""
         attr_str = ""
         for attr, val in self.attributes.items():
-            if attr != 'real' and val:
-                attr_str += ", %s=%s" % (attr, val)
+            if val is not False and val is not None:
+                if isinstance(val, bool):
+                    attr_str += ", %s=%s" % (attr, val)
+                elif attr == 'bounds' and val is not None:
+                    lower = np.array2string(val[0],
+                                    edgeitems=s.PRINT_EDGEITEMS,
+                                    threshold=s.PRINT_THRESHOLD,
+                                    formatter={'float': lambda x: f'{x:.2f}'})
+                    upper = np.array2string(val[1],
+                                    edgeitems=s.PRINT_EDGEITEMS,
+                                    threshold=s.PRINT_THRESHOLD,
+                                    formatter={'float': lambda x: f'{x:.2f}'})
+                    attr_str += ", %s=(%s, %s)" % (attr, lower, upper)
+                elif attr in ('sparsity', 'boolean', 'integer') and isinstance(val, Iterable):
+                    attr_str += ", %s=%s" % (attr, val)
         return attr_str
 
     def copy(self, args=None, id_objects=None):
@@ -316,9 +328,9 @@ class Leaf(expression.Expression):
         """
         if self.attributes['nonneg'] or self.attributes['pos']:
             constraints.append(term >= 0)
-        elif self.attributes['nonpos'] or self.attributes['neg']:
+        if self.attributes['nonpos'] or self.attributes['neg']:
             constraints.append(term <= 0)
-        elif self.attributes['bounds']:
+        if self.attributes['bounds']:
             bounds = self.bounds
             lower_bounds, upper_bounds = bounds
             # Create masks if -inf or inf is present in the bounds
@@ -371,11 +383,11 @@ class Leaf(expression.Expression):
         numeric type
             The value rounded to the attribute type.
         """
-        # Only one attribute can be active at once (besides real,
-        # nonpos/nonneg, and bool/int).
         if not self.is_complex():
             val = np.real(val)
-
+        # Skip the projection operation for more than one attribute
+        if self.num_attributes > 1:
+            return val
         if self.attributes['nonpos'] and self.attributes['nonneg']:
             return 0*val
         elif self.attributes['nonpos'] or self.attributes['neg']:
@@ -436,7 +448,9 @@ class Leaf(expression.Expression):
 
     # Getter and setter for parameter value.
     def save_value(self, val, sparse_path=False) -> None:
-        if self.sparse_idx is not None and not sparse_path:
+        if val is None:
+            self._value = None
+        elif self.sparse_idx is not None and not sparse_path:
             self._value = sp.coo_array((val[self.sparse_idx], self.sparse_idx), shape=self.shape)
         elif self.sparse_idx is not None and sparse_path:
             self._value = val.data
@@ -453,7 +467,7 @@ class Leaf(expression.Expression):
                           ' Use `.value_sparse` instead', RuntimeWarning, 1)
             if self._value is None:
                 return None
-            val = np.zeros(self.shape)
+            val = np.zeros(self.shape, dtype=self._value.dtype)
             val[self.sparse_idx] = self._value.data
             return val
 
@@ -491,8 +505,6 @@ class Leaf(expression.Expression):
                 f' Instantiate with scipy.sparse.coo_array((value_array, coordinates))'
                 )
         self.save_value(self._validate_value(val, True), True)
-
-
 
     def project_and_assign(self, val) -> None:
         """Project and assign a value to the variable.

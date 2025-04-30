@@ -22,6 +22,15 @@ import cvxpy.settings as s
 from cvxpy.error import SolverError
 from cvxpy.reductions.solution import Solution, failure_solution
 from cvxpy.reductions.solvers.qp_solvers.qp_solver import QpSolver
+from cvxpy.utilities.citations import CITATION_DICT
+
+
+def unpack_highs_options_inplace(solver_opts) -> None:
+    # Users can pass options inside a nested dict -- e.g. to circumvent a name clash
+    highs_options = solver_opts.pop("highs_options", dict())
+
+    # merge via update(dict(...)) is needed to avoid silently over-writing options
+    solver_opts.update(dict(**solver_opts, **highs_options))
 
 
 class HIGHS(QpSolver):
@@ -117,7 +126,7 @@ class HIGHS(QpSolver):
         data : dict
             Data used by the solver.
         warm_start : bool
-            Not used.
+            Whether to warm_start HiGHS.
         verbose : bool
             Should the solver print output?
         solver_opts : dict
@@ -178,6 +187,7 @@ class HIGHS(QpSolver):
             hessian.value_ = P.data
 
         # setup options
+        unpack_highs_options_inplace(solver_opts)
         options = hp.HighsOptions()
         options.log_to_console = verbose
         for key, value in solver_opts.items():
@@ -190,7 +200,6 @@ class HIGHS(QpSolver):
         if warm_start and solver_cache is not None and self.name() in solver_cache:
             old_solver, old_data, old_result = solver_cache[self.name()]
             old_status = self.STATUS_MAP.get(old_result["model_status"], s.SOLVER_ERROR)
-
             if old_status in s.SOLUTION_PRESENT:
                 solver.setSolution(old_result["solution"])
 
@@ -211,3 +220,13 @@ class HIGHS(QpSolver):
             solver_cache[self.name()] = (solver, data, results)
 
         return results
+
+    def cite(self, data):
+        """Returns bibtex citation for the solver.
+
+        Parameters
+        ----------
+        data : dict
+            Data generated via an apply call.
+        """
+        return CITATION_DICT["HIGHS"]

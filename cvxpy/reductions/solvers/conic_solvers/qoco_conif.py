@@ -22,6 +22,7 @@ from cvxpy.constraints import SOC
 from cvxpy.reductions.solution import Solution, failure_solution
 from cvxpy.reductions.solvers import utilities
 from cvxpy.reductions.solvers.conic_solvers.conic_solver import ConicSolver
+from cvxpy.utilities.citations import CITATION_DICT
 
 # QOCO standard form.
 # minimize   (1/2)x'Px + c'x
@@ -175,8 +176,8 @@ class QOCO(ConicSolver):
         n = len(data[s.C])
 
         P = data[s.P] if s.P in data.keys() else None
-        A = data[s.A]
-        G = data[s.G]
+        A = data[s.A] if p > 0 else None
+        G = data[s.G] if m > 0 else None
 
         # Cast row indices and column pointer arrays to int32.
         if P is not None:
@@ -198,3 +199,13 @@ class QOCO(ConicSolver):
             solver_cache[self.name()] = results
 
         return results
+    
+    def cite(self, data):
+        """Returns bibtex citation for the solver.
+
+        Parameters
+        ----------
+        data : dict
+            Data generated via an apply call.
+        """
+        return CITATION_DICT["QOCO"]

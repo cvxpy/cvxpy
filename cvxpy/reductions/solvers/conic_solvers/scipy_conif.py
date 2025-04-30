@@ -25,6 +25,7 @@ from cvxpy.constraints import NonNeg, Zero
 from cvxpy.reductions.solution import Solution, failure_solution
 from cvxpy.reductions.solvers import utilities
 from cvxpy.reductions.solvers.conic_solvers.conic_solver import ConicSolver
+from cvxpy.utilities.citations import CITATION_DICT
 from cvxpy.utilities.versioning import Version
 
 
@@ -274,3 +275,13 @@ class SCIPY(ConicSolver):
             return Solution(status, opt_val, primal_vars, dual_vars, attr)
         else:
             return failure_solution(status)
+    
+    def cite(self, data):
+        """Returns bibtex citation for the solver.
+
+        Parameters
+        ----------
+        data : dict
+            Data generated via an apply call.
+        """
+        return CITATION_DICT["SCIPY"]

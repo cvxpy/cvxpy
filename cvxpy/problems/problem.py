@@ -54,6 +54,7 @@ from cvxpy.reductions.solvers.solving_chain import (
 )
 from cvxpy.settings import SOLVERS
 from cvxpy.utilities import debug_tools
+from cvxpy.utilities.citations import CITATION_DICT
 from cvxpy.utilities.deterministic import unique_list
 
 SolveResult = namedtuple(
@@ -85,6 +86,14 @@ _NUM_SOLVER_STR = (
     '\n' +
     '-'*_COL_WIDTH
 )
+_CITATION_STR = (
+    '-'*_COL_WIDTH +
+    '\n' +
+    ('Citations').center(_COL_WIDTH) +
+    '\n' +
+    '-'*_COL_WIDTH
+)
+
 _FOOTER = (
     '-'*_COL_WIDTH +
     '\n' +
@@ -731,6 +740,9 @@ class Problem(u.Canonical):
             raise DPPError("Cannot set enforce_dpp = True and ignore_dpp = True.")
 
         start = time.time()
+        # Convert solver argument to upper case.
+        if isinstance(solver, str):
+            solver = solver.upper()
         # Cache includes ignore_dpp and solver_opts['use_quad_obj']
         # because they alter compilation.
         if solver_opts is None:
@@ -850,6 +862,9 @@ class Problem(u.Canonical):
                       'conic_solvers': []}
         if isinstance(solver, Solver):
             return self._add_custom_solver_candidates(solver)
+        # Convert solver to upper case.
+        if isinstance(solver, str):
+            solver = solver.upper()
         if solver is not None:
             if solver not in slv_def.INSTALLED_SOLVERS:
                 raise error.SolverError("The solver %s is not installed." % solver)
@@ -1030,6 +1045,7 @@ class Problem(u.Canonical):
                solver: str = None,
                warm_start: bool = True,
                verbose: bool = False,
+               bibtex: bool = False,
                gp: bool = False,
                qcp: bool = False,
                requires_grad: bool = False,
@@ -1050,6 +1066,8 @@ class Problem(u.Canonical):
             Should the previous solver result be used to warm start?
         verbose : bool, optional
             Overrides the default of hiding solver output.
+        bibtex : bool, optional
+            Prints bibtex citations for CVXPY, the grammar, and the solver.
         gp : bool, optional
             If True, parses the problem as a disciplined geometric program.
         qcp : bool, optional
@@ -1085,7 +1103,6 @@ class Problem(u.Canonical):
 
         if verbose:
             print(_HEADER)
-
         for parameter in self.parameters():
             if parameter.value is None:
                 raise error.ParameterError(
@@ -1151,6 +1168,10 @@ class Problem(u.Canonical):
                     s.LOGGER.info(
                             'Reducing DQCP problem to a one-parameter '
                             'family of DCP problems, for bisection.')
+                    if bibtex:
+                        print(_CITATION_STR)
+                        print(CITATION_DICT["CVXPY"])
+                        print(CITATION_DICT["DQCP"])                             
                 reductions = [dqcp2dcp.Dqcp2Dcp()]
                 start = time.time()
                 if type(self.objective) == Maximize:
@@ -1180,6 +1201,20 @@ class Problem(u.Canonical):
         solver_verbose = kwargs.pop('solver_verbose', verbose)
         if solver_verbose and (not verbose):
             print(_NUM_SOLVER_STR)
+        if verbose and bibtex:
+            print(_CITATION_STR)
+
+            # Cite CVXPY papers.
+            print(CITATION_DICT["CVXPY"])
+
+            # Cite problem grammar.
+            if self.is_dcp():
+                print(CITATION_DICT["DCP"]) 
+            if gp:
+                print(CITATION_DICT["DGP"]) 
+
+            # Cite solver.
+            print(solving_chain.reductions[-1].cite(data))
         solution = solving_chain.solve_via_data(
             self, data, warm_start, solver_verbose, kwargs)
         end = time.time()

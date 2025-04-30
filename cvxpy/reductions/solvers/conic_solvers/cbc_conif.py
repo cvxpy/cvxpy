@@ -22,6 +22,7 @@ from cvxpy.reductions.solvers.conic_solvers.conic_solver import (
     ConicSolver,
     dims_to_solver_dict,
 )
+from cvxpy.utilities.citations import CITATION_DICT
 
 
 class CBC(ConicSolver):
@@ -210,3 +211,13 @@ class CBC(ConicSolver):
             solution["value"] = model.objectiveValue
 
         return solution
+    
+    def cite(self, data):
+        """Returns bibtex citation for the solver.
+
+        Parameters
+        ----------
+        data : dict
+            Data generated via an apply call.
+        """
+        return CITATION_DICT["CBC"]

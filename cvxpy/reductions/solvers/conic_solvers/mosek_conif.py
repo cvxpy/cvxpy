@@ -24,10 +24,18 @@ import scipy as sp
 import cvxpy.settings as s
 from cvxpy.constraints import PSD, SOC, ExpCone, PowCone3D
 from cvxpy.reductions.cone2cone import affine2direct as a2d
-from cvxpy.reductions.cone2cone.affine2direct import Dualize, Slacks
+from cvxpy.reductions.cone2cone.affine2direct import (
+    DUAL_EXP,
+    DUAL_POW3D,
+    EXP,
+    POW3D,
+    Dualize,
+    Slacks,
+)
 from cvxpy.reductions.solution import Solution
 from cvxpy.reductions.solvers.conic_solvers.conic_solver import ConicSolver
 from cvxpy.reductions.solvers.utilities import expcone_permutor
+from cvxpy.utilities.citations import CITATION_DICT
 
 __MSK_ENUM_PARAM_DEPRECATION__ = """
 Using MOSEK constants to specify parameters is deprecated.
@@ -777,3 +785,28 @@ class MOSEK(ConicSolver):
             "MSK_DPAR_MIO_TOL_REL_GAP"
         )
 
+    def cite(self, data):
+        """Returns bibtex citation for the solver.
+
+        Parameters
+        ----------
+        data : dict
+            Data generated via an apply call.
+        """
+        citation = CITATION_DICT['MOSEK']
+
+        # We need another citation if nonsymmetric cones are present.
+        nonsym_cones = False
+        K_dir = data.get('K_dir', dict())
+        if K_dir.get(DUAL_EXP, 0):
+            nonsym_cones = True
+        if K_dir.get(DUAL_POW3D, 0):
+            nonsym_cones = True
+        K_aff = data.get('K_aff', dict())
+        if K_aff.get(EXP, 0):
+            nonsym_cones = True
+        if K_aff.get(POW3D, 0):
+            nonsym_cones = True
+        if nonsym_cones:
+            citation += CITATION_DICT['MOSEK_EXP']
+        return citation
