@@ -19,7 +19,7 @@ import sys
 LOGGER = logging.getLogger("__cvxpy__")
 LOGGER.propagate = False
 LOGGER.setLevel(logging.INFO)
-_stream_handler = logging.StreamHandler(sys.stdout)
+_stream_handler = logging.StreamHandler(sys.stderr)
 _stream_handler.setLevel(logging.INFO)
 _formatter = logging.Formatter(
     fmt="(CVXPY) %(asctime)s: %(message)s", datefmt="%b %d %I:%M:%S %p"
