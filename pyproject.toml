@@ -1,6 +1,6 @@
 [tool.ruff]
 # The minimum Python version that should be supported
-target-version = "py39"
+target-version = "py310"
 
 line-length = 100
 
@@ -56,7 +56,7 @@ dependencies = [
     "numpy >= 1.21.6",
     "scipy >= 1.11.0",
 ]
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 urls = {Homepage = "https://github.com/cvxpy/cvxpy"}
 license = {text = "Apache License, Version 2.0"}
 authors = [{name = "Steven Diamond", email = "stevend2@stanford.edu"},
