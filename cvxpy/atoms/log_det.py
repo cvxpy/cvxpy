@@ -50,8 +50,8 @@ class log_det(Atom):
     # Any argument shape is valid.
     def validate_arguments(self) -> None:
         X = self.args[0]
-        if len(X.shape) == 1 or X.shape[0] != X.shape[1]:
-            raise TypeError("The argument to log_det must be a square matrix.")
+        if not len(X.shape) == 2 or X.shape[0] != X.shape[1]:
+            raise TypeError("The argument to log_det must be a 2-d square array.")
 
     def shape_from_args(self) -> Tuple[int, ...]:
         """Returns the (row, col) shape of the expression.

@@ -1774,3 +1774,18 @@ class TestND_Expressions():
         prob = cp.Problem(cp.Minimize(cp.sum(expr)), [expr == target - y])
         prob.solve(canon_backend=cp.SCIPY_CANON_BACKEND)
         assert np.allclose(x.value, target)
+
+    #TODO make tests pass, support nd matmul
+    def test_nd_matmul_exception(self) -> None:
+        error_str = "Multiplication with N-d arrays is not yet supported"
+        with pytest.raises(ValueError, match=error_str):
+            x = cp.Variable((5,20,3))
+            y = cp.Variable((3,10))
+            x @ y
+    
+    #TODO make tests pass, support cumsum with multiple axes
+    def test_nd_cumsum_warning(self) -> None:
+        warning_str = "cumsum is only implemented for 1D or 2D arrays and might not"
+        with pytest.raises(UserWarning, match=warning_str):
+            x = cp.Variable((5,20,3))
+            cp.cumsum(x, axis=1)

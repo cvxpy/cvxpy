@@ -63,13 +63,12 @@ class von_neumann_entr(Atom):
         return val
 
     def validate_arguments(self) -> None:
-        """Verify that the argument A is PSD.
-        """
-        N = self.args[0]
-        if N.size > 1:
-            if N.ndim != 2 or N.shape[0] != N.shape[1]:
-                raise ValueError('Argument must be a square matrix.')
-
+        """Verify that the argument is a square matrix."""
+        if not self.args[0].ndim == 2 or self.args[0].shape[0] != self.args[0].shape[1]:
+            raise ValueError(
+                f"The argument {self.args[0].name()} to von_neumann_entr must be a 2-d square array"
+            )
+        
     def sign_from_args(self) -> Tuple[bool, bool]:
         """Returns sign (is positive, is negative) of the expression.
         """

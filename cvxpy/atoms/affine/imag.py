@@ -27,7 +27,7 @@ class imag(AffAtom):
         super(imag, self).__init__(expr)
 
     def numeric(self, values):
-        """Convert the vector constant into a diagonal matrix.
+        """Imaginary part of an expression
         """
         return np.imag(values[0])
 

@@ -30,7 +30,7 @@ def vstack(arg_list) -> "Vstack":
 
 
 class Vstack(AffAtom):
-    """ Vertical concatenation """
+    """Vertical concatenation"""
     def is_atom_log_log_convex(self) -> bool:
         """Is the atom log-log convex?
         """

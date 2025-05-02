@@ -62,7 +62,7 @@ class lambda_max(Atom):
         return [sp.csc_array([D.ravel(order='F')]).T]
 
     def validate_arguments(self) -> None:
-        """Verify that the argument A is square.
+        """Verify that the argument A is a square matrix.
         """
         if not self.args[0].ndim == 2 or self.args[0].shape[0] != self.args[0].shape[1]:
             raise ValueError("The argument '%s' to lambda_max must resolve to a square matrix."

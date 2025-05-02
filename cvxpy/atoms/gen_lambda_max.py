@@ -22,7 +22,7 @@ from cvxpy.constraints.constraint import Constraint
 
 
 class gen_lambda_max(Atom):
-    """ Maximum generalized eigenvalue; :math:`\\lambda_{\\max}(A, B)`.
+    """Maximum generalized eigenvalue; :math:`\\lambda_{\\max}(A, B)`.
     """
 
     def __init__(self, A, B) -> None:
