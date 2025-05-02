@@ -51,7 +51,7 @@ def diag(expr, k: int = 0) -> Union["diag_mat", "diag_vec"]:
         assert abs(k) < expr.shape[0], "Offset out of bounds."
         return diag_mat(expr, k)
     else:
-        raise ValueError("Argument to diag must be a 1 or 2-d array.")
+        raise ValueError("Argument to diag must be a 1-d array or 2-d square array.")
 
 
 class diag_vec(AffAtom):

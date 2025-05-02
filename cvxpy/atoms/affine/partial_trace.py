@@ -78,7 +78,7 @@ def partial_trace(expr, dims: Tuple[int], axis: Optional[int] = 0):
     """
     expr = Atom.cast_to_const(expr)
     if expr.ndim < 2 or expr.shape[0] != expr.shape[1]:
-        raise ValueError("partial_trace only supports 2-d arrays.")
+        raise ValueError("partial_trace only supports 2-d square arrays.")
     if axis < 0 or axis >= len(dims):
         raise ValueError(
             f"Invalid axis argument, should be between 0 and {len(dims)}, got {axis}."

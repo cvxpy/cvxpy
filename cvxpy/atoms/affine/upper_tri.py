@@ -65,7 +65,7 @@ class upper_tri(AffAtom):
         """
         if not self.args[0].ndim == 2 or self.args[0].shape[0] != self.args[0].shape[1]:
             raise ValueError(
-                "Argument to upper_tri must be a 2-d array."
+                "Argument to upper_tri must be a 2-d square array."
             )
 
     def shape_from_args(self) -> Tuple[int, int]:

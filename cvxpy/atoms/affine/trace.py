@@ -55,7 +55,7 @@ class trace(AffAtom):
         """
         shape = self.args[0].shape
         if self.args[0].ndim != 2 or shape[0] != shape[1]:
-            raise ValueError("Argument to trace must be a 2-d array.")
+            raise ValueError("Argument to trace must be a 2-d square array.")
 
     def shape_from_args(self) -> Tuple[int, ...]:
         """Always scalar.

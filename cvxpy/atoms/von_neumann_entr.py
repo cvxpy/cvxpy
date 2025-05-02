@@ -66,7 +66,7 @@ class von_neumann_entr(Atom):
         """Verify that the argument is a square matrix."""
         if not self.args[0].ndim == 2 or self.args[0].shape[0] != self.args[0].shape[1]:
             raise ValueError(
-                f"The argument {self.args[0].name()} to von_neumann_entr must be a 2-d array."
+                f"The argument {self.args[0].name()} to von_neumann_entr must be a 2-d square array"
             )
         
     def sign_from_args(self) -> Tuple[bool, bool]:

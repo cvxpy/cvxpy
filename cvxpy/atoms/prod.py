@@ -102,7 +102,7 @@ class Prod(AxisAtom):
                 if self.keepdims:
                     result = np.expand_dims(result, self.axis)
             else:
-                raise UserWarning("cp.prod only supports axis=0 or axis=1 for sparse matrices.")
+                raise UserWarning("cp.prod does not support axis > 1 for sparse matrices.")
         else:
             result = np.prod(values[0], axis=self.axis, keepdims=self.keepdims)
         return result

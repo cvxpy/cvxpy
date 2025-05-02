@@ -34,7 +34,7 @@ class sigma_max(Atom):
         """Verify that the argument is a matrix."""
         if not self.args[0].ndim == 2:
             raise ValueError(
-                f"The argument {self.args[0].name()} to sigma_max must be a matrix."
+                f"The argument {self.args[0].name()} to sigma_max must be a 2-d array."
             )
     
     @Atom.numpy_numeric
