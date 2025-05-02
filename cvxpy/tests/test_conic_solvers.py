@@ -2507,3 +2507,26 @@ class TestCOPT(unittest.TestCase):
 
         # Valid arg.
         problem.solve(solver=cp.COPT, feastol=1e-9)
+
+
+@unittest.skipUnless('MPAX' in INSTALLED_SOLVERS, 'MPAX is not installed.')
+class TestMPAX(unittest.TestCase):
+
+    def test_mpax_lp_0(self) -> None:
+        StandardTestLPs.test_lp_0(solver='MPAX')
+
+    def test_mpax_lp_1(self) -> None:
+        StandardTestLPs.test_lp_1(solver='MPAX')
+
+    def test_mpax_lp_2(self) -> None:
+        StandardTestLPs.test_lp_2(solver='MPAX')
+
+    def test_mpax_lp_3(self) -> None:
+        sth = sths.lp_3()
+        with self.assertWarns(Warning):
+            sth.prob.solve(solver='MPAX')
+            self.assertEqual(sth.prob.status, cp.settings.INFEASIBLE_OR_UNBOUNDED)
+
+    # Not working yet.
+    # def test_MPAX_qp_0(self) -> None:
+    #     StandardTestQPs.test_qp_0(solver='MPAX')
