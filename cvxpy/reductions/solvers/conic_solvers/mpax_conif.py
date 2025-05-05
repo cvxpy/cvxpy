@@ -30,6 +30,7 @@ class MPAX(ConicSolver):
 
     # Solver capabilities.
     MIP_CAPABLE = False
+    BOUNDED_VARIABLES = True
     SUPPORTED_CONSTRAINTS = ConicSolver.SUPPORTED_CONSTRAINTS
 
     STATUS_MAP = {
@@ -117,8 +118,12 @@ class MPAX(ConicSolver):
         b = data[s.B]
         c = data[s.C]
 
-        lb = np.full_like(c, -np.inf)
-        ub = np.full_like(c, np.inf)
+        lb = data[s.LOWER_BOUNDS]
+        if lb is None:
+            lb = np.full_like(c, -np.inf)
+        ub = data[s.UPPER_BOUNDS]
+        if ub is None:
+            ub = np.full_like(c, np.inf)
 
         num_eq = data[ConicSolver.DIMS].zero
         G = -A[num_eq:]
