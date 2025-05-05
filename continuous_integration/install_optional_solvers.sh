@@ -8,7 +8,7 @@ conda config --set remote_backoff_factor 2
 conda config --set remote_read_timeout_secs 120.0
 conda install pip
 
-python -m pip install ecos scs proxsuite daqp gurobipy piqp clarabel osqp highspy qoco
+python -m pip install ecos scs proxsuite daqp gurobipy piqp clarabel osqp highspy qoco mpax
 
 if [[ "$PYTHON_VERSION" == "3.12" ]]; then
   python -m pip install "ortools>=9.7,<9.12"
