@@ -2528,5 +2528,5 @@ class TestMPAX(unittest.TestCase):
             self.assertEqual(sth.prob.status, cp.settings.INFEASIBLE_OR_UNBOUNDED)
 
     # Not working yet.
-    # def test_MPAX_qp_0(self) -> None:
-    #     StandardTestQPs.test_qp_0(solver='MPAX')
+    def test_MPAX_qp_0(self) -> None:
+        StandardTestQPs.test_qp_0(solver='MPAX')
