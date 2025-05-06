@@ -20,7 +20,7 @@ import numpy as np
 import cvxpy.settings as s
 from cvxpy.reductions.solution import Solution, failure_solution
 from cvxpy.reductions.solvers import utilities
-from cvxpy.reductions.solvers.conic_solvers.conic_solver import ConicSolver
+from cvxpy.reductions.solvers.qp_solvers.qp_solver import QpSolver
 from cvxpy.utilities.citations import CITATION_DICT
 
 
@@ -29,9 +29,7 @@ class MPAX(ConicSolver):
     """
 
     # Solver capabilities.
-    MIP_CAPABLE = False
     BOUNDED_VARIABLES = True
-    SUPPORTED_CONSTRAINTS = ConicSolver.SUPPORTED_CONSTRAINTS
 
     STATUS_MAP = {
                     # 1: UNSPECIFIED
@@ -55,12 +53,6 @@ class MPAX(ConicSolver):
         """
         import jax  # noqa F401
         import mpax  # noqa F401
-
-    def supports_quad_obj(self) -> bool:
-        """MPAX supports quadratic objective with any combination
-        of conic constraints.
-        """
-        return True
 
     def invert(self, solution, inverse_data):
         """Returns the solution to the original problem given the inverse_data.
