@@ -24,7 +24,7 @@ from cvxpy.reductions.solvers.qp_solvers.qp_solver import QpSolver
 from cvxpy.utilities.citations import CITATION_DICT
 
 
-class MPAX(ConicSolver):
+class MPAX(QpSolver):
     """An interface for the MPAX solver.
     """
 
@@ -68,12 +68,12 @@ class MPAX(ConicSolver):
                 inverse_data[MPAX.VAR_ID]: solution.primal_solution.tolist()
             }
             eq_dual_vars = utilities.get_dual_values(
-                (solution.dual_solution).tolist()[:inverse_data[ConicSolver.DIMS].zero],
+                (solution.dual_solution).tolist()[:inverse_data[QpSolver.DIMS].zero],
                 utilities.extract_dual_value,
                 inverse_data[MPAX.EQ_CONSTR]
             )
             ineq_dual_vars = utilities.get_dual_values(
-                solution.dual_solution.tolist()[inverse_data[ConicSolver.DIMS].zero:],
+                solution.dual_solution.tolist()[inverse_data[QpSolver.DIMS].zero:],
                 utilities.extract_dual_value,
                 inverse_data[MPAX.NEQ_CONSTR]
             )
@@ -117,7 +117,7 @@ class MPAX(ConicSolver):
         if ub is None:
             ub = np.full_like(c, np.inf)
 
-        num_eq = data[ConicSolver.DIMS].zero
+        num_eq = data[QpSolver.DIMS].zero
         G = -A[num_eq:]
         h = -b[num_eq:]
         A = -A[:num_eq]
