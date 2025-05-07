@@ -19,7 +19,6 @@ import numpy as np
 
 import cvxpy.settings as s
 from cvxpy.reductions.solution import Solution, failure_solution
-from cvxpy.reductions.solvers import utilities
 from cvxpy.reductions.solvers.qp_solvers.qp_solver import QpSolver
 from cvxpy.utilities.citations import CITATION_DICT
 
@@ -57,7 +56,6 @@ class MPAX(QpSolver):
     def invert(self, solution, inverse_data):
         """Returns the solution to the original problem given the inverse_data.
         """
-
         attr = {}
         status = self.STATUS_MAP[int(solution.termination_status)]
         attr[s.NUM_ITERS] = solution.iteration_count
@@ -65,21 +63,11 @@ class MPAX(QpSolver):
         if status in s.SOLUTION_PRESENT:
             opt_val = float(solution.primal_objective)
             primal_vars = {
-                inverse_data[MPAX.VAR_ID]: solution.primal_solution.tolist()
+                MPAX.VAR_ID: np.array(solution.primal_solution)
             }
-            eq_dual_vars = utilities.get_dual_values(
-                (solution.dual_solution).tolist()[:inverse_data[QpSolver.DIMS].zero],
-                utilities.extract_dual_value,
-                inverse_data[MPAX.EQ_CONSTR]
-            )
-            ineq_dual_vars = utilities.get_dual_values(
-                solution.dual_solution.tolist()[inverse_data[QpSolver.DIMS].zero:],
-                utilities.extract_dual_value,
-                inverse_data[MPAX.NEQ_CONSTR]
-            )
-            dual_vars = {}
-            dual_vars.update(eq_dual_vars)
-            dual_vars.update(ineq_dual_vars)
+            dual_vars = {
+                    MPAX.DUAL_VAR_ID: np.array(solution.dual_solution),
+            }
             return Solution(status, opt_val, primal_vars, dual_vars, attr)
         else:
             return failure_solution(status, attr)
