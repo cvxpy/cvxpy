@@ -66,3 +66,29 @@ class TestShape():
         a = cp.Parameter(shape=(7, 3, 9, 5))
         b = cp.sum(a, axis=-1)
         assert b.shape == (7, 3, 9)
+        b = cp.sum(a, axis=-2)
+        assert b.shape == (7, 3, 5)
+        b = cp.sum(a, axis=-3)
+        assert b.shape == (7, 9, 5)
+
+        b = cp.sum(a, axis=-1, keepdims=True)
+        assert b.shape == (7, 3, 9, 1)
+        b = cp.sum(a, axis=-2, keepdims=True)
+        assert b.shape == (7, 3, 1, 5)
+        b = cp.sum(a, axis=-3, keepdims=True)
+        assert b.shape == (7, 1, 9, 5)
+        with pytest.raises(ValueError):
+            cp.sum(a, axis=-5)
+        with pytest.raises(ValueError):
+            cp.sum(a, axis=-10)
+        with pytest.raises(ValueError):
+            cp.sum(a, axis=-5, keepdims=True)
+        with pytest.raises(ValueError):
+            cp.sum(a, axis=-10, keepdims=True)
+
+        b = cp.sum(a, axis=(-2, -1, 0), keepdims=True)
+        assert b.shape == (1, 3, 1, 1)
+        b = cp.sum(a, axis=(-2, -1, 0))
+        assert b.shape == (3,)
+        with pytest.raises(ValueError):
+            cp.sum(a, axis=(-5, 3))
