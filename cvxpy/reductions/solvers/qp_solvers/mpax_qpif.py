@@ -106,9 +106,14 @@ class MPAX(QpSolver):
         import jax
         import mpax
 
+        P = data[s.P]
+        c = data['q']
+
         A = data[s.A]
         b = data[s.B]
-        c = data[s.C]
+
+        G = -data[s.F]
+        h = -data[s.G]
 
         lb = data[s.LOWER_BOUNDS]
         if lb is None:
@@ -117,14 +122,8 @@ class MPAX(QpSolver):
         if ub is None:
             ub = np.full_like(c, np.inf)
 
-        num_eq = data[QpSolver.DIMS].zero
-        G = -A[num_eq:]
-        h = -b[num_eq:]
-        A = -A[:num_eq]
-        b = -b[:num_eq]
 
-        if s.P in data:
-            P = data[s.P] # TODO: check if P is symmetric.
+        if P.nnz != 0:
             model = mpax.create_qp(P, c, A, b, G, h, lb, ub)
         else:
             model = mpax.create_lp(c, A, b, G, h, lb, ub)
