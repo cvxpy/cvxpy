@@ -44,6 +44,8 @@ class AxisAtom(Atom):
         elif isinstance(self.axis, int):
             # Normalize negative axis
             axis = self.axis if self.axis >= 0 else self.axis + ndim
+            if axis < 0:
+                ValueError(f"axis {self.axis} is out of bounds for array of dimension {ndim}")
             if self.keepdims:
                 shape[axis] = 1
             else:
@@ -51,6 +53,9 @@ class AxisAtom(Atom):
         else:
             # Normalize each axis in the list
             axes = [axis if axis >= 0 else axis + ndim for axis in self.axis]
+            if any(axis < 0 for axis in axes):
+                ValueError(f"axis {[axis for axis in self.axis if axis < -ndim][0]}"
+                           f" is out of bounds for array of dimension {ndim}")
             if self.keepdims:
                 for axis in axes:
                     shape[axis] = 1
