@@ -63,10 +63,10 @@ class MPAX(QpSolver):
         if status in s.SOLUTION_PRESENT:
             opt_val = float(solution.primal_objective)
             primal_vars = {
-                MPAX.VAR_ID: np.array(solution.primal_solution)
+                MPAX.VAR_ID: np.array(solution.primal_solution, dtype=float)
             }
             dual_vars = {
-                    MPAX.DUAL_VAR_ID: np.array(solution.dual_solution),
+                    MPAX.DUAL_VAR_ID: np.array(solution.dual_solution, dtype=float),
             }
             return Solution(status, opt_val, primal_vars, dual_vars, attr)
         else:
@@ -116,21 +116,18 @@ class MPAX(QpSolver):
         else:
             model = mpax.create_lp(c, A, b, G, h, lb, ub)
 
-        # solver = mpax.raPDHG(warm_start=warm_start, verbose=verbose, **solver_opts)
-        solver = mpax.raPDHG(warm_start=False, verbose=verbose, **solver_opts)
-
-        jit_optimize = jax.jit(solver.optimize)
-
         if warm_start and solver_cache is not None and \
             self.name() in solver_cache:
+            solver = mpax.raPDHG(warm_start=True, verbose=verbose, **solver_opts)
+            jit_optimize = jax.jit(solver.optimize)
             initial_primal_solution = solver_cache[self.name()].primal_solution
             initial_dual_solution = solver_cache[self.name()].dual_solution
             results = jit_optimize(model,
                                    initial_primal_solution=initial_primal_solution,
                                    initial_dual_solution=initial_dual_solution)
         else:
-            initial_primal_solution = None
-            initial_dual_solution = None
+            solver = mpax.raPDHG(warm_start=False, verbose=verbose, **solver_opts)
+            jit_optimize = jax.jit(solver.optimize)
             results = jit_optimize(model)
 
         if solver_cache is not None:
