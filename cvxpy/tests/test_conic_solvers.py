@@ -2527,6 +2527,30 @@ class TestMPAX(unittest.TestCase):
             sth.prob.solve(solver='MPAX')
             self.assertEqual(sth.prob.status, cp.settings.INFEASIBLE_OR_UNBOUNDED)
 
-    # Not working yet.
+    def test_mpax_lp_4(self) -> None:
+            sth = sths.lp_4()
+            with self.assertWarns(Warning):
+                sth.prob.solve(solver='MPAX')
+                self.assertEqual(sth.prob.status, cp.settings.INFEASIBLE_OR_UNBOUNDED)
+
+    def test_mpax_lp_5(self) -> None:
+        StandardTestLPs.test_lp_5(solver='MPAX')
+
+    def test_mpax_lp_6(self) -> None:
+        StandardTestLPs.test_lp_6(solver='MPAX')
+
+    def test_mpax_warmstart(self) -> None:
+        x = cp.Variable(shape=(2,), name='x')
+        objective = cp.Minimize(-4 * x[0] - 5 * x[1])
+        constraints = [2 * x[0] + x[1] <= 3,
+                    x[0] + 2 * x[1] <= 3,
+                    x[0] >= 0,
+                    x[1] >= 0]
+        prob = cp.Problem(objective, constraints)
+        result1 = prob.solve(solver='MPAX', warm_start=False)
+        self.assertAlmostEqual(result1, -9, places=4)
+        result2 = prob.solve(solver='MPAX', warm_start=True)
+        self.assertAlmostEqual(result2, -9, places=4)
+
     def test_MPAX_qp_0(self) -> None:
         StandardTestQPs.test_qp_0(solver='MPAX')
