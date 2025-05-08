@@ -66,7 +66,7 @@ class MPAX(QpSolver):
                 MPAX.VAR_ID: np.array(solution.primal_solution)
             }
             dual_vars = {
-                    MPAX.DUAL_VAR_ID: -np.array(solution.dual_solution),
+                    MPAX.DUAL_VAR_ID: np.array(solution.dual_solution),
             }
             return Solution(status, opt_val, primal_vars, dual_vars, attr)
         else:
@@ -97,8 +97,8 @@ class MPAX(QpSolver):
         P = data[s.P]
         c = data['q']
 
-        A = data[s.A]
-        b = data[s.B]
+        A = -data[s.A]
+        b = -data[s.B]
 
         G = -data[s.F]
         h = -data[s.G]
