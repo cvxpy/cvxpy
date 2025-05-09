@@ -64,6 +64,7 @@ from cvxpy.settings import (
     CBC as CBC,
     CLARABEL as CLARABEL,
     COPT as COPT,
+    COSMO as COSMO,
     CPLEX as CPLEX,
     CPP_CANON_BACKEND as CPP_CANON_BACKEND,
     CVXOPT as CVXOPT,

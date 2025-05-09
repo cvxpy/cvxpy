@@ -21,6 +21,7 @@ import cvxpy.settings as s
 from cvxpy.reductions.solvers.conic_solvers.cbc_conif import CBC as CBC_con
 from cvxpy.reductions.solvers.conic_solvers.clarabel_conif import CLARABEL as CLARABEL_con
 from cvxpy.reductions.solvers.conic_solvers.copt_conif import COPT as COPT_con
+from cvxpy.reductions.solvers.conic_solvers.cosmo_conif import COSMO as COSMO_con
 from cvxpy.reductions.solvers.conic_solvers.cplex_conif import CPLEX as CPLEX_con
 from cvxpy.reductions.solvers.conic_solvers.cvxopt_conif import CVXOPT as CVXOPT_con
 
@@ -57,7 +58,7 @@ from cvxpy.utilities.versioning import Version
 
 solver_conic_intf = [DIFFCP_con(), ECOS_con(),
                      CVXOPT_con(), GLPK_con(), COPT_con(),
-                     GLPK_MI_con(), CBC_con(), CLARABEL_con(), SCS_con(), SDPA_con(),
+                     GLPK_MI_con(), CBC_con(), CLARABEL_con(), COSMO_con(), SCS_con(), SDPA_con(),
                      GUROBI_con(), MOSEK_con(), CPLEX_con(), NAG_con(), XPRESS_con(),
                      SCIP_con(), SCIPY_con(), HIGHS_con(), GLOP_con(), PDLP_con(),
                      QOCO_con(), ECOS_BB_con(),]
@@ -78,7 +79,7 @@ SOLVER_MAP_QP = {solver.name(): solver for solver in solver_qp_intf}
 # CONIC_SOLVERS and QP_SOLVERS are sorted in order of decreasing solver
 # preference. QP_SOLVERS are those for which we have written interfaces
 # and are supported by QpSolver.
-CONIC_SOLVERS = [s.MOSEK, s.CLARABEL, s.SCS, s.ECOS, s.SDPA,
+CONIC_SOLVERS = [s.MOSEK, s.CLARABEL, s.COSMO, s.SCS, s.ECOS, s.SDPA,
                  s.CPLEX, s.GUROBI, s.COPT, s.GLPK, s.NAG,
                  s.GLPK_MI, s.CBC, s.CVXOPT, s.XPRESS, s.DIFFCP,
                  s.SCIP, s.SCIPY, s.HIGHS, s.GLOP, s.PDLP, s.QOCO, 

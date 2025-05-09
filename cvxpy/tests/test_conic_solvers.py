@@ -2507,3 +2507,85 @@ class TestCOPT(unittest.TestCase):
 
         # Valid arg.
         problem.solve(solver=cp.COPT, feastol=1e-9)
+
+
+@unittest.skipUnless('COSMO' in INSTALLED_SOLVERS, 'COSMO is not installed.')
+class TestCOSMO(BaseTest):
+    """Unit tests for COSMO solver interface."""
+    
+    def setUp(self) -> None:
+        self.a = cp.Variable(name='a')
+        self.b = cp.Variable(name='b')
+        self.c = cp.Variable(name='c')
+
+        self.x = cp.Variable(2, name='x')
+        self.y = cp.Variable(3, name='y')
+        self.z = cp.Variable(2, name='z')
+
+        self.A = cp.Variable((2, 2), name='A')
+        self.B = cp.Variable((2, 2), name='B')
+        self.C = cp.Variable((3, 2), name='C')
+
+    def test_cosmo_options(self) -> None:
+        """Test that COSMO solver options work."""
+        # Test basic options with simple problem
+        prob = cp.Problem(cp.Minimize(cp.norm(self.x, 1) + 1.0), [self.x == 0])
+        
+        # Test with default settings
+        prob.solve(solver=cp.COSMO, verbose=True)
+        self.assertAlmostEqual(prob.value, 1.0)
+        self.assertItemsAlmostEqual(self.x.value, [0, 0])
+
+        # Test with custom settings
+        prob.solve(solver=cp.COSMO, eps_abs=1e-4, verbose=True)
+        self.assertAlmostEqual(prob.value, 1.0)
+        self.assertItemsAlmostEqual(self.x.value, [0, 0])
+
+    def test_cosmo_lp_0(self) -> None:
+        StandardTestLPs.test_lp_0(solver='COSMO')
+
+    def test_cosmo_lp_1(self) -> None:
+        StandardTestLPs.test_lp_1(solver='COSMO')
+
+    def test_cosmo_lp_2(self) -> None:
+        StandardTestLPs.test_lp_2(solver='COSMO')
+
+    def test_cosmo_lp_3(self) -> None:
+        StandardTestLPs.test_lp_3(solver='COSMO')
+
+    def test_cosmo_lp_4(self) -> None:
+        StandardTestLPs.test_lp_4(solver='COSMO')
+
+    def test_cosmo_socp_0(self) -> None:
+        StandardTestSOCPs.test_socp_0(solver='COSMO')
+
+    def test_cosmo_socp_1(self) -> None:
+        StandardTestSOCPs.test_socp_1(solver='COSMO')
+
+    def test_cosmo_socp_2(self) -> None:
+        StandardTestSOCPs.test_socp_2(solver='COSMO')
+
+    def test_cosmo_socp_3(self) -> None:
+        # axis 0
+        StandardTestSOCPs.test_socp_3ax0(solver='COSMO')
+        # axis 1 
+        StandardTestSOCPs.test_socp_3ax1(solver='COSMO')
+
+    def test_cosmo_expcone_1(self) -> None:
+        StandardTestECPs.test_expcone_1(solver='COSMO')
+
+    def test_cosmo_exp_soc_1(self) -> None:
+        StandardTestMixedCPs.test_exp_soc_1(solver='COSMO')
+
+    def test_warm_start(self) -> None:
+        """Test warm starting.
+        """
+        x = cp.Variable(10)
+        obj = cp.Minimize(cp.sum(cp.exp(x)))
+        prob = cp.Problem(obj, [cp.sum(x) == 1])
+        result = prob.solve(solver=cp.COSMO)
+        time = prob.solver_stats.solve_time
+        result2 = prob.solve(solver=cp.COSMO, warm_start=True)
+        time2 = prob.solver_stats.solve_time
+        self.assertAlmostEqual(result2, result, places=2)
+        print(time > time2)
