@@ -116,9 +116,19 @@ class MPAX(QpSolver):
         else:
             model = mpax.create_lp(c, A, b, G, h, lb, ub)
 
+        algorithm = solver_opts.pop('algorithm', None)
+        if algorithm is None or algorithm == 'raPDHG':
+            algorithm = 'raPDHG'
+            alg = mpax.raPDHG
+        elif algorithm == 'r2HPDHG':
+            alg = mpax.r2HPDHG
+        else:
+            raise ValueError('Invalid MPAX algorithm')
+
+
         if warm_start and solver_cache is not None and \
             self.name() in solver_cache:
-            solver = mpax.raPDHG(warm_start=True, verbose=verbose, **solver_opts)
+            solver = alg(warm_start=True, verbose=verbose, **solver_opts)
             jit_optimize = jax.jit(solver.optimize)
             initial_primal_solution = solver_cache[self.name()].primal_solution
             initial_dual_solution = solver_cache[self.name()].dual_solution
@@ -126,7 +136,7 @@ class MPAX(QpSolver):
                                    initial_primal_solution=initial_primal_solution,
                                    initial_dual_solution=initial_dual_solution)
         else:
-            solver = mpax.raPDHG(warm_start=False, verbose=verbose, **solver_opts)
+            solver = alg(warm_start=False, verbose=verbose, **solver_opts)
             jit_optimize = jax.jit(solver.optimize)
             results = jit_optimize(model)
 
