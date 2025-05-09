@@ -31,7 +31,7 @@ from cvxpy.utilities.citations import CITATION_DICT
 
 
 class COSMO(CLARABEL):
-    """An interface for the Clarabel solver."""
+    """An interface for the COSMO solver."""
 
     STATUS_MAP = {
         "Solved": s.OPTIMAL,
