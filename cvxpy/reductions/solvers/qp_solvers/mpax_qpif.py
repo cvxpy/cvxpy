@@ -89,7 +89,7 @@ class MPAX(QpSolver):
 
         Returns
         -------
-        The result returned by a call to clarabel.solve().
+        The result returned by MPAX.
         """
         import jax
         import mpax

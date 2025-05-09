@@ -498,7 +498,10 @@ Here is the complete list of solver options.
 
     ``'iteration_limit'``
         Maximum number of iterations (default: max_int).
-    
+
+    ``'algorithm'``
+        Algorithm to use. Can be ``'raPDHG'`` or ``'r2HPDHG'`` (default: ``'raPDHG'``).
+
     For others see `MPAX documentation <https://github.com/MIT-Lu-Lab/MPAX>`_.
 
 .. info:: `CVXOPT`_ options
