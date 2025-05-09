@@ -136,6 +136,13 @@ Install with Additional Solver Support
     Simply install MOSEK such that you can ``import mosek`` in Python.
     See the `MOSEK <https://www.mosek.com/>`_ website for installation instructions.
 
+.. info:: MPAX
+    :collapsible:
+
+    CVXPY supports the MPAX solver.
+    Simply install MPAX such that you can ``import mpax`` in Python.
+    See the `MPAX <https://github.com/MIT-Lu-Lab/MPAX>`_ website for installation instructions.
+
 .. info:: XPRESS
     :collapsible:
 
