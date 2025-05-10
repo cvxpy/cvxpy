@@ -31,7 +31,7 @@ class MPAX(QpSolver):
     BOUNDED_VARIABLES = True
 
     STATUS_MAP = {
-                    # 1: UNSPECIFIED
+                    1: s.SOLVER_ERROR, # 1: UNSPECIFIED
                     2: s.OPTIMAL,      # 2: OPTIMAL
                     3: s.INFEASIBLE_OR_UNBOUNDED,   # 3: PRIMAL_INFEASIBLE
                     4: s.INFEASIBLE_OR_UNBOUNDED,    # 4: DUAL_INFEASIBLE
@@ -39,7 +39,7 @@ class MPAX(QpSolver):
                     6: s.USER_LIMIT,   # 6: ITERATION_LIMIT
                     7: s.SOLVER_ERROR, # 7: NUMERICAL_ERROR
                     8: s.SOLVER_ERROR, # 8# INVALID_PROBLEM
-                    # 9# OTHER
+                    9: s.SOLVER_ERROR  # 9: OTHER
                 }
 
     def name(self):
