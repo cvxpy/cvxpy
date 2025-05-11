@@ -14,12 +14,14 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+import unittest
 
 import numpy as np
 import scipy.sparse as sp
 from scipy.linalg import lstsq
 
 import cvxpy as cp
+import cvxpy.tests.solver_test_helpers as sths
 from cvxpy import Maximize, Minimize, Parameter, Problem
 from cvxpy.atoms import (
     QuadForm,
@@ -35,7 +37,7 @@ from cvxpy.atoms import (
 from cvxpy.expressions.variable import Variable
 from cvxpy.reductions.solvers.defines import INSTALLED_SOLVERS, QP_SOLVERS
 from cvxpy.tests.base_test import BaseTest
-from cvxpy.tests.solver_test_helpers import StandardTestLPs
+from cvxpy.tests.solver_test_helpers import StandardTestLPs, StandardTestQPs
 
 
 class TestQp(BaseTest):
@@ -652,3 +654,50 @@ class TestQp(BaseTest):
                 prob = Problem(Minimize(norm(self.x, 1)), [self.x == 0])
                 prob.solve(solver=GUROBI, TimeLimit=0)
             self.assertEqual(str(cm.exception), "The solver %s is not installed." % GUROBI)
+
+
+@unittest.skipUnless('MPAX' in INSTALLED_SOLVERS, 'MPAX is not installed.')
+class TestMPAX(unittest.TestCase):
+
+    def test_mpax_lp_0(self) -> None:
+        StandardTestLPs.test_lp_0(solver='MPAX')
+
+    def test_mpax_lp_1(self) -> None:
+        StandardTestLPs.test_lp_1(solver='MPAX')
+
+    def test_mpax_lp_2(self) -> None:
+        StandardTestLPs.test_lp_2(solver='MPAX')
+
+    def test_mpax_lp_3(self) -> None:
+        sth = sths.lp_3()
+        with self.assertWarns(Warning):
+            sth.prob.solve(solver='MPAX')
+            self.assertEqual(sth.prob.status, cp.settings.INFEASIBLE_OR_UNBOUNDED)
+
+    def test_mpax_lp_4(self) -> None:
+            sth = sths.lp_4()
+            with self.assertWarns(Warning):
+                sth.prob.solve(solver='MPAX')
+                self.assertEqual(sth.prob.status, cp.settings.INFEASIBLE_OR_UNBOUNDED)
+
+    def test_mpax_lp_5(self) -> None:
+        StandardTestLPs.test_lp_5(solver='MPAX')
+
+    def test_mpax_lp_6(self) -> None:
+        StandardTestLPs.test_lp_6(solver='MPAX')
+
+    def test_mpax_warmstart(self) -> None:
+        x = cp.Variable(shape=(2,), name='x')
+        objective = cp.Minimize(-4 * x[0] - 5 * x[1])
+        constraints = [2 * x[0] + x[1] <= 3,
+                    x[0] + 2 * x[1] <= 3,
+                    x[0] >= 0,
+                    x[1] >= 0]
+        prob = cp.Problem(objective, constraints)
+        result1 = prob.solve(solver='MPAX', warm_start=False)
+        self.assertAlmostEqual(result1, -9, places=4)
+        result2 = prob.solve(solver='MPAX', warm_start=True)
+        self.assertAlmostEqual(result2, -9, places=4)
+
+    def test_MPAX_qp_0(self) -> None:
+        StandardTestQPs.test_qp_0(solver='MPAX')

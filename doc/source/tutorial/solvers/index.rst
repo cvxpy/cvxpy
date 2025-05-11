@@ -95,6 +95,8 @@ The table below shows the types of problems the supported solvers can handle.
 +----------------+----+----+------+-----+-----+-----+-----+
 | `MOSEK`_       | X  | X  | X    | X   | X   | X   | X** |
 +----------------+----+----+------+-----+-----+-----+-----+
+| `MPAX`_        | X  | X  |      |     |     |     |     |
++----------------+----+----+------+-----+-----+-----+-----+
 | `CVXOPT`_      | X  | X  | X    | X   |     |     |     |
 +----------------+----+----+------+-----+-----+-----+-----+
 | `SDPA`_ \*\*\* | X  | X  | X    | X   |     |     |     |
@@ -177,7 +179,7 @@ Use the ``installed_solvers`` utility function to get a list of the solvers your
 
 ::
 
-    ['CBC', 'CVXOPT', 'MOSEK', 'GLPK', 'GLPK_MI', 'ECOS', 'SCS', 'SDPA'
+    ['CBC', 'CVXOPT', 'MOSEK', 'MPAX', 'GLPK', 'GLPK_MI', 'ECOS', 'SCS', 'SDPA'
      'SCIPY', 'GUROBI', 'OSQP', 'CPLEX', 'NAG', 'SCIP', 'XPRESS', 'PROXQP']
 
 Viewing solver output
@@ -285,7 +287,7 @@ cached previous solution as described above (rather than from the ``value`` fiel
 Setting solver options
 ----------------------
 
-The `OSQP`_, `ECOS`_, `GLOP`_, `MOSEK`_, `CBC`_, `CVXOPT`_, `NAG`_, `PDLP`_, `QOCO`_, `GUROBI`_, `SCS`_ , `CLARABEL`_, `DAQP`_, `PIQP`_ and `PROXQP`_ Python interfaces allow you to set solver options such as the maximum number of iterations. You can pass these options along through CVXPY as keyword arguments.
+The `OSQP`_, `ECOS`_, `GLOP`_, `MOSEK`_, `MPAX`_, `CBC`_, `CVXOPT`_, `NAG`_, `PDLP`_, `QOCO`_, `GUROBI`_, `SCS`_ , `CLARABEL`_, `DAQP`_, `PIQP`_ and `PROXQP`_ Python interfaces allow you to set solver options such as the maximum number of iterations. You can pass these options along through CVXPY as keyword arguments.
 
 For example, here we tell SCS to use an indirect method for solving linear equations rather than a direct method.
 
@@ -483,6 +485,24 @@ Here is the complete list of solver options.
         to tell MOSEK that it should solve the dual; this can be accomplished by
         adding the ``(key, value)`` pair ``('MSK_IPAR_INTPNT_SOLVE_FORM', 'MSK_SOLVE_DUAL')``
         to the ``mosek_params`` argument.
+
+
+.. info:: `MPAX`_ options
+    :collapsible:
+
+    ``'eps_abs'``
+        Absolute tolerance for convergence (default: 1e-4).
+
+    ``'eps_rel'``
+        Relative tolerance for convergence (default: 1e-4).
+
+    ``'iteration_limit'``
+        Maximum number of iterations (default: max_int).
+
+    ``'algorithm'``
+        Algorithm to use. Can be ``'raPDHG'`` or ``'r2HPDHG'`` (default: ``'raPDHG'``).
+
+    For others see `MPAX documentation <https://github.com/MIT-Lu-Lab/MPAX>`_.
 
 .. info:: `CVXOPT`_ options
     :collapsible:
@@ -842,6 +862,7 @@ will be the same as the class variable ``SUPPORTED_CONSTRAINTS``.
 .. _GLPK_MI: https://www.gnu.org/software/glpk/
 .. _GUROBI: https://www.gurobi.com/
 .. _MOSEK: https://www.mosek.com/
+.. _MPAX: https://github.com/MIT-Lu-Lab/MPAX
 .. _CBC: https://projects.coin-or.org/Cbc
 .. _CGL: https://projects.coin-or.org/Cgl
 .. _CPLEX: https://www.ibm.com/docs/en/icos

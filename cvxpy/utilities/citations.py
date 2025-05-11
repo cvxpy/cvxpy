@@ -507,3 +507,13 @@ CITATION_DICT["HIGHS"] = \
   pages = {119–142}
 }
 """
+
+CITATION_DICT["MPAX"] = \
+"""
+@article{lu2024mpax,
+  title={MPAX: Mathematical Programming in JAX},
+  author={Lu, Haihao and Peng, Zedong and Yang, Jinwen},
+  journal={arXiv preprint arXiv:2412.09734},
+  year={2024}
+}
+"""

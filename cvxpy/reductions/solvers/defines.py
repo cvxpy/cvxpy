@@ -49,6 +49,7 @@ from cvxpy.reductions.solvers.qp_solvers.cplex_qpif import CPLEX as CPLEX_qp
 from cvxpy.reductions.solvers.qp_solvers.daqp_qpif import DAQP as DAQP_qp
 from cvxpy.reductions.solvers.qp_solvers.gurobi_qpif import GUROBI as GUROBI_qp
 from cvxpy.reductions.solvers.qp_solvers.highs_qpif import HIGHS as HIGHS_qp
+from cvxpy.reductions.solvers.qp_solvers.mpax_qpif import MPAX as MPAX_qp
 from cvxpy.reductions.solvers.qp_solvers.osqp_qpif import OSQP as OSQP_qp
 from cvxpy.reductions.solvers.qp_solvers.piqp_qpif import PIQP as PIQP_qp
 from cvxpy.reductions.solvers.qp_solvers.proxqp_qpif import PROXQP as PROXQP_qp
@@ -60,7 +61,7 @@ solver_conic_intf = [DIFFCP_con(), ECOS_con(),
                      GLPK_MI_con(), CBC_con(), CLARABEL_con(), SCS_con(), SDPA_con(),
                      GUROBI_con(), MOSEK_con(), CPLEX_con(), NAG_con(), XPRESS_con(),
                      SCIP_con(), SCIPY_con(), HIGHS_con(), GLOP_con(), PDLP_con(),
-                     QOCO_con(), ECOS_BB_con(),]
+                     QOCO_con(), ECOS_BB_con()]
 solver_qp_intf = [OSQP_qp(),
                   GUROBI_qp(),
                   CPLEX_qp(),
@@ -70,6 +71,7 @@ solver_qp_intf = [OSQP_qp(),
                   PROXQP_qp(),
                   DAQP_qp(),
                   HIGHS_qp(),
+                  MPAX_qp(),
                   ]
 
 SOLVER_MAP_CONIC = {solver.name(): solver for solver in solver_conic_intf}
@@ -91,7 +93,8 @@ QP_SOLVERS = [s.OSQP,
               s.COPT,
               s.PIQP,
               s.PROXQP,
-              s.DAQP]
+              s.DAQP,
+              s.MPAX]
 DISREGARD_CLARABEL_SDP_SUPPORT_FOR_DEFAULT_RESOLUTION = True
 MI_SOLVERS = [s.GLPK_MI, s.MOSEK, s.GUROBI, s.CPLEX,
               s.XPRESS, s.CBC, s.SCIP, s.HIGHS, s.COPT, s.ECOS_BB]
