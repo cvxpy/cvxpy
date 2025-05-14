@@ -612,21 +612,21 @@ class TestProblem(BaseTest):
         combo1 = prob1 + 2 * prob2
         combo1_ref = Problem(cp.Minimize(self.a + 4 * self.b),
                              [self.a >= self.b, self.a >= 1, self.b >= 2])
-        self.assertAlmostEqual(combo1.solve(solver=cp.CLARABEL), 
+        self.assertAlmostEqual(combo1.solve(solver=cp.CLARABEL),
                                combo1_ref.solve(solver=cp.CLARABEL))
 
         # division and subtraction
         combo2 = prob1 - prob3/2
         combo2_ref = Problem(cp.Minimize(self.a + pow(self.b + self.a, 2)/2),
                              [self.b >= 3, self.a >= self.b])
-        self.assertAlmostEqual(combo2.solve(solver=cp.CLARABEL), 
+        self.assertAlmostEqual(combo2.solve(solver=cp.CLARABEL),
                                combo2_ref.solve(solver=cp.CLARABEL))
 
         # multiplication with 0 (prob2's constraints should still hold)
         combo3 = prob1 + 0 * prob2 - 3 * prob3
         combo3_ref = Problem(cp.Minimize(self.a + 3 * pow(self.b + self.a, 2)),
                              [self.a >= self.b, self.a >= 1, self.b >= 3])
-        self.assertAlmostEqual(combo3.solve(solver=cp.CLARABEL), 
+        self.assertAlmostEqual(combo3.solve(solver=cp.CLARABEL),
                                combo3_ref.solve(solver=cp.CLARABEL))
 
     # Test scalar LP problems.
@@ -1122,7 +1122,7 @@ class TestProblem(BaseTest):
             problem.solve(solver=cp.SCS, eps=1e-5)
         self.assertTrue("Problem does not follow DCP rules."
                         in str(cm.exception))
-        
+
         # Test parametrized vstack
         p = Parameter((2, 1), value=np.array([[3], [3]]))
         q = Parameter((2, 1), value=np.array([[-8], [-8]]))
@@ -1437,16 +1437,16 @@ class TestProblem(BaseTest):
     def test_solve_solver_path(self) -> None:
         """
         Tests the solve_solver_path method under various conditions:
-        
+
         1. Verifies that a SolverError is raised when all solvers fail.
         2. Validates that a solution is returned when any of the solvers succeeds.
         3. Ensures that a ValueError is raised when the inner inputs of the solvers are invalid.
-        
+
         """
 
         A = numpy.random.randn(40, 40)
         b = cp.matmul(A, numpy.random.randn(40))
-        
+
         # valid input, return solution
         solvers_with_str=[(s.OSQP, {'max_iter':1}), s.CLARABEL]
         solvers_empty_dict=[(s.OSQP, {'max_iter':1}), (s.CLARABEL, {})]
@@ -1459,12 +1459,12 @@ class TestProblem(BaseTest):
 
         # valid input, raise SolverError
         solvers = [(s.OSQP, {'max_iter':1})]
-        
+
         with self.assertRaises(SolverError):
             Problem(cp.Minimize(
                 cp.sum_squares(cp.matmul(A, cp.Variable(40)) - b))).solve(
                 solver_path=solvers)
-                
+
         # invalid input, raise ValueError
         solvers_invalid_inner_input = [{'str':{}}, 'str', [], [1], [()], [(1)], [(1,{})],
                                         [(s.OSQP,[])], [(s.OSQP,)]]
@@ -2258,7 +2258,7 @@ class TestProblem(BaseTest):
                 prob.solve()
                 assert isinstance(w[0].message, FutureWarning)
                 assert str(w[0].message) == ECOS_DEPRECATION_MSG
-            
+
             # No warning if CLARABEL solver specified.
             with warnings.catch_warnings(record=True) as w:
                 prob.solve(solver=cp.CLARABEL)
