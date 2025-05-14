@@ -213,6 +213,17 @@ class HIGHS(ConicSolver):
         lp.col_lower_ = col_lower
         lp.col_upper_ = col_upper
 
+        # Collect and set variable names
+        # NOTE: Can this be done upstream more systematically to be used in all solvers?
+        var_names = []
+        for variable in data[s.PARAM_PROB].variables:
+            # NOTE: variable.variable_of_provenance() is a bit of a hack so that variables
+            # created by nonneg=True etc. are named correctly.
+            # Is this alright?
+            for var in variable.variable_of_provenance() or variable:
+                var_names.append(var.name())
+        lp.col_names_ = var_names
+
         # setup options
         unpack_highs_options_inplace(solver_opts)
         options = hp.HighsOptions()
@@ -223,6 +234,11 @@ class HIGHS(ConicSolver):
         solver = hp.Highs()
         solver.passOptions(options)
         solver.passModel(model)
+
+        # REMOVE
+        solver.writeModel("highs_model.lp")
+        solver.presolve()
+        solver.writePresolvedModel("highs_presolved_model.lp")
 
         if warm_start and solver_cache is not None and self.name() in solver_cache:
             old_solver, old_data, old_result = solver_cache[self.name()]
