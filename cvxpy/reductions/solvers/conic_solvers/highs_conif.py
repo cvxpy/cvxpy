@@ -247,7 +247,7 @@ class HIGHS(ConicSolver):
             solver_cache[self.name()] = (solver, data, results)
 
         return results
-    
+
     def cite(self, data):
         """Returns bibtex citation for the solver.
 

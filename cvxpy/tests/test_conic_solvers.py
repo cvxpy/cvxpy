@@ -410,7 +410,7 @@ class TestSCS(BaseTest):
 
     def test_scs_sdp_pcp_1(self):
         StandardTestMixedCPs.test_sdp_pcp_1(solver='SCS')
-        
+
     def test_scs_pcp_1(self) -> None:
         StandardTestPCPs.test_pcp_1(solver='SCS')
 
@@ -532,7 +532,7 @@ class TestClarabel(BaseTest):
         StandardTestSDPs.test_sdp_1min(solver='CLARABEL')
 
     def test_clarabel_sdp_2(self) -> None:
-        # produces a different optimizer than 
+        # produces a different optimizer than
         # the one expected by the standard test
         places = 3
         sth = sths.sdp_2()
@@ -721,7 +721,6 @@ class TestMosek(unittest.TestCase):
     def test_mosek_sdp_power(self) -> None:
         """Test the problem in issue #2128"""
         StandardTestMixedCPs.test_sdp_pcp_1(solver='MOSEK')
-        
 
     def test_power_portfolio(self) -> None:
         """Test the portfolio problem in issue #2042"""
@@ -1737,7 +1736,7 @@ class TestGUROBI(BaseTest):
         StandardTestSOCPs.test_socp_3ax0(solver='GUROBI')
         # axis 1
         StandardTestSOCPs.test_socp_3ax1(solver='GUROBI')
-    
+
     def test_gurobi_socp_bound_attr(self) -> None:
         sth = StandardTestSOCPs.test_socp_bounds_attr(solver='GUROBI')
         # check that the bounds do reach the solver and don't just generate constraints
@@ -1987,7 +1986,7 @@ class TestNAG(BaseTest):
 
     def test_nag_quad_obj(self) -> None:
         """Test NAG canonicalization with a quadratic objective.
-        """    
+        """
         x = cp.Variable(2)
         expr = cp.sum_squares(x)
         constr = [x >= 1]
@@ -2206,7 +2205,7 @@ class TestHIGHS:
             "time_limit": 0.123,  # double option
             "random_seed": 1234,  # int option
             # no need to optimize for real
-            "mip_rel_gap": 1.0,  
+            "mip_rel_gap": 1.0,
             "primal_feasibility_tolerance": 1e-3,
             "dual_feasibility_tolerance": 1e-3,
         }

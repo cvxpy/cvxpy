@@ -155,10 +155,10 @@ class Leaf(expression.Expression):
                 "A CVXPY Variable cannot have more than one of the following attributes: "
                 f"{dim_reducing_attr}"
             )
-        if value is not None:
-            self.value = value
         self.args = []
         self.bounds = self._ensure_valid_bounds(bounds)
+        if value is not None:
+            self.value = value
 
     def _validate_indices(self, indices: list[tuple[int]] | tuple[np.ndarray]) -> tuple[np.ndarray]:
         """
