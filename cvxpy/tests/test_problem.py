@@ -93,6 +93,13 @@ class TestProblem(BaseTest):
         ref = [self.a, self.x, self.b, self.A]
         self.assertCountEqual(vars_, ref)
 
+
+    def test_variables_with_value(self):
+        Variable(name="without_bounds", value=0.0)
+        Variable(name="with_none_bounds", value=0.0, bounds=None)
+        Variable(name="with_none_none_bounds", value=0.0, bounds=[None, None])
+
+
     def test_var_dict(self) -> None:
         p = Problem(cp.Minimize(self.a), [self.a <= self.x, self.b <= self.A + 2])
         assert p.var_dict == {"a": self.a, "x": self.x, "b": self.b, "A": self.A}
