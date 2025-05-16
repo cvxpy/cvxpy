@@ -59,10 +59,10 @@ or a conda environment.
 
         CVXPY has the following dependencies:
 
-        * Python >= 3.9
+        * Python >= 3.10
         * `OSQP`_ >= 0.6.2
         * `CLARABEL`_ >= 0.6.0
-        * `SCS`_ >= 3.0
+        * `SCS`_ >= 3.2.4.post1
         * `NumPy`_ >= 1.21.6
         * `SciPy`_ >= 1.11.0
 
