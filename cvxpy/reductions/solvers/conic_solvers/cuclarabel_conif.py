@@ -27,32 +27,30 @@ from cvxpy.reductions.solvers.conic_solvers.conic_solver import ConicSolver
 from cvxpy.utilities.citations import CITATION_DICT
 
 
-def dims_to_solver_cones(cone_dims):
+def dims_to_solver_cones(jl, cone_dims):
 
-    import clarabel
-    cones = []
+    jl.seval("""cones = Clarabel.SupportedCone[]""")
 
     # assume that constraints are presented
     # in the preferred ordering of SCS.
 
     if cone_dims.zero > 0:
-        cones.append(clarabel.ZeroConeT(cone_dims.zero))
+        jl.push_b(jl.cones, jl.Clarabel.ZeroConeT(cone_dims.zero))
 
     if cone_dims.nonneg > 0:
-        cones.append(clarabel.NonnegativeConeT(cone_dims.nonneg))
+        jl.push_b(jl.cones, jl.Clarabel.NonnegativeConeT(cone_dims.nonneg))
 
     for dim in cone_dims.soc:
-        cones.append(clarabel.SecondOrderConeT(dim))
+        jl.push_b(jl.cones, jl.Clarabel.SecondOrderConeT(dim))
 
     for dim in cone_dims.psd:
-        cones.append(clarabel.PSDTriangleConeT(dim))
+        jl.push_b(jl.cones, jl.Clarabel.PSDTriangleConeT(dim))
 
     for _ in range(cone_dims.exp):
-        cones.append(clarabel.ExponentialConeT())
+        jl.push_b(jl.cones, jl.Clarabel.ExponentialConeT())
 
     for pow in cone_dims.p3d:
-        cones.append(clarabel.PowerConeT(pow))
-    return cones
+        jl.push_b(jl.cones, jl.Clarabel.PowerConeT(pow))
 
 
 def triu_to_full(upper_tri, n):
@@ -136,16 +134,16 @@ class CUCLARABEL(ConicSolver):
         + [SOC, ExpCone, PowCone3D]
 
     STATUS_MAP = {
-                    "Solved": s.OPTIMAL,
-                    "PrimalInfeasible": s.INFEASIBLE,
-                    "DualInfeasible": s.UNBOUNDED,
-                    "AlmostSolved": s.OPTIMAL_INACCURATE,
-                    "AlmostPrimalInfeasible": s.INFEASIBLE_INACCURATE,
-                    "AlmostDualInfeasible": s.UNBOUNDED_INACCURATE,
-                    "MaxIterations": s.USER_LIMIT,
-                    "MaxTime": s.USER_LIMIT,
-                    "NumericalError": s.SOLVER_ERROR,
-                    "InsufficientProgress": s.SOLVER_ERROR
+                    "SOLVED": s.OPTIMAL,
+                    "PRIMAL_INFEASIBLE": s.INFEASIBLE,
+                    "DUAL_INFEASIBLE": s.UNBOUNDED,
+                    "ALMOST_SOLVED": s.OPTIMAL_INACCURATE,
+                    "ALMOST_PRIMAL_INFEASIBLE": s.INFEASIBLE_INACCURATE,
+                    "Almost_DUAL_INFEASIBLE": s.UNBOUNDED_INACCURATE,
+                    "MAX_ITERATIONS": s.USER_LIMIT,
+                    "MAX_TIME": s.USER_LIMIT,
+                    "NUMERICAL_ERROR": s.SOLVER_ERROR,
+                    "INSUFFICIENT_PROGRESS": s.SOLVER_ERROR
                 }
 
     # Order of exponential cone arguments for solver.
@@ -237,15 +235,15 @@ class CUCLARABEL(ConicSolver):
             primal_val = solution.obj_val
             opt_val = primal_val + inverse_data[s.OFFSET]
             primal_vars = {
-                inverse_data[CUCLARABEL.VAR_ID]: solution.x
+                inverse_data[CUCLARABEL.VAR_ID]: np.array(solution.x)
             }
             eq_dual_vars = utilities.get_dual_values(
-                solution.z[:inverse_data[ConicSolver.DIMS].zero],
+                np.array(solution.z[:inverse_data[ConicSolver.DIMS].zero]),
                 self.extract_dual_value,
                 inverse_data[CUCLARABEL.EQ_CONSTR]
             )
             ineq_dual_vars = utilities.get_dual_values(
-                solution.z[inverse_data[ConicSolver.DIMS].zero:],
+                np.array(solution.z[inverse_data[ConicSolver.DIMS].zero:]),
                 self.extract_dual_value,
                 inverse_data[CUCLARABEL.NEQ_CONSTR]
             )
@@ -334,8 +332,7 @@ class CUCLARABEL(ConicSolver):
         jl.b = jl.Clarabel.cupy_to_cuvector(jl.Float64, int(bgpu.data.ptr), bgpu.size)
 
 
-        jlstore = jl.seval("(k, v) -> (@eval $(Symbol(k)) = $v; return)")
-        jlstore("cones", cones)
+        dims_to_solver_cones(jl, cones)
 
         results = jl.seval("""
         settings = Clarabel.Settings(direct_solve_method = :cudss)
