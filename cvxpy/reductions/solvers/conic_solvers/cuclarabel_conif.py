@@ -85,7 +85,7 @@ class CUCLARABEL(ConicSolver):
     def import_solver(self) -> None:
         """Imports the solver.
         """
-        #import cupy  # noqa F401
+        import cupy  # noqa F401
 
     def supports_quad_obj(self) -> bool:
         """Clarabel supports quadratic objective with any combination
