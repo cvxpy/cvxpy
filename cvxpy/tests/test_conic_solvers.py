@@ -2151,6 +2151,7 @@ class TestHIGHS:
             StandardTestLPs.test_mi_lp_3,
             StandardTestLPs.test_mi_lp_4,
             StandardTestLPs.test_mi_lp_5,
+            StandardTestLPs.test_mi_lp_6,
         ],
     )
     def test_highs_solving(self, problem) -> None:
