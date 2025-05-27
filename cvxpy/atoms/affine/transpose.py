@@ -16,6 +16,7 @@ limitations under the License.
 from typing import List, Tuple
 
 import numpy as np
+from numpy.lib.array_utils import normalize_axis_tuple
 
 import cvxpy.lin_ops.lin_op as lo
 import cvxpy.lin_ops.lin_utils as lu
@@ -117,6 +118,57 @@ def permute_dims(expr, axes: List[int]):
     Returns
     -------
     AffAtom
-        A new transpose atom with the specified axes.
+        A transpose atom with the specified axes.
     """
     return transpose(expr, axes=axes)
+
+def swapaxes(expr, axis1: int, axis2: int):
+    """Swap two axes of the expression.
+
+    Parameters
+    ----------
+    expr : AffAtom
+        The expression to swap axes of.
+    axis1 : int
+        The first axis to swap.
+    axis2 : int
+        The second axis to swap.
+
+    Returns
+    -------
+    AffAtom
+        A transpose atom with the axes swapped.
+    """
+    axes = list(range(len(expr.shape)))
+    axes[axis1], axes[axis2] = axes[axis2], axes[axis1]
+    return transpose(expr, axes=axes)
+
+def moveaxis(expr, source: List[int], destination: List[int]):
+    """Move axes of the expression to new positions.
+
+    Parameters
+    ----------
+    expr : AffAtom
+        The expression to move axes of.
+    source : list of int
+        The original positions of the axes to move.
+    destination : list of int
+        The new positions for the moved axes.
+
+    Returns
+    -------
+    AffAtom
+        A new transpose atom with the axes moved.
+    """
+    source = normalize_axis_tuple(source, expr.ndim, 'source')
+    destination = normalize_axis_tuple(destination, expr.ndim, 'destination')
+
+    if len(source) != len(destination):
+        raise ValueError("Source and destination must have the same length.")
+
+    order = [n for n in range(expr.ndim) if n not in source]
+
+    for dest, src in sorted(zip(destination, source)):
+        order.insert(dest, src)
+
+    return transpose(expr, axes=order)
