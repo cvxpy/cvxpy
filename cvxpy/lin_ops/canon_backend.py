@@ -549,13 +549,10 @@ class PythonCanonBackend(CanonBackend):
         expression with arbitrary axis permutation.
         """
         axes = lin.data[0]
-        if axes is None:
-            rows = np.arange(np.prod(lin.shape)).reshape(lin.shape).flatten(order="F")
-        else:
-            original_shape = lin.args[0].shape
-            indices = np.arange(np.prod(original_shape)).reshape(original_shape, order='F')
-            transposed_indices = np.transpose(indices, axes)
-            rows = transposed_indices.flatten(order='F')
+        original_shape = lin.args[0].shape
+        indices = np.arange(np.prod(original_shape)).reshape(original_shape, order='F')
+        transposed_indices = np.transpose(indices, axes)
+        rows = transposed_indices.flatten(order='F')
         view.select_rows(rows)
         return view
 

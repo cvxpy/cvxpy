@@ -171,7 +171,7 @@ class TestBackends:
         view_A = sp.coo_matrix((view_A.data, (view_A.row, view_A.col)), shape=(4, 4)).toarray()
         assert np.all(view_A == np.eye(4))
 
-        transpose_lin_op = linOpHelper((2, 2), data=[None])
+        transpose_lin_op = linOpHelper((2, 2), data=[None], args=[variable_lin_op])
         out_view = backend.transpose(transpose_lin_op, view)
         A = out_view.get_tensor_representation(0, 4)
 
