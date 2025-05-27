@@ -16,7 +16,6 @@ limitations under the License.
 from typing import List, Tuple
 
 import numpy as np
-from numpy.lib.array_utils import normalize_axis_tuple
 
 import cvxpy.lin_ops.lin_op as lo
 import cvxpy.lin_ops.lin_utils as lu
@@ -160,9 +159,9 @@ def moveaxis(expr, source: List[int], destination: List[int]):
     AffAtom
         A new transpose atom with the axes moved.
     """
-    source = normalize_axis_tuple(source, expr.ndim, 'source')
-    destination = normalize_axis_tuple(destination, expr.ndim, 'destination')
-
+    if not isinstance(source, list) or not isinstance(destination, list):
+        raise TypeError("Source and destination must be lists of integers.")
+    
     if len(source) != len(destination):
         raise ValueError("Source and destination must have the same length.")
 
