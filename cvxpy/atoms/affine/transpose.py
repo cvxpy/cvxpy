@@ -101,3 +101,22 @@ class transpose(AffAtom):
             (LinOp for objective, list of constraints)
         """
         return (lu.transpose(arg_objs[0], self.axes), [])
+
+def permute_dims(expr, axes: List[int]):
+    """Permute the dimensions of the expression.
+
+    Alias for transpose with specified axes.
+
+    Parameters
+    ----------
+    expr : AffAtom
+        The expression to permute dimensions of.
+    axes : list or tuple of int
+        The new order of the axes.
+
+    Returns
+    -------
+    AffAtom
+        A new transpose atom with the specified axes.
+    """
+    return transpose(expr, axes=axes)

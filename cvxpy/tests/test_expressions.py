@@ -1694,12 +1694,30 @@ class TestND_Expressions():
         prob.solve(canon_backend=cp.SCIPY_CANON_BACKEND)
         assert np.allclose(expr.value, y)
 
-    @pytest.mark.parametrize("axes", [(0, 2, 1), (2, 0, 1), (1, 2, 0), (1, 0, 2)])
+    @pytest.mark.parametrize("axes", [(0, 2, 1), (2, 0, 1), (1, 2, 0), (1, 0, 2), (-1, 0, 1)])
     def test_nd_transpose_axes(self, axes) -> None:
         var = cp.Variable((5, 24, 10))
         target = np.arange(1200).reshape((5, 24, 10))
         expr = cp.transpose(var, axes=axes)
         y = target.transpose(axes)
+        prob = cp.Problem(self.obj, [expr == y])
+        prob.solve(canon_backend=cp.SCIPY_CANON_BACKEND)
+        assert np.allclose(expr.value, y)
+
+    def test_swapaxes(self) -> None:
+        var = cp.Variable((5, 24, 10))
+        target = np.arange(1200).reshape((5, 24, 10))
+        expr = cp.swapaxes(var, axis1=0, axis2=2)
+        y = target.swapaxes(0, 2)
+        prob = cp.Problem(self.obj, [expr == y])
+        prob.solve(canon_backend=cp.SCIPY_CANON_BACKEND)
+        assert np.allclose(expr.value, y)
+
+    def test_moveaxis(self) -> None:
+        var = cp.Variable((5, 24, 10))
+        target = np.arange(1200).reshape((5, 24, 10))
+        expr = cp.moveaxis(var, source=0, destination=2)
+        y = np.moveaxis(target, source=0, destination=2)
         prob = cp.Problem(self.obj, [expr == y])
         prob.solve(canon_backend=cp.SCIPY_CANON_BACKEND)
         assert np.allclose(expr.value, y)
