@@ -25,6 +25,8 @@ from cvxpy.constraints.constraint import Constraint
 
 class transpose(AffAtom):
     """Transpose an expression.
+    
+    For an n-D expression, if axes are given, the order indicates the permutation of axes.
     """
 
     def __init__(self, expr, axes=None) -> None:
@@ -33,7 +35,10 @@ class transpose(AffAtom):
 
     # The string representation of the atom.
     def name(self) -> str:
-        return "%s.T" % self.args[0]
+        if self.axes is None:
+            return "%s.T" % self.args[0]
+        else:
+            return f"{self.args[0]}.T({self.axes})"
 
     # Returns the transpose of the given value.
     @AffAtom.numpy_numeric
@@ -68,10 +73,11 @@ class transpose(AffAtom):
     def shape_from_args(self) -> Tuple[int, ...]:
         """Returns the shape of the transpose expression.
         """
-        return self.args[0].shape[::-1]
+        arr = np.empty(self.args[0].shape, dtype=np.dtype([]))
+        return np.transpose(arr, axes=self.axes).shape
 
     def get_data(self):
-        """ Returns the axes for transposition.
+        """Returns the axes for transposition.
         """
         return [self.axes]
 
@@ -94,4 +100,4 @@ class transpose(AffAtom):
         tuple
             (LinOp for objective, list of constraints)
         """
-        return (lu.transpose(arg_objs[0]), [])
+        return (lu.transpose(arg_objs[0], self.axes), [])
