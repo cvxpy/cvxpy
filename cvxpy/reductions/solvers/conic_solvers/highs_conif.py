@@ -14,6 +14,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+from re import compile
+
 import numpy as np
 
 import cvxpy.interface as intf
@@ -25,6 +27,48 @@ from cvxpy.reductions.solvers.conic_solvers.conic_solver import (
     dims_to_solver_dict,
 )
 from cvxpy.utilities.citations import CITATION_DICT
+
+PYTHON_LIST_SLICE_PATTERN = compile(r", \d+:\d+")
+VALID_COLUMN_NAME_PATTERN = compile(
+    r"^(?!st$|bounds$|min$|max$|bin$|binary$|gen$|semi$|end$)[a-df-zA-DF-Z\"!#$%&/}{,;?@_‘’'`|~]{1}[a-zA-Z0-9\"!#$%&/}{,;?@_‘’'`|~.=()<>[\]]{,254}$"
+)
+INVALID_COLUMN_NAME_MESSAGE_TEMPLATE = (
+    "Invalid column name: {name}"
+    "\nA column name:"
+    "\n- must not be equal to one of the keywords: st, bounds, min, max, bin, binary, gen, semi or end"
+    "\n- must not begin with a number, the letter e or E or any of the following characters: .=()<>[]"
+    "\n- must be alphanumeric (a-z, A-Z, 0-9) or one of these symbols: \"!#$%&/}}{{,;?@_‘’'`|~.=()<>[]"
+    "\n- must be no longer than 255 characters."
+)
+
+
+def validate_column_name(name: str) -> bool:
+    """Check if the name is a valid column name."""
+    if not VALID_COLUMN_NAME_PATTERN.match(name):
+        raise ValueError(INVALID_COLUMN_NAME_MESSAGE_TEMPLATE.format(name=name))
+
+
+def strip_column_name_of_python_list_slice_notation(name: str) -> str:
+    """Strip python list slice notation -- i.e., the part after the comma in [0, 0:#]
+    - space and colon characters are not allowed in column names and
+    - 0:# part is not needed in X[0, 0:#] because we label X[0][0] ... X[0][#] individually
+    """
+    return PYTHON_LIST_SLICE_PATTERN.sub("", name)
+
+
+def collect_column_names(variable, column_names):
+    """Recursively collect variable names."""
+    if variable.ndim == 0:  # scalar
+        column_names.append(variable.name())
+    elif variable.ndim == 1:  # simple array
+        var_name_prefix = strip_column_name_of_python_list_slice_notation(variable.name())
+        column_names.extend([f"{var_name_prefix}[{v}]" for v in range(variable.size)])
+    else:  # multi-dimensional array
+        for var in variable:
+            collect_column_names(var, column_names)  # recursive call
+    # Checking the validity of only the last inserted name is sufficient because all var
+    # names are derived from the same var name prefix and the last one is the longest
+    validate_column_name(column_names[-1])
 
 
 def unpack_highs_options_inplace(solver_opts) -> None:
@@ -213,17 +257,6 @@ class HIGHS(ConicSolver):
         lp.col_lower_ = col_lower
         lp.col_upper_ = col_upper
 
-        # Collect and set variable names
-        # NOTE: Can this be done upstream more systematically to be used in all solvers?
-        var_names = []
-        for variable in data[s.PARAM_PROB].variables:
-            # NOTE: variable.variable_of_provenance() is a bit of a hack so that variables
-            # created by nonneg=True etc. are named correctly.
-            # Is this alright?
-            for var in variable.variable_of_provenance() or variable:
-                var_names.append(var.name())
-        lp.col_names_ = var_names
-
         # setup options
         unpack_highs_options_inplace(solver_opts)
         options = hp.HighsOptions()
@@ -231,14 +264,25 @@ class HIGHS(ConicSolver):
         for key, value in solver_opts.items():
             setattr(options, key, value)
 
+        if options.write_model_file:
+            # TODO: Names can be collected upstream more systematically
+            # (or in the parent class) to be used by all solvers.
+            column_names = []
+            for variable in data[s.PARAM_PROB].variables:
+                # NOTE: variable.variable_of_provenance() is a bit of a hack
+                # to make sure that auto generated vars are named correctly -- nonneg=True etc.
+                variable = variable.variable_of_provenance() or variable
+                collect_column_names(variable, column_names)
+            lp.col_names_ = column_names
+
         solver = hp.Highs()
         solver.passOptions(options)
         solver.passModel(model)
 
-        # REMOVE
-        solver.writeModel("highs_model.lp")
-        solver.presolve()
-        solver.writePresolvedModel("highs_presolved_model.lp")
+        if options.write_model_file:
+            # TODO: This part can be removed once the following HiGS PR is released:
+            # https://github.com/ERGO-Code/HiGHS/pull/2274
+            solver.writeModel(options.write_model_file)
 
         if warm_start and solver_cache is not None and self.name() in solver_cache:
             old_solver, old_data, old_result = solver_cache[self.name()]
