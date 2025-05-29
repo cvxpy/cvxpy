@@ -1694,6 +1694,47 @@ class TestND_Expressions():
         prob.solve(canon_backend=cp.SCIPY_CANON_BACKEND)
         assert np.allclose(expr.value, y)
 
+    @pytest.mark.parametrize("axes", [(0, 2, 1), (2, 0, 1), (1, 2, 0), (1, 0, 2), (-1, 0, 1)])
+    def test_nd_transpose_axes(self, axes) -> None:
+        var = cp.Variable((5, 24, 10))
+        target = np.arange(1200).reshape((5, 24, 10))
+        expr = cp.transpose(var, axes=axes)
+        y = target.transpose(axes)
+        prob = cp.Problem(self.obj, [expr == y])
+        prob.solve(canon_backend=cp.SCIPY_CANON_BACKEND)
+        assert np.allclose(expr.value, y)
+
+    @pytest.mark.parametrize("axes", [(0, 2, 1, 3), (2, 3, 0, 1), (3, 1, 2, 0)])
+    def test_permute_dims(self, axes) -> None:
+        var = cp.Variable((5, 6, 5, 6))
+        target = np.arange(900).reshape((5, 6, 5, 6))
+        expr = cp.permute_dims(var, axes=axes)
+        y = target.transpose(axes)
+        prob = cp.Problem(self.obj, [expr == y])
+        prob.solve(canon_backend=cp.SCIPY_CANON_BACKEND)
+        assert np.allclose(expr.value, y)
+
+    @pytest.mark.parametrize("axis1, axis2", [(0, 1), (1, 3), (3, 2), (0, 3), (1, 2)])
+    def test_swapaxes(self, axis1, axis2) -> None:
+        var = cp.Variable((5, 12, 6, 2))
+        target = np.arange(720).reshape((5, 12, 6, 2))
+        expr = cp.swapaxes(var, axis1=axis1, axis2=axis2)
+        y = target.swapaxes(axis1, axis2)
+        prob = cp.Problem(self.obj, [expr == y])
+        prob.solve(canon_backend=cp.SCIPY_CANON_BACKEND)
+        assert np.allclose(expr.value, y)
+
+    @pytest.mark.parametrize("source, destination", [([0], [2]), ([0, 1], [3, 2]), 
+                                                     ([0, 1, 2], [3, 2, 1])])
+    def test_moveaxis(self, source, destination) -> None:
+        var = cp.Variable((5, 2, 6, 12))
+        target = np.arange(720).reshape((5, 2, 6, 12))
+        expr = cp.moveaxis(var, source=source, destination=destination)
+        y = np.moveaxis(target, source, destination)
+        prob = cp.Problem(self.obj, [expr == y])
+        prob.solve(canon_backend=cp.SCIPY_CANON_BACKEND)
+        assert np.allclose(expr.value, y)
+
     @pytest.mark.parametrize("shapes", [((3),(253, 253, 3)),
                                         ((7, 1, 5),(8, 7, 6, 5)),
                                         ((1),(5, 4)),

@@ -25,6 +25,8 @@ from cvxpy.constraints.constraint import Constraint
 
 class transpose(AffAtom):
     """Transpose an expression.
+    
+    For an n-D expression, if axes are given, the order indicates the permutation of axes.
     """
 
     def __init__(self, expr, axes=None) -> None:
@@ -33,7 +35,10 @@ class transpose(AffAtom):
 
     # The string representation of the atom.
     def name(self) -> str:
-        return "%s.T" % self.args[0]
+        if self.axes is None:
+            return f"{self.args[0]}.T"
+        else:
+            return f"transpose({self.args[0]}, axes={self.axes})"
 
     # Returns the transpose of the given value.
     @AffAtom.numpy_numeric
@@ -68,10 +73,11 @@ class transpose(AffAtom):
     def shape_from_args(self) -> Tuple[int, ...]:
         """Returns the shape of the transpose expression.
         """
-        return self.args[0].shape[::-1]
+        arr = np.empty(self.args[0].shape, dtype=np.dtype([]))
+        return np.transpose(arr, axes=self.axes).shape
 
     def get_data(self):
-        """ Returns the axes for transposition.
+        """Returns the axes for transposition.
         """
         return [self.axes]
 
@@ -94,4 +100,74 @@ class transpose(AffAtom):
         tuple
             (LinOp for objective, list of constraints)
         """
-        return (lu.transpose(arg_objs[0]), [])
+        return (lu.transpose(arg_objs[0], self.axes), [])
+
+def permute_dims(expr, axes: List[int]):
+    """Permute the dimensions of the expression.
+
+    Alias for transpose with specified axes.
+
+    Parameters
+    ----------
+    expr : AffAtom
+        The expression to permute dimensions of.
+    axes : list or tuple of int
+        The new order of the axes.
+
+    Returns
+    -------
+    AffAtom
+        A transpose atom with the specified axes.
+    """
+    return transpose(expr, axes=axes)
+
+def swapaxes(expr, axis1: int, axis2: int):
+    """Swap two axes of the expression.
+
+    Parameters
+    ----------
+    expr : AffAtom
+        The expression to swap axes of.
+    axis1 : int
+        The first axis to swap.
+    axis2 : int
+        The second axis to swap.
+
+    Returns
+    -------
+    AffAtom
+        A transpose atom with the axes swapped.
+    """
+    axes = list(range(len(expr.shape)))
+    axes[axis1], axes[axis2] = axes[axis2], axes[axis1]
+    return transpose(expr, axes=axes)
+
+def moveaxis(expr, source: List[int], destination: List[int]):
+    """Move axes of the expression to new positions.
+
+    Parameters
+    ----------
+    expr : AffAtom
+        The expression to move axes of.
+    source : list of int
+        The original positions of the axes to move.
+    destination : list of int
+        The new positions for the moved axes.
+
+    Returns
+    -------
+    AffAtom
+        A new transpose atom with the axes moved.
+    """
+    if not isinstance(source, list) or not isinstance(destination, list):
+        raise TypeError("Source and destination must be lists of integers.")
+    
+    if len(source) != len(destination):
+        raise ValueError("Source and destination must have the same length.")
+
+    order = [n for n in range(expr.ndim) if n not in source]
+
+    for dest, src in sorted(zip(destination, source)):
+        order.insert(dest, src)
+
+    return transpose(expr, axes=order)
