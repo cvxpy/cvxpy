@@ -36,9 +36,9 @@ class transpose(AffAtom):
     # The string representation of the atom.
     def name(self) -> str:
         if self.axes is None:
-            return "%s.T" % self.args[0]
+            return f"{self.args[0]}.T"
         else:
-            return f"{self.args[0]}.T({self.axes})"
+            return f"transpose({self.args[0]}, axes={self.axes})"
 
     # Returns the transpose of the given value.
     @AffAtom.numpy_numeric
