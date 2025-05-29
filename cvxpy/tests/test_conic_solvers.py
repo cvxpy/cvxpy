@@ -2187,11 +2187,15 @@ class TestHIGHS:
         """
         from cvxpy.reductions.solvers.conic_solvers.highs_conif import validate_column_name
 
-        must_not_be_a_keyword = set(["st", "bounds", "min", "max", "bin", "binary", "gen", "semi", "end"])
+        must_not_be_a_keyword = set(
+            ["st", "bounds", "min", "max", "bin", "binary", "gen", "semi", "end"]
+        )
         must_not_begin_with = set(string.digits + "eE.=()<>[]")
         may_contain = set(string.ascii_letters + string.digits + "\"!#$%&/}{,;?@_‘’'`|~.=()<>[]")
         must_not_contain = set(string.printable) - set(may_contain)
-        may_begin_with = (set(may_contain) - set(must_not_begin_with)).union(set(must_not_be_a_keyword) - set(["end"]))
+        may_begin_with = (set(may_contain) - set(must_not_begin_with)).union(
+            set(must_not_be_a_keyword) - set(["end"])
+        )
 
         # Happy path: valid names
         valid_names = (
@@ -2256,12 +2260,19 @@ class TestHIGHS:
 
             # Check that the model contains the variable names as expected.
             model = model_file.read()
-            found_variables = re.sub(" <= 1| free| ", "", re.search(r"\nbounds\n([\w\W]*?)\n(bin|end)\n", model)[1]).split("\n")
+            found_variables = re.sub(
+                " <= 1| free| ", "", re.search(r"\nbounds\n([\w\W]*?)\n(bin|end)\n", model)[1]
+            ).split("\n")
 
             for expected_var in variables:
-                actual_var_count = sum([1 for actual_var in found_variables if actual_var.startswith(expected_var.name())])
-                assert expected_var.size == actual_var_count, (
-                    f"Expected variable {expected_var.name()} to appear {expected_var.size} times in the model bounds section."
+                actual_var_count = 0
+                for actual_var in found_variables:
+                    if actual_var.startswith(expected_var.name()):
+                        actual_var_count += 1
+                expected_var_count = expected_var.size
+                assert expected_var_count == actual_var_count, (
+                    f"Expected variable {expected_var.name()} to appear "
+                    f"{expected_var.size} times in the model bounds section."
                 )
 
     def test_highs_nonstandard_name(self) -> None:

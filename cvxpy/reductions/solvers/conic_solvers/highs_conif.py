@@ -34,11 +34,11 @@ VALID_COLUMN_NAME_PATTERN = compile(
 )
 INVALID_COLUMN_NAME_MESSAGE_TEMPLATE = (
     "Invalid column name: {name}"
-    "\nA column name:"
-    "\n- must not be equal to one of the keywords: st, bounds, min, max, bin, binary, gen, semi or end"
-    "\n- must not begin with a number, the letter e or E or any of the following characters: .=()<>[]"
-    "\n- must be alphanumeric (a-z, A-Z, 0-9) or one of these symbols: \"!#$%&/}}{{,;?@_‘’'`|~.=()<>[]"
-    "\n- must be no longer than 255 characters."
+    "\nA column name must:"
+    "\n- not be equal to one of the keywords: st, bounds, min, max, bin, binary, gen, semi or end"
+    "\n- not begin with a number, the letter e or E or any of the following characters: .=()<>[]"
+    "\n- be alphanumeric (a-z, A-Z, 0-9) or one of these symbols: \"!#$%&/}}{{,;?@_‘’'`|~.=()<>[]"
+    "\n- be no longer than 255 characters."
 )
 
 
