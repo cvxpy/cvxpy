@@ -21,16 +21,12 @@ import cvxpy.interface as intf
 import cvxpy.settings as s
 from cvxpy.error import SolverError
 from cvxpy.reductions.solution import Solution, failure_solution
+from cvxpy.reductions.solvers.conic_solvers.highs_conif import (  # importing to avoid duplication
+    collect_column_names,
+    unpack_highs_options_inplace,
+)
 from cvxpy.reductions.solvers.qp_solvers.qp_solver import QpSolver
 from cvxpy.utilities.citations import CITATION_DICT
-
-
-def unpack_highs_options_inplace(solver_opts) -> None:
-    # Users can pass options inside a nested dict -- e.g. to circumvent a name clash
-    highs_options = solver_opts.pop("highs_options", dict())
-
-    # merge via update(dict(...)) is needed to avoid silently over-writing options
-    solver_opts.update(dict(**solver_opts, **highs_options))
 
 
 class HIGHS(QpSolver):
@@ -193,9 +189,25 @@ class HIGHS(QpSolver):
         for key, value in solver_opts.items():
             setattr(options, key, value)
 
+        if options.write_model_file:
+            # TODO: Names can be collected upstream more systematically
+            # (or in the parent class) to be used by all solvers.
+            column_names = []
+            for variable in data[s.PARAM_PROB].variables:
+                # NOTE: variable.variable_of_provenance() is a bit of a hack
+                # to make sure that auto generated vars are named correctly -- nonneg=True etc.
+                variable = variable.variable_of_provenance() or variable
+                collect_column_names(variable, column_names)
+            lp.col_names_ = column_names
+
         solver = hp.Highs()
         solver.passOptions(options)
         solver.passModel(model)
+
+        if options.write_model_file:
+            # TODO: This part can be removed once the following HiGS PR is released:
+            # https://github.com/ERGO-Code/HiGHS/pull/2274
+            solver.writeModel(options.write_model_file)
 
         if warm_start and solver_cache is not None and self.name() in solver_cache:
             old_solver, old_data, old_result = solver_cache[self.name()]
