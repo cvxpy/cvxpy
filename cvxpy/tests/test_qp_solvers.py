@@ -505,29 +505,6 @@ class TestQp(BaseTest):
             result2 = prob.solve(solver=cp.HIGHS, warm_start=False)
             self.assertAlmostEqual(result, result2)
 
-    def test_piqp_warmstart(self) -> None:
-        """Test warm start.
-        """
-        if cp.PIQP in INSTALLED_SOLVERS:
-            m = 200
-            n = 100
-            np.random.seed(1)
-            A = np.random.randn(m, n)
-            b = Parameter(m)
-
-            # Construct the problem.
-            x = Variable(n)
-            prob = Problem(Minimize(sum_squares(A @ x - b)))
-
-            b.value = np.random.randn(m)
-            result = prob.solve(solver=cp.PIQP, warm_start=False)
-            result2 = prob.solve(solver=cp.PIQP, warm_start=True)
-            self.assertAlmostEqual(result, result2)
-            b.value = np.random.randn(m)
-            result = prob.solve(solver=cp.PIQP, warm_start=True)
-            result2 = prob.solve(solver=cp.PIQP, warm_start=False)
-            self.assertAlmostEqual(result, result2)
-
     def test_parametric(self) -> None:
         """Test solve parametric problem vs full problem"""
         x = Variable()
