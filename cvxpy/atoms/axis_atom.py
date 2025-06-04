@@ -35,21 +35,32 @@ class AxisAtom(Atom):
     def shape_from_args(self) -> Tuple[int, ...]:
         """
         Returns the shape of the atom after applying a function along an axis.
+        Handles negative axis inputs by normalizing them to positive indices.
         """
         shape = list(self.args[0].shape)
+        ndim = len(shape)
         if self.axis is None:
             return (1,) * len(shape) if self.keepdims else ()
         elif isinstance(self.axis, int):
+            # Normalize negative axis
+            axis = self.axis if self.axis >= 0 else self.axis + ndim
+            if axis < 0:
+                ValueError(f"axis {self.axis} is out of bounds for array of dimension {ndim}")
             if self.keepdims:
-                shape[self.axis] = 1
+                shape[axis] = 1
             else:
-                shape = shape[:self.axis] + shape[self.axis+1:]
+                shape = shape[:axis] + shape[axis+1:]
         else:
+            # Normalize each axis in the list
+            axes = [axis if axis >= 0 else axis + ndim for axis in self.axis]
+            if any(axis < 0 for axis in axes):
+                ValueError(f"axis {[axis for axis in self.axis if axis < -ndim][0]}"
+                           f" is out of bounds for array of dimension {ndim}")
             if self.keepdims:
-                for axis in self.axis:
+                for axis in axes:
                     shape[axis] = 1
             else:
-                shape[:] = [shape[i] for i in range(len(shape)) if i not in self.axis]
+                shape[:] = [shape[i] for i in range(len(shape)) if i not in axes]
         return tuple(shape)
 
     def get_data(self):
