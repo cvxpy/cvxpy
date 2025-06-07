@@ -348,7 +348,7 @@ the gradient is therefore just 2. So, as expected, the above code prints
 Next, we use the ``derivative`` method to see how a small change in ``p``
 would affect the solution ``x``. We will perturb ``p`` by ``1e-5``, by
 setting ``p.delta = 1e-5``, and calling the ``derivative`` method will populate
-the ``delta`` attribute of ``x`` with the the change in ``x`` predicted by
+the ``delta`` attribute of ``x`` with the change in ``x`` predicted by
 a first-order approximation (which is ``dx/dp * p.delta``).
 
 .. code:: python3

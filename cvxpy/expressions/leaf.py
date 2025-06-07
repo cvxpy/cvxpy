@@ -547,7 +547,7 @@ class Leaf(expression.Expression):
             # ^ might be a numpy array, scipy matrix, or sparse scipy matrix.
             if intf.is_sparse(delta):
                 # ^ based on current implementation of project(...),
-                #   is is not possible for this Leaf to be PSD/NSD *and*
+                #   it is not possible for this Leaf to be PSD/NSD *and*
                 #   a sparse matrix.
                 close_enough = np.allclose(delta.data, 0,
                                            atol=SPARSE_PROJECTION_TOL)
