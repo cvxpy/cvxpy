@@ -188,9 +188,9 @@ class CUCLARABEL(ConicSolver):
             P = data[s.P]
         else:
             nvars = q.size
-            P = sp.csc_array((nvars, nvars))
+            P = sp.csr_array((nvars, nvars))
 
-        P = sp.triu(P).tocsc()
+        P = sp.triu(P).tocsr()
 
         cones = data[ConicSolver.DIMS]
 
@@ -200,9 +200,14 @@ class CUCLARABEL(ConicSolver):
         Agpu = cucsr_matrix(A)
         bgpu = cupy.array(b)
 
-        jl.P = jl.Clarabel.cupy_to_cucsrmat(
+        if Pgpu.nnz != 0:
+            jl.P = jl.Clarabel.cupy_to_cucsrmat(
                 jl.Float64, int(Pgpu.data.data.ptr), int(Pgpu.indices.data.ptr),
                 int(Pgpu.indptr.data.ptr), *Pgpu.shape, Pgpu.nnz)
+        else:
+            jl.seval(f"""
+            P = CuSparseMatrixCSR(sparse(Float64[], Float64[], Float64[], {nvars}, {nvars}))
+            """)
         jl.q = jl.Clarabel.cupy_to_cuvector(jl.Float64, int(qgpu.data.ptr), qgpu.size)
 
         jl.A = jl.Clarabel.cupy_to_cucsrmat(
