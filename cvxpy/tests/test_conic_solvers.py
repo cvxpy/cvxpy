@@ -722,6 +722,7 @@ class TestMosek(unittest.TestCase):
         """Test the problem in issue #2128"""
         StandardTestMixedCPs.test_sdp_pcp_1(solver='MOSEK')
 
+
     def test_power_portfolio(self) -> None:
         """Test the portfolio problem in issue #2042"""
         T, N = 200, 10
@@ -2212,6 +2213,7 @@ class TestHIGHS:
         problem(solver=cp.HIGHS, highs_options=highs_options)
 
 
+
 class TestAllSolvers(BaseTest):
 
     def setUp(self) -> None:
@@ -2506,3 +2508,77 @@ class TestCOPT(unittest.TestCase):
 
         # Valid arg.
         problem.solve(solver=cp.COPT, feastol=1e-9)
+
+@unittest.skipUnless("CUOPT" in INSTALLED_SOLVERS, "CUOPT is not installed.")
+class TestCUOPT(unittest.TestCase):
+
+    import os
+    kwargs={"use_service": os.environ.get("CUOPT_USE_SERVICE", False),
+            "service_host":  os.environ.get("CUOPT_SERVICE_HOST", "localhost"),
+            "service_port": os.environ.get("CUOPT_SERVICE_PORT", 5000),
+            "pdlp_solver_mode": os.environ.get("CUOPT_PDLP_SOLVER_MODE", "Stable2"),
+            "solver_method": os.environ.get("CUOPT_SOLVER_METHOD", 0)
+            }
+
+    def test_cuopt_lp_0(self) -> None:
+        StandardTestLPs.test_lp_0(solver="CUOPT", duals=True, places=4, **TestCUOPT.kwargs)
+
+    def test_cuopt_lp_1(self) -> None:
+        StandardTestLPs.test_lp_1(solver="CUOPT", duals=True, places=4, **TestCUOPT.kwargs)
+
+    def test_cuopt_lp_2(self) -> None:
+        StandardTestLPs.test_lp_2(solver="CUOPT", duals=True, places=4, **TestCUOPT.kwargs)
+
+    def test_cuopt_lp_3(self) -> None:
+        StandardTestLPs.test_lp_3(solver="CUOPT", duals=True, places=4, **TestCUOPT.kwargs)
+
+    def test_cuopt_lp_4(self) -> None:
+        # In this case cuopt throws an exception because there are crossing
+        # variable bounds x <= 0 and x >= 1
+        try:
+            StandardTestLPs.test_lp_4(solver="CUOPT", duals=True, places=4, **TestCUOPT.kwargs)
+        except Exception as e:
+            assert "crossing bounds" in str(e)
+
+    def test_cuopt_lp_5(self) -> None:
+        StandardTestLPs.test_lp_5(solver='CUOPT', duals=True, places=4, **TestCUOPT.kwargs)
+
+    def test_cuopt_lp_6(self) -> None:
+        StandardTestLPs.test_lp_5(solver='CUOPT', duals=True, places=4, **TestCUOPT.kwargs)
+
+    def test_cuopt_lp_7(self) -> None:
+        StandardTestLPs.test_lp_5(solver='CUOPT', duals=True, places=4, **TestCUOPT.kwargs)
+
+    def test_cuopt_mi_lp_0(self) -> None:
+        StandardTestLPs.test_mi_lp_0(solver='CUOPT', **TestCUOPT.kwargs)
+
+    def test_cuopt_mi_lp_1(self) -> None:
+        StandardTestLPs.test_mi_lp_1(solver='CUOPT', **TestCUOPT.kwargs)
+
+    def test_cuopt_mi_lp_2(self) -> None:
+        StandardTestLPs.test_mi_lp_2(solver='CUOPT', **TestCUOPT.kwargs)
+
+    def test_cuopt_mi_lp_3(self) -> None:
+        TestCUOPT.kwargs["time_limit"] = 5
+        StandardTestLPs.test_mi_lp_3(solver='CUOPT', **TestCUOPT.kwargs)
+        del TestCUOPT.kwargs["time_limit"]
+
+    # This is an unconstrained problem, which cuopt doesn't handle.
+    # An empty constraint matrix is not allowed.
+    def test_cuopt_mi_lp_4(self) -> None:
+        try:
+            StandardTestLPs.test_mi_lp_4(solver='CUOPT', **TestCUOPT.kwargs)
+        except Exception as e:
+            if TestCUOPT.kwargs["use_service"] in [True, "true", "True"]:
+                assert "zero-size array" in str(e)
+            else:
+                assert "A_offsets must be set" in str(e)
+
+    def test_cuopt_mi_lp_5(self) -> None:
+        TestCUOPT.kwargs["time_limit"] = 5
+        StandardTestLPs.test_mi_lp_5(solver='CUOPT', **TestCUOPT.kwargs)
+        del TestCUOPT.kwargs["time_limit"]
+
+    def test_cuopt_mi_lp_7(self) -> None:
+        StandardTestLPs.test_mi_lp_5(solver='CUOPT', **TestCUOPT.kwargs, time_limit=5)
+

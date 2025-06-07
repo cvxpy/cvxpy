@@ -66,6 +66,7 @@ from cvxpy.settings import (
     COPT as COPT,
     CPLEX as CPLEX,
     CPP_CANON_BACKEND as CPP_CANON_BACKEND,
+    CUOPT as CUOPT,
     CVXOPT as CVXOPT,
     DIFFCP as DIFFCP,
     ECOS as ECOS,
