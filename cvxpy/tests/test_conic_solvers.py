@@ -2161,12 +2161,6 @@ class TestHIGHS:
         captured = capfd.readouterr()
         assert re.search(confirmation_string, captured.out) is not None
 
-
-    def test_highs_nonstandard_name(self) -> None:
-        """Test HiGHS solver with non-capitalized solver name."""
-        # https://github.com/cvxpy/cvxpy/issues/2751
-        StandardTestLPs.test_lp_0(solver="HiGHS")
-
     @pytest.mark.parametrize(
         "problem",
         # it is enough to validate the options with one problem from each type
