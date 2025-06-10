@@ -33,8 +33,8 @@ import subprocess
 
 MAJOR = 1
 MINOR = 6
-MICRO = 7
-IS_RELEASED = False
+MICRO = 6
+IS_RELEASED = True
 IS_RELEASE_BRANCH = True
 VERSION = '%d.%d.%d' % (MAJOR, MINOR, MICRO)
 
