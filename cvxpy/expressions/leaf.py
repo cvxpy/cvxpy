@@ -401,13 +401,17 @@ class Leaf(expression.Expression):
         elif self.attributes['complex']:
             return val.astype(complex)
         elif self.attributes['boolean']:
-            # TODO(akshayka): respect the boolean indices.
-            return np.round(np.clip(val, 0., 1.))
+            if hasattr(self, "boolean_idx"):
+                val[self.boolean_idx] = np.round(np.clip(val[self.boolean_idx], 0., 1.))
+                return val
+            else:
+                return np.round(np.clip(val, 0., 1.))
         elif self.attributes['integer']:
-            # TODO(akshayka): respect the integer indices.
-            # also, a variable may be integer in some indices and
-            # boolean in others.
-            return np.round(val)
+            if hasattr(self, "integer_idx"):
+                val[self.integer_idx] = np.round(val[self.integer_idx])
+                return val
+            else:
+                return np.round(val)
         elif self.attributes['diag']:
             if intf.is_sparse(val):
                 val = val.diagonal()
