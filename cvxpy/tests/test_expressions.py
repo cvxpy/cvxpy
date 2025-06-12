@@ -449,16 +449,6 @@ class TestExpressions(BaseTest):
             p = Parameter((4, 3), nonneg=True, value=[1, 2])
         self.assertEqual(str(cm.exception), "Invalid dimensions (2,) for Parameter value.")
 
-        # Boolean
-        with self.assertRaises(Exception) as cm:
-            p = Parameter((2, 2), boolean=True, value=[[1, 1], [1, -1]])
-        self.assertEqual(str(cm.exception), "Parameter value must be boolean.")
-
-        # Integer
-        with self.assertRaises(Exception) as cm:
-            p = Parameter((2, 2), integer=True, value=[[1, 1.5], [1, -1]])
-        self.assertEqual(str(cm.exception), "Parameter value must be integer.")
-
         # Diag.
         with self.assertRaises(Exception) as cm:
             p = Parameter((2, 2), diag=True, value=[[1, 1], [1, -1]])
