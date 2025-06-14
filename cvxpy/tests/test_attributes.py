@@ -430,7 +430,19 @@ class TestMultipleAttributes:
         # # Invalid: Not nonneg
         # with pytest.raises(ValueError, match="Parameter value must be nonnegative."):
         #     p.value = np.array([[-1, 0], [0, 1]])
-            
+
+    def test_bool_int_variable(self):
+        """Test boolean and integer attributes on a variable."""
+        # Create a variable with both boolean and integer attributes
+        x = cp.Variable(shape=(2, 2), boolean=[(0, 0), (0, 1)], integer=[(1, 1), (0, 1)])
+        
+        # Set up a simple problem
+        prob = cp.Problem(cp.Minimize(cp.sum(x)), [x >= np.array([[0.5, -0.5], [2.3, 3.2]])])
+        prob.solve()
+        
+        # Check that the solution is feasible
+        assert (x.value == np.array([[1, 0], [3, 4]])).all()
+
     def test_variable_repr(self):
         # test boolean attributes
         x = cp.Variable((10, 10), name="x", nonneg=True)
