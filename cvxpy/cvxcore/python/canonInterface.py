@@ -157,13 +157,15 @@ def nonzero_csc_array(A):
     # A.nonzero() returns (rows, cols) sorted in C-style order,
     # but (when A is a csc matrix) A.data is stored in Fortran-order, hence
     # the sorting below
-    A_rows, A_cols = A.nonzero()
-    ind = np.argsort(A_cols, kind='mergesort')
-    A_rows = A_rows[ind]
-    A_cols = A_cols[ind]
+
+    A.sort_indices()  # Ensure indices are sorted within each column
+
+    rows = A.indices.copy()
+    counts = A.indptr[1:] - A.indptr[:-1]
+    cols = np.repeat(np.arange(A.shape[1]), counts)
 
     A.data[zero_indices] = 0
-    return A_rows, A_cols
+    return rows, cols
 
 
 def A_mapping_nonzero_rows(problem_data_tensor, var_length):
