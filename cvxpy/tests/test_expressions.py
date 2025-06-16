@@ -459,6 +459,16 @@ class TestExpressions(BaseTest):
             p = Parameter((2, 2), integer=True, value=[[1, 1.5], [1, -1]])
         self.assertEqual(str(cm.exception), "Parameter value must be integer.")
 
+         # Boolean indices
+        with self.assertRaises(Exception) as cm:
+             p = Parameter((2, 2), boolean=[(0, 0), (0, 1)], value=[[0, 2], [1, 0]])
+        self.assertEqual(str(cm.exception), "Parameter value must be boolean.")
+ 
+        # Integer indices
+        with self.assertRaises(Exception) as cm:
+             p = Parameter((2, 2), integer=[(0, 0), (0, 1)], value=[[1, 1.5], [1.4, 2.8]])
+        self.assertEqual(str(cm.exception), "Parameter value must be integer.")
+        
         # Diag.
         with self.assertRaises(Exception) as cm:
             p = Parameter((2, 2), diag=True, value=[[1, 1], [1, -1]])
@@ -595,7 +605,22 @@ class TestExpressions(BaseTest):
         self.assertEqual(A.is_psd(), True)
         self.assertEqual(A.is_nsd(), True)
 
-    # Test the AddExpresion class.
+    def test_project_boolean_indices(self) -> None:
+        idx = (np.array([0, 2]),)
+        leaf = cp.Variable((3,), boolean=idx)
+        val = np.array([-0.2, 0.5, 1.7])
+        projected = leaf.project(val)
+        # Only indices 0 and 2 are projected to boolean, index 1 is unchanged
+        assert (projected == np.array([0, 0.5, 1])).all()
+
+    def test_project_integer_indices(self) -> None:
+        idx = (np.array([1]),)
+        leaf = cp.Variable((3,), integer=idx)
+        val = np.array([1.2, 2.7, -0.8])
+        projected = leaf.project(val)
+        # Only index 1 is projected to integer, others unchanged
+        assert (projected == np.array([1.2, 3, -0.8])).all()
+
     def test_add_expression(self) -> None:
         # Vectors
         c = Constant([2, 2])
