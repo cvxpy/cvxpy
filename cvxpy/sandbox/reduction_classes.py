@@ -1,4 +1,3 @@
-import cyipopt
 import numpy as np
 import torch
 
@@ -102,47 +101,40 @@ class HS071():
         print("jacobian")
         print(jacobian_matrix.detach().numpy())
         return jacobian_matrix.detach().numpy()
-
-# Example usage for HS071 problem setup
-def create_hs071_problem():
-    """Creates the classic HS071 optimization problem."""
-    # Variables
-    x = cp.Variable(4)
     
-    # Objective: minimize x[0]*x[3]*(x[0] + x[1] + x[2]) + x[2]
-    objective = cp.Minimize(x[0]*x[3]*(x[0] + x[1] + x[2]) + x[2])
+
+class Bounds_Getter():
+    def __init__(self, problem: cp.Problem):
+        self.problem = problem
+        # Assuming the problem has one main variable - adjust if needed
+        self.main_var = problem.variables()[0]
+        self.get_constraint_bounds()
+        self.get_variable_bounds()
+
+    def get_constraint_bounds(self):
+        "also normalizes the constraints"
+        lower = []
+        upper = []
+        for constraint in self.problem.constraints:
+            if isinstance(constraint, Equality):
+                lower.append(0)
+                upper.append(0)
+            elif isinstance(constraint, Inequality):
+                lower.append(0)
+                upper.append(np.inf)
+            elif isinstance(constraint, NonPos):
+                lower.append(0)
+                upper.append(np.inf)
+        self.cl = lower
+        self.cu = upper
+
+    def get_variable_bounds(self):
+        var_shape = self.main_var.size
+        self.lb = np.ones(var_shape) * -np.inf
+        self.ub = np.ones(var_shape) * np.inf
     
-    # Constraints
-    constraints = [
-        x[0]*x[1]*x[2]*x[3] >= 25,  # Product constraint
-        cp.sum_squares(x) == 40,    # Sum of squares constraint
-    ]
-    
-    # Create problem
-    problem = cp.Problem(objective, constraints)
-    
-    return problem
+    def get_num_vars(self):
+        return self.problem.variables()[0].shape()
 
-lb = [1.0, 1.0, 1.0, 1.0]
-ub = [5.0, 5.0, 5.0, 5.0]
-
-cl = [0, 0]
-cu = [np.inf, 0]
-
-x0 = [1.0, 5.0, 5.0, 1.0]
-
-nlp = cyipopt.Problem(
-   n=len(x0),
-   m=len(cl),
-   problem_obj=HS071(create_hs071_problem()),
-   lb=lb,
-   ub=ub,
-   cl=cl,
-   cu=cu,
-)
-
-nlp.add_option('mu_strategy', 'adaptive')
-nlp.add_option('tol', 1e-7)
-nlp.add_option('hessian_approximation', "limited-memory")
-
-x, info = nlp.solve(x0)
+    def get_num_constraints(self):
+        return len(self.problem.constraints)
