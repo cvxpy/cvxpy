@@ -3,6 +3,16 @@ import numpy as np
 import torch
 
 import cvxpy as cp
+from cvxpy.constraints import (
+    Equality,
+    Inequality,
+    NonPos,
+)
+from cvxpy.reductions.utilities import (
+    lower_equality,
+    lower_ineq_to_nonneg,
+    nonpos2nonneg,
+)
 from cvxtorch import TorchExpression
 
 
@@ -47,10 +57,14 @@ class HS071():
         # Evaluate all constraints
         constraint_values = []
         for constraint in self.problem.constraints:
-            if isinstance(constraint, cp.constraints.Inequality):
-                constraint_values.append(constraint.args[1].value)
-            elif isinstance(constraint, cp.constraints.Equality):
-                constraint_values.append(constraint.args[0].value)
+            if isinstance(constraint, Equality):
+                constraint = lower_equality(constraint)
+            elif isinstance(constraint, Inequality):
+                constraint = lower_ineq_to_nonneg(constraint)
+            elif isinstance(constraint, NonPos):
+                constraint = nonpos2nonneg(constraint)
+
+            constraint_values.append(constraint.args[0].value)
         
         print("constraints:")
         print(np.array(constraint_values))
@@ -65,6 +79,12 @@ class HS071():
         def constraint_function(x_torch):
             constraint_values = []
             for constraint in self.problem.constraints:
+                if isinstance(constraint, Equality):
+                    constraint = lower_equality(constraint)
+                elif isinstance(constraint, Inequality):
+                    constraint = lower_ineq_to_nonneg(constraint)
+                elif isinstance(constraint, NonPos):
+                    constraint = nonpos2nonneg(constraint)
                 # Convert constraint expression to torch
                 torch_expr = TorchExpression(constraint.expr).torch_expression(x_torch)
 
@@ -78,9 +98,10 @@ class HS071():
         # Compute Jacobian using torch.autograd.functional.jacobian
         if len(self.problem.constraints) > 0:
             jacobian_matrix = torch.autograd.functional.jacobian(constraint_function, torch_x)
+
         print("jacobian")
         print(jacobian_matrix.detach().numpy())
-        return np.abs(jacobian_matrix.detach().numpy())
+        return jacobian_matrix.detach().numpy()
 
 # Example usage for HS071 problem setup
 def create_hs071_problem():
@@ -105,8 +126,8 @@ def create_hs071_problem():
 lb = [1.0, 1.0, 1.0, 1.0]
 ub = [5.0, 5.0, 5.0, 5.0]
 
-cl = [25.0, 40.0]
-cu = [2.0e19, 40.0]
+cl = [0, 0]
+cu = [np.inf, 0]
 
 x0 = [1.0, 5.0, 5.0, 1.0]
 
