@@ -22,7 +22,7 @@ from cvxpy.tests.base_test import BaseTest
 from cvxpy.utilities import linalg as lau
 
 try:
-    import lau.sparse_cholesky
+    import cvxpy.utilities.cpp.sparsecholesky # noqa: F401
     missing_extension = False
 except ModuleNotFoundError:
     missing_extension = True
