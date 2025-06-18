@@ -19,37 +19,62 @@ class HS071():
     def __init__(self, problem: cp.Problem):
         self.problem = problem
         # Assuming the problem has one main variable - adjust if needed
-        self.main_var = problem.variables()[0]
+        self.main_var = []
+        for var in self.problem.variables():
+            self.main_var.append(var)
     
     def objective(self, x):
         """Returns the scalar value of the objective given x."""
         # Set the variable value
-        self.main_var.value = x
+        offset = 0
+        for var in self.main_var:
+            size = var.size
+            var.value = x[offset:offset+size]
+            offset += size
         # Evaluate the objective
         obj_value = self.problem.objective.args[0].value
-        print("objective:")
-        print(obj_value)
         return obj_value
     
     def gradient(self, x):
         """Returns the gradient of the objective with respect to x."""
         # Convert to torch tensor with gradient tracking
-        torch_x = torch.from_numpy(x.astype(np.float64)).requires_grad_(True)
+        offset = 0
+        torch_exprs = []
+        for var in self.main_var:
+            size = var.size
+            slice = x[offset:offset+size]
+            torch_exprs.append(torch.from_numpy(slice.astype(np.float64)).requires_grad_(True))
+            offset += size
         
         # Create torch expression from CVXPY objective
         # Note: You'll need to implement TorchExpression.torch_expression properly
         # or use an alternative approach
-        torch_obj = TorchExpression(self.problem.objective.args[0]).torch_expression(torch_x)
+        torch_obj = TorchExpression(self.problem.objective.args[0]).torch_expression(*torch_exprs)
         
         # Compute gradient
         torch_obj.backward()
-        gradient = torch_x.grad.detach().numpy()
+        # Collect gradients properly
+        gradients = []
+        for tensor in torch_exprs:
+            if tensor.grad is not None:
+                gradients.append(tensor.grad.detach().numpy().flatten())
+            else:
+                # Handle case where gradient is None (shouldn't happen if requires_grad=True)
+                gradients.append(np.zeros(tensor.numel()))
+        
+        # Concatenate all gradients
+        gradient = np.concatenate(gradients)
+        
         return gradient
     
     def constraints(self, x):
         """Returns the constraint values."""
         # Set the variable value
-        self.main_var.value = x
+        offset = 0
+        for var in self.main_var:
+            size = var.size
+            var.value = x[offset:offset+size]
+            offset += size
         
         # Evaluate all constraints
         constraint_values = []

@@ -6,8 +6,8 @@ import cvxpy as cp
 
 def example_rosenbrock():
     # Define variables
-    x = cp.Variable()
-    y = cp.Variable()
+    x = cp.Variable(1)
+    y = cp.Variable(1)
     
     # Define objective: minimize (1 - x)^2 + 100 * (y - x^2)^2
     objective = cp.Minimize((1 - x)**2 + 100 * (y - x**2)**2)
@@ -62,8 +62,8 @@ nlp = cyipopt.Problem(
    n=len(x0),
    m=len(bounds.cl),
    problem_obj=HS071(bounds.problem),
-   lb=bounds.lb,
-   ub=bounds.ub,
+   lb=None,
+   ub=None,
    cl=bounds.cl,
    cu=bounds.cu,
 )
