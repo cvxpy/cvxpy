@@ -44,8 +44,6 @@ class HS071():
         # Compute gradient
         torch_obj.backward()
         gradient = torch_x.grad.detach().numpy()
-        print("gradient:")
-        print(gradient)
         return gradient
     
     def constraints(self, x):
@@ -62,11 +60,7 @@ class HS071():
                 constraint = lower_ineq_to_nonneg(constraint)
             elif isinstance(constraint, NonPos):
                 constraint = nonpos2nonneg(constraint)
-
             constraint_values.append(constraint.args[0].value)
-        
-        print("constraints:")
-        print(np.array(constraint_values))
         return np.array(constraint_values)
     
     def jacobian(self, x):
@@ -86,7 +80,6 @@ class HS071():
                     constraint = nonpos2nonneg(constraint)
                 # Convert constraint expression to torch
                 torch_expr = TorchExpression(constraint.expr).torch_expression(x_torch)
-
                 constraint_values.append(torch_expr)
             
             if constraint_values:
@@ -98,8 +91,6 @@ class HS071():
         if len(self.problem.constraints) > 0:
             jacobian_matrix = torch.autograd.functional.jacobian(constraint_function, torch_x)
 
-        print("jacobian")
-        print(jacobian_matrix.detach().numpy())
         return jacobian_matrix.detach().numpy()
     
 
@@ -132,9 +123,3 @@ class Bounds_Getter():
         var_shape = self.main_var.size
         self.lb = np.ones(var_shape) * -np.inf
         self.ub = np.ones(var_shape) * np.inf
-    
-    def get_num_vars(self):
-        return self.problem.variables()[0].shape()
-
-    def get_num_constraints(self):
-        return len(self.problem.constraints)
