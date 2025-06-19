@@ -79,12 +79,6 @@ class HS071():
         # Evaluate all constraints
         constraint_values = []
         for constraint in self.problem.constraints:
-            if isinstance(constraint, Equality):
-                constraint = lower_equality(constraint)
-            elif isinstance(constraint, Inequality):
-                constraint = lower_ineq_to_nonneg(constraint)
-            elif isinstance(constraint, NonPos):
-                constraint = nonpos2nonneg(constraint)
             constraint_values.append(constraint.args[0].value)
         return np.array(constraint_values)
     
@@ -112,18 +106,9 @@ class HS071():
             
             constraint_values = []
             for constraint in self.problem.constraints:
-                # Get the normalized constraint
-                if isinstance(constraint, Equality):
-                    normalized_constraint = lower_equality(constraint)
-                elif isinstance(constraint, Inequality):
-                    normalized_constraint = lower_ineq_to_nonneg(constraint)
-                elif isinstance(constraint, NonPos):
-                    normalized_constraint = nonpos2nonneg(constraint)
-                else:
-                    normalized_constraint = constraint
-                
+
                 # Access the expression from the normalized constraint
-                constraint_expr = normalized_constraint.args[0]
+                constraint_expr = constraint.args[0]
                 
                 # Get the variables that appear in this constraint expression
                 constraint_vars = constraint_expr.variables()
@@ -177,16 +162,23 @@ class Bounds_Getter():
         "also normalizes the constraints"
         lower = []
         upper = []
+        new_constr = []
         for constraint in self.problem.constraints:
             if isinstance(constraint, Equality):
-                lower.append(0.0)
-                upper.append(0.0)
+                lower.append(np.zeros(constraint.size))
+                upper.append(np.zeros(constraint.size))
+                new_constr.append(lower_equality(constraint))
             elif isinstance(constraint, Inequality):
-                lower.append(0.0)
-                upper.append(np.inf)
+                lower.append(np.zeros(constraint.size))
+                upper.append(np.inf * np.ones(constraint.size))
+                new_constr.append(lower_ineq_to_nonneg(constraint))
             elif isinstance(constraint, NonPos):
-                lower.append(0.0)
-                upper.append(np.inf)
+                lower.append(np.zeros(constraint.size))
+                upper.append(np.inf * np.ones(constraint.size))
+                new_constr.append(nonpos2nonneg(constraint))
+        
+        lowered_con_problem = self.problem.copy([self.problem.objective, new_constr])
+        self.new_problem = lowered_con_problem
         self.cl = lower
         self.cu = upper
 
