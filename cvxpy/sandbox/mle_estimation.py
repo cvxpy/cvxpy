@@ -53,5 +53,3 @@ nlp.add_option('hessian_approximation', "limited-memory")
 
 x, info = nlp.solve(x0)
 print(x)
-print(x[0]**2)
-print(info)

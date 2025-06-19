@@ -18,7 +18,6 @@ from cvxtorch import TorchExpression
 class HS071():
     def __init__(self, problem: cp.Problem):
         self.problem = problem
-        # Assuming the problem has one main variable - adjust if needed
         self.main_var = []
         for var in self.problem.variables():
             self.main_var.append(var)
@@ -46,9 +45,6 @@ class HS071():
             torch_exprs.append(torch.from_numpy(slice.astype(np.float64)).requires_grad_(True))
             offset += size
         
-        # Create torch expression from CVXPY objective
-        # Note: You'll need to implement TorchExpression.torch_expression properly
-        # or use an alternative approach
         torch_obj = TorchExpression(self.problem.objective.args[0]).torch_expression(*torch_exprs)
         
         # Compute gradient
@@ -106,11 +102,7 @@ class HS071():
             
             constraint_values = []
             for constraint in self.problem.constraints:
-
-                # Access the expression from the normalized constraint
                 constraint_expr = constraint.args[0]
-                
-                # Get the variables that appear in this constraint expression
                 constraint_vars = constraint_expr.variables()
                 
                 # Create ordered list of torch tensors for this specific constraint
@@ -122,20 +114,14 @@ class HS071():
                     else:
                         raise ValueError(f"Variable {var} not found in torch mapping")
                 
-                # Convert constraint expression to torch
                 torch_expr = TorchExpression(constraint_expr).torch_expression(*constr_torch_args)
                 constraint_values.append(torch_expr)
-            
-            if constraint_values:
-                return torch.cat([torch.atleast_1d(cv) for cv in constraint_values])
-            else:
-                return torch.tensor([])
-        
+            return torch.cat([torch.atleast_1d(cv) for cv in constraint_values])
+
         # Compute Jacobian using torch.autograd.functional.jacobian
         if len(self.problem.constraints) > 0:
             jacobian_tuple = torch.autograd.functional.jacobian(constraint_function, 
                                                                 tuple(torch_exprs))
-            
             # Handle the case where jacobian_tuple is a tuple (multiple variables)
             if isinstance(jacobian_tuple, tuple):
                 # Concatenate along the last dimension (variable dimension)
@@ -143,23 +129,19 @@ class HS071():
             else:
                 # Single variable case
                 jacobian_matrix = jacobian_tuple
-            
             return jacobian_matrix.detach().numpy()
-        else:
-            # No constraints case
-            total_size = sum(var.size for var in self.main_var)
-            return np.array([]).reshape(0, total_size)
 
 class Bounds_Getter():
     def __init__(self, problem: cp.Problem):
         self.problem = problem
         # Assuming the problem has one main variable - adjust if needed
-        self.main_var = problem.variables()[0]
+        self.main_var = problem.variables()
         self.get_constraint_bounds()
         self.get_variable_bounds()
 
     def get_constraint_bounds(self):
-        "also normalizes the constraints"
+        "also normalizes the constraints and creates"
+        "a new problem"
         lower = []
         upper = []
         new_constr = []
@@ -183,6 +165,19 @@ class Bounds_Getter():
         self.cu = upper
 
     def get_variable_bounds(self):
-        var_shape = self.main_var.size
-        self.lb = np.ones(var_shape) * -np.inf
-        self.ub = np.ones(var_shape) * np.inf
+        var_lower = []
+        var_upper = []
+        for var in self.main_var:
+            size = var.size
+            if var.bounds:
+                # Extend arrays with bounds repeated for each element of this variable
+                var_lower.extend([var.bounds[0]] * size)
+                var_upper.extend([var.bounds[1]] * size)
+            else:
+                # No bounds specified, use infinite bounds
+                var_lower.extend([-np.inf] * size)
+                var_upper.extend([np.inf] * size)
+
+        # Convert to numpy arrays
+        self.lb = np.array(var_lower)
+        self.ub = np.array(var_upper)
