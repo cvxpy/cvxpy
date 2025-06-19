@@ -92,25 +92,53 @@ class HS071():
         """Returns the Jacobian of the constraints with respect to x."""
         # Convert to torch tensor with gradient tracking
         offset = 0
+        torch_vars_dict = {}
         torch_exprs = []
+        
         for var in self.main_var:
             size = var.size
             slice = x[offset:offset+size]
-            torch_exprs.append(torch.from_numpy(slice.astype(np.float64)).requires_grad_(True))
+            torch_tensor = torch.from_numpy(slice.astype(np.float64)).requires_grad_(True)
+            torch_vars_dict[var.id] = torch_tensor  # Map CVXPY variable ID to torch tensor
+            torch_exprs.append(torch_tensor)
             offset += size
         
         # Define a function that computes all constraint values
         def constraint_function(*args):
+            # Create mapping from torch tensors back to CVXPY variables
+            torch_to_var = {}
+            for i, var in enumerate(self.main_var):
+                torch_to_var[var.id] = args[i]
+            
             constraint_values = []
             for constraint in self.problem.constraints:
+                # Get the normalized constraint
                 if isinstance(constraint, Equality):
-                    constraint = lower_equality(constraint)
+                    normalized_constraint = lower_equality(constraint)
                 elif isinstance(constraint, Inequality):
-                    constraint = lower_ineq_to_nonneg(constraint)
+                    normalized_constraint = lower_ineq_to_nonneg(constraint)
                 elif isinstance(constraint, NonPos):
-                    constraint = nonpos2nonneg(constraint)
+                    normalized_constraint = nonpos2nonneg(constraint)
+                else:
+                    normalized_constraint = constraint
+                
+                # Access the expression from the normalized constraint
+                constraint_expr = normalized_constraint.args[0]
+                
+                # Get the variables that appear in this constraint expression
+                constraint_vars = constraint_expr.variables()
+                
+                # Create ordered list of torch tensors for this specific constraint
+                # in the order that the constraint expression expects them
+                constr_torch_args = []
+                for var in constraint_vars:
+                    if var.id in torch_to_var:
+                        constr_torch_args.append(torch_to_var[var.id])
+                    else:
+                        raise ValueError(f"Variable {var} not found in torch mapping")
+                
                 # Convert constraint expression to torch
-                torch_expr = TorchExpression(constraint.expr).torch_expression(args[1], args[0])
+                torch_expr = TorchExpression(constraint_expr).torch_expression(*constr_torch_args)
                 constraint_values.append(torch_expr)
             
             if constraint_values:
