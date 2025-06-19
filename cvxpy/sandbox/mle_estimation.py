@@ -16,8 +16,7 @@ def example_mle():
     mu = cp.Variable(1, name="mu")  # mean parameter
     sigma = cp.Variable(1, name="sigma")  # standard deviation, σ >= 0
     
-    # Add a small lower bound to prevent sigma from going to exactly 0
-    constraints = []
+    constraints = [mu == sigma**2]
     
     # Calculate the objective exactly as in Julia
     # n / 2 * log(1 / (2 * π * σ^2)) - sum((data[i] - μ)^2 for i in 1:n) / (2 * σ^2)
@@ -42,7 +41,7 @@ nlp = cyipopt.Problem(
    n=len(x0),
    m=len(bounds.cl),
    problem_obj=HS071(bounds.problem),
-   lb=[1e-6, 1e-6],
+   lb=[1e-6, None],
    ub=None,
    cl=bounds.cl,
    cu=bounds.cu,

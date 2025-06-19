@@ -91,10 +91,16 @@ class HS071():
     def jacobian(self, x):
         """Returns the Jacobian of the constraints with respect to x."""
         # Convert to torch tensor with gradient tracking
-        torch_x = torch.from_numpy(x.astype(np.float64)).requires_grad_(True)
+        offset = 0
+        torch_exprs = []
+        for var in self.main_var:
+            size = var.size
+            slice = x[offset:offset+size]
+            torch_exprs.append(torch.from_numpy(slice.astype(np.float64)).requires_grad_(True))
+            offset += size
         
         # Define a function that computes all constraint values
-        def constraint_function(x_torch):
+        def constraint_function(*args):
             constraint_values = []
             for constraint in self.problem.constraints:
                 if isinstance(constraint, Equality):
@@ -104,7 +110,7 @@ class HS071():
                 elif isinstance(constraint, NonPos):
                     constraint = nonpos2nonneg(constraint)
                 # Convert constraint expression to torch
-                torch_expr = TorchExpression(constraint.expr).torch_expression(x_torch)
+                torch_expr = TorchExpression(constraint.expr).torch_expression(args[1], args[0])
                 constraint_values.append(torch_expr)
             
             if constraint_values:
@@ -114,10 +120,22 @@ class HS071():
         
         # Compute Jacobian using torch.autograd.functional.jacobian
         if len(self.problem.constraints) > 0:
-            jacobian_matrix = torch.autograd.functional.jacobian(constraint_function, torch_x)
-
-        return jacobian_matrix.detach().numpy()
-    
+            jacobian_tuple = torch.autograd.functional.jacobian(constraint_function, 
+                                                                tuple(torch_exprs))
+            
+            # Handle the case where jacobian_tuple is a tuple (multiple variables)
+            if isinstance(jacobian_tuple, tuple):
+                # Concatenate along the last dimension (variable dimension)
+                jacobian_matrix = torch.cat(jacobian_tuple, dim=-1)
+            else:
+                # Single variable case
+                jacobian_matrix = jacobian_tuple
+            
+            return jacobian_matrix.detach().numpy()
+        else:
+            # No constraints case
+            total_size = sum(var.size for var in self.main_var)
+            return np.array([]).reshape(0, total_size)
 
 class Bounds_Getter():
     def __init__(self, problem: cp.Problem):
@@ -133,13 +151,13 @@ class Bounds_Getter():
         upper = []
         for constraint in self.problem.constraints:
             if isinstance(constraint, Equality):
-                lower.append(0)
-                upper.append(0)
+                lower.append(0.0)
+                upper.append(0.0)
             elif isinstance(constraint, Inequality):
-                lower.append(0)
+                lower.append(0.0)
                 upper.append(np.inf)
             elif isinstance(constraint, NonPos):
-                lower.append(0)
+                lower.append(0.0)
                 upper.append(np.inf)
         self.cl = lower
         self.cu = upper
