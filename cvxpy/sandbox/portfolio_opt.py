@@ -1,5 +1,7 @@
+import cyipopt
 import numpy as np
 import pandas as pd
+from reduction_classes import HS071, Bounds_Getter
 
 import cvxpy as cp
 
@@ -21,7 +23,7 @@ def portfolio_example():
         Q = np.cov(returns.T)
 
         # Single-objective optimization
-        x = cp.Variable(3, nonneg=True)
+        x = cp.Variable(3)
         variance = cp.quad_form(x, Q)
         expected_return = r @ x
 
@@ -31,4 +33,22 @@ def portfolio_example():
         )
         return prob
 
+bounds = Bounds_Getter(portfolio_example())
+x0 = [10.0, 10.0, 10.0]
 
+nlp = cyipopt.Problem(
+   n=len(x0),
+   m=len(bounds.cl),
+   problem_obj=HS071(bounds.new_problem),
+   lb=[0.0, 0.0, 0.0],
+   ub=None,
+   cl=bounds.cl,
+   cu=bounds.cu,
+)
+
+nlp.add_option('mu_strategy', 'adaptive')
+nlp.add_option('tol', 1e-7)
+nlp.add_option('hessian_approximation', "limited-memory")
+
+x, info = nlp.solve(x0)
+print(x)

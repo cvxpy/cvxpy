@@ -161,14 +161,12 @@ class Bounds_Getter():
         for var in self.main_var:
             size = var.size
             if var.bounds:
-                # Extend arrays with bounds repeated for each element of this variable
-                var_lower.extend([var.bounds[0]] * size)
-                var_upper.extend([var.bounds[1]] * size)
+                var_lower.extend(var.bounds[0])
+                var_upper.extend(var.bounds[1])
             else:
                 # No bounds specified, use infinite bounds
                 var_lower.extend([-np.inf] * size)
                 var_upper.extend([np.inf] * size)
 
-        # Convert to numpy arrays
         self.lb = np.array(var_lower)
         self.ub = np.array(var_upper)
