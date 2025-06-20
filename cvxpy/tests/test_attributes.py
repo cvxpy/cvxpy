@@ -87,8 +87,8 @@ class TestAttributes:
         prob.solve()
         assert np.allclose(X.value, z)
         
-        z = sp.coo_array(([-1, -3, -2, -4], [(0, 1, 2, 2), (0, 2, 1, 2)]))
-        z1 = sp.coo_array(([-1, -4, -2, -3], [(0, 2, 2, 1), (0, 2, 1, 2)]))
+        z = sp.coo_array(([-1, -3, -2, -4], [(0, 1, 2, 2), (0, 2, 1, 2)]), shape=(10, 10))
+        z1 = sp.coo_array(([-1, -4, -2, -3], [(0, 2, 2, 1), (0, 2, 1, 2)]), shape=(10, 10))
         A.value_sparse = z
         prob.solve()
         assert np.allclose(z.toarray(), z1.toarray())
