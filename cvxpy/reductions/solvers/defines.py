@@ -18,13 +18,14 @@ import numpy as np
 import scipy  # For version checks
 
 import cvxpy.settings as s
+
+# Conic interfaces
 from cvxpy.reductions.solvers.conic_solvers.cbc_conif import CBC as CBC_con
 from cvxpy.reductions.solvers.conic_solvers.clarabel_conif import CLARABEL as CLARABEL_con
 from cvxpy.reductions.solvers.conic_solvers.copt_conif import COPT as COPT_con
 from cvxpy.reductions.solvers.conic_solvers.cplex_conif import CPLEX as CPLEX_con
+from cvxpy.reductions.solvers.conic_solvers.cuopt_conif import CUOPT as CUOPT_con
 from cvxpy.reductions.solvers.conic_solvers.cvxopt_conif import CVXOPT as CVXOPT_con
-
-# Conic interfaces
 from cvxpy.reductions.solvers.conic_solvers.diffcp_conif import DIFFCP as DIFFCP_con
 from cvxpy.reductions.solvers.conic_solvers.ecos_bb_conif import ECOS_BB as ECOS_BB_con
 from cvxpy.reductions.solvers.conic_solvers.ecos_conif import ECOS as ECOS_con
@@ -42,10 +43,10 @@ from cvxpy.reductions.solvers.conic_solvers.scipy_conif import SCIPY as SCIPY_co
 from cvxpy.reductions.solvers.conic_solvers.scs_conif import SCS as SCS_con
 from cvxpy.reductions.solvers.conic_solvers.sdpa_conif import SDPA as SDPA_con
 from cvxpy.reductions.solvers.conic_solvers.xpress_conif import XPRESS as XPRESS_con
-from cvxpy.reductions.solvers.qp_solvers.copt_qpif import COPT as COPT_qp
-from cvxpy.reductions.solvers.qp_solvers.cplex_qpif import CPLEX as CPLEX_qp
 
 # QP interfaces
+from cvxpy.reductions.solvers.qp_solvers.copt_qpif import COPT as COPT_qp
+from cvxpy.reductions.solvers.qp_solvers.cplex_qpif import CPLEX as CPLEX_qp
 from cvxpy.reductions.solvers.qp_solvers.daqp_qpif import DAQP as DAQP_qp
 from cvxpy.reductions.solvers.qp_solvers.gurobi_qpif import GUROBI as GUROBI_qp
 from cvxpy.reductions.solvers.qp_solvers.highs_qpif import HIGHS as HIGHS_qp
@@ -61,7 +62,8 @@ solver_conic_intf = [DIFFCP_con(), ECOS_con(),
                      GLPK_MI_con(), CBC_con(), CLARABEL_con(), SCS_con(), SDPA_con(),
                      GUROBI_con(), MOSEK_con(), CPLEX_con(), NAG_con(), XPRESS_con(),
                      SCIP_con(), SCIPY_con(), HIGHS_con(), GLOP_con(), PDLP_con(),
-                     QOCO_con(), ECOS_BB_con()]
+                     QOCO_con(), ECOS_BB_con(), CUOPT_con()]
+
 solver_qp_intf = [OSQP_qp(),
                   GUROBI_qp(),
                   CPLEX_qp(),
@@ -84,7 +86,7 @@ CONIC_SOLVERS = [s.MOSEK, s.CLARABEL, s.SCS, s.ECOS, s.SDPA,
                  s.CPLEX, s.GUROBI, s.COPT, s.GLPK, s.NAG,
                  s.GLPK_MI, s.CBC, s.CVXOPT, s.XPRESS, s.DIFFCP,
                  s.SCIP, s.SCIPY, s.HIGHS, s.GLOP, s.PDLP, s.QOCO, 
-                 s.ECOS_BB]
+                 s.ECOS_BB, s.CUOPT]
 QP_SOLVERS = [s.OSQP,
               s.GUROBI,
               s.CPLEX,
@@ -97,7 +99,7 @@ QP_SOLVERS = [s.OSQP,
               s.MPAX]
 DISREGARD_CLARABEL_SDP_SUPPORT_FOR_DEFAULT_RESOLUTION = True
 MI_SOLVERS = [s.GLPK_MI, s.MOSEK, s.GUROBI, s.CPLEX,
-              s.XPRESS, s.CBC, s.SCIP, s.HIGHS, s.COPT, s.ECOS_BB]
+              s.XPRESS, s.CBC, s.SCIP, s.HIGHS, s.COPT, s.ECOS_BB, s.CUOPT]
 MI_SOCP_SOLVERS = [s.MOSEK, s.GUROBI, s.CPLEX, s.XPRESS,
                    s.SCIP, s.ECOS_BB]
 
