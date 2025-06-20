@@ -4,32 +4,42 @@ Changes to CVXPY
 ================
 
 This page details changes made to CVXPY over time, in reverse chronological order.
-CVXPY's project maintainers currently provide support for CVXPY 1.6.
+CVXPY's project maintainers currently provide support for CVXPY 1.7.
 
-CVXPY 1.6.1
------------
+CVXPY 1.7
+---------
 
-This release is consistent with our semantic versioning guarantee. It comes with bug fixes
-and performance improvements.
-This version of CVXPY supports Python 3.9 through 3.13. While working on the next release,
+This release is consistent with our semantic versioning guarantee. It
+comes packed with many new features, bug fixes, and performance improvements.
+This version of CVXPY supports Python 3.10 through 3.13. While working on the next release,
 we continue to officially support CVXPY 1.6.
 
-SciPy dependency bump
-~~~~~~~~~~~~~~~~~~~~~
+Multiple Attributes
+~~~~~~~~~~~~~~~~~~~
 
-We increased our SciPy version to the oldest version that supported our NumPy dependency.
-Because we already had raised the NumPy dependency, we are allowing this dependency change
-during a release cycle.
+In version 1.7, CVXPY begins supporting multiple attributes for variables. 
+Certain combinations of attributes will not be supported, 
+for example, attributes that reduce the dimension of a variable, 
+i.e., diag, symmetric and sparsity, cannot be used together. 
+In addition, projections for parameter input validation will be temporarily disabled.
 
-Bug fixes
-~~~~~~~~~
+Sparse array support
+~~~~~~~~~~~~~~~~~~~~
 
-- The implementation of `ref inv_prod <inv_prod>` was broken for variables of shape other than 1D. It is
-  now fixed. This may break some code that was previously incorrectly allowed and giving
-  incorrect answers.
-- The implementation of sparse variables did not allow for maximal efficiency gains. This can now be
-  addressed with the `value_sparse` attribute.
 
+
+New features
+~~~~~~~~~~~~
+- New CuOpt solver interface
+- New CuClarabel solver interface
+- New MPAX solver interface
+- New QOCO solver interface
+- New atom: :ref:`broadcast_to <broadcast_to>`
+- New atom: :ref:`transpose(expr, axes) <transpose>`
+- New atom: :ref:`swap_axes <swap_axes>`
+- New atom: :ref:`permute_dims <permute_dims>`
+- Add warm-start support for :ref:`HiGHS <HiGHS>` (LP and MIP)
+- Add warm-start support for :ref:`PIQP <PIQP>`
 
 CVXPY 1.6
 ---------
