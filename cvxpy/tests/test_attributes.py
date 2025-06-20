@@ -65,11 +65,11 @@ class TestAttributes:
         assert prob.get_problem_data(cp.CLARABEL)[0]['A'].shape[1] == 9
         
     def test_sparsity_assign_value(self):
-        X = cp.Variable((3, 3))
+        X = cp.Variable((10, 10))
         sparsity = [(0, 2, 1, 2), (0, 1, 2, 2)]
-        A = cp.Parameter((3, 3), sparsity=sparsity)
+        A = cp.Parameter((10, 10), sparsity=sparsity)
         prob = cp.Problem(cp.Minimize(cp.sum(X)), [X >= A])
-        A_value = np.zeros((3, 3))
+        A_value = np.zeros((10, 10))
         A_value[sparsity[0], sparsity[1]] = -1
         with pytest.warns(
             RuntimeWarning,
@@ -79,7 +79,7 @@ class TestAttributes:
             A.value = A_value
         
         prob.solve()
-        z = np.zeros((3, 3))
+        z = np.zeros((10, 10))
         z[A.sparse_idx] = -1
         assert np.allclose(X.value, z)
         
@@ -99,7 +99,7 @@ class TestAttributes:
         assert np.allclose(z.toarray(), z1.toarray())
         assert np.allclose(X.value, z1.toarray())
         assert np.allclose(X.value, z.toarray())
-        
+
     def test_sparsity_incorrect_pattern(self):
         A = cp.Parameter((3, 3), sparsity=[(0, 2, 1, 2), (0, 1, 2, 2)])
         with pytest.raises(
