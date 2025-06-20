@@ -49,19 +49,11 @@ class HS071():
         
         # Compute gradient
         torch_obj.backward()
-        # Collect gradients properly
         gradients = []
         for tensor in torch_exprs:
             if tensor.grad is not None:
                 gradients.append(tensor.grad.detach().numpy().flatten())
-            else:
-                # Handle case where gradient is None (shouldn't happen if requires_grad=True)
-                gradients.append(np.zeros(tensor.numel()))
-        
-        # Concatenate all gradients
-        gradient = np.concatenate(gradients)
-        
-        return gradient
+        return np.concatenate(gradients)
     
     def constraints(self, x):
         """Returns the constraint values."""
@@ -134,35 +126,34 @@ class HS071():
 class Bounds_Getter():
     def __init__(self, problem: cp.Problem):
         self.problem = problem
-        # Assuming the problem has one main variable - adjust if needed
         self.main_var = problem.variables()
         self.get_constraint_bounds()
         self.get_variable_bounds()
 
     def get_constraint_bounds(self):
-        "also normalizes the constraints and creates"
-        "a new problem"
+        """Also normalizes the constraints and creates a new problem"""
         lower = []
         upper = []
         new_constr = []
+        
         for constraint in self.problem.constraints:
             if isinstance(constraint, Equality):
-                lower.append(np.zeros(constraint.size))
-                upper.append(np.zeros(constraint.size))
+                lower.extend([0.0] * constraint.size)
+                upper.extend([0.0] * constraint.size)
                 new_constr.append(lower_equality(constraint))
             elif isinstance(constraint, Inequality):
-                lower.append(np.zeros(constraint.size))
-                upper.append(np.inf * np.ones(constraint.size))
+                lower.extend([0.0] * constraint.size)
+                upper.extend([np.inf] * constraint.size)
                 new_constr.append(lower_ineq_to_nonneg(constraint))
             elif isinstance(constraint, NonPos):
-                lower.append(np.zeros(constraint.size))
-                upper.append(np.inf * np.ones(constraint.size))
+                lower.extend([0.0] * constraint.size)
+                upper.extend([np.inf] * constraint.size)
                 new_constr.append(nonpos2nonneg(constraint))
         
         lowered_con_problem = self.problem.copy([self.problem.objective, new_constr])
         self.new_problem = lowered_con_problem
-        self.cl = lower
-        self.cu = upper
+        self.cl = np.array(lower)
+        self.cu = np.array(upper)
 
     def get_variable_bounds(self):
         var_lower = []
