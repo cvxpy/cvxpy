@@ -476,7 +476,7 @@ class Leaf(expression.Expression):
 
     @value.setter
     def value(self, val) -> None:
-        if self.sparse_idx is not None and self._high_sparse_fill_in:
+        if self.sparse_idx is not None and self._sparse_high_fill_in:
             warnings.warn('Writing to a sparse CVXPY expression via `.value` is discouraged.'
                           ' Use `.value_sparse` instead', RuntimeWarning, 1)
         self.save_value(self._validate_value(val))
