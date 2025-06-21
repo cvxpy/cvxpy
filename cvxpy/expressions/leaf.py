@@ -145,6 +145,7 @@ class Leaf(expression.Expression):
             self.integer_idx = integer
         if sparsity:
             self.sparse_idx = self._validate_indices(sparsity)
+            self._sparse_high_fill_in = (len(self.sparse_idx[0]) / np.prod(self.shape) <= 0.25)
         else:
             self.sparse_idx = None
         # count number of attributes
@@ -475,7 +476,7 @@ class Leaf(expression.Expression):
 
     @value.setter
     def value(self, val) -> None:
-        if self.sparse_idx is not None:
+        if self.sparse_idx is not None and self._sparse_high_fill_in:
             warnings.warn('Writing to a sparse CVXPY expression via `.value` is discouraged.'
                           ' Use `.value_sparse` instead', RuntimeWarning, 1)
         self.save_value(self._validate_value(val))
