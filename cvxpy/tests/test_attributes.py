@@ -83,7 +83,7 @@ class TestAttributes:
         z[A.sparse_idx] = -1
         assert np.allclose(X.value, z)
         
-        A.value_sparse = sp.coo_array((-np.ones(4), sparsity))
+        A.value_sparse = sp.coo_array((-np.ones(4), sparsity), (10, 10))
         prob.solve()
         assert np.allclose(X.value, z)
         
