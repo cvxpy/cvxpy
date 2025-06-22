@@ -53,6 +53,8 @@ class HS071():
         for tensor in torch_exprs:
             if tensor.grad is not None:
                 gradients.append(tensor.grad.detach().numpy().flatten())
+            else:
+                gradients.append(np.array([0] * tensor.numel()))
         return np.concatenate(gradients)
     
     def constraints(self, x):
@@ -67,8 +69,8 @@ class HS071():
         # Evaluate all constraints
         constraint_values = []
         for constraint in self.problem.constraints:
-            constraint_values.append(constraint.args[0].value)
-        return np.array(constraint_values)
+            constraint_values.append(np.asarray(constraint.args[0].value).flatten())
+        return np.concat(constraint_values)
     
     def jacobian(self, x):
         """Returns the Jacobian of the constraints with respect to x."""
