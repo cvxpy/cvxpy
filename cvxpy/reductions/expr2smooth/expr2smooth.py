@@ -16,9 +16,9 @@ limitations under the License.
 
 from typing import Tuple
 
+import cvxpy as cp
 from cvxpy import problems
 from cvxpy.expressions.expression import Expression
-from cvxpy.problems.objective import Minimize
 from cvxpy.reductions.canonicalization import Canonicalization
 from cvxpy.reductions.expr2smooth.canonicalizers import CANON_METHODS as smooth_canon_methods
 from cvxpy.reductions.inverse_data import InverseData
@@ -36,8 +36,8 @@ class Expr2smooth(Canonicalization):
         self.quad_obj = quad_obj
 
     def accepts(self, problem):
-        """A problem is accepted if it is a minimization."""
-        return type(problem.objective) == Minimize
+        """A problem is always accepted"""
+        return True
 
     def apply(self, problem):
         """Converts an expr to a smooth program"""
@@ -108,3 +108,19 @@ class Expr2smooth(Canonicalization):
             return self.smooth_canon_methods[type(expr)](expr, args)
 
         return expr.copy(args), []
+
+def example_max():
+    # Define variables
+    x = cp.Variable(1)
+    y = cp.Variable(1)
+    
+    objective = cp.Minimize(-cp.maximum(x,y))
+    
+    constraints = [x - 14 == 0, y - 6 == 0]
+    
+    problem = cp.Problem(objective, constraints)
+    return problem
+
+prob = example_max()
+new_problem, inverse = Expr2smooth(prob).apply(prob)
+print(new_problem)

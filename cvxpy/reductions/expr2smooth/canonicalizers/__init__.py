@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 from cvxpy.atoms import maximum
-from cvxpy.reductions.expr2smooth.canonicalizers import maximum_canon
+from cvxpy.reductions.expr2smooth.canonicalizers.maximum_canon import maximum_canon
 
 CANON_METHODS = {
     maximum : maximum_canon,
