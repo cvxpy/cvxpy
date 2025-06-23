@@ -2154,7 +2154,12 @@ class TestHIGHS:
         ],
     )
     def test_highs_solving(self, problem) -> None:
-        problem(solver=cp.HIGHS)
+        # HACK needed to use the HiGHS conic interface rather than 
+        # the QP interface for LPs.
+        from cvxpy.reductions.solvers.conic_solvers.highs_conif import HIGHS
+        solver = HIGHS()
+        solver.name = lambda: "HIGHS conic"
+        problem(solver=solver)
 
     @pytest.mark.parametrize(
         ["problem", "confirmation_string"],
