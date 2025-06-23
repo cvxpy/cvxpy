@@ -11,18 +11,15 @@ def example_max():
     y = cp.Variable(1)
     t = cp.Variable(1)
     
-    # Define objective: minimize (1 - x)^2 + 100 * (y - x^2)^2
-    objective = cp.Minimize(t)
+    objective = cp.Minimize(-t)
     
-    # No constraints for this problem
-    constraints = [(x - t) * (y - t) == 0, t - x <= 0, t - y <= 0, x - 14 == 0, y - 6 == 0]
+    constraints = [(t - x) * (t - y) == 0, t >= x, t >= y, x - 14 == 0, y - 6 == 0]
     
-    # Create and solve the problem
     problem = cp.Problem(objective, constraints)
     return problem
 
 bounds = Bounds_Getter(example_max())
-x0 = [12,  5, 0]
+x0 = [12, 5, 0]
 
 nlp = cyipopt.Problem(
    n=len(x0),
