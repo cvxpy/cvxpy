@@ -210,6 +210,10 @@ class Atom(Expression):
         else:
             raise ValueError('Unsupported context ', context)
 
+    def is_smooth(self) -> bool:
+        "The expression is smooth"
+        return True
+
     @perf.compute_once
     def is_log_log_convex(self) -> bool:
         """Is the expression log-log convex?
