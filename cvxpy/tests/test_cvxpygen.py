@@ -25,6 +25,7 @@ from cvxpygen import cpg
 
 import cvxpy as cp
 
+
 def network_problem():
 
     # define dimensions
