@@ -30,7 +30,7 @@ from cvxpy.expressions.constants import Constant, Parameter
 from cvxpy.expressions.variable import Variable
 from cvxpy.problems.problem import Problem
 from cvxpy.reductions.solvers.defines import INSTALLED_SOLVERS
-from cvxpy.settings import CVXOPT, CLARABEL, MOSEK, OSQP, ROBUST_KKTSOLVER, SCS
+from cvxpy.settings import CLARABEL, CVXOPT, MOSEK, OSQP, ROBUST_KKTSOLVER, SCS
 
 ROBUST_CVXOPT = "robust_cvxopt"
 SOLVER_TO_TOL = {SCS: 1e-2,
