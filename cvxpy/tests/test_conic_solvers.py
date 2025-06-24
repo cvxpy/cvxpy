@@ -2158,7 +2158,7 @@ class TestHIGHS:
         # the QP interface for LPs.
         from cvxpy.reductions.solvers.conic_solvers.highs_conif import HIGHS
         solver = HIGHS()
-        solver.name = lambda: "HIGHS conic"
+        solver.name = lambda: "HIGHS CONIC"
         problem(solver=solver)
 
     @pytest.mark.parametrize(
