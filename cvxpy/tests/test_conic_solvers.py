@@ -2216,6 +2216,33 @@ class TestHIGHS:
         }
         problem(solver=cp.HIGHS, highs_options=highs_options)
 
+    def test_highs_cvar(self) -> None:
+        """Test problem with CVaR constraint from 
+        https://github.com/cvxpy/cvxpy/issues/2836
+        """
+        # Generate data
+        num_stocks = 5
+        num_samples = 25
+        np.random.seed(1)
+        pnl_samples = np.random.uniform(low=0.0, high=1.0, size=(num_samples, num_stocks))
+        pnl_expected = pnl_samples.mean(axis=0)
+
+        # Prepare to solve
+        quantile = 0.05
+        w = cp.Variable(num_stocks, nonneg=True)
+        cvar = cp.cvar(pnl_samples @ w, 1 - quantile)
+        pnl = w @ pnl_expected
+
+        # Solve
+        objective = cp.Maximize(pnl)
+        constraints = [cvar <= 0.5]
+        problem = cp.Problem(objective, constraints)
+        problem.solve(
+            solver=cp.HIGHS,
+            verbose=True,
+        )
+        assert problem.status == cp.OPTIMAL
+
 
 class TestAllSolvers(BaseTest):
 
