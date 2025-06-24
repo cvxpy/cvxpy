@@ -21,9 +21,14 @@ import pickle
 import numpy as np
 import pytest
 import scipy.sparse as sp
-from cvxpygen import cpg
 
 import cvxpy as cp
+
+try:
+    from cvxpygen import cpg
+    cpg_installed = True
+except ImportError:
+    cpg_installed = False
 
 
 def network_problem():
@@ -242,9 +247,9 @@ test_combinations = [
 ]
 
 
+@pytest.mark.skipif(not cpg_installed, reason='CVXPYgen is not installed')
 @pytest.mark.parametrize('name, solver, style, seed', test_combinations)
 def test(name, solver, style, seed):
-
     prob = name_to_prob[name]
 
     if seed == 0:
