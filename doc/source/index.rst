@@ -105,7 +105,9 @@ guide </contributing/index>` and join us `on Discord <https://discord.gg/4urRQeG
 
 **News.**
 
-CVXPY 1.7 
+CVXPY 1.7 is the first release of CVXPY that supports GPU solvers. It also includes many new features, such as new atoms
+for manipulating N-dimensional arrays, support for multiple variable attributes, and improvements to existing solver interfaces.
+For a complete list of changes, see the :doc:`changelog </updates/index>`.
 
 .. _Clarabel: https://github.com/oxfordcontrol/Clarabel.rs
 .. _OSQP: https://osqp.org/
@@ -156,4 +158,3 @@ CVXPY 1.7
    :hidden:
 
    resources/index
-
