@@ -44,6 +44,7 @@ SCIPY = ["scipy"]
 SCS = []
 XPRESS = ["xpress"]
 DAQP = ["daqp"]
+MPAX = ["mpax", "jax"]
 
 [project.readme]
 file = "README.md" # symlinked from root, not allowed relative paths
