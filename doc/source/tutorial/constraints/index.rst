@@ -171,7 +171,7 @@ Similarly, the value of a sparse variable or parameter is read via ``.value_spar
     prob.solve()
     print(X.value_sparse)
 
-.. _semidefinite:
+.. _multiple-attributes:
 
 Multiple Attributes
 -------------------
@@ -224,6 +224,8 @@ Example for defining a sparse bounded variable:
     assert x.value == np.array([[0, 3.5, 0],
                                 [0, 0, 3.5],
                                 [0, 0, 0]])
+
+.. _semidefinite:
 
 Semidefinite matrices
 ----------------------

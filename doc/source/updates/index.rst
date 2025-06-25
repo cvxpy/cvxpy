@@ -14,14 +14,10 @@ comes packed with many new features, bug fixes, and performance improvements.
 This version of CVXPY supports Python 3.10 through 3.13. While working on the next release,
 we continue to officially support CVXPY 1.6.
 
-Multiple Attributes
-~~~~~~~~~~~~~~~~~~~
+New GPU solvers
+~~~~~~~~~~~~~~~
 
-In version 1.7, CVXPY begins supporting multiple attributes for variables. 
-Certain combinations of attributes will not be supported, 
-for example, attributes that reduce the dimension of a variable, 
-i.e., diag, symmetric and sparsity, cannot be used together. 
-In addition, projections for parameter input validation will be temporarily disabled.
+
 
 Sparse array support
 ~~~~~~~~~~~~~~~~~~~~
@@ -30,14 +26,12 @@ Sparse array support
 
 New features
 ~~~~~~~~~~~~
-- New CuOpt solver interface
-- New CuClarabel solver interface
-- New MPAX solver interface
+- :ref:`Multiple attributes <multiple-attributes>` for variables and parameters
 - New QOCO solver interface
-- New GPU binding for the SCS solver
 - New atom: :ref:`broadcast_to <broadcast_to>`
 - New atom: :ref:`transpose(expr, axes) <transpose>`
-- New atom: :ref:`swap_axes <swap_axes>`
+- New atom: :ref:`swapaxes <swapaxes>`
+- New atom: :ref:`moveaxis <moveaxis>`
 - New atom: :ref:`permute_dims <permute_dims>`
 - Add warm-start support for :ref:`HiGHS <HiGHS>` (LP and MIP)
 - Add warm-start support for :ref:`PIQP <PIQP>`
