@@ -34,6 +34,7 @@ New features
 - New CuClarabel solver interface
 - New MPAX solver interface
 - New QOCO solver interface
+- New GPU binding for the SCS solver
 - New atom: :ref:`broadcast_to <broadcast_to>`
 - New atom: :ref:`transpose(expr, axes) <transpose>`
 - New atom: :ref:`swap_axes <swap_axes>`

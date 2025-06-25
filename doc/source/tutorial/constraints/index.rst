@@ -147,7 +147,6 @@ as defined in `np.indices <https://numpy.org/doc/stable/reference/generated/nump
 
 Reading and writing the value of a sparse expression
 ----------------------------------------------------
-----------------------------------------------------
 
 To avoid storing entries that are known to be zero, we provide the ``.value_sparse`` field,
 which stores only the nonzero entries as a ``scipy.sparse.coo_array``.
@@ -173,6 +172,58 @@ Similarly, the value of a sparse variable or parameter is read via ``.value_spar
     print(X.value_sparse)
 
 .. _semidefinite:
+
+Multiple Attributes
+-------------------
+
+.. versionadded:: 1.7
+
+CVXPY's variable attributes can be viewed as implicit constraints that provide useful sign and monotonicity information to the DCP analyzer. 
+Certain combinations of attributes will not be supported, for example, attributes that reduce the dimension of the variable, e.g, diag, symmetric, sparsity, cannot be used together. 
+In addition, due to the large potential computational cost, projections for validating parameter inputs with multiple attributes are temporarily disabled. 
+
+Example for defining a sparse integer variable:
+
+.. code:: python
+
+    import cvxpy as cp
+    x = cp.Variable(shape=(2,2), sparsity=[(0,1),(0,1)], integer=True)
+    prob = cp.Problem(cp.Minimize(cp.sum(x)), [x >= -5.5])
+    prob.solve()
+    assert prob.value == -10
+    # although the lower bound on x is 5.5, the non-zero entries
+    # of x are set to -5 due to the integer attribute
+    assert x.value == np.array([[-5, 0],
+                                [0, -5]])
+
+Example for defining a bounded integer variable:
+
+.. code:: python
+
+    import cvxpy as cp
+    x = cp.Variable(shape=(2,2), integer=True, bounds=[-1.5, 2])
+    prob = cp.Problem(cp.Minimize(cp.sum(x)), [])
+    prob.solve()
+    assert prob.value == -4
+    # although the lower bound is 1.5, each entry of x
+    # is set to -1 due to the integer attribute
+    assert x.value == np.array([[-1, -1],
+                                [-1, -1]])
+
+Example for defining a sparse bounded variable:
+
+.. code:: python
+
+    import cvxpy as cp
+    x = cp.Variable((3,3), sparsity=[(0,1),(1,2)], bounds=[3.5, 7])
+    prob = cp.Problem(cp.Minimize(cp.sum(x)), [])
+    prob.solve()
+    assert prob.value == 7
+    # each non-zero entry of x is set to the lower
+    # bound of 3.5
+    assert x.value == np.array([[0, 3.5, 0],
+                                [0, 0, 3.5],
+                                [0, 0, 0]])
 
 Semidefinite matrices
 ----------------------

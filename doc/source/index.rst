@@ -105,12 +105,7 @@ guide </contributing/index>` and join us `on Discord <https://discord.gg/4urRQeG
 
 **News.**
 
-CVXPY 1.6 introduces N-dimensional expressions with an API analogous to NumPy ndarrays.
-This new feature is very experimental as only a small subset of CVXPY's atoms are supported.
-In addition, version 1.6 also introduces a sparsity attribute for variables, 
-a new HiGHS solver interface for (mixed-integer) linear programs and quadratic programs,
-and support for Python 3.13. Finally, the CVXPY team has updated the documentation
-website to use a modern theme based on Sphinx Immaterial.
+CVXPY 1.7 
 
 .. _Clarabel: https://github.com/oxfordcontrol/Clarabel.rs
 .. _OSQP: https://osqp.org/
