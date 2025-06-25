@@ -8,7 +8,7 @@ on:
         tags:
           - '*'
 jobs:
-  test_optional_solvers:
+  test_metapackage:
     runs-on: ${{ matrix.os }}
     defaults:
       run:
