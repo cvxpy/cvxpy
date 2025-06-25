@@ -139,7 +139,6 @@ jobs:
         if: ${{github.event_name == 'push' && env.SINGLE_ACTION_CONFIG == 'True'}}
         run: |
           cd ./meta-package
-          pip install build
           python -m build --sdist -o wheelhouse
 
 
