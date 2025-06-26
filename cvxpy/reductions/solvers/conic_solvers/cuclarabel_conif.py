@@ -85,6 +85,8 @@ class CUCLARABEL(ConicSolver):
     def import_solver(self) -> None:
         """Imports the solver.
         """
+        # Does NOT import juliacall because that starts a Julia interpreter
+        # and this method is called on CVXPY importing and that's too heavy.
         import cupy  # noqa F401
 
     def supports_quad_obj(self) -> bool:
@@ -132,29 +134,6 @@ class CUCLARABEL(ConicSolver):
             return Solution(status, opt_val, primal_vars, dual_vars, attr)
         else:
             return failure_solution(status, attr)
-
-    @staticmethod
-    def parse_solver_opts(verbose, opts, settings=None):
-        import clarabel
-
-        if settings is None:
-            settings = clarabel.DefaultSettings()
-
-        settings.verbose = verbose
-
-        # use_quad_obj is only for canonicalization.
-        if "use_quad_obj" in opts:
-            del opts["use_quad_obj"]
-
-        for opt in opts.keys():
-            try:
-                settings.__setattr__(opt, opts[opt])
-            except TypeError as e:
-                raise TypeError(f"Clarabel: Incorrect type for setting '{opt}'.") from e
-            except AttributeError as e:
-                raise TypeError(f"Clarabel: unrecognized solver setting '{opt}'.") from e
-
-        return settings
 
     def solve_via_data(self, data, warm_start: bool, verbose: bool, solver_opts, solver_cache=None):
         """Returns the result of the call to the solver.
