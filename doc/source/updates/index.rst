@@ -51,8 +51,8 @@ New features
 - New atom: :ref:`swapaxes <swapaxes>`
 - New atom: :ref:`moveaxis <moveaxis>`
 - New atom: :ref:`permute_dims <permute_dims>`
-- Add warm-start support for `HiGHS <https://ergo-code.github.io/HiGHS/dev/interfaces/python/>` (LP and MIP)
-- Add warm-start support for `PIQP <https://predict-epfl.github.io/piqp/interfaces/python/installation>`
+- Add warm-start support for `HiGHS <https://ergo-code.github.io/HiGHS/dev/interfaces/python/>`_ (LP and MIP)
+- Add warm-start support for `PIQP <https://predict-epfl.github.io/piqp/interfaces/python/installation>`_
 
 CVXPY 1.6
 ---------
