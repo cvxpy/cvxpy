@@ -17,17 +17,34 @@ we continue to officially support CVXPY 1.6.
 New GPU solvers
 ~~~~~~~~~~~~~~~
 
+CVXPY begins supporting GPU solvers in this release. 
+The following solvers are supported:
+- `MPAX <https://github.com/MIT-Lu-Lab/MPAX>`_
+- `cuOpt <https://github.com/NVIDIA/cuopt>`_
+- `CuClarabel <https://github.com/cvxgrp/CuClarabel>`_
+- `SCS <https://github.com/bodono/scs-python/pull/136>`_
 
+MPAX runs on a GPU device specified by the JAX environment. MPAX, cuOpt, and CuClarabel
+are new solver interfaces that can be used with CVXPY. SCS has a new backend based on
+`cuDSS <https://developer.nvidia.com/cudss>`_ that can be used through the existing SCS interface.
 
 Sparse array support
 ~~~~~~~~~~~~~~~~~~~~
+
+SciPy is deprecating the sparse matrix API in favor of sparse arrays. See the 
+migration guide `here <https://docs.scipy.org/doc/scipy/reference/sparse.migration_to_sparray.html#migration-to-sparray>`_.
+CVXPY 1.7 supports the new sparse array API, both internally and externally, but continues to support the sparse matrix API
+for backwards compatibility. However, sparse matrix inputs will be converted to sparse arrays after CVXPY's canonicalization.
+
+cvxpy-base standard distribution
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 
 New features
 ~~~~~~~~~~~~
-- :ref:`Multiple attributes <multiple-attributes>` for variables and parameters
-- New QOCO solver interface
+- New feature: :ref:`Multiple attributes <multiple-attributes>` for variables and parameters
+- New `QOCO <https://qoco-org.github.io/qoco/>`_ solver interface
 - New atom: :ref:`broadcast_to <broadcast_to>`
 - New atom: :ref:`transpose(expr, axes) <transpose>`
 - New atom: :ref:`swapaxes <swapaxes>`
