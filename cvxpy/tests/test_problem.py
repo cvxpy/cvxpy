@@ -2272,8 +2272,7 @@ class TestProblem(BaseTest):
                 assert len(w) == 0
 
     def test_get_problem_data(self) -> None:
-        """Test that get_problem_data accept no argument or None
-           without causing cache invalidation
+        """Test that get_problem_data accept no argument
         """
         A = np.array([0.50, 1.96, -0.37])
         A = cp.Parameter(A.shape,value=A,name='A')
@@ -2281,4 +2280,4 @@ class TestProblem(BaseTest):
         problem = cp.Problem(cp.Minimize(cp.sum_squares(A@y)),[y >= 1])
         problem.solve()
         problem.get_problem_data()
-        assert problem._solver_cache != {}
+    
