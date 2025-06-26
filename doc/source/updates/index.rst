@@ -19,10 +19,11 @@ New GPU solvers
 
 CVXPY begins supporting GPU solvers in this release. 
 The following solvers are supported:
+
 - `MPAX <https://github.com/MIT-Lu-Lab/MPAX>`_
 - `cuOpt <https://github.com/NVIDIA/cuopt>`_
 - `CuClarabel <https://github.com/cvxgrp/CuClarabel>`_
-- `SCS <https://github.com/bodono/scs-python/pull/136>`_
+- `SCS, with the cuDSS backend <https://github.com/bodono/scs-python/pull/136>`_
 
 MPAX runs on a GPU device specified by the JAX environment. MPAX, cuOpt, and CuClarabel
 are new solver interfaces that can be used with CVXPY. SCS has a new backend based on
@@ -43,15 +44,15 @@ cvxpy-base standard distribution
 
 New features
 ~~~~~~~~~~~~
-- New feature: :ref:`Multiple attributes <multiple-attributes>` for variables and parameters
+- :ref:`Multiple attributes <multiple-attributes>` for variables and parameters
 - New `QOCO <https://qoco-org.github.io/qoco/>`_ solver interface
 - New atom: :ref:`broadcast_to <broadcast_to>`
 - New atom: :ref:`transpose(expr, axes) <transpose>`
 - New atom: :ref:`swapaxes <swapaxes>`
 - New atom: :ref:`moveaxis <moveaxis>`
 - New atom: :ref:`permute_dims <permute_dims>`
-- Add warm-start support for :ref:`HiGHS <HiGHS>` (LP and MIP)
-- Add warm-start support for :ref:`PIQP <PIQP>`
+- Add warm-start support for `HiGHS <https://ergo-code.github.io/HiGHS/dev/interfaces/python/>` (LP and MIP)
+- Add warm-start support for `PIQP <https://predict-epfl.github.io/piqp/interfaces/python/installation>`
 
 CVXPY 1.6
 ---------
