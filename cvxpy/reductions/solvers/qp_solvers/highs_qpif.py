@@ -38,7 +38,6 @@ class HIGHS(QpSolver):
 
     # Note that HiGHS does not support MIQP but supports MILP
     MIP_CAPABLE = False
-    BOUNDED_VARIABLES = True
 
     # Map of HiGHS status to CVXPY status.
     STATUS_MAP = {
@@ -172,14 +171,8 @@ class HIGHS(QpSolver):
         lp.a_matrix_.value_ = A.data
 
         # Define Variable bounds
-        if data[s.LOWER_BOUNDS] is None:
-            lp.col_lower_ = -inf * np.ones(shape=lp.num_col_, dtype=q.dtype)
-        else:
-            lp.col_lower_ = data[s.LOWER_BOUNDS]
-        if data[s.UPPER_BOUNDS] is None:
-            lp.col_upper_ = inf * np.ones(shape=lp.num_col_, dtype=q.dtype)
-        else:
-            lp.col_upper_ = data[s.UPPER_BOUNDS]
+        lp.col_lower_ = -inf * np.ones(shape=lp.num_col_, dtype=q.dtype)
+        lp.col_upper_ = inf * np.ones(shape=lp.num_col_, dtype=q.dtype)
 
         # note that we count actual nonzeros because
         # parameter values could make the problem linear
