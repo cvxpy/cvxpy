@@ -170,7 +170,7 @@ class RelEntrConeQuad(Cone):
     .. math::
 
         K_{re}=\\text{cl}\\{(x,y,z)\\in\\mathbb{R}_{++}\\times
-                \\mathbb{R}_{++}\\times\\mathbb{R}_{++}\\:x\\log(x/y)\\leq z\\}
+                \\mathbb{R}_{++}\\times\\mathbb{R}\\:x\\log(x/y)\\leq z\\}
 
     Since the above definition is very similar to the ExpCone, we provide a conversion method.
 
@@ -288,7 +288,7 @@ class OpRelEntrConeQuad(Cone):
     .. math::
 
         K_{re}^n=\\text{cl}\\{(X,Y,T)\\in\\mathbb{H}^n_{++}\\times
-                \\mathbb{H}^n_{++}\\times\\mathbb{H}^n_{++}\\:D_{\\text{op}}\\succeq T\\}
+                \\mathbb{H}^n_{++}\\times\\mathbb{H}^n\\:D_{\\text{op}}\\preceq T\\}
 
     More details on the approximation can be found in Theorem-3 on page-10 in the paper:
     Semidefinite Approximations of the Matrix Logarithm.
