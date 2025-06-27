@@ -104,6 +104,10 @@ class max(AxisAtom):
         """
         return False
 
+    def is_smooth(self):
+        """max is not a smooth function of its args"""
+        return False
+    
     def is_incr(self, idx) -> bool:
         """Is the composition non-decreasing in argument idx?
         """

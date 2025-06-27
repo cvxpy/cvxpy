@@ -154,6 +154,9 @@ class Atom(Expression):
         """
         return self.is_atom_log_log_concave() and self.is_atom_log_log_convex()
 
+    def is_atom_smooth(self) -> bool:
+        pass
+
     @abc.abstractmethod
     def is_incr(self, idx) -> bool:
         """Is the composition non-decreasing in argument idx?
@@ -209,6 +212,16 @@ class Atom(Expression):
             return self.is_dgp(dpp=True)
         else:
             raise ValueError('Unsupported context ', context)
+
+    def is_smooth(self) -> bool:
+        "The expression is smooth"
+        if self.is_constant():
+            return True
+        elif self.is_smooth_atom(self):
+            for idx, arg in enumerate(self.args):
+                if not arg.is_smooth():
+                    return False
+        return True
 
     @perf.compute_once
     def is_log_log_convex(self) -> bool:
