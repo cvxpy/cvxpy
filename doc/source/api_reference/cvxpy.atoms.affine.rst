@@ -204,6 +204,38 @@ transpose
 .. autoclass:: cvxpy.transpose
     :show-inheritance:
 
+.. _broadcast_to:
+
+broadcast_to
+--------------------------------------
+
+.. autoclass:: cvxpy.broadcast_to
+    :show-inheritance:
+
+.. _swap_axes:
+
+swapaxes
+--------------------------------------
+
+.. autoclass:: cvxpy.swapaxes
+    :show-inheritance:
+
+.. _moveaxis:
+
+moveaxis
+--------------------------------------
+
+.. autoclass:: cvxpy.moveaxis
+    :show-inheritance:
+
+.. _permute_dims:
+
+permute_dims
+--------------------------------------
+
+.. autoclass:: cvxpy.permute_dims
+    :show-inheritance:
+
 .. _negexpression:
 
 NegExpression
