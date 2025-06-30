@@ -22,9 +22,6 @@ class NLPsolver(Solver):
     """
     A non-linear programming (NLP) solver.
     """
-    # Every QP solver supports Zero and NonNeg constraints.
-    SUPPORTED_CONSTRAINTS = [Zero, NonNeg]
-
     # Some solvers cannot solve problems that do not have constraints.
     # For such solvers, REQUIRES_CONSTR should be set to True.
     REQUIRES_CONSTR = False
