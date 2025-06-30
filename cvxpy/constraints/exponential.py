@@ -58,9 +58,9 @@ class ExpCone(Cone):
 
     def __init__(self, x: Expression, y: Expression, z: Expression, constr_id=None) -> None:
         Expression = cvxtypes.expression()
-        self.x = Expression.cast_to_const(x)
-        self.y = Expression.cast_to_const(y)
-        self.z = Expression.cast_to_const(z)
+        self.x = Expression.cast(x)
+        self.y = Expression.cast(y)
+        self.z = Expression.cast(z)
         args = [self.x, self.y, self.z]
         for val in args:
             if not (val.is_affine() and val.is_real()):
@@ -163,19 +163,15 @@ class ExpCone(Cone):
 
 
 class RelEntrConeQuad(Cone):
-    """An approximate construction of the scalar relative entropy cone
-
-    Definition:
+    """An approximation of the scalar relative entropy cone,
 
     .. math::
 
         K_{re}=\\text{cl}\\{(x,y,z)\\in\\mathbb{R}_{++}\\times
-                \\mathbb{R}_{++}\\times\\mathbb{R}_{++}\\:x\\log(x/y)\\leq z\\}
+                \\mathbb{R}_{++}\\times\\mathbb{R}_{++}\\:x\\log(x/y)\\leq z\\},
 
-    Since the above definition is very similar to the ExpCone, we provide a conversion method.
-
-    More details on the approximation can be found in Theorem-3 on page-10 in the paper:
-    Semidefinite Approximations of the Matrix Logarithm.
+    in terms of second order cones. The approximation uses a numerical quadrature scheme
+    described in https://arxiv.org/abs/1705.00812.
 
     Parameters
     ----------
@@ -185,17 +181,18 @@ class RelEntrConeQuad(Cone):
         y in the (approximate) scalar relative entropy cone
     z : Expression
         z in the (approximate) scalar relative entropy cone
-    m: Parameter directly related to the number of generated nodes for the quadrature
-    approximation used in the algorithm
-    k: Another parameter controlling the approximation
+    m : int
+        Number of quadrature points in the approximation.
+    k: int
+        Number of scaling points in the approximation.
     """
 
     def __init__(self, x: Expression, y: Expression, z: Expression,
                  m: int, k: int, constr_id=None) -> None:
         Expression = cvxtypes.expression()
-        self.x = Expression.cast_to_const(x)
-        self.y = Expression.cast_to_const(y)
-        self.z = Expression.cast_to_const(z)
+        self.x = Expression.cast(x)
+        self.y = Expression.cast(y)
+        self.z = Expression.cast(z)
         args = [self.x, self.y, self.z]
         for val in args:
             if not (val.is_affine() and val.is_real()):
@@ -281,17 +278,15 @@ class RelEntrConeQuad(Cone):
 
 
 class OpRelEntrConeQuad(Cone):
-    """An approximate construction of the operator relative entropy cone
-
-    Definition:
+    """An approximate construction of the operator relative entropy cone,
 
     .. math::
 
-        K_{re}^n=\\text{cl}\\{(X,Y,T)\\in\\mathbb{H}^n_{++}\\times
-                \\mathbb{H}^n_{++}\\times\\mathbb{H}^n_{++}\\:D_{\\text{op}}\\succeq T\\}
+        K_{re}^n = \\text{cl}\\{(X,Y,T)\\in\\mathbb{H}^n_{++}\\times
+                \\mathbb{H}^n_{++}\\times\\mathbb{H}^n_{++}\\:D_{\\text{op}}(X,Y) \\succeq T\\}.
 
-    More details on the approximation can be found in Theorem-3 on page-10 in the paper:
-    Semidefinite Approximations of the Matrix Logarithm.
+    Details on the approximation can be found in Theorem-3 on page-10 of
+    https://arxiv.org/abs/1705.00812.
 
     Parameters
     ----------
@@ -317,9 +312,9 @@ class OpRelEntrConeQuad(Cone):
     def __init__(self, X: Expression, Y: Expression, Z: Expression,
                  m: int, k: int, constr_id=None) -> None:
         Expression = cvxtypes.expression()
-        self.X = Expression.cast_to_const(X)
-        self.Y = Expression.cast_to_const(Y)
-        self.Z = Expression.cast_to_const(Z)
+        self.X = Expression.cast(X)
+        self.Y = Expression.cast(Y)
+        self.Z = Expression.cast(Z)
         if (not X.is_hermitian()) or (not Y.is_hermitian()) or (not Z.is_hermitian()):
             msg = ("One of the input matrices has not explicitly been declared as symmetric or"
                    "Hermitian. If the inputs are Variable objects, try declaring them with the"
