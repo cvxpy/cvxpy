@@ -25,32 +25,36 @@ from cvxpy.constraints.constraint import Constraint
 
 class von_neumann_entr(Atom):
     """
-    Computes the Von Neumann Entropy of the positive-definite matrix
-    :math:`X\\in\\mathbb{S}^n_{+}`
+    Represents the von Neumann Entropy of the positive-definite matrix :math:`X,`
 
         .. math::
-            -\\operatorname{tr}(X \\operatorname{logm}(X))
+            -\\operatorname{tr}(X \\log X).
 
-    where :math:`\\operatorname{tr}` is the trace and
-    :math:`\\operatorname{logm}` is the matrix logarithm
-
-    | May alternatively be expressed as:
+    Mathematically, this is equivalent to
 
         .. math::
             \\texttt{von_neumann_entr}(X) = -\\textstyle\\sum_{i=1}^n \\lambda_i \\log \\lambda_i
 
-    | where :math:`\\lambda_{i}` are the eigenvalues of :math:`X`
-    This atom does not enforce :math:`\\operatorname{tr}(X) = 1`
-    as is expected in applications from quantum mechanics.
+    where :math:`\\lambda_{i}` are the eigenvalues of :math:`X.`
 
     Parameters
     ----------
     X : Expression or numeric
         A PSD matrix
+
+    quad_approx : Tuple[int,...]
+        This is either an empty tuple (default) or a 2-tuple. If a 2-tuple, then this atom is approximately
+        canonicalized. The approximations replace ExpCone constraints with SOC constraints based on a
+        numerical quadrature scheme from https://arxiv.org/abs/1705.00812; quad_approx[0] is the number of
+        quadrature nodes and quad_approx[1] is the number of scaling points in the quadrature scheme.
+
+    Notes
+    -----
+    This function does not assume :math:`\\operatorname{tr}(X)=1,` which would be required
+    for most uses of this function in the context of quantum information theory. 
     """
 
-    def __init__(self, X, quad_approx: Tuple[int, int] = ()) -> None:
-        # TODO: add a check that N is symmetric/Hermitian.
+    def __init__(self, X, quad_approx: Tuple[int, ...] = ()) -> None:
         self.quad_approx = quad_approx
         super(von_neumann_entr, self).__init__(X)
 
@@ -63,10 +67,14 @@ class von_neumann_entr(Atom):
         return val
 
     def validate_arguments(self) -> None:
-        """Verify that the argument is a square matrix."""
-        if not self.args[0].ndim == 2 or self.args[0].shape[0] != self.args[0].shape[1]:
+        """Verify that the argument is Hermitian."""
+        if not self.args[0].is_hermitian():
             raise ValueError(
-                f"The argument {self.args[0].name()} to von_neumann_entr must be a 2-d square array"
+                f"""
+                The argument {self.args[0].name()} to von_neumann_entr must be a Hermitian matrix.
+                If you know for a fact that the input is Hermitian, wrap it with the hermitian_wrap
+                atom before calling von_neumann_entr.
+                """
             )
         
     def sign_from_args(self) -> Tuple[bool, bool]:
@@ -118,7 +126,7 @@ class von_neumann_entr(Atom):
         # derivative = 2*(L + L * logm(np.dot(L.T, L)))
         # TODO: have to wrap derivative around scipy CSC sparse matrices
         #  compare to log_det atom.
-        raise ValueError()
+        raise NotImplementedError()
 
     def _domain(self) -> List[Constraint]:
         """Returns constraints describing the domain of the node.
