@@ -101,6 +101,7 @@ from cvxpy.settings import (
     USER_LIMIT as USER_LIMIT,
     XPRESS as XPRESS,
     HIGHS as HIGHS,
+    IPOPT as IPOPT,
     get_num_threads as get_num_threads,
     set_num_threads as set_num_threads,
 )

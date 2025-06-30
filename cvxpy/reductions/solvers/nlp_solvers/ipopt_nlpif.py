@@ -111,7 +111,7 @@ class IPOPT(NLPsolver):
         return CITATION_DICT["IPOPT"]
 
     class Oracles():
-        def __init__(self, problem: cp.Problem):
+        def __init__(self, problem):
             self.problem = problem
             self.main_var = []
             for var in self.problem.variables():
@@ -221,7 +221,7 @@ class IPOPT(NLPsolver):
                 return jacobian_matrix.detach().numpy()
 
     class Bounds():
-        def __init__(self, problem: cp.Problem):
+        def __init__(self, problem):
             self.problem = problem
             self.main_var = problem.variables()
             self.get_constraint_bounds()

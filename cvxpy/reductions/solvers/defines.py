@@ -53,6 +53,7 @@ from cvxpy.reductions.solvers.qp_solvers.highs_qpif import HIGHS as HIGHS_qp
 from cvxpy.reductions.solvers.qp_solvers.mpax_qpif import MPAX as MPAX_qp
 from cvxpy.reductions.solvers.qp_solvers.osqp_qpif import OSQP as OSQP_qp
 from cvxpy.reductions.solvers.qp_solvers.piqp_qpif import PIQP as PIQP_qp
+from cvxpy.reductions.solvers.nlp_solvers.ipopt_nlpif import IPOPT as IPOPT_nlp
 from cvxpy.reductions.solvers.qp_solvers.proxqp_qpif import PROXQP as PROXQP_qp
 from cvxpy.reductions.solvers.qp_solvers.xpress_qpif import XPRESS as XPRESS_qp
 from cvxpy.utilities.versioning import Version
@@ -74,9 +75,11 @@ solver_qp_intf = [OSQP_qp(),
                   HIGHS_qp(),
                   MPAX_qp(),
                   ]
+solver_nlp_intf = [IPOPT_nlp()]
 
 SOLVER_MAP_CONIC = {solver.name(): solver for solver in solver_conic_intf}
 SOLVER_MAP_QP = {solver.name(): solver for solver in solver_qp_intf}
+SOLVER_MAP_NLP = {solver.name(): solver for solver in solver_nlp_intf}
 
 # CONIC_SOLVERS and QP_SOLVERS are sorted in order of decreasing solver
 # preference. QP_SOLVERS are those for which we have written interfaces
@@ -96,6 +99,7 @@ QP_SOLVERS = [s.OSQP,
               s.PROXQP,
               s.DAQP,
               s.MPAX]
+NLP_SOLVERS = [s.IPOPT]
 DISREGARD_CLARABEL_SDP_SUPPORT_FOR_DEFAULT_RESOLUTION = True
 MI_SOLVERS = [s.GLPK_MI, s.MOSEK, s.GUROBI, s.CPLEX,
               s.XPRESS, s.CBC, s.SCIP, s.HIGHS, s.COPT, s.ECOS_BB]
@@ -117,6 +121,10 @@ def installed_solvers():
             installed.append(name)
     # Check QP solvers
     for name, solver in SOLVER_MAP_QP.items():
+        if solver.is_installed():
+            installed.append(name)
+    # Check NLP solvers
+    for name, solver in SOLVER_MAP_NLP.items():
         if solver.is_installed():
             installed.append(name)
 
