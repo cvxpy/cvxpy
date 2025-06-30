@@ -1,4 +1,4 @@
-from typing import Literal
+from typing import Literal, Tuple
 
 import numpy as np
 
@@ -7,16 +7,18 @@ from cvxpy.atoms.affine.partial_trace import partial_trace
 from cvxpy.atoms.affine.wraps import hermitian_wrap
 from cvxpy.atoms.quantum_rel_entr import quantum_rel_entr
 from cvxpy.expressions.expression import Expression
-from typing import Tuple
 
 
-def quantum_cond_entr(rho: Expression , dims: Tuple[int, int], sys: Literal[0, 1] = 0, quad_approx=(3, 3)):
+def quantum_cond_entr(
+        rho: Expression , dims: Tuple[int, int], sys: Literal[0, 1] = 0, quad_approx=(3, 3)
+    ):
     """
-    Returns (an approximation of) the quantum conditional entropy for a bipartite state, conditioning on
-    system :math:`\\texttt{sys}.`
+    Returns (an approximation of) the quantum conditional entropy for a bipartite state,
+    conditioning on system :math:`\\texttt{sys}.`
 
-    Formally, if :math:`N` is the von Neumann entropy function and :math:`\\operatorname{tr}_{\\texttt{sys}}`
-    is the partial trace operator over subsystem :math:`\\texttt{sys},` the returned expression represents
+    Formally, if :math:`N` is the von Neumann entropy function and
+    :math:`\\operatorname{tr}_{\\texttt{sys}}` is the partial trace operator over subsystem
+    :math:`\\texttt{sys},` the returned expression represents
 
     .. math::
         N(\\rho) - N(\\operatorname{tr}_{\\texttt{sys}}(\\rho)).
@@ -24,7 +26,7 @@ def quantum_cond_entr(rho: Expression , dims: Tuple[int, int], sys: Literal[0, 1
     Parameters
     ----------
     rho : Expression
-        A Hermitian matrix of order :math:`\\texttt{dims[0]}\cdot\\texttt{dims[1]}.`
+        A Hermitian matrix of order :math:`\\texttt{dims[0]}\\cdot\\texttt{dims[1]}.`
 
     dims : tuple
         The dimensions of the two subsystems that definte :math:`\\rho` as a bipartite state.

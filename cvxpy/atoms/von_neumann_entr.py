@@ -43,10 +43,11 @@ class von_neumann_entr(Atom):
         A PSD matrix
 
     quad_approx : Tuple[int,...]
-        This is either an empty tuple (default) or a 2-tuple. If a 2-tuple, then this atom is approximately
-        canonicalized. The approximations replace ExpCone constraints with SOC constraints based on a
-        numerical quadrature scheme from https://arxiv.org/abs/1705.00812; quad_approx[0] is the number of
-        quadrature nodes and quad_approx[1] is the number of scaling points in the quadrature scheme.
+        This is either an empty tuple (default) or a 2-tuple. If a 2-tuple, then this atom
+        is approximately canonicalized. The approximations replace ExpCone constraints with SOC
+        constraints based on a quadrature scheme from https://arxiv.org/abs/1705.00812;
+        quad_approx[0] is the number of quadrature nodes and quad_approx[1] is the number of
+        scaling points in the quadrature scheme.
 
     Notes
     -----
