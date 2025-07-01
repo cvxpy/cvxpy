@@ -17,7 +17,6 @@ limitations under the License.
 import numpy as np
 import torch
 
-import cvxpy as cp
 import cvxpy.settings as s
 from cvxpy.constraints import (
     Equality,

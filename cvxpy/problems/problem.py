@@ -629,7 +629,8 @@ class Problem(u.Canonical):
         ignore_dpp: bool = False,
         verbose: bool = False,
         canon_backend: str | None = None,
-        solver_opts: Optional[dict] = None
+        solver_opts: Optional[dict] = None,
+        nlp: bool = False
     ):
         """Returns the problem data used in the call to the solver.
 
@@ -757,7 +758,8 @@ class Problem(u.Canonical):
                 enforce_dpp=enforce_dpp,
                 ignore_dpp=ignore_dpp,
                 canon_backend=canon_backend,
-                solver_opts=solver_opts)
+                solver_opts=solver_opts,
+                nlp=nlp)
             self._cache.key = key
             self._cache.solving_chain = solving_chain
             self._solver_cache = {}
@@ -969,7 +971,8 @@ class Problem(u.Canonical):
             enforce_dpp: bool = False,
             ignore_dpp: bool = False,
             canon_backend: str | None = None,
-            solver_opts: Optional[dict] = None
+            solver_opts: Optional[dict] = None,
+            nlp: bool = False
     ) -> SolvingChain:
         """
         Construct the chains required to reformulate and solve the problem.
@@ -1011,7 +1014,8 @@ class Problem(u.Canonical):
                                        ignore_dpp=ignore_dpp,
                                        canon_backend=canon_backend,
                                        solver_opts=solver_opts,
-                                       specified_solver=solver)
+                                       specified_solver=solver,
+                                       nlp=nlp)
 
     @staticmethod
     def _sort_candidate_solvers(solvers) -> None:
@@ -1052,6 +1056,7 @@ class Problem(u.Canonical):
                enforce_dpp: bool = False,
                ignore_dpp: bool = False,
                canon_backend: str | None = None,
+               nlp: bool = False,
                **kwargs):
         """Solves a DCP compliant optimization problem.
 
@@ -1189,7 +1194,7 @@ class Problem(u.Canonical):
                 return self.value
 
         data, solving_chain, inverse_data = self.get_problem_data(
-            solver, gp, enforce_dpp, ignore_dpp, verbose, canon_backend, kwargs
+            solver, gp, enforce_dpp, ignore_dpp, verbose, canon_backend, kwargs, nlp
         )
 
         if verbose:

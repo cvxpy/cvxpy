@@ -109,6 +109,7 @@ class Expr2smooth(Canonicalization):
 
         return expr.copy(args), []
 
+"""
 def example_max():
     # Define variables
     x = cp.Variable(1)
@@ -157,3 +158,4 @@ def example_pnorm_odd():
 prob = example_sqrt()
 new_problem, inverse = Expr2smooth(prob).apply(prob)
 print(new_problem)
+"""
