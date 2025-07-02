@@ -15,7 +15,6 @@ limitations under the License.
 """
 
 import cvxpy.settings as s
-from cvxpy.constraints import PSD, SOC, ExpCone, NonNeg, PowCone3D, Zero
 from cvxpy.reductions.solvers.solver import Solver
 
 

@@ -10,5 +10,6 @@ constraints = [x - 14 == 0, y - 6 == 0]
 
 problem = cp.Problem(objective, constraints)
 print(cp.installed_solvers())
-problem.solve(solver=cp.CLARABEL)
-#problem.solve(solver=cp.IPOPT, nlp=True)
+#problem.solve(solver=cp.CLARABEL, verbose=True)
+problem.solve(solver=cp.IPOPT, nlp=True, verbose=True)
+print(x.value, y.value)
