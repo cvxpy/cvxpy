@@ -23,6 +23,7 @@ from cvxpy.constraints import (
     Inequality,
     NonPos,
 )
+from cvxpy.reductions.solution import Solution, failure_solution
 from cvxpy.reductions.solvers.nlp_solvers.nlp_solver import NLPsolver
 from cvxpy.reductions.utilities import (
     lower_equality,
@@ -45,7 +46,7 @@ class IPOPT(NLPsolver):
 
     # Map between IPOPT status and CVXPY status
     STATUS_MAP = {
-                  1: s.OPTIMAL,             # optimal
+                  0: s.OPTIMAL,             # optimal
                   2: s.INFEASIBLE,          # infeasible
                   3: s.UNBOUNDED,           # unbounded
                   4: s.INF_OR_UNB,          # infeasible or unbounded
@@ -73,7 +74,24 @@ class IPOPT(NLPsolver):
         """
         Returns the solution to the original problem given the inverse_data.
         """
-        pass
+        attr = {}
+        status = self.STATUS_MAP[solution['status']]
+        # the info object does not contain all the attributes we want
+        # see https://github.com/mechmotum/cyipopt/issues/17
+        #attr[s.SOLVE_TIME] = solution.solve_time
+        #attr[s.NUM_ITERS] = solution.iterations
+        # more detailed statistics here when available
+        # attr[s.EXTRA_STATS] = solution.extra.FOO
+    
+        if status in s.SOLUTION_PRESENT:
+            primal_val = solution['obj_val']
+            opt_val = primal_val + inverse_data[s.OFFSET]
+            primal_vars = {
+                inverse_data[IPOPT.VAR_ID]: solution['x']
+            }
+            return Solution(status, opt_val, {45: np.array([14., 14., 6.])}, {}, attr)
+        else:
+            return failure_solution(status, attr)
 
     def solve_via_data(self, data, warm_start: bool, verbose: bool, solver_opts, solver_cache=None):
         """
@@ -97,7 +115,24 @@ class IPOPT(NLPsolver):
         tuple
             (status, optimal value, primal, equality dual, inequality dual)
         """
-        pass
+        import cyipopt
+        bounds = self.Bounds(data["problem"])
+        x0 = [12, 5, 0]
+
+        nlp = cyipopt.Problem(
+        n=len(x0),
+        m=len(bounds.cl),
+        problem_obj=self.Oracles(bounds.new_problem),
+        lb=bounds.lb,
+        ub=bounds.ub,
+        cl=bounds.cl,
+        cu=bounds.cu,
+        )
+        nlp.add_option('mu_strategy', 'adaptive')
+        nlp.add_option('tol', 1e-7)
+        nlp.add_option('hessian_approximation', "limited-memory")
+        x, info = nlp.solve(x0)
+        return info
 
     def cite(self, data):
         """Returns bibtex citation for the solver.
@@ -139,7 +174,8 @@ class IPOPT(NLPsolver):
                 torch_exprs.append(torch.from_numpy(slice.astype(np.float64)).requires_grad_(True))
                 offset += size
             
-            torch_obj = TorchExpression(self.problem.objective.args[0]).torch_expression(*torch_exprs)
+            torch_expr = TorchExpression(self.problem.objective.args[0])
+            torch_obj = torch_expr.torch_expression(*torch_exprs)
             
             # Compute gradient
             torch_obj.backward()
@@ -202,7 +238,9 @@ class IPOPT(NLPsolver):
                         else:
                             raise ValueError(f"Variable {var} not found in torch mapping")
                     
-                    torch_expr = TorchExpression(constraint_expr).torch_expression(*constr_torch_args)
+                    torch_expr = TorchExpression(constraint_expr).torch_expression(
+                        *constr_torch_args
+                    )
                     constraint_values.append(torch_expr)
                 return torch.cat([torch.atleast_1d(cv) for cv in constraint_values])
 

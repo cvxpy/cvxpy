@@ -16,7 +16,6 @@ limitations under the License.
 
 from typing import Tuple
 
-import cvxpy as cp
 from cvxpy import problems
 from cvxpy.expressions.expression import Expression
 from cvxpy.reductions.canonicalization import Canonicalization

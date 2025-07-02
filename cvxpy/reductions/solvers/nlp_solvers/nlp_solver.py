@@ -14,7 +14,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from cvxpy.constraints import NonNeg, Zero
+import cvxpy.settings as s
+from cvxpy.constraints import PSD, SOC, ExpCone, NonNeg, PowCone3D, Zero
 from cvxpy.reductions.solvers.solver import Solver
 
 
@@ -42,4 +43,14 @@ class NLPsolver(Solver):
                           x^l <= x <= x^u
         where f and g are non-linear (and possibly non-convex) functions
         """
-        pass
+        problem, data, inv_data = self._prepare_data_and_inv_data(problem)
+
+        return data, inv_data
+
+    def _prepare_data_and_inv_data(self, problem):
+        data = {}
+        inv_data = {self.VAR_ID: 0}
+        data["problem"] = problem
+
+        inv_data[s.OFFSET] = 0.0
+        return problem, data, inv_data
