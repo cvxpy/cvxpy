@@ -11,7 +11,7 @@ from cvxpy.atoms.affine.wraps import hermitian_wrap
 from cvxpy.tests import solver_test_helpers as STH
 
 
-def applychan(chan: np.array, rho: cp.Variable, rep: str, dim: tuple[int, int]):
+def applychan(chan: np.ndarray, rho: cp.Variable, rep: str, dim: tuple[int, int]):
     dimA, dimB, dimE = None, None, None
     if rep == 'choi2':
         dimA, dimB = dim
@@ -25,14 +25,6 @@ def applychan(chan: np.array, rho: cp.Variable, rep: str, dim: tuple[int, int]):
         rho_out = partial_trace(chan @ rho @ chan.conj().T, [dimB, dimE], 1)
         return rho_out
 
-def randH(n: int):
-    A = np.random.randn(n, n) + 1j * np.random.randn(n, n)
-    return (A + A.conj().T)/2
-
-def randRho(n: int):
-    p = 10 * randH(n)
-    p = (p @ p.conj().T)/np.trace(p @ p.conj().T)
-    return p
 
 class TestQuantumRelEntr:
     """
