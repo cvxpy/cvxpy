@@ -612,7 +612,6 @@ Here is the complete list of solver options.
     ``'alpha'``
         relaxation parameter (default: 1.8).
 
-
     ``'acceleration_lookback'``
         Anderson Acceleration parameter for SCS 2.0 and higher. This can be any positive or negative integer;
         its default value is 10. See `this page of the SCS documentation <https://www.cvxgrp.org/scs/algorithm/acceleration.html#in-scs>`_
@@ -630,8 +629,12 @@ Here is the complete list of solver options.
     ``'normalize'``
         whether to precondition data matrices (default: True).
 
+    ``'cudss'``
+        whether to use the cuDSS solver that runs on a GPU (default: False).
+        Must be used with an SCS build that links cuDSS.
+
     ``'use_indirect'``
-        whether to use indirect solver for KKT sytem (instead of direct) (default: True).
+        whether to use indirect solver for KKT sytem (instead of direct) (default: False).
 
     ``'use_quad_obj'``
         whether to use a quadratic objective or reduce it to SOC constraints (default: True).
