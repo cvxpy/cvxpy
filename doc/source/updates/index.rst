@@ -37,14 +37,6 @@ migration guide `here <https://docs.scipy.org/doc/scipy/reference/sparse.migrati
 CVXPY 1.7 supports the new sparse array API but continues to support the sparse matrix API
 for backwards compatibility. 
 
-cvxpy-base standard distribution
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-In this release, we have addressed a long-standing concern that our two libraries cvxpy and cvxpy-base  were incompatible. 
-To address this, we have migrated cvxpy to a virtual package that depends on cvxpy-base and our default solvers. 
-Users should see no change when upgrading, but now have the option of depending on only cvxpy-base and the solvers
-they use without causing issues if they add a library dependent on cvxpy.
-
 New features
 ~~~~~~~~~~~~
 - :ref:`Multiple attributes <multiple-attributes>` for variables and parameters
