@@ -1,7 +1,3 @@
-[build-system]
-requires = ["setuptools"]
-build-backend = "setuptools.build_meta"
-
 [project]
 name = "cvxpy"
 description = "A domain-specific language for modeling convex optimization problems in Python, meta-package including solvers."
@@ -19,6 +15,13 @@ authors = [{name = "Steven Diamond", email = "stevend2@stanford.edu"},
            {name = "Eric Chu", email = "echu508@stanford.edu"},
            {name = "Stephen Boyd", email = "boyd@stanford.edu"}]
 dynamic = ["version"]
+
+[build-system]
+requires = ["setuptools>=64", "setuptools-scm>=8"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools_scm]
+root = ".."
 
 [project.optional-dependencies]
 # Solver names as in cvxpy.settings = pip-installable distribution providing it
