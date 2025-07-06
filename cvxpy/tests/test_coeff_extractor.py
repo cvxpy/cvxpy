@@ -185,7 +185,7 @@ def test_coeff_extractor(coeff_extractor):
     assert np.allclose(P.row, np.array([0, 1, 0, 1]))
     assert np.allclose(P.col, np.array([0, 1, 0, 1]))
     assert P.shape == (2, 2)
-    assert np.allclose(P.parameter_offset, np.array([0, 0, 1, 1]))
+    assert np.allclose(P.parameter_slices, np.array([0, 0, 1, 1]))
     assert np.allclose(constant.toarray(), np.zeros((3)))
 
 

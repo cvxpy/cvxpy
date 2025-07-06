@@ -4,7 +4,50 @@ Changes to CVXPY
 ================
 
 This page details changes made to CVXPY over time, in reverse chronological order.
-CVXPY's project maintainers currently provide support for CVXPY 1.6.
+CVXPY's project maintainers currently provide support for CVXPY 1.7.
+
+CVXPY 1.7
+---------
+
+This release is consistent with our semantic versioning guarantee. It
+comes packed with many new features, bug fixes, and performance improvements.
+This version of CVXPY supports Python 3.10 through 3.13. While working on the next release,
+we continue to officially support CVXPY 1.6.
+
+New GPU solvers
+~~~~~~~~~~~~~~~
+
+CVXPY begins supporting GPU solvers in this release. 
+The following solvers are supported:
+
+- `MPAX <https://github.com/MIT-Lu-Lab/MPAX>`_
+- `cuOpt <https://github.com/NVIDIA/cuopt>`_
+- `CuClarabel <https://github.com/cvxgrp/CuClarabel>`_
+- `SCS, with the cuDSS backend <https://github.com/bodono/scs-python/pull/136>`_
+
+MPAX runs on a GPU device specified by the JAX environment. MPAX, cuOpt, and CuClarabel
+are new solver interfaces that can be used with CVXPY. SCS has a new backend based on
+`cuDSS <https://developer.nvidia.com/cudss>`_ that can be used through the existing SCS interface.
+
+Sparse array support
+~~~~~~~~~~~~~~~~~~~~
+
+SciPy is deprecating the sparse matrix API in favor of sparse arrays. See the 
+migration guide `here <https://docs.scipy.org/doc/scipy/reference/sparse.migration_to_sparray.html#migration-to-sparray>`_.
+CVXPY 1.7 supports the new sparse array API but continues to support the sparse matrix API
+for backwards compatibility. 
+
+New features
+~~~~~~~~~~~~
+- :ref:`Multiple attributes <multiple-attributes>` for variables and parameters
+- New `QOCO <https://qoco-org.github.io/qoco/>`_ solver interface
+- New atom: :ref:`broadcast_to <broadcast_to>`
+- New atom: :ref:`transpose(expr, axes) <transpose>`
+- New atom: :ref:`swapaxes <swapaxes>`
+- New atom: :ref:`moveaxis <moveaxis>`
+- New atom: :ref:`permute_dims <permute_dims>`
+- Add warm-start support for `HiGHS <https://ergo-code.github.io/HiGHS/dev/interfaces/python/>`_ (LP and MIP)
+- Add warm-start support for `PIQP <https://predict-epfl.github.io/piqp/interfaces/python/installation>`_
 
 CVXPY 1.6.1
 -----------
@@ -29,7 +72,6 @@ Bug fixes
   incorrect answers.
 - The implementation of sparse variables did not allow for maximal efficiency gains. This can now be
   addressed with the `value_sparse` attribute.
-
 
 CVXPY 1.6
 ---------
