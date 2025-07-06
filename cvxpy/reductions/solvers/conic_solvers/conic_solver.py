@@ -267,10 +267,6 @@ class ConicSolver(Solver):
             reshaped_A = problem.A.reshape(restruct_mat.shape[1],
                                            unspecified, order='F').tocsr()
             restructured_A = restruct_mat(reshaped_A).tocoo()
-            # Because of a bug in scipy versions <  1.20, `reshape`
-            # can overflow if indices are int32s.
-            restructured_A.row = restructured_A.row.astype(np.int64)
-            restructured_A.col = restructured_A.col.astype(np.int64)
             restructured_A = restructured_A.reshape(
                 np.int64(restruct_mat.shape[0]) * (np.int64(problem.x.size) + 1),
                 problem.A.shape[1], order='F')
