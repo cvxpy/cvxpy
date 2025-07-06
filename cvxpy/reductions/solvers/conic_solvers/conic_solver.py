@@ -271,9 +271,6 @@ class ConicSolver(Solver):
             # can overflow if indices are int32s.
             restructured_A.row = restructured_A.row.astype(np.int64)
             restructured_A.col = restructured_A.col.astype(np.int64)
-            restructured_A = restructured_A.reshape(
-                np.int64(restruct_mat.shape[0]) * (np.int64(problem.x.size) + 1),
-                problem.A.shape[1], order='F')
         else:
             restructured_A = problem.A
         new_param_cone_prog = ParamConeProg(

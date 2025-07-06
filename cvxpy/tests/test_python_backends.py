@@ -41,10 +41,13 @@ def test_tensor_representation():
     assert np.all(combined.data == np.array([10, 20]))
     assert np.all(combined.row == np.array([0, 1]))
     assert np.all(combined.col == np.array([1, 1]))
-    assert np.all(combined.parameter_offset == np.array([0, 1]))
+    assert np.all(combined.parameter_slices == np.array([0, 1]))
     assert combined.shape == (2, 2)
     flattened = combined.flatten_tensor(2)
-    assert np.all(flattened.toarray() == np.array([[0, 0], [0, 0], [10, 0], [0, 20]]))
+    assert np.all(
+        flattened.toarray()
+        == np.array([[0, 0], [0, 0], [10, 0], [0, 20]]).reshape(2, 2, 2, order='F')
+    )
 
 
 class TestBackendInstance:

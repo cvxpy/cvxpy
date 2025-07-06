@@ -46,40 +46,40 @@ class Constant(Enum):
 class TensorRepresentation:
     """
     Sparse representation of a 3D Tensor. Semantically similar to COO format, with one extra
-    dimension. Here, 'row' is axis 0, 'col' axis 1, and 'parameter_offset' axis 2.
+    dimension. Here, 'row' is axis 0, 'col' axis 1, and 'parameter_slices' axis 2.
     """
     data: np.ndarray
     row: np.ndarray
     col: np.ndarray
-    parameter_offset: np.ndarray
-    shape: tuple[int, int]  # (rows, cols)
+    parameter_slices: np.ndarray
+    shape: tuple[int, int, int]  # (rows, cols, parameter_slices)
 
     def __post_init__(self):
-        assert self.data.shape == self.row.shape == self.col.shape == self.parameter_offset.shape
+        assert self.data.shape == self.row.shape == self.col.shape == self.parameter_slices.shape
 
     @classmethod
     def combine(cls, tensors: list[TensorRepresentation]) -> TensorRepresentation:
         """
-        Concatenates the row, col, parameter_offset, and data fields of a list of
+        Concatenates the row, col, parameter_slices, and data fields of a list of
         TensorRepresentations.
         """
-        data, row, col, parameter_offset = np.array([]), np.array([]), np.array([]), np.array([])
+        data, row, col, parameter_slices = np.array([]), np.array([]), np.array([]), np.array([])
         # Appending to numpy arrays vs. appending to lists and casting to array at the end was
         # faster for relevant dimensions in our testing.
         for t in tensors:
             data = np.append(data, t.data)
             row = np.append(row, t.row)
             col = np.append(col, t.col)
-            parameter_offset = np.append(parameter_offset, t.parameter_offset)
+            parameter_slices = np.append(parameter_slices, t.parameter_slices)
         assert all(t.shape == tensors[0].shape for t in tensors)
-        return cls(data, row, col, parameter_offset, tensors[0].shape)
+        return cls(data, row, col, parameter_slices, tensors[0].shape)
 
     def __eq__(self, other: TensorRepresentation) -> bool:
         return isinstance(other, TensorRepresentation) and \
             np.all(self.data == other.data) and \
             np.all(self.row == other.row) and \
             np.all(self.col == other.col) and \
-            np.all(self.parameter_offset == other.parameter_offset) and \
+            np.all(self.parameter_slices == other.parameter_slices) and \
             self.shape == other.shape
 
     def __add__(self, other: TensorRepresentation) -> TensorRepresentation:
@@ -89,12 +89,12 @@ class TensorRepresentation:
             np.concatenate([self.data, other.data]),
             np.concatenate([self.row, other.row]),
             np.concatenate([self.col, other.col]),
-            np.concatenate([self.parameter_offset, other.parameter_offset]),
+            np.concatenate([self.parameter_slices, other.parameter_slices]),
             self.shape
         )
 
     @classmethod
-    def empty_with_shape(cls, shape: tuple[int, int]) -> TensorRepresentation:
+    def empty_with_shape(cls, shape: tuple[int, int, int]) -> TensorRepresentation:
         return cls(
             np.array([], dtype=float),
             np.array([], dtype=int),
@@ -105,18 +105,21 @@ class TensorRepresentation:
 
     def flatten_tensor(self, num_param_slices: int) -> sp.csc_array:
         """
-        Flatten into 2D scipy csc-matrix in column-major order and transpose.
+        Returns the 3d sparse tensor
         """
-        rows = (self.col.astype(np.int64) * np.int64(self.shape[0]) + self.row.astype(np.int64))
-        cols = self.parameter_offset.astype(np.int64)
-        shape = (np.prod(self.shape, dtype=np.int64), num_param_slices)
-        return sp.csc_array((self.data, (rows, cols)), shape=shape)
+        shape = self.shape + (num_param_slices,) if num_param_slices > 0 else self.shape
+        # Convert shape to integer if its a float
+        shape = tuple(int(dim) for dim in shape)
+        return sp.coo_array(
+            (self.data, (self.row, self.col, self.parameter_slices)),
+            shape=shape
+        )
 
     def get_param_slice(self, param_offset: int) -> sp.csc_array:
         """
         Returns a single slice of the tensor for a given parameter offset.
         """
-        mask = self.parameter_offset == param_offset
+        mask = self.parameter_slices == param_offset
         return sp.csc_array((self.data[mask], (self.row[mask], self.col[mask])), self.shape)
 
 

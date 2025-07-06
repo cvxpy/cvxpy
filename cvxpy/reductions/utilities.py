@@ -134,17 +134,8 @@ class ReducedMat:
             return
 
         if self.reduced_mat is None:
-            # Form a reduced representation of the mapping,
-            # for faster application of parameters.
-            if np.prod(self.matrix_data.shape) != 0:
-                reduced_mat, indices, indptr, shape = (
-                    canonInterface.reduce_problem_data_tensor(
-                        self.matrix_data, self.var_len, self.quad_form))
-                self.reduced_mat = reduced_mat
-                self.problem_data_index = (indices, indptr, shape)
-            else:
-                self.reduced_mat = self.matrix_data
-                self.problem_data_index = None
+            self.reduced_mat = self.matrix_data
+            self.problem_data_index = None
 
         if keep_zeros and self.mapping_nonzero is None:
             self.mapping_nonzero = canonInterface.A_mapping_nonzero_rows(
