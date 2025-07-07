@@ -143,6 +143,14 @@ Install with Additional Solver Support
     Simply install MPAX such that you can ``import mpax`` in Python.
     See the `MPAX <https://github.com/MIT-Lu-Lab/MPAX>`_ website for installation instructions.
 
+.. info:: CuClarabel
+   :collapsible:
+
+   CuClarabel is currently only available in the Julia version of Clarabel.
+   To install CuClarabel, install `Julia <https://julialang.org/install/>`_, and then run in a julia terminal ``Pkg.add(Pkg.PackageSpec(url="https://github.com/oxfordcontrol/Clarabel.jl.git", rev="CuClarabel"))``.
+
+   Then install cupy and juliacall such that you can ``import cupy`` and ``import juliacall`` in Python.
+
 .. info:: XPRESS
     :collapsible:
 

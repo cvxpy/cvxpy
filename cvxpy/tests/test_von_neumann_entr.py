@@ -262,8 +262,9 @@ class Test_von_neumann_entr:
         p2_expect = 0.5
         var_pairs = [(p1, p1_expect), (p2, p2_expect)]
 
-        obj = cp.Maximize((cp.von_neumann_entr(p1 * rho1 + p2 * rho2) - p1 * H1 - \
-                           p2 * H2)/np.log(2))
+        vne_arg = cp.hermitian_wrap(p1 * rho1 + p2 * rho2)
+        obj_arg = (cp.von_neumann_entr(vne_arg) - p1 * H1 - p2 * H2)/np.log(2)
+        obj = cp.Maximize(obj_arg)
         obj_expect = 0.60088
         obj_pair = (obj, obj_expect)
 
