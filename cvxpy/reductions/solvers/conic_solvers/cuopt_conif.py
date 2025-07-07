@@ -19,7 +19,6 @@ limitations under the License.
 import numpy as np
 
 import cvxpy.settings as s
-from cvxpy.constraints import NonPos
 from cvxpy.reductions.solution import Solution, failure_solution
 from cvxpy.reductions.solvers import utilities
 from cvxpy.reductions.solvers.conic_solvers.conic_solver import (
@@ -32,13 +31,6 @@ from cvxpy.utilities.citations import CITATION_DICT
 # can have them at module level but not break if cuoopt
 # is not installed
 try:
-    from cuopt.linear_programming.solver.solver_wrapper import (
-        MILPTerminationStatus,
-        LPTerminationStatus,
-        ErrorStatus
-    )
-    from cuopt.linear_programming.solver_settings import PDLPSolverMode
-    from cuopt.linear_programming.solver_settings import SolverSettings
     from cuopt.linear_programming.solver.solver_parameters import (
         CUOPT_ABSOLUTE_DUAL_TOLERANCE,
         CUOPT_ABSOLUTE_GAP_TOLERANCE,
@@ -61,7 +53,13 @@ try:
         CUOPT_RELATIVE_GAP_TOLERANCE,
         CUOPT_RELATIVE_PRIMAL_TOLERANCE,
         CUOPT_TIME_LIMIT,
-        )
+    )
+    from cuopt.linear_programming.solver.solver_wrapper import (
+        ErrorStatus,
+        LPTerminationStatus,
+        MILPTerminationStatus,
+    )
+    from cuopt.linear_programming.solver_settings import PDLPSolverMode, SolverSettings
     cuopt_present = True
 except Exception:
     cuopt_present = False
@@ -224,7 +222,8 @@ class CUOPT(ConicSolver):
 
         # Special handling for the enum value
         if CUOPT_PDLP_SOLVER_MODE in solver_opts:
-            solver_config[CUOPT_PDLP_SOLVER_MODE] = self._solver_mode(solver_opts[CUOPT_PDLP_SOLVER_MODE])
+            solver_config[CUOPT_PDLP_SOLVER_MODE] = self._solver_mode(
+                solver_opts[CUOPT_PDLP_SOLVER_MODE])
 
         # Name collision with "method" in cvxpy
         if "solver_method" in solver_opts:
