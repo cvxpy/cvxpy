@@ -62,7 +62,7 @@ solver_conic_intf = [DIFFCP_con(), ECOS_con(),
                      GLPK_MI_con(), CBC_con(), CLARABEL_con(), SCS_con(), SDPA_con(),
                      GUROBI_con(), MOSEK_con(), CPLEX_con(), NAG_con(), XPRESS_con(),
                      SCIP_con(), SCIPY_con(), HIGHS_con(), GLOP_con(), PDLP_con(),
-                     QOCO_con(), ECOS_BB_con(), CUOPT_con()]
+                     QOCO_con(), CUOPT_con(), ECOS_BB_con()]
 
 solver_qp_intf = [OSQP_qp(),
                   GUROBI_qp(),
@@ -86,7 +86,7 @@ CONIC_SOLVERS = [s.MOSEK, s.CLARABEL, s.SCS, s.ECOS, s.SDPA,
                  s.CPLEX, s.GUROBI, s.COPT, s.GLPK, s.NAG,
                  s.GLPK_MI, s.CBC, s.CVXOPT, s.XPRESS, s.DIFFCP,
                  s.SCIP, s.SCIPY, s.HIGHS, s.GLOP, s.PDLP, s.QOCO, 
-                 s.ECOS_BB, s.CUOPT]
+                 s.CUOPT, s.ECOS_BB]
 QP_SOLVERS = [s.OSQP,
               s.GUROBI,
               s.CPLEX,
@@ -99,7 +99,7 @@ QP_SOLVERS = [s.OSQP,
               s.MPAX]
 DISREGARD_CLARABEL_SDP_SUPPORT_FOR_DEFAULT_RESOLUTION = True
 MI_SOLVERS = [s.GLPK_MI, s.MOSEK, s.GUROBI, s.CPLEX,
-              s.XPRESS, s.CBC, s.SCIP, s.HIGHS, s.COPT, s.ECOS_BB, s.CUOPT]
+              s.XPRESS, s.CBC, s.SCIP, s.HIGHS, s.COPT, s.CUOPT, s.ECOS_BB]
 MI_SOCP_SOLVERS = [s.MOSEK, s.GUROBI, s.CPLEX, s.XPRESS,
                    s.SCIP, s.ECOS_BB]
 

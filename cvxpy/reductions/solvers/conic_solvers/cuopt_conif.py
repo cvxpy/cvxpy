@@ -77,8 +77,9 @@ class CUOPT(ConicSolver):
     """
     # Solver capabilities.
     MIP_CAPABLE = True
-    SUPPORTED_CONSTRAINTS = ConicSolver.SUPPORTED_CONSTRAINTS + [NonPos]
+    SUPPORTED_CONSTRAINTS = ConicSolver.SUPPORTED_CONSTRAINTS
     MI_SUPPORTED_CONSTRAINTS = SUPPORTED_CONSTRAINTS
+    BOUNDED_VARIABLES = True
 
     STATUS_MAP_MIP = {
         MILPTerminationStatus.NoTermination: s.SOLVER_ERROR,
@@ -121,20 +122,6 @@ class CUOPT(ConicSolver):
         if not (self.local_install or self.service_install):
             raise
 
-    def accepts(self, problem) -> bool:
-        """Can cuopt solve the problem?
-        """
-        # TODO check if is matrix stuffed.
-        if not problem.objective.args[0].is_affine():
-            return False
-        for constr in problem.constraints:
-            if type(constr) not in CUOPT.SUPPORTED_CONSTRAINTS:
-                return False
-            for arg in constr.args:
-                if not arg.is_affine():
-                    return False
-        return True
-
     def apply(self, problem):
         """Returns a new problem and data for inverting the new solution.
 
@@ -163,16 +150,12 @@ class CUOPT(ConicSolver):
             if s.EQ_DUAL in solution and inverse_data['lp']:
                 dual_vars = {}
                 if len(inverse_data[self.EQ_CONSTR]) > 0:
-                    #print('solution[s.EQ_DUAL] ', solution[s.EQ_DUAL])
                     eq_dual = utilities.get_dual_values(
                         solution[s.EQ_DUAL],
                         utilities.extract_dual_value,
                         inverse_data[self.EQ_CONSTR])
                     dual_vars.update(eq_dual)
                 if len(inverse_data[self.NEQ_CONSTR]) > 0:
-                    #print('leq')
-                    #print('solution[s.INEQ_DUAL] ', solution[s.INEQ_DUAL])
-                    #print('inverse_data[self.NEQ_CONSTR] ', inverse_data[self.NEQ_CONSTR])
                     leq_dual = utilities.get_dual_values(
                         solution[s.INEQ_DUAL],
                         utilities.extract_dual_value,
@@ -305,10 +288,7 @@ class CUOPT(ConicSolver):
                     print("Warning: use_service ignored since cuopt is not installed locally")
                 use_service = True
 
-        # Using copy=False here would be more efficient, but is anything on the calling side
-        # using data[s.A] after this call?  Or is it okay to change it?
-        csr = data[s.A].tocsr()
-        #csr = data[s.A].tocsr(copy=False)
+        csr = data[s.A].tocsr(copy=False)
 
         num_vars = data['c'].shape[0]
 
@@ -324,8 +304,12 @@ class CUOPT(ConicSolver):
 
         # Initialize variable types and bounds
         variable_types = np.full(num_vars, 'C', dtype='U1')
-        variable_lower_bounds = np.full(num_vars, -np.inf)
-        variable_upper_bounds = np.full(num_vars, np.inf)
+        variable_lower_bounds = data[s.LOWER_BOUNDS]
+        variable_upper_bounds = data[s.UPPER_BOUNDS]
+        if variable_lower_bounds is None:
+            variable_lower_bounds = np.full(num_vars, -np.inf)
+        if variable_upper_bounds is None:
+            variable_upper_bounds = np.full(num_vars, np.inf)
 
         # Change bools to ints and set bounds
         is_mip = data[s.BOOL_IDX] or data[s.INT_IDX]
@@ -333,17 +317,9 @@ class CUOPT(ConicSolver):
             # Set variable types
             variable_types[data[s.BOOL_IDX] + data[s.INT_IDX]] = 'I'
 
-            # Set bounds for bool variables to [0,1]
+            # Make sure bounds for bool variables are [0,1]
             variable_lower_bounds[data[s.BOOL_IDX]] = 0
             variable_upper_bounds[data[s.BOOL_IDX]] = 1
-
-        # Now if we have variable bounds in solver_opts, optionally overwrite lower or upper
-        if "variable_bounds" in solver_opts:
-            vbounds = solver_opts["variable_bounds"]
-            if "lower" in vbounds:
-                variable_lower_bounds = vbounds["lower"]
-            if "upper" in vbounds:
-                variable_upper_bounds = vbounds["upper"]
 
         if use_service:
             d = {}
