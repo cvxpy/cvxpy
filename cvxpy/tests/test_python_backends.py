@@ -1316,7 +1316,7 @@ class TestBackends:
          [0, c],
          [0, d]].
 
-        Thus, we need to to return [0, 1, 4, 5, 2, 3, 6, 7].
+        Thus, we need to return [0, 1, 4, 5, 2, 3, 6, 7].
         """
 
         indices = backend._get_kron_row_indices((2, 1), (2, 2))
