@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from cvxpy.constraints import NonNeg, Zero
+from cvxpy.reductions.inverse_data import InverseData
 from cvxpy.reductions.solvers.solver import Solver
 
 
@@ -22,9 +22,6 @@ class NLPsolver(Solver):
     """
     A non-linear programming (NLP) solver.
     """
-    # Every QP solver supports Zero and NonNeg constraints.
-    SUPPORTED_CONSTRAINTS = [Zero, NonNeg]
-
     # Some solvers cannot solve problems that do not have constraints.
     # For such solvers, REQUIRES_CONSTR should be set to True.
     REQUIRES_CONSTR = False
@@ -45,4 +42,14 @@ class NLPsolver(Solver):
                           x^l <= x <= x^u
         where f and g are non-linear (and possibly non-convex) functions
         """
-        pass
+        problem, data, inv_data = self._prepare_data_and_inv_data(problem)
+
+        return data, inv_data
+
+    def _prepare_data_and_inv_data(self, problem):
+        data = {}
+        inverse_data = InverseData(problem)
+        data["problem"] = problem
+
+        inverse_data.offset = 0.0
+        return problem, data, inverse_data

@@ -517,3 +517,14 @@ CITATION_DICT["MPAX"] = \
   year={2024}
 }
 """
+
+CITATION_DICT["IPOPT"] = \
+"""
+@article{wachter2006implementation,
+  title={On the implementation of a primal-dual interior point filter line search algorithm for
+    large-scale nonlinear programming},
+  author={W{\"a}chter, Andreas and Biegler, Lorenz T},
+  journal={Mathematical Programming},
+  volume={106},
+  }
+"""

@@ -16,12 +16,16 @@ limitations under the License.
 
 from typing import Tuple
 
-import cvxpy as cp
+import numpy as np
+
+import cvxpy.settings as s
 from cvxpy import problems
 from cvxpy.expressions.expression import Expression
+from cvxpy.problems.objective import Minimize
 from cvxpy.reductions.canonicalization import Canonicalization
 from cvxpy.reductions.expr2smooth.canonicalizers import CANON_METHODS as smooth_canon_methods
 from cvxpy.reductions.inverse_data import InverseData
+from cvxpy.reductions.solution import Solution
 
 
 class Expr2smooth(Canonicalization):
@@ -39,10 +43,39 @@ class Expr2smooth(Canonicalization):
         """A problem is always accepted"""
         return True
 
+    def invert(self, solution, inverse_data):       
+        """Retrieves a solution to the original problem"""
+        var_map = inverse_data.var_offsets
+        # Flip sign of opt val if maximize.
+        opt_val = solution.opt_val
+        if solution.status not in s.ERROR and not inverse_data.minimize:
+            opt_val = -solution.opt_val
+
+        primal_vars, dual_vars = {}, {}
+        if solution.status not in s.SOLUTION_PRESENT:
+            return Solution(solution.status, opt_val, primal_vars, dual_vars,
+                            solution.attr)
+
+        # Split vectorized variable into components.
+        x_opt = list(solution.primal_vars.values())[0]
+        for var_id, offset in var_map.items():
+            shape = inverse_data.var_shapes[var_id]
+            size = np.prod(shape, dtype=int)
+            primal_vars[var_id] = np.reshape(x_opt[offset:offset+size], shape,
+                                             order='F')
+
+        solution = super(Expr2smooth, self).invert(solution, inverse_data)
+
+        return Solution(solution.status, opt_val, primal_vars, dual_vars,
+                        solution.attr)
+
+    
     def apply(self, problem):
         """Converts an expr to a smooth program"""
         inverse_data = InverseData(problem)
 
+        inverse_data.minimize = type(problem.objective) == Minimize
+        
         # smoothen objective function
         canon_objective, canon_constraints = self.canonicalize_tree(
             problem.objective, True)
@@ -109,6 +142,7 @@ class Expr2smooth(Canonicalization):
 
         return expr.copy(args), []
 
+"""
 def example_max():
     # Define variables
     x = cp.Variable(1)
@@ -157,3 +191,4 @@ def example_pnorm_odd():
 prob = example_sqrt()
 new_problem, inverse = Expr2smooth(prob).apply(prob)
 print(new_problem)
+"""
