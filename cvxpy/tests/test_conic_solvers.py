@@ -2626,10 +2626,7 @@ class TestCOPT(unittest.TestCase):
 class TestCUOPT(unittest.TestCase):
 
     import os
-    kwargs={"use_service": os.environ.get("CUOPT_USE_SERVICE", False),
-            "service_host":  os.environ.get("CUOPT_SERVICE_HOST", "localhost"),
-            "service_port": os.environ.get("CUOPT_SERVICE_PORT", 5000),
-            "pdlp_solver_mode": os.environ.get("CUOPT_PDLP_SOLVER_MODE", "Stable2"),
+    kwargs={"pdlp_solver_mode": os.environ.get("CUOPT_PDLP_SOLVER_MODE", "Stable2"),
             "solver_method": os.environ.get("CUOPT_SOLVER_METHOD", 0)
             }
 
@@ -2682,15 +2679,10 @@ class TestCUOPT(unittest.TestCase):
         try:
             StandardTestLPs.test_mi_lp_4(solver='CUOPT', **TestCUOPT.kwargs)
         except Exception as e:
-            if TestCUOPT.kwargs["use_service"] in [True, "true", "True"]:
-                assert "zero-size array" in str(e)
-            else:
-                assert "A_offsets must be set" in str(e)
+            assert "A_offsets must be set" in str(e)
 
     def test_cuopt_mi_lp_5(self) -> None:
-        TestCUOPT.kwargs["time_limit"] = 5
-        StandardTestLPs.test_mi_lp_5(solver='CUOPT', **TestCUOPT.kwargs)
-        del TestCUOPT.kwargs["time_limit"]
+        StandardTestLPs.test_mi_lp_5(solver='CUOPT', **TestCUOPT.kwargs, time_limit=5)
 
     def test_cuopt_mi_lp_7(self) -> None:
         StandardTestLPs.test_mi_lp_5(solver='CUOPT', **TestCUOPT.kwargs, time_limit=5)

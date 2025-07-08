@@ -92,12 +92,6 @@ except Exception:
         TimeLimit = 6,
         PrimalFeasible = 7
 
-try:
-    from cuopt_sh_client import CuOptServiceSelfHostClient
-    cuopt_client_present = True
-except Exception:
-    cuopt_client_present = False
-
 class CUOPT(ConicSolver):
     """ An interface to the cuOpt solver
     """
@@ -142,9 +136,7 @@ class CUOPT(ConicSolver):
     def import_solver(self) -> None:
         """Imports the solver.
         """
-        self.local_install = cuopt_present
-        self.service_install = cuopt_client_present
-        if not (self.local_install or self.service_install):
+        if not cuopt_present:
             raise ModuleNotFoundError()
 
     def apply(self, problem):
@@ -241,93 +233,11 @@ class CUOPT(ConicSolver):
                 ss.set_parameter(p, solver_opts[p])
         return ss
 
-    # Returns a dictionary
-    def _get_solver_config(self, solver_opts, mip, verbose):
-
-        def _apply(name, sc, alias=None):
-            if name in solver_opts:
-                if alias is None:
-                    alias = name
-                sc[alias] = solver_opts[name]
-
-        solver_config = {}
-
-        # Always need to map to verbose
-        solver_config[CUOPT_LOG_TO_CONSOLE] = verbose
-
-        # Special handling for the enum value
-        if CUOPT_PDLP_SOLVER_MODE in solver_opts:
-            solver_config[CUOPT_PDLP_SOLVER_MODE] = self._solver_mode(
-                solver_opts[CUOPT_PDLP_SOLVER_MODE])
-
-        # Name collision with "method" in cvxpy
-        if "solver_method" in solver_opts:
-            solver_config[CUOPT_METHOD] = solver_opts["solver_method"]
-
-        for p in [
-                CUOPT_CROSSOVER,
-                CUOPT_INFEASIBILITY_DETECTION,
-                CUOPT_ITERATION_LIMIT,
-                CUOPT_MIP_HEURISTICS_ONLY,
-                CUOPT_MIP_SCALING,
-                CUOPT_NUM_CPU_THREADS,
-                CUOPT_TIME_LIMIT]:
-            _apply(p, solver_config)
-
-        t = {}
-        for name, alias in [
-                (CUOPT_ABSOLUTE_DUAL_TOLERANCE,     "absolue_dual"),
-                (CUOPT_ABSOLUTE_GAP_TOLERANCE,      "absolute_gap"),
-                (CUOPT_ABSOLUTE_PRIMAL_TOLERANCE,   "absolute_primal"),
-                (CUOPT_DUAL_INFEASIBLE_TOLERANCE,   "dual_infeasible"),
-                (CUOPT_PRIMAL_INFEASIBLE_TOLERANCE, "primal_infeasible"),
-                (CUOPT_RELATIVE_DUAL_TOLERANCE,     "relative_dual"),
-                (CUOPT_RELATIVE_GAP_TOLERANCE,      "relative_gap"),
-                (CUOPT_RELATIVE_PRIMAL_TOLERANCE,   "relative_primal"),
-                (CUOPT_MIP_ABSOLUTE_GAP, None),
-                (CUOPT_MIP_INTEGRALITY_TOLERANCE, None),
-                (CUOPT_MIP_RELATIVE_GAP, None),
-                ("optimality", None)]:
-            _apply(name, t, alias)
-
-        solver_config["tolerances"] = t
-        return solver_config
-
-    def _get_client(self, solver_opts):
-        import requests
-
-        # Do a health check based on the service arguments
-        ip = solver_opts.get("service_host", "localhost")
-        port = solver_opts.get("service_port", 5000)
-        scheme = solver_opts.get("service_scheme", "http")
-        try:
-            loc = f"{scheme}://{ip}:{port}"
-            requests.get(f"{loc}/coupt/health")
-        except Exception:
-            print("Error: cuopt service client is installed but cannot "
-                  f"connect to the service at {loc}")
-            raise
-        return CuOptServiceSelfHostClient(ip=ip, port=port)
-
 
     def solve_via_data(self, data, warm_start: bool, verbose: bool, solver_opts, solver_cache=None):
         verbose = verbose or solver_opts.get("solver_verbose", False) in [True,"True","true"]
-
-        use_service = solver_opts.get("use_service", False) in [True,"True","true"]
-        if self.local_install ^ self.service_install:
-            if self.local_install:
-                if use_service:
-                    print("Warning: use_service ignored since cuopt service is not available")
-                use_service = False
-            else:
-                if not use_service:
-                    print("Warning: use_service ignored since cuopt is not installed locally")
-                use_service = True
-
         csr = data[s.A].tocsr(copy=False)
-
         num_vars = data['c'].shape[0]
-
         dims = dims_to_solver_dict(data[s.DIMS])
         leq_start = dims[s.EQ_DIM]
         leq_end = dims[s.EQ_DIM] + dims[s.LEQ_DIM]
@@ -357,80 +267,21 @@ class CUOPT(ConicSolver):
             variable_lower_bounds[data[s.BOOL_IDX]] = 0
             variable_upper_bounds[data[s.BOOL_IDX]] = 1
 
-        if use_service:
-            d = {}
-            d["maximize"] = False
-            d["csr_constraint_matrix"] = {
-                "offsets": csr.indptr.tolist(),
-                "indices": csr.indices.tolist(),
-                "values": csr.data.tolist()
-            }
-            d["objective_data"] = {
-                "coefficients": data['c'].tolist(),
-                "scalability_factor": 1,
-                "offset": 0
-            }
-            d["variable_bounds"] = {
-                "upper_bounds": variable_upper_bounds.tolist(),
-                "lower_bounds": variable_lower_bounds.tolist()
-            }
-            d["constraint_bounds"] = {
-                "upper_bounds": upper_bounds.tolist(),
-                "lower_bounds": lower_bounds.tolist()
-            }
-            d["variable_types"] = variable_types.tolist()
-            d["solver_config"] = self._get_solver_config(solver_opts, is_mip, verbose)
+        from cuopt.linear_programming.data_model import DataModel
+        from cuopt.linear_programming.solver import Solve
 
-            cuopt_service_client = self._get_client(solver_opts)
+        data_model = DataModel()
+        data_model.set_csr_constraint_matrix(csr.data, csr.indices, csr.indptr)
+        data_model.set_objective_coefficients(data['c'])
+        data_model.set_constraint_lower_bounds(lower_bounds)
+        data_model.set_constraint_upper_bounds(upper_bounds)
 
-            # In error case the client will raise an exception here
-            res = cuopt_service_client.get_LP_solve(
-                d, response_type='obj')["response"]["solver_response"]
-            cuopt_result = res["solution"]
+        data_model.set_variable_lower_bounds(variable_lower_bounds)
+        data_model.set_variable_upper_bounds(variable_upper_bounds)
+        data_model.set_variable_types(variable_types)
 
-            # If conversion to an object didn't work, then this means that
-            # we got an infeasible response or similar where expected fields were missing.
-            # Since we only need a subset of the object, build it here.
-            if isinstance(cuopt_result, dict):
-                from cuopt.linear_programming.solution import Solution
-                if is_mip:
-                    pt = 1
-                    dual_solution = None
-                else:
-                    pt = 0
-                    dual_solution = cuopt_result.get("dual_solution", None)
-                    if dual_solution:
-                        dual_solution = np.array(dual_solution)
-
-                primal_solution = cuopt_result.get("primal_solution", None)
-                if primal_solution:
-                    primal_solution = np.array(primal_solution)
-                primal_objective = cuopt_result.get("primal_objective", 0.0)
-
-                cuopt_result = Solution(problem_category=pt,
-                                        vars=None,
-                                        dual_solution=dual_solution,
-                                        primal_solution=primal_solution,
-                                        primal_objective=primal_objective,
-                                        termination_status=res["status"])
-
-        else:
-            from cuopt.linear_programming.data_model import DataModel
-            from cuopt.linear_programming.solver import Solve
-
-            data_model = DataModel()
-            data_model.set_csr_constraint_matrix(csr.data, csr.indices, csr.indptr)
-            data_model.set_objective_coefficients(data['c'])
-            data_model.set_constraint_lower_bounds(lower_bounds)
-            data_model.set_constraint_upper_bounds(upper_bounds)
-
-            data_model.set_variable_lower_bounds(variable_lower_bounds)
-            data_model.set_variable_upper_bounds(variable_upper_bounds)
-            data_model.set_variable_types(variable_types)
-
-            ss = self._get_solver_settings(solver_opts, is_mip, verbose)
-            cuopt_result = Solve(data_model, ss)
-
+        ss = self._get_solver_settings(solver_opts, is_mip, verbose)
+        cuopt_result = Solve(data_model, ss)
 
         print('Termination reason: ', cuopt_result.get_termination_reason())
         if cuopt_result.get_error_status() != ErrorStatus.Success:
@@ -440,9 +291,7 @@ class CUOPT(ConicSolver):
         if is_mip:
             solution["status"] = self.STATUS_MAP_MIP[cuopt_result.get_termination_status()]
         else:
-            # This really ought to be a getter but the service version of this class is missing it
-            # So just grab the result.
-            d = cuopt_result.dual_solution
+            d = cuopt_result.get_dual_solution()
             if d is not None:
                 solution[s.EQ_DUAL] = -d[0:leq_start]
                 solution[s.INEQ_DUAL] = -d[leq_start:leq_end]
