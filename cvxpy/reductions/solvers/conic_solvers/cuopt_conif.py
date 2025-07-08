@@ -37,22 +37,31 @@ try:
         CUOPT_ABSOLUTE_PRIMAL_TOLERANCE,
         CUOPT_CROSSOVER,
         CUOPT_DUAL_INFEASIBLE_TOLERANCE,
+        CUOPT_FIRST_PRIMAL_FEASIBLE,
         CUOPT_INFEASIBILITY_DETECTION,
         CUOPT_ITERATION_LIMIT,
+        CUOPT_LOG_FILE,
         CUOPT_LOG_TO_CONSOLE,
         CUOPT_METHOD,
         CUOPT_MIP_ABSOLUTE_GAP,
+        CUOPT_MIP_ABSOLUTE_TOLERANCE,
         CUOPT_MIP_HEURISTICS_ONLY,
         CUOPT_MIP_INTEGRALITY_TOLERANCE,
         CUOPT_MIP_RELATIVE_GAP,
+        CUOPT_MIP_RELATIVE_TOLERANCE,
         CUOPT_MIP_SCALING,
         CUOPT_NUM_CPU_THREADS,
         CUOPT_PDLP_SOLVER_MODE,
+        CUOPT_PER_CONSTRAINT_RESIDUAL,
         CUOPT_PRIMAL_INFEASIBLE_TOLERANCE,
         CUOPT_RELATIVE_DUAL_TOLERANCE,
         CUOPT_RELATIVE_GAP_TOLERANCE,
         CUOPT_RELATIVE_PRIMAL_TOLERANCE,
+        CUOPT_SAVE_BEST_PRIMAL_SO_FAR,
+        CUOPT_SOLUTION_FILE,
+        CUOPT_STRICT_INFEASIBILITY,
         CUOPT_TIME_LIMIT,
+        CUOPT_USER_PROBLEM_FILE,
     )
     from cuopt.linear_programming.solver.solver_wrapper import (
         ErrorStatus,
@@ -63,6 +72,25 @@ try:
     cuopt_present = True
 except Exception:
     cuopt_present = False
+
+    from enum import IntEnum
+    class MILPTerminationStatus(IntEnum):
+        NoTermination = 0,
+        Optimal = 1,
+        FeasibleFound = 2,
+        Infeasible = 3,
+        Unbounded = 4,
+        TimeLimit = 5
+
+    class LPTerminationStatus(IntEnum):
+        NoTermination = 0,
+        NumericalError = 1,
+        Optimal = 2,
+        PrimalInfeasible = 3,
+        DualInfeasible = 4,
+        IterationLimit = 5,
+        TimeLimit = 6,
+        PrimalFeasible = 7
 
 try:
     from cuopt_sh_client import CuOptServiceSelfHostClient
@@ -100,8 +128,7 @@ class CUOPT(ConicSolver):
     }
 
     def _solver_mode(self, m):
-        solver_modes = {"Stable1": PDLPSolverMode.Stable1,
-                        "Stable2": PDLPSolverMode.Stable2,
+        solver_modes = {"Stable2": PDLPSolverMode.Stable2,
                         "Methodical1": PDLPSolverMode.Methodical1,
                         "Fast1": PDLPSolverMode.Fast1}
         return solver_modes[m]
@@ -118,7 +145,7 @@ class CUOPT(ConicSolver):
         self.local_install = cuopt_present
         self.service_install = cuopt_client_present
         if not (self.local_install or self.service_install):
-            raise
+            raise ModuleNotFoundError()
 
     def apply(self, problem):
         """Returns a new problem and data for inverting the new solution.
@@ -168,7 +195,6 @@ class CUOPT(ConicSolver):
     # Returns a SolverSettings object
     def _get_solver_settings(self, solver_opts, mip, verbose):
         ss = SolverSettings()
-        # Always need to map to verbose
         ss.set_parameter(CUOPT_LOG_TO_CONSOLE, verbose)
 
         # Special handling for the enum value
@@ -189,19 +215,28 @@ class CUOPT(ConicSolver):
                 CUOPT_ABSOLUTE_PRIMAL_TOLERANCE,
                 CUOPT_CROSSOVER,
                 CUOPT_DUAL_INFEASIBLE_TOLERANCE,
+                CUOPT_FIRST_PRIMAL_FEASIBLE,
                 CUOPT_INFEASIBILITY_DETECTION,
                 CUOPT_ITERATION_LIMIT,
+                CUOPT_LOG_FILE,
                 CUOPT_MIP_ABSOLUTE_GAP,
+                CUOPT_MIP_ABSOLUTE_TOLERANCE,
                 CUOPT_MIP_HEURISTICS_ONLY,
                 CUOPT_MIP_INTEGRALITY_TOLERANCE,
                 CUOPT_MIP_RELATIVE_GAP,
+                CUOPT_MIP_RELATIVE_TOLERANCE,
                 CUOPT_MIP_SCALING,
                 CUOPT_NUM_CPU_THREADS,
+                CUOPT_PER_CONSTRAINT_RESIDUAL,
                 CUOPT_PRIMAL_INFEASIBLE_TOLERANCE,
                 CUOPT_RELATIVE_DUAL_TOLERANCE,
                 CUOPT_RELATIVE_GAP_TOLERANCE,
                 CUOPT_RELATIVE_PRIMAL_TOLERANCE,
-                CUOPT_TIME_LIMIT]:
+                CUOPT_SAVE_BEST_PRIMAL_SO_FAR,
+                CUOPT_SOLUTION_FILE,
+                CUOPT_STRICT_INFEASIBILITY,
+                CUOPT_TIME_LIMIT,
+                CUOPT_USER_PROBLEM_FILE]:
             if p in solver_opts:
                 ss.set_parameter(p, solver_opts[p])
         return ss
@@ -276,6 +311,8 @@ class CUOPT(ConicSolver):
 
 
     def solve_via_data(self, data, warm_start: bool, verbose: bool, solver_opts, solver_cache=None):
+        verbose = verbose or solver_opts.get("solver_verbose", False) in [True,"True","true"]
+
         use_service = solver_opts.get("use_service", False) in [True,"True","true"]
         if self.local_install ^ self.service_install:
             if self.local_install:

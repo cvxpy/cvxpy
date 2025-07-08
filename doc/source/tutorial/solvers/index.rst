@@ -99,6 +99,8 @@ The table below shows the types of problems the supported solvers can handle.
 +----------------+----+----+------+-----+-----+-----+-----+
 | `CUCLARABEL`_  | X  | X  | X    |     | X   | X   |     |
 +----------------+----+----+------+-----+-----+-----+-----+
+| `CUOPT`_       | X  |    |      |     |     |     | X   |
++----------------+----+----+------+-----+-----+-----+-----+
 | `CVXOPT`_      | X  | X  | X    | X   |     |     |     |
 +----------------+----+----+------+-----+-----+-----+-----+
 | `SDPA`_ \*\*\* | X  | X  | X    | X   |     |     |     |
@@ -182,7 +184,7 @@ Use the ``installed_solvers`` utility function to get a list of the solvers your
 ::
 
     ['CBC', 'CVXOPT', 'MOSEK', 'MPAX', 'GLPK', 'GLPK_MI', 'ECOS', 'SCS', 'SDPA'
-     'SCIPY', 'GUROBI', 'OSQP', 'CPLEX', 'NAG', 'SCIP', 'XPRESS', 'PROXQP']
+     'SCIPY', 'GUROBI', 'OSQP', 'CPLEX', 'NAG', 'SCIP', 'XPRESS', 'PROXQP', 'CUOPT']
 
 Viewing solver output
 ^^^^^^^^^^^^^^^^^^^^^
@@ -289,7 +291,7 @@ cached previous solution as described above (rather than from the ``value`` fiel
 Setting solver options
 ----------------------
 
-The `OSQP`_, `ECOS`_, `GLOP`_, `MOSEK`_, `MPAX`_, `CBC`_, `CVXOPT`_, `NAG`_, `PDLP`_, `QOCO`_, `GUROBI`_, `SCS`_ , `CLARABEL`_, `DAQP`_, `PIQP`_ and `PROXQP`_ Python interfaces allow you to set solver options such as the maximum number of iterations. You can pass these options along through CVXPY as keyword arguments.
+The `OSQP`_, `ECOS`_, `GLOP`_, `MOSEK`_, `MPAX`_, `CBC`_, `CVXOPT`_, `NAG`_, `PDLP`_, `QOCO`_, `GUROBI`_, `SCS`_ , `CLARABEL`_, `DAQP`_, `PIQP`_, `PROXQP`_ and `CUOPT`_ Python interfaces allow you to set solver options such as the maximum number of iterations. You can pass these options along through CVXPY as keyword arguments.
 
 For example, here we tell SCS to use an indirect method for solving linear equations rather than a direct method.
 
@@ -818,6 +820,9 @@ Here is the complete list of solver options.
 
     For other options see `HiGHS documentation <https://ergo-code.github.io/HiGHS/dev/options/definitions/>`_.
 
+.. info:: `CUOPT`_ options:
+    :collapsible:
+
 
 Custom Solvers
 ------------------------------------
@@ -882,3 +887,4 @@ will be the same as the class variable ``SUPPORTED_CONSTRAINTS``.
 .. _CLARABEL: https://oxfordcontrol.github.io/ClarabelDocs/
 .. _PIQP: https://predict-epfl.github.io/piqp/
 .. _PROXQP: https://github.com/simple-robotics/proxsuite
+.. _CUOPT: https://github.com/NVIDIA/cuopt
