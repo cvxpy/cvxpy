@@ -86,12 +86,13 @@ class IPOPT(NLPsolver):
         if status in s.SOLUTION_PRESENT:
             primal_val = solution['obj_val']
             opt_val = primal_val + inverse_data.offset
-            """
-            primal_vars = {
-                inverse_data[IPOPT.VAR_ID]: solution['x']
-            }
-            """
-            return Solution(status, opt_val, {16: np.array([14., 14., 6.])}, {}, attr)
+            primal_vars = {}
+            x_opt = solution['x']
+            for id, offset in inverse_data.var_offsets.items():
+                shape = inverse_data.var_shapes[id]
+                size = np.prod(shape, dtype=int)
+                primal_vars[id] = np.reshape(x_opt[offset:offset+size], shape, order='F')
+            return Solution(status, opt_val, primal_vars, {}, attr)
         else:
             return failure_solution(status, attr)
 

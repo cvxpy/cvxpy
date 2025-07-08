@@ -28,7 +28,7 @@ from cvxpy.reductions.inverse_data import InverseData
 from cvxpy.reductions.solution import Solution
 
 
-class Expr2smooth(Canonicalization):
+class Expr2Smooth(Canonicalization):
     """Reduce Expressions to an equivalent smooth program
 
     This reduction takes as input (minimization) expressions and converts
@@ -42,33 +42,6 @@ class Expr2smooth(Canonicalization):
     def accepts(self, problem):
         """A problem is always accepted"""
         return True
-
-    def invert(self, solution, inverse_data):       
-        """Retrieves a solution to the original problem"""
-        var_map = inverse_data.var_offsets
-        # Flip sign of opt val if maximize.
-        opt_val = solution.opt_val
-        if solution.status not in s.ERROR and not inverse_data.minimize:
-            opt_val = -solution.opt_val
-
-        primal_vars, dual_vars = {}, {}
-        if solution.status not in s.SOLUTION_PRESENT:
-            return Solution(solution.status, opt_val, primal_vars, dual_vars,
-                            solution.attr)
-
-        # Split vectorized variable into components.
-        x_opt = list(solution.primal_vars.values())[0]
-        for var_id, offset in var_map.items():
-            shape = inverse_data.var_shapes[var_id]
-            size = np.prod(shape, dtype=int)
-            primal_vars[var_id] = np.reshape(x_opt[offset:offset+size], shape,
-                                             order='F')
-
-        solution = super(Expr2smooth, self).invert(solution, inverse_data)
-
-        return Solution(solution.status, opt_val, primal_vars, dual_vars,
-                        solution.attr)
-
     
     def apply(self, problem):
         """Converts an expr to a smooth program"""
