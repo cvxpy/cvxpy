@@ -74,3 +74,9 @@ nlp.add_option('hessian_approximation', "limited-memory")
 
 x, info = nlp.solve(x0)
 print(x)
+
+x = cp.Variable(2)
+objective = cp.Minimize((1 - x[0])**2 + 100 * (x[1] - x[0]**2)**2)
+problem = cp.Problem(objective, [])
+problem.solve(solver=cp.IPOPT, nlp=True)
+assert problem.status == cp.OPTIMAL

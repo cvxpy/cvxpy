@@ -120,8 +120,14 @@ class IPOPT(NLPsolver):
         """
         import cyipopt
         bounds = self.Bounds(data["problem"])
-        x0 = [12, 5, 0]
-
+        initial_values = []
+        for var in bounds.main_var:
+            if var.value is not None:
+                initial_values.append(var.value.flatten(order='F'))
+            else:
+                # If no initial value, use zero
+                initial_values.append(np.zeros(var.size))
+        x0 = np.concatenate(initial_values, axis=0)
         nlp = cyipopt.Problem(
         n=len(x0),
         m=len(bounds.cl),
@@ -134,7 +140,7 @@ class IPOPT(NLPsolver):
         nlp.add_option('mu_strategy', 'adaptive')
         nlp.add_option('tol', 1e-7)
         nlp.add_option('hessian_approximation', "limited-memory")
-        x, info = nlp.solve(x0)
+        _, info = nlp.solve(x0)
         return info
 
     def cite(self, data):
@@ -160,7 +166,7 @@ class IPOPT(NLPsolver):
             offset = 0
             for var in self.main_var:
                 size = var.size
-                var.value = x[offset:offset+size]
+                var.value = x[offset:offset+size].reshape(var.shape, order='F')
                 offset += size
             # Evaluate the objective
             obj_value = self.problem.objective.args[0].value
@@ -173,7 +179,7 @@ class IPOPT(NLPsolver):
             torch_exprs = []
             for var in self.main_var:
                 size = var.size
-                slice = x[offset:offset+size]
+                slice = x[offset:offset+size].reshape(var.shape, order='F')
                 torch_exprs.append(torch.from_numpy(slice.astype(np.float64)).requires_grad_(True))
                 offset += size
             
@@ -196,7 +202,7 @@ class IPOPT(NLPsolver):
             offset = 0
             for var in self.main_var:
                 size = var.size
-                var.value = x[offset:offset+size]
+                var.value = x[offset:offset+size].reshape(var.shape, order='F')
                 offset += size
             
             # Evaluate all constraints
@@ -214,7 +220,7 @@ class IPOPT(NLPsolver):
             
             for var in self.main_var:
                 size = var.size
-                slice = x[offset:offset+size]
+                slice = x[offset:offset+size].reshape(var.shape, order='F')
                 torch_tensor = torch.from_numpy(slice.astype(np.float64)).requires_grad_(True)
                 torch_vars_dict[var.id] = torch_tensor  # Map CVXPY variable ID to torch tensor
                 torch_exprs.append(torch_tensor)
@@ -245,7 +251,7 @@ class IPOPT(NLPsolver):
                         *constr_torch_args
                     )
                     constraint_values.append(torch_expr)
-                return torch.cat([torch.atleast_1d(cv) for cv in constraint_values])
+                return torch.cat([cv.flatten() for cv in constraint_values])
 
             # Compute Jacobian using torch.autograd.functional.jacobian
             if len(self.problem.constraints) > 0:
@@ -254,7 +260,10 @@ class IPOPT(NLPsolver):
                 # Handle the case where jacobian_tuple is a tuple (multiple variables)
                 if isinstance(jacobian_tuple, tuple):
                     # Concatenate along the last dimension (variable dimension)
-                    jacobian_matrix = torch.cat(jacobian_tuple, dim=-1)
+                    jacobian_matrix = torch.cat(
+                        [jac.reshape(jac.size(0), -1) for jac in jacobian_tuple],
+                        dim=1
+                    )
                 else:
                     # Single variable case
                     jacobian_matrix = jacobian_tuple
@@ -298,8 +307,8 @@ class IPOPT(NLPsolver):
             for var in self.main_var:
                 size = var.size
                 if var.bounds:
-                    var_lower.extend(var.bounds[0])
-                    var_upper.extend(var.bounds[1])
+                    var_lower.extend(var.bounds[0].flatten(order='F'))
+                    var_upper.extend(var.bounds[1].flatten(order='F'))
                 else:
                     # No bounds specified, use infinite bounds
                     var_lower.extend([-np.inf] * size)

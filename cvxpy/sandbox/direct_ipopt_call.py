@@ -4,7 +4,7 @@ import cvxpy as cp
 x = cp.Variable(1)
 y = cp.Variable(1)
 
-objective = cp.Minimize(cp.maximum(x, y))
+objective = cp.Maximize(cp.maximum(x, y))
 
 constraints = [x - 14 == 0, y - 6 == 0]
 
