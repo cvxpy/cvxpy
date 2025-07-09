@@ -37,6 +37,16 @@ migration guide `here <https://docs.scipy.org/doc/scipy/reference/sparse.migrati
 CVXPY 1.7 supports the new sparse array API but continues to support the sparse matrix API
 for backwards compatibility. 
 
+Update on reshape order
+~~~~~~~~~~~~~~~~~~~~~~~
+
+In CVXPY 1.6, we began raising warnings for the default reshape order being Fortran ('F'),
+which differs from NumPy's default order ('C'). We also mentioned that we would raise an error
+if the order was not specified in CVXPY 1.7, and switch the default order to 'C' in CVXPY 1.8.
+However, we have decided to postpone these changes to CVXPY 2.0, the next major release.
+We believe that raising errors could break existing code and cause confusion among users.
+We encourage users to continue explicitly specifying the order when using reshape, vec, and flatten atoms.
+
 New features
 ~~~~~~~~~~~~
 - :ref:`Multiple attributes <multiple-attributes>` for variables and parameters
