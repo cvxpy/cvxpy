@@ -18,8 +18,8 @@ limitations under the License.
 
 import numpy as np
 
-from cvxpy.error import SolverError
 import cvxpy.settings as s
+from cvxpy.error import SolverError
 from cvxpy.reductions.solution import Solution, failure_solution
 from cvxpy.reductions.solvers import utilities
 from cvxpy.reductions.solvers.conic_solvers.conic_solver import (
