@@ -179,7 +179,7 @@ Multiple Attributes
 .. versionadded:: 1.7
 
 CVXPY's variable attributes can be viewed as implicit constraints that provide useful sign and monotonicity information to the DCP analyzer. 
-Certain combinations of attributes will not be supported, for example, attributes that reduce the dimension of the variable, e.g, diag, symmetric, sparsity, cannot be used together. 
+Certain combinations of attributes are not supported, for example, attributes that reduce the dimension of the variable, e.g, diag, symmetric, sparsity, cannot be used together. 
 In addition, due to the large potential computational cost, projections for validating parameter inputs with multiple attributes are temporarily disabled. 
 
 Example for defining a sparse integer variable:
