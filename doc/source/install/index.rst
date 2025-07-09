@@ -256,6 +256,13 @@ Install with Additional Solver Support
     Simply install QOCO such that you can ``import qoco`` in Python.
     See the `QOCO <https://qoco-org.github.io/qoco/install/index.html>`_ website for installation instructions.
 
+.. info:: CUOPT
+
+    CVXPY supports the CUOPT solver.
+    Simply install CUOPT such that you can ``import cuopt`` in Python.
+    See the `CUOPT github page <http://github.com/NVIDIA/cuopt>`_ for system requirments and installation instructions (pip, conda, or build from source).
+    Follow this link for additional documentation on CUOPT_
+
 .. info:: Without default solvers
     :collapsible:
 
@@ -304,3 +311,4 @@ To run the tests when CVXPY was not installed from source, use
 .. _pip: https://pip.pypa.io/
 .. _GLPK: https://www.gnu.org/software/glpk/
 .. _HiGHS: https://highs.dev/
+.. _CUOPT: https://docs.nvidia.com/cuopt/
