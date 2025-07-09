@@ -99,7 +99,7 @@ The table below shows the types of problems the supported solvers can handle.
 +----------------+----+----+------+-----+-----+-----+-----+
 | `CUCLARABEL`_  | X  | X  | X    |     | X   | X   |     |
 +----------------+----+----+------+-----+-----+-----+-----+
-| `CUOPT`_       | X  |    |      |     |     |     | X   |
+| `CUOPT`_       | X  |    |      |     |     |     | X*  |
 +----------------+----+----+------+-----+-----+-----+-----+
 | `CVXOPT`_      | X  | X  | X    | X   |     |     |     |
 +----------------+----+----+------+-----+-----+-----+-----+
@@ -823,6 +823,21 @@ Here is the complete list of solver options.
 .. info:: `CUOPT`_ options:
     :collapsible:
 
+    Options for cuOpt can be specified as additional keyword arguments to ``solve``.  For example, `solve(solver=CUOPT, time_limit=5)` would set the time limit to 5 seconds.
+
+    Most of the cuOpt options are documented `here <https://docs.nvidia.com/cuopt/user-guide/latest/lp-milp-settings.html>`_. Please pay attention to the note on this page: the string name for each option is the constant name with the ``CUOPT_`` prefix removed and the string in lowercase. For example, the ``CUOPT_TIME_LIMIT`` option is specified as "time_limit".
+
+    Special cases:
+      - the CUOPT_LOG_TO_CONSOLE option will be set if "verbose" or "solver_verbose" are set in cvxpy
+      - the CUOPT_METHOD option ("method") clashes with the cvxpy keyword "method", so the cuOpt option is set using the keyword "solver_method"
+      - the "optimality" option is an additional convenience that sets the following parameters to the specified value (for LP):
+
+        - absolute_dual_tolerance
+        - relative_dual_tolerance
+        - absolute_primal_tolerance
+        - relative_primal_tolerance
+        - absolute_gap_tolerance
+        - relative_gap_tolerance
 
 Custom Solvers
 ------------------------------------

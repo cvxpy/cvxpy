@@ -18,6 +18,7 @@ limitations under the License.
 
 import numpy as np
 
+from cvxpy.error import SolverError
 import cvxpy.settings as s
 from cvxpy.reductions.solution import Solution, failure_solution
 from cvxpy.reductions.solvers import utilities
@@ -100,7 +101,7 @@ class CUOPT(ConicSolver):
     SUPPORTED_CONSTRAINTS = ConicSolver.SUPPORTED_CONSTRAINTS
     MI_SUPPORTED_CONSTRAINTS = SUPPORTED_CONSTRAINTS
     BOUNDED_VARIABLES = True
-
+    REQUIRES_CONSTR = True
     STATUS_MAP_MIP = {
         MILPTerminationStatus.NoTermination: s.SOLVER_ERROR,
         MILPTerminationStatus.Optimal: s.OPTIMAL,
@@ -283,9 +284,10 @@ class CUOPT(ConicSolver):
         ss = self._get_solver_settings(solver_opts, is_mip, verbose)
         cuopt_result = Solve(data_model, ss)
 
-        print('Termination reason: ', cuopt_result.get_termination_reason())
+        if verbose:
+            print('Termination reason: ', cuopt_result.get_termination_reason())
         if cuopt_result.get_error_status() != ErrorStatus.Success:
-            raise ValueError(cuopt_result.get_error_message())
+            raise SolverError(cuopt_result.get_error_message())
 
         solution = {}
         if is_mip:

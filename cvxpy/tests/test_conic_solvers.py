@@ -2674,12 +2674,12 @@ class TestCUOPT(unittest.TestCase):
         del TestCUOPT.kwargs["time_limit"]
 
     # This is an unconstrained problem, which cuopt doesn't handle.
-    # An empty constraint matrix is not allowed.
+    # Error message from cvxpy should be returned
     def test_cuopt_mi_lp_4(self) -> None:
         try:
             StandardTestLPs.test_mi_lp_4(solver='CUOPT', **TestCUOPT.kwargs)
         except Exception as e:
-            assert "A_offsets must be set" in str(e)
+            assert "there are not enough constraints in the problem" in str(e)
 
     def test_cuopt_mi_lp_5(self) -> None:
         StandardTestLPs.test_mi_lp_5(solver='CUOPT', **TestCUOPT.kwargs, time_limit=5)
