@@ -69,7 +69,12 @@ try:
         LPTerminationStatus,
         MILPTerminationStatus,
     )
-    from cuopt.linear_programming.solver_settings import PDLPSolverMode, SolverSettings
+    from cuopt.linear_programming.solver_settings import (
+        PDLPSolverMode,
+        SolverMethod,
+        SolverSettings,
+    )
+
     cuopt_present = True
 except Exception:
     cuopt_present = False
@@ -126,8 +131,14 @@ class CUOPT(ConicSolver):
         solver_modes = {"Stable2": PDLPSolverMode.Stable2,
                         "Methodical1": PDLPSolverMode.Methodical1,
                         "Fast1": PDLPSolverMode.Fast1}
-        return solver_modes[m]
+        return solver_modes.get(m, PDLPSolverMode.Stable2)
 
+
+    def _solver_method(self, m):
+        solver_methods = {"Concurrent": SolverMethod.Concurrent,
+                          "PDLP": SolverMethod.PDLP,
+                          "DualSimplex": SolverMethod.DualSimplex}
+        return solver_methods.get(m, SolverMethod.Concurrent)
 
     def name(self):
         """The name of the solver.
@@ -197,7 +208,7 @@ class CUOPT(ConicSolver):
 
         # Name collision with "method" in cvxpy
         if "solver_method" in solver_opts:
-            ss.set_parameter(CUOPT_METHOD, solver_opts["solver_method"])
+            ss.set_parameter(CUOPT_METHOD, self._solver_method(solver_opts["solver_method"]))
 
         if "optimality" in solver_opts:
             ss.set_optimality_tolerance(solver_opts["optimality"])

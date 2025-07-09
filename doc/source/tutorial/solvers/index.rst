@@ -829,7 +829,8 @@ Here is the complete list of solver options.
 
     Special cases:
       - the CUOPT_LOG_TO_CONSOLE option will be set if "verbose" or "solver_verbose" are set in cvxpy
-      - the CUOPT_METHOD option ("method") clashes with the cvxpy keyword "method", so the cuOpt option is set using the keyword "solver_method"
+      - the CUOPT_METHOD option ("method") clashes with the cvxpy keyword "method", so the cuOpt option is set using the keyword "solver_method". Use the string names of the constants ("Concurrent", "PDLP", "DualSimplex") for the option value.
+      - for the CUOPT_PDLP_SOLVER_MODE option, use the string names of the constants ("Stable2", "Methodical1", "Fast1") for the option value.
       - the "optimality" option is an additional convenience that sets the following parameters to the specified value (for LP):
 
         - absolute_dual_tolerance
