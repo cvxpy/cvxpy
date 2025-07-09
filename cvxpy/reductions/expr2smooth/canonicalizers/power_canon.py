@@ -36,3 +36,9 @@ def power_canon(expr, args):
         t = Variable(shape)
         if 0 < p < 1:
             return t, [t**(1/p) == x, t >= 0]
+        elif p > 1:
+            return x**p, []
+        else:  # p < 0
+            raise ValueError(
+                "Power canonicalization does not support negative powers."
+            )

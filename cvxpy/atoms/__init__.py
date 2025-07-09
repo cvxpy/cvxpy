@@ -68,6 +68,7 @@ from cvxpy.atoms.elementwise.scalene import scalene
 from cvxpy.atoms.elementwise.sqrt import sqrt
 from cvxpy.atoms.elementwise.square import square
 from cvxpy.atoms.elementwise.xexp import xexp
+from cvxpy.atoms.elementwise.trig import sin, cos, tan
 from cvxpy.atoms.eye_minus_inv import eye_minus_inv, resolvent
 from cvxpy.atoms.gen_lambda_max import gen_lambda_max
 from cvxpy.atoms.geo_mean import geo_mean
