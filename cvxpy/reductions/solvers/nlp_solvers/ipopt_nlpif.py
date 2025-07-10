@@ -38,25 +38,39 @@ class IPOPT(NLPsolver):
     """
     NLP interface for the IPOPT solver
     """
-    # Solve capabilities
-    MIP_CAPABLE = True
-
-    # Keyword arguments for the CVXPY interface.
-    INTERFACE_ARGS = ["save_file", "reoptimize"]
-
     # Map between IPOPT status and CVXPY status
+    # taken from https://github.com/jump-dev/Ipopt.jl/blob/master/src/C_wrapper.jl#L485-L511
     STATUS_MAP = {
-                  0: s.OPTIMAL,             # optimal
-                  2: s.INFEASIBLE,          # infeasible
-                  3: s.UNBOUNDED,           # unbounded
-                  4: s.INF_OR_UNB,          # infeasible or unbounded
-                  5: s.SOLVER_ERROR,        # numerical
-                  6: s.USER_LIMIT,          # node limit
-                  7: s.OPTIMAL_INACCURATE,  # imprecise
-                  8: s.USER_LIMIT,          # time out
-                  9: s.SOLVER_ERROR,        # unfinished
-                  10: s.USER_LIMIT          # interrupted
-                 }
+        # Success cases
+        0: s.OPTIMAL,                    # Solve_Succeeded
+        1: s.OPTIMAL_INACCURATE,         # Solved_To_Acceptable_Level
+        6: s.OPTIMAL,                    # Feasible_Point_Found
+        
+        # Infeasibility/Unboundedness
+        2: s.INFEASIBLE,                 # Infeasible_Problem_Detected
+        4: s.UNBOUNDED,                  # Diverging_Iterates
+        
+        # Numerical/Algorithm issues
+        3: s.SOLVER_ERROR,               # Search_Direction_Becomes_Too_Small
+        -2: s.SOLVER_ERROR,              # Restoration_Failed
+        -3: s.SOLVER_ERROR,              # Error_In_Step_Computation
+        -13: s.SOLVER_ERROR,             # Invalid_Number_Detected
+        -100: s.SOLVER_ERROR,            # Unrecoverable_Exception
+        -101: s.SOLVER_ERROR,            # NonIpopt_Exception_Thrown
+        -199: s.SOLVER_ERROR,            # Internal_Error
+        
+        # User/Resource limits
+        5: s.USER_LIMIT,                 # User_Requested_Stop
+        -1: s.USER_LIMIT,                # Maximum_Iterations_Exceeded
+        -4: s.USER_LIMIT,                # Maximum_CpuTime_Exceeded
+        -5: s.USER_LIMIT,                # Maximum_WallTime_Exceeded
+        -102: s.USER_LIMIT,              # Insufficient_Memory
+        
+        # Problem definition issues
+        -10: s.SOLVER_ERROR,             # Not_Enough_Degrees_Of_Freedom
+        -11: s.SOLVER_ERROR,             # Invalid_Problem_Definition
+        -12: s.SOLVER_ERROR,             # Invalid_Option
+    }
 
     def name(self):
         """
