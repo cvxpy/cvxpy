@@ -142,6 +142,7 @@ Install with Additional Solver Support
     CVXPY supports the MPAX solver.
     Simply install MPAX such that you can ``import mpax`` in Python.
     See the `MPAX <https://github.com/MIT-Lu-Lab/MPAX>`_ website for installation instructions.
+    In addition, please refer to the `JAX installation instructions <https://docs.jax.dev/en/latest/installation.html>`_ to install JAX.
 
 .. info:: CuClarabel
    :collapsible:
