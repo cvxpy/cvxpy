@@ -1,4 +1,4 @@
-name: test_optional_solvers
+name: test_metapackage
 
 on:
     pull_request:
@@ -8,7 +8,7 @@ on:
         tags:
           - '*'
 jobs:
-  test_optional_solvers:
+  test_metapackage:
     runs-on: ${{ matrix.os }}
     defaults:
       run:
@@ -35,14 +35,15 @@ jobs:
       - uses: actions/checkout@v4
       - name: Install cvxpy dependencies and all optional solvers
         run: |
-          source continuous_integration/install_optional_solvers.sh
-          pip install . pytest hypothesis
+          cd meta-package
+          pip install .
       - name: Print installed solvers
         run : |
+          cd meta-package
           python -c "import cvxpy; print(cvxpy.installed_solvers())" 
-      - name: Run test_conic_solvers
-        run : |
-          pytest -rs cvxpy/tests/test_conic_solvers.py
+          python -c "import clarabel" 
+          python -c "import scs" 
+          python -c "import osqp" 
 
     env:
       RUNNER_OS: ${{ matrix.os }}

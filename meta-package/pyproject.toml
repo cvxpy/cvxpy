@@ -1,0 +1,54 @@
+[project]
+name = "cvxpy"
+description = "A domain-specific language for modeling convex optimization problems in Python, meta-package including solvers."
+dependencies = [
+    "osqp >= 0.6.2",
+    "clarabel >= 0.5.0",
+    "scs >= 3.2.4.post1",
+    "cvxpy-base" # TODO: use dynamic dependencies
+]
+requires-python = ">=3.9"
+urls = {Homepage = "https://github.com/cvxpy/cvxpy"}
+license = {text = "Apache License, Version 2.0"}
+authors = [{name = "Steven Diamond", email = "stevend2@stanford.edu"},
+           {name = "", email = "akshayka@cs.stanford.edu"},
+           {name = "Eric Chu", email = "echu508@stanford.edu"},
+           {name = "Stephen Boyd", email = "boyd@stanford.edu"}]
+dynamic = ["version"]
+
+[build-system]
+requires = ["setuptools>=64", "setuptools-scm>=8"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools_scm]
+root = ".."
+
+[project.optional-dependencies]
+# Solver names as in cvxpy.settings = pip-installable distribution providing it
+CBC = ["cylp>=0.91.5"]
+CLARABEL = []
+CVXOPT = ["cvxopt"]
+DIFFCP = ["diffcp"]
+ECOS = ["ecos"]
+ECOS_BB = ["ecos"]
+GLOP = ["ortools>=9.7,<9.12"]
+GLPK = ["cvxopt"]
+GLPK_MI = ["cvxopt"]
+GUROBI = ["gurobipy"]
+HIGHS = ["highspy"]
+MOSEK = ["Mosek"]
+OSQP = []
+PDLP = ["ortools>=9.7,<9.12"]
+PIQP = ["piqp"]
+PROXQP = ["proxsuite"]
+QOCO = ["qoco"]
+SCIP = ["PySCIPOpt"]
+SCIPY = ["scipy"]
+SCS = []
+XPRESS = ["xpress"]
+DAQP = ["daqp"]
+MPAX = ["mpax", "jax"]
+
+[project.readme]
+file = "README.md" # symlinked from root, not allowed relative paths
+content-type = "text/markdown"

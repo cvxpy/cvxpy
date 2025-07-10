@@ -19,6 +19,7 @@ jobs:
       - name: Install cvxpy dependencies
         run: |
           pip install .
+          pip install "./meta-package"
           pip install pytest hypothesis
       - name: Run tests for each non-default backend
         run : |
