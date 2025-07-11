@@ -840,6 +840,8 @@ Here is the complete list of solver options.
         - absolute_gap_tolerance
         - relative_gap_tolerance
 
+    **Please note**: cuOpt internally has a specific API for setting variable bounds, and it uses the cvxpy interface for bounded variables.  While not strictly necessary, cuOpt may perform better on some problens if variable bounds are included in the cvxpy variable creation rather than expressed as constraints.
+
 Custom Solvers
 ------------------------------------
 Although ``cvxpy`` supports many different solvers out of the box, it is also possible to define and use custom solvers. This can be helpful in prototyping or developing custom solvers tailored to a specific application.
