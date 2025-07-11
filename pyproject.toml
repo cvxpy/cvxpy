@@ -69,6 +69,7 @@ dynamic = ["version"]
 # Solver names as in cvxpy.settings = pip-installable distribution providing it
 CBC = ["cylp>=0.91.5"]
 CLARABEL = []
+CUOPT = ["cuopt-cu12>=25.5", "cuopt-sh-client>=25.5", "nvidia-cuda-runtime-cu12>=12.8,<13.0"]
 CVXOPT = ["cvxopt"]
 DIFFCP = ["diffcp"]
 ECOS = ["ecos"]
