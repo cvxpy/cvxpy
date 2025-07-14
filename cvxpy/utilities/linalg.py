@@ -205,10 +205,6 @@ def sparse_cholesky(A, sym_tol=settings.CHOL_SYM_TOL, assume_posdef=False):
      ||A - A'||_Fro / sqrt(n) <= sym_tol, where n is the order of the matrix.
     """
     import cvxpy.utilities.cpp.sparsecholesky as spchol  # noqa: I001
-<<<<<<< HEAD
-
-    if not isinstance(A, spar.spmatrix):
-=======
     import cvxpy.expressions.cvxtypes as cvxtypes #noqa: I001
     
     if isinstance(A, cvxtypes.expression()):
@@ -217,7 +213,6 @@ def sparse_cholesky(A, sym_tol=settings.CHOL_SYM_TOL, assume_posdef=False):
         A = A.value
             
     if not spar.issparse(A):
->>>>>>> 5bdebccc0 (Update sparse Cholesky to handle Expression inputs (#2834))
         raise ValueError(SparseCholeskyMessages.NOT_SPARSE)
     if np.iscomplexobj(A):
         raise ValueError(SparseCholeskyMessages.NOT_REAL)
