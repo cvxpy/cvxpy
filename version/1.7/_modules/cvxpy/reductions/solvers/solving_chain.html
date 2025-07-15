@@ -1,0 +1,1222 @@
+
+
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+      
+      
+      
+      <link rel="icon" href="../../../../_static/favicon.ico">
+    
+    
+      
+        <title>cvxpy.reductions.solvers.solving_chain - </title>
+      
+    
+    
+      
+        
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+        <link rel="stylesheet" type="text/css" href="../../../../_static/sphinx_immaterial_theme.6ec1c446c2c357833.min.css?v=e2e8fea8" />
+        <link rel="stylesheet" type="text/css" href="../../../../_static/tabs.css?v=4c969af8" />
+        <link rel="stylesheet" type="text/css" href="../../../../_static/sphinx-design.min.css?v=95c83b7e" />
+        <link rel="stylesheet" type="text/css" href="../../../../_static/css/styling.css?v=84aacf86" />
+        <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/2.1.8/css/dataTables.dataTables.css" />
+    <script>__md_scope=new URL("../../../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+  
+
+
+  
+  
+
+<script id="__analytics">function __md_analytics(){function e(){dataLayer.push(arguments)}window.dataLayer=window.dataLayer||[],e("js",new Date),e("config","UA-50248335-1"),document.addEventListener("DOMContentLoaded",(function(){document.forms.search&&document.forms.search.query.addEventListener("blur",(function(){this.value&&e("event","search",{search_term:this.value})}));document$.subscribe((function(){var t=document.forms.feedback;if(void 0!==t)for(var a of t.querySelectorAll("[type=submit]"))a.addEventListener("click",(function(a){a.preventDefault();var n=document.location.pathname,d=this.getAttribute("data-md-value");e("event","feedback",{page:n,data:d}),t.firstElementChild.disabled=!0;var r=t.querySelector(".md-feedback__note [data-md-value='"+d+"']");r&&(r.hidden=!1)})),t.hidden=!1})),location$.subscribe((function(t){e("config","UA-50248335-1",{page_path:t.pathname})}))}));var t=document.createElement("script");t.async=!0,t.src="https://www.googletagmanager.com/gtag/js?id=UA-50248335-1",document.getElementById("__analytics").insertAdjacentElement("afterEnd",t)}</script>
+  
+    <script>"undefined"!=typeof __md_analytics&&__md_analytics()</script>
+  
+
+    
+    
+    
+  </head>
+  
+  
+    
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+      <div data-md-color-scheme="default" data-md-component="outdated" hidden>
+        
+      </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow md-header--lifted" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../../../../index.html" title="" class="md-header__button md-logo" aria-label="" data-md-component="logo">
+      <img src="../../../../_static/cvxpy-wordmark-light.png" alt="logo">
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              cvxpy.reductions.solvers.solving_chain
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+    
+    
+    
+    
+      <label class="md-header__button md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+      </label>
+      <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+          <a href="javascript:void(0)" class="md-search__icon md-icon" title="Share" aria-label="Share" data-clipboard data-clipboard-text="" data-md-component="search-share" tabindex="-1">
+            
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9a3 3 0 0 0-3 3 3 3 0 0 0 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.15c-.05.21-.08.43-.08.66 0 1.61 1.31 2.91 2.92 2.91s2.92-1.3 2.92-2.91A2.92 2.92 0 0 0 18 16.08"/></svg>
+          </a>
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/cvxpy/cvxpy/" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8M97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    CVXPY
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+    
+      
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../../../install/index.html" class="md-tabs__link">
+        
+  
+    
+  
+  Install
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../../../tutorial/index.html" class="md-tabs__link">
+        
+  
+    
+  
+  User Guide
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../../../functions/index.html" class="md-tabs__link">
+        
+  
+    
+  
+  Functions
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../../../api_reference/cvxpy.html" class="md-tabs__link">
+        
+  
+    
+  
+  API Documentation
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../../../examples/index.html" class="md-tabs__link">
+        
+  
+    
+  
+  Examples
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../../../contributing/index.html" class="md-tabs__link">
+        
+  
+    
+  
+  Contributing
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../../../updates/index.html" class="md-tabs__link">
+        
+  
+    
+  
+  Changelog
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../../../faq/index.html" class="md-tabs__link">
+        
+  
+    
+  
+  FAQ
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../../../resources/index.html" class="md-tabs__link">
+        
+  
+    
+  
+  Resources
+
+      </a>
+    </li>
+  
+
+      
+    </ul>
+  </div>
+</nav>
+    
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+      
+      
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../../../../index.html" title="" class="md-nav__button md-logo" aria-label="" data-md-component="logo">
+      <img src="../../../../_static/cvxpy-wordmark-light.png" alt="logo">
+    </a>
+    
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/cvxpy/cvxpy/" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8M97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    CVXPY
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../install/index.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Install
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../tutorial/index.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    User Guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../functions/index.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Functions
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../api_reference/cvxpy.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    API Documentation
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../examples/index.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Examples
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../contributing/index.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Contributing
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../updates/index.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Changelog
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../faq/index.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    FAQ
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../resources/index.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Resources
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+  
+
+<nav class="md-nav md-nav--secondary">
+  
+  
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset" role="main">
+                
+                
+                  
+
+
+<h1>Source code for cvxpy.reductions.solvers.solving_chain</h1><div class="highlight"><pre>
+<span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">warnings</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">cvxpy.atoms</span><span class="w"> </span><span class="kn">import</span> <span class="n">EXP_ATOMS</span><span class="p">,</span> <span class="n">NONPOS_ATOMS</span><span class="p">,</span> <span class="n">PSD_ATOMS</span><span class="p">,</span> <span class="n">SOC_ATOMS</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">cvxpy.constraints</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">PSD</span><span class="p">,</span>
+    <span class="n">SOC</span><span class="p">,</span>
+    <span class="n">Equality</span><span class="p">,</span>
+    <span class="n">ExpCone</span><span class="p">,</span>
+    <span class="n">FiniteSet</span><span class="p">,</span>
+    <span class="n">Inequality</span><span class="p">,</span>
+    <span class="n">NonNeg</span><span class="p">,</span>
+    <span class="n">NonPos</span><span class="p">,</span>
+    <span class="n">PowCone3D</span><span class="p">,</span>
+    <span class="n">Zero</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">cvxpy.constraints.exponential</span><span class="w"> </span><span class="kn">import</span> <span class="n">OpRelEntrConeQuad</span><span class="p">,</span> <span class="n">RelEntrConeQuad</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">cvxpy.error</span><span class="w"> </span><span class="kn">import</span> <span class="n">DCPError</span><span class="p">,</span> <span class="n">DGPError</span><span class="p">,</span> <span class="n">DPPError</span><span class="p">,</span> <span class="n">SolverError</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">cvxpy.problems.objective</span><span class="w"> </span><span class="kn">import</span> <span class="n">Maximize</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">cvxpy.reductions.chain</span><span class="w"> </span><span class="kn">import</span> <span class="n">Chain</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">cvxpy.reductions.complex2real</span><span class="w"> </span><span class="kn">import</span> <span class="n">complex2real</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">cvxpy.reductions.cone2cone.approximations</span><span class="w"> </span><span class="kn">import</span> <span class="n">APPROX_CONES</span><span class="p">,</span> <span class="n">QuadApprox</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">cvxpy.reductions.cone2cone.exotic2common</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">EXOTIC_CONES</span><span class="p">,</span>
+    <span class="n">Exotic2Common</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">cvxpy.reductions.cone2cone.soc2psd</span><span class="w"> </span><span class="kn">import</span> <span class="n">SOC2PSD</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">cvxpy.reductions.cvx_attr2constr</span><span class="w"> </span><span class="kn">import</span> <span class="n">CvxAttr2Constr</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">cvxpy.reductions.dcp2cone.cone_matrix_stuffing</span><span class="w"> </span><span class="kn">import</span> <span class="n">ConeMatrixStuffing</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">cvxpy.reductions.dcp2cone.dcp2cone</span><span class="w"> </span><span class="kn">import</span> <span class="n">Dcp2Cone</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">cvxpy.reductions.dgp2dcp.dgp2dcp</span><span class="w"> </span><span class="kn">import</span> <span class="n">Dgp2Dcp</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">cvxpy.reductions.discrete2mixedint.valinvec2mixedint</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">Valinvec2mixedint</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">cvxpy.reductions.eval_params</span><span class="w"> </span><span class="kn">import</span> <span class="n">EvalParams</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">cvxpy.reductions.flip_objective</span><span class="w"> </span><span class="kn">import</span> <span class="n">FlipObjective</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">cvxpy.reductions.qp2quad_form</span><span class="w"> </span><span class="kn">import</span> <span class="n">qp2symbolic_qp</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">cvxpy.reductions.qp2quad_form.qp_matrix_stuffing</span><span class="w"> </span><span class="kn">import</span> <span class="n">QpMatrixStuffing</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">cvxpy.reductions.reduction</span><span class="w"> </span><span class="kn">import</span> <span class="n">Reduction</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">cvxpy.reductions.solvers</span><span class="w"> </span><span class="kn">import</span> <span class="n">defines</span> <span class="k">as</span> <span class="n">slv_def</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">cvxpy.reductions.solvers.constant_solver</span><span class="w"> </span><span class="kn">import</span> <span class="n">ConstantSolver</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">cvxpy.reductions.solvers.solver</span><span class="w"> </span><span class="kn">import</span> <span class="n">Solver</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">cvxpy.settings</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">CLARABEL</span><span class="p">,</span>
+    <span class="n">PARAM_THRESHOLD</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">cvxpy.utilities.debug_tools</span><span class="w"> </span><span class="kn">import</span> <span class="n">build_non_disciplined_error_msg</span>
+
+<span class="n">DPP_ERROR_MSG</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="s2">&quot;You are solving a parameterized problem that is not DPP. &quot;</span>
+    <span class="s2">&quot;Because the problem is not DPP, subsequent solves will not be &quot;</span>
+    <span class="s2">&quot;faster than the first one. For more information, see the &quot;</span>
+    <span class="s2">&quot;documentation on Disciplined Parametrized Programming, at &quot;</span>
+    <span class="s2">&quot;https://www.cvxpy.org/tutorial/dpp/index.html&quot;</span>
+<span class="p">)</span>
+
+<span class="n">ECOS_DEP_DEPRECATION_MSG</span> <span class="o">=</span> <span class="p">(</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    You specified your problem should be solved by ECOS. Starting in</span>
+<span class="sd">    CXVPY 1.6.0, ECOS will no longer be installed by default with CVXPY.</span>
+<span class="sd">    Please either add ECOS as an explicit install dependency to your project</span>
+<span class="sd">    or switch to our new default solver, Clarabel, by either not specifying a</span>
+<span class="sd">    solver argument or specifying ``solver=cp.CLARABEL``. To suppress this</span>
+<span class="sd">    warning while continuing to use ECOS, you can filter this warning using</span>
+<span class="sd">    Python&#39;s ``warnings`` module until you are using 1.6.0.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+<span class="p">)</span>
+
+<span class="n">ECOS_DEPRECATION_MSG</span> <span class="o">=</span> <span class="p">(</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Your problem is being solved with the ECOS solver by default. Starting in</span>
+<span class="sd">    CVXPY 1.5.0, Clarabel will be used as the default solver instead. To continue</span>
+<span class="sd">    using ECOS, specify the ECOS solver explicitly using the ``solver=cp.ECOS``</span>
+<span class="sd">    argument to the ``problem.solve`` method.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+<span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_is_lp</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Is problem a linear program?</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">constraints</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">c</span><span class="p">,</span> <span class="p">(</span><span class="n">Equality</span><span class="p">,</span> <span class="n">Zero</span><span class="p">))</span> <span class="ow">or</span> <span class="n">c</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">is_pwl</span><span class="p">()):</span>
+            <span class="k">return</span> <span class="kc">False</span>
+    <span class="k">for</span> <span class="n">var</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">variables</span><span class="p">():</span>
+        <span class="k">if</span> <span class="n">var</span><span class="o">.</span><span class="n">is_psd</span><span class="p">()</span> <span class="ow">or</span> <span class="n">var</span><span class="o">.</span><span class="n">is_nsd</span><span class="p">():</span>
+            <span class="k">return</span> <span class="kc">False</span>
+    <span class="k">return</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">is_dcp</span><span class="p">()</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">objective</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">is_pwl</span><span class="p">())</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_solve_as_qp</span><span class="p">(</span><span class="n">problem</span><span class="p">,</span> <span class="n">candidates</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">_is_lp</span><span class="p">(</span><span class="n">problem</span><span class="p">)</span> <span class="ow">and</span> \
+            <span class="p">[</span><span class="n">s</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">candidates</span><span class="p">[</span><span class="s1">&#39;conic_solvers&#39;</span><span class="p">]</span> <span class="k">if</span> <span class="n">s</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">candidates</span><span class="p">[</span><span class="s1">&#39;qp_solvers&#39;</span><span class="p">]]:</span>
+        <span class="c1"># OSQP can take many iterations for LPs; use a conic solver instead</span>
+        <span class="c1"># GUROBI and CPLEX QP/LP interfaces are more efficient</span>
+        <span class="c1">#   -&gt; Use them instead of conic if applicable.</span>
+        <span class="k">return</span> <span class="kc">False</span>
+    <span class="k">return</span> <span class="n">candidates</span><span class="p">[</span><span class="s1">&#39;qp_solvers&#39;</span><span class="p">]</span> <span class="ow">and</span> <span class="n">qp2symbolic_qp</span><span class="o">.</span><span class="n">accepts</span><span class="p">(</span><span class="n">problem</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_reductions_for_problem_class</span><span class="p">(</span><span class="n">problem</span><span class="p">,</span> <span class="n">candidates</span><span class="p">,</span> <span class="n">gp</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">solver_opts</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span> \
+        <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">Reduction</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Builds a chain that rewrites a problem into an intermediate</span>
+<span class="sd">    representation suitable for numeric reductions.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    problem : Problem</span>
+<span class="sd">        The problem for which to build a chain.</span>
+<span class="sd">    candidates : dict</span>
+<span class="sd">        Dictionary of candidate solvers divided in qp_solvers</span>
+<span class="sd">        and conic_solvers.</span>
+<span class="sd">    gp : bool</span>
+<span class="sd">        If True, the problem is parsed as a Disciplined Geometric Program</span>
+<span class="sd">        instead of as a Disciplined Convex Program.</span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    list of Reduction objects</span>
+<span class="sd">        A list of reductions that can be used to convert the problem to an</span>
+<span class="sd">        intermediate form.</span>
+<span class="sd">    Raises</span>
+<span class="sd">    ------</span>
+<span class="sd">    DCPError</span>
+<span class="sd">        Raised if the problem is not DCP and `gp` is False.</span>
+<span class="sd">    DGPError</span>
+<span class="sd">        Raised if the problem is not DGP and `gp` is True.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">reductions</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="c1"># TODO Handle boolean constraints.</span>
+    <span class="k">if</span> <span class="n">complex2real</span><span class="o">.</span><span class="n">accepts</span><span class="p">(</span><span class="n">problem</span><span class="p">):</span>
+        <span class="n">reductions</span> <span class="o">+=</span> <span class="p">[</span><span class="n">complex2real</span><span class="o">.</span><span class="n">Complex2Real</span><span class="p">()]</span>
+    <span class="k">if</span> <span class="n">gp</span><span class="p">:</span>
+        <span class="n">reductions</span> <span class="o">+=</span> <span class="p">[</span><span class="n">Dgp2Dcp</span><span class="p">()]</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">gp</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">problem</span><span class="o">.</span><span class="n">is_dcp</span><span class="p">():</span>
+        <span class="n">append</span> <span class="o">=</span> <span class="n">build_non_disciplined_error_msg</span><span class="p">(</span><span class="n">problem</span><span class="p">,</span> <span class="s1">&#39;DCP&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">problem</span><span class="o">.</span><span class="n">is_dgp</span><span class="p">():</span>
+            <span class="n">append</span> <span class="o">+=</span> <span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">However, the problem does follow DGP rules. &quot;</span>
+                       <span class="s2">&quot;Consider calling solve() with `gp=True`.&quot;</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">problem</span><span class="o">.</span><span class="n">is_dqcp</span><span class="p">():</span>
+            <span class="n">append</span> <span class="o">+=</span> <span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">However, the problem does follow DQCP rules. &quot;</span>
+                       <span class="s2">&quot;Consider calling solve() with `qcp=True`.&quot;</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="n">DCPError</span><span class="p">(</span>
+            <span class="s2">&quot;Problem does not follow DCP rules. Specifically:</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">+</span> <span class="n">append</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">gp</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">problem</span><span class="o">.</span><span class="n">is_dgp</span><span class="p">():</span>
+        <span class="n">append</span> <span class="o">=</span> <span class="n">build_non_disciplined_error_msg</span><span class="p">(</span><span class="n">problem</span><span class="p">,</span> <span class="s1">&#39;DGP&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">problem</span><span class="o">.</span><span class="n">is_dcp</span><span class="p">():</span>
+            <span class="n">append</span> <span class="o">+=</span> <span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">However, the problem does follow DCP rules. &quot;</span>
+                       <span class="s2">&quot;Consider calling solve() with `gp=False`.&quot;</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">problem</span><span class="o">.</span><span class="n">is_dqcp</span><span class="p">():</span>
+            <span class="n">append</span> <span class="o">+=</span> <span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">However, the problem does follow DQCP rules. &quot;</span>
+                       <span class="s2">&quot;Consider calling solve() with `qcp=True`.&quot;</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="n">DGPError</span><span class="p">(</span><span class="s2">&quot;Problem does not follow DGP rules.&quot;</span> <span class="o">+</span> <span class="n">append</span><span class="p">)</span>
+
+    <span class="c1"># Dcp2Cone and Qp2SymbolicQp require problems to minimize their objectives.</span>
+    <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">problem</span><span class="o">.</span><span class="n">objective</span><span class="p">)</span> <span class="o">==</span> <span class="n">Maximize</span><span class="p">:</span>
+        <span class="n">reductions</span> <span class="o">+=</span> <span class="p">[</span><span class="n">FlipObjective</span><span class="p">()]</span>
+
+    <span class="c1"># Special reduction for finite set constraint,</span>
+    <span class="c1"># used by both QP and conic pathways.</span>
+    <span class="n">constr_types</span> <span class="o">=</span> <span class="p">{</span><span class="nb">type</span><span class="p">(</span><span class="n">c</span><span class="p">)</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">problem</span><span class="o">.</span><span class="n">constraints</span><span class="p">}</span>
+    <span class="k">if</span> <span class="n">FiniteSet</span> <span class="ow">in</span> <span class="n">constr_types</span><span class="p">:</span>
+        <span class="n">reductions</span> <span class="o">+=</span> <span class="p">[</span><span class="n">Valinvec2mixedint</span><span class="p">()]</span>
+
+    <span class="n">use_quad</span> <span class="o">=</span> <span class="kc">True</span> <span class="k">if</span> <span class="n">solver_opts</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">solver_opts</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;use_quad_obj&#39;</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
+    <span class="n">valid_qp</span> <span class="o">=</span> <span class="n">_solve_as_qp</span><span class="p">(</span><span class="n">problem</span><span class="p">,</span> <span class="n">candidates</span><span class="p">)</span> <span class="ow">and</span> <span class="n">use_quad</span>
+    <span class="n">valid_conic</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">candidates</span><span class="p">[</span><span class="s1">&#39;conic_solvers&#39;</span><span class="p">])</span> <span class="o">&gt;</span> <span class="mi">0</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">valid_qp</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">valid_conic</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">SolverError</span><span class="p">(</span><span class="s2">&quot;Problem could not be reduced to a QP, and no &quot;</span>
+                            <span class="s2">&quot;conic solvers exist among candidate solvers &quot;</span>
+                            <span class="s2">&quot;(</span><span class="si">%s</span><span class="s2">).&quot;</span> <span class="o">%</span> <span class="n">candidates</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">reductions</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">construct_solving_chain</span><span class="p">(</span><span class="n">problem</span><span class="p">,</span> <span class="n">candidates</span><span class="p">,</span>
+                            <span class="n">gp</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+                            <span class="n">enforce_dpp</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+                            <span class="n">ignore_dpp</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+                            <span class="n">canon_backend</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+                            <span class="n">solver_opts</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+                            <span class="n">specified_solver</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+                            <span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;SolvingChain&quot;</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Build a reduction chain from a problem to an installed solver.</span>
+
+<span class="sd">    Note that if the supplied problem has 0 variables, then the solver</span>
+<span class="sd">    parameter will be ignored.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    problem : Problem</span>
+<span class="sd">        The problem for which to build a chain.</span>
+<span class="sd">    candidates : dict</span>
+<span class="sd">        Dictionary of candidate solvers divided in qp_solvers</span>
+<span class="sd">        and conic_solvers.</span>
+<span class="sd">    gp : bool</span>
+<span class="sd">        If True, the problem is parsed as a Disciplined Geometric Program</span>
+<span class="sd">        instead of as a Disciplined Convex Program.</span>
+<span class="sd">    enforce_dpp : bool, optional</span>
+<span class="sd">        When True, a DPPError will be thrown when trying to parse a non-DPP</span>
+<span class="sd">        problem (instead of just a warning). Defaults to False.</span>
+<span class="sd">    ignore_dpp : bool, optional</span>
+<span class="sd">        When True, DPP problems will be treated as non-DPP,</span>
+<span class="sd">        which may speed up compilation. Defaults to False.</span>
+<span class="sd">    canon_backend : str, optional</span>
+<span class="sd">        &#39;CPP&#39; (default) | &#39;SCIPY&#39;</span>
+<span class="sd">        Specifies which backend to use for canonicalization, which can affect</span>
+<span class="sd">        compilation time. Defaults to None, i.e., selecting the default</span>
+<span class="sd">        backend.</span>
+<span class="sd">    solver_opts : dict, optional</span>
+<span class="sd">        Additional arguments to pass to the solver.</span>
+<span class="sd">    specified_solver: str, optional</span>
+<span class="sd">        A solver specified by the user.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    SolvingChain</span>
+<span class="sd">        A SolvingChain that can be used to solve the problem.</span>
+
+<span class="sd">    Raises</span>
+<span class="sd">    ------</span>
+<span class="sd">    SolverError</span>
+<span class="sd">        Raised if no suitable solver exists among the installed solvers, or</span>
+<span class="sd">        if the target solver is not installed.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">problem</span><span class="o">.</span><span class="n">variables</span><span class="p">())</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">SolvingChain</span><span class="p">(</span><span class="n">reductions</span><span class="o">=</span><span class="p">[</span><span class="n">ConstantSolver</span><span class="p">()])</span>
+    <span class="n">reductions</span> <span class="o">=</span> <span class="n">_reductions_for_problem_class</span><span class="p">(</span><span class="n">problem</span><span class="p">,</span> <span class="n">candidates</span><span class="p">,</span> <span class="n">gp</span><span class="p">,</span> <span class="n">solver_opts</span><span class="p">)</span>
+
+    <span class="c1"># Process DPP status of the problem.</span>
+    <span class="n">dpp_context</span> <span class="o">=</span> <span class="s1">&#39;dcp&#39;</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">gp</span> <span class="k">else</span> <span class="s1">&#39;dgp&#39;</span>
+    <span class="k">if</span> <span class="n">ignore_dpp</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">problem</span><span class="o">.</span><span class="n">is_dpp</span><span class="p">(</span><span class="n">dpp_context</span><span class="p">):</span>
+        <span class="c1"># No warning for ignore_dpp.</span>
+        <span class="k">if</span> <span class="n">ignore_dpp</span><span class="p">:</span>
+            <span class="n">reductions</span> <span class="o">=</span> <span class="p">[</span><span class="n">EvalParams</span><span class="p">()]</span> <span class="o">+</span> <span class="n">reductions</span>
+        <span class="k">elif</span> <span class="ow">not</span> <span class="n">enforce_dpp</span><span class="p">:</span>
+            <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="n">DPP_ERROR_MSG</span><span class="p">)</span>
+            <span class="n">reductions</span> <span class="o">=</span> <span class="p">[</span><span class="n">EvalParams</span><span class="p">()]</span> <span class="o">+</span> <span class="n">reductions</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">DPPError</span><span class="p">(</span><span class="n">DPP_ERROR_MSG</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="nb">any</span><span class="p">(</span><span class="n">param</span><span class="o">.</span><span class="n">is_complex</span><span class="p">()</span> <span class="k">for</span> <span class="n">param</span> <span class="ow">in</span> <span class="n">problem</span><span class="o">.</span><span class="n">parameters</span><span class="p">()):</span>
+        <span class="n">reductions</span> <span class="o">=</span> <span class="p">[</span><span class="n">EvalParams</span><span class="p">()]</span> <span class="o">+</span> <span class="n">reductions</span>
+    <span class="k">else</span><span class="p">:</span>  <span class="c1"># Compilation with DPP.</span>
+        <span class="n">n_parameters</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">prod</span><span class="p">(</span><span class="n">param</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="k">for</span> <span class="n">param</span> <span class="ow">in</span> <span class="n">problem</span><span class="o">.</span><span class="n">parameters</span><span class="p">())</span>
+        <span class="k">if</span> <span class="n">n_parameters</span> <span class="o">&gt;=</span> <span class="n">PARAM_THRESHOLD</span><span class="p">:</span>
+            <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
+                <span class="s2">&quot;Your problem has too many parameters for efficient DPP &quot;</span>
+                <span class="s2">&quot;compilation. We suggest setting &#39;ignore_dpp = True&#39;.&quot;</span>
+            <span class="p">)</span>
+
+    <span class="c1"># Conclude with matrix stuffing; choose one of the following paths:</span>
+    <span class="c1">#   (1) QpMatrixStuffing --&gt; [a QpSolver],</span>
+    <span class="c1">#   (2) ConeMatrixStuffing --&gt; [a ConicSolver]</span>
+    <span class="n">use_quad</span> <span class="o">=</span> <span class="kc">True</span> <span class="k">if</span> <span class="n">solver_opts</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">solver_opts</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;use_quad_obj&#39;</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">_solve_as_qp</span><span class="p">(</span><span class="n">problem</span><span class="p">,</span> <span class="n">candidates</span><span class="p">)</span> <span class="ow">and</span> <span class="n">use_quad</span><span class="p">:</span>
+        <span class="c1"># Canonicalize as a QP</span>
+        <span class="n">solver</span> <span class="o">=</span> <span class="n">candidates</span><span class="p">[</span><span class="s1">&#39;qp_solvers&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">solver_instance</span> <span class="o">=</span> <span class="n">slv_def</span><span class="o">.</span><span class="n">SOLVER_MAP_QP</span><span class="p">[</span><span class="n">solver</span><span class="p">]</span>
+        <span class="c1"># TODO should CvxAttr2Constr come after qp2symbolic_qp?</span>
+        <span class="n">reductions</span> <span class="o">+=</span> <span class="p">[</span>
+            <span class="n">CvxAttr2Constr</span><span class="p">(</span><span class="n">reduce_bounds</span><span class="o">=</span><span class="ow">not</span> <span class="n">solver_instance</span><span class="o">.</span><span class="n">BOUNDED_VARIABLES</span><span class="p">),</span>
+            <span class="n">qp2symbolic_qp</span><span class="o">.</span><span class="n">Qp2SymbolicQp</span><span class="p">(),</span>
+            <span class="n">QpMatrixStuffing</span><span class="p">(</span><span class="n">canon_backend</span><span class="o">=</span><span class="n">canon_backend</span><span class="p">),</span>
+            <span class="n">solver_instance</span><span class="p">,</span>
+        <span class="p">]</span>
+        <span class="k">return</span> <span class="n">SolvingChain</span><span class="p">(</span><span class="n">reductions</span><span class="o">=</span><span class="n">reductions</span><span class="p">)</span>
+
+    <span class="c1"># Canonicalize as a cone program</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">candidates</span><span class="p">[</span><span class="s1">&#39;conic_solvers&#39;</span><span class="p">]:</span>
+        <span class="k">raise</span> <span class="n">SolverError</span><span class="p">(</span><span class="s2">&quot;Problem could not be reduced to a QP, and no &quot;</span>
+                          <span class="s2">&quot;conic solvers exist among candidate solvers &quot;</span>
+                          <span class="s2">&quot;(</span><span class="si">%s</span><span class="s2">).&quot;</span> <span class="o">%</span> <span class="n">candidates</span><span class="p">)</span>
+
+    <span class="n">constr_types</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+    <span class="c1"># ^ We use constr_types to infer an incomplete list of cones that</span>
+    <span class="c1"># the solver will need after canonicalization.</span>
+    <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">problem</span><span class="o">.</span><span class="n">constraints</span><span class="p">:</span>
+        <span class="n">constr_types</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">c</span><span class="p">))</span>
+    <span class="n">ex_cos</span> <span class="o">=</span> <span class="p">[</span><span class="n">ct</span> <span class="k">for</span> <span class="n">ct</span> <span class="ow">in</span> <span class="n">constr_types</span> <span class="k">if</span> <span class="n">ct</span> <span class="ow">in</span> <span class="n">EXOTIC_CONES</span><span class="p">]</span>
+    <span class="n">approx_cos</span> <span class="o">=</span> <span class="p">[</span><span class="n">ct</span> <span class="k">for</span> <span class="n">ct</span> <span class="ow">in</span> <span class="n">constr_types</span> <span class="k">if</span> <span class="n">ct</span> <span class="ow">in</span> <span class="n">APPROX_CONES</span><span class="p">]</span>
+    <span class="c1"># ^ The way we populate &quot;ex_cos&quot; will need to change if and when</span>
+    <span class="c1"># we have atoms that require exotic cones.</span>
+    <span class="k">for</span> <span class="n">co</span> <span class="ow">in</span> <span class="n">ex_cos</span><span class="p">:</span>
+        <span class="n">sim_cos</span> <span class="o">=</span> <span class="n">EXOTIC_CONES</span><span class="p">[</span><span class="n">co</span><span class="p">]</span>  <span class="c1"># get the set of required simple cones</span>
+        <span class="n">constr_types</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">sim_cos</span><span class="p">)</span>
+        <span class="n">constr_types</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">co</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">co</span> <span class="ow">in</span> <span class="n">approx_cos</span><span class="p">:</span>
+        <span class="n">app_cos</span> <span class="o">=</span> <span class="n">APPROX_CONES</span><span class="p">[</span><span class="n">co</span><span class="p">]</span>
+        <span class="n">constr_types</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">app_cos</span><span class="p">)</span>
+        <span class="n">constr_types</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">co</span><span class="p">)</span>
+    <span class="c1"># We now go over individual elementary cones support by CVXPY (</span>
+    <span class="c1"># SOC, ExpCone, NonNeg, Zero, PSD, PowCone3D) and check if</span>
+    <span class="c1"># they&#39;ve appeared in constr_types or if the problem has an atom</span>
+    <span class="c1"># requiring that cone.</span>
+    <span class="n">cones</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">atoms</span> <span class="o">=</span> <span class="n">problem</span><span class="o">.</span><span class="n">atoms</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">SOC</span> <span class="ow">in</span> <span class="n">constr_types</span> <span class="ow">or</span> <span class="nb">any</span><span class="p">(</span><span class="n">atom</span> <span class="ow">in</span> <span class="n">SOC_ATOMS</span> <span class="k">for</span> <span class="n">atom</span> <span class="ow">in</span> <span class="n">atoms</span><span class="p">):</span>
+        <span class="n">cones</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">SOC</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">ExpCone</span> <span class="ow">in</span> <span class="n">constr_types</span> <span class="ow">or</span> <span class="nb">any</span><span class="p">(</span><span class="n">atom</span> <span class="ow">in</span> <span class="n">EXP_ATOMS</span> <span class="k">for</span> <span class="n">atom</span> <span class="ow">in</span> <span class="n">atoms</span><span class="p">):</span>
+        <span class="n">cones</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ExpCone</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="n">t</span> <span class="ow">in</span> <span class="n">constr_types</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="p">[</span><span class="n">Inequality</span><span class="p">,</span> <span class="n">NonPos</span><span class="p">,</span> <span class="n">NonNeg</span><span class="p">])</span> \
+            <span class="ow">or</span> <span class="nb">any</span><span class="p">(</span><span class="n">atom</span> <span class="ow">in</span> <span class="n">NONPOS_ATOMS</span> <span class="k">for</span> <span class="n">atom</span> <span class="ow">in</span> <span class="n">atoms</span><span class="p">):</span>
+        <span class="n">cones</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">NonNeg</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">Equality</span> <span class="ow">in</span> <span class="n">constr_types</span> <span class="ow">or</span> <span class="n">Zero</span> <span class="ow">in</span> <span class="n">constr_types</span><span class="p">:</span>
+        <span class="n">cones</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">Zero</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">PSD</span> <span class="ow">in</span> <span class="n">constr_types</span> \
+            <span class="ow">or</span> <span class="nb">any</span><span class="p">(</span><span class="n">atom</span> <span class="ow">in</span> <span class="n">PSD_ATOMS</span> <span class="k">for</span> <span class="n">atom</span> <span class="ow">in</span> <span class="n">atoms</span><span class="p">)</span> \
+            <span class="ow">or</span> <span class="nb">any</span><span class="p">(</span><span class="n">v</span><span class="o">.</span><span class="n">is_psd</span><span class="p">()</span> <span class="ow">or</span> <span class="n">v</span><span class="o">.</span><span class="n">is_nsd</span><span class="p">()</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">problem</span><span class="o">.</span><span class="n">variables</span><span class="p">()):</span>
+        <span class="n">cones</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">PSD</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">PowCone3D</span> <span class="ow">in</span> <span class="n">constr_types</span><span class="p">:</span>
+        <span class="c1"># if we add in atoms that specifically use the 3D power cone</span>
+        <span class="c1"># (rather than the ND power cone), then we&#39;ll need to check</span>
+        <span class="c1"># for those atoms here as well.</span>
+        <span class="n">cones</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">PowCone3D</span><span class="p">)</span>
+
+    <span class="c1"># Here, we make use of the observation that canonicalization only</span>
+    <span class="c1"># increases the number of constraints in our problem.</span>
+    <span class="n">var_domains</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">([</span><span class="n">var</span><span class="o">.</span><span class="n">domain</span> <span class="k">for</span> <span class="n">var</span> <span class="ow">in</span> <span class="n">problem</span><span class="o">.</span><span class="n">variables</span><span class="p">()],</span> <span class="n">start</span> <span class="o">=</span> <span class="p">[])</span>
+    <span class="n">has_constr</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">cones</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">problem</span><span class="o">.</span><span class="n">constraints</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">var_domains</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span>
+
+    <span class="k">if</span> <span class="n">PSD</span> <span class="ow">in</span> <span class="n">cones</span> \
+            <span class="ow">and</span> <span class="n">slv_def</span><span class="o">.</span><span class="n">DISREGARD_CLARABEL_SDP_SUPPORT_FOR_DEFAULT_RESOLUTION</span> \
+            <span class="ow">and</span> <span class="n">specified_solver</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">candidates</span><span class="p">[</span><span class="s1">&#39;conic_solvers&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">s</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">candidates</span><span class="p">[</span><span class="s1">&#39;conic_solvers&#39;</span><span class="p">]</span> <span class="k">if</span> <span class="n">s</span> <span class="o">!=</span> <span class="n">CLARABEL</span><span class="p">]</span>
+
+    <span class="k">for</span> <span class="n">solver</span> <span class="ow">in</span> <span class="n">candidates</span><span class="p">[</span><span class="s1">&#39;conic_solvers&#39;</span><span class="p">]:</span>
+        <span class="n">solver_instance</span> <span class="o">=</span> <span class="n">slv_def</span><span class="o">.</span><span class="n">SOLVER_MAP_CONIC</span><span class="p">[</span><span class="n">solver</span><span class="p">]</span>
+        <span class="c1"># Cones supported for MI problems may differ from non MI.</span>
+        <span class="k">if</span> <span class="n">problem</span><span class="o">.</span><span class="n">is_mixed_integer</span><span class="p">():</span>
+            <span class="n">supported_constraints</span> <span class="o">=</span> <span class="n">solver_instance</span><span class="o">.</span><span class="n">MI_SUPPORTED_CONSTRAINTS</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">supported_constraints</span> <span class="o">=</span> <span class="n">solver_instance</span><span class="o">.</span><span class="n">SUPPORTED_CONSTRAINTS</span>
+        <span class="n">unsupported_constraints</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="n">cone</span> <span class="k">for</span> <span class="n">cone</span> <span class="ow">in</span> <span class="n">cones</span> <span class="k">if</span> <span class="n">cone</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">supported_constraints</span>
+        <span class="p">]</span>
+
+        <span class="k">if</span> <span class="n">has_constr</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">solver_instance</span><span class="o">.</span><span class="n">REQUIRES_CONSTR</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">ex_cos</span><span class="p">:</span>
+                <span class="n">reductions</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">Exotic2Common</span><span class="p">())</span>
+            <span class="k">if</span> <span class="n">RelEntrConeQuad</span> <span class="ow">in</span> <span class="n">approx_cos</span> <span class="ow">or</span> <span class="n">OpRelEntrConeQuad</span> <span class="ow">in</span> <span class="n">approx_cos</span><span class="p">:</span>
+                <span class="n">reductions</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">QuadApprox</span><span class="p">())</span>
+
+            <span class="c1"># Should the objective be canonicalized to a quadratic?</span>
+            <span class="k">if</span> <span class="n">solver_opts</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">use_quad_obj</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">use_quad_obj</span> <span class="o">=</span> <span class="n">solver_opts</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;use_quad_obj&quot;</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
+            <span class="n">quad_obj</span> <span class="o">=</span> <span class="n">use_quad_obj</span> <span class="ow">and</span> <span class="n">solver_instance</span><span class="o">.</span><span class="n">supports_quad_obj</span><span class="p">()</span> <span class="ow">and</span> \
+                <span class="n">problem</span><span class="o">.</span><span class="n">objective</span><span class="o">.</span><span class="n">expr</span><span class="o">.</span><span class="n">has_quadratic_term</span><span class="p">()</span>
+            <span class="n">reductions</span> <span class="o">+=</span> <span class="p">[</span>
+                <span class="n">Dcp2Cone</span><span class="p">(</span><span class="n">quad_obj</span><span class="o">=</span><span class="n">quad_obj</span><span class="p">),</span>
+                <span class="n">CvxAttr2Constr</span><span class="p">(</span><span class="n">reduce_bounds</span><span class="o">=</span><span class="ow">not</span> <span class="n">solver_instance</span><span class="o">.</span><span class="n">BOUNDED_VARIABLES</span><span class="p">),</span>
+            <span class="p">]</span>
+            <span class="k">if</span> <span class="nb">all</span><span class="p">(</span><span class="n">c</span> <span class="ow">in</span> <span class="n">supported_constraints</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">cones</span><span class="p">):</span>
+                <span class="c1"># Return the reduction chain.</span>
+                <span class="n">reductions</span> <span class="o">+=</span> <span class="p">[</span>
+                    <span class="n">ConeMatrixStuffing</span><span class="p">(</span><span class="n">quad_obj</span><span class="o">=</span><span class="n">quad_obj</span><span class="p">,</span> <span class="n">canon_backend</span><span class="o">=</span><span class="n">canon_backend</span><span class="p">),</span>
+                    <span class="n">solver_instance</span>
+                <span class="p">]</span>
+                <span class="k">return</span> <span class="n">SolvingChain</span><span class="p">(</span><span class="n">reductions</span><span class="o">=</span><span class="n">reductions</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="nb">all</span><span class="p">(</span><span class="n">c</span><span class="o">==</span><span class="n">SOC</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">unsupported_constraints</span><span class="p">)</span> <span class="ow">and</span> <span class="n">PSD</span> <span class="ow">in</span> <span class="n">supported_constraints</span><span class="p">:</span>
+                <span class="n">reductions</span> <span class="o">+=</span> <span class="p">[</span>
+                    <span class="n">SOC2PSD</span><span class="p">(),</span>
+                    <span class="n">ConeMatrixStuffing</span><span class="p">(</span><span class="n">quad_obj</span><span class="o">=</span><span class="n">quad_obj</span><span class="p">,</span> <span class="n">canon_backend</span><span class="o">=</span><span class="n">canon_backend</span><span class="p">),</span>
+                    <span class="n">solver_instance</span>
+                <span class="p">]</span>
+                <span class="k">return</span> <span class="n">SolvingChain</span><span class="p">(</span><span class="n">reductions</span><span class="o">=</span><span class="n">reductions</span><span class="p">)</span>
+
+    <span class="k">raise</span> <span class="n">SolverError</span><span class="p">(</span><span class="s2">&quot;Either candidate conic solvers (</span><span class="si">%s</span><span class="s2">) do not support the &quot;</span>
+                      <span class="s2">&quot;cones output by the problem (</span><span class="si">%s</span><span class="s2">), or there are not &quot;</span>
+                      <span class="s2">&quot;enough constraints in the problem.&quot;</span> <span class="o">%</span> <span class="p">(</span>
+                          <span class="n">candidates</span><span class="p">[</span><span class="s1">&#39;conic_solvers&#39;</span><span class="p">],</span>
+                          <span class="s2">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">cone</span><span class="o">.</span><span class="vm">__name__</span> <span class="k">for</span> <span class="n">cone</span> <span class="ow">in</span> <span class="n">cones</span><span class="p">])))</span>
+
+
+<div class="viewcode-block" id="SolvingChain">
+<a class="viewcode-back" href="../../../../api_reference/cvxpy.reductions.html#cvxpy.reductions.solvers.solving_chain.SolvingChain">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">SolvingChain</span><span class="p">(</span><span class="n">Chain</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;A reduction chain that ends with a solver.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    reductions : list[Reduction]</span>
+<span class="sd">        A list of reductions. The last reduction in the list must be a solver</span>
+<span class="sd">        instance.</span>
+
+<span class="sd">    Attributes</span>
+<span class="sd">    ----------</span>
+<span class="sd">    reductions : list[Reduction]</span>
+<span class="sd">        A list of reductions.</span>
+<span class="sd">    solver : Solver</span>
+<span class="sd">        The solver, i.e., reductions[-1].</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">problem</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">reductions</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">SolvingChain</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">problem</span><span class="o">=</span><span class="n">problem</span><span class="p">,</span>
+                                           <span class="n">reductions</span><span class="o">=</span><span class="n">reductions</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">reductions</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">Solver</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Solving chains must terminate with a Solver.&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">solver</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">reductions</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+
+<div class="viewcode-block" id="SolvingChain.prepend">
+<a class="viewcode-back" href="../../../../api_reference/cvxpy.reductions.html#cvxpy.reductions.solvers.solving_chain.SolvingChain.prepend">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">prepend</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">chain</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;SolvingChain&quot;</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Create and return a new SolvingChain by concatenating</span>
+<span class="sd">        chain with this instance.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">SolvingChain</span><span class="p">(</span><span class="n">reductions</span><span class="o">=</span><span class="n">chain</span><span class="o">.</span><span class="n">reductions</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">reductions</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="SolvingChain.solve">
+<a class="viewcode-back" href="../../../../api_reference/cvxpy.reductions.html#cvxpy.reductions.solvers.solving_chain.SolvingChain.solve">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">solve</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">problem</span><span class="p">,</span> <span class="n">warm_start</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span> <span class="n">verbose</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span> <span class="n">solver_opts</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Solves the problem by applying the chain.</span>
+
+<span class="sd">        Applies each reduction in the chain to the problem, solves it,</span>
+<span class="sd">        and then inverts the chain to return a solution of the supplied</span>
+<span class="sd">        problem.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        problem : Problem</span>
+<span class="sd">            The problem to solve.</span>
+<span class="sd">        warm_start : bool</span>
+<span class="sd">            Whether to warm start the solver.</span>
+<span class="sd">        verbose : bool</span>
+<span class="sd">            Whether to enable solver verbosity.</span>
+<span class="sd">        solver_opts : dict</span>
+<span class="sd">            Solver specific options.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        solution : Solution</span>
+<span class="sd">            A solution to the problem.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">data</span><span class="p">,</span> <span class="n">inverse_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="n">problem</span><span class="p">)</span>
+        <span class="n">solution</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">solver</span><span class="o">.</span><span class="n">solve_via_data</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">warm_start</span><span class="p">,</span>
+                                              <span class="n">verbose</span><span class="p">,</span> <span class="n">solver_opts</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">invert</span><span class="p">(</span><span class="n">solution</span><span class="p">,</span> <span class="n">inverse_data</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="SolvingChain.solve_via_data">
+<a class="viewcode-back" href="../../../../api_reference/cvxpy.reductions.html#cvxpy.reductions.solvers.solving_chain.SolvingChain.solve_via_data">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">solve_via_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">problem</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">warm_start</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">verbose</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+                       <span class="n">solver_opts</span><span class="o">=</span><span class="p">{}):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Solves the problem using the data output by the an apply invocation.</span>
+
+<span class="sd">        The semantics are:</span>
+
+<span class="sd">        .. code :: python</span>
+
+<span class="sd">            data, inverse_data = solving_chain.apply(problem)</span>
+<span class="sd">            solution = solving_chain.invert(solver_chain.solve_via_data(data, ...))</span>
+
+<span class="sd">        which is equivalent to writing</span>
+
+<span class="sd">        .. code :: python</span>
+
+<span class="sd">            solution = solving_chain.solve(problem, ...)</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        problem : Problem</span>
+<span class="sd">            The problem to solve.</span>
+<span class="sd">        data : map</span>
+<span class="sd">            Data for the solver.</span>
+<span class="sd">        warm_start : bool</span>
+<span class="sd">            Whether to warm start the solver.</span>
+<span class="sd">        verbose : bool</span>
+<span class="sd">            Whether to enable solver verbosity.</span>
+<span class="sd">        solver_opts : dict</span>
+<span class="sd">            Solver specific options.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        raw solver solution</span>
+<span class="sd">            The information returned by the solver; this is not necessarily</span>
+<span class="sd">            a Solution object.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">solver</span><span class="o">.</span><span class="n">solve_via_data</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">warm_start</span><span class="p">,</span> <span class="n">verbose</span><span class="p">,</span>
+                                          <span class="n">solver_opts</span><span class="p">,</span> <span class="n">problem</span><span class="o">.</span><span class="n">_solver_cache</span><span class="p">)</span></div>
+</div>
+
+</code></pre></div>
+
+
+
+
+
+
+
+  
+  
+
+
+
+  
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+  <script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var labels=set.querySelector(".tabbed-labels");for(var tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>
+
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  
+  
+  <div class="md-footer-meta md-typeset">
+    
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+    <div class="md-footer-copyright__highlight">
+        &#169; Copyright The CVXPY authors.
+        
+    </div>
+  
+    Created using
+    <a href="https://www.sphinx-doc.org/" target="_blank" rel="noopener">Sphinx</a>
+    8.2.3.
+     and
+    <a href="https://github.com/jbms/sphinx-immaterial/" target="_blank" rel="noopener">Sphinx-Immaterial</a>
+  
+</div>
+      
+        <div class="md-social">
+  
+    
+    
+    
+    
+    <a href="https://github.com/cvxpy/cvxpy" target="_blank" rel="noopener" title="Source on github.com" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8M97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+    </a>
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://pypi.org/project/cvxpy/" target="_blank" rel="noopener" title="pypi.org" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.8 200.5c-7.7-30.9-22.3-54.2-53.4-54.2h-40.1v47.4c0 36.8-31.2 67.8-66.8 67.8H172.7c-29.2 0-53.4 25-53.4 54.3v101.8c0 29 25.2 46 53.4 54.3 33.8 9.9 66.3 11.7 106.8 0 26.9-7.8 53.4-23.5 53.4-54.3v-40.7H226.2v-13.6h160.2c31.1 0 42.6-21.7 53.4-54.2 11.2-33.5 10.7-65.7 0-108.6M286.2 404c11.1 0 20.1 9.1 20.1 20.3 0 11.3-9 20.4-20.1 20.4-11 0-20.1-9.2-20.1-20.4.1-11.3 9.1-20.3 20.1-20.3M167.8 248.1h106.8c29.7 0 53.4-24.5 53.4-54.3V91.9c0-29-24.4-50.7-53.4-55.6-35.8-5.9-74.7-5.6-106.8.1-45.2 8-53.4 24.7-53.4 55.6v40.7h106.9v13.6h-147c-31.1 0-58.3 18.7-66.8 54.2-9.8 40.7-10.2 66.1 0 108.6 7.6 31.6 25.7 54.2 56.8 54.2H101v-48.8c0-35.3 30.5-66.4 66.8-66.4m-6.7-142.6c-11.1 0-20.1-9.1-20.1-20.3.1-11.3 9-20.4 20.1-20.4 11 0 20.1 9.2 20.1 20.4s-9 20.3-20.1 20.3"/></svg>
+    </a>
+  
+</div>
+      
+    </div>
+    
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    <script id="__config" type="application/json">{"base": "../../../..", "features": ["header.autohide", "toc.follow", "navigation.path", "navigation.instant", "navigation.top", "navigation.tabs", "navigation.tabs.sticky", "navigation.tracking", "navigation.expand", "search.highlight", "search.share", "content.tabs.link", "announce.dismiss"], "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike", "staticVersions": [{"aliases": [], "title": "latest", "version": "https://www.cvxpy.org"}, {"aliases": [], "title": "1.6", "version": "https://www.cvxpy.org/version/1.6"}, {"aliases": [], "title": "1.5", "version": "https://www.cvxpy.org/version/1.5"}, {"aliases": [], "title": "1.4", "version": "https://www.cvxpy.org/version/1.4"}], "versionPath": null}}</script>
+    
+      
+        <script src="../../../../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../../../../_static/sphinx_immaterial_theme.32136f45f91ae6956.min.js?v=a7a9472a"></script>
+        <script src="../../../../_static/tabs.js?v=3ee01567"></script>
+        <script src="../../../../_static/design-tabs.js?v=f930bc37"></script>
+        <script src="https://cdn.datatables.net/2.1.8/js/dataTables.js"></script>
+    
+  </body>
+</html>

@@ -1,0 +1,982 @@
+
+
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+      
+      
+      
+      <link rel="icon" href="../../_static/favicon.ico">
+    
+    
+      
+        <title>Queuing design - </title>
+      
+    
+    
+      
+        
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+        <link rel="stylesheet" type="text/css" href="../../_static/sphinx_immaterial_theme.6ec1c446c2c357833.min.css?v=e2e8fea8" />
+        <link rel="stylesheet" type="text/css" href="../../_static/tabs.css?v=4c969af8" />
+        <link rel="stylesheet" type="text/css" href="../../_static/sphinx-design.min.css?v=95c83b7e" />
+        <link rel="stylesheet" type="text/css" href="../../_static/css/styling.css?v=84aacf86" />
+        <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/2.1.8/css/dataTables.dataTables.css" />
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+  
+
+
+  
+  
+
+<script id="__analytics">function __md_analytics(){function e(){dataLayer.push(arguments)}window.dataLayer=window.dataLayer||[],e("js",new Date),e("config","UA-50248335-1"),document.addEventListener("DOMContentLoaded",(function(){document.forms.search&&document.forms.search.query.addEventListener("blur",(function(){this.value&&e("event","search",{search_term:this.value})}));document$.subscribe((function(){var t=document.forms.feedback;if(void 0!==t)for(var a of t.querySelectorAll("[type=submit]"))a.addEventListener("click",(function(a){a.preventDefault();var n=document.location.pathname,d=this.getAttribute("data-md-value");e("event","feedback",{page:n,data:d}),t.firstElementChild.disabled=!0;var r=t.querySelector(".md-feedback__note [data-md-value='"+d+"']");r&&(r.hidden=!1)})),t.hidden=!1})),location$.subscribe((function(t){e("config","UA-50248335-1",{page_path:t.pathname})}))}));var t=document.createElement("script");t.async=!0,t.src="https://www.googletagmanager.com/gtag/js?id=UA-50248335-1",document.getElementById("__analytics").insertAdjacentElement("afterEnd",t)}</script>
+  
+    <script>"undefined"!=typeof __md_analytics&&__md_analytics()</script>
+  
+
+    
+    
+    
+  </head>
+  
+  
+    
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+      <div data-md-color-scheme="default" data-md-component="outdated" hidden>
+        
+      </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow md-header--lifted" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../../index.html" title="" class="md-header__button md-logo" aria-label="" data-md-component="logo">
+      <img src="../../_static/cvxpy-wordmark-light.png" alt="logo">
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Queuing design
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+    
+    
+    
+    
+      <label class="md-header__button md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+      </label>
+      <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+          <a href="javascript:void(0)" class="md-search__icon md-icon" title="Share" aria-label="Share" data-clipboard data-clipboard-text="" data-md-component="search-share" tabindex="-1">
+            
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9a3 3 0 0 0-3 3 3 3 0 0 0 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.15c-.05.21-.08.43-.08.66 0 1.61 1.31 2.91 2.92 2.91s2.92-1.3 2.92-2.91A2.92 2.92 0 0 0 18 16.08"/></svg>
+          </a>
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/cvxpy/cvxpy/" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8M97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    CVXPY
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+    
+      
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../install/index.html" class="md-tabs__link">
+        
+  
+    
+  
+  Install
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../tutorial/index.html" class="md-tabs__link">
+        
+  
+    
+  
+  User Guide
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../functions/index.html" class="md-tabs__link">
+        
+  
+    
+  
+  Functions
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../api_reference/cvxpy.html" class="md-tabs__link">
+        
+  
+    
+  
+  API Documentation
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../index.html" class="md-tabs__link">
+        
+  
+    
+  
+  Examples
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../contributing/index.html" class="md-tabs__link">
+        
+  
+    
+  
+  Contributing
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../updates/index.html" class="md-tabs__link">
+        
+  
+    
+  
+  Changelog
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../faq/index.html" class="md-tabs__link">
+        
+  
+    
+  
+  FAQ
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../resources/index.html" class="md-tabs__link">
+        
+  
+    
+  
+  Resources
+
+      </a>
+    </li>
+  
+
+      
+    </ul>
+  </div>
+</nav>
+    
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+      
+      
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../../index.html" title="" class="md-nav__button md-logo" aria-label="" data-md-component="logo">
+      <img src="../../_static/cvxpy-wordmark-light.png" alt="logo">
+    </a>
+    
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/cvxpy/cvxpy/" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8M97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    CVXPY
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../install/index.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Install
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorial/index.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    User Guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../functions/index.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Functions
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api_reference/cvxpy.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    API Documentation
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../index.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Examples
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../contributing/index.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Contributing
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../updates/index.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Changelog
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../faq/index.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    FAQ
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../resources/index.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Resources
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+  
+
+<nav class="md-nav md-nav--secondary">
+  
+  
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset" role="main">
+                
+                
+                  
+
+
+<h1 id="queuing-design">Queuing design<a class="headerlink" href="#queuing-design" title="Link to this heading">¶</a></h1>
+<p>In this example, we consider the design of an <span class="math notranslate nohighlight">\(M/M/N\)</span> queuing
+system, and we study the sensitivity of the design with respect to
+various parameters, such as the maximum total delay and total service
+rate.</p>
+<p>This example was described in the paper <a class="reference external" href="http://web.stanford.edu/~boyd/papers/pdf/diff_llcvx.pdf">Differentiating through Log-Log
+Convex
+Programs</a>.</p>
+<p>We consider the optimization of a (Markovian) queuing system, with
+<span class="math notranslate nohighlight">\(N\)</span> queues. A queuing system is a collection of queues, in which
+queued items wait to be served; the queued items might be threads in an
+operating system, or packets in an input or output buffer of a
+networking system. A natural goal to minimize the service load of the
+system, given constraints on various properties of the queuing system,
+such as limits on the maximum delay or latency. In this example, we
+formulate this design problem as a log-log convex program (LLCP), and
+compute the sensitivity of the design variables with respect to the
+parameters. The queuing system under consideration here is known as an
+<span class="math notranslate nohighlight">\(M/M/N\)</span> queue.</p>
+<p>We assume that items arriving at the <span class="math notranslate nohighlight">\(i\)</span>th queue are generated
+by a Poisson process with rate <span class="math notranslate nohighlight">\(\lambda_i\)</span>, and that the service
+times for the <span class="math notranslate nohighlight">\(i\)</span>th queue follow an exponential distribution
+with parameter <span class="math notranslate nohighlight">\(\mu_i\)</span>, for <span class="math notranslate nohighlight">\(i=1, \ldots, N\)</span>. The of the
+queuing system is a function
+<span class="math notranslate nohighlight">\(\ell : \mathbf{R}^{N}_{++} \times \mathbf{R}^{N}_{++} \to \mathbf{R}^{N}_{++}\)</span>
+of the arrival rate vector <span class="math notranslate nohighlight">\(\lambda\)</span> and the service rate vector
+<span class="math notranslate nohighlight">\(\mu\)</span>, with components</p>
+<div class="math notranslate nohighlight">
+\[\ell_i(\lambda, \mu) = \frac{\mu_i}{\lambda_i}, \quad i=1, \ldots, N.\]</div>
+<p>(This is the reciprocal of the traffic load, which is usually denoted by
+<span class="math notranslate nohighlight">\(\rho\)</span>.) Similarly, the queue occupancy, the average delay, and
+the total delay of the system are (respectively) functions <span class="math notranslate nohighlight">\(q\)</span>,
+<span class="math notranslate nohighlight">\(w\)</span>, and <span class="math notranslate nohighlight">\(d\)</span> of <span class="math notranslate nohighlight">\(\lambda\)</span> and <span class="math notranslate nohighlight">\(\mu\)</span>, with
+components</p>
+<div class="math notranslate nohighlight">
+\[q_i(\lambda, \mu) =
+\frac{\ell_i(\lambda, \mu)^{-2}}{1 - \ell_i(\lambda, \mu)^{-1}}, \quad
+w_i(\lambda, \mu) = \frac{q_i(\lambda, \mu)}{\lambda_i} + \frac{1}{\mu_i}, \quad
+d_i(\lambda, \mu) = \frac{1}{\mu_i - \lambda_i}\]</div>
+<p>These functions have domain
+<span class="math notranslate nohighlight">\(\{(\lambda, \mu) \in \mathbf{R}^{N}_{++} \times \mathbf{R}^{N}_{++} \mid \lambda &lt; \mu \}\)</span>,
+where the inequality is meant elementwise. The queuing system has limits
+on the queue occupancy, average queuing delay, and total delay, which
+must satisfy</p>
+<div class="math notranslate nohighlight">
+\[q(\lambda, \mu) \leq q_{\max}, \quad w(\lambda, \mu) \leq w_{\max}, \quad d(\lambda, \mu) \leq d_{\max},\]</div>
+<p>where <span class="math notranslate nohighlight">\(q_{\max}\)</span>, <span class="math notranslate nohighlight">\(w_{\max}\)</span>, and
+<span class="math notranslate nohighlight">\(d_{\max} \in \mathbf{R}^{N}_{++}\)</span> are parameters and the
+inequalities are meant elementwise. Additionally, the arrival rate
+vector <span class="math notranslate nohighlight">\(\lambda\)</span> must be at least
+<span class="math notranslate nohighlight">\(\lambda_{\mathrm{min}} \in \mathbf{R}^{N}_{++}\)</span>, and the sum of
+the service rates must be no greater than
+<span class="math notranslate nohighlight">\(\mu_{\max} \in \mathbf{R}_{++}\)</span>.</p>
+<p>Our design problem is to choose the arrival rates and service times to
+minimize a weighted sum of the service loads,
+<span class="math notranslate nohighlight">\(\gamma^T \ell(\lambda, \mu)\)</span>, where
+<span class="math notranslate nohighlight">\(\gamma \in \mathbf{R}^{N}_{++}\)</span> is the weight vector, while
+satisfying the constraints. The problem is</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}\begin{array}{ll}
+\mbox{minimize} &amp; \gamma^T \ell(\lambda, \mu) \\
+\mbox{subject to}
+&amp; q(\lambda, \mu) \leq q_{\max} \\
+&amp; w(\lambda, \mu) \leq w_{\max} \\
+&amp; d(\lambda, \mu) \leq d_{\max} \\
+&amp; \lambda \geq \lambda_{\mathrm{min}}, \quad
+\sum_{i=1}^{N} \mu_i \leq \mu_{\max}.
+\end{array}\end{split}\]</div>
+<p>Here, <span class="math notranslate nohighlight">\(\lambda, \mu \in \mathbf{R}^{N}_{++}\)</span> are the variables and
+<span class="math notranslate nohighlight">\(\gamma, q_{\max}, w_{\max}, d_{\max}, \lambda_{\mathrm{min}} \in \mathbf{R}^{N}_{++}\)</span>
+and <span class="math notranslate nohighlight">\(\mu_{\max} \in \mathbf{R}_{++}\)</span> are the parameters. This
+problem is an LLCP. The objective function is a posynomial, as is the
+constraint function <span class="math notranslate nohighlight">\(w\)</span>. The functions <span class="math notranslate nohighlight">\(d\)</span> and <span class="math notranslate nohighlight">\(q\)</span> are
+not posynomials, but they are log-log convex; log-log convexity of
+<span class="math notranslate nohighlight">\(d\)</span> follows from the composition rule, since the function
+<span class="math notranslate nohighlight">\((x, y) \mapsto y - x\)</span> is log-log concave (for <span class="math notranslate nohighlight">\(0 &lt; x &lt; y\)</span>),
+and the ratio <span class="math notranslate nohighlight">\((x, y) \mapsto x/y\)</span> is log-log affine and
+decreasing in <span class="math notranslate nohighlight">\(y\)</span>. By a similar argument, <span class="math notranslate nohighlight">\(q\)</span> is also
+log-log convex.</p>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><code>import cvxpy as cp
+import numpy as np
+import time
+
+
+mu = cp.Variable(pos=True, shape=(2,), name=&#39;mu&#39;)
+lam = cp.Variable(pos=True, shape=(2,), name=&#39;lambda&#39;)
+ell = cp.Variable(pos=True, shape=(2,), name=&#39;ell&#39;)
+
+w_max = cp.Parameter(pos=True, shape=(2,), value=np.array([2.5, 3.0]), name=&#39;w_max&#39;)
+d_max = cp.Parameter(pos=True, shape=(2,), value=np.array([2., 2.]), name=&#39;d_max&#39;)
+q_max = cp.Parameter(pos=True, shape=(2,), value=np.array([4., 5.0]), name=&#39;q_max&#39;)
+lam_min = cp.Parameter(pos=True, shape=(2,), value=np.array([0.5, 0.8]), name=&#39;lambda_min&#39;)
+mu_max = cp.Parameter(pos=True, value=3.0, name=&#39;mu_max&#39;)
+gamma = cp.Parameter(pos=True, shape=(2,), value=np.array([1.0, 2.0]), name=&#39;gamma&#39;)
+
+lq = (ell)**(-2)/cp.one_minus_pos(ell**(-1))
+q = lq
+w = lq/lam + 1/mu
+d = 1/cp.diff_pos(mu, lam)
+
+constraints = [
+    w &lt;= w_max,
+    d &lt;= d_max,
+    q &lt;= q_max,
+    lam &gt;= lam_min,
+    cp.sum(mu) &lt;= mu_max,
+    ell == mu/lam,
+]
+
+objective_fn = gamma.T @ ell
+
+problem = cp.Problem(cp.Minimize(objective_fn), constraints)
+problem.solve(requires_grad=True, gp=True, eps=1e-14, max_iters=10000, mode=&#39;dense&#39;)
+</code></pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><code><span class="mf">4.457106781186705</span>
+</code></pre></div>
+</div>
+<p>The solution is printed below.</p>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><code>print(&#39;mu &#39;, mu.value)
+print(&#39;lam &#39;, lam.value)
+print(&#39;ell &#39;, ell.value)
+</code></pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><code><span class="n">mu</span>  <span class="p">[</span><span class="mf">1.32842713</span> <span class="mf">1.67157287</span><span class="p">]</span>
+<span class="n">lam</span>  <span class="p">[</span><span class="mf">0.82842712</span> <span class="mf">1.17157287</span><span class="p">]</span>
+<span class="n">ell</span>  <span class="p">[</span><span class="mf">1.60355339</span> <span class="mf">1.4267767</span> <span class="p">]</span>
+</code></pre></div>
+</div>
+<h2 id="sensitvities">Sensitvities<a class="headerlink" href="#sensitvities" title="Link to this heading">¶</a></h2>
+<p>We compute the derivative of each variable with respect the parameters.
+One takeaway is that the solution is highly sensitive to the values of
+<span class="math notranslate nohighlight">\(d_{\max}\)</span> and <span class="math notranslate nohighlight">\(\mu_{\max}\)</span>, and that increasing these
+parameters would decrease the service loads, especially on the first
+queue.</p>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><code>problem.solve(requires_grad=True, gp=True, eps=1e-14, max_iters=10000, mode=&#39;dense&#39;)
+
+for var in [lam, mu, ell]:
+    print(&#39;Variable &#39;, var.name())
+    print(&#39;Gradient with respect to first component&#39;)
+    var.gradient = np.array([1., 0.])
+    problem.backward()
+    for param in problem.parameters():
+        if np.prod(param.shape) == 2:
+            print(&#39;{0}: {1:.3g}, {2:.3g}&#39;.format(param.name(), param.gradient[0], param.gradient[1]))
+        else:
+            print(&#39;{0}: {1:.3g}&#39;.format(param.name(), param.gradient))
+
+    print(&#39;Gradient with respect to second component&#39;)
+    var.gradient = np.array([0., 1.])
+    problem.backward()
+    for param in problem.parameters():
+        if np.prod(param.shape) == 2:
+            print(&#39;{0}: {1:.3g}, {2:.3g}&#39;.format(param.name(), param.gradient[0], param.gradient[1]))
+        else:
+            print(&#39;{0}: {1:.3g}&#39;.format(param.name(), param.gradient))
+
+    var.gradient = np.zeros(2)
+    print(&#39;&#39;)
+</code></pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><code><span class="n">Variable</span>  <span class="k">lambda</span>
+<span class="n">Gradient</span> <span class="k">with</span> <span class="n">respect</span> <span class="n">to</span> <span class="n">first</span> <span class="n">component</span>
+<span class="n">gamma</span><span class="p">:</span> <span class="mf">0.213</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.107</span>
+<span class="n">w_max</span><span class="p">:</span> <span class="mf">5.43e-12</span><span class="p">,</span> <span class="mf">5.64e-12</span>
+<span class="n">d_max</span><span class="p">:</span> <span class="o">-</span><span class="mf">0.411</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.113</span>
+<span class="n">q_max</span><span class="p">:</span> <span class="mf">5.99e-12</span><span class="p">,</span> <span class="mf">4.77e-12</span>
+<span class="n">lambda_min</span><span class="p">:</span> <span class="o">-</span><span class="mf">1.56e-11</span><span class="p">,</span> <span class="o">-</span><span class="mf">7.35e-12</span>
+<span class="n">mu_max</span><span class="p">:</span> <span class="mf">0.927</span>
+<span class="n">Gradient</span> <span class="k">with</span> <span class="n">respect</span> <span class="n">to</span> <span class="n">second</span> <span class="n">component</span>
+<span class="n">gamma</span><span class="p">:</span> <span class="o">-</span><span class="mf">0.458</span><span class="p">,</span> <span class="mf">0.229</span>
+<span class="n">w_max</span><span class="p">:</span> <span class="mf">2.08e-11</span><span class="p">,</span> <span class="mf">2.16e-11</span>
+<span class="n">d_max</span><span class="p">:</span> <span class="o">-</span><span class="mf">0.105</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.466</span>
+<span class="n">q_max</span><span class="p">:</span> <span class="mf">2.29e-11</span><span class="p">,</span> <span class="mf">1.83e-11</span>
+<span class="n">lambda_min</span><span class="p">:</span> <span class="o">-</span><span class="mf">5.97e-11</span><span class="p">,</span> <span class="o">-</span><span class="mf">2.82e-11</span>
+<span class="n">mu_max</span><span class="p">:</span> <span class="mf">1.01</span>
+
+<span class="n">Variable</span>  <span class="n">mu</span>
+<span class="n">Gradient</span> <span class="k">with</span> <span class="n">respect</span> <span class="n">to</span> <span class="n">first</span> <span class="n">component</span>
+<span class="n">gamma</span><span class="p">:</span> <span class="mf">0.213</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.107</span>
+<span class="n">w_max</span><span class="p">:</span> <span class="mf">1.55e-11</span><span class="p">,</span> <span class="mf">1.6e-11</span>
+<span class="n">d_max</span><span class="p">:</span> <span class="o">-</span><span class="mf">0.661</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.113</span>
+<span class="n">q_max</span><span class="p">:</span> <span class="mf">1.7e-11</span><span class="p">,</span> <span class="mf">1.36e-11</span>
+<span class="n">lambda_min</span><span class="p">:</span> <span class="o">-</span><span class="mf">4.43e-11</span><span class="p">,</span> <span class="o">-</span><span class="mf">2.09e-11</span>
+<span class="n">mu_max</span><span class="p">:</span> <span class="o">-</span><span class="mf">0.0727</span>
+<span class="n">Gradient</span> <span class="k">with</span> <span class="n">respect</span> <span class="n">to</span> <span class="n">second</span> <span class="n">component</span>
+<span class="n">gamma</span><span class="p">:</span> <span class="o">-</span><span class="mf">0.458</span><span class="p">,</span> <span class="mf">0.229</span>
+<span class="n">w_max</span><span class="p">:</span> <span class="mf">2.3e-11</span><span class="p">,</span> <span class="mf">2.39e-11</span>
+<span class="n">d_max</span><span class="p">:</span> <span class="o">-</span><span class="mf">0.105</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.716</span>
+<span class="n">q_max</span><span class="p">:</span> <span class="mf">2.53e-11</span><span class="p">,</span> <span class="mf">2.02e-11</span>
+<span class="n">lambda_min</span><span class="p">:</span> <span class="o">-</span><span class="mf">6.59e-11</span><span class="p">,</span> <span class="o">-</span><span class="mf">3.11e-11</span>
+<span class="n">mu_max</span><span class="p">:</span> <span class="mf">0.00996</span>
+
+<span class="n">Variable</span>  <span class="n">ell</span>
+<span class="n">Gradient</span> <span class="k">with</span> <span class="n">respect</span> <span class="n">to</span> <span class="n">first</span> <span class="n">component</span>
+<span class="n">gamma</span><span class="p">:</span> <span class="o">-</span><span class="mf">0.245</span><span class="p">,</span> <span class="mf">0.122</span>
+<span class="n">w_max</span><span class="p">:</span> <span class="mf">2e-11</span><span class="p">,</span> <span class="mf">2.08e-11</span>
+<span class="n">d_max</span><span class="p">:</span> <span class="o">-</span><span class="mf">0.282</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.22</span>
+<span class="n">q_max</span><span class="p">:</span> <span class="mf">2.21e-11</span><span class="p">,</span> <span class="mf">1.76e-11</span>
+<span class="n">lambda_min</span><span class="p">:</span> <span class="o">-</span><span class="mf">5.74e-11</span><span class="p">,</span> <span class="o">-</span><span class="mf">2.71e-11</span>
+<span class="n">mu_max</span><span class="p">:</span> <span class="o">-</span><span class="mf">0.334</span>
+<span class="n">Gradient</span> <span class="k">with</span> <span class="n">respect</span> <span class="n">to</span> <span class="n">second</span> <span class="n">component</span>
+<span class="n">gamma</span><span class="p">:</span> <span class="mf">0.122</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.0611</span>
+<span class="n">w_max</span><span class="p">:</span> <span class="o">-</span><span class="mf">1.24e-13</span><span class="p">,</span> <span class="o">-</span><span class="mf">1.29e-13</span>
+<span class="n">d_max</span><span class="p">:</span> <span class="o">-</span><span class="mf">0.101</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.195</span>
+<span class="n">q_max</span><span class="p">:</span> <span class="o">-</span><span class="mf">1.37e-13</span><span class="p">,</span> <span class="o">-</span><span class="mf">1.09e-13</span>
+<span class="n">lambda_min</span><span class="p">:</span> <span class="mf">3.58e-13</span><span class="p">,</span> <span class="mf">1.66e-13</span>
+<span class="n">mu_max</span><span class="p">:</span> <span class="o">-</span><span class="mf">0.197</span>
+</code></pre></div>
+</div>
+<h3 id="perturbation-analysis">Perturbation analysis<a class="headerlink" href="#perturbation-analysis" title="Link to this heading">¶</a></h3>
+<p>Next, we perturb each parameter by a small amount, and compare the
+prediction of a first-order approximation to the solution of the
+perturbed problem to the true solution.</p>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><code>problem.solve(requires_grad=True, gp=True, eps=1e-14, max_iters=10000, mode=&#39;dense&#39;)
+
+mu_value = mu.value
+lam_value = lam.value
+
+delta = 0.01
+for param in problem.parameters():
+    param.delta = param.value * delta
+
+problem.derivative()
+
+lam_pred = (lam.delta / lam_value) * 100
+mu_pred = (mu.delta / mu_value) * 100
+
+print(&#39;lam predicted (percent change): &#39;, lam_pred)
+print(&#39;mu predicted (percent change): &#39;, mu_pred)
+
+
+for param in problem.parameters():
+    param._old_value = param.value
+    param.value += param.delta
+problem.solve(cp.SCS, gp=True, eps=1e-14, max_iters=10000)
+
+lam_actual = ((lam.value - lam_value) / lam_value) * 100
+mu_actual = ((mu.value - mu_value) / mu_value) * 100
+
+print(&#39;lam actual (percent change): &#39;, lam_actual)
+print(&#39;mu actual (percent change): &#39;, mu_actual)
+</code></pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><code><span class="n">lam</span> <span class="n">predicted</span> <span class="p">(</span><span class="n">percent</span> <span class="n">change</span><span class="p">):</span>  <span class="p">[</span><span class="mf">2.32203282</span> <span class="mf">1.77228841</span><span class="p">]</span>
+<span class="n">mu</span> <span class="n">predicted</span> <span class="p">(</span><span class="n">percent</span> <span class="n">change</span><span class="p">):</span>  <span class="p">[</span><span class="mf">1.07166961</span> <span class="mf">0.94304296</span><span class="p">]</span>
+<span class="n">lam</span> <span class="n">actual</span> <span class="p">(</span><span class="n">percent</span> <span class="n">change</span><span class="p">):</span>  <span class="p">[</span><span class="mf">1.99504983</span> <span class="mf">1.99504965</span><span class="p">]</span>
+<span class="n">mu</span> <span class="n">actual</span> <span class="p">(</span><span class="n">percent</span> <span class="n">change</span><span class="p">):</span>  <span class="p">[</span><span class="mf">0.87148458</span> <span class="mf">1.10213353</span><span class="p">]</span>
+</code></pre></div>
+</div>
+
+
+
+
+
+
+
+  
+  
+
+
+
+  
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+  <script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var labels=set.querySelector(".tabbed-labels");for(var tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>
+
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  
+  
+  <div class="md-footer-meta md-typeset">
+    
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+    <div class="md-footer-copyright__highlight">
+        &#169; Copyright The CVXPY authors.
+        
+    </div>
+  
+    Created using
+    <a href="https://www.sphinx-doc.org/" target="_blank" rel="noopener">Sphinx</a>
+    8.2.3.
+     and
+    <a href="https://github.com/jbms/sphinx-immaterial/" target="_blank" rel="noopener">Sphinx-Immaterial</a>
+  
+</div>
+      
+        <div class="md-social">
+  
+    
+    
+    
+    
+    <a href="https://github.com/cvxpy/cvxpy" target="_blank" rel="noopener" title="Source on github.com" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8M97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+    </a>
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://pypi.org/project/cvxpy/" target="_blank" rel="noopener" title="pypi.org" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.8 200.5c-7.7-30.9-22.3-54.2-53.4-54.2h-40.1v47.4c0 36.8-31.2 67.8-66.8 67.8H172.7c-29.2 0-53.4 25-53.4 54.3v101.8c0 29 25.2 46 53.4 54.3 33.8 9.9 66.3 11.7 106.8 0 26.9-7.8 53.4-23.5 53.4-54.3v-40.7H226.2v-13.6h160.2c31.1 0 42.6-21.7 53.4-54.2 11.2-33.5 10.7-65.7 0-108.6M286.2 404c11.1 0 20.1 9.1 20.1 20.3 0 11.3-9 20.4-20.1 20.4-11 0-20.1-9.2-20.1-20.4.1-11.3 9.1-20.3 20.1-20.3M167.8 248.1h106.8c29.7 0 53.4-24.5 53.4-54.3V91.9c0-29-24.4-50.7-53.4-55.6-35.8-5.9-74.7-5.6-106.8.1-45.2 8-53.4 24.7-53.4 55.6v40.7h106.9v13.6h-147c-31.1 0-58.3 18.7-66.8 54.2-9.8 40.7-10.2 66.1 0 108.6 7.6 31.6 25.7 54.2 56.8 54.2H101v-48.8c0-35.3 30.5-66.4 66.8-66.4m-6.7-142.6c-11.1 0-20.1-9.1-20.1-20.3.1-11.3 9-20.4 20.1-20.4 11 0 20.1 9.2 20.1 20.4s-9 20.3-20.1 20.3"/></svg>
+    </a>
+  
+</div>
+      
+    </div>
+    
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    <script id="__config" type="application/json">{"base": "../..", "features": ["header.autohide", "toc.follow", "navigation.path", "navigation.instant", "navigation.top", "navigation.tabs", "navigation.tabs.sticky", "navigation.tracking", "navigation.expand", "search.highlight", "search.share", "content.tabs.link", "announce.dismiss"], "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike", "staticVersions": [{"aliases": [], "title": "latest", "version": "https://www.cvxpy.org"}, {"aliases": [], "title": "1.6", "version": "https://www.cvxpy.org/version/1.6"}, {"aliases": [], "title": "1.5", "version": "https://www.cvxpy.org/version/1.5"}, {"aliases": [], "title": "1.4", "version": "https://www.cvxpy.org/version/1.4"}], "versionPath": null}}</script>
+    
+      
+        <script src="../../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../../_static/sphinx_immaterial_theme.32136f45f91ae6956.min.js?v=a7a9472a"></script>
+        <script src="../../_static/tabs.js?v=3ee01567"></script>
+        <script src="../../_static/design-tabs.js?v=f930bc37"></script>
+        <script id="MathJax-script" src="../../_static/mathjax/tex-mml-chtml.js?v=cadf963e"></script>
+        <script src="https://cdn.datatables.net/2.1.8/js/dataTables.js"></script>
+    
+  </body>
+</html>

@@ -1,0 +1,2396 @@
+
+
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+      
+        <link rel="prev" href="../advanced/index.html">
+      
+      
+        <link rel="next" href="../../functions/index.html">
+      
+      
+      <link rel="icon" href="../../_static/favicon.ico">
+    
+    
+      
+        <title>Solver Features - </title>
+      
+    
+    
+      
+        
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+        <link rel="stylesheet" type="text/css" href="../../_static/sphinx_immaterial_theme.6ec1c446c2c357833.min.css?v=e2e8fea8" />
+        <link rel="stylesheet" type="text/css" href="../../_static/tabs.css?v=4c969af8" />
+        <link rel="stylesheet" type="text/css" href="../../_static/sphinx-design.min.css?v=95c83b7e" />
+        <link rel="stylesheet" type="text/css" href="../../_static/css/styling.css?v=84aacf86" />
+        <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/2.1.8/css/dataTables.dataTables.css" />
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+  
+
+
+  
+  
+
+<script id="__analytics">function __md_analytics(){function e(){dataLayer.push(arguments)}window.dataLayer=window.dataLayer||[],e("js",new Date),e("config","UA-50248335-1"),document.addEventListener("DOMContentLoaded",(function(){document.forms.search&&document.forms.search.query.addEventListener("blur",(function(){this.value&&e("event","search",{search_term:this.value})}));document$.subscribe((function(){var t=document.forms.feedback;if(void 0!==t)for(var a of t.querySelectorAll("[type=submit]"))a.addEventListener("click",(function(a){a.preventDefault();var n=document.location.pathname,d=this.getAttribute("data-md-value");e("event","feedback",{page:n,data:d}),t.firstElementChild.disabled=!0;var r=t.querySelector(".md-feedback__note [data-md-value='"+d+"']");r&&(r.hidden=!1)})),t.hidden=!1})),location$.subscribe((function(t){e("config","UA-50248335-1",{page_path:t.pathname})}))}));var t=document.createElement("script");t.async=!0,t.src="https://www.googletagmanager.com/gtag/js?id=UA-50248335-1",document.getElementById("__analytics").insertAdjacentElement("afterEnd",t)}</script>
+  
+    <script>"undefined"!=typeof __md_analytics&&__md_analytics()</script>
+  
+
+    
+    
+    
+  </head>
+  
+  
+    
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#solve-method-options" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+      <div data-md-color-scheme="default" data-md-component="outdated" hidden>
+        
+      </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow md-header--lifted" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../../index.html" title="" class="md-header__button md-logo" aria-label="" data-md-component="logo">
+      <img src="../../_static/cvxpy-wordmark-light.png" alt="logo">
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Solver Features
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+    
+    
+    
+    
+      <label class="md-header__button md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+      </label>
+      <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+          <a href="javascript:void(0)" class="md-search__icon md-icon" title="Share" aria-label="Share" data-clipboard data-clipboard-text="" data-md-component="search-share" tabindex="-1">
+            
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9a3 3 0 0 0-3 3 3 3 0 0 0 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.15c-.05.21-.08.43-.08.66 0 1.61 1.31 2.91 2.92 2.91s2.92-1.3 2.92-2.91A2.92 2.92 0 0 0 18 16.08"/></svg>
+          </a>
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/cvxpy/cvxpy/" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8M97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    CVXPY
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+    
+      
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../install/index.html" class="md-tabs__link">
+        
+  
+    
+  
+  Install
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+    
+  
+  
+    <li class="md-tabs__item md-tabs__item--active">
+      <a href="../index.html" class="md-tabs__link">
+        
+  
+    
+  
+  User Guide
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../functions/index.html" class="md-tabs__link">
+        
+  
+    
+  
+  Functions
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../api_reference/cvxpy.html" class="md-tabs__link">
+        
+  
+    
+  
+  API Documentation
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../examples/index.html" class="md-tabs__link">
+        
+  
+    
+  
+  Examples
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../contributing/index.html" class="md-tabs__link">
+        
+  
+    
+  
+  Contributing
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../updates/index.html" class="md-tabs__link">
+        
+  
+    
+  
+  Changelog
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../faq/index.html" class="md-tabs__link">
+        
+  
+    
+  
+  FAQ
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../resources/index.html" class="md-tabs__link">
+        
+  
+    
+  
+  Resources
+
+      </a>
+    </li>
+  
+
+      
+    </ul>
+  </div>
+</nav>
+    
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+      
+      
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../../index.html" title="" class="md-nav__button md-logo" aria-label="" data-md-component="logo">
+      <img src="../../_static/cvxpy-wordmark-light.png" alt="logo">
+    </a>
+    
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/cvxpy/cvxpy/" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8M97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    CVXPY
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../install/index.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Install
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+      
+        
+        
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" checked>
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../index.html" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    User Guide
+    
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_2" id="__nav_2_label" tabindex="">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            User Guide
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../intro/index.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    What is CVXPY?
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../functions/index.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Atomic Functions
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../dcp/index.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Disciplined Convex Programming
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../dgp/index.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Disciplined Geometric Programming
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../dpp/index.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Disciplined Parametrized Programming
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../dqcp/index.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Disciplined Quasiconvex Programming
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../constraints/index.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Advanced Constraints
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../advanced/index.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Advanced Features
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    Solver Features
+    
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="#" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    Solver Features
+    
+  </span>
+  
+
+      </a>
+      
+        
+
+  
+
+<nav class="md-nav md-nav--secondary">
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      On this page
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#solve-method-options" class="md-nav__link">
+    
+    <span class="md-ellipsis">
+      <span title="solve method options (reference label)">Solve method options</span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Solve method options">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#solve" class="md-nav__link">
+    
+      <span aria-label="Python function" class="objinfo-icon objinfo-icon__procedure" title="Python function">F</span>
+    
+    <span class="md-ellipsis">
+      <span title="solve (Python function) — Solves the problem using the specified method.">solve</span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="solve">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#solve-parameters" class="md-nav__link">
+    
+    <span class="md-ellipsis">
+      Parameters
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Parameters">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#solve.solver" class="md-nav__link">
+    
+      <span aria-label="Python parameter" class="objinfo-icon objinfo-icon__sub-data" title="Python parameter">p</span>
+    
+    <span class="md-ellipsis">
+      <span title="solve.solver (Python parameter) — The solver to use.">solver</span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#solve.verbose" class="md-nav__link">
+    
+      <span aria-label="Python parameter" class="objinfo-icon objinfo-icon__sub-data" title="Python parameter">p</span>
+    
+    <span class="md-ellipsis">
+      <span title="solve.verbose (Python parameter) — Overrides the default of hiding solver output.">verbose</span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#solve.gp" class="md-nav__link">
+    
+      <span aria-label="Python parameter" class="objinfo-icon objinfo-icon__sub-data" title="Python parameter">p</span>
+    
+    <span class="md-ellipsis">
+      <span title="solve.gp (Python parameter) — If True, parses the problem as a disciplined geometric program instead of a disciplined convex program.">gp</span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#solve.qcp" class="md-nav__link">
+    
+      <span aria-label="Python parameter" class="objinfo-icon objinfo-icon__sub-data" title="Python parameter">p</span>
+    
+    <span class="md-ellipsis">
+      <span title="solve.qcp (Python parameter) — If True, parses the problem as a disciplined quasiconvex program instead of a disciplined convex program.">qcp</span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#solve.requires_grad" class="md-nav__link">
+    
+      <span aria-label="Python parameter" class="objinfo-icon objinfo-icon__sub-data" title="Python parameter">p</span>
+    
+    <span class="md-ellipsis">
+      <span title="solve.requires_grad (Python parameter) — Makes it possible to compute gradients of a solution with respect to Parameters by calling problem.backward() after solving, or to compute perturbations to the variables given perturbations to Parameters by calling problem.derivative().">requires_<wbr>grad</span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#solve.enforce_dpp" class="md-nav__link">
+    
+      <span aria-label="Python parameter" class="objinfo-icon objinfo-icon__sub-data" title="Python parameter">p</span>
+    
+    <span class="md-ellipsis">
+      <span title="solve.enforce_dpp (Python parameter) — When True, a DPPError will be thrown when trying to solve a non-DPP problem (instead of just a warning).">enforce_<wbr>dpp</span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#solve.ignore_dpp" class="md-nav__link">
+    
+      <span aria-label="Python parameter" class="objinfo-icon objinfo-icon__sub-data" title="Python parameter">p</span>
+    
+    <span class="md-ellipsis">
+      <span title="solve.ignore_dpp (Python parameter) — When True, DPP problems will be treated as non-DPP, which may speed up compilation.">ignore_<wbr>dpp</span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#solve.kwargs" class="md-nav__link">
+    
+      <span aria-label="Python parameter" class="objinfo-icon objinfo-icon__sub-data" title="Python parameter">p</span>
+    
+    <span class="md-ellipsis">
+      <span title="solve.kwargs (Python parameter) — Additional keyword arguments specifying solver specific options.">kwargs</span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#solve-returns" class="md-nav__link">
+    
+    <span class="md-ellipsis">
+      Returns
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#choosing-a-solver" class="md-nav__link">
+    
+    <span class="md-ellipsis">
+      <span title="choosing a solver (reference label)">Choosing a solver</span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#viewing-solver-output" class="md-nav__link">
+    
+    <span class="md-ellipsis">
+      <span title="viewing solver output (reference label)">Viewing solver output</span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#solving-disciplined-geometric-programs" class="md-nav__link">
+    
+    <span class="md-ellipsis">
+      <span title="solving disciplined geometric programs (reference label)">Solving disciplined geometric programs</span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#solver-stats" class="md-nav__link">
+    
+    <span class="md-ellipsis">
+      <span title="solver stats (reference label)">Solver stats</span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#warm-start" class="md-nav__link">
+    
+    <span class="md-ellipsis">
+      <span title="warm start (reference label)">Warm start</span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#setting-solver-options" class="md-nav__link">
+    
+    <span class="md-ellipsis">
+      <span title="setting solver options (reference label)">Setting solver options</span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#custom-solvers" class="md-nav__link">
+    
+    <span class="md-ellipsis">
+      <span title="custom solvers (reference label)">Custom Solvers</span>
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+  
+
+    
+      
+      
+  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../functions/index.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Functions
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api_reference/cvxpy.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    API Documentation
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../examples/index.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Examples
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../contributing/index.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Contributing
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../updates/index.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Changelog
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../faq/index.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    FAQ
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../resources/index.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Resources
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+  
+
+<nav class="md-nav md-nav--secondary">
+  
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      On this page
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#solve-method-options" class="md-nav__link">
+    
+    <span class="md-ellipsis">
+      <span title="solve method options (reference label)">Solve method options</span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Solve method options">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#solve" class="md-nav__link">
+    
+      <span aria-label="Python function" class="objinfo-icon objinfo-icon__procedure" title="Python function">F</span>
+    
+    <span class="md-ellipsis">
+      <span title="solve (Python function) — Solves the problem using the specified method.">solve</span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="solve">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#solve-parameters" class="md-nav__link">
+    
+    <span class="md-ellipsis">
+      Parameters
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Parameters">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#solve.solver" class="md-nav__link">
+    
+      <span aria-label="Python parameter" class="objinfo-icon objinfo-icon__sub-data" title="Python parameter">p</span>
+    
+    <span class="md-ellipsis">
+      <span title="solve.solver (Python parameter) — The solver to use.">solver</span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#solve.verbose" class="md-nav__link">
+    
+      <span aria-label="Python parameter" class="objinfo-icon objinfo-icon__sub-data" title="Python parameter">p</span>
+    
+    <span class="md-ellipsis">
+      <span title="solve.verbose (Python parameter) — Overrides the default of hiding solver output.">verbose</span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#solve.gp" class="md-nav__link">
+    
+      <span aria-label="Python parameter" class="objinfo-icon objinfo-icon__sub-data" title="Python parameter">p</span>
+    
+    <span class="md-ellipsis">
+      <span title="solve.gp (Python parameter) — If True, parses the problem as a disciplined geometric program instead of a disciplined convex program.">gp</span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#solve.qcp" class="md-nav__link">
+    
+      <span aria-label="Python parameter" class="objinfo-icon objinfo-icon__sub-data" title="Python parameter">p</span>
+    
+    <span class="md-ellipsis">
+      <span title="solve.qcp (Python parameter) — If True, parses the problem as a disciplined quasiconvex program instead of a disciplined convex program.">qcp</span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#solve.requires_grad" class="md-nav__link">
+    
+      <span aria-label="Python parameter" class="objinfo-icon objinfo-icon__sub-data" title="Python parameter">p</span>
+    
+    <span class="md-ellipsis">
+      <span title="solve.requires_grad (Python parameter) — Makes it possible to compute gradients of a solution with respect to Parameters by calling problem.backward() after solving, or to compute perturbations to the variables given perturbations to Parameters by calling problem.derivative().">requires_<wbr>grad</span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#solve.enforce_dpp" class="md-nav__link">
+    
+      <span aria-label="Python parameter" class="objinfo-icon objinfo-icon__sub-data" title="Python parameter">p</span>
+    
+    <span class="md-ellipsis">
+      <span title="solve.enforce_dpp (Python parameter) — When True, a DPPError will be thrown when trying to solve a non-DPP problem (instead of just a warning).">enforce_<wbr>dpp</span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#solve.ignore_dpp" class="md-nav__link">
+    
+      <span aria-label="Python parameter" class="objinfo-icon objinfo-icon__sub-data" title="Python parameter">p</span>
+    
+    <span class="md-ellipsis">
+      <span title="solve.ignore_dpp (Python parameter) — When True, DPP problems will be treated as non-DPP, which may speed up compilation.">ignore_<wbr>dpp</span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#solve.kwargs" class="md-nav__link">
+    
+      <span aria-label="Python parameter" class="objinfo-icon objinfo-icon__sub-data" title="Python parameter">p</span>
+    
+    <span class="md-ellipsis">
+      <span title="solve.kwargs (Python parameter) — Additional keyword arguments specifying solver specific options.">kwargs</span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#solve-returns" class="md-nav__link">
+    
+    <span class="md-ellipsis">
+      Returns
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#choosing-a-solver" class="md-nav__link">
+    
+    <span class="md-ellipsis">
+      <span title="choosing a solver (reference label)">Choosing a solver</span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#viewing-solver-output" class="md-nav__link">
+    
+    <span class="md-ellipsis">
+      <span title="viewing solver output (reference label)">Viewing solver output</span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#solving-disciplined-geometric-programs" class="md-nav__link">
+    
+    <span class="md-ellipsis">
+      <span title="solving disciplined geometric programs (reference label)">Solving disciplined geometric programs</span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#solver-stats" class="md-nav__link">
+    
+    <span class="md-ellipsis">
+      <span title="solver stats (reference label)">Solver stats</span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#warm-start" class="md-nav__link">
+    
+    <span class="md-ellipsis">
+      <span title="warm start (reference label)">Warm start</span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#setting-solver-options" class="md-nav__link">
+    
+    <span class="md-ellipsis">
+      <span title="setting solver options (reference label)">Setting solver options</span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#custom-solvers" class="md-nav__link">
+    
+    <span class="md-ellipsis">
+      <span title="custom solvers (reference label)">Custom Solvers</span>
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset" role="main">
+                
+                
+                  
+
+
+<h1 id="solver-features"><span id="solvers"></span>Solver Features<a class="headerlink" href="#solver-features" title="Link to this heading">¶</a></h1>
+<h2 id="solve-method-options">Solve method options<a class="headerlink" href="#solve-method-options" title="Link to this heading">¶</a></h2>
+<p>The <code class="docutils literal notranslate"><span class="pre">solve</span></code> method takes optional arguments that let you change how CVXPY
+parses and solves the problem.</p>
+<dl class="py function objdesc">
+<dt class="sig sig-object highlight sig-wrap py" id="solve">
+<span class="sig-name descname"><span class="pre">solve</span></span><span class="sig-paren">(</span><span class="sig-param-decl"><em class="sig-param"><a class="n reference internal" href="#solve.solver" title="solve.solver (Python parameter) — The solver to use."><span class="n"><span class="pre">solver</span></span></a><span class="o"><span class="pre">=</span></span><code class="code python default_value docutils literal highlight highlight-python"><span class="kc">None</span></code></em>, </span><span class="sig-param-decl"><em class="sig-param"><a class="n reference internal" href="#solve.verbose" title="solve.verbose (Python parameter) — Overrides the default of hiding solver output."><span class="n"><span class="pre">verbose</span></span></a><span class="o"><span class="pre">=</span></span><code class="code python default_value docutils literal highlight highlight-python"><span class="kc">False</span></code></em>, </span><span class="sig-param-decl"><em class="sig-param"><a class="n reference internal" href="#solve.gp" title="solve.gp (Python parameter) — If True, parses the problem as a disciplined geometric program instead of a disciplined convex program."><span class="n"><span class="pre">gp</span></span></a><span class="o"><span class="pre">=</span></span><code class="code python default_value docutils literal highlight highlight-python"><span class="kc">False</span></code></em>, </span><span class="sig-param-decl"><em class="sig-param"><a class="n reference internal" href="#solve.qcp" title="solve.qcp (Python parameter) — If True, parses the problem as a disciplined quasiconvex program instead of a disciplined convex program."><span class="n"><span class="pre">qcp</span></span></a><span class="o"><span class="pre">=</span></span><code class="code python default_value docutils literal highlight highlight-python"><span class="kc">False</span></code></em>, </span><span class="sig-param-decl"><em class="sig-param"><a class="n reference internal" href="#solve.requires_grad" title="solve.requires_grad (Python parameter) — Makes it possible to compute gradients of a solution with respect to Parameters by calling problem.backward() after solving, or to compute perturbations to the variables given perturbations to Parameters by calling problem.derivative()."><span class="n"><span class="pre">requires_grad</span></span></a><span class="o"><span class="pre">=</span></span><code class="code python default_value docutils literal highlight highlight-python"><span class="kc">False</span></code></em>, </span><span class="sig-param-decl"><em class="sig-param"><a class="n reference internal" href="#solve.enforce_dpp" title="solve.enforce_dpp (Python parameter) — When True, a DPPError will be thrown when trying to solve a non-DPP problem (instead of just a warning)."><span class="n"><span class="pre">enforce_dpp</span></span></a><span class="o"><span class="pre">=</span></span><code class="code python default_value docutils literal highlight highlight-python"><span class="kc">False</span></code></em>, </span><span class="sig-param-decl"><em class="sig-param"><a class="n reference internal" href="#solve.ignore_dpp" title="solve.ignore_dpp (Python parameter) — When True, DPP problems will be treated as non-DPP, which may speed up compilation."><span class="n"><span class="pre">ignore_dpp</span></span></a><span class="o"><span class="pre">=</span></span><code class="code python default_value docutils literal highlight highlight-python"><span class="kc">False</span></code></em>, </span><span class="sig-param-decl"><em class="sig-param"><span class="o"><span class="pre">**</span></span><a class="n reference internal" href="#solve.kwargs" title="solve.kwargs (Python parameter) — Additional keyword arguments specifying solver specific options."><span class="n"><span class="pre">kwargs</span></span></a></em></span><span class="sig-paren">)</span><a class="headerlink" href="#solve" title="Link to this definition">¶</a></dt>
+<dd><p>Solves the problem using the specified method.</p>
+<p>Populates the <code class="code docutils literal notranslate"><span class="pre">status</span></code> and <code class="code docutils literal notranslate"><span class="pre">value</span></code> attributes on the
+problem object as a side-effect.</p>
+<dl class="field-list simple">
+<dt class="field-odd" id="solve-parameters">Parameters<span class="colon">:</span><a class="headerlink" href="#solve-parameters" title="Permalink to this headline">¶</a></dt>
+<dd class="field-odd"><dl class="simple api-field highlight">
+<dt id="solve.solver"><span class="sig-name descname">solver</span><span class="p"> : </span><span class="desctype"><span class="desctype">str, optional</span></span><a class="headerlink" href="#solve.solver" title="Permalink to this definition">¶</a></dt><dd><p>The solver to use.</p>
+</dd>
+<dt><span class="sig-name descname">solver_path</span><span class="p"> : </span><span class="desctype"><span class="desctype">list of (str, dict) tuples or strings, optional</span></span></dt><dd><p>The solvers to use with optional arguments.
+The function tries the solvers in the given order and
+returns the first solver’s solution that succeeds.</p>
+</dd>
+<dt id="solve.verbose"><span class="sig-name descname">verbose</span><span class="p"> : </span><span class="desctype"><span class="desctype">bool, optional</span></span><a class="headerlink" href="#solve.verbose" title="Permalink to this definition">¶</a></dt><dd><p>Overrides the default of hiding solver output.</p>
+</dd>
+<dt id="solve.gp"><span class="sig-name descname">gp</span><span class="p"> : </span><span class="desctype"><span class="desctype">bool, optional</span></span><a class="headerlink" href="#solve.gp" title="Permalink to this definition">¶</a></dt><dd><p>If <code class="docutils literal notranslate"><span class="pre">True</span></code>, parses the problem as a disciplined geometric program instead of a disciplined convex program.</p>
+</dd>
+<dt id="solve.qcp"><span class="sig-name descname">qcp</span><span class="p"> : </span><span class="desctype"><span class="desctype">bool, optional</span></span><a class="headerlink" href="#solve.qcp" title="Permalink to this definition">¶</a></dt><dd><p>If <code class="docutils literal notranslate"><span class="pre">True</span></code>, parses the problem as a disciplined quasiconvex program instead of a disciplined convex program.</p>
+</dd>
+<dt id="solve.requires_grad"><span class="sig-name descname">requires_grad</span><span class="p"> : </span><span class="desctype"><span class="desctype">bool, optional</span></span><a class="headerlink" href="#solve.requires_grad" title="Permalink to this definition">¶</a></dt><dd><p><p>Makes it possible to compute gradients of a solution
+with respect to Parameters by calling <code class="docutils literal notranslate"><span class="pre">problem.backward()</span></code> after
+solving, or to compute perturbations to the variables given perturbations to
+Parameters by calling <code class="docutils literal notranslate"><span class="pre">problem.derivative()</span></code>.</p>
+<p>Gradients are only supported for DCP and DGP problems, not
+quasiconvex problems. When computing gradients (i.e., when
+this argument is True), the problem must satisfy the DPP rules.</p>
+</p>
+</dd>
+<dt id="solve.enforce_dpp"><span class="sig-name descname">enforce_dpp</span><span class="p"> : </span><span class="desctype"><span class="desctype">bool, optional</span></span><a class="headerlink" href="#solve.enforce_dpp" title="Permalink to this definition">¶</a></dt><dd><p>When True, a <code class="docutils literal notranslate"><span class="pre">DPPError</span></code> will be thrown when trying to solve
+a non-DPP problem (instead of just a warning). Only relevant for
+problems involving Parameters. Defaults to <code class="docutils literal notranslate"><span class="pre">False</span></code>.</p>
+</dd>
+<dt id="solve.ignore_dpp"><span class="sig-name descname">ignore_dpp</span><span class="p"> : </span><span class="desctype"><span class="desctype">bool, optional</span></span><a class="headerlink" href="#solve.ignore_dpp" title="Permalink to this definition">¶</a></dt><dd><p>When True, DPP problems will be treated as non-DPP,
+which may speed up compilation. Defaults to <code class="docutils literal notranslate"><span class="pre">False</span></code>.</p>
+</dd>
+<dt id="solve.kwargs"><span class="o">**</span><span class="n sig-name">kwargs</span><a class="headerlink" href="#solve.kwargs" title="Permalink to this definition">¶</a></dt><dd><p>Additional keyword arguments specifying solver specific options.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even" id="solve-returns">Returns<span class="colon">:</span><a class="headerlink" href="#solve-returns" title="Permalink to this headline">¶</a></dt>
+<dd class="field-even"><p>The optimal value for the problem, or a string indicating why the problem could not be solved.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<p>We will discuss the optional arguments in detail below.</p>
+<h3 id="choosing-a-solver"><span id="id1"></span>Choosing a solver<a class="headerlink" href="#choosing-a-solver" title="Link to this heading">¶</a></h3>
+<p>CVXPY is distributed with the open source solvers <a class="reference external" href="https://oxfordcontrol.github.io/ClarabelDocs/">CLARABEL</a>, <a class="reference external" href="https://osqp.org/">OSQP</a>, and <a class="reference external" href="http://github.com/cvxgrp/scs">SCS</a>.
+Many other solvers can be called by CVXPY if installed separately.
+The table below shows the types of problems the supported solvers can handle.</p>
+<table class="docutils data align-default">
+<thead>
+<tr class="row-odd"><th class="head"></th>
+<th class="head"><p>LP</p></th>
+<th class="head"><p>QP</p></th>
+<th class="head"><p>SOCP</p></th>
+<th class="head"><p>SDP</p></th>
+<th class="head"><p>EXP</p></th>
+<th class="head"><p>POW</p></th>
+<th class="head"><p>MIP</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><a class="reference external" href="https://projects.coin-or.org/Cbc">CBC</a></p></td>
+<td><p>X</p></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td><p>X</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference external" href="https://oxfordcontrol.github.io/ClarabelDocs/">CLARABEL</a></p></td>
+<td><p>X</p></td>
+<td><p>X</p></td>
+<td><p>X</p></td>
+<td><p>X</p></td>
+<td><p>X</p></td>
+<td><p>X</p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference external" href="https://github.com/COPT-Public/COPT-Release">COPT</a></p></td>
+<td><p>X</p></td>
+<td><p>X</p></td>
+<td><p>X</p></td>
+<td><p>X</p></td>
+<td><p>X</p></td>
+<td></td>
+<td><p>X**</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference external" href="https://darnstrom.github.io/daqp/">DAQP</a></p></td>
+<td><p>X</p></td>
+<td><p>X</p></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference external" href="https://developers.google.com/optimization">GLOP</a></p></td>
+<td><p>X</p></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference external" href="https://www.gnu.org/software/glpk/">GLPK</a></p></td>
+<td><p>X</p></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference external" href="https://www.gnu.org/software/glpk/">GLPK_MI</a></p></td>
+<td><p>X</p></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td><p>X</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference external" href="https://osqp.org/">OSQP</a></p></td>
+<td><p>X</p></td>
+<td><p>X</p></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference external" href="https://predict-epfl.github.io/piqp/">PIQP</a></p></td>
+<td><p>X</p></td>
+<td><p>X</p></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference external" href="https://github.com/simple-robotics/proxsuite">PROXQP</a></p></td>
+<td><p>X</p></td>
+<td><p>X</p></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference external" href="https://developers.google.com/optimization">PDLP</a></p></td>
+<td><p>X</p></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference external" href="https://qoco-org.github.io/qoco/">QOCO</a></p></td>
+<td><p>X</p></td>
+<td><p>X</p></td>
+<td><p>X</p></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference external" href="https://www.ibm.com/docs/en/icos">CPLEX</a></p></td>
+<td><p>X</p></td>
+<td><p>X</p></td>
+<td><p>X</p></td>
+<td></td>
+<td></td>
+<td></td>
+<td><p>X</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference external" href="https://nag.com/mathematical-optimization/">NAG</a></p></td>
+<td><p>X</p></td>
+<td><p>X</p></td>
+<td><p>X</p></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference external" href="https://www.embotech.com/ECOS">ECOS</a></p></td>
+<td><p>X</p></td>
+<td><p>X</p></td>
+<td><p>X</p></td>
+<td></td>
+<td><p>X</p></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference external" href="https://www.gurobi.com/">GUROBI</a></p></td>
+<td><p>X</p></td>
+<td><p>X</p></td>
+<td><p>X</p></td>
+<td></td>
+<td></td>
+<td></td>
+<td><p>X</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference external" href="https://www.mosek.com/">MOSEK</a></p></td>
+<td><p>X</p></td>
+<td><p>X</p></td>
+<td><p>X</p></td>
+<td><p>X</p></td>
+<td><p>X</p></td>
+<td><p>X</p></td>
+<td><p>X**</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference external" href="https://github.com/MIT-Lu-Lab/MPAX">MPAX</a></p></td>
+<td><p>X</p></td>
+<td><p>X</p></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><a href="#id7"><span class="problematic" id="id8">`CUCLARABEL`_</span></a></p></td>
+<td><p>X</p></td>
+<td><p>X</p></td>
+<td><p>X</p></td>
+<td></td>
+<td><p>X</p></td>
+<td><p>X</p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference external" href="http://cvxopt.org/">CVXOPT</a></p></td>
+<td><p>X</p></td>
+<td><p>X</p></td>
+<td><p>X</p></td>
+<td><p>X</p></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference external" href="https://sdpa-python.github.io">SDPA</a> ***</p></td>
+<td><p>X</p></td>
+<td><p>X</p></td>
+<td><p>X</p></td>
+<td><p>X</p></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference external" href="http://github.com/cvxgrp/scs">SCS</a></p></td>
+<td><p>X</p></td>
+<td><p>X</p></td>
+<td><p>X</p></td>
+<td><p>X</p></td>
+<td><p>X</p></td>
+<td><p>X</p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference external" href="https://scip.zib.de/">SCIP</a></p></td>
+<td><p>X</p></td>
+<td><p>X</p></td>
+<td><p>X</p></td>
+<td></td>
+<td></td>
+<td></td>
+<td><p>X</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference external" href="https://www.fico.com/en/products/fico-xpress-optimization">XPRESS</a></p></td>
+<td><p>X</p></td>
+<td><p>X</p></td>
+<td><p>X</p></td>
+<td></td>
+<td></td>
+<td></td>
+<td><p>X</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference external" href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.linprog.html#scipy.optimize.linprog">SCIPY</a></p></td>
+<td><p>X</p></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td><p>X*</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference external" href="https://highs.dev/">HiGHS</a></p></td>
+<td><p>X</p></td>
+<td><p>X</p></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td><p>X*</p></td>
+</tr>
+</tbody>
+</table>
+<p>(*) Mixed-integer LP only.</p>
+<p>(**) Except mixed-integer SDP. For COPT, mixed-integer EXP also not supported so far.</p>
+<p>(***) Multiprecision support is available on SDPA if the appropriate SDPA package is installed. With multiprecision support, SDPA can solve your problem with much smaller <code class="docutils literal notranslate"><span class="pre">epsilonDash</span></code> and/or <code class="docutils literal notranslate"><span class="pre">epsilonStar</span></code> parameters. These parameters must be manually adjusted to achieve the desired degree of precision. Please see the solver website for details. SDPA can also solve some ill-posed problems with multiprecision support.</p>
+<p>LP - Linear Programming refers to problems with a linear objective function and linear constraints.</p>
+<p>QP - Quadratic Programming refers to problems with a quadratic objective function and linear constraints.</p>
+<p>SOCP - Second-Order Cone Programming refers to problems with second-order cone constraints.</p>
+<p>The second-order cone is defined as: <span class="math notranslate nohighlight">\(\mathcal{C}_{n+1} = \left\{\begin{bmatrix} x \\ t \end{bmatrix} \mid x \in \mathbb{R}^n , t \in \mathbb{R} , \| x \|_2 \leq t\right\}\)</span></p>
+<p>SDP - Semidefinite Programming refers to problems with <a class="reference internal" href="../constraints/index.html#semidefinite-matrices"><span class="std std-ref">semidefinite matrix constraints</span></a>.</p>
+<p>EXP - refers to problems with exponential cone constraints.</p>
+<p>The exponential cone is defined as: <span class="math notranslate nohighlight">\(\{(x,y,z) \mid y &gt; 0, y\exp(x/y) \leq z \} \cup \{ (x,y,z) \mid x \leq 0, y = 0, z \geq 0\}\)</span>.</p>
+<p>POW - refers to problems with 3-dimensional power cone constraints.</p>
+<p>The 3D power cone is defined as: <span class="math notranslate nohighlight">\(\{(x,y,z) \mid x^{\alpha}y^{\alpha} \geq |z|, x \geq 0, y \geq 0 \}\)</span>.</p>
+<p>Support for power cone constraints is a recent addition (v1.1.8), and CVXPY currently does
+not have any atoms that take advantage of this constraint. If you want to use this
+type of constraint in your model, you will need to instantiate <code class="docutils literal notranslate"><span class="pre">PowCone3D</span></code> and/or <code class="docutils literal notranslate"><span class="pre">PowConeND</span></code>
+objects manually.</p>
+<p>MIP - <a class="reference internal" href="../constraints/index.html#mixed-integer-programs"><span class="std std-ref">Mixed-Integer Programming</span></a> refers to problems where some decision variables are constrained to be integer values.</p>
+<p>By default CVXPY calls the solver most specialized to the problem type. For example, <a class="reference external" href="https://oxfordcontrol.github.io/ClarabelDocs/">CLARABEL</a> is called for SOCPs.
+<a class="reference external" href="http://github.com/cvxgrp/scs">SCS</a> can handle all problems (except mixed-integer programs). If the problem is a QP, CVXPY will use <a class="reference external" href="https://osqp.org/">OSQP</a>.</p>
+<p>You can change the solver called by CVXPY using the <code class="docutils literal notranslate"><span class="pre">solver</span></code> keyword argument. If the solver you choose cannot solve the problem, CVXPY will raise an exception. Here’s example code solving the same problem with different solvers.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><code><span class="c1"># Solving a problem with different solvers.</span>
+<span class="n">x</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+<span class="n">obj</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Minimize</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">cp</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
+<span class="n">constraints</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span> <span class="o">&gt;=</span> <span class="mi">2</span><span class="p">]</span>
+<span class="n">prob</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Problem</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">constraints</span><span class="p">)</span>
+
+<span class="c1"># Solve with OSQP.</span>
+<span class="n">prob</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">solver</span><span class="o">=</span><span class="n">cp</span><span class="o">.</span><span class="n">OSQP</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;optimal value with OSQP:&quot;</span><span class="p">,</span> <span class="n">prob</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
+
+<span class="n">prob</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">solver</span><span class="o">=</span><span class="n">cp</span><span class="o">.</span><span class="n">CLARABEL</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;optimal value with CLARABEL:&quot;</span><span class="p">,</span> <span class="n">prob</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
+
+<span class="c1"># Solve with {solver_name}</span>
+<span class="n">prob</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">solver</span><span class="o">=</span><span class="n">cp</span><span class="o">.</span><span class="p">{</span><span class="n">solver_name</span><span class="p">})</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;optimal value with </span><span class="si">{solver_name}</span><span class="s2">:&quot;</span><span class="p">,</span> <span class="n">prob</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
+
+<span class="n">optimal</span> <span class="n">value</span> <span class="k">with</span> <span class="n">OSQP</span><span class="p">:</span> <span class="mf">6.0</span>
+<span class="o">...</span>
+<span class="n">optimal</span> <span class="n">value</span> <span class="k">with</span> <span class="n">CLARABEL</span><span class="p">:</span> <span class="mf">6.0</span>
+</code></pre></div>
+</div>
+<p>Use the <code class="docutils literal notranslate"><span class="pre">installed_solvers</span></code> utility function to get a list of the solvers your installation of CVXPY supports.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><code><span class="nb">print</span><span class="p">(</span><span class="n">installed_solvers</span><span class="p">())</span>
+</code></pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><code><span class="p">[</span><span class="s1">&#39;CBC&#39;</span><span class="p">,</span> <span class="s1">&#39;CVXOPT&#39;</span><span class="p">,</span> <span class="s1">&#39;MOSEK&#39;</span><span class="p">,</span> <span class="s1">&#39;MPAX&#39;</span><span class="p">,</span> <span class="s1">&#39;GLPK&#39;</span><span class="p">,</span> <span class="s1">&#39;GLPK_MI&#39;</span><span class="p">,</span> <span class="s1">&#39;ECOS&#39;</span><span class="p">,</span> <span class="s1">&#39;SCS&#39;</span><span class="p">,</span> <span class="s1">&#39;SDPA&#39;</span>
+ <span class="s1">&#39;SCIPY&#39;</span><span class="p">,</span> <span class="s1">&#39;GUROBI&#39;</span><span class="p">,</span> <span class="s1">&#39;OSQP&#39;</span><span class="p">,</span> <span class="s1">&#39;CPLEX&#39;</span><span class="p">,</span> <span class="s1">&#39;NAG&#39;</span><span class="p">,</span> <span class="s1">&#39;SCIP&#39;</span><span class="p">,</span> <span class="s1">&#39;XPRESS&#39;</span><span class="p">,</span> <span class="s1">&#39;PROXQP&#39;</span><span class="p">]</span>
+</code></pre></div>
+</div>
+<h3 id="viewing-solver-output">Viewing solver output<a class="headerlink" href="#viewing-solver-output" title="Link to this heading">¶</a></h3>
+<p>All the solvers can print out information about their progress while solving the problem. This information can be useful in debugging a solver error. To see the output from both CVXPY and the solvers, set <code class="docutils literal notranslate"><span class="pre">verbose=True</span></code> in the solve method. If you want to see the output from the solver only, set <code class="docutils literal notranslate"><span class="pre">solver_verbose=True</span></code>.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><code><span class="c1"># Solve with ECOS and display output.</span>
+<span class="n">prob</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">solver</span><span class="o">=</span><span class="n">cp</span><span class="o">.</span><span class="n">ECOS</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;optimal value with ECOS: </span><span class="si">{</span><span class="n">prob</span><span class="o">.</span><span class="n">value</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</code></pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><code><span class="n">ECOS</span> <span class="mf">1.0.3</span> <span class="o">-</span> <span class="p">(</span><span class="n">c</span><span class="p">)</span> <span class="n">A</span><span class="o">.</span> <span class="n">Domahidi</span><span class="p">,</span> <span class="n">Automatic</span> <span class="n">Control</span> <span class="n">Laboratory</span><span class="p">,</span> <span class="n">ETH</span> <span class="n">Zurich</span><span class="p">,</span> <span class="mi">2012</span><span class="o">-</span><span class="mf">2014.</span>
+
+<span class="n">It</span>     <span class="n">pcost</span>         <span class="n">dcost</span>      <span class="n">gap</span>     <span class="n">pres</span>    <span class="n">dres</span>     <span class="n">k</span><span class="o">/</span><span class="n">t</span>     <span class="n">mu</span>      <span class="n">step</span>     <span class="n">IR</span>
+ <span class="mi">0</span>   <span class="o">+</span><span class="mf">0.000e+00</span>   <span class="o">+</span><span class="mf">4.000e+00</span>   <span class="o">+</span><span class="mf">2e+01</span>   <span class="mf">2e+00</span>   <span class="mf">1e+00</span>   <span class="mf">1e+00</span>   <span class="mf">3e+00</span>    <span class="n">N</span><span class="o">/</span><span class="n">A</span>     <span class="mi">1</span> <span class="mi">1</span> <span class="o">-</span>
+ <span class="mi">1</span>   <span class="o">+</span><span class="mf">6.451e+00</span>   <span class="o">+</span><span class="mf">8.125e+00</span>   <span class="o">+</span><span class="mf">5e+00</span>   <span class="mf">7e-01</span>   <span class="mf">5e-01</span>   <span class="mf">7e-01</span>   <span class="mf">7e-01</span>   <span class="mf">0.7857</span>   <span class="mi">1</span> <span class="mi">1</span> <span class="mi">1</span>
+ <span class="mi">2</span>   <span class="o">+</span><span class="mf">6.788e+00</span>   <span class="o">+</span><span class="mf">6.839e+00</span>   <span class="o">+</span><span class="mf">9e-02</span>   <span class="mf">1e-02</span>   <span class="mf">8e-03</span>   <span class="mf">3e-02</span>   <span class="mf">2e-02</span>   <span class="mf">0.9829</span>   <span class="mi">1</span> <span class="mi">1</span> <span class="mi">1</span>
+ <span class="mi">3</span>   <span class="o">+</span><span class="mf">6.828e+00</span>   <span class="o">+</span><span class="mf">6.829e+00</span>   <span class="o">+</span><span class="mf">1e-03</span>   <span class="mf">1e-04</span>   <span class="mf">8e-05</span>   <span class="mf">3e-04</span>   <span class="mf">2e-04</span>   <span class="mf">0.9899</span>   <span class="mi">1</span> <span class="mi">1</span> <span class="mi">1</span>
+ <span class="mi">4</span>   <span class="o">+</span><span class="mf">6.828e+00</span>   <span class="o">+</span><span class="mf">6.828e+00</span>   <span class="o">+</span><span class="mf">1e-05</span>   <span class="mf">1e-06</span>   <span class="mf">8e-07</span>   <span class="mf">3e-06</span>   <span class="mf">2e-06</span>   <span class="mf">0.9899</span>   <span class="mi">2</span> <span class="mi">1</span> <span class="mi">1</span>
+ <span class="mi">5</span>   <span class="o">+</span><span class="mf">6.828e+00</span>   <span class="o">+</span><span class="mf">6.828e+00</span>   <span class="o">+</span><span class="mf">1e-07</span>   <span class="mf">1e-08</span>   <span class="mf">8e-09</span>   <span class="mf">4e-08</span>   <span class="mf">2e-08</span>   <span class="mf">0.9899</span>   <span class="mi">2</span> <span class="mi">1</span> <span class="mi">1</span>
+
+<span class="n">OPTIMAL</span> <span class="p">(</span><span class="n">within</span> <span class="n">feastol</span><span class="o">=</span><span class="mf">1.3e-08</span><span class="p">,</span> <span class="n">reltol</span><span class="o">=</span><span class="mf">1.5e-08</span><span class="p">,</span> <span class="n">abstol</span><span class="o">=</span><span class="mf">1.0e-07</span><span class="p">)</span><span class="o">.</span>
+<span class="n">Runtime</span><span class="p">:</span> <span class="mf">0.000121</span> <span class="n">seconds</span><span class="o">.</span>
+
+<span class="n">optimal</span> <span class="n">value</span> <span class="k">with</span> <span class="n">ECOS</span><span class="p">:</span> <span class="mf">6.82842708233</span>
+</code></pre></div>
+</div>
+<h3 id="solving-disciplined-geometric-programs">Solving disciplined geometric programs<a class="headerlink" href="#solving-disciplined-geometric-programs" title="Link to this heading">¶</a></h3>
+<p>When the <code class="docutils literal notranslate"><span class="pre">solve</span></code> method is called with <cite>gp=True</cite>, the problem is parsed
+as a disciplined geometric program instead of a disciplined convex program.
+For more information, see the <a class="reference internal" href="../dgp/index.html"><span class="doc">DGP tutorial</span></a>.</p>
+<h2 id="solver-stats">Solver stats<a class="headerlink" href="#solver-stats" title="Link to this heading">¶</a></h2>
+<p>When the <code class="docutils literal notranslate"><span class="pre">solve</span></code> method is called on a problem object and a solver is invoked,
+the problem object records the optimal value, the values of the primal and dual variables,
+and several solver statistics.
+We have already discussed how to view the optimal value and variable values.
+The solver statistics are accessed via the <code class="docutils literal notranslate"><span class="pre">problem.solver_stats</span></code> attribute,
+which returns a <a class="reference internal" href="../../api_reference/cvxpy.problems.html#cvxpy.problems.problem.SolverStats" title="cvxpy.problems.problem.SolverStats (Python class) — Reports some of the miscellaneous information that is returned by the solver after solving but that is not captured directly by the Problem instance."><code class="xref py py-class docutils literal notranslate"><span class="pre">SolverStats</span></code></a> object.
+For example, <code class="docutils literal notranslate"><span class="pre">problem.solver_stats.solve_time</span></code> gives the time it took the solver to solve the problem.</p>
+<div class="note admonition">
+<p class="admonition-title">Note</p>
+<p>Information stored in <code class="docutils literal notranslate"><span class="pre">problem.solver_stats</span></code> differs in the solver used.
+For example, if we use <code class="docutils literal notranslate"><span class="pre">MOSEK</span></code>, <code class="docutils literal notranslate"><span class="pre">problem.solver_stats.num_iters</span></code> includes the following: <code class="docutils literal notranslate"><span class="pre">iinfitem.intpnt_iter</span></code>, <code class="docutils literal notranslate"><span class="pre">liinfitem.simplex_iter</span></code>
+or <code class="docutils literal notranslate"><span class="pre">iinfitem.mio_num_relax</span></code>. In addition, <code class="docutils literal notranslate"><span class="pre">problem.solver_stats.extra_stats</span></code> includes <code class="docutils literal notranslate"><span class="pre">liinfitem.mio_intpnt_iter</span></code> and <code class="docutils literal notranslate"><span class="pre">liinfitem.mio_simplex_iter</span></code>.
+For more information, please visit <a class="reference external" href="https://docs.mosek.com/latest/pythonapi/constants.html">https://docs.mosek.com/latest/pythonapi/constants.html</a></p>
+</div>
+<h2 id="warm-start">Warm start<a class="headerlink" href="#warm-start" title="Link to this heading">¶</a></h2>
+<p>When solving the same problem for multiple values of a parameter, many solvers can exploit work from previous solves (i.e., warm start).
+For example, the solver might use the previous solution as an initial point or reuse cached matrix factorizations.
+Warm start is enabled by default and controlled with the <code class="docutils literal notranslate"><span class="pre">warm_start</span></code> solver option.
+The code below shows how warm start can accelerate solving a sequence of related least-squares problems.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">cvxpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">cp</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span>
+
+<span class="c1"># Problem data.</span>
+<span class="n">m</span> <span class="o">=</span> <span class="mi">2000</span>
+<span class="n">n</span> <span class="o">=</span> <span class="mi">1000</span>
+<span class="n">numpy</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+<span class="n">A</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">n</span><span class="p">)</span>
+<span class="n">b</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Parameter</span><span class="p">(</span><span class="n">m</span><span class="p">)</span>
+
+<span class="c1"># Construct the problem.</span>
+<span class="n">x</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
+<span class="n">prob</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Problem</span><span class="p">(</span><span class="n">cp</span><span class="o">.</span><span class="n">Minimize</span><span class="p">(</span><span class="n">cp</span><span class="o">.</span><span class="n">sum_squares</span><span class="p">(</span><span class="n">A</span> <span class="o">@</span> <span class="n">x</span> <span class="o">-</span> <span class="n">b</span><span class="p">)),</span>
+                   <span class="p">[</span><span class="n">x</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">])</span>
+
+<span class="n">b</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="n">m</span><span class="p">)</span>
+<span class="n">prob</span><span class="o">.</span><span class="n">solve</span><span class="p">()</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;First solve time:&quot;</span><span class="p">,</span> <span class="n">prob</span><span class="o">.</span><span class="n">solver_stats</span><span class="o">.</span><span class="n">solve_time</span><span class="p">)</span>
+
+<span class="n">b</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="n">m</span><span class="p">)</span>
+<span class="n">prob</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">warm_start</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Second solve time:&quot;</span><span class="p">,</span> <span class="n">prob</span><span class="o">.</span><span class="n">solver_stats</span><span class="o">.</span><span class="n">solve_time</span><span class="p">)</span>
+</code></pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><code><span class="n">First</span> <span class="n">solve</span> <span class="n">time</span><span class="p">:</span> <span class="mf">11.14</span>
+<span class="n">Second</span> <span class="n">solve</span> <span class="n">time</span><span class="p">:</span> <span class="mf">2.95</span>
+</code></pre></div>
+</div>
+<p>The speed up in this case comes from caching the KKT matrix factorization.
+If <code class="docutils literal notranslate"><span class="pre">A</span></code> were a parameter, factorization caching would not be possible and the benefit of
+warm start would only be a good initial point.</p>
+<p>Warm start can also be used to provide an initial guess the first time a problem is solved.
+The initial guess is constructed from the <code class="docutils literal notranslate"><span class="pre">value</span></code> field of the problem variables.
+If the same problem is solved a second time, the initial guess is constructed from the
+cached previous solution as described above (rather than from the <code class="docutils literal notranslate"><span class="pre">value</span></code> field).</p>
+<h2 id="setting-solver-options"><span id="solveropts"></span>Setting solver options<a class="headerlink" href="#setting-solver-options" title="Link to this heading">¶</a></h2>
+<p>The <a class="reference external" href="https://osqp.org/">OSQP</a>, <a class="reference external" href="https://www.embotech.com/ECOS">ECOS</a>, <a class="reference external" href="https://developers.google.com/optimization">GLOP</a>, <a class="reference external" href="https://www.mosek.com/">MOSEK</a>, <a class="reference external" href="https://github.com/MIT-Lu-Lab/MPAX">MPAX</a>, <a class="reference external" href="https://projects.coin-or.org/Cbc">CBC</a>, <a class="reference external" href="http://cvxopt.org/">CVXOPT</a>, <a class="reference external" href="https://nag.com/mathematical-optimization/">NAG</a>, <a class="reference external" href="https://developers.google.com/optimization">PDLP</a>, <a class="reference external" href="https://qoco-org.github.io/qoco/">QOCO</a>, <a class="reference external" href="https://www.gurobi.com/">GUROBI</a>, <a class="reference external" href="http://github.com/cvxgrp/scs">SCS</a> , <a class="reference external" href="https://oxfordcontrol.github.io/ClarabelDocs/">CLARABEL</a>, <a class="reference external" href="https://darnstrom.github.io/daqp/">DAQP</a>, <a class="reference external" href="https://predict-epfl.github.io/piqp/">PIQP</a> and <a class="reference external" href="https://github.com/simple-robotics/proxsuite">PROXQP</a> Python interfaces allow you to set solver options such as the maximum number of iterations. You can pass these options along through CVXPY as keyword arguments.</p>
+<p>For example, here we tell SCS to use an indirect method for solving linear equations rather than a direct method.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><code><span class="c1"># Solve with SCS, use sparse-indirect method.</span>
+<span class="n">prob</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">solver</span><span class="o">=</span><span class="n">cp</span><span class="o">.</span><span class="n">SCS</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">use_indirect</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;optimal value with SCS: </span><span class="si">{</span><span class="n">prob</span><span class="o">.</span><span class="n">value</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</code></pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><code><span class="o">----------------------------------------------------------------------------</span>
+    <span class="n">SCS</span> <span class="n">v1</span><span class="mf">.0.5</span> <span class="o">-</span> <span class="n">Splitting</span> <span class="n">Conic</span> <span class="n">Solver</span>
+    <span class="p">(</span><span class="n">c</span><span class="p">)</span> <span class="n">Brendan</span> <span class="n">O</span><span class="s1">&#39;Donoghue, Stanford University, 2012</span>
+<span class="o">----------------------------------------------------------------------------</span>
+<span class="n">Lin</span><span class="o">-</span><span class="n">sys</span><span class="p">:</span> <span class="n">sparse</span><span class="o">-</span><span class="n">indirect</span><span class="p">,</span> <span class="n">nnz</span> <span class="ow">in</span> <span class="n">A</span> <span class="o">=</span> <span class="mi">13</span><span class="p">,</span> <span class="n">CG</span> <span class="n">tol</span> <span class="o">~</span> <span class="mi">1</span><span class="o">/</span><span class="nb">iter</span><span class="o">^</span><span class="p">(</span><span class="mf">2.00</span><span class="p">)</span>
+<span class="n">EPS</span> <span class="o">=</span> <span class="mf">1.00e-03</span><span class="p">,</span> <span class="n">ALPHA</span> <span class="o">=</span> <span class="mf">1.80</span><span class="p">,</span> <span class="n">MAX_ITERS</span> <span class="o">=</span> <span class="mi">2500</span><span class="p">,</span> <span class="n">NORMALIZE</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="n">SCALE</span> <span class="o">=</span> <span class="mf">5.00</span>
+<span class="n">Variables</span> <span class="n">n</span> <span class="o">=</span> <span class="mi">5</span><span class="p">,</span> <span class="n">constraints</span> <span class="n">m</span> <span class="o">=</span> <span class="mi">9</span>
+<span class="n">Cones</span><span class="p">:</span>  <span class="n">linear</span> <span class="nb">vars</span><span class="p">:</span> <span class="mi">6</span>
+    <span class="n">soc</span> <span class="nb">vars</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span> <span class="n">soc</span> <span class="n">blks</span><span class="p">:</span> <span class="mi">1</span>
+<span class="n">Setup</span> <span class="n">time</span><span class="p">:</span> <span class="mf">2.78e-04</span><span class="n">s</span>
+<span class="o">----------------------------------------------------------------------------</span>
+ <span class="n">Iter</span> <span class="o">|</span> <span class="n">pri</span> <span class="n">res</span> <span class="o">|</span> <span class="n">dua</span> <span class="n">res</span> <span class="o">|</span> <span class="n">rel</span> <span class="n">gap</span> <span class="o">|</span> <span class="n">pri</span> <span class="n">obj</span> <span class="o">|</span> <span class="n">dua</span> <span class="n">obj</span> <span class="o">|</span> <span class="n">kap</span><span class="o">/</span><span class="n">tau</span> <span class="o">|</span> <span class="n">time</span> <span class="p">(</span><span class="n">s</span><span class="p">)</span>
+<span class="o">----------------------------------------------------------------------------</span>
+     <span class="mi">0</span><span class="o">|</span> <span class="mf">4.60e+00</span>  <span class="mf">5.78e-01</span>       <span class="n">nan</span>      <span class="o">-</span><span class="n">inf</span>       <span class="n">inf</span>       <span class="n">inf</span>  <span class="mf">3.86e-05</span>
+    <span class="mi">60</span><span class="o">|</span> <span class="mf">3.92e-05</span>  <span class="mf">1.12e-04</span>  <span class="mf">6.64e-06</span>  <span class="mf">6.83e+00</span>  <span class="mf">6.83e+00</span>  <span class="mf">1.41e-17</span>  <span class="mf">9.51e-05</span>
+<span class="o">----------------------------------------------------------------------------</span>
+<span class="n">Status</span><span class="p">:</span> <span class="n">Solved</span>
+<span class="n">Timing</span><span class="p">:</span> <span class="n">Total</span> <span class="n">solve</span> <span class="n">time</span><span class="p">:</span> <span class="mf">9.76e-05</span><span class="n">s</span>
+    <span class="n">Lin</span><span class="o">-</span><span class="n">sys</span><span class="p">:</span> <span class="n">avg</span> <span class="c1"># CG iterations: 1.00, avg solve time: 2.24e-07s</span>
+    <span class="n">Cones</span><span class="p">:</span> <span class="n">avg</span> <span class="n">projection</span> <span class="n">time</span><span class="p">:</span> <span class="mf">4.90e-08</span><span class="n">s</span>
+<span class="o">----------------------------------------------------------------------------</span>
+<span class="n">Error</span> <span class="n">metrics</span><span class="p">:</span>
+<span class="o">|</span><span class="n">Ax</span> <span class="o">+</span> <span class="n">s</span> <span class="o">-</span> <span class="n">b</span><span class="o">|</span><span class="n">_2</span> <span class="o">/</span> <span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="o">|</span><span class="n">b</span><span class="o">|</span><span class="n">_2</span><span class="p">)</span> <span class="o">=</span> <span class="mf">3.9223e-05</span>
+<span class="o">|</span><span class="n">A</span><span class="s1">&#39;y + c|_2 / (1 + |c|_2) = 1.1168e-04</span>
+<span class="o">|</span><span class="n">c</span><span class="s1">&#39;x + b&#39;</span><span class="n">y</span><span class="o">|</span> <span class="o">/</span> <span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="o">|</span><span class="n">c</span><span class="s1">&#39;x| + |b&#39;</span><span class="n">y</span><span class="o">|</span><span class="p">)</span> <span class="o">=</span> <span class="mf">6.6446e-06</span>
+<span class="n">dist</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">K</span><span class="p">)</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">dist</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">K</span><span class="o">*</span><span class="p">)</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">s</span><span class="s1">&#39;y = 0</span>
+<span class="o">----------------------------------------------------------------------------</span>
+<span class="n">c</span><span class="s1">&#39;x = 6.8284, -b&#39;</span><span class="n">y</span> <span class="o">=</span> <span class="mf">6.8285</span>
+<span class="o">============================================================================</span>
+<span class="n">optimal</span> <span class="n">value</span> <span class="k">with</span> <span class="n">SCS</span><span class="p">:</span> <span class="mf">6.82837896975</span>
+</code></pre></div>
+</div>
+<p>Here is the complete list of solver options.</p>
+<details class="info admonition" open="">
+<summary class="admonition-title"><a class="reference external" href="https://osqp.org/">OSQP</a> options:</summary><dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">'max_iter'</span></code></dt><dd><p>maximum number of iterations (default: 10,000).</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">'eps_abs'</span></code></dt><dd><p>absolute accuracy (default: 1e-5).</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">'eps_rel'</span></code></dt><dd><p>relative accuracy (default: 1e-5).</p>
+</dd>
+</dl>
+<p>For others see <a class="reference external" href="https://osqp.org/docs/interfaces/solver_settings.html">OSQP documentation</a>.</p>
+</details>
+<details class="info admonition">
+<summary class="admonition-title"><a class="reference external" href="https://github.com/simple-robotics/proxsuite">PROXQP</a> options:</summary><dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">'backend'</span></code></dt><dd><p>solver backend [dense, sparse] (default: dense).</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">'max_iter'</span></code></dt><dd><p>maximum number of iterations (default: 10,000).</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">'eps_abs'</span></code></dt><dd><p>absolute accuracy (default: 1e-8).</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">'eps_rel'</span></code></dt><dd><p>relative accuracy (default: 0.0).</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">'rho'</span></code></dt><dd><p>primal proximal parameter (default: 1e-6).</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">'mu_eq'</span></code></dt><dd><p>dual equality constraint proximal parameter (default: 1e-3).</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">'mu_in'</span></code></dt><dd><p>dual inequality constraint proximal parameter (default: 1e-1).</p>
+</dd>
+</dl>
+</details>
+<details class="info admonition">
+<summary class="admonition-title"><a class="reference external" href="https://www.embotech.com/ECOS">ECOS</a> options:</summary><dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">'max_iters'</span></code></dt><dd><p>maximum number of iterations (default: 100).</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">'abstol'</span></code></dt><dd><p>absolute accuracy (default: 1e-8).</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">'reltol'</span></code></dt><dd><p>relative accuracy (default: 1e-8).</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">'feastol'</span></code></dt><dd><p>tolerance for feasibility conditions (default: 1e-8).</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">'abstol_inacc'</span></code></dt><dd><p>absolute accuracy for inaccurate solution (default: 5e-5).</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">'reltol_inacc'</span></code></dt><dd><p>relative accuracy for inaccurate solution (default: 5e-5).</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">'feastol_inacc'</span></code></dt><dd><p>tolerance for feasibility condition for inaccurate solution (default: 1e-4).</p>
+</dd>
+</dl>
+</details>
+<details class="info admonition">
+<summary class="admonition-title"><a class="reference external" href="https://darnstrom.github.io/daqp/">DAQP</a> options:</summary><p>For more information <a class="reference external" href="https://darnstrom.github.io/daqp/parameters/">see the DAQP documentation</a>,
+some features of DAQP are currently unsupported in CVXPY.</p>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">'primal_tol'</span></code></dt><dd><p>tolerance for primal infeasibility (default: 1e-6).</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">'dual_tol'</span></code></dt><dd><p>olerance for dual infeasibility (default: 1e-12).</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">'zero_tol'</span></code></dt><dd><p>values below are regarded as zero (default: 1e-11).</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">'pivot_tol'</span></code></dt><dd><p>value used for determining if rows in the LDL factorization should be exchanged.
+A higher value improves stability (default: 1e-6).</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">'progress_tol'</span></code></dt><dd><p>minimum change in objective function to consider it progress (default: 1e-6).</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">'cycle_tol'</span></code></dt><dd><p>allowed number of iterations without progress before terminating (default: 10).</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">'iter_limit'</span></code></dt><dd><p>maximum number of iterations before terminating (default: 1000).</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">'fval_bound'</span></code></dt><dd><p>Maximum allowed objective function value. The solver terminates if the dual
+objective exceeds this value (since it is a lower bound of the optimal value,
+default: 1e30).</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">'eps_prox'</span></code></dt><dd><p>Regularization parameter used for proximal-point iterations (0 means that
+no proximal-point iterations are performed). If the
+cost matrix has a null eigenvalue, setting this to 0 (upstream’s default)
+makes DAQP fail. Note that CVXPY’s canonicalization procedure may add extra
+variables with 0 quadratic cost which cause the cost matrix to have null eigenvalues
+(default: 1e-5 if there are null eigenvalues, else 0).</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">'eta_prox'</span></code></dt><dd><p>Tolerance that determines if a fix-point has been reached during
+proximal-point iterations (default: 1e-6).</p>
+</dd>
+</dl>
+</details>
+<details class="info admonition">
+<summary class="admonition-title"><a class="reference external" href="https://developers.google.com/optimization">GLOP</a> options:</summary><dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">'time_limit_sec'</span></code></dt><dd><p>Time limit for the solve, in seconds.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">'parameters_proto'</span></code></dt><dd><p>A <cite>ortools.glop.parameters_pb2.GlopParameters</cite> protocol buffer message.
+For the definition of GlopParameters, see
+<a class="reference external" href="https://github.com/google/or-tools/blob/2cb85b4eead4c38e1c54b48044f92087cf165bce/ortools/glop/parameters.proto#L26">here</a>.</p>
+</dd>
+</dl>
+</details>
+<details class="info admonition">
+<summary class="admonition-title"><a class="reference external" href="https://www.mosek.com/">MOSEK</a> options</summary><dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">'mosek_params'</span></code></dt><dd><p>A dictionary of MOSEK parameters in the form <code class="docutils literal notranslate"><span class="pre">name:</span> <span class="pre">value</span></code>. Parameter names
+should be strings, as in the MOSEK C API or command line, for example
+<code class="docutils literal notranslate"><span class="pre">'MSK_DPAR_BASIS_TOL_X'</span></code>, <code class="docutils literal notranslate"><span class="pre">'MSK_IPAR_NUM_THREADS'</span></code> etc. Values are strings,
+integers or floats, depending on the parameter.
+See <a class="reference external" href="https://docs.mosek.com/latest/faq/faq.html#cvxpy">example</a>.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">'save_file'</span></code></dt><dd><p>The name of a file where MOSEK will save the problem just before optimization.
+Refer to MOSEK documentation for a list of supported file formats. File format
+is chosen based on the extension.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">'bfs'</span></code></dt><dd><p>For a linear problem, if <code class="docutils literal notranslate"><span class="pre">bfs=True</span></code>, then the basic solution will be retrieved
+instead of the interior-point solution. This assumes no specific MOSEK
+parameters were used which prevent computing the basic solution.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">'accept_unknown'</span></code></dt><dd><p>If <code class="docutils literal notranslate"><span class="pre">accept_unknown=True</span></code>, an inaccurate solution will be returned, even if
+it is arbitrarily bad, when the solver does not generate an optimal
+point under the given conditions.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">'eps'</span></code></dt><dd><p>Applies tolerance <code class="docutils literal notranslate"><span class="pre">eps</span></code> to termination parameters for (conic) interior-point,
+simplex, and MIO solvers. The full list of termination parameters is returned
+by <code class="docutils literal notranslate"><span class="pre">MOSEK.tolerance_params()</span></code> in
+<code class="docutils literal notranslate"><span class="pre">cvxpy.reductions.solvers.conic_solvers.mosek_conif</span></code>.
+Explicitly defined parameters take precedence over <code class="docutils literal notranslate"><span class="pre">eps</span></code>.</p>
+</dd>
+</dl>
+<div class="note admonition">
+<p class="admonition-title">Note</p>
+<p>In CVXPY 1.1.6 we did a complete rewrite of the MOSEK interface. The main
+takeaway is that we now dualize all continuous problems. The dualization is
+automatic because this eliminates the previous need for a large number of
+slack variables, and never results in larger problems compared to our old
+MOSEK interface. If you notice MOSEK solve times are slower for some of your
+problems under CVXPY 1.1.6 or higher, be sure to use the MOSEK solver options
+to tell MOSEK that it should solve the dual; this can be accomplished by
+adding the <code class="docutils literal notranslate"><span class="pre">(key,</span> <span class="pre">value)</span></code> pair <code class="docutils literal notranslate"><span class="pre">('MSK_IPAR_INTPNT_SOLVE_FORM',</span> <span class="pre">'MSK_SOLVE_DUAL')</span></code>
+to the <code class="docutils literal notranslate"><span class="pre">mosek_params</span></code> argument.</p>
+</div>
+</details>
+<details class="info admonition">
+<summary class="admonition-title"><a class="reference external" href="https://github.com/MIT-Lu-Lab/MPAX">MPAX</a> options</summary><dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">'eps_abs'</span></code></dt><dd><p>Absolute tolerance for convergence (default: 1e-4).</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">'eps_rel'</span></code></dt><dd><p>Relative tolerance for convergence (default: 1e-4).</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">'iteration_limit'</span></code></dt><dd><p>Maximum number of iterations (default: max_int).</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">'algorithm'</span></code></dt><dd><p>Algorithm to use. Can be <code class="docutils literal notranslate"><span class="pre">'raPDHG'</span></code> or <code class="docutils literal notranslate"><span class="pre">'r2HPDHG'</span></code> (default: <code class="docutils literal notranslate"><span class="pre">'raPDHG'</span></code>).</p>
+</dd>
+</dl>
+<p>For others see <a class="reference external" href="https://github.com/MIT-Lu-Lab/MPAX">MPAX documentation</a>.</p>
+</details>
+<details class="info admonition">
+<summary class="admonition-title"><a class="reference external" href="http://cvxopt.org/">CVXOPT</a> options</summary><dl>
+<dt><code class="docutils literal notranslate"><span class="pre">'max_iters'</span></code></dt><dd><p>maximum number of iterations (default: 100).</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">'abstol'</span></code></dt><dd><p>absolute accuracy (default: 1e-7).</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">'reltol'</span></code></dt><dd><p>relative accuracy (default: 1e-6).</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">'feastol'</span></code></dt><dd><p>tolerance for feasibility conditions (default: 1e-7).</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">'refinement'</span></code></dt><dd><p>number of iterative refinement steps after solving KKT system (default: 1).</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">'kktsolver'</span></code></dt><dd><p>Controls the method used to solve systems of linear equations at each step of CVXOPT’s
+interior-point algorithm. This parameter can be a string (with one of several values),
+or a function handle.</p>
+<p>KKT solvers built-in to CVXOPT can be specified by strings  ‘ldl’, ‘ldl2’, ‘qr’, ‘chol’,
+and ‘chol2’. If ‘chol’ is chosen, then CVXPY will perform an additional presolve
+procedure to eliminate redundant constraints. You can also set <code class="docutils literal notranslate"><span class="pre">kktsolver='robust'</span></code>.
+The ‘robust’ solver is implemented in python, and is part of CVXPY source code; the
+‘robust’ solver doesn’t require a presolve phase to eliminate redundant constraints,
+however it can be slower than ‘chol’.</p>
+<p>Finally, there is an option to pass a function handle for the <code class="docutils literal notranslate"><span class="pre">kktsolver</span></code> argument.
+Passing a KKT solver based on a function handle allows you to take complete control of
+solving the linear systems encountered in CVXOPT’s interior-point algorithm. The API for
+KKT solvers of this form is a small wrapper around CVXOPT’s API for function-handle KKT
+solvers. The precise API that CVXPY users are held to is described in the CVXPY source
+code: <a class="reference external" href="https://github.com/cvxpy/cvxpy/blob/master/cvxpy/reductions/solvers/kktsolver.py">cvxpy/reductions/solvers/kktsolver.py</a>.</p>
+</dd>
+</dl>
+</details>
+<details class="info admonition">
+<summary class="admonition-title"><a class="reference external" href="https://sdpa-python.github.io">SDPA</a> options</summary><dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">'maxIteration'</span></code></dt><dd><p>The maximum number of iterations. (default: 100).</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">'epsilonStar'</span></code></dt><dd><p>The accuracy of an approximate optimal solution for primal and dual SDP. (default: 1.0E-7).</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">'lambdaStar'</span></code></dt><dd><p>An initial point. (default: 1.0E2).</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">'omegaStar'</span></code></dt><dd><p>The search region for an optimal solution. (default: 2.0).</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">'lowerBound'</span></code></dt><dd><p>Lower bound of the minimum objective value of the primal SDP. (default: -1.0E5).</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">'upperBound'</span></code></dt><dd><p>Upper bound of the maximum objective value of the dual SDP. (default: 1.0E5).</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">'betaStar'</span></code></dt><dd><p>The parameter for controlling the search direction if the current point is feasible. (default: 0.1).</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">'betaBar'</span></code></dt><dd><p>The parameter for controlling the search direction if the current point is infeasible. (default: 0.2).</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">'gammaStar'</span></code></dt><dd><p>A reduction factor for the primal and dual step lengths. (default: 0.9).</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">'epsilonDash'</span></code></dt><dd><p>The relative accuracy of an approximate optimal solution between primal and dual SDP. (default: 1.0E-7).</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">'isSymmetric'</span></code></dt><dd><p>Specify whether to check the symmetricity of input matrices. (default: False).</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">'isDimacs'</span></code></dt><dd><p>Specify whether to compute DIMACS ERROR. (default: False).</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">'numThreads'</span></code></dt><dd><p>numThreads (default: <code class="docutils literal notranslate"><span class="pre">'multiprocessing.cpu_count()'</span></code>).</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">'domainMethod'</span></code></dt><dd><p>Algorithm option for exploiting sparsity in the domain space. Can be <code class="docutils literal notranslate"><span class="pre">'none'</span></code> (exploiting no sparsity in the domain space) or <code class="docutils literal notranslate"><span class="pre">'basis'</span></code> (using basis representation) (default: <code class="docutils literal notranslate"><span class="pre">'none'</span></code>).</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">'rangeMethod'</span></code></dt><dd><p>Algorithm option for exploiting sparsity in the range space. Can be <code class="docutils literal notranslate"><span class="pre">'none'</span></code> (exploiting no sparsity in the range space) or <code class="docutils literal notranslate"><span class="pre">'decomp'</span></code> (using matrix decomposition) (default: <code class="docutils literal notranslate"><span class="pre">'none'</span></code>).</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">'frvMethod'</span></code></dt><dd><p>The method to eliminate free variables. Can be <code class="docutils literal notranslate"><span class="pre">'split'</span></code> or <code class="docutils literal notranslate"><span class="pre">'elimination'</span></code> (default: <code class="docutils literal notranslate"><span class="pre">'split'</span></code>).</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">'rho'</span></code></dt><dd><p>The parameter of range in split method or pivoting in elimination method. (default: 0.0).</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">'zeroPoint'</span></code></dt><dd><p>The zero point of matrix operation, determine unboundness, or LU decomposition. (default: 1.0E-12).</p>
+</dd>
+</dl>
+</details>
+<details class="info admonition">
+<summary class="admonition-title"><a class="reference external" href="http://github.com/cvxgrp/scs">SCS</a> options</summary><dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">'max_iters'</span></code></dt><dd><p>maximum number of iterations (default: 2500).</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">'eps'</span></code></dt><dd><p>convergence tolerance (default: 1e-4).</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">'alpha'</span></code></dt><dd><p>relaxation parameter (default: 1.8).</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">'acceleration_lookback'</span></code></dt><dd><p>Anderson Acceleration parameter for SCS 2.0 and higher. This can be any positive or negative integer;
+its default value is 10. See <a class="reference external" href="https://www.cvxgrp.org/scs/algorithm/acceleration.html#in-scs">this page of the SCS documentation</a>
+for more information.</p>
+</dd>
+</dl>
+<div class="warning admonition">
+<p class="admonition-title">Warning</p>
+<p>The value of this parameter often effects whether or not SCS 2.X will converge to an accurate solution.
+If you don’t <em>explicitly</em> set <code class="docutils literal notranslate"><span class="pre">acceleration_lookback</span></code> and SCS 2.X fails to converge, then CVXPY
+will raise a warning and try to re-solve the problem with <code class="docutils literal notranslate"><span class="pre">acceleration_lookback=0</span></code>.
+No attempt will be made to re-solve with problem if you have SCS version 3.0 or higher.</p>
+</div>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">'scale'</span></code></dt><dd><p>balance between minimizing primal and dual residual (default: 5.0).</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">'normalize'</span></code></dt><dd><p>whether to precondition data matrices (default: True).</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">'cudss'</span></code></dt><dd><p>whether to use the cuDSS solver that runs on a GPU (default: False).
+Must be used with an SCS build that links cuDSS.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">'use_indirect'</span></code></dt><dd><p>whether to use indirect solver for KKT sytem (instead of direct) (default: False).</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">'use_quad_obj'</span></code></dt><dd><p>whether to use a quadratic objective or reduce it to SOC constraints (default: True).</p>
+</dd>
+</dl>
+</details>
+<details class="info admonition">
+<summary class="admonition-title"><a class="reference external" href="https://projects.coin-or.org/Cbc">CBC</a> options</summary><p>Cut-generation through <a class="reference external" href="https://projects.coin-or.org/Cgl">CGL</a></p>
+<dl class="simple">
+<dt>General remarks:</dt><dd><ul class="simple">
+<li><p>some of these cut-generators seem to be buggy (observed problems with AllDifferentCuts, RedSplitCuts, LandPCuts, PreProcessCuts)</p></li>
+<li><p>a few of these cut-generators will generate noisy output even if <code class="docutils literal notranslate"><span class="pre">'verbose=False'</span></code></p></li>
+</ul>
+</dd>
+<dt>The following cut-generators are available:</dt><dd><p><code class="docutils literal notranslate"><span class="pre">GomoryCuts</span></code>, <code class="docutils literal notranslate"><span class="pre">MIRCuts</span></code>, <code class="docutils literal notranslate"><span class="pre">MIRCuts2</span></code>, <code class="docutils literal notranslate"><span class="pre">TwoMIRCuts</span></code>, <code class="docutils literal notranslate"><span class="pre">ResidualCapacityCuts</span></code>, <code class="docutils literal notranslate"><span class="pre">KnapsackCuts</span></code> <code class="docutils literal notranslate"><span class="pre">FlowCoverCuts</span></code>, <code class="docutils literal notranslate"><span class="pre">CliqueCuts</span></code>, <code class="docutils literal notranslate"><span class="pre">LiftProjectCuts</span></code>, <code class="docutils literal notranslate"><span class="pre">AllDifferentCuts</span></code>, <code class="docutils literal notranslate"><span class="pre">OddHoleCuts</span></code>, <code class="docutils literal notranslate"><span class="pre">RedSplitCuts</span></code>, <code class="docutils literal notranslate"><span class="pre">LandPCuts</span></code>, <code class="docutils literal notranslate"><span class="pre">PreProcessCuts</span></code>, <code class="docutils literal notranslate"><span class="pre">ProbingCuts</span></code>, <code class="docutils literal notranslate"><span class="pre">SimpleRoundingCuts</span></code>.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">'CutGenName'</span></code></dt><dd><p>if cut-generator is activated (e.g. <code class="docutils literal notranslate"><span class="pre">'GomoryCuts=True'</span></code>)</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">'integerTolerance'</span></code></dt><dd><p>an integer variable is deemed to be at an integral value if it is no further than this value (tolerance) away</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">'maximumSeconds'</span></code></dt><dd><p>stop after given amount of seconds</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">'maximumNodes'</span></code></dt><dd><p>stop after given maximum number of nodes</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">'maximumSolutions'</span></code></dt><dd><p>stop after evalutation x number of solutions</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">'numberThreads'</span></code></dt><dd><p>sets the number of threads</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">'allowableGap'</span></code></dt><dd><p>returns a solution if the gap between the best known solution and the best possible solution is less than this value.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">'allowableFractionGap'</span></code></dt><dd><p>returns a solution if the gap between the best known solution and the best possible solution is less than this fraction.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">'allowablePercentageGap'</span></code></dt><dd><p>returns if the gap between the best known solution and the best possible solution is less than this percentage.</p>
+</dd>
+</dl>
+</details>
+<details class="info admonition">
+<summary class="admonition-title"><a class="reference external" href="https://github.com/COPT-Public/COPT-Release">COPT</a> options:</summary><p>COPT solver options are specified in CVXPY as keyword arguments. The full list of COPT parameters with defaults is listed <a class="reference external" href="https://guide.coap.online/copt/en-doc/index.html#parameters">here</a>.</p>
+</details>
+<details class="info admonition">
+<summary class="admonition-title"><a class="reference external" href="https://www.ibm.com/docs/en/icos">CPLEX</a> options:</summary><dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">'cplex_params'</span></code></dt><dd><p>a dictionary where the key-value pairs are composed of parameter names (as used in the CPLEX Python API) and parameter values. For example, to set the advance start switch parameter (i.e., CPX_PARAM_ADVIND), use “advance” for the parameter name. For the data consistency checking and modeling assistance parameter (i.e., CPX_PARAM_DATACHECK), use “read.datacheck” for the parameter name, and so on.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">'cplex_filename'</span></code></dt><dd><p>a string specifying the filename to which the problem will be written. For example, use “model.lp”, “model.sav”, or “model.mps” to export to the LP, SAV, and MPS formats, respectively.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">reoptimize</span></code></dt><dd><p>A boolean. This is only relevant for problems where CPLEX initially produces an “infeasible or unbounded” status.
+Its default value is False. If set to True, then if CPLEX produces an “infeasible or unbounded” status, its algorithm
+parameters are automatically changed and the problem is re-solved in order to determine its precise status.</p>
+</dd>
+</dl>
+</details>
+<details class="info admonition">
+<summary class="admonition-title"><a class="reference external" href="https://nag.com/mathematical-optimization/">NAG</a> options:</summary><dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">'nag_params'</span></code></dt><dd><p>a dictionary of NAG option parameters. Refer to NAG’s Python or Fortran API for details. For example, to set the maximum number of iterations for a linear programming problem to 20, use “LPIPM Iteration Limit” for the key name and 20 for its value .</p>
+</dd>
+</dl>
+</details>
+<details class="info admonition">
+<summary class="admonition-title"><a class="reference external" href="https://scip.zib.de/">SCIP</a> options:</summary><p><code class="docutils literal notranslate"><span class="pre">'scip_params'</span></code> a dictionary of SCIP optional parameters, a full list of parameters with defaults is listed <a class="reference external" href="https://www.scipopt.org/doc-5.0.1/html/PARAMETERS.php">here</a>.</p>
+</details>
+<details class="info admonition">
+<summary class="admonition-title"><a class="reference external" href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.linprog.html#scipy.optimize.linprog">SCIPY</a> options:</summary><p><code class="docutils literal notranslate"><span class="pre">'scipy_options'</span></code> a dictionary of SciPy optional parameters, a full list of parameters with defaults is listed <a class="reference external" href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.linprog.html#scipy.optimize.linprog">here</a>.</p>
+<ul class="simple">
+<li><p><strong>Please note</strong>: All options should be listed as key-value pairs within the <code class="docutils literal notranslate"><span class="pre">'scipy_options'</span></code> dictionary, and there should not be a nested dictionary called options. Some of the methods have different parameters, so please check the parameters for the method you wish to use, e.g., for method = ‘highs-ipm’. Also, note that the ‘integrality’ and ‘bounds’ options should never be specified within <code class="docutils literal notranslate"><span class="pre">'scipy_options'</span></code> and should instead be specified using CVXPY.</p></li>
+<li><p>The main advantage of this solver is its ability to use the <a class="reference external" href="https://highs.dev/">HiGHS</a> LP and MIP solvers, which are coded in C++. However, these require versions of SciPy larger than 1.6.1 and 1.9.0, respectively. To use the <a class="reference external" href="https://highs.dev/">HiGHS</a> LP solvers, simply set the method parameter to ‘highs-ds’ (for dual-simplex), ‘highs-ipm’ (for interior-point method) or ‘highs’ (which will choose either ‘highs-ds’ or ‘highs-ipm’ for you). To use the <a class="reference external" href="https://highs.dev/">HiGHS</a> MIP solver, leave the method parameter unspecified or set it explicitly to ‘highs’.</p></li>
+</ul>
+</details>
+<details class="info admonition">
+<summary class="admonition-title"><a class="reference external" href="https://developers.google.com/optimization">PDLP</a> options:</summary><dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">'time_limit_sec'</span></code></dt><dd><p>Time limit for the solve, in seconds.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">'parameters_proto'</span></code></dt><dd><p>A <cite>ortools.pdlp.solvers_pb2.PrimalDualHybridGradientParams</cite> protocol buffer message.
+For the definition of PrimalDualHybridGradientParams, see
+<a class="reference external" href="https://github.com/google/or-tools/blob/a3ef28e824ee84a948796dffbb8254e67714cb56/ortools/pdlp/solvers.proto#L150">here</a>.</p>
+</dd>
+</dl>
+</details>
+<details class="info admonition">
+<summary class="admonition-title"><a class="reference external" href="https://qoco-org.github.io/qoco/">QOCO</a> options:</summary><dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">'max_iters'</span></code></dt><dd><p>maximum number of iterations (default: 200).</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">'abstol'</span></code></dt><dd><p>absolute accuracy (default: 1e-7).</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">'reltol'</span></code></dt><dd><p>relative accuracy (default: 1e-7).</p>
+</dd>
+</dl>
+<p>For others see <a class="reference external" href="https://qoco-org.github.io/qoco/api/settings.html">QOCO documentation</a>.</p>
+</details>
+<details class="info admonition">
+<summary class="admonition-title"><a class="reference external" href="https://www.gurobi.com/">GUROBI</a> options:</summary><p>Gurobi solver options are specified in CVXPY as keyword arguments. The full list of Gurobi parameters with defaults is listed <a class="reference external" href="https://www.gurobi.com/documentation/9.1/refman/parameters.html">here</a>.</p>
+<p>In addition to Gurobi’s parameters, the following options are available:</p>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">'env'</span></code></dt><dd><p>Allows for the passage of a Gurobi Environment, which specifies parameters and license information.  Keyword arguments will override any settings in this environment.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">reoptimize</span></code></dt><dd><p>A boolean. This is only relevant for problems where GUROBI initially produces an “infeasible or unbounded” status.
+Its default value is False. If set to True, then if GUROBI produces an “infeasible or unbounded” status, its algorithm
+parameters are automatically changed and the problem is re-solved in order to determine its precise status.</p>
+</dd>
+</dl>
+</details>
+<details class="info admonition">
+<summary class="admonition-title"><a class="reference external" href="https://oxfordcontrol.github.io/ClarabelDocs/">CLARABEL</a> options:</summary><dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">'max_iter'</span></code></dt><dd><p>maximum number of iterations (default: 50).</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">'time_limit'</span></code></dt><dd><p>time limit in seconds (default: 0.0, giving no limit).</p>
+</dd>
+</dl>
+<p>For others see <a class="reference external" href="https://oxfordcontrol.github.io/ClarabelDocs/stable/api_settings/">CLARABEL documentation</a>.</p>
+</details>
+<details class="info admonition">
+<summary class="admonition-title"><a class="reference external" href="https://www.fico.com/en/products/fico-xpress-optimization">XPRESS</a> options:</summary><dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">'save_iis'</span></code></dt><dd><p>Whether (and how many) Irreduceable Infeasible Subsystems
+(IISs) should be saved in the event a problem is found to be
+infeasible. If 0 (default), no IIS is saved; if negative, all
+IISs are stored; if a positive <code class="docutils literal notranslate"><span class="pre">'k&gt;0'</span></code>, at most <code class="docutils literal notranslate"><span class="pre">'k'</span></code> IISs
+are saved.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">'write_mps'</span></code></dt><dd><p>Filename (with extension <code class="docutils literal notranslate"><span class="pre">'.mps'</span></code>) in which Xpress will save
+the quadratic or conic problem.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">'maxtime'</span></code></dt><dd><p>Time limit in seconds (must be integer).</p>
+</dd>
+</dl>
+<p>All controls of the Xpress Optimizer can be specified within the <code class="docutils literal notranslate"><span class="pre">'solve'</span></code>
+command. For all controls see <a class="reference external" href="https://www.fico.com/fico-xpress-optimization/docs/dms2019-03/solver/optimizer/HTML/chapter7.html">FICO Xpress Optimizer manual</a>.</p>
+</details>
+<details class="info admonition">
+<summary class="admonition-title"><a class="reference external" href="https://predict-epfl.github.io/piqp/">PIQP</a> options:</summary><dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">'backend'</span></code></dt><dd><p>solver backend [dense, sparse] (default: sparse).</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">'max_iter'</span></code></dt><dd><p>maximum number of iterations (default: 250).</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">'eps_abs'</span></code></dt><dd><p>absolute accuracy (default: 1e-8).</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">'eps_rel'</span></code></dt><dd><p>relative accuracy (default: 1e-9).</p>
+</dd>
+</dl>
+<p>For others see <a class="reference external" href="https://predict-epfl.github.io/piqp/interfaces/settings">PIQP documentation</a>.</p>
+</details>
+<details class="info admonition">
+<summary class="admonition-title"><a class="reference external" href="https://highs.dev/">HIGHS</a> options:</summary><p>All options of HiGHS solver can be specified within the <code class="docutils literal notranslate"><span class="pre">solve</span></code> command directly as keyword arguments. For example <cite>solve(solver=cp.HIGHS, presolve=”off”)</cite> would switch of the HiGHS presolver.</p>
+<p><strong>Please note</strong>: If an option name clashes with a <cite>solve</cite> method argument (e.g., <cite>solver</cite> option of HiGHS), it can be modified via the <cite>highs_options</cite> argument below.</p>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">highs_options</span></code></dt><dd><p>Solver options can also be passed as a dictionary where the key-value pairs are composed of HiGHS option names and associated values. For example, <cite>solve(solver=cp.HIGHS, highs_options=dict(solver=”simplex”))</cite> would set the LP solver of HiGHS to simplex.</p>
+</dd>
+</dl>
+<p>For other options see <a class="reference external" href="https://ergo-code.github.io/HiGHS/dev/options/definitions/">HiGHS documentation</a>.</p>
+</details>
+<h2 id="custom-solvers">Custom Solvers<a class="headerlink" href="#custom-solvers" title="Link to this heading">¶</a></h2>
+<p>Although <code class="docutils literal notranslate"><span class="pre">cvxpy</span></code> supports many different solvers out of the box, it is also possible to define and use custom solvers. This can be helpful in prototyping or developing custom solvers tailored to a specific application.</p>
+<p>To do so, you have to implement a solver class that is a child of <code class="docutils literal notranslate"><span class="pre">cvxpy.reductions.solvers.qp_solvers.qp_solver.QpSolver</span></code> or <code class="docutils literal notranslate"><span class="pre">cvxpy.reductions.solvers.conic_solvers.conic_solver.ConicSolver</span></code>. Then you pass an instance of this solver class to <code class="docutils literal notranslate"><span class="pre">solver.solve(.)</span></code> as following:</p>
+<div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">cvxpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">cp</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">cvxpy.reductions.solvers.qp_solvers.osqp_qpif</span><span class="w"> </span><span class="kn">import</span> <span class="n">OSQP</span>
+
+
+<span class="k">class</span><span class="w"> </span><span class="nc">CUSTOM_OSQP</span><span class="p">(</span><span class="n">OSQP</span><span class="p">):</span>
+    <span class="n">MIP_CAPABLE</span><span class="o">=</span><span class="kc">False</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">name</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s2">&quot;CUSTOM_OSQP&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">solve_via_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Solving with a custom QP solver!&quot;</span><span class="p">)</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">solve_via_data</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+
+<span class="n">x</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Variable</span><span class="p">()</span>
+<span class="n">quadratic</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">square</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+<span class="n">problem</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Problem</span><span class="p">(</span><span class="n">cp</span><span class="o">.</span><span class="n">Minimize</span><span class="p">(</span><span class="n">quadratic</span><span class="p">))</span>
+<span class="n">problem</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">solver</span><span class="o">=</span><span class="n">CUSTOM_OSQP</span><span class="p">())</span>
+</code></pre></div>
+</div>
+<p>You might also want to override the methods <code class="docutils literal notranslate"><span class="pre">invert</span></code> and <code class="docutils literal notranslate"><span class="pre">import_solver</span></code> of the <code class="docutils literal notranslate"><span class="pre">Solver</span></code> class.</p>
+<p>Note that the string returned by the <code class="docutils literal notranslate"><span class="pre">name</span></code> property should be different to all of the officially supported solvers
+(a list of which can be found in <code class="docutils literal notranslate"><span class="pre">cvxpy.settings.SOLVERS</span></code>). Also, if your solver is mixed integer capable,
+you should set the class variable <code class="docutils literal notranslate"><span class="pre">MIP_CAPABLE</span></code> to <code class="docutils literal notranslate"><span class="pre">True</span></code>. If your solver is both mixed integer capable
+and a conic solver (as opposed to a QP solver), you should set the class variable <code class="docutils literal notranslate"><span class="pre">MI_SUPPORTED_CONSTRAINTS</span></code>
+to the list of cones supported when solving mixed integer problems. Usually <code class="docutils literal notranslate"><span class="pre">MI_SUPPORTED_CONSTRAINTS</span></code>
+will be the same as the class variable <code class="docutils literal notranslate"><span class="pre">SUPPORTED_CONSTRAINTS</span></code>.</p>
+
+
+
+
+
+
+
+  
+  
+
+
+
+  
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+  <script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var labels=set.querySelector(".tabbed-labels");for(var tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>
+
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  
+  
+  <div class="md-footer-meta md-typeset">
+    
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+    <div class="md-footer-copyright__highlight">
+        &#169; Copyright The CVXPY authors.
+        
+    </div>
+  
+    Created using
+    <a href="https://www.sphinx-doc.org/" target="_blank" rel="noopener">Sphinx</a>
+    8.2.3.
+     and
+    <a href="https://github.com/jbms/sphinx-immaterial/" target="_blank" rel="noopener">Sphinx-Immaterial</a>
+  
+</div>
+      
+        <div class="md-social">
+  
+    
+    
+    
+    
+    <a href="https://github.com/cvxpy/cvxpy" target="_blank" rel="noopener" title="Source on github.com" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8M97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+    </a>
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://pypi.org/project/cvxpy/" target="_blank" rel="noopener" title="pypi.org" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.8 200.5c-7.7-30.9-22.3-54.2-53.4-54.2h-40.1v47.4c0 36.8-31.2 67.8-66.8 67.8H172.7c-29.2 0-53.4 25-53.4 54.3v101.8c0 29 25.2 46 53.4 54.3 33.8 9.9 66.3 11.7 106.8 0 26.9-7.8 53.4-23.5 53.4-54.3v-40.7H226.2v-13.6h160.2c31.1 0 42.6-21.7 53.4-54.2 11.2-33.5 10.7-65.7 0-108.6M286.2 404c11.1 0 20.1 9.1 20.1 20.3 0 11.3-9 20.4-20.1 20.4-11 0-20.1-9.2-20.1-20.4.1-11.3 9.1-20.3 20.1-20.3M167.8 248.1h106.8c29.7 0 53.4-24.5 53.4-54.3V91.9c0-29-24.4-50.7-53.4-55.6-35.8-5.9-74.7-5.6-106.8.1-45.2 8-53.4 24.7-53.4 55.6v40.7h106.9v13.6h-147c-31.1 0-58.3 18.7-66.8 54.2-9.8 40.7-10.2 66.1 0 108.6 7.6 31.6 25.7 54.2 56.8 54.2H101v-48.8c0-35.3 30.5-66.4 66.8-66.4m-6.7-142.6c-11.1 0-20.1-9.1-20.1-20.3.1-11.3 9-20.4 20.1-20.4 11 0 20.1 9.2 20.1 20.4s-9 20.3-20.1 20.3"/></svg>
+    </a>
+  
+</div>
+      
+    </div>
+    
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    <script id="__config" type="application/json">{"base": "../..", "features": ["header.autohide", "toc.follow", "navigation.path", "navigation.instant", "navigation.top", "navigation.tabs", "navigation.tabs.sticky", "navigation.tracking", "navigation.expand", "search.highlight", "search.share", "content.tabs.link", "announce.dismiss"], "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike", "staticVersions": [{"aliases": [], "title": "latest", "version": "https://www.cvxpy.org"}, {"aliases": [], "title": "1.6", "version": "https://www.cvxpy.org/version/1.6"}, {"aliases": [], "title": "1.5", "version": "https://www.cvxpy.org/version/1.5"}, {"aliases": [], "title": "1.4", "version": "https://www.cvxpy.org/version/1.4"}], "versionPath": null}}</script>
+    
+      
+        <script src="../../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../../_static/sphinx_immaterial_theme.32136f45f91ae6956.min.js?v=a7a9472a"></script>
+        <script src="../../_static/tabs.js?v=3ee01567"></script>
+        <script src="../../_static/design-tabs.js?v=f930bc37"></script>
+        <script id="MathJax-script" src="../../_static/mathjax/tex-mml-chtml.js?v=cadf963e"></script>
+        <script src="https://cdn.datatables.net/2.1.8/js/dataTables.js"></script>
+    
+  </body>
+</html>

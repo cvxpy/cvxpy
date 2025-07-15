@@ -1,0 +1,1489 @@
+
+
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+      
+        <link rel="prev" href="../functions/index.html">
+      
+      
+        <link rel="next" href="../dgp/index.html">
+      
+      
+      <link rel="icon" href="../../_static/favicon.ico">
+    
+    
+      
+        <title>Disciplined Convex Programming - </title>
+      
+    
+    
+      
+        
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+        <link rel="stylesheet" type="text/css" href="../../_static/sphinx_immaterial_theme.6ec1c446c2c357833.min.css?v=e2e8fea8" />
+        <link rel="stylesheet" type="text/css" href="../../_static/tabs.css?v=4c969af8" />
+        <link rel="stylesheet" type="text/css" href="../../_static/sphinx-design.min.css?v=95c83b7e" />
+        <link rel="stylesheet" type="text/css" href="../../_static/css/styling.css?v=84aacf86" />
+        <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/2.1.8/css/dataTables.dataTables.css" />
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+  
+
+
+  
+  
+
+<script id="__analytics">function __md_analytics(){function e(){dataLayer.push(arguments)}window.dataLayer=window.dataLayer||[],e("js",new Date),e("config","UA-50248335-1"),document.addEventListener("DOMContentLoaded",(function(){document.forms.search&&document.forms.search.query.addEventListener("blur",(function(){this.value&&e("event","search",{search_term:this.value})}));document$.subscribe((function(){var t=document.forms.feedback;if(void 0!==t)for(var a of t.querySelectorAll("[type=submit]"))a.addEventListener("click",(function(a){a.preventDefault();var n=document.location.pathname,d=this.getAttribute("data-md-value");e("event","feedback",{page:n,data:d}),t.firstElementChild.disabled=!0;var r=t.querySelector(".md-feedback__note [data-md-value='"+d+"']");r&&(r.hidden=!1)})),t.hidden=!1})),location$.subscribe((function(t){e("config","UA-50248335-1",{page_path:t.pathname})}))}));var t=document.createElement("script");t.async=!0,t.src="https://www.googletagmanager.com/gtag/js?id=UA-50248335-1",document.getElementById("__analytics").insertAdjacentElement("afterEnd",t)}</script>
+  
+    <script>"undefined"!=typeof __md_analytics&&__md_analytics()</script>
+  
+
+    
+    
+    
+  </head>
+  
+  
+    
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#expressions" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+      <div data-md-color-scheme="default" data-md-component="outdated" hidden>
+        
+      </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow md-header--lifted" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../../index.html" title="" class="md-header__button md-logo" aria-label="" data-md-component="logo">
+      <img src="../../_static/cvxpy-wordmark-light.png" alt="logo">
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Disciplined Convex Programming
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+    
+    
+    
+    
+      <label class="md-header__button md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+      </label>
+      <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+          <a href="javascript:void(0)" class="md-search__icon md-icon" title="Share" aria-label="Share" data-clipboard data-clipboard-text="" data-md-component="search-share" tabindex="-1">
+            
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9a3 3 0 0 0-3 3 3 3 0 0 0 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.15c-.05.21-.08.43-.08.66 0 1.61 1.31 2.91 2.92 2.91s2.92-1.3 2.92-2.91A2.92 2.92 0 0 0 18 16.08"/></svg>
+          </a>
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/cvxpy/cvxpy/" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8M97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    CVXPY
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+    
+      
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../install/index.html" class="md-tabs__link">
+        
+  
+    
+  
+  Install
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+    
+  
+  
+    <li class="md-tabs__item md-tabs__item--active">
+      <a href="../index.html" class="md-tabs__link">
+        
+  
+    
+  
+  User Guide
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../functions/index.html" class="md-tabs__link">
+        
+  
+    
+  
+  Functions
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../api_reference/cvxpy.html" class="md-tabs__link">
+        
+  
+    
+  
+  API Documentation
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../examples/index.html" class="md-tabs__link">
+        
+  
+    
+  
+  Examples
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../contributing/index.html" class="md-tabs__link">
+        
+  
+    
+  
+  Contributing
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../updates/index.html" class="md-tabs__link">
+        
+  
+    
+  
+  Changelog
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../faq/index.html" class="md-tabs__link">
+        
+  
+    
+  
+  FAQ
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../resources/index.html" class="md-tabs__link">
+        
+  
+    
+  
+  Resources
+
+      </a>
+    </li>
+  
+
+      
+    </ul>
+  </div>
+</nav>
+    
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+      
+      
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../../index.html" title="" class="md-nav__button md-logo" aria-label="" data-md-component="logo">
+      <img src="../../_static/cvxpy-wordmark-light.png" alt="logo">
+    </a>
+    
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/cvxpy/cvxpy/" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8M97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    CVXPY
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../install/index.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Install
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+      
+        
+        
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" checked>
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../index.html" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    User Guide
+    
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_2" id="__nav_2_label" tabindex="">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            User Guide
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../intro/index.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    What is CVXPY?
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../functions/index.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Atomic Functions
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    Disciplined Convex Programming
+    
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="#" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    Disciplined Convex Programming
+    
+  </span>
+  
+
+      </a>
+      
+        
+
+  
+
+<nav class="md-nav md-nav--secondary">
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      On this page
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#expressions" class="md-nav__link">
+    
+    <span class="md-ellipsis">
+      <span title="expressions (reference label)">Expressions</span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#sign" class="md-nav__link">
+    
+    <span class="md-ellipsis">
+      <span title="sign (reference label)">Sign</span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#curvature" class="md-nav__link">
+    
+    <span class="md-ellipsis">
+      Curvature
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#curvature-rules" class="md-nav__link">
+    
+    <span class="md-ellipsis">
+      <span title="curvature rules (reference label)">Curvature rules</span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#infix-operators" class="md-nav__link">
+    
+    <span class="md-ellipsis">
+      Infix operators
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#example-1" class="md-nav__link">
+    
+    <span class="md-ellipsis">
+      <span title="example 1 (reference label)">Example 1</span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#example-2" class="md-nav__link">
+    
+    <span class="md-ellipsis">
+      <span title="example 2 (reference label)">Example 2</span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#dcp-problems" class="md-nav__link">
+    
+    <span class="md-ellipsis">
+      <span title="dcp problems (reference label)">DCP problems</span>
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../dgp/index.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Disciplined Geometric Programming
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../dpp/index.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Disciplined Parametrized Programming
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../dqcp/index.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Disciplined Quasiconvex Programming
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../constraints/index.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Advanced Constraints
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../advanced/index.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Advanced Features
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../solvers/index.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Solver Features
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+  
+
+    
+      
+      
+  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../functions/index.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Functions
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api_reference/cvxpy.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    API Documentation
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../examples/index.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Examples
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../contributing/index.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Contributing
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../updates/index.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Changelog
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../faq/index.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    FAQ
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../resources/index.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Resources
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+  
+
+<nav class="md-nav md-nav--secondary">
+  
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      On this page
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#expressions" class="md-nav__link">
+    
+    <span class="md-ellipsis">
+      <span title="expressions (reference label)">Expressions</span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#sign" class="md-nav__link">
+    
+    <span class="md-ellipsis">
+      <span title="sign (reference label)">Sign</span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#curvature" class="md-nav__link">
+    
+    <span class="md-ellipsis">
+      Curvature
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#curvature-rules" class="md-nav__link">
+    
+    <span class="md-ellipsis">
+      <span title="curvature rules (reference label)">Curvature rules</span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#infix-operators" class="md-nav__link">
+    
+    <span class="md-ellipsis">
+      Infix operators
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#example-1" class="md-nav__link">
+    
+    <span class="md-ellipsis">
+      <span title="example 1 (reference label)">Example 1</span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#example-2" class="md-nav__link">
+    
+    <span class="md-ellipsis">
+      <span title="example 2 (reference label)">Example 2</span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#dcp-problems" class="md-nav__link">
+    
+    <span class="md-ellipsis">
+      <span title="dcp problems (reference label)">DCP problems</span>
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset" role="main">
+                
+                
+                  
+
+
+<h1 id="disciplined-convex-programming"><span id="dcp"></span>Disciplined Convex Programming<a class="headerlink" href="#disciplined-convex-programming" title="Link to this heading">¶</a></h1>
+<p>Disciplined convex programming (DCP) is a system for constructing mathematical expressions with known curvature from a given library of base functions. CVXPY uses DCP to ensure that the specified optimization problems are convex.</p>
+<p>This section of the tutorial explains the rules of DCP and how they are applied by CVXPY.</p>
+<p>Visit <a class="reference external" href="http://dcp.stanford.edu">dcp.stanford.edu</a> for a
+more interactive introduction to DCP.</p>
+<h2 id="expressions">Expressions<a class="headerlink" href="#expressions" title="Link to this heading">¶</a></h2>
+<p>Expressions in CVXPY are formed from variables, parameters, numerical
+constants such as Python floats and Numpy matrices, the standard
+arithmetic operators <code class="docutils literal notranslate"><span class="pre">+,</span> <span class="pre">-,</span> <span class="pre">*,</span> <span class="pre">/,</span> <span class="pre">&#64;</span></code>, and a library of
+<a class="reference internal" href="../functions/index.html#functions"><span class="std std-ref">functions</span></a>. Here are some examples of CVXPY expressions:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">cvxpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">cp</span>
+
+<span class="c1"># Create variables and parameters.</span>
+<span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Variable</span><span class="p">(),</span> <span class="n">cp</span><span class="o">.</span><span class="n">Variable</span><span class="p">()</span>
+<span class="n">a</span><span class="p">,</span> <span class="n">b</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Parameter</span><span class="p">(),</span> <span class="n">cp</span><span class="o">.</span><span class="n">Parameter</span><span class="p">()</span>
+
+<span class="c1"># Examples of CVXPY expressions.</span>
+<span class="mf">3.69</span> <span class="o">+</span> <span class="n">b</span><span class="o">/</span><span class="mi">3</span>
+<span class="n">x</span> <span class="o">-</span> <span class="mi">4</span><span class="o">*</span><span class="n">a</span>
+<span class="n">sqrt</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="o">-</span> <span class="n">minimum</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">x</span> <span class="o">-</span> <span class="n">a</span><span class="p">)</span>
+<span class="n">maximum</span><span class="p">(</span><span class="mf">2.66</span> <span class="o">-</span> <span class="n">sqrt</span><span class="p">(</span><span class="n">y</span><span class="p">),</span> <span class="n">square</span><span class="p">(</span><span class="n">x</span> <span class="o">+</span> <span class="mi">2</span><span class="o">*</span><span class="n">y</span><span class="p">))</span>
+</code></pre></div>
+</div>
+<p>Expressions can be scalars, vectors, or matrices. The dimensions of an expression are stored as <code class="docutils literal notranslate"><span class="pre">expr.shape</span></code>.
+The total number of entries is given by <code class="docutils literal notranslate"><span class="pre">expr.size</span></code>,
+while the number of dimensions is given by <code class="docutils literal notranslate"><span class="pre">expr.ndim</span></code>.
+CVXPY will raise an exception if an
+expression is used in a way that doesn’t make sense given its
+dimensions, for example adding matrices of different size.
+The semantics for how shapes behave under arithmetic operations
+are the same as for NumPy ndarrays (except some broadcasting is banned).</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span>
+
+<span class="n">X</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Variable</span><span class="p">((</span><span class="mi">5</span><span class="p">,</span> <span class="mi">4</span><span class="p">))</span>
+<span class="n">A</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ones</span><span class="p">((</span><span class="mi">3</span><span class="p">,</span> <span class="mi">5</span><span class="p">))</span>
+
+<span class="c1"># Use expr.shape to get the dimensions.</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;dimensions of X:&quot;</span><span class="p">,</span> <span class="n">X</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;size of X:&quot;</span><span class="p">,</span> <span class="n">X</span><span class="o">.</span><span class="n">size</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;number of dimensions:&quot;</span><span class="p">,</span> <span class="n">X</span><span class="o">.</span><span class="n">ndim</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;dimensions of sum(X):&quot;</span><span class="p">,</span> <span class="n">cp</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">X</span><span class="p">)</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;dimensions of A @ X:&quot;</span><span class="p">,</span> <span class="p">(</span><span class="n">A</span> <span class="o">@</span> <span class="n">X</span><span class="p">)</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+
+<span class="c1"># ValueError raised for invalid dimensions.</span>
+<span class="k">try</span><span class="p">:</span>
+    <span class="n">A</span> <span class="o">+</span> <span class="n">X</span>
+<span class="k">except</span> <span class="ne">ValueError</span><span class="p">,</span> <span class="n">e</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+</code></pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><code><span class="n">dimensions</span> <span class="n">of</span> <span class="n">X</span><span class="p">:</span> <span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="mi">4</span><span class="p">)</span>
+<span class="n">size</span> <span class="n">of</span> <span class="n">X</span><span class="p">:</span> <span class="mi">20</span>
+<span class="n">number</span> <span class="n">of</span> <span class="n">dimensions</span><span class="p">:</span> <span class="mi">2</span>
+<span class="n">dimensions</span> <span class="n">of</span> <span class="nb">sum</span><span class="p">(</span><span class="n">X</span><span class="p">):</span> <span class="p">()</span>
+<span class="n">dimensions</span> <span class="n">of</span> <span class="n">A</span> <span class="o">@</span> <span class="n">X</span><span class="p">:</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">)</span>
+<span class="n">Cannot</span> <span class="n">broadcast</span> <span class="n">dimensions</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span> <span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="mi">4</span><span class="p">)</span>
+</code></pre></div>
+</div>
+<p>CVXPY uses DCP analysis to determine the sign and curvature of each expression.</p>
+<h2 id="sign">Sign<a class="headerlink" href="#sign" title="Link to this heading">¶</a></h2>
+<p>Each (sub)expression is flagged as <em>positive</em> (non-negative), <em>negative</em>
+(non-positive), <em>zero</em>, or <em>unknown</em>.</p>
+<p>The signs of larger expressions are determined from the signs of their
+subexpressions. For example, the sign of the expression expr1*expr2 is</p>
+<ul class="simple">
+<li><p>Zero if either expression has sign zero.</p></li>
+<li><p>Positive if expr1 and expr2 have the same (known) sign.</p></li>
+<li><p>Negative if expr1 and expr2 have opposite (known) signs.</p></li>
+<li><p>Unknown if either expression has unknown sign.</p></li>
+</ul>
+<p>The sign given to an expression is always correct. But DCP sign analysis
+may flag an expression as unknown sign when the sign could be figured
+out through more complex analysis. For instance, <code class="docutils literal notranslate"><span class="pre">x*x</span></code> is positive but
+has unknown sign by the rules above.</p>
+<p>CVXPY determines the sign of constants by looking at their value. For scalar constants, this is straightforward. Vector and matrix constants with all positive (negative) entries are marked as positive (negative). Vector and matrix constants with both positive and negative entries are marked as unknown sign.</p>
+<p>The sign of an expression is stored as <code class="docutils literal notranslate"><span class="pre">expr.sign</span></code>:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><code><span class="n">x</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Variable</span><span class="p">()</span>
+<span class="n">a</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Parameter</span><span class="p">(</span><span class="n">nonpos</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">c</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;sign of x:&quot;</span><span class="p">,</span> <span class="n">x</span><span class="o">.</span><span class="n">sign</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;sign of a:&quot;</span><span class="p">,</span> <span class="n">a</span><span class="o">.</span><span class="n">sign</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;sign of square(x):&quot;</span><span class="p">,</span> <span class="n">cp</span><span class="o">.</span><span class="n">square</span><span class="p">(</span><span class="n">x</span><span class="p">)</span><span class="o">.</span><span class="n">sign</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;sign of c*a:&quot;</span><span class="p">,</span> <span class="p">(</span><span class="n">c</span><span class="o">*</span><span class="n">a</span><span class="p">)</span><span class="o">.</span><span class="n">sign</span><span class="p">)</span>
+</code></pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><code><span class="n">sign</span> <span class="n">of</span> <span class="n">x</span><span class="p">:</span> <span class="n">UNKNOWN</span>
+<span class="n">sign</span> <span class="n">of</span> <span class="n">a</span><span class="p">:</span> <span class="n">NONPOSITIVE</span>
+<span class="n">sign</span> <span class="n">of</span> <span class="n">square</span><span class="p">(</span><span class="n">x</span><span class="p">):</span> <span class="n">NONNEGATIVE</span>
+<span class="n">sign</span> <span class="n">of</span> <span class="n">c</span><span class="o">*</span><span class="n">a</span><span class="p">:</span> <span class="n">UNKNOWN</span>
+</code></pre></div>
+</div>
+<h2 id="curvature">Curvature<a class="headerlink" href="#curvature" title="Link to this heading">¶</a></h2>
+<p>Each (sub)expression is flagged as one of the following curvatures (with respect to its variables)</p>
+<table class="docutils data align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Curvature</p></th>
+<th class="head"><p>Meaning</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>constant</p></td>
+<td><p><span class="math notranslate nohighlight">\(f(x)\)</span> independent of <span class="math notranslate nohighlight">\(x\)</span></p></td>
+</tr>
+<tr class="row-odd"><td><p>affine</p></td>
+<td><p><span class="math notranslate nohighlight">\(f(\theta x + (1-\theta)y) = \theta f(x) + (1-\theta)f(y), \; \forall x, \; y,\; \theta \in [0,1]\)</span></p></td>
+</tr>
+<tr class="row-even"><td><p>convex</p></td>
+<td><p><span class="math notranslate nohighlight">\(f(\theta x + (1-\theta)y) \leq \theta f(x) + (1-\theta)f(y), \; \forall x, \; y,\; \theta \in [0,1]\)</span></p></td>
+</tr>
+<tr class="row-odd"><td><p>concave</p></td>
+<td><p><span class="math notranslate nohighlight">\(f(\theta x + (1-\theta)y) \geq \theta f(x) + (1-\theta)f(y), \; \forall x, \; y,\; \theta \in [0,1]\)</span></p></td>
+</tr>
+<tr class="row-even"><td><p>unknown</p></td>
+<td><p>DCP analysis cannot determine the curvature</p></td>
+</tr>
+</tbody>
+</table>
+<p>using the curvature rules given below. As with sign analysis, the
+conclusion is always correct, but the simple analysis can flag
+expressions as unknown even when they are convex or concave. Note that
+any constant expression is also affine, and any affine expression is
+convex and concave.</p>
+<h2 id="curvature-rules">Curvature rules<a class="headerlink" href="#curvature-rules" title="Link to this heading">¶</a></h2>
+<p>DCP analysis is based on applying a general composition theorem from
+convex analysis to each (sub)expression.</p>
+<p><span class="math notranslate nohighlight">\(f(\text{expr}_1, \text{expr}_2, ..., \text{expr}_n)\)</span> is convex if <span class="math notranslate nohighlight">\(\text{ } f\)</span>
+is a convex function and for each <span class="math notranslate nohighlight">\(\text{expr}_{i}\)</span> one of the following
+conditions holds:</p>
+<ul class="simple">
+<li><p><span class="math notranslate nohighlight">\(f\)</span> is increasing in argument <span class="math notranslate nohighlight">\(i\)</span> and <span class="math notranslate nohighlight">\(\text{expr}_{i}\)</span> is convex.</p></li>
+<li><p><span class="math notranslate nohighlight">\(f\)</span> is decreasing in argument <span class="math notranslate nohighlight">\(i\)</span> and <span class="math notranslate nohighlight">\(\text{expr}_{i}\)</span> is
+concave.</p></li>
+<li><p><span class="math notranslate nohighlight">\(\text{expr}_{i}\)</span> is affine or constant.</p></li>
+</ul>
+<p><span class="math notranslate nohighlight">\(f(\text{expr}_1, \text{expr}_2, ..., \text{expr}_n)\)</span> is concave if <span class="math notranslate nohighlight">\(\text{ } f\)</span>
+is a concave function and for each <span class="math notranslate nohighlight">\(\text{expr}_{i}\)</span> one of the following
+conditions holds:</p>
+<ul class="simple">
+<li><p><span class="math notranslate nohighlight">\(f\)</span> is increasing in argument <span class="math notranslate nohighlight">\(i\)</span> and <span class="math notranslate nohighlight">\(\text{expr}_{i}\)</span> is
+concave.</p></li>
+<li><p><span class="math notranslate nohighlight">\(f\)</span> is decreasing in argument <span class="math notranslate nohighlight">\(i\)</span> and <span class="math notranslate nohighlight">\(\text{expr}_{i}\)</span> is convex.</p></li>
+<li><p><span class="math notranslate nohighlight">\(\text{expr}_{i}\)</span> is affine or constant.</p></li>
+</ul>
+<p><span class="math notranslate nohighlight">\(f(\text{expr}_1, \text{expr}_2, ..., \text{expr}_n)\)</span> is affine if <span class="math notranslate nohighlight">\(\text{ } f\)</span>
+is an affine function and each <span class="math notranslate nohighlight">\(\text{expr}_{i}\)</span> is affine.</p>
+<p>If none of the three rules apply, the expression
+<span class="math notranslate nohighlight">\(f(\text{expr}_1, \text{expr}_2, ..., \text{expr}_n)\)</span> is marked as having unknown
+curvature.</p>
+<p>Whether a function is increasing or decreasing in an argument may depend
+on the sign of the argument. For instance, <code class="docutils literal notranslate"><span class="pre">square</span></code> is increasing for
+positive arguments and decreasing for negative arguments.</p>
+<p>The curvature of an expression is stored as <code class="docutils literal notranslate"><span class="pre">expr.curvature</span></code>:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><code><span class="n">x</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Variable</span><span class="p">()</span>
+<span class="n">a</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Parameter</span><span class="p">(</span><span class="n">nonneg</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;curvature of x:&quot;</span><span class="p">,</span> <span class="n">x</span><span class="o">.</span><span class="n">curvature</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;curvature of a:&quot;</span><span class="p">,</span> <span class="n">a</span><span class="o">.</span><span class="n">curvature</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;curvature of square(x):&quot;</span><span class="p">,</span> <span class="n">cp</span><span class="o">.</span><span class="n">square</span><span class="p">(</span><span class="n">x</span><span class="p">)</span><span class="o">.</span><span class="n">curvature</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;curvature of sqrt(x):&quot;</span><span class="p">,</span> <span class="n">cp</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">x</span><span class="p">)</span><span class="o">.</span><span class="n">curvature</span><span class="p">)</span>
+</code></pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><code><span class="n">curvature</span> <span class="n">of</span> <span class="n">x</span><span class="p">:</span> <span class="n">AFFINE</span>
+<span class="n">curvature</span> <span class="n">of</span> <span class="n">a</span><span class="p">:</span> <span class="n">CONSTANT</span>
+<span class="n">curvature</span> <span class="n">of</span> <span class="n">square</span><span class="p">(</span><span class="n">x</span><span class="p">):</span> <span class="n">CONVEX</span>
+<span class="n">curvature</span> <span class="n">of</span> <span class="n">sqrt</span><span class="p">(</span><span class="n">x</span><span class="p">):</span> <span class="n">CONCAVE</span>
+</code></pre></div>
+</div>
+<h2 id="infix-operators">Infix operators<a class="headerlink" href="#infix-operators" title="Link to this heading">¶</a></h2>
+<p>The infix operators <code class="docutils literal notranslate"><span class="pre">+,</span> <span class="pre">-,</span> <span class="pre">*,</span> <span class="pre">/</span></code> and matrix multiplication <code class="docutils literal notranslate"><span class="pre">&#64;</span></code>
+are treated exactly like functions.
+The infix operators <code class="docutils literal notranslate"><span class="pre">+</span></code> and <code class="docutils literal notranslate"><span class="pre">-</span></code> are affine, so the rules above are
+used to flag the curvature. For example, <code class="docutils literal notranslate"><span class="pre">expr1</span> <span class="pre">+</span> <span class="pre">expr2</span></code> is flagged as
+convex if <code class="docutils literal notranslate"><span class="pre">expr1</span></code> and <code class="docutils literal notranslate"><span class="pre">expr2</span></code> are convex.</p>
+<p><code class="docutils literal notranslate"><span class="pre">expr1*expr2</span></code>, <code class="docutils literal notranslate"><span class="pre">expr1/expr2</span></code>, and <code class="docutils literal notranslate"><span class="pre">expr1&#64;expr2</span></code>
+can only be DCP when one of the expressions is constant.
+The curvature rules above apply. For example, <code class="docutils literal notranslate"><span class="pre">expr1/expr2</span></code> is convex when
+<code class="docutils literal notranslate"><span class="pre">expr1</span></code> is concave and <code class="docutils literal notranslate"><span class="pre">expr2</span></code> is negative and constant.</p>
+<h2 id="example-1">Example 1<a class="headerlink" href="#example-1" title="Link to this heading">¶</a></h2>
+<p>DCP analysis breaks expressions down into subexpressions. The tree
+visualization below shows how this works for the expression
+<code class="docutils literal notranslate"><span class="pre">2*square(x)</span> <span class="pre">+</span> <span class="pre">3</span></code>. Each subexpression is shown in a blue box. We mark
+its curvature on the left and its sign on the right.</p>
+<a class="reference internal image-reference" href="../../_images/example1.png"><img alt="../../_images/example1.png" class="align-center" src="../../_images/example1.png" style="width: 548.8000000000001px; height: 400.0px;" />
+</a>
+<h2 id="example-2">Example 2<a class="headerlink" href="#example-2" title="Link to this heading">¶</a></h2>
+<p>We’ll walk through the application of the DCP rules to the expression
+<code class="docutils literal notranslate"><span class="pre">sqrt(1</span> <span class="pre">+</span> <span class="pre">square(x))</span></code>.</p>
+<a class="reference internal image-reference" href="../../_images/example2.png"><img alt="../../_images/example2.png" class="align-center" src="../../_images/example2.png" style="width: 460.8px; height: 400.0px;" />
+</a>
+<p>The variable <code class="docutils literal notranslate"><span class="pre">x</span></code> has affine curvature and unknown sign. The <code class="docutils literal notranslate"><span class="pre">square</span></code>
+function is convex and non-monotone for arguments of unknown sign. It
+can take the affine expression <code class="docutils literal notranslate"><span class="pre">x</span></code> as an argument; the result
+<code class="docutils literal notranslate"><span class="pre">square(x)</span></code> is convex.</p>
+<p>The arithmetic operator <code class="docutils literal notranslate"><span class="pre">+</span></code> is affine and increasing, so the
+composition <code class="docutils literal notranslate"><span class="pre">1</span> <span class="pre">+</span> <span class="pre">square(x)</span></code> is convex by the curvature rule for convex
+functions. The function <code class="docutils literal notranslate"><span class="pre">sqrt</span></code> is concave and increasing, which means
+it can only take a concave argument. Since <code class="docutils literal notranslate"><span class="pre">1</span> <span class="pre">+</span> <span class="pre">square(x)</span></code> is convex,
+<code class="docutils literal notranslate"><span class="pre">sqrt(1</span> <span class="pre">+</span> <span class="pre">square(x))</span></code> violates the DCP rules and cannot be verified as
+convex.</p>
+<p>In fact, <code class="docutils literal notranslate"><span class="pre">sqrt(1</span> <span class="pre">+</span> <span class="pre">square(x))</span></code> is a convex function of <code class="docutils literal notranslate"><span class="pre">x</span></code>, but the
+DCP rules are not able to verify convexity. If the expression is written
+as <code class="docutils literal notranslate"><span class="pre">norm(hstack(1,</span> <span class="pre">x),</span> <span class="pre">2)</span></code>, the L2 norm of the vector <span class="math notranslate nohighlight">\([1,x]\)</span>,
+which has the same value as <code class="docutils literal notranslate"><span class="pre">sqrt(1</span> <span class="pre">+</span> <span class="pre">square(x))</span></code>, then it will be
+certified as convex using the DCP rules.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><code><span class="nb">print</span><span class="p">(</span><span class="s2">&quot;sqrt(1 + square(x)) curvature:&quot;</span><span class="p">,</span>
+      <span class="n">cp</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="n">cp</span><span class="o">.</span><span class="n">square</span><span class="p">(</span><span class="n">x</span><span class="p">))</span><span class="o">.</span><span class="n">curvature</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;norm(hstack([1, x]), 2) curvature:&quot;</span><span class="p">,</span>
+      <span class="n">cp</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">cp</span><span class="o">.</span><span class="n">hstack</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="n">x</span><span class="p">]),</span> <span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">curvature</span><span class="p">)</span>
+</code></pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><code><span class="n">sqrt</span><span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="n">square</span><span class="p">(</span><span class="n">x</span><span class="p">))</span> <span class="n">curvature</span><span class="p">:</span> <span class="n">UNKNOWN</span>
+<span class="n">norm</span><span class="p">(</span><span class="n">hstack</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">x</span><span class="p">),</span> <span class="mi">2</span><span class="p">)</span> <span class="n">curvature</span><span class="p">:</span> <span class="n">CONVEX</span>
+</code></pre></div>
+</div>
+<h2 id="dcp-problems">DCP problems<a class="headerlink" href="#dcp-problems" title="Link to this heading">¶</a></h2>
+<p>A problem is constructed from an objective and a list of constraints. If
+a problem follows the DCP rules, it is guaranteed to be convex and
+solvable by CVXPY. The DCP rules require that the problem objective have
+one of two forms:</p>
+<ul class="simple">
+<li><p>Minimize(convex)</p></li>
+<li><p>Maximize(concave)</p></li>
+</ul>
+<p>The only valid constraints under the DCP rules are</p>
+<ul class="simple">
+<li><p>affine == affine</p></li>
+<li><p>convex &lt;= concave</p></li>
+<li><p>concave &gt;= convex</p></li>
+</ul>
+<p>You can check that a problem, constraint, or objective satisfies the DCP
+rules by calling <code class="docutils literal notranslate"><span class="pre">object.is_dcp()</span></code>. Here are some examples of DCP and
+non-DCP problems:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><code><span class="n">x</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Variable</span><span class="p">()</span>
+<span class="n">y</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Variable</span><span class="p">()</span>
+
+<span class="c1"># DCP problems.</span>
+<span class="n">prob1</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Problem</span><span class="p">(</span><span class="n">cp</span><span class="o">.</span><span class="n">Minimize</span><span class="p">(</span><span class="n">cp</span><span class="o">.</span><span class="n">square</span><span class="p">(</span><span class="n">x</span> <span class="o">-</span> <span class="n">y</span><span class="p">)),</span>
+                    <span class="p">[</span><span class="n">x</span> <span class="o">+</span> <span class="n">y</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">])</span>
+<span class="n">prob2</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Problem</span><span class="p">(</span><span class="n">cp</span><span class="o">.</span><span class="n">Maximize</span><span class="p">(</span><span class="n">cp</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">x</span> <span class="o">-</span> <span class="n">y</span><span class="p">)),</span>
+                <span class="p">[</span><span class="mi">2</span><span class="o">*</span><span class="n">x</span> <span class="o">-</span> <span class="mi">3</span> <span class="o">==</span> <span class="n">y</span><span class="p">,</span>
+                 <span class="n">cp</span><span class="o">.</span><span class="n">square</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="mi">2</span><span class="p">])</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;prob1 is DCP:&quot;</span><span class="p">,</span> <span class="n">prob1</span><span class="o">.</span><span class="n">is_dcp</span><span class="p">())</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;prob2 is DCP:&quot;</span><span class="p">,</span> <span class="n">prob2</span><span class="o">.</span><span class="n">is_dcp</span><span class="p">())</span>
+
+<span class="c1"># Non-DCP problems.</span>
+
+<span class="c1"># A non-DCP objective.</span>
+<span class="n">obj</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Maximize</span><span class="p">(</span><span class="n">cp</span><span class="o">.</span><span class="n">square</span><span class="p">(</span><span class="n">x</span><span class="p">))</span>
+<span class="n">prob3</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Problem</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;prob3 is DCP:&quot;</span><span class="p">,</span> <span class="n">prob3</span><span class="o">.</span><span class="n">is_dcp</span><span class="p">())</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Maximize(square(x)) is DCP:&quot;</span><span class="p">,</span> <span class="n">obj</span><span class="o">.</span><span class="n">is_dcp</span><span class="p">())</span>
+
+<span class="c1"># A non-DCP constraint.</span>
+<span class="n">prob4</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Problem</span><span class="p">(</span><span class="n">cp</span><span class="o">.</span><span class="n">Minimize</span><span class="p">(</span><span class="n">cp</span><span class="o">.</span><span class="n">square</span><span class="p">(</span><span class="n">x</span><span class="p">)),</span>
+                    <span class="p">[</span><span class="n">cp</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="mi">2</span><span class="p">])</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;prob4 is DCP: </span><span class="si">{</span><span class="n">prob4</span><span class="o">.</span><span class="n">is_dcp</span><span class="p">()</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;sqrt(x) &lt;= 2 is DCP: </span><span class="si">{</span><span class="p">(</span><span class="n">cp</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">x</span><span class="p">)</span><span class="w"> </span><span class="o">&lt;=</span><span class="w"> </span><span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">is_dcp</span><span class="p">()</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</code></pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><code><span class="n">prob1</span> <span class="ow">is</span> <span class="n">DCP</span><span class="p">:</span> <span class="kc">True</span>
+<span class="n">prob2</span> <span class="ow">is</span> <span class="n">DCP</span><span class="p">:</span> <span class="kc">True</span>
+<span class="n">prob3</span> <span class="ow">is</span> <span class="n">DCP</span><span class="p">:</span> <span class="kc">False</span>
+<span class="n">Maximize</span><span class="p">(</span><span class="n">square</span><span class="p">(</span><span class="n">x</span><span class="p">))</span> <span class="ow">is</span> <span class="n">DCP</span><span class="p">:</span> <span class="kc">False</span>
+<span class="n">prob4</span> <span class="ow">is</span> <span class="n">DCP</span><span class="p">:</span> <span class="kc">False</span>
+<span class="n">sqrt</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="mi">2</span> <span class="ow">is</span> <span class="n">DCP</span><span class="p">:</span> <span class="kc">False</span>
+</code></pre></div>
+</div>
+<p>CVXPY will raise an exception if you call <code class="docutils literal notranslate"><span class="pre">problem.solve()</span></code> on a
+non-DCP problem.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><code><span class="c1"># A non-DCP problem.</span>
+<span class="n">prob</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Problem</span><span class="p">(</span><span class="n">cp</span><span class="o">.</span><span class="n">Minimize</span><span class="p">(</span><span class="n">cp</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">x</span><span class="p">)))</span>
+
+<span class="k">try</span><span class="p">:</span>
+    <span class="n">prob</span><span class="o">.</span><span class="n">solve</span><span class="p">()</span>
+<span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+</code></pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><code><span class="n">Problem</span> <span class="n">does</span> <span class="ow">not</span> <span class="n">follow</span> <span class="n">DCP</span> <span class="n">rules</span><span class="o">.</span>
+</code></pre></div>
+</div>
+
+
+
+
+
+
+
+  
+  
+
+
+
+  
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+  <script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var labels=set.querySelector(".tabbed-labels");for(var tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>
+
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  
+  
+  <div class="md-footer-meta md-typeset">
+    
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+    <div class="md-footer-copyright__highlight">
+        &#169; Copyright The CVXPY authors.
+        
+    </div>
+  
+    Created using
+    <a href="https://www.sphinx-doc.org/" target="_blank" rel="noopener">Sphinx</a>
+    8.2.3.
+     and
+    <a href="https://github.com/jbms/sphinx-immaterial/" target="_blank" rel="noopener">Sphinx-Immaterial</a>
+  
+</div>
+      
+        <div class="md-social">
+  
+    
+    
+    
+    
+    <a href="https://github.com/cvxpy/cvxpy" target="_blank" rel="noopener" title="Source on github.com" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8M97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+    </a>
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://pypi.org/project/cvxpy/" target="_blank" rel="noopener" title="pypi.org" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.8 200.5c-7.7-30.9-22.3-54.2-53.4-54.2h-40.1v47.4c0 36.8-31.2 67.8-66.8 67.8H172.7c-29.2 0-53.4 25-53.4 54.3v101.8c0 29 25.2 46 53.4 54.3 33.8 9.9 66.3 11.7 106.8 0 26.9-7.8 53.4-23.5 53.4-54.3v-40.7H226.2v-13.6h160.2c31.1 0 42.6-21.7 53.4-54.2 11.2-33.5 10.7-65.7 0-108.6M286.2 404c11.1 0 20.1 9.1 20.1 20.3 0 11.3-9 20.4-20.1 20.4-11 0-20.1-9.2-20.1-20.4.1-11.3 9.1-20.3 20.1-20.3M167.8 248.1h106.8c29.7 0 53.4-24.5 53.4-54.3V91.9c0-29-24.4-50.7-53.4-55.6-35.8-5.9-74.7-5.6-106.8.1-45.2 8-53.4 24.7-53.4 55.6v40.7h106.9v13.6h-147c-31.1 0-58.3 18.7-66.8 54.2-9.8 40.7-10.2 66.1 0 108.6 7.6 31.6 25.7 54.2 56.8 54.2H101v-48.8c0-35.3 30.5-66.4 66.8-66.4m-6.7-142.6c-11.1 0-20.1-9.1-20.1-20.3.1-11.3 9-20.4 20.1-20.4 11 0 20.1 9.2 20.1 20.4s-9 20.3-20.1 20.3"/></svg>
+    </a>
+  
+</div>
+      
+    </div>
+    
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    <script id="__config" type="application/json">{"base": "../..", "features": ["header.autohide", "toc.follow", "navigation.path", "navigation.instant", "navigation.top", "navigation.tabs", "navigation.tabs.sticky", "navigation.tracking", "navigation.expand", "search.highlight", "search.share", "content.tabs.link", "announce.dismiss"], "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike", "staticVersions": [{"aliases": [], "title": "latest", "version": "https://www.cvxpy.org"}, {"aliases": [], "title": "1.6", "version": "https://www.cvxpy.org/version/1.6"}, {"aliases": [], "title": "1.5", "version": "https://www.cvxpy.org/version/1.5"}, {"aliases": [], "title": "1.4", "version": "https://www.cvxpy.org/version/1.4"}], "versionPath": null}}</script>
+    
+      
+        <script src="../../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../../_static/sphinx_immaterial_theme.32136f45f91ae6956.min.js?v=a7a9472a"></script>
+        <script src="../../_static/tabs.js?v=3ee01567"></script>
+        <script src="../../_static/design-tabs.js?v=f930bc37"></script>
+        <script id="MathJax-script" src="../../_static/mathjax/tex-mml-chtml.js?v=cadf963e"></script>
+        <script src="https://cdn.datatables.net/2.1.8/js/dataTables.js"></script>
+    
+  </body>
+</html>

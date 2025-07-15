@@ -1,0 +1,2199 @@
+
+
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+      
+        <link rel="prev" href="cvxpy.reductions.middle_end.html">
+      
+      
+        <link rel="next" href="../examples/index.html">
+      
+      
+      <link rel="icon" href="../_static/favicon.ico">
+    
+    
+      
+        <title>Back-End Reductions - </title>
+      
+    
+    
+      
+        
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+        <link rel="stylesheet" type="text/css" href="../_static/sphinx_immaterial_theme.6ec1c446c2c357833.min.css?v=e2e8fea8" />
+        <link rel="stylesheet" type="text/css" href="../_static/tabs.css?v=4c969af8" />
+        <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
+        <link rel="stylesheet" type="text/css" href="../_static/css/styling.css?v=84aacf86" />
+        <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/2.1.8/css/dataTables.dataTables.css" />
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+  
+
+
+  
+  
+
+<script id="__analytics">function __md_analytics(){function e(){dataLayer.push(arguments)}window.dataLayer=window.dataLayer||[],e("js",new Date),e("config","UA-50248335-1"),document.addEventListener("DOMContentLoaded",(function(){document.forms.search&&document.forms.search.query.addEventListener("blur",(function(){this.value&&e("event","search",{search_term:this.value})}));document$.subscribe((function(){var t=document.forms.feedback;if(void 0!==t)for(var a of t.querySelectorAll("[type=submit]"))a.addEventListener("click",(function(a){a.preventDefault();var n=document.location.pathname,d=this.getAttribute("data-md-value");e("event","feedback",{page:n,data:d}),t.firstElementChild.disabled=!0;var r=t.querySelector(".md-feedback__note [data-md-value='"+d+"']");r&&(r.hidden=!1)})),t.hidden=!1})),location$.subscribe((function(t){e("config","UA-50248335-1",{page_path:t.pathname})}))}));var t=document.createElement("script");t.async=!0,t.src="https://www.googletagmanager.com/gtag/js?id=UA-50248335-1",document.getElementById("__analytics").insertAdjacentElement("afterEnd",t)}</script>
+  
+    <script>"undefined"!=typeof __md_analytics&&__md_analytics()</script>
+  
+
+    
+    
+    
+  </head>
+  
+  
+    
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#dcp2cone" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+      <div data-md-color-scheme="default" data-md-component="outdated" hidden>
+        
+      </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow md-header--lifted" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../index.html" title="" class="md-header__button md-logo" aria-label="" data-md-component="logo">
+      <img src="../_static/cvxpy-wordmark-light.png" alt="logo">
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Back-End Reductions
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+    
+    
+    
+    
+      <label class="md-header__button md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+      </label>
+      <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+          <a href="javascript:void(0)" class="md-search__icon md-icon" title="Share" aria-label="Share" data-clipboard data-clipboard-text="" data-md-component="search-share" tabindex="-1">
+            
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9a3 3 0 0 0-3 3 3 3 0 0 0 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.15c-.05.21-.08.43-.08.66 0 1.61 1.31 2.91 2.92 2.91s2.92-1.3 2.92-2.91A2.92 2.92 0 0 0 18 16.08"/></svg>
+          </a>
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/cvxpy/cvxpy/" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8M97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    CVXPY
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+    
+      
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../install/index.html" class="md-tabs__link">
+        
+  
+    
+  
+  Install
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../tutorial/index.html" class="md-tabs__link">
+        
+  
+    
+  
+  User Guide
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../functions/index.html" class="md-tabs__link">
+        
+  
+    
+  
+  Functions
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+    
+  
+  
+    <li class="md-tabs__item md-tabs__item--active">
+      <a href="cvxpy.html" class="md-tabs__link">
+        
+  
+    
+  
+  API Documentation
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../examples/index.html" class="md-tabs__link">
+        
+  
+    
+  
+  Examples
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../contributing/index.html" class="md-tabs__link">
+        
+  
+    
+  
+  Contributing
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../updates/index.html" class="md-tabs__link">
+        
+  
+    
+  
+  Changelog
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../faq/index.html" class="md-tabs__link">
+        
+  
+    
+  
+  FAQ
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../resources/index.html" class="md-tabs__link">
+        
+  
+    
+  
+  Resources
+
+      </a>
+    </li>
+  
+
+      
+    </ul>
+  </div>
+</nav>
+    
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+      
+      
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../index.html" title="" class="md-nav__button md-logo" aria-label="" data-md-component="logo">
+      <img src="../_static/cvxpy-wordmark-light.png" alt="logo">
+    </a>
+    
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/cvxpy/cvxpy/" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8M97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    CVXPY
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../install/index.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Install
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tutorial/index.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    User Guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../functions/index.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Functions
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+      
+        
+        
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" checked>
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="cvxpy.html" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    API Documentation
+    
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_4" id="__nav_4_label" tabindex="">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            API Documentation
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="cvxpy.atoms.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Atoms
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="cvxpy.constraints.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Constraints
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="cvxpy.expressions.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Expressions
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="cvxpy.problems.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Problems
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="cvxpy.transforms.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Transforms
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_6" checked>
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="cvxpy.reductions.html" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    Reductions
+    
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_4_6" id="__nav_4_6_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_6_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_4_6">
+            <span class="md-nav__icon md-icon"></span>
+            Reductions
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_6_1" checked>
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="cvxpy.reductions.html#types-of-reductions" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    <span title="types of reductions (reference label)">Types of Reductions</span>
+    
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_4_6_1" id="__nav_4_6_1_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_4_6_1_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_4_6_1">
+            <span class="md-nav__icon md-icon"></span>
+            <span title="types of reductions (reference label)">Types of Reductions</span>
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="cvxpy.reductions.middle_end.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Middle-<wbr>End
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    Back-<wbr>End
+    
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="#" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    Back-<wbr>End
+    
+  </span>
+  
+
+      </a>
+      
+        
+
+  
+
+<nav class="md-nav md-nav--secondary">
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      On this page
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#dcp2cone" class="md-nav__link">
+    
+    <span class="md-ellipsis">
+      <span title="dcp2cone (reference label)">Dcp2Cone</span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Dcp2Cone">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.reductions.dcp2cone.dcp2cone.Dcp2Cone" class="md-nav__link">
+    
+    <span class="md-ellipsis">
+      cvxpy.<wbr>reductions.<wbr>dcp2cone.<wbr>dcp2cone.<wbr>Dcp2Cone
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="cvxpy.reductions.dcp2cone.dcp2cone.Dcp2Cone">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.reductions.dcp2cone.dcp2cone.Dcp2Cone.accepts" class="md-nav__link">
+    
+    <span class="md-ellipsis">
+      accepts
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.reductions.dcp2cone.dcp2cone.Dcp2Cone.apply" class="md-nav__link">
+    
+    <span class="md-ellipsis">
+      apply
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.reductions.dcp2cone.dcp2cone.Dcp2Cone.canonicalize_expr" class="md-nav__link">
+    
+    <span class="md-ellipsis">
+      canonicalize_<wbr>expr
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="canonicalize_expr">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.reductions.dcp2cone.dcp2cone.Dcp2Cone.canonicalize_expr-parameters" class="md-nav__link">
+    
+    <span class="md-ellipsis">
+      Parameters
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Parameters">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.reductions.dcp2cone.dcp2cone.Dcp2Cone.canonicalize_expr.expr" class="md-nav__link">
+    
+    <span class="md-ellipsis">
+      expr
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.reductions.dcp2cone.dcp2cone.Dcp2Cone.canonicalize_expr.args" class="md-nav__link">
+    
+    <span class="md-ellipsis">
+      args
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.reductions.dcp2cone.dcp2cone.Dcp2Cone.canonicalize_expr.affine_above" class="md-nav__link">
+    
+    <span class="md-ellipsis">
+      affine_<wbr>above
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.reductions.dcp2cone.dcp2cone.Dcp2Cone.canonicalize_expr-return-type" class="md-nav__link">
+    
+    <span class="md-ellipsis">
+      Return type
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.reductions.dcp2cone.dcp2cone.Dcp2Cone.canonicalize_tree" class="md-nav__link">
+    
+    <span class="md-ellipsis">
+      canonicalize_<wbr>tree
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="canonicalize_tree">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.reductions.dcp2cone.dcp2cone.Dcp2Cone.canonicalize_tree-parameters" class="md-nav__link">
+    
+    <span class="md-ellipsis">
+      Parameters
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Parameters">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.reductions.dcp2cone.dcp2cone.Dcp2Cone.canonicalize_tree.expr" class="md-nav__link">
+    
+    <span class="md-ellipsis">
+      expr
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.reductions.dcp2cone.dcp2cone.Dcp2Cone.canonicalize_tree.affine_above" class="md-nav__link">
+    
+    <span class="md-ellipsis">
+      affine_<wbr>above
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.reductions.dcp2cone.dcp2cone.Dcp2Cone.canonicalize_tree-return-type" class="md-nav__link">
+    
+    <span class="md-ellipsis">
+      Return type
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#qp2symbolicqp" class="md-nav__link">
+    
+    <span class="md-ellipsis">
+      <span title="qp2symbolicqp (reference label)">Qp2Symbolic<wbr>Qp</span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Qp2SymbolicQp">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.reductions.qp2quad_form.qp2symbolic_qp.Qp2SymbolicQp" class="md-nav__link">
+    
+    <span class="md-ellipsis">
+      cvxpy.<wbr>reductions.<wbr>qp2quad_<wbr>form.<wbr>qp2symbolic_<wbr>qp.<wbr>Qp2Symbolic<wbr>Qp
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="cvxpy.reductions.qp2quad_form.qp2symbolic_qp.Qp2SymbolicQp">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.reductions.qp2quad_form.qp2symbolic_qp.Qp2SymbolicQp.accepts" class="md-nav__link">
+    
+    <span class="md-ellipsis">
+      accepts
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.reductions.qp2quad_form.qp2symbolic_qp.Qp2SymbolicQp.apply" class="md-nav__link">
+    
+    <span class="md-ellipsis">
+      apply
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#dualize" class="md-nav__link">
+    
+    <span class="md-ellipsis">
+      <span title="dualize (reference label)">Dualize</span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Dualize">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.reductions.cone2cone.affine2direct.Dualize" class="md-nav__link">
+    
+      <span aria-label="Python class" class="objinfo-icon objinfo-icon__data" title="Python class">C</span>
+    
+    <span class="md-ellipsis">
+      <span title="cvxpy.reductions.cone2cone.affine2direct.Dualize (Python class) — CVXPY represents cone programs as">cvxpy.<wbr>reductions.<wbr>cone2cone.<wbr>affine2direct.<wbr>Dualize</span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="cvxpy.reductions.cone2cone.affine2direct.Dualize">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#usage" class="md-nav__link">
+    
+    <span class="md-ellipsis">
+      <span title="usage (reference label)">Usage</span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#assumptions" class="md-nav__link">
+    
+    <span class="md-ellipsis">
+      Assumptions
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#additional-notes" class="md-nav__link">
+    
+    <span class="md-ellipsis">
+      <span title="additional notes (reference label)">Additional notes</span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Additional notes">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.reductions.cone2cone.affine2direct.Dualize.invert" class="md-nav__link">
+    
+      <span aria-label="Python method" class="objinfo-icon objinfo-icon__procedure" title="Python method">M</span>
+    
+    <span class="md-ellipsis">
+      <span title="cvxpy.reductions.cone2cone.affine2direct.Dualize.invert (Python method) — solution is a CVXPY Solution object, formatted where">invert</span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="invert">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#details-on-required-formatting-of-solution-primal-vars" class="md-nav__link">
+    
+    <span class="md-ellipsis">
+      <span title="details on required formatting of solution.primal_vars (reference label)">Details on required formatting of solution.<wbr>primal_<wbr>vars</span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#slacks" class="md-nav__link">
+    
+    <span class="md-ellipsis">
+      <span title="slacks (reference label)">Slacks</span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Slacks">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.reductions.cone2cone.affine2direct.Slacks" class="md-nav__link">
+    
+      <span aria-label="Python class" class="objinfo-icon objinfo-icon__data" title="Python class">C</span>
+    
+    <span class="md-ellipsis">
+      <span title="cvxpy.reductions.cone2cone.affine2direct.Slacks (Python class) — CVXPY represents mixed-integer cone programs as">cvxpy.<wbr>reductions.<wbr>cone2cone.<wbr>affine2direct.<wbr>Slacks</span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="cvxpy.reductions.cone2cone.affine2direct.Slacks">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.reductions.cone2cone.affine2direct.Slacks.apply" class="md-nav__link">
+    
+      <span aria-label="Python method" class="objinfo-icon objinfo-icon__procedure" title="Python method">M</span>
+    
+    <span class="md-ellipsis">
+      <span title="cvxpy.reductions.cone2cone.affine2direct.Slacks.apply (Python method) — &#34;prob&#34; is a ParamConeProg which represents">apply</span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="apply">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#id1" class="md-nav__link">
+    
+    <span class="md-ellipsis">
+      <span title="assumptions (reference label)">Assumptions</span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.reductions.cone2cone.affine2direct.Slacks.extend_bounds" class="md-nav__link">
+    
+      <span aria-label="Python method" class="objinfo-icon objinfo-icon__procedure" title="Python method">M</span>
+    
+    <span class="md-ellipsis">
+      <span title="cvxpy.reductions.cone2cone.affine2direct.Slacks.extend_bounds (Python method) — Extend the bounds vector to be length num_vars, filling with fill_value.">extend_<wbr>bounds</span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+  
+
+    
+      
+      
+  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../examples/index.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Examples
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../contributing/index.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Contributing
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../updates/index.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Changelog
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../faq/index.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    FAQ
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../resources/index.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Resources
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+  
+
+<nav class="md-nav md-nav--secondary">
+  
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      On this page
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#dcp2cone" class="md-nav__link">
+    
+    <span class="md-ellipsis">
+      <span title="dcp2cone (reference label)">Dcp2Cone</span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Dcp2Cone">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.reductions.dcp2cone.dcp2cone.Dcp2Cone" class="md-nav__link">
+    
+    <span class="md-ellipsis">
+      cvxpy.<wbr>reductions.<wbr>dcp2cone.<wbr>dcp2cone.<wbr>Dcp2Cone
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="cvxpy.reductions.dcp2cone.dcp2cone.Dcp2Cone">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.reductions.dcp2cone.dcp2cone.Dcp2Cone.accepts" class="md-nav__link">
+    
+    <span class="md-ellipsis">
+      accepts
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.reductions.dcp2cone.dcp2cone.Dcp2Cone.apply" class="md-nav__link">
+    
+    <span class="md-ellipsis">
+      apply
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.reductions.dcp2cone.dcp2cone.Dcp2Cone.canonicalize_expr" class="md-nav__link">
+    
+    <span class="md-ellipsis">
+      canonicalize_<wbr>expr
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="canonicalize_expr">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.reductions.dcp2cone.dcp2cone.Dcp2Cone.canonicalize_expr-parameters" class="md-nav__link">
+    
+    <span class="md-ellipsis">
+      Parameters
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Parameters">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.reductions.dcp2cone.dcp2cone.Dcp2Cone.canonicalize_expr.expr" class="md-nav__link">
+    
+    <span class="md-ellipsis">
+      expr
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.reductions.dcp2cone.dcp2cone.Dcp2Cone.canonicalize_expr.args" class="md-nav__link">
+    
+    <span class="md-ellipsis">
+      args
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.reductions.dcp2cone.dcp2cone.Dcp2Cone.canonicalize_expr.affine_above" class="md-nav__link">
+    
+    <span class="md-ellipsis">
+      affine_<wbr>above
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.reductions.dcp2cone.dcp2cone.Dcp2Cone.canonicalize_expr-return-type" class="md-nav__link">
+    
+    <span class="md-ellipsis">
+      Return type
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.reductions.dcp2cone.dcp2cone.Dcp2Cone.canonicalize_tree" class="md-nav__link">
+    
+    <span class="md-ellipsis">
+      canonicalize_<wbr>tree
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="canonicalize_tree">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.reductions.dcp2cone.dcp2cone.Dcp2Cone.canonicalize_tree-parameters" class="md-nav__link">
+    
+    <span class="md-ellipsis">
+      Parameters
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Parameters">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.reductions.dcp2cone.dcp2cone.Dcp2Cone.canonicalize_tree.expr" class="md-nav__link">
+    
+    <span class="md-ellipsis">
+      expr
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.reductions.dcp2cone.dcp2cone.Dcp2Cone.canonicalize_tree.affine_above" class="md-nav__link">
+    
+    <span class="md-ellipsis">
+      affine_<wbr>above
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.reductions.dcp2cone.dcp2cone.Dcp2Cone.canonicalize_tree-return-type" class="md-nav__link">
+    
+    <span class="md-ellipsis">
+      Return type
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#qp2symbolicqp" class="md-nav__link">
+    
+    <span class="md-ellipsis">
+      <span title="qp2symbolicqp (reference label)">Qp2Symbolic<wbr>Qp</span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Qp2SymbolicQp">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.reductions.qp2quad_form.qp2symbolic_qp.Qp2SymbolicQp" class="md-nav__link">
+    
+    <span class="md-ellipsis">
+      cvxpy.<wbr>reductions.<wbr>qp2quad_<wbr>form.<wbr>qp2symbolic_<wbr>qp.<wbr>Qp2Symbolic<wbr>Qp
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="cvxpy.reductions.qp2quad_form.qp2symbolic_qp.Qp2SymbolicQp">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.reductions.qp2quad_form.qp2symbolic_qp.Qp2SymbolicQp.accepts" class="md-nav__link">
+    
+    <span class="md-ellipsis">
+      accepts
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.reductions.qp2quad_form.qp2symbolic_qp.Qp2SymbolicQp.apply" class="md-nav__link">
+    
+    <span class="md-ellipsis">
+      apply
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#dualize" class="md-nav__link">
+    
+    <span class="md-ellipsis">
+      <span title="dualize (reference label)">Dualize</span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Dualize">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.reductions.cone2cone.affine2direct.Dualize" class="md-nav__link">
+    
+      <span aria-label="Python class" class="objinfo-icon objinfo-icon__data" title="Python class">C</span>
+    
+    <span class="md-ellipsis">
+      <span title="cvxpy.reductions.cone2cone.affine2direct.Dualize (Python class) — CVXPY represents cone programs as">cvxpy.<wbr>reductions.<wbr>cone2cone.<wbr>affine2direct.<wbr>Dualize</span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="cvxpy.reductions.cone2cone.affine2direct.Dualize">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#usage" class="md-nav__link">
+    
+    <span class="md-ellipsis">
+      <span title="usage (reference label)">Usage</span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#assumptions" class="md-nav__link">
+    
+    <span class="md-ellipsis">
+      Assumptions
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#additional-notes" class="md-nav__link">
+    
+    <span class="md-ellipsis">
+      <span title="additional notes (reference label)">Additional notes</span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Additional notes">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.reductions.cone2cone.affine2direct.Dualize.invert" class="md-nav__link">
+    
+      <span aria-label="Python method" class="objinfo-icon objinfo-icon__procedure" title="Python method">M</span>
+    
+    <span class="md-ellipsis">
+      <span title="cvxpy.reductions.cone2cone.affine2direct.Dualize.invert (Python method) — solution is a CVXPY Solution object, formatted where">invert</span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="invert">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#details-on-required-formatting-of-solution-primal-vars" class="md-nav__link">
+    
+    <span class="md-ellipsis">
+      <span title="details on required formatting of solution.primal_vars (reference label)">Details on required formatting of solution.<wbr>primal_<wbr>vars</span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#slacks" class="md-nav__link">
+    
+    <span class="md-ellipsis">
+      <span title="slacks (reference label)">Slacks</span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Slacks">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.reductions.cone2cone.affine2direct.Slacks" class="md-nav__link">
+    
+      <span aria-label="Python class" class="objinfo-icon objinfo-icon__data" title="Python class">C</span>
+    
+    <span class="md-ellipsis">
+      <span title="cvxpy.reductions.cone2cone.affine2direct.Slacks (Python class) — CVXPY represents mixed-integer cone programs as">cvxpy.<wbr>reductions.<wbr>cone2cone.<wbr>affine2direct.<wbr>Slacks</span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="cvxpy.reductions.cone2cone.affine2direct.Slacks">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.reductions.cone2cone.affine2direct.Slacks.apply" class="md-nav__link">
+    
+      <span aria-label="Python method" class="objinfo-icon objinfo-icon__procedure" title="Python method">M</span>
+    
+    <span class="md-ellipsis">
+      <span title="cvxpy.reductions.cone2cone.affine2direct.Slacks.apply (Python method) — &#34;prob&#34; is a ParamConeProg which represents">apply</span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="apply">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#id1" class="md-nav__link">
+    
+    <span class="md-ellipsis">
+      <span title="assumptions (reference label)">Assumptions</span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.reductions.cone2cone.affine2direct.Slacks.extend_bounds" class="md-nav__link">
+    
+      <span aria-label="Python method" class="objinfo-icon objinfo-icon__procedure" title="Python method">M</span>
+    
+    <span class="md-ellipsis">
+      <span title="cvxpy.reductions.cone2cone.affine2direct.Slacks.extend_bounds (Python method) — Extend the bounds vector to be length num_vars, filling with fill_value.">extend_<wbr>bounds</span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset" role="main">
+                
+                
+                  
+
+
+<h1 id="back-end-reductions">Back-End Reductions<a class="headerlink" href="#back-end-reductions" title="Link to this heading">¶</a></h1>
+<p>The reductions listed here are specific to the choice of back end, i.e.,
+solver. Currently, we support two types of back ends: conic solvers and
+quadratic program solvers.  When a problem is solved through the
+<code class="xref py py-meth docutils literal notranslate"><span class="pre">solve()</span></code> method, CVXPY attempts to find
+the best back end for your problem. The
+<code class="xref py py-class docutils literal notranslate"><span class="pre">Dcp2Cone</span></code> reduction converts DCP-compliant
+problems into conic form, while the
+<code class="xref py py-class docutils literal notranslate"><span class="pre">Qp2SymbolicQp</span></code> converts problems with
+quadratic, piecewise affine objectives, affine equality constraints, and
+piecewise-linear inequality constraints into a form that is closer to what is
+accepted by solvers. The problems output by both reductions must be passed
+through another sequence of reductions, not documented here, before they are
+ready for to be solved.</p>
+<p>Please see <a class="reference internal" href="cvxpy.reductions.html#reductions-disclaimer"><span class="std std-ref">our disclaimer</span></a> about the
+Reductions API before using these directly in your code.</p>
+<nav class="contents local" id="contents">
+<ul class="simple">
+<li><p><a class="reference internal" href="#dcp2cone" id="id2">Dcp2Cone</a></p></li>
+<li><p><a class="reference internal" href="#qp2symbolicqp" id="id3">Qp2SymbolicQp</a></p></li>
+<li><p><a class="reference internal" href="#dualize" id="id4">Dualize</a></p></li>
+<li><p><a class="reference internal" href="#slacks" id="id5">Slacks</a></p></li>
+</ul>
+</nav>
+<h2 id="dcp2cone"><a class="toc-backref" href="#id2" role="doc-backlink">Dcp2Cone</a><a class="headerlink" href="#dcp2cone" title="Link to this heading">¶</a></h2>
+<dl class="py class objdesc">
+<dt class="sig sig-object highlight sig-wrap py" id="cvxpy.reductions.dcp2cone.dcp2cone.Dcp2Cone">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">cvxpy.reductions.dcp2cone.dcp2cone.</span></span><span class="sig-name descname"><span class="pre">Dcp2Cone</span></span><span class="sig-paren">(</span><span class="sig-param-decl"><em class="sig-param"><a class="n reference internal" href="cvxpy.reductions.dcp2cone.html#cvxpy.reductions.dcp2cone.dcp2cone.Dcp2Cone" title="cvxpy.reductions.dcp2cone.dcp2cone.Dcp2Cone.__init__.problem (Python parameter)"><span class="n"><span class="pre">problem</span></span></a><span class="o"><span class="pre">=</span></span><code class="code python default_value docutils literal highlight highlight-python"><span class="kc">None</span></code></em>, </span><span class="sig-param-decl"><em class="sig-param"><a class="n reference internal" href="cvxpy.reductions.dcp2cone.html#cvxpy.reductions.dcp2cone.dcp2cone.Dcp2Cone" title="cvxpy.reductions.dcp2cone.dcp2cone.Dcp2Cone.__init__.quad_obj (Python parameter)"><span class="n"><span class="pre">quad_obj</span></span></a><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="desctype"><span class="pre">bool</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><code class="code python default_value docutils literal highlight highlight-python"><span class="kc">False</span></code></em></span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/reductions/dcp2cone/dcp2cone.html#Dcp2Cone"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.reductions.dcp2cone.dcp2cone.Dcp2Cone" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Canonicalization</span></code></p>
+<p>Reduce DCP problems to a conic form.</p>
+<p>This reduction takes as input (minimization) DCP problems and converts
+them into problems with affine or quadratic objectives and conic
+constraints whose arguments are affine.</p>
+<dl class="py method objdesc">
+<dt class="sig sig-object highlight py" id="cvxpy.reductions.dcp2cone.dcp2cone.Dcp2Cone.accepts">
+<span class="sig-name descname"><span class="pre">accepts</span></span><span class="sig-paren">(</span><span class="sig-param-decl"><em class="sig-param"><a class="n reference internal" href="cvxpy.reductions.dcp2cone.html#cvxpy.reductions.dcp2cone.dcp2cone.Dcp2Cone.accepts" title="cvxpy.reductions.dcp2cone.dcp2cone.Dcp2Cone.accepts.problem (Python parameter)"><span class="n"><span class="pre">problem</span></span></a></em></span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/reductions/dcp2cone/dcp2cone.html#Dcp2Cone.accepts"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.reductions.dcp2cone.dcp2cone.Dcp2Cone.accepts" title="Link to this definition">¶</a></dt>
+<dd><p>A problem is accepted if it is a minimization and is DCP.</p>
+</dd></dl>
+
+<dl class="py method objdesc">
+<dt class="sig sig-object highlight py" id="cvxpy.reductions.dcp2cone.dcp2cone.Dcp2Cone.apply">
+<span class="sig-name descname"><span class="pre">apply</span></span><span class="sig-paren">(</span><span class="sig-param-decl"><em class="sig-param"><a class="n reference internal" href="cvxpy.reductions.dcp2cone.html#cvxpy.reductions.dcp2cone.dcp2cone.Dcp2Cone.apply" title="cvxpy.reductions.dcp2cone.dcp2cone.Dcp2Cone.apply.problem (Python parameter)"><span class="n"><span class="pre">problem</span></span></a></em></span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/reductions/dcp2cone/dcp2cone.html#Dcp2Cone.apply"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.reductions.dcp2cone.dcp2cone.Dcp2Cone.apply" title="Link to this definition">¶</a></dt>
+<dd><p>Converts a DCP problem to a conic form.</p>
+</dd></dl>
+
+<dl class="py method objdesc">
+<dt class="sig sig-object highlight sig-wrap py" id="cvxpy.reductions.dcp2cone.dcp2cone.Dcp2Cone.canonicalize_expr">
+<span class="sig-name descname"><span class="pre">canonicalize_expr</span></span><span class="sig-paren">(</span><span class="sig-param-decl"><em class="sig-param"><a class="n reference internal" href="cvxpy.reductions.dcp2cone.html#cvxpy.reductions.dcp2cone.dcp2cone.Dcp2Cone.canonicalize_expr.expr" title="cvxpy.reductions.dcp2cone.dcp2cone.Dcp2Cone.canonicalize_expr.expr (Python parameter)"><span class="n"><span class="pre">expr</span></span></a></em>, </span><span class="sig-param-decl"><em class="sig-param"><a class="n reference internal" href="cvxpy.reductions.dcp2cone.html#cvxpy.reductions.dcp2cone.dcp2cone.Dcp2Cone.canonicalize_expr.args" title="cvxpy.reductions.dcp2cone.dcp2cone.Dcp2Cone.canonicalize_expr.args (Python parameter)"><span class="n"><span class="pre">args</span></span></a></em>, </span><span class="sig-param-decl"><em class="sig-param"><a class="n reference internal" href="cvxpy.reductions.dcp2cone.html#cvxpy.reductions.dcp2cone.dcp2cone.Dcp2Cone.canonicalize_expr.affine_above" title="cvxpy.reductions.dcp2cone.dcp2cone.Dcp2Cone.canonicalize_expr.affine_above (Python parameter)"><span class="n"><span class="pre">affine_above</span></span></a><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="desctype"><span class="pre">bool</span></span></span></em></span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="desctype"><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="cvxpy.expressions.html#cvxpy.expressions.expression.Expression" title="cvxpy.expressions.expression.Expression (Python class) — Bases: Canonical"><span class="pre">Expression</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">]</span></span></span></span></span><a class="reference internal" href="../_modules/cvxpy/reductions/dcp2cone/dcp2cone.html#Dcp2Cone.canonicalize_expr"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.reductions.dcp2cone.dcp2cone.Dcp2Cone.canonicalize_expr" title="Link to this definition">¶</a></dt>
+<dd><p>Canonicalize an expression, w.r.t. canonicalized arguments.</p>
+<dl class="field-list simple">
+<dt class="field-odd" id="cvxpy.reductions.dcp2cone.dcp2cone.Dcp2Cone.canonicalize_expr-parameters">Parameters<span class="colon">:</span><a class="headerlink" href="#cvxpy.reductions.dcp2cone.dcp2cone.Dcp2Cone.canonicalize_expr-parameters" title="Permalink to this headline">¶</a></dt>
+<dd class="field-odd"><dl class="simple api-field highlight">
+<dt id="cvxpy.reductions.dcp2cone.dcp2cone.Dcp2Cone.canonicalize_expr.expr"><span class="sig-name descname">expr</span><span class="p"> : </span><span class="desctype"><span class="desctype">The expression tree to canonicalize.</span></span><a class="headerlink" href="#cvxpy.reductions.dcp2cone.dcp2cone.Dcp2Cone.canonicalize_expr.expr" title="Permalink to this definition">¶</a></dt><dd><p></p>
+</dd>
+<dt id="cvxpy.reductions.dcp2cone.dcp2cone.Dcp2Cone.canonicalize_expr.args"><span class="sig-name descname">args</span><span class="p"> : </span><span class="desctype"><span class="desctype">The canonicalized arguments of expr.</span></span><a class="headerlink" href="#cvxpy.reductions.dcp2cone.dcp2cone.Dcp2Cone.canonicalize_expr.args" title="Permalink to this definition">¶</a></dt><dd><p></p>
+</dd>
+<dt id="cvxpy.reductions.dcp2cone.dcp2cone.Dcp2Cone.canonicalize_expr.affine_above"><span class="sig-name descname">affine_above</span><span class="p"> : </span><span class="desctype"><span class="desctype">The path up to the root node is all affine atoms.</span></span><a class="headerlink" href="#cvxpy.reductions.dcp2cone.dcp2cone.Dcp2Cone.canonicalize_expr.affine_above" title="Permalink to this definition">¶</a></dt><dd><p></p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even" id="cvxpy.reductions.dcp2cone.dcp2cone.Dcp2Cone.canonicalize_expr-return-type">Return type<span class="colon">:</span><a class="headerlink" href="#cvxpy.reductions.dcp2cone.dcp2cone.Dcp2Cone.canonicalize_expr-return-type" title="Permalink to this headline">¶</a></dt>
+<dd class="field-even"><p>A tuple of the canonicalized expression and generated constraints.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method objdesc">
+<dt class="sig sig-object highlight sig-wrap py" id="cvxpy.reductions.dcp2cone.dcp2cone.Dcp2Cone.canonicalize_tree">
+<span class="sig-name descname"><span class="pre">canonicalize_tree</span></span><span class="sig-paren">(</span><span class="sig-param-decl"><em class="sig-param"><a class="n reference internal" href="cvxpy.reductions.dcp2cone.html#cvxpy.reductions.dcp2cone.dcp2cone.Dcp2Cone.canonicalize_tree.expr" title="cvxpy.reductions.dcp2cone.dcp2cone.Dcp2Cone.canonicalize_tree.expr (Python parameter)"><span class="n"><span class="pre">expr</span></span></a></em>, </span><span class="sig-param-decl"><em class="sig-param"><a class="n reference internal" href="cvxpy.reductions.dcp2cone.html#cvxpy.reductions.dcp2cone.dcp2cone.Dcp2Cone.canonicalize_tree.affine_above" title="cvxpy.reductions.dcp2cone.dcp2cone.Dcp2Cone.canonicalize_tree.affine_above (Python parameter)"><span class="n"><span class="pre">affine_above</span></span></a><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="desctype"><span class="pre">bool</span></span></span></em></span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="desctype"><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="cvxpy.expressions.html#cvxpy.expressions.expression.Expression" title="cvxpy.expressions.expression.Expression (Python class) — Bases: Canonical"><span class="pre">Expression</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">]</span></span></span></span></span><a class="reference internal" href="../_modules/cvxpy/reductions/dcp2cone/dcp2cone.html#Dcp2Cone.canonicalize_tree"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.reductions.dcp2cone.dcp2cone.Dcp2Cone.canonicalize_tree" title="Link to this definition">¶</a></dt>
+<dd><p>Recursively canonicalize an Expression.</p>
+<dl class="field-list simple">
+<dt class="field-odd" id="cvxpy.reductions.dcp2cone.dcp2cone.Dcp2Cone.canonicalize_tree-parameters">Parameters<span class="colon">:</span><a class="headerlink" href="#cvxpy.reductions.dcp2cone.dcp2cone.Dcp2Cone.canonicalize_tree-parameters" title="Permalink to this headline">¶</a></dt>
+<dd class="field-odd"><dl class="simple api-field highlight">
+<dt id="cvxpy.reductions.dcp2cone.dcp2cone.Dcp2Cone.canonicalize_tree.expr"><span class="sig-name descname">expr</span><span class="p"> : </span><span class="desctype"><span class="desctype">The expression tree to canonicalize.</span></span><a class="headerlink" href="#cvxpy.reductions.dcp2cone.dcp2cone.Dcp2Cone.canonicalize_tree.expr" title="Permalink to this definition">¶</a></dt><dd><p></p>
+</dd>
+<dt id="cvxpy.reductions.dcp2cone.dcp2cone.Dcp2Cone.canonicalize_tree.affine_above"><span class="sig-name descname">affine_above</span><span class="p"> : </span><span class="desctype"><span class="desctype">The path up to the root node is all affine atoms.</span></span><a class="headerlink" href="#cvxpy.reductions.dcp2cone.dcp2cone.Dcp2Cone.canonicalize_tree.affine_above" title="Permalink to this definition">¶</a></dt><dd><p></p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even" id="cvxpy.reductions.dcp2cone.dcp2cone.Dcp2Cone.canonicalize_tree-return-type">Return type<span class="colon">:</span><a class="headerlink" href="#cvxpy.reductions.dcp2cone.dcp2cone.Dcp2Cone.canonicalize_tree-return-type" title="Permalink to this headline">¶</a></dt>
+<dd class="field-even"><p>A tuple of the canonicalized expression and generated constraints.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<h2 id="qp2symbolicqp"><a class="toc-backref" href="#id3" role="doc-backlink">Qp2SymbolicQp</a><a class="headerlink" href="#qp2symbolicqp" title="Link to this heading">¶</a></h2>
+<dl class="py class objdesc">
+<dt class="sig sig-object highlight sig-wrap py" id="cvxpy.reductions.qp2quad_form.qp2symbolic_qp.Qp2SymbolicQp">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">cvxpy.reductions.qp2quad_form.qp2symbolic_qp.</span></span><span class="sig-name descname"><span class="pre">Qp2SymbolicQp</span></span><span class="sig-paren">(</span><span class="sig-param-decl"><em class="sig-param"><a class="n reference internal" href="cvxpy.reductions.qp2quad_form.html#cvxpy.reductions.qp2quad_form.qp2symbolic_qp.Qp2SymbolicQp" title="cvxpy.reductions.qp2quad_form.qp2symbolic_qp.Qp2SymbolicQp.__init__.problem (Python parameter)"><span class="n"><span class="pre">problem</span></span></a><span class="o"><span class="pre">=</span></span><code class="code python default_value docutils literal highlight highlight-python"><span class="kc">None</span></code></em></span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/reductions/qp2quad_form/qp2symbolic_qp.html#Qp2SymbolicQp"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.reductions.qp2quad_form.qp2symbolic_qp.Qp2SymbolicQp" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Canonicalization</span></code></p>
+<p>Reduces a quadratic problem to a problem that consists of affine
+expressions and symbolic quadratic forms.</p>
+<dl class="py method objdesc">
+<dt class="sig sig-object highlight py" id="cvxpy.reductions.qp2quad_form.qp2symbolic_qp.Qp2SymbolicQp.accepts">
+<span class="sig-name descname"><span class="pre">accepts</span></span><span class="sig-paren">(</span><span class="sig-param-decl"><em class="sig-param"><a class="n reference internal" href="cvxpy.reductions.qp2quad_form.html#cvxpy.reductions.qp2quad_form.qp2symbolic_qp.Qp2SymbolicQp.accepts" title="cvxpy.reductions.qp2quad_form.qp2symbolic_qp.Qp2SymbolicQp.accepts.problem (Python parameter)"><span class="n"><span class="pre">problem</span></span></a></em></span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/reductions/qp2quad_form/qp2symbolic_qp.html#Qp2SymbolicQp.accepts"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.reductions.qp2quad_form.qp2symbolic_qp.Qp2SymbolicQp.accepts" title="Link to this definition">¶</a></dt>
+<dd><p>Problems with quadratic, piecewise affine objectives,
+piecewise-linear constraints inequality constraints, and
+affine equality constraints are accepted.</p>
+</dd></dl>
+
+<dl class="py method objdesc">
+<dt class="sig sig-object highlight py" id="cvxpy.reductions.qp2quad_form.qp2symbolic_qp.Qp2SymbolicQp.apply">
+<span class="sig-name descname"><span class="pre">apply</span></span><span class="sig-paren">(</span><span class="sig-param-decl"><em class="sig-param"><a class="n reference internal" href="cvxpy.reductions.qp2quad_form.html#cvxpy.reductions.qp2quad_form.qp2symbolic_qp.Qp2SymbolicQp.apply" title="cvxpy.reductions.qp2quad_form.qp2symbolic_qp.Qp2SymbolicQp.apply.problem (Python parameter)"><span class="n"><span class="pre">problem</span></span></a></em></span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/reductions/qp2quad_form/qp2symbolic_qp.html#Qp2SymbolicQp.apply"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.reductions.qp2quad_form.qp2symbolic_qp.Qp2SymbolicQp.apply" title="Link to this definition">¶</a></dt>
+<dd><p>Converts a QP to an even more symbolic form.</p>
+</dd></dl>
+
+</dd></dl>
+
+<h2 id="dualize"><a class="toc-backref" href="#id4" role="doc-backlink">Dualize</a><a class="headerlink" href="#dualize" title="Link to this heading">¶</a></h2>
+<dl class="py class objdesc">
+<dt class="sig sig-object highlight py" id="cvxpy.reductions.cone2cone.affine2direct.Dualize">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">cvxpy.reductions.cone2cone.affine2direct.</span></span><span class="sig-name descname"><span class="pre">Dualize</span></span><a class="reference internal" href="../_modules/cvxpy/reductions/cone2cone/affine2direct.html#Dualize"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.reductions.cone2cone.affine2direct.Dualize" title="Link to this definition">¶</a></dt>
+<dd><p>CVXPY represents cone programs as</p>
+<blockquote>
+<div><p>(P-Opt) min{ c.T &#64; x : A &#64; x + b in K } + d,</p>
+</div></blockquote>
+<p>where the corresponding dual is</p>
+<blockquote>
+<div><p>(D-Opt) max{ -b &#64; y : c = A.T &#64; y, y in K^* } + d.</p>
+</div></blockquote>
+<p>For some solvers, it is much easier to specify a problem of the form (D-Opt) than it
+is to specify a problem of the form (P-Opt). The purpose of this reduction is to handle
+mapping between (P-Opt) and (D-Opt) so that a solver interface can pretend the original
+problem was stated in terms (D-Opt).</p>
+<h3 id="usage">Usage<a class="headerlink" href="#usage" title="Link to this heading">¶</a></h3>
+<p>Dualize applies to ParamConeProg problems. It accesses (P-Opt) data by calling
+<code class="docutils literal notranslate"><span class="pre">c,</span> <span class="pre">d,</span> <span class="pre">A,</span> <span class="pre">b</span> <span class="pre">=</span> <span class="pre">problem.apply_parameters()</span></code>. It assumes the solver interface
+has already executed its <code class="docutils literal notranslate"><span class="pre">format_constraints</span></code> function on the ParamConeProg problem.</p>
+<p>A solver interface is responsible for calling both Dualize.apply and Dualize.invert.
+The call to Dualize.apply should be one of the first things that happens, and the
+call to Dualize.invert should be one of the last things that happens.</p>
+<p>The “data” dict returned by Dualize.apply is keyed by s.A, s.B, s.C, and ‘K_dir’,
+which respectively provide the dual constraint matrix (A.T), the dual constraint
+right-hand-side (c), the dual objective vector (-b), and the dual cones (K^*).
+The solver interface should interpret this data is a new primal problem, just with a
+maximization objective. Given a numerical solution, the solver interface should first
+construct a CVXPY Solution object where <span class="math notranslate nohighlight">\(y\)</span> is a primal variable, divided into
+several blocks according to the structure of elementary cones appearing in K^*. The only
+dual variable we use is that corresponding to the equality constraint <span class="math notranslate nohighlight">\(c = A^T y\)</span>.
+No attempt should be made to map unbounded / infeasible status codes for (D-Opt) back
+to unbounded / infeasible status codes for (P-Opt); all such mappings are handled in
+Dualize.invert. Refer to Dualize.invert for detailed documentation.</p>
+<h3 id="assumptions">Assumptions<a class="headerlink" href="#assumptions" title="Link to this heading">¶</a></h3>
+<p>The problem has no integer or boolean constraints. This is necessary because strong
+duality does not hold for problems with discrete constraints.</p>
+<p>Dualize.apply assumes “SOLVER.format_constraints()” has already been called. This
+assumption allows flexibility in how a solver interface chooses to vectorize a
+feasible set (e.g. how to order conic constraints, or how to vectorize the PSD cone).</p>
+<h3 id="additional-notes">Additional notes<a class="headerlink" href="#additional-notes" title="Link to this heading">¶</a></h3>
+<p>Dualize.invert is written in a way which is agnostic to how a solver formats constraints,
+but it also imposes specific requirements on the input. Providing correct input to
+Dualize.invert requires consideration to the effect of <code class="docutils literal notranslate"><span class="pre">SOLVER.format_constraints</span></code> and
+the output of <code class="docutils literal notranslate"><span class="pre">problem.apply_parameters</span></code>.</p>
+<dl class="py method objdesc">
+<dt class="sig sig-object highlight py" id="cvxpy.reductions.cone2cone.affine2direct.Dualize.invert">
+<em class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">invert</span></span><span class="sig-paren">(</span><span class="sig-param-decl"><em class="sig-param"><a class="n reference internal" href="#cvxpy.reductions.cone2cone.affine2direct.Dualize.invert" title="cvxpy.reductions.cone2cone.affine2direct.Dualize.invert.solution (Python parameter)"><span class="n"><span class="pre">solution</span></span></a></em>, </span><span class="sig-param-decl"><em class="sig-param"><a class="n reference internal" href="#cvxpy.reductions.cone2cone.affine2direct.Dualize.invert" title="cvxpy.reductions.cone2cone.affine2direct.Dualize.invert.inv_data (Python parameter)"><span class="n"><span class="pre">inv_data</span></span></a></em></span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/reductions/cone2cone/affine2direct.html#Dualize.invert"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.reductions.cone2cone.affine2direct.Dualize.invert" title="Link to this definition">¶</a></dt>
+<dd><p><code class="docutils literal notranslate"><span class="pre">solution</span></code> is a CVXPY Solution object, formatted where</p>
+<blockquote>
+<div><p>(D-Opt) max{ -b &#64; y : c = A.T &#64; y, y in K^* } + d</p>
+</div></blockquote>
+<p>is the primal problem from the solver’s perspective. The purpose of this function
+is to map such a solution back to the format</p>
+<blockquote>
+<div><p>(P-Opt) min{ c.T &#64; x : A &#64; x + b in K } + d.</p>
+</div></blockquote>
+<p>This function handles mapping of primal and dual variables, and solver status codes.
+The variable “x” in (P-Opt) is trivially populated from the dual variables to the
+constraint “c = A.T &#64; y” in (D-Opt). Status codes also map back in a simple way.</p>
+<h4 id="details-on-required-formatting-of-solution-primal-vars">Details on required formatting of solution.primal_vars<a class="headerlink" href="#details-on-required-formatting-of-solution-primal-vars" title="Link to this heading">¶</a></h4>
+<p>We assume the dict solution.primal_vars is keyed by string-enums FREE (‘fr’), NONNEG (‘+’),
+SOC (‘s’), PSD (‘p’), and DUAL_EXP (‘de’). The corresponding values are described below.</p>
+<p>solution.primal_vars[FREE] should be a single vector. It corresponds to the (possibly
+concatenated) components of “y” which are subject to no conic constraints. We map these
+variables back to dual variables for equality constraints in (P-Opt).</p>
+<p>solution.primal_vars[NONNEG] should also be a single vector, this time giving the
+possibly concatenated components of “y” which must be &gt;= 0. We map these variables
+back to dual variables for inequality constraints in (P-Opt).</p>
+<p>solution.primal_vars[SOC] is a list of vectors specifying blocks of “y” which belong
+to the second-order-cone under the CVXPY standard ({ z : z[0] &gt;= || z[1:] || }).
+We map these variables back to dual variables for SOC constraints in (P-Opt).</p>
+<p>solution.primal_vars[PSD] is a list of symmetric positive semidefinite matrices
+which result by lifting the vectorized PSD blocks of “y” back into matrix form.
+We assign these as dual variables to PSD constraints appearing in (P-Opt).</p>
+<p>solution.primal_vars[DUAL_EXP] is a vector of concatenated length-3 slices of y, where
+each constituent length-3 slice belongs to dual exponential cone as implied by the CVXPY
+standard of the primal exponential cone (see cvxpy/constraints/exponential.py:ExpCone).
+We map these back to dual variables for exponential cone constraints in (P-Opt).</p>
+</dd></dl>
+
+</dd></dl>
+
+<h2 id="slacks"><a class="toc-backref" href="#id5" role="doc-backlink">Slacks</a><a class="headerlink" href="#slacks" title="Link to this heading">¶</a></h2>
+<dl class="py class objdesc">
+<dt class="sig sig-object highlight py" id="cvxpy.reductions.cone2cone.affine2direct.Slacks">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">cvxpy.reductions.cone2cone.affine2direct.</span></span><span class="sig-name descname"><span class="pre">Slacks</span></span><a class="reference internal" href="../_modules/cvxpy/reductions/cone2cone/affine2direct.html#Slacks"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.reductions.cone2cone.affine2direct.Slacks" title="Link to this definition">¶</a></dt>
+<dd><p>CVXPY represents mixed-integer cone programs as</p>
+<blockquote>
+<div><dl class="simple">
+<dt>(Aff)   min{ c.T &#64; x<span class="classifier">A &#64; x + b in K,</span></dt><dd><p>x[bools] in {0, 1}, x[ints] in Z } + d.</p>
+</dd>
+</dl>
+</div></blockquote>
+<p>Some solvers do not accept input in the form (Aff). A general pattern we find
+across solver types is that the feasible set is represented by</p>
+<blockquote>
+<div><dl class="simple">
+<dt>(Dir)   min{ f &#64; y<span class="classifier">G &#64; y &lt;=_{K_aff} h, y in K_dir</span></dt><dd><p>y[bools] in {0, 1}, y[ints] in Z } + d,</p>
+</dd>
+</dl>
+</div></blockquote>
+<p>where K_aff is built from a list convex cones which includes the zero cone (ZERO),
+and K_dir is built from a list of convex cones which includes the free cone (FREE).</p>
+<p>This reduction handles mapping back and forth between problems stated in terms
+of (Aff) and (Dir), by way of adding slack variables.</p>
+<p class="rubric">Notes</p>
+<p>Support for semidefinite constraints has not yet been implemented in this
+reduction.</p>
+<p>If the problem has no integer constraints, then the Dualize reduction should be
+used instead.</p>
+<p>Because this reduction is only intended for mixed-integer problems, this reduction
+makes no attempt to recover dual variables when mapping between (Aff) and (Dir).</p>
+<dl class="py method objdesc">
+<dt class="sig sig-object highlight py" id="cvxpy.reductions.cone2cone.affine2direct.Slacks.apply">
+<em class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">apply</span></span><span class="sig-paren">(</span><span class="sig-param-decl"><em class="sig-param"><a class="n reference internal" href="#cvxpy.reductions.cone2cone.affine2direct.Slacks.apply" title="cvxpy.reductions.cone2cone.affine2direct.Slacks.apply.prob (Python parameter)"><span class="n"><span class="pre">prob</span></span></a></em>, </span><span class="sig-param-decl"><em class="sig-param"><a class="n reference internal" href="#cvxpy.reductions.cone2cone.affine2direct.Slacks.apply" title="cvxpy.reductions.cone2cone.affine2direct.Slacks.apply.affine (Python parameter)"><span class="n"><span class="pre">affine</span></span></a></em></span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/reductions/cone2cone/affine2direct.html#Slacks.apply"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.reductions.cone2cone.affine2direct.Slacks.apply" title="Link to this definition">¶</a></dt>
+<dd><p>“prob” is a ParamConeProg which represents</p>
+<blockquote>
+<div><dl class="simple">
+<dt>(Aff)   min{ c.T &#64; x<span class="classifier">A &#64; x + b in K,</span></dt><dd><p>x[bools] in {0, 1}, x[ints] in Z } + d.</p>
+</dd>
+</dl>
+</div></blockquote>
+<p>We return data for an equivalent problem</p>
+<blockquote>
+<div><dl class="simple">
+<dt>(Dir)   min{ f &#64; y<span class="classifier">G &#64; y &lt;=_{K_aff} h, y in K_dir</span></dt><dd><p>y[bools] in {0, 1}, y[ints] in Z } + d,</p>
+</dd>
+</dl>
+</div></blockquote>
+<p>where</p>
+<blockquote>
+<div><ol class="arabic simple">
+<li><p>K_aff is built from cone types specified in “affine” (a list of strings),</p></li>
+<li><p>a primal solution for (Dir) can be mapped back to a primal solution
+for (Aff) by selecting the leading <code class="docutils literal notranslate"><span class="pre">c.size</span></code> block of y’s components.</p></li>
+</ol>
+</div></blockquote>
+<p>In the returned dict “data”, data[s.A] = G, data[s.B] = h, data[s.C] = f,
+data[‘K_aff’] = K_aff, data[‘K_dir’] = K_dir, data[s.BOOL_IDX] = bools,
+and data[s.INT_IDX] = ints. The rows of G are ordered according to ZERO, then
+(as applicable) NONNEG, SOC, and EXP. If  “c” is the objective vector in (Aff),
+then <code class="docutils literal notranslate"><span class="pre">y[:c.size]</span></code> should contain the optimal solution to (Aff). The columns of
+G correspond first to variables in cones FREE, then NONNEG, then SOC, then EXP.
+The length of the free cone is equal to <code class="docutils literal notranslate"><span class="pre">c.size</span></code>.</p>
+<h3 id="id1">Assumptions<a class="headerlink" href="#id1" title="Link to this heading">¶</a></h3>
+<p>The function call <code class="docutils literal notranslate"><span class="pre">c,</span> <span class="pre">d,</span> <span class="pre">A,</span> <span class="pre">b</span> <span class="pre">=</span> <span class="pre">prob.apply_parameters()</span></code> returns (A,b) with
+rows formatted first for the zero cone, then for the nonnegative orthant, then
+second order cones, then the exponential cone. Removing this assumption will
+require adding additional data to ParamConeProg objects.</p>
+</dd></dl>
+
+<dl class="py method objdesc">
+<dt class="sig sig-object highlight sig-wrap py" id="cvxpy.reductions.cone2cone.affine2direct.Slacks.extend_bounds">
+<em class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">extend_bounds</span></span><span class="sig-paren">(</span><span class="sig-param-decl"><em class="sig-param"><a class="n reference internal" href="#cvxpy.reductions.cone2cone.affine2direct.Slacks.extend_bounds" title="cvxpy.reductions.cone2cone.affine2direct.Slacks.extend_bounds.num_vars (Python parameter)"><span class="n"><span class="pre">num_vars</span></span></a><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="desctype"><span class="pre">int</span></span></span></em>, </span><span class="sig-param-decl"><em class="sig-param"><a class="n reference internal" href="#cvxpy.reductions.cone2cone.affine2direct.Slacks.extend_bounds" title="cvxpy.reductions.cone2cone.affine2direct.Slacks.extend_bounds.bounds_vector (Python parameter)"><span class="n"><span class="pre">bounds_vector</span></span></a><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="desctype"><span class="pre">ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span></span></em>, </span><span class="sig-param-decl"><em class="sig-param"><a class="n reference internal" href="#cvxpy.reductions.cone2cone.affine2direct.Slacks.extend_bounds" title="cvxpy.reductions.cone2cone.affine2direct.Slacks.extend_bounds.fill_value (Python parameter)"><span class="n"><span class="pre">fill_value</span></span></a><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="desctype"><span class="pre">float</span></span></span></em></span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="desctype"><span class="pre">ndarray</span></span></span></span><a class="reference internal" href="../_modules/cvxpy/reductions/cone2cone/affine2direct.html#Slacks.extend_bounds"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.reductions.cone2cone.affine2direct.Slacks.extend_bounds" title="Link to this definition">¶</a></dt>
+<dd><p>Extend the bounds vector to be length num_vars, filling with fill_value.</p>
+</dd></dl>
+
+</dd></dl>
+
+
+
+
+
+
+
+  
+  
+
+
+
+  
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+  <script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var labels=set.querySelector(".tabbed-labels");for(var tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>
+
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  
+  
+  <div class="md-footer-meta md-typeset">
+    
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+    <div class="md-footer-copyright__highlight">
+        &#169; Copyright The CVXPY authors.
+        
+    </div>
+  
+    Created using
+    <a href="https://www.sphinx-doc.org/" target="_blank" rel="noopener">Sphinx</a>
+    8.2.3.
+     and
+    <a href="https://github.com/jbms/sphinx-immaterial/" target="_blank" rel="noopener">Sphinx-Immaterial</a>
+  
+</div>
+      
+        <div class="md-social">
+  
+    
+    
+    
+    
+    <a href="https://github.com/cvxpy/cvxpy" target="_blank" rel="noopener" title="Source on github.com" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8M97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+    </a>
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://pypi.org/project/cvxpy/" target="_blank" rel="noopener" title="pypi.org" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.8 200.5c-7.7-30.9-22.3-54.2-53.4-54.2h-40.1v47.4c0 36.8-31.2 67.8-66.8 67.8H172.7c-29.2 0-53.4 25-53.4 54.3v101.8c0 29 25.2 46 53.4 54.3 33.8 9.9 66.3 11.7 106.8 0 26.9-7.8 53.4-23.5 53.4-54.3v-40.7H226.2v-13.6h160.2c31.1 0 42.6-21.7 53.4-54.2 11.2-33.5 10.7-65.7 0-108.6M286.2 404c11.1 0 20.1 9.1 20.1 20.3 0 11.3-9 20.4-20.1 20.4-11 0-20.1-9.2-20.1-20.4.1-11.3 9.1-20.3 20.1-20.3M167.8 248.1h106.8c29.7 0 53.4-24.5 53.4-54.3V91.9c0-29-24.4-50.7-53.4-55.6-35.8-5.9-74.7-5.6-106.8.1-45.2 8-53.4 24.7-53.4 55.6v40.7h106.9v13.6h-147c-31.1 0-58.3 18.7-66.8 54.2-9.8 40.7-10.2 66.1 0 108.6 7.6 31.6 25.7 54.2 56.8 54.2H101v-48.8c0-35.3 30.5-66.4 66.8-66.4m-6.7-142.6c-11.1 0-20.1-9.1-20.1-20.3.1-11.3 9-20.4 20.1-20.4 11 0 20.1 9.2 20.1 20.4s-9 20.3-20.1 20.3"/></svg>
+    </a>
+  
+</div>
+      
+    </div>
+    
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    <script id="__config" type="application/json">{"base": "..", "features": ["header.autohide", "toc.follow", "navigation.path", "navigation.instant", "navigation.top", "navigation.tabs", "navigation.tabs.sticky", "navigation.tracking", "navigation.expand", "search.highlight", "search.share", "content.tabs.link", "announce.dismiss"], "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike", "staticVersions": [{"aliases": [], "title": "latest", "version": "https://www.cvxpy.org"}, {"aliases": [], "title": "1.6", "version": "https://www.cvxpy.org/version/1.6"}, {"aliases": [], "title": "1.5", "version": "https://www.cvxpy.org/version/1.5"}, {"aliases": [], "title": "1.4", "version": "https://www.cvxpy.org/version/1.4"}], "versionPath": null}}</script>
+    
+      
+        <script src="../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../_static/sphinx_immaterial_theme.32136f45f91ae6956.min.js?v=a7a9472a"></script>
+        <script src="../_static/tabs.js?v=3ee01567"></script>
+        <script src="../_static/design-tabs.js?v=f930bc37"></script>
+        <script id="MathJax-script" src="../_static/mathjax/tex-mml-chtml.js?v=cadf963e"></script>
+        <script src="https://cdn.datatables.net/2.1.8/js/dataTables.js"></script>
+    
+  </body>
+</html>

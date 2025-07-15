@@ -1,0 +1,2303 @@
+
+
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+      
+        <link rel="prev" href="cvxpy.html">
+      
+      
+        <link rel="next" href="cvxpy.atoms.affine.html">
+      
+      
+      <link rel="icon" href="../_static/favicon.ico">
+    
+    
+      
+        <title>Atoms - </title>
+      
+    
+    
+      
+        
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+        <link rel="stylesheet" type="text/css" href="../_static/sphinx_immaterial_theme.6ec1c446c2c357833.min.css?v=e2e8fea8" />
+        <link rel="stylesheet" type="text/css" href="../_static/tabs.css?v=4c969af8" />
+        <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
+        <link rel="stylesheet" type="text/css" href="../_static/css/styling.css?v=84aacf86" />
+        <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/2.1.8/css/dataTables.dataTables.css" />
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+  
+
+
+  
+  
+
+<script id="__analytics">function __md_analytics(){function e(){dataLayer.push(arguments)}window.dataLayer=window.dataLayer||[],e("js",new Date),e("config","UA-50248335-1"),document.addEventListener("DOMContentLoaded",(function(){document.forms.search&&document.forms.search.query.addEventListener("blur",(function(){this.value&&e("event","search",{search_term:this.value})}));document$.subscribe((function(){var t=document.forms.feedback;if(void 0!==t)for(var a of t.querySelectorAll("[type=submit]"))a.addEventListener("click",(function(a){a.preventDefault();var n=document.location.pathname,d=this.getAttribute("data-md-value");e("event","feedback",{page:n,data:d}),t.firstElementChild.disabled=!0;var r=t.querySelector(".md-feedback__note [data-md-value='"+d+"']");r&&(r.hidden=!1)})),t.hidden=!1})),location$.subscribe((function(t){e("config","UA-50248335-1",{page_path:t.pathname})}))}));var t=document.createElement("script");t.async=!0,t.src="https://www.googletagmanager.com/gtag/js?id=UA-50248335-1",document.getElementById("__analytics").insertAdjacentElement("afterEnd",t)}</script>
+  
+    <script>"undefined"!=typeof __md_analytics&&__md_analytics()</script>
+  
+
+    
+    
+    
+  </head>
+  
+  
+    
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#representation-of-atoms" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+      <div data-md-color-scheme="default" data-md-component="outdated" hidden>
+        
+      </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow md-header--lifted" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../index.html" title="" class="md-header__button md-logo" aria-label="" data-md-component="logo">
+      <img src="../_static/cvxpy-wordmark-light.png" alt="logo">
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Atoms
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+    
+    
+    
+    
+      <label class="md-header__button md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+      </label>
+      <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+          <a href="javascript:void(0)" class="md-search__icon md-icon" title="Share" aria-label="Share" data-clipboard data-clipboard-text="" data-md-component="search-share" tabindex="-1">
+            
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9a3 3 0 0 0-3 3 3 3 0 0 0 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.15c-.05.21-.08.43-.08.66 0 1.61 1.31 2.91 2.92 2.91s2.92-1.3 2.92-2.91A2.92 2.92 0 0 0 18 16.08"/></svg>
+          </a>
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/cvxpy/cvxpy/" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8M97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    CVXPY
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+    
+      
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../install/index.html" class="md-tabs__link">
+        
+  
+    
+  
+  Install
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../tutorial/index.html" class="md-tabs__link">
+        
+  
+    
+  
+  User Guide
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../functions/index.html" class="md-tabs__link">
+        
+  
+    
+  
+  Functions
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+    
+  
+  
+    <li class="md-tabs__item md-tabs__item--active">
+      <a href="cvxpy.html" class="md-tabs__link">
+        
+  
+    
+  
+  API Documentation
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../examples/index.html" class="md-tabs__link">
+        
+  
+    
+  
+  Examples
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../contributing/index.html" class="md-tabs__link">
+        
+  
+    
+  
+  Contributing
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../updates/index.html" class="md-tabs__link">
+        
+  
+    
+  
+  Changelog
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../faq/index.html" class="md-tabs__link">
+        
+  
+    
+  
+  FAQ
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../resources/index.html" class="md-tabs__link">
+        
+  
+    
+  
+  Resources
+
+      </a>
+    </li>
+  
+
+      
+    </ul>
+  </div>
+</nav>
+    
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+      
+      
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../index.html" title="" class="md-nav__button md-logo" aria-label="" data-md-component="logo">
+      <img src="../_static/cvxpy-wordmark-light.png" alt="logo">
+    </a>
+    
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/cvxpy/cvxpy/" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8M97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    CVXPY
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../install/index.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Install
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tutorial/index.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    User Guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../functions/index.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Functions
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+      
+        
+        
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" checked>
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="cvxpy.html" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    API Documentation
+    
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_4" id="__nav_4_label" tabindex="">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            API Documentation
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+    
+  
+    
+  
+  
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__current-nested md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_1" checked>
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="#" class="md-nav__link md-nav__link--active">
+              
+  
+  
+  <span class="md-ellipsis">
+    Atoms
+    
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link md-nav__link--active" for="__nav_4_1" id="__nav_4_1_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_1_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_4_1">
+            <span class="md-nav__icon md-icon"></span>
+            Atoms
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="cvxpy.atoms.affine.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Affine Atoms
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="cvxpy.atoms.elementwise.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Elementwise Atoms
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="cvxpy.atoms.other_atoms.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Other Atoms
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+  
+      
+    <li class="md-nav__item md-nav__item--active md-nav__current-toc">
+      
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    Atoms
+    
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="#" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    Atoms
+    
+  </span>
+  
+
+      </a>
+      
+        
+
+  
+
+<nav class="md-nav md-nav--secondary">
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      On this page
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="cvxpy.atoms.affine.html" class="md-nav__link">
+    
+    <span class="md-ellipsis">
+      Affine Atoms
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="cvxpy.atoms.elementwise.html" class="md-nav__link">
+    
+    <span class="md-ellipsis">
+      Elementwise Atoms
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="cvxpy.atoms.other_atoms.html" class="md-nav__link">
+    
+    <span class="md-ellipsis">
+      Other Atoms
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#representation-of-atoms" class="md-nav__link">
+    
+    <span class="md-ellipsis">
+      <span title="representation of atoms (reference label)">Representation of atoms</span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#atom" class="md-nav__link">
+    
+    <span class="md-ellipsis">
+      <span title="atom (reference label)">Atom</span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Atom">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.atoms.atom.Atom" class="md-nav__link">
+    
+      <span aria-label="Python class" class="objinfo-icon objinfo-icon__data" title="Python class">C</span>
+    
+    <span class="md-ellipsis">
+      <span title="cvxpy.atoms.atom.Atom (Python class) — Bases: Expression">cvxpy.<wbr>atoms.<wbr>atom.<wbr>Atom</span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="cvxpy.atoms.atom.Atom">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.atoms.atom.Atom.domain" class="md-nav__link">
+    
+      <span aria-label="Python property" class="objinfo-icon objinfo-icon__alias" title="Python property">P</span>
+    
+    <span class="md-ellipsis">
+      <span title="cvxpy.atoms.atom.Atom.domain (Python property) — A list of constraints describing the closure of the region where the expression is finite.">domain</span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.atoms.atom.Atom.grad" class="md-nav__link">
+    
+      <span aria-label="Python property" class="objinfo-icon objinfo-icon__alias" title="Python property">P</span>
+    
+    <span class="md-ellipsis">
+      <span title="cvxpy.atoms.atom.Atom.grad (Python property) — Gives the (sub/super)gradient of the expression w.r.t. each variable.">grad</span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="grad">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.atoms.atom.Atom.grad-returns" class="md-nav__link">
+    
+    <span class="md-ellipsis">
+      Returns
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.atoms.atom.Atom.is_atom_affine" class="md-nav__link">
+    
+      <span aria-label="Python method" class="objinfo-icon objinfo-icon__procedure" title="Python method">M</span>
+    
+    <span class="md-ellipsis">
+      <span title="cvxpy.atoms.atom.Atom.is_atom_affine (Python method) — Is the atom affine?">is_<wbr>atom_<wbr>affine</span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.atoms.atom.Atom.is_atom_concave" class="md-nav__link">
+    
+      <span aria-label="Python method" class="objinfo-icon objinfo-icon__procedure" title="Python method">M</span>
+    
+    <span class="md-ellipsis">
+      <span title="cvxpy.atoms.atom.Atom.is_atom_concave (Python method) — Is the atom concave?">is_<wbr>atom_<wbr>concave</span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.atoms.atom.Atom.is_atom_convex" class="md-nav__link">
+    
+      <span aria-label="Python method" class="objinfo-icon objinfo-icon__procedure" title="Python method">M</span>
+    
+    <span class="md-ellipsis">
+      <span title="cvxpy.atoms.atom.Atom.is_atom_convex (Python method) — Is the atom convex?">is_<wbr>atom_<wbr>convex</span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.atoms.atom.Atom.is_atom_log_log_affine" class="md-nav__link">
+    
+      <span aria-label="Python method" class="objinfo-icon objinfo-icon__procedure" title="Python method">M</span>
+    
+    <span class="md-ellipsis">
+      <span title="cvxpy.atoms.atom.Atom.is_atom_log_log_affine (Python method) — Is the atom log-log affine?">is_<wbr>atom_<wbr>log_<wbr>log_<wbr>affine</span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.atoms.atom.Atom.is_atom_log_log_concave" class="md-nav__link">
+    
+      <span aria-label="Python method" class="objinfo-icon objinfo-icon__procedure" title="Python method">M</span>
+    
+    <span class="md-ellipsis">
+      <span title="cvxpy.atoms.atom.Atom.is_atom_log_log_concave (Python method) — Is the atom log-log concave?">is_<wbr>atom_<wbr>log_<wbr>log_<wbr>concave</span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.atoms.atom.Atom.is_atom_log_log_convex" class="md-nav__link">
+    
+      <span aria-label="Python method" class="objinfo-icon objinfo-icon__procedure" title="Python method">M</span>
+    
+    <span class="md-ellipsis">
+      <span title="cvxpy.atoms.atom.Atom.is_atom_log_log_convex (Python method) — Is the atom log-log convex?">is_<wbr>atom_<wbr>log_<wbr>log_<wbr>convex</span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.atoms.atom.Atom.is_decr" class="md-nav__link">
+    
+      <span aria-label="Python method" class="objinfo-icon objinfo-icon__procedure" title="Python method">M</span>
+    
+    <span class="md-ellipsis">
+      <span title="cvxpy.atoms.atom.Atom.is_decr (Python method) — Is the composition non-increasing in argument idx?">is_<wbr>decr</span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.atoms.atom.Atom.is_incr" class="md-nav__link">
+    
+      <span aria-label="Python method" class="objinfo-icon objinfo-icon__procedure" title="Python method">M</span>
+    
+    <span class="md-ellipsis">
+      <span title="cvxpy.atoms.atom.Atom.is_incr (Python method) — Is the composition non-decreasing in argument idx?">is_<wbr>incr</span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="cvxpy.constraints.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Constraints
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="cvxpy.expressions.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Expressions
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="cvxpy.problems.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Problems
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="cvxpy.transforms.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Transforms
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="cvxpy.reductions.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Reductions
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+  
+
+    
+      
+      
+  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../examples/index.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Examples
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../contributing/index.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Contributing
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../updates/index.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Changelog
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../faq/index.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    FAQ
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../resources/index.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Resources
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+  
+
+<nav class="md-nav md-nav--secondary">
+  
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      On this page
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#representation-of-atoms" class="md-nav__link">
+    
+    <span class="md-ellipsis">
+      <span title="representation of atoms (reference label)">Representation of atoms</span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#atom" class="md-nav__link">
+    
+    <span class="md-ellipsis">
+      <span title="atom (reference label)">Atom</span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Atom">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.atoms.atom.Atom" class="md-nav__link">
+    
+      <span aria-label="Python class" class="objinfo-icon objinfo-icon__data" title="Python class">C</span>
+    
+    <span class="md-ellipsis">
+      <span title="cvxpy.atoms.atom.Atom (Python class) — Bases: Expression">cvxpy.<wbr>atoms.<wbr>atom.<wbr>Atom</span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="cvxpy.atoms.atom.Atom">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.atoms.atom.Atom.domain" class="md-nav__link">
+    
+      <span aria-label="Python property" class="objinfo-icon objinfo-icon__alias" title="Python property">P</span>
+    
+    <span class="md-ellipsis">
+      <span title="cvxpy.atoms.atom.Atom.domain (Python property) — A list of constraints describing the closure of the region where the expression is finite.">domain</span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.atoms.atom.Atom.grad" class="md-nav__link">
+    
+      <span aria-label="Python property" class="objinfo-icon objinfo-icon__alias" title="Python property">P</span>
+    
+    <span class="md-ellipsis">
+      <span title="cvxpy.atoms.atom.Atom.grad (Python property) — Gives the (sub/super)gradient of the expression w.r.t. each variable.">grad</span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="grad">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.atoms.atom.Atom.grad-returns" class="md-nav__link">
+    
+    <span class="md-ellipsis">
+      Returns
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.atoms.atom.Atom.is_atom_affine" class="md-nav__link">
+    
+      <span aria-label="Python method" class="objinfo-icon objinfo-icon__procedure" title="Python method">M</span>
+    
+    <span class="md-ellipsis">
+      <span title="cvxpy.atoms.atom.Atom.is_atom_affine (Python method) — Is the atom affine?">is_<wbr>atom_<wbr>affine</span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.atoms.atom.Atom.is_atom_concave" class="md-nav__link">
+    
+      <span aria-label="Python method" class="objinfo-icon objinfo-icon__procedure" title="Python method">M</span>
+    
+    <span class="md-ellipsis">
+      <span title="cvxpy.atoms.atom.Atom.is_atom_concave (Python method) — Is the atom concave?">is_<wbr>atom_<wbr>concave</span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.atoms.atom.Atom.is_atom_convex" class="md-nav__link">
+    
+      <span aria-label="Python method" class="objinfo-icon objinfo-icon__procedure" title="Python method">M</span>
+    
+    <span class="md-ellipsis">
+      <span title="cvxpy.atoms.atom.Atom.is_atom_convex (Python method) — Is the atom convex?">is_<wbr>atom_<wbr>convex</span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.atoms.atom.Atom.is_atom_log_log_affine" class="md-nav__link">
+    
+      <span aria-label="Python method" class="objinfo-icon objinfo-icon__procedure" title="Python method">M</span>
+    
+    <span class="md-ellipsis">
+      <span title="cvxpy.atoms.atom.Atom.is_atom_log_log_affine (Python method) — Is the atom log-log affine?">is_<wbr>atom_<wbr>log_<wbr>log_<wbr>affine</span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.atoms.atom.Atom.is_atom_log_log_concave" class="md-nav__link">
+    
+      <span aria-label="Python method" class="objinfo-icon objinfo-icon__procedure" title="Python method">M</span>
+    
+    <span class="md-ellipsis">
+      <span title="cvxpy.atoms.atom.Atom.is_atom_log_log_concave (Python method) — Is the atom log-log concave?">is_<wbr>atom_<wbr>log_<wbr>log_<wbr>concave</span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.atoms.atom.Atom.is_atom_log_log_convex" class="md-nav__link">
+    
+      <span aria-label="Python method" class="objinfo-icon objinfo-icon__procedure" title="Python method">M</span>
+    
+    <span class="md-ellipsis">
+      <span title="cvxpy.atoms.atom.Atom.is_atom_log_log_convex (Python method) — Is the atom log-log convex?">is_<wbr>atom_<wbr>log_<wbr>log_<wbr>convex</span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.atoms.atom.Atom.is_decr" class="md-nav__link">
+    
+      <span aria-label="Python method" class="objinfo-icon objinfo-icon__procedure" title="Python method">M</span>
+    
+    <span class="md-ellipsis">
+      <span title="cvxpy.atoms.atom.Atom.is_decr (Python method) — Is the composition non-increasing in argument idx?">is_<wbr>decr</span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.atoms.atom.Atom.is_incr" class="md-nav__link">
+    
+      <span aria-label="Python method" class="objinfo-icon objinfo-icon__procedure" title="Python method">M</span>
+    
+    <span class="md-ellipsis">
+      <span title="cvxpy.atoms.atom.Atom.is_incr (Python method) — Is the composition non-decreasing in argument idx?">is_<wbr>incr</span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset" role="main">
+                
+                
+                  
+
+
+<h1 id="atoms">Atoms<a class="headerlink" href="#atoms" title="Link to this heading">¶</a></h1>
+<p>An atom (with a lower-case “a”) is a mathematical function that can be applied to
+<code class="xref py py-class docutils literal notranslate"><span class="pre">Expression</span></code> objects and returns an <code class="xref py py-class docutils literal notranslate"><span class="pre">Expression</span></code> object.</p>
+<p>Atoms and compositions thereof are precisely the mechanisms that allow you to
+build up mathematical expression trees in CVXPY.</p>
+<p>Every atom is tagged with information about its domain, sign, curvature,
+log-log curvature, and monotonicity; this information lets atom instances
+reason about whether or not they are DCP or DGP. See the <a class="reference internal" href="../tutorial/functions/index.html#functions"><span class="std std-ref">Atomic Functions</span></a> page
+for a compact, accessible summary of each atom’s attributes.</p>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="cvxpy.atoms.affine.html">Affine Atoms</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="cvxpy.atoms.affine.html#addexpression">AddExpression</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="cvxpy.atoms.affine.html#cvxpy.atoms.affine.add_expr.AddExpression">cvxpy.atoms.affine.add_expr.AddExpression</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="cvxpy.atoms.affine.html#mulexpression">MulExpression</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="cvxpy.atoms.affine.html#cvxpy.atoms.affine.binary_operators.MulExpression">cvxpy.atoms.affine.binary_operators.MulExpression</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="cvxpy.atoms.affine.html#cvxpy.atoms.affine.binary_operators.MulExpression-parameters">Parameters</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="cvxpy.atoms.affine.html#cvxpy.atoms.affine.binary_operators.MulExpression.__init__.lh_exp">lh_exp</a></li>
+<li class="toctree-l5"><a class="reference internal" href="cvxpy.atoms.affine.html#cvxpy.atoms.affine.binary_operators.MulExpression.__init__.rh_exp">rh_exp</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="cvxpy.atoms.affine.html#divexpression">DivExpression</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="cvxpy.atoms.affine.html#cvxpy.atoms.affine.binary_operators.DivExpression">cvxpy.atoms.affine.binary_operators.DivExpression</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="cvxpy.atoms.affine.html#bmat">bmat</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="cvxpy.atoms.affine.html#cvxpy.bmat">cvxpy.bmat</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="cvxpy.atoms.affine.html#cvxpy.bmat-parameters">Parameters</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="cvxpy.atoms.affine.html#cvxpy.bmat.block_lists">block_lists</a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="cvxpy.atoms.affine.html#cvxpy.bmat-returns">Returns</a></li>
+<li class="toctree-l4"><a class="reference internal" href="cvxpy.atoms.affine.html#cvxpy.bmat-return-type">Return type</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="cvxpy.atoms.affine.html#conj">conj</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="cvxpy.atoms.affine.html#cvxpy.conj">cvxpy.conj</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="cvxpy.atoms.affine.html#convolve">convolve</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="cvxpy.atoms.affine.html#cvxpy.convolve">cvxpy.convolve</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="cvxpy.atoms.affine.html#cvxpy.convolve-parameters">Parameters</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="cvxpy.atoms.affine.html#cumsum">cumsum</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="cvxpy.atoms.affine.html#cvxpy.cumsum">cvxpy.cumsum</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="cvxpy.atoms.affine.html#cvxpy.cumsum.expr">expr</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="cvxpy.atoms.affine.html#cvxpy.cumsum.expr-type">Type</a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="cvxpy.atoms.affine.html#cvxpy.cumsum.axis">axis</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="cvxpy.atoms.affine.html#cvxpy.cumsum.axis-type">Type</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="cvxpy.atoms.affine.html#diag">diag</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="cvxpy.atoms.affine.html#cvxpy.diag">cvxpy.diag</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="cvxpy.atoms.affine.html#cvxpy.diag-parameters">Parameters</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="cvxpy.atoms.affine.html#cvxpy.diag.expr">expr</a></li>
+<li class="toctree-l5"><a class="reference internal" href="cvxpy.atoms.affine.html#cvxpy.diag.k">k</a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="cvxpy.atoms.affine.html#cvxpy.diag-returns">Returns</a></li>
+<li class="toctree-l4"><a class="reference internal" href="cvxpy.atoms.affine.html#cvxpy.diag-return-type">Return type</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="cvxpy.atoms.affine.html#diff">diff</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="cvxpy.atoms.affine.html#cvxpy.diff">cvxpy.diff</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="cvxpy.atoms.affine.html#hstack">hstack</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="cvxpy.atoms.affine.html#cvxpy.hstack">cvxpy.hstack</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="cvxpy.atoms.affine.html#cvxpy.hstack-parameters">Parameters</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="cvxpy.atoms.affine.html#cvxpy.hstack.arg_list">arg_list</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="cvxpy.atoms.affine.html#imag">imag</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="cvxpy.atoms.affine.html#cvxpy.imag">cvxpy.imag</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="cvxpy.atoms.affine.html#index">index</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="cvxpy.atoms.affine.html#cvxpy.atoms.affine.index.index">cvxpy.atoms.affine.index.index</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="cvxpy.atoms.affine.html#cvxpy.atoms.affine.index.index-parameters">Parameters</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="cvxpy.atoms.affine.html#cvxpy.atoms.affine.index.index.__init__.expr">expr</a></li>
+<li class="toctree-l5"><a class="reference internal" href="cvxpy.atoms.affine.html#cvxpy.atoms.affine.index.index.__init__.key">key</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="cvxpy.atoms.affine.html#kron">kron</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="cvxpy.atoms.affine.html#cvxpy.kron">cvxpy.kron</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="cvxpy.atoms.affine.html#matmul">matmul</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="cvxpy.atoms.affine.html#cvxpy.matmul">cvxpy.matmul</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="cvxpy.atoms.affine.html#mean">mean</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="cvxpy.atoms.affine.html#cvxpy.atoms.stats.mean">cvxpy.atoms.stats.mean</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="cvxpy.atoms.affine.html#multiply">multiply</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="cvxpy.atoms.affine.html#cvxpy.multiply">cvxpy.multiply</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="cvxpy.atoms.affine.html#outer">outer</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="cvxpy.atoms.affine.html#cvxpy.outer">cvxpy.outer</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="cvxpy.atoms.affine.html#cvxpy.outer-parameters">Parameters</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="cvxpy.atoms.affine.html#cvxpy.outer.x">x</a></li>
+<li class="toctree-l5"><a class="reference internal" href="cvxpy.atoms.affine.html#cvxpy.outer.y">y</a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="cvxpy.atoms.affine.html#cvxpy.outer-returns">Returns</a></li>
+<li class="toctree-l4"><a class="reference internal" href="cvxpy.atoms.affine.html#cvxpy.outer-return-type">Return type</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="cvxpy.atoms.affine.html#partial-trace">partial_trace</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="cvxpy.atoms.affine.html#cvxpy.partial_trace">cvxpy.partial_trace</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="cvxpy.atoms.affine.html#cvxpy.partial_trace-parameters">Parameters</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="cvxpy.atoms.affine.html#cvxpy.partial_trace.expr">expr</a></li>
+<li class="toctree-l5"><a class="reference internal" href="cvxpy.atoms.affine.html#cvxpy.partial_trace.dims">dims</a></li>
+<li class="toctree-l5"><a class="reference internal" href="cvxpy.atoms.affine.html#cvxpy.partial_trace.axis">axis</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="cvxpy.atoms.affine.html#partial-transpose">partial_transpose</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="cvxpy.atoms.affine.html#cvxpy.partial_transpose">cvxpy.partial_transpose</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="cvxpy.atoms.affine.html#cvxpy.partial_transpose-parameters">Parameters</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="cvxpy.atoms.affine.html#cvxpy.partial_transpose.expr">expr</a></li>
+<li class="toctree-l5"><a class="reference internal" href="cvxpy.atoms.affine.html#cvxpy.partial_transpose.dims">dims</a></li>
+<li class="toctree-l5"><a class="reference internal" href="cvxpy.atoms.affine.html#cvxpy.partial_transpose.axis">axis</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="cvxpy.atoms.affine.html#promote">promote</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="cvxpy.atoms.affine.html#cvxpy.atoms.affine.promote.promote">cvxpy.atoms.affine.promote.promote</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="cvxpy.atoms.affine.html#cvxpy.atoms.affine.promote.promote-parameters">Parameters</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="cvxpy.atoms.affine.html#cvxpy.atoms.affine.promote.promote.expr">expr</a></li>
+<li class="toctree-l5"><a class="reference internal" href="cvxpy.atoms.affine.html#cvxpy.atoms.affine.promote.promote.shape">shape</a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="cvxpy.atoms.affine.html#cvxpy.atoms.affine.promote.promote-raises">Raises</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="cvxpy.atoms.affine.html#psd-wrap">psd_wrap</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="cvxpy.atoms.affine.html#cvxpy.atoms.affine.wraps.psd_wrap">cvxpy.atoms.affine.wraps.psd_wrap</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="cvxpy.atoms.affine.html#real">real</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="cvxpy.atoms.affine.html#cvxpy.real">cvxpy.real</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="cvxpy.atoms.affine.html#reshape">reshape</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="cvxpy.atoms.affine.html#cvxpy.reshape">cvxpy.reshape</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="cvxpy.atoms.affine.html#cvxpy.reshape-parameters">Parameters</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="cvxpy.atoms.affine.html#cvxpy.reshape.__init__.expr">expr</a></li>
+<li class="toctree-l5"><a class="reference internal" href="cvxpy.atoms.affine.html#cvxpy.reshape.__init__.shape">shape</a></li>
+<li class="toctree-l5"><a class="reference internal" href="cvxpy.atoms.affine.html#cvxpy.reshape.__init__.order">order</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="cvxpy.atoms.affine.html#vdot">vdot</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="cvxpy.atoms.affine.html#cvxpy.vdot">cvxpy.vdot</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="cvxpy.atoms.affine.html#cvxpy.vdot-parameters">Parameters</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="cvxpy.atoms.affine.html#cvxpy.vdot.x">x</a></li>
+<li class="toctree-l5"><a class="reference internal" href="cvxpy.atoms.affine.html#cvxpy.vdot.y">y</a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="cvxpy.atoms.affine.html#cvxpy.vdot-returns">Returns</a></li>
+<li class="toctree-l4"><a class="reference internal" href="cvxpy.atoms.affine.html#cvxpy.vdot-return-type">Return type</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="cvxpy.atoms.affine.html#sum">sum</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="cvxpy.atoms.affine.html#cvxpy.sum">cvxpy.sum</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="cvxpy.atoms.affine.html#cvxpy.sum-parameters">Parameters</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="cvxpy.atoms.affine.html#cvxpy.sum.expr">expr</a></li>
+<li class="toctree-l5"><a class="reference internal" href="cvxpy.atoms.affine.html#cvxpy.sum.axis">axis</a></li>
+<li class="toctree-l5"><a class="reference internal" href="cvxpy.atoms.affine.html#cvxpy.sum.keepdims">keepdims</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="cvxpy.atoms.affine.html#trace">trace</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="cvxpy.atoms.affine.html#cvxpy.trace">cvxpy.trace</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="cvxpy.atoms.affine.html#cvxpy.trace-parameters">Parameters</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="cvxpy.atoms.affine.html#cvxpy.trace.__init__.expr">expr</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="cvxpy.atoms.affine.html#transpose">transpose</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="cvxpy.atoms.affine.html#cvxpy.transpose">cvxpy.transpose</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="cvxpy.atoms.affine.html#negexpression">NegExpression</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="cvxpy.atoms.affine.html#cvxpy.atoms.affine.unary_operators.NegExpression">cvxpy.atoms.affine.unary_operators.NegExpression</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="cvxpy.atoms.affine.html#upper-tri">upper_tri</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="cvxpy.atoms.affine.html#cvxpy.upper_tri">cvxpy.upper_tri</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="cvxpy.atoms.affine.html#vec">vec</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="cvxpy.atoms.affine.html#cvxpy.vec">cvxpy.vec</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="cvxpy.atoms.affine.html#cvxpy.vec-parameters">Parameters</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="cvxpy.atoms.affine.html#cvxpy.vec.X">X</a></li>
+<li class="toctree-l5"><a class="reference internal" href="cvxpy.atoms.affine.html#cvxpy.vec.order">order</a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="cvxpy.atoms.affine.html#cvxpy.vec-returns">Returns</a></li>
+<li class="toctree-l4"><a class="reference internal" href="cvxpy.atoms.affine.html#cvxpy.vec-return-type">Return type</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="cvxpy.atoms.affine.html#vec-to-upper-tri">vec_to_upper_tri</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="cvxpy.atoms.affine.html#cvxpy.atoms.affine.upper_tri.vec_to_upper_tri">cvxpy.atoms.affine.upper_tri.vec_to_upper_tri</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="cvxpy.atoms.affine.html#vstack">vstack</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="cvxpy.atoms.affine.html#cvxpy.vstack">cvxpy.vstack</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="cvxpy.atoms.elementwise.html">Elementwise Atoms</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="cvxpy.atoms.elementwise.html#abs">abs</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="cvxpy.atoms.elementwise.html#cvxpy.abs">cvxpy.abs</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="cvxpy.atoms.elementwise.html#entr">entr</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="cvxpy.atoms.elementwise.html#cvxpy.entr">cvxpy.entr</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="cvxpy.atoms.elementwise.html#exp">exp</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="cvxpy.atoms.elementwise.html#cvxpy.exp">cvxpy.exp</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="cvxpy.atoms.elementwise.html#huber">huber</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="cvxpy.atoms.elementwise.html#cvxpy.huber">cvxpy.huber</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="cvxpy.atoms.elementwise.html#cvxpy.huber-parameters">Parameters</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="cvxpy.atoms.elementwise.html#cvxpy.huber.__init__.x">x</a></li>
+<li class="toctree-l5"><a class="reference internal" href="cvxpy.atoms.elementwise.html#cvxpy.huber.__init__.M">M</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="cvxpy.atoms.elementwise.html#inv-pos">inv_pos</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="cvxpy.atoms.elementwise.html#cvxpy.inv_pos">cvxpy.inv_pos</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="cvxpy.atoms.elementwise.html#kl-div">kl_div</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="cvxpy.atoms.elementwise.html#cvxpy.kl_div">cvxpy.kl_div</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="cvxpy.atoms.elementwise.html#log">log</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="cvxpy.atoms.elementwise.html#cvxpy.log">cvxpy.log</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="cvxpy.atoms.elementwise.html#log-normcdf">log_normcdf</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="cvxpy.atoms.elementwise.html#cvxpy.log_normcdf">cvxpy.log_normcdf</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="cvxpy.atoms.elementwise.html#log1p">log1p</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="cvxpy.atoms.elementwise.html#cvxpy.log1p">cvxpy.log1p</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="cvxpy.atoms.elementwise.html#loggamma">loggamma</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="cvxpy.atoms.elementwise.html#cvxpy.loggamma">cvxpy.loggamma</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="cvxpy.atoms.elementwise.html#logistic">logistic</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="cvxpy.atoms.elementwise.html#cvxpy.logistic">cvxpy.logistic</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="cvxpy.atoms.elementwise.html#maximum">maximum</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="cvxpy.atoms.elementwise.html#cvxpy.maximum">cvxpy.maximum</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="cvxpy.atoms.elementwise.html#minimum">minimum</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="cvxpy.atoms.elementwise.html#cvxpy.minimum">cvxpy.minimum</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="cvxpy.atoms.elementwise.html#neg">neg</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="cvxpy.atoms.elementwise.html#cvxpy.neg">cvxpy.neg</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="cvxpy.atoms.elementwise.html#pos">pos</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="cvxpy.atoms.elementwise.html#cvxpy.pos">cvxpy.pos</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="cvxpy.atoms.elementwise.html#power">power</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="cvxpy.atoms.elementwise.html#cvxpy.power">cvxpy.power</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="cvxpy.atoms.elementwise.html#cvxpy.power-parameters">Parameters</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="cvxpy.atoms.elementwise.html#cvxpy.power.__init__.x">x</a></li>
+<li class="toctree-l5"><a class="reference internal" href="cvxpy.atoms.elementwise.html#cvxpy.power.__init__.p">p</a></li>
+<li class="toctree-l5"><a class="reference internal" href="cvxpy.atoms.elementwise.html#cvxpy.power.__init__.max_denom">max_denom</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="cvxpy.atoms.elementwise.html#rel-entr">rel_entr</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="cvxpy.atoms.elementwise.html#cvxpy.rel_entr">cvxpy.rel_entr</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="cvxpy.atoms.elementwise.html#scalene">scalene</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="cvxpy.atoms.elementwise.html#cvxpy.scalene">cvxpy.scalene</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="cvxpy.atoms.elementwise.html#sqrt">sqrt</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="cvxpy.atoms.elementwise.html#cvxpy.sqrt">cvxpy.sqrt</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="cvxpy.atoms.elementwise.html#square">square</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="cvxpy.atoms.elementwise.html#cvxpy.square">cvxpy.square</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="cvxpy.atoms.elementwise.html#xexp">xexp</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="cvxpy.atoms.elementwise.html#cvxpy.xexp">cvxpy.xexp</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="cvxpy.atoms.other_atoms.html">Other Atoms</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="cvxpy.atoms.other_atoms.html#cummax">cummax</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="cvxpy.atoms.other_atoms.html#cvxpy.atoms.cummax.cummax">cvxpy.atoms.cummax.cummax</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="cvxpy.atoms.other_atoms.html#cumprod">cumprod</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="cvxpy.atoms.other_atoms.html#cvxpy.atoms.cumprod.cumprod">cvxpy.atoms.cumprod.cumprod</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="cvxpy.atoms.other_atoms.html#cvxpy.atoms.cumprod.cumprod.expr">expr</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="cvxpy.atoms.other_atoms.html#cvxpy.atoms.cumprod.cumprod.expr-type">Type</a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="cvxpy.atoms.other_atoms.html#cvxpy.atoms.cumprod.cumprod.axis">axis</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="cvxpy.atoms.other_atoms.html#cvxpy.atoms.cumprod.cumprod.axis-type">Type</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="cvxpy.atoms.other_atoms.html#cvar">cvar</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="cvxpy.atoms.other_atoms.html#cvxpy.atoms.cvar.cvar">cvxpy.atoms.cvar.cvar</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="cvxpy.atoms.other_atoms.html#cvxpy.atoms.cvar.cvar-parameters">Parameters</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="cvxpy.atoms.other_atoms.html#cvxpy.atoms.cvar.cvar.x">x</a></li>
+<li class="toctree-l5"><a class="reference internal" href="cvxpy.atoms.other_atoms.html#cvxpy.atoms.cvar.cvar.beta">beta</a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="cvxpy.atoms.other_atoms.html#cvxpy.atoms.cvar.cvar-returns">Returns</a></li>
+<li class="toctree-l4"><a class="reference internal" href="cvxpy.atoms.other_atoms.html#cvxpy.atoms.cvar.cvar-return-type">Return type</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="cvxpy.atoms.other_atoms.html#diff-pos">diff_pos</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="cvxpy.atoms.other_atoms.html#cvxpy.atoms.one_minus_pos.diff_pos">cvxpy.atoms.one_minus_pos.diff_pos</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="cvxpy.atoms.other_atoms.html#cvxpy.atoms.one_minus_pos.diff_pos-parameters">Parameters</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="cvxpy.atoms.other_atoms.html#cvxpy.atoms.one_minus_pos.diff_pos.x">x</a></li>
+<li class="toctree-l5"><a class="reference internal" href="cvxpy.atoms.other_atoms.html#cvxpy.atoms.one_minus_pos.diff_pos.y">y</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="cvxpy.atoms.other_atoms.html#dotsort">dotsort</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="cvxpy.atoms.other_atoms.html#cvxpy.atoms.dotsort.dotsort">cvxpy.atoms.dotsort.dotsort</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="cvxpy.atoms.other_atoms.html#eye-minus-inv">eye_minus_inv</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="cvxpy.atoms.other_atoms.html#cvxpy.atoms.eye_minus_inv.eye_minus_inv">cvxpy.atoms.eye_minus_inv.eye_minus_inv</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="cvxpy.atoms.other_atoms.html#cvxpy.atoms.eye_minus_inv.eye_minus_inv-parameters">Parameters</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="cvxpy.atoms.other_atoms.html#cvxpy.atoms.eye_minus_inv.eye_minus_inv.__init__.X">X</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="cvxpy.atoms.other_atoms.html#geo-mean">geo_mean</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="cvxpy.atoms.other_atoms.html#cvxpy.atoms.geo_mean.geo_mean">cvxpy.atoms.geo_mean.geo_mean</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="cvxpy.atoms.other_atoms.html#cvxpy.atoms.geo_mean.geo_mean-parameters">Parameters</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="cvxpy.atoms.other_atoms.html#cvxpy.atoms.geo_mean.geo_mean.__init__.x">x</a></li>
+<li class="toctree-l5"><a class="reference internal" href="cvxpy.atoms.other_atoms.html#cvxpy.atoms.geo_mean.geo_mean.__init__.p">p</a></li>
+<li class="toctree-l5"><a class="reference internal" href="cvxpy.atoms.other_atoms.html#cvxpy.atoms.geo_mean.geo_mean.__init__.max_denom">max_denom</a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="cvxpy.atoms.other_atoms.html#cvxpy.atoms.geo_mean.geo_mean.w">w</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="cvxpy.atoms.other_atoms.html#cvxpy.atoms.geo_mean.geo_mean.w-type">Type</a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="cvxpy.atoms.other_atoms.html#cvxpy.atoms.geo_mean.geo_mean.approx_error">approx_error</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="cvxpy.atoms.other_atoms.html#cvxpy.atoms.geo_mean.geo_mean.approx_error-type">Type</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="cvxpy.atoms.other_atoms.html#gmatmul">gmatmul</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="cvxpy.atoms.other_atoms.html#cvxpy.atoms.gmatmul.gmatmul">cvxpy.atoms.gmatmul.gmatmul</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="cvxpy.atoms.other_atoms.html#cvxpy.atoms.gmatmul.gmatmul-parameters">Parameters</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="cvxpy.atoms.other_atoms.html#cvxpy.atoms.gmatmul.gmatmul.__init__.A">A</a></li>
+<li class="toctree-l5"><a class="reference internal" href="cvxpy.atoms.other_atoms.html#cvxpy.atoms.gmatmul.gmatmul.__init__.X">X</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="cvxpy.atoms.other_atoms.html#harmonic-mean">harmonic_mean</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="cvxpy.atoms.other_atoms.html#cvxpy.atoms.harmonic_mean.harmonic_mean">cvxpy.atoms.harmonic_mean.harmonic_mean</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="cvxpy.atoms.other_atoms.html#cvxpy.atoms.harmonic_mean.harmonic_mean-parameters">Parameters</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="cvxpy.atoms.other_atoms.html#cvxpy.atoms.harmonic_mean.harmonic_mean.x">x</a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="cvxpy.atoms.other_atoms.html#cvxpy.atoms.harmonic_mean.harmonic_mean-returns">Returns</a></li>
+<li class="toctree-l4"><a class="reference internal" href="cvxpy.atoms.other_atoms.html#cvxpy.atoms.harmonic_mean.harmonic_mean-return-type">Return type</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="cvxpy.atoms.other_atoms.html#inv-prod">inv_prod</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="cvxpy.atoms.other_atoms.html#cvxpy.atoms.inv_prod.inv_prod">cvxpy.atoms.inv_prod.inv_prod</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="cvxpy.atoms.other_atoms.html#cvxpy.atoms.inv_prod.inv_prod-parameters">Parameters</a></li>
+<li class="toctree-l4"><a class="reference internal" href="cvxpy.atoms.other_atoms.html#cvxpy.atoms.inv_prod.inv_prod-returns">Returns</a></li>
+<li class="toctree-l4"><a class="reference internal" href="cvxpy.atoms.other_atoms.html#cvxpy.atoms.inv_prod.inv_prod-return-type">Return type</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="cvxpy.atoms.other_atoms.html#lambda-max">lambda_max</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="cvxpy.atoms.other_atoms.html#cvxpy.atoms.lambda_max.lambda_max">cvxpy.atoms.lambda_max.lambda_max</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="cvxpy.atoms.other_atoms.html#lambda-min">lambda_min</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="cvxpy.atoms.other_atoms.html#cvxpy.atoms.lambda_min.lambda_min">cvxpy.atoms.lambda_min.lambda_min</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="cvxpy.atoms.other_atoms.html#lambda-sum-largest">lambda_sum_largest</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="cvxpy.atoms.other_atoms.html#cvxpy.atoms.lambda_sum_largest.lambda_sum_largest">cvxpy.atoms.lambda_sum_largest.lambda_sum_largest</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="cvxpy.atoms.other_atoms.html#lambda-sum-smallest">lambda_sum_smallest</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="cvxpy.atoms.other_atoms.html#cvxpy.atoms.lambda_sum_smallest.lambda_sum_smallest">cvxpy.atoms.lambda_sum_smallest.lambda_sum_smallest</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="cvxpy.atoms.other_atoms.html#log-det">log_det</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="cvxpy.atoms.other_atoms.html#cvxpy.atoms.log_det.log_det">cvxpy.atoms.log_det.log_det</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="cvxpy.atoms.other_atoms.html#log-sum-exp">log_sum_exp</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="cvxpy.atoms.other_atoms.html#cvxpy.atoms.log_sum_exp.log_sum_exp">cvxpy.atoms.log_sum_exp.log_sum_exp</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="cvxpy.atoms.other_atoms.html#matrix-frac">matrix_frac</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="cvxpy.atoms.other_atoms.html#cvxpy.atoms.matrix_frac.matrix_frac">cvxpy.atoms.matrix_frac.matrix_frac</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="cvxpy.atoms.other_atoms.html#max">max</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="cvxpy.atoms.other_atoms.html#cvxpy.atoms.max.max">cvxpy.atoms.max.max</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="cvxpy.atoms.other_atoms.html#min">min</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="cvxpy.atoms.other_atoms.html#cvxpy.atoms.min.min">cvxpy.atoms.min.min</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="cvxpy.atoms.other_atoms.html#mixed-norm">mixed_norm</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="cvxpy.atoms.other_atoms.html#cvxpy.atoms.mixed_norm.mixed_norm">cvxpy.atoms.mixed_norm.mixed_norm</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="cvxpy.atoms.other_atoms.html#cvxpy.atoms.mixed_norm.mixed_norm-parameters">Parameters</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="cvxpy.atoms.other_atoms.html#cvxpy.atoms.mixed_norm.mixed_norm.X">X</a></li>
+<li class="toctree-l5"><a class="reference internal" href="cvxpy.atoms.other_atoms.html#cvxpy.atoms.mixed_norm.mixed_norm.p">p</a></li>
+<li class="toctree-l5"><a class="reference internal" href="cvxpy.atoms.other_atoms.html#cvxpy.atoms.mixed_norm.mixed_norm.q">q</a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="cvxpy.atoms.other_atoms.html#cvxpy.atoms.mixed_norm.mixed_norm-returns">Returns</a></li>
+<li class="toctree-l4"><a class="reference internal" href="cvxpy.atoms.other_atoms.html#cvxpy.atoms.mixed_norm.mixed_norm-return-type">Return type</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="cvxpy.atoms.other_atoms.html#norm">norm</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="cvxpy.atoms.other_atoms.html#cvxpy.atoms.norm.norm">cvxpy.atoms.norm.norm</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="cvxpy.atoms.other_atoms.html#cvxpy.atoms.norm.norm-parameters">Parameters</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="cvxpy.atoms.other_atoms.html#cvxpy.atoms.norm.norm.x">x</a></li>
+<li class="toctree-l5"><a class="reference internal" href="cvxpy.atoms.other_atoms.html#cvxpy.atoms.norm.norm.p">p</a></li>
+<li class="toctree-l5"><a class="reference internal" href="cvxpy.atoms.other_atoms.html#cvxpy.atoms.norm.norm.axis">axis</a></li>
+<li class="toctree-l5"><a class="reference internal" href="cvxpy.atoms.other_atoms.html#cvxpy.atoms.norm.norm.keepdims">keepdims</a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="cvxpy.atoms.other_atoms.html#cvxpy.atoms.norm.norm-returns">Returns</a></li>
+<li class="toctree-l4"><a class="reference internal" href="cvxpy.atoms.other_atoms.html#cvxpy.atoms.norm.norm-return-type">Return type</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="cvxpy.atoms.other_atoms.html#norm1">norm1</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="cvxpy.atoms.other_atoms.html#cvxpy.atoms.norm1.norm1">cvxpy.atoms.norm1.norm1</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="cvxpy.atoms.other_atoms.html#norm2">norm2</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="cvxpy.atoms.other_atoms.html#cvxpy.atoms.norm.norm2">cvxpy.atoms.norm.norm2</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="cvxpy.atoms.other_atoms.html#cvxpy.atoms.norm.norm2-parameters">Parameters</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="cvxpy.atoms.other_atoms.html#cvxpy.atoms.norm.norm2.x">x</a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="cvxpy.atoms.other_atoms.html#cvxpy.atoms.norm.norm2-returns">Returns</a></li>
+<li class="toctree-l4"><a class="reference internal" href="cvxpy.atoms.other_atoms.html#cvxpy.atoms.norm.norm2-return-type">Return type</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="cvxpy.atoms.other_atoms.html#norm-inf">norm_inf</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="cvxpy.atoms.other_atoms.html#cvxpy.atoms.norm_inf">cvxpy.atoms.norm_inf</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="cvxpy.atoms.other_atoms.html#normnuc">normNuc</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="cvxpy.atoms.other_atoms.html#cvxpy.atoms.norm_nuc.normNuc">cvxpy.atoms.norm_nuc.normNuc</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="cvxpy.atoms.other_atoms.html#one-minus-pos">one_minus_pos</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="cvxpy.atoms.other_atoms.html#cvxpy.atoms.one_minus_pos">cvxpy.atoms.one_minus_pos</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="cvxpy.atoms.other_atoms.html#cvxpy.atoms.one_minus_pos-parameters">Parameters</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="cvxpy.atoms.other_atoms.html#cvxpy.atoms.one_minus_pos.__init__.x">x</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="cvxpy.atoms.other_atoms.html#perspective">perspective</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="cvxpy.atoms.other_atoms.html#cvxpy.atoms.perspective.perspective">cvxpy.atoms.perspective.perspective</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="cvxpy.atoms.other_atoms.html#pf-eigenvalue">pf_eigenvalue</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="cvxpy.atoms.other_atoms.html#cvxpy.atoms.pf_eigenvalue.pf_eigenvalue">cvxpy.atoms.pf_eigenvalue.pf_eigenvalue</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="cvxpy.atoms.other_atoms.html#cvxpy.atoms.pf_eigenvalue.pf_eigenvalue-parameters">Parameters</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="cvxpy.atoms.other_atoms.html#cvxpy.atoms.pf_eigenvalue.pf_eigenvalue.__init__.X">X</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="cvxpy.atoms.other_atoms.html#pnorm">pnorm</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="cvxpy.atoms.other_atoms.html#cvxpy.atoms.pnorm.pnorm">cvxpy.atoms.pnorm.pnorm</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="cvxpy.atoms.other_atoms.html#cvxpy.atoms.pnorm.pnorm-parameters">Parameters</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="cvxpy.atoms.other_atoms.html#cvxpy.atoms.pnorm.pnorm.p">p</a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="cvxpy.atoms.other_atoms.html#cvxpy.atoms.pnorm.pnorm-returns">Returns</a></li>
+<li class="toctree-l4"><a class="reference internal" href="cvxpy.atoms.other_atoms.html#cvxpy.atoms.pnorm.pnorm-return-type">Return type</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="cvxpy.atoms.other_atoms.html#id28">Pnorm</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="cvxpy.atoms.other_atoms.html#cvxpy.atoms.pnorm.Pnorm">cvxpy.atoms.pnorm.Pnorm</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="cvxpy.atoms.other_atoms.html#cvxpy.atoms.pnorm.Pnorm-parameters">Parameters</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="cvxpy.atoms.other_atoms.html#cvxpy.atoms.pnorm.Pnorm.__init__.x">x</a></li>
+<li class="toctree-l5"><a class="reference internal" href="cvxpy.atoms.other_atoms.html#cvxpy.atoms.pnorm.Pnorm.__init__.p">p</a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="cvxpy.atoms.other_atoms.html#cvxpy.atoms.pnorm.Pnorm-returns">Returns</a></li>
+<li class="toctree-l4"><a class="reference internal" href="cvxpy.atoms.other_atoms.html#cvxpy.atoms.pnorm.Pnorm-return-type">Return type</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="cvxpy.atoms.other_atoms.html#ptp">ptp</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="cvxpy.atoms.other_atoms.html#cvxpy.atoms.ptp.ptp">cvxpy.atoms.ptp.ptp</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="cvxpy.atoms.other_atoms.html#prod">prod</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="cvxpy.atoms.other_atoms.html#cvxpy.atoms.prod.prod">cvxpy.atoms.prod.prod</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="cvxpy.atoms.other_atoms.html#cvxpy.atoms.prod.prod-parameters">Parameters</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="cvxpy.atoms.other_atoms.html#cvxpy.atoms.prod.prod.expr">expr</a></li>
+<li class="toctree-l5"><a class="reference internal" href="cvxpy.atoms.other_atoms.html#cvxpy.atoms.prod.prod.axis">axis</a></li>
+<li class="toctree-l5"><a class="reference internal" href="cvxpy.atoms.other_atoms.html#cvxpy.atoms.prod.prod.keepdims">keepdims</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="cvxpy.atoms.other_atoms.html#quad-form">quad_form</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="cvxpy.atoms.other_atoms.html#cvxpy.atoms.quad_form.quad_form">cvxpy.atoms.quad_form.quad_form</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="cvxpy.atoms.other_atoms.html#cvxpy.atoms.quad_form.quad_form-parameters">Parameters</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="cvxpy.atoms.other_atoms.html#cvxpy.atoms.quad_form.quad_form.x">x</a></li>
+<li class="toctree-l5"><a class="reference internal" href="cvxpy.atoms.other_atoms.html#cvxpy.atoms.quad_form.quad_form.P">P</a></li>
+<li class="toctree-l5"><a class="reference internal" href="cvxpy.atoms.other_atoms.html#cvxpy.atoms.quad_form.quad_form.assume_PSD">assume_PSD</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="cvxpy.atoms.other_atoms.html#quad-over-lin">quad_over_lin</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="cvxpy.atoms.other_atoms.html#cvxpy.atoms.quad_over_lin.quad_over_lin">cvxpy.atoms.quad_over_lin.quad_over_lin</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="cvxpy.atoms.other_atoms.html#resolvent">resolvent</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="cvxpy.atoms.other_atoms.html#cvxpy.atoms.eye_minus_inv.resolvent">cvxpy.atoms.eye_minus_inv.resolvent</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="cvxpy.atoms.other_atoms.html#cvxpy.atoms.eye_minus_inv.resolvent-parameters">Parameters</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="cvxpy.atoms.other_atoms.html#cvxpy.atoms.eye_minus_inv.resolvent.X">X</a></li>
+<li class="toctree-l5"><a class="reference internal" href="cvxpy.atoms.other_atoms.html#cvxpy.atoms.eye_minus_inv.resolvent.s">s</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="cvxpy.atoms.other_atoms.html#sigma-max">sigma_max</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="cvxpy.atoms.other_atoms.html#cvxpy.atoms.sigma_max.sigma_max">cvxpy.atoms.sigma_max.sigma_max</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="cvxpy.atoms.other_atoms.html#std">std</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="cvxpy.atoms.other_atoms.html#cvxpy.atoms.stats.std">cvxpy.atoms.stats.std</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="cvxpy.atoms.other_atoms.html#sum-largest">sum_largest</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="cvxpy.atoms.other_atoms.html#cvxpy.atoms.sum_largest.sum_largest">cvxpy.atoms.sum_largest.sum_largest</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="cvxpy.atoms.other_atoms.html#sum-smallest">sum_smallest</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="cvxpy.atoms.other_atoms.html#cvxpy.atoms.sum_smallest.sum_smallest">cvxpy.atoms.sum_smallest.sum_smallest</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="cvxpy.atoms.other_atoms.html#sum-squares">sum_squares</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="cvxpy.atoms.other_atoms.html#cvxpy.atoms.sum_squares.sum_squares">cvxpy.atoms.sum_squares.sum_squares</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="cvxpy.atoms.other_atoms.html#cvxpy.atoms.sum_squares.sum_squares-parameters">Parameters</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="cvxpy.atoms.other_atoms.html#cvxpy.atoms.sum_squares.sum_squares.expr">expr</a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="cvxpy.atoms.other_atoms.html#cvxpy.atoms.sum_squares.sum_squares-returns">Returns</a></li>
+<li class="toctree-l4"><a class="reference internal" href="cvxpy.atoms.other_atoms.html#cvxpy.atoms.sum_squares.sum_squares-return-type">Return type</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="cvxpy.atoms.other_atoms.html#suppfuncatom">SuppFuncAtom</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="cvxpy.atoms.other_atoms.html#cvxpy.atoms.suppfunc.SuppFuncAtom">cvxpy.atoms.suppfunc.SuppFuncAtom</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="cvxpy.atoms.other_atoms.html#tr-inv">tr_inv</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="cvxpy.atoms.other_atoms.html#cvxpy.atoms.tr_inv.tr_inv">cvxpy.atoms.tr_inv.tr_inv</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="cvxpy.atoms.other_atoms.html#tv">tv</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="cvxpy.atoms.other_atoms.html#cvxpy.atoms.total_variation.tv">cvxpy.atoms.total_variation.tv</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="cvxpy.atoms.other_atoms.html#cvxpy.atoms.total_variation.tv-parameters">Parameters</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="cvxpy.atoms.other_atoms.html#cvxpy.atoms.total_variation.tv.value">value</a></li>
+<li class="toctree-l5"><a class="reference internal" href="cvxpy.atoms.other_atoms.html#cvxpy.atoms.total_variation.tv.args">args</a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="cvxpy.atoms.other_atoms.html#cvxpy.atoms.total_variation.tv-returns">Returns</a></li>
+<li class="toctree-l4"><a class="reference internal" href="cvxpy.atoms.other_atoms.html#cvxpy.atoms.total_variation.tv-return-type">Return type</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="cvxpy.atoms.other_atoms.html#var">var</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="cvxpy.atoms.other_atoms.html#cvxpy.atoms.stats.var">cvxpy.atoms.stats.var</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="cvxpy.atoms.other_atoms.html#von-neumann-entr">von_neumann_entr</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="cvxpy.atoms.other_atoms.html#cvxpy.von_neumann_entr">cvxpy.von_neumann_entr</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="cvxpy.atoms.other_atoms.html#cvxpy.von_neumann_entr-parameters">Parameters</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="cvxpy.atoms.other_atoms.html#cvxpy.von_neumann_entr.__init__.X">X</a></li>
+<li class="toctree-l5"><a class="reference internal" href="cvxpy.atoms.other_atoms.html#cvxpy.von_neumann_entr.__init__.quad_approx">quad_approx</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</div>
+<h2 id="representation-of-atoms">Representation of atoms<a class="headerlink" href="#representation-of-atoms" title="Link to this heading">¶</a></h2>
+<p>From an implementation perspective, an atom might be the constructor for some class.
+For example, the atom <span class="math notranslate nohighlight">\(X \mapsto \lambda_{\max}(X)\)</span> is applied by constructing
+an instance of the <a class="reference internal" href="cvxpy.atoms.other_atoms.html#cvxpy.atoms.lambda_max.lambda_max" title="cvxpy.atoms.lambda_max.lambda_max (Python class) — Bases: Atom"><code class="xref py py-class docutils literal notranslate"><span class="pre">lambda_max</span></code></a> class, which inherits
+directly from <a class="reference internal" href="#cvxpy.atoms.atom.Atom" title="cvxpy.atoms.atom.Atom (Python class) — Bases: Expression"><code class="xref py py-class docutils literal notranslate"><span class="pre">Atom</span></code></a> and indirectly from <a class="reference internal" href="cvxpy.expressions.html#cvxpy.expressions.expression.Expression" title="cvxpy.expressions.expression.Expression (Python class) — Bases: Canonical"><code class="xref py py-class docutils literal notranslate"><span class="pre">Expression</span></code></a>.
+Most atoms are implemented this way.</p>
+<p>Alternatively, an atom be a wrapper that initializes and returns
+an Atom of some other class. For example, running</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">cvxpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">cp</span>
+<span class="n">X</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="mi">2</span><span class="p">),</span> <span class="n">symmetric</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">expr</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">lambda_min</span><span class="p">(</span><span class="n">X</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">expr</span><span class="p">))</span>
+</code></pre></div>
+</div>
+<p>shows</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><code>&lt;class &#39;cvxpy.atoms.affine.unary_operators.NegExpression&#39;&gt;
+</code></pre></div>
+</div>
+<p>This happens because <em>(1)</em> CVXPY implements <a class="reference internal" href="cvxpy.atoms.other_atoms.html#cvxpy.atoms.lambda_min.lambda_min" title="cvxpy.atoms.lambda_min.lambda_min (Python function) — Minimum eigenvalue; \lambda_{\min}(A)."><code class="xref py py-func docutils literal notranslate"><span class="pre">lambda_min()</span></code></a> as</p>
+<div class="math notranslate nohighlight">
+\[\lambda_{\min}(X) = -\lambda_{\max}(-X),\]</div>
+<p><em>(2)</em> the negation operator is a class-based atom, and <em>(3)</em> the precise type of an Expression is based
+on the last class-based atom applied to it (if any such atom has been applied).</p>
+<h2 id="atom">Atom<a class="headerlink" href="#atom" title="Link to this heading">¶</a></h2>
+<dl class="py class objdesc">
+<dt class="sig sig-object highlight py" id="cvxpy.atoms.atom.Atom">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">cvxpy.atoms.atom.</span></span><span class="sig-name descname"><span class="pre">Atom</span></span><span class="sig-paren">(</span><span class="sig-param-decl"><em class="sig-param"><span class="o"><span class="pre">*</span></span><a class="n reference internal" href="#cvxpy.atoms.atom.Atom" title="cvxpy.atoms.atom.Atom.__init__.args (Python parameter)"><span class="n"><span class="pre">args</span></span></a></em></span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/atoms/atom.html#Atom"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.atoms.atom.Atom" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="cvxpy.expressions.html#cvxpy.expressions.expression.Expression" title="cvxpy.expressions.expression.Expression (Python class) — Bases: Canonical"><code class="xref py py-class docutils literal notranslate"><span class="pre">Expression</span></code></a></p>
+<p>Abstract base class for atoms.</p>
+<dl class="py property objdesc">
+<dt class="sig sig-object highlight py" id="cvxpy.atoms.atom.Atom.domain">
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">domain</span></span><span class="p"> <span class="pre">:</span> </span><span class="desctype"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="cvxpy.constraints.html#cvxpy.constraints.constraint.Constraint" title="cvxpy.constraints.constraint.Constraint (Python class) — Bases: Canonical"><span class="pre">Constraint</span></a><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#cvxpy.atoms.atom.Atom.domain" title="Link to this definition">¶</a></dt>
+<dd><p>A list of constraints describing the closure of the region
+where the expression is finite.</p>
+</dd></dl>
+
+<dl class="py property objdesc">
+<dt class="sig sig-object highlight py" id="cvxpy.atoms.atom.Atom.grad">
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">grad</span></span><a class="headerlink" href="#cvxpy.atoms.atom.Atom.grad" title="Link to this definition">¶</a></dt>
+<dd><p>Gives the (sub/super)gradient of the expression w.r.t. each variable.</p>
+<p>Matrix expressions are vectorized, so the gradient is a matrix.
+None indicates variable values unknown or outside domain.</p>
+<dl class="field-list simple">
+<dt class="field-odd" id="cvxpy.atoms.atom.Atom.grad-returns">Returns<span class="colon">:</span><a class="headerlink" href="#cvxpy.atoms.atom.Atom.grad-returns" title="Permalink to this headline">¶</a></dt>
+<dd class="field-odd"><p>A map of variable to SciPy CSC sparse matrix or None.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method objdesc">
+<dt class="sig sig-object highlight py" id="cvxpy.atoms.atom.Atom.is_atom_affine">
+<span class="sig-name descname"><span class="pre">is_atom_affine</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="desctype"><span class="pre">bool</span></span></span></span><a class="reference internal" href="../_modules/cvxpy/atoms/atom.html#Atom.is_atom_affine"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.atoms.atom.Atom.is_atom_affine" title="Link to this definition">¶</a></dt>
+<dd><p>Is the atom affine?</p>
+</dd></dl>
+
+<dl class="py method objdesc">
+<dt class="sig sig-object highlight py" id="cvxpy.atoms.atom.Atom.is_atom_concave">
+<em class="property"><span class="k"><span class="pre">abstractmethod</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">is_atom_concave</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="desctype"><span class="pre">bool</span></span></span></span><a class="reference internal" href="../_modules/cvxpy/atoms/atom.html#Atom.is_atom_concave"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.atoms.atom.Atom.is_atom_concave" title="Link to this definition">¶</a></dt>
+<dd><p>Is the atom concave?</p>
+</dd></dl>
+
+<dl class="py method objdesc">
+<dt class="sig sig-object highlight py" id="cvxpy.atoms.atom.Atom.is_atom_convex">
+<em class="property"><span class="k"><span class="pre">abstractmethod</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">is_atom_convex</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="desctype"><span class="pre">bool</span></span></span></span><a class="reference internal" href="../_modules/cvxpy/atoms/atom.html#Atom.is_atom_convex"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.atoms.atom.Atom.is_atom_convex" title="Link to this definition">¶</a></dt>
+<dd><p>Is the atom convex?</p>
+</dd></dl>
+
+<dl class="py method objdesc">
+<dt class="sig sig-object highlight py" id="cvxpy.atoms.atom.Atom.is_atom_log_log_affine">
+<span class="sig-name descname"><span class="pre">is_atom_log_log_affine</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="desctype"><span class="pre">bool</span></span></span></span><a class="reference internal" href="../_modules/cvxpy/atoms/atom.html#Atom.is_atom_log_log_affine"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.atoms.atom.Atom.is_atom_log_log_affine" title="Link to this definition">¶</a></dt>
+<dd><p>Is the atom log-log affine?</p>
+</dd></dl>
+
+<dl class="py method objdesc">
+<dt class="sig sig-object highlight py" id="cvxpy.atoms.atom.Atom.is_atom_log_log_concave">
+<span class="sig-name descname"><span class="pre">is_atom_log_log_concave</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="desctype"><span class="pre">bool</span></span></span></span><a class="reference internal" href="../_modules/cvxpy/atoms/atom.html#Atom.is_atom_log_log_concave"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.atoms.atom.Atom.is_atom_log_log_concave" title="Link to this definition">¶</a></dt>
+<dd><p>Is the atom log-log concave?</p>
+</dd></dl>
+
+<dl class="py method objdesc">
+<dt class="sig sig-object highlight py" id="cvxpy.atoms.atom.Atom.is_atom_log_log_convex">
+<span class="sig-name descname"><span class="pre">is_atom_log_log_convex</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="desctype"><span class="pre">bool</span></span></span></span><a class="reference internal" href="../_modules/cvxpy/atoms/atom.html#Atom.is_atom_log_log_convex"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.atoms.atom.Atom.is_atom_log_log_convex" title="Link to this definition">¶</a></dt>
+<dd><p>Is the atom log-log convex?</p>
+</dd></dl>
+
+<dl class="py method objdesc">
+<dt class="sig sig-object highlight py" id="cvxpy.atoms.atom.Atom.is_decr">
+<em class="property"><span class="k"><span class="pre">abstractmethod</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">is_decr</span></span><span class="sig-paren">(</span><span class="sig-param-decl"><em class="sig-param"><a class="n reference internal" href="#cvxpy.atoms.atom.Atom.is_decr" title="cvxpy.atoms.atom.Atom.is_decr.idx (Python parameter)"><span class="n"><span class="pre">idx</span></span></a></em></span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="desctype"><span class="pre">bool</span></span></span></span><a class="reference internal" href="../_modules/cvxpy/atoms/atom.html#Atom.is_decr"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.atoms.atom.Atom.is_decr" title="Link to this definition">¶</a></dt>
+<dd><p>Is the composition non-increasing in argument idx?</p>
+</dd></dl>
+
+<dl class="py method objdesc">
+<dt class="sig sig-object highlight py" id="cvxpy.atoms.atom.Atom.is_incr">
+<em class="property"><span class="k"><span class="pre">abstractmethod</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">is_incr</span></span><span class="sig-paren">(</span><span class="sig-param-decl"><em class="sig-param"><a class="n reference internal" href="#cvxpy.atoms.atom.Atom.is_incr" title="cvxpy.atoms.atom.Atom.is_incr.idx (Python parameter)"><span class="n"><span class="pre">idx</span></span></a></em></span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="desctype"><span class="pre">bool</span></span></span></span><a class="reference internal" href="../_modules/cvxpy/atoms/atom.html#Atom.is_incr"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.atoms.atom.Atom.is_incr" title="Link to this definition">¶</a></dt>
+<dd><p>Is the composition non-decreasing in argument idx?</p>
+</dd></dl>
+
+</dd></dl>
+
+
+
+
+
+
+
+  
+  
+
+
+
+  
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+  <script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var labels=set.querySelector(".tabbed-labels");for(var tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>
+
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  
+  
+  <div class="md-footer-meta md-typeset">
+    
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+    <div class="md-footer-copyright__highlight">
+        &#169; Copyright The CVXPY authors.
+        
+    </div>
+  
+    Created using
+    <a href="https://www.sphinx-doc.org/" target="_blank" rel="noopener">Sphinx</a>
+    8.2.3.
+     and
+    <a href="https://github.com/jbms/sphinx-immaterial/" target="_blank" rel="noopener">Sphinx-Immaterial</a>
+  
+</div>
+      
+        <div class="md-social">
+  
+    
+    
+    
+    
+    <a href="https://github.com/cvxpy/cvxpy" target="_blank" rel="noopener" title="Source on github.com" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8M97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+    </a>
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://pypi.org/project/cvxpy/" target="_blank" rel="noopener" title="pypi.org" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.8 200.5c-7.7-30.9-22.3-54.2-53.4-54.2h-40.1v47.4c0 36.8-31.2 67.8-66.8 67.8H172.7c-29.2 0-53.4 25-53.4 54.3v101.8c0 29 25.2 46 53.4 54.3 33.8 9.9 66.3 11.7 106.8 0 26.9-7.8 53.4-23.5 53.4-54.3v-40.7H226.2v-13.6h160.2c31.1 0 42.6-21.7 53.4-54.2 11.2-33.5 10.7-65.7 0-108.6M286.2 404c11.1 0 20.1 9.1 20.1 20.3 0 11.3-9 20.4-20.1 20.4-11 0-20.1-9.2-20.1-20.4.1-11.3 9.1-20.3 20.1-20.3M167.8 248.1h106.8c29.7 0 53.4-24.5 53.4-54.3V91.9c0-29-24.4-50.7-53.4-55.6-35.8-5.9-74.7-5.6-106.8.1-45.2 8-53.4 24.7-53.4 55.6v40.7h106.9v13.6h-147c-31.1 0-58.3 18.7-66.8 54.2-9.8 40.7-10.2 66.1 0 108.6 7.6 31.6 25.7 54.2 56.8 54.2H101v-48.8c0-35.3 30.5-66.4 66.8-66.4m-6.7-142.6c-11.1 0-20.1-9.1-20.1-20.3.1-11.3 9-20.4 20.1-20.4 11 0 20.1 9.2 20.1 20.4s-9 20.3-20.1 20.3"/></svg>
+    </a>
+  
+</div>
+      
+    </div>
+    
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    <script id="__config" type="application/json">{"base": "..", "features": ["header.autohide", "toc.follow", "navigation.path", "navigation.instant", "navigation.top", "navigation.tabs", "navigation.tabs.sticky", "navigation.tracking", "navigation.expand", "search.highlight", "search.share", "content.tabs.link", "announce.dismiss"], "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike", "staticVersions": [{"aliases": [], "title": "latest", "version": "https://www.cvxpy.org"}, {"aliases": [], "title": "1.6", "version": "https://www.cvxpy.org/version/1.6"}, {"aliases": [], "title": "1.5", "version": "https://www.cvxpy.org/version/1.5"}, {"aliases": [], "title": "1.4", "version": "https://www.cvxpy.org/version/1.4"}], "versionPath": null}}</script>
+    
+      
+        <script src="../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../_static/sphinx_immaterial_theme.32136f45f91ae6956.min.js?v=a7a9472a"></script>
+        <script src="../_static/tabs.js?v=3ee01567"></script>
+        <script src="../_static/design-tabs.js?v=f930bc37"></script>
+        <script id="MathJax-script" src="../_static/mathjax/tex-mml-chtml.js?v=cadf963e"></script>
+        <script src="https://cdn.datatables.net/2.1.8/js/dataTables.js"></script>
+    
+  </body>
+</html>
