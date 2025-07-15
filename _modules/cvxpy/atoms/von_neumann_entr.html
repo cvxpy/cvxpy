@@ -38,7 +38,7 @@
         <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
       
     
-        <link rel="stylesheet" type="text/css" href="../../../_static/sphinx_immaterial_theme.96fe8683ff2bd71e9.min.css?v=13adf062" />
+        <link rel="stylesheet" type="text/css" href="../../../_static/sphinx_immaterial_theme.6ec1c446c2c357833.min.css?v=e2e8fea8" />
         <link rel="stylesheet" type="text/css" href="../../../_static/tabs.css?v=4c969af8" />
         <link rel="stylesheet" type="text/css" href="../../../_static/sphinx-design.min.css?v=95c83b7e" />
         <link rel="stylesheet" type="text/css" href="../../../_static/css/styling.css?v=84aacf86" />
@@ -657,32 +657,37 @@
 <a class="viewcode-back" href="../../../api_reference/cvxpy.atoms.other_atoms.html#cvxpy.von_neumann_entr">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">von_neumann_entr</span><span class="p">(</span><span class="n">Atom</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Computes the Von Neumann Entropy of the positive-definite matrix</span>
-<span class="sd">    :math:`X\\in\\mathbb{S}^n_{+}`</span>
+<span class="sd">    Represents the von Neumann Entropy of the positive-definite matrix :math:`X,`</span>
 
 <span class="sd">        .. math::</span>
-<span class="sd">            -\\operatorname{tr}(X \\operatorname{logm}(X))</span>
+<span class="sd">            -\\operatorname{tr}(X \\log X).</span>
 
-<span class="sd">    where :math:`\\operatorname{tr}` is the trace and</span>
-<span class="sd">    :math:`\\operatorname{logm}` is the matrix logarithm</span>
-
-<span class="sd">    | May alternatively be expressed as:</span>
+<span class="sd">    Mathematically, this is equivalent to</span>
 
 <span class="sd">        .. math::</span>
 <span class="sd">            \\texttt{von_neumann_entr}(X) = -\\textstyle\\sum_{i=1}^n \\lambda_i \\log \\lambda_i</span>
 
-<span class="sd">    | where :math:`\\lambda_{i}` are the eigenvalues of :math:`X`</span>
-<span class="sd">    This atom does not enforce :math:`\\operatorname{tr}(X) = 1`</span>
-<span class="sd">    as is expected in applications from quantum mechanics.</span>
+<span class="sd">    where :math:`\\lambda_{i}` are the eigenvalues of :math:`X.`</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 <span class="sd">    X : Expression or numeric</span>
 <span class="sd">        A PSD matrix</span>
+
+<span class="sd">    quad_approx : Tuple[int,...]</span>
+<span class="sd">        This is either an empty tuple (default) or a 2-tuple. If a 2-tuple, then this atom</span>
+<span class="sd">        is approximately canonicalized. The approximations replace ExpCone constraints with SOC</span>
+<span class="sd">        constraints based on a quadrature scheme from https://arxiv.org/abs/1705.00812;</span>
+<span class="sd">        quad_approx[0] is the number of quadrature nodes and quad_approx[1] is the number of</span>
+<span class="sd">        scaling points in the quadrature scheme.</span>
+
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+<span class="sd">    This function does not assume :math:`\\operatorname{tr}(X)=1,` which would be required</span>
+<span class="sd">    for most uses of this function in the context of quantum information theory. </span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">quad_approx</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="p">())</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="c1"># TODO: add a check that N is symmetric/Hermitian.</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">quad_approx</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="p">())</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">quad_approx</span> <span class="o">=</span> <span class="n">quad_approx</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">von_neumann_entr</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">X</span><span class="p">)</span>
 
@@ -695,13 +700,16 @@
         <span class="k">return</span> <span class="n">val</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">validate_arguments</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Verify that the argument A is PSD.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">N</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-        <span class="k">if</span> <span class="n">N</span><span class="o">.</span><span class="n">size</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
-            <span class="k">if</span> <span class="n">N</span><span class="o">.</span><span class="n">ndim</span> <span class="o">!=</span> <span class="mi">2</span> <span class="ow">or</span> <span class="n">N</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">!=</span> <span class="n">N</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]:</span>
-                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Argument must be a square matrix.&#39;</span><span class="p">)</span>
-
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Verify that the argument is Hermitian.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">is_hermitian</span><span class="p">():</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">                The argument </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">name</span><span class="p">()</span><span class="si">}</span><span class="s2"> to von_neumann_entr must be a Hermitian matrix.</span>
+<span class="s2">                If you know for a fact that the input is Hermitian, wrap it with the hermitian_wrap</span>
+<span class="s2">                atom before calling von_neumann_entr.</span>
+<span class="s2">                &quot;&quot;&quot;</span>
+            <span class="p">)</span>
+        
     <span class="k">def</span><span class="w"> </span><span class="nf">sign_from_args</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">bool</span><span class="p">,</span> <span class="nb">bool</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns sign (is positive, is negative) of the expression.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -751,7 +759,7 @@
         <span class="c1"># derivative = 2*(L + L * logm(np.dot(L.T, L)))</span>
         <span class="c1"># TODO: have to wrap derivative around scipy CSC sparse matrices</span>
         <span class="c1">#  compare to log_det atom.</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">()</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">()</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_domain</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Constraint</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns constraints describing the domain of the node.</span>
@@ -849,7 +857,7 @@
     </div>
     
     
-    <script id="__config" type="application/json">{"base": "../../..", "features": ["header.autohide", "toc.follow", "navigation.path", "navigation.instant", "navigation.top", "navigation.tabs", "navigation.tabs.sticky", "navigation.tracking", "navigation.expand", "search.highlight", "search.share", "content.tabs.link", "announce.dismiss"], "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike", "staticVersions": [{"aliases": [], "title": "latest", "version": "https://www.cvxpy.org"}, {"aliases": [], "title": "1.4", "version": "https://www.cvxpy.org/version/1.4"}, {"aliases": [], "title": "1.3", "version": "https://www.cvxpy.org/version/1.3"}, {"aliases": [], "title": "1.2", "version": "https://www.cvxpy.org/version/1.2"}, {"aliases": [], "title": "1.1", "version": "https://www.cvxpy.org/version/1.1"}], "versionPath": null}}</script>
+    <script id="__config" type="application/json">{"base": "../../..", "features": ["header.autohide", "toc.follow", "navigation.path", "navigation.instant", "navigation.top", "navigation.tabs", "navigation.tabs.sticky", "navigation.tracking", "navigation.expand", "search.highlight", "search.share", "content.tabs.link", "announce.dismiss"], "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike", "staticVersions": [{"aliases": [], "title": "latest", "version": "https://www.cvxpy.org"}, {"aliases": [], "title": "1.6", "version": "https://www.cvxpy.org/version/1.6"}, {"aliases": [], "title": "1.5", "version": "https://www.cvxpy.org/version/1.5"}, {"aliases": [], "title": "1.4", "version": "https://www.cvxpy.org/version/1.4"}], "versionPath": null}}</script>
     
       
         <script src="../../../_static/jquery.js?v=5d32c60e"></script>

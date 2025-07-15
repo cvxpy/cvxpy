@@ -38,7 +38,7 @@
         <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
       
     
-        <link rel="stylesheet" type="text/css" href="../../../_static/sphinx_immaterial_theme.96fe8683ff2bd71e9.min.css?v=13adf062" />
+        <link rel="stylesheet" type="text/css" href="../../../_static/sphinx_immaterial_theme.6ec1c446c2c357833.min.css?v=e2e8fea8" />
         <link rel="stylesheet" type="text/css" href="../../../_static/tabs.css?v=4c969af8" />
         <link rel="stylesheet" type="text/css" href="../../../_static/sphinx-design.min.css?v=95c83b7e" />
         <link rel="stylesheet" type="text/css" href="../../../_static/css/styling.css?v=84aacf86" />
@@ -690,9 +690,9 @@
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">Expression</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="n">Expression</span><span class="p">,</span> <span class="n">z</span><span class="p">:</span> <span class="n">Expression</span><span class="p">,</span> <span class="n">constr_id</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">Expression</span> <span class="o">=</span> <span class="n">cvxtypes</span><span class="o">.</span><span class="n">expression</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">x</span> <span class="o">=</span> <span class="n">Expression</span><span class="o">.</span><span class="n">cast_to_const</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">y</span> <span class="o">=</span> <span class="n">Expression</span><span class="o">.</span><span class="n">cast_to_const</span><span class="p">(</span><span class="n">y</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">z</span> <span class="o">=</span> <span class="n">Expression</span><span class="o">.</span><span class="n">cast_to_const</span><span class="p">(</span><span class="n">z</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">x</span> <span class="o">=</span> <span class="n">Expression</span><span class="o">.</span><span class="n">cast</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">y</span> <span class="o">=</span> <span class="n">Expression</span><span class="o">.</span><span class="n">cast</span><span class="p">(</span><span class="n">y</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">z</span> <span class="o">=</span> <span class="n">Expression</span><span class="o">.</span><span class="n">cast</span><span class="p">(</span><span class="n">z</span><span class="p">)</span>
         <span class="n">args</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">x</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">y</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">z</span><span class="p">]</span>
         <span class="k">for</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">args</span><span class="p">:</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="n">val</span><span class="o">.</span><span class="n">is_affine</span><span class="p">()</span> <span class="ow">and</span> <span class="n">val</span><span class="o">.</span><span class="n">is_real</span><span class="p">()):</span>
@@ -801,19 +801,15 @@
 <div class="viewcode-block" id="RelEntrConeQuad">
 <a class="viewcode-back" href="../../../api_reference/cvxpy.constraints.html#cvxpy.constraints.exponential.RelEntrConeQuad">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">RelEntrConeQuad</span><span class="p">(</span><span class="n">Cone</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;An approximate construction of the scalar relative entropy cone</span>
-
-<span class="sd">    Definition:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;An approximation of the scalar relative entropy cone,</span>
 
 <span class="sd">    .. math::</span>
 
 <span class="sd">        K_{re}=\\text{cl}\\{(x,y,z)\\in\\mathbb{R}_{++}\\times</span>
-<span class="sd">                \\mathbb{R}_{++}\\times\\mathbb{R}_{++}\\:x\\log(x/y)\\leq z\\}</span>
+<span class="sd">                \\mathbb{R}_{++}\\times\\mathbb{R}_{++}\\:x\\log(x/y)\\leq z\\},</span>
 
-<span class="sd">    Since the above definition is very similar to the ExpCone, we provide a conversion method.</span>
-
-<span class="sd">    More details on the approximation can be found in Theorem-3 on page-10 in the paper:</span>
-<span class="sd">    Semidefinite Approximations of the Matrix Logarithm.</span>
+<span class="sd">    in terms of second order cones. The approximation uses a numerical quadrature scheme</span>
+<span class="sd">    described in https://arxiv.org/abs/1705.00812.</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
@@ -823,17 +819,18 @@
 <span class="sd">        y in the (approximate) scalar relative entropy cone</span>
 <span class="sd">    z : Expression</span>
 <span class="sd">        z in the (approximate) scalar relative entropy cone</span>
-<span class="sd">    m: Parameter directly related to the number of generated nodes for the quadrature</span>
-<span class="sd">    approximation used in the algorithm</span>
-<span class="sd">    k: Another parameter controlling the approximation</span>
+<span class="sd">    m : int</span>
+<span class="sd">        Number of quadrature points in the approximation.</span>
+<span class="sd">    k: int</span>
+<span class="sd">        Number of scaling points in the approximation.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">Expression</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="n">Expression</span><span class="p">,</span> <span class="n">z</span><span class="p">:</span> <span class="n">Expression</span><span class="p">,</span>
                  <span class="n">m</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">k</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">constr_id</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">Expression</span> <span class="o">=</span> <span class="n">cvxtypes</span><span class="o">.</span><span class="n">expression</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">x</span> <span class="o">=</span> <span class="n">Expression</span><span class="o">.</span><span class="n">cast_to_const</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">y</span> <span class="o">=</span> <span class="n">Expression</span><span class="o">.</span><span class="n">cast_to_const</span><span class="p">(</span><span class="n">y</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">z</span> <span class="o">=</span> <span class="n">Expression</span><span class="o">.</span><span class="n">cast_to_const</span><span class="p">(</span><span class="n">z</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">x</span> <span class="o">=</span> <span class="n">Expression</span><span class="o">.</span><span class="n">cast</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">y</span> <span class="o">=</span> <span class="n">Expression</span><span class="o">.</span><span class="n">cast</span><span class="p">(</span><span class="n">y</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">z</span> <span class="o">=</span> <span class="n">Expression</span><span class="o">.</span><span class="n">cast</span><span class="p">(</span><span class="n">z</span><span class="p">)</span>
         <span class="n">args</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">x</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">y</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">z</span><span class="p">]</span>
         <span class="k">for</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">args</span><span class="p">:</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="n">val</span><span class="o">.</span><span class="n">is_affine</span><span class="p">()</span> <span class="ow">and</span> <span class="n">val</span><span class="o">.</span><span class="n">is_real</span><span class="p">()):</span>
@@ -925,17 +922,15 @@
 <div class="viewcode-block" id="OpRelEntrConeQuad">
 <a class="viewcode-back" href="../../../api_reference/cvxpy.constraints.html#cvxpy.constraints.exponential.OpRelEntrConeQuad">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">OpRelEntrConeQuad</span><span class="p">(</span><span class="n">Cone</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;An approximate construction of the operator relative entropy cone</span>
-
-<span class="sd">    Definition:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;An approximate construction of the operator relative entropy cone,</span>
 
 <span class="sd">    .. math::</span>
 
-<span class="sd">        K_{re}^n=\\text{cl}\\{(X,Y,T)\\in\\mathbb{H}^n_{++}\\times</span>
-<span class="sd">                \\mathbb{H}^n_{++}\\times\\mathbb{H}^n_{++}\\:D_{\\text{op}}\\succeq T\\}</span>
+<span class="sd">        K_{re}^n = \\text{cl}\\{(X,Y,T)\\in\\mathbb{H}^n_{++}\\times</span>
+<span class="sd">                \\mathbb{H}^n_{++}\\times\\mathbb{H}^n_{++}\\:D_{\\text{op}}(X,Y) \\succeq T\\}.</span>
 
-<span class="sd">    More details on the approximation can be found in Theorem-3 on page-10 in the paper:</span>
-<span class="sd">    Semidefinite Approximations of the Matrix Logarithm.</span>
+<span class="sd">    Details on the approximation can be found in Theorem-3 on page-10 of</span>
+<span class="sd">    https://arxiv.org/abs/1705.00812.</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
@@ -961,9 +956,9 @@
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">:</span> <span class="n">Expression</span><span class="p">,</span> <span class="n">Y</span><span class="p">:</span> <span class="n">Expression</span><span class="p">,</span> <span class="n">Z</span><span class="p">:</span> <span class="n">Expression</span><span class="p">,</span>
                  <span class="n">m</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">k</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">constr_id</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">Expression</span> <span class="o">=</span> <span class="n">cvxtypes</span><span class="o">.</span><span class="n">expression</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">X</span> <span class="o">=</span> <span class="n">Expression</span><span class="o">.</span><span class="n">cast_to_const</span><span class="p">(</span><span class="n">X</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">Y</span> <span class="o">=</span> <span class="n">Expression</span><span class="o">.</span><span class="n">cast_to_const</span><span class="p">(</span><span class="n">Y</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">Z</span> <span class="o">=</span> <span class="n">Expression</span><span class="o">.</span><span class="n">cast_to_const</span><span class="p">(</span><span class="n">Z</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">X</span> <span class="o">=</span> <span class="n">Expression</span><span class="o">.</span><span class="n">cast</span><span class="p">(</span><span class="n">X</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Y</span> <span class="o">=</span> <span class="n">Expression</span><span class="o">.</span><span class="n">cast</span><span class="p">(</span><span class="n">Y</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Z</span> <span class="o">=</span> <span class="n">Expression</span><span class="o">.</span><span class="n">cast</span><span class="p">(</span><span class="n">Z</span><span class="p">)</span>
         <span class="k">if</span> <span class="p">(</span><span class="ow">not</span> <span class="n">X</span><span class="o">.</span><span class="n">is_hermitian</span><span class="p">())</span> <span class="ow">or</span> <span class="p">(</span><span class="ow">not</span> <span class="n">Y</span><span class="o">.</span><span class="n">is_hermitian</span><span class="p">())</span> <span class="ow">or</span> <span class="p">(</span><span class="ow">not</span> <span class="n">Z</span><span class="o">.</span><span class="n">is_hermitian</span><span class="p">()):</span>
             <span class="n">msg</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;One of the input matrices has not explicitly been declared as symmetric or&quot;</span>
                    <span class="s2">&quot;Hermitian. If the inputs are Variable objects, try declaring them with the&quot;</span>
@@ -1136,7 +1131,7 @@
     </div>
     
     
-    <script id="__config" type="application/json">{"base": "../../..", "features": ["header.autohide", "toc.follow", "navigation.path", "navigation.instant", "navigation.top", "navigation.tabs", "navigation.tabs.sticky", "navigation.tracking", "navigation.expand", "search.highlight", "search.share", "content.tabs.link", "announce.dismiss"], "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike", "staticVersions": [{"aliases": [], "title": "latest", "version": "https://www.cvxpy.org"}, {"aliases": [], "title": "1.4", "version": "https://www.cvxpy.org/version/1.4"}, {"aliases": [], "title": "1.3", "version": "https://www.cvxpy.org/version/1.3"}, {"aliases": [], "title": "1.2", "version": "https://www.cvxpy.org/version/1.2"}, {"aliases": [], "title": "1.1", "version": "https://www.cvxpy.org/version/1.1"}], "versionPath": null}}</script>
+    <script id="__config" type="application/json">{"base": "../../..", "features": ["header.autohide", "toc.follow", "navigation.path", "navigation.instant", "navigation.top", "navigation.tabs", "navigation.tabs.sticky", "navigation.tracking", "navigation.expand", "search.highlight", "search.share", "content.tabs.link", "announce.dismiss"], "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike", "staticVersions": [{"aliases": [], "title": "latest", "version": "https://www.cvxpy.org"}, {"aliases": [], "title": "1.6", "version": "https://www.cvxpy.org/version/1.6"}, {"aliases": [], "title": "1.5", "version": "https://www.cvxpy.org/version/1.5"}, {"aliases": [], "title": "1.4", "version": "https://www.cvxpy.org/version/1.4"}], "versionPath": null}}</script>
     
       
         <script src="../../../_static/jquery.js?v=5d32c60e"></script>

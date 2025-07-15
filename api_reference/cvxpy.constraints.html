@@ -42,7 +42,7 @@
         <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
       
     
-        <link rel="stylesheet" type="text/css" href="../_static/sphinx_immaterial_theme.96fe8683ff2bd71e9.min.css?v=13adf062" />
+        <link rel="stylesheet" type="text/css" href="../_static/sphinx_immaterial_theme.6ec1c446c2c357833.min.css?v=e2e8fea8" />
         <link rel="stylesheet" type="text/css" href="../_static/tabs.css?v=4c969af8" />
         <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
         <link rel="stylesheet" type="text/css" href="../_static/css/styling.css?v=84aacf86" />
@@ -2013,7 +2013,7 @@
       <span aria-label="Python parameter" class="objinfo-icon objinfo-icon__sub-data" title="Python parameter">p</span>
     
     <span class="md-ellipsis">
-      <span title="cvxpy.constraints.exponential.RelEntrConeQuad.__init__.m (Python parameter)">m</span>
+      <span title="cvxpy.constraints.exponential.RelEntrConeQuad.__init__.m (Python parameter) — Number of quadrature points in the approximation.">m</span>
     </span>
   </a>
   
@@ -2025,7 +2025,7 @@
       <span aria-label="Python parameter" class="objinfo-icon objinfo-icon__sub-data" title="Python parameter">p</span>
     
     <span class="md-ellipsis">
-      <span title="cvxpy.constraints.exponential.RelEntrConeQuad.__init__.k (Python parameter)">k</span>
+      <span title="cvxpy.constraints.exponential.RelEntrConeQuad.__init__.k (Python parameter) — Number of scaling points in the approximation.">k</span>
     </span>
   </a>
   
@@ -4580,7 +4580,7 @@
       <span aria-label="Python parameter" class="objinfo-icon objinfo-icon__sub-data" title="Python parameter">p</span>
     
     <span class="md-ellipsis">
-      <span title="cvxpy.constraints.exponential.RelEntrConeQuad.__init__.m (Python parameter)">m</span>
+      <span title="cvxpy.constraints.exponential.RelEntrConeQuad.__init__.m (Python parameter) — Number of quadrature points in the approximation.">m</span>
     </span>
   </a>
   
@@ -4592,7 +4592,7 @@
       <span aria-label="Python parameter" class="objinfo-icon objinfo-icon__sub-data" title="Python parameter">p</span>
     
     <span class="md-ellipsis">
-      <span title="cvxpy.constraints.exponential.RelEntrConeQuad.__init__.k (Python parameter)">k</span>
+      <span title="cvxpy.constraints.exponential.RelEntrConeQuad.__init__.k (Python parameter) — Number of scaling points in the approximation.">k</span>
     </span>
   </a>
   
@@ -5586,7 +5586,7 @@ otherwise.</p>
 expression’s value and its projection onto the domain of the
 constraint:</p>
 <div class="math notranslate nohighlight">
-\[||\Pi(v) - v||_2^2\]</div>
+\[||\Pi(v) - v||_2\]</div>
 <p>where <span class="math notranslate nohighlight">\(v\)</span> is the value of the constrained expression and
 <span class="math notranslate nohighlight">\(\Pi\)</span> is the projection operator onto the constraint’s domain .</p>
 <dl class="field-list simple">
@@ -5701,7 +5701,7 @@ otherwise.</p>
 expression’s value and its projection onto the domain of the
 constraint:</p>
 <div class="math notranslate nohighlight">
-\[||\Pi(v) - v||_2^2\]</div>
+\[||\Pi(v) - v||_2\]</div>
 <p>where <span class="math notranslate nohighlight">\(v\)</span> is the value of the constrained expression and
 <span class="math notranslate nohighlight">\(\Pi\)</span> is the projection operator onto the constraint’s domain .</p>
 <dl class="field-list simple">
@@ -5769,7 +5769,7 @@ otherwise.</p>
 expression’s value and its projection onto the domain of the
 constraint:</p>
 <div class="math notranslate nohighlight">
-\[||\Pi(v) - v||_2^2\]</div>
+\[||\Pi(v) - v||_2\]</div>
 <p>where <span class="math notranslate nohighlight">\(v\)</span> is the value of the constrained expression and
 <span class="math notranslate nohighlight">\(\Pi\)</span> is the projection operator onto the constraint’s domain .</p>
 <dl class="field-list simple">
@@ -5854,7 +5854,7 @@ otherwise.</p>
 expression’s value and its projection onto the domain of the
 constraint:</p>
 <div class="math notranslate nohighlight">
-\[||\Pi(v) - v||_2^2\]</div>
+\[||\Pi(v) - v||_2\]</div>
 <p>where <span class="math notranslate nohighlight">\(v\)</span> is the value of the constrained expression and
 <span class="math notranslate nohighlight">\(\Pi\)</span> is the projection operator onto the constraint’s domain .</p>
 <dl class="field-list simple">
@@ -5938,7 +5938,7 @@ otherwise.</p>
 expression’s value and its projection onto the domain of the
 constraint:</p>
 <div class="math notranslate nohighlight">
-\[||\Pi(v) - v||_2^2\]</div>
+\[||\Pi(v) - v||_2\]</div>
 <p>where <span class="math notranslate nohighlight">\(v\)</span> is the value of the constrained expression and
 <span class="math notranslate nohighlight">\(\Pi\)</span> is the projection operator onto the constraint’s domain .</p>
 <dl class="field-list simple">
@@ -6023,7 +6023,7 @@ otherwise.</p>
 expression’s value and its projection onto the domain of the
 constraint:</p>
 <div class="math notranslate nohighlight">
-\[||\Pi(v) - v||_2^2\]</div>
+\[||\Pi(v) - v||_2\]</div>
 <p>where <span class="math notranslate nohighlight">\(v\)</span> is the value of the constrained expression and
 <span class="math notranslate nohighlight">\(\Pi\)</span> is the projection operator onto the constraint’s domain .</p>
 <dl class="field-list simple">
@@ -6045,16 +6045,14 @@ constraint:</p>
 <h2 id="relentrconequad"><span id="rel-entr-cone-quad"></span><a class="toc-backref" href="#id14" role="doc-backlink">RelEntrConeQuad</a><a class="headerlink" href="#relentrconequad" title="Link to this heading">¶</a></h2>
 <dl class="py class objdesc">
 <dt class="sig sig-object highlight sig-wrap py" id="cvxpy.constraints.exponential.RelEntrConeQuad">
-<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">cvxpy.constraints.exponential.</span></span><span class="sig-name descname"><span class="pre">RelEntrConeQuad</span></span><span class="sig-paren">(</span><span class="sig-param-decl"><em class="sig-param"><a class="n reference internal" href="#cvxpy.constraints.exponential.RelEntrConeQuad.__init__.x" title="cvxpy.constraints.exponential.RelEntrConeQuad.__init__.x (Python parameter) — x in the (approximate) scalar relative entropy cone"><span class="n"><span class="pre">x</span></span></a><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="desctype"><span class="pre">Expression</span></span></span></em>, </span><span class="sig-param-decl"><em class="sig-param"><a class="n reference internal" href="#cvxpy.constraints.exponential.RelEntrConeQuad.__init__.y" title="cvxpy.constraints.exponential.RelEntrConeQuad.__init__.y (Python parameter) — y in the (approximate) scalar relative entropy cone"><span class="n"><span class="pre">y</span></span></a><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="desctype"><span class="pre">Expression</span></span></span></em>, </span><span class="sig-param-decl"><em class="sig-param"><a class="n reference internal" href="#cvxpy.constraints.exponential.RelEntrConeQuad.__init__.z" title="cvxpy.constraints.exponential.RelEntrConeQuad.__init__.z (Python parameter) — z in the (approximate) scalar relative entropy cone"><span class="n"><span class="pre">z</span></span></a><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="desctype"><span class="pre">Expression</span></span></span></em>, </span><span class="sig-param-decl"><em class="sig-param"><a class="n reference internal" href="#cvxpy.constraints.exponential.RelEntrConeQuad.__init__.m" title="cvxpy.constraints.exponential.RelEntrConeQuad.__init__.m (Python parameter)"><span class="n"><span class="pre">m</span></span></a><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="desctype"><span class="pre">int</span></span></span></em>, </span><span class="sig-param-decl"><em class="sig-param"><a class="n reference internal" href="#cvxpy.constraints.exponential.RelEntrConeQuad.__init__.k" title="cvxpy.constraints.exponential.RelEntrConeQuad.__init__.k (Python parameter)"><span class="n"><span class="pre">k</span></span></a><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="desctype"><span class="pre">int</span></span></span></em>, </span><span class="sig-param-decl"><em class="sig-param"><a class="n reference internal" href="#cvxpy.constraints.exponential.RelEntrConeQuad" title="cvxpy.constraints.exponential.RelEntrConeQuad.__init__.constr_id (Python parameter)"><span class="n"><span class="pre">constr_id</span></span></a><span class="o"><span class="pre">=</span></span><code class="code python default_value docutils literal highlight highlight-python"><span class="kc">None</span></code></em></span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/constraints/exponential.html#RelEntrConeQuad"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.constraints.exponential.RelEntrConeQuad" title="Link to this definition">¶</a></dt>
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">cvxpy.constraints.exponential.</span></span><span class="sig-name descname"><span class="pre">RelEntrConeQuad</span></span><span class="sig-paren">(</span><span class="sig-param-decl"><em class="sig-param"><a class="n reference internal" href="#cvxpy.constraints.exponential.RelEntrConeQuad.__init__.x" title="cvxpy.constraints.exponential.RelEntrConeQuad.__init__.x (Python parameter) — x in the (approximate) scalar relative entropy cone"><span class="n"><span class="pre">x</span></span></a><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="desctype"><span class="pre">Expression</span></span></span></em>, </span><span class="sig-param-decl"><em class="sig-param"><a class="n reference internal" href="#cvxpy.constraints.exponential.RelEntrConeQuad.__init__.y" title="cvxpy.constraints.exponential.RelEntrConeQuad.__init__.y (Python parameter) — y in the (approximate) scalar relative entropy cone"><span class="n"><span class="pre">y</span></span></a><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="desctype"><span class="pre">Expression</span></span></span></em>, </span><span class="sig-param-decl"><em class="sig-param"><a class="n reference internal" href="#cvxpy.constraints.exponential.RelEntrConeQuad.__init__.z" title="cvxpy.constraints.exponential.RelEntrConeQuad.__init__.z (Python parameter) — z in the (approximate) scalar relative entropy cone"><span class="n"><span class="pre">z</span></span></a><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="desctype"><span class="pre">Expression</span></span></span></em>, </span><span class="sig-param-decl"><em class="sig-param"><a class="n reference internal" href="#cvxpy.constraints.exponential.RelEntrConeQuad.__init__.m" title="cvxpy.constraints.exponential.RelEntrConeQuad.__init__.m (Python parameter) — Number of quadrature points in the approximation."><span class="n"><span class="pre">m</span></span></a><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="desctype"><span class="pre">int</span></span></span></em>, </span><span class="sig-param-decl"><em class="sig-param"><a class="n reference internal" href="#cvxpy.constraints.exponential.RelEntrConeQuad.__init__.k" title="cvxpy.constraints.exponential.RelEntrConeQuad.__init__.k (Python parameter) — Number of scaling points in the approximation."><span class="n"><span class="pre">k</span></span></a><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="desctype"><span class="pre">int</span></span></span></em>, </span><span class="sig-param-decl"><em class="sig-param"><a class="n reference internal" href="#cvxpy.constraints.exponential.RelEntrConeQuad" title="cvxpy.constraints.exponential.RelEntrConeQuad.__init__.constr_id (Python parameter)"><span class="n"><span class="pre">constr_id</span></span></a><span class="o"><span class="pre">=</span></span><code class="code python default_value docutils literal highlight highlight-python"><span class="kc">None</span></code></em></span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/constraints/exponential.html#RelEntrConeQuad"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.constraints.exponential.RelEntrConeQuad" title="Link to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Cone</span></code></p>
-<p>An approximate construction of the scalar relative entropy cone</p>
-<p>Definition:</p>
+<p>An approximation of the scalar relative entropy cone,</p>
 <div class="math notranslate nohighlight">
 \[K_{re}=\text{cl}\{(x,y,z)\in\mathbb{R}_{++}\times
-        \mathbb{R}_{++}\times\mathbb{R}_{++}\:x\log(x/y)\leq z\}\]</div>
-<p>Since the above definition is very similar to the ExpCone, we provide a conversion method.</p>
-<p>More details on the approximation can be found in Theorem-3 on page-10 in the paper:
-Semidefinite Approximations of the Matrix Logarithm.</p>
+        \mathbb{R}_{++}\times\mathbb{R}_{++}\:x\log(x/y)\leq z\},\]</div>
+<p>in terms of second order cones. The approximation uses a numerical quadrature scheme
+described in <a class="reference external" href="https://arxiv.org/abs/1705.00812">https://arxiv.org/abs/1705.00812</a>.</p>
 <dl class="field-list simple">
 <dt class="field-odd" id="cvxpy.constraints.exponential.RelEntrConeQuad-parameters">Parameters<span class="colon">:</span><a class="headerlink" href="#cvxpy.constraints.exponential.RelEntrConeQuad-parameters" title="Permalink to this headline">¶</a></dt>
 <dd class="field-odd"><dl class="simple api-field highlight">
@@ -6064,11 +6062,9 @@ Semidefinite Approximations of the Matrix Logarithm.</p>
 </dd>
 <dt id="cvxpy.constraints.exponential.RelEntrConeQuad.__init__.z"><span class="sig-name descname">z</span><span class="p"> : </span><span class="desctype"><span class="desctype"><a class="reference internal" href="cvxpy.expressions.html#cvxpy.expressions.expression.Expression" title="cvxpy.expressions.expression.Expression (Python class) — Bases: Canonical">Expression</a></span></span><a class="headerlink" href="#cvxpy.constraints.exponential.RelEntrConeQuad.__init__.z" title="Permalink to this definition">¶</a></dt><dd><p>z in the (approximate) scalar relative entropy cone</p>
 </dd>
-<dt id="cvxpy.constraints.exponential.RelEntrConeQuad.__init__.m"><span class="sig-name descname">m</span><span class="p"> : </span><span class="desctype"><span class="desctype">Parameter directly related to the number of generated nodes for the quadrature</span></span><a class="headerlink" href="#cvxpy.constraints.exponential.RelEntrConeQuad.__init__.m" title="Permalink to this definition">¶</a></dt><dd><p></p>
+<dt id="cvxpy.constraints.exponential.RelEntrConeQuad.__init__.m"><span class="sig-name descname">m</span><span class="p"> : </span><span class="desctype"><span class="desctype">int</span></span><a class="headerlink" href="#cvxpy.constraints.exponential.RelEntrConeQuad.__init__.m" title="Permalink to this definition">¶</a></dt><dd><p>Number of quadrature points in the approximation.</p>
 </dd>
-<dt><span class="sig-name descname">algorithm</span><span class="p"> : </span><span class="desctype"><span class="desctype">approximation used in the</span></span></dt><dd><p></p>
-</dd>
-<dt id="cvxpy.constraints.exponential.RelEntrConeQuad.__init__.k"><span class="sig-name descname">k</span><span class="p"> : </span><span class="desctype"><span class="desctype">Another parameter controlling the approximation</span></span><a class="headerlink" href="#cvxpy.constraints.exponential.RelEntrConeQuad.__init__.k" title="Permalink to this definition">¶</a></dt><dd><p></p>
+<dt id="cvxpy.constraints.exponential.RelEntrConeQuad.__init__.k"><span class="sig-name descname">k</span><span class="p"> : </span><span class="desctype"><span class="desctype">int</span></span><a class="headerlink" href="#cvxpy.constraints.exponential.RelEntrConeQuad.__init__.k" title="Permalink to this definition">¶</a></dt><dd><p>Number of scaling points in the approximation.</p>
 </dd>
 </dl>
 </dd>
@@ -6170,7 +6166,7 @@ otherwise.</p>
 expression’s value and its projection onto the domain of the
 constraint:</p>
 <div class="math notranslate nohighlight">
-\[||\Pi(v) - v||_2^2\]</div>
+\[||\Pi(v) - v||_2\]</div>
 <p>where <span class="math notranslate nohighlight">\(v\)</span> is the value of the constrained expression and
 <span class="math notranslate nohighlight">\(\Pi\)</span> is the projection operator onto the constraint’s domain .</p>
 <dl class="field-list simple">
@@ -6249,7 +6245,7 @@ otherwise.</p>
 expression’s value and its projection onto the domain of the
 constraint:</p>
 <div class="math notranslate nohighlight">
-\[||\Pi(v) - v||_2^2\]</div>
+\[||\Pi(v) - v||_2\]</div>
 <p>where <span class="math notranslate nohighlight">\(v\)</span> is the value of the constrained expression and
 <span class="math notranslate nohighlight">\(\Pi\)</span> is the projection operator onto the constraint’s domain .</p>
 <dl class="field-list simple">
@@ -6346,7 +6342,7 @@ working with <code class="docutils literal notranslate"><span class="pre">Parame
 expression’s value and its projection onto the domain of the
 constraint:</p>
 <div class="math notranslate nohighlight">
-\[||\Pi(v) - v||_2^2\]</div>
+\[||\Pi(v) - v||_2\]</div>
 <p>where <span class="math notranslate nohighlight">\(v\)</span> is the value of the constrained expression and
 <span class="math notranslate nohighlight">\(\Pi\)</span> is the projection operator onto the constraint’s domain .</p>
 <dl class="field-list simple">
@@ -6370,13 +6366,12 @@ constraint:</p>
 <dt class="sig sig-object highlight sig-wrap py" id="cvxpy.constraints.exponential.OpRelEntrConeQuad">
 <em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">cvxpy.constraints.exponential.</span></span><span class="sig-name descname"><span class="pre">OpRelEntrConeQuad</span></span><span class="sig-paren">(</span><span class="sig-param-decl"><em class="sig-param"><a class="n reference internal" href="#cvxpy.constraints.exponential.OpRelEntrConeQuad.__init__.X" title="cvxpy.constraints.exponential.OpRelEntrConeQuad.__init__.X (Python parameter) — x in the (approximate) operator relative entropy cone"><span class="n"><span class="pre">X</span></span></a><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="desctype"><span class="pre">Expression</span></span></span></em>, </span><span class="sig-param-decl"><em class="sig-param"><a class="n reference internal" href="#cvxpy.constraints.exponential.OpRelEntrConeQuad.__init__.Y" title="cvxpy.constraints.exponential.OpRelEntrConeQuad.__init__.Y (Python parameter) — y in the (approximate) operator relative entropy cone"><span class="n"><span class="pre">Y</span></span></a><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="desctype"><span class="pre">Expression</span></span></span></em>, </span><span class="sig-param-decl"><em class="sig-param"><a class="n reference internal" href="#cvxpy.constraints.exponential.OpRelEntrConeQuad.__init__.Z" title="cvxpy.constraints.exponential.OpRelEntrConeQuad.__init__.Z (Python parameter) — Z in the (approximate) operator relative entropy cone"><span class="n"><span class="pre">Z</span></span></a><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="desctype"><span class="pre">Expression</span></span></span></em>, </span><span class="sig-param-decl"><em class="sig-param"><a class="n reference internal" href="#cvxpy.constraints.exponential.OpRelEntrConeQuad.__init__.m" title="cvxpy.constraints.exponential.OpRelEntrConeQuad.__init__.m (Python parameter) — Must be positive."><span class="n"><span class="pre">m</span></span></a><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="desctype"><span class="pre">int</span></span></span></em>, </span><span class="sig-param-decl"><em class="sig-param"><a class="n reference internal" href="#cvxpy.constraints.exponential.OpRelEntrConeQuad.__init__.k" title="cvxpy.constraints.exponential.OpRelEntrConeQuad.__init__.k (Python parameter) — Must be positive."><span class="n"><span class="pre">k</span></span></a><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="desctype"><span class="pre">int</span></span></span></em>, </span><span class="sig-param-decl"><em class="sig-param"><a class="n reference internal" href="#cvxpy.constraints.exponential.OpRelEntrConeQuad" title="cvxpy.constraints.exponential.OpRelEntrConeQuad.__init__.constr_id (Python parameter)"><span class="n"><span class="pre">constr_id</span></span></a><span class="o"><span class="pre">=</span></span><code class="code python default_value docutils literal highlight highlight-python"><span class="kc">None</span></code></em></span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/constraints/exponential.html#OpRelEntrConeQuad"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.constraints.exponential.OpRelEntrConeQuad" title="Link to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Cone</span></code></p>
-<p>An approximate construction of the operator relative entropy cone</p>
-<p>Definition:</p>
+<p>An approximate construction of the operator relative entropy cone,</p>
 <div class="math notranslate nohighlight">
-\[K_{re}^n=\text{cl}\{(X,Y,T)\in\mathbb{H}^n_{++}\times
-        \mathbb{H}^n_{++}\times\mathbb{H}^n_{++}\:D_{\text{op}}\succeq T\}\]</div>
-<p>More details on the approximation can be found in Theorem-3 on page-10 in the paper:
-Semidefinite Approximations of the Matrix Logarithm.</p>
+\[K_{re}^n = \text{cl}\{(X,Y,T)\in\mathbb{H}^n_{++}\times
+        \mathbb{H}^n_{++}\times\mathbb{H}^n_{++}\:D_{\text{op}}(X,Y) \succeq T\}.\]</div>
+<p>Details on the approximation can be found in Theorem-3 on page-10 of
+<a class="reference external" href="https://arxiv.org/abs/1705.00812">https://arxiv.org/abs/1705.00812</a>.</p>
 <dl class="field-list simple">
 <dt class="field-odd" id="cvxpy.constraints.exponential.OpRelEntrConeQuad-parameters">Parameters<span class="colon">:</span><a class="headerlink" href="#cvxpy.constraints.exponential.OpRelEntrConeQuad-parameters" title="Permalink to this headline">¶</a></dt>
 <dd class="field-odd"><dl class="simple api-field highlight">
@@ -6521,7 +6516,7 @@ otherwise.</p>
     </div>
     
     
-    <script id="__config" type="application/json">{"base": "..", "features": ["header.autohide", "toc.follow", "navigation.path", "navigation.instant", "navigation.top", "navigation.tabs", "navigation.tabs.sticky", "navigation.tracking", "navigation.expand", "search.highlight", "search.share", "content.tabs.link", "announce.dismiss"], "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike", "staticVersions": [{"aliases": [], "title": "latest", "version": "https://www.cvxpy.org"}, {"aliases": [], "title": "1.4", "version": "https://www.cvxpy.org/version/1.4"}, {"aliases": [], "title": "1.3", "version": "https://www.cvxpy.org/version/1.3"}, {"aliases": [], "title": "1.2", "version": "https://www.cvxpy.org/version/1.2"}, {"aliases": [], "title": "1.1", "version": "https://www.cvxpy.org/version/1.1"}], "versionPath": null}}</script>
+    <script id="__config" type="application/json">{"base": "..", "features": ["header.autohide", "toc.follow", "navigation.path", "navigation.instant", "navigation.top", "navigation.tabs", "navigation.tabs.sticky", "navigation.tracking", "navigation.expand", "search.highlight", "search.share", "content.tabs.link", "announce.dismiss"], "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike", "staticVersions": [{"aliases": [], "title": "latest", "version": "https://www.cvxpy.org"}, {"aliases": [], "title": "1.6", "version": "https://www.cvxpy.org/version/1.6"}, {"aliases": [], "title": "1.5", "version": "https://www.cvxpy.org/version/1.5"}, {"aliases": [], "title": "1.4", "version": "https://www.cvxpy.org/version/1.4"}], "versionPath": null}}</script>
     
       
         <script src="../_static/jquery.js?v=5d32c60e"></script>

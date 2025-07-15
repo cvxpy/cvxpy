@@ -38,7 +38,7 @@
         <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
       
     
-        <link rel="stylesheet" type="text/css" href="../../../../_static/sphinx_immaterial_theme.96fe8683ff2bd71e9.min.css?v=13adf062" />
+        <link rel="stylesheet" type="text/css" href="../../../../_static/sphinx_immaterial_theme.6ec1c446c2c357833.min.css?v=e2e8fea8" />
         <link rel="stylesheet" type="text/css" href="../../../../_static/tabs.css?v=4c969af8" />
         <link rel="stylesheet" type="text/css" href="../../../../_static/sphinx-design.min.css?v=95c83b7e" />
         <link rel="stylesheet" type="text/css" href="../../../../_static/css/styling.css?v=84aacf86" />
@@ -643,6 +643,8 @@
 <span class="sd">See the License for the specific language governing permissions and</span>
 <span class="sd">limitations under the License.</span>
 <span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Optional</span>
+
 <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">scipy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">sp</span>
 
@@ -1006,10 +1008,10 @@
         <span class="k">if</span> <span class="n">A_slk</span><span class="p">:</span>
             <span class="c1"># We need to introduce slack variables.</span>
             <span class="n">A_slk</span> <span class="o">=</span> <span class="n">sp</span><span class="o">.</span><span class="n">sparse</span><span class="o">.</span><span class="n">vstack</span><span class="p">(</span><span class="nb">tuple</span><span class="p">(</span><span class="n">A_slk</span><span class="p">))</span>
-            <span class="n">eye</span> <span class="o">=</span> <span class="n">sp</span><span class="o">.</span><span class="n">sparse</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="n">total_slack</span><span class="p">)</span>
+            <span class="n">eye</span> <span class="o">=</span> <span class="n">sp</span><span class="o">.</span><span class="n">sparse</span><span class="o">.</span><span class="n">eye_array</span><span class="p">(</span><span class="n">total_slack</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">A_aff</span><span class="p">:</span>
                 <span class="n">A_aff</span> <span class="o">=</span> <span class="n">sp</span><span class="o">.</span><span class="n">sparse</span><span class="o">.</span><span class="n">vstack</span><span class="p">(</span><span class="nb">tuple</span><span class="p">(</span><span class="n">A_aff</span><span class="p">),</span> <span class="nb">format</span><span class="o">=</span><span class="s1">&#39;csr&#39;</span><span class="p">)</span>
-                <span class="n">G</span> <span class="o">=</span> <span class="n">sp</span><span class="o">.</span><span class="n">sparse</span><span class="o">.</span><span class="n">bmat</span><span class="p">([[</span><span class="n">A_slk</span><span class="p">,</span> <span class="n">eye</span><span class="p">],</span> <span class="p">[</span><span class="n">A_aff</span><span class="p">,</span> <span class="kc">None</span><span class="p">]])</span>
+                <span class="n">G</span> <span class="o">=</span> <span class="n">sp</span><span class="o">.</span><span class="n">sparse</span><span class="o">.</span><span class="n">block_array</span><span class="p">([[</span><span class="n">A_slk</span><span class="p">,</span> <span class="n">eye</span><span class="p">],</span> <span class="p">[</span><span class="n">A_aff</span><span class="p">,</span> <span class="kc">None</span><span class="p">]])</span>
                 <span class="n">h</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">(</span><span class="n">b_slk</span> <span class="o">+</span> <span class="n">b_aff</span><span class="p">)</span>  <span class="c1"># concatenate lists, then turn to vector</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">G</span> <span class="o">=</span> <span class="n">sp</span><span class="o">.</span><span class="n">sparse</span><span class="o">.</span><span class="n">hstack</span><span class="p">((</span><span class="n">A_slk</span><span class="p">,</span> <span class="n">eye</span><span class="p">))</span>
@@ -1031,6 +1033,11 @@
         <span class="n">data</span><span class="p">[</span><span class="s1">&#39;K_dir&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">K_dir</span>
         <span class="n">data</span><span class="p">[</span><span class="s1">&#39;K_aff&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">K_aff</span>
 
+        <span class="c1"># Extend lower and upper bounds to cover slack variables.</span>
+        <span class="n">num_vars</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">data</span><span class="p">[</span><span class="n">s</span><span class="o">.</span><span class="n">LOWER_BOUNDS</span><span class="p">]</span> <span class="o">=</span> <span class="n">Slacks</span><span class="o">.</span><span class="n">extend_bounds</span><span class="p">(</span><span class="n">num_vars</span><span class="p">,</span> <span class="n">prob</span><span class="o">.</span><span class="n">lower_bounds</span><span class="p">,</span> <span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">)</span> 
+        <span class="n">data</span><span class="p">[</span><span class="n">s</span><span class="o">.</span><span class="n">UPPER_BOUNDS</span><span class="p">]</span> <span class="o">=</span> <span class="n">Slacks</span><span class="o">.</span><span class="n">extend_bounds</span><span class="p">(</span><span class="n">num_vars</span><span class="p">,</span> <span class="n">prob</span><span class="o">.</span><span class="n">upper_bounds</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">)</span>
+
         <span class="n">inv_data</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
         <span class="n">inv_data</span><span class="p">[</span><span class="s1">&#39;x_id&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">prob</span><span class="o">.</span><span class="n">x</span><span class="o">.</span><span class="n">id</span>
         <span class="n">inv_data</span><span class="p">[</span><span class="s1">&#39;K_dir&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">K_dir</span>
@@ -1038,6 +1045,23 @@
         <span class="n">inv_data</span><span class="p">[</span><span class="n">s</span><span class="o">.</span><span class="n">OBJ_OFFSET</span><span class="p">]</span> <span class="o">=</span> <span class="n">d</span>
 
         <span class="k">return</span> <span class="n">data</span><span class="p">,</span> <span class="n">inv_data</span></div>
+
+
+<div class="viewcode-block" id="Slacks.extend_bounds">
+<a class="viewcode-back" href="../../../../api_reference/cvxpy.reductions.back_end.html#cvxpy.reductions.cone2cone.affine2direct.Slacks.extend_bounds">[docs]</a>
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">extend_bounds</span><span class="p">(</span>
+        <span class="n">num_vars</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> 
+        <span class="n">bounds_vector</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">],</span> 
+        <span class="n">fill_value</span><span class="p">:</span> <span class="nb">float</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Extend the bounds vector to be length num_vars, filling with fill_value.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">bounds_vector</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">full</span><span class="p">(</span><span class="n">num_vars</span><span class="p">,</span> <span class="n">fill_value</span><span class="p">)</span> 
+        
+        <span class="n">new_vars</span> <span class="o">=</span> <span class="n">num_vars</span> <span class="o">-</span> <span class="n">bounds_vector</span><span class="o">.</span><span class="n">size</span>
+        <span class="n">new_bounds</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">full</span><span class="p">(</span><span class="n">new_vars</span><span class="p">,</span> <span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">([</span><span class="n">bounds_vector</span><span class="p">,</span> <span class="n">new_bounds</span><span class="p">])</span></div>
 
 
     <span class="nd">@staticmethod</span>
@@ -1141,7 +1165,7 @@
     </div>
     
     
-    <script id="__config" type="application/json">{"base": "../../../..", "features": ["header.autohide", "toc.follow", "navigation.path", "navigation.instant", "navigation.top", "navigation.tabs", "navigation.tabs.sticky", "navigation.tracking", "navigation.expand", "search.highlight", "search.share", "content.tabs.link", "announce.dismiss"], "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike", "staticVersions": [{"aliases": [], "title": "latest", "version": "https://www.cvxpy.org"}, {"aliases": [], "title": "1.4", "version": "https://www.cvxpy.org/version/1.4"}, {"aliases": [], "title": "1.3", "version": "https://www.cvxpy.org/version/1.3"}, {"aliases": [], "title": "1.2", "version": "https://www.cvxpy.org/version/1.2"}, {"aliases": [], "title": "1.1", "version": "https://www.cvxpy.org/version/1.1"}], "versionPath": null}}</script>
+    <script id="__config" type="application/json">{"base": "../../../..", "features": ["header.autohide", "toc.follow", "navigation.path", "navigation.instant", "navigation.top", "navigation.tabs", "navigation.tabs.sticky", "navigation.tracking", "navigation.expand", "search.highlight", "search.share", "content.tabs.link", "announce.dismiss"], "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike", "staticVersions": [{"aliases": [], "title": "latest", "version": "https://www.cvxpy.org"}, {"aliases": [], "title": "1.6", "version": "https://www.cvxpy.org/version/1.6"}, {"aliases": [], "title": "1.5", "version": "https://www.cvxpy.org/version/1.5"}, {"aliases": [], "title": "1.4", "version": "https://www.cvxpy.org/version/1.4"}], "versionPath": null}}</script>
     
       
         <script src="../../../../_static/jquery.js?v=5d32c60e"></script>

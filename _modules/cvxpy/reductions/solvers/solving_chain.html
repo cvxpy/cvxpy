@@ -38,7 +38,7 @@
         <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
       
     
-        <link rel="stylesheet" type="text/css" href="../../../../_static/sphinx_immaterial_theme.96fe8683ff2bd71e9.min.css?v=13adf062" />
+        <link rel="stylesheet" type="text/css" href="../../../../_static/sphinx_immaterial_theme.6ec1c446c2c357833.min.css?v=e2e8fea8" />
         <link rel="stylesheet" type="text/css" href="../../../../_static/tabs.css?v=4c969af8" />
         <link rel="stylesheet" type="text/css" href="../../../../_static/sphinx-design.min.css?v=95c83b7e" />
         <link rel="stylesheet" type="text/css" href="../../../../_static/css/styling.css?v=84aacf86" />
@@ -675,10 +675,7 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">cvxpy.reductions.solvers.solver</span><span class="w"> </span><span class="kn">import</span> <span class="n">Solver</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">cvxpy.settings</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
     <span class="n">CLARABEL</span><span class="p">,</span>
-    <span class="n">CPP_CANON_BACKEND</span><span class="p">,</span>
-    <span class="n">NUMPY_CANON_BACKEND</span><span class="p">,</span>
     <span class="n">PARAM_THRESHOLD</span><span class="p">,</span>
-    <span class="n">SCIPY_CANON_BACKEND</span><span class="p">,</span>
 <span class="p">)</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">cvxpy.utilities.debug_tools</span><span class="w"> </span><span class="kn">import</span> <span class="n">build_non_disciplined_error_msg</span>
 
@@ -860,7 +857,6 @@
 <span class="sd">        Raised if no suitable solver exists among the installed solvers, or</span>
 <span class="sd">        if the target solver is not installed.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">canon_backend</span> <span class="o">=</span> <span class="n">_get_canon_backend</span><span class="p">(</span><span class="n">problem</span><span class="p">,</span> <span class="n">canon_backend</span><span class="p">)</span>
     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">problem</span><span class="o">.</span><span class="n">variables</span><span class="p">())</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">SolvingChain</span><span class="p">(</span><span class="n">reductions</span><span class="o">=</span><span class="p">[</span><span class="n">ConstantSolver</span><span class="p">()])</span>
     <span class="n">reductions</span> <span class="o">=</span> <span class="n">_reductions_for_problem_class</span><span class="p">(</span><span class="n">problem</span><span class="p">,</span> <span class="n">candidates</span><span class="p">,</span> <span class="n">gp</span><span class="p">,</span> <span class="n">solver_opts</span><span class="p">)</span>
@@ -894,6 +890,7 @@
         <span class="c1"># Canonicalize as a QP</span>
         <span class="n">solver</span> <span class="o">=</span> <span class="n">candidates</span><span class="p">[</span><span class="s1">&#39;qp_solvers&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
         <span class="n">solver_instance</span> <span class="o">=</span> <span class="n">slv_def</span><span class="o">.</span><span class="n">SOLVER_MAP_QP</span><span class="p">[</span><span class="n">solver</span><span class="p">]</span>
+        <span class="c1"># TODO should CvxAttr2Constr come after qp2symbolic_qp?</span>
         <span class="n">reductions</span> <span class="o">+=</span> <span class="p">[</span>
             <span class="n">CvxAttr2Constr</span><span class="p">(</span><span class="n">reduce_bounds</span><span class="o">=</span><span class="ow">not</span> <span class="n">solver_instance</span><span class="o">.</span><span class="n">BOUNDED_VARIABLES</span><span class="p">),</span>
             <span class="n">qp2symbolic_qp</span><span class="o">.</span><span class="n">Qp2SymbolicQp</span><span class="p">(),</span>
@@ -1009,51 +1006,6 @@
                       <span class="s2">&quot;enough constraints in the problem.&quot;</span> <span class="o">%</span> <span class="p">(</span>
                           <span class="n">candidates</span><span class="p">[</span><span class="s1">&#39;conic_solvers&#39;</span><span class="p">],</span>
                           <span class="s2">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">cone</span><span class="o">.</span><span class="vm">__name__</span> <span class="k">for</span> <span class="n">cone</span> <span class="ow">in</span> <span class="n">cones</span><span class="p">])))</span>
-
-<span class="k">def</span><span class="w"> </span><span class="nf">_get_canon_backend</span><span class="p">(</span><span class="n">problem</span><span class="p">,</span> <span class="n">canon_backend</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    This function checks if the problem has expressions of dimension greater</span>
-<span class="sd">    than 2 or if it lacks C++ support, then raises a warning if the default</span>
-<span class="sd">    backend is not specified or raises an error if the backend is specified</span>
-<span class="sd">    as &#39;CPP&#39;.</span>
-
-<span class="sd">    Parameters</span>
-<span class="sd">    ----------</span>
-<span class="sd">    problem : Problem</span>
-<span class="sd">        The problem for which to build a chain.</span>
-<span class="sd">    canon_backend : str</span>
-<span class="sd">        &#39;CPP&#39; (default) | &#39;SCIPY&#39;</span>
-<span class="sd">        Specifies which backend to use for canonicalization, which can affect</span>
-<span class="sd">        compilation time. Defaults to None, i.e., selecting the default</span>
-<span class="sd">        backend.</span>
-<span class="sd">    Returns</span>
-<span class="sd">    -------</span>
-<span class="sd">    canon_backend : str</span>
-<span class="sd">        The canonicalization backend to use.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-
-    <span class="k">if</span> <span class="ow">not</span> <span class="n">problem</span><span class="o">.</span><span class="n">_supports_cpp</span><span class="p">():</span>
-        <span class="k">if</span> <span class="n">canon_backend</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="ne">UserWarning</span><span class="p">(</span>
-                <span class="sa">f</span><span class="s2">&quot;The problem includes expressions that don&#39;t support </span><span class="si">{</span><span class="n">CPP_CANON_BACKEND</span><span class="si">}</span><span class="s2"> backend. &quot;</span>
-                <span class="sa">f</span><span class="s2">&quot;Defaulting to the </span><span class="si">{</span><span class="n">SCIPY_CANON_BACKEND</span><span class="si">}</span><span class="s2"> backend for canonicalization.&quot;</span><span class="p">))</span>
-            <span class="k">return</span> <span class="n">SCIPY_CANON_BACKEND</span>
-        <span class="k">if</span> <span class="n">canon_backend</span> <span class="o">==</span> <span class="n">CPP_CANON_BACKEND</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;The </span><span class="si">{</span><span class="n">CPP_CANON_BACKEND</span><span class="si">}</span><span class="s2"> backend cannot be used with problems &quot;</span>
-                             <span class="sa">f</span><span class="s2">&quot;that have expressions which do not support it.&quot;</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">canon_backend</span>  <span class="c1"># Use the specified backend (e.g., SCIPY_CANON_BACKEND)</span>
-
-    <span class="k">if</span> <span class="n">problem</span><span class="o">.</span><span class="n">_max_ndim</span><span class="p">()</span> <span class="o">&gt;</span> <span class="mi">2</span><span class="p">:</span>
-        <span class="k">if</span> <span class="n">canon_backend</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="ne">UserWarning</span><span class="p">(</span>
-                <span class="sa">f</span><span class="s2">&quot;The problem has an expression with dimension greater than 2. &quot;</span>
-                <span class="sa">f</span><span class="s2">&quot;Defaulting to the </span><span class="si">{</span><span class="n">SCIPY_CANON_BACKEND</span><span class="si">}</span><span class="s2"> backend for canonicalization.&quot;</span><span class="p">))</span>
-            <span class="k">return</span> <span class="n">SCIPY_CANON_BACKEND</span>
-        <span class="k">if</span> <span class="n">canon_backend</span> <span class="o">==</span> <span class="n">CPP_CANON_BACKEND</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Only the </span><span class="si">{</span><span class="n">SCIPY_CANON_BACKEND</span><span class="si">}</span><span class="s2"> and </span><span class="si">{</span><span class="n">NUMPY_CANON_BACKEND</span><span class="si">}</span><span class="s2"> &quot;</span>
-                             <span class="sa">f</span><span class="s2">&quot;backends are supported for problems with expressions of &quot;</span>
-                             <span class="sa">f</span><span class="s2">&quot;dimension greater than 2.&quot;</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">canon_backend</span>
 
 
 <div class="viewcode-block" id="SolvingChain">
@@ -1256,7 +1208,7 @@
     </div>
     
     
-    <script id="__config" type="application/json">{"base": "../../../..", "features": ["header.autohide", "toc.follow", "navigation.path", "navigation.instant", "navigation.top", "navigation.tabs", "navigation.tabs.sticky", "navigation.tracking", "navigation.expand", "search.highlight", "search.share", "content.tabs.link", "announce.dismiss"], "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike", "staticVersions": [{"aliases": [], "title": "latest", "version": "https://www.cvxpy.org"}, {"aliases": [], "title": "1.4", "version": "https://www.cvxpy.org/version/1.4"}, {"aliases": [], "title": "1.3", "version": "https://www.cvxpy.org/version/1.3"}, {"aliases": [], "title": "1.2", "version": "https://www.cvxpy.org/version/1.2"}, {"aliases": [], "title": "1.1", "version": "https://www.cvxpy.org/version/1.1"}], "versionPath": null}}</script>
+    <script id="__config" type="application/json">{"base": "../../../..", "features": ["header.autohide", "toc.follow", "navigation.path", "navigation.instant", "navigation.top", "navigation.tabs", "navigation.tabs.sticky", "navigation.tracking", "navigation.expand", "search.highlight", "search.share", "content.tabs.link", "announce.dismiss"], "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike", "staticVersions": [{"aliases": [], "title": "latest", "version": "https://www.cvxpy.org"}, {"aliases": [], "title": "1.6", "version": "https://www.cvxpy.org/version/1.6"}, {"aliases": [], "title": "1.5", "version": "https://www.cvxpy.org/version/1.5"}, {"aliases": [], "title": "1.4", "version": "https://www.cvxpy.org/version/1.4"}], "versionPath": null}}</script>
     
       
         <script src="../../../../_static/jquery.js?v=5d32c60e"></script>

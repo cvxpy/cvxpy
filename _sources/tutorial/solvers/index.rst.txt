@@ -95,6 +95,10 @@ The table below shows the types of problems the supported solvers can handle.
 +----------------+----+----+------+-----+-----+-----+-----+
 | `MOSEK`_       | X  | X  | X    | X   | X   | X   | X** |
 +----------------+----+----+------+-----+-----+-----+-----+
+| `MPAX`_        | X  | X  |      |     |     |     |     |
++----------------+----+----+------+-----+-----+-----+-----+
+| `CUCLARABEL`_  | X  | X  | X    |     | X   | X   |     |
++----------------+----+----+------+-----+-----+-----+-----+
 | `CVXOPT`_      | X  | X  | X    | X   |     |     |     |
 +----------------+----+----+------+-----+-----+-----+-----+
 | `SDPA`_ \*\*\* | X  | X  | X    | X   |     |     |     |
@@ -177,7 +181,7 @@ Use the ``installed_solvers`` utility function to get a list of the solvers your
 
 ::
 
-    ['CBC', 'CVXOPT', 'MOSEK', 'GLPK', 'GLPK_MI', 'ECOS', 'SCS', 'SDPA'
+    ['CBC', 'CVXOPT', 'MOSEK', 'MPAX', 'GLPK', 'GLPK_MI', 'ECOS', 'SCS', 'SDPA'
      'SCIPY', 'GUROBI', 'OSQP', 'CPLEX', 'NAG', 'SCIP', 'XPRESS', 'PROXQP']
 
 Viewing solver output
@@ -285,7 +289,7 @@ cached previous solution as described above (rather than from the ``value`` fiel
 Setting solver options
 ----------------------
 
-The `OSQP`_, `ECOS`_, `GLOP`_, `MOSEK`_, `CBC`_, `CVXOPT`_, `NAG`_, `PDLP`_, `QOCO`_, `GUROBI`_, `SCS`_ , `CLARABEL`_, `DAQP`_, `PIQP`_ and `PROXQP`_ Python interfaces allow you to set solver options such as the maximum number of iterations. You can pass these options along through CVXPY as keyword arguments.
+The `OSQP`_, `ECOS`_, `GLOP`_, `MOSEK`_, `MPAX`_, `CBC`_, `CVXOPT`_, `NAG`_, `PDLP`_, `QOCO`_, `GUROBI`_, `SCS`_ , `CLARABEL`_, `DAQP`_, `PIQP`_ and `PROXQP`_ Python interfaces allow you to set solver options such as the maximum number of iterations. You can pass these options along through CVXPY as keyword arguments.
 
 For example, here we tell SCS to use an indirect method for solving linear equations rather than a direct method.
 
@@ -484,6 +488,24 @@ Here is the complete list of solver options.
         adding the ``(key, value)`` pair ``('MSK_IPAR_INTPNT_SOLVE_FORM', 'MSK_SOLVE_DUAL')``
         to the ``mosek_params`` argument.
 
+
+.. info:: `MPAX`_ options
+    :collapsible:
+
+    ``'eps_abs'``
+        Absolute tolerance for convergence (default: 1e-4).
+
+    ``'eps_rel'``
+        Relative tolerance for convergence (default: 1e-4).
+
+    ``'iteration_limit'``
+        Maximum number of iterations (default: max_int).
+
+    ``'algorithm'``
+        Algorithm to use. Can be ``'raPDHG'`` or ``'r2HPDHG'`` (default: ``'raPDHG'``).
+
+    For others see `MPAX documentation <https://github.com/MIT-Lu-Lab/MPAX>`_.
+
 .. info:: `CVXOPT`_ options
     :collapsible:
 
@@ -590,7 +612,6 @@ Here is the complete list of solver options.
     ``'alpha'``
         relaxation parameter (default: 1.8).
 
-
     ``'acceleration_lookback'``
         Anderson Acceleration parameter for SCS 2.0 and higher. This can be any positive or negative integer;
         its default value is 10. See `this page of the SCS documentation <https://www.cvxgrp.org/scs/algorithm/acceleration.html#in-scs>`_
@@ -608,8 +629,12 @@ Here is the complete list of solver options.
     ``'normalize'``
         whether to precondition data matrices (default: True).
 
+    ``'cudss'``
+        whether to use the cuDSS solver that runs on a GPU (default: False).
+        Must be used with an SCS build that links cuDSS.
+
     ``'use_indirect'``
-        whether to use indirect solver for KKT sytem (instead of direct) (default: True).
+        whether to use indirect solver for KKT sytem (instead of direct) (default: False).
 
     ``'use_quad_obj'``
         whether to use a quadratic objective or reduce it to SOC constraints (default: True).
@@ -780,6 +805,20 @@ Here is the complete list of solver options.
 
     For others see `PIQP documentation <https://predict-epfl.github.io/piqp/interfaces/settings>`_.
 
+
+.. info:: `HIGHS`_ options:
+    :collapsible:
+
+    All options of HiGHS solver can be specified within the ``solve`` command directly as keyword arguments. For example `solve(solver=cp.HIGHS, presolve="off")` would switch of the HiGHS presolver.
+
+    **Please note**: If an option name clashes with a `solve` method argument (e.g., `solver` option of HiGHS), it can be modified via the `highs_options` argument below.
+
+    ``highs_options``
+        Solver options can also be passed as a dictionary where the key-value pairs are composed of HiGHS option names and associated values. For example, `solve(solver=cp.HIGHS, highs_options=dict(solver="simplex"))` would set the LP solver of HiGHS to simplex.
+
+    For other options see `HiGHS documentation <https://ergo-code.github.io/HiGHS/dev/options/definitions/>`_.
+
+
 Custom Solvers
 ------------------------------------
 Although ``cvxpy`` supports many different solvers out of the box, it is also possible to define and use custom solvers. This can be helpful in prototyping or developing custom solvers tailored to a specific application.
@@ -828,6 +867,7 @@ will be the same as the class variable ``SUPPORTED_CONSTRAINTS``.
 .. _GLPK_MI: https://www.gnu.org/software/glpk/
 .. _GUROBI: https://www.gurobi.com/
 .. _MOSEK: https://www.mosek.com/
+.. _MPAX: https://github.com/MIT-Lu-Lab/MPAX
 .. _CBC: https://projects.coin-or.org/Cbc
 .. _CGL: https://projects.coin-or.org/Cgl
 .. _CPLEX: https://www.ibm.com/docs/en/icos

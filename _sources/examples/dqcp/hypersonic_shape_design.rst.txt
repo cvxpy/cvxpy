@@ -21,7 +21,7 @@ coefficients, respectively, that are obtained by integrating the
 projection of the pressure coefficient in directions parallel to, and
 perpendicular to, the body.
 
-It turns out that the the drag-to-lift ratio is a quasilinear function,
+It turns out that the drag-to-lift ratio is a quasilinear function,
 as we'll now show. We will assume the pressure coefficient is given by
 the Newtonian sine-squared law for whetted areas of the body,
 
