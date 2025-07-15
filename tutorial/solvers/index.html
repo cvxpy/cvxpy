@@ -1622,7 +1622,7 @@ The table below shows the types of problems the supported solvers can handle.</p
 <td></td>
 <td></td>
 </tr>
-<tr class="row-even"><td><p><a href="#id7"><span class="problematic" id="id8">`CUCLARABEL`_</span></a></p></td>
+<tr class="row-even"><td><p><a href="#id8"><span class="problematic" id="id9">`CUCLARABEL`_</span></a></p></td>
 <td><p>X</p></td>
 <td><p>X</p></td>
 <td><p>X</p></td>
@@ -1631,52 +1631,7 @@ The table below shows the types of problems the supported solvers can handle.</p
 <td><p>X</p></td>
 <td></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference external" href="http://cvxopt.org/">CVXOPT</a></p></td>
-<td><p>X</p></td>
-<td><p>X</p></td>
-<td><p>X</p></td>
-<td><p>X</p></td>
-<td></td>
-<td></td>
-<td></td>
-</tr>
-<tr class="row-even"><td><p><a class="reference external" href="https://sdpa-python.github.io">SDPA</a> ***</p></td>
-<td><p>X</p></td>
-<td><p>X</p></td>
-<td><p>X</p></td>
-<td><p>X</p></td>
-<td></td>
-<td></td>
-<td></td>
-</tr>
-<tr class="row-odd"><td><p><a class="reference external" href="http://github.com/cvxgrp/scs">SCS</a></p></td>
-<td><p>X</p></td>
-<td><p>X</p></td>
-<td><p>X</p></td>
-<td><p>X</p></td>
-<td><p>X</p></td>
-<td><p>X</p></td>
-<td></td>
-</tr>
-<tr class="row-even"><td><p><a class="reference external" href="https://scip.zib.de/">SCIP</a></p></td>
-<td><p>X</p></td>
-<td><p>X</p></td>
-<td><p>X</p></td>
-<td></td>
-<td></td>
-<td></td>
-<td><p>X</p></td>
-</tr>
-<tr class="row-odd"><td><p><a class="reference external" href="https://www.fico.com/en/products/fico-xpress-optimization">XPRESS</a></p></td>
-<td><p>X</p></td>
-<td><p>X</p></td>
-<td><p>X</p></td>
-<td></td>
-<td></td>
-<td></td>
-<td><p>X</p></td>
-</tr>
-<tr class="row-even"><td><p><a class="reference external" href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.linprog.html#scipy.optimize.linprog">SCIPY</a></p></td>
+<tr class="row-odd"><td><p><a class="reference external" href="https://github.com/NVIDIA/cuopt">CUOPT</a></p></td>
 <td><p>X</p></td>
 <td></td>
 <td></td>
@@ -1685,7 +1640,61 @@ The table below shows the types of problems the supported solvers can handle.</p
 <td></td>
 <td><p>X*</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference external" href="https://highs.dev/">HiGHS</a></p></td>
+<tr class="row-even"><td><p><a class="reference external" href="http://cvxopt.org/">CVXOPT</a></p></td>
+<td><p>X</p></td>
+<td><p>X</p></td>
+<td><p>X</p></td>
+<td><p>X</p></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference external" href="https://sdpa-python.github.io">SDPA</a> ***</p></td>
+<td><p>X</p></td>
+<td><p>X</p></td>
+<td><p>X</p></td>
+<td><p>X</p></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference external" href="http://github.com/cvxgrp/scs">SCS</a></p></td>
+<td><p>X</p></td>
+<td><p>X</p></td>
+<td><p>X</p></td>
+<td><p>X</p></td>
+<td><p>X</p></td>
+<td><p>X</p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference external" href="https://scip.zib.de/">SCIP</a></p></td>
+<td><p>X</p></td>
+<td><p>X</p></td>
+<td><p>X</p></td>
+<td></td>
+<td></td>
+<td></td>
+<td><p>X</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference external" href="https://www.fico.com/en/products/fico-xpress-optimization">XPRESS</a></p></td>
+<td><p>X</p></td>
+<td><p>X</p></td>
+<td><p>X</p></td>
+<td></td>
+<td></td>
+<td></td>
+<td><p>X</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference external" href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.linprog.html#scipy.optimize.linprog">SCIPY</a></p></td>
+<td><p>X</p></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td><p>X*</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference external" href="https://highs.dev/">HiGHS</a></p></td>
 <td><p>X</p></td>
 <td><p>X</p></td>
 <td></td>
@@ -1743,7 +1752,7 @@ objects manually.</p>
 </code></pre></div>
 </div>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><code><span class="p">[</span><span class="s1">&#39;CBC&#39;</span><span class="p">,</span> <span class="s1">&#39;CVXOPT&#39;</span><span class="p">,</span> <span class="s1">&#39;MOSEK&#39;</span><span class="p">,</span> <span class="s1">&#39;MPAX&#39;</span><span class="p">,</span> <span class="s1">&#39;GLPK&#39;</span><span class="p">,</span> <span class="s1">&#39;GLPK_MI&#39;</span><span class="p">,</span> <span class="s1">&#39;ECOS&#39;</span><span class="p">,</span> <span class="s1">&#39;SCS&#39;</span><span class="p">,</span> <span class="s1">&#39;SDPA&#39;</span>
- <span class="s1">&#39;SCIPY&#39;</span><span class="p">,</span> <span class="s1">&#39;GUROBI&#39;</span><span class="p">,</span> <span class="s1">&#39;OSQP&#39;</span><span class="p">,</span> <span class="s1">&#39;CPLEX&#39;</span><span class="p">,</span> <span class="s1">&#39;NAG&#39;</span><span class="p">,</span> <span class="s1">&#39;SCIP&#39;</span><span class="p">,</span> <span class="s1">&#39;XPRESS&#39;</span><span class="p">,</span> <span class="s1">&#39;PROXQP&#39;</span><span class="p">]</span>
+ <span class="s1">&#39;SCIPY&#39;</span><span class="p">,</span> <span class="s1">&#39;GUROBI&#39;</span><span class="p">,</span> <span class="s1">&#39;OSQP&#39;</span><span class="p">,</span> <span class="s1">&#39;CPLEX&#39;</span><span class="p">,</span> <span class="s1">&#39;NAG&#39;</span><span class="p">,</span> <span class="s1">&#39;SCIP&#39;</span><span class="p">,</span> <span class="s1">&#39;XPRESS&#39;</span><span class="p">,</span> <span class="s1">&#39;PROXQP&#39;</span><span class="p">,</span> <span class="s1">&#39;CUOPT&#39;</span><span class="p">]</span>
 </code></pre></div>
 </div>
 <h3 id="viewing-solver-output">Viewing solver output<a class="headerlink" href="#viewing-solver-output" title="Link to this heading">¶</a></h3>
@@ -1829,7 +1838,7 @@ The initial guess is constructed from the <code class="docutils literal notransl
 If the same problem is solved a second time, the initial guess is constructed from the
 cached previous solution as described above (rather than from the <code class="docutils literal notranslate"><span class="pre">value</span></code> field).</p>
 <h2 id="setting-solver-options"><span id="solveropts"></span>Setting solver options<a class="headerlink" href="#setting-solver-options" title="Link to this heading">¶</a></h2>
-<p>The <a class="reference external" href="https://osqp.org/">OSQP</a>, <a class="reference external" href="https://www.embotech.com/ECOS">ECOS</a>, <a class="reference external" href="https://developers.google.com/optimization">GLOP</a>, <a class="reference external" href="https://www.mosek.com/">MOSEK</a>, <a class="reference external" href="https://github.com/MIT-Lu-Lab/MPAX">MPAX</a>, <a class="reference external" href="https://projects.coin-or.org/Cbc">CBC</a>, <a class="reference external" href="http://cvxopt.org/">CVXOPT</a>, <a class="reference external" href="https://nag.com/mathematical-optimization/">NAG</a>, <a class="reference external" href="https://developers.google.com/optimization">PDLP</a>, <a class="reference external" href="https://qoco-org.github.io/qoco/">QOCO</a>, <a class="reference external" href="https://www.gurobi.com/">GUROBI</a>, <a class="reference external" href="http://github.com/cvxgrp/scs">SCS</a> , <a class="reference external" href="https://oxfordcontrol.github.io/ClarabelDocs/">CLARABEL</a>, <a class="reference external" href="https://darnstrom.github.io/daqp/">DAQP</a>, <a class="reference external" href="https://predict-epfl.github.io/piqp/">PIQP</a> and <a class="reference external" href="https://github.com/simple-robotics/proxsuite">PROXQP</a> Python interfaces allow you to set solver options such as the maximum number of iterations. You can pass these options along through CVXPY as keyword arguments.</p>
+<p>The <a class="reference external" href="https://osqp.org/">OSQP</a>, <a class="reference external" href="https://www.embotech.com/ECOS">ECOS</a>, <a class="reference external" href="https://developers.google.com/optimization">GLOP</a>, <a class="reference external" href="https://www.mosek.com/">MOSEK</a>, <a class="reference external" href="https://github.com/MIT-Lu-Lab/MPAX">MPAX</a>, <a class="reference external" href="https://projects.coin-or.org/Cbc">CBC</a>, <a class="reference external" href="http://cvxopt.org/">CVXOPT</a>, <a class="reference external" href="https://nag.com/mathematical-optimization/">NAG</a>, <a class="reference external" href="https://developers.google.com/optimization">PDLP</a>, <a class="reference external" href="https://qoco-org.github.io/qoco/">QOCO</a>, <a class="reference external" href="https://www.gurobi.com/">GUROBI</a>, <a class="reference external" href="http://github.com/cvxgrp/scs">SCS</a> , <a class="reference external" href="https://oxfordcontrol.github.io/ClarabelDocs/">CLARABEL</a>, <a class="reference external" href="https://darnstrom.github.io/daqp/">DAQP</a>, <a class="reference external" href="https://predict-epfl.github.io/piqp/">PIQP</a>, <a class="reference external" href="https://github.com/simple-robotics/proxsuite">PROXQP</a> and <a class="reference external" href="https://github.com/NVIDIA/cuopt">CUOPT</a> Python interfaces allow you to set solver options such as the maximum number of iterations. You can pass these options along through CVXPY as keyword arguments.</p>
 <p>For example, here we tell SCS to use an indirect method for solving linear equations rather than a direct method.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><code><span class="c1"># Solve with SCS, use sparse-indirect method.</span>
 <span class="n">prob</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">solver</span><span class="o">=</span><span class="n">cp</span><span class="o">.</span><span class="n">SCS</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">use_indirect</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
@@ -2259,6 +2268,29 @@ command. For all controls see <a class="reference external" href="https://www.fi
 </dd>
 </dl>
 <p>For other options see <a class="reference external" href="https://ergo-code.github.io/HiGHS/dev/options/definitions/">HiGHS documentation</a>.</p>
+</details>
+<details class="info admonition">
+<summary class="admonition-title"><a class="reference external" href="https://github.com/NVIDIA/cuopt">CUOPT</a> options:</summary><p>Options for cuOpt can be specified as additional keyword arguments to <code class="docutils literal notranslate"><span class="pre">solve</span></code>.  For example, <cite>solve(solver=CUOPT, time_limit=5)</cite> would set the time limit to 5 seconds.</p>
+<p>Most of the cuOpt options are documented <a class="reference external" href="https://docs.nvidia.com/cuopt/user-guide/latest/lp-milp-settings.html">here</a>. Please pay attention to the note on this page: the string name for each option is the constant name with the <code class="docutils literal notranslate"><span class="pre">CUOPT_</span></code> prefix removed and the string in lowercase. For example, the <code class="docutils literal notranslate"><span class="pre">CUOPT_TIME_LIMIT</span></code> option is specified as “time_limit”.</p>
+<dl class="simple">
+<dt>Special cases:</dt><dd><ul class="simple">
+<li><p>the CUOPT_LOG_TO_CONSOLE option will be set if “verbose” or “solver_verbose” are set in cvxpy</p></li>
+<li><p>the CUOPT_METHOD option (“method”) clashes with the cvxpy keyword “method”, so the cuOpt option is set using the keyword “solver_method”. Use the string names of the constants (“Concurrent”, “PDLP”, “DualSimplex”) for the option value.</p></li>
+<li><p>for the CUOPT_PDLP_SOLVER_MODE option, use the string names of the constants (“Stable2”, “Methodical1”, “Fast1”) for the option value.</p></li>
+<li><p>the “optimality” option is an additional convenience that sets the following parameters to the specified value (for LP):</p>
+<ul>
+<li><p>absolute_dual_tolerance</p></li>
+<li><p>relative_dual_tolerance</p></li>
+<li><p>absolute_primal_tolerance</p></li>
+<li><p>relative_primal_tolerance</p></li>
+<li><p>absolute_gap_tolerance</p></li>
+<li><p>relative_gap_tolerance</p></li>
+</ul>
+</li>
+</ul>
+</dd>
+</dl>
+<p><strong>Please note</strong>: cuOpt internally has a specific API for setting variable bounds, and it uses the cvxpy interface for bounded variables.  While not strictly necessary, cuOpt may perform better on some problens if variable bounds are included in the cvxpy variable creation rather than expressed as constraints.</p>
 </details>
 <h2 id="custom-solvers">Custom Solvers<a class="headerlink" href="#custom-solvers" title="Link to this heading">¶</a></h2>
 <p>Although <code class="docutils literal notranslate"><span class="pre">cvxpy</span></code> supports many different solvers out of the box, it is also possible to define and use custom solvers. This can be helpful in prototyping or developing custom solvers tailored to a specific application.</p>

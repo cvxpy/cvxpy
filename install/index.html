@@ -841,7 +841,8 @@ See the <a class="reference external" href="https://www.mosek.com/">MOSEK</a> we
 <details class="info admonition">
 <summary class="admonition-title">MPAX</summary><p>CVXPY supports the MPAX solver.
 Simply install MPAX such that you can <code class="docutils literal notranslate"><span class="pre">import</span> <span class="pre">mpax</span></code> in Python.
-See the <a class="reference external" href="https://github.com/MIT-Lu-Lab/MPAX">MPAX</a> website for installation instructions.</p>
+See the <a class="reference external" href="https://github.com/MIT-Lu-Lab/MPAX">MPAX</a> website for installation instructions.
+In addition, please refer to the <a class="reference external" href="https://docs.jax.dev/en/latest/installation.html">JAX installation instructions</a> to install JAX.</p>
 </details>
 <details class="info admonition">
 <summary class="admonition-title">CuClarabel</summary><p>CuClarabel is currently only available in the Julia version of Clarabel.
@@ -920,6 +921,13 @@ You may achieve better performance by setting <code class="docutils literal notr
 Simply install QOCO such that you can <code class="docutils literal notranslate"><span class="pre">import</span> <span class="pre">qoco</span></code> in Python.
 See the <a class="reference external" href="https://qoco-org.github.io/qoco/install/index.html">QOCO</a> website for installation instructions.</p>
 </details>
+<div class="info admonition">
+<p class="admonition-title">CUOPT</p>
+<p>CVXPY supports the CUOPT solver.
+Simply install CUOPT such that you can <code class="docutils literal notranslate"><span class="pre">import</span> <span class="pre">cuopt</span></code> in Python.
+See the <a class="reference external" href="http://github.com/NVIDIA/cuopt">CUOPT github page</a> for system requirments and installation instructions (pip, conda, or build from source).
+Follow this link for additional documentation on <a class="reference external" href="https://docs.nvidia.com/cuopt/">CUOPT</a></p>
+</div>
 <details class="info admonition">
 <summary class="admonition-title">Without default solvers</summary><p>CVXPY can also be installed without the default solver dependencies.
 This can be useful if the intention is to only use non-default solvers.</p>

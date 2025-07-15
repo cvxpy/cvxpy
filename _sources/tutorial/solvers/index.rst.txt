@@ -99,6 +99,8 @@ The table below shows the types of problems the supported solvers can handle.
 +----------------+----+----+------+-----+-----+-----+-----+
 | `CUCLARABEL`_  | X  | X  | X    |     | X   | X   |     |
 +----------------+----+----+------+-----+-----+-----+-----+
+| `CUOPT`_       | X  |    |      |     |     |     | X*  |
++----------------+----+----+------+-----+-----+-----+-----+
 | `CVXOPT`_      | X  | X  | X    | X   |     |     |     |
 +----------------+----+----+------+-----+-----+-----+-----+
 | `SDPA`_ \*\*\* | X  | X  | X    | X   |     |     |     |
@@ -182,7 +184,7 @@ Use the ``installed_solvers`` utility function to get a list of the solvers your
 ::
 
     ['CBC', 'CVXOPT', 'MOSEK', 'MPAX', 'GLPK', 'GLPK_MI', 'ECOS', 'SCS', 'SDPA'
-     'SCIPY', 'GUROBI', 'OSQP', 'CPLEX', 'NAG', 'SCIP', 'XPRESS', 'PROXQP']
+     'SCIPY', 'GUROBI', 'OSQP', 'CPLEX', 'NAG', 'SCIP', 'XPRESS', 'PROXQP', 'CUOPT']
 
 Viewing solver output
 ^^^^^^^^^^^^^^^^^^^^^
@@ -289,7 +291,7 @@ cached previous solution as described above (rather than from the ``value`` fiel
 Setting solver options
 ----------------------
 
-The `OSQP`_, `ECOS`_, `GLOP`_, `MOSEK`_, `MPAX`_, `CBC`_, `CVXOPT`_, `NAG`_, `PDLP`_, `QOCO`_, `GUROBI`_, `SCS`_ , `CLARABEL`_, `DAQP`_, `PIQP`_ and `PROXQP`_ Python interfaces allow you to set solver options such as the maximum number of iterations. You can pass these options along through CVXPY as keyword arguments.
+The `OSQP`_, `ECOS`_, `GLOP`_, `MOSEK`_, `MPAX`_, `CBC`_, `CVXOPT`_, `NAG`_, `PDLP`_, `QOCO`_, `GUROBI`_, `SCS`_ , `CLARABEL`_, `DAQP`_, `PIQP`_, `PROXQP`_ and `CUOPT`_ Python interfaces allow you to set solver options such as the maximum number of iterations. You can pass these options along through CVXPY as keyword arguments.
 
 For example, here we tell SCS to use an indirect method for solving linear equations rather than a direct method.
 
@@ -818,6 +820,27 @@ Here is the complete list of solver options.
 
     For other options see `HiGHS documentation <https://ergo-code.github.io/HiGHS/dev/options/definitions/>`_.
 
+.. info:: `CUOPT`_ options:
+    :collapsible:
+
+    Options for cuOpt can be specified as additional keyword arguments to ``solve``.  For example, `solve(solver=CUOPT, time_limit=5)` would set the time limit to 5 seconds.
+
+    Most of the cuOpt options are documented `here <https://docs.nvidia.com/cuopt/user-guide/latest/lp-milp-settings.html>`_. Please pay attention to the note on this page: the string name for each option is the constant name with the ``CUOPT_`` prefix removed and the string in lowercase. For example, the ``CUOPT_TIME_LIMIT`` option is specified as "time_limit".
+
+    Special cases:
+      - the CUOPT_LOG_TO_CONSOLE option will be set if "verbose" or "solver_verbose" are set in cvxpy
+      - the CUOPT_METHOD option ("method") clashes with the cvxpy keyword "method", so the cuOpt option is set using the keyword "solver_method". Use the string names of the constants ("Concurrent", "PDLP", "DualSimplex") for the option value.
+      - for the CUOPT_PDLP_SOLVER_MODE option, use the string names of the constants ("Stable2", "Methodical1", "Fast1") for the option value.
+      - the "optimality" option is an additional convenience that sets the following parameters to the specified value (for LP):
+
+        - absolute_dual_tolerance
+        - relative_dual_tolerance
+        - absolute_primal_tolerance
+        - relative_primal_tolerance
+        - absolute_gap_tolerance
+        - relative_gap_tolerance
+
+    **Please note**: cuOpt internally has a specific API for setting variable bounds, and it uses the cvxpy interface for bounded variables.  While not strictly necessary, cuOpt may perform better on some problens if variable bounds are included in the cvxpy variable creation rather than expressed as constraints.
 
 Custom Solvers
 ------------------------------------
@@ -882,3 +905,4 @@ will be the same as the class variable ``SUPPORTED_CONSTRAINTS``.
 .. _CLARABEL: https://oxfordcontrol.github.io/ClarabelDocs/
 .. _PIQP: https://predict-epfl.github.io/piqp/
 .. _PROXQP: https://github.com/simple-robotics/proxsuite
+.. _CUOPT: https://github.com/NVIDIA/cuopt
