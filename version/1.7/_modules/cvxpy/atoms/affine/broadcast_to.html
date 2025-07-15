@@ -17,7 +17,7 @@
     
     
       
-        <title>cvxpy.atoms.affine.transpose - </title>
+        <title>cvxpy.atoms.affine.broadcast_to - </title>
       
     
     
@@ -109,7 +109,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              cvxpy.atoms.affine.transpose
+              cvxpy.atoms.affine.broadcast_to
             
           </span>
         </div>
@@ -627,9 +627,9 @@
                   
 
 
-<h1>Source code for cvxpy.atoms.affine.transpose</h1><div class="highlight"><pre>
+<h1>Source code for cvxpy.atoms.affine.broadcast_to</h1><div class="highlight"><pre>
 <span></span><code><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">Copyright 2013 Steven Diamond</span>
+<span class="sd">Copyright, the CVXPY authors</span>
 
 <span class="sd">Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);</span>
 <span class="sd">you may not use this file except in compliance with the License.</span>
@@ -643,7 +643,8 @@
 <span class="sd">See the License for the specific language governing permissions and</span>
 <span class="sd">limitations under the License.</span>
 <span class="sd">&quot;&quot;&quot;</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Tuple</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Tuple</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 
@@ -653,165 +654,63 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">cvxpy.constraints.constraint</span><span class="w"> </span><span class="kn">import</span> <span class="n">Constraint</span>
 
 
-<div class="viewcode-block" id="transpose">
-<a class="viewcode-back" href="../../../../api_reference/cvxpy.atoms.affine.html#cvxpy.transpose">[docs]</a>
-<span class="k">class</span><span class="w"> </span><span class="nc">transpose</span><span class="p">(</span><span class="n">AffAtom</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Transpose an expression.</span>
-<span class="sd">    </span>
-<span class="sd">    For an n-D expression, if axes are given, the order indicates the permutation of axes.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<div class="viewcode-block" id="broadcast_to">
+<a class="viewcode-back" href="../../../../api_reference/cvxpy.atoms.affine.html#cvxpy.broadcast_to">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">broadcast_to</span><span class="p">(</span><span class="n">AffAtom</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Broadcast the expression given a shape input&quot;&quot;&quot;</span>
 
-    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">expr</span><span class="p">,</span> <span class="n">axes</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">axes</span> <span class="o">=</span> <span class="n">axes</span>
-        <span class="nb">super</span><span class="p">(</span><span class="n">AffAtom</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">expr</span><span class="p">)</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">expr</span><span class="p">,</span> <span class="n">shape</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">broadcast_shape</span> <span class="o">=</span> <span class="n">shape</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_shape</span> <span class="o">=</span> <span class="n">expr</span><span class="o">.</span><span class="n">shape</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">broadcast_to</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">expr</span><span class="p">)</span>
 
-    <span class="c1"># The string representation of the atom.</span>
-    <span class="k">def</span><span class="w"> </span><span class="nf">name</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">axes</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2">.T&quot;</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;transpose(</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2">, axes=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">axes</span><span class="si">}</span><span class="s2">)&quot;</span>
-
-    <span class="c1"># Returns the transpose of the given value.</span>
-    <span class="nd">@AffAtom</span><span class="o">.</span><span class="n">numpy_numeric</span>
-    <span class="k">def</span><span class="w"> </span><span class="nf">numeric</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">values</span><span class="p">):</span>
-        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="n">values</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">axes</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">axes</span><span class="p">)</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_supports_cpp</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">False</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">is_atom_log_log_convex</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Is the atom log-log convex?</span>
-<span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="kc">True</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">is_atom_log_log_concave</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Is the atom log-log concave?</span>
-<span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="kc">True</span>
 
-    <span class="k">def</span><span class="w"> </span><span class="nf">is_symmetric</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Is the expression symmetric?</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">is_symmetric</span><span class="p">()</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">numeric</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">values</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">broadcast_to</span><span class="p">(</span><span class="n">values</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">shape</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">broadcast_shape</span><span class="p">)</span>
 
-    <span class="k">def</span><span class="w"> </span><span class="nf">is_skew_symmetric</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Is the expression skew-symmetric?</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">is_skew_symmetric</span><span class="p">()</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_data</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]]:</span>
+        <span class="k">return</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">broadcast_shape</span><span class="p">]</span>
 
-    <span class="k">def</span><span class="w"> </span><span class="nf">is_hermitian</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Is the expression Hermitian?</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">is_hermitian</span><span class="p">()</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">validate_arguments</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">np</span><span class="o">.</span><span class="n">broadcast_to</span><span class="p">(</span>
+            <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">dtype</span><span class="p">([])),</span>
+            <span class="n">shape</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">broadcast_shape</span>
+        <span class="p">)</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">shape_from_args</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="o">...</span><span class="p">]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns the shape of the transpose expression.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">arr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">dtype</span><span class="p">([]))</span>
-        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="n">arr</span><span class="p">,</span> <span class="n">axes</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">axes</span><span class="p">)</span><span class="o">.</span><span class="n">shape</span>
-
-    <span class="k">def</span><span class="w"> </span><span class="nf">get_data</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns the axes for transposition.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">axes</span><span class="p">]</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">broadcast_shape</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">graph_implementation</span><span class="p">(</span>
-        <span class="bp">self</span><span class="p">,</span> <span class="n">arg_objs</span><span class="p">,</span> <span class="n">shape</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="o">...</span><span class="p">],</span> <span class="n">data</span><span class="o">=</span><span class="kc">None</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">arg_objs</span><span class="p">,</span>
+        <span class="n">shape</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="o">...</span><span class="p">],</span>
+        <span class="n">data</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">lo</span><span class="o">.</span><span class="n">LinOp</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="n">Constraint</span><span class="p">]]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Create a new variable equal to the argument transposed.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Broadcast an expression to a given shape.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        arg_objs : list</span>
-<span class="sd">            LinExpr for each argument.</span>
+<span class="sd">            LinOp for each argument.</span>
 <span class="sd">        shape : tuple</span>
 <span class="sd">            The shape of the resulting expression.</span>
 <span class="sd">        data :</span>
-<span class="sd">            Additional data required by the atom.</span>
+<span class="sd">            Additional data required by the atom. In this case data wraps axis</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 <span class="sd">        tuple</span>
-<span class="sd">            (LinOp for objective, list of constraints)</span>
+<span class="sd">            (LinOp for the objective, list of constraints)</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="p">(</span><span class="n">lu</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="n">arg_objs</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">axes</span><span class="p">),</span> <span class="p">[])</span></div>
-
-
-<div class="viewcode-block" id="permute_dims">
-<a class="viewcode-back" href="../../../../api_reference/cvxpy.atoms.affine.html#cvxpy.permute_dims">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">permute_dims</span><span class="p">(</span><span class="n">expr</span><span class="p">,</span> <span class="n">axes</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Permute the dimensions of the expression.</span>
-
-<span class="sd">    Alias for transpose with specified axes.</span>
-
-<span class="sd">    Parameters</span>
-<span class="sd">    ----------</span>
-<span class="sd">    expr : AffAtom</span>
-<span class="sd">        The expression to permute dimensions of.</span>
-<span class="sd">    axes : list or tuple of int</span>
-<span class="sd">        The new order of the axes.</span>
-
-<span class="sd">    Returns</span>
-<span class="sd">    -------</span>
-<span class="sd">    AffAtom</span>
-<span class="sd">        A transpose atom with the specified axes.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="n">transpose</span><span class="p">(</span><span class="n">expr</span><span class="p">,</span> <span class="n">axes</span><span class="o">=</span><span class="n">axes</span><span class="p">)</span></div>
-
-
-<div class="viewcode-block" id="swapaxes">
-<a class="viewcode-back" href="../../../../api_reference/cvxpy.atoms.affine.html#cvxpy.swapaxes">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">swapaxes</span><span class="p">(</span><span class="n">expr</span><span class="p">,</span> <span class="n">axis1</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">axis2</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Swap two axes of the expression.</span>
-
-<span class="sd">    Parameters</span>
-<span class="sd">    ----------</span>
-<span class="sd">    expr : AffAtom</span>
-<span class="sd">        The expression to swap axes of.</span>
-<span class="sd">    axis1 : int</span>
-<span class="sd">        The first axis to swap.</span>
-<span class="sd">    axis2 : int</span>
-<span class="sd">        The second axis to swap.</span>
-
-<span class="sd">    Returns</span>
-<span class="sd">    -------</span>
-<span class="sd">    AffAtom</span>
-<span class="sd">        A transpose atom with the axes swapped.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">axes</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">expr</span><span class="o">.</span><span class="n">shape</span><span class="p">)))</span>
-    <span class="n">axes</span><span class="p">[</span><span class="n">axis1</span><span class="p">],</span> <span class="n">axes</span><span class="p">[</span><span class="n">axis2</span><span class="p">]</span> <span class="o">=</span> <span class="n">axes</span><span class="p">[</span><span class="n">axis2</span><span class="p">],</span> <span class="n">axes</span><span class="p">[</span><span class="n">axis1</span><span class="p">]</span>
-    <span class="k">return</span> <span class="n">transpose</span><span class="p">(</span><span class="n">expr</span><span class="p">,</span> <span class="n">axes</span><span class="o">=</span><span class="n">axes</span><span class="p">)</span></div>
-
-
-<div class="viewcode-block" id="moveaxis">
-<a class="viewcode-back" href="../../../../api_reference/cvxpy.atoms.affine.html#cvxpy.moveaxis">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">moveaxis</span><span class="p">(</span><span class="n">expr</span><span class="p">,</span> <span class="n">source</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span> <span class="n">destination</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Move axes of the expression to new positions.</span>
-
-<span class="sd">    Parameters</span>
-<span class="sd">    ----------</span>
-<span class="sd">    expr : AffAtom</span>
-<span class="sd">        The expression to move axes of.</span>
-<span class="sd">    source : list of int</span>
-<span class="sd">        The original positions of the axes to move.</span>
-<span class="sd">    destination : list of int</span>
-<span class="sd">        The new positions for the moved axes.</span>
-
-<span class="sd">    Returns</span>
-<span class="sd">    -------</span>
-<span class="sd">    AffAtom</span>
-<span class="sd">        A new transpose atom with the axes moved.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">source</span><span class="p">,</span> <span class="nb">list</span><span class="p">)</span> <span class="ow">or</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">destination</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
-        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Source and destination must be lists of integers.&quot;</span><span class="p">)</span>
-    
-    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">source</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">destination</span><span class="p">):</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Source and destination must have the same length.&quot;</span><span class="p">)</span>
-
-    <span class="n">order</span> <span class="o">=</span> <span class="p">[</span><span class="n">n</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">expr</span><span class="o">.</span><span class="n">ndim</span><span class="p">)</span> <span class="k">if</span> <span class="n">n</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">source</span><span class="p">]</span>
-
-    <span class="k">for</span> <span class="n">dest</span><span class="p">,</span> <span class="n">src</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">destination</span><span class="p">,</span> <span class="n">source</span><span class="p">)):</span>
-        <span class="n">order</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="n">dest</span><span class="p">,</span> <span class="n">src</span><span class="p">)</span>
-
-    <span class="k">return</span> <span class="n">transpose</span><span class="p">(</span><span class="n">expr</span><span class="p">,</span> <span class="n">axes</span><span class="o">=</span><span class="n">order</span><span class="p">)</span></div>
+        <span class="k">return</span> <span class="p">(</span><span class="n">lu</span><span class="o">.</span><span class="n">broadcast_to</span><span class="p">(</span><span class="n">arg_objs</span><span class="p">,</span> <span class="n">shape</span><span class="p">),</span> <span class="p">[])</span></div>
 
 </code></pre></div>
 

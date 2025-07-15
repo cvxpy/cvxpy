@@ -935,6 +935,16 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#multiple-attributes" class="md-nav__link">
+    
+    <span class="md-ellipsis">
+      <span title="multiple-attributes (reference label)">Multiple Attributes</span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#semidefinite-matrices" class="md-nav__link">
     
     <span class="md-ellipsis">
@@ -1478,6 +1488,16 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#multiple-attributes" class="md-nav__link">
+    
+    <span class="md-ellipsis">
+      <span title="multiple-attributes (reference label)">Multiple Attributes</span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#semidefinite-matrices" class="md-nav__link">
     
     <span class="md-ellipsis">
@@ -1657,7 +1677,6 @@ as defined in <a class="reference external" href="https://numpy.org/doc/stable/r
 </code></pre></div>
 </div>
 <h2 id="reading-and-writing-the-value-of-a-sparse-expression">Reading and writing the value of a sparse expression<a class="headerlink" href="#reading-and-writing-the-value-of-a-sparse-expression" title="Link to this heading">¶</a></h2>
-<hr class="docutils" />
 <p>To avoid storing entries that are known to be zero, we provide the <code class="docutils literal notranslate"><span class="pre">.value_sparse</span></code> field,
 which stores only the nonzero entries as a <code class="docutils literal notranslate"><span class="pre">scipy.sparse.coo_array</span></code>.
 For details on this data structure, please see the <a class="reference external" href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.sparse.coo_array.html">SciPy documentation</a>.
@@ -1675,6 +1694,50 @@ When passing a sparse value, it is expected to be a <code class="docutils litera
 <span class="n">prob</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Problem</span><span class="p">(</span><span class="n">cp</span><span class="o">.</span><span class="n">Minimize</span><span class="p">(</span><span class="n">cp</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">X</span><span class="p">)),</span> <span class="p">[</span><span class="o">...</span><span class="p">])</span>
 <span class="n">prob</span><span class="o">.</span><span class="n">solve</span><span class="p">()</span>
 <span class="nb">print</span><span class="p">(</span><span class="n">X</span><span class="o">.</span><span class="n">value_sparse</span><span class="p">)</span>
+</code></pre></div>
+</div>
+<h2 id="multiple-attributes"><span id="id2"></span>Multiple Attributes<a class="headerlink" href="#multiple-attributes" title="Link to this heading">¶</a></h2>
+<div class="admonition versionadded">
+<p class="admonition-title"><span class="versionmodified added">Added in version 1.7.</span></p>
+</div>
+<p>CVXPY’s variable attributes can be viewed as implicit constraints that provide useful sign and monotonicity information to the DCP analyzer.
+Certain combinations of attributes are not supported, for example, attributes that reduce the dimension of the variable, e.g, diag, symmetric, sparsity, cannot be used together.
+In addition, due to the large potential computational cost, projections for validating parameter inputs with multiple attributes are temporarily disabled.</p>
+<p>Example for defining a sparse integer variable:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">cvxpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">cp</span>
+<span class="n">x</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="mi">2</span><span class="p">),</span> <span class="n">sparsity</span><span class="o">=</span><span class="p">[(</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">),(</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">)],</span> <span class="n">integer</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">prob</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Problem</span><span class="p">(</span><span class="n">cp</span><span class="o">.</span><span class="n">Minimize</span><span class="p">(</span><span class="n">cp</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">x</span><span class="p">)),</span> <span class="p">[</span><span class="n">x</span> <span class="o">&gt;=</span> <span class="o">-</span><span class="mf">5.5</span><span class="p">])</span>
+<span class="n">prob</span><span class="o">.</span><span class="n">solve</span><span class="p">()</span>
+<span class="k">assert</span> <span class="n">prob</span><span class="o">.</span><span class="n">value</span> <span class="o">==</span> <span class="o">-</span><span class="mi">10</span>
+<span class="c1"># although the lower bound on x is 5.5, the non-zero entries</span>
+<span class="c1"># of x are set to -5 due to the integer attribute</span>
+<span class="k">assert</span> <span class="n">x</span><span class="o">.</span><span class="n">value</span> <span class="o">==</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="o">-</span><span class="mi">5</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span>
+                            <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="o">-</span><span class="mi">5</span><span class="p">]])</span>
+</code></pre></div>
+</div>
+<p>Example for defining a bounded integer variable:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">cvxpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">cp</span>
+<span class="n">x</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="mi">2</span><span class="p">),</span> <span class="n">integer</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">bounds</span><span class="o">=</span><span class="p">[</span><span class="o">-</span><span class="mf">1.5</span><span class="p">,</span> <span class="mi">2</span><span class="p">])</span>
+<span class="n">prob</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Problem</span><span class="p">(</span><span class="n">cp</span><span class="o">.</span><span class="n">Minimize</span><span class="p">(</span><span class="n">cp</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">x</span><span class="p">)),</span> <span class="p">[])</span>
+<span class="n">prob</span><span class="o">.</span><span class="n">solve</span><span class="p">()</span>
+<span class="k">assert</span> <span class="n">prob</span><span class="o">.</span><span class="n">value</span> <span class="o">==</span> <span class="o">-</span><span class="mi">4</span>
+<span class="c1"># although the lower bound is 1.5, each entry of x</span>
+<span class="c1"># is set to -1 due to the integer attribute</span>
+<span class="k">assert</span> <span class="n">x</span><span class="o">.</span><span class="n">value</span> <span class="o">==</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">],</span>
+                            <span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">]])</span>
+</code></pre></div>
+</div>
+<p>Example for defining a sparse bounded variable:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">cvxpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">cp</span>
+<span class="n">x</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Variable</span><span class="p">((</span><span class="mi">3</span><span class="p">,</span><span class="mi">3</span><span class="p">),</span> <span class="n">sparsity</span><span class="o">=</span><span class="p">[(</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">),(</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">)],</span> <span class="n">bounds</span><span class="o">=</span><span class="p">[</span><span class="mf">3.5</span><span class="p">,</span> <span class="mi">7</span><span class="p">])</span>
+<span class="n">prob</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Problem</span><span class="p">(</span><span class="n">cp</span><span class="o">.</span><span class="n">Minimize</span><span class="p">(</span><span class="n">cp</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">x</span><span class="p">)),</span> <span class="p">[])</span>
+<span class="n">prob</span><span class="o">.</span><span class="n">solve</span><span class="p">()</span>
+<span class="k">assert</span> <span class="n">prob</span><span class="o">.</span><span class="n">value</span> <span class="o">==</span> <span class="mi">7</span>
+<span class="c1"># each non-zero entry of x is set to the lower</span>
+<span class="c1"># bound of 3.5</span>
+<span class="k">assert</span> <span class="n">x</span><span class="o">.</span><span class="n">value</span> <span class="o">==</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="mi">0</span><span class="p">,</span> <span class="mf">3.5</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span>
+                            <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mf">3.5</span><span class="p">],</span>
+                            <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]])</span>
 </code></pre></div>
 </div>
 <h2 id="semidefinite-matrices"><span id="semidefinite"></span>Semidefinite matrices<a class="headerlink" href="#semidefinite-matrices" title="Link to this heading">¶</a></h2>
