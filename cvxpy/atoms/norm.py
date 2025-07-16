@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from typing import Union
+from typing import Optional, Union
 
 import numpy as np
 
@@ -28,7 +28,7 @@ from cvxpy.atoms.sigma_max import sigma_max
 from cvxpy.expressions.expression import Expression
 
 
-def norm(x, p: Union[int, str] = 2, axis=None, keepdims: bool = False):
+def norm(x, p: Union[int, str] = 2, axis: Optional[int] = None, keepdims: bool = False):
     """Wrapper on the different norm atoms.
 
     Parameters
@@ -52,6 +52,8 @@ def norm(x, p: Union[int, str] = 2, axis=None, keepdims: bool = False):
     x = Expression.cast_to_const(x)
     # matrix norms take precedence
     num_nontrivial_idxs = sum([d > 1 for d in x.shape])
+    if axis is not None and not isinstance(axis, int):
+        raise ValueError(f'Axis must be an integer, not {type(axis)}.')
     if axis is None and x.ndim == 2:
         if p == 1:  # matrix 1-norm
             return cvxpy.atoms.max(norm1(x, axis=0))
@@ -67,8 +69,6 @@ def norm(x, p: Union[int, str] = 2, axis=None, keepdims: bool = False):
         else:
             raise RuntimeError('Unsupported matrix norm.')
     else:
-        if not isinstance(axis, int):
-            raise ValueError(f'Axis must be an integer, not {type(axis)}.')
         if p == 1 or x.is_scalar():
             return norm1(x, axis=axis, keepdims=keepdims)
         elif str(p).lower() == "inf":
