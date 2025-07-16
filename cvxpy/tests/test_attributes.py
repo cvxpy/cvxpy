@@ -221,6 +221,15 @@ class TestAttributes:
         ):
             x = cp.Variable((2, 2), name="x", bounds=bounds)
 
+    def test_scalar_bool(self):
+        x = cp.Variable(nonpos=True)
+        n = cp.Variable(boolean=True)
+        cp.Problem(cp.Maximize(x), [n == 1]).solve()
+
+    def test_scalar_int(self):
+        x = cp.Variable(nonpos=True)
+        n = cp.Variable(integer=True)
+        cp.Problem(cp.Maximize(x), [n == 1]).solve()
 
 class TestMultipleAttributes:
 

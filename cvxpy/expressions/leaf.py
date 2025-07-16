@@ -403,14 +403,14 @@ class Leaf(expression.Expression):
             return val.astype(complex)
         elif self.attributes['boolean']:
             if hasattr(self, "boolean_idx"):
-                new_val = val.copy()
-                new_val[self.boolean_idx] = np.round(np.clip(val[self.boolean_idx], 0., 1.))
-                return new_val
+                new_val = np.atleast_1d(val).copy()
+                new_val[self.boolean_idx] = np.round(np.clip(new_val[self.boolean_idx], 0., 1.))
+                return new_val.reshape(val.shape) if val.ndim == 0 else new_val
         elif self.attributes['integer']:
             if hasattr(self, "integer_idx"):
-                new_val = val.copy()
-                new_val[self.integer_idx] = np.round(val[self.integer_idx])
-                return new_val
+                new_val = np.atleast_1d(val).copy()
+                new_val[self.integer_idx] = np.round(new_val[self.integer_idx])
+                return new_val.reshape(val.shape) if val.ndim == 0 else new_val
         elif self.attributes['diag']:
             if intf.is_sparse(val):
                 val = val.diagonal()
