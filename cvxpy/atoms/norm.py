@@ -67,6 +67,8 @@ def norm(x, p: Union[int, str] = 2, axis=None, keepdims: bool = False):
         else:
             raise RuntimeError('Unsupported matrix norm.')
     else:
+        if not isinstance(axis, int):
+            raise ValueError(f'Axis must be an integer, not {type(axis)}.')
         if p == 1 or x.is_scalar():
             return norm1(x, axis=axis, keepdims=keepdims)
         elif str(p).lower() == "inf":

@@ -297,6 +297,11 @@ class TestAtoms(BaseTest):
         self.assertTrue(copy.args[0] is self.y)
         self.assertEqual(copy.get_data(), atom.get_data())
 
+    def test_norm_axis_input(self) -> None:
+        x = cp.Variable()
+        with pytest.raises(Exception, match="Axis must be an integer"):
+            cp.norm2(cp.Constant(1), x)
+
     def test_matrix_norms(self) -> None:
         """
         Matrix 1-norm, 2-norm (sigma_max), infinity-norm,
