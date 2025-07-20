@@ -228,27 +228,31 @@ class IPOPT(NLPsolver):
         def jacobian(self, x):
             """Returns the Jacobian of the constraints with respect to x."""
             # Convert to torch tensor with gradient tracking
-            offset = 0
-            torch_vars_dict = {}
-            torch_exprs = []
-            
-            for var in self.main_var:
-                size = var.size
-                slice = x[offset:offset+size].reshape(var.shape, order='F')
-                torch_tensor = torch.from_numpy(slice.astype(np.float64)).requires_grad_(True)
-                torch_vars_dict[var.id] = torch_tensor  # Map CVXPY variable ID to torch tensor
-                torch_exprs.append(torch_tensor)
-                offset += size
-            
+            x = torch.from_numpy(x.astype(np.float64)).requires_grad_(True)
+
             # Define a function that computes all constraint values
-            def constraint_function(*args):
+            def constraint_function(x):
+                from cvxtorch.utils.torch_utils import tensor_reshape_fortran
+                offset = 0
+                torch_vars_dict = {}
+                torch_exprs = []
+                for var in self.main_var:
+                    size = var.size
+                    slice = x[offset:offset+size].reshape(var.shape)
+                    #slice = x[offset:offset+size].reshape(var.shape, order='F')
+                    torch_vars_dict[var.id] = slice # Map CVXPY variable ID to torch tensor
+                    torch_exprs.append(slice)
+                    offset += size
+                
                 # Create mapping from torch tensors back to CVXPY variables
                 torch_to_var = {}
                 for i, var in enumerate(self.main_var):
-                    torch_to_var[var.id] = args[i]
+                    torch_to_var[var.id] = torch_exprs[i]
                 
                 constraint_values = []
                 for constraint in self.problem.constraints:
+                    # all constraints have a single argument
+                    # because they are "normalized" in the reduction
                     constraint_expr = constraint.args[0]
                     constraint_vars = constraint_expr.variables()
                     
@@ -269,8 +273,7 @@ class IPOPT(NLPsolver):
 
             # Compute Jacobian using torch.autograd.functional.jacobian
             if len(self.problem.constraints) > 0:
-                jacobian_tuple = torch.autograd.functional.jacobian(constraint_function, 
-                                                                    tuple(torch_exprs))
+                jacobian_tuple = torch.autograd.functional.jacobian(constraint_function, x)
                 # Handle the case where jacobian_tuple is a tuple (multiple variables)
                 if isinstance(jacobian_tuple, tuple):
                     # Concatenate along the last dimension (variable dimension)

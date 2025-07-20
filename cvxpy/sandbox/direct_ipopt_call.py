@@ -1,12 +1,12 @@
 import cvxpy as cp
 
 # Define variables
-x = cp.Variable(1)
-y = cp.Variable(1)
+x = cp.Variable(3)
+y = cp.Variable(3)
 
-objective = cp.Maximize(cp.maximum(x, y))
+objective = cp.Maximize(cp.sum(cp.maximum(x, y)))
 
-constraints = [x - 14 == 0, y - 6 == 0]
+constraints = [x <= 14, y <= 6]
 
 problem = cp.Problem(objective, constraints)
 print(cp.installed_solvers())
