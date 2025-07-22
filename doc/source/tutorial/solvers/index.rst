@@ -903,6 +903,7 @@ will be the same as the class variable ``SUPPORTED_CONSTRAINTS``.
 .. _SCIPY: https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.linprog.html#scipy.optimize.linprog
 .. _HiGHS: https://highs.dev/
 .. _CLARABEL: https://oxfordcontrol.github.io/ClarabelDocs/
+.. _CUCLARABEL: https://github.com/cvxgrp/CuClarabel
 .. _PIQP: https://predict-epfl.github.io/piqp/
 .. _PROXQP: https://github.com/simple-robotics/proxsuite
 .. _CUOPT: https://github.com/NVIDIA/cuopt
