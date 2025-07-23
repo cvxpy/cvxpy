@@ -53,7 +53,7 @@ dependencies = [
     "osqp >= 0.6.2",
     "clarabel >= 0.5.0",
     "scs >= 3.2.4.post1",
-    "numpy >= 1.22.4",
+    "numpy >= 1.26.0",
     "scipy >= 1.13.0",
 ]
 requires-python = ">=3.9"
