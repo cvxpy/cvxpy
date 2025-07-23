@@ -18,6 +18,7 @@ from typing import List, Optional, Tuple
 
 import numpy as np
 import scipy.sparse as sp
+from numpy.lib.array_utils import normalize_axis_index, normalize_axis_tuple
 
 from cvxpy.atoms.atom import Atom
 
@@ -43,19 +44,14 @@ class AxisAtom(Atom):
             return (1,) * len(shape) if self.keepdims else ()
         elif isinstance(self.axis, int):
             # Normalize negative axis
-            axis = self.axis if self.axis >= 0 else self.axis + ndim
-            if axis < 0:
-                ValueError(f"axis {self.axis} is out of bounds for array of dimension {ndim}")
+            axis = normalize_axis_index(self.axis, ndim)
             if self.keepdims:
                 shape[axis] = 1
             else:
                 shape = shape[:axis] + shape[axis+1:]
         else:
             # Normalize each axis in the list
-            axes = [axis if axis >= 0 else axis + ndim for axis in self.axis]
-            if any(axis < 0 for axis in axes):
-                ValueError(f"axis {[axis for axis in self.axis if axis < -ndim][0]}"
-                           f" is out of bounds for array of dimension {ndim}")
+            axes =  normalize_axis_tuple(self.axis, ndim)
             if self.keepdims:
                 for axis in axes:
                     shape[axis] = 1
@@ -76,11 +72,7 @@ class AxisAtom(Atom):
         if self.axis is not None:
             axes = [self.axis] if isinstance(self.axis, int) else self.axis
             dim = self.args[0].ndim
-            for axis in axes:
-                if axis < 0:
-                    axis += dim
-                if axis >= dim or axis < 0:
-                    raise ValueError(f"axis {axis} is out of bounds for array of dimension {dim}")
+            _ = normalize_axis_tuple(axes, dim)
         super(AxisAtom, self).validate_arguments()
 
     def _axis_grad(self, values) -> Optional[List[sp.csc_array]]:
