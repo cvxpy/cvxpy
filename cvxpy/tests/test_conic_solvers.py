@@ -2622,6 +2622,130 @@ class TestCOPT(unittest.TestCase):
         # Valid arg.
         problem.solve(solver=cp.COPT, feastol=1e-9)
 
+@unittest.skipUnless(cp.KNITRO in INSTALLED_SOLVERS, 'KNITRO is not installed.')
+class TestKNITRO(BaseTest):
+
+    def test_knitro_lp_0(self) -> None:
+        StandardTestLPs.test_lp_0(solver=cp.KNITRO)
+
+    def test_knitro_lp_1(self) -> None:
+        StandardTestLPs.test_lp_1(solver=cp.KNITRO)
+
+    def test_knitro_lp_2(self) -> None:
+        StandardTestLPs.test_lp_2(solver=cp.KNITRO)
+
+    def test_knitro_lp_3(self) -> None:
+        StandardTestLPs.test_lp_3(solver=cp.KNITRO)
+
+    def test_knitro_lp_4(self) -> None:
+        StandardTestLPs.test_lp_4(solver=cp.KNITRO)
+
+    def test_knitro_lp_5(self) -> None:
+        StandardTestLPs.test_lp_5(solver=cp.KNITRO)
+
+    def test_knitro_lp_6(self) -> None:
+        StandardTestLPs.test_lp_6(solver=cp.KNITRO)
+
+    def test_knitro_lp_bound_attr(self) -> None:
+        StandardTestLPs.test_lp_bound_attr(solver=cp.KNITRO)
+
+    def test_knitro_socp_0(self) -> None:
+        StandardTestSOCPs.test_socp_0(solver=cp.KNITRO)
+
+    def test_knitro_socp_1(self) -> None:
+        StandardTestSOCPs.test_socp_1(solver=cp.KNITRO)
+
+    def test_knitro_socp_2(self) -> None:
+        StandardTestSOCPs.test_socp_2(solver=cp.KNITRO)
+
+    def test_knitro_socp_3(self) -> None:
+        # axis 0
+        StandardTestSOCPs.test_socp_3ax0(solver=cp.KNITRO)
+        # axis 1
+        StandardTestSOCPs.test_socp_3ax1(solver=cp.KNITRO)
+
+    def test_knitro_socp_bounds_attr(self) -> None:
+        StandardTestSOCPs.test_socp_bounds_attr(solver=cp.KNITRO)
+
+    def test_knitro_mi_lp_0(self) -> None:
+        StandardTestLPs.test_mi_lp_0(solver=cp.KNITRO)
+
+    def test_knitro_mi_lp_1(self) -> None:
+        StandardTestLPs.test_mi_lp_1(solver=cp.KNITRO)
+
+    def test_knitro_mi_lp_2(self) -> None:
+        StandardTestLPs.test_mi_lp_2(solver=cp.KNITRO)
+
+    def test_knitro_mi_lp_3(self) -> None:
+        StandardTestLPs.test_mi_lp_3(solver=cp.KNITRO)
+
+    def test_knitro_mi_lp_5(self) -> None:
+        StandardTestLPs.test_mi_lp_5(solver=cp.KNITRO)
+
+    def test_knitro_mi_socp_1(self) -> None:
+        StandardTestSOCPs.test_mi_socp_1(solver=cp.KNITRO)
+
+    def test_knitro_mi_socp_2(self) -> None:
+        StandardTestSOCPs.test_mi_socp_2(solver=cp.KNITRO)
+
+    def test_knitro_qp_0(self) -> None:
+        StandardTestQPs.test_qp_0(solver=cp.KNITRO)
+
+    def test_knitro_expcone_1(self) -> None:
+        StandardTestECPs.test_expcone_1(solver=cp.KNITRO)
+
+    def test_knitro_pcp_1(self) -> None:
+        StandardTestPCPs.test_pcp_1(solver=cp.KNITRO)
+
+    def test_knitro_pcp_2(self) -> None:
+        StandardTestPCPs.test_pcp_2(solver=cp.KNITRO)
+
+    def test_knitro_pcp_3(self) -> None:
+        StandardTestPCPs.test_pcp_3(solver=cp.KNITRO)
+
+    def test_knitro_mi_pcp_0(self) -> None:
+        StandardTestPCPs.test_mi_pcp_0(solver=cp.KNITRO)
+
+    def test_knitro_sdp_1min(self) -> None:
+        StandardTestSDPs.test_sdp_1min(solver=cp.KNITRO)
+
+    def test_knitro_sdp_1max(self) -> None:
+        StandardTestSDPs.test_sdp_1max(solver=cp.KNITRO)
+
+    def test_knitro_sdp_2(self) -> None:
+        StandardTestSDPs.test_sdp_2(solver=cp.KNITRO)
+
+    def test_knitro_exp_soc_1(self) -> None:
+        StandardTestMixedCPs.test_exp_soc_1(solver=cp.KNITRO)
+
+    def test_knitro_sdp_pcp_1(self) -> None:
+        StandardTestMixedCPs.test_sdp_pcp_1(solver=cp.KNITRO)
+
+    def test_knitro_params(self) -> None:
+        n = 10
+        m = 4
+        np.random.seed(0)
+        A = np.random.randn(m, n)
+        x = np.random.randn(n)
+        y = A.dot(x)
+
+        # Solve a simple basis pursuit problem for testing purposes.
+        z = cp.Variable(n)
+        objective = cp.Minimize(cp.norm1(z))
+        constraints = [A @ z == y]
+        problem = cp.Problem(objective, constraints)
+
+        with self.assertRaises(Exception):
+            opts = {"a": "invalid"}
+            problem.solve(solver=cp.KNITRO, **opts)
+
+        with self.assertRaises(Exception):
+            opts = {"algorithm": "invalid"}
+            problem.solve(solver=cp.KNITRO, **opts)
+
+        opts = {"algorithm": 0}
+        problem.solve(solver=cp.KNITRO, **opts)
+
 @unittest.skipUnless("CUOPT" in INSTALLED_SOLVERS, "CUOPT is not installed.")
 class TestCUOPT(unittest.TestCase):
 
