@@ -2555,6 +2555,12 @@ class TestCOSMO(BaseTest):
 
     def test_cosmo_lp_4(self) -> None:
         StandardTestLPs.test_lp_4(solver='COSMO')
+    
+    def test_cosmo_lp_5(self) -> None:
+        StandardTestLPs.test_lp_5(solver='COSMO')
+
+    def test_cosmo_qp_0(self) -> None:
+        StandardTestQPs.test_qp_0(solver='COSMO')
 
     def test_cosmo_socp_0(self) -> None:
         StandardTestSOCPs.test_socp_0(solver='COSMO')
@@ -2576,6 +2582,28 @@ class TestCOSMO(BaseTest):
 
     def test_cosmo_exp_soc_1(self) -> None:
         StandardTestMixedCPs.test_exp_soc_1(solver='COSMO')
+
+    def test_cosmo_pcp_1(self) -> None:
+        StandardTestPCPs.test_pcp_1(solver='COSMO')
+
+    def test_cosmo_pcp_2(self) -> None:
+        StandardTestPCPs.test_pcp_2(solver='COSMO')
+
+    def test_cosmo_pcp_3(self) -> None:
+        StandardTestPCPs.test_pcp_3(solver='COSMO')
+
+    def test_cosmo_sdp_1min(self) -> None:
+        StandardTestSDPs.test_sdp_1min(solver='COSMO')
+    
+    def test_cosmo_sdp_2(self) -> None:
+        places = 3
+        sth = sths.sdp_2()
+        sth.solve(solver='COSMO')
+        sth.verify_objective(places)
+        sth.check_primal_feasibility(places)
+        sth.verify_primal_values(places)
+        sth.check_complementarity(places)
+        sth.check_dual_domains(places)
 
     def test_warm_start(self) -> None:
         """Test warm starting.
