@@ -35,6 +35,7 @@ from cvxpy.reductions.solvers.conic_solvers.glpk_conif import GLPK as GLPK_con
 from cvxpy.reductions.solvers.conic_solvers.glpk_mi_conif import GLPK_MI as GLPK_MI_con
 from cvxpy.reductions.solvers.conic_solvers.gurobi_conif import GUROBI as GUROBI_con
 from cvxpy.reductions.solvers.conic_solvers.highs_conif import HIGHS as HIGHS_con
+from cvxpy.reductions.solvers.conic_solvers.knitro_conif import KNITRO as KNITRO_con
 from cvxpy.reductions.solvers.conic_solvers.mosek_conif import MOSEK as MOSEK_con
 from cvxpy.reductions.solvers.conic_solvers.nag_conif import NAG as NAG_con
 from cvxpy.reductions.solvers.conic_solvers.pdlp_conif import PDLP as PDLP_con
@@ -51,6 +52,7 @@ from cvxpy.reductions.solvers.qp_solvers.cplex_qpif import CPLEX as CPLEX_qp
 from cvxpy.reductions.solvers.qp_solvers.daqp_qpif import DAQP as DAQP_qp
 from cvxpy.reductions.solvers.qp_solvers.gurobi_qpif import GUROBI as GUROBI_qp
 from cvxpy.reductions.solvers.qp_solvers.highs_qpif import HIGHS as HIGHS_qp
+from cvxpy.reductions.solvers.qp_solvers.knitro_qpif import KNITRO as KNITRO_qp
 from cvxpy.reductions.solvers.qp_solvers.mpax_qpif import MPAX as MPAX_qp
 from cvxpy.reductions.solvers.qp_solvers.osqp_qpif import OSQP as OSQP_qp
 from cvxpy.reductions.solvers.qp_solvers.piqp_qpif import PIQP as PIQP_qp
@@ -63,7 +65,8 @@ solver_conic_intf = [DIFFCP_con(), ECOS_con(),
                      GLPK_MI_con(), CBC_con(), CLARABEL_con(), SCS_con(), SDPA_con(),
                      GUROBI_con(), MOSEK_con(), CPLEX_con(), NAG_con(), XPRESS_con(),
                      SCIP_con(), SCIPY_con(), HIGHS_con(), GLOP_con(), PDLP_con(),
-                     QOCO_con(), CUCLARABEL_con(), CUOPT_con(), ECOS_BB_con()]
+                     QOCO_con(), CUCLARABEL_con(), CUOPT_con(), ECOS_BB_con(),
+                     KNITRO_con()]
 
 solver_qp_intf = [OSQP_qp(),
                   GUROBI_qp(),
@@ -75,6 +78,7 @@ solver_qp_intf = [OSQP_qp(),
                   DAQP_qp(),
                   HIGHS_qp(),
                   MPAX_qp(),
+                  KNITRO_qp(),
                   ]
 
 SOLVER_MAP_CONIC = {solver.name(): solver for solver in solver_conic_intf}
@@ -87,7 +91,7 @@ CONIC_SOLVERS = [s.MOSEK, s.CLARABEL, s.SCS, s.ECOS, s.SDPA,
                  s.CPLEX, s.GUROBI, s.COPT, s.GLPK, s.NAG,
                  s.GLPK_MI, s.CBC, s.CVXOPT, s.XPRESS, s.DIFFCP,
                  s.SCIP, s.SCIPY, s.HIGHS, s.GLOP, s.PDLP, s.QOCO,
-                 s.CUCLARABEL, s.CUOPT, s.ECOS_BB]
+                 s.CUCLARABEL, s.CUOPT, s.ECOS_BB, s.KNITRO]
 
 QP_SOLVERS = [s.OSQP,
               s.GUROBI,
@@ -98,12 +102,14 @@ QP_SOLVERS = [s.OSQP,
               s.PIQP,
               s.PROXQP,
               s.DAQP,
-              s.MPAX]
+              s.MPAX,
+              s.KNITRO]
 DISREGARD_CLARABEL_SDP_SUPPORT_FOR_DEFAULT_RESOLUTION = True
 MI_SOLVERS = [s.GLPK_MI, s.MOSEK, s.GUROBI, s.CPLEX,
-              s.XPRESS, s.CBC, s.SCIP, s.HIGHS, s.COPT, s.CUOPT, s.ECOS_BB]
+              s.XPRESS, s.CBC, s.SCIP, s.HIGHS, s.COPT,
+              s.CUOPT, s.ECOS_BB, s.KNITRO]
 MI_SOCP_SOLVERS = [s.MOSEK, s.GUROBI, s.CPLEX, s.XPRESS,
-                   s.SCIP, s.ECOS_BB]
+                   s.SCIP, s.ECOS_BB, s.KNITRO]
 
 # Acknowledge MI solver support for SciPy >= 1.9.
 if not (Version(scipy.__version__) < Version('1.9.0')):

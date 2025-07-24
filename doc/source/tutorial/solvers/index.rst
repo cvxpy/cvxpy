@@ -115,6 +115,8 @@ The table below shows the types of problems the supported solvers can handle.
 +----------------+----+----+------+-----+-----+-----+-----+
 | `HiGHS`_       | X  | X  |      |     |     |     | X*  |
 +----------------+----+----+------+-----+-----+-----+-----+
+| `KNITRO`_      | X  | X  | X    | X   | X   | X   | X   |
++----------------+----+----+------+-----+-----+-----+-----+
 
 (*) Mixed-integer LP only.
 
@@ -291,7 +293,7 @@ cached previous solution as described above (rather than from the ``value`` fiel
 Setting solver options
 ----------------------
 
-The `OSQP`_, `ECOS`_, `GLOP`_, `MOSEK`_, `MPAX`_, `CBC`_, `CVXOPT`_, `NAG`_, `PDLP`_, `QOCO`_, `GUROBI`_, `SCS`_ , `CLARABEL`_, `DAQP`_, `PIQP`_, `PROXQP`_ and `CUOPT`_ Python interfaces allow you to set solver options such as the maximum number of iterations. You can pass these options along through CVXPY as keyword arguments.
+The `OSQP`_, `ECOS`_, `GLOP`_, `MOSEK`_, `MPAX`_, `CBC`_, `CVXOPT`_, `NAG`_, `PDLP`_, `QOCO`_, `GUROBI`_, `SCS`_ , `CLARABEL`_, `DAQP`_, `PIQP`_, `PROXQP`_, `CUOPT`_ and `KNITRO`_ Python interfaces allow you to set solver options such as the maximum number of iterations. You can pass these options along through CVXPY as keyword arguments.
 
 For example, here we tell SCS to use an indirect method for solving linear equations rather than a direct method.
 
@@ -842,6 +844,11 @@ Here is the complete list of solver options.
 
     **Please note**: cuOpt internally has a specific API for setting variable bounds, and it uses the cvxpy interface for bounded variables.  While not strictly necessary, cuOpt may perform better on some problens if variable bounds are included in the cvxpy variable creation rather than expressed as constraints.
 
+.. info:: `KNITRO`_ options:
+    :collapsible:
+    
+    KNITRO solver options are specified in CVXPY as keyword arguments. The full list of KNITRO parameters with defaults is listed `here <https://www.artelys.com/app/docs/knitro/3_referenceManual/userOptions.html>`_.
+
 Custom Solvers
 ------------------------------------
 Although ``cvxpy`` supports many different solvers out of the box, it is also possible to define and use custom solvers. This can be helpful in prototyping or developing custom solvers tailored to a specific application.
@@ -907,3 +914,4 @@ will be the same as the class variable ``SUPPORTED_CONSTRAINTS``.
 .. _PIQP: https://predict-epfl.github.io/piqp/
 .. _PROXQP: https://github.com/simple-robotics/proxsuite
 .. _CUOPT: https://github.com/NVIDIA/cuopt
+.. _KNITRO: https://www.artelys.com/knitro/
