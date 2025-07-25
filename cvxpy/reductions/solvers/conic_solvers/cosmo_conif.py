@@ -114,7 +114,7 @@ class COSMO(CLARABEL):
         if len(dims.soc) > 0:
             cones["q"] = dims.soc
         if len(dims.psd) > 0:
-            cones["s"] = dims.psd
+            cones["s"] = [(d * (d + 1)) // 2 for d in dims.psd]
         if dims.exp > 0:
             cones["ep"] = dims.exp
         if len(dims.p3d) > 0:
