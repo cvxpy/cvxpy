@@ -48,6 +48,6 @@ fi
 
 # Only install KNITRO if license is available (secret is not copied to forks)
 # KNITRO on macOS is only available for arch64
-if [[ -n "$KNITRO_LICENSE" ]] && ! ([[ "$RUNNER_OS" == "macOS" ]] && [[ $(uname -m) != "aarch64" ]]); then
+if [[ -n "$KNITRO_LICENSE" ]] && ! ([[ "$RUNNER_OS" == "macOS" ]] && [[ $(uname -m) == "x86_64" ]]); then
   python -m pip install knitro
 fi
