@@ -180,17 +180,17 @@ class XPRESS(ConicSolver):
 
         self.prob_.loadproblem(probname="CVX_xpress_conic",
                                # constraint types
-                               qrtypes=['E'] * nrowsEQ + ['L'] * nrowsLEQ,
+                               rowtype=['E'] * nrowsEQ + ['L'] * nrowsLEQ,
                                rhs=b,                               # rhs
-                               range=None,                          # range
-                               obj=c,                               # obj coeff
-                               mstart=mstart,                       # mstart
-                               mnel=None,                           # mnel (unused)
+                               rng=None,                            # range
+                               objcoef=c,                           # obj coeff
+                               start=mstart,                        # mstart
+                               collen=None,                         # mnel (unused)
                                # linear coefficients
-                               mrwind=A.indices[A.data != 0],       # row indices
-                               dmatval=A.data[A.data != 0],         # coefficients
-                               dlb=[-xp.infinity] * len(c),         # lower bound
-                               dub=[xp.infinity] * len(c),          # upper bound
+                               rowind=A.indices[A.data != 0],       # row indices
+                               rowcoef=A.data[A.data != 0],         # coefficients
+                               lb=[-xp.infinity] * len(c),          # lower bound
+                               ub=[xp.infinity] * len(c),           # upper bound
                                colnames=varnames,                   # column names
                                rownames=linRownames)                # row    names
 
@@ -297,13 +297,13 @@ class XPRESS(ConicSolver):
         results_dict = {
 
             'problem':   self.prob_,
-            'status':    self.prob_.getProbStatus(),
-            'obj_value': self.prob_.getObjVal(),
+            'status':    self.prob_.attributes.solstatus,
+            'obj_value': self.prob_.attributes.objval,
         }
 
         status_map_lp, status_map_mip = get_status_maps()
 
-        if 'mip_' in self.prob_.getProbStatusString():
+        if len(data[s.BOOL_IDX]) > 0 or len(data[s.INT_IDX]) > 0:
             status = status_map_mip[results_dict['status']]
         else:
             status = status_map_lp[results_dict['status']]
@@ -315,7 +315,7 @@ class XPRESS(ConicSolver):
         if status in s.SOLUTION_PRESENT:
             results_dict['x'] = self.prob_.getSolution()
             if not (data[s.BOOL_IDX] or data[s.INT_IDX]):
-                results_dict['y'] = - np.array(self.prob_.getDual())
+                results_dict['y'] = - np.array(self.prob_.getDuals())
 
         elif status == s.INFEASIBLE and 'save_iis' in solver_opts and solver_opts['save_iis'] != 0:
 
@@ -380,7 +380,7 @@ class XPRESS(ConicSolver):
         solution[s.XPRESS_IIS] = results_dict[s.XPRESS_IIS]
         solution[s.XPRESS_TROW] = results_dict[s.XPRESS_TROW]
 
-        solution['getObjVal'] = self.prob_.getObjVal()
+        solution['getObjVal'] = self.prob_.attributes.objval
 
         solution[s.SOLVE_TIME] = self.prob_.attributes.time
 
