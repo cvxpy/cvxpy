@@ -37,7 +37,7 @@ jobs:
             python-version: 3.12
             openmp: "True"
             single_action_config: false
-          - os: macos-13
+          - os: macos-14
             python-version: 3.12
             single_action_config: true
 
