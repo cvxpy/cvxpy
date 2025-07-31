@@ -72,7 +72,6 @@ class Solver(Reduction):
         """
         raise NotImplementedError()
 
-    @abc.abstractmethod
     def cite(self, data):
         """Return bibtex citation for the solver.
         """
