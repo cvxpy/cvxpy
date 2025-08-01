@@ -20,13 +20,10 @@ import numpy as np
 import scipy.sparse as sp
 
 import cvxpy.settings as s
-from cvxpy.constraints import PSD, SOC, ExpCone, PowCone3D
-from cvxpy.expressions.expression import Expression
 from cvxpy.reductions.dcp2cone.cone_matrix_stuffing import ConeDims
 from cvxpy.reductions.solution import Solution, failure_solution
 from cvxpy.reductions.solvers import utilities
 from cvxpy.reductions.solvers.conic_solvers.clarabel_conif import CLARABEL  # , dims_to_solver_cones
-from cvxpy.reductions.solvers.conic_solvers.conic_solver import ConicSolver
 from cvxpy.utilities.citations import CITATION_DICT
 
 
@@ -88,8 +85,6 @@ class COSMO(CLARABEL):
 
     @staticmethod
     def parse_solver_opts(verbose, opts, settings=None):
-        import cosmopy
-
         if settings is None:
             settings = {}
 
