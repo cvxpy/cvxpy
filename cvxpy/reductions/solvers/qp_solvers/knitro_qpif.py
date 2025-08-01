@@ -130,9 +130,7 @@ class KNITRO(QpSolver):
 
     def import_solver(self) -> None:
         """Imports the Knitro solver."""
-        import knitro
-
-        knitro
+        import knitro  # noqa: F401
 
     def apply(self, problem):
         """
