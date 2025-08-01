@@ -25,7 +25,7 @@ jobs:
           echo "PYTHON_SUBVERSION=$(echo $PYTHON_VERSION | cut -c 3-)" >> $GITHUB_ENV
           echo $MOSEK_CI_BASE64 | base64 -d > mosek.lic
           echo "MOSEKLM_LICENSE_FILE=$( [[ $RUNNER_OS == 'macOS' ]] && echo $(pwd)/mosek.lic || echo $(realpath mosek.lic) )" >> $GITHUB_ENV
-          echo "$KNITRO_LICENSE" > ~/artelys_lic.txt
+          echo $KNITRO_LICENSE > ~/artelys_lic.txt
 
       - uses: actions/setup-python@v5
         with:
