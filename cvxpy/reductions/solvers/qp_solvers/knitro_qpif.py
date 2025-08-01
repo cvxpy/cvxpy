@@ -129,7 +129,10 @@ class KNITRO(QpSolver):
         return s.KNITRO
 
     def import_solver(self) -> None:
-        pass
+        """Imports the Knitro solver."""
+        import knitro
+
+        knitro
 
     def apply(self, problem):
         """

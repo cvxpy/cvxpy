@@ -296,6 +296,9 @@ class KNITRO(ConicSolver):
 
     def import_solver(self) -> None:
         """Imports the solver."""
+        import knitro
+
+        knitro
 
     def supports_quad_obj(self):
         return True
