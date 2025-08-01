@@ -9,10 +9,14 @@ conda config --set remote_connect_timeout_secs 30.0
 conda config --set remote_max_retries 10
 conda config --set remote_backoff_factor 2
 conda config --set remote_read_timeout_secs 120.0
-conda install mkl pip pytest pytest-cov hypothesis openblas "setuptools>65.5.1"
+conda install pip pytest pytest-cov hypothesis openblas "setuptools>65.5.1"
 
 conda install scs
 python -m pip install clarabel osqp
+
+if [[ "$RUNNER_OS" != "macOS" ]]; then
+  conda install mkl
+fi
 
 # Install newest stable versions for Python 3.13.
 if [[ "$PYTHON_VERSION" == "3.13" ]]; then
