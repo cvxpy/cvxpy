@@ -149,7 +149,7 @@ class Constraint(u.Canonical):
 
         .. math::
 
-            ||\\Pi(v) - v||_2^2
+            ||\\Pi(v) - v||_2
 
         where :math:`v` is the value of the constrained expression and
         :math:`\\Pi` is the projection operator onto the constraint's domain .

@@ -28,7 +28,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ ubuntu-22.04, macos-13, windows-2022 ]
+        os: [ ubuntu-22.04, macos-14, windows-2022 ]
         python-version: [ 3.9, "3.10", "3.11", "3.12", "3.13" ]
         include:
           # These are intended to just add their extra parameter to existing matrix combinations;
@@ -37,7 +37,7 @@ jobs:
             python-version: 3.12
             openmp: "True"
             single_action_config: false
-          - os: macos-13
+          - os: macos-14
             python-version: 3.12
             single_action_config: true
 
@@ -55,6 +55,7 @@ jobs:
           echo "PYTHON_SUBVERSION=$(echo $PYTHON_VERSION | cut -c 3-)" >> $GITHUB_ENV
           echo $MOSEK_CI_BASE64 | base64 -d > mosek.lic
           echo "MOSEKLM_LICENSE_FILE=$( [[ $RUNNER_OS == 'macOS' ]] && echo $(pwd)/mosek.lic || echo $(realpath mosek.lic) )" >> $GITHUB_ENV
+
       - uses: conda-incubator/setup-miniconda@v3
         with:
           auto-update-conda: true
@@ -83,7 +84,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ ubuntu-22.04, macos-13, windows-2022 ]
+        os: [ ubuntu-22.04, macos-14, windows-2022 ]
         python-version: [ 3.9, "3.10", "3.11", "3.12", "3.13" ]
         build-cvxpy-base: [ true, false ]  # whether to build cvxpy-base (true) or regular cvxpy (false)
         include:
@@ -149,7 +150,7 @@ jobs:
           CIBW_SKIP: "*-win32 *-manylinux_i686 *-musllinux*"
           CIBW_ARCHS_MACOS: x86_64 universal2
           CIBW_ARCHS_LINUX: auto aarch64
-        uses: pypa/cibuildwheel@v2.23.1
+        uses: pypa/cibuildwheel@v3.0.0
 
       - name: Build source
         if: ${{github.event_name == 'push' && env.SINGLE_ACTION_CONFIG == 'True'}}

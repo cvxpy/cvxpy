@@ -35,3 +35,4 @@ from .scs_conif import SCS
 from .sdpa_conif import SDPA
 from .xpress_conif import XPRESS
 from .highs_conif import HIGHS
+from .knitro_conif import KNITRO

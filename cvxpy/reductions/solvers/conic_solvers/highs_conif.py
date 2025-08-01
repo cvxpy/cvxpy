@@ -20,6 +20,7 @@ import cvxpy.interface as intf
 import cvxpy.settings as s
 from cvxpy.error import SolverError
 from cvxpy.reductions.solution import Solution, failure_solution
+from cvxpy.reductions.solvers import utilities
 from cvxpy.reductions.solvers.conic_solvers.conic_solver import (
     ConicSolver,
     dims_to_solver_dict,
@@ -104,14 +105,26 @@ class HIGHS(ConicSolver):
         if status in s.SOLUTION_PRESENT:
             opt_val = results["info"].objective_function_value + inverse_data[s.OFFSET]
             primal_vars = {
+                # inverse_data[HIGHS.VAR_ID]: ...
+                # I don't understand how the line below works, the other conif solvers have
+                # something similar to the commented line above for the "key".
                 HIGHS.VAR_ID: intf.DEFAULT_INTF.const_to_matrix(
                     np.array(results["solution"].col_value)
                 )
             }
             # add duals if not a MIP.
             dual_vars = None
-            if not inverse_data["is_mip"]:
-                dual_vars = {HIGHS.DUAL_VAR_ID: -np.array(results["solution"].row_dual)}
+            if not inverse_data['is_mip']:
+                # The dual values are retrieved in the order that the
+                # constraints were added in solve_via_data() below. We
+                # must be careful to map them to inverse_data[EQ_CONSTR]
+                # followed by inverse_data[NEQ_CONSTR] accordingly.
+                y = -np.array(results["solution"].row_dual)
+                dual_vars = utilities.get_dual_values(
+                    y,
+                    utilities.extract_dual_value,
+                    inverse_data[HIGHS.EQ_CONSTR] + inverse_data[HIGHS.NEQ_CONSTR])
+
             attr[s.NUM_ITERS] = (
                 results["info"].ipm_iteration_count
                 + results["info"].crossover_iteration_count
@@ -247,7 +260,7 @@ class HIGHS(ConicSolver):
             solver_cache[self.name()] = (solver, data, results)
 
         return results
-    
+
     def cite(self, data):
         """Returns bibtex citation for the solver.
 

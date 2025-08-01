@@ -474,6 +474,19 @@ CITATION_DICT["CLARABEL"] = \
 }
 """
 
+CITATION_DICT["CUCLARABEL"] = \
+"""
+@misc{CuClarabel,
+      title={CuClarabel: GPU Acceleration for a Conic Optimization Solver}, 
+      author={Yuwen Chen and Danny Tse and Parth Nobel and Paul Goulart and Stephen Boyd},
+      year={2024},
+      eprint={2412.19027},
+      archivePrefix={arXiv},
+      primaryClass={math.OC},
+      url={https://arxiv.org/abs/2412.19027}, 
+}
+"""
+
 CITATION_DICT["DAQP"] = \
 """
 @article{arnstrom2022dual,
@@ -520,5 +533,38 @@ CITATION_DICT["COSMO"] = \
   publisher = {Springer},
   doi     = {10.1007/s10957-021-01896-x},
   url     = {https://doi.org/10.1007/s10957-021-01896-x}
+}
+"""
+
+CITATION_DICT["MPAX"] = \
+"""
+@article{lu2024mpax,
+  title={MPAX: Mathematical Programming in JAX},
+  author={Lu, Haihao and Peng, Zedong and Yang, Jinwen},
+  journal={arXiv preprint arXiv:2412.09734},
+  year={2024}
+}
+"""
+
+CITATION_DICT["KNITRO"] = \
+"""
+@article{byrd2006k,
+  title={K nitro: An integrated package for nonlinear optimization},
+  author={Byrd, Richard H and Nocedal, Jorge and Waltz, Richard A},
+  journal={Large-scale nonlinear optimization},
+  pages={35--59},
+  year={2006},
+  publisher={Springer}
+}
+"""
+
+CITATION_DICT["CUOPT"] = \
+"""
+@software{cuOpt,
+  title = {cuOpt},
+  version = { 25.05 },
+  organization = {NVIDIA},
+  url = {https://docs.nvidia.com/cuopt/index.html},
+  date = { 2025-05-29 }
 }
 """

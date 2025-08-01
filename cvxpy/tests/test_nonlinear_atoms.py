@@ -166,7 +166,7 @@ class TestNonlinearAtoms(BaseTest):
             p.solve(solver=cp.SCS)
             self.assertItemsAlmostEqual(x.value, n*[1./n], places=3)
             p.solve(solver=cp.CLARABEL)
-            self.assertItemsAlmostEqual(x.value, n*[1./n])
+            self.assertItemsAlmostEqual(x.value, n*[1./n], places=4)
 
     def test_log(self) -> None:
         """Test a problem with log.

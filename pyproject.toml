@@ -53,8 +53,8 @@ dependencies = [
     "osqp >= 0.6.2",
     "clarabel >= 0.5.0",
     "scs >= 3.2.4.post1",
-    "numpy >= 1.21.6",
-    "scipy >= 1.11.0",
+    "numpy >= 1.22.4",
+    "scipy >= 1.13.0",
 ]
 requires-python = ">=3.9"
 urls = {Homepage = "https://github.com/cvxpy/cvxpy"}
@@ -69,6 +69,7 @@ dynamic = ["version"]
 # Solver names as in cvxpy.settings = pip-installable distribution providing it
 CBC = ["cylp>=0.91.5"]
 CLARABEL = []
+CUOPT = ["cuopt-cu12>=25.5", "nvidia-cuda-runtime-cu12>=12.8,<13.0"]
 CVXOPT = ["cvxopt"]
 DIFFCP = ["diffcp"]
 ECOS = ["ecos"]
@@ -89,6 +90,7 @@ SCIPY = ["scipy"]
 SCS = []
 XPRESS = ["xpress"]
 DAQP = ["daqp"]
+KNITRO = ["knitro"]
 testing = ["pytest", "hypothesis"]
 doc = ["sphinx",
        "sphinxcontrib.jquery",

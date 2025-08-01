@@ -95,6 +95,12 @@ The table below shows the types of problems the supported solvers can handle.
 +----------------+----+----+------+-----+-----+-----+-----+
 | `MOSEK`_       | X  | X  | X    | X   | X   | X   | X** |
 +----------------+----+----+------+-----+-----+-----+-----+
+| `MPAX`_        | X  | X  |      |     |     |     |     |
++----------------+----+----+------+-----+-----+-----+-----+
+| `CUCLARABEL`_  | X  | X  | X    |     | X   | X   |     |
++----------------+----+----+------+-----+-----+-----+-----+
+| `CUOPT`_       | X  |    |      |     |     |     | X*  |
++----------------+----+----+------+-----+-----+-----+-----+
 | `CVXOPT`_      | X  | X  | X    | X   |     |     |     |
 +----------------+----+----+------+-----+-----+-----+-----+
 | `SDPA`_ \*\*\* | X  | X  | X    | X   |     |     |     |
@@ -108,6 +114,8 @@ The table below shows the types of problems the supported solvers can handle.
 | `SCIPY`_       | X  |    |      |     |     |     | X*  |
 +----------------+----+----+------+-----+-----+-----+-----+
 | `HiGHS`_       | X  | X  |      |     |     |     | X*  |
++----------------+----+----+------+-----+-----+-----+-----+
+| `KNITRO`_      | X  | X  | X    | X   | X   | X   | X   |
 +----------------+----+----+------+-----+-----+-----+-----+
 
 (*) Mixed-integer LP only.
@@ -177,8 +185,8 @@ Use the ``installed_solvers`` utility function to get a list of the solvers your
 
 ::
 
-    ['CBC', 'CVXOPT', 'MOSEK', 'GLPK', 'GLPK_MI', 'ECOS', 'SCS', 'SDPA'
-     'SCIPY', 'GUROBI', 'OSQP', 'CPLEX', 'NAG', 'SCIP', 'XPRESS', 'PROXQP']
+    ['CBC', 'CVXOPT', 'MOSEK', 'MPAX', 'GLPK', 'GLPK_MI', 'ECOS', 'SCS', 'SDPA'
+     'SCIPY', 'GUROBI', 'OSQP', 'CPLEX', 'NAG', 'SCIP', 'XPRESS', 'PROXQP', 'CUOPT']
 
 Viewing solver output
 ^^^^^^^^^^^^^^^^^^^^^
@@ -285,7 +293,7 @@ cached previous solution as described above (rather than from the ``value`` fiel
 Setting solver options
 ----------------------
 
-The `OSQP`_, `ECOS`_, `GLOP`_, `MOSEK`_, `CBC`_, `CVXOPT`_, `NAG`_, `PDLP`_, `QOCO`_, `GUROBI`_, `SCS`_ , `CLARABEL`_, `DAQP`_, `PIQP`_ and `PROXQP`_ Python interfaces allow you to set solver options such as the maximum number of iterations. You can pass these options along through CVXPY as keyword arguments.
+The `OSQP`_, `ECOS`_, `GLOP`_, `MOSEK`_, `MPAX`_, `CBC`_, `CVXOPT`_, `NAG`_, `PDLP`_, `QOCO`_, `GUROBI`_, `SCS`_ , `CLARABEL`_, `DAQP`_, `PIQP`_, `PROXQP`_, `CUOPT`_ and `KNITRO`_ Python interfaces allow you to set solver options such as the maximum number of iterations. You can pass these options along through CVXPY as keyword arguments.
 
 For example, here we tell SCS to use an indirect method for solving linear equations rather than a direct method.
 
@@ -484,6 +492,24 @@ Here is the complete list of solver options.
         adding the ``(key, value)`` pair ``('MSK_IPAR_INTPNT_SOLVE_FORM', 'MSK_SOLVE_DUAL')``
         to the ``mosek_params`` argument.
 
+
+.. info:: `MPAX`_ options
+    :collapsible:
+
+    ``'eps_abs'``
+        Absolute tolerance for convergence (default: 1e-4).
+
+    ``'eps_rel'``
+        Relative tolerance for convergence (default: 1e-4).
+
+    ``'iteration_limit'``
+        Maximum number of iterations (default: max_int).
+
+    ``'algorithm'``
+        Algorithm to use. Can be ``'raPDHG'`` or ``'r2HPDHG'`` (default: ``'raPDHG'``).
+
+    For others see `MPAX documentation <https://github.com/MIT-Lu-Lab/MPAX>`_.
+
 .. info:: `CVXOPT`_ options
     :collapsible:
 
@@ -590,7 +616,6 @@ Here is the complete list of solver options.
     ``'alpha'``
         relaxation parameter (default: 1.8).
 
-
     ``'acceleration_lookback'``
         Anderson Acceleration parameter for SCS 2.0 and higher. This can be any positive or negative integer;
         its default value is 10. See `this page of the SCS documentation <https://www.cvxgrp.org/scs/algorithm/acceleration.html#in-scs>`_
@@ -608,8 +633,12 @@ Here is the complete list of solver options.
     ``'normalize'``
         whether to precondition data matrices (default: True).
 
+    ``'cudss'``
+        whether to use the cuDSS solver that runs on a GPU (default: False).
+        Must be used with an SCS build that links cuDSS.
+
     ``'use_indirect'``
-        whether to use indirect solver for KKT sytem (instead of direct) (default: True).
+        whether to use indirect solver for KKT sytem (instead of direct) (default: False).
 
     ``'use_quad_obj'``
         whether to use a quadratic objective or reduce it to SOC constraints (default: True).
@@ -793,6 +822,32 @@ Here is the complete list of solver options.
 
     For other options see `HiGHS documentation <https://ergo-code.github.io/HiGHS/dev/options/definitions/>`_.
 
+.. info:: `CUOPT`_ options:
+    :collapsible:
+
+    Options for cuOpt can be specified as additional keyword arguments to ``solve``.  For example, `solve(solver=CUOPT, time_limit=5)` would set the time limit to 5 seconds.
+
+    Most of the cuOpt options are documented `here <https://docs.nvidia.com/cuopt/user-guide/latest/lp-milp-settings.html>`_. Please pay attention to the note on this page: the string name for each option is the constant name with the ``CUOPT_`` prefix removed and the string in lowercase. For example, the ``CUOPT_TIME_LIMIT`` option is specified as "time_limit".
+
+    Special cases:
+      - the CUOPT_LOG_TO_CONSOLE option will be set if "verbose" or "solver_verbose" are set in cvxpy
+      - the CUOPT_METHOD option ("method") clashes with the cvxpy keyword "method", so the cuOpt option is set using the keyword "solver_method". Use the string names of the constants ("Concurrent", "PDLP", "DualSimplex") for the option value.
+      - for the CUOPT_PDLP_SOLVER_MODE option, use the string names of the constants ("Stable2", "Methodical1", "Fast1") for the option value.
+      - the "optimality" option is an additional convenience that sets the following parameters to the specified value (for LP):
+
+        - absolute_dual_tolerance
+        - relative_dual_tolerance
+        - absolute_primal_tolerance
+        - relative_primal_tolerance
+        - absolute_gap_tolerance
+        - relative_gap_tolerance
+
+    **Please note**: cuOpt internally has a specific API for setting variable bounds, and it uses the cvxpy interface for bounded variables.  While not strictly necessary, cuOpt may perform better on some problens if variable bounds are included in the cvxpy variable creation rather than expressed as constraints.
+
+.. info:: `KNITRO`_ options:
+    :collapsible:
+    
+    KNITRO solver options are specified in CVXPY as keyword arguments. The full list of KNITRO parameters with defaults is listed `here <https://www.artelys.com/app/docs/knitro/3_referenceManual/userOptions.html>`_.
 
 Custom Solvers
 ------------------------------------
@@ -842,6 +897,7 @@ will be the same as the class variable ``SUPPORTED_CONSTRAINTS``.
 .. _GLPK_MI: https://www.gnu.org/software/glpk/
 .. _GUROBI: https://www.gurobi.com/
 .. _MOSEK: https://www.mosek.com/
+.. _MPAX: https://github.com/MIT-Lu-Lab/MPAX
 .. _CBC: https://projects.coin-or.org/Cbc
 .. _CGL: https://projects.coin-or.org/Cgl
 .. _CPLEX: https://www.ibm.com/docs/en/icos
@@ -854,5 +910,8 @@ will be the same as the class variable ``SUPPORTED_CONSTRAINTS``.
 .. _SCIPY: https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.linprog.html#scipy.optimize.linprog
 .. _HiGHS: https://highs.dev/
 .. _CLARABEL: https://oxfordcontrol.github.io/ClarabelDocs/
+.. _CUCLARABEL: https://github.com/cvxgrp/CuClarabel
 .. _PIQP: https://predict-epfl.github.io/piqp/
 .. _PROXQP: https://github.com/simple-robotics/proxsuite
+.. _CUOPT: https://github.com/NVIDIA/cuopt
+.. _KNITRO: https://www.artelys.com/knitro/

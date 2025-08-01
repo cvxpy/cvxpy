@@ -30,6 +30,7 @@ from cvxpy.transforms.indicator import indicator
 CANON_METHODS = {}
 CANON_METHODS[abs] = CONE_METHODS[abs]
 CANON_METHODS[cumsum] = CONE_METHODS[cumsum]
+CANON_METHODS[dotsort] = CONE_METHODS[dotsort]
 CANON_METHODS[maximum] = CONE_METHODS[maximum]
 CANON_METHODS[minimum] = CONE_METHODS[minimum]
 CANON_METHODS[sum_largest] = CONE_METHODS[sum_largest]

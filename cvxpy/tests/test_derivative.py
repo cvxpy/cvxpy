@@ -8,9 +8,12 @@ from cvxpy.tests.base_test import BaseTest
 
 warnings.filterwarnings("ignore")
 
-SOLVE_METHODS = [s.SCS, s.ECOS]
+SOLVE_METHODS = [s.CLARABEL, s.SCS, ]
 EPS_NAME = {s.SCS: "eps",
-            s.ECOS: "abstol"}
+            s.CLARABEL: "tol_gap_abs"}
+
+MAX_ITERS_NAME = {s.SCS: "max_iters",
+            s.CLARABEL: "max_iter"}
 
 
 def perturbcheck(problem, gp: bool = False, solve_methods: list = SOLVE_METHODS,
