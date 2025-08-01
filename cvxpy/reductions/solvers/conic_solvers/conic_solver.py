@@ -1,5 +1,5 @@
 """
-Copyright 2025 CVXPY developers
+Copyright 2017 Robin Verschueren, 2017 Akshay Agrawal
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
