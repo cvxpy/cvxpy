@@ -152,7 +152,8 @@ class COSMO(CLARABEL):
             nvars = q.size
             P = sp.csc_array((nvars, nvars), dtype=np.float64)
 
-        P = sp.triu(P).tocsc()
+        P = sp.csc_matrix(sp.triu(P))
+        A = sp.csc_matrix(A)
 
         # Cosmo expects the indices to be int32
         A.indices = A.indices.astype(np.int32)
