@@ -55,6 +55,7 @@ jobs:
           echo "PYTHON_SUBVERSION=$(echo $PYTHON_VERSION | cut -c 3-)" >> $GITHUB_ENV
           echo $MOSEK_CI_BASE64 | base64 -d > mosek.lic
           echo "MOSEKLM_LICENSE_FILE=$( [[ $RUNNER_OS == 'macOS' ]] && echo $(pwd)/mosek.lic || echo $(realpath mosek.lic) )" >> $GITHUB_ENV
+
       - uses: conda-incubator/setup-miniconda@v3
         with:
           auto-update-conda: true
