@@ -79,11 +79,11 @@ SOLVER_MAP_QP = {solver.name(): solver for solver in solver_qp_intf}
 # CONIC_SOLVERS and QP_SOLVERS are sorted in order of decreasing solver
 # preference. QP_SOLVERS are those for which we have written interfaces
 # and are supported by QpSolver.
-CONIC_SOLVERS = [s.MOSEK, s.CLARABEL, s.COSMO, s.SCS, s.ECOS, s.SDPA,
+CONIC_SOLVERS = [s.MOSEK, s.CLARABEL, s.SCS, s.ECOS, s.SDPA,
                  s.CPLEX, s.GUROBI, s.COPT, s.GLPK, s.NAG,
                  s.GLPK_MI, s.CBC, s.CVXOPT, s.XPRESS, s.DIFFCP,
                  s.SCIP, s.SCIPY, s.HIGHS, s.GLOP, s.PDLP, s.QOCO, 
-                 s.ECOS_BB]
+                 s.ECOS_BB, s.COSMO]
 QP_SOLVERS = [s.OSQP,
               s.GUROBI,
               s.CPLEX,
