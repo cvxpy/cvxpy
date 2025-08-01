@@ -227,6 +227,8 @@ class KNITRO(ConicSolver):
     EXP_DOUBLE_LIMIT = 705.0
 
     # Map of Knitro status to CVXPY status.
+    # This is based on the Knitro documentation:
+    # https://www.artelys.com/app/docs/knitro/3_referenceManual/returnCodes.html
     STATUS_MAP = {
         0: s.OPTIMAL,
         -100: s.OPTIMAL_INACCURATE,
@@ -288,7 +290,7 @@ class KNITRO(ConicSolver):
         -531: s.SOLVER_ERROR,
         -532: s.SOLVER_ERROR,
         -600: s.SOLVER_ERROR,
-    }  # MEM_LIMIT
+    }
 
     def name(self):
         """The name of the solver."""

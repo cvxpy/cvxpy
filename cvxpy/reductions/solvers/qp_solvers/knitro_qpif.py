@@ -62,6 +62,8 @@ class KNITRO(QpSolver):
     INTERFACE_ARGS = [X_INIT_KEY, Y_INIT_KEY]
 
     # Map of Knitro status to CVXPY status.
+    # This is based on the Knitro documentation:
+    # https://www.artelys.com/app/docs/knitro/3_referenceManual/returnCodes.html
     STATUS_MAP = {
         0: s.OPTIMAL,
         -100: s.OPTIMAL_INACCURATE,
@@ -123,7 +125,7 @@ class KNITRO(QpSolver):
         -531: s.SOLVER_ERROR,
         -532: s.SOLVER_ERROR,
         -600: s.SOLVER_ERROR,
-    }  # MEM_LIMIT
+    }
 
     def name(self):
         return s.KNITRO
