@@ -38,7 +38,7 @@ if [[ "$RUNNER_OS" != "Ubuntu" ]]; then
 fi
 
 if [[ "$RUNNER_OS" != "macOS" ]]; then
-  python -m pip install xpress==9.4.3 coptpy==7.1.7 cplex
+  python -m pip install xpress coptpy==7.1.7 cplex
 fi
 
 # Only install Mosek if license is available (secret is not copied to forks)
