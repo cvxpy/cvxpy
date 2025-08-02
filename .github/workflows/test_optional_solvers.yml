@@ -36,6 +36,12 @@ jobs:
           python-version: 3.12
           channels: conda-forge,anaconda
       - uses: actions/checkout@v4
+      - name: Setup Julia 
+        uses: julia-actions/setup-julia@v2
+        with:
+          version: 'lts'
+      - name: Install COSMO
+        run: julia -e 'using Pkg; Pkg.add("COSMO")'
       - name: Install cvxpy dependencies and all optional solvers
         run: |
           source continuous_integration/install_optional_solvers.sh

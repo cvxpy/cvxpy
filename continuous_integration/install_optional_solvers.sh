@@ -52,17 +52,7 @@ if [[ -n "$KNITRO_LICENSE" ]] && ! ([[ "$RUNNER_OS" == "macOS" ]] && [[ $(uname 
   python -m pip install knitro
 fi
 
-# Install Julia
-if [[ "$RUNNER_OS" == "Linux" ]] || [[ "$RUNNER_OS" == "macOS" ]]; then
-  curl -fsSL https://install.julialang.org | sh 
-fi
-
-if [[ "$RUNNER_OS" == "Windows" ]]; then
-  winget install --name Julia --id 9NJNWW8PVKMN -e -s msstore
-fi
-
-# Install Julia packages
-julia -e 'using Pkg; Pkg.add("COSMO")'
+# Install and setup python-julia interface
 python -m pip install julia
 python -c "import julia; julia.install()"
 
