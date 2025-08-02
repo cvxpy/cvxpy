@@ -301,12 +301,8 @@ class XPRESS(ConicSolver):
             'obj_value': self.prob_.attributes.objval,
         }
 
-        status_map_lp, status_map_mip = get_status_maps()
-
-        if len(data[s.BOOL_IDX]) > 0 or len(data[s.INT_IDX]) > 0:
-            status = status_map_mip[results_dict['status']]
-        else:
-            status = status_map_lp[results_dict['status']]
+        status_map = get_status_map()
+        status = status_map[results_dict['status']]
 
         results_dict[s.XPRESS_TROW] = transf2Orig
 
@@ -361,12 +357,8 @@ class XPRESS(ConicSolver):
         # Generate solution.
         solution = {}
 
-        status_map_lp, status_map_mip = get_status_maps()
-
-        if data[s.BOOL_IDX] or data[s.INT_IDX]:
-            solution[s.STATUS] = status_map_mip[results_dict['status']]
-        else:
-            solution[s.STATUS] = status_map_lp[results_dict['status']]
+        status_map = get_status_map()
+        solution[s.STATUS] = status_map[results_dict['status']]
 
         if solution[s.STATUS] in s.SOLUTION_PRESENT:
 
@@ -398,65 +390,17 @@ class XPRESS(ConicSolver):
         """
         return CITATION_DICT["XPRESS"]
 
-def get_status_maps():
-    """Create status maps from Xpress to CVXPY
+def get_status_map():
+    """Create status map from Xpress to CVXPY
     """
 
     import xpress as xp
 
-    if Version(xp.__version__) < Version('9.6.0'):
-        # Map of Xpress' LP status to CVXPY status.
-        status_map_lp = {
+    status_map = {
+        xp.SolStatus.NOTFOUND:        s.SOLVER_ERROR,
+        xp.SolStatus.OPTIMAL:         s.OPTIMAL,
+        xp.SolStatus.INFEASIBLE:      s.INFEASIBLE,
+        xp.SolStatus.UNBOUNDED:       s.UNBOUNDED,
+    }
 
-            xp.lp_unstarted:       s.SOLVER_ERROR,
-            xp.lp_optimal:         s.OPTIMAL,
-            xp.lp_infeas:          s.INFEASIBLE,
-            xp.lp_cutoff:          s.OPTIMAL_INACCURATE,
-            xp.lp_unfinished:      s.OPTIMAL_INACCURATE,
-            xp.lp_unbounded:       s.UNBOUNDED,
-            xp.lp_cutoff_in_dual:  s.OPTIMAL_INACCURATE,
-            xp.lp_unsolved:        s.OPTIMAL_INACCURATE,
-            xp.lp_nonconvex:       s.SOLVER_ERROR
-        }
-
-        # Same map, for MIPs
-        status_map_mip = {
-
-            xp.mip_not_loaded:     s.SOLVER_ERROR,
-            xp.mip_lp_not_optimal: s.SOLVER_ERROR,
-            xp.mip_lp_optimal:     s.SOLVER_ERROR,
-            xp.mip_no_sol_found:   s.SOLVER_ERROR,
-            xp.mip_solution:       s.OPTIMAL_INACCURATE,
-            xp.mip_infeas:         s.INFEASIBLE,
-            xp.mip_optimal:        s.OPTIMAL,
-            xp.mip_unbounded:      s.UNBOUNDED
-        }
-    else:
-        status_map_lp = {
-
-            xp.enums.LPStatus.UNSTARTED:       s.SOLVER_ERROR,
-            xp.enums.LPStatus.OPTIMAL:         s.OPTIMAL,
-            xp.enums.LPStatus.INFEAS:          s.INFEASIBLE,
-            xp.enums.LPStatus.CUTOFF:          s.OPTIMAL_INACCURATE,
-            xp.enums.LPStatus.UNFINISHED:      s.OPTIMAL_INACCURATE,
-            xp.enums.LPStatus.UNBOUNDED:       s.UNBOUNDED,
-            xp.enums.LPStatus.CUTOFF_IN_DUAL:  s.OPTIMAL_INACCURATE,
-            xp.enums.LPStatus.UNSOLVED:        s.OPTIMAL_INACCURATE,
-            xp.enums.LPStatus.NONCONVEX:       s.SOLVER_ERROR
-        }
-
-        # Same map, for MIPs
-        status_map_mip = {
-
-            xp.enums.MIPStatus.NOT_LOADED:     s.SOLVER_ERROR,
-            xp.enums.MIPStatus.LP_NOT_OPTIMAL: s.SOLVER_ERROR,
-            xp.enums.MIPStatus.LP_OPTIMAL:     s.SOLVER_ERROR,
-            xp.enums.MIPStatus.NO_SOL_FOUND:   s.SOLVER_ERROR,
-            xp.enums.MIPStatus.SOLUTION:       s.OPTIMAL_INACCURATE,
-            xp.enums.MIPStatus.INFEAS:         s.INFEASIBLE,
-            xp.enums.MIPStatus.OPTIMAL:        s.OPTIMAL,
-            xp.enums.MIPStatus.UNBOUNDED:      s.UNBOUNDED
-        }
-
-
-    return (status_map_lp, status_map_mip)
+    return status_map

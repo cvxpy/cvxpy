@@ -4,7 +4,7 @@ import cvxpy.interface as intf
 import cvxpy.settings as s
 from cvxpy.reductions.solution import Solution, failure_solution
 from cvxpy.reductions.solvers.conic_solvers.xpress_conif import (
-    get_status_maps,
+    get_status_map,
     makeMstart,
 )
 from cvxpy.reductions.solvers.qp_solvers.qp_solver import QpSolver
@@ -55,14 +55,12 @@ class XPRESS(QpSolver):
             int(results['bariter']) \
             if not inverse_data[XPRESS.IS_MIP] \
             else 0
-        status_map_lp, status_map_mip = get_status_maps()
+        status_map = get_status_map()
 
         if results['status'] == 'solver_error':
             status = 'solver_error'
-        elif inverse_data[XPRESS.IS_MIP]:
-            status = status_map_mip[results['status']]
         else:
-            status = status_map_lp[results['status']]
+            status = status_map[results['status']]
 
         if status in s.SOLUTION_PRESENT:
             # Get objective value
@@ -235,14 +233,12 @@ class XPRESS(QpSolver):
             except xp.SolverError:
                 results_dict[s.PRIMAL] = np.zeros(self.prob_.attributes.cols)
 
-            status_map_lp, status_map_mip = get_status_maps()
+            status_map = get_status_map()
 
             if results_dict['status'] == 'solver_error':
                 status = 'solver_error'
-            elif len(data[s.BOOL_IDX]) > 0 or len(data[s.INT_IDX]) > 0:
-                status = status_map_mip[results_dict['status']]
             else:
-                status = status_map_lp[results_dict['status']]
+                status = status_map[results_dict['status']]
 
             results_dict['bariter'] = self.prob_.attributes.bariter
             results_dict['getProbStatusString'] = self.prob_.attributes.solvestatus
