@@ -88,7 +88,7 @@ QOCO = ["qoco"]
 SCIP = ["PySCIPOpt"]
 SCIPY = ["scipy"]
 SCS = []
-XPRESS = ["xpress"]
+XPRESS = ["xpress>=9.5"]
 DAQP = ["daqp"]
 testing = ["pytest", "hypothesis"]
 doc = ["sphinx",

@@ -4,7 +4,7 @@ import cvxpy.interface as intf
 import cvxpy.settings as s
 from cvxpy.reductions.solution import Solution, failure_solution
 from cvxpy.reductions.solvers.conic_solvers.xpress_conif import (
-    get_status_maps,
+    get_status_map,
     makeMstart,
 )
 from cvxpy.reductions.solvers.qp_solvers.qp_solver import QpSolver
@@ -55,15 +55,12 @@ class XPRESS(QpSolver):
             int(results['bariter']) \
             if not inverse_data[XPRESS.IS_MIP] \
             else 0
-
-        status_map_lp, status_map_mip = get_status_maps()
+        status_map = get_status_map()
 
         if results['status'] == 'solver_error':
             status = 'solver_error'
-        elif 'mip_' in results['getProbStatusString']:
-            status = status_map_mip[results['status']]
         else:
-            status = status_map_lp[results['status']]
+            status = status_map[results['status']]
 
         if status in s.SOLUTION_PRESENT:
             # Get objective value
@@ -150,24 +147,24 @@ class XPRESS(QpSolver):
 
         self.prob_.loadproblem(probname='CVX_xpress_qp',
                                # constraint types
-                               qrtypes=['E'] * n_eq,
+                               rowtype=['E'] * n_eq,
                                rhs=b,                               # rhs
-                               range=None,                          # range
-                               obj=q,                               # obj coeff
-                               mstart=mstart,                       # mstart
-                               mnel=None,                           # mnel (unused)
+                               rng=None,                            # range
+                               objcoef=q,                           # obj coeff
+                               start=mstart,                        # mstart
+                               collen=None,                         # mnel (unused)
                                # linear coefficients
-                               mrwind=A.indices[A.data != 0],       # row indices
-                               dmatval=A.data[A.data != 0],         # coefficients
-                               dlb=[-xp.infinity] * len(q),         # lower bound
-                               dub=[xp.infinity] * len(q),          # upper bound
+                               rowind=A.indices[A.data != 0],       # row indices
+                               rowcoef=A.data[A.data != 0],         # coefficients
+                               lb=[-xp.infinity] * len(q),         # lower bound
+                               ub=[xp.infinity] * len(q),          # upper bound
                                # quadratic objective (only upper triangle)
-                               mqcol1=mqcol1,
-                               mqcol2=mqcol2,
-                               dqe=dqe,
+                               objqcol1=mqcol1,
+                               objqcol2=mqcol2,
+                               objqcoef=dqe,
                                # binary and integer variables
-                               qgtype=['B']*len(data[s.BOOL_IDX]) + ['I']*len(data[s.INT_IDX]),
-                               mgcols=data[s.BOOL_IDX] + data[s.INT_IDX],
+                               coltype=['B']*len(data[s.BOOL_IDX]) + ['I']*len(data[s.INT_IDX]),
+                               entind=data[s.BOOL_IDX] + data[s.INT_IDX],
                                # variables' and constraints' names
                                colnames=colnames,
                                rownames=rownames if len(rownames) > 0 else None)
@@ -189,11 +186,11 @@ class XPRESS(QpSolver):
             rownames_ineq = ['ineq_{0:09d}'.format(i) for i in range(n_ineq)]
 
             self.prob_.addrows(  # constraint types
-                qrtype=['L'] * n_ineq,              # inequalities sign
+                rowtype=['L'] * n_ineq,              # inequalities sign
                 rhs=g,                              # rhs
-                mstart=mstartIneq,                  # starting indices
-                mclind=F.indices[F.data != 0],      # column indices
-                dmatval=F.data[F.data != 0],        # coefficient
+                start=mstartIneq,                  # starting indices
+                colind=F.indices[F.data != 0],      # column indices
+                rowcoef=F.data[F.data != 0],        # coefficient
                 names=rownames_ineq)                # row names
 
         # Set options
@@ -225,35 +222,33 @@ class XPRESS(QpSolver):
             self.prob_.solve()
 
             results_dict[s.SOLVE_TIME] = self.prob_.attributes.time
-        except xp.SolverError:  # Error in the solution
+        except xp.ModelError:  # Error in the solution
             results_dict["status"] = s.SOLVER_ERROR
         else:
-            results_dict['status'] = self.prob_.getProbStatus()
-            results_dict['getProbStatusString'] = self.prob_.getProbStatusString()
-            results_dict['obj_value'] = self.prob_.getObjVal()
+            results_dict['status'] = self.prob_.attributes.solstatus
+            results_dict['getProbStatusString'] = self.prob_.attributes.solstatus
+            results_dict['obj_value'] = self.prob_.attributes.objval
             try:
                 results_dict[s.PRIMAL] = np.array(self.prob_.getSolution())
-            except xp.SolverError:
+            except xp.ModelError:
                 results_dict[s.PRIMAL] = np.zeros(self.prob_.attributes.cols)
 
-            status_map_lp, status_map_mip = get_status_maps()
+            status_map = get_status_map()
 
             if results_dict['status'] == 'solver_error':
                 status = 'solver_error'
-            elif 'mip_' in results_dict['getProbStatusString']:
-                status = status_map_mip[results_dict['status']]
             else:
-                status = status_map_lp[results_dict['status']]
+                status = status_map[results_dict['status']]
 
             results_dict['bariter'] = self.prob_.attributes.bariter
-            results_dict['getProbStatusString'] = self.prob_.getProbStatusString()
+            results_dict['getProbStatusString'] = self.prob_.attributes.solvestatus
 
             if status in s.SOLUTION_PRESENT:
-                results_dict['getObjVal'] = self.prob_.getObjVal()
+                results_dict['getObjVal'] = self.prob_.attributes.objval
                 results_dict['getSolution'] = self.prob_.getSolution()
 
                 if not (data[s.BOOL_IDX] or data[s.INT_IDX]):
-                    results_dict['getDual'] = self.prob_.getDual()
+                    results_dict['getDual'] = self.prob_.getDuals()
 
         del self.prob_
 
