@@ -408,7 +408,7 @@ class Leaf(expression.Expression):
                 return new_val.reshape(val.shape) if val.ndim == 0 else new_val
         elif self.attributes['integer']:
             if hasattr(self, "integer_idx"):
-                new_val = np.atleast_1d(np.astype(val, np.int64, copy=True))
+                new_val = np.atleast_1d(np.astype(val, np.float64, copy=True))
                 new_val[self.integer_idx] = np.round(new_val[self.integer_idx])
                 return new_val.reshape(val.shape) if val.ndim == 0 else new_val
         elif self.attributes['diag']:
