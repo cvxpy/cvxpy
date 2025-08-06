@@ -231,6 +231,18 @@ class TestAttributes:
         n = cp.Variable(integer=True)
         cp.Problem(cp.Maximize(x), [n == 1]).solve()
 
+    def test_boolean_var_value(self):
+        # ensure that boolean variables can be assigned values
+        # https://github.com/cvxpy/cvxpy/issues/2879
+        x = cp.Variable(2, boolean=True)
+        val = np.array([True, False])
+        x.value = val
+
+    def test_integer_var_value(self):
+        x = cp.Variable(2, integer=True)
+        val = np.array([1, 2], dtype=int)
+        x.value = val
+
 class TestMultipleAttributes:
 
     def test_multiple_attributes(self) -> None:
