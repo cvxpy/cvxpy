@@ -2622,6 +2622,117 @@ class TestCOPT(unittest.TestCase):
         # Valid arg.
         problem.solve(solver=cp.COPT, feastol=1e-9)
 
+
+@unittest.skipUnless('COSMO' in INSTALLED_SOLVERS, 'COSMO is not installed.')
+class TestCOSMO(BaseTest):
+    """Unit tests for COSMO solver interface."""
+    
+    def setUp(self) -> None:
+        self.a = cp.Variable(name='a')
+        self.b = cp.Variable(name='b')
+        self.c = cp.Variable(name='c')
+
+        self.x = cp.Variable(2, name='x')
+        self.y = cp.Variable(3, name='y')
+        self.z = cp.Variable(2, name='z')
+
+        self.A = cp.Variable((2, 2), name='A')
+        self.B = cp.Variable((2, 2), name='B')
+        self.C = cp.Variable((3, 2), name='C')
+
+    def test_cosmo_options(self) -> None:
+        """Test that COSMO solver options work."""
+        # Test basic options with simple problem
+        prob = cp.Problem(cp.Minimize(cp.norm(self.x, 1) + 1.0), [self.x == 0])
+        
+        # Test with default settings
+        prob.solve(solver=cp.COSMO, verbose=True)
+        self.assertAlmostEqual(prob.value, 1.0)
+        self.assertItemsAlmostEqual(self.x.value, [0, 0])
+
+        # Test with custom settings
+        prob.solve(solver=cp.COSMO, eps_abs=1e-4, verbose=True)
+        self.assertAlmostEqual(prob.value, 1.0)
+        self.assertItemsAlmostEqual(self.x.value, [0, 0])
+
+    def test_cosmo_lp_0(self) -> None:
+        StandardTestLPs.test_lp_0(solver='COSMO')
+
+    def test_cosmo_lp_1(self) -> None:
+        StandardTestLPs.test_lp_1(solver='COSMO')
+
+    def test_cosmo_lp_2(self) -> None:
+        StandardTestLPs.test_lp_2(solver='COSMO')
+
+    def test_cosmo_lp_3(self) -> None:
+        StandardTestLPs.test_lp_3(solver='COSMO')
+
+    def test_cosmo_lp_4(self) -> None:
+        StandardTestLPs.test_lp_4(solver='COSMO')
+    
+    def test_cosmo_lp_5(self) -> None:
+        StandardTestLPs.test_lp_5(solver='COSMO')
+
+    def test_cosmo_qp_0(self) -> None:
+        StandardTestQPs.test_qp_0(solver='COSMO')
+
+    def test_cosmo_socp_0(self) -> None:
+        StandardTestSOCPs.test_socp_0(solver='COSMO')
+
+    def test_cosmo_socp_1(self) -> None:
+        StandardTestSOCPs.test_socp_1(solver='COSMO')
+
+    def test_cosmo_socp_2(self) -> None:
+        StandardTestSOCPs.test_socp_2(solver='COSMO')
+
+    def test_cosmo_socp_3(self) -> None:
+        # axis 0
+        StandardTestSOCPs.test_socp_3ax0(solver='COSMO')
+        # axis 1 
+        StandardTestSOCPs.test_socp_3ax1(solver='COSMO')
+
+    def test_cosmo_expcone_1(self) -> None:
+        StandardTestECPs.test_expcone_1(solver='COSMO')
+
+    def test_cosmo_exp_soc_1(self) -> None:
+        StandardTestMixedCPs.test_exp_soc_1(solver='COSMO')
+
+    def test_cosmo_pcp_1(self) -> None:
+        StandardTestPCPs.test_pcp_1(solver='COSMO')
+
+    def test_cosmo_pcp_2(self) -> None:
+        StandardTestPCPs.test_pcp_2(solver='COSMO')
+
+    def test_cosmo_pcp_3(self) -> None:
+        StandardTestPCPs.test_pcp_3(solver='COSMO')
+
+    def test_cosmo_sdp_1min(self) -> None:
+        StandardTestSDPs.test_sdp_1min(solver='COSMO')
+    
+    def test_cosmo_sdp_2(self) -> None:
+        places = 3
+        sth = sths.sdp_2()
+        sth.solve(solver='COSMO')
+        sth.verify_objective(places)
+        sth.check_primal_feasibility(places)
+        sth.verify_primal_values(places)
+        sth.check_complementarity(places)
+        sth.check_dual_domains(places)
+
+    def test_warm_start(self) -> None:
+        """Test warm starting.
+        """
+        x = cp.Variable(10)
+        obj = cp.Minimize(cp.sum(cp.exp(x)))
+        prob = cp.Problem(obj, [cp.sum(x) == 1])
+        result = prob.solve(solver=cp.COSMO)
+        time = prob.solver_stats.solve_time
+        result2 = prob.solve(solver=cp.COSMO, warm_start=True)
+        time2 = prob.solver_stats.solve_time
+        self.assertAlmostEqual(result2, result, places=2)
+        print(time > time2)
+
+        
 @unittest.skipUnless(cp.KNITRO in INSTALLED_SOLVERS, 'KNITRO is not installed.')
 class TestKNITRO(BaseTest):
 
@@ -2810,4 +2921,3 @@ class TestCUOPT(unittest.TestCase):
 
     def test_cuopt_mi_lp_7(self) -> None:
         StandardTestLPs.test_mi_lp_5(solver='CUOPT', **TestCUOPT.kwargs, time_limit=5)
-
