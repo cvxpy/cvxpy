@@ -38,6 +38,8 @@ def squeeze(expr, axis: int | Tuple[int, ...] | None = None):
     """
     shape = _get_squeezed_shape(expr.shape, axis)
     return reshape(expr, shape, order='F')
+
+
 def _get_squeezed_shape(
     shape: Tuple[int, ...],
     axis: int | Tuple[int, ...] | None,
