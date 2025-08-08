@@ -231,11 +231,14 @@ class HIGHS(ConicSolver):
         # setup options
         unpack_highs_options_inplace(solver_opts)
         solver.setOptionValue("log_to_console", verbose)
-        for key, value in solver_opts.items():
+        for name, value in solver_opts.items():
             # note that calling setOptionValue directly on the solver
             # allows one to pass advanced options that aren't available
             # on the HighOptions class (e.g., presolve_rule_off)
-            solver.setOptionValue(key, value)
+            if solver.setOptionValue(name, value) == hp.HighsStatus.kError:
+                raise ValueError(
+                    f"HIGHS returned status kError for option (name, value): ({name}, {value})"
+                )
 
         solver.passModel(model)
 
