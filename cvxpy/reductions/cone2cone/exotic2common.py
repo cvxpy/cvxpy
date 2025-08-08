@@ -16,15 +16,24 @@ limitations under the License.
 
 import numpy as np
 
+from cvxpy.atoms.affine.bmat import bmat
+from cvxpy.atoms.affine.diag import diag_mat, diag_vec
 from cvxpy.atoms.affine.hstack import hstack
 from cvxpy.atoms.affine.reshape import reshape
+from cvxpy.atoms.affine.sum import sum
+from cvxpy.atoms.affine.upper_tri import vec_to_upper_tri
+from cvxpy.atoms.elementwise.log import log
+from cvxpy.constraints.logdet import LogDet
 from cvxpy.constraints.power import PowCone3D, PowConeND
+from cvxpy.constraints.psd import PSD
 from cvxpy.expressions.variable import Variable
 from cvxpy.reductions.canonicalization import Canonicalization
+from cvxpy.reductions.dcp2cone.canonicalizers.log_canon import log_canon
 from cvxpy.reductions.solution import Solution
 
 EXOTIC_CONES = {
-    PowConeND: {PowCone3D}
+    PowConeND: {PowCone3D},
+    LogDet: {PSD}
 }
 """
 ^ An "exotic" cone is defined as any cone that isn't
@@ -82,11 +91,27 @@ def pow_nd_canon(con, args):
     # There are no "auxiliary constraints" beyond this one.
     return can_con, []
 
+def log_det_canon(con, args):
+    A = args[0]  # n by n matrix.
+    n, _ = A.shape
+    z = Variable(shape=(n*(n+1)//2,))
+    Z = vec_to_upper_tri(z, strict=False)
+    d = diag_mat(Z)  # a vector
+    D = diag_vec(d)  # a matrix
+    X = bmat([[D, Z],
+              [Z.T, A]])
+    constraints = [PSD(X)]
+    log_expr = log(d)
+    obj, constr = log_canon(log_expr, log_expr.args)
+    constraints += constr
+    return sum(obj), constraints
+
 
 class Exotic2Common(Canonicalization):
 
     CANON_METHODS = {
-        PowConeND: pow_nd_canon
+        PowConeND: pow_nd_canon,
+        LogDet: log_det_canon,
     }
 
     def __init__(self, problem=None) -> None:
