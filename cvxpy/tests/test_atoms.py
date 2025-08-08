@@ -693,6 +693,24 @@ class TestAtoms(BaseTest):
         A_reshaped = cp.reshape(A, -1, order='F')
         assert np.allclose(A_reshaped.value, A.reshape(-1, order='F'))
 
+    def test_squeeze(self) -> None:
+        A = np.random.rand(2, 1, 3, 1, 1, 4)
+        A_squeezed_np = np.squeeze(A)
+        A_squeezed_cp = cp.squeeze(A)
+        assert np.allclose(A_squeezed_np, A_squeezed_cp.value)
+
+        axes = [None, 1, (1, -2)]
+        for axis in axes:
+            A_squeezed_np = np.squeeze(A, axis=axis)
+            A_squeezed_cp = cp.squeeze(A, axis=axis)
+            assert np.allclose(A_squeezed_np, A_squeezed_cp.value)
+
+        axes = [-1, (0, 1, 3)]
+        for axis in axes:
+            with pytest.raises(ValueError, match="Cannot squeeze"):
+                cp.squeeze(A, axis=axis)
+
+
     def test_vec(self) -> None:
         """Test the vec atom.
         """
