@@ -56,10 +56,9 @@ class squeeze(reshape):
         else:
             if isinstance(axis, numbers.Integral):
                 axis = (int(axis),)
+            axis = tuple(int(a) + (len(shape) if a < 0 else 0) for a in axis)
 
             for a in axis:
-                if a < 0:
-                    a += len(shape)
                 if a < 0 or a >= len(shape):
                     msg = f"Axis {a} is out of bounds for array of dimension {len(shape)}."
                     raise ValueError(msg)
