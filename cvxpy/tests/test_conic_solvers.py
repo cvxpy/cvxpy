@@ -2308,6 +2308,13 @@ class TestHIGHS:
         with pytest.raises(ValueError):
             problem(solver=cp.HIGHS, invalid_highs_option=None)
 
+        invalid_value = "_invalid_value_"
+        with pytest.raises(ValueError):
+            problem(solver=cp.HIGHS, highs_options={"threads": invalid_value})
+
+        with pytest.raises(ValueError):
+            problem(solver=cp.HIGHS, threads=invalid_value)
+
         # Duplicate options
         with pytest.raises(TypeError):
             problem(solver=cp.HIGHS, presolve="off", highs_options=dict(presolve="off"))
