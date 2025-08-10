@@ -15,7 +15,7 @@ if [[ "$RUNNER_OS" != "macOS" ]] || [[ $(uname -m) != "x86_64" ]]; then
 fi
 
 if [[ "$PYTHON_VERSION" == "3.12" ]]; then
-  python -m pip install "ortools>=9.7,<9.12"
+  python -m pip install "ortools>=9.7,<9.15"
 fi
 
 if [[ "$RUNNER_OS" == "Windows" ]]; then
