@@ -7,8 +7,8 @@ Disciplined convex programming (DCP) is a system for constructing mathematical e
 
 This section of the tutorial explains the rules of DCP and how they are applied by CVXPY.
 
-Visit `Disciplined Convex Programming <https://web.stanford.edu/~boyd/papers/disc_cvx_prog.html>`__ for a
-broader introduction to DCP.
+Visit `https://cvxpy.github.io/dcp_site <https://cvxpy.github.io/dcp_site/index.html>`__ for a
+more interactive introduction to DCP.
 
 Expressions
 -----------
