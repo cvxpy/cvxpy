@@ -70,7 +70,7 @@ Problem
     :members: value, status, objective, constraints, is_dcp, is_dgp, is_dqcp,
               is_qp, is_dpp, variables, parameters, constants,
               backward, derivative, atoms, size_metrics, solver_stats, compilation_time, solve,
-              register_solve, get_problem_data, unpack_results
+              register_solve, get_problem_data, unpack_results, var_dict
     :undoc-members:
     :member-order: groupwise
 

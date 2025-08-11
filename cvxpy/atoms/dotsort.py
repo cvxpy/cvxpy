@@ -133,6 +133,11 @@ class dotsort(Atom):
         """
         return None
 
+    def is_pwl(self) -> bool:
+        """Is the expression piecewise linear?
+        """
+        return True
+
     @staticmethod
     def _get_args_from_values(values: List[np.ndarray]) \
             -> Tuple[np.ndarray, np.ndarray]:

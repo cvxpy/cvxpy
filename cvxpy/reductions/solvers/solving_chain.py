@@ -260,6 +260,7 @@ def construct_solving_chain(problem, candidates,
         # Canonicalize as a QP
         solver = candidates['qp_solvers'][0]
         solver_instance = slv_def.SOLVER_MAP_QP[solver]
+        # TODO should CvxAttr2Constr come after qp2symbolic_qp?
         reductions += [
             CvxAttr2Constr(reduce_bounds=not solver_instance.BOUNDED_VARIABLES),
             qp2symbolic_qp.Qp2SymbolicQp(),

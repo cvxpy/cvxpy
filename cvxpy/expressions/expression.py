@@ -564,6 +564,15 @@ class Expression(u.Canonical):
                                   " identity that a**x = cp.exp(cp.multiply(np"
                                   ".log(a), x)).")
 
+    @staticmethod
+    def cast(expr_like) -> "Expression":
+        """
+        If expr_like is an Expression, return it. Otherwise, cast expr_like to a Constant.
+
+        This is a wrapper around the misleadingly-named `Expression.cast_to_const` function.
+        """
+        return Expression.cast_to_const(expr_like)
+
     # Arithmetic operators.
     @staticmethod
     def cast_to_const(expr: "Expression"):

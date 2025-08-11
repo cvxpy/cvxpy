@@ -113,6 +113,11 @@ class MulExpression(BinaryOperator):
         else:
             return values[0] @ values[1]
 
+    def validate_arguments(self):
+        """Validate that the arguments can be multiplied together."""
+        if self.args[0].ndim > 2 or self.args[1].ndim > 2:
+            raise ValueError("Multiplication with N-d arrays is not yet supported")
+    
     def shape_from_args(self) -> Tuple[int, ...]:
         """Returns the (row, col) shape of the expression.
         """
@@ -479,10 +484,10 @@ def outer(x, y):
     """
     x = Expression.cast_to_const(x)
     if x.ndim > 1:
-        raise ValueError("x must be a vector.")
+        raise ValueError("x must be a 1-d array.")
     y = Expression.cast_to_const(y)
     if y.ndim > 1:
-        raise ValueError("y must be a vector.")
+        raise ValueError("y must be a 1-d array.")
     
     x = reshape(x, (x.size, 1), order='F')
     y = reshape(y, (1, y.size), order='F')

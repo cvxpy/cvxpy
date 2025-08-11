@@ -65,11 +65,11 @@ class TestAttributes:
         assert prob.get_problem_data(cp.CLARABEL)[0]['A'].shape[1] == 9
         
     def test_sparsity_assign_value(self):
-        X = cp.Variable((3, 3))
+        X = cp.Variable((10, 10))
         sparsity = [(0, 2, 1, 2), (0, 1, 2, 2)]
-        A = cp.Parameter((3, 3), sparsity=sparsity)
+        A = cp.Parameter((10, 10), sparsity=sparsity)
         prob = cp.Problem(cp.Minimize(cp.sum(X)), [X >= A])
-        A_value = np.zeros((3, 3))
+        A_value = np.zeros((10, 10))
         A_value[sparsity[0], sparsity[1]] = -1
         with pytest.warns(
             RuntimeWarning,
@@ -79,16 +79,16 @@ class TestAttributes:
             A.value = A_value
         
         prob.solve()
-        z = np.zeros((3, 3))
+        z = np.zeros((10, 10))
         z[A.sparse_idx] = -1
         assert np.allclose(X.value, z)
         
-        A.value_sparse = sp.coo_array((-np.ones(4), sparsity))
+        A.value_sparse = sp.coo_array((-np.ones(4), sparsity), (10, 10))
         prob.solve()
         assert np.allclose(X.value, z)
         
-        z = sp.coo_array(([-1, -3, -2, -4], [(0, 1, 2, 2), (0, 2, 1, 2)]))
-        z1 = sp.coo_array(([-1, -4, -2, -3], [(0, 2, 2, 1), (0, 2, 1, 2)]))
+        z = sp.coo_array(([-1, -3, -2, -4], [(0, 1, 2, 2), (0, 2, 1, 2)]), shape=(10, 10))
+        z1 = sp.coo_array(([-1, -4, -2, -3], [(0, 2, 2, 1), (0, 2, 1, 2)]), shape=(10, 10))
         A.value_sparse = z
         prob.solve()
         assert np.allclose(z.toarray(), z1.toarray())
@@ -99,7 +99,7 @@ class TestAttributes:
         assert np.allclose(z.toarray(), z1.toarray())
         assert np.allclose(X.value, z1.toarray())
         assert np.allclose(X.value, z.toarray())
-        
+
     def test_sparsity_incorrect_pattern(self):
         A = cp.Parameter((3, 3), sparsity=[(0, 2, 1, 2), (0, 1, 2, 2)])
         with pytest.raises(
@@ -221,6 +221,27 @@ class TestAttributes:
         ):
             x = cp.Variable((2, 2), name="x", bounds=bounds)
 
+    def test_scalar_bool(self):
+        x = cp.Variable(nonpos=True)
+        n = cp.Variable(boolean=True)
+        cp.Problem(cp.Maximize(x), [n == 1]).solve()
+
+    def test_scalar_int(self):
+        x = cp.Variable(nonpos=True)
+        n = cp.Variable(integer=True)
+        cp.Problem(cp.Maximize(x), [n == 1]).solve()
+
+    def test_boolean_var_value(self):
+        # ensure that boolean variables can be assigned values
+        # https://github.com/cvxpy/cvxpy/issues/2879
+        x = cp.Variable(2, boolean=True)
+        val = np.array([True, False])
+        x.value = val
+
+    def test_integer_var_value(self):
+        x = cp.Variable(2, integer=True)
+        val = np.array([1, 2], dtype=int)
+        x.value = val
 
 class TestMultipleAttributes:
 
@@ -430,7 +451,19 @@ class TestMultipleAttributes:
         # # Invalid: Not nonneg
         # with pytest.raises(ValueError, match="Parameter value must be nonnegative."):
         #     p.value = np.array([[-1, 0], [0, 1]])
-            
+
+    def test_bool_int_variable(self):
+        """Test boolean and integer attributes on a variable."""
+        # Create a variable with both boolean and integer attributes
+        x = cp.Variable(shape=(2, 2), boolean=[(0, 0), (0, 1)], integer=[(1, 1), (0, 1)])
+        
+        # Set up a simple problem
+        prob = cp.Problem(cp.Minimize(cp.sum(x)), [x >= np.array([[0.5, -0.5], [2.3, 3.2]])])
+        prob.solve()
+        
+        # Check that the solution is feasible
+        assert (x.value == np.array([[1, 0], [3, 4]])).all()
+
     def test_variable_repr(self):
         # test boolean attributes
         x = cp.Variable((10, 10), name="x", nonneg=True)

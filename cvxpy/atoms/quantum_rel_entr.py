@@ -19,22 +19,40 @@ import numpy as np
 from scipy import linalg as LA
 from scipy.stats import entropy
 
+from cvxpy import settings
 from cvxpy.atoms.atom import Atom
 from cvxpy.constraints.constraint import Constraint
 
 
 class quantum_rel_entr(Atom):
     """
+    An approximation of the quantum relative entropy between systems with (possibly un-normalized) 
+    density matrices :math:`X` and :math`Y:`
+     
+    .. math::
+        \\operatorname{tr}\\left( X ( \\log X - \\log Y ) \\right).
+      
+    The approximation uses a quadrature scheme described in https://arxiv.org/abs/1705.00812.
+
     Parameters
     ----------
     X : Expression or numeric
         A PSD matrix
     Y : Expression or numeric
         A PSD matrix
+    quad_approx : Tuple[int, int]
+        quad_approx[0] is the number of quadrature nodes and quad_approx[1] is the number of scaling
+        points in the quadrature scheme from https://arxiv.org/abs/1705.00812.
+
+    Notes
+    -----
+    This function does not assume :math:`\\operatorname{tr}(X)=\\operatorname{tr}(Y)=1,` which
+    would be required for most uses of this function in the context of quantum information.
     """
 
+    EVAL_TOL = min(settings.ATOM_EVAL_TOL, 1e-6)
+
     def __init__(self, X, Y, quad_approx: Tuple[int, int] = (3, 3)) -> None:
-        # TODO: add a check that N is symmetric/Hermitian.
         self.quad_approx = quad_approx
         super(quantum_rel_entr, self).__init__(X, Y)
 
@@ -49,20 +67,21 @@ class quantum_rel_entr(Atom):
         w1, V = LA.eigh(X)
         w2, W = LA.eigh(Y)
         u = w1.T @ np.abs(V.conj().T @ W) ** 2
-        def func(x):
-            assert np.all(x >= 0)
-            x_sum = x.sum()
-            val = -entropy(x)
-            un_normalized = (x_sum * val + np.log(x_sum)*x_sum)
-            return un_normalized
+        if np.any(w1 < - self.EVAL_TOL) or np.any(w2 < -self.EVAL_TOL):
+            return np.inf
+        else:
+            w1[w1 < 0] = 0
+            w2[w2 < 0] = 0
         r1 = -entropy(w1)
         r2 = u @ np.log(w2)
         return (r1 - r2)
 
     def validate_arguments(self) -> None:
         if not (self.args[0].is_hermitian() and self.args[1].is_hermitian()):
-            raise ValueError('Arguments must be Hermitian')
-
+            raise ValueError(
+                "The arguments to quantum_rel_entr must both be hermitian."
+            )
+        
     def sign_from_args(self) -> Tuple[bool, bool]:
         """Returns sign (is positive, is negative) of the expression.
         """

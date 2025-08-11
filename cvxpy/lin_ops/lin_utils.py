@@ -448,13 +448,16 @@ def conv(lh_op, rh_op, shape: Tuple[int, ...]):
     return lo.LinOp(lo.CONV, shape, [rh_op], lh_op)
 
 
-def transpose(operator):
+def transpose(operator, axes=None):
     """Transposes an operator.
 
     Parameters
     ----------
     operator : LinOp
         The operator to transpose.
+    axes : None or tuple of ints
+        If specified, it must be a tuple or list which contains a permutation
+        of [0,1,..,N-1] where N is the number of dimensions of the operator.
 
     Returns
     -------
@@ -464,8 +467,12 @@ def transpose(operator):
     if len(operator.shape) < 2:
         return operator
     else:
-        shape = operator.shape[::-1]
-        return lo.LinOp(lo.TRANSPOSE, shape, [operator], None)
+        if axes is None:
+            # Default reverse all axes
+            shape = operator.shape[::-1]
+        else:
+            shape = tuple(operator.shape[i] for i in axes)
+        return lo.LinOp(lo.TRANSPOSE, shape, [operator], data=[axes])
 
 
 def reshape(operator, shape: Tuple[int, ...]):

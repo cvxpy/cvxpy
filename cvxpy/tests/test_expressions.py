@@ -459,6 +459,16 @@ class TestExpressions(BaseTest):
             p = Parameter((2, 2), integer=True, value=[[1, 1.5], [1, -1]])
         self.assertEqual(str(cm.exception), "Parameter value must be integer.")
 
+         # Boolean indices
+        with self.assertRaises(Exception) as cm:
+             p = Parameter((2, 2), boolean=[(0, 0), (0, 1)], value=[[0, 2], [1, 0]])
+        self.assertEqual(str(cm.exception), "Parameter value must be boolean.")
+ 
+        # Integer indices
+        with self.assertRaises(Exception) as cm:
+             p = Parameter((2, 2), integer=[(0, 0), (0, 1)], value=[[1, 1.5], [1.4, 2.8]])
+        self.assertEqual(str(cm.exception), "Parameter value must be integer.")
+        
         # Diag.
         with self.assertRaises(Exception) as cm:
             p = Parameter((2, 2), diag=True, value=[[1, 1], [1, -1]])
@@ -595,7 +605,22 @@ class TestExpressions(BaseTest):
         self.assertEqual(A.is_psd(), True)
         self.assertEqual(A.is_nsd(), True)
 
-    # Test the AddExpresion class.
+    def test_project_boolean_indices(self) -> None:
+        idx = (np.array([0, 2]),)
+        leaf = cp.Variable((3,), boolean=idx)
+        val = np.array([-0.2, 0.5, 1.7])
+        projected = leaf.project(val)
+        # Only indices 0 and 2 are projected to boolean, index 1 is unchanged
+        assert (projected == np.array([0, 0.5, 1])).all()
+
+    def test_project_integer_indices(self) -> None:
+        idx = (np.array([1]),)
+        leaf = cp.Variable((3,), integer=idx)
+        val = np.array([1.2, 2.7, -0.8])
+        projected = leaf.project(val)
+        # Only index 1 is projected to integer, others unchanged
+        assert (projected == np.array([1.2, 3, -0.8])).all()
+
     def test_add_expression(self) -> None:
         # Vectors
         c = Constant([2, 2])
@@ -1694,6 +1719,47 @@ class TestND_Expressions():
         prob.solve(canon_backend=cp.SCIPY_CANON_BACKEND)
         assert np.allclose(expr.value, y)
 
+    @pytest.mark.parametrize("axes", [(0, 2, 1), (2, 0, 1), (1, 2, 0), (1, 0, 2), (-1, 0, 1)])
+    def test_nd_transpose_axes(self, axes) -> None:
+        var = cp.Variable((5, 24, 10))
+        target = np.arange(1200).reshape((5, 24, 10))
+        expr = cp.transpose(var, axes=axes)
+        y = target.transpose(axes)
+        prob = cp.Problem(self.obj, [expr == y])
+        prob.solve(canon_backend=cp.SCIPY_CANON_BACKEND)
+        assert np.allclose(expr.value, y)
+
+    @pytest.mark.parametrize("axes", [(0, 2, 1, 3), (2, 3, 0, 1), (3, 1, 2, 0)])
+    def test_permute_dims(self, axes) -> None:
+        var = cp.Variable((5, 6, 5, 6))
+        target = np.arange(900).reshape((5, 6, 5, 6))
+        expr = cp.permute_dims(var, axes=axes)
+        y = target.transpose(axes)
+        prob = cp.Problem(self.obj, [expr == y])
+        prob.solve(canon_backend=cp.SCIPY_CANON_BACKEND)
+        assert np.allclose(expr.value, y)
+
+    @pytest.mark.parametrize("axis1, axis2", [(0, 1), (1, 3), (3, 2), (0, 3), (1, 2)])
+    def test_swapaxes(self, axis1, axis2) -> None:
+        var = cp.Variable((5, 12, 6, 2))
+        target = np.arange(720).reshape((5, 12, 6, 2))
+        expr = cp.swapaxes(var, axis1=axis1, axis2=axis2)
+        y = target.swapaxes(axis1, axis2)
+        prob = cp.Problem(self.obj, [expr == y])
+        prob.solve(canon_backend=cp.SCIPY_CANON_BACKEND)
+        assert np.allclose(expr.value, y)
+
+    @pytest.mark.parametrize("source, destination", [([0], [2]), ([0, 1], [3, 2]), 
+                                                     ([0, 1, 2], [3, 2, 1])])
+    def test_moveaxis(self, source, destination) -> None:
+        var = cp.Variable((5, 2, 6, 12))
+        target = np.arange(720).reshape((5, 2, 6, 12))
+        expr = cp.moveaxis(var, source=source, destination=destination)
+        y = np.moveaxis(target, source, destination)
+        prob = cp.Problem(self.obj, [expr == y])
+        prob.solve(canon_backend=cp.SCIPY_CANON_BACKEND)
+        assert np.allclose(expr.value, y)
+
     @pytest.mark.parametrize("shapes", [((3),(253, 253, 3)),
                                         ((7, 1, 5),(8, 7, 6, 5)),
                                         ((1),(5, 4)),
@@ -1774,3 +1840,18 @@ class TestND_Expressions():
         prob = cp.Problem(cp.Minimize(cp.sum(expr)), [expr == target - y])
         prob.solve(canon_backend=cp.SCIPY_CANON_BACKEND)
         assert np.allclose(x.value, target)
+
+    #TODO make tests pass, support nd matmul
+    def test_nd_matmul_exception(self) -> None:
+        error_str = "Multiplication with N-d arrays is not yet supported"
+        with pytest.raises(ValueError, match=error_str):
+            x = cp.Variable((5,20,3))
+            y = cp.Variable((3,10))
+            x @ y
+    
+    #TODO make tests pass, support cumsum with multiple axes
+    def test_nd_cumsum_warning(self) -> None:
+        warning_str = "cumsum is only implemented for 1D or 2D arrays and might not"
+        with pytest.raises(UserWarning, match=warning_str):
+            x = cp.Variable((5,20,3))
+            cp.cumsum(x, axis=1)

@@ -42,9 +42,9 @@ class reshape(AffAtom):
     Parameters
     ----------
     expr : Expression
-       The expression to promote.
+       The expression to reshape
     shape : tuple or int
-        The shape to promote to.
+        The shape to reshape to
     order : F(ortran) or C
     """
 
@@ -115,7 +115,7 @@ class reshape(AffAtom):
             )
 
     def shape_from_args(self) -> Tuple[int, ...]:
-        """Returns the shape from the rows, cols arguments.
+        """Returns the shape argument.
         """
         return self._shape
 

@@ -27,9 +27,9 @@ class real(AffAtom):
         super(real, self).__init__(expr)
 
     def numeric(self, values):
-        """Convert the vector constant into a diagonal matrix.
         """
-        # Convert values to 1D.
+        Return the real part of a complex array.
+        """
         return np.real(values[0])
 
     def shape_from_args(self) -> Tuple[int, ...]:

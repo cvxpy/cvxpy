@@ -346,7 +346,7 @@ for any cone supported by a target solver, but the current elementary convex con
 
 We address the vectorization options for the semidefinite cones later.
 For now it's useful to say that the ``Awesome(ConicSolver)`` class will access an
-explicit representation for problem :math:`(P)` in in ``apply``, with a code snippet like
+explicit representation for problem :math:`(P)` in ``apply``, with a code snippet like
 
 .. code::
 
@@ -358,7 +358,7 @@ explicit representation for problem :math:`(P)` in in ``apply``, with a code sni
     cone_dims = problem.cone_dims
     c, d, A, b = problem.apply_parameters()
 
-The variable ``constr_map`` is is a dict of lists of CVXPY Constraint objects.
+The variable ``constr_map`` is a dict of lists of CVXPY Constraint objects.
 The dict is keyed by the references to CVXPY's Zero, NonNeg, SOC, PSD, ExpCone,
 and PowCone3D classes. You will need to interact with these constraint classes during
 dual variable recovery.

@@ -176,7 +176,8 @@ def make_linC_from_linPy(linPy, linPy_to_linC) -> None:
     linPy_to_linC[linPy] = linC
     # Note: added special case for sum_entries, since it has a data field
     # that doesn't need to get converted to actual data.
-    if linPy.data is not None and linPy.type != "sum_entries":
+    # same thing for transpose, where the data field can potentially be the axes.
+    if linPy.data is not None and linPy.type not in ["sum_entries", "transpose"]:
         if isinstance(linPy.data, lo.LinOp):
             linC_data = linPy_to_linC[linPy.data]
             linC.set_linOp_data(linC_data)

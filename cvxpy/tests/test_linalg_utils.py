@@ -22,7 +22,7 @@ from cvxpy.tests.base_test import BaseTest
 from cvxpy.utilities import linalg as lau
 
 try:
-    import lau.sparse_cholesky
+    import cvxpy.utilities.cpp.sparsecholesky  # noqa: F401
     missing_extension = False
 except ModuleNotFoundError:
     missing_extension = True
@@ -60,14 +60,24 @@ class TestSparseCholesky(BaseTest):
         self.check_gram(L[p, :], A)
 
     @pytest.mark.skipif(missing_extension, reason="requires sparse_cholesky")
-    def test_generic(self):
+    def test_generic(self, use_expression=False):
         np.random.seed(0)
         B = np.random.randn(3, 3)
         A = spar.csc_array(B @ B.T)
+        if use_expression:
+            from cvxpy.expressions.expression import Expression
+            A = Expression.cast_to_const(A)
+            assert isinstance(A, Expression)
         _, L, p = lau.sparse_cholesky(A)
         self.check_factor(L)
+        if use_expression:
+            A = A.value
         self.check_gram(L[p, :], A)
 
+    @pytest.mark.skipif(missing_extension, reason="requires sparse_cholesky")
+    def test_expression(self):
+        self.test_generic(use_expression=True)
+    
     @pytest.mark.skipif(missing_extension, reason="requires sparse_cholesky")
     def test_singular(self):
         # error on singular PSD matrix

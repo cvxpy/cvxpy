@@ -185,7 +185,8 @@ class SparseCholeskyMessages:
     ASYMMETRIC = 'Input matrix is not symmetric to within provided tolerance.'
     INDEFINITE = 'Input matrix is neither positive nor negative definite.'
     EIGEN_FAIL = 'Cholesky decomposition failed.'
-    NOT_SPARSE = 'Input must be a SciPy sparse matrix.'
+    NOT_CONST = 'The only allowed Expression inputs are Constant objects.'
+    NOT_SPARSE = 'Non-Expression inputs must be SciPy sparse matrices.'
     NOT_REAL = 'Input matrix must be real.'
 
 
@@ -204,7 +205,13 @@ def sparse_cholesky(A, sym_tol=settings.CHOL_SYM_TOL, assume_posdef=False):
      ||A - A'||_Fro / sqrt(n) <= sym_tol, where n is the order of the matrix.
     """
     import cvxpy.utilities.cpp.sparsecholesky as spchol  # noqa: I001
-
+    import cvxpy.expressions.cvxtypes as cvxtypes #noqa: I001
+    
+    if isinstance(A, cvxtypes.expression()):
+        if not isinstance(A, cvxtypes.constant()):
+            raise ValueError(SparseCholeskyMessages.NOT_CONST)
+        A = A.value
+            
     if not spar.issparse(A):
         raise ValueError(SparseCholeskyMessages.NOT_SPARSE)
     if np.iscomplexobj(A):
