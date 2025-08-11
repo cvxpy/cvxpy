@@ -6,7 +6,7 @@ y = cp.Variable(3)
 
 objective = cp.Maximize(cp.sum(cp.maximum(x, y)))
 
-constraints = [x <= 14, y <= 6]
+constraints = [x <= 14, y <= 14]
 
 problem = cp.Problem(objective, constraints)
 print(cp.installed_solvers())

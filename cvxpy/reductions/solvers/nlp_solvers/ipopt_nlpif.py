@@ -232,7 +232,6 @@ class IPOPT(NLPsolver):
 
             # Define a function that computes all constraint values
             def constraint_function(x):
-                from cvxtorch.utils.torch_utils import tensor_reshape_fortran
                 offset = 0
                 torch_vars_dict = {}
                 torch_exprs = []

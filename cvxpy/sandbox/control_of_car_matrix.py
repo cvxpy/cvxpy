@@ -19,13 +19,14 @@ def solve_car_control(x_final, L=0.1, N=2, h=0.1, gamma=10):
     - u_opt: optimal controls (N x 2)
     """
     # Add random seed for reproducibility
-    np.random.seed(42)
+    np.random.seed(78)
     # Variables
     # States: x[k] = [p1(k), p2(k), theta(k)]
     x = cp.Variable((N+1, 3))
     # Controls: u[k] = [s(k), phi(k)]
     u = cp.Variable((N, 2))
     
+    u.value = np.random.uniform(0, 1, size=(N,2))
     # Initial state (starting at origin with zero orientation)
     x_init = np.array([0, 0, 0])
     
@@ -70,9 +71,6 @@ def solve_car_control(x_final, L=0.1, N=2, h=0.1, gamma=10):
     
     # Create and solve the problem
     problem = cp.Problem(cp.Minimize(objective), constraints)
-    
-    # Solve using an appropriate solver
-    # For nonlinear problems, we might need special solver options
     problem.solve(solver=cp.IPOPT, nlp=True, verbose=True)
     
     # Extract solution

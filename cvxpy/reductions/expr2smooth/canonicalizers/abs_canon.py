@@ -14,11 +14,14 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+import numpy as np
+
 from cvxpy.expressions.variable import Variable
 
 
 def abs_canon(expr, args):
     shape = expr.shape
     t = Variable(shape)
-    
+    #if expr.value is not None:
+     #   t.value = np.sqrt(expr.value**2)
     return t, [t**2 == expr**2, t >= 0]

@@ -29,7 +29,7 @@ CANON_METHODS = {
     maximum : maximum_canon,
     minimum: minimum_canon,
     # log: log_canon,
-    #power: power_canon,
+    power: power_canon,
     #Pnorm : pnorm_canon,
     # inv: inv_pos_canon,
 }
