@@ -17,11 +17,11 @@ x.value = xls
 gamma = 0.1
 print(np.linalg.norm(A @ xls - b)**2 + gamma * np.sum(np.sqrt(np.abs(xls))))
 # Define the objective function with l1-2 norm
-objective = cp.Minimize(cp.sum_squares(A @ x - b) + gamma * cp.sum(cp.sqrt(cp.abs(x))))
+objective = cp.Minimize(cp.sum_squares(A @ x - b) + gamma * cp.sum((cp.abs(x))))
 problem = cp.Problem(objective)
 # Solve the problem
 problem.solve(solver=cp.IPOPT, nlp=True)
 print(x.value)
 print("Optimal value:", problem.value)
-print(np.linalg.norm(-2* A.T@b))
-print(2* A.T@(A @ x.value - b))
+#print(np.linalg.norm(-2* A.T@b))
+#print(2* A.T@(A @ x.value - b))
