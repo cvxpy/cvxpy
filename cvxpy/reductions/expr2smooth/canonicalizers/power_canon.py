@@ -23,7 +23,7 @@ from cvxpy.expressions.variable import Variable
 def power_canon(expr, args):
     x = args[0]
     p = expr.p_rational
-    w = expr.w
+    #w = expr.w
 
     if p == 1:
         return x, []

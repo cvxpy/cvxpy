@@ -1,5 +1,5 @@
+
 import cvxpy as cp
-import numpy as np
 
 # Define variables
 x = cp.Variable(3)

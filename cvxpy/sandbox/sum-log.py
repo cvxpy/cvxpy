@@ -1,6 +1,8 @@
 # write a log sum problem in cvxpy
-import cvxpy as cp
 import numpy as np
+
+import cvxpy as cp
+
 # Generate random data
 np.random.seed(0)
 m, n = 10, 50

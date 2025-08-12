@@ -16,16 +16,12 @@ limitations under the License.
 
 from typing import Tuple
 
-import numpy as np
-
-import cvxpy.settings as s
 from cvxpy import problems
 from cvxpy.expressions.expression import Expression
 from cvxpy.problems.objective import Minimize
 from cvxpy.reductions.canonicalization import Canonicalization
 from cvxpy.reductions.expr2smooth.canonicalizers import CANON_METHODS as smooth_canon_methods
 from cvxpy.reductions.inverse_data import InverseData
-from cvxpy.reductions.solution import Solution
 
 
 class Expr2Smooth(Canonicalization):

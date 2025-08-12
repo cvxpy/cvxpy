@@ -1,6 +1,7 @@
 # write a unconstrained least squares problem with l1-2 norm
-import cvxpy as cp
 import numpy as np
+
+import cvxpy as cp
 
 # Generate random data
 np.random.seed(0)
