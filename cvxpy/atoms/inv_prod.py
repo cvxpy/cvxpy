@@ -36,4 +36,4 @@ def inv_prod(value):
 
         where :math:`n` is the length of :math:`x`.
     """
-    return power(geo_mean(value)), -int(np.prod(value.shape))
+    return power(geo_mean(value), -int(np.prod(value.shape)))
