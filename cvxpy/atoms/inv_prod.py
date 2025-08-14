@@ -15,7 +15,6 @@ limitations under the License.
 """
 import numpy as np
 
-from cvxpy.atoms.elementwise.inv_pos import inv_pos
 from cvxpy.atoms.elementwise.power import power
 from cvxpy.atoms.geo_mean import geo_mean
 
@@ -37,4 +36,4 @@ def inv_prod(value):
 
         where :math:`n` is the length of :math:`x`.
     """
-    return power(inv_pos(geo_mean(value)), int(np.prod(value.shape)))
+    return power(geo_mean(value)), -int(np.prod(value.shape))
