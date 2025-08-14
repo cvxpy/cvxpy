@@ -60,7 +60,6 @@ jobs:
         with:
           auto-update-conda: true
           python-version: ${{ matrix.python-version }}
-          allow-prereleases: true # needed for 3.14
           channels: conda-forge,anaconda
 
       - name: Install
