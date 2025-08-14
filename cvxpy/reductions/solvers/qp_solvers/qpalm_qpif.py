@@ -91,11 +91,14 @@ class QPALM(QpSolver):
         qp_data.bmax = b_max
 
         settings = qpalm.Settings()
-        settings.max_iter = 1000
+        # Chosen to match PIQP's default tolerances:
+        # https://github.com/PREDICT-EPFL/piqp/blob/5115f0c08b86de40aff90f7f717956f0a573c627/include/piqp/settings.hpp#L48-L49
         settings.eps_abs = 1e-8
+        settings.eps_rel = 1e-9
+        # By default, QPALM is a bit too eager in declaring infeasibility when
+        # decreasing eps_{abs,rel}, so also decrease the feasibility tolerances
         settings.eps_dual_inf = 1e-8
         settings.eps_prim_inf = 1e-8
-        settings.eps_rel = 1e-9
         settings.verbose = verbose
         for k, v in solver_opts.items():
             try:
