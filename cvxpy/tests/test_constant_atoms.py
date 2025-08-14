@@ -30,13 +30,14 @@ from cvxpy.expressions.constants import Constant, Parameter
 from cvxpy.expressions.variable import Variable
 from cvxpy.problems.problem import Problem
 from cvxpy.reductions.solvers.defines import INSTALLED_SOLVERS
-from cvxpy.settings import CLARABEL, CVXOPT, MOSEK, OSQP, ROBUST_KKTSOLVER, SCS
+from cvxpy.settings import CLARABEL, CVXOPT, MOSEK, OSQP, QPALM, ROBUST_KKTSOLVER, SCS
 
 ROBUST_CVXOPT = "robust_cvxopt"
 SOLVER_TO_TOL = {SCS: 1e-2,
                  CLARABEL: 1e-7,
-                 OSQP: 1e-1}
-SOLVERS_TO_TRY = [CLARABEL, SCS, OSQP]
+                 OSQP: 1e-1,
+                 QPALM: 1e-7}
+SOLVERS_TO_TRY = [CLARABEL, SCS, OSQP, QPALM]
 # Test CVXOPT if installed.
 if CVXOPT in INSTALLED_SOLVERS:
     SOLVERS_TO_TRY += [CVXOPT, ROBUST_CVXOPT]
