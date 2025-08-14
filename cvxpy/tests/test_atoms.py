@@ -1770,6 +1770,8 @@ class TestAtoms(BaseTest):
         X = cp.Variable((6, 6))
         with self.assertRaises(ValueError) as cm:
             cp.partial_transpose(X, dims=[2, 4], axis=0)
+        self.assertEqual(str(cm.exception),
+                         "Dimension of system doesn't correspond to dimension of subsystems.")
 
     def test_log_sum_exp(self) -> None:
         """Test log_sum_exp sign.
