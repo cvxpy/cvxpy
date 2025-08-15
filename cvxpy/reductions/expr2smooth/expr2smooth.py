@@ -18,6 +18,7 @@ from typing import Tuple
 
 from cvxpy import problems
 from cvxpy.expressions.expression import Expression
+from cvxpy.expressions.variable import Variable
 from cvxpy.problems.objective import Minimize
 from cvxpy.reductions.canonicalization import Canonicalization
 from cvxpy.reductions.expr2smooth.canonicalizers import CANON_METHODS as smooth_canon_methods
@@ -76,7 +77,6 @@ class Expr2Smooth(Canonicalization):
         -------
         A tuple of the canonicalized expression and generated constraints.
         """
-        # TODO don't copy affine expressions?
         affine_atom = type(expr) not in self.smooth_canon_methods
         canon_args = []
         constrs = []
@@ -108,56 +108,11 @@ class Expr2Smooth(Canonicalization):
 
         if type(expr) in self.smooth_canon_methods:
             return self.smooth_canon_methods[type(expr)](expr, args)
-
+        """
+        elif hasattr(expr, "curvature") and expr.curvature == "AFFINE":
+            if type(expr) is Variable:
+                return expr, []
+            t = Variable(expr.shape)
+            return t, [t == expr.copy(args)]
+        """
         return expr.copy(args), []
-
-"""
-def example_max():
-    # Define variables
-    x = cp.Variable(1)
-    y = cp.Variable(1)
-    
-    objective = cp.Minimize(-cp.maximum(x,y))
-    
-    constraints = [x - 14 == 0, y - 6 == 0]
-    
-    problem = cp.Problem(objective, constraints)
-    return problem
-
-def example_sqrt():
-    # Define variables
-    x = cp.Variable(1)
-    
-    objective = cp.Minimize(cp.sqrt(x))
-    
-    constraints = [x - 4 == 0]
-    
-    problem = cp.Problem(objective, constraints)
-    return problem
-
-def example_pnorm_even():
-    # Define variables
-    x = cp.Variable(2)
-    
-    objective = cp.Minimize(cp.pnorm(x, p=2))
-    
-    constraints = [x[0] - 3 == 0, x[1] - 4 == 0]
-    
-    problem = cp.Problem(objective, constraints)
-    return problem
-
-def example_pnorm_odd():
-    # Define variables
-    x = cp.Variable(2)
-    
-    objective = cp.Minimize(cp.pnorm(x, p=3))
-    
-    constraints = [x[0] - 3 == 0, x[1] - 4 == 0]
-    
-    problem = cp.Problem(objective, constraints)
-    return problem
-
-prob = example_sqrt()
-new_problem, inverse = Expr2smooth(prob).apply(prob)
-print(new_problem)
-"""

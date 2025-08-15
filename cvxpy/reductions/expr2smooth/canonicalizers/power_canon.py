@@ -39,8 +39,11 @@ def power_canon(expr, args):
                 t.value = np.power(np.abs(x.value), p)
             return t, [t**(1/p) == x, t >= 0]
         elif p > 1:
-            return x**p, []
-        else:  # p < 0
-            raise ValueError(
-                "Power canonicalization does not support negative powers."
-            )
+            t = Variable(args[0].shape)
+            if args[0].value is not None:
+                t.value = np.power(args[0].value, p)
+            else:
+                t.value = expr.point_in_domain()
+            return expr.copy([t]), [t==args[0]]
+        else:
+            pass

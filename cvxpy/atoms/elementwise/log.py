@@ -95,3 +95,8 @@ class log(Elementwise):
         """Returns constraints describing the domain of the node.
         """
         return [self.args[0] >= 0]
+
+    def point_in_domain(self) -> np.ndarray:
+        """Returns a point in the domain of the node.
+        """
+        return np.ones(self.size)

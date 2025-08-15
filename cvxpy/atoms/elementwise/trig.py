@@ -75,10 +75,13 @@ class sin(Elementwise):
         """
         return []
 
-    def _grad(self) -> List[Constraint]:
+    def _grad(self, values) -> List[Constraint]:
         """Returns the gradient of the node.
         """
-        return []
+        rows = self.args[0].size
+        cols = self.size
+        grad_vals = np.cos(values[0])
+        return [sin.elemwise_grad_to_diag(grad_vals, rows, cols)]
 
 
 class cos(Elementwise):
@@ -135,10 +138,13 @@ class cos(Elementwise):
         """
         return []
 
-    def _grad(self) -> List[Constraint]:
+    def _grad(self, values) -> List[Constraint]:
         """Returns the gradient of the node.
         """
-        return []
+        rows = self.args[0].size
+        cols = self.size
+        grad_vals = -np.sin(values[0])
+        return [cos.elemwise_grad_to_diag(grad_vals, rows, cols)]
 
 
 class tan(Elementwise):
@@ -195,8 +201,10 @@ class tan(Elementwise):
         """
         return []
 
-    def _grad(self) -> List[Constraint]:
+    def _grad(self, values) -> List[Constraint]:
         """Returns the gradient of the node.
         """
-        return []
-    
+        rows = self.args[0].size
+        cols = self.size
+        grad_vals = 1/np.cos(values[0])**2
+        return [tan.elemwise_grad_to_diag(grad_vals, rows, cols)]

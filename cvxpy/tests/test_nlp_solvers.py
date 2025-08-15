@@ -90,12 +90,12 @@ class TestExamplesIPOPT():
         np.random.seed(1234)
         data = np.random.randn(n)
         
-        mu = cp.Variable(1, name="mu")
-        mu.value = np.array([0.0])
-        sigma = cp.Variable(1, name="sigma")
-        sigma.value = np.array([1.0])
+        mu = cp.Variable(name="mu")
+        mu.value = np.array(0.0)
+        sigma = cp.Variable(name="sigma")
+        sigma.value = np.array(1.0)
 
-        constraints = [mu == sigma**2, sigma >= 1e-6]
+        constraints = [mu == sigma**2]
         residual_sum = cp.sum_squares(data - mu)
         log_likelihood = (
             (n / 2) * cp.log(1 / (2 * np.pi * (sigma)**2))
@@ -110,7 +110,7 @@ class TestExamplesIPOPT():
         assert np.allclose(mu.value, 0.59412321)
 
     def test_rosenbrock(self):
-        x = cp.Variable(2)
+        x = cp.Variable(2, name='x')
         objective = cp.Minimize((1 - x[0])**2 + 100 * (x[1] - x[0]**2)**2)
         problem = cp.Problem(objective, [])
         problem.solve(solver=cp.IPOPT, nlp=True)

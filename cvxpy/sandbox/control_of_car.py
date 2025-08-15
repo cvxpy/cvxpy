@@ -4,7 +4,7 @@ import numpy as np
 import cvxpy as cp
 
 
-def solve_car_control(x_final, L=0.1, N=2, h=0.1, gamma=10):
+def solve_car_control(x_final, L=0.1, N=50, h=0.1, gamma=10):
     """
     Solve the nonlinear optimal control problem for car trajectory planning.
     

@@ -15,7 +15,7 @@ limitations under the License.
 """
 
 import numpy as np
-import torch
+import scipy.sparse as sp
 
 import cvxpy.settings as s
 from cvxpy.constraints import (
@@ -31,7 +31,6 @@ from cvxpy.reductions.utilities import (
     nonpos2nonneg,
 )
 from cvxpy.utilities.citations import CITATION_DICT
-from cvxtorch import TorchExpression
 
 
 class IPOPT(NLPsolver):
@@ -145,7 +144,7 @@ class IPOPT(NLPsolver):
         nlp = cyipopt.Problem(
         n=len(x0),
         m=len(bounds.cl),
-        problem_obj=self.Oracles(bounds.new_problem),
+        problem_obj=self.Oracles(bounds.new_problem, x0),
         lb=bounds.lb,
         ub=bounds.ub,
         cl=bounds.cl,
@@ -168,9 +167,10 @@ class IPOPT(NLPsolver):
         return CITATION_DICT["IPOPT"]
 
     class Oracles():
-        def __init__(self, problem):
+        def __init__(self, problem, inital_point):
             self.problem = problem
             self.main_var = []
+            self.initial_point = inital_point
             for var in self.problem.variables():
                 self.main_var.append(var)
         
@@ -188,28 +188,25 @@ class IPOPT(NLPsolver):
         
         def gradient(self, x):
             """Returns the gradient of the objective with respect to x."""
-            # Convert to torch tensor with gradient tracking
+            # compute the gradient using _grad
             offset = 0
-            torch_exprs = []
             for var in self.main_var:
                 size = var.size
-                slice = x[offset:offset+size].reshape(var.shape, order='F')
-                torch_exprs.append(torch.from_numpy(slice.astype(np.float64)).requires_grad_(True))
+                var.value = x[offset:offset+size].reshape(var.shape, order='F')
                 offset += size
-            
-            torch_expr = TorchExpression(self.problem.objective.args[0])
-            torch_obj = torch_expr.torch_expression(*torch_exprs)
-            
-            # Compute gradient
-            torch_obj.backward()
-            gradients = []
-            for tensor in torch_exprs:
-                if tensor.grad is not None:
-                    gradients.append(tensor.grad.detach().numpy().flatten())
-                else:
-                    gradients.append(np.array([0] * tensor.numel()))
-            return np.concatenate(gradients)
-        
+            grad_offset = 0
+            grad = np.zeros(x.size, dtype=np.float64)
+            grad_dict = self.problem.objective.expr.grad
+            for var in self.main_var:
+                size = var.size
+                if var in grad_dict:
+                    array = grad_dict[var]
+                    if sp.issparse(array):
+                        array = array.toarray().flatten(order='F')
+                    grad[grad_offset:grad_offset+size] = array
+                grad_offset += size
+            return grad
+
         def constraints(self, x):
             """Returns the constraint values."""
             # Set the variable value
@@ -223,67 +220,60 @@ class IPOPT(NLPsolver):
             constraint_values = []
             for constraint in self.problem.constraints:
                 constraint_values.append(np.asarray(constraint.args[0].value).flatten())
-            return np.concat(constraint_values)
-        
+            return np.concatenate(constraint_values)
+
         def jacobian(self, x):
-            """Returns the Jacobian of the constraints with respect to x."""
-            # Convert to torch tensor with gradient tracking
-            x = torch.from_numpy(x.astype(np.float64)).requires_grad_(True)
-
-            # Define a function that computes all constraint values
-            def constraint_function(x):
-                offset = 0
-                torch_vars_dict = {}
-                torch_exprs = []
+            """Returns only the non-zero values of the Jacobian."""
+            # Set variable values
+            offset = 0
+            for var in self.main_var:
+                size = var.size
+                var.value = x[offset:offset+size].reshape(var.shape, order='F')
+                offset += size
+            
+            values = []
+            for constraint in self.problem.constraints:
+                # get the jacobian of the constraint
+                grad_dict = constraint.expr.grad
                 for var in self.main_var:
-                    size = var.size
-                    slice = x[offset:offset+size].reshape(var.shape)
-                    #slice = x[offset:offset+size].reshape(var.shape, order='F')
-                    torch_vars_dict[var.id] = slice # Map CVXPY variable ID to torch tensor
-                    torch_exprs.append(slice)
-                    offset += size
-                
-                # Create mapping from torch tensors back to CVXPY variables
-                torch_to_var = {}
-                for i, var in enumerate(self.main_var):
-                    torch_to_var[var.id] = torch_exprs[i]
-                
-                constraint_values = []
-                for constraint in self.problem.constraints:
-                    # all constraints have a single argument
-                    # because they are "normalized" in the reduction
-                    constraint_expr = constraint.args[0]
-                    constraint_vars = constraint_expr.variables()
-                    
-                    # Create ordered list of torch tensors for this specific constraint
-                    # in the order that the constraint expression expects them
-                    constr_torch_args = []
-                    for var in constraint_vars:
-                        if var.id in torch_to_var:
-                            constr_torch_args.append(torch_to_var[var.id])
+                    if var in grad_dict:
+                        jacobian = grad_dict[var].T
+                        if sp.issparse(jacobian):
+                            jacobian = jacobian.toarray().flatten(order='F')
+                            values.append(np.atleast_1d(jacobian))
                         else:
-                            raise ValueError(f"Variable {var} not found in torch mapping")
-                    
-                    torch_expr = TorchExpression(constraint_expr).torch_expression(
-                        *constr_torch_args
-                    )
-                    constraint_values.append(torch_expr)
-                return torch.cat([cv.flatten() for cv in constraint_values])
-
-            # Compute Jacobian using torch.autograd.functional.jacobian
-            if len(self.problem.constraints) > 0:
-                jacobian_tuple = torch.autograd.functional.jacobian(constraint_function, x)
-                # Handle the case where jacobian_tuple is a tuple (multiple variables)
-                if isinstance(jacobian_tuple, tuple):
-                    # Concatenate along the last dimension (variable dimension)
-                    jacobian_matrix = torch.cat(
-                        [jac.reshape(jac.size(0), -1) for jac in jacobian_tuple],
-                        dim=1
-                    )
+                            values.append(np.atleast_1d(jacobian))
+            return np.concatenate(values)
+        
+        def jacobianstructure(self):
+            """Returns the sparsity structure of the Jacobian."""
+            # Set dummy values to get gradient structure
+            offset = 0
+            for var in self.main_var:
+                if var.shape == ():
+                    var.value = self.initial_point[offset]
                 else:
-                    # Single variable case
-                    jacobian_matrix = jacobian_tuple
-                return jacobian_matrix.detach().numpy()
+                    var.value = np.atleast_1d(self.initial_point[offset:offset + var.size])
+                offset += var.size
+            rows, cols = [], []
+            row_offset = 0
+            for constraint in self.problem.constraints:
+                grad_dict = constraint.expr.grad
+                col_offset = 0
+                for var in self.main_var:
+                    if var in grad_dict:
+                        jacobian = grad_dict[var].T
+                        if sp.issparse(jacobian):
+                            row_indices, col_indices = np.indices(jacobian.shape)
+                            rows.extend(row_indices.flatten(order='F') + row_offset)
+                            cols.extend(col_indices.flatten(order='F') + col_offset)
+                        else:
+                            rows.extend(np.ones(jacobian.size)*row_offset)
+                            cols.extend(np.arange(col_offset, col_offset + var.size))
+                    col_offset += var.size
+                row_offset += constraint.size
+            
+            return (np.array(rows), np.array(cols))
 
     class Bounds():
         def __init__(self, problem):
