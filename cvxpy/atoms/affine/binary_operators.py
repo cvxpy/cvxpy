@@ -174,8 +174,8 @@ class MulExpression(BinaryOperator):
         """Compute the gradient of matrix multiplication w.r.t. each argument.
         
         For Z = X @ Y, this computes the Jacobian matrices:
-        - ∂vec(Z)/∂vec(X) = Y.T ⊗ I_m  where X is (m, n)
-        - ∂vec(Z)/∂vec(Y) = I_p ⊗ X    where Y is (n, p)
+        - ∂vec(Z)/∂vec(X) = (Y.T ⊗ I_m).T  where X is (m, n)
+        - ∂vec(Z)/∂vec(Y) = (I_p ⊗ X).T    where Y is (n, p)
         
         Args:
             values: A list of numeric values for the arguments [X, Y].
@@ -197,13 +197,13 @@ class MulExpression(BinaryOperator):
         # Verify dimension compatibility
         assert n == n2, f"Inner dimensions must match for multiplication: {n} != {n2}"
         
-        # Compute ∂vec(Z)/∂vec(X) = Y.T ⊗ I_m
-        # This is a (m*p) × (m*n) matrix
-        DX = sp.kron(Y.T, sp.eye(m, format='csc'), format='csc')
+        # Compute ∂vec(Z)/∂vec(X) = (Y.T ⊗ I_m).T
+        # This is a (m*n) × (m*p) matrix 
+        DX = sp.kron(Y.T, sp.eye(m, format='csc'), format='csc').T
         
-        # Compute ∂vec(Z)/∂vec(Y) = I_p ⊗ X
-        # This is a (m*p) × (n*p) matrix
-        DY = sp.kron(sp.eye(p, format='csc'), X, format='csc')
+        # Compute ∂vec(Z)/∂vec(Y) = (I_p ⊗ X).T
+        # This is a (n*p) × (m*p) matrix
+        DY = sp.kron(sp.eye(p, format='csc'), X, format='csc').T
         
         return [DX, DY]
 

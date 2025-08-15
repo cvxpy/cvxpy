@@ -194,11 +194,23 @@ class TestExamplesIPOPT():
             theta >= theta_lb,
             theta <= theta_ub
         ]
-        P_balance = cp.multiply(v, (G * cp.cos(theta_col - theta_col.T) + B * cp.sin(theta_col - theta_col.T)) @ v)
+        P_balance = cp.multiply(
+            v,
+            (
+                G * cp.cos(theta_col - theta_col.T)
+                + B * cp.sin(theta_col - theta_col.T)
+            ) @ v
+        )
         constraints.append(P == P_balance)
 
         # Reactive power balance
-        Q_balance = cp.multiply(v, (G * cp.sin(theta_col - theta_col.T) - B * cp.cos(theta_col - theta_col.T)) @ v)
+        Q_balance = cp.multiply(
+            v,
+            (
+                G * cp.sin(theta_col - theta_col.T)
+                - B * cp.cos(theta_col - theta_col.T)
+            ) @ v
+        )
         constraints.append(Q == Q_balance)
 
         # Objective: minimize reactive power at buses 1 and 3 (indices 0 and 2)

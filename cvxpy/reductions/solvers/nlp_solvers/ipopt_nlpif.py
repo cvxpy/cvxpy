@@ -239,7 +239,9 @@ class IPOPT(NLPsolver):
                     if var in grad_dict:
                         jacobian = grad_dict[var].T
                         if sp.issparse(jacobian):
-                            jacobian = jacobian.toarray().flatten(order='F')
+                            jacobian = jacobian.tocoo()
+                            jacobian = jacobian.data
+                            #jacobian = jacobian.toarray().flatten(order='F')
                             values.append(np.atleast_1d(jacobian))
                         else:
                             values.append(np.atleast_1d(jacobian))
@@ -264,9 +266,9 @@ class IPOPT(NLPsolver):
                     if var in grad_dict:
                         jacobian = grad_dict[var].T
                         if sp.issparse(jacobian):
-                            row_indices, col_indices = np.indices(jacobian.shape)
-                            rows.extend(row_indices.flatten(order='F') + row_offset)
-                            cols.extend(col_indices.flatten(order='F') + col_offset)
+                            jacobian = jacobian.tocoo()
+                            rows.extend(jacobian.row + row_offset)
+                            cols.extend(jacobian.col + col_offset)
                         else:
                             rows.extend(np.ones(jacobian.size)*row_offset)
                             cols.extend(np.arange(col_offset, col_offset + var.size))
