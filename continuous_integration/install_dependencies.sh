@@ -26,6 +26,6 @@ else
   uv pip install scipy==1.13.0 numpy==1.26.4
 fi
 
-if [[ "$USE_OPENMP" == "True" ]]; then
-  uv pip install openmp
-fi
+#if [[ "$USE_OPENMP" == "True" ]]; then
+  #uv pip install openmp
+#fi
