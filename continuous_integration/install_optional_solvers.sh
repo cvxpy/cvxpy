@@ -1,6 +1,7 @@
 #!/bin/bash
 
 set -e
+uv venv
 if [[ "$RUNNER_OS" == "Windows ]]; then
   . .venv/Scripts/activate
 else
