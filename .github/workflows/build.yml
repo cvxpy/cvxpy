@@ -132,8 +132,8 @@ jobs:
       - name: Verify that we can build by pip-install on each OS.
         if: ${{matrix.build-cvxpy-base && env.PIP_INSTALL == 'True'}}
         run: |
-          uv pip install . pytest cplex
-          uv run pytest cvxpy/tests/test_conic_solvers.py -k 'TestCPLEX'
+          pip install . pytest cplex
+          pytest cvxpy/tests/test_conic_solvers.py -k 'TestCPLEX'
           # ensure a fresh state for cibuildwheel
           rm -r build
 
@@ -155,14 +155,14 @@ jobs:
       - name: Build source
         if: ${{github.event_name == 'push' && env.SINGLE_ACTION_CONFIG == 'True'}}
         run: |
-          uv pip install build
+          pip install build
           python -m build --sdist -o wheelhouse
 
       - name: Check wheels
         if: ${{github.event_name == 'push' && env.USE_OPENMP != 'True'}}
         shell: bash
         run: |
-          uv pip install --upgrade twine
+          pip install --upgrade twine
           twine check wheelhouse/*
 
       - name: Release to pypi
