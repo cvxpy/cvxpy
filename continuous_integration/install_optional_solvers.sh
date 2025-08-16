@@ -1,6 +1,7 @@
 #!/bin/bash
 
 set -e
+. .venv/bin/activate
 
 uv pip install ecos scs proxsuite daqp gurobipy piqp clarabel osqp highspy qoco 
 
