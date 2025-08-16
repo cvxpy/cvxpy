@@ -30,11 +30,10 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: 3.12
-      - uses: conda-incubator/setup-miniconda@v3
+      - uses: astral-sh/setup-uv@v6
         with:
-          auto-update-conda: true
           python-version: 3.12
-          channels: conda-forge,anaconda
+          enable-cache: true
       - uses: actions/checkout@v4
       - name: Setup Julia 
         uses: julia-actions/setup-julia@v2
