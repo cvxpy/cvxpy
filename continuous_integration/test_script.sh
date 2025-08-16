@@ -5,16 +5,22 @@
 
 set -e
 
+if [[ "$RUNNER_OS" == "Windows" ]]; then
+  . .venv/Scripts/activate
+else 
+  . .venv/bin/activate
+fi
+
 python --version
 python -c "import numpy; print('numpy %s' % numpy.__version__)"
 python -c "import scipy; print('scipy %s' % scipy.__version__)"
 
 if [ $USE_OPENMP == "True" ] && [ $RUNNER_OS == "Linux" ]; then
-    CFLAGS="-fopenmp" LDFLAGS="-lgomp" python -m pip install .
+    CFLAGS="-fopenmp" LDFLAGS="-lgomp" uv pip install .
     export OMP_NUM_THREADS=4
 else
-    python -m pip list
-    python -m pip install .
+    uv pip list
+    uv pip install .
 fi
 
 python -c "import cvxpy; print(cvxpy.installed_solvers())"
