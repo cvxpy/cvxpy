@@ -23,7 +23,7 @@ fi
 if [[ "$PYTHON_VERSION" == "3.13" ]]; then
   uv pip install scipy numpy
 else
-  uv pip install scipy=1.13.0 numpy=1.26.4
+  uv pip install scipy==1.13.0 numpy==1.26.4
 fi
 
 if [[ "$USE_OPENMP" == "True" ]]; then
