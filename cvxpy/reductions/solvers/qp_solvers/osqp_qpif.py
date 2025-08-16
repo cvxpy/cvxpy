@@ -129,7 +129,7 @@ class OSQP(QpSolver):
             except Exception as e:
                 raise SolverError(e)
 
-        results = solver.solve()
+        results = solver.solve(raise_error=False)
 
         if solver_cache is not None:
             solver_cache[self.name()] = (solver, data, results)
