@@ -4,6 +4,8 @@
 # variables defined in the build.yml in .github/workflows/.
 
 set -e
+uv venv
+. .venv/bin/activate
 
 uv pip install pytest pytest-cov hypothesis openblas "setuptools>65.5.1"
 
