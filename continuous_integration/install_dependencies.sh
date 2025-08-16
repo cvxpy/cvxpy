@@ -6,7 +6,7 @@
 set -e
 uv venv
 if [[ "$RUNNER_OS" == "Windows" ]]; then
-  . .venv/Script/activate
+  . .venv/Scripts/activate
 else
   . .venv/bin/activate
 fi
