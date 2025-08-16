@@ -5,7 +5,11 @@
 
 set -e
 uv venv
-. .venv/bin/activate
+if [[ "$RUNNER_OS" == "Windows" ]]; then
+  . .venv/Script/activate
+else
+  . .venv/bin/activate
+fi
 
 #if  [[ "$RUNNER_OS" == "Linux" ]]; then 
 #  sudo apt install openblas
