@@ -5,7 +5,11 @@
 
 set -e
 
-. .venv/bin/activate
+if [[ "$RUNNER_OS" == "Windows" ]]; then
+  . .venv/Scripts/activate
+else 
+  . .venv/bin/activate
+fi
 
 python --version
 python -c "import numpy; print('numpy %s' % numpy.__version__)"
