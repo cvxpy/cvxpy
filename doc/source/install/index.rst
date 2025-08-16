@@ -250,6 +250,13 @@ Install with Additional Solver Support
     Be aware that PROXQP by default uses dense matrices to represent problem data.
     You may achieve better performance by setting ``backend = 'sparse'`` in your call to ``problem.solve``.
 
+.. info:: QPALM
+   :collapsible:
+
+    CVXPY supports the QPALM solver.
+    Simply install QPALM such that you can ``import qpalm`` in Python.
+    See the `QPALM <https://kul-optec.github.io/QPALM/Doxygen/index.html>`_ website for installation instructions.
+
 .. info:: QOCO
     :collapsible:
 

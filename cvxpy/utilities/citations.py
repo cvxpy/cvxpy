@@ -327,6 +327,22 @@ CITATION_DICT["PROXQP"] = \
 }
 """
 
+CITATION_DICT["QPALM"] = \
+"""
+@article{hermans2022qpalm,
+	author = {Hermans, Ben and Themelis, Andreas and Patrinos, Panagiotis},
+	title = {{QPALM}: a proximal augmented lagrangian method for nonconvex quadratic programs},
+	volume = {14},
+	issn = {1867-2957},
+	pages = {497--541},
+	number = {3},
+	journal = {Mathematical Programming Computation},
+	month = sep,
+	year = {2022},
+	doi = {10.1007/s12532-022-00218-0},
+}
+"""
+
 CITATION_DICT["QOCO"] = \
 r"""
 @misc{chari2025qoco,
