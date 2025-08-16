@@ -73,9 +73,9 @@ class XPRESS(QpSolver):
                 intf.DEFAULT_INTF.const_to_matrix(np.array(x))
             }
 
-            # Only add duals if not a MIP.
+            # Only add duals if not a MIP and if duals exist (i.e. there are constraints present).
             dual_vars = None
-            if not inverse_data[XPRESS.IS_MIP]:
+            if 'getDual' in results.keys():
                 y = -np.array(results['getDual'])
                 dual_vars = {XPRESS.DUAL_VAR_ID: y}
 
@@ -248,7 +248,8 @@ class XPRESS(QpSolver):
                 results_dict['getSolution'] = self.prob_.getSolution()
 
                 if not (data[s.BOOL_IDX] or data[s.INT_IDX]):
-                    results_dict['getDual'] = self.prob_.getDuals()
+                    if self.prob_.attributes.rows > 0:
+                        results_dict['getDual'] = self.prob_.getDuals()
 
         del self.prob_
 
