@@ -57,4 +57,4 @@ uv pip install julia
 python -c "import julia; julia.install()"
 
 # Install COSMOPY
-python -m pip install git+https://github.com/oxfordcontrol/cosmo-python.git
+uv pip install git+https://github.com/oxfordcontrol/cosmo-python.git
