@@ -47,9 +47,9 @@ if [[ -n "$KNITRO_LICENSE" ]] && ! ([[ "$RUNNER_OS" == "macOS" ]] && [[ $(uname 
   uv pip install knitro
 fi
 
-# Install and setup python-julia interface
-uv pip install julia
-python -c "import julia; julia.install()"
-
-# Install COSMOPY
-uv pip install git+https://github.com/oxfordcontrol/cosmo-python.git
+## Install and setup python-julia interface
+#uv pip install julia
+#python -c "import julia; julia.install()"
+#
+## Install COSMOPY
+#uv pip install git+https://github.com/oxfordcontrol/cosmo-python.git
