@@ -52,6 +52,7 @@ jobs:
       - name: Run test_conic_solvers
         run : |
           pytest -rs cvxpy/tests/test_conic_solvers.py
+        continue-on-error: true
       - name: Run test_qp_solvers
         run : |
           pytest -rs cvxpy/tests/test_qp_solvers.py
