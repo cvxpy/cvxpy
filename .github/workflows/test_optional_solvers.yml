@@ -49,13 +49,9 @@ jobs:
       - name: Print installed solvers
         run : |
           python -c "import cvxpy; print(cvxpy.installed_solvers())" 
-      - name: Run test_conic_solvers
+      - name: Run conic and qp solver tests
         run : |
-          pytest -rs cvxpy/tests/test_conic_solvers.py
-      - name: Run test_qp_solvers
-        if: always()
-        run : |
-          pytest -rs cvxpy/tests/test_qp_solvers.py
+          pytest -rs cvxpy/tests/test_conic_solvers.py cvxpy/tests/test_qp_solvers.py
 
     env:
       RUNNER_OS: ${{ matrix.os }}
