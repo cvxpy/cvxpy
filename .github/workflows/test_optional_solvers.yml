@@ -27,9 +27,6 @@ jobs:
           echo "MOSEKLM_LICENSE_FILE=$( [[ $RUNNER_OS == 'macOS' ]] && echo $(pwd)/mosek.lic || echo $(realpath mosek.lic) )" >> $GITHUB_ENV
           echo $KNITRO_LICENSE > ~/artelys_lic.txt
 
-      - uses: actions/setup-python@v5
-        with:
-          python-version: 3.12
       - uses: astral-sh/setup-uv@v6
         with:
           python-version: 3.12
@@ -44,13 +41,13 @@ jobs:
       - name: Install cvxpy dependencies and all optional solvers
         run: |
           source continuous_integration/install_optional_solvers.sh
-          pip install . pytest hypothesis
+          uv run pip install . pytest hypothesis
       - name: Print installed solvers
         run : |
-          python -c "import cvxpy; print(cvxpy.installed_solvers())" 
+          uv run python -c "import cvxpy; print(cvxpy.installed_solvers())" 
       - name: Run test_conic_solvers
         run : |
-          pytest -rs cvxpy/tests/test_conic_solvers.py
+          uv run pytest -rs cvxpy/tests/test_conic_solvers.py
 
     env:
       RUNNER_OS: ${{ matrix.os }}
