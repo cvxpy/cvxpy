@@ -7,7 +7,11 @@ set -e
 uv venv
 . .venv/bin/activate
 
-uv pip install pytest pytest-cov hypothesis openblas "setuptools>65.5.1"
+#if  [[ "$RUNNER_OS" == "Linux" ]]; then 
+#  sudo apt install openblas
+#fi
+
+uv pip install pytest pytest-cov hypothesis "setuptools>65.5.1"
 
 uv pip install scs clarabel osqp
 
