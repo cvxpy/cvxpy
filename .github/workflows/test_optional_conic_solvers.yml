@@ -40,8 +40,10 @@ jobs:
         uses: julia-actions/setup-julia@v2
         with:
           version: 'lts'
-      - name: Install COSMO
+      - name: Install COSMO and python/julia interface
         run: julia -e 'using Pkg; Pkg.add("COSMO")'
+             python -m pip install julia
+             python -c "import julia; julia.install()"
       - name: Install cvxpy dependencies and all optional solvers
         run: |
           source continuous_integration/install_optional_solvers.sh
