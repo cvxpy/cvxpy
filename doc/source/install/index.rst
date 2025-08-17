@@ -59,10 +59,10 @@ or a conda environment.
 
         CVXPY has the following dependencies:
 
-        * Python >= 3.9
+        * Python >= 3.11
         * `OSQP`_ >= 0.6.2
         * `CLARABEL`_ >= 0.6.0
-        * `SCS`_ >= 3.0
+        * `SCS`_ >= 3.2.4.post1
         * `NumPy`_ >= 1.22.4
         * `SciPy`_ >= 1.13.0
 
@@ -249,6 +249,13 @@ Install with Additional Solver Support
     See the `proxsuite <https://github.com/simple-robotics/proxsuite#quick-install>`_ github for installation instructions.
     Be aware that PROXQP by default uses dense matrices to represent problem data.
     You may achieve better performance by setting ``backend = 'sparse'`` in your call to ``problem.solve``.
+
+.. info:: QPALM
+   :collapsible:
+
+    CVXPY supports the QPALM solver.
+    Simply install QPALM such that you can ``import qpalm`` in Python.
+    See the `QPALM <https://kul-optec.github.io/QPALM/Doxygen/index.html>`_ website for installation instructions.
 
 .. info:: QOCO
     :collapsible:
