@@ -10,9 +10,9 @@ conda install pip
 
 python -m pip install ecos scs proxsuite daqp gurobipy piqp clarabel osqp highspy qoco 
 
-if [[ "$RUNNER_OS" != "macOS" ]] || [[ $(uname -m) != "x86_64" ]]; then
-  python -m pip install mpax
-fi
+# if [[ "$RUNNER_OS" != "macOS" ]] || [[ $(uname -m) != "x86_64" ]]; then
+#   python -m pip install mpax
+# fi
 
 if [[ "$PYTHON_VERSION" == "3.12" ]]; then
   python -m pip install "ortools>=9.7,<9.15"
