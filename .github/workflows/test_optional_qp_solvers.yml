@@ -1,4 +1,4 @@
-name: test_optional_solvers
+name: test_optional_qp_solvers
 
 on:
   pull_request:
@@ -9,7 +9,7 @@ on:
       - '*'
 
 jobs:
-  test_optional_solvers:
+  test_optional_qp_solvers:
     runs-on: ${{ matrix.os }}
     defaults:
       run:
@@ -36,12 +36,6 @@ jobs:
           python-version: 3.12
           channels: conda-forge,anaconda
       - uses: actions/checkout@v4
-      - name: Setup Julia 
-        uses: julia-actions/setup-julia@v2
-        with:
-          version: 'lts'
-      - name: Install COSMO
-        run: julia -e 'using Pkg; Pkg.add("COSMO")'
       - name: Install cvxpy dependencies and all optional solvers
         run: |
           source continuous_integration/install_optional_solvers.sh
@@ -49,9 +43,9 @@ jobs:
       - name: Print installed solvers
         run : |
           python -c "import cvxpy; print(cvxpy.installed_solvers())" 
-      - name: Run conic and qp solver tests
+      - name: Run test_qp_solvers
         run : |
-          pytest -rs cvxpy/tests/test_conic_solvers.py cvxpy/tests/test_qp_solvers.py
+          pytest -rs cvxpy/tests/test_qp_solvers.py
 
     env:
       RUNNER_OS: ${{ matrix.os }}
