@@ -10,6 +10,9 @@ conda install pip
 
 python -m pip install ecos scs proxsuite daqp gurobipy piqp clarabel osqp highspy qoco qpalm xpress
 
+# Skip installing mpax as it causes test_qp_solvers.py to hang when running on macos
+# and it fails StandardTestLPs.test_lp_6() and StandardTestLPs.test_lp_2() on ubuntu and windows
+
 # if [[ "$RUNNER_OS" != "macOS" ]] || [[ $(uname -m) != "x86_64" ]]; then
 #   python -m pip install mpax
 # fi
