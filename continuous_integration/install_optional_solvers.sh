@@ -3,7 +3,7 @@
 set -e
 uv venv
 
-uv pip install ecos scs proxsuite daqp gurobipy piqp clarabel osqp highspy qoco 
+uv pip install ecos scs proxsuite daqp gurobipy piqp clarabel osqp highspy qoco qpalm
 
 if [[ "$RUNNER_OS" != "macOS" ]] || [[ $(uname -m) != "x86_64" ]]; then
   uv pip install jax mpax
