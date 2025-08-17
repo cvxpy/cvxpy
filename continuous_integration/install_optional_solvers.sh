@@ -8,7 +8,7 @@ conda config --set remote_backoff_factor 2
 conda config --set remote_read_timeout_secs 120.0
 conda install pip
 
-python -m pip install ecos scs proxsuite daqp gurobipy piqp clarabel osqp highspy qoco 
+python -m pip install ecos scs proxsuite daqp gurobipy piqp clarabel osqp highspy qoco xpress
 
 # if [[ "$RUNNER_OS" != "macOS" ]] || [[ $(uname -m) != "x86_64" ]]; then
 #   python -m pip install mpax
@@ -38,7 +38,7 @@ if [[ "$RUNNER_OS" != "Ubuntu" ]]; then
 fi
 
 if [[ "$RUNNER_OS" != "macOS" ]]; then
-  python -m pip install xpress coptpy==7.1.7 cplex
+  python -m pip install coptpy==7.1.7 cplex
 fi
 
 # Only install Mosek if license is available (secret is not copied to forks)
