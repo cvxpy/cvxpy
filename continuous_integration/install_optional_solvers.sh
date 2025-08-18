@@ -6,7 +6,7 @@ uv venv
 if [[ "$RUNNER_OS" == "Windows" ]]; then
   . .venv/Scripts/activate
 else
-  . .venv/bin/activate
+  source .venv/bin/activate
 fi
 
 uv pip install ecos scs proxsuite daqp gurobipy piqp clarabel osqp highspy qoco qpalm
