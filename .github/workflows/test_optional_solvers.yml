@@ -39,7 +39,7 @@ jobs:
       - name: Install COSMO
         run: julia -e 'using Pkg; Pkg.add("COSMO")'
       - name: Install cvxpy dependencies and all optional solvers
-        run: uv sync --locked --all-extras --dev
+        run: uv sync --all-extras --dev
       - name: Print installed solvers
         run : |
           uv run python -c "import cvxpy; print(cvxpy.installed_solvers())" 
