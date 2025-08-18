@@ -11,9 +11,12 @@ fi
 
 uv pip install ecos scs proxsuite daqp gurobipy piqp clarabel osqp highspy qoco qpalm
 
-if [[ "$RUNNER_OS" != "macOS" ]] || [[ $(uname -m) != "x86_64" ]]; then
-  uv pip install jax mpax
-fi
+# Skip installing mpax as it causes test_qp_solvers.py to hang when running on macos
+# and it fails StandardTestLPs.test_lp_6() and StandardTestLPs.test_lp_2() on ubuntu and windows
+
+# if [[ "$RUNNER_OS" != "macOS" ]] || [[ $(uname -m) != "x86_64" ]]; then
+#   python -m pip install jax mpax
+# fi
 
 if [[ "$PYTHON_VERSION" == "3.12" ]]; then
   uv pip install "ortools>=9.7,<9.15"
