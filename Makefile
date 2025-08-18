@@ -16,7 +16,7 @@ ALLSPHINXOPTS	= -d $(BUILDDIR)/doctrees $(PAPEROPT_$(PAPER)) $(SPHINXOPTS) sourc
 # the i18n builder cannot share the environment and doctrees with the others
 I18NSPHINXOPTS	= $(PAPEROPT_$(PAPER)) $(SPHINXOPTS) source
 
-.PHONY: help clean html dirhtml singlehtml pickle json htmlhelp qthelp devhelp epub latex latexpdf text man changes linkcheck doctest gettext
+.PHONY: help clean html dirhtml singlehtml pickle json htmlhelp qthelp devhelp epub latex latexpdf text man changes linkcheck doctest gettext pre-commit
 
 help:
 	@echo "Please use \`make <target>' where <target> is one of"
@@ -39,6 +39,7 @@ help:
 	@echo "  changes	to make an overview of all changed/added/deprecated items"
 	@echo "  linkcheck	to check all external links for integrity"
 	@echo "  doctest	to run all doctests embedded in the documentation (if enabled)"
+	@echo "  pre-commit     to apply all hooks to all files"
 
 clean:
 	-rm -rf *.so dist cvxpy.egg-info $(BUILDDIR)
@@ -176,3 +177,11 @@ develop:
 	rm -f *.so
 	python setup.py clean --all
 	python setup.py develop
+
+pre-commit:
+	# install pre-commit in the existing environment
+	pip install pre-commit
+	# install the hooks in the repo
+	pre-commit install
+	# appply all hooks to all files
+	pre-commit run --all-files
