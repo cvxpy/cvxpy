@@ -29,7 +29,8 @@ jobs:
 
       - uses: astral-sh/setup-uv@v6
         with:
-          python-version: 3.12
+          python-version: 3.13
+          activate-environment: true
           enable-cache: true
       - uses: actions/checkout@v4
       - name: Setup Julia 
@@ -55,5 +56,5 @@ jobs:
 
     env:
       RUNNER_OS: ${{ matrix.os }}
-      PYTHON_VERSION: 3.12
+      PYTHON_VERSION: 3.13
       KNITRO_LICENSE: ${{ secrets.KNITRO_LICENSE }}
