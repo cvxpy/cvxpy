@@ -54,6 +54,7 @@ jobs:
           uv run pytest -rs cvxpy/tests/test_qp_solvers.py
 
     env:
+      UV_SYSTEM_PYTHON: 1
       RUNNER_OS: ${{ matrix.os }}
       PYTHON_VERSION: 3.12
       KNITRO_LICENSE: ${{ secrets.KNITRO_LICENSE }}
