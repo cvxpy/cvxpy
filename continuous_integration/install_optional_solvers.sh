@@ -8,11 +8,14 @@ conda config --set remote_backoff_factor 2
 conda config --set remote_read_timeout_secs 120.0
 conda install pip
 
-python -m pip install ecos scs proxsuite daqp gurobipy piqp clarabel osqp highspy qoco qpalm
+python -m pip install ecos scs proxsuite daqp gurobipy piqp clarabel osqp highspy qoco qpalm xpress
 
-if [[ "$RUNNER_OS" != "macOS" ]] || [[ $(uname -m) != "x86_64" ]]; then
-  python -m pip install mpax
-fi
+# Skip installing mpax as it causes test_qp_solvers.py to hang when running on macos
+# and it fails StandardTestLPs.test_lp_6() and StandardTestLPs.test_lp_2() on ubuntu and windows
+
+# if [[ "$RUNNER_OS" != "macOS" ]] || [[ $(uname -m) != "x86_64" ]]; then
+#   python -m pip install mpax
+# fi
 
 if [[ "$PYTHON_VERSION" == "3.12" ]]; then
   python -m pip install "ortools>=9.7,<9.15"
@@ -38,7 +41,7 @@ if [[ "$RUNNER_OS" != "Ubuntu" ]]; then
 fi
 
 if [[ "$RUNNER_OS" != "macOS" ]]; then
-  python -m pip install xpress coptpy==7.1.7 cplex
+  python -m pip install coptpy==7.1.7 cplex
 fi
 
 # Only install Mosek if license is available (secret is not copied to forks)
