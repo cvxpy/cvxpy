@@ -90,10 +90,10 @@ class TestExamplesIPOPT():
         np.random.seed(1234)
         data = np.random.randn(n)
         
-        mu = cp.Variable(name="mu")
-        mu.value = np.array(0.0)
-        sigma = cp.Variable(name="sigma")
-        sigma.value = np.array(1.0)
+        mu = cp.Variable((1, ), name="mu")
+        mu.value = np.array([0.0])
+        sigma = cp.Variable((1, ), name="sigma")
+        sigma.value = np.array([1.0])
 
         constraints = [mu == sigma**2]
         residual_sum = cp.sum_squares(data - mu)

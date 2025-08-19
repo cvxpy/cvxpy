@@ -16,11 +16,21 @@ limitations under the License.
 
 from cvxpy.expressions.variable import Variable
 
-
+# We canonicalize div(x, y) as z * y = x.
 def div_canon(expr, args):
-    denom = Variable(args[1].shape)
-    if args[1].value is not None:
-        denom.value = args[1].value
+    # TODO: potential bounds here?
+    # TODO: wrong dimension for z here
+    z = Variable(args[1].shape) 
+    y = Variable(args[1].shape, bounds=[0, None])
+
+    if args[1].value is not None and args[1].value != 0.0:
+        y.value = args[1].value
     else:
-        denom.value = expr.point_in_domain()
-    return expr.copy([args[0], denom]), [denom == args[1]]
+        y.value = expr.point_in_domain()
+
+    if args[0].value is not None:
+        z.value = args[0].value / y.value 
+    else:
+        z.value = expr.point_in_domain()
+    # TODO: should we also include y >= 0 here?
+    return z, [z * y == args[0], y == args[1]]#], #y >= 0, z >= 0]
