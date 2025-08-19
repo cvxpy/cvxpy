@@ -404,6 +404,9 @@ class DivExpression(BinaryOperator):
             return self.args[1].is_nonpos()
         else:
             return self.args[0].is_nonneg()
+    
+    def point_in_domain(self):
+        return np.ones(self.args[1].shape)
 
     def graph_implementation(
         self, arg_objs, shape: Tuple[int, ...], data=None
