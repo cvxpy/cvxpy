@@ -17,10 +17,10 @@ limitations under the License.
 from cvxpy.expressions.variable import Variable
 
 
-def log_canon(expr, args):
-    t = Variable(args[0].size)
-    if args[0].value is not None:
-        t.value = args[0].value
+def div_canon(expr, args):
+    denom = Variable(args[1].shape)
+    if args[1].value is not None:
+        denom.value = args[1].value
     else:
-        t.value = expr.point_in_domain()
-    return expr.copy([t]), [t==args[0]]
+        denom.value = expr.point_in_domain()
+    return expr.copy([args[0], denom]), [denom == args[1]]

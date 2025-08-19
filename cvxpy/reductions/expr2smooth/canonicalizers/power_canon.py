@@ -36,12 +36,13 @@ def power_canon(expr, args):
         t = Variable(shape)
         if 0 < p < 1:
             if x.value is not None:
+                # TODO: check if this initialization is correct
                 t.value = np.power(np.abs(x.value), p)
             return t, [t**(1/p) == x, t >= 0]
         elif p > 1:
             t = Variable(args[0].shape)
             if args[0].value is not None:
-                t.value = np.power(args[0].value, p)
+                t.value = args[0].value
             else:
                 t.value = expr.point_in_domain()
             return expr.copy([t]), [t==args[0]]
