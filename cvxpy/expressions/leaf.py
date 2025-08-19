@@ -592,9 +592,13 @@ class Leaf(expression.Expression):
                     attr_str = 'in bounds'
                 else:
                     attr_str = ([k for (k, v) in self.attributes.items() if v] + ['real'])[0]
-                raise ValueError(
-                    "%s value must be %s." % (self.__class__.__name__, attr_str)
-                )
+                if np.isnan(val).any():
+                    # necessary for NLP package extension and computing the structural jacobian
+                    return val
+                else:
+                    raise ValueError(
+                       "%s value must be %s." % (self.__class__.__name__, attr_str)
+                    )
         return val
 
     def is_psd(self) -> bool:

@@ -16,6 +16,7 @@ limitations under the License.
 
 import numpy as np
 import scipy.sparse as sp
+from time import time
 
 import cvxpy.settings as s
 from cvxpy.constraints import (
@@ -224,6 +225,7 @@ class IPOPT(NLPsolver):
 
         def jacobian(self, x):
             """Returns only the non-zero values of the Jacobian."""
+            
             # Set variable values
             offset = 0
             for var in self.main_var:
@@ -237,31 +239,36 @@ class IPOPT(NLPsolver):
                 grad_dict = constraint.expr.grad
                 for var in self.main_var:
                     if var in grad_dict:
+                        rows, cols = self.jacobian_idxs[constraint][var] 
                         jacobian = grad_dict[var].T
                         if sp.issparse(jacobian):
-                            jacobian = jacobian.tocoo()
-                            jacobian = jacobian.data
-                            #jacobian = jacobian.toarray().flatten(order='F')
-                            values.append(np.atleast_1d(jacobian))
+                            jacobian = sp.dok_matrix(jacobian)
+                            data = np.array([jacobian.get((r, c), 0) for r, c in zip(rows, cols)])        
+                            values.append(np.atleast_1d(data))
                         else:
                             values.append(np.atleast_1d(jacobian))
             return np.concatenate(values)
         
         def jacobianstructure(self):
             """Returns the sparsity structure of the Jacobian."""
+            # this dict stores the jacobian for each constraint for each variable
+            self.jacobian_idxs = {}
             # Set dummy values to get gradient structure
-            offset = 0
+            #offset = 0
             for var in self.main_var:
                 if var.shape == ():
-                    var.value = self.initial_point[offset]
+                    #var.value = self.initial_point[offset]
+                    var.value = np.nan
                 else:
-                    var.value = np.atleast_1d(self.initial_point[offset:offset + var.size])
-                offset += var.size
+                    var.value = np.nan * np.ones(var.size)
+                    #var.value = np.atleast_1d(self.initial_point[offset:offset + var.size])
+                #offset += var.size
             rows, cols = [], []
             row_offset = 0
             for constraint in self.problem.constraints:
                 grad_dict = constraint.expr.grad
                 col_offset = 0
+                constraint_jac = {}
                 for var in self.main_var:
                     if var in grad_dict:
                         jacobian = grad_dict[var].T
@@ -269,12 +276,16 @@ class IPOPT(NLPsolver):
                             jacobian = jacobian.tocoo()
                             rows.extend(jacobian.row + row_offset)
                             cols.extend(jacobian.col + col_offset)
+                            constraint_jac[var] = (jacobian.row, jacobian.col)
                         else:
                             rows.extend(np.ones(jacobian.size)*row_offset)
                             cols.extend(np.arange(col_offset, col_offset + var.size))
+                            assert(jacobian.shape == ())
+                            constraint_jac[var] = (0, 0)
                     col_offset += var.size
                 row_offset += constraint.size
-            
+                self.jacobian_idxs[constraint] = constraint_jac
+
             return (np.array(rows), np.array(cols))
 
     class Bounds():
