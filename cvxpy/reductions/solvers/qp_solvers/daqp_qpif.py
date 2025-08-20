@@ -36,7 +36,7 @@ class DAQP(QpSolver):
                   -1: s.INFEASIBLE,
                   -3: s.UNBOUNDED,
                   # TODO to be tested
-                  -4: s.USER_LIMIT, # iter limit reached, should it be error?
+                  -4: s.USER_LIMIT, # iter limit reached
                   -5: s.SOLVER_ERROR, # non-convex problem, shouldn't happen
                   -6: s.INFEASIBLE} # provided active set (equality
                                     # constraints) infeasible
