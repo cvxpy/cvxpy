@@ -16,7 +16,7 @@ class OSQP(QpSolver):
     # Note: Status map has changed in versions >= 1
     STATUS_MAP_PRE_V1 = {1: s.OPTIMAL,
                   2: s.OPTIMAL_INACCURATE,
-                  -2: s.SOLVER_ERROR,           # Maxiter reached
+                  -2: s.USER_LIMIT,           # Maxiter reached
                   -3: s.INFEASIBLE,
                   3: s.INFEASIBLE_INACCURATE,
                   -4: s.UNBOUNDED,
@@ -30,7 +30,7 @@ class OSQP(QpSolver):
                   4: s.INFEASIBLE_INACCURATE,
                   5: s.UNBOUNDED,
                   6: s.UNBOUNDED_INACCURATE,
-                  7: s.SOLVER_ERROR,           # Maxiter reached
+                  7: s.USER_LIMIT,           # Maxiter reached
                   8: s.USER_LIMIT,
                   10: s.SOLVER_ERROR,          # Interrupted by user
                   11: s.SOLVER_ERROR}          # Unsolved
