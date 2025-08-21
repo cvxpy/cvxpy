@@ -193,6 +193,12 @@ class MulExpression(BinaryOperator):
         DX_rows = self.args[0].size
         cols = self.args[0].size
 
+        # dot product of two vectors with shape (n,)
+        if len(self.args[0].shape) == 1 and len(self.args[1].shape) == 1:
+            DX = sp.csc_array(Y.reshape(-1, 1))  # y as column vector
+            DY = sp.csc_array(X.reshape(-1, 1))  # x as column vector
+            return [DX, DY]
+
         # DX = [diag(Y11), diag(Y12), ...]
         #      [diag(Y21), diag(Y22), ...]
         #      [   ...        ...     ...]
