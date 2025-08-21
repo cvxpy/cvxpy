@@ -901,3 +901,13 @@ class TestGrad(BaseTest):
         self.x.value = [1, 2]
         val = np.eye(2)
         self.assertItemsAlmostEqual(expr.grad[self.x].toarray(), val)
+
+    def test_bilinear(self) -> None:
+        """Test grad for bilinear expressions."""
+        q = cp.Variable(1, value=[1.0])
+        p = cp.Variable(1, value=[2.0])
+        expr = q @ p
+        grad_q = expr.grad[q]
+        grad_p = expr.grad[p]
+        self.assertAlmostEqual(grad_q, [2.0])
+        self.assertAlmostEqual(grad_p, [1.0])

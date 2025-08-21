@@ -201,7 +201,7 @@ class MulExpression(BinaryOperator):
             DX[k::self.args[0].shape[0], k::self.args[0].shape[0]] = Y
         DX = sp.csc_array(DX)
         cols = 1 if len(self.args[1].shape) == 1 else self.args[1].shape[1]
-        DY = sp.block_diag([X.T for k in range(cols)], 'csc')
+        DY = sp.block_diag([np.atleast_2d(X.T) for k in range(cols)], "csc")
 
         return [DX, DY]
 
