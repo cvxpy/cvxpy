@@ -34,6 +34,20 @@ class TestSmoothCanons():
         assert problem.status == cp.OPTIMAL
         assert problem.value == 6
 
+    def test_max_2(self):
+        # Define variables
+        x = cp.Variable(3)
+        y = cp.Variable(3)
+
+        objective = cp.Maximize(cp.sum(cp.maximum(x, y)))
+
+        constraints = [x <= 14, y <= 14]
+
+        problem = cp.Problem(objective, constraints)
+        problem.solve(solver=cp.IPOPT, nlp=True, verbose=True)
+        assert problem.status == cp.OPTIMAL
+        assert np.allclose(x.value, 14)
+        assert problem.value == 42
 
 class TestExamplesIPOPT():
     """
@@ -135,6 +149,26 @@ class TestExamplesIPOPT():
         assert np.allclose(x.value, np.array([0.32699284]))
         assert np.allclose(y.value, np.array([0.25706586]))
         assert np.allclose(z.value, np.array([0.4159413]))
+
+    def test_socp(self):
+        # Define variables
+        x = cp.Variable(3)
+        y = cp.Variable()
+
+        # Define objective function
+        objective = cp.Minimize(3 * x[0] + 2 * x[1] + x[2])
+
+        # Define constraints
+        constraints = [
+            cp.norm(x, 2) <= y,
+            x[0] + x[1] + 3*x[2] >= 1.0,
+            y <= 5
+        ]
+
+        # Create and solve the problem
+        problem = cp.Problem(objective, constraints)
+        problem.solve(solver=cp.IPOPT, nlp=True)
+
 
     def test_acopf(self):
         N = 4
@@ -263,3 +297,26 @@ class TestNonlinearControl():
         problem.solve(solver=cp.IPOPT, nlp=True)
         assert problem.status == cp.OPTIMAL
         assert problem.value == 3.500e+02
+
+class TestCanonicalization():
+
+    def test_analytic_polytope_center(self):
+        # Generate random data
+        np.random.seed(0)
+        m, n = 500, 40
+        b = np.ones(m)
+        rand = np.random.randn(m - 2*n, n)
+        A = np.vstack((rand, np.eye(n), np.eye(n) * -1))
+        """
+        m, n = 5, 2
+        A = np.array([[1, 0], [-1, 0], [0, 1], [0, -1], [-0.5, 1]])
+        b = np.array([1, 1, 1, 1, 0.5])
+        """
+        # Define the variable
+        x = cp.Variable(n)
+        # set initial value for x
+        objective = cp.Minimize(-cp.sum(cp.log(b - A @ x)))
+        problem = cp.Problem(objective, [])
+        # Solve the problem
+        problem.solve(solver=cp.IPOPT, nlp=True)
+        assert problem.status == cp.OPTIMAL
