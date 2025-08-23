@@ -2377,11 +2377,14 @@ class TestAllSolvers(BaseTest):
                 if solver is cp.MOSEK:
                     if is_mosek_available():
                         prob.solve(solver=solver)
+                        assert prob.value == 1.0
+                        assert self.x.value == [0, 0]
                     else:
                         pass
-                prob.solve(solver=solver)
-                self.assertAlmostEqual(prob.value, 1.0)
-                self.assertItemsAlmostEqual(self.x.value, [0, 0])
+                else:
+                    prob.solve(solver=solver)
+                    self.assertAlmostEqual(prob.value, 1.0)
+                    self.assertItemsAlmostEqual(self.x.value, [0, 0])
             else:
                 with self.assertRaises(Exception) as cm:
                     prob.solve(solver=solver)
@@ -2427,9 +2430,10 @@ class TestECOS_BB(unittest.TestCase):
             prob.solve()
             assert prob.solver_stats.solver_name != cp.ECOS_BB
         else:
-            with pytest.raises(cp.error.SolverError, match="You need a mixed-integer "
-                                                           "solver for this model"):
-                prob.solve()
+            if not is_mosek_available():
+                with pytest.raises(cp.error.SolverError, match="You need a mixed-integer "
+                                                            "solver for this model"):
+                    prob.solve()
 
     def test_ecos_bb_lp_0(self) -> None:
         StandardTestLPs.test_lp_0(solver='ECOS_BB')
