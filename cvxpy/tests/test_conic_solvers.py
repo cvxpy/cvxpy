@@ -2399,9 +2399,14 @@ class TestAllSolvers(BaseTest):
             with pytest.raises(cp.error.SolverError, match="You need a mixed-integer "
                                                            "solver for this model"):
                 prob.solve()
-        else:
-            prob.solve(solver=cp.HIGHS if 'HIGHS' in INSTALLED_SOLVERS else cp.GUROBI)
+        elif is_mosek_available() and cp.MOSEK in INSTALLED_MI_SOLVERS:
+            prob.solve(solver=cp.MOSEK)
             self.assertItemsAlmostEqual(x.value, [0, 0])
+        elif cp.HIGHS in INSTALLED_MI_SOLVERS:
+            prob.solve(solver=cp.HIGHS)
+            self.assertItemsAlmostEqual(x.value, [0, 0])
+        else:
+            pass
 
 
 @unittest.skipUnless('ECOS' in INSTALLED_SOLVERS, 'ECOS_BB is not installed.')
