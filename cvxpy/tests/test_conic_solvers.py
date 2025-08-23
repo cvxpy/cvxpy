@@ -16,6 +16,7 @@ limitations under the License.
 
 import math
 import re
+import sys
 import unittest
 
 import numpy as np
@@ -1098,7 +1099,8 @@ def fflush() -> None:
 
 # We can't inherit from unittest.TestCase since we access some advanced pytest features.
 # As a result, we use the pytest skipif decorator instead of unittest.skipUnless.
-@pytest.mark.skipif('CBC' not in INSTALLED_SOLVERS, reason='CBC is not installed.')
+@pytest.mark.skipif(('CBC' not in INSTALLED_SOLVERS) or sys.platform.startswith("win"),
+                    reason='CBC is not installed or tests are being run on Windows.')
 class TestCBC:
 
     def _cylp_checks_isProvenInfeasible():
