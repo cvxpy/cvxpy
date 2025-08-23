@@ -2374,6 +2374,11 @@ class TestAllSolvers(BaseTest):
         prob = cp.Problem(cp.Minimize(cp.norm(self.x, 1) + 1.0), [self.x == 0])
         for solver in SOLVER_MAP_CONIC.keys():
             if solver in INSTALLED_SOLVERS:
+                if solver is cp.MOSEK:
+                    if is_mosek_available():
+                        prob.solve(solver=solver)
+                    else:
+                        pass
                 prob.solve(solver=solver)
                 self.assertAlmostEqual(prob.value, 1.0)
                 self.assertItemsAlmostEqual(self.x.value, [0, 0])
@@ -2418,7 +2423,7 @@ class TestECOS_BB(unittest.TestCase):
         x = cp.Variable(1, name='x', integer=True)
         objective = cp.Minimize(cp.sum(x))
         prob = cp.Problem(objective, [x >= 0])
-        if INSTALLED_MI_SOLVERS != [cp.ECOS_BB]:
+        if INSTALLED_MI_SOLVERS != [cp.ECOS_BB] and is_mosek_available():
             prob.solve()
             assert prob.solver_stats.solver_name != cp.ECOS_BB
         else:
