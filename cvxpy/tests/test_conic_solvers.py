@@ -651,8 +651,20 @@ class TestCuClarabel(BaseTest):
     def test_clarabel_pcp_2(self) -> None:
         StandardTestSOCPs.test_socp_2(solver='CUCLARABEL')
 
+def is_mosek_available():
+    """Check if MOSEK is installed and a license is available."""
+    if 'MOSEK' not in INSTALLED_SOLVERS:
+        return False
+    try:
+        import mosek  # type: ignore
+        env = mosek.Env()
+        # Try to get license status (returns 0 if OK)
+        status = env.getlicense()
+        return status == mosek.rescode.ok
+    except Exception:
+        return False
 
-@unittest.skipUnless('MOSEK' in INSTALLED_SOLVERS, 'MOSEK is not installed.')
+@unittest.skipUnless(is_mosek_available(), 'MOSEK is not installed or license is not available.')
 class TestMosek(unittest.TestCase):
 
     def test_mosek_lp_0(self) -> None:

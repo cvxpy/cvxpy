@@ -72,7 +72,19 @@ class TestQp(BaseTest):
 
         # Check for all installed QP solvers
         self.solvers = [x for x in QP_SOLVERS if x in INSTALLED_SOLVERS]
-        if 'MOSEK' in INSTALLED_SOLVERS:
+        def is_mosek_available():
+            """Check if MOSEK is installed and a license is available."""
+            if 'MOSEK' not in INSTALLED_SOLVERS:
+                return False
+            try:
+                import mosek  # type: ignore
+                env = mosek.Env()
+                # Try to get license status (returns 0 if OK)
+                status = env.getlicense()
+                return status == mosek.rescode.ok
+            except Exception:
+                return False
+        if is_mosek_available():
             self.solvers.append('MOSEK')
 
     def solve_QP(self, problem, solver_name):
