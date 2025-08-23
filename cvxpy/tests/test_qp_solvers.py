@@ -84,6 +84,20 @@ class TestQp(BaseTest):
                 return status == mosek.rescode.ok
             except Exception:
                 return False
+        def is_xpress_available():
+            """Check if XPRESS is installed and a license is available."""
+            if 'XPRESS' not in INSTALLED_SOLVERS:
+                return False
+            try:
+                import xpress  # type: ignore
+                env = xpress.env()
+                status = env.getlicense()
+                return status == 0
+            except Exception:
+                return False
+        # Remove XPRESS if license is not available
+        if 'XPRESS' in self.solvers and not is_xpress_available():
+            self.solvers.remove('XPRESS')
         if is_mosek_available():
             self.solvers.append('MOSEK')
 
