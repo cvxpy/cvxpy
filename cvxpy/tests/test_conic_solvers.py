@@ -2400,7 +2400,7 @@ class TestAllSolvers(BaseTest):
                                                            "solver for this model"):
                 prob.solve()
         else:
-            prob.solve()
+            prob.solve(solver=cp.HIGHS if 'HIGHS' in INSTALLED_SOLVERS else cp.GUROBI)
             self.assertItemsAlmostEqual(x.value, [0, 0])
 
 
