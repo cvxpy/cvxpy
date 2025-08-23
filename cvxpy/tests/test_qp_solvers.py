@@ -461,6 +461,7 @@ class TestQp(BaseTest):
 
         p3 = Problem(Minimize(obj3), cons)
         self.solve_QP(p3, solver)
+        print(solver)
         self.assertAlmostEqual(p3.value, 68.1119420108, places=4)
 
     def test_warm_start(self) -> None:
