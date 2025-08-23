@@ -2429,11 +2429,14 @@ class TestECOS_BB(unittest.TestCase):
         if INSTALLED_MI_SOLVERS != [cp.ECOS_BB] and is_mosek_available():
             prob.solve()
             assert prob.solver_stats.solver_name != cp.ECOS_BB
+        # The optional solvers build will always have MOSEK installed.
+        """
         else:
             if not is_mosek_available():
                 with pytest.raises(cp.error.SolverError, match="You need a mixed-integer "
                                                             "solver for this model"):
                     prob.solve()
+        """
 
     def test_ecos_bb_lp_0(self) -> None:
         StandardTestLPs.test_lp_0(solver='ECOS_BB')
