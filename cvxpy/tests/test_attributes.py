@@ -237,11 +237,13 @@ class TestAttributes:
         x = cp.Variable(2, boolean=True)
         val = np.array([True, False])
         x.value = val
+        np.testing.assert_array_equal(x.value, val.astype(float), strict=True)
 
     def test_integer_var_value(self):
         x = cp.Variable(2, integer=True)
         val = np.array([1, 2], dtype=int)
         x.value = val
+        np.testing.assert_array_equal(x.value, val.astype(float), strict=True)
 
 class TestMultipleAttributes:
 
