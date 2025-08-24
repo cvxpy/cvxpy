@@ -2302,11 +2302,18 @@ class TestHIGHS:
         [StandardTestLPs.test_lp_0, StandardTestLPs.test_mi_lp_0],
     )
     def test_highs_options(self, problem) -> None:
-        with pytest.raises(AttributeError):
+        with pytest.raises(ValueError):
             problem(solver=cp.HIGHS, highs_options={"invalid_highs_option": None})
 
-        with pytest.raises(AttributeError):
+        with pytest.raises(ValueError):
             problem(solver=cp.HIGHS, invalid_highs_option=None)
+
+        invalid_value = "_invalid_value_"
+        with pytest.raises(ValueError):
+            problem(solver=cp.HIGHS, highs_options={"threads": invalid_value})
+
+        with pytest.raises(ValueError):
+            problem(solver=cp.HIGHS, threads=invalid_value)
 
         # Duplicate options
         with pytest.raises(TypeError):
@@ -2322,6 +2329,8 @@ class TestHIGHS:
             "mip_rel_gap": 1.0,
             "primal_feasibility_tolerance": 1e-3,
             "dual_feasibility_tolerance": 1e-3,
+            # advanced option, not available on HighsOptions
+            "presolve_rule_off": 2**10,
         }
         problem(solver=cp.HIGHS, highs_options=highs_options)
 

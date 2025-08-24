@@ -901,3 +901,59 @@ class TestGrad(BaseTest):
         self.x.value = [1, 2]
         val = np.eye(2)
         self.assertItemsAlmostEqual(expr.grad[self.x].toarray(), val)
+
+    def test_bilinear(self) -> None:
+        """Test grad for bilinear expressions."""
+        for n in [1, 2, 3]:
+            with self.subTest(n=n):
+                x_vals = np.arange(1, n + 1)
+                y_vals = -np.arange(1, n + 1)
+                x = cp.Variable(n, value=x_vals)
+                y = cp.Variable(n, value=y_vals)
+
+                # test bilinear expression x @ y
+                # which has partial derivatives grad_x = y, grad_y = x
+                expr = x @ y
+
+                grad_x = expr.grad[x]
+                grad_y = expr.grad[y]
+
+                assert x.value is not None
+                assert y.value is not None
+
+                if n == 1:
+                    assert grad_x.shape == ()
+                    assert grad_y.shape == ()
+                    self.assertAlmostEqual(grad_x, y.value)
+                    self.assertAlmostEqual(grad_y, x.value)
+                else:
+                    assert grad_x.shape == (n, 1)
+                    assert grad_y.shape == (n, 1)
+                    self.assertItemsAlmostEqual(grad_x.toarray(), y.value.reshape(-1, 1))
+                    self.assertItemsAlmostEqual(grad_y.toarray(), x.value.reshape(-1, 1))
+
+    def test_matrix_product(self) -> None:
+        """Test matrix-matrix product."""
+        x_vals = np.array([[1, -1], [2, -2]])
+        y_vals = np.array([[-1, 1], [-2, 2]])
+        x = cp.Variable((2, 2), value=x_vals)
+        y = cp.Variable((2, 2), value=y_vals)
+        expr = x @ y
+        grad_x = expr.grad[x]
+        grad_y = expr.grad[y]
+        assert x.value is not None
+        assert y.value is not None
+        
+        # expected gradients are 4x4 Jacobian matrices for 2x2 matrix variables
+        expected_grad_x = np.array([[-1.,  0.,  1.,  0.],
+                                   [ 0., -1.,  0.,  1.],
+                                   [-2.,  0.,  2.,  0.],
+                                   [ 0., -2.,  0.,  2.]])
+        expected_grad_y = np.array([[ 1.,  2.,  0.,  0.],
+                                   [-1., -2.,  0.,  0.],
+                                   [ 0.,  0.,  1.,  2.],
+                                   [ 0.,  0., -1., -2.]])
+        
+        self.assertItemsAlmostEqual(grad_x.toarray(), expected_grad_x)
+        self.assertItemsAlmostEqual(grad_y.toarray(), expected_grad_y)
+

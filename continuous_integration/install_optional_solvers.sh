@@ -15,7 +15,7 @@ if [[ "$RUNNER_OS" != "macOS" ]] || [[ $(uname -m) != "x86_64" ]]; then
 fi
 
 if [[ "$PYTHON_VERSION" == "3.12" ]]; then
-  python -m pip install "ortools>=9.7,<9.12"
+  python -m pip install "ortools>=9.7,<9.15"
 fi
 
 if [[ "$RUNNER_OS" == "Windows" ]]; then
@@ -38,7 +38,7 @@ if [[ "$RUNNER_OS" != "Ubuntu" ]]; then
 fi
 
 if [[ "$RUNNER_OS" != "macOS" ]]; then
-  python -m pip install xpress==9.4.3 coptpy==7.1.7 cplex
+  python -m pip install xpress coptpy==7.1.7 cplex
 fi
 
 # Only install Mosek if license is available (secret is not copied to forks)
