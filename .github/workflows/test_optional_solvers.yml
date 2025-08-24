@@ -27,14 +27,10 @@ jobs:
           echo "MOSEKLM_LICENSE_FILE=$( [[ $RUNNER_OS == 'macOS' ]] && echo $(pwd)/mosek.lic || echo $(realpath mosek.lic) )" >> $GITHUB_ENV
           echo $KNITRO_LICENSE > ~/artelys_lic.txt
 
-      - uses: actions/setup-python@v5
+      - uses: astral-sh/setup-uv@v6
         with:
           python-version: 3.12
-      - uses: conda-incubator/setup-miniconda@v3
-        with:
-          auto-update-conda: true
-          python-version: 3.12
-          channels: conda-forge,anaconda
+          enable-cache: true
       - uses: actions/checkout@v4
       - name: Setup Julia 
         uses: julia-actions/setup-julia@v2
@@ -43,21 +39,20 @@ jobs:
       - name: Install COSMO
         run: julia -e 'using Pkg; Pkg.add("COSMO")'
       - name: Install cvxpy dependencies and all optional solvers
-        run: |
-          source continuous_integration/install_optional_solvers.sh
-          pip install . pytest hypothesis
+        run: uv sync --all-extras --dev
       - name: Print installed solvers
         run : |
-          python -c "import cvxpy; print(cvxpy.installed_solvers())" 
+          uv run python -c "import cvxpy; print(cvxpy.installed_solvers())" 
       - name: Run test_conic_solvers
         run : |
-          pytest -rs cvxpy/tests/test_conic_solvers.py
+          uv run pytest -rs cvxpy/tests/test_conic_solvers.py
       - name: Run test_qp_solvers
         if: always()
         run : |
-          pytest -rs cvxpy/tests/test_qp_solvers.py
+          uv run pytest -rs cvxpy/tests/test_qp_solvers.py
 
     env:
+      UV_SYSTEM_PYTHON: 1
       RUNNER_OS: ${{ matrix.os }}
       PYTHON_VERSION: 3.12
       KNITRO_LICENSE: ${{ secrets.KNITRO_LICENSE }}
