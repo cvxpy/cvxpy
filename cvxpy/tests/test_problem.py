@@ -2267,3 +2267,14 @@ class TestProblem(BaseTest):
             with warnings.catch_warnings(record=True) as w:
                 prob.solve(solver=cp.CLARABEL)
                 assert len(w) == 0
+
+    def test_get_problem_data(self) -> None:
+        """Test that get_problem_data accept no argument
+        """
+        A = np.array([0.50, 1.96, -0.37])
+        A = cp.Parameter(A.shape,value=A,name='A')
+        y = cp.Variable(3)
+        problem = cp.Problem(cp.Minimize(cp.sum_squares(A@y)),[y >= 1])
+        problem.solve()
+        problem.get_problem_data()
+    
