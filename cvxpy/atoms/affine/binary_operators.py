@@ -297,6 +297,28 @@ class multiply(MulExpression):
         return (self.args[0].is_psd() and self.args[1].is_nsd()) or \
                (self.args[0].is_nsd() and self.args[1].is_psd())
 
+    def _grad(self, values):
+        """Compute the gradient of elementwise multiplication w.r.t. each argument.
+    
+        For z = x * y (elementwise), returns:
+        - dz/dx = diag(y)
+        - dz/dy = diag(x)
+    
+        Args:
+            values: A list of numeric values for the arguments [x, y].
+    
+        Returns:
+            A list of SciPy CSC sparse matrices [DX, DY].
+        """
+        x = values[0]
+        y = values[1]
+        # Flatten in case inputs are not 1D
+        x = np.asarray(x).flatten(order='F')
+        y = np.asarray(y).flatten(order='F')
+        DX = sp.diags(y, format='csc')
+        DY = sp.diags(x, format='csc')
+        return [DX, DY]
+
     def graph_implementation(
         self, arg_objs, shape: Tuple[int, ...], data=None
     ) -> Tuple[lo.LinOp, List[Constraint]]:

@@ -262,7 +262,7 @@ class IPOPT(NLPsolver):
                     #var.value = self.initial_point[offset]
                     var.value = np.nan
                 else:
-                    var.value = np.nan * np.ones(var.size)
+                    var.value = np.nan * np.ones(var.size).reshape(var.shape, order='F')
                     #var.value = np.atleast_1d(self.initial_point[offset:offset + var.size])
                 #offset += var.size
             rows, cols = [], []

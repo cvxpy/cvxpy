@@ -14,9 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import operator
-from functools import reduce
-
+from cvxpy.atoms.affine.binary_operators import multiply
 from cvxpy.atoms.affine.wraps import nonneg_wrap, nonpos_wrap
 from cvxpy.expressions.variable import Variable
 
@@ -31,6 +29,5 @@ def maximum_canon(expr, args):
         t = nonpos_wrap(t)
     
     constraints = [t >= elem for elem in args]
-    terms = [t - elem for elem in args]
-    constraints.append(reduce(operator.mul, terms) == 0)
+    constraints.append(multiply(t-args[0], t-args[1]) == 0)
     return t, constraints
