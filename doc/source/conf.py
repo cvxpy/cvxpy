@@ -179,6 +179,7 @@ html_theme_options = {
         # a  share button is rendered next to the reset button, which allows to deep link to the current search query and result
         "content.tabs.link",
         "announce.dismiss",
+        "content.code.copy",
     ],
 
     "toc_title": "On this page",
