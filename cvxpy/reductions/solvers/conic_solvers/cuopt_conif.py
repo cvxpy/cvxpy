@@ -170,29 +170,28 @@ class CUOPT(ConicSolver):
     def invert(self, solution, inverse_data):
         """Returns the solution to the original problem given the inverse_data.
         """
-        status = solution['status']
+        status = solution.status
 
         if status in s.SOLUTION_PRESENT:
             dual_vars = None
-            opt_val = solution['value'] + inverse_data[s.OFFSET]
-            primal_vars = {inverse_data[self.VAR_ID]: solution['primal']}
-            if s.EQ_DUAL in solution and inverse_data['lp']:
+            opt_val = solution.opt_val + inverse_data[s.OFFSET]
+            primal_vars = {inverse_data[self.VAR_ID]: solution.primal_vars}
+            if s.EQ_DUAL in solution.dual_vars and inverse_data['lp']:
                 dual_vars = {}
                 if len(inverse_data[self.EQ_CONSTR]) > 0:
                     eq_dual = utilities.get_dual_values(
-                        solution[s.EQ_DUAL],
+                        solution.dual_vars[s.EQ_DUAL],
                         utilities.extract_dual_value,
                         inverse_data[self.EQ_CONSTR])
                     dual_vars.update(eq_dual)
                 if len(inverse_data[self.NEQ_CONSTR]) > 0:
                     leq_dual = utilities.get_dual_values(
-                        solution[s.INEQ_DUAL],
+                        solution.dual_vars[s.INEQ_DUAL],
                         utilities.extract_dual_value,
                         inverse_data[self.NEQ_CONSTR])
                     dual_vars.update(leq_dual)
 
-
-            return Solution(status, opt_val, primal_vars, dual_vars, {})
+            return Solution(status, opt_val, primal_vars, dual_vars, solution.attr)
         else:
             return failure_solution(status)
 
@@ -300,18 +299,30 @@ class CUOPT(ConicSolver):
         if cuopt_result.get_error_status() != ErrorStatus.Success:
             raise SolverError(cuopt_result.get_error_message())
 
-        solution = {}
+        dual_vars = {}
         if is_mip:
-            solution["status"] = self.STATUS_MAP_MIP[cuopt_result.get_termination_status()]
+            sol_status = self.STATUS_MAP_MIP[cuopt_result.get_termination_status()]
+            extra_stats = cuopt_result.get_milp_stats()
+            iters = extra_stats["num_simplex_iterations"]
         else:
             d = cuopt_result.get_dual_solution()
             if d is not None:
-                solution[s.EQ_DUAL] = -d[0:leq_start]
-                solution[s.INEQ_DUAL] = -d[leq_start:leq_end]
-            solution["status"] = self.STATUS_MAP_LP[cuopt_result.get_termination_status()]
+                dual_vars[s.EQ_DUAL] = -d[0:leq_start]
+                dual_vars[s.INEQ_DUAL] = -d[leq_start:leq_end]
+            sol_status = self.STATUS_MAP_LP[cuopt_result.get_termination_status()]
+            extra_stats = cuopt_result.get_lp_stats()
+            iters = extra_stats["nb_iterations"]
 
-        solution["primal"] = cuopt_result.get_primal_solution()
-        solution["value"] = cuopt_result.get_primal_objective()
+        # Note, this is not the final solution. It is processed in invert()
+        # and an updated Solution is returned
+        solution = Solution(sol_status,
+                            cuopt_result.get_primal_objective(),
+                            cuopt_result.get_primal_solution(),
+                            dual_vars,
+                            attr={s.SOLVE_TIME: cuopt_result.get_solve_time(),
+                                  s.NUM_ITERS: iters,
+                                  s.EXTRA_STATS: extra_stats})
+
         return solution
 
     def cite(self, data):
