@@ -1,6 +1,5 @@
 # write a log sum problem in cvxpy
 import numpy as np
-from scipy.io import savemat
 
 import cvxpy as cp
 

@@ -1,5 +1,7 @@
 import numpy as np
+
 import cvxpy as cp
+
 
 def griewank_function_cvxpy(d):
     """

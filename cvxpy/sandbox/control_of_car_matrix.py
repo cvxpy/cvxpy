@@ -1,6 +1,7 @@
-import cvxpy as cp
-import numpy as np
 import matplotlib.pyplot as plt
+import numpy as np
+
+import cvxpy as cp
 
 
 def solve_car_control(x_final, L=0.1, N=2, h=0.1, gamma=10):
@@ -91,7 +92,7 @@ def plot_trajectory(x_opt, u_opt, L, h, title="Car Trajectory"):
     
     # Plot car position and orientation at several time steps
     car_length = L
-    car_width = L * 0.6
+    # car_width = L * 0.6
     
     # Select time steps to show car outline (every 5th step)
     steps_to_show = range(0, len(x_opt), 5)
@@ -153,7 +154,11 @@ if __name__ == "__main__":
             
             if x_opt is not None and u_opt is not None:
                 print("Optimization successful!")
-                print(f"Final position: p1={x_opt[-1, 0]:.3f}, p2={x_opt[-1, 1]:.3f}, theta={x_opt[-1, 2]:.3f}")
+                print(
+                    f"Final position: p1={x_opt[-1, 0]:.3f}, "
+                    f"p2={x_opt[-1, 1]:.3f}, "
+                    f"theta={x_opt[-1, 2]:.3f}"
+                )
                 
                 # Plot the trajectory
                 fig, ax = plot_trajectory(x_opt, u_opt, L=0.1, h=0.1, title=description)

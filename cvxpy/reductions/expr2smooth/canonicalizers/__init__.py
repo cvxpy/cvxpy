@@ -35,5 +35,5 @@ CANON_METHODS = {
     log: log_canon,
     power: power_canon,
     Pnorm : pnorm_canon,
-    DivExpression: div_canon,       
+    DivExpression: div_canon
 }

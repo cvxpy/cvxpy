@@ -1,5 +1,7 @@
 import numpy as np
+
 import cvxpy as cp
+
 
 # Define e_i in R^n
 def e_i(n, i):

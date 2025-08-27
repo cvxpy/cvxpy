@@ -1,5 +1,6 @@
-import cvxpy as cp
 import numpy as np
+
+import cvxpy as cp
 
 k = 5
 x = cp.Variable((k, k))

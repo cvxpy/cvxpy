@@ -23,8 +23,7 @@ from cvxpy.expressions.variable import Variable
 def power_canon(expr, args):
     x = args[0]
     p = expr.p_rational
-    #w = expr.w
-
+    
     if p == 1:
         return x, []
 
@@ -35,16 +34,22 @@ def power_canon(expr, args):
     else:
         t = Variable(shape)
         if 0 < p < 1:
-            if x.value is not None:
-                # TODO: check if this initialization is correct
-                t.value = np.power(np.abs(x.value), p)
-            return t, [t**(1/p) == x, t >= 0]
+            raise NotImplementedError('This power is not yet supported.')
+        
+            # DCED: This is not a smooth implementation so we raise an error for now
+            #if x.value is not None:
+            #    t.value = np.power(np.abs(x.value), p)
+            #return t, [t**(1/p) == x, t >= 0]
         elif p > 1:
             t = Variable(args[0].shape)
-            if args[0].value is not None:
+
+            # DCED: for Gaussian ML it works better if we include the second
+            #       condition here
+            if args[0].value is not None and np.all(args[0].value >= 1):
                 t.value = args[0].value
             else:
                 t.value = expr.point_in_domain()
+
             return expr.copy([t]), [t==args[0]]
         else:
-            pass
+            raise NotImplementedError('This power is not yet supported.')

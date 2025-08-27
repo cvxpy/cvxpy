@@ -16,7 +16,6 @@ limitations under the License.
 
 import numpy as np
 import scipy.sparse as sp
-from time import time
 
 import cvxpy.settings as s
 from cvxpy.constraints import (
@@ -134,14 +133,7 @@ class IPOPT(NLPsolver):
         """
         import cyipopt
         bounds = self.Bounds(data["problem"])
-        initial_values = []
-        for var in bounds.main_var:
-            if var.value is not None:
-                initial_values.append(var.value.flatten(order='F'))
-            else:
-                # If no initial value, use zero
-                initial_values.append(np.zeros(var.size))
-        x0 = np.concatenate(initial_values, axis=0)
+        x0 = self.construct_initial_point(bounds)
         nlp = cyipopt.Problem(
         n=len(x0),
         m=len(bounds.cl),
@@ -153,9 +145,14 @@ class IPOPT(NLPsolver):
         )
         nlp.add_option('mu_strategy', 'adaptive')
         nlp.add_option('tol', 1e-7)
-        nlp.add_option('honor_original_bounds', 'yes')
+        #nlp.add_option('honor_original_bounds', 'yes')
+        nlp.add_option('bound_relax_factor', 0.0)
         nlp.add_option('hessian_approximation', "limited-memory")
         nlp.add_option('derivative_test', 'first-order')
+        nlp.add_option('least_square_init_duals', 'yes')
+        #nlp.add_option('constr_mult_init_max', 1e10) 
+        #nlp.add_option('derivative_test_perturbation', 1e-5)
+        #nlp.add_option('point_perturbation_radius', 0.1)
         _, info = nlp.solve(x0)
         return info
 
@@ -168,6 +165,43 @@ class IPOPT(NLPsolver):
             Data generated via an apply call.
         """
         return CITATION_DICT["IPOPT"]
+    
+    # TODO (DCED): Ask WZ where to put this.
+    def construct_initial_point(self, bounds):
+            initial_values = []
+            offset = 0
+            lbs = bounds.lb 
+            ubs = bounds.ub
+            for var in bounds.main_var:
+                if var.value is not None:
+                    initial_values.append(var.value.flatten(order='F'))
+                else:
+                    # If no initial value is specified, look at the bounds.
+                    # If both lb and ub are specified, we initialize the
+                    # variables to be their midpoints. If only one of them 
+                    # is specified, we initialize the variable one unit 
+                    # from the bound. If none of them is specified, we 
+                    # initialize it to zero.
+                    lb = lbs[offset:offset + var.size]
+                    ub = ubs[offset:offset + var.size]
+
+                    lb_finite = np.isfinite(lb)
+                    ub_finite = np.isfinite(ub)
+
+                    # Replace infs with zero for arithmetic
+                    lb0 = np.where(lb_finite, lb, 0.0)
+                    ub0 = np.where(ub_finite, ub, 0.0)
+
+                    # Midpoint if both finite, one from bound if only one finite, zero if none
+                    init = (lb_finite * ub_finite * 0.5 * (lb0 + ub0) +
+                            lb_finite * (~ub_finite) * (lb0 + 1.0) +
+                            (~lb_finite) * ub_finite * (ub0 - 1.0))
+
+                    initial_values.append(init)
+                
+                offset += var.size
+            x0 = np.concatenate(initial_values, axis=0)
+            return x0
 
     class Oracles():
         def __init__(self, problem, inital_point):
@@ -176,7 +210,7 @@ class IPOPT(NLPsolver):
             self.initial_point = inital_point
             for var in self.problem.variables():
                 self.main_var.append(var)
-        
+
         def objective(self, x):
             """Returns the scalar value of the objective given x."""
             # Set the variable value
@@ -190,6 +224,8 @@ class IPOPT(NLPsolver):
             return obj_value
         
         def gradient(self, x):
+            #import pdb 
+            #pdb.set_trace()
             """Returns the gradient of the objective with respect to x."""
             # compute the gradient using _grad
             offset = 0
@@ -214,6 +250,8 @@ class IPOPT(NLPsolver):
             """Returns the constraint values."""
             # Set the variable value
             offset = 0
+            #import pdb 
+            #pdb.set_trace()
             for var in self.main_var:
                 size = var.size
                 var.value = x[offset:offset+size].reshape(var.shape, order='F')
@@ -222,12 +260,13 @@ class IPOPT(NLPsolver):
             # Evaluate all constraints
             constraint_values = []
             for constraint in self.problem.constraints:
-                constraint_values.append(np.asarray(constraint.args[0].value).flatten())
+                constraint_values.append(np.asarray(constraint.args[0].value).flatten(order='F'))
             return np.concatenate(constraint_values)
 
         def jacobian(self, x):
             """Returns only the non-zero values of the Jacobian."""
-            
+            #import pdb 
+            #pdb.set_trace()
             # Set variable values
             offset = 0
             for var in self.main_var:
@@ -245,7 +284,10 @@ class IPOPT(NLPsolver):
                         jacobian = grad_dict[var].T
                         if sp.issparse(jacobian):
                             jacobian = sp.dok_matrix(jacobian)
-                            data = np.array([jacobian.get((r, c), 0) for r, c in zip(rows, cols)])        
+                            data = np.array([
+                                jacobian.get((r, c), 0)
+                                for r, c in zip(rows, cols)
+                            ])
                             values.append(np.atleast_1d(data))
                         else:
                             values.append(np.atleast_1d(jacobian))
@@ -328,12 +370,29 @@ class IPOPT(NLPsolver):
             for var in self.main_var:
                 size = var.size
                 if var.bounds:
-                    var_lower.extend(var.bounds[0].flatten(order='F'))
-                    var_upper.extend(var.bounds[1].flatten(order='F'))
+                    lb = var.bounds[0].flatten(order='F')
+                    ub = var.bounds[1].flatten(order='F')
+
+                    if var.is_nonneg():
+                        lb = np.maximum(lb, 0)
+                    
+                    if var.is_nonpos():
+                        ub = np.minimum(ub, 0)
+                    
+                    var_lower.extend(lb)
+                    var_upper.extend(ub)
                 else:
-                    # No bounds specified, use infinite bounds
-                    var_lower.extend([-np.inf] * size)
-                    var_upper.extend([np.inf] * size)
+                    # No bounds specified, use infinite bounds or bounds
+                    # set by the nonnegative or nonpositive attribute
+                    if var.is_nonneg():
+                        var_lower.extend([0.0] * size)
+                    else:
+                        var_lower.extend([-np.inf] * size)
+                    
+                    if var.is_nonpos():
+                        var_upper.extend([0.0] * size)
+                    else:
+                        var_upper.extend([np.inf] * size)
 
             self.lb = np.array(var_lower)
             self.ub = np.array(var_upper)
