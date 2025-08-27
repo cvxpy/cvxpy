@@ -40,6 +40,33 @@ class TestConstraints(BaseTest):
         self.B = Variable((2, 2), name='B')
         self.C = Variable((3, 2), name='C')
 
+    def test_boolean_violation(self):
+        # https://github.com/cvxpy/cvxpy/issues/2900
+        z = cp.Variable(1, boolean=True)
+        for value in ([1], [1.0], [True], np.array([1]), np.array([1.0]), np.array([True])):
+            with self.subTest(value=value):
+                z.value = value
+
+                constraint = z >= 0.6
+                actual = constraint.violation()
+                expected = np.array([0.0])
+                np.testing.assert_array_equal(actual, expected, strict=True)
+
+                constraint = 1 - z <= 0.6
+                actual = constraint.violation()
+                expected = np.array([0.0])
+                np.testing.assert_array_equal(actual, expected, strict=True)
+
+                constraint = z <= 0.6
+                actual = constraint.violation()
+                expected = np.array([0.4])
+                np.testing.assert_array_equal(actual, expected, strict=True)
+
+                constraint = 1 - z >= 0.6
+                actual = constraint.violation()
+                expected = np.array([0.6])
+                np.testing.assert_array_equal(actual, expected, strict=True)
+
     def test_equality(self) -> None:
         """Test the Equality class.
         """
