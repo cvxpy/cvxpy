@@ -109,58 +109,54 @@ class AffAtom(Atom):
         return True
 
     def _grad(self, values) -> List[Any]:
-        """Gives the (sub/super)gradient of the atom w.r.t. each argument.
+        """Computes the gradient of the affine atom w.r.t. each argument.
 
-        Matrix expressions are vectorized, so the gradient is a matrix.
+        For affine atoms, the gradient is constant and independent of argument values.
+        We compute it by constructing the canonical matrix representation and extracting
+        the linear coefficients.
 
         Args:
-            values: A list of numeric values for the arguments.
+            values: Argument values (unused for affine atoms).
 
         Returns:
-            A list of SciPy CSC sparse matrices or None.
+            List of gradient matrices, one for each argument.
         """
-        # TODO should be a simple function in cvxcore for this.
-        # Make a fake lin op tree for the function.
+        # Create fake variables for each non-constant argument to build the linear system
         fake_args = []
         var_offsets = {}
-        offset = 0
+        var_length = 0
+        
         for idx, arg in enumerate(self.args):
             if arg.is_constant():
-                fake_args += [Constant(arg.value).canonical_form[0]]
+                fake_args.append(Constant(arg.value).canonical_form[0])
             else:
-                fake_args += [lu.create_var(arg.shape, idx)]
-                var_offsets[idx] = offset
-                offset += arg.size
-        var_length = offset
-        fake_expr, _ = self.graph_implementation(fake_args, self.shape,
-                                                 self.get_data())
-        param_to_size = {lo.CONSTANT_ID: 1}
-        param_to_col = {lo.CONSTANT_ID: 0}
-        # Get the matrix representation of the function.
+                fake_args.append(lu.create_var(arg.shape, idx))
+                var_offsets[idx] = var_length
+                var_length += arg.size
+
+        # Get the canonical matrix representation: f(x) = Ax + b
+        fake_expr, _ = self.graph_implementation(fake_args, self.shape, self.get_data())
         canon_mat = canonInterface.get_problem_matrix(
-            [fake_expr],
-            var_length,
-            var_offsets,
-            param_to_size,
-            param_to_col,
-            self.size,
+            [fake_expr], var_length, var_offsets,
+            {lo.CONSTANT_ID: 1}, {lo.CONSTANT_ID: 0}, self.size
         )
-        # HACK TODO TODO convert tensors back to vectors.
-        # COO = (V[lo.CONSTANT_ID][0], (J[lo.CONSTANT_ID][0], I[lo.CONSTANT_ID][0]))
-        shape = (var_length + 1, self.size)
-        stacked_grad = canon_mat.reshape(shape).tocsc()[:-1, :]
-        # Break up into per argument matrices.
+
+        # Extract gradient matrix A (exclude constant offset b)
+        grad_matrix = canon_mat.reshape((var_length + 1, self.size)).tocsc()[:-1, :]
+
+        # Split gradients by argument
         grad_list = []
-        start = 0
+        var_start = 0
         for arg in self.args:
             if arg.is_constant():
-                grad_shape = (arg.size, shape[1])
-                if grad_shape == (1, 1):
-                    grad_list += [0]
-                else:
-                    grad_list += [sp.coo_matrix(grad_shape, dtype='float64')]
+                # Zero gradient for constants
+                grad_shape = (arg.size, self.size)
+                grad_list.append(0 if grad_shape == (1, 1) else 
+                               sp.coo_matrix(grad_shape, dtype='float64'))
             else:
-                stop = start + arg.size
-                grad_list += [stacked_grad[start:stop, :]]
-                start = stop
+                # Extract gradient block for this variable
+                var_end = var_start + arg.size
+                grad_list.append(grad_matrix[var_start:var_end, :])
+                var_start = var_end
+
         return grad_list
