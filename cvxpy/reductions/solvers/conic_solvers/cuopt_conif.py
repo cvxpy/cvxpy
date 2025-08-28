@@ -163,14 +163,14 @@ class CUOPT(ConicSolver):
             (dict of arguments needed for the solver, inverse data)
         """
         data, inv_data = super(CUOPT, self).apply(problem)
+
+        # Save the objective offset so that it can be set in the solver
+        data[s.OFFSET] = inv_data[s.OFFSET]
+        
         variables = problem.x
         data[s.BOOL_IDX] = [int(t[0]) for t in variables.boolean_idx]
         data[s.INT_IDX] = [int(t[0]) for t in variables.integer_idx]
         inv_data['lp'] = not (data[s.BOOL_IDX] or data[s.INT_IDX])
-
-        _, d, _, _ = problem.apply_parameters()
-        data[self.CUOPT_OBJ_OFFSET] = d.item() if isinstance(d, np.ndarray) else d
-
         
         return data, inv_data
 
@@ -292,8 +292,7 @@ class CUOPT(ConicSolver):
         data_model = DataModel()
         data_model.set_csr_constraint_matrix(csr.data, csr.indices, csr.indptr)
         data_model.set_objective_coefficients(data['c'])
-        if self.CUOPT_OBJ_OFFSET in data:
-            data_model.set_objective_offset(data[self.CUOPT_OBJ_OFFSET])
+        data_model.set_objective_offset(data[s.OFFSET])
         data_model.set_constraint_lower_bounds(lower_bounds)
         data_model.set_constraint_upper_bounds(upper_bounds)
 
