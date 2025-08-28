@@ -33,6 +33,8 @@ from cvxpy.expressions.variable import Variable
 from cvxpy.reductions.solvers.defines import INSTALLED_MI_SOLVERS
 from cvxpy.tests.base_test import BaseTest
 from cvxpy.transforms.partial_optimize import partial_optimize
+from cvxpy.atoms.affine.reshape import reshape
+from cvxpy.atoms.affine.sum import Sum
 
 
 class TestAtoms(BaseTest):
@@ -806,6 +808,18 @@ class TestAtoms(BaseTest):
 
         assert psd_trace.is_nonneg()
         assert nsd_trace.is_nonpos()
+
+    def test_trace_AB(self) -> None:
+        """Test the trace(AB) gets canonicalized to vdot(A,B)
+        """
+        A = cp.Variable((4,5))
+        B = cp.Variable((5,4))
+        t = cp.trace(A @ B)
+
+        # Ensure that Trace(A @ B) resolved to [[vdot(A, B)]]
+        assert t.args[0].shape == (1,1)
+        assert isinstance(t.args[0], reshape)
+        assert isinstance(t.args[0].args[0], Sum)
 
     def test_log1p(self) -> None:
         """Test the log1p atom.

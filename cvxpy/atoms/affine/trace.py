@@ -21,6 +21,7 @@ import cvxpy.lin_ops.lin_op as lo
 import cvxpy.lin_ops.lin_utils as lu
 from cvxpy.atoms.affine.affine_atom import AffAtom
 from cvxpy.constraints.constraint import Constraint
+from cvxpy.atoms.affine.binary_operators import MulExpression
 
 
 class trace(AffAtom):
@@ -33,6 +34,18 @@ class trace(AffAtom):
     """
 
     def __init__(self, expr) -> None:
+        """
+        TLDR: Use alternate formulation for Trace(A@B) for more efficient computation.
+        Trace(A@B) normally is O(n^3) because of the A@B operation. 
+        However, Trace(A@B) only requires diagonal entries of A@B, which can be
+        computed by taking the sum of element-wise product of A.T * B in O(n^2) time.
+        In fact, vdot does this operation more robustly, using conj(A) instead of transpose. 
+        """
+        if isinstance(expr, MulExpression): 
+            from cvxpy.atoms.affine.binary_operators import vdot
+            from cvxpy.atoms.affine.reshape import reshape
+            expr = reshape(vdot(expr.args[0], expr.args[1]), (1, 1), order='F')
+
         super(trace, self).__init__(expr)
 
     def sign_from_args(self) -> Tuple[bool, bool]:
