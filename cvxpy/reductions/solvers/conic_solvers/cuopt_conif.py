@@ -127,9 +127,6 @@ class CUOPT(ConicSolver):
         LPTerminationStatus.PrimalFeasible: s.USER_LIMIT
     }
 
-    # Store the objective offset in the data during apply()    
-    CUOPT_OBJ_OFFSET = "cuopt_obj_offset"
-    
     def _solver_mode(self, m):
         solver_modes = {"Stable2": PDLPSolverMode.Stable2,
                         "Methodical1": PDLPSolverMode.Methodical1,
@@ -171,7 +168,7 @@ class CUOPT(ConicSolver):
         data[s.BOOL_IDX] = [int(t[0]) for t in variables.boolean_idx]
         data[s.INT_IDX] = [int(t[0]) for t in variables.integer_idx]
         inv_data['lp'] = not (data[s.BOOL_IDX] or data[s.INT_IDX])
-        
+
         return data, inv_data
 
     def invert(self, solution, inverse_data):
