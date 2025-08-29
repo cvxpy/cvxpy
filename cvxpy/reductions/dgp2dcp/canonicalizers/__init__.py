@@ -4,7 +4,7 @@ from cvxpy.atoms.affine.add_expr import AddExpression
 from cvxpy.atoms.affine.binary_operators import (DivExpression, MulExpression,
                                                  multiply,)
 from cvxpy.atoms.affine.sum import Sum
-from cvxpy.atoms.affine.trace import trace
+from cvxpy.atoms.affine.trace import trace_internal
 from cvxpy.atoms.cumprod import cumprod
 from cvxpy.atoms.elementwise.exp import exp
 from cvxpy.atoms.elementwise.log import log
@@ -89,7 +89,7 @@ CANON_METHODS = {
     Prod : prod_canon,
     quad_form : quad_form_canon,
     quad_over_lin : quad_over_lin_canon,
-    trace : trace_canon,
+    trace_internal : trace_canon,
     Sum : sum_canon,
     xexp : xexp_canon,
     Variable : None,
