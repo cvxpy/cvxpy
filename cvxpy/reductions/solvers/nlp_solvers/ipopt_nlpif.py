@@ -213,7 +213,6 @@ class IPOPT(NLPsolver):
 
         def objective(self, x):
             """Returns the scalar value of the objective given x."""
-            # Set the variable value
             offset = 0
             for var in self.main_var:
                 size = var.size
@@ -227,7 +226,6 @@ class IPOPT(NLPsolver):
             #import pdb 
             #pdb.set_trace()
             """Returns the gradient of the objective with respect to x."""
-            # compute the gradient using _grad
             offset = 0
             for var in self.main_var:
                 size = var.size
@@ -248,7 +246,6 @@ class IPOPT(NLPsolver):
 
         def constraints(self, x):
             """Returns the constraint values."""
-            # Set the variable value
             offset = 0
             #import pdb 
             #pdb.set_trace()
@@ -256,7 +253,6 @@ class IPOPT(NLPsolver):
                 size = var.size
                 var.value = x[offset:offset+size].reshape(var.shape, order='F')
                 offset += size
-            
             # Evaluate all constraints
             constraint_values = []
             for constraint in self.problem.constraints:
@@ -265,15 +261,12 @@ class IPOPT(NLPsolver):
 
         def jacobian(self, x):
             """Returns only the non-zero values of the Jacobian."""
-            #import pdb 
-            #pdb.set_trace()
             # Set variable values
             offset = 0
             for var in self.main_var:
                 size = var.size
                 var.value = x[offset:offset+size].reshape(var.shape, order='F')
                 offset += size
-            
             values = []
             for constraint in self.problem.constraints:
                 # get the jacobian of the constraint
@@ -329,8 +322,43 @@ class IPOPT(NLPsolver):
                     col_offset += var.size
                 row_offset += constraint.size
                 self.jacobian_idxs[constraint] = constraint_jac
-
             return (np.array(rows), np.array(cols))
+
+        def hessian(self, x, duals, obj_factor):
+            offset = 0
+            for var in self.main_var:
+                size = var.size
+                var.value = x[offset:offset+size].reshape(var.shape, order='F')
+                offset += size
+            hess = np.zeros((x.size, x.size), dtype=np.float64)
+            # hess_dict = self.problem.objective.expr.hess(obj_factor)
+            # if we specify the problem in graph form (i.e. t=obj),
+            # the objective hessian will always be zero.
+            # To compute the hessian of the constraints, we need to gather the
+            # second derivatives from each constraint.
+            # This is done by looping through each constraint and each
+            # pair of variables and summing up the hessian contributions.
+            constr_offset = 0
+            for constraint in self.problem.constraints:
+                constr_hess = constraint.expr.hess()
+                # we have to make sure that the dual variables correspond
+                # to the constraints in the same order
+                constr_dual = duals[constr_offset:constr_offset + constraint.size]
+                row_offset = 0
+                for var1 in self.main_var:
+                    col_offset = 0
+                    for var2 in self.main_var:
+                        hess[var1.index * row_offset, var2.index * col_offset] += (
+                            constr_dual * constr_hess.get((var1, var2), 0).toarray()
+                        )
+                        col_offset += var2.size
+                    row_offset += var1.size
+                constr_offset += constraint.size
+            return hess
+
+        def hessianstructure(self):
+            pass
+
 
     class Bounds():
         def __init__(self, problem):

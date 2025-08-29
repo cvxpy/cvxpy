@@ -439,6 +439,16 @@ class Atom(Expression):
 
         return result
 
+    def hess(self, duals):
+        """
+        Compute the hessian-vector product of a scalar function with dual
+        values.
+        Here the dual values should correspond to the dual values of the
+        constraint function or None if we are taking the hessian of the objective.
+        We must first slice the duals array to get the relevant values.
+        """
+        pass
+
     @abc.abstractmethod
     def _grad(self, values):
         """Gives the (sub/super)gradient of the atom w.r.t. each argument.
