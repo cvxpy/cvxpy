@@ -810,14 +810,14 @@ class TestAtoms(BaseTest):
         assert psd_trace.is_nonneg()
         assert nsd_trace.is_nonpos()
 
-    def test_trace_internal(self) -> None:
-        """Test the trace_internal gets canonicalized as expected
+    def test_Trace(self) -> None:
+        """Test the trace(A) gets canonicalized to Trace(A) as expected
         """
         A = cp.Variable((4,4))
         t = cp.trace(A)
 
-        # Ensure that Trace(A) resolves as expected to trace_internal
-        assert isinstance(t, cp.trace_internal)
+        # Ensure that trace(A) resolves as expected to Trace(A)
+        assert isinstance(t, cp.Trace)
 
     def test_trace_AB(self) -> None:
         """Test the trace(AB) gets canonicalized to vdot(A,B)

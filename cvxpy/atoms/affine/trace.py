@@ -26,9 +26,9 @@ from cvxpy.constraints.constraint import Constraint
 
 def trace(expr):
     """
-    TLDR: Use alternate formulation for Trace(A@B) for more efficient computation.
-    Trace(A@B) normally is O(n^3) because of the A@B operation. 
-    However, Trace(A@B) only requires diagonal entries of A@B, which can be
+    TLDR: Use alternate formulation for trace(A@B) for more efficient computation.
+    trace(A@B) normally is O(n^3) because of the A@B operation. 
+    However, trace(A@B) only requires diagonal entries of A@B, which can be
     computed by taking the sum of element-wise product of A.T * B in O(n^2) time.
     In fact, vdot does this operation more robustly, using conj(A) instead of transpose. 
     """
@@ -36,10 +36,10 @@ def trace(expr):
         from cvxpy.atoms.affine.binary_operators import vdot
         return vdot(expr.args[0], expr.args[1])
     else:
-        return trace_internal(expr)
+        return Trace(expr)
 
 
-class trace_internal(AffAtom):
+class Trace(AffAtom):
     """The sum of the diagonal entries of a matrix.
 
     Parameters
@@ -49,7 +49,7 @@ class trace_internal(AffAtom):
     """
 
     def __init__(self, expr) -> None:
-        super(trace_internal, self).__init__(expr)
+        super(Trace, self).__init__(expr)
 
     def sign_from_args(self) -> Tuple[bool, bool]:
         """Trace is nonneg (nonpos) if its argument is elementwise nonneg
