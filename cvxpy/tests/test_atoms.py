@@ -837,7 +837,7 @@ class TestAtoms(BaseTest):
 
     def test_trace_complex2real(self) -> None:
         X = cp.Variable((2, 2), complex=True)
-        problem = cp.Problem(cp.Minimize(cp.trace(X)), [X==2])
+        problem = cp.Problem(cp.Minimize(cp.norm(cp.trace(X))), [X==2])
         result = problem.solve()
         self.assertAlmostEqual(result, 4)
 
