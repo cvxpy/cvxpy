@@ -835,6 +835,14 @@ class TestAtoms(BaseTest):
         assert isinstance(t.args[0].args[0].args[0], reshape)
         assert isinstance(t.args[0].args[1], reshape)
 
+    def test_trace_dgp2dcp(self) -> None:
+        """Test trace works as expected in dgp2dcp canonicalization
+        """
+        X = cp.Variable((2,2), pos=True)
+        problem = cp.Problem(cp.Minimize(cp.trace(X)), [X==2])
+        result = problem.solve(gp=True)
+        self.assertAlmostEqual(result, 4)
+
     def test_log1p(self) -> None:
         """Test the log1p atom.
         """
