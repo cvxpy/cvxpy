@@ -26,6 +26,9 @@ from numpy import linalg as LA
 import cvxpy as cp
 import cvxpy.settings as s
 from cvxpy import Minimize, Problem
+from cvxpy.atoms.affine.binary_operators import multiply
+from cvxpy.atoms.affine.conj import conj
+from cvxpy.atoms.affine.reshape import reshape
 from cvxpy.atoms.affine.upper_tri import upper_tri_to_full
 from cvxpy.atoms.errormsg import SECOND_ARG_SHOULD_NOT_BE_EXPRESSION_ERROR_MESSAGE
 from cvxpy.expressions.constants import Constant, Parameter
@@ -806,6 +809,45 @@ class TestAtoms(BaseTest):
 
         assert psd_trace.is_nonneg()
         assert nsd_trace.is_nonpos()
+
+    def test_Trace(self) -> None:
+        """Test the trace(A) gets canonicalized to Trace(A) as expected
+        """
+        A = cp.Variable((4,4))
+        t = cp.trace(A)
+
+        # Ensure that trace(A) resolves as expected to Trace(A)
+        assert isinstance(t, cp.Trace)
+
+    def test_trace_AB(self) -> None:
+        """Test the trace(AB) gets canonicalized to vdot(A,B)
+        """
+        A = cp.Variable((4,5))
+        B = cp.Variable((5,4))
+        t = cp.trace(A @ B)
+        
+        # Ensure that Trace(A @ B) resolved to vdot(A, B)
+        assert len(t.args) == 1
+        assert isinstance(t.args[0], multiply)
+        assert len(t.args[0].args) == 2
+        assert isinstance(t.args[0].args[0], conj)
+        assert len(t.args[0].args[0].args) == 1
+        assert isinstance(t.args[0].args[0].args[0], reshape)
+        assert isinstance(t.args[0].args[1], reshape)
+
+    def test_trace_complex2real(self) -> None:
+        X = cp.Variable((2, 2), complex=True)
+        problem = cp.Problem(cp.Minimize(cp.norm(cp.trace(X))), [X==2])
+        result = problem.solve()
+        self.assertAlmostEqual(result, 4)
+
+    def test_trace_dgp2dcp(self) -> None:
+        """Test trace works as expected in dgp2dcp canonicalization
+        """
+        X = cp.Variable((2,2), pos=True)
+        problem = cp.Problem(cp.Minimize(cp.trace(X)), [X==2])
+        result = problem.solve(gp=True)
+        self.assertAlmostEqual(result, 4)
 
     def test_log1p(self) -> None:
         """Test the log1p atom.
