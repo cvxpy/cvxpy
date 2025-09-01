@@ -2772,8 +2772,22 @@ class TestCOSMO(BaseTest):
         self.assertAlmostEqual(result2, result, places=2)
         print(time > time2)
 
-        
-@unittest.skipUnless(cp.KNITRO in INSTALLED_SOLVERS, 'KNITRO is not installed.')
+def is_knitro_available():
+    """Check if KNITRO is installed and a license is available."""
+    if 'KNITRO' not in INSTALLED_SOLVERS:
+        return False
+    try:
+        import knitro  # type: ignore
+        # Try to create and delete a Knitro solver instance
+        kc = knitro.KN_new()
+        if kc is None:
+            return False
+        knitro.KN_free(kc)
+        return True
+    except Exception:
+        return False
+
+@unittest.skipUnless(is_knitro_available(), 'KNITRO is not installed or license is not available.')
 class TestKNITRO(BaseTest):
 
     def test_knitro_lp_0(self) -> None:
