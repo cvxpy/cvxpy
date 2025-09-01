@@ -153,9 +153,9 @@ class ConicSolver(Solver):
         num_values = num_blocks * streak
         val_arr = np.ones(num_values, dtype=np.float64)
         streak_plus_spacing = streak + spacing
-        row_arr = np.arange(0, num_blocks * streak_plus_spacing).reshape(
+        row_arr = np.arange(0, num_blocks * streak_plus_spacing, dtype=np.int32).reshape(
             num_blocks, streak_plus_spacing)[:, :streak].flatten() + offset
-        col_arr = np.arange(num_values)
+        col_arr = np.arange(num_values, dtype=np.int32)
         return sp.csc_array((val_arr, (row_arr, col_arr)), shape)
 
     @staticmethod
@@ -267,12 +267,8 @@ class ConicSolver(Solver):
             reshaped_A = problem.A.reshape(restruct_mat.shape[1],
                                            unspecified, order='F').tocsr()
             restructured_A = restruct_mat(reshaped_A).tocoo()
-            # Because of a bug in scipy versions <  1.20, `reshape`
-            # can overflow if indices are int32s.
-            restructured_A.row = restructured_A.row.astype(np.int64)
-            restructured_A.col = restructured_A.col.astype(np.int64)
             restructured_A = restructured_A.reshape(
-                np.int64(restruct_mat.shape[0]) * (np.int64(problem.x.size) + 1),
+                restruct_mat.shape[0] * (problem.x.size + 1),
                 problem.A.shape[1], order='F')
         else:
             restructured_A = problem.A

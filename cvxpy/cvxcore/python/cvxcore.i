@@ -42,6 +42,7 @@
 /* Typemap for the getV, getI, getJ, and getConstVec C++ routines in
 	 problemData.hpp */
 %apply (double* ARGOUT_ARRAY1, int DIM1) {(double* values, int num_values)}
+%apply (int* ARGOUT_ARRAY1, int DIM1) {(int* values, int num_values)}
 %include "ProblemData.hpp"
 
 /* Useful wrappers for the LinOp class */

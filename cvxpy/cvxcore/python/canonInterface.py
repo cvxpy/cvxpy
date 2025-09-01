@@ -129,17 +129,16 @@ def reduce_problem_data_tensor(A, var_length, quad_form: bool = False):
         n_cols += 1
     n_constr, _ = np.divmod(A.shape[0], n_cols, dtype=np.int64)
     shape = (n_constr, n_cols)
-    indices = nonzero_rows % (n_constr)
 
     # cols holds the column corresponding to each row in nonzero_rows
-    cols = nonzero_rows // n_constr
+    cols, indices = np.divmod(nonzero_rows, n_constr, dtype=nonzero_rows.dtype)
 
     # construction of the indptr: scan through cols, and find
     # the structure of the column index pointer
-    indptr = np.zeros(n_cols + 1, dtype=np.int64)
+    indptr = np.zeros(n_cols + 1, dtype=cols.dtype)
     positions, counts = np.unique(cols, return_counts=True)
     indptr[positions+1] = counts
-    indptr = np.cumsum(indptr)
+    indptr = np.cumsum(indptr, dtype=indptr.dtype)
 
     return reduced_A, indices, indptr, shape
 

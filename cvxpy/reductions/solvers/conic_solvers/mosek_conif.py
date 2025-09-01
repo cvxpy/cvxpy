@@ -347,7 +347,7 @@ class MOSEK(ConicSolver):
         task.putobjsense(mosek.objsense.maximize)
         # equality constraints
         rows, cols, vals = sp.sparse.find(A)
-        task.putaijlist(rows.tolist(), cols.tolist(), vals.tolist())
+        task.putaijlist(rows, cols, vals)
         task.putconboundlist(np.arange(n, dtype=np.int32), [mosek.boundkey.fx] * n, b, b)
         # conic constraints
         idx = K[a2d.FREE]
