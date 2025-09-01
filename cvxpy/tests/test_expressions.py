@@ -875,15 +875,19 @@ class TestExpressions(BaseTest):
         assert exp.is_affine()
         self.assertEqual(exp.sign, s.UNKNOWN)
         assert not exp.is_nonneg()
-        # self.assertEqual(exp.canonical_form[0].shape, (2, 1))
-        # self.assertEqual(exp.canonical_form[1], [])
-        # self.assertEqual(exp.name(), "-%s" % self.x.name())
         self.assertEqual(exp.shape, self.x.shape)
 
         # Matrices
         exp = -self.C
         self.assertEqual(exp.curvature, s.AFFINE)
         self.assertEqual(exp.shape, (3, 2))
+
+        # String
+        b = cp.Variable(name='b')
+        X = cp.Variable((2,1), name='X')
+        A = cp.Variable((1,2), name='A')
+        exp = -(A@X - b)
+        assert str(exp) == "-(A @ X + -b)"
 
     # Test promotion of scalar constants.
     def test_scalar_const_promotion(self) -> None:
