@@ -2391,8 +2391,11 @@ class TestAllSolvers(BaseTest):
 
         for solver in SOLVER_MAP_QP.keys():
             if solver in INSTALLED_SOLVERS:
-                prob.solve(solver=solver)
-                self.assertItemsAlmostEqual(self.x.value, [0, 0])
+                if solver is cp.KNITRO and not is_knitro_available():
+                    pass
+                else:
+                    prob.solve(solver=solver)
+                    self.assertItemsAlmostEqual(self.x.value, [0, 0])
             else:
                 with self.assertRaises(Exception) as cm:
                     prob.solve(solver=solver)
