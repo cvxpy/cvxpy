@@ -72,6 +72,7 @@ class TestQp(BaseTest):
 
         # Check for all installed QP solvers
         self.solvers = [x for x in QP_SOLVERS if x in INSTALLED_SOLVERS]
+
         def is_mosek_available():
             """Check if MOSEK is installed and a license is available."""
             if 'MOSEK' not in INSTALLED_SOLVERS:
@@ -84,6 +85,22 @@ class TestQp(BaseTest):
                 return status == mosek.rescode.ok
             except Exception:
                 return False
+        
+        def is_knitro_available():
+            """Check if KNITRO is installed and a license is available."""
+            if 'KNITRO' not in INSTALLED_SOLVERS:
+                return False
+            try:
+                import knitro  # type: ignore
+                # Try to create and delete a Knitro solver instance
+                kc = knitro.KN_new()
+                if kc is None:
+                    return False
+                knitro.KN_free(kc)
+                return True
+            except Exception:
+                return False
+        
         def is_xpress_available():
             """Check if XPRESS is installed and a license is available."""
             if 'XPRESS' not in INSTALLED_SOLVERS:
@@ -98,8 +115,10 @@ class TestQp(BaseTest):
         # Remove XPRESS if license is not available
         if 'XPRESS' in self.solvers and not is_xpress_available():
             self.solvers.remove('XPRESS')
-        if is_mosek_available():
-            self.solvers.append('MOSEK')
+        if 'MOSEK' in self.solvers and not is_mosek_available():
+            self.solvers.remove('MOSEK')
+        if 'KNITRO' in self.solvers and not is_knitro_available():
+            self.solvers.remove('KNITRO')
 
     def solve_QP(self, problem, solver_name):
         return problem.solve(solver=solver_name, verbose=False)
