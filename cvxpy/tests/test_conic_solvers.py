@@ -2376,13 +2376,10 @@ class TestAllSolvers(BaseTest):
         prob = cp.Problem(cp.Minimize(cp.norm(self.x, 1) + 1.0), [self.x == 0])
         for solver in SOLVER_MAP_CONIC.keys():
             if solver in INSTALLED_SOLVERS:
-                if solver is cp.MOSEK:
-                    if is_mosek_available():
-                        prob.solve(solver=solver)
-                        assert prob.value == 1.0
-                        assert self.x.value == [0, 0]
-                    else:
-                        pass
+                if solver is cp.MOSEK and not is_mosek_available():
+                    pass
+                elif solver is cp.KNITRO and not is_knitro_available():
+                    pass
                 else:
                     prob.solve(solver=solver)
                     self.assertAlmostEqual(prob.value, 1.0)
