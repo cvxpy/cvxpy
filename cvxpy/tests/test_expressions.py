@@ -876,6 +876,7 @@ class TestExpressions(BaseTest):
         self.assertEqual(exp.sign, s.UNKNOWN)
         assert not exp.is_nonneg()
         self.assertEqual(exp.shape, self.x.shape)
+        self.assertEqual(exp.name(), "-%s" % self.x.name())
 
         # Matrices
         exp = -self.C
@@ -887,7 +888,7 @@ class TestExpressions(BaseTest):
         X = cp.Variable((2,1), name='X')
         A = cp.Variable((1,2), name='A')
         exp = -(A@X - b)
-        assert str(exp) == "-(A @ X + -b)"
+        self.assertEqual(str(exp), "-(A @ X + -b)")
 
     # Test promotion of scalar constants.
     def test_scalar_const_promotion(self) -> None:
