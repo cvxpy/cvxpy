@@ -2376,13 +2376,10 @@ class TestAllSolvers(BaseTest):
         prob = cp.Problem(cp.Minimize(cp.norm(self.x, 1) + 1.0), [self.x == 0])
         for solver in SOLVER_MAP_CONIC.keys():
             if solver in INSTALLED_SOLVERS:
-                if solver is cp.MOSEK:
-                    if is_mosek_available():
-                        prob.solve(solver=solver)
-                        assert prob.value == 1.0
-                        assert self.x.value == [0, 0]
-                    else:
-                        pass
+                if solver is cp.MOSEK and not is_mosek_available():
+                    pass
+                elif solver is cp.KNITRO and not is_knitro_available():
+                    pass
                 else:
                     prob.solve(solver=solver)
                     self.assertAlmostEqual(prob.value, 1.0)
@@ -2394,8 +2391,11 @@ class TestAllSolvers(BaseTest):
 
         for solver in SOLVER_MAP_QP.keys():
             if solver in INSTALLED_SOLVERS:
-                prob.solve(solver=solver)
-                self.assertItemsAlmostEqual(self.x.value, [0, 0])
+                if solver is cp.KNITRO and not is_knitro_available():
+                    pass
+                else:
+                    prob.solve(solver=solver)
+                    self.assertItemsAlmostEqual(self.x.value, [0, 0])
             else:
                 with self.assertRaises(Exception) as cm:
                     prob.solve(solver=solver)
@@ -2772,8 +2772,22 @@ class TestCOSMO(BaseTest):
         self.assertAlmostEqual(result2, result, places=2)
         print(time > time2)
 
-        
-@unittest.skipUnless(cp.KNITRO in INSTALLED_SOLVERS, 'KNITRO is not installed.')
+def is_knitro_available():
+    """Check if KNITRO is installed and a license is available."""
+    if 'KNITRO' not in INSTALLED_SOLVERS:
+        return False
+    try:
+        import knitro  # type: ignore
+        # Try to create and delete a Knitro solver instance
+        kc = knitro.KN_new()
+        if kc is None:
+            return False
+        knitro.KN_free(kc)
+        return True
+    except Exception:
+        return False
+
+@unittest.skipUnless(is_knitro_available(), 'KNITRO is not installed or license is not available.')
 class TestKNITRO(BaseTest):
 
     def test_knitro_lp_0(self) -> None:
