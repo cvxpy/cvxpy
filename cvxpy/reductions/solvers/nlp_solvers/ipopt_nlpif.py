@@ -324,6 +324,7 @@ class IPOPT(NLPsolver):
                 self.jacobian_idxs[constraint] = constraint_jac
             return (np.array(rows), np.array(cols))
 
+        """
         def hessian(self, x, duals, obj_factor):
             offset = 0
             for var in self.main_var:
@@ -358,7 +359,7 @@ class IPOPT(NLPsolver):
 
         def hessianstructure(self):
             pass
-
+        """
 
     class Bounds():
         def __init__(self, problem):
