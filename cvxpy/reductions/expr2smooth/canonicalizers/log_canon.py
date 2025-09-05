@@ -14,28 +14,10 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import numpy as np
-
-from cvxpy.expressions.constants import Constant
 from cvxpy.expressions.variable import Variable
 from cvxpy.expressions.constants import Constant
 import numpy as np
 from cvxpy.atoms.elementwise.exp import exp
-
-def collect_constant_and_variable(expr, constants, variable):
-    if isinstance(expr, Constant):
-        constants.append(expr)
-    elif isinstance(expr, Variable):
-        variable.append(expr)
-    elif hasattr(expr, "args"):
-        for subexpr in expr.args:
-            collect_constant_and_variable(subexpr, constants, variable)
-
-    assert(len(variable) <= 1)
-
-# DCED: Without this lower bound the stress test for ML Gaussian non-zero mean fails.
-# Perhaps this should be a parameter exposed to the user?
-LOWER_BOUND = 1e-5
 
 def collect_constant_and_variable(expr, constants, variable):
     if isinstance(expr, Constant):
@@ -83,9 +65,21 @@ def log_canon(expr, args):
         ubs = np.inf * np.ones(args[0].size)
         lbs[a > 0] = 0
         ubs[a < 0] = 0
-        variable[0].bounds = [lbs, ubs]        
+
+        if variable[0].bounds is not None:
+            lbs = np.maximum(lbs, variable[0].bounds[0])
+            ubs = np.minimum(ubs, variable[0].bounds[1])
+        
+        variable[0].bounds = [lbs, ubs]
         assert(args[0].value is not None and np.all(args[0].value > 0.0))
         t.value = args[0].value
+
+    # DCED: introducing an out variable for log works MUCH worse for the 
+    # Gaussian ML problem 
+    #v = Variable(args[0].size)
+    #v.value = np.ones(expr.shape)
+    #v.value = np.log(t.value)
+    #return v, [v == expr.copy([t]), t == args[0]]
 
     return expr.copy([t]), [t==args[0]]
 
