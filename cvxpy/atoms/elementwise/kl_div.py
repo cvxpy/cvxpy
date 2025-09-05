@@ -94,3 +94,6 @@ class kl_div(Elementwise):
         """Returns constraints describing the domain of the node.
         """
         return [self.args[0] >= 0, self.args[1] >= 0]
+    
+    def point_in_domain(self, argument=0):
+        return np.ones(self.args[argument].shape)

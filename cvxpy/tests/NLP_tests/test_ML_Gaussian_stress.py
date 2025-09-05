@@ -1,8 +1,8 @@
 import numpy as np
 import numpy.linalg as LA
-
 import cvxpy as cp
 
+# TODO (DCED): should try eg. student-t regression
 
 class TestStressMLE():
     
@@ -65,6 +65,7 @@ class TestStressMLE():
                 sigma_opt = (1 / np.sqrt(n)) * LA.norm(data - np.mean(data))
                 mu_opt = np.mean(data)
                 for method in METHODS:
+                    mu.value = None
                     print("Method, n, scale factor: ", method, n, factor)
                     if method == 1:
                         # here we wont deduce that sigma is nonnegative so it can be useful to mention it

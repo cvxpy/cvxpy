@@ -16,12 +16,38 @@ limitations under the License.
 
 import numpy as np
 
-from cvxpy.expressions.variable import Variable
 
+from cvxpy.expressions.variable import Variable
+from cvxpy.atoms.elementwise.power import power
+
+# TODO (DCED): ask William if this the multiplication we want to use
+from cvxpy.atoms.affine.binary_operators import multiply
+from cvxpy.reductions.expr2smooth.canonicalizers.power_canon import power_canon
+
+#def abs_canon(expr, args):
+#    shape = expr.shape
+#    t1 = Variable(shape, bounds = [0, None])
+#    if expr.value is not None:
+#       #t1.value = np.sqrt(expr.value**2)
+#        t1.value = np.abs(args[0].value)
+#
+#    #return t1, [t1**2 == args[0] ** 2]
+#    square_expr = power(args[0], 2)
+#    t2, constr_sq = power_canon(square_expr, square_expr.args)
+#    return t1, [t1**2 == t2] + constr_sq
 
 def abs_canon(expr, args):
     shape = expr.shape
-    t = Variable(shape)
-    if expr.value is not None:
-        t.value = np.sqrt(expr.value**2)
-    return t, [t**2 == expr**2, t >= 0]
+    t1 = Variable(shape, bounds = [0, None])
+    y = Variable(shape, bounds = [-1.01, 1.01])
+    if args[0].value is not None:
+        #t1.value = np.sqrt(expr.value**2)
+        t1.value = np.abs(args[0].value)
+        y.value = np.sign(args[0].value)
+    
+    t1.value = np.ones(shape)
+    y.value = np.zeros(shape)
+
+    # TODO (DCED): check how multiply is canonicalized. We don't want to introduce a new variable for
+    # y inside multiply. But args[0] should potentially be canonicalized further?
+    return t1, [y ** 2 == np.ones(shape), t1 == multiply(y, args[0])]

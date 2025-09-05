@@ -15,6 +15,9 @@ limitations under the License.
 """
 from cvxpy.atoms import maximum
 from cvxpy.atoms.elementwise.log import log
+from cvxpy.atoms.elementwise.entr import entr
+from cvxpy.atoms.elementwise.rel_entr import rel_entr
+from cvxpy.atoms.elementwise.kl_div import kl_div
 from cvxpy.atoms.elementwise.minimum import minimum
 from cvxpy.atoms.elementwise.power import power
 from cvxpy.atoms.pnorm import Pnorm
@@ -27,6 +30,9 @@ from cvxpy.reductions.expr2smooth.canonicalizers.abs_canon import abs_canon
 from cvxpy.reductions.expr2smooth.canonicalizers.pnorm_canon import pnorm_canon
 from cvxpy.reductions.expr2smooth.canonicalizers.power_canon import power_canon
 from cvxpy.reductions.expr2smooth.canonicalizers.maximum_canon import maximum_canon
+from cvxpy.reductions.expr2smooth.canonicalizers.entr_canon import entr_canon
+from cvxpy.reductions.expr2smooth.canonicalizers.rel_entr_canon import rel_entr_canon
+from cvxpy.reductions.expr2smooth.canonicalizers.kl_div_canon import kl_div_canon
 
 CANON_METHODS = {
     abs: abs_canon,
@@ -35,5 +41,8 @@ CANON_METHODS = {
     log: log_canon,
     power: power_canon,
     Pnorm : pnorm_canon,
-    DivExpression: div_canon
+    DivExpression: div_canon,
+    entr: entr_canon,
+    rel_entr: rel_entr_canon,
+    kl_div: kl_div_canon,
 }
