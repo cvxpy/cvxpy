@@ -175,6 +175,38 @@ class Expression(u.Canonical):
         """str : The string representation of the expression.
         """
         raise NotImplementedError()
+    
+    def set_display_name(self, display_name: str):
+        """Set a custom display name for this expression.
+        
+        Parameters
+        ----------
+        display_name : str
+            Custom name to display before the mathematical expression.
+            
+        Returns
+        -------
+        Expression
+            Returns self to allow method chaining.
+            
+        Examples
+        --------
+        >>> x = cp.Variable(3)
+        >>> expr = cp.sum(x).set_display_name("total")
+        >>> expr.display_name()
+        'total: Sum(x, None, False)'
+        """
+        self._display_name = display_name
+        return self
+
+    def display_name(self) -> str:
+        """Get the display name of this expression.
+        
+        Returns custom display name if set, otherwise mathematical form.
+        """
+        if hasattr(self, '_display_name') and self._display_name is not None:
+            return f"{self._display_name}: {self.name()}"
+        return self.name()
 
     @property
     def expr(self):

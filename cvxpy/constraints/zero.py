@@ -34,7 +34,7 @@ class Zero(Constraint):
     def __str__(self):
         """Returns a string showing the mathematical constraint.
         """
-        return self.name()
+        return self.display_name()
 
     def __repr__(self) -> str:
         """Returns a string with information about the constraint.
@@ -106,7 +106,7 @@ class Equality(Constraint):
     def __str__(self):
         """Returns a string showing the mathematical constraint.
         """
-        return self.name()
+        return self.display_name()
 
     def __repr__(self) -> str:
         """Returns a string with information about the constraint.

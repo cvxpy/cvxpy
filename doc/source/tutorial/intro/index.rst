@@ -50,6 +50,57 @@ achieve the optimal objective.
 ``prob.value``, and the ``value`` field of all the variables in the
 problem.
 
+Custom display names
+---------------------
+
+You can assign custom display names to expressions and constraints to make 
+debugging and model interpretation easier. This is especially useful for 
+understanding dual variables and error messages.
+
+.. code:: python
+
+    import cvxpy as cp
+    import numpy as np
+    
+    # Create variables
+    weights = cp.Variable(3, name="weights")
+    
+    # Create constraints with custom display names
+    constraints = [
+        (weights >= 0).set_display_name("non_negative_weights"),
+        (cp.sum(weights) == 1).set_display_name("budget_constraint"),
+        (weights <= 0.4).set_display_name("concentration_limits")
+    ]
+    
+    # Display names appear when printing constraints
+    for con in constraints:
+        print(con)
+        
+    # Create expressions with custom display names  
+    portfolio_return = (returns.T @ weights).set_display_name("expected_return")
+    portfolio_risk = cp.quad_form(weights, cov_matrix).set_display_name("portfolio_variance")
+    
+    # For expressions, use display_name() to see the custom name
+    print(portfolio_return.display_name())
+    print(portfolio_risk.display_name())
+
+::
+
+    non_negative_weights: 0.0 <= weights
+    budget_constraint: Sum(weights, None, False) == 1.0  
+    concentration_limits: weights <= 0.4
+    expected_return: returns.T @ weights
+    portfolio_variance: QuadForm(weights, cov_matrix)
+
+The ``set_display_name()`` method returns the object itself, allowing method chaining.
+Custom display names are particularly helpful when interpreting dual variables
+after solving, as they provide business context for the mathematical constraints.
+
+Note that constraints show their display names automatically when printed (``str()``),
+while expressions require calling ``display_name()`` to see the custom name. This
+prevents display names from contaminating mathematical representations when
+expressions are composed into larger expressions.
+
 Changing the problem
 --------------------
 

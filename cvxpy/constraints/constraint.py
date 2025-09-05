@@ -52,13 +52,45 @@ class Constraint(u.Canonical):
     def __str__(self):
         """Returns a string showing the mathematical constraint.
         """
-        return self.name()
+        return self.display_name()
 
     def __repr__(self) -> str:
         """Returns a string with information about the constraint.
         """
         return "%s(%s)" % (self.__class__.__name__,
                            repr(self.args[0]))
+
+    def set_display_name(self, display_name: str):
+        """Set a custom display name for this constraint.
+        
+        Parameters
+        ----------
+        display_name : str
+            Custom name to display before the mathematical constraint.
+            
+        Returns
+        -------
+        Constraint
+            Returns self to allow method chaining.
+            
+        Examples
+        --------
+        >>> x = cp.Variable(3)
+        >>> con = (x >= 0).set_display_name("non_negative")
+        >>> str(con)
+        'non_negative: 0.0 <= x'
+        """
+        self._display_name = str(display_name) if display_name is not None else None
+        return self
+
+    def display_name(self) -> str:
+        """Get the display name of this constraint.
+        
+        Returns custom display name if set, otherwise mathematical form.
+        """
+        if hasattr(self, '_display_name') and self._display_name is not None:
+            return f"{self._display_name}: {self.name()}"
+        return self.name()
 
     def _construct_dual_variables(self, args) -> None:
         self.dual_variables = [cvxtypes.variable()(arg.shape) for arg in args]
