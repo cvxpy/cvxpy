@@ -174,7 +174,7 @@ class IPOPT(NLPsolver):
             ubs = bounds.ub
             for var in bounds.main_var:
                 if var.value is not None:
-                    initial_values.append(var.value.flatten(order='F'))
+                    initial_values.append(np.atleast_1d(var.value).flatten(order='F'))
                 else:
                     # If no initial value is specified, look at the bounds.
                     # If both lb and ub are specified, we initialize the

@@ -1,11 +1,7 @@
-
-
-
 import numpy as np
 import numpy.linalg as LA
-import pandas as pd
+
 import cvxpy as cp
-np.random.seed(0)
 
 
 class TestStressMLE():
@@ -28,6 +24,7 @@ class TestStressMLE():
     # nonconvex problem, compute minimum entropy distribution
     # over simplex (the analytical solution is any of the vertices)
     def test_entropy_two(self):
+        np.random.seed(0)
         n = 10
         q = cp.Variable((n, ), nonneg=True)
         q.value = np.random.rand(n)
@@ -41,6 +38,7 @@ class TestStressMLE():
 
     # convex formulation, relative entropy f(x, y) = x log (x / y)
     def test_rel_entropy_one(self):
+        np.random.seed(0)
         n = 40
         p = np.random.rand(n, )
         p = p / np.sum(p)
