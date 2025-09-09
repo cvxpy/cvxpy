@@ -250,9 +250,9 @@ class Pnorm(AxisAtom):
             return None
         D_null = sp.csc_array((rows, 1), dtype='float64')
         # Ensure vector semantics and consistent column-major vectorization.
-        v = np.asarray(value).ravel(order='F')
-        denominator = np.linalg.norm(v, float(self.p))
-        exp = float(self.p - 1)
+        value = np.asarray(value).ravel(order='F')
+        denominator = np.linalg.norm(value, float(self.p))
+        exp = float(self.p - 1)  # cast to float to avoid dtype=object with Fraction exponents
         denominator = np.power(denominator, exp)
         # Subgrad is 0 when denom is 0 (or undefined).
         if denominator == 0:
@@ -260,7 +260,10 @@ class Pnorm(AxisAtom):
                 return D_null.todense()
             else:
                 return None
+        if self.p > 1:
+            # nominator = sign(value) * |value|^(p-1)
+            nominator = np.sign(value) * np.power(np.abs(value), exp)
         else:
-            nominator = np.power(v, exp)  # avoids dtype=object with Fraction exponents
-            frac = np.divide(nominator, denominator)
-            return frac.reshape((-1, 1))
+            nominator = np.power(value, exp)
+        frac = np.divide(nominator, denominator)
+        return np.reshape(frac, (frac.size, 1))
