@@ -104,5 +104,11 @@ doc = ["sphinx",
 file = "README.md"
 content-type = "text/markdown"
 
+[dependency-groups]
+testing = [
+    "hypothesis>=6.138.14",
+    "pytest>=8.4.2",
+]
+
 [tool.setuptools]
 include-package-data = false

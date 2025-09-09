@@ -249,8 +249,11 @@ class Pnorm(AxisAtom):
         if self.p < 1 and np.any(value <= 0):
             return None
         D_null = sp.csc_array((rows, 1), dtype='float64')
-        denominator = np.linalg.norm(value, float(self.p))
-        denominator = np.power(denominator, self.p - 1)
+        # Ensure vector semantics and consistent column-major vectorization.
+        v = np.asarray(value).ravel(order='F')
+        denominator = np.linalg.norm(v, float(self.p))
+        exp = float(self.p - 1)
+        denominator = np.power(denominator, exp)
         # Subgrad is 0 when denom is 0 (or undefined).
         if denominator == 0:
             if self.p > 1:
@@ -258,6 +261,6 @@ class Pnorm(AxisAtom):
             else:
                 return None
         else:
-            nominator = np.power(value, self.p - 1)
+            nominator = np.power(v, exp)  # avoids dtype=object with Fraction exponents
             frac = np.divide(nominator, denominator)
-            return np.reshape(frac, (frac.size, 1))
+            return frac.reshape((-1, 1))
