@@ -62,7 +62,8 @@ def test_expression_label_basics():
     try:
         from pathlib import Path
         expr.label = Path("my/path")
-        assert expr.label == "my/path"
+        # Path will use OS-appropriate separator when converted to string
+        assert expr.label in ["my/path", "my\\path"]  # Unix or Windows
         assert isinstance(expr.label, str)
     except ImportError:
         pass  # pathlib not available in older Python
