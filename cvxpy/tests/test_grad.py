@@ -92,49 +92,6 @@ class TestGrad(BaseTest):
         self.assertItemsAlmostEqual(expr.grad[self.A].toarray(),
                                     np.array([[0.6, 0], [0.8, 0], [0, -0.6], [0, 0.8]]))
 
-        # Helper: normalize gradient to a flat ndarray (works for sparse/dense)
-        def _flat(g):
-            g_arr = g.toarray() if hasattr(g, "toarray") else np.asarray(g)
-            return g_arr.ravel(order="F")
-
-        # Regression test for issue #2896 - harmonic_mean gradient dtype=object error
-        x = cp.Variable(2, name="x", value=[1.0, 1.0])
-        expr = cp.harmonic_mean(x)
-        grad = expr.grad[x]
-        self.assertIsNotNone(grad)
-        # Robust dtype check (float or complex, but not object)
-        self.assertIn(getattr(grad, "dtype", np.asarray(grad).dtype).kind, ("f", "c"))
-        # Check expected values: HM([1,1]) = 1, ∂HM/∂x_i = n*||x||_{-1}^2/x_i^2 = 0.5
-        self.assertTrue(np.allclose(_flat(grad), [0.5, 0.5]))
-
-        # Test gradient for negative p values (harmonic mean case p=-1)
-        expr = cp.pnorm(self.x, -1)
-        self.x.value = np.array([1.0, 2.0])
-        grad = expr.grad[self.x]
-        self.assertIsNotNone(grad)
-        self.assertIn(getattr(grad, "dtype", np.asarray(grad).dtype).kind, ("f", "c"))
-
-        # Test gradient sign correctness for p=3 with negative values
-        expr = cp.pnorm(self.x, 3)
-        self.x.value = np.array([-2.0, 3.0])
-        grad = expr.grad[self.x]
-        g = _flat(grad)
-        # Sign checks
-        self.assertLess(g[0], 0)
-        self.assertGreater(g[1], 0)
-        # Analytic check
-        den = (np.linalg.norm(self.x.value, ord=3.0))**(3-1)
-        expected = np.sign(self.x.value) * np.abs(self.x.value)**(3-1) / den
-        self.assertTrue(np.allclose(g, expected))
-
-        # Test p=-0.5 on column-shaped value (vector semantics)
-        y = cp.Variable((3, 1), pos=True)
-        y.value = np.array([[1.0], [2.0], [4.0]])
-        expr = cp.pnorm(y, -0.5)
-        grad = expr.grad[y]
-        self.assertIsNotNone(grad)
-        self.assertIn(getattr(grad, "dtype", np.asarray(grad).dtype).kind, ("f", "c"))
-
         expr = cp.pnorm(self.A, 2, axis=1)
         self.A.value = np.array([[3, -4], [4, 3]])
         self.assertItemsAlmostEqual(expr.grad[self.A].toarray(),

@@ -50,6 +50,7 @@ achieve the optimal objective.
 ``prob.value``, and the ``value`` field of all the variables in the
 problem.
 
+
 Changing the problem
 --------------------
 
@@ -349,3 +350,13 @@ problem above.
     # Parallel computation (set to 1 process here).
     pool = Pool(processes = 1)
     x_values = pool.map(get_x, gamma_vals)
+
+Next steps
+----------
+
+For more features and examples, see:
+
+.. toctree::
+   :maxdepth: 1
+
+   labels
