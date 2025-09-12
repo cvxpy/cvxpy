@@ -53,6 +53,18 @@ class AddExpression(AffAtom):
         for i in range(1, len(self.args)):
             result += " + " + str(self.args[i])
         return result
+    
+    def format_labeled(self):
+        """Format addition with labels where available."""
+        # Check for own label first
+        if self._label is not None:
+            return self._label
+        
+        # Build from sub-expressions using their labels
+        result = self.args[0].format_labeled()
+        for i in range(1, len(self.args)):
+            result += " + " + self.args[i].format_labeled()
+        return result
 
     def numeric(self, values: Iterable[Any]) -> Any:
         return reduce(op.add, values)

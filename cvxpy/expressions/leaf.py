@@ -113,6 +113,7 @@ class Leaf(expression.Expression):
                 raise ValueError("Invalid dimensions %s." % (shape,))
         shape = tuple(shape)
         self._shape = shape
+        self._label = None
 
         if (PSD or NSD or symmetric or diag or hermitian) and (len(shape) != 2
                                                                or shape[0] != shape[1]):

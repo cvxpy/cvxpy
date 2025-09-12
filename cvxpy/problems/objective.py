@@ -55,6 +55,10 @@ class Objective(u.Canonical):
 
     def __str__(self) -> str:
         return ' '.join([self.NAME, self.args[0].name()])
+    
+    def format_labeled(self):
+        """Format objective with labels where available."""
+        return ' '.join([self.NAME, self.args[0].format_labeled()])
 
     def __radd__(self, other):
         if other == 0:

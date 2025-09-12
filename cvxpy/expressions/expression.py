@@ -175,6 +175,54 @@ class Expression(u.Canonical):
         """str : The string representation of the expression.
         """
         raise NotImplementedError()
+    
+    @property
+    def label(self):
+        """Get the label of the expression."""
+        return self._label
+    
+    @label.setter
+    def label(self, value):
+        """Set the label of the expression."""
+        self._label = str(value) if value is not None else None
+    
+    def set_label(self, label: Optional[str]):
+        """Set a custom label for this expression.
+        
+        Parameters
+        ----------
+        label : Optional[str]
+            Custom label for the expression. If None, clears the label.
+            
+        Returns
+        -------
+        Expression
+            Returns self to allow method chaining.
+            
+        Examples
+        --------
+        >>> x = cp.Variable(3)
+        >>> expr = cp.sum(x).set_label("total")
+        >>> objective = cp.sum_squares(x).set_label("cost") + cp.norm(x).set_label("penalty")
+        """
+        self._label = str(label) if label is not None else None
+        return self
+    
+    def format_labeled(self):
+        """Format expression with labels where available.
+        
+        Returns the expression's label if set, otherwise recursively substitutes
+        labels in sub-expressions. For compound expressions without their own label,
+        this shows labels where available and mathematical notation where not.
+        
+        Returns
+        -------
+        str
+            Formatted string representation with labels substituted.
+        """
+        if self._label is not None:
+            return self._label
+        return self.name()
 
     @property
     def expr(self):

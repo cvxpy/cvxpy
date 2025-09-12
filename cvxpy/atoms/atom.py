@@ -40,6 +40,7 @@ class Atom(Expression):
 
     def __init__(self, *args) -> None:
         self.id = lu.get_id()
+        self._label = None
         # Throws error if args is empty.
         if len(args) == 0:
             raise TypeError(
