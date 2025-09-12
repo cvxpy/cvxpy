@@ -351,12 +351,75 @@ problem above.
     pool = Pool(processes = 1)
     x_values = pool.map(get_x, gamma_vals)
 
+.. _labels:
+
+Custom Labels
+-------------
+
+You can assign custom labels to expressions and constraints to make 
+debugging and model interpretation easier. Labels appear when printing 
+constraints and can be used with the ``format_labeled()`` method to 
+show labeled expressions in problems.
+
+Labels can be assigned using the ``set_label()`` method or the ``label`` property:
+
+.. code:: python
+
+    import cvxpy as cp
+    import numpy as np
+    
+    # Create variables
+    weights = cp.Variable(3, name="weights")
+    
+    # Create constraints with custom labels
+    constraints = [
+        (weights >= 0).set_label("non_negative_weights"),
+        (cp.sum(weights) == 1).set_label("budget_constraint"),
+        (weights <= 0.4).set_label("concentration_limits")
+    ]
+    
+    # Create expressions with custom labels  
+    data = np.random.randn(3)
+    data_fit = cp.sum_squares(weights - data).set_label("data_fit")
+    l2_reg = cp.norm(weights, 2).set_label("l2_regularization")
+    
+    # Build objective
+    objective = cp.Minimize(data_fit + 0.5 * l2_reg)
+    
+    # Create and display the problem
+    problem = cp.Problem(objective, constraints)
+    
+    # Use format_labeled() to see labels in the objective
+    print(problem.format_labeled())
+
+::
+
+    minimize data_fit + 0.5 * l2_regularization
+    subject to non_negative_weights: 0.0 <= weights
+               budget_constraint: Sum(weights, None, False) == 1.0
+               concentration_limits: weights <= 0.4
+
+The ``set_label()`` method returns the object itself, allowing method chaining.
+Labels are "live" and can be modified after problem creation:
+
+.. code:: python
+
+    # Change or remove labels dynamically
+    l2_reg.label = "ridge_penalty"  # Change label
+    data_fit.label = None  # Remove label
+    print(problem.format_labeled())
+
+::
+
+    minimize sum_squares(weights + ...) + 0.5 * ridge_penalty
+    subject to non_negative_weights: 0.0 <= weights
+               budget_constraint: Sum(weights, None, False) == 1.0
+               concentration_limits: weights <= 0.4
+
+For more details on the label feature, including advanced usage and limitations, 
+see the full labels documentation.
+
 Next steps
 ----------
 
-For more features and examples, see:
-
-.. toctree::
-   :maxdepth: 1
-
-   labels
+For more features and examples, explore the rest of the CVXPY documentation.
