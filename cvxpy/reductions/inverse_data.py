@@ -24,7 +24,7 @@ class InverseData:
         varis = problem.variables()
         self.id_map, self.var_offsets, self.x_length, self.var_shapes = \
             InverseData.get_var_offsets(varis)
-
+        
         self.param_shapes = {}
         # Always start with CONSTANT_ID.
         self.param_to_size = {lo.CONSTANT_ID: 1}
