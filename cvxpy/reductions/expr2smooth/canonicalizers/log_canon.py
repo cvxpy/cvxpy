@@ -52,6 +52,10 @@ def log_canon(expr, args):
             break
         else:
             a *= constant.value
+    
+    # TODO (DCED): there is an error here. We deduce that sigma is nonnegative for formulation 1 but that 
+    # shouldn't be the case. The reason is that we have sigma^2 in the formulation and we don't take that into account.
+    assert(len(variable) <= 1)
 
     if not is_special_case:
         if args[0].value is not None and np.all(args[0].value > 0):
@@ -62,8 +66,8 @@ def log_canon(expr, args):
         if variable[0].value is None:
             variable[0].value = expr.point_in_domain() * np.sign(a)
         
-        lbs = -np.inf * np.ones(args[0].size)
-        ubs = np.inf * np.ones(args[0].size)
+        lbs = -np.inf * np.ones(variable[0].size)
+        ubs = np.inf * np.ones(variable[0].size)
         lbs[a > 0] = 0
         ubs[a < 0] = 0
 

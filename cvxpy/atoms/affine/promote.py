@@ -113,3 +113,8 @@ class Promote(AffAtom):
             (LinOp for objective, list of constraints)
         """
         return (lu.promote(arg_objs[0], shape), [])
+
+    def _hess(self, values):
+        """Returns the Hessian of the promote."""
+        var = self.args[0].variables()[0]
+        return {(var, var): np.zeros((var.size, var.size))}

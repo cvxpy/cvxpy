@@ -120,6 +120,14 @@ class QuadForm(Atom):
         D = (P + np.conj(P.T)) @ x
         return [sp.csc_array([D.ravel(order="F")]).T]
 
+    def _hess(self, values):
+        """
+        The hessian of a quadratic form x.T @ Q @ x
+        with respect to x, is the constant matrix Q.
+        """
+        var = self.variables()[0]
+        return {(var, var): 2 * np.array(values[1])}
+
     def shape_from_args(self) -> Tuple[int, ...]:
         return tuple()
 

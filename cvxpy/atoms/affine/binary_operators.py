@@ -21,6 +21,8 @@ from typing import List, Tuple
 import numpy as np
 import scipy.sparse as sp
 
+from cvxpy.expressions.constants.constant import Constant
+from cvxpy.expressions.variable import Variable
 import cvxpy.lin_ops.lin_op as lo
 import cvxpy.lin_ops.lin_utils as lu
 import cvxpy.utilities as u
@@ -206,6 +208,34 @@ class MulExpression(BinaryOperator):
         DY = sp.kron(sp.eye(p, format='csc'), X, format='csc').T
         
         return [DX, DY]
+    
+    def _hess(self, values):
+        """Compute the Hessian of elementwise multiplication w.r.t. each argument.
+
+        For z = x * y (elementwise), returns:
+        - d2z/dx2 = diag(y)
+        - d2z/dy2 = diag(x)
+
+        Args:
+            values: A list of numeric values for the arguments [x, y].
+
+        Returns:
+            A list of SciPy CSC sparse matrices [D2X, D2Y].
+        """
+        if isinstance(self.args[0], Variable) and isinstance(self.args[1], Variable):
+            return {(self.args[0], self.args[1]): np.eye(self.size), 
+                    (self.args[1], self.args[0]): np.eye(self.size)}
+        if isinstance(self.args[0], Constant) and isinstance(self.args[1], Variable):
+            return self.args[1].hess
+        x = values[0]
+        y = values[1]
+        # what is the hessian of elementwise multiplication?
+        # Flatten in case inputs are not 1D
+        x = np.asarray(x).flatten(order='F')
+        y = np.asarray(y).flatten(order='F')
+        D2X = sp.diags(y, format='csc')
+        D2Y = sp.diags(x, format='csc')
+        return [D2X, D2Y]
 
     def graph_implementation(
         self, arg_objs, shape: Tuple[int, ...], data=None
@@ -318,6 +348,32 @@ class multiply(MulExpression):
         DX = sp.diags(y, format='csc')
         DY = sp.diags(x, format='csc')
         return [DX, DY]
+
+    def _hess(self, values):
+        """Compute the Hessian of elementwise multiplication w.r.t. each argument.
+
+        For z = x * y (elementwise), returns:
+        - d2z/dx2 = diag(y)
+        - d2z/dy2 = diag(x)
+
+        Args:
+            values: A list of numeric values for the arguments [x, y].
+
+        Returns:
+            A list of SciPy CSC sparse matrices [D2X, D2Y].
+        """
+        if isinstance(self.args[0], Variable) and isinstance(self.args[1], Variable):
+            return {(self.args[0], self.args[1]): 1.0, 
+                    (self.args[1], self.args[0]): 1.0}
+        x = values[0]
+        y = values[1]
+        # what is the hessian of elementwise multiplication?
+        # Flatten in case inputs are not 1D
+        x = np.asarray(x).flatten(order='F')
+        y = np.asarray(y).flatten(order='F')
+        D2X = sp.diags(y, format='csc')
+        D2Y = sp.diags(x, format='csc')
+        return [D2X, D2Y]
 
     def graph_implementation(
         self, arg_objs, shape: Tuple[int, ...], data=None

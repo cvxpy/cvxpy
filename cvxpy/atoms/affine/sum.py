@@ -19,6 +19,7 @@ from typing import Optional
 
 import numpy as np
 
+from cvxpy.expressions.variable import Variable
 import cvxpy.interface as intf
 import cvxpy.lin_ops.lin_op as lo
 import cvxpy.lin_ops.lin_utils as lu
@@ -122,6 +123,12 @@ class Sum(AxisAtom, AffAtom):
                 obj = lu.mul_expr(ones, arg_objs[0], shape)
         return (obj, [])
 
+    def _hess(self, values):
+        """Returns the Hessian of the sum."""
+        var = self.args[0].variables()[0]
+        if isinstance(self.args[0], Variable):
+            return {(var, var): np.zeros((self.args[0].size, self.args[0].size))}
+        return self.args[0].hess
 
 @wraps(Sum)
 def sum(expr, axis: Optional[int] = None, keepdims: bool = False):

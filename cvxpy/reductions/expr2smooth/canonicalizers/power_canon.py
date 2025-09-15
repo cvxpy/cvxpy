@@ -41,11 +41,13 @@ def power_canon(expr, args):
             #    t.value = np.power(np.abs(x.value), p)
             #return t, [t**(1/p) == x, t >= 0]
         elif p > 1:
+
+            if isinstance(args[0], Variable):
+                return expr, []
+
             t = Variable(args[0].shape)
 
-            # DCED: for Gaussian ML it works better if we include the second
-            #       condition here
-            if args[0].value is not None and np.all(args[0].value >= 1):
+            if args[0].value is not None:
                 t.value = args[0].value
             else:
                 t.value = expr.point_in_domain()

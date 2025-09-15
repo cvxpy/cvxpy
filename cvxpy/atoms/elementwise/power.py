@@ -380,6 +380,35 @@ class power(Elementwise):
         grad_vals = float(p)*np.power(values[0], float(p)-1)
         return [power.elemwise_grad_to_diag(grad_vals, rows, cols)]
 
+    def _hess(self, values):
+        """TODO: write message
+        """
+        rows = self.args[0].size
+        cols = self.size
+
+        if self.p_rational is not None:
+            p = self.p_rational
+        elif self.p.value is not None:
+            p = self.p.value
+        else:
+            raise ValueError("Cannot compute grad of parametrized power when "
+                             "parameter value is unspecified.")
+
+        if p == 0:
+            # All zeros.
+            return [sp.csc_array((rows, cols), dtype='float64')]
+        # Outside domain or on boundary.
+        if not is_power2(p) and np.min(values[0]) <= 0:
+            if p < 1:
+                # Non-differentiable.
+                return [None]
+            else:
+                # Round up to zero.
+                values[0] = np.maximum(values[0], 0)
+
+        hess_vals = float(p)*float(p-1)*np.power(values[0], float(p)-2)
+        return [power.elemwise_grad_to_diag(hess_vals, rows, cols)]
+
     def _domain(self) -> List[Constraint]:
         """Returns constraints describing the domain of the node.
         """

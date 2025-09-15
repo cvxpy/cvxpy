@@ -127,3 +127,10 @@ class AddExpression(AffAtom):
             if arg.shape != shape and lu.is_scalar(arg):
                 arg_objs[i] = lu.promote(arg, shape)
         return (lu.sum_expr(arg_objs), [])
+
+    def _hess(self, values):
+        """Computes the Hessian of the sum expression.
+        """
+        # For sum expressions, the Hessian is zero.
+        import numpy as np
+        return list(np.ones(len(self.args)))

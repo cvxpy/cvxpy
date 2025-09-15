@@ -18,6 +18,7 @@ from typing import Optional, Tuple
 import numpy as np
 import scipy.sparse as sp
 
+from cvxpy.expressions.variable import Variable
 import cvxpy.lin_ops.lin_op as lo
 import cvxpy.lin_ops.lin_utils as lu
 from cvxpy.atoms.affine.affine_atom import AffAtom
@@ -106,6 +107,12 @@ class index(AffAtom):
         """
         obj = lu.index(arg_objs[0], shape, data[0])
         return (obj, [])
+    
+    def _hess(self, values):
+        var = self.args[0].variables()[0]
+        if isinstance(self.args[0], Variable):
+            return {(var, var): np.zeros((self.args[0].size, self.args[0].size))}
+        return self.args[0].hess
 
 
 class special_index(AffAtom):

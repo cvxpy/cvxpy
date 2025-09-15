@@ -94,3 +94,7 @@ class NegExpression(UnaryOperator):
             (LinOp for objective, list of constraints)
         """
         return (lu.neg_expr(arg_objs[0]), [])
+
+    def _hess(self, values):
+        """ TODO: """
+        return [-1.0]

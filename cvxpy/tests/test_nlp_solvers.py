@@ -62,7 +62,7 @@ class TestExamplesIPOPT():
 
         constraints = [
             x[0]*x[1]*x[2]*x[3] >= 25,
-            cp.sum(cp.square(x)) == 40,
+            cp.sum_squares(x) == 40,
         ]
         problem = cp.Problem(objective, constraints)
         problem.solve(solver=cp.IPOPT, nlp=True)
@@ -111,10 +111,10 @@ class TestExamplesIPOPT():
         sigma.value = np.array([1.0])
 
         constraints = [mu == sigma**2]
-        #residual_sum = cp.sum_squares(data - mu)
+        residual_sum = cp.sum_squares(data - mu)
         log_likelihood = (
             (n / 2) * cp.log(1 / (2 * np.pi * (sigma)**2))
-            - cp.sum(cp.square(data-mu)) / (2 * (sigma)**2)
+            - residual_sum / (2 * (sigma)**2)
         )
         
         objective = cp.Maximize(log_likelihood)
@@ -305,7 +305,7 @@ class TestCanonicalization():
     def test_analytic_polytope_center(self):
         # Generate random data
         np.random.seed(0)
-        m, n = 50, 4
+        m, n = 500, 40
         b = np.ones(m)
         rand = np.random.randn(m - 2*n, n)
         A = np.vstack((rand, np.eye(n), np.eye(n) * -1))

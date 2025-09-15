@@ -439,15 +439,58 @@ class Atom(Expression):
 
         return result
 
-    def hess(self, duals):
-        """
-        Compute the hessian-vector product of a scalar function with dual
-        values.
-        Here the dual values should correspond to the dual values of the
-        constraint function or None if we are taking the hessian of the objective.
-        We must first slice the duals array to get the relevant values.
-        """
-        pass
+    @property
+    def hess(self):
+        from cvxpy.atoms.elementwise.log import log
+        from cvxpy.atoms.elementwise.power import power
+        # print("INSIDE HESS IN ATOM")
+        
+        # Short-circuit to all zeros if known to be constant.
+        if self.is_constant():
+            return u.grad.constant_grad(self)
+
+        # Returns None if variable values not supplied.
+        arg_values = []
+        for arg in self.args:
+            if arg.value is None:
+                return u.grad.error_grad(self)
+            else:
+                arg_values.append(arg.value)
+
+        # A list of gradients w.r.t. arguments
+        hess_self = self._hess(arg_values)
+        if isinstance(hess_self, dict):
+            # print("hess_self is a dict")
+            return hess_self
+        # The Chain rule.
+        result = {}
+        for idx, arg in enumerate(self.args):
+            # A dictionary of gradients w.r.t. variables
+            # Partial argument / Partial x.
+            hess_arg = arg.hess
+            
+            for key in hess_arg:
+                if isinstance(self, (log, power)):
+                    hess_arg[key] = 1.0
+
+                # None indicates gradient is not defined.
+                if hess_arg[key] is None or hess_self[idx] is None:
+                    result[key] = None
+                else:
+                    if np.isscalar(hess_arg[key]) or np.isscalar(hess_self[idx]):
+                        D = hess_arg[key] * hess_self[idx]
+                    else:
+                        D = hess_arg[key] @ hess_self[idx]
+                    # Convert 1x1 matrices to scalars.
+                    if not np.isscalar(D) and D.shape == (1, 1):
+                        D = D[0, 0]
+
+                    if key in result:
+                        result[key] += D
+                    else:
+                        result[key] = D
+
+        return result
 
     @abc.abstractmethod
     def _grad(self, values):

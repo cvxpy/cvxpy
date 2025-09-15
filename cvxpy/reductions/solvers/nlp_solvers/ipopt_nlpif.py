@@ -14,6 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+import cyipopt
 import numpy as np
 import scipy.sparse as sp
 
@@ -221,12 +222,12 @@ class IPOPT(NLPsolver):
             x0 = np.concatenate(initial_values, axis=0)
             return x0
 
-    class Oracles():
+    class Oracles(cyipopt.Problem):
         def __init__(self, problem, inital_point):
             self.problem = problem
             self.main_var = []
             self.initial_point = inital_point
-            self.iterations = 0  # Initialize iteration count
+            self.iterations = 0
             for var in self.problem.variables():
                 self.main_var.append(var)
 
@@ -242,8 +243,6 @@ class IPOPT(NLPsolver):
             return obj_value
         
         def gradient(self, x):
-            #import pdb 
-            #pdb.set_trace()
             """Returns the gradient of the objective with respect to x."""
             offset = 0
             for var in self.main_var:
@@ -343,14 +342,32 @@ class IPOPT(NLPsolver):
                 self.jacobian_idxs[constraint] = constraint_jac
             return (np.array(rows), np.array(cols))
 
-        """
+        def hessianstructure(self):
+            return np.nonzero(np.tril(np.ones((self.initial_point.size, self.initial_point.size))))
+
         def hessian(self, x, duals, obj_factor):
             offset = 0
             for var in self.main_var:
                 size = var.size
                 var.value = x[offset:offset+size].reshape(var.shape, order='F')
                 offset += size
-            hess = np.zeros((x.size, x.size), dtype=np.float64)
+            hess_lagrangian = np.zeros((x.size, x.size), dtype=np.float64)
+            # compute the hessian of the objective
+            hess_dict = self.problem.objective.expr.hess
+            row_offset = 0
+            for var1 in self.main_var:
+                col_offset = 0
+                for var2 in self.main_var:
+                    if (var1, var2) in hess_dict:
+                        var_hess = hess_dict[(var1, var2)]
+                        if sp.issparse(var_hess):
+                            var_hess = var_hess.toarray()
+                        r1, r2 = var1.size, var2.size
+                        # insert the block in the correct location
+                        hess_lagrangian[row_offset:row_offset+r1,
+                                        col_offset:col_offset+r2] += obj_factor * var_hess
+                    col_offset += var2.size
+                row_offset += var1.size
             # hess_dict = self.problem.objective.expr.hess(obj_factor)
             # if we specify the problem in graph form (i.e. t=obj),
             # the objective hessian will always be zero.
@@ -360,7 +377,7 @@ class IPOPT(NLPsolver):
             # pair of variables and summing up the hessian contributions.
             constr_offset = 0
             for constraint in self.problem.constraints:
-                constr_hess = constraint.expr.hess()
+                hess_dict = constraint.expr.hess
                 # we have to make sure that the dual variables correspond
                 # to the constraints in the same order
                 constr_dual = duals[constr_offset:constr_offset + constraint.size]
@@ -368,17 +385,32 @@ class IPOPT(NLPsolver):
                 for var1 in self.main_var:
                     col_offset = 0
                     for var2 in self.main_var:
-                        hess[var1.index * row_offset, var2.index * col_offset] += (
-                            constr_dual * constr_hess.get((var1, var2), 0).toarray()
-                        )
+                        if (var1, var2) in hess_dict:
+                            var_hess = hess_dict[(var1, var2)]
+                            if sp.issparse(var_hess):
+                                var_hess = var_hess.toarray()
+                            if np.allclose(var_hess, 0.0):
+                                break
+                            if var1.name() == "mu" and var2.name() == "mu":
+                                break
+                            var_hess = np.broadcast_to(var_hess, (var1.size, var2.size))
+                            r1, r2 = var1.size, var2.size
+                            # insert the block in the correct location
+                            hess_lagrangian[row_offset:row_offset+r1,
+                                            col_offset:col_offset+r2] += constr_dual * var_hess
                         col_offset += var2.size
                     row_offset += var1.size
                 constr_offset += constraint.size
-            return hess
-
-        def hessianstructure(self):
-            pass
-        """
+            # return lower triangular part of the hessian
+            row, col = self.hessianstructure()
+            hess_lagrangian = hess_lagrangian[row, col]
+            return hess_lagrangian
+        
+        def intermediate(self, alg_mod, iter_count, obj_value, inf_pr, inf_du, mu,
+                        d_norm, regularization_size, alpha_du, alpha_pr,
+                        ls_trials):
+            """Prints information at every Ipopt iteration."""
+            self.iterations = iter_count
 
         def intermediate(self, alg_mod, iter_count, obj_value, inf_pr, inf_du, mu,
                         d_norm, regularization_size, alpha_du, alpha_pr,

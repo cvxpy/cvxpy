@@ -90,6 +90,18 @@ class log(Elementwise):
         else:
             grad_vals = 1.0/values[0]
             return [log.elemwise_grad_to_diag(grad_vals, rows, cols)]
+    
+    def _hess(self, values):
+        """TODO: write message """
+        rows = self.args[0].size
+        cols = self.size
+        # Outside domain or on boundary.
+        if np.min(values[0]) <= 0:
+            # Non-differentiable.
+            return [None]
+        else:
+            hess_vals = -1.0/(values[0] ** 2)
+            return [log.elemwise_grad_to_diag(hess_vals, rows, cols)]
 
     def _domain(self) -> List[Constraint]:
         """Returns constraints describing the domain of the node.
