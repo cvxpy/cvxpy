@@ -92,7 +92,7 @@ class IPOPT(NLPsolver):
         # the info object does not contain all the attributes we want
         # see https://github.com/mechmotum/cyipopt/issues/17
         # attr[s.SOLVE_TIME] = solution.solve_time
-        # attr[s.NUM_ITERS] = solution.iterations
+        attr[s.NUM_ITERS] = solution['iterations']
         # more detailed statistics here when available
         # attr[s.EXTRA_STATS] = solution.extra.FOO
     
@@ -134,26 +134,44 @@ class IPOPT(NLPsolver):
         import cyipopt
         bounds = self.Bounds(data["problem"])
         x0 = self.construct_initial_point(bounds)
+        # Create oracles object
+        oracles = self.Oracles(bounds.new_problem, x0)
         nlp = cyipopt.Problem(
         n=len(x0),
         m=len(bounds.cl),
-        problem_obj=self.Oracles(bounds.new_problem, x0),
+        problem_obj=oracles,
         lb=bounds.lb,
         ub=bounds.ub,
         cl=bounds.cl,
         cu=bounds.cu,
         )
-        nlp.add_option('mu_strategy', 'adaptive')
-        nlp.add_option('tol', 1e-7)
+        # Set default IPOPT options, but use solver_opts if provided
+        default_options = {
+            'mu_strategy': 'adaptive',
+            'tol': 1e-7,
+            'bound_relax_factor': 0.0,
+            'hessian_approximation': 'limited-memory',
+            'derivative_test': 'first-order',
+            'least_square_init_duals': 'yes'
+        }
+        
         #nlp.add_option('honor_original_bounds', 'yes')
-        nlp.add_option('bound_relax_factor', 0.0)
-        nlp.add_option('hessian_approximation', "limited-memory")
-        nlp.add_option('derivative_test', 'first-order')
-        nlp.add_option('least_square_init_duals', 'yes')
         #nlp.add_option('constr_mult_init_max', 1e10) 
         #nlp.add_option('derivative_test_perturbation', 1e-5)
         #nlp.add_option('point_perturbation_radius', 0.1)
+
+        # Update defaults with user-provided options
+        if solver_opts:
+            default_options.update(solver_opts)
+        if not verbose:
+            default_options['print_level'] = 3
+        # Apply all options to the nlp object
+        for option_name, option_value in default_options.items():
+            nlp.add_option(option_name, option_value)
+
         _, info = nlp.solve(x0)
+        # add number of iterations to info dict from oracles
+        info['iterations'] = oracles.iterations
         return info
 
     def cite(self, data):
@@ -208,6 +226,7 @@ class IPOPT(NLPsolver):
             self.problem = problem
             self.main_var = []
             self.initial_point = inital_point
+            self.iterations = 0  # Initialize iteration count
             for var in self.problem.variables():
                 self.main_var.append(var)
 
@@ -360,6 +379,12 @@ class IPOPT(NLPsolver):
         def hessianstructure(self):
             pass
         """
+
+        def intermediate(self, alg_mod, iter_count, obj_value, inf_pr, inf_du, mu,
+                        d_norm, regularization_size, alpha_du, alpha_pr,
+                        ls_trials):
+            """Prints information at every Ipopt iteration."""
+            self.iterations = iter_count
 
     class Bounds():
         def __init__(self, problem):
