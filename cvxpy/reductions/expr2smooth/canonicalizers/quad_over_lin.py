@@ -14,7 +14,6 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from cvxpy.expressions.variable import Variable
 
 def quad_over_lin_canon(expr, args):
     assert(False)

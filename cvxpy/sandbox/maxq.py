@@ -73,9 +73,8 @@ def maxq_problem(n=20, bounds=None):
     print(f"Solution x: {x.value}")
     
     # Find which component achieves the maximum
-    x_squared = x.value**2
-    max_idx = np.argmax(x_squared)
-    print(f"Maximum achieved at index {max_idx}: x[{max_idx}] = {x.value[max_idx]}, x[{max_idx}]^2 = {x_squared[max_idx]}")
+    #_squared = x.value**2
+    #max_idx = np.argmax(x_squared)
     
     return x.value, prob.value
 

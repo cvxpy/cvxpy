@@ -1,5 +1,6 @@
 import numpy as np
 import numpy.linalg as LA
+
 import cvxpy as cp
 
 # TODO (DCED): should try eg. student-t regression
@@ -23,7 +24,8 @@ class TestStressMLE():
                     print("Method, n, scale factor: ", method, n, factor)
                     if method == 1:
                         sigma = cp.Variable((1, ))
-                        obj = (n / 2) * cp.log(2*np.pi*cp.square(sigma)) + (1 / (2 * cp.square(sigma))) * res
+                        obj = (n / 2) * cp.log(2*np.pi*cp.square(sigma)) + \
+                              (1 / (2 * cp.square(sigma))) * res
                         constraints = []
                     elif method == 2:
                         sigma2 = cp.Variable((1, ))
@@ -32,16 +34,19 @@ class TestStressMLE():
                         sigma = cp.sqrt(sigma2)
                     elif method == 3:
                         sigma = cp.Variable((1, ))
-                        obj = n  * cp.log(np.sqrt(2*np.pi)*sigma) + (1 / (2 * cp.square(sigma))) * res
+                        obj = n  * cp.log(np.sqrt(2*np.pi)*sigma) + \
+                              (1 / (2 * cp.square(sigma))) * res
                         constraints = []
                     elif method == 4:
                         sigma2 = cp.Variable((1, ))
-                        obj = (n / 2) * cp.log(sigma2 * 2 * np.pi * -1 * -1) + (1 / (2 * sigma2)) * res
+                        obj = (n / 2) * cp.log(sigma2 * 2 * np.pi * -1 * -1) + \
+                              (1 / (2 * sigma2)) * res
                         constraints = []
                         sigma = cp.sqrt(sigma2)
                     elif method == 5:
                         sigma = cp.Variable((1, ))
-                        obj = n  * cp.log(np.sqrt(2*np.pi)*sigma * -1 * -1 * 2 * 0.5) + (1 / (2 * cp.square(sigma))) * res
+                        obj = n  * cp.log(np.sqrt(2*np.pi)*sigma * -1 * -1 * 2 * 0.5) + \
+                              (1 / (2 * cp.square(sigma))) * res
                         constraints = []
 
                     problem = cp.Problem(cp.Minimize(obj), constraints)
@@ -68,31 +73,37 @@ class TestStressMLE():
                     mu.value = None
                     print("Method, n, scale factor: ", method, n, factor)
                     if method == 1:
-                        # here we wont deduce that sigma is nonnegative so it can be useful to mention it
+                        # here we wont deduce that sigma is nonnegative so it can be useful
+                        # to mention it
                         sigma = cp.Variable((1, ), nonneg=True)
-                        obj = (n / 2) * cp.log(2*np.pi*cp.square(sigma)) + (1 / (2 * cp.square(sigma))) * cp.sum(cp.square(data-mu))
+                        obj = (n / 2) * cp.log(2*np.pi*cp.square(sigma)) + \
+                              (1 / (2 * cp.square(sigma))) * cp.sum(cp.square(data-mu))
                         constraints = []
                     elif method == 2:
                         # here we will deduce that sigma2 is nonnegative so no need to mention it
                         sigma2 = cp.Variable((1, ), name="Sigma2")
-                        obj = (n / 2) * cp.log( 2 * np.pi * sigma2) + (1 / (2 * sigma2)) * cp.sum(cp.square(data-mu))
+                        obj = (n / 2) * cp.log( 2 * np.pi * sigma2) + \
+                              (1 / (2 * sigma2)) * cp.sum(cp.square(data-mu))
                         constraints = []
                         sigma = cp.sqrt(sigma2)
                     elif method == 3:
                         # here we will deduce that sigma is nonnegative so no need to mention it
                         sigma = cp.Variable((1, ), name="Sigma")
-                        obj = n  * cp.log(np.sqrt(2*np.pi)*sigma) + (1 / (2 * cp.square(sigma))) * cp.sum(cp.square(data-mu))
+                        obj = n  * cp.log(np.sqrt(2*np.pi)*sigma) + \
+                              (1 / (2 * cp.square(sigma))) * cp.sum(cp.square(data-mu))
                         constraints = []
                     elif method == 4:
                         # here we will deduce that sigma is nonnegative so no need to mention it
                         sigma2 = cp.Variable((1, ), name="Sigma2")
-                        obj = (n / 2) * cp.log(sigma2 * 2 * np.pi * -1 * -1) + (1 / (2 * sigma2)) * cp.sum(cp.square(data-mu))
+                        obj = (n / 2) * cp.log(sigma2 * 2 * np.pi * -1 * -1) + \
+                            (1 / (2 * sigma2)) * cp.sum(cp.square(data-mu))
                         constraints = []
                         sigma = cp.sqrt(sigma2)
                     elif method == 5:
                         # here we will deduce that sigma is nonnegative so no need to mention it
                         sigma = cp.Variable((1, ), name="Sigma")
-                        obj = n  * cp.log(np.sqrt(2*np.pi)*sigma * -1 * -1 * 2 * 0.5) + (1 / (2 * cp.square(sigma))) * cp.sum(cp.square(data-mu))
+                        obj = n  * cp.log(np.sqrt(2*np.pi)*sigma * -1 * -1 * 2 * 0.5) + \
+                              (1 / (2 * cp.square(sigma))) * cp.sum(cp.square(data-mu))
                         constraints = []
 
                     problem = cp.Problem(cp.Minimize(obj), constraints)

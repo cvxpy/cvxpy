@@ -14,8 +14,10 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from cvxpy.expressions.variable import Variable
 import numpy as np
+
+from cvxpy.expressions.variable import Variable
+
 
 def entr_canon(expr, args):
     t = Variable(args[0].shape, bounds=[0, None])

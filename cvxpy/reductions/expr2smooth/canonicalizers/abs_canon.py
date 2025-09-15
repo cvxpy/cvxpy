@@ -16,13 +16,9 @@ limitations under the License.
 
 import numpy as np
 
-
-from cvxpy.expressions.variable import Variable
-from cvxpy.atoms.elementwise.power import power
-
 # TODO (DCED): ask William if this the multiplication we want to use
 from cvxpy.atoms.affine.binary_operators import multiply
-from cvxpy.reductions.expr2smooth.canonicalizers.power_canon import power_canon
+from cvxpy.expressions.variable import Variable
 
 #def abs_canon(expr, args):
 #    shape = expr.shape
@@ -41,13 +37,13 @@ def abs_canon(expr, args):
     t1 = Variable(shape, bounds = [0, None])
     y = Variable(shape, bounds = [-1.01, 1.01])
     if args[0].value is not None:
-        #t1.value = np.sqrt(expr.value**2)
         t1.value = np.abs(args[0].value)
         y.value = np.sign(args[0].value)
     
     t1.value = np.ones(shape)
     y.value = np.zeros(shape)
 
-    # TODO (DCED): check how multiply is canonicalized. We don't want to introduce a new variable for
-    # y inside multiply. But args[0] should potentially be canonicalized further?
+    # TODO (DCED): check how multiply is canonicalized. We don't want to introduce a 
+    # new variable for y inside multiply. But args[0] should potentially be canonicalized 
+    # further?
     return t1, [y ** 2 == np.ones(shape), t1 == multiply(y, args[0])]
