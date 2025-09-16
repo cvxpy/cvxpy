@@ -17,7 +17,7 @@ limitations under the License.
 import abc
 import warnings
 from functools import wraps
-from typing import List, Literal, Optional, Tuple
+from typing import Any, List, Literal, Optional, Self, Tuple
 
 import numpy as np
 
@@ -119,6 +119,10 @@ class Expression(u.Canonical):
     Overloads many operators to allow for convenient creation of compound
     expressions (e.g., the sum of two expressions) and constraints.
     """
+    
+    def __init__(self):
+        """Initialize the expression."""
+        self._label = None
 
     # Handles arithmetic operator overloading with Numpy.
     __array_priority__ = 100
@@ -184,19 +188,31 @@ class Expression(u.Canonical):
     @label.setter
     def label(self, value):
         """Set the label of the expression."""
-        self._label = str(value) if value is not None else None
+        if value is not None:
+            try:
+                self._label = str(value)
+            except Exception as e:
+                raise TypeError(f"Label must be convertible to string, got {type(value).__name__}: {e}")
+        else:
+            self._label = None
     
-    def set_label(self, label: Optional[str]):
+    @label.deleter
+    def label(self):
+        """Delete the label of the expression."""
+        self._label = None
+    
+    def set_label(self, label: Any) -> Self:
         """Set a custom label for this expression.
         
         Parameters
         ----------
-        label : Optional[str]
-            Custom label for the expression. If None, clears the label.
+        label : Any
+            Custom label for the expression. Will be converted to string.
+            If None, clears the label.
             
         Returns
         -------
-        Expression
+        Self
             Returns self to allow method chaining.
             
         Examples
@@ -205,7 +221,7 @@ class Expression(u.Canonical):
         >>> expr = cp.sum(x).set_label("total")
         >>> objective = cp.sum_squares(x).set_label("cost") + cp.norm(x).set_label("penalty")
         """
-        self._label = str(label) if label is not None else None
+        self.label = label
         return self
     
     def format_labeled(self):

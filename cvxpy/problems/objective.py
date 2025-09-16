@@ -44,21 +44,19 @@ class Objective(u.Canonical):
         self.ndim = 0
         # Validate that the objective resolves to a scalar.
         if not self.args[0].is_scalar():
-            raise ValueError("The '%s' objective must resolve to a scalar."
-                             % self.NAME)
+            raise ValueError(f"The '{self.NAME}' objective must resolve to a scalar.")
         if not self.args[0].is_real():
-            raise ValueError("The '%s' objective must be real valued."
-                             % self.NAME)
+            raise ValueError(f"The '{self.NAME}' objective must be real valued.")
 
     def __repr__(self) -> str:
-        return "%s(%s)" % (self.__class__.__name__, repr(self.args[0]))
+        return f"{self.__class__.__name__}({repr(self.args[0])})"
 
     def __str__(self) -> str:
-        return ' '.join([self.NAME, self.args[0].name()])
+        return f'{self.NAME} {self.args[0].name()}'
     
     def format_labeled(self):
         """Format objective with labels where available."""
-        return ' '.join([self.NAME, self.args[0].format_labeled()])
+        return f'{self.NAME} {self.args[0].format_labeled()}'
 
     def __radd__(self, other):
         if other == 0:

@@ -40,7 +40,6 @@ class Atom(Expression):
 
     def __init__(self, *args) -> None:
         self.id = lu.get_id()
-        self._label = None
         # Throws error if args is empty.
         if len(args) == 0:
             raise TypeError(
@@ -52,6 +51,7 @@ class Atom(Expression):
         self._shape = self.shape_from_args()
         if not s.ALLOW_ND_EXPR and len(self._shape) > 2:
             raise ValueError("Atoms must be at most 2D.")
+        super(Atom, self).__init__()
 
     def name(self) -> str:
         """Returns the string representation of the function call.

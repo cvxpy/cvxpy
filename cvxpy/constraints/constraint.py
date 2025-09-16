@@ -15,7 +15,7 @@ limitations under the License.
 """
 
 import abc
-from typing import Optional
+from typing import Any, Self
 
 import numpy as np
 
@@ -72,9 +72,20 @@ class Constraint(u.Canonical):
     @label.setter
     def label(self, value):
         """Set the label of the constraint."""
-        self._label = str(value) if value is not None else None
+        if value is not None:
+            try:
+                self._label = str(value)
+            except Exception as e:
+                raise TypeError(f"Label must be convertible to string, got {type(value).__name__}: {e}")
+        else:
+            self._label = None
     
-    def set_label(self, label: Optional[str]):
+    @label.deleter
+    def label(self):
+        """Delete the label of the constraint."""
+        self._label = None
+    
+    def set_label(self, label: Any) -> Self:
         """Set a custom label for this constraint.
         
         This method exists alongside the property setter (con.label = "name")
@@ -83,12 +94,13 @@ class Constraint(u.Canonical):
         
         Parameters
         ----------
-        label : Optional[str]
-            Custom label for the constraint. If None, clears the label.
+        label : Any
+            Custom label for the constraint. Will be converted to string.
+            If None, clears the label.
             
         Returns
         -------
-        Constraint
+        Self
             Returns self to allow method chaining.
             
         Examples
@@ -101,7 +113,7 @@ class Constraint(u.Canonical):
         >>> str(con)
         'bounds: 0.0 <= x'
         """
-        self._label = str(label) if label is not None else None
+        self.label = label
         return self
     
     def format_labeled(self):

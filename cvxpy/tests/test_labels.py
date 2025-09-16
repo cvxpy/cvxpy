@@ -41,8 +41,14 @@ def test_expression_label_basics():
     expr2 = cp.norm(x).set_label("magnitude")
     assert expr2.label == "magnitude"
 
-    # Clear label
+    # Clear label using set_label
     expr.set_label(None)
+    assert expr.label is None
+    
+    # Test deleter
+    expr.label = "test"
+    assert expr.label == "test"
+    del expr.label
     assert expr.label is None
     
     # Non-string values should be converted to string
@@ -58,15 +64,12 @@ def test_expression_label_basics():
     expr.label = None
     assert expr.label is None
     
-    # Test with Path-like object (if available)
-    try:
-        from pathlib import Path
-        expr.label = Path("my/path")
-        # Path will use OS-appropriate separator when converted to string
-        assert expr.label in ["my/path", "my\\path"]  # Unix or Windows
-        assert isinstance(expr.label, str)
-    except ImportError:
-        pass  # pathlib not available in older Python
+    # Test with Path-like object
+    from pathlib import Path
+    expr.label = Path("my/path")
+    # Path will use OS-appropriate separator when converted to string
+    assert expr.label in ["my/path", "my\\path"]  # Unix or Windows
+    assert isinstance(expr.label, str)
 
 
 def test_expression_format_labeled_simple():
@@ -124,6 +127,11 @@ def test_constraint_label_shows_in_str():
     assert con.label == "123"
     assert isinstance(con.label, str)
     assert "123:" in str(con)
+    
+    # Test deleter for constraints
+    del con.label
+    assert con.label is None
+    assert ":" not in str(con)
 
 
 def test_problem_format_labeled():
@@ -177,6 +185,40 @@ def test_label_termination():
     total.set_label(None)
     formatted = total.format_labeled()
     assert "base" in formatted
+
+
+def test_various_operations_with_labels():
+    """Test that labels work correctly with various operations."""
+    x = cp.Variable(3, name="x")
+    y = cp.Variable(3, name="y")
+    
+    # Set labels
+    x.set_label("x_vec")
+    y.set_label("y_vec")
+    
+    # Test various operations inherit format_labeled correctly
+    # These use default implementation from Expression
+    vstack_expr = cp.vstack([x, y])
+    hstack_expr = cp.hstack([x, y])
+    norm_expr = cp.norm(x)
+    sum_expr = cp.sum(x)
+    
+    # Check that format_labeled at least doesn't crash
+    # and returns something (even if not perfect)
+    assert isinstance(vstack_expr.format_labeled(), str)
+    assert isinstance(hstack_expr.format_labeled(), str)
+    assert isinstance(norm_expr.format_labeled(), str)
+    assert isinstance(sum_expr.format_labeled(), str)
+    
+    # Test that operations can themselves be labeled
+    norm_expr.set_label("x_magnitude")
+    assert norm_expr.format_labeled() == "x_magnitude"
+    
+    # Test in a compound expression
+    objective = norm_expr + sum_expr.set_label("x_total")
+    formatted = objective.format_labeled()
+    assert "x_magnitude" in formatted
+    assert "x_total" in formatted
 
 
 def test_mixed_labeled_unlabeled():
