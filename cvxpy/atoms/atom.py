@@ -56,9 +56,11 @@ class Atom(Expression):
     def name(self) -> str:
         """Returns the string representation of the function call.
         """
-        data = [] if self.get_data() is None else [str(elem) for elem in self.get_data()]
-        args_txt = ", ".join([arg.name() for arg in self.args] + data)
-        return f"{type(self).__name__}({args_txt})"
+        if self.get_data() is None:
+            data = []
+        else:
+            data = [str(elem) for elem in self.get_data()]
+        return f"{self.__class__.__name__}({', '.join([arg.name() for arg in self.args] + data)})"
 
     def _uses_default_name(self) -> bool:
         """Return True if this class uses Atom.name without override."""
