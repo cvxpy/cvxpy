@@ -122,7 +122,7 @@ class Constraint(u.Canonical):
     def format_labeled(self):
         """Format constraint with label if available.
         
-        For constraints, this is the same as str() since constraints show labels.
+        For constraints, this is the same as str() since constraints always show labels.
         """
         return str(self)
 
