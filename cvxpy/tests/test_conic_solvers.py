@@ -2254,6 +2254,129 @@ class TestSCIP(unittest.TestCase):
                   "Try another solver, or solve with verbose=True for more information."
             assert str(se.value) == exc
 
+    def test_scip_warm_start(self) -> None:
+        """Test SCIP warm start with user provided initial values."""
+        
+        # Skip test if SCIP is not available
+        if cp.SCIP not in INSTALLED_SOLVERS:
+            self.skipTest("SCIP not available")
+        
+        try:
+            import pyscipopt
+            pyscipopt  # for flake8
+        except ImportError:
+            self.skipTest("pyscipopt not available")
+        
+        # Test 1: Basic warm start with user-provided values
+        import numpy as np
+        
+        x = cp.Variable(2, name='x')
+        y = cp.Variable(name='y')
+        
+        # Set initial values
+        x.value = np.array([1.0, 2.0])
+        y.value = 0.5
+        
+        # Create problem
+        objective = cp.Minimize(cp.sum_squares(x) + y**2)
+        constraints = [x >= 0, y >= 0, cp.sum(x) + y <= 5]
+        prob = cp.Problem(objective, constraints)
+        
+        # Solve with warm start
+        result = prob.solve(solver=cp.SCIP, warm_start=True)
+        
+        # Should find optimal solution
+        self.assertAlmostEqual(result, 0.0, places=3)
+        self.assertItemsAlmostEqual(x.value, [0.0, 0.0], places=3)
+        self.assertAlmostEqual(y.value, 0.0, places=3)
+        
+        # Test 2: Warm start with only some variables having values
+        x = cp.Variable(3, name='x')
+        y = cp.Variable(2, name='y')
+        
+        # Set initial values for only some variables
+        x.value = np.array([1.0, 1.0, 1.0])
+        # y.value intentionally not set
+        
+        objective = cp.Minimize(cp.sum(x) + cp.sum(y))
+        constraints = [x >= 0, y >= 0, cp.sum(x) + cp.sum(y) <= 2]
+        prob = cp.Problem(objective, constraints)
+        
+        result = prob.solve(solver=cp.SCIP, warm_start=True)
+        
+        # Should find optimal solution
+        self.assertAlmostEqual(result, 0.0, places=3)
+        
+        # Test 3: Warm start with cached solutions (multiple solves)
+        x = cp.Variable(2, name='x')
+        objective = cp.Minimize(cp.sum_squares(x))
+        constraints = [x >= 0, cp.sum(x) <= 1]
+        prob = cp.Problem(objective, constraints)
+        
+        # First solve
+        result1 = prob.solve(solver=cp.SCIP)
+        
+        # Second solve with warm start (should use cached solution)
+        result2 = prob.solve(solver=cp.SCIP, warm_start=True)
+        
+        self.assertAlmostEqual(result1, result2, places=3)
+        
+        # Test 4: Edge case - no warm start data
+        x = cp.Variable(2, name='x')
+        # x.value intentionally not set
+        
+        objective = cp.Minimize(cp.sum_squares(x))
+        constraints = [x >= 0]
+        prob = cp.Problem(objective, constraints)
+        
+        # Should work fine without warm start data
+        result = prob.solve(solver=cp.SCIP, warm_start=True)
+        self.assertAlmostEqual(result, 0.0, places=3)
+
+    def test_scip_concurrent_solving(self) -> None:
+        """Test SCIP concurrent solving feature with parallel/concurrent options."""
+
+        # Skip test if SCIP is not available
+        if cp.SCIP not in INSTALLED_SOLVERS:
+            self.skipTest("SCIP not available")
+
+        try:
+            import pyscipopt
+            pyscipopt  # for flake8
+        except ImportError:
+            self.skipTest("pyscipopt not available")
+
+        # Create a simple optimization problem
+        x = cp.Variable(3, name='x')
+
+        # Create problem
+        objective = cp.Minimize(cp.sum_squares(x))
+        constraints = [x >= 0, cp.sum(x) <= 2]
+        prob = cp.Problem(objective, constraints)
+
+        # Test 1: Solve with concurrent/parallel option
+        result_concurrent = prob.solve(
+            solver=cp.SCIP, **{"concurrent/paramsetprefix": "aggressive"}
+        )
+
+        # Should find optimal solution
+        self.assertAlmostEqual(result_concurrent, 0.0, places=3)
+        self.assertItemsAlmostEqual(x.value, [0.0, 0.0, 0.0], places=3)
+
+        # Test 2: Solve with parallel option
+        result_parallel = prob.solve(solver=cp.SCIP, **{"parallel/maxnthreads": 2})
+
+        # Should find same optimal solution
+        self.assertAlmostEqual(result_parallel, 0.0, places=3)
+        self.assertItemsAlmostEqual(x.value, [0.0, 0.0, 0.0], places=3)
+
+        # Test 3: Compare with regular solve
+        result_regular = prob.solve(solver=cp.SCIP)
+
+        # All should give the same result
+        self.assertAlmostEqual(result_concurrent, result_regular, places=3)
+        self.assertAlmostEqual(result_parallel, result_regular, places=3)
+
 
 # We can't inherit from unittest.TestCase since we access some advanced pytest features.
 # As a result, we use the pytest skipif decorator instead of unittest.skipUnless.
