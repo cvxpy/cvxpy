@@ -15,7 +15,7 @@ limitations under the License.
 """
 
 import abc
-from typing import Any, Self
+from typing import Self
 
 import numpy as np
 
@@ -70,7 +70,7 @@ class Constraint(u.Canonical):
         return self._label
     
     @label.setter
-    def label(self, value):
+    def label(self, value: object | None):
         """Set the label of the constraint."""
         if value is not None:
             try:
@@ -88,7 +88,7 @@ class Constraint(u.Canonical):
         """Delete the label of the constraint."""
         self._label = None
     
-    def set_label(self, label: Any) -> Self:
+    def set_label(self, label: object | None) -> Self:
         """Set a custom label for this constraint.
         
         This method exists alongside the property setter (con.label = "name")
@@ -97,7 +97,7 @@ class Constraint(u.Canonical):
         
         Parameters
         ----------
-        label : Any
+        label : object | None
             Custom label for the constraint. Will be converted to string.
             If None, clears the label.
             

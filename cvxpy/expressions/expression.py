@@ -17,7 +17,7 @@ limitations under the License.
 import abc
 import warnings
 from functools import wraps
-from typing import Any, List, Literal, Optional, Self, Tuple
+from typing import List, Literal, Optional, Self, Tuple
 
 import numpy as np
 
@@ -186,7 +186,7 @@ class Expression(u.Canonical):
         return self._label
     
     @label.setter
-    def label(self, value):
+    def label(self, value: object | None):
         """Set the label of the expression."""
         if value is not None:
             try:
@@ -203,12 +203,12 @@ class Expression(u.Canonical):
         """Delete the label of the expression."""
         self._label = None
     
-    def set_label(self, label: Any) -> Self:
+    def set_label(self, label: object | None) -> Self:
         """Set a custom label for this expression.
         
         Parameters
         ----------
-        label : Any
+        label : object | None
             Custom label for the expression. Will be converted to string.
             If None, clears the label.
             
