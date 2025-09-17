@@ -378,13 +378,18 @@ Labels can be assigned using the ``set_label()`` method or the ``label`` propert
         (weights <= 0.4).set_label("concentration_limits")
     ]
     
-    # Create expressions with custom labels  
-    data = np.random.randn(3)
-    data_fit = cp.sum_squares(weights - data).set_label("data_fit")
-    l2_reg = cp.norm(weights, 2).set_label("l2_regularization")
-    
-    # Build objective
-    objective = cp.Minimize(data_fit + 0.5 * l2_reg)
+    # Create expressions with custom labels (portfolio example)
+    # Expected returns and covariance (toy data for illustration)
+    mu = np.array([0.08, 0.10, 0.07])
+    Sigma = np.array([[0.10, 0.02, 0.01],
+                      [0.02, 0.08, 0.03],
+                      [0.01, 0.03, 0.09]])
+
+    expected_return = (mu @ weights).set_label("expected_return")
+    risk = cp.quad_form(weights, Sigma).set_label("risk")
+
+    # Build objective (risk-return tradeoff)
+    objective = cp.Minimize(risk - 0.5 * expected_return)
     
     # Create and display the problem
     problem = cp.Problem(objective, constraints)
@@ -394,7 +399,7 @@ Labels can be assigned using the ``set_label()`` method or the ``label`` propert
 
 ::
 
-    minimize data_fit + 0.5 @ l2_regularization
+    minimize risk + -0.5 @ expected_return
     subject to non_negative_weights: 0.0 <= weights
                budget_constraint: Sum(weights, None, False) == 1.0
                concentration_limits: weights <= 0.4
@@ -405,12 +410,12 @@ Labels are "live" and can be modified after problem creation:
 .. code:: python
 
     # Change labels dynamically
-    l2_reg.label = "ridge_penalty"  # Change label
+    risk.label = "portfolio_risk"  # Change label
     print(problem.format_labeled())
 
 ::
 
-    minimize data_fit + 0.5 @ ridge_penalty
+    minimize portfolio_risk + -0.5 @ expected_return
     subject to non_negative_weights: 0.0 <= weights
                budget_constraint: Sum(weights, None, False) == 1.0
                concentration_limits: weights <= 0.4
