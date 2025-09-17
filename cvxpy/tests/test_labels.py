@@ -20,9 +20,7 @@ import numpy as np
 
 import cvxpy as cp
 
-# ============================================================================
-# CORE TESTS - Essential functionality
-# ============================================================================
+# Basic Behavior
 
 
 def test_expression_label_basics():
@@ -76,9 +74,9 @@ def test_expression_format_labeled_simple():
     """Test format_labeled on simple expressions."""
     x = cp.Variable(3, name="x")
 
-    # Without label, format_labeled returns mathematical form
+    # Without label, format_labeled returns exact mathematical form
     expr = cp.sum(x)
-    assert "Sum(x" in expr.format_labeled()  # Don't test exact format
+    assert expr.format_labeled() == "Sum(x, None, False)"
 
     # With label, format_labeled returns the label
     expr.set_label("total")
@@ -107,7 +105,7 @@ def test_expression_format_labeled_recursive():
 
 
 def test_constraint_label_shows_in_str():
-    """Test that constraint labels appear in str() output."""
+    """Constraint labels appear in str() output and format_labeled()."""
     x = cp.Variable(3, name="x")
 
     # Constraint without label
@@ -135,7 +133,7 @@ def test_constraint_label_shows_in_str():
 
 
 def test_problem_format_labeled():
-    """Test Problem.format_labeled with labeled objectives and constraints."""
+    """Problem.format_labeled shows labels for objective expressions and constraints."""
     x = cp.Variable(3, name="x")
 
     # Create labeled objective
@@ -161,9 +159,7 @@ def test_problem_format_labeled():
     assert "non_negative:" in regular  # Constraint labels do show
 
 
-# ============================================================================
-# EDGE CASES - Important but not critical
-# ============================================================================
+# Expression Composition
 
 
 def test_label_termination():
@@ -188,9 +184,10 @@ def test_label_termination():
 
 
 def test_various_operations_with_labels():
-    """Test that labels work correctly with various operations."""
+    """Labels propagate through common operations and atoms (concise checks)."""
     x = cp.Variable(3, name="x")
     y = cp.Variable(3, name="y")
+    A = np.array([[1, 0, 0], [0, 2, 0], [0, 0, 3]])  # Diagonal matrix for quad_form
     
     # Set labels
     x.set_label("x_vec")
@@ -198,27 +195,69 @@ def test_various_operations_with_labels():
     
     # Test various operations inherit format_labeled correctly
     # These use default implementation from Expression
-    vstack_expr = cp.vstack([x, y])
-    hstack_expr = cp.hstack([x, y])
-    norm_expr = cp.norm(x)
-    sum_expr = cp.sum(x)
     
-    # Check that format_labeled at least doesn't crash
-    # and returns something (even if not perfect)
-    assert isinstance(vstack_expr.format_labeled(), str)
-    assert isinstance(hstack_expr.format_labeled(), str)
-    assert isinstance(norm_expr.format_labeled(), str)
-    assert isinstance(sum_expr.format_labeled(), str)
+    # Multi-arg operations
+    vstack_expr = cp.vstack([x, y])
+    assert vstack_expr.format_labeled() == "Vstack(x_vec, y_vec)"
+    
+    hstack_expr = cp.hstack([x, y])
+    assert hstack_expr.format_labeled() == "Hstack(x_vec, y_vec)"
+    
+    # Norms with custom name() methods
+    norm_expr = cp.norm(x)
+    assert norm_expr.format_labeled() == "Pnorm(x_vec, 2)"
+    
+    norm_inf_expr = cp.norm_inf(x)
+    assert norm_inf_expr.format_labeled() == "norm_inf(x_vec)"
+    
+    norm1_expr = cp.norm1(x)
+    assert norm1_expr.format_labeled() == "norm1(x_vec)"
+    
+    # Other atoms with custom name() methods
+    sum_expr = cp.sum(x)
+    # Sum shows axis=None and keepdims=False explicitly
+    assert sum_expr.format_labeled() == "Sum(x_vec, None, False)"
+    
+    transpose_expr = cp.transpose(x)
+    assert transpose_expr.format_labeled() == "x_vec.T"
+    
+    quad_form_expr = cp.quad_form(x, A)
+    assert quad_form_expr.format_labeled() == (
+        "QuadForm(x_vec, [[1.00 0.00 0.00]\n"
+        " [0.00 2.00 0.00]\n"
+        " [0.00 0.00 3.00]])"
+    )
+    
+    power_expr = cp.power(cp.sum(x), 2)
+    assert power_expr.format_labeled() == "power(Sum(x_vec, None, False), 2.0)"
+    
+    # Test indexing (has custom name method)
+    index_expr = x[0]
+    assert index_expr.format_labeled() == "x_vec[0]"
+    
+    # Test geo_mean (weights sum to 1 after normalization)
+    weights = np.array([0.3, 0.3, 0.4])
+    geo_mean_expr = cp.geo_mean(x, weights)
+    assert geo_mean_expr.format_labeled() == "geo_mean(x_vec[True, True, True], (3/10, 3/10, 2/5))"
     
     # Test that operations can themselves be labeled
     norm_expr.set_label("x_magnitude")
     assert norm_expr.format_labeled() == "x_magnitude"
+    
+    norm1_expr.set_label("l1_norm")
+    assert norm1_expr.format_labeled() == "l1_norm"
     
     # Test in a compound expression
     objective = norm_expr + sum_expr.set_label("x_total")
     formatted = objective.format_labeled()
     assert "x_magnitude" in formatted
     assert "x_total" in formatted
+    
+    # Test compound with multiple labeled norms
+    compound = norm1_expr + 2 * norm_expr
+    formatted = compound.format_labeled()
+    assert "l1_norm" in formatted
+    assert "x_magnitude" in formatted
 
 
 def test_mixed_labeled_unlabeled():
@@ -236,13 +275,10 @@ def test_mixed_labeled_unlabeled():
 
     # Should show labels where available, math where not
     formatted = result.format_labeled()
-    assert "x_sum" in formatted
-    assert "Sum(y" in formatted  # Unlabeled shows math
+    assert formatted == "x_sum + Sum(y, None, False) + -(x_norm)"
 
 
-# ============================================================================
-# OPTIONAL/ADVANCED TESTS - Can be skipped for initial review
-# ============================================================================
+# Precedence and Operators
 
 
 def test_division_multiplication_precedence():
@@ -277,11 +313,11 @@ def test_division_multiplication_precedence():
     # Additional precedence tests
     # a + b * c should not have parens (multiplication has higher precedence)
     expr3 = a + b * c
-    assert "a + b @ c" in expr3.format_labeled()
+    assert expr3.format_labeled() == "a + b @ c"
     
     # a * (b + c) should have parens
     expr4 = a * (b + c)
-    assert "(b + c)" in expr4.format_labeled()
+    assert expr4.format_labeled() == "a @ (b + c)"
     
     # (a / b) * c vs a / (b * c)
     expr5 = (a / b) * c
@@ -293,10 +329,7 @@ def test_division_multiplication_precedence():
 
 
 def test_matrix_expressions_with_labels():
-    """
-    OPTIONAL: Test labels on matrix operations.
-    Tests that labels work with matrix-specific operations like trace.
-    """
+    """Labels on matrix operations (e.g., trace) and in compound expressions."""
     X = cp.Variable((3, 3), name="X")
 
     # Matrix operation with label
@@ -307,14 +340,11 @@ def test_matrix_expressions_with_labels():
 
     # In compound expression
     expr = trace_X + cp.norm(X, "fro")
-    assert "trace_X" in expr.format_labeled()
+    assert expr.format_labeled() == "trace_X + Pnorm(reshape(X, (9,), F), 2)"
 
 
 def test_parameterized_expressions():
-    """
-    OPTIONAL: Test labels with parameters.
-    Ensures labels work with parameterized problems.
-    """
+    """Labels on parameterized expressions are preserved."""
     x = cp.Variable(3, name="x")
     a = cp.Parameter(3, name="a", value=np.array([1, 2, 3]))
 
@@ -326,10 +356,7 @@ def test_parameterized_expressions():
 
 
 def test_deeply_nested_labels():
-    """
-    OPTIONAL: Test labels in deeply nested expressions.
-    Edge case for complex expression trees.
-    """
+    """Labels in deeply nested expressions with negation wrapping."""
     x = cp.Variable(3, name="x")
 
     # Build nested expression with labels at various levels
@@ -354,9 +381,7 @@ def test_deeply_nested_labels():
     assert "a_plus_b" not in post_label_format  # Nested label no longer shown
 
 
-# ============================================================================
-# KNOWN LIMITATIONS - Document expected behavior
-# ============================================================================
+# Limitations
 
 
 def test_label_flattening_limitation():
@@ -386,3 +411,108 @@ def test_label_flattening_limitation():
     # This is expected behavior, not a bug
     assert "x_sum" in formatted  # Individual labels are preserved
     assert "left_total" not in formatted  # But the compound label is lost
+
+
+def test_label_display_catalog_exact():
+    """Catalog-style, exact-string checks for many atoms.
+
+    Each assertion documents the precise display with labels propagated.
+    """
+    import numpy as _np
+
+    # Scalars
+    a = cp.Variable(name="a").set_label("aL")
+    b = cp.Variable(name="b").set_label("bL")
+    c = cp.Variable(name="c").set_label("cL")
+
+    # Vectors / matrices
+    x = cp.Variable(3, name="x").set_label("xL")
+    y = cp.Variable(3, name="y").set_label("yL")
+    X = cp.Variable((2, 2), name="X").set_label("XL")
+
+    # Addition / negation
+    assert (x + y).format_labeled() == "xL + yL"
+    assert (-x).format_labeled() == "-xL"
+
+    # Division / multiplication precedence
+    assert (a / (b * c)).format_labeled() == "aL / (bL @ cL)"
+    assert ((a / b) * c).format_labeled() == "(aL / bL) @ cL"
+
+    # Transpose and indexing
+    assert cp.transpose(x).format_labeled() == "xL.T"
+    assert x[0].format_labeled() == "xL[0]"
+
+    # Norms and power
+    assert cp.norm(x + y).format_labeled() == "Pnorm(xL + yL, 2)"
+    assert cp.norm1(x).format_labeled() == "norm1(xL)"
+    assert cp.norm_inf(x).format_labeled() == "norm_inf(xL)"
+    assert cp.power(cp.sum(x), 2).format_labeled() == "power(Sum(xL, None, False), 2.0)"
+
+    # Quad form
+    A = _np.diag([1, 2, 3])
+    qf = cp.quad_form(x, A).format_labeled()
+    assert qf == (
+        "QuadForm(xL, [[1.00 0.00 0.00]\n"
+        " [0.00 2.00 0.00]\n"
+        " [0.00 0.00 3.00]])"
+    )
+
+    # Geometric mean (weights show exactly)
+    g = cp.geo_mean(x, [1, 2, 1])
+    assert g.format_labeled() == "geo_mean(xL[True, True, True], (1/4, 1/2, 1/4))"
+
+    # Perron-Frobenius eigenvalue
+    assert cp.pf_eigenvalue(X).format_labeled() == "pf_eigenvalue(XL)"
+
+    # eye_minus_inv
+    assert cp.eye_minus_inv(X).format_labeled() == "eye_minus_inv(XL)"
+
+    # gmatmul (geometric matmul)
+    A2 = _np.array([[1.0, 2.0], [0.0, 1.0]])
+    Xpos = cp.Variable((2, 2), pos=True, name="Xp").set_label("XpL")
+    gm = cp.gmatmul(A2, Xpos).format_labeled()
+    assert gm == "gmatmul([[1.00 2.00]\n [0.00 1.00]], XpL)"
+
+
+def test_format_labeled_parity_unlabeled():
+    """For unlabeled expressions, format_labeled() equals name().
+
+    This guards the default behavior and ensures overrides mirror name().
+    """
+    import numpy as _np
+
+    # Variables/parameters/constants without labels
+    x = cp.Variable(3, name="x")
+    y = cp.Variable(3, name="y")
+    X = cp.Variable((2, 2), name="X")
+
+    cases = []
+    # Simple
+    cases.append(cp.sum(x))
+    cases.append(cp.norm(x))
+    cases.append(cp.norm1(x))
+    cases.append(cp.norm_inf(x))
+    cases.append(cp.power(cp.sum(x), 2))
+    cases.append(cp.transpose(x))
+    cases.append(x[0])
+    # Stacks
+    cases.append(cp.vstack([x, y]))
+    cases.append(cp.hstack([x, y]))
+    # Operators
+    cases.append(x + y)
+    a = cp.Variable(name="a")
+    b = cp.Variable(name="b")
+    c = cp.Variable(name="c")
+    cases.append(a / (b * c))
+    cases.append((a / b) * c)
+    cases.append(-x)
+    # Atoms with data or matrices
+    cases.append(cp.quad_form(x, _np.diag([1, 2, 3])))
+    cases.append(cp.geo_mean(x, [1, 2, 1]))
+    cases.append(cp.pf_eigenvalue(X))
+    cases.append(cp.eye_minus_inv(X))
+    Xpos = cp.Variable((2, 2), pos=True, name="Xp")
+    cases.append(cp.gmatmul(_np.array([[1.0, 2.0], [0.0, 1.0]]), Xpos))
+
+    for expr in cases:
+        assert expr.format_labeled() == expr.name()

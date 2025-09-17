@@ -208,9 +208,12 @@ class Pnorm(AxisAtom):
         return [self.p, self.axis]
 
     def name(self) -> str:
-        return "%s(%s, %s)" % (self.__class__.__name__,
-                               self.args[0].name(),
-                               self.p)
+        return f"{type(self).__name__}({self.args[0].name()}, {self.p})"
+
+    def format_labeled(self) -> str:
+        if self._label is not None:
+            return self._label
+        return f"{type(self).__name__}({self.args[0].format_labeled()}, {self.p})"
 
     def _domain(self) -> List[Constraint]:
         """Returns constraints describing the domain of the node.

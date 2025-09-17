@@ -192,7 +192,9 @@ class Expression(u.Canonical):
             try:
                 self._label = str(value)
             except Exception as e:
-                raise TypeError(f"Label must be convertible to string, got {type(value).__name__}: {e}")
+                raise TypeError(
+                    f"Label must be convertible to string, got {type(value).__name__}: {e}"
+                )
         else:
             self._label = None
     
