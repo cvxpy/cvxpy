@@ -394,7 +394,7 @@ Labels can be assigned using the ``set_label()`` method or the ``label`` propert
 
 ::
 
-    minimize data_fit + 0.5 * l2_regularization
+    minimize data_fit + 0.5 @ l2_regularization
     subject to non_negative_weights: 0.0 <= weights
                budget_constraint: Sum(weights, None, False) == 1.0
                concentration_limits: weights <= 0.4
@@ -404,14 +404,13 @@ Labels are "live" and can be modified after problem creation:
 
 .. code:: python
 
-    # Change or remove labels dynamically
+    # Change labels dynamically
     l2_reg.label = "ridge_penalty"  # Change label
-    data_fit.label = None  # Remove label
     print(problem.format_labeled())
 
 ::
 
-    minimize sum_squares(weights + ...) + 0.5 * ridge_penalty
+    minimize data_fit + 0.5 @ ridge_penalty
     subject to non_negative_weights: 0.0 <= weights
                budget_constraint: Sum(weights, None, False) == 1.0
                concentration_limits: weights <= 0.4
