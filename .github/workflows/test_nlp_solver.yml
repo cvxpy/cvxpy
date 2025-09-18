@@ -1,0 +1,48 @@
+name: test_optional_solvers
+
+on:
+  pull_request:
+  push:
+    branches:
+      - master
+    tags:
+      - '*'
+
+jobs:
+  test_optional_solvers:
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        shell: bash -l {0}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ ubuntu-22.04, macos-14, windows-2022 ]
+    steps:
+      - uses: actions/checkout@v5
+      - name: Set Additional Envs
+        run: |
+          echo "PYTHON_SUBVERSION=$(echo $PYTHON_VERSION | cut -c 3-)" >> $GITHUB_ENV
+          echo $MOSEK_CI_BASE64 | base64 -d > mosek.lic
+          echo "MOSEKLM_LICENSE_FILE=$( [[ $RUNNER_OS == 'macOS' ]] && echo $(pwd)/mosek.lic || echo $(realpath mosek.lic) )" >> $GITHUB_ENV
+          echo $KNITRO_LICENSE > ~/artelys_lic.txt
+
+      - uses: astral-sh/setup-uv@v6
+        with:
+          python-version: 3.12
+          enable-cache: true
+      - uses: actions/checkout@v5
+      - name: Install cvxpy dependencies and all optional solvers
+        run: uv sync --all-extras --dev
+      - name: Print installed solvers
+        run : |
+          uv run python -c "import cvxpy; print(cvxpy.installed_solvers())" 
+      - name: Run test_nlp_solvers
+        run : |
+          uv run pytest -rs cvxpy/tests/NLP_tests/.
+
+    env:
+      UV_SYSTEM_PYTHON: 1
+      RUNNER_OS: ${{ matrix.os }}
+      PYTHON_VERSION: 3.12
+      KNITRO_LICENSE: ${{ secrets.KNITRO_LICENSE }}

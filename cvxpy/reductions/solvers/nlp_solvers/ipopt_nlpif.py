@@ -14,7 +14,6 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import cyipopt
 import numpy as np
 import scipy.sparse as sp
 
@@ -247,7 +246,7 @@ class IPOPT(NLPsolver):
             x0 = np.concatenate(initial_values, axis=0)
             return x0
 
-    class Oracles(cyipopt.Problem):
+    class Oracles():
         def __init__(self, problem, initial_point):
             self.problem = problem
             self.grad_obj = np.zeros(initial_point.size, dtype=np.float64)
