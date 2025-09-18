@@ -44,6 +44,27 @@ class NegExpression(UnaryOperator):
     OP_NAME = "-"
     OP_FUNC = op.neg
 
+    def name(self):
+        # Add parens for expression nodes, but not for leaf nodes
+        if (self.args[0].args):
+            retval = self.OP_NAME + "(" + self.args[0].name() + ")"
+        else:
+            retval = self.OP_NAME + self.args[0].name()
+        return retval
+    
+    def format_labeled(self):
+        """Format negation with labels where available."""
+        # Check for own label first
+        if self._label is not None:
+            return self._label
+        
+        # Format sub-expression with labels (matching name() logic)
+        if (self.args[0].args):
+            retval = self.OP_NAME + "(" + self.args[0].format_labeled() + ")"
+        else:
+            retval = self.OP_NAME + self.args[0].format_labeled()
+        return retval
+
     def shape_from_args(self) -> Tuple[int, ...]:
         """Returns the (row, col) shape of the expression.
         """

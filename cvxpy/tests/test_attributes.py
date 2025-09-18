@@ -221,6 +221,29 @@ class TestAttributes:
         ):
             x = cp.Variable((2, 2), name="x", bounds=bounds)
 
+    def test_scalar_bool(self):
+        x = cp.Variable(nonpos=True)
+        n = cp.Variable(boolean=True)
+        cp.Problem(cp.Maximize(x), [n == 1]).solve()
+
+    def test_scalar_int(self):
+        x = cp.Variable(nonpos=True)
+        n = cp.Variable(integer=True)
+        cp.Problem(cp.Maximize(x), [n == 1]).solve()
+
+    def test_boolean_var_value(self):
+        # ensure that boolean variables can be assigned values
+        # https://github.com/cvxpy/cvxpy/issues/2879
+        x = cp.Variable(2, boolean=True)
+        val = np.array([True, False])
+        x.value = val
+        np.testing.assert_array_equal(x.value, val.astype(float), strict=True)
+
+    def test_integer_var_value(self):
+        x = cp.Variable(2, integer=True)
+        val = np.array([1, 2], dtype=int)
+        x.value = val
+        np.testing.assert_array_equal(x.value, val.astype(float), strict=True)
 
 class TestMultipleAttributes:
 

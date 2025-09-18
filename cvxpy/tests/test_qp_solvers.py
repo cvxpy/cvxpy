@@ -72,8 +72,53 @@ class TestQp(BaseTest):
 
         # Check for all installed QP solvers
         self.solvers = [x for x in QP_SOLVERS if x in INSTALLED_SOLVERS]
-        if 'MOSEK' in INSTALLED_SOLVERS:
-            self.solvers.append('MOSEK')
+
+        def is_mosek_available():
+            """Check if MOSEK is installed and a license is available."""
+            if 'MOSEK' not in INSTALLED_SOLVERS:
+                return False
+            try:
+                import mosek  # type: ignore
+                env = mosek.Env()
+                # Try to get license status (returns 0 if OK)
+                status = env.getlicense()
+                return status == mosek.rescode.ok
+            except Exception:
+                return False
+        
+        def is_knitro_available():
+            """Check if KNITRO is installed and a license is available."""
+            if 'KNITRO' not in INSTALLED_SOLVERS:
+                return False
+            try:
+                import knitro  # type: ignore
+                # Try to create and delete a Knitro solver instance
+                kc = knitro.KN_new()
+                if kc is None:
+                    return False
+                knitro.KN_free(kc)
+                return True
+            except Exception:
+                return False
+        
+        def is_xpress_available():
+            """Check if XPRESS is installed and a license is available."""
+            if 'XPRESS' not in INSTALLED_SOLVERS:
+                return False
+            try:
+                import xpress  # type: ignore
+                env = xpress.env()
+                status = env.getlicense()
+                return status == 0
+            except Exception:
+                return False
+        # Remove XPRESS if license is not available
+        if 'XPRESS' in self.solvers and not is_xpress_available():
+            self.solvers.remove('XPRESS')
+        if 'MOSEK' in self.solvers and not is_mosek_available():
+            self.solvers.remove('MOSEK')
+        if 'KNITRO' in self.solvers and not is_knitro_available():
+            self.solvers.remove('KNITRO')
 
     def solve_QP(self, problem, solver_name):
         return problem.solve(solver=solver_name, verbose=False)
@@ -435,6 +480,7 @@ class TestQp(BaseTest):
 
         p3 = Problem(Minimize(obj3), cons)
         self.solve_QP(p3, solver)
+        print(solver)
         self.assertAlmostEqual(p3.value, 68.1119420108, places=4)
 
     def test_warm_start(self) -> None:
@@ -458,6 +504,29 @@ class TestQp(BaseTest):
         result = prob.solve(solver="OSQP", warm_start=True)
         result2 = prob.solve(solver="OSQP", warm_start=False)
         self.assertAlmostEqual(result, result2)
+
+    def test_qpalm_warmstart(self) -> None:
+        """Test warm start.
+        """
+        if cp.QPALM in INSTALLED_SOLVERS:
+            m = 200
+            n = 100
+            np.random.seed(1)
+            A = np.random.randn(m, n)
+            b = Parameter(m)
+
+            # Construct the problem.
+            x = Variable(n)
+            prob = Problem(Minimize(sum_squares(A @ x - b)))
+
+            b.value = np.random.randn(m)
+            result = prob.solve(solver=cp.QPALM, warm_start=False)
+            result2 = prob.solve(solver=cp.QPALM, warm_start=True)
+            self.assertAlmostEqual(result, result2)
+            b.value = np.random.randn(m)
+            result = prob.solve(solver=cp.QPALM, warm_start=True)
+            result2 = prob.solve(solver=cp.QPALM, warm_start=False)
+            self.assertAlmostEqual(result, result2)
 
     def test_gurobi_warmstart(self) -> None:
         """Test Gurobi warm start with a user provided point.

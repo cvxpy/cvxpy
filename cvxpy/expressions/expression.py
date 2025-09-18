@@ -17,7 +17,7 @@ limitations under the License.
 import abc
 import warnings
 from functools import wraps
-from typing import List, Literal, Optional, Tuple
+from typing import List, Literal, Optional, Self, Tuple
 
 import numpy as np
 
@@ -119,6 +119,10 @@ class Expression(u.Canonical):
     Overloads many operators to allow for convenient creation of compound
     expressions (e.g., the sum of two expressions) and constraints.
     """
+    
+    def __init__(self):
+        """Initialize the expression."""
+        self._label = None
 
     # Handles arithmetic operator overloading with Numpy.
     __array_priority__ = 100
@@ -175,6 +179,68 @@ class Expression(u.Canonical):
         """str : The string representation of the expression.
         """
         raise NotImplementedError()
+    
+    @property
+    def label(self):
+        """Get the label of the expression."""
+        return self._label
+    
+    @label.setter
+    def label(self, value: object | None):
+        """Set the label of the expression."""
+        if value is not None:
+            try:
+                self._label = str(value)
+            except Exception as e:
+                raise TypeError(
+                    f"Label must be convertible to string, got {type(value).__name__}: {e}"
+                )
+        else:
+            self._label = None
+    
+    @label.deleter
+    def label(self):
+        """Delete the label of the expression."""
+        self._label = None
+    
+    def set_label(self, label: object | None) -> Self:
+        """Set a custom label for this expression.
+        
+        Parameters
+        ----------
+        label : object | None
+            Custom label for the expression. Will be converted to string.
+            If None, clears the label.
+            
+        Returns
+        -------
+        Self
+            Returns self to allow method chaining.
+            
+        Examples
+        --------
+        >>> x = cp.Variable(3)
+        >>> expr = cp.sum(x).set_label("total")
+        >>> objective = cp.sum_squares(x).set_label("cost") + cp.norm(x).set_label("penalty")
+        """
+        self.label = label
+        return self
+    
+    def format_labeled(self):
+        """Format expression with labels where available.
+        
+        Returns the expression's label if set, otherwise recursively substitutes
+        labels in sub-expressions. For compound expressions without their own label,
+        this shows labels where available and mathematical notation where not.
+        
+        Returns
+        -------
+        str
+            Formatted string representation with labels substituted.
+        """
+        if self._label is not None:
+            return self._label
+        return self.name()
 
     @property
     def expr(self):

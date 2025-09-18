@@ -76,7 +76,12 @@ class eye_minus_inv(Atom):
         return np.linalg.inv(np.eye(self.args[0].shape[0]) - values[0])
 
     def name(self) -> str:
-        return "%s(%s)" % (self.__class__.__name__, self.args[0])
+        return f"{type(self).__name__}({self.args[0]})"
+
+    def format_labeled(self) -> str:
+        if self._label is not None:
+            return self._label
+        return f"{type(self).__name__}({self.args[0].format_labeled()})"
 
     def shape_from_args(self) -> Tuple[int, ...]:
         """Returns the (row, col) shape of the expression.

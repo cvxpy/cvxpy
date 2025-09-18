@@ -78,6 +78,13 @@ class index(AffAtom):
         inner_str = "[%s" + ", %s"*(len(self.key)-1) + "]"
         return self.args[0].name() + inner_str % ku.to_str(self.key)
 
+    def format_labeled(self):
+        """Labeled representation of the index expression."""
+        if self._label is not None:
+            return self._label
+        inner_str = "[%s" + ", %s"*(len(self.key)-1) + "]"
+        return self.args[0].format_labeled() + inner_str % ku.to_str(self.key)
+
     def numeric(self, values):
         """Returns the index/slice into the given value."""
         return values[0][self._orig_key]
@@ -153,6 +160,12 @@ class special_index(AffAtom):
         """String representation of the special index expression."""
         key_str = ku.special_key_to_str(self.key)
         return f"{self.args[0].name()}[{key_str}]"
+
+    def format_labeled(self) -> str:
+        if self._label is not None:
+            return self._label
+        key_str = ku.special_key_to_str(self.key)
+        return f"{self.args[0].format_labeled()}[{key_str}]"
 
     def numeric(self, values):
         """Returns the index/slice into the given value.

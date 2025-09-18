@@ -32,7 +32,7 @@ import subprocess
 #
 
 MAJOR = 1
-MINOR = 7
+MINOR = 8
 MICRO = 0
 IS_RELEASED = False
 IS_RELEASE_BRANCH = False

@@ -26,6 +26,9 @@ from numpy import linalg as LA
 import cvxpy as cp
 import cvxpy.settings as s
 from cvxpy import Minimize, Problem
+from cvxpy.atoms.affine.binary_operators import multiply
+from cvxpy.atoms.affine.conj import conj
+from cvxpy.atoms.affine.reshape import reshape
 from cvxpy.atoms.affine.upper_tri import upper_tri_to_full
 from cvxpy.atoms.errormsg import SECOND_ARG_SHOULD_NOT_BE_EXPRESSION_ERROR_MESSAGE
 from cvxpy.expressions.constants import Constant, Parameter
@@ -693,6 +696,24 @@ class TestAtoms(BaseTest):
         A_reshaped = cp.reshape(A, -1, order='F')
         assert np.allclose(A_reshaped.value, A.reshape(-1, order='F'))
 
+    def test_squeeze(self) -> None:
+        A = np.random.rand(2, 1, 3, 1, 1, 4)
+        A_squeezed_np = np.squeeze(A)
+        A_squeezed_cp = cp.squeeze(A)
+        assert np.allclose(A_squeezed_np, A_squeezed_cp.value)
+
+        axes = [None, 1, (1, -2)]
+        for axis in axes:
+            A_squeezed_np = np.squeeze(A, axis=axis)
+            A_squeezed_cp = cp.squeeze(A, axis=axis)
+            assert np.allclose(A_squeezed_np, A_squeezed_cp.value)
+
+        axes = [-1, (0, 1, 3)]
+        for axis in axes:
+            with pytest.raises(ValueError, match="Cannot squeeze"):
+                cp.squeeze(A, axis=axis)
+
+
     def test_vec(self) -> None:
         """Test the vec atom.
         """
@@ -788,6 +809,45 @@ class TestAtoms(BaseTest):
 
         assert psd_trace.is_nonneg()
         assert nsd_trace.is_nonpos()
+
+    def test_Trace(self) -> None:
+        """Test the trace(A) gets canonicalized to Trace(A) as expected
+        """
+        A = cp.Variable((4,4))
+        t = cp.trace(A)
+
+        # Ensure that trace(A) resolves as expected to Trace(A)
+        assert isinstance(t, cp.Trace)
+
+    def test_trace_AB(self) -> None:
+        """Test the trace(AB) gets canonicalized to vdot(A,B)
+        """
+        A = cp.Variable((4,5))
+        B = cp.Variable((5,4))
+        t = cp.trace(A @ B)
+        
+        # Ensure that Trace(A @ B) resolved to vdot(A, B)
+        assert len(t.args) == 1
+        assert isinstance(t.args[0], multiply)
+        assert len(t.args[0].args) == 2
+        assert isinstance(t.args[0].args[0], conj)
+        assert len(t.args[0].args[0].args) == 1
+        assert isinstance(t.args[0].args[0].args[0], reshape)
+        assert isinstance(t.args[0].args[1], reshape)
+
+    def test_trace_complex2real(self) -> None:
+        X = cp.Variable((2, 2), complex=True)
+        problem = cp.Problem(cp.Minimize(cp.norm(cp.trace(X))), [X==2])
+        result = problem.solve()
+        self.assertAlmostEqual(result, 4)
+
+    def test_trace_dgp2dcp(self) -> None:
+        """Test trace works as expected in dgp2dcp canonicalization
+        """
+        X = cp.Variable((2,2), pos=True)
+        problem = cp.Problem(cp.Minimize(cp.trace(X)), [X==2])
+        result = problem.solve(gp=True)
+        self.assertAlmostEqual(result, 4)
 
     def test_log1p(self) -> None:
         """Test the log1p atom.
@@ -1716,12 +1776,6 @@ class TestAtoms(BaseTest):
 
         X = cp.Variable((6, 6))
         with self.assertRaises(ValueError) as cm:
-            cp.partial_trace(X, dims=[2, 3], axis=-1)
-        self.assertEqual(str(cm.exception),
-                         "Invalid axis argument, should be between 0 and 2, got -1.")
-
-        X = cp.Variable((6, 6))
-        with self.assertRaises(ValueError) as cm:
             cp.partial_trace(X, dims=[2, 4], axis=0)
         self.assertEqual(str(cm.exception),
                          "Dimension of system doesn't correspond to dimension of subsystems.")
@@ -1772,12 +1826,6 @@ class TestAtoms(BaseTest):
             cp.partial_transpose(X, dims=[2, 3], axis=0)
         self.assertEqual(str(cm.exception),
                          "partial_transpose only supports 2-d square arrays.")
-
-        X = cp.Variable((6, 6))
-        with self.assertRaises(ValueError) as cm:
-            cp.partial_transpose(X, dims=[2, 3], axis=-1)
-        self.assertEqual(str(cm.exception),
-                         "Invalid axis argument, should be between 0 and 2, got -1.")
 
         X = cp.Variable((6, 6))
         with self.assertRaises(ValueError) as cm:

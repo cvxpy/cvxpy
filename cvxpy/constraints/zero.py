@@ -31,10 +31,6 @@ class Zero(Constraint):
     def __init__(self, expr, constr_id=None) -> None:
         super(Zero, self).__init__([expr], constr_id)
 
-    def __str__(self):
-        """Returns a string showing the mathematical constraint.
-        """
-        return self.name()
 
     def __repr__(self) -> str:
         """Returns a string with information about the constraint.
@@ -103,10 +99,6 @@ class Equality(Constraint):
         self._expr = lhs - rhs
         super(Equality, self).__init__([lhs, rhs], constr_id)
 
-    def __str__(self):
-        """Returns a string showing the mathematical constraint.
-        """
-        return self.name()
 
     def __repr__(self) -> str:
         """Returns a string with information about the constraint.

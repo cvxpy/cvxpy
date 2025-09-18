@@ -28,8 +28,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ ubuntu-22.04, macos-13, windows-2022 ]
-        python-version: [ 3.9, "3.10", "3.11", "3.12", "3.13" ]
+        os: [ ubuntu-22.04, macos-14, windows-2022 ]
+        python-version: [ "3.11", "3.12", "3.13" ]
         include:
           # These are intended to just add their extra parameter to existing matrix combinations;
           # see https://docs.github.com/en/actions/writing-workflows/workflow-syntax-for-github-actions#jobsjob_idstrategymatrixinclude
@@ -37,7 +37,7 @@ jobs:
             python-version: 3.12
             openmp: "True"
             single_action_config: false
-          - os: macos-13
+          - os: macos-14
             python-version: 3.12
             single_action_config: true
 
@@ -49,17 +49,18 @@ jobs:
       MOSEK_CI_BASE64: ${{ secrets.MOSEK_CI_BASE64 }}
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Set Additional Envs
         run: |
           echo "PYTHON_SUBVERSION=$(echo $PYTHON_VERSION | cut -c 3-)" >> $GITHUB_ENV
           echo $MOSEK_CI_BASE64 | base64 -d > mosek.lic
           echo "MOSEKLM_LICENSE_FILE=$( [[ $RUNNER_OS == 'macOS' ]] && echo $(pwd)/mosek.lic || echo $(realpath mosek.lic) )" >> $GITHUB_ENV
-      - uses: conda-incubator/setup-miniconda@v3
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v6
         with:
-          auto-update-conda: true
           python-version: ${{ matrix.python-version }}
-          channels: conda-forge,anaconda
+          enable-cache: true
 
       - name: Install
         run: |
@@ -83,8 +84,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ ubuntu-22.04, macos-13, windows-2022 ]
-        python-version: [ 3.9, "3.10", "3.11", "3.12", "3.13" ]
+        os: [ ubuntu-22.04, macos-14, windows-2022 ]
+        python-version: [ "3.11", "3.12", "3.13" ]
         build-cvxpy-base: [ true, false ]  # whether to build cvxpy-base (true) or regular cvxpy (false)
         include:
           # This is intended to just add the single_action_config parameter to one existing combination;
@@ -104,8 +105,8 @@ jobs:
       CVXPY_BASE_SUFFIX: ${{ matrix.build-cvxpy-base && 'base-' || '' }}
 
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: ${{ matrix.python-version }}
 
@@ -149,7 +150,7 @@ jobs:
           CIBW_SKIP: "*-win32 *-manylinux_i686 *-musllinux*"
           CIBW_ARCHS_MACOS: x86_64 universal2
           CIBW_ARCHS_LINUX: auto aarch64
-        uses: pypa/cibuildwheel@v3.0.0
+        uses: pypa/cibuildwheel@v3.1.4
 
       - name: Build source
         if: ${{github.event_name == 'push' && env.SINGLE_ACTION_CONFIG == 'True'}}
@@ -161,7 +162,7 @@ jobs:
         if: ${{github.event_name == 'push' && env.USE_OPENMP != 'True'}}
         shell: bash
         run: |
-          python -m pip install --upgrade twine
+          pip install --upgrade twine
           twine check wheelhouse/*
 
       - name: Release to pypi
