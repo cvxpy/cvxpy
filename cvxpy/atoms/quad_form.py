@@ -110,9 +110,15 @@ class QuadForm(Atom):
         return False
 
     def name(self) -> str:
-        return "%s(%s, %s)" % (self.__class__.__name__,
-                               self.args[0],
-                               self.args[1])
+        return f"{type(self).__name__}({self.args[0]}, {self.args[1]})"
+
+    def format_labeled(self) -> str:
+        if self._label is not None:
+            return self._label
+        return (
+            f"{type(self).__name__}({self.args[0].format_labeled()}, "
+            f"{self.args[1].format_labeled()})"
+        )
 
     def _grad(self, values):
         x = np.array(values[0])

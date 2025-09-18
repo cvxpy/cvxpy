@@ -40,6 +40,14 @@ class transpose(AffAtom):
         else:
             return f"transpose({self.args[0]}, axes={self.axes})"
 
+    def format_labeled(self) -> str:
+        if self._label is not None:
+            return self._label
+        if self.axes is None:
+            return f"{self.args[0].format_labeled()}.T"
+        else:
+            return f"transpose({self.args[0].format_labeled()}, axes={self.axes})"
+
     # Returns the transpose of the given value.
     @AffAtom.numpy_numeric
     def numeric(self, values):

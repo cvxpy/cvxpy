@@ -417,6 +417,9 @@ class power(Elementwise):
         return power(args[0], self._p_orig, self.max_denom)
 
     def name(self) -> str:
-        return "%s(%s, %s)" % (self.__class__.__name__,
-                               self.args[0].name(),
-                               self.p.value)
+        return f"{type(self).__name__}({self.args[0].name()}, {self.p.value})"
+
+    def format_labeled(self) -> str:
+        if self._label is not None:
+            return self._label
+        return f"{type(self).__name__}({self.args[0].format_labeled()}, {self.p.value})"

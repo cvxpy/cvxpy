@@ -15,6 +15,7 @@ limitations under the License.
 """
 
 import abc
+from typing import Self
 
 import numpy as np
 
@@ -42,6 +43,7 @@ class Constraint(u.Canonical):
         # TODO cast constants.
         # self.args = [cvxtypes.expression().cast_to_const(arg) for arg in args]
         self.args = args
+        self._label = None
         if constr_id is None:
             self.constr_id = lu.get_id()
         else:
@@ -52,6 +54,8 @@ class Constraint(u.Canonical):
     def __str__(self):
         """Returns a string showing the mathematical constraint.
         """
+        if self._label is not None:
+            return f"{self._label}: {self.name()}"
         return self.name()
 
     def __repr__(self) -> str:
@@ -59,6 +63,68 @@ class Constraint(u.Canonical):
         """
         return "%s(%s)" % (self.__class__.__name__,
                            repr(self.args[0]))
+
+    @property
+    def label(self):
+        """Get the label of the constraint."""
+        return self._label
+    
+    @label.setter
+    def label(self, value: object | None):
+        """Set the label of the constraint."""
+        if value is not None:
+            try:
+                self._label = str(value)
+            except Exception as e:
+                raise TypeError(
+                    "Label must be convertible to string, got "
+                    f"{type(value).__name__}: {e}"
+                )
+        else:
+            self._label = None
+    
+    @label.deleter
+    def label(self):
+        """Delete the label of the constraint."""
+        self._label = None
+    
+    def set_label(self, label: object | None) -> Self:
+        """Set a custom label for this constraint.
+        
+        This method exists alongside the property setter (con.label = "name")
+        to enable method chaining, allowing labels to be set fluently when
+        constructing constraints.
+        
+        Parameters
+        ----------
+        label : object | None
+            Custom label for the constraint. Will be converted to string.
+            If None, clears the label.
+            
+        Returns
+        -------
+        Self
+            Returns self to allow method chaining.
+            
+        Examples
+        --------
+        >>> x = cp.Variable(3)
+        >>> # Using the method for chaining:
+        >>> con = (x >= 0).set_label("non_negative")
+        >>> # Using the property setter:
+        >>> con.label = "bounds"
+        >>> str(con)
+        'bounds: 0.0 <= x'
+        """
+        self.label = label
+        return self
+    
+    def format_labeled(self):
+        """Format constraint with label if available.
+        
+        For constraints, this is the same as str() since constraints always show labels.
+        """
+        return str(self)
 
     def _construct_dual_variables(self, args) -> None:
         self.dual_variables = [cvxtypes.variable()(arg.shape) for arg in args]
