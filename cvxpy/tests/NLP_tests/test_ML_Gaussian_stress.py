@@ -50,7 +50,7 @@ class TestStressMLE():
                         constraints = []
 
                     problem = cp.Problem(cp.Minimize(obj), constraints)
-                    problem.solve(solver=cp.IPOPT, nlp=True)
+                    problem.solve(solver=cp.IPOPT, nlp=True, hessian_approximation="exact")
                     print("sigma.value: ", sigma.value)
                     print("sigma_opt: ", sigma_opt)
                     assert(np.abs(sigma.value - sigma_opt) / np.max([1, np.abs(sigma_opt)]) <= TOL)
@@ -107,7 +107,7 @@ class TestStressMLE():
                         constraints = []
 
                     problem = cp.Problem(cp.Minimize(obj), constraints)
-                    problem.solve(solver=cp.IPOPT, nlp=True)
+                    problem.solve(solver=cp.IPOPT, nlp=True, hessian_approximation="exact")
                     print("sigma.value: ", sigma.value)
                     print("sigma_opt: ", sigma_opt)
                     assert(np.abs(sigma.value - sigma_opt) / np.max([1, np.abs(sigma_opt)]) <= TOL)

@@ -95,6 +95,9 @@ class NegExpression(UnaryOperator):
         """
         return (lu.neg_expr(arg_objs[0]), [])
 
-    def _hess(self, values):
-        """ TODO: """
-        return [-1.0]
+    def _verify_hess_vec_args(self):
+        return True
+
+    def _hess_vec(self, vec):
+        """ See the docstring of the hess_vec method of the atom class. """
+        return self.args[0].hess_vec(-vec)

@@ -66,11 +66,8 @@ class Variable(Leaf):
         # TODO(akshayka): Do not assume shape is 2D.
         return {self: sp.eye_array(self.size, format='csc')}
     
-    @property
-    def hess(self) -> Optional[dict[Tuple[Variable, Variable], sp.csc_array]]:
-        """TODO: write message"""
-
-        return {(self, self): sp.csc_matrix((self.size, self.size))}
+    def hess_vec(self, vec):
+        return {}
 
     def variables(self) -> list[Variable]:
         """Returns itself as a variable."""

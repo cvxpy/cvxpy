@@ -114,7 +114,9 @@ class Promote(AffAtom):
         """
         return (lu.promote(arg_objs[0], shape), [])
 
-    def _hess(self, values):
-        """Returns the Hessian of the promote."""
-        var = self.args[0].variables()[0]
-        return {(var, var): np.zeros((var.size, var.size))}
+    def _verify_hess_vec_args(self):
+        return ValueError("The _verify_hess_vec_args method of Promote should"
+                          " never be called.")
+
+    def _hess_vec(self, values):
+        raise ValueError("The _hess_vec method of Promote should never be called.")

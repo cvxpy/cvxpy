@@ -21,23 +21,24 @@ from typing import List, Tuple
 import numpy as np
 import scipy.sparse as sp
 
-from cvxpy.expressions.constants.constant import Constant
-from cvxpy.expressions.variable import Variable
 import cvxpy.lin_ops.lin_op as lo
 import cvxpy.lin_ops.lin_utils as lu
 import cvxpy.utilities as u
 from cvxpy.atoms.affine.add_expr import AddExpression
 from cvxpy.atoms.affine.affine_atom import AffAtom
 from cvxpy.atoms.affine.conj import conj
+from cvxpy.atoms.affine.promote import Promote
 from cvxpy.atoms.affine.reshape import deep_flatten, reshape
 from cvxpy.atoms.affine.sum import sum as cvxpy_sum
 from cvxpy.constraints.constraint import Constraint
 from cvxpy.error import DCPError
+from cvxpy.expressions.constants.constant import Constant
 from cvxpy.expressions.constants.parameter import (
     is_param_affine,
     is_param_free,
 )
 from cvxpy.expressions.expression import Expression
+from cvxpy.expressions.variable import Variable
 
 
 class BinaryOperator(AffAtom):
@@ -348,32 +349,61 @@ class multiply(MulExpression):
         DX = sp.diags(y, format='csc')
         DY = sp.diags(x, format='csc')
         return [DX, DY]
+    
+    def _verify_hess_vec_args(self):
+        x = self.args[0]
+        y = self.args[1]
+        if x.size != y.size:
+            return False
 
-    def _hess(self, values):
-        """Compute the Hessian of elementwise multiplication w.r.t. each argument.
+        if x.is_constant() and y.is_constant():
+            return False
 
-        For z = x * y (elementwise), returns:
-        - d2z/dx2 = diag(y)
-        - d2z/dy2 = diag(x)
+        # one of the following must be true:
+        # 1. both arguments are variables
+        # 2. one argument is a constant
+        # 3. one argument is a Promote of a variable and the other is a variable
+        both_are_variables = isinstance(x, Variable) and isinstance(y, Variable)
+        one_is_constant = x.is_constant() or y.is_constant()
+        x_is_promote = type(x) == Promote and isinstance(y, Variable)
+        y_is_promote = type(y) == Promote and isinstance(x, Variable)
 
-        Args:
-            values: A list of numeric values for the arguments [x, y].
+        if not (both_are_variables or one_is_constant or x_is_promote or y_is_promote):
+            return False
+        
+        if both_are_variables and x.id == y.id:
+            return False
 
-        Returns:
-            A list of SciPy CSC sparse matrices [D2X, D2Y].
-        """
-        if isinstance(self.args[0], Variable) and isinstance(self.args[1], Variable):
-            return {(self.args[0], self.args[1]): 1.0, 
-                    (self.args[1], self.args[0]): 1.0}
-        x = values[0]
-        y = values[1]
-        # what is the hessian of elementwise multiplication?
-        # Flatten in case inputs are not 1D
-        x = np.asarray(x).flatten(order='F')
-        y = np.asarray(y).flatten(order='F')
-        D2X = sp.diags(y, format='csc')
-        D2Y = sp.diags(x, format='csc')
-        return [D2X, D2Y]
+        return True
+
+    def _hess_vec(self, vec):
+        x = self.args[0]
+        y = self.args[1]
+        
+        # constant * atom
+        if x.is_constant(): 
+            y_hess_vec = y.hess_vec(x.value * vec)
+            return y_hess_vec
+        
+        # atom * constant
+        if y.is_constant():
+            x_hess_vec = x.hess_vec(y.value * vec)
+            return x_hess_vec
+
+        # x * y with x a scalar variable, y a vector variable
+        if not isinstance(x, Variable) and x.is_affine():
+            assert(type(x) == Promote)
+            x_var = x.args[0] # here x is a Promote because of how we canonicalize
+            return {(x_var, y): vec, (y, x_var): vec}
+        
+        # x * y with x a vector variable, y a scalar
+        if not isinstance(y, Variable) and y.is_affine():
+            assert(type(y) == Promote)
+            y_var = y.args[0] # here y is a Promote because of how we canonicalize
+            return {(x, y_var): vec, (y_var, x): vec}
+        
+        # if we arrive here both arguments are variables of the same size
+        return {(x, y): np.diag(vec), (y, x): np.diag(vec)}
 
     def graph_implementation(
         self, arg_objs, shape: Tuple[int, ...], data=None
@@ -485,6 +515,14 @@ class DivExpression(BinaryOperator):
     
     def point_in_domain(self):
         return np.ones(self.args[1].shape)
+
+    def _verify_hess_vec_args(self):
+        raise RuntimeError("The _verify_hess_vec_args method of"
+                           " the division atom should never be called.")
+
+    def _hess_vec(self, vec):
+        raise RuntimeError("The hess_vec method of the division atom should never "
+                           "be called.")
 
     def graph_implementation(
         self, arg_objs, shape: Tuple[int, ...], data=None

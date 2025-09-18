@@ -18,7 +18,6 @@ from typing import Optional, Tuple
 import numpy as np
 import scipy.sparse as sp
 
-from cvxpy.expressions.variable import Variable
 import cvxpy.lin_ops.lin_op as lo
 import cvxpy.lin_ops.lin_utils as lu
 from cvxpy.atoms.affine.affine_atom import AffAtom
@@ -108,11 +107,15 @@ class index(AffAtom):
         obj = lu.index(arg_objs[0], shape, data[0])
         return (obj, [])
     
-    def _hess(self, values):
-        var = self.args[0].variables()[0]
-        if isinstance(self.args[0], Variable):
-            return {(var, var): np.zeros((self.args[0].size, self.args[0].size))}
-        return self.args[0].hess
+    def _verify_hess_vec_args(self):
+        return True
+
+    def _hess_vec(self, vec):
+        """ See the docstring of the hess_vec method of the atom class. """
+        idx = self._orig_key
+        e = np.zeros(self.args[0].size)
+        e[idx] = vec
+        return self.args[0].hess_vec(e)
 
 
 class special_index(AffAtom):
@@ -207,3 +210,14 @@ class special_index(AffAtom):
         mul_expr = lu.mul_expr(mul_const, vec_arg, (mul_mat.shape[0],))
         obj = lu.reshape(mul_expr, final_shape)
         return (obj, [])
+
+    def _verify_hess_vec_args(self):
+        return True
+
+    def _hess_vec(self, vec):
+        """ See the docstring of the hess_vec method of the atom class. """
+        idx = self.key
+        e = np.zeros(self.args[0].size)
+        e[idx] = vec
+        return self.args[0].hess_vec(e)
+ 

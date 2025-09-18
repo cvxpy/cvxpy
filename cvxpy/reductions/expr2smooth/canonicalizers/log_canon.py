@@ -53,8 +53,9 @@ def log_canon(expr, args):
         else:
             a *= constant.value
     
-    # TODO (DCED): there is an error here. We deduce that sigma is nonnegative for formulation 1 but that 
-    # shouldn't be the case. The reason is that we have sigma^2 in the formulation and we don't take that into account.
+    # TODO (DCED): there is an error here. We deduce that sigma is nonnegative for 
+    # formulation 1 but that shouldn't be the case. The reason is that we have sigma^2
+    # in the formulation and we don't take that into account.
     assert(len(variable) <= 1)
 
     if not is_special_case:

@@ -21,6 +21,7 @@ import cvxpy.utilities as u
 from cvxpy.atoms.elementwise.elementwise import Elementwise
 from cvxpy.constraints.constraint import Constraint
 from cvxpy.expressions import cvxtypes
+from cvxpy.expressions.variable import Variable
 from cvxpy.utilities.power_tools import is_power2, pow_high, pow_mid, pow_neg
 
 
@@ -380,35 +381,30 @@ class power(Elementwise):
         grad_vals = float(p)*np.power(values[0], float(p)-1)
         return [power.elemwise_grad_to_diag(grad_vals, rows, cols)]
 
-    def _hess(self, values):
-        """TODO: write message
-        """
-        rows = self.args[0].size
-        cols = self.size
+    def _verify_hess_vec_args(self):
+        # we can't compute the hessian if p is not constant and specified
+        if (self.p_rational is None and self.p.value is None):
+            return False
 
+        if not isinstance(self.args[0], Variable):
+            return False
+
+        return True
+
+    def _hess_vec(self, vec):
+        """ See the docstring of the hess_vec method of the atom class. """
         if self.p_rational is not None:
             p = self.p_rational
         elif self.p.value is not None:
             p = self.p.value
-        else:
-            raise ValueError("Cannot compute grad of parametrized power when "
-                             "parameter value is unspecified.")
-
-        if p == 0:
-            # All zeros.
-            return [sp.csc_array((rows, cols), dtype='float64')]
-        # Outside domain or on boundary.
-        if not is_power2(p) and np.min(values[0]) <= 0:
-            if p < 1:
-                # Non-differentiable.
-                return [None]
-            else:
-                # Round up to zero.
-                values[0] = np.maximum(values[0], 0)
-
-        hess_vals = float(p)*float(p-1)*np.power(values[0], float(p)-2)
-        return [power.elemwise_grad_to_diag(hess_vals, rows, cols)]
-
+        
+        if p == 0 or p == 1:
+            return {}
+    
+        x = self.args[0]
+        hess_vals = float(p)*float(p-1)*np.power(x.value, float(p)-2)
+        return {(x, x): np.diag(hess_vals * vec)}
+        
     def _domain(self) -> List[Constraint]:
         """Returns constraints describing the domain of the node.
         """

@@ -439,58 +439,53 @@ class Atom(Expression):
 
         return result
 
-    @property
-    def hess(self):
-        from cvxpy.atoms.elementwise.log import log
-        from cvxpy.atoms.elementwise.power import power
-        # print("INSIDE HESS IN ATOM")
-        
-        # Short-circuit to all zeros if known to be constant.
-        if self.is_constant():
-            return u.grad.constant_grad(self)
+    def hess_vec(self, vec):
+        """
+        Compute a linear combination of Hessians of the atom.
 
-        # Returns None if variable values not supplied.
-        arg_values = []
-        for arg in self.args:
-            if arg.value is None:
-                return u.grad.error_grad(self)
-            else:
-                arg_values.append(arg.value)
+        We interpret the Hessian of an atom φ(x), where φ(x) is possibly
+        vector-valued with dimension m, as a 3D tensor of size (n, n, m).
+        Each slice along the third axis corresponds to the Hessian of one
+        component function φ_i(x).
 
-        # A list of gradients w.r.t. arguments
-        hess_self = self._hess(arg_values)
-        if isinstance(hess_self, dict):
-            # print("hess_self is a dict")
-            return hess_self
-        # The Chain rule.
-        result = {}
-        for idx, arg in enumerate(self.args):
-            # A dictionary of gradients w.r.t. variables
-            # Partial argument / Partial x.
-            hess_arg = arg.hess
-            
-            for key in hess_arg:
-                if isinstance(self, (log, power)):
-                    hess_arg[key] = 1.0
+        This function computes the product
 
-                # None indicates gradient is not defined.
-                if hess_arg[key] is None or hess_self[idx] is None:
-                    result[key] = None
-                else:
-                    if np.isscalar(hess_arg[key]) or np.isscalar(hess_self[idx]):
-                        D = hess_arg[key] * hess_self[idx]
-                    else:
-                        D = hess_arg[key] @ hess_self[idx]
-                    # Convert 1x1 matrices to scalars.
-                    if not np.isscalar(D) and D.shape == (1, 1):
-                        D = D[0, 0]
+            sum_{i=1}^m vec[i] * ∇²φ_i(x),
 
-                    if key in result:
-                        result[key] += D
-                    else:
-                        result[key] = D
+        where φ_i is the i-th component of φ and vec is an m-dimensional
+        weight vector. The result is an n x n matrix representing this
+        weighted combination of component Hessians.
 
-        return result
+        It returns a dictionary with (var, var) as keys and 2D Numpy arrays
+        as values.
+
+        This function checks if the argument is affine, and if so returns an 
+        empty dictionary. Otherwise, it calls the atom-specific _hess_vec.
+        It also performs some error checking, so this must not be implemented
+        in the atom-specific _hess_vec.
+
+        TODO (DCED): we could check the domain here as well. Do we need that? 
+                     When we set bound_relax_factor = 0 to IPOPT we know that 
+                     it will always respect the domain of the functions (since 
+                     we always add bounds for the domains of the atoms)
+                     Discuss with William.
+        """
+
+        # the dimension of φ(x) and vec must match
+        if vec.size != self.size:
+            raise ValueError("Dimension mismatch in hess_vec. vec.size != "
+                             "phi(x).size")
+
+        # Short-circuit to all zeros if known to be affine.
+        if self.is_affine():
+            return {}
+
+        # for nonlinear atoms we typically require that the arguments are variables 
+        # (this is guaranteed in the NLP setting through the canonicalization)
+        if not self._verify_hess_vec_args():
+            raise ValueError("Argument error in hess_vec.")
+    
+        return self._hess_vec(vec)
 
     @abc.abstractmethod
     def _grad(self, values):
@@ -505,6 +500,22 @@ class Atom(Expression):
             A list of SciPy CSC sparse matrices or None.
         """
         raise NotImplementedError()
+    
+    @abc.abstractmethod
+    def _verify_hess_vec_args(self):
+        """ Atom-specific Hessian-vector product. For a description, see the docstring of 
+            the hess_vec method of the atom class.
+        """
+        raise NotImplementedError("Not implemented verify arguments for this atom.")
+
+
+    @abc.abstractmethod
+    def _hess_vec(self, values):
+        """ Atom-specific Hessian-vector product. For a description, see the docstring of 
+            the hess_vec method of the atom class.
+        """
+        raise NotImplementedError("This atom does not have a Hessian, or it has not been "
+                                  "implemented yet.")
 
     @property
     def domain(self) -> List['Constraint']:

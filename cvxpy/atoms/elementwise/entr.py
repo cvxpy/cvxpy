@@ -20,6 +20,7 @@ from scipy.special import xlogy
 
 from cvxpy.atoms.elementwise.elementwise import Elementwise
 from cvxpy.constraints.constraint import Constraint
+from cvxpy.expressions.variable import Variable
 
 # TODO(akshayka): DGP support.
 
@@ -88,6 +89,14 @@ class entr(Elementwise):
         else:
             grad_vals = -np.log(values[0]) - 1
             return [entr.elemwise_grad_to_diag(grad_vals, rows, cols)]
+
+    def _verify_hess_vec_args(self):
+        return isinstance(self.args[0], Variable)
+
+    def _hess_vec(self, vec):
+        """ See the docstring of the hess_vec method of the atom class. """
+        x = self.args[0]
+        return {(x, x): np.diag(-vec / x.value)}
 
     def _domain(self) -> List[Constraint]:
         """Returns constraints describing the domain of the node.

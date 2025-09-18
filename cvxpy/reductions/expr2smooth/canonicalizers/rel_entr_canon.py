@@ -19,6 +19,7 @@ import numpy as np
 from cvxpy.expressions.variable import Variable
 
 
+# TODO (DCED): do we want to canonicalize it using log if one of the arguments is constant?
 def rel_entr_canon(expr, args):
     constraints = []
 
