@@ -623,7 +623,8 @@ class Problem(u.Canonical):
         cls.REGISTERED_SOLVE_METHODS[name] = func
 
     def get_problem_data(
-        self, solver,
+        self, 
+        solver: str | None = None,
         gp: bool = False,
         enforce_dpp: bool = False,
         ignore_dpp: bool = False,
@@ -732,6 +733,39 @@ class Problem(u.Canonical):
         ------
         cvxpy.error.DPPError
             Raised if DPP settings are invalid.
+
+        Caveat
+        ------
+
+        Despite being a *get* call, `get_problem_data()` is not necessarily a
+        read-only method. If the `solver` argument differs from that used for
+        the `solve()` call, the problem cache will be invalidated for parametric
+        problems and `solver_stats` will be updated. As a result, subsequent 
+        calls to `solve()` may result in a new compile of the problem despite 
+        the default solver name being provided.
+
+        For example, although one might expect the second `solve()` to use 
+        the previously compiled problem, it does not do so because the call
+        to `get_problem_data` does not exactly match the previous call to 
+        `solve`.
+
+        ::
+
+            import numpy as np
+            import cvxpy as cp
+            
+            A = np.random.rand(3)
+            A = cp.Parameter(A.shape,value=A)
+            y = cp.Variable(3)
+            problem = cp.Problem(cp.Minimize(cp.sum_squares(A@y)),[y >= 1])
+            problem.solve()
+            A.value = np.random.rand(3)
+            print(problem.get_problem_data(problem.solver_stats.solver_name))
+            problem.solve(verbose=1)
+
+        To make the second call to `solve` use the compiled solution, you must
+        either call `get_problem_data(None)` or `get_problem_data()`.
+        
         """
 
         # Invalid DPP setting.
