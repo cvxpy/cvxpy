@@ -83,3 +83,13 @@ class abs(Elementwise):
         D += (values[0] > 0)
         D -= (values[0] < 0)
         return [abs.elemwise_grad_to_diag(D, rows, cols)]
+
+    def _verify_hess_vec_args(self):
+        return True
+
+    def _hess_vec(self, vec):
+        """
+        Computes the Hessian-vector product dictionary
+        for the abs atom. We assume that the argument will be a variable.
+        """
+        raise NotImplementedError("Second derivative of abs is not implemented yet.")

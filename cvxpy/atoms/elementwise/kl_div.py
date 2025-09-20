@@ -22,6 +22,7 @@ from scipy.special import kl_div as kl_div_scipy
 
 from cvxpy.atoms.elementwise.elementwise import Elementwise
 from cvxpy.constraints.constraint import Constraint
+from cvxpy.expressions.variable import Variable
 
 
 class kl_div(Elementwise):
@@ -90,6 +91,51 @@ class kl_div(Elementwise):
                                                            rows, cols)]
             return grad_list
 
+    def _verify_hess_vec_args(self):
+        x = self.args[0]
+        y = self.args[1]
+        
+        # we check that the arguments are of the same size or one of them 
+        # is a scalar
+        if not (x.size == 1 or y.size == 1 or x.size == y.size):
+            return False
+
+        # we assume both arguments must be variables (the case where one 
+        # argument is constant should perhaps been caught in the canonicalization?)
+        if not (isinstance(x, Variable) and isinstance(y, Variable)):
+            return False
+
+        # we assume that the arguments correspond to different variables
+        # (otherwise the differentation logic fails)
+        if x.id == y.id:
+            return False 
+
+        return True
+
+    def _hess_vec(self, vec):
+        """ See the docstring of the hess_vec method of the atom class. """
+        x = self.args[0]
+        y = self.args[1]
+        dx2_vals = vec / x.value
+        dy2_vals = vec * x.value / (y.value ** 2)
+        dxdy_vals = - vec / y.value
+
+        if x.size == 1:
+            return {(x, x): np.array(np.sum(dx2_vals)),
+                    (y, y): np.diag(dy2_vals),
+                    (x, y): np.array(dxdy_vals),
+                    (y, x): np.array(dxdy_vals)}
+        elif y.size == 1:
+            return {(x, x): np.diag(dx2_vals), 
+                    (y, y): np.array(np.sum(dy2_vals)),
+                    (x, y): np.array(dxdy_vals),
+                    (y, x): np.array(dxdy_vals)}
+        else:
+            return {(x, x): np.diag(dx2_vals), 
+                    (y, y): np.diag(dy2_vals),
+                    (x, y): np.diag(dxdy_vals),
+                    (y, x): np.diag(dxdy_vals)}
+    
     def _domain(self) -> List[Constraint]:
         """Returns constraints describing the domain of the node.
         """

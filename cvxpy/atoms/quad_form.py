@@ -24,6 +24,7 @@ from scipy import linalg as LA
 from cvxpy.atoms.affine.wraps import psd_wrap
 from cvxpy.atoms.atom import Atom
 from cvxpy.expressions.expression import Expression
+from cvxpy.expressions.variable import Variable
 from cvxpy.interface.matrix_utilities import is_sparse
 from cvxpy.utilities.linalg import sparse_cholesky
 
@@ -126,13 +127,21 @@ class QuadForm(Atom):
         D = (P + np.conj(P.T)) @ x
         return [sp.csc_array([D.ravel(order="F")]).T]
 
-    def _hess(self, values):
+    def _verify_hess_vec_args(self):
+        return isinstance(self.args[0], Variable)
+
+    def _hess_vec(self, vec):
         """
-        The hessian of a quadratic form x.T @ Q @ x
-        with respect to x, is the constant matrix Q.
+        Computes the Hessian-vector product dictionary
+        for a quadratic form. We assume that the quad-form will be
+        canonicalized to w.T @ Q @ w, where w is a single variable
+        and Q is a constant matrix.
         """
-        var = self.variables()[0]
-        return {(var, var): 2 * np.array(values[1])}
+        hess_dict = {}
+        var = self.args[0]
+        Q = self.args[1]
+        hess_dict[(var, var)] = vec * 2 * Q.value
+        return hess_dict
 
     def shape_from_args(self) -> Tuple[int, ...]:
         return tuple()
@@ -173,6 +182,22 @@ class SymbolicQuadForm(Atom):
 
     def is_quadratic(self) -> bool:
         return True
+
+    def _verify_hess_vec_args(self):
+        return isinstance(self.args[0], Variable)
+
+    def _hess_vec(self, vec):
+        """
+        Computes the Hessian-vector product dictionary
+        for a quadratic form. We assume that the quad-form will be
+        canonicalized to w.T @ Q @ w, where w is a single variable
+        and Q is a constant matrix.
+        """
+        hess_dict = {}
+        var = self.args[0]
+        Q = self.args[1]
+        hess_dict[(var, var)] = vec * 2 * Q.value
+        return hess_dict
 
 
 def decomp_quad(P, cond=None, rcond=None, lower=True, check_finite: bool = True):
