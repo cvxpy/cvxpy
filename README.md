@@ -122,7 +122,7 @@ Here are some simple ways to start contributing immediately:
 * Enhance the [website documentation](https://github.com/cvxpy/cvxpy/tree/master/doc)
 * Browse the [issue tracker](https://github.com/cvxpy/cvxpy/issues), and look for issues tagged as "help wanted"
 * Polish the [example library](https://github.com/cvxpy/cvxpy/tree/master/examples)
-* Add a [benchmark](https://github.com/cvxpy/cvxpy/tree/master/cvxpy/tests/test_benchmarks.py)
+* Add a [benchmark](https://github.com/cvxpy/benchmarks)
 
 If you'd like to add a new example to our library, or implement a new feature,
 please get in touch with us first to make sure that your priorities align with
