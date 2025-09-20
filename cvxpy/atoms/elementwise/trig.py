@@ -83,18 +83,6 @@ class sin(Elementwise):
         grad_vals = np.cos(values[0])
         return [sin.elemwise_grad_to_diag(grad_vals, rows, cols)]
 
-    def _verify_hess_vec_args(self):
-        return True
-
-    def _hess_vec(self, vec):
-        """
-        Computes the Hessian-vector product dictionary
-        for the sin atom. We assume that the argument will be a variable.
-        """
-        hess_dict = {}
-        var = self.args[0]
-        hess_dict[(var, var)] = np.diag(-np.sin(var.value) * vec)
-        return hess_dict
 
 class cos(Elementwise):
     """Elementwise :math:`\\cos x`.
@@ -157,19 +145,6 @@ class cos(Elementwise):
         cols = self.size
         grad_vals = -np.sin(values[0])
         return [cos.elemwise_grad_to_diag(grad_vals, rows, cols)]
-    
-    def _verify_hess_vec_args(self):
-        return True
-
-    def _hess_vec(self, vec):
-        """
-        Computes the Hessian-vector product dictionary
-        for the cos atom. We assume that the argument will be a variable.
-        """
-        hess_dict = {}
-        var = self.args[0]
-        hess_dict[(var, var)] = np.diag(-np.cos(var.value) * vec)
-        return hess_dict
 
 
 class tan(Elementwise):
@@ -233,16 +208,3 @@ class tan(Elementwise):
         cols = self.size
         grad_vals = 1/np.cos(values[0])**2
         return [tan.elemwise_grad_to_diag(grad_vals, rows, cols)]
-
-    def _verify_hess_vec_args(self):
-        return True
-
-    def _hess_vec(self, vec):
-        """
-        Computes the Hessian-vector product dictionary
-        for the tan atom. We assume that the argument will be a variable.
-        """
-        hess_dict = {}
-        var = self.args[0]
-        hess_dict[(var, var)] = np.diag(2*np.tan(var.value)/np.cos(var.value)**2 * vec)
-        return hess_dict

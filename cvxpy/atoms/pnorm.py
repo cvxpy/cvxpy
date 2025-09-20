@@ -270,10 +270,3 @@ class Pnorm(AxisAtom):
             nominator = np.power(value, exp)
         frac = np.divide(nominator, denominator)
         return np.reshape(frac, (frac.size, 1))
-
-    def _verify_hess_vec_args(self):
-        return True
-
-    def _hess_vec(self, vec):
-        """ See the docstring of the hess_vec method of the atom class. """
-        raise NotImplementedError("Second derivative of p-norm is not implemented yet.")

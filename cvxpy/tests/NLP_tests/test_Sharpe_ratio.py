@@ -22,7 +22,7 @@ class TestSharpeRatio():
         obj = cp.square(mu @ x) / cp.quad_form(x, Sigma)
         constraints = [cp.sum(x) == 1]
         problem = cp.Problem(cp.Maximize(obj), constraints)
-        problem.solve(solver=cp.IPOPT, nlp=True, verbose=True, hessian_approximation='exact')
+        problem.solve(solver=cp.IPOPT, nlp=True, verbose=True)
         x_noncvx = x.value
 
         # global solution computed using convex optimization

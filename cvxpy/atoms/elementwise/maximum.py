@@ -109,10 +109,3 @@ class maximum(Elementwise):
             grad_list += [maximum.elemwise_grad_to_diag(grad_vals,
                                                         rows, cols)]
         return grad_list
-
-    def _verify_hess_vec_args(self):
-        return True
-
-    def _hess_vec(self, vec):
-        """See the docstring of the hess_vec method of the atom class."""
-        raise NotImplementedError("Second derivative of maximum is not implemented yet.")
