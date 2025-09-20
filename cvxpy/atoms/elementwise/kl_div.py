@@ -22,6 +22,7 @@ from scipy.special import kl_div as kl_div_scipy
 
 from cvxpy.atoms.elementwise.elementwise import Elementwise
 from cvxpy.constraints.constraint import Constraint
+from cvxpy.expressions.variable import Variable
 
 
 class kl_div(Elementwise):
@@ -90,6 +91,14 @@ class kl_div(Elementwise):
                                                            rows, cols)]
             return grad_list
 
+    def _verify_hess_vec_args(self):
+        return isinstance(self.args[0], Variable)
+
+    def _hess_vec(self, vec):
+        """ See the docstring of the hess_vec method of the atom class. """
+        x = self.args[0]
+        return {(x, x): np.diag(-vec / x.value)}
+    
     def _domain(self) -> List[Constraint]:
         """Returns constraints describing the domain of the node.
         """

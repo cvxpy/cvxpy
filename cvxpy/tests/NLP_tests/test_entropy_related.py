@@ -3,6 +3,7 @@ import numpy.linalg as LA
 
 import cvxpy as cp
 
+
 class TestStressMLE():
 
     # convex problem, standard entropy f(x) = - x log x.

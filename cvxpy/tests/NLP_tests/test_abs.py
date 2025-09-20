@@ -24,7 +24,7 @@ class TestAbs():
             x.value = LA.lstsq(A, b, rcond=None)[0]
             obj = cp.sum(cp.square((A @ x - b))) + lmbda * cp.sum(cp.abs(x))
             problem = cp.Problem(cp.Minimize(obj))
-            problem.solve(solver=cp.IPOPT, nlp=True)
+            problem.solve(solver=cp.IPOPT, nlp=True, hessian_approximation='exact')
             obj_star_nlp = obj.value
             assert(np.abs(obj_star_nlp - obj_star_dcp) / obj_star_nlp <= 1e-4)
 
@@ -47,6 +47,6 @@ class TestAbs():
             x.value = LA.lstsq(A, b, rcond=None)[0]
             obj = cp.sum(cp.square((A @ x - b))) + lmbda * cp.sum(cp.abs(x))
             problem = cp.Problem(cp.Minimize(obj))
-            problem.solve(solver=cp.IPOPT, nlp=True)
+            problem.solve(solver=cp.IPOPT, nlp=True, hessian_approximation='exact')
             obj_star_nlp = obj.value
             assert(np.abs(obj_star_nlp - obj_star_dcp) / obj_star_nlp <= 1e-4)
