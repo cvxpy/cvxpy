@@ -527,15 +527,14 @@ class Atom(Expression):
         """
         raise NotImplementedError()
     
-    @abc.abstractmethod
+    #@abc.abstractmethod
     def _verify_hess_vec_args(self):
         """ Atom-specific Hessian-vector product. For a description, see the docstring of 
             the hess_vec method of the atom class.
         """
         raise NotImplementedError("Not implemented verify arguments for this atom.")
 
-
-    @abc.abstractmethod
+    #@abc.abstractmethod
     def _hess_vec(self, values):
         """ Atom-specific Hessian-vector product. For a description, see the docstring of 
             the hess_vec method of the atom class.

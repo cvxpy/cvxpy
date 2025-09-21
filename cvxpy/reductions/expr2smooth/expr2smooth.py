@@ -20,7 +20,13 @@ from cvxpy import problems
 from cvxpy.expressions.expression import Expression
 from cvxpy.problems.objective import Minimize
 from cvxpy.reductions.canonicalization import Canonicalization
-from cvxpy.reductions.expr2smooth.canonicalizers import CANON_METHODS as smooth_canon_methods
+from cvxpy.reductions.expr2smooth.canonicalizers import SMITH_CANON_METHODS as smith_canon_methods
+from cvxpy.reductions.expr2smooth.canonicalizers import (
+    SMOOTH_APPROX_METHODS as smooth_approx_methods,
+)
+from cvxpy.reductions.expr2smooth.canonicalizers import (
+    SMOOTH_CANON_METHODS as smooth_canon_methods,
+)
 from cvxpy.reductions.inverse_data import InverseData
 
 
@@ -30,10 +36,12 @@ class Expr2Smooth(Canonicalization):
     This reduction takes as input (minimization) expressions and converts
     them into smooth expressions.
     """
-    def __init__(self, problem=None, quad_obj: bool = False) -> None:
+    def __init__(self, problem=None, smooth_approx: bool = False) -> None:
         super(Canonicalization, self).__init__(problem=problem)
+        self.smith_canon_methods = smith_canon_methods
         self.smooth_canon_methods = smooth_canon_methods
-        self.quad_obj = quad_obj
+        self.smooth_approx_methods = smooth_approx_methods
+        self.smooth_approx = smooth_approx
 
     def accepts(self, problem):
         """A problem is always accepted"""
@@ -105,11 +113,11 @@ class Expr2Smooth(Canonicalization):
                 expr.is_constant() and not expr.parameters()):
             return expr, []
 
-        if type(expr) in self.smooth_canon_methods:
-            return self.smooth_canon_methods[type(expr)](expr, args)
-        """
-        elif hasattr(expr, "curvature") and not expr.curvature == "AFFINE":
-            t = Variable(expr.shape)
-            return t, [t == expr.copy(args)]
-        """
+        if type(expr) in self.smith_canon_methods:
+            return self.smith_canon_methods[type(expr)](expr, args)
+        elif type(expr) in self.smooth_approx_methods:
+            if self.smooth_approx:
+                return self.smooth_approx_methods[type(expr)](expr, args)
+            else:
+                return self.smooth_canon_methods[type(expr)](expr, args)
         return expr.copy(args), []

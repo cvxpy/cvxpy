@@ -156,3 +156,9 @@ NONPOS_ATOMS = [
     huber,
     ptp
 ]
+
+NON_SMOOTH_ATOMS = [
+    abs,
+    maximum,
+    minimum,
+]

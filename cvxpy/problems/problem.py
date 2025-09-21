@@ -27,6 +27,7 @@ import cvxpy.utilities as u
 import cvxpy.utilities.performance_utils as perf
 from cvxpy import Constant, error
 from cvxpy import settings as s
+from cvxpy.atoms import NON_SMOOTH_ATOMS
 from cvxpy.atoms.atom import Atom
 from cvxpy.constraints import Equality, Inequality, NonNeg, NonPos, Zero
 from cvxpy.constraints.constraint import Constraint
@@ -40,12 +41,14 @@ from cvxpy.reductions.chain import Chain
 from cvxpy.reductions.dgp2dcp.dgp2dcp import Dgp2Dcp
 from cvxpy.reductions.dqcp2dcp import dqcp2dcp
 from cvxpy.reductions.eval_params import EvalParams
+from cvxpy.reductions.expr2smooth.expr2smooth import Expr2Smooth
 from cvxpy.reductions.flip_objective import FlipObjective
 from cvxpy.reductions.solution import INF_OR_UNB_MESSAGE
 from cvxpy.reductions.solvers import bisection
 from cvxpy.reductions.solvers import defines as slv_def
 from cvxpy.reductions.solvers.conic_solvers.conic_solver import ConicSolver
 from cvxpy.reductions.solvers.defines import SOLVER_MAP_CONIC, SOLVER_MAP_QP
+from cvxpy.reductions.solvers.nlp_solvers.ipopt_nlpif import IPOPT as IPOPT_nlp
 from cvxpy.reductions.solvers.qp_solvers.qp_solver import QpSolver
 from cvxpy.reductions.solvers.solver import Solver
 from cvxpy.reductions.solvers.solving_chain import (
@@ -630,7 +633,6 @@ class Problem(u.Canonical):
         verbose: bool = False,
         canon_backend: str | None = None,
         solver_opts: Optional[dict] = None,
-        nlp: bool = False
     ):
         """Returns the problem data used in the call to the solver.
 
@@ -758,8 +760,7 @@ class Problem(u.Canonical):
                 enforce_dpp=enforce_dpp,
                 ignore_dpp=ignore_dpp,
                 canon_backend=canon_backend,
-                solver_opts=solver_opts,
-                nlp=nlp)
+                solver_opts=solver_opts)
             self._cache.key = key
             self._cache.solving_chain = solving_chain
             self._solver_cache = {}
@@ -971,8 +972,7 @@ class Problem(u.Canonical):
             enforce_dpp: bool = False,
             ignore_dpp: bool = False,
             canon_backend: str | None = None,
-            solver_opts: Optional[dict] = None,
-            nlp: bool = False
+            solver_opts: Optional[dict] = None
     ) -> SolvingChain:
         """
         Construct the chains required to reformulate and solve the problem.
@@ -1014,8 +1014,7 @@ class Problem(u.Canonical):
                                        ignore_dpp=ignore_dpp,
                                        canon_backend=canon_backend,
                                        solver_opts=solver_opts,
-                                       specified_solver=solver,
-                                       nlp=nlp)
+                                       specified_solver=solver)
 
     @staticmethod
     def _sort_candidate_solvers(solvers) -> None:
@@ -1193,8 +1192,44 @@ class Problem(u.Canonical):
                 self.unpack(chain.retrieve(soln))
                 return self.value
 
+        if nlp:
+            if type(self.objective) == Maximize:
+                reductions = [FlipObjective()]
+            else:
+                reductions = []
+            # We adopt the convention to solve an NLP using smooth approximations
+            # of non-smooth atoms first, and then, solve again using an exact
+            # and LICQ friendly reformulation.
+            # For the second solve we pass in the original problem object to
+            # the Expr2Smooth reduction, so that we don't apply the reduction
+            # on the smooth approximation canonicalization.
+            if any(ns in self.atoms() for ns in NON_SMOOTH_ATOMS):
+                approx_reductions = reductions + [Expr2Smooth(smooth_approx=True),
+                                                                    IPOPT_nlp()]
+                approx_chain = SolvingChain(reductions=approx_reductions)
+                problem, inverse_data = approx_chain.apply(problem=self)
+                solution = approx_chain.solver.solve_via_data(problem, warm_start,
+                                                                verbose, solver_opts=kwargs)
+                self.unpack_results(solution, approx_chain, inverse_data)
+                smooth_reductions = reductions + [Expr2Smooth(smooth_approx=False),
+                                                                    IPOPT_nlp()]
+                smooth_chain = SolvingChain(reductions=smooth_reductions)
+                problem, inverse_data = smooth_chain.apply(problem=self)
+                solution = smooth_chain.solver.solve_via_data(problem, warm_start,
+                                                                verbose, solver_opts=kwargs)
+                self.unpack_results(solution, smooth_chain, inverse_data)
+            else:
+                nlp_reductions = reductions + [Expr2Smooth(smooth_approx=False),
+                                                                    IPOPT_nlp()]
+                nlp_chain = SolvingChain(reductions=nlp_reductions)
+                problem, inverse_data = nlp_chain.apply(problem=self)
+                solution = nlp_chain.solver.solve_via_data(problem, warm_start,
+                                                            verbose, solver_opts=kwargs)
+                self.unpack_results(solution, nlp_chain, inverse_data)
+            return self.value
+
         data, solving_chain, inverse_data = self.get_problem_data(
-            solver, gp, enforce_dpp, ignore_dpp, verbose, canon_backend, kwargs, nlp
+            solver, gp, enforce_dpp, ignore_dpp, verbose, canon_backend, kwargs
         )
 
         if verbose:

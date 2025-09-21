@@ -36,14 +36,12 @@ from cvxpy.reductions.discrete2mixedint.valinvec2mixedint import (
     Valinvec2mixedint,
 )
 from cvxpy.reductions.eval_params import EvalParams
-from cvxpy.reductions.expr2smooth.expr2smooth import Expr2Smooth
 from cvxpy.reductions.flip_objective import FlipObjective
 from cvxpy.reductions.qp2quad_form import qp2symbolic_qp
 from cvxpy.reductions.qp2quad_form.qp_matrix_stuffing import QpMatrixStuffing
 from cvxpy.reductions.reduction import Reduction
 from cvxpy.reductions.solvers import defines as slv_def
 from cvxpy.reductions.solvers.constant_solver import ConstantSolver
-from cvxpy.reductions.solvers.nlp_solvers.ipopt_nlpif import IPOPT as IPOPT_nlp
 from cvxpy.reductions.solvers.solver import Solver
 from cvxpy.settings import (
     CLARABEL,
@@ -108,7 +106,6 @@ def _reductions_for_problem_class(
     candidates,
     gp: bool = False,
     solver_opts=None,
-    nlp: bool = False
 ) -> list[Reduction]:
     """
     Builds a chain that rewrites a problem into an intermediate
@@ -142,12 +139,6 @@ def _reductions_for_problem_class(
         reductions += [complex2real.Complex2Real()]
     if gp:
         reductions += [Dgp2Dcp()]
-    if nlp:
-        if type(problem.objective) == Maximize:
-            reductions += [FlipObjective()]
-        reductions += [Expr2Smooth()]
-        return reductions
-
     if not gp and not problem.is_dcp():
         append = build_non_disciplined_error_msg(problem, 'DCP')
         if problem.is_dgp():
@@ -196,7 +187,6 @@ def construct_solving_chain(problem, candidates,
                             canon_backend: str | None = None,
                             solver_opts: dict | None = None,
                             specified_solver: str | None = None,
-                            nlp: bool = False,
                             ) -> "SolvingChain":
     """Build a reduction chain from a problem to an installed solver.
 
@@ -242,11 +232,8 @@ def construct_solving_chain(problem, candidates,
     """
     if len(problem.variables()) == 0:
         return SolvingChain(reductions=[ConstantSolver()])
-    reductions = _reductions_for_problem_class(problem, candidates, gp, solver_opts, nlp)
+    reductions = _reductions_for_problem_class(problem, candidates, gp, solver_opts)
 
-    if nlp:
-        reductions += [IPOPT_nlp()]
-        return SolvingChain(reductions=reductions)
     # Process DPP status of the problem.
     dpp_context = 'dcp' if not gp else 'dgp'
     if ignore_dpp or not problem.is_dpp(dpp_context):
