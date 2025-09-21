@@ -19,8 +19,13 @@ import numpy as np
 from cvxpy.atoms.affine.binary_operators import multiply
 from cvxpy.expressions.variable import Variable
 
+MIN_BOUND = 1e-4
 
-# We canonicalize div(x, y) as z * y = x.
+# We canonicalize div(f(x), g(x)) as z * y = f(x), y = g(x), y >= 0.
+# In other words, it assumes that the denominator is nonnegative.
+# TODO (DCED):
+#  1.  is it necessary to add the bound y >= 0? Does it help in
+#      terms of robustness?
 def div_canon(expr, args):
     dim = (1, ) if args[0].shape == () else args[0].shape
     sgn_z = args[0].sign
@@ -34,8 +39,7 @@ def div_canon(expr, args):
     
     y = Variable(args[1].shape, bounds=[0, None])
 
-    # DCED: perhaps initialize further away from boundary?
-    if args[1].value is not None and np.all(args[1].value != 0.0):
+    if args[1].value is not None and np.min(args[1].value) > MIN_BOUND:
         y.value = args[1].value
     else:
         y.value = expr.point_in_domain()

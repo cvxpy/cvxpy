@@ -18,6 +18,7 @@ import numpy as np
 
 from cvxpy.expressions.variable import Variable
 
+MIN_BOUND = 1e-4
 
 def kl_div_canon(expr, args):
     constraints = []
@@ -26,7 +27,7 @@ def kl_div_canon(expr, args):
         t1 = Variable(args[0].shape, bounds=[0, None])
         constraints.append(t1 == args[0])
 
-        if args[0].value is not None and np.all(args[0].value >= 1):
+        if args[0].value is not None and np.min(args[0].value) >= MIN_BOUND:
             t1.value = args[0].value
         else:
             t1.value = expr.point_in_domain(argument=0)
