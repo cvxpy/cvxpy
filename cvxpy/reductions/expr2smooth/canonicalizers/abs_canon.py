@@ -16,7 +16,6 @@ limitations under the License.
 
 import numpy as np
 
-# TODO (DCED): ask William if this the multiplication we want to use
 from cvxpy.atoms.affine.binary_operators import multiply
 from cvxpy.expressions.variable import Variable
 
@@ -32,6 +31,7 @@ from cvxpy.expressions.variable import Variable
 #    t2, constr_sq = power_canon(square_expr, square_expr.args)
 #    return t1, [t1**2 == t2] + constr_sq
 
+# This formulation is LICQ-friendly but might introduce spurious KKT points.
 def abs_canon(expr, args):
     shape = expr.shape
     t1 = Variable(shape, bounds = [0, None])
@@ -40,10 +40,4 @@ def abs_canon(expr, args):
         t1.value = np.abs(args[0].value)
         y.value = np.sign(args[0].value)
     
-    t1.value = np.ones(shape)
-    y.value = np.zeros(shape)
-
-    # TODO (DCED): check how multiply is canonicalized. We don't want to introduce a 
-    # new variable for y inside multiply. But args[0] should potentially be canonicalized 
-    # further?
     return t1, [y ** 2 == np.ones(shape), t1 == multiply(y, args[0])]

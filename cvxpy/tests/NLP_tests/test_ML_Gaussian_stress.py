@@ -16,6 +16,7 @@ class TestStressMLE():
         scaling_factors = [0.1, 1e0, 10]
 
         for n in all_n:
+            np.random.seed(n)
             for factor in scaling_factors:
                 data = factor*np.random.randn(n)
                 sigma_opt = (1 / np.sqrt(n)) * LA.norm(data)
@@ -23,7 +24,7 @@ class TestStressMLE():
                 for method in METHODS:
                     print("Method, n, scale factor: ", method, n, factor)
                     if method == 1:
-                        sigma = cp.Variable((1, ))
+                        sigma = cp.Variable((1, ), nonneg=True)
                         obj = (n / 2) * cp.log(2*np.pi*cp.square(sigma)) + \
                               (1 / (2 * cp.square(sigma))) * res
                         constraints = []
@@ -65,6 +66,7 @@ class TestStressMLE():
         mu = cp.Variable((1, ), name="mu")
 
         for n in all_n:
+            np.random.seed(n)
             for factor in scaling_factors:
                 data = factor*np.random.randn(n)
                 sigma_opt = (1 / np.sqrt(n)) * LA.norm(data - np.mean(data))

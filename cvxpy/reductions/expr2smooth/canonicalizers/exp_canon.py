@@ -23,4 +23,4 @@ def exp_canon(expr, args):
         t = Variable(args[0].shape)
         if args[0].value is not None:
             t.value = args[0].value
-        return expr.copy([t]), [t==args[0]]
+        return expr.copy([t]), [t == args[0]]
