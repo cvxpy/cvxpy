@@ -14,7 +14,9 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+import contextlib
 import math
+import os
 import re
 import string
 import sys
@@ -2377,17 +2379,20 @@ class TestHIGHS:
         """
         prob = cp.Problem(cp.Minimize(cp.sum(cp.sum(variables))), [cp.sum(cp.sum(variables)) >= 1])
 
-        with tempfile.NamedTemporaryFile(mode="w+", suffix=".lp") as model_file:
-            prob.solve(cp.HIGHS, verbose=True, write_model_file=model_file.name)
+        fd, model_path = tempfile.mkstemp(suffix=".lp")
+        os.close(fd)
+        try:
+            prob.solve(cp.HIGHS, verbose=True, write_model_file=model_path)
 
             captured = capfd.readouterr().out
             # Check that the model is written to the file
-            assert re.search(rf"\nWriting the model to {model_file.name}\n", captured), (
-                f"Expected model file to be written to {model_file.name}."
-            )
+            assert re.search(
+                rf"\nWriting the model to {re.escape(model_path)}\n", captured
+            ), f"Expected model file to be written to {model_path}."
 
             # Check that the model contains the variable names as expected.
-            model = model_file.read()
+            with open(model_path, "r", encoding="utf-8") as model_file:
+                model = model_file.read()
             found_variables = re.sub(
                 " <= 1| free| ", "", re.search(r"\nbounds\n([\w\W]*?)\n(bin|end)\n", model)[1]
             ).split("\n")
@@ -2402,6 +2407,9 @@ class TestHIGHS:
                     f"Expected variable {expected_var.name()} to appear "
                     f"{expected_var.size} times in the model bounds section."
                 )
+        finally:
+            with contextlib.suppress(FileNotFoundError):
+                os.remove(model_path)
 
     def test_highs_nonstandard_name(self) -> None:
         """Test HiGHS solver with non-capitalized solver name."""
