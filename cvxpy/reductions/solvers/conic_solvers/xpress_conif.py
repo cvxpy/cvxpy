@@ -401,6 +401,7 @@ def get_status_map():
         xp.SolStatus.OPTIMAL:         s.OPTIMAL,
         xp.SolStatus.INFEASIBLE:      s.INFEASIBLE,
         xp.SolStatus.UNBOUNDED:       s.UNBOUNDED,
+        xp.SolStatus.FEASIBLE:       s.OPTIMAL_INACCURATE,
     }
 
     return status_map
