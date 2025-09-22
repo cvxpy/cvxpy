@@ -1,0 +1,24 @@
+name: test_cvxpygen
+
+on:
+    pull_request:
+    push:
+        branches:
+            - master
+        tags:
+          - '*'
+jobs:
+  test_backends:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+      - uses: actions/checkout@v5
+      - name: Install pytest and cvxpygen
+        run: |
+          pip install . pytest hypothesis
+          pip install cvxpygen
+      - name: Run test_cvxpygen
+        run : |
+          pytest cvxpy/tests/test_cvxpygen.py

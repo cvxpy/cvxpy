@@ -63,9 +63,12 @@ from cvxpy.reductions.solvers.defines import installed_solvers as installed_solv
 from cvxpy.settings import (
     CBC as CBC,
     CLARABEL as CLARABEL,
+    CUCLARABEL as CUCLARABEL,
     COPT as COPT,
+    COSMO as COSMO,
     CPLEX as CPLEX,
     CPP_CANON_BACKEND as CPP_CANON_BACKEND,
+    CUOPT as CUOPT,
     CVXOPT as CVXOPT,
     DIFFCP as DIFFCP,
     ECOS as ECOS,
@@ -87,6 +90,7 @@ from cvxpy.settings import (
     QOCO as QOCO,
     PIQP as PIQP,
     PROXQP as PROXQP,
+    QPALM as QPALM,
     ROBUST_KKTSOLVER as ROBUST_KKTSOLVER,
     RUST_CANON_BACKEND as RUST_CANON_BACKEND,
     SCIP as SCIP,
@@ -100,6 +104,7 @@ from cvxpy.settings import (
     USER_LIMIT as USER_LIMIT,
     XPRESS as XPRESS,
     HIGHS as HIGHS,
+    KNITRO as KNITRO,
     get_num_threads as get_num_threads,
     set_num_threads as set_num_threads,
 )

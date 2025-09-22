@@ -208,9 +208,12 @@ class Pnorm(AxisAtom):
         return [self.p, self.axis]
 
     def name(self) -> str:
-        return "%s(%s, %s)" % (self.__class__.__name__,
-                               self.args[0].name(),
-                               self.p)
+        return f"{type(self).__name__}({self.args[0].name()}, {self.p})"
+
+    def format_labeled(self) -> str:
+        if self._label is not None:
+            return self._label
+        return f"{type(self).__name__}({self.args[0].format_labeled()}, {self.p})"
 
     def _domain(self) -> List[Constraint]:
         """Returns constraints describing the domain of the node.
@@ -249,15 +252,21 @@ class Pnorm(AxisAtom):
         if self.p < 1 and np.any(value <= 0):
             return None
         D_null = sp.csc_array((rows, 1), dtype='float64')
+        # Ensure vector semantics and consistent column-major vectorization.
+        value = np.asarray(value).ravel(order='F')
         denominator = np.linalg.norm(value, float(self.p))
-        denominator = np.power(denominator, self.p - 1)
+        exp = float(self.p - 1)  # cast to float to avoid dtype=object with Fraction exponents
+        denominator = np.power(denominator, exp)
         # Subgrad is 0 when denom is 0 (or undefined).
         if denominator == 0:
             if self.p > 1:
                 return D_null.todense()
             else:
                 return None
+        if self.p > 1:
+            # nominator = sign(value) * |value|^(p-1)
+            nominator = np.sign(value) * np.power(np.abs(value), exp)
         else:
-            nominator = np.power(value, self.p - 1)
-            frac = np.divide(nominator, denominator)
-            return np.reshape(frac, (frac.size, 1))
+            nominator = np.power(value, exp)
+        frac = np.divide(nominator, denominator)
+        return np.reshape(frac, (frac.size, 1))

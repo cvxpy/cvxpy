@@ -182,14 +182,22 @@ class HIGHS(QpSolver):
             hessian.index_ = P.indices
             hessian.value_ = P.data
 
+        solver = hp.Highs()
+
         # setup options
         unpack_highs_options_inplace(solver_opts)
-        options = hp.HighsOptions()
-        options.log_to_console = verbose
-        for key, value in solver_opts.items():
-            setattr(options, key, value)
+        write_model_file = solver_opts.pop("write_model_file", None)
+        solver.setOptionValue("log_to_console", verbose)
+        for name, value in solver_opts.items():
+            # note that calling setOptionValue directly on the solver
+            # allows one to pass advanced options that aren't available
+            # on the HighOptions class (e.g., presolve_rule_off)
+            if solver.setOptionValue(name, value) == hp.HighsStatus.kError:
+                raise ValueError(
+                    f"HIGHS returned status kError for option (name, value): ({name}, {value})"
+                )
 
-        if options.write_model_file:
+        if write_model_file:
             # TODO: Names can be collected upstream more systematically
             # (or in the parent class) to be used by all solvers.
             column_names = []
@@ -200,14 +208,12 @@ class HIGHS(QpSolver):
                 collect_column_names(variable, column_names)
             lp.col_names_ = column_names
 
-        solver = hp.Highs()
-        solver.passOptions(options)
         solver.passModel(model)
 
-        if options.write_model_file:
+        if write_model_file:
             # TODO: This part can be removed once the following HiGS PR is released:
             # https://github.com/ERGO-Code/HiGHS/pull/2274
-            solver.writeModel(options.write_model_file)
+            solver.writeModel(write_model_file)
 
         if warm_start and solver_cache is not None and self.name() in solver_cache:
             old_solver, old_data, old_result = solver_cache[self.name()]

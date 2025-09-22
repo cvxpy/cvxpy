@@ -51,6 +51,7 @@ class Atom(Expression):
         self._shape = self.shape_from_args()
         if not s.ALLOW_ND_EXPR and len(self._shape) > 2:
             raise ValueError("Atoms must be at most 2D.")
+        super(Atom, self).__init__()
 
     def name(self) -> str:
         """Returns the string representation of the function call.
@@ -59,8 +60,33 @@ class Atom(Expression):
             data = []
         else:
             data = [str(elem) for elem in self.get_data()]
-        return "%s(%s)" % (self.__class__.__name__,
-                           ", ".join([arg.name() for arg in self.args] + data))
+        return f"{self.__class__.__name__}({', '.join([arg.name() for arg in self.args] + data)})"
+
+    def _uses_default_name(self) -> bool:
+        """Return True if this class uses Atom.name without override."""
+        return type(self).name is Atom.name
+
+    def format_labeled(self):
+        """Format atom with labels, mirroring name() where safe.
+
+        - If this atom or any ancestor has set a label, return it.
+        - If the subclass didn't override name() (i.e., function-style default),
+          mirror Atom.name but recurse with child.format_labeled() and include
+          get_data() strings to preserve no-label parity.
+        - Otherwise, fall back to Expression.format_labeled(); specialized
+          subclasses with custom name() should implement their own
+          format_labeled() to preserve custom syntax and precedence while
+          recursing into children.
+        """
+        if self._label is not None:
+            return self._label
+        if self._uses_default_name():
+            data = self.get_data()
+            data_strs = [] if data is None else [str(elem) for elem in data]
+            arg_text = [arg.format_labeled() for arg in self.args]
+            return f"{type(self).__name__}({', '.join(arg_text + data_strs)})"
+        # Defer to Expression default (label or name) when subclass has a custom name().
+        return super().format_labeled()
 
     def validate_arguments(self) -> None:
         """Raises an error if the arguments are invalid.

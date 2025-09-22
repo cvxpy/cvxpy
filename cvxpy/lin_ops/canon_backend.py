@@ -506,9 +506,7 @@ class PythonCanonBackend(CanonBackend):
         This method performs the concatenation of multiple tensors, following NumPy's behavior.
         It correctly maps the indices from the input tensors to the concatenated output tensor,
         ensuring that elements are placed in the correct positions in the resulting tensor.
-
         """
-
         res = self.hstack(lin=lin, view=view)
         axis = lin.data[0]
         if axis is None:
@@ -548,9 +546,13 @@ class PythonCanonBackend(CanonBackend):
     def transpose(lin: LinOp, view: TensorView) -> TensorView:
         """
         Given (A, b) in view, permute the rows such that they correspond to the transposed
-        expression.
+        expression with arbitrary axis permutation.
         """
-        rows = np.arange(np.prod(lin.shape)).reshape(lin.shape).flatten(order="F")
+        axes = lin.data[0]
+        original_shape = lin.args[0].shape
+        indices = np.arange(np.prod(original_shape)).reshape(original_shape, order='F')
+        transposed_indices = np.transpose(indices, axes)
+        rows = transposed_indices.flatten(order='F')
         view.select_rows(rows)
         return view
 

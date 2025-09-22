@@ -290,9 +290,14 @@ class geo_mean(Atom):
             return [sp.csc_array([D]).T]
 
     def name(self) -> str:
-        return "%s(%s, (%s))" % (self.__class__.__name__,
-                                 self.args[0].name(),
-                                 ', '.join(str(v) for v in self.w))
+        weights = ', '.join(str(v) for v in self.w)
+        return f"{type(self).__name__}({self.args[0].name()}, ({weights}))"
+
+    def format_labeled(self) -> str:
+        if self._label is not None:
+            return self._label
+        weights = ', '.join(str(v) for v in self.w)
+        return f"{type(self).__name__}({self.args[0].format_labeled()}, ({weights}))"
 
     def pretty_tree(self) -> None:
         print(prettydict(self.tree))

@@ -237,17 +237,17 @@ class CLARABEL(ConicSolver):
             primal_val = solution.obj_val
             opt_val = primal_val + inverse_data[s.OFFSET]
             primal_vars = {
-                inverse_data[CLARABEL.VAR_ID]: solution.x
+                inverse_data[self.VAR_ID]: solution.x
             }
             eq_dual_vars = utilities.get_dual_values(
                 solution.z[:inverse_data[ConicSolver.DIMS].zero],
                 self.extract_dual_value,
-                inverse_data[CLARABEL.EQ_CONSTR]
+                inverse_data[self.EQ_CONSTR]
             )
             ineq_dual_vars = utilities.get_dual_values(
                 solution.z[inverse_data[ConicSolver.DIMS].zero:],
                 self.extract_dual_value,
-                inverse_data[CLARABEL.NEQ_CONSTR]
+                inverse_data[self.NEQ_CONSTR]
             )
             dual_vars = {}
             dual_vars.update(eq_dual_vars)
@@ -315,7 +315,7 @@ class CLARABEL(ConicSolver):
 
         def new_solver():
 
-            _settings = CLARABEL.parse_solver_opts(verbose, solver_opts)
+            _settings = self.parse_solver_opts(verbose, solver_opts)
             _solver = clarabel.DefaultSolver(P, q, A, b, cones, _settings)
             return _solver
 
@@ -334,7 +334,7 @@ class CLARABEL(ConicSolver):
             else:
                 # current internal settings, to be updated if needed
                 oldsettings = _solver.get_settings()
-                newsettings = CLARABEL.parse_solver_opts(verbose, solver_opts, oldsettings)
+                newsettings = self.parse_solver_opts(verbose, solver_opts, oldsettings)
 
                 # this overwrites all data in the solver but will not
                 # reallocate internal memory.  Could be faster if it

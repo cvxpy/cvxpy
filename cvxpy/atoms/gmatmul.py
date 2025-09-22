@@ -60,9 +60,12 @@ class gmatmul(Atom):
         return np.exp(self.A.value @ logX)
 
     def name(self) -> str:
-        return "%s(%s, %s)" % (self.__class__.__name__,
-                               self.A,
-                               self.args[0])
+        return f"{type(self).__name__}({self.A}, {self.args[0]})"
+
+    def format_labeled(self) -> str:
+        if self._label is not None:
+            return self._label
+        return f"{type(self).__name__}({self.A}, {self.args[0].format_labeled()})"
 
     def validate_arguments(self) -> None:
         """Raises an error if the arguments are invalid.

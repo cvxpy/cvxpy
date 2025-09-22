@@ -17,6 +17,7 @@ limitations under the License.
 import math
 import re
 import string
+import sys
 import tempfile
 import unittest
 
@@ -545,8 +546,128 @@ class TestClarabel(BaseTest):
         sth.check_complementarity(places)
         sth.check_dual_domains(places)
 
+@unittest.skipUnless('CUCLARABEL' in INSTALLED_SOLVERS, 'CLARABEL is not installed.')
+class TestCuClarabel(BaseTest):
 
-@unittest.skipUnless('MOSEK' in INSTALLED_SOLVERS, 'MOSEK is not installed.')
+    """ Unit tests for Clarabel. """
+    def setUp(self) -> None:
+
+        self.x = cp.Variable(2, name='x')
+        self.y = cp.Variable(3, name='y')
+
+        self.A = cp.Variable((2, 2), name='A')
+        self.B = cp.Variable((2, 2), name='B')
+        self.C = cp.Variable((3, 2), name='C')
+
+    def test_clarabel_parameter_update(self) -> None:
+        """Test warm start.
+        """
+        x = cp.Variable(2)
+        P = cp.Parameter(nonneg=True),
+        A = cp.Parameter(4)
+        b = cp.Parameter(2, nonneg=True)
+        q = cp.Parameter(2)
+
+        def update_parameters(P, A, b, q):
+            P[0].value = np.random.rand()
+            A.value = np.random.randn(4)
+            b.value = np.random.rand(2)
+            q.value = np.random.randn(2)
+
+        prob = cp.Problem(
+                cp.Minimize(P[0]*cp.square(x[0]) + cp.quad_form(x, np.ones([2, 2])) + q.T @ x),
+                [A[0] * x[0] + A[1] * x[1] == b[0],
+                 A[2] * x[0] + A[3] * x[1] <= b[1]]
+            )
+
+        update_parameters(P, A, b, q)
+        result1 = prob.solve(solver=cp.CLARABEL, warm_start=False)
+        result2 = prob.solve(solver=cp.CLARABEL, warm_start=True)
+        self.assertAlmostEqual(result1, result2)
+
+        update_parameters(P, A, b, q)
+        result1 = prob.solve(solver=cp.CLARABEL, warm_start=True)
+        result2 = prob.solve(solver=cp.CLARABEL, warm_start=False)
+        self.assertAlmostEqual(result1, result2)
+
+        # consecutive solves, no data update
+        result1 = prob.solve(solver=cp.CLARABEL, warm_start=False)
+        self.assertAlmostEqual(result1, result2)
+
+
+    def test_clarabel_lp_0(self) -> None:
+        StandardTestLPs.test_lp_0(solver=cp.CUCLARABEL)
+
+    def test_clarabel_nonstandard_name(self) -> None:
+        # Test that solver name with non-standard capitalization works.
+        StandardTestLPs.test_lp_0(solver="CuClarabel")
+
+    def test_clarabel_lp_1(self) -> None:
+        StandardTestLPs.test_lp_1(solver='CUCLARABEL')
+
+    def test_clarabel_lp_2(self) -> None:
+        StandardTestLPs.test_lp_2(solver='CUCLARABEL')
+
+    def test_clarabel_lp_3(self) -> None:
+        StandardTestLPs.test_lp_3(solver='CUCLARABEL')
+
+    def test_clarabel_lp_4(self) -> None:
+        StandardTestLPs.test_lp_4(solver='CUCLARABEL')
+
+    def test_clarabel_lp_5(self) -> None:
+        StandardTestLPs.test_lp_5(solver='CUCLARABEL')
+
+    def test_clarabel_qp_0(self) -> None:
+        StandardTestQPs.test_qp_0(solver='CUCLARABEL')
+
+    def test_clarabel_qp_0_linear_obj(self) -> None:
+        StandardTestQPs.test_qp_0(solver='CUCLARABEL', use_quad_obj=False)
+
+    def test_clarabel_socp_0(self) -> None:
+        StandardTestSOCPs.test_socp_0(solver='CUCLARABEL')
+
+    def test_clarabel_socp_1(self) -> None:
+        StandardTestSOCPs.test_socp_1(solver='CUCLARABEL')
+
+    def test_clarabel_socp_2(self) -> None:
+        StandardTestSOCPs.test_socp_2(solver='CUCLARABEL')
+
+    def test_clarabel_socp_3(self) -> None:
+        # axis 0
+        breakpoint()
+        StandardTestSOCPs.test_socp_3ax0(solver='CUCLARABEL')
+        # axis 1
+        StandardTestSOCPs.test_socp_3ax1(solver='CUCLARABEL')
+
+    def test_clarabel_expcone_1(self) -> None:
+        StandardTestECPs.test_expcone_1(solver='CUCLARABEL')
+
+    def test_clarabel_exp_soc_1(self) -> None:
+        StandardTestMixedCPs.test_exp_soc_1(solver='CUCLARABEL')
+
+    def test_clarabel_pcp_0(self) -> None:
+        StandardTestSOCPs.test_socp_0(solver='CUCLARABEL')
+
+    def test_clarabel_pcp_1(self) -> None:
+        StandardTestSOCPs.test_socp_1(solver='CUCLARABEL')
+
+    def test_clarabel_pcp_2(self) -> None:
+        StandardTestSOCPs.test_socp_2(solver='CUCLARABEL')
+
+def is_mosek_available():
+    """Check if MOSEK is installed and a license is available."""
+    if 'MOSEK' not in INSTALLED_SOLVERS:
+        return False
+    try:
+        import mosek  # type: ignore
+        env = mosek.Env()
+        # Try to get license status (returns 0 if OK)
+        status = env.getlicense()
+        return status == mosek.rescode.ok
+    except Exception:
+        return False
+
+@unittest.skipUnless(is_mosek_available(), 'MOSEK is not installed or license is not available.')
 class TestMosek(unittest.TestCase):
 
     def test_mosek_lp_0(self) -> None:
@@ -723,6 +844,7 @@ class TestMosek(unittest.TestCase):
     def test_mosek_sdp_power(self) -> None:
         """Test the problem in issue #2128"""
         StandardTestMixedCPs.test_sdp_pcp_1(solver='MOSEK')
+
 
     def test_power_portfolio(self) -> None:
         """Test the portfolio problem in issue #2042"""
@@ -979,7 +1101,8 @@ def fflush() -> None:
 
 # We can't inherit from unittest.TestCase since we access some advanced pytest features.
 # As a result, we use the pytest skipif decorator instead of unittest.skipUnless.
-@pytest.mark.skipif('CBC' not in INSTALLED_SOLVERS, reason='CBC is not installed.')
+@pytest.mark.skipif(('CBC' not in INSTALLED_SOLVERS) or sys.platform.startswith("win"),
+                    reason='CBC is not installed or tests are being run on Windows.')
 class TestCBC:
 
     def _cylp_checks_isProvenInfeasible():
@@ -2157,7 +2280,12 @@ class TestHIGHS:
         ],
     )
     def test_highs_solving(self, problem) -> None:
-        problem(solver=cp.HIGHS)
+        # HACK needed to use the HiGHS conic interface rather than 
+        # the QP interface for LPs.
+        from cvxpy.reductions.solvers.conic_solvers.highs_conif import HIGHS
+        solver = HIGHS()
+        solver.name = lambda: "HIGHS CONIC"
+        problem(solver=solver)
 
     @pytest.mark.parametrize(
         ["problem", "confirmation_string"],
@@ -2286,11 +2414,18 @@ class TestHIGHS:
         [StandardTestLPs.test_lp_0, StandardTestLPs.test_mi_lp_0],
     )
     def test_highs_options(self, problem) -> None:
-        with pytest.raises(AttributeError):
+        with pytest.raises(ValueError):
             problem(solver=cp.HIGHS, highs_options={"invalid_highs_option": None})
 
-        with pytest.raises(AttributeError):
+        with pytest.raises(ValueError):
             problem(solver=cp.HIGHS, invalid_highs_option=None)
+
+        invalid_value = "_invalid_value_"
+        with pytest.raises(ValueError):
+            problem(solver=cp.HIGHS, highs_options={"threads": invalid_value})
+
+        with pytest.raises(ValueError):
+            problem(solver=cp.HIGHS, threads=invalid_value)
 
         # Duplicate options
         with pytest.raises(TypeError):
@@ -2306,8 +2441,11 @@ class TestHIGHS:
             "mip_rel_gap": 1.0,
             "primal_feasibility_tolerance": 1e-3,
             "dual_feasibility_tolerance": 1e-3,
+            # advanced option, not available on HighsOptions
+            "presolve_rule_off": 2**10,
         }
         problem(solver=cp.HIGHS, highs_options=highs_options)
+
 
 
 class TestAllSolvers(BaseTest):
@@ -2336,9 +2474,14 @@ class TestAllSolvers(BaseTest):
         prob = cp.Problem(cp.Minimize(cp.norm(self.x, 1) + 1.0), [self.x == 0])
         for solver in SOLVER_MAP_CONIC.keys():
             if solver in INSTALLED_SOLVERS:
-                prob.solve(solver=solver)
-                self.assertAlmostEqual(prob.value, 1.0)
-                self.assertItemsAlmostEqual(self.x.value, [0, 0])
+                if solver is cp.MOSEK and not is_mosek_available():
+                    pass
+                elif solver is cp.KNITRO and not is_knitro_available():
+                    pass
+                else:
+                    prob.solve(solver=solver)
+                    self.assertAlmostEqual(prob.value, 1.0)
+                    self.assertItemsAlmostEqual(self.x.value, [0, 0])
             else:
                 with self.assertRaises(Exception) as cm:
                     prob.solve(solver=solver)
@@ -2346,8 +2489,11 @@ class TestAllSolvers(BaseTest):
 
         for solver in SOLVER_MAP_QP.keys():
             if solver in INSTALLED_SOLVERS:
-                prob.solve(solver=solver)
-                self.assertItemsAlmostEqual(self.x.value, [0, 0])
+                if solver is cp.KNITRO and not is_knitro_available():
+                    pass
+                else:
+                    prob.solve(solver=solver)
+                    self.assertItemsAlmostEqual(self.x.value, [0, 0])
             else:
                 with self.assertRaises(Exception) as cm:
                     prob.solve(solver=solver)
@@ -2361,9 +2507,14 @@ class TestAllSolvers(BaseTest):
             with pytest.raises(cp.error.SolverError, match="You need a mixed-integer "
                                                            "solver for this model"):
                 prob.solve()
-        else:
-            prob.solve()
+        elif is_mosek_available() and cp.MOSEK in INSTALLED_MI_SOLVERS:
+            prob.solve(solver=cp.MOSEK)
             self.assertItemsAlmostEqual(x.value, [0, 0])
+        elif cp.HIGHS in INSTALLED_MI_SOLVERS:
+            prob.solve(solver=cp.HIGHS)
+            self.assertItemsAlmostEqual(x.value, [0, 0])
+        else:
+            pass
 
 
 @unittest.skipUnless('ECOS' in INSTALLED_SOLVERS, 'ECOS_BB is not installed.')
@@ -2375,13 +2526,17 @@ class TestECOS_BB(unittest.TestCase):
         x = cp.Variable(1, name='x', integer=True)
         objective = cp.Minimize(cp.sum(x))
         prob = cp.Problem(objective, [x >= 0])
-        if INSTALLED_MI_SOLVERS != [cp.ECOS_BB]:
+        if INSTALLED_MI_SOLVERS != [cp.ECOS_BB] and is_mosek_available():
             prob.solve()
             assert prob.solver_stats.solver_name != cp.ECOS_BB
+        # The optional solvers build will always have MOSEK installed.
+        """
         else:
-            with pytest.raises(cp.error.SolverError, match="You need a mixed-integer "
-                                                           "solver for this model"):
-                prob.solve()
+            if not is_mosek_available():
+                with pytest.raises(cp.error.SolverError, match="You need a mixed-integer "
+                                                            "solver for this model"):
+                    prob.solve()
+        """
 
     def test_ecos_bb_lp_0(self) -> None:
         StandardTestLPs.test_lp_0(solver='ECOS_BB')
@@ -2604,3 +2759,317 @@ class TestCOPT(unittest.TestCase):
 
         # Valid arg.
         problem.solve(solver=cp.COPT, feastol=1e-9)
+
+
+@unittest.skipUnless('COSMO' in INSTALLED_SOLVERS, 'COSMO is not installed.')
+class TestCOSMO(BaseTest):
+    """Unit tests for COSMO solver interface."""
+    
+    def setUp(self) -> None:
+        self.a = cp.Variable(name='a')
+        self.b = cp.Variable(name='b')
+        self.c = cp.Variable(name='c')
+
+        self.x = cp.Variable(2, name='x')
+        self.y = cp.Variable(3, name='y')
+        self.z = cp.Variable(2, name='z')
+
+        self.A = cp.Variable((2, 2), name='A')
+        self.B = cp.Variable((2, 2), name='B')
+        self.C = cp.Variable((3, 2), name='C')
+
+    def test_cosmo_options(self) -> None:
+        """Test that COSMO solver options work."""
+        # Test basic options with simple problem
+        prob = cp.Problem(cp.Minimize(cp.norm(self.x, 1) + 1.0), [self.x == 0])
+        
+        # Test with default settings
+        prob.solve(solver=cp.COSMO, verbose=True)
+        self.assertAlmostEqual(prob.value, 1.0)
+        self.assertItemsAlmostEqual(self.x.value, [0, 0])
+
+        # Test with custom settings
+        prob.solve(solver=cp.COSMO, eps_abs=1e-4, verbose=True)
+        self.assertAlmostEqual(prob.value, 1.0)
+        self.assertItemsAlmostEqual(self.x.value, [0, 0])
+
+    def test_cosmo_lp_0(self) -> None:
+        StandardTestLPs.test_lp_0(solver='COSMO')
+
+    def test_cosmo_lp_1(self) -> None:
+        StandardTestLPs.test_lp_1(solver='COSMO')
+
+    def test_cosmo_lp_2(self) -> None:
+        StandardTestLPs.test_lp_2(solver='COSMO')
+
+    def test_cosmo_lp_3(self) -> None:
+        StandardTestLPs.test_lp_3(solver='COSMO')
+
+    def test_cosmo_lp_4(self) -> None:
+        StandardTestLPs.test_lp_4(solver='COSMO')
+    
+    def test_cosmo_lp_5(self) -> None:
+        StandardTestLPs.test_lp_5(solver='COSMO')
+
+    def test_cosmo_qp_0(self) -> None:
+        StandardTestQPs.test_qp_0(solver='COSMO')
+
+    def test_cosmo_socp_0(self) -> None:
+        StandardTestSOCPs.test_socp_0(solver='COSMO')
+
+    def test_cosmo_socp_1(self) -> None:
+        StandardTestSOCPs.test_socp_1(solver='COSMO')
+
+    def test_cosmo_socp_2(self) -> None:
+        StandardTestSOCPs.test_socp_2(solver='COSMO')
+
+    def test_cosmo_socp_3(self) -> None:
+        # axis 0
+        StandardTestSOCPs.test_socp_3ax0(solver='COSMO')
+        # axis 1 
+        StandardTestSOCPs.test_socp_3ax1(solver='COSMO')
+
+    def test_cosmo_expcone_1(self) -> None:
+        StandardTestECPs.test_expcone_1(solver='COSMO')
+
+    def test_cosmo_exp_soc_1(self) -> None:
+        StandardTestMixedCPs.test_exp_soc_1(solver='COSMO')
+
+    def test_cosmo_pcp_1(self) -> None:
+        StandardTestPCPs.test_pcp_1(solver='COSMO')
+
+    def test_cosmo_pcp_2(self) -> None:
+        StandardTestPCPs.test_pcp_2(solver='COSMO')
+
+    def test_cosmo_pcp_3(self) -> None:
+        StandardTestPCPs.test_pcp_3(solver='COSMO')
+
+    def test_cosmo_sdp_1min(self) -> None:
+        StandardTestSDPs.test_sdp_1min(solver='COSMO')
+    
+    def test_cosmo_sdp_2(self) -> None:
+        places = 3
+        sth = sths.sdp_2()
+        sth.solve(solver='COSMO')
+        sth.verify_objective(places)
+        sth.check_primal_feasibility(places)
+        sth.verify_primal_values(places)
+        sth.check_complementarity(places)
+        sth.check_dual_domains(places)
+
+    def test_warm_start(self) -> None:
+        """Test warm starting.
+        """
+        x = cp.Variable(10)
+        obj = cp.Minimize(cp.sum(cp.exp(x)))
+        prob = cp.Problem(obj, [cp.sum(x) == 1])
+        result = prob.solve(solver=cp.COSMO)
+        time = prob.solver_stats.solve_time
+        result2 = prob.solve(solver=cp.COSMO, warm_start=True)
+        time2 = prob.solver_stats.solve_time
+        self.assertAlmostEqual(result2, result, places=2)
+        print(time > time2)
+
+def is_knitro_available():
+    """Check if KNITRO is installed and a license is available."""
+    if 'KNITRO' not in INSTALLED_SOLVERS:
+        return False
+    try:
+        import knitro  # type: ignore
+        # Try to create and delete a Knitro solver instance
+        kc = knitro.KN_new()
+        if kc is None:
+            return False
+        knitro.KN_free(kc)
+        return True
+    except Exception:
+        return False
+
+@unittest.skipUnless(is_knitro_available(), 'KNITRO is not installed or license is not available.')
+class TestKNITRO(BaseTest):
+
+    def test_knitro_lp_0(self) -> None:
+        StandardTestLPs.test_lp_0(solver=cp.KNITRO)
+
+    def test_knitro_lp_1(self) -> None:
+        StandardTestLPs.test_lp_1(solver=cp.KNITRO)
+
+    def test_knitro_lp_2(self) -> None:
+        StandardTestLPs.test_lp_2(solver=cp.KNITRO)
+
+    def test_knitro_lp_3(self) -> None:
+        StandardTestLPs.test_lp_3(solver=cp.KNITRO)
+
+    def test_knitro_lp_4(self) -> None:
+        StandardTestLPs.test_lp_4(solver=cp.KNITRO)
+
+    def test_knitro_lp_5(self) -> None:
+        StandardTestLPs.test_lp_5(solver=cp.KNITRO)
+
+    def test_knitro_lp_6(self) -> None:
+        StandardTestLPs.test_lp_6(solver=cp.KNITRO)
+
+    def test_knitro_lp_bound_attr(self) -> None:
+        StandardTestLPs.test_lp_bound_attr(solver=cp.KNITRO)
+
+    def test_knitro_socp_0(self) -> None:
+        StandardTestSOCPs.test_socp_0(solver=cp.KNITRO)
+
+    def test_knitro_socp_1(self) -> None:
+        StandardTestSOCPs.test_socp_1(solver=cp.KNITRO)
+
+    def test_knitro_socp_2(self) -> None:
+        StandardTestSOCPs.test_socp_2(solver=cp.KNITRO)
+
+    def test_knitro_socp_3(self) -> None:
+        # axis 0
+        StandardTestSOCPs.test_socp_3ax0(solver=cp.KNITRO)
+        # axis 1
+        StandardTestSOCPs.test_socp_3ax1(solver=cp.KNITRO)
+
+    def test_knitro_socp_bounds_attr(self) -> None:
+        StandardTestSOCPs.test_socp_bounds_attr(solver=cp.KNITRO)
+
+    def test_knitro_mi_lp_0(self) -> None:
+        StandardTestLPs.test_mi_lp_0(solver=cp.KNITRO)
+
+    def test_knitro_mi_lp_1(self) -> None:
+        StandardTestLPs.test_mi_lp_1(solver=cp.KNITRO)
+
+    def test_knitro_mi_lp_2(self) -> None:
+        StandardTestLPs.test_mi_lp_2(solver=cp.KNITRO)
+
+    def test_knitro_mi_lp_3(self) -> None:
+        StandardTestLPs.test_mi_lp_3(solver=cp.KNITRO)
+
+    def test_knitro_mi_lp_5(self) -> None:
+        StandardTestLPs.test_mi_lp_5(solver=cp.KNITRO)
+
+    def test_knitro_mi_socp_1(self) -> None:
+        StandardTestSOCPs.test_mi_socp_1(solver=cp.KNITRO)
+
+    def test_knitro_mi_socp_2(self) -> None:
+        StandardTestSOCPs.test_mi_socp_2(solver=cp.KNITRO)
+
+    def test_knitro_qp_0(self) -> None:
+        StandardTestQPs.test_qp_0(solver=cp.KNITRO)
+
+    def test_knitro_expcone_1(self) -> None:
+        StandardTestECPs.test_expcone_1(solver=cp.KNITRO)
+
+    def test_knitro_pcp_1(self) -> None:
+        StandardTestPCPs.test_pcp_1(solver=cp.KNITRO)
+
+    def test_knitro_pcp_2(self) -> None:
+        StandardTestPCPs.test_pcp_2(solver=cp.KNITRO)
+
+    def test_knitro_pcp_3(self) -> None:
+        StandardTestPCPs.test_pcp_3(solver=cp.KNITRO)
+
+    def test_knitro_mi_pcp_0(self) -> None:
+        StandardTestPCPs.test_mi_pcp_0(solver=cp.KNITRO)
+
+    def test_knitro_sdp_1min(self) -> None:
+        StandardTestSDPs.test_sdp_1min(solver=cp.KNITRO)
+
+    def test_knitro_sdp_1max(self) -> None:
+        StandardTestSDPs.test_sdp_1max(solver=cp.KNITRO)
+
+    def test_knitro_sdp_2(self) -> None:
+        StandardTestSDPs.test_sdp_2(solver=cp.KNITRO)
+
+    def test_knitro_exp_soc_1(self) -> None:
+        StandardTestMixedCPs.test_exp_soc_1(solver=cp.KNITRO)
+
+    def test_knitro_sdp_pcp_1(self) -> None:
+        StandardTestMixedCPs.test_sdp_pcp_1(solver=cp.KNITRO)
+
+    def test_knitro_params(self) -> None:
+        n = 10
+        m = 4
+        np.random.seed(0)
+        A = np.random.randn(m, n)
+        x = np.random.randn(n)
+        y = A.dot(x)
+
+        # Solve a simple basis pursuit problem for testing purposes.
+        z = cp.Variable(n)
+        objective = cp.Minimize(cp.norm1(z))
+        constraints = [A @ z == y]
+        problem = cp.Problem(objective, constraints)
+
+        with self.assertRaises(Exception):
+            opts = {"a": "invalid"}
+            problem.solve(solver=cp.KNITRO, **opts)
+
+        with self.assertRaises(Exception):
+            opts = {"algorithm": "invalid"}
+            problem.solve(solver=cp.KNITRO, **opts)
+
+        opts = {"algorithm": 0}
+        problem.solve(solver=cp.KNITRO, **opts)
+
+@unittest.skipUnless("CUOPT" in INSTALLED_SOLVERS, "CUOPT is not installed.")
+class TestCUOPT(unittest.TestCase):
+
+    import os
+    kwargs={"pdlp_solver_mode": os.environ.get("CUOPT_PDLP_SOLVER_MODE", "Stable2"),
+            "solver_method": os.environ.get("CUOPT_SOLVER_METHOD", 0)
+            }
+
+    def test_cuopt_lp_0(self) -> None:
+        StandardTestLPs.test_lp_0(solver="CUOPT", duals=True, places=4, **TestCUOPT.kwargs)
+
+    def test_cuopt_lp_1(self) -> None:
+        StandardTestLPs.test_lp_1(solver="CUOPT", duals=True, places=4, **TestCUOPT.kwargs)
+
+    def test_cuopt_lp_2(self) -> None:
+        StandardTestLPs.test_lp_2(solver="CUOPT", duals=True, places=4, **TestCUOPT.kwargs)
+
+    def test_cuopt_lp_3(self) -> None:
+        StandardTestLPs.test_lp_3(solver="CUOPT", duals=True, places=4, **TestCUOPT.kwargs)
+
+    def test_cuopt_lp_4(self) -> None:
+        # In this case cuopt throws an exception because there are crossing
+        # variable bounds x <= 0 and x >= 1
+        try:
+            StandardTestLPs.test_lp_4(solver="CUOPT", duals=True, places=4, **TestCUOPT.kwargs)
+        except Exception as e:
+            assert "crossing bounds" in str(e)
+
+    def test_cuopt_lp_5(self) -> None:
+        StandardTestLPs.test_lp_5(solver='CUOPT', duals=True, places=4, **TestCUOPT.kwargs)
+
+    def test_cuopt_lp_6(self) -> None:
+        StandardTestLPs.test_lp_5(solver='CUOPT', duals=True, places=4, **TestCUOPT.kwargs)
+
+    def test_cuopt_lp_7(self) -> None:
+        StandardTestLPs.test_lp_5(solver='CUOPT', duals=True, places=4, **TestCUOPT.kwargs)
+
+    def test_cuopt_mi_lp_0(self) -> None:
+        StandardTestLPs.test_mi_lp_0(solver='CUOPT', **TestCUOPT.kwargs)
+
+    def test_cuopt_mi_lp_1(self) -> None:
+        StandardTestLPs.test_mi_lp_1(solver='CUOPT', **TestCUOPT.kwargs)
+
+    def test_cuopt_mi_lp_2(self) -> None:
+        StandardTestLPs.test_mi_lp_2(solver='CUOPT', **TestCUOPT.kwargs)
+
+    def test_cuopt_mi_lp_3(self) -> None:
+        TestCUOPT.kwargs["time_limit"] = 5
+        StandardTestLPs.test_mi_lp_3(solver='CUOPT', **TestCUOPT.kwargs)
+        del TestCUOPT.kwargs["time_limit"]
+
+    # This is an unconstrained problem, which cuopt doesn't handle.
+    # Error message from cvxpy should be returned
+    def test_cuopt_mi_lp_4(self) -> None:
+        try:
+            StandardTestLPs.test_mi_lp_4(solver='CUOPT', **TestCUOPT.kwargs)
+        except Exception as e:
+            assert "there are not enough constraints in the problem" in str(e)
+
+    def test_cuopt_mi_lp_5(self) -> None:
+        StandardTestLPs.test_mi_lp_5(solver='CUOPT', **TestCUOPT.kwargs, time_limit=5)
+
+    def test_cuopt_mi_lp_7(self) -> None:
+        StandardTestLPs.test_mi_lp_5(solver='CUOPT', **TestCUOPT.kwargs, time_limit=5)

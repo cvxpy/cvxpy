@@ -79,7 +79,7 @@ Fitting the model
 ~~~~~~~~~~~~~~~~~
 
 All we need to do to fit the model is create a CVXPY problem where the
-objective is to minimize the the objective function defined above. We
+objective is to minimize the objective function defined above. We
 make :math:`\lambda` a CVXPY parameter, so that we can use a single
 CVXPY problem to obtain estimates for many values of :math:`\lambda`.
 

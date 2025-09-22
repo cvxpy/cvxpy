@@ -81,12 +81,12 @@ conda install -c conda-forge cvxpy
 
 CVXPY has the following dependencies:
 
-- Python >= 3.9
+- Python >= 3.11
 - Clarabel >= 0.5.0
 - OSQP >= 0.6.2
 - SCS >= 3.2.4.post1
-- NumPy >= 1.21.6
-- SciPy >= 1.11.0
+- NumPy >= 1.22.4
+- SciPy >= 1.13.0
 
 For detailed instructions, see the [installation
 guide](https://www.cvxpy.org/install/index.html).
@@ -122,7 +122,7 @@ Here are some simple ways to start contributing immediately:
 * Enhance the [website documentation](https://github.com/cvxpy/cvxpy/tree/master/doc)
 * Browse the [issue tracker](https://github.com/cvxpy/cvxpy/issues), and look for issues tagged as "help wanted"
 * Polish the [example library](https://github.com/cvxpy/cvxpy/tree/master/examples)
-* Add a [benchmark](https://github.com/cvxpy/cvxpy/tree/master/cvxpy/tests/test_benchmarks.py)
+* Add a [benchmark](https://github.com/cvxpy/benchmarks)
 
 If you'd like to add a new example to our library, or implement a new feature,
 please get in touch with us first to make sure that your priorities align with

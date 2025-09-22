@@ -51,11 +51,36 @@ class BinaryOperator(AffAtom):
 
     def name(self):
         pretty_args = []
-        for a in self.args:
+        for i, a in enumerate(self.args):
+            # Always parenthesize AddExpression and DivExpression
             if isinstance(a, (AddExpression, DivExpression)):
+                pretty_args.append('(' + a.name() + ')')
+            # For division, also parenthesize multiplication on the right
+            elif isinstance(self, DivExpression) and i == 1 and \
+                    isinstance(a, (MulExpression, multiply)):
                 pretty_args.append('(' + a.name() + ')')
             else:
                 pretty_args.append(a.name())
+        return pretty_args[0] + ' ' + self.OP_NAME + ' ' + pretty_args[1]
+    
+    def format_labeled(self):
+        """Format binary operation with labels where available."""
+        # Check for own label first
+        if self._label is not None:
+            return self._label
+        
+        # Build from sub-expressions using their labels
+        pretty_args = []
+        for i, a in enumerate(self.args):
+            # Always parenthesize AddExpression and DivExpression
+            if isinstance(a, (AddExpression, DivExpression)):
+                pretty_args.append('(' + a.format_labeled() + ')')
+            # For division, also parenthesize multiplication on the right
+            elif isinstance(self, DivExpression) and i == 1 and \
+                    isinstance(a, (MulExpression, multiply)):
+                pretty_args.append('(' + a.format_labeled() + ')')
+            else:
+                pretty_args.append(a.format_labeled())
         return pretty_args[0] + ' ' + self.OP_NAME + ' ' + pretty_args[1]
 
     def numeric(self, values):
@@ -193,6 +218,12 @@ class MulExpression(BinaryOperator):
         DX_rows = self.args[0].size
         cols = self.args[0].size
 
+        # dot product of two vectors with shape (n,)
+        if len(self.args[0].shape) == 1 and len(self.args[1].shape) == 1:
+            DX = sp.csc_array(Y.reshape(-1, 1))  # y as column vector
+            DY = sp.csc_array(X.reshape(-1, 1))  # x as column vector
+            return [DX, DY]
+
         # DX = [diag(Y11), diag(Y12), ...]
         #      [diag(Y21), diag(Y22), ...]
         #      [   ...        ...     ...]
@@ -201,7 +232,7 @@ class MulExpression(BinaryOperator):
             DX[k::self.args[0].shape[0], k::self.args[0].shape[0]] = Y
         DX = sp.csc_array(DX)
         cols = 1 if len(self.args[1].shape) == 1 else self.args[1].shape[1]
-        DY = sp.block_diag([X.T for k in range(cols)], 'csc')
+        DY = sp.block_diag([np.atleast_2d(X.T) for k in range(cols)], "csc")
 
         return [DX, DY]
 

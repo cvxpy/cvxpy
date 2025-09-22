@@ -327,6 +327,22 @@ CITATION_DICT["PROXQP"] = \
 }
 """
 
+CITATION_DICT["QPALM"] = \
+"""
+@article{hermans2022qpalm,
+	author = {Hermans, Ben and Themelis, Andreas and Patrinos, Panagiotis},
+	title = {{QPALM}: a proximal augmented lagrangian method for nonconvex quadratic programs},
+	volume = {14},
+	issn = {1867-2957},
+	pages = {497--541},
+	number = {3},
+	journal = {Mathematical Programming Computation},
+	month = sep,
+	year = {2022},
+	doi = {10.1007/s12532-022-00218-0},
+}
+"""
+
 CITATION_DICT["QOCO"] = \
 r"""
 @misc{chari2025qoco,
@@ -396,11 +412,10 @@ CITATION_DICT["NAG"] = \
 @misc{xpress,
   author = {NAG},
   title  = {Optimization Modelling Suite},
-  year   = 2025,
+  year   = {2025},
   url    = {https://nag.com/mathematical-optimization/}
 }
 """
-
 
 CITATION_DICT["PDLP"] = \
 """
@@ -475,6 +490,19 @@ CITATION_DICT["CLARABEL"] = \
 }
 """
 
+CITATION_DICT["CUCLARABEL"] = \
+"""
+@misc{CuClarabel,
+      title={CuClarabel: GPU Acceleration for a Conic Optimization Solver}, 
+      author={Yuwen Chen and Danny Tse and Parth Nobel and Paul Goulart and Stephen Boyd},
+      year={2024},
+      eprint={2412.19027},
+      archivePrefix={arXiv},
+      primaryClass={math.OC},
+      url={https://arxiv.org/abs/2412.19027}, 
+}
+"""
+
 CITATION_DICT["DAQP"] = \
 """
 @article{arnstrom2022dual,
@@ -508,6 +536,22 @@ CITATION_DICT["HIGHS"] = \
 }
 """
 
+CITATION_DICT["COSMO"] = \
+"""
+@Article{Garstka_2021,
+  author  = {Michael Garstka and Mark Cannon and Paul Goulart},
+  journal = {Journal of Optimization Theory and Applications},
+  title   = {{COSMO}: A Conic Operator Splitting Method for Convex Conic Problems},
+  volume  = {190},
+  number  = {3},
+  pages   = {779--810},
+  year    = {2021},
+  publisher = {Springer},
+  doi     = {10.1007/s10957-021-01896-x},
+  url     = {https://doi.org/10.1007/s10957-021-01896-x}
+}
+"""
+
 CITATION_DICT["MPAX"] = \
 """
 @article{lu2024mpax,
@@ -515,5 +559,28 @@ CITATION_DICT["MPAX"] = \
   author={Lu, Haihao and Peng, Zedong and Yang, Jinwen},
   journal={arXiv preprint arXiv:2412.09734},
   year={2024}
+}
+"""
+
+CITATION_DICT["KNITRO"] = \
+"""
+@article{byrd2006k,
+  title={K nitro: An integrated package for nonlinear optimization},
+  author={Byrd, Richard H and Nocedal, Jorge and Waltz, Richard A},
+  journal={Large-scale nonlinear optimization},
+  pages={35--59},
+  year={2006},
+  publisher={Springer}
+}
+"""
+
+CITATION_DICT["CUOPT"] = \
+"""
+@software{cuOpt,
+  title = {cuOpt},
+  version = { 25.05 },
+  organization = {NVIDIA},
+  url = {https://docs.nvidia.com/cuopt/index.html},
+  date = { 2025-05-29 }
 }
 """

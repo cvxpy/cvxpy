@@ -4,23 +4,32 @@
 # variables defined in the build.yml in .github/workflows/.
 
 set -e
+uv venv
+if [[ "$RUNNER_OS" == "Windows" ]]; then
+  . .venv/Scripts/activate
+else
+  . .venv/bin/activate
+fi
 
-conda config --set remote_connect_timeout_secs 30.0
-conda config --set remote_max_retries 10
-conda config --set remote_backoff_factor 2
-conda config --set remote_read_timeout_secs 120.0
-conda install mkl pip pytest pytest-cov hypothesis openblas "setuptools>65.5.1"
+#if  [[ "$RUNNER_OS" == "Linux" ]]; then 
+#  sudo apt install openblas
+#fi
 
-conda install scs
-python -m pip install clarabel osqp
+uv pip install pytest pytest-cov hypothesis "setuptools>65.5.1"
+
+uv pip install scs clarabel osqp
+
+if [[ "$RUNNER_OS" != "macOS" ]]; then
+  uv pip install mkl
+fi
 
 # Install newest stable versions for Python 3.13.
 if [[ "$PYTHON_VERSION" == "3.13" ]]; then
-  conda install scipy numpy
+  uv pip install scipy numpy
 else
-  conda install scipy=1.13.0 numpy=1.26.4
+  uv pip install scipy==1.13.0 numpy==1.26.4
 fi
 
-if [[ "$USE_OPENMP" == "True" ]]; then
-  conda install -c conda-forge openmp
-fi
+#if [[ "$USE_OPENMP" == "True" ]]; then
+  #uv pip install openmp
+#fi

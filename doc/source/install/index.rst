@@ -59,12 +59,12 @@ or a conda environment.
 
         CVXPY has the following dependencies:
 
-        * Python >= 3.9
+        * Python >= 3.11
         * `OSQP`_ >= 0.6.2
         * `CLARABEL`_ >= 0.6.0
-        * `SCS`_ >= 3.0
-        * `NumPy`_ >= 1.21.6
-        * `SciPy`_ >= 1.11.0
+        * `SCS`_ >= 3.2.4.post1
+        * `NumPy`_ >= 1.22.4
+        * `SciPy`_ >= 1.13.0
 
         All required packages are installed automatically alongside CVXPY.
 
@@ -142,6 +142,15 @@ Install with Additional Solver Support
     CVXPY supports the MPAX solver.
     Simply install MPAX such that you can ``import mpax`` in Python.
     See the `MPAX <https://github.com/MIT-Lu-Lab/MPAX>`_ website for installation instructions.
+    In addition, please refer to the `JAX installation instructions <https://docs.jax.dev/en/latest/installation.html>`_ to install JAX.
+
+.. info:: CuClarabel
+   :collapsible:
+
+   CuClarabel is currently only available in the Julia version of Clarabel.
+   To install CuClarabel, install `Julia <https://julialang.org/install/>`_, and then run in a julia terminal ``Pkg.add(Pkg.PackageSpec(url="https://github.com/oxfordcontrol/Clarabel.jl.git", rev="CuClarabel"))``.
+
+   Then install cupy and juliacall such that you can ``import cupy`` and ``import juliacall`` in Python.
 
 .. info:: XPRESS
     :collapsible:
@@ -241,12 +250,26 @@ Install with Additional Solver Support
     Be aware that PROXQP by default uses dense matrices to represent problem data.
     You may achieve better performance by setting ``backend = 'sparse'`` in your call to ``problem.solve``.
 
+.. info:: QPALM
+   :collapsible:
+
+    CVXPY supports the QPALM solver.
+    Simply install QPALM such that you can ``import qpalm`` in Python.
+    See the `QPALM <https://kul-optec.github.io/QPALM/Doxygen/index.html>`_ website for installation instructions.
+
 .. info:: QOCO
     :collapsible:
 
     CVXPY supports the QOCO solver.
     Simply install QOCO such that you can ``import qoco`` in Python.
     See the `QOCO <https://qoco-org.github.io/qoco/install/index.html>`_ website for installation instructions.
+
+.. info:: CUOPT
+
+    CVXPY supports the CUOPT solver.
+    Simply install CUOPT such that you can ``import cuopt`` in Python.
+    See the `CUOPT github page <http://github.com/NVIDIA/cuopt>`_ for system requirments and installation instructions (pip, conda, or build from source).
+    Follow this link for additional documentation on CUOPT_
 
 .. info:: Without default solvers
     :collapsible:
@@ -296,3 +319,4 @@ To run the tests when CVXPY was not installed from source, use
 .. _pip: https://pip.pypa.io/
 .. _GLPK: https://www.gnu.org/software/glpk/
 .. _HiGHS: https://highs.dev/
+.. _CUOPT: https://docs.nvidia.com/cuopt/

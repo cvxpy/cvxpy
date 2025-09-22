@@ -63,7 +63,7 @@ class ECOS(ConicSolver):
                   10: s.OPTIMAL_INACCURATE,
                   11: s.INFEASIBLE_INACCURATE,
                   12: s.UNBOUNDED_INACCURATE,
-                  -1: s.SOLVER_ERROR,
+                  -1: s.USER_LIMIT,
                   -2: s.SOLVER_ERROR,
                   -3: s.SOLVER_ERROR,
                   -4: s.SOLVER_ERROR,
