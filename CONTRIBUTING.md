@@ -48,7 +48,7 @@ following:
 * Browse the [issue tracker](https://github.com/cvxpy/cvxpy/issues), and
   look for the issues tagged "help wanted".
 * Polish the [example library](https://www.cvxpy.org/examples/index.html) or add new examples
-* Add a [benchmark](https://github.com/cvxpy/cvxpy/tree/master/cvxpy/tests/test_benchmarks.py)
+* Add a [benchmark](https://github.com/cvxpy/benchmarks)
 
 ## License
 Please add the following license to new files:
@@ -128,13 +128,17 @@ Please make sure that your change doesn't cause any of the unit tests to fail.
 to `pytest`.
 
 ## Benchmarks
-CVXPY has a few benchmarks in `cvxpy/tests/test_benchmarks.py`, which test
-the time to canonicalize problems. Please run
+CVXPY benchmarks are in a separate repository at 
+[github.com/cvxpy/benchmarks](https://github.com/cvxpy/benchmarks). 
+The benchmarks use [Airspeed Velocity](https://asv.readthedocs.io/) to test
+the time to canonicalize problems.
 
-```
-pytest -s cvxpy/tests/test_benchmarks.py
-```
+To run benchmarks locally:
+1. Clone the benchmarks repository
+2. Install with `pip install -e .`
+3. Run benchmarks with `asv run`
 
-with and without your change, to make sure no performance regressions are
-introduced. If you are making a code contribution, please include the output of
-the above command (with and without your change) in your pull request.
+For more details, see the [benchmarks README](https://github.com/cvxpy/benchmarks/blob/main/README.md).
+
+When making performance-sensitive changes, please verify that no regressions are
+introduced by running the relevant benchmarks.
