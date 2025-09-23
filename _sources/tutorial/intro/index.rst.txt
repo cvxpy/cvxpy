@@ -211,7 +211,7 @@ Here's an example of a CVXPY problem with vectors and matrices:
 
 ::
 
-    Optimal ojbective value 4.14133859146
+    Optimal objective value 4.14133859146
     Optimal variable value
     [ -5.11480673e-21   6.30625742e-21   1.34643668e-01   1.24976681e-01
     -4.79039542e-21]
