@@ -441,6 +441,41 @@ class TestComplex(BaseTest):
         result = prob.solve(solver=cp.SCS, eps=1e-5, max_iters=7500)
         self.assertAlmostEqual(result, value, places=3)
 
+    def test_convolve(self) -> None:
+        """Test convolve atom with complex variables.
+
+        Tests the factorization (x - j)(x + 1) = x^2 + (1-j)x - j
+        by solving for both factors in the convolution.
+        """
+        # Test with both cp.conv and cp.convolve
+        for conv_fn in [cp.conv, cp.convolve]:
+            # Expected product: x^2 + (1-j)x - j = [-j, 1-j, 1]
+            expected_product = np.array([-1j, 1 - 1j, 1])
+
+            # Case 1: Solve for factor_b (real variable) given complex factor_a
+            # factor_a * factor_b = expected_product, where factor_a = [-j, 1]
+            factor_a = np.array([-1j, 1])
+            factor_b_var = cp.Variable(2, complex=False)
+            product1 = conv_fn(factor_a, factor_b_var)
+            assert product1.is_complex()
+            objective1 = cp.Minimize(cp.norm(product1 - expected_product))
+            prob1 = cp.Problem(objective1)
+            result1 = prob1.solve(solver="CLARABEL")
+            self.assertAlmostEqual(result1, 0, places=5)
+            self.assertItemsAlmostEqual(factor_b_var.value, [1, 1], places=5)
+
+            # Case 2: Solve for factor_a (complex variable) given real factor_b
+            # factor_b * factor_a = expected_product, where factor_b = [1, 1]
+            factor_b = np.array([1, 1])
+            factor_a_var = cp.Variable(2, complex=True)
+            product2 = conv_fn(factor_b, factor_a_var)
+            assert product2.is_complex()
+            objective2 = cp.Minimize(cp.norm(product2 - expected_product))
+            prob2 = cp.Problem(objective2)
+            result2 = prob2.solve(solver="CLARABEL")
+            self.assertAlmostEqual(result2, 0, places=5)
+            self.assertItemsAlmostEqual(factor_a_var.value, [-1j, 1], places=5)
+
     def test_quad_over_lin(self) -> None:
         """Test quad_over_lin atom.
         """
