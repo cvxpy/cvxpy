@@ -47,31 +47,18 @@ class XPRESS(QpSolver):
 
         data, inv_data = super(XPRESS, self).apply(problem)
 
-        variables, x = problem.variables, problem.x
+        vars, x = problem.variables, problem.x
         data[s.BOOL_IDX] = [int(t[0]) for t in x.boolean_idx]
         data[s.INT_IDX] = [int(t[0]) for t in x.integer_idx]
 
         # Setup MIP warmstart
-        fortran_boolidxs, fortran_intidxs = extract_mip_idx(variables)
+        fortran_boolidxs, fortran_intidxs = extract_mip_idx(vars)
         mipidxs = np.union1d(fortran_boolidxs, fortran_intidxs).astype(int)
-        values = utilities.stack_vals(variables, np.nan, order="F")
+        values = utilities.stack_vals(vars, np.nan, order="F")
         mipidxs = np.intersect1d(mipidxs, np.argwhere(~np.isnan(values)))
         data["initial_mip_values"] = values[mipidxs] if mipidxs.size > 0 else []
         data["initial_mip_idxs"] = mipidxs
 
-        # Setup names
-        data["variable_names"] = np.concatenate([
-            np.ravel([
-                f"{var.name()}_x_{i:09d}" for i in range(var.size)
-            ], order="F")
-            for var in variables
-        ]).tolist()
-        data["constraint_names"] = np.concatenate([
-            np.ravel([
-                f"{eq.constr_id}_eq_{i:09d}" for i in range(eq.size)
-            ], order="F")
-            for eq in problem.constraints
-        ]).tolist()
         return data, inv_data
 
     def invert(self, results, inverse_data):
@@ -160,8 +147,8 @@ class XPRESS(QpSolver):
 
             mqcol1, mqcol2, dqe = [], [], []
 
-        colnames = data["variable_names"]
-        rownames = data["constraint_names"]
+        colnames = ['x_{0:09d}'.format(i) for i in range(n_var)]
+        rownames = ['eq_{0:09d}'.format(i) for i in range(n_eq)]
 
         if verbose:
             self.prob_.controls.miplog = 2
