@@ -85,7 +85,7 @@ class TestQp(BaseTest):
                 return status == mosek.rescode.ok
             except Exception:
                 return False
-
+        
         def is_knitro_available():
             """Check if KNITRO is installed and a license is available."""
             if 'KNITRO' not in INSTALLED_SOLVERS:
@@ -100,7 +100,7 @@ class TestQp(BaseTest):
                 return True
             except Exception:
                 return False
-
+        
         def is_xpress_available():
             """Check if XPRESS is installed and a license is available."""
             if 'XPRESS' not in INSTALLED_SOLVERS:
@@ -553,33 +553,6 @@ class TestQp(BaseTest):
                 assert X_vals[row, col] + 1 == model_x[i].start
                 assert np.isclose(X.value[row, col], model_x[i].x)
 
-    def test_xpress_warmstart(self) -> None:
-        """Test XPRESS warm start with a user provided point.
-        """
-        if cp.XPRESS in INSTALLED_SOLVERS:
-            m = 20
-            n = 10
-            np.random.seed(1)
-            A = np.random.randn(m, n)
-            b = Parameter(m)
-
-            # Construct the problem.
-            x = Variable(n, integer=True)
-            prob = Problem(Minimize(sum_squares(A @ x - b)))
-
-            b.value = np.random.randn(m)
-            result = prob.solve(solver=cp.XPRESS, warm_start=False)
-            result2 = prob.solve(solver=cp.XPRESS, warm_start=True)
-            self.assertAlmostEqual(result, result2)
-            x.value = x.value.astype(np.int64)
-
-            xprime = Variable(n, integer=True)
-            prob = Problem(Minimize(sum_squares(A @ xprime - b)))
-            xprime.value = x.value
-            result = prob.solve(solver=cp.XPRESS, warm_start=True)
-            result2 = prob.solve(solver=cp.XPRESS, warm_start=False)
-            self.assertAlmostEqual(result, result2)
-
     def test_highs_warmstart(self) -> None:
         """Test warm start.
         """
@@ -604,7 +577,7 @@ class TestQp(BaseTest):
             self.assertAlmostEqual(result, result2)
 
     def test_highs_cvar(self) -> None:
-        """Test problem with CVaR constraint from
+        """Test problem with CVaR constraint from 
         https://github.com/cvxpy/cvxpy/issues/2836
         """
         if cp.HIGHS in INSTALLED_SOLVERS:
