@@ -182,7 +182,7 @@ class XPRESS(QpSolver):
                                entind=data[s.BOOL_IDX] + data[s.INT_IDX],
                                # variables' and constraints' names
                                colnames=colnames,
-                               rownames=rownames if len(rownames) > 0 else None)
+                               rownames=rownames)
 
         # The problem currently has the quadratic objective function
         # and the linear equations. Add the linear inequalities
