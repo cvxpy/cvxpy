@@ -46,8 +46,21 @@ class TestHessVecMultiply():
         vec = np.array([5.0, 4.0, 3.0])
         result_dict = mult.hess_vec(vec)
         correct_matrix = np.diag(np.array([5.0, 4.0, 3.0]))
-        assert(np.allclose(result_dict[(x, y)], correct_matrix))
-        assert(np.allclose(result_dict[(y, x)], correct_matrix))
+
+        computed_hess_xy = np.zeros((3, 3))
+        rows = result_dict[(x, y)][0]
+        cols = result_dict[(x, y)][1]
+        vals = result_dict[(x, y)][2]
+        computed_hess_xy[rows, cols] = vals
+        assert(np.allclose(computed_hess_xy, correct_matrix))
+
+        computed_hess_yx = np.zeros((3, 3))
+        rows = result_dict[(y, x)][0]
+        cols = result_dict[(y, x)][1]
+        vals = result_dict[(y, x)][2]
+        computed_hess_yx[rows, cols] = vals
+        assert(np.allclose(computed_hess_yx, correct_matrix))
+
         assert(len(result_dict) == 2)
 
     # x * y with x scalar variable, y scalar variable
@@ -60,8 +73,21 @@ class TestHessVecMultiply():
         vec = np.array([5.0])
         result_dict = mult.hess_vec(vec)
         correct_matrix = np.array([[5.0]])
-        assert(np.allclose(result_dict[(x, y)], correct_matrix))
-        assert(np.allclose(result_dict[(y, x)], correct_matrix))
+
+        computed_hess_xy = np.zeros((1, 1))
+        rows = result_dict[(x, y)][0]
+        cols = result_dict[(x, y)][1]
+        vals = result_dict[(x, y)][2]
+        computed_hess_xy[rows, cols] = vals
+        assert(np.allclose(computed_hess_xy, correct_matrix))
+
+        computed_hess_yx = np.zeros((1, 1))
+        rows = result_dict[(y, x)][0]
+        cols = result_dict[(y, x)][1]
+        vals = result_dict[(y, x)][2]
+        computed_hess_yx[rows, cols] = vals
+        assert(np.allclose(computed_hess_yx, correct_matrix))
+
         assert(len(result_dict) == 2)
 
     # x * y with x vector variable, y scalar variable,
@@ -74,8 +100,21 @@ class TestHessVecMultiply():
         vec = np.array([5.0, 4.0, 3.0])
         result_dict = mult.hess_vec(vec)
         correct_matrix = np.array([5.0, 4.0, 3.0])
-        assert(np.allclose(result_dict[(x, y)], correct_matrix))
-        assert(np.allclose(result_dict[(y, x)], correct_matrix))
+
+        computed_hess_xy = np.zeros((3, 1))
+        rows = result_dict[(x, y)][0]
+        cols = result_dict[(x, y)][1]
+        vals = result_dict[(x, y)][2]
+        computed_hess_xy[rows, cols] = vals
+        assert(np.allclose(computed_hess_xy.flatten(), correct_matrix))
+
+        computed_hess_yx = np.zeros((1, 3))
+        rows = result_dict[(y, x)][0]
+        cols = result_dict[(y, x)][1]
+        vals = result_dict[(y, x)][2]
+        computed_hess_yx[rows, cols] = vals
+        assert(np.allclose(computed_hess_yx.flatten(), correct_matrix))
+
         assert(len(result_dict) == 2)
 
     # x * y with x scalar variable, y vector variable,
@@ -88,8 +127,21 @@ class TestHessVecMultiply():
         vec = np.array([5.0, 4.0, 3.0])
         result_dict = mult.hess_vec(vec)
         correct_matrix = np.array([5.0, 4.0, 3.0])
-        assert(np.allclose(result_dict[(x, y)], correct_matrix))
-        assert(np.allclose(result_dict[(y, x)], correct_matrix))
+
+        computed_hess_xy = np.zeros((1, 3))
+        rows = result_dict[(x, y)][0]
+        cols = result_dict[(x, y)][1]
+        vals = result_dict[(x, y)][2]
+        computed_hess_xy[rows, cols] = vals
+        assert(np.allclose(computed_hess_xy.flatten(), correct_matrix))
+
+        computed_hess_yx = np.zeros((3, 1))
+        rows = result_dict[(y, x)][0]
+        cols = result_dict[(y, x)][1]
+        vals = result_dict[(y, x)][2]
+        computed_hess_yx[rows, cols] = vals
+        assert(np.allclose(computed_hess_yx.flatten(), correct_matrix))
+
         assert(len(result_dict) == 2)
 
     # scalar constant * phi(x) 
@@ -100,8 +152,20 @@ class TestHessVecMultiply():
         mult = cp.multiply(3.0, log)
         vec = np.array([5.0, 4.0, 3.0])
         result_dict = mult.hess_vec(vec)
-        correct_matrix = 3 * log.hess_vec(vec)[(x, x)]
-        assert(np.allclose(result_dict[(x, x)], correct_matrix))
+
+        correct_matrix = np.zeros((3, 3))
+        log_result_dict = log.hess_vec(vec)
+        rows = log_result_dict[(x, x)][0]
+        cols = log_result_dict[(x, x)][1]
+        vals = 3 * log_result_dict[(x, x)][2]
+        correct_matrix[rows, cols] = vals
+
+        computed_hess = np.zeros((3, 3))
+        rows = result_dict[(x, x)][0]
+        cols = result_dict[(x, x)][1]
+        vals = result_dict[(x, x)][2]
+        computed_hess[rows, cols] = vals
+        assert(np.allclose(computed_hess, correct_matrix))
         assert(len(result_dict) == 1)
 
     # phi(x) * scalar constant
@@ -112,8 +176,20 @@ class TestHessVecMultiply():
         mult = cp.multiply(log, 3.0)
         vec = np.array([5.0, 4.0, 3.0])
         result_dict = mult.hess_vec(vec)
-        correct_matrix = 3 * log.hess_vec(vec)[(x, x)]
-        assert(np.allclose(result_dict[(x, x)], correct_matrix))
+        
+        correct_matrix = np.zeros((3, 3))
+        log_result_dict = log.hess_vec(vec)
+        rows = log_result_dict[(x, x)][0]
+        cols = log_result_dict[(x, x)][1]
+        vals = 3 * log_result_dict[(x, x)][2]
+        correct_matrix[rows, cols] = vals
+
+        computed_hess = np.zeros((3, 3))
+        rows = result_dict[(x, x)][0]
+        cols = result_dict[(x, x)][1]
+        vals = result_dict[(x, x)][2]
+        computed_hess[rows, cols] = vals
+        assert(np.allclose(computed_hess, correct_matrix))
         assert(len(result_dict) == 1)
 
     # vector constant * phi(x) 
@@ -125,8 +201,20 @@ class TestHessVecMultiply():
         mult = cp.multiply(constant_vector, log)
         vec = np.array([5.0, 4.0, 3.0])
         result_dict = mult.hess_vec(vec)
-        correct_matrix = log.hess_vec(vec * constant_vector)[(x, x)]
-        assert(np.allclose(result_dict[(x, x)], correct_matrix))
+
+        log_result_dict = log.hess_vec(vec * constant_vector)
+        correct_matrix = np.zeros((3, 3))
+        rows = log_result_dict[(x, x)][0]
+        cols = log_result_dict[(x, x)][1]
+        vals = log_result_dict[(x, x)][2]
+        correct_matrix[rows, cols] = vals
+
+        computed_hess = np.zeros((3, 3))
+        rows = result_dict[(x, x)][0]
+        cols = result_dict[(x, x)][1]
+        vals = result_dict[(x, x)][2]
+        computed_hess[rows, cols] = vals
+        assert(np.allclose(computed_hess, correct_matrix))
         assert(len(result_dict) == 1)
 
     # phi(x) * vector constant
@@ -138,7 +226,19 @@ class TestHessVecMultiply():
         mult = cp.multiply(log, constant_vector)
         vec = np.array([5.0, 4.0, 3.0])
         result_dict = mult.hess_vec(vec)
-        correct_matrix = log.hess_vec(vec * constant_vector)[(x, x)]
-        assert(np.allclose(result_dict[(x, x)], correct_matrix))
+        
+        log_result_dict = log.hess_vec(vec * constant_vector)
+        correct_matrix = np.zeros((3, 3))
+        rows = log_result_dict[(x, x)][0]
+        cols = log_result_dict[(x, x)][1]
+        vals = log_result_dict[(x, x)][2]
+        correct_matrix[rows, cols] = vals
+
+        computed_hess = np.zeros((3, 3))
+        rows = result_dict[(x, x)][0]
+        cols = result_dict[(x, x)][1]
+        vals = result_dict[(x, x)][2]
+        computed_hess[rows, cols] = vals
+        assert(np.allclose(computed_hess, correct_matrix))
         assert(len(result_dict) == 1)
 

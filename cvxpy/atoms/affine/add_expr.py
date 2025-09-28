@@ -17,6 +17,9 @@ import operator as op
 from functools import reduce
 from typing import Any, Iterable, List, Tuple
 
+import numpy as np
+from scipy.sparse import coo_matrix
+
 import cvxpy.lin_ops.lin_op as lo
 import cvxpy.lin_ops.lin_utils as lu
 import cvxpy.utilities as u
@@ -149,14 +152,34 @@ class AddExpression(AffAtom):
         If a key appears in several, their values are summed.
         """
         hess_dict = {}
+        keys_require_summing = []
         
         for arg in self.args:
             if not arg.is_affine():
                 arg_hess = arg.hess_vec(vec)
                 for k, v in arg_hess.items():
                     if k in hess_dict:
-                        hess_dict[k] += v
+                        hess_dict[k][0].extend(v[0])
+                        hess_dict[k][1].extend(v[1])
+                        hess_dict[k][2].extend(v[2])
+                        keys_require_summing.append(k)
                     else:
-                        hess_dict[k] = v
+                        hess_dict[k] = ([], [], [])
+                        hess_dict[k][0].extend(v[0])
+                        hess_dict[k][1].extend(v[1])
+                        hess_dict[k][2].extend(v[2])
+
+        # sum duplicates (we could do this later just once but let's do it here)
+        for key in set(keys_require_summing): 
+            rows, cols, vals = hess_dict[key]
+            shape = (key[0].size, key[0].size)
+            coo = coo_matrix((vals, (rows, cols)), shape=shape)
+            coo.sum_duplicates()
+            hess_dict[key] = (coo.row, coo.col, coo.data)
+
+        # convert lists to arrays
+        for k, v in hess_dict.items():
+            rows, cols, vals = v
+            hess_dict[k] = (np.array(rows), np.array(cols), np.array(vals))
 
         return hess_dict

@@ -50,9 +50,33 @@ class TestHessVecRelativeEntropy():
         rel_entr = cp.rel_entr(x, y)
         result_dict = rel_entr.hess_vec(vec)
 
+        computed_hess_xx = np.zeros((n, n))
+        rows = result_dict[(x, x)][0]
+        cols = result_dict[(x, x)][1]
+        vals = result_dict[(x, x)][2]
+        computed_hess_xx[rows, cols] = vals
+
+        computed_hess_yy = np.zeros((n, n))
+        rows = result_dict[(y, y)][0]
+        cols = result_dict[(y, y)][1]
+        vals = result_dict[(y, y)][2]
+        computed_hess_yy[rows, cols] = vals
+
+        computed_hess_xy = np.zeros((n, n))
+        rows = result_dict[(x, y)][0]
+        cols = result_dict[(x, y)][1]
+        vals = result_dict[(x, y)][2]
+        computed_hess_xy[rows, cols] = vals
+
+        computed_hess_yx = np.zeros((n, n))
+        rows = result_dict[(y, x)][0]
+        cols = result_dict[(y, x)][1]
+        vals = result_dict[(y, x)][2]
+        computed_hess_yx[rows, cols] = vals
+
         H_computed = np.block([
-            [result_dict[(x, x)], result_dict[(x, y)]],
-            [result_dict[(y, x)], result_dict[(y, y)]]
+            [computed_hess_xx, computed_hess_xy],
+            [computed_hess_yx, computed_hess_yy]
         ])
 
         # compute Hessian manually
@@ -78,9 +102,34 @@ class TestHessVecRelativeEntropy():
 
         rel_entr = cp.rel_entr(x, y)
         result_dict = rel_entr.hess_vec(vec)
+
+        computed_hess_xx = np.zeros((1, 1))
+        rows = result_dict[(x, x)][0]
+        cols = result_dict[(x, x)][1]
+        vals = result_dict[(x, x)][2]
+        computed_hess_xx[rows, cols] = vals
+
+        computed_hess_yy = np.zeros((1, 1))
+        rows = result_dict[(y, y)][0]
+        cols = result_dict[(y, y)][1]
+        vals = result_dict[(y, y)][2]
+        computed_hess_yy[rows, cols] = vals
+
+        computed_hess_xy = np.zeros((1, 1))
+        rows = result_dict[(x, y)][0]
+        cols = result_dict[(x, y)][1]
+        vals = result_dict[(x, y)][2]
+        computed_hess_xy[rows, cols] = vals
+
+        computed_hess_yx = np.zeros((1, 1))
+        rows = result_dict[(y, x)][0]
+        cols = result_dict[(y, x)][1]
+        vals = result_dict[(y, x)][2]
+        computed_hess_yx[rows, cols] = vals
+
         H_computed = np.block([
-            [result_dict[(x, x)].reshape(-1, 1), result_dict[(x, y)].reshape(1, -1)],
-            [result_dict[(y, x)].reshape(-1, 1), result_dict[(y, y)].reshape(-1, 1)]
+            [computed_hess_xx, computed_hess_xy],
+            [computed_hess_yx, computed_hess_yy]
         ])
 
         H_analytic = np.array([[vec[0] / x.value[0], - vec[0] / y.value[0]],
@@ -101,9 +150,33 @@ class TestHessVecRelativeEntropy():
         rel_entr = cp.rel_entr(x, y)
         result_dict = rel_entr.hess_vec(vec)
 
+        computed_hess_xx = np.zeros((n, n))
+        rows = result_dict[(x, x)][0]
+        cols = result_dict[(x, x)][1]
+        vals = result_dict[(x, x)][2]
+        computed_hess_xx[rows, cols] = vals
+
+        computed_hess_yy = np.zeros((1, 1))
+        rows = result_dict[(y, y)][0]
+        cols = result_dict[(y, y)][1]
+        vals = result_dict[(y, y)][2]
+        computed_hess_yy[rows, cols] = vals
+
+        computed_hess_xy = np.zeros((n, 1))
+        rows = result_dict[(x, y)][0]
+        cols = result_dict[(x, y)][1]
+        vals = result_dict[(x, y)][2]
+        computed_hess_xy[rows, cols] = vals
+
+        computed_hess_yx = np.zeros((1, n))
+        rows = result_dict[(y, x)][0]
+        cols = result_dict[(y, x)][1]
+        vals = result_dict[(y, x)][2]
+        computed_hess_yx[rows, cols] = vals
+
         H_computed = np.block([
-            [result_dict[(x, x)], result_dict[(x, y)].reshape(-1, 1)],
-            [result_dict[(y, x)].reshape(1, -1), result_dict[(y, y)].reshape(-1, 1)]
+            [computed_hess_xx, computed_hess_xy],
+            [computed_hess_yx, computed_hess_yy]
         ])
 
         # compute Hessian manually
@@ -132,9 +205,33 @@ class TestHessVecRelativeEntropy():
         rel_entr = cp.rel_entr(x, y)
         result_dict = rel_entr.hess_vec(vec)
 
+        computed_hess_xx = np.zeros((1, 1))
+        rows = result_dict[(x, x)][0]
+        cols = result_dict[(x, x)][1]
+        vals = result_dict[(x, x)][2]
+        computed_hess_xx[rows, cols] = vals
+
+        computed_hess_yy = np.zeros((n, n))
+        rows = result_dict[(y, y)][0]
+        cols = result_dict[(y, y)][1]
+        vals = result_dict[(y, y)][2]
+        computed_hess_yy[rows, cols] = vals
+
+        computed_hess_xy = np.zeros((1, n))
+        rows = result_dict[(x, y)][0]
+        cols = result_dict[(x, y)][1]
+        vals = result_dict[(x, y)][2]
+        computed_hess_xy[rows, cols] = vals
+
+        computed_hess_yx = np.zeros((n, 1))
+        rows = result_dict[(y, x)][0]
+        cols = result_dict[(y, x)][1]
+        vals = result_dict[(y, x)][2]
+        computed_hess_yx[rows, cols] = vals
+
         H_computed = np.block([
-            [result_dict[(x, x)].reshape(-1, 1), result_dict[(x, y)].reshape(1, -1)],
-            [result_dict[(y, x)].reshape(-1, 1), result_dict[(y, y)]]
+            [computed_hess_xx, computed_hess_xy],
+            [computed_hess_yx, computed_hess_yy]
         ])
 
         # compute Hessian manually

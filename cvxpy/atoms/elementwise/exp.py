@@ -92,4 +92,6 @@ class exp(Elementwise):
     def _hess_vec(self, vec):
         """ See the docstring of the hess_vec method of the atom class. """
         x = self.args[0]
-        return {(x, x): np.diag( np.exp(x.value) * vec)}
+        idxs = np.arange(x.size)
+        vals = np.exp(x.value) * vec
+        return {(x, x): (idxs, idxs, vals)}

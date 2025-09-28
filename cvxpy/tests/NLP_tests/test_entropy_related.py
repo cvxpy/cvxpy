@@ -21,6 +21,7 @@ class TestStressMLE():
        q_opt_clarabel = q.value
        assert(LA.norm(q_opt_nlp - q_opt_clarabel) <= 1e-4)
 
+
     # nonconvex problem, compute minimum entropy distribution
     # over simplex (the analytical solution is any of the vertices)
     def test_entropy_two(self):
@@ -53,8 +54,57 @@ class TestStressMLE():
         q_opt_clarabel = q.value
         assert(LA.norm(q_opt_nlp - q_opt_clarabel) <= 1e-4)
 
-    # nonnegative matrix factorization with KL objective (nonconvex)
+    def test_rel_entropy_one_switched_arguments(self):
+        np.random.seed(0)
+        n = 40
+        p = np.random.rand(n, )
+        p = p / np.sum(p)
+        q = cp.Variable(n, nonneg=True)
+        A = np.random.rand(n, n)
+        obj = cp.sum(cp.rel_entr(p, A @ q))
+        constraints = [cp.sum(q) == 1]
+        problem = cp.Problem(cp.Minimize(obj), constraints)
+        problem.solve(solver=cp.IPOPT, nlp=True, verbose=True)
+        q_opt_nlp = q.value 
+        problem.solve(solver=cp.CLARABEL, verbose=True)
+        q_opt_clarabel = q.value
+        assert(LA.norm(q_opt_nlp - q_opt_clarabel) <= 1e-4)
+
     def test_KL_one(self):
+        np.random.seed(0)
+        n = 40
+        p = np.random.rand(n, )
+        p = p / np.sum(p)
+        q = cp.Variable(n, nonneg=True)
+        A = np.random.rand(n, n)
+        obj = cp.sum(cp.kl_div(A @ q, p))
+        constraints = [cp.sum(q) == 1]
+        problem = cp.Problem(cp.Minimize(obj), constraints)
+        problem.solve(solver=cp.IPOPT, nlp=True, verbose=True)
+        q_opt_nlp = q.value 
+        problem.solve(solver=cp.CLARABEL, verbose=True)
+        q_opt_clarabel = q.value
+        assert(LA.norm(q_opt_nlp - q_opt_clarabel) <= 1e-4)
+
+    def test_KL_two(self):
+        np.random.seed(0)
+        n = 40
+        p = np.random.rand(n, )
+        p = p / np.sum(p)
+        q = cp.Variable(n, nonneg=True)
+        A = np.random.rand(n, n)
+        obj = cp.sum(cp.kl_div(p, A @ q))
+        constraints = [cp.sum(q) == 1]
+        problem = cp.Problem(cp.Minimize(obj), constraints)
+        problem.solve(solver=cp.IPOPT, nlp=True, verbose=True)
+        q_opt_nlp = q.value 
+        problem.solve(solver=cp.CLARABEL, verbose=True)
+        q_opt_clarabel = q.value
+        assert(LA.norm(q_opt_nlp - q_opt_clarabel) <= 1e-4)
+
+
+    # nonnegative matrix factorization with KL objective (nonconvex)
+    def test_KL_three(self):
         np.random.seed(0)
         n, m, k = 40, 20, 4
         X_true = np.random.rand(n, k)

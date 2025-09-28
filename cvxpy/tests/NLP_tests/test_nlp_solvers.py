@@ -142,7 +142,7 @@ class TestExamplesIPOPT():
         constraints = [
             x + y + z == 1,
             x**2 + y**2 - z**2 <= 0,
-            x**2 - y*z <= 0
+            x**2 - cp.multiply(y, z) <= 0
         ]
         problem = cp.Problem(objective, constraints)
         problem.solve(solver=cp.IPOPT, nlp=True)
@@ -296,7 +296,7 @@ class TestNonlinearControl():
             constraints.append(angle_constraint)
         
         problem = cp.Problem(objective, constraints)
-        problem.solve(solver=cp.IPOPT, nlp=True)
+        problem.solve(solver=cp.IPOPT, nlp=True, hessian_approximation='exact')
         assert problem.status == cp.OPTIMAL
         assert problem.value == 3.500e+02
 
@@ -320,5 +320,5 @@ class TestCanonicalization():
         objective = cp.Minimize(-cp.sum(cp.log(b - A @ x)))
         problem = cp.Problem(objective, [])
         # Solve the problem
-        problem.solve(solver=cp.IPOPT, nlp=True)
+        problem.solve(solver=cp.IPOPT, nlp=True, hessian_approximation='exact')
         assert problem.status == cp.OPTIMAL

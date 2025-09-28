@@ -137,11 +137,11 @@ class QuadForm(Atom):
         canonicalized to w.T @ Q @ w, where w is a single variable
         and Q is a constant matrix.
         """
-        hess_dict = {}
         var = self.args[0]
         Q = self.args[1]
-        hess_dict[(var, var)] = vec * 2 * Q.value
-        return hess_dict
+        Q_coo = sp.coo_matrix(Q.value)
+        
+        return {(var, var): (Q_coo.row, Q_coo.col, 2 * vec * Q_coo.data)}
 
     def shape_from_args(self) -> Tuple[int, ...]:
         return tuple()

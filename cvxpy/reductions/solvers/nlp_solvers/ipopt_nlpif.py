@@ -14,6 +14,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+import pdb
+
 import numpy as np
 import scipy.sparse as sp
 
@@ -135,7 +137,7 @@ class IPOPT(NLPsolver):
         bounds = self.Bounds(data["problem"])
         x0 = self.construct_initial_point(bounds)
         # Create oracles object
-        oracles = self.Oracles(bounds.new_problem, x0)
+        oracles = self.Oracles(bounds.new_problem, x0, len(bounds.cl))
         nlp = cyipopt.Problem(
         n=len(x0),
         m=len(bounds.cl),
@@ -173,9 +175,22 @@ class IPOPT(NLPsolver):
         #print("computing manual dual LS...")
         #lmbda_temp = self.dual_LS_manual(x0, oracles, bounds)
         #lmbda_temp = lmbda_temp[len(x0):]
-        
+        #print("computed manual dual LS: ", lmbda_temp)
+        #try:
+            #pass
+        #    sol = self.dual_LS_manual2(x0, oracles, bounds)
+        #    lmbda_temp = sol[len(x0):]
+        #    w = sol[:len(x0)]
+        #    print("computed lmbda manual dual LS: ", lmbda_temp)
+        #    print("computed w manual dual LS: ", w)
+        #except Exception as e:
+        #    print("Error occurred while computing dual LS manually:", e)
+        #    lmbda_temp = None
 
-        _, info = nlp.solve(x0)#, lagrange=lmbda_temp)
+        #pdb.set_trace()
+
+        _, info = nlp.solve(x0)#
+        #, lagrange=np.zeros(len(bounds.cl)), zl = np.zeros(len(x0)), zu = np.zeros(len(x0)))
         # add number of iterations to info dict from oracles
         info['iterations'] = oracles.iterations
         return info
@@ -208,6 +223,36 @@ class IPOPT(NLPsolver):
         sol = np.linalg.lstsq(LS_matrix, rhs, rcond=None)[0]
         return sol
 
+    def dual_LS_manual2(self, x0, oracles, bounds):
+        rows, cols = oracles.jacobianstructure()
+        jac = oracles.jacobian(x0)
+        jacobian = sp.coo_matrix((jac, (rows, cols)), shape=(len(bounds.cl), len(x0))).toarray()
+
+        Du = np.diag(np.where(np.isfinite(bounds.ub), -1.0, 0.0))
+        Dl = np.diag(np.where(np.isfinite(bounds.lb), -1.0, 0.0))
+        D = Du + Dl
+
+        s_jacobian = np.linalg.svd(jacobian, compute_uv=False)
+        LS_matrix = np.block([[D, jacobian.T], 
+                              [jacobian, np.zeros((len(bounds.cl), len(bounds.cl)))]])
+        s_LS = np.linalg.svd(LS_matrix, compute_uv=False)
+
+        #print("LS_matrix: \n", LS_matrix)
+
+        print("Largest and smallest singular value jacobian:", s_jacobian[0], s_jacobian[-1])
+        print("Largest and smallest singular value LS matrix:", s_LS[0], s_LS[-1])
+
+        pdb.set_trace()
+        rhs = -oracles.gradient(x0)
+        rhs = np.concatenate([rhs, np.zeros(len(bounds.cl))])
+        print("rhs: \n", rhs)
+        #sol = np.linalg.lstsq(LS_matrix, rhs, rcond=None)[0]
+        try:
+            sol = np.linalg.solve(LS_matrix, rhs)
+            return sol
+        except np.linalg.LinAlgError:
+            return None
+        return sol
 
     # TODO (DCED): Ask WZ where to put this.
     def construct_initial_point(self, bounds):
@@ -247,11 +292,17 @@ class IPOPT(NLPsolver):
             return x0
 
     class Oracles():
-        def __init__(self, problem, initial_point):
+        def __init__(self, problem, initial_point, num_constraints):
             self.problem = problem
             self.grad_obj = np.zeros(initial_point.size, dtype=np.float64)
             self.hess_lagrangian = np.zeros((initial_point.size, initial_point.size),
                                              dtype=np.float64)
+            
+            self.hess_lagrangian_coo = ([], [], [])
+            self.hess_lagrangian_coo_rows_cols = ([], [])
+            self.has_computed_hess_sparsity = False
+            self.num_constraints = num_constraints
+
             self.main_var = []
             self.initial_point = initial_point
             self.iterations = 0
@@ -369,20 +420,57 @@ class IPOPT(NLPsolver):
                 col_offset = 0
                 for var2 in self.main_var:
                     if (var1, var2) in hess_dict:
-                        var_hess = hess_dict[(var1, var2)]
-                        self.hess_lagrangian[row_offset:row_offset+var1.size,
-                                        col_offset:col_offset+var2.size] += var_hess
+                        rows, cols, vals = hess_dict[(var1, var2)]
+                        if not isinstance(rows, np.ndarray):
+                            rows = np.array(rows)
+                        if not isinstance(cols, np.ndarray):
+                            cols = np.array(cols)
+
+                        self.hess_lagrangian_coo[0].extend(rows + row_offset)
+                        self.hess_lagrangian_coo[1].extend(cols + col_offset)
+                        self.hess_lagrangian_coo[2].extend(vals)
+
                     col_offset += var2.size
                 row_offset += var1.size
-   
-        def hessianstructure(self):
-            return np.nonzero(np.tril(np.ones((self.initial_point.size, self.initial_point.size))))
 
+        def sum_coo(self):
+            shape = (self.initial_point.size, self.initial_point.size)
+            rows, cols, vals = self.hess_lagrangian_coo
+            coo = sp.coo_matrix((vals, (rows, cols)), shape=shape)
+            coo.sum_duplicates()
+            self.hess_lagrangian_coo = (coo.row, coo.col, coo.data)
+        
+        def insert_missing_zeros_hessian(self):
+            rows, cols, vals = self.hess_lagrangian_coo
+            rows_true, cols_true = self.hess_lagrangian_coo_rows_cols
+            dim = self.initial_point.size
+            H = sp.csr_matrix((vals, (rows, cols)), shape=(dim, dim))
+            vals_true = H[rows_true, cols_true].data
+            return vals_true
+
+        def hessianstructure(self):            
+            # if we have already computed the sparsity structure, return it
+            if self.has_computed_hess_sparsity:
+                return self.hess_lagrangian_coo_rows_cols
+            
+            # set values to nans for full hessian structure
+            x = np.nan * np.ones(self.initial_point.size)
+            self.hessian(x, np.ones(self.num_constraints), 1.0)
+            self.has_computed_hess_sparsity = True
+
+            # extract lower triangular part
+            rows, cols = self.hess_lagrangian_coo[0], self.hess_lagrangian_coo[1]
+            mask = rows >= cols 
+            rows = rows[mask]
+            cols = cols[mask]
+            self.hess_lagrangian_coo_rows_cols = (rows, cols)
+            return self.hess_lagrangian_coo_rows_cols
+            
         def hessian(self, x, duals, obj_factor):
             self.set_variable_value(x)
             
-            # fill with zeros to reset from previous call
-            self.hess_lagrangian.fill(0)
+            # reset previous call
+            self.hess_lagrangian_coo = ([], [], [])
             
             # compute hessian of objective times obj_factor
             obj_hess_dict = self.problem.objective.expr.hess_vec(np.array([obj_factor]))
@@ -396,9 +484,17 @@ class IPOPT(NLPsolver):
                 self.parse_hess_dict(constraint_hess_dict)
                 constr_offset += constraint.size
 
-            row, col = self.hessianstructure()
-            hess_lagrangian = self.hess_lagrangian[row, col]
-            return hess_lagrangian
+            # merge duplicate entries together
+            self.sum_coo()
+
+            # insert missing zeros (ie., entries that turned out to be zero but are not 
+            # structurally zero)
+            if self.has_computed_hess_sparsity:
+                vals = self.insert_missing_zeros_hessian()
+            else:
+                vals = self.hess_lagrangian_coo[2]
+            
+            return vals
 
         def intermediate(self, alg_mod, iter_count, obj_value, inf_pr, inf_du, mu,
                         d_norm, regularization_size, alpha_du, alpha_pr,

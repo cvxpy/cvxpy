@@ -263,6 +263,9 @@ class MulExpression(BinaryOperator):
     def _hess_vec(self, vec):
         x = self.args[0]
         y = self.args[1]
+
+        print("THIS SHOULD NEVER RUN!!!!!! Haven't implemented this \n \n \n \n")
+        assert(False)
         
         # constant * atom
         if x.is_constant(): 
@@ -445,16 +448,24 @@ class multiply(MulExpression):
         if not isinstance(x, Variable) and x.is_affine():
             assert(type(x) == Promote)
             x_var = x.args[0] # here x is a Promote because of how we canonicalize
-            return {(x_var, y): vec, (y, x_var): vec}
+            zeros_x = np.zeros(x_var.size, dtype=int)
+            cols = np.arange(y.size)
+            return {(x_var, y): (zeros_x, cols, vec),
+                    (y, x_var): (cols, zeros_x, vec)}
         
         # x * y with x a vector variable, y a scalar
         if not isinstance(y, Variable) and y.is_affine():
             assert(type(y) == Promote)
             y_var = y.args[0] # here y is a Promote because of how we canonicalize
-            return {(x, y_var): vec, (y_var, x): vec}
+            zeros_y = np.zeros(y_var.size, dtype=int)
+            cols = np.arange(x.size)
+            return {(x, y_var): (cols, zeros_y, vec),
+                    (y_var, x): (zeros_y, cols, vec)}
         
         # if we arrive here both arguments are variables of the same size
-        return {(x, y): np.diag(vec), (y, x): np.diag(vec)}
+        rows = np.arange(x.size)
+        cols = np.arange(x.size)
+        return {(x, y): (rows, cols, vec), (y, x): (rows, cols, vec)}
 
     def graph_implementation(
         self, arg_objs, shape: Tuple[int, ...], data=None

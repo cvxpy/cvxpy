@@ -509,7 +509,7 @@ class Atom(Expression):
         # for nonlinear atoms we typically require that the arguments are variables 
         # (this is guaranteed in the NLP setting through the canonicalization)
         if not self._verify_hess_vec_args():
-            raise ValueError("Argument error in hess_vec.")
+           raise ValueError("Argument error in hess_vec.")
     
         return self._hess_vec(vec)
 

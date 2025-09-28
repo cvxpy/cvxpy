@@ -14,35 +14,12 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import numpy as np
+from cvxpy.atoms.elementwise.rel_entr import rel_entr
+from cvxpy.reductions.expr2smooth.canonicalizers.rel_entr_canon import rel_entr_canon
 
-from cvxpy.expressions.variable import Variable
-
-MIN_BOUND = 1e-4
 
 def kl_div_canon(expr, args):
-    constraints = []
+    _rel_entr = rel_entr(args[0], args[1])
+    rel_entr_expr, constr = rel_entr_canon(_rel_entr, _rel_entr.args)
+    return rel_entr_expr - args[0] + args[1] , constr
 
-    if not args[0].is_constant():
-        t1 = Variable(args[0].shape, bounds=[0, None])
-        constraints.append(t1 == args[0])
-
-        if args[0].value is not None and np.min(args[0].value) >= MIN_BOUND:
-            t1.value = args[0].value
-        else:
-            t1.value = expr.point_in_domain(argument=0)
-    else:
-        t1 = args[0]
-
-    if not args[1].is_constant():
-        t2 = Variable(args[1].shape, bounds=[0, None])
-        constraints.append(t2 == args[1])
-
-        if args[1].value is not None and np.all(args[1].value >= 1):
-            t2.value = args[1].value
-        else:
-            t2.value = expr.point_in_domain(argument=1)
-    else:
-        t2 = args[1]
-
-    return expr.copy([t1, t2]), constraints

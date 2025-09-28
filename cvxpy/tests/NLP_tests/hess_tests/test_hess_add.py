@@ -13,11 +13,16 @@ class TestHessAdd():
         vec = np.array([-1.0, 2, 4])
         sum = cp.log(x) + cp.exp(x) + 7 * cp.log(x)
         result_dict = sum.hess_vec(vec)
-        result_correct = np.diag([-1 * (-8.0/(1.0**2) + np.exp(1.0)), 
+        correct_matrix = np.diag([-1 * (-8.0/(1.0**2) + np.exp(1.0)), 
                                     2 * (-8.0/(2.0**2) + np.exp(2.0)), 
                                     4 * (-8.0/(3.0**2) + np.exp(3.0))])
-        assert(np.allclose(result_dict[(x, x)], result_correct))
-
+        computed_hess = np.zeros((n, n))
+        rows = result_dict[(x, x)][0]
+        cols = result_dict[(x, x)][1]
+        vals = result_dict[(x, x)][2]
+        computed_hess[rows, cols] = vals
+        assert(np.allclose(computed_hess, correct_matrix))
+       
     def test_three_atoms_different_variables(self):
         n = 3 
         x = cp.Variable((n, ), name='x')
@@ -29,12 +34,30 @@ class TestHessAdd():
         vec = np.array([-1.0, 2, 4])
         sum = cp.log(x) + cp.exp(y) + cp.square(z)
         result_dict = sum.hess_vec(vec)
-        result_correct_xx = np.diag([1 / (1.0**2), -2 / (2.0**2), -4 / (3.0**2)])
-        result_correct_yy = np.diag([-1 * np.exp(4.0), 2 * np.exp(5.0), 4 * np.exp(6.0)])
-        result_correct_zz = np.diag([2 * -1, 2 * 2, 2 * 4])
-        assert(np.allclose(result_dict[(x, x)], result_correct_xx))
-        assert(np.allclose(result_dict[(y, y)], result_correct_yy))
-        assert(np.allclose(result_dict[(z, z)], result_correct_zz))
+        correct_matrix_xx = np.diag([1 / (1.0**2), -2 / (2.0**2), -4 / (3.0**2)])
+        correct_matrix_yy = np.diag([-1 * np.exp(4.0), 2 * np.exp(5.0), 4 * np.exp(6.0)])
+        correct_matrix_zz = np.diag([2 * -1, 2 * 2, 2 * 4])
+
+        computed_hess = np.zeros((n, n))
+        rows = result_dict[(x, x)][0]
+        cols = result_dict[(x, x)][1]
+        vals = result_dict[(x, x)][2]
+        computed_hess[rows, cols] = vals
+        assert(np.allclose(computed_hess, correct_matrix_xx))
+
+        computed_hess.fill(0)
+        rows = result_dict[(y, y)][0]
+        cols = result_dict[(y, y)][1]
+        vals = result_dict[(y, y)][2]
+        computed_hess[rows, cols] = vals
+        assert(np.allclose(computed_hess, correct_matrix_yy))
+
+        computed_hess.fill(0)
+        rows = result_dict[(z, z)][0]
+        cols = result_dict[(z, z)][1]
+        vals = result_dict[(z, z)][2]       
+        computed_hess[rows, cols] = vals
+        assert(np.allclose(computed_hess, correct_matrix_zz))
         
     def test_negation_one_variable(self):
         n = 3 
@@ -44,4 +67,11 @@ class TestHessAdd():
         neg_log = -cp.log(x)
         result_dict = neg_log.hess_vec(vec)
         correct_matrix = -np.diag([ -5.0/(1.0**2), -4.0/(2.0**2), -3.0/(3.0**2)])
-        assert(np.allclose(result_dict[(x, x)], correct_matrix))
+        computed_hess = np.zeros((n, n))
+        rows = result_dict[(x, x)][0]
+        cols = result_dict[(x, x)][1]
+        vals = result_dict[(x, x)][2]
+        computed_hess[rows, cols] = vals
+        assert(np.allclose(computed_hess, correct_matrix))
+    
+    

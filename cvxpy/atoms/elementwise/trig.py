@@ -92,11 +92,11 @@ class sin(Elementwise):
         Computes the Hessian-vector product dictionary
         for the sin atom. We assume that the argument will be a variable.
         """
-        hess_dict = {}
         var = self.args[0]
-        hess_dict[(var, var)] = np.diag(-np.sin(var.value) * vec)
-        return hess_dict
-
+        idxs = np.arange(var.size)
+        vals = -np.sin(var.value) * vec
+        return {(var, var): (idxs, idxs, vals)}
+        
 class cos(Elementwise):
     """Elementwise :math:`\\cos x`.
     """
@@ -167,10 +167,10 @@ class cos(Elementwise):
         Computes the Hessian-vector product dictionary
         for the cos atom. We assume that the argument will be a variable.
         """
-        hess_dict = {}
         var = self.args[0]
-        hess_dict[(var, var)] = np.diag(-np.cos(var.value) * vec)
-        return hess_dict
+        idxs = np.arange(var.size)
+        vals = -np.cos(var.value) * vec
+        return {(var, var): (idxs, idxs, vals)}
 
 
 class tan(Elementwise):
@@ -243,7 +243,7 @@ class tan(Elementwise):
         Computes the Hessian-vector product dictionary
         for the tan atom. We assume that the argument will be a variable.
         """
-        hess_dict = {}
         var = self.args[0]
-        hess_dict[(var, var)] = np.diag(2*np.tan(var.value)/np.cos(var.value)**2 * vec)
-        return hess_dict
+        idxs = np.arange(var.size)
+        vals = 2*np.tan(var.value)/np.cos(var.value)**2 * vec
+        return {(var, var): (idxs, idxs, vals)}
