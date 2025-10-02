@@ -93,6 +93,7 @@ def dims_to_solver_dict(cone_dims):
         's': cone_dims.psd,
         'p': cone_dims.p3d
     }
+    # TODO: update keys to include powerConeND
     return cones
 
 
@@ -104,6 +105,7 @@ class ConicSolver(Solver):
 
     # Every conic solver must support Zero and NonNeg constraints.
     SUPPORTED_CONSTRAINTS = [Zero, NonNeg]
+    SUPPORTED_EXOTIC_CONSTRAINTS = []
 
     # Some solvers cannot solve problems that do not have constraints.
     # For such solvers, REQUIRES_CONSTR should be set to True.

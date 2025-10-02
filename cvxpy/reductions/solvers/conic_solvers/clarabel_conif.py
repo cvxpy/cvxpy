@@ -19,7 +19,7 @@ import numpy as np
 import scipy.sparse as sp
 
 import cvxpy.settings as s
-from cvxpy.constraints import PSD, SOC, ExpCone, PowCone3D
+from cvxpy.constraints import PSD, SOC, ExpCone, PowCone3D, PowConeND
 from cvxpy.expressions.expression import Expression
 from cvxpy.reductions.solution import Solution, failure_solution
 from cvxpy.reductions.solvers import utilities
@@ -134,6 +134,9 @@ class CLARABEL(ConicSolver):
     MIP_CAPABLE = False
     SUPPORTED_CONSTRAINTS = ConicSolver.SUPPORTED_CONSTRAINTS \
         + [SOC, ExpCone, PowCone3D, PSD]
+    
+    SUPPORTED_EXOTIC_CONSTRAINTS = ConicSolver.SUPPORTED_EXOTIC_CONSTRAINTS \
+        + [PowConeND]
 
     STATUS_MAP = {
                     "Solved": s.OPTIMAL,

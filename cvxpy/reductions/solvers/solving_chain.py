@@ -284,6 +284,7 @@ def construct_solving_chain(problem, candidates,
     approx_cos = [ct for ct in constr_types if ct in APPROX_CONES]
     # ^ The way we populate "ex_cos" will need to change if and when
     # we have atoms that require exotic cones.
+    # TODO: potentially move this down to process per solver
     for co in ex_cos:
         sim_cos = EXOTIC_CONES[co]  # get the set of required simple cones
         constr_types.update(sim_cos)
@@ -339,8 +340,13 @@ def construct_solving_chain(problem, candidates,
             cone for cone in cones if cone not in supported_constraints
         ]
 
+        supported_exotic_constraints = solver_instance.SUPPORTED_EXOTIC_CONSTRAINTS
+        ex_cos_unsupported = [
+            cone for cone in ex_cos if cone not in supported_exotic_constraints
+        ]
+
         if has_constr or not solver_instance.REQUIRES_CONSTR:
-            if ex_cos:
+            if ex_cos_unsupported:
                 reductions.append(Exotic2Common())
             if RelEntrConeQuad in approx_cos or OpRelEntrConeQuad in approx_cos:
                 reductions.append(QuadApprox())
