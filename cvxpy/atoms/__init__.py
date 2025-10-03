@@ -34,6 +34,7 @@ from cvxpy.atoms.affine.real import real
 from cvxpy.atoms.affine.reshape import deep_flatten, reshape
 from cvxpy.atoms.affine.squeeze import squeeze
 from cvxpy.atoms.affine.concatenate import concatenate
+from cvxpy.atoms.affine.stack import stack
 from cvxpy.atoms.affine.sum import sum
 from cvxpy.atoms.affine.trace import trace, Trace
 from cvxpy.atoms.affine.transpose import (transpose, permute_dims, swapaxes, moveaxis)
