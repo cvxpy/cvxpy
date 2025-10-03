@@ -465,6 +465,20 @@ class Atom(Expression):
 
         return result
 
+    def jacobian(self):
+
+        # Short-circuit to all zeros if known to be constant.
+        if self.is_constant():
+            return u.grad.constant_grad(self)
+
+        # for nonlinear atoms we typically require that the arguments are variables 
+        # (this is guaranteed in the NLP setting through the canonicalization)
+        if not self._verify_jacobian_args():
+           raise ValueError("Argument error in jacobian.")
+        
+        return self._jacobian()
+
+
     def hess_vec(self, vec):
         """
         Compute a linear combination of Hessians of the atom.
@@ -482,8 +496,8 @@ class Atom(Expression):
         weight vector. The result is an n x n matrix representing this
         weighted combination of component Hessians.
 
-        It returns a dictionary with (var, var) as keys and 2D Numpy arrays
-        as values.
+        It returns a dictionary with (var, var) as keys and (rows, vals, cols)
+        in COO format as values. 
 
         This function checks if the argument is affine, and if so returns an 
         empty dictionary. Otherwise, it calls the atom-specific _hess_vec.
@@ -534,12 +548,19 @@ class Atom(Expression):
         """
         raise NotImplementedError("Not implemented verify arguments for this atom.")
 
+    def _verify_jacobian_args(self):
+        raise NotImplementedError("Not implemented verify arguments for this atom.")
+
     #@abc.abstractmethod
     def _hess_vec(self, values):
         """ Atom-specific Hessian-vector product. For a description, see the docstring of 
             the hess_vec method of the atom class.
         """
         raise NotImplementedError("This atom does not have a Hessian, or it has not been "
+                                  "implemented yet.")
+
+    def _jacobian(self):
+        raise NotImplementedError("This atom does not have a Jacobian, or it has not been "
                                   "implemented yet.")
 
     @property

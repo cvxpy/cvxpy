@@ -93,8 +93,10 @@ class smooth_abs(Elementwise):
         x = self.args[0]
         t = np.tanh(self.a * x.value)
         hess_vals = self.a * (1 - t**2)
-        return {(x, x): np.diag(vec * hess_vals)}
-
+        idxs = np.arange(x.size)
+        vals = hess_vals * vec
+        return {(x, x): (idxs, idxs, vals)}
+        
     def _domain(self) -> List[Constraint]:
         """Returns constraints describing the domain of the node.
         """

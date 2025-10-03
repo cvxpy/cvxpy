@@ -292,6 +292,16 @@ class MulExpression(BinaryOperator):
         # if we arrive here both arguments are variables of the same size
         return {(x, y): np.diag(vec), (y, x): np.diag(vec)}
 
+    # todo: always assume it is A @ x for now where A is constant and x is variable
+    def _jacobian(self):
+        A = self.args[0].value
+        x = self.args[1]
+
+        if not isinstance(A, sp.coo_matrix):
+            A = sp.coo_matrix(A)
+        
+        return {x: (A.row, A.col, A.data)}
+
     def graph_implementation(
         self, arg_objs, shape: Tuple[int, ...], data=None
     ) -> Tuple[lo.LinOp, List[Constraint]]:
@@ -466,6 +476,47 @@ class multiply(MulExpression):
         rows = np.arange(x.size)
         cols = np.arange(x.size)
         return {(x, y): (rows, cols, vec), (y, x): (rows, cols, vec)}
+
+    def _verify_jacobian_args(self):
+        return self._verify_hess_vec_args()
+
+    def _jacobian(self):
+        x = self.args[0]
+        y = self.args[1]
+       
+        if x.is_constant():
+            dy = y.jacobian()
+            for k in dy:
+                rows, cols, vals = dy[k]
+                dy[k] = (rows, cols, x.value * vals)
+            return dy
+            
+        if y.is_constant():
+            dx = x.jacobian()
+            for k in dx:
+                rows, cols, vals = dx[k]
+                dx[k] = (rows, cols, y.value * vals)
+            return dx
+        
+        if not isinstance(x, Variable) and x.is_affine():
+            assert(type(x) == Promote)
+            x_var = x.args[0] # here x is a Promote because of how we canonicalize
+            idxs = np.arange(y.size)
+            return {(x_var): (idxs, np.zeros(y.size, dtype=int), y.value),
+                    (y): (idxs, idxs, x.value)}
+        
+        # x * y with x a vector variable, y a scalar
+        if not isinstance(y, Variable) and y.is_affine():
+            assert(type(y) == Promote)
+            y_var = y.args[0] # here y is a Promote because of how we canonicalize
+            idxs = np.arange(x.size)
+            return {(x): (idxs, idxs, y.value),
+                    (y_var): (idxs, np.zeros(x.size, dtype=int), x.value)}
+        
+        # here both are variables
+        idxs = np.arange(x.size)
+        jacobian_dict = {x: (idxs, idxs, y.value), y: (idxs, idxs, x.value)}
+        return jacobian_dict
 
     def graph_implementation(
         self, arg_objs, shape: Tuple[int, ...], data=None

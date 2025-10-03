@@ -33,7 +33,8 @@ class TestStressMLE():
         obj = cp.sum(cp.entr(q))
         constraints = [cp.sum(q) == 1]
         problem = cp.Problem(cp.Minimize(obj), constraints)
-        problem.solve(solver=cp.IPOPT, nlp=True, verbose=True)
+        problem.solve(solver=cp.IPOPT, nlp=True, verbose=True, 
+                      hessian_approximation='limited-memory')
         q_opt_nlp = q.value 
         assert(np.sum(q_opt_nlp > 1e-8) == 1)
 

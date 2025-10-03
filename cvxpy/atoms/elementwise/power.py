@@ -407,6 +407,29 @@ class power(Elementwise):
         idxs = np.arange(x.size)
         vals = hess_vals * vec
         return {(x, x): (idxs, idxs, vals)}
+    
+    def _verify_jacobian_args(self):
+        if (self.p_rational is None and self.p.value is None):
+            return False
+
+        if not isinstance(self.args[0], Variable):
+            return False
+        
+        return True
+
+    def _jacobian(self):
+        if self.p_rational is not None:
+            p = self.p_rational
+        elif self.p.value is not None:
+            p = self.p.value
+
+        if p == 0:
+            return {}
+        
+        x = self.args[0]
+        idxs = np.arange(x.size)
+        vals = float(p)*np.power(x.value, float(p)-1)
+        return {x: (idxs, idxs, vals)}
         
     def _domain(self) -> List[Constraint]:
         """Returns constraints describing the domain of the node.

@@ -14,8 +14,6 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import pdb
-
 import numpy as np
 import scipy.sparse as sp
 
@@ -152,45 +150,22 @@ class IPOPT(NLPsolver):
             'mu_strategy': 'adaptive',
             'tol': 1e-7,
             'bound_relax_factor': 0.0,
-            'hessian_approximation': 'limited-memory',
+            'hessian_approximation': 'exact',
             'derivative_test': 'first-order',
             'least_square_init_duals': 'yes'
         }
-        
-        #nlp.add_option('honor_original_bounds', 'yes')
-        #nlp.add_option('constr_mult_init_max', 1e10) 
-        #nlp.add_option('derivative_test_perturbation', 1e-5)
-        #nlp.add_option('point_perturbation_radius', 0.1)
-
+         
         # Update defaults with user-provided options
         if solver_opts:
             default_options.update(solver_opts)
-        if not verbose:
+        if not verbose and 'print_level' not in default_options:
             default_options['print_level'] = 3
         # Apply all options to the nlp object
         for option_name, option_value in default_options.items():
             nlp.add_option(option_name, option_value)
 
-        # debugging
-        #print("computing manual dual LS...")
-        #lmbda_temp = self.dual_LS_manual(x0, oracles, bounds)
-        #lmbda_temp = lmbda_temp[len(x0):]
-        #print("computed manual dual LS: ", lmbda_temp)
-        #try:
-            #pass
-        #    sol = self.dual_LS_manual2(x0, oracles, bounds)
-        #    lmbda_temp = sol[len(x0):]
-        #    w = sol[:len(x0)]
-        #    print("computed lmbda manual dual LS: ", lmbda_temp)
-        #    print("computed w manual dual LS: ", w)
-        #except Exception as e:
-        #    print("Error occurred while computing dual LS manually:", e)
-        #    lmbda_temp = None
-
-        #pdb.set_trace()
-
-        _, info = nlp.solve(x0)#
-        #, lagrange=np.zeros(len(bounds.cl)), zl = np.zeros(len(x0)), zu = np.zeros(len(x0)))
+        _, info = nlp.solve(x0)
+        
         # add number of iterations to info dict from oracles
         info['iterations'] = oracles.iterations
         return info
@@ -205,56 +180,6 @@ class IPOPT(NLPsolver):
         """
         return CITATION_DICT["IPOPT"]
     
-    def dual_LS_manual(self, x0, oracles, bounds):
-        rows, cols = oracles.jacobianstructure()
-        jac = oracles.jacobian(x0)
-        jacobian = sp.coo_matrix((jac, (rows, cols)), shape=(len(bounds.cl), len(x0))).toarray()
-
-        s_jacobian = np.linalg.svd(jacobian, compute_uv=False)
-        LS_matrix = np.block([[np.eye(len(x0)), jacobian.T], 
-                              [jacobian, np.zeros((len(bounds.cl), len(bounds.cl)))]])
-        s_LS = np.linalg.svd(LS_matrix, compute_uv=False)
-
-        print("Largest and smallest singular value jacobian:", s_jacobian[0], s_jacobian[-1])
-        print("Largest and smallest singular value LS matrix:", s_LS[0], s_LS[-1])
-
-        rhs = -oracles.gradient(x0)
-        rhs = np.concatenate([rhs, np.zeros(len(bounds.cl))])
-        sol = np.linalg.lstsq(LS_matrix, rhs, rcond=None)[0]
-        return sol
-
-    def dual_LS_manual2(self, x0, oracles, bounds):
-        rows, cols = oracles.jacobianstructure()
-        jac = oracles.jacobian(x0)
-        jacobian = sp.coo_matrix((jac, (rows, cols)), shape=(len(bounds.cl), len(x0))).toarray()
-
-        Du = np.diag(np.where(np.isfinite(bounds.ub), -1.0, 0.0))
-        Dl = np.diag(np.where(np.isfinite(bounds.lb), -1.0, 0.0))
-        D = Du + Dl
-
-        s_jacobian = np.linalg.svd(jacobian, compute_uv=False)
-        LS_matrix = np.block([[D, jacobian.T], 
-                              [jacobian, np.zeros((len(bounds.cl), len(bounds.cl)))]])
-        s_LS = np.linalg.svd(LS_matrix, compute_uv=False)
-
-        #print("LS_matrix: \n", LS_matrix)
-
-        print("Largest and smallest singular value jacobian:", s_jacobian[0], s_jacobian[-1])
-        print("Largest and smallest singular value LS matrix:", s_LS[0], s_LS[-1])
-
-        pdb.set_trace()
-        rhs = -oracles.gradient(x0)
-        rhs = np.concatenate([rhs, np.zeros(len(bounds.cl))])
-        print("rhs: \n", rhs)
-        #sol = np.linalg.lstsq(LS_matrix, rhs, rcond=None)[0]
-        try:
-            sol = np.linalg.solve(LS_matrix, rhs)
-            return sol
-        except np.linalg.LinAlgError:
-            return None
-        return sol
-
-    # TODO (DCED): Ask WZ where to put this.
     def construct_initial_point(self, bounds):
             initial_values = []
             offset = 0
@@ -297,11 +222,19 @@ class IPOPT(NLPsolver):
             self.grad_obj = np.zeros(initial_point.size, dtype=np.float64)
             self.hess_lagrangian = np.zeros((initial_point.size, initial_point.size),
                                              dtype=np.float64)
-            
+
+            # for evaluating hessian            
             self.hess_lagrangian_coo = ([], [], [])
             self.hess_lagrangian_coo_rows_cols = ([], [])
             self.has_computed_hess_sparsity = False
             self.num_constraints = num_constraints
+
+            # for evaluating jacobian
+            self.jacobian_coo = ([], [], [])
+            self.jacobian_coo_rows_cols = ([], [])
+            self.jacobian_affine_coo = ([], [], [])
+            self.has_computed_jac_sparsity = False
+            self.has_stored_affine_jacobian = False
 
             self.main_var = []
             self.initial_point = initial_point
@@ -339,6 +272,7 @@ class IPOPT(NLPsolver):
                         array = array.toarray().flatten(order='F')
                     self.grad_obj[grad_offset:grad_offset+size] = array
                 grad_offset += size
+
             return self.grad_obj
 
         def constraints(self, x):
@@ -348,68 +282,98 @@ class IPOPT(NLPsolver):
             constraint_values = []
             for constraint in self.problem.constraints:
                 constraint_values.append(np.asarray(constraint.args[0].value).flatten(order='F'))
+            
             return np.concatenate(constraint_values)
 
-        def jacobian(self, x):
-            """Returns only the non-zero values of the Jacobian."""
-            # Set variable values
-            self.set_variable_value(x)
-            values = []
-            for constraint in self.problem.constraints:
-                # get the jacobian of the constraint
-                grad_dict = constraint.expr.grad
-                for var in self.main_var:
-                    if var in grad_dict:
-                        rows, cols = self.jacobian_idxs[constraint][var] 
-                        jacobian = grad_dict[var].T
-                        if sp.issparse(jacobian):
-                            jacobian = sp.dok_matrix(jacobian)
-                            data = np.array([
-                                jacobian.get((r, c), 0)
-                                for r, c in zip(rows, cols)
-                            ])
-                            values.append(np.atleast_1d(data))
-                        else:
-                            values.append(np.atleast_1d(jacobian))
-            return np.concatenate(values)
-        
-        def jacobianstructure(self):
-            """Returns the sparsity structure of the Jacobian."""
-            # this dict stores the jacobian for each constraint for each variable
-            self.jacobian_idxs = {}
-            # Set dummy values to get gradient structure
-            #offset = 0
+        def parse_jacobian_dict(self, grad_dict, constr_offset, is_affine):
+            col_offset = 0
             for var in self.main_var:
-                if var.shape == ():
-                    #var.value = self.initial_point[offset]
-                    var.value = np.nan
-                else:
-                    var.value = np.nan * np.ones(var.size).reshape(var.shape, order='F')
-                    #var.value = np.atleast_1d(self.initial_point[offset:offset + var.size])
-                #offset += var.size
-            rows, cols = [], []
-            row_offset = 0
+                if var in grad_dict:
+                    rows, cols, vals = grad_dict[var]
+                    if not isinstance(rows, np.ndarray):
+                        rows = np.array(rows)
+                    if not isinstance(cols, np.ndarray):
+                        cols = np.array(cols)
+
+                    self.jacobian_coo[0].extend(rows + constr_offset)
+                    self.jacobian_coo[1].extend(cols + col_offset)
+                    self.jacobian_coo[2].extend(vals)
+
+                    if is_affine:
+                        self.jacobian_affine_coo[0].extend(rows + constr_offset)
+                        self.jacobian_affine_coo[1].extend(cols + col_offset)
+                        self.jacobian_affine_coo[2].extend(vals)
+
+                col_offset += var.size
+        
+        def insert_missing_zeros_jacobian(self):
+            rows, cols, vals = self.jacobian_coo
+            rows_true, cols_true = self.jacobian_coo_rows_cols
+            if not self.permutation_needed:
+                return vals
+            dim = self.initial_point.size
+            m = self.num_constraints
+            J = sp.csr_matrix((vals, (rows, cols)), shape=(m, dim))
+            vals_true = J[rows_true, cols_true].data
+            return vals_true
+
+        def jacobian(self, x):
+            self.set_variable_value(x)
+        
+            # reset previous call
+            if not self.has_stored_affine_jacobian:
+                self.jacobian_coo = ([], [], [])
+            else:
+                self.jacobian_coo = (self.jacobian_affine_coo[0].copy(), 
+                                     self.jacobian_affine_coo[1].copy(),
+                                     self.jacobian_affine_coo[2].copy())
+
+            # compute jacobian of each constraint
+            constr_offset = 0
             for constraint in self.problem.constraints:
-                grad_dict = constraint.expr.grad
-                col_offset = 0
-                constraint_jac = {}
-                for var in self.main_var:
-                    if var in grad_dict:
-                        jacobian = grad_dict[var].T
-                        if sp.issparse(jacobian):
-                            jacobian = jacobian.tocoo()
-                            rows.extend(jacobian.row + row_offset)
-                            cols.extend(jacobian.col + col_offset)
-                            constraint_jac[var] = (jacobian.row, jacobian.col)
-                        else:
-                            rows.extend(np.ones(jacobian.size)*row_offset)
-                            cols.extend(np.arange(col_offset, col_offset + var.size))
-                            assert(jacobian.shape == ())
-                            constraint_jac[var] = (0, 0)
-                    col_offset += var.size
-                row_offset += constraint.size
-                self.jacobian_idxs[constraint] = constraint_jac
-            return (np.array(rows), np.array(cols))
+                is_affine = constraint.expr.is_affine()
+                if is_affine and self.has_stored_affine_jacobian:
+                    constr_offset += constraint.size
+                    continue
+                
+                grad_dict = constraint.expr.jacobian()
+                self.parse_jacobian_dict(grad_dict, constr_offset, is_affine)
+                constr_offset += constraint.size
+            
+            # insert missing zeros (ie., entries that turned out to be zero but
+            # are not structurally zero)
+            if self.has_computed_jac_sparsity:
+                vals = self.insert_missing_zeros_jacobian()
+            else:
+                vals = self.jacobian_coo[2]
+        
+            return vals
+            
+        def jacobianstructure(self):
+            # if we have already computed the sparsity structure, return it
+            # (Ipopt only calls this function once, so this if is not strictly
+            #  necessary)
+            if self.has_computed_jac_sparsity:
+                return self.jacobian_coo_rows_cols
+            
+            # set values to nans for full jacobian structure
+            x = np.nan * np.ones(self.initial_point.size)
+            self.jacobian(x)
+            self.has_computed_jac_sparsity = True
+            self.has_stored_affine_jacobian = True
+
+            # permutation inside "insert_missing_zeros_jacobian" is needed if the 
+            # problem has both affine and none-affine constraints.
+            self.permutation_needed = False
+            for constraint in self.problem.constraints:
+                if not constraint.expr.is_affine():
+                    self.permutation_needed = True
+                    break
+
+            # store sparsity pattern
+            rows, cols = self.jacobian_coo[0], self.jacobian_coo[1]
+            self.jacobian_coo_rows_cols = (rows, cols)
+            return self.jacobian_coo_rows_cols
 
         def parse_hess_dict(self, hess_dict):
             """ Adds the contribution of blocks defined in hess_dict to the full
@@ -450,6 +414,8 @@ class IPOPT(NLPsolver):
 
         def hessianstructure(self):            
             # if we have already computed the sparsity structure, return it
+            # (Ipopt only calls this function once, so this if is not strictly
+            #  necessary)
             if self.has_computed_hess_sparsity:
                 return self.hess_lagrangian_coo_rows_cols
             

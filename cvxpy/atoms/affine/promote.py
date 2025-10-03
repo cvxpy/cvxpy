@@ -120,3 +120,17 @@ class Promote(AffAtom):
 
     def _hess_vec(self, values):
         raise ValueError("The _hess_vec method of Promote should never be called.")
+
+    def _verify_jacobian_args(self):
+        return (self.args[0].size == 1)
+
+    def _jacobian(self):
+        jacobian_dict = self.args[0]._jacobian()
+        size = self.size
+    
+        for k in jacobian_dict:
+            _, cols, vals = jacobian_dict[k]
+            rows = np.repeat(np.arange(size), len(cols))
+            jacobian_dict[k] = (rows, np.tile(cols, size), np.tile(vals, size)) 
+
+        return jacobian_dict

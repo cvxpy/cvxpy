@@ -18,6 +18,7 @@ from functools import wraps
 from typing import Optional
 
 import numpy as np
+from scipy.sparse import coo_matrix
 
 import cvxpy.interface as intf
 import cvxpy.lin_ops.lin_op as lo
@@ -131,7 +132,22 @@ class Sum(AxisAtom, AffAtom):
         assert(vec.size == 1)
         arg0 = self.args[0]
         return arg0.hess_vec(vec * np.ones(arg0.size))
+    
+    def _verify_jacobian_args(self):
+        # we assume that we sum a vector to a scalar
+        return (self.size == 1)
+    
+    def _jacobian(self):
+        
+        jac_dict = self.args[0].jacobian()
+        for k in jac_dict:
+            _, cols, vals = jac_dict[k]
+            rows = np.zeros(len(cols), dtype=int)
+            jacobian = coo_matrix((vals, (rows, cols)), shape=(self.size, k.size))
+            jacobian.sum_duplicates()
+            jac_dict[k] = (jacobian.row, jacobian.col, jacobian.data)
       
+        return jac_dict 
 
 @wraps(Sum)
 def sum(expr, axis: Optional[int] = None, keepdims: bool = False):

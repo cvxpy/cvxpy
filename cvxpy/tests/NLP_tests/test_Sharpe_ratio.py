@@ -26,7 +26,6 @@ class TestSharpeRatio():
         x_noncvx = x.value
 
         # global solution computed using convex optimization
-        x.value = np.ones(n) / n
         obj_convex = cp.quad_form(x, Sigma)
         constraints_convex = [mu @ x == 1]
         problem_convex = cp.Problem(cp.Minimize(obj_convex), constraints_convex)

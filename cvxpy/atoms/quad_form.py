@@ -134,14 +134,24 @@ class QuadForm(Atom):
         """
         Computes the Hessian-vector product dictionary
         for a quadratic form. We assume that the quad-form will be
-        canonicalized to w.T @ Q @ w, where w is a single variable
+        canonicalized to x.T @ Q @ x, where x is a single variable
         and Q is a constant matrix.
         """
-        var = self.args[0]
+        x = self.args[0]
         Q = self.args[1]
         Q_coo = sp.coo_matrix(Q.value)
-        
-        return {(var, var): (Q_coo.row, Q_coo.col, 2 * vec * Q_coo.data)}
+
+        return {(x, x): (Q_coo.row, Q_coo.col, 2 * vec * Q_coo.data)}
+
+    def _verify_jacobian_args(self):
+        return isinstance(self.args[0], Variable)
+    
+    def _jacobian(self):
+        x = self.args[0]
+        Q = self.args[1]
+        vals = 2 * (Q.value @ x.value).T 
+        return {x: (np.zeros(x.size, dtype=int), np.arange(x.size), 
+                    vals)}
 
     def shape_from_args(self) -> Tuple[int, ...]:
         return tuple()

@@ -165,11 +165,11 @@ class AddExpression(AffAtom):
                         keys_require_summing.append(k)
                     else:
                         hess_dict[k] = ([], [], [])
-                        hess_dict[k][0].extend(v[0])
-                        hess_dict[k][1].extend(v[1])
-                        hess_dict[k][2].extend(v[2])
+                        hess_dict[k][0].extend(np.atleast_1d(v[0]))
+                        hess_dict[k][1].extend(np.atleast_1d(v[1]))
+                        hess_dict[k][2].extend(np.atleast_1d(v[2]))
 
-        # sum duplicates (we could do this later just once but let's do it here)
+        # sum duplicates
         for key in set(keys_require_summing): 
             rows, cols, vals = hess_dict[key]
             shape = (key[0].size, key[0].size)
@@ -183,3 +183,40 @@ class AddExpression(AffAtom):
             hess_dict[k] = (np.array(rows), np.array(cols), np.array(vals))
 
         return hess_dict
+
+    def _verify_jacobian_args(self):
+        return True
+
+    def _jacobian(self):
+        jacobian_dict = {}
+        keys_require_summing = []
+
+        for arg in self.args:
+            if not arg.is_constant():
+                arg_jac = arg.jacobian()
+            
+                for k, v in arg_jac.items():
+                    if k in jacobian_dict:
+                        jacobian_dict[k][0].extend(v[0])
+                        jacobian_dict[k][1].extend(v[1])
+                        jacobian_dict[k][2].extend(v[2])
+                        keys_require_summing.append(k)
+                    else:
+                        jacobian_dict[k] = ([], [], [])
+                        jacobian_dict[k][0].extend(np.atleast_1d(v[0]))
+                        jacobian_dict[k][1].extend(np.atleast_1d(v[1]))
+                        jacobian_dict[k][2].extend(np.atleast_1d(v[2]))
+
+        # sum duplicates
+        for key in set(keys_require_summing): 
+            rows, cols, vals = jacobian_dict[key]
+            coo = coo_matrix((vals, (rows, cols)), shape=(self.size, key.size))
+            coo.sum_duplicates()
+            jacobian_dict[key] = (coo.row, coo.col, coo.data)
+
+        # convert lists to arrays
+        for k, v in jacobian_dict.items():
+            rows, cols, vals = v
+            jacobian_dict[k] = (np.array(rows), np.array(cols), np.array(vals))
+
+        return jacobian_dict

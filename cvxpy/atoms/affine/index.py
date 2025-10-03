@@ -123,6 +123,17 @@ class index(AffAtom):
         e = np.zeros(self.args[0].size)
         e[idx] = vec
         return self.args[0].hess_vec(e)
+    
+    def _jacobian(self):
+        jacobian_dict = self.args[0].jacobian()
+        idx = self._orig_key
+
+        for k in jacobian_dict: 
+            rows, cols, vals = jacobian_dict[k]
+            idxs = np.where(rows == idx)[0]
+            jacobian_dict[k] = (np.zeros(len(idxs), dtype=int), cols[idxs], vals[idxs])
+
+        return jacobian_dict
 
 
 class special_index(AffAtom):
@@ -233,4 +244,3 @@ class special_index(AffAtom):
         e = np.zeros(self.args[0].size)
         e[idx] = vec
         return self.args[0].hess_vec(e)
- 

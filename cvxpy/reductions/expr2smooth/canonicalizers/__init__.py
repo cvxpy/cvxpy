@@ -28,9 +28,9 @@ from cvxpy.reductions.expr2smooth.canonicalizers.div_canon import div_canon
 from cvxpy.reductions.expr2smooth.canonicalizers.log_canon import log_canon
 from cvxpy.reductions.expr2smooth.canonicalizers.exp_canon import exp_canon
 from cvxpy.reductions.expr2smooth.canonicalizers.minimum_canon import minimum_canon
-from cvxpy.reductions.expr2smooth.canonicalizers.abs_canon import abs_canon, smooth_approx_abs_canon
+from cvxpy.reductions.expr2smooth.canonicalizers.abs_canon import abs_canon#, smooth_approx_abs_canon
 # when dual LS initialization works correctly we should try to use this smooth_approx_abs logic
-#from cvxpy.reductions.expr2smooth.canonicalizers.smooth_approximations_canon import smooth_approx_abs_canon
+from cvxpy.reductions.expr2smooth.canonicalizers.smooth_approximations_canon import smooth_approx_abs_canon
 from cvxpy.reductions.expr2smooth.canonicalizers.multiply_canon import multiply_canon
 from cvxpy.reductions.expr2smooth.canonicalizers.pnorm_canon import pnorm_canon
 from cvxpy.reductions.expr2smooth.canonicalizers.power_canon import power_canon
