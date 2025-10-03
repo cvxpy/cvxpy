@@ -252,8 +252,8 @@ class ConicSolver(Solver):
                     arg_mats.append(space_mat)
                 restruct_mat.append(sp.hstack(arg_mats))
             elif type(constr) == PowConeND:
-                # TODO
-                raise NotImplementedError("PowConeND not yet supported.")
+                # TODO: implement formatting for PowConeND
+                raise NotImplementedError("Formatting for PowConeND is not yet implemented.")
             elif type(constr) == PSD:
                 restruct_mat.append(cls.psd_format_mat(constr))
             else:

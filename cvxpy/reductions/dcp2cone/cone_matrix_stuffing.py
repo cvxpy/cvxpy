@@ -81,6 +81,7 @@ class ConeDims:
     SOC_DIM = s.SOC_DIM
     PSD_DIM = s.PSD_DIM
     P3D_DIM = 'p3'
+    PND_DIM = 'pnd'
 
     def __init__(self, constr_map) -> None:
         self.zero = int(sum(c.size for c in constr_map[Zero]))
@@ -93,21 +94,28 @@ class ConeDims:
             p3d = np.concatenate([c.alpha.value for c in constr_map[PowCone3D]]).tolist()
         self.p3d = p3d
 
-    def __repr__(self) -> str:
-        return "(zero: {0}, nonneg: {1}, exp: {2}, soc: {3}, psd: {4}, p3d: {5})".format(
-            self.zero, self.nonneg, self.exp, self.soc, self.psd, self.p3d)
+        #TODO: add support for PowConeND
+        pnd = []
+        if constr_map[PowConeND]:
+            pnd = np.concatenate([c.alpha.value for c in constr_map[PowConeND]]).tolist()
+        self.pnd = pnd
+
+    def __repr__(self) -> str: #TODO: updated to include pnd. Check formatting.
+        return "(zero: {0}, nonneg: {1}, exp: {2}, soc: {3}, psd: {4}, p3d: {5}, pnd: {6})".format(
+            self.zero, self.nonneg, self.exp, self.soc, self.psd, self.p3d, self.pnd)
 
     def __str__(self) -> str:
         """String representation.
         """
         return ("%i equalities, %i inequalities, %i exponential cones, \n"
                 "SOC constraints: %s, PSD constraints: %s,\n"
-                " 3d power cones %s.") % (self.zero,
+                " 3d power cones %s, %s.") % (self.zero,
                                           self.nonneg,
                                           self.exp,
                                           self.soc,
                                           self.psd,
-                                          self.p3d)
+                                          self.p3d,
+                                          self.pnd)
 
     def __getitem__(self, key):
         if key == self.EQ_DIM:
@@ -122,6 +130,8 @@ class ConeDims:
             return self.psd
         elif key == self.P3D_DIM:
             return self.p3d
+        elif key == self.PND_DIM:
+            return self.pnd
         else:
             raise KeyError(key)
 

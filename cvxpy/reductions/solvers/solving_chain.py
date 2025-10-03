@@ -15,6 +15,7 @@ from cvxpy.constraints import (
     NonNeg,
     NonPos,
     PowCone3D,
+    PowConeND,
     Zero,
 )
 from cvxpy.constraints.exponential import OpRelEntrConeQuad, RelEntrConeQuad
@@ -318,7 +319,9 @@ def construct_solving_chain(problem, candidates,
         # (rather than the ND power cone), then we'll need to check
         # for those atoms here as well.
         cones.append(PowCone3D)
-
+    # TODO: add support for PowConeND atoms
+    if PowConeND in constr_types:
+        cones.append(PowConeND)
     # Here, we make use of the observation that canonicalization only
     # increases the number of constraints in our problem.
     var_domains = sum([var.domain for var in problem.variables()], start = [])
