@@ -19,7 +19,7 @@ import numpy as np
 import scipy.sparse as sp
 
 import cvxpy.settings as s
-from cvxpy.constraints import PSD, SOC, ExpCone, NonNeg, PowCone3D, Zero
+from cvxpy.constraints import PSD, SOC, ExpCone, NonNeg, PowCone3D, PowConeND, Zero
 from cvxpy.reductions.cvx_attr2constr import convex_attributes
 from cvxpy.reductions.dcp2cone.cone_matrix_stuffing import ParamConeProg
 from cvxpy.reductions.solution import Solution, failure_solution
@@ -251,6 +251,9 @@ class ConicSolver(Solver):
                     )
                     arg_mats.append(space_mat)
                 restruct_mat.append(sp.hstack(arg_mats))
+            elif type(constr) == PowConeND:
+                # TODO
+                raise NotImplementedError("PowConeND not yet supported.")
             elif type(constr) == PSD:
                 restruct_mat.append(cls.psd_format_mat(constr))
             else:
@@ -330,6 +333,7 @@ class ConicSolver(Solver):
         # 4. psd
         # 5. exponential
         # 6. three-dimensional power cones
+        # TODO: 7. n-dimensional power cones
         if not problem.formatted:
             problem = self.format_constraints(problem, self.EXP_CONE_ORDER)
         data[s.PARAM_PROB] = problem
@@ -339,7 +343,9 @@ class ConicSolver(Solver):
         constr_map = problem.constr_map
         inv_data[self.EQ_CONSTR] = constr_map[Zero]
         inv_data[self.NEQ_CONSTR] = constr_map[NonNeg] + constr_map[SOC] + \
-            constr_map[PSD] + constr_map[ExpCone] + constr_map[PowCone3D]
+            constr_map[PSD] + constr_map[ExpCone] + \
+            constr_map[PowCone3D] + constr_map[PowCone3D] + \
+            constr_map[PowConeND]
         return problem, data, inv_data
 
     def apply(self, problem):

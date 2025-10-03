@@ -52,6 +52,10 @@ def dims_to_solver_cones(cone_dims):
 
     for pow in cone_dims.p3d:
         cones.append(clarabel.PowerConeT(pow))
+        
+    # TODO: Handle PowConeND constraints
+    for pow in cone_dims.pnd:
+        cones.append(clarabel.PowerConeT(pow, 1))
     return cones
 
 

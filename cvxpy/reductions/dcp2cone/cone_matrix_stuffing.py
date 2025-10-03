@@ -28,6 +28,7 @@ from cvxpy.constraints import (
     NonNeg,
     NonPos,
     PowCone3D,
+    PowConeND,
     Zero,
 )
 from cvxpy.cvxcore.python import canonInterface
@@ -362,6 +363,7 @@ class ConeMatrixStuffing(MatrixStuffing):
                                 z.flatten(order='F'),
                                 alpha.flatten(order='F'),
                                 constr_id=con.constr_id)
+            # TODO: convert powconeND?
             elif isinstance(con, ExpCone) and con.args[0].ndim > 1:
                 x, y, z = con.args
                 con = ExpCone(x.flatten(order='F'), y.flatten(order='F'), z.flatten(order='F'),
@@ -374,10 +376,11 @@ class ConeMatrixStuffing(MatrixStuffing):
         extractor = CoeffExtractor(inverse_data, canon_backend)
         params_to_P, params_to_c, flattened_variable = self.stuffed_objective(
             problem, extractor)
-        # Reorder constraints to Zero, NonNeg, SOC, PSD, EXP, PowCone3D
+        # Reorder constraints to Zero, NonNeg, SOC, PSD, EXP, PowCone3D, PowConeND
         constr_map = group_constraints(cons)
         ordered_cons = constr_map[Zero] + constr_map[NonNeg] + \
-            constr_map[SOC] + constr_map[PSD] + constr_map[ExpCone] + constr_map[PowCone3D]
+            constr_map[SOC] + constr_map[PSD] + constr_map[ExpCone] + \
+            constr_map[PowCone3D] + constr_map[PowConeND]
         inverse_data.cons_id_map = {con.id: con.id for con in ordered_cons}
 
         inverse_data.constraints = ordered_cons
