@@ -37,22 +37,22 @@ def perspective_canon(expr, args):
     prob_canon = chain.apply(aux_prob)[0]  # grab problem instance
     # get cone representation of c, A, and b for some problem.
 
-    c = prob_canon.c.toarray().flatten()[:-1]
-    d = prob_canon.c.toarray().flatten()[-1]
-    Ab = prob_canon.A.toarray().reshape((-1, len(c)+1), order="F")
+    q = prob_canon.q.toarray().flatten()[:-1]
+    d = prob_canon.q.toarray().flatten()[-1]
+    Ab = prob_canon.A.toarray().reshape((-1, len(q)+1), order="F")
     A, b = Ab[:, :-1], Ab[:, -1]
 
     # given f in epigraph form, aka epi f = \{(x,t) | f(x) \leq t\}
     # = \{(x,t) | Fx +tg + e \in K} for K a cone, the epigraph of the
     # perspective, \{(x,s,t) | sf(x/s) \leq t} = \{(x,s,t) | Fx + tg + se \in K\}
     # If I have the problem "minimize f(x)" written in the CVXPY compatible
-    # "c^Tx, Ax+b \in K" form, I can re-write this in the graph form above via
-    # x,t \in \epi f iff Ax + b \in K and t-c^Tx \in R_+ which I can further write
+    # "q^Tx, Ax+b \in K" form, I can re-write this in the graph form above via
+    # x,t \in \epi f iff Ax + b \in K and t-q^Tx \in R_+ which I can further write
     # with block matrices as Fx + tg + e \in K \times R_+
     # with F = [A ], g = [0], e = [b]
-    #          [-c]      [1]      [-d]
+    #          [-q]      [1]      [-d]
 
-    # Actually, all we need is Ax + 0*t + sb \in K, -c^Tx + t - ds >= 0
+    # Actually, all we need is Ax + 0*t + sb \in K, -q^Tx + t - ds >= 0
 
     t = Variable()
     s = args[0]
@@ -72,7 +72,7 @@ def perspective_canon(expr, args):
             constraints.append(pers_constraint)
             i += sz
 
-    constraints.append(-c@x_canon + t - s*d >= 0)
+    constraints.append(-q@x_canon + t - s*d >= 0)
 
     # recover initial variables
 

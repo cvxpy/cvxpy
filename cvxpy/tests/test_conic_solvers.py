@@ -632,7 +632,6 @@ class TestCuClarabel(BaseTest):
 
     def test_clarabel_socp_3(self) -> None:
         # axis 0
-        breakpoint()
         StandardTestSOCPs.test_socp_3ax0(solver='CUCLARABEL')
         # axis 1
         StandardTestSOCPs.test_socp_3ax1(solver='CUCLARABEL')
