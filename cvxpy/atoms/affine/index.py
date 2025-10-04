@@ -244,3 +244,25 @@ class special_index(AffAtom):
         e = np.zeros(self.args[0].size)
         e[idx] = vec
         return self.args[0].hess_vec(e)
+    
+    def _verify_jacobian_args(self):
+        return True
+
+    def _jacobian(self):
+        jacobian_dict = self.args[0].jacobian()
+        idx = self.key
+        row_map = {val: i for i, val in enumerate(idx)}
+
+        for k in jacobian_dict: 
+            rows, cols, vals = jacobian_dict[k]
+
+            # extract entries in rows 'rows'
+            idxs = np.where(np.isin(rows, idx))[0]
+            rows_idxs = rows[idxs]
+
+            # replace rows_idxs by their position in idx
+            rows_idxs = np.array([row_map[r] for r in rows_idxs])
+
+            jacobian_dict[k] = (rows_idxs, cols[idxs], vals[idxs])
+
+        return jacobian_dict
