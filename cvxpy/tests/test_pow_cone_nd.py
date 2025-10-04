@@ -38,7 +38,7 @@ def test_pow_cone_nd(axis):
     constraints = [x[0] + x[1] + 0.5 * x[2] == 2, 
                    cp.constraints.PowConeND(W, hypos, alpha, axis=axis)]
     prob = cp.Problem(objective, constraints)
-    prob.solve(solver=cp.CLARABEL)
+    prob.solve(solver=cp.CLARABEL, verbose=True)
 
 
 
