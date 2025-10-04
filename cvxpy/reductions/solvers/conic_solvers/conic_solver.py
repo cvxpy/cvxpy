@@ -256,14 +256,24 @@ class ConicSolver(Solver):
                 # TODO: implement this
                 # TODO: possibly transpose based on axis
                 arg_mats = []
-                for i, arg in enumerate(constr.args):
-                    m, n = arg.shape
+                m, n = constr.args[0].shape
+                for j in range(n):
                     space_mat = ConicSolver.get_spacing_matrix(
-                        shape=(total_height, m), spacing=n,
-                        streak=1, num_blocks=m, offset=i,
+                        shape=(total_height, m), spacing=0,
+                        streak=1, num_blocks=m, offset=(m+1)*j,
                     )
                     arg_mats.append(space_mat)
+
+                # Hypo columns
+                arg = constr.args[1]
+                assert arg.size == n
+                space_mat = ConicSolver.get_spacing_matrix(
+                    shape=(total_height, n), spacing=m,
+                    streak=1, num_blocks=n, offset=m,
+                )
+                arg_mats.append(space_mat)
                 restruct_mat.append(sp.hstack(arg_mats))
+
             elif type(constr) == PSD:
                 restruct_mat.append(cls.psd_format_mat(constr))
             else:

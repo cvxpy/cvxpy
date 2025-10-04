@@ -97,7 +97,7 @@ class ConeDims:
         #TODO: add support for PowConeND
         pnd = []
         if constr_map[PowConeND]:
-            pnd = np.concatenate([c.alpha.value for c in constr_map[PowConeND]]).tolist()
+            pnd = np.concatenate([c.alpha.value.T for c in constr_map[PowConeND]]).tolist()
         self.pnd = pnd
 
     def __repr__(self) -> str: #TODO: updated to include pnd. Check formatting.
@@ -447,6 +447,7 @@ class ConeMatrixStuffing(MatrixStuffing):
                 # TODO rationalize Exponential.
                 if shape == () or isinstance(con_obj, (ExpCone, SOC)):
                     dual_vars[old_con] = solution.dual_vars[new_con]
+                # TODO: handle powConeND duals
                 else:
                     dual_vars[old_con] = np.reshape(
                         solution.dual_vars[new_con],
