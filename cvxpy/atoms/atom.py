@@ -474,7 +474,7 @@ class Atom(Expression):
         # for nonlinear atoms we typically require that the arguments are variables 
         # (this is guaranteed in the NLP setting through the canonicalization)
         if not self._verify_jacobian_args():
-           raise ValueError("Argument error in jacobian.")
+           raise ValueError("Argument error in jacobian for atom %s." % self.__class__.__name__)
         
         return self._jacobian()
 
@@ -523,7 +523,7 @@ class Atom(Expression):
         # for nonlinear atoms we typically require that the arguments are variables 
         # (this is guaranteed in the NLP setting through the canonicalization)
         if not self._verify_hess_vec_args():
-           raise ValueError("Argument error in hess_vec.")
+           raise ValueError("Argument error in hess_vec for atom %s." % self.__class__.__name__)
     
         return self._hess_vec(vec)
 
