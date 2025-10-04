@@ -22,9 +22,9 @@ def test_pow_cone_nd(axis):
                         [0.8, 0.6]]
                 (W, z) in PowND(alpha, axis=0)
     """
-    x = cp.Variable(shape=(3,))
+    x = cp.Variable(shape=(3,), name='x')
     # expect_x = np.array([0.06393515, 0.78320961, 2.30571048])
-    hypos = cp.Variable(shape=(2,))
+    hypos = cp.Variable(shape=(2,), name='hypos')
     # expect_hypos = None
     objective = cp.Maximize(cp.sum(hypos) - x[0])
     W = cp.bmat([[x[0], x[2]],

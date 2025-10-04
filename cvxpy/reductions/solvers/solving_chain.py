@@ -349,7 +349,8 @@ def construct_solving_chain(problem, candidates,
         ]
 
         if has_constr or not solver_instance.REQUIRES_CONSTR:
-            if ex_cos_unsupported:
+            if ex_cos_unsupported: #TODO: add back unsupported
+            # if ex_cos:
                 reductions.append(Exotic2Common())
             if RelEntrConeQuad in approx_cos or OpRelEntrConeQuad in approx_cos:
                 reductions.append(QuadApprox())

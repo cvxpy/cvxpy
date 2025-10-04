@@ -91,7 +91,8 @@ def dims_to_solver_dict(cone_dims):
         'q': cone_dims.soc,
         'ep': cone_dims.exp,
         's': cone_dims.psd,
-        'p': cone_dims.p3d
+        'p': cone_dims.p3d,
+        'pnd': cone_dims.pnd
     }
     # TODO: update keys to include powerConeND
     return cones
@@ -253,7 +254,22 @@ class ConicSolver(Solver):
                 restruct_mat.append(sp.hstack(arg_mats))
             elif type(constr) == PowConeND:
                 # TODO: implement formatting for PowConeND
-                raise NotImplementedError("Formatting for PowConeND is not yet implemented.")
+                arg_mats = []
+                offset = 0
+                for i, arg in enumerate(constr.args):
+                    # Handle both vectors and matrices
+                    if len(arg.shape) == 1:
+                        n, m = arg.shape[0], 1
+                    else:
+                        n, m = arg.shape
+                    for j in range(m):
+                        space_mat = ConicSolver.get_spacing_matrix(
+                            shape=(total_height, n), spacing=2,
+                            streak=1, num_blocks=n, offset=offset, #TODO: check offset
+                        )
+                        offset += 1
+                        arg_mats.append(space_mat)
+                restruct_mat.append(sp.hstack(arg_mats))
             elif type(constr) == PSD:
                 restruct_mat.append(cls.psd_format_mat(constr))
             else:
