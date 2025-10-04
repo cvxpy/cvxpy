@@ -55,8 +55,7 @@ def dims_to_solver_cones(cone_dims):
         
     # TODO: Handle PowConeND constraints
     for pow in cone_dims.pnd:
-        cones.append(clarabel.GenPowerConeT([pow, 1 - pow], 1))
-        # cones.append(clarabel.GenPowerConeT(pow, 1)) # TODO: un-hardcode the dims
+        cones.append(clarabel.GenPowerConeT(pow, 1)) # TODO: un-hardcode the dims
     return cones
 
 

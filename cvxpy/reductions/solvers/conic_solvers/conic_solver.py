@@ -253,22 +253,16 @@ class ConicSolver(Solver):
                     arg_mats.append(space_mat)
                 restruct_mat.append(sp.hstack(arg_mats))
             elif type(constr) == PowConeND:
-                # TODO: implement formatting for PowConeND
+                # TODO: implement this
+                # TODO: possibly transpose based on axis
                 arg_mats = []
-                offset = 0
                 for i, arg in enumerate(constr.args):
-                    # Handle both vectors and matrices
-                    if len(arg.shape) == 1:
-                        n, m = arg.shape[0], 1
-                    else:
-                        n, m = arg.shape
-                    for j in range(m):
-                        space_mat = ConicSolver.get_spacing_matrix(
-                            shape=(total_height, n), spacing=2,
-                            streak=1, num_blocks=n, offset=offset, #TODO: check offset
-                        )
-                        offset += 1
-                        arg_mats.append(space_mat)
+                    m, n = arg.shape
+                    space_mat = ConicSolver.get_spacing_matrix(
+                        shape=(total_height, m), spacing=n,
+                        streak=1, num_blocks=m, offset=i,
+                    )
+                    arg_mats.append(space_mat)
                 restruct_mat.append(sp.hstack(arg_mats))
             elif type(constr) == PSD:
                 restruct_mat.append(cls.psd_format_mat(constr))
