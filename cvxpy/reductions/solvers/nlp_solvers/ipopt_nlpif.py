@@ -152,7 +152,7 @@ class IPOPT(NLPsolver):
             'bound_relax_factor': 0.0,
             'hessian_approximation': 'exact',
             'derivative_test': 'first-order',
-            'least_square_init_duals': 'yes'
+            'least_square_init_duals': 'no'
         }
          
         # Update defaults with user-provided options

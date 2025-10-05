@@ -21,6 +21,7 @@ from cvxpy.atoms.elementwise.rel_entr import rel_entr
 from cvxpy.atoms.elementwise.kl_div import kl_div
 from cvxpy.atoms.elementwise.minimum import minimum
 from cvxpy.atoms.elementwise.power import power
+from cvxpy.atoms.elementwise.trig import cos, sin, tan
 from cvxpy.atoms.pnorm import Pnorm
 from cvxpy.atoms.elementwise.abs import abs
 from cvxpy.atoms.affine.binary_operators import DivExpression, multiply
@@ -38,13 +39,14 @@ from cvxpy.reductions.expr2smooth.canonicalizers.maximum_canon import maximum_ca
 from cvxpy.reductions.expr2smooth.canonicalizers.entr_canon import entr_canon
 from cvxpy.reductions.expr2smooth.canonicalizers.rel_entr_canon import rel_entr_canon
 from cvxpy.reductions.expr2smooth.canonicalizers.kl_div_canon import kl_div_canon
+from cvxpy.reductions.expr2smooth.canonicalizers.trig_canon import cos_canon, sin_canon, tan_canon
 
 SMITH_CANON_METHODS = {
-    #abs: abs_canon,
-    #maximum : maximum_canon,
-    #minimum: minimum_canon,
     log: log_canon,
     exp: exp_canon,
+    sin: sin_canon,
+    cos: cos_canon,
+    tan: tan_canon,
     power: power_canon,
     Pnorm : pnorm_canon,
     DivExpression: div_canon,
