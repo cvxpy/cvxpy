@@ -126,12 +126,24 @@ class index(AffAtom):
     
     def _jacobian(self):
         jacobian_dict = self.args[0].jacobian()
-        idx = self._orig_key
+        indices = [np.arange(s.start, s.stop, s.step) for s in self.key]
+        if len(indices) == 1:
+            idx = indices[0]
+        elif len(indices) == 2:
+            idx = np.add.outer(indices[0], indices[1] * self.args[0].shape[0]).flatten(order="F")
 
-        for k in jacobian_dict: 
+        row_map = {val: i for i, val in enumerate(idx)}
+        for k in jacobian_dict:
             rows, cols, vals = jacobian_dict[k]
-            idxs = np.where(rows == idx)[0]
-            jacobian_dict[k] = (np.zeros(len(idxs), dtype=int), cols[idxs], vals[idxs])
+
+            # extract entries in rows 'rows'
+            idxs = np.where(np.isin(rows, idx))[0]
+            rows_idxs = rows[idxs]
+
+            # replace rows_idxs by their position in idx
+            rows_idxs = np.array([row_map[r] for r in rows_idxs])
+
+            jacobian_dict[k] = (rows_idxs, cols[idxs], vals[idxs])
 
         return jacobian_dict
 
@@ -253,7 +265,7 @@ class special_index(AffAtom):
         idx = self.key
         row_map = {val: i for i, val in enumerate(idx)}
 
-        for k in jacobian_dict: 
+        for k in jacobian_dict:
             rows, cols, vals = jacobian_dict[k]
 
             # extract entries in rows 'rows'

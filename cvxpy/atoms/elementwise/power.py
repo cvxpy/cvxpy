@@ -418,6 +418,11 @@ class power(Elementwise):
         return True
 
     def _jacobian(self):
+        """
+        The jacobian of the power of a variable is a diagonal matrix with
+        entries p * x_i^(p-1). We vectorize matrix expressions, so we flatten the
+        values in column-major (Fortran) order.
+        """
         if self.p_rational is not None:
             p = self.p_rational
         elif self.p.value is not None:
@@ -428,7 +433,7 @@ class power(Elementwise):
         
         x = self.args[0]
         idxs = np.arange(x.size)
-        vals = float(p)*np.power(x.value, float(p)-1)
+        vals = float(p)*np.power(x.value.flatten(order='F'), float(p)-1)
         return {x: (idxs, idxs, vals)}
         
     def _domain(self) -> List[Constraint]:

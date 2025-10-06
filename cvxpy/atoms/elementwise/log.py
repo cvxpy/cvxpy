@@ -106,9 +106,14 @@ class log(Elementwise):
         return isinstance(self.args[0], Variable)
 
     def _jacobian(self):
+        """
+        The jacobian of the log of a variable is a diagonal matrix with
+        entries 1/x_i. We vectorize matrix expressions, so we flatten the
+        values in column-major (Fortran) order.
+        """
         x = self.args[0]
         idxs = np.arange(x.size)
-        vals = 1.0 / x.value
+        vals = 1.0 / x.value.flatten(order='F')
         return {x: (idxs, idxs, vals)}
 
     def _domain(self) -> List[Constraint]:

@@ -15,9 +15,7 @@ class TestHessSum():
         result_dict = sum.hess_vec(dummy_vec)
         correct_matrix = -3.5 * np.diag(1 / x.value ** 2)
         computed_hess = np.zeros((n, n))
-        rows = result_dict[(x, x)][0]
-        cols = result_dict[(x, x)][1]
-        vals = result_dict[(x, x)][2]
+        rows, cols, vals = result_dict[(x, x)]
         computed_hess[rows, cols] = vals
         assert(np.allclose(computed_hess, correct_matrix))
 
@@ -30,9 +28,7 @@ class TestHessSum():
         result_dict = sum.hess_vec(dummy_vec)
         correct_matrix = -4 * np.diag(1 / x.value ** 2)
         computed_hess = np.zeros((n, n))
-        rows = result_dict[(x, x)][0]
-        cols = result_dict[(x, x)][1]
-        vals = result_dict[(x, x)][2]
+        rows, cols, vals = result_dict[(x, x)]
         computed_hess[rows, cols] = vals
         assert(np.allclose(computed_hess, correct_matrix))
     
@@ -45,8 +41,6 @@ class TestHessSum():
         result_dict = sum.hess_vec(dummy_vec)
         correct_matrix = 4 * np.diag(-1 * np.array([1 / (1.0**2), 2 / (2.0**2), 3 / (3.0**2)]))
         computed_hess = np.zeros((n, n))
-        rows = result_dict[(x, x)][0]
-        cols = result_dict[(x, x)][1]
-        vals = result_dict[(x, x)][2]
+        rows, cols, vals = result_dict[(x, x)]
         computed_hess[rows, cols] = vals
         assert(np.allclose(computed_hess, correct_matrix))

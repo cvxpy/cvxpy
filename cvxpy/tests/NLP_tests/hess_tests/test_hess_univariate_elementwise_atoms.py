@@ -14,9 +14,7 @@ class TestHessVecElementwiseUnivariate():
         result_dict = log.hess_vec(vec)
         correct_matrix = np.diag([ -5.0/(1.0**2), -4.0/(2.0**2), -3.0/(3.0**2)])
         computed_hess = np.zeros((n, n))
-        rows = result_dict[(x, x)][0]
-        cols = result_dict[(x, x)][1]
-        vals = result_dict[(x, x)][2]
+        rows, cols, vals = result_dict[(x, x)]
         computed_hess[rows, cols] = vals
         assert(np.allclose(computed_hess, correct_matrix))
 
@@ -36,9 +34,7 @@ class TestHessVecElementwiseUnivariate():
         result_dict = exp.hess_vec(vec)
         correct_matrix = np.diag([ 5.0*np.exp(1.0), 4.0*np.exp(2.0), 3.0*np.exp(3.0)])
         computed_hess = np.zeros((n, n))
-        rows = result_dict[(x, x)][0]
-        cols = result_dict[(x, x)][1]
-        vals = result_dict[(x, x)][2]
+        rows, cols, vals = result_dict[(x, x)]
         computed_hess[rows, cols] = vals
         assert(np.allclose(computed_hess, correct_matrix))
 
@@ -58,9 +54,7 @@ class TestHessVecElementwiseUnivariate():
         result_dict = entr.hess_vec(vec)
         correct_matrix = np.diag([ -5.0/(1.0), -4.0/(2.0), -3.0/(3.0)])
         computed_hess = np.zeros((n, n))
-        rows = result_dict[(x, x)][0]
-        cols = result_dict[(x, x)][1]
-        vals = result_dict[(x, x)][2]
+        rows, cols, vals = result_dict[(x, x)]
         computed_hess[rows, cols] = vals
         assert(np.allclose(computed_hess, correct_matrix))
 
@@ -80,9 +74,7 @@ class TestHessVecElementwiseUnivariate():
         result_dict = square.hess_vec(vec)
         correct_matrix = np.diag([10.0, 8.0, 6.0])
         computed_hess = np.zeros((n, n))
-        rows = result_dict[(x, x)][0]
-        cols = result_dict[(x, x)][1]
-        vals = result_dict[(x, x)][2]
+        rows, cols, vals = result_dict[(x, x)]
         computed_hess[rows, cols] = vals
         assert(np.allclose(computed_hess, correct_matrix))
 
@@ -102,9 +94,7 @@ class TestHessVecElementwiseUnivariate():
         result_dict = power.hess_vec(vec)
         correct_matrix = np.diag([30.0, 48.0, 54.0])
         computed_hess = np.zeros((n, n))
-        rows = result_dict[(x, x)][0]
-        cols = result_dict[(x, x)][1]
-        vals = result_dict[(x, x)][2]
+        rows, cols, vals = result_dict[(x, x)]
         computed_hess[rows, cols] = vals
         assert(np.allclose(computed_hess, correct_matrix))
 
@@ -114,5 +104,3 @@ class TestHessVecElementwiseUnivariate():
         power = cp.power(x, 3)
         result_dict = power.hess_vec(vec)
         assert(result_dict == {})
-
-

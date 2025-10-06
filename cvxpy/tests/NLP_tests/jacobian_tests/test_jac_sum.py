@@ -14,9 +14,7 @@ class TestJacSum():
         result_dict = sum.jacobian()
         correct_jacobian = 1 / x.value
         computed_jacobian = np.zeros((1, n))
-        rows = result_dict[x][0]
-        cols = result_dict[x][1]
-        vals = result_dict[x][2]
+        rows, cols, vals = result_dict[x]
         computed_jacobian[rows, cols] = vals
         assert(np.allclose(computed_jacobian, correct_jacobian))
 
@@ -28,9 +26,7 @@ class TestJacSum():
         result_dict = sum.jacobian()
         correct_jacobian = 4 / x.value
         computed_jacobian = np.zeros((1, n))
-        rows = result_dict[x][0]
-        cols = result_dict[x][1]
-        vals = result_dict[x][2]
+        rows, cols, vals = result_dict[x]
         computed_jacobian[rows, cols] = vals
         assert(np.allclose(computed_jacobian, correct_jacobian))
     
@@ -42,8 +38,6 @@ class TestJacSum():
         result_dict = sum.jacobian()
         correct_jacobian = np.array([6, 4, 5]) / x.value
         computed_jacobian = np.zeros((1, n))
-        rows = result_dict[x][0]
-        cols = result_dict[x][1]
-        vals = result_dict[x][2]
+        rows, cols, vals = result_dict[x]
         computed_jacobian[rows, cols] = vals
         assert(np.allclose(computed_jacobian, correct_jacobian))

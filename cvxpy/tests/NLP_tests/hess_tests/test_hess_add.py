@@ -17,9 +17,7 @@ class TestHessAdd():
                                     2 * (-8.0/(2.0**2) + np.exp(2.0)), 
                                     4 * (-8.0/(3.0**2) + np.exp(3.0))])
         computed_hess = np.zeros((n, n))
-        rows = result_dict[(x, x)][0]
-        cols = result_dict[(x, x)][1]
-        vals = result_dict[(x, x)][2]
+        rows, cols, vals = result_dict[(x, x)]
         computed_hess[rows, cols] = vals
         assert(np.allclose(computed_hess, correct_matrix))
        
@@ -39,23 +37,17 @@ class TestHessAdd():
         correct_matrix_zz = np.diag([2 * -1, 2 * 2, 2 * 4])
 
         computed_hess = np.zeros((n, n))
-        rows = result_dict[(x, x)][0]
-        cols = result_dict[(x, x)][1]
-        vals = result_dict[(x, x)][2]
+        rows, cols, vals = result_dict[(x, x)]
         computed_hess[rows, cols] = vals
         assert(np.allclose(computed_hess, correct_matrix_xx))
 
         computed_hess.fill(0)
-        rows = result_dict[(y, y)][0]
-        cols = result_dict[(y, y)][1]
-        vals = result_dict[(y, y)][2]
+        rows, cols, vals = result_dict[(y, y)]
         computed_hess[rows, cols] = vals
         assert(np.allclose(computed_hess, correct_matrix_yy))
 
         computed_hess.fill(0)
-        rows = result_dict[(z, z)][0]
-        cols = result_dict[(z, z)][1]
-        vals = result_dict[(z, z)][2]       
+        rows, cols, vals = result_dict[(z, z)]
         computed_hess[rows, cols] = vals
         assert(np.allclose(computed_hess, correct_matrix_zz))
         
@@ -68,10 +60,6 @@ class TestHessAdd():
         result_dict = neg_log.hess_vec(vec)
         correct_matrix = -np.diag([ -5.0/(1.0**2), -4.0/(2.0**2), -3.0/(3.0**2)])
         computed_hess = np.zeros((n, n))
-        rows = result_dict[(x, x)][0]
-        cols = result_dict[(x, x)][1]
-        vals = result_dict[(x, x)][2]
+        rows, cols, vals = result_dict[(x, x)]
         computed_hess[rows, cols] = vals
         assert(np.allclose(computed_hess, correct_matrix))
-    
-    

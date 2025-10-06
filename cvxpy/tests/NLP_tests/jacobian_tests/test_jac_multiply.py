@@ -53,16 +53,12 @@ class TestJacMultiply():
         correct_jacobian_y = np.diag(x.value)
 
         computed_jacobian_x = np.zeros((3, 3))
-        rows = result_dict[x][0]
-        cols = result_dict[x][1]
-        vals = result_dict[x][2]
+        rows, cols, vals = result_dict[x]
         computed_jacobian_x[rows, cols] = vals
         assert(np.allclose(computed_jacobian_x, correct_jacobian_x))
 
         computed_jacobian_y = np.zeros((3, 3))
-        rows = result_dict[y][0]
-        cols = result_dict[y][1]
-        vals = result_dict[y][2]
+        rows, cols, vals = result_dict[y]
         computed_jacobian_y[rows, cols] = vals
         assert(np.allclose(computed_jacobian_y, correct_jacobian_y))
 
@@ -208,4 +204,3 @@ class TestJacMultiply():
         computed_jacobian[rows, cols] = vals
         assert(np.allclose(computed_jacobian, correct_jacobian))
         assert(len(result_dict) == 1)
-

@@ -14,9 +14,7 @@ class TestJacAdd():
         result_dict = sum.jacobian()
         correct_jacobian = np.diag(1/x.value) + np.diag(np.exp(x.value)) + np.diag(7/x.value)
         computed_jacobian = np.zeros((n, n))
-        rows = result_dict[x][0]
-        cols = result_dict[x][1]
-        vals = result_dict[x][2]
+        rows, cols, vals = result_dict[x]
         computed_jacobian[rows, cols] = vals
         assert(np.allclose(computed_jacobian, correct_jacobian))
        
@@ -35,38 +33,28 @@ class TestJacAdd():
         correct_jacobian_zz = np.diag(2 * z.value)
 
         computed_jacobian = np.zeros((n, n))
-        rows = result_dict[x][0]
-        cols = result_dict[x][1]
-        vals = result_dict[x][2]
+        rows, cols, vals = result_dict[x]
         computed_jacobian[rows, cols] = vals
         assert(np.allclose(computed_jacobian, correct_jacobian_xx))
 
         computed_jacobian.fill(0)
-        rows = result_dict[y][0]
-        cols = result_dict[y][1]
-        vals = result_dict[y][2]
+        rows, cols, vals = result_dict[y]
         computed_jacobian[rows, cols] = vals
         assert(np.allclose(computed_jacobian, correct_jacobian_yy))
 
         computed_jacobian.fill(0)
-        rows = result_dict[z][0]
-        cols = result_dict[z][1]
-        vals = result_dict[z][2]       
+        rows, cols, vals = result_dict[z]
         computed_jacobian[rows, cols] = vals
         assert(np.allclose(computed_jacobian, correct_jacobian_zz))
         
     def test_negation_one_variable(self):
-        n = 3 
-        x = cp.Variable((n, ), name='x')
+        n = 3
+        x = cp.Variable((n,), name='x')
         x.value = np.array([1.0, 2.0, 3.0])
         neg_log = -cp.log(x)
         result_dict = neg_log.jacobian()
         correct_jacobian = -np.diag(1/x.value)
         computed_jacobian = np.zeros((n, n))
-        rows = result_dict[x][0]
-        cols = result_dict[x][1]
-        vals = result_dict[x][2]
+        rows, cols, vals = result_dict[x]
         computed_jacobian[rows, cols] = vals
         assert(np.allclose(computed_jacobian, correct_jacobian))
-    
-    
