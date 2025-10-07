@@ -29,7 +29,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ ubuntu-22.04, macos-14, windows-2022 ]
-        python-version: [ "3.11", "3.12", "3.13" ]
+        python-version: [ "3.11", "3.12", "3.13", "3.14", "3.14t" ]
         include:
           # These are intended to just add their extra parameter to existing matrix combinations;
           # see https://docs.github.com/en/actions/writing-workflows/workflow-syntax-for-github-actions#jobsjob_idstrategymatrixinclude
@@ -85,7 +85,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ ubuntu-22.04, macos-14, windows-2022 ]
-        python-version: [ "3.11", "3.12", "3.13" ]
+        python-version: [ "3.11", "3.12", "3.13", "3.14", "3.14t" ]
         build-cvxpy-base: [ true, false ]  # whether to build cvxpy-base (true) or regular cvxpy (false)
         include:
           # This is intended to just add the single_action_config parameter to one existing combination;
@@ -109,6 +109,7 @@ jobs:
       - uses: actions/setup-python@v6
         with:
           python-version: ${{ matrix.python-version }}
+          allow-prereleases: true # needed for 3.14
 
       - name: Set Additional Envs
         shell: bash
