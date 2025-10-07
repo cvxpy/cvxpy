@@ -96,3 +96,15 @@ def test_stack_variables_shape_only() -> None:
     y = cp.Variable((2, 3))
     z = cp.stack([x, y], axis=0)
     assert z.shape == (2, 2, 3)
+
+
+def test_stack_canonicalization_resolves_equalities() -> None:
+    """Canonicalization maps scalar variables onto the stacked vector."""
+    x = cp.Variable()
+    y = cp.Variable()
+    z = cp.Variable(2)
+    z_tilde = cp.stack([x, y])
+    problem = cp.Problem(cp.Minimize(0), [z_tilde == z, x == 1, y == 2])
+    problem.solve(solver=cp.SCS)
+    assert problem.status == cp.OPTIMAL
+    assert np.allclose(z.value, np.array([1.0, 2.0]))
