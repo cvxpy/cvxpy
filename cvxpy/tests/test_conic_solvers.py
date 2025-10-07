@@ -14,9 +14,13 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+import contextlib
 import math
+import os
 import re
+import string
 import sys
+import tempfile
 import unittest
 
 import numpy as np
@@ -2274,6 +2278,7 @@ class TestHIGHS:
             StandardTestLPs.test_mi_lp_3,
             StandardTestLPs.test_mi_lp_4,
             StandardTestLPs.test_mi_lp_5,
+            StandardTestLPs.test_mi_lp_6,
         ],
     )
     def test_highs_solving(self, problem) -> None:
@@ -2304,6 +2309,107 @@ class TestHIGHS:
         captured = capfd.readouterr()
         assert re.search(confirmation_string, captured.out) is not None
 
+    def test_highs_validate_column_name(self) -> None:
+        """Test that HiGHS column name check is working correctly.
+
+        For more information about the rules, see:
+        cvxpy.reductions.solvers.conic_solvers.highs_conif.INVALID_COLUMN_NAME_MESSAGE_TEMPLATE
+        """
+        from cvxpy.reductions.solvers.conic_solvers.highs_conif import validate_column_name
+
+        must_not_be_a_keyword = set(
+            ["st", "bounds", "min", "max", "bin", "binary", "gen", "semi", "end"]
+        )
+        must_not_begin_with = set(string.digits + "eE.=()<>[]")
+        may_contain = set(string.ascii_letters + string.digits + "\"!#$%&/}{,;?@_‘’'`|~.=()<>[]")
+        must_not_contain = set(string.printable) - set(may_contain)
+        may_begin_with = (set(may_contain) - set(must_not_begin_with)).union(
+            set(must_not_be_a_keyword) - set(["end"])
+        )
+
+        # Happy path: valid names
+        valid_names = (
+            ["a" * 255]
+            + [single_char_name for single_char_name in may_begin_with - must_not_be_a_keyword]
+            + [f"{beginning}{contains}" for beginning, contains in zip(may_begin_with, may_contain)]
+        )
+        for name in valid_names:
+            validate_column_name(name)
+
+        # Unhappy path: invalid names
+        invalid_names = (
+            ["a" * 256]
+            + [keyword for keyword in must_not_be_a_keyword]
+            + [f"{beginning}_with" for beginning in must_not_begin_with]
+            + [f"a_{containing}_name" for containing in must_not_contain]
+        )
+        for name in invalid_names:
+            with pytest.raises(ValueError):
+                validate_column_name(name)
+
+    @pytest.mark.parametrize(
+        "variables",
+        [
+            [
+                cp.Variable(name="var_with_no_shape"),
+                cp.Variable(name="var_with_shape_1", shape=1),
+                cp.Variable(name="var_with_shape_2_by_2_by_2", shape=[2, 2, 2]),
+                cp.Variable(name="nonneg_var_with_no_shape", nonneg=True),
+                cp.Variable(name="nonneg_var_with_shape_1", nonneg=True, shape=1),
+                cp.Variable(name="nonneg_var_with_shape_2_by_2", nonneg=True, shape=[2, 2]),
+                cp.Variable(name="boolean_variable_to_test_conif", boolean=True),
+            ],
+            [
+                cp.Variable(name="var_with_no_shape"),
+                cp.Variable(name="var_with_shape_1", shape=1),
+                cp.Variable(name="var_with_shape_2_by_2_by_2", shape=[2, 2, 2]),
+                cp.Variable(name="nonneg_var_with_no_shape", nonneg=True),
+                cp.Variable(name="nonneg_var_with_shape_1", nonneg=True, shape=1),
+                cp.Variable(name="nonneg_var_with_shape_2_by_2", nonneg=True, shape=[2, 2]),
+                cp.Variable(name="no_boolean_variable_to_test_qpif", boolean=False),
+            ],
+        ],
+    )
+    def test_highs_written_model_contains_variable_names(self, variables, capfd) -> None:
+        """Test that HiGHS actually receives and writes out the variable names.
+
+        Args:
+            variables: List of cvxpy variables to be used in the test.
+            capfd: Captures stdout to search for confirmation_string.
+        """
+        prob = cp.Problem(cp.Minimize(cp.sum(cp.sum(variables))), [cp.sum(cp.sum(variables)) >= 1])
+
+        fd, model_path = tempfile.mkstemp(suffix=".lp")
+        os.close(fd)
+        try:
+            prob.solve(cp.HIGHS, verbose=True, write_model_file=model_path)
+
+            captured = capfd.readouterr().out
+            # Check that the model is written to the file
+            assert re.search(
+                rf"\nWriting the model to {re.escape(model_path)}\n", captured
+            ), f"Expected model file to be written to {model_path}."
+
+            # Check that the model contains the variable names as expected.
+            with open(model_path, "r", encoding="utf-8") as model_file:
+                model = model_file.read()
+            found_variables = re.sub(
+                " <= 1| free| ", "", re.search(r"\nbounds\n([\w\W]*?)\n(bin|end)\n", model)[1]
+            ).split("\n")
+
+            for expected_var in variables:
+                actual_var_count = 0
+                for actual_var in found_variables:
+                    if actual_var.startswith(expected_var.name()):
+                        actual_var_count += 1
+                expected_var_count = expected_var.size
+                assert expected_var_count == actual_var_count, (
+                    f"Expected variable {expected_var.name()} to appear "
+                    f"{expected_var.size} times in the model bounds section."
+                )
+        finally:
+            with contextlib.suppress(FileNotFoundError):
+                os.remove(model_path)
 
     def test_highs_nonstandard_name(self) -> None:
         """Test HiGHS solver with non-capitalized solver name."""
