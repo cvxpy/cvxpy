@@ -15,7 +15,13 @@ python --version
 python -c "import numpy; print('numpy %s' % numpy.__version__)"
 python -c "import scipy; print('scipy %s' % scipy.__version__)"
 
-if [ $USE_OPENMP == "True" ] && [ $RUNNER_OS == "Linux" ]; then
+PYTEST_ARGS=("cvxpy/tests")
+
+if [[ "$RUNNER_OS" == "Windows" ]]; then
+    uv pip list
+    uv pip install .
+    PYTEST_ARGS=("--pyargs" "cvxpy.tests")
+elif [ $USE_OPENMP == "True" ] && [ $RUNNER_OS == "Linux" ]; then
     CFLAGS="-fopenmp" LDFLAGS="-lgomp" uv pip install -e .
     export OMP_NUM_THREADS=4
 else
@@ -26,7 +32,7 @@ fi
 python -c "import cvxpy; print(cvxpy.installed_solvers())"
 
 if [[ "$SINGLE_ACTION_CONFIG" == "True" ]]; then
-    pytest cvxpy/tests --cov=cvxpy --cov-report xml:coverage.xml
+    pytest "${PYTEST_ARGS[@]}" --cov=cvxpy --cov-report xml:coverage.xml
 else
-    pytest cvxpy/tests
+    pytest "${PYTEST_ARGS[@]}"
 fi
