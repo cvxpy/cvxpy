@@ -20,7 +20,7 @@ if [ $USE_OPENMP == "True" ] && [ $RUNNER_OS == "Linux" ]; then
     export OMP_NUM_THREADS=4
 else
     uv pip list
-    uv pip install .
+    uv pip install -e .
 fi
 
 python -c "import cvxpy; print(cvxpy.installed_solvers())"
