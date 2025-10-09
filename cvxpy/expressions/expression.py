@@ -734,7 +734,8 @@ class Expression(u.Canonical):
             # simply wants to apply a scaling.
             return cvxtypes.elmul_expr()(self, other)
         elif self.shape == other.shape:
-            # nothing is breaking hopefully :)
+            # when both arguments have the same shape
+            # we call elementwise multiply instead of a matmul
             return cvxtypes.elmul_expr()(self, other)
         else:
             # The only reasonable interpretation is that the user intends
