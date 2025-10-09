@@ -402,7 +402,7 @@ class power(Elementwise):
             return {}
     
         x = self.args[0]
-        hess_vals = float(p)*float(p-1)*np.power(x.value, float(p)-2)
+        hess_vals = float(p)*float(p-1)*np.power(x.value.flatten(order='F'), float(p)-2)
 
         idxs = np.arange(x.size)
         vals = hess_vals * vec

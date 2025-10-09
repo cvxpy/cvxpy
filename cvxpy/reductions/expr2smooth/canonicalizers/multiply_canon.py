@@ -40,3 +40,24 @@ def multiply_canon(expr, args):
         t2.value = args[1].value
 
     return expr.copy([t1, t2]), constraints
+
+def matmul_canon(expr, args):
+    t1 = args[0]
+    t2 = args[1]
+    constraints = []
+
+    # if either is constant, no canonicalization needed
+    if t1.is_constant() or t2.is_constant():
+        return expr.copy([t1, t2]), []
+
+    if not isinstance(t1, Variable):
+        t1 = Variable(t1.shape)
+        constraints += [t1 == args[0]]
+        t1.value = args[0].value
+
+    if not isinstance(t2, Variable):
+        t2 = Variable(t2.shape)
+        constraints += [t2 == args[1]]
+        t2.value = args[1].value
+
+    return expr.copy([t1, t2]), constraints

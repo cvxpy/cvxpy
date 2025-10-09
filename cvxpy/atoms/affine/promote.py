@@ -115,17 +115,16 @@ class Promote(AffAtom):
         return (lu.promote(arg_objs[0], shape), [])
 
     def _verify_hess_vec_args(self):
-        return ValueError("The _verify_hess_vec_args method of Promote should"
-                          " never be called.")
+        return True
 
     def _hess_vec(self, values):
-        raise ValueError("The _hess_vec method of Promote should never be called.")
+        return self.args[0]._hess_vec(np.sum(values))
 
     def _verify_jacobian_args(self):
         return (self.args[0].size == 1)
 
     def _jacobian(self):
-        jacobian_dict = self.args[0]._jacobian()
+        jacobian_dict = self.args[0].jacobian()
         size = self.size
     
         for k in jacobian_dict:

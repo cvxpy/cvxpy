@@ -4,14 +4,14 @@ import numpy as np
 import cvxpy as cp
 
 # Problem parameters
-N = 100  # number of control intervals
+N = 20  # number of control intervals
 
 # Decision variables
 X = cp.Variable((2, N+1))  # state trajectory
 pos = X[0, :]
 speed = X[1, :]
 U = cp.Variable((1, N))  # control trajectory (throttle)
-T = cp.Variable(pos=True)  # final time (must be positive)
+T = cp.Variable(nonneg=True)  # final time (must be positive)
 
 # Objective: minimize time
 objective = cp.Minimize(T)
@@ -24,48 +24,51 @@ constraints = []
 
 # Dynamic constraints using RK4 integration
 # dx/dt = f(x,u) where f(x,u) = [x[1]; u - x[1]]
-for k in range(N):
-    # Current state and control
-    xk = X[:, k]
-    uk = U[:, k]
-    
-    # RK4 integration
-    # k1 = f(X(:,k), U(:,k))
-    k1_1 = xk[1]
-    k1_2 = uk[0] - xk[1]
-    
-    # k2 = f(X(:,k)+dt/2*k1, U(:,k))
-    # Note: dt/2 * k1 creates bilinear terms (T * state/control)
-    x_mid1_1 = xk[0] + (T/(2*N)) * k1_1
-    x_mid1_2 = xk[1] + (T/(2*N)) * k1_2
-    k2_1 = x_mid1_2
-    k2_2 = uk[0] - x_mid1_2
-    
-    # k3 = f(X(:,k)+dt/2*k2, U(:,k))
-    x_mid2_1 = xk[0] + (T/(2*N)) * k2_1
-    x_mid2_2 = xk[1] + (T/(2*N)) * k2_2
-    k3_1 = x_mid2_2
-    k3_2 = uk[0] - x_mid2_2
-    
-    # k4 = f(X(:,k)+dt*k3, U(:,k))
-    x_end_1 = xk[0] + (T/N) * k3_1
-    x_end_2 = xk[1] + (T/N) * k3_2
-    k4_1 = x_end_2
-    k4_2 = uk[0] - x_end_2
-    
-    # x_next = X(:,k) + dt/6*(k1+2*k2+2*k3+k4)
-    x_next_1 = xk[0] + (T/(6*N)) * (k1_1 + 2*k2_1 + 2*k3_1 + k4_1)
-    x_next_2 = xk[1] + (T/(6*N)) * (k1_2 + 2*k2_2 + 2*k3_2 + k4_2)
-    
-    # Close the gap constraint
-    constraints.append(X[0, k+1] == x_next_1)
-    constraints.append(X[1, k+1] == x_next_2)
+# Extract state components for all timesteps k=0 to N-1
+# These are views, not copies, so they're efficient
+xk = X[:, :N]  # Shape: (2, N) - states at timesteps 0 to N-1
+xk_next = X[:, 1:N+1]  # Shape: (2, N) - states at timesteps 1 to N
+uk = U[:, :N] if U.ndim > 1 else U.reshape(1, -1)[:, :N]  # Ensure shape (1, N)
+
+dt = T / N
+
+# Vectorized RK4 computation for all timesteps simultaneously
+
+# k1 = f(X(:,k), U(:,k)) for all k
+k1_1 = xk[1, :]  # Shape: (N,)
+k1_2 = uk[0, :] - xk[1, :]  # Shape: (N,)
+
+# k2 = f(X(:,k)+dt/2*k1, U(:,k)) for all k
+x_mid1_1 = xk[0, :] + (dt/2) * k1_1  # Shape: (N,)
+x_mid1_2 = xk[1, :] + (dt/2) * k1_2  # Shape: (N,)
+k2_1 = x_mid1_2
+k2_2 = uk[0, :] - x_mid1_2
+
+# k3 = f(X(:,k)+dt/2*k2, U(:,k)) for all k
+x_mid2_1 = xk[0, :] + (dt/2) * k2_1
+x_mid2_2 = xk[1, :] + (dt/2) * k2_2
+k3_1 = x_mid2_2
+k3_2 = uk[0, :] - x_mid2_2
+
+# k4 = f(X(:,k)+dt*k3, U(:,k)) for all k
+x_end_1 = xk[0, :] + dt * k3_1
+x_end_2 = xk[1, :] + dt * k3_2
+k4_1 = x_end_2
+k4_2 = uk[0, :] - x_end_2
+
+# x_next = X(:,k) + dt/6*(k1+2*k2+2*k3+k4) for all k
+x_next_1 = xk[0, :] + (dt/6) * (k1_1 + 2*k2_1 + 2*k3_1 + k4_1)
+x_next_2 = xk[1, :] + (dt/6) * (k1_2 + 2*k2_2 + 2*k3_2 + k4_2)
+
+# Create constraints for all timesteps at once
+# These create N equality constraints each
+constraints.append(xk_next[0, :] == x_next_1)
+constraints.append(xk_next[1, :] == x_next_2)
+
 
 # Path constraints
 # Speed limit: speed <= 1 - sin(2*pi*pos)/2
-for i in range(N+1):
-    # This is a non-convex constraint due to the sine function
-    constraints.append(speed[i] <= 1 - cp.sin(2*np.pi*pos[i])/2)
+constraints.append(speed <= 1 - cp.sin(2*np.pi*pos)/2)
 
 # Control bounds
 constraints.append(U >= 0)
@@ -112,7 +115,6 @@ if problem.status in ['optimal', 'optimal_inaccurate']:
     
     plt.xlabel('Time [s]')
     plt.ylabel('Value')
-    plt.legend(loc='northwest')
     plt.grid(True, alpha=0.3)
     plt.title('Car Race Optimal Control Solution')
     plt.tight_layout()

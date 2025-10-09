@@ -263,9 +263,6 @@ class MulExpression(BinaryOperator):
     def _hess_vec(self, vec):
         x = self.args[0]
         y = self.args[1]
-
-        print("THIS SHOULD NEVER RUN!!!!!! Haven't implemented this \n \n \n \n")
-        assert(False)
         
         # constant * atom
         if x.is_constant(): 

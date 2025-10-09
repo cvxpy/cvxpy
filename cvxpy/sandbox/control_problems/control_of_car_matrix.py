@@ -4,7 +4,7 @@ import numpy as np
 import cvxpy as cp
 
 
-def solve_car_control(x_final, L=0.1, N=2, h=0.1, gamma=10):
+def solve_car_control(x_final, L=0.1, N=20, h=0.1, gamma=10):
     """
     Solve the nonlinear optimal control problem for car trajectory planning.
     
@@ -61,6 +61,88 @@ def solve_car_control(x_final, L=0.1, N=2, h=0.1, gamma=10):
         # Orientation dynamics
         constraints.append(x[k+1, 2] == x[k, 2] + h * (u[k, 0] / L) * cp.tan(u[k, 1]))
     
+    # Final state constraint
+    constraints.append(x[N, :] == x_final)
+    
+    # Steering angle limits (optional but realistic)
+    # Assuming max steering angle of 45 degrees
+    max_steering = np.pi / 4
+    constraints.append(u[:, 1] >= -max_steering)
+    constraints.append(u[:, 1] <= max_steering)
+    
+    # Create and solve the problem
+    problem = cp.Problem(cp.Minimize(objective), constraints)
+    problem.solve(solver=cp.IPOPT, nlp=True, verbose=True)
+    
+    # Extract solution
+    x_opt = x.value
+    u_opt = u.value
+    
+    return x_opt, u_opt
+
+
+def solve_car_control_vectorized(x_final, L=0.1, N=50, h=0.1, gamma=10):
+    """
+    Solve the nonlinear optimal control problem for car trajectory planning.
+    
+    Parameters:
+    - x_final: tuple (p1, p2, theta) for final position and orientation
+    - L: wheelbase length
+    - N: number of time steps
+    - h: time step size
+    - gamma: weight for control smoothness term
+    
+    Returns:
+    - x_opt: optimal states (N+1 x 3)
+    - u_opt: optimal controls (N x 2)
+    """
+    # Add random seed for reproducibility
+    np.random.seed(78)
+    # Variables
+    # States: x[k] = [p1(k), p2(k), theta(k)]
+    x = cp.Variable((N+1, 3))
+    # Controls: u[k] = [s(k), phi(k)]
+    u = cp.Variable((N, 2))
+    
+    u.value = np.random.uniform(0, 1, size=(N,2))
+    # Initial state (starting at origin with zero orientation)
+    x_init = np.array([0, 0, 0])
+    
+    # Objective function
+    objective = 0
+    
+    # Sum of squared control inputs
+    objective += cp.sum_squares(u)
+    
+    # Control smoothness term
+    objective += gamma * cp.sum_squares(u[1:, :] - u[:-1, :])
+
+    # Constraints
+    constraints = []
+    
+    # Initial state constraint
+    constraints.append(x[0, :] == x_init)
+    # Extract state components for timesteps 0 to N-1
+    x_curr = x[:-1, :]  # Shape: (N, 3)
+    x_next = x[1:, :]   # Shape: (N, 3)
+
+    # Extract control components
+    v = u[:, 0]         # velocities, Shape: (N,)
+    delta = u[:, 1]     # steering angles, Shape: (N,)
+
+    # Extract current orientations
+    theta = x_curr[:, 2]  # Shape: (N,)
+
+    # Vectorized dynamics constraints
+    # Position x dynamics
+    constraints.append(x_next[:, 0] == x_curr[:, 0] + h * cp.multiply(v, cp.cos(theta)))
+
+    # Position y dynamics  
+    constraints.append(x_next[:, 1] == x_curr[:, 1] + h * cp.multiply(v, cp.sin(theta)))
+
+    # Orientation dynamics
+    constraints.append(x_next[:, 2] == x_curr[:, 2] + h * cp.multiply(v / L, cp.tan(delta)))
+
     # Final state constraint
     constraints.append(x[N, :] == x_final)
     
@@ -150,7 +232,7 @@ if __name__ == "__main__":
         print(f"Target state: p1={x_final[0]}, p2={x_final[1]}, theta={x_final[2]:.2f}")
         
         try:
-            x_opt, u_opt = solve_car_control(x_final)
+            x_opt, u_opt = solve_car_control_vectorized(x_final)
             
             if x_opt is not None and u_opt is not None:
                 print("Optimization successful!")

@@ -18,7 +18,7 @@ from cvxpy.expressions.variable import Variable
 
 def exp_canon(expr, args):
     if isinstance(args[0], Variable):
-        return expr, []
+        return expr.copy([args[0]]), []
     else:
         t = Variable(args[0].shape)
         if args[0].value is not None:

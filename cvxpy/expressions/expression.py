@@ -733,6 +733,9 @@ class Expression(u.Canonical):
             # interpret the ``is_scalar`` results as implying that the user
             # simply wants to apply a scaling.
             return cvxtypes.elmul_expr()(self, other)
+        elif self.shape == other.shape:
+            # nothing is breaking hopefully :)
+            return cvxtypes.elmul_expr()(self, other)
         else:
             # The only reasonable interpretation is that the user intends
             # to apply matmul. There might be a dimension mismatch, but we

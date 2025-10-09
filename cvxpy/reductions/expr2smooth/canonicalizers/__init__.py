@@ -13,7 +13,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
-from cvxpy.atoms import maximum
+from cvxpy.atoms import maximum, quad_over_lin
 from cvxpy.atoms.elementwise.exp import exp
 from cvxpy.atoms.elementwise.log import log
 from cvxpy.atoms.elementwise.entr import entr
@@ -24,15 +24,20 @@ from cvxpy.atoms.elementwise.power import power
 from cvxpy.atoms.elementwise.trig import cos, sin, tan
 from cvxpy.atoms.pnorm import Pnorm
 from cvxpy.atoms.elementwise.abs import abs
-from cvxpy.atoms.affine.binary_operators import DivExpression, multiply
+from cvxpy.atoms.affine.binary_operators import DivExpression, MulExpression, multiply
+from cvxpy.reductions.expr2smooth.canonicalizers.quad_over_lin_canon import quad_over_lin_canon
 from cvxpy.reductions.expr2smooth.canonicalizers.div_canon import div_canon
 from cvxpy.reductions.expr2smooth.canonicalizers.log_canon import log_canon
 from cvxpy.reductions.expr2smooth.canonicalizers.exp_canon import exp_canon
 from cvxpy.reductions.expr2smooth.canonicalizers.minimum_canon import minimum_canon
-from cvxpy.reductions.expr2smooth.canonicalizers.abs_canon import abs_canon#, smooth_approx_abs_canon
+from cvxpy.reductions.expr2smooth.canonicalizers.abs_canon import abs_canon
+"""
+# TODO reexplore smooth approximation and resolve later
+#, smooth_approx_abs_canon
 # when dual LS initialization works correctly we should try to use this smooth_approx_abs logic
+"""
 from cvxpy.reductions.expr2smooth.canonicalizers.smooth_approximations_canon import smooth_approx_abs_canon
-from cvxpy.reductions.expr2smooth.canonicalizers.multiply_canon import multiply_canon
+from cvxpy.reductions.expr2smooth.canonicalizers.multiply_canon import matmul_canon, multiply_canon
 from cvxpy.reductions.expr2smooth.canonicalizers.pnorm_canon import pnorm_canon
 from cvxpy.reductions.expr2smooth.canonicalizers.power_canon import power_canon
 from cvxpy.reductions.expr2smooth.canonicalizers.maximum_canon import maximum_canon
@@ -47,13 +52,15 @@ SMITH_CANON_METHODS = {
     sin: sin_canon,
     cos: cos_canon,
     tan: tan_canon,
+    quad_over_lin: quad_over_lin_canon,
     power: power_canon,
     Pnorm : pnorm_canon,
     DivExpression: div_canon,
     entr: entr_canon,
     rel_entr: rel_entr_canon,
     kl_div: kl_div_canon,
-    multiply: multiply_canon
+    multiply: multiply_canon,
+    MulExpression: matmul_canon,
 }
 
 SMOOTH_APPROX_METHODS = {

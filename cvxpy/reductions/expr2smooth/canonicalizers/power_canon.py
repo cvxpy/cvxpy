@@ -43,7 +43,7 @@ def power_canon(expr, args):
         elif p > 1:
 
             if isinstance(args[0], Variable):
-                return expr, []
+                return expr.copy(args), []
 
             t = Variable(args[0].shape)
 
