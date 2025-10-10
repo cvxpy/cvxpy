@@ -1900,7 +1900,7 @@ class TestXPRESS(BaseTest):
         self.b = cp.Variable(name='b')
         self.c = cp.Variable(name='c')
 
-        self.x = cp.Variable(2, name='x')
+        self.x = cp.Variable(2, name='x', integer=True)
         self.y = cp.Variable(3, name='y')
         self.z = cp.Variable(2, name='z')
 
@@ -2278,7 +2278,7 @@ class TestHIGHS:
         ],
     )
     def test_highs_solving(self, problem) -> None:
-        # HACK needed to use the HiGHS conic interface rather than 
+        # HACK needed to use the HiGHS conic interface rather than
         # the QP interface for LPs.
         from cvxpy.reductions.solvers.conic_solvers.highs_conif import HIGHS
         solver = HIGHS()
@@ -2667,7 +2667,7 @@ class TestCOPT(unittest.TestCase):
 @unittest.skipUnless('COSMO' in INSTALLED_SOLVERS, 'COSMO is not installed.')
 class TestCOSMO(BaseTest):
     """Unit tests for COSMO solver interface."""
-    
+
     def setUp(self) -> None:
         self.a = cp.Variable(name='a')
         self.b = cp.Variable(name='b')
@@ -2685,7 +2685,7 @@ class TestCOSMO(BaseTest):
         """Test that COSMO solver options work."""
         # Test basic options with simple problem
         prob = cp.Problem(cp.Minimize(cp.norm(self.x, 1) + 1.0), [self.x == 0])
-        
+
         # Test with default settings
         prob.solve(solver=cp.COSMO, verbose=True)
         self.assertAlmostEqual(prob.value, 1.0)
@@ -2710,7 +2710,7 @@ class TestCOSMO(BaseTest):
 
     def test_cosmo_lp_4(self) -> None:
         StandardTestLPs.test_lp_4(solver='COSMO')
-    
+
     def test_cosmo_lp_5(self) -> None:
         StandardTestLPs.test_lp_5(solver='COSMO')
 
@@ -2729,7 +2729,7 @@ class TestCOSMO(BaseTest):
     def test_cosmo_socp_3(self) -> None:
         # axis 0
         StandardTestSOCPs.test_socp_3ax0(solver='COSMO')
-        # axis 1 
+        # axis 1
         StandardTestSOCPs.test_socp_3ax1(solver='COSMO')
 
     def test_cosmo_expcone_1(self) -> None:
@@ -2749,7 +2749,7 @@ class TestCOSMO(BaseTest):
 
     def test_cosmo_sdp_1min(self) -> None:
         StandardTestSDPs.test_sdp_1min(solver='COSMO')
-    
+
     def test_cosmo_sdp_2(self) -> None:
         places = 3
         sth = sths.sdp_2()
