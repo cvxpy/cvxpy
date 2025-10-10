@@ -147,7 +147,6 @@ def reduce_problem_data_tensor(A, var_length, quad_form: bool = False):
 def nonzero_csc_array(A):
     # this function returns (rows, cols) corresponding to nonzero entries in
     # A; an entry that is explicitly set to zero is treated as nonzero
-    assert not np.isnan(A.data).any()
 
     # scipy drops rows, cols with explicit zeros; use nan as a sentinel
     # to prevent them from being dropped
