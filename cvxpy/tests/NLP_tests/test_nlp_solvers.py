@@ -1,10 +1,12 @@
 import numpy as np
-import pandas as pd
+import pytest
 
 import cvxpy as cp
+from cvxpy.reductions.solvers.defines import INSTALLED_SOLVERS
 
 
-class TestSmoothCanons():
+@pytest.mark.skipif('IPOPT' not in INSTALLED_SOLVERS, reason='IPOPT is not installed.')
+class TestSmoothCanons:
     
     def test_max(self):
         x = cp.Variable(1)
@@ -50,7 +52,9 @@ class TestSmoothCanons():
         # need to set low tolerance, actual value is 42.00062
         assert np.allclose(problem.value, 42, atol=1e-3)
 
-class TestExamplesIPOPT():
+
+@pytest.mark.skipif('IPOPT' not in INSTALLED_SOLVERS, reason='IPOPT is not installed.')
+class TestExamplesIPOPT:
     """
     Nonlinear test problems taken from the IPOPT documentation and
     the Julia documentation: https://jump.dev/JuMP.jl/stable/tutorials/nonlinear/simple_examples/.
@@ -69,6 +73,7 @@ class TestExamplesIPOPT():
         assert problem.status == cp.OPTIMAL
         assert np.allclose(x.value, np.array([0.75450865, 4.63936861, 3.78856881, 1.88513184]))
 
+    """
     def test_portfolio_opt(self):
         df = pd.DataFrame({
         'IBM': [93.043, 84.585, 111.453, 99.525, 95.819, 114.708, 111.515,
@@ -99,6 +104,7 @@ class TestExamplesIPOPT():
         problem.solve(solver=cp.IPOPT, nlp=True)
         assert problem.status == cp.OPTIMAL
         assert np.allclose(x.value, np.array([4.97045504e+02, -9.89291685e-09, 5.02954496e+02]))
+    """
 
     def test_mle(self):
         n = 1000
@@ -150,6 +156,27 @@ class TestExamplesIPOPT():
         assert np.allclose(x.value, np.array([0.32699284]))
         assert np.allclose(y.value, np.array([0.25706586]))
         assert np.allclose(z.value, np.array([0.4159413]))
+
+    def test_analytic_polytope_center(self):
+        # Generate random data
+        np.random.seed(0)
+        m, n = 50, 4
+        b = np.ones(m)
+        rand = np.random.randn(m - 2*n, n)
+        A = np.vstack((rand, np.eye(n), np.eye(n) * -1))
+        """
+        m, n = 5, 2
+        A = np.array([[1, 0], [-1, 0], [0, 1], [0, -1], [-0.5, 1]])
+        b = np.array([1, 1, 1, 1, 0.5])
+        """
+        # Define the variable
+        x = cp.Variable(n)
+        # set initial value for x
+        objective = cp.Minimize(-cp.sum(cp.log(b - A @ x)))
+        problem = cp.Problem(objective, [])
+        # Solve the problem
+        problem.solve(solver=cp.IPOPT, nlp=True, hessian_approximation='exact')
+        assert problem.status == cp.OPTIMAL
 
     def test_socp(self):
         # Define variables
@@ -257,7 +284,8 @@ class TestExamplesIPOPT():
         assert problem.status == cp.INFEASIBLE
     """
 
-class TestNonlinearControl():
+@pytest.mark.skipif('IPOPT' not in INSTALLED_SOLVERS, reason='IPOPT is not installed.')
+class TestNonlinearControl:
     
     def test_control_of_car(self):
         pass
@@ -299,26 +327,3 @@ class TestNonlinearControl():
         problem.solve(solver=cp.IPOPT, nlp=True, hessian_approximation='exact')
         assert problem.status == cp.OPTIMAL
         assert problem.value == 3.500e+02
-
-class TestCanonicalization():
-
-    def test_analytic_polytope_center(self):
-        # Generate random data
-        np.random.seed(0)
-        m, n = 50, 4
-        b = np.ones(m)
-        rand = np.random.randn(m - 2*n, n)
-        A = np.vstack((rand, np.eye(n), np.eye(n) * -1))
-        """
-        m, n = 5, 2
-        A = np.array([[1, 0], [-1, 0], [0, 1], [0, -1], [-0.5, 1]])
-        b = np.array([1, 1, 1, 1, 0.5])
-        """
-        # Define the variable
-        x = cp.Variable(n)
-        # set initial value for x
-        objective = cp.Minimize(-cp.sum(cp.log(b - A @ x)))
-        problem = cp.Problem(objective, [])
-        # Solve the problem
-        problem.solve(solver=cp.IPOPT, nlp=True, hessian_approximation='exact')
-        assert problem.status == cp.OPTIMAL

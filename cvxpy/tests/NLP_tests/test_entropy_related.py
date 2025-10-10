@@ -1,9 +1,12 @@
 import numpy as np
 import numpy.linalg as LA
+import pytest
 
 import cvxpy as cp
+from cvxpy.reductions.solvers.defines import INSTALLED_SOLVERS
 
 
+@pytest.mark.skipif('IPOPT' not in INSTALLED_SOLVERS, reason='IPOPT is not installed.')
 class TestStressMLE():
 
     # convex problem, standard entropy f(x) = - x log x.

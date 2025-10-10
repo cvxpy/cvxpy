@@ -198,40 +198,43 @@ class MulExpression(BinaryOperator):
         return self.args[1-idx].is_nonpos()
 
     def _grad(self, values):
-        """Compute the gradient of matrix multiplication w.r.t. each argument.
-        
-        For Z = X @ Y, this computes the Jacobian matrices:
-        - ∂vec(Z)/∂vec(X) = (Y.T ⊗ I_m).T  where X is (m, n)
-        - ∂vec(Z)/∂vec(Y) = (I_p ⊗ X).T    where Y is (n, p)
-        
+        """Gives the (sub/super)gradient of the atom w.r.t. each argument.
+
+        Matrix expressions are vectorized, so the gradient is a matrix.
+
         Args:
-            values: A list of numeric values for the arguments [X, Y].
-        
+            values: A list of numeric values for the arguments.
+
         Returns:
-            A list of SciPy CSC sparse matrices [DX, DY].
+            A list of SciPy CSC sparse matrices or None.
         """
-        # Handle constant cases
         if self.args[0].is_constant() or self.args[1].is_constant():
             return super(MulExpression, self)._grad(values)
-        
+
+        # TODO(akshayka): Verify that the following code is correct for
+        # non-affine arguments.
         X = values[0]
         Y = values[1]
-        
-        # Get dimensions
-        m, n = self.args[0].shape if len(self.args[0].shape) == 2 else (self.args[0].size, 1)
-        n2, p = self.args[1].shape if len(self.args[1].shape) == 2 else (self.args[1].size, 1)
-        
-        # Verify dimension compatibility
-        assert n == n2, f"Inner dimensions must match for multiplication: {n} != {n2}"
-        
-        # Compute ∂vec(Z)/∂vec(X) = (Y.T ⊗ I_m).T
-        # This is a (m*n) × (m*p) matrix 
-        DX = sp.kron(Y.T, sp.eye(m, format='csc'), format='csc').T
-        
-        # Compute ∂vec(Z)/∂vec(Y) = (I_p ⊗ X).T
-        # This is a (n*p) × (m*p) matrix
-        DY = sp.kron(sp.eye(p, format='csc'), X, format='csc').T
-        
+
+        DX_rows = self.args[0].size
+        cols = self.args[0].size
+
+        # dot product of two vectors with shape (n,)
+        if len(self.args[0].shape) == 1 and len(self.args[1].shape) == 1:
+            DX = sp.csc_array(Y.reshape(-1, 1))  # y as column vector
+            DY = sp.csc_array(X.reshape(-1, 1))  # x as column vector
+            return [DX, DY]
+
+        # DX = [diag(Y11), diag(Y12), ...]
+        #      [diag(Y21), diag(Y22), ...]
+        #      [   ...        ...     ...]
+        DX = sp.dok_array((DX_rows, cols))
+        for k in range(self.args[0].shape[0]):
+            DX[k::self.args[0].shape[0], k::self.args[0].shape[0]] = Y
+        DX = sp.csc_array(DX)
+        cols = 1 if len(self.args[1].shape) == 1 else self.args[1].shape[1]
+        DY = sp.block_diag([np.atleast_2d(X.T) for k in range(cols)], "csc")
+
         return [DX, DY]
     
     def _verify_hess_vec_args(self):
