@@ -454,7 +454,6 @@ class ConeMatrixStuffing(MatrixStuffing):
                 # TODO rationalize Exponential.
                 if shape == () or isinstance(con_obj, (ExpCone, SOC)):
                     dual_vars[old_con] = solution.dual_vars[new_con]
-                # TODO: handle powConeND duals
                 else:
                     dual_vars[old_con] = np.reshape(
                         solution.dual_vars[new_con],

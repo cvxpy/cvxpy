@@ -227,7 +227,15 @@ class PowConeND(Cone):
 
     def get_data(self):
         return [self.alpha, self.axis, self.id]
-
+    
+    @property
+    def shape(self) -> Tuple[int, ...]:
+        #TODO: check axis stuff, unpacking vectors correctly
+        m, n = self.W.shape
+        s = (m + 1, n)
+        # Note: this can be a 3-tuple of x.ndim == 2.
+        return s
+    
     @property
     def residual(self):
         # TODO: The projection should be implemented directly.
