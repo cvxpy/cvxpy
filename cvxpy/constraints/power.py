@@ -230,7 +230,8 @@ class PowConeND(Cone):
     
     @property
     def shape(self) -> Tuple[int, ...]:
-        #TODO: check axis stuff, unpacking vectors correctly
+        # TODO: check axis stuff, unpacking vectors correctly
+        # TODO: add z.dim
         m, n = self.W.shape
         s = (m + 1, n)
         # Note: this can be a 3-tuple of x.ndim == 2.
