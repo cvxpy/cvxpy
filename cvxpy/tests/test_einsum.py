@@ -264,31 +264,38 @@ class TestEinsum(BaseTest):
         self.assertEqual(problem6.status, cp.OPTIMAL)
         self.assertItemsAlmostEqual(result6, expected_result6)
 
-        A_pos_np = np.ones_like(self.A_np)
-        B_pos_np = np.ones_like(self.B_np)
-        C_pos_np = np.ones_like(self.C_np)
-        D_pos_np = np.ones_like(self.D_np)
-
-        A_pos = cp.Variable(self.A_np.shape, pos=True)
-        B_pos = cp.Parameter(self.B_np.shape, pos=True)
-        C_pos = cp.Parameter(self.C_np.shape, pos=True)
-        D_pos = cp.Variable(self.D_np.shape, pos=True)
-
-        B_pos.value = B_pos_np
-        C_pos.value = C_pos_np
-
-        # Test einsum DGP
-        expr7 = cp.einsum('ii,lil->i', A_pos, D_pos)
-        problem7 = cp.Problem(cp.Minimize(cp.sum(expr7)), [A_pos == A_pos_np, D_pos == D_pos_np])
-        self.assertEqual(problem7.is_dgp(), True)
-        problem7.solve(gp=True)
+        expr7 = cp.einsum('ii,lil->i', A, D)
+        problem7 = cp.Problem(cp.Minimize(cp.sum(expr7)), [A == self.A_np])
+        problem7.solve()
         result7 = expr7.value
         expected_result7 = np.einsum(
-            'ii,lil->i', A_pos_np, D_pos_np
+            'ii,lil->i', self.A_np, self.D_np
         )
         self.assertEqual(problem7.status, cp.OPTIMAL)
         self.assertItemsAlmostEqual(result7, expected_result7)
 
+class TestEinsumDGP(BaseTest):
+    """Unit tests for the DGP functionality of the einsum atom."""
+    def test_einsum_dgp_solve(self) -> None:
+        """Test solving einsum problems."""
+        # Einsum with only 2d arrays
+        A_pos_np = np.ones((4, 4))
+        D_pos_np = np.ones((3,4,3))
+
+        A_pos = cp.Variable(A_pos_np.shape, pos=True)
+        D_pos = cp.Variable(D_pos_np.shape, pos=True)
+
+        # Test einsum DGP
+        expr1 = cp.einsum('ii,lil->i', A_pos, D_pos)
+        problem1 = cp.Problem(cp.Minimize(cp.sum(expr1)), [A_pos == A_pos_np, D_pos == D_pos_np])
+        self.assertEqual(problem1.is_dgp(), True)
+        problem1.solve(gp=True)
+        result1 = expr1.value
+        expected_result1 = np.einsum(
+            'ii,lil->i', A_pos_np, D_pos_np
+        )
+        self.assertEqual(problem1.status, cp.OPTIMAL)
+        self.assertItemsAlmostEqual(result1, expected_result1)
 
 if __name__ == '__main__':
     unittest.main()

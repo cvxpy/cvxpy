@@ -33,7 +33,7 @@ from cvxpy.atoms.affine.transpose import permute_dims
 def einsum(subscripts, *exprs, optimize=False):
     """Implement einsum using existing CVXPY atoms."""
     # Initial parsing
-    dummy_operands = [np.zeros(expr.shape) for expr in exprs]
+    dummy_operands = [np.empty(expr.shape, dtype=np.dtype([])) for expr in exprs]
     input_subscripts, output_subscript, _ = _parse_einsum_input((
         subscripts, *dummy_operands
     ))
