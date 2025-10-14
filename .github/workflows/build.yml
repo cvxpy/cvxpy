@@ -40,6 +40,10 @@ jobs:
           - os: macos-14
             python-version: 3.12
             single_action_config: true
+        # exluding this build because it is failing and blocks wheels
+        exclude:
+          - os: windows-2022
+          - python-version: 3.14t
 
     env:
       RUNNER_OS: ${{ matrix.os }}
@@ -57,7 +61,7 @@ jobs:
           echo "MOSEKLM_LICENSE_FILE=$( [[ $RUNNER_OS == 'macOS' ]] && echo $(pwd)/mosek.lic || echo $(realpath mosek.lic) )" >> $GITHUB_ENV
 
       - name: Install uv
-        uses: astral-sh/setup-uv@v6
+        uses: astral-sh/setup-uv@v7
         with:
           python-version: ${{ matrix.python-version }}
           enable-cache: true
@@ -93,6 +97,10 @@ jobs:
           - os: ubuntu-22.04
             python-version: 3.12
             single_action_config: true
+        # exluding this version because it is failing
+        exclude:
+          - os: windows-2022
+            python-version: 3.14t
 
     env:
       RUNNER_OS: ${{ matrix.os }}

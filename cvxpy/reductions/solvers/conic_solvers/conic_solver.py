@@ -277,7 +277,7 @@ class ConicSolver(Solver):
         else:
             restructured_A = problem.A
         new_param_cone_prog = ParamConeProg(
-            problem.c,
+            problem.q,
             problem.x,
             restructured_A,
             problem.variables,
