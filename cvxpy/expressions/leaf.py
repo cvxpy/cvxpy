@@ -251,6 +251,14 @@ class Leaf(expression.Expression):
         """Is the expression concave?"""
         return True
 
+    def is_esr(self) -> bool:
+        """Is the expression esr?"""
+        return True
+
+    def is_hsr(self) -> bool:
+        """Is the expression hsr?"""
+        return True
+
     def is_log_log_convex(self) -> bool:
         """Is the expression log-log convex?"""
         return self.is_pos()

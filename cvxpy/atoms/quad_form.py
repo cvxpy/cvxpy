@@ -73,6 +73,16 @@ class QuadForm(Atom):
         P = self.args[1]
         return P.is_constant() and P.is_nsd()
 
+    def is_atom_esr(self) -> bool:
+        """Is the atom esr?
+        """
+        return True
+
+    def is_atom_hsr(self) -> bool:
+        """Is the atom hsr?
+        """
+        return True
+
     def is_atom_log_log_convex(self) -> bool:
         """Is the atom log-log convex?
         """

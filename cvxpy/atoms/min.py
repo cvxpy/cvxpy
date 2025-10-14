@@ -93,6 +93,16 @@ class min(AxisAtom):
         """Is the atom concave?
         """
         return True
+    
+    def is_atom_esr(self) -> bool:
+        """Is the atom esr?
+        """
+        return False
+
+    def is_atom_hsr(self) -> bool:
+        """Is the atom hsr?
+        """
+        return True
 
     def is_atom_log_log_convex(self) -> bool:
         """Is the atom log-log convex?

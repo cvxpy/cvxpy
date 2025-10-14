@@ -149,12 +149,24 @@ class Atom(Expression):
         """Is the atom concave?
         """
         raise NotImplementedError()
-
+    
     def is_atom_affine(self) -> bool:
         """Is the atom affine?
         """
         return self.is_atom_concave() and self.is_atom_convex()
 
+    def is_atom_esr(self) -> bool:
+        """Is the atom esr?
+        """
+        raise NotImplementedError("is_atom_esr not implemented for %s."
+                                   % self.__class__.__name__)
+    
+    def is_atom_hsr(self) -> bool:
+        """Is the atom hsr?
+        """
+        raise NotImplementedError("is_atom_hsr not implemented for %s."
+                                   % self.__class__.__name__)
+    
     def is_atom_log_log_convex(self) -> bool:
         """Is the atom log-log convex?
         """
@@ -179,9 +191,6 @@ class Atom(Expression):
         """Is the atom log-log affine?
         """
         return self.is_atom_log_log_concave() and self.is_atom_log_log_convex()
-
-    def is_atom_smooth(self) -> bool:
-        pass
 
     @abc.abstractmethod
     def is_incr(self, idx) -> bool:
@@ -228,6 +237,40 @@ class Atom(Expression):
             return True
         else:
             return False
+        
+    @perf.compute_once
+    def is_esr(self) -> bool:
+        """Is the expression epigraph smooth representable?
+        """
+        # Applies DNLP composition rule.
+        if self.is_constant():
+            return True
+        elif self.is_atom_esr():
+            for idx, arg in enumerate(self.args):
+                if not (arg.is_smooth() or
+                        (arg.is_esr() and self.is_incr(idx)) or
+                        (arg.is_hsr() and self.is_decr(idx))):
+                    return False
+            return True
+        else:
+            return False
+        
+    @perf.compute_once
+    def is_hsr(self) -> bool:
+        """Is the expression hypograph smooth representable?
+        """
+        # Applies DNLP composition rule.
+        if self.is_constant():
+            return True
+        elif self.is_atom_hsr():
+            for idx, arg in enumerate(self.args):
+                if not (arg.is_smooth() or
+                        (arg.is_hsr() and self.is_incr(idx)) or
+                        (arg.is_esr() and self.is_decr(idx))):
+                    return False
+            return True
+        else:
+            return False
 
     def is_dpp(self, context='dcp') -> bool:
         """The expression is a disciplined parameterized expression.
@@ -238,16 +281,6 @@ class Atom(Expression):
             return self.is_dgp(dpp=True)
         else:
             raise ValueError('Unsupported context ', context)
-
-    def is_smooth(self) -> bool:
-        "The expression is smooth"
-        if self.is_constant():
-            return True
-        elif self.is_smooth_atom(self):
-            for idx, arg in enumerate(self.args):
-                if not arg.is_smooth():
-                    return False
-        return True
 
     @perf.compute_once
     def is_log_log_convex(self) -> bool:

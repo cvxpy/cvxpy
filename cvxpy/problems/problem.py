@@ -291,6 +291,13 @@ class Problem(u.Canonical):
         """
         return all(
           expr.is_dcp(dpp) for expr in self.constraints + [self.objective])
+    
+    @perf.compute_once
+    def is_dnlp(self) -> bool:
+        """
+        Does the problem satisfy disciplined nonlinear programming (DNLP) rules?
+        """
+        return all(expr.is_dnlp() for expr in self.constraints + [self.objective])
 
     @perf.compute_once
     def _max_ndim(self) -> int:

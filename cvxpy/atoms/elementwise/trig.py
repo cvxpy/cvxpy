@@ -49,22 +49,22 @@ class sin(Elementwise):
     def is_atom_concave(self) -> bool:
         """Is the atom concave?
         """
-        return True
-
-    def is_atom_log_log_convex(self) -> bool:
-        """Is the atom log-log convex?
-        """
         return False
 
-    def is_atom_log_log_concave(self) -> bool:
-        """Is the atom log-log concave?
+    def is_atom_esr(self) -> bool:
+        """Is the atom esr?
+        """
+        return True
+
+    def is_atom_hsr(self) -> bool:
+        """Is the atom hsr?
         """
         return True
 
     def is_incr(self, idx) -> bool:
         """Is the composition non-decreasing in argument idx?
         """
-        return True
+        return False
 
     def is_decr(self, idx) -> bool:
         """Is the composition non-increasing in argument idx?
@@ -133,22 +133,22 @@ class cos(Elementwise):
     def is_atom_concave(self) -> bool:
         """Is the atom concave?
         """
+        return False
+    
+    def is_atom_esr(self) -> bool:
+        """Is the atom esr?
+        """
         return True
 
-    def is_atom_log_log_convex(self) -> bool:
-        """Is the atom log-log convex?
-        """
-        return False
-
-    def is_atom_log_log_concave(self) -> bool:
-        """Is the atom log-log concave?
+    def is_atom_hsr(self) -> bool:
+        """Is the atom hsr?
         """
         return True
 
     def is_incr(self, idx) -> bool:
         """Is the composition non-decreasing in argument idx?
         """
-        return True
+        return False
 
     def is_decr(self, idx) -> bool:
         """Is the composition non-increasing in argument idx?
@@ -218,22 +218,22 @@ class tan(Elementwise):
     def is_atom_concave(self) -> bool:
         """Is the atom concave?
         """
+        return False
+    
+    def is_atom_esr(self) -> bool:
+        """Is the atom esr?
+        """
         return True
 
-    def is_atom_log_log_convex(self) -> bool:
-        """Is the atom log-log convex?
-        """
-        return False
-
-    def is_atom_log_log_concave(self) -> bool:
-        """Is the atom log-log concave?
+    def is_atom_hsr(self) -> bool:
+        """Is the atom hsr?
         """
         return True
 
     def is_incr(self, idx) -> bool:
         """Is the composition non-decreasing in argument idx?
         """
-        return True
+        return False
 
     def is_decr(self, idx) -> bool:
         """Is the composition non-increasing in argument idx?

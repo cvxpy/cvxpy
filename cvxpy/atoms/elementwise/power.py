@@ -208,6 +208,16 @@ class power(Elementwise):
         # p == 0 is affine here.
         return _is_const(self.p) and 0 <= self.p.value <= 1
 
+    def is_atom_esr(self) -> bool:
+        """Is the atom esr?
+        """
+        return _is_const(self.p) and (self.p.value >= 1)
+
+    def is_atom_hsr(self) -> bool:
+        """Is the atom hsr?
+        """
+        return _is_const(self.p)
+
     def parameters(self):
         # This is somewhat of a hack. When checking DPP for DGP,
         # we need to know whether the exponent p is a parameter, because

@@ -325,6 +325,12 @@ class Expression(u.Canonical):
         """Is the expression affine?
         """
         return self.is_constant() or (self.is_convex() and self.is_concave())
+    
+    @perf.compute_once
+    def is_smooth(self) -> bool:
+        """Is the expression smooth?
+        """
+        return self.is_constant() or (self.is_esr() and self.is_hsr())
 
     @abc.abstractmethod
     def is_convex(self) -> bool:
@@ -335,6 +341,18 @@ class Expression(u.Canonical):
     @abc.abstractmethod
     def is_concave(self) -> bool:
         """Is the expression concave?
+        """
+        raise NotImplementedError()
+    
+    #@abc.abstractmethod
+    def is_esr(self) -> bool:
+        """Is the expression esr?
+        """
+        raise NotImplementedError()
+
+    #@abc.abstractmethod
+    def is_hsr(self) -> bool:
+        """Is the expression hsr?
         """
         raise NotImplementedError()
 
@@ -358,6 +376,12 @@ class Expression(u.Canonical):
                 return self.is_convex() or self.is_concave()
         return self.is_convex() or self.is_concave()
 
+    def is_dnlp(self) -> bool:
+        """
+        The expression is smooth representable.
+        """
+        return self.is_esr() or self.is_hsr()
+    
     def is_log_log_constant(self) -> bool:
         """Is the expression log-log constant, ie, elementwise positive?
         """
