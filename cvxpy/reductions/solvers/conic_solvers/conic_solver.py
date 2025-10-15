@@ -364,7 +364,7 @@ class ConicSolver(Solver):
         inv_data[self.EQ_CONSTR] = constr_map[Zero]
         inv_data[self.NEQ_CONSTR] = constr_map[NonNeg] + constr_map[SOC] + \
             constr_map[PSD] + constr_map[ExpCone] + \
-            constr_map[PowCone3D] + constr_map[PowCone3D] + \
+            constr_map[PowCone3D] + \
             constr_map[PowConeND]
         return problem, data, inv_data
 

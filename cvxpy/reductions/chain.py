@@ -82,5 +82,5 @@ class Chain(Reduction):
         """
         for r, inv in reversed(list(zip(self.reductions, inverse_data))):
             solution = r.invert(solution, inv)
-        print("Final solution: ", solution)
+        # print("Final solution: ", solution)
         return solution
