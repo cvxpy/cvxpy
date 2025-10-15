@@ -13,15 +13,20 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
-
-from cvxpy.atoms.elementwise.maximum import maximum
-from cvxpy.reductions.expr2smooth.canonicalizers.maximum_canon import (
-    maximum_canon,
-)
+from cvxpy.atoms.affine.sum import Sum
+from cvxpy.atoms.elementwise.power import power
+from cvxpy.reductions.dnlp2smooth.canonicalizers.power_canon import power_canon
 
 
-def minimum_canon(expr, args):
-    del expr
-    temp = maximum(*[-arg for arg in args])
-    canon, constr = maximum_canon(temp, temp.args)
-    return -canon, constr
+def quad_over_lin_canon(expr, args):
+    """
+    Canonicalize a quadratic over linear expression.
+    We use the base atoms power and div to do so.
+    """
+    if args[1].is_constant() and args[1].value == 1:
+        expr = power(args[0], 2)
+        var, constr = power_canon(expr, expr.args)
+        summation = Sum(var)
+        return summation, constr
+    else:
+        assert(False)

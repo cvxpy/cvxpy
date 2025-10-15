@@ -1,4 +1,7 @@
+import pytest
+
 import cvxpy as cp
+from cvxpy import error
 
 
 class TestDNLP():
@@ -77,3 +80,45 @@ class TestDNLP():
         obj = cp.Minimize(expr)
         prob = cp.Problem(obj)
         assert not prob.is_dnlp()
+
+
+class TestNonDNLP:
+    
+    def test_max(self):
+        x = cp.Variable(1)
+        y = cp.Variable(1)
+
+        objective = cp.Maximize(cp.maximum(x, y))
+
+        constraints = [x - 14 == 0, y - 6 == 0]
+
+        # assert raises DNLP error
+        problem = cp.Problem(objective, constraints)
+        with pytest.raises(error.DNLPError):
+            problem.solve(solver=cp.IPOPT, nlp=True)
+
+    def test_min(self):
+        x = cp.Variable(1)
+        y = cp.Variable(1)
+
+        objective = cp.Minimize(cp.minimum(x, y))
+
+        constraints = [x - 14 == 0, y - 6 == 0]
+
+        problem = cp.Problem(objective, constraints)
+        with pytest.raises(error.DNLPError):
+            problem.solve(solver=cp.IPOPT, nlp=True)
+
+    def test_max_2(self):
+        # Define variables
+        x = cp.Variable(3)
+        y = cp.Variable(3)
+
+        objective = cp.Maximize(cp.sum(cp.maximum(x, y)))
+
+        constraints = [x <= 14, y <= 14]
+
+        problem = cp.Problem(objective, constraints)
+        with pytest.raises(error.DNLPError):
+            problem.solve(solver=cp.IPOPT, nlp=True)
+

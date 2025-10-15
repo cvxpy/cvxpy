@@ -13,20 +13,13 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
-from cvxpy.atoms.affine.sum import Sum
-from cvxpy.atoms.elementwise.power import power
-from cvxpy.reductions.expr2smooth.canonicalizers.power_canon import power_canon
+
+from cvxpy.atoms.elementwise.rel_entr import rel_entr
+from cvxpy.reductions.dnlp2smooth.canonicalizers.rel_entr_canon import rel_entr_canon
 
 
-def quad_over_lin_canon(expr, args):
-    """
-    Canonicalize a quadratic over linear expression.
-    We use the base atoms power and div to do so.
-    """
-    if args[1].is_constant() and args[1].value == 1:
-        expr = power(args[0], 2)
-        var, constr = power_canon(expr, expr.args)
-        summation = Sum(var)
-        return summation, constr
-    else:
-        assert(False)
+def kl_div_canon(expr, args):
+    _rel_entr = rel_entr(args[0], args[1])
+    rel_entr_expr, constr = rel_entr_canon(_rel_entr, _rel_entr.args)
+    return rel_entr_expr - args[0] + args[1] , constr
+

@@ -20,9 +20,9 @@ from cvxpy.atoms.affine.binary_operators import multiply
 from cvxpy.atoms.elementwise.entr import entr
 from cvxpy.atoms.elementwise.log import log
 from cvxpy.expressions.variable import Variable
-from cvxpy.reductions.expr2smooth.canonicalizers.entr_canon import entr_canon
-from cvxpy.reductions.expr2smooth.canonicalizers.log_canon import log_canon
-from cvxpy.reductions.expr2smooth.canonicalizers.multiply_canon import multiply_canon
+from cvxpy.reductions.dnlp2smooth.canonicalizers.entr_canon import entr_canon
+from cvxpy.reductions.dnlp2smooth.canonicalizers.log_canon import log_canon
+from cvxpy.reductions.dnlp2smooth.canonicalizers.multiply_canon import multiply_canon
 
 
 def rel_entr_canon(expr, args):
