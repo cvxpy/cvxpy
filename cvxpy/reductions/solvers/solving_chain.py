@@ -337,12 +337,12 @@ def construct_solving_chain(problem, candidates,
             constr_types.update(sim_cos)
             constr_types.remove(co)
 
-        if PowCone3D in constr_types:
+        if PowCone3D in constr_types and PowCone3D not in cones:
             # if we add in atoms that specifically use the 3D power cone
             # (rather than the ND power cone), then we'll need to check
             # for those atoms here as well.
             cones.append(PowCone3D)
-        if PowConeND in constr_types:
+        if PowConeND in constr_types and PowConeND not in cones:
             cones.append(PowConeND)
 
         unsupported_constraints = [
