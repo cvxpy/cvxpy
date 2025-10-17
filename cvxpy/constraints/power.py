@@ -233,7 +233,7 @@ class PowConeND(Cone):
         # TODO: add z.dim
         m, n = self.W.shape
         s = (m + 1, n)
-        # Note: this can be a 3-tuple of x.ndim == 2.
+        # Note: this can be a 3-tuple if x.ndim == 2.
         return s
     
     @property
