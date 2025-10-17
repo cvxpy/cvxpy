@@ -18,7 +18,7 @@ jobs:
       - uses: actions/checkout@v5
       - name: Install cvxpy dependencies
         run: |
-          pip install .
+          pip install -e .
           pip install pytest hypothesis
       - name: Run tests for each non-default backend
         run : |
@@ -26,4 +26,3 @@ jobs:
           python -c "from cvxpy.cvxcore.python.canonInterface import get_default_canon_backend; print(get_default_canon_backend())"
           python -c "from cvxpy.cvxcore.python.canonInterface import get_default_canon_backend; assert get_default_canon_backend() == 'SCIPY'"
           pytest
-
