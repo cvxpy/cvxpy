@@ -52,7 +52,7 @@ def dims_to_solver_cones(cone_dims):
 
     for pow in cone_dims.p3d:
         cones.append(clarabel.PowerConeT(pow))
-        
+
     for pow in cone_dims.pnd:
         cones.append(clarabel.GenPowerConeT(pow, 1)) # TODO: un-hardcode the dims
     return cones

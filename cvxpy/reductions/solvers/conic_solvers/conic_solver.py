@@ -94,7 +94,6 @@ def dims_to_solver_dict(cone_dims):
         'p': cone_dims.p3d,
         'pnd': cone_dims.pnd
     }
-    # TODO: update keys to include powerConeND
     return cones
 
 
@@ -106,7 +105,6 @@ class ConicSolver(Solver):
 
     # Every conic solver must support Zero and NonNeg constraints.
     SUPPORTED_CONSTRAINTS = [Zero, NonNeg]
-    SUPPORTED_EXOTIC_CONSTRAINTS = []
 
     # Some solvers cannot solve problems that do not have constraints.
     # For such solvers, REQUIRES_CONSTR should be set to True.
@@ -253,8 +251,6 @@ class ConicSolver(Solver):
                     arg_mats.append(space_mat)
                 restruct_mat.append(sp.hstack(arg_mats))
             elif type(constr) == PowConeND:
-                # TODO: implement this
-                # TODO: possibly transpose based on axis
                 arg_mats = []
                 m, n = constr.args[0].shape
                 for j in range(n):
@@ -353,7 +349,7 @@ class ConicSolver(Solver):
         # 4. psd
         # 5. exponential
         # 6. three-dimensional power cones
-        # TODO: 7. n-dimensional power cones
+        # 7. n-dimensional power cones
         if not problem.formatted:
             problem = self.format_constraints(problem, self.EXP_CONE_ORDER)
         data[s.PARAM_PROB] = problem
