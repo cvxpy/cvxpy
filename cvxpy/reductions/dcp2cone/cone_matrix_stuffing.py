@@ -139,7 +139,7 @@ class ConeDims:
 class ParamConeProg(ParamProb):
     """Represents a parameterized cone program
 
-    minimize   c'x  + d + [(1/2)x'Px]
+    minimize   q'x  + d + [(1/2)x'Px]
     subject to cone_constr1(A_1*x + b_1, ...)
                ...
                cone_constrK(A_i*x + b_i, ...)
@@ -147,7 +147,7 @@ class ParamConeProg(ParamProb):
 
     The constant offsets d and b are the last column of c and A.
     """
-    def __init__(self, c, x, A,
+    def __init__(self, q, x, A,
                  variables,
                  var_id_to_col,
                  constraints,
@@ -158,9 +158,9 @@ class ParamConeProg(ParamProb):
                  lower_bounds: np.ndarray | None = None,
                  upper_bounds: np.ndarray | None = None,
                  ) -> None:
-        # The problem data tensors; c is for the constraint, and A for
+        # The problem data tensors; q is for the objective, and A for
         # the problem data matrix
-        self.c = c
+        self.q = q
         self.A = A
         self.P = P
         # The variable
@@ -221,16 +221,16 @@ class ParamConeProg(ParamProb):
             self.param_id_to_size,
             param_value,
             zero_offset=zero_offset)
-        c, d = canonInterface.get_matrix_from_tensor(
-            self.c, param_vec, self.x.size, with_offset=True)
-        c = c.toarray().flatten()
+        q, d = canonInterface.get_matrix_from_tensor(
+            self.q, param_vec, self.x.size, with_offset=True)
+        q = q.toarray().flatten()
         A, b = self.reduced_A.get_matrix_from_tensor(param_vec, with_offset=True)
         if quad_obj:
             self.reduced_P.cache(keep_zeros)
             P, _ = self.reduced_P.get_matrix_from_tensor(param_vec, with_offset=False)
-            return P, c, d, A, np.atleast_1d(b)
+            return P, q, d, A, np.atleast_1d(b)
         else:
-            return c, d, A, np.atleast_1d(b)
+            return q, d, A, np.atleast_1d(b)
 
     def apply_param_jac(self, delc, delA, delb, active_params=None):
         """Multiplies by Jacobian of parameter mapping.
@@ -246,7 +246,7 @@ class ParamConeProg(ParamProb):
         if active_params is None:
             active_params = {p.id for p in self.parameters}
 
-        del_param_vec = delc @ self.c[:-1]
+        del_param_vec = delc @ self.q[:-1]
         flatdelA = delA.reshape((np.prod(delA.shape), 1), order='F')
         delAb = sp.vstack([flatdelA, sp.csc_array(delb[:, None])])
 

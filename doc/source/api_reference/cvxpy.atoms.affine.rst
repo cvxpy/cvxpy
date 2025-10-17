@@ -272,3 +272,10 @@ vstack
 -----------------------------------
 
 .. autofunction:: cvxpy.vstack
+
+.. _stack:
+
+stack
+-----------------------------------
+
+.. autofunction:: cvxpy.stack
