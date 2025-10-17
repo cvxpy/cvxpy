@@ -3,7 +3,7 @@ import numpy as np
 import cvxpy as cp
 
 
-def test_pow_cone_nd_3d(axis):
+def test_pow_cone_nd_3d(axis, solver):
     """
     A modification of pcp_2. Reformulate
 
@@ -38,7 +38,7 @@ def test_pow_cone_nd_3d(axis):
     constraints = [x[0] + x[1] + 0.5 * x[2] == 2, 
                    cp.constraints.PowConeND(W, hypos, alpha, axis=axis)]
     prob = cp.Problem(objective, constraints)
-    prob.solve(solver=cp.CLARABEL, verbose=True)
+    prob.solve(solver=solver, verbose=True)
     
 def test_pow_cone_nd_3d_variable_swap(axis):
     """
@@ -159,7 +159,7 @@ def test_pow_cone_nd_variable_swap(axis):
     constraints = [x[4] + x[1] + 0.5 * x[2] + 0.5 * x[3] + 0.25 * x[0] == 2, 
                    cp.constraints.PowConeND(W, hypos, alpha, axis=axis)]
     prob = cp.Problem(objective, constraints)
-    prob.solve(solver=cp.CLARABEL, verbose=True)
+    prob.solve(solver=cp.clarabel, verbose=True)
 
 
 # def test_mixed_cones(axis):
@@ -205,5 +205,5 @@ def test_pow_cone_nd_variable_swap(axis):
 # test_pow_cone_nd(1) # Test different axes
 # test_pow_cone_nd_variable_swap(0)
 # test_pow_cone_nd_3d_variable_swap(0)
-test_pow_cone_nd_3d(0)
+test_pow_cone_nd_3d(0, cp.CLARABEL)
 # TODO: Test n=1

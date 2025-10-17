@@ -53,7 +53,6 @@ def dims_to_solver_cones(cone_dims):
     for pow in cone_dims.p3d:
         cones.append(clarabel.PowerConeT(pow))
         
-    # TODO: Handle PowConeND constraints
     for pow in cone_dims.pnd:
         cones.append(clarabel.GenPowerConeT(pow, 1)) # TODO: un-hardcode the dims
     return cones
@@ -137,10 +136,7 @@ class CLARABEL(ConicSolver):
     # Solver capabilities.
     MIP_CAPABLE = False
     SUPPORTED_CONSTRAINTS = ConicSolver.SUPPORTED_CONSTRAINTS \
-        + [SOC, ExpCone, PowCone3D, PSD]
-    
-    SUPPORTED_EXOTIC_CONSTRAINTS = ConicSolver.SUPPORTED_EXOTIC_CONSTRAINTS \
-        + [PowConeND]
+        + [SOC, ExpCone, PowCone3D, PSD, PowConeND]
 
     STATUS_MAP = {
                     "Solved": s.OPTIMAL,

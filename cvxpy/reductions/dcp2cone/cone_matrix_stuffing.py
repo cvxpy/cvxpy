@@ -94,13 +94,12 @@ class ConeDims:
             p3d = np.concatenate([c.alpha.value for c in constr_map[PowCone3D]]).tolist()
         self.p3d = p3d
 
-        #TODO: add support for PowConeND
         pnd = []
         if constr_map[PowConeND]:
             pnd = np.concatenate([c.alpha.value.T for c in constr_map[PowConeND]]).tolist()
         self.pnd = pnd
 
-    def __repr__(self) -> str: #TODO: updated to include pnd. Check formatting.
+    def __repr__(self) -> str: 
         return "(zero: {0}, nonneg: {1}, exp: {2}, soc: {3}, psd: {4}, p3d: {5}, pnd: {6})".format(
             self.zero, self.nonneg, self.exp, self.soc, self.psd, self.p3d, self.pnd)
 
@@ -373,7 +372,6 @@ class ConeMatrixStuffing(MatrixStuffing):
                                 z.flatten(order='F'),
                                 alpha.flatten(order='F'),
                                 constr_id=con.constr_id)
-            # TODO: convert powconeND?
             elif isinstance(con, PowConeND) and con.axis == 1:
                 alpha = con.alpha if con.axis == 0 else con.alpha.T
                 W = con.W if con.axis == 0 else con.W.T

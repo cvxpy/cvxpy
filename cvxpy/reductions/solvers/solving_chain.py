@@ -319,7 +319,6 @@ def construct_solving_chain(problem, candidates,
         # (rather than the ND power cone), then we'll need to check
         # for those atoms here as well.
         cones.append(PowCone3D)
-    # TODO: add support for PowConeND atoms
     if PowConeND in constr_types:
         cones.append(PowConeND)
     # Here, we make use of the observation that canonicalization only
@@ -343,14 +342,12 @@ def construct_solving_chain(problem, candidates,
             cone for cone in cones if cone not in supported_constraints
         ]
 
-        supported_exotic_constraints = solver_instance.SUPPORTED_EXOTIC_CONSTRAINTS
-        ex_cos_unsupported = [
-            cone for cone in ex_cos if cone not in supported_exotic_constraints
+        ex_cos = [
+            cone for cone in ex_cos if cone not in supported_constraints
         ]
 
         if has_constr or not solver_instance.REQUIRES_CONSTR:
-            if ex_cos_unsupported: #TODO: add back unsupported
-            # if ex_cos:
+            if ex_cos:
                 reductions.append(Exotic2Common())
             if RelEntrConeQuad in approx_cos or OpRelEntrConeQuad in approx_cos:
                 reductions.append(QuadApprox())
