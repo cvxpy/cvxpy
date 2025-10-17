@@ -483,21 +483,23 @@ class multiply(MulExpression):
     def _jacobian(self):
         x = self.args[0]
         y = self.args[1]
-       
+
         if x.is_constant():
             dy = y.jacobian()
             for k in dy:
                 rows, cols, vals = dy[k]
-                dy[k] = (rows, cols, x.value * vals)
+                # this is equivalent to forming the matrix defined
+                # rows, cols, vals and scaling each row i by y.value[i]
+                dy[k] = (rows, cols, np.atleast_1d(x.value)[rows] * vals)
             return dy
-            
+
         if y.is_constant():
             dx = x.jacobian()
             for k in dx:
                 rows, cols, vals = dx[k]
-                dx[k] = (rows, cols, y.value * vals)
+                dx[k] = (rows, cols, np.atleast_1d(y.value)[rows] * vals)
             return dx
-        
+
         if not isinstance(x, Variable) and x.is_affine():
             assert(type(x) == Promote)
             x_var = x.args[0] # here x is a Promote because of how we canonicalize

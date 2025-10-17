@@ -66,7 +66,10 @@ constraints += [
 # so this might need to be reformulated for some solvers
 
 # Drag force vectorized
-D_vec = D_c * cp.multiply(x_v[0:T-1], x_v[0:T-1]) * cp.exp(-h_c * (x_h[0:T-1] - h_0) / h_0)
+D_vec = D_c * cp.multiply(
+    cp.multiply(x_v[0:T-1], x_v[0:T-1]), 
+    cp.exp(-h_c * (x_h[0:T-1] - h_0) / h_0)
+)
 
 # Gravity force vectorized
 g_vec = g_0 * cp.power(h_0 / x_h[0:T-1], 2)
