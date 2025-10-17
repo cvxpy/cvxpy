@@ -133,7 +133,8 @@ class kl_div(Elementwise):
         if x.size == 1:
             idxs = np.arange(y.size)
             zeros_y = np.zeros(y.size, dtype=int)
-            return {(x, x): (0, 0, np.sum(dx2_vals)),
+            return {(x, x): (np.array([0]), np.array([0]), 
+                             np.atleast_1d(np.sum(dx2_vals))),
                     (y, y): (idxs, idxs, dy2_vals),
                     (x, y): (zeros_y, idxs, dxdy_vals),
                     (y, x): (idxs, zeros_y, dxdy_vals)}
@@ -141,7 +142,8 @@ class kl_div(Elementwise):
             idxs = np.arange(x.size)
             zeros_x = np.zeros(x.size, dtype=int)
             return {(x, x): (idxs, idxs, dx2_vals), 
-                    (y, y): (0, 0, np.sum(dy2_vals)),
+                    (y, y): (np.array([0]), np.array([0]), 
+                             np.atleast_1d(np.sum(dy2_vals))),
                     (x, y): (idxs, zeros_x, dxdy_vals),
                     (y, x): (zeros_x, idxs, dxdy_vals)}
         else:

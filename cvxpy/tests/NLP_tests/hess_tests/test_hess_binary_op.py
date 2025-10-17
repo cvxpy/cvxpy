@@ -212,3 +212,45 @@ class TestHessVecRelativeEntropy():
         H[1:, 0] = - vec / y
         H[1:, 1:] = np.diag(vec * x / (y**2))
         assert(np.allclose(H_computed, H))
+
+class TestQuadOverLin_HessVec():
+
+    def test_simple_quad_over_lin(self):
+        """
+        The Hessian of (x, y) -> sum(x^2)/y
+        with values x = [1, 2, 3], y = 4
+        and dual = [1] is as follows:
+        array(
+        [[ 0.5   ,  0.    ,  0.    , -0.125 ],
+        [ 0.    ,  0.5   ,  0.    , -0.25  ],
+        [ 0.    ,  0.    ,  0.5   , -0.375 ],
+        [-0.125 , -0.25  , -0.375 ,  0.4375]])
+       """
+        x = cp.Variable((3,), name='x')
+        x.value = np.array([1.0, 2.0, 3.0])
+        y = cp.Variable((1,), name='y')
+        y.value = np.array([4.0])
+        dual = np.array([1.0])
+        expr = cp.quad_over_lin(x, y)
+        hess_xx = np.diag([2.0/4.0, 2.0/4.0, 2.0/4.0])
+        hess_yy = np.array([[0.4375]])
+        hess_xy = np.array([[-2.0/(4.0**2)],
+                            [-4.0/(4.0**2)],
+                            [-6.0/(4.0**2)]])
+        hess_yx = hess_xy.T
+        result_dict = expr.hess_vec(dual)
+        H = np.block([[hess_xx, hess_xy],
+                    [hess_yx, hess_yy]])
+        computed_hess = np.zeros((4, 4))
+        rows, cols, vals = result_dict[(x, x)]
+        computed_hess[rows, cols] = vals
+
+        rows, cols, vals = result_dict[(y, y)]
+        computed_hess[rows+3, cols+3] = vals
+
+        rows, cols, vals = result_dict[(x, y)]
+        computed_hess[rows, cols+3] = vals
+        
+        rows, cols, vals = result_dict[(y, x)]
+        computed_hess[rows+3, cols] = vals
+        assert(np.allclose(computed_hess, H))

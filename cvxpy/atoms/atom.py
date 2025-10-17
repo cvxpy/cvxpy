@@ -576,25 +576,21 @@ class Atom(Expression):
     
     #@abc.abstractmethod
     def _verify_hess_vec_args(self):
-        """ Atom-specific Hessian-vector product. For a description, see the docstring of 
-            the hess_vec method of the atom class.
-        """
-        raise NotImplementedError("Not implemented verify arguments for this atom.")
+        raise NotImplementedError("Not implemented verify arguments for atom %s." %
+                                  self.__class__.__name__)
 
     def _verify_jacobian_args(self):
-        raise NotImplementedError("Not implemented verify arguments for this atom.")
+        raise NotImplementedError("Not implemented verify arguments for atom %s." 
+                                   % self.__class__.__name__)
 
     #@abc.abstractmethod
     def _hess_vec(self, values):
-        """ Atom-specific Hessian-vector product. For a description, see the docstring of 
-            the hess_vec method of the atom class.
-        """
-        raise NotImplementedError("This atom does not have a Hessian, or it has not been "
-                                  "implemented yet.")
+        raise NotImplementedError("Atom %s does not have a Hessian, or it has not been "
+                                  "implemented yet." % self.__class__.__name__)
 
     def _jacobian(self):
-        raise NotImplementedError("This atom does not have a Jacobian, or it has not been "
-                                  "implemented yet.")
+        raise NotImplementedError("Atom %s does not have a Jacobian, or it has not been "
+                                  "implemented yet." % self.__class__.__name__)
 
     @property
     def domain(self) -> List['Constraint']:

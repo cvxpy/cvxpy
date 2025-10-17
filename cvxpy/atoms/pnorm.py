@@ -179,6 +179,16 @@ class Pnorm(AxisAtom):
         """
         return self.p < 1
 
+    def is_atom_esr(self) -> bool:
+        """Is the atom esr?
+        """
+        return self.p > 1
+
+    def is_atom_hsr(self) -> bool:
+        """Is the atom hsr?
+        """
+        return self.p < 1
+
     def is_atom_log_log_convex(self) -> bool:
         """Is the atom log-log convex?
         """
