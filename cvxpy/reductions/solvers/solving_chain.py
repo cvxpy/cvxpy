@@ -284,7 +284,6 @@ def construct_solving_chain(problem, candidates,
     approx_cos = [ct for ct in constr_types if ct in APPROX_CONES]
     # ^ The way we populate "ex_cos" will need to change if and when
     # we have atoms that require exotic cones.
-    # TODO: potentially move this down to process per solver
 
     for co in approx_cos:
         app_cos = APPROX_CONES[co]
@@ -335,7 +334,8 @@ def construct_solving_chain(problem, candidates,
         for co in ex_cos:
             sim_cos = EXOTIC_CONES[co]  # get the set of required simple cones
             constr_types.update(sim_cos)
-            constr_types.remove(co)
+            if co in constr_types:
+                constr_types.remove(co)
 
         if PowCone3D in constr_types and PowCone3D not in cones:
             # if we add in atoms that specifically use the 3D power cone

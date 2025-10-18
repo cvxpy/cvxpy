@@ -1,218 +1,164 @@
+"""
+Unit tests for the PowConeND and PowCone3D constraints.
+"""
+
 import numpy as np
 
 import cvxpy as cp
+from cvxpy.tests.base_test import BaseTest
 
 
-def test_pow_cone_nd_3d(axis, solver):
-    """
-    A modification of pcp_2. Reformulate
+class TestPowConeND(BaseTest):
+    """Unit tests for PowConeND and PowCone3D."""
 
-        max  (x**0.2)*(y**0.8) + z**0.4 - x
-        s.t. x + y + z/2 == 2
-                x, y, z >= 0
-    Into
+    def solve_prob(self, prob, solver):
+        result = prob.solve(solver=solver, verbose=False)
+        self.assertIn(prob.status, [cp.OPTIMAL, cp.OPTIMAL_INACCURATE])
+        return result
 
-        max  x3 + x4 - x0
-        s.t. x0 + x1 + x2 / 2 == 2,
+    def test_pow_cone_nd_3d(self) -> None:
+        """
+        A variation of test_pcp_3
+        Some solvers like clarabel natively support ND power cones, while others
+        like SCS only support 3D power cones. In the former case, we can directly
+        pass an ND power cone constraint. In the latter case, CVXPY will apply 
+        a reduction to convert the ND power cone constraint into a set of 3D power
+        cone constraints.
 
-                W := [[x0, x2],
-                    [x1, 1.0]]
-                z := [x3, x4]
-                alpha := [[0.2, 0.4],
-                        [0.8, 0.6]]
-                (W, z) in PowND(alpha, axis=0)
-    """
-    x = cp.Variable(shape=(3,), name='x')
-    # expect_x = np.array([0.06393515, 0.78320961, 2.30571048])
-    hypos = cp.Variable(shape=(2,), name='hypos')
-    # expect_hypos = None
-    objective = cp.Maximize(cp.sum(hypos) - x[0])
-    W = cp.bmat([[x[0], x[2]],
-                    [x[1], 1.0]])
-    alpha = np.array([[0.2, 0.4],
-                        [0.8, 0.6]])
-    if axis == 1:
-        W = W.T
-        alpha = alpha.T
+        We check correctness for both axis=0 and axis=1 orientations.
+        """
+        expect_x = np.array([0.06393515, 0.78320961, 2.30571048])
+        for axis in [0, 1]:
+            for solver in [cp.CLARABEL, cp.SCS]:
+                x = cp.Variable(3, name='x')
+                hypos = cp.Variable(2, name='hypos')
+                objective = cp.Maximize(cp.sum(hypos) - x[0])
+                W = cp.bmat([[x[0], x[2]],
+                             [x[1], 1.0]])
+                alpha = np.array([[0.2, 0.4],
+                                  [0.8, 0.6]])
+                if axis == 1:
+                    W = W.T
+                    alpha = alpha.T
 
-    constraints = [x[0] + x[1] + 0.5 * x[2] == 2, 
-                   cp.constraints.PowConeND(W, hypos, alpha, axis=axis)]
-    prob = cp.Problem(objective, constraints)
-    prob.solve(solver=solver, verbose=True)
-    print(x.value)
-    print(hypos.value)
-    
-def test_pow_cone_nd_3d_variable_swap(axis):
-    """
-    A modification of pcp_2. Reformulate
+                constraints = [
+                    x[0] + x[1] + 0.5 * x[2] == 2,
+                    cp.constraints.PowConeND(W, hypos, alpha, axis=axis)
+                ]
+                prob = cp.Problem(objective, constraints)
+                self.solve_prob(prob, solver)
+                self.assertItemsAlmostEqual(x.value, expect_x, places=3)
 
-        max  (x**0.2)*(y**0.8) + z**0.4 - x
-        s.t. x + y + z/2 == 2
-                x, y, z >= 0
-    Into
+    def test_pow_cone_nd_3d_variable_swap(self) -> None:
+        """
+        A variation of test_pcp_3 with variable appearing in a different order.
+        We expect the same solution as test_pow_cone_nd_3d, but with variables
+        reordered.
+        Both axis values tested.
+        """
+        expect_x = np.array([0.06393515, 2.30571048, 0.78320961])
+        for axis in [0, 1]:
+            x = cp.Variable(3)
+            hypos = cp.Variable(2)
+            objective = cp.Maximize(cp.sum(hypos) - x[0])
+            W = cp.bmat([[x[0], x[1]],
+                         [x[2], 1.0]])
+            alpha = np.array([[0.2, 0.4],
+                              [0.8, 0.6]])
+            if axis == 1:
+                W = W.T
+                alpha = alpha.T
+            constraints = [
+                x[0] + x[2] + 0.5 * x[1] == 2,
+                cp.constraints.PowConeND(W, hypos, alpha, axis=axis)
+            ]
+            prob = cp.Problem(objective, constraints)
+            self.solve_prob(prob, cp.CLARABEL)
+            self.assertItemsAlmostEqual(x.value, expect_x, places=3)
 
-        max  x3 + x4 - x0
-        s.t. x0 + x1 + x2 / 2 == 2,
+    def test_pow_cone_nd(self) -> None:
+        """
+        Solving a PowConeND constraint with more than 3 dimensions.
+        Both axis values tested.
+        """
+        for axis in [0, 1]:
+            x = cp.Variable(5)
+            hypos = cp.Variable(2)
+            objective = cp.Maximize(cp.sum(hypos) - x[0])
+            W = cp.bmat([[x[0], x[3]],
+                         [x[1], x[4]],
+                         [x[2], 1.0]])
+            alpha = np.array([[0.2, 0.4],
+                              [0.4, 0.3],
+                              [0.4, 0.3]])
+            if axis == 1:
+                W = W.T
+                alpha = alpha.T
+            constraints = [
+                x[0] + x[1] + 0.5 * x[2] + 0.5 * x[3] + 0.25 * x[4] == 2,
+                cp.constraints.PowConeND(W, hypos, alpha, axis=axis)
+            ]
+            prob = cp.Problem(objective, constraints)
+            self.solve_prob(prob, cp.CLARABEL)
 
-                W := [[x0, x2],
-                    [x1, 1.0]]
-                z := [x3, x4]
-                alpha := [[0.2, 0.4],
-                        [0.8, 0.6]]
-                (W, z) in PowND(alpha, axis=0)
+    def test_pow_cone_nd_variable_swap(self) -> None:
+        """
+        A variation of test_pow_cone_nd with variable appearing in a different order.
+        We expect the same solution as test_pow_cone_nd, but with variables
+        reordered.
+        Both axis values tested.
+        """
+        for axis in [0, 1]:
+            x = cp.Variable(5)
+            hypos = cp.Variable(2)
+            objective = cp.Maximize(cp.sum(hypos) - x[0])
+            W = cp.bmat([[x[4], x[3]],
+                         [x[1], x[0]],
+                         [x[2], 1.0]])
+            alpha = np.array([[0.2, 0.4],
+                              [0.4, 0.3],
+                              [0.4, 0.3]])
+            if axis == 1:
+                W = W.T
+                alpha = alpha.T
+            constraints = [
+                x[4] + x[1] + 0.5 * x[2] + 0.5 * x[3] + 0.25 * x[0] == 2,
+                cp.constraints.PowConeND(W, hypos, alpha, axis=axis)
+            ]
+            prob = cp.Problem(objective, constraints)
+            self.solve_prob(prob, cp.CLARABEL)
 
-    swap x[2] and x[1] in W to ensure that the solution doesn't change
-    """
-    x = cp.Variable(shape=(3,), name='x')
-    # expect_x = np.array([0.06393515, 0.78320961, 2.30571048])
-    hypos = cp.Variable(shape=(2,), name='hypos')
-    # expect_hypos = None
-    objective = cp.Maximize(cp.sum(hypos) - x[0])
-    W = cp.bmat([[x[0], x[1]],
-                    [x[2], 1.0]])
-    alpha = np.array([[0.2, 0.4],
-                        [0.8, 0.6]])
-    if axis == 1:
-        W = W.T
-        alpha = alpha.T
+    def test_pow_cone_nd_single_cone(self) -> None:
+        """
+        Solving a PowConeND constraint with only a single cone.
+        This check is performed to ensure no variables collapse to lower
+        dimensions incorrectly.
+        Both axis values tested.
+        """
+        for axis in [0, 1]:
+            for solver in [cp.CLARABEL, cp.SCS]:
+                x = cp.Variable(2)
+                hypos = cp.Variable(1)
+                objective = cp.Maximize(cp.sum(hypos) - x[0])
+                W = cp.bmat([[x[0]], [x[1]]])
+                alpha = np.array([[0.2], [0.8]])
+                if axis == 1:
+                    W = W.T
+                    alpha = alpha.T
+                constraints = [
+                    x[0] + x[1] == 2,
+                    cp.constraints.PowConeND(W, hypos, alpha, axis=axis)
+                ]
+                prob = cp.Problem(objective, constraints)
+                self.solve_prob(prob, solver)
 
-    constraints = [x[0] + x[2] + 0.5 * x[1] == 2, 
-                   cp.constraints.PowConeND(W, hypos, alpha, axis=axis)]
-    prob = cp.Problem(objective, constraints)
-    prob.solve(solver=cp.CLARABEL, verbose=True)
-    
+    def test_3d_pow_cone_scalar_alpha(self) -> None:
+        """
+        Test PowCone3D with scalar alpha.
+        """
+        for solver in [cp.CLARABEL, cp.SCS]:
+            x = cp.Variable(3)
+            constraints = [cp.PowCone3D(x[0], x[1], x[2], 0.75)]
+            prob = cp.Problem(cp.Minimize(cp.norm(x)), constraints)
+            self.solve_prob(prob, solver)
 
-def test_pow_cone_nd(axis):
-    """
-    A modification of pcp_2. Reformulate
-
-        max  (x**0.2)*(y**0.4)*(w**0.4) + (z**0.4)*(v**0.3) - x
-        s.t. x + y + z/2 + w/2 + v/4 == 2
-                x, y, z >= 0
-    Into
-
-        max  x5 + x6 - x0
-        s.t. x0 + x1 + x2 / 2 + x3 / 2 + x4 / 4 == 2,
-
-                W := [[x0, x3],
-                    [x1, x4],
-                    [x2, 1.0]]
-                z := [x5, x6]
-                alpha := [[0.2, 0.4],
-                        [0.4, 0.3],
-                        [0.4, 0.3]]
-                (W, z) in PowND(alpha, axis=0)
-    """
-    x = cp.Variable(shape=(5,), name='x')
-    hypos = cp.Variable(shape=(2,), name='hypos')
-    objective = cp.Maximize(cp.sum(hypos) - x[0])
-    W = cp.bmat([[x[0], x[3]],
-                 [x[1], x[4]],
-                 [x[2], 1.0]])
-    alpha = np.array([[0.2, 0.4],
-                      [0.4, 0.3],
-                      [0.4, 0.3]])
-    if axis == 1:
-        W = W.T
-        alpha = alpha.T
-
-    constraints = [x[0] + x[1] + 0.5 * x[2] + 0.5 * x[3] + 0.25 * x[4] == 2, 
-                   cp.constraints.PowConeND(W, hypos, alpha, axis=axis)]
-    prob = cp.Problem(objective, constraints)
-    prob.solve(solver=cp.CLARABEL, verbose=True)
-    
-
-
-def test_pow_cone_nd_variable_swap(axis):
-    """
-    A modification of pcp_2. Reformulate
-
-        max  (x**0.2)*(y**0.4)*(w**0.4) + (z**0.4)*(v**0.3) - x
-        s.t. x + y + z/2 + w/2 + v/4 == 2
-                x, y, z >= 0
-    Into
-
-        max  x5 + x6 - x0
-        s.t. x0 + x1 + x2 / 2 + x3 / 2 + x4 / 4 == 2,
-
-                W := [[x0, x3],
-                    [x1, x4],
-                    [x2, 1.0]]
-                z := [x5, x6]
-                alpha := [[0.2, 0.4],
-                        [0.4, 0.3],
-                        [0.4, 0.3]]
-                (W, z) in PowND(alpha, axis=0)
-
-    In this test, we swap x[0] and x[4] in W to ensure that the solution doesn't change
-    """
-    x = cp.Variable(shape=(5,), name='x')
-    hypos = cp.Variable(shape=(2,), name='hypos')
-    objective = cp.Maximize(cp.sum(hypos) - x[0])
-    W = cp.bmat([[x[4], x[3]],
-                 [x[1], x[0]],
-                 [x[2], 1.0]])
-    alpha = np.array([[0.2, 0.4],
-                      [0.4, 0.3],
-                      [0.4, 0.3]])
-    if axis == 1:
-        W = W.T
-        alpha = alpha.T
-
-    constraints = [x[4] + x[1] + 0.5 * x[2] + 0.5 * x[3] + 0.25 * x[0] == 2, 
-                   cp.constraints.PowConeND(W, hypos, alpha, axis=axis)]
-    prob = cp.Problem(objective, constraints)
-    prob.solve(solver=cp.clarabel, verbose=True)
-
-
-def test_pow_cone_nd_single_cone(axis, solver):
-    """
-    A modification of pcp_2. Reformulate
-
-        max  (x**0.2)*(y**0.8) - x
-        s.t. x + y == 2
-                x, y >= 0
-    Into
-
-        max  x2 - x0
-        s.t. x0 + x1 == 2,
-
-                W := [[x0],
-                    [x1]]
-                z := [x2]
-                alpha := [[0.2],
-                        [0.8]]
-                (W, z) in PowND(alpha, axis=0)
-    """
-    x = cp.Variable(shape=(2,), name='x')
-    hypos = cp.Variable(shape=(1,), name='hypos')
-    objective = cp.Maximize(cp.sum(hypos) - x[0])
-    W = cp.bmat([[x[0]],
-                    [x[1]]])
-    alpha = np.array([[0.2],
-                      [0.8]])
-    if axis == 1:
-        W = W.T
-        alpha = alpha.T
-
-    constraints = [x[0] + x[1] == 2, 
-                   cp.constraints.PowConeND(W, hypos, alpha, axis=axis)]
-    prob = cp.Problem(objective, constraints)
-    prob.solve(solver=solver, verbose=True)
- 
-
-def test_3d_pow_cone_scalar_alpha(solver):
-    x = cp.Variable(shape=(3,))
-    cons = [cp.PowCone3D(x[0], x[1], x[2], 0.75)]
-    obj = cp.Minimize(cp.norm(x))
-    prob = cp.Problem(obj, cons)
-    prob.solve(solver=solver, verbose=True)
-
-# test_pow_cone_nd(0)
-# test_pow_cone_nd(1) # Test different axes
-# test_pow_cone_nd_variable_swap(0)
-# test_pow_cone_nd_3d_variable_swap(0)
-test_pow_cone_nd_3d(1, cp.CLARABEL)
-# test_pow_cone_nd_single_cone(0, cp.CLARABEL)
-# test_3d_pow_cone_scalar_alpha(cp.SCS)
-# TODO: Test n=1
