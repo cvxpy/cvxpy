@@ -81,6 +81,7 @@ class TestPowConeND(BaseTest):
         Solving a PowConeND constraint with more than 3 dimensions.
         Both axis values tested.
         """
+        expect_x = np.array([0, 0, 0, 2.28571379, 3.42857186])
         for axis in [0, 1]:
             x = cp.Variable(5)
             hypos = cp.Variable(2)
@@ -100,6 +101,8 @@ class TestPowConeND(BaseTest):
             ]
             prob = cp.Problem(objective, constraints)
             self.solve_prob(prob, cp.CLARABEL)
+            self.assertItemsAlmostEqual(x.value, expect_x, places=3)
+            
 
     def test_pow_cone_nd_variable_swap(self) -> None:
         """
@@ -108,10 +111,11 @@ class TestPowConeND(BaseTest):
         reordered.
         Both axis values tested.
         """
+        expect_x = np.array([3.42857186, 0, 0, 2.28571379, 0])
         for axis in [0, 1]:
             x = cp.Variable(5)
             hypos = cp.Variable(2)
-            objective = cp.Maximize(cp.sum(hypos) - x[0])
+            objective = cp.Maximize(cp.sum(hypos) - x[4])
             W = cp.bmat([[x[4], x[3]],
                          [x[1], x[0]],
                          [x[2], 1.0]])
@@ -127,6 +131,7 @@ class TestPowConeND(BaseTest):
             ]
             prob = cp.Problem(objective, constraints)
             self.solve_prob(prob, cp.CLARABEL)
+            self.assertItemsAlmostEqual(x.value, expect_x, places=3)
 
     def test_pow_cone_nd_single_cone(self) -> None:
         """
