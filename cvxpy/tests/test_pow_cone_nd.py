@@ -39,6 +39,8 @@ def test_pow_cone_nd_3d(axis, solver):
                    cp.constraints.PowConeND(W, hypos, alpha, axis=axis)]
     prob = cp.Problem(objective, constraints)
     prob.solve(solver=solver, verbose=True)
+    print(x.value)
+    print(hypos.value)
     
 def test_pow_cone_nd_3d_variable_swap(axis):
     """
@@ -118,6 +120,7 @@ def test_pow_cone_nd(axis):
                    cp.constraints.PowConeND(W, hypos, alpha, axis=axis)]
     prob = cp.Problem(objective, constraints)
     prob.solve(solver=cp.CLARABEL, verbose=True)
+    
 
 
 def test_pow_cone_nd_variable_swap(axis):
@@ -209,7 +212,7 @@ def test_3d_pow_cone_scalar_alpha(solver):
 # test_pow_cone_nd(1) # Test different axes
 # test_pow_cone_nd_variable_swap(0)
 # test_pow_cone_nd_3d_variable_swap(0)
-# test_pow_cone_nd_3d(0, cp.SCS)
-test_pow_cone_nd_single_cone(0, cp.CLARABEL)
+test_pow_cone_nd_3d(1, cp.CLARABEL)
+# test_pow_cone_nd_single_cone(0, cp.CLARABEL)
 # test_3d_pow_cone_scalar_alpha(cp.SCS)
 # TODO: Test n=1

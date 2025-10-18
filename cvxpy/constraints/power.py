@@ -233,7 +233,7 @@ class PowConeND(Cone):
     @property
     def shape(self) -> Tuple[int, ...]:
         # TODO: add z.dim
-        m, n = self.W.shape
+        m, n = self.W.shape if self.axis == 0 else (self.W.shape[1], self.W.shape[0])
         s = (m + 1, n)
         # Note: this can be a 3-tuple if x.ndim == 2.
         return s
