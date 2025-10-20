@@ -22,16 +22,47 @@ from numpy._core.einsumfunc import (
     _parse_einsum_input,
 )
 
-from cvxpy.atoms.affine.binary_operators import (
-    multiply,
-    reshape,
-)
+from cvxpy.atoms.affine.binary_operators import multiply
+from cvxpy.atoms.affine.reshape import reshape
 from cvxpy.atoms.affine.sum import sum as cvxpy_sum
 from cvxpy.atoms.affine.transpose import permute_dims
 
 
-def einsum(subscripts, *exprs, optimize=False):
-    """Implement einsum using existing CVXPY atoms."""
+def einsum(subscripts, *exprs, optimize="greedy"):
+    """Evaluates the Einstein summation convention on the given expressions.
+
+    This atom is the CVXPY analog of NumPy's einsum function `numpy.einsum` [1],
+    and it maintains the same syntax and semantics. 
+    
+    The einsum operation is evaluated by contracting pairs of expressions by 
+    elementwise multiplication and summation. The order in which the contractions 
+    are performed affects both the memory usage and the FLOP count required. 
+    
+    The optimize parameter determines whether to contract expressions using the 
+    optimal or greedy ordering. The cost to compute the optimal path is exponential 
+    in the number of distinct subscripts, while the cost to compute the greedy path 
+    is cubic in the number of distinct subscripts. We typically expect the greedy 
+    search to produce the optimal path for most problems.
+
+    References
+    ----------
+    [1] https://numpy.org/doc/stable/reference/generated/numpy.einsum.html
+
+    Parameters
+    ----------
+    subscripts : str
+        The subscripts for the einsum operation.
+    exprs : Expression
+        The expressions to contract.
+    optimize : {bool, 'greedy', 'optimal'}, optional
+        Whether to contract the expressions using the optimal or greedy ordering.
+        Defaults to "greedy".
+
+    Returns
+    -------
+    Expression
+        The contracted expression.
+    """
     # Initial parsing
     dummy_operands = [np.empty(expr.shape, dtype=np.dtype([])) for expr in exprs]
     input_subscripts, output_subscript, _ = _parse_einsum_input((
@@ -96,6 +127,31 @@ def einsum(subscripts, *exprs, optimize=False):
     return final_operand
 
 def _validate_arguments(input_list, exprs):
+    """Validate the input arguments for einsum operation.
+    
+    This function checks that the number of expressions matches the number of
+    input subscript patterns, and that the dimensions of each expression are
+    consistent with the subscript patterns and with each other.
+    
+    Parameters
+    ----------
+    input_list : list of str
+        List of subscript patterns for each input expression.
+    exprs : list of Expression
+        List of CVXPY expressions to be contracted.
+        
+    Returns
+    -------
+    dict
+        Dictionary mapping subscript characters to their corresponding dimensions.
+        
+    Raises
+    ------
+    ValueError
+        If the number of expressions doesn't match the number of input patterns,
+        if a subscript pattern doesn't match the shape of its corresponding expression,
+        or if the same subscript character has inconsistent dimensions across expressions.
+    """
     dimension_dict = {}
 
     if len(exprs) != len(input_list):
@@ -121,7 +177,36 @@ def _validate_arguments(input_list, exprs):
     return dimension_dict
 
 def _get_path(input_sets, output_set, dimension_dict, optimize):
-    """Get the path for the einsum operation."""
+    """Get the contraction path for the einsum operation.
+    
+    This function determines the order in which pairs of tensors should be
+    contracted to minimize computational cost. The path optimization can use
+    either a greedy search or a find the optimal path.
+    
+    Parameters
+    ----------
+    input_sets : list of set
+        List of sets containing the subscript characters for each input tensor.
+    output_set : set
+        Set of subscript characters that should appear in the final output.
+    dimension_dict : dict
+        Dictionary mapping subscript characters to their corresponding dimensions.
+    optimize : {bool, 'greedy', 'optimal'}
+        Optimization strategy for determining the contraction path.
+        - True or 'optimal': Use optimal path (exponential cost)
+        - False or 'greedy': Use greedy path (cubic cost)
+        
+    Returns
+    -------
+    list of tuple
+        List of tuples, where each tuple contains the indices of the tensors
+        to contract in each step of the contraction process.
+        
+    Raises
+    ------
+    ValueError
+        If optimize has an invalid value.
+    """
     if optimize in {True, "optimal"}:
         return _optimal_path(input_sets, output_set, dimension_dict, np.iinfo(np.int32).max)
     elif optimize in {False, "greedy"}:
@@ -130,7 +215,28 @@ def _get_path(input_sets, output_set, dimension_dict, optimize):
         raise ValueError("Invalid value for optimize. Must be True, False, 'optimal', or 'greedy'.")
 
 def _initial_reduction(operand, inputs, dimension_dict):
-    """Reduce operands with repeated indices."""
+    """Reduce operands with repeated indices by taking diagonal elements.
+    
+    This function handles the case where a subscript pattern contains repeated
+    indices (e.g., 'ii' or 'ijj'). For repeated indices, the corresponding
+    dimensions are reduced by taking diagonal elements.
+    
+    Parameters
+    ----------
+    operand : Expression
+        The CVXPY expression to reduce.
+    inputs : str
+        The subscript pattern for this operand.
+    dimension_dict : dict
+        Dictionary mapping subscript characters to their corresponding dimensions.
+        
+    Returns
+    -------
+    tuple
+        A tuple containing:
+        - Expression: The reduced operand with repeated indices eliminated
+        - str: The updated subscript pattern with repeated indices removed
+    """
     # Find repeated indices
     counts = {}
     for x in inputs:
@@ -161,7 +267,27 @@ def _initial_reduction(operand, inputs, dimension_dict):
     return operand, inputs
 
 def _sum_single_operand(operand, input_subscript, output_subscript):
-    """Sum a single operand."""
+    """Sum a single operand along specified axes.
+    
+    This function handles the case where there is only one input operand.
+    It sums the operand along axes that appear in the input subscript but
+    not in the output subscript, and then permutes the remaining dimensions
+    to match the output subscript order.
+    
+    Parameters
+    ----------
+    operand : Expression
+        The single CVXPY expression to sum.
+    input_subscript : str
+        The subscript pattern for the input operand.
+    output_subscript : str
+        The desired subscript pattern for the output.
+        
+    Returns
+    -------
+    Expression
+        The summed and permuted expression with shape matching the output subscript.
+    """
     
     if len(output_subscript) < len(input_subscript):
         idxs = [i for i, x in enumerate(input_subscript) if x not in output_subscript]
@@ -175,7 +301,32 @@ def _sum_single_operand(operand, input_subscript, output_subscript):
     return operand
 
 def _contract_pair(operands, input_lists, to_remove, all_labels, dimension_dict):
-    """Contract a pair of operands."""
+    """Contract a pair of operands by elementwise multiplication and summation.
+    
+    This function performs the core contraction operation between two tensors.
+    It aligns the operands to compatible shapes, performs elementwise multiplication,
+    and then sums over the to-be-removed dimensions.
+    
+    Parameters
+    ----------
+    operands : list of Expression
+        List containing exactly two CVXPY expressions to contract.
+    input_lists : list of str
+        List of subscript patterns for each operand.
+    to_remove : set
+        Set of subscript characters that should be summed out (contracted).
+    all_labels : str
+        All subscript characters involved in this contraction.
+    dimension_dict : dict
+        Dictionary mapping subscript characters to their corresponding dimensions.
+        
+    Returns
+    -------
+    tuple
+        A tuple containing:
+        - Expression: The contracted result
+        - str: The subscript pattern for the contracted result
+    """
     # Align and permute the operands to compatible shapes
     aligned_operands = []
     for operand, input_list in zip(operands, input_lists):
