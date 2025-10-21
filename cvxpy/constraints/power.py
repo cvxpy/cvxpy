@@ -232,7 +232,11 @@ class PowConeND(Cone):
     
     @property
     def shape(self) -> Tuple[int, int]:
-        # TODO: add z.dim
+        # The shape property is a tuple (m, n) where each
+        # column/row is a separate power cone depending on axis.
+        # This constitutes the shape of the hypograph variable z
+        # appended to W in the standard conic form.
+        # TODO: support arbitrary z.dim
         m, n = self.W.shape if self.axis == 0 else (self.W.shape[1], self.W.shape[0])
         s = (m + 1, n)
         # Note: this can be a 3-tuple if x.ndim == 2.
