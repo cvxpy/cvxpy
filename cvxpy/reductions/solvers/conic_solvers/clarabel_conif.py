@@ -54,7 +54,10 @@ def dims_to_solver_cones(cone_dims):
         cones.append(clarabel.PowerConeT(pow))
 
     for pow in cone_dims.pnd:
-        cones.append(clarabel.GenPowerConeT(pow, 1)) # TODO: un-hardcode the dims
+        # TODO: On the right hand side, we may want to
+        # extend to support higher dim values for z 
+        # instead of hardcoding 1.
+        cones.append(clarabel.GenPowerConeT(pow, 1)) 
     return cones
 
 

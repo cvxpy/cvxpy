@@ -231,7 +231,7 @@ class PowConeND(Cone):
         return [self.alpha, self.axis, self.id]
     
     @property
-    def shape(self) -> Tuple[int, ...]:
+    def shape(self) -> Tuple[int, int]:
         # TODO: add z.dim
         m, n = self.W.shape if self.axis == 0 else (self.W.shape[1], self.W.shape[0])
         s = (m + 1, n)

@@ -327,15 +327,12 @@ def construct_solving_chain(problem, candidates,
             supported_constraints = solver_instance.SUPPORTED_CONSTRAINTS
 
 
-        ex_cos = [
-            cone for cone in EXOTIC_CONES if cone not in supported_constraints
-        ]
+        ex_cos = set(EXOTIC_CONES) - set(supported_constraints)
 
         for co in ex_cos:
-            sim_cos = EXOTIC_CONES[co]  # get the set of required simple cones
+            sim_cos = set(EXOTIC_CONES[co]) 
             constr_types.update(sim_cos)
-            if co in constr_types:
-                constr_types.remove(co)
+            constr_types.discard(co)
 
         if PowCone3D in constr_types and PowCone3D not in cones:
             # if we add in atoms that specifically use the 3D power cone
