@@ -116,10 +116,11 @@ class Constant(Leaf):
         """
         return {}
 
-    @property
-    def hess(self):
+    def hess_vec(self, vec):
         """
-        The hessian of a constant is also an empty dictionary.
+        The hessian-vector product of a constant is zero.
+        This is necessary for taking second derivatives in NLP problems.
+        In particular, when the objective is a constant.
         """
         return {}
 

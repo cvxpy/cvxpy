@@ -94,7 +94,7 @@ class sin(Elementwise):
         """
         var = self.args[0]
         idxs = np.arange(var.size)
-        vals = -np.sin(var.value) * vec
+        vals = -np.sin(var.value.flatten(order='F')) * vec
         return {(var, var): (idxs, idxs, vals)}
     
     def _verify_jacobian_args(self):
@@ -103,7 +103,7 @@ class sin(Elementwise):
     def _jacobian(self):
         x = self.args[0]
         idxs = np.arange(x.size)
-        vals = np.cos(x.value)
+        vals = np.cos(x.value.flatten(order='F'))
         return {x: (idxs, idxs, vals)}
         
 class cos(Elementwise):
@@ -178,7 +178,7 @@ class cos(Elementwise):
         """
         var = self.args[0]
         idxs = np.arange(var.size)
-        vals = -np.cos(var.value) * vec
+        vals = -np.cos(var.value.flatten(order='F')) * vec
         return {(var, var): (idxs, idxs, vals)}
     
     def _verify_jacobian_args(self):
@@ -187,7 +187,7 @@ class cos(Elementwise):
     def _jacobian(self):
         x = self.args[0]
         idxs = np.arange(x.size)
-        vals = -np.sin(x.value)
+        vals = -np.sin(x.value.flatten(order='F'))
         return {x: (idxs, idxs, vals)}
 
 
@@ -264,7 +264,7 @@ class tan(Elementwise):
         var = self.args[0]
         idxs = np.arange(var.size)
         vals = 2*np.tan(var.value)/np.cos(var.value)**2 * vec
-        return {(var, var): (idxs, idxs, vals)}
+        return {(var, var): (idxs, idxs, vals.flatten(order='F'))}
     
     def _verify_jacobian_args(self):
         return isinstance(self.args[0], Variable)
@@ -273,4 +273,4 @@ class tan(Elementwise):
         x = self.args[0]
         idxs = np.arange(x.size)
         vals = 1/np.cos(x.value)**2
-        return {x: (idxs, idxs, vals)}
+        return {x: (idxs, idxs, vals.flatten(order='F'))}

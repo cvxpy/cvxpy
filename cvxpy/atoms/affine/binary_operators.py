@@ -269,12 +269,12 @@ class MulExpression(BinaryOperator):
         
         # constant * atom
         if x.is_constant(): 
-            y_hess_vec = y.hess_vec(x.value * vec)
+            y_hess_vec = y.hess_vec(x.value.flatten(order='F') * vec)
             return y_hess_vec
         
         # atom * constant
         if y.is_constant():
-            x_hess_vec = x.hess_vec(y.value * vec)
+            x_hess_vec = x.hess_vec(y.value.flatten(order='F') * vec)
             return x_hess_vec
 
         # x * y with x a scalar variable, y a vector variable
@@ -517,7 +517,8 @@ class multiply(MulExpression):
         
         # here both are variables
         idxs = np.arange(x.size)
-        jacobian_dict = {x: (idxs, idxs, y.value), y: (idxs, idxs, x.value)}
+        jacobian_dict = {x: (idxs, idxs, y.value.flatten(order='F')),
+                        y: (idxs, idxs, x.value.flatten(order='F'))}
         return jacobian_dict
 
     def graph_implementation(
