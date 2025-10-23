@@ -373,8 +373,8 @@ class ConeMatrixStuffing(MatrixStuffing):
                                 alpha.flatten(order='F'),
                                 constr_id=con.constr_id)
             elif isinstance(con, PowConeND) and con.axis == 1:
-                alpha = con.alpha if con.axis == 0 else con.alpha.T
-                W = con.W if con.axis == 0 else con.W.T
+                alpha = con.alpha.T
+                W = con.W.T
                 con = PowConeND(W, con.z.flatten(order='F'),
                                 alpha,
                                 axis=0,
