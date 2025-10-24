@@ -109,7 +109,7 @@ class log(Elementwise):
         """ See the docstring of the hess_vec method of the atom class. """
         x = self.args[0]
         idxs = np.arange(x.size)
-        vals = -vec / (x.value ** 2)
+        vals = -vec / (x.value.flatten(order='F') ** 2)
         return {(x, x): (idxs, idxs, vals)}
     
     def _verify_jacobian_args(self):

@@ -30,7 +30,7 @@ def is_possible_to_deduce_bounds(expr):
     # make sure that it is linear and not just affine 
     x = expr.variables()[0]
     old_x_value = x.value
-    x.value = np.zeros(x.size)
+    x.value = np.zeros(x.shape)
     is_linear = np.all(expr.args[0].value == 0)
     x.value = old_x_value
     if not is_linear:
@@ -61,7 +61,7 @@ def collect_constants(expr, constants):
 LOWER_BOUND = 1e-5
 
 def log_canon(expr, args):
-    t = Variable(args[0].size, bounds=[LOWER_BOUND, None])
+    t = Variable(args[0].shape, bounds=[LOWER_BOUND, None])
 
     # if args[0] is a * x for a constant scalar or vector 'a' 
     # and a vector variable 'x', we want to add bounds to x if x
@@ -80,8 +80,8 @@ def log_canon(expr, args):
         if x.value is None:
             x.value = expr.point_in_domain() * np.sign(a)
 
-        lbs = -np.inf * np.ones(x.size)
-        ubs = np.inf * np.ones(x.size)
+        lbs = -np.inf * np.ones(x.shape)
+        ubs = np.inf * np.ones(x.shape)
         lbs[a > 0] = 0
         ubs[a < 0] = 0
 
