@@ -52,24 +52,21 @@ class Hstack(AffAtom):
 
     # The shape is the common width and the sum of the heights.
     def shape_from_args(self) -> Tuple[int, ...]:
-        if self.args[0].ndim == 1:
-            return (sum(arg.size for arg in self.args),)
-        else:
-            cols = sum(arg.shape[1] for arg in self.args)
-            return (self.args[0].shape[0], cols) + self.args[0].shape[2:]
+        try:
+            return np.hstack(
+                [np.empty(arg.shape, dtype=np.dtype([])) for arg in self.args]
+                ).shape
+        except ValueError as e:
+            raise ValueError(f"Invalid shapes for hstack: {e}") from e
 
     # All arguments must have the same width.
     def validate_arguments(self) -> None:
-        model = self.args[0].shape
-        error = ValueError(("All the input dimensions except"
-                            " for axis 1 must match exactly."))
-        for arg in self.args[1:]:
-            if len(arg.shape) != len(model):
-                raise error
-            elif len(model) > 1:
-                for i in range(len(model)):
-                    if i != 1 and arg.shape[i] != model[i]:
-                        raise error
+        try:
+            np.hstack(
+                [np.empty(arg.shape, dtype=np.dtype([])) for arg in self.args]
+                )
+        except ValueError as e:
+            raise ValueError(f"Invalid arguments for hstack: {e}") from e
 
     def graph_implementation(
         self, arg_objs, shape: Tuple[int, ...], data=None
