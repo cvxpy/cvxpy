@@ -641,6 +641,9 @@ class Leaf(expression.Expression):
         if not isinstance(value, Iterable) or len(value) != 2:
             raise ValueError("Bounds should be a list of two items.")
 
+        if isinstance(value, tuple):
+            raise ValueError("Bounds should be a list, not a tuple.")
+
         # Check that bounds contains two scalars or two arrays with matching shapes.
         for val in value:
             valid_array = isinstance(val, np.ndarray) and val.shape == self.shape

@@ -182,6 +182,10 @@ class TestAttributes:
         with pytest.raises(ValueError, match="Bounds should be a list of two items."):
             x = cp.Variable((2, 2), name="x", bounds=bounds)
 
+        bounds = (0, 10)  # Tuple instead of list
+        with pytest.raises(ValueError, match="Bounds should be a list, not a tuple."):
+            x = cp.Variable((2, 2), name="x", bounds=bounds)
+
         # Invalid bounds: Arrays with non-matching shape
         bounds = [np.zeros((3, 3)), np.ones((3, 3))]
         with pytest.raises(
