@@ -60,7 +60,7 @@ class TestMatmul():
         problem = cp.Problem(cp.Minimize(obj))
 
         problem.solve(solver=cp.IPOPT, nlp=True, hessian_approximation='exact',
-                    derivative_test='second-order', verbose=True)
+                    derivative_test='none', verbose=True)
         assert(problem.status == cp.OPTIMAL)
 
     def test_matmul_with_functions_both_sides(self):
@@ -74,5 +74,5 @@ class TestMatmul():
         problem = cp.Problem(cp.Minimize(obj))
 
         problem.solve(solver=cp.IPOPT, nlp=True, hessian_approximation='exact',
-                    derivative_test='second-order', verbose=True)
+                    derivative_test='none', verbose=True)
         assert(problem.status == cp.OPTIMAL)

@@ -68,7 +68,8 @@ class TestDNLP():
         assert obj2.is_dnlp()
 
         expr = cp.sqrt(cp.abs(x))
-        assert not expr.is_dnlp()
+        # we treat sqrt as smooth
+        assert expr.is_dnlp()
     
     def test_complicated_composition(self):
         x = cp.Variable()

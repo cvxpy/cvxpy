@@ -27,7 +27,7 @@ MIN_BOUND = 1e-4
 #  1.  is it necessary to add the bound y >= 0? Does it help in
 #      terms of robustness?
 def div_canon(expr, args):
-    dim = (1, ) if args[0].shape == () else args[0].shape
+    dim = args[0].shape 
     sgn_z = args[0].sign
 
     if sgn_z == 'NONNEGATIVE':
@@ -45,7 +45,14 @@ def div_canon(expr, args):
         y.value = expr.point_in_domain()
 
     if args[0].value is not None:
-        z.value = np.atleast_1d(args[0].value) / y.value 
+        val = args[0].value / y.value    
     else:
-        z.value = expr.point_in_domain()
+        val = expr.point_in_domain()
+    
+    # dimension hack
+    if dim == () and val.shape == (1,):
+        z.value = val[0]
+    else:
+        z.value = val
+
     return z, [multiply(z, y) == args[0], y == args[1]]

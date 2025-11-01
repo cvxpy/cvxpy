@@ -211,7 +211,7 @@ class power(Elementwise):
     def is_atom_esr(self) -> bool:
         """Is the atom esr?
         """
-        return _is_const(self.p) and (self.p.value >= 1)
+        return _is_const(self.p)
 
     def is_atom_hsr(self) -> bool:
         """Is the atom hsr?
