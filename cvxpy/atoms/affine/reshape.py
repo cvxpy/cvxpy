@@ -28,6 +28,7 @@ from cvxpy.atoms.affine.affine_atom import AffAtom
 from cvxpy.atoms.affine.hstack import hstack
 from cvxpy.constraints.constraint import Constraint
 from cvxpy.expressions.expression import DEFAULT_ORDER_DEPRECATION_MSG, Expression
+from cvxpy.expressions.variable import Variable
 from cvxpy.utilities.shape import size_from_shape
 
 
@@ -154,6 +155,21 @@ class reshape(AffAtom):
                 result = lu.reshape(arg, shape[::-1])
                 return (lu.transpose(result), [])
 
+    def _verify_jacobian_args(self):
+        # only support order='F' for now
+        assert self.order == 'F', "Jacobian only supported for order='F'"
+        return isinstance(self.args[0], Variable)
+
+    def _jacobian(self):
+        return self.args[0].jacobian()
+
+    def _verify_hess_vec_args(self):
+        # only support order='F' for now
+        assert self.order == 'F', "Hessian-vector product only supported for order='F'"
+        return isinstance(self.args[0], Variable)
+
+    def _hess_vec(self, vec):
+        return self.args[0].hess_vec(vec)
 
 def deep_flatten(x):
     # base cases

@@ -64,8 +64,6 @@ class TestJacobianIndex():
         computed_jacobian[rows, cols] = vals
         assert(np.allclose(computed_jacobian, correct_jacobian))
 
-    ### Test matrix cases below ###
-
     def test_jacobian_matrix_slice(self):
         n = 2
         x = cp.Variable((n, n), name='x')
@@ -109,3 +107,43 @@ class TestJacobianIndex():
         rows, cols, vals = result_dict[x]
         computed_jacobian[rows, cols] = vals
         assert(np.allclose(computed_jacobian, correct_jacobian))
+
+    @pytest.mark.xfail(reason="None indexing not yet supported")
+    def test_jacobian_none_indexing(self):
+        n = 3
+        x = cp.Variable((n,), name='x')
+        x.value = np.array([1.0, 2.0, 3.0])
+        expr = cp.log(x)[:, None]
+        result_dict = expr.jacobian()
+        correct_jacobian = np.zeros((n, n))
+        for i in range(n):
+            correct_jacobian[i, i] = 1/x.value[i]
+        computed_jacobian = np.zeros((n, n))
+        rows, cols, vals = result_dict[x]
+        computed_jacobian[rows, cols] = vals
+        assert(np.allclose(computed_jacobian, correct_jacobian))
+
+
+class TestJacobianReshape():
+
+    def test_jacobian_reshape(self):
+        n = 6
+        x = cp.Variable((n,), name='x')
+        x.value = np.array([1.0, 2.0, 3.0, 4.0, 5.0, 6.0])
+        expr = cp.reshape(x, (2, 3), order='F')
+        # check that expr.jacobian() is the same as x.jacobian()
+        result_dict = expr.jacobian()
+        correct_jacobian = np.eye(n)
+        computed_jacobian = np.zeros((n, n))
+        rows, cols, vals = result_dict[x]
+        computed_jacobian[rows, cols] = vals
+        assert(np.allclose(computed_jacobian, correct_jacobian))
+
+    def test_jacobian_reshape_orderC(self):
+        n = 6
+        x = cp.Variable((n,), name='x')
+        x.value = np.array([1.0, 2.0, 3.0, 4.0, 5.0, 6.0])
+        expr = cp.reshape(x, (2, 3), order='C')
+        # should raise an assertion error
+        with pytest.raises(AssertionError):
+            expr.jacobian()

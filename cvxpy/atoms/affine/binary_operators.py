@@ -261,8 +261,9 @@ class MulExpression(BinaryOperator):
     def _hess_vec(self, vec):
         X = self.args[0]
         Y = self.args[1]
-        m, n = X.shape
-        p = Y.shape[1]
+
+        m, n = self.get_dimensions(X)
+        _, p = self.get_dimensions(Y)
 
         if X.is_constant():
             B = X.value.T @ np.reshape(vec, (m, p), order='C')
