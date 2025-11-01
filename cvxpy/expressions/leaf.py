@@ -641,7 +641,7 @@ class Leaf(expression.Expression):
         if not isinstance(value, Iterable) or len(value) != 2:
             raise ValueError("Bounds should be a list of two items.")
 
-        if isinstance(value, tuple):
+        if isinstance(value, tuple) and len(value) == 2:
             raise ValueError("Bounds should be a list, not a tuple.")
 
         # Check that bounds contains two scalars or two arrays with matching shapes.
