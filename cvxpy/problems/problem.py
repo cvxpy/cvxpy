@@ -377,6 +377,17 @@ class Problem(u.Canonical):
         return (self.is_dcp() and self.objective.args[0].is_qpwa())
 
     @perf.compute_once
+    def is_lp(self) -> bool:
+        """Is problem a linear program?"""
+        for c in self.constraints:
+            if not c.expr.is_affine():
+                return False
+        for var in self.variables():
+            if var.is_psd() or var.is_nsd():
+                return False
+        return (self.is_dcp() and self.objective.args[0].is_affine())
+
+    @perf.compute_once
     def is_mixed_integer(self) -> bool:
         return any(v.attributes['boolean'] or v.attributes['integer']
                    for v in self.variables())
@@ -893,25 +904,6 @@ class Problem(u.Canonical):
                 candidates['qp_solvers'] = []  # No QP solvers allowed
 
         if self.is_mixed_integer():
-            # ECOS_BB must be called explicitly.
-            if slv_def.INSTALLED_MI_SOLVERS == [s.ECOS_BB] and solver != s.ECOS_BB:
-                msg = """
-
-                    You need a mixed-integer solver for this model. Refer to the documentation
-                        https://www.cvxpy.org/tutorial/advanced/index.html#mixed-integer-programs
-                    for discussion on this topic.
-
-                    Quick fix 1: if you install the python package CVXOPT (pip install cvxopt),
-                    then CVXPY can use the open-source mixed-integer linear programming
-                    solver `GLPK`. If your problem is nonlinear then you can install SCIP
-                    (pip install pyscipopt).
-
-                    Quick fix 2: you can explicitly specify solver='ECOS_BB'. This may result
-                    in incorrect solutions and is not recommended.
-                """
-                raise error.SolverError(msg)
-            # TODO: provide a useful error message when the problem is nonlinear but
-            #  the only installed mixed-integer solvers are MILP solvers (e.g., GLPK_MI).
             candidates['qp_solvers'] = [
                 s for s in candidates['qp_solvers']
                 if slv_def.SOLVER_MAP_QP[s].MIP_CAPABLE]
@@ -925,7 +917,15 @@ class Problem(u.Canonical):
                     "QP/Conic solvers (%s) are not MIP-capable." %
                     (candidates['qp_solvers'] +
                      candidates['conic_solvers']))
-
+            if not self.is_lp():
+                msg = """
+                    You specified a nonlinear mixed-integer problem. You can try the SCIP solver
+                    by running "pip install pyscipopt" or
+                    refer to the documentation
+                    https://www.cvxpy.org/tutorial/constraints/index.html#mixed-integer-programs
+                    for discussion on this topic.
+                    """
+                raise error.SolverError(msg)
         return candidates
 
     def _add_custom_solver_candidates(self, custom_solver: Solver):
