@@ -2286,8 +2286,8 @@ class TestHIGHS:
     @pytest.mark.parametrize(
         ["problem", "confirmation_string"],
         [
-            (StandardTestLPs.test_lp_2, "Solving LP .* with basis"),
-            (StandardTestLPs.test_mi_lp_2, "MIP start solution is feasible"),
+            (StandardTestLPs.test_lp_2, "Solving LP with useful basis"),
+            (StandardTestLPs.test_mi_lp_2, "Assessing feasibility of MIP"),
         ],
     )
     def test_highs_warm_start(self, problem, confirmation_string, capfd) -> None:
