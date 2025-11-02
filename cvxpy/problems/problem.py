@@ -917,15 +917,6 @@ class Problem(u.Canonical):
                     "QP/Conic solvers (%s) are not MIP-capable." %
                     (candidates['qp_solvers'] +
                      candidates['conic_solvers']))
-            if not self.is_lp():
-                msg = """
-                    You specified a nonlinear mixed-integer problem. You can try the SCIP solver
-                    by running "pip install pyscipopt" or
-                    refer to the documentation
-                    https://www.cvxpy.org/tutorial/constraints/index.html#mixed-integer-programs
-                    for discussion on this topic.
-                    """
-                raise error.SolverError(msg)
         return candidates
 
     def _add_custom_solver_candidates(self, custom_solver: Solver):
