@@ -60,7 +60,8 @@ class sum_largest(Atom):
         if k_frac > 0 and k_floor < n:
             # Get the (k_floor + 1)-th largest value
             indices_next = np.argpartition(-value, kth=k_floor)[:k_floor + 1]
-            next_value = value[indices_next].min()  # min of largest k_floor+1 is the (k_floor+1)-th largest
+            # min of largest k_floor+1 is the (k_floor+1)-th largest
+            next_value = value[indices_next].min()
             result += k_frac * next_value
 
         return result
