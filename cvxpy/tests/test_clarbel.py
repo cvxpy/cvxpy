@@ -1,11 +1,27 @@
+"""
+Copyright, the CVXPY authors
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+"""
 import clarabel
-import cvxpy.settings as s
+import numpy as np
+
 import cvxpy as cp
+import cvxpy.settings as s
 from cvxpy.expressions.variable import Variable
 from cvxpy.problems.problem import Problem
 from cvxpy.reductions.solvers.conic_solvers.clarabel_conif import CLARABEL
 from cvxpy.tests.base_test import BaseTest
-import numpy as np
 
 
 class ClarabelTest(BaseTest):
@@ -49,7 +65,10 @@ class ClarabelTest(BaseTest):
         self.assertEqual(s.OPTIMAL, solution.status)
 
     def test_invert_when_insufficient_progress_should_fail(self):
-        """Tests invert when a solution is present and solver status from clarabel is InsufficientProgress."""
+        """
+        Tests invert when a solution is present and solver status from clarabel is
+        InsufficientProgress.
+        """
         solver = CLARABEL()
         _, _, inverse_data = self.prob.get_problem_data("clarabel")
         self.solution.status = CLARABEL.INSUFFICIENT_PROGRESS
@@ -58,8 +77,8 @@ class ClarabelTest(BaseTest):
         
     def test_invert_when_insufficient_progress_but_accept_unknown(self):
         """
-        Tests invert when a solution is present and solver status from clarabel is InsufficientProgress
-        but "accept_unknown" solver option was set to true.
+        Tests invert when a solution is present and solver status from clarabel
+        is InsufficientProgress but "accept_unknown" solver option was set to true.
         """
         solver = CLARABEL()
         _, _, inverse_data = self.prob.get_problem_data("clarabel")
@@ -69,9 +88,10 @@ class ClarabelTest(BaseTest):
 
     def test_invert_when_insufficient_progress_but_accept_unknown_and_no_solution(self):
         """
-        Tests invert when a solution is present and solver status from clarabel is InsufficientProgress
-        but "accept_unknown" solver option was set to true. Nevertheless, clarabel did not
-        return a solution and therefore the resulting status should be SolverError.
+        Tests invert when a solution is present and solver status from clarabel
+        is InsufficientProgress but "accept_unknown" solver option was set to true.
+        Nevertheless, clarabel did not return a solution and therefore the resulting
+        status should be SolverError.
         """
         solver = CLARABEL()
         _, _, inverse_data = self.prob.get_problem_data("clarabel")
