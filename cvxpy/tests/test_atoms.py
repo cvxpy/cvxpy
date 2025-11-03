@@ -1000,17 +1000,12 @@ class TestAtoms(BaseTest):
         with self.assertRaises(Exception) as cm:
             cp.sum_largest(self.x, -1)
         self.assertEqual(str(cm.exception),
-                         "Second argument must be a positive integer.")
+                         "Second argument must be a positive number.")
 
         with self.assertRaises(Exception) as cm:
             cp.lambda_sum_largest(self.x, 2.4)
         self.assertEqual(str(cm.exception),
                          "First argument must be a square matrix.")
-
-        with self.assertRaises(Exception) as cm:
-            cp.lambda_sum_largest(Variable((2, 2)), 2.4)
-        self.assertEqual(str(cm.exception),
-                         "Second argument must be a positive integer.")
 
         with self.assertRaises(ValueError) as cm:
             cp.lambda_sum_largest([[1, 2], [3, 4]], 2).value
@@ -1048,22 +1043,48 @@ class TestAtoms(BaseTest):
             prev_idx = np.argsort(-v)[:i]
             self.assertAlmostEqual(expr.value, v[prev_idx].sum())
 
+        # Test with float k values
+        v = np.array([5.0, 3.0, 8.0, 1.0, 6.0])
+        x = Constant(v)
+        # k=2.5 should give sum of 2 largest (8 + 6 = 14) + 0.5 * 3rd largest (0.5 * 5 = 2.5) = 16.5
+        expr = cp.sum_largest(x, 2.5)
+        expected = 8.0 + 6.0 + 0.5 * 5.0
+        self.assertAlmostEqual(expr.value, expected)
+
+        # k=1.7 should give largest (8) + 0.7 * 2nd largest (0.7 * 6 = 4.2) = 12.2
+        expr = cp.sum_largest(x, 1.7)
+        expected = 8.0 + 0.7 * 6.0
+        self.assertAlmostEqual(expr.value, expected)
+
+        # k=0.3 should give 0.3 * largest (0.3 * 8 = 2.4)
+        expr = cp.sum_largest(x, 0.3)
+        expected = 0.3 * 8.0
+        self.assertAlmostEqual(expr.value, expected)
+
     def test_sum_smallest(self) -> None:
         """Test the sum_smallest atom and related atoms.
         """
         with self.assertRaises(Exception) as cm:
             cp.sum_smallest(self.x, -1)
         self.assertEqual(str(cm.exception),
-                         "Second argument must be a positive integer.")
-
-        with self.assertRaises(Exception) as cm:
-            cp.lambda_sum_smallest(Variable((2, 2)), 2.4)
-        self.assertEqual(str(cm.exception),
-                         "Second argument must be a positive integer.")
+                         "Second argument must be a positive number.")
 
         # Check that sum_smallest is PWL so can be canonicalized as a QP.
         atom = cp.sum_smallest(self.x, 2)
         assert atom.is_pwl()
+
+        # Test with float k values
+        v = np.array([5.0, 3.0, 8.0, 1.0, 6.0])
+        x = Constant(v)
+        # k=2.5 should give sum of 2 smallest (1 + 3 = 4) + 0.5 * 3rd smallest (0.5 * 5 = 2.5) = 6.5
+        expr = cp.sum_smallest(x, 2.5)
+        expected = 1.0 + 3.0 + 0.5 * 5.0
+        self.assertAlmostEqual(expr.value, expected)
+
+        # k=1.7 should give smallest (1) + 0.7 * 2nd smallest (0.7 * 3 = 2.1) = 3.1
+        expr = cp.sum_smallest(x, 1.7)
+        expected = 1.0 + 0.7 * 3.0
+        self.assertAlmostEqual(expr.value, expected)
 
     def test_cvar(self) -> None:
         """Test the cvar atom and its use in a linear program."""
