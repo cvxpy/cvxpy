@@ -1031,6 +1031,17 @@ class TestAtoms(BaseTest):
         copy = atom.copy()
         self.assertTrue(type(copy) is type(atom))
 
+        # Test lambda_sum_largest with float k
+        A = np.array([[2.0, 0.0], [0.0, 1.0]])  # Eigenvalues: [2, 1]
+        expr = cp.lambda_sum_largest(A, 1.5)
+        expected = 2.0 + 0.5 * 1.0  # Largest + 0.5 * second largest
+        self.assertAlmostEqual(expr.value, expected)
+
+        # Test lambda_sum_smallest with float k
+        expr = cp.lambda_sum_smallest(A, 1.3)
+        expected = 1.0 + 0.3 * 2.0  # Smallest + 0.3 * second smallest
+        self.assertAlmostEqual(expr.value, expected)
+
         # Check that sum_largest is PWL so can be canonicalized as a QP.
         atom = cp.sum_largest(self.x, 2)
         assert atom.is_pwl()

@@ -155,7 +155,7 @@ and returns a scalar.
 
    * - :ref:`lambda_sum_largest(X,k) <lambda-sum-largest>`
 
-       :math:`k = 1,\ldots, n`
+       :math:`k > 0`
      - :math:`\text{sum of $k$ largest}`
        :math:`\text{eigenvalues of $X$}`
      - :math:`X \in\mathbf{S}^{n}`
@@ -164,7 +164,7 @@ and returns a scalar.
 
    * - :ref:`lambda_sum_smallest(X,k) <lambda-sum-smallest>`
 
-       :math:`k = 1,\ldots, n`
+       :math:`k > 0`
      - :math:`\text{sum of $k$ smallest}`
        :math:`\text{eigenvalues of $X$}`
      - :math:`X \in\mathbf{S}^{n}`
