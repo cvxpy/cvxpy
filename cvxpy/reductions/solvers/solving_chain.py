@@ -435,7 +435,7 @@ class SolvingChain(Chain):
         data, inverse_data = self.apply(problem)
         solution = self.solver.solve_via_data(data, warm_start,
                                               verbose, solver_opts)
-        return self.invert(solution, inverse_data)
+        return self.invert(solution, inverse_data, solver_opts)
 
     def solve_via_data(self, problem, data, warm_start: bool = False, verbose: bool = False,
                        solver_opts={}):

@@ -83,7 +83,7 @@ class Dqcp2Dcp(Canonicalization):
         """
         return type(problem.objective) == Minimize and problem.is_dqcp()
 
-    def invert(self, solution, inverse_data):
+    def invert(self, solution, inverse_data, options):
         pvars = {vid: solution.primal_vars[vid] for vid in inverse_data.id_map
                  if vid in solution.primal_vars}
         for vid in inverse_data.id_map:

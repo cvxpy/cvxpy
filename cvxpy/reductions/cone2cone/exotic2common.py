@@ -93,7 +93,7 @@ class Exotic2Common(Canonicalization):
         super(Exotic2Common, self).__init__(
             problem=problem, canon_methods=Exotic2Common.CANON_METHODS)
 
-    def invert(self, solution, inverse_data):
+    def invert(self, solution, inverse_data, options):
         pvars = {vid: solution.primal_vars[vid] for vid in inverse_data.id_map
                  if vid in solution.primal_vars}
         dvars = {orig_id: solution.dual_vars[vid]

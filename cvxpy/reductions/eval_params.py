@@ -72,7 +72,7 @@ class EvalParams(Reduction):
                     constraints.append(type(c)(*args))
         return problems.problem.Problem(objective, constraints), []
 
-    def invert(self, solution, inverse_data):
+    def invert(self, solution, inverse_data, options):
         """Returns a solution to the original problem given the inverse_data.
         """
         return solution

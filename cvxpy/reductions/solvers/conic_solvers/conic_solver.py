@@ -292,7 +292,7 @@ class ConicSolver(Solver):
         )
         return new_param_cone_prog
 
-    def invert(self, solution, inverse_data):
+    def invert(self, solution, inverse_data, options):
         """Returns the solution to the original problem given the inverse_data.
         """
         status = solution['status']

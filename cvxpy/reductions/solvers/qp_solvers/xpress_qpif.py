@@ -74,7 +74,7 @@ class XPRESS(QpSolver):
         ]).tolist()
         return data, inv_data
 
-    def invert(self, results, inverse_data):
+    def invert(self, results, inverse_data, options):
         # model = results["model"]
         attr = {}
         if s.SOLVE_TIME in results:

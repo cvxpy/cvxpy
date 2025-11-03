@@ -404,7 +404,7 @@ class ConeMatrixStuffing(MatrixStuffing):
         )
         return new_prob, inverse_data
 
-    def invert(self, solution, inverse_data):
+    def invert(self, solution, inverse_data, options):
         """Retrieves a solution to the original problem"""
         var_map = inverse_data.var_offsets
         con_map = inverse_data.cons_id_map

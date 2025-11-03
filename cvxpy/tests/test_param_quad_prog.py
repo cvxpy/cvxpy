@@ -104,7 +104,7 @@ class TestParamQuadProg(BaseTest):
             inverse_data = inverse_data + [solver_inverse_data]
             raw_solution = solver.solve_via_data(
                     data, warm_start=False, verbose=False, solver_opts={})
-            problem.unpack_results(raw_solution, solving_chain, inverse_data)
+            problem.unpack_results(raw_solution, solving_chain, inverse_data, {})
             x_param = np.copy(x.value)
 
             np.testing.assert_allclose(x_param, x_full, rtol=1e-2, atol=1e-02)

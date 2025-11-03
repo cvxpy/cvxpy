@@ -301,7 +301,7 @@ class QpMatrixStuffing(MatrixStuffing):
         )
         return new_prob, inverse_data
 
-    def invert(self, solution, inverse_data):
+    def invert(self, solution, inverse_data, options):
         """Retrieves the solution to the original problem."""
         var_map = inverse_data.var_offsets
         # Flip sign of opt val if maximize.

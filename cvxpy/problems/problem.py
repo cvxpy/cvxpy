@@ -1219,7 +1219,7 @@ class Problem(u.Canonical):
             self, data, warm_start, solver_verbose, kwargs)
         end = time.time()
         self._solve_time = end - start
-        self.unpack_results(solution, solving_chain, inverse_data)
+        self.unpack_results(solution, solving_chain, inverse_data, kwargs)
         if verbose:
             print(_FOOTER)
             s.LOGGER.info('Problem status: %s', self.status)
@@ -1512,7 +1512,7 @@ class Problem(u.Canonical):
         self._status = solution.status
         self._solution = solution
 
-    def unpack_results(self, solution, chain: SolvingChain, inverse_data) -> None:
+    def unpack_results(self, solution, chain: SolvingChain, inverse_data, options) -> None:
         """Updates the problem state given the solver results.
 
         Updates problem.status, problem.value and value of
@@ -1527,14 +1527,16 @@ class Problem(u.Canonical):
             A solving chain that was used to solve the problem.
         inverse_data : list
             The inverse data returned by applying the chain to the problem.
-
+        options: dict
+            A dictionary containing options.
+            
         Raises
         ------
         cvxpy.error.SolverError
             If the solver failed
         """
 
-        solution = chain.invert(solution, inverse_data)
+        solution = chain.invert(solution, inverse_data, options)
         if solution.status in s.INACCURATE:
             warnings.warn(
                 "Solution may be inaccurate. Try another solver, "

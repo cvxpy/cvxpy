@@ -93,7 +93,7 @@ class TestDualize(BaseTest):
         cone_sol = a2d.Dualize.invert(dual_sol, inv_data)
 
         # Pass the solution back up the solving chain.
-        in_prob_sol = chain.invert(cone_sol, inv_prob2cone)
+        in_prob_sol = chain.invert(cone_sol, inv_prob2cone, {})
         in_prob.unpack(in_prob_sol)
 
     def test_lp_1(self):
@@ -222,7 +222,7 @@ class TestSlacks(BaseTest):
         cone_sol = a2d.Slacks.invert(slack_sol, inv_data)
 
         # pass solution up the solving chain
-        in_prob_sol = chain.invert(cone_sol, inv_prob2cone)
+        in_prob_sol = chain.invert(cone_sol, inv_prob2cone, {})
         in_prob.unpack(in_prob_sol)
 
     @staticmethod

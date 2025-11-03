@@ -146,7 +146,7 @@ class KNITRO(QpSolver):
         """
         return super(KNITRO, self).apply(problem)
 
-    def invert(self, results, inverse_data):
+    def invert(self, results, inverse_data, options):
         import knitro as kn
 
         if KNITRO.CONTEXT_KEY not in results:

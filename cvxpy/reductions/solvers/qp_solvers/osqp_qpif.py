@@ -42,7 +42,7 @@ class OSQP(QpSolver):
         import osqp
         osqp
 
-    def invert(self, solution, inverse_data):
+    def invert(self, solution, inverse_data, options):
         import osqp
         is_pre_v1 = float(osqp.__version__.split('.')[0]) < 1
 

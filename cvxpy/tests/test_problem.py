@@ -281,7 +281,7 @@ class TestProblem(BaseTest):
         cones = scs_conif.dims_to_solver_dict(args[ConicSolver.DIMS])
         solution = scs.solve(data, cones)
         prob = Problem(cp.Minimize(cp.exp(self.a)), [self.a == 0])
-        prob.unpack_results(solution, chain, inv)
+        prob.unpack_results(solution, chain, inv, {})
         self.assertAlmostEqual(self.a.value, 0, places=3)
         self.assertAlmostEqual(prob.value, 1, places=3)
         self.assertAlmostEqual(prob.status, s.OPTIMAL)

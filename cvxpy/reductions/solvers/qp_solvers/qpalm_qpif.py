@@ -36,7 +36,7 @@ class QPALM(QpSolver):
         import qpalm
         qpalm
 
-    def invert(self, solution, inverse_data):
+    def invert(self, solution, inverse_data, options):
         import qpalm
 
         # Map of QPALM status to CVXPY status.

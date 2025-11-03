@@ -134,18 +134,31 @@ class CLARABEL(ConicSolver):
     MIP_CAPABLE = False
     SUPPORTED_CONSTRAINTS = ConicSolver.SUPPORTED_CONSTRAINTS \
         + [SOC, ExpCone, PowCone3D, PSD]
+    
+    # Status messages from clarabel.
+    SOLVED = "Solved"
+    PRIMAL_INFEASIBLE = "PrimalInfeasible"
+    DUAL_INFEASIBLE = "DualInfeasible"
+    ALMOST_SOLVED = "AlmostSolved"
+    ALMOST_PRIMAL_INFEASIBLE = "AlmostPrimalInfeasible"
+    ALMOST_DUAL_INFEASIBLE = "AlmostDualInfeasible"
+    MAX_ITERATIONS = "MaxIterations"
+    MAX_TIME = "MaxTime"
+    NUMERICAL_ERROR = "NumericalError"
+    INSUFFICIENT_PROGRESS = "InsufficientProgress"
+    ACCEPT_UNKNOWN = "accept_unkown"
 
     STATUS_MAP = {
-                    "Solved": s.OPTIMAL,
-                    "PrimalInfeasible": s.INFEASIBLE,
-                    "DualInfeasible": s.UNBOUNDED,
-                    "AlmostSolved": s.OPTIMAL_INACCURATE,
-                    "AlmostPrimalInfeasible": s.INFEASIBLE_INACCURATE,
-                    "AlmostDualInfeasible": s.UNBOUNDED_INACCURATE,
-                    "MaxIterations": s.USER_LIMIT,
-                    "MaxTime": s.USER_LIMIT,
-                    "NumericalError": s.SOLVER_ERROR,
-                    "InsufficientProgress": s.SOLVER_ERROR
+                    SOLVED: s.OPTIMAL,
+                    PRIMAL_INFEASIBLE: s.INFEASIBLE,
+                    DUAL_INFEASIBLE: s.UNBOUNDED,
+                    ALMOST_SOLVED: s.OPTIMAL_INACCURATE,
+                    ALMOST_PRIMAL_INFEASIBLE: s.INFEASIBLE_INACCURATE,
+                    ALMOST_DUAL_INFEASIBLE: s.UNBOUNDED_INACCURATE,
+                    MAX_ITERATIONS: s.USER_LIMIT,
+                    MAX_TIME: s.USER_LIMIT,
+                    NUMERICAL_ERROR: s.SOLVER_ERROR,
+                    INSUFFICIENT_PROGRESS: s.SOLVER_ERROR
                 }
 
     # Order of exponential cone arguments for solver.
@@ -222,12 +235,17 @@ class CLARABEL(ConicSolver):
         else:
             return utilities.extract_dual_value(result_vec, offset, constraint)
 
-    def invert(self, solution, inverse_data):
+    def invert(self, solution, inverse_data, options):
         """Returns the solution to the original problem given the inverse_data.
         """
-
         attr = {}
-        status = self.STATUS_MAP[str(solution.status)]
+        status_map = self.STATUS_MAP.copy()
+
+        # if accept unknown was specified and solution is present, then an insufficient progress
+        # status will be mapped to OPTIMAL_INACCURATE.
+        if CLARABEL.ACCEPT_UNKNOWN in options and solution.x is not None and solution.z is not None:
+            status_map["InsufficientProgress"] = s.OPTIMAL_INACCURATE
+        status = status_map[str(solution.status)]
         attr[s.SOLVE_TIME] = solution.solve_time
         attr[s.NUM_ITERS] = solution.iterations
         # more detailed statistics here when available
@@ -265,11 +283,15 @@ class CLARABEL(ConicSolver):
 
         settings.verbose = verbose
 
-        # use_quad_obj is only for canonicalization.
-        if "use_quad_obj" in opts:
-            del opts["use_quad_obj"]
+        keys = list(opts.keys())
 
-        for opt in opts.keys():
+        # use_quad_obj is only for canonicalization.
+        if "use_quad_obj" in keys:
+            keys.remove("use_quad_obj")
+        if CLARABEL.ACCEPT_UNKNOWN in keys:
+            keys.remove(CLARABEL.ACCEPT_UNKNOWN)
+
+        for opt in keys:
             try:
                 settings.__setattr__(opt, opts[opt])
             except TypeError as e:
