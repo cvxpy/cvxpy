@@ -82,8 +82,14 @@ class PDLP(ConicSolver):
         model = pdlp.QuadraticProgram()
         model.objective_offset = d.item() if isinstance(d, np.ndarray) else d
         model.objective_vector = c
-        model.variable_lower_bounds = problem.lower_bounds
-        model.variable_upper_bounds = problem.upper_bounds
+        if problem.lower_bounds:
+            model.variable_lower_bounds = problem.lower_bounds
+        else:
+            model.variable_lower_bounds = np.full_like(c, -np.inf)
+        if problem.upper_bounds:
+            model.variable_upper_bounds = problem.upper_bounds
+        else:
+            model.variable_upper_bounds = np.full_like(c, np.inf)
 
         model.constraint_matrix = A
         constraint_lower_bounds = np.full_like(b, -np.inf)
