@@ -19,7 +19,7 @@ import numpy as np
 import scipy.sparse as sp
 
 import cvxpy.settings as s
-from cvxpy.constraints import PSD, SOC, ExpCone, NonNeg, PowCone3D, Zero
+from cvxpy.constraints import PSD, SOC, ExpCone, NonNeg, PowCone3D, PowConeND, Zero
 from cvxpy.reductions.cvx_attr2constr import convex_attributes
 from cvxpy.reductions.dcp2cone.cone_matrix_stuffing import ParamConeProg
 from cvxpy.reductions.solution import Solution, failure_solution
@@ -91,7 +91,8 @@ def dims_to_solver_dict(cone_dims):
         'q': cone_dims.soc,
         'ep': cone_dims.exp,
         's': cone_dims.psd,
-        'p': cone_dims.p3d
+        'p': cone_dims.p3d,
+        'pnd': cone_dims.pnd
     }
     return cones
 
@@ -249,6 +250,26 @@ class ConicSolver(Solver):
                     )
                     arg_mats.append(space_mat)
                 restruct_mat.append(sp.hstack(arg_mats))
+            elif type(constr) == PowConeND:
+                arg_mats = []
+                m, n = constr.args[0].shape
+                for j in range(n):
+                    space_mat = ConicSolver.get_spacing_matrix(
+                        shape=(total_height, m), spacing=0,
+                        streak=1, num_blocks=m, offset=(m+1)*j,
+                    )
+                    arg_mats.append(space_mat)
+
+                # Hypo columns
+                arg = constr.args[1]
+                assert arg.size == n
+                space_mat = ConicSolver.get_spacing_matrix(
+                    shape=(total_height, n), spacing=m,
+                    streak=1, num_blocks=n, offset=m,
+                )
+                arg_mats.append(space_mat)
+                restruct_mat.append(sp.hstack(arg_mats))
+
             elif type(constr) == PSD:
                 restruct_mat.append(cls.psd_format_mat(constr))
             else:
@@ -328,6 +349,7 @@ class ConicSolver(Solver):
         # 4. psd
         # 5. exponential
         # 6. three-dimensional power cones
+        # 7. n-dimensional power cones
         if not problem.formatted:
             problem = self.format_constraints(problem, self.EXP_CONE_ORDER)
         data[s.PARAM_PROB] = problem
@@ -337,7 +359,9 @@ class ConicSolver(Solver):
         constr_map = problem.constr_map
         inv_data[self.EQ_CONSTR] = constr_map[Zero]
         inv_data[self.NEQ_CONSTR] = constr_map[NonNeg] + constr_map[SOC] + \
-            constr_map[PSD] + constr_map[ExpCone] + constr_map[PowCone3D]
+            constr_map[PSD] + constr_map[ExpCone] + \
+            constr_map[PowCone3D] + \
+            constr_map[PowConeND]
         return problem, data, inv_data
 
     def apply(self, problem):
