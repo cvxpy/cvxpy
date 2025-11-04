@@ -60,8 +60,8 @@ With CVXPY, you can model
 
 CVXPY is not a solver. It relies upon the open source solvers 
 [Clarabel](https://github.com/oxfordcontrol/Clarabel.rs), [SCS](https://github.com/bodono/scs-python),
-and [OSQP](https://github.com/oxfordcontrol/osqp). Additional solvers are
-[available](https://www.cvxpy.org/tutorial/solvers/index.html#choosing-a-solver),
+[OSQP](https://github.com/oxfordcontrol/osqp) and [HiGHS](https://github.com/ERGO-Code/HiGHS).
+Additional solvers are [available](https://www.cvxpy.org/tutorial/solvers/index.html#choosing-a-solver),
 but must be installed separately.
 
 CVXPY began as a Stanford University research project. It is now developed by
@@ -87,6 +87,7 @@ CVXPY has the following dependencies:
 - SCS >= 3.2.4.post1
 - NumPy >= 1.22.4
 - SciPy >= 1.13.0
+- Highspy >= 1.11.0
 
 For detailed instructions, see the [installation
 guide](https://www.cvxpy.org/install/index.html).
