@@ -48,31 +48,16 @@ class Vstack(AffAtom):
 
     # The shape is the common width and the sum of the heights.
     def shape_from_args(self) -> Tuple[int, ...]:
-        self.args[0].shape
-        if self.args[0].ndim == 0:
-            return (len(self.args), 1)
-        elif self.args[0].ndim == 1:
-            return (len(self.args), self.args[0].shape[0])
-        else:
-            rows = sum(arg.shape[0] for arg in self.args)
-            return (rows,) + self.args[0].shape[1:]
+        try:
+            return np.vstack(
+                [np.empty(arg.shape, dtype=np.dtype([])) for arg in self.args]
+                ).shape
+        except ValueError as e:
+            raise ValueError(f"Invalid arguments for cp.vstack: {e}") from e
 
     # All arguments must have the same width.
     def validate_arguments(self) -> None:
-        model = self.args[0].shape
-        # Promote scalars.
-        if model == ():
-            model = (1,)
-        for arg in self.args[1:]:
-            arg_shape = arg.shape
-            # Promote scalars.
-            if arg_shape == ():
-                arg_shape = (1,)
-            if len(arg_shape) != len(model) or \
-               (len(model) > 1 and model[1:] != arg_shape[1:]) or \
-               (len(model) <= 1 and model != arg_shape):
-                raise ValueError(("All the input dimensions except"
-                                  " for axis 0 must match exactly."))
+        self.shape_from_args()
 
     def graph_implementation(
         self, arg_objs, shape: Tuple[int, ...], data=None
