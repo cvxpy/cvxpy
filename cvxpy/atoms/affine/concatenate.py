@@ -62,13 +62,7 @@ class Concatenate(AffAtom):
     def validate_arguments(self) -> None:
         # Validates that the input shapes in `self.args` are suitable for
         # concatenation along a specified axis using numpy API with empty arrays
-        try:
-            np.concatenate(
-                [np.empty(arg.shape, dtype=np.dtype([])) for arg in self.args],
-                axis=self.axis,
-            )
-        except (ValueError, AxisError) as e:
-            raise ValueError(f"Invalid arguments for concatenate: {e}") from e
+        self.shape_from_args()
 
     def shape_from_args(self) -> Tuple[int, ...]:
         try:
@@ -77,7 +71,7 @@ class Concatenate(AffAtom):
                 axis=self.axis,
             ).shape
         except (ValueError, AxisError) as e:
-            raise ValueError(f"Invalid shapes for concatenate: {e}") from e
+            raise ValueError(f"Invalid arguments for cp.concatenate: {e}") from e
 
     def graph_implementation(
         self,

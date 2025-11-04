@@ -57,16 +57,11 @@ class Hstack(AffAtom):
                 [np.empty(arg.shape, dtype=np.dtype([])) for arg in self.args]
                 ).shape
         except ValueError as e:
-            raise ValueError(f"Invalid shapes for hstack: {e}") from e
+            raise ValueError(f"Invalid arguments for cp.hstack: {e}") from e
 
     # All arguments must have the same width.
     def validate_arguments(self) -> None:
-        try:
-            np.hstack(
-                [np.empty(arg.shape, dtype=np.dtype([])) for arg in self.args]
-                )
-        except ValueError as e:
-            raise ValueError(f"Invalid arguments for hstack: {e}") from e
+        self.shape_from_args()
 
     def graph_implementation(
         self, arg_objs, shape: Tuple[int, ...], data=None

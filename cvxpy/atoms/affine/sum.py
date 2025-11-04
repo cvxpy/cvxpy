@@ -75,14 +75,7 @@ class Sum(AxisAtom, AffAtom):
 
     def validate_arguments(self) -> None:
         """Validates arguments using NumPy's sum validation."""
-        try:
-            np.sum(
-                np.empty(self.args[0].shape),
-                axis=self.axis,
-                keepdims=self.keepdims
-            )
-        except (ValueError, AxisError, TypeError) as e:
-            raise ValueError(f"Invalid arguments for sum: {e}") from e
+        self.shape_from_args()
         super(AxisAtom, self).validate_arguments()
 
     def shape_from_args(self) -> Tuple[int, ...]:
@@ -94,7 +87,7 @@ class Sum(AxisAtom, AffAtom):
                 keepdims=self.keepdims
             ).shape
         except (ValueError, AxisError, TypeError) as e:
-            raise ValueError(f"Invalid shapes for sum: {e}") from e
+            raise ValueError(f"Invalid arguments for cp.sum: {e}") from e
 
     def numeric(self, values):
         """Sums the entries of value."""

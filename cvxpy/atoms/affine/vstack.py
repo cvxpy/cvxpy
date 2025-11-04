@@ -53,16 +53,11 @@ class Vstack(AffAtom):
                 [np.empty(arg.shape, dtype=np.dtype([])) for arg in self.args]
                 ).shape
         except ValueError as e:
-            raise ValueError(f"Invalid shapes for vstack: {e}") from e
+            raise ValueError(f"Invalid arguments for cp.vstack: {e}") from e
 
     # All arguments must have the same width.
     def validate_arguments(self) -> None:
-        try:
-            np.vstack(
-                [np.empty(arg.shape, dtype=np.dtype([])) for arg in self.args]
-                )
-        except ValueError as e:
-            raise ValueError(f"Invalid arguments for vstack: {e}") from e
+        self.shape_from_args()
 
     def graph_implementation(
         self, arg_objs, shape: Tuple[int, ...], data=None
