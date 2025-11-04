@@ -87,7 +87,7 @@ CVXPY has the following dependencies:
 - SCS >= 3.2.4.post1
 - NumPy >= 1.22.4
 - SciPy >= 1.13.0
-- Highspy >= 1.11.0
+- highspy >= 1.11.0
 
 For detailed instructions, see the [installation
 guide](https://www.cvxpy.org/install/index.html).
