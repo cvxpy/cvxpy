@@ -492,14 +492,11 @@ class TestAtoms(BaseTest):
         self.assertEqual(cp.sum(Variable((2, 3)), axis=0, keepdims=False).shape, (3,))
         self.assertEqual(cp.sum(Variable((2, 3)), axis=1).shape, (2,))
 
-        # Invalid axis.
-        with self.assertRaises(Exception) as cm:
+        # Invalid axis - now raises ValueError with context
+        with self.assertRaises(ValueError):
             cp.sum(self.x, axis=4)
-        self.assertEqual(str(cm.exception),
-                        "axis 4 is out of bounds for array of dimension 1")
-        with self.assertRaises(Exception) as cm:
+        with self.assertRaises(ValueError):
             cp.sum(Variable(2), axis=1).shape
-        self.assertEqual(str(cm.exception), "axis 1 is out of bounds for array of dimension 1")
 
         A = sp.eye_array(3)
         self.assertEqual(cp.sum(A).value, 3)
@@ -544,24 +541,47 @@ class TestAtoms(BaseTest):
             entries.append(self.x[i])
         atom = cp.vstack(entries)
         self.assertEqual(atom.shape, (2, 1))
-        # self.assertEqual(atom[1,0].name(), "vstack(x[0,0], x[1,0])[1,0]")
 
-        with self.assertRaises(Exception) as cm:
+        with self.assertRaises(ValueError):
             cp.vstack([self.C, 1])
-        self.assertEqual(str(cm.exception),
-                         "All the input dimensions except for axis 0 must match exactly.")
 
-        with self.assertRaises(Exception) as cm:
+        with self.assertRaises(ValueError):
             cp.vstack([self.x, Variable(3)])
-        self.assertEqual(str(cm.exception),
-                         "All the input dimensions except for axis 0 must match exactly.")
 
-        with self.assertRaises(TypeError) as cm:
+        with self.assertRaises(TypeError):
             cp.vstack()
 
         # Test scalars with variables of shape (1,)
         expr = cp.vstack([2, Variable((1,))])
         self.assertEqual(expr.shape, (2, 1))
+
+    def test_hstack(self) -> None:
+        atom = cp.hstack([self.x, self.y, self.x])
+        self.assertEqual(atom.name(), "Hstack(x, y, x)")
+        self.assertEqual(atom.shape, (6,))
+
+        atom = cp.hstack([self.A, self.B])
+        self.assertEqual(atom.name(), "Hstack(A, B)")
+        self.assertEqual(atom.shape, (2, 4))
+        
+        # Extracting columns produces 1D arrays, so hstack concatenates to (4,)
+        entries = []
+        for i in range(self.A.shape[1]):
+            entries.append(self.A[:, i])
+        atom = cp.hstack(entries)
+        self.assertEqual(atom.shape, (4,))
+        
+        with self.assertRaises(ValueError):
+            cp.hstack([self.C, self.A])
+
+        with self.assertRaises(ValueError):
+            cp.hstack([self.A, self.x])
+
+        with self.assertRaises(TypeError):
+            cp.hstack()
+
+        expr = cp.hstack([2, Variable((1,))])
+        self.assertEqual(expr.shape, (2,))
 
     def test_concatenate(self):
         atom = cp.concatenate([self.x, self.y], axis=0)
@@ -569,9 +589,8 @@ class TestAtoms(BaseTest):
         self.assertEqual(atom.shape, (4,))  # (2 vectors are concatenated on axis 0)
 
         with self.assertRaises(ValueError):
-            # x and y are 1D arrays, so they can't be concatenated on axis 1
-            atom = cp.concatenate([self.x, self.y], axis=1)
-        # Expected ValueError due to invalid axis for 1D arrays
+            # NumPy raises AxisError for invalid axis, converted to ValueError
+            cp.concatenate([self.x, self.y], axis=1)
 
         atom = cp.concatenate([self.A, self.C], axis=None)
         self.assertEqual(atom.shape, (10,))
@@ -580,8 +599,8 @@ class TestAtoms(BaseTest):
         self.assertEqual(atom.shape, (5, 2))
 
         with self.assertRaises(ValueError):
-            atom = cp.concatenate([self.A, self.C], axis=1)
-        # Expected ValueError due to mismatched dimensions along dimension 0
+            # A is (2,2) and C is (3,2) - can't concatenate on axis 1
+            cp.concatenate([self.A, self.C], axis=1)
 
         atom = cp.concatenate([self.A, self.B], axis=1)
         self.assertEqual(atom.shape, (2, 4))

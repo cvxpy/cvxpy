@@ -303,10 +303,8 @@ class TestExpressionMethods(BaseTest):
         self.assertEqual(Variable((2, 3)).sum(axis=1).shape, (2,))
 
         # Invalid axis.
-        with self.assertRaises(Exception) as cm:
+        with self.assertRaises(ValueError):
             cp.sum(self.x, axis=4)
-        self.assertEqual(str(cm.exception),
-                        "axis 4 is out of bounds for array of dimension 1")
 
         A = sp.eye_array(3)
         self.assertEqual(Constant(A).sum().value, 3)
