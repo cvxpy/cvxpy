@@ -56,6 +56,8 @@ class TestFeasibilty(TestCase):
 
     def test_improved_function_speedup(self) -> None:
         naive_times = []
+        improved_times = []
+
         for _ in range(100):
             first_dim = np.random.randint(1, 10)
             second_dim = np.random.randint(1, 10)
@@ -71,14 +73,7 @@ class TestFeasibilty(TestCase):
 
             naive_times.append(end-start)
 
-        improved_times = []
-        for _ in range(100):
-            first_dim = np.random.randint(1, 10)
-            second_dim = np.random.randint(1, 10)
             x = Variable(first_dim)
-            A = np.random.randn(second_dim, first_dim)
-            b = np.random.randn(second_dim)
-
             constraints = [A @ x >= b]
 
             start = time.time()
