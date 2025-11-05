@@ -30,7 +30,7 @@ def is_feasible_naive(vars, constraints):
 
 	return problem.status != INFEASIBLE
 
-# Improved version, cvxpy allows for objective that don't depend on the variables
+# Improved version: cvxpy allows for objectives that don't depend on the variables
 # this will stop as soon as a first solution is encountered
 def is_feasible_improved(constraints):
 	problem = Problem(Minimize(0), constraints)
