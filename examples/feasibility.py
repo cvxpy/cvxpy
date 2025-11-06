@@ -14,31 +14,31 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from cvxpy import Minimize, Problem, Variable, INFEASIBLE, sum
+import cvxpy as cp
+import numpy as np
 
 # Example: Verify the feasibility of constraints, a naive and an improved version
 
 # Naive version with a simple dummy objective
 def is_feasible_naive(vars, constraints):
-	problem = Problem(Minimize(sum(vars)), constraints)
+	problem = cp.Problem(cp.Minimize(cp.sum(vars)), constraints)
 
 	problem.solve()
 
-	return problem.status != INFEASIBLE
+	return problem.status != cp.INFEASIBLE
 
 # Improved version: cvxpy allows for objectives that don't depend on the variables
 # this will stop as soon as a first solution is encountered
 def is_feasible_improved(constraints):
-	problem = Problem(Minimize(0), constraints)
+	problem = cp.Problem(cp.Minimize(0), constraints)
 
 	problem.solve()
 
-	return problem.status != INFEASIBLE
+	return problem.status != cp.INFEASIBLE
 
-import numpy as np
 if __name__ == "__main__":
 	# Create variables and constraints
-	x = Variable(5)
+	x = cp.Variable(5)
 	A = np.random.randn(3, 5)
 	b = np.random.randn(3)
 
