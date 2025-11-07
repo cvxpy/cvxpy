@@ -93,6 +93,7 @@ SCS = []
 XPRESS = ["xpress>=9.5"]
 DAQP = ["daqp"]
 KNITRO = ["knitro"]
+MINDOPT = ["mindoptpy>=2.2.0"]
 testing = ["pytest", "hypothesis"]
 doc = ["sphinx",
        "sphinxcontrib.jquery",
