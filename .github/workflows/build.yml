@@ -75,7 +75,7 @@ jobs:
           source continuous_integration/test_script.sh
 
       - name: Upload coverage file
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         if: ${{env.SINGLE_ACTION_CONFIG == 'True'}}
         with:
           name: coverage
@@ -182,7 +182,7 @@ jobs:
 
       - name: Upload artifacts to github
         if: ${{github.event_name == 'push' && env.USE_OPENMP != 'True'}}
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: wheels-${{ env.CVXPY_BASE_SUFFIX }}${{ matrix.os }}-${{ matrix.python-version }}
           path: ./wheelhouse
