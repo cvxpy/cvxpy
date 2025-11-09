@@ -14,6 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+
 import numpy as np
 
 from cvxpy.expressions.constants import Constant
@@ -22,33 +23,32 @@ from cvxpy.expressions.variable import Variable
 
 def power_canon(expr, args):
     x = args[0]
-    p = expr.p_rational
+    p = expr.p_rational 
     shape = expr.shape
     ones = Constant(np.ones(shape))
     if p == 0:
         return ones, []
     elif p == 1:
         return x, []
-    # case for inv_pos
-    elif p == -1:
-        raise NotImplementedError('The power -1 or inv_pos is not yet supported.')
-    # case for square root, formulate hypograph
     elif p == 0.5:
-        t = Variable(shape)
-        return t, [x >= t**2]
-    # case for square, treated as smooth
-    elif p > 1:
-        t = Variable(shape)
-        if isinstance(args[0], Variable):
-            return expr.copy(args), []
+        t = Variable(shape, nonneg=True)
 
-        t = Variable(args[0].shape)
-
-        if args[0].value is not None:
-            t.value = args[0].value
+        if x.value is not None:
+            t.value = x.value
         else:
             t.value = expr.point_in_domain()
 
-        return expr.copy([t]), [t==args[0]]
+        return expr.copy([t]), [t == x]
+    elif isinstance(p, int) and p > 1:
+        if isinstance(x, Variable):
+            return expr.copy(args), []
+
+        t = Variable(shape)
+        if x.value is not None:
+            t.value = x.value
+        else:
+            t.value = expr.point_in_domain()
+
+        return expr.copy([t]), [t == x]
     else:
         raise NotImplementedError(f'The power {p} is not yet supported.')

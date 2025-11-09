@@ -45,7 +45,7 @@ class TestExamplesIPOPT:
         
         objective = cp.Maximize(log_likelihood)
         problem = cp.Problem(objective, constraints)
-        problem.solve(solver=cp.IPOPT, nlp=True)
+        problem.solve(solver=cp.IPOPT, nlp=True, derivative_test='none')
         assert problem.status == cp.OPTIMAL
         assert np.allclose(sigma.value, 0.77079388)
         assert np.allclose(mu.value, 0.59412321)
@@ -165,6 +165,22 @@ class TestExamplesIPOPT:
         problem.solve(solver=cp.IPOPT, verbose=True, nlp=True)
         assert problem.status == cp.OPTIMAL
         assert np.allclose(problem.value, -1.93414338e+00)
+    
+    def test_localization(self):
+        m = 10                
+        dim = 2               
+        x_true = np.array([2.0, -1.5])  
+        a = np.random.uniform(-5, 5, (m, dim))
+        rho = np.linalg.norm(a - x_true, axis=1) # no noise
+        x = cp.Variable(2, name='x')
+        t = cp.Variable(m, name='t')
+        constraints = [t == cp.sqrt(cp.sum(cp.square(x - a), axis=1))]
+        objective = cp.Minimize(cp.sum_squares(t - rho))
+        problem = cp.Problem(objective, constraints)
+        problem.solve(solver=cp.IPOPT, nlp=True, verbose=True, derivative_test='none')
+        assert problem.status == cp.OPTIMAL
+        assert np.allclose(x.value, x_true)
+    
 
 @pytest.mark.skipif('IPOPT' not in INSTALLED_SOLVERS, reason='IPOPT is not installed.')
 class TestNonlinearControl:

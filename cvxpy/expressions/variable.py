@@ -70,7 +70,7 @@ class Variable(Leaf):
     # TODO (DCED): should this be _hess_vec? Will this ever be called directly?
     def hess_vec(self, vec):
         return {}
-
+    
     def jacobian(self):
         rows = np.arange(self.size)
         vals = np.ones(self.size)
