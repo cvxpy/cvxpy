@@ -18,18 +18,8 @@ import numpy as np
 import scipy.sparse as sp
 
 import cvxpy.settings as s
-from cvxpy.constraints import (
-    Equality,
-    Inequality,
-    NonPos,
-)
 from cvxpy.reductions.solution import Solution, failure_solution
 from cvxpy.reductions.solvers.nlp_solvers.nlp_solver import NLPsolver
-from cvxpy.reductions.utilities import (
-    lower_equality,
-    lower_ineq_to_nonneg,
-    nonpos2nonneg,
-)
 from cvxpy.utilities.citations import CITATION_DICT
 
 
@@ -132,18 +122,16 @@ class IPOPT(NLPsolver):
             (status, optimal value, primal, equality dual, inequality dual)
         """
         import cyipopt
-        bounds = self.Bounds(data["problem"])
-        x0 = self.construct_initial_point(bounds)
         # Create oracles object
-        oracles = self.Oracles(bounds.new_problem, x0, len(bounds.cl))
+        oracles = self.Oracles(data["problem"], data["x0"], len(data["cl"]))
         nlp = cyipopt.Problem(
-        n=len(x0),
-        m=len(bounds.cl),
+        n=len(data["x0"]),
+        m=len(data["cl"]),
         problem_obj=oracles,
-        lb=bounds.lb,
-        ub=bounds.ub,
-        cl=bounds.cl,
-        cu=bounds.cu,
+        lb=data["lb"],
+        ub=data["ub"],
+        cl=data["cl"],
+        cu=data["cu"],
         )
         # Set default IPOPT options, but use solver_opts if provided
         default_options = {
@@ -154,7 +142,6 @@ class IPOPT(NLPsolver):
             'derivative_test': 'first-order',
             'least_square_init_duals': 'yes'
         }
-         
         # Update defaults with user-provided options
         if solver_opts:
             default_options.update(solver_opts)
@@ -164,8 +151,8 @@ class IPOPT(NLPsolver):
         for option_name, option_value in default_options.items():
             nlp.add_option(option_name, option_value)
 
-        _, info = nlp.solve(x0)
-        
+        _, info = nlp.solve(data["x0"])
+
         # add number of iterations to info dict from oracles
         info['iterations'] = oracles.iterations
         return info
@@ -179,42 +166,6 @@ class IPOPT(NLPsolver):
             Data generated via an apply call.
         """
         return CITATION_DICT["IPOPT"]
-    
-    def construct_initial_point(self, bounds):
-            initial_values = []
-            offset = 0
-            lbs = bounds.lb 
-            ubs = bounds.ub
-            for var in bounds.main_var:
-                if var.value is not None:
-                    initial_values.append(np.atleast_1d(var.value).flatten(order='F'))
-                else:
-                    # If no initial value is specified, look at the bounds.
-                    # If both lb and ub are specified, we initialize the
-                    # variables to be their midpoints. If only one of them 
-                    # is specified, we initialize the variable one unit 
-                    # from the bound. If none of them is specified, we 
-                    # initialize it to zero.
-                    lb = lbs[offset:offset + var.size]
-                    ub = ubs[offset:offset + var.size]
-
-                    lb_finite = np.isfinite(lb)
-                    ub_finite = np.isfinite(ub)
-
-                    # Replace infs with zero for arithmetic
-                    lb0 = np.where(lb_finite, lb, 0.0)
-                    ub0 = np.where(ub_finite, ub, 0.0)
-
-                    # Midpoint if both finite, one from bound if only one finite, zero if none
-                    init = (lb_finite * ub_finite * 0.5 * (lb0 + ub0) +
-                            lb_finite * (~ub_finite) * (lb0 + 1.0) +
-                            (~lb_finite) * ub_finite * (ub0 - 1.0))
-
-                    initial_values.append(init)
-                
-                offset += var.size
-            x0 = np.concatenate(initial_values, axis=0)
-            return x0
 
     class Oracles():
         def __init__(self, problem, initial_point, num_constraints):
@@ -223,7 +174,7 @@ class IPOPT(NLPsolver):
             self.hess_lagrangian = np.zeros((initial_point.size, initial_point.size),
                                              dtype=np.float64)
 
-            # for evaluating hessian            
+            # for evaluating hessian
             self.hess_lagrangian_coo = ([], [], [])
             self.hess_lagrangian_coo_rows_cols = ([], [])
             self.has_computed_hess_sparsity = False
@@ -281,7 +232,6 @@ class IPOPT(NLPsolver):
             constraint_values = []
             for constraint in self.problem.constraints:
                 constraint_values.append(np.asarray(constraint.args[0].value).flatten(order='F'))
-            
             return np.concatenate(constraint_values)
 
         def parse_jacobian_dict(self, grad_dict, constr_offset, is_affine):
@@ -345,7 +295,6 @@ class IPOPT(NLPsolver):
                 vals = self.insert_missing_zeros_jacobian()
             else:
                 vals = self.jacobian_coo[2]
-        
             return vals
             
         def jacobianstructure(self):
@@ -458,7 +407,6 @@ class IPOPT(NLPsolver):
                 vals = self.insert_missing_zeros_hessian()
             else:
                 vals = self.hess_lagrangian_coo[2]
-            
             return vals
 
         def intermediate(self, alg_mod, iter_count, obj_value, inf_pr, inf_du, mu,
@@ -466,69 +414,3 @@ class IPOPT(NLPsolver):
                         ls_trials):
             """Prints information at every Ipopt iteration."""
             self.iterations = iter_count
-
-
-    class Bounds():
-        def __init__(self, problem):
-            self.problem = problem
-            self.main_var = problem.variables()
-            self.get_constraint_bounds()
-            self.get_variable_bounds()
-
-        def get_constraint_bounds(self):
-            """Also normalizes the constraints and creates a new problem"""
-            lower = []
-            upper = []
-            new_constr = []
-            
-            for constraint in self.problem.constraints:
-                if isinstance(constraint, Equality):
-                    lower.extend([0.0] * constraint.size)
-                    upper.extend([0.0] * constraint.size)
-                    new_constr.append(lower_equality(constraint))
-                elif isinstance(constraint, Inequality):
-                    lower.extend([0.0] * constraint.size)
-                    upper.extend([np.inf] * constraint.size)
-                    new_constr.append(lower_ineq_to_nonneg(constraint))
-                elif isinstance(constraint, NonPos):
-                    lower.extend([0.0] * constraint.size)
-                    upper.extend([np.inf] * constraint.size)
-                    new_constr.append(nonpos2nonneg(constraint))
-            
-            lowered_con_problem = self.problem.copy([self.problem.objective, new_constr])
-            self.new_problem = lowered_con_problem
-            self.cl = np.array(lower)
-            self.cu = np.array(upper)
-
-        def get_variable_bounds(self):
-            var_lower = []
-            var_upper = []
-            for var in self.main_var:
-                size = var.size
-                if var.bounds:
-                    lb = var.bounds[0].flatten(order='F')
-                    ub = var.bounds[1].flatten(order='F')
-
-                    if var.is_nonneg():
-                        lb = np.maximum(lb, 0)
-                    
-                    if var.is_nonpos():
-                        ub = np.minimum(ub, 0)
-                    
-                    var_lower.extend(lb)
-                    var_upper.extend(ub)
-                else:
-                    # No bounds specified, use infinite bounds or bounds
-                    # set by the nonnegative or nonpositive attribute
-                    if var.is_nonneg():
-                        var_lower.extend([0.0] * size)
-                    else:
-                        var_lower.extend([-np.inf] * size)
-                    
-                    if var.is_nonpos():
-                        var_upper.extend([0.0] * size)
-                    else:
-                        var_upper.extend([np.inf] * size)
-
-            self.lb = np.array(var_lower)
-            self.ub = np.array(var_upper)
