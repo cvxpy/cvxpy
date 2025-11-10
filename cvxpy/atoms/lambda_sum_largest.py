@@ -36,8 +36,8 @@ class lambda_sum_largest(lambda_max):
         X = self.args[0]
         if not X.ndim == 2 or X.shape[0] != X.shape[1]:
             raise ValueError("First argument must be a square matrix.")
-        elif int(self.k) != self.k or self.k <= 0:
-            raise ValueError("Second argument must be a positive integer.")
+        elif self.k <= 0:
+            raise ValueError("Second argument must be a positive number.")
 
     def numeric(self, values):
         """Returns the largest eigenvalue of A.

@@ -67,7 +67,7 @@
 
    * - :ref:`lambda_sum_largest(X,k) <lambda-sum-largest>`
 
-       :math:`k = 1,\ldots, n`
+       :math:`k > 0`
      - :math:`\text{sum of $k$ largest}`
        :math:`\text{eigenvalues of $X$}`
      - :math:`X \in\mathbf{S}^{n}`
@@ -76,7 +76,7 @@
 
    * - :ref:`lambda_sum_smallest(X,k) <lambda-sum-smallest>`
 
-       :math:`k = 1,\ldots, n`
+       :math:`k > 0`
      - :math:`\text{sum of $k$ smallest}`
        :math:`\text{eigenvalues of $X$}`
      - :math:`X \in\mathbf{S}^{n}`
@@ -300,9 +300,9 @@
 
    * - :ref:`sum_largest(X, k) <sum-largest>`
 
-       :math:`k = 1,2,\ldots`
+       :math:`k > 0`
      - :math:`\text{sum of } k`
-     
+
        :math:`\text{largest }X_{ij}`
      - :math:`X \in\mathbf{R}^{m \times n}`
      - same sign as X
@@ -312,9 +312,9 @@
 
    * - :ref:`sum_smallest(X, k) <sum-smallest>`
 
-       :math:`k = 1,2,\ldots`
+       :math:`k > 0`
      - :math:`\text{sum of } k`
-     
+
        :math:`\text{smallest }X_{ij}`
      - :math:`X \in\mathbf{R}^{m \times n}`
      - same sign as X
