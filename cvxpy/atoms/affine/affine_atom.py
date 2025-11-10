@@ -100,7 +100,7 @@ class AffAtom(Atom):
 
     @perf.compute_once
     def is_nsd(self) -> bool:
-        """Is the expression a positive semidefinite matrix?
+        """Is the expression a negative semidefinite matrix?
         """
         for idx, arg in enumerate(self.args):
             if not ((self.is_decr(idx) and arg.is_psd()) or

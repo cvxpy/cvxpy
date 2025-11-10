@@ -24,6 +24,7 @@ from cvxpy.atoms.affine.cumsum import cumsum
 from cvxpy.atoms.cumprod import cumprod
 from cvxpy.atoms.affine.diag import diag
 from cvxpy.atoms.affine.diff import diff
+from cvxpy.atoms.affine.einsum import einsum
 from cvxpy.atoms.affine.hstack import hstack
 from cvxpy.atoms.affine.imag import imag
 from cvxpy.atoms.affine.kron import kron
