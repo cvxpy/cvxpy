@@ -145,7 +145,7 @@ class NAG(ConicSolver):
             data[s.H] = np.array([])
         return (data, inv_data)
 
-    def invert(self, solution, inverse_data, options):
+    def invert(self, solution, inverse_data, options = {}):
 
         status = self.STATUS_MAP[solution['status']]
         sln = solution['sln']

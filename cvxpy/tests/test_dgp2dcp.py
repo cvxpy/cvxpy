@@ -512,7 +512,7 @@ class TestDgp2Dcp(BaseTest):
         dgp2dcp = cvxpy.reductions.Dgp2Dcp()
         _, inverse_data = dgp2dcp.apply(dgp)
         soln = solution.Solution(SOLVER_ERROR, None, {}, {}, {})
-        dgp_soln = dgp2dcp.invert(soln, inverse_data, {})
+        dgp_soln = dgp2dcp.invert(soln, inverse_data)
         self.assertEqual(dgp_soln.status, SOLVER_ERROR)
 
     def test_sum_scalar(self) -> None:

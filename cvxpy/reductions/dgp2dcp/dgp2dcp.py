@@ -98,7 +98,7 @@ class Dgp2Dcp(Canonicalization):
         else:
             return expr.copy(args), []
 
-    def invert(self, solution, inverse_data, options):
+    def invert(self, solution, inverse_data, options = {}):
         solution = super(Dgp2Dcp, self).invert(solution, inverse_data, options)
         if solution.status == settings.SOLVER_ERROR:
             return solution

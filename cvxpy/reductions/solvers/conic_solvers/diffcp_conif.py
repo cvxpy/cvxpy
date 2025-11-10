@@ -76,7 +76,7 @@ class DIFFCP(scs_conif.SCS):
         data[s.B] = b
         return data, inv_data
 
-    def invert(self, solution, inverse_data, options):
+    def invert(self, solution, inverse_data, options = {}):
         """Returns the solution to the original problem given the inverse_data.
         """
         attr = {}

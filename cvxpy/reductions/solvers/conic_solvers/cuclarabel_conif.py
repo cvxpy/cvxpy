@@ -101,7 +101,7 @@ class CUCLARABEL(ConicSolver):
         """
         return utilities.extract_dual_value(result_vec, offset, constraint)
 
-    def invert(self, solution, inverse_data, options):
+    def invert(self, solution, inverse_data, options = {}):
         """Returns the solution to the original problem given the inverse_data.
         """
 

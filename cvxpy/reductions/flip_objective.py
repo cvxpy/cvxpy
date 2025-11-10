@@ -47,7 +47,7 @@ class FlipObjective(Reduction):
                                      problem.constraints)
         return problem, []
 
-    def invert(self, solution, inverse_data, options):
+    def invert(self, solution, inverse_data, options = {}):
         """Map the solution of the flipped problem to that of the original.
 
         Parameters

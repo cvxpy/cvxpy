@@ -1512,7 +1512,7 @@ class Problem(u.Canonical):
         self._status = solution.status
         self._solution = solution
 
-    def unpack_results(self, solution, chain: SolvingChain, inverse_data, options) -> None:
+    def unpack_results(self, solution, chain: SolvingChain, inverse_data, options = {}) -> None:
         """Updates the problem state given the solver results.
 
         Updates problem.status, problem.value and value of

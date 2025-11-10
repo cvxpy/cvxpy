@@ -63,7 +63,7 @@ class DAQP(QpSolver):
         import daqp
         daqp
 
-    def invert(self, solution, inverse_data, options):
+    def invert(self, solution, inverse_data, options = {}):
 
         (xstar,fval,exitflag,info) = solution
 

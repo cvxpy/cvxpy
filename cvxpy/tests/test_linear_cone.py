@@ -33,7 +33,7 @@ from cvxpy.tests.solver_test_helpers import SolverTestHelper
 def solve_wrapper(solver, param_cone_prog):
     data, inv_data = solver.apply(param_cone_prog)
     return solver.invert(solver.solve_via_data(
-        data, warm_start=False, verbose=False, solver_opts={}), inv_data, {})
+        data, warm_start=False, verbose=False, solver_opts={}), inv_data)
 
 
 class TestLinearCone(BaseTest):
@@ -64,7 +64,7 @@ class TestLinearCone(BaseTest):
             p_new = ConeMatrixStuffing().apply(p)
             sltn = solve_wrapper(solver, p_new[0])
             self.assertAlmostEqual(result, sltn.opt_val)
-            inv_sltn = ConeMatrixStuffing().invert(sltn, p_new[1], {})
+            inv_sltn = ConeMatrixStuffing().invert(sltn, p_new[1])
             self.assertAlmostEqual(inv_sltn.opt_val, result)
             self.assertAlmostEqual(inv_sltn.primal_vars[self.a.id],
                                    self.a.value)
@@ -77,7 +77,7 @@ class TestLinearCone(BaseTest):
             p_new = ConeMatrixStuffing().apply(p)
             sltn = solve_wrapper(solver, p_new[0])
             self.assertAlmostEqual(sltn.opt_val, result)
-            inv_sltn = ConeMatrixStuffing().invert(sltn, p_new[1], {})
+            inv_sltn = ConeMatrixStuffing().invert(sltn, p_new[1])
             self.assertAlmostEqual(inv_sltn.opt_val, result)
             self.assertAlmostEqual(inv_sltn.primal_vars[self.a.id],
                                    self.a.value)
@@ -94,7 +94,7 @@ class TestLinearCone(BaseTest):
             p_new = ConeMatrixStuffing().apply(p)
             sltn = solve_wrapper(solver, p_new[0])
             self.assertAlmostEqual(sltn.opt_val, result)
-            inv_sltn = ConeMatrixStuffing().invert(sltn, p_new[1], {})
+            inv_sltn = ConeMatrixStuffing().invert(sltn, p_new[1])
             self.assertAlmostEqual(inv_sltn.opt_val, result)
             self.assertAlmostEqual(inv_sltn.primal_vars[self.a.id],
                                    self.a.value)
@@ -113,7 +113,7 @@ class TestLinearCone(BaseTest):
             self.assertTrue(solver.accepts(p_new[0]))
             sltn = solve_wrapper(solver, p_new[0])
             self.assertAlmostEqual(sltn.opt_val, result)
-            inv_sltn = ConeMatrixStuffing().invert(sltn, p_new[1], {})
+            inv_sltn = ConeMatrixStuffing().invert(sltn, p_new[1])
             self.assertAlmostEqual(inv_sltn.opt_val, result)
 
             # Infeasible problems.
@@ -126,9 +126,9 @@ class TestLinearCone(BaseTest):
             self.assertTrue(solver.accepts(p_new[0]))
             sltn = solve_wrapper(solver, p_new[0])
             self.assertAlmostEqual(sltn.opt_val, -result)
-            inv_sltn = ConeMatrixStuffing().invert(sltn, p_new[1], {})
+            inv_sltn = ConeMatrixStuffing().invert(sltn, p_new[1])
             self.assertAlmostEqual(inv_sltn.opt_val, -result)
-            inv_flipped_sltn = FlipObjective().invert(inv_sltn, p_min[1], {})
+            inv_flipped_sltn = FlipObjective().invert(inv_sltn, p_min[1])
             self.assertAlmostEqual(inv_flipped_sltn.opt_val, result)
 
     # Test vector LP problems.
@@ -142,13 +142,13 @@ class TestLinearCone(BaseTest):
             self.assertTrue(solver.accepts(p_new[0]))
             sltn = solve_wrapper(solver, p_new[0])
             self.assertAlmostEqual(sltn.opt_val, result)
-            inv_sltn = ConeMatrixStuffing().invert(sltn, p_new[1], {})
+            inv_sltn = ConeMatrixStuffing().invert(sltn, p_new[1])
 
             p_new1 = ConeMatrixStuffing().apply(p)
             self.assertTrue(solver.accepts(p_new1[0]))
             sltn = solve_wrapper(solver, p_new1[0])
             self.assertAlmostEqual(sltn.opt_val, result)
-            inv_sltn = ConeMatrixStuffing().invert(sltn, p_new1[1], {})
+            inv_sltn = ConeMatrixStuffing().invert(sltn, p_new1[1])
 
             self.assertAlmostEqual(inv_sltn.opt_val, result)
             self.assertItemsAlmostEqual(inv_sltn.primal_vars[self.x.id],
@@ -167,7 +167,7 @@ class TestLinearCone(BaseTest):
             self.assertTrue(solver.accepts(p_new[0]))
             sltn = solve_wrapper(solver, p_new[0])
             self.assertAlmostEqual(sltn.opt_val, result, places=1)
-            inv_sltn = ConeMatrixStuffing().invert(sltn, p_new[1], {})
+            inv_sltn = ConeMatrixStuffing().invert(sltn, p_new[1])
             self.assertAlmostEqual(inv_sltn.opt_val, result, places=1)
             for var in p.variables():
                 self.assertItemsAlmostEqual(inv_sltn.primal_vars[var.id],
@@ -183,7 +183,7 @@ class TestLinearCone(BaseTest):
             p_new = ConeMatrixStuffing().apply(p)
             sltn = solve_wrapper(solver, p_new[0])
             self.assertAlmostEqual(sltn.opt_val, result)
-            inv_sltn = ConeMatrixStuffing().invert(sltn, p_new[1], {})
+            inv_sltn = ConeMatrixStuffing().invert(sltn, p_new[1])
             self.assertAlmostEqual(inv_sltn.opt_val, result)
             for var in p.variables():
                 self.assertItemsAlmostEqual(inv_sltn.primal_vars[var.id],
@@ -197,7 +197,7 @@ class TestLinearCone(BaseTest):
             p_new = ConeMatrixStuffing().apply(p)
             sltn = solve_wrapper(solver, p_new[0])
             self.assertAlmostEqual(sltn.opt_val, result)
-            inv_sltn = ConeMatrixStuffing().invert(sltn, p_new[1], {})
+            inv_sltn = ConeMatrixStuffing().invert(sltn, p_new[1])
             self.assertAlmostEqual(inv_sltn.opt_val, result)
             for var in p.variables():
                 self.assertItemsAlmostEqual(inv_sltn.primal_vars[var.id],
@@ -217,7 +217,7 @@ class TestLinearCone(BaseTest):
             result = p.solve(solver.name())
             sltn = solve_wrapper(solver, p_new[0])
             self.assertAlmostEqual(sltn.opt_val, result)
-            inv_sltn = ConeMatrixStuffing().invert(sltn, p_new[1], {})
+            inv_sltn = ConeMatrixStuffing().invert(sltn, p_new[1])
             self.assertAlmostEqual(inv_sltn.opt_val, result)
             for var in p.variables():
                 self.assertItemsAlmostEqual(inv_sltn.primal_vars[var.id],
@@ -233,7 +233,7 @@ class TestLinearCone(BaseTest):
             p_new = ConeMatrixStuffing().apply(pmod)
             sltn = solve_wrapper(solver, p_new[0])
             self.assertAlmostEqual(sltn.opt_val, result, places=2)
-            inv_sltn = ConeMatrixStuffing().invert(sltn, p_new[1], {})
+            inv_sltn = ConeMatrixStuffing().invert(sltn, p_new[1])
             self.assertAlmostEqual(inv_sltn.opt_val, result, places=2)
             for var in p.variables():
                 self.assertItemsAlmostEqual(inv_sltn.primal_vars[var.id],
@@ -253,7 +253,7 @@ class TestLinearCone(BaseTest):
             result = p.solve(solver.name())
             sltn = solve_wrapper(solver, p_new[0])
             self.assertAlmostEqual(sltn.opt_val, result, places=1)
-            inv_sltn = ConeMatrixStuffing().invert(sltn, p_new[1], {})
+            inv_sltn = ConeMatrixStuffing().invert(sltn, p_new[1])
             self.assertAlmostEqual(inv_sltn.opt_val, result, places=1)
             for var in pmod.variables():
                 self.assertItemsAlmostEqual(inv_sltn.primal_vars[var.id],
@@ -269,7 +269,7 @@ class TestLinearCone(BaseTest):
             p_new = ConeMatrixStuffing().apply(pmod)
             sltn = solve_wrapper(solver, p_new[0])
             self.assertAlmostEqual(sltn.opt_val, result, places=0)
-            inv_sltn = ConeMatrixStuffing().invert(sltn, p_new[1], {})
+            inv_sltn = ConeMatrixStuffing().invert(sltn, p_new[1])
             self.assertAlmostEqual(inv_sltn.opt_val, result, places=0)
             for var in pmod.variables():
                 self.assertItemsAlmostEqual(inv_sltn.primal_vars[var.id],

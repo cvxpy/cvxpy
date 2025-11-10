@@ -151,7 +151,7 @@ class ECOS(ConicSolver):
                               **solver_opts)
         return solution
 
-    def invert(self, solution, inverse_data, options):
+    def invert(self, solution, inverse_data, options = {}):
         """Returns solution to original problem, given inverse_data.
         """
         status = self.STATUS_MAP[solution['info']['exitFlag']]

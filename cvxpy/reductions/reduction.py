@@ -138,7 +138,7 @@ class Reduction(metaclass=ABCMeta):
         raise NotImplementedError()
 
     @abstractmethod
-    def invert(self, solution, inverse_data, options):
+    def invert(self, solution, inverse_data, options = {}):
         """Returns a solution to the original problem given the inverse_data.
 
         Parameters

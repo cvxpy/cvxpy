@@ -41,7 +41,7 @@ class GLPK(CVXOPT):
         """
         from cvxopt import glpk  # noqa F401
 
-    def invert(self, solution, inverse_data, options):
+    def invert(self, solution, inverse_data, options = {}):
         """Returns the solution to the original problem given the inverse_data.
         """
         return super(GLPK, self).invert(solution, inverse_data, options)
