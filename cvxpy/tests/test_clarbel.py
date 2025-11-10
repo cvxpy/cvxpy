@@ -31,7 +31,7 @@ class ClarabelTest(BaseTest):
 
     def setUp(self):
         """
-        Sets up a problem as in test_comple.py function test_quad_form.
+        Sets up a problem as in test_compile.py function test_quad_form.
         """
         np.random.seed(42)
         P = np.random.randn(3, 3) - 1j*np.random.randn(3, 3)
