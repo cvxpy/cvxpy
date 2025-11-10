@@ -55,6 +55,7 @@ dependencies = [
     "scs >= 3.2.4.post1",
     "numpy >= 2.0.0",
     "scipy >= 1.13.0",
+    "highspy >= 1.11.0",
 ]
 requires-python = ">=3.11"
 urls = {Homepage = "https://github.com/cvxpy/cvxpy"}

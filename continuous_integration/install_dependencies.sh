@@ -17,7 +17,7 @@ fi
 
 uv pip install pytest pytest-cov hypothesis "setuptools>65.5.1"
 
-uv pip install scs clarabel osqp
+uv pip install scs clarabel osqp highspy
 
 if [[ "$RUNNER_OS" != "macOS" ]]; then
   uv pip install mkl
