@@ -24,8 +24,11 @@ from cvxpy.atoms.elementwise.maximum import maximum
 from cvxpy.atoms.elementwise.power import power
 from cvxpy.atoms.elementwise.trig import cos, sin, tan
 from cvxpy.atoms.norm1 import norm1
+from cvxpy.atoms.norm_inf import norm_inf
 from cvxpy.atoms.pnorm import Pnorm
 from cvxpy.atoms.elementwise.abs import abs
+from cvxpy.atoms.max import max
+from cvxpy.atoms.min import min
 from cvxpy.atoms.affine.binary_operators import DivExpression, MulExpression, multiply
 from cvxpy.reductions.dnlp2smooth.canonicalizers.quad_over_lin_canon import quad_over_lin_canon
 from cvxpy.reductions.dnlp2smooth.canonicalizers.div_canon import div_canon
@@ -39,6 +42,7 @@ from cvxpy.reductions.dnlp2smooth.canonicalizers.rel_entr_canon import rel_entr_
 from cvxpy.reductions.dnlp2smooth.canonicalizers.kl_div_canon import kl_div_canon
 from cvxpy.reductions.dnlp2smooth.canonicalizers.trig_canon import cos_canon, sin_canon, tan_canon
 from cvxpy.reductions.eliminate_pwl.canonicalizers.norm1_canon import norm1_canon
+from cvxpy.reductions.eliminate_pwl.canonicalizers.norm_inf_canon import norm_inf_canon
 from cvxpy.reductions.eliminate_pwl.canonicalizers.max_canon import max_canon
 from cvxpy.reductions.eliminate_pwl.canonicalizers.min_canon import min_canon
 from cvxpy.reductions.eliminate_pwl.canonicalizers.maximum_canon import maximum_canon
@@ -67,6 +71,7 @@ SMOOTH_CANON_METHODS = {
     maximum: maximum_canon,
     max: max_canon,
     norm1: norm1_canon,
+    norm_inf: norm_inf_canon,
 
     # HSR atoms
     minimum: minimum_canon,
