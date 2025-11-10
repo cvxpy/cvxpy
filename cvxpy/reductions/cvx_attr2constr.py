@@ -196,7 +196,7 @@ class CvxAttr2Constr(Reduction):
         inverse_data = (id2new_var, id2old_var, cons_id_map)
         return cvxtypes.problem()(obj, constr), inverse_data
 
-    def invert(self, solution, inverse_data) -> Solution:
+    def invert(self, solution, inverse_data, options) -> Solution:
         if not inverse_data:
             return solution
 

@@ -73,7 +73,7 @@ class GUROBI(QpSolver):
         data['init_value'] = utilities.stack_vals(problem.variables, grb.GRB.UNDEFINED)
         return data, inv_data
 
-    def invert(self, results, inverse_data):
+    def invert(self, results, inverse_data, options):
         model = results["model"]
         x_grb = model.getVars()
         n = len(x_grb)
