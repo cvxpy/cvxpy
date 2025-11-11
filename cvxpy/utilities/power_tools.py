@@ -22,6 +22,7 @@ import numpy as np
 
 from cvxpy.atoms.affine.reshape import reshape
 from cvxpy.atoms.affine.vstack import vstack
+from cvxpy.constraints.power import PowCone3D
 from cvxpy.constraints.second_order import SOC
 from cvxpy.expressions.variable import Variable
 
@@ -34,6 +35,16 @@ def gm(t, x, y):
                    reshape(2*t, (1, length), order='F')
                ]),
                axis=0)
+
+
+def powcone_constrs(t, x_list, p):
+    # We just need a single power cone constraint here.
+    # TODO: check sizes? We might need to add more columns!
+    # TODO: handle elementwise case?
+
+    
+    constraints = [PowCone3D(x_list[0], x_list[1], t, p)]
+    return constraints
 
 
 def gm_constrs(t, x_list, p):
@@ -95,7 +106,7 @@ def gm_constrs(t, x_list, p):
     return constraints
 
 
-def pow_high(p, max_denom: int = 1024):
+def pow_high(p, max_denom: int = 1024, approx: bool = True):
     """ Return (t,1,x) power tuple
 
         x <= t^(1/p) 1^(1-1/p)
@@ -103,13 +114,16 @@ def pow_high(p, max_denom: int = 1024):
         user wants the epigraph variable t
     """
     assert p > 1
-    p = Fraction(1/Fraction(p)).limit_denominator(max_denom)
-    if 1/p == int(1/p):
-        return int(1/p), (p, 1-p)
-    return 1/p, (p, 1-p)
+    if approx:
+        p = Fraction(1/Fraction(p)).limit_denominator(max_denom)
+        if 1/p == int(1/p):
+            return int(1/p), (p, 1-p)
+        return 1/p, (p, 1-p)
+
+    return p, (1/p, 1-1/p)
 
 
-def pow_mid(p, max_denom: int = 1024):
+def pow_mid(p, max_denom: int = 1024, approx: bool = True):
     """ Return (x,1,t) power tuple
 
         t <= x^p 1^(1-p)
@@ -117,11 +131,12 @@ def pow_mid(p, max_denom: int = 1024):
         user wants the epigraph variable t
     """
     assert 0 < p < 1
-    p = Fraction(p).limit_denominator(max_denom)
+    if approx:
+        p = Fraction(p).limit_denominator(max_denom)
     return p, (p, 1-p)
 
 
-def pow_neg(p, max_denom: int = 1024):
+def pow_neg(p, max_denom: int = 1024, approx: bool = True):
     """ Return (x,t,1) power tuple
 
         1 <= x^(p/(p-1)) t^(-1/(p-1))
@@ -129,9 +144,12 @@ def pow_neg(p, max_denom: int = 1024):
         user wants the epigraph variable t
     """
     assert p < 0
-    p = Fraction(p)
-    p = Fraction(p/(p-1)).limit_denominator(max_denom)
-    return p/(p-1), (p, 1-p)
+    if approx:
+        p = Fraction(p)
+        p = Fraction(p/(p-1)).limit_denominator(max_denom)
+        return p/(p-1), (p, 1-p)
+    
+    return p, (p/(p-1), -1/(p-1))
 
 
 def is_power2(num) -> bool:

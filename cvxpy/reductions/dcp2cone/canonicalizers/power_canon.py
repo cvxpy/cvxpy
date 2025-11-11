@@ -18,7 +18,7 @@ import numpy as np
 
 from cvxpy.expressions.constants import Constant
 from cvxpy.expressions.variable import Variable
-from cvxpy.utilities.power_tools import gm_constrs
+from cvxpy.utilities.power_tools import gm_constrs, powcone_constrs
 
 
 def power_canon(expr, args):
@@ -45,3 +45,30 @@ def power_canon(expr, args):
             return t, gm_constrs(ones, [x, t], w)
         else:
             raise NotImplementedError('This power is not yet supported.')
+
+
+def power_canon_v2(expr, args):
+    x = args[0]
+    p = expr.p_rational
+    w = expr.w[0]
+
+    if p == 1:
+        return x, []
+
+    shape = expr.shape
+    ones = Constant(np.ones(shape))
+    if p == 0:
+        return ones, []
+    else:
+        t = Variable(shape)
+        # TODO: check dims that might be passed here!
+        # TODO: try to support multiple power values
+        if 0 < p < 1:
+            return t, powcone_constrs(t, [x, ones], w)
+        elif p > 1:
+            return t, powcone_constrs(x, [t, ones], w)
+        elif p < 0:
+            return t, powcone_constrs(ones, [x, t], w)
+        else:
+            raise NotImplementedError('This power is not yet supported.')
+
