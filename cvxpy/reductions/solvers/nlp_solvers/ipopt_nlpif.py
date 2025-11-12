@@ -171,8 +171,6 @@ class IPOPT(NLPsolver):
         def __init__(self, problem, initial_point, num_constraints):
             self.problem = problem
             self.grad_obj = np.zeros(initial_point.size, dtype=np.float64)
-            self.hess_lagrangian = np.zeros((initial_point.size, initial_point.size),
-                                             dtype=np.float64)
 
             # for evaluating hessian
             self.hess_lagrangian_coo = ([], [], [])

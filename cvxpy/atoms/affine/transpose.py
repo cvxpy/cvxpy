@@ -110,6 +110,23 @@ class transpose(AffAtom):
         """
         return (lu.transpose(arg_objs[0], self.axes), [])
 
+    def _verify_jacobian_args(self):
+        return True
+    
+    def _verify_hess_vec_args(self):
+        return True
+
+    def _hess_vec(self, vec):
+        return self.args.hess_vec(vec.reshape((self.args[0].shape), order='F').T.reshape(-1, order='F'))
+
+    def _jacobian(self):
+        jac = self.args[0].jacobian()
+        for k, (rows, cols, vals) in jac.items():
+            jac[k] = (rows.reshape(self.args[0].shape, order='F').T.reshape(-1, order='F'), cols, vals)
+        return jac
+
+
+
 def permute_dims(expr, axes: List[int]):
     """Permute the dimensions of the expression.
 
