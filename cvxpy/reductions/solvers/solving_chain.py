@@ -15,6 +15,7 @@ from cvxpy.constraints import (
     NonNeg,
     NonPos,
     PowCone3D,
+    PowConeND,
     Zero,
 )
 from cvxpy.constraints.exponential import OpRelEntrConeQuad, RelEntrConeQuad
@@ -283,14 +284,9 @@ def construct_solving_chain(problem, candidates,
     # the solver will need after canonicalization.
     for c in problem.constraints:
         constr_types.add(type(c))
-    ex_cos = [ct for ct in constr_types if ct in EXOTIC_CONES]
     approx_cos = [ct for ct in constr_types if ct in APPROX_CONES]
     # ^ The way we populate "ex_cos" will need to change if and when
     # we have atoms that require exotic cones.
-    for co in ex_cos:
-        sim_cos = EXOTIC_CONES[co]  # get the set of required simple cones
-        constr_types.update(sim_cos)
-        constr_types.remove(co)
 
     for co in approx_cos:
         app_cos = APPROX_CONES[co]
@@ -315,12 +311,6 @@ def construct_solving_chain(problem, candidates,
             or any(atom in PSD_ATOMS for atom in atoms) \
             or any(v.is_psd() or v.is_nsd() for v in problem.variables()):
         cones.append(PSD)
-    if PowCone3D in constr_types:
-        # if we add in atoms that specifically use the 3D power cone
-        # (rather than the ND power cone), then we'll need to check
-        # for those atoms here as well.
-        cones.append(PowCone3D)
-
     # Here, we make use of the observation that canonicalization only
     # increases the number of constraints in our problem.
     var_domains = sum([var.domain for var in problem.variables()], start = [])
@@ -338,6 +328,23 @@ def construct_solving_chain(problem, candidates,
             supported_constraints = solver_instance.MI_SUPPORTED_CONSTRAINTS
         else:
             supported_constraints = solver_instance.SUPPORTED_CONSTRAINTS
+
+
+        ex_cos = (constr_types & set(EXOTIC_CONES)) - set(supported_constraints)
+
+        for co in ex_cos:
+            sim_cos = set(EXOTIC_CONES[co]) 
+            constr_types.update(sim_cos)
+            constr_types.discard(co)
+
+        if PowCone3D in constr_types and PowCone3D not in cones:
+            # if we add in atoms that specifically use the 3D power cone
+            # (rather than the ND power cone), then we'll need to check
+            # for those atoms here as well.
+            cones.append(PowCone3D)
+        if PowConeND in constr_types and PowConeND not in cones:
+            cones.append(PowConeND)
+
         unsupported_constraints = [
             cone for cone in cones if cone not in supported_constraints
         ]

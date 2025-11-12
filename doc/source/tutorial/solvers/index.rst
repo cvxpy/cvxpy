@@ -746,7 +746,7 @@ Here is the complete list of solver options.
     ``'reltol'``
         relative accuracy (default: 1e-7).
 
-    For others see `QOCO documentation <https://qoco-org.github.io/qoco/api/settings.html>`_.
+    For others see `QOCO documentation <https://qoco-org.github.io/qoco/qoco/api/settings.html#settings>`_.
 
 .. info:: `GUROBI`_ options:
     :collapsible:

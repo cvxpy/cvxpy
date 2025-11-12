@@ -19,7 +19,7 @@ import numpy as np
 import scipy.sparse as sp
 
 import cvxpy.settings as s
-from cvxpy.constraints import PSD, SOC, ExpCone, PowCone3D
+from cvxpy.constraints import PSD, SOC, ExpCone, PowCone3D, PowConeND
 from cvxpy.expressions.expression import Expression
 from cvxpy.reductions.solution import Solution, failure_solution
 from cvxpy.reductions.solvers import utilities
@@ -52,6 +52,12 @@ def dims_to_solver_cones(cone_dims):
 
     for pow in cone_dims.p3d:
         cones.append(clarabel.PowerConeT(pow))
+
+    for pow in cone_dims.pnd:
+        # TODO: On the right hand side, we may want to
+        # extend to support higher dim values for z 
+        # instead of hardcoding 1.
+        cones.append(clarabel.GenPowerConeT(pow, 1)) 
     return cones
 
 
@@ -133,7 +139,7 @@ class CLARABEL(ConicSolver):
     # Solver capabilities.
     MIP_CAPABLE = False
     SUPPORTED_CONSTRAINTS = ConicSolver.SUPPORTED_CONSTRAINTS \
-        + [SOC, ExpCone, PowCone3D, PSD]
+        + [SOC, ExpCone, PowCone3D, PSD, PowConeND]
 
     STATUS_MAP = {
                     "Solved": s.OPTIMAL,

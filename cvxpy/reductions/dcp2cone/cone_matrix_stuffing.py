@@ -28,6 +28,7 @@ from cvxpy.constraints import (
     NonNeg,
     NonPos,
     PowCone3D,
+    PowConeND,
     Zero,
 )
 from cvxpy.cvxcore.python import canonInterface
@@ -80,6 +81,7 @@ class ConeDims:
     SOC_DIM = s.SOC_DIM
     PSD_DIM = s.PSD_DIM
     P3D_DIM = 'p3'
+    PND_DIM = 'pnd'
 
     def __init__(self, constr_map) -> None:
         self.zero = int(sum(c.size for c in constr_map[Zero]))
@@ -92,21 +94,27 @@ class ConeDims:
             p3d = np.concatenate([c.alpha.value for c in constr_map[PowCone3D]]).tolist()
         self.p3d = p3d
 
-    def __repr__(self) -> str:
-        return "(zero: {0}, nonneg: {1}, exp: {2}, soc: {3}, psd: {4}, p3d: {5})".format(
-            self.zero, self.nonneg, self.exp, self.soc, self.psd, self.p3d)
+        pnd = []
+        if constr_map[PowConeND]:
+            pnd = np.concatenate([c.alpha.value.T for c in constr_map[PowConeND]]).tolist()
+        self.pnd = pnd
+
+    def __repr__(self) -> str: 
+        return "(zero: {0}, nonneg: {1}, exp: {2}, soc: {3}, psd: {4}, p3d: {5}, pnd: {6})".format(
+            self.zero, self.nonneg, self.exp, self.soc, self.psd, self.p3d, self.pnd)
 
     def __str__(self) -> str:
         """String representation.
         """
         return ("%i equalities, %i inequalities, %i exponential cones, \n"
                 "SOC constraints: %s, PSD constraints: %s,\n"
-                " 3d power cones %s.") % (self.zero,
+                " 3d power cones %s, %s.") % (self.zero,
                                           self.nonneg,
                                           self.exp,
                                           self.soc,
                                           self.psd,
-                                          self.p3d)
+                                          self.p3d,
+                                          self.pnd)
 
     def __getitem__(self, key):
         if key == self.EQ_DIM:
@@ -121,6 +129,8 @@ class ConeDims:
             return self.psd
         elif key == self.P3D_DIM:
             return self.p3d
+        elif key == self.PND_DIM:
+            return self.pnd
         else:
             raise KeyError(key)
 
@@ -129,7 +139,7 @@ class ConeDims:
 class ParamConeProg(ParamProb):
     """Represents a parameterized cone program
 
-    minimize   c'x  + d + [(1/2)x'Px]
+    minimize   q'x  + d + [(1/2)x'Px]
     subject to cone_constr1(A_1*x + b_1, ...)
                ...
                cone_constrK(A_i*x + b_i, ...)
@@ -137,7 +147,7 @@ class ParamConeProg(ParamProb):
 
     The constant offsets d and b are the last column of c and A.
     """
-    def __init__(self, c, x, A,
+    def __init__(self, q, x, A,
                  variables,
                  var_id_to_col,
                  constraints,
@@ -148,9 +158,9 @@ class ParamConeProg(ParamProb):
                  lower_bounds: np.ndarray | None = None,
                  upper_bounds: np.ndarray | None = None,
                  ) -> None:
-        # The problem data tensors; c is for the constraint, and A for
+        # The problem data tensors; q is for the objective, and A for
         # the problem data matrix
-        self.c = c
+        self.q = q
         self.A = A
         self.P = P
         # The variable
@@ -211,16 +221,16 @@ class ParamConeProg(ParamProb):
             self.param_id_to_size,
             param_value,
             zero_offset=zero_offset)
-        c, d = canonInterface.get_matrix_from_tensor(
-            self.c, param_vec, self.x.size, with_offset=True)
-        c = c.toarray().flatten()
+        q, d = canonInterface.get_matrix_from_tensor(
+            self.q, param_vec, self.x.size, with_offset=True)
+        q = q.toarray().flatten()
         A, b = self.reduced_A.get_matrix_from_tensor(param_vec, with_offset=True)
         if quad_obj:
             self.reduced_P.cache(keep_zeros)
             P, _ = self.reduced_P.get_matrix_from_tensor(param_vec, with_offset=False)
-            return P, c, d, A, np.atleast_1d(b)
+            return P, q, d, A, np.atleast_1d(b)
         else:
-            return c, d, A, np.atleast_1d(b)
+            return q, d, A, np.atleast_1d(b)
 
     def apply_param_jac(self, delc, delA, delb, active_params=None):
         """Multiplies by Jacobian of parameter mapping.
@@ -236,7 +246,7 @@ class ParamConeProg(ParamProb):
         if active_params is None:
             active_params = {p.id for p in self.parameters}
 
-        del_param_vec = delc @ self.c[:-1]
+        del_param_vec = delc @ self.q[:-1]
         flatdelA = delA.reshape((np.prod(delA.shape), 1), order='F')
         delAb = sp.vstack([flatdelA, sp.csc_array(delb[:, None])])
 
@@ -362,6 +372,13 @@ class ConeMatrixStuffing(MatrixStuffing):
                                 z.flatten(order='F'),
                                 alpha.flatten(order='F'),
                                 constr_id=con.constr_id)
+            elif isinstance(con, PowConeND) and con.axis == 1:
+                alpha = con.alpha.T
+                W = con.W.T
+                con = PowConeND(W, con.z.flatten(order='F'),
+                                alpha,
+                                axis=0,
+                                constr_id=con.constr_id)
             elif isinstance(con, ExpCone) and con.args[0].ndim > 1:
                 x, y, z = con.args
                 con = ExpCone(x.flatten(order='F'), y.flatten(order='F'), z.flatten(order='F'),
@@ -374,10 +391,11 @@ class ConeMatrixStuffing(MatrixStuffing):
         extractor = CoeffExtractor(inverse_data, canon_backend)
         params_to_P, params_to_c, flattened_variable = self.stuffed_objective(
             problem, extractor)
-        # Reorder constraints to Zero, NonNeg, SOC, PSD, EXP, PowCone3D
+        # Reorder constraints to Zero, NonNeg, SOC, PSD, EXP, PowCone3D, PowConeND
         constr_map = group_constraints(cons)
         ordered_cons = constr_map[Zero] + constr_map[NonNeg] + \
-            constr_map[SOC] + constr_map[PSD] + constr_map[ExpCone] + constr_map[PowCone3D]
+            constr_map[SOC] + constr_map[PSD] + constr_map[ExpCone] + \
+            constr_map[PowCone3D] + constr_map[PowConeND]
         inverse_data.cons_id_map = {con.id: con.id for con in ordered_cons}
 
         inverse_data.constraints = ordered_cons
