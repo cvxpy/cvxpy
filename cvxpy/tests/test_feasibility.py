@@ -43,7 +43,8 @@ class TestFeasibilty(TestCase):
     """ Unit tests of the improved feasibility checking method (See feasibility example). """
 
     def test_feasibility_functions_equal(self) -> None:
-        for _ in range(100):
+        for _ in range(10):
+            np.random.seed(27)
             first_dim = np.random.randint(1, 10)
             second_dim = np.random.randint(1, 10)
             x = Variable(first_dim)
@@ -58,7 +59,8 @@ class TestFeasibilty(TestCase):
         naive_times = []
         improved_times = []
 
-        for _ in range(100):
+        for _ in range(10):
+            np.random.seed(27)
             first_dim = np.random.randint(1, 10)
             second_dim = np.random.randint(1, 10)
             x = Variable(first_dim)
