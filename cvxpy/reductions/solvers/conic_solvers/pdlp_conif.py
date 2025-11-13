@@ -37,6 +37,7 @@ class PDLP(ConicSolver):
     """An interface to PDLP via OR-Tools."""
 
     SUPPORTED_CONSTRAINTS = ConicSolver.SUPPORTED_CONSTRAINTS
+    BOUNDED_VARIABLES = True
 
     # The key that maps to the pdlp.QuadraticProgram in the data returned by
     # apply().
@@ -81,8 +82,14 @@ class PDLP(ConicSolver):
         model = pdlp.QuadraticProgram()
         model.objective_offset = d.item() if isinstance(d, np.ndarray) else d
         model.objective_vector = c
-        model.variable_lower_bounds = np.full_like(c, -np.inf)
-        model.variable_upper_bounds = np.full_like(c, np.inf)
+        if problem.lower_bounds:
+            model.variable_lower_bounds = problem.lower_bounds
+        else:
+            model.variable_lower_bounds = np.full_like(c, -np.inf)
+        if problem.upper_bounds:
+            model.variable_upper_bounds = problem.upper_bounds
+        else:
+            model.variable_upper_bounds = np.full_like(c, np.inf)
 
         model.constraint_matrix = A
         constraint_lower_bounds = np.full_like(b, -np.inf)
@@ -98,6 +105,12 @@ class PDLP(ConicSolver):
         model.constraint_upper_bounds = constraint_upper_bounds
 
         data[self.PDLP_MODEL] = model
+        # stores data in addition to the model
+        data['lb'] = problem.lower_bounds
+        data['ub'] = problem.upper_bounds
+        data['l'] = constraint_lower_bounds
+        data['u'] = constraint_upper_bounds
+        data['A'], data['c'] = A, c
         return data, inv_data
 
     def invert(self, solution: Dict[str, Any],

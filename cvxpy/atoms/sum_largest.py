@@ -28,25 +28,43 @@ class sum_largest(Atom):
     Sum of the largest k values in the expression X
     """
 
-    def __init__(self, x, k: int) -> None:
+    def __init__(self, x, k) -> None:
         self.k = k
         super(sum_largest, self).__init__(x)
 
     def validate_arguments(self) -> None:
-        """Verify that k is a positive integer.
+        """Verify that k is a positive number.
         """
-        if int(self.k) != self.k or self.k <= 0:
-            raise ValueError("Second argument must be a positive integer.")
+        if self.k <= 0:
+            raise ValueError("Second argument must be a positive number.")
         super(sum_largest, self).validate_arguments()
 
     def numeric(self, values):
         """
         Returns the sum of the k largest entries of the matrix.
+        For non-integer k, uses linear interpolation.
         """
         value = values[0].flatten()
-        k = int(self.k)
-        indices = np.argpartition(-value, kth=k)[:k]
-        return value[indices].sum()
+        n = len(value)
+        k_floor = int(np.floor(self.k))
+        k_frac = self.k - k_floor
+
+        if k_floor > 0:
+            # Get k_floor largest values
+            indices = np.argpartition(-value, kth=min(k_floor, n) - 1)[:k_floor]
+            result = value[indices].sum()
+        else:
+            result = 0.0
+
+        # Add fractional part if needed
+        if k_frac > 0 and k_floor < n:
+            # Get the (k_floor + 1)-th largest value
+            indices_next = np.argpartition(-value, kth=k_floor)[:k_floor + 1]
+            # min of largest k_floor+1 is the (k_floor+1)-th largest
+            next_value = value[indices_next].min()
+            result += k_frac * next_value
+
+        return result
 
     def _grad(self, values):
         """Gives the (sub/super)gradient of the atom w.r.t. each argument.
@@ -59,12 +77,25 @@ class sum_largest(Atom):
         Returns:
             A list of SciPy CSC sparse matrices or None.
         """
-        # Grad: 1 for each of k largest indices.
+        # Grad: 1 for each of k_floor largest indices, k_frac for the next one
         value = intf.from_2D_to_1D(values[0].flatten().T)
-        k = int(self.k)
-        indices = np.argpartition(-value, kth=k)[:k]
+        n = len(value)
+        k_floor = int(np.floor(self.k))
+        k_frac = self.k - k_floor
+
         D = np.zeros((self.args[0].shape[0]*self.args[0].shape[1], 1))
-        D[indices] = 1
+
+        if k_floor > 0:
+            indices = np.argpartition(-value, kth=min(k_floor, n) - 1)[:k_floor]
+            D[indices] = 1
+
+        if k_frac > 0 and k_floor < n:
+            # Find the (k_floor + 1)-th largest element
+            indices_next = np.argpartition(-value, kth=k_floor)[:k_floor + 1]
+            # The minimum of these is the (k_floor + 1)-th largest
+            next_idx = indices_next[np.argmin(value[indices_next])]
+            D[next_idx] = k_frac
+
         return [sp.csc_array(D)]
 
     def shape_from_args(self) -> Tuple[int, ...]:
