@@ -22,6 +22,14 @@ from cvxpy.utilities.power_tools import gm_constrs, powcone_constrs
 
 
 def power_canon(expr, args):
+    approx = expr._approx
+    if approx:
+        return power_canon_approx(expr, args)
+    else:
+        return power_canon_cone(expr, args)
+
+
+def power_canon_approx(expr, args):
     x = args[0]
     p = expr.p_rational
     w = expr.w
@@ -47,7 +55,7 @@ def power_canon(expr, args):
             raise NotImplementedError('This power is not yet supported.')
 
 
-def power_canon_v2(expr, args):
+def power_canon_cone(expr, args):
     x = args[0]
     p = expr.p_rational
     w = expr.w[0]
@@ -61,12 +69,15 @@ def power_canon_v2(expr, args):
         return ones, []
     else:
         t = Variable(shape)
-        # TODO: check dims that might be passed here!
-        # TODO: try to support multiple power values
+
         if 0 < p < 1:
             return t, powcone_constrs(t, [x, ones], w)
         elif p > 1:
-            return t, powcone_constrs(x, [t, ones], w)
+            constrs = powcone_constrs(x, [t, ones], w)
+            if p % 2 != 0:
+                # Even numerator: add x >= 0 constraint.
+                constrs += [x >= 0]
+            return t, constrs
         elif p < 0:
             return t, powcone_constrs(ones, [x, t], w)
         else:

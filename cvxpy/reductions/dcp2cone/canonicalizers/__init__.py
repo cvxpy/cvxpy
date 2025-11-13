@@ -91,7 +91,6 @@ CANON_METHODS = {
     maximum : maximum_canon,
     minimum : minimum_canon,
     perspective : perspective_canon,
-    # power : power_canon_v2, # TODO: change?
     power : power_canon,
     rel_entr : rel_entr_canon,
     indicator : indicator_canon,
