@@ -75,7 +75,7 @@ def power_canon_cone(expr, args):
         elif p > 1:
             constrs = powcone_constrs(x, [t, ones], w)
             if p % 2 != 0:
-                # Even numerator: add x >= 0 constraint.
+                # noneven numerator: add x >= 0 constraint.
                 constrs += [x >= 0]
             return t, constrs
         elif p < 0:

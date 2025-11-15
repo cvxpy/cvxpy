@@ -123,8 +123,6 @@ class TestPowConeND(BaseTest):
         reordered.
         Both axis values tested.
         """
-        # TODO: show what prob.A looks like at different stages of debugging ... USE PDF
-        # TODO: refer to this in explaining how transform works 
         expect_x = np.array([3.42857186, 0, 0, 2.28571379, 0])
         for axis in [0, 1]:
             x = cp.Variable(5)
