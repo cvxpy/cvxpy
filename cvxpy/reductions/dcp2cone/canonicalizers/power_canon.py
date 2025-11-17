@@ -18,10 +18,11 @@ import numpy as np
 
 from cvxpy.expressions.constants import Constant
 from cvxpy.expressions.variable import Variable
+from cvxpy.utilities.context import context
 from cvxpy.utilities.power_tools import gm_constrs, powcone_constrs
 
 
-def power_canon(expr, args):
+def power_canon(expr, args, solver_context: context):
     approx = expr._approx
     if approx:
         return power_canon_approx(expr, args)

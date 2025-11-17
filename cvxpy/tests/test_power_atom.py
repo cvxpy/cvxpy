@@ -116,3 +116,7 @@ class TestPowerAtom(BaseTest):
         prob.solve(solver=cp.CLARABEL)
         self.assertIn(prob.status, [cp.OPTIMAL, cp.OPTIMAL_INACCURATE])
         self.assertItemsAlmostEqual(x.value, x_approx, places=3)
+
+
+test = TestPowerAtom()
+test.test_power_approx()

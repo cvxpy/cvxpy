@@ -188,6 +188,10 @@ class Problem(u.Canonical):
         # Needed for _aggregate_metrics.
         self.ndim = 0
 
+        # solver_context : The solver context: supported constrains and bounds.
+        # NOTE: solver_context is currently only passed to power_canon.
+        self.solver_context = None
+
     @perf.compute_once
     def _aggregate_metrics(self) -> dict:
         """
@@ -761,6 +765,7 @@ class Problem(u.Canonical):
             self._cache.key = key
             self._cache.solving_chain = solving_chain
             self._solver_cache = {}
+            self.solver_context = solving_chain.solver_context
         else:
             solving_chain = self._cache.solving_chain
 

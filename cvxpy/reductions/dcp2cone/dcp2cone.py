@@ -40,6 +40,10 @@ class Dcp2Cone(Canonicalization):
         self.quad_canon_methods = quad_canon_methods
         self.quad_obj = quad_obj
 
+        # solver_context : The solver context: supported constrains and bounds.
+        # NOTE: solver_context is currently only passed to power_canon.
+        self.solver_context = None
+
     def accepts(self, problem):
         """A problem is accepted if it is a minimization and is DCP.
         """
@@ -55,6 +59,8 @@ class Dcp2Cone(Canonicalization):
 
         canon_objective, canon_constraints = self.canonicalize_tree(
             problem.objective, True)
+        
+        self.solver_context = problem.solver_context
 
         for constraint in problem.constraints:
             # canon_constr is the constraint rexpressed in terms of
@@ -110,6 +116,7 @@ class Dcp2Cone(Canonicalization):
         args : The canonicalized arguments of expr.
         affine_above : The path up to the root node is all affine atoms.
 
+
         Returns
         -------
         A tuple of the canonicalized expression and generated constraints.
@@ -122,13 +129,17 @@ class Dcp2Cone(Canonicalization):
         if self.quad_obj and affine_above and type(expr) in self.quad_canon_methods:
             # Special case for power.
             if type(expr) == cvxtypes.power() and not expr._quadratic_power():
-                return self.cone_canon_methods[type(expr)](expr, args)
+                return self.cone_canon_methods[type(expr)](expr, args, 
+                                                           solver_context=self.solver_context)
             elif type(expr) == quad_over_lin and not expr.is_quadratic():
                 return self.cone_canon_methods[type(expr)](expr, args)
             else:
                 return self.quad_canon_methods[type(expr)](expr, args)
 
         if type(expr) in self.cone_canon_methods:
+            if type(expr) == cvxtypes.power():
+                return self.cone_canon_methods[type(expr)](expr, args, 
+                                                           solver_context=self.solver_context)
             return self.cone_canon_methods[type(expr)](expr, args)
 
         return expr.copy(args), []
