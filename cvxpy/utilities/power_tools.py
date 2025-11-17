@@ -39,9 +39,6 @@ def gm(t, x, y):
 
 def powcone_constrs(t, x_list, p):
     # We just need a single power cone constraint here.
-    # TODO: check sizes? We might need to add more columns!
-    # TODO: handle elementwise case?
-
     
     constraints = [PowCone3D(x_list[0], x_list[1], t, p)]
     return constraints
