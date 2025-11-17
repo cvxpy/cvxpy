@@ -19,14 +19,15 @@ from typing import Union
 from cvxpy.reductions.inverse_data import InverseData
 
 
-class SolverInverseData:
+class SolverInverseData(InverseData):
     """
     The context for a reduction, which may include a solver and solver options.
     """
-    def __init__(self, inverse_data: Union[list, InverseData], solver_instance = None, solver_options: dict = {}):
+    def __init__(self, inverse_data: Union[list, InverseData], solver_instance = None,
+                 solver_options: dict = {}):
         self.solver_instance = solver_instance
         self.solver_options = solver_options
         self.inverse_data = inverse_data
-    
+
     def __getitem__(self, key):
         return self.inverse_data[key]

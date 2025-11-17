@@ -17,8 +17,8 @@ limitations under the License.
 import abc
 
 from cvxpy import settings as s
-from cvxpy.reductions.solver_inverse_data import InverseData
 from cvxpy.reductions.reduction import Reduction
+from cvxpy.reductions.solvers.solver_inverse_data import SolverInverseData
 
 
 class Solver(Reduction):
@@ -84,5 +84,5 @@ class Solver(Reduction):
         """
         data, inv_data = self.apply(problem)
         solution = self.solve_via_data(data, warm_start, verbose, solver_opts)
-        inverse_data = InverseData(inv_data, solver_instance=self, solver_options=solver_opts)
+        inverse_data = SolverInverseData(inv_data, solver_instance=self, solver_options=solver_opts)
         return self.invert(solution, inverse_data)

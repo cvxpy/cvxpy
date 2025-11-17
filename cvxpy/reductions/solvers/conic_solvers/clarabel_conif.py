@@ -18,13 +18,13 @@ limitations under the License.
 import numpy as np
 import scipy.sparse as sp
 
-from cvxpy.reductions.solver_inverse_data import SolverInverseData
 import cvxpy.settings as s
 from cvxpy.constraints import PSD, SOC, ExpCone, PowCone3D, PowConeND
 from cvxpy.expressions.expression import Expression
 from cvxpy.reductions.solution import Solution, failure_solution
 from cvxpy.reductions.solvers import utilities
 from cvxpy.reductions.solvers.conic_solvers.conic_solver import ConicSolver
+from cvxpy.reductions.solvers.solver_inverse_data import SolverInverseData
 from cvxpy.utilities.citations import CITATION_DICT
 
 
@@ -153,7 +153,7 @@ class CLARABEL(ConicSolver):
     MAX_TIME = "MaxTime"
     NUMERICAL_ERROR = "NumericalError"
     INSUFFICIENT_PROGRESS = "InsufficientProgress"
-    ACCEPT_UNKNOWN = "accept_unkown"
+    ACCEPT_UNKNOWN = "accept_unknown"
 
     STATUS_MAP = {
                     SOLVED: s.OPTIMAL,
@@ -250,7 +250,8 @@ class CLARABEL(ConicSolver):
 
         # if accept unknown was specified and solution is present, then an insufficient progress
         # status will be mapped to OPTIMAL_INACCURATE.
-        if isinstance(inverse_data, SolverInverseData) and CLARABEL.ACCEPT_UNKNOWN in inverse_data.solver_options and\
+        if isinstance(inverse_data, SolverInverseData) and\
+            CLARABEL.ACCEPT_UNKNOWN in inverse_data.solver_options and\
             solution.x is not None and solution.z is not None:
             status_map["InsufficientProgress"] = s.OPTIMAL_INACCURATE
         status = status_map[str(solution.status)]
