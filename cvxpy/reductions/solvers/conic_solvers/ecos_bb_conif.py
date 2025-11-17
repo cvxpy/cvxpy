@@ -68,7 +68,7 @@ class ECOS_BB(ECOS):
         inv_data['is_mip'] = data[s.BOOL_IDX] or data[s.INT_IDX]
         return data, inv_data
 
-    def invert(self, solution, inverse_data, options = {}):
+    def invert(self, solution, inverse_data):
         """Returns solution to original problem, given inverse_data.
         """
         status = self.STATUS_MAP[solution['info']['exitFlag']]

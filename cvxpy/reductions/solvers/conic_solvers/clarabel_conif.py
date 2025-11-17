@@ -18,6 +18,7 @@ limitations under the License.
 import numpy as np
 import scipy.sparse as sp
 
+from cvxpy.reductions.solver_inverse_data import SolverInverseData
 import cvxpy.settings as s
 from cvxpy.constraints import PSD, SOC, ExpCone, PowCone3D, PowConeND
 from cvxpy.expressions.expression import Expression
@@ -241,7 +242,7 @@ class CLARABEL(ConicSolver):
         else:
             return utilities.extract_dual_value(result_vec, offset, constraint)
 
-    def invert(self, solution, inverse_data, options = {}):
+    def invert(self, solution, inverse_data):
         """Returns the solution to the original problem given the inverse_data.
         """
         attr = {}
@@ -249,7 +250,8 @@ class CLARABEL(ConicSolver):
 
         # if accept unknown was specified and solution is present, then an insufficient progress
         # status will be mapped to OPTIMAL_INACCURATE.
-        if CLARABEL.ACCEPT_UNKNOWN in options and solution.x is not None and solution.z is not None:
+        if isinstance(inverse_data, SolverInverseData) and CLARABEL.ACCEPT_UNKNOWN in inverse_data.solver_options and\
+            solution.x is not None and solution.z is not None:
             status_map["InsufficientProgress"] = s.OPTIMAL_INACCURATE
         status = status_map[str(solution.status)]
         attr[s.SOLVE_TIME] = solution.solve_time

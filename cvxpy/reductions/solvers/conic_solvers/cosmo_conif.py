@@ -47,7 +47,7 @@ class COSMO(CLARABEL):
         """Imports the solver."""
         import cosmopy  # noqa F401
 
-    def invert(self, solution, inverse_data, options = {}):
+    def invert(self, solution, inverse_data):
         import cosmopy
 
         model: cosmopy.Model = solution

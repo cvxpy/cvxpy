@@ -101,7 +101,7 @@ class GLPK_MI(GLPK):
 
         return solution
 
-    def invert(self, solution, inverse_data, options = {}):
+    def invert(self, solution, inverse_data):
         """Returns the solution to the original problem given the inverse_data.
         """
         status = solution['status']

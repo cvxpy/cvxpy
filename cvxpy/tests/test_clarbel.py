@@ -17,6 +17,7 @@ import clarabel
 import numpy as np
 
 import cvxpy as cp
+from cvxpy.reductions.solver_inverse_data import SolverInverseData
 import cvxpy.settings as s
 from cvxpy.expressions.variable import Variable
 from cvxpy.problems.problem import Problem
@@ -61,7 +62,7 @@ class ClarabelTest(BaseTest):
         """Tests invert when a solution is present and solver status from clarabel is SOLVED."""
         solver = CLARABEL()
         _, _, inverse_data = self.prob.get_problem_data("clarabel")
-        solution = solver.invert(self.solution, inverse_data[-1], {})
+        solution = solver.invert(self.solution, SolverInverseData(inverse_data[-1], solver_options={}))
         self.assertEqual(s.OPTIMAL, solution.status)
 
     def test_invert_when_insufficient_progress_should_fail(self):
@@ -72,7 +73,7 @@ class ClarabelTest(BaseTest):
         solver = CLARABEL()
         _, _, inverse_data = self.prob.get_problem_data("clarabel")
         self.solution.status = CLARABEL.INSUFFICIENT_PROGRESS
-        solution = solver.invert(self.solution, inverse_data[-1], {})
+        solution = solver.invert(self.solution, SolverInverseData(inverse_data[-1], {}))
         self.assertEqual(s.SOLVER_ERROR, solution.status)
         
     def test_invert_when_insufficient_progress_but_accept_unknown(self):
@@ -83,7 +84,7 @@ class ClarabelTest(BaseTest):
         solver = CLARABEL()
         _, _, inverse_data = self.prob.get_problem_data("clarabel")
         self.solution.status = CLARABEL.INSUFFICIENT_PROGRESS
-        solution = solver.invert(self.solution, inverse_data[-1], {CLARABEL.ACCEPT_UNKNOWN: True})
+        solution = solver.invert(self.solution, SolverInverseData(inverse_data[-1], solver_options={CLARABEL.ACCEPT_UNKNOWN: True}))
         self.assertEqual(s.OPTIMAL_INACCURATE, solution.status)
 
     def test_invert_when_insufficient_progress_but_accept_unknown_and_no_solution(self):
@@ -98,6 +99,6 @@ class ClarabelTest(BaseTest):
         self.solution.status = CLARABEL.INSUFFICIENT_PROGRESS
         self.solution.x = None
         self.solution.z = None
-        solution = solver.invert(self.solution, inverse_data[-1], {"accept_unknown": True})
+        solution = solver.invert(self.solution, SolverInverseData(inverse_data[-1], solver_options={"accept_unknown": True}))
         self.assertEqual(s.SOLVER_ERROR, solution.status)
         

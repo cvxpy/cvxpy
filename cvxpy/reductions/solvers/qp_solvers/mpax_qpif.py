@@ -53,7 +53,7 @@ class MPAX(QpSolver):
         import jax  # noqa F401
         import mpax  # noqa F401
 
-    def invert(self, solution, inverse_data, options = {}):
+    def invert(self, solution, inverse_data):
         """Returns the solution to the original problem given the inverse_data.
         """
         attr = {}

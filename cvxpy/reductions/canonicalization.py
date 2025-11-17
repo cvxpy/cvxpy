@@ -73,7 +73,7 @@ class Canonicalization(Reduction):
                                                canon_constraints)
         return new_problem, inverse_data
 
-    def invert(self, solution, inverse_data, options = {}):
+    def invert(self, solution, inverse_data):
         pvars = {vid: solution.primal_vars[vid] for vid in inverse_data.id_map
                  if vid in solution.primal_vars}
         dvars = {orig_id: solution.dual_vars[vid]

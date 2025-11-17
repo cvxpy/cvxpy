@@ -23,6 +23,7 @@ from typing import Dict, List, Optional, Union
 
 import numpy as np
 
+from cvxpy.reductions.solver_inverse_data import InverseData
 import cvxpy.utilities as u
 import cvxpy.utilities.performance_utils as perf
 from cvxpy import Constant, error
@@ -1219,7 +1220,7 @@ class Problem(u.Canonical):
             self, data, warm_start, solver_verbose, kwargs)
         end = time.time()
         self._solve_time = end - start
-        self.unpack_results(solution, solving_chain, inverse_data, kwargs)
+        self.unpack_results(solution, solving_chain, inverse_data)
         if verbose:
             print(_FOOTER)
             s.LOGGER.info('Problem status: %s', self.status)
@@ -1512,7 +1513,7 @@ class Problem(u.Canonical):
         self._status = solution.status
         self._solution = solution
 
-    def unpack_results(self, solution, chain: SolvingChain, inverse_data, options = {}) -> None:
+    def unpack_results(self, solution, chain: SolvingChain, inverse_data) -> None:
         """Updates the problem state given the solver results.
 
         Updates problem.status, problem.value and value of
@@ -1527,8 +1528,6 @@ class Problem(u.Canonical):
             A solving chain that was used to solve the problem.
         inverse_data : list
             The inverse data returned by applying the chain to the problem.
-        options: dict
-            A dictionary containing options.
             
         Raises
         ------
@@ -1536,7 +1535,7 @@ class Problem(u.Canonical):
             If the solver failed
         """
 
-        solution = chain.invert(solution, inverse_data, options)
+        solution = chain.invert(solution, inverse_data)
         if solution.status in s.INACCURATE:
             warnings.warn(
                 "Solution may be inaccurate. Try another solver, "

@@ -321,7 +321,7 @@ class KNITRO(ConicSolver):
         inv_data["is_mip"] = data[s.BOOL_IDX] or data[s.INT_IDX]
         return data, inv_data
 
-    def invert(self, results, inverse_data, options):
+    def invert(self, results, inverse_data):
         """Returns the solution to the original problem given the inverse_data."""
         import knitro as kn
 

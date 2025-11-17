@@ -78,7 +78,7 @@ class Complex2Real(Reduction):
                                                constrs)
         return new_problem, inverse_data
 
-    def invert(self, solution, inverse_data, options = {}):
+    def invert(self, solution, inverse_data):
         pvars = {}
         dvars = {}
         if solution.status in s.SOLUTION_PRESENT:

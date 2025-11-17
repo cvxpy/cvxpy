@@ -131,10 +131,10 @@ class CVXOPT(ConicSolver):
             data[s.H] = b[len_eq:].flatten(order='F')
         return data, inv_data
 
-    def invert(self, solution, inverse_data, options = {}):
+    def invert(self, solution, inverse_data):
         """Returns the solution to the original problem given the inverse_data.
         """
-        return super(CVXOPT, self).invert(solution, inverse_data, options)
+        return super(CVXOPT, self).invert(solution, inverse_data)
 
     @classmethod
     def _prepare_cvxopt_matrices(cls, data) -> dict:

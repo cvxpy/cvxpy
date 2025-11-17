@@ -232,7 +232,7 @@ class SCIPY(ConicSolver):
                       "\n\nThe default method '{}' will be"
                       " used in this case.\n".format(meth))
 
-    def invert(self, solution, inverse_data, options = {}):
+    def invert(self, solution, inverse_data):
         """Returns the solution to the original problem given the inverse_data.
         """
         status = self.STATUS_MAP[solution["status"]]

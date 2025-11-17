@@ -125,7 +125,7 @@ class SOC2PSD(Reduction):
         inverse_data = (soc_id_from_psd, soc_constraint_ids)
         return new_problem, inverse_data
 
-    def invert(self, solution, inverse_data, options = {}):
+    def invert(self, solution, inverse_data):
         """
         `solution.dual_vars` contains dual variables corresponding to the constraints.
 

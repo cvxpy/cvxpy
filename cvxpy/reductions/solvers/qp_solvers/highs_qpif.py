@@ -75,7 +75,7 @@ class HIGHS(QpSolver):
         data, inv_data = super(HIGHS, self).apply(problem)
         return data, inv_data
 
-    def invert(self, results, inverse_data, options):
+    def invert(self, results, inverse_data):
         """Returns the solution to the original problem given the inverse_data."""
         attr = {
             s.SOLVE_TIME: results["run_time"],

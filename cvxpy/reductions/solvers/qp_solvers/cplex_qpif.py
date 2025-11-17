@@ -39,7 +39,7 @@ class CPLEX(QpSolver):
         import cplex
         cplex
 
-    def invert(self, results, inverse_data, options):
+    def invert(self, results, inverse_data):
         model = results["model"]
         attr = {}
         if "cputime" in results:

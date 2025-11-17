@@ -15,7 +15,7 @@ class ConstantSolver(Solver):
     def apply(self, problem):
         return problem, []
 
-    def invert(self, solution, inverse_data, options = {}):
+    def invert(self, solution, inverse_data):
         return solution
 
     def name(self) -> str:

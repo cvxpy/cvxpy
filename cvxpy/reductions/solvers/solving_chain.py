@@ -29,6 +29,7 @@ from cvxpy.reductions.cone2cone.exotic2common import (
     Exotic2Common,
 )
 from cvxpy.reductions.cone2cone.soc2psd import SOC2PSD
+from cvxpy.reductions.solver_inverse_data import InverseData
 from cvxpy.reductions.cvx_attr2constr import CvxAttr2Constr
 from cvxpy.reductions.dcp2cone.cone_matrix_stuffing import ConeMatrixStuffing
 from cvxpy.reductions.dcp2cone.dcp2cone import Dcp2Cone
@@ -442,7 +443,7 @@ class SolvingChain(Chain):
         data, inverse_data = self.apply(problem)
         solution = self.solver.solve_via_data(data, warm_start,
                                               verbose, solver_opts)
-        return self.invert(solution, inverse_data, solver_opts)
+        return self.invert(solution, inverse_data)
 
     def solve_via_data(self, problem, data, warm_start: bool = False, verbose: bool = False,
                        solver_opts={}):

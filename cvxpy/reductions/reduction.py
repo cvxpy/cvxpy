@@ -94,7 +94,7 @@ class Reduction(metaclass=ABCMeta):
         self._retrieval_data = retrieval_data
         return problem
 
-    def retrieve(self, solution, options=None):
+    def retrieve(self, solution):
         """Retrieves a solution to the owned problem.
 
         Parameters
@@ -115,7 +115,7 @@ class Reduction(metaclass=ABCMeta):
         """
         if not hasattr(self, '_retrieval_data'):
             raise ValueError("`reduce()` must be called before `retrieve()`.")
-        return self.invert(solution, self._retrieval_data, options)
+        return self.invert(solution, self._retrieval_data)
 
     @abstractmethod
     def apply(self, problem):
@@ -138,7 +138,7 @@ class Reduction(metaclass=ABCMeta):
         raise NotImplementedError()
 
     @abstractmethod
-    def invert(self, solution, inverse_data, options = {}):
+    def invert(self, solution, inverse_data):
         """Returns a solution to the original problem given the inverse_data.
 
         Parameters
@@ -147,8 +147,6 @@ class Reduction(metaclass=ABCMeta):
             A solution to a problem that generated the inverse_data.
         inverse_data
             The data encoding the original problem.
-        options: dict
-            Options for the inversion.
 
         Returns
         -------
