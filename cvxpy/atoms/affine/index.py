@@ -118,7 +118,7 @@ class index(AffAtom):
         return True
 
     def _hess_vec(self, vec):
-        """ See the docstring of the hess_vec method of the atom class. """
+        """See the docstring of the hess_vec method of the atom class. """
         idx = self._orig_key
         e = np.zeros(self.args[0].size)
         e[idx] = vec
@@ -163,8 +163,8 @@ class special_index(AffAtom):
         self.key = key
         # Order the entries of expr and select them using key.
         expr = index.cast_to_const(expr)
-        idx_mat = np.arange(expr.size)
-        idx_mat = np.reshape(idx_mat, expr.shape, order='F')
+        idxs = np.arange(expr.size)
+        idx_mat = np.reshape(idxs, expr.shape, order='F')
         self._select_mat = idx_mat[key]
         self._shape = self._select_mat.shape
         super(special_index, self).__init__(expr)
@@ -262,9 +262,9 @@ class special_index(AffAtom):
 
     def _jacobian(self):
         jacobian_dict = self.args[0].jacobian()
-        idx = self.key
-        row_map = {val: i for i, val in enumerate(idx)}
+        idx = self._select_mat.flatten(order='F')
 
+        row_map = {val: i for i, val in enumerate(idx)}
         for k in jacobian_dict:
             rows, cols, vals = jacobian_dict[k]
 
