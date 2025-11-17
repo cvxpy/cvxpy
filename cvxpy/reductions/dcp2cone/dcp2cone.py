@@ -56,11 +56,12 @@ class Dcp2Cone(Canonicalization):
             raise ValueError("Cannot reduce problem to cone program")
 
         inverse_data = InverseData(problem)
-
+        
+        self.solver_context = problem.solver_context
+        
         canon_objective, canon_constraints = self.canonicalize_tree(
             problem.objective, True)
         
-        self.solver_context = problem.solver_context
 
         for constraint in problem.constraints:
             # canon_constr is the constraint rexpressed in terms of

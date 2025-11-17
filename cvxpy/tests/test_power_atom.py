@@ -118,5 +118,5 @@ class TestPowerAtom(BaseTest):
         self.assertItemsAlmostEqual(x.value, x_approx, places=3)
 
 
-test = TestPowerAtom()
-test.test_power_approx()
+# test = TestPowerAtom()
+# test.test_power_with_and_without_approx_low()

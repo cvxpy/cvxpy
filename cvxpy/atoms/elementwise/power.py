@@ -136,14 +136,25 @@ class power(Elementwise):
         # an argument. This prevents parametrized exponents from being replaced
         # with their logs in Dgp2Dcp.
         self.p = cvxtypes.expression().cast_to_const(p)
+        self._approx = _approx
         # TODO: allow to switch x and p
         if not (isinstance(self.p, cvxtypes.constant()) or
                 isinstance(self.p, cvxtypes.parameter())):
             raise ValueError("The exponent `p` must be either a Constant or "
                              "a Parameter; received ", type(p))
         self.max_denom = max_denom
-        self._approx = _approx
         self.p_rational = None
+        self.w = None
+        self.approx_error = None
+
+        super(power, self).__init__(x)
+    
+    def process_power(self, _approx: bool = True) -> None:
+        """Process the power attribute after deciding on approximation.
+
+        This method should be called before using p_rational or w.
+        """
+        self._approx = _approx
 
         if isinstance(self.p, cvxtypes.constant()):
             # Compute a rational approximation to p, for DCP (DGP doesn't need
@@ -157,12 +168,11 @@ class power(Elementwise):
                 p = self.p.value
             # how we convert p to a rational depends on the branch of the function
             if p > 1:
-                p, w = pow_high(p, max_denom, approx=self._approx)
+                p, w = pow_high(p, self.max_denom, approx=self._approx)
             elif 0 < p < 1:
-                p, w = pow_mid(p, max_denom, approx=self._approx)
+                p, w = pow_mid(p, self.max_denom, approx=self._approx)
             elif p < 0:
-                p, w = pow_neg(p, max_denom, approx=self._approx)
-
+                p, w = pow_neg(p, self.max_denom, approx=self._approx)
             # note: if, after making the rational approximation, p ends up
             # being 0 or 1, we default to using the 0 or 1 behavior of the
             # atom, which affects the curvature, domain, etc... maybe
@@ -180,7 +190,7 @@ class power(Elementwise):
                 self.approx_error = float(abs(self.p_rational - p))
             else:
                 self.approx_error = 0.0
-        super(power, self).__init__(x)
+        
 
     @Elementwise.numpy_numeric
     def numeric(self, values):
