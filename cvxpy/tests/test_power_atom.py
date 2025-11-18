@@ -26,7 +26,7 @@ class TestPowerAtom(BaseTest):
     def test_power_approx(self) -> None:
         """Test power atom with approximation."""
         x = cp.Variable(3)
-        constr = [cp.power(x, 3.3, _approx=True) <= np.ones(3)]
+        constr = [cp.power(x, 3.3, approx=True) <= np.ones(3)]
         prob = cp.Problem(cp.Minimize(x[0] + x[1] - x[2]), constr)
         prob.solve(solver=cp.SCS)
         self.assertIn(prob.status, [cp.OPTIMAL, cp.OPTIMAL_INACCURATE])
@@ -37,7 +37,7 @@ class TestPowerAtom(BaseTest):
     def test_power_no_approx(self) -> None:
         """Test power atom without approximation."""
         x = cp.Variable(3)
-        constr = [cp.power(x, 3.3, _approx=False) <= np.ones(3)]
+        constr = [cp.power(x, 3.3, approx=False) <= np.ones(3)]
         prob = cp.Problem(cp.Minimize(x[0] + x[1] - x[2]), constr)
         prob.solve(solver=cp.SCS)
         self.assertIn(prob.status, [cp.OPTIMAL, cp.OPTIMAL_INACCURATE])
@@ -49,14 +49,14 @@ class TestPowerAtom(BaseTest):
         """Compare answers with and without approximation on the same problem."""
         x = cp.Variable(3)
         constr = [
-            cp.power(x, -1.5, _approx=True) <= np.ones(3),
+            cp.power(x, -1.5, approx=True) <= np.ones(3),
         ]
         prob = cp.Problem(cp.Minimize(x[0] + x[1] - x[2] + (x[1] + x[2])**2), constr)
         prob.solve(solver=cp.CLARABEL)
         x_approx = x.value 
 
         constr = [
-            cp.power(x, -1.5, _approx=False) <= np.ones(3),
+            cp.power(x, -1.5, approx=False) <= np.ones(3),
         ]
         prob = cp.Problem(cp.Minimize(x[0] + x[1] - x[2] + (x[1] + x[2])**2), constr)
         prob.solve(solver=cp.CLARABEL)
@@ -67,14 +67,14 @@ class TestPowerAtom(BaseTest):
         """Compare answers with and without approximation on the same problem."""
         x = cp.Variable(3)
         constr = [
-            cp.power(x, 0.8, _approx=True) >= np.ones(3),
+            cp.power(x, 0.8, approx=True) >= np.ones(3),
         ]
         prob = cp.Problem(cp.Minimize(x[0] + x[1] - x[2] + (x[1] + x[2])**2), constr)
         prob.solve(solver=cp.CLARABEL)
         x_approx = x.value 
 
         constr = [
-            cp.power(x, 0.8, _approx=False) >= np.ones(3),
+            cp.power(x, 0.8, approx=False) >= np.ones(3),
         ]
         prob = cp.Problem(cp.Minimize(x[0] + x[1] - x[2] + (x[1] + x[2])**2), constr)
         prob.solve(solver=cp.CLARABEL)
@@ -85,14 +85,14 @@ class TestPowerAtom(BaseTest):
         """Compare answers with and without approximation on the same problem."""
         x = cp.Variable(3)
         constr = [
-            cp.power(x, 4.5, _approx=True) <= np.ones(3),
+            cp.power(x, 4.5, approx=True) <= np.ones(3),
         ]
         prob = cp.Problem(cp.Minimize(x[0] + x[1] - x[2] + (x[1] + x[2])**2), constr)
         prob.solve(solver=cp.CLARABEL)
         x_approx = x.value 
 
         constr = [
-            cp.power(x, 4.5, _approx=False) <= np.ones(3),
+            cp.power(x, 4.5, approx=False) <= np.ones(3),
         ]
         prob = cp.Problem(cp.Minimize(x[0] + x[1] - x[2] + (x[1] + x[2])**2), constr)
         prob.solve(solver=cp.CLARABEL)
@@ -103,20 +103,32 @@ class TestPowerAtom(BaseTest):
         """Compare answers with and without approximation on the same problem."""
         x = cp.Variable(3)
         constr = [
-            cp.power(x, 8, _approx=True) <= np.ones(3),
+            cp.power(x, 8,approx=True) <= np.ones(3),
         ]
         prob = cp.Problem(cp.Minimize(x[0] + x[1] - x[2] + (x[1] + x[2])**2), constr)
         prob.solve(solver=cp.CLARABEL)
         x_approx = x.value 
 
         constr = [
-            cp.power(x, 8, _approx=False) <= np.ones(3),
+            cp.power(x, 8, approx=False) <= np.ones(3),
         ]
         prob = cp.Problem(cp.Minimize(x[0] + x[1] - x[2] + (x[1] + x[2])**2), constr)
         prob.solve(solver=cp.CLARABEL)
         self.assertIn(prob.status, [cp.OPTIMAL, cp.OPTIMAL_INACCURATE])
         self.assertItemsAlmostEqual(x.value, x_approx, places=3)
 
+    def test_power_no_approx_unsupported_solver(self) -> None:
+        """Test power atom without approximation, using unsupported solver."""
+        x = cp.Variable(3)
+        constr = [cp.power(x, 3.3, approx=False) <= np.ones(3)]
+        prob = cp.Problem(cp.Minimize(x[0] + x[1] - x[2]), constr)
+        prob.solve(solver=cp.CVXOPT)
+        self.assertIn(prob.status, [cp.OPTIMAL, cp.OPTIMAL_INACCURATE])
+        self.assertAlmostEqual(prob.value, -1.0, places=3)
+        expected_x = np.array([0.0, 0.0, 1.0])
+        self.assertItemsAlmostEqual(x.value, expected_x, places=3)
 
-# test = TestPowerAtom()
+
+test = TestPowerAtom()
 # test.test_power_with_and_without_approx_low()
+test.test_power_no_approx_unsupported_solver()
