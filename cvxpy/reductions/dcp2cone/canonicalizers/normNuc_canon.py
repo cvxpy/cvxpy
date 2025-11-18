@@ -22,7 +22,7 @@ from cvxpy.constraints.constraint import Constraint
 from cvxpy.expressions.variable import Variable
 
 
-def normNuc_canon(expr, args) -> Tuple[float, List[Constraint]]:
+def normNuc_canon(expr, args, solver_context=None) -> Tuple[float, List[Constraint]]:
     A = args[0]
     m, n = A.shape
     # Create the equivalent problem:

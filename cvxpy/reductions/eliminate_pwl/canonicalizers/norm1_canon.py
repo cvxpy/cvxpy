@@ -19,7 +19,7 @@ from cvxpy.atoms.elementwise.abs import abs
 from cvxpy.reductions.eliminate_pwl.canonicalizers.abs_canon import abs_canon
 
 
-def norm1_canon(expr, args):
+def norm1_canon(expr, args, solver_context=None):
     x = args[0]
     axis = expr.axis
 

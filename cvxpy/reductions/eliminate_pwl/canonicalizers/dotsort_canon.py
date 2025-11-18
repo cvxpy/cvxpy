@@ -22,7 +22,7 @@ from cvxpy.atoms.affine.vec import vec
 from cvxpy.expressions.variable import Variable
 
 
-def dotsort_canon(expr, args):
+def dotsort_canon(expr, args, solver_context=None):
     x = args[0]
     w = args[1]
 

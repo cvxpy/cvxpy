@@ -28,7 +28,7 @@ from cvxpy.reductions.eliminate_pwl.canonicalizers.abs_canon import abs_canon
 from cvxpy.utilities.power_tools import gm_constrs
 
 
-def pnorm_canon(expr, args):
+def pnorm_canon(expr, args, solver_context=None):
     x = args[0]
     p = expr.p
     axis = expr.axis

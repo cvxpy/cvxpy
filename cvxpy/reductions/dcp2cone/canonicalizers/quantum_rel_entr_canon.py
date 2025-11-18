@@ -6,7 +6,7 @@ from cvxpy.atoms.affine.kron import kron
 from cvxpy.constraints import OpRelEntrConeQuad
 
 
-def quantum_rel_entr_canon(expr, args):
+def quantum_rel_entr_canon(expr, args, solver_context=None):
     X, Y = args
     n = X.shape[0]
     Imat = np.eye(n)

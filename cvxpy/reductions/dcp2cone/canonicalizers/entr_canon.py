@@ -21,7 +21,7 @@ from cvxpy.expressions.constants import Constant
 from cvxpy.expressions.variable import Variable
 
 
-def entr_canon(expr, args):
+def entr_canon(expr, args, solver_context=None):
     x = args[0]
     shape = expr.shape
     t = Variable(shape)

@@ -20,7 +20,7 @@ from cvxpy.atoms.quad_form import SymbolicQuadForm
 from cvxpy.expressions.variable import Variable
 
 
-def quad_over_lin_canon(expr, args):
+def quad_over_lin_canon(expr, args, solver_context=None):
     affine_expr = args[0]
     y = args[1]
     # Simplify if y has no parameters.

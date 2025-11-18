@@ -48,8 +48,8 @@ from cvxpy.settings import (
     CLARABEL,
     PARAM_THRESHOLD,
 )
-from cvxpy.utilities.context import context
 from cvxpy.utilities.debug_tools import build_non_disciplined_error_msg
+from cvxpy.utilities.solver_context import SolverInfo
 
 DPP_ERROR_MSG = (
     "You are solving a parameterized problem that is not DPP. "
@@ -327,7 +327,7 @@ def construct_solving_chain(problem, candidates,
         else:
             supported_constraints = solver_instance.SUPPORTED_CONSTRAINTS
 
-        solver_context = context(solver=solver, supported_constraints=supported_constraints)
+        solver_context = SolverInfo(solver=solver, supported_constraints=supported_constraints)
 
         ex_cos = (constr_types & set(EXOTIC_CONES)) - set(supported_constraints)
 

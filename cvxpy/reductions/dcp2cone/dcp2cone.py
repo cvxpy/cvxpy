@@ -133,14 +133,14 @@ class Dcp2Cone(Canonicalization):
                 return self.cone_canon_methods[type(expr)](expr, args, 
                                                            solver_context=self.solver_context)
             elif type(expr) == quad_over_lin and not expr.is_quadratic():
-                return self.cone_canon_methods[type(expr)](expr, args)
-            else:
-                return self.quad_canon_methods[type(expr)](expr, args)
-
-        if type(expr) in self.cone_canon_methods:
-            if type(expr) == cvxtypes.power():
                 return self.cone_canon_methods[type(expr)](expr, args, 
                                                            solver_context=self.solver_context)
-            return self.cone_canon_methods[type(expr)](expr, args)
+            else:
+                return self.quad_canon_methods[type(expr)](expr, args, 
+                                                           solver_context=self.solver_context)
+
+        if type(expr) in self.cone_canon_methods:
+            return self.cone_canon_methods[type(expr)](expr, args, 
+                                                       solver_context=self.solver_context)
 
         return expr.copy(args), []
