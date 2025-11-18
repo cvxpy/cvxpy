@@ -127,8 +127,3 @@ class TestPowerAtom(BaseTest):
         self.assertAlmostEqual(prob.value, -1.0, places=3)
         expected_x = np.array([0.0, 0.0, 1.0])
         self.assertItemsAlmostEqual(x.value, expected_x, places=3)
-
-
-test = TestPowerAtom()
-# test.test_power_with_and_without_approx_low()
-test.test_power_no_approx_unsupported_solver()
