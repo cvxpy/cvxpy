@@ -17,7 +17,7 @@ limitations under the License.
 from cvxpy.expressions.variable import Variable
 
 
-def cumsum_canon(expr, args):
+def cumsum_canon(expr, args, solver_context=None):
     """Cumulative sum.
     """
     X = args[0]

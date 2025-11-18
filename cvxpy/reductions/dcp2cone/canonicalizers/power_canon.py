@@ -20,16 +20,18 @@ import cvxpy as cp
 from cvxpy.constraints import PowCone3D
 from cvxpy.expressions.constants import Constant
 from cvxpy.expressions.variable import Variable
-from cvxpy.utilities.context import context
 from cvxpy.utilities.power_tools import gm_constrs, powcone_constrs
+from cvxpy.utilities.solver_context import SolverInfo
 
 
-def power_canon(expr, args, solver_context: context):
+def power_canon(expr, args, solver_context: SolverInfo=None):
     # Decide whether to use approximation based on solver context.
     # We approximate if the solver does not support power cones.
 
     approx = False
-    if PowCone3D not in solver_context.solver_supported_constraints or expr._approx:
+    if solver_context is None \
+        or PowCone3D not in solver_context.solver_supported_constraints \
+            or expr._approx:
         approx = True
     if expr._approx != approx:
         expr = cp.power(args[0], expr._p_orig, max_denom=expr.max_denom, approx=approx)

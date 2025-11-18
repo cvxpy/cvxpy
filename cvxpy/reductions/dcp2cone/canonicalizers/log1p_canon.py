@@ -17,5 +17,5 @@ limitations under the License.
 from cvxpy.reductions.dcp2cone.canonicalizers.log_canon import log_canon
 
 
-def log1p_canon(expr, args):
-    return log_canon(expr, [args[0] + 1])
+def log1p_canon(expr, args, solver_context=None):
+    return log_canon(expr, [args[0] + 1], solver_context=solver_context)

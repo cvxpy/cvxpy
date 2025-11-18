@@ -22,7 +22,7 @@ from cvxpy.problems.objective import Maximize, Minimize
 from cvxpy.utilities.perspective_utils import form_cone_constraint
 
 
-def perspective_canon(expr, args):
+def perspective_canon(expr, args, solver_context=None):
 
     from cvxpy.problems.problem import Problem
 

@@ -22,7 +22,7 @@ from cvxpy.expressions.variable import Variable
 from cvxpy.reductions.dcp2cone.canonicalizers.exp_canon import exp_canon
 
 
-def log_sum_exp_canon(expr, args):
+def log_sum_exp_canon(expr, args, solver_context=None):
     x = args[0]
     shape = expr.shape
     axis = expr.axis

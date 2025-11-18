@@ -192,7 +192,7 @@ def von_neumann_entr_QuadApprox(expr, args):
     return epi, cons
 
 
-def von_neumann_entr_canon_dispatch(expr, args):
+def von_neumann_entr_canon_dispatch(expr, args, solver_context=None):
     if expr.quad_approx:
         return von_neumann_entr_QuadApprox(expr, args)
     else:

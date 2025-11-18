@@ -19,7 +19,7 @@ from cvxpy.constraints.psd import PSD
 from cvxpy.expressions.variable import Variable
 
 
-def matrix_frac_canon(expr, args):
+def matrix_frac_canon(expr, args, solver_context=None):
     X = args[0]  # n by m matrix.
     P = args[1]  # n by n matrix.
 

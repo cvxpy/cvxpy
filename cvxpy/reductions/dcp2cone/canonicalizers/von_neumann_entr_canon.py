@@ -23,7 +23,7 @@ from cvxpy.reductions.dcp2cone.canonicalizers.lambda_sum_largest_canon import (
 )
 
 
-def von_neumann_entr_canon(expr, args):
+def von_neumann_entr_canon(expr, args, solver_context=None):
     N = args[0]
     assert N.is_real()
     n = N.shape[0]

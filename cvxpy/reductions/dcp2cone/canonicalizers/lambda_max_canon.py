@@ -21,7 +21,7 @@ from cvxpy.constraints.psd import PSD
 from cvxpy.expressions.variable import Variable
 
 
-def lambda_max_canon(expr, args):
+def lambda_max_canon(expr, args, solver_context=None):
     A = args[0]
     n = A.shape[0]
     t = Variable()

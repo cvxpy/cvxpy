@@ -18,7 +18,7 @@ from cvxpy.atoms.quad_form import SymbolicQuadForm
 from cvxpy.expressions.variable import Variable
 
 
-def quad_form_canon(expr, args):
+def quad_form_canon(expr, args, solver_context=None):
     affine_expr = expr.args[0]
     P = expr.args[1]
     if isinstance(affine_expr, Variable):

@@ -14,7 +14,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-class context:
+
+class SolverInfo:
     """A context class that propagates solver attributes 
     through the solving chain.
     """
