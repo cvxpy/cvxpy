@@ -48,6 +48,7 @@ from cvxpy.reductions.solvers.conic_solvers.conic_solver import ConicSolver
 from cvxpy.reductions.solvers.defines import SOLVER_MAP_CONIC, SOLVER_MAP_QP
 from cvxpy.reductions.solvers.qp_solvers.qp_solver import QpSolver
 from cvxpy.reductions.solvers.solver import Solver
+from cvxpy.reductions.solvers.solver_inverse_data import SolverInverseData
 from cvxpy.reductions.solvers.solving_chain import (
     SolvingChain,
     construct_solving_chain,
@@ -823,6 +824,8 @@ class Problem(u.Canonical):
                 # the last datum in inverse_data corresponds to the solver,
                 # so we shouldn't cache it
                 self._cache.inverse_data = inverse_data[:-1]
+        # Convert last inverse data (which is from the solver) to a SolverInverseData object.
+        inverse_data[-1] = SolverInverseData(inverse_data[-1], solving_chain.solver, solver_opts)
         return data, solving_chain, inverse_data
 
     def _find_candidate_solvers(self,
@@ -1527,7 +1530,6 @@ class Problem(u.Canonical):
             A solving chain that was used to solve the problem.
         inverse_data : list
             The inverse data returned by applying the chain to the problem.
-
         Raises
         ------
         cvxpy.error.SolverError
