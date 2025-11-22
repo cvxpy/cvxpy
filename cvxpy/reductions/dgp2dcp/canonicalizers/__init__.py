@@ -135,7 +135,15 @@ class DgpCanonMethods(dict):
         if parameter in self._parameters:
             return self._parameters[parameter], []
         else:
-            log_parameter = Parameter(parameter.shape, name=parameter.name(),
-                                      value=np.log(parameter.value))
+            # DGP -> DCP transformation: create log-space parameter.
+            # For DGP problem `p_dgp`, we canonicalize to DCP by transforming
+            # to log-space: `log(p_dgp)` becomes `p_dcp`.
+            #
+            # DPP support: Create the log-parameter structure WITHOUT requiring
+            # an initial value. This allows get_problem_data(gp=True) to work
+            # with uninitialized parameters (issue #3004).
+            log_parameter = Parameter(parameter.shape, name=parameter.name())
+            if parameter.value is not None:
+                log_parameter.value = np.log(parameter.value)
             self._parameters[parameter] = log_parameter
             return log_parameter, []
