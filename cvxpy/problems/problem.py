@@ -47,7 +47,9 @@ from cvxpy.reductions.solvers import bisection
 from cvxpy.reductions.solvers import defines as slv_def
 from cvxpy.reductions.solvers.conic_solvers.conic_solver import ConicSolver
 from cvxpy.reductions.solvers.defines import SOLVER_MAP_CONIC, SOLVER_MAP_QP
+from cvxpy.reductions.solvers.nlp_solvers.copt_nlpif import COPT as COPT_nlp
 from cvxpy.reductions.solvers.nlp_solvers.ipopt_nlpif import IPOPT as IPOPT_nlp
+from cvxpy.reductions.solvers.nlp_solvers.knitro_nlpif import KNITRO as KNITRO_nlp
 from cvxpy.reductions.solvers.qp_solvers.qp_solver import QpSolver
 from cvxpy.reductions.solvers.solver import Solver
 from cvxpy.reductions.solvers.solving_chain import (
@@ -1203,8 +1205,21 @@ class Problem(u.Canonical):
                 reductions = [FlipObjective()]
             else:
                 reductions = []
+            reductions = reductions + [Dnlp2Smooth()]
+            # instantiate based on user provided solver
+            # for now, the user must specify a solver
+            if solver is s.IPOPT:
+                nlp_reductions = reductions + [IPOPT_nlp()]
+            elif solver is s.KNITRO:
+                nlp_reductions = reductions + [KNITRO_nlp()]
+            elif solver is s.COPT:
+                nlp_reductions = reductions + [COPT_nlp()]
+            else:
+                raise error.SolverError(
+                    "To solve a DNLP problem, you must specify a NLP solver " \
+                    "we suggest using the open source solver IPOPT."
+                )
             # canonicalize disciplined nlp problems to smooth form
-            nlp_reductions = reductions + [Dnlp2Smooth(), IPOPT_nlp()]
             nlp_chain = SolvingChain(reductions=nlp_reductions)
             problem, inverse_data = nlp_chain.apply(problem=self)
             solution = nlp_chain.solver.solve_via_data(problem, warm_start,

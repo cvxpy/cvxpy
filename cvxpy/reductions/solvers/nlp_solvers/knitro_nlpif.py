@@ -22,55 +22,97 @@ from cvxpy.reductions.solvers.nlp_solvers.nlp_solver import NLPsolver
 from cvxpy.utilities.citations import CITATION_DICT
 
 
-class IPOPT(NLPsolver):
+class KNITRO(NLPsolver):
     """
-    NLP interface for the IPOPT solver
+    NLP interface for the KNITRO solver
     """
-    # Map between IPOPT status and CVXPY status
-    # taken from https://github.com/jump-dev/Ipopt.jl/blob/master/src/C_wrapper.jl#L485-L511
+
+    BOUNDED_VARIABLES = True
+    # Keys:
+    CONTEXT_KEY = "context"
+    X_INIT_KEY = "x_init"
+    Y_INIT_KEY = "y_init"
+
+    # Keyword arguments for the CVXPY interface.
+    INTERFACE_ARGS = [X_INIT_KEY, Y_INIT_KEY]
+
+    # Map of Knitro status to CVXPY status.
+    # This is based on the Knitro documentation:
+    # https://www.artelys.com/app/docs/knitro/3_referenceManual/returnCodes.html
     STATUS_MAP = {
-        # Success cases
-        0: s.OPTIMAL,                    # Solve_Succeeded
-        1: s.OPTIMAL_INACCURATE,         # Solved_To_Acceptable_Level
-        6: s.OPTIMAL,                    # Feasible_Point_Found
-        
-        # Infeasibility/Unboundedness
-        2: s.INFEASIBLE,                 # Infeasible_Problem_Detected
-        4: s.UNBOUNDED,                  # Diverging_Iterates
-        
-        # Numerical/Algorithm issues
-        3: s.SOLVER_ERROR,               # Search_Direction_Becomes_Too_Small
-        -2: s.SOLVER_ERROR,              # Restoration_Failed
-        -3: s.SOLVER_ERROR,              # Error_In_Step_Computation
-        -13: s.SOLVER_ERROR,             # Invalid_Number_Detected
-        -100: s.SOLVER_ERROR,            # Unrecoverable_Exception
-        -101: s.SOLVER_ERROR,            # NonIpopt_Exception_Thrown
-        -199: s.SOLVER_ERROR,            # Internal_Error
-        
-        # User/Resource limits
-        5: s.USER_LIMIT,                 # User_Requested_Stop
-        -1: s.USER_LIMIT,                # Maximum_Iterations_Exceeded
-        -4: s.USER_LIMIT,                # Maximum_CpuTime_Exceeded
-        -5: s.USER_LIMIT,                # Maximum_WallTime_Exceeded
-        -102: s.USER_LIMIT,              # Insufficient_Memory
-        
-        # Problem definition issues
-        -10: s.SOLVER_ERROR,             # Not_Enough_Degrees_Of_Freedom
-        -11: s.SOLVER_ERROR,             # Invalid_Problem_Definition
-        -12: s.SOLVER_ERROR,             # Invalid_Option
+        0: s.OPTIMAL,
+        -100: s.OPTIMAL_INACCURATE,
+        -101: s.USER_LIMIT,
+        -102: s.USER_LIMIT,
+        -103: s.USER_LIMIT,
+        -200: s.INFEASIBLE,
+        -201: s.INFEASIBLE,
+        -202: s.INFEASIBLE,
+        -203: s.INFEASIBLE,
+        -204: s.INFEASIBLE,
+        -205: s.INFEASIBLE,
+        -300: s.UNBOUNDED,
+        -301: s.UNBOUNDED,
+        -400: s.USER_LIMIT,
+        -401: s.USER_LIMIT,
+        -402: s.USER_LIMIT,
+        -403: s.USER_LIMIT,
+        -404: s.USER_LIMIT,
+        -405: s.USER_LIMIT,
+        -406: s.USER_LIMIT,
+        -410: s.USER_LIMIT,
+        -411: s.USER_LIMIT,
+        -412: s.USER_LIMIT,
+        -413: s.USER_LIMIT,
+        -415: s.USER_LIMIT,
+        -416: s.USER_LIMIT,
+        -500: s.SOLVER_ERROR,
+        -501: s.SOLVER_ERROR,
+        -502: s.SOLVER_ERROR,
+        -503: s.SOLVER_ERROR,
+        -504: s.SOLVER_ERROR,
+        -505: s.SOLVER_ERROR,
+        -506: s.SOLVER_ERROR,
+        -507: s.SOLVER_ERROR,
+        -508: s.SOLVER_ERROR,
+        -509: s.SOLVER_ERROR,
+        -510: s.SOLVER_ERROR,
+        -511: s.SOLVER_ERROR,
+        -512: s.SOLVER_ERROR,
+        -513: s.SOLVER_ERROR,
+        -514: s.SOLVER_ERROR,
+        -515: s.SOLVER_ERROR,
+        -516: s.SOLVER_ERROR,
+        -517: s.SOLVER_ERROR,
+        -518: s.SOLVER_ERROR,
+        -519: s.SOLVER_ERROR,
+        -520: s.SOLVER_ERROR,
+        -521: s.SOLVER_ERROR,
+        -522: s.SOLVER_ERROR,
+        -523: s.SOLVER_ERROR,
+        -524: s.SOLVER_ERROR,
+        -525: s.SOLVER_ERROR,
+        -526: s.SOLVER_ERROR,
+        -527: s.SOLVER_ERROR,
+        -528: s.SOLVER_ERROR,
+        -529: s.SOLVER_ERROR,
+        -530: s.SOLVER_ERROR,
+        -531: s.SOLVER_ERROR,
+        -532: s.SOLVER_ERROR,
+        -600: s.SOLVER_ERROR,
     }
 
     def name(self):
         """
         The name of solver.
         """
-        return 'IPOPT'
+        return 'KNITRO'
 
     def import_solver(self):
         """
         Imports the solver.
         """
-        import cyipopt  # noqa F401
+        import knitro  # noqa F401
 
     def invert(self, solution, inverse_data):
         """
@@ -78,13 +120,6 @@ class IPOPT(NLPsolver):
         """
         attr = {}
         status = self.STATUS_MAP[solution['status']]
-        # the info object does not contain all the attributes we want
-        # see https://github.com/mechmotum/cyipopt/issues/17
-        # attr[s.SOLVE_TIME] = solution.solve_time
-        attr[s.NUM_ITERS] = solution['iterations']
-        # more detailed statistics here when available
-        # attr[s.EXTRA_STATS] = solution.extra.FOO
-    
         if status in s.SOLUTION_PRESENT:
             primal_val = solution['obj_val']
             opt_val = primal_val + inverse_data.offset
@@ -134,41 +169,7 @@ class IPOPT(NLPsolver):
         tuple
             (status, optimal value, primal, equality dual, inequality dual)
         """
-        import cyipopt
-        # Create oracles object
-        oracles = data["oracles"]
-        nlp = cyipopt.Problem(
-        n=len(data["x0"]),
-        m=len(data["cl"]),
-        problem_obj=oracles,
-        lb=data["lb"],
-        ub=data["ub"],
-        cl=data["cl"],
-        cu=data["cu"],
-        )
-        # Set default IPOPT options, but use solver_opts if provided
-        default_options = {
-            'mu_strategy': 'adaptive',
-            'tol': 1e-7,
-            'bound_relax_factor': 0.0,
-            'hessian_approximation': 'exact',
-            'derivative_test': 'first-order',
-            'least_square_init_duals': 'yes'
-        }
-        # Update defaults with user-provided options
-        if solver_opts:
-            default_options.update(solver_opts)
-        if not verbose and 'print_level' not in default_options:
-            default_options['print_level'] = 3
-        # Apply all options to the nlp object
-        for option_name, option_value in default_options.items():
-            nlp.add_option(option_name, option_value)
-
-        _, info = nlp.solve(data["x0"])
-
-        # add number of iterations to info dict from oracles
-        info['iterations'] = oracles.iterations
-        return info
+        raise NotImplementedError("KNITRO NLP interface is not yet implemented.")
 
     def cite(self, data):
         """Returns bibtex citation for the solver.
@@ -178,4 +179,4 @@ class IPOPT(NLPsolver):
         data : dict
             Data generated via an apply call.
         """
-        return CITATION_DICT["IPOPT"]
+        return CITATION_DICT["KNITRO"]

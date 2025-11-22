@@ -18,8 +18,8 @@ from functools import wraps
 from typing import Optional, Tuple
 
 import numpy as np
-from scipy.sparse import coo_matrix
 from numpy.exceptions import AxisError
+from scipy.sparse import coo_matrix
 
 import cvxpy.interface as intf
 import cvxpy.lin_ops.lin_op as lo

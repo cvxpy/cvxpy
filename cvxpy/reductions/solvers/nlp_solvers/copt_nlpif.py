@@ -22,12 +22,10 @@ from cvxpy.reductions.solvers.nlp_solvers.nlp_solver import NLPsolver
 from cvxpy.utilities.citations import CITATION_DICT
 
 
-class IPOPT(NLPsolver):
+class COPT(NLPsolver):
     """
-    NLP interface for the IPOPT solver
+    NLP interface for the COPT solver.
     """
-    # Map between IPOPT status and CVXPY status
-    # taken from https://github.com/jump-dev/Ipopt.jl/blob/master/src/C_wrapper.jl#L485-L511
     STATUS_MAP = {
         # Success cases
         0: s.OPTIMAL,                    # Solve_Succeeded
@@ -37,34 +35,13 @@ class IPOPT(NLPsolver):
         # Infeasibility/Unboundedness
         2: s.INFEASIBLE,                 # Infeasible_Problem_Detected
         4: s.UNBOUNDED,                  # Diverging_Iterates
-        
-        # Numerical/Algorithm issues
-        3: s.SOLVER_ERROR,               # Search_Direction_Becomes_Too_Small
-        -2: s.SOLVER_ERROR,              # Restoration_Failed
-        -3: s.SOLVER_ERROR,              # Error_In_Step_Computation
-        -13: s.SOLVER_ERROR,             # Invalid_Number_Detected
-        -100: s.SOLVER_ERROR,            # Unrecoverable_Exception
-        -101: s.SOLVER_ERROR,            # NonIpopt_Exception_Thrown
-        -199: s.SOLVER_ERROR,            # Internal_Error
-        
-        # User/Resource limits
-        5: s.USER_LIMIT,                 # User_Requested_Stop
-        -1: s.USER_LIMIT,                # Maximum_Iterations_Exceeded
-        -4: s.USER_LIMIT,                # Maximum_CpuTime_Exceeded
-        -5: s.USER_LIMIT,                # Maximum_WallTime_Exceeded
-        -102: s.USER_LIMIT,              # Insufficient_Memory
-        
-        # Problem definition issues
-        -10: s.SOLVER_ERROR,             # Not_Enough_Degrees_Of_Freedom
-        -11: s.SOLVER_ERROR,             # Invalid_Problem_Definition
-        -12: s.SOLVER_ERROR,             # Invalid_Option
     }
 
     def name(self):
         """
         The name of solver.
         """
-        return 'IPOPT'
+        return 'COPT'
 
     def import_solver(self):
         """
@@ -78,12 +55,7 @@ class IPOPT(NLPsolver):
         """
         attr = {}
         status = self.STATUS_MAP[solution['status']]
-        # the info object does not contain all the attributes we want
-        # see https://github.com/mechmotum/cyipopt/issues/17
-        # attr[s.SOLVE_TIME] = solution.solve_time
         attr[s.NUM_ITERS] = solution['iterations']
-        # more detailed statistics here when available
-        # attr[s.EXTRA_STATS] = solution.extra.FOO
     
         if status in s.SOLUTION_PRESENT:
             primal_val = solution['obj_val']
@@ -134,41 +106,7 @@ class IPOPT(NLPsolver):
         tuple
             (status, optimal value, primal, equality dual, inequality dual)
         """
-        import cyipopt
-        # Create oracles object
-        oracles = data["oracles"]
-        nlp = cyipopt.Problem(
-        n=len(data["x0"]),
-        m=len(data["cl"]),
-        problem_obj=oracles,
-        lb=data["lb"],
-        ub=data["ub"],
-        cl=data["cl"],
-        cu=data["cu"],
-        )
-        # Set default IPOPT options, but use solver_opts if provided
-        default_options = {
-            'mu_strategy': 'adaptive',
-            'tol': 1e-7,
-            'bound_relax_factor': 0.0,
-            'hessian_approximation': 'exact',
-            'derivative_test': 'first-order',
-            'least_square_init_duals': 'yes'
-        }
-        # Update defaults with user-provided options
-        if solver_opts:
-            default_options.update(solver_opts)
-        if not verbose and 'print_level' not in default_options:
-            default_options['print_level'] = 3
-        # Apply all options to the nlp object
-        for option_name, option_value in default_options.items():
-            nlp.add_option(option_name, option_value)
-
-        _, info = nlp.solve(data["x0"])
-
-        # add number of iterations to info dict from oracles
-        info['iterations'] = oracles.iterations
-        return info
+        raise NotImplementedError("COPT NLP interface is not yet implemented.")
 
     def cite(self, data):
         """Returns bibtex citation for the solver.
@@ -178,4 +116,4 @@ class IPOPT(NLPsolver):
         data : dict
             Data generated via an apply call.
         """
-        return CITATION_DICT["IPOPT"]
+        return CITATION_DICT["COPT"]

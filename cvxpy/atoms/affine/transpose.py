@@ -117,14 +117,16 @@ class transpose(AffAtom):
         return True
 
     def _hess_vec(self, vec):
-        return self.args.hess_vec(vec.reshape((self.args[0].shape), order='F').T.reshape(-1, order='F'))
+        return self.args.hess_vec(
+            vec.reshape((self.args[0].shape), order='F').T.reshape(-1, order='F')
+        )
 
     def _jacobian(self):
         jac = self.args[0].jacobian()
         for k, (rows, cols, vals) in jac.items():
-            jac[k] = (rows.reshape(self.args[0].shape, order='F').T.reshape(-1, order='F'), cols, vals)
+            reshaped_rows = rows.reshape(self.args[0].shape, order='F').T.reshape(-1, order='F')
+            jac[k] = (reshaped_rows, cols, vals)
         return jac
-
 
 
 def permute_dims(expr, axes: List[int]):

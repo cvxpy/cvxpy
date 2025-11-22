@@ -255,8 +255,7 @@ class TestExamplesIPOPT:
         true_sol = np.array([[ 1.73655994, -1.98685738,  2.57208783],  
                              [ 1.99273311, -1.67415425, -2.57208783]])
         assert np.allclose(centers.value, true_sol)
-        
-    
+
 
 @pytest.mark.skipif('IPOPT' not in INSTALLED_SOLVERS, reason='IPOPT is not installed.')
 class TestNonlinearControl:
