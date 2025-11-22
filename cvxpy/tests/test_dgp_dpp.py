@@ -77,3 +77,24 @@ class TestDgpDpp(BaseTest):
         # But solve should raise if values not set
         with pytest.raises(ParameterError, match="must have.*value.*before solving"):
             problem.solve(SOLVER, gp=True, enforce_dpp=True)
+
+    def test_non_dpp_mode_with_ignore_dpp_flag(self) -> None:
+        """DGP problems work correctly with ignore_dpp=True (non-DPP mode).
+
+        This tests backward compatibility: even though the DGP canonicalization
+        now supports DPP, forcing non-DPP treatment with ignore_dpp=True should
+        still work correctly when parameters have values.
+        """
+        alpha = cp.Parameter(pos=True, value=1.0)
+        x = cp.Variable(pos=True)
+        problem = cp.Problem(cp.Minimize(x), [x >= alpha])
+
+        # Problem is DPP-compatible but we force non-DPP treatment
+        assert problem.is_dpp('dgp')
+        problem.solve(SOLVER, gp=True, ignore_dpp=True)
+        self.assertAlmostEqual(x.value, 1.0, places=4)
+
+        # Update parameter and solve again with ignore_dpp
+        alpha.value = 3.0
+        problem.solve(SOLVER, gp=True, ignore_dpp=True)
+        self.assertAlmostEqual(x.value, 3.0, places=4)
