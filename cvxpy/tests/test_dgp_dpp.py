@@ -1,12 +1,8 @@
 """
 Tests for DGP (Disciplined Geometric Programming) with DPP (Disciplined Parametrized Programming).
 
-This verifies the fix for issue #3004: DGP problems can now use DPP, allowing
-parameters to be defined without initial values and canonicalized via get_problem_data
-before parameter values are bound at solve time.
-
-The key fix: DGP canonicalization now defers log transformation of parameters until
-solve time, matching DCP DPP behavior.
+This verifies the fix for issue #3004: DGP problems can now have get_problem_data(gp=True)
+called without all parameters having values.
 """
 import pytest
 
