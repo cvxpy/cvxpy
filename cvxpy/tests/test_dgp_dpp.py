@@ -2,7 +2,7 @@
 Tests for DGP (Disciplined Geometric Programming) with DPP (Disciplined Parametrized Programming).
 
 This verifies the fix for issue #3004: DGP problems can now have get_problem_data(gp=True)
-called without all parameters having values.
+called without all parameters having values. This is useful when the problem is DPP.
 """
 import pytest
 
@@ -21,7 +21,7 @@ class TestDgpDpp(BaseTest):
 
         This was the original failure case in issue #3004. Previously, DGP
         canonicalization eagerly evaluated np.log(param.value), failing when
-        param.value was None. Now it defers log transformation until solve time.
+        param.value was None.
         """
         alpha = cp.Parameter(pos=True)  # No value set
         x = cp.Variable(pos=True)
