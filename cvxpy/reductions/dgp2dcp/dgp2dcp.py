@@ -62,8 +62,7 @@ class Dgp2Dcp(Canonicalization):
     def accepts(self, problem):
         """A problem is accepted if it is DGP.
         """
-        return problem.is_dgp() and all(
-            p.value is not None for p in problem.parameters())
+        return problem.is_dgp()
 
     def apply(self, problem):
         """Converts a DGP problem to a DCP problem.

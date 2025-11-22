@@ -135,7 +135,9 @@ class DgpCanonMethods(dict):
         if parameter in self._parameters:
             return self._parameters[parameter], []
         else:
-            log_parameter = Parameter(parameter.shape, name=parameter.name(),
-                                      value=np.log(parameter.value))
+            # Replace parameters with their logs.
+            log_parameter = Parameter(parameter.shape, name=parameter.name())
+            if parameter.value is not None:
+                log_parameter.value = np.log(parameter.value)
             self._parameters[parameter] = log_parameter
             return log_parameter, []
