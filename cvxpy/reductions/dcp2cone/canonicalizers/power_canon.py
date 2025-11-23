@@ -18,10 +18,18 @@ import numpy as np
 
 from cvxpy.expressions.constants import Constant
 from cvxpy.expressions.variable import Variable
-from cvxpy.utilities.power_tools import gm_constrs
+from cvxpy.utilities.power_tools import gm_constrs, powcone_constrs
 
 
 def power_canon(expr, args):
+    approx = expr._approx
+    if approx:
+        return power_canon_approx(expr, args)
+    else:
+        return power_canon_cone(expr, args)
+
+
+def power_canon_approx(expr, args):
     x = args[0]
     p = expr.p_rational
     w = expr.w
@@ -45,3 +53,33 @@ def power_canon(expr, args):
             return t, gm_constrs(ones, [x, t], w)
         else:
             raise NotImplementedError('This power is not yet supported.')
+
+
+def power_canon_cone(expr, args):
+    x = args[0]
+    p = expr.p_rational
+    w = expr.w[0]
+
+    if p == 1:
+        return x, []
+
+    shape = expr.shape
+    ones = Constant(np.ones(shape))
+    if p == 0:
+        return ones, []
+    else:
+        t = Variable(shape)
+
+        if 0 < p < 1:
+            return t, powcone_constrs(t, [x, ones], w)
+        elif p > 1:
+            constrs = powcone_constrs(x, [t, ones], w)
+            if p % 2 != 0:
+                # noneven numerator: add x >= 0 constraint.
+                constrs += [x >= 0]
+            return t, constrs
+        elif p < 0:
+            return t, powcone_constrs(ones, [x, t], w)
+        else:
+            raise NotImplementedError('This power is not yet supported.')
+
