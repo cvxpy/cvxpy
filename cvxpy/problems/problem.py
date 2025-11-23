@@ -56,6 +56,7 @@ from cvxpy.settings import SOLVERS
 from cvxpy.utilities import debug_tools
 from cvxpy.utilities.citations import CITATION_DICT
 from cvxpy.utilities.deterministic import unique_list
+from cvxpy.utilities.solver_context import SolverInfo
 
 SolveResult = namedtuple(
     'SolveResult',
@@ -189,8 +190,7 @@ class Problem(u.Canonical):
         self.ndim = 0
 
         # solver_context : The solver context: supported constrains and bounds.
-        # NOTE: solver_context is currently only passed to power_canon.
-        self.solver_context = None
+        self.solver_context : Optional[SolverInfo] = None
 
     @perf.compute_once
     def _aggregate_metrics(self) -> dict:

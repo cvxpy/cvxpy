@@ -41,7 +41,6 @@ class Dcp2Cone(Canonicalization):
         self.quad_obj = quad_obj
 
         # solver_context : The solver context: supported constrains and bounds.
-        # NOTE: solver_context is currently only passed to power_canon.
         self.solver_context = None
 
     def accepts(self, problem):
