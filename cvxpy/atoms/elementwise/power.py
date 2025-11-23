@@ -130,7 +130,8 @@ class power(Elementwise):
         of ``p``; only relevant when solving as a DCP program.
     """
 
-    def __init__(self, x, p, max_denom: int = 1024, _approx: bool = True) -> None:
+    def __init__(self, x, p, max_denom: int = 1024, approx: bool = True) -> None:
+
         self._p_orig = p
         # NB: It is important that the exponent is an attribute, not
         # an argument. This prevents parametrized exponents from being replaced
