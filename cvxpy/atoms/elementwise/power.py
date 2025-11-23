@@ -405,7 +405,7 @@ class power(Elementwise):
             return []
 
     def get_data(self):
-        return [self._p_orig, self.max_denom]
+        return [self._p_orig, self.max_denom, self._approx]
 
     def copy(self, args=None, id_objects=None) -> "power":
         """Returns a shallow copy of the power atom.
