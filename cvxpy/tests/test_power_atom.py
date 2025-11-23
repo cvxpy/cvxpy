@@ -118,7 +118,12 @@ class TestPowerAtom(BaseTest):
         self.assertItemsAlmostEqual(x.value, x_approx, places=3)
 
     def test_power_no_approx_unsupported_solver(self) -> None:
-        """Test power atom without approximation, using unsupported solver."""
+        """
+        Test power atom without approximation, using unsupported solver.
+        This tests is skipped if CVXOPT is not installed.
+        """
+        if cp.CVXOPT not in cp.installed_solvers():
+            self.skipTest("CVXOPT not installed.")
         x = cp.Variable(3)
         constr = [cp.power(x, 3.3, approx=False) <= np.ones(3)]
         prob = cp.Problem(cp.Minimize(x[0] + x[1] - x[2]), constr)
