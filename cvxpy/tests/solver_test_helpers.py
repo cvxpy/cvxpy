@@ -1225,6 +1225,13 @@ class StandardTestLPs:
         sth.verify_primal_values(places)
         return sth
 
+    @staticmethod
+    def test_mi_lp_6(solver, places: int = 4, **kwargs) -> SolverTestHelper:
+        sth = mi_lp_6()
+        sth.solve(solver, **kwargs)
+        sth.verify_objective(places)
+        sth.verify_primal_values(places)
+        return sth
 
 class StandardTestQPs:
 
