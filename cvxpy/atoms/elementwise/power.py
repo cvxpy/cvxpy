@@ -131,8 +131,6 @@ class power(Elementwise):
     """
 
     def __init__(self, x, p, max_denom: int = 1024, _approx: bool = True) -> None:
-        # NOTE: set approx to True after PR check. 
-        # TODO: change back to False once per-solver checks are incorporated.
         self._p_orig = p
         # NB: It is important that the exponent is an attribute, not
         # an argument. This prevents parametrized exponents from being replaced
