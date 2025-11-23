@@ -432,4 +432,3 @@ class power(Elementwise):
             return self._label
         return f"{type(self).__name__}({self.args[0].format_labeled()}, {self.p.value})"
 
-        
