@@ -49,7 +49,7 @@ def nonpos2nonneg(nonpos):
     return NonNeg(-nonpos.expr, constr_id=nonpos.constr_id)
 
 
-def special_index_canon(expr, args):
+def special_index_canon(expr, args, solver_context=None):
     select_mat = expr._select_mat
     final_shape = expr._select_mat.shape
     select_vec = np.reshape(select_mat, select_mat.size, order='F')

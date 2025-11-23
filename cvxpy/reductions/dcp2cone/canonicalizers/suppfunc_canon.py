@@ -7,7 +7,7 @@ from cvxpy.reductions.solvers.conic_solvers.scs_conif import (
 )
 
 
-def suppfunc_canon(expr, args):
+def suppfunc_canon(expr, args, solver_context=None):
     y = args[0].flatten(order='F')
     # ^ That's the user-supplied argument to the support function.
     parent = expr._parent

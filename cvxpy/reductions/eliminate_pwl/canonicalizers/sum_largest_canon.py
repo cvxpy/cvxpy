@@ -18,7 +18,7 @@ from cvxpy.atoms.affine.sum import sum
 from cvxpy.expressions.variable import Variable
 
 
-def sum_largest_canon(expr, args):
+def sum_largest_canon(expr, args, solver_context=None):
     x = args[0]
     k = expr.k
 

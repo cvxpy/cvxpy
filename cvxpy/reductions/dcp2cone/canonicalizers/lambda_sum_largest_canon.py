@@ -21,7 +21,7 @@ from cvxpy.reductions.dcp2cone.canonicalizers.lambda_max_canon import (
 )
 
 
-def lambda_sum_largest_canon(expr, args):
+def lambda_sum_largest_canon(expr, args, solver_context=None):
     """
     S_k(X) denotes lambda_sum_largest(X, k)
     t >= k S_k(X - Z) + trace(Z), Z is PSD

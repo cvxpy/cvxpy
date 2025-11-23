@@ -22,7 +22,7 @@ from cvxpy.expressions.constants import Constant
 from cvxpy.expressions.variable import Variable
 
 
-def exp_canon(expr, args):
+def exp_canon(expr, args, solver_context=None):
     x = promote(args[0], expr.shape)
     t = Variable(expr.shape)
     ones = Constant(np.ones(expr.shape))

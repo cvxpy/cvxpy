@@ -23,7 +23,7 @@ from cvxpy.reductions.qp2quad_form.canonicalizers.power_canon import (
 )
 
 
-def huber_canon(expr, args):
+def huber_canon(expr, args, solver_context=None):
     M = expr.M
     x = args[0]
     shape = expr.shape

@@ -3,7 +3,7 @@ from cvxpy.utilities import scopes
 
 
 # TODO(akshayka): expose as a reduction for user's convenience
-def mul_canon(expr, args):
+def mul_canon(expr, args, solver_context=None):
     # Only allow param * var (not var * param). Associate right to left.
     # TODO: Only descend if both sides have parameters
     lhs = args[0]

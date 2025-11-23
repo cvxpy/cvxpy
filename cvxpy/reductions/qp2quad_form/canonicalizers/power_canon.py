@@ -22,7 +22,7 @@ from cvxpy.expressions.constants import Constant
 from cvxpy.expressions.variable import Variable
 
 
-def power_canon(expr, args):
+def power_canon(expr, args, solver_context=None):
     affine_expr = args[0]
     p = float(expr.p.value)
     if expr.is_constant():

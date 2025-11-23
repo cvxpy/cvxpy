@@ -22,7 +22,7 @@ from cvxpy.reductions.dcp2cone.canonicalizers.quad_over_lin_canon import (
 )
 
 
-def quad_form_canon(expr, args):
+def quad_form_canon(expr, args, solver_context=None):
     # TODO this doesn't work with parameters!
     scale, M1, M2 = decomp_quad(args[1].value)
     # Special case where P == 0.

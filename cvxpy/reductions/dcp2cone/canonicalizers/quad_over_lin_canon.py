@@ -19,7 +19,7 @@ from cvxpy.constraints.second_order import SOC
 from cvxpy.expressions.variable import Variable
 
 
-def quad_over_lin_canon(expr, args):
+def quad_over_lin_canon(expr, args, solver_context=None):
     # quad_over_lin := sum_{ij} X^2_{ij} / y
     x = args[0]
     y = args[1].flatten(order='F')

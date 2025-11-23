@@ -20,7 +20,7 @@ from cvxpy.atoms.affine.bmat import bmat
 from cvxpy.expressions.variable import Variable
 
 
-def tr_inv_canon(expr, args):
+def tr_inv_canon(expr, args, solver_context=None):
     """Reduces the atom to an affine expression and list of constraints.
 
     Creates the equivalent problem::

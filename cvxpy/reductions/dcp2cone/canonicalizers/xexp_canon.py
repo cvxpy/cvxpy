@@ -20,7 +20,7 @@ from cvxpy.expressions.variable import Variable
 from cvxpy.reductions.dcp2cone.canonicalizers.power_canon import power_canon
 
 
-def xexp_canon(expr, args):
+def xexp_canon(expr, args, solver_context=None):
     x = args[0]
     u = Variable(expr.shape, nonneg=True)
     t = Variable(expr.shape, nonneg=True)

@@ -18,7 +18,7 @@ from cvxpy.atoms.affine.wraps import nonneg_wrap, nonpos_wrap
 from cvxpy.expressions.variable import Variable
 
 
-def maximum_canon(expr, args):
+def maximum_canon(expr, args, solver_context=None):
     shape = expr.shape
     t = Variable(shape)
     

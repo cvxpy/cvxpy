@@ -18,7 +18,7 @@ from cvxpy.expressions.variable import Variable
 from cvxpy.utilities.power_tools import gm_constrs
 
 
-def geo_mean_canon(expr, args):
+def geo_mean_canon(expr, args, solver_context=None):
     x = args[0]
     w = expr.w
     shape = expr.shape

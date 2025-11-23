@@ -17,5 +17,5 @@ limitations under the License.
 from cvxpy.expressions.constants import Constant
 
 
-def indicator_canon(expr, args):
+def indicator_canon(expr, args, solver_context=None):
     return Constant(0), args

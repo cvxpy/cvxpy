@@ -21,7 +21,7 @@ from cvxpy.reductions.dcp2cone.canonicalizers.power_canon import power_canon
 from cvxpy.reductions.eliminate_pwl.canonicalizers.abs_canon import abs_canon
 
 
-def huber_canon(expr, args):
+def huber_canon(expr, args, solver_context=None):
     M = expr.M
     x = args[0]
     shape = expr.shape

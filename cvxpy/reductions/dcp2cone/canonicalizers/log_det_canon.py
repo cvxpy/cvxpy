@@ -24,7 +24,7 @@ from cvxpy.expressions.variable import Variable
 from cvxpy.reductions.dcp2cone.canonicalizers.log_canon import log_canon
 
 
-def log_det_canon(expr, args):
+def log_det_canon(expr, args, solver_context=None):
     """Reduces the atom to an affine expression and list of constraints.
 
     Creates the equivalent problem::
