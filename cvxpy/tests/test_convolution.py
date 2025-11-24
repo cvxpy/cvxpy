@@ -187,3 +187,21 @@ class TestConvolution(BaseTest):
             )
             problem.solve(solver=cp.CLARABEL)
             assert problem.status == cp.OPTIMAL
+
+    def test_sparse_convolution(self) -> None:
+        # This tests for a regression in the Scipy backend, where
+        # an intermediate matrix is converted into a sparse matrix, leading
+        # to a mismatch in the dimension in case any values get dropped
+        # due to sparsity.
+        a = np.array([0.0, 1.0])
+        b = cp.Variable(2)
+        product = cp.convolve(a, b)
+        # The goal does not matter
+        prob = cp.Problem(cp.Minimize(cp.norm(product)))
+        # This used to crash
+        prob.solve(solver="CLARABEL")
+
+        c = np.array([1.0, 0.0, 2.0])
+        r = cp.convolve(a, c)
+        expected = np.array([0.0, 1.0, 0.0, 2.0])
+        self.assertItemsAlmostEqual(r.value, expected, places=10)

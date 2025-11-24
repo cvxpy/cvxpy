@@ -1556,9 +1556,10 @@ class SciPyCanonBackend(PythonCanonBackend):
 
         rows = lin.shape[0]
         cols = lin.args[0].shape[0] if len(lin.args[0].shape) > 0 else 1
-        nonzeros = lhs.shape[0]
 
         lhs = lhs.tocoo()
+        nonzeros = lhs.nnz
+
         row_idx = (np.tile(lhs.row, cols) + np.repeat(np.arange(cols), nonzeros)).astype(int)
         col_idx = (np.tile(lhs.col, cols) + np.repeat(np.arange(cols), nonzeros)).astype(int)
         data = np.tile(lhs.data, cols)
