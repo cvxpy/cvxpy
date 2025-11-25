@@ -79,6 +79,59 @@ class QPTestBase(BaseTest):
         """Override in subclasses."""
         raise NotImplementedError
 
+    # License checking helpers - shared by subclasses
+    @staticmethod
+    def is_mosek_available():
+        """Check if MOSEK is installed and a license is available."""
+        if 'MOSEK' not in INSTALLED_SOLVERS:
+            return False
+        try:
+            import mosek  # type: ignore
+            env = mosek.Env()
+            status = env.getlicense()
+            return status == mosek.rescode.ok
+        except Exception:
+            return False
+
+    @staticmethod
+    def is_knitro_available():
+        """Check if KNITRO is installed and a license is available."""
+        if 'KNITRO' not in INSTALLED_SOLVERS:
+            return False
+        try:
+            import knitro  # type: ignore
+            kc = knitro.KN_new()
+            if kc is None:
+                return False
+            knitro.KN_free(kc)
+            return True
+        except Exception:
+            return False
+
+    @staticmethod
+    def is_xpress_available():
+        """Check if XPRESS is installed and a license is available."""
+        if 'XPRESS' not in INSTALLED_SOLVERS:
+            return False
+        try:
+            import xpress  # type: ignore
+            env = xpress.env()
+            status = env.getlicense()
+            return status == 0
+        except Exception:
+            return False
+
+    def filter_licensed_solvers(self, solvers):
+        """Remove solvers that don't have valid licenses."""
+        result = list(solvers)
+        if 'XPRESS' in result and not self.is_xpress_available():
+            result.remove('XPRESS')
+        if 'MOSEK' in result and not self.is_mosek_available():
+            result.remove('MOSEK')
+        if 'KNITRO' in result and not self.is_knitro_available():
+            result.remove('KNITRO')
+        return result
+
     # Test helper methods - shared by all subclasses
     def quad_over_lin(self, solver) -> None:
         p = Problem(Minimize(0.5 * quad_over_lin(abs(self.x-1), 1)),
@@ -418,54 +471,7 @@ class TestQp(QPTestBase):
 
         # Check for all installed QP solvers
         self.solvers = [x for x in QP_SOLVERS if x in INSTALLED_SOLVERS]
-
-        def is_mosek_available():
-            """Check if MOSEK is installed and a license is available."""
-            if 'MOSEK' not in INSTALLED_SOLVERS:
-                return False
-            try:
-                import mosek  # type: ignore
-                env = mosek.Env()
-                # Try to get license status (returns 0 if OK)
-                status = env.getlicense()
-                return status == mosek.rescode.ok
-            except Exception:
-                return False
-
-        def is_knitro_available():
-            """Check if KNITRO is installed and a license is available."""
-            if 'KNITRO' not in INSTALLED_SOLVERS:
-                return False
-            try:
-                import knitro  # type: ignore
-                # Try to create and delete a Knitro solver instance
-                kc = knitro.KN_new()
-                if kc is None:
-                    return False
-                knitro.KN_free(kc)
-                return True
-            except Exception:
-                return False
-
-        def is_xpress_available():
-            """Check if XPRESS is installed and a license is available."""
-            if 'XPRESS' not in INSTALLED_SOLVERS:
-                return False
-            try:
-                import xpress  # type: ignore
-                env = xpress.env()
-                status = env.getlicense()
-                return status == 0
-            except Exception:
-                return False
-
-        # Remove solvers if license is not available
-        if 'XPRESS' in self.solvers and not is_xpress_available():
-            self.solvers.remove('XPRESS')
-        if 'MOSEK' in self.solvers and not is_mosek_available():
-            self.solvers.remove('MOSEK')
-        if 'KNITRO' in self.solvers and not is_knitro_available():
-            self.solvers.remove('KNITRO')
+        self.solvers = self.filter_licensed_solvers(self.solvers)
 
     def solve_QP(self, problem, solver_name):
         return problem.solve(solver=solver_name, verbose=False)
@@ -809,6 +815,7 @@ class TestConicQuadObj(QPTestBase):
             if solver in SOLVER_MAP_CONIC
             and SOLVER_MAP_CONIC[solver].supports_quad_obj()
         ]
+        self.solvers = self.filter_licensed_solvers(self.solvers)
 
     def solve_QP(self, problem, solver_name):
         """Solve with use_quad_obj=True and verify no SOC cones are introduced."""
