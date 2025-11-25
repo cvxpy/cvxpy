@@ -45,8 +45,8 @@ from cvxpy.tests.base_test import BaseTest
 from cvxpy.tests.solver_test_helpers import StandardTestLPs, StandardTestQPs
 
 
-class TestQp(BaseTest):
-    """ Unit tests for the domain module. """
+class QPTestBase(BaseTest):
+    """Base class with shared test helpers for QP-style problems."""
 
     def setUp(self) -> None:
         self.a = Variable(name='a')
@@ -75,428 +75,11 @@ class TestQp(BaseTest):
         self.xsr = Variable(50, name='xsr')
         self.xef = Variable(80, name='xef')
 
-        # Check for all installed QP solvers
-        self.solvers = [x for x in QP_SOLVERS if x in INSTALLED_SOLVERS]
-
-        # Conic solvers that support quadratic objectives (kept separate)
-        self.conic_solvers_with_quad_obj = [
-            solver for solver in INSTALLED_CONIC_SOLVERS
-            if solver in SOLVER_MAP_CONIC
-            and SOLVER_MAP_CONIC[solver].supports_quad_obj()
-        ]
-
-        def is_mosek_available():
-            """Check if MOSEK is installed and a license is available."""
-            if 'MOSEK' not in INSTALLED_SOLVERS:
-                return False
-            try:
-                import mosek  # type: ignore
-                env = mosek.Env()
-                # Try to get license status (returns 0 if OK)
-                status = env.getlicense()
-                return status == mosek.rescode.ok
-            except Exception:
-                return False
-
-        def is_knitro_available():
-            """Check if KNITRO is installed and a license is available."""
-            if 'KNITRO' not in INSTALLED_SOLVERS:
-                return False
-            try:
-                import knitro  # type: ignore
-                # Try to create and delete a Knitro solver instance
-                kc = knitro.KN_new()
-                if kc is None:
-                    return False
-                knitro.KN_free(kc)
-                return True
-            except Exception:
-                return False
-
-        def is_xpress_available():
-            """Check if XPRESS is installed and a license is available."""
-            if 'XPRESS' not in INSTALLED_SOLVERS:
-                return False
-            try:
-                import xpress  # type: ignore
-                env = xpress.env()
-                status = env.getlicense()
-                return status == 0
-            except Exception:
-                return False
-        # Remove XPRESS if license is not available
-        if 'XPRESS' in self.solvers and not is_xpress_available():
-            self.solvers.remove('XPRESS')
-        if 'MOSEK' in self.solvers and not is_mosek_available():
-            self.solvers.remove('MOSEK')
-        if 'KNITRO' in self.solvers and not is_knitro_available():
-            self.solvers.remove('KNITRO')
-
     def solve_QP(self, problem, solver_name):
-        return problem.solve(solver=solver_name, verbose=False)
+        """Override in subclasses."""
+        raise NotImplementedError
 
-    def solve_QP_conic(self, problem, solver_name):
-        """Solve with use_quad_obj=True and verify no SOC cones are introduced."""
-        data, _, _ = problem.get_problem_data(
-            solver_name,
-            solver_opts={"use_quad_obj": True}
-        )
-        self.assertEqual(data["dims"].soc, [],
-            f"Problem should have no SOC cones for QP canonicalization with {solver_name}")
-        return problem.solve(solver=solver_name, use_quad_obj=True, verbose=False)
-
-    def test_all_solvers(self) -> None:
-        for solver in self.solvers:
-            self.quad_over_lin(solver)
-            self.power(solver)
-            self.power_matrix(solver)
-            self.square_affine(solver)
-            self.quad_form(solver)
-            self.affine_problem(solver)
-            self.maximize_problem(solver)
-            self.abs(solver)
-
-            # Do we need the following functionality?
-            # self.norm_2(solver)
-            # self.mat_norm_2(solver)
-
-            self.quad_form_coeff(solver)
-            self.quad_form_bound(solver)
-            self.regression_1(solver)
-            self.regression_2(solver)
-            self.rep_quad_form(solver)
-
-            # slow tests:
-            self.control(solver)
-            self.sparse_system(solver)
-            self.smooth_ridge(solver)
-            self.huber_small(solver)
-            self.huber(solver)
-            self.equivalent_forms_1(solver)
-            self.equivalent_forms_2(solver)
-            self.equivalent_forms_3(solver)
-
-    def test_conic_solvers_quad_obj(self) -> None:
-        """Test conic solvers with use_quad_obj=True.
-
-        Only runs tests that have constraints (filtering out unconstrained
-        problems for solvers with REQUIRES_CONSTR=True).
-
-        Tests with m=0 after canonicalization (skip for REQUIRES_CONSTR solvers):
-        - power, quad_form, quad_form_coeff, rep_quad_form
-        """
-        for solver in self.conic_solvers_with_quad_obj:
-            requires_constr = SOLVER_MAP_CONIC[solver].REQUIRES_CONSTR
-
-            self.quad_over_lin_conic(solver)
-            if not requires_constr:
-                self.power_conic(solver)
-            self.power_matrix_conic(solver)
-            self.square_affine_conic(solver)
-            if not requires_constr:
-                self.quad_form_conic(solver)
-            self.affine_problem_conic(solver)
-            self.maximize_problem_conic(solver)
-            self.abs_conic(solver)
-            if not requires_constr:
-                self.quad_form_coeff_conic(solver)
-            self.quad_form_bound_conic(solver)
-            self.regression_1_conic(solver)
-            self.regression_2_conic(solver)
-            if not requires_constr:
-                self.rep_quad_form_conic(solver)
-            self.control_conic(solver)
-            self.sparse_system_conic(solver)
-            self.smooth_ridge_conic(solver)
-            self.huber_small_conic(solver)
-            self.huber_conic(solver)
-            self.equivalent_forms_1_conic(solver)
-            self.equivalent_forms_2_conic(solver)
-            self.equivalent_forms_3_conic(solver)
-
-    # Conic solver test methods with use_quad_obj=True
-    def quad_over_lin_conic(self, solver) -> None:
-        p = Problem(Minimize(0.5 * quad_over_lin(abs(self.x-1), 1)),
-                    [self.x <= -1])
-        self.solve_QP_conic(p, solver)
-        for var in p.variables():
-            self.assertItemsAlmostEqual(np.array([-1., -1.]),
-                                        var.value, places=4)
-
-    def power_conic(self, solver) -> None:
-        p = Problem(Minimize(sum(power(self.x, 2))), [])
-        self.solve_QP_conic(p, solver)
-        for var in p.variables():
-            self.assertItemsAlmostEqual([0., 0.], var.value, places=4)
-
-    def power_matrix_conic(self, solver) -> None:
-        p = Problem(Minimize(sum(power(self.A - 3., 2))), [])
-        self.solve_QP_conic(p, solver)
-        for var in p.variables():
-            self.assertItemsAlmostEqual([3., 3., 3., 3.],
-                                        var.value, places=4)
-
-    def square_affine_conic(self, solver) -> None:
-        A = np.random.randn(10, 2)
-        b = np.random.randn(10)
-        p = Problem(Minimize(sum_squares(A @ self.x - b)))
-        self.solve_QP_conic(p, solver)
-        for var in p.variables():
-            self.assertItemsAlmostEqual(lstsq(A, b)[0].flatten(order='F'), var.value,
-                                        places=1)
-
-    def quad_form_conic(self, solver) -> None:
-        np.random.seed(0)
-        A = np.random.randn(5, 5)
-        z = np.random.randn(5)
-        P = A.T.dot(A)
-        q = -2*P.dot(z)
-        p = Problem(Minimize(QuadForm(self.w, P) + q.T @ self.w))
-        self.solve_QP_conic(p, solver)
-        for var in p.variables():
-            self.assertItemsAlmostEqual(z, var.value, places=4)
-
-    def affine_problem_conic(self, solver) -> None:
-        A = np.random.randn(5, 2)
-        A = np.maximum(A, 0)
-        b = np.random.randn(5)
-        b = np.maximum(b, 0)
-        p = Problem(Minimize(sum(self.x)), [self.x >= 0, A @ self.x <= b])
-        self.solve_QP_conic(p, solver)
-        for var in p.variables():
-            self.assertItemsAlmostEqual([0., 0.], var.value, places=3)
-
-    def maximize_problem_conic(self, solver) -> None:
-        A = np.random.randn(5, 2)
-        A = np.maximum(A, 0)
-        b = np.random.randn(5)
-        b = np.maximum(b, 0)
-        p = Problem(Maximize(-sum(self.x)), [self.x >= 0, A @ self.x <= b])
-        self.solve_QP_conic(p, solver)
-        for var in p.variables():
-            self.assertItemsAlmostEqual([0., 0.], var.value, places=3)
-
-    def abs_conic(self, solver) -> None:
-        u = Variable(2)
-        constr = []
-        constr += [abs(u[1] - u[0]) <= 100]
-        prob = Problem(Minimize(sum_squares(u)), constr)
-        self.assertEqual(prob.is_qp(), True)
-        result = prob.solve(solver=solver, use_quad_obj=True)
-        self.assertAlmostEqual(result, 0)
-
-    def quad_form_coeff_conic(self, solver) -> None:
-        np.random.seed(0)
-        A = np.random.randn(5, 5)
-        z = np.random.randn(5)
-        P = A.T.dot(A)
-        q = -2*P.dot(z)
-        p = Problem(Minimize(QuadForm(self.w, P) + q.T @ self.w))
-        self.solve_QP_conic(p, solver)
-        for var in p.variables():
-            self.assertItemsAlmostEqual(z, var.value, places=4)
-
-    def quad_form_bound_conic(self, solver) -> None:
-        P = np.array([[13, 12, -2], [12, 17, 6], [-2, 6, 12]])
-        q = np.array([[-22], [-14.5], [13]])
-        r = 1
-        y_star = np.array([[1], [0.5], [-1]])
-        p = Problem(Minimize(0.5*QuadForm(self.y, P) + q.T @ self.y + r),
-                    [self.y >= -1, self.y <= 1])
-        self.solve_QP_conic(p, solver)
-        for var in p.variables():
-            self.assertItemsAlmostEqual(y_star, var.value, places=4)
-
-    def regression_1_conic(self, solver) -> None:
-        np.random.seed(1)
-        n = 100
-        true_coeffs = np.array([[2, -2, 0.5]]).T
-        x_data = np.random.rand(n) * 5
-        x_data = np.atleast_2d(x_data)
-        x_data_expanded = np.vstack([np.power(x_data, i)
-                                     for i in range(1, 4)])
-        x_data_expanded = np.atleast_2d(x_data_expanded)
-        y_data = x_data_expanded.T.dot(true_coeffs) + 0.5 * np.random.rand(n, 1)
-        y_data = np.atleast_2d(y_data)
-
-        line = self.offset + x_data * self.slope
-        residuals = line.T - y_data
-        fit_error = sum_squares(residuals)
-        p = Problem(Minimize(fit_error), [])
-        self.solve_QP_conic(p, solver)
-        self.assertAlmostEqual(1171.60037715, p.value, places=4)
-
-    def regression_2_conic(self, solver) -> None:
-        np.random.seed(1)
-        n = 100
-        true_coeffs = np.array([2, -2, 0.5])
-        x_data = np.random.rand(n) * 5
-        x_data_expanded = np.vstack([np.power(x_data, i)
-                                     for i in range(1, 4)])
-        y_data = x_data_expanded.T.dot(true_coeffs) + 0.5 * np.random.rand(n)
-
-        quadratic = self.offset + x_data * self.slope + \
-            self.quadratic_coeff*np.power(x_data, 2)
-        residuals = quadratic.T - y_data
-        fit_error = sum_squares(residuals)
-        p = Problem(Minimize(fit_error), [])
-        self.solve_QP_conic(p, solver)
-        self.assertAlmostEqual(139.225660756, p.value, places=4)
-
-    def rep_quad_form_conic(self, solver) -> None:
-        np.random.seed(0)
-        A = np.random.randn(5, 5)
-        z = np.random.randn(5)
-        P = A.T.dot(A)
-        q = -2*P.dot(z)
-        qf = QuadForm(self.w, P)
-        p = Problem(Minimize(0.5*qf + 0.5*qf + q.T @ self.w))
-        self.solve_QP_conic(p, solver)
-        for var in p.variables():
-            self.assertItemsAlmostEqual(z, var.value, places=4)
-
-    def control_conic(self, solver) -> None:
-        initial_velocity = np.array([-20, 100])
-        final_position = np.array([100, 100])
-        T = 30
-        h = 0.1
-        mass = 1
-        drag = 0.1
-        g = np.array([0, -9.8])
-        constraints = []
-        for i in range(T - 1):
-            constraints += [self.position[:, i + 1] == self.position[:, i] +
-                            h * self.velocity[:, i]]
-            acceleration = self.force[:, i]/mass + g - \
-                drag * self.velocity[:, i]
-            constraints += [self.velocity[:, i + 1] == self.velocity[:, i] +
-                            h * acceleration]
-        constraints += [self.position[:, 0] == 0]
-        constraints += [self.position[:, -1] == final_position]
-        constraints += [self.velocity[:, 0] == initial_velocity]
-        constraints += [self.velocity[:, -1] == 0]
-        p = Problem(Minimize(.01 * sum_squares(self.force)), constraints)
-        self.solve_QP_conic(p, solver)
-        self.assertAlmostEqual(1059.616, p.value, places=1)
-
-    def sparse_system_conic(self, solver) -> None:
-        m = 100
-        n = 80
-        np.random.seed(1)
-        density = 0.4
-        A = sp.random_array((m, n), density=density)
-        b = np.random.randn(m)
-
-        p = Problem(Minimize(sum_squares(A @ self.xs - b)), [self.xs == 0])
-        self.solve_QP_conic(p, solver)
-        self.assertAlmostEqual(b.T.dot(b), p.value, places=4)
-
-    def smooth_ridge_conic(self, solver) -> None:
-        np.random.seed(1)
-        n = 50
-        k = 20
-        eta = 1
-
-        A = np.ones((k, n))
-        b = np.ones((k))
-        obj = sum_squares(A @ self.xsr - b) + \
-            eta*sum_squares(self.xsr[:-1]-self.xsr[1:])
-        p = Problem(Minimize(obj), [])
-        self.solve_QP_conic(p, solver)
-        self.assertAlmostEqual(0, p.value, places=4)
-
-    def huber_small_conic(self, solver) -> None:
-        # Solve the Huber regression problem
-        x = Variable(3)
-        objective = sum(huber(x))
-
-        # Solve problem with QP
-        p = Problem(Minimize(objective), [x[2] >= 3])
-        self.solve_QP_conic(p, solver)
-        self.assertAlmostEqual(3, x.value[2], places=3)
-        self.assertAlmostEqual(5, objective.value, places=3)
-
-    def huber_conic(self, solver) -> None:
-        n = 3
-        m = 5
-        data = [0.89, 0.39, 0.96, 0.34, 0.68, 0.18, 0.63, 0.42, 0.51, 0.66, 0.43, 0.77]
-        indices = [0, 1, 2, 3, 4, 2, 3, 0, 1, 2, 3, 4]
-        indptr = [0, 5, 7, 12]
-        A = sp.csc_array((data, indices, indptr), shape=(m, n))
-        x_true = np.random.randn(n) / np.sqrt(n)
-        ind95 = (np.random.rand(m) < 0.95).astype(float)
-        b = A.dot(x_true) + np.multiply(0.5*np.random.randn(m), ind95) \
-            + np.multiply(10.*np.random.rand(m), 1. - ind95)
-
-        x = Variable(n)
-        objective = sum(huber(A @ x - b))
-        p = Problem(Minimize(objective))
-        self.solve_QP_conic(p, solver)
-        self.assertAlmostEqual(1.452797819667, objective.value, places=3)
-        self.assertItemsAlmostEqual(x.value,
-                                    [1.20524645, -0.85271489, -0.50838494],
-                                    places=3)
-
-    def equivalent_forms_1_conic(self, solver) -> None:
-        m = 100
-        n = 80
-        r = 70
-        np.random.seed(1)
-        A = np.random.randn(m, n)
-        b = np.random.randn(m)
-        G = np.random.randn(r, n)
-        h = np.random.randn(r)
-
-        obj1 = .1 * sum((A @ self.xef - b) ** 2)
-        cons = [G @ self.xef == h]
-
-        p1 = Problem(Minimize(obj1), cons)
-        self.solve_QP_conic(p1, solver)
-        self.assertAlmostEqual(p1.value, 68.1119420108, places=4)
-
-    def equivalent_forms_2_conic(self, solver) -> None:
-        m = 100
-        n = 80
-        r = 70
-        np.random.seed(1)
-        A = np.random.randn(m, n)
-        b = np.random.randn(m)
-        G = np.random.randn(r, n)
-        h = np.random.randn(r)
-
-        P = np.dot(A.T, A)
-        q = -2*np.dot(A.T, b)
-        r = np.dot(b.T, b)
-
-        obj2 = .1*(QuadForm(self.xef, P)+q.T @ self.xef+r)
-        cons = [G @ self.xef == h]
-
-        p2 = Problem(Minimize(obj2), cons)
-        self.solve_QP_conic(p2, solver)
-        self.assertAlmostEqual(p2.value, 68.1119420108, places=4)
-
-    def equivalent_forms_3_conic(self, solver) -> None:
-        m = 100
-        n = 80
-        r = 70
-        np.random.seed(1)
-        A = np.random.randn(m, n)
-        b = np.random.randn(m)
-        G = np.random.randn(r, n)
-        h = np.random.randn(r)
-
-        P = np.dot(A.T, A)
-        q = -2*np.dot(A.T, b)
-        r = np.dot(b.T, b)
-        Pinv = np.linalg.inv(P)
-
-        obj3 = .1 * (matrix_frac(self.xef, Pinv)+q.T @ self.xef+r)
-        cons = [G @ self.xef == h]
-
-        p3 = Problem(Minimize(obj3), cons)
-        self.solve_QP_conic(p3, solver)
-        self.assertAlmostEqual(p3.value, 68.1119420108, places=4)
-
+    # Test helper methods - shared by all subclasses
     def quad_over_lin(self, solver) -> None:
         p = Problem(Minimize(0.5 * quad_over_lin(abs(self.x-1), 1)),
                     [self.x <= -1])
@@ -742,10 +325,10 @@ class TestQp(BaseTest):
         # Generate problem data
         n = 3
         m = 5
-        data = [0.89, 0.39, 0.96, 0.34, 0.68, 0.18, 0.63 ,0.42, 0.51, 0.66, 0.43, 0.77]
+        data = [0.89, 0.39, 0.96, 0.34, 0.68, 0.18, 0.63, 0.42, 0.51, 0.66, 0.43, 0.77]
         indices = [0, 1, 2, 3, 4, 2, 3, 0, 1, 2, 3, 4]
         indptr = [0, 5, 7, 12]
-        A = sp.csc_array((data, indices, indptr), shape=(m,n))
+        A = sp.csc_array((data, indices, indptr), shape=(m, n))
         x_true = np.random.randn(n) / np.sqrt(n)
         ind95 = (np.random.rand(m) < 0.95).astype(float)
         b = A.dot(x_true) + np.multiply(0.5*np.random.randn(m), ind95) \
@@ -825,6 +408,98 @@ class TestQp(BaseTest):
         self.solve_QP(p3, solver)
         print(solver)
         self.assertAlmostEqual(p3.value, 68.1119420108, places=4)
+
+
+class TestQp(QPTestBase):
+    """Test native QP solvers."""
+
+    def setUp(self) -> None:
+        super().setUp()
+
+        # Check for all installed QP solvers
+        self.solvers = [x for x in QP_SOLVERS if x in INSTALLED_SOLVERS]
+
+        def is_mosek_available():
+            """Check if MOSEK is installed and a license is available."""
+            if 'MOSEK' not in INSTALLED_SOLVERS:
+                return False
+            try:
+                import mosek  # type: ignore
+                env = mosek.Env()
+                # Try to get license status (returns 0 if OK)
+                status = env.getlicense()
+                return status == mosek.rescode.ok
+            except Exception:
+                return False
+
+        def is_knitro_available():
+            """Check if KNITRO is installed and a license is available."""
+            if 'KNITRO' not in INSTALLED_SOLVERS:
+                return False
+            try:
+                import knitro  # type: ignore
+                # Try to create and delete a Knitro solver instance
+                kc = knitro.KN_new()
+                if kc is None:
+                    return False
+                knitro.KN_free(kc)
+                return True
+            except Exception:
+                return False
+
+        def is_xpress_available():
+            """Check if XPRESS is installed and a license is available."""
+            if 'XPRESS' not in INSTALLED_SOLVERS:
+                return False
+            try:
+                import xpress  # type: ignore
+                env = xpress.env()
+                status = env.getlicense()
+                return status == 0
+            except Exception:
+                return False
+
+        # Remove solvers if license is not available
+        if 'XPRESS' in self.solvers and not is_xpress_available():
+            self.solvers.remove('XPRESS')
+        if 'MOSEK' in self.solvers and not is_mosek_available():
+            self.solvers.remove('MOSEK')
+        if 'KNITRO' in self.solvers and not is_knitro_available():
+            self.solvers.remove('KNITRO')
+
+    def solve_QP(self, problem, solver_name):
+        return problem.solve(solver=solver_name, verbose=False)
+
+    def test_all_solvers(self) -> None:
+        for solver in self.solvers:
+            self.quad_over_lin(solver)
+            self.power(solver)
+            self.power_matrix(solver)
+            self.square_affine(solver)
+            self.quad_form(solver)
+            self.affine_problem(solver)
+            self.maximize_problem(solver)
+            self.abs(solver)
+
+            # Do we need the following functionality?
+            # self.norm_2(solver)
+            # self.mat_norm_2(solver)
+
+            self.quad_form_coeff(solver)
+            self.quad_form_bound(solver)
+            self.regression_1(solver)
+            self.regression_2(solver)
+            self.rep_quad_form(solver)
+
+            # slow tests:
+            self.control(solver)
+            self.sparse_system(solver)
+            self.smooth_ridge(solver)
+            self.huber_small(solver)
+            self.huber(solver)
+            self.equivalent_forms_1(solver)
+            self.equivalent_forms_2(solver)
+            self.equivalent_forms_3(solver)
 
     def test_warm_start(self) -> None:
         """Test warm start.
@@ -973,7 +648,6 @@ class TestQp(BaseTest):
             )
             assert problem.status == cp.OPTIMAL
 
-
     def test_piqp_warmstart(self) -> None:
         """Test warm start.
         """
@@ -1121,6 +795,68 @@ class TestQp(BaseTest):
                 prob = Problem(Minimize(norm(self.x, 1)), [self.x == 0])
                 prob.solve(solver=GUROBI, TimeLimit=0)
             self.assertEqual(str(cm.exception), "The solver %s is not installed." % GUROBI)
+
+
+class TestConicQuadObj(QPTestBase):
+    """Test conic solvers with use_quad_obj=True."""
+
+    def setUp(self) -> None:
+        super().setUp()
+
+        # Conic solvers that support quadratic objectives
+        self.solvers = [
+            solver for solver in INSTALLED_CONIC_SOLVERS
+            if solver in SOLVER_MAP_CONIC
+            and SOLVER_MAP_CONIC[solver].supports_quad_obj()
+        ]
+
+    def solve_QP(self, problem, solver_name):
+        """Solve with use_quad_obj=True and verify no SOC cones are introduced."""
+        data, _, _ = problem.get_problem_data(
+            solver_name,
+            solver_opts={"use_quad_obj": True}
+        )
+        self.assertEqual(data["dims"].soc, [],
+            f"Problem should have no SOC cones for QP canonicalization with {solver_name}")
+        return problem.solve(solver=solver_name, use_quad_obj=True, verbose=False)
+
+    def test_all_solvers(self) -> None:
+        """Test conic solvers with use_quad_obj=True.
+
+        Only runs tests that have constraints (filtering out unconstrained
+        problems for solvers with REQUIRES_CONSTR=True).
+
+        Tests with m=0 after canonicalization (skip for REQUIRES_CONSTR solvers):
+        - power, quad_form, quad_form_coeff, rep_quad_form
+        """
+        for solver in self.solvers:
+            requires_constr = SOLVER_MAP_CONIC[solver].REQUIRES_CONSTR
+
+            self.quad_over_lin(solver)
+            if not requires_constr:
+                self.power(solver)
+            self.power_matrix(solver)
+            self.square_affine(solver)
+            if not requires_constr:
+                self.quad_form(solver)
+            self.affine_problem(solver)
+            self.maximize_problem(solver)
+            self.abs(solver)
+            if not requires_constr:
+                self.quad_form_coeff(solver)
+            self.quad_form_bound(solver)
+            self.regression_1(solver)
+            self.regression_2(solver)
+            if not requires_constr:
+                self.rep_quad_form(solver)
+            self.control(solver)
+            self.sparse_system(solver)
+            self.smooth_ridge(solver)
+            self.huber_small(solver, places=3)
+            self.huber(solver)
+            self.equivalent_forms_1(solver)
+            self.equivalent_forms_2(solver)
+            self.equivalent_forms_3(solver)
 
 
 @unittest.skipUnless('MPAX' in INSTALLED_SOLVERS, 'MPAX is not installed.')
