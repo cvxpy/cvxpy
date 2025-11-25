@@ -123,7 +123,7 @@ class Dcp2Cone(Canonicalization):
             # Special case for power.
             if type(expr) == cvxtypes.power() and not expr._quadratic_power():
                 return self.cone_canon_methods[type(expr)](expr, args)
-            elif type(expr) == quad_over_lin and not expr.is_quadratic():
+            elif type(expr) == quad_over_lin and not expr.is_qpwa():
                 return self.cone_canon_methods[type(expr)](expr, args)
             else:
                 return self.quad_canon_methods[type(expr)](expr, args)
