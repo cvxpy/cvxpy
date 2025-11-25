@@ -95,7 +95,7 @@ class QPTestBase(BaseTest):
 
     @staticmethod
     def is_knitro_available():
-        """Check if KNITRO is installed and fully functional."""
+        """Check if KNITRO is installed and a license is available."""
         if 'KNITRO' not in INSTALLED_SOLVERS:
             return False
         try:
@@ -103,9 +103,6 @@ class QPTestBase(BaseTest):
             kc = knitro.KN_new()
             if kc is None:
                 return False
-            # Test that we can actually set parameters (fails with error -521
-            # if KNITRO has licensing issues)
-            knitro.KN_set_int_param(kc, knitro.KN_PARAM_OUTLEV, 0)
             knitro.KN_free(kc)
             return True
         except Exception:
