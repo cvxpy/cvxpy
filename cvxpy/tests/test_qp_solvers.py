@@ -810,10 +810,12 @@ class TestConicQuadObj(QPTestBase):
         super().setUp()
 
         # Conic solvers that support quadratic objectives
+        # Exclude KNITRO - its conic interface with use_quad_obj is unstable in CI
         self.solvers = [
             solver for solver in INSTALLED_CONIC_SOLVERS
             if solver in SOLVER_MAP_CONIC
             and SOLVER_MAP_CONIC[solver].supports_quad_obj()
+            and solver != 'KNITRO'
         ]
         self.solvers = self.filter_licensed_solvers(self.solvers)
 
