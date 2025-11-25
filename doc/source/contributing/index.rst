@@ -53,13 +53,11 @@ Medium scope projects
  - `Support for expressions with size zero <https://github.com/cvxpy/cvxpy/issues/1429>`_.
  - Caching computation of lin_ops during matrix stuffing.
  - N-dimensional matmul with broadcasting supported.
- - `Port examples section to Marimo and add new examples using N-dimensional expressions <https://github.com/cvxpy/cvxpy/issues/2618>`_.
+ - `Marimo examples (maybe using N-d arrays) <https://github.com/cvxpy/cvxpy/issues/2618>`_.
 
 Large scope projects
  - Problem serialization [`532 <https://github.com/cvxpy/cvxpy/issues/532>`_, `1333 <https://github.com/cvxpy/cvxpy/issues/1333>`_, `1438 <https://github.com/cvxpy/cvxpy/issues/1438>`_].
- - Replace cvxcore (Cython or Rust Backend).
  - `Support complex parameters in DPP <https://github.com/cvxpy/cvxpy/issues/1666>`_.
- - Match NumPy's API across all atoms.
  - `Logical boolean operations <https://github.com/cvxpy/cvxpy/issues/1000>`_.
 
 
