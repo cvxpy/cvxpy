@@ -11,17 +11,32 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+from cvxpy.constraints import Equality, Inequality, NonNeg, NonPos, Zero
 from cvxpy.error import DCPError, DGPError, SolverError
 from cvxpy.problems.objective import Maximize
 from cvxpy.reductions.chain import Chain
 from cvxpy.reductions.complex2real import complex2real
-from cvxpy.reductions.cvx_attr2constr import CvxAttr2Constr
+from cvxpy.reductions.cvx_attr2constr import CvxAttr2Constr, convex_attributes
 from cvxpy.reductions.dcp2cone.dcp2cone import Dcp2Cone
 from cvxpy.reductions.dgp2dcp.dgp2dcp import Dgp2Dcp
 from cvxpy.reductions.flip_objective import FlipObjective
-from cvxpy.reductions.qp2quad_form import qp2symbolic_qp
-from cvxpy.reductions.qp2quad_form.qp2symbolic_qp import Qp2SymbolicQp
+from cvxpy.reductions.utilities import are_args_affine
 from cvxpy.utilities.debug_tools import build_non_disciplined_error_msg
+
+
+def _is_qp(problem):
+    """Check if problem is suitable for QP solving.
+
+    Problems with quadratic, piecewise affine objectives,
+    piecewise-linear inequality constraints, and
+    affine equality constraints are accepted.
+    """
+    return (problem.objective.expr.is_qpwa()
+            and not set(['PSD', 'NSD']).intersection(convex_attributes(
+                                                     problem.variables()))
+            and all((type(c) in (Inequality, NonPos, NonNeg) and c.expr.is_pwl()) or
+                    (type(c) in (Equality, Zero) and are_args_affine([c]))
+                    for c in problem.constraints))
 
 
 def construct_intermediate_chain(problem, candidates, gp: bool = False):
@@ -82,14 +97,14 @@ def construct_intermediate_chain(problem, candidates, gp: bool = False):
                        "Consider calling solve() with `qcp=True`.")
         raise DGPError("Problem does not follow DGP rules." + append)
 
-    # Dcp2Cone and Qp2SymbolicQp require problems to minimize their objectives.
+    # Dcp2Cone requires problems to minimize their objectives.
     if type(problem.objective) == Maximize:
         reductions += [FlipObjective()]
 
     # First, attempt to canonicalize the problem to a linearly constrained QP.
-    if candidates['qp_solvers'] and qp2symbolic_qp.accepts(problem):
-        reductions += [CvxAttr2Constr(),
-                       Qp2SymbolicQp()]
+    if candidates['qp_solvers'] and _is_qp(problem):
+        reductions += [Dcp2Cone(quad_obj=True),
+                       CvxAttr2Constr()]
         return Chain(reductions=reductions)
 
     # Canonicalize it to conic problem.

@@ -23,8 +23,8 @@ from cvxpy.expressions.expression import Expression
 from cvxpy.problems.objective import Minimize
 from cvxpy.reductions.canonicalization import Canonicalization
 from cvxpy.reductions.dcp2cone.canonicalizers import CANON_METHODS as cone_canon_methods
+from cvxpy.reductions.dcp2cone.canonicalizers.quad import QUAD_CANON_METHODS as quad_canon_methods
 from cvxpy.reductions.inverse_data import InverseData
-from cvxpy.reductions.qp2quad_form.canonicalizers import QUAD_CANON_METHODS as quad_canon_methods
 
 
 class Dcp2Cone(Canonicalization):

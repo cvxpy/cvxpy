@@ -104,8 +104,21 @@ class XPRESS(QpSolver):
             # Only add duals if not a MIP and if duals exist (i.e. there are constraints present).
             dual_vars = None
             if 'getDual' in results.keys():
+                # Build dual vars dict keyed by constraint IDs
+                # Xpress returns duals for [eq_constrs; ineq_constrs]
                 y = -np.array(results['getDual'])
-                dual_vars = {XPRESS.DUAL_VAR_ID: y}
+                n_eq = inverse_data[self.DIMS].zero
+                eq_dual = utilities.get_dual_values(
+                    y[:n_eq],
+                    utilities.extract_dual_value,
+                    inverse_data[self.EQ_CONSTR])
+                ineq_dual = utilities.get_dual_values(
+                    y[n_eq:],
+                    utilities.extract_dual_value,
+                    inverse_data[self.NEQ_CONSTR])
+                dual_vars = {}
+                dual_vars.update(eq_dual)
+                dual_vars.update(ineq_dual)
 
             sol = Solution(status, opt_val, primal_vars, dual_vars, attr)
         else:
