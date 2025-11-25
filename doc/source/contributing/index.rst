@@ -43,21 +43,12 @@ We'll be happy to provide guidance and advice.
 
 Small scope projects
  - `State required cone types for atoms <https://github.com/cvxpy/cvxpy/issues/574>`_.
- - CuPy Canonicalization Backend for performance improvements over SciPy. (requires CUDA)
  - Introduce sparse variables in constraint formulation.
- - Propagate variable bounds to solvers.
  - Add QDLDL as another option for sparse Cholesky.
- - Add search and filter functionality for the atoms table.
- - `Improved string representation of expressions for debugging <https://github.com/cvxpy/cvxpy/issues/2619>`_.
- - `Clearer and custom error messages for better traceability <https://github.com/cvxpy/cvxpy/issues/2620>`_.
- - `Use NumPy's array input validation <https://github.com/cvxpy/cvxpy/issues/2613>`_.
  - Have MOSEK interface choose between solving the primal and the dual [`2107 <https://github.com/cvxpy/cvxpy/issues/2107>`_, `1403 <https://github.com/cvxpy/cvxpy/issues/1403>`_].
 
 Medium scope projects
  - `Post-solver feasibility checks <https://github.com/cvxpy/cvxpy/issues/434>`_.
- - `Allow multiple types and attributes for variables and parameters <https://github.com/cvxpy/cvxpy/issues/566>`_.
- - cp.trace(A @ B) transforms into cp.vdot(A, B).
- - `IPOPT interface to introduce support for non-linear non-convex problems <https://github.com/cvxpy/cvxpy/issues/1594>`_.
  - `Vectorize the quad_over_lin atom <https://github.com/cvxpy/cvxpy/issues/1197>`_.
  - `Support for expressions with size zero <https://github.com/cvxpy/cvxpy/issues/1429>`_.
  - Caching computation of lin_ops during matrix stuffing.
@@ -65,13 +56,10 @@ Medium scope projects
  - `Port examples section to Marimo and add new examples using N-dimensional expressions <https://github.com/cvxpy/cvxpy/issues/2618>`_.
 
 Large scope projects
- - Expand use of power cone constraints [`1222 <https://github.com/cvxpy/cvxpy/issues/1222>`_, `1223 <https://github.com/cvxpy/cvxpy/issues/1223>`_].
  - Problem serialization [`532 <https://github.com/cvxpy/cvxpy/issues/532>`_, `1333 <https://github.com/cvxpy/cvxpy/issues/1333>`_, `1438 <https://github.com/cvxpy/cvxpy/issues/1438>`_].
- - Quadratically Constrained QP support.
  - Replace cvxcore (Cython or Rust Backend).
  - `Support complex parameters in DPP <https://github.com/cvxpy/cvxpy/issues/1666>`_.
  - Match NumPy's API across all atoms.
- - Support for a cp.einsum atom.
  - `Logical boolean operations <https://github.com/cvxpy/cvxpy/issues/1000>`_.
 
 
