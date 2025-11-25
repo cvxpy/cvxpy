@@ -439,6 +439,7 @@ class QPTestBase(BaseTest):
         p1 = Problem(Minimize(obj1), cons)
         self.solve_QP(p1, solver)
         self.assertAlmostEqual(p1.value, 68.1119420108, places=4)
+        self._check_kkt(p1, places=4)
 
     def equivalent_forms_2(self, solver) -> None:
         m = 100
@@ -461,6 +462,7 @@ class QPTestBase(BaseTest):
         p2 = Problem(Minimize(obj2), cons)
         self.solve_QP(p2, solver)
         self.assertAlmostEqual(p2.value, 68.1119420108, places=4)
+        self._check_kkt(p2, places=4)
 
     def equivalent_forms_3(self, solver) -> None:
         m = 100
@@ -485,6 +487,7 @@ class QPTestBase(BaseTest):
         self.solve_QP(p3, solver)
         print(solver)
         self.assertAlmostEqual(p3.value, 68.1119420108, places=4)
+        self._check_kkt(p3, places=4)
 
 
 class TestQp(QPTestBase):
@@ -529,7 +532,8 @@ class TestQp(QPTestBase):
             self.huber(solver)
             self.equivalent_forms_1(solver)
             self.equivalent_forms_2(solver)
-            self.equivalent_forms_3(solver)
+            if solver != cp.KNITRO:
+                self.equivalent_forms_3(solver)
 
     def test_warm_start(self) -> None:
         """Test warm start.
@@ -839,7 +843,7 @@ class TestConicQuadObj(QPTestBase):
             solver for solver in INSTALLED_CONIC_SOLVERS
             if solver in SOLVER_MAP_CONIC
             and SOLVER_MAP_CONIC[solver].supports_quad_obj()
-            and solver != 'KNITRO'
+            and solver != cp.KNITRO
         ]
         self.solvers = self.filter_licensed_solvers(self.solvers)
 
