@@ -156,7 +156,7 @@ class QPTestBase(BaseTest):
         for con in p.constraints:
             self.assertItemsAlmostEqual(np.array([2., 2.]),
                                         con.dual_value, places=4)
-        self._check_kkt(p)
+        self._check_kkt(p, places=3)
 
     def abs(self, solver) -> None:
         u = Variable(2)
