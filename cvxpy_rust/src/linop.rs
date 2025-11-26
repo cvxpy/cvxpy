@@ -4,9 +4,39 @@
 //! and provides extraction from Python objects via PyO3.
 
 use pyo3::prelude::*;
-use pyo3::types::{PyList, PyTuple};
+use pyo3::types::{PyList, PyTuple, PySequence};
 use numpy::{PyArrayDyn, PyArrayMethods, PyUntypedArrayMethods};
 use std::fmt;
+
+/// Helper to get item from either a list or tuple
+fn get_sequence_item<'py>(obj: &Bound<'py, PyAny>, index: usize) -> PyResult<Bound<'py, PyAny>> {
+    if let Ok(list) = obj.downcast::<PyList>() {
+        list.get_item(index)
+    } else if let Ok(tuple) = obj.downcast::<PyTuple>() {
+        tuple.get_item(index)
+    } else if let Ok(seq) = obj.downcast::<PySequence>() {
+        seq.get_item(index)
+    } else {
+        Err(PyErr::new::<pyo3::exceptions::PyTypeError, _>(
+            format!("Expected list or tuple, got {:?}", obj.get_type().name())
+        ))
+    }
+}
+
+/// Helper to get length of list or tuple
+fn get_sequence_len(obj: &Bound<'_, PyAny>) -> PyResult<usize> {
+    if let Ok(list) = obj.downcast::<PyList>() {
+        Ok(list.len())
+    } else if let Ok(tuple) = obj.downcast::<PyTuple>() {
+        Ok(tuple.len())
+    } else if let Ok(seq) = obj.downcast::<PySequence>() {
+        Ok(seq.len()?)
+    } else {
+        Err(PyErr::new::<pyo3::exceptions::PyTypeError, _>(
+            format!("Expected list or tuple, got {:?}", obj.get_type().name())
+        ))
+    }
+}
 
 /// Operation types matching CVXPY's lin_op.py
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -229,10 +259,10 @@ impl LinOp {
             }
 
             OpType::Transpose => {
-                // data is (axes,) tuple - extract axes permutation
-                let tuple = data_attr.downcast::<PyTuple>()?;
-                if tuple.len() > 0 {
-                    let axes = tuple.get_item(0)?;
+                // data is (axes,) tuple or list - extract axes permutation
+                let len = get_sequence_len(&data_attr)?;
+                if len > 0 {
+                    let axes = get_sequence_item(&data_attr, 0)?;
                     if axes.is_none() {
                         Ok(LinOpData::None)
                     } else {
@@ -248,10 +278,9 @@ impl LinOp {
             }
 
             OpType::SumEntries => {
-                // data is (axis, keepdims) tuple
-                let tuple = data_attr.downcast::<PyTuple>()?;
-                let axis = tuple.get_item(0)?;
-                let keepdims: bool = tuple.get_item(1)?.extract().unwrap_or(false);
+                // data is [axis, keepdims] list or tuple
+                let axis = get_sequence_item(&data_attr, 0)?;
+                let keepdims: bool = get_sequence_item(&data_attr, 1)?.extract().unwrap_or(false);
 
                 let axis_spec = if axis.is_none() {
                     None
@@ -270,9 +299,8 @@ impl LinOp {
             }
 
             OpType::Concatenate => {
-                // data is [axis] list
-                let list = data_attr.downcast::<PyList>()?;
-                let axis = list.get_item(0)?;
+                // data is [axis] list or tuple
+                let axis = get_sequence_item(&data_attr, 0)?;
                 if axis.is_none() {
                     Ok(LinOpData::ConcatAxis(None))
                 } else {
@@ -310,10 +338,11 @@ impl LinOp {
 
     /// Extract slice data for index operation
     fn extract_slices(data_attr: &Bound<'_, PyAny>) -> PyResult<LinOpData> {
-        let list = data_attr.downcast::<PyList>()?;
-        let mut slices = Vec::with_capacity(list.len());
+        let len = get_sequence_len(data_attr)?;
+        let mut slices = Vec::with_capacity(len);
 
-        for item in list.iter() {
+        for i in 0..len {
+            let item = get_sequence_item(data_attr, i)?;
             // Each item is a slice object
             let start: i64 = item.getattr("start")?.extract()?;
             let stop: i64 = item.getattr("stop")?.extract()?;
