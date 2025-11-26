@@ -142,3 +142,37 @@ class TestJacVecElementwiseUnivariate():
         power = cp.power(x, 3)
         result_dict = power.jacobian()
         assert(result_dict == {})
+
+    def test_logistic(self):
+        n = 3 
+        x = cp.Variable((n, ), name='x')
+        x.value = np.array([1.0, 2.0, 3.0])
+        exp = cp.logistic(x)
+        result_dict = exp.jacobian()
+        exp_x = np.exp(x.value)
+        correct_jacobian = np.diag(exp_x / (1 + exp_x))
+        computed_jacobian = np.zeros((n, n))
+        rows, cols, vals = result_dict[x]
+        computed_jacobian[rows, cols] = vals
+        assert(np.allclose(computed_jacobian, correct_jacobian))
+
+    def test_matrix_logistic(self):
+        n = 2
+        x = cp.Variable((n, n), name='x')
+        x.value = np.array([[1.0, 2.0], [3.0, 4.0]])
+        exp = cp.logistic(x)
+        result_dict = exp.jacobian()
+        exp_x = np.exp(np.array([1.0, 3.0, 2.0, 4.0]))
+        correct_jacobian = np.diag(exp_x / (1 + exp_x))
+        computed_jacobian = np.zeros((n*n, n*n))
+        rows, cols, vals = result_dict[x]
+        computed_jacobian[rows, cols] = vals
+        assert(np.allclose(computed_jacobian, correct_jacobian))
+
+    def test_constant_logistic(self):
+        x = np.array([1.0, 2.0, 3.0])
+        exp = cp.logistic(x)
+        result_dict = exp.jacobian()
+        assert(result_dict == {})
+
+

@@ -104,3 +104,26 @@ class TestHessVecElementwiseUnivariate():
         power = cp.power(x, 3)
         result_dict = power.hess_vec(vec)
         assert(result_dict == {})
+
+    def test_logistic(self):
+        n = 3 
+        x = cp.Variable((n, ), name='x')
+        x.value = np.array([1.0, 2.0, 3.0])
+        vec = np.array([5.0, 4.0, 3.0])
+        expr = cp.logistic(x)
+        result_dict = expr.hess_vec(vec)
+        exp_x = np.exp(np.array([1, 2, 3.]))
+        correct_matrix = np.diag(vec * exp_x / (1 + exp_x)**2)
+        computed_hess = np.zeros((n, n))
+        rows, cols, vals = result_dict[(x, x)]
+        computed_hess[rows, cols] = vals
+        assert(np.allclose(computed_hess, correct_matrix))
+
+    def test_constant_logistic(self):
+        x = np.array([1.0, 2.0, 3.0])
+        vec = np.array([5.0, 4.0, 3.0])
+        expr = cp.logistic(x)
+        result_dict = expr.hess_vec(vec)
+        assert(result_dict == {})
+
+

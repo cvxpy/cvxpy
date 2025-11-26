@@ -15,6 +15,7 @@ limitations under the License.
 """
 from cvxpy.atoms.quad_over_lin import quad_over_lin
 from cvxpy.atoms.elementwise.exp import exp
+from cvxpy.atoms.elementwise.logistic import logistic
 from cvxpy.atoms.elementwise.log import log
 from cvxpy.atoms.elementwise.entr import entr
 from cvxpy.atoms.elementwise.rel_entr import rel_entr
@@ -34,6 +35,7 @@ from cvxpy.reductions.dnlp2smooth.canonicalizers.quad_over_lin_canon import quad
 from cvxpy.reductions.dnlp2smooth.canonicalizers.div_canon import div_canon
 from cvxpy.reductions.dnlp2smooth.canonicalizers.log_canon import log_canon
 from cvxpy.reductions.dnlp2smooth.canonicalizers.exp_canon import exp_canon
+from cvxpy.reductions.dnlp2smooth.canonicalizers.logistic_canon import logistic_canon
 from cvxpy.reductions.dnlp2smooth.canonicalizers.multiply_canon import matmul_canon, multiply_canon
 from cvxpy.reductions.dnlp2smooth.canonicalizers.pnorm_canon import pnorm_canon
 from cvxpy.reductions.dnlp2smooth.canonicalizers.power_canon import power_canon
@@ -53,6 +55,7 @@ from cvxpy.reductions.eliminate_pwl.canonicalizers.abs_canon import abs_canon
 SMOOTH_CANON_METHODS = {
     log: log_canon,
     exp: exp_canon,
+    logistic: logistic_canon,
     sin: sin_canon,
     cos: cos_canon,
     tan: tan_canon,
