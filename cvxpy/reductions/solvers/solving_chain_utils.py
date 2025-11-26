@@ -1,6 +1,11 @@
 import warnings
 
-from cvxpy.settings import CPP_CANON_BACKEND, NUMPY_CANON_BACKEND, SCIPY_CANON_BACKEND
+from cvxpy.settings import (
+    CPP_CANON_BACKEND,
+    NUMPY_CANON_BACKEND,
+    RUST_CANON_BACKEND,
+    SCIPY_CANON_BACKEND,
+)
 
 
 def get_canon_backend(problem, canon_backend: str) -> str:
@@ -15,7 +20,7 @@ def get_canon_backend(problem, canon_backend: str) -> str:
     problem : Problem
         The problem for which to build a chain.
     canon_backend : str
-        'CPP' (default) | 'SCIPY'
+        'CPP' (default) | 'SCIPY' | 'RUST'
         Specifies which backend to use for canonicalization, which can affect
         compilation time. Defaults to None, i.e., selecting the default
         backend.
@@ -38,12 +43,10 @@ def get_canon_backend(problem, canon_backend: str) -> str:
 
     if problem._max_ndim() > 2:
         if canon_backend is None:
-            warnings.warn(UserWarning(
-                f"The problem has an expression with dimension greater than 2. "
-                f"Defaulting to the {SCIPY_CANON_BACKEND} backend for canonicalization."))
-            return SCIPY_CANON_BACKEND
+            # Use Rust backend for n-dimensional problems (faster than SciPy)
+            return RUST_CANON_BACKEND
         if canon_backend == CPP_CANON_BACKEND:
-            raise ValueError(f"Only the {SCIPY_CANON_BACKEND} and {NUMPY_CANON_BACKEND} "
-                             f"backends are supported for problems with expressions of "
-                             f"dimension greater than 2.")
+            raise ValueError(f"Only the {RUST_CANON_BACKEND}, {SCIPY_CANON_BACKEND}, and "
+                             f"{NUMPY_CANON_BACKEND} backends are supported for problems "
+                             f"with expressions of dimension greater than 2.")
     return canon_backend
