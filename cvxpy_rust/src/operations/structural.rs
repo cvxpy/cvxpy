@@ -37,6 +37,25 @@ pub fn process_index(lin_op: &LinOp, ctx: &ProcessingContext) -> SparseTensor {
 /// For a 2D array with shape (m, n) and slices [slice0, slice1]:
 ///   flat_index = i + j * m  (column-major)
 /// where i is from slice0 and j is from slice1.
+/// Generate indices for a slice, handling negative steps
+fn slice_indices(start: i64, stop: i64, step: i64) -> Vec<i64> {
+    if step > 0 {
+        (start..stop).step_by(step as usize).collect()
+    } else if step < 0 {
+        // For negative step, we iterate backwards
+        let mut result = Vec::new();
+        let mut i = start;
+        while i > stop {
+            result.push(i);
+            i += step;  // step is negative, so this decreases i
+        }
+        result
+    } else {
+        // step == 0 is invalid, return empty
+        vec![]
+    }
+}
+
 fn compute_slice_indices(slices: &[SliceData], shape: &[usize]) -> Vec<i64> {
     if slices.is_empty() {
         return vec![];
@@ -44,9 +63,7 @@ fn compute_slice_indices(slices: &[SliceData], shape: &[usize]) -> Vec<i64> {
 
     // Start with indices for first dimension
     let first_slice = &slices[0];
-    let mut indices: Vec<i64> = (first_slice.start..first_slice.stop)
-        .step_by(first_slice.step.max(1) as usize)
-        .collect();
+    let mut indices = slice_indices(first_slice.start, first_slice.stop, first_slice.step);
 
     // Cumulative product for multi-dimensional indexing (column-major)
     let mut cum_prod = 1i64;
@@ -56,9 +73,7 @@ fn compute_slice_indices(slices: &[SliceData], shape: &[usize]) -> Vec<i64> {
         cum_prod *= dim_size;
 
         // Expand indices with new dimension
-        let new_indices: Vec<i64> = (slice.start..slice.stop)
-            .step_by(slice.step.max(1) as usize)
-            .collect();
+        let new_indices = slice_indices(slice.start, slice.stop, slice.step);
 
         // Important: iterate in Fortran order (new_indices outer, indices inner)
         // This matches np.add.outer(rows, new_indices * cum_prod).flatten(order="F")
@@ -224,8 +239,8 @@ fn compute_broadcast_indices(original: &[usize], broadcast: &[usize]) -> Vec<i64
 
         for (i, &dim_size) in original.iter().enumerate() {
             let broadcast_dim = i + offset;
-            let idx = if dim_size == 1 {
-                0  // Broadcast this dimension
+            let idx = if dim_size <= 1 {
+                0  // Broadcast this dimension (size 0 or 1)
             } else {
                 broadcast_idx[broadcast_dim] % dim_size
             };
@@ -344,7 +359,10 @@ fn compute_vstack_indices(args: &[LinOp], output_shape: &[usize]) -> Vec<i64> {
                         // 1D arg: col is the index
                         col
                     };
-                    indices.push(arg_indices[arg_idx][arg_flat_idx]);
+                    // Bounds check to prevent panic
+                    if arg_flat_idx < arg_indices[arg_idx].len() {
+                        indices.push(arg_indices[arg_idx][arg_flat_idx]);
+                    }
                     row_in_output += 1;
                 }
             }
@@ -420,9 +438,14 @@ fn compute_concatenate_indices(args: &[LinOp], axis: i64) -> Vec<i64> {
     let n_dims = shapes[0].len();
     let axis = if axis < 0 { n_dims as i64 + axis } else { axis } as usize;
 
+    // Guard against axis out of bounds
+    if axis >= n_dims {
+        return arg_offsets;
+    }
+
     // Build the result shape
     let mut result_shape = shapes[0].clone();
-    result_shape[axis] = shapes.iter().map(|s| s[axis]).sum();
+    result_shape[axis] = shapes.iter().map(|s| s.get(axis).copied().unwrap_or(1)).sum();
 
     let total = result_shape.iter().product::<usize>();
 
@@ -433,11 +456,12 @@ fn compute_concatenate_indices(args: &[LinOp], axis: i64) -> Vec<i64> {
         let mut arg_idx = 0;
         let mut axis_offset = 0;
         for (i, shape) in shapes.iter().enumerate() {
-            if result_idx[axis] < axis_offset + shape[axis] {
+            let shape_at_axis = shape.get(axis).copied().unwrap_or(1);
+            if result_idx[axis] < axis_offset + shape_at_axis {
                 arg_idx = i;
                 break;
             }
-            axis_offset += shape[axis];
+            axis_offset += shape_at_axis;
         }
 
         // Compute flat index within the arg
@@ -448,7 +472,7 @@ fn compute_concatenate_indices(args: &[LinOp], axis: i64) -> Vec<i64> {
         let mut stride = 1i64;
         for dim in 0..n_dims {
             flat += local_idx[dim] as i64 * stride;
-            stride *= shapes[arg_idx][dim] as i64;
+            stride *= shapes[arg_idx].get(dim).copied().unwrap_or(1) as i64;
         }
 
         indices.push(arg_offsets[arg_idx] + flat);

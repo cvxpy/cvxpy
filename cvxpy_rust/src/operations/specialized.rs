@@ -111,8 +111,10 @@ fn compute_sum_row_mapping(shape: &[usize], axes: &[i64]) -> Vec<i64> {
         let mut remaining = flat_idx as i64;
         let mut multi_idx = vec![0usize; n_dims];
         for dim in (0..n_dims).rev() {
-            multi_idx[dim] = (remaining / in_strides[dim]) as usize;
-            remaining %= in_strides[dim];
+            if in_strides[dim] > 0 {
+                multi_idx[dim] = (remaining / in_strides[dim]) as usize;
+                remaining %= in_strides[dim];
+            }
         }
 
         // Project to output index

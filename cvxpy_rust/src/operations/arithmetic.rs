@@ -351,8 +351,13 @@ fn multiply_dense_block_diagonal(
     output_rows: usize,
     ctx: &ProcessingContext,
 ) -> SparseTensor {
+    // Guard against division by zero
+    if a_cols == 0 {
+        return SparseTensor::empty((output_rows, ctx.var_length as usize + 1));
+    }
+
     // Number of blocks
-    let k = if a_cols > 0 { rhs.shape.0 / a_cols } else { 1 };
+    let k = rhs.shape.0 / a_cols;
 
     // Estimate output nnz
     let est_nnz = rhs.nnz() * a_rows;
@@ -397,8 +402,13 @@ fn multiply_sparse_block_diagonal(
     output_rows: usize,
     ctx: &ProcessingContext,
 ) -> SparseTensor {
+    // Guard against division by zero
+    if a_cols == 0 {
+        return SparseTensor::empty((output_rows, ctx.var_length as usize + 1));
+    }
+
     // Number of blocks
-    let k = if a_cols > 0 { rhs.shape.0 / a_cols } else { 1 };
+    let k = rhs.shape.0 / a_cols;
 
     // Estimate output nnz
     let est_nnz = rhs.nnz() * values.len() / a_cols.max(1);
@@ -482,9 +492,19 @@ fn multiply_dense_block_diagonal_right(
     output_rows: usize,  // k * p (total elements in output)
     ctx: &ProcessingContext,
 ) -> SparseTensor {
+    // Guard against division by zero
+    if a_cols == 0 {
+        return SparseTensor::empty((output_rows, ctx.var_length as usize + 1));
+    }
+
     // k = number of rows in X (and in output)
     // output_rows = k * p, so k = output_rows / p
-    let k = if a_cols > 0 { output_rows / a_cols } else { 1 };
+    let k = output_rows / a_cols;
+
+    // Guard against division by zero for k
+    if k == 0 {
+        return SparseTensor::empty((output_rows, ctx.var_length as usize + 1));
+    }
 
     let est_nnz = lhs.nnz() * a_cols;
     let mut result = SparseTensor::with_capacity(
@@ -537,8 +557,18 @@ fn multiply_sparse_block_diagonal_right(
     output_rows: usize,  // k * p
     ctx: &ProcessingContext,
 ) -> SparseTensor {
+    // Guard against division by zero
+    if a_cols == 0 {
+        return SparseTensor::empty((output_rows, ctx.var_length as usize + 1));
+    }
+
     // k = number of rows in X (and in output)
-    let k = if a_cols > 0 { output_rows / a_cols } else { 1 };
+    let k = output_rows / a_cols;
+
+    // Guard against division by zero for k
+    if k == 0 {
+        return SparseTensor::empty((output_rows, ctx.var_length as usize + 1));
+    }
 
     let est_nnz = lhs.nnz() * values.len() / a_rows.max(1);
     let mut result = SparseTensor::with_capacity(

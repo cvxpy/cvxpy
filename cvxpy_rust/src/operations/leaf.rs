@@ -224,7 +224,11 @@ pub fn process_param(lin_op: &LinOp, ctx: &ProcessingContext) -> SparseTensor {
     );
 
     for i in 0..n {
-        let param_offset = param_col_offset + (i % param_size) as i64;
+        let param_offset = if param_size == 0 {
+            param_col_offset
+        } else {
+            param_col_offset + (i % param_size) as i64
+        };
         tensor.push(1.0, i as i64, col_offset, param_offset);
     }
 
