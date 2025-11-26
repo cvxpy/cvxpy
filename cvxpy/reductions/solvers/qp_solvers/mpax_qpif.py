@@ -19,6 +19,7 @@ import numpy as np
 
 import cvxpy.settings as s
 from cvxpy.reductions.solution import Solution, failure_solution
+from cvxpy.reductions.solvers import utilities
 from cvxpy.reductions.solvers.qp_solvers.qp_solver import QpSolver
 from cvxpy.utilities.citations import CITATION_DICT
 
@@ -65,9 +66,21 @@ class MPAX(QpSolver):
             primal_vars = {
                 MPAX.VAR_ID: np.array(solution.primal_solution, dtype=float)
             }
-            dual_vars = {
-                    MPAX.DUAL_VAR_ID: np.array(solution.dual_solution, dtype=float),
-            }
+            # Build dual vars dict keyed by constraint IDs
+            # MPAX returns dual_solution as [eq_duals; ineq_duals]
+            y = np.array(solution.dual_solution, dtype=float)
+            n_eq = inverse_data[self.DIMS].zero
+            eq_dual = utilities.get_dual_values(
+                y[:n_eq],
+                utilities.extract_dual_value,
+                inverse_data[self.EQ_CONSTR])
+            ineq_dual = utilities.get_dual_values(
+                y[n_eq:],
+                utilities.extract_dual_value,
+                inverse_data[self.NEQ_CONSTR])
+            dual_vars = {}
+            dual_vars.update(eq_dual)
+            dual_vars.update(ineq_dual)
             return Solution(status, opt_val, primal_vars, dual_vars, attr)
         else:
             return failure_solution(status, attr)

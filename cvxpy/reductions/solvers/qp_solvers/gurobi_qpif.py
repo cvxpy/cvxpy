@@ -116,8 +116,21 @@ class GUROBI(QpSolver):
             # Only add duals if not a MIP.
             dual_vars = None
             if not inverse_data[GUROBI.IS_MIP]:
+                # Build dual vars dict keyed by constraint IDs
+                # Gurobi returns duals for [eq_constrs; ineq_constrs]
                 y = -np.array([constraints_grb[i].Pi for i in range(m)])
-                dual_vars = {GUROBI.DUAL_VAR_ID: y}
+                n_eq = inverse_data[self.DIMS].zero
+                eq_dual = utilities.get_dual_values(
+                    y[:n_eq],
+                    utilities.extract_dual_value,
+                    inverse_data[self.EQ_CONSTR])
+                ineq_dual = utilities.get_dual_values(
+                    y[n_eq:],
+                    utilities.extract_dual_value,
+                    inverse_data[self.NEQ_CONSTR])
+                dual_vars = {}
+                dual_vars.update(eq_dual)
+                dual_vars.update(ineq_dual)
 
             sol = Solution(status, opt_val, primal_vars, dual_vars, attr)
         else:
