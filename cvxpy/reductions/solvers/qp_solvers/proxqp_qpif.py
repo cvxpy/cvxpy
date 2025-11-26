@@ -20,6 +20,7 @@ import numpy as np
 import cvxpy.interface as intf
 import cvxpy.settings as s
 from cvxpy.reductions.solution import Solution, failure_solution
+from cvxpy.reductions.solvers import utilities
 from cvxpy.reductions.solvers.qp_solvers.qp_solver import QpSolver
 from cvxpy.utilities.citations import CITATION_DICT
 
@@ -64,8 +65,19 @@ class PROXQP(QpSolver):
                 intf.DEFAULT_INTF.const_to_matrix(np.array(solution.x))
             }
 
-            dual_vars = {PROXQP.DUAL_VAR_ID: np.concatenate(
-                (solution.y, solution.z))}
+            # Build dual vars dict keyed by constraint IDs
+            # PROXQP returns solution.y (eq_duals) and solution.z (ineq_duals)
+            eq_dual = utilities.get_dual_values(
+                solution.y,
+                utilities.extract_dual_value,
+                inverse_data[self.EQ_CONSTR])
+            ineq_dual = utilities.get_dual_values(
+                solution.z,
+                utilities.extract_dual_value,
+                inverse_data[self.NEQ_CONSTR])
+            dual_vars = {}
+            dual_vars.update(eq_dual)
+            dual_vars.update(ineq_dual)
             attr[s.NUM_ITERS] = solution.info.iter
             sol = Solution(status, opt_val, primal_vars, dual_vars, attr)
         else:
