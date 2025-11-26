@@ -8,7 +8,19 @@ This crate converts CVXPY's LinOp expression trees into sparse coefficient matri
 
 ## Performance
 
-Performance is comparable to the C++ backend, with significant speedups on sparse matrix operations (up to 2.5x). The Rust backend is the default for n-dimensional (>2D) problems where C++ is not supported.
+The Rust backend is **1.25-1.5x faster** than both the C++ and SciPy backends for most problem types. It is the default backend for n-dimensional (>2D) problems where C++ is not supported.
+
+**Benchmarks** (n=1000, fresh Problem objects each run):
+
+| Problem Type | vs SciPy | vs C++ |
+|-------------|----------|--------|
+| Dense matrix constraints | 1.43x faster | 1.42x faster |
+| sum_squares objective | 1.25x faster | 1.26x faster |
+| Many small constraints | 2.33x faster | 1.35x faster |
+| SOC (norm) objective | 1.49x faster | 1.36x faster |
+| Sparse matrix (1% density) | ~equal | ~equal |
+
+The Rust backend is now the **default** for all problems (not just n-dimensional).
 
 ## Building
 
