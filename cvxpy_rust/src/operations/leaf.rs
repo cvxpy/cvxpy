@@ -82,16 +82,20 @@ pub fn process_dense_const(lin_op: &LinOp, ctx: &ProcessingContext) -> SparseTen
         nnz,
     );
 
-    // Flatten data in Fortran (column-major) order
-    // For a 2D array with shape (m, n), element at (i, j) maps to index i + j*m
+    // Flatten data in Fortran (column-major) order for output
+    // Input data from NumPy is in row-major (C) order
+    // For a 2D array with shape (m, n):
+    //   - NumPy row-major: element at (i, j) is at index i * n + j
+    //   - Fortran col-major output: element at (i, j) goes to row i + j * m
     if shape.len() == 2 {
         let (m, n_cols) = (shape[0], shape[1]);
         for j in 0..n_cols {
             for i in 0..m {
-                let flat_idx = j * m + i;
-                let value = data[flat_idx];
+                let input_idx = i * n_cols + j;  // NumPy row-major index
+                let output_row = j * m + i;      // Fortran column-major row
+                let value = data[input_idx];
                 if value != 0.0 {
-                    tensor.push(value, flat_idx as i64, col_offset, param_offset);
+                    tensor.push(value, output_row as i64, col_offset, param_offset);
                 }
             }
         }

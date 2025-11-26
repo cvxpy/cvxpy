@@ -2587,3 +2587,278 @@ class TestSciPyBackend:
         transposed = scipy_backend._transpose_stacked(stacked, param_id)
         expected = sp.vstack([m.T for m in matrices])
         assert (expected != transposed).nnz == 0
+
+
+# Try to import cvxpy_rust, skip tests if not available
+try:
+    import cvxpy_rust  # noqa: F401
+    RUST_AVAILABLE = True
+except ImportError:
+    RUST_AVAILABLE = False
+
+
+@pytest.mark.skipif(not RUST_AVAILABLE, reason="cvxpy_rust not installed")
+class TestRustBackend:
+    """
+    Integration tests for the Rust canonicalization backend.
+    Compares Rust backend output against SciPy backend for correctness.
+    """
+
+    @staticmethod
+    def get_backends(id_to_col, param_to_size, param_to_col, param_size_plus_one, var_length):
+        """Create both SciPy and Rust backends with same parameters."""
+        from cvxpy.lin_ops.canon_backend import RustCanonBackend
+        kwargs = {
+            "id_to_col": id_to_col.copy(),
+            "param_to_size": param_to_size.copy(),
+            "param_to_col": param_to_col.copy(),
+            "param_size_plus_one": param_size_plus_one,
+            "var_length": var_length,
+        }
+        scipy_backend = CanonBackend.get_backend(s.SCIPY_CANON_BACKEND, **kwargs)
+        rust_backend = RustCanonBackend(**kwargs)
+        return scipy_backend, rust_backend
+
+    @staticmethod
+    def compare_matrices(scipy_result, rust_result, rtol=1e-10, atol=1e-12):
+        """Compare sparse matrices from both backends."""
+        assert scipy_result.shape == rust_result.shape, \
+            f"Shape mismatch: {scipy_result.shape} vs {rust_result.shape}"
+        diff = scipy_result - rust_result
+        if diff.nnz > 0:
+            max_diff = np.max(np.abs(diff.data))
+            assert max_diff < atol, f"Max absolute difference: {max_diff}"
+
+    def test_variable(self):
+        """Test simple variable canonicalization."""
+        var_id = 1
+        scipy_backend, rust_backend = self.get_backends(
+            id_to_col={var_id: 0},
+            param_to_size={-1: 1},
+            param_to_col={-1: 0},
+            param_size_plus_one=1,
+            var_length=4,
+        )
+        lin_op = linOpHelper(shape=(2, 2), type="variable", data=var_id, args=[])
+        scipy_result = scipy_backend.build_matrix([lin_op])
+        rust_result = rust_backend.build_matrix([lin_op])
+        self.compare_matrices(scipy_result, rust_result)
+
+    def test_neg(self):
+        """Test negation operation."""
+        var_id = 1
+        scipy_backend, rust_backend = self.get_backends(
+            id_to_col={var_id: 0},
+            param_to_size={-1: 1},
+            param_to_col={-1: 0},
+            param_size_plus_one=1,
+            var_length=4,
+        )
+        variable_lin_op = linOpHelper(shape=(2, 2), type="variable", data=var_id, args=[])
+        neg_lin_op = linOpHelper(shape=(2, 2), type="neg", args=[variable_lin_op])
+        scipy_result = scipy_backend.build_matrix([neg_lin_op])
+        rust_result = rust_backend.build_matrix([neg_lin_op])
+        self.compare_matrices(scipy_result, rust_result)
+
+    def test_sum(self):
+        """Test sum operation (combines two variables)."""
+        scipy_backend, rust_backend = self.get_backends(
+            id_to_col={1: 0, 2: 4},
+            param_to_size={-1: 1},
+            param_to_col={-1: 0},
+            param_size_plus_one=1,
+            var_length=8,
+        )
+        var1 = linOpHelper(shape=(2, 2), type="variable", data=1, args=[])
+        var2 = linOpHelper(shape=(2, 2), type="variable", data=2, args=[])
+        sum_op = linOpHelper(shape=(2, 2), type="sum", args=[var1, var2])
+        scipy_result = scipy_backend.build_matrix([sum_op])
+        rust_result = rust_backend.build_matrix([sum_op])
+        self.compare_matrices(scipy_result, rust_result)
+
+    def test_mul(self):
+        """Test left multiplication by constant."""
+        var_id = 1
+        scipy_backend, rust_backend = self.get_backends(
+            id_to_col={var_id: 0},
+            param_to_size={-1: 1},
+            param_to_col={-1: 0},
+            param_size_plus_one=1,
+            var_length=4,
+        )
+        variable_lin_op = linOpHelper(shape=(2, 2), type="variable", data=var_id, args=[])
+        const_data = np.array([[1, 2], [3, 4]], dtype=float)
+        const_op = linOpHelper(shape=(2, 2), type="dense_const", data=const_data, args=[])
+        mul_op = linOpHelper(shape=(2, 2), type="mul", data=const_op, args=[variable_lin_op])
+        scipy_result = scipy_backend.build_matrix([mul_op])
+        rust_result = rust_backend.build_matrix([mul_op])
+        self.compare_matrices(scipy_result, rust_result)
+
+    def test_dense_const(self):
+        """Test dense constant."""
+        scipy_backend, rust_backend = self.get_backends(
+            id_to_col={},
+            param_to_size={-1: 1},
+            param_to_col={-1: 0},
+            param_size_plus_one=1,
+            var_length=0,
+        )
+        const_data = np.array([[1, 2], [3, 4]], dtype=float)
+        const_op = linOpHelper(shape=(2, 2), type="dense_const", data=const_data, args=[])
+        scipy_result = scipy_backend.build_matrix([const_op])
+        rust_result = rust_backend.build_matrix([const_op])
+        self.compare_matrices(scipy_result, rust_result)
+
+    def test_transpose(self):
+        """Test transpose operation."""
+        var_id = 1
+        scipy_backend, rust_backend = self.get_backends(
+            id_to_col={var_id: 0},
+            param_to_size={-1: 1},
+            param_to_col={-1: 0},
+            param_size_plus_one=1,
+            var_length=4,
+        )
+        variable_lin_op = linOpHelper(shape=(2, 2), type="variable", data=var_id, args=[])
+        # Transpose needs axes info in data - [None] means default 2D transpose
+        transpose_op = linOpHelper(
+            shape=(2, 2), type="transpose", data=[None], args=[variable_lin_op]
+        )
+        scipy_result = scipy_backend.build_matrix([transpose_op])
+        rust_result = rust_backend.build_matrix([transpose_op])
+        self.compare_matrices(scipy_result, rust_result)
+
+    def test_index(self):
+        """Test indexing operation."""
+        var_id = 1
+        scipy_backend, rust_backend = self.get_backends(
+            id_to_col={var_id: 0},
+            param_to_size={-1: 1},
+            param_to_col={-1: 0},
+            param_size_plus_one=1,
+            var_length=4,
+        )
+        variable_lin_op = linOpHelper(shape=(2, 2), type="variable", data=var_id, args=[])
+        # Index with fully-specified slices: x[0:2, 0:1] -> first column
+        index_op = linOpHelper(
+            shape=(2,), type="index",
+            data=[slice(0, 2, 1), slice(0, 1, 1)],
+            args=[variable_lin_op]
+        )
+        scipy_result = scipy_backend.build_matrix([index_op])
+        rust_result = rust_backend.build_matrix([index_op])
+        self.compare_matrices(scipy_result, rust_result)
+
+    def test_hstack(self):
+        """Test horizontal stacking."""
+        scipy_backend, rust_backend = self.get_backends(
+            id_to_col={1: 0, 2: 4},
+            param_to_size={-1: 1},
+            param_to_col={-1: 0},
+            param_size_plus_one=1,
+            var_length=8,
+        )
+        var1 = linOpHelper(shape=(2, 2), type="variable", data=1, args=[])
+        var2 = linOpHelper(shape=(2, 2), type="variable", data=2, args=[])
+        hstack_op = linOpHelper(shape=(2, 4), type="hstack", args=[var1, var2])
+        scipy_result = scipy_backend.build_matrix([hstack_op])
+        rust_result = rust_backend.build_matrix([hstack_op])
+        self.compare_matrices(scipy_result, rust_result)
+
+    def test_vstack(self):
+        """Test vertical stacking."""
+        scipy_backend, rust_backend = self.get_backends(
+            id_to_col={1: 0, 2: 4},
+            param_to_size={-1: 1},
+            param_to_col={-1: 0},
+            param_size_plus_one=1,
+            var_length=8,
+        )
+        var1 = linOpHelper(shape=(2, 2), type="variable", data=1, args=[])
+        var2 = linOpHelper(shape=(2, 2), type="variable", data=2, args=[])
+        vstack_op = linOpHelper(shape=(4, 2), type="vstack", args=[var1, var2])
+        scipy_result = scipy_backend.build_matrix([vstack_op])
+        rust_result = rust_backend.build_matrix([vstack_op])
+        self.compare_matrices(scipy_result, rust_result)
+
+    def test_sum_entries(self):
+        """Test sum_entries operation."""
+        var_id = 1
+        scipy_backend, rust_backend = self.get_backends(
+            id_to_col={var_id: 0},
+            param_to_size={-1: 1},
+            param_to_col={-1: 0},
+            param_size_plus_one=1,
+            var_length=4,
+        )
+        variable_lin_op = linOpHelper(shape=(2, 2), type="variable", data=var_id, args=[])
+        # sum_entries needs data=[axis, keepdims] - [None, True] sums all entries
+        sum_entries_op = linOpHelper(shape=(1,), type="sum_entries", data=[None, True],
+                                     args=[variable_lin_op])
+        scipy_result = scipy_backend.build_matrix([sum_entries_op])
+        rust_result = rust_backend.build_matrix([sum_entries_op])
+        self.compare_matrices(scipy_result, rust_result)
+
+    def test_diag_vec(self):
+        """Test diag_vec operation (vector to diagonal matrix)."""
+        var_id = 1
+        scipy_backend, rust_backend = self.get_backends(
+            id_to_col={var_id: 0},
+            param_to_size={-1: 1},
+            param_to_col={-1: 0},
+            param_size_plus_one=1,
+            var_length=3,
+        )
+        variable_lin_op = linOpHelper(shape=(3,), type="variable", data=var_id, args=[])
+        diag_op = linOpHelper(shape=(3, 3), type="diag_vec", data=0, args=[variable_lin_op])
+        scipy_result = scipy_backend.build_matrix([diag_op])
+        rust_result = rust_backend.build_matrix([diag_op])
+        self.compare_matrices(scipy_result, rust_result)
+
+    def test_diag_mat(self):
+        """Test diag_mat operation (diagonal of matrix to vector)."""
+        var_id = 1
+        scipy_backend, rust_backend = self.get_backends(
+            id_to_col={var_id: 0},
+            param_to_size={-1: 1},
+            param_to_col={-1: 0},
+            param_size_plus_one=1,
+            var_length=9,
+        )
+        variable_lin_op = linOpHelper(shape=(3, 3), type="variable", data=var_id, args=[])
+        diag_op = linOpHelper(shape=(3,), type="diag_mat", data=0, args=[variable_lin_op])
+        scipy_result = scipy_backend.build_matrix([diag_op])
+        rust_result = rust_backend.build_matrix([diag_op])
+        self.compare_matrices(scipy_result, rust_result)
+
+    def test_trace(self):
+        """Test trace operation."""
+        var_id = 1
+        scipy_backend, rust_backend = self.get_backends(
+            id_to_col={var_id: 0},
+            param_to_size={-1: 1},
+            param_to_col={-1: 0},
+            param_size_plus_one=1,
+            var_length=9,
+        )
+        variable_lin_op = linOpHelper(shape=(3, 3), type="variable", data=var_id, args=[])
+        trace_op = linOpHelper(shape=(1, 1), type="trace", args=[variable_lin_op])
+        scipy_result = scipy_backend.build_matrix([trace_op])
+        rust_result = rust_backend.build_matrix([trace_op])
+        self.compare_matrices(scipy_result, rust_result)
+
+    def test_upper_tri(self):
+        """Test upper_tri operation."""
+        var_id = 1
+        scipy_backend, rust_backend = self.get_backends(
+            id_to_col={var_id: 0},
+            param_to_size={-1: 1},
+            param_to_col={-1: 0},
+            param_size_plus_one=1,
+            var_length=9,
+        )
+        variable_lin_op = linOpHelper(shape=(3, 3), type="variable", data=var_id, args=[])
+        upper_tri_op = linOpHelper(shape=(6,), type="upper_tri", args=[variable_lin_op])
+        scipy_result = scipy_backend.build_matrix([upper_tri_op])
+        rust_result = rust_backend.build_matrix([upper_tri_op])
+        self.compare_matrices(scipy_result, rust_result)

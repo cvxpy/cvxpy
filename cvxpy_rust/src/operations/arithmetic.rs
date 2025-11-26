@@ -273,8 +273,9 @@ fn multiply_dense_block_diagonal(
         let col_in_block = rhs_row % a_cols;
 
         // Apply A to this entry
+        // NumPy data is in row-major order: element (i, j) at index i * cols + j
         for i in 0..a_rows {
-            let a_val = data[col_in_block * a_rows + i];  // Column-major
+            let a_val = data[i * a_cols + col_in_block];  // Row-major
             if a_val != 0.0 {
                 let new_row = (block * a_rows + i) as i64;
                 result.push(a_val * rhs_val, new_row, rhs_col, rhs_param);
@@ -398,8 +399,9 @@ fn multiply_dense_block_diagonal_right(
         let row_in_block = lhs_row % a_rows;
 
         // Multiply by each column of A^T (row of A)
+        // NumPy data is row-major: A[i, j] at index i * cols + j
         for j in 0..a_cols {
-            let a_val = data[j * a_rows + row_in_block];  // A[row_in_block, j] in column-major
+            let a_val = data[row_in_block * a_cols + j];  // A[row_in_block, j] in row-major
             if a_val != 0.0 {
                 let new_row = (block * a_cols + j) as i64;
                 result.push(a_val * lhs_val, new_row, lhs_col, lhs_param);
