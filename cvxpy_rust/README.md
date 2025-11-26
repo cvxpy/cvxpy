@@ -8,7 +8,7 @@ This crate converts CVXPY's LinOp expression trees into sparse coefficient matri
 
 ## Performance
 
-Benchmarks show **~3x geometric mean speedup** over the C++ backend across various problem types and sizes.
+Performance is comparable to the C++ backend, with significant speedups on sparse matrix operations (up to 2.5x). The Rust backend is the default for n-dimensional (>2D) problems where C++ is not supported.
 
 ## Building
 
