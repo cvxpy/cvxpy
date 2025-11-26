@@ -133,6 +133,7 @@ pub fn process_div(lin_op: &LinOp, ctx: &ProcessingContext) -> SparseTensor {
 }
 
 /// Helper: extract constant matrix data from a LinOp (2D case)
+/// For left multiplication, 1D arrays are treated as row vectors (1, n)
 fn get_constant_matrix_data(lin_op: &LinOp) -> ConstantMatrix {
     match &lin_op.data {
         LinOpData::Float(v) => ConstantMatrix::Scalar(*v),
@@ -141,10 +142,12 @@ fn get_constant_matrix_data(lin_op: &LinOp) -> ConstantMatrix {
             if shape.is_empty() || shape.iter().product::<usize>() == 1 {
                 ConstantMatrix::Scalar(data[0])
             } else if shape.len() == 1 {
+                // 1D array treated as row vector (1, n) for left multiplication
+                // This matches Python: lin_op_shape = [1, lin_op.shape[0]]
                 ConstantMatrix::Dense {
                     data: data.clone(),
-                    rows: shape[0],
-                    cols: 1,
+                    rows: 1,
+                    cols: shape[0],
                 }
             } else {
                 ConstantMatrix::Dense {
