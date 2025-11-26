@@ -375,7 +375,7 @@ class Problem(u.Canonical):
         - Inequality constraints (Inequality, NonPos, NonNeg) have PWL expressions
         - Equality constraints (Equality, Zero) are allowed (DCP ensures affine args)
         - No other constraint types (e.g., SOC, PSD, ExpCone) are present
-        lH
+        - No PSD/NSD/Hermitian variables
         """
         for c in self.constraints:
             if type(c) in (Inequality, NonPos, NonNeg):
