@@ -29,7 +29,7 @@ from cvxpy.reductions.cone2cone.exotic2common import (
     Exotic2Common,
 )
 from cvxpy.reductions.cone2cone.soc2psd import SOC2PSD
-from cvxpy.reductions.cvx_attr2constr import CvxAttr2Constr, convex_attributes
+from cvxpy.reductions.cvx_attr2constr import CvxAttr2Constr
 from cvxpy.reductions.dcp2cone.cone_matrix_stuffing import ConeMatrixStuffing
 from cvxpy.reductions.dcp2cone.dcp2cone import Dcp2Cone
 from cvxpy.reductions.dgp2dcp.dgp2dcp import Dgp2Dcp
@@ -42,7 +42,6 @@ from cvxpy.reductions.reduction import Reduction
 from cvxpy.reductions.solvers import defines as slv_def
 from cvxpy.reductions.solvers.constant_solver import ConstantSolver
 from cvxpy.reductions.solvers.solver import Solver
-from cvxpy.reductions.utilities import are_args_affine
 from cvxpy.settings import (
     CLARABEL,
     PARAM_THRESHOLD,
@@ -91,21 +90,6 @@ def _is_lp(self):
     return (self.is_dcp() and self.objective.args[0].is_pwl())
 
 
-def _is_qp(problem):
-    """Check if problem is suitable for QP solving.
-
-    Problems with quadratic, piecewise affine objectives,
-    piecewise-linear inequality constraints, and
-    affine equality constraints are accepted.
-    """
-    return (problem.objective.expr.is_qpwa()
-            and not set(['PSD', 'NSD']).intersection(convex_attributes(
-                                                     problem.variables()))
-            and all((type(c) in (Inequality, NonPos, NonNeg) and c.expr.is_pwl()) or
-                    (type(c) in (Equality, Zero) and are_args_affine([c]))
-                    for c in problem.constraints))
-
-
 def _solve_as_qp(problem, candidates):
     if _is_lp(problem) and \
             [s for s in candidates['conic_solvers'] if s not in candidates['qp_solvers']]:
@@ -113,7 +97,7 @@ def _solve_as_qp(problem, candidates):
         # GUROBI and CPLEX QP/LP interfaces are more efficient
         #   -> Use them instead of conic if applicable.
         return False
-    return candidates['qp_solvers'] and _is_qp(problem)
+    return candidates['qp_solvers'] and problem.is_qp()
 
 
 def _reductions_for_problem_class(problem, candidates, gp: bool = False, solver_opts=None) \

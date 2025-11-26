@@ -368,12 +368,24 @@ class Problem(u.Canonical):
     @perf.compute_once
     def is_qp(self) -> bool:
         """Is problem a quadratic program?
+
+        A problem is a QP if:
+        - It is DCP
+        - The objective is quadratic or piecewise-affine (QPWA)
+        - Inequality constraints (Inequality, NonPos, NonNeg) have PWL expressions
+        - Equality constraints (Equality, Zero) are allowed (DCP ensures affine args)
+        - No other constraint types (e.g., SOC, PSD, ExpCone) are present
+        lH
         """
         for c in self.constraints:
-            if not (isinstance(c, (Equality, Zero)) or c.args[0].is_pwl()):
+            if type(c) in (Inequality, NonPos, NonNeg):
+                if not c.expr.is_pwl():
+                    return False
+            elif type(c) not in (Equality, Zero):
+                # Reject conic constraints (SOC, PSD, ExpCone, etc.)
                 return False
         for var in self.variables():
-            if var.is_psd() or var.is_nsd():
+            if var.attributes['PSD'] or var.attributes['NSD'] or var.attributes['hermitian']:
                 return False
         return (self.is_dcp() and self.objective.args[0].is_qpwa())
 

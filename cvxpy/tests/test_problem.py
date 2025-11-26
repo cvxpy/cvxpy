@@ -565,6 +565,19 @@ class TestProblem(BaseTest):
         p = Problem(cp.Minimize(qpwa_obj), [cp.maximum(1, 3 * self.y ** 2) <= 200])
         self.assertEqual(p.is_qp(), False)
 
+        # Test that conic constraints are correctly rejected.
+        # These would have incorrectly returned True with the old buggy is_qp().
+        t = Variable()
+        p = Problem(cp.Minimize(obj), [cp.SOC(t, self.y)])
+        self.assertEqual(p.is_qp(), False)
+
+        p = Problem(cp.Minimize(obj), [cp.constraints.ExpCone(self.y[0], self.y[1], self.y[2])])
+        self.assertEqual(p.is_qp(), False)
+
+        X = Variable((2, 2), hermitian=True)
+        p = Problem(cp.Minimize(cp.trace(X)), [cp.real(X[0, 0]) >= 1])
+        self.assertEqual(p.is_qp(), False)
+
     # Test problems involving variables with the same name.
     def test_variable_name_conflict(self) -> None:
         var = Variable(name='a')
