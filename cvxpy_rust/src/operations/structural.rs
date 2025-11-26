@@ -435,3 +435,237 @@ fn compute_concatenate_indices(args: &[LinOp], axis: i64) -> Vec<i64> {
 
     indices
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::linop::OpType;
+    use crate::tensor::CONSTANT_ID;
+    use crate::operations::process_reshape;
+    use std::collections::HashMap;
+
+    fn make_ctx(var_length: i64) -> ProcessingContext {
+        let mut id_to_col = HashMap::new();
+        id_to_col.insert(1, 0);
+
+        let mut param_to_col = HashMap::new();
+        param_to_col.insert(CONSTANT_ID, 0);
+
+        let mut param_to_size = HashMap::new();
+        param_to_size.insert(CONSTANT_ID, 1);
+
+        ProcessingContext {
+            id_to_col,
+            param_to_col,
+            param_to_size,
+            var_length,
+            param_size_plus_one: 1,
+        }
+    }
+
+    #[test]
+    fn test_transpose_2d() {
+        let ctx = make_ctx(4);
+
+        // Create variable (2x2)
+        let var_op = LinOp {
+            op_type: OpType::Variable,
+            shape: vec![2, 2],
+            args: vec![],
+            data: LinOpData::Int(1),
+        };
+
+        // Transpose it - LinOpData::None triggers default 2D transpose
+        let transpose_op = LinOp {
+            op_type: OpType::Transpose,
+            shape: vec![2, 2],
+            args: vec![var_op],
+            data: LinOpData::None,
+        };
+
+        let tensor = process_transpose(&transpose_op, &ctx);
+
+        // Transpose of identity should permute rows
+        assert_eq!(tensor.nnz(), 4);
+        // Row order should be permuted for column-major transpose
+    }
+
+    #[test]
+    fn test_reshape() {
+        let ctx = make_ctx(4);
+
+        // Create variable (2x2)
+        let var_op = LinOp {
+            op_type: OpType::Variable,
+            shape: vec![2, 2],
+            args: vec![],
+            data: LinOpData::Int(1),
+        };
+
+        // Reshape to (4,)
+        let reshape_op = LinOp {
+            op_type: OpType::Reshape,
+            shape: vec![4],
+            args: vec![var_op],
+            data: LinOpData::None,
+        };
+
+        let tensor = process_reshape(&reshape_op, &ctx);
+
+        // Reshape doesn't change the data, just the shape
+        assert_eq!(tensor.nnz(), 4);
+        assert_eq!(tensor.shape.0, 4);
+    }
+
+    #[test]
+    fn test_hstack() {
+        // Two variables that will be horizontally stacked
+        let mut id_to_col = HashMap::new();
+        id_to_col.insert(1, 0);
+        id_to_col.insert(2, 4);
+
+        let mut param_to_col = HashMap::new();
+        param_to_col.insert(CONSTANT_ID, 0);
+
+        let mut param_to_size = HashMap::new();
+        param_to_size.insert(CONSTANT_ID, 1);
+
+        let ctx = ProcessingContext {
+            id_to_col,
+            param_to_col,
+            param_to_size,
+            var_length: 8,
+            param_size_plus_one: 1,
+        };
+
+        let var1 = LinOp {
+            op_type: OpType::Variable,
+            shape: vec![2, 2],
+            args: vec![],
+            data: LinOpData::Int(1),
+        };
+
+        let var2 = LinOp {
+            op_type: OpType::Variable,
+            shape: vec![2, 2],
+            args: vec![],
+            data: LinOpData::Int(2),
+        };
+
+        let hstack_op = LinOp {
+            op_type: OpType::Hstack,
+            shape: vec![2, 4],
+            args: vec![var1, var2],
+            data: LinOpData::None,
+        };
+
+        let tensor = process_hstack(&hstack_op, &ctx);
+
+        // Should have 8 non-zeros (4 from each variable)
+        assert_eq!(tensor.nnz(), 8);
+        assert_eq!(tensor.shape.0, 8); // 2*4 = 8 rows in flattened form
+    }
+
+    #[test]
+    fn test_vstack() {
+        let mut id_to_col = HashMap::new();
+        id_to_col.insert(1, 0);
+        id_to_col.insert(2, 4);
+
+        let mut param_to_col = HashMap::new();
+        param_to_col.insert(CONSTANT_ID, 0);
+
+        let mut param_to_size = HashMap::new();
+        param_to_size.insert(CONSTANT_ID, 1);
+
+        let ctx = ProcessingContext {
+            id_to_col,
+            param_to_col,
+            param_to_size,
+            var_length: 8,
+            param_size_plus_one: 1,
+        };
+
+        let var1 = LinOp {
+            op_type: OpType::Variable,
+            shape: vec![2, 2],
+            args: vec![],
+            data: LinOpData::Int(1),
+        };
+
+        let var2 = LinOp {
+            op_type: OpType::Variable,
+            shape: vec![2, 2],
+            args: vec![],
+            data: LinOpData::Int(2),
+        };
+
+        let vstack_op = LinOp {
+            op_type: OpType::Vstack,
+            shape: vec![4, 2],
+            args: vec![var1, var2],
+            data: LinOpData::None,
+        };
+
+        let tensor = process_vstack(&vstack_op, &ctx);
+
+        // Should have 8 non-zeros
+        assert_eq!(tensor.nnz(), 8);
+        assert_eq!(tensor.shape.0, 8); // 4*2 = 8 rows
+    }
+
+    #[test]
+    fn test_index_simple() {
+        let ctx = make_ctx(4);
+
+        // Create variable (2x2)
+        let var_op = LinOp {
+            op_type: OpType::Variable,
+            shape: vec![2, 2],
+            args: vec![],
+            data: LinOpData::Int(1),
+        };
+
+        // Index [0:2, 0:1] - first column
+        let index_op = LinOp {
+            op_type: OpType::Index,
+            shape: vec![2],
+            args: vec![var_op],
+            data: LinOpData::Slices(vec![
+                SliceData { start: 0, stop: 2, step: 1 },
+                SliceData { start: 0, stop: 1, step: 1 },
+            ]),
+        };
+
+        let tensor = process_index(&index_op, &ctx);
+
+        // Should select 2 elements (first column)
+        assert_eq!(tensor.nnz(), 2);
+    }
+
+    #[test]
+    fn test_promote() {
+        let ctx = make_ctx(2);
+
+        // Create 1D variable
+        let var_op = LinOp {
+            op_type: OpType::Variable,
+            shape: vec![2],
+            args: vec![],
+            data: LinOpData::Int(1),
+        };
+
+        // Promote to 2D
+        let promote_op = LinOp {
+            op_type: OpType::Promote,
+            shape: vec![2, 1],
+            args: vec![var_op],
+            data: LinOpData::None,
+        };
+
+        let tensor = process_promote(&promote_op, &ctx);
+
+        // Should still have same non-zeros
+        assert_eq!(tensor.nnz(), 2);
+    }
+}

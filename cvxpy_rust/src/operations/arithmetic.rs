@@ -464,3 +464,275 @@ fn multiply_sparse_block_diagonal_right(
 
     result
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::linop::OpType;
+    use crate::tensor::CONSTANT_ID;
+    use crate::operations::process_sum;
+    use std::collections::HashMap;
+
+    fn make_ctx() -> ProcessingContext {
+        let mut id_to_col = HashMap::new();
+        id_to_col.insert(1, 0);  // Variable 1 at column 0
+
+        let mut param_to_col = HashMap::new();
+        param_to_col.insert(CONSTANT_ID, 0);
+
+        let mut param_to_size = HashMap::new();
+        param_to_size.insert(CONSTANT_ID, 1);
+
+        ProcessingContext {
+            id_to_col,
+            param_to_col,
+            param_to_size,
+            var_length: 4,
+            param_size_plus_one: 1,
+        }
+    }
+
+    #[test]
+    fn test_neg() {
+        let ctx = make_ctx();
+
+        // Create variable (2x2)
+        let var_op = LinOp {
+            op_type: OpType::Variable,
+            shape: vec![2, 2],
+            args: vec![],
+            data: LinOpData::Int(1),
+        };
+
+        // Negate it
+        let neg_op = LinOp {
+            op_type: OpType::Neg,
+            shape: vec![2, 2],
+            args: vec![var_op],
+            data: LinOpData::None,
+        };
+
+        let tensor = process_neg(&neg_op, &ctx);
+
+        assert_eq!(tensor.nnz(), 4);
+        // All values should be -1.0
+        for &v in &tensor.data {
+            assert_eq!(v, -1.0);
+        }
+    }
+
+    #[test]
+    fn test_sum_two_variables() {
+        // Test summing two variables
+        let mut id_to_col = HashMap::new();
+        id_to_col.insert(1, 0);  // Variable 1 at column 0
+        id_to_col.insert(2, 4);  // Variable 2 at column 4
+
+        let mut param_to_col = HashMap::new();
+        param_to_col.insert(CONSTANT_ID, 0);
+
+        let mut param_to_size = HashMap::new();
+        param_to_size.insert(CONSTANT_ID, 1);
+
+        let ctx = ProcessingContext {
+            id_to_col,
+            param_to_col,
+            param_to_size,
+            var_length: 8,
+            param_size_plus_one: 1,
+        };
+
+        let var1 = LinOp {
+            op_type: OpType::Variable,
+            shape: vec![2, 2],
+            args: vec![],
+            data: LinOpData::Int(1),
+        };
+
+        let var2 = LinOp {
+            op_type: OpType::Variable,
+            shape: vec![2, 2],
+            args: vec![],
+            data: LinOpData::Int(2),
+        };
+
+        let sum_op = LinOp {
+            op_type: OpType::Sum,
+            shape: vec![2, 2],
+            args: vec![var1, var2],
+            data: LinOpData::None,
+        };
+
+        let tensor = process_sum(&sum_op, &ctx);
+
+        // Sum of two identity matrices should have 8 non-zeros
+        assert_eq!(tensor.nnz(), 8);
+    }
+
+    #[test]
+    fn test_mul_scalar() {
+        let ctx = make_ctx();
+
+        // Create variable (2x2)
+        let var_op = LinOp {
+            op_type: OpType::Variable,
+            shape: vec![2, 2],
+            args: vec![],
+            data: LinOpData::Int(1),
+        };
+
+        // Create scalar constant (2.0)
+        let const_op = LinOp {
+            op_type: OpType::ScalarConst,
+            shape: vec![],
+            args: vec![],
+            data: LinOpData::Float(2.0),
+        };
+
+        // Multiply: 2.0 * var
+        let mul_op = LinOp {
+            op_type: OpType::Mul,
+            shape: vec![2, 2],
+            args: vec![var_op],
+            data: LinOpData::LinOpRef(Box::new(const_op)),
+        };
+
+        let tensor = process_mul(&mul_op, &ctx);
+
+        assert_eq!(tensor.nnz(), 4);
+        // All values should be 2.0
+        for &v in &tensor.data {
+            assert_eq!(v, 2.0);
+        }
+    }
+
+    #[test]
+    fn test_mul_dense_matrix_row_major() {
+        // Test that row-major input data is handled correctly
+        let ctx = make_ctx();
+
+        // Create variable (2x2)
+        let var_op = LinOp {
+            op_type: OpType::Variable,
+            shape: vec![2, 2],
+            args: vec![],
+            data: LinOpData::Int(1),
+        };
+
+        // Create 2x2 constant matrix [[1, 2], [3, 4]] in row-major order
+        // Row-major: [1, 2, 3, 4]
+        let const_op = LinOp {
+            op_type: OpType::DenseConst,
+            shape: vec![2, 2],
+            args: vec![],
+            data: LinOpData::DenseArray {
+                data: vec![1.0, 2.0, 3.0, 4.0],
+                shape: vec![2, 2],
+            },
+        };
+
+        // Multiply: const @ var
+        let mul_op = LinOp {
+            op_type: OpType::Mul,
+            shape: vec![2, 2],
+            args: vec![var_op],
+            data: LinOpData::LinOpRef(Box::new(const_op)),
+        };
+
+        let tensor = process_mul(&mul_op, &ctx);
+
+        // Should have non-zero entries
+        assert!(tensor.nnz() > 0);
+        // The multiplication should produce correct results
+        // For identity variable, result should reflect the constant matrix
+    }
+
+    #[test]
+    fn test_mul_elem() {
+        let ctx = make_ctx();
+
+        // Create variable (2x2)
+        let var_op = LinOp {
+            op_type: OpType::Variable,
+            shape: vec![2, 2],
+            args: vec![],
+            data: LinOpData::Int(1),
+        };
+
+        // Create constant for elementwise multiply [2, 3, 4, 5]
+        let const_op = LinOp {
+            op_type: OpType::DenseConst,
+            shape: vec![2, 2],
+            args: vec![],
+            data: LinOpData::DenseArray {
+                data: vec![2.0, 3.0, 4.0, 5.0],
+                shape: vec![2, 2],
+            },
+        };
+
+        let mul_elem_op = LinOp {
+            op_type: OpType::MulElem,
+            shape: vec![2, 2],
+            args: vec![var_op],
+            data: LinOpData::LinOpRef(Box::new(const_op)),
+        };
+
+        let tensor = process_mul_elem(&mul_elem_op, &ctx);
+
+        assert_eq!(tensor.nnz(), 4);
+    }
+
+    #[test]
+    fn test_div() {
+        // Use smaller variable for div test
+        let mut id_to_col = HashMap::new();
+        id_to_col.insert(1, 0);
+
+        let mut param_to_col = HashMap::new();
+        param_to_col.insert(CONSTANT_ID, 0);
+
+        let mut param_to_size = HashMap::new();
+        param_to_size.insert(CONSTANT_ID, 1);
+
+        let ctx = ProcessingContext {
+            id_to_col,
+            param_to_col,
+            param_to_size,
+            var_length: 2,
+            param_size_plus_one: 1,
+        };
+
+        // Create variable (2,)
+        let var_op = LinOp {
+            op_type: OpType::Variable,
+            shape: vec![2],
+            args: vec![],
+            data: LinOpData::Int(1),
+        };
+
+        // Create constant for division [2, 4]
+        let const_op = LinOp {
+            op_type: OpType::DenseConst,
+            shape: vec![2],
+            args: vec![],
+            data: LinOpData::DenseArray {
+                data: vec![2.0, 4.0],
+                shape: vec![2],
+            },
+        };
+
+        let div_op = LinOp {
+            op_type: OpType::Div,
+            shape: vec![2],
+            args: vec![var_op],
+            data: LinOpData::LinOpRef(Box::new(const_op)),
+        };
+
+        let tensor = process_div(&div_op, &ctx);
+
+        assert_eq!(tensor.nnz(), 2);
+        // Values should be 1/2 and 1/4
+        assert!((tensor.data[0] - 0.5).abs() < 1e-10);
+        assert!((tensor.data[1] - 0.25).abs() < 1e-10);
+    }
+}

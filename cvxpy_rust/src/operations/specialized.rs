@@ -545,3 +545,172 @@ fn compute_kron_indices_l(lhs_shape: &[usize], rhs_data: &[f64], rhs_shape: &[us
 
     (row_indices, scale_factors)
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::linop::OpType;
+    use crate::tensor::CONSTANT_ID;
+    use std::collections::HashMap;
+
+    fn make_ctx(var_length: i64) -> ProcessingContext {
+        let mut id_to_col = HashMap::new();
+        id_to_col.insert(1, 0);
+
+        let mut param_to_col = HashMap::new();
+        param_to_col.insert(CONSTANT_ID, 0);
+
+        let mut param_to_size = HashMap::new();
+        param_to_size.insert(CONSTANT_ID, 1);
+
+        ProcessingContext {
+            id_to_col,
+            param_to_col,
+            param_to_size,
+            var_length,
+            param_size_plus_one: 1,
+        }
+    }
+
+    #[test]
+    fn test_sum_entries_all() {
+        let ctx = make_ctx(4);
+
+        // Create variable (2x2)
+        let var_op = LinOp {
+            op_type: OpType::Variable,
+            shape: vec![2, 2],
+            args: vec![],
+            data: LinOpData::Int(1),
+        };
+
+        // Sum all entries
+        let sum_op = LinOp {
+            op_type: OpType::SumEntries,
+            shape: vec![1],
+            args: vec![var_op],
+            data: LinOpData::AxisData { axis: None, keepdims: true },
+        };
+
+        let tensor = process_sum_entries(&sum_op, &ctx);
+
+        // All entries summed to row 0
+        assert_eq!(tensor.nnz(), 4);
+        for &row in &tensor.rows {
+            assert_eq!(row, 0);
+        }
+    }
+
+    #[test]
+    fn test_trace() {
+        let ctx = make_ctx(9);
+
+        // Create variable (3x3)
+        let var_op = LinOp {
+            op_type: OpType::Variable,
+            shape: vec![3, 3],
+            args: vec![],
+            data: LinOpData::Int(1),
+        };
+
+        // Trace
+        let trace_op = LinOp {
+            op_type: OpType::Trace,
+            shape: vec![1],
+            args: vec![var_op],
+            data: LinOpData::None,
+        };
+
+        let tensor = process_trace(&trace_op, &ctx);
+
+        // Trace selects diagonal elements (3 of them) and sums to 1 output
+        assert_eq!(tensor.nnz(), 3);
+        // All go to row 0
+        for &row in &tensor.rows {
+            assert_eq!(row, 0);
+        }
+    }
+
+    #[test]
+    fn test_diag_vec() {
+        let ctx = make_ctx(3);
+
+        // Create 1D variable (3,)
+        let var_op = LinOp {
+            op_type: OpType::Variable,
+            shape: vec![3],
+            args: vec![],
+            data: LinOpData::Int(1),
+        };
+
+        // diag_vec creates diagonal matrix
+        let diag_op = LinOp {
+            op_type: OpType::DiagVec,
+            shape: vec![3, 3],
+            args: vec![var_op],
+            data: LinOpData::Int(0),  // k=0 diagonal offset
+        };
+
+        let tensor = process_diag_vec(&diag_op, &ctx);
+
+        // Should have 3 non-zeros on the diagonal
+        assert_eq!(tensor.nnz(), 3);
+        // Output shape is 9 (3x3 matrix)
+        assert_eq!(tensor.shape.0, 9);
+    }
+
+    #[test]
+    fn test_diag_mat() {
+        let ctx = make_ctx(9);
+
+        // Create 2D variable (3x3)
+        let var_op = LinOp {
+            op_type: OpType::Variable,
+            shape: vec![3, 3],
+            args: vec![],
+            data: LinOpData::Int(1),
+        };
+
+        // diag_mat extracts diagonal
+        let diag_op = LinOp {
+            op_type: OpType::DiagMat,
+            shape: vec![3],
+            args: vec![var_op],
+            data: LinOpData::Int(0),  // k=0 diagonal offset
+        };
+
+        let tensor = process_diag_mat(&diag_op, &ctx);
+
+        // Should have 3 non-zeros (diagonal elements)
+        assert_eq!(tensor.nnz(), 3);
+        // Output shape is 3
+        assert_eq!(tensor.shape.0, 3);
+    }
+
+    #[test]
+    fn test_upper_tri() {
+        let ctx = make_ctx(9);
+
+        // Create 2D variable (3x3)
+        let var_op = LinOp {
+            op_type: OpType::Variable,
+            shape: vec![3, 3],
+            args: vec![],
+            data: LinOpData::Int(1),
+        };
+
+        // upper_tri extracts strict upper triangle (excluding diagonal)
+        // For 3x3: positions (0,1), (0,2), (1,2) = 3 elements
+        let upper_tri_op = LinOp {
+            op_type: OpType::UpperTri,
+            shape: vec![3],  // n*(n-1)/2 = 3*2/2 = 3 elements
+            args: vec![var_op],
+            data: LinOpData::None,
+        };
+
+        let tensor = process_upper_tri(&upper_tri_op, &ctx);
+
+        // Should have 3 non-zeros (strict upper triangle)
+        assert_eq!(tensor.nnz(), 3);
+    }
+}

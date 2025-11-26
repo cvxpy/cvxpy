@@ -42,9 +42,26 @@ prob.solve()
 
 ## Testing
 
-### Unit Tests
+### Rust Unit Tests
 
-The Rust backend has dedicated unit tests in `cvxpy/tests/test_python_backends.py`:
+The crate has 27 native Rust unit tests covering tensor operations, matrix building, and all operation categories:
+
+```bash
+cd cvxpy_rust
+cargo test
+```
+
+Tests are organized by module:
+- `tensor.rs` - SparseTensor creation, manipulation, negation
+- `matrix_builder.rs` - Single/multiple constraints, constants
+- `operations/leaf.rs` - Variable, scalar_const, dense_const
+- `operations/arithmetic.rs` - neg, sum, mul, mul_elem, div
+- `operations/structural.rs` - transpose, reshape, hstack, vstack, index, promote
+- `operations/specialized.rs` - sum_entries, trace, diag_vec, diag_mat, upper_tri
+
+### Python Unit Tests
+
+The Rust backend also has dedicated Python unit tests in `cvxpy/tests/test_python_backends.py`:
 
 ```bash
 # Run Rust backend unit tests
