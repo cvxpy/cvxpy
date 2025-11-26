@@ -38,7 +38,7 @@ pub fn process_mul(lin_op: &LinOp, ctx: &ProcessingContext) -> SparseTensor {
     let rhs = process_linop(&lin_op.args[0], ctx);
 
     // Get constant data tensor
-    let lhs_data = get_constant_matrix_data(lhs_linop);
+    let lhs_data = get_constant_matrix_data(lhs_linop, Some(ctx));
 
     // Perform block diagonal multiplication
     multiply_block_diagonal(&lhs_data, &rhs, lin_op, ctx, false)
@@ -61,11 +61,55 @@ pub fn process_rmul(lin_op: &LinOp, ctx: &ProcessingContext) -> SparseTensor {
     // Process the argument (lhs in mathematical sense)
     let lhs = process_linop(&lin_op.args[0], ctx);
 
-    // Get constant data tensor
-    let rhs_data = get_constant_matrix_data(rhs_linop);
+    // Get constant data tensor with special handling for RMul 1D arrays
+    // For RMul, we need to check if the 1D constant should be treated as
+    // a row or column vector based on the argument's shape
+    let rhs_data = get_constant_matrix_data_for_rmul(rhs_linop, &lin_op.args[0], ctx);
 
     // Perform block diagonal multiplication from right
     multiply_block_diagonal_right(&lhs, &rhs_data, lin_op, ctx)
+}
+
+/// Get constant matrix data for RMul, with special handling for 1D arrays
+///
+/// For RMul (X @ A), a 1D array 'a' should be:
+/// - Column vector (n, 1) if X has n columns (standard matrix-vector product)
+/// - Row vector (1, n) if X has 1 column (broadcast-like behavior)
+fn get_constant_matrix_data_for_rmul(lin_op: &LinOp, arg: &LinOp, ctx: &ProcessingContext) -> ConstantMatrix {
+    let result = get_constant_matrix_data(lin_op, Some(ctx));
+
+    // Only need special handling for 1D arrays
+    if lin_op.shape.len() != 1 {
+        return result;
+    }
+
+    // Get arg_cols: number of columns in the argument
+    let arg_cols = if arg.shape.len() == 1 {
+        arg.shape[0]
+    } else if arg.shape.len() >= 2 {
+        arg.shape[1]
+    } else {
+        1
+    };
+
+    // Check if we need to transpose
+    // Python logic: if len(lin.data.shape) == 1 and arg_cols != lhs.shape[0]: lhs = lhs.T
+    match result {
+        ConstantMatrix::Dense { data, rows, cols } => {
+            // Currently rows=1, cols=n for 1D array treated as row vector
+            // If arg_cols != rows (i.e., arg_cols != 1), we need to transpose to (n, 1)
+            if arg_cols != rows {
+                ConstantMatrix::Dense {
+                    data,
+                    rows: cols,  // Transpose: swap rows and cols
+                    cols: rows,
+                }
+            } else {
+                ConstantMatrix::Dense { data, rows, cols }
+            }
+        }
+        other => other,
+    }
 }
 
 /// Process elementwise multiplication: arg * data
@@ -152,7 +196,31 @@ pub fn process_div(lin_op: &LinOp, ctx: &ProcessingContext) -> SparseTensor {
 
 /// Helper: extract constant matrix data from a LinOp (2D case)
 /// For left multiplication, 1D arrays are treated as row vectors (1, n)
-fn get_constant_matrix_data(lin_op: &LinOp) -> ConstantMatrix {
+/// ctx is optional but required for complex LinOp types (Hstack, Vstack, Transpose, etc.)
+fn get_constant_matrix_data(lin_op: &LinOp, ctx: Option<&ProcessingContext>) -> ConstantMatrix {
+    use crate::linop::OpType;
+
+    // First check op_type to handle complex constant expressions
+    match &lin_op.op_type {
+        OpType::DenseConst | OpType::SparseConst | OpType::ScalarConst => {
+            // Simple constant types - extract data directly from lin_op.data
+            extract_matrix_from_data(lin_op)
+        }
+        _ => {
+            // Complex expression type (Hstack, Vstack, Transpose, etc.)
+            // Process recursively using the canonicalization machinery
+            if let Some(ctx) = ctx {
+                extract_matrix_from_linop(lin_op, ctx)
+            } else {
+                // Fallback: try to extract from data directly
+                extract_matrix_from_data(lin_op)
+            }
+        }
+    }
+}
+
+/// Extract matrix data directly from LinOp.data field
+fn extract_matrix_from_data(lin_op: &LinOp) -> ConstantMatrix {
     match &lin_op.data {
         LinOpData::Float(v) => ConstantMatrix::Scalar(*v),
         LinOpData::Int(v) => ConstantMatrix::Scalar(*v as f64),
@@ -184,7 +252,77 @@ fn get_constant_matrix_data(lin_op: &LinOp) -> ConstantMatrix {
                 cols: shape.1,
             }
         }
-        _ => panic!("Cannot extract constant matrix from {:?}", lin_op.op_type),
+        _ => panic!("Cannot extract constant matrix from data: {:?}", lin_op.op_type),
+    }
+}
+
+/// Extract matrix data by processing a complex LinOp
+/// This creates a minimal context for constant-only processing
+fn extract_matrix_from_linop(lin_op: &LinOp, _ctx: &ProcessingContext) -> ConstantMatrix {
+    use std::collections::HashMap;
+    use crate::tensor::CONSTANT_ID;
+
+    // Create a minimal context for processing constant expressions
+    // No variables, just the constant column
+    let mut param_to_col = HashMap::new();
+    param_to_col.insert(CONSTANT_ID, 0);
+    let mut param_to_size = HashMap::new();
+    param_to_size.insert(CONSTANT_ID, 1);
+
+    let const_ctx = ProcessingContext {
+        id_to_col: HashMap::new(),
+        param_to_col,
+        param_to_size,
+        var_length: 0,
+        param_size_plus_one: 1,
+    };
+
+    // Process the LinOp to get a tensor
+    let tensor = process_linop(lin_op, &const_ctx);
+
+    // Extract constant values from tensor
+    // For constant expressions, entries are in the constant column (col 0)
+    let size = lin_op.size();
+    let mut dense_data = vec![0.0; size];
+
+    for i in 0..tensor.nnz() {
+        let row = tensor.rows[i] as usize;
+        if row < size {
+            dense_data[row] += tensor.data[i];
+        }
+    }
+
+    // Determine matrix shape
+    let (rows, cols) = if lin_op.shape.is_empty() {
+        (1, 1)
+    } else if lin_op.shape.len() == 1 {
+        // 1D array treated as row vector for left multiplication
+        (1, lin_op.shape[0])
+    } else {
+        (lin_op.shape[0], lin_op.shape[1])
+    };
+
+    // Data is in column-major order (from tensor processing)
+    // Convert to row-major for Dense matrix representation
+    if rows == 1 && cols == 1 {
+        ConstantMatrix::Scalar(dense_data[0])
+    } else {
+        // Tensor gives column-major, Dense expects row-major for NumPy compatibility
+        let mut row_major = vec![0.0; rows * cols];
+        for j in 0..cols {
+            for i in 0..rows {
+                let col_major_idx = j * rows + i;
+                let row_major_idx = i * cols + j;
+                if col_major_idx < dense_data.len() {
+                    row_major[row_major_idx] = dense_data[col_major_idx];
+                }
+            }
+        }
+        ConstantMatrix::Dense {
+            data: row_major,
+            rows,
+            cols,
+        }
     }
 }
 
