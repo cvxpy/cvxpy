@@ -112,10 +112,41 @@ pub fn process_dense_const(lin_op: &LinOp, ctx: &ProcessingContext) -> SparseTen
             tensor.push(data[0], 0, col_offset, param_offset);
         }
     } else {
-        // Higher dimensional - flatten in Fortran order
-        for (i, &value) in data.iter().enumerate() {
+        // Higher dimensional - convert from row-major (C) to column-major (Fortran)
+        // General formula for n-dimensional arrays:
+        // C-order index -> coordinates -> F-order index
+
+        let total_size: usize = shape.iter().product();
+        let n_dims = shape.len();
+
+        // Precompute strides for C and F order
+        let mut c_strides = vec![1usize; n_dims];
+        let mut f_strides = vec![1usize; n_dims];
+        for i in (0..n_dims - 1).rev() {
+            c_strides[i] = c_strides[i + 1] * shape[i + 1];
+        }
+        for i in 1..n_dims {
+            f_strides[i] = f_strides[i - 1] * shape[i - 1];
+        }
+
+        for c_idx in 0..total_size {
+            let value = data[c_idx];
             if value != 0.0 {
-                tensor.push(value, i as i64, col_offset, param_offset);
+                // Convert C index to coordinates
+                let mut coords = vec![0usize; n_dims];
+                let mut remaining = c_idx;
+                for d in 0..n_dims {
+                    coords[d] = remaining / c_strides[d];
+                    remaining %= c_strides[d];
+                }
+
+                // Convert coordinates to F index
+                let f_idx: usize = coords.iter()
+                    .zip(f_strides.iter())
+                    .map(|(&c, &s)| c * s)
+                    .sum();
+
+                tensor.push(value, f_idx as i64, col_offset, param_offset);
             }
         }
     }
@@ -281,5 +312,33 @@ mod tests {
         assert_eq!(tensor.nnz(), 2);  // Two non-zeros
         assert_eq!(tensor.data, vec![1.0, 2.0]);
         assert_eq!(tensor.rows, vec![0, 2]);
+    }
+
+    #[test]
+    fn test_dense_const_3d() {
+        // Test n-dimensional (>2D) constant conversion from C to F order
+        let ctx = make_ctx();
+
+        // 3D array shape (2, 3, 4) with single non-zero at position [0, 0, 1]
+        // In C-order, [0,0,1] is at index: 0*3*4 + 0*4 + 1 = 1
+        // In F-order, [0,0,1] is at index: 0 + 0*2 + 1*2*3 = 6
+        let mut data = vec![0.0; 24];
+        data[1] = 42.0;  // C-order index for [0,0,1]
+
+        let lin_op = LinOp {
+            op_type: OpType::DenseConst,
+            shape: vec![2, 3, 4],
+            args: vec![],
+            data: LinOpData::DenseArray {
+                data,
+                shape: vec![2, 3, 4],
+            },
+        };
+
+        let tensor = process_dense_const(&lin_op, &ctx);
+
+        assert_eq!(tensor.nnz(), 1);
+        assert_eq!(tensor.data, vec![42.0]);
+        assert_eq!(tensor.rows, vec![6]);  // F-order index
     }
 }
