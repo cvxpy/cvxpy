@@ -170,5 +170,5 @@ class TestJacobianReshape():
         x.value = np.array([1.0, 2.0, 3.0, 4.0, 5.0, 6.0])
         expr = cp.reshape(x, (2, 3), order='C')
         # should raise an assertion error
-        with pytest.raises(AssertionError):
+        with pytest.raises(ValueError):
             expr.jacobian()

@@ -566,7 +566,7 @@ class multiply(MulExpression):
             dx = x.jacobian()
             for k in dx:
                 rows, cols, vals = dx[k]
-                dx[k] = (rows, cols, np.atleast_1d(y.value)[rows] * vals)
+                dx[k] = (rows, cols, np.atleast_1d(y.value).flatten(order='F')[rows] * vals)
             return dx
 
         if not isinstance(x, Variable) and x.is_affine():

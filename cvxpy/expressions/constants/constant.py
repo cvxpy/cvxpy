@@ -268,3 +268,7 @@ class Constant(Leaf):
             self._nsd_test = eig_util.is_psd_within_tol(-self.value, s.EIGVAL_TOL)
 
         return self._nsd_test
+
+    # needed if we minimize a constant
+    def jacobian(self):
+        return {}
