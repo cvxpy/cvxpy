@@ -32,6 +32,11 @@ pub fn process_index(lin_op: &LinOp, ctx: &ProcessingContext) -> SparseTensor {
 }
 
 /// Compute flat row indices from slice specifications
+///
+/// Uses column-major (Fortran) order to match SciPy's behavior.
+/// For a 2D array with shape (m, n) and slices [slice0, slice1]:
+///   flat_index = i + j * m  (column-major)
+/// where i is from slice0 and j is from slice1.
 fn compute_slice_indices(slices: &[SliceData], shape: &[usize]) -> Vec<i64> {
     if slices.is_empty() {
         return vec![];
@@ -43,7 +48,7 @@ fn compute_slice_indices(slices: &[SliceData], shape: &[usize]) -> Vec<i64> {
         .step_by(first_slice.step.max(1) as usize)
         .collect();
 
-    // Cumulative product for multi-dimensional indexing
+    // Cumulative product for multi-dimensional indexing (column-major)
     let mut cum_prod = 1i64;
 
     for (dim, slice) in slices.iter().enumerate().skip(1) {
@@ -55,9 +60,11 @@ fn compute_slice_indices(slices: &[SliceData], shape: &[usize]) -> Vec<i64> {
             .step_by(slice.step.max(1) as usize)
             .collect();
 
+        // Important: iterate in Fortran order (new_indices outer, indices inner)
+        // This matches np.add.outer(rows, new_indices * cum_prod).flatten(order="F")
         let mut expanded = Vec::with_capacity(indices.len() * new_indices.len());
-        for &base in &indices {
-            for &new_idx in &new_indices {
+        for &new_idx in &new_indices {
+            for &base in &indices {
                 expanded.push(base + new_idx * cum_prod);
             }
         }
@@ -279,13 +286,13 @@ pub fn process_vstack(lin_op: &LinOp, ctx: &ProcessingContext) -> SparseTensor {
     let hstacked = process_hstack(lin_op, ctx);
 
     // Compute permutation for vstack
-    let indices = compute_vstack_indices(&lin_op.args);
+    let indices = compute_vstack_indices(&lin_op.args, &lin_op.shape);
 
     hstacked.select_rows(&indices)
 }
 
 /// Compute row permutation for vstack
-fn compute_vstack_indices(args: &[LinOp]) -> Vec<i64> {
+fn compute_vstack_indices(args: &[LinOp], output_shape: &[usize]) -> Vec<i64> {
     if args.is_empty() {
         return vec![];
     }
@@ -302,25 +309,48 @@ fn compute_vstack_indices(args: &[LinOp]) -> Vec<i64> {
         offset += arg_rows as i64;
     }
 
-    // Interleave according to vstack semantics
-    // For vstack of [a, b, c], each with shape (m, n), the result has shape (3*m, n)
-    // The order is: a[0], b[0], c[0], a[1], b[1], c[1], ...
+    // Check if output is 2D - need column-major ordering
+    if output_shape.len() == 2 {
+        // Vstacking creates a 2D result
+        // For vstack of 1D arrays [a, b] and [c, d] into (2, 2):
+        //   Output in F-order: (0,0), (1,0), (0,1), (1,1) = a, c, b, d
+        // For vstack of 2D arrays (m, n) each into (k*m, n):
+        //   Interleave rows within each column
 
-    // Get shapes to understand the structure
-    if args.iter().all(|a| a.shape.len() == 2) {
-        // 2D case
-        let rows_per_arg: Vec<usize> = args.iter().map(|a| a.shape[0]).collect();
-        let cols = args[0].shape.get(1).copied().unwrap_or(1);
+        let n_rows_output = output_shape[0];
+        let n_cols_output = output_shape[1];
+        let n_args = args.len();
 
-        for col in 0..cols {
+        // How many rows does each arg contribute?
+        let rows_per_arg: Vec<usize> = args.iter()
+            .map(|a| if a.shape.len() == 2 { a.shape[0] } else { 1 })
+            .collect();
+
+        // Columns per arg (should all be equal or 1 for broadcasting)
+        let cols_per_arg: Vec<usize> = args.iter()
+            .map(|a| if a.shape.len() == 2 { a.shape[1] } else { a.size() })
+            .collect();
+
+        // Iterate over output in Fortran order (column by column)
+        for col in 0..n_cols_output {
+            let mut row_in_output = 0;
             for (arg_idx, &n_rows) in rows_per_arg.iter().enumerate() {
+                let arg_cols = cols_per_arg[arg_idx];
                 for row in 0..n_rows {
-                    indices.push(arg_indices[arg_idx][row + col * n_rows]);
+                    // Index into the arg's flat representation
+                    let arg_flat_idx = if args[arg_idx].shape.len() == 2 {
+                        row + col * n_rows
+                    } else {
+                        // 1D arg: col is the index
+                        col
+                    };
+                    indices.push(arg_indices[arg_idx][arg_flat_idx]);
+                    row_in_output += 1;
                 }
             }
         }
     } else {
-        // 1D or simple case - just concatenate
+        // 1D output - just concatenate
         for arg_idx in &arg_indices {
             indices.extend(arg_idx);
         }

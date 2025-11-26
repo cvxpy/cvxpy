@@ -293,10 +293,11 @@ pub fn process_upper_tri(lin_op: &LinOp, ctx: &ProcessingContext) -> SparseTenso
     let n = arg_shape.get(0).copied().unwrap_or(1);
 
     // Compute upper triangular indices (k=1, excluding diagonal)
+    // Must iterate rows first (i outer), then columns (j > i) to match SciPy's np.triu_indices_from ordering
     let mut upper_indices = Vec::new();
-    for j in 1..n {
-        for i in 0..j {
-            upper_indices.push((i + j * n) as i64);  // Fortran order
+    for i in 0..n.saturating_sub(1) {
+        for j in (i + 1)..n {
+            upper_indices.push((i + j * n) as i64);  // Fortran order: idx = row + col * n_rows
         }
     }
 
