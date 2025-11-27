@@ -11,8 +11,8 @@ name = "cvxpy_rust"
 crate-type = ["cdylib"]
 
 [dependencies]
-pyo3 = { version = "0.22", features = ["extension-module"] }
-numpy = "0.22"
+pyo3 = { version = "0.27.1", features = ["extension-module"] }
+numpy = "0.27.0"
 ndarray = "0.16"
 sprs = "0.11"
 rayon = "1.10"

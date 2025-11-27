@@ -17,7 +17,7 @@ jobs:
           python-version: "3.12"
       - uses: actions/checkout@v5
       - name: Install Rust toolchain
-        uses: dtolnay/rust-action@stable
+        uses: dtolnay/rust-toolchain@stable
         with:
           toolchain: stable
       - name: Install cvxpy dependencies
