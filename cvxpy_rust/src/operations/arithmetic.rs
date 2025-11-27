@@ -255,6 +255,15 @@ fn get_constant_matrix_data(lin_op: &LinOp, ctx: Option<&ProcessingContext>) -> 
             // Simple constant types - extract data directly from lin_op.data
             extract_matrix_from_data(lin_op)
         }
+        OpType::Param => {
+            // For parameters, we need to use the actual processing context
+            // to properly extract the parameter values into a matrix
+            if let Some(ctx) = ctx {
+                extract_matrix_from_linop_with_ctx(lin_op, ctx)
+            } else {
+                panic!("Cannot extract constant matrix from Param without context")
+            }
+        }
         _ => {
             // Complex expression type (Hstack, Vstack, Transpose, etc.)
             // Process recursively using the canonicalization machinery
@@ -349,6 +358,61 @@ fn extract_matrix_from_linop(lin_op: &LinOp, _ctx: &ProcessingContext) -> Consta
     for i in 0..tensor.nnz() {
         let row = tensor.rows[i] as usize;
         if row < size {
+            dense_data[row] += tensor.data[i];
+        }
+    }
+
+    // Determine matrix shape
+    let (rows, cols) = if lin_op.shape.is_empty() {
+        (1, 1)
+    } else if lin_op.shape.len() == 1 {
+        // 1D array treated as row vector for left multiplication
+        (1, lin_op.shape[0])
+    } else {
+        (lin_op.shape[0], lin_op.shape[1])
+    };
+
+    // Data is in column-major order (from tensor processing)
+    // Convert to row-major for Dense matrix representation
+    if rows == 1 && cols == 1 {
+        ConstantMatrix::Scalar(dense_data[0])
+    } else {
+        // Tensor gives column-major, Dense expects row-major for NumPy compatibility
+        let mut row_major = vec![0.0; rows * cols];
+        for j in 0..cols {
+            for i in 0..rows {
+                let col_major_idx = j * rows + i;
+                let row_major_idx = i * cols + j;
+                if col_major_idx < dense_data.len() {
+                    row_major[row_major_idx] = dense_data[col_major_idx];
+                }
+            }
+        }
+        ConstantMatrix::Dense {
+            data: row_major,
+            rows,
+            cols,
+        }
+    }
+}
+
+/// Extract matrix data by processing a LinOp using the actual processing context
+/// This is used for parameters and other cases where we need the full context
+fn extract_matrix_from_linop_with_ctx(lin_op: &LinOp, ctx: &ProcessingContext) -> ConstantMatrix {
+    // Process the LinOp to get a tensor using the actual context
+    let tensor = process_linop(lin_op, ctx);
+
+    // Extract values from tensor
+    // For parameters, each element maps to a different parameter slice
+    // We need to collect values indexed by row
+    let size = lin_op.size();
+    let mut dense_data = vec![0.0; size];
+
+    for i in 0..tensor.nnz() {
+        let row = tensor.rows[i] as usize;
+        if row < size {
+            // For now, just collect the values
+            // This works for parameters where the data is scalar 1.0 multiplied by param slice
             dense_data[row] += tensor.data[i];
         }
     }
