@@ -2,6 +2,10 @@
 # The actual build is handled by setuptools-rust in the parent cvxpy package.
 # For standalone development, use: maturin develop --release
 
+[build-system]
+requires = ["maturin>=1.0,<2.0"]
+build-backend = "maturin"
+
 [project]
 name = "cvxpy-rust"
 version = "0.1.0"

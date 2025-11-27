@@ -10,8 +10,12 @@ use crate::linop::LinOp;
 use crate::operations::{process_linop, ProcessingContext};
 use crate::tensor::{BuildMatrixResult, SparseTensor, CONSTANT_ID};
 
-/// Threshold for parallel processing (number of constraints)
-const PARALLEL_THRESHOLD: usize = 4;
+/// Minimum number of constraints to consider parallel processing
+const PARALLEL_MIN_CONSTRAINTS: usize = 4;
+
+/// Minimum estimated work (total non-zeros) to trigger parallel processing
+/// This prevents overhead from outweighing benefits for small problems
+const PARALLEL_MIN_WORK: usize = 500;
 
 /// Main entry point for building the coefficient matrix
 ///
@@ -55,8 +59,15 @@ pub fn build_matrix_internal(
 
     let total_rows: usize = lin_ops.iter().map(|l| l.size()).sum();
 
-    // Process constraints (parallel or sequential based on count)
-    let tensors = if lin_ops.len() >= PARALLEL_THRESHOLD {
+    // Estimate total work (non-zeros) to decide on parallelization
+    let estimated_nnz: usize = lin_ops.iter().map(|l| l.estimate_nnz()).sum();
+
+    // Process constraints (parallel or sequential based on count AND work)
+    // Only parallelize if we have enough constraints AND enough work
+    let should_parallelize =
+        lin_ops.len() >= PARALLEL_MIN_CONSTRAINTS && estimated_nnz >= PARALLEL_MIN_WORK;
+
+    let tensors = if should_parallelize {
         process_constraints_parallel(lin_ops, &row_offsets, &ctx)
     } else {
         process_constraints_sequential(lin_ops, &row_offsets, &ctx)

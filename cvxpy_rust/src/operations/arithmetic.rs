@@ -120,17 +120,31 @@ fn get_constant_matrix_data_for_rmul(
     // Check if we need to transpose
     // Python logic: if len(lin.data.shape) == 1 and arg_cols != lhs.shape[0]: lhs = lhs.T
     match result {
-        ConstantMatrix::Dense { data, rows, cols } => {
+        ConstantMatrix::DenseRowMajor { data, rows, cols } => {
             // Currently rows=1, cols=n for 1D array treated as row vector
             // If arg_cols != rows (i.e., arg_cols != 1), we need to transpose to (n, 1)
             if arg_cols != rows {
-                ConstantMatrix::Dense {
+                // Transpose: swap rows and cols, becomes column vector
+                // Column vector with 1 column can use DenseColMajor (same memory layout)
+                ConstantMatrix::DenseColMajor {
                     data,
                     rows: cols, // Transpose: swap rows and cols
                     cols: rows,
                 }
             } else {
-                ConstantMatrix::Dense { data, rows, cols }
+                ConstantMatrix::DenseRowMajor { data, rows, cols }
+            }
+        }
+        ConstantMatrix::DenseColMajor { data, rows, cols } => {
+            // Handle column-major case similarly
+            if arg_cols != rows {
+                ConstantMatrix::DenseColMajor {
+                    data,
+                    rows: cols,
+                    cols: rows,
+                }
+            } else {
+                ConstantMatrix::DenseColMajor { data, rows, cols }
             }
         }
         other => other,
@@ -303,6 +317,7 @@ fn get_constant_matrix_data(lin_op: &LinOp, ctx: Option<&ProcessingContext>) -> 
 }
 
 /// Extract matrix data directly from LinOp.data field
+/// OPTIMIZATION: Keep data in column-major format to avoid conversions
 fn extract_matrix_from_data(lin_op: &LinOp) -> ConstantMatrix {
     match &lin_op.data {
         LinOpData::Float(v) => ConstantMatrix::Scalar(*v),
@@ -313,26 +328,19 @@ fn extract_matrix_from_data(lin_op: &LinOp) -> ConstantMatrix {
             } else if shape.len() == 1 {
                 // 1D array treated as row vector (1, n) for left multiplication
                 // This matches Python: lin_op_shape = [1, lin_op.shape[0]]
-                ConstantMatrix::Dense {
+                // Store as row-major since it's effectively 1D
+                ConstantMatrix::DenseRowMajor {
                     data: data.clone(),
                     rows: 1,
                     cols: shape[0],
                 }
             } else {
-                // 2D array: data is in F-order (column-major) from extract_dense_array
-                // Convert to row-major for matrix operations
+                // 2D array: data is already in F-order (column-major) from extract_dense_array
+                // OPTIMIZATION: Keep it in column-major format - no conversion needed!
                 let nrows = shape[0];
                 let ncols = shape[1];
-                let mut row_major = vec![0.0; nrows * ncols];
-                for i in 0..nrows {
-                    for j in 0..ncols {
-                        let col_major_idx = j * nrows + i; // F-order index
-                        let row_major_idx = i * ncols + j; // C-order index
-                        row_major[row_major_idx] = data[col_major_idx];
-                    }
-                }
-                ConstantMatrix::Dense {
-                    data: row_major,
+                ConstantMatrix::DenseColMajor {
+                    data: data.clone(),
                     rows: nrows,
                     cols: ncols,
                 }
@@ -359,6 +367,7 @@ fn extract_matrix_from_data(lin_op: &LinOp) -> ConstantMatrix {
 
 /// Extract matrix data by processing a complex LinOp
 /// This creates a minimal context for constant-only processing
+/// OPTIMIZATION: Keep data in column-major format to avoid conversions
 fn extract_matrix_from_linop(lin_op: &LinOp, _ctx: &ProcessingContext) -> ConstantMatrix {
     use crate::tensor::CONSTANT_ID;
     use std::collections::HashMap;
@@ -383,6 +392,7 @@ fn extract_matrix_from_linop(lin_op: &LinOp, _ctx: &ProcessingContext) -> Consta
 
     // Extract constant values from tensor
     // For constant expressions, entries are in the constant column (col 0)
+    // Data is already in column-major order from tensor processing
     let size = lin_op.size();
     let mut dense_data = vec![0.0; size];
 
@@ -403,24 +413,20 @@ fn extract_matrix_from_linop(lin_op: &LinOp, _ctx: &ProcessingContext) -> Consta
         (lin_op.shape[0], lin_op.shape[1])
     };
 
-    // Data is in column-major order (from tensor processing)
-    // Convert to row-major for Dense matrix representation
+    // OPTIMIZATION: Keep data in column-major format - no conversion needed!
     if rows == 1 && cols == 1 {
         ConstantMatrix::Scalar(dense_data[0])
-    } else {
-        // Tensor gives column-major, Dense expects row-major for NumPy compatibility
-        let mut row_major = vec![0.0; rows * cols];
-        for j in 0..cols {
-            for i in 0..rows {
-                let col_major_idx = j * rows + i;
-                let row_major_idx = i * cols + j;
-                if col_major_idx < dense_data.len() {
-                    row_major[row_major_idx] = dense_data[col_major_idx];
-                }
-            }
+    } else if rows == 1 {
+        // Row vector - store as row-major (same as column-major for 1 row)
+        ConstantMatrix::DenseRowMajor {
+            data: dense_data,
+            rows,
+            cols,
         }
-        ConstantMatrix::Dense {
-            data: row_major,
+    } else {
+        // 2D matrix - keep in column-major format
+        ConstantMatrix::DenseColMajor {
+            data: dense_data,
             rows,
             cols,
         }
@@ -429,6 +435,7 @@ fn extract_matrix_from_linop(lin_op: &LinOp, _ctx: &ProcessingContext) -> Consta
 
 /// Extract matrix data by processing a LinOp using the actual processing context
 /// This is used for parameters and other cases where we need the full context
+/// OPTIMIZATION: Keep data in column-major format to avoid conversions
 fn extract_matrix_from_linop_with_ctx(lin_op: &LinOp, ctx: &ProcessingContext) -> ConstantMatrix {
     // Process the LinOp to get a tensor using the actual context
     let tensor = process_linop(lin_op, ctx);
@@ -436,6 +443,7 @@ fn extract_matrix_from_linop_with_ctx(lin_op: &LinOp, ctx: &ProcessingContext) -
     // Extract values from tensor
     // For parameters, each element maps to a different parameter slice
     // We need to collect values indexed by row
+    // Data is already in column-major order from tensor processing
     let size = lin_op.size();
     let mut dense_data = vec![0.0; size];
 
@@ -458,24 +466,20 @@ fn extract_matrix_from_linop_with_ctx(lin_op: &LinOp, ctx: &ProcessingContext) -
         (lin_op.shape[0], lin_op.shape[1])
     };
 
-    // Data is in column-major order (from tensor processing)
-    // Convert to row-major for Dense matrix representation
+    // OPTIMIZATION: Keep data in column-major format - no conversion needed!
     if rows == 1 && cols == 1 {
         ConstantMatrix::Scalar(dense_data[0])
-    } else {
-        // Tensor gives column-major, Dense expects row-major for NumPy compatibility
-        let mut row_major = vec![0.0; rows * cols];
-        for j in 0..cols {
-            for i in 0..rows {
-                let col_major_idx = j * rows + i;
-                let row_major_idx = i * cols + j;
-                if col_major_idx < dense_data.len() {
-                    row_major[row_major_idx] = dense_data[col_major_idx];
-                }
-            }
+    } else if rows == 1 {
+        // Row vector - store as row-major (same as column-major for 1 row)
+        ConstantMatrix::DenseRowMajor {
+            data: dense_data,
+            rows,
+            cols,
         }
-        ConstantMatrix::Dense {
-            data: row_major,
+    } else {
+        // 2D matrix - keep in column-major format
+        ConstantMatrix::DenseColMajor {
+            data: dense_data,
             rows,
             cols,
         }
@@ -579,10 +583,19 @@ fn extract_constant_values_from_tensor(tensor: &SparseTensor, size: usize) -> Ve
 }
 
 /// Representation of constant matrix data
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 enum ConstantMatrix {
     Scalar(f64),
-    Dense {
+    /// Dense matrix stored in column-major (F-order) format
+    /// This avoids costly conversions since CVXPY uses F-order internally
+    DenseColMajor {
+        data: Vec<f64>,
+        rows: usize,
+        cols: usize,
+    },
+    /// Dense matrix stored in row-major (C-order) format
+    /// Used for 1D arrays which are treated as row vectors
+    DenseRowMajor {
         data: Vec<f64>,
         rows: usize,
         cols: usize,
@@ -614,9 +627,13 @@ fn multiply_block_diagonal(
             result.shape = (output_rows, ctx.var_length as usize + 1);
             result
         }
-        ConstantMatrix::Dense { data, rows, cols } => {
-            // Dense block diagonal multiplication
-            multiply_dense_block_diagonal(data, *rows, *cols, rhs, output_rows, ctx)
+        ConstantMatrix::DenseColMajor { data, rows, cols } => {
+            // Dense block diagonal multiplication with column-major data
+            multiply_dense_block_diagonal_colmajor(data, *rows, *cols, rhs, output_rows, ctx)
+        }
+        ConstantMatrix::DenseRowMajor { data, rows, cols } => {
+            // Dense block diagonal multiplication with row-major data
+            multiply_dense_block_diagonal_rowmajor(data, *rows, *cols, rhs, output_rows, ctx)
         }
         ConstantMatrix::Sparse {
             values,
@@ -640,8 +657,10 @@ fn multiply_block_diagonal(
     }
 }
 
-/// Dense block diagonal multiplication: kron(I_k, A) @ tensor
-fn multiply_dense_block_diagonal(
+/// Dense block diagonal multiplication with column-major data: kron(I_k, A) @ tensor
+/// OPTIMIZATION: Works directly with F-order data without conversion
+#[inline]
+fn multiply_dense_block_diagonal_colmajor(
     data: &[f64],
     a_rows: usize,
     a_cols: usize,
@@ -653,9 +672,6 @@ fn multiply_dense_block_diagonal(
     if a_cols == 0 {
         return SparseTensor::empty((output_rows, ctx.var_length as usize + 1));
     }
-
-    // Number of blocks (unused but documents the algorithm)
-    let _k = rhs.shape.0 / a_cols;
 
     // Estimate output nnz
     let est_nnz = rhs.nnz() * a_rows;
@@ -674,9 +690,55 @@ fn multiply_dense_block_diagonal(
         let col_in_block = rhs_row % a_cols;
 
         // Apply A to this entry
-        // NumPy data is in row-major order: element (i, j) at index i * cols + j
+        // Column-major data: element (i, j) at index j * rows + i
         for i in 0..a_rows {
-            let a_val = data[i * a_cols + col_in_block]; // Row-major
+            let a_val = data[col_in_block * a_rows + i]; // Column-major indexing
+            if a_val != 0.0 {
+                let new_row = (block * a_rows + i) as i64;
+                result.push(a_val * rhs_val, new_row, rhs_col, rhs_param);
+            }
+        }
+    }
+
+    result
+}
+
+/// Dense block diagonal multiplication with row-major data: kron(I_k, A) @ tensor
+/// Used for 1D arrays (row vectors)
+#[inline]
+fn multiply_dense_block_diagonal_rowmajor(
+    data: &[f64],
+    a_rows: usize,
+    a_cols: usize,
+    rhs: &SparseTensor,
+    output_rows: usize,
+    ctx: &ProcessingContext,
+) -> SparseTensor {
+    // Guard against division by zero
+    if a_cols == 0 {
+        return SparseTensor::empty((output_rows, ctx.var_length as usize + 1));
+    }
+
+    // Estimate output nnz
+    let est_nnz = rhs.nnz() * a_rows;
+    let mut result =
+        SparseTensor::with_capacity((output_rows, ctx.var_length as usize + 1), est_nnz);
+
+    // For each entry in rhs, compute its contribution after multiplication
+    for idx in 0..rhs.nnz() {
+        let rhs_row = rhs.rows[idx] as usize;
+        let rhs_col = rhs.cols[idx];
+        let rhs_val = rhs.data[idx];
+        let rhs_param = rhs.param_offsets[idx];
+
+        // Determine which block this entry belongs to
+        let block = rhs_row / a_cols;
+        let col_in_block = rhs_row % a_cols;
+
+        // Apply A to this entry
+        // Row-major data: element (i, j) at index i * cols + j
+        for i in 0..a_rows {
+            let a_val = data[i * a_cols + col_in_block]; // Row-major indexing
             if a_val != 0.0 {
                 let new_row = (block * a_rows + i) as i64;
                 result.push(a_val * rhs_val, new_row, rhs_col, rhs_param);
@@ -758,10 +820,13 @@ fn multiply_block_diagonal_right(
             result.shape = (output_rows, ctx.var_length as usize + 1);
             result
         }
-        ConstantMatrix::Dense { data, rows, cols } => {
-            // Dense block diagonal right multiplication
-            // kron(A^T, I_k) in terms of block structure
-            multiply_dense_block_diagonal_right(data, *rows, *cols, lhs, output_rows, ctx)
+        ConstantMatrix::DenseColMajor { data, rows, cols } => {
+            // Dense block diagonal right multiplication with column-major data
+            multiply_dense_block_diagonal_right_colmajor(data, *rows, *cols, lhs, output_rows, ctx)
+        }
+        ConstantMatrix::DenseRowMajor { data, rows, cols } => {
+            // Dense block diagonal right multiplication with row-major data
+            multiply_dense_block_diagonal_right_rowmajor(data, *rows, *cols, lhs, output_rows, ctx)
         }
         ConstantMatrix::Sparse {
             values,
@@ -785,12 +850,73 @@ fn multiply_block_diagonal_right(
     }
 }
 
-/// Dense block diagonal right multiplication: kron(A^T, I_k) @ tensor
+/// Dense block diagonal right multiplication with column-major data: kron(A^T, I_k) @ tensor
 /// For X @ A where X has shape (k, n) and A has shape (n, p):
 /// - Input tensor represents vec(X) in column-major order
 /// - Output is vec(X @ A) in column-major order
 /// - The operation is kron(A^T, I_k) @ vec(X)
-fn multiply_dense_block_diagonal_right(
+/// OPTIMIZATION: Works directly with F-order data without conversion
+#[inline]
+fn multiply_dense_block_diagonal_right_colmajor(
+    data: &[f64],
+    a_rows: usize, // n (rows of A = cols of X)
+    a_cols: usize, // p (cols of A = cols of output)
+    lhs: &SparseTensor,
+    output_rows: usize, // k * p (total elements in output)
+    ctx: &ProcessingContext,
+) -> SparseTensor {
+    // Guard against division by zero
+    if a_cols == 0 {
+        return SparseTensor::empty((output_rows, ctx.var_length as usize + 1));
+    }
+
+    // k = number of rows in X (and in output)
+    // output_rows = k * p, so k = output_rows / p
+    let k = output_rows / a_cols;
+
+    // Guard against division by zero for k
+    if k == 0 {
+        return SparseTensor::empty((output_rows, ctx.var_length as usize + 1));
+    }
+
+    let est_nnz = lhs.nnz() * a_cols;
+    let mut result =
+        SparseTensor::with_capacity((output_rows, ctx.var_length as usize + 1), est_nnz);
+
+    // For each entry in lhs tensor (representing variable X)
+    // Input uses column-major ordering: index v represents X[v % k, v / k]
+    for idx in 0..lhs.nnz() {
+        let lhs_row = lhs.rows[idx] as usize;
+        let lhs_col = lhs.cols[idx];
+        let lhs_val = lhs.data[idx];
+        let lhs_param = lhs.param_offsets[idx];
+
+        // Column-major decomposition of input index
+        // lhs_row represents X[row_in_X, col_in_X]
+        let row_in_X = lhs_row % k; // i = row in X
+        let col_in_X = lhs_row / k; // l = column in X (also row in A)
+
+        // For X @ A: (X @ A)[i, j] = sum_l X[i, l] * A[l, j]
+        // This input element X[i, l] contributes to all output columns j
+        // with coefficient A[l, j]
+        // Column-major data: A[l, j] at index j * a_rows + l
+        for j in 0..a_cols {
+            let a_val = data[j * a_rows + col_in_X]; // A[col_in_X, j] = A[l, j] in col-major
+            if a_val != 0.0 {
+                // Output index in column-major: (X@A)[i, j] at index j * k + i
+                let new_row = (j * k + row_in_X) as i64;
+                result.push(a_val * lhs_val, new_row, lhs_col, lhs_param);
+            }
+        }
+    }
+
+    result
+}
+
+/// Dense block diagonal right multiplication with row-major data: kron(A^T, I_k) @ tensor
+/// Used for 1D arrays (row vectors)
+#[inline]
+fn multiply_dense_block_diagonal_right_rowmajor(
     data: &[f64],
     _a_rows: usize, // n (rows of A = cols of X) - unused but documents interface
     a_cols: usize,  // p (cols of A = cols of output)
@@ -832,9 +958,9 @@ fn multiply_dense_block_diagonal_right(
         // For X @ A: (X @ A)[i, j] = sum_l X[i, l] * A[l, j]
         // This input element X[i, l] contributes to all output columns j
         // with coefficient A[l, j]
-        // NumPy data is row-major: A[l, j] at index l * a_cols + j
+        // Row-major data: A[l, j] at index l * a_cols + j
         for j in 0..a_cols {
-            let a_val = data[col_in_X * a_cols + j]; // A[col_in_X, j] = A[l, j]
+            let a_val = data[col_in_X * a_cols + j]; // A[col_in_X, j] = A[l, j] in row-major
             if a_val != 0.0 {
                 // Output index in column-major: (X@A)[i, j] at index j * k + i
                 let new_row = (j * k + row_in_X) as i64;

@@ -110,9 +110,122 @@ impl SparseTensor {
     }
 
     /// Select rows by index array (creates new tensor)
+    /// OPTIMIZATION: Uses fast paths for common patterns
     pub fn select_rows(&self, row_indices: &[i64]) -> SparseTensor {
+        // Fast path 1: Empty input
+        if row_indices.is_empty() {
+            return SparseTensor::empty((0, self.shape.1));
+        }
+
+        // Fast path 2: Identity permutation (no change needed)
+        if self.is_identity_permutation(row_indices) {
+            return self.clone();
+        }
+
+        // Fast path 3: Simple offset (contiguous range starting from offset)
+        if let Some(offset) = self.check_contiguous_with_offset(row_indices) {
+            return self.select_contiguous_rows(offset, row_indices.len());
+        }
+
+        // Fast path 4: Reversed identity permutation
+        if self.is_reversed_identity(row_indices) {
+            return self.reverse_rows();
+        }
+
+        // General case: use HashMap
+        self.select_rows_general(row_indices)
+    }
+
+    /// Check if row_indices is an identity permutation [0, 1, 2, ..., n-1]
+    #[inline]
+    fn is_identity_permutation(&self, row_indices: &[i64]) -> bool {
+        if row_indices.len() != self.shape.0 {
+            return false;
+        }
+        row_indices.iter().enumerate().all(|(i, &r)| r == i as i64)
+    }
+
+    /// Check if row_indices is a contiguous range with offset [offset, offset+1, ..., offset+n-1]
+    /// Returns the offset if so
+    #[inline]
+    fn check_contiguous_with_offset(&self, row_indices: &[i64]) -> Option<i64> {
+        if row_indices.is_empty() {
+            return Some(0);
+        }
+        let offset = row_indices[0];
+        if row_indices
+            .iter()
+            .enumerate()
+            .all(|(i, &r)| r == offset + i as i64)
+        {
+            Some(offset)
+        } else {
+            None
+        }
+    }
+
+    /// Check if row_indices is reversed identity [n-1, n-2, ..., 1, 0]
+    #[inline]
+    fn is_reversed_identity(&self, row_indices: &[i64]) -> bool {
+        if row_indices.len() != self.shape.0 {
+            return false;
+        }
+        let n = row_indices.len();
+        row_indices
+            .iter()
+            .enumerate()
+            .all(|(i, &r)| r == (n - 1 - i) as i64)
+    }
+
+    /// Select contiguous rows starting from offset
+    fn select_contiguous_rows(&self, offset: i64, count: usize) -> SparseTensor {
+        let end_row = offset + count as i64;
+
+        // Count entries in range for capacity estimation
+        let est_nnz = self
+            .rows
+            .iter()
+            .filter(|&&r| r >= offset && r < end_row)
+            .count();
+
+        let mut result = SparseTensor::with_capacity((count, self.shape.1), est_nnz);
+
+        for i in 0..self.nnz() {
+            let row = self.rows[i];
+            if row >= offset && row < end_row {
+                result.push(
+                    self.data[i],
+                    row - offset, // Adjust row index
+                    self.cols[i],
+                    self.param_offsets[i],
+                );
+            }
+        }
+
+        result
+    }
+
+    /// Reverse all row indices
+    fn reverse_rows(&self) -> SparseTensor {
+        let n_rows = self.shape.0 as i64;
+        let mut result = SparseTensor::with_capacity(self.shape, self.nnz());
+
+        for i in 0..self.nnz() {
+            result.push(
+                self.data[i],
+                n_rows - 1 - self.rows[i], // Reverse row index
+                self.cols[i],
+                self.param_offsets[i],
+            );
+        }
+
+        result
+    }
+
+    /// General row selection using HashMap (fallback)
+    fn select_rows_general(&self, row_indices: &[i64]) -> SparseTensor {
         // Build mapping from old row to new positions
-        let mut row_map: HashMap<i64, Vec<usize>> = HashMap::new();
+        let mut row_map: HashMap<i64, Vec<usize>> = HashMap::with_capacity(row_indices.len());
         for (new_idx, &old_row) in row_indices.iter().enumerate() {
             row_map.entry(old_row).or_default().push(new_idx);
         }
