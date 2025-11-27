@@ -7,6 +7,7 @@ use numpy::{PyArrayDyn, PyUntypedArrayMethods};
 use pyo3::prelude::*;
 use pyo3::types::{PyList, PySequence, PyTuple};
 use std::fmt;
+use std::sync::Arc;
 
 /// Helper to get item from either a list or tuple
 fn get_sequence_item<'py>(obj: &Bound<'py, PyAny>, index: usize) -> PyResult<Bound<'py, PyAny>> {
@@ -144,13 +145,13 @@ pub enum LinOpData {
     Int(i64),
     Float(f64),
     DenseArray {
-        data: Vec<f64>,
+        data: Arc<[f64]>,
         shape: Vec<usize>,
     },
     SparseArray {
-        data: Vec<f64>,
-        indices: Vec<i64>,
-        indptr: Vec<i64>,
+        data: Arc<[f64]>,
+        indices: Arc<[i64]>,
+        indptr: Arc<[i64]>,
         shape: (usize, usize),
     },
     Slices(Vec<SliceData>),
@@ -335,7 +336,7 @@ impl LinOp {
         // This handles non-contiguous arrays (views, slices) correctly.
         let flat_arr = data_attr.call_method1("ravel", ("F",))?;
         let data: Vec<f64> = flat_arr.extract()?;
-        Ok(LinOpData::DenseArray { data, shape })
+        Ok(LinOpData::DenseArray { data: Arc::from(data), shape })
     }
 
     /// Extract sparse scipy matrix data (assumes CSC format)
@@ -349,9 +350,9 @@ impl LinOp {
         let shape: (usize, usize) = csc.getattr("shape")?.extract()?;
 
         Ok(LinOpData::SparseArray {
-            data,
-            indices,
-            indptr,
+            data: Arc::from(data),
+            indices: Arc::from(indices),
+            indptr: Arc::from(indptr),
             shape,
         })
     }

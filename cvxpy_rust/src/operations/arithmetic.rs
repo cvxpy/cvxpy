@@ -8,6 +8,7 @@
 use super::{process_linop, ProcessingContext};
 use crate::linop::{LinOp, LinOpData};
 use crate::tensor::SparseTensor;
+use std::sync::Arc;
 
 /// Process negation operation
 ///
@@ -330,7 +331,7 @@ fn extract_matrix_from_data(lin_op: &LinOp) -> ConstantMatrix {
                 // This matches Python: lin_op_shape = [1, lin_op.shape[0]]
                 // Store as row-major since it's effectively 1D
                 ConstantMatrix::DenseRowMajor {
-                    data: data.clone(),
+                    data: Arc::clone(data),
                     rows: 1,
                     cols: shape[0],
                 }
@@ -340,7 +341,7 @@ fn extract_matrix_from_data(lin_op: &LinOp) -> ConstantMatrix {
                 let nrows = shape[0];
                 let ncols = shape[1];
                 ConstantMatrix::DenseColMajor {
-                    data: data.clone(),
+                    data: Arc::clone(data),
                     rows: nrows,
                     cols: ncols,
                 }
@@ -352,9 +353,9 @@ fn extract_matrix_from_data(lin_op: &LinOp) -> ConstantMatrix {
             indptr,
             shape,
         } => ConstantMatrix::Sparse {
-            values: data.clone(),
-            row_indices: indices.clone(),
-            col_indptr: indptr.clone(),
+            values: Arc::clone(data),
+            row_indices: Arc::clone(indices),
+            col_indptr: Arc::clone(indptr),
             rows: shape.0,
             cols: shape.1,
         },
@@ -419,14 +420,14 @@ fn extract_matrix_from_linop(lin_op: &LinOp, _ctx: &ProcessingContext) -> Consta
     } else if rows == 1 {
         // Row vector - store as row-major (same as column-major for 1 row)
         ConstantMatrix::DenseRowMajor {
-            data: dense_data,
+            data: Arc::from(dense_data),
             rows,
             cols,
         }
     } else {
         // 2D matrix - keep in column-major format
         ConstantMatrix::DenseColMajor {
-            data: dense_data,
+            data: Arc::from(dense_data),
             rows,
             cols,
         }
@@ -472,14 +473,14 @@ fn extract_matrix_from_linop_with_ctx(lin_op: &LinOp, ctx: &ProcessingContext) -
     } else if rows == 1 {
         // Row vector - store as row-major (same as column-major for 1 row)
         ConstantMatrix::DenseRowMajor {
-            data: dense_data,
+            data: Arc::from(dense_data),
             rows,
             cols,
         }
     } else {
         // 2D matrix - keep in column-major format
         ConstantMatrix::DenseColMajor {
-            data: dense_data,
+            data: Arc::from(dense_data),
             rows,
             cols,
         }
@@ -507,7 +508,7 @@ fn get_constant_vector_data(lin_op: &LinOp, ctx: Option<&ProcessingContext>) -> 
                 LinOpData::DenseArray { data, .. } => {
                     // Data is already stored in F-order (column-major) from extract_dense_array
                     // Return directly for elementwise operations
-                    data.clone()
+                    data.to_vec()
                 }
                 LinOpData::SparseArray {
                     data,
@@ -589,21 +590,21 @@ enum ConstantMatrix {
     /// Dense matrix stored in column-major (F-order) format
     /// This avoids costly conversions since CVXPY uses F-order internally
     DenseColMajor {
-        data: Vec<f64>,
+        data: Arc<[f64]>,
         rows: usize,
         cols: usize,
     },
     /// Dense matrix stored in row-major (C-order) format
     /// Used for 1D arrays which are treated as row vectors
     DenseRowMajor {
-        data: Vec<f64>,
+        data: Arc<[f64]>,
         rows: usize,
         cols: usize,
     },
     Sparse {
-        values: Vec<f64>,
-        row_indices: Vec<i64>,
-        col_indptr: Vec<i64>,
+        values: Arc<[f64]>,
+        row_indices: Arc<[i64]>,
+        col_indptr: Arc<[i64]>,
         rows: usize,
         cols: usize,
     },
@@ -1442,7 +1443,7 @@ mod tests {
             shape: vec![2, 2],
             args: vec![],
             data: LinOpData::DenseArray {
-                data: vec![1.0, 2.0, 3.0, 4.0],
+                data: Arc::from(vec![1.0, 2.0, 3.0, 4.0]),
                 shape: vec![2, 2],
             },
         };
@@ -1481,7 +1482,7 @@ mod tests {
             shape: vec![2, 2],
             args: vec![],
             data: LinOpData::DenseArray {
-                data: vec![2.0, 3.0, 4.0, 5.0],
+                data: Arc::from(vec![2.0, 3.0, 4.0, 5.0]),
                 shape: vec![2, 2],
             },
         };
@@ -1532,7 +1533,7 @@ mod tests {
             shape: vec![2],
             args: vec![],
             data: LinOpData::DenseArray {
-                data: vec![2.0, 4.0],
+                data: Arc::from(vec![2.0, 4.0]),
                 shape: vec![2],
             },
         };

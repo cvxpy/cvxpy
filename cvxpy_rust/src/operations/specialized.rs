@@ -388,7 +388,7 @@ fn get_kernel_data(lin_op: &LinOp) -> Vec<f64> {
     match &lin_op.data {
         LinOpData::Float(v) => vec![*v],
         LinOpData::Int(v) => vec![*v as f64],
-        LinOpData::DenseArray { data, .. } => data.clone(),
+        LinOpData::DenseArray { data, .. } => data.to_vec(),
         LinOpData::SparseArray {
             data,
             indices,

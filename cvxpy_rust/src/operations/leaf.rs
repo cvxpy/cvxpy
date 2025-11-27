@@ -169,6 +169,7 @@ mod tests {
     use super::*;
     use crate::linop::OpType;
     use std::collections::HashMap;
+    use std::sync::Arc;
 
     fn make_ctx() -> ProcessingContext {
         let mut id_to_col = HashMap::new();
@@ -235,7 +236,7 @@ mod tests {
             shape: vec![3],
             args: vec![],
             data: LinOpData::DenseArray {
-                data: vec![1.0, 0.0, 2.0],
+                data: Arc::from(vec![1.0, 0.0, 2.0]),
                 shape: vec![3],
             },
         };
@@ -263,7 +264,7 @@ mod tests {
             shape: vec![2, 3, 4],
             args: vec![],
             data: LinOpData::DenseArray {
-                data,
+                data: Arc::from(data),
                 shape: vec![2, 3, 4],
             },
         };
