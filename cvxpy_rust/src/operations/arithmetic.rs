@@ -658,7 +658,7 @@ fn multiply_block_diagonal(
 }
 
 /// Dense block diagonal multiplication with column-major data: kron(I_k, A) @ tensor
-/// Optimized: pre-allocated arrays, fill() for constants, SIMD-friendly loops
+/// Direct element-by-element processing with pre-allocated output
 #[inline]
 fn multiply_dense_block_diagonal_colmajor(
     data: &[f64],
@@ -673,14 +673,14 @@ fn multiply_dense_block_diagonal_colmajor(
         return SparseTensor::empty((output_rows, ctx.var_length as usize + 1));
     }
 
-    // Pre-allocate exact size - no capacity checks during filling
-    let total_nnz = rhs.nnz() * a_rows;
-    let mut rows = vec![0i64; total_nnz];
-    let mut cols = vec![0i64; total_nnz];
-    let mut vals = vec![0.0f64; total_nnz];
-    let mut params = vec![0i64; total_nnz];
+    // Pre-allocate with exact capacity
+    let exact_nnz = rhs.nnz() * a_rows;
+    let mut rows = Vec::with_capacity(exact_nnz);
+    let mut cols = Vec::with_capacity(exact_nnz);
+    let mut vals = Vec::with_capacity(exact_nnz);
+    let mut params = Vec::with_capacity(exact_nnz);
 
-    // Process each input entry
+    // Direct processing with pre-computed column starts
     for idx in 0..rhs.nnz() {
         let rhs_row = rhs.rows[idx] as usize;
         let rhs_col = rhs.cols[idx];
@@ -689,26 +689,21 @@ fn multiply_dense_block_diagonal_colmajor(
 
         let block = rhs_row / a_cols;
         let col_in_block = rhs_row % a_cols;
-        let row_offset = (block * a_rows) as i64;
+        let row_offset = block * a_rows;
         let col_start = col_in_block * a_rows;
-        let base = idx * a_rows;
 
-        // Fill cols with constant value - compiles to efficient memset
-        cols[base..base + a_rows].fill(rhs_col);
-
-        // Fill params with constant value
-        params[base..base + a_rows].fill(rhs_param);
-
-        // Fill rows with arithmetic sequence
-        for i in 0..a_rows {
-            rows[base + i] = row_offset + i as i64;
-        }
-
-        // Fill vals with scaled column - compiler can auto-vectorize
+        // Emit scaled column of A - iterate using slice for better cache behavior
         let a_col = &data[col_start..col_start + a_rows];
-        let out_vals = &mut vals[base..base + a_rows];
-        for (out, &a) in out_vals.iter_mut().zip(a_col.iter()) {
-            *out = a * rhs_val;
+        for (i, &a_val) in a_col.iter().enumerate() {
+            if a_val != 0.0 {
+                let new_row = row_offset + i;
+                if new_row < output_rows {
+                    rows.push(new_row as i64);
+                    cols.push(rhs_col);
+                    vals.push(a_val * rhs_val);
+                    params.push(rhs_param);
+                }
+            }
         }
     }
 
@@ -871,7 +866,7 @@ fn multiply_block_diagonal_right(
 /// - Input tensor represents vec(X) in column-major order
 /// - Output is vec(X @ A) in column-major order
 /// - The operation is kron(A^T, I_k) @ vec(X)
-/// Optimized: pre-allocated arrays, fill() for constants, SIMD-friendly loops
+/// Direct element-by-element processing with pre-allocated output
 #[inline]
 fn multiply_dense_block_diagonal_right_colmajor(
     data: &[f64],
@@ -892,14 +887,14 @@ fn multiply_dense_block_diagonal_right_colmajor(
         return SparseTensor::empty((output_rows, ctx.var_length as usize + 1));
     }
 
-    // Pre-allocate exact size
-    let total_nnz = lhs.nnz() * a_cols;
-    let mut rows = vec![0i64; total_nnz];
-    let mut cols = vec![0i64; total_nnz];
-    let mut vals = vec![0.0f64; total_nnz];
-    let mut params = vec![0i64; total_nnz];
+    // Pre-allocate with exact capacity
+    let exact_nnz = lhs.nnz() * a_cols;
+    let mut rows = Vec::with_capacity(exact_nnz);
+    let mut cols = Vec::with_capacity(exact_nnz);
+    let mut vals = Vec::with_capacity(exact_nnz);
+    let mut params = Vec::with_capacity(exact_nnz);
 
-    // Process each input entry
+    // Direct processing
     for idx in 0..lhs.nnz() {
         let lhs_row = lhs.rows[idx] as usize;
         let lhs_col = lhs.cols[idx];
@@ -908,20 +903,20 @@ fn multiply_dense_block_diagonal_right_colmajor(
 
         let row_in_X = lhs_row % k;
         let col_in_X = lhs_row / k;
-        let base = idx * a_cols;
 
-        // Fill cols with constant value
-        cols[base..base + a_cols].fill(lhs_col);
-
-        // Fill params with constant value
-        params[base..base + a_cols].fill(lhs_param);
-
-        // Fill rows and vals - access row col_in_X of A across all columns
+        // For each column j of A, emit contribution
         // A is column-major: A[col_in_X, j] = data[j * a_rows + col_in_X]
         for j in 0..a_cols {
-            let out_row = (j * k + row_in_X) as i64;
-            rows[base + j] = out_row;
-            vals[base + j] = lhs_val * data[j * a_rows + col_in_X];
+            let a_val = data[j * a_rows + col_in_X];
+            if a_val != 0.0 {
+                let out_row = j * k + row_in_X;
+                if out_row < output_rows {
+                    rows.push(out_row as i64);
+                    cols.push(lhs_col);
+                    vals.push(lhs_val * a_val);
+                    params.push(lhs_param);
+                }
+            }
         }
     }
 
