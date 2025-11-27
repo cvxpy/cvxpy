@@ -658,7 +658,7 @@ fn multiply_block_diagonal(
 }
 
 /// Dense block diagonal multiplication with column-major data: kron(I_k, A) @ tensor
-/// OPTIMIZATION: Works directly with F-order data without conversion
+/// Direct element-by-element processing with pre-allocated output
 #[inline]
 fn multiply_dense_block_diagonal_colmajor(
     data: &[f64],
@@ -668,43 +668,56 @@ fn multiply_dense_block_diagonal_colmajor(
     output_rows: usize,
     ctx: &ProcessingContext,
 ) -> SparseTensor {
-    // Guard against division by zero
-    if a_cols == 0 {
+    // Guard against edge cases
+    if a_cols == 0 || a_rows == 0 || rhs.nnz() == 0 {
         return SparseTensor::empty((output_rows, ctx.var_length as usize + 1));
     }
 
-    // Estimate output nnz
-    let est_nnz = rhs.nnz() * a_rows;
-    let mut result =
-        SparseTensor::with_capacity((output_rows, ctx.var_length as usize + 1), est_nnz);
+    // Pre-allocate with exact capacity
+    let exact_nnz = rhs.nnz() * a_rows;
+    let mut rows = Vec::with_capacity(exact_nnz);
+    let mut cols = Vec::with_capacity(exact_nnz);
+    let mut vals = Vec::with_capacity(exact_nnz);
+    let mut params = Vec::with_capacity(exact_nnz);
 
-    // For each entry in rhs, compute its contribution after multiplication
+    // Direct processing with pre-computed column starts
     for idx in 0..rhs.nnz() {
         let rhs_row = rhs.rows[idx] as usize;
         let rhs_col = rhs.cols[idx];
         let rhs_val = rhs.data[idx];
         let rhs_param = rhs.param_offsets[idx];
 
-        // Determine which block this entry belongs to
         let block = rhs_row / a_cols;
         let col_in_block = rhs_row % a_cols;
+        let row_offset = block * a_rows;
+        let col_start = col_in_block * a_rows;
 
-        // Apply A to this entry
-        // Column-major data: element (i, j) at index j * rows + i
-        for i in 0..a_rows {
-            let a_val = data[col_in_block * a_rows + i]; // Column-major indexing
+        // Emit scaled column of A - iterate using slice for better cache behavior
+        let a_col = &data[col_start..col_start + a_rows];
+        for (i, &a_val) in a_col.iter().enumerate() {
             if a_val != 0.0 {
-                let new_row = (block * a_rows + i) as i64;
-                result.push(a_val * rhs_val, new_row, rhs_col, rhs_param);
+                let new_row = row_offset + i;
+                if new_row < output_rows {
+                    rows.push(new_row as i64);
+                    cols.push(rhs_col);
+                    vals.push(a_val * rhs_val);
+                    params.push(rhs_param);
+                }
             }
         }
     }
 
-    result
+    SparseTensor {
+        shape: (output_rows, ctx.var_length as usize + 1),
+        rows,
+        cols,
+        data: vals,
+        param_offsets: params,
+    }
 }
 
 /// Dense block diagonal multiplication with row-major data: kron(I_k, A) @ tensor
-/// Used for 1D arrays (row vectors)
+/// Used for 1D arrays (row vectors) - typically small, so keep simple implementation
 #[inline]
 fn multiply_dense_block_diagonal_rowmajor(
     data: &[f64],
@@ -714,31 +727,29 @@ fn multiply_dense_block_diagonal_rowmajor(
     output_rows: usize,
     ctx: &ProcessingContext,
 ) -> SparseTensor {
-    // Guard against division by zero
-    if a_cols == 0 {
+    // Guard against edge cases
+    if a_cols == 0 || a_rows == 0 {
         return SparseTensor::empty((output_rows, ctx.var_length as usize + 1));
     }
 
-    // Estimate output nnz
+    // Row-major is only used for 1D arrays (row vectors), which are small
+    // Keep simple implementation - not worth faer overhead for 1-row matrices
     let est_nnz = rhs.nnz() * a_rows;
     let mut result =
         SparseTensor::with_capacity((output_rows, ctx.var_length as usize + 1), est_nnz);
 
-    // For each entry in rhs, compute its contribution after multiplication
     for idx in 0..rhs.nnz() {
         let rhs_row = rhs.rows[idx] as usize;
         let rhs_col = rhs.cols[idx];
         let rhs_val = rhs.data[idx];
         let rhs_param = rhs.param_offsets[idx];
 
-        // Determine which block this entry belongs to
         let block = rhs_row / a_cols;
         let col_in_block = rhs_row % a_cols;
 
-        // Apply A to this entry
         // Row-major data: element (i, j) at index i * cols + j
         for i in 0..a_rows {
-            let a_val = data[i * a_cols + col_in_block]; // Row-major indexing
+            let a_val = data[i * a_cols + col_in_block];
             if a_val != 0.0 {
                 let new_row = (block * a_rows + i) as i64;
                 result.push(a_val * rhs_val, new_row, rhs_col, rhs_param);
@@ -855,7 +866,7 @@ fn multiply_block_diagonal_right(
 /// - Input tensor represents vec(X) in column-major order
 /// - Output is vec(X @ A) in column-major order
 /// - The operation is kron(A^T, I_k) @ vec(X)
-/// OPTIMIZATION: Works directly with F-order data without conversion
+/// Direct element-by-element processing with pre-allocated output
 #[inline]
 fn multiply_dense_block_diagonal_right_colmajor(
     data: &[f64],
@@ -865,52 +876,57 @@ fn multiply_dense_block_diagonal_right_colmajor(
     output_rows: usize, // k * p (total elements in output)
     ctx: &ProcessingContext,
 ) -> SparseTensor {
-    // Guard against division by zero
-    if a_cols == 0 {
+    // Guard against edge cases
+    if a_cols == 0 || a_rows == 0 || lhs.nnz() == 0 {
         return SparseTensor::empty((output_rows, ctx.var_length as usize + 1));
     }
 
     // k = number of rows in X (and in output)
-    // output_rows = k * p, so k = output_rows / p
     let k = output_rows / a_cols;
-
-    // Guard against division by zero for k
     if k == 0 {
         return SparseTensor::empty((output_rows, ctx.var_length as usize + 1));
     }
 
-    let est_nnz = lhs.nnz() * a_cols;
-    let mut result =
-        SparseTensor::with_capacity((output_rows, ctx.var_length as usize + 1), est_nnz);
+    // Pre-allocate with exact capacity
+    let exact_nnz = lhs.nnz() * a_cols;
+    let mut rows = Vec::with_capacity(exact_nnz);
+    let mut cols = Vec::with_capacity(exact_nnz);
+    let mut vals = Vec::with_capacity(exact_nnz);
+    let mut params = Vec::with_capacity(exact_nnz);
 
-    // For each entry in lhs tensor (representing variable X)
-    // Input uses column-major ordering: index v represents X[v % k, v / k]
+    // Direct processing
     for idx in 0..lhs.nnz() {
         let lhs_row = lhs.rows[idx] as usize;
         let lhs_col = lhs.cols[idx];
         let lhs_val = lhs.data[idx];
         let lhs_param = lhs.param_offsets[idx];
 
-        // Column-major decomposition of input index
-        // lhs_row represents X[row_in_X, col_in_X]
-        let row_in_X = lhs_row % k; // i = row in X
-        let col_in_X = lhs_row / k; // l = column in X (also row in A)
+        let row_in_X = lhs_row % k;
+        let col_in_X = lhs_row / k;
 
-        // For X @ A: (X @ A)[i, j] = sum_l X[i, l] * A[l, j]
-        // This input element X[i, l] contributes to all output columns j
-        // with coefficient A[l, j]
-        // Column-major data: A[l, j] at index j * a_rows + l
+        // For each column j of A, emit contribution
+        // A is column-major: A[col_in_X, j] = data[j * a_rows + col_in_X]
         for j in 0..a_cols {
-            let a_val = data[j * a_rows + col_in_X]; // A[col_in_X, j] = A[l, j] in col-major
+            let a_val = data[j * a_rows + col_in_X];
             if a_val != 0.0 {
-                // Output index in column-major: (X@A)[i, j] at index j * k + i
-                let new_row = (j * k + row_in_X) as i64;
-                result.push(a_val * lhs_val, new_row, lhs_col, lhs_param);
+                let out_row = j * k + row_in_X;
+                if out_row < output_rows {
+                    rows.push(out_row as i64);
+                    cols.push(lhs_col);
+                    vals.push(lhs_val * a_val);
+                    params.push(lhs_param);
+                }
             }
         }
     }
 
-    result
+    SparseTensor {
+        shape: (output_rows, ctx.var_length as usize + 1),
+        rows,
+        cols,
+        data: vals,
+        param_offsets: params,
+    }
 }
 
 /// Dense block diagonal right multiplication with row-major data: kron(A^T, I_k) @ tensor

@@ -17,6 +17,7 @@ ndarray = "0.16"
 sprs = "0.11"
 rayon = "1.10"
 thiserror = "2.0"
+faer = "0.20"
 
 [profile.release]
 lto = true
