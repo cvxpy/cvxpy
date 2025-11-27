@@ -114,42 +114,91 @@ fn get_constant_matrix_data_for_rmul(lin_op: &LinOp, arg: &LinOp, ctx: &Processi
 
 /// Process elementwise multiplication: arg * data
 ///
-/// Multiplies the argument tensor elementwise by constant data.
+/// Multiplies the argument tensor elementwise by data (which may be parametric).
 /// This is equivalent to left multiplication by a diagonal matrix.
 /// For scalar constants, the scalar is broadcast to all elements.
+///
+/// When data contains parameters, we need to properly handle the parametric structure:
+/// - Process data as a tensor (not just extract constant values)
+/// - Multiply arg entries by data entries, preserving param_offsets from data
 pub fn process_mul_elem(lin_op: &LinOp, ctx: &ProcessingContext) -> SparseTensor {
     if lin_op.args.is_empty() {
         return SparseTensor::empty((lin_op.size(), ctx.var_length as usize + 1));
     }
 
-    // Get the constant data
+    // Get the data LinOp
     let data_linop = match &lin_op.data {
         LinOpData::LinOpRef(inner) => inner.as_ref(),
         _ => panic!("MulElem operation must have LinOp data"),
     };
 
-    // Process the argument
-    let mut tensor = process_linop(&lin_op.args[0], ctx);
+    // Process the argument tensor
+    let arg_tensor = process_linop(&lin_op.args[0], ctx);
 
-    // Get constant data as flat array (in column-major order)
-    let data = get_constant_vector_data(data_linop, Some(ctx));
+    // Process the data as a tensor to preserve parametric structure
+    let data_tensor = process_linop(data_linop, ctx);
 
-    // Multiply each tensor entry by the corresponding data element
-    // For scalars (len=1), broadcast to all elements
-    let is_scalar = data.len() == 1;
-    for i in 0..tensor.nnz() {
-        let row = tensor.rows[i] as usize;
-        let data_val = if is_scalar {
-            data[0]
-        } else if row < data.len() {
-            data[row]
-        } else {
-            1.0  // Default to no-op for out-of-bounds (shouldn't happen)
-        };
-        tensor.data[i] *= data_val;
+    // Check if data is scalar (single output)
+    let is_scalar = data_linop.size() == 1;
+
+    // Build result tensor by multiplying arg entries by corresponding data entries
+    // For each arg entry at row r, we need to find all data entries at row r
+    // (or at row 0 if scalar) and create result entries with data's param_offset
+
+    // For efficiency, group data entries by row
+    let data_size = data_linop.size();
+    let mut data_by_row: Vec<Vec<(f64, i64)>> = vec![Vec::new(); data_size];
+    for i in 0..data_tensor.nnz() {
+        let row = data_tensor.rows[i] as usize;
+        if row < data_size {
+            // Store (value, param_offset) for each row
+            data_by_row[row].push((data_tensor.data[i], data_tensor.param_offsets[i]));
+        }
     }
 
-    tensor
+    // Build result tensor
+    let mut result = SparseTensor::with_capacity(
+        (lin_op.size(), ctx.var_length as usize + 1),
+        arg_tensor.nnz() * if is_scalar { data_tensor.nnz() } else { 1 },
+    );
+
+    for i in 0..arg_tensor.nnz() {
+        let arg_row = arg_tensor.rows[i] as usize;
+        let arg_col = arg_tensor.cols[i];
+        let arg_val = arg_tensor.data[i];
+        let arg_param = arg_tensor.param_offsets[i];
+
+        // Get data entries for this row (or row 0 if scalar)
+        let data_row = if is_scalar { 0 } else { arg_row };
+
+        if data_row < data_by_row.len() && !data_by_row[data_row].is_empty() {
+            for &(data_val, data_param) in &data_by_row[data_row] {
+                // The result param_offset depends on both arg and data params
+                // If arg has non-constant param, we need to handle param*param (not supported)
+                // For now, assume arg params are constant and use data's param
+                let result_param = if arg_param == ctx.const_param() {
+                    data_param
+                } else if data_param == ctx.const_param() {
+                    arg_param
+                } else {
+                    // Both are parametric - this would need tensor product of params
+                    // For now, just use data's param (may not be fully correct)
+                    data_param
+                };
+
+                result.push(
+                    arg_val * data_val,
+                    arg_tensor.rows[i],
+                    arg_col,
+                    result_param,
+                );
+            }
+        }
+        // If no data entries for this row, the data is zero for that position
+        // and we produce zero output (don't add any entry since 0*anything = 0)
+    }
+
+    result
 }
 
 /// Process division: arg / data

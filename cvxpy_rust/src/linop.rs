@@ -317,9 +317,10 @@ impl LinOp {
     fn extract_dense_array(data_attr: &Bound<'_, PyAny>) -> PyResult<LinOpData> {
         let arr = data_attr.downcast::<PyArrayDyn<f64>>()?;
         let shape: Vec<usize> = arr.shape().to_vec();
-        // Read in Fortran order to match CVXPY convention
-        let readonly = arr.readonly();
-        let data: Vec<f64> = readonly.as_slice()?.to_vec();
+        // Read in C-contiguous order (row-major, as NumPy stores by default)
+        // Use to_owned_array() to handle non-contiguous arrays (e.g., views, complex slices)
+        let owned = arr.to_owned_array();
+        let data: Vec<f64> = owned.into_raw_vec_and_offset().0;
         Ok(LinOpData::DenseArray { data, shape })
     }
 
