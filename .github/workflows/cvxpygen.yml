@@ -18,7 +18,10 @@ jobs:
       - name: Install pytest and cvxpygen
         run: |
           pip install . pytest hypothesis
-          pip install cvxpygen
+          git clone https://github.com/cvxgrp/cvxpygen.git
+          cd cvxpygen
+          git submodule update --init --recursive
+          pip install .
       - name: Run test_cvxpygen
         run : |
           pytest cvxpy/tests/test_cvxpygen.py
