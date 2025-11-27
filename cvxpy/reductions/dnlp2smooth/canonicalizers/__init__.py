@@ -13,6 +13,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+from cvxpy.atoms.geo_mean import geo_mean
 from cvxpy.atoms.quad_over_lin import quad_over_lin
 from cvxpy.atoms.elementwise.exp import exp
 from cvxpy.atoms.elementwise.logistic import logistic
@@ -31,6 +32,7 @@ from cvxpy.atoms.elementwise.abs import abs
 from cvxpy.atoms.max import max
 from cvxpy.atoms.min import min
 from cvxpy.atoms.affine.binary_operators import DivExpression, MulExpression, multiply
+from cvxpy.reductions.dnlp2smooth.canonicalizers.geo_mean_canon import geo_mean_canon
 from cvxpy.reductions.dnlp2smooth.canonicalizers.quad_over_lin_canon import quad_over_lin_canon
 from cvxpy.reductions.dnlp2smooth.canonicalizers.div_canon import div_canon
 from cvxpy.reductions.dnlp2smooth.canonicalizers.log_canon import log_canon
@@ -68,6 +70,7 @@ SMOOTH_CANON_METHODS = {
     kl_div: kl_div_canon,
     multiply: multiply_canon,
     MulExpression: matmul_canon,
+    geo_mean: geo_mean_canon,
 
     # ESR atoms
     abs: abs_canon,

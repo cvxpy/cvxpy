@@ -227,7 +227,6 @@ class TestExamplesIPOPT:
         prob.solve(solver=cp.IPOPT, nlp=True, verbose=True, derivative_test='none',
                     least_square_init_duals='no')
 
-
         true_sol = np.array([[ 1.73655994, -1.98685738,  2.57208783],  
                              [ 1.99273311, -1.67415425, -2.57208783]])
         assert np.allclose(centers.value, true_sol)
@@ -251,10 +250,33 @@ class TestExamplesIPOPT:
         prob.solve(solver=cp.IPOPT, nlp=True, verbose=True, derivative_test='none',
                     least_square_init_duals='no')
 
-
         true_sol = np.array([[ 1.73655994, -1.98685738,  2.57208783],  
                              [ 1.99273311, -1.67415425, -2.57208783]])
         assert np.allclose(centers.value, true_sol)
+
+    def test_geo_mean(self):
+        x = cp.Variable(3, pos=True)
+        geo_mean = cp.geo_mean(x)
+        objective = cp.Maximize(geo_mean)
+        constraints = [cp.sum(x) == 1]
+        problem = cp.Problem(objective, constraints)
+        problem.solve(solver=cp.IPOPT, nlp=True)
+        assert problem.status == cp.OPTIMAL
+        assert np.allclose(x.value, np.array([1/3, 1/3, 1/3]))
+
+    def test_geo_mean2(self):
+        """
+        This test doesn't converge to the global optimal solution
+        which is x^* = p/sum(p),
+        but atleast there are no errors in the derivative computations.
+        """
+        p = np.array([.07, .12, .23, .19, .39])
+        x = cp.Variable(5, nonneg=True)
+        prob = cp.Problem(cp.Maximize(cp.geo_mean(x, p)), [cp.sum(x) <= 1])
+        prob.solve(solver=cp.IPOPT, nlp=True)
+        x_true = p/sum(p)
+        assert prob.status == cp.OPTIMAL
+        assert np.allclose(x.value, x_true)
 
 
 @pytest.mark.skipif('IPOPT' not in INSTALLED_SOLVERS, reason='IPOPT is not installed.')
