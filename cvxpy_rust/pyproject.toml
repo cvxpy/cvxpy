@@ -12,6 +12,7 @@ version = "0.1.0"
 description = "Rust canonicalization backend for CVXPY"
 license = {text = "Apache-2.0"}
 requires-python = ">=3.11"
+# Note: Supports both regular Python 3.14 and free-threaded Python 3.14t
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Science/Research",
@@ -21,6 +22,7 @@ classifiers = [
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
     "Topic :: Scientific/Engineering :: Mathematics",
 ]
 dependencies = [
