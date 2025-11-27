@@ -13,8 +13,7 @@ mod matrix_builder;
 mod operations;
 mod tensor;
 
-use numpy::PyArray1;
-use numpy::ToPyArray;
+use numpy::{PyArray1, ToPyArray};
 use pyo3::prelude::*;
 use std::collections::HashMap;
 
@@ -45,8 +44,8 @@ fn build_matrix<'py>(
     param_to_col: HashMap<i64, i64>,
     var_length: i64,
 ) -> PyResult<(
-    Bound<'py, PyArray1<f64>>,
-    (Bound<'py, PyArray1<i64>>, Bound<'py, PyArray1<i64>>),
+    Py<PyArray1<f64>>,
+    (Py<PyArray1<i64>>, Py<PyArray1<i64>>),
     (i64, i64),
 )> {
     // Extract LinOp trees from Python objects
@@ -56,7 +55,7 @@ fn build_matrix<'py>(
         .collect::<PyResult<Vec<_>>>()?;
 
     // Build the matrix (release GIL during computation)
-    let result = py.allow_threads(|| {
+    let result = py.detach(|| {
         build_matrix_internal(
             &rust_lin_ops,
             param_size_plus_one,
@@ -68,18 +67,25 @@ fn build_matrix<'py>(
     });
 
     // Convert to numpy arrays
-    let data = result.data.to_pyarray_bound(py);
-    let rows = result.rows.to_pyarray_bound(py);
-    let cols = result.cols.to_pyarray_bound(py);
+    let data = result.data.to_pyarray(py).into();
+    let rows = result.rows.to_pyarray(py).into();
+    let cols = result.cols.to_pyarray(py).into();
     let shape = (result.shape.0 as i64, result.shape.1 as i64);
 
     Ok((data, (rows, cols), shape))
+}
+
+/// Test function for debugging module loading
+#[pyfunction]
+fn test_function() -> String {
+    "cvxpy_rust module loaded successfully".to_string()
 }
 
 /// Python module definition
 #[pymodule]
 fn cvxpy_rust(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(build_matrix, m)?)?;
+    m.add_function(wrap_pyfunction!(test_function, m)?)?;
 
     // Add version info
     m.add("__version__", env!("CARGO_PKG_VERSION"))?;
