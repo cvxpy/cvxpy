@@ -20,6 +20,7 @@ jobs:
           pip install . pytest hypothesis
           git clone https://github.com/cvxgrp/cvxpygen.git
           cd cvxpygen
+          git submodule update --init --recursive
           pip install .
       - name: Run test_cvxpygen
         run : |
