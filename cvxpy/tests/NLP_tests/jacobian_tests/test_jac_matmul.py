@@ -287,4 +287,27 @@ class TestJacMatmul():
         with pytest.raises(ValueError):
             expr.jacobian()
           
-        
+    def test_nested(self):
+        x = cp.Variable((4, 2), name='x', nonneg=True)
+        x.value = np.array([[1.0, 1.0],
+                            [2.0, 2.0],
+                            [4.0, 4.0],
+                            [8.0, 8.0]])
+        A = np.array([[1, 2, 3, 4],
+                    [5, 6, 7, 8]])
+        expr = A @ cp.log(x) @ A
+        result = expr.jacobian()
+        rows, cols, vals = result[x]
+        computed_jac = np.zeros((8, 8))
+        computed_jac[rows, cols] = vals
+
+        correct_jac = np.array([[ 1,  1, 0.75, 0.5, 5,  5, 3.75, 2.5 ],
+                                [ 5,  3, 1.75, 1,   25, 15, 8.75,  5  ],
+                                [ 2,  2, 1.5 , 1,   6,   6, 4.5 ,  3  ],
+                                [10,  6, 3.5 , 2,   30, 18  , 10.5 ,  6  ],
+                                [ 3,  3, 2.25, 1.5,  7, 7, 5.25,  3.5 ],
+                                [15,  9, 5.25, 3,   35, 21, 12.25,  7  ],
+                                [ 4,  4,    3, 2,   8,   8, 6, 4  ],
+                                [20, 12,    7,     4, 40, 24, 14, 8  ]])
+
+        assert np.allclose(computed_jac, correct_jac)

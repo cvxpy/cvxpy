@@ -266,12 +266,12 @@ class MulExpression(BinaryOperator):
         _, p = self.get_dimensions(Y)
 
         if X.is_constant():
-            B = X.value.T @ np.reshape(vec, (m, p), order='C')
+            B = X.value.T @ np.reshape(vec, (m, p), order='F')
             hess_dict = Y.hess_vec(B.flatten(order='F'))
             return hess_dict 
             
         if Y.is_constant():
-            B = np.reshape(vec, (m, p), order='C') @ Y.value.T
+            B = np.reshape(vec, (m, p), order='F') @ Y.value.T
             hess_dict = X.hess_vec(B.flatten(order='F'))
             return hess_dict
 
@@ -316,8 +316,8 @@ class MulExpression(BinaryOperator):
 
         X = self.args[0]
         Y = self.args[1]
-
-        m, n = self.get_dimensions(X)
+        
+        m, _ = self.get_dimensions(X)
         _, p = self.get_dimensions(Y)
 
         dx_dict = {}
@@ -325,15 +325,15 @@ class MulExpression(BinaryOperator):
 
         if not X.is_constant():
             dx = sp.kron(Y.value.T, sp.eye(m), format='csr')
-
+            
             if not isinstance(X, Variable):
                 X_jac_dict = X.jacobian()
-                for k in X_jac_dict:
-                    rows, cols, vals = X_jac_dict[k]
+                for var in X_jac_dict:
+                    rows, cols, vals = X_jac_dict[var]
                     X_jac = sp.coo_array((vals, (rows, cols)), 
-                                         shape=(dx.shape[1], X.size)).tocsc()
+                                         shape=(dx.shape[1], var.size)).tocsc()
                     X_jac = (dx @ X_jac).tocoo()
-                    X_jac_dict[k] = (X_jac.row, X_jac.col, X_jac.data)
+                    X_jac_dict[var] = (X_jac.row, X_jac.col, X_jac.data)
                 
                 dx_dict = X_jac_dict 
             else: 
@@ -346,12 +346,12 @@ class MulExpression(BinaryOperator):
 
             if not isinstance(Y, Variable):
                 Y_jac_dict = Y.jacobian()
-                for k in Y_jac_dict:
-                    rows, cols, vals = Y_jac_dict[k]
+                for var in Y_jac_dict:
+                    rows, cols, vals = Y_jac_dict[var]
                     Y_jac = sp.coo_array((vals, (rows, cols)),
-                                          shape=(dy.shape[1], Y.size)).tocsc()
+                                          shape=(dy.shape[1], var.size)).tocsc()
                     Y_jac = (dy @ Y_jac).tocoo()
-                    Y_jac_dict[k] = (Y_jac.row, Y_jac.col, Y_jac.data)
+                    Y_jac_dict[var] = (Y_jac.row, Y_jac.col, Y_jac.data)
                 
                 dy_dict = Y_jac_dict 
             else: 

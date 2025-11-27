@@ -103,7 +103,7 @@ class exp(Elementwise):
         """ See the docstring of the hess_vec method of the atom class. """
         x = self.args[0]
         idxs = np.arange(x.size)
-        vals = np.exp(x.value) * vec
+        vals = np.exp(x.value.flatten(order='F')) * vec
         return {(x, x): (idxs, idxs, np.atleast_1d(vals))}
 
     def _verify_jacobian_args(self):

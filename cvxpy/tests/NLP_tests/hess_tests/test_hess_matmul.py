@@ -138,3 +138,28 @@ class TestHessVecMatmul():
         lmbda = np.random.rand(m * m, 1)
         with pytest.raises(ValueError):
             expr.hess_vec(lmbda) 
+
+    def test_constant_times_expression(self):
+        x = cp.Variable((2, 2), name='x', nonneg=True)
+        x.value = np.array([[1.0, 2.0], [3.0, 4.0]])
+        A = np.array([[1.0, 2.0,], [3.0, 4.0]])
+        expr = A @ cp.log(x)
+        lmbda = np.array([1.0, 2.0, 3, 4])
+        result_dict = expr.hess_vec(lmbda)
+        computed_hess = np.zeros((4, 4))
+        rows, cols, vals = result_dict[(x, x)]
+        computed_hess[rows, cols] = vals
+        a11 = A[0, 0]
+        a12 = A[0, 1]
+        a21 = A[1, 0]
+        a22 = A[1, 1]
+        x11 = x.value[0, 0]
+        x12 = x.value[0, 1]
+        x21 = x.value[1, 0]
+        x22 = x.value[1, 1]
+        first_element = -(lmbda[0] * a11 + lmbda[1] * a21) / (x11**2)
+        second_element = -(lmbda[0] * a12 + lmbda[1] * a22) / (x21**2)
+        third_element = -(lmbda[2] * a11 + lmbda[3] * a21) / (x12**2)
+        fourth_element = -(lmbda[2] * a12 + lmbda[3] * a22) / (x22**2)
+        correct_hess = np.diag([first_element, second_element, third_element, fourth_element])
+        assert np.allclose(computed_hess, correct_hess)
