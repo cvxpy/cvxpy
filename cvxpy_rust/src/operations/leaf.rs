@@ -64,8 +64,9 @@ pub fn process_scalar_const(lin_op: &LinOp, ctx: &ProcessingContext) -> SparseTe
 /// Process a dense constant node
 ///
 /// Creates a column vector tensor from the dense array data.
+/// Data is already stored in F-order (column-major) from extract_dense_array.
 pub fn process_dense_const(lin_op: &LinOp, ctx: &ProcessingContext) -> SparseTensor {
-    let (data, shape) = match &lin_op.data {
+    let (data, _shape) = match &lin_op.data {
         LinOpData::DenseArray { data, shape } => (data, shape),
         _ => panic!("Dense const node must have dense array data"),
     };
@@ -82,72 +83,10 @@ pub fn process_dense_const(lin_op: &LinOp, ctx: &ProcessingContext) -> SparseTen
         nnz,
     );
 
-    // Flatten data in Fortran (column-major) order for output
-    // Input data from NumPy is in row-major (C) order
-    // For a 2D array with shape (m, n):
-    //   - NumPy row-major: element at (i, j) is at index i * n + j
-    //   - Fortran col-major output: element at (i, j) goes to row i + j * m
-    if shape.len() == 2 {
-        let (m, n_cols) = (shape[0], shape[1]);
-        for j in 0..n_cols {
-            for i in 0..m {
-                let input_idx = i * n_cols + j;  // NumPy row-major index
-                let output_row = j * m + i;      // Fortran column-major row
-                let value = data[input_idx];
-                if value != 0.0 {
-                    tensor.push(value, output_row as i64, col_offset, param_offset);
-                }
-            }
-        }
-    } else if shape.len() == 1 {
-        // 1D array
-        for (i, &value) in data.iter().enumerate() {
-            if value != 0.0 {
-                tensor.push(value, i as i64, col_offset, param_offset);
-            }
-        }
-    } else if shape.is_empty() {
-        // Scalar
-        if !data.is_empty() && data[0] != 0.0 {
-            tensor.push(data[0], 0, col_offset, param_offset);
-        }
-    } else {
-        // Higher dimensional - convert from row-major (C) to column-major (Fortran)
-        // General formula for n-dimensional arrays:
-        // C-order index -> coordinates -> F-order index
-
-        let total_size: usize = shape.iter().product();
-        let n_dims = shape.len();
-
-        // Precompute strides for C and F order
-        let mut c_strides = vec![1usize; n_dims];
-        let mut f_strides = vec![1usize; n_dims];
-        for i in (0..n_dims - 1).rev() {
-            c_strides[i] = c_strides[i + 1] * shape[i + 1];
-        }
-        for i in 1..n_dims {
-            f_strides[i] = f_strides[i - 1] * shape[i - 1];
-        }
-
-        for c_idx in 0..total_size {
-            let value = data[c_idx];
-            if value != 0.0 {
-                // Convert C index to coordinates
-                let mut coords = vec![0usize; n_dims];
-                let mut remaining = c_idx;
-                for d in 0..n_dims {
-                    coords[d] = remaining / c_strides[d];
-                    remaining %= c_strides[d];
-                }
-
-                // Convert coordinates to F index
-                let f_idx: usize = coords.iter()
-                    .zip(f_strides.iter())
-                    .map(|(&c, &s)| c * s)
-                    .sum();
-
-                tensor.push(value, f_idx as i64, col_offset, param_offset);
-            }
+    // Data is already in F-order (column-major), so just iterate directly
+    for (i, &value) in data.iter().enumerate() {
+        if value != 0.0 {
+            tensor.push(value, i as i64, col_offset, param_offset);
         }
     }
 
@@ -320,14 +259,14 @@ mod tests {
 
     #[test]
     fn test_dense_const_3d() {
-        // Test n-dimensional (>2D) constant conversion from C to F order
+        // Test n-dimensional (>2D) constant - data is already in F-order
         let ctx = make_ctx();
 
         // 3D array shape (2, 3, 4) with single non-zero at position [0, 0, 1]
-        // In C-order, [0,0,1] is at index: 0*3*4 + 0*4 + 1 = 1
         // In F-order, [0,0,1] is at index: 0 + 0*2 + 1*2*3 = 6
+        // Data comes already flattened in F-order from extract_dense_array
         let mut data = vec![0.0; 24];
-        data[1] = 42.0;  // C-order index for [0,0,1]
+        data[6] = 42.0;  // F-order index for [0,0,1]
 
         let lin_op = LinOp {
             op_type: OpType::DenseConst,

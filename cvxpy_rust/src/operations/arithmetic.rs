@@ -285,10 +285,22 @@ fn extract_matrix_from_data(lin_op: &LinOp) -> ConstantMatrix {
                     cols: shape[0],
                 }
             } else {
+                // 2D array: data is in F-order (column-major) from extract_dense_array
+                // Convert to row-major for matrix operations
+                let nrows = shape[0];
+                let ncols = shape[1];
+                let mut row_major = vec![0.0; nrows * ncols];
+                for i in 0..nrows {
+                    for j in 0..ncols {
+                        let col_major_idx = j * nrows + i;  // F-order index
+                        let row_major_idx = i * ncols + j;  // C-order index
+                        row_major[row_major_idx] = data[col_major_idx];
+                    }
+                }
                 ConstantMatrix::Dense {
-                    data: data.clone(),
-                    rows: shape[0],
-                    cols: shape[1],
+                    data: row_major,
+                    rows: nrows,
+                    cols: ncols,
                 }
             }
         }
@@ -393,30 +405,10 @@ fn get_constant_vector_data(lin_op: &LinOp, ctx: Option<&ProcessingContext>) -> 
             match &lin_op.data {
                 LinOpData::Float(v) => vec![*v],
                 LinOpData::Int(v) => vec![*v as f64],
-                LinOpData::DenseArray { data, shape } => {
-                    // NumPy data is in row-major order, need to convert to column-major
-                    if shape.len() <= 1 || shape.iter().product::<usize>() <= 1 {
-                        // 0D, 1D, or scalar - no reordering needed
-                        data.clone()
-                    } else if shape.len() == 2 {
-                        // 2D array: convert row-major to column-major
-                        let nrows = shape[0];
-                        let ncols = shape[1];
-                        let mut col_major = vec![0.0; nrows * ncols];
-                        for i in 0..nrows {
-                            for j in 0..ncols {
-                                let row_major_idx = i * ncols + j;
-                                let col_major_idx = j * nrows + i;
-                                col_major[col_major_idx] = data[row_major_idx];
-                            }
-                        }
-                        col_major
-                    } else {
-                        // Higher dimensions: flatten in column-major order
-                        // For now, treat as flattened and hope for the best
-                        // TODO: proper n-dimensional column-major reordering
-                        data.clone()
-                    }
+                LinOpData::DenseArray { data, .. } => {
+                    // Data is already stored in F-order (column-major) from extract_dense_array
+                    // Return directly for elementwise operations
+                    data.clone()
                 }
                 LinOpData::SparseArray { data, indices, indptr, shape } => {
                     // Convert sparse to dense for elementwise ops

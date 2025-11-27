@@ -507,6 +507,7 @@ pub fn process_kron_l(lin_op: &LinOp, ctx: &ProcessingContext) -> SparseTensor {
 }
 
 /// Compute Kronecker product row indices for kron(A, B)
+/// Maps from F-order indices in A and B to F-order index in result
 fn compute_kron_indices(lhs_data: &[f64], lhs_shape: &[usize], rhs_shape: &[usize]) -> (Vec<i64>, Vec<f64>) {
     let lhs_size: usize = lhs_shape.iter().product();
     let rhs_size: usize = rhs_shape.iter().product();
@@ -515,12 +516,33 @@ fn compute_kron_indices(lhs_data: &[f64], lhs_shape: &[usize], rhs_shape: &[usiz
     let mut row_indices = Vec::with_capacity(total);
     let mut scale_factors = Vec::with_capacity(total);
 
-    // kron(A, B)[i,j] = A[i//b_rows, j//b_cols] * B[i%b_rows, j%b_cols]
-    // In Fortran order, we iterate rhs fast, lhs slow
+    // Get dimensions (handle 1D arrays as column vectors)
+    let a_rows = if lhs_shape.is_empty() { 1 } else { lhs_shape[0] };
+    let a_cols = if lhs_shape.len() > 1 { lhs_shape[1] } else { 1 };
+    let b_rows = if rhs_shape.is_empty() { 1 } else { rhs_shape[0] };
+    let b_cols = if rhs_shape.len() > 1 { rhs_shape[1] } else { 1 };
 
+    // Result dimensions
+    let out_rows = a_rows * b_rows;
+
+    // kron(A, B)[i,j] = A[i//b_rows, j//b_cols] * B[i%b_rows, j%b_cols]
+    // Using F-order (column-major) indexing
     for lhs_idx in 0..lhs_size {
+        // Convert lhs_idx (F-order) to 2D coordinates in A
+        let i_a = lhs_idx % a_rows;
+        let j_a = lhs_idx / a_rows;
+
         for rhs_idx in 0..rhs_size {
-            let new_row = (lhs_idx * rhs_size + rhs_idx) as i64;
+            // Convert rhs_idx (F-order) to 2D coordinates in B
+            let i_b = rhs_idx % b_rows;
+            let j_b = rhs_idx / b_rows;
+
+            // Compute output 2D coordinates
+            let i_out = i_a * b_rows + i_b;
+            let j_out = j_a * b_cols + j_b;
+
+            // Convert to F-order index in output
+            let new_row = (i_out + j_out * out_rows) as i64;
             row_indices.push(new_row);
             scale_factors.push(lhs_data[lhs_idx]);
         }
@@ -530,6 +552,7 @@ fn compute_kron_indices(lhs_data: &[f64], lhs_shape: &[usize], rhs_shape: &[usiz
 }
 
 /// Compute Kronecker product row indices for kron(A, B) where A is variable
+/// Maps from F-order indices in A and B to F-order index in result
 fn compute_kron_indices_l(lhs_shape: &[usize], rhs_data: &[f64], rhs_shape: &[usize]) -> (Vec<i64>, Vec<f64>) {
     let lhs_size: usize = lhs_shape.iter().product();
     let rhs_size: usize = rhs_shape.iter().product();
@@ -538,9 +561,31 @@ fn compute_kron_indices_l(lhs_shape: &[usize], rhs_data: &[f64], rhs_shape: &[us
     let mut row_indices = Vec::with_capacity(total);
     let mut scale_factors = Vec::with_capacity(total);
 
+    // Get dimensions (handle 1D arrays as column vectors)
+    let a_rows = if lhs_shape.is_empty() { 1 } else { lhs_shape[0] };
+    let a_cols = if lhs_shape.len() > 1 { lhs_shape[1] } else { 1 };
+    let b_rows = if rhs_shape.is_empty() { 1 } else { rhs_shape[0] };
+    let b_cols = if rhs_shape.len() > 1 { rhs_shape[1] } else { 1 };
+
+    // Result dimensions
+    let out_rows = a_rows * b_rows;
+
     for lhs_idx in 0..lhs_size {
+        // Convert lhs_idx (F-order) to 2D coordinates in A
+        let i_a = lhs_idx % a_rows;
+        let j_a = lhs_idx / a_rows;
+
         for rhs_idx in 0..rhs_size {
-            let new_row = (lhs_idx * rhs_size + rhs_idx) as i64;
+            // Convert rhs_idx (F-order) to 2D coordinates in B
+            let i_b = rhs_idx % b_rows;
+            let j_b = rhs_idx / b_rows;
+
+            // Compute output 2D coordinates
+            let i_out = i_a * b_rows + i_b;
+            let j_out = j_a * b_cols + j_b;
+
+            // Convert to F-order index in output
+            let new_row = (i_out + j_out * out_rows) as i64;
             row_indices.push(new_row);
             scale_factors.push(rhs_data[rhs_idx]);
         }

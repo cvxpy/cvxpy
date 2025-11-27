@@ -317,10 +317,11 @@ impl LinOp {
     fn extract_dense_array(data_attr: &Bound<'_, PyAny>) -> PyResult<LinOpData> {
         let arr = data_attr.downcast::<PyArrayDyn<f64>>()?;
         let shape: Vec<usize> = arr.shape().to_vec();
-        // Read in C-contiguous order (row-major, as NumPy stores by default)
-        // Use to_owned_array() to handle non-contiguous arrays (e.g., views, complex slices)
-        let owned = arr.to_owned_array();
-        let data: Vec<f64> = owned.into_raw_vec_and_offset().0;
+        // CVXPY stores constants in F-order (column-major), so we need to read in F-order.
+        // Call numpy's ravel with order='F' to get flattened data in column-major order.
+        // This handles non-contiguous arrays (views, slices) correctly.
+        let flat_arr = data_attr.call_method1("ravel", ("F",))?;
+        let data: Vec<f64> = flat_arr.extract()?;
         Ok(LinOpData::DenseArray { data, shape })
     }
 
