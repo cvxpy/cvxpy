@@ -168,6 +168,7 @@ class special_index(AffAtom):
         self._select_mat = idx_mat[key]
         self._shape = self._select_mat.shape
         super(special_index, self).__init__(expr)
+        self._jacobian_operator = None
 
     def is_atom_log_log_convex(self) -> bool:
         """Is the atom log-log convex?
@@ -262,19 +263,18 @@ class special_index(AffAtom):
 
     def _jacobian(self):
         jacobian_dict = self.args[0].jacobian()
-        idx = self._select_mat.flatten(order='F')
 
-        row_map = {val: i for i, val in enumerate(idx)}
+        if self._jacobian_operator is None:
+            select_vec = np.reshape(self._select_mat, self._select_mat.size, order='F')
+            identity = sp.eye_array(self.args[0].size, format='csc')
+            self._jacobian_operator = identity[select_vec]
+
         for k in jacobian_dict:
             rows, cols, vals = jacobian_dict[k]
 
-            # extract entries in rows 'rows'
-            idxs = np.where(np.isin(rows, idx))[0]
-            rows_idxs = rows[idxs]
+            J = sp.coo_array((vals, (rows, cols)), shape=(self.args[0].size, k.size))
 
-            # replace rows_idxs by their position in idx
-            rows_idxs = np.array([row_map[r] for r in rows_idxs])
-
-            jacobian_dict[k] = (rows_idxs, cols[idxs], vals[idxs])
+            out = (self._jacobian_operator @ J).tocoo()
+            jacobian_dict[k] = out.coords[0], out.coords[1], out.data
 
         return jacobian_dict

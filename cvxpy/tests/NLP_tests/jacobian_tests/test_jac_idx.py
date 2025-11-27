@@ -63,6 +63,21 @@ class TestJacobianIndex():
         computed_jacobian[rows, cols] = vals
         assert(np.allclose(computed_jacobian, correct_jacobian))
 
+    def test_jacobian_special_idx_coeff_array(self):
+        n = 4
+        x = cp.Variable((n,), name='x')
+        x.value = np.array([1.0, 2.0, 3.0, 4.0])
+        expr = cp.log(x)[[0, 0]]
+        result_dict = expr.jacobian()
+        correct_jacobian = np.zeros((2, n))
+        correct_jacobian[0, 0] = 1/x.value[0]
+        correct_jacobian[1, 0] = 1/x.value[0]
+        computed_jacobian = np.zeros((2, n))
+        rows, cols, vals = result_dict[x]
+        computed_jacobian[rows, cols] = vals
+        assert(np.allclose(computed_jacobian, correct_jacobian))
+
+
     def test_jacobian_matrix_slice(self):
         n = 2
         x = cp.Variable((n, n), name='x')
