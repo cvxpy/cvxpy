@@ -23,6 +23,8 @@ pub fn process_neg(lin_op: &LinOp, ctx: &ProcessingContext) -> SparseTensor {
 ///
 /// Multiplies the argument tensor from the left by a constant matrix.
 /// The constant matrix is block-diagonalized according to the output shape.
+/// When the constant data is parametric (contains parameters), preserves
+/// the parametric structure by creating output entries with appropriate param_offsets.
 pub fn process_mul(lin_op: &LinOp, ctx: &ProcessingContext) -> SparseTensor {
     if lin_op.args.is_empty() {
         return SparseTensor::empty((lin_op.size(), ctx.var_length as usize + 1));
@@ -37,6 +39,13 @@ pub fn process_mul(lin_op: &LinOp, ctx: &ProcessingContext) -> SparseTensor {
     // Process the argument (rhs)
     let rhs = process_linop(&lin_op.args[0], ctx);
 
+    // Check if the lhs is parametric (contains Param nodes)
+    if is_parametric(lhs_linop) {
+        // Process the lhs as a tensor to preserve param_offsets
+        let lhs_tensor = process_linop(lhs_linop, ctx);
+        return multiply_parametric_left(&lhs_tensor, lhs_linop, &rhs, lin_op, ctx);
+    }
+
     // Get constant data tensor
     let lhs_data = get_constant_matrix_data(lhs_linop, Some(ctx));
 
@@ -47,6 +56,8 @@ pub fn process_mul(lin_op: &LinOp, ctx: &ProcessingContext) -> SparseTensor {
 /// Process right multiplication: arg @ data
 ///
 /// Multiplies the argument tensor from the right by a constant matrix.
+/// When the constant data is parametric (contains parameters), preserves
+/// the parametric structure by creating output entries with appropriate param_offsets.
 pub fn process_rmul(lin_op: &LinOp, ctx: &ProcessingContext) -> SparseTensor {
     if lin_op.args.is_empty() {
         return SparseTensor::empty((lin_op.size(), ctx.var_length as usize + 1));
@@ -60,6 +71,13 @@ pub fn process_rmul(lin_op: &LinOp, ctx: &ProcessingContext) -> SparseTensor {
 
     // Process the argument (lhs in mathematical sense)
     let lhs = process_linop(&lin_op.args[0], ctx);
+
+    // Check if the rhs is parametric (contains Param nodes)
+    if is_parametric(rhs_linop) {
+        // Process the rhs as a tensor to preserve param_offsets
+        let rhs_tensor = process_linop(rhs_linop, ctx);
+        return multiply_parametric_right(&lhs, &rhs_tensor, rhs_linop, lin_op, ctx);
+    }
 
     // Get constant data tensor with special handling for RMul 1D arrays
     // For RMul, we need to check if the 1D constant should be treated as
@@ -848,6 +866,234 @@ fn multiply_sparse_block_diagonal_right(
                             result.push(a_val * lhs_val, new_row, lhs_col, lhs_param);
                         }
                     }
+                }
+            }
+        }
+    }
+
+    result
+}
+
+/// Check if a LinOp tree contains any parameter nodes
+fn is_parametric(lin_op: &LinOp) -> bool {
+    use crate::linop::OpType;
+
+    match lin_op.op_type {
+        OpType::Param => true,
+        OpType::Variable | OpType::ScalarConst | OpType::DenseConst | OpType::SparseConst => false,
+        _ => {
+            // Check data if it's a LinOp
+            if let LinOpData::LinOpRef(ref data_op) = lin_op.data {
+                if is_parametric(data_op) {
+                    return true;
+                }
+            }
+            // Check all args
+            lin_op.args.iter().any(is_parametric)
+        }
+    }
+}
+
+/// Parametric left multiplication: param_tensor @ variable_tensor
+///
+/// When multiplying a parametric matrix A by a variable x (A @ x):
+/// - A has shape (m, n) and is stored as a tensor with different param_offsets per element
+/// - x has shape (n,) and is stored as identity matrix in the variable columns
+/// - Output has shape (m,) where each entry is sum_j(A[i,j] * x[j])
+/// - The output preserves param_offsets from A
+///
+/// The key difference from constant multiplication is that each A[i,j] has its own
+/// param_offset, so the output entries inherit those offsets.
+fn multiply_parametric_left(
+    lhs_tensor: &SparseTensor,
+    lhs_linop: &LinOp,
+    rhs_tensor: &SparseTensor,
+    output_linop: &LinOp,
+    ctx: &ProcessingContext,
+) -> SparseTensor {
+    let output_rows = output_linop.size();
+
+    // Get matrix dimensions from lhs LinOp shape
+    let (a_rows, a_cols) = if lhs_linop.shape.len() == 1 {
+        // 1D array treated as row vector for left multiplication
+        (1, lhs_linop.shape[0])
+    } else if lhs_linop.shape.len() >= 2 {
+        (lhs_linop.shape[0], lhs_linop.shape[1])
+    } else {
+        // Scalar
+        (1, 1)
+    };
+
+    // Guard against empty
+    if a_cols == 0 {
+        return SparseTensor::empty((output_rows, ctx.var_length as usize + 1));
+    }
+
+    // Number of blocks (for block-diagonal structure)
+    let k = rhs_tensor.shape.0 / a_cols;
+
+    // Build index of lhs_tensor entries by their row (which corresponds to A[row/a_cols, row%a_cols])
+    // Actually, for a parameter tensor, row corresponds to flat index in column-major order
+    // For shape (m, n), flat index i -> (i % m, i / m) in column-major
+    let lhs_size = lhs_linop.size();
+    let mut lhs_by_flat_idx: Vec<Vec<(f64, i64)>> = vec![Vec::new(); lhs_size];
+    for i in 0..lhs_tensor.nnz() {
+        let row = lhs_tensor.rows[i] as usize;
+        if row < lhs_size {
+            lhs_by_flat_idx[row].push((lhs_tensor.data[i], lhs_tensor.param_offsets[i]));
+        }
+    }
+
+    // Estimate capacity
+    let est_nnz = rhs_tensor.nnz() * a_rows;
+    let mut result = SparseTensor::with_capacity(
+        (output_rows, ctx.var_length as usize + 1),
+        est_nnz,
+    );
+
+    // For each entry in rhs (the variable tensor)
+    for rhs_idx in 0..rhs_tensor.nnz() {
+        let rhs_row = rhs_tensor.rows[rhs_idx] as usize;  // Index in variable
+        let rhs_col = rhs_tensor.cols[rhs_idx];          // Variable column
+        let rhs_val = rhs_tensor.data[rhs_idx];
+        let rhs_param = rhs_tensor.param_offsets[rhs_idx];
+
+        // Determine which block and which column within block
+        let block = rhs_row / a_cols;
+        let col_in_block = rhs_row % a_cols;  // j in A[i, j]
+
+        // For A @ x, entry (i, j) of A contributes to output row i
+        // A[i, j] is at flat index j * a_rows + i (column-major)
+        for i in 0..a_rows {
+            let flat_idx = col_in_block * a_rows + i;
+
+            if flat_idx < lhs_by_flat_idx.len() {
+                for &(lhs_val, lhs_param) in &lhs_by_flat_idx[flat_idx] {
+                    // Output row: block * a_rows + i
+                    let new_row = (block * a_rows + i) as i64;
+
+                    // Determine result param_offset
+                    // If both have non-constant params, we'd need param*param (unsupported)
+                    // Typically, variable is constant-param and A is parametric
+                    let result_param = if rhs_param == ctx.const_param() {
+                        lhs_param
+                    } else if lhs_param == ctx.const_param() {
+                        rhs_param
+                    } else {
+                        // Both parametric - use lhs param (A's param)
+                        lhs_param
+                    };
+
+                    result.push(lhs_val * rhs_val, new_row, rhs_col, result_param);
+                }
+            }
+        }
+    }
+
+    result
+}
+
+/// Parametric right multiplication: variable_tensor @ param_tensor
+///
+/// When multiplying a variable x by a parametric matrix A (x @ A):
+/// - x has shape (k, n) and is stored as identity matrix in the variable columns
+/// - A has shape (n, p) and is stored as a tensor with different param_offsets per element
+/// - Output has shape (k, p) where each entry is sum_l(x[i,l] * A[l,j])
+/// - The output preserves param_offsets from A
+fn multiply_parametric_right(
+    lhs_tensor: &SparseTensor,
+    rhs_tensor: &SparseTensor,
+    rhs_linop: &LinOp,
+    output_linop: &LinOp,
+    ctx: &ProcessingContext,
+) -> SparseTensor {
+    let output_rows = output_linop.size();
+
+    // Get matrix dimensions from rhs LinOp shape
+    let (a_rows, a_cols) = if rhs_linop.shape.len() == 1 {
+        // 1D array - check context for proper handling
+        let arg = &output_linop.args[0];
+        let arg_cols = if arg.shape.len() == 1 {
+            arg.shape[0]
+        } else if arg.shape.len() >= 2 {
+            arg.shape[1]
+        } else {
+            1
+        };
+        // If arg_cols != n, transpose interpretation
+        if arg_cols != rhs_linop.shape[0] {
+            (1, rhs_linop.shape[0])  // Row vector
+        } else {
+            (rhs_linop.shape[0], 1)  // Column vector
+        }
+    } else if rhs_linop.shape.len() >= 2 {
+        (rhs_linop.shape[0], rhs_linop.shape[1])
+    } else {
+        (1, 1)
+    };
+
+    // Guard against empty
+    if a_cols == 0 {
+        return SparseTensor::empty((output_rows, ctx.var_length as usize + 1));
+    }
+
+    // k = number of rows in output (and in X)
+    let k = output_rows / a_cols;
+    if k == 0 {
+        return SparseTensor::empty((output_rows, ctx.var_length as usize + 1));
+    }
+
+    // Build index of rhs_tensor entries by their row (flat index in column-major)
+    let rhs_size = rhs_linop.size();
+    let mut rhs_by_flat_idx: Vec<Vec<(f64, i64)>> = vec![Vec::new(); rhs_size];
+    for i in 0..rhs_tensor.nnz() {
+        let row = rhs_tensor.rows[i] as usize;
+        if row < rhs_size {
+            rhs_by_flat_idx[row].push((rhs_tensor.data[i], rhs_tensor.param_offsets[i]));
+        }
+    }
+
+    // Estimate capacity
+    let est_nnz = lhs_tensor.nnz() * a_cols;
+    let mut result = SparseTensor::with_capacity(
+        (output_rows, ctx.var_length as usize + 1),
+        est_nnz,
+    );
+
+    // For each entry in lhs (the variable tensor)
+    for lhs_idx in 0..lhs_tensor.nnz() {
+        let lhs_row = lhs_tensor.rows[lhs_idx] as usize;  // Index in variable
+        let lhs_col = lhs_tensor.cols[lhs_idx];          // Variable column
+        let lhs_val = lhs_tensor.data[lhs_idx];
+        let lhs_param = lhs_tensor.param_offsets[lhs_idx];
+
+        // Column-major decomposition of input index
+        // lhs_row represents X[row_in_X, col_in_X]
+        let row_in_X = lhs_row % k;       // i = row in X
+        let col_in_X = lhs_row / k;       // l = column in X (also row in A)
+
+        // For X @ A: (X @ A)[i, j] = sum_l X[i, l] * A[l, j]
+        // This X[i, l] entry contributes to all output columns j
+        // A[l, j] is at flat index j * a_rows + l (column-major)
+        for j in 0..a_cols {
+            let flat_idx = j * a_rows + col_in_X;
+
+            if flat_idx < rhs_by_flat_idx.len() {
+                for &(rhs_val, rhs_param) in &rhs_by_flat_idx[flat_idx] {
+                    // Output index in column-major: (X@A)[i, j] at index j * k + i
+                    let new_row = (j * k + row_in_X) as i64;
+
+                    // Determine result param_offset
+                    let result_param = if lhs_param == ctx.const_param() {
+                        rhs_param
+                    } else if rhs_param == ctx.const_param() {
+                        lhs_param
+                    } else {
+                        // Both parametric - use rhs param (A's param)
+                        rhs_param
+                    };
+
+                    result.push(lhs_val * rhs_val, new_row, lhs_col, result_param);
                 }
             }
         }

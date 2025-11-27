@@ -984,3 +984,423 @@ class TestRustBackendEndToEnd:
         rust_val = prob.value
 
         assert abs(scipy_val - rust_val) < 1e-5
+
+
+@pytest.mark.skipif(not RUST_AVAILABLE, reason="cvxpy_rust not installed")
+class TestRustBackendShapes:
+    """
+    Tests for Rust backend with different shape categories.
+
+    These tests ensure the backend handles different array shapes correctly:
+    - 1D arrays (n,)
+    - 2D arrays (m, n)
+    - Column vectors (m, 1)
+    - Row vectors (1, n)
+    """
+
+    @staticmethod
+    def get_backends(id_to_col, param_to_size, param_to_col, param_size_plus_one, var_length):
+        """Create both SciPy and Rust backends with same parameters."""
+        kwargs = {
+            "id_to_col": id_to_col.copy(),
+            "param_to_size": param_to_size.copy(),
+            "param_to_col": param_to_col.copy(),
+            "param_size_plus_one": param_size_plus_one,
+            "var_length": var_length,
+        }
+        scipy_backend = CanonBackend.get_backend(s.SCIPY_CANON_BACKEND, **kwargs)
+        from cvxpy.lin_ops.canon_backend import RustCanonBackend
+        rust_backend = RustCanonBackend(**kwargs)
+        return scipy_backend, rust_backend
+
+    @staticmethod
+    def compare_matrices(scipy_result, rust_result, atol=1e-12):
+        """Compare sparse matrices from both backends."""
+        assert scipy_result.shape == rust_result.shape, \
+            f"Shape mismatch: {scipy_result.shape} vs {rust_result.shape}"
+        diff = scipy_result - rust_result
+        if diff.nnz > 0:
+            max_diff = np.max(np.abs(diff.data))
+            assert max_diff < atol, f"Max absolute difference: {max_diff}"
+
+    # =========================================================================
+    # Shape Category Tests for Multiplication
+    # =========================================================================
+
+    @pytest.mark.parametrize("shape_type", ["1d", "2d", "col_vec", "row_vec"])
+    @given(st.integers(min_value=2, max_value=8))
+    @settings(max_examples=10, deadline=None)
+    def test_mul_shapes(self, shape_type, size):
+        """Test left multiplication with different shape categories."""
+        np.random.seed(42)
+
+        # Determine variable and constant shapes based on shape_type
+        if shape_type == "1d":
+            var_shape = (size,)
+            const_shape = (size, size)
+            output_shape = (size,)
+        elif shape_type == "2d":
+            var_shape = (size, size)
+            const_shape = (size, size)
+            output_shape = (size, size)
+        elif shape_type == "col_vec":
+            var_shape = (size, 1)
+            const_shape = (size, size)
+            output_shape = (size, 1)
+        else:  # row_vec
+            var_shape = (1, size)
+            const_shape = (1, 1)
+            output_shape = (1, size)
+
+        var_id = 1
+        var_size = int(np.prod(var_shape))
+        scipy_backend, rust_backend = self.get_backends(
+            id_to_col={var_id: 0},
+            param_to_size={CONSTANT_ID: 1},
+            param_to_col={CONSTANT_ID: 0},
+            param_size_plus_one=1,
+            var_length=var_size,
+        )
+
+        var_op = linOpHelper(shape=var_shape, type="variable", data=var_id, args=[])
+        const_data = np.random.randn(*const_shape)
+        const_op = linOpHelper(shape=const_shape, type="dense_const", data=const_data, args=[])
+        mul_op = linOpHelper(shape=output_shape, type="mul", data=const_op, args=[var_op])
+
+        scipy_result = scipy_backend.build_matrix([mul_op])
+        rust_result = rust_backend.build_matrix([mul_op])
+        self.compare_matrices(scipy_result, rust_result)
+
+    @pytest.mark.parametrize("shape_type", ["1d", "2d", "col_vec", "row_vec"])
+    @given(st.integers(min_value=2, max_value=8))
+    @settings(max_examples=10, deadline=None)
+    def test_rmul_shapes(self, shape_type, size):
+        """Test right multiplication with different shape categories."""
+        np.random.seed(42)
+
+        # Determine variable and constant shapes based on shape_type
+        if shape_type == "1d":
+            var_shape = (size,)
+            const_shape = (size,)
+            output_shape = (1,)  # dot product for 1D
+        elif shape_type == "2d":
+            var_shape = (size, size)
+            const_shape = (size, size)
+            output_shape = (size, size)
+        elif shape_type == "col_vec":
+            var_shape = (size, 1)
+            const_shape = (1, size)
+            output_shape = (size, size)
+        else:  # row_vec
+            var_shape = (1, size)
+            const_shape = (size, 1)
+            output_shape = (1, 1)
+
+        var_id = 1
+        var_size = int(np.prod(var_shape))
+        scipy_backend, rust_backend = self.get_backends(
+            id_to_col={var_id: 0},
+            param_to_size={CONSTANT_ID: 1},
+            param_to_col={CONSTANT_ID: 0},
+            param_size_plus_one=1,
+            var_length=var_size,
+        )
+
+        var_op = linOpHelper(shape=var_shape, type="variable", data=var_id, args=[])
+        const_data = np.random.randn(*const_shape)
+        const_op = linOpHelper(shape=const_shape, type="dense_const", data=const_data, args=[])
+        rmul_op = linOpHelper(shape=output_shape, type="rmul", data=const_op, args=[var_op])
+
+        scipy_result = scipy_backend.build_matrix([rmul_op])
+        rust_result = rust_backend.build_matrix([rmul_op])
+        self.compare_matrices(scipy_result, rust_result)
+
+    @pytest.mark.parametrize("shape_type", ["1d", "2d", "col_vec", "row_vec"])
+    @given(st.integers(min_value=2, max_value=8))
+    @settings(max_examples=10, deadline=None)
+    def test_mul_elem_shapes(self, shape_type, size):
+        """Test elementwise multiplication with different shape categories."""
+        np.random.seed(42)
+
+        if shape_type == "1d":
+            shape = (size,)
+        elif shape_type == "2d":
+            shape = (size, size)
+        elif shape_type == "col_vec":
+            shape = (size, 1)
+        else:  # row_vec
+            shape = (1, size)
+
+        var_id = 1
+        var_size = int(np.prod(shape))
+        scipy_backend, rust_backend = self.get_backends(
+            id_to_col={var_id: 0},
+            param_to_size={CONSTANT_ID: 1},
+            param_to_col={CONSTANT_ID: 0},
+            param_size_plus_one=1,
+            var_length=var_size,
+        )
+
+        var_op = linOpHelper(shape=shape, type="variable", data=var_id, args=[])
+        const_data = np.random.randn(*shape)
+        const_op = linOpHelper(shape=shape, type="dense_const", data=const_data, args=[])
+        mul_elem_op = linOpHelper(shape=shape, type="mul_elem", data=const_op, args=[var_op])
+
+        scipy_result = scipy_backend.build_matrix([mul_elem_op])
+        rust_result = rust_backend.build_matrix([mul_elem_op])
+        self.compare_matrices(scipy_result, rust_result)
+
+
+@pytest.mark.skipif(not RUST_AVAILABLE, reason="cvxpy_rust not installed")
+class TestRustBackendParametric:
+    """
+    Tests for Rust backend with parametric operations.
+
+    These tests ensure parameters are correctly handled in multiplication
+    and other operations where the constant data contains parameters.
+    """
+
+    @staticmethod
+    def get_backends(id_to_col, param_to_size, param_to_col, param_size_plus_one, var_length):
+        """Create both SciPy and Rust backends with same parameters."""
+        kwargs = {
+            "id_to_col": id_to_col.copy(),
+            "param_to_size": param_to_size.copy(),
+            "param_to_col": param_to_col.copy(),
+            "param_size_plus_one": param_size_plus_one,
+            "var_length": var_length,
+        }
+        scipy_backend = CanonBackend.get_backend(s.SCIPY_CANON_BACKEND, **kwargs)
+        from cvxpy.lin_ops.canon_backend import RustCanonBackend
+        rust_backend = RustCanonBackend(**kwargs)
+        return scipy_backend, rust_backend
+
+    @staticmethod
+    def compare_matrices(scipy_result, rust_result, atol=1e-12):
+        """Compare sparse matrices from both backends."""
+        assert scipy_result.shape == rust_result.shape, \
+            f"Shape mismatch: {scipy_result.shape} vs {rust_result.shape}"
+        diff = scipy_result - rust_result
+        if diff.nnz > 0:
+            max_diff = np.max(np.abs(diff.data))
+            assert max_diff < atol, f"Max absolute difference: {max_diff}"
+
+    @given(st.integers(min_value=2, max_value=6))
+    @settings(max_examples=10, deadline=None)
+    def test_mul_elem_with_param(self, n):
+        """Test elementwise multiplication where data contains a parameter."""
+        param_id = 100
+        var_id = 1
+        param_size = n
+
+        scipy_backend, rust_backend = self.get_backends(
+            id_to_col={var_id: 0},
+            param_to_size={CONSTANT_ID: 1, param_id: param_size},
+            param_to_col={CONSTANT_ID: 0, param_id: 1},
+            param_size_plus_one=param_size + 1,
+            var_length=n,
+        )
+
+        # Create variable
+        var_op = linOpHelper(shape=(n,), type="variable", data=var_id, args=[])
+        # Create parameter
+        param_op = linOpHelper(shape=(n,), type="param", data=param_id, args=[])
+        # Elementwise multiply: param * var
+        mul_elem_op = linOpHelper(shape=(n,), type="mul_elem", data=param_op, args=[var_op])
+
+        scipy_result = scipy_backend.build_matrix([mul_elem_op])
+        rust_result = rust_backend.build_matrix([mul_elem_op])
+        self.compare_matrices(scipy_result, rust_result)
+
+    # Note: test_div_with_param removed because SciPy backend doesn't support
+    # division with parameters (see comment in canon_backend.py:1354-1357)
+
+
+@pytest.mark.skipif(not RUST_AVAILABLE, reason="cvxpy_rust not installed")
+class TestRustBackendNested:
+    """
+    Tests for Rust backend with nested/complex LinOp structures.
+
+    These tests ensure nested operations (like hstack/vstack inside mul data)
+    are correctly processed.
+    """
+
+    @staticmethod
+    def get_backends(id_to_col, param_to_size, param_to_col, param_size_plus_one, var_length):
+        """Create both SciPy and Rust backends with same parameters."""
+        kwargs = {
+            "id_to_col": id_to_col.copy(),
+            "param_to_size": param_to_size.copy(),
+            "param_to_col": param_to_col.copy(),
+            "param_size_plus_one": param_size_plus_one,
+            "var_length": var_length,
+        }
+        scipy_backend = CanonBackend.get_backend(s.SCIPY_CANON_BACKEND, **kwargs)
+        from cvxpy.lin_ops.canon_backend import RustCanonBackend
+        rust_backend = RustCanonBackend(**kwargs)
+        return scipy_backend, rust_backend
+
+    @staticmethod
+    def compare_matrices(scipy_result, rust_result, atol=1e-12):
+        """Compare sparse matrices from both backends."""
+        assert scipy_result.shape == rust_result.shape, \
+            f"Shape mismatch: {scipy_result.shape} vs {rust_result.shape}"
+        diff = scipy_result - rust_result
+        if diff.nnz > 0:
+            max_diff = np.max(np.abs(diff.data))
+            assert max_diff < atol, f"Max absolute difference: {max_diff}"
+
+    def test_mul_with_hstack_data(self):
+        """Test multiplication where data is result of hstack."""
+        np.random.seed(42)
+        n = 4
+        var_id = 1
+
+        scipy_backend, rust_backend = self.get_backends(
+            id_to_col={var_id: 0},
+            param_to_size={CONSTANT_ID: 1},
+            param_to_col={CONSTANT_ID: 0},
+            param_size_plus_one=1,
+            var_length=n,
+        )
+
+        # Create variable (n,)
+        var_op = linOpHelper(shape=(n,), type="variable", data=var_id, args=[])
+
+        # Create two constants and hstack them
+        const1 = np.random.randn(2, n // 2)
+        const2 = np.random.randn(2, n // 2)
+        const1_op = linOpHelper(shape=(2, n // 2), type="dense_const", data=const1, args=[])
+        const2_op = linOpHelper(shape=(2, n // 2), type="dense_const", data=const2, args=[])
+        hstack_op = linOpHelper(shape=(2, n), type="hstack", args=[const1_op, const2_op])
+
+        # Multiply: hstack_result @ var
+        mul_op = linOpHelper(shape=(2,), type="mul", data=hstack_op, args=[var_op])
+
+        scipy_result = scipy_backend.build_matrix([mul_op])
+        rust_result = rust_backend.build_matrix([mul_op])
+        self.compare_matrices(scipy_result, rust_result)
+
+    def test_mul_with_vstack_data(self):
+        """Test multiplication where data is result of vstack."""
+        np.random.seed(42)
+        n = 4
+        var_id = 1
+
+        scipy_backend, rust_backend = self.get_backends(
+            id_to_col={var_id: 0},
+            param_to_size={CONSTANT_ID: 1},
+            param_to_col={CONSTANT_ID: 0},
+            param_size_plus_one=1,
+            var_length=n,
+        )
+
+        # Create variable (n,)
+        var_op = linOpHelper(shape=(n,), type="variable", data=var_id, args=[])
+
+        # Create two constants and vstack them
+        const1 = np.random.randn(2, n)
+        const2 = np.random.randn(2, n)
+        const1_op = linOpHelper(shape=(2, n), type="dense_const", data=const1, args=[])
+        const2_op = linOpHelper(shape=(2, n), type="dense_const", data=const2, args=[])
+        vstack_op = linOpHelper(shape=(4, n), type="vstack", args=[const1_op, const2_op])
+
+        # Multiply: vstack_result @ var
+        mul_op = linOpHelper(shape=(4,), type="mul", data=vstack_op, args=[var_op])
+
+        scipy_result = scipy_backend.build_matrix([mul_op])
+        rust_result = rust_backend.build_matrix([mul_op])
+        self.compare_matrices(scipy_result, rust_result)
+
+    def test_mul_with_transpose_data(self):
+        """Test multiplication where data is transposed."""
+        np.random.seed(42)
+        n = 4
+        var_id = 1
+
+        scipy_backend, rust_backend = self.get_backends(
+            id_to_col={var_id: 0},
+            param_to_size={CONSTANT_ID: 1},
+            param_to_col={CONSTANT_ID: 0},
+            param_size_plus_one=1,
+            var_length=n,
+        )
+
+        # Create variable (n,)
+        var_op = linOpHelper(shape=(n,), type="variable", data=var_id, args=[])
+
+        # Create constant and transpose it
+        const_data = np.random.randn(n, 3)
+        const_op = linOpHelper(shape=(n, 3), type="dense_const", data=const_data, args=[])
+        transpose_op = linOpHelper(shape=(3, n), type="transpose", data=[None], args=[const_op])
+
+        # Multiply: transpose_result @ var
+        mul_op = linOpHelper(shape=(3,), type="mul", data=transpose_op, args=[var_op])
+
+        scipy_result = scipy_backend.build_matrix([mul_op])
+        rust_result = rust_backend.build_matrix([mul_op])
+        self.compare_matrices(scipy_result, rust_result)
+
+    def test_rmul_with_transpose_data(self):
+        """Test right multiplication where data is transposed."""
+        np.random.seed(42)
+        n = 4
+        var_id = 1
+
+        scipy_backend, rust_backend = self.get_backends(
+            id_to_col={var_id: 0},
+            param_to_size={CONSTANT_ID: 1},
+            param_to_col={CONSTANT_ID: 0},
+            param_size_plus_one=1,
+            var_length=n,
+        )
+
+        # Create variable (1, n) as row vector
+        var_op = linOpHelper(shape=(1, n), type="variable", data=var_id, args=[])
+
+        # Create constant and transpose it: (3, n) -> (n, 3)
+        const_data = np.random.randn(3, n)
+        const_op = linOpHelper(shape=(3, n), type="dense_const", data=const_data, args=[])
+        transpose_op = linOpHelper(shape=(n, 3), type="transpose", data=[None], args=[const_op])
+
+        # Right multiply: var @ transpose_result  -> (1, n) @ (n, 3) = (1, 3)
+        rmul_op = linOpHelper(shape=(1, 3), type="rmul", data=transpose_op, args=[var_op])
+
+        scipy_result = scipy_backend.build_matrix([rmul_op])
+        rust_result = rust_backend.build_matrix([rmul_op])
+        self.compare_matrices(scipy_result, rust_result)
+
+    def test_deeply_nested_sum_neg_mul(self):
+        """Test deeply nested operation: mul(neg(sum(x, y)))."""
+        np.random.seed(42)
+        m, n = 3, 4
+        size = m * n
+
+        scipy_backend, rust_backend = self.get_backends(
+            id_to_col={1: 0, 2: size},
+            param_to_size={CONSTANT_ID: 1},
+            param_to_col={CONSTANT_ID: 0},
+            param_size_plus_one=1,
+            var_length=2 * size,
+        )
+
+        # Create two variables
+        var1 = linOpHelper(shape=(m, n), type="variable", data=1, args=[])
+        var2 = linOpHelper(shape=(m, n), type="variable", data=2, args=[])
+
+        # Sum them
+        sum_op = linOpHelper(shape=(m, n), type="sum", args=[var1, var2])
+
+        # Negate
+        neg_op = linOpHelper(shape=(m, n), type="neg", args=[sum_op])
+
+        # Create constant for multiplication
+        const_data = np.random.randn(m, m)
+        const_op = linOpHelper(shape=(m, m), type="dense_const", data=const_data, args=[])
+
+        # Multiply: const @ neg(sum(var1, var2))
+        mul_op = linOpHelper(shape=(m, n), type="mul", data=const_op, args=[neg_op])
+
+        scipy_result = scipy_backend.build_matrix([mul_op])
+        rust_result = rust_backend.build_matrix([mul_op])
+        self.compare_matrices(scipy_result, rust_result)
