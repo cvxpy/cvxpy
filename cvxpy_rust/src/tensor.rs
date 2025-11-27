@@ -50,6 +50,7 @@ impl SparseTensor {
     }
 
     /// Check if the tensor is empty
+    #[allow(dead_code)]
     pub fn is_empty(&self) -> bool {
         self.data.is_empty()
     }
@@ -93,6 +94,7 @@ impl SparseTensor {
     }
 
     /// Offset all column indices in place
+    #[allow(dead_code)]
     pub fn offset_cols_in_place(&mut self, offset: i64) {
         for c in &mut self.cols {
             *c += offset;
@@ -100,6 +102,7 @@ impl SparseTensor {
     }
 
     /// Offset all parameter indices in place
+    #[allow(dead_code)]
     pub fn offset_params_in_place(&mut self, offset: i64) {
         for p in &mut self.param_offsets {
             *p += offset;
@@ -193,6 +196,7 @@ impl SparseTensorBuilder {
     }
 
     /// Add a constant column vector
+    #[allow(dead_code)]
     pub fn add_constant_column(&mut self, data: &[f64], col_offset: i64, param_offset: i64) {
         for (i, &value) in data.iter().enumerate() {
             if value != 0.0 {
@@ -202,6 +206,7 @@ impl SparseTensorBuilder {
     }
 
     /// Add sparse CSC data
+    #[allow(dead_code)]
     pub fn add_sparse_csc(
         &mut self,
         values: &[f64],
@@ -220,12 +225,7 @@ impl SparseTensorBuilder {
                 let row = indices[idx];
                 let value = values[idx];
                 if value != 0.0 {
-                    self.push(
-                        value,
-                        row + row_offset,
-                        j as i64 + col_offset,
-                        param_offset,
-                    );
+                    self.push(value, row + row_offset, j as i64 + col_offset, param_offset);
                 }
             }
         }
@@ -264,7 +264,9 @@ impl BuildMatrixResult {
 
         // Convert 3D COO to 2D COO
         // Output row = col * n_rows + row (column-major flattening)
-        let flat_rows: Vec<i64> = tensor.rows.iter()
+        let flat_rows: Vec<i64> = tensor
+            .rows
+            .iter()
             .zip(tensor.cols.iter())
             .map(|(&r, &c)| c * (n_rows as i64) + r)
             .collect();

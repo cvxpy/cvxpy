@@ -2,9 +2,9 @@
 //!
 //! These operations perform specialized matrix/tensor transformations.
 
-use crate::linop::{LinOp, LinOpData, AxisSpec};
+use super::{process_linop, ProcessingContext};
+use crate::linop::{AxisSpec, LinOp, LinOpData};
 use crate::tensor::SparseTensor;
-use super::{ProcessingContext, process_linop};
 
 /// Process sum_entries operation
 ///
@@ -27,10 +27,8 @@ pub fn process_sum_entries(lin_op: &LinOp, ctx: &ProcessingContext) -> SparseTen
     match axis {
         None => {
             // Sum all entries - collapse all rows to row 0
-            let mut result = SparseTensor::with_capacity(
-                (1, ctx.var_length as usize + 1),
-                tensor.nnz(),
-            );
+            let mut result =
+                SparseTensor::with_capacity((1, ctx.var_length as usize + 1), tensor.nnz());
             for i in 0..tensor.nnz() {
                 result.push(tensor.data[i], 0, tensor.cols[i], tensor.param_offsets[i]);
             }
@@ -56,7 +54,12 @@ pub fn process_sum_entries(lin_op: &LinOp, ctx: &ProcessingContext) -> SparseTen
                 let old_row = tensor.rows[i] as usize;
                 if old_row < row_mapping.len() {
                     let new_row = row_mapping[old_row];
-                    result.push(tensor.data[i], new_row, tensor.cols[i], tensor.param_offsets[i]);
+                    result.push(
+                        tensor.data[i],
+                        new_row,
+                        tensor.cols[i],
+                        tensor.param_offsets[i],
+                    );
                 }
             }
 
@@ -75,8 +78,15 @@ fn compute_sum_row_mapping(shape: &[usize], axes: &[i64]) -> Vec<i64> {
     let n_dims = shape.len();
 
     // Normalize negative axes
-    let axes: Vec<usize> = axes.iter()
-        .map(|&a| if a < 0 { (n_dims as i64 + a) as usize } else { a as usize })
+    let axes: Vec<usize> = axes
+        .iter()
+        .map(|&a| {
+            if a < 0 {
+                (n_dims as i64 + a) as usize
+            } else {
+                a as usize
+            }
+        })
         .collect();
 
     // Compute output shape (dimensions not in axes)
@@ -149,17 +159,15 @@ pub fn process_trace(lin_op: &LinOp, ctx: &ProcessingContext) -> SparseTensor {
         return tensor;
     }
 
-    let n = arg_shape[0];  // Assumes square matrix
+    let n = arg_shape[0]; // Assumes square matrix
 
     // Diagonal indices for n x n matrix (flattened in Fortran order)
     // Diagonal entry (i, i) has flat index i + i*n = i*(n+1)
     let diag_indices: Vec<i64> = (0..n).map(|i| (i * (n + 1)) as i64).collect();
 
     // Select diagonal entries and sum to single row
-    let mut result = SparseTensor::with_capacity(
-        (1, ctx.var_length as usize + 1),
-        tensor.nnz() / n.max(1),
-    );
+    let mut result =
+        SparseTensor::with_capacity((1, ctx.var_length as usize + 1), tensor.nnz() / n.max(1));
 
     for i in 0..tensor.nnz() {
         let row = tensor.rows[i];
@@ -188,13 +196,11 @@ pub fn process_diag_vec(lin_op: &LinOp, ctx: &ProcessingContext) -> SparseTensor
     // Process the argument
     let tensor = process_linop(&lin_op.args[0], ctx);
 
-    let n = lin_op.shape[0];  // Output is n x n
+    let n = lin_op.shape[0]; // Output is n x n
     let total_rows = n * n;
 
-    let mut result = SparseTensor::with_capacity(
-        (total_rows, ctx.var_length as usize + 1),
-        tensor.nnz(),
-    );
+    let mut result =
+        SparseTensor::with_capacity((total_rows, ctx.var_length as usize + 1), tensor.nnz());
 
     // Map input row i to output row on diagonal
     for i in 0..tensor.nnz() {
@@ -243,8 +249,8 @@ pub fn process_diag_mat(lin_op: &LinOp, ctx: &ProcessingContext) -> SparseTensor
     let tensor = process_linop(&lin_op.args[0], ctx);
     let arg_shape = &lin_op.args[0].shape;
 
-    let rows = lin_op.shape[0];  // Output size
-    let orig_rows = arg_shape.get(0).copied().unwrap_or(1);
+    let rows = lin_op.shape[0]; // Output size
+    let orig_rows = arg_shape.first().copied().unwrap_or(1);
 
     // Compute diagonal indices in the original matrix
     let diag_indices: Vec<i64> = (0..rows)
@@ -292,14 +298,14 @@ pub fn process_upper_tri(lin_op: &LinOp, ctx: &ProcessingContext) -> SparseTenso
     let tensor = process_linop(&lin_op.args[0], ctx);
     let arg_shape = &lin_op.args[0].shape;
 
-    let n = arg_shape.get(0).copied().unwrap_or(1);
+    let n = arg_shape.first().copied().unwrap_or(1);
 
     // Compute upper triangular indices (k=1, excluding diagonal)
     // Must iterate rows first (i outer), then columns (j > i) to match SciPy's np.triu_indices_from ordering
     let mut upper_indices = Vec::new();
     for i in 0..n.saturating_sub(1) {
         for j in (i + 1)..n {
-            upper_indices.push((i + j * n) as i64);  // Fortran order: idx = row + col * n_rows
+            upper_indices.push((i + j * n) as i64); // Fortran order: idx = row + col * n_rows
         }
     }
 
@@ -345,7 +351,7 @@ pub fn process_conv(lin_op: &LinOp, ctx: &ProcessingContext) -> SparseTensor {
     let kernel = get_kernel_data(kernel_linop);
     let kernel_len = kernel.len();
 
-    let arg_len = lin_op.args[0].size();
+    let _arg_len = lin_op.args[0].size(); // unused but documents API
     let output_len = lin_op.size();
 
     // Build Toeplitz matrix multiplication
@@ -383,7 +389,12 @@ fn get_kernel_data(lin_op: &LinOp) -> Vec<f64> {
         LinOpData::Float(v) => vec![*v],
         LinOpData::Int(v) => vec![*v as f64],
         LinOpData::DenseArray { data, .. } => data.clone(),
-        LinOpData::SparseArray { data, indices, indptr, shape } => {
+        LinOpData::SparseArray {
+            data,
+            indices,
+            indptr,
+            shape,
+        } => {
             // Convert to dense
             let n = shape.0 * shape.1;
             let mut dense = vec![0.0; n];
@@ -425,7 +436,7 @@ pub fn process_kron_r(lin_op: &LinOp, ctx: &ProcessingContext) -> SparseTensor {
     let rhs_shape = &lin_op.args[0].shape;
 
     // Compute Kronecker product indices
-    let (row_indices, scale_factors) = compute_kron_indices(&lhs_data, lhs_shape, rhs_shape);
+    let (row_indices, _scale_factors) = compute_kron_indices(&lhs_data, lhs_shape, rhs_shape);
 
     let output_rows = lin_op.size();
     let mut result = SparseTensor::with_capacity(
@@ -508,7 +519,12 @@ pub fn process_kron_l(lin_op: &LinOp, ctx: &ProcessingContext) -> SparseTensor {
 
 /// Compute Kronecker product row indices for kron(A, B)
 /// Maps from F-order indices in A and B to F-order index in result
-fn compute_kron_indices(lhs_data: &[f64], lhs_shape: &[usize], rhs_shape: &[usize]) -> (Vec<i64>, Vec<f64>) {
+#[allow(clippy::needless_range_loop)] // Index used for both arithmetic and array access
+fn compute_kron_indices(
+    lhs_data: &[f64],
+    lhs_shape: &[usize],
+    rhs_shape: &[usize],
+) -> (Vec<i64>, Vec<f64>) {
     let lhs_size: usize = lhs_shape.iter().product();
     let rhs_size: usize = rhs_shape.iter().product();
     let total = lhs_size * rhs_size;
@@ -517,9 +533,17 @@ fn compute_kron_indices(lhs_data: &[f64], lhs_shape: &[usize], rhs_shape: &[usiz
     let mut scale_factors = Vec::with_capacity(total);
 
     // Get dimensions (handle 1D arrays as column vectors)
-    let a_rows = if lhs_shape.is_empty() { 1 } else { lhs_shape[0] };
-    let a_cols = if lhs_shape.len() > 1 { lhs_shape[1] } else { 1 };
-    let b_rows = if rhs_shape.is_empty() { 1 } else { rhs_shape[0] };
+    let a_rows = if lhs_shape.is_empty() {
+        1
+    } else {
+        lhs_shape[0]
+    };
+    let _a_cols = if lhs_shape.len() > 1 { lhs_shape[1] } else { 1 }; // unused but documents layout
+    let b_rows = if rhs_shape.is_empty() {
+        1
+    } else {
+        rhs_shape[0]
+    };
     let b_cols = if rhs_shape.len() > 1 { rhs_shape[1] } else { 1 };
 
     // Result dimensions
@@ -553,7 +577,12 @@ fn compute_kron_indices(lhs_data: &[f64], lhs_shape: &[usize], rhs_shape: &[usiz
 
 /// Compute Kronecker product row indices for kron(A, B) where A is variable
 /// Maps from F-order indices in A and B to F-order index in result
-fn compute_kron_indices_l(lhs_shape: &[usize], rhs_data: &[f64], rhs_shape: &[usize]) -> (Vec<i64>, Vec<f64>) {
+#[allow(clippy::needless_range_loop)] // Index used for both arithmetic and array access
+fn compute_kron_indices_l(
+    lhs_shape: &[usize],
+    rhs_data: &[f64],
+    rhs_shape: &[usize],
+) -> (Vec<i64>, Vec<f64>) {
     let lhs_size: usize = lhs_shape.iter().product();
     let rhs_size: usize = rhs_shape.iter().product();
     let total = lhs_size * rhs_size;
@@ -562,9 +591,17 @@ fn compute_kron_indices_l(lhs_shape: &[usize], rhs_data: &[f64], rhs_shape: &[us
     let mut scale_factors = Vec::with_capacity(total);
 
     // Get dimensions (handle 1D arrays as column vectors)
-    let a_rows = if lhs_shape.is_empty() { 1 } else { lhs_shape[0] };
-    let a_cols = if lhs_shape.len() > 1 { lhs_shape[1] } else { 1 };
-    let b_rows = if rhs_shape.is_empty() { 1 } else { rhs_shape[0] };
+    let a_rows = if lhs_shape.is_empty() {
+        1
+    } else {
+        lhs_shape[0]
+    };
+    let _a_cols = if lhs_shape.len() > 1 { lhs_shape[1] } else { 1 }; // unused but documents layout
+    let b_rows = if rhs_shape.is_empty() {
+        1
+    } else {
+        rhs_shape[0]
+    };
     let b_cols = if rhs_shape.len() > 1 { rhs_shape[1] } else { 1 };
 
     // Result dimensions
@@ -637,7 +674,10 @@ mod tests {
             op_type: OpType::SumEntries,
             shape: vec![1],
             args: vec![var_op],
-            data: LinOpData::AxisData { axis: None, keepdims: true },
+            data: LinOpData::AxisData {
+                axis: None,
+                keepdims: true,
+            },
         };
 
         let tensor = process_sum_entries(&sum_op, &ctx);
@@ -696,7 +736,7 @@ mod tests {
             op_type: OpType::DiagVec,
             shape: vec![3, 3],
             args: vec![var_op],
-            data: LinOpData::Int(0),  // k=0 diagonal offset
+            data: LinOpData::Int(0), // k=0 diagonal offset
         };
 
         let tensor = process_diag_vec(&diag_op, &ctx);
@@ -724,7 +764,7 @@ mod tests {
             op_type: OpType::DiagMat,
             shape: vec![3],
             args: vec![var_op],
-            data: LinOpData::Int(0),  // k=0 diagonal offset
+            data: LinOpData::Int(0), // k=0 diagonal offset
         };
 
         let tensor = process_diag_mat(&diag_op, &ctx);
@@ -751,7 +791,7 @@ mod tests {
         // For 3x3: positions (0,1), (0,2), (1,2) = 3 elements
         let upper_tri_op = LinOp {
             op_type: OpType::UpperTri,
-            shape: vec![3],  // n*(n-1)/2 = 3*2/2 = 3 elements
+            shape: vec![3], // n*(n-1)/2 = 3*2/2 = 3 elements
             args: vec![var_op],
             data: LinOpData::None,
         };

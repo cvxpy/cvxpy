@@ -3,12 +3,12 @@
 //! This module contains the core algorithm for converting LinOp trees
 //! to sparse coefficient matrices, with support for parallel processing.
 
-use std::collections::HashMap;
 use rayon::prelude::*;
+use std::collections::HashMap;
 
 use crate::linop::LinOp;
-use crate::tensor::{SparseTensor, BuildMatrixResult, CONSTANT_ID};
-use crate::operations::{ProcessingContext, process_linop};
+use crate::operations::{process_linop, ProcessingContext};
+use crate::tensor::{BuildMatrixResult, SparseTensor, CONSTANT_ID};
 
 /// Threshold for parallel processing (number of constraints)
 const PARALLEL_THRESHOLD: usize = 4;
@@ -27,10 +27,10 @@ pub fn build_matrix_internal(
 ) -> BuildMatrixResult {
     // Create processing context
     let mut full_id_to_col = id_to_col.clone();
-    full_id_to_col.insert(CONSTANT_ID, var_length);  // Constant column
+    full_id_to_col.insert(CONSTANT_ID, var_length); // Constant column
 
     let mut full_param_to_col = param_to_col.clone();
-    full_param_to_col.insert(CONSTANT_ID, param_size_plus_one - 1);  // Constant slice
+    full_param_to_col.insert(CONSTANT_ID, param_size_plus_one - 1); // Constant slice
 
     let mut full_param_to_size = param_to_size.clone();
     full_param_to_size.insert(CONSTANT_ID, 1);
@@ -112,18 +112,18 @@ fn process_constraints_parallel(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::linop::{OpType, LinOpData};
+    use crate::linop::{LinOpData, OpType};
 
     fn make_test_ctx() -> (HashMap<i64, i64>, HashMap<i64, i64>, HashMap<i64, i64>) {
         let mut id_to_col = HashMap::new();
-        id_to_col.insert(0, 0);  // Variable 0 at column 0
-        id_to_col.insert(1, 3);  // Variable 1 at column 3
+        id_to_col.insert(0, 0); // Variable 0 at column 0
+        id_to_col.insert(1, 3); // Variable 1 at column 3
 
         let mut param_to_col = HashMap::new();
-        param_to_col.insert(0, 0);  // Parameter 0 at slice 0
+        param_to_col.insert(0, 0); // Parameter 0 at slice 0
 
         let mut param_to_size = HashMap::new();
-        param_to_size.insert(0, 2);  // Parameter 0 has size 2
+        param_to_size.insert(0, 2); // Parameter 0 has size 2
 
         (id_to_col, param_to_col, param_to_size)
     }
@@ -141,11 +141,11 @@ mod tests {
 
         let result = build_matrix_internal(
             &[lin_op],
-            3,  // param_size_plus_one
+            3, // param_size_plus_one
             &id_to_col,
             &param_to_size,
             &param_to_col,
-            6,  // var_length
+            6, // var_length
         );
 
         // Should have 3 entries (identity matrix for variable)
@@ -171,14 +171,8 @@ mod tests {
             data: LinOpData::None,
         };
 
-        let result = build_matrix_internal(
-            &[neg_op],
-            3,
-            &id_to_col,
-            &param_to_size,
-            &param_to_col,
-            6,
-        );
+        let result =
+            build_matrix_internal(&[neg_op], 3, &id_to_col, &param_to_size, &param_to_col, 6);
 
         assert_eq!(result.data.len(), 2);
         assert_eq!(result.data, vec![-1.0, -1.0]);
@@ -229,14 +223,8 @@ mod tests {
             data: LinOpData::Float(5.0),
         };
 
-        let result = build_matrix_internal(
-            &[const_op],
-            3,
-            &id_to_col,
-            &param_to_size,
-            &param_to_col,
-            6,
-        );
+        let result =
+            build_matrix_internal(&[const_op], 3, &id_to_col, &param_to_size, &param_to_col, 6);
 
         assert_eq!(result.data.len(), 1);
         assert_eq!(result.data[0], 5.0);

@@ -3,15 +3,10 @@
 //! This module contains implementations for all 22 LinOp operation types.
 //! Each operation transforms input tensors according to the operation semantics.
 
-mod leaf;
 mod arithmetic;
-mod structural;
+mod leaf;
 mod specialized;
-
-pub use leaf::*;
-pub use arithmetic::*;
-pub use structural::*;
-pub use specialized::*;
+mod structural;
 
 use crate::linop::{LinOp, OpType};
 use crate::tensor::SparseTensor;

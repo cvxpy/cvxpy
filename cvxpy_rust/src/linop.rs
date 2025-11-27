@@ -3,9 +3,9 @@
 //! This module defines the Rust representation of CVXPY's LinOp nodes
 //! and provides extraction from Python objects via PyO3.
 
+use numpy::{PyArrayDyn, PyUntypedArrayMethods};
 use pyo3::prelude::*;
-use pyo3::types::{PyList, PyTuple, PySequence};
-use numpy::{PyArrayDyn, PyArrayMethods, PyUntypedArrayMethods};
+use pyo3::types::{PyList, PySequence, PyTuple};
 use std::fmt;
 
 /// Helper to get item from either a list or tuple
@@ -17,9 +17,10 @@ fn get_sequence_item<'py>(obj: &Bound<'py, PyAny>, index: usize) -> PyResult<Bou
     } else if let Ok(seq) = obj.downcast::<PySequence>() {
         seq.get_item(index)
     } else {
-        Err(PyErr::new::<pyo3::exceptions::PyTypeError, _>(
-            format!("Expected list or tuple, got {:?}", obj.get_type().name())
-        ))
+        Err(PyErr::new::<pyo3::exceptions::PyTypeError, _>(format!(
+            "Expected list or tuple, got {:?}",
+            obj.get_type().name()
+        )))
     }
 }
 
@@ -32,9 +33,10 @@ fn get_sequence_len(obj: &Bound<'_, PyAny>) -> PyResult<usize> {
     } else if let Ok(seq) = obj.downcast::<PySequence>() {
         Ok(seq.len()?)
     } else {
-        Err(PyErr::new::<pyo3::exceptions::PyTypeError, _>(
-            format!("Expected list or tuple, got {:?}", obj.get_type().name())
-        ))
+        Err(PyErr::new::<pyo3::exceptions::PyTypeError, _>(format!(
+            "Expected list or tuple, got {:?}",
+            obj.get_type().name()
+        )))
     }
 }
 
@@ -114,17 +116,23 @@ impl OpType {
             "kron_r" => Ok(OpType::KronR),
             "kron_l" => Ok(OpType::KronL),
             "no_op" => Ok(OpType::NoOp),
-            _ => Err(pyo3::exceptions::PyValueError::new_err(
-                format!("Unknown operation type: {}", s)
-            )),
+            _ => Err(pyo3::exceptions::PyValueError::new_err(format!(
+                "Unknown operation type: {}",
+                s
+            ))),
         }
     }
 
     /// Check if this is a leaf node type
+    #[allow(dead_code)]
     pub fn is_leaf(&self) -> bool {
-        matches!(self,
-            OpType::Variable | OpType::ScalarConst | OpType::DenseConst |
-            OpType::SparseConst | OpType::Param
+        matches!(
+            self,
+            OpType::Variable
+                | OpType::ScalarConst
+                | OpType::DenseConst
+                | OpType::SparseConst
+                | OpType::Param
         )
     }
 }
@@ -245,8 +253,13 @@ impl LinOp {
                 Self::extract_slices(&data_attr)
             }
 
-            OpType::Mul | OpType::Rmul | OpType::MulElem | OpType::Div |
-            OpType::Conv | OpType::KronL | OpType::KronR => {
+            OpType::Mul
+            | OpType::Rmul
+            | OpType::MulElem
+            | OpType::Div
+            | OpType::Conv
+            | OpType::KronL
+            | OpType::KronR => {
                 // data is another LinOp tree (the constant operand)
                 let inner = LinOp::from_python(&data_attr)?;
                 Ok(LinOpData::LinOpRef(Box::new(inner)))
@@ -335,7 +348,12 @@ impl LinOp {
         let indptr: Vec<i64> = csc.getattr("indptr")?.extract()?;
         let shape: (usize, usize) = csc.getattr("shape")?.extract()?;
 
-        Ok(LinOpData::SparseArray { data, indices, indptr, shape })
+        Ok(LinOpData::SparseArray {
+            data,
+            indices,
+            indptr,
+            shape,
+        })
     }
 
     /// Extract slice data for index operation
@@ -374,16 +392,16 @@ impl LinOp {
                 }
             }
             OpType::Param => self.size(),
-            OpType::Neg | OpType::Reshape => {
-                self.args.first().map_or(0, |a| a.estimate_nnz())
-            }
+            OpType::Neg | OpType::Reshape => self.args.first().map_or(0, |a| a.estimate_nnz()),
             OpType::Mul | OpType::Rmul => {
                 // Estimate based on data nnz and number of blocks
                 let data_nnz = match &self.data {
                     LinOpData::LinOpRef(ref inner) => inner.estimate_nnz(),
                     _ => self.size(),
                 };
-                let num_blocks = self.args.first()
+                let num_blocks = self
+                    .args
+                    .first()
                     .map_or(1, |a| a.shape.get(1).copied().unwrap_or(1));
                 data_nnz * num_blocks
             }
@@ -398,14 +416,24 @@ impl LinOp {
                 let arg_nnz = self.args.first().map_or(1, |a| a.estimate_nnz());
                 data_size * arg_nnz
             }
-            _ => self.args.iter().map(|a| a.estimate_nnz()).sum::<usize>().max(self.size()),
+            _ => self
+                .args
+                .iter()
+                .map(|a| a.estimate_nnz())
+                .sum::<usize>()
+                .max(self.size()),
         }
     }
 }
 
 impl fmt::Display for LinOp {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "LinOp({:?}, shape={:?}, {} args)",
-               self.op_type, self.shape, self.args.len())
+        write!(
+            f,
+            "LinOp({:?}, shape={:?}, {} args)",
+            self.op_type,
+            self.shape,
+            self.args.len()
+        )
     }
 }

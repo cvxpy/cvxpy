@@ -38,7 +38,8 @@ requires = [
     # 68.1.0 Promoted pyproject.toml's [tool.setuptools] out of beta.
     "setuptools >= 68.1.0",
     "wheel",
-    "pybind11"
+    "pybind11",
+    "setuptools-rust >= 1.9.0"
 ]
 
 # We need access to the 'setup' package at build time.

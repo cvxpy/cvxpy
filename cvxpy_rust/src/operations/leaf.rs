@@ -2,9 +2,11 @@
 //!
 //! These operations create tensors for the leaf nodes of the expression tree.
 
-use crate::linop::{LinOp, LinOpData};
-use crate::tensor::{SparseTensor, SparseTensorBuilder, CONSTANT_ID};
 use super::ProcessingContext;
+use crate::linop::{LinOp, LinOpData};
+#[cfg(test)]
+use crate::tensor::CONSTANT_ID;
+use crate::tensor::{SparseTensor, SparseTensorBuilder};
 
 /// Process a variable node
 ///
@@ -27,10 +29,7 @@ pub fn process_variable(lin_op: &LinOp, ctx: &ProcessingContext) -> SparseTensor
     // Parameter offset is the constant slice (non-parametric)
     let param_offset = ctx.const_param();
 
-    let mut builder = SparseTensorBuilder::new(
-        (n, ctx.var_length as usize + 1),
-        n,
-    );
+    let mut builder = SparseTensorBuilder::new((n, ctx.var_length as usize + 1), n);
     builder.add_variable_identity(n, col_offset, param_offset);
     builder.build()
 }
@@ -53,10 +52,7 @@ pub fn process_scalar_const(lin_op: &LinOp, ctx: &ProcessingContext) -> SparseTe
     let col_offset = ctx.const_col();
     let param_offset = ctx.const_param();
 
-    let mut tensor = SparseTensor::with_capacity(
-        (1, ctx.var_length as usize + 1),
-        1,
-    );
+    let mut tensor = SparseTensor::with_capacity((1, ctx.var_length as usize + 1), 1);
     tensor.push(value, 0, col_offset, param_offset);
     tensor
 }
@@ -78,10 +74,7 @@ pub fn process_dense_const(lin_op: &LinOp, ctx: &ProcessingContext) -> SparseTen
     // Count non-zeros for capacity estimation
     let nnz = data.iter().filter(|&&x| x != 0.0).count();
 
-    let mut tensor = SparseTensor::with_capacity(
-        (n, ctx.var_length as usize + 1),
-        nnz,
-    );
+    let mut tensor = SparseTensor::with_capacity((n, ctx.var_length as usize + 1), nnz);
 
     // Data is already in F-order (column-major), so just iterate directly
     for (i, &value) in data.iter().enumerate() {
@@ -98,9 +91,12 @@ pub fn process_dense_const(lin_op: &LinOp, ctx: &ProcessingContext) -> SparseTen
 /// Creates a column vector tensor from the sparse array data (CSC format).
 pub fn process_sparse_const(lin_op: &LinOp, ctx: &ProcessingContext) -> SparseTensor {
     let (data, indices, indptr, shape) = match &lin_op.data {
-        LinOpData::SparseArray { data, indices, indptr, shape } => {
-            (data, indices, indptr, shape)
-        }
+        LinOpData::SparseArray {
+            data,
+            indices,
+            indptr,
+            shape,
+        } => (data, indices, indptr, shape),
         _ => panic!("Sparse const node must have sparse array data"),
     };
 
@@ -108,10 +104,7 @@ pub fn process_sparse_const(lin_op: &LinOp, ctx: &ProcessingContext) -> SparseTe
     let col_offset = ctx.const_col();
     let param_offset = ctx.const_param();
 
-    let mut tensor = SparseTensor::with_capacity(
-        (n, ctx.var_length as usize + 1),
-        data.len(),
-    );
+    let mut tensor = SparseTensor::with_capacity((n, ctx.var_length as usize + 1), data.len());
 
     // CSC format: iterate over columns
     let n_cols = indptr.len() - 1;
@@ -157,10 +150,7 @@ pub fn process_param(lin_op: &LinOp, ctx: &ProcessingContext) -> SparseTensor {
     // For parameters, we create n entries where:
     // - Each row i maps to parameter slice (param_col_offset + i % param_size)
     // - This creates a diagonal structure across the parameter dimension
-    let mut tensor = SparseTensor::with_capacity(
-        (n, ctx.var_length as usize + 1),
-        n,
-    );
+    let mut tensor = SparseTensor::with_capacity((n, ctx.var_length as usize + 1), n);
 
     for i in 0..n {
         let param_offset = if param_size == 0 {
@@ -182,15 +172,15 @@ mod tests {
 
     fn make_ctx() -> ProcessingContext {
         let mut id_to_col = HashMap::new();
-        id_to_col.insert(0, 0);  // Variable 0 at column 0
-        id_to_col.insert(1, 5);  // Variable 1 at column 5
+        id_to_col.insert(0, 0); // Variable 0 at column 0
+        id_to_col.insert(1, 5); // Variable 1 at column 5
 
         let mut param_to_col = HashMap::new();
-        param_to_col.insert(0, 0);  // Parameter 0 at slice 0
-        param_to_col.insert(CONSTANT_ID, 2);  // Constant at slice 2
+        param_to_col.insert(0, 0); // Parameter 0 at slice 0
+        param_to_col.insert(CONSTANT_ID, 2); // Constant at slice 2
 
         let mut param_to_size = HashMap::new();
-        param_to_size.insert(0, 2);  // Parameter 0 has size 2
+        param_to_size.insert(0, 2); // Parameter 0 has size 2
         param_to_size.insert(CONSTANT_ID, 1);
 
         ProcessingContext {
@@ -209,7 +199,7 @@ mod tests {
             op_type: OpType::Variable,
             shape: vec![3],
             args: vec![],
-            data: LinOpData::Int(0),  // Variable ID 0
+            data: LinOpData::Int(0), // Variable ID 0
         };
 
         let tensor = process_variable(&lin_op, &ctx);
@@ -217,7 +207,7 @@ mod tests {
         assert_eq!(tensor.nnz(), 3);
         assert_eq!(tensor.data, vec![1.0, 1.0, 1.0]);
         assert_eq!(tensor.rows, vec![0, 1, 2]);
-        assert_eq!(tensor.cols, vec![0, 1, 2]);  // Column 0, 1, 2 for variable 0
+        assert_eq!(tensor.cols, vec![0, 1, 2]); // Column 0, 1, 2 for variable 0
     }
 
     #[test]
@@ -234,7 +224,7 @@ mod tests {
 
         assert_eq!(tensor.nnz(), 1);
         assert_eq!(tensor.data, vec![3.14]);
-        assert_eq!(tensor.cols[0], 10);  // Constant column (var_length)
+        assert_eq!(tensor.cols[0], 10); // Constant column (var_length)
     }
 
     #[test]
@@ -252,7 +242,7 @@ mod tests {
 
         let tensor = process_dense_const(&lin_op, &ctx);
 
-        assert_eq!(tensor.nnz(), 2);  // Two non-zeros
+        assert_eq!(tensor.nnz(), 2); // Two non-zeros
         assert_eq!(tensor.data, vec![1.0, 2.0]);
         assert_eq!(tensor.rows, vec![0, 2]);
     }
@@ -266,7 +256,7 @@ mod tests {
         // In F-order, [0,0,1] is at index: 0 + 0*2 + 1*2*3 = 6
         // Data comes already flattened in F-order from extract_dense_array
         let mut data = vec![0.0; 24];
-        data[6] = 42.0;  // F-order index for [0,0,1]
+        data[6] = 42.0; // F-order index for [0,0,1]
 
         let lin_op = LinOp {
             op_type: OpType::DenseConst,
@@ -282,6 +272,6 @@ mod tests {
 
         assert_eq!(tensor.nnz(), 1);
         assert_eq!(tensor.data, vec![42.0]);
-        assert_eq!(tensor.rows, vec![6]);  // F-order index
+        assert_eq!(tensor.rows, vec![6]); // F-order index
     }
 }

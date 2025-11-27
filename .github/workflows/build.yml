@@ -60,6 +60,12 @@ jobs:
           echo $MOSEK_CI_BASE64 | base64 -d > mosek.lic
           echo "MOSEKLM_LICENSE_FILE=$( [[ $RUNNER_OS == 'macOS' ]] && echo $(pwd)/mosek.lic || echo $(realpath mosek.lic) )" >> $GITHUB_ENV
 
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-action@stable
+        with:
+          toolchain: stable
+          components: clippy, rustfmt
+
       - name: Install uv
         uses: astral-sh/setup-uv@v7
         with:
@@ -73,6 +79,14 @@ jobs:
       - name: Test
         run: |
           source continuous_integration/test_script.sh
+
+      - name: Rust tests
+        env:
+          PYO3_USE_ABI3_FORWARD_COMPATIBILITY: "1"
+        run: |
+          cd cvxpy_rust
+          cargo test --release
+          cargo clippy
 
       - name: Upload coverage file
         uses: actions/upload-artifact@v4
@@ -159,6 +173,12 @@ jobs:
           CIBW_SKIP: "*-win32 *-manylinux_i686 *-musllinux*"
           CIBW_ARCHS_MACOS: x86_64 universal2
           CIBW_ARCHS_LINUX: auto aarch64
+          CIBW_BEFORE_ALL_LINUX: "curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y"
+          CIBW_BEFORE_ALL_MACOS: "curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y"
+          CIBW_BEFORE_ALL_WINDOWS: "rustup-init -y"
+          CIBW_ENVIRONMENT_LINUX: 'PATH="$HOME/.cargo/bin:$PATH" PYO3_USE_ABI3_FORWARD_COMPATIBILITY=1'
+          CIBW_ENVIRONMENT_MACOS: 'PATH="$HOME/.cargo/bin:$PATH" PYO3_USE_ABI3_FORWARD_COMPATIBILITY=1'
+          CIBW_ENVIRONMENT_WINDOWS: 'PATH="$USERPROFILE\\.cargo\\bin;$PATH" PYO3_USE_ABI3_FORWARD_COMPATIBILITY=1'
         uses: pypa/cibuildwheel@v3.2.0
 
       - name: Build source

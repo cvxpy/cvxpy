@@ -3,14 +3,19 @@
 //! This crate provides a high-performance replacement for the C++ cvxcore backend.
 //! It converts LinOp trees into sparse matrices for optimization solvers.
 
-mod linop;
-mod tensor;
-mod operations;
-mod matrix_builder;
+// Allow some clippy lints that are too noisy for this codebase
+#![allow(clippy::too_many_arguments)]
+#![allow(clippy::type_complexity)]
+#![allow(clippy::useless_conversion)] // False positives from PyO3 macro expansion
 
-use pyo3::prelude::*;
+mod linop;
+mod matrix_builder;
+mod operations;
+mod tensor;
+
 use numpy::PyArray1;
 use numpy::ToPyArray;
+use pyo3::prelude::*;
 use std::collections::HashMap;
 
 use crate::linop::LinOp;

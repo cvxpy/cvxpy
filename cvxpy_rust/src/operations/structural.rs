@@ -2,9 +2,9 @@
 //!
 //! These operations transform the structure of tensors without arithmetic.
 
-use crate::linop::{LinOp, LinOpData, SliceData, AxisSpec};
+use super::{process_linop, ProcessingContext};
+use crate::linop::{AxisSpec, LinOp, LinOpData, SliceData};
 use crate::tensor::SparseTensor;
-use super::{ProcessingContext, process_linop};
 
 /// Process index operation
 ///
@@ -47,7 +47,7 @@ fn slice_indices(start: i64, stop: i64, step: i64) -> Vec<i64> {
         let mut i = start;
         while i > stop {
             result.push(i);
-            i += step;  // step is negative, so this decreases i
+            i += step; // step is negative, so this decreases i
         }
         result
     } else {
@@ -99,7 +99,10 @@ pub fn process_transpose(lin_op: &LinOp, ctx: &ProcessingContext) -> SparseTenso
 
     // Get axes permutation
     let axes = match &lin_op.data {
-        LinOpData::AxisData { axis: Some(AxisSpec::Multiple(axes)), .. } => axes.clone(),
+        LinOpData::AxisData {
+            axis: Some(AxisSpec::Multiple(axes)),
+            ..
+        } => axes.clone(),
         LinOpData::None => {
             // Default transpose: reverse all axes
             let n_dims = lin_op.args[0].shape.len();
@@ -133,9 +136,7 @@ fn compute_transpose_indices(shape: &[usize], axes: &[i64]) -> Vec<i64> {
     // For shape [a, b, c] with axes [1, 0, 2], we map
     // (i, j, k) in transposed -> (j, i, k) in original -> flat index
 
-    let new_shape: Vec<usize> = axes.iter()
-        .map(|&a| shape[a as usize])
-        .collect();
+    let new_shape: Vec<usize> = axes.iter().map(|&a| shape[a as usize]).collect();
 
     // Strides for original array (Fortran order)
     let mut orig_strides = vec![1i64; shape.len()];
@@ -212,8 +213,8 @@ fn compute_broadcast_indices(original: &[usize], broadcast: &[usize]) -> Vec<i64
         return vec![0; n_broadcast];
     }
 
-    // Create flat indices for original array
-    let mut orig_indices: Vec<i64> = (0..n_orig as i64).collect();
+    // Create flat indices for original array (unused but documents algorithm)
+    let _orig_indices: Vec<i64> = (0..n_orig as i64).collect();
 
     // Reshape to original shape (conceptually)
     // Then broadcast to new shape
@@ -240,7 +241,7 @@ fn compute_broadcast_indices(original: &[usize], broadcast: &[usize]) -> Vec<i64
         for (i, &dim_size) in original.iter().enumerate() {
             let broadcast_dim = i + offset;
             let idx = if dim_size <= 1 {
-                0  // Broadcast this dimension (size 0 or 1)
+                0 // Broadcast this dimension (size 0 or 1)
             } else {
                 broadcast_idx[broadcast_dim] % dim_size
             };
@@ -332,25 +333,32 @@ fn compute_vstack_indices(args: &[LinOp], output_shape: &[usize]) -> Vec<i64> {
         // For vstack of 2D arrays (m, n) each into (k*m, n):
         //   Interleave rows within each column
 
-        let n_rows_output = output_shape[0];
+        let _n_rows_output = output_shape[0]; // unused but documents layout
         let n_cols_output = output_shape[1];
-        let n_args = args.len();
+        let _n_args = args.len(); // unused but documents layout
 
         // How many rows does each arg contribute?
-        let rows_per_arg: Vec<usize> = args.iter()
+        let rows_per_arg: Vec<usize> = args
+            .iter()
             .map(|a| if a.shape.len() == 2 { a.shape[0] } else { 1 })
             .collect();
 
         // Columns per arg (should all be equal or 1 for broadcasting)
-        let cols_per_arg: Vec<usize> = args.iter()
-            .map(|a| if a.shape.len() == 2 { a.shape[1] } else { a.size() })
+        let cols_per_arg: Vec<usize> = args
+            .iter()
+            .map(|a| {
+                if a.shape.len() == 2 {
+                    a.shape[1]
+                } else {
+                    a.size()
+                }
+            })
             .collect();
 
         // Iterate over output in Fortran order (column by column)
         for col in 0..n_cols_output {
-            let mut row_in_output = 0;
             for (arg_idx, &n_rows) in rows_per_arg.iter().enumerate() {
-                let arg_cols = cols_per_arg[arg_idx];
+                let _arg_cols = cols_per_arg[arg_idx]; // unused but documents layout
                 for row in 0..n_rows {
                     // Index into the arg's flat representation
                     let arg_flat_idx = if args[arg_idx].shape.len() == 2 {
@@ -363,7 +371,6 @@ fn compute_vstack_indices(args: &[LinOp], output_shape: &[usize]) -> Vec<i64> {
                     if arg_flat_idx < arg_indices[arg_idx].len() {
                         indices.push(arg_indices[arg_idx][arg_flat_idx]);
                     }
-                    row_in_output += 1;
                 }
             }
         }
@@ -410,16 +417,17 @@ pub fn process_concatenate(lin_op: &LinOp, ctx: &ProcessingContext) -> SparseTen
 }
 
 /// Compute row permutation for concatenate along axis
+#[allow(clippy::needless_range_loop)] // Index used for multiple array accesses
 fn compute_concatenate_indices(args: &[LinOp], axis: i64) -> Vec<i64> {
     if args.is_empty() {
         return vec![];
     }
 
     let mut indices = Vec::new();
-    let mut offset = 0i64;
 
     // Build flat index arrays for each arg
-    let arg_offsets: Vec<i64> = args.iter()
+    let arg_offsets: Vec<i64> = args
+        .iter()
         .scan(0i64, |acc, arg| {
             let current = *acc;
             *acc += arg.size() as i64;
@@ -445,7 +453,10 @@ fn compute_concatenate_indices(args: &[LinOp], axis: i64) -> Vec<i64> {
 
     // Build the result shape
     let mut result_shape = shapes[0].clone();
-    result_shape[axis] = shapes.iter().map(|s| s.get(axis).copied().unwrap_or(1)).sum();
+    result_shape[axis] = shapes
+        .iter()
+        .map(|s| s.get(axis).copied().unwrap_or(1))
+        .sum();
 
     let total = result_shape.iter().product::<usize>();
 
@@ -494,8 +505,8 @@ fn compute_concatenate_indices(args: &[LinOp], axis: i64) -> Vec<i64> {
 mod tests {
     use super::*;
     use crate::linop::OpType;
-    use crate::tensor::CONSTANT_ID;
     use crate::operations::process_reshape;
+    use crate::tensor::CONSTANT_ID;
     use std::collections::HashMap;
 
     fn make_ctx(var_length: i64) -> ProcessingContext {
@@ -686,8 +697,16 @@ mod tests {
             shape: vec![2],
             args: vec![var_op],
             data: LinOpData::Slices(vec![
-                SliceData { start: 0, stop: 2, step: 1 },
-                SliceData { start: 0, stop: 1, step: 1 },
+                SliceData {
+                    start: 0,
+                    stop: 2,
+                    step: 1,
+                },
+                SliceData {
+                    start: 0,
+                    stop: 1,
+                    step: 1,
+                },
             ]),
         };
 
