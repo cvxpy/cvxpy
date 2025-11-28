@@ -1207,8 +1207,8 @@ class Problem(u.Canonical):
                 reductions = []
             reductions = reductions + [Dnlp2Smooth()]
             # instantiate based on user provided solver
-            # for now, the user must specify a solver
-            if solver is s.IPOPT:
+            # (default to Ipopt)
+            if solver is s.IPOPT or solver is None:
                 nlp_reductions = reductions + [IPOPT_nlp()]
             elif solver is s.KNITRO:
                 nlp_reductions = reductions + [KNITRO_nlp()]
@@ -1216,16 +1216,47 @@ class Problem(u.Canonical):
                 nlp_reductions = reductions + [COPT_nlp()]
             else:
                 raise error.SolverError(
-                    "To solve a DNLP problem, you must specify a NLP solver " \
-                    "we suggest using the open source solver IPOPT."
+                    "Solver %s is not supported for NLP problems." % solver
                 )
             # canonicalize disciplined nlp problems to smooth form
             nlp_chain = SolvingChain(reductions=nlp_reductions)
-            problem, inverse_data = nlp_chain.apply(problem=self)
-            solution = nlp_chain.solver.solve_via_data(problem, warm_start,
-                                                        verbose, solver_opts=kwargs)
-            self.unpack_results(solution, nlp_chain, inverse_data)
-            return self.value
+            best_of = kwargs.pop("best_of", 1)
+
+            # standard solve
+            if best_of == 1:
+                canon_problem, inverse_data = nlp_chain.apply(problem=self)
+                solution = nlp_chain.solver.solve_via_data(canon_problem, warm_start,
+                                                            verbose, solver_opts=kwargs)
+                self.unpack_results(solution, nlp_chain, inverse_data)
+                return self.value
+            # best-of-N solve
+            else:
+                if (not isinstance(best_of, int)) or best_of < 1:
+                    raise ValueError("best_of must be a positive integer.")
+            
+                best_obj, best_solution = float("inf"), None
+                all_objs = np.zeros(shape=(best_of,))
+                
+                for run in range(best_of):
+                    print("Starting NLP solve %d of %d" % (run + 1, best_of))
+                    self.set_random_NLP_initial_point()
+                    canon_problem, inverse_data = nlp_chain.apply(problem=self)
+                    solution = nlp_chain.solver.solve_via_data(canon_problem, warm_start,
+                                                                verbose, solver_opts=kwargs)
+                    obj_value = self.objective.value
+                    all_objs[run] = obj_value
+                    if obj_value < best_obj:
+                        best_obj = obj_value
+                        best_solution = solution
+
+                # unpack best solution    
+                if type(self.objective) == Maximize:
+                    all_objs = -all_objs
+
+                # propagate all objective values to the user
+                best_solution['all_objs_from_best_of'] = all_objs
+                self.unpack_results(best_solution, nlp_chain, inverse_data)
+                return self.value
         elif nlp and not self.is_dnlp():
             raise error.DNLPError("The problem you specified is not DNLP.")
 
@@ -1594,6 +1625,25 @@ class Problem(u.Canonical):
         self._solver_stats = SolverStats.from_dict(self._solution.attr,
                                          chain.solver.name())
 
+    def set_random_NLP_initial_point(self) -> dict:
+        """Generates a random initial point for DNLP problems,
+        sampled uniformly from the variable attribute 'sample_bounds'.
+        If 'sample_bounds' is not set for a variable, no random value
+        is generated for that variable.
+        """
+        for var in self.variables():
+            if var.sample_bounds is not None:
+                low, high = var.sample_bounds
+                if not np.isfinite(low) or not np.isfinite(high):
+                    raise ValueError(
+                        "Variable %s has non-finite sample_bounds %s."
+                        " Cannot generate random initial point."
+                        % (var.name(), var.sample_bounds)
+                    )
+
+                initial_val = np.random.uniform(low=low, high=high, size=var.shape)
+                var.save_value(initial_val)
+                
     def __str__(self) -> str:
         if len(self.constraints) == 0:
             return str(self.objective)

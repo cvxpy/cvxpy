@@ -49,6 +49,8 @@ class Variable(Leaf):
         self._value = None
         self.delta = None
         self.gradient = None
+        # bounds for sampling initial points in DNLP problems
+        self.sample_bounds = None
         super(Variable, self).__init__(shape, **kwargs)
 
     def name(self) -> str:

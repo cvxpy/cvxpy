@@ -84,6 +84,9 @@ class IPOPT(NLPsolver):
         attr[s.NUM_ITERS] = solution['iterations']
         # more detailed statistics here when available
         # attr[s.EXTRA_STATS] = solution.extra.FOO
+        if 'all_objs_from_best_of' in solution:
+            attr[s.EXTRA_STATS] = {'all_objs_from_best_of':
+                                    solution['all_objs_from_best_of']}
     
         if status in s.SOLUTION_PRESENT:
             primal_val = solution['obj_val']
