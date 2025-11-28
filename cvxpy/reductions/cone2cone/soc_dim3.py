@@ -785,7 +785,7 @@ class SOCDim3(Reduction):
                     dvars[orig_id] = reconstructed
             else:
                 # Multiple cones (elementwise SOC)
-                # Reconstruct each and concatenate flat arrays
+                # Reconstruct each cone's dual as flat array [t, x1, x2, ...]
                 all_duals: List[np.ndarray] = []
                 success = True
                 for tree in trees:
@@ -796,7 +796,13 @@ class SOCDim3(Reduction):
                     all_duals.append(reconstructed)
 
                 if success:
-                    # Concatenate all flat arrays together
-                    dvars[orig_id] = np.concatenate(all_duals)
+                    # CVXPY SOC expects duals as [t_array, x_array] for elementwise
+                    # Extract t (first element) and x (rest) from each cone
+                    t_duals = np.array([d[0] for d in all_duals])
+                    x_duals = np.column_stack([d[1:] for d in all_duals])
+                    # For axis=1, x_duals needs to be transposed
+                    if tree_data.axis == 1:
+                        x_duals = x_duals.T
+                    dvars[orig_id] = [t_duals, x_duals]
 
         return Solution(solution.status, solution.opt_val, pvars, dvars, solution.attr)
