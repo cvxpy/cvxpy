@@ -28,6 +28,7 @@ from cvxpy.reductions.cone2cone.soc_dim3 import (
     _decompose_soc_single,
 )
 from cvxpy.reductions.solution import Solution
+from cvxpy.tests.solver_test_helpers import socp_1, socp_2
 
 # Dimensions to test: covers all decomposition branches
 # dim 2 (NonNeg), dim 3 (Leaf), dim 4 (Chain), dim 5+ (Split variations)
@@ -205,32 +206,17 @@ class TestSOCDim3StandardProblems:
 
     def test_socp_1(self):
         """Standard SOCP test case 1 (dim-4 SOC)."""
-        x = cp.Variable(shape=(3,))
-        y = cp.Variable()
-        soc = SOC(y, x)
-        constraints = [soc, x[0] + x[1] + 3 * x[2] >= 1.0, y <= 5]
-        prob = cp.Problem(cp.Minimize(3 * x[0] + 2 * x[1] + x[2]), constraints)
-
-        prob.solve(solver=cp.CLARABEL)
-        expected = -13.548638904065102
-        assert np.abs(prob.value - expected) < 1e-3
-
-        inv_sol, new_prob = _solve_with_reduction(prob)
-        _check_solution_matches(prob, inv_sol, new_prob)
+        sth = socp_1()
+        sth.solve(cp.CLARABEL)
+        inv_sol, new_prob = _solve_with_reduction(sth.prob)
+        _check_solution_matches(sth.prob, inv_sol, new_prob)
 
     def test_socp_2(self):
         """Standard SOCP test case 2 (dim-2 SOC)."""
-        x = cp.Variable(shape=(2,), name='x')
-        expr = cp.reshape(x[0] + 2 * x[1], (1, 1), order='F')
-        soc = SOC(cp.Constant([3]), expr)
-        constraints = [2 * x[0] + x[1] <= 3, soc, x[0] >= 0, x[1] >= 0]
-        prob = cp.Problem(cp.Minimize(-4 * x[0] - 5 * x[1]), constraints)
-
-        prob.solve(solver=cp.CLARABEL)
-        assert np.abs(prob.value - (-9.0)) < 1e-3
-
-        inv_sol, new_prob = _solve_with_reduction(prob)
-        _check_solution_matches(prob, inv_sol, new_prob)
+        sth = socp_2()
+        sth.solve(cp.CLARABEL)
+        inv_sol, new_prob = _solve_with_reduction(sth.prob)
+        _check_solution_matches(sth.prob, inv_sol, new_prob)
 
 
 # =============================================================================
