@@ -27,6 +27,7 @@ from cvxpy.reductions.cone2cone.soc_dim3 import (
     SplitTree,
     _decompose_soc_single,
 )
+from cvxpy.reductions.solution import Solution
 
 
 class TestSOCDim3Decomposition:
@@ -145,7 +146,7 @@ class TestSOCDim3Reduction:
                 assert dim == 3, f"Got SOC dimension {dim}, expected 3"
 
 
-class TestSOCDim3WithClarabel:
+class TestSOCDim3Solving:
     """Rigorous tests verifying SOCDim3 decomposition correctness using Clarabel."""
 
     def _compare_with_and_without_decomposition(self, prob, x_var, atol=1e-5):
@@ -174,14 +175,14 @@ class TestSOCDim3WithClarabel:
 
         return direct_val, direct_x
 
-    def test_dim2_soc_with_clarabel(self):
+    def test_dim2_soc(self):
         """Test dim-2 SOC (|x| <= t) decomposition correctness."""
         x = cp.Variable(1)
         prob = cp.Problem(cp.Minimize(x[0]), [cp.norm(x, 2) <= 2])
         val, _ = self._compare_with_and_without_decomposition(prob, x)
         assert np.abs(val - (-2.0)) < 1e-4
 
-    def test_dim3_soc_with_clarabel(self):
+    def test_dim3_soc(self):
         """Test dim-3 SOC (no decomposition needed) correctness."""
         x = cp.Variable(2)
         c = np.array([1, 1])
@@ -190,7 +191,7 @@ class TestSOCDim3WithClarabel:
         expected = -np.sqrt(2)
         assert np.abs(val - expected) < 1e-4
 
-    def test_dim4_soc_with_clarabel(self):
+    def test_dim4_soc(self):
         """Test dim-4 SOC (chain decomposition) correctness."""
         x = cp.Variable(3)
         c = np.ones(3)
@@ -199,7 +200,7 @@ class TestSOCDim3WithClarabel:
         expected = -np.sqrt(3)
         assert np.abs(val - expected) < 1e-4
 
-    def test_dim5_soc_with_clarabel(self):
+    def test_dim5_soc(self):
         """Test dim-5 SOC (balanced 2+2 split) correctness."""
         x = cp.Variable(4)
         c = np.ones(4)
@@ -208,7 +209,7 @@ class TestSOCDim3WithClarabel:
         expected = -np.sqrt(4)
         assert np.abs(val - expected) < 1e-4
 
-    def test_dim6_soc_with_clarabel(self):
+    def test_dim6_soc(self):
         """Test dim-6 SOC (3+2 split) correctness."""
         x = cp.Variable(5)
         c = np.ones(5)
@@ -217,7 +218,7 @@ class TestSOCDim3WithClarabel:
         expected = -np.sqrt(5)
         assert np.abs(val - expected) < 1e-4
 
-    def test_dim10_soc_with_clarabel(self):
+    def test_dim10_soc(self):
         """Test dim-10 SOC (larger tree) correctness."""
         x = cp.Variable(9)
         c = np.ones(9)
@@ -226,7 +227,7 @@ class TestSOCDim3WithClarabel:
         expected = -np.sqrt(9)
         assert np.abs(val - expected) < 1e-4
 
-    def test_dim20_soc_with_clarabel(self):
+    def test_dim20_soc(self):
         """Test dim-20 SOC (deep tree) correctness."""
         x = cp.Variable(19)
         c = np.ones(19)
@@ -235,7 +236,7 @@ class TestSOCDim3WithClarabel:
         expected = -np.sqrt(19)
         assert np.abs(val - expected) < 1e-4
 
-    def test_multiple_soc_with_clarabel(self):
+    def test_multiple_soc(self):
         """Test multiple SOC constraints of different dimensions."""
         x = cp.Variable(5)
         y = cp.Variable(3)
@@ -351,7 +352,6 @@ class TestSOCDim3DualReconstruction:
         new_prob.solve(solver=cp.CLARABEL)
 
         # Invert to get reconstructed solution
-        from cvxpy.reductions.solution import Solution
         sol = Solution(
             new_prob.status,
             new_prob.value,
@@ -390,7 +390,6 @@ class TestSOCDim3DualReconstruction:
         new_prob.solve(solver=cp.CLARABEL)
 
         # Invert
-        from cvxpy.reductions.solution import Solution
         sol = Solution(
             new_prob.status,
             new_prob.value,
@@ -429,7 +428,6 @@ class TestSOCDim3DualReconstruction:
         new_prob.solve(solver=cp.CLARABEL)
 
         # Invert
-        from cvxpy.reductions.solution import Solution
         sol = Solution(
             new_prob.status,
             new_prob.value,
@@ -470,7 +468,6 @@ class TestSOCDim3DualReconstruction:
         new_prob.solve(solver=cp.CLARABEL)
 
         # Invert
-        from cvxpy.reductions.solution import Solution
         sol = Solution(
             new_prob.status,
             new_prob.value,
@@ -512,7 +509,6 @@ class TestSOCDim3DualReconstruction:
         new_prob.solve(solver=cp.CLARABEL)
 
         # Invert
-        from cvxpy.reductions.solution import Solution
         sol = Solution(
             new_prob.status,
             new_prob.value,
@@ -579,9 +575,6 @@ class TestSOCDim3EdgeCases:
             for dim in c.cone_sizes():
                 assert dim == 3
 
-
-class TestSOCDim3NewFunctionality:
-    """Additional functionality tests for SOCDim3 reduction."""
 
     def test_infeasible_soc_problem(self):
         """Verify INFEASIBLE status propagates through decomposition."""
@@ -721,7 +714,6 @@ class TestSOCDim3NewFunctionality:
         new_prob.solve(solver=cp.CLARABEL)
 
         # Invert
-        from cvxpy.reductions.solution import Solution
         sol = Solution(
             new_prob.status,
             new_prob.value,
@@ -754,7 +746,6 @@ class TestSOCDim3NewFunctionality:
         new_prob.solve(solver=cp.CLARABEL)
 
         # Invert
-        from cvxpy.reductions.solution import Solution
         sol = Solution(
             new_prob.status,
             new_prob.value,
