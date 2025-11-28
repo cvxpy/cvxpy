@@ -35,6 +35,75 @@ TEST_DIMS = [1, 2, 3, 4, 5, 9, 19]
 
 
 # =============================================================================
+# Helper Functions
+# =============================================================================
+
+def _solve_with_reduction(prob):
+    """Apply SOCDim3 reduction, solve, and return inverted solution."""
+    reduction = SOCDim3()
+    new_prob, inv_data = reduction.apply(prob)
+
+    # Verify all SOC cones are dim-3
+    for c in new_prob.constraints:
+        if isinstance(c, SOC):
+            for dim in c.cone_sizes():
+                assert dim == 3, f"Expected dim 3, got {dim}"
+
+    new_prob.solve(solver=cp.CLARABEL)
+
+    sol = Solution(
+        new_prob.status, new_prob.value,
+        {v.id: v.value for v in new_prob.variables()},
+        {c.id: c.dual_value for c in new_prob.constraints},
+        {}
+    )
+    return reduction.invert(sol, inv_data), new_prob
+
+
+def _flatten_dual(dual_value):
+    """Flatten a dual value to 1D array for comparison."""
+    if dual_value is None:
+        return None
+    if isinstance(dual_value, list) and len(dual_value) == 2:
+        # SOC format: [t_array, x_array]
+        return np.concatenate([
+            np.atleast_1d(dual_value[0]).flatten(),
+            np.atleast_1d(dual_value[1]).flatten()
+        ])
+    return np.atleast_1d(dual_value).flatten()
+
+
+def _check_solution_matches(prob, inv_sol, new_prob, atol=1e-4):
+    """Check that inverted solution matches direct solve for all vars and duals."""
+    # Check objective value
+    assert np.abs(new_prob.value - prob.value) < atol, (
+        f"Objective mismatch: {new_prob.value} vs {prob.value}"
+    )
+
+    # Check all primal variables
+    for v in prob.variables():
+        direct_val = v.value
+        inverted_val = inv_sol.primal_vars.get(v.id)
+        if direct_val is not None:
+            assert inverted_val is not None, f"Missing primal for {v.name()}"
+            assert np.allclose(direct_val, inverted_val, atol=atol), (
+                f"Primal mismatch for {v.name()}"
+            )
+
+    # Check all constraint duals
+    for c in prob.constraints:
+        direct_dual = c.dual_value
+        inverted_dual = inv_sol.dual_vars.get(c.id)
+        if direct_dual is not None:
+            assert inverted_dual is not None, f"Missing dual for constraint {c.id}"
+            direct_flat = _flatten_dual(direct_dual)
+            inverted_flat = _flatten_dual(inverted_dual)
+            assert np.allclose(direct_flat, inverted_flat, atol=atol), (
+                f"Dual mismatch for constraint {c.id}"
+            )
+
+
+# =============================================================================
 # Parameterized Tests
 # =============================================================================
 
@@ -47,8 +116,7 @@ class TestSOCDim3Properties:
         t = cp.Variable(nonneg=True)
         x = cp.Variable(x_size)
 
-        cones = []
-        nonneg_constrs = []
+        cones, nonneg_constrs = [], []
         _decompose_soc_single(t, x, cones, nonneg_constrs)
 
         for cone in cones:
@@ -65,39 +133,10 @@ class TestSOCDim3Properties:
 
         # Direct solve
         prob.solve(solver=cp.CLARABEL)
-        direct_val = prob.value
-        direct_x = x.value.copy()
-        direct_t = t.value
-        direct_dual = soc.dual_value
-        direct_flat = np.concatenate([
-            np.atleast_1d(direct_dual[0]),
-            np.atleast_1d(direct_dual[1]).flatten()
-        ])
 
-        # Solve with decomposition
-        reduction = SOCDim3()
-        new_prob, inv_data = reduction.apply(prob)
-        new_prob.solve(solver=cp.CLARABEL)
-
-        sol = Solution(
-            new_prob.status, new_prob.value,
-            {v.id: v.value for v in new_prob.variables()},
-            {c.id: c.dual_value for c in new_prob.constraints},
-            {}
-        )
-        inv_sol = reduction.invert(sol, inv_data)
-
-        # Check primal values
-        assert np.abs(new_prob.value - direct_val) < 1e-4
-        assert np.allclose(x.value, direct_x, atol=1e-4)
-        assert np.abs(t.value - direct_t) < 1e-4
-
-        # Check dual values
-        assert soc.id in inv_sol.dual_vars
-        reconstructed = inv_sol.dual_vars[soc.id]
-        assert reconstructed is not None
-        assert len(reconstructed) == x_size + 1
-        assert np.allclose(reconstructed, direct_flat, atol=1e-4)
+        # Solve with decomposition and check everything matches
+        inv_sol, new_prob = _solve_with_reduction(prob)
+        _check_solution_matches(prob, inv_sol, new_prob)
 
 
 # =============================================================================
@@ -165,7 +204,7 @@ class TestSOCDim3StandardProblems:
     """Test standard SOCP problems from solver test helpers."""
 
     def test_socp_1(self):
-        """Standard SOCP test case 1."""
+        """Standard SOCP test case 1 (dim-4 SOC)."""
         x = cp.Variable(shape=(3,))
         y = cp.Variable()
         soc = SOC(y, x)
@@ -173,36 +212,25 @@ class TestSOCDim3StandardProblems:
         prob = cp.Problem(cp.Minimize(3 * x[0] + 2 * x[1] + x[2]), constraints)
 
         prob.solve(solver=cp.CLARABEL)
-        direct_val = prob.value
-
-        reduction = SOCDim3()
-        new_prob, _ = reduction.apply(prob)
-        new_prob.solve(solver=cp.CLARABEL)
-
         expected = -13.548638904065102
-        assert np.abs(direct_val - expected) < 1e-3
-        assert np.abs(new_prob.value - expected) < 1e-3
+        assert np.abs(prob.value - expected) < 1e-3
+
+        inv_sol, new_prob = _solve_with_reduction(prob)
+        _check_solution_matches(prob, inv_sol, new_prob)
 
     def test_socp_2(self):
         """Standard SOCP test case 2 (dim-2 SOC)."""
         x = cp.Variable(shape=(2,), name='x')
         expr = cp.reshape(x[0] + 2 * x[1], (1, 1), order='F')
-        constraints = [
-            2 * x[0] + x[1] <= 3,
-            SOC(cp.Constant([3]), expr),
-            x[0] >= 0, x[1] >= 0
-        ]
+        soc = SOC(cp.Constant([3]), expr)
+        constraints = [2 * x[0] + x[1] <= 3, soc, x[0] >= 0, x[1] >= 0]
         prob = cp.Problem(cp.Minimize(-4 * x[0] - 5 * x[1]), constraints)
 
         prob.solve(solver=cp.CLARABEL)
-        direct_val = prob.value
+        assert np.abs(prob.value - (-9.0)) < 1e-3
 
-        reduction = SOCDim3()
-        new_prob, _ = reduction.apply(prob)
-        new_prob.solve(solver=cp.CLARABEL)
-
-        assert np.abs(direct_val - (-9.0)) < 1e-3
-        assert np.abs(new_prob.value - (-9.0)) < 1e-3
+        inv_sol, new_prob = _solve_with_reduction(prob)
+        _check_solution_matches(prob, inv_sol, new_prob)
 
 
 # =============================================================================
@@ -212,103 +240,33 @@ class TestSOCDim3StandardProblems:
 class TestSOCDim3EdgeCases:
     """Test edge cases for SOCDim3 reduction."""
 
-    def test_multi_cone_soc_primal_and_dual(self):
+    def test_multi_cone_soc(self):
         """SOC constraint with multiple elementwise cones (axis=0)."""
-        n_cones = 3
-        x_size = 5  # dim-6 cones
+        n_cones, x_size = 3, 5
         t = cp.Variable(n_cones, nonneg=True)
         X = cp.Variable((x_size, n_cones))
         soc = SOC(t, X, axis=0)
 
-        # Fix X to known values to make problem bounded
         X_val = np.arange(1, x_size * n_cones + 1, dtype=float).reshape(x_size, n_cones)
         prob = cp.Problem(cp.Minimize(cp.sum(t)), [soc, X == X_val])
 
-        # Direct solve
         prob.solve(solver=cp.CLARABEL)
-        direct_val = prob.value
-        direct_t = t.value.copy()
-        direct_dual = soc.dual_value
+        inv_sol, new_prob = _solve_with_reduction(prob)
+        _check_solution_matches(prob, inv_sol, new_prob)
 
-        # Solve with decomposition
-        reduction = SOCDim3()
-        new_prob, inv_data = reduction.apply(prob)
-
-        # Verify all cones are dim-3
-        for c in new_prob.constraints:
-            if isinstance(c, SOC):
-                for dim in c.cone_sizes():
-                    assert dim == 3
-
-        new_prob.solve(solver=cp.CLARABEL)
-
-        sol = Solution(
-            new_prob.status, new_prob.value,
-            {v.id: v.value for v in new_prob.variables()},
-            {c.id: c.dual_value for c in new_prob.constraints},
-            {}
-        )
-        inv_sol = reduction.invert(sol, inv_data)
-
-        # Check primal values
-        assert np.abs(new_prob.value - direct_val) < 1e-4
-        assert np.allclose(t.value, direct_t, atol=1e-4)
-
-        # Check dual values (elementwise SOC returns [t_array, x_array])
-        assert soc.id in inv_sol.dual_vars
-        reconstructed = inv_sol.dual_vars[soc.id]
-        assert reconstructed is not None
-        assert np.allclose(reconstructed[0], direct_dual[0], atol=1e-4)
-        assert np.allclose(reconstructed[1], direct_dual[1], atol=1e-4)
-
-    def test_axis1_soc_primal_and_dual(self):
+    def test_axis1_soc(self):
         """SOC constraint with axis=1."""
-        n_cones = 2
-        x_size = 4  # dim-5 cones
+        n_cones, x_size = 2, 4
         t = cp.Variable(n_cones, nonneg=True)
         X = cp.Variable((n_cones, x_size))
         soc = SOC(t, X, axis=1)
 
-        # Fix X to known values
         X_val = np.arange(1, n_cones * x_size + 1, dtype=float).reshape(n_cones, x_size)
         prob = cp.Problem(cp.Minimize(cp.sum(t)), [soc, X == X_val])
 
-        # Direct solve
         prob.solve(solver=cp.CLARABEL)
-        direct_val = prob.value
-        direct_t = t.value.copy()
-        direct_dual = soc.dual_value
-
-        # Solve with decomposition
-        reduction = SOCDim3()
-        new_prob, inv_data = reduction.apply(prob)
-
-        # Verify all cones are dim-3
-        for c in new_prob.constraints:
-            if isinstance(c, SOC):
-                for dim in c.cone_sizes():
-                    assert dim == 3
-
-        new_prob.solve(solver=cp.CLARABEL)
-
-        sol = Solution(
-            new_prob.status, new_prob.value,
-            {v.id: v.value for v in new_prob.variables()},
-            {c.id: c.dual_value for c in new_prob.constraints},
-            {}
-        )
-        inv_sol = reduction.invert(sol, inv_data)
-
-        # Check primal values
-        assert np.abs(new_prob.value - direct_val) < 1e-4
-        assert np.allclose(t.value, direct_t, atol=1e-4)
-
-        # Check dual values (elementwise SOC returns [t_array, x_array])
-        assert soc.id in inv_sol.dual_vars
-        reconstructed = inv_sol.dual_vars[soc.id]
-        assert reconstructed is not None
-        assert np.allclose(reconstructed[0], direct_dual[0], atol=1e-4)
-        assert np.allclose(reconstructed[1], direct_dual[1], atol=1e-4)
+        inv_sol, new_prob = _solve_with_reduction(prob)
+        _check_solution_matches(prob, inv_sol, new_prob)
 
     def test_infeasible_propagates(self):
         """INFEASIBLE status propagates through decomposition."""
@@ -349,45 +307,14 @@ class TestSOCDim3EdgeCases:
         x = cp.Variable(5)
         y = cp.Variable(3)
         z = cp.Variable(10)
-        t1 = cp.Variable(nonneg=True)
-        t2 = cp.Variable(nonneg=True)
-        t3 = cp.Variable(nonneg=True)
-        soc1 = SOC(t1, x)
-        soc2 = SOC(t2, y)
-        soc3 = SOC(t3, z)
+        t1, t2, t3 = cp.Variable(nonneg=True), cp.Variable(nonneg=True), cp.Variable(nonneg=True)
+        soc1, soc2, soc3 = SOC(t1, x), SOC(t2, y), SOC(t3, z)
 
         prob = cp.Problem(
             cp.Minimize(cp.sum(x) + cp.sum(y) + cp.sum(z)),
             [soc1, soc2, soc3, t1 <= 1, t2 <= 2, t3 <= 3]
         )
 
-        # Direct solve
         prob.solve(solver=cp.CLARABEL)
-        direct_val = prob.value
-        direct_x = x.value.copy()
-        direct_y = y.value.copy()
-        direct_z = z.value.copy()
-
-        # Solve with decomposition
-        reduction = SOCDim3()
-        new_prob, inv_data = reduction.apply(prob)
-        new_prob.solve(solver=cp.CLARABEL)
-
-        sol = Solution(
-            new_prob.status, new_prob.value,
-            {v.id: v.value for v in new_prob.variables()},
-            {c.id: c.dual_value for c in new_prob.constraints},
-            {}
-        )
-        inv_sol = reduction.invert(sol, inv_data)
-
-        # Check primal values
-        assert np.abs(new_prob.value - direct_val) < 1e-4
-        assert np.allclose(x.value, direct_x, atol=1e-4)
-        assert np.allclose(y.value, direct_y, atol=1e-4)
-        assert np.allclose(z.value, direct_z, atol=1e-4)
-
-        # Check all SOC duals reconstructed
-        for soc in [soc1, soc2, soc3]:
-            assert soc.id in inv_sol.dual_vars
-            assert inv_sol.dual_vars[soc.id] is not None
+        inv_sol, new_prob = _solve_with_reduction(prob)
+        _check_solution_matches(prob, inv_sol, new_prob)
