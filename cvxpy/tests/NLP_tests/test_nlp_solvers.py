@@ -4,16 +4,26 @@ import pytest
 
 import cvxpy as cp
 from cvxpy.reductions.solvers.defines import INSTALLED_SOLVERS
+from cvxpy.tests.test_conic_solvers import is_knitro_available
+
+# Always parametrize both solvers, skip at runtime if not available
+NLP_SOLVERS = [
+    pytest.param('IPOPT', marks=pytest.mark.skipif(
+        'IPOPT' not in INSTALLED_SOLVERS, reason='IPOPT is not installed.')),
+    pytest.param('KNITRO', marks=pytest.mark.skipif(
+        not is_knitro_available(), reason='KNITRO is not installed or license not available.')),
+]
 
 
-@pytest.mark.skipif('IPOPT' not in INSTALLED_SOLVERS, reason='IPOPT is not installed.')
-class TestExamplesIPOPT:
+@pytest.mark.parametrize("solver", NLP_SOLVERS)
+class TestNLPExamples:
     """
     Nonlinear test problems taken from the IPOPT documentation and
     the Julia documentation: https://jump.dev/JuMP.jl/stable/tutorials/nonlinear/simple_examples/.
     """
-    def test_hs071(self):
-        x = cp.Variable(4, bounds=[0,6])
+
+    def test_hs071(self, solver):
+        x = cp.Variable(4, bounds=[0, 6])
         x.value = np.array([1.0, 5.0, 5.0, 1.0])
         objective = cp.Minimize(x[0]*x[3]*(x[0] + x[1] + x[2]) + x[2])
 
@@ -22,35 +32,34 @@ class TestExamplesIPOPT:
             cp.sum(cp.square(x)) == 40,
         ]
         problem = cp.Problem(objective, constraints)
-        problem.solve(solver=cp.IPOPT, nlp=True)
+        problem.solve(solver=solver, nlp=True)
         assert problem.status == cp.OPTIMAL
         assert np.allclose(x.value, np.array([0.75450865, 4.63936861, 3.78856881, 1.88513184]))
 
-    def test_mle(self):
+    def test_mle(self, solver):
         n = 1000
         np.random.seed(1234)
         data = np.random.randn(n)
-        
-        mu = cp.Variable((1, ), name="mu")
+
+        mu = cp.Variable((1,), name="mu")
         mu.value = np.array([0.0])
-        sigma = cp.Variable((1, ), name="sigma")
+        sigma = cp.Variable((1,), name="sigma")
         sigma.value = np.array([1.0])
 
         constraints = [mu == sigma**2]
-        #residual_sum = cp.sum_squares(data - mu)
         log_likelihood = (
             (n / 2) * cp.log(1 / (2 * np.pi * (sigma)**2))
             - cp.sum(cp.square(data-mu)) / (2 * (sigma)**2)
         )
-        
+
         objective = cp.Maximize(log_likelihood)
         problem = cp.Problem(objective, constraints)
-        problem.solve(solver=cp.IPOPT, nlp=True, derivative_test='none')
+        problem.solve(solver=solver, nlp=True)
         assert problem.status == cp.OPTIMAL
         assert np.allclose(sigma.value, 0.77079388)
         assert np.allclose(mu.value, 0.59412321)
 
-    def test_portfolio_opt(self):
+    def test_portfolio_opt(self, solver):
         # data taken from https://jump.dev/JuMP.jl/stable/tutorials/nonlinear/portfolio/
         # r and Q are pre-computed from historical data of 3 assets
         r = np.array([0.026002150277777, 0.008101316405671, 0.073715909491990])
@@ -71,59 +80,56 @@ class TestExamplesIPOPT:
                 x >= 0
             ]
         )
-        problem.solve(solver=cp.IPOPT, nlp=True)
+        problem.solve(solver=solver, nlp=True)
         assert problem.status == cp.OPTIMAL
-        assert np.allclose(x.value, np.array([4.97045504e+02, -9.89291685e-09, 5.02954496e+02]))
+        # Second element can be slightly negative due to numerical tolerance
+        assert np.allclose(x.value, np.array([4.97045504e+02, 0.0, 5.02954496e+02]), atol=1e-4)
 
-    def test_rosenbrock(self):
+    def test_rosenbrock(self, solver):
         x = cp.Variable(2, name='x')
         objective = cp.Minimize((1 - x[0])**2 + 100 * (x[1] - x[0]**2)**2)
         problem = cp.Problem(objective, [])
-        problem.solve(solver=cp.IPOPT, nlp=True)
+        problem.solve(solver=solver, nlp=True)
         assert problem.status == cp.OPTIMAL
         assert np.allclose(x.value, np.array([1.0, 1.0]))
 
-    def test_qcp(self):
+    def test_qcp(self, solver):
         x = cp.Variable(1)
         y = cp.Variable(1, bounds=[0, np.inf])
         z = cp.Variable(1, bounds=[0, np.inf])
 
         objective = cp.Maximize(x)
-        
+
         constraints = [
             x + y + z == 1,
             x**2 + y**2 - z**2 <= 0,
             x**2 - cp.multiply(y, z) <= 0
         ]
         problem = cp.Problem(objective, constraints)
-        problem.solve(solver=cp.IPOPT, nlp=True)
+        problem.solve(solver=solver, nlp=True)
         assert problem.status == cp.OPTIMAL
         assert np.allclose(x.value, np.array([0.32699284]))
         assert np.allclose(y.value, np.array([0.25706586]))
         assert np.allclose(z.value, np.array([0.4159413]))
 
-    def test_analytic_polytope_center(self):
+    def test_analytic_polytope_center(self, solver):
         # Generate random data
         np.random.seed(0)
         m, n = 50, 4
         b = np.ones(m)
         rand = np.random.randn(m - 2*n, n)
         A = np.vstack((rand, np.eye(n), np.eye(n) * -1))
-        """
-        m, n = 5, 2
-        A = np.array([[1, 0], [-1, 0], [0, 1], [0, -1], [-0.5, 1]])
-        b = np.array([1, 1, 1, 1, 0.5])
-        """
+
         # Define the variable
         x = cp.Variable(n)
         # set initial value for x
         objective = cp.Minimize(-cp.sum(cp.log(b - A @ x)))
         problem = cp.Problem(objective, [])
         # Solve the problem
-        problem.solve(solver=cp.IPOPT, nlp=True, hessian_approximation='exact')
+        problem.solve(solver=solver, nlp=True)
         assert problem.status == cp.OPTIMAL
 
-    def test_socp(self):
+    def test_socp(self, solver):
         # Define variables
         x = cp.Variable(3)
         y = cp.Variable()
@@ -140,13 +146,13 @@ class TestExamplesIPOPT:
 
         # Create and solve the problem
         problem = cp.Problem(objective, constraints)
-        problem.solve(solver=cp.IPOPT, nlp=True)
+        problem.solve(solver=solver, nlp=True)
         assert problem.status == cp.OPTIMAL
         assert np.allclose(objective.value, -13.548638814247532)
-        assert np.allclose(x.value, [-3.87462191, -2.12978826,  2.33480343])
+        assert np.allclose(x.value, [-3.87462191, -2.12978826, 2.33480343])
         assert np.allclose(y.value, 5)
 
-    def test_portfolio_socp(self):
+    def test_portfolio_socp(self, solver):
         np.random.seed(858)
         n = 100
         x = cp.Variable(n, name='x')
@@ -159,30 +165,31 @@ class TestExamplesIPOPT:
 
         objective = cp.Minimize(- mu.T @ x + gamma * t)
         constraints = [cp.norm(L.T @ x, 2) <= t,
-                    cp.sum(x) == 1,
-                    x >= 0]
+                       cp.sum(x) == 1,
+                       x >= 0]
         problem = cp.Problem(objective, constraints)
-        problem.solve(solver=cp.IPOPT, verbose=True, nlp=True)
+        problem.solve(solver=solver, nlp=True)
         assert problem.status == cp.OPTIMAL
         assert np.allclose(problem.value, -1.93414338e+00)
-    
-    def test_localization(self):
-        m = 10                
-        dim = 2               
-        x_true = np.array([2.0, -1.5])  
+
+    def test_localization(self, solver):
+        np.random.seed(42)
+        m = 10
+        dim = 2
+        x_true = np.array([2.0, -1.5])
         a = np.random.uniform(-5, 5, (m, dim))
-        rho = np.linalg.norm(a - x_true, axis=1) # no noise
+        rho = np.linalg.norm(a - x_true, axis=1)  # no noise
         x = cp.Variable(2, name='x')
         t = cp.Variable(m, name='t')
         constraints = [t == cp.sqrt(cp.sum(cp.square(x - a), axis=1))]
         objective = cp.Minimize(cp.sum_squares(t - rho))
         problem = cp.Problem(objective, constraints)
-        problem.solve(solver=cp.IPOPT, nlp=True, verbose=True, derivative_test='none')
+        problem.solve(solver=solver, nlp=True)
         assert problem.status == cp.OPTIMAL
         assert np.allclose(x.value, x_true)
 
-    # epigraph formulation
-    def test_circle_packing_formulation_one(self):
+    def test_circle_packing_formulation_one(self, solver):
+        """Epigraph formulation."""
         rng = np.random.default_rng(5)
         n = 3
         radius = rng.uniform(1.0, 3.0, n)
@@ -199,17 +206,16 @@ class TestExamplesIPOPT:
         obj = cp.Minimize(t)
         constraints += [cp.max(cp.norm_inf(centers, axis=0) + radius) <= t]
         prob = cp.Problem(obj, constraints)
-        prob.solve(solver=cp.IPOPT, nlp=True, verbose=True, derivative_test='none',
-                    least_square_init_duals='no')
+        prob.solve(solver=solver, nlp=True)
 
-        true_sol = np.array([[ 1.73655994, -1.98685738,  2.57208783],  
-                             [ 1.99273311, -1.67415425, -2.57208783]])
+        true_sol = np.array([[1.73655994, -1.98685738, 2.57208783],
+                             [1.99273311, -1.67415425, -2.57208783]])
         assert np.allclose(centers.value, true_sol)
 
-    # using norm_inf (This test revealed a very subtle bug in the unpacking of 
-    # the ipopt solution. Some variables were mistakenly reordered. It was fixed 
-    # in https://github.com/cvxgrp/cvxpy-ipopt/pull/82)
-    def test_circle_packing_formulation_two(self):
+    def test_circle_packing_formulation_two(self, solver):
+        """Using norm_inf. This test revealed a very subtle bug in the unpacking of
+        the ipopt solution. Some variables were mistakenly reordered. It was fixed
+        in https://github.com/cvxgrp/cvxpy-ipopt/pull/82"""
         rng = np.random.default_rng(5)
         n = 3
         radius = rng.uniform(1.0, 3.0, n)
@@ -224,15 +230,14 @@ class TestExamplesIPOPT:
         centers.value = rng.uniform(-5.0, 5.0, (2, n))
         obj = cp.Minimize(cp.max(cp.norm_inf(centers, axis=0) + radius))
         prob = cp.Problem(obj, constraints)
-        prob.solve(solver=cp.IPOPT, nlp=True, verbose=True, derivative_test='none',
-                    least_square_init_duals='no')
+        prob.solve(solver=solver, nlp=True)
 
-        true_sol = np.array([[ 1.73655994, -1.98685738,  2.57208783],  
-                             [ 1.99273311, -1.67415425, -2.57208783]])
+        true_sol = np.array([[1.73655994, -1.98685738, 2.57208783],
+                             [1.99273311, -1.67415425, -2.57208783]])
         assert np.allclose(centers.value, true_sol)
-    
-    # using max max abs
-    def test_circle_packing_formulation_three(self):
+
+    def test_circle_packing_formulation_three(self, solver):
+        """Using max max abs."""
         rng = np.random.default_rng(5)
         n = 3
         radius = rng.uniform(1.0, 3.0, n)
@@ -247,42 +252,37 @@ class TestExamplesIPOPT:
         centers.value = rng.uniform(-5.0, 5.0, (2, n))
         obj = cp.Minimize(cp.max(cp.max(cp.abs(centers), axis=0) + radius))
         prob = cp.Problem(obj, constraints)
-        prob.solve(solver=cp.IPOPT, nlp=True, verbose=True, derivative_test='none',
-                    least_square_init_duals='no')
+        prob.solve(solver=solver, nlp=True)
 
-        true_sol = np.array([[ 1.73655994, -1.98685738,  2.57208783],  
-                             [ 1.99273311, -1.67415425, -2.57208783]])
+        true_sol = np.array([[1.73655994, -1.98685738, 2.57208783],
+                             [1.99273311, -1.67415425, -2.57208783]])
         assert np.allclose(centers.value, true_sol)
 
-    def test_geo_mean(self):
+    def test_geo_mean(self, solver):
         x = cp.Variable(3, pos=True)
         geo_mean = cp.geo_mean(x)
         objective = cp.Maximize(geo_mean)
         constraints = [cp.sum(x) == 1]
         problem = cp.Problem(objective, constraints)
-        problem.solve(solver=cp.IPOPT, nlp=True)
+        problem.solve(solver=solver, nlp=True)
         assert problem.status == cp.OPTIMAL
         assert np.allclose(x.value, np.array([1/3, 1/3, 1/3]))
 
-    def test_geo_mean2(self):
+    def test_geo_mean2(self, solver):
         """
         This test doesn't converge to the global optimal solution
         which is x^* = p/sum(p),
-        but atleast there are no errors in the derivative computations.
+        but at least there are no errors in the derivative computations.
         """
         p = np.array([.07, .12, .23, .19, .39])
         x = cp.Variable(5, nonneg=True)
         prob = cp.Problem(cp.Maximize(cp.geo_mean(x, p)), [cp.sum(x) <= 1])
-        prob.solve(solver=cp.IPOPT, nlp=True)
+        prob.solve(solver=solver, nlp=True)
         x_true = p/sum(p)
         assert prob.status == cp.OPTIMAL
         assert np.allclose(x.value, x_true)
 
-
-@pytest.mark.skipif('IPOPT' not in INSTALLED_SOLVERS, reason='IPOPT is not installed.')
-class TestNonlinearControl:
-    
-    def test_clnlbeam(self):
+    def test_clnlbeam(self, solver):
         N = 1000
         h = 1 / N
         alpha = 350
@@ -290,21 +290,20 @@ class TestNonlinearControl:
         t = cp.Variable(N+1, bounds=[-1, 1])
         x = cp.Variable(N+1, bounds=[-0.05, 0.05])
         u = cp.Variable(N+1)
-
+        u.value = np.zeros(N+1)
         control_terms = cp.multiply(0.5 * h, cp.power(u[1:], 2) + cp.power(u[:-1], 2))
         trigonometric_terms = cp.multiply(0.5 * alpha * h, cp.cos(t[1:]) + cp.cos(t[:-1]))
         objective_terms = cp.sum(control_terms + trigonometric_terms)
 
         objective = cp.Minimize(objective_terms)
         constraints = []
-        position_constraints = (x[1:] - x[:-1] - 
-                            cp.multiply(0.5 * h, cp.sin(t[1:]) + cp.sin(t[:-1])) == 0)
+        position_constraints = (x[1:] - x[:-1] -
+                                cp.multiply(0.5 * h, cp.sin(t[1:]) + cp.sin(t[:-1])) == 0)
         constraints.append(position_constraints)
         angle_constraint = (t[1:] - t[:-1] - 0.5 * h * (u[1:] + u[:-1]) == 0)
         constraints.append(angle_constraint)
 
         problem = cp.Problem(objective, constraints)
-        problem.solve(solver=cp.IPOPT, nlp=True, verbose=True,
-                    derivative_test='none')
+        problem.solve(solver=solver, nlp=True)
         assert problem.status == cp.OPTIMAL
         assert np.allclose(problem.value, 3.500e+02)

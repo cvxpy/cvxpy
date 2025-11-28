@@ -327,8 +327,10 @@ class Oracles():
                 self.permutation_needed = True
                 break
 
-        # store sparsity pattern
+        # store sparsity pattern (as integer arrays for solver compatibility)
         rows, cols = self.jacobian_coo[0], self.jacobian_coo[1]
+        rows = np.asarray(rows, dtype=np.int32)
+        cols = np.asarray(cols, dtype=np.int32)
         self.jacobian_coo_rows_cols = (rows, cols)
         return self.jacobian_coo_rows_cols
 
@@ -381,11 +383,11 @@ class Oracles():
         self.hessian(x, np.ones(self.num_constraints), 1.0)
         self.has_computed_hess_sparsity = True
 
-        # extract lower triangular part
+        # extract lower triangular part (as integer arrays for solver compatibility)
         rows, cols = self.hess_lagrangian_coo[0], self.hess_lagrangian_coo[1]
-        mask = rows >= cols 
-        rows = rows[mask]
-        cols = cols[mask]
+        mask = rows >= cols
+        rows = np.asarray(rows[mask], dtype=np.int32)
+        cols = np.asarray(cols[mask], dtype=np.int32)
         self.hess_lagrangian_coo_rows_cols = (rows, cols)
         return self.hess_lagrangian_coo_rows_cols
         
