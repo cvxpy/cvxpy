@@ -146,7 +146,6 @@ class TestNonlinearAtoms(BaseTest):
         """Test a problem with entr.
         """
         for n in [5, 10, 25]:
-            print(n)
             x = cp.Variable(n)
             obj = cp.Maximize(cp.sum(cp.entr(x)))
             p = cp.Problem(obj, [cp.sum(x) == 1])
@@ -159,7 +158,6 @@ class TestNonlinearAtoms(BaseTest):
         """Test a problem with exp.
         """
         for n in [5, 10, 25]:
-            print(n)
             x = cp.Variable(n)
             obj = cp.Minimize(cp.sum(cp.exp(x)))
             p = cp.Problem(obj, [cp.sum(x) == 1])
@@ -172,7 +170,6 @@ class TestNonlinearAtoms(BaseTest):
         """Test a problem with log.
         """
         for n in [5, 10, 25]:
-            print(n)
             x = cp.Variable(n)
             obj = cp.Maximize(cp.sum(cp.log(x)))
             p = cp.Problem(obj, [cp.sum(x) == 1])
