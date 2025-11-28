@@ -1,4 +1,7 @@
 graft cvxpy/cvxcore/src/
 graft cvxpy/cvxcore/include/Eigen
 graft cvxpy/cvxcore/python
+graft cvxpy_rust/src
+include cvxpy_rust/Cargo.toml
+include cvxpy_rust/pyproject.toml
 include LICENSE
