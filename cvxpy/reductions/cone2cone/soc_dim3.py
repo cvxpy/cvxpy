@@ -338,7 +338,11 @@ def _decompose_soc_single(
     # Dimension 4: Special chain structure to avoid unbalanced 1+2 split
     # Decompose as: ||(x1, x2)|| <= s, ||(s, x3)|| <= t
     if n == 3:
-        s = Variable(nonneg=True)
+        # Note: We use explicit NonNeg constraints rather than Variable(nonneg=True)
+        # to make this reduction position-independent in the solving chain.
+        # With nonneg=True, this reduction would need to come before CvxAttr2Constr.
+        s = Variable()
+        nonneg_out.append(NonNeg(s))
         x_left = x_expr[:2]  # First two elements
         x_last = x_expr[2]   # Last element
 
@@ -363,9 +367,11 @@ def _decompose_soc_single(
     x_left = x_expr[:mid]
     x_right = x_expr[mid:]
 
-    # Create auxiliary variables for partial norms
-    s1 = Variable(nonneg=True)
-    s2 = Variable(nonneg=True)
+    # Create auxiliary variables for partial norms (with explicit NonNeg constraints)
+    s1 = Variable()
+    s2 = Variable()
+    nonneg_out.append(NonNeg(s1))
+    nonneg_out.append(NonNeg(s2))
 
     # Recursively decompose each half
     left_tree = _decompose_soc_single(s1, x_left.flatten(order='F'), soc3_out, nonneg_out)
