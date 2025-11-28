@@ -708,6 +708,8 @@ class SOCDim3(Reduction):
                 soc3_out: List[SOC] = []
                 nonneg_out: List[NonNeg] = []
 
+                # Note on vectorization: This loop processes each cone sequentially.
+                # TODO add vectorization.
                 for i in range(num_cones):
                     t_i = t_reshaped[i] if num_cones > 1 else t_reshaped[0]
                     x_i = X_reshaped[:, i] if num_cones > 1 else X_reshaped[:, 0]
