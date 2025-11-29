@@ -40,7 +40,10 @@ Example:
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import TYPE_CHECKING, Any, Dict, List, Optional, Tuple, Union
+
+if TYPE_CHECKING:
+    from cvxpy.problems.problem import Problem
 
 import numpy as np
 
@@ -48,9 +51,9 @@ from cvxpy.atoms.affine.reshape import reshape
 from cvxpy.atoms.affine.vstack import vstack
 from cvxpy.constraints.nonpos import NonNeg
 from cvxpy.constraints.second_order import SOC
+from cvxpy.expressions import cvxtypes
 from cvxpy.expressions.expression import Expression
 from cvxpy.expressions.variable import Variable
-from cvxpy.problems.problem import Problem
 from cvxpy.reductions.reduction import Reduction
 from cvxpy.reductions.solution import Solution
 
@@ -732,7 +735,7 @@ class SOCDim3(Reduction):
                 # Non-SOC constraint: pass through
                 new_constraints.append(con)
 
-        new_problem = Problem(problem.objective, new_constraints)
+        new_problem = cvxtypes.problem()(problem.objective, new_constraints)
         return new_problem, inverse_data
 
     def invert(
