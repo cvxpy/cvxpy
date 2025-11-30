@@ -220,8 +220,9 @@ Install with Additional Solver Support
    CVXPY supports the HiGHS solver. Run the following command to install the HiGHS python interface.
 
    .. code-block:: python
-    pip install highspy
-   
+
+       pip install highspy
+
    See the `HiGHS <https://ergo-code.github.io/HiGHS/dev/interfaces/python/>`_ documentation for additional instructions.
 
 .. info:: SCIPY
