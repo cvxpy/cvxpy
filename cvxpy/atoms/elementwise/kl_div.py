@@ -22,6 +22,7 @@ from scipy.special import kl_div as kl_div_scipy
 
 from cvxpy.atoms.elementwise.elementwise import Elementwise
 from cvxpy.constraints.constraint import Constraint
+from cvxpy.expressions.variable import Variable
 
 
 class kl_div(Elementwise):
@@ -54,6 +55,16 @@ class kl_div(Elementwise):
         """Is the atom concave?
         """
         return False
+    
+    def is_atom_esr(self) -> bool:
+        """Is the atom esr?
+        """
+        return True
+
+    def is_atom_hsr(self) -> bool:
+        """Is the atom hsr?
+        """
+        return True
 
     def is_incr(self, idx) -> bool:
         """Is the composition non-decreasing in argument idx?
@@ -90,7 +101,62 @@ class kl_div(Elementwise):
                                                            rows, cols)]
             return grad_list
 
+    def _verify_hess_vec_args(self):
+        x = self.args[0]
+        y = self.args[1]
+        
+        # we check that the arguments are of the same size or one of them 
+        # is a scalar
+        if not (x.size == 1 or y.size == 1 or x.size == y.size):
+            return False
+
+        # we assume both arguments must be variables (the case where one 
+        # argument is constant should perhaps been caught in the canonicalization?)
+        if not (isinstance(x, Variable) and isinstance(y, Variable)):
+            return False
+
+        # we assume that the arguments correspond to different variables
+        # (otherwise the differentation logic fails)
+        if x.id == y.id:
+            return False 
+
+        return True
+
+    def _hess_vec(self, vec):
+        """ See the docstring of the hess_vec method of the atom class. """
+        x = self.args[0]
+        y = self.args[1]
+        dx2_vals = vec / x.value
+        dy2_vals = vec * x.value / (y.value ** 2)
+        dxdy_vals = - vec / y.value
+
+        if x.size == 1:
+            idxs = np.arange(y.size)
+            zeros_y = np.zeros(y.size, dtype=int)
+            return {(x, x): (np.array([0]), np.array([0]), 
+                             np.atleast_1d(np.sum(dx2_vals))),
+                    (y, y): (idxs, idxs, dy2_vals),
+                    (x, y): (zeros_y, idxs, dxdy_vals),
+                    (y, x): (idxs, zeros_y, dxdy_vals)}
+        elif y.size == 1:
+            idxs = np.arange(x.size)
+            zeros_x = np.zeros(x.size, dtype=int)
+            return {(x, x): (idxs, idxs, dx2_vals), 
+                    (y, y): (np.array([0]), np.array([0]), 
+                             np.atleast_1d(np.sum(dy2_vals))),
+                    (x, y): (idxs, zeros_x, dxdy_vals),
+                    (y, x): (zeros_x, idxs, dxdy_vals)}
+        else:
+            idxs = np.arange(x.size)
+            return {(x, x): (idxs, idxs, dx2_vals), 
+                    (y, y): (idxs, idxs, dy2_vals),
+                    (x, y): (idxs, idxs, dxdy_vals),
+                    (y, x): (idxs, idxs, dxdy_vals)}
+    
     def _domain(self) -> List[Constraint]:
         """Returns constraints describing the domain of the node.
         """
         return [self.args[0] >= 0, self.args[1] >= 0]
+    
+    def point_in_domain(self, argument=0):
+        return np.ones(self.args[argument].shape)

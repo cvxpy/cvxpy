@@ -584,3 +584,14 @@ CITATION_DICT["CUOPT"] = \
   date = { 2025-05-29 }
 }
 """
+
+CITATION_DICT["IPOPT"] = \
+"""
+@article{wachter2006implementation,
+  title={On the implementation of a primal-dual interior point filter line search algorithm for
+    large-scale nonlinear programming},
+  author={W{\"a}chter, Andreas and Biegler, Lorenz T},
+  journal={Mathematical Programming},
+  volume={106},
+  }
+"""

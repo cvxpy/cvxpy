@@ -1,0 +1,44 @@
+name: test_nlp
+
+on:
+    pull_request:
+    push:
+        branches:
+            - master
+        tags:
+          - '*'
+jobs:
+  run_nlp_tests:
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        shell: bash -l {0}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    steps:
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+      - uses: actions/checkout@v5
+      - name: Set up Conda
+        uses: conda-incubator/setup-miniconda@v3
+        with:
+          activate-environment: nlp-test
+          python-version: 3.12
+          channels: conda-forge
+          channel-priority: strict
+          auto-update-conda: true
+          miniforge-version: latest
+          use-mamba: true
+      - name: Install cyipopt via conda
+        run: |
+          conda install -y -c conda-forge cyipopt
+      - name: Install test dependencies
+        run: |
+          pip install -e .
+          pip install pytest hypothesis
+      - name: Run NLP tests
+        run: |
+          pytest cvxpy/tests/NLP_tests/.

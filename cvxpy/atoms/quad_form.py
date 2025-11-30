@@ -24,6 +24,7 @@ from scipy import linalg as LA
 from cvxpy.atoms.affine.wraps import psd_wrap
 from cvxpy.atoms.atom import Atom
 from cvxpy.expressions.expression import Expression
+from cvxpy.expressions.variable import Variable
 from cvxpy.interface.matrix_utilities import is_sparse
 from cvxpy.utilities.linalg import sparse_cholesky
 
@@ -71,6 +72,16 @@ class QuadForm(Atom):
         """
         P = self.args[1]
         return P.is_constant() and P.is_nsd()
+
+    def is_atom_esr(self) -> bool:
+        """Is the atom esr?
+        """
+        return True
+
+    def is_atom_hsr(self) -> bool:
+        """Is the atom hsr?
+        """
+        return True
 
     def is_atom_log_log_convex(self) -> bool:
         """Is the atom log-log convex?
@@ -126,6 +137,32 @@ class QuadForm(Atom):
         D = (P + np.conj(P.T)) @ x
         return [sp.csc_array([D.ravel(order="F")]).T]
 
+    def _verify_hess_vec_args(self):
+        return isinstance(self.args[0], Variable)
+
+    def _hess_vec(self, vec):
+        """
+        Computes the Hessian-vector product dictionary
+        for a quadratic form. We assume that the quad-form will be
+        canonicalized to x.T @ Q @ x, where x is a single variable
+        and Q is a constant matrix.
+        """
+        x = self.args[0]
+        Q = self.args[1]
+        Q_coo = sp.coo_matrix(Q.value)
+
+        return {(x, x): (Q_coo.row, Q_coo.col, 2 * vec * Q_coo.data)}
+
+    def _verify_jacobian_args(self):
+        return isinstance(self.args[0], Variable)
+    
+    def _jacobian(self):
+        x = self.args[0]
+        Q = self.args[1]
+        vals = 2 * (Q.value @ x.value).T 
+        return {x: (np.zeros(x.size, dtype=int), np.arange(x.size), 
+                    vals)}
+
     def shape_from_args(self) -> Tuple[int, ...]:
         return tuple()
 
@@ -165,6 +202,22 @@ class SymbolicQuadForm(Atom):
 
     def is_quadratic(self) -> bool:
         return True
+
+    def _verify_hess_vec_args(self):
+        return isinstance(self.args[0], Variable)
+
+    def _hess_vec(self, vec):
+        """
+        Computes the Hessian-vector product dictionary
+        for a quadratic form. We assume that the quad-form will be
+        canonicalized to w.T @ Q @ w, where w is a single variable
+        and Q is a constant matrix.
+        """
+        hess_dict = {}
+        var = self.args[0]
+        Q = self.args[1]
+        hess_dict[(var, var)] = vec * 2 * Q.value
+        return hess_dict
 
 
 def decomp_quad(P, cond=None, rcond=None, lower=True, check_finite: bool = True):
