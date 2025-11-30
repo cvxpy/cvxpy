@@ -78,7 +78,7 @@ or a conda environment.
             pip install -e .
 
         otherwise, run
-        
+
         ::
 
             pip install .
