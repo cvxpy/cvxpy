@@ -141,16 +141,11 @@ class QuadForm(Atom):
         return isinstance(self.args[0], Variable)
 
     def _hess_vec(self, vec):
-        """
-        Computes the Hessian-vector product dictionary
-        for a quadratic form. We assume that the quad-form will be
-        canonicalized to x.T @ Q @ x, where x is a single variable
-        and Q is a constant matrix.
-        """
         x = self.args[0]
         Q = self.args[1]
         Q_coo = sp.coo_matrix(Q.value)
-
+        # it is correct to do vec * Q_coo.data because Q_coo is symmetric
+        # so it doesn't matter if Q_coo is row or column major
         return {(x, x): (Q_coo.row, Q_coo.col, 2 * vec * Q_coo.data)}
 
     def _verify_jacobian_args(self):
@@ -160,8 +155,9 @@ class QuadForm(Atom):
         x = self.args[0]
         Q = self.args[1]
         vals = 2 * (Q.value @ x.value).T 
-        return {x: (np.zeros(x.size, dtype=int), np.arange(x.size), 
-                    vals)}
+        rows = np.zeros(x.size, dtype=int)
+        cols = np.arange(x.size, dtype=int)
+        return {x: (rows, cols, vals)}
 
     def shape_from_args(self) -> Tuple[int, ...]:
         return tuple()
@@ -202,23 +198,6 @@ class SymbolicQuadForm(Atom):
 
     def is_quadratic(self) -> bool:
         return True
-
-    def _verify_hess_vec_args(self):
-        return isinstance(self.args[0], Variable)
-
-    def _hess_vec(self, vec):
-        """
-        Computes the Hessian-vector product dictionary
-        for a quadratic form. We assume that the quad-form will be
-        canonicalized to w.T @ Q @ w, where w is a single variable
-        and Q is a constant matrix.
-        """
-        hess_dict = {}
-        var = self.args[0]
-        Q = self.args[1]
-        hess_dict[(var, var)] = vec * 2 * Q.value
-        return hess_dict
-
 
 def decomp_quad(P, cond=None, rcond=None, lower=True, check_finite: bool = True):
     """

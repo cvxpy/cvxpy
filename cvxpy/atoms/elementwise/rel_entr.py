@@ -123,30 +123,56 @@ class rel_entr(Elementwise):
 
         return True
 
+    def _verify_jacobian_args(self):
+        return self._verify_hess_vec_args()
+
+    def _jacobian(self):
+        x = self.args[0]
+        y = self.args[1]
+        dx_vals = np.log(x.value / y.value).flatten(order='F') + 1
+        dy_vals = - (x.value / y.value).flatten(order='F')
+
+        if x.size == 1:
+            idxs = np.arange(y.size, dtype=int)
+            return {(x): (np.array([0], dtype=int), np.array([0], dtype=int),
+                          np.array([np.sum(dx_vals)])),
+                    (y): (idxs, idxs, dy_vals)}
+        elif y.size == 1:
+            idxs = np.arange(x.size, dtype=int)
+            return {(x): (idxs, idxs, dx_vals), 
+                    (y): (np.array([0], dtype=int), np.array([0], dtype=int), 
+                          np.array([np.sum(dy_vals)]))}
+        else:
+            idxs = np.arange(x.size, dtype=int)
+            return {(x): (idxs, idxs, dx_vals), 
+                    (y): (idxs, idxs, dy_vals)}
+
     def _hess_vec(self, vec):
         """ See the docstring of the hess_vec method of the atom class. """
         x = self.args[0]
         y = self.args[1]
-        dx2_vals = vec / x.value
-        dy2_vals = vec * x.value / (y.value ** 2)
-        dxdy_vals = - vec / y.value
+        dx2_vals = vec / x.value.flatten(order='F')
+        dy2_vals = vec * (x.value / (y.value ** 2)).flatten(order='F')
+        dxdy_vals = - vec / y.value.flatten(order='F')
 
         if x.size == 1:
-            idxs = np.arange(y.size)
+            idxs = np.arange(y.size,  dtype=int)
             zeros_y = np.zeros(y.size, dtype=int)
-            return {(x, x): (0, 0, np.sum(dx2_vals)),
+            return {(x, x): (np.array([0], dtype=int), np.array([0], dtype=int),
+                             np.array([np.sum(dx2_vals)])),
                     (y, y): (idxs, idxs, dy2_vals),
                     (x, y): (zeros_y, idxs, dxdy_vals),
                     (y, x): (idxs, zeros_y, dxdy_vals)}
         elif y.size == 1:
-            idxs = np.arange(x.size)
+            idxs = np.arange(x.size,  dtype=int)
             zeros_x = np.zeros(x.size, dtype=int)
             return {(x, x): (idxs, idxs, dx2_vals), 
-                    (y, y): (0, 0, np.sum(dy2_vals)),
+                    (y, y): (np.array([0], dtype=int), np.array([0], dtype=int), 
+                             np.array([np.sum(dy2_vals)])),
                     (x, y): (idxs, zeros_x, dxdy_vals),
                     (y, x): (zeros_x, idxs, dxdy_vals)}
         else:
-            idxs = np.arange(x.size)
+            idxs = np.arange(x.size,  dtype=int)
             return {(x, x): (idxs, idxs, dx2_vals), 
                     (y, y): (idxs, idxs, dy2_vals),
                     (x, y): (idxs, idxs, dxdy_vals),

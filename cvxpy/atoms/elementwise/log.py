@@ -108,7 +108,7 @@ class log(Elementwise):
     def _hess_vec(self, vec):
         """ See the docstring of the hess_vec method of the atom class. """
         x = self.args[0]
-        idxs = np.arange(x.size)
+        idxs = np.arange(x.size, dtype=int)
         vals = -vec / (x.value.flatten(order='F') ** 2)
         return {(x, x): (idxs, idxs, vals)}
     
@@ -122,7 +122,7 @@ class log(Elementwise):
         values in column-major (Fortran) order.
         """
         x = self.args[0]
-        idxs = np.arange(x.size)
+        idxs = np.arange(x.size, dtype=int)
         vals = 1.0 / x.value.flatten(order='F')
         return {x: (idxs, idxs, vals)}
 

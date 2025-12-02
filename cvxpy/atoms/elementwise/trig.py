@@ -88,12 +88,8 @@ class sin(Elementwise):
         return isinstance(self.args[0], Variable)
 
     def _hess_vec(self, vec):
-        """
-        Computes the Hessian-vector product dictionary
-        for the sin atom. We assume that the argument will be a variable.
-        """
         var = self.args[0]
-        idxs = np.arange(var.size)
+        idxs = np.arange(var.size, dtype=int)
         vals = -np.sin(var.value.flatten(order='F')) * vec
         return {(var, var): (idxs, idxs, vals)}
     
@@ -102,7 +98,7 @@ class sin(Elementwise):
 
     def _jacobian(self):
         x = self.args[0]
-        idxs = np.arange(x.size)
+        idxs = np.arange(x.size, dtype=int)
         vals = np.cos(x.value.flatten(order='F'))
         return {x: (idxs, idxs, vals)}
         
@@ -172,12 +168,8 @@ class cos(Elementwise):
         return isinstance(self.args[0], Variable)
 
     def _hess_vec(self, vec):
-        """
-        Computes the Hessian-vector product dictionary
-        for the cos atom. We assume that the argument will be a variable.
-        """
         var = self.args[0]
-        idxs = np.arange(var.size)
+        idxs = np.arange(var.size, dtype=int)
         vals = -np.cos(var.value.flatten(order='F')) * vec
         return {(var, var): (idxs, idxs, vals)}
     
@@ -186,7 +178,7 @@ class cos(Elementwise):
 
     def _jacobian(self):
         x = self.args[0]
-        idxs = np.arange(x.size)
+        idxs = np.arange(x.size, dtype=int)
         vals = -np.sin(x.value.flatten(order='F'))
         return {x: (idxs, idxs, vals)}
 
@@ -243,7 +235,7 @@ class tan(Elementwise):
     def _domain(self) -> List[Constraint]:
         """Returns constraints describing the domain of the node.
         """
-        return []
+        return [-np.pi/2 < self.args[0], self.args[0] < np.pi/2]
 
     def _grad(self, values) -> List[Constraint]:
         """Returns the gradient of the node.
@@ -257,20 +249,17 @@ class tan(Elementwise):
         return isinstance(self.args[0], Variable)
 
     def _hess_vec(self, vec):
-        """
-        Computes the Hessian-vector product dictionary
-        for the tan atom. We assume that the argument will be a variable.
-        """
         var = self.args[0]
-        idxs = np.arange(var.size)
-        vals = 2*np.tan(var.value)/np.cos(var.value)**2 * vec
-        return {(var, var): (idxs, idxs, vals.flatten(order='F'))}
+        idxs = np.arange(var.size, dtype=int)
+        vals = 2*np.tan(var.value) / np.cos(var.value)**2 
+        vals = vals.flatten(order='F') * vec
+        return {(var, var): (idxs, idxs, vals)}
     
     def _verify_jacobian_args(self):
         return isinstance(self.args[0], Variable)
 
     def _jacobian(self):
         x = self.args[0]
-        idxs = np.arange(x.size)
-        vals = 1/np.cos(x.value)**2
-        return {x: (idxs, idxs, vals.flatten(order='F'))}
+        idxs = np.arange(x.size, dtype=int)
+        vals = 1/np.cos(x.value).flatten(order='F')**2
+        return {x: (idxs, idxs, vals)}

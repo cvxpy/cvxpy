@@ -18,12 +18,12 @@ import numpy as np
 
 from cvxpy.expressions.variable import Variable
 
-MIN_BOUND = 1e-4
+MIN_INIT = 1e-4
 
 def entr_canon(expr, args):
     t = Variable(args[0].shape, bounds=[0, None])
-    if args[0].value is not None and np.min(args[0].value) >= MIN_BOUND:
-        t.value = args[0].value
+    if args[0].value is not None:
+        t.value = np.maximum(args[0].value, MIN_INIT)
     else:
         t.value = expr.point_in_domain()
 

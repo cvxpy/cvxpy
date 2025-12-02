@@ -106,8 +106,8 @@ class entr(Elementwise):
     def _hess_vec(self, vec):
         """ See the docstring of the hess_vec method of the atom class. """
         x = self.args[0]
-        idxs = np.arange(x.size)
-        vals = -vec / x.value
+        idxs = np.arange(x.size, dtype=int)
+        vals = -vec / x.value.flatten(order='F')
         return {(x, x): (idxs, idxs, vals)}
 
     def _verify_jacobian_args(self):
@@ -115,8 +115,8 @@ class entr(Elementwise):
 
     def _jacobian(self):
         x = self.args[0]
-        idxs = np.arange(x.size)
-        vals = -np.log(x.value) - 1
+        idxs = np.arange(x.size, dtype=int)
+        vals = -np.log(x.value.flatten(order='F')) - 1
         return {x: (idxs, idxs, vals)}
 
     def _domain(self) -> List[Constraint]:

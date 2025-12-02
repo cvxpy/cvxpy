@@ -30,20 +30,20 @@ def power_canon(expr, args):
         return ones, []
     elif p == 1:
         return x, []
-    elif p == 0.5:
-        t = Variable(shape, nonneg=True)
+    elif isinstance(p, int) and p > 1:
+        if isinstance(x, Variable):
+            return expr.copy(args), []
 
+        t = Variable(shape)
         if x.value is not None:
             t.value = x.value
         else:
             t.value = expr.point_in_domain()
 
         return expr.copy([t]), [t == x]
-    elif isinstance(p, int) and p > 1:
-        if isinstance(x, Variable):
-            return expr.copy(args), []
+    elif p > 0:
+        t = Variable(shape, nonneg=True)
 
-        t = Variable(shape)
         if x.value is not None:
             t.value = x.value
         else:

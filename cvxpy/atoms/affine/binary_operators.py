@@ -527,7 +527,7 @@ class multiply(MulExpression):
             assert(type(x) == Promote)
             x_var = x.args[0] # here x is a Promote because of how we canonicalize
             zeros_x = np.zeros(x_var.size, dtype=int)
-            cols = np.arange(y.size)
+            cols = np.arange(y.size,  dtype=int)
             return {(x_var, y): (zeros_x, cols, vec),
                     (y, x_var): (cols, zeros_x, vec)}
         
@@ -536,13 +536,13 @@ class multiply(MulExpression):
             assert(type(y) == Promote)
             y_var = y.args[0] # here y is a Promote because of how we canonicalize
             zeros_y = np.zeros(y_var.size, dtype=int)
-            cols = np.arange(x.size)
+            cols = np.arange(x.size,  dtype=int)
             return {(x, y_var): (cols, zeros_y, vec),
                     (y_var, x): (zeros_y, cols, vec)}
         
         # if we arrive here both arguments are variables of the same size
-        rows = np.arange(x.size)
-        cols = np.arange(x.size)
+        rows = np.arange(x.size,  dtype=int)
+        cols = np.arange(x.size,  dtype=int)
         return {(x, y): (rows, cols, vec), (y, x): (rows, cols, vec)}
 
     def _verify_jacobian_args(self):
@@ -572,7 +572,7 @@ class multiply(MulExpression):
         if not isinstance(x, Variable) and x.is_affine():
             assert(type(x) == Promote)
             x_var = x.args[0] # here x is a Promote because of how we canonicalize
-            idxs = np.arange(y.size)
+            idxs = np.arange(y.size,  dtype=int)
             return {(x_var): (idxs, np.zeros(y.size, dtype=int), y.value),
                     (y): (idxs, idxs, x.value)}
         
@@ -580,12 +580,12 @@ class multiply(MulExpression):
         if not isinstance(y, Variable) and y.is_affine():
             assert(type(y) == Promote)
             y_var = y.args[0] # here y is a Promote because of how we canonicalize
-            idxs = np.arange(x.size)
+            idxs = np.arange(x.size, dtype=int)
             return {(x): (idxs, idxs, y.value),
                     (y_var): (idxs, np.zeros(x.size, dtype=int), x.value)}
         
         # here both are variables
-        idxs = np.arange(x.size)
+        idxs = np.arange(x.size, dtype=int)
         jacobian_dict = {x: (idxs, idxs, y.value.flatten(order='F')),
                         y: (idxs, idxs, x.value.flatten(order='F'))}
         return jacobian_dict

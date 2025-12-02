@@ -22,16 +22,15 @@ from cvxpy.atoms.elementwise.log import log
 from cvxpy.expressions.variable import Variable
 from cvxpy.reductions.dnlp2smooth.canonicalizers.log_canon import log_canon
 
+MIN_INIT = 1e-4
 
 def geo_mean_canon(expr, args):
     """
     Canonicalization for the geometric mean function.
-    We reformulate geo_mean(x) as exp(1/n * sum(log(x)))
-    to form a diagonal hessian instead of a dense one.
     """
     t = Variable(expr.shape, nonneg=True)
 
-    if args[0].value is not None:
+    if args[0].value is not None and args[0].value > MIN_INIT:
         t.value = expr.numeric(args[0].value)
     else:
         t.value = np.ones(expr.shape)

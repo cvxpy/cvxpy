@@ -102,9 +102,9 @@ class exp(Elementwise):
     def _hess_vec(self, vec):
         """ See the docstring of the hess_vec method of the atom class. """
         x = self.args[0]
-        idxs = np.arange(x.size)
+        idxs = np.arange(x.size, dtype=int)
         vals = np.exp(x.value.flatten(order='F')) * vec
-        return {(x, x): (idxs, idxs, np.atleast_1d(vals))}
+        return {(x, x): (idxs, idxs, vals)}
 
     def _verify_jacobian_args(self):
         return isinstance(self.args[0], Variable)
@@ -116,6 +116,6 @@ class exp(Elementwise):
         values in column-major (Fortran) order.
         """
         x = self.args[0]
-        idxs = np.arange(x.size)
+        idxs = np.arange(x.size, dtype=int)
         vals = np.exp(x.value.flatten(order='F'))
         return {x: (idxs, idxs, vals)}

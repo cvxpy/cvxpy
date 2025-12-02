@@ -393,10 +393,8 @@ class power(Elementwise):
 
     def _verify_hess_vec_args(self):
         # we can't compute the hessian if p is not constant and specified
-        if (self.p_rational is None and self.p.value is None):
-            return False
-
-        if not isinstance(self.args[0], Variable):
+        if (self.p_rational is None and self.p.value is None) or \
+            not isinstance(self.args[0], Variable):
             return False
 
         return True
@@ -413,8 +411,7 @@ class power(Elementwise):
     
         x = self.args[0]
         hess_vals = float(p)*float(p-1)*np.power(x.value.flatten(order='F'), float(p)-2)
-
-        idxs = np.arange(x.size)
+        idxs = np.arange(x.size, dtype=int)
         vals = hess_vals * vec
         return {(x, x): (idxs, idxs, vals)}
     
@@ -442,7 +439,7 @@ class power(Elementwise):
             return {}
         
         x = self.args[0]
-        idxs = np.arange(x.size)
+        idxs = np.arange(x.size, dtype=int)
         vals = float(p)*np.power(x.value.flatten(order='F'), float(p)-1)
         return {x: (idxs, idxs, vals)}
         
