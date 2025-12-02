@@ -13,7 +13,6 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
-import unittest
 
 import numpy as np
 
@@ -23,7 +22,6 @@ from cvxpy.reductions.solvers.defines import INSTALLED_MI_SOLVERS as MIP_SOLVERS
 from cvxpy.tests.base_test import BaseTest
 
 
-@unittest.skipUnless(len(MIP_SOLVERS) > 0, 'No mixed-integer solver is installed.')
 class TestMIPVariable(BaseTest):
     """ Unit tests for the expressions/shape module. """
 
