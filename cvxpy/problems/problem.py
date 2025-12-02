@@ -52,6 +52,7 @@ from cvxpy.reductions.solvers.nlp_solvers.ipopt_nlpif import IPOPT as IPOPT_nlp
 from cvxpy.reductions.solvers.nlp_solvers.knitro_nlpif import KNITRO as KNITRO_nlp
 from cvxpy.reductions.solvers.qp_solvers.qp_solver import QpSolver
 from cvxpy.reductions.solvers.solver import Solver
+from cvxpy.reductions.solvers.solver_inverse_data import SolverInverseData
 from cvxpy.reductions.solvers.solving_chain import (
     SolvingChain,
     construct_solving_chain,
@@ -378,12 +379,24 @@ class Problem(u.Canonical):
     @perf.compute_once
     def is_qp(self) -> bool:
         """Is problem a quadratic program?
+
+        A problem is a QP if:
+        - It is DCP
+        - The objective is quadratic or piecewise-affine (QPWA)
+        - Inequality constraints (Inequality, NonPos, NonNeg) have PWL expressions
+        - Equality constraints (Equality, Zero) are allowed (DCP ensures affine args)
+        - No other constraint types (e.g., SOC, PSD, ExpCone) are present
+        - No PSD/NSD/Hermitian variables
         """
         for c in self.constraints:
-            if not (isinstance(c, (Equality, Zero)) or c.args[0].is_pwl()):
+            if type(c) in (Inequality, NonPos, NonNeg):
+                if not c.expr.is_pwl():
+                    return False
+            elif type(c) not in (Equality, Zero):
+                # Reject conic constraints (SOC, PSD, ExpCone, etc.)
                 return False
         for var in self.variables():
-            if var.is_psd() or var.is_nsd():
+            if var.attributes['PSD'] or var.attributes['NSD'] or var.attributes['hermitian']:
                 return False
         return (self.is_dcp() and self.objective.args[0].is_qpwa())
 
@@ -834,6 +847,8 @@ class Problem(u.Canonical):
                 # the last datum in inverse_data corresponds to the solver,
                 # so we shouldn't cache it
                 self._cache.inverse_data = inverse_data[:-1]
+        # Convert last inverse data (which is from the solver) to a SolverInverseData object.
+        inverse_data[-1] = SolverInverseData(inverse_data[-1], solving_chain.solver, solver_opts)
         return data, solving_chain, inverse_data
 
     def _find_candidate_solvers(self,
@@ -1599,7 +1614,6 @@ class Problem(u.Canonical):
             A solving chain that was used to solve the problem.
         inverse_data : list
             The inverse data returned by applying the chain to the problem.
-
         Raises
         ------
         cvxpy.error.SolverError

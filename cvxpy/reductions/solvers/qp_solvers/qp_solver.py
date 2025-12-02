@@ -20,17 +20,21 @@ import scipy.sparse as sp
 import cvxpy.settings as s
 from cvxpy.constraints import NonNeg, Zero
 from cvxpy.reductions.cvx_attr2constr import convex_attributes
-from cvxpy.reductions.qp2quad_form.qp_matrix_stuffing import (
-    ConeDims,
-    ParamQuadProg,
-)
+from cvxpy.reductions.dcp2cone.cone_matrix_stuffing import ParamConeProg
 from cvxpy.reductions.solvers.solver import Solver
-from cvxpy.reductions.utilities import group_constraints
 
 
 class QpSolver(Solver):
     """
     A QP solver interface.
+
+    QP solvers accept ParamConeProg with only Zero and NonNeg constraints
+    (i.e., equality and inequality constraints) and convert them to the
+    standard QP form:
+
+        minimize      1/2 x' P x + q' x
+        subject to    A x =  b
+                      F x <= g
     """
     # Every QP solver supports Zero and NonNeg constraints.
     SUPPORTED_CONSTRAINTS = [Zero, NonNeg]
@@ -42,47 +46,48 @@ class QpSolver(Solver):
     IS_MIP = "IS_MIP"
 
     def accepts(self, problem):
-        return (isinstance(problem, ParamQuadProg)
+        return (isinstance(problem, ParamConeProg)
                 and (self.MIP_CAPABLE or not problem.is_mixed_integer())
                 and not convex_attributes([problem.x])
                 and (len(problem.constraints) > 0 or not self.REQUIRES_CONSTR)
                 and all(type(c) in self.SUPPORTED_CONSTRAINTS for c in
                         problem.constraints))
 
-    def _prepare_data_and_inv_data(self, problem):
-        data = {}
-        inv_data = {self.VAR_ID: problem.x.id}
-
-        constr_map = group_constraints(problem.constraints)
-        data[QpSolver.DIMS] = ConeDims(constr_map)
-        inv_data[QpSolver.DIMS] = data[QpSolver.DIMS]
-
-        # Add information about integer variables
-        inv_data[QpSolver.IS_MIP] = problem.is_mixed_integer()
-
-        data[s.PARAM_PROB] = problem
-        return problem, data, inv_data
-
     def apply(self, problem):
         """
         Construct QP problem data stored in a dictionary.
-        The QP has the following form
+
+        Converts a ParamConeProg (with only Zero and NonNeg constraints) to QP form:
 
             minimize      1/2 x' P x + q' x
             subject to    A x =  b
                           F x <= g
-
         """
-        problem, data, inv_data = self._prepare_data_and_inv_data(problem)
+        data = {}
+        inv_data = {self.VAR_ID: problem.x.id}
 
-        P, q, d, AF, bg = problem.apply_parameters()
+        data[QpSolver.DIMS] = problem.cone_dims
+        inv_data[QpSolver.DIMS] = data[QpSolver.DIMS]
+        inv_data[QpSolver.IS_MIP] = problem.is_mixed_integer()
+        data[s.PARAM_PROB] = problem
+
+        # Apply parameters with quadratic objective
+        P, q, d, AF, bg = problem.apply_parameters(quad_obj=True)
         inv_data[s.OFFSET] = d
 
         # Get number of variables
         n = problem.x.size
-        len_eq = data[QpSolver.DIMS].zero
-        len_leq = data[QpSolver.DIMS].nonneg
+        len_eq = problem.cone_dims.zero
+        len_leq = problem.cone_dims.nonneg
 
+        # Store constraint lists for dual variable mapping
+        # Constraints are ordered: Zero (equality) first, then NonNeg (inequality)
+        eq_constrs = [c for c in problem.constraints if type(c) == Zero]
+        ineq_constrs = [c for c in problem.constraints if type(c) == NonNeg]
+        inv_data[self.EQ_CONSTR] = eq_constrs
+        inv_data[self.NEQ_CONSTR] = ineq_constrs
+
+        # Split into equality and inequality constraints
         if len_eq > 0:
             A = AF[:len_eq, :]
             b = -bg[:len_eq]
