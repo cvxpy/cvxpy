@@ -363,8 +363,7 @@ def construct_solving_chain(problem, candidates,
             ]
             if all(c in supported_constraints for c in cones):
                 # Check if solver only supports dim-3 SOC cones
-                soc_dim3_only = getattr(solver_instance, 'SOC_DIM3_ONLY', False)
-                if soc_dim3_only and SOC in cones:
+                if solver_instance.SOC_DIM3_ONLY and SOC in cones:
                     # Add SOCDim3 reduction to convert n-dim SOC to 3D SOC
                     reductions.append(SOCDim3())
                 # Return the reduction chain.

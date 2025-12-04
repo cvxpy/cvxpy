@@ -77,7 +77,6 @@ class MOREAU(ConicSolver):
 
     # Solver capabilities
     MIP_CAPABLE = False
-    BATCH_CAPABLE = True
     SUPPORTED_CONSTRAINTS = ConicSolver.SUPPORTED_CONSTRAINTS + [SOC, ExpCone, PowCone3D]
 
     # Moreau only supports dimension-3 SOC cones
@@ -279,31 +278,6 @@ class MOREAU(ConicSolver):
         status_val = moreau.SolverStatus(int(result['status']))
         # Convert result to solution object
 
-
-        class MoreauSolution:
-            def __init__(self, result_dict, status):
-                self.x = result_dict['x']
-                self.s = result_dict['s']
-                self.z = result_dict['z']
-                self.status = status.name
-
-                # Handle list format for iterations (moreau-cpu returns lists)
-                iters = result_dict['iterations']
-                if isinstance(iters, (list, np.ndarray)):
-                    self.iterations = int(iters[0])
-                else:
-                    self.iterations = int(iters)
-
-                # Handle list format for solve_time (moreau-cpu returns lists)
-                st = result_dict['solve_time']
-                if isinstance(st, (list, np.ndarray)):
-                    self.solve_time = float(st[0])
-                else:
-                    self.solve_time = float(st)
-
-                # Scalar or 0-dimensional array
-                self.obj_val = float(result_dict['obj_val'])
-
         return MoreauSolution(result, status_val)
     
     def cite(self, data):
@@ -324,3 +298,30 @@ class MOREAU(ConicSolver):
   year={2025},
   note={https://pypi.org/project/moreau}
 }"""
+
+
+class MoreauSolution:
+    def __init__(self, result_dict, status):
+        self.x = result_dict['x']
+        self.s = result_dict['s']
+        self.z = result_dict['z']
+        self.status = status.name
+
+        # Handle list format for iterations (moreau-cpu returns lists)
+        iters = result_dict['iterations']
+        if isinstance(iters, (list, np.ndarray)):
+            self.iterations = int(iters[0])
+        else:
+            self.iterations = int(iters)
+
+        # Handle list format for solve_time (moreau-cpu returns lists)
+        st = result_dict['solve_time']
+        if isinstance(st, (list, np.ndarray)):
+            self.solve_time = float(st[0])
+        else:
+            self.solve_time = float(st)
+
+        # Scalar or 0-dimensional array
+        self.obj_val = float(result_dict['obj_val'])
+
+
