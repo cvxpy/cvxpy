@@ -100,8 +100,12 @@ def _solve_as_qp(problem, candidates):
     return candidates['qp_solvers'] and problem.is_qp()
 
 
-def _reductions_for_problem_class(problem, candidates, gp: bool = False, solver_opts=None) \
-        -> list[Reduction]:
+def _reductions_for_problem_class(
+    problem,
+    candidates,
+    gp: bool = False,
+    solver_opts=None,
+) -> list[Reduction]:
     """
     Builds a chain that rewrites a problem into an intermediate
     representation suitable for numeric reductions.
@@ -134,7 +138,6 @@ def _reductions_for_problem_class(problem, candidates, gp: bool = False, solver_
         reductions += [complex2real.Complex2Real()]
     if gp:
         reductions += [Dgp2Dcp()]
-
     if not gp and not problem.is_dcp():
         append = build_non_disciplined_error_msg(problem, 'DCP')
         if problem.is_dgp():

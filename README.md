@@ -1,156 +1,60 @@
-CVXPY
-=====================
-[![Build Status](http://github.com/cvxpy/cvxpy/workflows/build/badge.svg?event=push)](https://github.com/cvxpy/cvxpy/actions/workflows/build.yml)
-![PyPI - downloads](https://img.shields.io/pypi/dm/cvxpy.svg?label=Pypi%20downloads)
-![Conda - downloads](https://img.shields.io/conda/dn/conda-forge/cvxpy.svg?label=Conda%20downloads)
-[![Discord](https://img.shields.io/badge/Chat-Discord-Blue?color=5865f2)](https://discord.gg/4urRQeGBCr)
-[![Coverage](https://sonarcloud.io/api/project_badges/measure?project=cvxpy_cvxpy&metric=coverage)](https://sonarcloud.io/summary/new_code?id=cvxpy_cvxpy)
-[![Benchmarks](http://img.shields.io/badge/benchmarked%20by-asv-blue.svg?style=flat)](https://cvxpy.github.io/benchmarks/)
-[![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/cvxpy/cvxpy/badge)](https://api.securityscorecards.dev/projects/github.com/cvxpy/cvxpy)
+# DNLP — Disciplined Nonlinear Programming
+The DNLP package is an extension of [CVXPY](https://www.cvxpy.org/) to general nonlinear programming (NLP).
+DNLP allows smooth functions to be freely mixed with nonsmooth convex and concave functions, 
+with some rules governing how the nonsmooth functions can be used. For details, see our paper [Disciplined Nonlinear Programming](XXX).
 
-**The CVXPY documentation is at [cvxpy.org](https://www.cvxpy.org/).**
-
-*We are building a CVXPY community on [Discord](https://discord.gg/4urRQeGBCr). Join the conversation! For issues and long-form discussions, use [Github Issues](https://github.com/cvxpy/cvxpy/issues) and [Github Discussions](https://github.com/cvxpy/cvxpy/discussions).*
-
-**Contents**
-- [Installation](#installation)
-- [Getting started](#getting-started)
-- [Issues](#issues)
-- [Community](#community)
-- [Contributing](#contributing)
-- [Team](#team)
-- [Citing](#citing)
-
-
-CVXPY is a Python-embedded modeling language for convex optimization problems. It allows you to express your problem in a natural way that follows the math, rather than in the restrictive standard form required by solvers.
-
-For example, the following code solves a least-squares problem where the variable is constrained by lower and upper bounds:
-
-```python3
-import cvxpy as cp
-import numpy
-
-# Problem data.
-m = 30
-n = 20
-numpy.random.seed(1)
-A = numpy.random.randn(m, n)
-b = numpy.random.randn(m)
-
-# Construct the problem.
-x = cp.Variable(n)
-objective = cp.Minimize(cp.sum_squares(A @ x - b))
-constraints = [0 <= x, x <= 1]
-prob = cp.Problem(objective, constraints)
-
-# The optimal objective is returned by prob.solve().
-result = prob.solve()
-# The optimal value for x is stored in x.value.
-print(x.value)
-# The optimal Lagrange multiplier for a constraint
-# is stored in constraint.dual_value.
-print(constraints[0].dual_value)
-```
-
-With CVXPY, you can model
-* convex optimization problems,
-* mixed-integer convex optimization problems,
-* geometric programs, and
-* quasiconvex programs.
-
-CVXPY is not a solver. It relies upon the open source solvers 
-[Clarabel](https://github.com/oxfordcontrol/Clarabel.rs), [SCS](https://github.com/bodono/scs-python),
-and [OSQP](https://github.com/oxfordcontrol/osqp). Additional solvers are
-[available](https://www.cvxpy.org/tutorial/solvers/index.html#choosing-a-solver),
-but must be installed separately.
-
-CVXPY began as a Stanford University research project. It is now developed by
-many people, across many institutions and countries.
-
-
+---
 ## Installation
-CVXPY is available on PyPI, and can be installed with
+The installation consists of two steps.
+
+#### Step 1: Install IPOPT via Conda
+DNLP requires an NLP solver. The recommended solver is [Ipopt](XXX), which can be installed together with its Python interface [cyipopt](https://github.com/mechmotum/cyipopt):
+```bash
+conda install -c conda-forge cyipopt
 ```
-pip install cvxpy
+Installing cyipopt via pip may lead to issues, so we strongly recommend using the Conda installation above, even if the rest of your environment uses pip.
+
+#### Step 2: Install DNLP
+DNLP is installed by cloning this repository and installing it locally:
+```bash
+git clone https://github.com/cvxgrp/DNLP.git
+cd DNLP
+pip install .
 ```
 
-CVXPY can also be installed with conda, using
+---
+## Example
+Below we give a toy example where we maximize a convex quadratic function subject to a nonlinear equality constraint.  Many more examples, including the ones in the paper, can be found at [DNLP-examples](https://github.com/cvxgrp/dnlp-examples).
+```python
+import cvxpy as cp
+import numpy as np 
+import cvxpy as cp
+
+# problem data
+np.random.seed(0)
+n = 3
+A = np.random.randn(n, n)
+A = A.T @ A
+
+# formulate optimization problem
+x = cp.Variable(n)
+obj = cp.Maximize(cp.quad_form(x, A))
+constraints = [cp.sum_squares(x) == 1]
+
+# initialize and solve
+x.value = np.ones(n)
+prob = cp.Problem(obj, constraints)
+prob.solve(nlp=True, verbose=True)
+print("Optimal value from DNLP: ", prob.value)
+
+# the optimal value for this toy problem can also be found by computing the maximum eigenvalue of A
+eigenvalues  = np.linalg.eigvalsh(A)
+print("Maximum eigenvalue:      " , np.max(eigenvalues))
 ```
-conda install -c conda-forge cvxpy
-```
 
-CVXPY has the following dependencies:
-
-- Python >= 3.11
-- Clarabel >= 0.5.0
-- OSQP >= 0.6.2
-- SCS >= 3.2.4.post1
-- NumPy >= 1.22.4
-- SciPy >= 1.13.0
-
-For detailed instructions, see the [installation
-guide](https://www.cvxpy.org/install/index.html).
-
-## Getting started
-To get started with CVXPY, check out the following:
-* [official CVXPY tutorial](https://www.cvxpy.org/tutorial/index.html)
-* [example library](https://www.cvxpy.org/examples/index.html)
-* [API reference](https://www.cvxpy.org/api_reference/cvxpy.html)
-
-## Issues
-We encourage you to report issues using the [Github tracker](https://github.com/cvxpy/cvxpy/issues). We welcome all kinds of issues, especially those related to correctness, documentation, performance, and feature requests.
-
-For basic usage questions (e.g., "Why isn't my problem DCP?"), please use [StackOverflow](https://stackoverflow.com/questions/tagged/cvxpy) instead.
-
-## Community
-The CVXPY community consists of researchers, data scientists, software engineers, and students from all over the world. We welcome you to join us!
-
-* To chat with the CVXPY community in real-time, join us on [Discord](https://discord.gg/4urRQeGBCr).
-* To have longer, in-depth discussions with the CVXPY community, use [Github Discussions](https://github.com/cvxpy/cvxpy/discussions).
-* To share feature requests and bug reports, use [Github Issues](https://github.com/cvxpy/cvxpy/issues).
-
-Please be respectful in your communications with the CVXPY community, and make sure to abide by our [code of conduct](https://github.com/cvxpy/cvxpy/blob/master/CODE_OF_CONDUCT.md).
-
-## Contributing
-We appreciate all contributions. You don't need to be an expert in convex
-optimization to help out.
-
-You should first
-install [CVXPY from source](https://www.cvxpy.org/install/index.html#install-from-source).
-Here are some simple ways to start contributing immediately:
-* Read the CVXPY source code and improve the documentation, or address TODOs
-* Enhance the [website documentation](https://github.com/cvxpy/cvxpy/tree/master/doc)
-* Browse the [issue tracker](https://github.com/cvxpy/cvxpy/issues), and look for issues tagged as "help wanted"
-* Polish the [example library](https://github.com/cvxpy/cvxpy/tree/master/examples)
-* Add a [benchmark](https://github.com/cvxpy/benchmarks)
-
-If you'd like to add a new example to our library, or implement a new feature,
-please get in touch with us first to make sure that your priorities align with
-ours. 
-
-Contributions should be submitted as [pull requests](https://github.com/cvxpy/cvxpy/pulls).
-A member of the CVXPY development team will review the pull request and guide
-you through the contributing process.
-
-Before starting work on your contribution, please read the [contributing guide](https://github.com/cvxpy/cvxpy/blob/master/CONTRIBUTING.md).
-
-## Team
-CVXPY is a community project, built from the contributions of many
-researchers and engineers.
-
-CVXPY is developed and maintained by [Steven
-Diamond](https://stevendiamond.me/), [Akshay
-Agrawal](https://akshayagrawal.com), [Riley Murray](https://rileyjmurray.wordpress.com/), 
-[Philipp Schiele](https://www.philippschiele.com/),
-[Bartolomeo Stellato](https://stellato.io/),
-and [Parth Nobel](https://ptnobel.github.io), with many others contributing
-significantly.
-A non-exhaustive list of people who have shaped CVXPY over the
-years includes Stephen Boyd, Eric Chu, Robin Verschueren,
-Jaehyun Park, Enzo Busseti, AJ Friend, Judson Wilson, Chris Dembia, and
-William Zhang.
-
-For more information about the team and our processes, see our [governance document](https://github.com/cvxpy/org/blob/main/governance.md).
-
-## Citing
-If you use CVXPY for academic work, we encourage you to [cite our papers](https://www.cvxpy.org/resources/citing/index.html). If you use CVXPY in industry, we'd love to hear from you as well, on Discord or over email.
+---
+## Supported Solvers
+| Solver | License | Installation |
+|--------|---------|--------------|
+| [IPOPT](https://github.com/coin-or/Ipopt) | EPL-2.0 | `conda install -c conda-forge cyipopt` |
+| [Knitro](https://www.artelys.com/solvers/knitro/) | Commercial | `pip install knitro` (requires license) |

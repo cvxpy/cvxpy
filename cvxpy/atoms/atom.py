@@ -149,12 +149,24 @@ class Atom(Expression):
         """Is the atom concave?
         """
         raise NotImplementedError()
-
+    
     def is_atom_affine(self) -> bool:
         """Is the atom affine?
         """
         return self.is_atom_concave() and self.is_atom_convex()
 
+    def is_atom_esr(self) -> bool:
+        """Is the atom esr?
+        """
+        raise NotImplementedError("is_atom_esr not implemented for %s."
+                                   % self.__class__.__name__)
+    
+    def is_atom_hsr(self) -> bool:
+        """Is the atom hsr?
+        """
+        raise NotImplementedError("is_atom_hsr not implemented for %s."
+                                   % self.__class__.__name__)
+    
     def is_atom_log_log_convex(self) -> bool:
         """Is the atom log-log convex?
         """
@@ -221,6 +233,40 @@ class Atom(Expression):
                 if not (arg.is_affine() or
                         (arg.is_concave() and self.is_incr(idx)) or
                         (arg.is_convex() and self.is_decr(idx))):
+                    return False
+            return True
+        else:
+            return False
+        
+    @perf.compute_once
+    def is_esr(self) -> bool:
+        """Is the expression epigraph smooth representable?
+        """
+        # Applies DNLP composition rule.
+        if self.is_constant():
+            return True
+        elif self.is_atom_esr():
+            for idx, arg in enumerate(self.args):
+                if not (arg.is_smooth() or
+                        (arg.is_esr() and self.is_incr(idx)) or
+                        (arg.is_hsr() and self.is_decr(idx))):
+                    return False
+            return True
+        else:
+            return False
+        
+    @perf.compute_once
+    def is_hsr(self) -> bool:
+        """Is the expression hypograph smooth representable?
+        """
+        # Applies DNLP composition rule.
+        if self.is_constant():
+            return True
+        elif self.is_atom_hsr():
+            for idx, arg in enumerate(self.args):
+                if not (arg.is_smooth() or
+                        (arg.is_hsr() and self.is_incr(idx)) or
+                        (arg.is_esr() and self.is_decr(idx))):
                     return False
             return True
         else:
@@ -452,6 +498,68 @@ class Atom(Expression):
 
         return result
 
+    def jacobian(self):
+
+        # Short-circuit to all zeros if known to be constant.
+        if self.is_constant():
+            return u.grad.constant_grad(self)
+
+        # for nonlinear atoms we typically require that the arguments are variables 
+        # (this is guaranteed in the NLP setting through the canonicalization)
+        if not self._verify_jacobian_args():
+           raise ValueError("Argument error in jacobian for atom %s." % self.__class__.__name__)
+        
+        return self._jacobian()
+
+
+    def hess_vec(self, vec):
+        """
+        Compute a linear combination of Hessians of the atom.
+
+        We interpret the Hessian of an atom φ(x), where φ(x) is possibly
+        vector-valued with dimension m, as a 3D tensor of size (n, n, m).
+        Each slice along the third axis corresponds to the Hessian of one
+        component function φ_i(x).
+
+        This function computes the product
+
+            sum_{i=1}^m vec[i] * ∇²φ_i(x),
+
+        where φ_i is the i-th component of φ and vec is an m-dimensional
+        weight vector. The result is an n x n matrix representing this
+        weighted combination of component Hessians.
+
+        It returns a dictionary with (var, var) as keys and (rows, vals, cols)
+        in COO format as values. 
+
+        This function checks if the argument is affine, and if so returns an 
+        empty dictionary. Otherwise, it calls the atom-specific _hess_vec.
+        It also performs some error checking, so this must not be implemented
+        in the atom-specific _hess_vec.
+
+        TODO (DCED): we could check the domain here as well. Do we need that? 
+                     When we set bound_relax_factor = 0 to IPOPT we know that 
+                     it will always respect the domain of the functions (since 
+                     we always add bounds for the domains of the atoms)
+                     Discuss with William.
+        """
+
+        # the dimension of φ(x) and vec must match
+        if vec.size != self.size:
+            raise ValueError("Dimension mismatch in hess_vec. vec.size != "
+                             "phi(x).size")
+
+        # Short-circuit to all zeros if known to be affine.
+        if self.is_affine():
+            return {}
+
+        # for nonlinear atoms we typically require that the arguments are variables 
+        # (this is guaranteed in the NLP setting through the canonicalization)
+        if not self._verify_hess_vec_args():
+           raise ValueError("Argument error in hess_vec for atom %s." % self.__class__.__name__)
+    
+        return self._hess_vec(vec)
+
     @abc.abstractmethod
     def _grad(self, values):
         """Gives the (sub/super)gradient of the atom w.r.t. each argument.
@@ -465,6 +573,24 @@ class Atom(Expression):
             A list of SciPy CSC sparse matrices or None.
         """
         raise NotImplementedError()
+    
+    #@abc.abstractmethod
+    def _verify_hess_vec_args(self):
+        raise NotImplementedError("Not implemented verify arguments for atom %s." %
+                                  self.__class__.__name__)
+
+    def _verify_jacobian_args(self):
+        raise NotImplementedError("Not implemented verify arguments for atom %s." 
+                                   % self.__class__.__name__)
+
+    #@abc.abstractmethod
+    def _hess_vec(self, values):
+        raise NotImplementedError("Atom %s does not have a Hessian, or it has not been "
+                                  "implemented yet." % self.__class__.__name__)
+
+    def _jacobian(self):
+        raise NotImplementedError("Atom %s does not have a Jacobian, or it has not been "
+                                  "implemented yet." % self.__class__.__name__)
 
     @property
     def domain(self) -> List['Constraint']:
@@ -478,6 +604,10 @@ class Atom(Expression):
         """
         # Default is no constraints.
         return []
+    
+    def point_in_domain(self) -> np.ndarray:
+        """default point in domain of zero"""
+        return np.zeros(self.shape)
 
     @staticmethod
     def numpy_numeric(numeric_func):
