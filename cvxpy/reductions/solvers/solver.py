@@ -33,6 +33,7 @@ class Solver(Reduction):
     # Solver capabilities.
     MIP_CAPABLE = False
     BOUNDED_VARIABLES = False
+    SOC_DIM3_ONLY = False
 
     # Keys for inverse data.
     VAR_ID = 'var_id'

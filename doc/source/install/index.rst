@@ -129,6 +129,18 @@ Install with Additional Solver Support
     Install GUROBI version 7.5.2 or greater such that you can ``import gurobipy`` in Python.
     See the `GUROBI <https://www.gurobi.com/>`_ website for installation instructions.
 
+.. info:: MOREAU
+    :collapsible:
+
+    CVXPY supports the MOREAU solver.
+    Simply install MOREAU such that you can ``import moreau`` in Python.
+
+    ::
+
+        pip install moreau
+
+    See the `MOREAU <https://optimalintellect.com/>`_ website for installation instructions.
+
 .. info:: MOSEK
     :collapsible:
 
