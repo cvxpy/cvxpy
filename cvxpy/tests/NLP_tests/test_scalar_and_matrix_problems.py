@@ -20,8 +20,6 @@ class TestScalarProblems():
         prob.solve(nlp=True, solver=cp.IPOPT)
         assert prob.status == cp.OPTIMAL
     
-    # skip
-    @pytest.mark.skip(reason="Skipping KL test for now")
     def test_KL(self):
        p = cp.Variable()
        q = cp.Variable()
@@ -29,7 +27,6 @@ class TestScalarProblems():
        prob.solve(nlp=True, solver=cp.IPOPT)
        assert prob.status == cp.OPTIMAL
     
-    @pytest.mark.skip(reason="Skipping KL test for now")
     def test_KL_matrix(self):
         Y = cp.Variable((3, 3))
         X = cp.Variable((3, 3))
@@ -115,6 +112,26 @@ class TestScalarProblems():
         assert prob.status == cp.OPTIMAL
 
         prob = cp.Problem(cp.Minimize(cp.sum(cp.cos(x))), [x >= 0.1])
+        prob.solve(nlp=True, solver=cp.IPOPT)
+        assert prob.status == cp.OPTIMAL
+
+    def test_matrix_hyperbolic(self):
+        x = cp.Variable((3, 2))
+        prob = cp.Problem(cp.Minimize(cp.sum(cp.sinh(x))), [x >= 0.1])
+        prob.solve(nlp=True, solver=cp.IPOPT)
+        assert prob.status == cp.OPTIMAL
+
+        prob = cp.Problem(cp.Minimize(cp.sum(cp.tanh(x))), [x >= 0.1])
+        prob.solve(nlp=True, solver=cp.IPOPT)
+        assert prob.status == cp.OPTIMAL
+
+    def test_scalar_hyperbolic(self):
+        x = cp.Variable()
+        prob = cp.Problem(cp.Minimize(cp.sinh(x)), [x >= 0.1])
+        prob.solve(nlp=True, solver=cp.IPOPT)
+        assert prob.status == cp.OPTIMAL
+
+        prob = cp.Problem(cp.Minimize(cp.tanh(x)), [x >= 0.1])
         prob.solve(nlp=True, solver=cp.IPOPT)
         assert prob.status == cp.OPTIMAL
 

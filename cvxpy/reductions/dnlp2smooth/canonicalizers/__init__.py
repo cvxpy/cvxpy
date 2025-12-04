@@ -25,6 +25,7 @@ from cvxpy.atoms.elementwise.minimum import minimum
 from cvxpy.atoms.elementwise.maximum import maximum
 from cvxpy.atoms.elementwise.power import power
 from cvxpy.atoms.elementwise.trig import cos, sin, tan
+from cvxpy.atoms.elementwise.hyperbolic import sinh, asinh, tanh, atanh
 from cvxpy.atoms.norm1 import norm1
 from cvxpy.atoms.norm_inf import norm_inf
 from cvxpy.atoms.pnorm import Pnorm
@@ -45,6 +46,8 @@ from cvxpy.reductions.dnlp2smooth.canonicalizers.entr_canon import entr_canon
 from cvxpy.reductions.dnlp2smooth.canonicalizers.rel_entr_canon import rel_entr_canon
 from cvxpy.reductions.dnlp2smooth.canonicalizers.kl_div_canon import kl_div_canon
 from cvxpy.reductions.dnlp2smooth.canonicalizers.trig_canon import cos_canon, sin_canon, tan_canon
+from cvxpy.reductions.dnlp2smooth.canonicalizers.hyperbolic_canon import (sinh_canon, asinh_canon,
+                                                                          tanh_canon, atanh_canon)
 from cvxpy.reductions.eliminate_pwl.canonicalizers.norm1_canon import norm1_canon
 from cvxpy.reductions.eliminate_pwl.canonicalizers.norm_inf_canon import norm_inf_canon
 from cvxpy.reductions.eliminate_pwl.canonicalizers.max_canon import max_canon
@@ -61,6 +64,10 @@ SMOOTH_CANON_METHODS = {
     sin: sin_canon,
     cos: cos_canon,
     tan: tan_canon,
+    sinh: sinh_canon,
+    asinh: asinh_canon,
+    tanh: tanh_canon,
+    atanh: atanh_canon,
     quad_over_lin: quad_over_lin_canon,
     power: power_canon,
     Pnorm : pnorm_canon,

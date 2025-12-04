@@ -1254,7 +1254,7 @@ class Problem(u.Canonical):
                 
                 for run in range(best_of):
                     print("Starting NLP solve %d of %d" % (run + 1, best_of))
-                    self.set_random_NLP_initial_point()
+                    self.set_random_NLP_initial_point(run)
                     canon_problem, inverse_data = nlp_chain.apply(problem=self)
                     solution = nlp_chain.solver.solve_via_data(canon_problem, warm_start,
                                                                 verbose, solver_opts=kwargs)
@@ -1639,16 +1639,49 @@ class Problem(u.Canonical):
         self._solver_stats = SolverStats.from_dict(self._solution.attr,
                                          chain.solver.name())
 
-    def set_random_NLP_initial_point(self) -> dict:
-        """Generates a random initial point for DNLP problems,
-        sampled uniformly from the variable attribute 'sample_bounds'.
-        If 'sample_bounds' is not set for a variable, no random value
-        is generated for that variable.
+    def set_random_NLP_initial_point(self, run) -> dict:
+        """ Generates a random initial point for DNLP problems.
+        A variable is initialized randomly in the following cases:
+        1. the initial value specified by the user is None and 
+          'sample_bounds' is set for that variable.
+        2. the initial value specified by the user is None,
+           'sample_bounds' is not set for that variable, but the
+           variable has both finite lower and upper bounds.
+    
+           In other words, a variable that has already been 
+           initialized by the user will not be changed, even if 
+           sample_bounds is set for that variable.
         """
+
+        # store user-specified initial values
+        if run == 0:
+            self._user_initials = {}
+            for var in self.variables():
+                self._user_initials[var.id] = var.value
+
         for var in self.variables():
+            
+            # skip variables with user-specified initial value
+            if self._user_initials[var.id] is not None:
+                # reset to user-specified initial value
+                # from last solve
+                var.value = self._user_initials[var.id]
+                continue
+            else:
+                # reset to None from last solve
+                var.value = None 
+            
+            # set sample_bounds to variable bounds if sample_bounds is None
+            # and variable has finite bounds
+            if var.sample_bounds is None and var.bounds is not None:
+                low, high = var.bounds 
+                if np.all(np.isfinite(low)) and np.all(np.isfinite(high)):
+                   var.sample_bounds = var.bounds
+
+            # sample initial value if sample_bounds is set
             if var.sample_bounds is not None:
                 low, high = var.sample_bounds
-                if not np.isfinite(low) or not np.isfinite(high):
+                if not np.all(np.isfinite(low)) or not np.all(np.isfinite(high)):
                     raise ValueError(
                         "Variable %s has non-finite sample_bounds %s."
                         " Cannot generate random initial point."
