@@ -29,6 +29,7 @@ from cvxpy.reductions.cone2cone.exotic2common import (
     Exotic2Common,
 )
 from cvxpy.reductions.cone2cone.soc2psd import SOC2PSD
+from cvxpy.reductions.cone2cone.soc_dim3 import SOCDim3
 from cvxpy.reductions.cvx_attr2constr import CvxAttr2Constr
 from cvxpy.reductions.dcp2cone.cone_matrix_stuffing import ConeMatrixStuffing
 from cvxpy.reductions.dcp2cone.dcp2cone import Dcp2Cone
@@ -361,6 +362,11 @@ def construct_solving_chain(problem, candidates,
                 CvxAttr2Constr(reduce_bounds=not solver_instance.BOUNDED_VARIABLES),
             ]
             if all(c in supported_constraints for c in cones):
+                # Check if solver only supports dim-3 SOC cones
+                soc_dim3_only = getattr(solver_instance, 'SOC_DIM3_ONLY', False)
+                if soc_dim3_only and SOC in cones:
+                    # Add SOCDim3 reduction to convert n-dim SOC to 3D SOC
+                    reductions.append(SOCDim3())
                 # Return the reduction chain.
                 reductions += [
                     ConeMatrixStuffing(quad_obj=quad_obj, canon_backend=canon_backend),
