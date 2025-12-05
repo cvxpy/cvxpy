@@ -253,7 +253,7 @@ class special_index(AffAtom):
 
     def _hess_vec(self, vec):
         """ See the docstring of the hess_vec method of the atom class. """
-        idx = self.key
+        idx = np.reshape(self._select_mat, self._select_mat.size, order='F')
         e = np.zeros(self.args[0].size)
         e[idx] = vec
         return self.args[0].hess_vec(e)

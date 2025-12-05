@@ -37,6 +37,7 @@ from cvxpy.interface.matrix_utilities import scalar_value
 from cvxpy.problems.objective import Maximize, Minimize
 from cvxpy.reductions import InverseData
 from cvxpy.reductions.chain import Chain
+from cvxpy.reductions.cvx_attr2constr import CvxAttr2Constr
 from cvxpy.reductions.dgp2dcp.dgp2dcp import Dgp2Dcp
 from cvxpy.reductions.dnlp2smooth.dnlp2smooth import Dnlp2Smooth
 from cvxpy.reductions.dqcp2dcp import dqcp2dcp
@@ -1220,7 +1221,7 @@ class Problem(u.Canonical):
                 reductions = [FlipObjective()]
             else:
                 reductions = []
-            reductions = reductions + [Dnlp2Smooth()]
+            reductions = reductions + [CvxAttr2Constr(reduce_bounds=False), Dnlp2Smooth()]
             # instantiate based on user provided solver
             # (default to Ipopt)
             if solver is s.IPOPT or solver is None:
