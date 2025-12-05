@@ -60,10 +60,6 @@ def dims_to_solver_cones(cone_dims):
     if cone_dims.psd:
         raise ValueError("Moreau does not support PSD cones")
 
-    # Moreau does not support generalized power cones yet
-    if cone_dims.pnd:
-        raise ValueError("Moreau does not support generalized power cones (PowConeND)")
-
     return cones
 
 
