@@ -26,9 +26,11 @@ from cvxpy.atoms.elementwise.maximum import maximum
 from cvxpy.atoms.elementwise.power import power
 from cvxpy.atoms.elementwise.trig import cos, sin, tan
 from cvxpy.atoms.elementwise.hyperbolic import sinh, asinh, tanh, atanh
+from cvxpy.atoms.elementwise.huber import huber
 from cvxpy.atoms.norm1 import norm1
 from cvxpy.atoms.norm_inf import norm_inf
 from cvxpy.atoms.pnorm import Pnorm
+from cvxpy.atoms.sum_largest import sum_largest
 from cvxpy.atoms.elementwise.abs import abs
 from cvxpy.atoms.max import max
 from cvxpy.atoms.min import min
@@ -48,6 +50,7 @@ from cvxpy.reductions.dnlp2smooth.canonicalizers.kl_div_canon import kl_div_cano
 from cvxpy.reductions.dnlp2smooth.canonicalizers.trig_canon import cos_canon, sin_canon, tan_canon
 from cvxpy.reductions.dnlp2smooth.canonicalizers.hyperbolic_canon import (sinh_canon, asinh_canon,
                                                                           tanh_canon, atanh_canon)
+from cvxpy.reductions.dnlp2smooth.canonicalizers.huber_canon import huber_canon
 from cvxpy.reductions.eliminate_pwl.canonicalizers.norm1_canon import norm1_canon
 from cvxpy.reductions.eliminate_pwl.canonicalizers.norm_inf_canon import norm_inf_canon
 from cvxpy.reductions.eliminate_pwl.canonicalizers.max_canon import max_canon
@@ -55,6 +58,7 @@ from cvxpy.reductions.eliminate_pwl.canonicalizers.min_canon import min_canon
 from cvxpy.reductions.eliminate_pwl.canonicalizers.maximum_canon import maximum_canon
 from cvxpy.reductions.eliminate_pwl.canonicalizers.minimum_canon import minimum_canon
 from cvxpy.reductions.eliminate_pwl.canonicalizers.abs_canon import abs_canon
+from cvxpy.reductions.eliminate_pwl.canonicalizers.sum_largest_canon import sum_largest_canon
 
 
 SMOOTH_CANON_METHODS = {
@@ -85,6 +89,8 @@ SMOOTH_CANON_METHODS = {
     max: max_canon,
     norm1: norm1_canon,
     norm_inf: norm_inf_canon,
+    huber: huber_canon,
+    sum_largest: sum_largest_canon,
 
     # HSR atoms
     minimum: minimum_canon,

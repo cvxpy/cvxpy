@@ -7,7 +7,7 @@ from cvxpy.reductions.solvers.defines import INSTALLED_SOLVERS
 
 
 @pytest.mark.skipif('IPOPT' not in INSTALLED_SOLVERS, reason='IPOPT is not installed.')
-class TestStressMLE():
+class TestEntropy():
 
     # convex problem, standard entropy f(x) = - x log x.
     def test_entropy_one(self):

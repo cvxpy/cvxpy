@@ -70,6 +70,16 @@ class huber(Elementwise):
     def is_atom_concave(self) -> bool:
         """Is the atom concave?"""
         return False
+    
+    def is_atom_esr(self) -> bool:
+        """Is the atom esr?
+        """
+        return True
+
+    def is_atom_hsr(self) -> bool:
+        """Is the atom hsr?
+        """
+        return False
 
     def is_incr(self, idx) -> bool:
         """Is the composition non-decreasing in argument idx?"""
@@ -113,3 +123,4 @@ class huber(Elementwise):
         min_val = np.minimum(np.abs(values[0]), self.M.value)
         grad_vals = 2 * np.multiply(np.sign(values[0]), min_val)
         return [huber.elemwise_grad_to_diag(grad_vals, rows, cols)]
+
