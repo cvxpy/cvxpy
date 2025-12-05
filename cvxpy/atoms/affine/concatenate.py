@@ -17,7 +17,6 @@ limitations under the License.
 from typing import List, Optional, Tuple
 
 import numpy as np
-from numpy.exceptions import AxisError
 
 import cvxpy.lin_ops.lin_op as lo
 import cvxpy.lin_ops.lin_utils as lu
@@ -62,16 +61,16 @@ class Concatenate(AffAtom):
     def validate_arguments(self) -> None:
         # Validates that the input shapes in `self.args` are suitable for
         # concatenation along a specified axis using numpy API with empty arrays
-        self.shape_from_args()
+        np.concatenate(
+            [np.empty(arg.shape, dtype=np.dtype([])) for arg in self.args],
+            axis=self.axis,
+        )
 
     def shape_from_args(self) -> Tuple[int, ...]:
-        try:
-            return np.concatenate(
-                [np.empty(arg.shape, dtype=np.dtype([])) for arg in self.args],
-                axis=self.axis,
-            ).shape
-        except (ValueError, AxisError) as e:
-            raise ValueError(f"Invalid arguments for cp.concatenate: {e}") from e
+        return np.concatenate(
+            [np.empty(arg.shape, dtype=np.dtype([])) for arg in self.args],
+            axis=self.axis,
+        ).shape
 
     def graph_implementation(
         self,
