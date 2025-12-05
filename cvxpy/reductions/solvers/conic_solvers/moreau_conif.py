@@ -23,7 +23,6 @@ from cvxpy.constraints import SOC, ExpCone, PowCone3D
 from cvxpy.reductions.solution import Solution, failure_solution
 from cvxpy.reductions.solvers import utilities
 from cvxpy.reductions.solvers.conic_solvers.conic_solver import ConicSolver
-from cvxpy.reductions.solvers.solver_inverse_data import SolverInverseData
 
 
 def dims_to_solver_cones(cone_dims):
@@ -133,12 +132,6 @@ class MOREAU(ConicSolver):
         """Returns the solution to the original problem given the inverse_data."""
         attr = {}
         status_map = self.STATUS_MAP.copy()
-
-        # Handle accept_unknown option
-        if isinstance(inverse_data, SolverInverseData) and \
-           MOREAU.ACCEPT_UNKNOWN in inverse_data.solver_options and \
-           solution.x is not None and solution.z is not None:
-            status_map["InsufficientProgress"] = s.OPTIMAL_INACCURATE
 
         status = status_map.get(str(solution.status), s.SOLVER_ERROR)
         attr[s.SOLVE_TIME] = solution.solve_time
