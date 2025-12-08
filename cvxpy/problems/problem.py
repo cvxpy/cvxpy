@@ -1226,7 +1226,13 @@ class Problem(u.Canonical):
             # (default to Ipopt)
             if solver is s.IPOPT or solver is None:
                 nlp_reductions = reductions + [IPOPT_nlp()]
-            elif solver is s.KNITRO:
+            elif "knitro" in solver.lower():
+                if solver == "knitro_ipm":
+                    kwargs["algorithm"] = 1
+                elif solver == "knitro_sqp":
+                    kwargs["algorithm"] = 4
+                elif solver == "knitro_alm":
+                    kwargs["algorithm"] = 6
                 nlp_reductions = reductions + [KNITRO_nlp()]
             elif solver is s.COPT:
                 nlp_reductions = reductions + [COPT_nlp()]

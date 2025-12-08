@@ -39,7 +39,7 @@ class TestKNITROInterface:
         x.value = np.array([1.0, 1.0])
         prob = cp.Problem(cp.Minimize(x[0]**2 + x[1]**2), [x[0] + x[1] >= 1])
 
-        prob.solve(solver=cp.KNITRO, nlp=True, verbose=True, algorithm=1)
+        prob.solve(solver="knitro_ipm", nlp=True, verbose=True)
 
         captured = capfd.readouterr()
         output = captured.out + captured.err
@@ -84,7 +84,7 @@ class TestKNITROInterface:
         x.value = np.array([1.0, 1.0])
         prob = cp.Problem(cp.Minimize(x[0]**2 + x[1]**2), [x[0] + x[1] >= 1])
 
-        prob.solve(solver=cp.KNITRO, nlp=True, verbose=True, algorithm=4)
+        prob.solve(solver="knitro_sqp", nlp=True, verbose=True)
 
         captured = capfd.readouterr()
         output = captured.out + captured.err
@@ -101,8 +101,7 @@ class TestKNITROInterface:
             cp.Minimize((1 - x[0])**2 + 100 * (x[1] - x[0]**2)**2),
             []
         )
-
-        prob.solve(solver=cp.KNITRO, nlp=True, verbose=True, algorithm=6)
+        prob.solve(solver="knitro_alm", nlp=True, verbose=True)
 
         captured = capfd.readouterr()
         output = captured.out + captured.err
