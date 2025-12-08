@@ -308,8 +308,9 @@ class KNITRO(NLPsolver):
                 hessCallback=callbackEvalH,
             )
 
-            # Use exact Hessian by default (can be overridden by solver_opts)
+            # default options (can be overridden by solver_opts)
             knitro.KN_set_int_param(kc, knitro.KN_PARAM_HESSOPT, knitro.KN_HESSOPT_EXACT)
+            knitro.KN_set_int_param(kc, knitro.KN_PARAM_HONORBNDS, 1)
 
             # Apply solver options from solver_opts
             # Map common string option names to KNITRO parameter constants
