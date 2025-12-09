@@ -193,8 +193,8 @@ class QOCO(ConicSolver):
             G.indptr = G.indptr.astype(int32)
 
         version_tuple = importlib.metadata.version("qoco").split(".")
-        major_version = version_tuple[0]
-        minor_version = version_tuple[1]
+        major_version = int(version_tuple[0])
+        minor_version = int(version_tuple[1])
 
         # CUDA backend only available v0.2.0 and onwards.
         if major_version >= 0 and minor_version >= 2 and "algebra" in solver_opts:
