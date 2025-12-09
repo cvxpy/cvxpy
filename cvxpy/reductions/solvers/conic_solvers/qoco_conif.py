@@ -198,14 +198,7 @@ class QOCO(ConicSolver):
 
         # CUDA backend only available v0.2.0 and onwards.
         if major_version >= 0 and minor_version >= 2 and "algebra" in solver_opts:
-            if solver_opts["algebra"] == "cuda" or solver_opts["algebra"] == "builtin":
-                solver = qoco.QOCO(algebra=solver_opts["algebra"])
-            else:
-                algebra = solver_opts["algebra"]
-                raise TypeError(
-                    f"QOCO: Unrecognized algebra '{algebra}'. "
-                    "Must be builtin or cuda."
-                )
+            solver = qoco.QOCO(algebra=solver_opts["algebra"])
         else:
             solver = qoco.QOCO()
         solver.setup(n, m, p, P, data[s.C], A, data[s.B], G, data[s.H], num_nno, nsoc, q,
