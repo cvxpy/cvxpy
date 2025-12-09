@@ -132,6 +132,18 @@ class SCIP(ConicSolver):
         data[s.INT_IDX] = set(int(t[0]) for t in variables.integer_idx)
         inv_data['is_mip'] = data[s.BOOL_IDX] or data[s.INT_IDX]
 
+        # Add initial guess for warm start - only store variables with actual values
+        data['warm_start_variables'] = []
+        data['warm_start_values'] = []
+        offset = 0
+        for variable in problem.variables:
+            if variable.value is not None:
+                # Store the variable indices and values for warm start
+                var_indices = list(range(offset, offset + variable.size))
+                var_values = np.ravel(variable.value, order="F")
+                data['warm_start_variables'].extend(var_indices)
+                data['warm_start_values'].extend(var_values)
+            offset += variable.size
         return data, inv_data
 
     def invert(self, solution: Dict[str, Any], inverse_data: Dict[str, Any]) -> Solution:
@@ -179,8 +191,17 @@ class SCIP(ConicSolver):
         A, b, c, dims = self._define_data(data)
         variables = self._create_variables(model, data, c)
         constraints = self._add_constraints(model, variables, A, b, dims)
+        
+        # Add warm start if enabled
+        if warm_start:
+            self._add_warm_start(model, variables, data, solver_cache)
+        
         self._set_params(model, verbose, solver_opts, data, dims)
-        solution = self._solve(model, variables, constraints, data, dims)
+        solution = self._solve(model, variables, constraints, data, dims, solver_opts)
+
+        # Save model for warm start
+        if solver_cache is not None:
+            solver_cache[self.name()] = model
 
         return solution
 
@@ -317,11 +338,15 @@ class SCIP(ConicSolver):
             constraints: List,
             data: Dict[str, Any],
             dims: Dict[str, Union[int, List]],
+            solver_opts: Optional[Dict],
     ) -> Dict[str, Any]:
         """Solve and return a solution if one exists."""
 
         try:
-            model.optimize()
+            if any(k.startswith("parallel/") or k.startswith("concurrent/") for k in solver_opts):
+                model.solveConcurrent()
+            else:
+                model.optimize()
         except Exception as e:
             log.warning("Error encountered when optimising %s: %s", model, e)
 
@@ -470,6 +495,89 @@ class SCIP(ConicSolver):
             new_lin_constrs,
             soc_vars,
         )
+
+    def _add_warm_start(
+            self, 
+            model: ScipModel, 
+            variables: List, 
+            data: Dict[str, Any], 
+            solver_cache: Dict = None
+    ) -> None:
+        """Add warm start solution to the SCIP model.
+        
+        Parameters
+        ----------
+        model : ScipModel
+            The SCIP model instance.
+        variables : List
+            List of SCIP variables.
+        data : Dict[str, Any]
+            Problem data containing initial values.
+        solver_cache : Dict, optional
+            Solver cache containing previous solutions.
+        """
+        # Priority 1: Use cached solution from previous solve
+        if solver_cache is not None and self.name() in solver_cache:
+            old_model = solver_cache[self.name()]
+            try:
+                # Check if old model has a solution
+                if max(old_model.getNSols(), old_model.getNCountedSols()) > 0:
+                    old_solution = old_model.getBestSol()
+                    old_variables = self._get_cached_variables(old_model)
+                    
+                    if old_variables and len(old_variables) == len(variables):
+                        # Create partial solution from cached values
+                        partial_sol = model.createPartialSol()
+                        for i, var in enumerate(variables):
+                            try:
+                                cached_value = old_solution[old_variables[i]]
+                                model.setSolVal(partial_sol, var, cached_value)
+                            except Exception:
+                                # Skip this variable if we can't get its value
+                                continue
+                        
+                        # Add the partial solution to the model
+                        model.addSol(partial_sol)
+                        return
+            except Exception:
+                # Fall through to user-provided values if caching fails
+                pass
+        
+        # Priority 2: Use user-provided initial values (only variables with values)
+        if 'warm_start_variables' in data and 'warm_start_values' in data:
+            warm_start_indices = data['warm_start_variables']
+            warm_start_values = data['warm_start_values']
+            
+            if warm_start_indices and len(warm_start_indices) == len(warm_start_values):
+                # Create partial solution from user values
+                partial_sol = model.createPartialSol()
+                for var_idx, value in zip(warm_start_indices, warm_start_values):
+                    # Only set finite, reasonable values
+                    if var_idx < len(variables) and not np.isnan(value) and np.isfinite(value):
+                        model.setSolVal(partial_sol, variables[var_idx], float(value))
+                
+                # Add the partial solution to the model
+                model.addSol(partial_sol)
+
+    def _get_cached_variables(self, cached_model: ScipModel) -> Optional[List]:
+        """Extract variables from a cached SCIP model.
+        
+        Parameters
+        ----------
+        cached_model : ScipModel
+            Previously solved SCIP model.
+            
+        Returns
+        -------
+        Optional[List]
+            List of variables from the cached model, or None if extraction fails.
+        """
+        try:
+            # Try to get variables from the cached model
+            vars = cached_model.getVars()
+            return vars if vars else None
+        except Exception:
+            return None
 
     def cite(self, data):
         """Returns bibtex citation for the solver.
