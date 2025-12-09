@@ -201,7 +201,11 @@ class QOCO(ConicSolver):
             if solver_opts["algebra"] == "cuda" or solver_opts["algebra"] == "builtin":
                 solver = qoco.QOCO(algebra=solver_opts["algebra"])
             else:
-                raise TypeError(f"QOCO: Unrecognized algebra '{solver_opts["algebra"]}'. Must be builtin or cuda.")
+                algebra = solver_opts["algebra"]
+                raise TypeError(
+                    f"QOCO: Unrecognized algebra '{algebra}'. "
+                    "Must be builtin or cuda."
+                )
         else:
             solver = qoco.QOCO()
         solver.setup(n, m, p, P, data[s.C], A, data[s.B], G, data[s.H], num_nno, nsoc, q,
