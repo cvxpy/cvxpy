@@ -15,6 +15,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 """
+import importlib
+
 from numpy import int32
 
 import cvxpy.settings as s
@@ -190,7 +192,18 @@ class QOCO(ConicSolver):
             G.indices = G.indices.astype(int32)
             G.indptr = G.indptr.astype(int32)
 
-        solver = qoco.QOCO()
+        version_tuple = importlib.metadata.version("qoco").split(".")
+        major_version = version_tuple[0]
+        minor_version = version_tuple[1]
+
+        # CUDA backend only available v0.2.0 and onwards.
+        if major_version >= 0 and minor_version >= 2 and "algebra" in solver_opts:
+            if solver_opts["algebra"] == "cuda" or "builtin":
+                solver = qoco.QOCO(algebra=solver_opts["algebra"])
+            else:
+                raise TypeError(f"QOCO: Unrecognized algebra '{solver_opts["algebra"]}'. Must be builtin or cuda.")
+        else:
+            solver = qoco.QOCO()
         solver.setup(n, m, p, P, data[s.C], A, data[s.B], G, data[s.H], num_nno, nsoc, q,
         verbose=verbose, **solver_opts)
         results = solver.solve()
