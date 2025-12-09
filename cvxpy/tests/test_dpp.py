@@ -350,7 +350,66 @@ class TestDcp(BaseTest):
         assert np.isclose(sol2, 1)
         assert np.isclose(sol3, 2)
 
+    def test_log_det_with_parameter(self) -> None:
+        """Test log_det with parameter matrix routes to conic solver.
 
+        This tests the fix for the bug where log_det(P) with P a parameter
+        was incorrectly routed to QP solvers. The problem appeared as a QP
+        outside DPP scope (log_det(P) is constant), but canonicalization
+        preserves parameters and creates ExpCone + PSD constraints that
+        QP solvers cannot handle.
+        """
+        n = 2
+        x = cp.Variable(n, nonneg=True)
+        y = cp.Variable(n, nonneg=True)
+        P = cp.Parameter((n, n))
+        P.value = np.eye(n)
+
+        objective = cp.sum_squares(x + y) - 2 * cp.log_det(P)
+        problem = cp.Problem(cp.Minimize(objective))
+
+        # Problem should be DPP compliant
+        self.assertTrue(problem.is_dpp())
+        self.assertTrue(problem.is_dcp())
+
+        # With DPP (default), should route to conic solver and solve correctly
+        problem.solve(solver=cp.SCS)
+        self.assertEqual(problem.status, cp.OPTIMAL)
+        self.assertAlmostEqual(problem.value, 0.0, places=4)
+        np.testing.assert_array_almost_equal(x.value, np.zeros(n), decimal=4)
+        np.testing.assert_array_almost_equal(y.value, np.zeros(n), decimal=4)
+
+        # Verify it uses conic solver (SCS), not QP solver
+        _, chain, _ = problem.get_problem_data(cp.SCS)
+        solver_name = chain.reductions[-1].name()
+        self.assertEqual(solver_name, cp.SCS)
+
+    def test_log_det_with_parameter_ignore_dpp(self) -> None:
+        """Test log_det with parameter works with ignore_dpp=True.
+
+        With ignore_dpp=True, EvalParams runs first and evaluates log_det(P)
+        to a constant, so the problem becomes a true QP that OSQP can handle.
+        """
+        n = 2
+        x = cp.Variable(n, nonneg=True)
+        y = cp.Variable(n, nonneg=True)
+        P = cp.Parameter((n, n))
+        P.value = np.eye(n)
+
+        objective = cp.sum_squares(x + y) - 2 * cp.log_det(P)
+        problem = cp.Problem(cp.Minimize(objective))
+
+        # With ignore_dpp=True, should route to QP solver (EvalParams runs first)
+        problem.solve(solver=cp.OSQP, ignore_dpp=True)
+        self.assertEqual(problem.status, cp.OPTIMAL)
+        self.assertAlmostEqual(problem.value, 0.0, places=4)
+        np.testing.assert_array_almost_equal(x.value, np.zeros(n), decimal=4)
+        np.testing.assert_array_almost_equal(y.value, np.zeros(n), decimal=4)
+
+        # Verify EvalParams is in the chain
+        _, chain, _ = problem.get_problem_data(cp.OSQP, ignore_dpp=True)
+        reduction_types = [type(r).__name__ for r in chain.reductions]
+        self.assertIn('EvalParams', reduction_types)
 
 
 class TestDgp(BaseTest):
