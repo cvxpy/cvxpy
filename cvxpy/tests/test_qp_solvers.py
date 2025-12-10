@@ -941,3 +941,88 @@ class TestMPAX(unittest.TestCase):
 
     def test_MPAX_qp_0(self) -> None:
         StandardTestQPs.test_qp_0(solver='MPAX')
+
+
+class TestQpSolverValidation(unittest.TestCase):
+    """Test QP solver validation of unsupported cone types."""
+
+    def _apply_reductions(self, problem):
+        """Apply the full reduction chain to get a ParamConeProg."""
+        from cvxpy.reductions.cvx_attr2constr import CvxAttr2Constr
+        from cvxpy.reductions.dcp2cone.cone_matrix_stuffing import ConeMatrixStuffing
+        from cvxpy.reductions.dcp2cone.dcp2cone import Dcp2Cone
+        from cvxpy.reductions.flip_objective import FlipObjective
+
+        reductions = []
+        if isinstance(problem.objective, cp.Maximize):
+            reductions.append(FlipObjective())
+        reductions.extend([Dcp2Cone(), CvxAttr2Constr(), ConeMatrixStuffing()])
+
+        reduced = problem
+        for reduction in reductions:
+            reduced = reduction.apply(reduced)[0]
+        return reduced
+
+    def test_qp_solver_rejects_exponential_cones(self) -> None:
+        """Test that QP solver rejects problems with exponential cones."""
+        from cvxpy.error import SolverError
+        from cvxpy.reductions.solvers.qp_solvers.osqp_qpif import OSQP
+
+        # Create a problem with exponential cone (log)
+        x = cp.Variable()
+        prob = cp.Problem(cp.Maximize(cp.log(x)), [x <= 1])
+
+        # Apply reductions to get ParamConeProg
+        param_cone_prog = self._apply_reductions(prob)
+
+        # Test accepts() returns False
+        osqp_solver = OSQP()
+        self.assertFalse(osqp_solver.accepts(param_cone_prog))
+
+        # Test apply() raises SolverError with helpful message
+        with self.assertRaises(SolverError) as cm:
+            osqp_solver.apply(param_cone_prog)
+        self.assertIn("exponential cones", str(cm.exception))
+        self.assertIn("OSQP", str(cm.exception))
+
+    def test_qp_solver_rejects_psd_cones(self) -> None:
+        """Test that QP solver rejects problems with PSD cones."""
+        from cvxpy.error import SolverError
+        from cvxpy.reductions.solvers.qp_solvers.osqp_qpif import OSQP
+
+        # Create a problem with PSD cone
+        X = cp.Variable((2, 2), symmetric=True)
+        prob = cp.Problem(cp.Minimize(cp.trace(X)), [X >> 0, X[0, 0] >= 1])
+
+        # Apply reductions to get ParamConeProg
+        param_cone_prog = self._apply_reductions(prob)
+
+        # Test accepts() returns False
+        osqp_solver = OSQP()
+        self.assertFalse(osqp_solver.accepts(param_cone_prog))
+
+        # Test apply() raises SolverError with helpful message
+        with self.assertRaises(SolverError) as cm:
+            osqp_solver.apply(param_cone_prog)
+        self.assertIn("PSD cones", str(cm.exception))
+
+    def test_qp_solver_rejects_soc_cones(self) -> None:
+        """Test that QP solver rejects problems with second-order cones."""
+        from cvxpy.error import SolverError
+        from cvxpy.reductions.solvers.qp_solvers.osqp_qpif import OSQP
+
+        # Create a problem with SOC (norm)
+        x = cp.Variable(3)
+        prob = cp.Problem(cp.Minimize(cp.norm(x)), [cp.sum(x) == 1])
+
+        # Apply reductions to get ParamConeProg
+        param_cone_prog = self._apply_reductions(prob)
+
+        # Test accepts() returns False
+        osqp_solver = OSQP()
+        self.assertFalse(osqp_solver.accepts(param_cone_prog))
+
+        # Test apply() raises SolverError with helpful message
+        with self.assertRaises(SolverError) as cm:
+            osqp_solver.apply(param_cone_prog)
+        self.assertIn("second-order cones", str(cm.exception))

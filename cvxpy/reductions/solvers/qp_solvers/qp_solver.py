@@ -19,9 +19,32 @@ import scipy.sparse as sp
 
 import cvxpy.settings as s
 from cvxpy.constraints import NonNeg, Zero
+from cvxpy.error import SolverError
 from cvxpy.reductions.cvx_attr2constr import convex_attributes
 from cvxpy.reductions.dcp2cone.cone_matrix_stuffing import ParamConeProg
 from cvxpy.reductions.solvers.solver import Solver
+
+
+def _has_unsupported_cones(cone_dims) -> bool:
+    """Check if cone dimensions contain cones unsupported by QP solvers."""
+    return (cone_dims.exp > 0 or cone_dims.soc or cone_dims.psd
+            or cone_dims.p3d or cone_dims.pnd)
+
+
+def _get_unsupported_cone_message(cone_dims) -> str:
+    """Get a descriptive message about unsupported cones."""
+    unsupported = []
+    if cone_dims.exp > 0:
+        unsupported.append(f"{cone_dims.exp} exponential cones")
+    if cone_dims.soc:
+        unsupported.append(f"{len(cone_dims.soc)} second-order cones")
+    if cone_dims.psd:
+        unsupported.append(f"{len(cone_dims.psd)} PSD cones")
+    if cone_dims.p3d:
+        unsupported.append(f"{len(cone_dims.p3d)} 3D power cones")
+    if cone_dims.pnd:
+        unsupported.append(f"{len(cone_dims.pnd)} ND power cones")
+    return ', '.join(unsupported)
 
 
 class QpSolver(Solver):
@@ -50,8 +73,8 @@ class QpSolver(Solver):
                 and (self.MIP_CAPABLE or not problem.is_mixed_integer())
                 and not convex_attributes([problem.x])
                 and (len(problem.constraints) > 0 or not self.REQUIRES_CONSTR)
-                and all(type(c) in self.SUPPORTED_CONSTRAINTS for c in
-                        problem.constraints))
+                and all(type(c) in self.SUPPORTED_CONSTRAINTS for c in problem.constraints)
+                and not _has_unsupported_cones(problem.cone_dims))
 
     def apply(self, problem):
         """
@@ -63,6 +86,14 @@ class QpSolver(Solver):
             subject to    A x =  b
                           F x <= g
         """
+        if not self.accepts(problem):
+            if _has_unsupported_cones(problem.cone_dims):
+                raise SolverError(
+                    f"QP solver {self.name()} cannot handle: "
+                    f"{_get_unsupported_cone_message(problem.cone_dims)}. "
+                    "This may indicate a bug in solver selection. Please report this issue."
+                )
+
         data = {}
         inv_data = {self.VAR_ID: problem.x.id}
 

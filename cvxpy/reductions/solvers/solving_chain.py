@@ -47,6 +47,7 @@ from cvxpy.settings import (
     CLARABEL,
     PARAM_THRESHOLD,
 )
+from cvxpy.utilities import scopes
 from cvxpy.utilities.debug_tools import build_non_disciplined_error_msg
 
 DPP_ERROR_MSG = (
@@ -91,17 +92,23 @@ def _is_lp(self):
     return (self.is_dcp() and self.objective.args[0].is_pwl())
 
 
-def _solve_as_qp(problem, candidates):
+def _solve_as_qp(problem, candidates, ignore_dpp: bool = False):
     if _is_lp(problem) and \
             [s for s in candidates['conic_solvers'] if s not in candidates['qp_solvers']]:
         # OSQP can take many iterations for LPs; use a conic solver instead
         # GUROBI and CPLEX QP/LP interfaces are more efficient
         #   -> Use them instead of conic if applicable.
         return False
+    # For DPP problems with parameters, check is_qp in DPP scope
+    # because canonicalization will preserve parameters as non-constant
+    if not ignore_dpp and problem.parameters() and problem.is_dpp():
+        with scopes.dpp_scope():
+            return candidates['qp_solvers'] and problem.is_qp()
     return candidates['qp_solvers'] and problem.is_qp()
 
 
-def _reductions_for_problem_class(problem, candidates, gp: bool = False, solver_opts=None) \
+def _reductions_for_problem_class(problem, candidates, gp: bool = False,
+                                   ignore_dpp: bool = False, solver_opts=None) \
         -> list[Reduction]:
     """
     Builds a chain that rewrites a problem into an intermediate
@@ -117,6 +124,8 @@ def _reductions_for_problem_class(problem, candidates, gp: bool = False, solver_
     gp : bool
         If True, the problem is parsed as a Disciplined Geometric Program
         instead of as a Disciplined Convex Program.
+    ignore_dpp : bool
+        If True, DPP analysis is skipped when checking problem type.
     Returns
     -------
     list of Reduction objects
@@ -167,7 +176,7 @@ def _reductions_for_problem_class(problem, candidates, gp: bool = False, solver_
         reductions += [Valinvec2mixedint()]
 
     use_quad = True if solver_opts is None else solver_opts.get('use_quad_obj', True)
-    valid_qp = _solve_as_qp(problem, candidates) and use_quad
+    valid_qp = _solve_as_qp(problem, candidates, ignore_dpp) and use_quad
     valid_conic = len(candidates['conic_solvers']) > 0
     if not valid_qp and not valid_conic:
         raise SolverError("Problem could not be reduced to a QP, and no "
@@ -229,7 +238,8 @@ def construct_solving_chain(problem, candidates,
     """
     if len(problem.variables()) == 0:
         return SolvingChain(reductions=[ConstantSolver()])
-    reductions = _reductions_for_problem_class(problem, candidates, gp, solver_opts)
+    reductions = _reductions_for_problem_class(problem, candidates, gp, ignore_dpp,
+                                               solver_opts)
 
     # Process DPP status of the problem.
     dpp_context = 'dcp' if not gp else 'dgp'
@@ -256,7 +266,7 @@ def construct_solving_chain(problem, candidates,
     #   (1) ConeMatrixStuffing(quad_obj=True) --> [a QpSolver],
     #   (2) ConeMatrixStuffing --> [a ConicSolver]
     use_quad = True if solver_opts is None else solver_opts.get('use_quad_obj', True)
-    if _solve_as_qp(problem, candidates) and use_quad:
+    if _solve_as_qp(problem, candidates, ignore_dpp) and use_quad:
         # Route to a QP solver via the conic canonicalization path
         solver = candidates['qp_solvers'][0]
         solver_instance = slv_def.SOLVER_MAP_QP[solver]
