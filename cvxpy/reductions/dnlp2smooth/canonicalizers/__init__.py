@@ -34,6 +34,7 @@ from cvxpy.atoms.sum_largest import sum_largest
 from cvxpy.atoms.elementwise.abs import abs
 from cvxpy.atoms.max import max
 from cvxpy.atoms.min import min
+from cvxpy.atoms.log_sum_exp import log_sum_exp
 from cvxpy.atoms.affine.binary_operators import DivExpression, MulExpression, multiply
 from cvxpy.reductions.dnlp2smooth.canonicalizers.geo_mean_canon import geo_mean_canon
 from cvxpy.reductions.dnlp2smooth.canonicalizers.quad_over_lin_canon import quad_over_lin_canon
@@ -50,6 +51,7 @@ from cvxpy.reductions.dnlp2smooth.canonicalizers.kl_div_canon import kl_div_cano
 from cvxpy.reductions.dnlp2smooth.canonicalizers.trig_canon import cos_canon, sin_canon, tan_canon
 from cvxpy.reductions.dnlp2smooth.canonicalizers.hyperbolic_canon import (sinh_canon, asinh_canon,
                                                                           tanh_canon, atanh_canon)
+from cvxpy.reductions.dnlp2smooth.canonicalizers.log_sum_exp_canon import log_sum_exp_canon
 from cvxpy.reductions.dnlp2smooth.canonicalizers.huber_canon import huber_canon
 from cvxpy.reductions.eliminate_pwl.canonicalizers.norm1_canon import norm1_canon
 from cvxpy.reductions.eliminate_pwl.canonicalizers.norm_inf_canon import norm_inf_canon
@@ -82,6 +84,7 @@ SMOOTH_CANON_METHODS = {
     multiply: multiply_canon,
     MulExpression: matmul_canon,
     geo_mean: geo_mean_canon,
+    log_sum_exp: log_sum_exp_canon,
 
     # ESR atoms
     abs: abs_canon,
