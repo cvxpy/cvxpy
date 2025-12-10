@@ -1,14 +1,25 @@
 import numpy as np
-import pytest
 
 import cvxpy as cp
 
 
 class TestHessIndex():
 
+    def test_scalar_idx(self):
+        x = cp.Variable((1,), name='x')
+        x.value = np.array([3.0])
+        vec = np.array(4)
+        log2 = cp.log(x)[0]
+        result_dict = log2.hess_vec(vec)
+        correct_matrix = 4 * (-np.diag(np.array([1/9])))
+        computed_hess = np.zeros((1, 1))
+        rows, cols, vals = result_dict[(x, x)]
+        computed_hess[rows, cols] = vals
+        assert(np.allclose(computed_hess, correct_matrix))
+
     def test_single_idx(self):
         n = 3 
-        x = cp.Variable((n, ), name='x')
+        x = cp.Variable((n,), name='x')
         x.value = np.array([1.0, 2.0, 3.0])
         vec = np.array([4])
         log2 = cp.log(x)[2]
@@ -21,7 +32,7 @@ class TestHessIndex():
 
     def test_slice_two_idx(self):
         n = 3 
-        x = cp.Variable((n, ), name='x')
+        x = cp.Variable((n,), name='x')
         x.value = np.array([1.0, 2.0, 3.0])
         vec = np.array([2, 4])
         idxs = np.array([1, 2])
@@ -36,7 +47,7 @@ class TestHessIndex():
 
     def test_slice_two_other_idx(self):
         n = 3 
-        x = cp.Variable((n, ), name='x')
+        x = cp.Variable((n,), name='x')
         x.value = np.array([1.5, 2.0, 3.0])
         vec = np.array([2, 4])
         idxs = np.array([0, 2])
@@ -67,10 +78,10 @@ class TestHessIndex():
         computed_hess[rows, cols] = vals
         assert(np.allclose(computed_hess, correct_matrix))
 
-    @pytest.mark.skip(reason="TODO fix this test for duplicate indices")
     def test_special_index_duplicate_matrix(self):
         """
-        TODO fix this test
+        This test was failing because hess_vec didn't properly handle
+        duplicate indices.
         """
         x = cp.Variable((2, 2), name='x')
         x.value = np.array([[1.0, 2.0], [3.0, 4.0]])

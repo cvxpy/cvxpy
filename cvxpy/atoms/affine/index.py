@@ -121,7 +121,7 @@ class index(AffAtom):
         """See the docstring of the hess_vec method of the atom class. """
         idx = self._orig_key
         e = np.zeros(self.args[0].size)
-        e[idx] = vec
+        np.add.at(e, np.atleast_1d(idx), vec)
         return self.args[0].hess_vec(e)
     
     def _jacobian(self):
@@ -255,7 +255,7 @@ class special_index(AffAtom):
         """ See the docstring of the hess_vec method of the atom class. """
         idx = np.reshape(self._select_mat, self._select_mat.size, order='F')
         e = np.zeros(self.args[0].size)
-        e[idx] = vec
+        np.add.at(e, np.atleast_1d(idx), vec)
         return self.args[0].hess_vec(e)
     
     def _verify_jacobian_args(self):
