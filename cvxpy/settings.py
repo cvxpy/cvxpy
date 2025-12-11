@@ -192,8 +192,18 @@ SCIPY_CANON_BACKEND = "SCIPY"
 RUST_CANON_BACKEND = "RUST"
 CPP_CANON_BACKEND = "CPP"
 
-# Default canonicalization backend, pyodide uses SciPy
-DEFAULT_CANON_BACKEND = CPP_CANON_BACKEND if sys.platform != "emscripten" else SCIPY_CANON_BACKEND
+# Default canonicalization backend
+# Priority: RUST (if available) > CPP > SCIPY (for pyodide)
+def _get_default_canon_backend():
+    if sys.platform == "emscripten":
+        return SCIPY_CANON_BACKEND
+    try:
+        import cvxpy_rust  # noqa: F401
+        return RUST_CANON_BACKEND
+    except ImportError:
+        return CPP_CANON_BACKEND
+
+DEFAULT_CANON_BACKEND = _get_default_canon_backend()
 
 # Numerical tolerances
 EIGVAL_TOL = 1e-10

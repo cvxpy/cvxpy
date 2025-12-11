@@ -17,6 +17,12 @@ if os.path.exists('MANIFEST'):
 from setuptools import find_packages, setup
 from setuptools.command.build_ext import build_ext
 
+try:
+    from setuptools_rust import Binding, RustExtension
+    HAS_RUST = True
+except ImportError:
+    HAS_RUST = False
+
 # The comment below is from the SciPy code which we adapted for cvxpy.
 #
 #   This is a bit hackish: we are setting a global variable so that the main
@@ -54,11 +60,24 @@ setup_versioning.write_version_py()
 VERSION = setup_versioning.VERSION
 extensions = [setup_extensions.cvxcore, setup_extensions.sparsecholesky]
 
+# Rust extension for cvxpy_rust backend
+rust_extensions = []
+if HAS_RUST and "PYODIDE" not in os.environ:
+    rust_extensions = [
+        RustExtension(
+            "cvxpy_rust",
+            path="cvxpy_rust/Cargo.toml",
+            binding=Binding.PyO3,
+            optional=True,  # Build continues if Rust compilation fails
+        )
+    ]
+
 setup(
     name="cvxpy",
     version=str(VERSION),
     cmdclass={'build_ext': build_ext_cvxpy},
     ext_modules=extensions if "PYODIDE" not in os.environ else [],
+    rust_extensions=rust_extensions,
     packages=find_packages(exclude=["doc*",
                                     "examples*"]),
     zip_safe=False,

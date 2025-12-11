@@ -24,3 +24,18 @@ repos:
     rev: v0.23
     hooks:
       - id: validate-pyproject
+
+  - repo: local
+    hooks:
+      - id: cargo-fmt
+        name: cargo fmt
+        entry: cargo fmt --manifest-path cvxpy_rust/Cargo.toml --
+        language: system
+        types: [rust]
+        pass_filenames: false
+      - id: cargo-clippy
+        name: cargo clippy
+        entry: cargo clippy --manifest-path cvxpy_rust/Cargo.toml
+        language: system
+        types: [rust]
+        pass_filenames: false
