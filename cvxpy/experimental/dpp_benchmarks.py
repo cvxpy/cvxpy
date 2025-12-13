@@ -24,11 +24,6 @@ import numpy as np
 
 import cvxpy as cp
 
-# Import CompactTensor from same directory
-from .lazy_tensor_view import (
-    benchmark_single_config,
-)
-
 # Optional imports for detailed profiling
 try:
     import cProfile
@@ -43,6 +38,79 @@ try:
     HAS_TRACEMALLOC = True
 except ImportError:
     HAS_TRACEMALLOC = False
+
+
+# =============================================================================
+# Backend Comparison Utilities
+# =============================================================================
+
+def benchmark_single_config(m: int, k: int, n: int, n_runs: int = 3) -> tuple[float, float, float]:
+    """
+    Benchmark SCIPY vs COO backend for a parametrized matmul problem.
+
+    Creates a problem: A_param @ x <= b where A_param is (m, k) parameter matrix.
+
+    Args:
+        m: Number of constraints (rows of A)
+        k: Number of variables (cols of A)
+        n: Not used (kept for legacy interface, originally was output cols)
+        n_runs: Number of runs for timing
+
+    Returns:
+        (scipy_time_ms, coo_time_ms, max_diff) where times are cold path times
+        and max_diff is the max absolute difference in problem data.
+    """
+    np.random.seed(42)
+
+    # Create parametrized problem
+    x = cp.Variable(k)
+    A_param = cp.Parameter((m, k))
+    b = np.random.randn(m) + 10
+    c = np.random.randn(k)
+
+    prob = cp.Problem(
+        cp.Minimize(c @ x),
+        [A_param @ x <= b, x >= 0]
+    )
+
+    A_param.value = np.random.randn(m, k)
+
+    # SCIPY backend timing
+    scipy_times = []
+    for _ in range(n_runs):
+        prob._cache = type(prob._cache)()
+        A_param.value = np.random.randn(m, k)
+        start = time.perf_counter()
+        scipy_data = prob.get_problem_data(cp.SCIPY, canon_backend='SCIPY')
+        elapsed = (time.perf_counter() - start) * 1000
+        scipy_times.append(elapsed)
+    scipy_time = np.median(scipy_times)
+
+    # COO backend timing
+    coo_times = []
+    for _ in range(n_runs):
+        prob._cache = type(prob._cache)()
+        A_param.value = np.random.randn(m, k)
+        start = time.perf_counter()
+        coo_data = prob.get_problem_data(cp.SCIPY, canon_backend='COO')
+        elapsed = (time.perf_counter() - start) * 1000
+        coo_times.append(elapsed)
+    coo_time = np.median(coo_times)
+
+    # Compare results
+    max_diff = 0.0
+    try:
+        scipy_A = scipy_data[0]['A']
+        coo_A = coo_data[0]['A']
+        if hasattr(scipy_A, 'toarray'):
+            scipy_A = scipy_A.toarray()
+        if hasattr(coo_A, 'toarray'):
+            coo_A = coo_A.toarray()
+        max_diff = np.max(np.abs(scipy_A - coo_A))
+    except Exception:
+        pass
+
+    return float(scipy_time), float(coo_time), float(max_diff)
 
 
 # =============================================================================
@@ -456,15 +524,15 @@ def run_scaling_analysis(configs: list[BenchmarkConfig], backend: str = 'SCIPY')
 
 def run_compact_comparison():
     """
-    Compare current SCIPY backend matmul with CompactTensor approach.
+    Compare SCIPY backend vs COO backend for parametrized matmul.
     """
     print("=" * 80)
-    print("CompactTensor vs Stacked Sparse Matrix (Matmul Bottleneck)")
+    print("SCIPY Backend vs COO Backend (DPP Canonicalization)")
     print("=" * 80)
     print()
-    print("This compares the core matrix multiplication operation.")
-    print("CompactTensor stores (data, row, col, param_idx) separately,")
-    print("avoiding the creation of huge stacked matrices.")
+    print("Compares full canonicalization time for parametrized A @ x problems.")
+    print("SCIPY uses stacked sparse matrices: O(param_size × rows)")
+    print("COO uses 3D sparse COO format: O(nnz)")
     print()
 
     configs = [
@@ -477,26 +545,31 @@ def run_compact_comparison():
         (1000, 1000, 100),  # 1M params
     ]
 
-    print(f"{'Params':>12} {'Shape':>12} {'Stacked':>12} {'Compact':>12} {'Speedup':>10}")
+    print(f"{'Params':>12} {'Shape':>12} {'SCIPY (ms)':>12} {'COO (ms)':>12} {'Speedup':>10}")
     print("-" * 65)
 
     for m, k, n in configs:
         param_size = m * k
         try:
-            t_stacked, t_compact, diff = benchmark_single_config(m, k, n)
-            speedup = t_stacked / t_compact
+            t_scipy, t_coo, diff = benchmark_single_config(m, k, n)
+            speedup = t_scipy / t_coo if t_coo > 0 else float('inf')
             shape = f'{m}x{k}'
-            line = (f"{param_size:>12,} {shape:>12} {t_stacked:>10.1f} "
-                    f"{t_compact:>10.1f} {speedup:>8.1f}x")
+            line = (f"{param_size:>12,} {shape:>12} {t_scipy:>12.1f} "
+                    f"{t_coo:>12.1f} {speedup:>8.1f}x")
             print(line)
+            if diff > 1e-10:
+                print(f"  WARNING: max diff = {diff:.2e}")
         except MemoryError:
             shape = f'{m}x{k}'
             print(f"{param_size:>12,} {shape:>12} MEMORY ERROR")
             break
+        except Exception as e:
+            shape = f'{m}x{k}'
+            print(f"{param_size:>12,} {shape:>12} ERROR: {e}")
 
     print()
-    print("Stacked = current SciPyTensorView approach (O(param_size × rows))")
-    print("Compact = proposed CompactTensor approach (O(nnz))")
+    print("SCIPY = SciPyCanonBackend (stacked sparse matrices)")
+    print("COO = COOCanonBackend (3D sparse COO format)")
 
 
 def run_detailed_profile(config: BenchmarkConfig, backend: str = 'SCIPY'):
@@ -535,10 +608,10 @@ def run_detailed_profile(config: BenchmarkConfig, backend: str = 'SCIPY'):
 
 def run_end_to_end_comparison():
     """
-    Compare end-to-end canonicalization times and project savings.
+    Compare end-to-end canonicalization times: SCIPY vs COO backend.
     """
     print("=" * 80)
-    print("End-to-End Analysis: Current vs Projected with CompactTensor")
+    print("End-to-End Analysis: SCIPY vs COO Backend")
     print("=" * 80)
     print()
 
@@ -549,34 +622,26 @@ def run_end_to_end_comparison():
         BenchmarkConfig("xlarge", 500, 500),
     ]
 
-    hdr = (f"{'Config':<12} {'Params':>10} {'Current':>12} "
-           f"{'Matmul':>12} {'Projected':>12} {'Savings':>10}")
+    hdr = (f"{'Config':<12} {'Params':>10} {'SCIPY (ms)':>12} "
+           f"{'COO (ms)':>12} {'Speedup':>10} {'MaxDiff':>12}")
     print(hdr)
     print("-" * 75)
 
     for config in configs:
         try:
-            # Current end-to-end time
-            result = run_single_benchmark(config)
-            current_time = result.cold_time_ms
-
-            # Isolated matmul comparison
+            # Full canonicalization comparison
             m, k, n = config.n_constraints, config.n_vars, config.n_vars
-            t_stacked, t_compact, _ = benchmark_single_config(m, k, n)
-            matmul_savings = t_stacked - t_compact
+            t_scipy, t_coo, max_diff = benchmark_single_config(m, k, n)
+            speedup = t_scipy / t_coo if t_coo > 0 else float('inf')
 
-            # Project total savings (matmul is ~60-80% of cold path for large problems)
-            projected_time = current_time - matmul_savings * 0.7  # Conservative estimate
-            savings_pct = (current_time - projected_time) / current_time * 100
-
-            print(f"{config.name:<12} {config.param_size:>10,} {current_time:>14.1f} "
-                  f"{t_stacked:>12.1f} {projected_time:>12.1f} {savings_pct:>9.0f}%")
+            print(f"{config.name:<12} {config.param_size:>10,} {t_scipy:>12.1f} "
+                  f"{t_coo:>12.1f} {speedup:>9.1f}x {max_diff:>12.2e}")
         except Exception as e:
             print(f"{config.name:<12} ERROR: {e}")
 
     print()
-    print("Projected = Current - (matmul savings × 0.7)")
-    print("Conservative estimate: matmul is ~70% of cold path time for large params")
+    print("MaxDiff = max absolute difference in constraint matrix A")
+    print("Speedup > 1 means COO is faster")
 
 
 def run_pattern_benchmarks(n_vars: int = 100, n_constraints: int = 200):
