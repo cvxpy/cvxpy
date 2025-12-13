@@ -806,22 +806,7 @@ class COOCanonBackend(PythonCanonBackend):
         view.accumulate_over_variables(func, is_param_free_function=True)
         return view
 
-    def transpose(self, lin_op, view: COOTensorView) -> COOTensorView:
-        """
-        Transpose the expression.
-
-        This permutes the rows of the coefficient tensor to match the transposed
-        output ordering, but doesn't change the column dimension (number of variables).
-
-        Note: Uses lin_op.args[0].shape (INPUT shape), not lin_op.shape (OUTPUT shape).
-        """
-        axes = lin_op.data[0]
-        original_shape = lin_op.args[0].shape  # INPUT shape, not output shape
-        indices = np.arange(np.prod(original_shape)).reshape(original_shape, order='F')
-        transposed_indices = np.transpose(indices, axes)
-        rows = transposed_indices.flatten(order='F')
-        view.select_rows(rows)
-        return view
+    # transpose: use base class implementation (via select_rows)
 
     def mul(self, lin_op, view: COOTensorView) -> COOTensorView:
         """
@@ -855,14 +840,30 @@ class COOCanonBackend(PythonCanonBackend):
             )
 
         else:
-            # Constant lhs @ rhs - standard case
-            # Reshape lhs according to lin_op shape (row vector for 1D)
+            # Constant lhs @ rhs - need to expand lhs with Kronecker product
+            # For A @ X where A is (m,k) and X is variable:
+            # We need kron(I_reps, A) where reps = X_rows / k
             lhs_shape = lin_op.data.shape
-            lin_op_shape = lhs_shape if len(lhs_shape) == 2 else (1, lhs_shape[0])
+            lhs_shape_2d = lhs_shape if len(lhs_shape) == 2 else (1, lhs_shape[0])
+            lhs_k = lhs_shape_2d[-1]  # Inner dimension of A
+
+            # Convert to sparse and apply kron expansion
+            if sp.issparse(lhs_data):
+                lhs_sparse = lhs_data
+            else:
+                lhs_sparse = sp.csr_array(np.atleast_2d(lhs_data))
+
+            reps = view.rows // lhs_k
+            if reps > 1:
+                stacked_lhs = sp.kron(sp.eye_array(reps, format="csr"), lhs_sparse)
+            else:
+                stacked_lhs = lhs_sparse
+
+            # Convert stacked lhs to CompactTensor
+            stacked_compact = self._make_compact_from_sparse(stacked_lhs)
 
             def constant_mul(compact, p):
-                lhs_compact = self._make_compact_from_dense(lhs_data, lin_op_shape)
-                return compact_matmul(lhs_compact, compact)
+                return compact_matmul(stacked_compact, compact)
 
             view.accumulate_over_variables(constant_mul, is_param_free_function=True)
             return view
@@ -1001,14 +1002,16 @@ class COOCanonBackend(PythonCanonBackend):
 
         return view
 
-    def promote(self, lin_op, view: COOTensorView) -> COOTensorView:
+    @staticmethod
+    def promote(lin_op, view: COOTensorView) -> COOTensorView:
         """Promote scalar by repeating."""
         num_entries = int(np.prod(lin_op.shape))
         rows = np.zeros(num_entries, dtype=np.int64)
         view.select_rows(rows)
         return view
 
-    def broadcast_to(self, lin_op, view: COOTensorView) -> COOTensorView:
+    @staticmethod
+    def broadcast_to(lin_op, view: COOTensorView) -> COOTensorView:
         """Broadcast to shape."""
         broadcast_shape = lin_op.shape
         original_shape = lin_op.args[0].shape
@@ -1017,16 +1020,7 @@ class COOCanonBackend(PythonCanonBackend):
         view.select_rows(rows.astype(np.int64))
         return view
 
-    def index(self, lin_op, view: COOTensorView) -> COOTensorView:
-        """Index into tensor."""
-        key = lin_op.data
-        original_shape = lin_op.args[0].shape
-
-        # Build row indices
-        rows = np.arange(np.prod(original_shape, dtype=int)).reshape(original_shape, order='F')
-        rows = rows[key].flatten(order='F')
-        view.select_rows(rows.astype(np.int64))
-        return view
+    # index: use base class implementation (via select_rows)
 
     def diag_vec(self, lin_op, view: COOTensorView) -> COOTensorView:
         """Convert vector to diagonal matrix."""
@@ -1056,86 +1050,9 @@ class COOCanonBackend(PythonCanonBackend):
         view.apply_all(func)
         return view
 
-    def diag_mat(self, lin_op, view: COOTensorView) -> COOTensorView:
-        """Extract diagonal from matrix."""
-        k = lin_op.data
-        input_shape = lin_op.args[0].shape
-        m, n = input_shape
-
-        def func(compact, p):
-            # Keep only diagonal entries
-            # For original matrix (m, n), diagonal k has entries where col - row = k
-            original_row = compact.row % m
-            original_col = compact.row // m  # Column-major index to 2D
-
-            if k >= 0:
-                mask = (original_col - original_row) == k
-            else:
-                mask = (original_row - original_col) == -k
-
-            diag_size = min(m, n) - abs(k)
-            new_row = np.minimum(original_row[mask], original_col[mask])
-
-            return CompactTensor(
-                data=compact.data[mask],
-                row=new_row.astype(np.int64),
-                col=compact.col[mask],
-                param_idx=compact.param_idx[mask],
-                m=diag_size,
-                n=compact.n,
-                param_size=compact.param_size
-            )
-
-        view.apply_all(func)
-        return view
-
-    def trace(self, lin_op, view: COOTensorView) -> COOTensorView:
-        """Compute matrix trace."""
-        input_shape = lin_op.args[0].shape
-        m, n = input_shape
-
-        def func(compact, p):
-            # Keep only diagonal entries and sum to scalar
-            original_row = compact.row % m
-            original_col = compact.row // m
-            mask = original_row == original_col
-
-            return CompactTensor(
-                data=compact.data[mask],
-                row=np.zeros(mask.sum(), dtype=np.int64),
-                col=compact.col[mask],
-                param_idx=compact.param_idx[mask],
-                m=1,
-                n=compact.n,
-                param_size=compact.param_size
-            )
-
-        view.apply_all(func)
-        return view
-
-    def upper_tri(self, lin_op, view: COOTensorView) -> COOTensorView:
-        """Extract upper triangle."""
-        input_shape = lin_op.args[0].shape
-        m, n = input_shape
-
-        def func(compact, p):
-            original_row = compact.row % m
-            original_col = compact.row // m
-            mask = original_col >= original_row
-
-            # Reindex to upper triangle positions
-            return CompactTensor(
-                data=compact.data[mask],
-                row=compact.row[mask],  # Keep original positions for now
-                col=compact.col[mask],
-                param_idx=compact.param_idx[mask],
-                m=compact.m,
-                n=compact.n,
-                param_size=compact.param_size
-            )
-
-        view.apply_all(func)
-        return view
+    # diag_mat: use base class implementation (via select_rows)
+    # trace: use base class implementation (via select_rows)
+    # upper_tri: use base class implementation (via select_rows)
 
     def _make_compact_from_sparse(self, matrix, param_id=None):
         """Convert sparse matrix to CompactTensor."""
@@ -1164,145 +1081,15 @@ class COOCanonBackend(PythonCanonBackend):
             param_size=p
         )
 
-    def vstack(self, lin_op, empty_view: COOTensorView) -> COOTensorView:
-        """
-        Vertical stack of expressions.
-
-        First concatenates all arguments (hstack), then permutes rows
-        to match column-major ordering of the stacked result.
-        """
-        # First do hstack (simple concatenation)
-        res = self._hstack_internal(lin_op, empty_view)
-
-        # Then permute rows to get column-major ordering
-        # Build indices for each arg in column-major order, then flatten
-        offset = 0
-        indices = []
-        for arg in lin_op.args:
-            arg_rows = int(np.prod(arg.shape))
-            indices.append(np.arange(arg_rows).reshape(arg.shape, order="F") + offset)
-            offset += arg_rows
-
-        # Handle different shaped args by padding or using concatenate approach
-        # Check if all args have the same shape
-        shapes = [idx.shape for idx in indices]
-        if len(set(shapes)) == 1 and len(shapes[0]) > 0:
-            # All same shape, can use np.vstack
-            order = np.vstack(indices).flatten(order="F").astype(np.int64)
-        else:
-            # Different shapes - use numpy's stack for the output shape
-            # Stack along axis=0 with the output shape
-            output_shape = lin_op.shape
-            if len(output_shape) == 0:
-                # Scalar output
-                order = np.concatenate([idx.flatten(order="F") for idx in indices])
-            else:
-                # Multi-dimensional output - compute reordering based on output shape
-                total_rows = sum(int(np.prod(arg.shape)) for arg in lin_op.args)
-
-                if len(output_shape) == 1:
-                    # 1D output - just concatenate in order
-                    order = np.concatenate([idx.flatten(order="F") for idx in indices])
-                else:
-                    # 2D+ output - interleave based on column-major order
-                    out_indices = np.arange(total_rows).reshape(output_shape, order='F')
-
-                    # Figure out which input position each output position comes from
-                    order = []
-                    for out_pos in out_indices.flatten(order='F'):
-                        remaining = out_pos
-                        for i, arg in enumerate(lin_op.args):
-                            arg_size = int(np.prod(arg.shape))
-                            if remaining < arg_size:
-                                order.append(indices[i].flatten(order='F')[remaining])
-                                break
-                            remaining -= arg_size
-                    order = np.array(order, dtype=np.int64)
-        res.select_rows(order)
-        return res
-
-    def _hstack_internal(self, lin_op, empty_view: COOTensorView) -> COOTensorView:
-        """Internal hstack - just concatenates without reordering."""
-        views = []
-        for arg in lin_op.args:
-            views.append(self.process_constraint(arg, empty_view))
-
-        # Compute row offsets
-        row_offsets = []
-        offset = 0
-        for v in views:
-            row_offsets.append(offset)
-            offset += v.rows
-
-        total_rows = offset
-
-        # Combine tensors with row offsets
-        combined_tensor = {}
-        combined_var_ids = set()
-
-        for view, row_offset in zip(views, row_offsets):
-            combined_var_ids |= view.variable_ids
-            for var_id, var_tensor in view.tensor.items():
-                if var_id not in combined_tensor:
-                    combined_tensor[var_id] = {}
-                for param_id, compact in var_tensor.items():
-                    shifted = CompactTensor(
-                        data=compact.data.copy(),
-                        row=compact.row + row_offset,
-                        col=compact.col.copy(),
-                        param_idx=compact.param_idx.copy(),
-                        m=total_rows,
-                        n=compact.n,
-                        param_size=compact.param_size
-                    )
-                    if param_id in combined_tensor[var_id]:
-                        existing = combined_tensor[var_id][param_id]
-                        combined_tensor[var_id][param_id] = existing + shifted
-                    else:
-                        combined_tensor[var_id][param_id] = shifted
-
-        is_param_free = all(v.is_parameter_free for v in views)
-        return empty_view.create_new_tensor_view(combined_var_ids, combined_tensor, is_param_free)
-
-    def hstack(self, lin_op, empty_view: COOTensorView) -> COOTensorView:
-        """Horizontal stack - calls vstack which handles row ordering."""
-        return self.vstack(lin_op, empty_view)
-
-    def concatenate(self, lin_op, empty_view: COOTensorView) -> COOTensorView:
-        """Concatenate expressions."""
-        return self.vstack(lin_op, empty_view)
+    # vstack, hstack, concatenate: use base class implementations
 
     def rmul(self, lin_op, view: COOTensorView) -> COOTensorView:
-        """
-        Right multiplication: x @ B.
-
-        For now, fall back to conversion to/from stacked format for complex cases.
-        """
-        # This is x @ B, which is (B.T @ x.T).T
-        # For simple cases, we can handle it directly
-        rhs, is_param_free_rhs = self.get_constant_data(lin_op.data, view, column=False)
-
-        if is_param_free_rhs:
-            # Constant rhs - straightforward
-            rhs_compact = self._make_compact_from_dense(rhs, view.rows)
-
-            def func(compact, p):
-                # x @ B = (B.T @ x.T).T
-                # For our column-major representation, this works out to direct multiplication
-                return compact_matmul(rhs_compact, compact)
-
-            view.accumulate_over_variables(func, is_param_free_function=True)
-        else:
-            # Parametrized rmul - more complex
-            raise NotImplementedError("Parametrized rmul not yet implemented in COOCanonBackend")
-
-        return view
+        """Right multiplication: x @ B."""
+        raise NotImplementedError("rmul not yet implemented in COOCanonBackend")
 
     @staticmethod
     def reshape_constant_data(constant_data: dict, lin_op_shape: tuple) -> dict:
         """Reshape constant data from column format to required shape."""
-        # For COOCanonBackend, we work with CompactTensor, not raw matrices
-        # This is needed for operations that don't use column format
         result = {}
         for k, v in constant_data.items():
             if isinstance(v, CompactTensor):
@@ -1310,7 +1097,6 @@ class COOCanonBackend(PythonCanonBackend):
                 new_n = lin_op_shape[1] if len(lin_op_shape) > 1 else 1
                 result[k] = compact_reshape(v, new_m * new_n, 1)
             else:
-                # Fallback for sparse matrices
                 result[k] = v.reshape((-1, 1), order='F') if hasattr(v, 'reshape') else v
         return result
 
@@ -1318,122 +1104,40 @@ class COOCanonBackend(PythonCanonBackend):
     def get_stack_func(total_rows: int, offset: int) -> Callable:
         """Returns a function to extend and shift a CompactTensor."""
         def stack_func(compact, p):
-            if isinstance(compact, CompactTensor):
-                return CompactTensor(
-                    data=compact.data.copy(),
-                    row=compact.row + offset,
-                    col=compact.col.copy(),
-                    param_idx=compact.param_idx.copy(),
-                    m=total_rows,
-                    n=compact.n,
-                    param_size=compact.param_size
-                )
-            else:
-                # Fallback for sparse matrices
-                coo = compact.tocoo()
-                m = coo.shape[0] // p
-                slices = coo.row // m
-                new_rows = (coo.row + (slices + 1) * offset)
-                new_rows = new_rows + slices * (total_rows - m - offset)
-                return sp.csc_array((coo.data, (new_rows.astype(int), coo.col)),
-                                     shape=(int(total_rows * p), compact.shape[1]))
+            return CompactTensor(
+                data=compact.data.copy(),
+                row=compact.row + offset,
+                col=compact.col.copy(),
+                param_idx=compact.param_idx.copy(),
+                m=total_rows,
+                n=compact.n,
+                param_size=compact.param_size
+            )
         return stack_func
 
     def conv(self, lin_op, view: COOTensorView) -> COOTensorView:
-        """
-        Discrete convolution - not commonly used with large parameters.
-        Falls back to sparse operations.
-        """
-        from scipy.signal import convolve as scipy_convolve
-
-        lhs, is_param_free_lhs = self.get_constant_data(lin_op.data, view, column=False)
-        assert is_param_free_lhs, "COOCanonBackend does not support parametrized conv"
-
-        # Get lhs as numpy array
-        if sp.issparse(lhs):
-            lhs = lhs.toarray()
-        if len(lin_op.data.shape) == 1:
-            lhs = lhs.T
-
-        def func(compact, p):
-            assert p == 1, "COOCanonBackend does not support parametrized right operand for conv"
-            # Convert to sparse, apply convolution, convert back
-            sparse = compact.to_stacked_sparse()
-            arr = sparse.toarray()
-            result = scipy_convolve(lhs, arr)
-            result_sparse = sp.csr_array(result)
-            return CompactTensor.from_stacked_sparse(result_sparse, 1)
-
-        view.apply_all(func)
-        return view
+        """Discrete convolution."""
+        raise NotImplementedError("conv not yet implemented in COOCanonBackend")
 
     def kron_r(self, lin_op, view: COOTensorView) -> COOTensorView:
-        """
-        Kronecker product kron(a, x) - not commonly used with large parameters.
-        """
-        lhs, is_param_free_lhs = self.get_constant_data(lin_op.data, view, column=True)
-        assert is_param_free_lhs, "COOCanonBackend does not support parametrized kron_r"
-
-        rhs_shape = lin_op.args[0].shape
-        row_idx = self._get_kron_row_indices(lin_op.data.shape, rhs_shape)
-
-        def func(compact, p):
-            assert p == 1, "COOCanonBackend does not support parametrized right operand for kron_r"
-            sparse = compact.to_stacked_sparse()
-            kron_res = sp.kron(lhs, sparse).tocsr()
-            kron_res = kron_res[row_idx, :]
-            return CompactTensor.from_stacked_sparse(kron_res, 1)
-
-        view.apply_all(func)
-        return view
+        """Kronecker product kron(a, x)."""
+        raise NotImplementedError("kron_r not yet implemented in COOCanonBackend")
 
     def kron_l(self, lin_op, view: COOTensorView) -> COOTensorView:
+        """Kronecker product kron(x, a)."""
+        raise NotImplementedError("kron_l not yet implemented in COOCanonBackend")
+
+    def trace(self, lin_op, view: COOTensorView) -> COOTensorView:
         """
-        Kronecker product kron(x, a) - not commonly used with large parameters.
+        Compute trace - sum of diagonal elements.
+
+        Uses select_rows to get diagonal + sum_entries.
         """
-        rhs, is_param_free_rhs = self.get_constant_data(lin_op.data, view, column=True)
-        assert is_param_free_rhs, "COOCanonBackend does not support parametrized kron_l"
-
-        lhs_shape = lin_op.args[0].shape
-        row_idx = self._get_kron_row_indices(lhs_shape, lin_op.data.shape)
-
-        def func(compact, p):
-            assert p == 1, "COOCanonBackend does not support parametrized right operand for kron_l"
-            sparse = compact.to_stacked_sparse()
-            kron_res = sp.kron(sparse, rhs).tocsr()
-            kron_res = kron_res[row_idx, :]
-            return CompactTensor.from_stacked_sparse(kron_res, 1)
-
-        view.apply_all(func)
-        return view
-
-    def get_func(self, op_type: str) -> Callable:
-        """Map operation type to function."""
-        funcs = {
-            'neg': self.neg,
-            'sum_entries': self.sum_entries,
-            'reshape': self.reshape,
-            'transpose': self.transpose,
-            'mul': self.mul,
-            'mul_elem': self.mul_elem,
-            'div': self.div,
-            'promote': self.promote,
-            'broadcast_to': self.broadcast_to,
-            'index': self.index,
-            'diag_vec': self.diag_vec,
-            'diag_mat': self.diag_mat,
-            'trace': self.trace,
-            'upper_tri': self.upper_tri,
-            'vstack': self.vstack,
-            'hstack': self.hstack,
-            'concatenate': self.concatenate,
-            'rmul': self.rmul,
-            'conv': self.conv,
-            'kron_r': self.kron_r,
-            'kron_l': self.kron_l,
-            # NOOPs
-            'sum': lambda lin, view: view,  # Sum along axis is implicit
-        }
-        if op_type not in funcs:
-            raise NotImplementedError(f"Operation '{op_type}' not implemented for COOCanonBackend")
-        return funcs[op_type]
+        # Get shape from argument
+        arg_shape = lin_op.args[0].shape
+        rows = arg_shape[0]
+        # Extract diagonal: indices 0, n+1, 2*(n+1), etc for main diagonal
+        diag_indices = np.arange(rows) * (rows + 1)
+        view.select_rows(diag_indices.astype(int))
+        # Sum entries
+        return self.sum_entries(lin_op, view)
