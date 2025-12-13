@@ -2,8 +2,6 @@ from __future__ import annotations
 
 import warnings
 
-import numpy as np
-
 from cvxpy.atoms import EXP_ATOMS, NONPOS_ATOMS, PSD_ATOMS, SOC_ATOMS
 from cvxpy.constraints import (
     PSD,
@@ -43,10 +41,7 @@ from cvxpy.reductions.reduction import Reduction
 from cvxpy.reductions.solvers import defines as slv_def
 from cvxpy.reductions.solvers.constant_solver import ConstantSolver
 from cvxpy.reductions.solvers.solver import Solver
-from cvxpy.settings import (
-    CLARABEL,
-    PARAM_THRESHOLD,
-)
+from cvxpy.settings import CLARABEL
 from cvxpy.utilities import scopes
 from cvxpy.utilities.debug_tools import build_non_disciplined_error_msg
 
@@ -254,13 +249,7 @@ def construct_solving_chain(problem, candidates,
             raise DPPError(DPP_ERROR_MSG)
     elif any(param.is_complex() for param in problem.parameters()):
         reductions = [EvalParams()] + reductions
-    else:  # Compilation with DPP.
-        n_parameters = sum(np.prod(param.shape) for param in problem.parameters())
-        if n_parameters >= PARAM_THRESHOLD:
-            warnings.warn(
-                "Your problem has too many parameters for efficient DPP "
-                "compilation. We suggest setting 'ignore_dpp = True'."
-            )
+    # else: Compilation with DPP (no special handling needed)
 
     # Conclude with matrix stuffing; choose one of the following paths:
     #   (1) ConeMatrixStuffing(quad_obj=True) --> [a QpSolver],
