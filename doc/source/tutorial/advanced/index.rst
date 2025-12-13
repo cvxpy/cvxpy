@@ -247,12 +247,14 @@ details, print the dictionary, or consult the solver interfaces in
 Canonicalization backends
 ------------------------------------
 Users can select from multiple canonicalization backends by adding the ``canon_backend``
-keyword argument to the ``.solve()`` call, e.g. ``problem.solve(canon_backend=cp.SCIPY_CANON_BACKEND)``
+keyword argument to the ``.solve()`` call, e.g. ``problem.solve(canon_backend=cp.COO_CANON_BACKEND)``
 (Introduced in CVXPY 1.3).
 This can speed up the canonicalization time significantly for some problems.
 Currently, the following canonicalization backends are supported:
 
 *  CPP (default): The original C++ implementation, also referred to as CVXCORE.
+*  | COO: A pure Python implementation using 3D COO sparse tensors with O(nnz) operations.
+   | Necessary for DPP-compliant problems with large parameters.
 *  | SCIPY: A pure Python implementation based on the SciPy sparse module.
    | Generally fast for problems that are already vectorized.
 *  NUMPY: Reference implementation in pure NumPy. Fast for some small or dense problems.
