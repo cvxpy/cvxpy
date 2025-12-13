@@ -1246,6 +1246,7 @@ class Problem(u.Canonical):
 
             # standard solve
             if best_of == 1:
+                self.set_NLP_initial_point()
                 canon_problem, inverse_data = nlp_chain.apply(problem=self)
                 solution = nlp_chain.solver.solve_via_data(canon_problem, warm_start,
                                                             verbose, solver_opts=kwargs)
@@ -1646,32 +1647,77 @@ class Problem(u.Canonical):
         self._solver_stats = SolverStats.from_dict(self._solution.attr,
                                          chain.solver.name())
 
+    
+    def set_NLP_initial_point(self) -> dict:
+        """ Constructs an initial point for the optimization problem. If no
+        initial value is specified, look at the bounds. If both lb and ub are 
+        specified, we initialize the variables to be their midpoints. If only
+        one of them is specified, we initialize the variable one unit from 
+        the bound. If none of them is specified, we initialize it to zero.
+        """
+        for var in self.variables():
+            if var.value is not None:
+                continue
+
+            bounds = var.bounds
+            is_nonneg = var.is_nonneg()
+            is_nonpos = var.is_nonpos()
+            
+            if bounds is None:
+                if is_nonneg:
+                    x0 = np.ones(var.shape)
+                elif is_nonpos:
+                    x0 = -np.ones(var.shape)
+                else:
+                    x0 = np.zeros(var.shape)
+
+                var.save_value(x0)
+            else:
+                lb, ub = bounds
+
+                if is_nonneg:
+                    lb = np.maximum(lb, 0)
+                elif is_nonpos:
+                    ub = np.maximum(ub, 0)
+
+                lb_finite = np.isfinite(lb)
+                ub_finite = np.isfinite(ub)
+                # Replace infs with zero for arithmetic
+                lb0 = np.where(lb_finite, lb, 0.0)
+                ub0 = np.where(ub_finite, ub, 0.0)
+                # Midpoint if both finite, one from bound if only one finite, zero if none
+                init = (lb_finite * ub_finite * 0.5 * (lb0 + ub0) +
+                        lb_finite * (~ub_finite) * (lb0 + 1.0) +
+                        (~lb_finite) * ub_finite * (ub0 - 1.0))
+                var.save_value(init)
+
+
     def set_random_NLP_initial_point(self, run) -> dict:
         """ Generates a random initial point for DNLP problems.
         A variable is initialized randomly in the following cases:
-        1. the initial value specified by the user is None and 
-          'sample_bounds' is set for that variable.
+        1. 'sample_bounds' is set for that variable.
         2. the initial value specified by the user is None,
            'sample_bounds' is not set for that variable, but the
            variable has both finite lower and upper bounds.
-    
-           In other words, a variable that has already been 
-           initialized by the user will not be changed, even if 
-           sample_bounds is set for that variable.
         """
 
-        # store user-specified initial values
+        # store user-specified initial values for variables that do 
+        # not have sample bounds assigned
         if run == 0:
             self._user_initials = {}
             for var in self.variables():
-                self._user_initials[var.id] = var.value
-
+                if var.sample_bounds is not None:
+                    self._user_initials[var.id] = None
+                else:
+                    self._user_initials[var.id] = var.value
+        
         for var in self.variables():
             
             # skip variables with user-specified initial value
+            # (note that any variable with sample bounds set will have
+            #  _user_initials[var.id] == None)
             if self._user_initials[var.id] is not None:
-                # reset to user-specified initial value
-                # from last solve
+                # reset to user-specified initial value from last solve
                 var.value = self._user_initials[var.id]
                 continue
             else:
@@ -1679,19 +1725,17 @@ class Problem(u.Canonical):
                 var.value = None 
             
             # set sample_bounds to variable bounds if sample_bounds is None
-            # and variable has finite bounds
+            # and variable bounds (possibly infinite) are set
             if var.sample_bounds is None and var.bounds is not None:
-                low, high = var.bounds 
-                if np.all(np.isfinite(low)) and np.all(np.isfinite(high)):
-                   var.sample_bounds = var.bounds
-
+                var.sample_bounds = var.bounds
+                
             # sample initial value if sample_bounds is set
             if var.sample_bounds is not None:
                 low, high = var.sample_bounds
                 if not np.all(np.isfinite(low)) or not np.all(np.isfinite(high)):
                     raise ValueError(
-                        "Variable %s has non-finite sample_bounds %s."
-                        " Cannot generate random initial point."
+                        "Variable %s has non-finite sample_bounds %s. Cannot generate"
+                        " random initial point. Either add sample bounds or set the value. "
                         % (var.name(), var.sample_bounds)
                     )
 

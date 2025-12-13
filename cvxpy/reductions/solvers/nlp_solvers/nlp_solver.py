@@ -144,39 +144,17 @@ class Bounds():
         self.lb = np.array(var_lower)
         self.ub = np.array(var_upper)
     
-    def construct_initial_point(self):
-        """
-        Constructs an initial point for the optimization problem.
-        If no initial value is specified, look at the bounds.
-        If both lb and ub are specified, we initialize the
-        variables to be their midpoints. If only one of them
-        is specified, we initialize the variable one unit
-        from the bound. If none of them is specified, we
-        initialize it to zero.
-        """
-        initial_values = []
-        offset = 0
-        lbs = self.lb
-        ubs = self.ub
-        for var in self.problem.variables():
-            if var.value is not None:
-                initial_values.append(np.atleast_1d(var.value).flatten(order='F'))
-            else:
-                lb = lbs[offset:offset + var.size]
-                ub = ubs[offset:offset + var.size]
-                lb_finite = np.isfinite(lb)
-                ub_finite = np.isfinite(ub)
-                # Replace infs with zero for arithmetic
-                lb0 = np.where(lb_finite, lb, 0.0)
-                ub0 = np.where(ub_finite, ub, 0.0)
-                # Midpoint if both finite, one from bound if only one finite, zero if none
-                init = (lb_finite * ub_finite * 0.5 * (lb0 + ub0) +
-                        lb_finite * (~ub_finite) * (lb0 + 1.0) +
-                        (~lb_finite) * ub_finite * (ub0 - 1.0))
-                initial_values.append(init)
-            offset += var.size
-        self.x0 = np.concatenate(initial_values, axis=0)
 
+    def construct_initial_point(self):
+        """ Loop through all variables and collect the intial point."""
+        x0 = []
+        for var in self.main_var:
+            if var.value is None:
+                raise ValueError("Variable %s has no value. This is a bug and should be reported."
+                                  % var.name())
+
+            x0.append(np.atleast_1d(var.value).flatten(order='F'))
+        self.x0 = np.concatenate(x0, axis=0)
 
 class Oracles():
     def __init__(self, problem, initial_point, num_constraints):

@@ -14,6 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+
 from cvxpy.expressions.variable import Variable
 
 
@@ -21,4 +22,10 @@ def abs_canon(expr, args):
     x = args[0]
     t = Variable(expr.shape)
     constraints = [t >= x, t >= -x]
+
+    # for DNLP we must initialize the new variable (DNLP guarantees that 
+    # x.value will be set when this function is called)
+    if expr.value is not None:
+        t.value = expr.value
+
     return t, constraints

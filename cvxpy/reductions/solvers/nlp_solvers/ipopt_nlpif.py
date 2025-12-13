@@ -169,6 +169,12 @@ class IPOPT(NLPsolver):
 
         _, info = nlp.solve(data["x0"])
 
+        if oracles.iterations == 0:
+            print("Warning: IPOPT returned after 0 iterations. This may indicate that\n"
+                  "the initial point passed to Ipopt is a stationary point, and it is\n"
+                  "quite unlikely that the initial point is also a local minimizer. \n"
+                  "Perturb the initial point and try again.")
+
         # add number of iterations to info dict from oracles
         info['iterations'] = oracles.iterations
         return info

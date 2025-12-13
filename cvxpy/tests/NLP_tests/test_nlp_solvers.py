@@ -232,9 +232,22 @@ class TestNLPExamples:
         prob = cp.Problem(obj, constraints)
         prob.solve(solver=solver, nlp=True)
 
-        true_sol = np.array([[1.73655994, -1.98685738, 2.57208783],
-                             [1.99273311, -1.67415425, -2.57208783]])
-        assert np.allclose(centers.value, true_sol)
+        assert np.allclose(obj.value, 4.602738956101437)
+
+        residuals = []
+        for i in range(n - 1):
+            for j in range(i + 1, n):
+                dist_sq = np.linalg.norm(centers.value[:, i] - centers.value[:, j]) ** 2
+                min_dist_sq = (radius[i] + radius[j]) ** 2
+                residuals.append(dist_sq - min_dist_sq)
+        
+        assert(np.all(np.array(residuals) <= 1e-8))
+
+        # Ipopt finds these centers, but Knitro rotates them (but finds the same
+        # objective value)
+        #true_sol = np.array([[1.73655994, -1.98685738, 2.57208783],
+        #                     [1.99273311, -1.67415425, -2.57208783]])
+        #assert np.allclose(centers.value, true_sol)
 
     def test_circle_packing_formulation_three(self, solver):
         """Using max max abs."""
@@ -269,11 +282,6 @@ class TestNLPExamples:
         assert np.allclose(x.value, np.array([1/3, 1/3, 1/3]))
 
     def test_geo_mean2(self, solver):
-        """
-        This test doesn't converge to the global optimal solution
-        which is x^* = p/sum(p),
-        but at least there are no errors in the derivative computations.
-        """
         p = np.array([.07, .12, .23, .19, .39])
         x = cp.Variable(5, nonneg=True)
         prob = cp.Problem(cp.Maximize(cp.geo_mean(x, p)), [cp.sum(x) <= 1])

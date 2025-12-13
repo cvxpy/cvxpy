@@ -20,6 +20,7 @@ import numpy as np
 from cvxpy.expressions.constants import Constant
 from cvxpy.expressions.variable import Variable
 
+MIN_INIT = 1e-4
 
 def power_canon(expr, args):
     x = args[0]
@@ -45,7 +46,7 @@ def power_canon(expr, args):
         t = Variable(shape, nonneg=True)
 
         if x.value is not None:
-            t.value = x.value
+            t.value = np.maximum(x.value, MIN_INIT)
         else:
             t.value = expr.point_in_domain()
 

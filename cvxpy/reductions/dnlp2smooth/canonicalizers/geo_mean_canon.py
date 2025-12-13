@@ -30,8 +30,8 @@ def geo_mean_canon(expr, args):
     """
     t = Variable(expr.shape, nonneg=True)
 
-    if args[0].value is not None and args[0].value > MIN_INIT:
-        t.value = expr.numeric(args[0].value)
+    if args[0].value is not None:
+        t.value = np.max((expr.numeric(args[0].value), MIN_INIT))
     else:
         t.value = np.ones(expr.shape)
 

@@ -35,4 +35,10 @@ def max_canon(expr, args):
         promoted_t = reshape(t, (x.shape[0], 1), order='F') @ Constant(np.ones((1, x.shape[1])))
 
     constraints = [x <= promoted_t]
+
+    # for DNLP we must initialize the new variable (DNLP guarantees that 
+    # x.value will be set when this function is called)
+    if expr.value is not None:
+        t.value = expr.value
+        
     return t, constraints

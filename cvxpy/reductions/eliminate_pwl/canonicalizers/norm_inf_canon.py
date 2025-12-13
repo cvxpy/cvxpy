@@ -34,4 +34,9 @@ def norm_inf_canon(expr, args):
     else:  # shape = (m, 1)
         promoted_t = reshape(t, (x.shape[0], 1), order='F') @ Constant(np.ones((1, x.shape[1])))
 
+    # for DNLP we must initialize the new variable (DNLP guarantees that 
+    # x.value will be set when this function is called)
+    if expr.value is not None:
+        t.value = expr.value
+
     return t, [x <= promoted_t, x + promoted_t >= 0]

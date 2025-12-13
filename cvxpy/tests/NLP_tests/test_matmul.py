@@ -76,3 +76,12 @@ class TestMatmul():
         problem.solve(solver=cp.IPOPT, nlp=True, hessian_approximation='exact',
                     derivative_test='none', verbose=True)
         assert(problem.status == cp.OPTIMAL)
+
+    # this test raises an error in derivative oracle
+    @pytest.mark.xfail(reason="derivative oracle fails on this test")
+    def test_matmul_same_variable(self):
+        n = 3
+        X = cp.Variable((n, n), name='X', bounds=[-2, 2])
+        obj = cp.sum(X @ X)
+        problem = cp.Problem(cp.Minimize(obj))
+        problem.solve(solver=cp.IPOPT, nlp=True)
