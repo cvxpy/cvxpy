@@ -340,6 +340,60 @@ class TestBackward(BaseTest):
         self.assertIn(0.0, A.data)
 
 
+class TestBackwardComplex(BaseTest):
+    """Test backward/forward differentiation with complex parameters."""
+    def setUp(self) -> None:
+        try:
+            import diffcp
+            diffcp  # for flake8
+        except ModuleNotFoundError:
+            self.skipTest("diffcp not installed.")
+
+    def test_backward_real_and_imag(self) -> None:
+        """Backward differentiation through real and imag parts of complex parameter."""
+        p = cp.Parameter(complex=True)
+        x = cp.Variable()
+        y = cp.Variable()
+        # minimize (x - real(p))^2 + (y - imag(p))^2
+        prob = cp.Problem(
+            cp.Minimize(cp.square(x - cp.real(p)) + cp.square(y - cp.imag(p)))
+        )
+
+        p.value = np.array(3.0 + 4.0j)
+        prob.solve(requires_grad=True)
+        self.assertAlmostEqual(x.value, 3.0, places=3)
+        self.assertAlmostEqual(y.value, 4.0, places=3)
+
+        x.gradient = 1.0
+        y.gradient = 1.0
+        prob.backward()
+
+        # Gradient follows PyTorch convention: grad = d/d(real) + j*d/d(imag)
+        # dx*/d(real(p)) = 1, dy*/d(imag(p)) = 1 => p.gradient = 1 + 1j
+        self.assertAlmostEqual(np.real(p.gradient), 1.0, places=3)
+        self.assertAlmostEqual(np.imag(p.gradient), 1.0, places=3)
+
+    def test_forward_complex_delta(self) -> None:
+        """Forward differentiation with complex delta."""
+        p = cp.Parameter(complex=True)
+        x = cp.Variable()
+        y = cp.Variable()
+        prob = cp.Problem(cp.Minimize(x + y), [x >= cp.real(p), y >= cp.imag(p)])
+
+        p.value = np.array(3.0 + 4.0j)
+        prob.solve(requires_grad=True)
+        self.assertAlmostEqual(x.value, 3.0, places=3)
+        self.assertAlmostEqual(y.value, 4.0, places=3)
+
+        # Perturb both parts
+        p.delta = 2.0 + 3.0j
+        prob.derivative()
+
+        # x* = real(p), y* = imag(p)
+        self.assertAlmostEqual(x.delta, 2.0, places=3)
+        self.assertAlmostEqual(y.delta, 3.0, places=3)
+
+
 class TestBackwardDgp(BaseTest):
     """Test problem.backward() and problem.derivative()."""
     def setUp(self) -> None:
