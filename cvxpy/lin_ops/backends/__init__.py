@@ -26,7 +26,7 @@ import scipy.sparse as sp
 import cvxpy.settings as s
 from cvxpy.lin_ops import LinOp
 from cvxpy.settings import (
-    LAZY_CANON_BACKEND,
+    COO_CANON_BACKEND,
     NUMPY_CANON_BACKEND,
     RUST_CANON_BACKEND,
     SCIPY_CANON_BACKEND,
@@ -160,9 +160,9 @@ class CanonBackend(ABC):
             SCIPY_CANON_BACKEND: SciPyCanonBackend,
             RUST_CANON_BACKEND: RustCanonBackend,
         }
-        if backend_name == LAZY_CANON_BACKEND:
-            from cvxpy.lin_ops.backends.lazy_backend import LazyCanonBackend
-            return LazyCanonBackend(*args, **kwargs)
+        if backend_name == COO_CANON_BACKEND:
+            from cvxpy.lin_ops.backends.coo_backend import COOCanonBackend
+            return COOCanonBackend(*args, **kwargs)
         return backends[backend_name](*args, **kwargs)
 
     @abstractmethod
@@ -887,12 +887,12 @@ def __getattr__(name):
     elif name == "RustCanonBackend":
         from cvxpy.lin_ops.backends.rust_backend import RustCanonBackend
         return RustCanonBackend
-    elif name == "LazyCanonBackend":
-        from cvxpy.lin_ops.backends.lazy_backend import LazyCanonBackend
-        return LazyCanonBackend
-    elif name == "LazyTensorView":
-        from cvxpy.lin_ops.backends.lazy_backend import LazyTensorView
-        return LazyTensorView
+    elif name == "COOCanonBackend":
+        from cvxpy.lin_ops.backends.coo_backend import COOCanonBackend
+        return COOCanonBackend
+    elif name == "COOTensorView":
+        from cvxpy.lin_ops.backends.coo_backend import COOTensorView
+        return COOTensorView
     raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
 
 
@@ -903,12 +903,12 @@ __all__ = [
     "PythonCanonBackend",
     "TensorView",
     "DictTensorView",
-    # Lazy exports
+    # Backend exports
     "NumPyCanonBackend",
     "NumPyTensorView",
     "SciPyCanonBackend",
     "SciPyTensorView",
     "RustCanonBackend",
-    "LazyCanonBackend",
-    "LazyTensorView",
+    "COOCanonBackend",
+    "COOTensorView",
 ]

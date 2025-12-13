@@ -36,10 +36,11 @@ LINOPS = [
     "hstack", "vstack", "concatenate", "conv", "kron_l", "kron_r",
 ]
 
-# All backends to test (LAZY excluded - WIP with unimplemented linops)
+# All backends to test
 BACKENDS = [
     s.SCIPY_CANON_BACKEND,
     s.NUMPY_CANON_BACKEND,
+    s.COO_CANON_BACKEND,
 ]
 
 

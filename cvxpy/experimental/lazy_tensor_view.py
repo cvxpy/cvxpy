@@ -1,13 +1,10 @@
 """
-Backwards compatibility shim for lazy_tensor_view.
-
-All implementation has been moved to cvxpy.lin_ops.backends.lazy_backend.
-This module re-exports all public classes for backwards compatibility.
+Re-exports from cvxpy.lin_ops.backends.coo_backend.
 """
-from cvxpy.lin_ops.backends.lazy_backend import (
+from cvxpy.lin_ops.backends.coo_backend import (
     CompactTensor,
-    LazyCanonBackend,
-    LazyTensorView,
+    COOCanonBackend,
+    COOTensorView,
     compact_matmul,
     compact_mul_elem,
     compact_reshape,
@@ -15,8 +12,8 @@ from cvxpy.lin_ops.backends.lazy_backend import (
 
 __all__ = [
     "CompactTensor",
-    "LazyCanonBackend",
-    "LazyTensorView",
+    "COOCanonBackend",
+    "COOTensorView",
     "compact_matmul",
     "compact_mul_elem",
     "compact_reshape",

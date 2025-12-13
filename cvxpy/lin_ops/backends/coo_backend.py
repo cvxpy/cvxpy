@@ -13,18 +13,25 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 
-LazyTensorView - An alternative tensor representation that avoids
-creating huge stacked sparse matrices for large parameter problems.
+COO (Coordinate) Backend - 3D sparse tensor backend for large parameter problems.
 
 Instead of storing parameter slices as one stacked matrix of shape (param_size * m, n),
-this stores data in a compact COO-like format: (data, row, col, param_idx).
+this stores data in a compact 3D COO format: (data, row, col, param_idx).
 
-This avoids O(param_size * m) operations when param_size is large.
+This achieves O(nnz) complexity instead of O(param_size * m) for most operations.
 
 Key differences from SciPyTensorView:
 - No stacking: parameter slices are kept separate conceptually
 - Operations are O(nnz) instead of O(rows)
 - get_tensor_representation() is trivial (data already in right format)
+
+Classes:
+- CompactTensor: 3D sparse COO tensor storage
+- COOTensorView: TensorView using CompactTensor
+- COOCanonBackend: Backend implementation
+
+Note: Previously named "Lazy" backend - renamed to COO to better describe the
+storage format (not lazy evaluation, but COO-based 3D tensor representation).
 """
 from __future__ import annotations
 
@@ -582,12 +589,12 @@ def compact_reshape(tensor: CompactTensor, new_m: int, new_n: int) -> CompactTen
     )
 
 
-class LazyTensorView(DictTensorView):
+class COOTensorView(DictTensorView):
     """
     TensorView using CompactTensor storage for O(nnz) operations.
 
     Unlike SciPyTensorView which stores stacked sparse matrices of shape
-    (param_size * m, n), LazyTensorView stores CompactTensor objects that
+    (param_size * m, n), COOTensorView stores CompactTensor objects that
     keep (data, row, col, param_idx) separately.
 
     This avoids O(param_size * m) operations, making it much faster for
@@ -648,9 +655,9 @@ class LazyTensorView(DictTensorView):
                        for var_id, parameter_repr in self.tensor.items()}
 
     def create_new_tensor_view(self, variable_ids: set[int], tensor: Any,
-                               is_parameter_free: bool) -> 'LazyTensorView':
-        """Create new LazyTensorView with same shape information."""
-        return LazyTensorView(
+                               is_parameter_free: bool) -> 'COOTensorView':
+        """Create new COOTensorView with same shape information."""
+        return COOTensorView(
             variable_ids, tensor, is_parameter_free,
             self.param_size_plus_one, self.id_to_col,
             self.param_to_size, self.param_to_col, self.var_length
@@ -669,21 +676,21 @@ class LazyTensorView(DictTensorView):
 
     @staticmethod
     def tensor_type():
-        """The tensor type for LazyTensorView."""
+        """The tensor type for COOTensorView."""
         return CompactTensor
 
 
-class LazyCanonBackend(PythonCanonBackend):
+class COOCanonBackend(PythonCanonBackend):
     """
-    Canon backend using LazyTensorView for O(nnz) operations.
+    Canon backend using COOTensorView for O(nnz) operations.
 
     This backend stores tensors in compact COO format with separate
     parameter indices, avoiding the creation of huge stacked matrices.
     """
 
-    def get_empty_view(self) -> LazyTensorView:
-        """Return an empty LazyTensorView."""
-        return LazyTensorView.get_empty_view(
+    def get_empty_view(self) -> COOTensorView:
+        """Return an empty COOTensorView."""
+        return COOTensorView.get_empty_view(
             self.param_size_plus_one, self.id_to_col,
             self.param_to_size, self.param_to_col, self.var_length
         )
@@ -764,14 +771,14 @@ class LazyCanonBackend(PythonCanonBackend):
     # Tensor operations
     # =========================================================================
 
-    def neg(self, lin_op, view: LazyTensorView) -> LazyTensorView:
+    def neg(self, lin_op, view: COOTensorView) -> COOTensorView:
         """Negate all values."""
         def func(compact, p):
             return compact.negate()
         view.accumulate_over_variables(func, is_param_free_function=True)
         return view
 
-    def sum_entries(self, lin_op, view: LazyTensorView) -> LazyTensorView:
+    def sum_entries(self, lin_op, view: COOTensorView) -> COOTensorView:
         """Sum all entries to scalar."""
         def func(compact, p):
             # Sum to scalar: all rows become 0, but columns stay the same
@@ -788,7 +795,7 @@ class LazyCanonBackend(PythonCanonBackend):
         view.accumulate_over_variables(func, is_param_free_function=True)
         return view
 
-    def reshape(self, lin_op, view: LazyTensorView) -> LazyTensorView:
+    def reshape(self, lin_op, view: COOTensorView) -> COOTensorView:
         """Reshape tensor (column-major order)."""
         new_shape = lin_op.shape
         new_m = int(np.prod(new_shape))
@@ -799,7 +806,7 @@ class LazyCanonBackend(PythonCanonBackend):
         view.accumulate_over_variables(func, is_param_free_function=True)
         return view
 
-    def transpose(self, lin_op, view: LazyTensorView) -> LazyTensorView:
+    def transpose(self, lin_op, view: COOTensorView) -> COOTensorView:
         """
         Transpose the expression.
 
@@ -816,7 +823,7 @@ class LazyCanonBackend(PythonCanonBackend):
         view.select_rows(rows)
         return view
 
-    def mul(self, lin_op, view: LazyTensorView) -> LazyTensorView:
+    def mul(self, lin_op, view: COOTensorView) -> COOTensorView:
         """
         Matrix multiplication - the key optimized operation.
 
@@ -932,7 +939,7 @@ class LazyCanonBackend(PythonCanonBackend):
         else:
             raise ValueError(f"Unknown const type: {lin_op.type}")
 
-    def div(self, lin_op, view: LazyTensorView) -> LazyTensorView:
+    def div(self, lin_op, view: COOTensorView) -> COOTensorView:
         """
         Division by constant: x / d.
 
@@ -961,7 +968,7 @@ class LazyCanonBackend(PythonCanonBackend):
         view.accumulate_over_variables(div_func, is_param_free_function=True)
         return view
 
-    def mul_elem(self, lin_op, view: LazyTensorView) -> LazyTensorView:
+    def mul_elem(self, lin_op, view: COOTensorView) -> COOTensorView:
         """
         Element-wise multiplication: x * d.
         """
@@ -994,14 +1001,14 @@ class LazyCanonBackend(PythonCanonBackend):
 
         return view
 
-    def promote(self, lin_op, view: LazyTensorView) -> LazyTensorView:
+    def promote(self, lin_op, view: COOTensorView) -> COOTensorView:
         """Promote scalar by repeating."""
         num_entries = int(np.prod(lin_op.shape))
         rows = np.zeros(num_entries, dtype=np.int64)
         view.select_rows(rows)
         return view
 
-    def broadcast_to(self, lin_op, view: LazyTensorView) -> LazyTensorView:
+    def broadcast_to(self, lin_op, view: COOTensorView) -> COOTensorView:
         """Broadcast to shape."""
         broadcast_shape = lin_op.shape
         original_shape = lin_op.args[0].shape
@@ -1010,7 +1017,7 @@ class LazyCanonBackend(PythonCanonBackend):
         view.select_rows(rows.astype(np.int64))
         return view
 
-    def index(self, lin_op, view: LazyTensorView) -> LazyTensorView:
+    def index(self, lin_op, view: COOTensorView) -> COOTensorView:
         """Index into tensor."""
         key = lin_op.data
         original_shape = lin_op.args[0].shape
@@ -1021,7 +1028,7 @@ class LazyCanonBackend(PythonCanonBackend):
         view.select_rows(rows.astype(np.int64))
         return view
 
-    def diag_vec(self, lin_op, view: LazyTensorView) -> LazyTensorView:
+    def diag_vec(self, lin_op, view: COOTensorView) -> COOTensorView:
         """Convert vector to diagonal matrix."""
         k = lin_op.data  # Diagonal offset
         n = lin_op.shape[0]
@@ -1049,7 +1056,7 @@ class LazyCanonBackend(PythonCanonBackend):
         view.apply_all(func)
         return view
 
-    def diag_mat(self, lin_op, view: LazyTensorView) -> LazyTensorView:
+    def diag_mat(self, lin_op, view: COOTensorView) -> COOTensorView:
         """Extract diagonal from matrix."""
         k = lin_op.data
         input_shape = lin_op.args[0].shape
@@ -1082,7 +1089,7 @@ class LazyCanonBackend(PythonCanonBackend):
         view.apply_all(func)
         return view
 
-    def trace(self, lin_op, view: LazyTensorView) -> LazyTensorView:
+    def trace(self, lin_op, view: COOTensorView) -> COOTensorView:
         """Compute matrix trace."""
         input_shape = lin_op.args[0].shape
         m, n = input_shape
@@ -1106,7 +1113,7 @@ class LazyCanonBackend(PythonCanonBackend):
         view.apply_all(func)
         return view
 
-    def upper_tri(self, lin_op, view: LazyTensorView) -> LazyTensorView:
+    def upper_tri(self, lin_op, view: COOTensorView) -> COOTensorView:
         """Extract upper triangle."""
         input_shape = lin_op.args[0].shape
         m, n = input_shape
@@ -1157,7 +1164,7 @@ class LazyCanonBackend(PythonCanonBackend):
             param_size=p
         )
 
-    def vstack(self, lin_op, empty_view: LazyTensorView) -> LazyTensorView:
+    def vstack(self, lin_op, empty_view: COOTensorView) -> COOTensorView:
         """
         Vertical stack of expressions.
 
@@ -1214,7 +1221,7 @@ class LazyCanonBackend(PythonCanonBackend):
         res.select_rows(order)
         return res
 
-    def _hstack_internal(self, lin_op, empty_view: LazyTensorView) -> LazyTensorView:
+    def _hstack_internal(self, lin_op, empty_view: COOTensorView) -> COOTensorView:
         """Internal hstack - just concatenates without reordering."""
         views = []
         for arg in lin_op.args:
@@ -1257,15 +1264,15 @@ class LazyCanonBackend(PythonCanonBackend):
         is_param_free = all(v.is_parameter_free for v in views)
         return empty_view.create_new_tensor_view(combined_var_ids, combined_tensor, is_param_free)
 
-    def hstack(self, lin_op, empty_view: LazyTensorView) -> LazyTensorView:
+    def hstack(self, lin_op, empty_view: COOTensorView) -> COOTensorView:
         """Horizontal stack - calls vstack which handles row ordering."""
         return self.vstack(lin_op, empty_view)
 
-    def concatenate(self, lin_op, empty_view: LazyTensorView) -> LazyTensorView:
+    def concatenate(self, lin_op, empty_view: COOTensorView) -> COOTensorView:
         """Concatenate expressions."""
         return self.vstack(lin_op, empty_view)
 
-    def rmul(self, lin_op, view: LazyTensorView) -> LazyTensorView:
+    def rmul(self, lin_op, view: COOTensorView) -> COOTensorView:
         """
         Right multiplication: x @ B.
 
@@ -1287,14 +1294,14 @@ class LazyCanonBackend(PythonCanonBackend):
             view.accumulate_over_variables(func, is_param_free_function=True)
         else:
             # Parametrized rmul - more complex
-            raise NotImplementedError("Parametrized rmul not yet implemented in LazyCanonBackend")
+            raise NotImplementedError("Parametrized rmul not yet implemented in COOCanonBackend")
 
         return view
 
     @staticmethod
     def reshape_constant_data(constant_data: dict, lin_op_shape: tuple) -> dict:
         """Reshape constant data from column format to required shape."""
-        # For LazyCanonBackend, we work with CompactTensor, not raw matrices
+        # For COOCanonBackend, we work with CompactTensor, not raw matrices
         # This is needed for operations that don't use column format
         result = {}
         for k, v in constant_data.items():
@@ -1332,7 +1339,7 @@ class LazyCanonBackend(PythonCanonBackend):
                                      shape=(int(total_rows * p), compact.shape[1]))
         return stack_func
 
-    def conv(self, lin_op, view: LazyTensorView) -> LazyTensorView:
+    def conv(self, lin_op, view: COOTensorView) -> COOTensorView:
         """
         Discrete convolution - not commonly used with large parameters.
         Falls back to sparse operations.
@@ -1340,7 +1347,7 @@ class LazyCanonBackend(PythonCanonBackend):
         from scipy.signal import convolve as scipy_convolve
 
         lhs, is_param_free_lhs = self.get_constant_data(lin_op.data, view, column=False)
-        assert is_param_free_lhs, "LazyCanonBackend does not support parametrized conv"
+        assert is_param_free_lhs, "COOCanonBackend does not support parametrized conv"
 
         # Get lhs as numpy array
         if sp.issparse(lhs):
@@ -1349,7 +1356,7 @@ class LazyCanonBackend(PythonCanonBackend):
             lhs = lhs.T
 
         def func(compact, p):
-            assert p == 1, "LazyCanonBackend does not support parametrized right operand for conv"
+            assert p == 1, "COOCanonBackend does not support parametrized right operand for conv"
             # Convert to sparse, apply convolution, convert back
             sparse = compact.to_stacked_sparse()
             arr = sparse.toarray()
@@ -1360,18 +1367,18 @@ class LazyCanonBackend(PythonCanonBackend):
         view.apply_all(func)
         return view
 
-    def kron_r(self, lin_op, view: LazyTensorView) -> LazyTensorView:
+    def kron_r(self, lin_op, view: COOTensorView) -> COOTensorView:
         """
         Kronecker product kron(a, x) - not commonly used with large parameters.
         """
         lhs, is_param_free_lhs = self.get_constant_data(lin_op.data, view, column=True)
-        assert is_param_free_lhs, "LazyCanonBackend does not support parametrized kron_r"
+        assert is_param_free_lhs, "COOCanonBackend does not support parametrized kron_r"
 
         rhs_shape = lin_op.args[0].shape
         row_idx = self._get_kron_row_indices(lin_op.data.shape, rhs_shape)
 
         def func(compact, p):
-            assert p == 1, "LazyCanonBackend does not support parametrized right operand for kron_r"
+            assert p == 1, "COOCanonBackend does not support parametrized right operand for kron_r"
             sparse = compact.to_stacked_sparse()
             kron_res = sp.kron(lhs, sparse).tocsr()
             kron_res = kron_res[row_idx, :]
@@ -1380,18 +1387,18 @@ class LazyCanonBackend(PythonCanonBackend):
         view.apply_all(func)
         return view
 
-    def kron_l(self, lin_op, view: LazyTensorView) -> LazyTensorView:
+    def kron_l(self, lin_op, view: COOTensorView) -> COOTensorView:
         """
         Kronecker product kron(x, a) - not commonly used with large parameters.
         """
         rhs, is_param_free_rhs = self.get_constant_data(lin_op.data, view, column=True)
-        assert is_param_free_rhs, "LazyCanonBackend does not support parametrized kron_l"
+        assert is_param_free_rhs, "COOCanonBackend does not support parametrized kron_l"
 
         lhs_shape = lin_op.args[0].shape
         row_idx = self._get_kron_row_indices(lhs_shape, lin_op.data.shape)
 
         def func(compact, p):
-            assert p == 1, "LazyCanonBackend does not support parametrized right operand for kron_l"
+            assert p == 1, "COOCanonBackend does not support parametrized right operand for kron_l"
             sparse = compact.to_stacked_sparse()
             kron_res = sp.kron(sparse, rhs).tocsr()
             kron_res = kron_res[row_idx, :]
@@ -1428,5 +1435,5 @@ class LazyCanonBackend(PythonCanonBackend):
             'sum': lambda lin, view: view,  # Sum along axis is implicit
         }
         if op_type not in funcs:
-            raise NotImplementedError(f"Operation '{op_type}' not implemented for LazyCanonBackend")
+            raise NotImplementedError(f"Operation '{op_type}' not implemented for COOCanonBackend")
         return funcs[op_type]
