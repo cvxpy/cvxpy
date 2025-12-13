@@ -48,6 +48,53 @@ from cvxpy.lin_ops.backends import (
     TensorRepresentation,
 )
 
+# Module-level empty array constants to avoid repeated allocations
+_EMPTY_FLOAT = np.array([], dtype=np.float64)
+_EMPTY_INT = np.array([], dtype=np.int64)
+
+
+def _empty_float() -> np.ndarray:
+    """Return a copy of an empty float64 array."""
+    return _EMPTY_FLOAT.copy()
+
+
+def _empty_int() -> np.ndarray:
+    """Return a copy of an empty int64 array."""
+    return _EMPTY_INT.copy()
+
+
+def compute_indptr(indices: np.ndarray, size: int) -> tuple[np.ndarray, np.ndarray]:
+    """
+    Compute CSR/CSC-style indptr directly from COO indices.
+
+    This avoids creating scipy sparse matrices just to get the indptr array.
+    Returns (indptr, sort_perm) where:
+    - sort_perm: permutation that sorts data by the given indices
+    - indptr: array of length size+1 where indptr[i]:indptr[i+1] gives
+              the range for index i in the sorted data
+
+    Example:
+        indices = [2, 0, 2, 1]  # row indices
+        size = 3
+        Returns:
+            sort_perm = [1, 3, 0, 2]  # sorted order
+            indptr = [0, 1, 2, 4]     # row 0: [0:1], row 1: [1:2], row 2: [2:4]
+    """
+    if len(indices) == 0:
+        return np.zeros(size + 1, dtype=np.int64), np.array([], dtype=np.int64)
+
+    sort_perm = np.argsort(indices)
+    sorted_indices = indices[sort_perm]
+
+    # Count entries per index using bincount
+    counts = np.bincount(sorted_indices, minlength=size)
+
+    # Cumsum to get indptr
+    indptr = np.zeros(size + 1, dtype=np.int64)
+    indptr[1:] = np.cumsum(counts)
+
+    return indptr, sort_perm
+
 
 @dataclass
 class CompactTensor:
@@ -115,6 +162,19 @@ class CompactTensor:
         return 2
 
     @classmethod
+    def empty(cls, m: int, n: int, param_size: int) -> CompactTensor:
+        """Create an empty CompactTensor with given dimensions."""
+        return cls(
+            data=_empty_float(),
+            row=_empty_int(),
+            col=_empty_int(),
+            param_idx=_empty_int(),
+            m=m,
+            n=n,
+            param_size=param_size
+        )
+
+    @classmethod
     def from_stacked_sparse(cls, matrix: sp.spmatrix, param_size: int) -> CompactTensor:
         """Convert from stacked sparse matrix."""
         coo = matrix.tocoo()
@@ -156,40 +216,67 @@ class CompactTensor:
           - new row 0 <- old row 2
           - new row 1 <- old row 0
           - new row 2 <- old row 1
+
+        This is a fully vectorized O(nnz + len(rows)) implementation.
         """
         new_m = len(rows)
 
-        # Build reverse mapping: old_row -> list of new_row positions
-        # Since rows[new_pos] = old_pos, we need old_pos -> new_pos
-        # Multiple new rows can come from the same old row (broadcasting)
-        old_to_new = {}
-        for new_pos, old_pos in enumerate(rows):
-            if old_pos not in old_to_new:
-                old_to_new[old_pos] = []
-            old_to_new[old_pos].append(new_pos)
+        if self.nnz == 0:
+            return CompactTensor.empty(new_m, self.n, self.param_size)
 
-        # For each entry in the tensor, map its old row to new row(s)
-        new_data = []
-        new_rows = []
-        new_cols = []
-        new_params = []
+        # Sort the rows array to enable efficient range queries
+        # rows[new_pos] = old_pos, so we sort to find all new_pos for each old_pos
+        row_sort_perm = np.argsort(rows)
+        rows_sorted = rows[row_sort_perm]
 
-        for i in range(self.nnz):
-            old_row = self.row[i]
-            if old_row in old_to_new:
-                for new_pos in old_to_new[old_row]:
-                    new_data.append(self.data[i])
-                    new_rows.append(new_pos)
-                    new_cols.append(self.col[i])
-                    new_params.append(self.param_idx[i])
+        # Find unique tensor rows and how many destinations each maps to
+        unique_tensor_rows, inverse_idx = np.unique(self.row, return_inverse=True)
 
-        empty_f = np.array([], dtype=np.float64)
-        empty_i = np.array([], dtype=np.int64)
+        # For each unique tensor row, find the range in sorted rows via searchsorted
+        left = np.searchsorted(rows_sorted, unique_tensor_rows, side='left')
+        right = np.searchsorted(rows_sorted, unique_tensor_rows, side='right')
+        counts = right - left  # How many new rows each unique tensor row maps to
+
+        # Per-entry counts: how many outputs each tensor entry will produce
+        entry_counts = counts[inverse_idx]
+        total_nnz = entry_counts.sum()
+
+        if total_nnz == 0:
+            return CompactTensor.empty(new_m, self.n, self.param_size)
+
+        # Expand entries according to counts using np.repeat
+        out_data = np.repeat(self.data, entry_counts)
+        out_col = np.repeat(self.col, entry_counts)
+        out_param = np.repeat(self.param_idx, entry_counts)
+
+        # Build output row indices:
+        # For each repeated entry, we need to gather from row_sort_perm at the
+        # appropriate position within its range [left, right)
+
+        # Get the left boundary for each entry
+        entry_lefts = np.repeat(left[inverse_idx], entry_counts)
+
+        # Build position-within-range using cumsum trick
+        # First, compute the starting offset for each entry's outputs
+        entry_offsets = np.zeros(len(self.data) + 1, dtype=np.int64)
+        entry_offsets[1:] = np.cumsum(entry_counts)
+
+        # Position within each entry's range: [0, 1, 2, ...] repeating per entry
+        positions = np.arange(total_nnz, dtype=np.int64) - np.repeat(
+            entry_offsets[:-1], entry_counts
+        )
+
+        # Gather indices into row_sort_perm
+        gather_idx = entry_lefts + positions
+
+        # The output rows are the positions in the original rows array
+        out_row = row_sort_perm[gather_idx]
+
         return CompactTensor(
-            data=np.array(new_data, dtype=np.float64) if new_data else empty_f,
-            row=np.array(new_rows, dtype=np.int64) if new_rows else empty_i,
-            col=np.array(new_cols, dtype=np.int64) if new_cols else empty_i,
-            param_idx=np.array(new_params, dtype=np.int64) if new_params else empty_i,
+            data=out_data,
+            row=out_row,
+            col=out_col,
+            param_idx=out_param,
             m=new_m,
             n=self.n,
             param_size=self.param_size
@@ -262,14 +349,10 @@ def compact_matmul(lhs: CompactTensor, rhs: CompactTensor) -> CompactTensor:
         # For each non-zero in lhs at (p, i, j), multiply by rhs row j
         # Result goes to (p, i, :)
 
-        # Build CSR for rhs for fast row access
-        rhs_csr = sp.csr_array(
-            (rhs.data, (rhs.row, rhs.col)),
-            shape=(rhs.m, rhs.n)
-        )
-        rhs_indptr = rhs_csr.indptr
-        rhs_indices = rhs_csr.indices
-        rhs_data = rhs_csr.data
+        # Build CSR-style indptr for rhs for fast row access (without scipy)
+        rhs_indptr, rhs_sort_perm = compute_indptr(rhs.row, rhs.m)
+        rhs_indices = rhs.col[rhs_sort_perm]  # col indices sorted by row
+        rhs_data = rhs.data[rhs_sort_perm]
 
         # For each lhs entry, find how many rhs entries it will generate
         lhs_cols = lhs.col  # These index into rhs rows
@@ -277,15 +360,7 @@ def compact_matmul(lhs: CompactTensor, rhs: CompactTensor) -> CompactTensor:
         total_nnz = nnz_per_lhs.sum()
 
         if total_nnz == 0:
-            return CompactTensor(
-                data=np.array([], dtype=np.float64),
-                row=np.array([], dtype=np.int64),
-                col=np.array([], dtype=np.int64),
-                param_idx=np.array([], dtype=np.int64),
-                m=lhs.m,
-                n=rhs.n,
-                param_size=lhs.param_size
-            )
+            return CompactTensor.empty(lhs.m, rhs.n, lhs.param_size)
 
         # Pre-allocate output
         out_data = np.empty(total_nnz, dtype=np.float64)
@@ -325,14 +400,10 @@ def compact_matmul(lhs: CompactTensor, rhs: CompactTensor) -> CompactTensor:
         # For each rhs entry at (p, j, k), multiply by all lhs entries with col == j
         # Result goes to (p, lhs.row, k)
 
-        # Build CSC for lhs for fast column access
-        lhs_csc = sp.csc_array(
-            (lhs.data, (lhs.row, lhs.col)),
-            shape=(lhs.m, lhs.n)
-        )
-        lhs_indptr = lhs_csc.indptr
-        lhs_indices = lhs_csc.indices  # row indices
-        lhs_data = lhs_csc.data
+        # Build CSC-style indptr for lhs for fast column access (without scipy)
+        lhs_indptr, lhs_sort_perm = compute_indptr(lhs.col, lhs.n)
+        lhs_indices = lhs.row[lhs_sort_perm]  # row indices sorted by col
+        lhs_data = lhs.data[lhs_sort_perm]
 
         # For each rhs entry, find how many lhs entries it will generate
         rhs_rows = rhs.row  # These index into lhs columns
@@ -340,15 +411,7 @@ def compact_matmul(lhs: CompactTensor, rhs: CompactTensor) -> CompactTensor:
         total_nnz = nnz_per_rhs.sum()
 
         if total_nnz == 0:
-            return CompactTensor(
-                data=np.array([], dtype=np.float64),
-                row=np.array([], dtype=np.int64),
-                col=np.array([], dtype=np.int64),
-                param_idx=np.array([], dtype=np.int64),
-                m=lhs.m,
-                n=rhs.n,
-                param_size=rhs.param_size
-            )
+            return CompactTensor.empty(lhs.m, rhs.n, rhs.param_size)
 
         # Expand rhs entries
         out_col = np.repeat(rhs.col, nnz_per_rhs)
@@ -430,15 +493,7 @@ def compact_matmul(lhs: CompactTensor, rhs: CompactTensor) -> CompactTensor:
                 ))
 
         if not results:
-            return CompactTensor(
-                data=np.array([], dtype=np.float64),
-                row=np.array([], dtype=np.int64),
-                col=np.array([], dtype=np.int64),
-                param_idx=np.array([], dtype=np.int64),
-                m=lhs.m,
-                n=rhs.n,
-                param_size=lhs.param_size
-            )
+            return CompactTensor.empty(lhs.m, rhs.n, lhs.param_size)
 
         all_data = np.concatenate([r[0] for r in results])
         all_row = np.concatenate([r[1] for r in results]).astype(np.int64)
@@ -471,15 +526,7 @@ def compact_mul_elem(lhs: CompactTensor, rhs: CompactTensor) -> CompactTensor:
             # Scalar multiplication - multiply all lhs entries by rhs scalar
             scalar_val = rhs.data[0] if rhs.nnz == 1 else 0.0
             if scalar_val == 0:
-                return CompactTensor(
-                    data=np.array([], dtype=np.float64),
-                    row=np.array([], dtype=np.int64),
-                    col=np.array([], dtype=np.int64),
-                    param_idx=np.array([], dtype=np.int64),
-                    m=lhs.m,
-                    n=lhs.n,
-                    param_size=lhs.param_size
-                )
+                return CompactTensor.empty(lhs.m, lhs.n, lhs.param_size)
             return CompactTensor(
                 data=lhs.data * scalar_val,
                 row=lhs.row.copy(),
@@ -494,39 +541,42 @@ def compact_mul_elem(lhs: CompactTensor, rhs: CompactTensor) -> CompactTensor:
         # This happens with parametric mul_elem: param is (m, 1), var is (m, num_vars)
         # For element-wise multiply, match by row and use rhs columns
         if lhs.n == 1 and rhs.n > 1:
-            # Build row-indexed lookup for rhs
-            # For each row, store a list of (col, value) pairs
-            from collections import defaultdict
-            rhs_by_row = defaultdict(list)
-            for i in range(rhs.nnz):
-                rhs_by_row[rhs.row[i]].append((rhs.col[i], rhs.data[i]))
+            # Vectorized: build CSR-style index on rhs by row
+            rhs_indptr, rhs_sort_perm = compute_indptr(rhs.row, rhs.m)
+            rhs_col_sorted = rhs.col[rhs_sort_perm]
+            rhs_data_sorted = rhs.data[rhs_sort_perm]
 
-            # For each lhs entry, find matching rhs entries by row
-            out_data = []
-            out_row = []
-            out_col = []
-            out_param = []
-            for i in range(lhs.nnz):
-                lhs_row = lhs.row[i]
-                lhs_val = lhs.data[i]
-                lhs_param = lhs.param_idx[i]
-                for rhs_col, rhs_val in rhs_by_row[lhs_row]:
-                    result_val = lhs_val * rhs_val
-                    if result_val != 0:
-                        out_data.append(result_val)
-                        out_row.append(lhs_row)
-                        out_col.append(rhs_col)
-                        out_param.append(lhs_param)
+            # For each lhs entry, count matching rhs entries by row
+            lhs_rows = lhs.row
+            nnz_per_lhs = np.diff(rhs_indptr)[lhs_rows]
+            total_nnz = nnz_per_lhs.sum()
 
-            empty_f = np.array([], dtype=np.float64)
-            empty_i = np.array([], dtype=np.int64)
+            if total_nnz == 0:
+                return CompactTensor.empty(lhs.m, rhs.n, lhs.param_size)
+
+            # Expand lhs entries
+            out_row = np.repeat(lhs.row, nnz_per_lhs)
+            out_param = np.repeat(lhs.param_idx, nnz_per_lhs)
+            lhs_vals = np.repeat(lhs.data, nnz_per_lhs)
+
+            # Build gather indices for rhs (same pattern as compact_matmul)
+            rhs_starts = rhs_indptr[lhs_rows]
+            idx_offsets = np.arange(total_nnz) - np.repeat(
+                np.concatenate([[0], np.cumsum(nnz_per_lhs)[:-1]]),
+                nnz_per_lhs
+            )
+            gather_idx = np.repeat(rhs_starts, nnz_per_lhs) + idx_offsets
+
+            out_col = rhs_col_sorted[gather_idx]
+            out_data = lhs_vals * rhs_data_sorted[gather_idx]
+
             return CompactTensor(
-                data=np.array(out_data, dtype=np.float64) if out_data else empty_f,
-                row=np.array(out_row, dtype=np.int64) if out_row else empty_i,
-                col=np.array(out_col, dtype=np.int64) if out_col else empty_i,
-                param_idx=np.array(out_param, dtype=np.int64) if out_param else empty_i,
+                data=out_data,
+                row=out_row,
+                col=out_col,
+                param_idx=out_param,
                 m=lhs.m,
-                n=rhs.n,  # Use rhs.n for output columns
+                n=rhs.n,
                 param_size=lhs.param_size
             )
 
@@ -578,38 +628,37 @@ def compact_mul_elem(lhs: CompactTensor, rhs: CompactTensor) -> CompactTensor:
 
     else:
         # Both parametrized - element-wise multiply matching slices
+        # Vectorized: sorted merge with searchsorted
         assert lhs.param_size == rhs.param_size, \
             "Mismatched param_size in compact_mul_elem"
 
-        # Build lookup for rhs by (param_idx, row, col) -> data
-        # Use linear indexing: param_idx * (m * n) + row * n + col
-        rhs_linear = (rhs.param_idx * (rhs.m * rhs.n) +
-                      rhs.row * rhs.n + rhs.col)
-        rhs_lookup = {}
-        for i, lin_idx in enumerate(rhs_linear):
-            rhs_lookup[lin_idx] = rhs.data[i]
+        # Compute linear indices: param_idx * (m * n) + row * n + col
+        slice_size = lhs.m * lhs.n
+        lhs_linear = lhs.param_idx * slice_size + lhs.row * lhs.n + lhs.col
+        rhs_linear = rhs.param_idx * slice_size + rhs.row * rhs.n + rhs.col
 
-        # For each lhs entry, find matching rhs entry
-        lhs_linear = (lhs.param_idx * (lhs.m * lhs.n) +
-                      lhs.row * lhs.n + lhs.col)
+        # Sort rhs for binary search
+        rhs_sort = np.argsort(rhs_linear)
+        rhs_sorted = rhs_linear[rhs_sort]
 
-        out_data = []
-        out_row = []
-        out_col = []
-        out_param = []
+        # Find matching indices in rhs for each lhs entry
+        match_pos = np.searchsorted(rhs_sorted, lhs_linear)
 
-        for i, lin_idx in enumerate(lhs_linear):
-            if lin_idx in rhs_lookup:
-                out_data.append(lhs.data[i] * rhs_lookup[lin_idx])
-                out_row.append(lhs.row[i])
-                out_col.append(lhs.col[i])
-                out_param.append(lhs.param_idx[i])
+        # Check which matches are valid (within bounds and actually equal)
+        match_pos_clipped = np.minimum(match_pos, len(rhs_sorted) - 1)
+        valid = (match_pos < len(rhs_sorted)) & (rhs_sorted[match_pos_clipped] == lhs_linear)
+
+        if not valid.any():
+            return CompactTensor.empty(lhs.m, lhs.n, lhs.param_size)
+
+        # Get matching rhs indices in original order
+        rhs_match_idx = rhs_sort[match_pos[valid]]
 
         return CompactTensor(
-            data=np.array(out_data, dtype=np.float64),
-            row=np.array(out_row, dtype=np.int64),
-            col=np.array(out_col, dtype=np.int64),
-            param_idx=np.array(out_param, dtype=np.int64),
+            data=lhs.data[valid] * rhs.data[rhs_match_idx],
+            row=lhs.row[valid].copy(),
+            col=lhs.col[valid].copy(),
+            param_idx=lhs.param_idx[valid].copy(),
             m=lhs.m,
             n=lhs.n,
             param_size=lhs.param_size
