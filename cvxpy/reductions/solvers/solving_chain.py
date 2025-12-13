@@ -252,9 +252,7 @@ def construct_solving_chain(problem, candidates,
             reductions = [EvalParams()] + reductions
         else:
             raise DPPError(DPP_ERROR_MSG)
-    elif any(param.is_complex() for param in problem.parameters()):
-        reductions = [EvalParams()] + reductions
-    else:  # Compilation with DPP.
+    else:  # Compilation with DPP (including complex parameters).
         n_parameters = sum(np.prod(param.shape) for param in problem.parameters())
         if n_parameters >= PARAM_THRESHOLD:
             warnings.warn(

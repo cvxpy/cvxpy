@@ -64,6 +64,19 @@ class Dgp2Dcp(Canonicalization):
         """
         return problem.is_dgp()
 
+    def update_parameters(self, problem) -> None:
+        """Update log-parameter values from original parameters.
+
+        Called at solve time in the DPP fast path. Parameters are transformed
+        to log-space during canonicalization; this method sets the log-parameter
+        values from the original parameter values.
+        """
+        if self.canon_methods is None:
+            return
+        for param in problem.parameters():
+            if param in self.canon_methods._parameters:
+                self.canon_methods._parameters[param].value = np.log(param.value)
+
     def apply(self, problem):
         """Converts a DGP problem to a DCP problem.
         """

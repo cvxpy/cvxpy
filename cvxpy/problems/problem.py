@@ -786,18 +786,11 @@ class Problem(u.Canonical):
                 s.LOGGER.info(
                         'Using cached ASA map, for faster compilation '
                         '(bypassing reduction chain).')
-            if gp:
-                dgp2dcp = self._cache.solving_chain.get(Dgp2Dcp)
-                # Parameters in the param cone prog are the logs
-                # of parameters in the original problem (with one exception:
-                # parameters appearing as exponents (in power and gmatmul
-                # atoms) are unchanged.
-                old_params_to_new_params = dgp2dcp.canon_methods._parameters
-                for param in self.parameters():
-
-                    if param in old_params_to_new_params:
-                        old_params_to_new_params[param].value = np.log(
-                            param.value)
+            # Update parameter values for reductions that transform them.
+            # Each reduction handles its own parameter transformations
+            # (e.g., Dgp2Dcp applies log(), Complex2Real splits into real/imag).
+            for reduction in solving_chain.reductions:
+                reduction.update_parameters(self)
 
             data, solver_inverse_data = solving_chain.solver.apply(
                 self._cache.param_prog)

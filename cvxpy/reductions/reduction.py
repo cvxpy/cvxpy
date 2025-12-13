@@ -69,6 +69,21 @@ class Reduction(metaclass=ABCMeta):
         """
         raise NotImplementedError()
 
+    def update_parameters(self, problem) -> None:
+        """Update transformed parameter values at solve time.
+
+        Called in the DPP fast path before solving. Reductions that transform
+        parameters (e.g., Dgp2Dcp applies log(), Complex2Real splits into
+        real/imag) override this method to update the transformed parameter
+        values from the original parameter values.
+
+        Parameters
+        ----------
+        problem : Problem
+            The original problem with parameter values set.
+        """
+        pass
+
     def reduce(self):
         """Reduces the owned problem to an equivalent problem.
 

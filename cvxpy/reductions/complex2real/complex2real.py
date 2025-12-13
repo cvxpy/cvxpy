@@ -14,6 +14,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+import numpy as np
+
 from cvxpy import problems
 from cvxpy import settings as s
 from cvxpy.atoms.affine.upper_tri import vec_to_upper_tri
@@ -28,7 +30,12 @@ from cvxpy.constraints.constraint import Constraint
 from cvxpy.expressions import cvxtypes
 from cvxpy.lin_ops import lin_utils as lu
 from cvxpy.reductions import InverseData, Solution
-from cvxpy.reductions.complex2real.canonicalizers import CANON_METHODS as elim_cplx_methods
+from cvxpy.reductions.complex2real.canonicalizers import (
+    CANON_METHODS as elim_cplx_methods,
+)
+from cvxpy.reductions.complex2real.canonicalizers import (
+    Complex2RealCanonMethods,
+)
 from cvxpy.reductions.reduction import Reduction
 
 
@@ -38,14 +45,48 @@ def accepts(problem) -> bool:
 
 
 class Complex2Real(Reduction):
-    """Lifts complex numbers to a real representation."""
+    """Lifts complex numbers to a real representation.
+
+    For DPP (Disciplined Parameterized Programming) support, this reduction
+    tracks complex parameter mappings in canon_methods._parameters. At solve
+    time, the real/imaginary parameter values are set from the original
+    complex parameter values.
+    """
 
     UNIMPLEMENTED_COMPLEX_DUALS = (SOC, OpRelEntrConeQuad)
+
+    def __init__(self) -> None:
+        super().__init__()
+        # Stateful canonicalizers for tracking complex parameter mappings.
+        # Set in apply() to enable DPP for complex parameters.
+        self.canon_methods = None
 
     def accepts(self, problem) -> None:
         accepts(problem)
 
+    def update_parameters(self, problem) -> None:
+        """Update real/imag parameter values from complex parameters.
+
+        Called at solve time in the DPP fast path. Complex parameters are
+        split into real/imag parameter pairs during canonicalization; this
+        method sets their values from the original complex parameter values.
+        """
+        if self.canon_methods is None:
+            return
+        for param in problem.parameters():
+            if param in self.canon_methods._parameters:
+                real_param, imag_param = self.canon_methods._parameters[param]
+                if real_param is not None:
+                    real_param.value = np.real(param.value)
+                if imag_param is not None:
+                    imag_param.value = np.imag(param.value)
+
     def apply(self, problem):
+        # Create fresh stateful canonicalizers for this problem.
+        # This enables DPP by tracking the mapping from complex parameters
+        # to their real/imaginary parameter pairs.
+        self.canon_methods = Complex2RealCanonMethods()
+
         inverse_data = InverseData(problem)
         real2imag = {var.id: lu.get_id() for var in problem.variables()
                      if var.is_complex()}
@@ -173,11 +214,14 @@ class Complex2Real(Reduction):
         return real_out, imag_out
 
     def canonicalize_expr(self, expr, real_args, imag_args, real2imag, leaf_map):
-        if type(expr) in elim_cplx_methods:
+        # Use stateful canon_methods (enables DPP for complex parameters).
+        # canon_methods is set in apply() before this method is called.
+        canon_methods = self.canon_methods if self.canon_methods is not None else elim_cplx_methods
+        if type(expr) in canon_methods:
             # Only canonicalize a variable/constant/parameter once.
             if len(expr.args) == 0 and expr in leaf_map:
                 return leaf_map[expr]
-            result = elim_cplx_methods[type(expr)](expr, real_args, imag_args, real2imag)
+            result = canon_methods[type(expr)](expr, real_args, imag_args, real2imag)
             if len(expr.args) == 0:
                 leaf_map[expr] = result
             return result

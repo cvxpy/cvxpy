@@ -14,6 +14,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+import numpy as np
+
 from cvxpy.atoms import (MatrixFrac, Pnorm, QuadForm, abs, bmat, conj, conv,
                          convolve, cumsum, imag, kron, lambda_max,
                          lambda_sum_largest, log_det, norm1, norm_inf,
@@ -118,3 +120,63 @@ CANON_METHODS = {
     von_neumann_entr: von_neumann_entr_canon,
     quantum_rel_entr: quantum_rel_entr_canon
 }
+
+
+class Complex2RealCanonMethods(dict):
+    """Stateful canonicalizers that track complex parameter mappings for DPP.
+
+    This class follows the same pattern as DgpCanonMethods: it creates new
+    Parameters for the real and imaginary parts of complex parameters, rather
+    than wrapping them in real()/imag() atoms. This enables DPP (Disciplined
+    Parameterized Programming) for problems with complex parameters.
+
+    The mapping from original complex parameters to their real/imag parameter
+    pairs is stored in _parameters, and used at solve time to transform
+    parameter values.
+    """
+
+    def __init__(self) -> None:
+        super().__init__()
+        self._parameters = {}  # {orig_param: (real_param, imag_param)}
+
+    def __contains__(self, key):
+        return key in CANON_METHODS
+
+    def __getitem__(self, key):
+        if key == Parameter:
+            return self._param_canon
+        return CANON_METHODS[key]
+
+    def _param_canon(self, expr, real_args, imag_args, real2imag):
+        """Canonicalize complex parameters to real/imag parameter pairs.
+
+        Instead of returning real(expr) and imag(expr) atoms (which lack
+        graph_implementation and cannot be canonicalized in DPP mode),
+        we create new Parameters for the real and imaginary parts.
+
+        At solve time, these parameters' values are set from the original
+        complex parameter's value using np.real() and np.imag().
+        """
+        if expr.is_real():
+            return expr, None
+
+        # Return cached result if already canonicalized
+        if expr in self._parameters:
+            return self._parameters[expr]
+
+        if expr.is_imag():
+            # Purely imaginary parameter
+            imag_param = Parameter(expr.shape, name=f"{expr.name()}_imag")
+            if expr.value is not None:
+                imag_param.value = np.imag(expr.value)
+            self._parameters[expr] = (None, imag_param)
+            return None, imag_param
+
+        # General complex parameter
+        real_param = Parameter(expr.shape, name=f"{expr.name()}_real")
+        imag_param = Parameter(expr.shape, name=f"{expr.name()}_imag")
+        if expr.value is not None:
+            real_param.value = np.real(expr.value)
+            imag_param.value = np.imag(expr.value)
+        self._parameters[expr] = (real_param, imag_param)
+        return real_param, imag_param
