@@ -211,6 +211,18 @@ class CompactTensor:
         """Negate all values."""
         return self.scale(-1.0)
 
+    def transpose(self) -> CompactTensor:
+        """Transpose each slice (swap rows and cols)."""
+        return CompactTensor(
+            data=self.data.copy(),
+            row=self.col.copy(),  # Swap row and col
+            col=self.row.copy(),
+            param_idx=self.param_idx.copy(),
+            m=self.n,  # Swap m and n
+            n=self.m,
+            param_size=self.param_size
+        )
+
     def __add__(self, other: CompactTensor) -> CompactTensor:
         """Add two CompactTensors (concatenate entries)."""
         # Allow different n (column counts) - take max
@@ -475,6 +487,46 @@ def compact_mul_elem(lhs: CompactTensor, rhs: CompactTensor) -> CompactTensor:
                 param_idx=lhs.param_idx.copy(),
                 m=lhs.m,
                 n=lhs.n,
+                param_size=lhs.param_size
+            )
+
+        # Handle case where lhs is in column format (n=1) but rhs has multiple columns
+        # This happens with parametric mul_elem: param is (m, 1), var is (m, num_vars)
+        # For element-wise multiply, match by row and use rhs columns
+        if lhs.n == 1 and rhs.n > 1:
+            # Build row-indexed lookup for rhs
+            # For each row, store a list of (col, value) pairs
+            from collections import defaultdict
+            rhs_by_row = defaultdict(list)
+            for i in range(rhs.nnz):
+                rhs_by_row[rhs.row[i]].append((rhs.col[i], rhs.data[i]))
+
+            # For each lhs entry, find matching rhs entries by row
+            out_data = []
+            out_row = []
+            out_col = []
+            out_param = []
+            for i in range(lhs.nnz):
+                lhs_row = lhs.row[i]
+                lhs_val = lhs.data[i]
+                lhs_param = lhs.param_idx[i]
+                for rhs_col, rhs_val in rhs_by_row[lhs_row]:
+                    result_val = lhs_val * rhs_val
+                    if result_val != 0:
+                        out_data.append(result_val)
+                        out_row.append(lhs_row)
+                        out_col.append(rhs_col)
+                        out_param.append(lhs_param)
+
+            empty_f = np.array([], dtype=np.float64)
+            empty_i = np.array([], dtype=np.int64)
+            return CompactTensor(
+                data=np.array(out_data, dtype=np.float64) if out_data else empty_f,
+                row=np.array(out_row, dtype=np.int64) if out_row else empty_i,
+                col=np.array(out_col, dtype=np.int64) if out_col else empty_i,
+                param_idx=np.array(out_param, dtype=np.int64) if out_param else empty_i,
+                m=lhs.m,
+                n=rhs.n,  # Use rhs.n for output columns
                 param_size=lhs.param_size
             )
 
@@ -848,7 +900,10 @@ class COOCanonBackend(PythonCanonBackend):
             lhs_k = lhs_shape_2d[-1]  # Inner dimension of A
 
             # Convert to sparse and apply kron expansion
-            if sp.issparse(lhs_data):
+            # get_constant_data may return CompactTensor, sparse, or dense array
+            if isinstance(lhs_data, CompactTensor):
+                lhs_sparse = lhs_data.to_stacked_sparse()
+            elif sp.issparse(lhs_data):
                 lhs_sparse = lhs_data
             else:
                 lhs_sparse = sp.csr_array(np.atleast_2d(lhs_data))
@@ -891,8 +946,9 @@ class COOCanonBackend(PythonCanonBackend):
             )
             return {param_id: compact}, True
         else:
-            # Constant lhs
-            return self.get_constant_data_from_const(lhs), False
+            # Constant lhs - use get_constant_data to handle complex expressions
+            lhs_data, is_param_free = self.get_constant_data(lhs, view, column=False)
+            return lhs_data, not is_param_free  # return (data, is_parametric)
 
     def _make_compact_from_dense(self, data, target_shape):
         """Convert dense/sparse data to CompactTensor.
@@ -1084,20 +1140,110 @@ class COOCanonBackend(PythonCanonBackend):
     # vstack, hstack, concatenate: use base class implementations
 
     def rmul(self, lin_op, view: COOTensorView) -> COOTensorView:
-        """Right multiplication: x @ B."""
-        raise NotImplementedError("rmul not yet implemented in COOCanonBackend")
+        """
+        Right multiplication: x @ B.
+
+        For X @ B where X is (m, k) variable and B is (k, n) constant:
+        vec(X @ B) = (B.T ⊗ I_m) @ vec(X)
+
+        Supports both constant and parametrized B.
+        """
+        lhs, is_param_free_lhs = self.get_constant_data(lin_op.data, view, column=False)
+
+        # Get dimensions
+        arg_shape = lin_op.args[0].shape
+        arg_cols = arg_shape[0] if len(arg_shape) == 1 else arg_shape[1]
+
+        if is_param_free_lhs:
+            # Constant B case
+            # Convert to sparse - may be CompactTensor or sparse matrix
+            if isinstance(lhs, CompactTensor):
+                lhs_sparse = lhs.to_stacked_sparse()
+            elif sp.issparse(lhs):
+                lhs_sparse = lhs
+            else:
+                lhs_sparse = sp.csr_array(np.atleast_2d(lhs))
+
+            # Handle 1D case - may need transpose
+            if len(lin_op.data.shape) == 1 and arg_cols != lhs_sparse.shape[0]:
+                lhs_sparse = lhs_sparse.T
+
+            # Compute kron(B.T, I_reps) where reps = X_rows / B_rows
+            reps = view.rows // lhs_sparse.shape[0]
+            if reps > 1:
+                stacked_lhs = sp.kron(lhs_sparse.T, sp.eye_array(reps, format="csr"))
+            else:
+                stacked_lhs = lhs_sparse.T
+
+            # Convert to CompactTensor
+            stacked_compact = self._make_compact_from_sparse(stacked_lhs)
+
+            def rmul_func(compact, p):
+                return compact_matmul(stacked_compact, compact)
+
+            view.accumulate_over_variables(rmul_func, is_param_free_function=True)
+            return view
+        else:
+            # Parametrized B case
+            # lhs is dict {param_id: CompactTensor}
+
+            # Get representative param slice to determine dimensions
+            param_id, first_compact = next(iter(lhs.items()))
+            lhs_rows = first_compact.m
+
+            # Handle 1D case - may need transpose
+            if len(lin_op.data.shape) == 1 and arg_cols != lhs_rows:
+                lhs = {k: v.transpose() for k, v in lhs.items()}
+                param_id, first_compact = next(iter(lhs.items()))
+                lhs_rows = first_compact.m
+
+            reps = view.rows // lhs_rows
+
+            # Transpose each param slice (B.T)
+            lhs_transposed = {k: v.transpose() for k, v in lhs.items()}
+
+            # Apply kron expansion if needed
+            if reps > 1:
+                # kron(B.T, I_reps) for each param slice
+                stacked_lhs = {}
+                for k, v in lhs_transposed.items():
+                    v_sparse = v.to_stacked_sparse()
+                    kron_result = sp.kron(v_sparse, sp.eye_array(reps, format="csr"))
+                    stacked_lhs[k] = self._make_compact_from_sparse(kron_result)
+            else:
+                stacked_lhs = {k: self._make_compact_from_sparse(v.to_stacked_sparse())
+                               for k, v in lhs_transposed.items()}
+
+            def parametrized_rmul(rhs_compact):
+                # Multiply each param slice of stacked_lhs with the constant rhs
+                return {k: compact_matmul(v, rhs_compact) for k, v in stacked_lhs.items()}
+
+            # Apply to each variable tensor
+            new_tensor = {}
+            for var_id, var_tensor in view.tensor.items():
+                const_compact = var_tensor[Constant.ID.value]
+                new_tensor[var_id] = parametrized_rmul(const_compact)
+
+            return view.create_new_tensor_view(
+                view.variable_ids, new_tensor, is_parameter_free=False
+            )
 
     @staticmethod
     def reshape_constant_data(constant_data: dict, lin_op_shape: tuple) -> dict:
-        """Reshape constant data from column format to required shape."""
+        """Reshape constant data from column format to required shape.
+
+        The input CompactTensor is in column format (m*n, 1). We reshape it
+        to (m, n) for operations like mul that need the actual shape.
+        """
         result = {}
         for k, v in constant_data.items():
             if isinstance(v, CompactTensor):
                 new_m = lin_op_shape[0] if len(lin_op_shape) > 0 else 1
                 new_n = lin_op_shape[1] if len(lin_op_shape) > 1 else 1
-                result[k] = compact_reshape(v, new_m * new_n, 1)
+                # Reshape from column (m*n, 1) to matrix (m, n)
+                result[k] = compact_reshape(v, new_m, new_n)
             else:
-                result[k] = v.reshape((-1, 1), order='F') if hasattr(v, 'reshape') else v
+                result[k] = v.reshape(lin_op_shape, order='F') if hasattr(v, 'reshape') else v
         return result
 
     @staticmethod
@@ -1116,16 +1262,118 @@ class COOCanonBackend(PythonCanonBackend):
         return stack_func
 
     def conv(self, lin_op, view: COOTensorView) -> COOTensorView:
-        """Discrete convolution."""
-        raise NotImplementedError("conv not yet implemented in COOCanonBackend")
+        """
+        Discrete convolution.
+
+        Builds a Toeplitz-like matrix from the convolution kernel and multiplies.
+
+        Note: conv currently doesn't support parameters.
+        """
+        lhs, is_param_free_lhs = self.get_constant_data(lin_op.data, view, column=False)
+        assert is_param_free_lhs, "conv doesn't support parametrized kernel"
+
+        # Convert to sparse - may be CompactTensor or sparse matrix
+        if isinstance(lhs, CompactTensor):
+            lhs_sparse = lhs.to_stacked_sparse().tocoo()
+        elif sp.issparse(lhs):
+            lhs_sparse = lhs.tocoo()
+        else:
+            lhs_arr = np.atleast_2d(lhs)
+            lhs_sparse = sp.coo_array(lhs_arr)
+
+        # Need column vector for convolution
+        # SciPy returns (1, n) for 1D data and transposes to (n, 1)
+        # COO returns (n, 1) already, so check actual shape
+        if lhs_sparse.shape[0] == 1 and lhs_sparse.shape[1] > 1:
+            # Row vector -> transpose to column
+            lhs_sparse = lhs_sparse.T.tocoo()
+
+        rows = lin_op.shape[0]
+        cols = lin_op.args[0].shape[0] if len(lin_op.args[0].shape) > 0 else 1
+
+        # Build Toeplitz-like convolution matrix
+        nonzeros = lhs_sparse.nnz
+        row_idx = (np.tile(lhs_sparse.row, cols) +
+                   np.repeat(np.arange(cols), nonzeros)).astype(int)
+        col_idx = (np.tile(lhs_sparse.col, cols) +
+                   np.repeat(np.arange(cols), nonzeros)).astype(int)
+        data = np.tile(lhs_sparse.data, cols)
+
+        conv_matrix = sp.csr_array((data, (row_idx, col_idx)), shape=(rows, cols))
+        conv_compact = self._make_compact_from_sparse(conv_matrix)
+
+        def conv_func(compact, p):
+            assert compact.param_size == 1, "conv doesn't support parametrized input"
+            return compact_matmul(conv_compact, compact)
+
+        view.accumulate_over_variables(conv_func, is_param_free_function=True)
+        return view
 
     def kron_r(self, lin_op, view: COOTensorView) -> COOTensorView:
-        """Kronecker product kron(a, x)."""
-        raise NotImplementedError("kron_r not yet implemented in COOCanonBackend")
+        """
+        Kronecker product kron(a, x).
+
+        Computes kron(a, x) and reorders rows to match CVXPY's column-major ordering.
+
+        Note: kron_r currently doesn't support parameters.
+        """
+        lhs, is_param_free_lhs = self.get_constant_data(lin_op.data, view, column=True)
+        assert is_param_free_lhs, "kron_r doesn't support parametrized left operand"
+
+        # Convert lhs to sparse - may be CompactTensor or sparse matrix
+        if isinstance(lhs, CompactTensor):
+            lhs_sparse = lhs.to_stacked_sparse()
+        elif sp.issparse(lhs):
+            lhs_sparse = lhs
+        else:
+            lhs_sparse = sp.csr_array(np.asarray(lhs))
+
+        rhs_shape = lin_op.args[0].shape
+        row_idx = self._get_kron_row_indices(lin_op.data.shape, rhs_shape)
+
+        def kron_r_func(compact, p):
+            assert compact.param_size == 1, "kron_r doesn't support parametrized input"
+            # Convert to sparse, compute kron, reorder rows
+            x_sparse = compact.to_stacked_sparse()
+            kron_res = sp.kron(lhs_sparse, x_sparse).tocsr()
+            kron_res = kron_res[row_idx, :]
+            return CompactTensor.from_stacked_sparse(kron_res, param_size=1)
+
+        view.accumulate_over_variables(kron_r_func, is_param_free_function=True)
+        return view
 
     def kron_l(self, lin_op, view: COOTensorView) -> COOTensorView:
-        """Kronecker product kron(x, a)."""
-        raise NotImplementedError("kron_l not yet implemented in COOCanonBackend")
+        """
+        Kronecker product kron(x, a).
+
+        Computes kron(x, a) and reorders rows to match CVXPY's column-major ordering.
+
+        Note: kron_l currently doesn't support parameters.
+        """
+        rhs, is_param_free_rhs = self.get_constant_data(lin_op.data, view, column=True)
+        assert is_param_free_rhs, "kron_l doesn't support parametrized right operand"
+
+        # Convert rhs to sparse - may be CompactTensor or sparse matrix
+        if isinstance(rhs, CompactTensor):
+            rhs_sparse = rhs.to_stacked_sparse()
+        elif sp.issparse(rhs):
+            rhs_sparse = rhs
+        else:
+            rhs_sparse = sp.csr_array(np.asarray(rhs))
+
+        lhs_shape = lin_op.args[0].shape
+        row_idx = self._get_kron_row_indices(lhs_shape, lin_op.data.shape)
+
+        def kron_l_func(compact, p):
+            assert compact.param_size == 1, "kron_l doesn't support parametrized input"
+            # Convert to sparse, compute kron, reorder rows
+            x_sparse = compact.to_stacked_sparse()
+            kron_res = sp.kron(x_sparse, rhs_sparse).tocsr()
+            kron_res = kron_res[row_idx, :]
+            return CompactTensor.from_stacked_sparse(kron_res, param_size=1)
+
+        view.accumulate_over_variables(kron_l_func, is_param_free_function=True)
+        return view
 
     def trace(self, lin_op, view: COOTensorView) -> COOTensorView:
         """
