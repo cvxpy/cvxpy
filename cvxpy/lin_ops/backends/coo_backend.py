@@ -1209,9 +1209,9 @@ class COOCanonBackend(PythonCanonBackend):
                 for k, v in lhs_transposed.items():
                     v_sparse = v.to_stacked_sparse()
                     kron_result = sp.kron(v_sparse, sp.eye_array(reps, format="csr"))
-                    stacked_lhs[k] = self._make_compact_from_sparse(kron_result)
+                    stacked_lhs[k] = self._make_compact_from_sparse(kron_result, param_id=k)
             else:
-                stacked_lhs = {k: self._make_compact_from_sparse(v.to_stacked_sparse())
+                stacked_lhs = {k: self._make_compact_from_sparse(v.to_stacked_sparse(), param_id=k)
                                for k, v in lhs_transposed.items()}
 
             def parametrized_rmul(rhs_compact):

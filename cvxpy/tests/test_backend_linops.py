@@ -585,3 +585,113 @@ class TestBuildMatrix:
         # Result should be (var_length+1, param_size_plus_one) shape flattened
         # For var_length=8, param_size_plus_one=2
         assert result.shape == (2 * (8 + 1), 2)
+
+
+def to_dense_param(
+        tr: TensorRepresentation, 
+        shape: tuple[int, int], 
+        param_offset: int
+    ) -> np.ndarray:
+    """Convert TensorRepresentation to dense array for a specific param offset."""
+    mask = tr.parameter_offset == param_offset
+    return sp.coo_matrix(
+        (tr.data[mask], (tr.row[mask], tr.col[mask])), shape=shape
+    ).toarray()
+
+
+class TestParametrizedLinops:
+    """Test linops with parameters - catches DPP tensor issues."""
+
+    @pytest.mark.parametrize("backend_name", BACKENDS)
+    def test_mul_param(self, backend_name):
+        """Left multiply variable by parameter: param @ x."""
+        # param_id=3 has size 4 (2x2 matrix), maps to col offset 1
+        backend = make_backend(backend_name)
+        var = LinOpHelper((2,), type="variable", data=1)
+        view = backend.process_constraint(var, backend.get_empty_view())
+
+        # Create param LinOp (2x2 @ 2x1 -> 2x1)
+        param = LinOpHelper((2, 2), type="param", data=3)
+        lin_op = LinOpHelper(shape=(2,), data=param, args=[var])
+        out = backend.mul(lin_op, view)
+
+        tr = out.get_tensor_representation(0, 2)
+
+        # Should have entries for param slices (offset 1-4)
+        param_offsets = set(tr.parameter_offset)
+        assert len(param_offsets) > 1, "Should have multiple param offsets"
+        assert 0 not in param_offsets or len(param_offsets) > 1, "Should have param entries"
+
+    @pytest.mark.parametrize("backend_name", BACKENDS)
+    def test_rmul_param(self, backend_name):
+        """Right multiply variable by parameter: x @ param (dotsort pattern)."""
+        # Use param_id=3 with size=2 for a (2,) param vector
+        backend = make_backend(
+            backend_name,
+            param_to_size={-1: 1, 3: 2},
+            param_to_col={-1: 0, 3: 1},
+            param_size_plus_one=3,
+        )
+        var = LinOpHelper((2, 2), type="variable", data=1)
+        view = backend.process_constraint(var, backend.get_empty_view())
+
+        # x (2x2) @ param (2,) -> (2,)
+        param = LinOpHelper((2,), type="param", data=3)
+        lin_op = LinOpHelper(shape=(2,), data=param, args=[var])
+        out = backend.rmul(lin_op, view)
+
+        tr = out.get_tensor_representation(0, 2)
+
+        # Should have param entries - one offset per param element
+        param_offsets = set(tr.parameter_offset)
+        assert len(param_offsets) == 2, f"Expected 2 param offsets, got {param_offsets}"
+
+    @pytest.mark.parametrize("backend_name", BACKENDS)
+    def test_mul_elem_param(self, backend_name):
+        """Elementwise multiply by parameter."""
+        backend = make_backend(backend_name)
+        var = LinOpHelper((2, 2), type="variable", data=1)
+        view = backend.process_constraint(var, backend.get_empty_view())
+
+        # param (2x2) * x (2x2) elementwise
+        param = LinOpHelper((2, 2), type="param", data=3)
+        lin_op = LinOpHelper(shape=(2, 2), data=param, args=[var])
+        out = backend.mul_elem(lin_op, view)
+
+        tr = out.get_tensor_representation(0, 4)
+
+        # Should have param entries
+        param_offsets = set(tr.parameter_offset)
+        assert len(param_offsets) > 1, "Should have multiple param offsets"
+
+    def test_param_consistency(self):
+        """All backends produce identical results for parametrized mul."""
+        results = {}
+        for backend_name in BACKENDS:
+            backend = make_backend(backend_name)
+            var = LinOpHelper((2,), type="variable", data=1)
+            view = backend.process_constraint(var, backend.get_empty_view())
+
+            param = LinOpHelper((2, 2), type="param", data=3)
+            lin_op = LinOpHelper(shape=(2,), data=param, args=[var])
+            out = backend.mul(lin_op, view)
+
+            tr = out.get_tensor_representation(0, 2)
+            # Store dense arrays for each param offset
+            results[backend_name] = {
+                p: to_dense_param(tr, (2, 2), p)
+                for p in sorted(set(tr.parameter_offset))
+            }
+
+        # Compare all to first
+        ref_name = BACKENDS[0]
+        ref = results[ref_name]
+        for name, res in results.items():
+            if name != ref_name:
+                assert set(res.keys()) == set(ref.keys()), \
+                    f"{name} has different param offsets than {ref_name}"
+                for p in ref.keys():
+                    np.testing.assert_allclose(
+                        res[p], ref[p], rtol=1e-12, atol=1e-12,
+                        err_msg=f"{name} differs from {ref_name} at param_offset={p}"
+                    )
