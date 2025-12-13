@@ -26,8 +26,8 @@ Key differences from SciPyTensorView:
 - get_tensor_representation() is trivial (data already in right format)
 
 Classes:
-- CompactTensor: 3D sparse COO tensor storage
-- COOTensorView: TensorView using CompactTensor
+- COOTensor: 3D sparse COO tensor storage
+- COOTensorView: TensorView using COOTensor
 - COOCanonBackend: Backend implementation
 
 Note: Previously named "Lazy" backend - renamed to COO to better describe the
@@ -97,7 +97,7 @@ def compute_indptr(indices: np.ndarray, size: int) -> tuple[np.ndarray, np.ndarr
 
 
 @dataclass
-class CompactTensor:
+class COOTensor:
     """
     Compact representation of a parameter-indexed sparse tensor.
 
@@ -162,8 +162,8 @@ class CompactTensor:
         return 2
 
     @classmethod
-    def empty(cls, m: int, n: int, param_size: int) -> CompactTensor:
-        """Create an empty CompactTensor with given dimensions."""
+    def empty(cls, m: int, n: int, param_size: int) -> COOTensor:
+        """Create an empty COOTensor with given dimensions."""
         return cls(
             data=_empty_float(),
             row=_empty_int(),
@@ -175,7 +175,7 @@ class CompactTensor:
         )
 
     @classmethod
-    def from_stacked_sparse(cls, matrix: sp.spmatrix, param_size: int) -> CompactTensor:
+    def from_stacked_sparse(cls, matrix: sp.spmatrix, param_size: int) -> COOTensor:
         """Convert from stacked sparse matrix."""
         coo = matrix.tocoo()
         m = matrix.shape[0] // param_size
@@ -205,7 +205,7 @@ class CompactTensor:
             shape=(self.m + row_offset, self.n + col_offset)  # Approximate
         )
 
-    def select_rows(self, rows: np.ndarray) -> CompactTensor:
+    def select_rows(self, rows: np.ndarray) -> COOTensor:
         """
         Select and reorder rows from each parameter slice.
 
@@ -222,7 +222,7 @@ class CompactTensor:
         new_m = len(rows)
 
         if self.nnz == 0:
-            return CompactTensor.empty(new_m, self.n, self.param_size)
+            return COOTensor.empty(new_m, self.n, self.param_size)
 
         # Sort the rows array to enable efficient range queries
         # rows[new_pos] = old_pos, so we sort to find all new_pos for each old_pos
@@ -242,7 +242,7 @@ class CompactTensor:
         total_nnz = entry_counts.sum()
 
         if total_nnz == 0:
-            return CompactTensor.empty(new_m, self.n, self.param_size)
+            return COOTensor.empty(new_m, self.n, self.param_size)
 
         # Expand entries according to counts using np.repeat
         out_data = np.repeat(self.data, entry_counts)
@@ -272,7 +272,7 @@ class CompactTensor:
         # The output rows are the positions in the original rows array
         out_row = row_sort_perm[gather_idx]
 
-        return CompactTensor(
+        return COOTensor(
             data=out_data,
             row=out_row,
             col=out_col,
@@ -282,9 +282,9 @@ class CompactTensor:
             param_size=self.param_size
         )
 
-    def scale(self, factor: float) -> CompactTensor:
+    def scale(self, factor: float) -> COOTensor:
         """Scale all values by a constant."""
-        return CompactTensor(
+        return COOTensor(
             data=self.data * factor,
             row=self.row.copy(),
             col=self.col.copy(),
@@ -294,13 +294,13 @@ class CompactTensor:
             param_size=self.param_size
         )
 
-    def negate(self) -> CompactTensor:
+    def negate(self) -> COOTensor:
         """Negate all values."""
         return self.scale(-1.0)
 
-    def transpose(self) -> CompactTensor:
+    def transpose(self) -> COOTensor:
         """Transpose each slice (swap rows and cols)."""
-        return CompactTensor(
+        return COOTensor(
             data=self.data.copy(),
             row=self.col.copy(),  # Swap row and col
             col=self.row.copy(),
@@ -310,15 +310,15 @@ class CompactTensor:
             param_size=self.param_size
         )
 
-    def __add__(self, other: CompactTensor) -> CompactTensor:
-        """Add two CompactTensors (concatenate entries)."""
+    def __add__(self, other: COOTensor) -> COOTensor:
+        """Add two COOTensors (concatenate entries)."""
         # Allow different n (column counts) - take max
         # This happens in vstack when combining expressions with different variable counts
         assert self.m == other.m, f"Row count mismatch: {self.m} vs {other.m}"
         assert self.param_size == other.param_size, \
             f"Param size mismatch: {self.param_size} vs {other.param_size}"
 
-        return CompactTensor(
+        return COOTensor(
             data=np.concatenate([self.data, other.data]),
             row=np.concatenate([self.row, other.row]),
             col=np.concatenate([self.col, other.col]),
@@ -329,9 +329,9 @@ class CompactTensor:
         )
 
 
-def compact_matmul(lhs: CompactTensor, rhs: CompactTensor) -> CompactTensor:
+def compact_matmul(lhs: COOTensor, rhs: COOTensor) -> COOTensor:
     """
-    Matrix multiplication of two CompactTensors.
+    Matrix multiplication of two COOTensors.
 
     lhs has shape (param_size_lhs, m, k) per slice
     rhs has shape (param_size_rhs, k, n) per slice
@@ -360,7 +360,7 @@ def compact_matmul(lhs: CompactTensor, rhs: CompactTensor) -> CompactTensor:
         total_nnz = nnz_per_lhs.sum()
 
         if total_nnz == 0:
-            return CompactTensor.empty(lhs.m, rhs.n, lhs.param_size)
+            return COOTensor.empty(lhs.m, rhs.n, lhs.param_size)
 
         # Pre-allocate output
         out_data = np.empty(total_nnz, dtype=np.float64)
@@ -385,7 +385,7 @@ def compact_matmul(lhs: CompactTensor, rhs: CompactTensor) -> CompactTensor:
         out_col = rhs_indices[gather_idx]
         out_data = np.repeat(lhs.data, nnz_per_lhs) * rhs_data[gather_idx]
 
-        return CompactTensor(
+        return COOTensor(
             data=out_data,
             row=out_row,
             col=out_col,
@@ -411,7 +411,7 @@ def compact_matmul(lhs: CompactTensor, rhs: CompactTensor) -> CompactTensor:
         total_nnz = nnz_per_rhs.sum()
 
         if total_nnz == 0:
-            return CompactTensor.empty(lhs.m, rhs.n, rhs.param_size)
+            return COOTensor.empty(lhs.m, rhs.n, rhs.param_size)
 
         # Expand rhs entries
         out_col = np.repeat(rhs.col, nnz_per_rhs)
@@ -430,7 +430,7 @@ def compact_matmul(lhs: CompactTensor, rhs: CompactTensor) -> CompactTensor:
         out_row = lhs_indices[gather_idx]
         out_data = lhs_data[gather_idx] * np.repeat(rhs.data, nnz_per_rhs)
 
-        return CompactTensor(
+        return COOTensor(
             data=out_data,
             row=out_row,
             col=out_col,
@@ -452,7 +452,7 @@ def compact_matmul(lhs: CompactTensor, rhs: CompactTensor) -> CompactTensor:
         )
         result = (lhs_sparse @ rhs_sparse).tocoo()
 
-        return CompactTensor(
+        return COOTensor(
             data=result.data.copy(),
             row=result.row.astype(np.int64),
             col=result.col.astype(np.int64),
@@ -493,14 +493,14 @@ def compact_matmul(lhs: CompactTensor, rhs: CompactTensor) -> CompactTensor:
                 ))
 
         if not results:
-            return CompactTensor.empty(lhs.m, rhs.n, lhs.param_size)
+            return COOTensor.empty(lhs.m, rhs.n, lhs.param_size)
 
         all_data = np.concatenate([r[0] for r in results])
         all_row = np.concatenate([r[1] for r in results]).astype(np.int64)
         all_col = np.concatenate([r[2] for r in results]).astype(np.int64)
         all_param = np.concatenate([r[3] for r in results])
 
-        return CompactTensor(
+        return COOTensor(
             data=all_data,
             row=all_row,
             col=all_col,
@@ -511,9 +511,9 @@ def compact_matmul(lhs: CompactTensor, rhs: CompactTensor) -> CompactTensor:
         )
 
 
-def compact_mul_elem(lhs: CompactTensor, rhs: CompactTensor) -> CompactTensor:
+def compact_mul_elem(lhs: COOTensor, rhs: COOTensor) -> COOTensor:
     """
-    Element-wise multiplication of two CompactTensors.
+    Element-wise multiplication of two COOTensors.
 
     For parametrized case: lhs has param_size > 1, rhs has param_size = 1.
     Each lhs slice is multiplied element-wise by the single rhs slice.
@@ -526,8 +526,8 @@ def compact_mul_elem(lhs: CompactTensor, rhs: CompactTensor) -> CompactTensor:
             # Scalar multiplication - multiply all lhs entries by rhs scalar
             scalar_val = rhs.data[0] if rhs.nnz == 1 else 0.0
             if scalar_val == 0:
-                return CompactTensor.empty(lhs.m, lhs.n, lhs.param_size)
-            return CompactTensor(
+                return COOTensor.empty(lhs.m, lhs.n, lhs.param_size)
+            return COOTensor(
                 data=lhs.data * scalar_val,
                 row=lhs.row.copy(),
                 col=lhs.col.copy(),
@@ -552,7 +552,7 @@ def compact_mul_elem(lhs: CompactTensor, rhs: CompactTensor) -> CompactTensor:
             total_nnz = nnz_per_lhs.sum()
 
             if total_nnz == 0:
-                return CompactTensor.empty(lhs.m, rhs.n, lhs.param_size)
+                return COOTensor.empty(lhs.m, rhs.n, lhs.param_size)
 
             # Expand lhs entries
             out_row = np.repeat(lhs.row, nnz_per_lhs)
@@ -570,7 +570,7 @@ def compact_mul_elem(lhs: CompactTensor, rhs: CompactTensor) -> CompactTensor:
             out_col = rhs_col_sorted[gather_idx]
             out_data = lhs_vals * rhs_data_sorted[gather_idx]
 
-            return CompactTensor(
+            return COOTensor(
                 data=out_data,
                 row=out_row,
                 col=out_col,
@@ -597,7 +597,7 @@ def compact_mul_elem(lhs: CompactTensor, rhs: CompactTensor) -> CompactTensor:
 
         # Keep only non-zero results
         mask = rhs_vals != 0
-        return CompactTensor(
+        return COOTensor(
             data=lhs.data[mask] * rhs_vals[mask],
             row=lhs.row[mask].copy(),
             col=lhs.col[mask].copy(),
@@ -616,7 +616,7 @@ def compact_mul_elem(lhs: CompactTensor, rhs: CompactTensor) -> CompactTensor:
         lhs_csr = lhs.to_stacked_sparse()
         rhs_csr = rhs.to_stacked_sparse()
         result = lhs_csr.multiply(rhs_csr).tocoo()
-        return CompactTensor(
+        return COOTensor(
             data=result.data.copy(),
             row=result.row.copy(),
             col=result.col.copy(),
@@ -649,12 +649,12 @@ def compact_mul_elem(lhs: CompactTensor, rhs: CompactTensor) -> CompactTensor:
         valid = (match_pos < len(rhs_sorted)) & (rhs_sorted[match_pos_clipped] == lhs_linear)
 
         if not valid.any():
-            return CompactTensor.empty(lhs.m, lhs.n, lhs.param_size)
+            return COOTensor.empty(lhs.m, lhs.n, lhs.param_size)
 
         # Get matching rhs indices in original order
         rhs_match_idx = rhs_sort[match_pos[valid]]
 
-        return CompactTensor(
+        return COOTensor(
             data=lhs.data[valid] * rhs.data[rhs_match_idx],
             row=lhs.row[valid].copy(),
             col=lhs.col[valid].copy(),
@@ -665,7 +665,7 @@ def compact_mul_elem(lhs: CompactTensor, rhs: CompactTensor) -> CompactTensor:
         )
 
 
-def compact_reshape(tensor: CompactTensor, new_m: int, new_n: int) -> CompactTensor:
+def compact_reshape(tensor: COOTensor, new_m: int, new_n: int) -> COOTensor:
     """
     Reshape the tensor (Fortran order, column-major).
 
@@ -679,7 +679,7 @@ def compact_reshape(tensor: CompactTensor, new_m: int, new_n: int) -> CompactTen
     new_row = linear_idx % new_m
     new_col = linear_idx // new_m
 
-    return CompactTensor(
+    return COOTensor(
         data=tensor.data.copy(),
         row=new_row.astype(np.int64),
         col=new_col.astype(np.int64),
@@ -692,10 +692,10 @@ def compact_reshape(tensor: CompactTensor, new_m: int, new_n: int) -> CompactTen
 
 class COOTensorView(DictTensorView):
     """
-    TensorView using CompactTensor storage for O(nnz) operations.
+    TensorView using COOTensor storage for O(nnz) operations.
 
     Unlike SciPyTensorView which stores stacked sparse matrices of shape
-    (param_size * m, n), COOTensorView stores CompactTensor objects that
+    (param_size * m, n), COOTensorView stores COOTensor objects that
     keep (data, row, col, param_idx) separately.
 
     This avoids O(param_size * m) operations, making it much faster for
@@ -716,7 +716,7 @@ class COOTensorView(DictTensorView):
         """
         Returns a TensorRepresentation of [A b] tensor.
 
-        This is trivial for CompactTensor - just add offsets.
+        This is trivial for COOTensor - just add offsets.
         """
         assert self.tensor is not None
         shape = (total_rows, self.var_length + 1)
@@ -749,7 +749,7 @@ class COOTensorView(DictTensorView):
         """
         Apply 'func' across all variables and parameter slices.
 
-        func signature: func(compact: CompactTensor, p: int) -> CompactTensor
+        func signature: func(compact: COOTensor, p: int) -> COOTensor
         """
         self.tensor = {var_id: {k: func(v, self.param_to_size[k])
                                 for k, v in parameter_repr.items()}
@@ -765,20 +765,20 @@ class COOTensorView(DictTensorView):
         )
 
     def apply_to_parameters(self, func: Callable,
-                            parameter_representation: dict[int, CompactTensor]) \
-            -> dict[int, CompactTensor]:
+                            parameter_representation: dict[int, COOTensor]) \
+            -> dict[int, COOTensor]:
         """Apply 'func' to each parameter slice."""
         return {k: func(v, self.param_to_size[k]) for k, v in parameter_representation.items()}
 
     @staticmethod
-    def add_tensors(a: CompactTensor, b: CompactTensor) -> CompactTensor:
-        """Add two CompactTensors."""
+    def add_tensors(a: COOTensor, b: COOTensor) -> COOTensor:
+        """Add two COOTensors."""
         return a + b
 
     @staticmethod
     def tensor_type():
         """The tensor type for COOTensorView."""
-        return CompactTensor
+        return COOTensor
 
 
 class COOCanonBackend(PythonCanonBackend):
@@ -803,7 +803,7 @@ class COOCanonBackend(PythonCanonBackend):
         Returns {var_id: {Constant.ID: tensor}} where tensor is identity-like.
         """
         size = int(np.prod(shape))
-        compact = CompactTensor(
+        compact = COOTensor(
             data=np.ones(size, dtype=np.float64),
             row=np.arange(size, dtype=np.int64),
             col=np.arange(size, dtype=np.int64),
@@ -830,7 +830,7 @@ class COOCanonBackend(PythonCanonBackend):
         nz_idx = np.where(nz_mask)[0]
         nz_data = flat[nz_mask]
 
-        compact = CompactTensor(
+        compact = COOTensor(
             data=nz_data,
             row=nz_idx.astype(np.int64),
             col=np.zeros(len(nz_idx), dtype=np.int64),
@@ -853,7 +853,7 @@ class COOCanonBackend(PythonCanonBackend):
 
         # Each parameter element gets its own slice
         # param[i] = 1 at position (i, 0) in slice i
-        compact = CompactTensor(
+        compact = COOTensor(
             data=np.ones(param_size, dtype=np.float64),
             row=np.arange(param_size, dtype=np.int64),
             col=np.zeros(param_size, dtype=np.int64),
@@ -884,7 +884,7 @@ class COOCanonBackend(PythonCanonBackend):
         def func(compact, p):
             # Sum to scalar: all rows become 0, but columns stay the same
             # (columns represent which variables contribute to the output)
-            return CompactTensor(
+            return COOTensor(
                 data=compact.data.copy(),
                 row=np.zeros(compact.nnz, dtype=np.int64),
                 col=compact.col.copy(),  # Keep column indices - they're variable indices
@@ -923,7 +923,7 @@ class COOCanonBackend(PythonCanonBackend):
         if is_lhs_parametric:
             # Parametrized lhs @ variable rhs - the expensive case
             def parametrized_mul(rhs_compact):
-                # lhs_data is a dict {param_id: CompactTensor}
+                # lhs_data is a dict {param_id: COOTensor}
                 result = {}
                 for param_id, lhs_compact in lhs_data.items():
                     result[param_id] = compact_matmul(lhs_compact, rhs_compact)
@@ -932,7 +932,7 @@ class COOCanonBackend(PythonCanonBackend):
             # Apply to each variable tensor
             new_tensor = {}
             for var_id, var_tensor in view.tensor.items():
-                # var_tensor is {Constant.ID: CompactTensor}
+                # var_tensor is {Constant.ID: COOTensor}
                 const_compact = var_tensor[Constant.ID.value]
                 new_tensor[var_id] = parametrized_mul(const_compact)
 
@@ -949,8 +949,8 @@ class COOCanonBackend(PythonCanonBackend):
             lhs_k = lhs_shape_2d[-1]  # Inner dimension of A
 
             # Convert to sparse and apply kron expansion
-            # get_constant_data may return CompactTensor, sparse, or dense array
-            if isinstance(lhs_data, CompactTensor):
+            # get_constant_data may return COOTensor, sparse, or dense array
+            if isinstance(lhs_data, COOTensor):
                 lhs_sparse = lhs_data.to_stacked_sparse()
             elif sp.issparse(lhs_data):
                 lhs_sparse = lhs_data
@@ -963,7 +963,7 @@ class COOCanonBackend(PythonCanonBackend):
             else:
                 stacked_lhs = lhs_sparse
 
-            # Convert stacked lhs to CompactTensor
+            # Convert stacked lhs to COOTensor
             stacked_compact = self._make_compact_from_sparse(stacked_lhs)
 
             def constant_mul(compact, p):
@@ -981,10 +981,10 @@ class COOCanonBackend(PythonCanonBackend):
             size = int(np.prod(lhs.shape))
             m, k = lhs.shape if len(lhs.shape) == 2 else (size, 1)
 
-            # Create CompactTensor for parameter matrix
+            # Create COOTensor for parameter matrix
             # Parameters are stored in column-major (Fortran) order:
             # param_idx=0 -> A[0,0], param_idx=1 -> A[1,0], ..., param_idx=m -> A[0,1]
-            compact = CompactTensor(
+            compact = COOTensor(
                 data=np.ones(param_size, dtype=np.float64),
                 row=np.tile(np.arange(m), k),  # [0,1,2,0,1,2,...] for column-major
                 col=np.repeat(np.arange(k), m),  # [0,0,0,1,1,1,...] for column-major
@@ -1000,7 +1000,7 @@ class COOCanonBackend(PythonCanonBackend):
             return lhs_data, not is_param_free  # return (data, is_parametric)
 
     def _make_compact_from_dense(self, data, target_shape):
-        """Convert dense/sparse data to CompactTensor.
+        """Convert dense/sparse data to COOTensor.
 
         Args:
             data: Dense or sparse array
@@ -1008,7 +1008,7 @@ class COOCanonBackend(PythonCanonBackend):
         """
         if sp.issparse(data):
             coo = data.tocoo()
-            return CompactTensor(
+            return COOTensor(
                 data=coo.data.copy(),
                 row=coo.row.astype(np.int64),
                 col=coo.col.astype(np.int64),
@@ -1024,7 +1024,7 @@ class COOCanonBackend(PythonCanonBackend):
                 data = data.reshape(target_shape)
             nz = data != 0
             row, col = np.where(nz)
-            return CompactTensor(
+            return COOTensor(
                 data=data[nz].flatten(),
                 row=row.astype(np.int64),
                 col=col.astype(np.int64),
@@ -1058,7 +1058,7 @@ class COOCanonBackend(PythonCanonBackend):
         lhs_compact = self._make_compact_from_sparse(lhs)
         # Invert the data
         recip_data = np.reciprocal(lhs_compact.data, dtype=float)
-        lhs_recip = CompactTensor(
+        lhs_recip = COOTensor(
             data=recip_data,
             row=lhs_compact.row,
             col=lhs_compact.col,
@@ -1142,7 +1142,7 @@ class COOCanonBackend(PythonCanonBackend):
             else:
                 new_row = compact.row * (n + 1) - k
 
-            return CompactTensor(
+            return COOTensor(
                 data=compact.data.copy(),
                 row=new_row.astype(np.int64),
                 col=compact.col.copy(),
@@ -1160,7 +1160,7 @@ class COOCanonBackend(PythonCanonBackend):
     # upper_tri: use base class implementation (via select_rows)
 
     def _make_compact_from_sparse(self, matrix, param_id=None):
-        """Convert sparse matrix to CompactTensor."""
+        """Convert sparse matrix to COOTensor."""
         if isinstance(matrix, dict):
             # Already a dict of matrices
             raise ValueError("Expected single matrix, got dict")
@@ -1176,7 +1176,7 @@ class COOCanonBackend(PythonCanonBackend):
             row = coo.row
             param_idx = np.zeros(len(coo.data), dtype=np.int64)
 
-        return CompactTensor(
+        return COOTensor(
             data=coo.data.copy(),
             row=row.astype(np.int64),
             col=coo.col.astype(np.int64),
@@ -1205,8 +1205,8 @@ class COOCanonBackend(PythonCanonBackend):
 
         if is_param_free_lhs:
             # Constant B case
-            # Convert to sparse - may be CompactTensor or sparse matrix
-            if isinstance(lhs, CompactTensor):
+            # Convert to sparse - may be COOTensor or sparse matrix
+            if isinstance(lhs, COOTensor):
                 lhs_sparse = lhs.to_stacked_sparse()
             elif sp.issparse(lhs):
                 lhs_sparse = lhs
@@ -1224,7 +1224,7 @@ class COOCanonBackend(PythonCanonBackend):
             else:
                 stacked_lhs = lhs_sparse.T
 
-            # Convert to CompactTensor
+            # Convert to COOTensor
             stacked_compact = self._make_compact_from_sparse(stacked_lhs)
 
             def rmul_func(compact, p):
@@ -1234,7 +1234,7 @@ class COOCanonBackend(PythonCanonBackend):
             return view
         else:
             # Parametrized B case
-            # lhs is dict {param_id: CompactTensor}
+            # lhs is dict {param_id: COOTensor}
 
             # Get representative param slice to determine dimensions
             param_id, first_compact = next(iter(lhs.items()))
@@ -1281,12 +1281,12 @@ class COOCanonBackend(PythonCanonBackend):
     def reshape_constant_data(constant_data: dict, lin_op_shape: tuple) -> dict:
         """Reshape constant data from column format to required shape.
 
-        The input CompactTensor is in column format (m*n, 1). We reshape it
+        The input COOTensor is in column format (m*n, 1). We reshape it
         to (m, n) for operations like mul that need the actual shape.
         """
         result = {}
         for k, v in constant_data.items():
-            if isinstance(v, CompactTensor):
+            if isinstance(v, COOTensor):
                 new_m = lin_op_shape[0] if len(lin_op_shape) > 0 else 1
                 new_n = lin_op_shape[1] if len(lin_op_shape) > 1 else 1
                 # Reshape from column (m*n, 1) to matrix (m, n)
@@ -1297,9 +1297,9 @@ class COOCanonBackend(PythonCanonBackend):
 
     @staticmethod
     def get_stack_func(total_rows: int, offset: int) -> Callable:
-        """Returns a function to extend and shift a CompactTensor."""
+        """Returns a function to extend and shift a COOTensor."""
         def stack_func(compact, p):
-            return CompactTensor(
+            return COOTensor(
                 data=compact.data.copy(),
                 row=compact.row + offset,
                 col=compact.col.copy(),
@@ -1321,8 +1321,8 @@ class COOCanonBackend(PythonCanonBackend):
         lhs, is_param_free_lhs = self.get_constant_data(lin_op.data, view, column=False)
         assert is_param_free_lhs, "conv doesn't support parametrized kernel"
 
-        # Convert to sparse - may be CompactTensor or sparse matrix
-        if isinstance(lhs, CompactTensor):
+        # Convert to sparse - may be COOTensor or sparse matrix
+        if isinstance(lhs, COOTensor):
             lhs_sparse = lhs.to_stacked_sparse().tocoo()
         elif sp.issparse(lhs):
             lhs_sparse = lhs.tocoo()
@@ -1369,8 +1369,8 @@ class COOCanonBackend(PythonCanonBackend):
         lhs, is_param_free_lhs = self.get_constant_data(lin_op.data, view, column=True)
         assert is_param_free_lhs, "kron_r doesn't support parametrized left operand"
 
-        # Convert lhs to sparse - may be CompactTensor or sparse matrix
-        if isinstance(lhs, CompactTensor):
+        # Convert lhs to sparse - may be COOTensor or sparse matrix
+        if isinstance(lhs, COOTensor):
             lhs_sparse = lhs.to_stacked_sparse()
         elif sp.issparse(lhs):
             lhs_sparse = lhs
@@ -1386,7 +1386,7 @@ class COOCanonBackend(PythonCanonBackend):
             x_sparse = compact.to_stacked_sparse()
             kron_res = sp.kron(lhs_sparse, x_sparse).tocsr()
             kron_res = kron_res[row_idx, :]
-            return CompactTensor.from_stacked_sparse(kron_res, param_size=1)
+            return COOTensor.from_stacked_sparse(kron_res, param_size=1)
 
         view.accumulate_over_variables(kron_r_func, is_param_free_function=True)
         return view
@@ -1402,8 +1402,8 @@ class COOCanonBackend(PythonCanonBackend):
         rhs, is_param_free_rhs = self.get_constant_data(lin_op.data, view, column=True)
         assert is_param_free_rhs, "kron_l doesn't support parametrized right operand"
 
-        # Convert rhs to sparse - may be CompactTensor or sparse matrix
-        if isinstance(rhs, CompactTensor):
+        # Convert rhs to sparse - may be COOTensor or sparse matrix
+        if isinstance(rhs, COOTensor):
             rhs_sparse = rhs.to_stacked_sparse()
         elif sp.issparse(rhs):
             rhs_sparse = rhs
@@ -1419,7 +1419,7 @@ class COOCanonBackend(PythonCanonBackend):
             x_sparse = compact.to_stacked_sparse()
             kron_res = sp.kron(x_sparse, rhs_sparse).tocsr()
             kron_res = kron_res[row_idx, :]
-            return CompactTensor.from_stacked_sparse(kron_res, param_size=1)
+            return COOTensor.from_stacked_sparse(kron_res, param_size=1)
 
         view.accumulate_over_variables(kron_l_func, is_param_free_function=True)
         return view

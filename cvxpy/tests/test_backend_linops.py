@@ -695,3 +695,190 @@ class TestParametrizedLinops:
                         res[p], ref[p], rtol=1e-12, atol=1e-12,
                         err_msg=f"{name} differs from {ref_name} at param_offset={p}"
                     )
+
+
+# N-dimensional test shapes (3D and 4D)
+ND_SHAPES = [
+    (2, 3, 4),      # 3D: 24 elements
+    (3, 2, 2),      # 3D: 12 elements
+    (2, 2, 2, 2),   # 4D: 16 elements
+    (2, 3, 2, 2),   # 4D: 24 elements
+]
+
+
+class TestNDimensional:
+    """Test linops with 3D and 4D arrays."""
+
+    @pytest.mark.parametrize("backend_name", BACKENDS)
+    @pytest.mark.parametrize("shape", ND_SHAPES)
+    def test_variable_nd(self, backend_name, shape):
+        """Variable creation with ND shapes."""
+        size = int(np.prod(shape))
+        backend = make_backend(backend_name, id_to_col={1: 0}, var_length=size)
+        var = LinOpHelper(shape, type="variable", data=1)
+        view = backend.process_constraint(var, backend.get_empty_view())
+        tr = view.get_tensor_representation(0, size)
+        A = to_dense(tr, (size, size))
+        np.testing.assert_array_equal(A, np.eye(size))
+
+    @pytest.mark.parametrize("backend_name", BACKENDS)
+    @pytest.mark.parametrize("shape", ND_SHAPES)
+    def test_neg_nd(self, backend_name, shape):
+        """Negation on ND variable."""
+        size = int(np.prod(shape))
+        backend = make_backend(backend_name, id_to_col={1: 0}, var_length=size)
+        var = LinOpHelper(shape, type="variable", data=1)
+        view = backend.process_constraint(var, backend.get_empty_view())
+        out = backend.neg(LinOpHelper(), view)
+        A = to_dense(out.get_tensor_representation(0, size), (size, size))
+        np.testing.assert_array_equal(A, -np.eye(size))
+
+    @pytest.mark.parametrize("backend_name", BACKENDS)
+    @pytest.mark.parametrize("shape", ND_SHAPES)
+    def test_reshape_nd_to_1d(self, backend_name, shape):
+        """Reshape ND to flat 1D."""
+        size = int(np.prod(shape))
+        backend = make_backend(backend_name, id_to_col={1: 0}, var_length=size)
+        var = LinOpHelper(shape, type="variable", data=1)
+        view = backend.process_constraint(var, backend.get_empty_view())
+        out = backend.reshape(LinOpHelper((size,), args=[var]), view)
+        A = to_dense(out.get_tensor_representation(0, size), (size, size))
+        np.testing.assert_array_equal(A, np.eye(size))
+
+    @pytest.mark.parametrize("backend_name", BACKENDS)
+    @pytest.mark.parametrize("shape", ND_SHAPES)
+    def test_sum_entries_nd(self, backend_name, shape):
+        """Sum all entries of ND variable."""
+        size = int(np.prod(shape))
+        backend = make_backend(backend_name, id_to_col={1: 0}, var_length=size)
+        var = LinOpHelper(shape, type="variable", data=1)
+        view = backend.process_constraint(var, backend.get_empty_view())
+        lin_op = LinOpHelper(shape=shape, data=[None, True], args=[var])
+        out = backend.sum_entries(lin_op, view)
+        A = to_dense(out.get_tensor_representation(0, 1), (1, size))
+        np.testing.assert_array_equal(A, np.ones((1, size)))
+
+    @pytest.mark.parametrize("backend_name", BACKENDS)
+    @pytest.mark.parametrize("shape", ND_SHAPES)
+    def test_promote_to_nd(self, backend_name, shape):
+        """Promote scalar to ND shape."""
+        size = int(np.prod(shape))
+        backend = make_backend(backend_name, id_to_col={1: 0}, var_length=1)
+        var = LinOpHelper((1,), type="variable", data=1)
+        view = backend.process_constraint(var, backend.get_empty_view())
+        out = backend.promote(LinOpHelper(shape), view)
+        A = to_dense(out.get_tensor_representation(0, 1), (size, 1))
+        np.testing.assert_array_equal(A, np.ones((size, 1)))
+
+    @pytest.mark.parametrize("backend_name", BACKENDS)
+    @pytest.mark.parametrize("shape", [(2, 3, 4), (3, 2, 2)])
+    def test_index_nd(self, backend_name, shape):
+        """Index into ND variable."""
+        size = int(np.prod(shape))
+        backend = make_backend(backend_name, id_to_col={1: 0}, var_length=size)
+        var = LinOpHelper(shape, type="variable", data=1)
+        view = backend.process_constraint(var, backend.get_empty_view())
+        # Index first element along each dimension
+        slices = [slice(0, 1, 1) for _ in shape]
+        lin_op = LinOpHelper(data=slices, args=[var])
+        out = backend.index(lin_op, view)
+        tr = out.get_tensor_representation(0, 1)
+        # Should select exactly 1 element (check non-zero count)
+        A = to_dense(tr, (1, size))
+        assert np.count_nonzero(A) == 1
+        assert A[0, 0] == 1.0  # First element selected
+
+    @pytest.mark.parametrize("backend_name", BACKENDS)
+    @pytest.mark.parametrize("shape", ND_SHAPES)
+    def test_mul_scalar_nd(self, backend_name, shape):
+        """Multiply ND variable by scalar constant."""
+        size = int(np.prod(shape))
+        backend = make_backend(backend_name, id_to_col={1: 0}, var_length=size)
+        var = LinOpHelper(shape, type="variable", data=1)
+        view = backend.process_constraint(var, backend.get_empty_view())
+        # Scalar multiply
+        lhs = LinOpHelper((1,), type="dense_const", data=np.array([2.0]))
+        out = backend.mul_elem(LinOpHelper(data=lhs), view)
+        A = to_dense(out.get_tensor_representation(0, size), (size, size))
+        np.testing.assert_array_equal(A, 2.0 * np.eye(size))
+
+    @pytest.mark.parametrize("backend_name", BACKENDS)
+    @pytest.mark.parametrize("shape", ND_SHAPES)
+    def test_div_scalar_nd(self, backend_name, shape):
+        """Divide ND variable by scalar constant."""
+        size = int(np.prod(shape))
+        backend = make_backend(backend_name, id_to_col={1: 0}, var_length=size)
+        var = LinOpHelper(shape, type="variable", data=1)
+        view = backend.process_constraint(var, backend.get_empty_view())
+        # Scalar divide (element-wise by 2)
+        lhs = LinOpHelper(shape, type="dense_const", data=2.0 * np.ones(shape))
+        out = backend.div(LinOpHelper(data=lhs), view)
+        A = to_dense(out.get_tensor_representation(0, size), (size, size))
+        np.testing.assert_allclose(A, 0.5 * np.eye(size))
+
+
+class TestNDConsistency:
+    """Cross-backend consistency tests for ND arrays."""
+
+    @pytest.mark.parametrize("shape", ND_SHAPES)
+    def test_nd_variable_consistency(self, shape):
+        """All backends produce same result for ND variable."""
+        size = int(np.prod(shape))
+        results = {}
+        for backend_name in BACKENDS:
+            backend = make_backend(backend_name, id_to_col={1: 0}, var_length=size)
+            var = LinOpHelper(shape, type="variable", data=1)
+            view = backend.process_constraint(var, backend.get_empty_view())
+            tr = view.get_tensor_representation(0, size)
+            results[backend_name] = to_dense(tr, (size, size))
+
+        ref_name = BACKENDS[0]
+        for name, arr in results.items():
+            if name != ref_name:
+                np.testing.assert_allclose(
+                    arr, results[ref_name], rtol=1e-12,
+                    err_msg=f"{name} differs from {ref_name} for shape {shape}"
+                )
+
+    @pytest.mark.parametrize("shape", ND_SHAPES)
+    def test_nd_reshape_consistency(self, shape):
+        """All backends produce same result for ND reshape."""
+        size = int(np.prod(shape))
+        results = {}
+        for backend_name in BACKENDS:
+            backend = make_backend(backend_name, id_to_col={1: 0}, var_length=size)
+            var = LinOpHelper(shape, type="variable", data=1)
+            view = backend.process_constraint(var, backend.get_empty_view())
+            out = backend.reshape(LinOpHelper((size,), args=[var]), view)
+            tr = out.get_tensor_representation(0, size)
+            results[backend_name] = to_dense(tr, (size, size))
+
+        ref_name = BACKENDS[0]
+        for name, arr in results.items():
+            if name != ref_name:
+                np.testing.assert_allclose(
+                    arr, results[ref_name], rtol=1e-12,
+                    err_msg=f"{name} differs from {ref_name} for reshape {shape}"
+                )
+
+    @pytest.mark.parametrize("shape", ND_SHAPES)
+    def test_nd_sum_consistency(self, shape):
+        """All backends produce same result for ND sum_entries."""
+        size = int(np.prod(shape))
+        results = {}
+        for backend_name in BACKENDS:
+            backend = make_backend(backend_name, id_to_col={1: 0}, var_length=size)
+            var = LinOpHelper(shape, type="variable", data=1)
+            view = backend.process_constraint(var, backend.get_empty_view())
+            lin_op = LinOpHelper(shape=shape, data=[None, True], args=[var])
+            out = backend.sum_entries(lin_op, view)
+            tr = out.get_tensor_representation(0, 1)
+            results[backend_name] = to_dense(tr, (1, size))
+
+        ref_name = BACKENDS[0]
+        for name, arr in results.items():
+            if name != ref_name:
+                np.testing.assert_allclose(
+                    arr, results[ref_name], rtol=1e-12,
+                    err_msg=f"{name} differs from {ref_name} for sum {shape}"
+                )
