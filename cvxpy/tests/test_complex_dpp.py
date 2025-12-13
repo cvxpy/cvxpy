@@ -15,6 +15,7 @@ limitations under the License.
 """
 
 import numpy as np
+import pytest
 
 import cvxpy as cp
 from cvxpy.reductions.complex2real.complex2real import Complex2Real
@@ -182,3 +183,125 @@ class TestComplexDPP:
         # EvalParams should be in the chain when ignore_dpp=True
         reduction_types = [type(r) for r in prob._cache.solving_chain.reductions]
         assert EvalParams in reduction_types
+
+
+@pytest.mark.skipif(cp.DIFFCP not in cp.installed_solvers(), reason="diffcp not installed")
+class TestComplexDPPDerivatives:
+    """Tests for backward/forward differentiation with complex parameters."""
+
+    def test_backward_real_part(self):
+        """Backward differentiation through real part of complex parameter."""
+        p = cp.Parameter(complex=True)
+        x = cp.Variable()
+        # minimize (x - real(p))^2, optimal x* = real(p)
+        prob = cp.Problem(cp.Minimize(cp.square(x - cp.real(p))))
+
+        p.value = np.array(3.0 + 4.0j)
+        prob.solve(requires_grad=True)
+        assert np.isclose(x.value, 3.0, atol=1e-3)
+
+        # Backward: set x.gradient = 1 to get dx*/dp
+        x.gradient = 1.0
+        prob.backward()
+
+        # dx*/d(real(p)) = 1, dx*/d(imag(p)) = 0
+        # So p.gradient should be 1 + 0j
+        assert np.isclose(np.real(p.gradient), 1.0, atol=1e-3)
+        assert np.isclose(np.imag(p.gradient), 0.0, atol=1e-3)
+
+    def test_backward_imag_part(self):
+        """Backward differentiation through imag part of complex parameter."""
+        p = cp.Parameter(complex=True)
+        x = cp.Variable()
+        # minimize (x - imag(p))^2, optimal x* = imag(p)
+        prob = cp.Problem(cp.Minimize(cp.square(x - cp.imag(p))))
+
+        p.value = np.array(3.0 + 4.0j)
+        prob.solve(requires_grad=True)
+        assert np.isclose(x.value, 4.0, atol=1e-3)
+
+        x.gradient = 1.0
+        prob.backward()
+
+        # dx*/d(real(p)) = 0, dx*/d(imag(p)) = 1
+        # So p.gradient should be 0 + 1j
+        assert np.isclose(np.real(p.gradient), 0.0, atol=1e-3)
+        assert np.isclose(np.imag(p.gradient), 1.0, atol=1e-3)
+
+    def test_backward_both_parts(self):
+        """Backward differentiation using both real and imag parts."""
+        p = cp.Parameter(complex=True)
+        x = cp.Variable()
+        y = cp.Variable()
+        # minimize (x - real(p))^2 + (y - imag(p))^2
+        prob = cp.Problem(
+            cp.Minimize(cp.square(x - cp.real(p)) + cp.square(y - cp.imag(p)))
+        )
+
+        p.value = np.array(3.0 + 4.0j)
+        prob.solve(requires_grad=True)
+        assert np.isclose(x.value, 3.0, atol=1e-3)
+        assert np.isclose(y.value, 4.0, atol=1e-3)
+
+        x.gradient = 1.0
+        y.gradient = 1.0
+        prob.backward()
+
+        # dx*/d(real(p)) = 1, dy*/d(imag(p)) = 1
+        # p.gradient = 1 + 1j
+        assert np.isclose(np.real(p.gradient), 1.0, atol=1e-3)
+        assert np.isclose(np.imag(p.gradient), 1.0, atol=1e-3)
+
+    def test_forward_real_part(self):
+        """Forward differentiation (derivative) through real part."""
+        p = cp.Parameter(complex=True)
+        x = cp.Variable()
+        prob = cp.Problem(cp.Minimize(x), [x >= cp.real(p)])
+
+        p.value = np.array(3.0 + 4.0j)
+        prob.solve(requires_grad=True)
+        assert np.isclose(x.value, 3.0, atol=1e-3)
+
+        # Perturb only the real part
+        p.delta = 1.0 + 0.0j
+        prob.derivative()
+
+        # x* = real(p), so dx*/d(real(p)) = 1
+        assert np.isclose(x.delta, 1.0, atol=1e-3)
+
+    def test_forward_imag_part(self):
+        """Forward differentiation (derivative) through imag part."""
+        p = cp.Parameter(complex=True)
+        x = cp.Variable()
+        prob = cp.Problem(cp.Minimize(x), [x >= cp.imag(p)])
+
+        p.value = np.array(3.0 + 4.0j)
+        prob.solve(requires_grad=True)
+        assert np.isclose(x.value, 4.0, atol=1e-3)
+
+        # Perturb only the imaginary part
+        p.delta = 0.0 + 1.0j
+        prob.derivative()
+
+        # x* = imag(p), so dx*/d(imag(p)) = 1
+        assert np.isclose(x.delta, 1.0, atol=1e-3)
+
+    def test_forward_complex_delta(self):
+        """Forward differentiation with complex delta."""
+        p = cp.Parameter(complex=True)
+        x = cp.Variable()
+        y = cp.Variable()
+        prob = cp.Problem(cp.Minimize(x + y), [x >= cp.real(p), y >= cp.imag(p)])
+
+        p.value = np.array(3.0 + 4.0j)
+        prob.solve(requires_grad=True)
+        assert np.isclose(x.value, 3.0, atol=1e-3)
+        assert np.isclose(y.value, 4.0, atol=1e-3)
+
+        # Perturb both parts
+        p.delta = 2.0 + 3.0j
+        prob.derivative()
+
+        # x* = real(p), y* = imag(p)
+        assert np.isclose(x.delta, 2.0, atol=1e-3)
+        assert np.isclose(y.delta, 3.0, atol=1e-3)

@@ -84,8 +84,15 @@ class Complex2Real(Reduction):
     def param_backward(self, param, dparams):
         """Combine real/imag gradients into complex gradient for backward diff.
 
-        For complex param -> (real_param, imag_param), we have:
-        d(loss)/d(param) = d(loss)/d(real_param) + 1j * d(loss)/d(imag_param)
+        For complex param -> (real_param, imag_param), we compute:
+        param.gradient = ∂L/∂(real_param) + 1j * ∂L/∂(imag_param)
+
+        This follows PyTorch's convention for complex gradients, treating the
+        complex parameter as a pair of independent real parameters. This is
+        the gradient needed for gradient descent (p -= lr * p.gradient).
+
+        Note: This is NOT the Wirtinger derivative. For Wirtinger calculus,
+        ∂L/∂z = (∂L/∂a - j*∂L/∂b)/2 for z = a + jb.
         """
         if self.canon_methods is None:
             return None
@@ -102,8 +109,12 @@ class Complex2Real(Reduction):
     def param_forward(self, param, delta):
         """Split complex delta into real/imag deltas for forward diff.
 
-        For complex param -> (real_param, imag_param), we have:
-        d(real_param) = real(d(param)), d(imag_param) = imag(d(param))
+        For complex param -> (real_param, imag_param), we split the
+        complex perturbation into its real and imaginary components:
+        real_param.delta = Re(param.delta), imag_param.delta = Im(param.delta)
+
+        This treats the complex parameter as a pair of independent real
+        parameters, consistent with the backward pass convention.
         """
         if self.canon_methods is None:
             return None
