@@ -27,6 +27,7 @@ from scipy.signal import convolve
 import cvxpy.settings as s
 from cvxpy.lin_ops import LinOp
 from cvxpy.settings import (
+    LAZY_CANON_BACKEND,
     NUMPY_CANON_BACKEND,
     RUST_CANON_BACKEND,
     SCIPY_CANON_BACKEND,
@@ -158,8 +159,12 @@ class CanonBackend(ABC):
         backends = {
             NUMPY_CANON_BACKEND: NumPyCanonBackend,
             SCIPY_CANON_BACKEND: SciPyCanonBackend,
-            RUST_CANON_BACKEND: RustCanonBackend
+            RUST_CANON_BACKEND: RustCanonBackend,
         }
+        if backend_name == LAZY_CANON_BACKEND:
+            # Lazy import to avoid circular dependencies
+            from cvxpy.experimental.lazy_tensor_view import LazyCanonBackend
+            return LazyCanonBackend(*args, **kwargs)
         return backends[backend_name](*args, **kwargs)
 
     @abstractmethod

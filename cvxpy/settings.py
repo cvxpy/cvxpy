@@ -191,6 +191,7 @@ NUMPY_CANON_BACKEND = "NUMPY"
 SCIPY_CANON_BACKEND = "SCIPY"
 RUST_CANON_BACKEND = "RUST"
 CPP_CANON_BACKEND = "CPP"
+LAZY_CANON_BACKEND = "LAZY"  # Experimental: O(nnz) operations for large parameters
 
 # Default canonicalization backend, pyodide uses SciPy
 DEFAULT_CANON_BACKEND = CPP_CANON_BACKEND if sys.platform != "emscripten" else SCIPY_CANON_BACKEND
