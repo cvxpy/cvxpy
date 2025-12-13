@@ -84,6 +84,88 @@ class Reduction(metaclass=ABCMeta):
         """
         pass
 
+    def param_backward(self, param, dparams):
+        """Compute gradient for an original parameter from transformed gradients.
+
+        Called during backward differentiation (requires_grad=True). Reductions
+        that transform parameters override this to apply the chain rule.
+
+        Parameters
+        ----------
+        param : Parameter
+            The original parameter in the problem.
+        dparams : dict
+            Gradients w.r.t. transformed parameter IDs in the cone program.
+
+        Returns
+        -------
+        gradient or None
+            The gradient for the original parameter, applying any chain rule.
+            Returns None if this reduction doesn't transform the parameter.
+        """
+        return None
+
+    def param_forward(self, param, delta):
+        """Compute transformed parameter deltas for forward differentiation.
+
+        Called during forward differentiation (derivative()). Reductions that
+        transform parameters override this to map deltas through the chain rule.
+
+        Parameters
+        ----------
+        param : Parameter
+            The original parameter in the problem.
+        delta : ndarray
+            The perturbation to the original parameter.
+
+        Returns
+        -------
+        dict or None
+            A dict mapping transformed param IDs to their deltas, or None
+            if this reduction doesn't transform the parameter.
+        """
+        return None
+
+    def var_backward(self, var, value):
+        """Transform variable gradient for backward differentiation.
+
+        Called during backward differentiation. Reductions that transform
+        variables override this to apply the chain rule.
+
+        Parameters
+        ----------
+        var : Variable
+            The original variable in the problem.
+        value : ndarray
+            The gradient value to transform.
+
+        Returns
+        -------
+        ndarray
+            The transformed gradient value.
+        """
+        return value
+
+    def var_forward(self, var, value):
+        """Transform variable delta for forward differentiation.
+
+        Called during forward differentiation. Reductions that transform
+        variables override this to apply the chain rule.
+
+        Parameters
+        ----------
+        var : Variable
+            The original variable in the problem.
+        value : ndarray
+            The delta value to transform.
+
+        Returns
+        -------
+        ndarray
+            The transformed delta value.
+        """
+        return value
+
     def reduce(self):
         """Reduces the owned problem to an equivalent problem.
 

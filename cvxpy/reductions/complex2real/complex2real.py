@@ -81,6 +81,42 @@ class Complex2Real(Reduction):
                 if imag_param is not None:
                     imag_param.value = np.imag(param.value)
 
+    def param_backward(self, param, dparams):
+        """Combine real/imag gradients into complex gradient for backward diff.
+
+        For complex param -> (real_param, imag_param), we have:
+        d(loss)/d(param) = d(loss)/d(real_param) + 1j * d(loss)/d(imag_param)
+        """
+        if self.canon_methods is None:
+            return None
+        if param not in self.canon_methods._parameters:
+            return None
+        real_param, imag_param = self.canon_methods._parameters[param]
+        grad = 0.0
+        if real_param is not None and real_param.id in dparams:
+            grad = grad + dparams[real_param.id]
+        if imag_param is not None and imag_param.id in dparams:
+            grad = grad + 1j * dparams[imag_param.id]
+        return grad
+
+    def param_forward(self, param, delta):
+        """Split complex delta into real/imag deltas for forward diff.
+
+        For complex param -> (real_param, imag_param), we have:
+        d(real_param) = real(d(param)), d(imag_param) = imag(d(param))
+        """
+        if self.canon_methods is None:
+            return None
+        if param not in self.canon_methods._parameters:
+            return None
+        real_param, imag_param = self.canon_methods._parameters[param]
+        result = {}
+        if real_param is not None:
+            result[real_param.id] = np.real(np.asarray(delta, dtype=np.complex128))
+        if imag_param is not None:
+            result[imag_param.id] = np.imag(np.asarray(delta, dtype=np.complex128))
+        return result
+
     def apply(self, problem):
         # Create fresh stateful canonicalizers for this problem.
         # This enables DPP by tracking the mapping from complex parameters
