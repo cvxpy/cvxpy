@@ -142,3 +142,50 @@ class TestComplexDPP:
         assert np.isclose(x.value, 1.0, atol=1e-4)
         reduction_types = [type(r) for r in prob._cache.solving_chain.reductions]
         assert (EvalParams in reduction_types) == should_have_eval_params
+
+    @pytest.mark.parametrize("n", [1, 2, 3])
+    def test_hermitian_param_dpp(self, n):
+        """DPP works with Hermitian parameters including fast path re-solve."""
+        P = cp.Parameter((n, n), hermitian=True)
+        x = cp.Variable()
+        # Minimize x such that x*I >= P (i.e., x >= max eigenvalue of P)
+        prob = cp.Problem(cp.Minimize(x), [x * np.eye(n) >> P])
+
+        assert prob.is_dpp()
+
+        # get_problem_data works without parameter value
+        data, _, _ = prob.get_problem_data(cp.CLARABEL)
+        assert data is not None
+
+        # Create random Hermitian matrix and solve
+        np.random.seed(n)  # reproducible
+        A = np.random.randn(n, n) + 1j * np.random.randn(n, n)
+        P_val1 = (A + A.conj().T) / 2
+        P.value = P_val1
+        prob.solve()
+        assert np.isclose(x.value, np.max(np.linalg.eigvalsh(P_val1)), atol=1e-4)
+
+        # Fast path re-solve with different parameter
+        P_val2 = P_val1 + np.eye(n)
+        P.value = P_val2
+        prob.solve()
+        assert np.isclose(x.value, np.max(np.linalg.eigvalsh(P_val2)), atol=1e-4)
+
+    def test_hermitian_param_efficient_representation(self):
+        """Hermitian parameters use efficient (compact) representation."""
+        n = 3
+        P = cp.Parameter((n, n), hermitian=True)
+        X = cp.Variable((n, n), hermitian=True)
+        prob = cp.Problem(cp.Minimize(cp.real(cp.trace(X))), [X >> P])
+
+        P.value = np.array([[1, 1j, 0], [-1j, 1, 1j], [0, -1j, 1]])
+        prob.solve()
+
+        c2r = prob._cache.solving_chain.get(Complex2Real)
+        assert c2r is not None
+        assert P in c2r.canon_methods._parameters
+        real_param, imag_param = c2r.canon_methods._parameters[P]
+
+        # Real param: symmetric (n, n); Imag param: compact n*(n-1)//2
+        assert real_param.shape == (n, n) and real_param.is_symmetric()
+        assert imag_param.shape == (n * (n - 1) // 2,)

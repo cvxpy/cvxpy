@@ -70,6 +70,10 @@ class Complex2Real(Reduction):
         Called at solve time in the DPP fast path. Complex parameters are
         split into real/imag parameter pairs during canonicalization; this
         method sets their values from the original complex parameter values.
+
+        For Hermitian parameters, the imaginary part uses a compact
+        representation (strict upper triangle only), so we extract those
+        elements from the skew-symmetric imaginary part.
         """
         if self.canon_methods is None:
             return
@@ -79,7 +83,13 @@ class Complex2Real(Reduction):
                 if real_param is not None:
                     real_param.value = np.real(param.value)
                 if imag_param is not None:
-                    imag_param.value = np.imag(param.value)
+                    if param.is_hermitian():
+                        # Hermitian: extract strict upper triangle of imaginary part
+                        n = param.shape[0]
+                        imag_full = np.imag(param.value)
+                        imag_param.value = imag_full[np.triu_indices(n, k=1)]
+                    else:
+                        imag_param.value = np.imag(param.value)
 
     def param_backward(self, param, dparams):
         """Combine real/imag gradients into complex gradient for backward diff.
@@ -93,6 +103,9 @@ class Complex2Real(Reduction):
 
         Note: This is NOT the Wirtinger derivative. For Wirtinger calculus,
         ∂L/∂z = (∂L/∂a - j*∂L/∂b)/2 for z = a + jb.
+
+        For Hermitian parameters, the imaginary gradient is stored in compact
+        form (strict upper triangle) and must be expanded to skew-symmetric.
         """
         if self.canon_methods is None:
             return None
@@ -103,7 +116,16 @@ class Complex2Real(Reduction):
         if real_param is not None and real_param.id in dparams:
             grad = grad + dparams[real_param.id]
         if imag_param is not None and imag_param.id in dparams:
-            grad = grad + 1j * dparams[imag_param.id]
+            imag_grad = dparams[imag_param.id]
+            if param.is_hermitian():
+                # Expand compact upper triangle to full skew-symmetric matrix
+                n = param.shape[0]
+                full_imag_grad = np.zeros((n, n))
+                full_imag_grad[np.triu_indices(n, k=1)] = imag_grad
+                full_imag_grad = full_imag_grad - full_imag_grad.T
+                grad = grad + 1j * full_imag_grad
+            else:
+                grad = grad + 1j * imag_grad
         return grad
 
     def param_forward(self, param, delta):
@@ -115,6 +137,9 @@ class Complex2Real(Reduction):
 
         This treats the complex parameter as a pair of independent real
         parameters, consistent with the backward pass convention.
+
+        For Hermitian parameters, the imaginary delta is extracted as the
+        strict upper triangle of the skew-symmetric imaginary part.
         """
         if self.canon_methods is None:
             return None
@@ -125,7 +150,13 @@ class Complex2Real(Reduction):
         if real_param is not None:
             result[real_param.id] = np.real(np.asarray(delta, dtype=np.complex128))
         if imag_param is not None:
-            result[imag_param.id] = np.imag(np.asarray(delta, dtype=np.complex128))
+            imag_delta = np.imag(np.asarray(delta, dtype=np.complex128))
+            if param.is_hermitian():
+                # Extract strict upper triangle for compact representation
+                n = param.shape[0]
+                result[imag_param.id] = imag_delta[np.triu_indices(n, k=1)]
+            else:
+                result[imag_param.id] = imag_delta
         return result
 
     def apply(self, problem):

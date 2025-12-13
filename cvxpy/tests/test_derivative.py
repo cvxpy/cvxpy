@@ -393,6 +393,44 @@ class TestBackwardComplex(BaseTest):
         self.assertAlmostEqual(x.delta, 2.0, places=3)
         self.assertAlmostEqual(y.delta, 3.0, places=3)
 
+    def test_backward_hermitian_param(self) -> None:
+        """Backward differentiation with Hermitian parameter."""
+        n = 2
+        P = cp.Parameter((n, n), hermitian=True)
+        x = cp.Variable()
+        # Minimize x such that x*I >= P
+        prob = cp.Problem(cp.Minimize(x), [x * np.eye(n) >> P])
+
+        P_val = np.array([[1.0, 0.5j], [-0.5j, 2.0]])
+        P.value = P_val
+        prob.solve(requires_grad=True)
+        max_eig = np.max(np.linalg.eigvalsh(P_val))
+        self.assertAlmostEqual(x.value, max_eig, places=3)
+
+        x.gradient = 1.0
+        prob.backward()
+
+        # Gradient should be Hermitian
+        self.assertTrue(np.allclose(P.gradient, P.gradient.conj().T))
+
+    def test_forward_hermitian_delta(self) -> None:
+        """Forward differentiation with Hermitian parameter delta."""
+        n = 2
+        P = cp.Parameter((n, n), hermitian=True)
+        x = cp.Variable()
+        prob = cp.Problem(cp.Minimize(x), [x * np.eye(n) >> P])
+
+        P_val = np.array([[1.0, 0.5j], [-0.5j, 2.0]])
+        P.value = P_val
+        prob.solve(requires_grad=True)
+
+        # Perturb with Hermitian delta
+        P.delta = np.array([[0.1, 0.05j], [-0.05j, 0.2]])
+        prob.derivative()
+
+        # x.delta should be scalar (perturbation of max eigenvalue)
+        self.assertTrue(np.isscalar(x.delta) or x.delta.size == 1)
+
 
 class TestBackwardDgp(BaseTest):
     """Test problem.backward() and problem.derivative()."""
