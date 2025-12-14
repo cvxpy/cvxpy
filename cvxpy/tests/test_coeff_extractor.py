@@ -10,7 +10,7 @@ from cvxpy.utilities.coeff_extractor import CoeffExtractor
 
 
 @dataclass
-class MockeInverseData:
+class MockInverseData:
     var_offsets: dict
     x_length: int
     var_shapes: dict
@@ -21,7 +21,7 @@ class MockeInverseData:
 
 @pytest.fixture
 def coeff_extractor():
-    inverset_data = MockeInverseData(
+    inverset_data = MockInverseData(
         var_offsets={1: 0},
         x_length=2,
         var_shapes={1: (2,)},
@@ -220,7 +220,7 @@ class TestBlockQuadExtraction:
     @pytest.fixture
     def block_extractor(self):
         """Create an extractor for a size-6 variable."""
-        inverse_data = MockeInverseData(
+        inverse_data = MockInverseData(
             var_offsets={1: 0},
             x_length=6,
             var_shapes={1: (6,)},
