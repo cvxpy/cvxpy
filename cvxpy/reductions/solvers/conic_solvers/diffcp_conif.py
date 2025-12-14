@@ -94,6 +94,9 @@ class DIFFCP(scs_conif.SCS):
             status = self.STATUS_MAP[solution["info"]["status"]]
             attr[s.SOLVE_TIME] = solution["info"]["solveTime"]
             attr[s.SETUP_TIME] = solution["info"]["setupTime"]
+        elif solution["solve_method"] == s.CLARABEL:
+            status = self.STATUS_MAP[solution["info"]["status"]]
+            attr[s.SOLVE_TIME] = solution["info"]["solveTime"]
 
         attr[s.NUM_ITERS] = solution["info"]["iter"]
         attr[s.EXTRA_STATS] = solution
