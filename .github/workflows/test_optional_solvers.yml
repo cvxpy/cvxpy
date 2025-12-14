@@ -38,15 +38,16 @@ jobs:
           version: 'lts'
       - name: Install COSMO
         run: julia -e 'using Pkg; Pkg.add("COSMO")'
-      - name: Install COIN-OR CBC (Windows)
-        if: runner.os == 'Windows'
-        run: |
-          curl -L -o cbc.zip https://github.com/coin-or/Cbc/releases/download/releases%2F2.10.12/Cbc-releases.2.10.12-w64-msvc17-md.zip
-          unzip cbc.zip -d cbc
-          echo "$PWD/cbc/bin" >> $GITHUB_PATH
-          echo "COIN_INSTALL_DIR=$PWD/cbc" >> $GITHUB_ENV
       - name: Install cvxpy dependencies and all optional solvers
-        run: uv sync --all-extras --dev
+        run: |
+          if [[ "$RUNNER_OS" == "windows-2022" ]]; then
+            # Skip CBC on Windows - cylp requires COIN-OR built with /MD but pre-built binaries use /MT
+            uv sync --dev --extra CLARABEL --extra CVXOPT --extra DIFFCP --extra ECOS --extra GLOP \
+              --extra GUROBI --extra HIGHS --extra MOSEK --extra PDLP --extra PIQP --extra PROXQP \
+              --extra SCIP --extra SCIPY --extra XPRESS --extra DAQP --extra KNITRO --extra testing
+          else
+            uv sync --all-extras --dev
+          fi
       - name: Print installed solvers
         run : |
           uv run python -c "import cvxpy; print(cvxpy.installed_solvers())" 
