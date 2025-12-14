@@ -42,7 +42,7 @@ jobs:
         run: |
           if [[ "$RUNNER_OS" == "windows-2022" ]]; then
             # Skip CBC on Windows - cylp requires COIN-OR built with /MD but pre-built binaries use /MT
-            pip install -e ".[CLARABEL,CVXOPT,DIFFCP,ECOS,GLOP,GUROBI,HIGHS,MOSEK,PDLP,PIQP,PROXQP,SCIP,SCIPY,XPRESS,DAQP,KNITRO,testing]"
+            python -m pip install --no-cache-dir -e ".[CLARABEL,CVXOPT,DIFFCP,ECOS,GLOP,GUROBI,HIGHS,MOSEK,PDLP,PIQP,PROXQP,SCIP,SCIPY,XPRESS,DAQP,KNITRO,testing]"
           else
             uv sync --all-extras --dev
           fi
