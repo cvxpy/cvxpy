@@ -1541,7 +1541,7 @@ class TestExpressions(BaseTest):
         with pytest.warns(
             UserWarning,
             match="The problem includes expressions that don't support "
-            "CPP backend. Defaulting to the COO backend "
+            "CPP backend. Defaulting to the SCIPY backend "
             "for canonicalization.",
         ):
             prob.solve()
@@ -1581,7 +1581,7 @@ class TestND_Expressions():
     def test_nd_variable_warning(self) -> None:
         prob = cp.Problem(self.obj, [self.x == self.target])
         warning_str = "The problem has an expression with dimension greater than 2. " \
-                    "Defaulting to the COO backend for canonicalization."
+                    "Defaulting to the SCIPY backend for canonicalization."
         with pytest.warns(UserWarning, match=warning_str):
             prob.solve()
 
