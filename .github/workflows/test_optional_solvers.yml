@@ -17,7 +17,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ ubuntu-22.04, macos-14, windows-2022 ]
+        os: [ ubuntu-22.04, macos-14 ]  # Windows excluded - cylp/CBC cannot be built
     steps:
       - uses: actions/checkout@v5
       - name: Set Additional Envs
@@ -39,35 +39,14 @@ jobs:
       - name: Install COSMO
         run: julia -e 'using Pkg; Pkg.add("COSMO")'
       - name: Install cvxpy dependencies and all optional solvers
-        run: |
-          if [[ "$RUNNER_OS" == "windows-2022" ]]; then
-            # Skip CBC on Windows - cylp requires COIN-OR built with /MD but pre-built binaries use /MT
-            python -m pip install --no-cache-dir -e ".[CLARABEL,CVXOPT,DIFFCP,ECOS,GLOP,GUROBI,HIGHS,MOSEK,PDLP,PIQP,PROXQP,SCIP,SCIPY,XPRESS,DAQP,KNITRO,testing]"
-          else
-            uv sync --all-extras --dev
-          fi
+        run: uv sync --all-extras --dev
       - name: Print installed solvers
-        run : |
-          if [[ "$RUNNER_OS" == "windows-2022" ]]; then
-            python -c "import cvxpy; print(cvxpy.installed_solvers())"
-          else
-            uv run python -c "import cvxpy; print(cvxpy.installed_solvers())"
-          fi
+        run: uv run python -c "import cvxpy; print(cvxpy.installed_solvers())"
       - name: Run test_conic_solvers
-        run : |
-          if [[ "$RUNNER_OS" == "windows-2022" ]]; then
-            pytest -rs cvxpy/tests/test_conic_solvers.py
-          else
-            uv run pytest -rs cvxpy/tests/test_conic_solvers.py
-          fi
+        run: uv run pytest -rs cvxpy/tests/test_conic_solvers.py
       - name: Run test_qp_solvers
         if: always()
-        run : |
-          if [[ "$RUNNER_OS" == "windows-2022" ]]; then
-            pytest -rs cvxpy/tests/test_qp_solvers.py
-          else
-            uv run pytest -rs cvxpy/tests/test_qp_solvers.py
-          fi
+        run: uv run pytest -rs cvxpy/tests/test_qp_solvers.py
 
     env:
       UV_SYSTEM_PYTHON: 1
