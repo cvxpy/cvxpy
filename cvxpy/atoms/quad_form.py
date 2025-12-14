@@ -34,6 +34,7 @@ class CvxPyDomainError(Exception):
 
 class QuadForm(Atom):
     _allow_complex = True
+    block_indices = None  # For compatibility with SymbolicQuadForm
 
     def __init__(self, x, P) -> None:
         """Atom representing :math:`x^T P x`."""
