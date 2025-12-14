@@ -210,6 +210,11 @@ class COOTensor:
           - new row 2 <- old row 1
 
         This is a fully vectorized O(nnz + len(rows)) implementation.
+
+        Algorithm: Uses binary search (searchsorted) to efficiently find which tensor
+        entries need to be replicated. For each unique tensor row, we find all destination
+        positions it maps to in O(log n) time via binary search, then use np.repeat to
+        duplicate entries accordingly. This avoids the naive O(nnz × len(rows)) loop.
         """
         new_m = len(rows)
 
@@ -306,9 +311,10 @@ class COOTensor:
         """Add two COOTensors (concatenate entries)."""
         # Allow different n (column counts) - take max
         # This happens in vstack when combining expressions with different variable counts
-        assert self.m == other.m, f"Row count mismatch: {self.m} vs {other.m}"
-        assert self.param_size == other.param_size, \
-            f"Param size mismatch: {self.param_size} vs {other.param_size}"
+        if self.m != other.m:
+            raise ValueError(f"Row count mismatch: {self.m} vs {other.m}")
+        if self.param_size != other.param_size:
+            raise ValueError(f"Param size mismatch: {self.param_size} vs {other.param_size}")
 
         return COOTensor(
             data=np.concatenate([self.data, other.data]),
@@ -457,8 +463,8 @@ def coo_matmul(lhs: COOTensor, rhs: COOTensor) -> COOTensor:
     else:
         # Both parametrized - need to match param_idx
         # This is rare in DPP, fall back to per-slice computation
-        assert lhs.param_size == rhs.param_size, \
-            "Mismatched param_size in coo_matmul"
+        if lhs.param_size != rhs.param_size:
+            raise ValueError("Mismatched param_size in coo_matmul")
 
         results = []
         for p in range(lhs.param_size):
@@ -621,8 +627,8 @@ def coo_mul_elem(lhs: COOTensor, rhs: COOTensor) -> COOTensor:
     else:
         # Both parametrized - element-wise multiply matching slices
         # Vectorized: sorted merge with searchsorted
-        assert lhs.param_size == rhs.param_size, \
-            "Mismatched param_size in coo_mul_elem"
+        if lhs.param_size != rhs.param_size:
+            raise ValueError("Mismatched param_size in coo_mul_elem")
 
         # Compute linear indices: param_idx * (m * n) + row * n + col
         slice_size = lhs.m * lhs.n
@@ -1013,6 +1019,9 @@ class COOCanonBackend(PythonCanonBackend):
 
         # Get reciprocal values
         lhs_compact = self._to_coo_tensor(lhs)
+        # Check for zero divisors
+        if np.any(lhs_compact.data == 0):
+            raise ValueError("Division by zero encountered in divisor")
         # Invert the data
         recip_data = np.reciprocal(lhs_compact.data, dtype=float)
         lhs_recip = COOTensor(

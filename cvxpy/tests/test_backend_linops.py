@@ -1,7 +1,7 @@
 """
 Exhaustive test suite for canon backends.
 
-Tests all linops across SCIPY, NUMPY, and LAZY backends to ensure:
+Tests all linops across SCIPY, NUMPY, and COO backends to ensure:
 1. Each backend produces correct output (expected value tests)
 2. All backends produce identical output (cross-backend consistency)
 3. Parametrized expressions work correctly (DPP tests)
