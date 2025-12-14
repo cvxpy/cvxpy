@@ -212,3 +212,202 @@ def test_issue_2437():
         rtol=0,
         atol=1e-3,
     )
+
+
+class TestBlockQuadExtraction:
+    """Tests for block-structured quadratic form extraction."""
+
+    @pytest.fixture
+    def block_extractor(self):
+        """Create an extractor for a size-6 variable."""
+        inverse_data = MockeInverseData(
+            var_offsets={1: 0},
+            x_length=6,
+            var_shapes={1: (6,)},
+            param_shapes={},
+            param_to_size={-1: 1},
+            param_id_map={-1: 0},
+        )
+        backend = cp.CPP_CANON_BACKEND
+        return CoeffExtractor(inverse_data, backend)
+
+    def test_block_extraction_contiguous_identity(self, block_extractor):
+        """Test contiguous blocks with identity P."""
+        import scipy.sparse as sp
+
+        # Setup: 2 blocks of size 3, P = I_6
+        N = 6
+        P_coo = sp.eye(N, format='coo')
+
+        # block_indices for 2 output elements, each using 3 contiguous inputs
+        block_indices = [np.arange(0, 3), np.arange(3, 6)]
+
+        # c_part: coefficients [1.0, 2.0] for 2 outputs, 1 param
+        c_part = np.array([[1.0], [2.0]])
+
+        result = block_extractor._extract_block_quad(P_coo, c_part, block_indices, 1)
+
+        # Expected: 6 entries total (diagonal), first 3 scaled by 1.0, last 3 by 2.0
+        assert len(result.data) == 6
+        assert result.shape == (6, 6)
+
+        # Check that diagonal entries are correct
+        # Entries 0,1,2 should have value 1.0; entries 3,4,5 should have value 2.0
+        sorted_indices = np.argsort(result.row)
+        sorted_data = result.data[sorted_indices]
+        sorted_rows = result.row[sorted_indices]
+        sorted_cols = result.col[sorted_indices]
+
+        np.testing.assert_array_equal(sorted_rows, [0, 1, 2, 3, 4, 5])
+        np.testing.assert_array_equal(sorted_cols, [0, 1, 2, 3, 4, 5])
+        np.testing.assert_array_almost_equal(sorted_data, [1.0, 1.0, 1.0, 2.0, 2.0, 2.0])
+
+    def test_block_extraction_noncontiguous(self, block_extractor):
+        """Test non-contiguous blocks (e.g., axis=1 reduction with column-major)."""
+        import scipy.sparse as sp
+
+        # P = I_6, simulating x shape (3, 2) flattened column-major
+        # For axis=1 reduction, each row of x becomes an output
+        # Row 0: indices [0, 3], Row 1: indices [1, 4], Row 2: indices [2, 5]
+        N = 6
+        P_coo = sp.eye(N, format='coo')
+
+        # Non-contiguous blocks
+        block_indices = [
+            np.array([0, 3]),  # Output 0: x[0,0] and x[0,1]
+            np.array([1, 4]),  # Output 1: x[1,0] and x[1,1]
+            np.array([2, 5]),  # Output 2: x[2,0] and x[2,1]
+        ]
+
+        # c_part: coefficients [1.0, 2.0, 3.0] for 3 outputs, 1 param
+        c_part = np.array([[1.0], [2.0], [3.0]])
+
+        result = block_extractor._extract_block_quad(P_coo, c_part, block_indices, 1)
+
+        # Expected: 6 entries (diagonal), scaled by respective coefficients
+        assert len(result.data) == 6
+        assert result.shape == (6, 6)
+
+        # Check diagonal entries match expected scaling
+        # Index 0 -> coef 1.0, Index 1 -> coef 2.0, Index 2 -> coef 3.0
+        # Index 3 -> coef 1.0, Index 4 -> coef 2.0, Index 5 -> coef 3.0
+        expected_data = {0: 1.0, 1: 2.0, 2: 3.0, 3: 1.0, 4: 2.0, 5: 3.0}
+        for i in range(len(result.data)):
+            row, col, data = result.row[i], result.col[i], result.data[i]
+            assert row == col  # Diagonal
+            assert np.isclose(data, expected_data[row])
+
+    def test_block_extraction_sparse_blocks(self, block_extractor):
+        """Test with sparse (non-identity) P blocks."""
+        import scipy.sparse as sp
+
+        # P has off-diagonal entries within blocks
+        # Block 0: entries at (0,0), (0,1), (1,0), (1,1), (2,2)
+        # Block 1: entries at (3,3), (4,4), (5,5)
+        row = np.array([0, 0, 1, 1, 2, 3, 4, 5])
+        col = np.array([0, 1, 0, 1, 2, 3, 4, 5])
+        data = np.array([1.0, 0.5, 0.5, 1.0, 1.0, 1.0, 1.0, 1.0])
+        P_coo = sp.coo_matrix((data, (row, col)), shape=(6, 6))
+
+        block_indices = [np.arange(0, 3), np.arange(3, 6)]
+        c_part = np.array([[2.0], [3.0]])
+
+        result = block_extractor._extract_block_quad(P_coo, c_part, block_indices, 1)
+
+        # Block 0: 5 entries scaled by 2.0
+        # Block 1: 3 entries scaled by 3.0
+        assert len(result.data) == 8
+
+        # Check scaling
+        for i in range(len(result.data)):
+            row_idx = result.row[i]
+            expected_coef = 2.0 if row_idx < 3 else 3.0
+            orig_data = data[np.where((P_coo.row == row_idx) & (P_coo.col == result.col[i]))[0][0]]
+            assert np.isclose(result.data[i], orig_data * expected_coef)
+
+    def test_block_extraction_with_parameters(self, block_extractor):
+        """Test block extraction with multiple parameter columns."""
+        import scipy.sparse as sp
+
+        # P = I_4, 2 blocks of size 2
+        N = 4
+        P_coo = sp.eye(N, format='coo')
+
+        block_indices = [np.arange(0, 2), np.arange(2, 4)]
+
+        # c_part: 2 outputs x 2 params
+        # Output 0: coefs [1.0, 2.0], Output 1: coefs [3.0, 4.0]
+        c_part = np.array([[1.0, 2.0], [3.0, 4.0]])
+
+        result = block_extractor._extract_block_quad(P_coo, c_part, block_indices, 2)
+
+        # Each block has 2 diagonal entries, each scaled by 2 param coefficients
+        # Total: 2 blocks * 2 entries * 2 params = 8 entries
+        assert len(result.data) == 8
+
+        # Check parameter offsets are present
+        assert set(result.parameter_offset) == {0, 1}
+
+    def test_block_extraction_empty_blocks(self, block_extractor):
+        """Test that empty blocks are handled correctly."""
+        import scipy.sparse as sp
+
+        # P has entries only in the first 3 indices
+        row = np.array([0, 1, 2])
+        col = np.array([0, 1, 2])
+        data = np.array([1.0, 1.0, 1.0])
+        P_coo = sp.coo_matrix((data, (row, col)), shape=(6, 6))
+
+        # Block 1 has no P entries
+        block_indices = [np.arange(0, 3), np.arange(3, 6)]
+        c_part = np.array([[1.0], [2.0]])
+
+        result = block_extractor._extract_block_quad(P_coo, c_part, block_indices, 1)
+
+        # Only 3 entries from first block
+        assert len(result.data) == 3
+        np.testing.assert_array_almost_equal(result.data, [1.0, 1.0, 1.0])
+
+    def test_block_extraction_zero_coefficients(self, block_extractor):
+        """Test that blocks with zero coefficients are skipped."""
+        import scipy.sparse as sp
+
+        N = 4
+        P_coo = sp.eye(N, format='coo')
+
+        block_indices = [np.arange(0, 2), np.arange(2, 4)]
+        # Second block has zero coefficient
+        c_part = np.array([[1.0], [0.0]])
+
+        result = block_extractor._extract_block_quad(P_coo, c_part, block_indices, 1)
+
+        # Only 2 entries from first block
+        assert len(result.data) == 2
+        assert all(r < 2 for r in result.row)  # All from first block
+
+    def test_symbolic_quad_form_with_block_indices(self):
+        """Test that SymbolicQuadForm correctly stores block_indices."""
+        x = cp.Variable(6)
+        P = np.eye(6)
+        expr = cp.quad_form(x, P)  # Just for the original_expression
+
+        block_indices = [np.arange(0, 3), np.arange(3, 6)]
+        sqf = SymbolicQuadForm(x, cp.Constant(P), expr, block_indices=block_indices)
+
+        assert sqf.block_indices is block_indices
+        data = sqf.get_data()
+        assert len(data) == 2
+        assert data[1] is block_indices
+
+    def test_symbolic_quad_form_without_block_indices(self):
+        """Test that SymbolicQuadForm works without block_indices (backward compat)."""
+        x = cp.Variable(2)
+        P = np.eye(2)
+        expr = cp.quad_form(x, P)
+
+        sqf = SymbolicQuadForm(x, cp.Constant(P), expr)
+
+        assert sqf.block_indices is None
+        data = sqf.get_data()
+        assert len(data) == 2
+        assert data[1] is None
