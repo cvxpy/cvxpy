@@ -247,8 +247,6 @@ def construct_solving_chain(problem, candidates,
             reductions = [EvalParams()] + reductions
         else:
             raise DPPError(DPP_ERROR_MSG)
-    elif any(param.is_complex() for param in problem.parameters()):
-        reductions = [EvalParams()] + reductions
     else:
         # Compilation with DPP - auto-select COO backend for large DPP problems
         if canon_backend is None:
