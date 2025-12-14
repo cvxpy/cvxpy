@@ -168,7 +168,8 @@ class CoeffExtractor:
                     # a different variable.
                     assert (P.col == P.row).all(), \
                         "Only diagonal P matrices are supported for multiple quad forms " \
-                        "without block_indices."
+                        "without block_indices. If you need non-diagonal structure, " \
+                        "use SymbolicQuadForm with block_indices parameter."
 
                     scaled_c_part = P @ c_part
                     paramx_idx_row, param_idx_col = np.nonzero(scaled_c_part)
@@ -219,7 +220,7 @@ class CoeffExtractor:
         self,
         P: sp.coo_matrix,
         c_part: np.ndarray,
-        block_indices: list,
+        block_indices: List[np.ndarray],
         num_params: int,
     ) -> TensorRepresentation:
         """Extract quadratic coefficients for block-structured quad forms.
@@ -242,12 +243,10 @@ class CoeffExtractor:
         all_param = []
 
         for j, indices in enumerate(block_indices):
-            # Create index set for fast membership testing
-            idx_set = set(indices)
-
             # Filter P entries where both row and col are in this block
-            mask = np.array([(r in idx_set and c in idx_set)
-                             for r, c in zip(P.row, P.col)])
+            row_mask = np.isin(P.row, indices)
+            col_mask = np.isin(P.col, indices)
+            mask = row_mask & col_mask
 
             if not mask.any():
                 continue

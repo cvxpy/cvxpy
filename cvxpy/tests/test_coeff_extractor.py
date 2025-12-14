@@ -385,6 +385,23 @@ class TestBlockQuadExtraction:
         assert len(result.data) == 2
         assert all(r < 2 for r in result.row)  # All from first block
 
+    def test_block_extraction_all_empty(self, block_extractor):
+        """Test that completely empty extraction returns empty TensorRepresentation."""
+        import scipy.sparse as sp
+
+        N = 4
+        P_coo = sp.eye(N, format='coo')
+
+        block_indices = [np.arange(0, 2), np.arange(2, 4)]
+        # All blocks have zero coefficients
+        c_part = np.array([[0.0], [0.0]])
+
+        result = block_extractor._extract_block_quad(P_coo, c_part, block_indices, 1)
+
+        # Should return empty TensorRepresentation with correct shape
+        assert len(result.data) == 0
+        assert result.shape == (4, 4)
+
     def test_symbolic_quad_form_with_block_indices(self):
         """Test that SymbolicQuadForm correctly stores block_indices."""
         x = cp.Variable(6)
