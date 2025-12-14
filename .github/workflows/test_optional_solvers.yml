@@ -42,20 +42,32 @@ jobs:
         run: |
           if [[ "$RUNNER_OS" == "windows-2022" ]]; then
             # Skip CBC on Windows - cylp requires COIN-OR built with /MD but pre-built binaries use /MT
-            uv pip install -e ".[CLARABEL,CVXOPT,DIFFCP,ECOS,GLOP,GUROBI,HIGHS,MOSEK,PDLP,PIQP,PROXQP,SCIP,SCIPY,XPRESS,DAQP,KNITRO,testing]"
+            pip install -e ".[CLARABEL,CVXOPT,DIFFCP,ECOS,GLOP,GUROBI,HIGHS,MOSEK,PDLP,PIQP,PROXQP,SCIP,SCIPY,XPRESS,DAQP,KNITRO,testing]"
           else
             uv sync --all-extras --dev
           fi
       - name: Print installed solvers
         run : |
-          uv run python -c "import cvxpy; print(cvxpy.installed_solvers())" 
+          if [[ "$RUNNER_OS" == "windows-2022" ]]; then
+            python -c "import cvxpy; print(cvxpy.installed_solvers())"
+          else
+            uv run python -c "import cvxpy; print(cvxpy.installed_solvers())"
+          fi
       - name: Run test_conic_solvers
         run : |
-          uv run pytest -rs cvxpy/tests/test_conic_solvers.py
+          if [[ "$RUNNER_OS" == "windows-2022" ]]; then
+            pytest -rs cvxpy/tests/test_conic_solvers.py
+          else
+            uv run pytest -rs cvxpy/tests/test_conic_solvers.py
+          fi
       - name: Run test_qp_solvers
         if: always()
         run : |
-          uv run pytest -rs cvxpy/tests/test_qp_solvers.py
+          if [[ "$RUNNER_OS" == "windows-2022" ]]; then
+            pytest -rs cvxpy/tests/test_qp_solvers.py
+          else
+            uv run pytest -rs cvxpy/tests/test_qp_solvers.py
+          fi
 
     env:
       UV_SYSTEM_PYTHON: 1
