@@ -194,7 +194,11 @@ CPP_CANON_BACKEND = "CPP"
 COO_CANON_BACKEND = "COO"  # 3D COO sparse tensor backend: O(nnz) operations for large parameters
 
 # Default canonicalization backend, pyodide uses SciPy
-DEFAULT_CANON_BACKEND = CPP_CANON_BACKEND if sys.platform != "emscripten" else COO_CANON_BACKEND
+DEFAULT_CANON_BACKEND = CPP_CANON_BACKEND if sys.platform != "emscripten" else SCIPY_CANON_BACKEND
+
+# DPP parameter threshold for auto-selecting COO backend
+# When problem is DPP and total parameter size >= this threshold, use COO backend
+DPP_PARAM_THRESHOLD = 1000
 
 # Numerical tolerances
 EIGVAL_TOL = 1e-10

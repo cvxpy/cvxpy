@@ -34,8 +34,8 @@ def get_canon_backend(problem, canon_backend: str) -> str:
         if canon_backend is None:
             warnings.warn(UserWarning(
                 f"The problem includes expressions that don't support {CPP_CANON_BACKEND} backend. "
-                f"Defaulting to the {COO_CANON_BACKEND} backend for canonicalization."))
-            return COO_CANON_BACKEND
+                f"Defaulting to the {SCIPY_CANON_BACKEND} backend for canonicalization."))
+            return SCIPY_CANON_BACKEND
         if canon_backend == CPP_CANON_BACKEND:
             raise ValueError(f"The {CPP_CANON_BACKEND} backend cannot be used with problems "
                              f"that have expressions which do not support it.")
@@ -45,8 +45,8 @@ def get_canon_backend(problem, canon_backend: str) -> str:
         if canon_backend is None:
             warnings.warn(UserWarning(
                 f"The problem has an expression with dimension greater than 2. "
-                f"Defaulting to the {COO_CANON_BACKEND} backend for canonicalization."))
-            return COO_CANON_BACKEND
+                f"Defaulting to the {SCIPY_CANON_BACKEND} backend for canonicalization."))
+            return SCIPY_CANON_BACKEND
         if canon_backend == CPP_CANON_BACKEND:
             raise ValueError(
                 f"Only the {COO_CANON_BACKEND}, {SCIPY_CANON_BACKEND}, and "

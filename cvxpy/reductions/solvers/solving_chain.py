@@ -41,7 +41,7 @@ from cvxpy.reductions.reduction import Reduction
 from cvxpy.reductions.solvers import defines as slv_def
 from cvxpy.reductions.solvers.constant_solver import ConstantSolver
 from cvxpy.reductions.solvers.solver import Solver
-from cvxpy.settings import CLARABEL
+from cvxpy.settings import CLARABEL, COO_CANON_BACKEND, DPP_PARAM_THRESHOLD
 from cvxpy.utilities import scopes
 from cvxpy.utilities.debug_tools import build_non_disciplined_error_msg
 
@@ -249,7 +249,12 @@ def construct_solving_chain(problem, candidates,
             raise DPPError(DPP_ERROR_MSG)
     elif any(param.is_complex() for param in problem.parameters()):
         reductions = [EvalParams()] + reductions
-    # else: Compilation with DPP (no special handling needed)
+    else:
+        # Compilation with DPP - auto-select COO backend for large DPP problems
+        if canon_backend is None:
+            total_param_size = sum(p.size for p in problem.parameters())
+            if total_param_size >= DPP_PARAM_THRESHOLD:
+                canon_backend = COO_CANON_BACKEND
 
     # Conclude with matrix stuffing; choose one of the following paths:
     #   (1) ConeMatrixStuffing(quad_obj=True) --> [a QpSolver],
