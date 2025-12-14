@@ -1328,6 +1328,8 @@ class Problem(u.Canonical):
         backward_cache = self._solver_cache[s.DIFFCP]
         DT = backward_cache["DT"]
         zeros = np.zeros(backward_cache["s"].shape)
+        # del_vars: dictionary of variable gradients (delta/∂ with respect to variables)
+        # Maps variable IDs to their gradient arrays for the backward pass
         del_vars = {}
 
         for variable in self.variables():
