@@ -23,9 +23,13 @@ from cvxpy.lin_ops.backends import CanonBackend
 
 class RustCanonBackend(CanonBackend):
     """
-    The rust canonicalization backend is currently WIP and cannot be used.
-    For additional information, a proof of concept pull request can be found here:
-    https://github.com/phschiele/cvxpy/pull/31
+    Rust-accelerated canonicalization backend (experimental).
+
+    TODO: This backend is a work-in-progress. The main blocker is more complete
+    benchmarking and performance improvements before it can be enabled by default.
+
+    For implementation details and progress, see:
+    https://github.com/cvxpy/cvxpy/pull/3018
     """
 
     def build_matrix(self, lin_ops: list[LinOp]) -> sp.csc_array:

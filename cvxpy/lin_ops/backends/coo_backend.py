@@ -579,19 +579,24 @@ def coo_mul_elem(lhs: COOTensor, rhs: COOTensor) -> COOTensor:
             )
 
         # General case: rhs has same dimensions as lhs slices
-        # Build rhs linear mapping for fast lookup
-        rhs_linear = rhs.row * rhs.n + rhs.col
-        rhs_lookup = np.zeros(rhs.m * rhs.n)
-        rhs_lookup[rhs_linear] = rhs.data
+        # Use sparse lookup to avoid allocating large dense arrays
+        # Create a sparse CSR matrix from rhs for efficient lookup
+        rhs_sparse = sp.csr_array(
+            (rhs.data, (rhs.row, rhs.col)),
+            shape=(rhs.m, rhs.n)
+        )
 
         # For each lhs entry, get the corresponding rhs value
-        # Handle dimension mismatch by clamping indices
-        row_idx = np.minimum(lhs.row, rhs.m - 1)
-        col_idx = np.minimum(lhs.col, rhs.n - 1)
-        linear_idx = row_idx * rhs.n + col_idx
+        # Validate that lhs indices are within rhs bounds
+        if lhs.data.size > 0:
+            if np.any(lhs.row >= rhs.m) or np.any(lhs.col >= rhs.n):
+                raise ValueError(
+                    f"Index out of bounds in mul_elem: lhs indices must be within "
+                    f"rhs shape ({rhs.m}, {rhs.n})"
+                )
 
-        # Get rhs values at lhs positions
-        rhs_vals = rhs_lookup[linear_idx]
+        # Get rhs values at lhs positions using sparse indexing
+        rhs_vals = np.asarray(rhs_sparse[lhs.row, lhs.col]).ravel()
 
         # Keep only non-zero results
         mask = rhs_vals != 0
