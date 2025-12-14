@@ -131,7 +131,8 @@ class CoeffExtractor:
                 c_part = c[var_offset:var_offset+var_size, :]
 
                 # Convert to sparse matrix.
-                P = quad_forms[var_id][2].P
+                quad_form_atom = quad_forms[var_id][2]
+                P = quad_form_atom.P
                 assert (
                     P.value is not None
                 ), "P matrix must be instantiated before calling extract_quadratic_coeffs."
@@ -140,11 +141,13 @@ class CoeffExtractor:
                 else:
                     P = sp.coo_matrix(P.value)
 
+                # Get block structure if available
+                block_indices = quad_form_atom.block_indices
+
                 # We multiply P by the parameter coefficients.
                 if var_size == 1:
-                    # Single quad form in the expression, i.e., we multiply
-                    # the full P matrix by the non-zero entries of c_part.
-
+                    # SCALAR PATH - Single quad form in the expression, i.e.,
+                    # we multiply the full P matrix by the non-zero entries of c_part.
                     nonzero_idxs = c_part[0] != 0
                     data = P.data[:, None] * c_part[:, nonzero_idxs]
                     param_idxs = np.arange(num_params)[nonzero_idxs]
@@ -155,13 +158,18 @@ class CoeffExtractor:
                         np.repeat(param_idxs, len(P.data)),
                         P.shape
                     )
+                elif block_indices is not None:
+                    # BLOCK-STRUCTURED PATH - Non-scalar output with block structure.
+                    # Each output element j depends on input indices block_indices[j].
+                    P_tup = self._extract_block_quad(P, c_part, block_indices, num_params)
                 else:
-                    # Multiple quad forms in the one expression, i.e., c_part
-                    # is now a matrix where each row corresponds to a different
-                    # variable.
+                    # DIAGONAL PATH - Multiple quad forms in the one expression,
+                    # i.e., c_part is now a matrix where each row corresponds to
+                    # a different variable.
                     assert (P.col == P.row).all(), \
-                        "Only diagonal P matrices are supported for multiple quad forms."
-                    
+                        "Only diagonal P matrices are supported for multiple quad forms " \
+                        "without block_indices."
+
                     scaled_c_part = P @ c_part
                     paramx_idx_row, param_idx_col = np.nonzero(scaled_c_part)
                     c_vals = c_part[paramx_idx_row, param_idx_col]
@@ -206,6 +214,73 @@ class CoeffExtractor:
                     else:
                         coeffs[var.id]['q'] = param_coeffs[var_offset:var_offset+var_size, :]
         return coeffs, constant
+
+    def _extract_block_quad(
+        self,
+        P: sp.coo_matrix,
+        c_part: np.ndarray,
+        block_indices: list,
+        num_params: int,
+    ) -> TensorRepresentation:
+        """Extract quadratic coefficients for block-structured quad forms.
+
+        Each output element j uses input indices from block_indices[j].
+        Supports both contiguous and non-contiguous blocks.
+
+        Args:
+            P: COO sparse matrix (N x N)
+            c_part: Coefficients (num_outputs x num_params)
+            block_indices: List of np.ndarray, each containing indices for that block
+            num_params: Number of parameter columns
+
+        Returns:
+            TensorRepresentation for the scaled P matrix
+        """
+        all_data = []
+        all_row = []
+        all_col = []
+        all_param = []
+
+        for j, indices in enumerate(block_indices):
+            # Create index set for fast membership testing
+            idx_set = set(indices)
+
+            # Filter P entries where both row and col are in this block
+            mask = np.array([(r in idx_set and c in idx_set)
+                             for r, c in zip(P.row, P.col)])
+
+            if not mask.any():
+                continue
+
+            block_data = P.data[mask]
+            block_row = P.row[mask]
+            block_col = P.col[mask]
+
+            # Coefficient for this output element
+            coef_row = c_part[j, :]
+            nonzero_params = np.nonzero(coef_row)[0]
+
+            if len(nonzero_params) == 0:
+                continue
+
+            # Scale by each non-zero coefficient
+            for param_idx in nonzero_params:
+                scaled_data = block_data * coef_row[param_idx]
+                all_data.append(scaled_data)
+                all_row.append(block_row)  # Already global coordinates
+                all_col.append(block_col)
+                all_param.append(np.full(len(scaled_data), param_idx, dtype=int))
+
+        if not all_data:
+            return TensorRepresentation.empty_with_shape(P.shape)
+
+        return TensorRepresentation(
+            np.concatenate(all_data),
+            np.concatenate(all_row),
+            np.concatenate(all_col),
+            np.concatenate(all_param),
+            P.shape,
+        )
 
     def quad_form(self, expr):
         """Extract quadratic, linear constant parts of a quadratic objective.
