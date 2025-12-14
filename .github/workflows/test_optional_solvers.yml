@@ -38,6 +38,13 @@ jobs:
           version: 'lts'
       - name: Install COSMO
         run: julia -e 'using Pkg; Pkg.add("COSMO")'
+      - name: Install COIN-OR CBC (Windows)
+        if: runner.os == 'Windows'
+        run: |
+          curl -L -o cbc.zip https://github.com/coin-or/Cbc/releases/download/releases%2F2.10.12/Cbc-releases.2.10.12-w64-msvc17-md.zip
+          unzip cbc.zip -d cbc
+          echo "$PWD/cbc/bin" >> $GITHUB_PATH
+          echo "COIN_INSTALL_DIR=$PWD/cbc" >> $GITHUB_ENV
       - name: Install cvxpy dependencies and all optional solvers
         run: uv sync --all-extras --dev
       - name: Print installed solvers
