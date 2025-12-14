@@ -255,4 +255,6 @@ Currently, the following canonicalization backends are supported:
 *  CPP (default): The original C++ implementation, also referred to as CVXCORE.
 *  | SCIPY: A pure Python implementation based on the SciPy sparse module.
    | Generally fast for problems that are already vectorized.
+*  | COO: A pure Python implementation using 3D COO sparse tensors with O(nnz) operations.
+   | Necessary for DPP-compliant problems with large parameters.
 *  NUMPY: Reference implementation in pure NumPy. Fast for some small or dense problems.
