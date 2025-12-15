@@ -966,16 +966,14 @@ class COOCanonBackend(PythonCanonBackend):
                     result[param_id] = coo_matmul(lhs_compact, rhs_compact)
                 return result
 
-            # Apply to each variable tensor
-            new_tensor = {}
+            # Apply to each variable tensor in-place
             for var_id, var_tensor in view.tensor.items():
                 # var_tensor is {Constant.ID: CoordsTensor}
                 const_compact = var_tensor[Constant.ID.value]
-                new_tensor[var_id] = parametrized_mul(const_compact)
+                view.tensor[var_id] = parametrized_mul(const_compact)
 
-            return view.create_new_tensor_view(
-                view.variable_ids, new_tensor, is_parameter_free=False
-            )
+            view.is_parameter_free = False
+            return view
 
         else:
             # Constant lhs @ rhs - need to expand lhs with Kronecker product
@@ -1101,14 +1099,13 @@ class COOCanonBackend(PythonCanonBackend):
                     result[param_id] = coo_mul_elem(lhs_ct, rhs_compact)
                 return result
 
-            new_tensor = {}
+            # Apply to each variable tensor in-place
             for var_id, var_tensor in view.tensor.items():
                 const_compact = var_tensor[Constant.ID.value]
-                new_tensor[var_id] = parametrized_mul_elem(const_compact)
+                view.tensor[var_id] = parametrized_mul_elem(const_compact)
 
-            return view.create_new_tensor_view(
-                view.variable_ids, new_tensor, is_parameter_free=False
-            )
+            view.is_parameter_free = False
+            return view
 
         return view
 
@@ -1272,15 +1269,13 @@ class COOCanonBackend(PythonCanonBackend):
                 # Multiply each param slice of stacked_lhs with the constant rhs
                 return {k: coo_matmul(v, rhs_compact) for k, v in stacked_lhs.items()}
 
-            # Apply to each variable tensor
-            new_tensor = {}
+            # Apply to each variable tensor in-place
             for var_id, var_tensor in view.tensor.items():
                 const_compact = var_tensor[Constant.ID.value]
-                new_tensor[var_id] = parametrized_rmul(const_compact)
+                view.tensor[var_id] = parametrized_rmul(const_compact)
 
-            return view.create_new_tensor_view(
-                view.variable_ids, new_tensor, is_parameter_free=False
-            )
+            view.is_parameter_free = False
+            return view
 
     @staticmethod
     def reshape_constant_data(constant_data: dict, lin_op_shape: tuple) -> dict:
