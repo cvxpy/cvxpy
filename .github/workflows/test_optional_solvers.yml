@@ -19,7 +19,7 @@ jobs:
       matrix:
         os: [ ubuntu-22.04, macos-14 ]  # Windows excluded - cylp/CBC cannot be built
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - name: Set Additional Envs
         run: |
           echo "PYTHON_SUBVERSION=$(echo $PYTHON_VERSION | cut -c 3-)" >> $GITHUB_ENV
@@ -31,7 +31,7 @@ jobs:
         with:
           python-version: 3.12
           enable-cache: true
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - name: Setup Julia 
         uses: julia-actions/setup-julia@v2
         with:
