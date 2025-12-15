@@ -903,17 +903,22 @@ class COOCanonBackend(PythonCanonBackend):
         Returns {Constant.ID: {Constant.ID: tensor}} as column vector.
         """
         if sp.issparse(data):
-            data = data.toarray()
-        flat = np.asarray(data).flatten(order='F')
-        size = len(flat)
-
-        # Find non-zero entries
-        nz_mask = flat != 0
-        nz_idx = np.where(nz_mask)[0]
-        nz_data = flat[nz_mask]
+            # Extract directly from sparse format (avoid densification)
+            coo = data.tocoo()
+            size = coo.shape[0] * coo.shape[1]
+            # Flatten indices in Fortran order: linear_idx = col * nrows + row
+            nz_idx = coo.col * coo.shape[0] + coo.row
+            nz_data = coo.data
+        else:
+            flat = np.asarray(data).flatten(order='F')
+            size = len(flat)
+            # Find non-zero entries
+            nz_mask = flat != 0
+            nz_idx = np.where(nz_mask)[0]
+            nz_data = flat[nz_mask]
 
         compact = CooTensor(
-            data=nz_data,
+            data=nz_data.copy() if sp.issparse(data) else nz_data,
             row=nz_idx.astype(np.int64),
             col=np.zeros(len(nz_idx), dtype=np.int64),
             param_idx=np.zeros(len(nz_idx), dtype=np.int64),

@@ -326,6 +326,23 @@ class TestLinopExpectedValues:
         ], dtype=float)
         np.testing.assert_array_equal(A, expected)
 
+    @pytest.mark.parametrize("backend_name", BACKENDS)
+    @pytest.mark.parametrize("data", [
+        np.array([[1, 0], [0, 4]]),  # dense with zeros
+        sp.csr_array([[1, 0], [0, 4]]),  # sparse
+    ])
+    def test_get_data_tensor(self, backend_name, data):
+        """get_data_tensor produces correct column vector for dense and sparse input."""
+        backend = make_backend(backend_name)
+        outer = backend.get_data_tensor(data)
+        tensor = outer[-1][-1]
+        if hasattr(tensor, 'toarray'):
+            result = tensor.toarray().flatten()
+        else:
+            result = tensor.to_stacked_sparse().toarray().flatten()
+        expected = np.asarray(data.todense() if sp.issparse(data) else data).flatten(order='F')
+        np.testing.assert_array_equal(result, expected)
+
 
 class TestBackendConsistency:
     """Verify all backends produce identical outputs for all operations."""
