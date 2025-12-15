@@ -714,9 +714,10 @@ def coo_mul_elem(lhs: CooTensor, rhs: CooTensor) -> CooTensor:
             raise ValueError("Mismatched param_size in coo_mul_elem")
 
         # Compute linear indices: param_idx * (m * n) + row * n + col
-        slice_size = lhs.m * lhs.n
-        lhs_linear = lhs.param_idx * slice_size + lhs.row * lhs.n + lhs.col
-        rhs_linear = rhs.param_idx * slice_size + rhs.row * rhs.n + rhs.col
+        # Use int64 to prevent overflow for large tensors
+        slice_size = np.int64(lhs.m) * np.int64(lhs.n)
+        lhs_linear = lhs.param_idx * slice_size + lhs.row * np.int64(lhs.n) + lhs.col
+        rhs_linear = rhs.param_idx * slice_size + rhs.row * np.int64(rhs.n) + rhs.col
 
         # Sort rhs for binary search
         rhs_sort = np.argsort(rhs_linear)
@@ -1157,9 +1158,12 @@ class COOCanonBackend(PythonCanonBackend):
 
         # Get reciprocal values
         lhs_compact = self._to_coo_tensor(lhs)
-        # Check for zero divisors
+        # Check for zero divisors (both explicit zeros and implicit zeros from sparsity)
         if np.any(lhs_compact.data == 0):
-            raise ValueError("Division by zero encountered in divisor")
+            raise ValueError("Division by zero encountered in divisor (explicit zero)")
+        expected_entries = lhs_compact.m * lhs_compact.n * lhs_compact.param_size
+        if lhs_compact.nnz < expected_entries:
+            raise ValueError("Division by zero encountered in divisor (sparse with implicit zeros)")
         # Invert the data
         recip_data = np.reciprocal(lhs_compact.data, dtype=float)
         lhs_recip = CooTensor(

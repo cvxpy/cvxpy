@@ -651,13 +651,13 @@ class PythonCanonBackend(CanonBackend):
          An, bn.
         """
         offset = 0
-        total_rows = sum(np.prod(arg.shape) for arg in lin.args)
+        total_rows = sum(np.prod(arg.shape, dtype=int) for arg in lin.args)
         res = None
         for arg in lin.args:
             arg_view = self.process_constraint(arg, view)
             func = self.get_stack_func(total_rows, offset)
             arg_view.apply_all(func)
-            arg_rows = np.prod(arg.shape)
+            arg_rows = np.prod(arg.shape, dtype=int)
             offset += arg_rows
             if res is None:
                 res = arg_view
@@ -677,14 +677,14 @@ class PythonCanonBackend(CanonBackend):
         axis = lin.data[0]
         if axis is None:
             # In this case following numpy, arrays are flattened in 'C' order
-            order = np.arange(sum(np.prod(arg.shape) for arg in lin.args))
+            order = np.arange(sum(np.prod(arg.shape, dtype=int) for arg in lin.args))
             res.select_rows(order)
             return res
 
         offset = 0
         indices = []
         for arg in lin.args:
-            arg_rows = np.prod(arg.shape)
+            arg_rows = np.prod(arg.shape, dtype=int)
             indices.append(np.arange(arg_rows).reshape(arg.shape, order="F") + offset)
             offset += arg_rows
         order = np.concatenate(indices, axis=axis).flatten(order="F").astype(int)
@@ -701,7 +701,7 @@ class PythonCanonBackend(CanonBackend):
         offset = 0
         indices = []
         for arg in lin.args:
-            arg_rows = np.prod(arg.shape)
+            arg_rows = np.prod(arg.shape, dtype=int)
             indices.append(np.arange(arg_rows).reshape(arg.shape, order="F") + offset)
             offset += arg_rows
         order = np.vstack(indices).flatten(order="F").astype(int)
