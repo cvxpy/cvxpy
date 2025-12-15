@@ -361,6 +361,44 @@ class CoordsTensor:
         )
 
 
+def _coo_kron_eye_r(tensor: CoordsTensor, reps: int) -> CoordsTensor:
+    """
+    Apply Kronecker product kron(I_reps, A) to a CoordsTensor.
+
+    For a tensor with shape (m, k), this produces a tensor with shape (m*reps, k*reps)
+    where the original matrix is replicated along the block diagonal.
+
+    Each entry at (param_idx, row, col) becomes `reps` entries at
+    (param_idx, row + r*m, col + r*k) for r in 0..reps-1.
+    """
+    if reps == 1:
+        return tensor
+
+    m, k = tensor.m, tensor.n
+    nnz = tensor.nnz
+
+    # Each original entry expands to reps entries
+    new_data = np.tile(tensor.data, reps)
+    new_param_idx = np.tile(tensor.param_idx, reps)
+
+    # Row and col offsets for each rep
+    row_offsets = np.repeat(np.arange(reps) * m, nnz)
+    col_offsets = np.repeat(np.arange(reps) * k, nnz)
+
+    new_row = np.tile(tensor.row, reps) + row_offsets
+    new_col = np.tile(tensor.col, reps) + col_offsets
+
+    return CoordsTensor(
+        data=new_data,
+        row=new_row,
+        col=new_col,
+        param_idx=new_param_idx,
+        m=m * reps,
+        n=k * reps,
+        param_size=tensor.param_size
+    )
+
+
 def coo_matmul(lhs: CoordsTensor, rhs: CoordsTensor) -> CoordsTensor:
     """
     Matrix multiplication of two CoordsTensors.
@@ -609,6 +647,49 @@ def coo_mul_elem(lhs: CoordsTensor, rhs: CoordsTensor) -> CoordsTensor:
                 param_idx=out_param,
                 m=lhs.m,
                 n=rhs.n,
+                param_size=lhs.param_size
+            )
+
+        # Handle case where lhs has multiple columns but rhs is column vector
+        # This happens in div: lhs is param view (m, n), rhs is column vector (m, 1)
+        # For element-wise multiply, broadcast rhs across all lhs columns
+        if lhs.n > 1 and rhs.n == 1:
+            # Build CSR-style index on rhs by row for efficient lookup
+            rhs_indptr, rhs_sort_perm = compute_indptr(rhs.row, rhs.m)
+            rhs_data_sorted = rhs.data[rhs_sort_perm]
+
+            # For each lhs entry, get the corresponding rhs value at same row
+            lhs_rows = lhs.row
+
+            # Check if each lhs row has a matching rhs entry
+            # rhs is column vector, so each row has at most one entry
+            out_data = []
+            out_row = []
+            out_col = []
+            out_param = []
+
+            for i in range(len(lhs.data)):
+                row = lhs_rows[i]
+                start, end = rhs_indptr[row], rhs_indptr[row + 1]
+                if start < end:
+                    # There's an rhs entry at this row
+                    rhs_val = rhs_data_sorted[start]
+                    out_data.append(lhs.data[i] * rhs_val)
+                    out_row.append(lhs.row[i])
+                    out_col.append(lhs.col[i])
+                    out_param.append(lhs.param_idx[i])
+                # If no rhs entry at this row, result is 0 (skip)
+
+            if len(out_data) == 0:
+                return CoordsTensor.empty(lhs.m, lhs.n, lhs.param_size)
+
+            return CoordsTensor(
+                data=np.array(out_data),
+                row=np.array(out_row, dtype=np.int64),
+                col=np.array(out_col, dtype=np.int64),
+                param_idx=np.array(out_param, dtype=np.int64),
+                m=lhs.m,
+                n=lhs.n,
                 param_size=lhs.param_size
             )
 
@@ -917,21 +998,61 @@ class COOCanonBackend(PythonCanonBackend):
         return view
 
     def sum_entries(self, lin_op, view: CoordsTensorView) -> CoordsTensorView:
-        """Sum all entries to scalar."""
-        def func(compact, p):
-            # Sum to scalar: all rows become 0, but columns stay the same
-            # (columns represent which variables contribute to the output)
-            return CoordsTensor(
-                data=compact.data.copy(),
-                row=np.zeros(compact.nnz, dtype=np.int64),
-                col=compact.col.copy(),  # Keep column indices - they're variable indices
-                param_idx=compact.param_idx.copy(),
-                m=1,
-                n=compact.n,
-                param_size=compact.param_size
-            )
-        view.accumulate_over_variables(func, is_param_free_function=True)
+        """Sum entries along an axis (ND-aware)."""
+        shape = tuple(lin_op.args[0].shape)
+
+        # Handle None data (from trace or simple sum)
+        if lin_op.data is None:
+            axis = None
+        else:
+            axis, _ = lin_op.data
+
+        if axis is None:
+            # Sum all entries to scalar
+            def func(compact, p):
+                return CoordsTensor(
+                    data=compact.data.copy(),
+                    row=np.zeros(compact.nnz, dtype=np.int64),
+                    col=compact.col.copy(),
+                    param_idx=compact.param_idx.copy(),
+                    m=1,
+                    n=compact.n,
+                    param_size=compact.param_size
+                )
+            view.accumulate_over_variables(func, is_param_free_function=True)
+        else:
+            # Sum along specific axis
+            # row_map[i] tells us which output row input row i maps to
+            row_map = self._get_sum_row_map(shape, axis)
+            new_m = int(np.prod(shape) // np.prod([shape[a] for a in
+                        (axis if isinstance(axis, tuple) else (axis,))]))
+
+            def func(compact, p):
+                return CoordsTensor(
+                    data=compact.data.copy(),
+                    row=row_map[compact.row],  # Map each entry's row to output row
+                    col=compact.col.copy(),
+                    param_idx=compact.param_idx.copy(),
+                    m=new_m,
+                    n=compact.n,
+                    param_size=compact.param_size
+                )
+            view.accumulate_over_variables(func, is_param_free_function=True)
+
         return view
+
+    def _get_sum_row_map(self, shape: tuple, axis) -> np.ndarray:
+        """
+        Compute row mapping for axis-specific sum.
+
+        Returns array where row_map[i] is the output row for input row i.
+        """
+        axis = axis if isinstance(axis, tuple) else (axis,)
+        out_axes = np.isin(range(len(shape)), axis, invert=True)
+        out_idx = np.indices(shape)[out_axes]
+        out_dims = np.array(shape)[out_axes]
+        row_idx = np.ravel_multi_index(out_idx, dims=out_dims, order='F')
+        return row_idx.flatten(order='F')
 
     def reshape(self, lin_op, view: CoordsTensorView) -> CoordsTensorView:
         """Reshape tensor (column-major order)."""
@@ -959,10 +1080,25 @@ class COOCanonBackend(PythonCanonBackend):
 
         if is_lhs_parametric:
             # Parametrized lhs @ variable rhs - the expensive case
+            # Need to apply Kronecker expansion for ND variables
+            lhs_shape = lhs.shape
+            lhs_shape_2d = lhs_shape if len(lhs_shape) == 2 else (int(np.prod(lhs_shape)), 1)
+            lhs_k = lhs_shape_2d[-1]  # Inner dimension
+            reps = view.rows // lhs_k
+
+            # Apply Kronecker expansion if needed
+            if reps > 1:
+                expanded_lhs = {
+                    param_id: _coo_kron_eye_r(tensor, reps)
+                    for param_id, tensor in lhs_data.items()
+                }
+            else:
+                expanded_lhs = lhs_data
+
             def parametrized_mul(rhs_compact):
                 # lhs_data is a dict {param_id: CoordsTensor}
                 result = {}
-                for param_id, lhs_compact in lhs_data.items():
+                for param_id, lhs_compact in expanded_lhs.items():
                     result[param_id] = coo_matmul(lhs_compact, rhs_compact)
                 return result
 
