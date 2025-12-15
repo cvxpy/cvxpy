@@ -18,7 +18,7 @@ from __future__ import annotations
 import scipy.sparse as sp
 
 from cvxpy.lin_ops import LinOp
-from cvxpy.lin_ops.backends import CanonBackend
+from cvxpy.lin_ops.backends.base import CanonBackend
 
 
 class RustCanonBackend(CanonBackend):

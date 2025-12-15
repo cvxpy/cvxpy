@@ -26,10 +26,6 @@ from cvxpy.lin_ops.backends import (
     TensorRepresentation,
     TensorView,
 )
-from cvxpy.lin_ops.backends.numpy_backend import (
-    NumPyCanonBackend,
-    NumPyTensorView,
-)
 from cvxpy.lin_ops.backends.rust_backend import RustCanonBackend
 from cvxpy.lin_ops.backends.scipy_backend import (
     SciPyCanonBackend,
@@ -43,8 +39,6 @@ __all__ = [
     "PythonCanonBackend",
     "TensorView",
     "DictTensorView",
-    "NumPyCanonBackend",
-    "NumPyTensorView",
     "SciPyCanonBackend",
     "SciPyTensorView",
     "RustCanonBackend",

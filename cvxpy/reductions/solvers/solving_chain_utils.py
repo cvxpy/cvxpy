@@ -3,7 +3,6 @@ import warnings
 from cvxpy.settings import (
     COO_CANON_BACKEND,
     CPP_CANON_BACKEND,
-    NUMPY_CANON_BACKEND,
     SCIPY_CANON_BACKEND,
 )
 
@@ -49,8 +48,8 @@ def get_canon_backend(problem, canon_backend: str) -> str:
             return SCIPY_CANON_BACKEND
         if canon_backend == CPP_CANON_BACKEND:
             raise ValueError(
-                f"Only the {COO_CANON_BACKEND}, {SCIPY_CANON_BACKEND}, and "
-                f"{NUMPY_CANON_BACKEND} backends are supported for problems "
+                f"Only the {COO_CANON_BACKEND} and {SCIPY_CANON_BACKEND} "
+                f"backends are supported for problems "
                 f"with expressions of dimension greater than 2."
             )
     return canon_backend

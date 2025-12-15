@@ -1,5 +1,5 @@
 """
-Copyright 2022, the CVXPY authors.
+Copyright 2025, the CVXPY authors.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -26,8 +26,8 @@ Key differences from SciPyTensorView:
 - get_tensor_representation() is trivial (data already in right format)
 
 Classes:
-- COOTensor: 3D sparse COO tensor storage
-- COOTensorView: TensorView using COOTensor
+- CoordsTensor: 3D sparse COO tensor storage
+- CoordsTensorView: TensorView using CoordsTensor
 - COOCanonBackend: Backend implementation
 """
 from __future__ import annotations
@@ -38,7 +38,7 @@ from typing import Any, Callable
 import numpy as np
 import scipy.sparse as sp
 
-from cvxpy.lin_ops.backends import (
+from cvxpy.lin_ops.backends.base import (
     Constant,
     DictTensorView,
     PythonCanonBackend,
@@ -94,7 +94,7 @@ def compute_indptr(indices: np.ndarray, size: int) -> tuple[np.ndarray, np.ndarr
 
 
 @dataclass
-class COOTensor:
+class CoordsTensor:
     """
     Compact representation of a parameter-indexed sparse tensor.
 
@@ -154,8 +154,8 @@ class COOTensor:
         return self.stacked_shape
 
     @classmethod
-    def empty(cls, m: int, n: int, param_size: int) -> COOTensor:
-        """Create an empty COOTensor with given dimensions."""
+    def empty(cls, m: int, n: int, param_size: int) -> CoordsTensor:
+        """Create an empty CoordsTensor with given dimensions."""
         return cls(
             data=_empty_float(),
             row=_empty_int(),
@@ -167,7 +167,7 @@ class COOTensor:
         )
 
     @classmethod
-    def from_stacked_sparse(cls, matrix: sp.spmatrix, param_size: int) -> COOTensor:
+    def from_stacked_sparse(cls, matrix: sp.spmatrix, param_size: int) -> CoordsTensor:
         """Convert from stacked sparse matrix."""
         coo = matrix.tocoo()
         m = matrix.shape[0] // param_size
@@ -194,10 +194,11 @@ class COOTensor:
             row=self.row + row_offset,
             col=self.col + col_offset,
             parameter_offset=self.param_idx + param_col_offset,
-            shape=(self.m + row_offset, self.n + col_offset)  # Approximate
+            # Shape reflects the final matrix dimensions after applying offsets
+            shape=(self.m + row_offset, self.n + col_offset)
         )
 
-    def select_rows(self, rows: np.ndarray) -> COOTensor:
+    def select_rows(self, rows: np.ndarray) -> CoordsTensor:
         """
         Select and reorder rows from each parameter slice.
 
@@ -208,19 +209,49 @@ class COOTensor:
           - new row 0 <- old row 2
           - new row 1 <- old row 0
           - new row 2 <- old row 1
-
-        This is a fully vectorized O(nnz + len(rows)) implementation.
-
-        Algorithm: Uses binary search (searchsorted) to efficiently find which tensor
-        entries need to be replicated. For each unique tensor row, we find all destination
-        positions it maps to in O(log n) time via binary search, then use np.repeat to
-        duplicate entries accordingly. This avoids the naive O(nnz × len(rows)) loop.
         """
         new_m = len(rows)
 
         if self.nnz == 0:
-            return COOTensor.empty(new_m, self.n, self.param_size)
+            return CoordsTensor.empty(new_m, self.n, self.param_size)
 
+        # Fast path: no duplicate rows (common case for transpose, reshape, etc.)
+        if len(rows) == len(np.unique(rows)):
+            return self._select_rows_no_duplicates(rows, new_m)
+
+        # General path: handles duplicate rows (needed for broadcasting, etc.)
+        return self._select_rows_with_duplicates(rows, new_m)
+
+    def _select_rows_no_duplicates(self, rows: np.ndarray, new_m: int) -> CoordsTensor:
+        """Fast path for select_rows when there are no duplicate rows."""
+        # Build reverse mapping: old_row -> new_row (or -1 if not selected)
+        row_map = np.full(self.m, -1, dtype=np.int64)
+        row_map[rows] = np.arange(new_m, dtype=np.int64)
+
+        # Map tensor rows to new positions
+        new_rows = row_map[self.row]
+
+        # Keep only entries whose row is selected
+        mask = new_rows >= 0
+
+        return CoordsTensor(
+            data=self.data[mask],
+            row=new_rows[mask],
+            col=self.col[mask],
+            param_idx=self.param_idx[mask],
+            m=new_m,
+            n=self.n,
+            param_size=self.param_size
+        )
+
+    def _select_rows_with_duplicates(self, rows: np.ndarray, new_m: int) -> CoordsTensor:
+        """General path for select_rows that handles duplicate rows.
+
+        Uses binary search (searchsorted) to efficiently find which tensor
+        entries need to be replicated. For each unique tensor row, we find all
+        destination positions it maps to in O(log n) time via binary search,
+        then use np.repeat to duplicate entries accordingly.
+        """
         # Sort the rows array to enable efficient range queries
         # rows[new_pos] = old_pos, so we sort to find all new_pos for each old_pos
         row_sort_perm = np.argsort(rows)
@@ -239,7 +270,7 @@ class COOTensor:
         total_nnz = entry_counts.sum()
 
         if total_nnz == 0:
-            return COOTensor.empty(new_m, self.n, self.param_size)
+            return CoordsTensor.empty(new_m, self.n, self.param_size)
 
         # Expand entries according to counts using np.repeat
         out_data = np.repeat(self.data, entry_counts)
@@ -269,7 +300,7 @@ class COOTensor:
         # The output rows are the positions in the original rows array
         out_row = row_sort_perm[gather_idx]
 
-        return COOTensor(
+        return CoordsTensor(
             data=out_data,
             row=out_row,
             col=out_col,
@@ -279,36 +310,39 @@ class COOTensor:
             param_size=self.param_size
         )
 
-    def scale(self, factor: float) -> COOTensor:
+    def scale(self, factor: float) -> CoordsTensor:
         """Scale all values by a constant."""
-        return COOTensor(
+        return CoordsTensor(
             data=self.data * factor,
-            row=self.row.copy(),
-            col=self.col.copy(),
-            param_idx=self.param_idx.copy(),
+            row=self.row,
+            col=self.col,
+            param_idx=self.param_idx,
             m=self.m,
             n=self.n,
             param_size=self.param_size
         )
 
-    def negate(self) -> COOTensor:
+    def negate(self) -> CoordsTensor:
         """Negate all values."""
         return self.scale(-1.0)
 
-    def transpose(self) -> COOTensor:
-        """Transpose each slice (swap rows and cols)."""
-        return COOTensor(
-            data=self.data.copy(),
-            row=self.col.copy(),  # Swap row and col
-            col=self.row.copy(),
-            param_idx=self.param_idx.copy(),
-            m=self.n,  # Swap m and n
+    def _transpose_helper(self) -> CoordsTensor:
+        """2D matrix transpose (swap rows and cols).
+
+        Internal helper for matrix operations like rmul. Not for ND linop transpose.
+        """
+        return CoordsTensor(
+            data=self.data,
+            row=self.col,
+            col=self.row,
+            param_idx=self.param_idx,
+            m=self.n,
             n=self.m,
             param_size=self.param_size
         )
 
-    def __add__(self, other: COOTensor) -> COOTensor:
-        """Add two COOTensors (concatenate entries)."""
+    def __add__(self, other: CoordsTensor) -> CoordsTensor:
+        """Add two CoordsTensors (concatenate entries)."""
         # Allow different n (column counts) - take max
         # This happens in vstack when combining expressions with different variable counts
         if self.m != other.m:
@@ -316,7 +350,7 @@ class COOTensor:
         if self.param_size != other.param_size:
             raise ValueError(f"Param size mismatch: {self.param_size} vs {other.param_size}")
 
-        return COOTensor(
+        return CoordsTensor(
             data=np.concatenate([self.data, other.data]),
             row=np.concatenate([self.row, other.row]),
             col=np.concatenate([self.col, other.col]),
@@ -327,9 +361,9 @@ class COOTensor:
         )
 
 
-def coo_matmul(lhs: COOTensor, rhs: COOTensor) -> COOTensor:
+def coo_matmul(lhs: CoordsTensor, rhs: CoordsTensor) -> CoordsTensor:
     """
-    Matrix multiplication of two COOTensors.
+    Matrix multiplication of two CoordsTensors.
 
     lhs has shape (param_size_lhs, m, k) per slice
     rhs has shape (param_size_rhs, k, n) per slice
@@ -358,7 +392,7 @@ def coo_matmul(lhs: COOTensor, rhs: COOTensor) -> COOTensor:
         total_nnz = nnz_per_lhs.sum()
 
         if total_nnz == 0:
-            return COOTensor.empty(lhs.m, rhs.n, lhs.param_size)
+            return CoordsTensor.empty(lhs.m, rhs.n, lhs.param_size)
 
         # Pre-allocate output
         out_data = np.empty(total_nnz, dtype=np.float64)
@@ -383,7 +417,7 @@ def coo_matmul(lhs: COOTensor, rhs: COOTensor) -> COOTensor:
         out_col = rhs_indices[gather_idx]
         out_data = np.repeat(lhs.data, nnz_per_lhs) * rhs_data[gather_idx]
 
-        return COOTensor(
+        return CoordsTensor(
             data=out_data,
             row=out_row,
             col=out_col,
@@ -409,7 +443,7 @@ def coo_matmul(lhs: COOTensor, rhs: COOTensor) -> COOTensor:
         total_nnz = nnz_per_rhs.sum()
 
         if total_nnz == 0:
-            return COOTensor.empty(lhs.m, rhs.n, rhs.param_size)
+            return CoordsTensor.empty(lhs.m, rhs.n, rhs.param_size)
 
         # Expand rhs entries
         out_col = np.repeat(rhs.col, nnz_per_rhs)
@@ -428,7 +462,7 @@ def coo_matmul(lhs: COOTensor, rhs: COOTensor) -> COOTensor:
         out_row = lhs_indices[gather_idx]
         out_data = lhs_data[gather_idx] * np.repeat(rhs.data, nnz_per_rhs)
 
-        return COOTensor(
+        return CoordsTensor(
             data=out_data,
             row=out_row,
             col=out_col,
@@ -450,7 +484,7 @@ def coo_matmul(lhs: COOTensor, rhs: COOTensor) -> COOTensor:
         )
         result = (lhs_sparse @ rhs_sparse).tocoo()
 
-        return COOTensor(
+        return CoordsTensor(
             data=result.data.copy(),
             row=result.row.astype(np.int64),
             col=result.col.astype(np.int64),
@@ -491,14 +525,14 @@ def coo_matmul(lhs: COOTensor, rhs: COOTensor) -> COOTensor:
                 ))
 
         if not results:
-            return COOTensor.empty(lhs.m, rhs.n, lhs.param_size)
+            return CoordsTensor.empty(lhs.m, rhs.n, lhs.param_size)
 
         all_data = np.concatenate([r[0] for r in results])
         all_row = np.concatenate([r[1] for r in results]).astype(np.int64)
         all_col = np.concatenate([r[2] for r in results]).astype(np.int64)
         all_param = np.concatenate([r[3] for r in results])
 
-        return COOTensor(
+        return CoordsTensor(
             data=all_data,
             row=all_row,
             col=all_col,
@@ -509,9 +543,9 @@ def coo_matmul(lhs: COOTensor, rhs: COOTensor) -> COOTensor:
         )
 
 
-def coo_mul_elem(lhs: COOTensor, rhs: COOTensor) -> COOTensor:
+def coo_mul_elem(lhs: CoordsTensor, rhs: CoordsTensor) -> CoordsTensor:
     """
-    Element-wise multiplication of two COOTensors.
+    Element-wise multiplication of two CoordsTensors.
 
     For parametrized case: lhs has param_size > 1, rhs has param_size = 1.
     Each lhs slice is multiplied element-wise by the single rhs slice.
@@ -524,12 +558,12 @@ def coo_mul_elem(lhs: COOTensor, rhs: COOTensor) -> COOTensor:
             # Scalar multiplication - multiply all lhs entries by rhs scalar
             scalar_val = rhs.data[0] if rhs.nnz == 1 else 0.0
             if scalar_val == 0:
-                return COOTensor.empty(lhs.m, lhs.n, lhs.param_size)
-            return COOTensor(
+                return CoordsTensor.empty(lhs.m, lhs.n, lhs.param_size)
+            return CoordsTensor(
                 data=lhs.data * scalar_val,
-                row=lhs.row.copy(),
-                col=lhs.col.copy(),
-                param_idx=lhs.param_idx.copy(),
+                row=lhs.row,
+                col=lhs.col,
+                param_idx=lhs.param_idx,
                 m=lhs.m,
                 n=lhs.n,
                 param_size=lhs.param_size
@@ -550,7 +584,7 @@ def coo_mul_elem(lhs: COOTensor, rhs: COOTensor) -> COOTensor:
             total_nnz = nnz_per_lhs.sum()
 
             if total_nnz == 0:
-                return COOTensor.empty(lhs.m, rhs.n, lhs.param_size)
+                return CoordsTensor.empty(lhs.m, rhs.n, lhs.param_size)
 
             # Expand lhs entries
             out_row = np.repeat(lhs.row, nnz_per_lhs)
@@ -568,7 +602,7 @@ def coo_mul_elem(lhs: COOTensor, rhs: COOTensor) -> COOTensor:
             out_col = rhs_col_sorted[gather_idx]
             out_data = lhs_vals * rhs_data_sorted[gather_idx]
 
-            return COOTensor(
+            return CoordsTensor(
                 data=out_data,
                 row=out_row,
                 col=out_col,
@@ -600,11 +634,11 @@ def coo_mul_elem(lhs: COOTensor, rhs: COOTensor) -> COOTensor:
 
         # Keep only non-zero results
         mask = rhs_vals != 0
-        return COOTensor(
+        return CoordsTensor(
             data=lhs.data[mask] * rhs_vals[mask],
-            row=lhs.row[mask].copy(),
-            col=lhs.col[mask].copy(),
-            param_idx=lhs.param_idx[mask].copy(),
+            row=lhs.row[mask],
+            col=lhs.col[mask],
+            param_idx=lhs.param_idx[mask],
             m=lhs.m,
             n=lhs.n,
             param_size=lhs.param_size
@@ -619,7 +653,7 @@ def coo_mul_elem(lhs: COOTensor, rhs: COOTensor) -> COOTensor:
         lhs_csr = lhs.to_stacked_sparse()
         rhs_csr = rhs.to_stacked_sparse()
         result = lhs_csr.multiply(rhs_csr).tocoo()
-        return COOTensor(
+        return CoordsTensor(
             data=result.data.copy(),
             row=result.row.copy(),
             col=result.col.copy(),
@@ -652,23 +686,23 @@ def coo_mul_elem(lhs: COOTensor, rhs: COOTensor) -> COOTensor:
         valid = (match_pos < len(rhs_sorted)) & (rhs_sorted[match_pos_clipped] == lhs_linear)
 
         if not valid.any():
-            return COOTensor.empty(lhs.m, lhs.n, lhs.param_size)
+            return CoordsTensor.empty(lhs.m, lhs.n, lhs.param_size)
 
         # Get matching rhs indices in original order
         rhs_match_idx = rhs_sort[match_pos[valid]]
 
-        return COOTensor(
+        return CoordsTensor(
             data=lhs.data[valid] * rhs.data[rhs_match_idx],
-            row=lhs.row[valid].copy(),
-            col=lhs.col[valid].copy(),
-            param_idx=lhs.param_idx[valid].copy(),
+            row=lhs.row[valid],
+            col=lhs.col[valid],
+            param_idx=lhs.param_idx[valid],
             m=lhs.m,
             n=lhs.n,
             param_size=lhs.param_size
         )
 
 
-def coo_reshape(tensor: COOTensor, new_m: int, new_n: int) -> COOTensor:
+def coo_reshape(tensor: CoordsTensor, new_m: int, new_n: int) -> CoordsTensor:
     """
     Reshape the tensor (Fortran order, column-major).
 
@@ -682,7 +716,7 @@ def coo_reshape(tensor: COOTensor, new_m: int, new_n: int) -> COOTensor:
     new_row = linear_idx % new_m
     new_col = linear_idx // new_m
 
-    return COOTensor(
+    return CoordsTensor(
         data=tensor.data.copy(),
         row=new_row.astype(np.int64),
         col=new_col.astype(np.int64),
@@ -693,12 +727,12 @@ def coo_reshape(tensor: COOTensor, new_m: int, new_n: int) -> COOTensor:
     )
 
 
-class COOTensorView(DictTensorView):
+class CoordsTensorView(DictTensorView):
     """
-    TensorView using COOTensor storage for O(nnz) operations.
+    TensorView using CoordsTensor storage for O(nnz) operations.
 
     Unlike SciPyTensorView which stores stacked sparse matrices of shape
-    (param_size * m, n), COOTensorView stores COOTensor objects that
+    (param_size * m, n), CoordsTensorView stores CoordsTensor objects that
     keep (data, row, col, param_idx) separately.
 
     This avoids O(param_size * m) operations, making it much faster for
@@ -719,7 +753,7 @@ class COOTensorView(DictTensorView):
         """
         Returns a TensorRepresentation of [A b] tensor.
 
-        This is trivial for COOTensor - just add offsets.
+        This is trivial for CoordsTensor - just add offsets.
         """
         assert self.tensor is not None
         shape = (total_rows, self.var_length + 1)
@@ -752,49 +786,49 @@ class COOTensorView(DictTensorView):
         """
         Apply 'func' across all variables and parameter slices.
 
-        func signature: func(compact: COOTensor, p: int) -> COOTensor
+        func signature: func(compact: CoordsTensor, p: int) -> CoordsTensor
         """
         self.tensor = {var_id: {k: func(v, self.param_to_size[k])
                                 for k, v in parameter_repr.items()}
                        for var_id, parameter_repr in self.tensor.items()}
 
     def create_new_tensor_view(self, variable_ids: set[int], tensor: Any,
-                               is_parameter_free: bool) -> 'COOTensorView':
-        """Create new COOTensorView with same shape information."""
-        return COOTensorView(
+                               is_parameter_free: bool) -> 'CoordsTensorView':
+        """Create new CoordsTensorView with same shape information."""
+        return CoordsTensorView(
             variable_ids, tensor, is_parameter_free,
             self.param_size_plus_one, self.id_to_col,
             self.param_to_size, self.param_to_col, self.var_length
         )
 
     def apply_to_parameters(self, func: Callable,
-                            parameter_representation: dict[int, COOTensor]) \
-            -> dict[int, COOTensor]:
+                            parameter_representation: dict[int, CoordsTensor]) \
+            -> dict[int, CoordsTensor]:
         """Apply 'func' to each parameter slice."""
         return {k: func(v, self.param_to_size[k]) for k, v in parameter_representation.items()}
 
     @staticmethod
-    def add_tensors(a: COOTensor, b: COOTensor) -> COOTensor:
-        """Add two COOTensors."""
+    def add_tensors(a: CoordsTensor, b: CoordsTensor) -> CoordsTensor:
+        """Add two CoordsTensors."""
         return a + b
 
     @staticmethod
     def tensor_type():
-        """The tensor type for COOTensorView."""
-        return COOTensor
+        """The tensor type for CoordsTensorView."""
+        return CoordsTensor
 
 
 class COOCanonBackend(PythonCanonBackend):
     """
-    Canon backend using COOTensorView for O(nnz) operations.
+    Canon backend using CoordsTensorView for O(nnz) operations.
 
     This backend stores tensors in compact COO format with separate
     parameter indices, avoiding the creation of huge stacked matrices.
     """
 
-    def get_empty_view(self) -> COOTensorView:
-        """Return an empty COOTensorView."""
-        return COOTensorView.get_empty_view(
+    def get_empty_view(self) -> CoordsTensorView:
+        """Return an empty CoordsTensorView."""
+        return CoordsTensorView.get_empty_view(
             self.param_size_plus_one, self.id_to_col,
             self.param_to_size, self.param_to_col, self.var_length
         )
@@ -806,7 +840,7 @@ class COOCanonBackend(PythonCanonBackend):
         Returns {var_id: {Constant.ID: tensor}} where tensor is identity-like.
         """
         size = int(np.prod(shape))
-        compact = COOTensor(
+        compact = CoordsTensor(
             data=np.ones(size, dtype=np.float64),
             row=np.arange(size, dtype=np.int64),
             col=np.arange(size, dtype=np.int64),
@@ -833,7 +867,7 @@ class COOCanonBackend(PythonCanonBackend):
         nz_idx = np.where(nz_mask)[0]
         nz_data = flat[nz_mask]
 
-        compact = COOTensor(
+        compact = CoordsTensor(
             data=nz_data,
             row=nz_idx.astype(np.int64),
             col=np.zeros(len(nz_idx), dtype=np.int64),
@@ -856,7 +890,7 @@ class COOCanonBackend(PythonCanonBackend):
 
         # Each parameter element gets its own slice
         # param[i] = 1 at position (i, 0) in slice i
-        compact = COOTensor(
+        compact = CoordsTensor(
             data=np.ones(param_size, dtype=np.float64),
             row=np.arange(param_size, dtype=np.int64),
             col=np.zeros(param_size, dtype=np.int64),
@@ -875,19 +909,19 @@ class COOCanonBackend(PythonCanonBackend):
     # Tensor operations
     # =========================================================================
 
-    def neg(self, lin_op, view: COOTensorView) -> COOTensorView:
+    def neg(self, lin_op, view: CoordsTensorView) -> CoordsTensorView:
         """Negate all values."""
         def func(compact, p):
             return compact.negate()
         view.accumulate_over_variables(func, is_param_free_function=True)
         return view
 
-    def sum_entries(self, lin_op, view: COOTensorView) -> COOTensorView:
+    def sum_entries(self, lin_op, view: CoordsTensorView) -> CoordsTensorView:
         """Sum all entries to scalar."""
         def func(compact, p):
             # Sum to scalar: all rows become 0, but columns stay the same
             # (columns represent which variables contribute to the output)
-            return COOTensor(
+            return CoordsTensor(
                 data=compact.data.copy(),
                 row=np.zeros(compact.nnz, dtype=np.int64),
                 col=compact.col.copy(),  # Keep column indices - they're variable indices
@@ -899,7 +933,7 @@ class COOCanonBackend(PythonCanonBackend):
         view.accumulate_over_variables(func, is_param_free_function=True)
         return view
 
-    def reshape(self, lin_op, view: COOTensorView) -> COOTensorView:
+    def reshape(self, lin_op, view: CoordsTensorView) -> CoordsTensorView:
         """Reshape tensor (column-major order)."""
         new_shape = lin_op.shape
         new_m = int(np.prod(new_shape))
@@ -912,7 +946,7 @@ class COOCanonBackend(PythonCanonBackend):
 
     # transpose: use base class implementation (via select_rows)
 
-    def mul(self, lin_op, view: COOTensorView) -> COOTensorView:
+    def mul(self, lin_op, view: CoordsTensorView) -> CoordsTensorView:
         """
         Matrix multiplication - the key optimized operation.
 
@@ -926,7 +960,7 @@ class COOCanonBackend(PythonCanonBackend):
         if is_lhs_parametric:
             # Parametrized lhs @ variable rhs - the expensive case
             def parametrized_mul(rhs_compact):
-                # lhs_data is a dict {param_id: COOTensor}
+                # lhs_data is a dict {param_id: CoordsTensor}
                 result = {}
                 for param_id, lhs_compact in lhs_data.items():
                     result[param_id] = coo_matmul(lhs_compact, rhs_compact)
@@ -935,7 +969,7 @@ class COOCanonBackend(PythonCanonBackend):
             # Apply to each variable tensor
             new_tensor = {}
             for var_id, var_tensor in view.tensor.items():
-                # var_tensor is {Constant.ID: COOTensor}
+                # var_tensor is {Constant.ID: CoordsTensor}
                 const_compact = var_tensor[Constant.ID.value]
                 new_tensor[var_id] = parametrized_mul(const_compact)
 
@@ -952,8 +986,8 @@ class COOCanonBackend(PythonCanonBackend):
             lhs_k = lhs_shape_2d[-1]  # Inner dimension of A
 
             # Convert to sparse and apply kron expansion
-            # get_constant_data may return COOTensor, sparse, or dense array
-            if isinstance(lhs_data, COOTensor):
+            # get_constant_data may return CoordsTensor, sparse, or dense array
+            if isinstance(lhs_data, CoordsTensor):
                 lhs_sparse = lhs_data.to_stacked_sparse()
             elif sp.issparse(lhs_data):
                 lhs_sparse = lhs_data
@@ -966,7 +1000,7 @@ class COOCanonBackend(PythonCanonBackend):
             else:
                 stacked_lhs = lhs_sparse
 
-            # Convert stacked lhs to COOTensor
+            # Convert stacked lhs to CoordsTensor
             stacked_compact = self._to_coo_tensor(stacked_lhs)
 
             def constant_mul(compact, p):
@@ -984,10 +1018,10 @@ class COOCanonBackend(PythonCanonBackend):
             size = int(np.prod(lhs.shape))
             m, k = lhs.shape if len(lhs.shape) == 2 else (size, 1)
 
-            # Create COOTensor for parameter matrix
+            # Create CoordsTensor for parameter matrix
             # Parameters are stored in column-major (Fortran) order:
             # param_idx=0 -> A[0,0], param_idx=1 -> A[1,0], ..., param_idx=m -> A[0,1]
-            compact = COOTensor(
+            compact = CoordsTensor(
                 data=np.ones(param_size, dtype=np.float64),
                 row=np.tile(np.arange(m), k),  # [0,1,2,0,1,2,...] for column-major
                 col=np.repeat(np.arange(k), m),  # [0,0,0,1,1,1,...] for column-major
@@ -1013,7 +1047,7 @@ class COOCanonBackend(PythonCanonBackend):
         else:
             raise ValueError(f"Unknown const type: {lin_op.type}")
 
-    def div(self, lin_op, view: COOTensorView) -> COOTensorView:
+    def div(self, lin_op, view: CoordsTensorView) -> CoordsTensorView:
         """
         Division by constant: x / d.
 
@@ -1029,7 +1063,7 @@ class COOCanonBackend(PythonCanonBackend):
             raise ValueError("Division by zero encountered in divisor")
         # Invert the data
         recip_data = np.reciprocal(lhs_compact.data, dtype=float)
-        lhs_recip = COOTensor(
+        lhs_recip = CoordsTensor(
             data=recip_data,
             row=lhs_compact.row,
             col=lhs_compact.col,
@@ -1045,7 +1079,7 @@ class COOCanonBackend(PythonCanonBackend):
         view.accumulate_over_variables(div_func, is_param_free_function=True)
         return view
 
-    def mul_elem(self, lin_op, view: COOTensorView) -> COOTensorView:
+    def mul_elem(self, lin_op, view: CoordsTensorView) -> CoordsTensorView:
         """
         Element-wise multiplication: x * d.
         """
@@ -1079,7 +1113,7 @@ class COOCanonBackend(PythonCanonBackend):
         return view
 
     @staticmethod
-    def promote(lin_op, view: COOTensorView) -> COOTensorView:
+    def promote(lin_op, view: CoordsTensorView) -> CoordsTensorView:
         """Promote scalar by repeating."""
         num_entries = int(np.prod(lin_op.shape))
         rows = np.zeros(num_entries, dtype=np.int64)
@@ -1087,7 +1121,7 @@ class COOCanonBackend(PythonCanonBackend):
         return view
 
     @staticmethod
-    def broadcast_to(lin_op, view: COOTensorView) -> COOTensorView:
+    def broadcast_to(lin_op, view: CoordsTensorView) -> CoordsTensorView:
         """Broadcast to shape."""
         broadcast_shape = lin_op.shape
         original_shape = lin_op.args[0].shape
@@ -1098,7 +1132,7 @@ class COOCanonBackend(PythonCanonBackend):
 
     # index: use base class implementation (via select_rows)
 
-    def diag_vec(self, lin_op, view: COOTensorView) -> COOTensorView:
+    def diag_vec(self, lin_op, view: CoordsTensorView) -> CoordsTensorView:
         """Convert vector to diagonal matrix."""
         k = lin_op.data  # Diagonal offset
         n = lin_op.shape[0]
@@ -1113,7 +1147,7 @@ class COOCanonBackend(PythonCanonBackend):
             else:
                 new_row = compact.row * (n + 1) - k
 
-            return COOTensor(
+            return CoordsTensor(
                 data=compact.data.copy(),
                 row=new_row.astype(np.int64),
                 col=compact.col.copy(),
@@ -1131,7 +1165,7 @@ class COOCanonBackend(PythonCanonBackend):
     # upper_tri: use base class implementation (via select_rows)
 
     def _to_coo_tensor(self, matrix, param_id=None):
-        """Convert sparse matrix to COOTensor."""
+        """Convert sparse matrix to CoordsTensor."""
         if isinstance(matrix, dict):
             # Already a dict of matrices
             raise ValueError("Expected single matrix, got dict")
@@ -1147,7 +1181,7 @@ class COOCanonBackend(PythonCanonBackend):
             row = coo.row
             param_idx = np.zeros(len(coo.data), dtype=np.int64)
 
-        return COOTensor(
+        return CoordsTensor(
             data=coo.data.copy(),
             row=row.astype(np.int64),
             col=coo.col.astype(np.int64),
@@ -1159,7 +1193,7 @@ class COOCanonBackend(PythonCanonBackend):
 
     # vstack, hstack, concatenate: use base class implementations
 
-    def rmul(self, lin_op, view: COOTensorView) -> COOTensorView:
+    def rmul(self, lin_op, view: CoordsTensorView) -> CoordsTensorView:
         """
         Right multiplication: x @ B.
 
@@ -1176,8 +1210,8 @@ class COOCanonBackend(PythonCanonBackend):
 
         if is_param_free_lhs:
             # Constant B case
-            # Convert to sparse - may be COOTensor or sparse matrix
-            if isinstance(lhs, COOTensor):
+            # Convert to sparse - may be CoordsTensor or sparse matrix
+            if isinstance(lhs, CoordsTensor):
                 lhs_sparse = lhs.to_stacked_sparse()
             elif sp.issparse(lhs):
                 lhs_sparse = lhs
@@ -1195,7 +1229,7 @@ class COOCanonBackend(PythonCanonBackend):
             else:
                 stacked_lhs = lhs_sparse.T
 
-            # Convert to COOTensor
+            # Convert to CoordsTensor
             stacked_compact = self._to_coo_tensor(stacked_lhs)
 
             def rmul_func(compact, p):
@@ -1205,7 +1239,7 @@ class COOCanonBackend(PythonCanonBackend):
             return view
         else:
             # Parametrized B case
-            # lhs is dict {param_id: COOTensor}
+            # lhs is dict {param_id: CoordsTensor}
 
             # Get representative param slice to determine dimensions
             param_id, first_compact = next(iter(lhs.items()))
@@ -1213,14 +1247,14 @@ class COOCanonBackend(PythonCanonBackend):
 
             # Handle 1D case - may need transpose
             if len(lin_op.data.shape) == 1 and arg_cols != lhs_rows:
-                lhs = {k: v.transpose() for k, v in lhs.items()}
+                lhs = {k: v._transpose_helper() for k, v in lhs.items()}
                 param_id, first_compact = next(iter(lhs.items()))
                 lhs_rows = first_compact.m
 
             reps = view.rows // lhs_rows
 
             # Transpose each param slice (B.T)
-            lhs_transposed = {k: v.transpose() for k, v in lhs.items()}
+            lhs_transposed = {k: v._transpose_helper() for k, v in lhs.items()}
 
             # Apply kron expansion if needed
             if reps > 1:
@@ -1252,12 +1286,12 @@ class COOCanonBackend(PythonCanonBackend):
     def reshape_constant_data(constant_data: dict, lin_op_shape: tuple) -> dict:
         """Reshape constant data from column format to required shape.
 
-        The input COOTensor is in column format (m*n, 1). We reshape it
+        The input CoordsTensor is in column format (m*n, 1). We reshape it
         to (m, n) for operations like mul that need the actual shape.
         """
         result = {}
         for k, v in constant_data.items():
-            if isinstance(v, COOTensor):
+            if isinstance(v, CoordsTensor):
                 new_m = lin_op_shape[0] if len(lin_op_shape) > 0 else 1
                 new_n = lin_op_shape[1] if len(lin_op_shape) > 1 else 1
                 # Reshape from column (m*n, 1) to matrix (m, n)
@@ -1268,9 +1302,9 @@ class COOCanonBackend(PythonCanonBackend):
 
     @staticmethod
     def get_stack_func(total_rows: int, offset: int) -> Callable:
-        """Returns a function to extend and shift a COOTensor."""
+        """Returns a function to extend and shift a CoordsTensor."""
         def stack_func(compact, p):
-            return COOTensor(
+            return CoordsTensor(
                 data=compact.data.copy(),
                 row=compact.row + offset,
                 col=compact.col.copy(),
@@ -1281,7 +1315,7 @@ class COOCanonBackend(PythonCanonBackend):
             )
         return stack_func
 
-    def conv(self, lin_op, view: COOTensorView) -> COOTensorView:
+    def conv(self, lin_op, view: CoordsTensorView) -> CoordsTensorView:
         """
         Discrete convolution.
 
@@ -1292,8 +1326,8 @@ class COOCanonBackend(PythonCanonBackend):
         lhs, is_param_free_lhs = self.get_constant_data(lin_op.data, view, column=False)
         assert is_param_free_lhs, "conv doesn't support parametrized kernel"
 
-        # Convert to sparse - may be COOTensor or sparse matrix
-        if isinstance(lhs, COOTensor):
+        # Convert to sparse - may be CoordsTensor or sparse matrix
+        if isinstance(lhs, CoordsTensor):
             lhs_sparse = lhs.to_stacked_sparse().tocoo()
         elif sp.issparse(lhs):
             lhs_sparse = lhs.tocoo()
@@ -1329,7 +1363,7 @@ class COOCanonBackend(PythonCanonBackend):
         view.accumulate_over_variables(conv_func, is_param_free_function=True)
         return view
 
-    def _kron_impl(self, lin_op, view: COOTensorView, const_on_left: bool) -> COOTensorView:
+    def _kron_impl(self, lin_op, view: CoordsTensorView, const_on_left: bool) -> CoordsTensorView:
         """
         Unified Kronecker product implementation.
 
@@ -1343,7 +1377,7 @@ class COOCanonBackend(PythonCanonBackend):
         assert is_param_free, "kron doesn't support parametrized operands"
 
         # Convert constant to sparse
-        if isinstance(const_data, COOTensor):
+        if isinstance(const_data, CoordsTensor):
             const_sparse = const_data.to_stacked_sparse()
         elif sp.issparse(const_data):
             const_sparse = const_data
@@ -1366,20 +1400,20 @@ class COOCanonBackend(PythonCanonBackend):
             else:
                 kron_res = sp.kron(x_sparse, const_sparse).tocsr()
             kron_res = kron_res[row_idx, :]
-            return COOTensor.from_stacked_sparse(kron_res, param_size=1)
+            return CoordsTensor.from_stacked_sparse(kron_res, param_size=1)
 
         view.accumulate_over_variables(kron_func, is_param_free_function=True)
         return view
 
-    def kron_r(self, lin_op, view: COOTensorView) -> COOTensorView:
+    def kron_r(self, lin_op, view: CoordsTensorView) -> CoordsTensorView:
         """Kronecker product kron(a, x) - constant on left."""
         return self._kron_impl(lin_op, view, const_on_left=True)
 
-    def kron_l(self, lin_op, view: COOTensorView) -> COOTensorView:
+    def kron_l(self, lin_op, view: CoordsTensorView) -> CoordsTensorView:
         """Kronecker product kron(x, a) - constant on right."""
         return self._kron_impl(lin_op, view, const_on_left=False)
 
-    def trace(self, lin_op, view: COOTensorView) -> COOTensorView:
+    def trace(self, lin_op, view: CoordsTensorView) -> CoordsTensorView:
         """
         Compute trace - sum of diagonal elements.
 

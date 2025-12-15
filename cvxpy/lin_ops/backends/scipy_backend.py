@@ -21,7 +21,7 @@ import numpy as np
 import scipy.sparse as sp
 
 from cvxpy.lin_ops import LinOp
-from cvxpy.lin_ops.backends import (
+from cvxpy.lin_ops.backends.base import (
     Constant,
     DictTensorView,
     PythonCanonBackend,

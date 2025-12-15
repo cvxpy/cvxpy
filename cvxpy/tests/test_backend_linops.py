@@ -16,7 +16,7 @@ import pytest
 import scipy.sparse as sp
 
 import cvxpy.settings as s
-from cvxpy.lin_ops.backends import CanonBackend, TensorRepresentation
+from cvxpy.lin_ops.backends import TensorRepresentation, get_backend
 
 
 @dataclass
@@ -39,12 +39,11 @@ LINOPS = [
 # All backends to test
 BACKENDS = [
     s.SCIPY_CANON_BACKEND,
-    s.NUMPY_CANON_BACKEND,
     s.COO_CANON_BACKEND,
 ]
 
 
-def make_backend(name: str, **kwargs) -> CanonBackend:
+def make_backend(name: str, **kwargs):
     """Create a backend with standard test configuration."""
     defaults = {
         "id_to_col": {1: 0, 2: 4},
@@ -53,7 +52,7 @@ def make_backend(name: str, **kwargs) -> CanonBackend:
         "param_size_plus_one": 2,
         "var_length": 8,
     }
-    return CanonBackend.get_backend(name, **{**defaults, **kwargs})
+    return get_backend(name, **{**defaults, **kwargs})
 
 
 def to_dense(tr: TensorRepresentation, shape: tuple[int, int]) -> np.ndarray:
