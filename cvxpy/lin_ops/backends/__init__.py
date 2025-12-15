@@ -30,8 +30,8 @@ from cvxpy.lin_ops.backends.base import (
 )
 from cvxpy.lin_ops.backends.coo_backend import (
     COOCanonBackend,
-    CoordsTensor,
-    CoordsTensorView,
+    CooTensor,
+    CooTensorView,
 )
 from cvxpy.lin_ops.backends.rust_backend import RustCanonBackend
 from cvxpy.lin_ops.backends.scipy_backend import (
@@ -88,8 +88,8 @@ __all__ = [
     "SciPyTensorView",
     # COO backend
     "COOCanonBackend",
-    "CoordsTensor",
-    "CoordsTensorView",
+    "CooTensor",
+    "CooTensorView",
     # Rust backend
     "RustCanonBackend",
     # Utility
