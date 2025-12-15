@@ -1082,7 +1082,8 @@ class COOCanonBackend(PythonCanonBackend):
             # Parametrized lhs @ variable rhs - the expensive case
             # Need to apply Kronecker expansion for ND variables
             lhs_shape = lhs.shape
-            lhs_shape_2d = lhs_shape if len(lhs_shape) == 2 else (int(np.prod(lhs_shape)), 1)
+            # For 1D lhs in matmul, treat as row vector (1, size) to match numpy behavior
+            lhs_shape_2d = lhs_shape if len(lhs_shape) == 2 else (1, int(np.prod(lhs_shape)))
             lhs_k = lhs_shape_2d[-1]  # Inner dimension
             reps = view.rows // lhs_k
 
@@ -1150,7 +1151,8 @@ class COOCanonBackend(PythonCanonBackend):
             param_id = lhs.data
             param_size = self.param_to_size[param_id]
             size = int(np.prod(lhs.shape))
-            m, k = lhs.shape if len(lhs.shape) == 2 else (size, 1)
+            # For 1D lhs in matmul, treat as row vector (1, size) to match numpy behavior
+            m, k = lhs.shape if len(lhs.shape) == 2 else (1, size)
 
             # Create CoordsTensor for parameter matrix
             # Parameters are stored in column-major (Fortran) order:

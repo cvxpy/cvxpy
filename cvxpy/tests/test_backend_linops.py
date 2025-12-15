@@ -695,6 +695,39 @@ class TestParametrizedLinops:
                         err_msg=f"{name} differs from {ref_name} at param_offset={p}"
                     )
 
+    @pytest.mark.parametrize("backend_name", BACKENDS)
+    def test_mul_1d_param_1d_var(self, backend_name):
+        """1D parameter @ 1D variable = scalar (dot product).
+
+        Bug regression test: 1D parameters must be treated as row vectors
+        (1, n) not column vectors (n, 1) for correct matrix dimensions.
+        """
+        n = 4
+        backend = make_backend(
+            backend_name,
+            id_to_col={1: 0},
+            param_to_size={-1: 1, 3: n},
+            param_to_col={-1: 0, 3: 1},
+            param_size_plus_one=n + 1,
+            var_length=n,
+        )
+        var = LinOpHelper((n,), type="variable", data=1)
+        view = backend.process_constraint(var, backend.get_empty_view())
+
+        # param (n,) @ x (n,) -> scalar
+        param = LinOpHelper((n,), type="param", data=3)
+        lin_op = LinOpHelper(shape=(), data=param, args=[var])
+        out = backend.mul(lin_op, view)
+
+        # Result is 1 row (scalar output)
+        total_rows = 1
+        tr = out.get_tensor_representation(0, total_rows)
+
+        # Row indices must be within bounds
+        assert len(tr.row) > 0, "Should have non-zero entries"
+        assert tr.row.max() < total_rows, \
+            f"Row index {tr.row.max()} exceeds total_rows {total_rows}"
+
 
 # N-dimensional test shapes (3D and 4D)
 ND_SHAPES = [
