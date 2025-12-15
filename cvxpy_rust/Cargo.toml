@@ -1,0 +1,25 @@
+[package]
+name = "cvxpy_rust"
+version = "0.1.0"
+edition = "2021"
+license = "Apache-2.0"
+description = "Rust canonicalization backend for CVXPY"
+repository = "https://github.com/cvxpy/cvxpy"
+
+[lib]
+name = "cvxpy_rust"
+crate-type = ["cdylib"]
+
+[dependencies]
+pyo3 = { version = "0.27.1", features = ["extension-module"] }
+numpy = "0.27.0"
+ndarray = "0.16"
+sprs = "0.11"
+rayon = "1.10"
+thiserror = "2.0"
+faer = "0.20"
+
+[profile.release]
+lto = true
+codegen-units = 1
+opt-level = 3
