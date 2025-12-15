@@ -168,19 +168,6 @@ class CoordsTensor:
             param_size=param_size
         )
 
-    def to_tensor_representation(self, row_offset: int, col_offset: int,
-                                  param_col_offset: int) -> TensorRepresentation:
-        """Convert to TensorRepresentation format."""
-        # This is now trivial - just add offsets
-        return TensorRepresentation(
-            data=self.data,
-            row=self.row + row_offset,
-            col=self.col + col_offset,
-            parameter_offset=self.param_idx + param_col_offset,
-            # Shape reflects the final matrix dimensions after applying offsets
-            shape=(self.m + row_offset, self.n + col_offset)
-        )
-
     def select_rows(self, rows: np.ndarray) -> CoordsTensor:
         """
         Select and reorder rows from each parameter slice.
@@ -329,10 +316,10 @@ class CoordsTensor:
 
     def __add__(self, other: CoordsTensor) -> CoordsTensor:
         """Add two CoordsTensors (concatenate entries)."""
-        # Allow different n (column counts) - take max
-        # This happens in vstack when combining expressions with different variable counts
         if self.m != other.m:
             raise ValueError(f"Row count mismatch: {self.m} vs {other.m}")
+        if self.n != other.n:
+            raise ValueError(f"Column count mismatch: {self.n} vs {other.n}")
         if self.param_size != other.param_size:
             raise ValueError(f"Param size mismatch: {self.param_size} vs {other.param_size}")
 
@@ -342,7 +329,7 @@ class CoordsTensor:
             col=np.concatenate([self.col, other.col]),
             param_idx=np.concatenate([self.param_idx, other.param_idx]),
             m=self.m,
-            n=max(self.n, other.n),  # Take max column count
+            n=self.n,
             param_size=self.param_size
         )
 
