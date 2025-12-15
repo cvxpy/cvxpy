@@ -12,23 +12,6 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
-
-COO (Coordinate) Backend - 3D sparse tensor backend for large parameter problems.
-
-Instead of storing parameter slices as one stacked matrix of shape (param_size * m, n),
-this stores data in a compact 3D COO format: (data, row, col, param_idx).
-
-This achieves O(nnz) complexity instead of O(param_size * m) for most operations.
-
-Key differences from SciPyTensorView:
-- No stacking: parameter slices are kept separate conceptually
-- Operations are O(nnz) instead of O(rows)
-- get_tensor_representation() is trivial (data already in right format)
-
-Classes:
-- CoordsTensor: 3D sparse COO tensor storage
-- CoordsTensorView: TensorView using CoordsTensor
-- COOCanonBackend: Backend implementation
 """
 from __future__ import annotations
 
@@ -216,7 +199,10 @@ class CoordsTensor:
             return CoordsTensor.empty(new_m, self.n, self.param_size)
 
         # Fast path: no duplicate rows (common case for transpose, reshape, etc.)
-        if len(rows) == len(np.unique(rows)):
+        # Use sort+diff which is ~10x faster than np.unique for checking duplicates
+        sorted_rows = np.sort(rows)
+        has_duplicates = len(rows) > 1 and np.any(np.diff(sorted_rows) == 0)
+        if not has_duplicates:
             return self._select_rows_no_duplicates(rows, new_m)
 
         # General path: handles duplicate rows (needed for broadcasting, etc.)
@@ -658,36 +644,26 @@ def coo_mul_elem(lhs: CoordsTensor, rhs: CoordsTensor) -> CoordsTensor:
             rhs_indptr, rhs_sort_perm = compute_indptr(rhs.row, rhs.m)
             rhs_data_sorted = rhs.data[rhs_sort_perm]
 
-            # For each lhs entry, get the corresponding rhs value at same row
+            # Vectorized: for each lhs entry, check if rhs has an entry at same row
             lhs_rows = lhs.row
+            rhs_starts = rhs_indptr[lhs_rows]
+            rhs_ends = rhs_indptr[lhs_rows + 1]
+            has_match = rhs_ends > rhs_starts  # Boolean mask
 
-            # Check if each lhs row has a matching rhs entry
-            # rhs is column vector, so each row has at most one entry
-            out_data = []
-            out_row = []
-            out_col = []
-            out_param = []
-
-            for i in range(len(lhs.data)):
-                row = lhs_rows[i]
-                start, end = rhs_indptr[row], rhs_indptr[row + 1]
-                if start < end:
-                    # There's an rhs entry at this row
-                    rhs_val = rhs_data_sorted[start]
-                    out_data.append(lhs.data[i] * rhs_val)
-                    out_row.append(lhs.row[i])
-                    out_col.append(lhs.col[i])
-                    out_param.append(lhs.param_idx[i])
-                # If no rhs entry at this row, result is 0 (skip)
-
-            if len(out_data) == 0:
+            if not np.any(has_match):
                 return CoordsTensor.empty(lhs.m, lhs.n, lhs.param_size)
 
+            # Filter to only entries with matching rhs values
+            out_data = lhs.data[has_match] * rhs_data_sorted[rhs_starts[has_match]]
+            out_row = lhs.row[has_match]
+            out_col = lhs.col[has_match]
+            out_param = lhs.param_idx[has_match]
+
             return CoordsTensor(
-                data=np.array(out_data),
-                row=np.array(out_row, dtype=np.int64),
-                col=np.array(out_col, dtype=np.int64),
-                param_idx=np.array(out_param, dtype=np.int64),
+                data=out_data,
+                row=out_row,
+                col=out_col,
+                param_idx=out_param,
                 m=lhs.m,
                 n=lhs.n,
                 param_size=lhs.param_size
