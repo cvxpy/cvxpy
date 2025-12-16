@@ -1,4 +1,4 @@
-name: test_optional_solvers
+name: test_nlp_solvers
 
 on:
   pull_request:
@@ -9,7 +9,7 @@ on:
       - '*'
 
 jobs:
-  test_optional_solvers:
+  test_nlp_solvers:
     runs-on: ${{ matrix.os }}
     defaults:
       run:
@@ -39,7 +39,7 @@ jobs:
           uv run python -c "import cvxpy; print(cvxpy.installed_solvers())" 
       - name: Run test_nlp_solvers
         run : |
-          uv run pytest -rs cvxpy/tests/NLP_tests/.
+          uv run pytest -rs cvxpy/tests/nlp_tests/.
 
     env:
       UV_SYSTEM_PYTHON: 1

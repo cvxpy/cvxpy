@@ -43,4 +43,3 @@ class TestBroadcast():
                     derivative_test='none', verbose=True)
         assert(problem.status == cp.OPTIMAL)
         assert(np.allclose(x.value.flatten(), np.mean(A, axis=1)))
-    
