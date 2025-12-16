@@ -686,8 +686,8 @@ class TestBatchedValueAccess:
         with pytest.raises(cp.error.BatchedValueError):
             _ = prob.objective.value
 
-    def test_expression_value_raises_when_batched(self):
-        """Expression.value raises BatchedValueError when variables are batched."""
+    def test_elementwise_expression_value_batched(self):
+        """Elementwise expressions return batched values correctly."""
         n = 3
         x = cp.Variable(n)
         c = cp.Parameter(n)
@@ -700,14 +700,22 @@ class TestBatchedValueAccess:
 
         prob.solve(solver=BATCH_CLARABEL())
 
-        # Expression involving batched variable should raise
-        expr = cp.sum(x)
-        with pytest.raises(cp.error.BatchedValueError):
-            _ = expr.value
+        # Elementwise expressions should return batched values
+        expr = x + 1
+        val = expr.value
+        assert val.shape == (batch_size, n)
+        np.testing.assert_allclose(val, x.value + 1)
 
-        expr2 = x + 1
-        with pytest.raises(cp.error.BatchedValueError):
-            _ = expr2.value
+        # Test other elementwise operations
+        expr2 = cp.square(x)
+        val2 = expr2.value
+        assert val2.shape == (batch_size, n)
+        np.testing.assert_allclose(val2, np.square(x.value))
+
+        expr3 = cp.abs(x) + cp.square(x)
+        val3 = expr3.value
+        assert val3.shape == (batch_size, n)
+        np.testing.assert_allclose(val3, np.abs(x.value) + np.square(x.value))
 
     def test_parameter_value_batched(self):
         """Parameter.value returns batched array when set with batch=True."""
@@ -762,3 +770,126 @@ class TestBatchedValueAccess:
         # Expression value should also work
         expr = cp.sum(x)
         assert isinstance(expr.value, (int, float, np.floating))
+
+
+class TestBatchedAtomEvaluation:
+    """Comprehensive tests for atom .value evaluation with batched variables."""
+
+    @pytest.fixture
+    def batched_var_1d(self):
+        """1D variable with batch dimension."""
+        x = cp.Variable(4)
+        x._value = np.arange(20).reshape(5, 4).astype(float)
+        x._batch_shape = (5,)
+        return x
+
+    @pytest.fixture
+    def batched_var_2d(self):
+        """2D variable with batch dimension."""
+        y = cp.Variable((3, 4))
+        y._value = np.arange(60).reshape(5, 3, 4).astype(float)
+        y._batch_shape = (5,)
+        return y
+
+    # === Elementwise atoms (should preserve shape, operate element-by-element) ===
+    @pytest.mark.parametrize("atom_fn,np_fn", [
+        (cp.abs, np.abs),
+        (cp.square, np.square),
+        (lambda x: cp.power(cp.abs(x) + 1, 2), lambda x: np.power(np.abs(x) + 1, 2)),
+        (lambda x: cp.sqrt(cp.abs(x)), lambda x: np.sqrt(np.abs(x))),
+        (cp.exp, np.exp),
+        (lambda x: cp.log(cp.abs(x) + 1), lambda x: np.log(np.abs(x) + 1)),
+        (cp.pos, lambda x: np.maximum(x, 0)),
+        (cp.neg, lambda x: np.maximum(-x, 0)),
+        (lambda x: cp.maximum(x, 0), lambda x: np.maximum(x, 0)),
+        (lambda x: cp.minimum(x, 0), lambda x: np.minimum(x, 0)),
+    ])
+    def test_elementwise_atoms(self, batched_var_1d, atom_fn, np_fn):
+        """Elementwise atoms preserve batch dimensions."""
+        x = batched_var_1d
+        expr = atom_fn(x)
+        result = expr.value
+        expected = np_fn(x.value)
+        assert result.shape == expected.shape
+        np.testing.assert_allclose(result, expected, rtol=1e-10)
+
+    # === Axis-based atoms with axis=None (reduce to batch shape) ===
+    @pytest.mark.parametrize("atom_fn,np_fn", [
+        (cp.sum, lambda x: np.sum(x, axis=-1)),
+        (cp.max, lambda x: np.max(x, axis=-1)),
+        (cp.min, lambda x: np.min(x, axis=-1)),
+        (cp.norm, lambda x: np.linalg.norm(x, axis=-1)),
+    ])
+    def test_axis_atoms_reduce_all(self, batched_var_1d, atom_fn, np_fn):
+        """Axis atoms with axis=None reduce over all problem dims."""
+        x = batched_var_1d
+        expr = atom_fn(x)
+        result = expr.value
+        expected = np_fn(x.value)
+        assert result.shape == x.batch_shape, f"Expected {x.batch_shape}, got {result.shape}"
+        np.testing.assert_allclose(result, expected, rtol=1e-10)
+
+    # === Axis-based atoms with specific axis ===
+    @pytest.mark.parametrize("axis,expected_shape", [
+        (0, (5, 4)),  # Reduce over problem axis 0 -> batch + remaining
+        (1, (5, 3)),  # Reduce over problem axis 1 -> batch + remaining
+    ])
+    def test_axis_atoms_specific_axis(self, batched_var_2d, axis, expected_shape):
+        """Axis atoms with specific axis preserve batch dims."""
+        y = batched_var_2d
+        for atom_fn in [cp.sum, cp.max]:
+            expr = atom_fn(y, axis=axis)
+            result = expr.value
+            assert result.shape == expected_shape, f"{atom_fn.__name__} axis={axis}"
+
+    # === Affine operations ===
+    @pytest.mark.parametrize("expr_fn,np_fn", [
+        (lambda x: x + 1, lambda x: x + 1),
+        (lambda x: 2 * x, lambda x: 2 * x),
+        (lambda x: x + x, lambda x: x + x),
+        (lambda x: -x, lambda x: -x),
+        (lambda x: x / 2, lambda x: x / 2),
+    ])
+    def test_affine_operations(self, batched_var_1d, expr_fn, np_fn):
+        """Affine operations preserve batch dimensions."""
+        x = batched_var_1d
+        result = expr_fn(x).value
+        expected = np_fn(x.value)
+        assert result.shape == expected.shape
+        np.testing.assert_allclose(result, expected, rtol=1e-10)
+
+    # === Compound expressions ===
+    def test_compound_expression(self, batched_var_1d):
+        """Compound expressions work with batched values."""
+        x = batched_var_1d
+        expr = cp.sum(cp.square(x)) + cp.max(cp.abs(x))
+        result = expr.value
+        expected = np.sum(np.square(x.value), axis=-1) + np.max(np.abs(x.value), axis=-1)
+        assert result.shape == x.batch_shape
+        np.testing.assert_allclose(result, expected, rtol=1e-10)
+
+    # === Multi-dimensional batch ===
+    def test_multi_batch_dims(self):
+        """Test with multiple batch dimensions."""
+        x = cp.Variable(3)
+        x._value = np.arange(30).reshape(2, 5, 3).astype(float)
+        x._batch_shape = (2, 5)
+
+        result = cp.sum(x).value
+        expected = np.sum(x.value, axis=-1)
+        assert result.shape == (2, 5)
+        np.testing.assert_allclose(result, expected)
+
+        result2 = cp.square(x).value
+        assert result2.shape == (2, 5, 3)
+
+    # === Non-batched still works ===
+    def test_non_batched_unchanged(self):
+        """Non-batched evaluation still works correctly."""
+        x = cp.Variable(3)
+        x._value = np.array([1.0, 2.0, 3.0])
+        x._batch_shape = ()
+
+        assert cp.sum(x).value == 6.0
+        assert cp.max(x).value == 3.0
+        np.testing.assert_array_equal(cp.square(x).value, [1.0, 4.0, 9.0])

@@ -45,7 +45,8 @@ class min(AxisAtom):
     def numeric(self, values):
         """Returns the smallest entry in x.
         """
-        return values[0].min(axis=self.axis, keepdims=self.keepdims)
+        effective_axis = self._get_effective_axis(values[0])
+        return values[0].min(axis=effective_axis, keepdims=self.keepdims)
 
     def _grad(self, values):
         """Gives the (sub/super)gradient of the atom w.r.t. each argument.

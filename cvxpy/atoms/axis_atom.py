@@ -33,6 +33,36 @@ class AxisAtom(Atom):
         self.keepdims = keepdims
         super(AxisAtom, self).__init__(expr)
 
+    def _get_effective_axis(self, value):
+        """Get axis adjusted for batch dimensions in value.
+
+        When evaluating with batched variable values, the value array has
+        extra leading dimensions (batch dimensions). This method adjusts
+        self.axis to account for these extra dimensions.
+
+        Args:
+            value: The numpy array (or scalar) being operated on.
+
+        Returns:
+            The adjusted axis (int, tuple of ints, or None) for use with numpy.
+        """
+        # Handle scalars and 0-d arrays
+        value_ndim = np.ndim(value)
+        arg_ndim = len(self.args[0].shape)
+
+        batch_ndim = value_ndim - arg_ndim
+        if batch_ndim <= 0:
+            return self.axis
+
+        if self.axis is None:
+            # Reduce over all problem dimensions, preserving batch dimensions
+            return tuple(range(batch_ndim, value_ndim))
+        elif isinstance(self.axis, int):
+            return self.axis + batch_ndim
+        else:
+            # Tuple of axes
+            return tuple(a + batch_ndim for a in self.axis)
+
     def shape_from_args(self) -> Tuple[int, ...]:
         """
         Returns the shape of the atom after applying a function along an axis.
