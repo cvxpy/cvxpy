@@ -159,8 +159,19 @@ class Leaf(expression.Expression):
             )
         self.args = []
         self.bounds = self._ensure_valid_bounds(bounds)
+        self._batch_shape: tuple[int, ...] = ()
         if value is not None:
             self.value = value
+
+    @property
+    def batch_shape(self) -> tuple[int, ...]:
+        """Batch dimensions, () if not batched."""
+        return self._batch_shape
+
+    @property
+    def is_batched(self) -> bool:
+        """True if leaf has batch dimensions."""
+        return len(self._batch_shape) > 0
 
     def _validate_indices(self, indices: list[tuple[int]] | tuple[np.ndarray]) -> tuple[np.ndarray]:
         """

@@ -176,6 +176,7 @@ class Problem(u.Canonical):
         self._value = None
         self._status: Optional[str] = None
         self._solution = None
+        self._batch_shape: tuple[int, ...] = ()
         self._cache = Cache()
         self._solver_cache = {}
         # Information about the shape of the problem and its constituent parts
@@ -220,12 +221,50 @@ class Problem(u.Canonical):
             return scalar_value(self._value)
 
     @property
-    def status(self) -> str:
-        """str : The status from the last time the problem was solved; one
-                 of optimal, infeasible, or unbounded (with or without
-                 suffix inaccurate).
+    def status(self):
+        """str or ndarray : The status from the last time the problem was solved.
+
+        For non-batched problems, returns a string (one of optimal, infeasible,
+        or unbounded, with or without suffix inaccurate).
+
+        For batched problems, returns an array of status strings with shape
+        equal to batch_shape.
         """
         return self._status
+
+    @property
+    def batch_shape(self) -> tuple[int, ...]:
+        """Batch dimensions from the last solve, () if not batched."""
+        return self._batch_shape
+
+    @property
+    def is_batched(self) -> bool:
+        """True if the last solve was in batch mode."""
+        return len(self._batch_shape) > 0
+
+    def _compute_batch_shape(self) -> tuple[int, ...]:
+        """Compute the broadcasted batch shape from all batched parameters.
+
+        Returns () if no parameters are batched.
+        Raises ValueError if batch shapes are incompatible.
+        """
+        batch_shapes = []
+        for param in self.parameters():
+            if param.is_batched:
+                batch_shapes.append(param.batch_shape)
+
+        if not batch_shapes:
+            return ()
+
+        # Broadcast all batch shapes using NumPy's broadcasting rules
+        try:
+            result_shape = np.broadcast_shapes(*batch_shapes)
+            return result_shape
+        except ValueError as e:
+            raise ValueError(
+                f"Incompatible batch shapes: {batch_shapes}. "
+                f"Batch shapes must be broadcastable. Error: {e}"
+            )
 
     @property
     def solution(self):

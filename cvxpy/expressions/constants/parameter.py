@@ -40,6 +40,18 @@ class Parameter(Leaf):
     creation is through parameters. For example, you might choose to declare
     the hyper-parameters of a machine learning model to be Parameter objects;
     more generally, Parameters are useful for computing trade-off curves.
+
+    Batch Mode
+    ----------
+    Parameters support batch mode for solving multiple problem instances
+    efficiently. Use ``set_value(arr, batch=True)`` to set batched values
+    where the leading dimensions are batch dimensions::
+
+        param = cp.Parameter((m, n))
+        param.set_value(np.random.randn(batch_size, m, n), batch=True)
+        prob.solve()  # Solves batch_size problems
+
+    The batch shape is inferred from the value shape minus the parameter shape.
     """
     PARAM_COUNT = 0
 
@@ -61,6 +73,62 @@ class Parameter(Leaf):
         self.gradient = None
         super(Parameter, self).__init__(shape, value, **kwargs)
         self._is_constant = True
+
+    def set_value(self, val, batch: bool = False) -> None:
+        """Set parameter value, optionally with batch dimensions.
+
+        Parameters
+        ----------
+        val : array-like
+            The value to assign. If batch=True, leading dimensions are
+            treated as batch dimensions.
+        batch : bool, optional
+            If True, treat leading dimensions as batch dimensions.
+            The batch_shape is inferred as val.shape[:-self.ndim]
+            (or val.shape if self.ndim == 0).
+        """
+        import cvxpy.interface as intf
+
+        if val is None:
+            self._value = None
+            self._batch_shape = ()
+            return
+
+        val = intf.convert(val)
+
+        if batch:
+            # Infer batch shape from the difference in dimensions
+            if self.ndim > 0:
+                if val.ndim < self.ndim:
+                    raise ValueError(
+                        f"Value has {val.ndim} dimensions but parameter has "
+                        f"{self.ndim} dimensions. Cannot infer batch shape."
+                    )
+                self._batch_shape = val.shape[:-self.ndim]
+                problem_shape = val.shape[-self.ndim:]
+            else:
+                # Scalar parameter - all dimensions are batch
+                self._batch_shape = val.shape
+                problem_shape = ()
+
+            # Validate that problem dimensions match
+            if problem_shape != self.shape:
+                raise ValueError(
+                    f"Value has problem shape {problem_shape} but parameter "
+                    f"has shape {self.shape}."
+                )
+            self._value = val
+        else:
+            # Non-batched mode - use standard validation
+            self._batch_shape = ()
+            self.value = val  # Use the property setter for validation
+
+    @Leaf.value.setter
+    def value(self, val) -> None:
+        """Set value without batching (clears batch_shape)."""
+        self._batch_shape = ()
+        # Call parent's save_value with validation
+        self.save_value(self._validate_value(val))
 
     def get_data(self):
         """Returns info needed to reconstruct the expression besides the args.
