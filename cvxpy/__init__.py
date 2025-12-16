@@ -33,6 +33,7 @@ from cvxpy.constraints import (
     FiniteSet as FiniteSet,
 )
 from cvxpy.error import (
+    BatchedValueError as BatchedValueError,
     DCPError as DCPError,
     DGPError as DGPError,
     DPPError as DPPError,

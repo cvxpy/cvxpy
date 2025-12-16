@@ -627,3 +627,138 @@ class TestBatchedSolveEndToEnd:
         # Compare
         np.testing.assert_allclose(prob.value, individual_values, rtol=1e-4)
         np.testing.assert_allclose(x.value, np.array(individual_x), rtol=1e-4)
+
+
+class TestBatchedValueAccess:
+    """Tests for .value behavior with batched variables/parameters."""
+
+    def test_variable_value_batched_shape(self):
+        """Variable.value returns batched array after batched solve."""
+        n = 3
+        x = cp.Variable(n)
+        c = cp.Parameter(n)
+
+        prob = cp.Problem(cp.Minimize(c @ x), [x >= 0, cp.sum(x) == 1])
+
+        batch_size = 5
+        c_vals = np.random.randn(batch_size, n)
+        c.set_value(c_vals, batch=True)
+
+        prob.solve(solver=BATCH_CLARABEL())
+
+        # Variable should have batched values
+        assert x.value.shape == (batch_size, n)
+        assert x.is_batched
+        assert x.batch_shape == (batch_size,)
+
+    def test_problem_value_batched(self):
+        """Problem.value returns batched optimal values."""
+        n = 3
+        x = cp.Variable(n)
+        c = cp.Parameter(n)
+
+        prob = cp.Problem(cp.Minimize(c @ x), [x >= 0, cp.sum(x) == 1])
+
+        batch_size = 5
+        c_vals = np.random.randn(batch_size, n)
+        c.set_value(c_vals, batch=True)
+
+        prob.solve(solver=BATCH_CLARABEL())
+
+        # Problem.value should be batched
+        assert prob.value.shape == (batch_size,)
+
+    def test_objective_value_raises_when_batched(self):
+        """Objective.value raises BatchedValueError when variables are batched."""
+        n = 3
+        x = cp.Variable(n)
+        c = cp.Parameter(n)
+
+        prob = cp.Problem(cp.Minimize(c @ x), [x >= 0, cp.sum(x) == 1])
+
+        batch_size = 5
+        c_vals = np.random.randn(batch_size, n)
+        c.set_value(c_vals, batch=True)
+
+        prob.solve(solver=BATCH_CLARABEL())
+
+        # Objective.value should raise
+        with pytest.raises(cp.error.BatchedValueError):
+            _ = prob.objective.value
+
+    def test_expression_value_raises_when_batched(self):
+        """Expression.value raises BatchedValueError when variables are batched."""
+        n = 3
+        x = cp.Variable(n)
+        c = cp.Parameter(n)
+
+        prob = cp.Problem(cp.Minimize(c @ x), [x >= 0, cp.sum(x) == 1])
+
+        batch_size = 5
+        c_vals = np.random.randn(batch_size, n)
+        c.set_value(c_vals, batch=True)
+
+        prob.solve(solver=BATCH_CLARABEL())
+
+        # Expression involving batched variable should raise
+        expr = cp.sum(x)
+        with pytest.raises(cp.error.BatchedValueError):
+            _ = expr.value
+
+        expr2 = x + 1
+        with pytest.raises(cp.error.BatchedValueError):
+            _ = expr2.value
+
+    def test_parameter_value_batched(self):
+        """Parameter.value returns batched array when set with batch=True."""
+        n = 3
+        c = cp.Parameter(n)
+
+        batch_size = 5
+        c_vals = np.random.randn(batch_size, n)
+        c.set_value(c_vals, batch=True)
+
+        assert c.value.shape == (batch_size, n)
+        assert c.is_batched
+        assert c.batch_shape == (batch_size,)
+
+    def test_dual_variable_value_batched(self):
+        """Dual variable values are batched after batched solve."""
+        n = 3
+        x = cp.Variable(n)
+        c = cp.Parameter(n)
+
+        constraint = x >= 0
+        prob = cp.Problem(cp.Minimize(c @ x), [constraint, cp.sum(x) == 1])
+
+        batch_size = 5
+        c_vals = np.random.randn(batch_size, n)
+        c.set_value(c_vals, batch=True)
+
+        prob.solve(solver=BATCH_CLARABEL())
+
+        # Dual variable should have batched values
+        dual_val = constraint.dual_value
+        assert dual_val.shape == (batch_size, n)
+
+    def test_non_batched_value_still_works(self):
+        """Verify non-batched .value access still works normally."""
+        n = 3
+        x = cp.Variable(n)
+        c = cp.Parameter(n)
+
+        prob = cp.Problem(cp.Minimize(c @ x), [x >= 0, cp.sum(x) == 1])
+
+        # Non-batched solve
+        c.value = np.array([1.0, 2.0, 3.0])
+        prob.solve(solver=cp.CLARABEL)
+
+        # All .value accesses should work
+        assert x.value.shape == (n,)
+        assert not x.is_batched
+        assert isinstance(prob.value, (int, float, np.floating))
+        assert isinstance(prob.objective.value, (int, float, np.floating))
+
+        # Expression value should also work
+        expr = cp.sum(x)
+        assert isinstance(expr.value, (int, float, np.floating))

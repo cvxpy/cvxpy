@@ -1528,13 +1528,15 @@ class Problem(u.Canonical):
             If the solution object has an invalid status
         """
         if solution.has_solution():
+            batch_shape = solution.batch_shape
             for v in self.variables():
-                v.save_value(solution.primal_vars[v.id])
+                v.save_value(solution.primal_vars[v.id], batch_shape=batch_shape)
             for c in self.constraints:
                 if c.id in solution.dual_vars:
-                    c.save_dual_value(solution.dual_vars[c.id])
-            # For batched solves, use solution.opt_val directly.
-            # For non-batched, use self.objective.value to avoid confusion.
+                    c.save_dual_value(solution.dual_vars[c.id], batch_shape=batch_shape)
+            # For batched solves, use solution.opt_val directly since
+            # expression .value doesn't support batched variables.
+            # For non-batched, compute from objective expression.
             if solution.is_batched:
                 self._value = solution.opt_val
             else:

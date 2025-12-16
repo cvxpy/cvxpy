@@ -16,7 +16,7 @@ limitations under the License.
 
 import cvxpy.lin_ops.lin_utils as lu
 import cvxpy.utilities as u
-from cvxpy.error import DCPError
+from cvxpy.error import BatchedValueError, DCPError
 from cvxpy.expressions.expression import Expression
 from cvxpy.interface.matrix_utilities import scalar_value
 from cvxpy.utilities import scopes
@@ -97,7 +97,17 @@ class Objective(u.Canonical):
     @property
     def value(self):
         """The value of the objective expression.
+
+        Raises BatchedValueError if any variable has batched values.
+        For batched problems, use problem.value instead.
         """
+        # Check if any variable is batched
+        for var in self.args[0].variables():
+            if var.is_batched:
+                raise BatchedValueError(
+                    "Cannot compute objective.value when variables have batched values. "
+                    "Use problem.value instead, or access variable values directly."
+                )
         v = self.args[0].value
         if v is None:
             return None

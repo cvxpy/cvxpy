@@ -26,6 +26,7 @@ import cvxpy.lin_ops.lin_utils as lu
 import cvxpy.settings as s
 from cvxpy import interface as intf
 from cvxpy import utilities as u
+from cvxpy.error import BatchedValueError
 from cvxpy.expressions import cvxtypes
 from cvxpy.expressions.constants import Constant
 from cvxpy.expressions.expression import Expression
@@ -397,8 +398,13 @@ class Atom(Expression):
                 arg_val = arg._value_impl()
                 if arg_val is None and not self.is_constant():
                     return None
-                else:
-                    arg_values.append(arg_val)
+                # Check if arg has batched values (more dims than expected)
+                if arg_val is not None and arg_val.ndim > len(arg.shape):
+                    raise BatchedValueError(
+                        "Cannot compute expression.value when variables have batched values. "
+                        "Access variable values directly (e.g., x.value) and compute using numpy."
+                    )
+                arg_values.append(arg_val)
             result = self.numeric(arg_values)
         return result
 

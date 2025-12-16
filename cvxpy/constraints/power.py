@@ -130,14 +130,14 @@ class PowCone3D(Cone):
         # Note: this can be a 3-tuple of x.ndim == 2.
         return s
 
-    def save_dual_value(self, value) -> None:
+    def save_dual_value(self, value, batch_shape=()) -> None:
         value = np.reshape(value, (3, -1))
         dv0 = np.reshape(value[0, :], self.x.shape)
         dv1 = np.reshape(value[1, :], self.y.shape)
         dv2 = np.reshape(value[2, :], self.z.shape)
-        self.dual_variables[0].save_value(dv0)
-        self.dual_variables[1].save_value(dv1)
-        self.dual_variables[2].save_value(dv2)
+        self.dual_variables[0].save_value(dv0, batch_shape=batch_shape)
+        self.dual_variables[1].save_value(dv1, batch_shape=batch_shape)
+        self.dual_variables[2].save_value(dv2, batch_shape=batch_shape)
         # TODO: figure out why the reshaping had to be done differently,
         #   relative to ExpCone constraints.
 
@@ -284,7 +284,7 @@ class PowConeND(Cone):
     def is_dqcp(self) -> bool:
         return self.is_dcp()
 
-    def save_dual_value(self, value) -> None:
+    def save_dual_value(self, value, batch_shape=()) -> None:
         dW = value[:, :-1]
         dz = value[:, -1]
         if self.axis == 0:
@@ -295,8 +295,8 @@ class PowConeND(Cone):
             # (n, 1) --- dropping the extra dimension is crucial for
             # the `_dual_cone` and `dual_residual` methods to work properly
             dW = np.squeeze(dW)
-        self.dual_variables[0].save_value(dW)
-        self.dual_variables[1].save_value(dz)
+        self.dual_variables[0].save_value(dW, batch_shape=batch_shape)
+        self.dual_variables[1].save_value(dz, batch_shape=batch_shape)
 
     def _dual_cone(self, *args):
         """Implements the dual cone of PowConeND See Pg 85

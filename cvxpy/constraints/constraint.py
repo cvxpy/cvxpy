@@ -308,9 +308,10 @@ class Constraint(u.Canonical):
         else:
             return dual_vals
 
-    def save_dual_value(self, value) -> None:
+    def save_dual_value(self, value, batch_shape=()) -> None:
         """Save the value of the dual variable for the constraint's parent.
         Args:
             value: The value of the dual variable.
+            batch_shape: The batch shape for batched problems.
         """
-        self.dual_variables[0].save_value(value)
+        self.dual_variables[0].save_value(value, batch_shape=batch_shape)

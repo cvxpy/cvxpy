@@ -462,7 +462,8 @@ class Leaf(expression.Expression):
             return val
 
     # Getter and setter for parameter value.
-    def save_value(self, val, sparse_path=False) -> None:
+    def save_value(self, val, sparse_path=False, batch_shape=()) -> None:
+        self._batch_shape = batch_shape if val is not None else ()
         if val is None:
             self._value = None
         elif self.sparse_idx is not None and not sparse_path:

@@ -156,15 +156,15 @@ class SOC(Cone):
     def is_dqcp(self) -> bool:
         return self.is_dcp()
 
-    def save_dual_value(self, value) -> None:
+    def save_dual_value(self, value, batch_shape=()) -> None:
         cone_size = 1 + self.args[1].shape[self.axis]
         value = np.reshape(value, (-1, cone_size))
         t = value[:, 0]
         X = value[:, 1:]
         if self.axis == 0:
             X = X.T
-        self.dual_variables[0].save_value(t)
-        self.dual_variables[1].save_value(X)
+        self.dual_variables[0].save_value(t, batch_shape=batch_shape)
+        self.dual_variables[1].save_value(X, batch_shape=batch_shape)
 
     def _dual_cone(self, *args):
         """Implements the dual cone of the second-order cone
