@@ -43,7 +43,6 @@ We'll be happy to provide guidance and advice.
 
 Small scope projects
  - `State required cone types for atoms <https://github.com/cvxpy/cvxpy/issues/574>`_.
- - Introduce sparse variables in constraint formulation.
  - Add QDLDL as another option for sparse Cholesky.
  - Have MOSEK interface choose between solving the primal and the dual [`2107 <https://github.com/cvxpy/cvxpy/issues/2107>`_, `1403 <https://github.com/cvxpy/cvxpy/issues/1403>`_].
 
@@ -52,14 +51,14 @@ Medium scope projects
  - `Vectorize the quad_over_lin atom <https://github.com/cvxpy/cvxpy/issues/1197>`_.
  - `Support for expressions with size zero <https://github.com/cvxpy/cvxpy/issues/1429>`_.
  - Caching computation of lin_ops during matrix stuffing.
+ - Introduce sparse variables in constraint formulation.
  - N-dimensional matmul with broadcasting supported.
  - `Marimo examples (maybe using N-d arrays) <https://github.com/cvxpy/cvxpy/issues/2618>`_.
 
 Large scope projects
  - Problem serialization [`532 <https://github.com/cvxpy/cvxpy/issues/532>`_, `1333 <https://github.com/cvxpy/cvxpy/issues/1333>`_, `1438 <https://github.com/cvxpy/cvxpy/issues/1438>`_].
- - `Support complex parameters in DPP <https://github.com/cvxpy/cvxpy/issues/1666>`_.
  - `Logical boolean operations <https://github.com/cvxpy/cvxpy/issues/1000>`_.
-
+ - Batch support for parameters
 
 General principles
 ------------------
