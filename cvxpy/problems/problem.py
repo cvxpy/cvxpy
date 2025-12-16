@@ -38,7 +38,6 @@ from cvxpy.problems.objective import Maximize, Minimize
 from cvxpy.reductions import InverseData
 from cvxpy.reductions.chain import Chain
 from cvxpy.reductions.cvx_attr2constr import CvxAttr2Constr
-from cvxpy.reductions.dgp2dcp.dgp2dcp import Dgp2Dcp
 from cvxpy.reductions.dnlp2smooth.dnlp2smooth import Dnlp2Smooth
 from cvxpy.reductions.dqcp2dcp import dqcp2dcp
 from cvxpy.reductions.eval_params import EvalParams
