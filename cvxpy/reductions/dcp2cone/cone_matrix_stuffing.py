@@ -198,7 +198,8 @@ class ParamConeProg(ParamProb):
             self.x.attributes['integer']
 
     def apply_parameters(self, id_to_param_value=None, zero_offset: bool = False,
-                         keep_zeros: bool = False, quad_obj: bool = False):
+                         keep_zeros: bool = False, quad_obj: bool = False,
+                         batch_shape: tuple[int, ...] | None = None):
         """Returns A, b after applying parameters (and reshaping).
 
         Args:
@@ -206,31 +207,82 @@ class ParamConeProg(ParamProb):
           zero_offset: (optional) if True, zero out the constant offset in the
                        parameter vector.
           keep_zeros: (optional) if True, store explicit zeros in A where
-                        parameters are affected.
+                        parameters are affected. Only used in non-batched mode.
           quad_obj: (optional) if True, include quadratic objective term.
+          batch_shape: (optional) if provided, returns batched results with
+              dense arrays instead of sparse matrices. Values should have
+              shape (*batch_shape, *param_shape).
+
+        Returns:
+            Non-batched (batch_shape is None):
+                If quad_obj is False: (q, d, A, b) where A is sparse
+                If quad_obj is True: (P, q, d, A, b) where P, A are sparse
+
+            Batched (batch_shape is provided):
+                If quad_obj is False: (q, d, A, b) where
+                    - q: shape (*batch_shape, n_var)
+                    - d: shape (*batch_shape,)
+                    - A: shape (*batch_shape, n_constr, n_var) dense
+                    - b: shape (*batch_shape, n_constr)
+                If quad_obj is True: (P, q, d, A, b) where
+                    - P: shape (*batch_shape, n_var, n_var) dense
         """
-        self.reduced_A.cache(keep_zeros)
-
         def param_value(idx):
-            return (np.array(self.id_to_param[idx].value) if id_to_param_value
-                    is None else id_to_param_value[idx])
+            if id_to_param_value is None:
+                return np.array(self.id_to_param[idx].value)
+            else:
+                return id_to_param_value[idx]
 
-        param_vec = canonInterface.get_parameter_vector(
-            self.total_param_size,
-            self.param_id_to_col,
-            self.param_id_to_size,
-            param_value,
-            zero_offset=zero_offset)
-        q, d = canonInterface.get_matrix_from_tensor(
-            self.q, param_vec, self.x.size, with_offset=True)
-        q = q.toarray().flatten()
-        A, b = self.reduced_A.get_matrix_from_tensor(param_vec, with_offset=True)
-        if quad_obj:
-            self.reduced_P.cache(keep_zeros)
-            P, _ = self.reduced_P.get_matrix_from_tensor(param_vec, with_offset=False)
-            return P, q, d, A, np.atleast_1d(b)
+        if batch_shape is not None and len(batch_shape) > 0:
+            # Batched mode
+            param_vec = canonInterface.get_parameter_vector(
+                self.total_param_size,
+                self.param_id_to_col,
+                self.param_id_to_size,
+                param_value,
+                zero_offset=zero_offset,
+                batch_shape=batch_shape)
+
+            # Get batched q and d from objective tensor
+            q, d = canonInterface.get_matrix_from_tensor_batched(
+                self.q, param_vec, self.x.size, batch_shape, with_offset=True)
+            # q: (*batch_shape, 1, n_var), d: (*batch_shape, 1)
+            # Squeeze out the constraint dimension (objective has 1 "constraint")
+            q = q.squeeze(axis=-2)  # (*batch_shape, n_var)
+            d = d.squeeze(axis=-1)  # (*batch_shape,)
+
+            # Get batched A and b from constraint tensor
+            A, b = canonInterface.get_matrix_from_tensor_batched(
+                self.A, param_vec, self.x.size, batch_shape, with_offset=True)
+            # A: (*batch_shape, n_constr, n_var), b: (*batch_shape, n_constr)
+
+            if quad_obj:
+                P, _ = canonInterface.get_matrix_from_tensor_batched(
+                    self.P, param_vec, self.x.size, batch_shape, with_offset=False)
+                # P: (*batch_shape, n_var, n_var)
+                return P, q, d, A, b
+            else:
+                return q, d, A, b
         else:
-            return q, d, A, np.atleast_1d(b)
+            # Non-batched mode (original behavior)
+            self.reduced_A.cache(keep_zeros)
+
+            param_vec = canonInterface.get_parameter_vector(
+                self.total_param_size,
+                self.param_id_to_col,
+                self.param_id_to_size,
+                param_value,
+                zero_offset=zero_offset)
+            q, d = canonInterface.get_matrix_from_tensor(
+                self.q, param_vec, self.x.size, with_offset=True)
+            q = q.toarray().flatten()
+            A, b = self.reduced_A.get_matrix_from_tensor(param_vec, with_offset=True)
+            if quad_obj:
+                self.reduced_P.cache(keep_zeros)
+                P, _ = self.reduced_P.get_matrix_from_tensor(param_vec, with_offset=False)
+                return P, q, d, A, np.atleast_1d(b)
+            else:
+                return q, d, A, np.atleast_1d(b)
 
     def apply_param_jac(self, delc, delA, delb, active_params=None):
         """Multiplies by Jacobian of parameter mapping.

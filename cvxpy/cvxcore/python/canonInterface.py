@@ -29,8 +29,9 @@ def get_parameter_vector(param_size,
                          param_id_to_col,
                          param_id_to_size,
                          param_id_to_value_fn,
-                         zero_offset: bool = False):
-    """Returns a flattened parameter vector
+                         zero_offset: bool = False,
+                         batch_shape: tuple[int, ...] | None = None):
+    """Returns a flattened parameter vector, optionally batched.
 
     The flattened vector includes a constant offset (i.e, a 1).
 
@@ -39,26 +40,56 @@ def get_parameter_vector(param_size,
         param_size: The number of parameters
         param_id_to_col: A dict from parameter id to column offset
         param_id_to_size: A dict from parameter id to parameter size
-        param_id_to_value_fn: A callable that returns a value for a parameter id
+        param_id_to_value_fn: A callable that returns a value for a parameter id.
+            For batched mode, should return values with shape (*batch_shape, *param_shape).
         zero_offset: (optional) if True, zero out the constant offset in the
                      parameter vector
+        batch_shape: (optional) if provided, create a batched parameter vector.
+                     Can be multi-dimensional, e.g., (5, 10) for 50 batch elements.
 
     Returns
     -------
-        A flattened NumPy array of parameter values, of length param_size + 1
+        A flattened NumPy array of parameter values.
+        - Non-batched: shape (param_size + 1,)
+        - Batched: shape (param_size + 1, *batch_shape)
     """
     #TODO handle parameters with structure.
     if param_size == 0:
         return None
-    param_vec = np.zeros(param_size + 1)
-    for param_id, col in param_id_to_col.items():
-        if param_id == lo.CONSTANT_ID:
-            if not zero_offset:
-                param_vec[col] = 1
-        else:
-            value = param_id_to_value_fn(param_id).flatten(order='F')
-            size = param_id_to_size[param_id]
-            param_vec[col:col + size] = value
+
+    if batch_shape is not None and len(batch_shape) > 0:
+        # Batched mode: param_vec has shape (param_size + 1, *batch_shape)
+        param_vec = np.zeros((param_size + 1,) + batch_shape)
+        for param_id, col in param_id_to_col.items():
+            if param_id == lo.CONSTANT_ID:
+                if not zero_offset:
+                    param_vec[col, ...] = 1
+            else:
+                # Value has shape (*batch_shape, *param_shape)
+                value = param_id_to_value_fn(param_id)
+                size = param_id_to_size[param_id]
+                n_batch_dims = len(batch_shape)
+                param_shape = value.shape[n_batch_dims:]
+
+                # Flatten the param dimensions with F order, keeping batch dims
+                # Move batch dims to end, flatten param dims, move batch back
+                # value: (*batch_shape, *param_shape) -> (size, *batch_shape)
+                value_moved = np.moveaxis(value, range(n_batch_dims), range(-n_batch_dims, 0))
+                # value_moved: (*param_shape, *batch_shape)
+                value_flat = value_moved.reshape((-1,) + batch_shape, order='F')
+                # value_flat: (size, *batch_shape)
+                param_vec[col:col + size, ...] = value_flat
+    else:
+        # Non-batched mode (original behavior)
+        param_vec = np.zeros(param_size + 1)
+        for param_id, col in param_id_to_col.items():
+            if param_id == lo.CONSTANT_ID:
+                if not zero_offset:
+                    param_vec[col] = 1
+            else:
+                value = param_id_to_value_fn(param_id).flatten(order='F')
+                size = param_id_to_size[param_id]
+                param_vec[col:col + size] = value
     return param_vec
 
 
@@ -243,6 +274,70 @@ def get_matrix_from_tensor(problem_data_tensor, param_vec,
         A_cols = np.append(A_cols, nonzero_rows // A_nrows)
         A = sp.csc_array((A_vals, (A_rows, A_cols)),
                                     shape=A.shape)
+
+    return (A, b)
+
+
+def get_matrix_from_tensor_batched(problem_data_tensor, param_vec,
+                                   var_length, batch_shape,
+                                   with_offset=True):
+    """Applies problem_data_tensor to batched param_vec to obtain batched matrices.
+
+    This function applies problem_data_tensor to a batched param_vec to obtain
+    batched matrix representations of the corresponding affine map.
+
+    Parameters
+    ----------
+        problem_data_tensor: tensor returned from get_problem_matrix,
+            representing a parameterized affine map. Shape (m, param_size+1).
+        param_vec: batched parameter vector with shape (param_size+1, *batch_shape)
+        var_length: the number of variables
+        batch_shape: tuple of batch dimensions
+        with_offset: (optional) return offset. Defaults to True.
+
+    Returns
+    -------
+        A tuple (A, b), where:
+        - A is a dense array with shape (*batch_shape, n_constr, var_length)
+        - b is a dense array with shape (*batch_shape, n_constr)
+        If with_offset=False, returned b is None.
+    """
+    # problem_data_tensor: (m, param_size+1) where m = n_constr * (n_var + 1)
+    # param_vec: (param_size+1, *batch_shape)
+    # Result of matmul: (m, *batch_shape)
+
+    n_cols = var_length
+    if with_offset:
+        n_cols += 1
+
+    n_constr = problem_data_tensor.shape[0] // n_cols
+
+    # Compute flat_problem_data: (m, *batch_shape)
+    # Use tensordot for sparse @ dense with batch dims
+    # problem_data_tensor @ param_vec contracts over axis 1 of tensor and axis 0 of param_vec
+    flat_problem_data = problem_data_tensor @ param_vec.reshape(param_vec.shape[0], -1)
+    # flat_problem_data: (m, prod(batch_shape))
+
+    # Reshape to (n_constr, n_cols, prod(batch_shape)) using F order for the first reshape
+    # Then move batch dims to front
+    n_batch = int(np.prod(batch_shape))
+    # Reshape: (m, n_batch) -> (n_constr, n_cols, n_batch) with F order on first two dims
+    M = flat_problem_data.reshape((n_constr, n_cols, n_batch), order='F')
+    # M: (n_constr, n_cols, n_batch)
+
+    # Move batch to front: (n_batch, n_constr, n_cols)
+    M = np.moveaxis(M, 2, 0)
+
+    # Reshape batch dims back to original shape
+    M = M.reshape(batch_shape + (n_constr, n_cols))
+    # M: (*batch_shape, n_constr, n_cols)
+
+    if with_offset:
+        A = M[..., :-1]  # (*batch_shape, n_constr, var_length)
+        b = M[..., -1]   # (*batch_shape, n_constr)
+    else:
+        A = M
+        b = None
 
     return (A, b)
 

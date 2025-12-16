@@ -222,3 +222,148 @@ class TestProblemBatchShape:
 
         # Only A is batched, so batch shape is (10,)
         assert prob._compute_batch_shape() == (10,)
+
+
+class TestSolverBatchCapable:
+    """Tests for the BATCH_CAPABLE solver flag."""
+
+    def test_solver_batch_capable_default_false(self):
+        """Test that Solver.BATCH_CAPABLE is False by default."""
+        from cvxpy.reductions.solvers.solver import Solver
+        assert Solver.BATCH_CAPABLE is False
+
+
+class TestBatchedCanonInterface:
+    """Tests for batched canonInterface functions."""
+
+    def test_get_parameter_vector_batched_1d(self):
+        """Test get_parameter_vector with 1D batch shape."""
+        from cvxpy.cvxcore.python import canonInterface
+        from cvxpy.lin_ops.lin_op import CONSTANT_ID
+
+        batch_shape = (10,)
+        param_size = 6  # e.g., a (2, 3) parameter
+
+        # Mock param_id_to_col: one param at col 0, constant at col 6
+        param_id_to_col = {1: 0, CONSTANT_ID: 6}
+        param_id_to_size = {1: 6}
+
+        # Batched values: shape (10, 2, 3)
+        batched_values = {1: np.random.randn(10, 2, 3)}
+
+        def param_value_fn(idx):
+            return batched_values[idx]
+
+        param_vec = canonInterface.get_parameter_vector(
+            param_size, param_id_to_col, param_id_to_size,
+            param_value_fn, batch_shape=batch_shape
+        )
+
+        # Should be shape (param_size + 1, *batch_shape) = (7, 10)
+        assert param_vec.shape == (7, 10)
+        # Constant offset should be 1
+        assert np.all(param_vec[6, :] == 1)
+
+    def test_get_parameter_vector_batched_2d(self):
+        """Test get_parameter_vector with 2D batch shape."""
+        from cvxpy.cvxcore.python import canonInterface
+        from cvxpy.lin_ops.lin_op import CONSTANT_ID
+
+        batch_shape = (5, 4)
+        param_size = 3
+
+        param_id_to_col = {1: 0, CONSTANT_ID: 3}
+        param_id_to_size = {1: 3}
+
+        # Batched values: shape (5, 4, 3)
+        batched_values = {1: np.random.randn(5, 4, 3)}
+
+        def param_value_fn(idx):
+            return batched_values[idx]
+
+        param_vec = canonInterface.get_parameter_vector(
+            param_size, param_id_to_col, param_id_to_size,
+            param_value_fn, batch_shape=batch_shape
+        )
+
+        # Should be shape (param_size + 1, *batch_shape) = (4, 5, 4)
+        assert param_vec.shape == (4, 5, 4)
+        # Constant offset should be 1
+        assert np.all(param_vec[3, :, :] == 1)
+
+
+class TestBatchedApplyParameters:
+    """Tests for ParamConeProg.apply_parameters with batch_shape."""
+
+    def test_apply_parameters_batched_matches_single(self):
+        """Test that batched results match individual apply_parameters calls."""
+        n = 2
+        x = cp.Variable(n)
+        c = cp.Parameter(n)
+
+        prob = cp.Problem(cp.Minimize(c @ x), [x >= 0])
+
+        # First set non-batched values to get problem data
+        c_vals = np.array([[1.0, 2.0], [3.0, 4.0], [5.0, 6.0]])
+        c.value = c_vals[0]
+
+        # Get problem data (this triggers canonicalization and caches ParamConeProg)
+        prob.get_problem_data(solver=cp.SCS)
+
+        # ParamConeProg is cached in prob._cache.param_prog
+        param_cone_prog = prob._cache.param_prog
+        if param_cone_prog is None:
+            pytest.skip("Could not find ParamConeProg")
+
+        # Now set batched values and test apply_parameters with batch_shape
+        batch_shape = (3,)
+        c.set_value(c_vals, batch=True)
+
+        # Get batched result
+        q_batch, d_batch, A_batch, b_batch = param_cone_prog.apply_parameters(
+            batch_shape=batch_shape
+        )
+
+        # Compare with individual calls
+        for i in range(3):
+            c.value = c_vals[i]
+            q_single, d_single, A_single, b_single = param_cone_prog.apply_parameters()
+
+            np.testing.assert_allclose(q_batch[i], q_single, rtol=1e-10)
+            np.testing.assert_allclose(d_batch[i], d_single, rtol=1e-10)
+            np.testing.assert_allclose(A_batch[i], A_single.toarray(), rtol=1e-10)
+            np.testing.assert_allclose(b_batch[i], b_single, rtol=1e-10)
+
+    def test_apply_parameters_batched_2d_batch(self):
+        """Test apply_parameters with 2D batch shape."""
+        n = 2
+        x = cp.Variable(n)
+        c = cp.Parameter(n)
+
+        prob = cp.Problem(cp.Minimize(c @ x), [x >= 0])
+
+        # First set non-batched values
+        c.value = np.array([1.0, 2.0])
+
+        # Get problem data (triggers canonicalization)
+        prob.get_problem_data(solver=cp.SCS)
+
+        param_cone_prog = prob._cache.param_prog
+        if param_cone_prog is None:
+            pytest.skip("Could not find ParamConeProg")
+
+        # Set 2D batched values
+        batch_shape = (3, 4)
+        c_vals = np.random.randn(3, 4, n)
+        c.set_value(c_vals, batch=True)
+
+        # Get batched result
+        q_batch, d_batch, A_batch, b_batch = param_cone_prog.apply_parameters(
+            batch_shape=batch_shape
+        )
+
+        # Check shapes
+        assert q_batch.shape == (3, 4, param_cone_prog.x.size)
+        assert d_batch.shape == (3, 4)
+        assert A_batch.shape == (3, 4, param_cone_prog.constr_size, param_cone_prog.x.size)
+        assert b_batch.shape == (3, 4, param_cone_prog.constr_size)
