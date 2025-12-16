@@ -41,7 +41,8 @@ class cumprod(AffAtom, AxisAtom):
         """
         Returns the cumulative product of the elements of the expression.
         """
-        return np.cumprod(values[0], axis=self.axis)
+        effective_axis = self._get_effective_axis(values[0])
+        return np.cumprod(values[0], axis=effective_axis)
 
     def shape_from_args(self) -> Tuple[int, ...]:
         """The same as the input."""

@@ -87,7 +87,15 @@ class index(AffAtom):
 
     def numeric(self, values):
         """Returns the index/slice into the given value."""
-        return values[0][self._orig_key]
+        val = values[0]
+        # Handle batched values: prepend slice(None) for each batch dimension
+        batch_ndim = np.ndim(val) - len(self.args[0].shape)
+        if batch_ndim > 0:
+            # Prepend : for each batch dimension to preserve them
+            batch_slices = (slice(None),) * batch_ndim
+            key = self._orig_key if isinstance(self._orig_key, tuple) else (self._orig_key,)
+            return val[batch_slices + key]
+        return val[self._orig_key]
 
     def shape_from_args(self) -> Tuple[int, ...]:
         """Returns the shape of the index expression."""
@@ -160,7 +168,14 @@ class special_index(AffAtom):
     def numeric(self, values):
         """Returns the index/slice into the given value.
         """
-        return values[0][self.key]
+        val = values[0]
+        # Handle batched values: prepend slice(None) for each batch dimension
+        batch_ndim = np.ndim(val) - len(self.args[0].shape)
+        if batch_ndim > 0:
+            batch_slices = (slice(None),) * batch_ndim
+            key = self.key if isinstance(self.key, tuple) else (self.key,)
+            return val[batch_slices + key]
+        return val[self.key]
 
     def shape_from_args(self) -> Tuple[int, ...]:
         """Returns the shape of the index expression."""

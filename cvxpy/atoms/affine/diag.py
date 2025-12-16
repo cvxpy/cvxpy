@@ -85,7 +85,22 @@ class diag_vec(AffAtom):
     def numeric(self, values):
         """Convert the vector constant into a diagonal matrix.
         """
-        return np.diag(values[0], k=self.k)
+        val = values[0]
+        # Handle batched values: create diagonal matrices for each batch element
+        batch_ndim = np.ndim(val) - len(self.args[0].shape)
+        if batch_ndim > 0:
+            batch_shape = val.shape[:-1]
+            vec_len = val.shape[-1]
+            n = vec_len + abs(self.k)
+            result = np.zeros(batch_shape + (n, n), dtype=val.dtype)
+            # Set diagonal entries using advanced indexing
+            diag_indices = np.arange(vec_len)
+            if self.k >= 0:
+                result[..., diag_indices, diag_indices + self.k] = val
+            else:
+                result[..., diag_indices - self.k, diag_indices] = val
+            return result
+        return np.diag(val, k=self.k)
 
     def shape_from_args(self) -> Tuple[int, int]:
         """A square matrix.
@@ -167,7 +182,12 @@ class diag_mat(AffAtom):
     @AffAtom.numpy_numeric
     def numeric(self, values) -> np.ndarray:
         """Extract the diagonal from a square matrix constant."""
-        return np.diag(values[0], k=self.k)
+        val = values[0]
+        # Handle batched values: extract diagonal along last two axes
+        batch_ndim = np.ndim(val) - len(self.args[0].shape)
+        if batch_ndim > 0:
+            return np.diagonal(val, offset=self.k, axis1=-2, axis2=-1)
+        return np.diag(val, k=self.k)
 
     def shape_from_args(self) -> Tuple[int]:
         """A column vector."""

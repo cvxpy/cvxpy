@@ -32,7 +32,8 @@ class cummax(AxisAtom):
     def numeric(self, values):
         """Returns the largest entry in x.
         """
-        return np.maximum.accumulate(values[0], axis=self.axis)
+        effective_axis = self._get_effective_axis(values[0])
+        return np.maximum.accumulate(values[0], axis=effective_axis)
 
     def shape_from_args(self) -> Tuple[int, ...]:
         """The same as the input.

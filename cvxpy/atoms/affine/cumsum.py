@@ -68,7 +68,8 @@ class cumsum(AffAtom, AxisAtom):
         """
         Returns the cumulative sum of elements of an expression over an axis.
         """
-        return np.cumsum(values[0], axis=self.axis)
+        effective_axis = self._get_effective_axis(values[0])
+        return np.cumsum(values[0], axis=effective_axis)
 
     def validate_arguments(self):
         if self.args[0].ndim > 2:

@@ -883,6 +883,67 @@ class TestBatchedAtomEvaluation:
         result2 = cp.square(x).value
         assert result2.shape == (2, 5, 3)
 
+    # === Reshape/Transpose ===
+    def test_reshape(self):
+        """Reshape preserves batch dimensions."""
+        x = cp.Variable(6)
+        x._value = np.arange(30).reshape(5, 6).astype(float)
+        x._batch_shape = (5,)
+
+        result = cp.reshape(x, (2, 3), order='F').value
+        assert result.shape == (5, 2, 3)
+        # Verify each batch is reshaped correctly
+        for i in range(5):
+            expected = x.value[i].reshape(2, 3, order='F')
+            np.testing.assert_allclose(result[i], expected)
+
+    def test_transpose(self, batched_var_2d):
+        """Transpose preserves batch dimensions."""
+        y = batched_var_2d  # shape (5, 3, 4)
+        result = y.T.value
+        assert result.shape == (5, 4, 3)
+        np.testing.assert_allclose(result, np.transpose(y.value, axes=(0, 2, 1)))
+
+    def test_trace(self):
+        """Trace preserves batch dimensions."""
+        y = cp.Variable((3, 3))
+        y._value = np.arange(45).reshape(5, 3, 3).astype(float)
+        y._batch_shape = (5,)
+
+        result = cp.trace(y).value
+        assert result.shape == (5,)
+        expected = np.trace(y.value, axis1=1, axis2=2)
+        np.testing.assert_allclose(result, expected)
+
+    # === Indexing/slicing ===
+    def test_indexing_1d(self, batched_var_1d):
+        """Indexing preserves batch dimensions for 1D variables."""
+        x = batched_var_1d
+        # Single index
+        result = x[0].value
+        assert result.shape == (5,)
+        np.testing.assert_allclose(result, x.value[:, 0])
+        # Slice
+        result = x[1:3].value
+        assert result.shape == (5, 2)
+        np.testing.assert_allclose(result, x.value[:, 1:3])
+
+    def test_indexing_2d(self, batched_var_2d):
+        """Indexing preserves batch dimensions for 2D variables."""
+        y = batched_var_2d
+        # Row index
+        result = y[0, :].value
+        assert result.shape == (5, 4)
+        np.testing.assert_allclose(result, y.value[:, 0, :])
+        # Column index
+        result = y[:, 0].value
+        assert result.shape == (5, 3)
+        np.testing.assert_allclose(result, y.value[:, :, 0])
+        # Slice both
+        result = y[1:3, 2:4].value
+        assert result.shape == (5, 2, 2)
+        np.testing.assert_allclose(result, y.value[:, 1:3, 2:4])
+
     # === Non-batched still works ===
     def test_non_batched_unchanged(self):
         """Non-batched evaluation still works correctly."""
@@ -893,3 +954,170 @@ class TestBatchedAtomEvaluation:
         assert cp.sum(x).value == 6.0
         assert cp.max(x).value == 3.0
         np.testing.assert_array_equal(cp.square(x).value, [1.0, 4.0, 9.0])
+
+    # === Matrix atoms: diag, upper_tri ===
+    def test_diag_mat(self):
+        """diag(matrix) extracts diagonal with batch dimensions preserved."""
+        y = cp.Variable((3, 3))
+        y._value = np.arange(45).reshape(5, 3, 3).astype(float)
+        y._batch_shape = (5,)
+
+        # Extract main diagonal
+        result = cp.diag(y).value
+        assert result.shape == (5, 3), f"Expected (5, 3), got {result.shape}"
+        expected = np.diagonal(y.value, axis1=-2, axis2=-1)
+        np.testing.assert_allclose(result, expected)
+
+    def test_diag_mat_offset(self):
+        """diag(matrix, k) extracts k-th diagonal with batch dimensions."""
+        y = cp.Variable((4, 4))
+        y._value = np.arange(80).reshape(5, 4, 4).astype(float)
+        y._batch_shape = (5,)
+
+        # Superdiagonal (k=1)
+        result = cp.diag(y, k=1).value
+        assert result.shape == (5, 3)
+        expected = np.diagonal(y.value, offset=1, axis1=-2, axis2=-1)
+        np.testing.assert_allclose(result, expected)
+
+        # Subdiagonal (k=-1)
+        result = cp.diag(y, k=-1).value
+        assert result.shape == (5, 3)
+        expected = np.diagonal(y.value, offset=-1, axis1=-2, axis2=-1)
+        np.testing.assert_allclose(result, expected)
+
+    def test_diag_vec(self):
+        """diag(vector) creates diagonal matrix with batch dimensions."""
+        x = cp.Variable(3)
+        x._value = np.arange(15).reshape(5, 3).astype(float)
+        x._batch_shape = (5,)
+
+        result = cp.diag(x).value
+        assert result.shape == (5, 3, 3), f"Expected (5, 3, 3), got {result.shape}"
+        # Verify each batch element
+        for i in range(5):
+            expected = np.diag(x.value[i])
+            np.testing.assert_allclose(result[i], expected)
+
+    def test_diag_vec_offset(self):
+        """diag(vector, k) creates k-th diagonal matrix with batch dimensions."""
+        x = cp.Variable(3)
+        x._value = np.arange(15).reshape(5, 3).astype(float)
+        x._batch_shape = (5,)
+
+        # Superdiagonal
+        result = cp.diag(x, k=1).value
+        assert result.shape == (5, 4, 4)
+        for i in range(5):
+            expected = np.diag(x.value[i], k=1)
+            np.testing.assert_allclose(result[i], expected)
+
+        # Subdiagonal
+        result = cp.diag(x, k=-1).value
+        assert result.shape == (5, 4, 4)
+        for i in range(5):
+            expected = np.diag(x.value[i], k=-1)
+            np.testing.assert_allclose(result[i], expected)
+
+    def test_upper_tri(self):
+        """upper_tri preserves batch dimensions."""
+        y = cp.Variable((4, 4))
+        y._value = np.arange(80).reshape(5, 4, 4).astype(float)
+        y._batch_shape = (5,)
+
+        result = cp.upper_tri(y).value
+        # Upper triangular entries: n*(n-1)/2 = 4*3/2 = 6
+        # Shape from upper_tri is (6, 1), so batched is (5, 6, 1)
+        assert result.shape == (5, 6, 1) or result.shape == (5, 6), \
+            f"Expected (5, 6, 1) or (5, 6), got {result.shape}"
+        # Verify values
+        upper_idx = np.triu_indices(n=4, k=1)
+        expected = y.value[..., upper_idx[0], upper_idx[1]]
+        np.testing.assert_allclose(result.squeeze(), expected)
+
+    # === Additional axis-based atoms ===
+    def test_cumsum(self):
+        """cumsum preserves batch dimensions."""
+        y = cp.Variable((3, 4))
+        y._value = np.arange(60).reshape(5, 3, 4).astype(float)
+        y._batch_shape = (5,)
+
+        # cumsum along axis 0 (rows)
+        result = cp.cumsum(y, axis=0).value
+        assert result.shape == (5, 3, 4)
+        expected = np.cumsum(y.value, axis=1)  # axis offset by batch dim
+        np.testing.assert_allclose(result, expected)
+
+        # cumsum along axis 1 (cols)
+        result = cp.cumsum(y, axis=1).value
+        assert result.shape == (5, 3, 4)
+        expected = np.cumsum(y.value, axis=2)
+        np.testing.assert_allclose(result, expected)
+
+    def test_cummax(self):
+        """cummax preserves batch dimensions."""
+        x = cp.Variable(4)
+        x._value = np.array([[3, 1, 4, 1], [2, 7, 1, 8], [5, 9, 2, 6]]).astype(float)
+        x._batch_shape = (3,)
+
+        result = cp.atoms.cummax(x).value
+        assert result.shape == (3, 4)
+        expected = np.maximum.accumulate(x.value, axis=1)
+        np.testing.assert_allclose(result, expected)
+
+    def test_norm1(self):
+        """norm1 preserves batch dimensions."""
+        x = cp.Variable(4)
+        x._value = np.arange(20).reshape(5, 4).astype(float)
+        x._batch_shape = (5,)
+
+        # axis=None reduces to batch shape
+        result = cp.norm1(x).value
+        assert result.shape == (5,)
+        expected = np.linalg.norm(x.value, 1, axis=-1)
+        np.testing.assert_allclose(result, expected)
+
+    def test_norm_inf(self):
+        """norm_inf preserves batch dimensions."""
+        x = cp.Variable(4)
+        x._value = np.arange(20).reshape(5, 4).astype(float)
+        x._batch_shape = (5,)
+
+        result = cp.norm_inf(x).value
+        assert result.shape == (5,)
+        expected = np.linalg.norm(x.value, np.inf, axis=-1)
+        np.testing.assert_allclose(result, expected)
+
+    def test_log_sum_exp(self):
+        """log_sum_exp preserves batch dimensions."""
+        x = cp.Variable(4)
+        x._value = np.arange(20).reshape(5, 4).astype(float) / 10  # Scale down
+        x._batch_shape = (5,)
+
+        from scipy.special import logsumexp
+        result = cp.log_sum_exp(x).value
+        assert result.shape == (5,)
+        expected = logsumexp(x.value, axis=-1)
+        np.testing.assert_allclose(result, expected)
+
+    def test_prod(self):
+        """prod preserves batch dimensions."""
+        x = cp.Variable(3)
+        x._value = np.array([[1, 2, 3], [2, 3, 4], [1, 1, 2]]).astype(float)
+        x._batch_shape = (3,)
+
+        result = cp.prod(x).value
+        assert result.shape == (3,)
+        expected = np.prod(x.value, axis=-1)
+        np.testing.assert_allclose(result, expected)
+
+    def test_cumprod(self):
+        """cumprod preserves batch dimensions."""
+        x = cp.Variable(4)
+        x._value = np.array([[1, 2, 3, 4], [2, 2, 2, 2]]).astype(float)
+        x._batch_shape = (2,)
+
+        result = cp.atoms.cumprod(x).value
+        assert result.shape == (2, 4)
+        expected = np.cumprod(x.value, axis=-1)
+        np.testing.assert_allclose(result, expected)

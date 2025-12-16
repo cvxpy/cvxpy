@@ -57,8 +57,15 @@ class upper_tri(AffAtom):
         """
         Vectorize the strictly upper triangular entries.
         """
-        upper_idx = np.triu_indices(n=values[0].shape[0], k=1, m=values[0].shape[1])
-        return values[0][upper_idx]
+        val = values[0]
+        # Handle batched values: extract upper triangular from last two dimensions
+        batch_ndim = np.ndim(val) - len(self.args[0].shape)
+        if batch_ndim > 0:
+            n = val.shape[-2]
+            upper_idx = np.triu_indices(n=n, k=1, m=val.shape[-1])
+            return val[..., upper_idx[0], upper_idx[1]]
+        upper_idx = np.triu_indices(n=val.shape[0], k=1, m=val.shape[1])
+        return val[upper_idx]
 
     def validate_arguments(self) -> None:
         """Checks that the argument is a square matrix.

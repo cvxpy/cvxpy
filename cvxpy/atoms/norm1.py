@@ -28,11 +28,20 @@ class norm1(AxisAtom):
     def numeric(self, values):
         """Returns the one norm of x.
         """
+        val = np.array(values[0])
         if self.axis is None:
-            values = np.array(values[0]).flatten()
+            # Handle batched values: flatten only problem dimensions
+            batch_ndim = val.ndim - len(self.args[0].shape)
+            if batch_ndim > 0:
+                batch_shape = val.shape[:batch_ndim]
+                val = val.reshape(batch_shape + (-1,))
+                return np.linalg.norm(val, 1, axis=-1, keepdims=self.keepdims)
+            else:
+                val = val.flatten()
+                return np.linalg.norm(val, 1, keepdims=self.keepdims)
         else:
-            values = np.array(values[0])
-        return np.linalg.norm(values, 1, axis=self.axis, keepdims=self.keepdims)
+            effective_axis = self._get_effective_axis(val)
+            return np.linalg.norm(val, 1, axis=effective_axis, keepdims=self.keepdims)
 
     def sign_from_args(self) -> Tuple[bool, bool]:
         """Returns sign (is positive, is negative) of the expression.

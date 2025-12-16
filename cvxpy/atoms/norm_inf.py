@@ -28,14 +28,24 @@ class norm_inf(AxisAtom):
     def numeric(self, values):
         """Returns the inf norm of x.
         """
-        if self.axis is None:
-            if sp.issparse(values[0]):
-                values = values[0].toarray().flatten()
-            else:
-                values = np.array(values[0]).flatten()
+        if sp.issparse(values[0]):
+            val = values[0].toarray()
         else:
-            values = np.array(values[0])
-        return np.linalg.norm(values, np.inf, axis=self.axis, keepdims=self.keepdims)
+            val = np.array(values[0])
+
+        if self.axis is None:
+            # Handle batched values: flatten only problem dimensions
+            batch_ndim = val.ndim - len(self.args[0].shape)
+            if batch_ndim > 0:
+                batch_shape = val.shape[:batch_ndim]
+                val = val.reshape(batch_shape + (-1,))
+                return np.linalg.norm(val, np.inf, axis=-1, keepdims=self.keepdims)
+            else:
+                val = val.flatten()
+                return np.linalg.norm(val, np.inf, keepdims=self.keepdims)
+        else:
+            effective_axis = self._get_effective_axis(val)
+            return np.linalg.norm(val, np.inf, axis=effective_axis, keepdims=self.keepdims)
 
     def sign_from_args(self) -> Tuple[bool, bool]:
         """Returns sign (is positive, is negative) of the expression.
